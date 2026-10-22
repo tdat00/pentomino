@@ -125,3 +125,26 @@ Exercise a residual split into valid components, an impossible subset-sum residu
 ## Definition of done & handoff
 
 T10 receives complete witnesses and deterministic set finalization. Record the recipe schema `{boardRows,levelId,k?,seedText}` and expected successful geometry; never rely on prototype output or wall-clock thresholds.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done |
+| Start | 2026-10-22 20:22:56 (+07:00) |
+| End | 2026-10-22 20:29:19 (+07:00) |
+| Duration | 6 min 23 s |
+| Model | claude-sonnet-5.5 (sub-agent `T08-carving`, general-purpose); ran in parallel with T09, T11 |
+| Token usage | 24 model calls; 1,992,394 input (1,894,313 cache read), 49,896 output |
+| AI credits | 93.36 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\carve.test.js` → 39 pass / 0 fail (~2.3 s, no slow tests); `npm run test:quick` at agent finish 283 pass / 0 fail; `check-conventions` OK.
+
+**Acceptance:** BAC-1..3 and TAC-1..5 pass. 50 seeds × {10×6, 10×8, Heart-75, Ring-60, 20×18/hard} × {flat, macro}: all 50 seeds carve on every board (threshold ≥ 45). 10 recorded recipes in `tests\fixtures\carving-recipes.json` reproduce. Hook-injected failures prove a new partition restarts from clean state (`used`=0, no pieces, `smallLeft`=⌊0.4K⌋). `validateSet` detects every listed defect class.
+
+**Issues & resolutions:**
+- Some Ring-60 macro runs produced a single-part partition (equivalent to a flat carve); `carveMacro` now skips partitions with fewer than two parts. Small deviation from the literal spec, consistent with the macro intent.
+- An initial allocation test used K=7 with 4 parts (correctly rejected: needs K ≥ 8); test fixed.
+- Shared-file edit: `core\engine\policy.js` now exports `defaultAvail` (one-word, backward-compatible).
+
+**Handoff:** `carve.js` → `carveFlat`, `carveFlatSet(board, k, rng, budgets?)`, `macroPartition`, `allocateCounts(areas, k)`, `carveMacro(b, k, rng, budgets?, hooks?)`, `finalizeSet`, `validateSet` (returns `[]` when valid; generated sets get policy checks, `carving:'imported'` only structural checks). Regions are ascending board indices (`y*width+x`). Budget keys: `carveSteps`, `carveTries`, `sizePlans`, `macroPartitions`, `macroSteps` (partial of `BUDGETS`). T10 RNG stream: `createRng(seed, 'set/j').derive('flat'|'macro')`. Recipe schema `{name, boardRows, levelId, k?, seedText, mode, expect:{carving, pieces, sizes}}`.

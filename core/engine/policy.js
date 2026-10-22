@@ -89,7 +89,7 @@ const COUNT_EXPONENT = 0.28;
 const SHAPES = [0, 0, 0, 2, 5, 12, 35, 107, 363, 1248, 4460];
 
 /** @param {number} size */
-const defaultAvail = (size) => (size < 3 ? 0 : size < SHAPES.length ? SHAPES[size] : Infinity);
+export const defaultAvail = (size) => (size < 3 ? 0 : size < SHAPES.length ? SHAPES[size] : Infinity);
 
 /**
  * @param {string} name
