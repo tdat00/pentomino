@@ -1,0 +1,206 @@
+/* Shared responsive, accessibility and board-surface rules for the generator
+   and the player. Page CSS may override tokens but should not drop these. */
+
+:root {
+  --pm-focus: #0b5fff;
+  --pm-ink: #1f1f1f;
+  --pm-surface: #ffffff;
+  --pm-muted: #5c5c5c;
+  --pm-border: #b9b9b9;
+  --pm-target: 2.25rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--pm-focus);
+  outline-offset: 2px;
+}
+
+button,
+select,
+input,
+summary,
+.pm-btn {
+  font: inherit;
+}
+
+.pm-btn,
+button {
+  min-height: var(--pm-target);
+  min-width: var(--pm-target);
+  padding: 0.25rem 0.75rem;
+  color: var(--pm-ink);
+  background: var(--pm-surface);
+  border: 1px solid var(--pm-border);
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.pm-btn:disabled,
+button:disabled {
+  color: var(--pm-muted);
+  cursor: not-allowed;
+}
+
+.pm-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--pm-target);
+}
+
+/* Touch and other coarse pointers get 44 x 44 CSS px targets. */
+@media (pointer: coarse) {
+  :root {
+    --pm-target: 2.75rem;
+  }
+
+  .pm-btn,
+  button,
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"],
+  summary,
+  .pm-toggle,
+  a.pm-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Board and piece surfaces. */
+
+.pm-board {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.pm-scroll {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* The page keeps scrolling outside the board; the board pans natively. */
+  touch-action: pan-x pan-y;
+}
+
+.pm-board[data-mode="edit"] .pm-scroll {
+  /* Painting must own the pointer; the editor pans with scrollbars and panTo. */
+  touch-action: none;
+}
+
+.pm-board[data-mode="thumbnail"] .pm-scroll {
+  overflow: hidden;
+}
+
+.pm-svg {
+  display: block;
+  flex: none;
+  margin: auto;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pm-movable,
+.pm-hit {
+  touch-action: none;
+}
+
+.pm-movable {
+  cursor: grab;
+}
+
+.pm-piece:focus {
+  outline: none;
+}
+
+.pm-piece:focus-visible .pm-outline {
+  stroke: var(--pm-focus);
+  stroke-width: 0.18;
+}
+
+.pm-piece:focus-visible .pm-fill {
+  filter: brightness(1.08);
+}
+
+.pm-preview {
+  touch-action: none;
+}
+
+/* Toasts from core/browser/dom.js. */
+
+.toast-host {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1000;
+  display: grid;
+  gap: 0.5rem;
+  max-width: min(24rem, calc(100vw - 2rem));
+}
+
+.toast {
+  padding: 0.625rem 0.875rem;
+  color: #ffffff;
+  background: #2b2b2b;
+  border-radius: 0.375rem;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+  overflow-wrap: anywhere;
+}
+
+.toast-warning {
+  color: #1f1f1f;
+  background: #ffe08a;
+}
+
+.toast-error {
+  background: #9b1c1c;
+}
+
+.clipboard-buffer {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}

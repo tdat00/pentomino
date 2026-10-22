@@ -108,3 +108,28 @@ This task owns shared responsive/accessibility fixes: focus rings, control hit t
 ## Definition of done & handoff
 
 Publish render/pointer event contracts for T17/T19/T20. The rendering fixture is not a design prototype and is not deployed. Controllers own board edits and game commits.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done (touch-device / coarse-pointer behaviour not verifiable on this machine — deferred to T23) |
+| Start | 2026-10-22 20:46:30 (+07:00) |
+| End | 2026-10-22 20:59:35 (+07:00) |
+| Duration | 13 min 5 s |
+| Model | claude-sonnet-5.5 (sub-agent `T16-svg-pointer`, general-purpose); ran in parallel with T10, T14 |
+| Token usage | 47 model calls; 5,829,969 input (5,691,807 cache read), 98,713 output |
+| AI credits | 190.17 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\render-model.test.js` → 15 pass / 0 fail; `check-conventions` OK. Agent run: `npm run test:quick` 472 pass / 0 fail; `npm run check` OK; browser harness `tests\browser\rendering.html` served by `tools\serve.mjs` and driven in headless Edge over CDP → 15/15 pass, 0 CSP violations (a deliberately broken label counter-rotation made the harness fail, proving it detects regressions).
+
+**Acceptance:** BAC-1..3 and TAC-1..4 pass. Heart at 45° renders 75 cells with the notch above centre and (0,9) lowest; toggling blocked cell (7,2) in edit mode redraws 76 cells without moving the frame; board and preview bounding boxes and label offsets match for 8 angles × 8 orientations; labels/patterns toggle independently, labels hide below 10 px; hit-test round trip at 8 angles × play/edit × 3 zooms × 2 scroll offsets; no duplicate SVG ids or cross-view `url(#…)`; `destroy` removes DOM, listeners and ResizeObserver.
+
+**Issues & resolutions:**
+- Headless Edge exited silently with a profile on `Q:\` and `--dump-dom` printed nothing; resolved by using a profile under the session folder and driving Edge via `--remote-debugging-port` (CDP). Server and Edge processes started by the agent were stopped; user's own Edge processes left alone.
+- Bug found and fixed: the clue lock icon lived in the labels layer and disappeared when Labels was off; moved to its own layer.
+- No touch device / `(pointer: coarse)` emulation: the 44 px target rule is checked only as CSS; touch panning unverified.
+- No `tsc` script; `// @ts-check` not machine-verified.
+- Design choices (no owner input needed): `panTo(x, y)` uses logical board coordinates and centres the viewport; edit-mode frames stay fixed while toggling until `setRotation`/`refit()`; added `onPiece` for Enter/Space.
+
+**Handoff:** `svg-board.js` → `mountBoard(host, opts)` returning `{render, setRotation, setZoom, panTo, cellAt, localPoint, fit(avail?), refit, getState, surface, svg, destroy}` (`autoFit` off by default; `fit()` clamps 14–64; attach pointer tracker to `surface`); `opts.onCell` (edit paint and play taps, clues count as cells), `opts.onPiece` (tap/Enter/Space on movable piece — don't combine with tracker for pieces). Movable pieces are `[data-movable="true"]` groups with hit rects carrying `data-piece-id`/`data-source-cell`; clues `role=img`, not focusable. `mountPiecePreview(host, piece, {...})` with `render(...)` and `sourceCellAt(...)` (`interactive:false` for drag ghosts). Pure helpers: `cellFromLocal`, `boardFrame`, `displayMatrix`, `applyMatrix`, `invertMatrix`, `labelsVisible`, `shouldOfferStraighten`, `alignedOrientedCells`, `pieceName`, `pathData`, `seamPath`, `labelCell`, `shade`. `pointer.js` → `createPointerTracker(surface, handlers, options?)` → `{cancel, destroy, isActive}`; cancel reasons `pointercancel`, `lostcapture`, `escape`, `resize`, `api`, `destroy`; `dragMove` throttled per frame. `common.css` also styles `.toast-host`, `.toast`, `.clipboard-buffer` — pages must link it.
