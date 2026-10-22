@@ -111,3 +111,67 @@ The deployed URL (`https://tdat00.github.io/pentomino/`) was not touched (blocke
 | B8 | Qualification flag | `QUALIFICATION.bq0` may be set to `pass` (with `report` pointing at the passing report) only after every cell and platform passes; it stays `not-run`. |
 
 Local deployment-artifact check (assembled `_site`, `stamp-version`, `check-site --expect-version`, served under `/pentomino/`, root -> generator -> player smoke in Edge) is documented in the verification section above; it proves the artifact, not the deployment.
+
+## Fix round 1 (2026-10-22)
+
+Scope: D2, D5, D7 fixed; D6 partly; D1, D3 and R1 analysed but **not** changed (they need a design decision, see below); D4 untouched. Nothing is committed (pending orchestrator). Generation output is unchanged: result digests of 120 re-run Node rows (irr466 Hard 20, 6x10 Very Easy 20 and Easy 20 against `bq-2026-10-22-0-node-*-*.json`; 22x22 Hard/Master, Heart 432 Hard/Nightmare, 32x15 Expert, 18x20 Hard, 12x12 Normal, 3 seeds each, against `bq-2026-10-22-0-node.json`) are identical to the T23 rows, and `tools\record-fixtures.mjs --check`, `tests\generate.test.js`, `tests\generation-client.test.js` and `tests\cli.test.js` stay green.
+
+### Fixed
+
+| ID | Change |
+| --- | --- |
+| D2 | Engine: `board.js` `symmetries` no longer sorts 8 oriented copies of the whole board (index check against the active mask); `keys.js` keeps one normalized frame plus its symmetry maps per board content (8-entry LRU) and one shape-rank table per piece set, `layoutDistance` compares typed arrays, new `minLayoutDistance` places the candidate once for all accepted layouts (`foldAccept` uses it); `geometry.js` `canonicalT` caches the 8 answers per shape. Client: `pack.js` gains `validatePackSliced` (same result as `validatePack`, pauses after board/pieces/witness and after each puzzle) and `generation-client.js` assembles every pack through it with a macrotask pause per slice (`generateSet`/`generateBatch` stay one promise each). Measurement: `tools\bench\runner.js` now ends the previous row's post-processing task (`uiIdle`) before it starts the next row's monitor. |
+| D5 | `core\browser\favicon.svg` (F-pentomino, no script) linked with a relative `<link rel="icon" type="image/svg+xml">` from `index.html`, `generator\`, `player\`, `tools\bench\` and the `tests\browser\*.html` harnesses. `stamp-version` already stamps `rel=icon`; assembled `_site` (`index.html redirect.js core generator player`) stamps 220 references, `check-site --expect-version` OK, only the five expected entries in `_site`. The icon request now returns 200 under the page CSP and relative paths. |
+| D6 (part) | `tools\bench\index.html?matrix=<path>` loads a same-origin matrix relative to the page, `?auto=matrix` starts it on load (no file chooser needed). The browser-memory part of D6 (COOP/COEP header option, short rows) is untouched. |
+| D7 | `player\puzzle-title.js` `puzzleDisplayName`: a title that already ends in `#<n>` (every generated title) is shown as it is; other titles still get `#<index+1>` appended; untitled stays "Puzzle n". `player\app.js` `renderTopbar` uses it (two lines). The pack menu list is unchanged. |
+
+### D2 measurements (Edge 155 headless, `tools\bench\` via CDP, Long Tasks API, `longTasksOver50` per generation row)
+
+Finding: part of the T23 figure was a **bench artifact**. `runCase` ran the previous row's `fillRecord` (`validateAccepted`, `modelSize`: 50-150 ms on large boards, after `responsiveness.stop()`) and then called `responsiveness.start()` for the next row in the same task, so the observer counted that task as a stall of the next row (this is why the first row of every cell showed none and later rows about one: 57-221 ms). The rest was real engine/client work.
+
+| Run | d22x22-hard | d32x15-hard | heart432-hard | irr466-nightmare | p18x20-hard | 22x22 nightmare/hell-3, 32x15 nightmare, irr466 hell-1, 18x20 hell-1 |
+| --- | --- | --- | --- | --- | --- | --- |
+| HEAD, T23 (rows with >50 ms / rows) | 1 per run (57-162 ms) | 1 per run | 1 per run | up to 221 ms | 57-92 ms | 1 per run |
+| HEAD engine + runner fix only (3 reps) | 0/3 | 0/3 | 0/3 | **2/3 (191 ms, 50 ms)** | 0/3 | 22x22 nightmare 1/3 (90 ms) |
+| This round (3 reps) | **0/3** | **0/3** | **0/3** | **0/3** | **0/3** | **0/15 rows** |
+
+All rows completed ten puzzles; cancel latency 3-8 ms; no console error or failed request (favicon 404 gone). Residual risk: a slower reference machine may make the (now sliced) fold step or `createPack` (about 1 ms warm, 8 ms cold in Node) cross 50 ms; re-measure in BQ-0.
+
+Node warm cost per call before/after (22x22 Hard, 19 pieces, scratch profile): `layoutKey` 4.6 ms to 0.9 ms; `foldAccept` at the 9th accepted puzzle 14.8 ms to 3.7 ms; `foldStart` 8.7 ms to 2.0 ms; `createPack` (10 puzzles) 9.7 ms cold to 0.6 ms warm; `validatePack` 19.8 ms cold, now delivered in 11 slices of about 1-3 ms.
+
+Regression tests: `tests\keys.test.js` (symmetry maps built once per board; `minLayoutDistance`), `tests\board.test.js` (symmetry search equals the direct comparison on 60 random masks), `tests\pack.test.js` (`validatePackSliced` equals `validatePack`, one pause per slice), `tests\benchmark-matrix.test.js` (monitor starts after `uiIdle`), `tests\player-controller.test.js` (title formatting); `tests\generation-client.test.js` `settle` now also waits on timers because pack assembly pauses.
+
+### D1 / D3 root cause (not changed, needs a decision)
+
+The shortfalls are not a time-out, a bug or a diversity problem of restarts: the **piece set itself has fewer than ten arrangements**. Evidence (scratch scripts, 300 LNS walks of 8 steps from the witness; the walk from the witness is the only discovery on boards over 150 cells):
+
+- irr466 Hard seeds with 4 accepted puzzles have exactly **4** distinct layouts reachable (witness plus three alternatives, all from a single macro region; the other 3-4 regions have a unique tiling); seeds with 8 accepted have 8; the only 10/10 seed (3) has 32. The reachable counts come in products of the regions' alternatives (4, 8, 16, 32), which is why accepted counts cluster at 4 and 8. Pieces are 22-31 cells and all different, so a region (3-6 such pieces) rarely has a second tiling.
+- Fold trace of a failing seed (`bq0/dirr466-hard/14`): after four accepted puzzles every remaining candidate is a valid, in-band puzzle whose layout key is already accepted (`layoutDup=true`); `layouts-not-found` is simply "twelve attempts, all duplicates".
+- 6x10 Very Easy (K = 6-7 pieces of 8-10 cells): the same, with 7-9 reachable arrangements; global `randomTiling` restarts (attempts 2, 5, 8, 11) find nothing new, so the set has only those arrangements.
+- Share of seeds whose first set has at least 11 reachable layouts (24 walks plus witness): irr466 Hard 23% (30 seeds), 6x10 Very Easy 73% (60 seeds); 22x22, Heart 432, 32x15, 18x20 Hard 100% (20 seeds each), which is why those cells pass.
+- Checked and rejected: widening the macro cluster on every stuck step (not just every eighth step) changes nothing (same reachable counts on all seven seeds probed), because broadened clusters of large distinct pieces are rigid too. The code matches design §6.5/§6.7; there is no implementation bug to fix.
+
+### Options for D1 / D3 (each changes a design rule; none applied)
+
+1. **Set-capacity filter in `setAttempt` (recommended).** After carving and calibration, reject (as a failed attempt, so the lowest successful attempt still wins and pool width stays irrelevant) a set whose LNS probe reaches fewer than N = 12 distinct layout keys. Serial simulation with the real engine, 20 seeds: ten puzzles reached in 20/20 for irr466 Hard (was 2), Expert (9), Master (14) and 6x10 Very Easy (16) and Easy (18); set attempts used 1-12 (irr466 Hard mean about 5, 6x10 mean 1.4); cells that pass today keep their first attempt (all probed sets have 14 or more layouts), so their output would not change. Costs and rule changes: new set-acceptance rule (design §6.4/6.5 and the `setAttempt` contract), a probe budget in `BUDGETS` (a new constant; the existing ones do not change), `ALGO_ID` bump and re-recorded fixtures for any seed whose first set is rejected, the probe costs about 0.2 s per walk on 18x20 and 0.03 s on 466 cells (12 walks minimum), so a cheaper estimator (count alternatives per macro region from one `lnsStep` each) should be preferred; distinctness, bands, score caps, TIME, LIMITS and qualification stay as they are.
+2. **Require several tilings per macro region at carve time** (`carveMacro`): closer to the design text ("each macro region is a small sub-puzzle with several tilings"), but regions of 3-6 distinct 22-31-cell pieces rarely have two, so it would fail most partitions and fall back to flat carving (single arrangement, worse); not measured further.
+3. **Piece-count/size policy** (fewer, larger pieces is what causes it; K = 18-19 on 466 cells at Hard): raising K or narrowing sizes on irregular masks changes `pieceCountRange`/size windows, a policy change to bands and calibrated difficulty; not recommended.
+4. **Keep the design, amend BQ-0 criterion 2** for large irregular boards at low levels and small boards at Very Easy/Easy (the product already shows N-FEWLAYOUTS with a "new piece set" button): no code change, but the 90% completion rule must be reworded by the owner.
+
+### R1 and D4
+
+R1 (irr466 Nightmare heavy tail) is not addressed here: it is a search-time question for the full 20-seed BQ-0 run. D4 was not touched.
+
+### Verification (this round)
+
+| Command | Result |
+| --- | --- |
+| `node --test "tests/**/*.test.js"` | 747 pass, 0 fail (before the last added test; the bench-matrix file re-run: 16 pass) |
+| `npm run check` / `node tools\record-fixtures.mjs --check` | OK / OK |
+| Headless Edge 155 (CDP, `tools\serve.mjs`): `generator-flow.html`, `player-import.html`, `player-controls.html`, `acceptance.html`, `rendering.html`, `generator-editor.html` | 12/12, 18/18, 25/25, 15 pass + 4 blocked, 15/15, 24/24; zero console errors and zero failed requests |
+| Edge bench, `?matrix=` loader, 20 cells x 3 reps | `longTasksOver50` 0 in all 30 rows (table above) |
+| Repro of T23 commands (before/after, unchanged behaviour) | irr466 Hard 2/20, 6x10 Very Easy 16/20, Easy 18/20 both times |
+
+### Still needs the full BQ-0 rerun
+
+All 43 cells on every platform (this round measured 20 of them with 3 reps on one Edge); Firefox (heartbeat proxy) and the other platforms of blockers B1-B5; D1/D3 cells after the owner picks an option; R1 with 20 seeds; hand-recorded memory peaks.

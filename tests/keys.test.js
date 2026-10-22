@@ -6,7 +6,7 @@ import { boardFromRows, symmetries } from '../core/engine/board.js';
 import { normalizeCells, poseCells } from '../core/engine/geometry.js';
 import { createRng } from '../core/engine/rng.js';
 import {
-  clueKey, layoutDistance, layoutKey, packId, progressFingerprint, puzzleId,
+  cacheStats, clueKey, layoutDistance, layoutKey, minLayoutDistance, packId, progressFingerprint, puzzleId,
 } from '../core/engine/keys.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES } from '../core/engine/workspace.js';
 import { buildModel, countSolutions, solveFirst } from '../core/engine/tiling.js';
@@ -229,4 +229,26 @@ test('packId covers rules, rows, pieces and clues but not styling or provenance'
   const shape = pack();
   shape.pieces[1].cells = [[0, 0], [1, 0]];
   assert.notEqual(packId(shape), base);
+});
+
+test('symmetry maps are built once per board, however many keys and distances are asked', () => {
+  // A 12x5 board no other test uses, so its maps are built here and only here.
+  const board = rect(12, 5);
+  const [one, two] = layouts(board, pieces, 2);
+  const before = cacheStats.mapBuilds;
+  for (let i = 0; i < 6; i += 1) {
+    layoutKey(board, pieces, i % 2 === 0 ? one : two);
+    layoutDistance(board, pieces, one, two);
+    minLayoutDistance(board, pieces, two, [one, two]);
+  }
+  assert.equal(cacheStats.mapBuilds - before, 1);
+});
+
+test('minLayoutDistance is the smallest pairwise distance and Infinity without others', () => {
+  const rotated = mapLayout(first, ([x, y]) => [9 - x, 5 - y]);
+  const other = /** @type {Pose[]} */ (layouts(sixByTen, pieces, 3)[2]);
+  const expected = Math.min(layoutDistance(sixByTen, pieces, first, other), layoutDistance(sixByTen, pieces, first, rotated));
+  assert.equal(minLayoutDistance(sixByTen, pieces, first, [other, rotated]), expected);
+  assert.equal(minLayoutDistance(sixByTen, pieces, first, [rotated]), 0);
+  assert.equal(minLayoutDistance(sixByTen, pieces, first, []), Infinity);
 });

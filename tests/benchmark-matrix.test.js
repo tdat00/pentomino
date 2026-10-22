@@ -208,3 +208,17 @@ describe('failure rows', () => {
     assert.ok(boardFromRows(caseDef.boardRows));
   });
 });
+
+describe('timed interval', () => {
+  test('a row ends the previous row\'s task before its monitor starts', async () => {
+    const order = /** @type {string[]} */ ([]);
+    const host = failingHost(new PoolAbortError('deadline'));
+    host.uiIdle = async () => {
+      order.push('idle');
+    };
+    host.responsiveness = { ...createNotApplicable(), start: () => order.push('start') };
+    const caseDef = /** @type {any} */ (benchCase({ id: 'f' }));
+    await runCase({ caseId: 'f', rep: 0, seed: 'p/f/0', probeKind: /** @type {const} */ ('generation') }, caseDef, host);
+    assert.deepEqual(order.slice(0, 2), ['idle', 'start']);
+  });
+});

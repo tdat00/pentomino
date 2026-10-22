@@ -153,20 +153,34 @@ export function distinctOrientations(cells) {
   return out;
 }
 
+const CANONICAL_T_CACHE_LIMIT = 512;
+/** @type {Map<string, number[]>} */
+const canonicalTCache = new Map();
+
 /**
- * Smallest t' whose oriented cells equal those of t.
+ * Smallest t' whose oriented cells equal those of t. The eight answers of a
+ * shape are computed together and kept by cell content, since packs ask for
+ * every pose of the same few pieces.
  * @param {XY[]} cells
  * @param {number} t
  * @returns {number}
  */
 export function canonicalT(cells, t) {
-  const target = orientedCells(cells, checkedT(t));
-  for (let u = 0; u < t; u += 1) {
-    if (sameCells(orientedCells(cells, u), target)) {
-      return u;
+  checkedT(t);
+  const key = cells.map(([x, y]) => `${x},${y}`).join(';');
+  let table = canonicalTCache.get(key);
+  if (table === undefined) {
+    const variants = Array.from({ length: 8 }, (_, u) => orientedCells(cells, u));
+    table = variants.map((variant, u) => {
+      const first = variants.findIndex((other) => sameCells(other, variant));
+      return first < u ? first : u;
+    });
+    if (canonicalTCache.size >= CANONICAL_T_CACHE_LIMIT) {
+      canonicalTCache.clear();
     }
+    canonicalTCache.set(key, table);
   }
-  return t;
+  return table[t];
 }
 
 // COMPOSE_TABLE[a][b] is the index of T_a after T_b, read off the images of

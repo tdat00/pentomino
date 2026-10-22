@@ -9,7 +9,7 @@
 import { activeCount } from './board.js';
 import { certify, countRowLimit, selectClues } from './clues.js';
 import { carveFlatSet, carveMacro, finalizeSet, validateSet } from './carve.js';
-import { clueKey, layoutDistance, layoutKey, puzzleId } from './keys.js';
+import { clueKey, layoutKey, minLayoutDistance, puzzleId } from './keys.js';
 import { level } from './levels.js';
 import { BUDGETS, pieceCountRange } from './policy.js';
 import { createRng, normalizeSeedText } from './rng.js';
@@ -418,10 +418,7 @@ export function foldAccept(s, c) {
   } else if (s.seenLayouts.has(c.layoutKey) || s.seenClues.has(c.clueKey)) {
     failCounts.layout += 1;
   } else {
-    let dist = Infinity;
-    for (const p of s.accepted) {
-      dist = Math.min(dist, layoutDistance(s.board, s.pieces, c.layout, p.layout));
-    }
+    const dist = minLayoutDistance(s.board, s.pieces, c.layout, s.accepted.map((p) => p.layout));
     if (dist >= distance) {
       return withAccepted(s, c);
     }

@@ -924,11 +924,14 @@ function readPuzzle(ctx, v, path, env) {
 }
 
 /**
+ * Reads a pack in steps: pauses (`yield`) after the board, pieces and witness
+ * and after each puzzle, so a host can slice the work; returns the pack, or
+ * null when `ctx` collected issues.
  * @param {Ctx} ctx
  * @param {unknown} input
- * @returns {Pack | null}
+ * @returns {Generator<void, Pack | null, void>}
  */
-function readPack(ctx, input) {
+function* readPackSteps(ctx, input) {
   if (!isPlainObject(input)) {
     fail(ctx, 'invalid-type', '$', 'A pack must be a JSON object');
     return null;
@@ -997,6 +1000,7 @@ function readPack(ctx, input) {
 
   const witnessRaw = fields.get('witness');
   const witness = witnessRaw === undefined || witnessRaw === null ? null : readLayout(ctx, witnessRaw, 'witness', env);
+  yield;
 
   /** @type {PackPuzzle[]} */
   const puzzles = [];
@@ -1009,8 +1013,9 @@ function readPack(ctx, input) {
     fail(ctx, 'puzzle-count', 'puzzles', `A puzzle-pack has 1-${MAX_PUZZLES} puzzles, got ${puzzlesRaw.length}`);
   } else {
     const ids = new Set();
-    puzzlesRaw.forEach((raw, i) => {
-      const puzzle = readPuzzle(ctx, raw, child('puzzles', i), env);
+    for (let i = 0; i < puzzlesRaw.length; i += 1) {
+      // `forEach` skipped holes of sparse arrays; keep that.
+      const puzzle = i in puzzlesRaw ? readPuzzle(ctx, puzzlesRaw[i], child('puzzles', i), env) : null;
       if (puzzle !== null) {
         if (ids.has(puzzle.id)) {
           fail(ctx, 'duplicate-id', child(child('puzzles', i), 'id'), `Puzzle id "${puzzle.id}" is repeated`);
@@ -1018,7 +1023,8 @@ function readPack(ctx, input) {
         ids.add(puzzle.id);
         puzzles.push(puzzle);
       }
-    });
+      yield;
+    }
   }
   if (ctx.issues.length > 0) {
     return null;
@@ -1046,6 +1052,21 @@ function readPack(ctx, input) {
 }
 
 /**
+ * @param {Ctx} ctx
+ * @param {Pack | null} value
+ * @returns {Result<Pack>}
+ */
+function packResult(ctx, value) {
+  if (ctx.issues.length > 0 || value === null) {
+    if (ctx.truncated) {
+      ctx.issues.push({ code: 'too-many-issues', path: '$', message: `More than ${MAX_ISSUES} problems; the rest are not listed` });
+    }
+    return { ok: false, issues: ctx.issues };
+  }
+  return { ok: true, value, warnings: ctx.warnings };
+}
+
+/**
  * Validates untrusted data (normally `JSON.parse` output) and returns a fresh,
  * normalized pack. Never throws: malformed input, even hostile objects,
  * yields `{ ok: false, issues }` (at most 100 issues, in stage order).
@@ -1059,19 +1080,46 @@ export function validatePack(input) {
   /** @type {Pack | null} */
   let value = null;
   try {
-    value = readPack(ctx, input);
+    const steps = readPackSteps(ctx, input);
+    let step = steps.next();
+    while (!step.done) {
+      step = steps.next();
+    }
+    value = step.value;
   } catch {
     ctx.issues.length = 0;
     fail(ctx, 'invalid-input', '$', 'The input could not be read as a pack');
     value = null;
   }
-  if (ctx.issues.length > 0 || value === null) {
-    if (ctx.truncated) {
-      ctx.issues.push({ code: 'too-many-issues', path: '$', message: `More than ${MAX_ISSUES} problems; the rest are not listed` });
+  return packResult(ctx, value);
+}
+
+/**
+ * `validatePack` with the work cut into slices: `pause` is awaited after the
+ * board, pieces and witness and after each puzzle, so a main thread can stay
+ * responsive. The result is the same as `validatePack`'s.
+ * @param {unknown} input
+ * @param {() => Promise<void>} pause
+ * @returns {Promise<Result<Pack>>}
+ */
+export async function validatePackSliced(input, pause) {
+  const ctx = newCtx();
+  /** @type {Pack | null} */
+  let value = null;
+  try {
+    const steps = readPackSteps(ctx, input);
+    let step = steps.next();
+    while (!step.done) {
+      await pause();
+      step = steps.next();
     }
-    return { ok: false, issues: ctx.issues };
+    value = step.value;
+  } catch {
+    ctx.issues.length = 0;
+    fail(ctx, 'invalid-input', '$', 'The input could not be read as a pack');
+    value = null;
   }
-  return { ok: true, value, warnings: ctx.warnings };
+  return packResult(ctx, value);
 }
 
 /**

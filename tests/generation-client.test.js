@@ -16,8 +16,10 @@ import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '
 const recipe = JSON.parse(readFileSync(new URL('./fixtures/generation-case.json', import.meta.url), 'utf8'));
 const CREATED_AT = '2026-01-01T00:00:00.000Z';
 const settle = async () => {
-  for (let i = 0; i < 6; i += 1) {
+  // The client slices pack validation with timer-based pauses, so alternate both kinds of turns.
+  for (let i = 0; i < 12; i += 1) {
     await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setTimeout(resolve, 2));
   }
 };
 

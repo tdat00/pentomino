@@ -52,13 +52,38 @@ function compareShapes(a, b) {
   return a.length - b.length;
 }
 
+const RANK_CACHE_SIZE = 8;
+/** @type {Map<string, Map<string, number>>} */
+const rankCache = new Map();
+
+/**
+ * Cached by piece content; the returned map is shared and read-only.
+ * @param {Piece[]} pieces
+ * @returns {Map<string, number>}
+ */
+function shapeRanks(pieces) {
+  const signature = pieces.map((piece) => `${piece.id}:${piece.cells.map(([x, y]) => `${x},${y}`).join(';')}`).join('|');
+  const hit = rankCache.get(signature);
+  if (hit !== undefined) {
+    rankCache.delete(signature);
+    rankCache.set(signature, hit);
+    return hit;
+  }
+  const ranks = computeShapeRanks(pieces);
+  rankCache.set(signature, ranks);
+  if (rankCache.size > RANK_CACHE_SIZE) {
+    rankCache.delete(/** @type {string} */ (rankCache.keys().next().value));
+  }
+  return ranks;
+}
+
 /**
  * Shape rank of each piece: its index among the distinct shapes in
  * (size, numeric canonical shape) order, so identical shapes share a rank.
  * @param {Piece[]} pieces
  * @returns {Map<string, number>}
  */
-function shapeRanks(pieces) {
+function computeShapeRanks(pieces) {
   /** @type {Map<string, XY[]>} */
   const shapes = new Map();
   const shapeOf = pieces.map((piece) => {
@@ -101,10 +126,56 @@ function pieceMap(pieces) {
  * indices of that frame. The same whole-board translation applies to all poses.
  * @typedef {object} Placed
  * @property {Board} frame
+ * @property {FrameInfo} info
  * @property {Map<string, number[]>} cells Normalized-frame cell indices per piece ID.
  * @property {number} covered Cells covered by all poses together.
  * @property {number} active Active cells of the frame.
  */
+
+/**
+ * A board's normalized frame with its symmetry maps, computed once per board
+ * content: one batch compares many layouts on the same board.
+ * @typedef {object} FrameInfo
+ * @property {Board} frame
+ * @property {number} dx
+ * @property {number} dy
+ * @property {number} active
+ * @property {Int32Array[] | null} maps
+ */
+
+const FRAME_CACHE_SIZE = 8;
+/** @type {Map<string, FrameInfo>} */
+const frameCache = new Map();
+
+/**
+ * @param {Board} b
+ * @returns {FrameInfo}
+ */
+function frameOf(b) {
+  const signature = [];
+  for (let i = 0; i < b.active.length; i += 1) {
+    signature.push(b.active[i]);
+  }
+  const cacheKey = `${b.width}x${b.height}:${signature.join('')}`;
+  const hit = frameCache.get(cacheKey);
+  if (hit !== undefined) {
+    frameCache.delete(cacheKey);
+    frameCache.set(cacheKey, hit);
+    return hit;
+  }
+  const { board: frame, dx, dy } = normalizedActive(b);
+  let active = 0;
+  for (let i = 0; i < frame.active.length; i += 1) {
+    active += frame.active[i] === 1 ? 1 : 0;
+  }
+  /** @type {FrameInfo} */
+  const info = { frame, dx, dy, active, maps: null };
+  frameCache.set(cacheKey, info);
+  if (frameCache.size > FRAME_CACHE_SIZE) {
+    frameCache.delete(/** @type {string} */ (frameCache.keys().next().value));
+  }
+  return info;
+}
 
 /**
  * @param {Board} b
@@ -116,7 +187,8 @@ function place(b, byId, poses) {
   if (!Array.isArray(poses)) {
     throw new RangeError('poses must be an array');
   }
-  const { board: frame, dx, dy } = normalizedActive(b);
+  const info = frameOf(b);
+  const { frame, dx, dy, active } = info;
   const seen = new Uint8Array(frame.active.length);
   /** @type {Map<string, number[]>} */
   const cells = new Map();
@@ -147,11 +219,7 @@ function place(b, byId, poses) {
     }
     cells.set(piece.id, indices);
   }
-  let active = 0;
-  for (let i = 0; i < frame.active.length; i += 1) {
-    active += frame.active[i] === 1 ? 1 : 0;
-  }
-  return { frame, cells, covered, active };
+  return { frame, info, cells, covered, active };
 }
 
 /**
@@ -189,6 +257,25 @@ function symmetryMaps(frame) {
   });
 }
 
+/**
+ * Symmetry maps of a cached frame, built on first use.
+ * @param {FrameInfo} info
+ * @returns {Int32Array[]}
+ */
+function mapsOf(info) {
+  if (info.maps === null) {
+    cacheStats.mapBuilds += 1;
+    info.maps = symmetryMaps(info.frame);
+  }
+  return info.maps;
+}
+
+/**
+ * Work counters of the per-board cache, for tests: `mapBuilds` counts symmetry
+ * map constructions, which happen once per distinct board, not per comparison.
+ */
+export const cacheStats = { mapBuilds: 0 };
+
 /** @param {number} rank */
 const rankText = (rank) => rank.toString(36).padStart(2, '0');
 
@@ -202,7 +289,7 @@ function minimumEncoding(placed, ranks) {
   const size = placed.frame.active.length;
   /** @type {string | null} */
   let best = null;
-  for (const map of symmetryMaps(placed.frame)) {
+  for (const map of mapsOf(placed.info)) {
     const grid = new Array(size).fill('..');
     for (const [id, indices] of placed.cells) {
       const text = rankText(/** @type {number} */ (ranks.get(id)));
@@ -264,6 +351,34 @@ export function clueKey(b, pieces, clues) {
 }
 
 /**
+ * @param {Placed} first
+ * @param {Placed} second
+ * @returns {number}
+ */
+function placedDistance(first, second) {
+  const sorted = (/** @type {number[]} */ indices) => Int32Array.from(indices).sort();
+  const target = new Map([...second.cells].map(([id, indices]) => [id, sorted(indices)]));
+  let best = Infinity;
+  for (const map of mapsOf(first.info)) {
+    let differing = 0;
+    for (const [id, indices] of first.cells) {
+      const moved = sorted(indices.map((at) => map[at]));
+      const want = /** @type {Int32Array} */ (target.get(id));
+      let same = moved.length === want.length;
+      for (let i = 0; same && i < moved.length; i += 1) {
+        same = moved[i] === want[i];
+      }
+      differing += same ? 0 : 1;
+      if (differing >= best) {
+        break;
+      }
+    }
+    best = Math.min(best, differing);
+  }
+  return best;
+}
+
+/**
  * Minimum over board symmetries of the number of piece IDs whose occupied cell
  * sets differ between the two complete layouts.
  * @param {Board} b
@@ -273,20 +388,27 @@ export function clueKey(b, pieces, clues) {
  * @returns {number}
  */
 export function layoutDistance(b, pieces, a, c) {
+  return minLayoutDistance(b, pieces, a, [c]);
+}
+
+/**
+ * Smallest `layoutDistance` from `a` to any of `others` (`Infinity` for none),
+ * placing `a` once.
+ * @param {Board} b
+ * @param {Piece[]} pieces
+ * @param {Pose[]} a
+ * @param {Pose[][]} others
+ * @returns {number}
+ */
+export function minLayoutDistance(b, pieces, a, others) {
   const byId = pieceMap(pieces);
   const first = place(b, byId, a);
-  const second = place(b, byId, c);
   requireComplete(first, byId);
-  requireComplete(second, byId);
-  const target = new Map([...second.cells].map(([id, indices]) => [id, indices.slice().sort((x, y) => x - y).join(',')]));
   let best = Infinity;
-  for (const map of symmetryMaps(first.frame)) {
-    let differing = 0;
-    for (const [id, indices] of first.cells) {
-      const moved = indices.map((at) => map[at]).sort((x, y) => x - y).join(',');
-      differing += moved === target.get(id) ? 0 : 1;
-    }
-    best = Math.min(best, differing);
+  for (const other of others) {
+    const second = place(b, byId, other);
+    requireComplete(second, byId);
+    best = Math.min(best, placedDistance(first, second));
   }
   return best;
 }

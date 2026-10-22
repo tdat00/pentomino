@@ -4,7 +4,7 @@
 // changed implicitly; analysis copies report their offsets. Pure and
 // dependency-free; presentation rotation is not part of board data.
 
-import { orientedCells } from './geometry.js';
+import { TRANSFORMS } from './geometry.js';
 
 /** @typedef {import('./types.js').XY} XY */
 /** @typedef {import('./types.js').Board} Board */
@@ -348,16 +348,31 @@ export function trimMargins(b) {
  * @returns {number[]}
  */
 export function symmetries(b) {
-  const cells = activeCells(b);
-  if (cells.length === 0) {
+  const box = activeBounds(b);
+  if (box === null) {
     return [0];
   }
-  const base = orientedCells(cells, 0);
+  const width = box.maxX - box.minX + 1;
+  const height = box.maxY - box.minY + 1;
+  const cells = activeCells(b);
   /** @type {number[]} */
   const out = [];
   for (let t = 0; t < 8; t += 1) {
-    const moved = orientedCells(cells, t);
-    if (moved.length === base.length && moved.every((c, i) => c[0] === base[i][0] && c[1] === base[i][1])) {
+    // A symmetry keeps the bounding box, so a transform that swaps its sides needs a square one.
+    if (t % 2 === 1 && width !== height) {
+      continue;
+    }
+    const fn = TRANSFORMS[t];
+    const moved = cells.map((cell) => fn(cell));
+    const minX = Math.min(...moved.map((c) => c[0]));
+    const minY = Math.min(...moved.map((c) => c[1]));
+    // The transform is a bijection, so every image landing on an active cell proves equal sets.
+    const onto = moved.every(([x, y]) => {
+      const fx = x - minX;
+      const fy = y - minY;
+      return fx < width && fy < height && b.active[(fy + box.minY) * b.width + fx + box.minX] === 1;
+    });
+    if (onto) {
       out.push(t);
     }
   }

@@ -15,6 +15,8 @@ import {
   trimMargins,
   validateForGeneration,
 } from '../core/engine/board.js';
+import { orientedCells } from '../core/engine/geometry.js';
+import { createRng } from '../core/engine/rng.js';
 
 /** @typedef {import('../core/engine/types.js').Board} Board */
 
@@ -210,4 +212,39 @@ test('active cells are row-major and unaffected by presets sharing no state', ()
   a.active[0] = 0;
   assert.equal(b.active[0], 1);
   assert.deepEqual(activeCells(boardFromRows(['.#', '#.'])), [[1, 0], [0, 1]]);
+});
+
+test('the symmetry search agrees with a direct comparison of oriented cell lists on random masks', () => {
+  const rng = createRng('symmetry-masks');
+  for (let n = 0; n < 60; n += 1) {
+    const w = 2 + rng.int(5);
+    const h = 2 + rng.int(5);
+    const active = new Uint8Array(w * h);
+    for (let i = 0; i < active.length; i += 1) {
+      active[i] = rng.int(3) === 0 ? 0 : 1;
+    }
+    // Mirror half of the masks so symmetric boards are well represented.
+    if (n % 2 === 0) {
+      for (let y = 0; y < h; y += 1) {
+        for (let x = 0; x < w; x += 1) {
+          active[y * w + (w - 1 - x)] = active[y * w + x];
+        }
+      }
+    }
+    const board = { width: w, height: h, active };
+    const cells = activeCells(board);
+    const expected = [];
+    if (cells.length === 0) {
+      expected.push(0);
+    } else {
+      const base = orientedCells(cells, 0);
+      for (let t = 0; t < 8; t += 1) {
+        const moved = orientedCells(cells, t);
+        if (moved.length === base.length && moved.every((c, i) => c[0] === base[i][0] && c[1] === base[i][1])) {
+          expected.push(t);
+        }
+      }
+    }
+    assert.deepEqual(symmetries(board), expected, `${w}x${h} ${active.join('')}`);
+  }
 });

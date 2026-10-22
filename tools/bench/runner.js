@@ -747,6 +747,9 @@ export async function runCase(spec, caseDef, host, options = {}) {
   let memory = null;
   let monitoring = false;
   try {
+    // The previous row's post-processing may have been a long task; end it before this
+    // row's timed interval so it is not counted as a main-thread stall of this row.
+    await host.uiIdle?.();
     handle = acquire(host, lifecycle, clock);
     const { client } = handle;
     options.registerCancel?.(() => {

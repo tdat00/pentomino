@@ -3,7 +3,8 @@
 // and report modules as tools/calibrate.mjs, with four module workers, the
 // longtask/heartbeat instrumentation and the real Cancel button. Thumbnails stay
 // off, so `renderingEnabled` is always false. Automation: `?auto=smoke` starts the
-// smoke matrix on load; `?commit=<sha>` records the served commit id.
+// smoke matrix on load; `?matrix=<path>` loads a same-origin matrix file (relative to this page)
+// instead of the chooser and `?auto=matrix` starts it on load; `?commit=<sha>` records the served commit id.
 import { createPool, systemClock } from '../../core/browser/worker-pool.js';
 import { downloadText, el } from '../../core/browser/dom.js';
 import { MODEL } from '../../core/engine/difficulty.js';
@@ -150,6 +151,17 @@ async function sourceDigest() {
 
 /** @returns {Promise<string>} */
 async function readMatrixText() {
+  if (params.has('matrix')) {
+    const url = new URL(/** @type {string} */ (params.get('matrix')), g.location.href);
+    if (url.origin !== g.location.origin) {
+      throw new Error('the matrix must be served from this origin');
+    }
+    const response = await g.fetch(url);
+    if (!response.ok) {
+      throw new Error(`cannot load the matrix (${response.status})`);
+    }
+    return response.text();
+  }
   if (byId('matrix').value === 'file') {
     const file = byId('matrix-file').files?.[0];
     if (file === undefined) {
@@ -276,7 +288,7 @@ function wire() {
   });
   g.__bench = { report: () => state.report, reportJson: () => (state.report === null ? null : reportJson(state.report)) };
   setState('idle');
-  if (params.get('auto') === 'smoke') {
+  if (params.get('auto') === 'smoke' || (params.get('auto') === 'matrix' && params.has('matrix'))) {
     void start();
   }
 }

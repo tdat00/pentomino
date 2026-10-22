@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import { boardFromRows } from '../core/engine/board.js';
 import {
   FORMAT, MAX_FILE_BYTES, MAX_ISSUES, MAX_META_BYTES, PackError, RULES, SUPPORTED_VERSIONS,
-  createPack, packBoard, parsePack, serializePack, validatePack,
+  createPack, packBoard, parsePack, serializePack, validatePack, validatePackSliced,
 } from '../core/engine/pack.js';
 import { colorFor } from '../core/engine/palette.js';
 import { CLASSIC_PENTOMINOES } from './fixtures/polyominoes.js';
@@ -690,4 +690,18 @@ test('the largest board (64 x 16 = 1024 cells, eight 128-cell pieces) is accepte
   assert.equal(r.value.witness.length, 8);
   assert.equal(r.value.pieces.reduce((n, p) => n + p.cells.length, 0), 1024);
   assertIssue(corrupt((f) => { f.board = { rows: Array(17).fill('#'.repeat(64)) }; }), 'board-area', 'board.rows');
+});
+
+test('validatePackSliced pauses between slices and returns what validatePack returns', async () => {
+  const pack = fixture();
+  let pauses = 0;
+  const pause = async () => {
+    pauses += 1;
+  };
+  assert.deepEqual(await validatePackSliced(pack, pause), validatePack(pack));
+  assert.equal(pauses, 1 + pack.puzzles.length);
+  const broken = fixture();
+  broken.puzzles[0].clues = [{ piece: 'nope', x: 0, y: 0, turn: 0, mirrored: false }];
+  assert.deepEqual(await validatePackSliced(broken, pause), validatePack(broken));
+  assert.deepEqual(await validatePackSliced(null, pause), validatePack(null));
 });

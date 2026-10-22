@@ -157,3 +157,26 @@ Record reviewer/product-owner/date sign-off and the deployed revision. T24 may q
 **Blockers (owner steps B1–B8 in `release-defects.md`):** full 20/60-seed runs; reference laptop hardware; Chrome, Mac/Safari, Android and iPhone; NVDA/VoiceOver smoke test; approved axe audit; GitHub Pages deployment and deployed-URL verification; reviewer/product-owner sign-off.
 
 **Handoff:** T24/T25 should not be qualified until D1–D3 are fixed and BQ-0 is rerun in full on real platforms (source changes invalidate evidence). To mark `bq0` pass later, edit only `core\engine\qualification.js` with a passing report link and update the pinned `policy.test.js` assertion in the same commit. Bench page needs a CDP/BiDi file chooser or manual upload to load `bq-0.json`. Edge and Firefox are both available on this machine for cheap harness reruns.
+
+## Execution log — defect fix round 1 (D2, D5, D7, D6 partial; D1/D3 analysed)
+
+| Field | Value |
+| --- | --- |
+| Status | D2, D5, D7 fixed; D6 partially fixed; D1/D3 root-caused, not changed (needs owner decision); D4/R1 untouched. T23 remains **blocked** (full BQ-0 rerun on reference platforms, devices, screen reader, axe, deployment). |
+| Start | 2026-10-22 23:34:11 (+07:00) |
+| End | 2026-10-23 00:28:29 (+07:00) |
+| Duration | 54 min 18 s |
+| Model | claude-sonnet-5.5 (sub-agent `T23-defect-fixes`, general-purpose); ran in parallel with T25 |
+| Token usage | 154 model calls; 24,152,489 input (23,911,333 cache read), 104,955 output |
+| AI credits | 404.34 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification:** full `node --test "tests/**/*.test.js"` 748 pass / 0 fail; `npm run check` OK; `node tools\record-fixtures.mjs --check` OK. Result digests of 141 re-run Node rows (irr466 Hard, 6×10 Very Easy/Easy, 22×22, Heart 432, 32×15, 18×20, 12×12) identical to T23 → generated output unchanged, no fixture re-record. Headless Edge: generator-flow 12/12, player-import 18/18, player-controls 25/25, acceptance 15 pass + 4 blocked, rendering 15/15, generator-editor 24/24; no console errors or failed requests. Edge bench 20 cells × 3 reps (incl. 22×22, 32×15, irr466, 18×20): `longTasksOver50` = 0 in all rows. `_site` stamp + `check-site --expect-version` OK.
+
+**Per defect:**
+- **D2 fixed.** Part was a bench artifact (previous row's `fillRecord` leaked into the next timing window — runner now awaits `uiIdle`). Real cost cut by per-board cached symmetry maps, index-based `symmetries`, typed-array `layoutDistance`, one-pass `minLayoutDistance`, cached `canonicalT`, and sliced pack validation (`validatePackSliced`, macrotask yield per slice). Warm Node: `layoutKey` 4.6 → 0.9 ms; fold at the 9th accepted puzzle 14.8 → 3.7 ms.
+- **D5 fixed.** Relative `<link rel="icon">` to shared `core\browser\favicon.svg` on all pages/harnesses (CSP- and prefix-safe).
+- **D7 fixed.** `player\puzzle-title.js` `puzzleDisplayName`: a title already ending in `#n` is shown as is.
+- **D6 partial.** `tools\bench\index.html?matrix=<path>&auto=matrix` loads a same-origin matrix without the file chooser; memory peak / COOP-COEP untouched.
+- **D1/D3 not changed — root cause:** the carved piece sets themselves admit fewer than ten distinct arrangements (irr466 Hard seeds stopping at 4 have exactly 4 reachable layouts — one macro region with alternatives, the rest rigid; 6×10 Very Easy shortfalls have 7–9). Code matches the design; no bug. Options sent to the owner: (1) set-capacity filter in `setAttempt` (reject sets with < 12 distinct layout keys under a bounded LNS probe; serial simulation 20/20 for all failing cells; needs new rule/budget and `ALGO_ID` bump) — recommended; (2) require multiple tilings per macro region at carve time; (3) change irregular-board piece policy; (4) keep design and reword BQ-0 criterion 2 for these cells.
+
+**Issues & resolutions:** a brief `git stash`/`stash pop` touched T25's in-progress files (state restored); pack assembly now yields on timers, so `settle` in `tests\generation-client.test.js` also waits on timers; T25's new `tests\browser\hints.html` lacked the icon link (added by orchestrator in the T25 commit). Details appended to `docs\calibration\release-defects.md` ("Fix round 1").

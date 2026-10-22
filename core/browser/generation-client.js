@@ -13,7 +13,7 @@ import {
 } from '../engine/generate.js';
 import { puzzleId } from '../engine/keys.js';
 import { level } from '../engine/levels.js';
-import { createPack, validatePack } from '../engine/pack.js';
+import { createPack, validatePackSliced } from '../engine/pack.js';
 import { pieceCountRange, POLICY_ID } from '../engine/policy.js';
 import { batchSeedFor, normalizeSeedText, RNG_ID, SEED_SCHEME } from '../engine/rng.js';
 import { isValidLayout } from '../engine/tiling.js';
@@ -336,17 +336,20 @@ function generationMeta(p) {
   return meta;
 }
 
+/** Lets the host run other tasks between slices of main-thread work. */
+const pauseForHost = () => new Promise((resolve) => setTimeout(resolve, 0));
+
 /**
- * Builds and validates a pack from engine objects; an invalid result is an
- * internal fault, never a usable pack.
+ * Builds and validates a pack from engine objects, validating in slices so the main thread
+ * stays under one frame budget; an invalid result is an internal fault, never a usable pack.
  * @param {Parameters<typeof createPack>[0]} parts
  * @param {ConstructorParameters<typeof GenerationError>[2]} detail
- * @returns {Pack}
+ * @returns {Promise<Pack>}
  */
-function assemblePack(parts, detail) {
+async function assemblePack(parts, detail) {
   let checked;
   try {
-    checked = validatePack(createPack(parts));
+    checked = await validatePackSliced(createPack(parts), pauseForHost);
   } catch (e) {
     throw new GenerationError('internal', e instanceof Error ? e.message.slice(0, 500) : 'The pack could not be built', detail);
   }
@@ -602,7 +605,7 @@ export function createGenerationClient(pool, options = {}) {
             return reason === 'cancelled' ? { status: 'cancelled' } : { status: 'failed', reason, failures: tally() };
           }
           if (r.kind === 'ok') {
-            return finishSet(request, r.value);
+            return await finishSet(request, r.value);
           }
           if (r.kind === 'skipped') {
             break;
@@ -628,9 +631,9 @@ export function createGenerationClient(pool, options = {}) {
   /**
    * @param {{ board: Board, rotation: number, seedText: string, levelId: string, uniqueness: 'any' | 'require' }} request
    * @param {any} value Successful setAttempt result.
-   * @returns {SetJobResult}
+   * @returns {Promise<SetJobResult>}
    */
-  function finishSet(request, value) {
+  async function finishSet(request, value) {
     const { board } = request;
     const raw = value.set;
     if (!isObject(raw) || !Array.isArray(raw.pieces) || !isObject(value.calibration)) {
@@ -647,7 +650,7 @@ export function createGenerationClient(pool, options = {}) {
     if (set.witness === null || !isValidLayout(board, set.pieces, set.witness)) {
       throw new GenerationError('internal', 'The worker sent a piece set without a valid witness layout');
     }
-    const pack = assemblePack({
+    const pack = await assemblePack({
       board,
       rotation: request.rotation,
       pieces: set.pieces,
@@ -900,7 +903,7 @@ export function createGenerationClient(pool, options = {}) {
       result.reason = reason;
     }
     if (accepted.length > 0) {
-      result.pack = assemblePack({
+      result.pack = await assemblePack({
         board: set.board,
         rotation: request.rotation,
         pieces: set.pieces,

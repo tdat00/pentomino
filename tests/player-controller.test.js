@@ -12,6 +12,7 @@ import {
   KICKS, SAVE_DELAY_MS, createPlayController, defaultHandle, handleCell, keyStep, orientedHandle, poseWithHandle, rotatePlaced,
   transformedT,
 } from '../player/play.js';
+import { puzzleDisplayName } from '../player/puzzle-title.js';
 import { createPlayerController, createPlayerStore } from '../player/state.js';
 import { PLAY_TEXT } from '../player/strings.js';
 import { createKeyboard } from '../player/ui/keyboard.js';
@@ -727,4 +728,12 @@ test('escape cancels the preview, then the selection; clues are never selectable
   assert.equal(h.play.cancel(), true);
   assert.equal(h.game().selected, null);
   assert.equal(h.play.cancel(), false);
+});
+
+test('the top-bar name does not number a title that already ends in its number', () => {
+  assert.equal(puzzleDisplayName('Normal #1', 0), 'Normal #1');
+  assert.equal(puzzleDisplayName('Hard #4', 0), 'Hard #4');
+  assert.equal(puzzleDisplayName('Warm-up', 2), 'Warm-up #3');
+  assert.equal(puzzleDisplayName('', 1), 'Puzzle 2');
+  assert.equal(puzzleDisplayName(undefined, 0), 'Puzzle 1');
 });

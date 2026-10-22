@@ -23,6 +23,7 @@ import { createPackMenu } from './ui/pack-menu.js';
 import { createToolbar } from './ui/toolbar.js';
 import { createTrayView } from './ui/tray-view.js';
 import { createWinDialog } from './ui/win-dialog.js';
+import { puzzleDisplayName } from './puzzle-title.js';
 
 /** @typedef {import('./state.js').PlayerState} PlayerState */
 
@@ -335,7 +336,7 @@ export function mountPlayer(root, env = {}) {
     const { pack, game: g } = state;
     const puzzle = pack?.puzzles[state.index];
     const rating = puzzle ? ratingLabel(puzzle.rating) : '';
-    const name = puzzle?.title !== undefined && puzzle.title !== '' ? `${puzzle.title} #${state.index + 1}` : LABELS.puzzleNumber(state.index + 1);
+    const name = puzzleDisplayName(puzzle?.title, state.index);
     title.textContent = puzzle ? [name, rating].filter((part) => part !== '').join(' · ') : '';
     title.title = title.textContent;
     timer.textContent = g ? formatElapsed(g.elapsedMs) : '';
