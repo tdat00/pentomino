@@ -31,7 +31,10 @@ Open `http://localhost:8080/pentomino/`. Also available as `npm run serve`. Opti
 - Skip the slow tests: `node --test --test-skip-pattern=slow "tests/**/*.test.js"` (`npm run test:quick`).
 - Check repository conventions (UTF-8 without BOM, CRLF, final newline, no trailing whitespace) and the static site references: `npm run check`.
 - Headless generation: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4` (arrives with the generation client task).
-- Performance and calibration harnesses: `node tools\calibrate.mjs ...` and the browser page `http://localhost:8080/pentomino/tools/bench/` (arrive with the harness task; the exact options are printed by the tool itself).
+- Performance and calibration harnesses (screening evidence only; they never change a qualification gate):
+  - Node smoke: `node --max-old-space-size=2048 tools\calibrate.mjs --matrix tools\bench\matrices\smoke.json --workers 4 --fresh-process --output docs\calibration\node-smoke`.
+  - Score landscape on the real engine (hours; resumable, `--cases <regex>` runs a subset): `node --max-old-space-size=2048 tools\calibrate.mjs --profile landscape --workers 4 --seeds 20 --fresh-process --output docs\calibration\landscape`.
+  - Browser page (four module workers, Start/Cancel, JSON and Markdown downloads): `http://localhost:8080/pentomino/tools/bench/` after `npm run serve`. Keep the tab in the foreground.
 
 ### Code layout
 

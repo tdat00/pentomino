@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "profile": "smoke",
+  "cases": [
+    {
+      "id": "hard-10x6",
+      "boardRows": [
+        "##########",
+        "##########",
+        "##########",
+        "##########",
+        "##########",
+        "##########"
+      ],
+      "rotation": 0,
+      "levelId": "hard",
+      "maxActive": 676,
+      "quantity": 10,
+      "uniqueness": "any",
+      "seedPrefix": "smoke",
+      "repetitions": 1,
+      "seeds": ["fixture-set-0"]
+    },
+    {
+      "id": "hard-heart10",
+      "boardRows": [
+        "#####.....",
+        "#####.....",
+        "#####.....",
+        "#####.....",
+        "#####.....",
+        "##########",
+        "##########",
+        "##########",
+        "##########",
+        "##########"
+      ],
+      "rotation": 45,
+      "levelId": "hard",
+      "maxActive": 676,
+      "quantity": 10,
+      "uniqueness": "any",
+      "seedPrefix": "smoke",
+      "repetitions": 2
+    }
+  ]
+}

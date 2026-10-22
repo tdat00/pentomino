@@ -197,3 +197,34 @@ W×H below means columns×rows. K/sizes/G0 are unions over the area band; verify
 | hell-3 | 577–676 | 76–90 | 4–13 | 3–4 | 26×26;11.5 | 51 |
 
 Historical notes: eager certificates and clue variants contributed to old timings; the final strict pipeline must be measured anew. The original Hell-3 reference also included40×12, now excluded by side32; do not put that board into a valid-input calibration/BQ matrix. Lazy-certificate browser figures are estimates, not timed runs.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | **Partial** — harnesses, tests, Node and browser smoke runs complete; TAC-6 full landscape sweep (multi-hour, 105 cells) only partially measured (12 of 105 cells) |
+| Start | 2026-10-22 21:19:21 (+07:00) |
+| End | 2026-10-22 22:08:46 (+07:00) |
+| Duration | 49 min 25 s |
+| Model | claude-sonnet-5.5 (sub-agent `T21-perf-harness`, general-purpose); ran in parallel with T18, T19, T20 |
+| Token usage | 125 model calls; 30,206,088 input (29,860,569 cache read), 216,498 output |
+| AI credits | 601.47 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\benchmark-report.test.js tests\benchmark-matrix.test.js tests\calibration.test.js` → 60 pass / 0 fail; `npm run check` OK; `node tools\check-site.mjs . --entry tools/bench/index.html` OK. Agent run: `npm run test:quick` 693 pass.
+
+**Measured evidence (committed under `docs\calibration\`):**
+- Node smoke (`--matrix tools\bench\matrices\smoke.json --workers 4 --fresh-process`): exit 0, 5 rows, 10/10 puzzles in every ordinary run, T10 288–567 ms, cancel latency 5–6 ms, peak process memory ~160–200 MiB (`node-smoke.md/.json`).
+- Browser smoke (headless Edge, `tools\bench\?auto=smoke`): same source digest and semantic result digest as Node for every row; recorded recipe matches the T10 fixture; cancel via the real button 1.6–3.2 ms; no long tasks > 50 ms; peak memory `null` (page not cross-origin isolated) → verdict `incomplete-evidence` (`browser-smoke.json`).
+- Landscape slice (`--cases '^(6x10|10x10)-'`, 20 seeds, 240 runs, 2,962 profile samples): 12/105 cells measured, 93 listed as NOT RUN (`landscape-slice-2026-10-22.md`; the 2 MB raw JSON stays in git-ignored `tests\artifacts`). 6×10 very-easy completes ten puzzles in 65% of runs and easy in 85% (below the 90% criterion); T10 max exceeds 2× the historical Node maximum on three reference rows (very-easy 6×10 0.56 s vs 0.4 s, easy 6×10 0.68 s vs 0.2 s, nightmare 10×10 5.5 s vs 5.0 s — the historical numbers likely exclude worker start-up, which T10 here includes per spec). Observed K matched policy everywhere measured; policy K agrees with all 56 reference rows within ±1.
+
+**Acceptance:** BAC-1..3 pass; TAC-1..5 pass; **TAC-6 partial** (all 105 cells across 16 boards enumerated; unmeasured cells listed, not skipped; full sweep blocked here by multi-hour runtime; forecast-only rows labelled).
+
+**Issues & resolutions:**
+- **Open defect (for T23):** a native Node crash (exit 0xC0000005) in ~2–5% of fresh 4-worker processes; reproduces with `tools\generate.mjs` (2/80), not with 1 worker (0/100), not in long in-process loops (150 runs). Likely a first-run/multi-worker issue in the T14/T15 Node worker path or in Node itself. Not mitigated; crash rows are recorded as `error:child-exit` and lower the measured completion rates.
+- Additional CLI options: `--lifecycle warm`, `--cases <regex>`, `--no-cancel-probe`, `--watchdog-scale N` (scaled-watchdog row overhead is amplified and noted).
+- Landscape reports get a date suffix (`<output>-<date>.json/.md`); checkpoint name is stable; resume is automatic on matching checkpoint, mismatch exits 1 unless `--restart`.
+- Browser memory needs cross-origin isolation (COOP/COEP) or a hand-recorded task-manager peak.
+- Shared-file edits: `.gitignore` (+`docs/calibration/*.checkpoint.jsonl`), `README.md` harness commands.
+- Remaining work to complete TAC-6: run `node --max-old-space-size=2048 tools\calibrate.mjs --profile landscape --workers 4 --seeds 20 --fresh-process --output docs\calibration\landscape` unattended (hours, resumable).
+
+**Handoff (T23/T24):** `tools\calibrate.mjs` → `run`, `parseArgs`, `loadMatrix`, `createNodeHost`, `runInChild`, `readCheckpoint`, `reportBase`, `readSource`. Browser page `tools\bench\` (`?auto=smoke`, `?commit=<sha>`; `window.__bench.reportJson()`). `runner.js` → `validateMatrix`/`checkMatrix`, `planRuns`, `runCase`, `runMatrix`, `validateAccepted`, `modelSize`, `scaledClock`, `seedFor` (injected `Host`; add BQ matrices as `BenchMatrix` JSON). `report.js` → `evaluateCell`, `buildReport`, `renderMarkdown`, `reportJson`/`toCrlf`, `computeSourceDigest` (never says "qualified"; only `meets-all-criteria` for a complete browser cell). `calibration-reference.js` → 56-row reference table, `buildLandscapeMatrix`, `aggregateLandscape`, `checkSetPolicy`.

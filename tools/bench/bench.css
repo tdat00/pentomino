@@ -1,0 +1,81 @@
+body {
+  margin: 0;
+  color: var(--pm-ink);
+  background: var(--pm-surface);
+  font: 16px/1.45 system-ui, sans-serif;
+}
+
+.bench-header,
+.bench-main {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+}
+
+.bench-panel {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--pm-border);
+  border-radius: 0.5rem;
+}
+
+.bench-env {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.2rem 1rem;
+  margin: 0;
+}
+
+.bench-env dt {
+  color: var(--pm-muted);
+}
+
+.bench-env dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.bench-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.bench-controls label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.bench-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+#progress {
+  width: 100%;
+}
+
+.bench-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.bench-table th,
+.bench-table td {
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--pm-border);
+  text-align: left;
+}
+
+.bench-table tr[data-valid="false"] td {
+  color: #8a1c1c;
+}
+
+.bench-error {
+  color: #8a1c1c;
+}

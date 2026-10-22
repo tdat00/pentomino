@@ -1,3 +1,4 @@
 docs/local
 _site/
 tests/artifacts/
+docs/calibration/*.checkpoint.jsonl

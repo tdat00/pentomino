@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pentomino benchmark harness</title>
+  <link rel="stylesheet" href="../../core/browser/common.css">
+  <link rel="stylesheet" href="./bench.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body data-app="bench" data-state="loading">
+  <header class="bench-header">
+    <h1>Pentomino benchmark harness</h1>
+    <p>Runs a seed matrix against the real generator engine with a pool of four module workers. Keep this tab in the foreground; thumbnails stay off while it runs.</p>
+  </header>
+  <noscript><p class="bench-error">The benchmark page needs JavaScript.</p></noscript>
+  <main class="bench-main">
+    <section class="bench-panel" aria-labelledby="heading-env">
+      <h2 id="heading-env">Environment</h2>
+      <dl id="env" class="bench-env"></dl>
+    </section>
+    <section class="bench-panel" aria-labelledby="heading-run">
+      <h2 id="heading-run">Run</h2>
+      <div class="bench-controls">
+        <label>Matrix
+          <select id="matrix">
+            <option value="smoke">Smoke (matrices/smoke.json)</option>
+            <option value="file">Choose a matrix file</option>
+          </select>
+        </label>
+        <label>Matrix file <input id="matrix-file" type="file" accept=".json,application/json" disabled></label>
+        <label>Pool
+          <select id="lifecycle">
+            <option value="cold">Cold: new workers for every run</option>
+            <option value="warm">Warm: reuse the workers</option>
+          </select>
+        </label>
+        <label><input id="cancel-probes" type="checkbox" checked> Cancel probe per cell</label>
+        <label>Scaled watchdog row (clock speed-up, 0 = off) <input id="watchdog" type="number" min="0" max="100000" value="0"></label>
+      </div>
+      <div class="bench-buttons">
+        <button id="start" type="button">Start</button>
+        <button id="cancel" type="button" disabled>Cancel</button>
+        <button id="download-json" type="button" disabled>Download JSON report</button>
+        <button id="download-md" type="button" disabled>Download Markdown report</button>
+      </div>
+      <progress id="progress" max="1" value="0" aria-label="Matrix progress"></progress>
+      <p id="status" role="status" aria-live="polite">Ready.</p>
+    </section>
+    <section class="bench-panel" aria-labelledby="heading-results">
+      <h2 id="heading-results">Rows</h2>
+      <table class="bench-table">
+        <thead>
+          <tr><th>Probe</th><th>Case</th><th>Seed</th><th>Accepted</th><th>T1</th><th>T10</th><th>Response</th><th>Cancel</th><th>Main task</th><th>Reason</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </section>
+  </main>
+</body>
+</html>
