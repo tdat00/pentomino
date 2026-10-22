@@ -24,6 +24,8 @@ node tools\serve.mjs --port 8080 --prefix /pentomino/
 
 Open `http://localhost:8080/pentomino/`. Also available as `npm run serve`. Options: `--root DIR`, `--port N`, `--prefix /path/`, `--host ADDR`. Use `--prefix /` to test hosting at the root.
 
+On Windows, `run.cmd [port]` starts the same server (default port 8080) and opens the Generator in the default browser; set `NO_BROWSER=1` to skip opening it.
+
 ## Develop and test
 
 - Node.js 22 or newer. There is no build step and there are no runtime dependencies.
