@@ -139,7 +139,8 @@ function decode(m, rows, order) {
  * is null when none was found; `exhausted` is true only when the whole space
  * was searched, so a null layout with `exhausted` proves unsatisfiability.
  * @param {Model} m
- * @param {{ rng?: Rng, rowTrialLimit: number, branchTrialLimit?: number }} o
+ * @param {{ rng?: Rng, rowTrialLimit: number, branchTrialLimit?: number,
+ *   onProgress?: (rowTrials: number) => void, progressEvery?: number }} o
  * @returns {{ layout: Pose[] | null, rowTrials: number, branchTrials: number, exhausted: boolean,
  *   stop: 'exhausted' | 'solution-limit' | 'row-limit' | 'branch-limit' }}
  */
@@ -150,6 +151,8 @@ export function solveFirst(m, o) {
     rowTrialLimit: o.rowTrialLimit,
     branchTrialLimit: o.branchTrialLimit,
     rng: o.rng ?? null,
+    onProgress: o.onProgress,
+    progressEvery: o.progressEvery,
   });
   return {
     layout: r.found > 0 ? decode(m, r.solutions[0], orderIndex(m)) : null,

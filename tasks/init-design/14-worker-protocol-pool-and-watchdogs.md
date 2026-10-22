@@ -114,3 +114,28 @@ Use fake Workers to finish tasks out of order, emit stale IDs/revisions, crash, 
 ## Definition of done & handoff
 
 T15 receives a stable task pool and dispatcher; T19 uses verification tasks. Publish error codes, clock adapter and idle ownership rules. Do not mark browser responsiveness qualified from fake-clock tests.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done (real-browser responsiveness, e.g. < 200 ms cancel, is qualified later in T21/T23) |
+| Start | 2026-10-22 20:49:21 (+07:00) |
+| End | 2026-10-22 21:01:32 (+07:00) |
+| Duration | 12 min 11 s |
+| Model | claude-sonnet-5.5 (sub-agent `T14-worker-pool`, general-purpose); ran in parallel with T16, T17 |
+| Token usage | 51 model calls; 6,480,463 input (6,314,992 cache read), 99,301 output |
+| AI credits | 203.81 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\protocol.test.js tests\worker-pool.test.js tests\tasks.test.js tests\tiling.test.js` → 74 pass / 0 fail (task tests 59 + tiling regression); `check-conventions` OK. Agent run: `npm run test:quick` 503 pass / 0 fail; `npm run check` OK; headless-Edge smoke test with the real module worker (`setAttempt` ok, memory progress received, `cancelAll` → `AbortError: cancelled`).
+
+**Acceptance:** BAC-1..3 and TAC-1..5 pass. `cancelAll` terminates busy workers and settles promises with AbortError while keeping accepted results; new `beginRequest` supersedes old work and stale/late replies are ignored; idle work is lowest priority and preempted. Fake clock: one deadline spans several runs, workers terminated at exactly 115,000 ms with `onTimeout` 5 s before the 120 s limit. A cancel/crash/deadline/recycle/close storm leaves no pending promise. `recycle` drops `workerBytes` to 0; over-limit workers are killed (`memory-limit`). No eval, `SharedArrayBuffer` or `node:` imports in `core`.
+
+**Issues & resolutions:**
+- `puzzleCandidate` reads its frozen history from the payload, so callers must build payloads from `candidateContext(ctx, state)` (documented for T15).
+- Only `solveFirst` and `verifyPack` stream search progress; other tasks report memory progress only.
+- After a stored-solution check, `verifyPack` maps any model failure to `not-verified`, never `unsatisfiable`.
+- Shared-file edit: `core\engine\tiling.js` — `solveFirst` forwards optional `onProgress`/`progressEvery` to DLX (additive; behaviour unchanged).
+- Design choices (no owner input needed): `cancelAll` also ends the current action (clears its deadline); `recycle` aborts busy tasks but keeps queued ones for fresh workers; `beginRequest` requires strictly increasing request ids.
+
+**Handoff:** `protocol.js` → `TASK_KINDS`, `isTaskKind`, `validatePayload`, `parseTaskMessage`, `parseWorkerMessage`, `MAX_ROW_LIMIT` (strict plain-object validators returning fresh copies). `tasks.js` → `executeTask(kind, payload, execution)`, `createTaskHandler({post, mainBytes?, scratchBytes?})` → `{handle, main, scratch, bytes}` (T15 Node adapter: wire `post` to `parentPort`, map worker `exit` to pool `error`), `TaskError`, `errorReply`, `ERROR_CODES` (`invalid-task`, `invalid-payload`, `invalid-pack`, `invalid-request`, `model-too-large`, `invalid-clue`, `invalid-input`, `unsatisfiable`, `history-full`, `internal`). `worker-pool.js` → `createPool({size?, workerFactory?, clock?, onMemory?, mainBytes?})` with `run`, `runIdle`, `cancelAll`, `recycle`, `beginRequest`, `endRequest`, `memory()`, `setMainBytes()`, `close()`; per-task `signal`; `systemClock`; `defaultPoolSize()` 1–4 (player verification uses `size: 1`); errors `PoolAbortError` (reasons `cancelled`, `superseded`, `stale`, `ended`, `recycled`, `preempted`, `deadline`, `closed`), `PoolError` (`invalid-task`, `worker-unavailable`, `worker-crashed`, `worker-protocol`, `memory-limit`, `worker-failed`), `WorkerTaskError`. Idle work runs only for the latest request/revision and continues without deadline after `endRequest`.
