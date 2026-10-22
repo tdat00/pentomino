@@ -112,3 +112,28 @@ Use tiny internal problems for exact unique/multiple/unsatisfiable counts, a sym
 ## Definition of done & handoff
 
 T10 invokes these functions for both set calibration and every puzzle. T14 reuses `certify` in idle jobs. Publish successful small clue recipes for later integration fixtures.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done (one non-blocking interpretation sent to the owner for confirmation) |
+| Start | 2026-10-22 20:22:54 (+07:00) |
+| End | 2026-10-22 20:32:06 (+07:00) |
+| Duration | 9 min 12 s |
+| Model | claude-sonnet-5.5 (sub-agent `T09-difficulty`, general-purpose); ran in parallel with T08, T11 |
+| Token usage | 41 model calls; 3,653,944 input (3,546,572 cache read), 61,473 output |
+| AI credits | 123.78 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `npm run test:quick` → 337 pass / 0 fail (task tests: 32 pass, ~3.8 s); `npm run check` OK. (Transient `pack.test.js` failures seen mid-run came from T11's in-progress files and were gone once T11 finished.)
+
+**Acceptance:** BAC-1..3 and TAC-1..5 pass. All nine `(U, B_eff) → D` vectors plus `(8,0) → 16`; branch/row caps store B=5000 with `saturated:true`; ratings invariant under id renames, colours and piece/clue order; very-easy..master each produce an in-band subset on the 12-piece fixture while nightmare/hell-1 fail without relabelling; 205-cell strip with 2,000-row limit → `uniqueness-not-proved`; repair that leaves the band (3 → 4 clues, score 36 → 24) → `not-in-band`.
+
+**Issues & resolutions:**
+- Repair is allowed only while clue count ≤ K−2, so `makeUnique` returns null for K=2; fixtures use K=3 and K=12.
+- Added optional trailing `limits` argument to `measure` (default `SCORE.caps`) solely to test row-cap saturation on small fixtures; added optional `onRate(clues, rating)` diagnostic callback to the `selectClues` context.
+- Large-board `require` test is named "slow" (~3 s) so `test:quick` skips it.
+- Optional post-repair clue removal not implemented (marked optional; `makeUnique` has no band information).
+- Interpretation (sent to owner for confirmation, non-blocking): uniqueness-repair re-ratings (step 7) are not counted toward the 64-profile search budget (steps 1–4), so a candidate found in band is never discarded for budget alone. Reason precedence: any null `makeUnique` → `uniqueness-not-proved`; repair that only left the band → `not-in-band`.
+
+**Handoff:** `difficulty.js` → `MODEL`, `score(U, B)`, `measure(board, pieces, clues, ws, limits?)`, `rate` (level id via `levelForScore`), `inBand`, `UnsatisfiableError` (`code:'unsatisfiable'`, for any `L_i = 0` or exhausted zero-solution search; `ModelError` propagates for invalid clues). `clues.js` → `selectClues(ctx)` (`ctx.target` is a Level or `{min, max, share}`), `makeUnique(...)` (given clues first, then added), `certify(...)` → `{status, model:'dlx-v1', rowLimit, verified:true}` (reusable by T14), `countRowLimit(board)` (10,000 if active area ≤ 200, else 2,000). Fixture `tests\fixtures\clue-recipes.js` → `RECIPE_BOARD_ROWS`, `recipeWitness()`, `CLUE_RECIPES` (e.g. master = `YW`, score 43).
