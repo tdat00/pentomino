@@ -132,3 +132,25 @@ Compare byte vectors of lengths 0, 1, 55, 56, 64 and multiple blocks with `node:
 ## Definition of done & handoff
 
 Publish the stable exports above and test evidence. T04/T08/T10 consume Rng objects; T07/T11/T12 consume hashes. No downstream consumer should reimplement hashing or RNG.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done |
+| Start | 2026-10-22 19:47:47 (+07:00) |
+| End | 2026-10-22 19:50:02 (+07:00) |
+| Duration | 2 min 15 s |
+| Model | claude-sonnet-5.5 (sub-agent `T02-hash-rng`, general-purpose); ran in parallel with T03, T22 |
+| Token usage | 11 model calls; 470,281 input (440,368 cache read), 21,280 output |
+| AI credits | 33.16 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\hash.test.js tests\rng.test.js` green (35 tests); full suite at agent finish 63 pass / 0 fail; `npm run check` OK.
+
+**Acceptance:** BAC-1..3, TAC-1..5 pass (golden `demo` vectors, SHA-256 vs `node:crypto` at block-boundary lengths, NFC/trim/code-point seed rules, canonical JSON ordering/rejections, rejection-sampling branch forced with n=2^31+1, `derive` independent of parent consumption).
+
+**Issues & resolutions:**
+- File tool emitted LF; converted to CRLF and verified with `git add --dry-run` and the convention checker.
+- Design choices (no owner input needed): deriving from an unlabeled root produces path `/label` (literal spec); `createRng` normalizes (trim + NFC) but applies no length cap to internal seeds.
+
+**Handoff:** `hash.js` → `sha256Hex(string|Uint8Array)`, `canonicalJson(value)` (rejects accessors, symbols, sparse arrays, non-plain objects, `toJSON`). `rng.js` → `RNG_ID`, `SEED_SCHEME`, `normalizeSeedText` (RangeError on empty/>64 code points, TypeError on non-string), `batchSeedFor` (expects normalized set seed), `createRng`, `randomSeedText`, `Rng` typedef; test-only `createRngFromState(state)` (cannot `derive`).
