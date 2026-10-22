@@ -1,6 +1,6 @@
 # Pentomino Puzzle Studio — Final Detailed Design
 
-**Phase 7 · 22 October 2026 · Design version 2 (final)**
+**Phase 7 · 22 October 2026 · Design version 2 (final) · Phase-9 amendment: batch seeds and small clarifications (D41, D42)**
 
 This is the single developer contract for the project. It is `4-design-detail.md` (the Phase-4 unified design) updated with the outcome of the requirement-addendum studies (Phase 5) and their cross-reviews (Phase 6). The companion document `7-design-brief.md` describes the user experience.
 
@@ -26,6 +26,7 @@ This document is self-contained: implement from it alone. Earlier design files a
     | Level labels vs. human effort; scoring of forced placements; perceived effect of macro carving | `difficulty-v2`, `gen-v2` as specified | Playtests [PT] (§7.8) |
 
 - All tunable values live as data in `core/engine/policy.js` (limits, piece counts, size policy, budgets, score weights and caps) or `core/engine/levels.js` (bands, clue shares, availability). The generated-color and pattern rules live in `palette.js`. Changing a value that affects results requires a new model, policy or algorithm id (§5.4).
+- **Board-size notation.** A × B means columns × rows (W × H) unless stated otherwise. For rectangles, orientation never affects policy, scores or test matrices. The UI labels Columns and Rows explicitly (§10.2).
 - **Decision-record sources** (§2):
 
   | Code | Source |
@@ -36,6 +37,7 @@ This document is self-contained: implement from it alone. Earlier design files a
   | P6-A1 / P6-A2 | `6-review-of-architect-2.md` (by architect-1) / `6-review-of-architect-1.md` (by architect-2) |
   | Orch | Orchestrator settlement after Phase 6 |
   | P7 | Computed for this document from the settled formulas |
+  | P9-A1 | `9-review-of-architect-2-tasks.md` (task-pack review by architect-1) |
   | User | End-user clarification |
 
 **Glossary**
@@ -114,7 +116,7 @@ Requirements come from `docs/local/prompt.txt`, including its addendum and the r
 
 ## 2. Decision record
 
-Rows D1–D31 come from Phase 4. Rows marked **(P5/6)** were changed or added by the addendum studies, their cross-reviews and the orchestrator's settlement.
+Rows D1–D31 come from Phase 4. Rows marked **(P5/6)** were changed or added by the addendum studies, their cross-reviews and the orchestrator's settlement. Rows marked **(P9)** were added by the Phase-9 task-pack review.
 
 | # | Decision | Chosen option | Rationale | Source |
 |---|---|---|---|---|
@@ -158,6 +160,8 @@ Rows D1–D31 come from Phase 4. Rows marked **(P5/6)** were changed or added by
 | D38 **(P5/6)** | Memory engineering | Compact model storage (flat typed arrays, no per-row objects), one reusable workspace per worker plus a scratch workspace, worker recycling when the set changes, pre-flight guards (≤ 600,000 rows, ≤ 5,000,000 nodes) and byte accounting | Per-row JS objects, not DLX links, dominated memory (A.10). | P5-A2 §1; P6-A1 R3–R5; P6-A2 D6-05 |
 | D39 **(P5/6)** | Planning factor | Browser time = 5 s + 4 × Node time for planning; 2.5× is an optimistic sensitivity only. Browser qualification replaces both. | Neither factor was measured. | P5-A2 §1; P5-A1 §1.2; P6-A2 D6-05 |
 | D40 **(P5/6)** | Minimum board | 30 active cells for generation; any non-empty board on import | Below ~30 cells the formula offers only very-easy, with gaps; such puzzles are trivial. | P7 |
+| D41 **(P9)** | Batch seeds and "Keep seed" | `batchSeed = setSeed + "#" + batchIndex`. `batchIndex` counts the New Puzzles / Add more requests on the current set (1 = first). It is stored with the set. With 🔒 Keep seed on, the seed text is reused, so the set and every batch seed (#1, #2, …) recur, and each batch is reproduced given the same history. With it off, each Generate Piece Set draws a new random seed. (§8.6) | The batch seed was undefined. Reusing one seed for every batch would replay already-seen layouts, because the session history only grows (D16). | P9-A1 T9-02; Orch |
+| D42 **(P9)** | Module file extension | Every module loaded by a browser page or worker uses `.js`. `.mjs` is only for Node tools. (§12.3) | Some static servers send `.mjs` as `text/plain`, and browsers then refuse to load the module. Python 3.14 `http.server` on Windows does this (verified). | P9-A1 T9-03 |
 
 ---
 
@@ -702,12 +706,13 @@ Copy only whitelisted fields into newly created objects; this prevents prototype
   "rng": "xoshiro128ss-v1", "seedScheme": "seed-sha256-v1",
   "setSeed": "K7Q2-9MXA-3FWD", "setLevel": "hard", "setAttempt": 2,
   "carving": "macro", "macroRegion": [0, 0, 1, 1, 1, 2, 2, 3, 3, 3],
-  "batchSeed": "P0ZD-4W2R-H8NA", "batchLevel": "hard", "batchIndex": 1,
+  "batchSeed": "K7Q2-9MXA-3FWD#1", "batchLevel": "hard", "batchIndex": 1,
   "uniqueness": "any", "createdAt": "2026-10-22T03:00:00Z"
 }
 ```
 
 - `macroRegion` lists the macro-region index of each piece in piece order; it lets a later session continue New Puzzles with macro-region re-tiling (§6.7). It is absent for flat and imported sets.
+- `batchSeed` is always `setSeed + "#" + batchIndex`. `batchIndex` is the 1-based number of the batch request on this set (§8.6, D41).
 - `generation` is type-checked only on import (§5.3); a missing or foreign object never blocks play.
 
 ### 5.6 Progress records and fingerprints
@@ -1183,7 +1188,7 @@ Let S = `symmetries(board)` (§6.2). Every key is computed in the normalized act
 **Inputs:**
 - set (with witness and `macroRegion`);
 - target level and quantity q ∈ 1..10;
-- `batchSeed` and uniqueness mode;
+- `batchSeed` = `setSeed + "#" + batchIndex` (§8.6), and uniqueness mode;
 - `seen`: the session history of accepted layout keys and clue keys for this set. It holds at most 1,000 keys; when full, the UI asks the user to start a new history.
 
 ```text
@@ -1222,7 +1227,14 @@ fold (deterministic; main thread; consumes candidates strictly in (i, a) order):
 - `best` and `bestDistance` hold the farthest valid candidate of the current slot; they are reset for every slot, and ties keep the earliest attempt, so the fold stays deterministic. Because `best` is accepted when no candidate reaches `d`, a slot stays empty only when no new valid layout was found at all: the distance preference changes which layout is chosen, never whether one is.
 
 **Speculation.**
-- The scheduler keeps all workers busy with the next candidates in fold order: first attempt 0 of upcoming slots, then retries of the current slot.
+- The scheduler keeps up to poolSize candidates in flight, in this priority:
+  1. the next attempt of the slot the fold is waiting on;
+  2. attempt 0 of each later unfilled slot, in ascending order;
+  3. further attempts of the current slot;
+  4. further attempts of later slots.
+- Results are cached by (slot, attempt) and consumed only in fold order.
+- Candidates of later slots stay valid: every candidate sees the history frozen when the request starts (`ctx.seenLayouts` / `ctx.seenClues`, taken after calibration reuse), while the fold checks its own growing seen sets.
+- Lexicographic (slot, attempt) speculation is not acceptable. When most slots succeed at attempt 0, it wastes 3 of 4 workers.
 - Speculation changes speed only, never results (§8.2).
 
 **Result statuses:**
@@ -1599,7 +1611,7 @@ All budgets live in `policy.js` (`BUDGETS`, `TIME`). Node budgets are determinis
   - Puzzles stream onto the page as soon as the fold accepts them.
 - **Main thread.** It never runs generation work and never has tasks > 50 ms other than rendering.
 - **No module-worker support.**
-  - The generator shows "This browser cannot run the generator (module workers required)".
+  - The generator shows N-NOWORKER (§10.7).
   - The player still plays; solvability is shown as "not verified".
 
 ### 8.5 Memory
@@ -1634,6 +1646,16 @@ All budgets live in `policy.js` (`BUDGETS`, `TIME`). Node budgets are determinis
   - Read them as four big-endian uint32 words.
   - An all-zero state (practically impossible) is replaced by `0x9E3779B9, 0x243F6A88, 0xB7E15162, 0x6A09E667`.
 - **Derivation.** `rng.derive(label)` appends `/label` to the label path and hashes again. It does not depend on how much of the parent stream was consumed.
+- **Set and batch seeds** (D41).
+  - **Generate Piece Set.** The seed text in the field is the set seed (`setSeed`).
+    - With 🔒 Keep seed off (the default), every click first draws a new random seed into the field and then uses it.
+    - With 🔒 on, the field's seed is reused unchanged.
+    - Typing a seed turns 🔒 on. 🎲 draws a new random seed into the field at once.
+    - The field therefore always shows the current set's seed.
+  - **Batch seeds.** Every New Puzzles or Add more request on a set increments that set's `batchIndex` and uses `batchSeed = setSeed + "#" + batchIndex`.
+    - `batchIndex` is 1 for the first batch. It is stored with the set (generator state, §9.6) and restarts at 0 for each new set.
+    - The batch seed is internal. It is not editable and not subject to the 64-code-point limit.
+    - It needs no extra label: candidates use the labels `slot/<i>/<a>` (§6.9).
 - **Test vectors:**
 
   | Input | Expected |
@@ -1644,6 +1666,9 @@ All budgets live in `policy.js` (`BUDGETS`, `TIME`). Node budgets are determinis
 
 - **Reproduction.** Packs record seeds, levels, options and algo/policy/rng ids (§5.5). "Reproduce" re-runs a request with those inputs.
   - A later batch also needs its session history. With an empty history, the first batch is reproduced.
+  - With Keep seed on, the same seed text, board and level reproduce the set. The k-th batch request after it, with the same history, reproduces batch k. A fresh session therefore replays the whole sequence.
+  - The same works within one session: Generate Piece Set again with Keep seed on starts a fresh set (`batchIndex` 0, empty session history), so the next New Puzzles reuses `setSeed#1` and reproduces batch 1.
+  - Re-running one batch seed against the grown history of the same set cannot repeat that batch: its layouts are already seen (D16). This is why `batchIndex` always increments.
 
 ### 8.7 Browser qualification (BQ)
 
@@ -1656,7 +1681,10 @@ The [BQ] limits ship disabled and are enabled by changing `LIMITS` in `policy.js
 **Measures per run.**
 - T1: from the Generate Piece Set click to "ready" (set + calibration puzzle #1);
 - T10: from the click to the 10th accepted puzzle (set + New Puzzles); lazy certificates are excluded and reported separately;
-- accepted count, partial reason, peak byte accounting, browser task-manager peak (tab + workers).
+- accepted count, partial reason, peak byte accounting, browser task-manager peak (tab + workers);
+- certificate outcomes, including "not checked";
+- longest main-thread task and the number of tasks > 50 ms. Use `PerformanceObserver` with type `longtask` where supported (Chromium). Elsewhere, use a `MessageChannel` heartbeat every 10 ms and report its maximum delay as a labelled proxy. Thumbnails stay off during runs, so rendering does not count;
+- Cancel latency: one extra probe run per matrix cell, excluded from the completion statistics. It clicks Cancel when the first puzzle is accepted and is timed from the click handler to the settled state (workers terminated, UI idle).
 
 **Tests and acceptance criteria.**
 
@@ -1746,6 +1774,7 @@ A `piece-set` file shows: "This file has pieces but no puzzle — open it in the
 - It uses the `witness`, or any valid puzzle `solution`, as the reference layout.
 - Without one, it first runs a bounded `randomTiling`.
 - Imported sets that violate `mixed-v2` remain usable. Keys use shape ranks (§6.8). Without `generation.macroRegion`, New Puzzles uses flat-cluster LNS (§6.7).
+- The set seed is `generation.setSeed`, or a new random seed when absent. `batchIndex` continues after `generation.batchIndex` (0 when absent), so batch seeds of the source pack are not replayed (§8.6).
 
 ### 9.5 Verification on import
 
@@ -1759,7 +1788,7 @@ Play is allowed while checking, and after an inconclusive check. "Not verified" 
 
 | Key | Content | Limit |
 |---|---|---|
-| `pentomino:v1:gen:state` | Generator state: board, rotation, level, options, seed, set + witness, batch, session-history keys | 1 entry |
+| `pentomino:v1:gen:state` | Generator state: board, rotation, level, options, seed and Keep-seed flag, set + witness + `batchIndex`, batch, session-history keys | 1 entry |
 | `pentomino:v1:lib:index` | `[{ packId, title, createdAt, lastOpened, puzzles, solved }]` | 30 packs, LRU |
 | `pentomino:v1:lib:<packId>` | Pack JSON (`packId` = first 16 hex of SHA-256 of the canonical core content) | — |
 | `pentomino:v1:progress:<fp>` | Progress record (§5.6) | 300 entries, LRU |
@@ -1831,7 +1860,7 @@ On desktop the generator shows three columns above a puzzles row. Below 900 px t
 - **Level list.** Shows the offered levels for the board's area (§7.5). Other levels are disabled, with the reason ("needs a larger board" / "needs a smaller board").
 - **Piece count.** A live text from `pieceCountRange` and g_L, such as "Uses 16–18 pieces of 12–34 squares · about 38 % pre-placed".
 - **Advanced** (collapsed):
-  - seed text, with 🎲 (new random seed) and 🔒 (keep the seed);
+  - seed text (the set seed), with 🎲 (new random seed now) and 🔒 Keep seed. With 🔒 off (default), every Generate Piece Set first draws a new random seed. With 🔒 on, the seed is reused. Typing a seed turns 🔒 on (§8.6);
   - "Require one solution" (off by default). Outside A ≤ 200 or below-Hell levels it carries the note "experimental — usually fails on large Hell puzzles" (§6.11);
   - "Large boards (experimental)" (§10.2);
   - "Omit solutions in exported files".
@@ -1848,10 +1877,10 @@ On desktop the generator shows three columns above a puzzles row. Below 900 px t
 ### 10.5 Puzzles panel
 
 - **Quantity** is 1–10 (default 5). **Level** defaults to the set's level; any offered level is allowed. The set is kept, and puzzles are calibrated for the chosen level. A level far from the set's own level may be unreachable with this set's piece count; the batch then ends with N-SETLEVEL and offers a new piece set.
-- **New Puzzles** replaces the visible batch; earlier puzzles stay in the session history, so they are never repeated. **Add more** appends to the batch.
+- **New Puzzles** replaces the visible batch; earlier puzzles stay in the session history, so they are never repeated. **Add more** appends to the batch. Each such request increments the set's `batchIndex` and uses `batchSeed = setSeed + "#" + batchIndex` (§8.6).
 - **Cards** stream in. Each shows:
   - a rotated thumbnail;
-  - a title such as "Hard #3";
+  - a title "<level> #n", where n is the card's position in the visible batch, e.g. "Hard #3". Add more continues the numbering;
   - the score ("20", inside the hard band [17, 25)) and the level chip;
   - "3 pre-placed · 33 %" (3 of the 9 pieces);
   - the certificate badge (§6.11), first "Checking…", then the lazy result.
@@ -2106,6 +2135,7 @@ The meta refresh is the fallback when JavaScript is off; the link is the last re
 ### 12.3 Path rules (MUST)
 
 - Use only relative URLs (`./`, `../`). Never use root-absolute URLs such as `/core/…`, because the site lives under `/pentomino/`.
+- Every module loaded by a browser page or worker uses the `.js` extension (D42). This covers the apps, `core/`, `tests/browser/` and `tools/bench/`. `.mjs` is reserved for Node-only tools, because some static servers send `.mjs` as `text/plain`, which browsers refuse for module scripts.
 - Resolve workers and assets with `new URL('./x.js', import.meta.url)`.
 - Cross-app links are `../player/` and `../generator/`. Absolute "Copy link" URLs are computed at runtime from `document.baseURI`.
 
@@ -2205,7 +2235,7 @@ jobs:
 | `keys` | Layout keys are invariant under board symmetries, so reflected layouts are duplicates. A clue-only change is not a new layout. Distance values. `progressFingerprint` differs for reflected clues (A.9 counterexample). |
 | `difficulty` | Worked examples of §7.2. Saturation at 5,000 branch trials and at 50,000 row trials (effective B = 5,000, actual counters stored). Permuting ids, colors or piece order leaves the rating unchanged. Forced-placement fixture: a puzzle solvable without branching scores 2U [PT]. |
 | `clues` | Always 1 ≤ G ≤ K−2. Initial G follows g_L. `require` mode returns only exhaustively proven unique puzzles. No in-band subset → failure, never a mislabel. 'any' mode returns `certificate: null`. |
-| `generate` | Fold determinism: identical output for pool sizes 1 and 4 and shuffled completion orders (simulated). New layout AND clue keys; no clue-only variant is ever accepted. The best-distance fallback fills a slot whose candidates were all "too close" with the farthest valid one (`bestDistance`; ties keep the earliest attempt). Partial status, its reason and the prefix property. The calibration puzzle is reused as #1. Lazy `certifyTask` results do not change accepted puzzles. |
+| `generate` | Fold determinism: identical output for pool sizes 1 and 4 and shuffled completion orders (simulated). New layout AND clue keys; no clue-only variant is ever accepted. The best-distance fallback fills a slot whose candidates were all "too close" with the farthest valid one (`bestDistance`; ties keep the earliest attempt). Partial status, its reason and the prefix property. The calibration puzzle is reused as #1. Lazy `certifyTask` results do not change accepted puzzles. Speculation priority: with a simulated pool of 4 where every attempt 0 is accepted, q = 10 needs 3 dispatch rounds. Batch seeds follow `setSeed#batchIndex`; two consecutive batches on one set use different seeds and both return new layouts; a fresh session with the same seed reproduces batch 1. |
 | `palette` | `labelFor`: 0 → A, 25 → Z, 26 → AA, 701 → ZZ, 702 → AAA. `patternFor` is 'none' for K ≤ 20. Generated colors are valid `#rrggbb`. |
 | `pack` | The §5.2 fixture validates and round-trips. Rejects: wrong format; version 0, −1, 2 or "1"; unknown fields; bad rows; overlapping clues; an invalid solution; oversized input. Accepts the classic 12 pentominoes on 6×10, a piece with a hole (warnings only), `difficulty-v1` ratings (as claims) and a 90-piece pack. `omitSolutions` works. |
 | `sharecode` | `1z` / `1j` round-trips (Node ≥ 22 has `CompressionStream`). A decompression bomb is aborted at 256 KiB. `extractCode` finds codes in surrounding text. |
@@ -2304,7 +2334,7 @@ Implementation phases are numbered **I0–I8**. Every value in this document is 
 | **I2 Solver** | `workspace` (grow-only buffers, `countModel`, guards); `dlx` on flat typed rows; `tiling` (model, `solveFirst`, `countSolutions`, `randomTiling`, `lnsStep`/`lnsWalk` with macro and flat clusters, `isValidLayout`); `keys` | Golden counts; oracle agreement; certificate statuses; workspace reuse gives identical results; guards fire before allocation |
 | **I3 Generation engine** | `policy` (`mixed-v2`: counts, window, histogram feasibility, `planSizes`, budgets, time) and `levels` (bands, shares, availability); `carve` (flat, `macroPartition`, `carveMacro`, `validateSet`); `difficulty` (`difficulty-v2`, saturation); `clues`; `generate` (`setAttempt`, `puzzleCandidate`, strict fold with best-distance fallback, `certifyTask`); `tools/generate.mjs` CLI; `tools/calibrate.mjs` (Node pool of 4) | Fixed seeds give identical packs; fold determinism; policy anchor rows of §13.2; CLI output passes `validatePack`; `calibrate.mjs` reproduces the §7.5 table within ± 1 piece and its Node times within 2× |
 | **I4 Format and hand-off** | `pack` (policy `mixed-v2`, `difficulty-v1` claims accepted), `sharecode`, `storage`, `handoff` | Round-trips, rejection cases, decompression-bomb guard, fixture, 90-piece pack |
-| **I5 Generator app** | `engine.worker` and `worker-pool` (pool of 4, recycling on set change, cancel, watchdog 115 s / 120 s, revision checks, lazy certificate queue, byte accounting); `svg-board` with rotation, zoom and pan; board editor (paint, presets, view rotation, edit-unrotated, trim, undo, device caps, experimental switch); level, set and puzzle panels; progress; notices; persistence; Play and Export; `tools/bench/` page | Board → set → 10 puzzles → Play works for 6×10, Heart N = 10 and 22×22 Hell-3; Cancel < 100 ms; a 115 s stop answers by 120 s; reload restores state; no main-thread long tasks |
+| **I5 Generator app** | `engine.worker` and `worker-pool` (pool of 4, recycling on set change, cancel, watchdog 115 s / 120 s, revision checks, lazy certificate queue, byte accounting); `svg-board` with rotation, zoom and pan; board editor (paint, presets, view rotation, edit-unrotated, trim, undo, device caps, experimental switch); level, set and puzzle panels; progress; notices; persistence; Play and Export; `tools/bench/` page | Board → set → 10 puzzles → Play works for 6×10, Heart N = 10 and 22×22 Hell-3; Cancel < 200 ms (§8.7); a 115 s stop answers by 120 s; reload restores state; no main-thread long tasks |
 | **I6 Player app** | Import view (hash, file, paste, recent, sample); `verifyPack`; `game` reducer; board and tray rendering with θ; pointer drag/tap; keyboard; screen-space rotate/flip; undo/redo/reset; win dialog; progress; pack navigation; patterns and long labels; accessibility | §13.3 items 2–12; alternative tilings win; rotated boards fully playable |
 | **I7 Release** | Whole-graph `stamp-version.mjs`; `check-site` in CI; CSP review; browser matrix; **BQ-0** on the reference machines and phones; README and help | Deployed site passes §13.3; BQ-0 report in `docs/calibration/`; no critical axe findings |
 | **I7b Limit qualification** (after release, independent) | **BQ-1**, **BQ-2**, **BQ-3** runs; raise `releaseMaxActive`, graduate large-board mode or `phoneMaxActive` only on passing reports | Reports per §8.7; limit changes reference them |

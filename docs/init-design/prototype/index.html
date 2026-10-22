@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pentomino — static UI prototypes</title>
 <meta name="description" content="Non-functional static mockups of the Pentomino generator and player.">
@@ -10,11 +11,11 @@
 <body class="index-body">
 <main class="index">
   <h1>Pentomino — static UI prototypes</h1>
-  <p class="lead">Non-functional HTML/CSS mockups (no JavaScript) based on <code>7-design-brief.md</code> and <code>7-design-detail.md</code>; the puzzle data is real, generated and checked with the design prototype.</p>
+  <p class="lead">Non-functional HTML/CSS mockups (no JavaScript) based on <code>7-design-brief.md</code> and <code>7-design-detail.md</code>; the puzzle data is real, generated and checked with the design prototype. The markup follows the production Content-Security-Policy (§12.4): no inline scripts or styles.</p>
   <ol class="index-list">
     <li><a href="generator-6x10-normal.html">Generator — 6×10 board, Normal</a> <span class="muted">(<a href="screenshots/generator-6x10-normal.png">screenshot</a>)</span><br>
       <small>8 pieces of 5–10 squares; 5 puzzles with 4 pre-placed pieces, scores 12, 14, 13, 13, 15 (Normal = 12–16); uniqueness results and pending checks.</small></li>
-    <li><a href="generator-heart-master.html">Generator — Heart board (10×10 grid, top-right quarter blocked, shown at 45°), Master</a> <span class="muted">(<a href="screenshots/generator-heart-master.png">screenshot</a>)</span><br>
+    <li><a href="generator-heart-master.html">Generator — Heart board (10×10 grid, top-right quarter blocked, shown at 45°), Master</a> <span class="muted">(<a href="screenshots/generator-heart-master.png">desktop</a>, <a href="screenshots/generator-heart-master-mobile.png">phone</a>)</span><br>
       <small>75 squares; 14 pieces of 3–9 squares; New Puzzles running: 3 of 5 found, 3 pre-placed, scores 45, 43, 37 (Master = 37–52).</small></li>
     <li><a href="player-master.html">Player — 10×12 board (120 squares), Master #2, mid-game</a> <span class="muted">(<a href="screenshots/player-master.png">desktop</a>, <a href="screenshots/player-master-mobile.png">phone</a>, <a href="screenshots/player-master-pack-menu.png">pack menu</a>)</span><br>
       <small>15 pieces, score 42; 3 locked pieces, 5 placed, one dragged onto its green ghost, 6 in the tray. Open the <a href="player-master.html#pack">☰ Pack menu</a> or the <a href="player-master.html#keys">shortcuts</a>.</small></li>

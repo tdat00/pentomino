@@ -1,5 +1,5 @@
-/* Pentomino — static UI prototypes (Phase 8). Shared styles for non-functional mockups.
-   Based on docs/init-design/7-design-brief.md and 7-design-detail.md (§6.3, §10, §11). No JavaScript. */
+/* Pentomino — static UI prototypes (Phase 8, revised after the Phase-9 review). Shared styles for non-functional mockups.
+   Based on docs/init-design/7-design-brief.md and 7-design-detail.md (§6.3, §10, §11). No JavaScript, no inline styles (CSP §12.4). */
 
 :root {
   --bg: #eef1f6;
@@ -96,6 +96,7 @@ input:disabled, select:disabled { opacity: 0.6; }
 .lv input { margin: 0; accent-color: var(--accent); }
 .lv.off { color: #a3aaba; cursor: not-allowed; }
 .note { margin: 8px 0 4px; color: var(--muted); font-size: 12.5px; }
+.note.est { margin-top: 10px; color: #3d4659; }
 .count-text { margin: 4px 0 10px; padding: 7px 9px; border-radius: 7px; background: var(--info-soft); color: #173f7a; font-size: 13px; }
 .adv { margin-bottom: 10px; }
 .adv summary { cursor: pointer; font-weight: 600; color: var(--muted); }
@@ -119,8 +120,9 @@ input:disabled, select:disabled { opacity: 0.6; }
 .batch-status { margin-bottom: 10px; color: var(--muted); font-size: 13px; }
 .progress { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 .progress .bar { position: relative; width: 260px; height: 10px; overflow: hidden; border-radius: 6px; background: #dfe5f0; }
-.progress .bar span { position: absolute; inset: 0 auto 0 0; width: var(--p); border-radius: 6px; background: linear-gradient(90deg, #2456d3, #4f7ff0); }
-.ptext { font-weight: 600; }
+.progress .bar span { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 6px; background: linear-gradient(90deg, #2456d3, #4f7ff0); }
+.progress .bar-60 span { width: 60%; }
+.ptext { font-weight: 600; white-space: nowrap; }
 .ptime { color: var(--muted); font-variant-numeric: tabular-nums; }
 
 .cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
@@ -136,6 +138,7 @@ input:disabled, select:disabled { opacity: 0.6; }
 .card-skel .card-head, .card-skel .card-meta { color: var(--muted); }
 .skel { background: repeating-linear-gradient(135deg, #f1f4f9 0 10px, #e9edf4 10px 20px); }
 .is-running .board-panel, .is-running .level-panel, .is-running .set-panel { opacity: 0.86; }
+.sticky-actions { display: none; }
 
 .chip { padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .lv-very-easy { background: #e3f4e6; color: #1f6b30; }
@@ -182,8 +185,12 @@ input:disabled, select:disabled { opacity: 0.6; }
   display: grid; grid-template-columns: minmax(0, 1fr) 430px; grid-template-areas: "board tray" "sel sel";
   gap: 12px; padding: 12px 14px;
 }
-.board-wrap { grid-area: board; display: flex; align-items: center; justify-content: center; min-width: 0; padding: 10px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; box-shadow: var(--shadow); }
+.board-wrap { grid-area: board; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-width: 0; padding: 10px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; box-shadow: var(--shadow); }
 .board-wrap svg { max-width: 100%; height: auto; touch-action: none; }
+.board-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; align-self: stretch; }
+.board-tools .btn { font-size: 15px; }
+.zoom-val { min-width: 48px; color: var(--ink); font-weight: 650; font-variant-numeric: tabular-nums; text-align: center; }
+.pan-hint { margin-left: 6px; }
 .tray { grid-area: tray; min-width: 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; box-shadow: var(--shadow); }
 .tray h2 { margin: 0 0 10px; font-size: 15px; }
 .tray-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; touch-action: none; }
@@ -196,7 +203,8 @@ input:disabled, select:disabled { opacity: 0.6; }
 .selbar { grid-area: sel; padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; box-shadow: var(--shadow); }
 .sel-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .sel-name { display: inline-flex; align-items: center; gap: 6px; }
-.swatch { display: inline-block; width: 16px; height: 16px; border: 1px solid rgb(0 0 0 / 25%); border-radius: 4px; }
+.swatch { display: inline-block; flex: none; width: 16px; height: 16px; }
+.swatch rect { stroke: rgb(0 0 0 / 30%); stroke-width: 1; }
 .fits { color: var(--ghost); font-weight: 700; }
 .tools { display: inline-flex; gap: 6px; }
 .tools .btn { font-size: 17px; }
@@ -234,15 +242,30 @@ input:disabled, select:disabled { opacity: 0.6; }
 
 /* ---------- narrow screens (§10.1, §11.1: below 900 px) ---------- */
 @media (max-width: 899px) {
-  .gen { grid-template-columns: minmax(0, 1fr); }
+  .gen { grid-template-columns: minmax(0, 1fr); padding-bottom: 88px; }
   .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .appbar .pill { display: none; }
+  .appbar { height: auto; min-height: 56px; flex-wrap: wrap; gap: 6px 10px; padding: 6px 10px; }
+  .progress { flex-wrap: wrap; gap: 8px; }
+  .progress .bar { width: 100%; }
+  .progress .hint { flex-basis: 100%; }
+  .ptext { white-space: normal; }
+  .card-actions { flex-wrap: wrap; }
+  .sticky-actions {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #fff;
+    box-shadow: 0 -6px 18px rgb(16 24 40 / 12%);
+  }
+  .sticky-actions .btn-primary { flex: 1; }
+  .sticky-text { flex-basis: 100%; color: var(--muted); font-size: 13px; }
   .topbar { flex-wrap: wrap; gap: 6px 8px; padding: 6px 8px; }
   .topbar .hide-sm { display: none; }
   .topbar .sep { display: none; }
-  .ptitle { font-size: 15px; }
+  .ptitle { order: -1; flex-basis: 100%; font-size: 15px; }
   .play { grid-template-columns: minmax(0, 1fr); grid-template-areas: "board" "sel" "tray"; gap: 8px; padding: 8px; }
-  .board-wrap { padding: 4px; }
+  .board-wrap { padding: 6px; }
+  .zoom-val { display: none; }
+  .pan-hint { flex-basis: 100%; margin-left: 0; }
   .tray { padding: 8px 10px; }
   .tray-grid { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 112px; grid-template-rows: repeat(2, auto); overflow-x: auto; padding-bottom: 4px; }
   .slot { min-height: 96px; }
@@ -250,4 +273,19 @@ input:disabled, select:disabled { opacity: 0.6; }
   .selbar { padding: 8px; }
   .sel-row { gap: 6px 8px; }
   .menu { left: 8px; right: 8px; width: auto; }
+}
+
+/* ---------- touch targets ≥ 44 × 44 CSS px (§11.7) on narrow screens and coarse pointers ---------- */
+@media (max-width: 899px), (pointer: coarse) {
+  .btn, .btn-sm, .btn-lg, .btn-dark { height: auto; min-height: 44px; }
+  .icon-btn, .btn-sm.icon-btn { width: 44px; min-width: 44px; height: 44px; }
+  .field input[type="number"], .field input[type="text"], .field select { height: 44px; }
+  .check, .lv { min-height: 44px; }
+  .pack-list li { min-height: 44px; }
+  .menu-head .close { width: 44px; }
+}
+
+/* ---------- phones: one card per row so card actions keep 44 px targets ---------- */
+@media (max-width: 599px) {
+  .cards { grid-template-columns: minmax(0, 1fr); }
 }
