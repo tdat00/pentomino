@@ -110,3 +110,27 @@ Test asymmetric blocked margins, a board with no symmetry, a symmetric piece wit
 ## Definition of done & handoff
 
 T09 relies on full witnesses, accurate L_i, and stop flags. T10 extends this module with discovery functions. T11/T12/T13 rely on exact progress identity. Publish any internal arena metadata changes to T06’s contract before downstream work.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done |
+| Start | 2026-10-22 20:14:11 (+07:00) |
+| End | 2026-10-22 20:21:55 (+07:00) |
+| Duration | 7 min 44 s |
+| Model | claude-sonnet-5.5 (sub-agent `T07-tiling`, general-purpose) |
+| Token usage | 26 model calls; 2,237,871 input (2,136,091 cache read), 48,891 output |
+| AI credits | 95.69 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `npm run test:quick` → 235 pass / 0 fail in 4.7 s; full suite at agent finish 239 pass / 0 fail in 39 s (task tests 25 pass, 38 s incl. slow counts); `npm run check` OK.
+
+**Acceptance:** BAC-1..3 and TAC-1..5 pass. Solution counts: 3×20 → 8, 4×15 → 1,472 (slow ~4 s), 5×12 → 4,040 (slow ~13 s), 6×10 → 9,356 (slow ~21 s). `exhausted` semantics verified for all cap/found combinations; `row-limit` stop; an independent brute-force tiler agrees with DLX on 250 random tiny boards with blocked cells and clues. Mirrored/rotated layouts share `layoutKey` (distance 0); reflected clues share `clueKey` but differ in `progressFingerprint`/`puzzleId`.
+
+**Issues & resolutions:**
+- `isValidLayout` crashed on an unknown piece id; fixed to return false, test added.
+- Three initial test expectations were wrong (impossible board size, key ordering, symmetric 2×2 distances); tests corrected.
+- File tool emitted LF; converted to CRLF. No `tsc` script exists, so `// @ts-check` is not machine-verified.
+- Design choices (no owner input needed): `layoutKey`/`layoutDistance` throw RangeError on incomplete/invalid layouts while `clueKey` accepts partial clue sets; a `Model` becomes stale (methods throw) once its workspace builds another model.
+
+**Handoff:** `tiling.js` → `buildModel(b, pieces, clues, ws)` (ModelError `invalid-input`/`invalid-clue`/`model-too-large`), `rowPose`, `solveFirst`, `countSolutions` (optional `witnessLimit`, 0 skips decoding), `isValidLayout`, `Model` typedef. Layouts are complete (incl. clues) sorted by canonical `pieceOrder`; null + `exhausted:true` proves unsatisfiable; canonical search draws no RNG. `keys.js` → `layoutKey`, `clueKey`, `layoutDistance`, `progressFingerprint` (sha256 of `canonicalJson({rows, pieces, clues})`), `puzzleId`, `packId` (first 16 hex of hash of `{rules, rows, pieces, puzzles}`); keys use the normalized active frame minimized over `symmetries`; shape ranks are two base-36 digits. T10 may add `randomTiling`, `lnsStep`, `lnsWalk` to `tiling.js` without changing existing exports.
