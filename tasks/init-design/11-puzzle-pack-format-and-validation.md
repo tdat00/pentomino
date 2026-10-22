@@ -136,3 +136,26 @@ Corrupt one fixture property at a time. Test a symmetric pose encoding that occu
 ## Definition of done & handoff
 
 T12 owns encoding/storage, T13 consumes normalized packs, and T19 stages imports before replacing a game. Publish exact error codes and warning semantics; do not leak trust through serialized `verified`.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done |
+| Start | 2026-10-22 20:22:54 (+07:00) |
+| End | 2026-10-22 20:32:36 (+07:00) |
+| Duration | 9 min 42 s |
+| Model | claude-sonnet-5.5 (sub-agent `T11-pack-format`, general-purpose); ran in parallel with T08, T09 |
+| Token usage | 28 model calls; 2,885,788 input (2,751,391 cache read), 85,596 output |
+| AI credits | 146.71 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `npm run test:quick` → 337 pass / 0 fail (task tests: 32 pass); `npm run check` OK.
+
+**Acceptance:** BAC-1..3 and TAC-1..4 pass. Hand-authored fixture pack validates standalone; classic 12-pentomino set validates without warnings; holed/monomino/duplicate/disconnected cases validate with warnings; `omitSolutions` drops witness and solutions without inventing proofs; unsupported versions rejected; oversized, deep, cyclic and `__proto__`/`constructor` inputs yield structured issues with no prototype pollution.
+
+**Issues & resolutions:**
+- Several initial test expectations were wrong (cell coordinates, overlap paths, hostile-proxy read order); tests corrected, implementation unchanged.
+- Seam with T09 (ran in parallel): `pack.js` validates claim shapes itself and never sets `verified`; re-verification stays at the call site (T19 via `puzzle.solution`).
+- Design choices (no owner input needed): a `verified` field in a file is an `unknown-field` error; empty piece labels allowed; `puzzles` required at root; non-object `metrics` on foreign ratings rejected; `generation` capped at 512 KiB serialized and `meta` at 4,096 bytes.
+
+**Handoff:** exports `FORMAT`, `SUPPORTED_VERSIONS`, `RULES`, `MAX_FILE_BYTES`, `MAX_META_BYTES`, `MAX_ISSUES`, `validatePack` (never throws; `{ok, value, warnings}` or `{ok:false, issues}`; absent proofs → `null`; `presentation` defaults to `{rotation:0}`), `parsePack`, `serializePack` (throws `PackError('pack-too-large')` above 512 KiB), `createPack` (`invalid-rotation`, `meta-too-large`, `invalid-json`), `packBoard(pack)`, `PackError`. Issue paths like `puzzles[0].clues[1].x`, root `$`, max 100 issues then `too-many-issues`. Warnings: `small-piece`, `piece-hole`, `duplicate-shape`, `board-disconnected`, `unsupported-model`. Writers canonicalize poses with `canonicalT`, preserve piece order, drop `verified`.
