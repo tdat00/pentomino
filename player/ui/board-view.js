@@ -6,7 +6,7 @@
 
 import { canPlace } from '../../core/engine/game.js';
 import { packBoard } from '../../core/engine/pack.js';
-import { mountBoard } from '../../core/browser/svg-board.js';
+import { mountBoard, svgEl } from '../../core/browser/svg-board.js';
 
 /** @typedef {import('../../core/engine/types.js').Board} Board */
 /** @typedef {import('../../core/engine/types.js').XY} XY */
@@ -40,7 +40,13 @@ function boardOf(pack) {
  * @typedef {object} BoardRenderExtras
  * @property {XY | null} [cursor] Grabbed-handle / keyboard cursor cell.
  * @property {XY[]} [invalidCells]
+ * @property {string | null} [hiddenPieceId] Placed piece drawn elsewhere (the drag layer) while it is dragged.
+ * @property {{ cell: XY, vectors: { key: string, dx: number, dy: number }[] } | null} [hints]
+ *   Grid-axis arrows next to the handle cell during a keyboard move on a rotated board.
  */
+
+const HINT_COLOR = '#0b5fff';
+const HINT_GLYPHS = Object.freeze({ ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓' });
 
 /**
  * @param {HTMLElement} host
@@ -54,10 +60,41 @@ export function createBoardView(host, hooks = {}) {
     onPiece: hooks.onPiece,
     onCell: hooks.onCell,
   });
+  const hintsLayer = svgEl('g', { class: 'pm-hints', 'pointer-events': 'none' });
+  view.svg.querySelector('.pm-board-group')?.append(hintsLayer);
   /** @type {object | null} */
   let lastPack = null;
   let lastIndex = -1;
   let lastAngle = 0;
+
+  /**
+   * Arrows along the grid axes, one per arrow key, upright glyph at the tip.
+   * @param {BoardRenderExtras['hints']} hints
+   * @param {number} angle
+   */
+  function renderHints(hints, angle) {
+    if (hints === null || hints === undefined) {
+      hintsLayer.replaceChildren();
+      return;
+    }
+    const cx = hints.cell[0] + 0.5;
+    const cy = hints.cell[1] + 0.5;
+    const nodes = hints.vectors.map(({ key, dx, dy }) => {
+      const tip = [cx + dx * 1.45, cy + dy * 1.45];
+      const tail = [cx + dx * 0.7, cy + dy * 0.7];
+      const side = [-dy * 0.16, dx * 0.16];
+      const back = [tip[0] - dx * 0.28, tip[1] - dy * 0.28];
+      const glyph = [cx + dx * 1.95, cy + dy * 1.95];
+      return svgEl('g', { class: 'pm-hint', 'data-key': key },
+        svgEl('path', { d: `M${tail[0]} ${tail[1]}L${tip[0]} ${tip[1]}`, stroke: HINT_COLOR, 'stroke-width': 0.09, fill: 'none', 'stroke-linecap': 'round' }),
+        svgEl('path', { d: `M${tip[0]} ${tip[1]}L${back[0] + side[0]} ${back[1] + side[1]}L${back[0] - side[0]} ${back[1] - side[1]}Z`, fill: HINT_COLOR }),
+        svgEl('text', {
+          x: glyph[0], y: glyph[1], transform: `rotate(${angle} ${glyph[0]} ${glyph[1]})`, 'text-anchor': 'middle', 'dominant-baseline': 'central',
+          'font-size': 0.5, 'font-family': 'system-ui, sans-serif', 'font-weight': 700, fill: HINT_COLOR, stroke: '#ffffff', 'stroke-width': 0.12, 'paint-order': 'stroke',
+        }, HINT_GLYPHS[/** @type {keyof typeof HINT_GLYPHS} */ (key)] ?? ''));
+    });
+    hintsLayer.replaceChildren(...nodes);
+  }
 
   return {
     /** The shared T16 view: `surface` for pointer trackers, `cellAt`, `panTo`. */
@@ -86,7 +123,7 @@ export function createBoardView(host, hooks = {}) {
         board: boardOf(pack),
         pieces: pack.pieces,
         clues: puzzle.clues,
-        placements: [...game.placed.values()],
+        placements: [...game.placed.values()].filter((pose) => pose.piece !== extras.hiddenPieceId),
         preview,
         selectedId: game.selected,
         cursor: extras.cursor ?? null,
@@ -94,6 +131,7 @@ export function createBoardView(host, hooks = {}) {
         showLabels: prefs.labels,
         showPatterns: prefs.patterns && pack.pieces.length > 20,
       });
+      renderHints(extras.hints ?? null, angle);
       const fresh = pack !== lastPack || game.index !== lastIndex || angleChanged;
       lastPack = pack;
       lastIndex = game.index;

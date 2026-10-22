@@ -1,7 +1,7 @@
 // @ts-check
 // Tray adapter: one button per unplaced piece, drawn at its current tray
 // orientation and the effective display angle through the shared T16 preview.
-// It only reports selection and grab events; T20 turns them into gestures.
+// It only reports selection and grab events; the gesture layer turns them into moves.
 
 import { mountPiecePreview, pieceName } from '../../core/browser/svg-board.js';
 
@@ -159,6 +159,19 @@ export function createTrayView(host, hooks = {}) {
     refresh() {
       if (last !== null) {
         this.render(last.state, last.angle);
+      }
+    },
+    /**
+     * Hides the original drawing of the tray piece that is being dragged; its slot stays.
+     * @param {string | null} pieceId
+     */
+    setHidden(pieceId) {
+      for (const [id, slot] of slots) {
+        if (id === pieceId) {
+          slot.button.dataset.dragging = 'true';
+        } else {
+          delete slot.button.dataset.dragging;
+        }
       }
     },
     /** @param {string} pieceId @returns {HTMLButtonElement | null} */

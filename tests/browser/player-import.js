@@ -228,7 +228,7 @@ await check('link: #pack= opens puzzle 2 with claims, badges and no local data',
   assert(title(m).startsWith('Normal #2 · Claimed Normal · score '), `title ${title(m)}`);
   equal(m.qa('.tray-piece').length, 9 - sample.puzzles[1].clues.length, 'tray count');
   equal(m.qa('.pm-clue').length, sample.puzzles[1].clues.length, 'clue pieces');
-  assert(m.q('.pm-svg').getBoundingClientRect().width > 100, 'board drawn');
+  assert(m.q('.pm-board .pm-svg').getBoundingClientRect().width > 100, 'board drawn');
   equal(m.q('[data-badge="verification"]').textContent, 'Solvable ✓', 'verification');
   equal(m.q('[data-badge="certificate"]').textContent, 'Uniqueness not checked', 'certificate');
   assert(!m.visible('[data-badge="local"]'), 'portable link is not local');
@@ -535,15 +535,15 @@ await check('presentation angles 0/45/90/315 load, draw and keep fitting after a
     const group = m.q('.pm-board-group').getAttribute('transform') ?? '';
     assert(group.startsWith(`rotate(${-angle} `) || (angle === 0 && group.startsWith('rotate(0 ')), `angle ${angle}: ${group}`);
     const host = m.q('.board-host').getBoundingClientRect();
-    const svg = m.q('.pm-svg').getBoundingClientRect();
+    const svg = m.q('.pm-board .pm-svg').getBoundingClientRect();
     assert(svg.width > 50 && svg.height > 50, `angle ${angle}: board has size`);
-    const wide = Number(m.q('.pm-svg').getAttribute('width'));
+    const wide = Number(m.q('.pm-board .pm-svg').getAttribute('width'));
     m.root.style.width = '420px';
     m.root.style.height = '520px';
-    await waitFor(() => Number(m.q('.pm-svg').getAttribute('width')) < wide, `angle ${angle}: refit after narrowing`);
-    const narrow = m.q('.pm-svg').getBoundingClientRect();
+    await waitFor(() => Number(m.q('.pm-board .pm-svg').getAttribute('width')) < wide, `angle ${angle}: refit after narrowing`);
+    const narrow = m.q('.pm-board .pm-svg').getBoundingClientRect();
     const hostNarrow = m.q('.board-host').getBoundingClientRect();
-    const cell = Number(m.q('.pm-svg').getAttribute('width'));
+    const cell = Number(m.q('.pm-board .pm-svg').getAttribute('width'));
     assert(narrow.width <= hostNarrow.width + 1 || m.q('.pm-board').dataset.scrollable === 'true',
       `angle ${angle}: fits the narrowed host or scrolls (${narrow.width} vs ${hostNarrow.width}, was ${host.width}, cell ${cell})`);
     assert(m.qa('.tray-piece').length > 0, `angle ${angle}: tray drawn`);
@@ -593,7 +593,7 @@ await check('layout and accessibility contract of the shell', async () => {
     assert(tool.top >= board.bottom - 1 && tray.top >= tool.bottom - 1, 'board, toolbar, tray from top to bottom');
     equal(getComputedStyle(m.q('.tray-host')).overflowX, 'auto', 'tray scrolls horizontally');
   }
-  const svg = m.q('.pm-svg');
+  const svg = m.q('.pm-board .pm-svg');
   equal(svg.getAttribute('role'), 'application', 'board role');
   const help = svg.getAttribute('aria-describedby') ?? '';
   assert(help !== '' && document.getElementById(help) !== null, 'instructions linked');

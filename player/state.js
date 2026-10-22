@@ -306,6 +306,22 @@ export function createPlayerController(options) {
     return result.ok;
   }
 
+  /** Fresh game for the open puzzle; the saved record is emptied at once. */
+  function restartOpenGame() {
+    const s = store.getState();
+    if (!s.pack) {
+      return;
+    }
+    store.update({ game: createGame(s.pack, s.index), resume: null, notice: null });
+    const fp = s.fingerprints[s.index];
+    if (fp !== undefined) {
+      const result = storage.saveProgress(fp, { v: 1, placements: [], elapsedMs: 0, moves: 0, solved: false });
+      const statuses = s.statuses.slice();
+      statuses[s.index] = 'new';
+      store.update({ statuses, storageWarning: result.ok ? s.storageWarning : SAVE_FAILED_MESSAGE });
+    }
+  }
+
   /**
    * Keeps the address in step: a link keeps its code and only `i` changes; a
    * pack that arrived another way gets a same-browser `#lib=` link when it is
@@ -590,18 +606,14 @@ export function createPlayerController(options) {
         store.update({ resume: null });
         return;
       }
-      const fresh = createGame(s.pack, s.index);
-      store.update({ game: fresh, resume: null, notice: null });
-      const fp = s.fingerprints[s.index];
-      if (fp !== undefined) {
-        const result = storage.saveProgress(fp, { v: 1, placements: [], elapsedMs: 0, moves: 0, solved: false });
-        const statuses = s.statuses.slice();
-        statuses[s.index] = 'new';
-        store.update({ statuses, storageWarning: result.ok ? s.storageWarning : SAVE_FAILED_MESSAGE });
-      }
+      restartOpenGame();
+    },
+    /** Replaces the open puzzle with a fresh game and an empty saved record (Replay). */
+    replay() {
+      restartOpenGame();
     },
     /**
-     * Marks a tray or board piece as selected (null clears it). Moves are T20's.
+     * Marks a tray or board piece as selected (null clears it). The play controller (`play.js`) drives selection and moves.
      * @param {string | null} pieceId
      */
     select(pieceId) {

@@ -125,3 +125,28 @@ Cancel a drag after rotating, move onto one’s own old footprint, reject a clue
 ## Definition of done & handoff
 
 T23 runs cross-browser/screen-reader/axe acceptance and reports defects back to this owner. Publish manual evidence; never claim touch/Safari coverage from mouse emulation.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done (real-device touch, Safari, screen-reader and axe checks deferred to T23) |
+| Start | 2026-10-22 21:28:32 (+07:00) |
+| End | 2026-10-22 22:06:37 (+07:00) |
+| Duration | 38 min 5 s |
+| Model | claude-sonnet-5.5 (sub-agent `T20-player-controls`, general-purpose); ran in parallel with T18, T21 |
+| Token usage | 125 model calls; 34,193,166 input (33,801,909 cache read), 245,517 output |
+| AI credits | 681.34 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\player-controller.test.js tests\player-import.test.js` → 47 pass / 0 fail; `check-conventions` OK. Agent run: task tests 23 pass; `npm run test:quick` 693 pass; `npm run check` OK; headless-Edge `tests\browser\player-controls.html` → 25/25 at 1280 px and 25/25 at 600 px, 0 CSP violations; T19 `player-import.html` still 18/18 at both widths; sample puzzle solved end to end with real CDP mouse and keyboard events at 0°/45°/90°/315° (win dialog shown); emulated touch tap-place and lifted two-finger drag worked.
+
+**Acceptance:** BAC-1..4 and TAC-1..5 pass (touch via emulation only). Invalid drops, clue overlaps, Escape, pointercancel, resize, orientation change and tray drops leave placements unchanged; clues have no hit areas; undo/redo/reset (with confirm) work; progress restores after remount with the Continue prompt; a non-stored tiling wins; Labels/Patterns independent; failed storage writes warn without blocking play; hit-testing correct at 4 angles zoomed and scrolled; only `canPlace`/`reduce` decide moves; controls ≥ 44×44 px, `aria-live` announcements, reduced motion suppresses shake/celebration; no main-thread engine work.
+
+**Issues & resolutions:**
+- CDP mouse moves with `button:'none'` while buttons were held made Chromium drop pointer capture — a test-driver artifact; driver fixed.
+- Edge's launcher survived `taskkill`; only processes whose command line contains the agent's unique profile dir are killed.
+- Bug fixed: T19's ResizeObserver refit reset user zoom on any layout change; the player now keeps a user-chosen zoom until Fit or a new puzzle.
+- Shared-file edits: `tests\browser\player-import.js` (7 selectors `.pm-svg` → `.pm-board .pm-svg`, because the tray now precedes the board in DOM for focus order "tray, then board"); `README.md` Player controls section.
+- Design choices (no owner input needed): tapping a placed piece selects it (drag to preview onto its own cells); wheel `deltaY > 0` turns the dragged piece clockwise; tray-piece rotation is committed on rotate (cancelling a keyboard pick-up keeps it, cancelling a drag does not); win dialog shows the level as the claimed label (e.g. "Claimed Easy · score 8").
+
+**Handoff (T23, T25):** `mountPlayer` also returns `play`, `toolbar`, `winDialog`, `helpDialog`, `resetDialog`, `gestures`; env adds `reducedMotion`, `now`, `saveDelayMs`. `player\play.js` → `createPlayController({store, controller, now, setTimeout, setInterval, announce, onNoRoom, onSolved, focus})` with `select`, `tapPiece`, `tapCell`, `activate`, `pickUp`, `commitPreview`, `moveKey`, `transform('cw'|'ccw'|'flipH'|'flipV')`, `cancel`, `returnToTray`, `undo`, `redo`, `reset`, `beginDrag`, `dragTo`, `endDrag`, `cancelDrag`, `setVisible`, `flush`, `view()`; pure helpers `poseWithHandle`, `handleCell`, `defaultHandle`, `rotatePlaced`, `KICKS`, `keyStep`, `transformedT`. `SHORTCUTS` in `ui\keyboard.js`; `controller.replay()` added. T25: add hint buttons via the toolbar module in `hosts.toolbar` and mark revealed puzzles via the existing status field. T23: run touch, Safari, screen-reader and axe checks using `tests\browser\player-controls.html`.

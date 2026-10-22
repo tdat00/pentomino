@@ -1,0 +1,180 @@
+// @ts-check
+// Pointer gestures: binds one pointer tracker to the board and one to the tray
+// and turns their signals into play-controller calls and drag-layer updates.
+// Pieces are handled by the trackers only (never by the board's own onPiece), a
+// touch drag is lifted 1.25 cells above the finger, and the wheel turns the
+// dragged piece. The controller decides every outcome.
+
+import { createPointerTracker } from '../../core/browser/pointer.js';
+import { effectiveRotation } from '../state.js';
+
+/** @typedef {import('../play.js').createPlayController} CreatePlay */
+/** @typedef {ReturnType<CreatePlay>} Play */
+/** @typedef {import('../../core/browser/pointer.js').PointerInfo} PointerInfo */
+
+export const TOUCH_LIFT_CELLS = 1.25;
+const WHEEL_GAP_MS = 120;
+const CLICK_GUARD_MS = 450;
+
+/**
+ * @typedef {object} GestureOptions
+ * @property {Window & typeof globalThis} win
+ * @property {Play} play
+ * @property {import('../state.js').PlayerStore} store
+ * @property {ReturnType<import('./board-view.js').createBoardView>} boardView
+ * @property {HTMLElement} trayHost
+ * @property {ReturnType<import('./drag-layer.js').createDragLayer>} dragLayer
+ */
+
+/**
+ * @param {GestureOptions} options
+ */
+export function bindGestures({ win, play, store, boardView, trayHost, dragLayer }) {
+  /** @type {{ last: PointerInfo, shownT: number } | null} */
+  let active = null;
+  let lastHandled = -Infinity;
+  let lastWheel = -Infinity;
+  const surface = boardView.view.surface;
+
+  /**
+   * @param {HTMLElement} el
+   * @param {number} x
+   * @param {number} y
+   * @returns {boolean}
+   */
+  function inside(el, x, y) {
+    const rect = el.getBoundingClientRect();
+    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+  }
+
+  function showClone() {
+    const state = store.getState();
+    const drag = play.view().drag;
+    if (active === null || drag === null || state.pack === null) {
+      return;
+    }
+    const index = state.pack.pieces.findIndex((p) => p.id === drag.pieceId);
+    dragLayer.show({
+      piece: state.pack.pieces[index],
+      index,
+      count: state.pack.pieces.length,
+      t: drag.t,
+      rotation: effectiveRotation(state),
+      cellPx: boardView.cellPx(),
+      handleIndex: drag.index,
+      showLabels: state.prefs.labels,
+      showPatterns: state.prefs.patterns && state.pack.pieces.length > 20,
+    });
+    active.shownT = drag.t;
+  }
+
+  /** @param {PointerInfo} info */
+  function update(info) {
+    if (active === null) {
+      return;
+    }
+    active.last = info;
+    const lift = info.pointerType === 'touch' ? TOUCH_LIFT_CELLS * boardView.cellPx() : 0;
+    const x = info.clientX;
+    const y = info.clientY - lift;
+    dragLayer.moveTo(x, y);
+    const overTray = inside(trayHost, info.clientX, info.clientY);
+    const overBoard = !overTray && inside(surface, x, y);
+    const local = overBoard ? boardView.view.localPoint(x, y) : null;
+    play.dragTo(local === null ? null : [local.x, local.y], overTray);
+  }
+
+  function cleanup() {
+    active = null;
+    dragLayer.hide();
+    win.removeEventListener('wheel', onWheel);
+    lastHandled = win.performance.now();
+  }
+
+  /** @param {WheelEvent} event */
+  function onWheel(event) {
+    if (active === null) {
+      return;
+    }
+    event.preventDefault();
+    const t = win.performance.now();
+    if (t - lastWheel < WHEEL_GAP_MS || event.deltaY === 0) {
+      return;
+    }
+    lastWheel = t;
+    play.transform(event.deltaY > 0 ? 'cw' : 'ccw');
+  }
+
+  /**
+   * @param {'tray' | 'board'} from
+   * @returns {import('../../core/browser/pointer.js').PointerHandlers}
+   */
+  const handlers = (from) => ({
+    select(info) {
+      lastHandled = win.performance.now();
+      if (info.pieceId !== null) {
+        play.tapPiece(info.pieceId, from);
+      }
+    },
+    dragStart(info) {
+      if (info.pieceId === null || !play.beginDrag({ pieceId: info.pieceId, sourceCell: info.sourceCell })) {
+        (from === 'tray' ? trayTracker : boardTracker).cancel('api');
+        return;
+      }
+      active = { last: info, shownT: -1 };
+      win.addEventListener('wheel', onWheel, { passive: false });
+      showClone();
+      update(info);
+    },
+    dragMove: update,
+    dragEnd(info) {
+      update(info);
+      play.endDrag();
+      cleanup();
+    },
+    cancel() {
+      play.cancelDrag();
+      cleanup();
+    },
+  });
+
+  const boardTracker = createPointerTracker(surface, handlers('board'));
+  const trayTracker = createPointerTracker(trayHost, handlers('tray'));
+
+  // A rotate or mirror during the drag redraws the clone; a drag ended from the
+  // keyboard (Escape) releases the pointer.
+  function sync() {
+    if (active === null) {
+      return;
+    }
+    const drag = play.view().drag;
+    if (drag === null) {
+      boardTracker.cancel('api');
+      trayTracker.cancel('api');
+      if (active !== null) {
+        cleanup();
+      }
+      return;
+    }
+    if (drag.t !== active.shownT) {
+      showClone();
+      update(active.last);
+    }
+  }
+  const stopPlay = play.subscribe(sync);
+  const stopStore = store.subscribe(sync);
+
+  return {
+    /** @returns {boolean} A pointer gesture ended a moment ago, so the click that follows is already handled. */
+    recentlyHandled: () => win.performance.now() - lastHandled < CLICK_GUARD_MS,
+    isDragging: () => active !== null,
+    destroy() {
+      stopPlay();
+      stopStore();
+      boardTracker.destroy();
+      trayTracker.destroy();
+      win.removeEventListener('wheel', onWheel);
+      dragLayer.hide();
+    },
+  };
+}
