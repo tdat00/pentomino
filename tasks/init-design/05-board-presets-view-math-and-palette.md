@@ -125,3 +125,27 @@ Include Heart with extra blocked padding, an enclosed hole, a diagonal-only conn
 ## Definition of done & handoff
 
 T07 consumes board symmetries; T16 uses extents/presentation data; T17/T20 call view operations rather than inventing rotation semantics. Preserve both analysis offsets and raw board coordinates.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done |
+| Start | 2026-10-22 19:58:54 (+07:00) |
+| End | 2026-10-22 20:03:12 (+07:00) |
+| Duration | 4 min 18 s |
+| Model | claude-sonnet-5.5 (sub-agent `T05-presets-view`, general-purpose) |
+| Token usage | 18 model calls; 1,198,594 input (1,136,199 cache read), 38,504 output |
+| AI credits | 65.46 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test "tests/**/*.test.js"` → 184 pass / 0 fail (task tests: 29 pass); `npm run check` OK.
+
+**Acceptance:** BAC-1..3 and TAC-1..4 pass. Heart N=10 has 75 cells and display angle never enters board data; asymmetric blocked margins still give symmetries `[0,5]`; labels A..ZZZZ (index 475253) and patterns for index ≥ 20 when K > 20; 8 angles × 8 orientations match an independent matrix reference.
+
+**Issues & resolutions:**
+- File tool emitted LF; converted to CRLF and re-checked.
+- Some initial test expectations were wrong; tests corrected, implementation unchanged.
+- No TypeScript type-check script exists in the repo; `// @ts-check` JSDoc only.
+- Design choices (no owner input needed): invalid arguments throw RangeError while `validateForGeneration` returns issues; presets cap width/height at 64 as an allocation guard (the 32-side editor limit is enforced by `validateForGeneration`); Ring preset accepts `n` as square shorthand.
+
+**Handoff:** `board.js` → `boardFromRows`, `boardToRows`, `rectangle`, `preset`, `activeCount`, `activeCells` (row-major `[x,y]`), `regions`, `classifyBlocked`, `normalizedActive`, `trimMargins`, `symmetries` (`[0]` for empty), `validateForGeneration` → `{errors, warnings}` with issues `{code, path, message, cells?}`; error codes `board-invalid`, `board-side-too-large`, `board-too-few-cells`, `board-too-many-cells`, `board-disconnected` (lists cells outside the largest region), warning `board-large`; constants `MIN_ACTIVE`, `MAX_SIDE`, `LARGE_BOARD_WARNING_CELLS`, `LARGE_BOARD_MESSAGE`. `view.js` → `ANGLES`, `normalizeAngle`, `activeCenter`, `rotatedExtent`, `fitCellSize` (1e-9 epsilon), `screenRotate`, `screenFlip`, `arrowToGrid`, `straightenAngle`. `palette.js` → `BASE_COLORS`, `colorFor` (distinct lowercase `#rrggbb` for 0..127), `labelFor` (throws above 475253), `patternFor`, `textColorFor`.
