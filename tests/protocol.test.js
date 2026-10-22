@@ -196,6 +196,8 @@ describe('task messages', () => {
     assert.ok(task('puzzleCandidate', { ...c, seenLayouts: Array(1000).fill('k') }).ok);
     assert.ok(!task('puzzleCandidate', { ...c, seenLayouts: Array(1001).fill('k') }).ok);
     assert.ok(!task('puzzleCandidate', { ...c, seenClues: [1] }).ok);
+    assert.ok(task('puzzleCandidate', { ...c, seenLayouts: ['0'.repeat(1352)] }).ok, 'a key of a 676-cell board');
+    assert.ok(!task('puzzleCandidate', { ...c, seenLayouts: ['0'.repeat(2049)] }).ok);
   });
 
   test('validatePayload reports unknown kinds and verifyPack accepts any pack value', () => {

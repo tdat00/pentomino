@@ -29,6 +29,8 @@ export const TASK_KINDS = Object.freeze(/** @type {const} */ ([
 export const MAX_ROW_LIMIT = 2000000;
 export const MAX_BOARD_CELLS = MAX_SIDE * MAX_SIDE;
 export const MAX_STRING = 512;
+/** History keys spend two characters per active cell, so a key may exceed MAX_STRING on large boards. */
+export const MAX_KEY = 2 * MAX_BOARD_CELLS;
 const MAX_ISSUES = 20;
 const MAX_ID_LENGTH = 64;
 const MAX_COORD = 4096;
@@ -359,7 +361,7 @@ function readHistory(ctx, v, path) {
     return undefined;
   }
   for (let i = 0; i < list.length; i += 1) {
-    if (typeof list[i] !== 'string' || /** @type {string} */ (list[i]).length > MAX_STRING) {
+    if (typeof list[i] !== 'string' || /** @type {string} */ (list[i]).length > MAX_KEY) {
       return fail(ctx, 'invalid-value', `${path}[${i}]`, `${path}[${i}] must be a string`);
     }
   }

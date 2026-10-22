@@ -119,3 +119,26 @@ Mock completion order/failures, including ten accepted attempt0 candidates in th
 ## Definition of done & handoff
 
 T18 binds this client to Generator controls; T21 uses the same client and Node adapter for measurement. Publish request/result/error structures and the recipe CLI without requiring other agents to inspect prototypes.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done |
+| Start | 2026-10-22 21:04:03 (+07:00) |
+| End | 2026-10-22 21:17:06 (+07:00) |
+| Duration | 13 min 3 s |
+| Model | claude-sonnet-5.5 (sub-agent `T15-gen-client-cli`, general-purpose); ran in parallel with T17, T19 |
+| Token usage | 51 model calls; 7,068,402 input (6,869,355 cache read), 102,308 output |
+| AI credits | 220.76 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\generation-client.test.js tests\cli.test.js tests\protocol.test.js tests\generator-state.test.js` → 67 pass / 0 fail; `check-conventions` OK. Agent run: task tests 29 pass (~3.4 s); `node tools\generate.mjs --recipe tests\fixtures\generation-case.json --workers 1` and `--workers 4` both exit 0 with semantically equal packs matching the recipe; 20×18 with 4 workers completes in ~0.7 s; 7×5 easy count 10 → valid partial pack, exit 2, shortfall on stderr; `npm run test:quick` 557 pass; `npm run check` OK.
+
+**Acceptance:** BAC-1..3 and TAC-1..5 pass. In-order streaming; cancel/deadline keep the accepted prefix as a valid pack; newer request leaves the old one `cancelled`; widths 1 and 4 equal (incl. batch index 2 with history and in the CLI); rotation 0/45/90 give identical ids, keys and ratings; all terminal statuses covered; duplicate clue keys never reach the pack; lowest-successful-attempt selection holds under out-of-order completion; titles continue (`Hard #6..#8`) for Add more.
+
+**Issues & resolutions:**
+- Latent T14 bug fixed: history keys on `puzzleCandidate` payloads were capped at 512 characters, but keys use 2 characters per cell, so boards over 256 cells with a reused calibration key would be rejected as `invalid-payload`. Cap raised to 2,048 in `core\engine\protocol.js`; 2 assertions added to `tests\protocol.test.js`.
+- Speculative-dispatch test initially assumed exactly 10 tasks; the scheduler backfills idle workers with retries by design (§6.9 priorities 3–4), so the test now asserts the first 10 dispatched are the attempt-0 tasks in rounds of at most 4.
+- Design choices (no owner input needed): client `GenerationError` is separate from the engine's; the CLI always starts with empty history and reuses the calibration puzzle only for `--batch-index 1`; a CLI run that does not reproduce a recipe's `expected` exits 1 with empty stdout; at a deadline, a set whose lowest successful attempt cannot be confirmed fails with `time-limit` rather than returning a higher attempt.
+
+**Handoff:** `createGenerationClient(pool, {clock?, createdAt?, maxSetAttempts?})` → `{generateSet, generateBatch, cancel, recycle}`. `generateSet({boardRows, rotation, levelId, seedText, uniqueness, maxActive, revision?})` → `{status:'complete'|'failed'|'cancelled', set, calibration, attempt, pack, reason?, failures?}` (piece-set pack). `generateBatch` → `BatchResult` (`batchSeed = setSeed#batchIndex`; pack only if ≥ 1 accepted). Hooks `onProgress`, `onAccepted`, `onCertificate` (idle-priority, dropped if superseded). `GenerationError` codes: `invalid-board`, `invalid-input`, `level-unavailable`, `history-full`, worker/pool codes, `internal`. Calibration reused only with a valid full solution containing its clues. `tools\node-worker.mjs` → `nodeWorkerFactory()`, `adaptNodeWorker(worker)` (also the worker entry; reusable by T21). `tools\generate.mjs` → `run(argv, io?)`, `parseArgs`, `checkRecipe`, `compareExpected`, `packText`, `DEFAULT_MAX_ACTIVE` (676); random default seed printed on stderr.
