@@ -60,6 +60,75 @@ export const LEVEL_REASONS = Object.freeze({
   smaller: 'needs a smaller board',
 });
 
+/** Texts of the job and result code that the design's N-* table does not cover. */
+export const MESSAGES = Object.freeze({
+  'M-CANCELLED-SET': 'Cancelled. No new piece set was created; the current piece set was not changed.',
+  'M-CANCELLED-BATCH': 'Cancelled. Kept {n} of {q} {level} puzzles. The piece set was not changed.',
+  'M-CANCELLED-IMPORT': 'Cancelled. Your current work was not changed.',
+  'M-FAILED': 'Generation stopped: {message}',
+  'M-HISTORY-FULL': 'This piece set remembers {used} of {max} arrangements and has room for {room} more puzzles, fewer than the {q} requested. Reset the history (earlier puzzles may then appear again) or ask for fewer.',
+  'M-PACK-FULL': 'A pack holds at most {max} puzzles. Export these, then use New Puzzles to start another pack.',
+  'M-SPLIT': 'The pack grew past the {kib} KiB file limit, so the earlier {n} puzzles are kept as a separate pack. Export both packs.',
+  'M-FEWPIECES': 'This set has fewer than 3 pieces, so new puzzles cannot be generated (one clue plus two movable pieces are needed). You can still view and export it.',
+  'M-NOWITNESS': 'No arrangement of this set was found within the search limit, so new puzzles cannot be generated. You can still view and export it.',
+  'M-NOARRANGEMENT': 'No arrangement of these pieces fills the board, so new puzzles cannot be generated. You can still view and export it.',
+  'M-LEVEL-NOT-OFFERED': '{level} is not offered for a board of {area} playable squares.',
+  'M-IMPORTED': 'Imported {pieces} pieces and {puzzles} puzzles. Ratings and certificates from a file are claims until checked.',
+  'M-IMPORT-HISTORY': 'The earlier history of this piece set is not part of the file, so new puzzles may repeat arrangements generated before.',
+  'M-IMPORT-FAILED': 'Could not import: {reason} Your current work was not changed.',
+  'M-IMPORT-TOOBIG': 'The file is larger than the {kib} KiB limit.',
+  'M-LINK-COPIED': 'Link copied.',
+  'M-COPY-FAILED': "Couldn't copy the link. Use Export file to share instead.",
+  'M-EXPORT-FAILED': 'This pack is too large to export as one file. Remove some puzzles and try again.',
+  'M-PLAYER-UNAVAILABLE': "This puzzle is too large for a link and can't be saved in this browser — use Export, then Import file in the player.",
+  'M-NEEDS-SET': 'Generate or import a piece set first.',
+});
+
+/**
+ * @param {string} code A key of MESSAGES.
+ * @param {NoticeParams} [params]
+ * @returns {string}
+ */
+export function formatMessage(code, params = {}) {
+  if (!Object.hasOwn(MESSAGES, code)) {
+    throw new RangeError(`unknown message: ${code}`);
+  }
+  return MESSAGES[code].replace(/\{(\w+)\}/g, (_, name) => {
+    if (!Object.hasOwn(params, name)) {
+      throw new RangeError(`message ${code} is missing {${name}}`);
+    }
+    return String(params[name]);
+  });
+}
+
+export const CERTIFICATE_TEXT = Object.freeze({
+  checking: 'Checking…',
+  unchecked: 'Uniqueness not checked',
+  unique: 'Unique solution ✓',
+  multiple: 'Several solutions',
+  'not-proved': 'Uniqueness not proved',
+  unsatisfiable: 'No solution exists',
+  claimed: ' (claimed)',
+});
+
+export const VERIFY_TEXT = Object.freeze({
+  checking: 'Checking solvability…',
+  solvable: 'Solvable ✓',
+  unsatisfiable: 'No solution exists',
+  'not-verified': 'Not verified',
+});
+
+export const STAGE_TEXT = Object.freeze({
+  starting: 'Starting…',
+  carving: 'Building the piece set',
+  candidate: 'Rating candidates',
+  cancelling: 'Cancelling…',
+  import: 'Looking for an arrangement of the imported pieces',
+  verify: 'Checking',
+  memory: 'Working',
+  search: 'Searching',
+});
+
 export const CONFIRM_STALE = 'The current piece set belongs to the board as it is now. Editing the board makes it outdated; its puzzles stay playable and exportable. Continue?';
 export const CONFIRM_RESIZE = 'Resizing keeps the cells that still fit and makes new cells playable. Continue?';
 export const CONFIRM_RESET = 'Reset the board to the default 10 × 6 rectangle?';

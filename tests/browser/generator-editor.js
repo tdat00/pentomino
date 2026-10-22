@@ -504,9 +504,9 @@ await check('the editor survives a broken storage and persists what it can', asy
     const restored = loadGeneratorState({ ...io, getGeneratorState: () => written[0], getPrefs: () => ({}) });
     equal(activeCount(restored.board), 58, 'the saved board restores through the validators');
     assert(app.regions.set && app.regions.puzzles, 'regions are exposed for the job code');
-    assert(/** @type {HTMLButtonElement} */ (action).textContent === 'Generate Piece Set' && action.disabled, 'sticky action mirrors the state');
+    assert(/** @type {HTMLButtonElement} */ (action).textContent === 'Generate Piece Set' && !action.disabled, 'sticky action mirrors the state; the app wires the job handlers');
     app.setHandlers({ onGenerateSet: () => {} });
-    assert(!action.disabled, 'registering a handler enables the action');
+    assert(!action.disabled, 'registering a handler keeps the action enabled');
   } finally {
     app.destroy();
     slots.remove();

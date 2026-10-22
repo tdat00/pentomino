@@ -135,3 +135,30 @@ Use a fake client for partial/error/status cases, then the three real-engine flo
 ## Definition of done & handoff
 
 T23 performs cross-browser acceptance; it reports defects back to this owner. Report real-flow evidence and blockers, never prototype screenshots.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done |
+| Start | 2026-10-22 21:19:21 (+07:00) |
+| End | 2026-10-22 21:48:29 (+07:00) |
+| Duration | 29 min 8 s |
+| Model | claude-sonnet-5.5 (sub-agent `T18-gen-jobs`, general-purpose); ran in parallel with T19, T20, T21 |
+| Token usage | 101 model calls; 22,205,008 input (21,883,486 cache read), 183,106 output |
+| AI credits | 482.31 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test --test-skip-pattern=slow tests\generator-controller.test.js tests\generator-state.test.js` → 54 pass / 0 fail; `check-conventions` OK. Agent run: task tests 32 pass incl. 3 real-engine "slow" recipes; `npm run test:quick` 693 pass / 0 fail; `npm run check` OK; headless-Edge `tests\browser\generator-flow.html` → 12/12 in ~13 s, no CSP violations (T17 `generator-editor.html` still green); real `generator/` page at 1280 and 480 px: Generate Piece Set → New Puzzles → 5 cards, screenshots reviewed.
+
+**Acceptance:** BAC-1..4 and TAC-1..4 pass. Recipes through real UI + Edge workers and through the controller in Node with matching scores: 10×6/Normal → 8 pieces, 5 puzzles; Heart N10/Master → 14 pieces, 10 puzzles; 22×22/Hell-3 → 73 pieces, 10 puzzles. Play links decode to the same pieces/clues as the cards. Cancel/partial keep accepted puzzles and the set; a later batch still works. Imports show Solvable ✓ / Checking / Not verified with ratings "(claimed)"; rejected imports change nothing. All four partial reasons show exact notices (layout/difficulty shortfalls also offer "Generate new piece set"). `jobs.js` imports no solver modules (only linear `isValidLayout`).
+
+**Issues & resolutions:**
+- T17's harness asserted the sticky action stayed disabled until `setHandlers`; the app now wires job handlers itself, so that one assertion now expects it enabled.
+- Harness selector `[data-role="count"]` also matched the level panel; switched to `.progress-count`.
+- T15's client runs idle certificate checks after the job ends, so `client.cancel()` does not stop them; the app passes `pool.cancelAll()` as the controller's `cancelPending` (called on each new job and on Play); cleared cards read "Uniqueness not checked".
+- Import needs `solveFirst`/`verifyPack` outside the client (private request ids): each import task runs on its own one-worker pool, closed afterwards.
+- Optional unclued benchmark line skipped; `client.recycle()` unused (`cancelAll` already ends busy workers).
+- Extra file beyond the list: `generator\jobs.js` (job controller).
+- Design choices (no owner input needed): cancel or zero-result New Puzzles keeps the previous visible batch; import adopts the file's board and rotation; earlier puzzles of a size-split pack kept in memory as "Earlier pack" with its own Export (not persisted); history reset does not rewind `batchIndex`; imported visible puzzles enter the seen-history.
+
+**Handoff:** `createGeneratorApp(doc, {storage, env, confirm, random, client?, pool?, workerFactory?, workersAvailable?, handoff?, controller?})` now also returns `controller`, `setPanel`, `puzzlePanel` and self-registers handlers. `generator\jobs.js` → `createJobController` with `generateSet({seed})`, `newPuzzles`, `addMore`, `cancel`, `importText`, `importFile`, `importPack`, `removePuzzle`, `resetHistory`, `requestFewer`, `stepSet(±1)`, `prepareNavigation`, `playAll`, `playPuzzle`, `copyPackLink`, `copyPuzzleLink`, `exportPack`, `exportPuzzle`, `exportSet`, `exportParked`; all browser dependencies injectable. New non-persisted state fields (`quantity`, `batchLevelId`, `notice`, `checking`, `claimedIds`, `calibrationTrusted`, `setPosition`, `parked`, `verification`, `links`; `job.kind/accepted/quantity/slot/cancelling`) and helpers (`generationBlock`, `visiblePack`, `buildPack`, `generationOf`, `importPackState`, `carvingHint`, `referenceOf`, `gotoSet`, `applyCertificate`, `removePuzzle`, `resetHistory`, `historyRoom`, `renumberTitles`, `packFits`; `createPersistence().saveNow()`; `acceptSet` takes `trusted`). `strings.js` adds `MESSAGES` (`M-*`) and `formatMessage`. Restored/imported calibration is never reused. `visiblePack(state)` is referentially stable until content changes (links rely on it).

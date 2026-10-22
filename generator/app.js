@@ -1,15 +1,21 @@
 // @ts-check
-// Generator application shell: wires the store, persistence, the board and level panels and the
-// sticky action bar. The piece-set and puzzle regions are empty containers that the job and
-// result code attaches to through `regions` and `setHandlers`.
+// Generator application shell: wires the store, persistence, the board, level, piece-set and puzzle
+// panels, the job controller and the sticky action bar. `setHandlers` stays available so tests and
+// other hosts can replace the job actions.
 import storage, { SAVE_FAILED_MESSAGE } from '../core/browser/storage.js';
-import { showToast } from '../core/browser/dom.js';
+import { copyText, showToast } from '../core/browser/dom.js';
+import { createGenerationClient } from '../core/browser/generation-client.js';
+import { downloadPack, openInPlayer, preparePlayerLink } from '../core/browser/handoff.js';
+import { createPool } from '../core/browser/worker-pool.js';
 import { APP_VERSION } from '../core/engine/version.js';
 import {
   createGeneratorStore, createPersistence, describeBoard, detectHardware, isBusy, loadGeneratorState,
 } from './state.js';
+import { createJobController } from './jobs.js';
 import { mountBoardEditor } from './ui/board-editor.js';
 import { mountLevelPanel } from './ui/level-panel.js';
+import { mountPuzzlePanel } from './ui/puzzle-panel.js';
+import { mountSetPanel } from './ui/set-panel.js';
 import { GENERATION_PENDING } from './strings.js';
 
 /** @typedef {import('./ui/level-panel.js').GenerateSetRequest} GenerateSetRequest */
@@ -37,9 +43,34 @@ function slot(doc, role) {
 }
 
 /**
+ * Runs one bounded worker task (an import check) on its own single-worker pool, so it never
+ * interferes with the generation client's request numbering.
+ * @param {() => import('../core/browser/worker-pool.js').WorkerLike} [workerFactory]
+ * @returns {NonNullable<import('./jobs.js').JobControllerOptions['runWorkerTask']>}
+ */
+function dedicatedTaskRunner(workerFactory) {
+  return async (kind, payload, { signal }) => {
+    const pool = createPool({ size: 1, ...(workerFactory === undefined ? {} : { workerFactory }) });
+    const abort = () => pool.cancelAll();
+    pool.beginRequest({ requestId: 1, revision: 'import' });
+    signal.addEventListener('abort', abort, { once: true });
+    try {
+      return await pool.run({ requestId: 1, revision: 'import', kind, payload, signal });
+    } finally {
+      signal.removeEventListener('abort', abort);
+      pool.endRequest(1);
+      pool.close();
+    }
+  };
+}
+
+/**
  * @param {Document} doc
  * @param {{ storage?: import('./state.js').StorageLike, env?: any, confirm?: (message: string) => boolean,
- *   random?: () => string }} [options]
+ *   random?: () => string, client?: import('../core/browser/generation-client.js').GenerationClient,
+ *   pool?: import('../core/browser/worker-pool.js').Pool, workerFactory?: () => import('../core/browser/worker-pool.js').WorkerLike,
+ *   workersAvailable?: boolean, handoff?: import('../core/browser/handoff.js').HandoffEnv,
+ *   controller?: Partial<import('./jobs.js').JobControllerOptions> }} [options]
  */
 export function createGeneratorApp(doc, options = {}) {
   const io = options.storage ?? storage;
@@ -60,6 +91,39 @@ export function createGeneratorApp(doc, options = {}) {
   const editor = mountBoardEditor(slot(doc, 'board'), { store, hardware, confirm: options.confirm });
   const level = mountLevelPanel(slot(doc, 'level'), { store, hardware, getHandlers: () => handlers, random: options.random });
   const regions = { set: slot(doc, 'set'), puzzles: slot(doc, 'puzzles') };
+
+  const win = doc.defaultView;
+  const pool = options.client === undefined ? options.pool ?? createPool(options.workerFactory === undefined ? {} : { workerFactory: options.workerFactory }) : null;
+  const client = options.client ?? createGenerationClient(/** @type {import('../core/browser/worker-pool.js').Pool} */ (pool));
+  const handoffEnv = options.handoff ?? {};
+  const controller = createJobController({
+    store,
+    hardware,
+    client,
+    workersAvailable: options.workersAvailable ?? (options.workerFactory !== undefined || typeof /** @type {any} */ (win ?? globalThis).Worker === 'function'),
+    cancelPending: () => pool?.cancelAll(),
+    runWorkerTask: dedicatedTaskRunner(options.workerFactory),
+    prepareLink: (pack, index) => preparePlayerLink(pack, index, handoffEnv),
+    openPlayer: (pack, index) => openInPlayer(pack, index, handoffEnv),
+    download: (pack, name, o) => downloadPack(pack, name, o),
+    copy: copyText,
+    notify: (message, kind) => void showToast(message, { kind }),
+    saveLibrary: (pack) => void (handoffEnv.storage ?? storage).saveLibraryPack(pack),
+    beforeNavigate: () => persistence.saveNow(),
+    ...options.controller,
+  });
+  const setPanel = mountSetPanel(regions.set, { store, controller });
+  const puzzlePanel = mountPuzzlePanel(regions.puzzles, { store, hardware, controller, onNewSet: () => void level.generate() });
+  const unsubscribeBoard = store.subscribe((state, previous) => {
+    if (state.board !== previous.board && state.set !== previous.set) {
+      editor.history.clear();
+    }
+  });
+  handlers.onGenerateSet = (request) => void controller.generateSet(request);
+  handlers.onNewPuzzles = () => void controller.newPuzzles();
+  handlers.onAddMore = () => void controller.addMore();
+  handlers.onCancel = () => controller.cancel();
+  level.refresh();
 
   const stickyStatus = slot(doc, 'sticky-status');
   const stickyAction = /** @type {HTMLButtonElement} */ (slot(doc, 'sticky-action'));
@@ -97,7 +161,6 @@ export function createGeneratorApp(doc, options = {}) {
       persistence.flush();
     }
   };
-  const win = doc.defaultView;
   win?.addEventListener('pagehide', onHide);
   doc.addEventListener('visibilitychange', onVisibility);
 
@@ -111,6 +174,9 @@ export function createGeneratorApp(doc, options = {}) {
     hardware,
     editor,
     level,
+    controller,
+    setPanel,
+    puzzlePanel,
     regions,
     /** Registers the job actions; controls that need them become enabled. @param {GeneratorHandlers} next */
     setHandlers(next) {
@@ -120,6 +186,10 @@ export function createGeneratorApp(doc, options = {}) {
     },
     destroy() {
       unsubscribe();
+      unsubscribeBoard();
+      controller.destroy();
+      setPanel.destroy();
+      puzzlePanel.destroy();
       stickyAction.removeEventListener('click', onStickyClick);
       win?.removeEventListener('pagehide', onHide);
       doc.removeEventListener('visibilitychange', onVisibility);
