@@ -5,17 +5,39 @@
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pentomino Generator</title>
+  <title>Pentomino Puzzle Generator</title>
+  <link rel="stylesheet" href="../core/browser/common.css">
   <link rel="stylesheet" href="./generator.css">
   <script type="module" src="./app.js"></script>
 </head>
-<body>
-  <main>
-    <h1>Pentomino Generator</h1>
-    <p>Version <span data-app-version></span></p>
-    <nav>
-      <a href="../player/">Open the Player</a>
-    </nav>
+<body data-app="generator">
+  <header class="app-header">
+    <h1>Pentomino Puzzle Generator</h1>
+    <p class="version">Version <span data-app-version></span></p>
+    <a class="pm-btn open-player" href="../player/">Open player</a>
+  </header>
+  <noscript><p class="notice notice-error">The generator needs JavaScript.</p></noscript>
+  <main class="layout">
+    <section class="panel panel-board" aria-labelledby="heading-board" data-step="1">
+      <h2 id="heading-board"><span class="step" aria-hidden="true">①</span> Board</h2>
+      <div data-slot="board"></div>
+    </section>
+    <section class="panel panel-level" aria-labelledby="heading-level" data-step="2">
+      <h2 id="heading-level"><span class="step" aria-hidden="true">②</span> Level</h2>
+      <div data-slot="level"></div>
+    </section>
+    <section class="panel panel-set" aria-labelledby="heading-set" data-step="3">
+      <h2 id="heading-set"><span class="step" aria-hidden="true">③</span> Piece set</h2>
+      <div data-slot="set"></div>
+    </section>
+    <section class="panel panel-puzzles" aria-labelledby="heading-puzzles" data-step="4">
+      <h2 id="heading-puzzles"><span class="step" aria-hidden="true">④</span> Puzzles</h2>
+      <div data-slot="puzzles"></div>
+    </section>
   </main>
+  <div class="sticky-bar" role="region" aria-label="Current action">
+    <p class="sticky-status" data-slot="sticky-status"></p>
+    <button type="button" class="primary" data-slot="sticky-action">Generate Piece Set</button>
+  </div>
 </body>
 </html>

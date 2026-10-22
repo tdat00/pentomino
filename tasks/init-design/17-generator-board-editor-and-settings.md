@@ -143,3 +143,27 @@ Test default60, Heart75/73, disconnected/<30 masks, phone unknown memory and des
 ## Definition of done & handoff
 
 T18 owns job/result wiring next. Publish store events and action callbacks. Do not consult or copy the parallel static prototype.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done |
+| Start | 2026-10-22 21:01:21 (+07:00) |
+| End | 2026-10-22 21:17:33 (+07:00) |
+| Duration | 16 min 12 s |
+| Model | claude-sonnet-5.5 (sub-agent `T17-gen-editor`, general-purpose); ran in parallel with T14, T15, T19 |
+| Token usage | 56 model calls; 9,163,446 input (8,939,273 cache read), 134,586 output |
+| AI credits | 280.02 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\generator-state.test.js` (with T15 tests) → green; `check-conventions` OK. Agent run: task tests 25 pass; `npm run test:quick` 557 pass; `npm run check` OK; headless-Edge harness `tests\browser\generator-editor.html` (served on port 8317) → 24/24 pass, no CSP violations; screenshots at 1280 px and 480 px show the three-column layout and the stacked mobile steps with sticky bar.
+
+**Acceptance:** BAC-1..3 and TAC-1..4 pass. Painting with real pointer events at 0°/45°/90°/315° (one drag = one undo step, Heart exterior cell reactivated at 45°); resize, trim and all presets (Heart 75 / 73 rounded); view rotation and Edit-unrotated never touch board/set/puzzles/stale flag; 60 cells → Very easy..Master, 360 → Hard..Hell-2 with "Uses 16–18 pieces of 12–34 squares · about 38% pre-placed"; caps 484 desktop / 360 phone / 676 only with desktop Large boards, each with its N-CAP/N-LARGE/N-EXPERIMENTAL notice; throwing/denied storage does not break editing.
+
+**Issues & resolutions:**
+- One wrong test expectation and a harness setup problem, fixed in tests.
+- A transient `check-site` failure (`player/index.html` missing `./app.js`) came from T19's in-progress files; it passed on re-run.
+- UX note: when an edit makes the selected level unavailable, the level moves to the nearest offered one and does not move back after a later resize (can surprise users typing Columns then Rows through an intermediate size). Recommendation: choose the level after sizing the board.
+- Design choices (no owner input needed): Level column shows the "Uses … pieces" line, N-COUNT notice under the board; typing a seed turns Keep seed on, clearing turns it off, 🎲 leaves it unchanged; resize/preset confirm only when blocked cells exist (one combined prompt with a set, first-edit prompt once); view rotation usable during a job; default level Normal; confirmations via `window.confirm`.
+
+**Handoff (for T18):** `createGeneratorApp(document, {storage, env, confirm, random})` → `{store, hardware, editor, level, regions:{set, puzzles}, setHandlers, destroy}`; `setHandlers({onGenerateSet({seed, state}), onNewPuzzles, onAddMore, onCancel})` (buttons disabled until set; sticky bar mirrors the current action). `createGeneratorStore` → `getState`, `subscribe(listener(state, previous))`, `update`, `destroy`; added field `calibrationFor` + `calibrationCurrent(state)`; `job` is owned by T18 and `isBusy(state)` disables painting/settings. Helpers: `beginSetRequest`, `acceptSet`, `nextBatch` → `{state, batchSeed}`, `recordBatch`, `savedSetOf`, `useSavedSet`, `describeBoard`, `describeLevels`, `describeCount`, `withBoard`, `serializeState`, `restoreState`, `loadGeneratorState(storage)`, `createPersistence` (300 ms debounce, shrinking retry, never throws). Restored ratings/certificates are unverified claims; sets keep carving/`macroRegion` via `setPack.meta`. `strings.js` has all 16 N-* notices and `formatNotice`. `ui\board-editor.js` → `mountBoardEditor` (`resize`, `applyPreset`, `reset`, `trim`, `undo`, `rotate`); `ui\level-panel.js` → `mountLevelPanel` (`generate()`).

@@ -1,10 +1,293 @@
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
+/* Generator layout: three panels above a full-width puzzles row from 900 px, stacked
+   numbered steps with a sticky action bar below. Shared rules live in common.css. */
+
+:root {
+  --gen-gap: 1rem;
+  --gen-radius: 0.5rem;
+  --gen-accent: #0b5fff;
+  --gen-warning: #7a4b00;
+  --gen-error: #9b1c1c;
 }
 
-main {
-  max-width: 40rem;
+body {
+  margin: 0;
+  color: var(--pm-ink);
+  background: #f4f3ee;
+  font-family: system-ui, sans-serif;
+  line-height: 1.4;
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem var(--gen-gap);
+  padding: 0.75rem var(--gen-gap);
+  background: var(--pm-surface);
+  border-bottom: 1px solid var(--pm-border);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.app-header .version {
+  margin: 0;
+  color: var(--pm-muted);
+  font-size: 0.875rem;
+}
+
+.open-player {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  text-decoration: none;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--gen-gap);
+  max-width: 96rem;
   margin: 0 auto;
-  padding: 1rem;
+  padding: var(--gen-gap);
+}
+
+.panel {
+  min-width: 0;
+  padding: var(--gen-gap);
+  background: var(--pm-surface);
+  border: 1px solid var(--pm-border);
+  border-radius: var(--gen-radius);
+}
+
+.panel > h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.step {
+  display: inline-block;
+  min-width: 1.5em;
+  color: var(--gen-accent);
+}
+
+.control-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.625rem;
+}
+
+.control-row > [hidden],
+.field[hidden],
+.pm-toggle[hidden] {
+  display: none;
+}
+
+.control-label {
+  align-self: center;
+  font-weight: 600;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: 0.875rem;
+}
+
+.field.grow {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+.field input[type="number"] {
+  width: 5rem;
+}
+
+.field input,
+.field select {
+  min-height: var(--pm-target);
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--pm-border);
+  border-radius: 0.375rem;
+  background: var(--pm-surface);
+  color: var(--pm-ink);
+}
+
+.view-angle {
+  min-width: 3rem;
+  color: var(--pm-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  margin: 0 0 0.5rem;
+  color: var(--pm-muted);
+  font-size: 0.875rem;
+}
+
+.board-host {
+  width: 100%;
+  height: clamp(15rem, 52vh, 30rem);
+  background: #ece9df;
+  border: 1px solid var(--pm-border);
+  border-radius: 0.375rem;
+}
+
+.board-host[data-busy="true"] {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+.board-host .pm-scroll:focus-visible {
+  outline-offset: -3px;
+}
+
+.board-status {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+}
+
+.board-status[data-valid="false"] {
+  color: var(--gen-error);
+}
+
+.notices {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notice {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.notice-warning {
+  color: var(--gen-warning);
+}
+
+.notice-error {
+  color: var(--gen-error);
+}
+
+.level-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 0.25rem 0.75rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: 0;
+}
+
+.level-list legend {
+  padding: 0;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.level-option {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 0.5rem;
+  min-height: var(--pm-target);
+}
+
+.level-option[data-offered="false"] {
+  color: var(--pm-muted);
+}
+
+.level-reason {
+  flex-basis: 100%;
+  padding-left: 1.75rem;
+  color: var(--pm-muted);
+}
+
+.count-line {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+.advanced {
+  margin: 0.75rem 0;
+}
+
+.advanced summary {
+  min-height: var(--pm-target);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.advanced > * {
+  margin-top: 0.5rem;
+}
+
+.field-error {
+  margin: 0.25rem 0 0;
+  color: var(--gen-error);
+  font-size: 0.875rem;
+}
+
+.field-error:empty {
+  display: none;
+}
+
+button.primary {
+  color: #ffffff;
+  background: var(--gen-accent);
+  border-color: var(--gen-accent);
+  font-weight: 600;
+}
+
+button.primary:disabled {
+  color: var(--pm-muted);
+  background: #e4e4e4;
+  border-color: var(--pm-border);
+}
+
+.sticky-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem var(--gen-gap);
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  background: var(--pm-surface);
+  border-top: 1px solid var(--pm-border);
+  box-shadow: 0 -2px 6px rgb(0 0 0 / 10%);
+}
+
+.sticky-status {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sticky-bar button {
+  flex: none;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .panel-puzzles {
+    grid-column: 1 / -1;
+  }
+
+  .sticky-bar {
+    display: none;
+  }
 }

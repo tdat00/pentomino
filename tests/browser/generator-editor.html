@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>T17 generator editor harness</title>
+  <link rel="stylesheet" href="../../core/browser/common.css">
+  <link rel="stylesheet" href="../../generator/generator.css">
+  <script type="module" src="./generator-editor.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Generator board editor harness</h1>
+    <p>Developer regression page for T17. It is not part of the deployed site.</p>
+    <p id="summary" role="status">Running…</p>
+    <ol id="results"></ol>
+    <section id="sandbox" aria-label="Test sandbox"></section>
+  </main>
+</body>
+</html>
