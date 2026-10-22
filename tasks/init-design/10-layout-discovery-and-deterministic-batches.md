@@ -146,3 +146,29 @@ Use a rigid partial fixture, a reflected duplicate, and a new layout with a repe
 ## Definition of done & handoff
 
 T14 dispatches these pure tasks; T15 implements orchestration and the CLI. T19 uses the generated sample pack, revalidating it before copying. The recorded recipe and sample provide reproducible fixtures without consulting any prototype.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done |
+| Start | 2026-10-22 20:34:10 (+07:00) |
+| End | 2026-10-22 20:47:34 (+07:00) |
+| Duration | 13 min 24 s |
+| Model | claude-sonnet-5.5 (sub-agent `T10-batches`, general-purpose); ran in parallel with T12, T13 |
+| Token usage | 46 model calls; 5,844,680 input (5,676,268 cache read), 93,118 output |
+| AI credits | 191.98 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** quick run of `tests\discovery.test.js`, `tests\generate.test.js`, `tests\tiling.test.js` → 55 pass / 0 fail in 5.7 s; full task tests at agent finish 45 pass (~14 s incl. slow); `npm run test:quick` 429 pass / 0 fail; `node tools\record-fixtures.mjs --check` → OK; `check-conventions` OK. No clocks, workers or `Math.random` in `generate.js`/`tiling.js`.
+
+**Acceptance:** BAC-1..3 and TAC-1..5 pass. Second batch (`#2`, carried history) reuses the same set unchanged; clue-only variants are rejected as layout duplicates; 10 requested puzzles complete in the fixture; pool widths 1–4 × 3 shuffled completion orders reproduce the serial fold on `fixture-set-0` and `fixture-set-1`; 10×6 K8 discovery meets ≥ 45/50; 20×18 K18 (slow, ~5.5 s) valid; history cap enforced by preflight (no eviction); q10 with all attempt-0 accepted takes `ceil(10/width)` rounds.
+
+**Issues & resolutions:**
+- Random 4-piece clusters in a 6×10 pentomino tiling are almost always rigid; the `lnsStep` test now draws clusters from `clusterFor`.
+- The best-distance fallback is reachable only with large K (preference floor 2); tests override `preferred` on the state to exercise it with the 12-piece fixture.
+- `fixture-set-1` (flat, K=11) simulation ~8 s → marked slow.
+- `setAttempt` failure reasons `carve`, `internal`, `not-in-band`, `uniqueness-not-proved` could not be provoked with real boards; they are covered through fold tests only (residual risk noted).
+- Added optional diagnostic `onRestart` to `randomTiling` to test the Luby restart clamp.
+- Shared-file edit: `core\engine\tiling.js` additive only (existing exports unchanged; new imports `BUDGETS`, `PieceSet` typedef).
+
+**Handoff:** `tiling.js` additions → `luby`, `randomTiling` (optional `onRestart`), `lnsStep`, `lnsWalk`, `clusterFor`, `RestartInfo`. `generate.js` → `setAttempt`, `firstSetAttempt(req, max = 32)`, `puzzleCandidate`, `certifyTask`, fold API `foldStart`/`foldNext`/`foldAccept` (returns new state)/`runFold(ctx, candidateFn?)`, scheduler helpers `candidateContext(ctx, s)` and `dispatchOrder(s, have, limit)`, `GenerationError('history-full')` from `foldStart`, RangeError for quantity outside 1–10; typedefs `FoldState`, `FailReason`, `PartialReason`, `CandidateFailure`. T14 must pass `candidateContext(ctx, state)` to every candidate task (frozen request-start history incl. reused calibration puzzle). Candidates use `execution.scratch` for LNS/random tiling and `execution.main` for clue selection. Recorded recipe `fixture-set-0` / `fixture-set-0#1` (macro K9 → 10 Hard puzzles); `tools\record-fixtures.mjs` exports `replayRecipe`, `buildSample`, `verifySample` (`--create`, `--check`, `--replace --reason`).

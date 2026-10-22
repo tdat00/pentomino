@@ -7,16 +7,22 @@
 // A workspace holds one live model. Building another model in the same
 // workspace overwrites the buffers, so the older model is marked stale and
 // refuses to solve or decode.
+//
+// The discovery half (random restarts, local re-tiling) lives at the end of the
+// file: it only adds seeded searches on top of the canonical model and never
+// changes what the canonical search or the rating sees.
 
 import { ExactCover } from './dlx.js';
 import { poseCells } from './geometry.js';
 import { countPlacements, MAX_NONZEROS, MAX_ROWS, preparePlacements } from './placements.js';
+import { BUDGETS } from './policy.js';
 import { fillArena } from './workspace.js';
 
 /** @typedef {import('./types.js').XY} XY */
 /** @typedef {import('./types.js').Board} Board */
 /** @typedef {import('./types.js').Piece} Piece */
 /** @typedef {import('./types.js').Pose} Pose */
+/** @typedef {import('./types.js').PieceSet} PieceSet */
 /** @typedef {import('./rng.js').Rng} Rng */
 /** @typedef {import('./workspace.js').Workspace} Workspace */
 
@@ -248,4 +254,240 @@ export function isValidLayout(b, pieces, layout) {
     }
   }
   return used.size === pieces.length && total === activeTotal;
+}
+
+/**
+ * Luby restart multiplier for the one-based index `i`: 1, 1, 2, 1, 1, 2, 4, 1, ...
+ * @param {number} i
+ * @returns {number}
+ */
+export function luby(i) {
+  if (!Number.isSafeInteger(i) || i < 1) {
+    throw new RangeError('luby index must be a positive integer');
+  }
+  let index = i;
+  for (;;) {
+    let k = 1;
+    while (2 ** k - 1 < index) {
+      k += 1;
+    }
+    if (index === 2 ** k - 1) {
+      return 2 ** (k - 1);
+    }
+    index = index - 2 ** (k - 1) + 1;
+  }
+}
+
+/**
+ * Restart report of `randomTiling`, for tests and progress.
+ * @typedef {object} RestartInfo
+ * @property {number} index One-based restart number.
+ * @property {number} limit Row-trial limit given to this restart.
+ * @property {number} rowTrials Row trials it used.
+ * @property {boolean} found
+ * @property {boolean} exhausted
+ */
+
+/**
+ * Seeded global random tiling with Luby restarts. Restart `i` searches with
+ * `rng.derive('r' + i)` and at most `restartBase * luby(i)` row trials, clamped
+ * to what is left of `totalRowTrials`. Returns null when the budget is spent or
+ * a restart exhausts its space without a solution (that proves none exists, so
+ * further restarts could only repeat it). Always finite.
+ * @param {Board} board
+ * @param {Piece[]} pieces
+ * @param {Rng} rng
+ * @param {Workspace} ws
+ * @param {{ clues?: Pose[], totalRowTrials: number, restartBase: number, onRestart?: (info: RestartInfo) => void }} o
+ * @returns {Pose[] | null}
+ */
+export function randomTiling(board, pieces, rng, ws, o) {
+  if (!Number.isInteger(o.totalRowTrials) || o.totalRowTrials < 0 || !Number.isInteger(o.restartBase) || o.restartBase < 1) {
+    throw new RangeError('totalRowTrials must be a nonnegative integer and restartBase a positive integer');
+  }
+  const model = buildModel(board, pieces, o.clues ?? [], ws);
+  let spent = 0;
+  for (let i = 1; spent < o.totalRowTrials; i += 1) {
+    const limit = Math.min(o.restartBase * luby(i), o.totalRowTrials - spent);
+    const r = solveFirst(model, { rng: rng.derive(`r${i}`), rowTrialLimit: limit });
+    o.onRestart?.({ index: i, limit, rowTrials: r.rowTrials, found: r.layout !== null, exhausted: r.exhausted });
+    if (r.layout !== null) {
+      return r.layout;
+    }
+    if (r.exhausted) {
+      return null;
+    }
+    // A restart that reports no work still consumes budget so the loop ends.
+    spent += Math.max(1, r.rowTrials);
+  }
+  return null;
+}
+
+/**
+ * @param {Piece} piece
+ * @param {Pose} pose
+ * @param {number} width
+ * @returns {string}
+ */
+function footprintKey(piece, pose, width) {
+  return poseCells(piece, pose).map(([x, y]) => y * width + x).sort((a, b) => a - b).join(',');
+}
+
+/**
+ * Local re-tiling: releases the `cluster` pieces (indices into `pieces`), keeps
+ * every other pose fixed and searches the released cells with the seeded
+ * solver in `ws` (use the scratch workspace). Returns the complete layout with
+ * one genuinely different cluster placement picked from at most
+ * `maxSolutions` found completions, or null when none differs. The result is
+ * validated independently and sorted like `pieces`.
+ * @param {Board} board
+ * @param {Piece[]} pieces
+ * @param {Pose[]} layout Complete valid layout.
+ * @param {number[]} cluster Distinct indices into `pieces`.
+ * @param {Rng} rng
+ * @param {Workspace} ws
+ * @param {{ rowTrialLimit: number, maxSolutions: number }} o
+ * @returns {Pose[] | null}
+ */
+export function lnsStep(board, pieces, layout, cluster, rng, ws, o) {
+  if (cluster.length === 0 || new Set(cluster).size !== cluster.length
+    || !cluster.every((i) => Number.isInteger(i) && i >= 0 && i < pieces.length)) {
+    throw new RangeError('cluster must be distinct, non-empty indices into pieces');
+  }
+  if (!isValidLayout(board, pieces, layout)) {
+    throw new RangeError('layout is not a complete valid arrangement of the pieces');
+  }
+  const released = new Set(cluster.map((i) => pieces[i].id));
+  const byId = new Map(pieces.map((p) => [p.id, p]));
+  const fixed = layout.filter((p) => !released.has(p.piece)).map((p) => ({ ...p }));
+  const before = new Map(layout.filter((p) => released.has(p.piece))
+    .map((p) => [p.piece, footprintKey(/** @type {Piece} */ (byId.get(p.piece)), p, board.width)]));
+  const model = buildModel(board, pieces, fixed, ws);
+  const r = model.cover.solve({ maxSolutions: o.maxSolutions, rowTrialLimit: o.rowTrialLimit, rng });
+  /** @type {Pose[][]} */
+  const alternatives = [];
+  for (const rows of r.solutions) {
+    const poses = Array.from(rows, (row) => rowPose(model, row));
+    if (poses.some((p) => footprintKey(/** @type {Piece} */ (byId.get(p.piece)), p, board.width) !== before.get(p.piece))) {
+      alternatives.push(poses);
+    }
+  }
+  if (alternatives.length === 0) {
+    return null;
+  }
+  const order = new Map(pieces.map((p, i) => [p.id, i]));
+  const next = [...fixed, ...rng.pick(alternatives)]
+    .sort((a, c) => /** @type {number} */ (order.get(a.piece)) - /** @type {number} */ (order.get(c.piece)));
+  return isValidLayout(board, pieces, next) ? next : null;
+}
+
+/**
+ * Edge adjacency of the pieces in a layout; entry `i` lists the piece indices
+ * touching `pieces[i]`, ascending.
+ * @param {Board} board
+ * @param {Piece[]} pieces
+ * @param {Pose[]} layout
+ * @returns {number[][]}
+ */
+function pieceAdjacency(board, pieces, layout) {
+  const { width, height } = board;
+  const owner = new Int32Array(width * height).fill(-1);
+  const index = new Map(pieces.map((p, i) => [p.id, i]));
+  for (const pose of layout) {
+    const i = /** @type {number} */ (index.get(pose.piece));
+    for (const [x, y] of poseCells(pieces[i], pose)) {
+      owner[y * width + x] = i;
+    }
+  }
+  const adjacent = pieces.map(() => /** @type {Set<number>} */ (new Set()));
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const a = owner[y * width + x];
+      for (const b of [x + 1 < width ? owner[y * width + x + 1] : -1, y + 1 < height ? owner[(y + 1) * width + x] : -1]) {
+        if (a >= 0 && b >= 0 && a !== b) {
+          adjacent[a].add(b);
+          adjacent[b].add(a);
+        }
+      }
+    }
+  }
+  return adjacent.map((s) => [...s].sort((a, b) => a - b));
+}
+
+const MACRO_BROADEN_MAX = 9;
+
+/**
+ * Cluster to release at walk step `s` (design §6.7) and its row-trial limit.
+ * Macro sets release the current pieces of one macro region, widened by their
+ * neighbours up to nine pieces every eighth step; flat and imported sets release
+ * a seeded BFS neighbourhood whose size grows while the walk is stuck.
+ * @param {PieceSet} set
+ * @param {Pose[]} layout
+ * @param {number} s Zero-based step.
+ * @param {number} stuck Consecutive failed steps.
+ * @param {Rng} rng
+ * @returns {{ cluster: number[], rows: number }}
+ */
+export function clusterFor(set, layout, s, stuck, rng) {
+  const { board, pieces } = set;
+  const adjacent = pieceAdjacency(board, pieces, layout);
+  const macro = set.macroRegion;
+  if (macro !== null && macro.length === pieces.length) {
+    const regions = [...new Set(macro)].sort((a, b) => a - b);
+    const region = regions[rng.int(regions.length)];
+    const cluster = pieces.map((_, i) => i).filter((i) => macro[i] === region);
+    if (s % 8 === 7) {
+      const inside = new Set(cluster);
+      const around = [...new Set(cluster.flatMap((i) => adjacent[i]))].filter((j) => !inside.has(j)).sort((a, b) => a - b);
+      rng.shuffle(around);
+      for (const j of around) {
+        if (cluster.length >= MACRO_BROADEN_MAX) {
+          break;
+        }
+        cluster.push(j);
+      }
+    }
+    return { cluster: cluster.sort((a, b) => a - b), rows: BUDGETS.lnsRowsMacro };
+  }
+  const want = Math.min(pieces.length, 6 + rng.int(8) + 2 * Math.floor(stuck / 4));
+  const cluster = [rng.int(pieces.length)];
+  const seen = new Set(cluster);
+  for (let head = 0; head < cluster.length && cluster.length < want; head += 1) {
+    const around = adjacent[cluster[head]].filter((j) => !seen.has(j));
+    rng.shuffle(around);
+    for (const j of around) {
+      if (cluster.length < want) {
+        seen.add(j);
+        cluster.push(j);
+      }
+    }
+  }
+  return { cluster: cluster.sort((a, b) => a - b), rows: BUDGETS.lnsRowsFlat };
+}
+
+/**
+ * Walk of `steps` local re-tilings from `start`, one scratch-workspace search
+ * per step. A failed step widens flat clusters; a success resets that count.
+ * Every intermediate layout is complete and valid, so the result is too.
+ * @param {PieceSet} set
+ * @param {Pose[]} start Complete valid layout.
+ * @param {Rng} rng
+ * @param {Workspace} ws
+ * @param {number} [steps]
+ * @returns {Pose[]}
+ */
+export function lnsWalk(set, start, rng, ws, steps = BUDGETS.lnsSteps) {
+  let current = start;
+  let stuck = 0;
+  for (let s = 0; s < steps; s += 1) {
+    const { cluster, rows } = clusterFor(set, current, s, stuck, rng);
+    const next = lnsStep(set.board, set.pieces, current, cluster, rng, ws, { rowTrialLimit: rows, maxSolutions: 8 });
+    if (next === null) {
+      stuck += 1;
+    } else {
+      current = next;
+      stuck = 0;
+    }
+  }
+  return current;
 }
