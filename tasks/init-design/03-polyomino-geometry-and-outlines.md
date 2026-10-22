@@ -110,3 +110,26 @@ Use a one-cell piece for boundary tracing, diagonal-only cells for disconnectedn
 ## Definition of done & handoff
 
 The classic-piece fixture and numeric identity convention are frozen. T05 uses these transforms for board/view math, T06/T07 for placements, and T16/T20 for drawing/input. Report commands and any unresolved numerical edge case.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done |
+| Start | 2026-10-22 19:47:47 (+07:00) |
+| End | 2026-10-22 19:50:55 (+07:00) |
+| Duration | 3 min 8 s |
+| Model | claude-sonnet-5.5 (sub-agent `T03-geometry`, general-purpose); ran in parallel with T02, T22 |
+| Token usage | 14 model calls; 667,446 input (629,788 cache read), 26,052 output |
+| AI credits | 41.76 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\geometry.test.js` green (15 tests, slow n=9/10 enumeration ~1 s); full suite at agent finish 78 pass / 0 fail; `npm run test:quick` 77 pass; `npm run check` OK.
+
+**Acceptance:** BAC-1..3, TAC-1..5 pass. Free polyomino counts 1,1,2,5,12,35,108,369 (n=1..8), hole-free 107/363 (n=7/8), slow 1248/4460 hole-free (1285/4655 free) for n=9/10. Orientation counts O4=1, I3=2, T4=4, S4=4, L4=8, F5=8, X5=1. Outlines validated by even-odd raster on ring, concave, F and all 12 pentominoes.
+
+**Issues & resolutions:**
+- "Numeric minimum tuple sequence" must compare cells by (y, x) to reproduce the spec's golden L3 key `3:0,0;1,0;0,1`; `canonicalKey` and `distinctOrientations` use (y, x) ordering.
+- An initial M∘R identity test used the wrong inverse; the test was corrected (implementation unchanged).
+- File tool emitted LF; converted to CRLF.
+
+**Handoff:** exports `TRANSFORMS`, `transformCells`, `normalizeCells`, `orientedCells`, `poseCells`, `canonicalKey`, `distinctOrientations`, `canonicalT`, `compose`, `rotateCW`, `rotateCCW`, `isConnected`, `hasHole`, `outlineLoops`. `t` outside 0..7 → RangeError; no `-0` in outputs. `rotateCW/CCW` change turn bits only. Empty input: `isConnected([])=false`, `hasHole([])=false`, `outlineLoops([])=[]`, `canonicalKey([])='0:'`. Outer loops clockwise (screen), holes counter-clockwise, collinear vertices merged, corner-contact loops separate, ready for `fill-rule="evenodd"`. Fixture `tests\fixtures\polyominoes.js` exports `CLASSIC_PENTOMINOES` (F I L N P T U V W X Y Z) and `CLASSIC_ORIENTATION_COUNTS`.
