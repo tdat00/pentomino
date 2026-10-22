@@ -126,3 +126,27 @@ Use the hand-authored fixture, uncompressed fallback, a highly compressible >256
 ## Definition of done & handoff
 
 T18 exposes real prepared anchors and export buttons. T19 uses one incoming-loader path. The loader returns validated data without mutating app state; controllers commit only after success.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done (real-browser clipboard/download behaviour deferred to T23 acceptance) |
+| Start | 2026-10-22 20:34:10 (+07:00) |
+| End | 2026-10-22 20:44:49 (+07:00) |
+| Duration | 10 min 39 s |
+| Model | claude-sonnet-5.5 (sub-agent `T12-sharing`, general-purpose); ran in parallel with T10, T13 |
+| Token usage | 31 model calls; 3,266,591 input (3,129,968 cache read), 102,292 output |
+| AI credits | 167.74 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\sharecode.test.js tests\storage.test.js tests\handoff.test.js` → 33 pass / 0 fail; `npm run test:quick` at agent finish 400 pass / 0 fail; `check-conventions` OK.
+
+**Acceptance:** BAC-1..3 and TAC-1..5 pass. `#pack=` links and JSON files decode without local data; local `#lib=` links are marked non-portable and offered only after save + readback; storage denial, damaged entries, out-of-range index and oversized packs produce honest results (null `href` with Download fallback, `HandoffError` instead of false success). `1z.`/`1j.` codes round-trip; malformed codes fail safely; a 150 MB decompression bomb aborts at 256 KiB in ~0.8 s; foreign storage keys are never touched; quota triggers a single retry after namespaced LRU eviction; caps of 30 packs / 300 progress entries enforced; `playerUrl` correct under `/pentomino/generator/` and root-hosted dev server. No `eval`, `new Function`, `innerHTML`, `fetch` or `clear()`.
+
+**Issues & resolutions:**
+- `1j.` length-limit test initially exceeded the 350,000-character cap; payload resized to 262,200 bytes (between the 256 KiB decoded limit and the character cap).
+- A storage test expectation was wrong (rebuilt progress index takes the freed slot so the retry still hits quota); test corrected.
+- No `tsc` script exists, so `// @ts-check` is not machine-verified.
+- Design choices (no owner input needed): `playerUrl` accepts a share code (`#pack=`) or a 16-hex pack id (`#lib=`); `saveProgress` stamps `updatedAt` from `now()`; eviction order is progress first, then library packs; preferences and generator state are never evicted.
+
+**Handoff:** `core\engine\sharecode.js` → `encodeShareCode` (ShareCodeError `share-too-large`/`pack-too-large`/`invalid-pack`), `decodeShareCode`, `playerUrl`, `parseLocationHash`, `parseLocationHashResult`, `extractCode`, `base64urlEncode/Decode`, limits, `NO_DECOMPRESSOR_MESSAGE`. `core\browser\storage.js` → `createStorage(adapter, now)`, lazy default + named methods, extras `touchLibraryPack`, `clearStorageIssue`, `browserStorage`; `saveLibraryPack` ok only when persisted. `core\browser\handoff.js` → `preparePlayerLink` (T18 card anchors; encoding cached per pack object — do not mutate packs), `openInPlayer` (generator must call `setGeneratorState` first and catch `handoff-unavailable`), `readIncoming`, `loadFromText`, `loadFromFile` (T19's only incoming-loader path), `downloadPack`, `HandoffError`, `PIECE_SET_MESSAGE`; all accept optional `env` injection. `core\browser\dom.js` → `el`, `showToast`, `copyText`, `downloadBlob`, `downloadText`, `safeFileName`; app CSS must style `.toast-host`, `.toast`, `.toast-<kind>`, `.clipboard-buffer`.

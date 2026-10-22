@@ -1,0 +1,328 @@
+// @ts-check
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { test } from 'node:test';
+import { packBoard, parsePack } from '../core/engine/pack.js';
+import { packId, progressFingerprint } from '../core/engine/keys.js';
+import { MAX_LIBRARY_PACKS, MAX_PROGRESS_ENTRIES, NAMESPACE, SAVE_FAILED_MESSAGE, createStorage } from '../core/browser/storage.js';
+import defaultStorage, * as storageModule from '../core/browser/storage.js';
+
+const parsed = parsePack(readFileSync(new URL('./fixtures/hand-authored-pack.json', import.meta.url), 'utf8'));
+assert.ok(parsed.ok);
+const pack = parsed.value;
+const FOREIGN = { 'other-app:state': 'foreign-1', 'pentomino:v2:thing': 'foreign-2', theme: 'dark' };
+
+/**
+ * In-memory Web Storage with call logs and optional failure modes.
+ * @param {Record<string, string>} [seed]
+ * @param {{ maxKeys?: number, alwaysQuota?: boolean, deny?: boolean }} [mode]
+ */
+function fakeStorage(seed = {}, mode = {}) {
+  const data = new Map(Object.entries(seed));
+  const log = { get: /** @type {string[]} */ ([]), set: /** @type {string[]} */ ([]), remove: /** @type {string[]} */ ([]) };
+  const quota = () => Object.assign(new Error('The quota has been exceeded.'), { name: 'QuotaExceededError' });
+  const denied = () => Object.assign(new Error('The operation is insecure.'), { name: 'SecurityError' });
+  return {
+    data,
+    log,
+    mode,
+    get length() {
+      if (mode.deny) {
+        throw denied();
+      }
+      return data.size;
+    },
+    /** @param {number} i */
+    key(i) {
+      return [...data.keys()][i] ?? null;
+    },
+    /** @param {string} k */
+    getItem(k) {
+      log.get.push(k);
+      if (mode.deny) {
+        throw denied();
+      }
+      return data.get(k) ?? null;
+    },
+    /** @param {string} k @param {string} v */
+    setItem(k, v) {
+      log.set.push(k);
+      if (mode.deny) {
+        throw denied();
+      }
+      if (mode.alwaysQuota || (mode.maxKeys !== undefined && !data.has(k) && data.size >= mode.maxKeys)) {
+        throw quota();
+      }
+      data.set(k, v);
+    },
+    /** @param {string} k */
+    removeItem(k) {
+      log.remove.push(k);
+      if (mode.deny) {
+        throw denied();
+      }
+      data.delete(k);
+    },
+  };
+}
+
+/** @param {number} [start] */
+function clock(start = Date.UTC(2026, 9, 22)) {
+  let t = start;
+  return () => {
+    t += 1000;
+    return t;
+  };
+}
+
+const record = (solved = false, moves = 3) => ({
+  v: /** @type {1} */ (1),
+  placements: [{ piece: 'B', x: 1, y: 0, turn: /** @type {0} */ (0), mirrored: false }],
+  elapsedMs: 1234,
+  moves,
+  solved,
+});
+
+/** Distinct valid pack per `n` (three puzzles, each with a different clue subset). */
+function variant(n) {
+  const subsets = [[], [0], [1], [0, 1]];
+  const base = pack.puzzles[0];
+  return {
+    ...pack,
+    kind: /** @type {'puzzle-pack'} */ ('puzzle-pack'),
+    puzzles: [n & 3, (n >> 2) & 3, (n >> 4) & 3].map((s, j) => ({
+      ...base,
+      id: `v${j}`,
+      title: `Variant ${n}.${j}`,
+      clues: subsets[s].map((i) => base.clues[i]),
+    })),
+  };
+}
+
+test('get/set/remove/list refuse foreign keys and never touch foreign values', () => {
+  const fake = fakeStorage(FOREIGN);
+  const store = createStorage(fake, clock());
+  assert.equal(store.get('theme'), null);
+  assert.equal(store.set('theme', 'light').ok, false);
+  assert.equal(store.remove('other-app:state').ok, false);
+  assert.deepEqual(store.list('other-app:'), []);
+  assert.deepEqual(store.list(''), []);
+  store.saveLibraryPack(pack);
+  store.saveProgress('abc123', record());
+  store.setPrefs({ timer: false });
+  store.setGeneratorState({ rows: 4 });
+  store.getGeneratorState();
+  store.loadProgress('abc123');
+  store.libraryIndex();
+  assert.deepEqual(store.list(`${NAMESPACE}progress:`), [`${NAMESPACE}progress:abc123`]);
+  for (const key of [...fake.log.get, ...fake.log.set, ...fake.log.remove]) {
+    assert.ok(key.startsWith(NAMESPACE), `touched ${key}`);
+  }
+  assert.deepEqual(Object.fromEntries([...fake.data].filter(([k]) => !k.startsWith(NAMESPACE))), FOREIGN);
+});
+
+test('quota evicts only namespaced LRU entries and retries once', () => {
+  const fake = fakeStorage(FOREIGN);
+  const store = createStorage(fake, clock());
+  for (let i = 0; i < 10; i += 1) {
+    assert.ok(store.saveProgress(`fp${i}`, record()).ok);
+  }
+  fake.mode.maxKeys = fake.data.size;
+  fake.log.set.length = 0;
+  const saved = store.saveLibraryPack(pack);
+  assert.ok(saved.ok, JSON.stringify(saved));
+  const libKey = `${NAMESPACE}lib:${saved.packId}`;
+  assert.equal(fake.log.set.filter((k) => k === libKey).length, 2, 'one retry');
+  const left = store.list(`${NAMESPACE}progress:`).map((k) => k.slice(`${NAMESPACE}progress:`.length));
+  assert.deepEqual(left.sort(), ['fp3', 'fp4', 'fp5', 'fp6', 'fp7', 'fp8', 'fp9'], 'oldest quarter evicted');
+  assert.equal(store.loadProgress('fp0'), null);
+  assert.ok(store.loadProgress('fp9'));
+  assert.deepEqual(Object.fromEntries([...fake.data].filter(([k]) => !k.startsWith(NAMESPACE))), FOREIGN);
+  assert.ok(store.loadLibraryPack(saved.packId).ok);
+});
+
+test('persistent quota failure keeps working in memory with the user message', () => {
+  const fake = fakeStorage(FOREIGN);
+  const store = createStorage(fake, clock());
+  for (let i = 0; i < 4; i += 1) {
+    store.saveProgress(`fp${i}`, record());
+  }
+  fake.mode.alwaysQuota = true;
+  fake.log.set.length = 0;
+  const result = store.setPrefs({ timer: false });
+  assert.deepEqual(result, { ok: false, code: 'quota', message: SAVE_FAILED_MESSAGE });
+  assert.equal(fake.log.set.filter((k) => k === `${NAMESPACE}prefs`).length, 2, 'exactly one retry');
+  assert.equal(store.getPrefs().timer, false, 'still readable from memory');
+  assert.equal(store.lastStorageIssue()?.message, SAVE_FAILED_MESSAGE);
+  assert.equal(store.lastStorageIssue()?.code, 'quota');
+  store.clearStorageIssue();
+  assert.equal(store.lastStorageIssue(), null);
+  const bare = fakeStorage({}, { alwaysQuota: true });
+  const empty = createStorage(bare, clock());
+  assert.equal(empty.setPrefs({ labels: false }).ok, false);
+  assert.equal(bare.log.set.length, 1, 'nothing to evict, no pointless retry');
+});
+
+test('denied or missing storage never throws and play continues in memory', () => {
+  for (const adapter of [fakeStorage({}, { deny: true }), null, undefined]) {
+    const store = createStorage(adapter, clock());
+    assert.equal(store.get(`${NAMESPACE}prefs`), null);
+    assert.deepEqual(store.getPrefs(), { labels: true, patterns: true, timer: true, straighten: false, largeBoards: false });
+    const written = store.setPrefs({ patterns: false });
+    assert.equal(written.ok, false);
+    assert.equal(/** @type {any} */ (written).code, 'storage-unavailable');
+    assert.equal(store.getPrefs().patterns, false);
+    assert.equal(store.saveProgress('abc', record(true)).ok, false);
+    assert.equal(store.loadProgress('abc')?.solved, true);
+    assert.equal(store.saveLibraryPack(pack).ok, false);
+    assert.deepEqual(store.libraryIndex(), []);
+    assert.ok(store.list(NAMESPACE).includes(`${NAMESPACE}prefs`), 'unsaved values are still listed');
+    assert.ok(store.lastStorageIssue());
+    assert.equal(store.remove(`${NAMESPACE}prefs`).ok, adapter ? false : true);
+  }
+});
+
+test('library: LRU of 30, stale and damaged entries, solved counts', () => {
+  const fake = fakeStorage(FOREIGN);
+  const store = createStorage(fake, clock());
+  const ids = [];
+  for (let n = 0; n < MAX_LIBRARY_PACKS + 3; n += 1) {
+    const saved = store.saveLibraryPack(variant(n));
+    assert.ok(saved.ok);
+    ids.push(saved.packId);
+  }
+  assert.equal(new Set(ids).size, ids.length);
+  const index = store.libraryIndex();
+  assert.equal(index.length, MAX_LIBRARY_PACKS);
+  assert.equal(index[0].packId, ids[ids.length - 1], 'most recent first');
+  assert.equal(index[0].puzzles, 3);
+  assert.equal(store.list(`${NAMESPACE}lib:`).filter((k) => !k.endsWith('index')).length, MAX_LIBRARY_PACKS);
+  const gone = store.loadLibraryPack(ids[0]);
+  assert.ok(!gone.ok);
+  assert.equal(gone.issues[0].code, 'library-missing');
+  assert.ok(store.loadLibraryPack(ids[5]).ok);
+
+  assert.equal(store.loadLibraryPack('zzzz').ok, false);
+  assert.equal(/** @type {any} */ (store.loadLibraryPack('0123456789abcdef')).issues[0].code, 'library-missing');
+  fake.data.set(`${NAMESPACE}lib:${ids[5]}`, '{"format":');
+  assert.equal(/** @type {any} */ (store.loadLibraryPack(ids[5])).issues[0].code, 'invalid-json');
+  fake.data.set(`${NAMESPACE}lib:${ids[6]}`, JSON.stringify(variant(1)));
+  assert.equal(/** @type {any} */ (store.loadLibraryPack(ids[6])).issues[0].code, 'library-mismatch');
+
+  const first = store.saveLibraryPack(pack);
+  assert.ok(first.ok);
+  assert.equal(first.packId, packId(pack));
+  const fp = progressFingerprint(packBoard(pack), pack.pieces, pack.puzzles[0].clues);
+  assert.equal(store.libraryIndex().find((e) => e.packId === first.packId)?.solved, 0);
+  store.saveProgress(fp, record(true));
+  assert.ok(store.touchLibraryPack(first.packId).ok);
+  const entry = store.libraryIndex()[0];
+  assert.equal(entry.packId, first.packId);
+  assert.equal(entry.solved, 1);
+  assert.equal(entry.title, 'Example');
+  assert.equal(store.touchLibraryPack('0123456789abcdef').ok, false);
+  assert.ok(store.removeLibraryPack(first.packId).ok);
+  assert.equal(store.libraryIndex().some((e) => e.packId === first.packId), false);
+  assert.equal(store.saveLibraryPack(/** @type {any} */ ({ format: 'nope' })).ok, false);
+});
+
+test('a damaged library index is ignored, not trusted', () => {
+  const fake = fakeStorage();
+  const store = createStorage(fake, clock());
+  fake.data.set(`${NAMESPACE}lib:index`, 'not json');
+  assert.deepEqual(store.libraryIndex(), []);
+  assert.equal(store.lastStorageIssue()?.code, 'invalid-data');
+  fake.data.set(`${NAMESPACE}lib:index`, JSON.stringify([{ packId: '../x', title: 1 }, null, 5, {
+    packId: '0123456789abcdef', title: 'ok', createdAt: 'a', lastOpened: 'b', puzzles: 1, solved: 0,
+  }]));
+  assert.deepEqual(store.libraryIndex().map((e) => e.packId), ['0123456789abcdef']);
+});
+
+test('progress: validation, stamped time, 300-entry LRU and exact-geometry keys', () => {
+  const fake = fakeStorage(FOREIGN);
+  const now = clock();
+  const store = createStorage(fake, now);
+  assert.equal(store.saveProgress('abc', /** @type {any} */ ({ ...record(), moves: -1 })).ok, false);
+  assert.equal(store.saveProgress('../x', record()).ok, false);
+  assert.equal(store.saveProgress('abc', /** @type {any} */ ({ ...record(), placements: [{ piece: 1 }] })).ok, false);
+  assert.ok(store.saveProgress('abc', { ...record(true, 9), updatedAt: 1 }).ok);
+  const loaded = store.loadProgress('abc');
+  assert.equal(loaded?.moves, 9);
+  assert.ok((loaded?.updatedAt ?? 0) > Date.UTC(2026, 0, 1), 'stamped from host clock');
+  assert.equal(store.loadProgress('missing'), null);
+  assert.equal(store.lastStorageIssue(), null, 'a missing entry is not an error');
+  fake.data.set(`${NAMESPACE}progress:bad`, '{"v":2}');
+  assert.equal(store.loadProgress('bad'), null);
+  assert.equal(store.lastStorageIssue()?.code, 'invalid-data');
+
+  for (let i = 0; i < MAX_PROGRESS_ENTRIES + 5; i += 1) {
+    store.saveProgress(`fp${String(i).padStart(4, '0')}`, record());
+  }
+  const keys = store.list(`${NAMESPACE}progress:`);
+  assert.equal(keys.length, MAX_PROGRESS_ENTRIES + 1, 'cap plus the unindexed damaged key');
+  assert.equal(store.loadProgress('fp0000'), null);
+  assert.ok(store.loadProgress('fp0304'));
+  assert.equal(store.loadProgress('abc'), null, 'oldest saved was evicted');
+
+  const full = pack.puzzles[0];
+  const reduced = { ...full, clues: [full.clues[0]] };
+  const other = { ...pack, puzzles: [reduced] };
+  const board = packBoard(pack);
+  const fpA = progressFingerprint(board, pack.pieces, full.clues);
+  const fpB = progressFingerprint(board, other.pieces, reduced.clues);
+  assert.equal(full.id, reduced.id);
+  assert.notEqual(fpA, fpB);
+  store.saveProgress(fpA, record(true));
+  assert.equal(store.loadProgress(fpB), null, 'same public ID, different geometry: no shared progress');
+});
+
+test('a lost progress index is rebuilt from key names only', () => {
+  const fake = fakeStorage(FOREIGN);
+  const store = createStorage(fake, clock());
+  store.saveProgress('one', record());
+  store.saveProgress('two', record());
+  fake.data.delete(`${NAMESPACE}progress-index`);
+  fake.log.get.length = 0;
+  fake.mode.maxKeys = fake.data.size;
+  assert.equal(store.setPrefs({ labels: false }).ok, false, 'the rewritten index took the freed slot');
+  assert.equal(fake.log.remove.filter((k) => k.startsWith(`${NAMESPACE}progress:`)).length, 1, 'rebuilt index let eviction find an LRU entry');
+  assert.ok(fake.log.get.every((k) => k.startsWith(NAMESPACE)));
+});
+
+test('preferences default, validate and merge', () => {
+  const fake = fakeStorage();
+  const store = createStorage(fake, clock());
+  assert.deepEqual(store.getPrefs(), { labels: true, patterns: true, timer: true, straighten: false, largeBoards: false });
+  assert.ok(store.setPrefs({ timer: false }).ok);
+  assert.ok(store.setPrefs({ straighten: true, labels: /** @type {any} */ ('no'), bogus: true }).ok);
+  assert.deepEqual(store.getPrefs(), { labels: true, patterns: true, timer: false, straighten: true, largeBoards: false });
+  const other = createStorage(fake, clock());
+  other.setPrefs({ largeBoards: true });
+  store.setPrefs({ patterns: false });
+  assert.deepEqual(store.getPrefs(), { labels: true, patterns: false, timer: false, straighten: true, largeBoards: true }, 'no clobbering');
+  fake.data.set(`${NAMESPACE}prefs`, '[1,2]');
+  assert.equal(store.getPrefs().timer, true);
+  assert.equal(store.lastStorageIssue()?.code, 'invalid-data');
+});
+
+test('generator state round-trips arbitrary JSON and reports unserializable values', () => {
+  const store = createStorage(fakeStorage(), clock());
+  assert.equal(store.getGeneratorState(), null);
+  const snapshot = { rows: ['##', '#.'], witness: [{ piece: 'A', x: 0, y: 0, turn: 0, mirrored: false }], seen: ['k1'] };
+  assert.ok(store.setGeneratorState(snapshot).ok);
+  assert.deepEqual(store.getGeneratorState(), snapshot);
+  const cyclic = /** @type {any} */ ({});
+  cyclic.self = cyclic;
+  assert.equal(store.setGeneratorState(cyclic).ok, false);
+  assert.deepEqual(store.getGeneratorState(), snapshot);
+  const { set, get } = store;
+  assert.ok(set(`${NAMESPACE}x`, 1).ok, 'methods work when destructured');
+  assert.equal(get(`${NAMESPACE}x`), 1);
+});
+
+test('the default lazy instance works without a browser localStorage', () => {
+  assert.deepEqual(defaultStorage.getPrefs(), storageModule.getPrefs());
+  assert.equal(storageModule.get(`${NAMESPACE}nothing`), null);
+  assert.ok(storageModule.libraryIndex().length >= 0);
+  assert.equal(storageModule.loadLibraryPack('0123456789abcdef').ok, false);
+});

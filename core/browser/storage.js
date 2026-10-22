@@ -1,0 +1,773 @@
+// @ts-check
+// Namespaced, failure-tolerant localStorage wrapper. All access goes through an
+// injected adapter; nothing outside `pentomino:v1:` is read, listed or removed.
+import { packId as computePackId, progressFingerprint } from '../engine/keys.js';
+import { packBoard, parsePack, serializePack, validatePack } from '../engine/pack.js';
+
+/** @typedef {import('../engine/types.js').Pack} Pack */
+/** @typedef {import('../engine/types.js').Pose} Pose */
+/** @typedef {import('../engine/types.js').Issue} Issue */
+
+/** @template T @typedef {import('../engine/types.js').Result<T>} Result */
+
+/**
+ * The subset of the Web Storage API that is used.
+ * @typedef {object} StorageAdapter
+ * @property {number} length
+ * @property {(index: number) => string | null} key
+ * @property {(key: string) => string | null} getItem
+ * @property {(key: string, value: string) => void} setItem
+ * @property {(key: string) => void} removeItem
+ */
+
+/** @typedef {{ ok: false, code: 'storage-unavailable' | 'quota' | 'invalid-data', message: string }} StorageFailure */
+/** @typedef {{ ok: true } | StorageFailure} StorageResult */
+
+/**
+ * @typedef {object} LibraryEntry
+ * @property {string} packId
+ * @property {string} title
+ * @property {string} createdAt
+ * @property {string} lastOpened
+ * @property {number} puzzles
+ * @property {number} solved
+ */
+
+/**
+ * @typedef {object} Progress
+ * @property {1} v
+ * @property {Pose[]} placements
+ * @property {number} elapsedMs
+ * @property {number} moves
+ * @property {boolean} solved
+ * @property {number} updatedAt Host milliseconds, stamped on save.
+ */
+
+/**
+ * @typedef {object} Prefs
+ * @property {boolean} labels
+ * @property {boolean} patterns
+ * @property {boolean} timer
+ * @property {boolean} straighten
+ * @property {boolean} largeBoards
+ */
+
+export const NAMESPACE = 'pentomino:v1:';
+export const MAX_LIBRARY_PACKS = 30;
+export const MAX_PROGRESS_ENTRIES = 300;
+export const SAVE_FAILED_MESSAGE = "Progress can't be saved in this browser";
+
+const KEY_GENERATOR = `${NAMESPACE}gen:state`;
+const KEY_LIB_INDEX = `${NAMESPACE}lib:index`;
+const KEY_LIB_PREFIX = `${NAMESPACE}lib:`;
+const KEY_PROGRESS_PREFIX = `${NAMESPACE}progress:`;
+// Private LRU bookkeeping; deliberately outside the `progress:` prefix.
+const KEY_PROGRESS_INDEX = `${NAMESPACE}progress-index`;
+const KEY_PREFS = `${NAMESPACE}prefs`;
+
+const PACK_ID = /^[0-9a-f]{16}$/;
+const FINGERPRINT = /^[A-Za-z0-9_-]{1,64}$/;
+const MAX_PLACEMENTS = 1024;
+/** @type {Prefs} */
+const DEFAULT_PREFS = Object.freeze({ labels: true, patterns: true, timer: true, straighten: false, largeBoards: false });
+const PREF_KEYS = /** @type {(keyof Prefs)[]} */ (Object.keys(DEFAULT_PREFS));
+
+/**
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+function isQuotaError(error) {
+  if (typeof error !== 'object' || error === null) {
+    return false;
+  }
+  const e = /** @type {{ name?: unknown, code?: unknown, message?: unknown }} */ (error);
+  return e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED'
+    || e.code === 22 || e.code === 1014 || (typeof e.message === 'string' && /quota/i.test(e.message));
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is Record<string, unknown>}
+ */
+const isRecord = (value) => typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * @param {unknown} v
+ * @returns {boolean}
+ */
+const isCount = (v) => typeof v === 'number' && Number.isInteger(v) && v >= 0;
+
+/**
+ * @param {unknown} v
+ * @returns {boolean}
+ */
+const isPose = (v) => isRecord(v) && typeof v.piece === 'string' && Number.isInteger(v.x) && Number.isInteger(v.y)
+  && Number.isInteger(v.turn) && /** @type {number} */ (v.turn) >= 0 && /** @type {number} */ (v.turn) <= 3
+  && typeof v.mirrored === 'boolean';
+
+/**
+ * @param {unknown} v
+ * @returns {Progress | null}
+ */
+function readProgress(v) {
+  if (!isRecord(v) || v.v !== 1 || !Array.isArray(v.placements) || v.placements.length > MAX_PLACEMENTS
+    || !v.placements.every(isPose) || typeof v.elapsedMs !== 'number' || !Number.isFinite(v.elapsedMs) || v.elapsedMs < 0
+    || !isCount(v.moves) || typeof v.solved !== 'boolean' || typeof v.updatedAt !== 'number' || !Number.isFinite(v.updatedAt)) {
+    return null;
+  }
+  return {
+    v: 1,
+    placements: /** @type {Pose[]} */ (v.placements).map((p) => ({
+      piece: p.piece, x: p.x, y: p.y, turn: p.turn, mirrored: p.mirrored,
+    })),
+    elapsedMs: v.elapsedMs,
+    moves: /** @type {number} */ (v.moves),
+    solved: v.solved,
+    updatedAt: v.updatedAt,
+  };
+}
+
+/**
+ * @param {unknown} v
+ * @returns {LibraryEntry | null}
+ */
+function readLibraryEntry(v) {
+  if (!isRecord(v) || typeof v.packId !== 'string' || !PACK_ID.test(v.packId) || typeof v.title !== 'string'
+    || typeof v.createdAt !== 'string' || typeof v.lastOpened !== 'string' || !isCount(v.puzzles) || !isCount(v.solved)) {
+    return null;
+  }
+  return {
+    packId: v.packId,
+    title: v.title.slice(0, 200),
+    createdAt: v.createdAt,
+    lastOpened: v.lastOpened,
+    puzzles: /** @type {number} */ (v.puzzles),
+    solved: /** @type {number} */ (v.solved),
+  };
+}
+
+/**
+ * @param {Pack} pack
+ * @returns {string}
+ */
+function titleOf(pack) {
+  const meta = /** @type {{ title?: unknown } | undefined} */ (pack.meta);
+  const title = typeof meta?.title === 'string' && meta.title !== '' ? meta.title : pack.puzzles[0]?.title;
+  return typeof title === 'string' && title !== '' ? title : 'Untitled puzzle';
+}
+
+/**
+ * @param {string} key
+ * @returns {boolean}
+ */
+const inNamespace = (key) => typeof key === 'string' && key.startsWith(NAMESPACE);
+
+/**
+ * @param {string} message
+ * @returns {StorageFailure}
+ */
+const invalid = (message) => ({ ok: false, code: 'invalid-data', message });
+
+/**
+ * Builds a storage facade over `adapter` (null/undefined means no storage).
+ * Failed writes stay readable from memory for this instance only. Methods do
+ * not depend on `this`, so they can be destructured.
+ * @param {StorageAdapter | null | undefined} adapter
+ * @param {() => number} now Host milliseconds.
+ */
+export function createStorage(adapter, now) {
+  /** @type {Map<string, string | null>} Unsaved values; null marks a removal that could not be persisted. */
+  const memory = new Map();
+  /** @type {Issue | null} */
+  let issue = null;
+
+  /**
+   * @param {string} code
+   * @param {string} message
+   * @param {string} [path]
+   */
+  function record(code, message, path = '$') {
+    issue = { code, path, message };
+  }
+
+  /**
+   * Raw text read: memory first, then storage. Missing entries are null and not an error.
+   * @param {string} key
+   * @returns {string | null}
+   */
+  function readRaw(key) {
+    if (memory.has(key)) {
+      return memory.get(key) ?? null;
+    }
+    if (!adapter) {
+      return null;
+    }
+    try {
+      return adapter.getItem(key);
+    } catch (error) {
+      record('storage-unavailable', `Saved data could not be read: ${error instanceof Error ? error.message : 'storage error'}`, key);
+      return null;
+    }
+  }
+
+  /**
+   * @param {string} key
+   * @returns {unknown}
+   */
+  function readJson(key) {
+    const text = readRaw(key);
+    if (text === null) {
+      return null;
+    }
+    try {
+      return JSON.parse(text);
+    } catch {
+      record('invalid-data', 'Saved data was damaged and was ignored', key);
+      return null;
+    }
+  }
+
+  /**
+   * @param {string} key
+   * @returns {boolean} False when storage threw.
+   */
+  function tryRemove(key) {
+    memory.delete(key);
+    if (!adapter) {
+      return false;
+    }
+    try {
+      adapter.removeItem(key);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Quiet write for bookkeeping: no eviction and no issue; falls back to memory.
+   * @param {string} key
+   * @param {string} text
+   */
+  function writeQuiet(key, text) {
+    try {
+      if (!adapter) {
+        throw new Error('no storage');
+      }
+      adapter.setItem(key, text);
+      memory.delete(key);
+    } catch {
+      memory.set(key, text);
+    }
+  }
+
+  /**
+   * @param {string} prefix
+   * @returns {string[]}
+   */
+  function list(prefix) {
+    if (!inNamespace(prefix)) {
+      return [];
+    }
+    /** @type {Set<string>} */
+    const keys = new Set();
+    if (adapter) {
+      try {
+        const count = adapter.length;
+        for (let i = 0; i < count; i += 1) {
+          const key = adapter.key(i);
+          if (typeof key === 'string' && key.startsWith(prefix)) {
+            keys.add(key);
+          }
+        }
+      } catch (error) {
+        record('storage-unavailable', `Saved data could not be listed: ${error instanceof Error ? error.message : 'storage error'}`);
+      }
+    }
+    for (const [key, text] of memory) {
+      if (key.startsWith(prefix)) {
+        if (text === null) {
+          keys.delete(key);
+        } else {
+          keys.add(key);
+        }
+      }
+    }
+    return [...keys].sort();
+  }
+
+  /**
+   * LRU order is oldest first. A missing or damaged index is rebuilt from key names.
+   * @returns {{ fp: string, at: number }[]}
+   */
+  function readProgressIndex() {
+    const raw = readJson(KEY_PROGRESS_INDEX);
+    /** @type {{ fp: string, at: number }[]} */
+    const entries = [];
+    if (Array.isArray(raw)) {
+      const seen = new Set();
+      for (const e of raw) {
+        if (isRecord(e) && typeof e.fp === 'string' && FINGERPRINT.test(e.fp) && typeof e.at === 'number'
+          && Number.isFinite(e.at) && !seen.has(e.fp)) {
+          seen.add(e.fp);
+          entries.push({ fp: e.fp, at: e.at });
+        }
+      }
+      return entries;
+    }
+    for (const key of list(KEY_PROGRESS_PREFIX)) {
+      const fp = key.slice(KEY_PROGRESS_PREFIX.length);
+      if (FINGERPRINT.test(fp)) {
+        entries.push({ fp, at: 0 });
+      }
+    }
+    return entries;
+  }
+
+  /**
+   * @param {{ fp: string, at: number }[]} entries
+   */
+  function writeProgressIndex(entries) {
+    writeQuiet(KEY_PROGRESS_INDEX, JSON.stringify(entries));
+  }
+
+  /**
+   * @returns {LibraryEntry[]} Most recently opened first.
+   */
+  function libraryIndex() {
+    const raw = readJson(KEY_LIB_INDEX);
+    if (raw === null) {
+      return [];
+    }
+    if (!Array.isArray(raw)) {
+      record('invalid-data', 'The saved puzzle list was damaged and was ignored', KEY_LIB_INDEX);
+      return [];
+    }
+    /** @type {LibraryEntry[]} */
+    const entries = [];
+    const seen = new Set();
+    for (const e of raw) {
+      const entry = readLibraryEntry(e);
+      if (entry && !seen.has(entry.packId)) {
+        seen.add(entry.packId);
+        entries.push(entry);
+      }
+    }
+    return entries.sort((a, b) => (a.lastOpened < b.lastOpened ? 1 : a.lastOpened > b.lastOpened ? -1 : 0));
+  }
+
+  /**
+   * @param {LibraryEntry[]} entries
+   */
+  function writeLibraryIndex(entries) {
+    writeQuiet(KEY_LIB_INDEX, JSON.stringify(entries));
+  }
+
+  /**
+   * Drops least-recently-used entries of this namespace to make room: a
+   * quarter of the progress records, else one library pack. Never touches
+   * preferences, generator state or the protected key.
+   * @param {string} protectedKey
+   * @returns {number} Entries removed.
+   */
+  function evictLru(protectedKey) {
+    const progress = readProgressIndex()
+      .filter((e) => `${KEY_PROGRESS_PREFIX}${e.fp}` !== protectedKey)
+      .sort((a, b) => a.at - b.at);
+    if (progress.length > 0) {
+      const drop = new Set(progress.slice(0, Math.max(1, Math.ceil(progress.length / 4))).map((e) => e.fp));
+      let removed = 0;
+      for (const fp of drop) {
+        if (tryRemove(`${KEY_PROGRESS_PREFIX}${fp}`)) {
+          removed += 1;
+        }
+      }
+      writeProgressIndex(readProgressIndex().filter((e) => !drop.has(e.fp)));
+      return removed;
+    }
+    const library = libraryIndex()
+      .filter((e) => `${KEY_LIB_PREFIX}${e.packId}` !== protectedKey)
+      .reverse();
+    if (library.length > 0) {
+      const victim = library[0].packId;
+      const removed = tryRemove(`${KEY_LIB_PREFIX}${victim}`) ? 1 : 0;
+      writeLibraryIndex(libraryIndex().filter((e) => e.packId !== victim));
+      return removed;
+    }
+    return 0;
+  }
+
+  /**
+   * Persists text with one LRU-evict-and-retry on quota; on failure the value
+   * is kept in memory and an issue is recorded.
+   * @param {string} key
+   * @param {string} text
+   * @returns {StorageResult}
+   */
+  function writeRaw(key, text) {
+    /** @type {StorageFailure} */
+    let failed = { ok: false, code: 'storage-unavailable', message: SAVE_FAILED_MESSAGE };
+    if (adapter) {
+      try {
+        adapter.setItem(key, text);
+        memory.delete(key);
+        return { ok: true };
+      } catch (error) {
+        if (isQuotaError(error)) {
+          failed = { ok: false, code: 'quota', message: SAVE_FAILED_MESSAGE };
+          let evicted = 0;
+          try {
+            evicted = evictLru(key);
+          } catch {
+            evicted = 0;
+          }
+          if (evicted > 0) {
+            try {
+              adapter.setItem(key, text);
+              memory.delete(key);
+              return { ok: true };
+            } catch {
+              // Falls through to the in-memory fallback.
+            }
+          }
+        }
+      }
+    }
+    memory.set(key, text);
+    record(failed.code, failed.message, key);
+    return failed;
+  }
+
+  /**
+   * @template T
+   * @param {string} key
+   * @returns {T | null}
+   */
+  function get(key) {
+    return inNamespace(key) ? /** @type {T | null} */ (readJson(key)) : null;
+  }
+
+  /**
+   * @param {string} key
+   * @param {unknown} value
+   * @returns {StorageResult}
+   */
+  function set(key, value) {
+    if (!inNamespace(key)) {
+      return invalid('Only pentomino:v1: keys can be written');
+    }
+    let text;
+    try {
+      text = JSON.stringify(value);
+    } catch {
+      return invalid('The value cannot be saved as JSON');
+    }
+    return typeof text === 'string' ? writeRaw(key, text) : invalid('The value cannot be saved as JSON');
+  }
+
+  /**
+   * @param {string} key
+   * @returns {StorageResult}
+   */
+  function remove(key) {
+    if (!inNamespace(key)) {
+      return invalid('Only pentomino:v1: keys can be removed');
+    }
+    if (!adapter) {
+      memory.delete(key);
+      return { ok: true };
+    }
+    try {
+      adapter.removeItem(key);
+      memory.delete(key);
+      return { ok: true };
+    } catch (error) {
+      memory.set(key, null);
+      record('storage-unavailable', `Saved data could not be removed: ${error instanceof Error ? error.message : 'storage error'}`, key);
+      return { ok: false, code: 'storage-unavailable', message: 'Saved data could not be removed' };
+    }
+  }
+
+  /**
+   * @param {Pack} pack
+   * @returns {number}
+   */
+  function countSolved(pack) {
+    let solved = 0;
+    try {
+      const board = packBoard(pack);
+      for (const puzzle of pack.puzzles) {
+        const fp = progressFingerprint(board, pack.pieces, puzzle.clues);
+        if (readProgress(readJson(`${KEY_PROGRESS_PREFIX}${fp}`))?.solved) {
+          solved += 1;
+        }
+      }
+    } catch {
+      return solved;
+    }
+    return solved;
+  }
+
+  /**
+   * @param {string} id
+   * @returns {Result<Pack>}
+   */
+  function loadLibraryPack(id) {
+    if (typeof id !== 'string' || !PACK_ID.test(id)) {
+      return { ok: false, issues: [{ code: 'invalid-id', path: '$', message: 'Not a library pack ID' }] };
+    }
+    const text = readRaw(`${KEY_LIB_PREFIX}${id}`);
+    if (text === null) {
+      return {
+        ok: false,
+        issues: [{ code: 'library-missing', path: '$', message: 'This puzzle is not saved in this browser — open the shared link or import the file instead.' }],
+      };
+    }
+    const parsed = parsePack(text);
+    if (parsed.ok && computePackId(parsed.value) !== id) {
+      return { ok: false, issues: [{ code: 'library-mismatch', path: '$', message: 'The saved puzzle was damaged' }] };
+    }
+    return parsed;
+  }
+
+  /**
+   * @param {Pack} pack
+   * @returns {{ ok: true, packId: string } | StorageFailure}
+   */
+  function saveLibraryPack(pack) {
+    const checked = validatePack(pack);
+    if (!checked.ok) {
+      return invalid(checked.issues[0]?.message ?? 'The pack is not valid');
+    }
+    let text;
+    try {
+      text = serializePack(checked.value);
+    } catch (error) {
+      return invalid(error instanceof Error ? error.message : 'The pack cannot be saved');
+    }
+    const id = computePackId(checked.value);
+    const written = writeRaw(`${KEY_LIB_PREFIX}${id}`, text);
+    if (!written.ok) {
+      return written;
+    }
+    const stamp = new Date(now()).toISOString();
+    const entries = libraryIndex();
+    /** @type {LibraryEntry} */
+    const entry = {
+      packId: id,
+      title: titleOf(checked.value),
+      createdAt: entries.find((e) => e.packId === id)?.createdAt ?? stamp,
+      lastOpened: stamp,
+      puzzles: checked.value.puzzles.length,
+      solved: countSolved(checked.value),
+    };
+    const next = [entry, ...entries.filter((e) => e.packId !== id)];
+    for (const old of next.splice(MAX_LIBRARY_PACKS)) {
+      tryRemove(`${KEY_LIB_PREFIX}${old.packId}`);
+    }
+    writeLibraryIndex(next);
+    return { ok: true, packId: id };
+  }
+
+  /**
+   * @param {string} id
+   * @returns {StorageResult}
+   */
+  function touchLibraryPack(id) {
+    const loaded = loadLibraryPack(id);
+    if (!loaded.ok) {
+      return invalid(loaded.issues[0].message);
+    }
+    const entries = libraryIndex();
+    const previous = entries.find((e) => e.packId === id);
+    if (!previous) {
+      const saved = saveLibraryPack(loaded.value);
+      return saved.ok ? { ok: true } : saved;
+    }
+    const updated = { ...previous, lastOpened: new Date(now()).toISOString(), solved: countSolved(loaded.value) };
+    writeLibraryIndex([updated, ...entries.filter((e) => e.packId !== id)]);
+    return { ok: true };
+  }
+
+  /**
+   * @param {string} id
+   * @returns {StorageResult}
+   */
+  function removeLibraryPack(id) {
+    if (typeof id !== 'string' || !PACK_ID.test(id)) {
+      return invalid('Not a library pack ID');
+    }
+    const removed = remove(`${KEY_LIB_PREFIX}${id}`);
+    writeLibraryIndex(libraryIndex().filter((e) => e.packId !== id));
+    return removed;
+  }
+
+  /**
+   * @param {string} fp Exact-coordinate fingerprint.
+   * @param {Omit<Progress, 'updatedAt'> & { updatedAt?: number }} value
+   * @returns {StorageResult}
+   */
+  function saveProgress(fp, value) {
+    if (typeof fp !== 'string' || !FINGERPRINT.test(fp)) {
+      return invalid('Not a progress fingerprint');
+    }
+    const clean = readProgress({ ...value, updatedAt: now() });
+    if (!clean) {
+      return invalid('The progress record is not valid');
+    }
+    const written = writeRaw(`${KEY_PROGRESS_PREFIX}${fp}`, JSON.stringify(clean));
+    const index = readProgressIndex().filter((e) => e.fp !== fp);
+    index.push({ fp, at: clean.updatedAt });
+    index.sort((a, b) => a.at - b.at);
+    for (const old of index.splice(0, Math.max(0, index.length - MAX_PROGRESS_ENTRIES))) {
+      tryRemove(`${KEY_PROGRESS_PREFIX}${old.fp}`);
+    }
+    writeProgressIndex(index);
+    return written;
+  }
+
+  /**
+   * @param {string} fp
+   * @returns {Progress | null}
+   */
+  function loadProgress(fp) {
+    if (typeof fp !== 'string' || !FINGERPRINT.test(fp)) {
+      return null;
+    }
+    const key = `${KEY_PROGRESS_PREFIX}${fp}`;
+    const raw = readJson(key);
+    if (raw === null) {
+      return null;
+    }
+    const progress = readProgress(raw);
+    if (!progress) {
+      record('invalid-data', 'Saved progress was damaged and was ignored', key);
+    }
+    return progress;
+  }
+
+  /**
+   * @returns {Prefs} Stored booleans over the defaults.
+   */
+  function getPrefs() {
+    const raw = readJson(KEY_PREFS);
+    const prefs = { ...DEFAULT_PREFS };
+    if (isRecord(raw)) {
+      for (const name of PREF_KEYS) {
+        if (typeof raw[name] === 'boolean') {
+          prefs[name] = /** @type {boolean} */ (raw[name]);
+        }
+      }
+    } else if (raw !== null) {
+      record('invalid-data', 'Saved preferences were damaged and were ignored', KEY_PREFS);
+    }
+    return prefs;
+  }
+
+  /**
+   * Merges known boolean preferences into the freshly read stored value.
+   * @param {Partial<Prefs>} partial
+   * @returns {StorageResult}
+   */
+  function setPrefs(partial) {
+    const next = getPrefs();
+    if (isRecord(partial)) {
+      for (const name of PREF_KEYS) {
+        if (typeof partial[name] === 'boolean') {
+          next[name] = /** @type {boolean} */ (partial[name]);
+        }
+      }
+    }
+    return writeRaw(KEY_PREFS, JSON.stringify(next));
+  }
+
+  return {
+    get,
+    set,
+    remove,
+    /** Key names inside the namespace that start with `prefix`; no values are read. */
+    list,
+    /** @returns {Issue | null} The latest read/write problem, for one user notice. */
+    lastStorageIssue: () => issue,
+    clearStorageIssue: () => {
+      issue = null;
+    },
+    libraryIndex,
+    saveLibraryPack,
+    loadLibraryPack,
+    touchLibraryPack,
+    removeLibraryPack,
+    saveProgress,
+    loadProgress,
+    getPrefs,
+    setPrefs,
+    getGeneratorState: () => readJson(KEY_GENERATOR),
+    /** @param {unknown} snapshot */
+    setGeneratorState: (snapshot) => set(KEY_GENERATOR, snapshot),
+  };
+}
+
+/** @typedef {ReturnType<typeof createStorage>} Storage */
+
+/** @type {Storage | null} */
+let shared = null;
+
+/**
+ * @returns {StorageAdapter | null} The browser's localStorage, or null when access is denied or absent.
+ */
+function browserAdapter() {
+  try {
+    return /** @type {StorageAdapter | null} */ (globalThis.localStorage ?? null);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The lazily created default instance over `localStorage` and `Date.now`.
+ * @returns {Storage}
+ */
+export function browserStorage() {
+  shared ??= createStorage(browserAdapter(), () => Date.now());
+  return shared;
+}
+
+/** Default instance: each method resolves the lazy browser storage when called. */
+const storage = {
+  /** @type {Storage['get']} */
+  get: (key) => browserStorage().get(key),
+  /** @type {Storage['set']} */
+  set: (key, value) => browserStorage().set(key, value),
+  /** @type {Storage['remove']} */
+  remove: (key) => browserStorage().remove(key),
+  /** @type {Storage['list']} */
+  list: (prefix) => browserStorage().list(prefix),
+  lastStorageIssue: () => browserStorage().lastStorageIssue(),
+  clearStorageIssue: () => browserStorage().clearStorageIssue(),
+  libraryIndex: () => browserStorage().libraryIndex(),
+  /** @type {Storage['saveLibraryPack']} */
+  saveLibraryPack: (pack) => browserStorage().saveLibraryPack(pack),
+  /** @type {Storage['loadLibraryPack']} */
+  loadLibraryPack: (id) => browserStorage().loadLibraryPack(id),
+  /** @type {Storage['touchLibraryPack']} */
+  touchLibraryPack: (id) => browserStorage().touchLibraryPack(id),
+  /** @type {Storage['removeLibraryPack']} */
+  removeLibraryPack: (id) => browserStorage().removeLibraryPack(id),
+  /** @type {Storage['saveProgress']} */
+  saveProgress: (fp, value) => browserStorage().saveProgress(fp, value),
+  /** @type {Storage['loadProgress']} */
+  loadProgress: (fp) => browserStorage().loadProgress(fp),
+  getPrefs: () => browserStorage().getPrefs(),
+  /** @type {Storage['setPrefs']} */
+  setPrefs: (partial) => browserStorage().setPrefs(partial),
+  getGeneratorState: () => browserStorage().getGeneratorState(),
+  /** @type {Storage['setGeneratorState']} */
+  setGeneratorState: (snapshot) => browserStorage().setGeneratorState(snapshot),
+};
+
+export const {
+  get, set, remove, list, lastStorageIssue, clearStorageIssue, libraryIndex, saveLibraryPack, loadLibraryPack,
+  touchLibraryPack, removeLibraryPack, saveProgress, loadProgress, getPrefs, setPrefs, getGeneratorState, setGeneratorState,
+} = storage;
+
+export default storage;
