@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Player · Master #2 — Pentomino prototype</title>
+<meta name="description" content="Static mockup of the player: mid-game on a 120-cell Master puzzle.">
+<link rel="stylesheet" href="prototype.css">
+</head>
+<body class="player-body">
+<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
+<pattern id="hatch" patternUnits="userSpaceOnUse" width="0.2" height="0.2" patternTransform="rotate(45)"><rect width="0.2" height="0.2" fill="rgba(255,255,255,0.16)"/><line x1="0.1" y1="0" x2="0.1" y2="0.2" stroke="rgba(17,24,39,0.38)" stroke-width="0.055"/></pattern>
+<symbol id="lock" viewBox="0 0 16 16"><path d="M4.5 7.5V5.2a3.5 3.5 0 0 1 7 0v2.3" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="2.5" y="7" width="11" height="8.2" rx="1.6" fill="currentColor"/></symbol>
+<filter id="lift" x="-20%" y="-20%" width="150%" height="150%"><feDropShadow dx="0.06" dy="0.14" stdDeviation="0.09" flood-color="#0b1220" flood-opacity="0.35"/></filter>
+<symbol id="cursor" viewBox="0 0 24 24"><path d="M5 2.5v17.2l4.3-4.2 2.9 6.6 3-1.3-2.9-6.5h6z" fill="#111827" stroke="#ffffff" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+</defs></svg>
+<div class="player-app">
+  <header class="topbar">
+    <a class="btn" href="#pack" aria-haspopup="true">☰ Pack ▾</a>
+    <span class="sep" aria-hidden="true"></span>
+    <h1 class="ptitle">Master #2 <span class="muted">· score 42</span></h1>
+    <span class="sep hide-sm" aria-hidden="true"></span>
+    <span class="timer" title="Timer (can be hidden in ☰ View)">⏱ 06:41</span>
+    <span class="moves hide-sm">14 moves</span>
+    <span class="sep" aria-hidden="true"></span>
+    <button class="btn icon-btn" type="button" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+    <button class="btn icon-btn" type="button" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>↷</button>
+    <button class="btn" type="button" title="Reset (asks first)">⟲ <span class="hide-sm">Reset</span></button>
+    <span class="spacer"></span>
+    <span class="pill pill-light hide-sm" title="Static HTML/CSS mockup; controls do nothing">Static mockup · mid-game</span>
+    <a class="btn" href="index.html" title="Import screen (not mocked): opens the mockup index">⤓ <span class="hide-sm">Import</span></a>
+  </header>
+
+  <main class="play">
+    <section class="board-wrap" role="application" aria-label="Board" aria-describedby="board-help">
+      <p id="board-help" class="visually-hidden">Drag a piece from the tray onto the board, or select it and tap a cell. E or R rotates clockwise, Q counter-clockwise, F and V mirror. Arrow keys move the ghost; Enter places.</p>
+      <p class="visually-hidden" aria-live="polite">Piece F over row 2, column 4: it fits.</p>
+      <svg class="board-svg" viewBox="-0.5 -0.5 13 11" width="780" height="660" role="img" aria-label="Master #2: 10 by 12 board; 3 locked pieces, 5 placed, piece F being dragged"><g transform="rotate(0 6 5)"><rect class="cell" x="0" y="0" width="1" height="1"/><rect class="cell" x="1" y="0" width="1" height="1"/><rect class="cell" x="2" y="0" width="1" height="1"/><rect class="cell" x="3" y="0" width="1" height="1"/><rect class="cell" x="4" y="0" width="1" height="1"/><rect class="cell" x="5" y="0" width="1" height="1"/><rect class="cell" x="6" y="0" width="1" height="1"/><rect class="cell" x="7" y="0" width="1" height="1"/><rect class="cell" x="8" y="0" width="1" height="1"/><rect class="cell" x="9" y="0" width="1" height="1"/><rect class="cell" x="10" y="0" width="1" height="1"/><rect class="cell" x="11" y="0" width="1" height="1"/><rect class="cell" x="0" y="1" width="1" height="1"/><rect class="cell" x="1" y="1" width="1" height="1"/><rect class="cell" x="2" y="1" width="1" height="1"/><rect class="cell" x="3" y="1" width="1" height="1"/><rect class="cell" x="4" y="1" width="1" height="1"/><rect class="cell" x="5" y="1" width="1" height="1"/><rect class="cell" x="6" y="1" width="1" height="1"/><rect class="cell" x="7" y="1" width="1" height="1"/><rect class="cell" x="8" y="1" width="1" height="1"/><rect class="cell" x="9" y="1" width="1" height="1"/><rect class="cell" x="10" y="1" width="1" height="1"/><rect class="cell" x="11" y="1" width="1" height="1"/><rect class="cell" x="0" y="2" width="1" height="1"/><rect class="cell" x="1" y="2" width="1" height="1"/><rect class="cell" x="2" y="2" width="1" height="1"/><rect class="cell" x="3" y="2" width="1" height="1"/><rect class="cell" x="4" y="2" width="1" height="1"/><rect class="cell" x="5" y="2" width="1" height="1"/><rect class="cell" x="6" y="2" width="1" height="1"/><rect class="cell" x="7" y="2" width="1" height="1"/><rect class="cell" x="8" y="2" width="1" height="1"/><rect class="cell" x="9" y="2" width="1" height="1"/><rect class="cell" x="10" y="2" width="1" height="1"/><rect class="cell" x="11" y="2" width="1" height="1"/><rect class="cell" x="0" y="3" width="1" height="1"/><rect class="cell" x="1" y="3" width="1" height="1"/><rect class="cell" x="2" y="3" width="1" height="1"/><rect class="cell" x="3" y="3" width="1" height="1"/><rect class="cell" x="4" y="3" width="1" height="1"/><rect class="cell" x="5" y="3" width="1" height="1"/><rect class="cell" x="6" y="3" width="1" height="1"/><rect class="cell" x="7" y="3" width="1" height="1"/><rect class="cell" x="8" y="3" width="1" height="1"/><rect class="cell" x="9" y="3" width="1" height="1"/><rect class="cell" x="10" y="3" width="1" height="1"/><rect class="cell" x="11" y="3" width="1" height="1"/><rect class="cell" x="0" y="4" width="1" height="1"/><rect class="cell" x="1" y="4" width="1" height="1"/><rect class="cell" x="2" y="4" width="1" height="1"/><rect class="cell" x="3" y="4" width="1" height="1"/><rect class="cell" x="4" y="4" width="1" height="1"/><rect class="cell" x="5" y="4" width="1" height="1"/><rect class="cell" x="6" y="4" width="1" height="1"/><rect class="cell" x="7" y="4" width="1" height="1"/><rect class="cell" x="8" y="4" width="1" height="1"/><rect class="cell" x="9" y="4" width="1" height="1"/><rect class="cell" x="10" y="4" width="1" height="1"/><rect class="cell" x="11" y="4" width="1" height="1"/><rect class="cell" x="0" y="5" width="1" height="1"/><rect class="cell" x="1" y="5" width="1" height="1"/><rect class="cell" x="2" y="5" width="1" height="1"/><rect class="cell" x="3" y="5" width="1" height="1"/><rect class="cell" x="4" y="5" width="1" height="1"/><rect class="cell" x="5" y="5" width="1" height="1"/><rect class="cell" x="6" y="5" width="1" height="1"/><rect class="cell" x="7" y="5" width="1" height="1"/><rect class="cell" x="8" y="5" width="1" height="1"/><rect class="cell" x="9" y="5" width="1" height="1"/><rect class="cell" x="10" y="5" width="1" height="1"/><rect class="cell" x="11" y="5" width="1" height="1"/><rect class="cell" x="0" y="6" width="1" height="1"/><rect class="cell" x="1" y="6" width="1" height="1"/><rect class="cell" x="2" y="6" width="1" height="1"/><rect class="cell" x="3" y="6" width="1" height="1"/><rect class="cell" x="4" y="6" width="1" height="1"/><rect class="cell" x="5" y="6" width="1" height="1"/><rect class="cell" x="6" y="6" width="1" height="1"/><rect class="cell" x="7" y="6" width="1" height="1"/><rect class="cell" x="8" y="6" width="1" height="1"/><rect class="cell" x="9" y="6" width="1" height="1"/><rect class="cell" x="10" y="6" width="1" height="1"/><rect class="cell" x="11" y="6" width="1" height="1"/><rect class="cell" x="0" y="7" width="1" height="1"/><rect class="cell" x="1" y="7" width="1" height="1"/><rect class="cell" x="2" y="7" width="1" height="1"/><rect class="cell" x="3" y="7" width="1" height="1"/><rect class="cell" x="4" y="7" width="1" height="1"/><rect class="cell" x="5" y="7" width="1" height="1"/><rect class="cell" x="6" y="7" width="1" height="1"/><rect class="cell" x="7" y="7" width="1" height="1"/><rect class="cell" x="8" y="7" width="1" height="1"/><rect class="cell" x="9" y="7" width="1" height="1"/><rect class="cell" x="10" y="7" width="1" height="1"/><rect class="cell" x="11" y="7" width="1" height="1"/><rect class="cell" x="0" y="8" width="1" height="1"/><rect class="cell" x="1" y="8" width="1" height="1"/><rect class="cell" x="2" y="8" width="1" height="1"/><rect class="cell" x="3" y="8" width="1" height="1"/><rect class="cell" x="4" y="8" width="1" height="1"/><rect class="cell" x="5" y="8" width="1" height="1"/><rect class="cell" x="6" y="8" width="1" height="1"/><rect class="cell" x="7" y="8" width="1" height="1"/><rect class="cell" x="8" y="8" width="1" height="1"/><rect class="cell" x="9" y="8" width="1" height="1"/><rect class="cell" x="10" y="8" width="1" height="1"/><rect class="cell" x="11" y="8" width="1" height="1"/><rect class="cell" x="0" y="9" width="1" height="1"/><rect class="cell" x="1" y="9" width="1" height="1"/><rect class="cell" x="2" y="9" width="1" height="1"/><rect class="cell" x="3" y="9" width="1" height="1"/><rect class="cell" x="4" y="9" width="1" height="1"/><rect class="cell" x="5" y="9" width="1" height="1"/><rect class="cell" x="6" y="9" width="1" height="1"/><rect class="cell" x="7" y="9" width="1" height="1"/><rect class="cell" x="8" y="9" width="1" height="1"/><rect class="cell" x="9" y="9" width="1" height="1"/><rect class="cell" x="10" y="9" width="1" height="1"/><rect class="cell" x="11" y="9" width="1" height="1"/><path class="board-outline" d="M0 0L12 0L12 10L0 10Z"/><g class="piece clue"><path class="pc" d="M7 1L9 1L9 2L10 2L10 3L9 3L9 4L10 4L10 5L7 5Z" fill="#f58231" stroke="#9f5520"/><path class="seam" d="M8 1V2M7 2H8M8 2H9M8 2V3M7 3H8M9 2V3M8 3H9M8 3V4M7 4H8M8 4H9M8 4V5M9 4V5"/><path class="hatch" d="M7 1L9 1L9 2L10 2L10 3L9 3L9 4L10 4L10 5L7 5Z" fill="url(#hatch)"/><g><text class="lbl" x="8.5" y="3.52" font-size="0.44" fill="#111827">E</text><use href="#lock" x="8.62" y="3.03" width="0.34" height="0.34" color="#111827"/></g></g><g class="piece clue"><path class="pc" d="M2 5L7 5L7 6L6 6L6 7L3 7L3 6L2 6Z" fill="#bfef45" stroke="#7c9b2d"/><path class="seam" d="M3 5V6M4 5V6M3 6H4M5 5V6M4 6H5M6 5V6M5 6H6M4 6V7M5 6V7"/><path class="hatch" d="M2 5L7 5L7 6L6 6L6 7L3 7L3 6L2 6Z" fill="url(#hatch)"/><g><text class="lbl" x="4.5" y="5.52" font-size="0.44" fill="#111827">I</text><use href="#lock" x="4.62" y="5.03" width="0.34" height="0.34" color="#111827"/></g></g><g class="piece clue"><path class="pc" d="M0 0L5 0L5 1L4 1L4 2L3 2L3 1L0 1Z" fill="#9a6324" stroke="#644017"/><path class="seam" d="M1 0V1M2 0V1M3 0V1M4 0V1M3 1H4"/><path class="hatch" d="M0 0L5 0L5 1L4 1L4 2L3 2L3 1L0 1Z" fill="url(#hatch)"/><g><text class="lbl" x="2.5" y="0.52" font-size="0.44" fill="#ffffff">M</text><use href="#lock" x="2.62" y="0.03" width="0.34" height="0.34" color="#ffffff"/></g></g><g class="piece placed" tabindex="0" aria-label="Piece D, 10 cells, on board"><path class="pc" d="M0 1L3 1L3 2L4 2L4 4L3 4L3 5L2 5L2 3L0 3Z" fill="#4363d8" stroke="#2c408c"/><path class="seam" d="M1 1V2M0 2H1M2 1V2M1 2H2M2 2H3M1 2V3M2 2V3M3 2V3M2 3H3M3 3H4M3 3V4M2 4H3"/><g><text class="lbl" x="2.5" y="2.52" font-size="0.44" fill="#ffffff">D</text></g></g><g class="piece placed" tabindex="0" aria-label="Piece N, 4 cells, on board"><path class="pc" d="M0 3L2 3L2 5L0 5Z" fill="#fffac8" stroke="#a6a382"/><path class="seam" d="M1 3V4M0 4H1M1 4H2M1 4V5"/><g><text class="lbl" x="0.5" y="3.52" font-size="0.44" fill="#111827">N</text></g></g><g class="piece placed" tabindex="0" aria-label="Piece K, 6 cells, on board"><path class="pc" d="M5 0L7 0L7 4L6 4L6 2L5 2Z" fill="#469990" stroke="#2e635e"/><path class="seam" d="M6 0V1M5 1H6M6 1H7M6 1V2M6 2H7M6 3H7"/><g><text class="lbl" x="6.5" y="1.52" font-size="0.44" fill="#111827">K</text></g></g><g class="piece placed" tabindex="0" aria-label="Piece H, 8 cells, on board"><path class="pc" d="M0 5L2 5L2 6L3 6L3 7L2 7L2 9L1 9L1 8L0 8Z" fill="#f032e6" stroke="#9c2196"/><path class="seam" d="M1 5V6M0 6H1M1 6H2M1 6V7M0 7H1M2 6V7M1 7H2M1 7V8M1 8H2"/><g><text class="lbl" x="1.5" y="6.52" font-size="0.44" fill="#111827">H</text></g></g><g class="piece placed" tabindex="0" aria-label="Piece J, 7 cells, on board"><path class="pc" d="M0 8L1 8L1 9L2 9L2 8L4 8L4 10L0 10Z" fill="#fabed4" stroke="#a37c8a"/><path class="seam" d="M0 9H1M3 8V9M2 9H3M3 9H4M1 9V10M2 9V10M3 9V10"/><g><text class="lbl" x="2.5" y="9.52" font-size="0.44" fill="#111827">J</text></g></g><g class="ghost-g"><path class="ghost" d="M4 1L5 1L5 2L6 2L6 4L7 4L7 5L3 5L3 4L4 4Z"/><circle class="handle" cx="5.5" cy="3.5" r="0.13"/></g><g class="drag" transform="translate(0.44 -0.4)" filter="url(#lift)"><g class="piece dragging"><path class="pc" d="M4 1L5 1L5 2L6 2L6 4L7 4L7 5L3 5L3 4L4 4Z" fill="#911eb4" stroke="#5e1475"/><path class="seam" d="M4 2H5M5 2V3M4 3H5M5 3H6M5 3V4M4 4H5M5 4H6M4 4V5M5 4V5M6 4V5"/><g><text class="lbl" x="4.5" y="3.52" font-size="0.44" fill="#ffffff">F</text></g></g></g><use href="#cursor" x="5.82" y="3.04" width="0.62" height="0.62"/></g></svg>
+    </section>
+
+    <aside class="tray" aria-labelledby="h-tray">
+      <h2 id="h-tray">Pieces <span class="muted">· 7 left</span></h2>
+      <ul class="tray-grid">
+        <li class="slot" tabindex="0" aria-label="Piece A, 12 cells, in tray"><svg class="piece-svg" viewBox="-0.2 -0.2 4.4 5.4" width="97" height="119" role="img" aria-label="Piece A, 12 squares"><g transform="rotate(0 2 2.5)"><g class="piece"><path class="pc" d="M0 0L4 0L4 1L3 1L3 5L2 5L2 3L0 3Z" fill="#e6194b" stroke="#961031"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M1 1H2M3 0V1M2 1H3M1 1V2M0 2H1M2 1V2M1 2H2M2 2H3M1 2V3M2 2V3M2 3H3M2 4H3"/><g><text class="lbl" x="1.5" y="1.52" font-size="0.58" fill="#111827">A</text></g></g></g></svg><span class="cap"><b>A</b> 12</span></li>
+        <li class="slot" tabindex="0" aria-label="Piece B, 11 cells, in tray"><svg class="piece-svg" viewBox="-0.2 -0.2 5.4 4.4" width="119" height="97" role="img" aria-label="Piece B, 11 squares"><g transform="rotate(0 2.5 2)"><g class="piece"><path class="pc" d="M0 0L5 0L5 1L3 1L3 2L2 2L2 3L3 3L3 4L1 4L1 2L0 2Z" fill="#3cb44b" stroke="#277531"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M1 1H2M3 0V1M2 1H3M4 0V1M1 1V2M2 1V2M1 2H2M1 3H2M2 3V4"/><g><text class="lbl" x="2.5" y="1.52" font-size="0.58" fill="#111827">B</text></g></g></g></svg><span class="cap"><b>B</b> 11</span></li>
+        <li class="slot" tabindex="0" aria-label="Piece C, 10 cells, in tray"><svg class="piece-svg" viewBox="-0.2 -0.2 4.4 3.4" width="97" height="75" role="img" aria-label="Piece C, 10 squares"><g transform="rotate(0 2 1.5)"><g class="piece"><path class="pc" d="M0 0L3 0L3 1L4 1L4 2L3 2L3 3L0 3Z" fill="#ffe119" stroke="#a69210"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M1 1H2M2 1H3M1 1V2M0 2H1M2 1V2M1 2H2M3 1V2M2 2H3M1 2V3M2 2V3"/><g><text class="lbl" x="1.5" y="1.52" font-size="0.58" fill="#111827">C</text></g></g></g></svg><span class="cap"><b>C</b> 10</span></li>
+        <li class="slot slot-empty" aria-label="Piece F is being dragged"><span class="ph">F</span><span class="cap"><b>F</b> 9 · dragging</span></li>
+        <li class="slot" tabindex="0" aria-label="Piece G, 9 cells, in tray"><svg class="piece-svg" viewBox="-0.2 -0.2 5.4 2.4" width="119" height="53" role="img" aria-label="Piece G, 9 squares"><g transform="rotate(0 2.5 1)"><g class="piece"><path class="pc" d="M0 0L5 0L5 1L4 1L4 2L0 2Z" fill="#42d4f4" stroke="#2b8a9f"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M1 1H2M3 0V1M2 1H3M4 0V1M3 1H4M1 1V2M2 1V2M3 1V2"/><g><text class="lbl" x="2.5" y="0.52" font-size="0.58" fill="#111827">G</text></g></g></g></svg><span class="cap"><b>G</b> 9</span></li>
+        <li class="slot" tabindex="0" aria-label="Piece L, 6 cells, in tray"><svg class="piece-svg" viewBox="-0.2 -0.2 4.4 2.4" width="97" height="53" role="img" aria-label="Piece L, 6 squares"><g transform="rotate(0 2 1)"><g class="piece"><path class="pc" d="M0 0L4 0L4 1L3 1L3 2L2 2L2 1L1 1L1 2L0 2Z" fill="#dcbeff" stroke="#8f7ca6"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M3 0V1M2 1H3"/><g><text class="lbl" x="1.5" y="0.52" font-size="0.58" fill="#111827">L</text></g></g></g></svg><span class="cap"><b>L</b> 6</span></li>
+        <li class="slot" tabindex="0" aria-label="Piece O, 4 cells, in tray"><svg class="piece-svg" viewBox="-0.2 -0.2 3.4 2.4" width="75" height="53" role="img" aria-label="Piece O, 4 squares"><g transform="rotate(0 1.5 1)"><g class="piece"><path class="pc" d="M0 0L3 0L3 1L1 1L1 2L0 2Z" fill="#800000" stroke="#530000"/><path class="seam" d="M1 0V1M0 1H1M2 0V1"/><g><text class="lbl" x="1.5" y="0.52" font-size="0.58" fill="#ffffff">O</text></g></g></g></svg><span class="cap"><b>O</b> 4</span></li>
+      </ul>
+      <p class="muted small tray-note">Pieces are shown as they will be placed. 3 locked pieces (hatched, 🔒) are part of the puzzle.</p>
+    </aside>
+
+    <section class="selbar" aria-label="Selected piece">
+      <div class="sel-row">
+        <span class="sel-name">Selected: <span class="swatch" style="background:#911eb4"></span><b>F</b> <span class="muted">· 9 cells</span></span>
+        <span class="fits">✓ Fits here — release to place</span>
+        <span class="tools" role="group" aria-label="Rotate and flip on screen">
+          <button class="btn icon-btn" type="button" title="Rotate counter-clockwise (Q)" aria-label="Rotate counter-clockwise">⟲</button>
+          <button class="btn icon-btn" type="button" title="Rotate clockwise (E or R)" aria-label="Rotate clockwise">⟳</button>
+          <button class="btn icon-btn" type="button" title="Mirror left–right (F)" aria-label="Mirror left-right">⇋</button>
+          <button class="btn icon-btn" type="button" title="Mirror top–bottom (V)" aria-label="Mirror top-bottom">⇵</button>
+        </span>
+        <button class="btn btn-primary" type="button">Place</button>
+        <button class="btn" type="button">↩ to tray</button>
+        <span class="spacer"></span>
+        <span class="left"><b>7</b> pieces left</span>
+      </div>
+      <p class="keys"><kbd>Drag</kbd> or tap a cell · <kbd>E</kbd>/<kbd>R</kbd> ⟳ · <kbd>Q</kbd> ⟲ · <kbd>F</kbd> ⇋ · <kbd>V</kbd> ⇵ · <kbd>←↑→↓</kbd> move (<kbd>Shift</kbd> ×3) · <kbd>Enter</kbd> place · <kbd>Esc</kbd> cancel · <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo · <a href="#keys"><kbd>?</kbd> all shortcuts</a></p>
+    </section>
+  </main>
+</div>
+
+<div id="pack" class="menu" role="dialog" aria-label="Pack menu">
+  <div class="menu-head"><b>Master pack</b><span class="muted"> · 5 puzzles · 10×12</span><a class="btn btn-sm close" href="#" aria-label="Close menu">✕</a></div>
+  <ol class="pack-list">
+        <li><a href="#">Master #1</a><span class="muted">score 49</span><span class="st solved">solved ✓</span></li>
+        <li class="current" aria-current="true"><a href="#">Master #2</a><span class="muted">score 42</span><span class="st prog">in progress</span></li>
+        <li><a href="#">Master #3</a><span class="muted">score 48</span><span class="st new">new</span></li>
+        <li><a href="#">Master #4</a><span class="muted">score 49</span><span class="st new">new</span></li>
+        <li><a href="#">Master #5</a><span class="muted">score 38</span><span class="st new">new</span></li>
+  </ol>
+  <div class="menu-nav"><a class="btn btn-sm" href="#">◀ Previous</a><a class="btn btn-sm" href="#">Next ▶</a></div>
+  <h3>View</h3>
+  <label class="check"><input type="checkbox" checked> Labels</label>
+  <label class="check"><input type="checkbox" checked> Timer</label>
+  <p class="muted small">The Patterns switch appears only for sets of more than 20 pieces.</p>
+</div>
+
+<div id="keys" class="dialog" role="dialog" aria-label="Keyboard shortcuts">
+  <div class="dialog-box">
+    <div class="menu-head"><b>Keyboard shortcuts</b><a class="btn btn-sm close" href="#" aria-label="Close">✕</a></div>
+    <table class="keys-table">
+      <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>Move focus over tray pieces, then placed movable pieces</td></tr>
+      <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>Pick up the focused piece (a ghost appears), or drop it if valid</td></tr>
+      <tr><td>Arrow keys (<kbd>Shift</kbd> = 3 cells)</td><td>Move the ghost</td></tr>
+      <tr><td><kbd>E</kbd> or <kbd>R</kbd> / <kbd>Q</kbd></td><td>Rotate ⟳ / ⟲ on screen</td></tr>
+      <tr><td><kbd>F</kbd> / <kbd>V</kbd></td><td>Mirror ⇋ / ⇵ on screen</td></tr>
+      <tr><td><kbd>Delete</kbd> / <kbd>Backspace</kbd></td><td>Return the selected placed piece to the tray</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Cancel the pick-up or close a dialog</td></tr>
+      <tr><td><kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Z</kbd>; <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> or <kbd>Ctrl</kbd>+<kbd>Y</kbd></td><td>Undo; redo</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Show shortcuts</td></tr>
+    </table>
+  </div>
+</div>
+</body>
+</html>

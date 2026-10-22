@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generator · 6×10 · Normal — Pentomino prototype</title>
+<meta name="description" content="Static mockup of the generator: 6×10 board, Normal level.">
+<link rel="stylesheet" href="prototype.css">
+</head>
+<body>
+<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
+<pattern id="hatch" patternUnits="userSpaceOnUse" width="0.2" height="0.2" patternTransform="rotate(45)"><rect width="0.2" height="0.2" fill="rgba(255,255,255,0.16)"/><line x1="0.1" y1="0" x2="0.1" y2="0.2" stroke="rgba(17,24,39,0.38)" stroke-width="0.055"/></pattern>
+<symbol id="lock" viewBox="0 0 16 16"><path d="M4.5 7.5V5.2a3.5 3.5 0 0 1 7 0v2.3" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="2.5" y="7" width="11" height="8.2" rx="1.6" fill="currentColor"/></symbol>
+<filter id="lift" x="-20%" y="-20%" width="150%" height="150%"><feDropShadow dx="0.06" dy="0.14" stdDeviation="0.09" flood-color="#0b1220" flood-opacity="0.35"/></filter>
+<symbol id="cursor" viewBox="0 0 24 24"><path d="M5 2.5v17.2l4.3-4.2 2.9 6.6 3-1.3-2.9-6.5h6z" fill="#111827" stroke="#ffffff" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+</defs></svg>
+<header class="appbar">
+  <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h6v6h6v6h6v6H9v-6H3z" fill="#f58231"/><path d="M9 3h6v6H9z" fill="#ffe119"/><path d="M15 3h6v12h-6z" fill="#42d4f4"/><path d="M3 15h6v6H3z" fill="#3cb44b"/><path d="M3 3h18v18H3z" fill="none" stroke="#fff" stroke-opacity=".35"/></svg><span>Pentomino Puzzle Generator</span></div>
+  <span class="pill" title="Static HTML/CSS mockup; controls do nothing">Static mockup · set ready · 5 puzzles</span>
+  <span class="spacer"></span>
+  <a class="btn btn-dark" href="index.html">All mockups</a>
+  <a class="btn btn-dark" href="player-master.html">Open player ↗</a>
+</header>
+<main class="gen">
+  <section class="panel board-panel" aria-labelledby="h-board">
+    <h2 id="h-board"><span class="step">1</span>Board</h2>
+    <div class="row">
+      <label class="field">Rows <input type="number" value="6" min="3" max="32"></label>
+      <label class="field">Columns <input type="number" value="10" min="3" max="32"></label>
+      <label class="field">Preset <select><option>Rectangle</option></select></label>
+    </div>
+    <div class="row">
+      <span class="field" title="The view angle is display-only: it never changes the grid, the pieces or the difficulty">View <button class="btn btn-sm" type="button" title="Rotate the view 45° counter-clockwise">⟲45</button><button class="btn btn-sm" type="button" title="Rotate the view 45° clockwise">⟳45</button><output class="angle">0°</output></span>
+      <label class="field"><input type="checkbox"> Edit unrotated</label>
+      <span class="hint">display only — grid, pieces and difficulty never change</span>
+    </div>
+    <div class="row">
+      <button class="btn btn-sm" type="button">Trim margins</button><button class="btn btn-sm" type="button">↶ Undo</button><button class="btn btn-sm" type="button">Reset</button>
+      <span class="hint">Click or drag cells to block / unblock</span>
+    </div>
+    <div class="board-view">
+      <svg class="board-svg" viewBox="-0.5 -0.5 11 7" width="418" height="266" role="img" aria-label="6×10 board, with the piece-set solution overlaid"><g transform="rotate(0 5 3)"><rect class="cell" x="0" y="0" width="1" height="1"/><rect class="cell" x="1" y="0" width="1" height="1"/><rect class="cell" x="2" y="0" width="1" height="1"/><rect class="cell" x="3" y="0" width="1" height="1"/><rect class="cell" x="4" y="0" width="1" height="1"/><rect class="cell" x="5" y="0" width="1" height="1"/><rect class="cell" x="6" y="0" width="1" height="1"/><rect class="cell" x="7" y="0" width="1" height="1"/><rect class="cell" x="8" y="0" width="1" height="1"/><rect class="cell" x="9" y="0" width="1" height="1"/><rect class="cell" x="0" y="1" width="1" height="1"/><rect class="cell" x="1" y="1" width="1" height="1"/><rect class="cell" x="2" y="1" width="1" height="1"/><rect class="cell" x="3" y="1" width="1" height="1"/><rect class="cell" x="4" y="1" width="1" height="1"/><rect class="cell" x="5" y="1" width="1" height="1"/><rect class="cell" x="6" y="1" width="1" height="1"/><rect class="cell" x="7" y="1" width="1" height="1"/><rect class="cell" x="8" y="1" width="1" height="1"/><rect class="cell" x="9" y="1" width="1" height="1"/><rect class="cell" x="0" y="2" width="1" height="1"/><rect class="cell" x="1" y="2" width="1" height="1"/><rect class="cell" x="2" y="2" width="1" height="1"/><rect class="cell" x="3" y="2" width="1" height="1"/><rect class="cell" x="4" y="2" width="1" height="1"/><rect class="cell" x="5" y="2" width="1" height="1"/><rect class="cell" x="6" y="2" width="1" height="1"/><rect class="cell" x="7" y="2" width="1" height="1"/><rect class="cell" x="8" y="2" width="1" height="1"/><rect class="cell" x="9" y="2" width="1" height="1"/><rect class="cell" x="0" y="3" width="1" height="1"/><rect class="cell" x="1" y="3" width="1" height="1"/><rect class="cell" x="2" y="3" width="1" height="1"/><rect class="cell" x="3" y="3" width="1" height="1"/><rect class="cell" x="4" y="3" width="1" height="1"/><rect class="cell" x="5" y="3" width="1" height="1"/><rect class="cell" x="6" y="3" width="1" height="1"/><rect class="cell" x="7" y="3" width="1" height="1"/><rect class="cell" x="8" y="3" width="1" height="1"/><rect class="cell" x="9" y="3" width="1" height="1"/><rect class="cell" x="0" y="4" width="1" height="1"/><rect class="cell" x="1" y="4" width="1" height="1"/><rect class="cell" x="2" y="4" width="1" height="1"/><rect class="cell" x="3" y="4" width="1" height="1"/><rect class="cell" x="4" y="4" width="1" height="1"/><rect class="cell" x="5" y="4" width="1" height="1"/><rect class="cell" x="6" y="4" width="1" height="1"/><rect class="cell" x="7" y="4" width="1" height="1"/><rect class="cell" x="8" y="4" width="1" height="1"/><rect class="cell" x="9" y="4" width="1" height="1"/><rect class="cell" x="0" y="5" width="1" height="1"/><rect class="cell" x="1" y="5" width="1" height="1"/><rect class="cell" x="2" y="5" width="1" height="1"/><rect class="cell" x="3" y="5" width="1" height="1"/><rect class="cell" x="4" y="5" width="1" height="1"/><rect class="cell" x="5" y="5" width="1" height="1"/><rect class="cell" x="6" y="5" width="1" height="1"/><rect class="cell" x="7" y="5" width="1" height="1"/><rect class="cell" x="8" y="5" width="1" height="1"/><rect class="cell" x="9" y="5" width="1" height="1"/><path class="board-outline" d="M0 0L10 0L10 6L0 6Z"/><g class="solution"><g class="piece"><path class="pc" d="M3 0L4 0L4 3L2 3L2 4L1 4L1 6L0 6L0 2L3 2Z" fill="#e6194b" stroke="#961031"/><path class="seam" d="M3 1H4M3 2H4M1 2V3M0 3H1M2 2V3M1 3H2M3 2V3M1 3V4M0 4H1M0 5H1"/><g><text class="lbl" x="1.5" y="2.52" font-size="0.46" fill="#111827">A</text></g></g><g class="piece"><path class="pc" d="M7 2L9 2L9 5L10 5L10 6L7 6Z" fill="#3cb44b" stroke="#277531"/><path class="seam" d="M8 2V3M7 3H8M8 3H9M8 3V4M7 4H8M8 4H9M8 4V5M7 5H8M8 5H9M8 5V6M9 5V6"/><g><text class="lbl" x="8.5" y="4.52" font-size="0.46" fill="#111827">B</text></g></g><g class="piece"><path class="pc" d="M7 0L10 0L10 5L9 5L9 2L7 2Z" fill="#ffe119" stroke="#a69210"/><path class="seam" d="M8 0V1M7 1H8M9 0V1M8 1H9M9 1H10M8 1V2M9 1V2M9 2H10M9 3H10M9 4H10"/><g><text class="lbl" x="8.5" y="1.52" font-size="0.46" fill="#111827">C</text></g></g><g class="piece"><path class="pc" d="M2 3L4 3L4 6L1 6L1 4L2 4Z" fill="#4363d8" stroke="#2c408c"/><path class="seam" d="M3 3V4M2 4H3M3 4H4M2 4V5M1 5H2M3 4V5M2 5H3M3 5H4M2 5V6M3 5V6"/><g><text class="lbl" x="2.5" y="4.52" font-size="0.46" fill="#ffffff">D</text></g></g><g class="piece"><path class="pc" d="M4 0L7 0L7 1L6 1L6 3L4 3Z" fill="#f58231" stroke="#9f5520"/><path class="seam" d="M5 0V1M4 1H5M6 0V1M5 1H6M5 1V2M4 2H5M5 2H6M5 2V3"/><g><text class="lbl" x="5.5" y="1.52" font-size="0.46" fill="#111827">E</text></g></g><g class="piece"><path class="pc" d="M0 0L3 0L3 2L0 2Z" fill="#911eb4" stroke="#5e1475"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M1 1H2M2 1H3M1 1V2M2 1V2"/><g><text class="lbl" x="1.5" y="0.52" font-size="0.46" fill="#ffffff">F</text></g></g><g class="piece"><path class="pc" d="M4 3L5 3L5 5L6 5L6 4L7 4L7 6L4 6Z" fill="#42d4f4" stroke="#2b8a9f"/><path class="seam" d="M4 4H5M4 5H5M6 5H7M5 5V6M6 5V6"/><g><text class="lbl" x="5.5" y="5.52" font-size="0.46" fill="#111827">G</text></g></g><g class="piece"><path class="pc" d="M6 1L7 1L7 4L6 4L6 5L5 5L5 3L6 3Z" fill="#f032e6" stroke="#9c2196"/><path class="seam" d="M6 2H7M6 3H7M6 3V4M5 4H6"/><g><text class="lbl" x="6.5" y="3.52" font-size="0.46" fill="#111827">H</text></g></g></g></g></svg>
+    </div>
+    <p class="status"><span class="ok">✓ 60 / 484 playable squares</span> · connected · levels Very easy – Master</p>
+  </section>
+
+  <section class="panel level-panel" aria-labelledby="h-level">
+    <h2 id="h-level"><span class="step">2</span>Level</h2>
+    <fieldset class="level-set">
+      <legend class="visually-hidden">Difficulty level</legend>
+        <ul class="levels">
+          <li><label class="lv"><input type="radio" name="level" value="very-easy"> <span>Very easy</span></label></li>
+          <li><label class="lv"><input type="radio" name="level" value="easy"> <span>Easy</span></label></li>
+          <li><label class="lv"><input type="radio" name="level" value="normal" checked> <span>Normal</span></label></li>
+          <li><label class="lv"><input type="radio" name="level" value="hard"> <span>Hard</span></label></li>
+          <li><label class="lv"><input type="radio" name="level" value="expert"> <span>Expert</span></label></li>
+          <li><label class="lv"><input type="radio" name="level" value="master"> <span>Master</span></label></li>
+          <li><label class="lv off" title="Needs a larger board"><input type="radio" name="level" value="nightmare" disabled> <span>Nightmare</span></label></li>
+          <li><label class="lv off" title="Needs a larger board"><input type="radio" name="level" value="hell-1" disabled> <span>Hell 1</span></label></li>
+          <li><label class="lv off" title="Needs a larger board"><input type="radio" name="level" value="hell-2" disabled> <span>Hell 2</span></label></li>
+          <li><label class="lv off" title="Needs a larger board"><input type="radio" name="level" value="hell-3" disabled> <span>Hell 3</span></label></li>
+        </ul>
+    </fieldset>
+    <p class="note">Levels above Master need a larger board.</p>
+    <p class="count-text">Uses 8–9 pieces of 4–12 squares · about 46 % pre-placed</p>
+    <details class="adv">
+      <summary>Advanced</summary>
+      <div class="adv-body">
+        <label class="field">Seed <input type="text" value="proto-6x10-normal-1" size="18"></label> <button class="btn btn-sm icon-btn" type="button" title="New random seed" aria-label="New random seed">🎲</button><button class="btn btn-sm icon-btn" type="button" title="Keep this seed" aria-label="Keep this seed" aria-pressed="false">🔒</button>
+        <label class="check"><input type="checkbox"> Require one solution</label>
+        <label class="check"><input type="checkbox"> Large boards (experimental)</label>
+        <label class="check"><input type="checkbox"> Omit solutions in exported files</label>
+      </div>
+    </details>
+    <button class="btn btn-primary btn-lg btn-wide" type="button">Generate Piece Set</button>
+  </section>
+
+  <section class="panel set-panel" aria-labelledby="h-set">
+    <h2 id="h-set"><span class="step">3</span>Piece set</h2>
+    <p class="set-summary"><b>8 pieces</b> · sizes 5–10 · <span class="ready">Ready for Normal ✓</span></p>
+    <p class="muted small">Unclued benchmark 32 (not a limit)</p>
+    <ul class="piece-grid">
+            <li title="Piece A, 10 squares"><svg class="piece-svg" viewBox="-0.2 -0.2 6.4 4.4" width="109" height="75" role="img" aria-label="Piece A, 10 squares"><g transform="rotate(0 3 2)"><g class="piece"><path class="pc" d="M0 0L4 0L4 3L6 3L6 4L3 4L3 2L2 2L2 1L0 1Z" fill="#e6194b" stroke="#961031"/><path class="seam" d="M1 0V1M2 0V1M3 0V1M2 1H3M3 1H4M3 1V2M3 2H4M3 3H4M4 3V4M5 3V4"/><g><text class="lbl" x="3.5" y="1.52" font-size="0.62" fill="#111827">A</text></g></g></g></svg><span><b>A</b> 10</span></li>
+            <li title="Piece B, 9 squares"><svg class="piece-svg" viewBox="-0.2 -0.2 4.4 3.4" width="75" height="58" role="img" aria-label="Piece B, 9 squares"><g transform="rotate(0 2 1.5)"><g class="piece"><path class="pc" d="M0 0L4 0L4 2L1 2L1 3L0 3Z" fill="#3cb44b" stroke="#277531"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M1 1H2M3 0V1M2 1H3M3 1H4M1 1V2M0 2H1M2 1V2M3 1V2"/><g><text class="lbl" x="1.5" y="1.52" font-size="0.62" fill="#111827">B</text></g></g></g></svg><span><b>B</b> 9</span></li>
+            <li title="Piece C, 9 squares"><svg class="piece-svg" viewBox="-0.2 -0.2 5.4 3.4" width="92" height="58" role="img" aria-label="Piece C, 9 squares"><g transform="rotate(0 2.5 1.5)"><g class="piece"><path class="pc" d="M0 0L5 0L5 1L2 1L2 3L0 3Z" fill="#ffe119" stroke="#a69210"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M1 1H2M3 0V1M4 0V1M1 1V2M0 2H1M1 2H2M1 2V3"/><g><text class="lbl" x="1.5" y="1.52" font-size="0.62" fill="#111827">C</text></g></g></g></svg><span><b>C</b> 9</span></li>
+            <li title="Piece D, 8 squares"><svg class="piece-svg" viewBox="-0.2 -0.2 3.4 3.4" width="58" height="58" role="img" aria-label="Piece D, 8 squares"><g transform="rotate(0 1.5 1.5)"><g class="piece"><path class="pc" d="M0 0L3 0L3 2L2 2L2 3L0 3Z" fill="#4363d8" stroke="#2c408c"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M1 1H2M2 1H3M1 1V2M0 2H1M2 1V2M1 2H2M1 2V3"/><g><text class="lbl" x="1.5" y="1.52" font-size="0.62" fill="#ffffff">D</text></g></g></g></svg><span><b>D</b> 8</span></li>
+            <li title="Piece E, 7 squares"><svg class="piece-svg" viewBox="-0.2 -0.2 3.4 3.4" width="58" height="58" role="img" aria-label="Piece E, 7 squares"><g transform="rotate(0 1.5 1.5)"><g class="piece"><path class="pc" d="M0 0L3 0L3 2L1 2L1 3L0 3Z" fill="#f58231" stroke="#9f5520"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M1 1H2M2 1H3M1 1V2M0 2H1M2 1V2"/><g><text class="lbl" x="1.5" y="1.52" font-size="0.62" fill="#111827">E</text></g></g></g></svg><span><b>E</b> 7</span></li>
+            <li title="Piece F, 6 squares"><svg class="piece-svg" viewBox="-0.2 -0.2 3.4 2.4" width="58" height="41" role="img" aria-label="Piece F, 6 squares"><g transform="rotate(0 1.5 1)"><g class="piece"><path class="pc" d="M0 0L3 0L3 2L0 2Z" fill="#911eb4" stroke="#5e1475"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M1 1H2M2 1H3M1 1V2M2 1V2"/><g><text class="lbl" x="1.5" y="0.52" font-size="0.62" fill="#ffffff">F</text></g></g></g></svg><span><b>F</b> 6</span></li>
+            <li title="Piece G, 6 squares"><svg class="piece-svg" viewBox="-0.2 -0.2 3.4 3.4" width="58" height="58" role="img" aria-label="Piece G, 6 squares"><g transform="rotate(0 1.5 1.5)"><g class="piece"><path class="pc" d="M0 0L3 0L3 2L2 2L2 1L1 1L1 3L0 3Z" fill="#42d4f4" stroke="#2b8a9f"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M2 1H3M0 2H1"/><g><text class="lbl" x="1.5" y="0.52" font-size="0.62" fill="#111827">G</text></g></g></g></svg><span><b>G</b> 6</span></li>
+            <li title="Piece H, 5 squares"><svg class="piece-svg" viewBox="-0.2 -0.2 4.4 2.4" width="75" height="41" role="img" aria-label="Piece H, 5 squares"><g transform="rotate(0 2 1)"><g class="piece"><path class="pc" d="M0 0L3 0L3 1L4 1L4 2L2 2L2 1L0 1Z" fill="#f032e6" stroke="#9c2196"/><path class="seam" d="M1 0V1M2 0V1M2 1H3M3 1V2"/><g><text class="lbl" x="2.5" y="0.52" font-size="0.62" fill="#111827">H</text></g></g></g></svg><span><b>H</b> 5</span></li>
+    </ul>
+    <div class="row set-actions">
+      <button class="btn btn-sm" type="button" aria-pressed="true">◉ Show solution</button>
+      <span class="field history"><button class="btn btn-sm icon-btn" type="button" disabled aria-label="Previous set">◀</button><span class="muted">Set 1 of 1</span><button class="btn btn-sm icon-btn" type="button" disabled aria-label="Next set">▶</button></span>
+      <button class="btn btn-sm" type="button">⬇ Export set</button>
+    </div>
+  </section>
+
+  <section class="panel puzzles-panel" aria-labelledby="h-puz">
+    <div class="puz-bar">
+      <h2 id="h-puz"><span class="step">4</span>Puzzles</h2>
+      <label class="field">Quantity <input type="number" value="5" min="1" max="10"></label>
+      <label class="field">Level <select><option>Normal</option></select></label>
+      <button class="btn btn-primary" type="button">New Puzzles</button>
+      <button class="btn" type="button">Add more</button>
+      <span class="spacer"></span>
+      <a class="btn" href="player-master.html">▶ Play all</a>
+      <button class="btn" type="button">⬇ Export pack</button>
+      <button class="btn" type="button">🔗 Copy pack link</button>
+    </div>
+    <div class="batch-status" role="status"><span class="ok">✓ 5 of 5 different Normal puzzles</span> · 3 of 5 uniqueness checks done, the rest run in the background · Play and Export need not wait</div>
+    <ol class="cards">
+          <li class="card">
+            <div class="thumb"><svg class="thumb-svg" viewBox="-0.5 -0.5 11 7" width="143" height="91" role="img" aria-label="Normal #1: board with 4 pre-placed pieces"><g transform="rotate(0 5 3)"><path class="thumb-board" d="M0 0L10 0L10 6L0 6Z"/><g class="piece"><path class="pc" d="M4 0L7 0L7 1L6 1L6 3L4 3Z" fill="#f58231" stroke="#9f5520"/><path class="seam" d="M5 0V1M4 1H5M6 0V1M5 1H6M5 1V2M4 2H5M5 2H6M5 2V3"/><path class="hatch" d="M4 0L7 0L7 1L6 1L6 3L4 3Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M0 0L3 0L3 2L0 2Z" fill="#911eb4" stroke="#5e1475"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M1 1H2M2 1H3M1 1V2M2 1V2"/><path class="hatch" d="M0 0L3 0L3 2L0 2Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M4 3L5 3L5 5L6 5L6 4L7 4L7 6L4 6Z" fill="#42d4f4" stroke="#2b8a9f"/><path class="seam" d="M4 4H5M4 5H5M6 5H7M5 5V6M6 5V6"/><path class="hatch" d="M4 3L5 3L5 5L6 5L6 4L7 4L7 6L4 6Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M6 1L7 1L7 4L6 4L6 5L5 5L5 3L6 3Z" fill="#f032e6" stroke="#9c2196"/><path class="seam" d="M6 2H7M6 3H7M6 3V4M5 4H6"/><path class="hatch" d="M6 1L7 1L7 4L6 4L6 5L5 5L5 3L6 3Z" fill="url(#hatch)"/></g></g></svg></div>
+            <div class="card-head"><strong>Normal #1</strong><span class="score" title="Difficulty score; Normal covers 12–16">Score 12</span><span class="chip lv-normal">Normal</span></div>
+            <div class="card-meta"><span>4 pre-placed · 50 %</span><span class="badge badge-info">Several solutions</span></div>
+            <div class="card-actions"><a class="btn btn-primary btn-sm" href="player-master.html" title="Mockup link: opens the player mockup">▶ Play</a><button class="btn btn-sm icon-btn" type="button" title="Copy link" aria-label="Copy link">🔗</button><button class="btn btn-sm icon-btn" type="button" title="Export" aria-label="Export">⬇</button><button class="btn btn-sm icon-btn" type="button" title="Remove" aria-label="Remove">🗑</button></div>
+          </li>
+          <li class="card">
+            <div class="thumb"><svg class="thumb-svg" viewBox="-0.5 -0.5 11 7" width="143" height="91" role="img" aria-label="Normal #2: board with 4 pre-placed pieces"><g transform="rotate(0 5 3)"><path class="thumb-board" d="M0 0L10 0L10 6L0 6Z"/><g class="piece"><path class="pc" d="M7 0L10 0L10 4L8 4L8 1L7 1Z" fill="#3cb44b" stroke="#277531"/><path class="seam" d="M8 0V1M9 0V1M8 1H9M9 1H10M9 1V2M8 2H9M9 2H10M9 2V3M8 3H9M9 3H10M9 3V4"/><path class="hatch" d="M7 0L10 0L10 4L8 4L8 1L7 1Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M0 0L3 0L3 2L2 2L2 3L0 3Z" fill="#4363d8" stroke="#2c408c"/><path class="seam" d="M1 0V1M0 1H1M2 0V1M1 1H2M2 1H3M1 1V2M0 2H1M2 1V2M1 2H2M1 2V3"/><path class="hatch" d="M0 0L3 0L3 2L2 2L2 3L0 3Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M1 4L4 4L4 6L1 6Z" fill="#911eb4" stroke="#5e1475"/><path class="seam" d="M2 4V5M1 5H2M3 4V5M2 5H3M3 5H4M2 5V6M3 5V6"/><path class="hatch" d="M1 4L4 4L4 6L1 6Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M4 3L5 3L5 5L6 5L6 4L7 4L7 6L4 6Z" fill="#42d4f4" stroke="#2b8a9f"/><path class="seam" d="M4 4H5M4 5H5M6 5H7M5 5V6M6 5V6"/><path class="hatch" d="M4 3L5 3L5 5L6 5L6 4L7 4L7 6L4 6Z" fill="url(#hatch)"/></g></g></svg></div>
+            <div class="card-head"><strong>Normal #2</strong><span class="score" title="Difficulty score; Normal covers 12–16">Score 14</span><span class="chip lv-normal">Normal</span></div>
+            <div class="card-meta"><span>4 pre-placed · 50 %</span><span class="badge badge-ok">Unique solution ✓</span></div>
+            <div class="card-actions"><a class="btn btn-primary btn-sm" href="player-master.html" title="Mockup link: opens the player mockup">▶ Play</a><button class="btn btn-sm icon-btn" type="button" title="Copy link" aria-label="Copy link">🔗</button><button class="btn btn-sm icon-btn" type="button" title="Export" aria-label="Export">⬇</button><button class="btn btn-sm icon-btn" type="button" title="Remove" aria-label="Remove">🗑</button></div>
+          </li>
+          <li class="card">
+            <div class="thumb"><svg class="thumb-svg" viewBox="-0.5 -0.5 11 7" width="143" height="91" role="img" aria-label="Normal #3: board with 4 pre-placed pieces"><g transform="rotate(0 5 3)"><path class="thumb-board" d="M0 0L10 0L10 6L0 6Z"/><g class="piece"><path class="pc" d="M3 0L4 0L4 3L2 3L2 4L1 4L1 6L0 6L0 2L3 2Z" fill="#e6194b" stroke="#961031"/><path class="seam" d="M3 1H4M3 2H4M1 2V3M0 3H1M2 2V3M1 3H2M3 2V3M1 3V4M0 4H1M0 5H1"/><path class="hatch" d="M3 0L4 0L4 3L2 3L2 4L1 4L1 6L0 6L0 2L3 2Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M9 1L10 1L10 6L7 6L7 4L9 4Z" fill="#ffe119" stroke="#a69210"/><path class="seam" d="M9 2H10M9 3H10M9 4H10M8 4V5M7 5H8M9 4V5M8 5H9M9 5H10M8 5V6M9 5V6"/><path class="hatch" d="M9 1L10 1L10 6L7 6L7 4L9 4Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M2 3L4 3L4 6L1 6L1 4L2 4Z" fill="#4363d8" stroke="#2c408c"/><path class="seam" d="M3 3V4M2 4H3M3 4H4M2 4V5M1 5H2M3 4V5M2 5H3M3 5H4M2 5V6M3 5V6"/><path class="hatch" d="M2 3L4 3L4 6L1 6L1 4L2 4Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M4 0L7 0L7 2L6 2L6 1L5 1L5 3L4 3Z" fill="#42d4f4" stroke="#2b8a9f"/><path class="seam" d="M5 0V1M4 1H5M6 0V1M6 1H7M4 2H5"/><path class="hatch" d="M4 0L7 0L7 2L6 2L6 1L5 1L5 3L4 3Z" fill="url(#hatch)"/></g></g></svg></div>
+            <div class="card-head"><strong>Normal #3</strong><span class="score" title="Difficulty score; Normal covers 12–16">Score 13</span><span class="chip lv-normal">Normal</span></div>
+            <div class="card-meta"><span>4 pre-placed · 50 %</span><span class="badge badge-ok">Unique solution ✓</span></div>
+            <div class="card-actions"><a class="btn btn-primary btn-sm" href="player-master.html" title="Mockup link: opens the player mockup">▶ Play</a><button class="btn btn-sm icon-btn" type="button" title="Copy link" aria-label="Copy link">🔗</button><button class="btn btn-sm icon-btn" type="button" title="Export" aria-label="Export">⬇</button><button class="btn btn-sm icon-btn" type="button" title="Remove" aria-label="Remove">🗑</button></div>
+          </li>
+          <li class="card">
+            <div class="thumb"><svg class="thumb-svg" viewBox="-0.5 -0.5 11 7" width="143" height="91" role="img" aria-label="Normal #4: board with 4 pre-placed pieces"><g transform="rotate(0 5 3)"><path class="thumb-board" d="M0 0L10 0L10 6L0 6Z"/><g class="piece"><path class="pc" d="M4 0L7 0L7 3L5 3L5 1L4 1Z" fill="#f58231" stroke="#9f5520"/><path class="seam" d="M5 0V1M6 0V1M5 1H6M6 1H7M6 1V2M5 2H6M6 2H7M6 2V3"/><path class="hatch" d="M4 0L7 0L7 3L5 3L5 1L4 1Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M1 4L4 4L4 6L1 6Z" fill="#911eb4" stroke="#5e1475"/><path class="seam" d="M2 4V5M1 5H2M3 4V5M2 5H3M3 5H4M2 5V6M3 5V6"/><path class="hatch" d="M1 4L4 4L4 6L1 6Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M6 3L7 3L7 6L4 6L4 4L5 4L5 5L6 5Z" fill="#42d4f4" stroke="#2b8a9f"/><path class="seam" d="M6 4H7M4 5H5M6 5H7M5 5V6M6 5V6"/><path class="hatch" d="M6 3L7 3L7 6L4 6L4 4L5 4L5 5L6 5Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M4 1L5 1L5 3L6 3L6 5L5 5L5 4L4 4Z" fill="#f032e6" stroke="#9c2196"/><path class="seam" d="M4 2H5M4 3H5M5 3V4M5 4H6"/><path class="hatch" d="M4 1L5 1L5 3L6 3L6 5L5 5L5 4L4 4Z" fill="url(#hatch)"/></g></g></svg></div>
+            <div class="card-head"><strong>Normal #4</strong><span class="score" title="Difficulty score; Normal covers 12–16">Score 13</span><span class="chip lv-normal">Normal</span></div>
+            <div class="card-meta"><span>4 pre-placed · 50 %</span><span class="badge badge-pending"><span class="spin" aria-hidden="true"></span>Checking…</span></div>
+            <div class="card-actions"><a class="btn btn-primary btn-sm" href="player-master.html" title="Mockup link: opens the player mockup">▶ Play</a><button class="btn btn-sm icon-btn" type="button" title="Copy link" aria-label="Copy link">🔗</button><button class="btn btn-sm icon-btn" type="button" title="Export" aria-label="Export">⬇</button><button class="btn btn-sm icon-btn" type="button" title="Remove" aria-label="Remove">🗑</button></div>
+          </li>
+          <li class="card">
+            <div class="thumb"><svg class="thumb-svg" viewBox="-0.5 -0.5 11 7" width="143" height="91" role="img" aria-label="Normal #5: board with 4 pre-placed pieces"><g transform="rotate(0 5 3)"><path class="thumb-board" d="M0 0L10 0L10 6L0 6Z"/><g class="piece"><path class="pc" d="M0 0L1 0L1 2L4 2L4 6L3 6L3 4L2 4L2 3L0 3Z" fill="#e6194b" stroke="#961031"/><path class="seam" d="M0 1H1M0 2H1M1 2V3M2 2V3M3 2V3M2 3H3M3 3H4M3 3V4M3 4H4M3 5H4"/><path class="hatch" d="M0 0L1 0L1 2L4 2L4 6L3 6L3 4L2 4L2 3L0 3Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M7 0L10 0L10 2L8 2L8 5L7 5Z" fill="#ffe119" stroke="#a69210"/><path class="seam" d="M8 0V1M7 1H8M9 0V1M8 1H9M9 1H10M8 1V2M7 2H8M9 1V2M7 3H8M7 4H8"/><path class="hatch" d="M7 0L10 0L10 2L8 2L8 5L7 5Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M0 3L2 3L2 4L3 4L3 6L0 6Z" fill="#4363d8" stroke="#2c408c"/><path class="seam" d="M1 3V4M0 4H1M1 4H2M1 4V5M0 5H1M2 4V5M1 5H2M2 5H3M1 5V6M2 5V6"/><path class="hatch" d="M0 3L2 3L2 4L3 4L3 6L0 6Z" fill="url(#hatch)"/></g><g class="piece"><path class="pc" d="M6 3L7 3L7 6L4 6L4 4L5 4L5 5L6 5Z" fill="#42d4f4" stroke="#2b8a9f"/><path class="seam" d="M6 4H7M4 5H5M6 5H7M5 5V6M6 5V6"/><path class="hatch" d="M6 3L7 3L7 6L4 6L4 4L5 4L5 5L6 5Z" fill="url(#hatch)"/></g></g></svg></div>
+            <div class="card-head"><strong>Normal #5</strong><span class="score" title="Difficulty score; Normal covers 12–16">Score 15</span><span class="chip lv-normal">Normal</span></div>
+            <div class="card-meta"><span>4 pre-placed · 50 %</span><span class="badge badge-pending"><span class="spin" aria-hidden="true"></span>Checking…</span></div>
+            <div class="card-actions"><a class="btn btn-primary btn-sm" href="player-master.html" title="Mockup link: opens the player mockup">▶ Play</a><button class="btn btn-sm icon-btn" type="button" title="Copy link" aria-label="Copy link">🔗</button><button class="btn btn-sm icon-btn" type="button" title="Export" aria-label="Export">⬇</button><button class="btn btn-sm icon-btn" type="button" title="Remove" aria-label="Remove">🗑</button></div>
+          </li>
+    </ol>
+  </section>
+</main>
+</body>
+</html>
