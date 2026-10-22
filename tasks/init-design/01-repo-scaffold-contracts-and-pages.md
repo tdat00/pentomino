@@ -216,3 +216,26 @@ Unit-test redirect construction; use the server on an ephemeral port to verify G
 ## Definition of done & handoff
 
 Commit-ready files, green targeted commands, and a short report of exact commands/results and any access blocker. Do not commit/push unless instructed by the orchestrator. Later tasks may replace app shells but retain their module paths, CSP and deployment contracts.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done (GitHub Pages deployment not performed: not authorized) |
+| Start | 2026-10-22 19:41:52 (+07:00) |
+| End | 2026-10-22 19:46:24 (+07:00) |
+| Duration | 4 min 32 s |
+| Model | claude-sonnet-5.5 (sub-agent `T01-scaffold`, general-purpose) |
+| Token usage | 18 model calls; 996,021 input (923,159 cache read), 38,007 output |
+| AI credits | 65.45 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test "tests/**/*.test.js"` → 28 pass / 0 fail; `npm run check` → `check-conventions: OK`, `check-site: OK`. Local server smoke test: `/pentomino/`, both app shells and modules return 200 with correct MIME; `.git` → 403; `/` → 302.
+
+**Acceptance:** BAC-1..3 and TAC-1..5 pass (BAC-3 for workflow definition; real deploy blocked on access).
+
+**Issues & resolutions:**
+- File-creation tool emitted LF; all authored files were converted to CRLF and verified by the convention checker and `git hash-object --path`.
+- Tests needing scratch directories use `mkdtempSync` under the git-ignored `tests\artifacts\` and clean up afterwards.
+- Pages source selection / deployment requires repository admin action; left as an access blocker, not claimed.
+
+**Handoff:** `checkSite`, `checkConventions`/`checkText`, `createStaticServer`/`parseArgs` are exported for T22 and tests. Status codes: 400 malformed path, 403 `.git`/`docs/local`, 404 missing, 405 non-GET/HEAD. `types.js` also defines an opaque `Workspace` typedef and execution/batch contracts; wire DTO types are owned by T14/T15.

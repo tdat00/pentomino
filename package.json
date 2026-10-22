@@ -1,0 +1,10 @@
+{
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\"",
+    "test:quick": "node --test --test-skip-pattern=slow \"tests/**/*.test.js\"",
+    "check": "node tools/check-conventions.mjs && node tools/check-site.mjs .",
+    "serve": "node tools/serve.mjs --port 8080 --prefix /pentomino/"
+  }
+}
