@@ -131,3 +131,30 @@ Use the exact T11 fixture, generated sample, malicious title, answer-free file a
 ## Definition of done & handoff
 
 T20 receives the rendered game/store/hooks. This task owns its shell/import/library layout and accessibility fixes. Full playing acceptance waits for T20 and T23, not the release-tooling task.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done (real touch-device behaviour not verifiable here — deferred to T23) |
+| Start | 2026-10-22 21:04:03 (+07:00) |
+| End | 2026-10-22 21:26:44 (+07:00) |
+| Duration | 22 min 41 s |
+| Model | claude-sonnet-5.5 (sub-agent `T19-player-shell`, general-purpose); ran in parallel with T15, T17, T18, T21 |
+| Token usage | 97 model calls; 18,771,419 input (18,493,015 cache read), 155,954 output |
+| AI credits | 410.48 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\player-import.test.js` → 24 pass / 0 fail; `check-conventions` OK. Agent run: `npm run test:quick` 581 pass / 0 fail; `npm run check` OK; headless-Edge harness `tests\browser\player-import.html` (port 8123) → 18/18 at 1280 px and 18/18 at 600 px emulated mobile, 0 CSP violations, 0 remote requests; screenshots reviewed (desktop, 390 px, Import screen).
+
+**Acceptance:** BAC-1..4 and TAC-1..4 pass. Link/file/paste/library/sample all open without generator storage; invalid pack, unsupported version/rules, piece-set, out-of-range index, missing local record and oversized file each show their exact message and leave the current game untouched; progress saved before switching puzzles, Continue/Restart works per game; "Solvability not verified" distinct from "No solution exists" (only an exhausted zero-solution search proves impossible, tested with the real module worker); sample pack is byte-identical to `tests\fixtures\generated-sample-pack.json` and `verifySample` recomputes its three ratings; pasted URLs are never fetched; hostile titles render as text.
+
+**Issues & resolutions:**
+- A botched edit in `import-view.js` caused a SyntaxError caught by the CDP driver; fixed.
+- Two harness assertions were wrong (a 14 px minimum cell legitimately scrolls a narrow board; hidden menu buttons were counted as top-bar targets); corrected.
+- `verifySample` expects raw JSON (absent certificate = `undefined`, whereas `parsePack` yields `null`); the test passes raw JSON.
+- Touch: Straighten under `(pointer: coarse)` tested only via an injected flag; the 44 px target rule checked only as CSS.
+- Scope boundary: Undo/Redo/Reset rendered in the agreed order but disabled until T20; selection toolbar shows only "Selected: X" and "N pieces left".
+- Extra file beyond the list: `player\ui\pack-menu.js` (☰ Pack menu) to keep `app.js` small. Shared-file edit: `README.md` (+2 bullets under "Using the Player").
+- Design choices (no owner input needed): with no hash and a non-empty library the Import screen shows Recent (nothing auto-opens); file/paste/library/sample packs get a local `#lib=<id>&i=n` address only when saved; Restart writes an empty progress record immediately; only the open puzzle is verified (one-puzzle `verifyPack`); a puzzle with a validated stored solution is marked solvable without a worker.
+
+**Handoff (for T20):** `mountPlayer(root, env)` → `{store, controller, ready, hosts:{board, tray, toolbar, win, status, live}, boardView, trayView, announce, renderStraighten, destroy}` (env injects storage, address, history, fetch, pool, download; auto-mounts on `[data-player-root]`). `player\state.js` → `createPlayerStore`, `createPlayerController` (`start`, `openHash`, `importText`, `importFile`, `openLibraryPack`, `openSample`, `goToPuzzle`/`nextPuzzle`/`previousPuzzle`, `resume`, `select`, `saveNow`, `setPref`, `showImport`/`closeImport`, `removeLibraryPack`, `exportLibraryPack`, `dismissError`/`dismissNotice`, `destroy`), `effectiveRotation`, `offersPatterns`, `hashWithIndex`. T20 adds the 250 ms debounce around `saveNow()` and commits moves with `store.update({game: reduce(...)})`. `boardView.render(state, angle, {cursor, invalidCells})` draws `game.preview` via `canPlace`; attach pointer trackers to `boardView.view.surface`. `trayView` takes `onSelect(id)`, `onGrab({pieceId, sourceCell, event})`, offers `buttonFor(id)`, `refresh()`. `player\strings.js` holds messages, claim/verification labels and `LABELS`; pack-menu status `new|in-progress|solved` leaves room for T25's `revealed`.

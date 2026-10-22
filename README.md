@@ -55,6 +55,8 @@ Every module loaded by a browser page or worker uses the `.js` extension. `.mjs`
 
 ## Using the Player
 
+- **Opening a puzzle.** Follow a player link, use **Import file** (or drop a `.json` file, 512 KiB at most), paste a link, share code or pack JSON, choose a pack under **Recent** (each can be exported or deleted), or try the **Sample**. A file with pieces but no puzzle is explained, and a rejected import never replaces the puzzle you are playing.
+- **Claims and checks.** Ratings and uniqueness read from a file are shown as *Claimed* until the Player recomputes them. Solvability is checked in the background; play is never blocked, and *Solvability not verified* is never the same as *No solution exists*.
 - **Placing pieces.** Drag a piece onto the board, or select a piece and tap or click a cell.
 - **Keyboard.** `E` or `R` turn the selected piece clockwise and `Q` counter-clockwise; `F` and `V` mirror it horizontally and vertically on screen; arrow keys move it one cell and `Shift`+arrow three cells; `Enter` or `Space` picks it up or commits a valid preview; `Escape` cancels; `Delete` or `Backspace` returns it to the tray; `Ctrl`/`Cmd`+`Z` undoes and `Ctrl`/`Cmd`+`Shift`+`Z` or `Ctrl`+`Y` redoes. Every action also has a visible button.
 - **View.** **Labels** and **Patterns** are independent switches. The **timer** and **Straighten** view are local to the browser.
