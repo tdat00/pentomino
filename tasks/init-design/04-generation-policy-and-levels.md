@@ -143,3 +143,27 @@ Test exact-minimum inventories, a sum just below minimum, classic 12×5 histogra
 ## Definition of done & handoff
 
 T05 consumes LIMITS; T08 consumes plans/budgets; T09 consumes score bands; UIs consume the public functions rather than duplicating formulas. T24 alone may later change gate data with qualification evidence.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done |
+| Start | 2026-10-22 19:51:54 (+07:00) |
+| End | 2026-10-22 19:57:40 (+07:00) |
+| Duration | 5 min 46 s |
+| Model | claude-sonnet-5.5 (sub-agent `T04-policy-levels`, general-purpose); ran in parallel with T22 |
+| Token usage | 24 model calls; 1,825,648 input (1,749,318 cache read), 45,596 output |
+| AI credits | 82.17 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test "tests/**/*.test.js"` → 155 pass / 0 fail (task tests: 41 pass in ~2.7 s); `npm run check` OK. No clocks, `Math.random` or browser APIs in the engine files.
+
+**Acceptance:** BAC-1..3 and TAC-1..5 pass. Offered levels: 60 → Very Easy..Master, 360 → Hard..Hell-2, 484 → Hard..Hell-3. All 14 anchor ranges gap-free; every offered (level, area) for 30..676 is histogram-feasible inside `kMin..kMax`. `LIMITS` ships 484 release / 360 phone; 676 only for non-phone desktops with the large-board switch. `histogramFeasible` matches an independent DP (A 6..90 × K 1..20, random cases, 600 random overrides). `QUALIFICATION` is frozen with every gate `not-run`.
+
+**Issues & resolutions:**
+- Greedy growth in `planSizes` could dead-end on exhausted shape counts although a histogram exists (e.g. A=29, K=3 under overrides). Fixed by sharing one solver between `histogramFeasible` and `planSizes` that also returns a witness histogram; the plan follows the witness when greedy is stuck; regression test added.
+- The per-size shape-availability precondition uses a memoized exact search instead of a table DP.
+- File tool emitted LF; converted to CRLF.
+- Design choices (no owner input needed): `pieceCountRange` throws RangeError for malformed level ids and returns null for valid but unoffered/non-generatable levels; size-window lower bounds clamp to 3.
+
+**Handoff:** `levels.js` → `level(id)`, `levelForScore(score)`, `offeredLevels(area)`, `bandEdge(L)`, `Level` typedef (frozen, cached; hell-5+ areas `[Infinity, Infinity]`). `policy.js` → `POLICY_ID`, `LIMITS`, `enabledMaxActive(device, limits?)`, `deriveLimits(qualification)`, `kMin`, `kMax`, `minAreaForCount`, `sizeWindow`, `histogramFeasible`, `pieceCountRange`, `planSizes`, `SCORE`, `TIME`, `BUDGETS`. `LIMITS` derive from `QUALIFICATION` (576 only if bq1 passes; phone 484 only if bq3 passes) — T24 edits only `qualification.js` data. T08 may pass `{window, avail, smallCap}` overrides to `planSizes`/`histogramFeasible`; availability beyond size 10 unbounded.
