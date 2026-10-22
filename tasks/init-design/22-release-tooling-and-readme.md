@@ -87,3 +87,29 @@ Use fixture files available immediately after T01, not unfinished app modules. C
 ## Definition of done & handoff
 
 Tools/tests/README are ready for integration without editing other agents’ files. T23 depends on this task plus the completed apps and performance harness; this task does not claim release acceptance.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done for local tooling; no deployment performed (not authorized). TAC-3 only partially demonstrable until the full T23 artifact exists. |
+| Start | 2026-10-22 19:47:48 (+07:00) |
+| End | 2026-10-22 19:58:04 (+07:00) |
+| Duration | 10 min 16 s |
+| Model | claude-sonnet-5.5 (sub-agent `T22-release-tooling`, general-purpose); ran early (allowed by milestone) in parallel with T02, T03, T04 |
+| Token usage | 30 model calls; 3,085,520 input (2,964,553 cache read), 82,934 output |
+| AI credits | 142.82 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test "tests/**/*.test.js"` → 155 pass / 0 fail (task tests: 36 pass); `npm run check` OK. Workflow dry run: assembled `_site`, `stamp-version _site <sha8>` stamped 10 references in 7 of 16 files, `check-site _site --expect-version <sha8>` OK; `_site` removed.
+
+**Acceptance:** BAC-1..3 pass (prefix-safe stamped crawl, README with honest "designed, not verified" status, checker fails on missing assets/browser `.mjs`/unstampable dynamic imports/mixed versions). TAC-1, TAC-2, TAC-4 pass. TAC-3 partially shown on the current scaffold; re-run on the final artifact in T23.
+
+**Issues & resolutions:**
+- `TextDecoder` silently dropped a BOM (so BOMs went undetected); fixed with `ignoreBOM: true`.
+- `server.close()` waited on keep-alive sockets (18 s test); `closeAllConnections()` brings it to 0.5 s.
+- File tool emitted LF; converted to CRLF.
+- Safety: stamping refuses directories containing `package.json`, `.git`, `tasks`, `docs`, `tests`, `tools` or `.github`, so it cannot mutate the source tree.
+- README controls/CLI sections reference T15/T20/T21 contracts; revisit wording once those land.
+- Design choices (no owner input needed): `<a href>` navigation and directory targets are not stamped; `--entry` checks only that page and skips CSP/no-inline rules (local harness only); a new unguarded `Verify staged site` workflow step was added while keeping T01's guarded stamp line.
+
+**Handoff:** `stamp-version.mjs` → `stampSite(dir, sha8)` (`{filesScanned, filesChanged, references, problems}`), `stampSource(kind, text, sha8)`. `check-site.mjs` → `checkSite(root, {entries?, expectVersion?})`, `parseArgs(argv)`. New shared scanner `tools\site-scan.mjs` (`scanSource`, `tokenizeJs`, `withVersion`, `classifyReference`). Shared files modified: `tools\check-site.mjs`, `.github\workflows\pages.yml` (T01 tests still pass). T21: `check-site . --entry tools/bench/index.html` requires `.js` and relative paths. T23: run `check-site _site --expect-version <sha8>` on the final artifact.

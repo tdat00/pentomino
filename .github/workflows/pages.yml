@@ -18,7 +18,8 @@ jobs:
           cp index.html redirect.js _site/
           cp -r core generator player _site/
           if [ -f tools/stamp-version.mjs ]; then node tools/stamp-version.mjs _site "${GITHUB_SHA::8}"; fi
-          if [ -f tools/check-site.mjs ]; then node tools/check-site.mjs _site; fi
+      - name: Verify staged site
+        run: node tools/check-site.mjs _site --expect-version "${GITHUB_SHA::8}"
       - uses: actions/upload-pages-artifact@v4
         with: { path: _site }
   deploy:

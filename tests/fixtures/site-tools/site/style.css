@@ -1,0 +1,19 @@
+/* @import './ghost-comment.css'; background: url(./ghost.png) */
+@import './base.css';
+@import url("./theme.css") screen;
+
+.logo {
+  background: url(img/logo.svg#mark);
+}
+
+.clip {
+  clip-path: url(#clip);
+}
+
+.inline {
+  background: url(data:image/png;base64,AAAA);
+}
+
+.text::after {
+  content: "url(./ghost-string.png) @import './ghost-string.css'";
+}
