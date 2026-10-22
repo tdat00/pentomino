@@ -123,3 +123,27 @@ Use Knuth’s small exact-cover example and exhaustive tiny Boolean matrices che
 ## Definition of done & handoff
 
 Provide the arena/placement-plan contract and tests. T07 builds puzzle-facing models on exactly this enumeration and storage; it must not invent a second row order.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done |
+| Start | 2026-10-22 20:03:48 (+07:00) |
+| End | 2026-10-22 20:13:29 (+07:00) |
+| Duration | 9 min 41 s |
+| Model | claude-sonnet-5.5 (sub-agent `T06-dlx`, general-purpose) |
+| Token usage | 31 model calls; 2,953,512 input (2,830,336 cache read), 78,209 output |
+| AI credits | 137.30 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test "tests/**/*.test.js"` → 214 pass / 0 fail in 4.7 s (task tests: 30 pass); `npm run check` OK. Scale smoke (26×26, 91 pieces): 280,264 rows, 1.68M nonzeros, 49 MiB; `ws.bytes()` equals `countModel.bytes`.
+
+**Acceptance:** BAC-1..3 and TAC-1..5 pass. 3×20 pentominoes → exactly 8 covers; tiny matrices match a subset-enumeration oracle (canonical and seeded); `exhausted` true only on full search; row/nonzero/byte guards throw `model-too-large` before any allocation; all stop reasons and throwing callbacks leave links restored; `countModel` equals `fillArena` and `ws.bytes()` exactly; canonical mode draws no RNG.
+
+**Issues & resolutions:**
+- File tool emitted LF; converted to CRLF.
+- No sort scratch needed: rows are enumerated by first cell in (y, x) order then relative offsets; an independent sorted brute-force oracle confirms equality with sorted-row order.
+- Seeded search needs no growth mid-search (candidate rows along one path are disjoint); the shuffle buffer is `rowCount` ints and is counted in `bytes`.
+- Deliberate, documented deviation from strict grow-only: when growth would exceed capacity the old buffer is released first; if leftovers from a larger earlier model would break the ceiling, `reserve` recycles all slots, so declared capacity is never exceeded.
+
+**Handoff:** `placements.js` → `preparePlacements(board, pieces, clues)`, `visitPlacements(plan, emit)` with `emit(pieceIndex, t, x, y, cellColumns)` (`t = 4·mirrored + turn`; `cellColumns` is a reused view — copy it; piece column = `freeCells + pieceIndex`), `countPlacements`, `ModelError` (`model-too-large`, `invalid-clue`, `invalid-input`), `MAX_ROWS`, `MAX_NONZEROS`. `workspace.js` → `createWorkspace(cap)` (`bytes`, `capacityBytes`, `peakBytes`, `allocationCount`, typed-array getters, `reserve(plan)` → Arena with `rows`, `nonzeros`, `columns`, `rowCols`, `rowStart`, `rowPiece`, `rowT`, `rowX`, `rowY`, `cellColumn`, `placementsPerPiece`), `fillArena` (single canonical row order — reuse it), `countModel`, `modelBytes`, `dlxViews`, `MAIN_WORKSPACE_BYTES`, `SCRATCH_WORKSPACE_BYTES`. `dlx.js` → `ExactCover(ws, numColumns, rowCols, rowStart, rowCount).solve(opts)` (`maxSolutions` default 1; seeded mode draws RNG only on column ties ≥ 2 plus one shuffle per node; solutions are row ids in selection order). One live model per workspace — LNS must use the scratch workspace. Empty rows ignored; repeated column in a row → RangeError.
