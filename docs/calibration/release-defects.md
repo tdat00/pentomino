@@ -175,3 +175,48 @@ R1 (irr466 Nightmare heavy tail) is not addressed here: it is a search-time ques
 ### Still needs the full BQ-0 rerun
 
 All 43 cells on every platform (this round measured 20 of them with 3 reps on one Edge); Firefox (heartbeat proxy) and the other platforms of blockers B1-B5; D1/D3 cells after the owner picks an option; R1 with 20 seeds; hand-recorded memory peaks.
+
+## T24 findings (2026-10-23)
+
+Scope: T24 (BQ-1/BQ-2/BQ-3 higher-limit qualification) on HEAD `5948723`; no engine, worker, client or gate code changed; `QUALIFICATION` untouched. Evidence index: `bq-higher-latest.md`. **T24 outcome: BLOCKED** (no phone, no Safari/Mac, no reference laptop, reduced seeds; D1 would fail the gates anyway). Everything measured is screening on this non-reference machine.
+
+| ID | Sev. | Owner | Summary |
+| --- | --- | --- | --- |
+| D8 | High | T10 / T04 (same root cause as D1/D3) | Irregular 558 and 658 boards (and irregular 466 in BQ-3) return fewer than ten puzzles at Hard and Master, so BQ-1, BQ-2 and BQ-3 cannot pass |
+| D9 | Medium | T15 (worker pool / generation client) or the browser | One unreproduced `worker-crashed` ("The worker stopped: unknown error") in Edge 155 at the start of a cell |
+| R2 | Risk | T10 | Irregular 558 Nightmare T10 has a heavy tail close to the 115 s p95 limit even on this fast machine |
+| R3 | Risk | T15 / T11 | Whole-Firefox private memory reached 1,421 MiB at 26x26 Hell-3, near the 1,536 MiB limit (upper bound; per-tab peak unknown) |
+
+### D8. Irregular masks at Hard and Master fail the ten-puzzle criterion
+
+- **Evidence (identical in Node, Edge 155 and Firefox 158, 3 seeds per cell; `bq-2026-10-23-1-*`, `-2-*`, `-3-*`):** irregular 558 Hard 1/3 and Master 2/3 (BQ-1); irregular 658 Hard 2/3 and Master 2/3 (BQ-2); irregular 466 Hard 2/3 (BQ-3, the T23 fixture). Every shortfall is `layouts-not-found` after 4 accepted puzzles (1 for irregular 466 Hard seed 2) in 0.6-1.7 s, so it is not a time-out. At least one puzzle: 3/3 in every cell. Nightmare and above pass 3/3 on the same masks; the full rectangles (24x24, 32x18, 26x26, 32x21, 22x22) and Heart 363 pass 3/3 at every level. At 3 seeds the sample cannot estimate the rate, but 1/3, 2/3 and 2/3 are far from 90% and match D1's 20-seed Node rates (10%, 45%, 70%).
+- **Cause (from D1):** the carved piece sets admit fewer than ten distinct layouts, a property of the large pieces at low levels on a mask with holes; not a browser or timing effect.
+- **Repro:** `node --max-old-space-size=2048 tools\calibrate.mjs --matrix docs\calibration\bq-2026-10-23-1-reduced3.matrix.json --workers 4 --fresh-process --cases "^dirr558-(hard|master)$" --output docs\calibration\repro` (about 30 s); raise `repetitions` to 20 in a copy of the matrix for a rate.
+- **Fix direction (owner):** the same D1 decision (options 1-4 above; the set-capacity filter was recommended and simulated at 20/20 for irregular 466 and 6x10). It changes `ALGO_ID`, so every BQ-0..BQ-3 timing must then be re-measured; BQ-1/2/3 cells with Hard/Master on irregular boards must be re-run after the fix with at least 20 seeds. Option 4 (reword the criterion for these cells) would need a new, explicit BQ rule; this task did not change it.
+
+### D9. Single `worker-crashed` in Edge (unreproduced)
+
+- **Evidence:** `bq-2026-10-23-1-edge155-reduced3.json`, cell `d24x24-master`, seed `bq1/d24x24-master/0`: `{phase: batch, code: worker-crashed, message: "The worker stopped: unknown error"}` 469 ms after the click, 2 puzzles retained (`partialReason: error:worker-crashed`), the second cell of a long-lived page, cross-origin isolated, memory API polling on, while a Node screen ran on the same machine. Not seen in the other 199 rows of the three Edge matrices, in T23's 473 Edge rows, in 32 Firefox rows, or in 20 consecutive reruns of the same cell (`bq-2026-10-23-1-edge155-repro-worker-crash.json`, all ten puzzles, no error). Node showed no crash (T21's 0xC0000005 is a different symptom, D4).
+- **Impact:** counts as a failed run in the ten-puzzle rate (one run in 54 for BQ-1) and the client reports it as an error with the retained puzzles, so users are not left without feedback. A rate of about 1 in 190 generation rows cannot be tested away at 3 seeds, so any qualification run must record `worker-crashed` explicitly.
+- **Fix direction (owner):** reproduce under memory pressure or with a `worker.onerror` capture (the event carries no detail here), check whether `measureUserAgentSpecificMemory` polling or first-cell start-up plays a role, and keep the pool's recovery behaviour (retained puzzles, N-PARTIAL) covered by a test.
+
+### R2 and R3
+
+- R2: irregular 558 Nightmare T10 at 3 seeds: Edge 2.6 s, 41.0 s, 89.1 s; Node 2.4 s, 41.6 s, 91.8 s (same seeds, same result digests as accepted counts). The 115 s p95 limit is 25 s away on this machine; a slower reference laptop is a *forecast* risk, not a measurement. Irregular 466 Nightmare in BQ-0 (R1) behaves the same way.
+- R3: the Firefox whole-process private-memory sum (browser, GPU, content and worker processes, sampled every 3 s) reached 1,421 MiB at 26x26 Hell-3 and 1,115 MiB at BQ-1 sizes; accounted bytes were 332 MiB. The sum includes browser overhead, so the per-tab peak is lower, but only a hand-recorded task-manager / `about:memory` peak can settle criterion C3 at 676 cells.
+
+### Passing evidence worth keeping (screening only)
+
+- The D2 fix holds at 576-676 cells: Edge Long Tasks API saw one 52 ms task in 150 generation rows over the three matrices (first cell of BQ-1) and none elsewhere; the Firefox heartbeat proxy saw at most 37 ms; Cancel settled in at most 12 ms (Edge), 10 ms (Firefox) and 46 ms (Node).
+- No `model-too-large` and accounted bytes at most 332 MiB (budget 1,196 MiB) at 26x26 Hell-3; whole-Edge private memory at most 1,043 MiB.
+- Node and Edge agree on accepted counts and shortfall cells in BQ-2 and BQ-3 (same seeds and engine), and the source digest `ad96b258...` is identical in Node, Edge and Firefox reports.
+- The T24 fallback tests (`tests\bq-limits.test.js`) pin desktop 484 / phone 360 / experimental 676 and show that only `pass` can move a limit.
+
+### Blockers (T24)
+
+| # | Blocker | Exact owner steps |
+| --- | --- | --- |
+| B9 | D1/D3/D8 decision and fix | Pick one of options 1-4 above, implement it (new `ALGO_ID`, re-recorded fixtures where a first set changes), re-run BQ-0 in full (B1-B3) and the Hard/Master cells of irregular 466/558/658. |
+| B10 | Full BQ-1/BQ-2 desktop runs | On the reference laptop (B2) with Chrome or Edge, Firefox and Safari on a comparable Mac: serve with `node tools\serve.mjs --port 8080 --prefix /pentomino/` and open `http://localhost:8080/pentomino/tools/bench/?matrix=../../tools/bench/matrices/bq-1.json&auto=matrix&commit=<sha>` (then `bq-2.json`); the memory API additionally needs COOP/COEP headers, otherwise record the per-tab peak by hand. At least 20 seeds (60 for Hell-1 at the largest area) are already encoded; do not reduce them. Node pre-screen as in the task text (`bq-1-node`, `bq-2-node`). Freeze `core`, `generator`, `player` and `tools\bench` during each run. |
+| B11 | BQ-3 phones | Android Chrome and iPhone Safari (B3) on the same seeds: open the same bench page on the phone (the matrix needs a reachable same-origin server, for example the dev machine's LAN address or a temporary deployment; the bench page has no file chooser for phones), run `bq-3.json`, record per-tab memory by hand (Android: Chrome task manager / `chrome://inspect`; iPhone: Safari Web Inspector), keep the phone plugged in and foregrounded, do not spoof the browser. |
+| B12 | Gate update | Only after a complete, reviewed pass: change `core\engine\qualification.js` for that gate (`status: 'pass'`, `report: <repo-relative report>`), update the pinned assertions in `tests\policy.test.js` and `tests\bq-limits.test.js` in the same commit, add the gate lines to `tasks\init-design\check-list.md`, and re-run the affected cells after any implementation change. A completed honest failure is recorded as `fail` with its report and does not change a limit. |

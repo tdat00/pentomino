@@ -1,0 +1,3470 @@
+{
+  "format": "pentomino-bench-report",
+  "version": 1,
+  "meta": {
+    "kind": "browser",
+    "profile": "BQ-1",
+    "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+    "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+    "versions": {
+      "algo": "gen-v2",
+      "policy": "mixed-v2",
+      "rng": "xoshiro128ss-v1",
+      "model": "difficulty-v2",
+      "app": "1.0.0"
+    },
+    "platform": "Windows",
+    "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "hardware": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "logicalCores": 16,
+      "deviceMemoryGB": 32,
+      "crossOriginIsolated": true
+    },
+    "workerCount": 4,
+    "lifecycle": "cold",
+    "matrixDigest": "9d1da070216d5945289bd5d2b531e64558f6982da12862a7d0be70e5a37a6c61",
+    "startedAt": "2026-10-22T18:06:14.220Z",
+    "finishedAt": "2026-10-22T18:06:40.850Z",
+    "expectedRuns": 21,
+    "notes": [
+      "thumbnails off (renderingEnabled false); full-preview UX checks belong to the release acceptance task"
+    ]
+  },
+  "complete": true,
+  "runCount": 21,
+  "cells": [
+    {
+      "caseId": "d24x24-master",
+      "platform": "browser-or-mixed",
+      "runs": {
+        "ordinary": 20,
+        "expected": 20,
+        "missing": 0,
+        "complete": 20,
+        "atLeastOne": 20,
+        "interrupted": 0,
+        "cancelProbes": 1,
+        "watchdogProbes": 0
+      },
+      "rates": {
+        "completeTen": 1,
+        "atLeastOne": 1
+      },
+      "t1": {
+        "n": 20,
+        "min": 208.43000000715256,
+        "median": 270.71250000596046,
+        "p95": 503.294999986887,
+        "max": 576.919999986887
+      },
+      "t10": {
+        "conditional": true,
+        "basis": "runs that completed ten puzzles",
+        "n": 20,
+        "min": 645.7450000047684,
+        "median": 805.7199999839067,
+        "p95": 1198.75,
+        "max": 1215.2000000178814
+      },
+      "response": {
+        "n": 20,
+        "min": 677.2800000011921,
+        "median": 839.1649999916553,
+        "p95": 1231.4549999833107,
+        "max": 1251.2249999940395
+      },
+      "peak": {
+        "accountedMaxBytes": 100925200,
+        "processMaxBytes": 3055390
+      },
+      "saturatedAccepted": 0,
+      "acceptedTotal": 200,
+      "certificates": {
+        "unique": 4,
+        "multiple": 196,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "sampleSize": {
+        "n": 20,
+        "minimum": 20,
+        "sufficient": true
+      },
+      "checks": [
+        {
+          "id": "complete-ten-rate",
+          "label": "Runs with 10 of 10 puzzles (all ordinary runs)",
+          "status": "pass",
+          "value": 1,
+          "limit": ">= 0.9",
+          "note": "20 of 20"
+        },
+        {
+          "id": "at-least-one-rate",
+          "label": "Runs with at least 1 puzzle (all ordinary runs)",
+          "status": "pass",
+          "value": 1,
+          "limit": ">= 0.99",
+          "note": "20 of 20"
+        },
+        {
+          "id": "t10-median",
+          "label": "T10 median, conditional on complete runs",
+          "status": "pass",
+          "value": 805.7199999839067,
+          "limit": "<= 60000 ms",
+          "note": "n = 20"
+        },
+        {
+          "id": "t10-p95",
+          "label": "T10 p95 (nearest rank), conditional on complete runs",
+          "status": "pass",
+          "value": 1198.75,
+          "limit": "<= 115000 ms",
+          "note": "n = 20"
+        },
+        {
+          "id": "response-time",
+          "label": "Longest response of any ordinary run",
+          "status": "pass",
+          "value": 1251.2249999940395,
+          "limit": "<= 120000 ms",
+          "note": ""
+        },
+        {
+          "id": "peak-process-memory",
+          "label": "Real peak memory of the whole process (tab/process plus workers)",
+          "status": "not-measured",
+          "value": 3055390,
+          "limit": "<= 1610612736 bytes",
+          "note": "some runs have no whole-process measurement"
+        },
+        {
+          "id": "byte-accounting",
+          "label": "Accounted worker and main buffers within the design budgets",
+          "status": "pass",
+          "value": 100925200,
+          "limit": "<= 1254096896 bytes",
+          "note": ""
+        },
+        {
+          "id": "model-too-large",
+          "label": "No model-too-large error",
+          "status": "pass",
+          "value": 0,
+          "limit": "0",
+          "note": ""
+        },
+        {
+          "id": "main-thread-task",
+          "label": "No main-thread task over 50 ms (rendering excluded)",
+          "status": "pass",
+          "value": 0,
+          "limit": "<= 50 ms",
+          "note": "method: longtask-api; thumbnails off"
+        },
+        {
+          "id": "cancel-latency",
+          "label": "Cancel settles quickly (separate probe, excluded from statistics)",
+          "status": "pass",
+          "value": 4.859999984502792,
+          "limit": "< 200 ms",
+          "note": "1 probe(s)"
+        }
+      ],
+      "verdict": "incomplete-evidence"
+    }
+  ],
+  "planning": [],
+  "statement": "Browser measurement of one device. It qualifies nothing by itself: gates change only in qualification.js with a linked report.",
+  "runs": [
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/0",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:14.221Z",
+      "firstReadyMs": 329.2099999785423,
+      "tenthReadyMs": 851.2249999940395,
+      "responseMs": 904.6999999880791,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 75802092,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1277.619999974966,
+      "maxModelRows": 60912,
+      "maxModelNodes": 1579472,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 0,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 23,
+        "sizes": [
+          18,
+          19,
+          21,
+          21,
+          22,
+          22,
+          24,
+          24,
+          25,
+          25,
+          25,
+          25,
+          26,
+          26,
+          26,
+          26,
+          26,
+          27,
+          28,
+          28,
+          29,
+          30,
+          33
+        ],
+        "setAttempt": 0,
+        "initialG": 5,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 5,
+            "U": 18,
+            "score": 44,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 46,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "9590269abf0ec8e7421b2b032434fdbe54a8c3efbc28d6ef0f9039683ea83ae7"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/1",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:15.681Z",
+      "firstReadyMs": 265.71000000834465,
+      "tenthReadyMs": 690.2549999952316,
+      "responseMs": 731.125,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 72753719,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1189.0699999928474,
+      "maxModelRows": 62104,
+      "maxModelNodes": 1609856,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 1,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 23,
+        "sizes": [
+          19,
+          21,
+          21,
+          22,
+          23,
+          23,
+          23,
+          24,
+          24,
+          24,
+          25,
+          25,
+          25,
+          25,
+          26,
+          27,
+          27,
+          27,
+          28,
+          28,
+          28,
+          30,
+          31
+        ],
+        "setAttempt": 0,
+        "initialG": 5,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 5,
+            "U": 18,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 45,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 44,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 45,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 45,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 46,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 45,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "3e5186ea0665eb7341f4401317cab28030ae39c89826256fcf2203e73103f4da"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/2",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:17.032Z",
+      "firstReadyMs": 354.4500000178814,
+      "tenthReadyMs": 1004.6700000166893,
+      "responseMs": 1050.5100000202656,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 70030274,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 1,
+        "multiple": 9,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1358.8250000178814,
+      "maxModelRows": 70792,
+      "maxModelNodes": 1632424,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 2,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 26,
+        "sizes": [
+          16,
+          18,
+          18,
+          18,
+          20,
+          20,
+          21,
+          21,
+          21,
+          21,
+          22,
+          22,
+          22,
+          22,
+          23,
+          23,
+          23,
+          23,
+          24,
+          24,
+          24,
+          24,
+          25,
+          25,
+          26,
+          30
+        ],
+        "setAttempt": 0,
+        "initialG": 6,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "ea4c04c6437bd6530092eeac7f1694a3a2a8d42b2ab25055229cde0af8d82c7e"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/3",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:18.501Z",
+      "firstReadyMs": 313.7150000035763,
+      "tenthReadyMs": 800.8849999904633,
+      "responseMs": 834.9650000035763,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 81086832,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1155.419999986887,
+      "maxModelRows": 62680,
+      "maxModelNodes": 1625928,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 3,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 23,
+        "sizes": [
+          19,
+          21,
+          21,
+          21,
+          22,
+          23,
+          24,
+          24,
+          24,
+          25,
+          25,
+          25,
+          26,
+          26,
+          26,
+          26,
+          27,
+          27,
+          27,
+          27,
+          27,
+          31,
+          32
+        ],
+        "setAttempt": 0,
+        "initialG": 5,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 5,
+            "U": 18,
+            "score": 45,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 41,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 43,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 42,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 45,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "cd4d0020560abd25560572b23263db69873c993355561a65792777b77ea4227e"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/4",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:19.765Z",
+      "firstReadyMs": 260.78999999165535,
+      "tenthReadyMs": 995.3149999976158,
+      "responseMs": 1032.3899999856949,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 83154706,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1324.1949999928474,
+      "maxModelRows": 73704,
+      "maxModelNodes": 1698504,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 4,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 26,
+        "sizes": [
+          18,
+          18,
+          19,
+          20,
+          20,
+          20,
+          20,
+          20,
+          21,
+          21,
+          21,
+          21,
+          22,
+          22,
+          22,
+          22,
+          22,
+          23,
+          23,
+          24,
+          25,
+          25,
+          26,
+          27,
+          27,
+          27
+        ],
+        "setAttempt": 0,
+        "initialG": 6,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 6,
+            "U": 20,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "e2f6604060ce30a899c07b38be10af6e1da7c185eecf86a9e77b66939a0adf9c"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/5",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:21.171Z",
+      "firstReadyMs": 271.7549999952316,
+      "tenthReadyMs": 746.1499999761581,
+      "responseMs": 779.8849999904633,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 81786618,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1172.2699999809265,
+      "maxModelRows": 61504,
+      "maxModelNodes": 1593224,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 5,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 23,
+        "sizes": [
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          24,
+          24,
+          24,
+          24,
+          25,
+          25,
+          25,
+          25,
+          26,
+          26,
+          26,
+          27,
+          28,
+          29,
+          29,
+          29,
+          31
+        ],
+        "setAttempt": 0,
+        "initialG": 5,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 5,
+            "U": 18,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 46,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 46,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "585bd8193c3eebec88b44f1f5f2924a96c8e350dd0e20058bd90697a55dc5a41"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/6",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:22.426Z",
+      "firstReadyMs": 245.91499999165535,
+      "tenthReadyMs": 652.9149999916553,
+      "responseMs": 692.9499999880791,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 59074318,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1012.5250000059605,
+      "maxModelRows": 68640,
+      "maxModelNodes": 1642160,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 6,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 25,
+        "sizes": [
+          18,
+          18,
+          19,
+          19,
+          20,
+          21,
+          21,
+          21,
+          21,
+          22,
+          22,
+          23,
+          23,
+          23,
+          24,
+          24,
+          25,
+          25,
+          26,
+          26,
+          26,
+          26,
+          27,
+          28,
+          28
+        ],
+        "setAttempt": 0,
+        "initialG": 6,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 6,
+            "U": 19,
+            "score": 46,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 45,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "9896436ba2605c9e1e111127130e4ebb2becc55d4a16206e9056674e7bc9da2f"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/7",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:23.537Z",
+      "firstReadyMs": 297.10499998927116,
+      "tenthReadyMs": 831.8149999976158,
+      "responseMs": 868.4099999964237,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 71019209,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1141.339999973774,
+      "maxModelRows": 69000,
+      "maxModelNodes": 1645912,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 7,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 25,
+        "sizes": [
+          16,
+          17,
+          18,
+          19,
+          21,
+          21,
+          22,
+          22,
+          23,
+          23,
+          23,
+          23,
+          24,
+          24,
+          24,
+          24,
+          24,
+          24,
+          25,
+          25,
+          26,
+          26,
+          27,
+          27,
+          28
+        ],
+        "setAttempt": 0,
+        "initialG": 6,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 6,
+            "U": 19,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 46,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 45,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 43,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 46,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "dfc968bf19adb11bb8534bb35b3b69a6e57dc0356b39c6ac2c01badb80307076"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/8",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:24.757Z",
+      "firstReadyMs": 208.43000000715256,
+      "tenthReadyMs": 772,
+      "responseMs": 804.8350000083447,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 75402993,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 1,
+        "multiple": 9,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1066.425000011921,
+      "maxModelRows": 71840,
+      "maxModelNodes": 1649096,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 8,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 26,
+        "sizes": [
+          15,
+          17,
+          19,
+          19,
+          19,
+          19,
+          20,
+          20,
+          21,
+          21,
+          21,
+          22,
+          22,
+          22,
+          22,
+          22,
+          23,
+          23,
+          23,
+          24,
+          25,
+          25,
+          25,
+          27,
+          28,
+          32
+        ],
+        "setAttempt": 0,
+        "initialG": 6,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 6,
+            "U": 20,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 45,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "b0c89144bb120aaa8fdf5df7df8971e8f6c1dacce937d3583d6f63b052a81f4d"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/9",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:25.900Z",
+      "firstReadyMs": 262.1149999797344,
+      "tenthReadyMs": 662.4899999797344,
+      "responseMs": 699.5099999904633,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 71932980,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 973.8849999904633,
+      "maxModelRows": 68744,
+      "maxModelNodes": 1645632,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 9,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 25,
+        "sizes": [
+          18,
+          18,
+          19,
+          20,
+          20,
+          21,
+          21,
+          21,
+          22,
+          22,
+          22,
+          22,
+          22,
+          23,
+          24,
+          25,
+          25,
+          25,
+          25,
+          25,
+          26,
+          26,
+          27,
+          28,
+          29
+        ],
+        "setAttempt": 0,
+        "initialG": 6,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 6,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 46,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "d4e77f015b6853b9d0933a13cd6f817a26a785379a172912171b9aad39ba677d"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/10",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:26.959Z",
+      "firstReadyMs": 453.3400000035763,
+      "tenthReadyMs": 1198.75,
+      "responseMs": 1231.4549999833107,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 89775377,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1554.905000001192,
+      "maxModelRows": 71912,
+      "maxModelNodes": 1652600,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 10,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 26,
+        "sizes": [
+          16,
+          17,
+          18,
+          18,
+          19,
+          20,
+          21,
+          21,
+          21,
+          21,
+          22,
+          22,
+          22,
+          22,
+          23,
+          23,
+          23,
+          24,
+          25,
+          25,
+          25,
+          25,
+          25,
+          26,
+          26,
+          26
+        ],
+        "setAttempt": 0,
+        "initialG": 6,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 7,
+            "U": 19,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 7,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 7,
+            "U": 19,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 46,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 7,
+            "U": 19,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "afda8864318936f26e5b8f52b4cd3842404ef75b229625f5166e031218cdc799"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/11",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:28.594Z",
+      "firstReadyMs": 270.4800000190735,
+      "tenthReadyMs": 774.4850000143051,
+      "responseMs": 812.4300000071526,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 63151805,
+      "peakProcessBytes": 3055390,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 2,
+        "multiple": 8,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1077.1500000059605,
+      "maxModelRows": 71352,
+      "maxModelNodes": 1637496,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 11,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 26,
+        "sizes": [
+          16,
+          18,
+          18,
+          18,
+          19,
+          19,
+          19,
+          20,
+          21,
+          21,
+          21,
+          21,
+          22,
+          22,
+          22,
+          22,
+          24,
+          24,
+          24,
+          24,
+          26,
+          27,
+          27,
+          27,
+          27,
+          27
+        ],
+        "setAttempt": 0,
+        "initialG": 6,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 6,
+            "U": 20,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "36e23852707f0abc2bb73f952d26f6100e4008e826dde199db857331ed08961b"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/12",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:29.752Z",
+      "firstReadyMs": 259.74000000953674,
+      "tenthReadyMs": 744.7100000083447,
+      "responseMs": 781.6700000166893,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 68595379,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1100.9950000047684,
+      "maxModelRows": 69928,
+      "maxModelNodes": 1675552,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 12,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 25,
+        "sizes": [
+          17,
+          19,
+          19,
+          20,
+          20,
+          21,
+          22,
+          22,
+          22,
+          23,
+          23,
+          23,
+          23,
+          24,
+          24,
+          24,
+          24,
+          25,
+          25,
+          25,
+          26,
+          26,
+          26,
+          26,
+          27
+        ],
+        "setAttempt": 0,
+        "initialG": 6,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 6,
+            "U": 19,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 46,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 19,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "e3d888b779431785601623efaec59e51c371d8037e5ce7aaf582f7e01fc67446"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/13",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:30.932Z",
+      "firstReadyMs": 576.919999986887,
+      "tenthReadyMs": 1018.2599999904633,
+      "responseMs": 1053.1499999761581,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 84510518,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1351.9849999845028,
+      "maxModelRows": 66128,
+      "maxModelNodes": 1649768,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 13,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 24,
+        "sizes": [
+          17,
+          19,
+          21,
+          21,
+          22,
+          22,
+          23,
+          23,
+          23,
+          24,
+          24,
+          24,
+          24,
+          24,
+          25,
+          25,
+          26,
+          26,
+          26,
+          27,
+          27,
+          27,
+          28,
+          28
+        ],
+        "setAttempt": 0,
+        "initialG": 5,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 5,
+            "U": 19,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "041fbb13e3095ea09287b3f6afa4429cf0451923b820eaee11d69f57a0a9264c"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/14",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:32.366Z",
+      "firstReadyMs": 258.02000001072884,
+      "tenthReadyMs": 645.7450000047684,
+      "responseMs": 677.2800000011921,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 70373641,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 969.2249999940395,
+      "maxModelRows": 65136,
+      "maxModelNodes": 1619736,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 14,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 24,
+        "sizes": [
+          20,
+          20,
+          20,
+          21,
+          21,
+          21,
+          21,
+          22,
+          23,
+          23,
+          24,
+          24,
+          24,
+          25,
+          25,
+          25,
+          25,
+          26,
+          26,
+          26,
+          27,
+          28,
+          29,
+          30
+        ],
+        "setAttempt": 0,
+        "initialG": 5,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 5,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 19,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "dc0ada627b6c87a4fb0ba941f5d4f5f83c184da904b786faa56ab0d0d8199e8c"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/15",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:33.415Z",
+      "firstReadyMs": 258.3100000023842,
+      "tenthReadyMs": 1215.2000000178814,
+      "responseMs": 1251.2249999940395,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 87181874,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1543.5099999904633,
+      "maxModelRows": 71560,
+      "maxModelNodes": 1630360,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 15,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 26,
+        "sizes": [
+          15,
+          16,
+          17,
+          18,
+          18,
+          19,
+          19,
+          20,
+          20,
+          20,
+          21,
+          21,
+          21,
+          23,
+          23,
+          23,
+          23,
+          23,
+          24,
+          26,
+          27,
+          27,
+          27,
+          28,
+          28,
+          29
+        ],
+        "setAttempt": 0,
+        "initialG": 6,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 6,
+            "U": 20,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "b7d922e7f53f421ffda7efeddc83ac869cf89459661a029925afaa86ab61b413"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/16",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:35.039Z",
+      "firstReadyMs": 293.72999998927116,
+      "tenthReadyMs": 810.5549999773502,
+      "responseMs": 843.3649999797344,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 81967311,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1194.1850000023842,
+      "maxModelRows": 61360,
+      "maxModelNodes": 1592072,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 16,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 23,
+        "sizes": [
+          19,
+          19,
+          21,
+          23,
+          23,
+          24,
+          24,
+          24,
+          25,
+          25,
+          25,
+          25,
+          25,
+          25,
+          26,
+          26,
+          26,
+          27,
+          27,
+          29,
+          29,
+          29,
+          30
+        ],
+        "setAttempt": 0,
+        "initialG": 5,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 5,
+            "U": 18,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 45,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 41,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 46,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 46,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "fa5f2408d193fd9b095d3c92b3c579e21296d9349ba3ac5ec88cf261819374a0"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/17",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:36.316Z",
+      "firstReadyMs": 503.294999986887,
+      "tenthReadyMs": 1090.4849999845028,
+      "responseMs": 1127.1899999976158,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 100925200,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1505.419999986887,
+      "maxModelRows": 63400,
+      "maxModelNodes": 1644496,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 17,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 23,
+        "sizes": [
+          18,
+          21,
+          21,
+          22,
+          22,
+          23,
+          23,
+          23,
+          24,
+          24,
+          25,
+          25,
+          26,
+          26,
+          26,
+          26,
+          27,
+          28,
+          28,
+          28,
+          29,
+          30,
+          31
+        ],
+        "setAttempt": 0,
+        "initialG": 5,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 5,
+            "U": 18,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 45,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "841af29325f9be2a51aeca91fe5c795c668844fd3a1f3b1d7e4462d1a8af4f7b"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/18",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:37.904Z",
+      "firstReadyMs": 263.9699999988079,
+      "tenthReadyMs": 674.3799999952316,
+      "responseMs": 711.5850000083447,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 76116676,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1056.25,
+      "maxModelRows": 62192,
+      "maxModelNodes": 1615680,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 18,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 23,
+        "sizes": [
+          19,
+          22,
+          22,
+          22,
+          22,
+          23,
+          23,
+          23,
+          24,
+          24,
+          25,
+          25,
+          25,
+          26,
+          26,
+          26,
+          27,
+          27,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "setAttempt": 0,
+        "initialG": 5,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 5,
+            "U": 18,
+            "score": 45,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 46,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 45,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 48,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 47,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 18,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "c14d2225775f27e954918fa087f3bb3cc1d1ba4cc5f3971d201dd996dc00e370"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/19",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:39.038Z",
+      "firstReadyMs": 270.94499999284744,
+      "tenthReadyMs": 1137.8149999976158,
+      "responseMs": 1170.9799999892712,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 86259061,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 10,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 1461.1850000023842,
+      "maxModelRows": 72568,
+      "maxModelNodes": 1668472,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 19,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 26,
+        "sizes": [
+          16,
+          17,
+          18,
+          19,
+          19,
+          19,
+          20,
+          21,
+          21,
+          21,
+          22,
+          22,
+          22,
+          23,
+          23,
+          23,
+          23,
+          23,
+          23,
+          24,
+          24,
+          25,
+          25,
+          26,
+          28,
+          29
+        ],
+        "setAttempt": 0,
+        "initialG": 6,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 52,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 51,
+            "level": "master",
+            "saturated": false
+          },
+          {
+            "G": 6,
+            "U": 20,
+            "score": 50,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "ec7e76fafa1c727b5ae90bd7c2dad39128aa5a91457d94f050019a843766b515"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d24x24-master",
+      "seed": "bq1/d24x24-master/cancel",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Windows",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:06:40.577Z",
+      "firstReadyMs": 230.36999997496605,
+      "tenthReadyMs": null,
+      "responseMs": 239.80499997735023,
+      "acceptedCount": 1,
+      "partialReason": "cancelled",
+      "peakAccountedBytes": 31665840,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 1
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": 64800,
+      "maxModelNodes": 1613728,
+      "mainTaskMethod": "longtask-api",
+      "maxMainTaskMs": 0,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": 4.859999984502792,
+      "probeKind": "cancel",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "PerformanceObserver longtask: durations of tasks over 50 ms; 0 means none observed",
+        "performance.measureUserAgentSpecificMemory polled once per second (agent cluster incl. workers; deduplicated by the browser)"
+      ],
+      "errors": [],
+      "rep": 0,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 576,
+        "K": 24,
+        "sizes": [
+          20,
+          21,
+          21,
+          21,
+          21,
+          22,
+          22,
+          22,
+          22,
+          22,
+          23,
+          23,
+          24,
+          24,
+          24,
+          25,
+          25,
+          25,
+          27,
+          27,
+          28,
+          28,
+          28,
+          31
+        ],
+        "setAttempt": 0,
+        "initialG": 5,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 5,
+            "U": 19,
+            "score": 49,
+            "level": "master",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "89b53ac08a7cc6c508752f62c975a654a2dace9784d208ade2c8d6234e54f2c1"
+      },
+      "samples": []
+    }
+  ]
+}

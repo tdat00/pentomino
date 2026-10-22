@@ -1,0 +1,2448 @@
+{
+  "format": "pentomino-bench-report",
+  "version": 1,
+  "meta": {
+    "kind": "browser",
+    "profile": "BQ-2",
+    "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+    "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+    "versions": {
+      "algo": "gen-v2",
+      "policy": "mixed-v2",
+      "rng": "xoshiro128ss-v1",
+      "model": "difficulty-v2",
+      "app": "1.0.0"
+    },
+    "platform": "Win32",
+    "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+    "hardware": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+      "logicalCores": 16,
+      "deviceMemoryGB": null,
+      "crossOriginIsolated": false
+    },
+    "workerCount": 4,
+    "lifecycle": "cold",
+    "matrixDigest": "80655b50c872e94716b8989f77f7ebaa944c661d1617ba085c8489d3d6ad3a5a",
+    "startedAt": "2026-10-22T18:11:00.312Z",
+    "finishedAt": "2026-10-22T18:12:43.789Z",
+    "expectedRuns": 12,
+    "notes": [
+      "thumbnails off (renderingEnabled false); full-preview UX checks belong to the release acceptance task"
+    ]
+  },
+  "complete": true,
+  "runCount": 12,
+  "cells": [
+    {
+      "caseId": "d26x26-hell-1",
+      "platform": "browser-or-mixed",
+      "runs": {
+        "ordinary": 3,
+        "expected": 3,
+        "missing": 0,
+        "complete": 3,
+        "atLeastOne": 3,
+        "interrupted": 0,
+        "cancelProbes": 1,
+        "watchdogProbes": 0
+      },
+      "rates": {
+        "completeTen": 1,
+        "atLeastOne": 1
+      },
+      "t1": {
+        "n": 3,
+        "min": 3754,
+        "median": 4503,
+        "p95": 6612,
+        "max": 6612
+      },
+      "t10": {
+        "conditional": true,
+        "basis": "runs that completed ten puzzles",
+        "n": 3,
+        "min": 17577,
+        "median": 17998,
+        "p95": 18458,
+        "max": 18458
+      },
+      "response": {
+        "n": 3,
+        "min": 17620,
+        "median": 18048,
+        "p95": 18503,
+        "max": 18503
+      },
+      "peak": {
+        "accountedMaxBytes": 230463132,
+        "processMaxBytes": null
+      },
+      "saturatedAccepted": 29,
+      "acceptedTotal": 30,
+      "certificates": {
+        "unique": 0,
+        "multiple": 1,
+        "notProved": 29,
+        "notChecked": 0
+      },
+      "sampleSize": {
+        "n": 3,
+        "minimum": 20,
+        "sufficient": false
+      },
+      "checks": [
+        {
+          "id": "complete-ten-rate",
+          "label": "Runs with 10 of 10 puzzles (all ordinary runs)",
+          "status": "pass",
+          "value": 1,
+          "limit": ">= 0.9",
+          "note": "3 of 3"
+        },
+        {
+          "id": "at-least-one-rate",
+          "label": "Runs with at least 1 puzzle (all ordinary runs)",
+          "status": "pass",
+          "value": 1,
+          "limit": ">= 0.99",
+          "note": "3 of 3"
+        },
+        {
+          "id": "t10-median",
+          "label": "T10 median, conditional on complete runs",
+          "status": "pass",
+          "value": 17998,
+          "limit": "<= 60000 ms",
+          "note": "n = 3"
+        },
+        {
+          "id": "t10-p95",
+          "label": "T10 p95 (nearest rank), conditional on complete runs",
+          "status": "pass",
+          "value": 18458,
+          "limit": "<= 115000 ms",
+          "note": "n = 3"
+        },
+        {
+          "id": "response-time",
+          "label": "Longest response of any ordinary run",
+          "status": "pass",
+          "value": 18503,
+          "limit": "<= 120000 ms",
+          "note": ""
+        },
+        {
+          "id": "peak-process-memory",
+          "label": "Real peak memory of the whole process (tab/process plus workers)",
+          "status": "not-measured",
+          "value": null,
+          "limit": "<= 1610612736 bytes",
+          "note": "some runs have no whole-process measurement"
+        },
+        {
+          "id": "byte-accounting",
+          "label": "Accounted worker and main buffers within the design budgets",
+          "status": "pass",
+          "value": 230463132,
+          "limit": "<= 1254096896 bytes",
+          "note": ""
+        },
+        {
+          "id": "model-too-large",
+          "label": "No model-too-large error",
+          "status": "pass",
+          "value": 0,
+          "limit": "0",
+          "note": ""
+        },
+        {
+          "id": "main-thread-task",
+          "label": "No main-thread task over 50 ms (rendering excluded)",
+          "status": "pass",
+          "value": 22,
+          "limit": "<= 50 ms",
+          "note": "method: heartbeat; heartbeat delay is a proxy, not a measured task duration; thumbnails off"
+        },
+        {
+          "id": "cancel-latency",
+          "label": "Cancel settles quickly (separate probe, excluded from statistics)",
+          "status": "pass",
+          "value": 10,
+          "limit": "< 200 ms",
+          "note": "1 probe(s)"
+        }
+      ],
+      "verdict": "incomplete-evidence"
+    },
+    {
+      "caseId": "d26x26-hell-3",
+      "platform": "browser-or-mixed",
+      "runs": {
+        "ordinary": 3,
+        "expected": 3,
+        "missing": 0,
+        "complete": 3,
+        "atLeastOne": 3,
+        "interrupted": 0,
+        "cancelProbes": 1,
+        "watchdogProbes": 0
+      },
+      "rates": {
+        "completeTen": 1,
+        "atLeastOne": 1
+      },
+      "t1": {
+        "n": 3,
+        "min": 1141,
+        "median": 1318,
+        "p95": 1524,
+        "max": 1524
+      },
+      "t10": {
+        "conditional": true,
+        "basis": "runs that completed ten puzzles",
+        "n": 3,
+        "min": 3750,
+        "median": 4059,
+        "p95": 5292,
+        "max": 5292
+      },
+      "response": {
+        "n": 3,
+        "min": 3794,
+        "median": 4104,
+        "p95": 5337,
+        "max": 5337
+      },
+      "peak": {
+        "accountedMaxBytes": 348388774,
+        "processMaxBytes": null
+      },
+      "saturatedAccepted": 30,
+      "acceptedTotal": 30,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 30,
+        "notChecked": 0
+      },
+      "sampleSize": {
+        "n": 3,
+        "minimum": 20,
+        "sufficient": false
+      },
+      "checks": [
+        {
+          "id": "complete-ten-rate",
+          "label": "Runs with 10 of 10 puzzles (all ordinary runs)",
+          "status": "pass",
+          "value": 1,
+          "limit": ">= 0.9",
+          "note": "3 of 3"
+        },
+        {
+          "id": "at-least-one-rate",
+          "label": "Runs with at least 1 puzzle (all ordinary runs)",
+          "status": "pass",
+          "value": 1,
+          "limit": ">= 0.99",
+          "note": "3 of 3"
+        },
+        {
+          "id": "t10-median",
+          "label": "T10 median, conditional on complete runs",
+          "status": "pass",
+          "value": 4059,
+          "limit": "<= 60000 ms",
+          "note": "n = 3"
+        },
+        {
+          "id": "t10-p95",
+          "label": "T10 p95 (nearest rank), conditional on complete runs",
+          "status": "pass",
+          "value": 5292,
+          "limit": "<= 115000 ms",
+          "note": "n = 3"
+        },
+        {
+          "id": "response-time",
+          "label": "Longest response of any ordinary run",
+          "status": "pass",
+          "value": 5337,
+          "limit": "<= 120000 ms",
+          "note": ""
+        },
+        {
+          "id": "peak-process-memory",
+          "label": "Real peak memory of the whole process (tab/process plus workers)",
+          "status": "not-measured",
+          "value": null,
+          "limit": "<= 1610612736 bytes",
+          "note": "some runs have no whole-process measurement"
+        },
+        {
+          "id": "byte-accounting",
+          "label": "Accounted worker and main buffers within the design budgets",
+          "status": "pass",
+          "value": 348388774,
+          "limit": "<= 1254096896 bytes",
+          "note": ""
+        },
+        {
+          "id": "model-too-large",
+          "label": "No model-too-large error",
+          "status": "pass",
+          "value": 0,
+          "limit": "0",
+          "note": ""
+        },
+        {
+          "id": "main-thread-task",
+          "label": "No main-thread task over 50 ms (rendering excluded)",
+          "status": "pass",
+          "value": 9,
+          "limit": "<= 50 ms",
+          "note": "method: heartbeat; heartbeat delay is a proxy, not a measured task duration; thumbnails off"
+        },
+        {
+          "id": "cancel-latency",
+          "label": "Cancel settles quickly (separate probe, excluded from statistics)",
+          "status": "pass",
+          "value": 8,
+          "limit": "< 200 ms",
+          "note": "1 probe(s)"
+        }
+      ],
+      "verdict": "incomplete-evidence"
+    },
+    {
+      "caseId": "dirr658-hard",
+      "platform": "browser-or-mixed",
+      "runs": {
+        "ordinary": 3,
+        "expected": 3,
+        "missing": 0,
+        "complete": 2,
+        "atLeastOne": 3,
+        "interrupted": 0,
+        "cancelProbes": 1,
+        "watchdogProbes": 0
+      },
+      "rates": {
+        "completeTen": 0.6666666666666666,
+        "atLeastOne": 1
+      },
+      "t1": {
+        "n": 3,
+        "min": 215,
+        "median": 260,
+        "p95": 285,
+        "max": 285
+      },
+      "t10": {
+        "conditional": true,
+        "basis": "runs that completed ten puzzles",
+        "n": 2,
+        "min": 2023,
+        "median": 2209.5,
+        "p95": 2396,
+        "max": 2396
+      },
+      "response": {
+        "n": 3,
+        "min": 843,
+        "median": 2061,
+        "p95": 2435,
+        "max": 2435
+      },
+      "peak": {
+        "accountedMaxBytes": 68854086,
+        "processMaxBytes": null
+      },
+      "saturatedAccepted": 0,
+      "acceptedTotal": 24,
+      "certificates": {
+        "unique": 19,
+        "multiple": 1,
+        "notProved": 0,
+        "notChecked": 4
+      },
+      "sampleSize": {
+        "n": 3,
+        "minimum": 20,
+        "sufficient": false
+      },
+      "checks": [
+        {
+          "id": "complete-ten-rate",
+          "label": "Runs with 10 of 10 puzzles (all ordinary runs)",
+          "status": "fail",
+          "value": 0.6666666666666666,
+          "limit": ">= 0.9",
+          "note": "2 of 3"
+        },
+        {
+          "id": "at-least-one-rate",
+          "label": "Runs with at least 1 puzzle (all ordinary runs)",
+          "status": "pass",
+          "value": 1,
+          "limit": ">= 0.99",
+          "note": "3 of 3"
+        },
+        {
+          "id": "t10-median",
+          "label": "T10 median, conditional on complete runs",
+          "status": "pass",
+          "value": 2209.5,
+          "limit": "<= 60000 ms",
+          "note": "n = 2"
+        },
+        {
+          "id": "t10-p95",
+          "label": "T10 p95 (nearest rank), conditional on complete runs",
+          "status": "pass",
+          "value": 2396,
+          "limit": "<= 115000 ms",
+          "note": "n = 2"
+        },
+        {
+          "id": "response-time",
+          "label": "Longest response of any ordinary run",
+          "status": "pass",
+          "value": 2435,
+          "limit": "<= 120000 ms",
+          "note": ""
+        },
+        {
+          "id": "peak-process-memory",
+          "label": "Real peak memory of the whole process (tab/process plus workers)",
+          "status": "not-measured",
+          "value": null,
+          "limit": "<= 1610612736 bytes",
+          "note": "some runs have no whole-process measurement"
+        },
+        {
+          "id": "byte-accounting",
+          "label": "Accounted worker and main buffers within the design budgets",
+          "status": "pass",
+          "value": 68854086,
+          "limit": "<= 1254096896 bytes",
+          "note": ""
+        },
+        {
+          "id": "model-too-large",
+          "label": "No model-too-large error",
+          "status": "pass",
+          "value": 0,
+          "limit": "0",
+          "note": ""
+        },
+        {
+          "id": "main-thread-task",
+          "label": "No main-thread task over 50 ms (rendering excluded)",
+          "status": "pass",
+          "value": 15,
+          "limit": "<= 50 ms",
+          "note": "method: heartbeat; heartbeat delay is a proxy, not a measured task duration; thumbnails off"
+        },
+        {
+          "id": "cancel-latency",
+          "label": "Cancel settles quickly (separate probe, excluded from statistics)",
+          "status": "pass",
+          "value": 8,
+          "limit": "< 200 ms",
+          "note": "1 probe(s)"
+        }
+      ],
+      "verdict": "fail"
+    }
+  ],
+  "planning": [],
+  "statement": "Browser measurement of one device. It qualifies nothing by itself: gates change only in qualification.js with a linked report.",
+  "runs": [
+    {
+      "caseId": "d26x26-hell-1",
+      "seed": "bq2/d26x26-hell-1/0",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Win32",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:11:00.312Z",
+      "firstReadyMs": 4503,
+      "tenthReadyMs": 17998,
+      "responseMs": 18048,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 230463132,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 10,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 10,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 23939,
+      "maxModelRows": 149960,
+      "maxModelNodes": 2609208,
+      "mainTaskMethod": "heartbeat",
+      "maxMainTaskMs": 16,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "heartbeat proxy: delay of a 10 ms MessageChannel tick, not a measured JavaScript task duration",
+        "browser memory API unavailable (needs cross-origin isolation): collect task-manager or about:memory evidence by hand"
+      ],
+      "errors": [],
+      "rep": 0,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 676,
+        "K": 41,
+        "sizes": [
+          11,
+          12,
+          13,
+          13,
+          13,
+          13,
+          14,
+          14,
+          14,
+          14,
+          14,
+          14,
+          14,
+          14,
+          15,
+          15,
+          15,
+          15,
+          16,
+          16,
+          16,
+          16,
+          16,
+          17,
+          17,
+          17,
+          18,
+          18,
+          19,
+          19,
+          19,
+          19,
+          19,
+          20,
+          20,
+          20,
+          21,
+          21,
+          21,
+          22,
+          22
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 37,
+            "score": 104,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 37,
+            "score": 104,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 37,
+            "score": 104,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 37,
+            "score": 104,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 37,
+            "score": 104,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 37,
+            "score": 104,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 37,
+            "score": 104,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 37,
+            "score": 104,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 37,
+            "score": 104,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 37,
+            "score": 104,
+            "level": "hell-1",
+            "saturated": true
+          }
+        ],
+        "resultDigest": "11c03291409b4ec91a3b793ef58c87e007e915a656e0d215866387628334e421"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d26x26-hell-1",
+      "seed": "bq2/d26x26-hell-1/1",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Win32",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:11:24.389Z",
+      "firstReadyMs": 6612,
+      "tenthReadyMs": 17577,
+      "responseMs": 17620,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 219152208,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 9,
+      "certificates": {
+        "unique": 0,
+        "multiple": 1,
+        "notProved": 9,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 23630,
+      "maxModelRows": 149568,
+      "maxModelNodes": 2665568,
+      "mainTaskMethod": "heartbeat",
+      "maxMainTaskMs": 9,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "heartbeat proxy: delay of a 10 ms MessageChannel tick, not a measured JavaScript task duration",
+        "browser memory API unavailable (needs cross-origin isolation): collect task-manager or about:memory evidence by hand"
+      ],
+      "errors": [],
+      "rep": 1,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 676,
+        "K": 40,
+        "sizes": [
+          12,
+          13,
+          13,
+          14,
+          14,
+          15,
+          15,
+          15,
+          15,
+          15,
+          15,
+          15,
+          16,
+          16,
+          16,
+          16,
+          16,
+          17,
+          17,
+          17,
+          17,
+          17,
+          18,
+          18,
+          18,
+          18,
+          18,
+          18,
+          18,
+          18,
+          18,
+          18,
+          18,
+          19,
+          19,
+          19,
+          20,
+          20,
+          21,
+          24
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 36,
+            "score": 102,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 36,
+            "score": 102,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 36,
+            "score": 102,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 36,
+            "score": 102,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 36,
+            "score": 102,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 36,
+            "score": 102,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 36,
+            "score": 102,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 36,
+            "score": 102,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 36,
+            "score": 93,
+            "level": "hell-1",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 36,
+            "score": 102,
+            "level": "hell-1",
+            "saturated": true
+          }
+        ],
+        "resultDigest": "76913484649c2f375f74c353a39b37eedf745abed1bd5a48b8ee3305c8222d81"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d26x26-hell-1",
+      "seed": "bq2/d26x26-hell-1/2",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Win32",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:11:48.144Z",
+      "firstReadyMs": 3754,
+      "tenthReadyMs": 18458,
+      "responseMs": 18503,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 212714532,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 10,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 10,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 24962,
+      "maxModelRows": 156200,
+      "maxModelNodes": 2649528,
+      "mainTaskMethod": "heartbeat",
+      "maxMainTaskMs": 22,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "heartbeat proxy: delay of a 10 ms MessageChannel tick, not a measured JavaScript task duration",
+        "browser memory API unavailable (needs cross-origin isolation): collect task-manager or about:memory evidence by hand"
+      ],
+      "errors": [],
+      "rep": 2,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 676,
+        "K": 42,
+        "sizes": [
+          10,
+          11,
+          11,
+          12,
+          12,
+          13,
+          13,
+          14,
+          14,
+          14,
+          14,
+          14,
+          15,
+          15,
+          15,
+          15,
+          15,
+          15,
+          15,
+          16,
+          16,
+          16,
+          16,
+          17,
+          17,
+          17,
+          17,
+          17,
+          17,
+          17,
+          18,
+          18,
+          18,
+          18,
+          18,
+          20,
+          20,
+          21,
+          21,
+          21,
+          21,
+          22
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 38,
+            "score": 106,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 38,
+            "score": 106,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 38,
+            "score": 106,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 38,
+            "score": 106,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 38,
+            "score": 106,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 38,
+            "score": 106,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 38,
+            "score": 106,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 38,
+            "score": 106,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 38,
+            "score": 106,
+            "level": "hell-1",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 38,
+            "score": 106,
+            "level": "hell-1",
+            "saturated": true
+          }
+        ],
+        "resultDigest": "8ecdd0a858a3ee68d899ded83cfb3e0d4eb5f36323e3927a5c6526a903d0ac59"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d26x26-hell-1",
+      "seed": "bq2/d26x26-hell-1/cancel",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Win32",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:12:13.246Z",
+      "firstReadyMs": 4908,
+      "tenthReadyMs": null,
+      "responseMs": 4926,
+      "acceptedCount": 1,
+      "partialReason": "cancelled",
+      "peakAccountedBytes": 180284948,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 1,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 1
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": 153993,
+      "maxModelNodes": 2620897,
+      "mainTaskMethod": "heartbeat",
+      "maxMainTaskMs": 27,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": 10,
+      "probeKind": "cancel",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "heartbeat proxy: delay of a 10 ms MessageChannel tick, not a measured JavaScript task duration",
+        "browser memory API unavailable (needs cross-origin isolation): collect task-manager or about:memory evidence by hand"
+      ],
+      "errors": [],
+      "rep": 0,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 676,
+        "K": 42,
+        "sizes": [
+          9,
+          10,
+          12,
+          12,
+          13,
+          13,
+          13,
+          14,
+          14,
+          14,
+          15,
+          15,
+          15,
+          15,
+          15,
+          15,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          17,
+          17,
+          17,
+          17,
+          17,
+          17,
+          17,
+          17,
+          18,
+          18,
+          18,
+          19,
+          19,
+          19,
+          19,
+          20,
+          20,
+          21,
+          23
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 38,
+            "score": 106,
+            "level": "hell-1",
+            "saturated": true
+          }
+        ],
+        "resultDigest": "aca7f88468c04be91c09b41846eccf6660059abc307cd158b47cf67fb1ae445d"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d26x26-hell-3",
+      "seed": "bq2/d26x26-hell-3/0",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Win32",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:12:18.209Z",
+      "firstReadyMs": 1141,
+      "tenthReadyMs": 3750,
+      "responseMs": 3794,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 322793433,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 10,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 10,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 5369,
+      "maxModelRows": 336489,
+      "maxModelNodes": 2981565,
+      "mainTaskMethod": "heartbeat",
+      "maxMainTaskMs": 9,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "heartbeat proxy: delay of a 10 ms MessageChannel tick, not a measured JavaScript task duration",
+        "browser memory API unavailable (needs cross-origin isolation): collect task-manager or about:memory evidence by hand"
+      ],
+      "errors": [],
+      "rep": 0,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 676,
+        "K": 88,
+        "sizes": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          12,
+          12
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 84,
+            "score": 198,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 84,
+            "score": 198,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 84,
+            "score": 198,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 84,
+            "score": 198,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 84,
+            "score": 198,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 84,
+            "score": 198,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 84,
+            "score": 198,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 84,
+            "score": 198,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 84,
+            "score": 198,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 84,
+            "score": 198,
+            "level": "hell-3",
+            "saturated": true
+          }
+        ],
+        "resultDigest": "da4c2671a7485b664648575d6f1493dade571f7c78a72191a75cb2605d71a475"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d26x26-hell-3",
+      "seed": "bq2/d26x26-hell-3/1",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Win32",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:12:23.757Z",
+      "firstReadyMs": 1524,
+      "tenthReadyMs": 5292,
+      "responseMs": 5337,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 348388774,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 10,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 10,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 7312,
+      "maxModelRows": 322418,
+      "maxModelNodes": 2963746,
+      "mainTaskMethod": "heartbeat",
+      "maxMainTaskMs": 9,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "heartbeat proxy: delay of a 10 ms MessageChannel tick, not a measured JavaScript task duration",
+        "browser memory API unavailable (needs cross-origin isolation): collect task-manager or about:memory evidence by hand"
+      ],
+      "errors": [],
+      "rep": 1,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 676,
+        "K": 84,
+        "sizes": [
+          4,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          9,
+          9,
+          9,
+          9,
+          9,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          11,
+          11,
+          11,
+          11,
+          11,
+          12,
+          12,
+          12,
+          12,
+          12,
+          12,
+          13,
+          13,
+          13,
+          13
+        ],
+        "setAttempt": 0,
+        "initialG": 3,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 3,
+            "U": 81,
+            "score": 192,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 3,
+            "U": 81,
+            "score": 192,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 3,
+            "U": 81,
+            "score": 192,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 3,
+            "U": 81,
+            "score": 192,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 3,
+            "U": 81,
+            "score": 192,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 3,
+            "U": 81,
+            "score": 192,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 3,
+            "U": 81,
+            "score": 192,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 3,
+            "U": 81,
+            "score": 192,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 3,
+            "U": 81,
+            "score": 192,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 3,
+            "U": 81,
+            "score": 192,
+            "level": "hell-3",
+            "saturated": true
+          }
+        ],
+        "resultDigest": "4d7327a2c2ed00ac0a98a4bbd58d9e219aca96d922be18ba1263a01aa286064b"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d26x26-hell-3",
+      "seed": "bq2/d26x26-hell-3/2",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Win32",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:12:31.247Z",
+      "firstReadyMs": 1318,
+      "tenthReadyMs": 4059,
+      "responseMs": 4104,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 291529172,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 10,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 10,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 5604,
+      "maxModelRows": 316923,
+      "maxModelNodes": 2773307,
+      "mainTaskMethod": "heartbeat",
+      "maxMainTaskMs": 9,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "heartbeat proxy: delay of a 10 ms MessageChannel tick, not a measured JavaScript task duration",
+        "browser memory API unavailable (needs cross-origin isolation): collect task-manager or about:memory evidence by hand"
+      ],
+      "errors": [],
+      "rep": 2,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 676,
+        "K": 89,
+        "sizes": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          11,
+          11,
+          11,
+          11,
+          11,
+          12,
+          12,
+          12,
+          12,
+          12,
+          12
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 85,
+            "score": 200,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 85,
+            "score": 200,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 85,
+            "score": 200,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 85,
+            "score": 200,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 85,
+            "score": 200,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 85,
+            "score": 200,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 85,
+            "score": 200,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 85,
+            "score": 200,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 85,
+            "score": 200,
+            "level": "hell-3",
+            "saturated": true
+          },
+          {
+            "G": 4,
+            "U": 85,
+            "score": 200,
+            "level": "hell-3",
+            "saturated": true
+          }
+        ],
+        "resultDigest": "52fac4901e967224b7d2eae6f304b9304408c147f976443f2026dc1976f6229c"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d26x26-hell-3",
+      "seed": "bq2/d26x26-hell-3/cancel",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Win32",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:12:37.019Z",
+      "firstReadyMs": 975,
+      "tenthReadyMs": null,
+      "responseMs": 986,
+      "acceptedCount": 1,
+      "partialReason": "cancelled",
+      "peakAccountedBytes": 289656716,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 1,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 1
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": 337897,
+      "maxModelNodes": 3037189,
+      "mainTaskMethod": "heartbeat",
+      "maxMainTaskMs": 6,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": 8,
+      "probeKind": "cancel",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "heartbeat proxy: delay of a 10 ms MessageChannel tick, not a measured JavaScript task duration",
+        "browser memory API unavailable (needs cross-origin isolation): collect task-manager or about:memory evidence by hand"
+      ],
+      "errors": [],
+      "rep": 0,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 676,
+        "K": 87,
+        "sizes": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          9,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          11,
+          12,
+          12
+        ],
+        "setAttempt": 0,
+        "initialG": 3,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 3,
+            "U": 84,
+            "score": 198,
+            "level": "hell-3",
+            "saturated": true
+          }
+        ],
+        "resultDigest": "1bd0fb797bcc5ed4cd4635ec1bcb8647c6e13178c997d8df1e0e6b268718be37"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "dirr658-hard",
+      "seed": "bq2/dirr658-hard/0",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Win32",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:12:38.047Z",
+      "firstReadyMs": 260,
+      "tenthReadyMs": 2396,
+      "responseMs": 2435,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 68854086,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 10,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 2455,
+      "maxModelRows": 51506,
+      "maxModelNodes": 1651342,
+      "mainTaskMethod": "heartbeat",
+      "maxMainTaskMs": 15,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "heartbeat proxy: delay of a 10 ms MessageChannel tick, not a measured JavaScript task duration",
+        "browser memory API unavailable (needs cross-origin isolation): collect task-manager or about:memory evidence by hand"
+      ],
+      "errors": [],
+      "rep": 0,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 658,
+        "K": 21,
+        "sizes": [
+          26,
+          26,
+          26,
+          27,
+          29,
+          30,
+          30,
+          30,
+          31,
+          31,
+          31,
+          31,
+          31,
+          32,
+          34,
+          34,
+          34,
+          35,
+          35,
+          36,
+          39
+        ],
+        "setAttempt": 0,
+        "initialG": 8,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 9,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 10,
+            "U": 11,
+            "score": 22,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 9,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 9,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 9,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 9,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 9,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 9,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 9,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 9,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "ad5340f8691bee4e9a8e674f0fae351c82ee78ca9a102f4d8500cd9790700dd3"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "dirr658-hard",
+      "seed": "bq2/dirr658-hard/1",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Win32",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:12:40.553Z",
+      "firstReadyMs": 215,
+      "tenthReadyMs": null,
+      "responseMs": 843,
+      "acceptedCount": 4,
+      "partialReason": "layouts-not-found",
+      "peakAccountedBytes": 49084375,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 4
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": 47819,
+      "maxModelNodes": 1610045,
+      "mainTaskMethod": "heartbeat",
+      "maxMainTaskMs": 9,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "heartbeat proxy: delay of a 10 ms MessageChannel tick, not a measured JavaScript task duration",
+        "browser memory API unavailable (needs cross-origin isolation): collect task-manager or about:memory evidence by hand"
+      ],
+      "errors": [],
+      "rep": 1,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 658,
+        "K": 20,
+        "sizes": [
+          26,
+          27,
+          28,
+          29,
+          29,
+          30,
+          30,
+          31,
+          31,
+          33,
+          33,
+          34,
+          36,
+          36,
+          36,
+          37,
+          37,
+          37,
+          39,
+          39
+        ],
+        "setAttempt": 0,
+        "initialG": 8,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 8,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 8,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 8,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 8,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "863580e851e4e352c5f17d34039a74492e30d6feff9849079ab8fcd923c9eff8"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "dirr658-hard",
+      "seed": "bq2/dirr658-hard/2",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Win32",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:12:41.427Z",
+      "firstReadyMs": 285,
+      "tenthReadyMs": 2023,
+      "responseMs": 2061,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "peakAccountedBytes": 58676425,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 9,
+        "multiple": 1,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 2085,
+      "maxModelRows": 47385,
+      "maxModelNodes": 1595903,
+      "mainTaskMethod": "heartbeat",
+      "maxMainTaskMs": 14,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "heartbeat proxy: delay of a 10 ms MessageChannel tick, not a measured JavaScript task duration",
+        "browser memory API unavailable (needs cross-origin isolation): collect task-manager or about:memory evidence by hand"
+      ],
+      "errors": [],
+      "rep": 2,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 658,
+        "K": 20,
+        "sizes": [
+          27,
+          28,
+          29,
+          31,
+          31,
+          31,
+          31,
+          31,
+          31,
+          31,
+          32,
+          34,
+          34,
+          35,
+          35,
+          36,
+          36,
+          36,
+          39,
+          40
+        ],
+        "setAttempt": 0,
+        "initialG": 8,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 9,
+            "U": 11,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 8,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 8,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 8,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 8,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 8,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 8,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 9,
+            "U": 11,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 8,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          },
+          {
+            "G": 8,
+            "U": 12,
+            "score": 24,
+            "level": "hard",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "33a3163268bb9d7a08b31e97e3942c8ea66e0c1b5d0aee638666d3755d803c79"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "dirr658-hard",
+      "seed": "bq2/dirr658-hard/cancel",
+      "sourceCommit": "59487235a112be6d0f349521392197171cec5faf",
+      "sourceDigest": "ad96b258e7eb6432f166321a3e37c7c18774ea5a8af69a084193d41902e2bf96",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "Win32",
+      "browserOrNode": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-22T18:12:43.565Z",
+      "firstReadyMs": 195,
+      "tenthReadyMs": null,
+      "responseMs": 203,
+      "acceptedCount": 1,
+      "partialReason": "cancelled",
+      "peakAccountedBytes": 20812040,
+      "peakProcessBytes": null,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 1
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": 46522,
+      "maxModelNodes": 1567456,
+      "mainTaskMethod": "heartbeat",
+      "maxMainTaskMs": 6,
+      "longTasksOver50": 0,
+      "cancelLatencyMs": 8,
+      "probeKind": "cancel",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "heartbeat proxy: delay of a 10 ms MessageChannel tick, not a measured JavaScript task duration",
+        "browser memory API unavailable (needs cross-origin isolation): collect task-manager or about:memory evidence by hand"
+      ],
+      "errors": [],
+      "rep": 0,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 658,
+        "K": 20,
+        "sizes": [
+          27,
+          29,
+          29,
+          29,
+          29,
+          30,
+          31,
+          32,
+          32,
+          33,
+          34,
+          34,
+          34,
+          35,
+          35,
+          35,
+          35,
+          37,
+          38,
+          40
+        ],
+        "setAttempt": 0,
+        "initialG": 8,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 9,
+            "U": 11,
+            "score": 22,
+            "level": "hard",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "99bae1f27008bd51c7d85c98cab67f8a761b738dd0ea73c9f9f1dac029b57670"
+      },
+      "samples": []
+    }
+  ]
+}

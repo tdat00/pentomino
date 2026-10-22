@@ -97,3 +97,34 @@ Test default desktop, experimental desktop, phone with known low memory, phone w
 ## Definition of done & handoff
 
 Publish pass/fail evidence and matching flags. Higher limits require pass. T25 does not depend on these hardware-bound gates; coordinate active-run source freezes rather than blocking unrelated post-MVP work indefinitely.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | **Blocked (partial)** — matrices, fixtures, tests, reduced screening runs and reports complete; BQ-1/BQ-2/BQ-3 NOT passed or qualified; all gates remain `not-run`; no engine/app/gate code changed. |
+| Start | 2026-10-23 00:31:21 (+07:00) |
+| End | 2026-10-23 01:16:55 (+07:00) |
+| Duration | 45 min 34 s |
+| Model | claude-sonnet-5.5 (sub-agent `T24-bq1-bq3`, general-purpose); ran alone after T23, the T23 defect-fix round and T25 were committed |
+| Token usage | 61 model calls; 7,054,844 input (6,898,097 cache read), 71,363 output |
+| AI credits | 179.52 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\bq-higher-matrix.test.js tests\bq-limits.test.js` → 20 pass / 0 fail; `npm run check` OK. Agent run: full `node --test "tests/**/*.test.js"` 768 pass / 0 fail; `npm run test:quick` 758 pass.
+
+**Screening evidence (3 seeds/cell, labelled "screening, not qualification"; index `docs\calibration\bq-higher-latest.md`):**
+- Edge 155 headless (AMD EPYC 7763, not a reference laptop): BQ-1 18 cells, BQ-2 18 cells, BQ-3 matrix 14 cells on desktop (not a phone). Node (4 workers, fresh process) on all three matrices; Firefox 158 on 5 BQ-1 + 3 BQ-2 cells. A Node screen ran concurrently with each Edge matrix, so timings may be slightly pessimistic.
+- No timing, memory, cancel or model-size limit failure: worst T10 median 41 s / max 89 s (irregular 558 Nightmare), every response < 120 s; cancel ≤ 12 ms; accounted bytes ≤ 332 MiB; whole-Edge OS ≤ 1,043 MiB, whole-Firefox ≤ 1,421 MiB (upper bounds, not per-tab); one 52 ms Long Task in 150 Edge rows; Firefox heartbeat proxy max 37 ms.
+- Completion shortfalls only on irregular masks (same in Node/Edge/Firefox) — see D8.
+
+**Acceptance:** BAC-1/BAC-2/BAC-3 gates blocked (tests prove only a `pass` status moves a limit; 484 / 360 / 676-opt-in hold today); Heart 363 never gets Hell-3 (pass); BAC-4 pass (evidence status matches shipped controls, all gates `not-run`). TAC-1 pass; TAC-2 pass for reduced runs (every accepted puzzle re-validated); TAC-3 pass (failed/missing reports cannot raise limits; fallback regression-tested); **TAC-4 blocked** (no phones, Mac/Safari or reference laptop; BQ-0 not passed); TAC-5 pass (measurements and forecasts separated).
+
+**Defects / risks (appended to `docs\calibration\release-defects.md` → "T24 findings"):**
+- D8 High (same root cause as D1): irregular 558 Hard 1/3, Master 2/3; irregular 658 Hard 2/3, Master 2/3; irregular 466 Hard 2/3 stop with `layouts-not-found` — BQ-1/2/3 cannot pass until D1 is resolved.
+- D9 Medium: one Edge `worker-crashed` (24×24 Master seed 0); not reproduced in 20 reruns or the other 199 Edge rows.
+- R2: irregular 558 Nightmare heavy tail (2.4–91.8 s) near the 115 s p95 limit on a slower reference laptop (forecast risk).
+- R3: whole-Firefox 1,421 MiB at 26×26 Hell-3 is near the 1,536 MiB limit; needs a per-tab measurement.
+
+**Blockers (owner steps B9–B12 in `release-defects.md`):** resolve D1/D3/D8 and rerun BQ-0 in full; full BQ-1/BQ-2 (≥ 20 seeds, ≥ 60 Hell-1 at the largest area) on the reference laptop with Chromium, Firefox and Mac Safari; BQ-3 on Android Chrome and iPhone Safari with the same seeds and hand-recorded per-tab memory; only after a complete reviewed pass update `qualification.js`, pinned assertions in `tests\policy.test.js` / `tests\bq-limits.test.js`, and the check-list.
+
+**Handoff:** bench page loads any repo-served matrix via `?matrix=../../<path>&auto=matrix&commit=<sha>`; Edge memory API needs COOP/COEP headers (`tools\serve.mjs` has no option for that yet).
