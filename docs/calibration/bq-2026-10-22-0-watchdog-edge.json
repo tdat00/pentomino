@@ -1,0 +1,99 @@
+{
+  "probe": {
+    "scale": 20,
+    "time": {
+      "targetMs": 60000,
+      "dispatchStopMs": 115000,
+      "responseMs": 120000
+    },
+    "busyWorkerMs": 10000,
+    "expectedStopRealMs": 5750,
+    "expectedResponseRealMs": 6000,
+    "measuredScaleFactor": 20.62,
+    "pieces": 10,
+    "calibrationPuzzleId": "p1299e6152ab9",
+    "batchStartedVirtualMs": 500,
+    "batchResponseRealMs": 5784,
+    "batchResponseVirtualMs": 115680,
+    "workers": [
+      {
+        "index": 0,
+        "tasks": "setAttempt,puzzleCandidate",
+        "busyAfterBatchStartRealMs": 24,
+        "terminatedAfterBatchStartRealMs": 5764,
+        "terminatedAfterBatchStartVirtualMs": 115278
+      },
+      {
+        "index": 1,
+        "tasks": "setAttempt",
+        "busyAfterBatchStartRealMs": null,
+        "terminatedAfterBatchStartRealMs": -50,
+        "terminatedAfterBatchStartVirtualMs": -1002
+      },
+      {
+        "index": 2,
+        "tasks": "setAttempt",
+        "busyAfterBatchStartRealMs": null,
+        "terminatedAfterBatchStartRealMs": -50,
+        "terminatedAfterBatchStartVirtualMs": -1002
+      },
+      {
+        "index": 3,
+        "tasks": "setAttempt",
+        "busyAfterBatchStartRealMs": null,
+        "terminatedAfterBatchStartRealMs": -50,
+        "terminatedAfterBatchStartVirtualMs": -1002
+      },
+      {
+        "index": 4,
+        "tasks": "puzzleCandidate",
+        "busyAfterBatchStartRealMs": 24,
+        "terminatedAfterBatchStartRealMs": 5764,
+        "terminatedAfterBatchStartVirtualMs": 115278
+      },
+      {
+        "index": 5,
+        "tasks": "puzzleCandidate",
+        "busyAfterBatchStartRealMs": 25,
+        "terminatedAfterBatchStartRealMs": 5764,
+        "terminatedAfterBatchStartVirtualMs": 115278
+      },
+      {
+        "index": 6,
+        "tasks": "puzzleCandidate",
+        "busyAfterBatchStartRealMs": 25,
+        "terminatedAfterBatchStartRealMs": 5764,
+        "terminatedAfterBatchStartVirtualMs": 115278
+      }
+    ],
+    "firstTerminationVirtualMs": 115278,
+    "noticeCode": "N-PARTIAL",
+    "noticeText": "Found 1 of 10 different Hard puzzles within the time limit. The piece set was not changed.",
+    "acceptedPrefix": 1,
+    "virtualEndMs": 124786
+  },
+  "results": [
+    {
+      "name": "production TIME constants are unchanged and the host clock is scaled 20x",
+      "ok": true
+    },
+    {
+      "name": "the real piece set and its engine-verified calibration puzzle are ready",
+      "ok": true
+    },
+    {
+      "name": "New Puzzles against busy workers: 115 s virtual stop terminates them and the prefix returns by 120 s virtual",
+      "ok": true
+    },
+    {
+      "name": "the retained prefix and the time-limit notice are shown and the UI is idle",
+      "ok": true
+    },
+    {
+      "name": "no content-security-policy violations",
+      "ok": true
+    }
+  ],
+  "harness": "tests/browser/watchdog.html",
+  "browser": "Edge 155.0.4283.62 headless=new"
+}

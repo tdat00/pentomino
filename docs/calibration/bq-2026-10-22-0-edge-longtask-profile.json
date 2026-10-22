@@ -1,0 +1,571 @@
+{
+  "runs": [
+    {
+      "caseId": "d22x22-hard",
+      "longTasksOver50": 3,
+      "maxMainTaskMs": 61
+    },
+    {
+      "caseId": "d22x22-hard",
+      "longTasksOver50": 2,
+      "maxMainTaskMs": 143
+    },
+    {
+      "caseId": "d22x22-hard",
+      "longTasksOver50": 1,
+      "maxMainTaskMs": 91
+    },
+    {
+      "caseId": "d22x22-hard",
+      "longTasksOver50": 1,
+      "maxMainTaskMs": 92
+    },
+    {
+      "caseId": "d22x22-hard",
+      "longTasksOver50": 1,
+      "maxMainTaskMs": 89
+    },
+    {
+      "caseId": "d22x22-hard",
+      "longTasksOver50": 1,
+      "maxMainTaskMs": 87
+    },
+    {
+      "caseId": "d22x22-hell-1",
+      "longTasksOver50": 1,
+      "maxMainTaskMs": 83
+    },
+    {
+      "caseId": "d22x22-hell-1",
+      "longTasksOver50": 1,
+      "maxMainTaskMs": 125
+    },
+    {
+      "caseId": "d22x22-hell-1",
+      "longTasksOver50": 1,
+      "maxMainTaskMs": 129
+    }
+  ],
+  "stretches": [
+    {
+      "ms": 54,
+      "topInclusive": [
+        "55ms (root) :0",
+        "30ms generateBatch browser/generation-client.js:724",
+        "30ms generate bench/runner.js:508",
+        "20ms assemblePack browser/generation-client.js:346",
+        "20ms finishSet browser/generation-client.js:633",
+        "20ms generateSet browser/generation-client.js:519",
+        "20ms calibrationCandidate engine/generate.js:255",
+        "20ms foldStart engine/generate.js:295",
+        "19ms orientedCells engine/geometry.js:79",
+        "17ms readPack engine/pack.js:931",
+        "17ms validatePack engine/pack.js:1057",
+        "13ms layoutKey engine/keys.js:246",
+        "11ms minimumEncoding engine/keys.js:201",
+        "11ms normalizeCells engine/geometry.js:57"
+      ],
+      "topSelf": [
+        "7ms normalizeCells engine/geometry.js:57",
+        "5ms (anon) engine/geometry.js:46",
+        "5ms (anon) engine/keys.js:165",
+        "5ms (garbage collector) :0",
+        "2ms isConnected engine/geometry.js:228"
+      ]
+    },
+    {
+      "ms": 56,
+      "topInclusive": [
+        "57ms (root) :0",
+        "45ms generateBatch browser/generation-client.js:724",
+        "40ms foldAccept engine/generate.js:406",
+        "39ms layoutDistance engine/keys.js:275",
+        "25ms symmetryMaps engine/keys.js:163",
+        "22ms orientedCells engine/geometry.js:79",
+        "21ms normalizeCells engine/geometry.js:57",
+        "19ms symmetries engine/board.js:350",
+        "13ms serialize engine/hash.js:114",
+        "12ms (garbage collector) :0",
+        "9ms place engine/keys.js:115",
+        "6ms (anon) engine/keys.js:165",
+        "5ms (anon) engine/geometry.js:69",
+        "5ms poseCells engine/geometry.js:89"
+      ],
+      "topSelf": [
+        "13ms normalizeCells engine/geometry.js:57",
+        "12ms (garbage collector) :0",
+        "5ms (anon) engine/geometry.js:69",
+        "5ms (anon) engine/keys.js:165",
+        "4ms layoutDistance engine/keys.js:275"
+      ]
+    },
+    {
+      "ms": 75,
+      "topInclusive": [
+        "76ms (root) :0",
+        "69ms generateBatch browser/generation-client.js:724",
+        "63ms foldAccept engine/generate.js:406",
+        "62ms layoutDistance engine/keys.js:275",
+        "36ms symmetryMaps engine/keys.js:163",
+        "33ms orientedCells engine/geometry.js:79",
+        "29ms symmetries engine/board.js:350",
+        "28ms normalizeCells engine/geometry.js:57",
+        "9ms serialize engine/hash.js:114",
+        "7ms place engine/keys.js:115",
+        "7ms (garbage collector) :0",
+        "7ms (anon) engine/geometry.js:69",
+        "7ms poseCells engine/geometry.js:89",
+        "6ms (anon) engine/geometry.js:68"
+      ],
+      "topSelf": [
+        "15ms normalizeCells engine/geometry.js:57",
+        "12ms layoutDistance engine/keys.js:275",
+        "7ms (garbage collector) :0",
+        "7ms (anon) engine/geometry.js:69",
+        "6ms (anon) engine/geometry.js:68"
+      ]
+    },
+    {
+      "ms": 82,
+      "topInclusive": [
+        "84ms (root) :0",
+        "75ms runCase bench/runner.js:718",
+        "74ms fillRecord bench/runner.js:597",
+        "52ms (anon) bench/runner.js:319",
+        "52ms validateAccepted bench/runner.js:310",
+        "42ms orientedCells engine/geometry.js:79",
+        "37ms normalizeCells engine/geometry.js:57",
+        "29ms minimumEncoding engine/keys.js:201",
+        "28ms symmetryMaps engine/keys.js:163",
+        "26ms clueKey engine/keys.js:261",
+        "24ms layoutKey engine/keys.js:246",
+        "23ms symmetries engine/board.js:350",
+        "21ms distinctOrientations engine/geometry.js:144",
+        "20ms (anon) engine/keys.js:64"
+      ],
+      "topSelf": [
+        "20ms normalizeCells engine/geometry.js:57",
+        "9ms (anon) engine/geometry.js:69",
+        "9ms walk engine/placements.js:246",
+        "8ms (anon) engine/geometry.js:68",
+        "8ms (garbage collector) :0"
+      ]
+    },
+    {
+      "ms": 60,
+      "topInclusive": [
+        "60ms (root) :0",
+        "55ms runCase bench/runner.js:718",
+        "53ms fillRecord bench/runner.js:597",
+        "52ms modelSize bench/runner.js:283",
+        "27ms preparePlacements engine/placements.js:132",
+        "25ms countPlacements engine/placements.js:306",
+        "23ms walk engine/placements.js:246",
+        "20ms normalizeCells engine/geometry.js:57",
+        "20ms orientedCells engine/geometry.js:79",
+        "20ms distinctOrientations engine/geometry.js:144",
+        "17ms (anon) engine/placements.js:198",
+        "10ms canonicalShape engine/placements.js:95",
+        "10ms (anon) engine/placements.js:192",
+        "8ms (anon) engine/geometry.js:68"
+      ],
+      "topSelf": [
+        "23ms walk engine/placements.js:246",
+        "9ms normalizeCells engine/geometry.js:57",
+        "7ms (anon) engine/geometry.js:68",
+        "3ms (garbage collector) :0",
+        "3ms (anon) engine/geometry.js:69"
+      ]
+    },
+    {
+      "ms": 109,
+      "topInclusive": [
+        "111ms (root) :0",
+        "99ms generateBatch browser/generation-client.js:724",
+        "75ms layoutDistance engine/keys.js:275",
+        "75ms foldAccept engine/generate.js:406",
+        "57ms orientedCells engine/geometry.js:79",
+        "53ms normalizeCells engine/geometry.js:57",
+        "44ms symmetryMaps engine/keys.js:163",
+        "39ms symmetries engine/board.js:350",
+        "17ms serialize engine/hash.js:114",
+        "16ms (anon) engine/geometry.js:69",
+        "15ms assemblePack browser/generation-client.js:346",
+        "13ms poseCells engine/geometry.js:89",
+        "9ms place engine/keys.js:115",
+        "8ms (garbage collector) :0"
+      ],
+      "topSelf": [
+        "31ms normalizeCells engine/geometry.js:57",
+        "16ms (anon) engine/geometry.js:69",
+        "16ms layoutDistance engine/keys.js:275",
+        "8ms (garbage collector) :0",
+        "7ms (anon) engine/geometry.js:68"
+      ]
+    },
+    {
+      "ms": 90,
+      "topInclusive": [
+        "91ms (root) :0",
+        "85ms runCase bench/runner.js:718",
+        "82ms fillRecord bench/runner.js:597",
+        "42ms orientedCells engine/geometry.js:79",
+        "39ms (anon) bench/runner.js:319",
+        "39ms validateAccepted bench/runner.js:310",
+        "38ms normalizeCells engine/geometry.js:57",
+        "35ms modelSize bench/runner.js:283",
+        "23ms distinctOrientations engine/geometry.js:144",
+        "21ms preparePlacements engine/placements.js:132",
+        "20ms clueKey engine/keys.js:261",
+        "20ms symmetryMaps engine/keys.js:163",
+        "20ms minimumEncoding engine/keys.js:201",
+        "19ms layoutKey engine/keys.js:246"
+      ],
+      "topSelf": [
+        "25ms normalizeCells engine/geometry.js:57",
+        "10ms walk engine/placements.js:246",
+        "8ms (anon) engine/geometry.js:69",
+        "6ms (garbage collector) :0",
+        "6ms (anon) engine/placements.js:200"
+      ]
+    },
+    {
+      "ms": 53,
+      "topInclusive": [
+        "54ms (root) :0",
+        "48ms generateBatch browser/generation-client.js:724",
+        "32ms normalizeCells engine/geometry.js:57",
+        "32ms orientedCells engine/geometry.js:79",
+        "28ms layoutDistance engine/keys.js:275",
+        "28ms foldAccept engine/generate.js:406",
+        "19ms symmetryMaps engine/keys.js:163",
+        "17ms symmetries engine/board.js:350",
+        "15ms assemblePack browser/generation-client.js:346",
+        "9ms (anon) engine/geometry.js:68",
+        "8ms (anon) engine/geometry.js:69",
+        "8ms readPack engine/pack.js:931",
+        "8ms validatePack engine/pack.js:1057",
+        "7ms canonicalT engine/geometry.js:162"
+      ],
+      "topSelf": [
+        "16ms normalizeCells engine/geometry.js:57",
+        "8ms (anon) engine/geometry.js:69",
+        "7ms (anon) engine/geometry.js:68",
+        "6ms layoutDistance engine/keys.js:275",
+        "5ms (garbage collector) :0"
+      ]
+    },
+    {
+      "ms": 92,
+      "topInclusive": [
+        "93ms (root) :0",
+        "86ms runCase bench/runner.js:718",
+        "84ms fillRecord bench/runner.js:597",
+        "41ms (anon) bench/runner.js:319",
+        "41ms validateAccepted bench/runner.js:310",
+        "40ms orientedCells engine/geometry.js:79",
+        "38ms modelSize bench/runner.js:283",
+        "35ms normalizeCells engine/geometry.js:57",
+        "24ms preparePlacements engine/placements.js:132",
+        "23ms minimumEncoding engine/keys.js:201",
+        "22ms clueKey engine/keys.js:261",
+        "21ms symmetryMaps engine/keys.js:163",
+        "18ms distinctOrientations engine/geometry.js:144",
+        "16ms layoutKey engine/keys.js:246"
+      ],
+      "topSelf": [
+        "18ms normalizeCells engine/geometry.js:57",
+        "14ms walk engine/placements.js:246",
+        "10ms (anon) engine/geometry.js:69",
+        "10ms (anon) engine/placements.js:200",
+        "7ms (anon) engine/geometry.js:68"
+      ]
+    },
+    {
+      "ms": 80,
+      "topInclusive": [
+        "81ms (root) :0",
+        "76ms generateBatch browser/generation-client.js:724",
+        "57ms layoutDistance engine/keys.js:275",
+        "57ms foldAccept engine/generate.js:406",
+        "42ms orientedCells engine/geometry.js:79",
+        "40ms symmetryMaps engine/keys.js:163",
+        "35ms normalizeCells engine/geometry.js:57",
+        "33ms symmetries engine/board.js:350",
+        "20ms serialize engine/hash.js:114",
+        "11ms assemblePack browser/generation-client.js:346",
+        "8ms poseCells engine/geometry.js:89",
+        "7ms readPack engine/pack.js:931",
+        "7ms validatePack engine/pack.js:1057",
+        "7ms (anon) engine/keys.js:165"
+      ],
+      "topSelf": [
+        "24ms normalizeCells engine/geometry.js:57",
+        "9ms layoutDistance engine/keys.js:275",
+        "6ms (anon) engine/geometry.js:69",
+        "6ms (anon) engine/keys.js:165",
+        "6ms (anon) engine/geometry.js:68"
+      ]
+    },
+    {
+      "ms": 87,
+      "topInclusive": [
+        "89ms (root) :0",
+        "83ms runCase bench/runner.js:718",
+        "81ms fillRecord bench/runner.js:597",
+        "42ms orientedCells engine/geometry.js:79",
+        "38ms (anon) bench/runner.js:319",
+        "38ms validateAccepted bench/runner.js:310",
+        "37ms normalizeCells engine/geometry.js:57",
+        "35ms modelSize bench/runner.js:283",
+        "23ms minimumEncoding engine/keys.js:201",
+        "21ms symmetryMaps engine/keys.js:163",
+        "20ms distinctOrientations engine/geometry.js:144",
+        "19ms layoutKey engine/keys.js:246",
+        "19ms preparePlacements engine/placements.js:132",
+        "18ms clueKey engine/keys.js:261"
+      ],
+      "topSelf": [
+        "24ms normalizeCells engine/geometry.js:57",
+        "13ms walk engine/placements.js:246",
+        "8ms (anon) engine/geometry.js:68",
+        "6ms (garbage collector) :0",
+        "4ms (anon) engine/geometry.js:46"
+      ]
+    },
+    {
+      "ms": 87,
+      "topInclusive": [
+        "88ms (root) :0",
+        "81ms generateBatch browser/generation-client.js:724",
+        "62ms layoutDistance engine/keys.js:275",
+        "62ms foldAccept engine/generate.js:406",
+        "46ms orientedCells engine/geometry.js:79",
+        "43ms normalizeCells engine/geometry.js:57",
+        "40ms symmetryMaps engine/keys.js:163",
+        "31ms symmetries engine/board.js:350",
+        "15ms (anon) engine/geometry.js:69",
+        "13ms poseCells engine/geometry.js:89",
+        "13ms assemblePack browser/generation-client.js:346",
+        "9ms (anon) engine/keys.js:165",
+        "8ms place engine/keys.js:115",
+        "7ms (garbage collector) :0"
+      ],
+      "topSelf": [
+        "23ms normalizeCells engine/geometry.js:57",
+        "15ms (anon) engine/geometry.js:69",
+        "9ms layoutDistance engine/keys.js:275",
+        "7ms (garbage collector) :0",
+        "7ms (anon) engine/keys.js:165"
+      ]
+    },
+    {
+      "ms": 87,
+      "topInclusive": [
+        "88ms (root) :0",
+        "85ms runCase bench/runner.js:718",
+        "82ms fillRecord bench/runner.js:597",
+        "40ms orientedCells engine/geometry.js:79",
+        "38ms modelSize bench/runner.js:283",
+        "36ms (anon) bench/runner.js:319",
+        "36ms validateAccepted bench/runner.js:310",
+        "33ms normalizeCells engine/geometry.js:57",
+        "24ms preparePlacements engine/placements.js:132",
+        "23ms distinctOrientations engine/geometry.js:144",
+        "20ms layoutKey engine/keys.js:246",
+        "19ms symmetryMaps engine/keys.js:163",
+        "19ms minimumEncoding engine/keys.js:201",
+        "16ms symmetries engine/board.js:350"
+      ],
+      "topSelf": [
+        "20ms normalizeCells engine/geometry.js:57",
+        "14ms walk engine/placements.js:246",
+        "9ms (anon) engine/geometry.js:69",
+        "8ms (anon) engine/placements.js:200",
+        "5ms (anon) engine/geometry.js:46"
+      ]
+    },
+    {
+      "ms": 71,
+      "topInclusive": [
+        "72ms (root) :0",
+        "66ms generateBatch browser/generation-client.js:724",
+        "48ms layoutDistance engine/keys.js:275",
+        "48ms foldAccept engine/generate.js:406",
+        "40ms orientedCells engine/geometry.js:79",
+        "35ms normalizeCells engine/geometry.js:57",
+        "32ms symmetryMaps engine/keys.js:163",
+        "26ms symmetries engine/board.js:350",
+        "12ms serialize engine/hash.js:114",
+        "12ms assemblePack browser/generation-client.js:346",
+        "11ms (anon) engine/geometry.js:69",
+        "9ms place engine/keys.js:115",
+        "9ms poseCells engine/geometry.js:89",
+        "7ms createPack engine/pack.js:1267"
+      ],
+      "topSelf": [
+        "21ms normalizeCells engine/geometry.js:57",
+        "11ms (anon) engine/geometry.js:69",
+        "6ms layoutDistance engine/keys.js:275",
+        "6ms (garbage collector) :0",
+        "5ms place engine/keys.js:115"
+      ]
+    },
+    {
+      "ms": 73,
+      "topInclusive": [
+        "75ms (root) :0",
+        "73ms runCase bench/runner.js:718",
+        "70ms fillRecord bench/runner.js:597",
+        "42ms orientedCells engine/geometry.js:79",
+        "38ms normalizeCells engine/geometry.js:57",
+        "35ms modelSize bench/runner.js:283",
+        "30ms (anon) bench/runner.js:319",
+        "30ms validateAccepted bench/runner.js:310",
+        "22ms preparePlacements engine/placements.js:132",
+        "21ms distinctOrientations engine/geometry.js:144",
+        "15ms symmetryMaps engine/keys.js:163",
+        "15ms minimumEncoding engine/keys.js:201",
+        "15ms clueKey engine/keys.js:261",
+        "13ms (anon) engine/placements.js:198"
+      ],
+      "topSelf": [
+        "23ms normalizeCells engine/geometry.js:57",
+        "13ms walk engine/placements.js:246",
+        "9ms (anon) engine/geometry.js:68",
+        "6ms (anon) engine/geometry.js:69",
+        "6ms (anon) engine/placements.js:200"
+      ]
+    },
+    {
+      "ms": 40,
+      "topInclusive": [
+        "41ms (root) :0",
+        "40ms generateBatch browser/generation-client.js:724",
+        "37ms layoutDistance engine/keys.js:275",
+        "37ms foldAccept engine/generate.js:406",
+        "21ms symmetryMaps engine/keys.js:163",
+        "19ms orientedCells engine/geometry.js:79",
+        "17ms symmetries engine/board.js:350",
+        "17ms normalizeCells engine/geometry.js:57",
+        "7ms (anon) engine/geometry.js:68",
+        "3ms (anon) engine/keys.js:286",
+        "3ms (anon) engine/keys.js:165",
+        "2ms (anon) engine/keys.js:281",
+        "2ms (anon) engine/geometry.js:46",
+        "2ms transformCells engine/geometry.js:44"
+      ],
+      "topSelf": [
+        "10ms normalizeCells engine/geometry.js:57",
+        "8ms layoutDistance engine/keys.js:275",
+        "7ms (anon) engine/geometry.js:68",
+        "3ms (anon) engine/keys.js:286",
+        "2ms (anon) engine/keys.js:281"
+      ]
+    },
+    {
+      "ms": 61,
+      "topInclusive": [
+        "62ms (root) :0",
+        "60ms generateBatch browser/generation-client.js:724",
+        "44ms layoutDistance engine/keys.js:275",
+        "44ms foldAccept engine/generate.js:406",
+        "42ms orientedCells engine/geometry.js:79",
+        "36ms normalizeCells engine/geometry.js:57",
+        "30ms symmetryMaps engine/keys.js:163",
+        "25ms symmetries engine/board.js:350",
+        "12ms (anon) engine/geometry.js:68",
+        "12ms poseCells engine/geometry.js:89",
+        "11ms assemblePack browser/generation-client.js:346",
+        "10ms (anon) engine/geometry.js:69",
+        "7ms transformCells engine/geometry.js:44",
+        "7ms place engine/keys.js:115"
+      ],
+      "topSelf": [
+        "14ms normalizeCells engine/geometry.js:57",
+        "10ms (anon) engine/geometry.js:69",
+        "10ms (anon) engine/geometry.js:68",
+        "6ms layoutDistance engine/keys.js:275",
+        "3ms (anon) engine/keys.js:165"
+      ]
+    },
+    {
+      "ms": 124,
+      "topInclusive": [
+        "125ms (root) :0",
+        "124ms runCase bench/runner.js:718",
+        "121ms fillRecord bench/runner.js:597",
+        "74ms modelSize bench/runner.js:283",
+        "49ms walk engine/placements.js:246",
+        "49ms countPlacements engine/placements.js:306",
+        "46ms normalizeCells engine/geometry.js:57",
+        "46ms orientedCells engine/geometry.js:79",
+        "40ms validateAccepted bench/runner.js:310",
+        "39ms (anon) bench/runner.js:319",
+        "25ms preparePlacements engine/placements.js:132",
+        "24ms distinctOrientations engine/geometry.js:144",
+        "21ms symmetryMaps engine/keys.js:163",
+        "21ms minimumEncoding engine/keys.js:201"
+      ],
+      "topSelf": [
+        "45ms walk engine/placements.js:246",
+        "28ms normalizeCells engine/geometry.js:57",
+        "10ms (anon) engine/geometry.js:69",
+        "9ms (anon) engine/placements.js:200",
+        "8ms (anon) engine/geometry.js:68"
+      ]
+    },
+    {
+      "ms": 129,
+      "topInclusive": [
+        "130ms (root) :0",
+        "129ms runCase bench/runner.js:718",
+        "125ms fillRecord bench/runner.js:597",
+        "79ms modelSize bench/runner.js:283",
+        "51ms walk engine/placements.js:246",
+        "51ms countPlacements engine/placements.js:306",
+        "42ms orientedCells engine/geometry.js:79",
+        "41ms (anon) bench/runner.js:319",
+        "41ms validateAccepted bench/runner.js:310",
+        "39ms normalizeCells engine/geometry.js:57",
+        "27ms preparePlacements engine/placements.js:132",
+        "27ms distinctOrientations engine/geometry.js:144",
+        "25ms minimumEncoding engine/keys.js:201",
+        "24ms symmetryMaps engine/keys.js:163"
+      ],
+      "topSelf": [
+        "43ms walk engine/placements.js:246",
+        "20ms normalizeCells engine/geometry.js:57",
+        "10ms (anon) engine/geometry.js:68",
+        "9ms (anon) engine/geometry.js:69",
+        "9ms (anon) engine/placements.js:200"
+      ]
+    },
+    {
+      "ms": 128,
+      "topInclusive": [
+        "129ms (root) :0",
+        "118ms fillRecord bench/runner.js:597",
+        "118ms runCase bench/runner.js:718",
+        "76ms modelSize bench/runner.js:283",
+        "51ms walk engine/placements.js:246",
+        "51ms countPlacements engine/placements.js:306",
+        "45ms normalizeCells engine/geometry.js:57",
+        "45ms orientedCells engine/geometry.js:79",
+        "36ms (anon) bench/runner.js:319",
+        "36ms validateAccepted bench/runner.js:310",
+        "25ms preparePlacements engine/placements.js:132",
+        "23ms distinctOrientations engine/geometry.js:144",
+        "20ms symmetryMaps engine/keys.js:163",
+        "20ms minimumEncoding engine/keys.js:201"
+      ],
+      "topSelf": [
+        "40ms walk engine/placements.js:246",
+        "26ms normalizeCells engine/geometry.js:57",
+        "11ms (anon) engine/geometry.js:69",
+        "11ms (anon) engine/placements.js:313",
+        "9ms (anon) engine/geometry.js:68"
+      ]
+    }
+  ]
+}

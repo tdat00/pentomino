@@ -119,3 +119,41 @@ Execute the acceptance list above and each BQ-0 cell. Inject cancellation, stora
 ## Definition of done & handoff
 
 Record reviewer/product-owner/date sign-off and the deployed revision. T24 may qualify higher limits afterward; T25 is post-MVP. Never lower distinctness, raise budgets, or change bands merely to turn a failing report green.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | **Blocked** — harnesses, matrix, fixture, tests and reduced evidence complete; BQ-0 NOT passed (failed criteria D1–D3) and reference platforms, screen reader, axe and deployment unavailable. `QUALIFICATION.bq0` left `not-run`. |
+| Start | 2026-10-22 22:10:18 (+07:00) |
+| End | 2026-10-22 23:32:23 (+07:00) |
+| Duration | 1 h 22 min 5 s |
+| Model | claude-sonnet-5.5 (sub-agent `T23-bq0-acceptance`, general-purpose); ran alone (no runtime code changed during measurement) |
+| Token usage | 152 model calls; 34,227,979 input (33,895,115 cache read), 177,717 output |
+| AI credits | 599.87 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\bq0-matrix.test.js` → 11 pass / 0 fail; `npm run check` OK. Agent run: full `node --test "tests/**/*.test.js"` 714 pass / 0 fail; `npm run test:quick` 704 pass; existing Edge harnesses on HEAD: rendering 15/15, generator-editor 24/24, generator-flow 12/12, player-import 18/18, player-controls 25/25. Source digest identical across Node, Edge and Firefox reports (HEAD `6e91263`).
+
+**Evidence (all under `docs\calibration\`, index `bq-0-latest.md`):**
+- Matrix `tools\bench\matrices\bq-0.json`: 43 cells, 940 generation rows; fixture `tests\fixtures\bq-irregular-466.json` (466 cells, connected, 3 holes, asymmetric).
+- Node screen (3 seeds/cell, 4 workers, fresh process): 172 rows, 0 errors. Node 20-seed reruns of short cells: irregular 466 Hard 2/20, Expert 9/20, Master 14/20; 6×10 Very Easy 16/20, Easy 18/20.
+- Edge 155 (AMD EPYC 7763, 16 threads, 64 GB — not a reference laptop), 10 seeds/cell, 473 rows: T10 within limits everywhere (e.g. 22×22 Hell-3 median 9.7 s / p95 13.4 s; irregular 466 Nightmare median 10.1 s / max 72.2 s); cancel ≤ 7 ms; accounted bytes ≤ 165 MiB; memory API ≤ 143 MiB; whole-Edge OS sample ≤ 794 MiB; no `model-too-large`.
+- Firefox 158 (reduced, 3 seeds/cell, heartbeat proxy): 172 rows, max response 29 s.
+- Cross-app acceptance harness (Edge): 0 failures (4 items blocked fine-pointer, 3 with emulated `pointer: coarse`). Scaled watchdog probe 5/5: busy workers terminated at 115,278 virtual ms, client returned N-PARTIAL with 1 retained puzzle at 115,680 virtual ms, UI idle.
+- Local deployment artifact: `_site` assembled as in `pages.yml`, `stamp-version _site 6e912637` + `check-site --expect-version 6e912637` OK; only `core`, `generator`, `player`, `index.html`, `redirect.js` published; root → generator → player works under `/pentomino/`.
+
+**Acceptance:** BAC-1 **fail** (D1, D2, D3); BAC-2 partial (local OK, deployed URL blocked); BAC-3 not demonstrated (no limit changed; notice wording mapping not checked). TAC-1 pass; TAC-2 pass for reduced runs (methods labelled); TAC-3 pass locally, deployed revision blocked; TAC-4 **blocked**; TAC-5 pass; TAC-6 watchdog + automated acceptance pass, screen reader/axe/narrow-layout diagram match blocked or structural only.
+
+**Defects (details, repro and fix direction in `docs\calibration\release-defects.md`):**
+- D1 High (T10; T04/T08 review): irregular 466 Hard/Expert/Master stop with `layouts-not-found` (Node 10%/45%/70% reach ten; same in Edge/Firefox).
+- D2 High (T15 with T07/T10/T11 functions): one 57–221 ms main-thread task per run on boards ≥ 360 cells (31/43 Edge cells); profile points at `foldAccept` → `layoutDistance` → `symmetryMaps` and `assemblePack` → `validatePack`.
+- D3 High (T10/T04): 6×10 Very Easy completes ten in 80% of Node runs (< 90%); Easy exactly 90%.
+- D4 Medium (T14/T15/T21): T21's native Node crash 0xC0000005 not reproduced in 1,467 fresh-process runs; Node-only, no release impact.
+- D5 Low (T01/T17/T19): `/favicon.ico` 404 logs a console error on every page.
+- D6 Low (T21): bench page loads matrices only through a file chooser; memory API yields no value for short rows.
+- D7 Low (T18/T20): player title reads "Normal #1 #1".
+- R1 Risk (T10): irregular 466 Nightmare heavy tail (2.3–72.2 s at 10 seeds).
+
+**Blockers (owner steps B1–B8 in `release-defects.md`):** full 20/60-seed runs; reference laptop hardware; Chrome, Mac/Safari, Android and iPhone; NVDA/VoiceOver smoke test; approved axe audit; GitHub Pages deployment and deployed-URL verification; reviewer/product-owner sign-off.
+
+**Handoff:** T24/T25 should not be qualified until D1–D3 are fixed and BQ-0 is rerun in full on real platforms (source changes invalidate evidence). To mark `bq0` pass later, edit only `core\engine\qualification.js` with a passing report link and update the pinned `policy.test.js` assertion in the same commit. Bench page needs a CDP/BiDi file chooser or manual upload to load `bq-0.json`. Edge and Firefox are both available on this machine for cheap harness reruns.

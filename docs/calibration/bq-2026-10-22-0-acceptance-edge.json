@@ -1,0 +1,518 @@
+{
+  "harness": "tests/browser/acceptance.html",
+  "servedBy": "tools/serve.mjs --port 8080 --prefix /pentomino/",
+  "browser": "Edge 155.0.4283.62 headless=new",
+  "note": "fine pointer run evaluates A1 as blocked; coarse pointer run emulates pointer:coarse and a 390x844 viewport (frames are sized explicitly by the harness)",
+  "finePointer": {
+    "origin": "http://127.0.0.1:8080",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "results": [
+      {
+        "id": "R1",
+        "name": "Root page redirects to the generator under the served prefix, keeping the module graph relative",
+        "status": "pass",
+        "detail": {
+          "landedOn": "/pentomino/generator/",
+          "harnessPath": "/pentomino/tests/browser/acceptance.html",
+          "prefixServed": true,
+          "version": "1.0.0"
+        }
+      },
+      {
+        "id": "F-default-10x6-normal",
+        "name": "default-10x6-normal: Generate Piece Set -> 5 puzzles -> Play (real pages, real workers, recorded scores)",
+        "status": "pass",
+        "detail": {
+          "setMs": 183,
+          "batchMs": 242,
+          "scores": [
+            16,
+            12,
+            16,
+            15,
+            16
+          ],
+          "clues": 4,
+          "trayPieces": 4,
+          "cardTitle": "Normal #1",
+          "playerTitle": "Normal #1 #1 · Claimed Normal · score 16",
+          "hrefChars": 1592
+        }
+      },
+      {
+        "id": "F-heart-n10-master",
+        "name": "heart-n10-master: Generate Piece Set -> 10 puzzles -> Play (real pages, real workers, recorded scores)",
+        "status": "pass",
+        "detail": {
+          "setMs": 477,
+          "batchMs": 638,
+          "scores": [
+            43,
+            41,
+            37,
+            49,
+            38,
+            38,
+            47,
+            48,
+            45,
+            42
+          ],
+          "clues": 3,
+          "trayPieces": 11,
+          "cardTitle": "Master #1",
+          "playerTitle": "Master #1 #1 · Claimed Master · score 43",
+          "hrefChars": 2724
+        }
+      },
+      {
+        "id": "F-square-22x22-hell-3",
+        "name": "square-22x22-hell-3: Generate Piece Set -> 10 puzzles -> Play (real pages, real workers, recorded scores)",
+        "status": "pass",
+        "detail": {
+          "setMs": 1022,
+          "batchMs": 2204,
+          "scores": [
+            170,
+            170,
+            170,
+            170,
+            170,
+            170,
+            170,
+            170,
+            170,
+            170
+          ],
+          "clues": 3,
+          "trayPieces": 70,
+          "cardTitle": "Hell 3 #1",
+          "playerTitle": "Hell 3 #1 #1 · Claimed Hell 3 · score 170",
+          "hrefChars": 5534
+        }
+      },
+      {
+        "id": "I1",
+        "name": "Player: file import in a fresh profile opens the game and fills the local library",
+        "status": "pass",
+        "detail": {
+          "trayPieces": 4
+        }
+      },
+      {
+        "id": "I2",
+        "name": "Player: invalid import keeps the open game, the error is announced and Back returns to it",
+        "status": "pass",
+        "detail": {
+          "error": "",
+          "before": {
+            "tray": 4,
+            "title": "Easy #1 · Claimed Easy · score 8"
+          }
+        }
+      },
+      {
+        "id": "I3",
+        "name": "Player: pasted Play link and share code open the puzzle",
+        "status": "pass",
+        "detail": {
+          "tray": 4
+        }
+      },
+      {
+        "id": "I4",
+        "name": "Player: #pack= address and #lib= library fallback address open the puzzle",
+        "status": "pass",
+        "detail": {
+          "packTray": 4,
+          "libTray": 4
+        }
+      },
+      {
+        "id": "L1",
+        "name": "Generator desktop layout (>= 900 px): three columns above a full-width puzzle row, sticky action bar, level selector and Copy pack link present",
+        "status": "pass",
+        "detail": {
+          "board": 16,
+          "level": 504,
+          "set": 884,
+          "stickyPosition": "sticky"
+        }
+      },
+      {
+        "id": "L2",
+        "name": "Generator narrow layout (< 900 px): numbered steps stack in order and the action bar stays reachable",
+        "status": "pass",
+        "detail": {
+          "steps": [
+            77,
+            880,
+            1278,
+            1436
+          ]
+        }
+      },
+      {
+        "id": "L3",
+        "name": "Player desktop layout: top bar order, board with right-hand tray, selection toolbar on pick-up, Straighten present in the top bar",
+        "status": "pass",
+        "detail": {
+          "order": [
+            "pack-menu",
+            "top-title",
+            "top-timer",
+            "top-moves",
+            "undo",
+            "redo",
+            "reset",
+            "straighten",
+            "import"
+          ],
+          "trayLeft": 1006,
+          "boardRight": 1006,
+          "straightenHidden": true
+        }
+      },
+      {
+        "id": "L4",
+        "name": "Player narrow layout (< 900 px): top bar, board, selection toolbar, then the tray, in that vertical order",
+        "status": "pass",
+        "detail": {
+          "tops": [
+            0,
+            84,
+            707,
+            757
+          ]
+        }
+      },
+      {
+        "id": "A1",
+        "name": "Touch targets >= 44 px in the narrow layouts (generator and player)",
+        "status": "blocked",
+        "detail": "The 44 px target rule is defined for coarse pointers (common.css, player.css), and this run used a fine pointer. Rerun this page on a touch device or with the browser emulating pointer: coarse (CDP Emulation.setEmulatedMedia) to evaluate it."
+      },
+      {
+        "id": "A2",
+        "name": "Text contrast >= 4.5:1 (3:1 for large text) on generator and player, from computed styles",
+        "status": "pass",
+        "detail": {
+          "measured": 81,
+          "unresolved": []
+        }
+      },
+      {
+        "id": "A3",
+        "name": "Accessible names, no positive tabindex, live regions, board application role with instructions, document language and title",
+        "status": "pass",
+        "detail": {
+          "generator": {
+            "unnamed": [],
+            "positiveTabindex": [],
+            "liveRegions": 5,
+            "title": "Pentomino Puzzle Generator",
+            "lang": "en",
+            "h1": 1
+          },
+          "player": {
+            "unnamed": [],
+            "positiveTabindex": [],
+            "liveRegions": 7,
+            "title": "Pentomino Player",
+            "lang": "en",
+            "h1": 2
+          },
+          "boardLabel": "Puzzle board",
+          "instructions": "Select a piece in the tray, then tap a board cell to preview it and tap the same",
+          "reducedMotionPreferred": true
+        }
+      },
+      {
+        "id": "H1",
+        "name": "No CSP violations, script errors or unhandled rejections in any frame, and no external runtime request",
+        "status": "pass",
+        "detail": {
+          "resourcesSeen": 58,
+          "origin": "http://127.0.0.1:8080"
+        }
+      },
+      {
+        "id": "B1",
+        "name": "Real screen-reader smoke test (NVDA on Windows, VoiceOver on macOS and iOS, TalkBack on Android)",
+        "status": "blocked",
+        "detail": "No screen reader is set up or approved on this machine. Owner: install NVDA (and use a Mac/iPhone for VoiceOver), open the generator and player, tab through pieces and controls, confirm names, the role=application instructions, live announcements and that no focus trap exists; record versions and findings."
+      },
+      {
+        "id": "B2",
+        "name": "Approved local axe DevTools audit with zero critical findings",
+        "status": "blocked",
+        "detail": "No approved axe extension is available. Owner: run axe DevTools on the generator (empty, after a set, with puzzles), the player import screen, the game screen and the win dialog; record the version, pages and results; route findings to T17-T20."
+      },
+      {
+        "id": "B3",
+        "name": "Safari (macOS and iOS), Firefox-on-reference-hardware, Android Chrome and iPhone Safari runs",
+        "status": "blocked",
+        "detail": "These devices are not available here. Owner: run this page and the BQ-0 benchmark page on each listed platform and record hardware and browser versions."
+      }
+    ],
+    "problems": [],
+    "external": []
+  },
+  "coarsePointer": {
+    "origin": "http://127.0.0.1:8080",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "results": [
+      {
+        "id": "R1",
+        "name": "Root page redirects to the generator under the served prefix, keeping the module graph relative",
+        "status": "pass",
+        "detail": {
+          "landedOn": "/pentomino/generator/",
+          "harnessPath": "/pentomino/tests/browser/acceptance.html",
+          "prefixServed": true,
+          "version": "1.0.0"
+        }
+      },
+      {
+        "id": "F-default-10x6-normal",
+        "name": "default-10x6-normal: Generate Piece Set -> 5 puzzles -> Play (real pages, real workers, recorded scores)",
+        "status": "pass",
+        "detail": {
+          "setMs": 165,
+          "batchMs": 349,
+          "scores": [
+            16,
+            12,
+            16,
+            15,
+            16
+          ],
+          "clues": 4,
+          "trayPieces": 4,
+          "cardTitle": "Normal #1",
+          "playerTitle": "Normal #1 #1 · Claimed Normal · score 16",
+          "hrefChars": 1592
+        }
+      },
+      {
+        "id": "F-heart-n10-master",
+        "name": "heart-n10-master: Generate Piece Set -> 10 puzzles -> Play (real pages, real workers, recorded scores)",
+        "status": "pass",
+        "detail": {
+          "setMs": 488,
+          "batchMs": 639,
+          "scores": [
+            43,
+            41,
+            37,
+            49,
+            38,
+            38,
+            47,
+            48,
+            45,
+            42
+          ],
+          "clues": 3,
+          "trayPieces": 11,
+          "cardTitle": "Master #1",
+          "playerTitle": "Master #1 #1 · Claimed Master · score 43",
+          "hrefChars": 2724
+        }
+      },
+      {
+        "id": "F-square-22x22-hell-3",
+        "name": "square-22x22-hell-3: Generate Piece Set -> 10 puzzles -> Play (real pages, real workers, recorded scores)",
+        "status": "pass",
+        "detail": {
+          "setMs": 987,
+          "batchMs": 2182,
+          "scores": [
+            170,
+            170,
+            170,
+            170,
+            170,
+            170,
+            170,
+            170,
+            170,
+            170
+          ],
+          "clues": 3,
+          "trayPieces": 70,
+          "cardTitle": "Hell 3 #1",
+          "playerTitle": "Hell 3 #1 #1 · Claimed Hell 3 · score 170",
+          "hrefChars": 5534
+        }
+      },
+      {
+        "id": "I1",
+        "name": "Player: file import in a fresh profile opens the game and fills the local library",
+        "status": "pass",
+        "detail": {
+          "trayPieces": 4
+        }
+      },
+      {
+        "id": "I2",
+        "name": "Player: invalid import keeps the open game, the error is announced and Back returns to it",
+        "status": "pass",
+        "detail": {
+          "error": "",
+          "before": {
+            "tray": 4,
+            "title": "Easy #1 · Claimed Easy · score 8"
+          }
+        }
+      },
+      {
+        "id": "I3",
+        "name": "Player: pasted Play link and share code open the puzzle",
+        "status": "pass",
+        "detail": {
+          "tray": 4
+        }
+      },
+      {
+        "id": "I4",
+        "name": "Player: #pack= address and #lib= library fallback address open the puzzle",
+        "status": "pass",
+        "detail": {
+          "packTray": 4,
+          "libTray": 4
+        }
+      },
+      {
+        "id": "L1",
+        "name": "Generator desktop layout (>= 900 px): three columns above a full-width puzzle row, sticky action bar, level selector and Copy pack link present",
+        "status": "pass",
+        "detail": {
+          "board": 16,
+          "level": 504,
+          "set": 884,
+          "stickyPosition": "sticky"
+        }
+      },
+      {
+        "id": "L2",
+        "name": "Generator narrow layout (< 900 px): numbered steps stack in order and the action bar stays reachable",
+        "status": "pass",
+        "detail": {
+          "steps": [
+            85,
+            918,
+            1392,
+            1558
+          ]
+        }
+      },
+      {
+        "id": "L3",
+        "name": "Player desktop layout: top bar order, board with right-hand tray, selection toolbar on pick-up, Straighten present in the top bar",
+        "status": "pass",
+        "detail": {
+          "order": [
+            "pack-menu",
+            "top-title",
+            "top-timer",
+            "top-moves",
+            "undo",
+            "redo",
+            "reset",
+            "straighten",
+            "import"
+          ],
+          "trayLeft": 1006,
+          "boardRight": 1006,
+          "straightenHidden": true
+        }
+      },
+      {
+        "id": "L4",
+        "name": "Player narrow layout (< 900 px): top bar, board, selection toolbar, then the tray, in that vertical order",
+        "status": "pass",
+        "detail": {
+          "tops": [
+            0,
+            84,
+            707,
+            757
+          ]
+        }
+      },
+      {
+        "id": "A1",
+        "name": "Touch targets >= 44 px in the narrow layouts (generator and player), coarse pointer active",
+        "status": "pass",
+        "detail": {
+          "checked": 44
+        }
+      },
+      {
+        "id": "A2",
+        "name": "Text contrast >= 4.5:1 (3:1 for large text) on generator and player, from computed styles",
+        "status": "pass",
+        "detail": {
+          "measured": 81,
+          "unresolved": []
+        }
+      },
+      {
+        "id": "A3",
+        "name": "Accessible names, no positive tabindex, live regions, board application role with instructions, document language and title",
+        "status": "pass",
+        "detail": {
+          "generator": {
+            "unnamed": [],
+            "positiveTabindex": [],
+            "liveRegions": 5,
+            "title": "Pentomino Puzzle Generator",
+            "lang": "en",
+            "h1": 1
+          },
+          "player": {
+            "unnamed": [],
+            "positiveTabindex": [],
+            "liveRegions": 7,
+            "title": "Pentomino Player",
+            "lang": "en",
+            "h1": 2
+          },
+          "boardLabel": "Puzzle board",
+          "instructions": "Select a piece in the tray, then tap a board cell to preview it and tap the same",
+          "reducedMotionPreferred": true
+        }
+      },
+      {
+        "id": "H1",
+        "name": "No CSP violations, script errors or unhandled rejections in any frame, and no external runtime request",
+        "status": "pass",
+        "detail": {
+          "resourcesSeen": 58,
+          "origin": "http://127.0.0.1:8080"
+        }
+      },
+      {
+        "id": "B1",
+        "name": "Real screen-reader smoke test (NVDA on Windows, VoiceOver on macOS and iOS, TalkBack on Android)",
+        "status": "blocked",
+        "detail": "No screen reader is set up or approved on this machine. Owner: install NVDA (and use a Mac/iPhone for VoiceOver), open the generator and player, tab through pieces and controls, confirm names, the role=application instructions, live announcements and that no focus trap exists; record versions and findings."
+      },
+      {
+        "id": "B2",
+        "name": "Approved local axe DevTools audit with zero critical findings",
+        "status": "blocked",
+        "detail": "No approved axe extension is available. Owner: run axe DevTools on the generator (empty, after a set, with puzzles), the player import screen, the game screen and the win dialog; record the version, pages and results; route findings to T17-T20."
+      },
+      {
+        "id": "B3",
+        "name": "Safari (macOS and iOS), Firefox-on-reference-hardware, Android Chrome and iPhone Safari runs",
+        "status": "blocked",
+        "detail": "These devices are not available here. Owner: run this page and the BQ-0 benchmark page on each listed platform and record hardware and browser versions."
+      }
+    ],
+    "problems": [],
+    "external": []
+  }
+}

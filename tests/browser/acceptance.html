@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>T23 cross-app acceptance harness</title>
+  <link rel="stylesheet" href="../../core/browser/common.css">
+  <script type="module" src="./acceptance.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Cross-app acceptance harness</h1>
+    <p>Developer acceptance page for T23. It drives the real, unmodified generator and player pages in same-origin frames (root redirect, three recorded production recipes, imports, layouts, touch targets, contrast, keyboard focus order and CSP/network hygiene). It is not part of the deployed site. Screen-reader, axe and other-platform checks cannot be automated here and are listed as blocked.</p>
+    <p id="summary" role="status">Running…</p>
+    <ol id="results"></ol>
+    <pre id="report"></pre>
+    <section id="frames" aria-label="Frames under test"></section>
+  </main>
+</body>
+</html>
