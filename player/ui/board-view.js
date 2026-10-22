@@ -9,6 +9,7 @@ import { packBoard } from '../../core/engine/pack.js';
 import { mountBoard, svgEl } from '../../core/browser/svg-board.js';
 
 /** @typedef {import('../../core/engine/types.js').Board} Board */
+/** @typedef {import('../../core/engine/types.js').Pose} Pose */
 /** @typedef {import('../../core/engine/types.js').XY} XY */
 /** @typedef {import('../../core/engine/game.js').GameState} GameState */
 /** @typedef {import('../state.js').PlayerState} PlayerState */
@@ -43,9 +44,13 @@ function boardOf(pack) {
  * @property {string | null} [hiddenPieceId] Placed piece drawn elsewhere (the drag layer) while it is dragged.
  * @property {{ cell: XY, vectors: { key: string, dx: number, dy: number }[] } | null} [hints]
  *   Grid-axis arrows next to the handle cell during a keyboard move on a rotated board.
+ * @property {{ kind: 'place' | 'remove', pose: Pose | null, cells: XY[], pulse: boolean } | null} [hintMarks]
+ *   Proven hint: outlines the cells of a suggested placement (drawn as a preview) or of the piece a removal repairs.
+ *   `pulse` is false in reduced-motion mode; the stylesheet only animates marks that ask for it.
  */
 
 const HINT_COLOR = '#0b5fff';
+const REMOVE_COLOR = '#b3261e';
 const HINT_GLYPHS = Object.freeze({ ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓' });
 
 /**
@@ -61,7 +66,8 @@ export function createBoardView(host, hooks = {}) {
     onCell: hooks.onCell,
   });
   const hintsLayer = svgEl('g', { class: 'pm-hints', 'pointer-events': 'none' });
-  view.svg.querySelector('.pm-board-group')?.append(hintsLayer);
+  const marksLayer = svgEl('g', { class: 'pm-hint-marks', 'pointer-events': 'none' });
+  view.svg.querySelector('.pm-board-group')?.append(hintsLayer, marksLayer);
   /** @type {object | null} */
   let lastPack = null;
   let lastIndex = -1;
@@ -96,6 +102,33 @@ export function createBoardView(host, hooks = {}) {
     hintsLayer.replaceChildren(...nodes);
   }
 
+  /**
+   * @param {BoardRenderExtras['hintMarks']} marks
+   */
+  function renderMarks(marks) {
+    if (marks === null || marks === undefined) {
+      marksLayer.replaceChildren();
+      marksLayer.removeAttribute('data-pulse');
+      return;
+    }
+    const color = marks.kind === 'place' ? HINT_COLOR : REMOVE_COLOR;
+    marksLayer.setAttribute('data-pulse', String(marks.pulse));
+    marksLayer.setAttribute('data-kind', marks.kind);
+    marksLayer.replaceChildren(...marks.cells.map(([x, y]) => svgEl('rect', {
+      class: 'pm-hint-mark',
+      x: x + 0.06,
+      y: y + 0.06,
+      width: 0.88,
+      height: 0.88,
+      fill: color,
+      'fill-opacity': 0.18,
+      stroke: color,
+      'stroke-width': 0.1,
+      ...(marks.kind === 'remove' ? { 'stroke-dasharray': '0.25 0.15' } : {}),
+      'data-kind': marks.kind,
+    })));
+  }
+
   return {
     /** The shared T16 view: `surface` for pointer trackers, `cellAt`, `panTo`. */
     view,
@@ -115,9 +148,10 @@ export function createBoardView(host, hooks = {}) {
         view.setRotation(angle);
         lastAngle = angle;
       }
-      const preview = game.preview === null ? null : (() => {
-        const verdict = canPlace(game, game.preview, game.preview.piece);
-        return verdict.ok ? { pose: game.preview, valid: true } : { pose: game.preview, valid: false, reason: verdict.reason };
+      const shown = game.preview ?? (extras.hintMarks?.kind === 'place' ? extras.hintMarks.pose : null);
+      const preview = shown === null ? null : (() => {
+        const verdict = canPlace(game, shown, shown.piece);
+        return verdict.ok ? { pose: shown, valid: true } : { pose: shown, valid: false, reason: verdict.reason };
       })();
       view.render({
         board: boardOf(pack),
@@ -132,6 +166,7 @@ export function createBoardView(host, hooks = {}) {
         showPatterns: prefs.patterns && pack.pieces.length > 20,
       });
       renderHints(extras.hints ?? null, angle);
+      renderMarks(extras.hintMarks ?? null);
       const fresh = pack !== lastPack || game.index !== lastIndex || angleChanged;
       lastPack = pack;
       lastIndex = game.index;

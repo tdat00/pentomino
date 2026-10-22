@@ -4,26 +4,28 @@
 // user data is rendered with `textContent`; engine work never runs on this
 // thread except the pure game model.
 
-import { APP_VERSION } from '../core/engine/version.js';
+import { PLAYER_VERSION } from '../core/engine/version.js';
 import { el } from '../core/browser/dom.js';
 import { browserStorage } from '../core/browser/storage.js';
 import { shouldOfferStraighten } from '../core/browser/svg-board.js';
 import { createPlayController } from './play.js';
+import { createHintController } from './hints.js';
+import { puzzleDisplayName } from './puzzle-title.js';
 import { createPlayerController, createPlayerStore, effectiveRotation } from './state.js';
 import {
-  LABELS, certificateLabel, formatElapsed, ratingLabel, verificationLabel,
+  HINT_TEXT, LABELS, certificateLabel, formatElapsed, ratingLabel, verificationLabel,
 } from './strings.js';
 import { createBoardView } from './ui/board-view.js';
 import { createConfirmDialog, createHelpDialog } from './ui/dialogs.js';
 import { createDragLayer } from './ui/drag-layer.js';
 import { bindGestures } from './ui/gestures.js';
+import { createHintPanel } from './ui/hint-panel.js';
 import { createImportView } from './ui/import-view.js';
 import { SHORTCUTS, createKeyboard } from './ui/keyboard.js';
 import { createPackMenu } from './ui/pack-menu.js';
 import { createToolbar } from './ui/toolbar.js';
 import { createTrayView } from './ui/tray-view.js';
 import { createWinDialog } from './ui/win-dialog.js';
-import { puzzleDisplayName } from './puzzle-title.js';
 
 /** @typedef {import('./state.js').PlayerState} PlayerState */
 
@@ -42,6 +44,7 @@ let instances = 0;
  * @property {(url: string) => Promise<string>} [fetchText]
  * @property {string | URL} [baseUrl]
  * @property {() => import('./state.js').PoolLike} [createPool]
+ * @property {() => import('./hints.js').PoolLike} [createHintPool] Pool of the hint and reveal searches (default: one module worker).
  * @property {(pack: import('../core/engine/types.js').Pack, name: string) => void} [download]
  * @property {boolean} [coarsePointer]
  * @property {boolean} [reducedMotion] Overrides `prefers-reduced-motion`.
@@ -122,7 +125,8 @@ export function mountPlayer(root, env = {}) {
   const badgeLocal = el('span', { className: 'badge badge-local', dataset: { badge: 'local' } });
   const badgeStorage = el('span', { className: 'badge badge-storage', dataset: { badge: 'storage' }, attrs: { role: 'status' } });
   const badges = el('div', { className: 'status-badges' }, badgeVerification, badgeCertificate, badgeLocal, badgeStorage);
-  const statusHost = el('div', { className: 'status-host', dataset: { host: 'status' } }, errorBox, noticeBox, resumeBox, badges);
+  const hintHost = el('div', { className: 'status-hint-host' });
+  const statusHost = el('div', { className: 'status-host', dataset: { host: 'status' } }, errorBox, noticeBox, resumeBox, hintHost, badges);
 
   // Board and tray.
   const boardHost = el('div', { className: 'board-host', dataset: { host: 'board' } });
@@ -146,7 +150,7 @@ export function mountPlayer(root, env = {}) {
   const gameScreen = el('div', { className: 'game', attrs: { hidden: '' } },
     el('h1', { className: 'sr-only', text: LABELS.appName }), topbar, statusHost, trayHost, boardWrap, toolbarHost, winHost);
   const importHost = el('div', { className: 'import-host', dataset: { host: 'import' } });
-  const version = el('p', { className: 'version' }, 'Version ', el('span', { text: APP_VERSION, attrs: { 'data-app-version': '' } }));
+  const version = el('p', { className: 'version' }, 'Version ', el('span', { text: PLAYER_VERSION, attrs: { 'data-app-version': '' } }));
   root.replaceChildren(gameScreen, importHost, version, live);
   root.classList.add('player');
 
@@ -191,6 +195,7 @@ export function mountPlayer(root, env = {}) {
         moves: moveCount,
         level: puzzle ? ratingLabel(puzzle.rating) : '',
         hasNext: state.pack !== null && state.index + 1 < state.pack.puzzles.length,
+        hints: state.game?.hintsUsed ?? 0,
       });
       flash(gameScreen, 'is-celebrating', 1600);
     },
@@ -229,8 +234,21 @@ export function mountPlayer(root, env = {}) {
   });
   const dragLayer = createDragLayer(root);
   const gestures = bindGestures({ win, play, store, boardView, trayHost, dragLayer });
+  const hints = createHintController({
+    store,
+    play,
+    announce,
+    reducedMotion,
+    createPool: env.createHintPool,
+  });
   const toolbar = createToolbar(toolbarHost, (action) => {
     switch (action) {
+      case 'hint':
+        void hints.requestHint();
+        break;
+      case 'reveal':
+        hintPanel.askReveal();
+        break;
       case 'rotate-ccw':
         play.transform('ccw');
         break;
@@ -274,6 +292,17 @@ export function mountPlayer(root, env = {}) {
       play.clearInteraction();
     },
   });
+  // Created after the reset and victory dialogs so that those keep their place in the page.
+  const hintPanel = createHintPanel(hintHost, {
+    hints,
+    dialogHost: winHost,
+    hintButton: () => toolbar.button('hint'),
+    onReplay: () => {
+      controller.replay();
+      play.clearInteraction();
+      announce(HINT_TEXT.replayed);
+    },
+  });
   const keyboard = createKeyboard({ target: doc, play, showHelp: () => helpDialog.open() });
   undo.addEventListener('click', () => play.undo());
   redo.addEventListener('click', () => play.redo());
@@ -281,7 +310,7 @@ export function mountPlayer(root, env = {}) {
 
   function showResults() {
     const g = store.getState().game;
-    if (g?.solved) {
+    if (g?.solved && !g.revealed) {
       const state = store.getState();
       const puzzle = state.pack?.puzzles[state.index];
       winDialog.show({
@@ -289,6 +318,7 @@ export function mountPlayer(root, env = {}) {
         moves: g.moves,
         level: puzzle ? ratingLabel(puzzle.rating) : '',
         hasNext: state.pack !== null && state.index + 1 < state.pack.puzzles.length,
+        hints: g?.hintsUsed ?? 0,
       });
     }
   }
@@ -355,7 +385,7 @@ export function mountPlayer(root, env = {}) {
     errorBox.hidden = error === null;
     noticeText.textContent = notice?.text ?? '';
     noticeBox.hidden = notice === null;
-    resumeText.textContent = resume === null ? '' : LABELS.resumeQuestion(resume.placed, resume.solved);
+    resumeText.textContent = resume === null ? '' : LABELS.resumeQuestion(resume.placed, resume.solved, resume.revealed === true);
     resumeBox.hidden = resume === null;
     const puzzle = state.pack?.puzzles[state.index];
     const verification = state.verificationByPuzzle[state.index];
@@ -387,10 +417,12 @@ export function mountPlayer(root, env = {}) {
       || a.placed !== b.placed || a.tray !== b.tray || a.selected !== b.selected || a.preview !== b.preview
       || a.solved !== b.solved || a.pack !== b.pack || a.index !== b.index
       || previous.prefs !== state.prefs || previous.screen !== state.screen || previous.pack !== state.pack
+      || hints.getState().version !== drawnHintVersion
       || play.version() !== drawnUiVersion;
   }
 
   let drawnUiVersion = -1;
+  let drawnHintVersion = -1;
   /** Redraws the board and the tray with the controller's cursor, hints and hidden piece. */
   function renderSurface() {
     const state = store.getState();
@@ -398,9 +430,11 @@ export function mountPlayer(root, env = {}) {
       return;
     }
     const angle = effectiveRotation(state);
-    const { cursor, hints, hiddenPieceId, hiddenTrayId } = play.view();
+    const { cursor, hints: axisHints, hiddenPieceId, hiddenTrayId } = play.view();
     drawnUiVersion = play.version();
-    boardView.render(state, angle, { cursor, hints, hiddenPieceId });
+    const hintState = hints.getState();
+    drawnHintVersion = hintState.version;
+    boardView.render(state, angle, { cursor, hints: axisHints, hiddenPieceId, hintMarks: hintState.marks });
     trayView.render(state, angle);
     trayView.setHidden(hiddenTrayId);
   }
@@ -440,6 +474,7 @@ export function mountPlayer(root, env = {}) {
     renderTopbar(state);
     renderStatus(state);
     renderToolbar(state);
+    hintPanel.render(state);
     if (surfaceChanged(state, previous)) {
       renderSurface();
       if (previous === null || previous.screen !== 'game') {
@@ -465,6 +500,11 @@ export function mountPlayer(root, env = {}) {
     renderSurface();
     renderTopbar(store.getState());
     renderToolbar(store.getState());
+  });
+  // Hint results redraw the board marks and the status box without a store update.
+  const stopHints = hints.subscribe(() => {
+    renderSurface();
+    hintPanel.render(store.getState());
   });
   render(store.getState(), null);
 
@@ -524,6 +564,8 @@ export function mountPlayer(root, env = {}) {
     boardView,
     trayView,
     play,
+    hints,
+    hintPanel,
     toolbar,
     winDialog,
     helpDialog,
@@ -535,6 +577,8 @@ export function mountPlayer(root, env = {}) {
       play.flush();
       unsubscribe();
       stopPlay();
+      stopHints();
+      hints.destroy();
       gestures.destroy();
       keyboard.destroy();
       play.destroy();

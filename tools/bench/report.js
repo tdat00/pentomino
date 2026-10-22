@@ -37,7 +37,7 @@ export const CRITERIA = Object.freeze({
 export const SOURCE_FILES = Object.freeze([
   'core/engine/board.js', 'core/engine/carve.js', 'core/engine/clues.js', 'core/engine/difficulty.js',
   'core/engine/dlx.js', 'core/engine/game.js', 'core/engine/generate.js', 'core/engine/geometry.js',
-  'core/engine/hash.js', 'core/engine/keys.js', 'core/engine/levels.js', 'core/engine/pack.js',
+  'core/engine/hash.js', 'core/engine/hints.js', 'core/engine/keys.js', 'core/engine/levels.js', 'core/engine/pack.js',
   'core/engine/palette.js', 'core/engine/placements.js', 'core/engine/policy.js', 'core/engine/protocol.js',
   'core/engine/qualification.js', 'core/engine/rng.js', 'core/engine/sharecode.js', 'core/engine/tasks.js',
   'core/engine/tiling.js', 'core/engine/types.js', 'core/engine/version.js', 'core/engine/view.js',

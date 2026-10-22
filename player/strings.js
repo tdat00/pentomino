@@ -153,10 +153,13 @@ export function restorationNotice(warnings) {
 }
 
 /**
- * @param {'new' | 'in-progress' | 'solved'} status
+ * @param {'new' | 'in-progress' | 'solved' | 'revealed'} status
  * @returns {string}
  */
 export function puzzleStatusLabel(status) {
+  if (status === 'revealed') {
+    return 'Revealed';
+  }
   return status === 'solved' ? 'Solved ✓' : status === 'in-progress' ? 'In progress' : 'New';
 }
 
@@ -200,7 +203,9 @@ export const LABELS = Object.freeze({
   loading: 'Loading…',
   continue: 'Continue',
   restart: 'Restart',
-  resumeQuestion: (/** @type {number} */ placed, /** @type {boolean} */ solved) => (solved
+  resumeQuestion: (/** @type {number} */ placed, /** @type {boolean} */ solved, /** @type {boolean} */ revealed = false) => (revealed
+    ? 'You revealed the solution of this puzzle before.'
+    : solved
     ? 'You solved this puzzle before.'
     : `Saved progress found: ${placed} ${placed === 1 ? 'piece' : 'pieces'} placed.`),
   trayLabel: 'Unplaced pieces',
@@ -221,6 +226,24 @@ export const LABELS = Object.freeze({
   close: 'Close',
   results: 'Results',
   solvedInfo: 'Puzzle solved ✓',
+  revealedInfo: 'Solution revealed',
+  hint: 'Hint',
+  hintLabel: 'Get a proven hint',
+  reveal: 'Show solution',
+  revealLabel: 'Show the solution and mark this puzzle as revealed',
+  placeIt: 'Place it',
+  removeIt: 'Remove it',
+  dismiss: 'Dismiss',
+  cancelCheck: 'Cancel check',
+  revealedBadge: 'Revealed — not counted as solved',
+  hintsUsed: 'Hints',
+  revealTitle: 'Show the solution?',
+  revealBody: 'The answer is filled in around the locked clues and this puzzle is marked as revealed. It will not count as solved. You can undo it.',
+  revealConfirm: 'Show solution',
+  resetRevealTitle: 'Reset, then reveal?',
+  resetRevealBody: 'Your placed pieces cannot be completed into a solution. Reset the board and show the solution instead? '
+    + 'This puzzle is marked as revealed and will not count as solved. You can undo it.',
+  resetRevealConfirm: 'Reset, then reveal',
   resetTitle: 'Reset this puzzle?',
   resetBody: 'Every placed piece returns to the tray. You can undo this.',
   resetConfirm: 'Reset',
@@ -305,6 +328,32 @@ export const PLAY_TEXT = Object.freeze({
    * @returns {string}
    */
   ghostAt: (row, column, reason) => `Row ${row}, column ${column}. ${reason === null ? 'Free' : `Not free: ${reasonText(reason)}`}`,
+});
+
+/** Outcomes of hints and reveal; every one is announced through the live region. */
+export const HINT_TEXT = Object.freeze({
+  working: 'Checking for a proven hint…',
+  revealWorking: 'Looking for a complete solution…',
+  cancelled: 'Check cancelled. Nothing was changed.',
+  stale: 'The board changed, so that check was discarded.',
+  complete: 'The puzzle is already complete.',
+  noLongerFits: 'That hint no longer fits the board. Ask for a new hint.',
+  /** @param {string} label @returns {string} */
+  place: (label) => `Hint: piece ${label} fits in a complete solution that keeps every piece you placed. It is highlighted on the board. Press Place it to put it there.`,
+  /** @param {string} label @returns {string} */
+  remove: (label) => `Hint: if you remove piece ${label}, the puzzle can be completed with all your other pieces kept. `
+    + 'That does not mean it is the only piece that could be moved.',
+  /** @param {string} label @returns {string} */
+  placedHint: (label) => `Placed piece ${label}. You can undo it.`,
+  /** @param {string} label @returns {string} */
+  removedHint: (label) => `Removed piece ${label}. You can undo it.`,
+  revealed: 'Solution revealed. This puzzle is marked as revealed, not solved.',
+  revealUnsat: 'The pieces you placed cannot be completed into a solution.',
+  revealImpossible: 'This puzzle has no solution, so there is nothing to reveal.',
+  revealCancelled: 'Reveal cancelled. Nothing was changed.',
+  revealUnknown: 'No complete solution was found within this check. Nothing was changed.',
+  revealFailed: 'The solution could not be shown. Nothing was changed.',
+  replayed: 'Fresh puzzle started.',
 });
 
 /**

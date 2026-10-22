@@ -20,6 +20,7 @@ import { createModal, dialogButton } from './dialogs.js';
  * @property {number} moves
  * @property {string} level Level and score text; empty when the puzzle carries no rating.
  * @property {boolean} hasNext
+ * @property {number} [hints] Proven hints used; shown only when above zero.
  */
 
 /**
@@ -32,10 +33,13 @@ export function createWinDialog(host, handlers) {
   const moves = el('dd', { className: 'win-moves' });
   const level = el('dd', { className: 'win-level' });
   const levelTerm = el('dt', { text: LABELS.winLevel });
+  const hintsTerm = el('dt', { text: LABELS.hintsUsed, attrs: { hidden: '' } });
+  const hintsUsed = el('dd', { className: 'win-hints', attrs: { hidden: '' } });
   modal.body.append(el('dl', { className: 'win-stats' },
     el('dt', { text: LABELS.winTime }), time,
     el('dt', { text: LABELS.winMoves }), moves,
-    levelTerm, level));
+    levelTerm, level,
+    hintsTerm, hintsUsed));
   const next = dialogButton(LABELS.nextPuzzle, () => {
     modal.close();
     handlers.onNext();
@@ -56,6 +60,10 @@ export function createWinDialog(host, handlers) {
       level.textContent = info.level;
       levelTerm.hidden = info.level === '';
       level.hidden = info.level === '';
+      const hintCount = info.hints ?? 0;
+      hintsUsed.textContent = String(hintCount);
+      hintsTerm.hidden = hintCount === 0;
+      hintsUsed.hidden = hintCount === 0;
       next.hidden = !info.hasNext;
       modal.show();
       (info.hasNext ? next : replay).focus();

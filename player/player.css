@@ -102,6 +102,38 @@ body {
   border-color: #8a6d00;
 }
 
+.status-hint-host {
+  display: contents;
+}
+
+.status-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  background: #e8f0ff;
+  border: 1px solid var(--pm-focus);
+  border-radius: 0.375rem;
+}
+
+.status-hint[hidden],
+.status-hint [hidden] {
+  display: none;
+}
+
+.status-hint[data-revealed="true"][data-phase="idle"] {
+  background: var(--pm-surface);
+  border-color: var(--pm-border);
+}
+
+.assist-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
 .status-text {
   flex: 1 1 12rem;
   overflow-wrap: anywhere;
@@ -297,6 +329,23 @@ body {
 
 .game.is-celebrating .board-wrap {
   animation: pm-celebrate 1.5s ease-out;
+}
+
+@keyframes pm-hint-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pm-hint-marks[data-pulse="true"] .pm-hint-mark {
+    animation: pm-hint-pulse 1.2s ease-in-out infinite;
+  }
 }
 
 /* Dialogs: win, confirmation and shortcut help. */

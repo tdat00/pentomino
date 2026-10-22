@@ -53,7 +53,9 @@ import { poseCells } from './geometry.js';
  * @property {Pose | null} preview
  * @property {readonly MoveCommand[]} history
  * @property {readonly MoveCommand[]} future
- * @property {boolean} solved
+ * @property {boolean} solved Geometry only: a complete cover. Earned completion is `isEarned`.
+ * @property {boolean} revealed The answer was shown; sticky until a fresh session (Replay).
+ * @property {number} hintsUsed Proven hints shown in this session.
  * @property {number} elapsedMs
  * @property {number} moves
  * @property {string} updatedAt
@@ -61,20 +63,27 @@ import { poseCells } from './geometry.js';
  */
 
 /**
+ * Local progress, version 2. Version 1 (no `revealed`/`hintsUsed`) is still read
+ * by `createGame` and migrated with false and 0.
  * @typedef {object} Progress
- * @property {1} v
+ * @property {2} v
  * @property {Pose[]} placements
  * @property {number} elapsedMs
  * @property {number} moves
  * @property {boolean} solved
+ * @property {boolean} revealed
+ * @property {number} hintsUsed
  * @property {string} updatedAt
  */
 
 /**
+ * `reveal` replaces every movable placement with the complete `layout` as one
+ * undoable command and marks the session revealed. `hint` counts one shown hint.
  * @typedef {{ type: 'place' | 'move', pose: Pose }
  *   | { type: 'remove', piece: string }
  *   | { type: 'orient', piece: string, t: number, pose?: Pose }
- *   | { type: 'reset' | 'undo' | 'redo' }} Action
+ *   | { type: 'reveal', layout: Pose[] }
+ *   | { type: 'reset' | 'undo' | 'redo' | 'hint' }} Action
  */
 
 /** @typedef {'outside' | 'blocked' | 'overlap' | 'clue'} PlaceReason */
@@ -83,6 +92,12 @@ import { poseCells } from './geometry.js';
 export const MAX_HISTORY = 500;
 export const EPOCH = '1970-01-01T00:00:00.000Z';
 const MAX_WARNINGS = 100;
+
+/**
+ * Input of `createGame`: a version 2 record, or a version 1 record that lacks
+ * `revealed` and `hintsUsed`.
+ * @typedef {Omit<Progress, 'v' | 'revealed' | 'hintsUsed'> & { v: 1 | 2, revealed?: boolean, hintsUsed?: number }} SavedProgress
+ */
 
 /**
  * @typedef {object} Context
@@ -267,6 +282,16 @@ export function isSolved(s) {
 }
 
 /**
+ * Earned completion: a complete cover reached without the revealed answer.
+ * `isSolved` still checks geometry only.
+ * @param {GameState} s
+ * @returns {boolean}
+ */
+export function isEarned(s) {
+  return !s.revealed && isSolved(s);
+}
+
+/**
  * @param {Context} ctx
  * @param {ReadonlyMap<string, Pose>} placed
  * @returns {boolean}
@@ -319,7 +344,7 @@ function canonical(ctx, placed, tray) {
 /**
  * @param {Pack} pack
  * @param {number} index
- * @param {Progress} [saved]
+ * @param {SavedProgress} [saved] Version 1 or 2; version 1 migrates to not revealed, no hints.
  * @returns {GameState}
  */
 export function createGame(pack, index, saved) {
@@ -331,8 +356,10 @@ export function createGame(pack, index, saved) {
   let elapsedMs = 0;
   let moves = 0;
   let updatedAt = EPOCH;
+  let revealed = false;
+  let hintsUsed = 0;
   if (saved !== undefined && saved !== null) {
-    if (typeof saved !== 'object' || saved.v !== 1 || !Array.isArray(saved.placements)) {
+    if (typeof saved !== 'object' || (saved.v !== 1 && saved.v !== 2) || !Array.isArray(saved.placements)) {
       warn(warnings, 'progress-invalid', '$', 'Saved progress has an unsupported shape and was ignored');
     } else {
       restorePlacements(ctx, saved.placements, placed, warnings);
@@ -344,6 +371,12 @@ export function createGame(pack, index, saved) {
       }
       if (typeof saved.updatedAt === 'string' && validTimestamp(saved.updatedAt)) {
         updatedAt = saved.updatedAt;
+      }
+      if (saved.v === 2) {
+        revealed = saved.revealed === true;
+        if (Number.isSafeInteger(saved.hintsUsed) && /** @type {number} */ (saved.hintsUsed) >= 0) {
+          hintsUsed = /** @type {number} */ (saved.hintsUsed);
+        }
       }
     }
   }
@@ -358,6 +391,8 @@ export function createGame(pack, index, saved) {
     history: [],
     future: [],
     solved: solvedIn(ctx, p),
+    revealed,
+    hintsUsed,
     elapsedMs,
     moves,
     updatedAt,
@@ -436,11 +471,13 @@ export function snapshot(s) {
     }
   }
   return {
-    v: 1,
+    v: 2,
     placements,
     elapsedMs: s.elapsedMs,
     moves: s.moves,
     solved: s.solved,
+    revealed: s.revealed,
+    hintsUsed: s.hintsUsed,
     updatedAt: s.updatedAt,
   };
 }
@@ -543,6 +580,10 @@ export function reduce(s, a) {
       return remove(ctx, s, a.piece);
     case 'reset':
       return reset(ctx, s);
+    case 'reveal':
+      return reveal(ctx, s, a.layout);
+    case 'hint':
+      return { ...s, hintsUsed: s.hintsUsed + 1 };
     case 'undo':
       return undo(ctx, s);
     case 'redo':
@@ -640,6 +681,44 @@ function reset(ctx, s) {
   }
   const empty = movableSnapshot(ctx, new Map(), new Map());
   return commit(ctx, s, { kind: 'reset', before, after: empty });
+}
+
+/**
+ * Shows the answer: every movable piece goes to its pose in `layout`, in one
+ * undoable command, and the session becomes revealed for good. The layout must
+ * keep the clues and be a complete cover; anything else changes nothing.
+ * @param {Context} ctx
+ * @param {GameState} s
+ * @param {Pose[]} layout
+ * @returns {GameState}
+ */
+function reveal(ctx, s, layout) {
+  if (!Array.isArray(layout) || layout.length !== ctx.pieces.size) {
+    return s;
+  }
+  /** @type {Map<string, Pose>} */
+  const answer = new Map();
+  for (const pose of layout) {
+    if (!isPose(pose) || answer.has(pose.piece) || !ctx.pieces.has(pose.piece)) {
+      return s;
+    }
+    answer.set(pose.piece, copyPose(pose));
+  }
+  for (const [id, clue] of ctx.clues) {
+    const given = answer.get(id);
+    const piece = /** @type {Piece} */ (ctx.pieces.get(id));
+    const same = given !== undefined && [...poseCells(piece, given)].sort().join() === [...poseCells(piece, clue)].sort().join();
+    if (!same) {
+      return s;
+    }
+    answer.delete(id);
+  }
+  if (!solvedIn(ctx, answer)) {
+    return s;
+  }
+  const before = movableSnapshot(ctx, s.placed, s.tray);
+  const after = movableSnapshot(ctx, answer, new Map());
+  return { ...commit(ctx, s, { kind: 'reset', before, after }), revealed: true };
 }
 
 /**

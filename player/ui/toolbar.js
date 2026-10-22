@@ -6,7 +6,7 @@ import { el } from '../../core/browser/dom.js';
 import { LABELS } from '../strings.js';
 
 /** @typedef {import('../state.js').PlayerState} PlayerState */
-/** @typedef {'rotate-ccw' | 'rotate-cw' | 'flip-h' | 'flip-v' | 'place' | 'to-tray' | 'help' | 'results'} ToolbarAction */
+/** @typedef {'rotate-ccw' | 'rotate-cw' | 'flip-h' | 'flip-v' | 'place' | 'to-tray' | 'help' | 'results' | 'hint' | 'reveal'} ToolbarAction */
 
 /** @type {readonly (readonly [ToolbarAction, string, string])[]} */
 const BUTTONS = Object.freeze([
@@ -44,8 +44,10 @@ export function createToolbar(host, onAction) {
     ...BUTTONS.map(([action, text, label]) => make(action, text, label)));
   const results = make('results', LABELS.results, LABELS.results);
   const help = make('help', '?', LABELS.help);
+  const assist = el('div', { className: 'assist-actions', attrs: { role: 'group', 'aria-label': 'Hints' } },
+    make('hint', LABELS.hint, LABELS.hintLabel), make('reveal', LABELS.reveal, LABELS.revealLabel));
   const left = el('span', { className: 'pieces-left' });
-  host.replaceChildren(info, group, results, help, left);
+  host.replaceChildren(info, group, assist, results, help, left);
 
   return {
     /** @param {PlayerState} state */
@@ -57,7 +59,7 @@ export function createToolbar(host, onAction) {
       }
       const piece = g.selected === null ? undefined : pack.pieces.find((p) => p.id === g.selected);
       const solved = g.solved;
-      info.textContent = solved ? LABELS.solvedInfo : piece ? LABELS.selected(piece.label) : LABELS.selectedNone;
+      info.textContent = g.revealed && solved ? LABELS.revealedInfo : solved ? LABELS.solvedInfo : piece ? LABELS.selected(piece.label) : LABELS.selectedNone;
       left.textContent = LABELS.piecesLeft(g.tray.size);
       const placed = piece !== undefined && g.placed.has(piece.id);
       const active = piece !== undefined && !solved;
@@ -70,7 +72,11 @@ export function createToolbar(host, onAction) {
             button.disabled = !(active && (placed || g.preview !== null));
             break;
           case 'results':
-            button.hidden = !solved;
+            button.hidden = !(solved && !g.revealed);
+            break;
+          case 'hint':
+          case 'reveal':
+            button.disabled = solved;
             break;
           case 'help':
             break;

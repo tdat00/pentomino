@@ -356,8 +356,11 @@ export function createPlayController(options) {
     syncTimer();
     if (stamped.solved && !before.solved) {
       flush();
-      announce(PLAY_TEXT.solved(solvedSummary(stamped.elapsedMs, stamped.moves)));
-      options.onSolved?.({ elapsedMs: stamped.elapsedMs, moves: stamped.moves });
+      // A revealed answer is a complete cover, but not an earned win.
+      if (!stamped.revealed) {
+        announce(PLAY_TEXT.solved(solvedSummary(stamped.elapsedMs, stamped.moves)));
+        options.onSolved?.({ elapsedMs: stamped.elapsedMs, moves: stamped.moves });
+      }
     } else {
       scheduleSave();
     }
@@ -754,6 +757,19 @@ export function createPlayController(options) {
         announce(PLAY_TEXT.resetDone);
       }
       return changed;
+    },
+    /**
+     * Applies one reducer action from outside the gestures (hint placement,
+     * counters, reveal): one undoable commit, saved like every move.
+     * @param {import('../core/engine/game.js').Action} action
+     * @returns {boolean} False for a refused or no-op action.
+     */
+    apply(action) {
+      const game = openGame();
+      if (game === null || ui.drag !== null) {
+        return false;
+      }
+      return commit(reduce(game, action), action.type === 'hint' ? game.preview : null);
     },
     /**
      * Starts dragging a tray or board piece by one of its source cells.

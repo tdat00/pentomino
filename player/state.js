@@ -31,7 +31,7 @@ import { INDEX_MESSAGE, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, messageForIs
 
 /** @typedef {{ code: string, message: string }} PlayerError */
 /** @typedef {{ kind: 'info' | 'warning', text: string }} Notice */
-/** @typedef {'new' | 'in-progress' | 'solved'} PuzzleStatus */
+/** @typedef {'new' | 'in-progress' | 'solved' | 'revealed'} PuzzleStatus */
 
 /**
  * `game` is the committed game of `pack[index]`; `error` describes the last
@@ -49,7 +49,7 @@ import { INDEX_MESSAGE, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, messageForIs
  * @property {boolean} loading
  * @property {PlayerError | null} error
  * @property {Notice | null} notice
- * @property {{ placed: number, solved: boolean } | null} resume
+ * @property {{ placed: number, solved: boolean, revealed?: true } | null} resume
  * @property {Record<number, Verification>} verificationByPuzzle
  * @property {PuzzleStatus[]} statuses
  * @property {string[]} fingerprints
@@ -256,6 +256,9 @@ export function createPlayerController(options) {
     if (saved === null) {
       return 'new';
     }
+    if (saved.revealed) {
+      return 'revealed';
+    }
     return saved.solved ? 'solved' : saved.placements.length > 0 ? 'in-progress' : 'new';
   }
 
@@ -293,12 +296,18 @@ export function createPlayerController(options) {
     const s = store.getState();
     const { game } = s;
     const fp = s.fingerprints[s.index];
-    if (game === null || fp === undefined || !(game.moves > 0 || game.placed.size > 0 || game.elapsedMs > 0)) {
+    if (game === null || fp === undefined || !(game.moves > 0 || game.placed.size > 0 || game.elapsedMs > 0 || game.hintsUsed > 0)) {
       return true;
     }
     const snap = snapshot(game);
     const result = storage.saveProgress(fp, {
-      v: 1, placements: snap.placements, elapsedMs: snap.elapsedMs, moves: snap.moves, solved: snap.solved,
+      v: 2,
+      placements: snap.placements,
+      elapsedMs: snap.elapsedMs,
+      moves: snap.moves,
+      solved: snap.solved,
+      revealed: snap.revealed,
+      hintsUsed: snap.hintsUsed,
     });
     const statuses = s.statuses.slice();
     statuses[s.index] = statusOf(fp);
@@ -315,7 +324,9 @@ export function createPlayerController(options) {
     store.update({ game: createGame(s.pack, s.index), resume: null, notice: null });
     const fp = s.fingerprints[s.index];
     if (fp !== undefined) {
-      const result = storage.saveProgress(fp, { v: 1, placements: [], elapsedMs: 0, moves: 0, solved: false });
+      const result = storage.saveProgress(fp, {
+        v: 2, placements: [], elapsedMs: 0, moves: 0, solved: false, revealed: false, hintsUsed: 0,
+      });
       const statuses = s.statuses.slice();
       statuses[s.index] = 'new';
       store.update({ statuses, storageWarning: result.ok ? s.storageWarning : SAVE_FAILED_MESSAGE });
@@ -376,7 +387,9 @@ export function createPlayerController(options) {
     const source = samePack ? before.source ?? meta.source : meta.source;
     const local = syncHash(source, packId, index);
     const { game } = prepared;
-    const resume = game.placed.size > 0 || game.solved ? { placed: game.placed.size, solved: game.solved } : null;
+    const resume = game.placed.size > 0 || game.solved
+      ? { placed: game.placed.size, solved: game.solved, ...(game.revealed ? { revealed: /** @type {const} */ (true) } : {}) }
+      : null;
     const text = restorationNotice(game.restoreWarnings);
     const statuses = samePack ? before.statuses.slice() : prepared.fingerprints.map((fp) => statusOf(fp));
     store.update({

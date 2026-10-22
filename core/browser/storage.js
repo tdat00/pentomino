@@ -34,13 +34,23 @@ import { packBoard, parsePack, serializePack, validatePack } from '../engine/pac
  */
 
 /**
+ * Local progress record, version 2. Version 1 records (written before hints)
+ * are still read and come back as version 2 with `revealed` false and
+ * `hintsUsed` 0; the stored text is rewritten by the next save.
  * @typedef {object} Progress
- * @property {1} v
+ * @property {2} v
  * @property {Pose[]} placements
  * @property {number} elapsedMs
  * @property {number} moves
- * @property {boolean} solved
+ * @property {boolean} solved Geometry only; a revealed game is complete but not earned.
+ * @property {boolean} revealed
+ * @property {number} hintsUsed
  * @property {number} updatedAt Host milliseconds, stamped on save.
+ */
+
+/**
+ * What `saveProgress` accepts: version 2, or a version 1 shape without the new fields.
+ * @typedef {Omit<Progress, 'v' | 'updatedAt' | 'revealed' | 'hintsUsed'> & { v: 1 | 2, revealed?: boolean, hintsUsed?: number, updatedAt?: number }} ProgressInput
  */
 
 /**
@@ -110,19 +120,26 @@ const isPose = (v) => isRecord(v) && typeof v.piece === 'string' && Number.isInt
  * @returns {Progress | null}
  */
 function readProgress(v) {
-  if (!isRecord(v) || v.v !== 1 || !Array.isArray(v.placements) || v.placements.length > MAX_PLACEMENTS
+  if (!isRecord(v) || (v.v !== 1 && v.v !== 2) || !Array.isArray(v.placements) || v.placements.length > MAX_PLACEMENTS
     || !v.placements.every(isPose) || typeof v.elapsedMs !== 'number' || !Number.isFinite(v.elapsedMs) || v.elapsedMs < 0
     || !isCount(v.moves) || typeof v.solved !== 'boolean' || typeof v.updatedAt !== 'number' || !Number.isFinite(v.updatedAt)) {
     return null;
   }
+  // A version 1 record has neither field; a version 2 record must have both.
+  const migrated = v.v === 1 && v.revealed === undefined && v.hintsUsed === undefined;
+  if (!migrated && (typeof v.revealed !== 'boolean' || !isCount(v.hintsUsed))) {
+    return null;
+  }
   return {
-    v: 1,
+    v: 2,
     placements: /** @type {Pose[]} */ (v.placements).map((p) => ({
       piece: p.piece, x: p.x, y: p.y, turn: p.turn, mirrored: p.mirrored,
     })),
     elapsedMs: v.elapsedMs,
     moves: /** @type {number} */ (v.moves),
     solved: v.solved,
+    revealed: migrated ? false : /** @type {boolean} */ (v.revealed),
+    hintsUsed: migrated ? 0 : /** @type {number} */ (v.hintsUsed),
     updatedAt: v.updatedAt,
   };
 }
@@ -498,7 +515,8 @@ export function createStorage(adapter, now) {
       const board = packBoard(pack);
       for (const puzzle of pack.puzzles) {
         const fp = progressFingerprint(board, pack.pieces, puzzle.clues);
-        if (readProgress(readJson(`${KEY_PROGRESS_PREFIX}${fp}`))?.solved) {
+        const saved = readProgress(readJson(`${KEY_PROGRESS_PREFIX}${fp}`));
+        if (saved?.solved === true && !saved.revealed) {
           solved += 1;
         }
       }
@@ -604,7 +622,7 @@ export function createStorage(adapter, now) {
 
   /**
    * @param {string} fp Exact-coordinate fingerprint.
-   * @param {Omit<Progress, 'updatedAt'> & { updatedAt?: number }} value
+   * @param {ProgressInput} value
    * @returns {StorageResult}
    */
   function saveProgress(fp, value) {

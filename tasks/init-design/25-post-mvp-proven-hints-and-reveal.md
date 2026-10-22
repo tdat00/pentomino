@@ -106,3 +106,28 @@ Use independent small oracle problems and the exact regression above. Test an ex
 Post-MVP help is documented and verified, local migration is safe, and generation/BQ behavior remains unchanged. Record an application-version change for the feature; do not relabel existing puzzle scores.
 
 This task does not wait for hardware-bound BQ-1/2/3 completion. It may proceed after T23, but no engine, worker or client change may be merged—or alter files currently served by a qualification run—while that run is active. Coordinate a measurement lock or use an immutable local runtime snapshot.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done (real-device touch and screen-reader checks not performed; nothing deployed) |
+| Start | 2026-10-22 23:34:10 (+07:00) |
+| End | 2026-10-23 00:04:14 (+07:00) |
+| Duration | 30 min 4 s |
+| Model | claude-sonnet-5.5 (sub-agent `T25-hints-reveal`, general-purpose); ran in parallel with the T23 defect-fix round. Started after T23 finished as BLOCKED (release-only blockers); the milestone states the initial release does not wait for T25. |
+| Token usage | 156 model calls; 36,797,190 input (36,445,673 cache read), 167,548 output |
+| AI credits | 619.87 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run on the combined tree):** full `node --test "tests/**/*.test.js"` → 748 pass / 0 fail (44.6 s); `npm run check` OK; `node tools\record-fixtures.mjs --check` OK. Agent run: `tests\hints.test.js` + `tests\progress-migration.test.js` 28 pass; headless Edge (port 18742, 1280 px and 600 px): `hints.html` 10/10 (also 10/10 with reduced motion), `player-controls.html` 25/25, `player-import.html` 18/18, 0 CSP violations; real CDP keyboard flow on the player page (Tab → Hint → Enter → Place it → Show solution → Escape → confirm → reload).
+
+**Acceptance:** BAC-1..4 and TAC-1..5 pass (TAC-4 in headless Edge only). Positive hints carry an `isValidLayout`-revalidated compatible layout; 160-round brute-force oracle agrees on place/remove/unknown; the T11 regression blames only B after testing J..E (no last-six cutoff); reveal asks first, cancel changes nothing, clues preserved, no win dialog, toolbar "Solution revealed", pack menu Revealed, library solved count excludes it; v1 progress keeps placements/time/moves and saves as v2; timeouts/capped queries/stale replies/invalid last-moment commits handled honestly; search runs only in the worker via `solveFirst` at 50,000 rows per query.
+
+**Issues & resolutions:**
+- Bumping `APP_VERSION` to 1.1.0 broke `record-fixtures --check` (recorded `generation.app` stamps); reverted and added `PLAYER_VERSION = '1.1.0'` (shown in the player footer) instead — sent to the owner for confirmation.
+- New hint dialogs changed which `dialog.pm-confirm` the T20 harness found; the hint panel is created after the reset dialog so existing selectors are unchanged.
+- Shared-file edits: `core\engine\game.js` (progress v2, `revealed`/`hintsUsed`, `isEarned`, `reveal`/`hint` actions), `core\browser\storage.js` (v1→v2 migration on read; revealed not counted as solved), `core\engine\version.js` (`PLAYER_VERSION`), `tools\bench\report.js` (`core/engine/hints.js` added to `SOURCE_FILES`), `README.md`, `tests\game.test.js` (v2 snapshot keys; `v:3` now the unsupported version). Orchestrator added the favicon link to the new `tests\browser\hints.html` (D5 consistency).
+- No `tsc` script; `// @ts-check` not machine-verified.
+- Design choices (sent to owner, non-blocking): a hint counts only when a proven positive result is shown; revealed stays revealed through undo/redo/reset; hint panel is a status-line box (Place it / Remove it / Dismiss / Cancel check / Replay); Show solution runs the solver once when no stored answer exists; a capped (not proven) search makes reveal report "nothing found" and change nothing.
+
+**Handoff:** `core\engine\hints.js` → `compatibleStoredLayout`, `chooseHintPlacement`, `repairCandidates`, `findCompatibleLayout`, `resolveHint`, `HINT_ROW_LIMIT`, `HINT_UNKNOWN_MESSAGE` (search injected as `solve`). `player\hints.js` → `createHintController`, `hintFingerprint`. `mountPlayer` also returns `hints`, `hintPanel` and accepts `env.createHintPool`; `play.apply(action)` commits any reducer action; revealed games never call `onSolved`. Hints use their own `size:1` pool. `hints.js`, `game.js`, `version.js`, `bench\report.js` are now part of the bench source digest — do not merge during an active qualification run.

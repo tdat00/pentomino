@@ -18,6 +18,7 @@ export const SHORTCUTS = Object.freeze([
   ['Ctrl+Z / ⌘Z', 'Undo'],
   ['Ctrl+Shift+Z / Ctrl+Y', 'Redo'],
   ['?', 'Show these shortcuts'],
+  ['Hint / Show solution', 'Toolbar buttons: a hint is a proven statement; Show solution asks first and marks the puzzle revealed'],
 ]);
 
 const IGNORED = 'input, textarea, select, [contenteditable="true"], dialog, [role="dialog"], .menu-panel';

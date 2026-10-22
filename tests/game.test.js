@@ -403,7 +403,7 @@ test('forged solved progress and bad metadata do not create a win', () => {
   assert.equal(forged.elapsedMs, 0);
   assert.equal(forged.moves, 0);
   assert.equal(forged.updatedAt, EPOCH);
-  const wrongVersion = createGame(pack, 0, /** @type {any} */ ({ v: 2, placements: [] }));
+  const wrongVersion = createGame(pack, 0, /** @type {any} */ ({ v: 3, placements: [] }));
   assert.equal(wrongVersion.restoreWarnings[0].code, 'progress-invalid');
   assert.equal(createGame(pack, 0, /** @type {any} */ ('x')).restoreWarnings.length, 1);
 
@@ -438,7 +438,7 @@ test('snapshot is deterministic, movable-only and round-trips', () => {
   const snap = snapshot(a);
   assert.deepEqual(snap.placements.map((p) => p.piece), ['B', 'H']);
   assert.deepEqual(snap, snapshot(b));
-  assert.deepEqual(Object.keys(snap), ['v', 'placements', 'elapsedMs', 'moves', 'solved', 'updatedAt']);
+  assert.deepEqual(Object.keys(snap), ['v', 'placements', 'elapsedMs', 'moves', 'solved', 'revealed', 'hintsUsed', 'updatedAt']);
   snap.placements[0].x = 7;
   assert.equal(a.placed.get('B')?.x, 1);
   const round = createGame(pack, 0, JSON.parse(JSON.stringify(snapshot(a))));
