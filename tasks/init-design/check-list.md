@@ -157,10 +157,10 @@ Record each gate’s actual outcome; estimates, missing platforms and old protot
 
 | Gate | Status: not run / blocked / fail / pass | Report path / tested revision | Product state required |
 |---|---|---|---|
-| BQ-0 | __________ | __________ | Must pass before first release at484 desktop/360 phone |
-| BQ-1 | __________ | __________ | Normal desktop stays484 until pass; then576 |
-| BQ-2 | __________ | __________ |676 remains opt-in; experimental label removed only on pass |
-| BQ-3 | __________ | __________ | Phone stays360 until pass; then484 |
+| BQ-0 | **blocked / fail (reduced runs)** — D1/D3 completion < 90%; reference platforms, phones, screen reader, axe and deployment unavailable | `docs\calibration\bq-0-latest.md`, `release-defects.md`; runtime `6e91263` (+ fix round `1c23b80`) | Must pass before first release at484 desktop/360 phone |
+| BQ-1 | **blocked** — screening only (3 seeds); D8 irregular-mask shortfalls | `docs\calibration\bq-higher-latest.md`; runtime `5948723` | Normal desktop stays484 until pass; then576 |
+| BQ-2 | **blocked** — screening only (3 seeds); D8 irregular-mask shortfalls | `docs\calibration\bq-higher-latest.md`; runtime `5948723` |676 remains opt-in; experimental label removed only on pass |
+| BQ-3 | **blocked** — no Android/iPhone; desktop-only screen of the matrix | `docs\calibration\bq-higher-latest.md`; runtime `5948723` | Phone stays360 until pass; then484 |
 
 - [ ] **TA-20:** Harness uses the production engine and identical semantic seeds; Node/browser reports separate T1, T10, certificates, completion rates, bytes and actual memory. T21.
 - [ ] **TA-21:** BQ-0 matrix/platforms, all success/performance thresholds and raw data are accepted; no unavailable level or40-cell side is accidentally tested. T23.
@@ -234,3 +234,40 @@ Every completed task handoff records:
 | Post-MVP / full task-pack acceptance | __________ | __________ | __________ | __________ |
 
 No checkbox is pre-accepted merely because the design was signed off. Final acceptance requires the implemented behavior and its evidence.
+
+## 7. Orchestrated execution summary (2026-10-22/23)
+
+Executed by the Copilot CLI orchestrator (claude-opus-5.5) with one claude-sonnet-5.5 sub-agent per task, in dependency waves; each task file ends with an "Execution log" (times, model, tokens/AI credits, verification, issues, handoff). Commits are local only (not pushed). Checkboxes and sign-offs above remain for human reviewers.
+
+| Task | Status | Duration | AI credits | Commit |
+|---|---|---|---|---|
+| T01 | done | 4m32s | 65.45 | be8e8a8 |
+| T02 | done | 2m15s | 33.16 | 25f80c4 |
+| T03 | done | 3m08s | 41.76 | c805f05 |
+| T04 | done | 5m46s | 82.17 | 2469080 |
+| T05 | done | 4m18s | 65.46 | 66c7253 |
+| T06 | done | 9m41s | 137.30 | 6877635 |
+| T07 | done | 7m44s | 95.69 | 765028b |
+| T08 | done | 6m23s | 93.36 | 1e17b78 |
+| T09 | done (one non-blocking interpretation sent to owner) | 9m12s | 123.78 | f1e5349 |
+| T10 | done | 13m24s | 191.98 | 1c81109 |
+| T11 | done | 9m42s | 146.71 | 3d06811 |
+| T12 | done | 10m39s | 167.74 | c0b5b5b |
+| T13 | done | 4m13s | 60.19 | e43badd |
+| T14 | done | 12m11s | 203.81 | 3412813 |
+| T15 | done | 13m03s | 220.76 | 464e511 |
+| T16 | done | 13m05s | 190.17 | 371791f |
+| T17 | done | 16m12s | 280.02 | 74b4eec |
+| T18 | done | 29m08s | 482.31 | 785c073 |
+| T19 | done | 22m41s | 410.48 | 01392d8 |
+| T20 | done | 38m05s | 681.34 | 26ef069 |
+| T21 | partial (landscape 12/105 cells) | 49m25s | 601.47 | 6e91263 |
+| T22 | done | 10m16s | 142.82 | 2cb6958 |
+| T23 | blocked | 1h22m05s | 599.87 | 5f2ce45 |
+| T23 fix round 1 | D2/D5/D7 fixed; D1/D3 await owner decision | 54m18s | 404.34 | 1c23b80 |
+| T24 | blocked (partial) | 45m34s | 179.52 | 0cbad58 |
+| T25 | done | 30m04s | 619.87 | 5948723 |
+
+Totals (orchestrator usage store): sub-agents claude-sonnet-5.5 — 1,534 model calls, ~268.2M input / 2.56M output tokens, ~6,322 AIU (incl. a few final calls); orchestrator claude-opus-5.5 — ~3,116 AIU at the time of writing. Final test status: `node --test "tests/**/*.test.js"` 768 pass / 0 fail; `npm run check` OK.
+
+Open owner decisions / blockers: D1/D3/D8 option (see `docs\calibration\release-defects.md`); T09 64-profile budget interpretation; T25 `APP_VERSION` vs `PLAYER_VERSION`; GitHub Pages deployment authorization; reference laptop, Mac/Safari, Android/iPhone runs; NVDA/VoiceOver smoke test and approved axe audit; full-duration BQ-0 and T21 landscape runs; sign-offs.
