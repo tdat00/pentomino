@@ -111,3 +111,25 @@ Use T11’s exact fixture and a second valid completion found through T07. Inclu
 ## Definition of done & handoff
 
 T19/T20 own clocks, display selection and persistence. They must call this reducer rather than duplicating occupancy rules. Document restoration warnings and the command-union shape for UI tests.
+
+## Execution log
+
+| Field | Value |
+| --- | --- |
+| Status | Done |
+| Start | 2026-10-22 20:34:10 (+07:00) |
+| End | 2026-10-22 20:38:23 (+07:00) |
+| Duration | 4 min 13 s |
+| Model | claude-sonnet-5.5 (sub-agent `T13-game-state`, general-purpose); ran in parallel with T10, T12 |
+| Token usage | 16 model calls; 1,003,829 input (941,282 cache read), 35,141 output |
+| AI credits | 60.19 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** `node --test tests\game.test.js` → 16 pass / 0 fail; `npm run test:quick` at agent finish 353 pass / 0 fail; `check-conventions` OK.
+
+**Acceptance:** BAC-1..3 and TAC-1..5 pass. Invalid moves return the identical state object; clue pieces cannot be moved/removed/oriented/covered; undo/redo and undoable reset restore exact poses and tray orientations; a non-witness tiling (found via T07) wins while forged `solved:true` and stale saves do not; deep-frozen inputs never mutate; saved progress restores valid moves with warnings for invalid ones and matches puzzles by clue geometry, not id.
+
+**Issues & resolutions:**
+- One test placed a piece onto a clue cell by mistake; test fixed, implementation unchanged.
+- Design choices (no owner input needed): `canPlace` reports `outside` for malformed poses/unknown pieces and `clue` for clue pieces; reason priority outside > blocked > clue > overlap; `place` ≡ `move`; removing keeps tray orientation; reset returns tray orientations to 0; undo/redo remain available after a win with `solved` recomputed.
+
+**Handoff:** `game.js` → `createGame` (RangeError for bad puzzle index/invalid clue), `canPlace`, `reduce`, `isSolved`, `snapshot`, `poseT`, `MAX_HISTORY` (500), `EPOCH`; types `GameState`, `Progress`, `Action`, `MoveCommand`, `PieceCommand`, `ResetCommand`, `MovableSnapshot`, `PlaceResult`. History/future are stacks (last = next). Piece command `{kind:'piece', piece, before, after, tBefore, tAfter}` with `t = 4·mirrored + turn`. Orienting a placed piece requires `pose` with matching `piece` and `poseT(pose) === t` (no rotation kicks). Restore warning codes: `placement-malformed`, `placement-unknown-piece`, `placement-duplicate`, `placement-outside`, `placement-blocked`, `placement-clue`, `placement-overlap`, `progress-invalid`, `too-many-warnings` (cap 100). `moves` counts committed place/move/remove/orient/reset only. Selection/preview stay null for the UI to set. Storage keys use `progressFingerprint(board, pieces, clues)`.
