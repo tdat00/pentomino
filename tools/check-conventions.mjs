@@ -36,15 +36,21 @@ export function checkText(name, buffer) {
   if (lines[lines.length - 1] === '') {
     lines.pop();
   }
+  /** @type {boolean | undefined} */
+  let firstEndingIsCrlf;
   lines.forEach((rawLine, index) => {
     const where = `${name}:${index + 1}`;
     const terminated = index < lines.length - 1 || text.endsWith('\n');
     let line = rawLine;
     if (terminated) {
-      if (line.endsWith('\r')) {
+      const crlf = line.endsWith('\r');
+      if (crlf) {
         line = line.slice(0, -1);
-      } else {
-        problems.push(`${where}: LF-only line ending`);
+      }
+      // Git converts line endings per platform, so either style is fine as long as a file uses one.
+      firstEndingIsCrlf ??= crlf;
+      if (crlf !== firstEndingIsCrlf) {
+        problems.push(`${where}: mixed line endings`);
       }
     }
     if (line.includes('\r')) {
