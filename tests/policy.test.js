@@ -384,7 +384,7 @@ describe('limits, qualification and budgets', () => {
   });
 
   test('the arrangement count has its own frozen limits; BUDGETS is pinned above (owner decision 2026-10-23)', () => {
-    assert.deepEqual({ ...ENUMERATION }, { placements: 250000000, nodes: 2500000 });
+    assert.deepEqual({ ...ENUMERATION }, { placements: 250000000, nodes: 2500000, collect: 32 });
     assert.ok(Object.isFrozen(ENUMERATION));
   });
 });

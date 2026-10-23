@@ -79,6 +79,34 @@ describe('enumerateLayouts', () => {
     assert.deepEqual([none.status, none.total], ['exhausted', 0]);
   });
 
+  test('collect mode returns the unused arrangements sorted by key, each once, and says whether it saw them all', () => {
+    const b = rect(5, 4);
+    const pieces = pentomino('FLUY');
+    const all = [...dlxArrangements(b, pieces).keys].sort();
+    assert.ok(all.length >= 3);
+    const plain = enumerateLayouts(b, pieces, new Set(), BIG);
+    assert.equal('layouts' in plain, false, 'the plain result keeps its shape');
+    const everything = enumerateLayouts(b, pieces, new Set(), { ...BIG, collect: 100 });
+    assert.deepEqual([everything.status, everything.complete, everything.total], ['more', true, all.length]);
+    assert.deepEqual(everything.layouts?.map((l) => l.key), all);
+    for (const { key, layout } of everything.layouts ?? []) {
+      assert.equal(layoutKey(b, pieces, layout), key);
+    }
+    const known = new Set(all.slice(1, -1));
+    const two = enumerateLayouts(b, pieces, known, { ...BIG, collect: 100 });
+    assert.deepEqual(two.layouts?.map((l) => l.key), [all[0], all[all.length - 1]]);
+    assert.deepEqual([two.status, two.complete, two.total], ['more', true, all.length]);
+    const used = enumerateLayouts(b, pieces, new Set(all), { ...BIG, collect: 100 });
+    assert.deepEqual([used.status, used.complete, used.layouts], ['exhausted', true, []]);
+    const capped = enumerateLayouts(b, pieces, new Set(), { ...BIG, collect: 2 });
+    assert.deepEqual([capped.status, capped.complete, capped.layouts?.length], ['more', false, 2]);
+    const cut = enumerateLayouts(b, pieces, new Set(), { placementLimit: everything.placements - 1, nodeLimit: Infinity, collect: 100 });
+    assert.equal(cut.limit, 'placements');
+    assert.equal(cut.complete, false);
+    assert.equal(cut.status, (cut.layouts?.length ?? 0) > 0 ? 'more' : 'limit', 'what was found before a limit is still proof that more exist');
+    assert.deepEqual(enumerateLayouts(b, pieces, new Set(), { ...BIG, collect: 100 }), everything, 'deterministic');
+  });
+
   test('a limit proves nothing and names itself; limits are counted in search steps', () => {
     const b = rect(5, 4);
     const pieces = pentomino('FLUY');

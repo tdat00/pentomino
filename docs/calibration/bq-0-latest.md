@@ -287,3 +287,21 @@ Five shortfalls (Expert 2, Master 2, 6x10 Very Easy 1) are not proven maxima (an
 
 New raw reports: `bq-2026-10-23-0-fix2-node-irr466.json / .md` (63 rows), `bq-2026-10-23-0-fix2-node-6x10.json / .md` (42 rows), `bq-2026-10-23-0-fix2-edge156.json / .md` with its matrix `bq-2026-10-23-0-fix2-edge.matrix.json` (27 rows; selected seeds, not a rate sample).
 
+## 10. Update 2026-10-23: completion pass (fix round 3)
+
+The owner added a **completion pass**: when a batch ends with `layouts-not-found` and the enumeration finds unused arrangements, each of them (in layout-key order, deterministic stream derived from the batch seed and the layout key) is run through the same candidate pipeline until the request is full or they are used up. Nothing was relaxed: distinctness, bands, score caps, TIME, BUDGETS, LIMITS, `ENUMERATION` limits and gates are unchanged, and `ALGO_ID` stays `gen-v2` (only batches that were short can return more; the earlier puzzles of such a batch are an exact prefix). The qualification status above is **not** changed: BQ-0 stays unpassed and `QUALIFICATION.bq0` stays `not-run`.
+
+Re-measured cells (Node, 20 seeds, same commands; details in `release-defects.md`, section "Fix round 3 — completion pass"):
+
+| Cell | Criterion 2 in section 9 | Now | What changed |
+| --- | --- | --- | --- |
+| dirr466-hard | 20/20 pass | 20/20 pass | nothing (18 proven maxima, no unused arrangement) |
+| dirr466-expert | 18/20 pass (exactly 90%) | **20/20 pass** | seeds 8 and 9: 7 → 8 puzzles, proven maximum 8 |
+| dirr466-master | 18/20 pass (exactly 90%) | **20/20 pass** | seed 13: 4 → 8, seed 18: 3 → 4, both proven maxima |
+| d6x10-very-easy | 19/20 pass | **20/20 pass** | seed 5: 7 → 8, proven maximum 8 |
+| d6x10-easy | 20/20 pass | 20/20 pass | nothing |
+
+All 59 batches that already reached ten puzzles are byte-for-byte unchanged (same result digests); all 41 shortfalls keep their earlier puzzles as a prefix; the five former "more arrangements exist" shortfalls are now proven maxima, so none remains, none is unproven, and no arrangement lacked an in-band clue set. Edge subset (12 rows: the 5 former seeds plus 22x22 Hard): same outcomes as Node, 0 long tasks over 50 ms, 22x22 Hard T10 540-865 ms. D8 cells and the 43-cell BQ-0 on every platform have not been re-run.
+
+New raw reports: `bq-2026-10-23-0-fix3-node-irr466.json / .md` (63 rows), `bq-2026-10-23-0-fix3-node-6x10.json / .md` (42 rows), `bq-2026-10-23-0-fix3-edge156.json / .md` with its matrix `bq-2026-10-23-0-fix3-edge.matrix.json` (12 rows; selected seeds, not a rate sample).
+

@@ -19,6 +19,10 @@ export const NOTICES = Object.freeze({
     none: 'This piece set has no arrangements left: all {total} have been used. Generate a new piece set for more {level} puzzles.',
   }),
   'N-LAYOUTS-LEFT': 'Found {n} of {q} different {level} puzzles. This piece set has more arrangements, but none gave another {level} puzzle in the search. Try again, or generate a new piece set for more.',
+  'N-LAYOUTS-UNUSED': Object.freeze({
+    all: 'Found {n} of {q} different {level} puzzles. Every other arrangement of this piece set ({count}) was tried, and none has a {clueset}. Generate a new piece set for more {level} puzzles.',
+    some: 'Found {n} of {q} different {level} puzzles. The other arrangements tried ({count}) have no {clueset}, and the search did not cover every arrangement of this piece set. Try again, or generate a new piece set for more.',
+  }),
   'N-SETLEVEL': 'Found {n} of {q} {level} puzzles: other arrangements of this piece set did not reach {level} difficulty. Try again, or generate a new piece set for {level}.',
   'N-NOSET': "Couldn't create a {level} piece set for this board within the time limit. Try again, choose another level, or change the board.",
   'N-UNIQUE': "Found {n} of {q} {level} puzzles with exactly one solution. Turn off 'Require one solution' or choose another level.",

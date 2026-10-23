@@ -69,6 +69,10 @@ export const SOURCE_FILES = Object.freeze([
  * @property {'exhausted' | 'more' | 'unproven' | null} layoutStatus Outcome of the enumeration, null when none ran.
  * @property {number | null} layoutEnumPlacements Candidate placements tried by the enumeration.
  * @property {number | null} layoutEnumMs Wall time of the enumeration inside the request.
+ * @property {number | null} layoutPassTried Fix round 3: arrangements the completion pass ran as candidates, null when no pass ran.
+ * @property {number | null} layoutPassAdded Puzzles the completion pass accepted.
+ * @property {number | null} layoutUnusable Arrangements the pass tried that gave no puzzle.
+ * @property {number | null} layoutPassMs Wall time of the completion pass.
  * @property {number} peakAccountedBytes
  * @property {number | null} peakProcessBytes
  * @property {number} ratingSaturatedCount
@@ -115,6 +119,10 @@ export function newRunRecord(init = {}) {
     layoutStatus: null,
     layoutEnumPlacements: null,
     layoutEnumMs: null,
+    layoutPassTried: null,
+    layoutPassAdded: null,
+    layoutUnusable: null,
+    layoutPassMs: null,
     peakAccountedBytes: 0,
     peakProcessBytes: null,
     ratingSaturatedCount: 0,
@@ -176,7 +184,7 @@ export function validateRunRecord(run) {
   need('partialReason', r.partialReason === null || typeof r.partialReason === 'string');
   // Fields added by the 2026-10-23 owner decision; records written before it simply lack them.
   need('layoutsExhausted', r.layoutsExhausted === undefined || typeof r.layoutsExhausted === 'boolean');
-  for (const name of ['layoutTotal', 'layoutEnumPlacements', 'layoutEnumMs']) {
+  for (const name of ['layoutTotal', 'layoutEnumPlacements', 'layoutEnumMs', 'layoutPassTried', 'layoutPassAdded', 'layoutUnusable', 'layoutPassMs']) {
     need(name, r[name] === undefined || isNumOrNull(r[name]));
   }
   need('layoutMethod', r.layoutMethod === undefined || r.layoutMethod === null || typeof r.layoutMethod === 'string');
@@ -390,6 +398,8 @@ export function evaluateCell(runs, options = {}) {
   }
   const counted = ordinary.filter((r) => r.layoutStatus != null);
   const countedBy = (/** @type {string} */ status) => counted.filter((r) => r.layoutStatus === status).length;
+  const passed = ordinary.filter((r) => isNum(r.layoutPassTried));
+  const sum = (/** @type {(number | null | undefined)[]} */ values) => values.filter(isNum).reduce((a, b) => a + b, 0);
   return {
     caseId,
     platform: nodeOnly ? 'node' : 'browser-or-mixed',
@@ -401,6 +411,13 @@ export function evaluateCell(runs, options = {}) {
       unproven: countedBy('unproven'),
       placements: summarize(counted.map((r) => r.layoutEnumPlacements).filter(isNum)),
       ms: summarize(counted.map((r) => r.layoutEnumMs).filter(isNum)),
+      pass: {
+        runs: passed.length,
+        added: sum(passed.map((r) => r.layoutPassAdded)),
+        filledToTen: passed.filter((r) => r.acceptedCount >= QUANTITY && (r.layoutPassAdded ?? 0) > 0).length,
+        unusable: sum(passed.map((r) => r.layoutUnusable)),
+        ms: summarize(passed.map((r) => r.layoutPassMs).filter(isNum)),
+      },
     },
     runs: {
       ordinary: n, expected, missing: missingRuns, complete: complete.length, exhausted: exhausted.length, atLeastOne: atLeastOne.length,
@@ -556,6 +573,18 @@ export function renderMarkdown(report, options = {}) {
       lines.push(`| ${c.caseId} | ${a.enumerated} | ${a.exhausted} | ${a.more} | ${a.unproven} | ${a.placements.median} / ${a.placements.max} | ${fmtMs(a.ms.median)} / ${fmtMs(a.ms.max)} |`);
     }
     lines.push('');
+    const withPass = counted.filter((c) => c.arrangements.pass.runs > 0);
+    if (withPass.length > 0) {
+      lines.push('### Completion pass (fix round 3, 2026-10-23)', '',
+        'After the count, unused arrangements are run as puzzle candidates (same clue selection, band, uniqueness mode and key rules) until the request is full or they are used up. '
+        + '"Filled to ten": runs that reached ten puzzles only thanks to the pass; "without puzzle": arrangements tried that had no clue set in the band.', '',
+        '| Case | Pass runs | Puzzles added | Filled to ten | Without puzzle | Pass time median / max |', '| --- | --- | --- | --- | --- | --- |');
+      for (const c of withPass) {
+        const p = c.arrangements.pass;
+        lines.push(`| ${c.caseId} | ${p.runs} | ${p.added} | ${p.filledToTen} | ${p.unusable} | ${fmtMs(p.ms.median)} / ${fmtMs(p.ms.max)} |`);
+      }
+      lines.push('');
+    }
   }
   if (detail) {
     lines.push('## Criteria checks', '', '| Case | Check | Status | Value | Limit | Note |', '| --- | --- | --- | --- | --- | --- |');

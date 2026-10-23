@@ -102,6 +102,26 @@ describe('qualification checks', () => {
     assert.match(md, /Arrangement counts after layouts-not-found/);
   });
 
+  test('the completion pass (fix round 3) is summarised per cell and old records simply lack it', () => {
+    const filled = (/** @type {number} */ i) => ({
+      layoutStatus: /** @type {const} */ ('more'), layoutMethod: 'cell-backtracking-v1', layoutEnumPlacements: 10, layoutEnumMs: 5,
+      layoutPassTried: 2, layoutPassAdded: i < 3 ? 2 : 0, layoutUnusable: i < 3 ? 0 : 2, layoutPassMs: 20 + i,
+    });
+    const cell = evaluateCell(many(20, (i) => (i < 5 ? filled(i) : {})));
+    assert.deepEqual(
+      { ...cell.arrangements.pass, ms: undefined },
+      { runs: 5, added: 6, filledToTen: 3, unusable: 4, ms: undefined },
+    );
+    assert.equal(cell.arrangements.pass.ms.max, 24);
+    assert.deepEqual(validateRunRecord(run(filled(0))), []);
+    assert.ok(validateRunRecord({ ...run(), layoutPassAdded: 'x' }).length > 0);
+    const md = renderMarkdown(buildReport({ kind: 'node', profile: 'P', sourceCommit: 'c', sourceDigest: 'd', versions: {}, platform: 'p',
+      browserOrNode: 'node v24', workerCount: 4, lifecycle: 'cold', matrixDigest: 'm', startedAt: 's', finishedAt: 'f', expectedRuns: 20 },
+    many(20, (i) => (i < 5 ? filled(i) : {})).map((r, i) => ({ ...r, rep: i }))));
+    assert.match(md, /Completion pass \(fix round 3/);
+    assert.equal(evaluateCell(many(3, () => ({}))).arrangements.pass.runs, 0);
+  });
+
   test('records written before the arrangement fields still validate and count as unproven', () => {
     const { layoutsExhausted, layoutTotal, layoutMethod, layoutStatus, layoutEnumPlacements, layoutEnumMs, ...old } = run({ acceptedCount: 4 });
     assert.deepEqual(validateRunRecord(old), []);

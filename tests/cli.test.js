@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 import { parsePack } from '../core/engine/pack.js';
 import { checkRecipe, compareExpected, DEFAULT_MAX_ACTIVE, parseArgs, run } from '../tools/generate.mjs';
+import { nodeWorkerFactory } from '../tools/node-worker.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const recipePath = resolve(root, 'tests', 'fixtures', 'generation-case.json');
@@ -172,13 +173,50 @@ describe('runs', () => {
     assert.ok(!result.stderr.includes('layouts-not-found'));
   });
 
-  test('a shortfall that is not proven to be the maximum still exits 2', async () => {
-    // The set has more arrangements than the seven found, so no maximum may be claimed.
-    const result = await runCli(['--board', '10x6', '--level', 'very-easy', '--count', '10', '--seed', 'bq0/d6x10-very-easy/5', '--workers', '2']);
-    assert.equal(result.code, 2, result.stderr);
-    const pack = packOf(result.stdout);
-    assert.equal(pack.puzzles.length, 7);
-    assert.match(result.stderr, /found 7 of 10 Very easy puzzles \(layouts-not-found: this piece set has more arrangements/);
+  test('the completion pass fills the former "more arrangements" shortfall, identically at every worker count', async () => {
+    const argv = ['--board', '10x6', '--level', 'very-easy', '--count', '10', '--seed', 'bq0/d6x10-very-easy/5'];
+    const wide = await runCli([...argv, '--workers', '4']);
+    const narrow = await runCli([...argv, '--workers', '1']);
+    for (const result of [wide, narrow]) {
+      assert.equal(result.code, 0, result.stderr);
+      assert.equal(packOf(result.stdout).puzzles.length, 8);
+      assert.match(result.stderr, /generate: found 8\/8 arrangements, the most this piece set allows \(complete\)/);
+    }
+    assert.deepEqual(semantic(packOf(narrow.stdout)), semantic(packOf(wide.stdout)));
+  });
+
+  test('an arrangement without an in-band clue set keeps the shortfall at exit 2 and says so precisely', async () => {
+    const real = nodeWorkerFactory();
+    // Workers behave as usual, except that no completion candidate finds a clue set.
+    const workerFactory = () => () => {
+      const worker = real();
+      /** @type {((event: any) => void)[]} */
+      const listeners = [];
+      return {
+        postMessage: (/** @type {any} */ message) => {
+          if (message?.kind === 'completionCandidate') {
+            queueMicrotask(() => listeners.forEach((fn) => fn({ data: { type: 'result', id: message.id, value: { fail: 'not-in-band' } } })));
+          } else {
+            worker.postMessage(message);
+          }
+        },
+        terminate: () => worker.terminate(),
+        addEventListener: (/** @type {string} */ type, /** @type {(event: any) => void} */ listener) => {
+          if (type === 'message') {
+            listeners.push(listener);
+          }
+          worker.addEventListener(type, listener);
+        },
+      };
+    };
+    let stdout = '';
+    let stderr = '';
+    const code = await run(['--board', '10x6', '--level', 'very-easy', '--count', '10', '--seed', 'bq0/d6x10-very-easy/5', '--workers', '2'], {
+      stdout: (t) => { stdout += t; }, stderr: (t) => { stderr += t; }, workerFactory,
+    });
+    assert.equal(code, 2, stderr);
+    assert.equal(packOf(stdout).puzzles.length, 7);
+    assert.match(stderr, /found 7 of 10 Very easy puzzles \(layouts-not-found: every other arrangement of this piece set \(1\) was tried, and none has a clue set that rates Very easy\)/);
   });
 
   test('semantic inputs give the same puzzles for another batch index and rotation', async () => {

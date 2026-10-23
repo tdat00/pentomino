@@ -9,12 +9,12 @@
 import { activeCount, boardFromRows, boardToRows, validateForGeneration } from '../engine/board.js';
 import { countRowLimit } from '../engine/clues.js';
 import {
-  candidateContext, dispatchOrder, foldAccept, foldNext, foldStart, GenerationError as HistoryError,
+  candidateContext, completionAccept, dispatchOrder, foldAccept, foldNext, foldStart, GenerationError as HistoryError,
 } from '../engine/generate.js';
 import { puzzleId } from '../engine/keys.js';
 import { level } from '../engine/levels.js';
 import { createPack, validatePackSliced } from '../engine/pack.js';
-import { pieceCountRange, POLICY_ID } from '../engine/policy.js';
+import { ENUMERATION, pieceCountRange, POLICY_ID } from '../engine/policy.js';
 import { batchSeedFor, normalizeSeedText, RNG_ID, SEED_SCHEME } from '../engine/rng.js';
 import { isValidLayout } from '../engine/tiling.js';
 import { ALGO_ID, APP_VERSION } from '../engine/version.js';
@@ -112,9 +112,10 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
 
 /**
  * Exhaustive count of the piece set's distinct arrangements, run after a `layouts-not-found` batch
- * (owner decision 2026-10-23). `exhausted`: every arrangement is used, `total` is exact and `earlier`
- * of them were used before this request; `more`: at least one unused arrangement exists, so the
- * shortfall is not a proven maximum; `unproven`: the enumeration reached a limit (`why`).
+ * (owner decision 2026-10-23), plus the completion pass over the unused ones (fix round 3). `exhausted`:
+ * every arrangement is used, `total` is exact and `earlier` of them were used before this request; `more`:
+ * at least one unused arrangement exists (`tried` of them were run as puzzle candidates, `unusable` gave no
+ * puzzle), so a shortfall is not a proven maximum; `unproven`: the enumeration reached a limit (`why`).
  * @typedef {object} ArrangementReport
  * @property {'exhausted' | 'more' | 'unproven'} status
  * @property {number} [total] Distinct arrangements of the set (`exhausted` only).
@@ -123,8 +124,15 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {number} placements Candidate placements tried by the search (the work measure its limit counts).
  * @property {number} nodes Search nodes.
  * @property {number} solutions Complete tilings visited (symmetric images included).
- * @property {number} elapsedMs
+ * @property {number} elapsedMs Enumeration time, without the pass.
  * @property {string} [why] `placements-limit`, `nodes-limit`, `deadline` or `error`.
+ * @property {number} [found] Unused arrangements the enumeration returned for the pass.
+ * @property {boolean} [searched] The enumeration finished, so `found` is every unused arrangement.
+ * @property {number} [tried] Arrangements run through the candidate pipeline by the pass.
+ * @property {number} [added] Puzzles the pass accepted.
+ * @property {number} [unusable] Arrangements tried that gave no puzzle.
+ * @property {'not-in-band' | 'uniqueness-not-proved' | 'layout'} [unusableWhy] Most frequent failure among them.
+ * @property {number} [passMs] Time of the pass.
  */
 
 /**
@@ -135,7 +143,8 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {string[]} seenLayouts
  * @property {string[]} seenClues
  * @property {'layouts-not-found' | 'difficulty-not-found' | 'uniqueness-not-proved' | 'time-limit'} [reason]
- * @property {ArrangementReport} [arrangements] Present with reason `layouts-not-found`.
+ * @property {ArrangementReport} [arrangements] Present whenever the batch stopped with `layouts-not-found`, also
+ *   when the completion pass then filled it (`status` `complete`, no `reason`).
  */
 
 /**
@@ -458,7 +467,7 @@ export function createGenerationClient(pool, options = {}) {
   /**
    * One pool task of a job; a recycled worker restarts the same deterministic task.
    * @param {Job} job
-   * @param {'setAttempt' | 'puzzleCandidate' | 'certify' | 'enumerateLayouts'} kind
+   * @param {'setAttempt' | 'puzzleCandidate' | 'completionCandidate' | 'certify' | 'enumerateLayouts'} kind
    * @param {object} payload
    * @param {AbortSignal | undefined} signal
    * @param {(p: { stage: string, rowTrials: number, bytes: number }) => void} [onProgress]
@@ -794,6 +803,10 @@ export function createGenerationClient(pool, options = {}) {
     let reason;
     /** @type {ArrangementReport | undefined} */
     let arrangements;
+    /** @type {Pose[][]} */
+    let unused = [];
+    let searched = false;
+    let totalSeen = 0;
     const detail = () => ({ accepted: accepted.slice(), seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues] });
     const elapsed = () => clock.now() - job.startedAt;
     /** @param {Partial<GenerationProgress>} extra */
@@ -880,6 +893,7 @@ export function createGenerationClient(pool, options = {}) {
           boardRows: boardToRows(set.board),
           pieces: set.pieces,
           seenLayouts: [...state.seenLayouts],
+          collect: ENUMERATION.collect,
         }, undefined, (p) => progress({ stage: 'enumerate', bytes: p.bytes }));
       } catch (e) {
         if (isAbortError(e) && e.reason === 'deadline') {
@@ -905,9 +919,97 @@ export function createGenerationClient(pool, options = {}) {
         return { ...base, status: 'exhausted', total: r.total, earlier: r.total - accepted.length };
       }
       if (r.status === 'more') {
-        return { ...base, status: 'more' };
+        const layouts = Array.isArray(r.layouts) ? r.layouts.slice(0, ENUMERATION.collect) : [];
+        for (const item of layouts) {
+          if (!isObject(item) || !Array.isArray(item.layout) || !isValidLayout(set.board, set.pieces, item.layout)) {
+            throw new GenerationError('internal', 'The worker sent an invalid arrangement', detail());
+          }
+        }
+        unused = layouts.map((item) => /** @type {Pose[]} */ (item.layout));
+        searched = r.complete === true;
+        totalSeen = typeof r.total === 'number' && Number.isSafeInteger(r.total) ? r.total : 0;
+        return unused.length > 0 ? { ...base, status: 'more', found: unused.length, searched } : { ...base, status: 'more' };
       }
       return { ...base, status: 'unproven', why: typeof r.why === 'string' ? r.why : 'error' };
+    };
+
+    /**
+     * Completion pass (fix round 3): the unused arrangements the enumeration returned, in layout-key order,
+     * go through the candidate pipeline until the quantity is reached or they are used up. Candidates run
+     * in the pool, up to its width at a time, but are consumed strictly in key order, so the accepted
+     * puzzles do not depend on the pool. It never throws for a stop: the deadline ends it with the
+     * accepted prefix kept and Cancel ends it as cancelled.
+     * @param {ArrangementReport} report The enumeration report, `status` `more`.
+     * @returns {Promise<{ report: ArrangementReport, stop: 'time-limit' | 'cancelled' | null }>}
+     */
+    const completionPass = async (report) => {
+      const startedAt = clock.now();
+      const passController = new AbortController();
+      const payloadBase = { ...base, seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues] };
+      /** @type {{ done: boolean, ok?: boolean, value?: unknown, error?: unknown }[]} */
+      const entries = unused.map(() => ({ done: false }));
+      const failures = { 'not-in-band': 0, 'uniqueness-not-proved': 0, layout: 0 };
+      const passStart = state.accepted.length;
+      let launched = 0;
+      let consumed = 0;
+      /** @type {'time-limit' | 'cancelled' | null} */
+      let stop = null;
+      progress({ stage: 'candidate', slot: accepted.length + 1 });
+      try {
+        while (consumed < unused.length && accepted.length < quantity) {
+          if (job.cancelled) {
+            stop = 'cancelled';
+            break;
+          }
+          if (job.timedOut) {
+            stop = 'time-limit';
+            break;
+          }
+          while (launched < unused.length && launched - consumed < pool.size) {
+            const entry = entries[launched];
+            const layout = unused[launched];
+            launched += 1;
+            runTask(job, 'completionCandidate', { ...payloadBase, layout }, passController.signal, (p) => progress({
+              stage: p.stage, slot: accepted.length + 1, bytes: p.bytes, rowTrials: p.rowTrials,
+            })).then((value) => {
+              Object.assign(entry, { done: true, ok: true, value });
+              job.wake?.();
+            }, (error) => {
+              Object.assign(entry, { done: true, ok: false, error });
+              job.wake?.();
+            });
+          }
+          const entry = entries[consumed];
+          if (!entry.done) {
+            await waitEvent(job);
+            continue;
+          }
+          if (entry.ok !== true) {
+            stop = stopReason(job, entry.error, detail());
+            break;
+          }
+          const next = completionAccept(state, checkOutcome(entry.value));
+          state = next.state;
+          consumed += 1;
+          if (next.failed === null) {
+            accept(state.accepted[state.accepted.length - 1]);
+          } else {
+            failures[next.failed] += 1;
+          }
+          progress({ stage: 'candidate', slot: accepted.length + 1 });
+        }
+      } finally {
+        passController.abort();
+      }
+      const unusable = consumed - (state.accepted.length - passStart);
+      /** @type {ArrangementReport} */
+      const out = { ...report, tried: consumed, added: state.accepted.length - passStart, unusable, passMs: clock.now() - startedAt };
+      if (unusable > 0) {
+        out.unusableWhy = failures['not-in-band'] >= failures['uniqueness-not-proved'] && failures['not-in-band'] >= failures.layout
+          ? 'not-in-band'
+          : failures['uniqueness-not-proved'] >= failures.layout ? 'uniqueness-not-proved' : 'layout';
+      }
+      return { report: out, stop };
     };
 
     try {
@@ -968,6 +1070,23 @@ export function createGenerationClient(pool, options = {}) {
           reason = undefined;
         } else {
           arrangements = counted;
+          if (counted.status === 'more' && unused.length > 0 && !job.timedOut) {
+            const pass = await completionPass(counted);
+            arrangements = pass.report;
+            if (pass.stop === 'cancelled') {
+              status = 'cancelled';
+              reason = undefined;
+              arrangements = undefined;
+            } else if (pass.stop === 'time-limit') {
+              reason = 'time-limit';
+              arrangements = { ...pass.report, why: 'deadline' };
+            } else if (state.accepted.length >= quantity) {
+              status = 'complete';
+              reason = undefined;
+            } else if (searched && pass.report.unusable === 0) {
+              arrangements = { ...pass.report, status: 'exhausted', total: totalSeen, earlier: totalSeen - accepted.length };
+            }
+          }
         }
       }
     } catch (e) {

@@ -531,7 +531,8 @@ export async function run(argv, overrides = {}) {
       onRun: (record) => {
         io.stderr(`    accepted ${record.acceptedCount}/10, T10 ${record.tenthReadyMs ?? 'n/a'} ms, response ${Math.round(record.responseMs)} ms`
           + `${record.partialReason === null ? '' : `, ${record.partialReason}`}`
-          + `${record.layoutStatus == null ? '' : ` (arrangements ${record.layoutStatus}${record.layoutTotal === null ? '' : ` ${record.layoutTotal}`}, ${Math.round(record.layoutEnumMs ?? 0)} ms)`}\n`);
+          + `${record.layoutStatus == null ? '' : ` (arrangements ${record.layoutStatus}${record.layoutTotal === null ? '' : ` ${record.layoutTotal}`}, ${Math.round(record.layoutEnumMs ?? 0)} ms`
+            + `${record.layoutPassTried == null ? '' : `, pass tried ${record.layoutPassTried} added ${record.layoutPassAdded ?? 0} in ${Math.round(record.layoutPassMs ?? 0)} ms`})`}\n`);
         if (!record.interrupted) {
           appendFileSync(checkpoint, `${JSON.stringify({ kind: 'run', run: record })}\n`);
         }

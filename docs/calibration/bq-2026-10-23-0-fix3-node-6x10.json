@@ -1,0 +1,6556 @@
+{
+  "format": "pentomino-bench-report",
+  "version": 1,
+  "meta": {
+    "kind": "node",
+    "profile": "BQ-0",
+    "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+    "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+    "versions": {
+      "algo": "gen-v2",
+      "policy": "mixed-v2",
+      "rng": "xoshiro128ss-v1",
+      "model": "difficulty-v2",
+      "app": "1.0.0"
+    },
+    "platform": "win32 10.0.26300 x64",
+    "browserOrNode": "node v24.21.0",
+    "hardware": {
+      "cpu": "AMD EPYC 7763 64-Core Processor                ",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v24.21.0",
+      "execArgv": [
+        "--max-old-space-size=2048"
+      ]
+    },
+    "workerCount": 4,
+    "lifecycle": "cold",
+    "matrixDigest": "0a0efb7ee3976850a572bab51afc8ebb821e6a363c1be76ef1791d4c8b331a3a",
+    "startedAt": "2026-10-23T00:54:47.540Z",
+    "finishedAt": "2026-10-23T00:55:16.667Z",
+    "expectedRuns": 42,
+    "notes": [
+      "fresh process per row"
+    ]
+  },
+  "complete": true,
+  "runCount": 42,
+  "cells": [
+    {
+      "caseId": "d6x10-very-easy",
+      "platform": "node",
+      "arrangements": {
+        "method": "cell-backtracking-v1",
+        "enumerated": 4,
+        "exhausted": 4,
+        "more": 0,
+        "unproven": 0,
+        "placements": {
+          "n": 4,
+          "min": 39510,
+          "median": 119809,
+          "p95": 905465,
+          "max": 905465
+        },
+        "ms": {
+          "n": 4,
+          "min": 46.28929999999991,
+          "median": 87.89059999999998,
+          "p95": 89.51710000000003,
+          "max": 89.51710000000003
+        },
+        "pass": {
+          "runs": 1,
+          "added": 1,
+          "filledToTen": 0,
+          "unusable": 0,
+          "ms": {
+            "n": 1,
+            "min": 8.61119999999994,
+            "median": 8.61119999999994,
+            "p95": 8.61119999999994,
+            "max": 8.61119999999994
+          }
+        }
+      },
+      "runs": {
+        "ordinary": 20,
+        "expected": 20,
+        "missing": 0,
+        "complete": 16,
+        "exhausted": 4,
+        "atLeastOne": 20,
+        "interrupted": 0,
+        "cancelProbes": 1,
+        "watchdogProbes": 0
+      },
+      "rates": {
+        "completeTen": 0.8,
+        "tenOrEveryArrangement": 1,
+        "atLeastOne": 1
+      },
+      "t1": {
+        "n": 20,
+        "min": 113.91499999999999,
+        "median": 122.7884,
+        "p95": 133.16219999999998,
+        "max": 146.49349999999998
+      },
+      "t10": {
+        "conditional": true,
+        "basis": "runs that completed ten puzzles",
+        "n": 16,
+        "min": 264.5527,
+        "median": 321.55594999999994,
+        "p95": 445.14410000000004,
+        "max": 445.14410000000004
+      },
+      "response": {
+        "n": 20,
+        "min": 417.2685,
+        "median": 466.89879999999994,
+        "p95": 609.0286,
+        "max": 688.6696000000001
+      },
+      "peak": {
+        "accountedMaxBytes": 1759024,
+        "processMaxBytes": 192479232
+      },
+      "saturatedAccepted": 0,
+      "acceptedTotal": 193,
+      "certificates": {
+        "unique": 154,
+        "multiple": 6,
+        "notProved": 0,
+        "notChecked": 33
+      },
+      "sampleSize": {
+        "n": 20,
+        "minimum": 20,
+        "sufficient": true
+      },
+      "checks": [
+        {
+          "id": "complete-ten-rate",
+          "label": "Runs with 10 of 10 puzzles or every proven-available arrangement (all ordinary runs; criterion 2, owner decision 2026-10-23)",
+          "status": "pass",
+          "value": 1,
+          "limit": ">= 0.9",
+          "note": "20 of 20: 16 with ten + 4 proven-exhausted"
+        },
+        {
+          "id": "at-least-one-rate",
+          "label": "Runs with at least 1 puzzle (all ordinary runs)",
+          "status": "pass",
+          "value": 1,
+          "limit": ">= 0.99",
+          "note": "20 of 20"
+        },
+        {
+          "id": "t10-median",
+          "label": "T10 median, conditional on complete runs",
+          "status": "pass",
+          "value": 321.55594999999994,
+          "limit": "<= 60000 ms",
+          "note": "n = 16"
+        },
+        {
+          "id": "t10-p95",
+          "label": "T10 p95 (nearest rank), conditional on complete runs",
+          "status": "pass",
+          "value": 445.14410000000004,
+          "limit": "<= 115000 ms",
+          "note": "n = 16"
+        },
+        {
+          "id": "response-time",
+          "label": "Longest response of any ordinary run",
+          "status": "pass",
+          "value": 688.6696000000001,
+          "limit": "<= 120000 ms",
+          "note": ""
+        },
+        {
+          "id": "peak-process-memory",
+          "label": "Real peak memory of the whole process (tab/process plus workers)",
+          "status": "pass",
+          "value": 192479232,
+          "limit": "<= 1610612736 bytes",
+          "note": ""
+        },
+        {
+          "id": "byte-accounting",
+          "label": "Accounted worker and main buffers within the design budgets",
+          "status": "pass",
+          "value": 1759024,
+          "limit": "<= 1254096896 bytes",
+          "note": ""
+        },
+        {
+          "id": "model-too-large",
+          "label": "No model-too-large error",
+          "status": "pass",
+          "value": 0,
+          "limit": "0",
+          "note": ""
+        },
+        {
+          "id": "main-thread-task",
+          "label": "No main-thread task over 50 ms",
+          "status": "not-applicable",
+          "value": null,
+          "limit": "<= 50 ms",
+          "note": "Node has no browser main thread"
+        },
+        {
+          "id": "cancel-latency",
+          "label": "Cancel settles quickly (separate probe, excluded from statistics)",
+          "status": "pass",
+          "value": 7.411300000000011,
+          "limit": "< 200 ms",
+          "note": "1 probe(s)"
+        }
+      ],
+      "verdict": "node-screening-only"
+    },
+    {
+      "caseId": "d6x10-easy",
+      "platform": "node",
+      "arrangements": {
+        "method": "cell-backtracking-v1",
+        "enumerated": 2,
+        "exhausted": 2,
+        "more": 0,
+        "unproven": 0,
+        "placements": {
+          "n": 2,
+          "min": 241904,
+          "median": 654760.5,
+          "p95": 1067617,
+          "max": 1067617
+        },
+        "ms": {
+          "n": 2,
+          "min": 91.00040000000001,
+          "median": 110.59845000000001,
+          "p95": 130.19650000000001,
+          "max": 130.19650000000001
+        },
+        "pass": {
+          "runs": 0,
+          "added": 0,
+          "filledToTen": 0,
+          "unusable": 0,
+          "ms": {
+            "n": 0,
+            "min": null,
+            "median": null,
+            "p95": null,
+            "max": null
+          }
+        }
+      },
+      "runs": {
+        "ordinary": 20,
+        "expected": 20,
+        "missing": 0,
+        "complete": 18,
+        "exhausted": 2,
+        "atLeastOne": 20,
+        "interrupted": 0,
+        "cancelProbes": 1,
+        "watchdogProbes": 0
+      },
+      "rates": {
+        "completeTen": 0.9,
+        "tenOrEveryArrangement": 1,
+        "atLeastOne": 1
+      },
+      "t1": {
+        "n": 20,
+        "min": 112.32230000000001,
+        "median": 120.80535,
+        "p95": 131.7098,
+        "max": 138.76190000000003
+      },
+      "t10": {
+        "conditional": true,
+        "basis": "runs that completed ten puzzles",
+        "n": 18,
+        "min": 262.2036,
+        "median": 296.4321,
+        "p95": 401.2333,
+        "max": 401.2333
+      },
+      "response": {
+        "n": 20,
+        "min": 361.8721,
+        "median": 429.08050000000003,
+        "p95": 620.5734,
+        "max": 715.2968
+      },
+      "peak": {
+        "accountedMaxBytes": 1935952,
+        "processMaxBytes": 195420160
+      },
+      "saturatedAccepted": 0,
+      "acceptedTotal": 196,
+      "certificates": {
+        "unique": 102,
+        "multiple": 78,
+        "notProved": 0,
+        "notChecked": 16
+      },
+      "sampleSize": {
+        "n": 20,
+        "minimum": 20,
+        "sufficient": true
+      },
+      "checks": [
+        {
+          "id": "complete-ten-rate",
+          "label": "Runs with 10 of 10 puzzles or every proven-available arrangement (all ordinary runs; criterion 2, owner decision 2026-10-23)",
+          "status": "pass",
+          "value": 1,
+          "limit": ">= 0.9",
+          "note": "20 of 20: 18 with ten + 2 proven-exhausted"
+        },
+        {
+          "id": "at-least-one-rate",
+          "label": "Runs with at least 1 puzzle (all ordinary runs)",
+          "status": "pass",
+          "value": 1,
+          "limit": ">= 0.99",
+          "note": "20 of 20"
+        },
+        {
+          "id": "t10-median",
+          "label": "T10 median, conditional on complete runs",
+          "status": "pass",
+          "value": 296.4321,
+          "limit": "<= 60000 ms",
+          "note": "n = 18"
+        },
+        {
+          "id": "t10-p95",
+          "label": "T10 p95 (nearest rank), conditional on complete runs",
+          "status": "pass",
+          "value": 401.2333,
+          "limit": "<= 115000 ms",
+          "note": "n = 18"
+        },
+        {
+          "id": "response-time",
+          "label": "Longest response of any ordinary run",
+          "status": "pass",
+          "value": 715.2968,
+          "limit": "<= 120000 ms",
+          "note": ""
+        },
+        {
+          "id": "peak-process-memory",
+          "label": "Real peak memory of the whole process (tab/process plus workers)",
+          "status": "pass",
+          "value": 195420160,
+          "limit": "<= 1610612736 bytes",
+          "note": ""
+        },
+        {
+          "id": "byte-accounting",
+          "label": "Accounted worker and main buffers within the design budgets",
+          "status": "pass",
+          "value": 1935952,
+          "limit": "<= 1254096896 bytes",
+          "note": ""
+        },
+        {
+          "id": "model-too-large",
+          "label": "No model-too-large error",
+          "status": "pass",
+          "value": 0,
+          "limit": "0",
+          "note": ""
+        },
+        {
+          "id": "main-thread-task",
+          "label": "No main-thread task over 50 ms",
+          "status": "not-applicable",
+          "value": null,
+          "limit": "<= 50 ms",
+          "note": "Node has no browser main thread"
+        },
+        {
+          "id": "cancel-latency",
+          "label": "Cancel settles quickly (separate probe, excluded from statistics)",
+          "status": "pass",
+          "value": 21.085399999999993,
+          "limit": "< 200 ms",
+          "note": "1 probe(s)"
+        }
+      ],
+      "verdict": "node-screening-only"
+    }
+  ],
+  "planning": [
+    {
+      "caseId": "d6x10-very-easy",
+      "nodeMaxT10Ms": 445.14410000000004,
+      "browserPlanSeconds": 6.7805764,
+      "label": "planning estimate (D39: 5 s + 4 x Node maximum); not a measurement; never enables a BQ flag"
+    },
+    {
+      "caseId": "d6x10-easy",
+      "nodeMaxT10Ms": 401.2333,
+      "browserPlanSeconds": 6.6049332,
+      "label": "planning estimate (D39: 5 s + 4 x Node maximum); not a measurement; never enables a BQ flag"
+    }
+  ],
+  "statement": "Node screening evidence only. It never replaces browser measurements and enables no BQ limit.",
+  "runs": [
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/0",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:47.680Z",
+      "firstReadyMs": 126.13829999999999,
+      "tenthReadyMs": 324.04909999999995,
+      "responseMs": 458.60169999999994,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1482064,
+      "peakProcessBytes": 174387200,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 10,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 546.1313,
+      "maxModelRows": 1400,
+      "maxModelNodes": 12872,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 0,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          6,
+          7,
+          7,
+          7,
+          11,
+          11,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "5c6d1130006e73a818746774d62d9ced46af2fc42047c094e7844cc1980e4260"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/1",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:48.397Z",
+      "firstReadyMs": 119.45859999999999,
+      "tenthReadyMs": 445.14410000000004,
+      "responseMs": 596.9461000000001,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1092862,
+      "peakProcessBytes": 174153728,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 10,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 598.7384,
+      "maxModelRows": 788,
+      "maxModelNodes": 8700,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 1,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 6,
+        "sizes": [
+          6,
+          8,
+          11,
+          11,
+          12,
+          12
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "6159196d8decc4a94b937f72400e7d6593b92382fd4506401ca8010e8eb4b3b6"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/2",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:49.167Z",
+      "firstReadyMs": 127.82809999999999,
+      "tenthReadyMs": 307.2745,
+      "responseMs": 448.4431,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1432217,
+      "peakProcessBytes": 174329856,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 10,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 528.9872,
+      "maxModelRows": 1504,
+      "maxModelNodes": 13792,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 2,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          6,
+          6,
+          7,
+          7,
+          11,
+          11,
+          12
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "9a9ecef2578c3d99c8155c40832a211447471fa71aa3fce012f8277d794d3855"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/3",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:49.868Z",
+      "firstReadyMs": 121.98859999999999,
+      "tenthReadyMs": 425.21629999999993,
+      "responseMs": 570.7755999999999,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1264938,
+      "peakProcessBytes": 179720192,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 9,
+        "multiple": 1,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 646.4687,
+      "maxModelRows": 952,
+      "maxModelNodes": 10192,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 3,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 6,
+        "sizes": [
+          7,
+          9,
+          10,
+          10,
+          12,
+          12
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "3e19772fcd39ee853a727e37913c6cc8665bd90a3513c2da27376ff5c6a7f76f"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/4",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:50.676Z",
+      "firstReadyMs": 120.925,
+      "tenthReadyMs": 397.863,
+      "responseMs": 569.0524999999999,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1151467,
+      "peakProcessBytes": 188030976,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 8,
+        "multiple": 2,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 571.1964999999999,
+      "maxModelRows": 884,
+      "maxModelNodes": 9160,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 4,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 6,
+        "sizes": [
+          6,
+          7,
+          9,
+          11,
+          13,
+          14
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "0b9f3896848c3f3d68589073ff9fd0727579de993a970da87e25720b3ef88ce4"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/5",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:51.416Z",
+      "firstReadyMs": 146.49349999999998,
+      "tenthReadyMs": null,
+      "responseMs": 609.0286,
+      "acceptedCount": 8,
+      "partialReason": "layouts-not-found",
+      "layoutsExhausted": true,
+      "layoutTotal": 8,
+      "layoutMethod": "cell-backtracking-v1",
+      "layoutStatus": "exhausted",
+      "layoutEnumPlacements": 128079,
+      "layoutEnumMs": 89.51710000000003,
+      "layoutPassTried": 1,
+      "layoutPassAdded": 1,
+      "layoutUnusable": 0,
+      "layoutPassMs": 8.61119999999994,
+      "peakAccountedBytes": 1398041,
+      "peakProcessBytes": 184684544,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 8
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": 1280,
+      "maxModelNodes": 11864,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 5,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          5,
+          7,
+          8,
+          9,
+          10,
+          10,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "f7ddcdc2d4d59382e71ca5618b18c2a520d95272835f30d457b5759755974368"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/6",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:52.206Z",
+      "firstReadyMs": 131.7342,
+      "tenthReadyMs": 305.8716,
+      "responseMs": 435.76449999999994,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1423800,
+      "peakProcessBytes": 178462720,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 10,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 519.8752000000001,
+      "maxModelRows": 1376,
+      "maxModelNodes": 13184,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 6,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          6,
+          7,
+          7,
+          7,
+          11,
+          11,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "a0bb621d66da623bbdd21cdf1ca078a5b70e33448bd9a808c1f4c10096728359"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/7",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:52.902Z",
+      "firstReadyMs": 117.2545,
+      "tenthReadyMs": 331.7548,
+      "responseMs": 469.16049999999996,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1567050,
+      "peakProcessBytes": 177463296,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 10,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 550.797,
+      "maxModelRows": 1408,
+      "maxModelNodes": 12792,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 7,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          5,
+          6,
+          9,
+          9,
+          9,
+          9,
+          13
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "e506543df3f6f47f418b719cdfeadd2b6de5b90d8176eb95365d82c4d8247f7a"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/8",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:53.635Z",
+      "firstReadyMs": 122.10829999999999,
+      "tenthReadyMs": 381.3098,
+      "responseMs": 481.85519999999997,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1303043,
+      "peakProcessBytes": 173846528,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 9,
+        "multiple": 1,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 561.5842,
+      "maxModelRows": 984,
+      "maxModelNodes": 10400,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 8,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 6,
+        "sizes": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          15
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "466b71a550fe48b72d919b2d263703d6d15ea25d8dd10f959c3df58c5751d2e4"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/9",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:54.361Z",
+      "firstReadyMs": 116.43329999999999,
+      "tenthReadyMs": 382.3505,
+      "responseMs": 486.0061,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1262281,
+      "peakProcessBytes": 178933760,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 9,
+        "multiple": 1,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 567.3481999999999,
+      "maxModelRows": 936,
+      "maxModelNodes": 9776,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 9,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 6,
+        "sizes": [
+          6,
+          9,
+          10,
+          10,
+          11,
+          14
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "ba2433e7d127876eeac778c57d1ab064ba334f1206ea71a9a86da978405968ee"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/10",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:55.093Z",
+      "firstReadyMs": 128.286,
+      "tenthReadyMs": 310.1528,
+      "responseMs": 464.6371,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1634071,
+      "peakProcessBytes": 177074176,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 9,
+        "multiple": 1,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 542.0277,
+      "maxModelRows": 1472,
+      "maxModelNodes": 13776,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 10,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          6,
+          7,
+          8,
+          9,
+          9,
+          10,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 2,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "7616c9d87659af9fde613c0ef113461a74d7ebb73a59dad62f8e8edc0312f9ea"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/11",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:55.806Z",
+      "firstReadyMs": 121.3821,
+      "tenthReadyMs": null,
+      "responseMs": 543.1646000000001,
+      "acceptedCount": 8,
+      "partialReason": "layouts-not-found",
+      "layoutsExhausted": true,
+      "layoutTotal": 8,
+      "layoutMethod": "cell-backtracking-v1",
+      "layoutStatus": "exhausted",
+      "layoutEnumPlacements": 111539,
+      "layoutEnumMs": 86.64409999999998,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1315578,
+      "peakProcessBytes": 173785088,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 8
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": 1016,
+      "maxModelNodes": 10184,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 11,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 6,
+        "sizes": [
+          6,
+          7,
+          9,
+          11,
+          12,
+          15
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "f0e938aaf6194e6007d66d6e822b68827737cef3ebb90afb9b2e12b18db687a8"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/12",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:56.536Z",
+      "firstReadyMs": 128.7364,
+      "tenthReadyMs": 303.04560000000004,
+      "responseMs": 448.0767,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1109138,
+      "peakProcessBytes": 175525888,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 10,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 527.4098,
+      "maxModelRows": 1176,
+      "maxModelNodes": 10800,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 12,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          6,
+          7,
+          9,
+          9,
+          9,
+          9,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "951860023e686fb9ff7f6f16152f41457d6d38dc52951c69cd6791c3192df5ad"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/13",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:57.230Z",
+      "firstReadyMs": 123.4685,
+      "tenthReadyMs": 287.8807,
+      "responseMs": 436.15770000000003,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1292521,
+      "peakProcessBytes": 172601344,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 10,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 517.9022,
+      "maxModelRows": 1392,
+      "maxModelNodes": 12544,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 13,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          5,
+          7,
+          8,
+          9,
+          9,
+          9,
+          13
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "86674378a07bfb8a87ea2f8f2b57bd87f8fb7c6406b907be5c705c8c6beee833"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/14",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:57.917Z",
+      "firstReadyMs": 120.50989999999999,
+      "tenthReadyMs": 264.5527,
+      "responseMs": 417.2685,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1255995,
+      "peakProcessBytes": 170921984,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 10,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 493.6543,
+      "maxModelRows": 1504,
+      "maxModelNodes": 13528,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 14,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          5,
+          7,
+          7,
+          7,
+          10,
+          11,
+          13
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "2217431095627dc0f9fd2de499e45f62d168d03258e08910176b952d156d1549"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/15",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:58.572Z",
+      "firstReadyMs": 113.91499999999999,
+      "tenthReadyMs": 312.7801,
+      "responseMs": 442.7837,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1238238,
+      "peakProcessBytes": 186310656,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 10,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 522.1077,
+      "maxModelRows": 1168,
+      "maxModelNodes": 11072,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 15,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          5,
+          7,
+          7,
+          9,
+          10,
+          11,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "68aa3a3149c61783fcf282468394eff6e4499b75dc407263ba9cd7b736788328"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/16",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:54:59.261Z",
+      "firstReadyMs": 132.6406,
+      "tenthReadyMs": null,
+      "responseMs": 688.6696000000001,
+      "acceptedCount": 9,
+      "partialReason": "layouts-not-found",
+      "layoutsExhausted": true,
+      "layoutTotal": 9,
+      "layoutMethod": "cell-backtracking-v1",
+      "layoutStatus": "exhausted",
+      "layoutEnumPlacements": 905465,
+      "layoutEnumMs": 46.28929999999991,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1759024,
+      "peakProcessBytes": 192479232,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 9
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": 1376,
+      "maxModelNodes": 12592,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 16,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          5,
+          7,
+          8,
+          9,
+          9,
+          10,
+          12
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 2,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "1672169a980ca751be4dfca065e43ce9ea0ab62fb2ac82c082228e37d8140165"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/17",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:00.130Z",
+      "firstReadyMs": 125.35950000000001,
+      "tenthReadyMs": null,
+      "responseMs": 597.9374,
+      "acceptedCount": 8,
+      "partialReason": "layouts-not-found",
+      "layoutsExhausted": true,
+      "layoutTotal": 8,
+      "layoutMethod": "cell-backtracking-v1",
+      "layoutStatus": "exhausted",
+      "layoutEnumPlacements": 39510,
+      "layoutEnumMs": 89.13709999999998,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1496218,
+      "peakProcessBytes": 175464448,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 8
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": 1104,
+      "maxModelNodes": 11576,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 17,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 6,
+        "sizes": [
+          6,
+          8,
+          9,
+          11,
+          13,
+          13
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "d5c93e5841b19e618774ecc93806be3911cb0b2983b6ecb8b13b6181b56f536e"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/18",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:00.910Z",
+      "firstReadyMs": 133.16219999999998,
+      "tenthReadyMs": 326.6301,
+      "responseMs": 453.21930000000003,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1241364,
+      "peakProcessBytes": 181809152,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 10,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 532.7330999999999,
+      "maxModelRows": 1032,
+      "maxModelNodes": 9432,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 18,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          7,
+          7,
+          7,
+          7,
+          10,
+          11,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "293a91842a84675bfb096706704745ab9129c40fcd7668e7d283f3318ad18063"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/19",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:01.610Z",
+      "firstReadyMs": 119.82690000000001,
+      "tenthReadyMs": 319.0628,
+      "responseMs": 449.82800000000003,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1511161,
+      "peakProcessBytes": 185552896,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 10,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 530.9849,
+      "maxModelRows": 1248,
+      "maxModelNodes": 11400,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 19,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          5,
+          7,
+          7,
+          8,
+          11,
+          11,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 6,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "f29ceed4f72cdcfa43fa31e8d0ba1763512836521113e7aff6b900d1ead2c5c7"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-very-easy",
+      "seed": "bq0/d6x10-very-easy/cancel",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:02.308Z",
+      "firstReadyMs": 116.5436,
+      "tenthReadyMs": null,
+      "responseMs": 133.2946,
+      "acceptedCount": 1,
+      "partialReason": "cancelled",
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 8049,
+      "peakProcessBytes": 138055680,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 1
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": 1024,
+      "maxModelNodes": 10704,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": 7.411300000000011,
+      "probeKind": "cancel",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 0,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 6,
+        "sizes": [
+          7,
+          7,
+          10,
+          10,
+          12,
+          14
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 2,
+            "score": 4,
+            "level": "very-easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "f4f4df44e1ced5e1089be309cccc4a0d3b00b15121e1a325249a4618cd92e0e4"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/0",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:02.599Z",
+      "firstReadyMs": 118.93780000000001,
+      "tenthReadyMs": 273.6096,
+      "responseMs": 428.69520000000006,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1564572,
+      "peakProcessBytes": 176418816,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 6,
+        "multiple": 4,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 528.5527,
+      "maxModelRows": 1340,
+      "maxModelNodes": 11172,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 0,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 8,
+        "sizes": [
+          6,
+          6,
+          6,
+          6,
+          6,
+          8,
+          10,
+          12
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "08e1149c769cf42f62caff8d2b600848cd2566e1cd95ddc0bb215124ef8f6e2d"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/1",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:03.304Z",
+      "firstReadyMs": 131.7098,
+      "tenthReadyMs": 287.2214,
+      "responseMs": 421.5194,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1103025,
+      "peakProcessBytes": 177643520,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 6,
+        "multiple": 4,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 506.9388,
+      "maxModelRows": 1388,
+      "maxModelNodes": 11628,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 1,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 8,
+        "sizes": [
+          4,
+          5,
+          6,
+          7,
+          9,
+          9,
+          10,
+          10
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 3,
+            "score": 11,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "f9bd6104883a6ed3049bc156f38591cd9272fc0e17d7bea139db288c1c0c73ac"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/2",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:03.990Z",
+      "firstReadyMs": 120.3137,
+      "tenthReadyMs": 308.4597,
+      "responseMs": 402.2778,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1715915,
+      "peakProcessBytes": 178487296,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 4,
+        "multiple": 6,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 483.2377,
+      "maxModelRows": 1469,
+      "maxModelNodes": 12737,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 2,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 8,
+        "sizes": [
+          4,
+          5,
+          7,
+          7,
+          9,
+          9,
+          9,
+          10
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "b5eb228a775158896e25f1a501323aa38a737f342b9b739b03a25f715151eabf"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/3",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:04.648Z",
+      "firstReadyMs": 117.98989999999999,
+      "tenthReadyMs": 271.6952,
+      "responseMs": 361.8721,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1528227,
+      "peakProcessBytes": 178003968,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 7,
+        "multiple": 3,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 441.82939999999996,
+      "maxModelRows": 1508,
+      "maxModelNodes": 12452,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 3,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 8,
+        "sizes": [
+          5,
+          6,
+          6,
+          7,
+          7,
+          9,
+          9,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "e2c640cadbf0a8a3ad40c72f00c101d9d22b0506152970bf9726b2dc923b17fd"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/4",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:05.256Z",
+      "firstReadyMs": 123.1726,
+      "tenthReadyMs": 401.2333,
+      "responseMs": 546.1714,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1619898,
+      "peakProcessBytes": 181841920,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 10,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 624.2272999999999,
+      "maxModelRows": 1326,
+      "maxModelNodes": 10806,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 4,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 8,
+        "sizes": [
+          4,
+          5,
+          5,
+          5,
+          8,
+          9,
+          12,
+          12
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "747c59b766b1f3ba16b718023b45fd15f5f0d67b0d16c35047384f342bd16d5d"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/5",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:06.059Z",
+      "firstReadyMs": 125.11340000000001,
+      "tenthReadyMs": 374.51750000000004,
+      "responseMs": 471.71540000000005,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1467143,
+      "peakProcessBytes": 181415936,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 8,
+        "multiple": 2,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 553.5276,
+      "maxModelRows": 1296,
+      "maxModelNodes": 10696,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 5,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 8,
+        "sizes": [
+          4,
+          5,
+          5,
+          8,
+          9,
+          9,
+          9,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "512fb804fbbb4da54703e73f590212b8af19cb77ac4d215b1fde3ce1b2184e2e"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/6",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:06.783Z",
+      "firstReadyMs": 116.75799999999998,
+      "tenthReadyMs": 295.3808,
+      "responseMs": 383.4071,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1408397,
+      "peakProcessBytes": 194854912,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 4,
+        "multiple": 6,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 463.83099999999996,
+      "maxModelRows": 1280,
+      "maxModelNodes": 11880,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 6,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          7,
+          7,
+          8,
+          9,
+          9,
+          9,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 11,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 3,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 3,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 3,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 3,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "9edb9c5f303de69391ce18e97d2ebff441e03d5c5eb3bbbd5724f408c9e2eff9"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/7",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:07.420Z",
+      "firstReadyMs": 138.76190000000003,
+      "tenthReadyMs": 368.30559999999997,
+      "responseMs": 491.82059999999996,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1578435,
+      "peakProcessBytes": 179322880,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 1,
+        "multiple": 9,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 569.6717,
+      "maxModelRows": 1232,
+      "maxModelNodes": 11392,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 7,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          6,
+          7,
+          7,
+          9,
+          9,
+          11,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 3,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 3,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 3,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 11,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 11,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "051e435e730741eefdd7c94b45d7484d186f11d3b480afc5f8fcb4aac1f4ec04"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/8",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:08.166Z",
+      "firstReadyMs": 122.02489999999999,
+      "tenthReadyMs": 312.3719,
+      "responseMs": 426.70349999999996,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1341910,
+      "peakProcessBytes": 180350976,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 1,
+        "multiple": 9,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 508.2247,
+      "maxModelRows": 1272,
+      "maxModelNodes": 11328,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 8,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          5,
+          5,
+          9,
+          9,
+          9,
+          10,
+          13
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 11,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "3fe14f10fdac7bacdb04032a6dd491f95e4ac1b153a6bf9ece90c66b668adac0"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/9",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:08.844Z",
+      "firstReadyMs": 113.97099999999999,
+      "tenthReadyMs": 299.6015,
+      "responseMs": 367.1848,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1881656,
+      "peakProcessBytes": 195420160,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 8,
+        "multiple": 2,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 444.6432,
+      "maxModelRows": 1648,
+      "maxModelNodes": 13064,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 9,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 8,
+        "sizes": [
+          4,
+          5,
+          5,
+          7,
+          7,
+          9,
+          11,
+          12
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 3,
+            "score": 11,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 3,
+            "score": 11,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "0c2fe61e72820650db13d9a0bbe1cc537b1f48a326db1c732bc4e0fa7bcb9506"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/10",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:09.460Z",
+      "firstReadyMs": 115.9152,
+      "tenthReadyMs": 296.8873,
+      "responseMs": 430.8954,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1744605,
+      "peakProcessBytes": 179990528,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 7,
+        "multiple": 3,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 508.7151,
+      "maxModelRows": 1696,
+      "maxModelNodes": 13928,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 10,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 8,
+        "sizes": [
+          4,
+          5,
+          6,
+          7,
+          7,
+          8,
+          11,
+          12
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "55df044f0d23129d52c4bee15449b5a9fef5efeba5a3f5decdfbd47d5d8971c6"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/11",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:10.141Z",
+      "firstReadyMs": 121.70549999999999,
+      "tenthReadyMs": 262.9839,
+      "responseMs": 385.0516,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1608159,
+      "peakProcessBytes": 174968832,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 6,
+        "multiple": 4,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 464.94469999999995,
+      "maxModelRows": 1320,
+      "maxModelNodes": 12624,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 11,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          5,
+          7,
+          8,
+          9,
+          9,
+          9,
+          13
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 11,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 11,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 11,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "72506e1f2d10b5d800a0795d2ae81acf6676b9751868458b2fdb5f9371b5b112"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/12",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:10.775Z",
+      "firstReadyMs": 124.5597,
+      "tenthReadyMs": null,
+      "responseMs": 715.2968,
+      "acceptedCount": 8,
+      "partialReason": "layouts-not-found",
+      "layoutsExhausted": true,
+      "layoutTotal": 8,
+      "layoutMethod": "cell-backtracking-v1",
+      "layoutStatus": "exhausted",
+      "layoutEnumPlacements": 1067617,
+      "layoutEnumMs": 130.19650000000001,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1791095,
+      "peakProcessBytes": 179429376,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 8
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": 1584,
+      "maxModelNodes": 12736,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 12,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 8,
+        "sizes": [
+          4,
+          5,
+          7,
+          7,
+          9,
+          9,
+          9,
+          10
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "9498b1e0dc467652de6730f5bff40aadfea3e49ae698aa1ac01683af427bea8f"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/13",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:11.667Z",
+      "firstReadyMs": 114.1408,
+      "tenthReadyMs": 272.7122,
+      "responseMs": 378.93710000000004,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1863237,
+      "peakProcessBytes": 174166016,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 3,
+        "multiple": 7,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 457.0702,
+      "maxModelRows": 1552,
+      "maxModelNodes": 14224,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 13,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          5,
+          7,
+          7,
+          7,
+          10,
+          11,
+          13
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 11,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 3,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 11,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "124c2374891804968b771e94b9715ce1f9beac00224659a69418a0e105d7f80a"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/14",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:12.293Z",
+      "firstReadyMs": 114.61449999999999,
+      "tenthReadyMs": 295.9769,
+      "responseMs": 433.5099,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1935952,
+      "peakProcessBytes": 181334016,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 4,
+        "multiple": 6,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 512.7903,
+      "maxModelRows": 1684,
+      "maxModelNodes": 13564,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 14,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 8,
+        "sizes": [
+          4,
+          6,
+          6,
+          6,
+          7,
+          8,
+          11,
+          12
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "8a596cab6524c0d99eb2d6de6eaf97ce526353b9a51b744f1ac32989d63449f8"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/15",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:12.974Z",
+      "firstReadyMs": 112.32230000000001,
+      "tenthReadyMs": 262.2036,
+      "responseMs": 401.8523,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1726359,
+      "peakProcessBytes": 177823744,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 8,
+        "multiple": 2,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 480.289,
+      "maxModelRows": 1600,
+      "maxModelNodes": 12848,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 15,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 8,
+        "sizes": [
+          4,
+          6,
+          6,
+          7,
+          7,
+          8,
+          11,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "f6ff094e4a894717644b6c5d81fa14e237be2379a1b6ef809d766896ddeb3187"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/16",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:13.626Z",
+      "firstReadyMs": 127.19130000000001,
+      "tenthReadyMs": 305.1972,
+      "responseMs": 431.75680000000006,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1838123,
+      "peakProcessBytes": 175161344,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 5,
+        "multiple": 5,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 510.7421,
+      "maxModelRows": 1440,
+      "maxModelNodes": 13584,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 16,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          7,
+          7,
+          8,
+          9,
+          9,
+          9,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 3,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 3,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 3,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 11,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "e6ab86361f86cde6cc6e07821aa948b66110d32673fda75d62f419554c0c561a"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/17",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:14.306Z",
+      "firstReadyMs": 127.55600000000001,
+      "tenthReadyMs": 316.85569999999996,
+      "responseMs": 448.27369999999996,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1806001,
+      "peakProcessBytes": 186839040,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 7,
+        "multiple": 3,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 526.9082,
+      "maxModelRows": 1620,
+      "maxModelNodes": 13316,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 17,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 8,
+        "sizes": [
+          4,
+          5,
+          6,
+          9,
+          9,
+          9,
+          9,
+          9
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 5,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "ed48920339c3b58a270c51893672cd34ac2d268ba91d8f0b964e3547cd4e7efe"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/18",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:15.005Z",
+      "firstReadyMs": 121.297,
+      "tenthReadyMs": null,
+      "responseMs": 620.5734,
+      "acceptedCount": 8,
+      "partialReason": "layouts-not-found",
+      "layoutsExhausted": true,
+      "layoutTotal": 8,
+      "layoutMethod": "cell-backtracking-v1",
+      "layoutStatus": "exhausted",
+      "layoutEnumPlacements": 241904,
+      "layoutEnumMs": 91.00040000000001,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1761336,
+      "peakProcessBytes": 182816768,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 8
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": 1304,
+      "maxModelNodes": 12272,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 18,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          7,
+          7,
+          8,
+          8,
+          8,
+          11,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 3,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 3,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "982eb7d50c08bf8d6b4ae16bde0bdefc3878b62e38295f68d7ccc9d9939ff334"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/19",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:15.800Z",
+      "firstReadyMs": 120.10780000000001,
+      "tenthReadyMs": 287.9313,
+      "responseMs": 429.46580000000006,
+      "acceptedCount": 10,
+      "partialReason": null,
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 1300400,
+      "peakProcessBytes": 180297728,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 7,
+        "multiple": 3,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": 505.33540000000005,
+      "maxModelRows": 1212,
+      "maxModelNodes": 9748,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 19,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 8,
+        "sizes": [
+          5,
+          5,
+          6,
+          7,
+          7,
+          8,
+          11,
+          11
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 10,
+            "level": "easy",
+            "saturated": false
+          },
+          {
+            "G": 4,
+            "U": 4,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "3ff03422187836367bfa0cfab93c5fdc1c5500eef4d57aa055a7cae52c3526b1"
+      },
+      "samples": []
+    },
+    {
+      "caseId": "d6x10-easy",
+      "seed": "bq0/d6x10-easy/cancel",
+      "sourceCommit": "209f40378de027c1b864ce6cdf3821ecbc533bba+uncommitted-changes",
+      "sourceDigest": "a01c7ff61a55515fd471b3b84a4305e05cacaa3402aaa03d2bac952d4cbd1a07",
+      "versions": {
+        "algo": "gen-v2",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v2",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v24.21.0",
+      "workerCount": 4,
+      "startedAt": "2026-10-23T00:55:16.473Z",
+      "firstReadyMs": 133.81780000000003,
+      "tenthReadyMs": null,
+      "responseMs": 165.14710000000002,
+      "acceptedCount": 1,
+      "partialReason": "cancelled",
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 86687,
+      "peakProcessBytes": 150523904,
+      "ratingSaturatedCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 1
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": 1352,
+      "maxModelNodes": 12688,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": 21.085399999999993,
+      "probeKind": "cancel",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 0,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": {
+        "area": 60,
+        "K": 7,
+        "sizes": [
+          5,
+          9,
+          9,
+          9,
+          9,
+          9,
+          10
+        ],
+        "setAttempt": 0,
+        "initialG": 4,
+        "policy": {
+          "violations": []
+        },
+        "puzzles": [
+          {
+            "G": 4,
+            "U": 3,
+            "score": 8,
+            "level": "easy",
+            "saturated": false
+          }
+        ],
+        "resultDigest": "74f1e36638ff55e81adc22a5444e6f68251420880f5902bfb41300cfd12dd387"
+      },
+      "samples": []
+    }
+  ]
+}

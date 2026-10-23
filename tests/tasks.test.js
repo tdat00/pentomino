@@ -5,7 +5,7 @@ import { describe, test } from 'node:test';
 import { boardFromRows, boardToRows } from '../core/engine/board.js';
 import { certify } from '../core/engine/clues.js';
 import { rate } from '../core/engine/difficulty.js';
-import { puzzleCandidate, setAttempt } from '../core/engine/generate.js';
+import { completionCandidate, puzzleCandidate, setAttempt } from '../core/engine/generate.js';
 import { layoutKey } from '../core/engine/keys.js';
 import { createPack } from '../core/engine/pack.js';
 import { parseWorkerMessage } from '../core/engine/protocol.js';
@@ -128,6 +128,29 @@ describe('executeTask returns exact engine results', () => {
     assert.equal(exhausted.status, 'exhausted');
     assert.equal(exhausted.total, 3);
     assert.equal(exhausted.why, undefined);
+
+    const collected = /** @type {any} */ (executeTask('enumerateLayouts', { boardRows: board45, pieces: four, seenLayouts: [keys[0]], collect: 8 }, execution()));
+    assert.deepEqual([collected.status, collected.complete, collected.total], ['more', true, 3]);
+    assert.deepEqual(collected.layouts.map((/** @type {{ key: string }} */ l) => l.key), keys.slice(1).sort());
+    assert.deepEqual(structuredClone(collected), collected);
+    assert.throws(() => executeTask('enumerateLayouts', { boardRows: board45, pieces: four, seenLayouts: [], collect: 0 }, execution()), TaskError);
+  });
+
+  test('completionCandidate equals the direct engine call for a given layout', () => {
+    const direct = setAttempt({ board, rotation: 0, levelId: 'hard', seedText: 'fixture-set-0', uniqueness: 'any', execution: execution() }, 0);
+    assert.ok(direct.ok);
+    const layout = /** @type {Pose[]} */ (direct.set.witness);
+    const payload = {
+      set: wireSet(direct.set), targetLevelId: 'hard', quantity: 4, batchSeed: 'fixture-set-0#1', uniqueness: 'any', seenLayouts: ['x'], seenClues: [], layout,
+    };
+    const expected = completionCandidate({
+      set: direct.set, targetLevelId: 'hard', quantity: 4, batchSeed: 'fixture-set-0#1', uniqueness: 'any',
+      seenLayouts: new Set(['x']), seenClues: new Set(), execution: execution(),
+    }, layout);
+    const got = executeTask('completionCandidate', payload, execution());
+    assert.deepEqual(got, expected);
+    assert.deepEqual(structuredClone(got), expected);
+    assert.throws(() => executeTask('completionCandidate', { ...payload, layout: [x0] }, execution()), RangeError);
   });
 
   test('malformed payloads and unknown kinds never reach the engine', () => {

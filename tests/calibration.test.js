@@ -337,7 +337,7 @@ describe('Node runner end to end', () => {
     assert.match(row.partialReason ?? '', /child-timeout/);
   });
 
-  test('a proven-exhausted shortfall is recorded with its arrangement count and meets criterion 2; an unproven one does not', async () => {
+  test('a proven-exhausted shortfall is recorded with its arrangement count and meets criterion 2; a completion pass is recorded too', async () => {
     const source = { commit: 'c', digest: 'd', versions: {} };
     const host = createNodeHost({ workers: 2, lifecycle: 'cold', freshProcess: false, source });
     const caseDef = {
@@ -353,10 +353,14 @@ describe('Node runner end to end', () => {
       assert.deepEqual(validateRunRecord(row), []);
       assert.equal(returnedEveryArrangement(row), true);
       assert.equal(evaluateCell([row]).runs.exhausted, 1);
-      const open = await runCase({ ...spec, seed: 'bq0/d6x10-very-easy/5' },
+      const filled = await runCase({ ...spec, seed: 'bq0/d6x10-very-easy/5' },
         { ...caseDef, id: 'd6x10-very-easy', boardRows: Array(6).fill('#'.repeat(10)), levelId: 'very-easy' }, host);
-      assert.deepEqual([open.acceptedCount, open.layoutsExhausted, open.layoutStatus], [7, false, 'more']);
-      assert.equal(returnedEveryArrangement(open), false);
+      assert.deepEqual([filled.acceptedCount, filled.layoutsExhausted, filled.layoutTotal, filled.layoutStatus], [8, true, 8, 'exhausted']);
+      assert.deepEqual([filled.layoutPassTried, filled.layoutPassAdded, filled.layoutUnusable], [1, 1, 0], 'the completion pass found the eighth');
+      assert.ok(typeof filled.layoutPassMs === 'number');
+      assert.deepEqual(validateRunRecord(filled), []);
+      assert.equal(returnedEveryArrangement(filled), true);
+      assert.equal(row.layoutPassTried, null, 'no unused arrangement, no pass');
     } finally {
       releaseHost(host);
     }

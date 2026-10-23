@@ -42,6 +42,16 @@ const PAYLOADS = {
   verifyPack: () => ({ pack: { anything: 1 } }),
   solveFirst: () => ({ boardRows: rows, pieces, clues: [], rowLimit: MAX_ROW_LIMIT, maxSolutions: 1 }),
   enumerateLayouts: () => ({ boardRows: rows, pieces, seenLayouts: ['a', 'b'] }),
+  completionCandidate: () => ({
+    set: { ...set },
+    targetLevelId: 'hard',
+    quantity: 5,
+    batchSeed: `${'s'.repeat(64)}#12`,
+    uniqueness: 'require',
+    seenLayouts: ['a', 'b'],
+    seenClues: [],
+    layout: [pose],
+  }),
 };
 
 /**

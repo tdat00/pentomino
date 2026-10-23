@@ -76,7 +76,8 @@ function notice(code, text, kind, actions = []) {
 
 /**
  * Maps a partial batch to its design notice (§10.7 trigger table). A `layouts-not-found` stop with an
- * exhaustive arrangement count (owner decision 2026-10-23) is a complete outcome, not a warning.
+ * exhaustive arrangement count (owner decision 2026-10-23) is a complete outcome, not a warning; when
+ * unused arrangements were tried as candidates (fix round 3) and gave no puzzle, the warning says so.
  * @param {string | undefined} reason
  * @param {{ n: number, q: number, levelId: string, arrangements?: import('../core/browser/generation-client.js').ArrangementReport }} o
  * @returns {StatusNotice | null}
@@ -92,7 +93,13 @@ export function batchShortfall(reason, o) {
         const variant = o.n === 0 ? 'none' : (found.earlier ?? 0) > 0 ? 'rest' : 'all';
         return notice('N-ARRANGEMENTS', formatNotice('N-ARRANGEMENTS', { ...params, total: found.total }, variant), 'info', ['new-set']);
       }
-      if (found?.status === 'more') {
+      if (found?.status === 'more' && found.tried !== undefined && (found.unusable ?? 0) > 0) {
+        const clueset = found.unusableWhy === 'uniqueness-not-proved'
+          ? `clue set with exactly one solution that rates ${params.level}`
+          : `clue set that rates ${params.level}`;
+        return notice('N-LAYOUTS-UNUSED', formatNotice('N-LAYOUTS-UNUSED', { ...params, count: found.unusable ?? 0, clueset }, found.searched === true ? 'all' : 'some'), 'warning', ['new-set']);
+      }
+      if (found?.status === 'more' && found.tried === undefined) {
         return notice('N-LAYOUTS-LEFT', formatNotice('N-LAYOUTS-LEFT', params), 'warning', ['new-set']);
       }
       return notice('N-FEWLAYOUTS', formatNotice('N-FEWLAYOUTS', params), 'warning', ['new-set']);

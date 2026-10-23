@@ -14,7 +14,7 @@ import { normalizeSeedText } from './rng.js';
 /** @typedef {import('./types.js').Pose} Pose */
 /** @template T @typedef {import('./types.js').Result<T>} Result */
 
-/** @typedef {'setAttempt' | 'puzzleCandidate' | 'certify' | 'rate' | 'verifyPack' | 'solveFirst' | 'enumerateLayouts'} TaskKind */
+/** @typedef {'setAttempt' | 'puzzleCandidate' | 'completionCandidate' | 'certify' | 'rate' | 'verifyPack' | 'solveFirst' | 'enumerateLayouts'} TaskKind */
 /** @typedef {{ type: 'task', id: number, kind: TaskKind, payload: any }} Request */
 /**
  * @typedef {{ type: 'progress', id: number, stage: string, rowTrials: number, bytes: number }
@@ -23,7 +23,7 @@ import { normalizeSeedText } from './rng.js';
  */
 
 export const TASK_KINDS = Object.freeze(/** @type {const} */ ([
-  'setAttempt', 'puzzleCandidate', 'certify', 'rate', 'verifyPack', 'solveFirst', 'enumerateLayouts',
+  'setAttempt', 'puzzleCandidate', 'certify', 'rate', 'verifyPack', 'solveFirst', 'enumerateLayouts', 'completionCandidate',
 ]));
 /** Largest row-trial limit a task may request. */
 export const MAX_ROW_LIMIT = 2000000;
@@ -35,6 +35,8 @@ const MAX_ISSUES = 20;
 const MAX_ID_LENGTH = 64;
 const MAX_COORD = 4096;
 const MAX_MESSAGE = 2000;
+/** Most unused arrangements one enumeration task may be asked to return. */
+const MAX_COLLECT = 256;
 
 /**
  * @typedef {object} Ctx
@@ -470,7 +472,24 @@ const PAYLOADS = {
     const boardRows = readBoardRows(ctx, o.boardRows, 'payload.boardRows');
     const pieces = readPieces(ctx, o.pieces, 'payload.pieces');
     const seenLayouts = readHistory(ctx, o.seenLayouts, 'payload.seenLayouts');
-    return [boardRows, pieces, seenLayouts].includes(undefined) ? undefined : { boardRows, pieces, seenLayouts };
+    const collect = o.collect === undefined ? null : readInt(ctx, o.collect, 'payload.collect', 1, MAX_COLLECT);
+    if ([boardRows, pieces, seenLayouts, collect].includes(undefined)) {
+      return undefined;
+    }
+    return collect === null ? { boardRows, pieces, seenLayouts } : { boardRows, pieces, seenLayouts, collect };
+  },
+  completionCandidate(ctx, o) {
+    const set = readSet(ctx, o.set, 'payload.set');
+    const targetLevelId = readLevelId(ctx, o.targetLevelId, 'payload.targetLevelId');
+    const quantity = readInt(ctx, o.quantity, 'payload.quantity', 1, 10);
+    const batchSeed = readBatchSeed(ctx, o.batchSeed, 'payload.batchSeed');
+    const uniqueness = readUniqueness(ctx, o.uniqueness, 'payload.uniqueness');
+    const seenLayouts = readHistory(ctx, o.seenLayouts, 'payload.seenLayouts');
+    const seenClues = readHistory(ctx, o.seenClues, 'payload.seenClues');
+    const layout = readPoses(ctx, o.layout, 'payload.layout', MAX_BOARD_CELLS);
+    return [set, targetLevelId, quantity, batchSeed, uniqueness, seenLayouts, seenClues, layout].includes(undefined)
+      ? undefined
+      : { set, targetLevelId, quantity, batchSeed, uniqueness, seenLayouts, seenClues, layout };
   },
 };
 
@@ -483,7 +502,10 @@ const PAYLOAD_FIELDS = /** @type {Record<TaskKind, { required: string[], optiona
   rate: { required: ['boardRows', 'pieces', 'clues'] },
   verifyPack: { required: ['pack'] },
   solveFirst: { required: ['boardRows', 'pieces', 'clues', 'rowLimit'], optional: ['maxSolutions'] },
-  enumerateLayouts: { required: ['boardRows', 'pieces', 'seenLayouts'] },
+  enumerateLayouts: { required: ['boardRows', 'pieces', 'seenLayouts'], optional: ['collect'] },
+  completionCandidate: {
+    required: ['set', 'targetLevelId', 'quantity', 'batchSeed', 'uniqueness', 'seenLayouts', 'seenClues', 'layout'],
+  },
 });
 
 /**

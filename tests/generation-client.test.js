@@ -453,6 +453,169 @@ describe('batch requests', () => {
     assert.equal(result.value.pack.puzzles.length, 3);
   });
 
+  describe('completion pass after layouts-not-found', () => {
+    /** The unused arrangements the enumeration hands over: real candidates, sorted by layout key as the worker sorts them. @param {number} n */
+    const unusedOf = (n) => fixture().chosen.slice(3, 3 + n).sort((a, b) => (a.layoutKey < b.layoutKey ? -1 : 1));
+    /** @param {PuzzleCandidate[]} list @param {object} [extra] */
+    const enumerated = (list, extra = {}) => ({
+      status: 'more',
+      total: 3 + list.length,
+      placements: 50,
+      nodes: 9,
+      solutions: list.length,
+      complete: true,
+      layouts: list.map((c) => ({ key: c.layoutKey, layout: c.layout })),
+      ...extra,
+    });
+    /** The scripted worker's answer for one completion task. @param {Task} t @param {Set<string>} [failing] layout keys with no clue set */
+    const completion = (t, failing = new Set()) => {
+      const found = fixture().chosen.find((c) => JSON.stringify(c.layout) === JSON.stringify(t.payload.layout));
+      return found === undefined || failing.has(found.layoutKey) ? { value: { fail: 'not-in-band' } } : { value: found };
+    };
+    /** Three puzzles from the fold, then layouts-not-found, then the scripted enumeration and pass. @param {PuzzleCandidate[]} list @param {object} [more] @param {(t: Task) => Outcome | undefined} [onCompletion] */
+    const script = (list, more = {}, onCompletion = (t) => completion(t)) => (/** @type {Task} */ t) => {
+      if (t.kind === 'enumerateLayouts') {
+        return { value: enumerated(list, more) };
+      }
+      if (t.kind === 'completionCandidate') {
+        return onCompletion(t);
+      }
+      return t.payload.slot <= 3 ? scripted(t) : { value: { fail: 'layout' } };
+    };
+    /** @param {BatchJobResult} r */
+    const solutions = (r) => r.accepted.map((p) => JSON.stringify(p.solution));
+
+    test('fills a short batch from the unused arrangements, in layout-key order, whatever the pool width', async () => {
+      const list = unusedOf(7);
+      const expected = [...fixture().chosen.slice(0, 3), ...list].map((c) => JSON.stringify(c.layout));
+      /** @type {string[][]} */
+      const ids = [];
+      for (const size of [1, 2, 3, 4]) {
+        const h = harness({ size, handler: script(list) });
+        const streamed = /** @type {number[]} */ ([]);
+        const result = await clientOf(h).generateBatch(batchInput(), { onAccepted: (e) => streamed.push(e.index) });
+        assert.deepEqual([result.status, result.reason], ['complete', undefined], `width ${size}`);
+        assert.deepEqual(solutions(result), expected, `width ${size}`);
+        assert.deepEqual(result.accepted.map((p) => p.title), Array.from({ length: 10 }, (_, i) => `Hard #${i + 1}`));
+        assert.deepEqual(streamed, Array.from({ length: 10 }, (_, i) => i), 'puzzles stream as they are accepted');
+        assert.equal(result.pack?.puzzles.length, 10);
+        assert.ok(validatePack(result.pack).ok);
+        assert.equal(result.seenLayouts.length, 10);
+        assert.equal(new Set(result.accepted.map((p) => p.id)).size, 10);
+        assert.deepEqual(
+          [result.arrangements?.status, result.arrangements?.tried, result.arrangements?.added, result.arrangements?.unusable],
+          ['more', 7, 7, 0],
+        );
+        const asked = h.tasks.filter((t) => t.kind === 'enumerateLayouts');
+        assert.equal(asked.length, 1);
+        assert.equal(asked[0].payload.collect, 32);
+        const passTasks = h.tasks.filter((t) => t.kind === 'completionCandidate');
+        assert.ok(passTasks.length >= 7 && passTasks.length <= 7 + size - 1, `at most ${size - 1} speculative candidates`);
+        for (const t of passTasks) {
+          assert.equal(t.payload.seenLayouts.length, 3, 'the history as of the end of the fold');
+          assert.equal(t.payload.seenClues.length, 3);
+          assert.equal(t.payload.batchSeed, 'fixture-set-0#1');
+        }
+        ids.push(result.accepted.map((p) => p.id));
+      }
+      assert.ok(ids.every((list2) => JSON.stringify(list2) === JSON.stringify(ids[0])));
+    });
+
+    test('answers arriving in any order are consumed in layout-key order', async () => {
+      const list = unusedOf(7);
+      const inOrder = await clientOf(harness({ size: 4, handler: script(list) })).generateBatch(batchInput());
+      const h = harness({ size: 4, handler: script(list, {}, () => undefined) });
+      const result = track(clientOf(h).generateBatch(batchInput()));
+      for (let round = 0; round < 40 && result.state === 'pending'; round += 1) {
+        await settle();
+        for (const t of h.held.splice(0).reverse()) {
+          h.answer(t, completion(t));
+        }
+      }
+      assert.equal(result.state, 'resolved');
+      assert.deepEqual(solutions(result.value), solutions(inOrder));
+      assert.equal(result.value.status, 'complete');
+    });
+
+    test('the deadline during the pass keeps the accepted prefix and reports a time limit', async () => {
+      const h = harness({ size: 4, handler: script(unusedOf(7), {}, () => undefined) });
+      const result = track(clientOf(h).generateBatch(batchInput()));
+      await settle();
+      assert.equal(h.held.length, 4);
+      h.answer(h.held[1], completion(h.held[1]));
+      await settle();
+      assert.equal(h.held.length, 4, 'nothing new starts: the second answer waits for the first, key order');
+      h.answer(h.held[0], completion(h.held[0]));
+      await settle();
+      assert.equal(h.held.length, 6, 'both answered candidates were consumed, so the window moved on by two');
+      h.clock.advance(115000);
+      await settle();
+      assert.equal(result.state, 'resolved');
+      assert.deepEqual([result.value.status, result.value.reason], ['partial', 'time-limit']);
+      assert.deepEqual(solutions(result.value), [...fixture().chosen.slice(0, 3), ...unusedOf(7).slice(0, 2)].map((c) => JSON.stringify(c.layout)));
+      assert.equal(result.value.pack.puzzles.length, 5);
+      assert.deepEqual([result.value.arrangements.tried, result.value.arrangements.added, result.value.arrangements.why], [2, 2, 'deadline']);
+    });
+
+    test('an arrangement with no in-band clue set is skipped and reported precisely', async () => {
+      const list = unusedOf(3);
+      const failing = new Set([list[1].layoutKey]);
+      const result = await clientOf(harness({ handler: script(list, {}, (t) => completion(t, failing)) })).generateBatch(batchInput());
+      assert.deepEqual([result.status, result.reason, result.accepted.length], ['partial', 'layouts-not-found', 5]);
+      assert.deepEqual(solutions(result).slice(3), [list[0], list[2]].map((c) => JSON.stringify(c.layout)));
+      const a = result.arrangements;
+      assert.deepEqual([a?.status, a?.found, a?.searched, a?.tried, a?.added, a?.unusable, a?.unusableWhy], ['more', 3, true, 3, 2, 1, 'not-in-band']);
+
+      const none = await clientOf(harness({ handler: script(list, {}, () => ({ value: { fail: 'uniqueness-not-proved' } })) })).generateBatch(batchInput());
+      assert.deepEqual([none.status, none.reason, none.accepted.length], ['partial', 'layouts-not-found', 3]);
+      assert.deepEqual([none.arrangements?.status, none.arrangements?.unusable, none.arrangements?.unusableWhy], ['more', 3, 'uniqueness-not-proved']);
+      assert.equal(none.pack?.puzzles.length, 3);
+    });
+
+    test('every arrangement becoming a puzzle proves the maximum only when the whole space was searched', async () => {
+      const list = unusedOf(2);
+      const proven = await clientOf(harness({ handler: script(list) })).generateBatch(batchInput());
+      assert.deepEqual([proven.status, proven.reason, proven.accepted.length], ['partial', 'layouts-not-found', 5]);
+      const a = proven.arrangements;
+      assert.deepEqual([a?.status, a?.total, a?.earlier, a?.tried, a?.added, a?.unusable], ['exhausted', 5, 0, 2, 2, 0]);
+
+      const later = await clientOf(harness({ handler: script(list) })).generateBatch(batchInput({ batchIndex: 2, seenLayouts: [], seenClues: [] }));
+      assert.equal(later.arrangements?.total, 5);
+
+      const cut = await clientOf(harness({ handler: script(list, { complete: false, why: 'placements-limit' }) })).generateBatch(batchInput());
+      assert.deepEqual([cut.accepted.length, cut.arrangements?.status, cut.arrangements?.searched, cut.arrangements?.unusable], [5, 'more', false, 0]);
+    });
+
+    test('cancel during the pass returns the accepted prefix as cancelled', async () => {
+      const h = harness({ handler: script(unusedOf(4), {}, () => undefined) });
+      const client = clientOf(h);
+      const result = track(client.generateBatch(batchInput()));
+      await settle();
+      assert.ok(h.tasks.some((t) => t.kind === 'completionCandidate'));
+      client.cancel();
+      await settle();
+      assert.deepEqual([result.value.status, result.value.reason, result.value.accepted.length, result.value.arrangements], ['cancelled', undefined, 3, undefined]);
+      assert.equal(result.value.pack.puzzles.length, 3);
+    });
+
+    test('a worker fault in the pass ends it as a fault, an invalid arrangement is refused, a batch that fills never runs it', async () => {
+      const list = unusedOf(2);
+      await assert.rejects(
+        clientOf(harness({ handler: script(list, {}, () => ({ error: 'internal' })) })).generateBatch(batchInput()),
+        (e) => e instanceof GenerationError && e.accepted.length === 3,
+      );
+      const broken = { ...enumerated(list), layouts: [{ key: 'x', layout: [] }] };
+      await assert.rejects(
+        clientOf(harness({ handler: (t) => (t.kind === 'enumerateLayouts' ? { value: broken } : script(list)(t)) })).generateBatch(batchInput()),
+        (e) => e instanceof GenerationError && e.code === 'internal',
+      );
+      const full = harness({ handler: (t) => scripted(t) });
+      const done = await clientOf(full).generateBatch(batchInput());
+      assert.equal(done.status, 'complete');
+      assert.ok(full.tasks.every((t) => t.kind === 'puzzleCandidate'));
+    });
+  });
+
   test('other partial reasons never run the arrangement count', async () => {
     const h = harness({ handler: (t) => (t.payload.slot === 1 ? scripted(t) : { value: { fail: 'not-in-band' } }) });
     const result = await clientOf(h).generateBatch(batchInput({ quantity: 2 }));
@@ -630,6 +793,34 @@ const semantic = (pack) => {
 };
 
 describe('real engine through the pool', () => {
+  test('the completion pass turns the last unused arrangement into a puzzle, identically at every pool width', async () => {
+    const run = async (/** @type {number} */ size) => {
+      const h = realHarness(size);
+      const client = realClient(h);
+      try {
+        const set = await client.generateSet(setInput({ boardRows: Array(6).fill('#'.repeat(10)), levelId: 'very-easy', seedText: 'bq0/d6x10-very-easy/5' }));
+        assert.equal(set.status, 'complete');
+        return await client.generateBatch(batchInput({
+          set: set.set, targetLevelId: 'very-easy', setSeed: 'bq0/d6x10-very-easy/5', calibration: set.calibration,
+        }));
+      } finally {
+        h.pool.close();
+      }
+    };
+    const one = await run(1);
+    const four = await run(4);
+    for (const batch of [one, four]) {
+      assert.deepEqual([batch.status, batch.reason, batch.accepted.length], ['partial', 'layouts-not-found', 8]);
+      assert.deepEqual([batch.arrangements?.status, batch.arrangements?.total, batch.arrangements?.earlier], ['exhausted', 8, 0]);
+      assert.ok((batch.arrangements?.added ?? 0) >= 1, 'the fold alone found only seven');
+      assert.equal(new Set(batch.seenLayouts).size, 8);
+      assert.ok(validatePack(batch.pack).ok);
+    }
+    assert.deepEqual(four.accepted.map((p) => p.id), one.accepted.map((p) => p.id));
+    assert.deepEqual(four.seenLayouts, one.seenLayouts);
+    assert.deepEqual(semantic(four.pack), semantic(one.pack));
+  });
+
   test('one and four workers reproduce the recorded recipe and an importable pack', async () => {
     const one = await runRecipe(1);
     const four = await runRecipe(4);

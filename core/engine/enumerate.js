@@ -22,7 +22,10 @@ import { layoutKey } from './keys.js';
  * @property {number} placements Candidate placements tried (plus one per eight cells of region checks).
  * @property {number} nodes Search nodes (one per first empty cell).
  * @property {number} solutions Complete tilings visited (symmetric images included).
- * @property {'placements' | 'nodes' | null} limit Which limit stopped a `limit` search.
+ * @property {'placements' | 'nodes' | null} limit Which limit stopped the search.
+ * @property {{ key: string, layout: Pose[] }[]} [layouts] Only with `collect`: the unused arrangements found, by key.
+ * @property {boolean} [complete] Only with `collect`: the whole space was searched, so `layouts` holds every
+ *   unused arrangement and `total` is exact.
  */
 
 /**
@@ -31,11 +34,13 @@ import { layoutKey } from './keys.js';
  * cell as its own first cell, so each candidate is one (piece, orientation) pair. Pieces of identical
  * shape are used in index order, which removes their interchangeable permutations. After every
  * placement each empty region next to it must be at least as large as the smallest unused piece.
- * The search stops at the first arrangement outside `known`.
+ * The search stops at the first arrangement outside `known`, unless `limits.collect` asks for up to that
+ * many of them: the unused arrangements are then gathered (one layout per key) and returned sorted by key,
+ * and the search stops when that many are held, a limit is reached or the space is exhausted.
  * @param {Board} board
  * @param {Piece[]} pieces
  * @param {ReadonlySet<string>} known
- * @param {{ placementLimit: number, nodeLimit: number }} limits
+ * @param {{ placementLimit: number, nodeLimit: number, collect?: number }} limits
  * @returns {EnumerationResult}
  */
 export function enumerateLayouts(board, pieces, known, limits) {
@@ -50,19 +55,32 @@ export function enumerateLayouts(board, pieces, known, limits) {
   const count = pieces.length;
   const sizes = pieces.map((p) => p.cells.length);
   const keys = new Set();
+  const collect = limits.collect ?? 0;
+  /** @type {Map<string, Pose[]>} */
+  const found = new Map();
   let solutions = 0;
   let placements = 0;
   let nodes = 0;
   /** @type {'more' | 'placements' | 'nodes' | null} */
   let stop = null;
-  const result = () => ({
-    status: /** @type {const} */ (stop === 'more' ? 'more' : stop === null ? 'exhausted' : 'limit'),
-    total: keys.size,
-    placements,
-    nodes,
-    solutions,
-    limit: stop === 'placements' || stop === 'nodes' ? stop : null,
-  });
+  const result = () => {
+    const gathering = collect > 0;
+    const status = stop === 'more' || (gathering && found.size > 0) ? 'more' : stop === null ? 'exhausted' : 'limit';
+    /** @type {EnumerationResult} */
+    const out = {
+      status,
+      total: keys.size + found.size,
+      placements,
+      nodes,
+      solutions,
+      limit: stop === 'placements' || stop === 'nodes' ? stop : null,
+    };
+    if (gathering) {
+      out.layouts = [...found].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([key, layout]) => ({ key, layout }));
+      out.complete = stop === null;
+    }
+    return out;
+  };
   if (sizes.reduce((sum, s) => sum + s, 0) !== freeCount) {
     return result();
   }
@@ -179,8 +197,13 @@ export function enumerateLayouts(board, pieces, known, limits) {
     const key = layoutKey(board, pieces, layout);
     if (known.has(key)) {
       keys.add(key);
-    } else {
+    } else if (collect === 0) {
       stop = 'more';
+    } else if (!found.has(key)) {
+      found.set(key, layout);
+      if (found.size >= collect) {
+        stop = 'more';
+      }
     }
   };
 

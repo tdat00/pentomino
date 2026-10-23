@@ -217,6 +217,103 @@ export function puzzleCandidate(ctx, slot, attempt) {
 }
 
 /**
+ * Candidate for one known layout of the completion pass (fix round 3): the arrangement is given, so
+ * there is no walk, and only the clue selection draws random numbers, from the stream
+ * `completion/<layout key>` of the batch seed. Everything else is the `puzzleCandidate` pipeline:
+ * the same level band, rating, uniqueness mode and excluded clue keys. `ctx` carries the history as of
+ * the end of the fold, so the key checks see every puzzle of the batch.
+ * @param {BatchContext} ctx
+ * @param {Pose[]} layout A complete layout of the context's set.
+ * @returns {PuzzleCandidate | CandidateFailure}
+ */
+export function completionCandidate(ctx, layout) {
+  const { board, pieces } = ctx.set;
+  const key = layoutKey(board, pieces, layout);
+  if (ctx.seenLayouts.has(key)) {
+    return { fail: 'layout' };
+  }
+  const rng = createRng(ctx.batchSeed, `completion/${key}`);
+  const sel = selectClues({
+    board,
+    pieces,
+    layout,
+    target: level(ctx.targetLevelId),
+    rng: rng.derive('clues'),
+    uniqueness: ctx.uniqueness,
+    excludeClueKeys: ctx.seenClues,
+    ws: ctx.execution.main,
+  });
+  if (!sel.ok) {
+    return { fail: sel.reason };
+  }
+  return {
+    layout,
+    layoutKey: key,
+    clueKey: clueKey(board, pieces, sel.clues),
+    clues: sel.clues,
+    rating: sel.rating,
+    certificate: sel.certificate,
+  };
+}
+
+/**
+ * The context the completion candidates of one request receive: the history as of the end of the fold.
+ * @param {BatchContext} ctx
+ * @param {FoldState} s
+ * @returns {BatchContext}
+ */
+export function completionContext(ctx, s) {
+  return { ...ctx, seenLayouts: frozenCopy(s.seenLayouts), seenClues: frozenCopy(s.seenClues) };
+}
+
+/**
+ * Feeds one completion candidate, in layout-key order, to a fold that stopped short. A valid candidate
+ * whose layout key and clue key are both new to the fold's history is accepted (the distance preference
+ * of the fold does not apply: the arrangements are all that is left). Anything else is a failure.
+ * @param {FoldState} s
+ * @param {PuzzleCandidate | CandidateFailure} c
+ * @returns {{ state: FoldState, failed: FailReason | null }}
+ */
+export function completionAccept(s, c) {
+  if ('fail' in c) {
+    return { state: s, failed: c.fail };
+  }
+  if (s.seenLayouts.has(c.layoutKey) || s.seenClues.has(c.clueKey)) {
+    return { state: s, failed: 'layout' };
+  }
+  const next = withAccepted(s, c);
+  return { state: next.status === 'complete' ? next : { ...next, status: 'partial', reason: s.reason }, failed: null };
+}
+
+/**
+ * Serial reference run of the completion pass over `layouts` (already sorted by key): the same
+ * candidates and the same acceptance as the pool-driven pass, one by one, until the quantity is reached.
+ * @param {BatchContext} ctx
+ * @param {FoldState} s A partial fold state.
+ * @param {Pose[][]} layouts
+ * @param {(c: BatchContext, layout: Pose[]) => PuzzleCandidate | CandidateFailure} [candidate]
+ * @returns {{ state: FoldState, tried: number, failures: Record<FailReason, number> }}
+ */
+export function runCompletion(ctx, s, layouts, candidate = completionCandidate) {
+  const frozen = completionContext(ctx, s);
+  const failures = zeroFailures();
+  let state = s;
+  let tried = 0;
+  for (const layout of layouts) {
+    if (state.accepted.length >= state.quantity) {
+      break;
+    }
+    tried += 1;
+    const next = completionAccept(state, candidate(frozen, layout));
+    state = next.state;
+    if (next.failed !== null) {
+      failures[next.failed] += 1;
+    }
+  }
+  return { state, tried, failures };
+}
+
+/**
  * Lazy raw proof status of an accepted puzzle's clues, in the main workspace.
  * It never changes which puzzles were accepted.
  * @param {BatchContext} ctx

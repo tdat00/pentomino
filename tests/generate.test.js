@@ -11,6 +11,7 @@ import { selectClues } from '../core/engine/clues.js';
 import {
   candidateContext,
   certifyTask,
+  completionCandidate,
   dispatchOrder,
   firstSetAttempt,
   foldAccept,
@@ -18,6 +19,7 @@ import {
   foldStart,
   GenerationError,
   puzzleCandidate,
+  runCompletion,
   runFold,
   setAttempt,
 } from '../core/engine/generate.js';
@@ -565,6 +567,86 @@ describe('set attempts and puzzle candidates', () => {
     }
     assert.equal(summary(fold), before);
     assert.equal(summary(runFold(ctx)), before);
+  });
+
+  describe('completion pass', () => {
+    const witness = /** @type {Pose[]} */ (set0.witness);
+    /** Distinct layouts of the set other than the witness, in layout-key order (the order the pass consumes). */
+    const others = (() => {
+      /** @type {Map<string, Pose[]>} */
+      const found = new Map();
+      for (let i = 0; i < 40 && found.size < 6; i += 1) {
+        const layout = lnsWalk(set0, witness, createRng('completion-test', `w${i}`), execution.scratch, 3);
+        found.set(layoutKey(board, set0.pieces, layout), layout);
+      }
+      return [...found].sort(([a], [b]) => (a < b ? -1 : 1)).map(([, layout]) => layout);
+    })();
+    /** A fold that stopped short with the witness layout accepted, as after layouts-not-found. */
+    const partialAfterWitness = (/** @type {Partial<BatchContext>} */ o = {}) => {
+      const ctx = realCtx({ quantity: 4, ...o });
+      const start = foldStart(ctx);
+      const first = { layout: witness, layoutKey: layoutKey(board, set0.pieces, witness), clueKey: 'clue-w', clues: [], rating: FAKE_RATING, certificate: null };
+      const state = { ...foldAccept({ ...start, distance: 0 }, first), status: /** @type {const} */ ('partial'), reason: /** @type {const} */ ('layouts-not-found') };
+      return { ctx, state };
+    };
+
+    test('a candidate is a pure function of the batch seed and the layout: valid, in band, keyed, independent of slot streams', () => {
+      assert.ok(others.length >= 4);
+      const ctx = realCtx();
+      const c = /** @type {PuzzleCandidate} */ (completionCandidate(ctx, others[0]));
+      assert.ok('layout' in c);
+      assert.deepEqual(completionCandidate(realCtx(), others[0]), c);
+      assert.deepEqual(completionCandidate(realCtx({ quantity: 9, seenLayouts: new Set(['x']) }), others[0]), c, 'quantity and unrelated history do not matter');
+      assert.ok(isValidLayout(board, set0.pieces, c.layout));
+      assert.equal(c.layoutKey, layoutKey(board, set0.pieces, others[0]));
+      assert.equal(c.clueKey, clueKey(board, set0.pieces, c.clues));
+      assert.equal(c.rating.level, 'hard');
+      const expected = selectClues({
+        board, pieces: set0.pieces, layout: others[0], target: level('hard'),
+        rng: createRng('fixture-set-0#1', `completion/${c.layoutKey}`).derive('clues'),
+        uniqueness: 'any', excludeClueKeys: new Set(), ws: execution.main,
+      });
+      assert.ok(expected.ok);
+      assert.deepEqual(c.clues, expected.clues);
+      assert.notDeepEqual(completionCandidate(realCtx({ batchSeed: 'fixture-set-0#2' }), others[0]), c, 'another batch seed draws other clues');
+    });
+
+    test('a seen layout fails, an excluded clue key never repeats, failures keep the pipeline reasons', () => {
+      const c = /** @type {PuzzleCandidate} */ (completionCandidate(realCtx(), others[1]));
+      assert.deepEqual(completionCandidate(realCtx({ seenLayouts: new Set([c.layoutKey]) }), others[1]), { fail: 'layout' });
+      const again = completionCandidate(realCtx({ seenClues: new Set([c.clueKey]) }), others[1]);
+      assert.ok('fail' in again || again.clueKey !== c.clueKey);
+      const impossible = completionCandidate(realCtx({ targetLevelId: 'hell-5' }), others[1]);
+      assert.ok('fail' in impossible && impossible.fail === 'not-in-band');
+    });
+
+    test('accepts in key order until the quantity is reached, with strict key distinctness and no distance preference', () => {
+      const { ctx, state } = partialAfterWitness();
+      const run = runCompletion(ctx, state, others);
+      assert.equal(run.state.status, 'complete');
+      assert.equal(run.state.accepted.length, 4);
+      assert.equal(run.tried, 3, 'stops as soon as the request is full');
+      assert.deepEqual(run.state.accepted.slice(1).map((c) => c.layout), others.slice(0, 3));
+      assert.equal(new Set(run.state.accepted.map((c) => c.layoutKey)).size, 4);
+      assert.equal(new Set(run.state.accepted.map((c) => c.clueKey)).size, 4);
+      assert.deepEqual(run.state.seenLayouts, new Set(run.state.accepted.map((c) => c.layoutKey)));
+      assert.equal(state.accepted.length, 1, 'the input state is not mutated');
+      assert.deepEqual(runCompletion(ctx, state, others).state.accepted, run.state.accepted, 'repeatable');
+    });
+
+    test('unusable arrangements are counted by reason and skipped; the fold stays partial when they run out', () => {
+      const { ctx, state } = partialAfterWitness({ quantity: 6 });
+      const none = runCompletion(ctx, state, others.slice(0, 3), () => ({ fail: 'not-in-band' }));
+      assert.deepEqual(none.failures, { layout: 0, 'not-in-band': 3, 'uniqueness-not-proved': 0 });
+      assert.deepEqual([none.state.status, none.state.reason, none.state.accepted.length, none.tried], ['partial', 'layouts-not-found', 1, 3]);
+      const mixed = runCompletion(ctx, state, others.slice(0, 4), (c, layout) => (layout === others[1] ? { fail: 'not-in-band' } : completionCandidate(c, layout)));
+      assert.deepEqual(mixed.state.accepted.slice(1).map((c) => c.layout), [others[0], others[2], others[3]]);
+      assert.equal(mixed.failures['not-in-band'], 1);
+      assert.equal(mixed.state.status, 'partial');
+      const twin = { layout: others[0], layoutKey: '', clueKey: 'clue-same', clues: [], rating: FAKE_RATING, certificate: null };
+      const clash = runCompletion(ctx, state, others.slice(0, 2), (_c, layout) => ({ ...twin, layout, layoutKey: layoutKey(board, set0.pieces, layout) }));
+      assert.deepEqual([clash.state.accepted.length, clash.failures.layout], [2, 1], 'a repeated clue key is a failed candidate');
+    });
   });
 });
 

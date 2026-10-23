@@ -379,6 +379,31 @@ const REASONS = /** @type {Record<string, string>} */ ({
 });
 
 /**
+ * Precise shortfall detail after the completion pass, or undefined to use the plain reason.
+ * @param {import('../core/browser/generation-client.js').ArrangementReport | undefined} found
+ * @param {string} label
+ * @returns {string | undefined}
+ */
+function arrangementDetail(found, label) {
+  if (found?.status !== 'more') {
+    return undefined;
+  }
+  if (found.tried === undefined) {
+    return 'this piece set has more arrangements, but none gave another puzzle in the search';
+  }
+  const unusable = found.unusable ?? 0;
+  if (unusable === 0) {
+    return undefined;
+  }
+  const clueset = found.unusableWhy === 'uniqueness-not-proved'
+    ? `clue set with exactly one solution that rates ${label}`
+    : `clue set that rates ${label}`;
+  return found.searched === true
+    ? `every other arrangement of this piece set (${unusable}) was tried, and none has a ${clueset}`
+    : `the other arrangements tried (${unusable}) have no ${clueset}, and the search did not cover every arrangement`;
+}
+
+/**
  * @typedef {object} Io
  * @property {(text: string) => void} stdout
  * @property {(text: string) => void} stderr
@@ -500,7 +525,7 @@ export async function run(argv, overrides = {}) {
         : `generate: found ${n}/${arrangements.total} arrangements, the most this piece set allows (complete)\n`);
       return 0;
     }
-    const detail = arrangements?.status === 'more' ? 'this piece set has more arrangements, but none gave another puzzle in the search' : REASONS[batch.reason ?? ''];
+    const detail = arrangementDetail(arrangements, label) ?? REASONS[batch.reason ?? ''];
     const why = batch.reason === undefined ? batch.status : `${batch.reason}: ${detail ?? batch.reason}`;
     io.stderr(`generate: found ${batch.accepted.length} of ${config.quantity} ${label} puzzles (${why})\n`);
     return 2;

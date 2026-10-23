@@ -10,7 +10,7 @@ import { boardFromRows } from './board.js';
 import { certify } from './clues.js';
 import { rate, UnsatisfiableError } from './difficulty.js';
 import { enumerateLayouts } from './enumerate.js';
-import { GenerationError, puzzleCandidate, setAttempt } from './generate.js';
+import { completionCandidate, GenerationError, puzzleCandidate, setAttempt } from './generate.js';
 import { progressFingerprint } from './keys.js';
 import { packBoard, validatePack } from './pack.js';
 import { parseTaskMessage, validatePayload } from './protocol.js';
@@ -125,17 +125,20 @@ function verifyPack(input, execution) {
 
 /**
  * Counts the distinct arrangements of a piece set against the layout keys already used, within the
- * ENUMERATION limits (owner decision 2026-10-23). It needs no workspace; a limit is "unproven".
- * @param {{ boardRows: string[], pieces: import('./types.js').Piece[], seenLayouts: string[] }} p
+ * ENUMERATION limits (owner decision 2026-10-23). It needs no workspace; a limit is "unproven". With
+ * `collect` it also returns the unused arrangements it met, sorted by key, for the completion pass.
+ * @param {{ boardRows: string[], pieces: import('./types.js').Piece[], seenLayouts: string[], collect?: number }} p
  * @returns {{ status: 'exhausted' | 'more' | 'unproven', total: number, placements: number, nodes: number,
- *   solutions: number, why?: string }}
+ *   solutions: number, why?: string, layouts?: { key: string, layout: import('./types.js').Pose[] }[], complete?: boolean }}
  */
 function enumerateArrangements(p) {
   const { limit, status, ...counts } = enumerateLayouts(boardFromRows(p.boardRows), p.pieces, new Set(p.seenLayouts), {
     placementLimit: ENUMERATION.placements,
     nodeLimit: ENUMERATION.nodes,
+    collect: p.collect,
   });
-  return status === 'limit' ? { ...counts, status: 'unproven', why: `${limit}-limit` } : { ...counts, status };
+  const why = limit === null ? {} : { why: `${limit}-limit` };
+  return { ...counts, ...why, status: status === 'limit' ? 'unproven' : status };
 }
 
 /**
@@ -177,6 +180,17 @@ export function executeTask(kind, payload, execution) {
         seenClues: new Set(p.seenClues),
         execution,
       }, p.slot, p.attempt);
+    case 'completionCandidate':
+      return completionCandidate({
+        set: hydrateSet(p.set),
+        targetLevelId: p.targetLevelId,
+        quantity: p.quantity,
+        batchSeed: p.batchSeed,
+        uniqueness: p.uniqueness,
+        seenLayouts: new Set(p.seenLayouts),
+        seenClues: new Set(p.seenClues),
+        execution,
+      }, p.layout);
     case 'certify':
       return certify(boardFromRows(p.boardRows), p.pieces, p.clues, execution.main, p.rowLimit);
     case 'rate':

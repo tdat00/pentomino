@@ -298,6 +298,12 @@ describe('puzzle batches', () => {
         'Found 2 of 4 different Normal puzzles. This piece set has more arrangements, but none gave another Normal puzzle in the search. Try again, or generate a new piece set for more.'],
       [{ ...base, status: 'unproven', why: 'placements-limit' }, 'N-FEWLAYOUTS', 'warning',
         'Found 2 of 4 different Normal puzzles; no more were found. This piece set may allow only a few different arrangements — generate a new piece set for more.'],
+      [{ ...base, status: 'more', found: 3, searched: true, tried: 3, added: 0, unusable: 3, unusableWhy: 'not-in-band' }, 'N-LAYOUTS-UNUSED', 'warning',
+        'Found 2 of 4 different Normal puzzles. Every other arrangement of this piece set (3) was tried, and none has a clue set that rates Normal. Generate a new piece set for more Normal puzzles.'],
+      [{ ...base, status: 'more', found: 32, searched: false, tried: 32, added: 0, unusable: 32, unusableWhy: 'uniqueness-not-proved' }, 'N-LAYOUTS-UNUSED', 'warning',
+        'Found 2 of 4 different Normal puzzles. The other arrangements tried (32) have no clue set with exactly one solution that rates Normal, and the search did not cover every arrangement of this piece set. Try again, or generate a new piece set for more.'],
+      [{ ...base, status: 'more', found: 2, searched: false, tried: 2, added: 2, unusable: 0 }, 'N-FEWLAYOUTS', 'warning',
+        'Found 2 of 4 different Normal puzzles; no more were found. This piece set may allow only a few different arrangements — generate a new piece set for more.'],
     ]);
     for (const [arrangements, code, kind, text] of cases) {
       const client = fakeClient({
@@ -317,6 +323,22 @@ describe('puzzle batches', () => {
     }
     assert.equal(batchShortfall('layouts-not-found', { n: 0, q: 4, levelId: 'normal', arrangements: { ...base, status: 'exhausted', total: 6, earlier: 6 } })?.text,
       'This piece set has no arrangements left: all 6 have been used. Generate a new piece set for more Normal puzzles.');
+
+    const filled = fakeClient({
+      batch: (input, hooks) => {
+        const puzzles = makePuzzles(4, 50);
+        puzzles.forEach((puzzle, index) => hooks.onAccepted({ revision: input.revision, index, puzzle, accepted: index + 1, quantity: input.quantity }));
+        return {
+          status: 'complete', accepted: puzzles, seenLayouts: ['l1'], seenClues: ['c1'],
+          arrangements: { ...base, status: 'more', found: 2, searched: true, tried: 2, added: 2, unusable: 0 },
+        };
+      },
+    });
+    const done = harness({ client: filled, accepted: true, state: { quantity: 4 } });
+    await done.controller.newPuzzles();
+    assert.equal(done.store.getState().puzzles.length, 4);
+    assert.equal(done.store.getState().notice, null, 'a batch the completion pass filled is a plain success');
+    done.destroy();
   });
 
   test('a batch without a single result keeps the earlier batch and still counts the request', async () => {

@@ -659,6 +659,12 @@ function fillRecord(run, s, spec, caseDef, certificatesAwaited) {
     run.layoutMethod = arrangements.method;
     run.layoutEnumPlacements = arrangements.placements;
     run.layoutEnumMs = arrangements.elapsedMs;
+    if (arrangements.tried !== undefined) {
+      run.layoutPassTried = arrangements.tried;
+      run.layoutPassAdded = arrangements.added ?? 0;
+      run.layoutUnusable = arrangements.unusable ?? 0;
+      run.layoutPassMs = arrangements.passMs ?? null;
+    }
     if (arrangements.status === 'exhausted') {
       run.layoutsExhausted = true;
       run.layoutTotal = arrangements.total ?? null;

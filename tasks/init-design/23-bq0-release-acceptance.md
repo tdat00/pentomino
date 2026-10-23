@@ -204,3 +204,25 @@ Record reviewer/product-owner/date sign-off and the deployed revision. T24 may q
 **Issues & resolutions:** the first DLX-based count was correct but unbounded in wall time (Master seed 3: 16.8 s; a row cap cannot bound it) → replaced by a bounded backtracker (worst ~9 s before "unproven" on this machine). Expert/Master sit exactly at 90% (seed-list sensitive). Landscape criterion 1 (`calibration-reference.js`) left unchanged (decision names BQ criterion 2 only). Progress v2 format kept; the reader still accepts v1. ~50 orphan Edge processes left by `taskkill /T` were stopped by PID.
 
 **Open questions (sent to owner):** (1) add a completion pass that tries remaining enumerated arrangements as candidates (would turn most of the 5 "more" cases into puzzles; needs determinism/fixture review); (2) is a worst-case ~9 s unproven-count wait (CPU-dependent) acceptable, or lower the placement cap? Still to re-run before any gate change: full 43-cell BQ-0 on every platform and the D8 cells (irregular 558/658, ≥ 20 seeds).
+
+## Execution log — completion pass (fix round 3, owner-approved 2026-10-23)
+
+| Field | Value |
+| --- | --- |
+| Status | Implemented. Owner approved the completion pass and kept the enumeration wait (~9 s worst case). All former "more arrangements" shortfalls now end at a proven maximum. T23 remains **blocked** on full 43-cell BQ-0 on reference platforms/devices, D8 re-run, screen reader, axe and deployment (not pushed). |
+| Start | 2026-10-23 07:36:41 (+07:00) |
+| End | 2026-10-23 08:06:25 (+07:00) |
+| Duration | 29 min 44 s |
+| Model | claude-sonnet-5.5 (sub-agent `completion-pass-fix3`, general-purpose) |
+| Token usage | 132 model calls; 23,989,659 input (23,709,479 cache read), 111,821 output |
+| AI credits | 418.95 AIU (from orchestrator usage store, keyed by sub-agent id) |
+
+**Verification (orchestrator re-run):** full `node --test "tests/**/*.test.js"` → 799 pass / 0 fail; `npm run check` OK; `node tools\record-fixtures.mjs --check` OK (no re-record). Agent: headless Edge 156 — generator-flow 13/13, player-controls 25/25, acceptance 15 pass + 4 blocked, generator-editor 24/24, hints 10/10, player-import 18/18, rendering 15/15; no console errors or failed requests.
+
+**How it works:** after `layouts-not-found`, `enumerateLayouts` (new `collect` mode, `ENUMERATION.collect = 32`; placement/node limits unchanged) returns up to 32 unused arrangements sorted by layout key; new worker task `completionCandidate` runs each through the same clue selection, band, uniqueness and strict key rules with an RNG derived from the batch seed and the layout key; the client consumes results strictly in key order (pool-width/answer-order independent); cancel and the 115 s watchdog keep the accepted prefix. New warning `N-LAYOUTS-UNUSED` for an arrangement with no in-band clue set.
+
+**Determinism:** all 59 batches that already reached ten are byte-for-byte unchanged (same result digests as fix round 2); all 41 shortfalls keep their earlier puzzles as an exact prefix; no fixture affected; `ALGO_ID` not bumped (only extends previously short batches; app never released).
+
+**Before → after (Node, 20 seeds; criterion 2 = ten puzzles or a proven maximum):** irr466 Hard 20/20 → 20/20; Expert 18/20 → 20/20; Master 18/20 → 20/20; 6×10 Very Easy 19/20 → 20/20; Easy 20/20 → 20/20 (strict ten unchanged: 2, 9, 14, 16, 18 of 20). Remaining "more" cases 0; unproven 0; no measured arrangement lacked an in-band clue set. Pass adds 9–145 ms; max response unchanged (~8.4 s). Edge (12 rows: 5 former "more" seeds, 3 × 22×22 Hard, cancel probes): 0 long tasks > 50 ms; 22×22 Hard 10/10, T10 540–865 ms. Reports: `docs\calibration\bq-2026-10-23-0-fix3-*`.
+
+**Issues:** the `N-LAYOUTS-UNUSED` path is covered only by scripted tests and a faulted-worker CLI test (never occurred naturally); the fold's distance preference does not apply inside the pass (key distinctness remains strict). Questions sent to owner: bump `ALGO_ID` (would require re-recording fixtures)? accept the 32-candidate cap?
