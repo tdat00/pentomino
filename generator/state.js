@@ -13,7 +13,8 @@ import { QUALIFICATION } from '../core/engine/qualification.js';
 import { batchSeedFor, normalizeSeedText, randomSeedText, RNG_ID, SEED_SCHEME } from '../core/engine/rng.js';
 import { clueKey, layoutKey } from '../core/engine/keys.js';
 import { ALGO_ID, APP_VERSION } from '../core/engine/version.js';
-import { formatMessage, formatNotice } from './strings.js';
+import { t } from './i18n.js';
+import { formatMessage, formatNotice, levelLabel } from './strings.js';
 
 /** @typedef {import('../core/engine/types.js').Board} Board */
 /** @typedef {import('../core/engine/types.js').PieceSet} PieceSet */
@@ -37,7 +38,6 @@ import { formatMessage, formatNotice } from './strings.js';
  * @typedef {object} GeneratorState
  * @property {Board} board Editor board; `set.board` keeps the board a set was made for.
  * @property {number} rotation Display angle, counter-clockwise, multiple of 45.
- * @property {boolean} editUnrotated
  * @property {string} levelId
  * @property {string} seedText
  * @property {boolean} keepSeed
@@ -88,6 +88,7 @@ import { formatMessage, formatNotice } from './strings.js';
  * @property {'error' | 'warning' | 'info'} kind
  * @property {string[]} actions `new-set`, `reset-history`, `smaller-quantity`.
  * @property {number} [room] Remaining history room for `smaller-quantity`.
+ * @property {() => string} [retext] Builds `text` again, so the notice can follow a language switch.
  */
 
 /**
@@ -142,7 +143,6 @@ export function defaultGeneratorState(overrides = {}) {
   return {
     board: rectangle(DEFAULT_COLS, DEFAULT_ROWS),
     rotation: 0,
-    editUnrotated: false,
     levelId: DEFAULT_LEVEL_ID,
     seedText: '',
     keepSeed: false,
@@ -310,14 +310,6 @@ export function boardsEqual(a, b) {
 
 /**
  * @param {Board} board
- * @returns {boolean} Whether any cell is blocked.
- */
-export function hasBlockedCells(board) {
-  return board.active.includes(0);
-}
-
-/**
- * @param {Board} board
  * @param {number} x
  * @param {number} y
  * @param {0 | 1} value
@@ -430,14 +422,6 @@ export function withBoard(state, board, rotation = state.rotation) {
  */
 export function trimBoard(state) {
   return withBoard(state, trimMargins(state.board));
-}
-
-/**
- * @param {GeneratorState} state
- * @returns {boolean} Whether editing now should ask for confirmation (first edit after a set exists).
- */
-export function needsStaleConfirm(state) {
-  return state.set !== null && !state.stale;
 }
 
 /**
@@ -619,7 +603,7 @@ export function describeLevels(area) {
   return LISTED_LEVEL_IDS.map((id) => {
     const lv = level(id);
     const isOffered = offered.has(id);
-    return { id, label: lv.label, offered: isOffered, reason: isOffered ? null : area < lv.areas[0] ? 'larger' : 'smaller' };
+    return { id, label: levelLabel(id), offered: isOffered, reason: isOffered ? null : area < lv.areas[0] ? 'larger' : 'smaller' };
   });
 }
 
@@ -661,7 +645,7 @@ export function describeCount(levelId, area) {
  * @property {number} area
  * @property {number} cap
  * @property {boolean} valid No validation error.
- * @property {string} statusText `{active} / {max} playable squares · connected` or the validation errors.
+ * @property {string} statusText `{active} / {columns × rows} playable squares · connected` or the validation errors.
  * @property {XY[]} invalidCells Cells to highlight (outside the largest connected region).
  * @property {Notice[]} notices
  * @property {LevelEntry[]} levels
@@ -688,13 +672,7 @@ export function describeBoard(state, hardware, quantity = DEFAULT_QUANTITY) {
   /** @type {XY[]} */
   const invalidCells = [];
   for (const issue of errors) {
-    let text = issue.message;
-    if (issue.code === 'board-too-few-cells') {
-      text = formatNotice('N-SMALL');
-    } else if (issue.code === 'board-too-many-cells') {
-      text = formatNotice('N-CAP', { area, max: cap });
-    }
-    errorTexts.push(text);
+    errorTexts.push(boardIssueText(issue, area, cap));
     for (const cell of issue.cells ?? []) {
       invalidCells.push(cell);
     }
@@ -702,7 +680,7 @@ export function describeBoard(state, hardware, quantity = DEFAULT_QUANTITY) {
   const levels = describeLevels(area);
   const levelOffered = levels.some((l) => l.id === state.levelId && l.offered);
   const count = levelOffered ? describeCount(state.levelId, area) : null;
-  const levelLabel = LISTED_LEVEL_IDS.includes(state.levelId) ? level(state.levelId).label : state.levelId;
+  const levelName = LISTED_LEVEL_IDS.includes(state.levelId) ? levelLabel(state.levelId) : state.levelId;
 
   if (state.stale) {
     notices.push({ code: 'N-STALE', text: formatNotice('N-STALE'), kind: 'warning' });
@@ -714,7 +692,7 @@ export function describeBoard(state, hardware, quantity = DEFAULT_QUANTITY) {
     notices.push({ code: 'N-EXPERIMENTAL', text: formatNotice('N-EXPERIMENTAL', { limit: LIMITS.releaseMaxActive, q: quantity }), kind: 'warning' });
   }
   if (count !== null) {
-    notices.push({ code: 'N-COUNT', text: formatNotice('N-COUNT', { kmin: count.kmin, kmax: count.kmax, level: levelLabel, share: count.share }), kind: 'info' });
+    notices.push({ code: 'N-COUNT', text: formatNotice('N-COUNT', { kmin: count.kmin, kmax: count.kmax, level: levelName, share: count.share }), kind: 'info' });
   }
   const offered = levels.filter((l) => l.offered);
   if (offered.length > 0) {
@@ -737,7 +715,7 @@ export function describeBoard(state, hardware, quantity = DEFAULT_QUANTITY) {
 
   const statusText = errorTexts.length > 0
     ? errorTexts.join(' ')
-    : `${area} / ${cap} playable squares · connected`;
+    : t('board.status', { area, total: state.board.width * state.board.height });
   return { area, cap, valid: errors.length === 0, statusText, invalidCells, notices, levels, levelOffered, count, levelNotices };
 }
 
@@ -1184,10 +1162,18 @@ export function describeSet(set) {
  * @returns {string}
  */
 function boardIssueText(issue, area, cap) {
-  if (issue.code === 'board-too-few-cells') {
-    return formatNotice('N-SMALL');
+  switch (issue.code) {
+    case 'board-too-few-cells':
+      return formatNotice('N-SMALL');
+    case 'board-too-many-cells':
+      return formatNotice('N-CAP', { area, max: cap });
+    case 'board-disconnected': {
+      const regions = /(\d+) separate regions/.exec(issue.message)?.[1];
+      return regions === undefined ? issue.message : t('board.issue.disconnected', { count: regions });
+    }
+    default:
+      return issue.message;
   }
-  return issue.code === 'board-too-many-cells' ? formatNotice('N-CAP', { area, max: cap }) : issue.message;
 }
 
 /**
@@ -1216,7 +1202,7 @@ export function generationBlock(state, hardware) {
   }
   const levelId = batchLevelOf(state);
   if (!offeredLevels(area).some((l) => l.id === levelId)) {
-    return formatMessage('M-LEVEL-NOT-OFFERED', { level: LISTED_LEVEL_IDS.includes(levelId) ? level(levelId).label : levelId, area });
+    return formatMessage('M-LEVEL-NOT-OFFERED', { level: LISTED_LEVEL_IDS.includes(levelId) ? levelLabel(levelId) : levelId, area });
   }
   return null;
 }

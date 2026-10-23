@@ -12,7 +12,7 @@ An account-free **Generator** that builds pentomino-style tiling puzzles, and an
 | `/pentomino/generator/` | Generator: edit a board, generate puzzles, import and export JSON. |
 | `/pentomino/player/` | Player: open a puzzle from a link, a file or the local library, and play it. |
 
-The Generator and the Player load independently; each links to the other with a relative link. **Play** in the Generator opens the Player with a portable **hash link** that contains the whole puzzle. When a link would be too long, the Generator falls back to a **local-only library** link; that link works only in the same browser and is labelled as not shareable. Puzzles can also be saved and opened as **JSON files**.
+The Generator and the Player load independently. **Play** in the Generator opens the Player with a portable **hash link** that contains the whole puzzle. When a link would be too long, the Generator falls back to a **local-only library** link; that link works only in the same browser and is labelled as not shareable. Puzzles can also be saved and opened as **JSON files**.
 
 ## Run locally
 
@@ -50,7 +50,17 @@ Native ES modules with JSDoc types and `// @ts-check`, in four layers:
 
 Every module loaded by a browser page or worker uses the `.js` extension. `.mjs` is reserved for Node-only tools under `tools`.
 
+The Generator's interface text is bilingual (English and Vietnamese): `generator/i18n.js` looks texts up in the flat packs `generator/locale.en.js` (base pack, every key) and `generator/locale.vi.js` (same keys and `{placeholders}`; `tests/generator-i18n.test.js` checks both). A new user-visible text needs a key in both packs. The Player keeps its own English texts.
+
 ## Using the Generator
+
+The page is a three-step wizard laid out as three panels: the puzzles made so far on the left, the screen of the current step in the middle, and the three steps stacked on the right (on narrow screens the steps form a row on top and the puzzles go under the main screen). Each step shows only its own controls. Step 2 opens once the board can get a piece set (otherwise Next and the step button are disabled and step 1 says why), and step 3 opens once a piece set exists. **Next** and **Back** at the top right of the main screen, or the step buttons on the right, move between steps. The current step is kept in the address (`?step=2`), so a reload, the browser's Back and Forward buttons, and a shared link return to it. Click or drag squares to block or unblock them; blocked squares are marked with a cross.
+
+1. **Create board.** Size, presets, painting squares, view rotation.
+2. **Create piece set.** Pick the level and the seed, generate the pieces for the board, review them, or import a piece set or pack.
+3. **Create puzzles.** Generate puzzles from the board and the piece set, then play, export or share them.
+
+The **EN | VI** switch in the header changes the language without reloading; the choice is remembered in this browser, and `?lang=vi` or `?lang=en` in the address overrides it. The theme switch next to it picks the light, dark or high-contrast theme (`generator/theme.css`); without a choice the page follows the system's light or dark setting.
 
 - **Board.** Sizes are written **columns×rows**. The board may be rotated by a display-only 45° view; the puzzle itself is unchanged by rotation. The **Heart** preset is a square board whose top-right quarter is a block.
 - **Pieces.** The piece set has at least 3 pieces and all pieces are distinct. Any valid tiling of the board with the piece set counts as a solution.
@@ -74,7 +84,7 @@ Every module loaded by a browser page or worker uses the `.js` extension. `.mjs`
 ## Storage and privacy
 
 - Everything stays in the browser. There is no upload, no remote solver and no analytics. Pasted links are read for their data only and are never fetched.
-- Library, progress and preferences use `localStorage` keys under the `pentomino:v1:` namespace. The app never reads, changes or clears other keys of the same origin.
+- Library, progress and preferences use `localStorage` keys under the `pentomino:v1:` namespace; the Generator's language choice is the key `pentomino:v1:lang` and its theme choice `pentomino:v1:theme`. The app never reads, changes or clears other keys of the same origin.
 - Browser storage can be disabled, shared or full. On a quota error the oldest entries of this namespace are dropped once; if saving still fails, play continues in memory and the page says that progress cannot be saved.
 - Exported files and share links may omit the answer.
 - A local-library link only works in the browser that created it.

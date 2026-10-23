@@ -3,8 +3,10 @@
 // generator's reference arrangement on demand, the last five sets, set export and set import.
 import { el } from '../../core/browser/dom.js';
 import { mountBoard, mountPiecePreview } from '../../core/browser/svg-board.js';
-import { level } from '../../core/engine/levels.js';
+import { t, getLocale } from '../i18n.js';
 import { describeSet, isBusy, readyLevelId, setTimelineLength } from '../state.js';
+import { levelLabel } from '../strings.js';
+import { loc, locAttrs } from './i18n-dom.js';
 import { thumbnailCellPx } from './puzzle-panel.js';
 
 /** @typedef {import('../state.js').GeneratorStore} GeneratorStore */
@@ -26,12 +28,12 @@ export function summarizeSet(state) {
     return '';
   }
   const { pieces, sizeMin, sizeMax } = describeSet(set);
-  const sizes = sizeMin === sizeMax ? `size ${sizeMin}` : `sizes ${sizeMin}–${sizeMax}`;
-  const parts = [`${pieces} ${pieces === 1 ? 'piece' : 'pieces'}`, sizes];
+  const sizes = sizeMin === sizeMax ? t('set.summary.size', { size: sizeMin }) : t('set.summary.sizes', { min: sizeMin, max: sizeMax });
+  const parts = [t('set.summary.pieces', { count: pieces }), sizes];
   if (state.calibration !== null && state.calibrationFor !== null) {
-    parts.push(`Ready for ${level(readyLevelId(state)).label} ✓`);
+    parts.push(t('set.summary.ready', { level: levelLabel(readyLevelId(state)) }));
   } else if (set.carving === 'imported') {
-    parts.push('Imported');
+    parts.push(t('set.summary.imported'));
   }
   return parts.join(' · ');
 }
@@ -44,31 +46,31 @@ export function mountSetPanel(host, options) {
   const { store, controller } = options;
   const uid = `set-panel-${(panelCounter += 1)}`;
 
-  const emptyText = el('p', { className: 'hint', dataset: { role: 'set-empty' }, text: 'No piece set yet. Generate one, or import a set below.' });
-  const pieceList = el('ul', { className: 'piece-list', attrs: { 'aria-label': 'Pieces' }, dataset: { role: 'pieces' } });
+  const emptyText = loc('set.empty', { className: 'hint', dataset: { role: 'set-empty' } }, 'p');
+  const pieceList = el('ul', { className: 'piece-list', attrs: locAttrs({ 'aria-label': 'set.pieces' }), dataset: { role: 'pieces' } });
   const summary = el('p', { className: 'set-summary', dataset: { role: 'summary' } });
   const staleText = el('p', { className: 'notice notice-warning', dataset: { role: 'set-stale' } });
   const solutionInput = /** @type {HTMLInputElement} */ (el('input', { attrs: { type: 'checkbox', 'data-field': 'show-solution' } }));
-  const solutionToggle = el('label', { className: 'pm-toggle' }, solutionInput, el('span', { text: 'Show solution' }));
+  const solutionToggle = el('label', { className: 'pm-toggle' }, solutionInput, loc('set.showSolution'));
   const solutionNote = el('p', { className: 'hint', dataset: { role: 'solution-note' } });
   const boardHost = el('div', { className: 'set-board', attrs: { hidden: '' }, dataset: { role: 'set-board' } });
-  const olderButton = /** @type {HTMLButtonElement} */ (el('button', { text: '◀', attrs: { type: 'button', 'aria-label': 'Previous piece set', 'data-action': 'older-set' } }));
-  const newerButton = /** @type {HTMLButtonElement} */ (el('button', { text: '▶', attrs: { type: 'button', 'aria-label': 'Next piece set', 'data-action': 'newer-set' } }));
+  const olderButton = /** @type {HTMLButtonElement} */ (el('button', { text: '◀', attrs: { type: 'button', ...locAttrs({ 'aria-label': 'set.older' }), 'data-action': 'older-set' } }));
+  const newerButton = /** @type {HTMLButtonElement} */ (el('button', { text: '▶', attrs: { type: 'button', ...locAttrs({ 'aria-label': 'set.newer' }), 'data-action': 'newer-set' } }));
   const positionText = el('span', { className: 'set-position', attrs: { 'aria-live': 'polite' }, dataset: { role: 'set-position' } });
   const history = el('div', { className: 'control-row set-history', dataset: { role: 'set-history' } }, olderButton, positionText, newerButton);
-  const exportButton = /** @type {HTMLButtonElement} */ (el('button', { text: '⬇ Export set', attrs: { type: 'button', 'data-action': 'export-set' } }));
+  const exportButton = /** @type {HTMLButtonElement} */ (loc('set.export', { attrs: { type: 'button', 'data-action': 'export-set' } }, 'button'));
   const exportRow = el('div', { className: 'control-row' }, exportButton);
 
   const fileInput = /** @type {HTMLInputElement} */ (el('input', { attrs: { type: 'file', accept: '.json,application/json', 'data-field': 'import-file' } }));
   const pasteInput = /** @type {HTMLTextAreaElement} */ (el('textarea', {
     attrs: { rows: 3, spellcheck: 'false', autocomplete: 'off', 'data-field': 'import-text', id: `${uid}-paste` },
   }));
-  const pasteButton = /** @type {HTMLButtonElement} */ (el('button', { text: 'Import pasted text', attrs: { type: 'button', 'data-action': 'import-text' } }));
+  const pasteButton = /** @type {HTMLButtonElement} */ (loc('set.importText', { attrs: { type: 'button', 'data-action': 'import-text' } }, 'button'));
   const importBox = el('details', { className: 'import-set', dataset: { role: 'import' } },
-    el('summary', { text: 'Import set' }),
-    el('p', { className: 'hint', text: 'Open a piece-set or puzzle-pack file, or paste a link, code or pack text. The current set stays if the import fails.' }),
-    el('label', { className: 'field' }, el('span', { text: 'File' }), fileInput),
-    el('label', { className: 'field', attrs: { for: `${uid}-paste` } }, el('span', { text: 'Link, code or pack text' })),
+    loc('set.import', {}, 'summary'),
+    loc('set.importHint', { className: 'hint' }, 'p'),
+    el('label', { className: 'field' }, loc('set.file'), fileInput),
+    el('label', { className: 'field', attrs: { for: `${uid}-paste` } }, loc('set.paste')),
     pasteInput, pasteButton);
 
   host.append(el('div', { className: 'set-panel' }, emptyText, pieceList, summary, staleText, solutionToggle, solutionNote, boardHost, history, exportRow, importBox));
@@ -79,6 +81,7 @@ export function mountSetPanel(host, options) {
   let boardView = null;
   /** @type {object | null} */
   let shownSet = null;
+  let shownLocale = getLocale();
   let destroyed = false;
 
   function clearPreviews() {
@@ -98,9 +101,10 @@ export function mountSetPanel(host, options) {
     }
     const set = state.set;
     const busy = isBusy(state);
-    if (shownSet !== set) {
+    if (shownSet !== set || shownLocale !== getLocale()) {
       clearPreviews();
       shownSet = set;
+      shownLocale = getLocale();
       if (set !== null) {
         const sorted = set.pieces.map((piece, index) => ({ piece, index })).sort((a, b) => a.piece.id.localeCompare(b.piece.id, 'en', { numeric: true }));
         for (const { piece, index } of sorted) {
@@ -110,22 +114,20 @@ export function mountSetPanel(host, options) {
           pieceList.append(item);
           previews.push(mountPiecePreview(thumb, piece, {
             cellPx: THUMB_CELL_PX, index, count: set.pieces.length, interactive: false,
-            name: `Piece ${piece.label === '' ? piece.id : piece.label}, ${piece.cells.length} cells`,
+            name: t('set.pieceName', { name: piece.label === '' ? piece.id : piece.label, count: piece.cells.length }),
           }));
         }
-        boardView = mountBoard(boardHost, { mode: 'thumbnail', cellPx: thumbnailCellPx(set.board, BOARD_PREVIEW_PX), label: 'Reference arrangement of the piece set' });
+        boardView = mountBoard(boardHost, { mode: 'thumbnail', cellPx: thumbnailCellPx(set.board, BOARD_PREVIEW_PX), label: t('set.referenceLabel') });
       }
     }
     emptyText.hidden = set !== null;
     summary.textContent = summarizeSet(state);
-    staleText.textContent = set !== null && state.stale ? 'The board changed after this set was made. Its puzzles stay playable and exportable.' : '';
+    staleText.textContent = set !== null && state.stale ? t('set.stale') : '';
     staleText.hidden = staleText.textContent === '';
     const hasWitness = set !== null && set.witness !== null;
     solutionToggle.hidden = set === null;
     solutionInput.disabled = !hasWitness;
-    solutionNote.textContent = set === null ? '' : hasWitness
-      ? 'The solution shown is the generator\'s reference arrangement of this set — it is not the answer to a puzzle and not a difficulty limit.'
-      : 'This set has no reference arrangement.';
+    solutionNote.textContent = set === null ? '' : hasWitness ? t('set.solutionNote') : t('set.noReference');
     const showing = hasWitness && solutionInput.checked;
     boardHost.hidden = !showing;
     if (set !== null) {
@@ -133,7 +135,7 @@ export function mountSetPanel(host, options) {
     }
     const length = setTimelineLength(state);
     history.hidden = length <= 1;
-    positionText.textContent = `Set ${state.setPosition + 1} of ${length}`;
+    positionText.textContent = t('set.position', { n: state.setPosition + 1, total: length });
     olderButton.disabled = busy || state.setPosition + 1 >= length;
     newerButton.disabled = busy || state.setPosition <= 0;
     exportButton.disabled = set === null;

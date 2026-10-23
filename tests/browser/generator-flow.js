@@ -126,14 +126,13 @@ function mountApp(o = {}) {
       h('section', { class: 'panel panel-level' }, h('div', { 'data-slot': 'level' })),
       h('section', { class: 'panel panel-set' }, h('div', { 'data-slot': 'set' })),
       h('section', { class: 'panel panel-puzzles' }, h('div', { 'data-slot': 'puzzles' }))),
-    h('div', { class: 'sticky-bar' }, h('p', { 'data-slot': 'sticky-status' }), h('button', { type: 'button', 'data-slot': 'sticky-action' }, 'Generate Piece Set')));
+    h('div', { class: 'main-actions' }, h('button', { type: 'button', 'data-slot': 'main-action' }, 'Generate Piece Set')));
   sandbox.append(root);
   const storage = o.storage ?? memoryStorage();
   /** @type {string[]} */
   const toasts = [];
   const app = createGeneratorApp(document, {
     storage: /** @type {any} */ (storage),
-    confirm: () => true,
     random: () => `HARN-${String((seedCounter += 1)).padStart(4, '0')}-SEED`,
     ...o.app,
     controller: { notify: (/** @type {string} */ message) => toasts.push(message), ...o.app?.controller },
@@ -173,9 +172,10 @@ const qa = (ctx, selector) => /** @type {HTMLElement[]} */ ([...ctx.root.querySe
  * @param {string} levelId
  */
 function chooseLevel(ctx, levelId) {
-  const radio = /** @type {HTMLInputElement} */ (q(ctx, `input[type="radio"][value="${levelId}"]`));
-  radio.checked = true;
-  radio.dispatchEvent(new Event('change', { bubbles: true }));
+  const select = /** @type {HTMLSelectElement} */ (q(ctx, '[data-field="level"]'));
+  assert([...select.options].some((o) => o.value === levelId), `${levelId} is offered`);
+  select.value = levelId;
+  select.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
 /**

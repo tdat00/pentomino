@@ -4,7 +4,6 @@
 // state atomically, and prepares links, exports and imports. It never solves anything itself: all
 // searching runs in the client's workers or in the injected worker task runner.
 import { boardToRows } from '../core/engine/board.js';
-import { level } from '../core/engine/levels.js';
 import { MAX_FILE_BYTES, packBoard, parsePack } from '../core/engine/pack.js';
 import { BUDGETS } from '../core/engine/policy.js';
 import { isValidLayout } from '../core/engine/tiling.js';
@@ -14,7 +13,8 @@ import {
   generationBlock, gotoSet, historyRoom, importPackState, mergeSeenKeys, nextBatch, packFits, readyLevelId, referenceOf,
   removePuzzle, renumberTitles, resetHistory, setTimelineLength, visiblePack,
 } from './state.js';
-import { formatMessage, formatNotice } from './strings.js';
+import { t } from './i18n.js';
+import { formatMessage, formatNotice, levelLabel, linkWarning } from './strings.js';
 
 /** @typedef {import('./state.js').GeneratorState} GeneratorState */
 /** @typedef {import('./state.js').GeneratorStore} GeneratorStore */
@@ -52,26 +52,14 @@ const LINK_DELAY_MS = 150;
 const KIB = 1024;
 
 /**
- * @param {string} id
- * @returns {string}
- */
-function levelLabel(id) {
-  try {
-    return level(id).label;
-  } catch {
-    return id;
-  }
-}
-
-/**
  * @param {string} code
- * @param {string} text
+ * @param {string | (() => string)} text A function is kept as `retext`, so the text can follow a language switch.
  * @param {StatusNotice['kind']} kind
  * @param {string[]} [actions]
  * @returns {StatusNotice}
  */
 function notice(code, text, kind, actions = []) {
-  return { code, text, kind, actions };
+  return typeof text === 'function' ? { code, text: text(), kind, actions, retext: text } : { code, text, kind, actions };
 }
 
 /**
@@ -83,31 +71,35 @@ function notice(code, text, kind, actions = []) {
  * @returns {StatusNotice | null}
  */
 export function batchShortfall(reason, o) {
-  const params = { n: o.n, q: o.q, level: levelLabel(o.levelId) };
+  const params = () => ({ n: o.n, q: o.q, level: levelLabel(o.levelId) });
   switch (reason) {
     case 'time-limit':
-      return notice('N-PARTIAL', formatNotice('N-PARTIAL', params), 'warning');
+      return notice('N-PARTIAL', () => formatNotice('N-PARTIAL', params()), 'warning');
     case 'layouts-not-found': {
       const found = o.arrangements;
       if (found?.status === 'exhausted' && found.total !== undefined) {
         const variant = o.n === 0 ? 'none' : (found.earlier ?? 0) > 0 ? 'rest' : 'all';
-        return notice('N-ARRANGEMENTS', formatNotice('N-ARRANGEMENTS', { ...params, total: found.total }, variant), 'info', ['new-set']);
+        const total = found.total;
+        return notice('N-ARRANGEMENTS', () => formatNotice('N-ARRANGEMENTS', { ...params(), total }, variant), 'info', ['new-set']);
       }
       if (found?.status === 'more' && found.tried !== undefined && (found.unusable ?? 0) > 0) {
-        const clueset = found.unusableWhy === 'uniqueness-not-proved'
-          ? `clue set with exactly one solution that rates ${params.level}`
-          : `clue set that rates ${params.level}`;
-        return notice('N-LAYOUTS-UNUSED', formatNotice('N-LAYOUTS-UNUSED', { ...params, count: found.unusable ?? 0, clueset }, found.searched === true ? 'all' : 'some'), 'warning', ['new-set']);
+        const unique = found.unusableWhy === 'uniqueness-not-proved';
+        const count = found.unusable ?? 0;
+        const variant = found.searched === true ? 'all' : 'some';
+        return notice('N-LAYOUTS-UNUSED', () => {
+          const clueset = t(unique ? 'notice.clueset.unique' : 'notice.clueset.plain', { level: params().level });
+          return formatNotice('N-LAYOUTS-UNUSED', { ...params(), count, clueset }, variant);
+        }, 'warning', ['new-set']);
       }
       if (found?.status === 'more' && found.tried === undefined) {
-        return notice('N-LAYOUTS-LEFT', formatNotice('N-LAYOUTS-LEFT', params), 'warning', ['new-set']);
+        return notice('N-LAYOUTS-LEFT', () => formatNotice('N-LAYOUTS-LEFT', params()), 'warning', ['new-set']);
       }
-      return notice('N-FEWLAYOUTS', formatNotice('N-FEWLAYOUTS', params), 'warning', ['new-set']);
+      return notice('N-FEWLAYOUTS', () => formatNotice('N-FEWLAYOUTS', params()), 'warning', ['new-set']);
     }
     case 'difficulty-not-found':
-      return notice('N-SETLEVEL', formatNotice('N-SETLEVEL', params), 'warning', ['new-set']);
+      return notice('N-SETLEVEL', () => formatNotice('N-SETLEVEL', params()), 'warning', ['new-set']);
     case 'uniqueness-not-proved':
-      return notice('N-UNIQUE', formatNotice('N-UNIQUE', params), 'warning');
+      return notice('N-UNIQUE', () => formatNotice('N-UNIQUE', params()), 'warning');
     default:
       return null;
   }
@@ -121,7 +113,7 @@ export function batchShortfall(reason, o) {
  */
 function historyPrompt(room, q, state) {
   const used = Math.max(state.seenLayouts.length, state.seenClues.length);
-  const text = formatMessage('M-HISTORY-FULL', { used, max: BUDGETS.historyKeys, room, q });
+  const text = () => formatMessage('M-HISTORY-FULL', { used, max: BUDGETS.historyKeys, room, q });
   return { ...notice('M-HISTORY-FULL', text, 'warning', room > 0 ? ['reset-history', 'smaller-quantity'] : ['reset-history']), room };
 }
 
@@ -134,16 +126,16 @@ function historyPrompt(room, q, state) {
 function errorNotice(error, state, quantity) {
   const code = /** @type {{ code?: unknown }} */ (error)?.code;
   if (code === 'model-too-large' || code === 'memory-limit') {
-    return notice('N-TOOLARGE', formatNotice('N-TOOLARGE'), 'error');
+    return notice('N-TOOLARGE', () => formatNotice('N-TOOLARGE'), 'error');
   }
   if (code === 'worker-unavailable') {
-    return notice('N-NOWORKER', formatNotice('N-NOWORKER'), 'error');
+    return notice('N-NOWORKER', () => formatNotice('N-NOWORKER'), 'error');
   }
   if (code === 'history-full') {
     return historyPrompt(historyRoom(state), quantity, state);
   }
-  const message = error instanceof Error ? error.message.slice(0, 300) : 'The request failed';
-  return notice('M-FAILED', formatMessage('M-FAILED', { message }), 'error');
+  const detail = error instanceof Error ? error.message.slice(0, 300) : null;
+  return notice('M-FAILED', () => formatMessage('M-FAILED', { message: detail ?? t('message.requestFailed') }), 'error');
 }
 
 /**
@@ -264,7 +256,7 @@ export function createJobController(options) {
       return;
     }
     if (options.workersAvailable === false) {
-      store.update((s) => ({ ...s, notice: notice('N-NOWORKER', formatNotice('N-NOWORKER'), 'error') }));
+      store.update((s) => ({ ...s, notice: notice('N-NOWORKER', () => formatNotice('N-NOWORKER'), 'error') }));
       return;
     }
     const { levelId, uniqueness, rotation } = state;
@@ -293,9 +285,9 @@ export function createJobController(options) {
         notice: null,
       }));
     } else if (result.status === 'cancelled') {
-      finish(revision, (s) => ({ ...s, notice: notice('M-CANCELLED-SET', formatMessage('M-CANCELLED-SET'), 'info') }));
+      finish(revision, (s) => ({ ...s, notice: notice('M-CANCELLED-SET', () => formatMessage('M-CANCELLED-SET'), 'info') }));
     } else {
-      finish(revision, (s) => ({ ...s, notice: notice('N-NOSET', formatNotice('N-NOSET', { level: levelLabel(levelId) }), 'warning') }));
+      finish(revision, (s) => ({ ...s, notice: notice('N-NOSET', () => formatNotice('N-NOSET', { level: levelLabel(levelId) }), 'warning') }));
     }
   }
 
@@ -312,18 +304,18 @@ export function createJobController(options) {
     }
     const block = generationBlock(state, hardware);
     if (block !== null) {
-      store.update((s) => ({ ...s, notice: notice('M-BLOCKED', block, 'warning') }));
+      store.update((s) => ({ ...s, notice: notice('M-BLOCKED', () => generationBlock(store.getState(), hardware) ?? block, 'warning') }));
       return;
     }
     if (options.workersAvailable === false) {
-      store.update((s) => ({ ...s, notice: notice('N-NOWORKER', formatNotice('N-NOWORKER'), 'error') }));
+      store.update((s) => ({ ...s, notice: notice('N-NOWORKER', () => formatNotice('N-NOWORKER'), 'error') }));
       return;
     }
     let quantity = clampQuantity(state.quantity);
     if (append) {
       const room = MAX_PACK_PUZZLES - state.puzzles.length;
       if (room <= 0) {
-        store.update((s) => ({ ...s, notice: notice('M-PACK-FULL', formatMessage('M-PACK-FULL', { max: MAX_PACK_PUZZLES }), 'warning') }));
+        store.update((s) => ({ ...s, notice: notice('M-PACK-FULL', () => formatMessage('M-PACK-FULL', { max: MAX_PACK_PUZZLES }), 'warning') }));
         return;
       }
       quantity = Math.min(quantity, room);
@@ -418,12 +410,13 @@ export function createJobController(options) {
         parked = [...parked, before];
         puzzles = renumberTitles(accepted);
         claimedIds = [];
-        outcome = notice('M-SPLIT', formatMessage('M-SPLIT', { kib: MAX_PACK_BYTES / KIB, n: before.length }), 'warning');
+        const parkedCount = before.length;
+        outcome = notice('M-SPLIT', () => formatMessage('M-SPLIT', { kib: MAX_PACK_BYTES / KIB, n: parkedCount }), 'warning');
       }
       if (failure !== null) {
         outcome = errorNotice(failure, s, quantity);
       } else if (status === 'cancelled') {
-        outcome = notice('M-CANCELLED-BATCH', formatMessage('M-CANCELLED-BATCH', { n: accepted.length, q: quantity, level: levelLabel(targetLevelId) }), 'info');
+        outcome = notice('M-CANCELLED-BATCH', () => formatMessage('M-CANCELLED-BATCH', { n: accepted.length, q: quantity, level: levelLabel(targetLevelId) }), 'info');
       } else if (reason !== undefined) {
         outcome = batchShortfall(reason, { n: accepted.length, q: quantity, levelId: targetLevelId, arrangements: result?.arrangements }) ?? outcome;
       }
@@ -490,7 +483,7 @@ export function createJobController(options) {
       } catch (error) {
         if (taskAbort?.signal.aborted && store.getState().job?.cancelling === true) {
           taskAbort = null;
-          finish(revision, (s) => ({ ...s, notice: notice('M-CANCELLED-IMPORT', formatMessage('M-CANCELLED-IMPORT'), 'info') }));
+          finish(revision, (s) => ({ ...s, notice: notice('M-CANCELLED-IMPORT', () => formatMessage('M-CANCELLED-IMPORT'), 'info') }));
           return false;
         }
       }
@@ -502,18 +495,16 @@ export function createJobController(options) {
     const current = store.getState();
     const imported = importPackState(current, pack, reference, options.random);
     const block = generationBlock(imported.state, hardware);
-    const parts = [formatMessage('M-IMPORTED', { pieces: pack.pieces.length, puzzles: pack.puzzles.length })];
-    if (found === 'exhausted') {
-      parts.push(formatMessage('M-NOARRANGEMENT'));
-    } else if (block !== null) {
-      parts.push(block);
-    } else {
-      parts.push(formatMessage('M-IMPORT-HISTORY'));
-    }
-    const text = parts.join(' ');
+    const describe = () => {
+      const blocked = generationBlock(imported.state, hardware);
+      return [
+        formatMessage('M-IMPORTED', { pieces: pack.pieces.length, puzzles: pack.puzzles.length }),
+        found === 'exhausted' ? formatMessage('M-NOARRANGEMENT') : blocked !== null ? blocked : formatMessage('M-IMPORT-HISTORY'),
+      ].join(' ');
+    };
     finish(revision, () => ({
       ...imported.state,
-      notice: notice('M-IMPORTED', text, block === null && found !== 'exhausted' ? 'info' : 'warning'),
+      notice: notice('M-IMPORTED', describe, block === null && found !== 'exhausted' ? 'info' : 'warning'),
     }));
     verifyImported(pack);
     return true;
@@ -560,11 +551,12 @@ export function createJobController(options) {
   }
 
   /**
-   * @param {string} reason
+   * @param {string | (() => string)} reason
    * @returns {void}
    */
   function importFailed(reason) {
-    store.update((s) => ({ ...s, notice: notice('M-IMPORT-FAILED', formatMessage('M-IMPORT-FAILED', { reason }), 'error') }));
+    const why = () => (typeof reason === 'function' ? reason() : reason);
+    store.update((s) => ({ ...s, notice: notice('M-IMPORT-FAILED', () => formatMessage('M-IMPORT-FAILED', { reason: why() }), 'error') }));
   }
 
   /**
@@ -579,7 +571,8 @@ export function createJobController(options) {
     const trimmed = String(text).trim();
     const loaded = trimmed.startsWith('{') ? parsePack(trimmed) : await loadFromText(trimmed);
     if (!loaded.ok) {
-      importFailed(loaded.issues[0]?.message ?? 'The text is not a puzzle pack.');
+      const issue = loaded.issues[0]?.message;
+      importFailed(issue ?? (() => t('message.import.notPack')));
       return false;
     }
     return importPack('pack' in loaded.value ? loaded.value.pack : loaded.value);
@@ -594,14 +587,14 @@ export function createJobController(options) {
       return false;
     }
     if (!file || file.size > MAX_FILE_BYTES) {
-      importFailed(formatMessage('M-IMPORT-TOOBIG', { kib: MAX_FILE_BYTES / KIB }));
+      importFailed(() => formatMessage('M-IMPORT-TOOBIG', { kib: MAX_FILE_BYTES / KIB }));
       return false;
     }
     let text;
     try {
       text = await file.text();
     } catch {
-      importFailed('The file could not be read.');
+      importFailed(() => t('message.import.unreadable'));
       return false;
     }
     return importText(text);
@@ -725,7 +718,7 @@ export function createJobController(options) {
       await options.openPlayer(pack, index);
     } catch (error) {
       if (/** @type {{ code?: unknown }} */ (error)?.code === 'handoff-unavailable') {
-        store.update((s) => ({ ...s, notice: notice('M-PLAYER-UNAVAILABLE', formatMessage('M-PLAYER-UNAVAILABLE'), 'warning') }));
+        store.update((s) => ({ ...s, notice: notice('M-PLAYER-UNAVAILABLE', () => formatMessage('M-PLAYER-UNAVAILABLE'), 'warning') }));
       } else {
         throw error;
       }
@@ -817,14 +810,14 @@ export function createJobController(options) {
       item = await options.prepareLink(pack, index).catch(() => undefined);
     }
     if (item === undefined || item.href === null) {
-      notify(item?.warning ?? formatMessage('M-PLAYER-UNAVAILABLE'), 'warning');
+      notify((item === undefined ? undefined : linkWarning(item)) ?? formatMessage('M-PLAYER-UNAVAILABLE'), 'warning');
       return;
     }
     const copied = await options.copy(item.href);
     if (!copied) {
       notify(formatMessage('M-COPY-FAILED'), 'error');
     } else if (item.warning !== undefined) {
-      notify(item.portable ? formatNotice('N-LONGLINK') : item.warning, 'warning');
+      notify(/** @type {string} */ (linkWarning(item)), 'warning');
     } else {
       notify(formatMessage('M-LINK-COPIED'), 'info');
     }

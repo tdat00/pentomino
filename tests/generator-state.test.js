@@ -10,7 +10,7 @@ import { formatNotice } from '../generator/strings.js';
 import {
   HISTORY_LIMIT, LISTED_LEVEL_IDS, MAX_SAVED_SETS, acceptSet, beginSetRequest, boardsEqual, calibrationCurrent, capFor,
   createEditHistory, createGeneratorStore, createPersistence, defaultGeneratorState, describeBoard, describeCount,
-  describeLevels, detectHardware, isPhone, loadGeneratorState, needsStaleConfirm, nextBatch, nearestOfferedLevel,
+  describeLevels, detectHardware, isPhone, loadGeneratorState, nextBatch, nearestOfferedLevel,
   recordBatch, resizeBoard, restoreState, rollSeed, savedSetOf, serializeState, setCell, trimBoard, typeSeed, useSavedSet,
   validSeed, withBoard,
 } from '../generator/state.js';
@@ -91,7 +91,7 @@ test('the default board is 10 columns by 6 rows with 60 playable squares', () =>
   assert.equal(state.keepSeed, false);
   assert.equal(state.uniqueness, 'any');
   const description = describeBoard(state, DESKTOP);
-  assert.equal(description.statusText, '60 / 484 playable squares · connected');
+  assert.equal(description.statusText, '60 / 60 playable squares · connected');
   assert.equal(description.valid, true);
 });
 
@@ -278,12 +278,10 @@ test('trim removes blocked margins as an explicit edit and a level follows the a
 test('a board edit after a set exists marks it stale while the set keeps its board', () => {
   let state = acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: samplePuzzles[0], setSeed: 'alpha' });
   assert.equal(state.stale, false);
-  assert.equal(needsStaleConfirm(state), true);
   const originalBoard = state.set?.board;
   state = { ...state, puzzles: samplePuzzles };
   const edited = withBoard(state, setCell(state.board, 0, 0, 0));
   assert.equal(edited.stale, true);
-  assert.equal(needsStaleConfirm(edited), false);
   assert.equal(edited.set?.board, originalBoard, 'the set keeps its own board');
   assert.equal(activeCount(edited.set?.board ?? rectangle(1, 1)), 60);
   assert.equal(edited.puzzles.length, 3);
@@ -492,8 +490,8 @@ test('persistence debounces by 300 ms and writes only committed state', () => {
   assert.equal(/** @type {any} */ (io.writes.state[0]).levelId, 'hard');
   assert.equal(io.writes.prefs.length, 0);
 
-  store.update({ job: { requestId: 1, revision: 'r', stage: 'carving', startedAt: 5 }, editUnrotated: true });
-  assert.equal(timers.pending(), 0, 'jobs and view toggles are not persisted');
+  store.update({ job: { requestId: 1, revision: 'r', stage: 'carving', startedAt: 5 } });
+  assert.equal(timers.pending(), 0, 'jobs are not persisted');
   store.update({ largeBoards: true });
   timers.run();
   assert.deepEqual(io.writes.prefs, [{ labels: true, patterns: true, timer: true, straighten: false, largeBoards: true }]);

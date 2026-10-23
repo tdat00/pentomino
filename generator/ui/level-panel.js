@@ -6,8 +6,9 @@
 import { el } from '../../core/browser/dom.js';
 import { QUALIFICATION } from '../../core/engine/qualification.js';
 import { randomSeedText } from '../../core/engine/rng.js';
-import { GENERATION_PENDING, LEVEL_REASONS, SEED_PROBLEM } from '../strings.js';
+import { getLocale, t } from '../i18n.js';
 import { beginSetRequest, describeBoard, isBusy, rollSeed, typeSeed, validSeed } from '../state.js';
+import { loc, locAttrs } from './i18n-dom.js';
 
 /** @typedef {import('../state.js').GeneratorStore} GeneratorStore */
 /** @typedef {import('../state.js').GeneratorState} GeneratorState */
@@ -39,26 +40,18 @@ export function mountLevelPanel(host, options) {
   const uid = `level-panel-${(panelCounter += 1)}`;
   const experimentalLarge = QUALIFICATION.bq2.status !== 'pass';
 
-  /** @type {Map<string, { input: HTMLInputElement, row: HTMLElement, reason: HTMLElement, name: HTMLElement }>} */
-  const levelParts = new Map();
-  const levelList = el('fieldset', { className: 'level-list', dataset: { role: 'levels' } },
-    el('legend', { text: 'Level' }));
-  for (const id of describeBoard(store.getState(), hardware).levels.map((entry) => entry.id)) {
-    const input = /** @type {HTMLInputElement} */ (el('input', { attrs: { type: 'radio', name: `${uid}-level`, value: id } }));
-    const reason = el('small', { className: 'level-reason' });
-    const name = el('span', { className: 'level-name' });
-    const row = el('label', { className: 'level-option', dataset: { level: id } }, input, name, reason);
-    levelParts.set(id, { input, row, reason, name });
-    levelList.append(row);
-  }
+  const levelSelect = /** @type {HTMLSelectElement} */ (el('select', { attrs: { 'data-field': 'level' } }));
+  const levelField = el('label', { className: 'field level-field' }, loc('level.legend'), levelSelect);
+  let optionSignature = '';
   const countLine = el('p', { className: 'count-line', dataset: { role: 'count' } });
   const levelNotes = el('ul', { className: 'notices', dataset: { role: 'level-notices' } });
+  const cannotBox = el('p', { className: 'notice notice-error', attrs: { role: 'alert', hidden: '' }, dataset: { role: 'cannot-generate' } });
 
   const seedInput = /** @type {HTMLInputElement} */ (el('input', {
     attrs: { type: 'text', autocomplete: 'off', spellcheck: 'false', 'aria-describedby': `${uid}-seed-error`, 'data-field': 'seed' },
   }));
   const diceButton = /** @type {HTMLButtonElement} */ (el('button', {
-    text: '🎲', attrs: { type: 'button', 'aria-label': 'New random seed', title: 'New random seed', 'data-action': 'roll-seed' },
+    text: '🎲', attrs: { type: 'button', ...locAttrs({ 'aria-label': 'level.seed.roll', title: 'level.seed.roll' }), 'data-action': 'roll-seed' },
   }));
   const keepInput = /** @type {HTMLInputElement} */ (el('input', { attrs: { type: 'checkbox', 'data-field': 'keep-seed' } }));
   const seedError = el('p', { className: 'field-error', attrs: { id: `${uid}-seed-error`, role: 'alert' }, dataset: { role: 'seed-error' } });
@@ -66,23 +59,25 @@ export function mountLevelPanel(host, options) {
   const largeInput = /** @type {HTMLInputElement} */ (el('input', { attrs: { type: 'checkbox', 'data-field': 'large-boards' } }));
   const largeNote = el('small', { className: 'hint', dataset: { role: 'large-note' } });
   const omitInput = /** @type {HTMLInputElement} */ (el('input', { attrs: { type: 'checkbox', 'data-field': 'omit-solutions' } }));
+  const buttonSpinner = el('span', { className: 'spinner', attrs: { 'aria-hidden': 'true', hidden: '' } });
   const generateButton = /** @type {HTMLButtonElement} */ (el('button', {
-    className: 'primary', text: 'Generate Piece Set', attrs: { type: 'button', 'data-action': 'generate-set' },
-  }));
+    className: 'primary', attrs: { type: 'button', 'data-action': 'generate-set' },
+  }, buttonSpinner, loc('level.generate')));
+  const largeText = loc(experimentalLarge ? 'level.large.experimental' : 'level.large');
 
   const advanced = el('details', { className: 'advanced', dataset: { role: 'advanced' } },
-    el('summary', { text: 'Advanced' }),
+    loc('level.advanced', {}, 'summary'),
     el('div', { className: 'control-row' },
-      el('label', { className: 'field grow' }, el('span', { text: 'Set seed' }), seedInput),
+      el('label', { className: 'field grow' }, loc('level.seed'), seedInput),
       diceButton,
-      el('label', { className: 'pm-toggle' }, keepInput, el('span', { text: '🔒 Keep seed' }))),
+      el('label', { className: 'pm-toggle' }, keepInput, loc('level.keepSeed'))),
     seedError,
-    el('label', { className: 'pm-toggle' }, uniqueInput, el('span', { text: 'Require one solution' })),
-    el('label', { className: 'pm-toggle' }, largeInput, el('span', { text: experimentalLarge ? 'Large boards (experimental)' : 'Large boards' })),
+    el('label', { className: 'pm-toggle' }, uniqueInput, loc('level.unique')),
+    el('label', { className: 'pm-toggle' }, largeInput, largeText),
     largeNote,
-    el('label', { className: 'pm-toggle' }, omitInput, el('span', { text: 'Omit solutions in exported files' })));
+    el('label', { className: 'pm-toggle' }, omitInput, loc('level.omitSolutions')));
 
-  const panel = el('div', { className: 'level-panel' }, levelList, countLine, levelNotes, advanced, generateButton);
+  const panel = el('div', { className: 'level-panel' }, levelField, countLine, levelNotes, advanced, cannotBox, generateButton);
   host.append(panel);
 
   let destroyed = false;
@@ -113,18 +108,23 @@ export function mountLevelPanel(host, options) {
     }
     const description = describeBoard(state, hardware);
     const busy = isBusy(state);
-    for (const entry of description.levels) {
-      const parts = /** @type {NonNullable<ReturnType<typeof levelParts.get>>} */ (levelParts.get(entry.id));
-      parts.input.checked = entry.id === state.levelId;
-      parts.input.disabled = busy || !entry.offered;
-      parts.row.dataset.offered = String(entry.offered);
-      parts.name.textContent = entry.label;
-      parts.reason.textContent = entry.reason === null ? '' : `(${LEVEL_REASONS[entry.reason]})`;
+    const shown = description.levels.filter((entry) => entry.offered || entry.id === state.levelId);
+    const signature = `${getLocale()}|${state.levelId}|${shown.map((entry) => `${entry.id}:${entry.reason}`).join(',')}`;
+    if (signature !== optionSignature) {
+      optionSignature = signature;
+      levelSelect.replaceChildren(...shown.map((entry) => {
+        const label = entry.reason === null ? entry.label : `${entry.label} (${t(`level.reason.${entry.reason}`)})`;
+        const option = /** @type {HTMLOptionElement} */ (el('option', { text: label, attrs: { value: entry.id } }));
+        option.selected = entry.id === state.levelId;
+        return option;
+      }));
     }
+    levelSelect.disabled = busy;
     const count = description.count;
-    countLine.textContent = count === null
-      ? ''
-      : `Uses ${count.kmin}–${count.kmax} pieces of ${count.sizeMin}–${count.sizeMax} squares · about ${count.share}% pre-placed`;
+    countLine.textContent = count === null ? '' : t('level.count', count);
+    cannotBox.hidden = description.valid;
+    cannotBox.textContent = description.valid ? '' : `${t('level.cannot')} ${description.statusText}`;
+
     levelNotes.replaceChildren(...[...description.notices.filter((n) => n.code === 'N-LEVELS'), ...description.levelNotices]
       .map((notice) => el('li', { className: `notice notice-${notice.kind}`, text: notice.text, dataset: { code: notice.code } })));
 
@@ -132,11 +132,11 @@ export function mountLevelPanel(host, options) {
       seedInput.value = state.seedText;
     }
     keepInput.checked = state.keepSeed;
-    seedError.textContent = state.keepSeed && validSeed(state.seedText) === null ? SEED_PROBLEM : '';
+    seedError.textContent = state.keepSeed && validSeed(state.seedText) === null ? t('level.seed.problem') : '';
     uniqueInput.checked = state.uniqueness === 'require';
     largeInput.checked = state.largeBoards && !hardware.phone;
     largeInput.disabled = busy || hardware.phone;
-    largeNote.textContent = hardware.phone ? 'Large boards are available on desktop computers only.' : '';
+    largeNote.textContent = hardware.phone ? t('level.large.phoneNote') : '';
     omitInput.checked = state.omitSolutions;
     for (const control of [seedInput, diceButton, keepInput, uniqueInput, omitInput]) {
       control.disabled = busy;
@@ -144,9 +144,11 @@ export function mountLevelPanel(host, options) {
 
     const handler = getHandlers().onGenerateSet;
     generateButton.disabled = busy || !description.valid || !description.levelOffered || typeof handler !== 'function';
+    buttonSpinner.hidden = state.job?.kind !== 'set';
+    generateButton.setAttribute('aria-busy', String(!buttonSpinner.hidden));
     generateButton.title = typeof handler !== 'function'
-      ? GENERATION_PENDING
-      : !description.valid ? description.statusText : '';
+      ? t('level.pending')
+      : !description.valid ? t('level.cannot') : '';
   }
 
   /** @type {Array<[EventTarget, string, EventListener]>} */
@@ -161,13 +163,7 @@ export function mountLevelPanel(host, options) {
     listeners.push([target, type, fn]);
   };
 
-  for (const [id, parts] of levelParts) {
-    listen(parts.input, 'change', () => {
-      if (parts.input.checked) {
-        store.update({ levelId: id });
-      }
-    });
-  }
+  listen(levelSelect, 'change', () => store.update({ levelId: levelSelect.value }));
   listen(seedInput, 'input', () => store.update((state) => typeSeed(state, seedInput.value)));
   listen(diceButton, 'click', () => store.update((state) => rollSeed(state, random)));
   listen(keepInput, 'change', () => store.update({ keepSeed: keepInput.checked }));

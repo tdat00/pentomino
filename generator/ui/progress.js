@@ -2,7 +2,8 @@
 // Job progress (design §10.5): current stage, accepted count, elapsed time and Cancel. The stage text
 // is the only live region; the elapsed clock ticks silently so screen readers are not flooded.
 import { el } from '../../core/browser/dom.js';
-import { STAGE_TEXT } from '../strings.js';
+import { has, t } from '../i18n.js';
+import { loc, locAttrs } from './i18n-dom.js';
 
 /** @typedef {import('../state.js').GeneratorStore} GeneratorStore */
 /** @typedef {import('../state.js').JobInfo} JobInfo */
@@ -19,23 +20,31 @@ export function formatElapsed(ms) {
 }
 
 /**
+ * @param {string} stage
+ * @returns {string}
+ */
+function stageText(stage) {
+  return t(has(`stage.${stage}`) ? `stage.${stage}` : 'stage.memory');
+}
+
+/**
  * @param {JobInfo} job
  * @returns {string}
  */
 export function describeStage(job) {
-  const stage = /** @type {Record<string, string>} */ (STAGE_TEXT)[job.stage] ?? STAGE_TEXT.memory;
+  const stage = stageText(job.stage);
   if (job.stage === 'cancelling' || job.stage === 'enumerate') {
     return stage;
   }
   if (job.kind === 'batch') {
     const quantity = job.quantity ?? 0;
     const slot = Math.min(quantity, job.slot ?? (job.accepted ?? 0) + 1);
-    return quantity > 0 ? `Puzzle ${slot} of ${quantity} — ${STAGE_TEXT.candidate.toLowerCase()}` : stage;
+    return quantity > 0 ? t('progress.slot', { slot, quantity, stage: t('stage.candidate').toLowerCase() }) : stage;
   }
   if (job.kind === 'import') {
-    return STAGE_TEXT.import;
+    return t('stage.import');
   }
-  return job.stage === 'starting' ? stage : STAGE_TEXT.carving;
+  return job.stage === 'starting' ? stage : t('stage.carving');
 }
 
 /**
@@ -49,13 +58,14 @@ export function mountProgress(host, options) {
   const setTick = options.setInterval ?? ((fn, ms) => globalThis.setInterval(fn, ms));
   const clearTick = options.clearInterval ?? ((handle) => globalThis.clearInterval(handle));
 
-  const stageText = el('p', { className: 'progress-stage', attrs: { role: 'status', 'aria-live': 'polite' }, dataset: { role: 'stage' } });
-  const meter = /** @type {HTMLProgressElement} */ (el('progress', { attrs: { max: 1, 'aria-label': 'Accepted puzzles' } }));
+  const stageNode = el('p', { className: 'progress-stage', attrs: { role: 'status', 'aria-live': 'polite' }, dataset: { role: 'stage' } });
+  const meter = /** @type {HTMLProgressElement} */ (el('progress', { attrs: { max: 1, ...locAttrs({ 'aria-label': 'progress.accepted' }) } }));
   const count = el('span', { className: 'progress-count', dataset: { role: 'count' } });
   const elapsed = el('span', { className: 'progress-elapsed', dataset: { role: 'elapsed' } });
-  const cancel = /** @type {HTMLButtonElement} */ (el('button', { text: 'Cancel', attrs: { type: 'button', 'data-action': 'cancel' } }));
+  const cancel = /** @type {HTMLButtonElement} */ (loc('progress.cancel', { attrs: { type: 'button', 'data-action': 'cancel' } }, 'button'));
+  const spinner = el('span', { className: 'spinner', attrs: { 'aria-hidden': 'true' } });
   const root = el('div', { className: 'job-progress', attrs: { hidden: '' }, dataset: { role: 'progress' } },
-    stageText, el('div', { className: 'progress-row' }, meter, count, elapsed, cancel));
+    el('div', { className: 'progress-head' }, spinner, stageNode), el('div', { className: 'progress-row' }, meter, count, elapsed, cancel));
   host.append(root);
 
   /** @type {unknown} */
@@ -81,15 +91,15 @@ export function mountProgress(host, options) {
       return;
     }
     const text = describeStage(job);
-    if (stageText.textContent !== text) {
-      stageText.textContent = text;
+    if (stageNode.textContent !== text) {
+      stageNode.textContent = text;
     }
     const quantity = job.quantity ?? 0;
     meter.hidden = quantity === 0;
     if (quantity > 0) {
       meter.max = quantity;
       meter.value = job.accepted ?? 0;
-      count.textContent = `${job.accepted ?? 0} of ${quantity} accepted`;
+      count.textContent = t('progress.count', { accepted: job.accepted ?? 0, quantity });
     } else {
       count.textContent = '';
     }
@@ -111,6 +121,7 @@ export function mountProgress(host, options) {
 
   return {
     element: root,
+    refresh: () => render(store.getState().job),
     destroy() {
       unsubscribe();
       cancel.removeEventListener('click', onCancel);

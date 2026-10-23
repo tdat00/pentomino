@@ -1,0 +1,293 @@
+/* Generator theme: the colours, type and component look of sudoku-generator, as three themes selected with
+   <html data-theme="light|dark|high-contrast">. Without a data-theme attribute the light theme applies, or the
+   dark one while the operating system prefers dark. Colours live only in this file (and the few literals the
+   shared stylesheets keep for toasts); tests/generator-theme.test.js computes the contrast of the pairs below.
+   Keep the dark palette of the media block identical to the explicit [data-theme="dark"] block. */
+
+/* ---- Theme independent tokens ---- */
+:root {
+  --gen-font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  --gen-radius-1: 0.25rem;
+  --gen-radius-2: 0.5rem;
+  --gen-radius-3: 0.75rem;
+  --gen-radius-pill: 999px;
+  --gen-motion-fast: 120ms;
+  --gen-focus-width: 3px;
+  --gen-focus-offset: 2px;
+}
+
+/* ---- Light (default) ---- */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --gen-color-bg: #f3f5f9;
+  --gen-color-surface: #ffffff;
+  --gen-color-surface-2: #e9edf4;
+  --gen-color-text: #172033;
+  --gen-color-text-muted: #4b5668;
+  --gen-color-disabled-text: #586377;
+  --gen-color-border: #6f7b8f;
+  --gen-color-divider: #d3d9e4;
+  --gen-color-hover: #dde4f0;
+
+  --gen-color-accent: #2253c0;
+  --gen-color-accent-hover: #17409d;
+  --gen-color-accent-soft: #dfe8ff;
+  --gen-color-accent-text: #ffffff;
+
+  --gen-color-success: #17692f;
+  --gen-color-success-bg: #dff4e6;
+  --gen-color-warning: #7a4a00;
+  --gen-color-warning-bg: #fff1cc;
+  --gen-color-danger: #b3261e;
+  --gen-color-danger-bg: #fde4e1;
+  --gen-color-focus: #6a1fd0;
+
+  --gen-board-bg: #e9edf4;
+  --gen-board-cell: #ffffff;
+  --gen-board-line: #c4cbd9;
+  --gen-board-mark: #6f7b8f;
+
+  --gen-shadow-1: 0 1px 2px rgba(16, 24, 40, 0.1), 0 1px 1px rgba(16, 24, 40, 0.06);
+}
+
+/* ---- Dark ---- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --gen-color-bg: #0f131a;
+  --gen-color-surface: #181e27;
+  --gen-color-surface-2: #222a36;
+  --gen-color-text: #e6ebf3;
+  --gen-color-text-muted: #a6b2c4;
+  --gen-color-disabled-text: #94a1b5;
+  --gen-color-border: #7f8ca2;
+  --gen-color-divider: #2f3948;
+  --gen-color-hover: #2d3849;
+
+  --gen-color-accent: #7ba3ff;
+  --gen-color-accent-hover: #a0bcff;
+  --gen-color-accent-soft: #1f3566;
+  --gen-color-accent-text: #0a1226;
+
+  --gen-color-success: #62d68d;
+  --gen-color-success-bg: #14301f;
+  --gen-color-warning: #f2c14e;
+  --gen-color-warning-bg: #382c0c;
+  --gen-color-danger: #ff918a;
+  --gen-color-danger-bg: #3d1a18;
+  --gen-color-focus: #ffd84d;
+
+  --gen-board-bg: #0f131a;
+  --gen-board-cell: #222a36;
+  --gen-board-line: #3a4658;
+  --gen-board-mark: #94a1b5;
+
+  --gen-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ---- Dark, from the operating system preference (only while no explicit theme is chosen) ---- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+
+    --gen-color-bg: #0f131a;
+    --gen-color-surface: #181e27;
+    --gen-color-surface-2: #222a36;
+    --gen-color-text: #e6ebf3;
+    --gen-color-text-muted: #a6b2c4;
+    --gen-color-disabled-text: #94a1b5;
+    --gen-color-border: #7f8ca2;
+    --gen-color-divider: #2f3948;
+    --gen-color-hover: #2d3849;
+
+    --gen-color-accent: #7ba3ff;
+    --gen-color-accent-hover: #a0bcff;
+    --gen-color-accent-soft: #1f3566;
+    --gen-color-accent-text: #0a1226;
+
+    --gen-color-success: #62d68d;
+    --gen-color-success-bg: #14301f;
+    --gen-color-warning: #f2c14e;
+    --gen-color-warning-bg: #382c0c;
+    --gen-color-danger: #ff918a;
+    --gen-color-danger-bg: #3d1a18;
+    --gen-color-focus: #ffd84d;
+
+    --gen-board-bg: #0f131a;
+    --gen-board-cell: #222a36;
+    --gen-board-line: #3a4658;
+    --gen-board-mark: #94a1b5;
+
+    --gen-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ---- High contrast (text >= 7:1, borders and focus ring >= 7:1) ---- */
+:root[data-theme="high-contrast"] {
+  color-scheme: dark;
+
+  --gen-color-bg: #000000;
+  --gen-color-surface: #000000;
+  --gen-color-surface-2: #141414;
+  --gen-color-text: #ffffff;
+  --gen-color-text-muted: #e3e3e3;
+  --gen-color-disabled-text: #bdbdbd;
+  --gen-color-border: #ffffff;
+  --gen-color-divider: #a8a8a8;
+  --gen-color-hover: #2b2b2b;
+
+  --gen-color-accent: #4dd8ff;
+  --gen-color-accent-hover: #9be9ff;
+  --gen-color-accent-soft: #00323f;
+  --gen-color-accent-text: #000000;
+
+  --gen-color-success: #66ff9e;
+  --gen-color-success-bg: #003315;
+  --gen-color-warning: #ffe14d;
+  --gen-color-warning-bg: #332b00;
+  --gen-color-danger: #ff9a9a;
+  --gen-color-danger-bg: #400000;
+  --gen-color-focus: #ffff00;
+
+  --gen-board-bg: #000000;
+  --gen-board-cell: #141414;
+  --gen-board-line: #a8a8a8;
+  --gen-board-mark: #ffffff;
+
+  --gen-shadow-1: none;
+}
+
+/* prefers-contrast: more (light and dark only): muted text, borders and dividers take the text colour. */
+@media (prefers-contrast: more) {
+  :root:not([data-theme="high-contrast"]) {
+    --gen-color-text-muted: var(--gen-color-text);
+    --gen-color-disabled-text: var(--gen-color-text);
+    --gen-color-border: var(--gen-color-text);
+    --gen-color-divider: var(--gen-color-text);
+    --gen-focus-width: 4px;
+  }
+}
+
+/* ---- The shared stylesheet (common.css) reads these ---- */
+:root {
+  --pm-focus: var(--gen-color-focus);
+  --pm-ink: var(--gen-color-text);
+  --pm-surface: var(--gen-color-surface);
+  --pm-muted: var(--gen-color-text-muted);
+  --pm-border: var(--gen-color-border);
+}
+
+body {
+  background: var(--gen-color-bg);
+  color: var(--gen-color-text);
+  font-family: var(--gen-font-family);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--gen-color-accent);
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  color: var(--gen-color-accent-hover);
+}
+
+::selection {
+  background: var(--gen-color-accent);
+  color: var(--gen-color-accent-text);
+}
+
+:focus-visible {
+  outline: var(--gen-focus-width) solid var(--gen-color-focus);
+  outline-offset: var(--gen-focus-offset);
+}
+
+/* ---- Buttons ---- */
+button,
+.pm-btn {
+  border: 1px solid var(--gen-color-border);
+  border-radius: var(--gen-radius-2);
+  background: var(--gen-color-surface-2);
+  color: var(--gen-color-text);
+  font-weight: 600;
+  line-height: 1.2;
+  transition: background-color var(--gen-motion-fast) ease, border-color var(--gen-motion-fast) ease, color var(--gen-motion-fast) ease;
+}
+
+button:hover:not(:disabled),
+.pm-btn:hover {
+  background: var(--gen-color-hover);
+  color: var(--gen-color-text);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  border-color: var(--gen-color-divider);
+  border-style: dashed;
+  background: var(--gen-color-surface-2);
+  color: var(--gen-color-disabled-text);
+}
+
+button.primary {
+  border-color: var(--gen-color-accent);
+  background: var(--gen-color-accent);
+  color: var(--gen-color-accent-text);
+}
+
+button.primary:hover:not(:disabled) {
+  border-color: var(--gen-color-accent-hover);
+  background: var(--gen-color-accent-hover);
+  color: var(--gen-color-accent-text);
+}
+
+button.primary:disabled {
+  border-color: var(--gen-color-divider);
+  background: var(--gen-color-surface-2);
+  color: var(--gen-color-disabled-text);
+}
+
+/* ---- Fields ---- */
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  border: 1px solid var(--gen-color-border);
+  border-radius: var(--gen-radius-2);
+  background-color: var(--gen-color-surface);
+  color: var(--gen-color-text);
+}
+
+input[type="text"]:hover,
+input[type="number"]:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--gen-color-text-muted);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  border-style: dashed;
+  background-color: var(--gen-color-surface-2);
+  color: var(--gen-color-disabled-text);
+}
+
+/* ---- The board and the pieces ---- */
+.pm-cell {
+  fill: var(--gen-board-cell);
+  stroke: var(--gen-board-line);
+}
+
+.pm-guide {
+  stroke: var(--gen-board-mark);
+}
+
+.pm-cross {
+  stroke: var(--gen-board-mark);
+}

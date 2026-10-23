@@ -5,11 +5,12 @@
 import { el } from '../../core/browser/dom.js';
 import { mountBoard } from '../../core/browser/svg-board.js';
 import { activeCount } from '../../core/engine/board.js';
-import { level } from '../../core/engine/levels.js';
+import { has, t } from '../i18n.js';
 import {
   MAX_QUANTITY, batchLevelOf, clampQuantity, describeLevels, generationBlock, isBusy, readyLevelId,
 } from '../state.js';
-import { CERTIFICATE_TEXT, VERIFY_TEXT, formatNotice } from '../strings.js';
+import { levelLabel, linkWarning, puzzleTitle } from '../strings.js';
+import { loc, locAttrs } from './i18n-dom.js';
 import { mountProgress } from './progress.js';
 
 /** @typedef {import('../state.js').GeneratorStore} GeneratorStore */
@@ -24,6 +25,9 @@ import { mountProgress } from './progress.js';
  * @property {JobController} controller
  * @property {() => void} onNewSet Starts Generate Piece Set with the current settings.
  * @property {() => number} [now]
+ * @property {HTMLElement | null} [progressHost] Where the job progress goes; defaults to the top of this panel.
+ * @property {HTMLElement | null} [noticeHost] Where the outcome notice goes; defaults to the top of this panel.
+ * @property {HTMLElement | null} [cardsHost] Where the empty hint, the puzzle cards and earlier packs go; defaults to the bottom of this panel.
  */
 
 let panelCounter = 0;
@@ -40,27 +44,15 @@ export function thumbnailCellPx(board, px) {
 }
 
 /**
- * @param {string} id
- * @returns {string}
- */
-function labelOf(id) {
-  try {
-    return level(id).label;
-  } catch {
-    return id;
-  }
-}
-
-/**
  * @param {string} icon
- * @param {string} label
+ * @param {string} key Translation key of the label.
  * @param {string} action
  * @param {string} [className]
  * @returns {HTMLButtonElement}
  */
-function actionButton(icon, label, action, className = '') {
+function actionButton(icon, key, action, className = '') {
   return /** @type {HTMLButtonElement} */ (el('button', { className, attrs: { type: 'button', 'data-action': action } },
-    el('span', { attrs: { 'aria-hidden': 'true' }, text: icon }), icon === '' ? label : ` ${label}`));
+    ...(icon === '' ? [loc(key)] : [el('span', { attrs: { 'aria-hidden': 'true' }, text: icon }), ' ', loc(key)])));
 }
 
 /**
@@ -72,10 +64,10 @@ function actionButton(icon, label, action, className = '') {
 export function describeRating(puzzle, claimed) {
   const rating = puzzle.rating;
   if (rating === null || rating === undefined) {
-    return 'No rating';
+    return t('card.noRating');
   }
   const score = Number.isFinite(rating.score) ? Math.round(rating.score) : 0;
-  return `${labelOf(rating.level)} · est. score ${score}${rating.saturated === true ? '+' : ''}${claimed ? CERTIFICATE_TEXT.claimed : ''}`;
+  return `${t('card.rating', { level: levelLabel(rating.level), score: `${score}${rating.saturated === true ? '+' : ''}` })}${claimed ? t('cert.claimed') : ''}`;
 }
 
 /**
@@ -86,10 +78,10 @@ export function describeRating(puzzle, claimed) {
 export function describeCertificate(puzzle, o) {
   const cert = puzzle.certificate;
   if (cert === null || cert === undefined) {
-    return o.checking ? { status: 'checking', text: CERTIFICATE_TEXT.checking } : { status: 'unchecked', text: CERTIFICATE_TEXT.unchecked };
+    return o.checking ? { status: 'checking', text: t('cert.checking') } : { status: 'unchecked', text: t('cert.unchecked') };
   }
-  const text = /** @type {Record<string, string>} */ (CERTIFICATE_TEXT)[cert.status] ?? CERTIFICATE_TEXT.unchecked;
-  return { status: cert.status, text: o.claimed && cert.verified !== true ? `${text}${CERTIFICATE_TEXT.claimed}` : text };
+  const text = t(has(`cert.${cert.status}`) ? `cert.${cert.status}` : 'cert.unchecked');
+  return { status: cert.status, text: o.claimed && cert.verified !== true ? `${text}${t('cert.claimed')}` : text };
 }
 
 /**
@@ -104,22 +96,26 @@ export function mountPuzzlePanel(host, options) {
     attrs: { type: 'number', min: 1, max: MAX_QUANTITY, step: 1, inputmode: 'numeric', 'data-field': 'quantity' },
   }));
   const levelSelect = /** @type {HTMLSelectElement} */ (el('select', { attrs: { 'data-field': 'puzzle-level' } }));
-  const newButton = actionButton('', 'New Puzzles', 'new-puzzles', 'primary');
-  const addButton = actionButton('', 'Add more', 'add-more');
-  const playAllButton = actionButton('▶', 'Play all', 'play-all');
-  const exportButton = actionButton('⬇', 'Export pack', 'export-pack');
-  const copyButton = actionButton('🔗', 'Copy pack link', 'copy-pack-link');
+  const newButton = actionButton('', 'puzzles.new', 'new-puzzles', 'primary');
+  const addButton = actionButton('', 'puzzles.add', 'add-more');
+  const playAllButton = actionButton('▶', 'puzzles.playAll', 'play-all');
+  const exportButton = actionButton('⬇', 'puzzles.exportPack', 'export-pack');
+  const copyButton = actionButton('🔗', 'puzzles.copyPackLink', 'copy-pack-link');
   const controls = el('div', { className: 'control-row puzzle-controls' },
-    el('label', { className: 'field' }, el('span', { text: 'Quantity' }), quantityInput),
-    el('label', { className: 'field' }, el('span', { text: 'Level' }), levelSelect),
+    el('label', { className: 'field' }, loc('puzzles.quantity'), quantityInput),
+    el('label', { className: 'field' }, loc('puzzles.level'), levelSelect),
     newButton, addButton, playAllButton, exportButton, copyButton);
   const blockText = el('p', { className: 'hint', dataset: { role: 'block' } });
-  const progressHost = el('div', { dataset: { role: 'progress-host' } });
-  const noticeBox = el('div', { className: 'result-notice', attrs: { role: 'status' }, dataset: { role: 'notice' } });
-  const cardList = el('ol', { className: 'puzzle-cards', attrs: { 'aria-label': 'Puzzles', id: `${uid}-cards` }, dataset: { role: 'cards' } });
+  const progressHost = options.progressHost ?? el('div', { dataset: { role: 'progress-host' } });
+  const noticeBox = options.noticeHost ?? el('div', { className: 'result-notice', attrs: { role: 'status' }, dataset: { role: 'notice' } });
+  const cardList = el('ol', { className: 'puzzle-cards', attrs: { ...locAttrs({ 'aria-label': 'puzzles.list' }), id: `${uid}-cards` }, dataset: { role: 'cards' } });
   const parkedBox = el('div', { className: 'parked-packs', dataset: { role: 'parked' } });
   const emptyText = el('p', { className: 'hint', dataset: { role: 'empty' } });
-  host.append(el('div', { className: 'puzzle-panel' }, controls, blockText, progressHost, noticeBox, emptyText, cardList, parkedBox));
+  const cardsHost = options.cardsHost ?? null;
+  host.append(el('div', { className: 'puzzle-panel' }, controls, blockText,
+    ...(options.progressHost ? [] : [progressHost]), ...(options.noticeHost ? [] : [noticeBox]),
+    ...(cardsHost === null ? [emptyText, cardList, parkedBox] : [])));
+  cardsHost?.append(emptyText, cardList, parkedBox);
 
   const progress = mountProgress(progressHost, { store, onCancel: () => controller.cancel(), now: options.now });
 
@@ -158,14 +154,15 @@ export function mountPuzzlePanel(host, options) {
     const cert = el('p', { className: 'badge card-cert' });
     const verify = el('p', { className: 'badge card-verify' });
     const note = el('small', { className: 'card-note' });
-    const play = /** @type {HTMLAnchorElement} */ (el('a', { className: 'pm-btn card-play', attrs: { 'data-action': 'play' }, text: '▶ Play' }));
-    const copy = actionButton('🔗', 'Copy', 'copy-link');
-    const exportBtn = actionButton('⬇', 'Export', 'export-puzzle');
-    const remove = actionButton('🗑', 'Remove', 'remove');
+    const play = /** @type {HTMLAnchorElement} */ (el('a', { className: 'pm-btn card-play', attrs: { 'data-action': 'play' } },
+      el('span', { attrs: { 'aria-hidden': 'true' }, text: '▶' }), ' ', loc('card.play')));
+    const copy = actionButton('🔗', 'card.copy', 'copy-link');
+    const exportBtn = actionButton('⬇', 'card.export', 'export-puzzle');
+    const remove = actionButton('🗑', 'card.remove', 'remove');
     const item = /** @type {HTMLLIElement} */ (el('li', { className: 'puzzle-card', dataset: { puzzleId: id } },
       thumb, el('div', { className: 'card-body' }, title, rating, clues, cert, verify, note,
         el('div', { className: 'card-actions' }, play, copy, exportBtn, remove))));
-    const view = mountBoard(thumb, { mode: 'thumbnail', cellPx, label: 'Puzzle preview' });
+    const view = mountBoard(thumb, { mode: 'thumbnail', cellPx, label: t('card.preview') });
 
     play.addEventListener('click', (event) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
@@ -230,15 +227,16 @@ export function mountPuzzlePanel(host, options) {
       const current = /** @type {NonNullable<typeof set>} */ (set);
       const pieces = current.pieces.length;
       const fresh = streaming && index >= wanted.length - acceptedNow;
-      card.title.textContent = puzzle.title ?? `Puzzle ${index + 1}`;
+      card.title.textContent = puzzleTitle(puzzle.title, index);
+      card.view.svg.setAttribute('aria-label', t('card.preview'));
       card.rating.textContent = describeRating(puzzle, claimed.has(puzzle.id));
       const percent = pieces === 0 ? 0 : Math.round((puzzle.clues.length / pieces) * 100);
-      card.clues.textContent = `${puzzle.clues.length} pre-placed · ${percent} %`;
+      card.clues.textContent = t('card.preplaced', { count: puzzle.clues.length, percent });
       const certificate = describeCertificate(puzzle, { claimed: claimed.has(puzzle.id), checking: checking.has(puzzle.id) || fresh });
       card.cert.textContent = certificate.text;
       card.cert.dataset.status = certificate.status;
       const verification = state.verification[puzzle.id];
-      card.verify.textContent = verification === undefined ? '' : /** @type {Record<string, string>} */ (VERIFY_TEXT)[verification] ?? '';
+      card.verify.textContent = verification === undefined || !has(`verify.${verification}`) ? '' : t(`verify.${verification}`);
       card.verify.hidden = verification === undefined;
       if (card.view.getState().rotation !== state.rotation) {
         card.view.setRotation(state.rotation);
@@ -249,7 +247,7 @@ export function mountPuzzlePanel(host, options) {
       });
       const linkIndex = links.ids.indexOf(puzzle.id);
       const link = linkIndex >= 0 ? links.items[linkIndex] : undefined;
-      const aria = `Play ${card.title.textContent}`;
+      const aria = t('card.play.aria', { title: card.title.textContent });
       card.play.setAttribute('aria-label', aria);
       if (link !== undefined && link.href !== null) {
         card.play.setAttribute('href', link.href);
@@ -262,10 +260,10 @@ export function mountPuzzlePanel(host, options) {
         card.play.setAttribute('tabindex', '0');
         card.play.setAttribute('aria-disabled', link === undefined ? 'false' : 'true');
       }
-      card.note.textContent = link === undefined || link.warning === undefined ? '' : link.portable ? formatNotice('N-LONGLINK') : link.warning;
-      card.copy.setAttribute('aria-label', `Copy link to ${card.title.textContent}`);
-      card.exportBtn.setAttribute('aria-label', `Export ${card.title.textContent}`);
-      card.remove.setAttribute('aria-label', `Remove ${card.title.textContent}`);
+      card.note.textContent = link === undefined ? '' : linkWarning(link) ?? '';
+      card.copy.setAttribute('aria-label', t('card.copy.aria', { title: card.title.textContent }));
+      card.exportBtn.setAttribute('aria-label', t('card.export.aria', { title: card.title.textContent }));
+      card.remove.setAttribute('aria-label', t('card.remove.aria', { title: card.title.textContent }));
       card.remove.disabled = busy;
       ordered.push(card.item);
     });
@@ -283,14 +281,14 @@ export function mountPuzzlePanel(host, options) {
     const nodes = [el('p', { className: `notice notice-${notice.kind}`, text: notice.text, dataset: { code: notice.code } })];
     const actions = el('div', { className: 'control-row notice-actions' });
     if (notice.actions.includes('new-set')) {
-      actions.append(el('button', { text: 'Generate new piece set', attrs: { type: 'button', 'data-action': 'new-set' }, on: { click: () => options.onNewSet() } }));
+      actions.append(loc('notice.action.newSet', { attrs: { type: 'button', 'data-action': 'new-set' }, on: { click: () => options.onNewSet() } }, 'button'));
     }
     if (notice.actions.includes('reset-history')) {
-      actions.append(el('button', { text: 'Reset history', attrs: { type: 'button', 'data-action': 'reset-history' }, on: { click: () => controller.resetHistory() } }));
+      actions.append(loc('notice.action.resetHistory', { attrs: { type: 'button', 'data-action': 'reset-history' }, on: { click: () => controller.resetHistory() } }, 'button'));
     }
     if (notice.actions.includes('smaller-quantity') && notice.room !== undefined) {
       const room = notice.room;
-      actions.append(el('button', { text: `Ask for ${room}`, attrs: { type: 'button', 'data-action': 'smaller-quantity' }, on: { click: () => controller.requestFewer(room) } }));
+      actions.append(el('button', { text: t('notice.action.askFor', { room }), attrs: { type: 'button', 'data-action': 'smaller-quantity' }, on: { click: () => controller.requestFewer(room) } }));
     }
     if (actions.children.length > 0) {
       nodes.push(actions);
@@ -301,8 +299,8 @@ export function mountPuzzlePanel(host, options) {
   /** @param {GeneratorState} state */
   function renderParked(state) {
     parkedBox.replaceChildren(...state.parked.map((group, index) => el('div', { className: 'parked-pack control-row', dataset: { parked: String(index) } },
-      el('span', { text: `Earlier pack · ${group.length} puzzles` }),
-      el('button', { text: '⬇ Export earlier pack', attrs: { type: 'button', 'data-action': 'export-parked' }, on: { click: () => controller.exportParked(index) } }))));
+      el('span', { text: t('puzzles.parked', { count: group.length }) }),
+      loc('puzzles.exportParked', { attrs: { type: 'button', 'data-action': 'export-parked' }, on: { click: () => controller.exportParked(index) } }, 'button'))));
   }
 
   /** @param {GeneratorState} state */
@@ -335,7 +333,7 @@ export function mountPuzzlePanel(host, options) {
     exportButton.disabled = !hasPuzzles;
     copyButton.disabled = !hasPuzzles;
     blockText.textContent = set !== null && !state.stale && block !== null ? block : '';
-    emptyText.textContent = set === null ? 'Generate or import a piece set, then choose New Puzzles.' : !hasPuzzles && !busy ? 'No puzzles yet. Choose New Puzzles.' : '';
+    emptyText.textContent = set === null ? t('puzzles.empty.noSet') : !hasPuzzles && !busy ? t('puzzles.empty.none') : '';
     renderNotice(state);
     renderCards(state);
     renderParked(state);
@@ -375,7 +373,10 @@ export function mountPuzzlePanel(host, options) {
   render(store.getState());
 
   return {
-    refresh: () => render(store.getState()),
+    refresh: () => {
+      progress.refresh();
+      render(store.getState());
+    },
     destroy() {
       if (destroyed) {
         return;
@@ -392,6 +393,7 @@ export function mountPuzzlePanel(host, options) {
       }
       cards.clear();
       host.replaceChildren();
+      cardsHost?.replaceChildren();
     },
   };
 }

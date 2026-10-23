@@ -76,11 +76,9 @@ function mount(state = {}, o = {}) {
   const seeds = o.seeds ?? ['AAAA-BBBB-CCCC', 'DDDD-EEEE-FFFF', 'GGGG-HHHH-JJJJ'];
   let seedIndex = 0;
   /** @type {string[]} */
-  const confirms = [];
-  /** @type {string[]} */
   const warnings = [];
   const ctx = {
-    wrap, store, confirms, warnings, answer: true,
+    wrap, store, warnings,
     /** @type {ReturnType<typeof mountBoardEditor>} */ editor: /** @type {any} */ (null),
     /** @type {ReturnType<typeof mountLevelPanel>} */ level: /** @type {any} */ (null),
     destroy() {
@@ -90,7 +88,7 @@ function mount(state = {}, o = {}) {
       wrap.remove();
     },
   };
-  ctx.editor = mountBoardEditor(boardHost, { store, hardware, confirm: (m) => { confirms.push(m); return ctx.answer; }, notify: (m) => warnings.push(m) });
+  ctx.editor = mountBoardEditor(boardHost, { store, hardware, notify: (m) => warnings.push(m) });
   ctx.level = mountLevelPanel(levelHost, { store, hardware, getHandlers: () => handlers, random: () => seeds[seedIndex++ % seeds.length] });
   return ctx;
 }
@@ -196,14 +194,21 @@ for (const angle of [0, 45, 90, 315]) {
     equal(area(ctx), 58, 'unblock paints the new state of the first cell');
     equal(ctx.store.getState().board.active[2 * 10 + 3], 1, 'blocked cell reactivated');
     equal(ctx.editor.history.size(), 2, 'two gestures, two steps');
-    q(ctx, '[data-action="undo"]').click();
+    ctx.editor.undo();
     equal(area(ctx), 56, 'undo restores the previous gesture');
-    q(ctx, '[data-action="undo"]').click();
+    ctx.editor.undo();
     equal(area(ctx), 60, 'undo restores the board');
-    assert(/** @type {HTMLButtonElement} */ (q(ctx, '[data-action="undo"]')).disabled, 'undo disabled when empty');
+    assert(!ctx.editor.history.canUndo(), 'nothing left to undo');
     equal(ctx.store.getState().rotation, angle, 'painting never changes the stored angle');
   }));
 }
+
+await check('every blocked cell looks the same in the editor, inside the board or at its edge', () => withEditor({}, {}, (ctx) => {
+  drag(ctx, [[4, 3]]);
+  drag(ctx, [[0, 0]]);
+  const svg = ctx.editor.view.svg;
+  equal([svg.querySelectorAll('.pm-guide').length, svg.querySelectorAll('.pm-cross').length, svg.querySelectorAll('.pm-hole').length], [2, 2, 0], 'two dashed cells with a cross, no dark hole');
+}));
 
 await check('a blocked exterior guide of the Heart can be reactivated at 45 degrees', () => withEditor({}, {}, (ctx) => {
   setField(ctx, '[data-field="preset"]', 'heart');
@@ -212,63 +217,102 @@ await check('a blocked exterior guide of the Heart can be reactivated at 45 degr
   equal(state.rotation, 45, 'Heart is shown at 45 degrees');
   drag(ctx, [[7, 2]]);
   equal(area(ctx), 76, 'an exterior blocked cell was reactivated');
-  q(ctx, '[data-action="undo"]').click();
+  ctx.editor.undo();
   equal(area(ctx), 75, 'undone');
 }));
 
-await check('presets give the specified counts and rotations; Round lobes gives 73', () => withEditor({}, {}, (ctx) => {
+await check('presets give the specified counts and rotations', () => withEditor({}, {}, (ctx) => {
   const expected = [['heart', 75, 45], ['diamond', 64, 45], ['cross', 45, 0], ['ring', 60, 0], ['rectangle', 64, 0]];
   for (const [id, cells, rotation] of expected) {
     setField(ctx, '[data-field="preset"]', String(id));
     const state = ctx.store.getState();
     equal([id, activeCount(state.board), state.rotation], [id, cells, rotation], `preset ${id}`);
   }
-  setField(ctx, '[data-field="preset"]', 'heart');
-  toggle(ctx, '[data-field="round-lobes"]');
-  equal(area(ctx), 73, 'rounded Heart');
-  assert(ctx.confirms.length > 0, 'replacing a board with blocked cells asks first');
+  for (const sel of ['[data-field="preset-size"]', '[data-field="round-lobes"]']) {
+    assert(ctx.wrap.querySelector(sel) === null, `${sel} is gone`);
+  }
   const ring = preset('ring', { n: 8 }).board;
   setField(ctx, '[data-field="preset"]', 'ring');
   equal(boardToRows(ctx.store.getState().board), boardToRows(ring), 'Ring shape');
 }));
 
-await check('a declined preset or resize leaves the board and the select untouched', () => withEditor({}, {}, (ctx) => {
+await check('a preset or resize replaces the board without asking, even after edits', () => withEditor({}, {}, (ctx) => {
   setField(ctx, '[data-field="preset"]', 'diamond');
   drag(ctx, [[0, 0]]);
-  ctx.answer = false;
   const before = ctx.store.getState().board;
   setField(ctx, '[data-field="preset"]', 'cross');
-  assert(ctx.store.getState().board === before, 'preset declined');
-  equal(/** @type {HTMLSelectElement} */ (q(ctx, '[data-field="preset"]')).value, 'diamond', 'select reverted');
+  assert(ctx.store.getState().board !== before, 'preset applied');
+  equal(/** @type {HTMLSelectElement} */ (q(ctx, '[data-field="preset"]')).value, 'cross', 'select follows');
+  ctx.editor.undo();
+  equal(/** @type {HTMLInputElement} */ (q(ctx, '[data-field="columns"]')).value, '8', 'preset undone');
+  const sized = ctx.store.getState().board;
   setField(ctx, '[data-field="columns"]', '12');
-  assert(ctx.store.getState().board === before, 'resize declined');
-  equal(/** @type {HTMLInputElement} */ (q(ctx, '[data-field="columns"]')).value, '8', 'input reverted');
+  assert(ctx.store.getState().board !== sized, 'resize applied');
+  equal(ctx.store.getState().board.width, 12, 'columns changed');
 }));
 
-await check('resize keeps cells in bounds, activates new cells and confirms when edits exist', () => withEditor({}, {}, (ctx) => {
+await check('resize keeps cells in bounds and activates new cells', () => withEditor({}, {}, (ctx) => {
   setField(ctx, '[data-field="columns"]', '12');
-  equal(ctx.confirms.length, 0, 'no edits, no prompt');
   equal([ctx.store.getState().board.width, area(ctx)], [12, 72], 'wider board, new cells active');
   drag(ctx, [[1, 1]]);
   setField(ctx, '[data-field="rows"]', '4');
-  equal(ctx.confirms.length, 1, 'edits exist, so the resize asks');
   const board = ctx.store.getState().board;
   equal([board.width, board.height, board.active[1 * 12 + 1]], [12, 4, 0], 'blocked cell kept');
   setField(ctx, '[data-field="rows"]', '2');
   equal(ctx.store.getState().board.height, 4, 'rows below 3 are refused');
   assert(ctx.warnings.length === 1, 'the refusal is explained');
-  q(ctx, '[data-action="undo"]').click();
+  ctx.editor.undo();
   equal(ctx.store.getState().board.height, 6, 'resize can be undone');
 }));
 
-await check('trim margins is an explicit undoable structural edit', () => withEditor({}, {}, (ctx) => {
-  assert(/** @type {HTMLButtonElement} */ (q(ctx, '[data-action="trim"]')).disabled, 'nothing to trim');
-  drag(ctx, [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0]]);
-  equal(area(ctx), 50, 'top row blocked');
-  q(ctx, '[data-action="trim"]').click();
-  equal([ctx.store.getState().board.height, area(ctx)], [5, 50], 'the blocked row is trimmed');
-  q(ctx, '[data-action="undo"]').click();
-  equal([ctx.store.getState().board.height, area(ctx)], [6, 50], 'trim undone');
+await check('Ctrl+Z on the board undoes the last edit', () => withEditor({}, {}, (ctx) => {
+  drag(ctx, [[2, 2]]);
+  equal(area(ctx), 59, 'one cell blocked');
+  ctx.editor.view.surface.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, cancelable: true }));
+  equal(area(ctx), 60, 'undone from the keyboard');
+}));
+
+await check('the board view zooms with the wheel and the buttons, and a drag moves the view only in move mode', () => withEditor({}, {}, (ctx) => {
+  const { view } = ctx.editor;
+  const surface = view.surface;
+  const box = surface.getBoundingClientRect();
+  const at = /** @type {[number, number]} */ ([box.left + box.width / 2, box.top + box.height / 2]);
+  const fitted = view.getState().cellPx;
+  const wheel = new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: -200, clientX: at[0], clientY: at[1] });
+  surface.dispatchEvent(wheel);
+  assert(wheel.defaultPrevented && view.getState().cellPx > fitted, 'the wheel zooms in and keeps the page still');
+  surface.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: 800, clientX: at[0], clientY: at[1] }));
+  assert(view.getState().cellPx < fitted, 'scrolling the other way zooms out');
+  q(ctx, '[data-action="zoom-in"]').click();
+  const zoomedIn = view.getState().cellPx;
+  q(ctx, '[data-action="zoom-out"]').click();
+  assert(view.getState().cellPx < zoomedIn, 'the zoom buttons work');
+  q(ctx, '[data-action="zoom-fit"]').click();
+  assert(Math.abs(view.getState().cellPx - fitted) <= 1, 'fit restores the fitted size');
+
+  view.setZoom(80);
+  const toggleButton = q(ctx, '[data-action="pan-toggle"]');
+  equal(toggleButton.getAttribute('aria-pressed'), 'false', 'move mode starts off');
+  drag(ctx, [[0, 0], [1, 0]]);
+  equal(area(ctx), 58, 'without move mode a drag paints');
+  toggleButton.click();
+  equal(toggleButton.getAttribute('aria-pressed'), 'true', 'move mode is on');
+  const left = surface.scrollLeft;
+  pointer('pointerdown', surface, at);
+  pointer('pointermove', surface, [at[0] - 60, at[1]]);
+  pointer('pointerup', surface, [at[0] - 60, at[1]]);
+  equal(area(ctx), 58, 'in move mode a drag paints nothing');
+  assert(surface.scrollLeft > left, 'and moves the view');
+  toggleButton.click();
+  drag(ctx, [[5, 3]]);
+  equal(area(ctx), 57, 'painting works again once move mode is off');
+}));
+
+await check('the editor has no Trim, Undo, Reset or Edit unrotated controls and no view label', () => withEditor({}, {}, (ctx) => {
+  for (const sel of ['[data-action="trim"]', '[data-action="undo"]', '[data-action="reset"]', '[data-field="edit-unrotated"]', '[data-role="view-angle"]', '.control-label']) {
+    assert(ctx.wrap.querySelector(sel) === null, `${sel} is gone`);
+  }
+  assert(ctx.wrap.querySelector('[data-action="view-left"]') !== null && ctx.wrap.querySelector('[data-action="view-right"]') !== null, 'the rotate buttons stay');
 }));
 
 await check('view rotation never changes the active count, pieces or existing puzzles', () => withEditor({}, {}, (ctx) => {
@@ -284,29 +328,19 @@ await check('view rotation never changes the active count, pieces or existing pu
   const after = ctx.store.getState();
   equal(after.rotation, 315, 'right 45 subtracts, modulo 360');
   assert(after.set === before.set && after.puzzles === before.puzzles && after.board === before.board, 'identity kept');
-  equal([after.stale, ctx.confirms.length, area(ctx)], [false, 0, 60], 'nothing invalidated');
-  toggle(ctx, '[data-field="edit-unrotated"]');
-  equal([ctx.editor.view.getState().rotation, after.rotation], [0, 315], 'edit unrotated shows 0 and keeps the stored angle');
-  toggle(ctx, '[data-field="edit-unrotated"]');
-  equal(ctx.editor.view.getState().rotation, 315, 'the view returns to the stored angle');
+  equal([after.stale, area(ctx)], [false, 60], 'nothing invalidated');
 }));
 
-await check('the first board edit after a set confirms, then the set is stale but keeps its board', () => withEditor({}, {}, (ctx) => {
+await check('the first board edit after a set makes it stale without asking, and the set keeps its board', () => withEditor({}, {}, (ctx) => {
   ctx.store.update((s) => ({ ...acceptSet(s, { set: sampleSet, calibration: null, setSeed: 'demo' }), puzzles: samplePuzzles }));
-  ctx.answer = false;
-  drag(ctx, [[0, 0]]);
-  equal([area(ctx), ctx.confirms.length, ctx.store.getState().stale], [60, 1, false], 'declined: nothing changes');
-  equal(ctx.editor.history.size(), 0, 'a declined gesture records no step');
-  ctx.answer = true;
   drag(ctx, [[0, 0], [1, 0]]);
   const state = ctx.store.getState();
-  equal([area(ctx), ctx.confirms.length, state.stale], [58, 2, true], 'accepted: one prompt, then stale');
+  equal([area(ctx), state.stale], [58, true], 'the edit goes ahead and the set is stale');
   equal([activeCount(state.set?.board ?? rectangle(1, 1)), state.puzzles.length], [60, 3], 'old cards keep their board');
   assert(q(ctx, '[data-role="board-notices"]').textContent?.includes('Board changed — generate a new piece set.'), 'N-STALE is shown');
   drag(ctx, [[5, 5]]);
-  equal(ctx.confirms.length, 2, 'only the first edit asks');
-  q(ctx, '[data-action="undo"]').click();
-  q(ctx, '[data-action="undo"]').click();
+  ctx.editor.undo();
+  ctx.editor.undo();
   equal(ctx.store.getState().stale, false, 'restoring the set board clears stale');
 }));
 
@@ -314,7 +348,7 @@ await check('painting and settings are disabled while a job runs, rotation stays
   ctx.store.update({ job: { requestId: 1, revision: 'r', stage: 'carving', startedAt: 0 } });
   drag(ctx, [[2, 2]]);
   equal(area(ctx), 60, 'no painting');
-  for (const sel of ['[data-field="columns"]', '[data-field="preset"]', '[data-action="reset"]', '[data-field="keep-seed"]', '[data-action="generate-set"]', '[data-level="hard"] input']) {
+  for (const sel of ['[data-field="columns"]', '[data-field="preset"]', '[data-field="keep-seed"]', '[data-action="generate-set"]', '[data-field="level"]']) {
     assert(/** @type {HTMLButtonElement} */ (q(ctx, sel)).disabled, `${sel} disabled during a job`);
   }
   q(ctx, '[data-action="view-left"]').click();
@@ -344,44 +378,37 @@ await check('keyboard: arrows follow the view rotation and Space toggles the cur
   assert(ctx.editor.view.svg.querySelector('.pm-cursor'), 'the cursor stays inside the board');
 }));
 
-await check('levels: a 60-cell board offers Very easy to Master with reasons for the rest', () => withEditor({}, {}, (ctx) => {
-  const radio = (/** @type {string} */ id) => /** @type {HTMLInputElement} */ (q(ctx, `[data-level="${id}"] input`));
-  for (const id of ['very-easy', 'easy', 'normal', 'hard', 'expert', 'master']) {
-    assert(!radio(id).disabled, `${id} offered at 60`);
-  }
-  for (const id of ['nightmare', 'hell-1', 'hell-2', 'hell-3']) {
-    assert(radio(id).disabled, `${id} disabled at 60`);
-  }
-  assert(q(ctx, '[data-level="nightmare"]').textContent?.includes('needs a larger board'), 'reason shown');
+await check('levels: a 60-cell board lists Very easy to Master in a dropdown and explains the rest', () => withEditor({}, {}, (ctx) => {
+  const select = /** @type {HTMLSelectElement} */ (q(ctx, '[data-field="level"]'));
+  equal([...select.options].map((o) => o.value), ['very-easy', 'easy', 'normal', 'hard', 'expert', 'master'], 'offered at 60');
   assert(q(ctx, '[data-role="level-notices"]').textContent?.includes('Levels above Master need a larger board.'), 'N-LEVELS shown');
-  equal(radio('normal').checked, true, 'default level selected');
-  radio('expert').checked = true;
-  radio('expert').dispatchEvent(new Event('change', { bubbles: true }));
+  equal(select.value, 'normal', 'default level selected');
+  setField(ctx, '[data-field="level"]', 'expert');
   equal(ctx.store.getState().levelId, 'expert', 'level choice stored');
+  equal(select.value, 'expert', 'the dropdown follows');
 }));
 
 await check('levels: 360 squares offer Hard to Hell 2 with the policy-derived count line', () => withEditor({}, {}, (ctx) => {
   setField(ctx, '[data-field="columns"]', '20');
   setField(ctx, '[data-field="rows"]', '18');
   equal(area(ctx), 360, '20 x 18');
-  const offered = ['very-easy', 'easy', 'normal', 'hard', 'expert', 'master', 'nightmare', 'hell-1', 'hell-2', 'hell-3']
-    .filter((id) => !(/** @type {HTMLInputElement} */ (q(ctx, `[data-level="${id}"] input`))).disabled);
+  const offered = [.../** @type {HTMLSelectElement} */ (q(ctx, '[data-field="level"]')).options].map((o) => o.value);
   equal(offered, ['hard', 'expert', 'master', 'nightmare', 'hell-1', 'hell-2'], 'offered at 360');
   equal(ctx.store.getState().levelId, 'hard', 'the unavailable Normal moved to the nearest offered level');
   equal(q(ctx, '[data-role="count"]').textContent, 'Uses 16–18 pieces of 12–34 squares · about 38% pre-placed', 'count line');
   assert(q(ctx, '[data-role="board-notices"]').textContent?.includes('This board uses 16–18 pieces at Hard, about 38 % pre-placed.'), 'N-COUNT');
   assert(!q(ctx, '[data-role="board-notices"]').textContent?.includes('Large board'), '360 is not above the warning size');
-  assert(q(ctx, '[data-level="normal"]').textContent?.includes('needs a smaller board'), 'smaller-board reason');
+  assert(q(ctx, '[data-role="level-notices"]').textContent?.includes('Levels below Hard need a smaller board.'), 'smaller-board reason');
 }));
 
 await check('device caps are explained: desktop 484, large boards 676 (experimental), phone 360', () => withEditor({}, {}, (ctx) => {
   setField(ctx, '[data-field="columns"]', '23');
   setField(ctx, '[data-field="rows"]', '22');
-  equal(status(ctx), 'This board has 506 playable squares; the limit on this device is 484.', 'N-CAP');
+  assert(q(ctx, '[data-role="cannot-generate"]').textContent?.includes('This board has 506 playable squares; the limit on this device is 484.'), 'N-CAP');
   assert(/** @type {HTMLButtonElement} */ (q(ctx, '[data-action="generate-set"]')).disabled, 'Generate disabled above the cap');
   toggle(ctx, '[data-field="large-boards"]');
   equal(ctx.store.getState().largeBoards, true, 'opt-in stored in state');
-  equal(status(ctx), '506 / 676 playable squares · connected', 'cap becomes 676');
+  equal(status(ctx), '506 / 506 playable squares · connected', 'a 506-square board is valid once the cap becomes 676');
   const text = q(ctx, '[data-role="board-notices"]').textContent ?? '';
   assert(text.includes('Large board: generation can take up to 2 minutes.') && text.includes('Experimental: boards above 484 squares'), 'N-LARGE and N-EXPERIMENTAL');
 }));
@@ -391,19 +418,23 @@ await check('a phone cannot use the desktop Large boards opt-in', () => withEdit
   assert(!/** @type {HTMLInputElement} */ (q(ctx, '[data-field="large-boards"]')).checked, 'shown off');
   setField(ctx, '[data-field="columns"]', '19');
   setField(ctx, '[data-field="rows"]', '19');
-  equal(status(ctx), 'This board has 361 playable squares; the limit on this device is 360.', 'phone cap 360');
+  assert(q(ctx, '[data-role="cannot-generate"]').textContent?.includes('This board has 361 playable squares; the limit on this device is 360.'), 'phone cap 360');
 }));
 
-await check('invalid masks show their errors: fewer than 30 squares and disconnected', () => withEditor({}, {}, (ctx) => {
+await check('an invalid board is not validated while editing; the piece-set step explains why it cannot generate', () => withEditor({}, {}, (ctx) => {
+  const cannot = () => q(ctx, '[data-role="cannot-generate"]');
+  assert(cannot().hidden, 'a valid board shows no explanation');
   setField(ctx, '[data-field="columns"]', '5');
   setField(ctx, '[data-field="rows"]', '5');
-  equal(status(ctx), 'A board needs at least 30 playable squares to generate puzzles.', 'N-SMALL');
+  equal(status(ctx), 'Playable squares: 25', 'the editor only counts squares');
+  assert(!cannot().hidden && cannot().textContent?.startsWith('Cannot generate a piece set for the selected board.'), 'the explanation appears');
+  assert(cannot().textContent?.includes('A board needs at least 30 playable squares to generate puzzles.'), 'N-SMALL is the reason');
   assert(/** @type {HTMLButtonElement} */ (q(ctx, '[data-action="generate-set"]')).disabled, 'cannot generate');
   setField(ctx, '[data-field="columns"]', '11');
   setField(ctx, '[data-field="rows"]', '3');
   drag(ctx, [[5, 0], [5, 1], [5, 2]]);
-  assert(status(ctx)?.includes('separate regions'), 'disconnected reported');
-  assert(ctx.editor.view.svg.querySelectorAll('.pm-invalid').length === 15, 'offending cells highlighted');
+  assert(cannot().textContent?.includes('separate regions'), 'disconnected reported');
+  assert(ctx.editor.view.svg.querySelectorAll('.pm-invalid').length === 0, 'no cell is flagged while editing');
 }));
 
 await check('Keep seed: typing turns it on, the dice draws now, Generate draws or reuses', () => {
@@ -443,9 +474,7 @@ await check('Generate stays disabled until the job code registers its handler', 
 await check('Require one solution warns only on large Hell boards; Omit solutions is stored', () => withEditor({}, {}, (ctx) => {
   setField(ctx, '[data-field="columns"]', '20');
   setField(ctx, '[data-field="rows"]', '18');
-  const hell = /** @type {HTMLInputElement} */ (q(ctx, '[data-level="hell-1"] input'));
-  hell.checked = true;
-  hell.dispatchEvent(new Event('change', { bubbles: true }));
+  setField(ctx, '[data-field="level"]', 'hell-1');
   equal(ctx.store.getState().levelId, 'hell-1', 'Hell 1 is offered at 360');
   assert(!q(ctx, '[data-role="level-notices"]').textContent?.includes('experimental'), 'no warning while Require is off');
   toggle(ctx, '[data-field="require-unique"]');
@@ -457,13 +486,13 @@ await check('Require one solution warns only on large Hell boards; Omit solution
 
 await check('the editor survives a broken storage and persists what it can', async () => {
   const slots = document.createElement('div');
-  for (const role of ['board', 'level', 'set', 'puzzles', 'sticky-status']) {
+  for (const role of ['board', 'level', 'set', 'puzzles']) {
     const node = document.createElement('div');
     node.dataset.slot = role;
     slots.append(node);
   }
   const action = document.createElement('button');
-  action.dataset.slot = 'sticky-action';
+  action.dataset.slot = 'main-action';
   slots.append(action);
   sandbox.append(slots);
   /** @type {unknown[]} */
@@ -481,7 +510,7 @@ await check('the editor survives a broken storage and persists what it can', asy
     },
     setPrefs: () => ({ ok: true }),
   };
-  const app = createGeneratorApp(document, { storage: io, confirm: () => true });
+  const app = createGeneratorApp(document, { storage: io });
   try {
     const board = app.editor.view.surface;
     const state = app.store.getState();
@@ -504,7 +533,7 @@ await check('the editor survives a broken storage and persists what it can', asy
     const restored = loadGeneratorState({ ...io, getGeneratorState: () => written[0], getPrefs: () => ({}) });
     equal(activeCount(restored.board), 58, 'the saved board restores through the validators');
     assert(app.regions.set && app.regions.puzzles, 'regions are exposed for the job code');
-    assert(/** @type {HTMLButtonElement} */ (action).textContent === 'Generate Piece Set' && !action.disabled, 'sticky action mirrors the state; the app wires the job handlers');
+    assert(/** @type {HTMLButtonElement} */ (action).textContent === 'Generate Piece Set' && !action.disabled, 'main action mirrors the state; the app wires the job handlers');
     app.setHandlers({ onGenerateSet: () => {} });
     assert(!action.disabled, 'registering a handler keeps the action enabled');
   } finally {
@@ -517,7 +546,7 @@ await check('describeBoard and the editor agree on the status line', () => withE
   const state = withBoard(ctx.store.getState(), setCell(ctx.store.getState().board, 0, 0, 0));
   ctx.store.update(() => state);
   equal(status(ctx), describeBoard(state, { phone: false }).statusText, 'same text');
-  equal(status(ctx), '59 / 484 playable squares · connected', 'format');
+  equal(status(ctx), '59 / 60 playable squares · connected', 'format');
 }));
 
 await check('destroy removes the panels and listeners; no CSP violations were reported', () => {

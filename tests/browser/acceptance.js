@@ -7,7 +7,6 @@
 // the owner steps, never as passes. It writes the list into the page and sets data-result on <html> to
 // `pass` (no failure; blocked items are reported separately) or `fail`. It is a developer fixture, not deployed.
 
-import { APP_VERSION } from '../../core/engine/version.js';
 
 /** @typedef {{ id: string, name: string, status: 'pass' | 'fail' | 'blocked', detail?: unknown }} Result */
 
@@ -178,10 +177,8 @@ await check('R1', 'Root page redirects to the generator under the served prefix,
   const frame = await openFrame('../../index.html', { ready: (d) => d.defaultView?.location.pathname.endsWith('/generator/') === true && generatorReady(d) });
   const path = frame.win().location.pathname;
   assert(path.endsWith('/generator/'), `landed on ${path}`);
-  const version = q(frame.doc(), '[data-app-version]').textContent;
-  assert(version === APP_VERSION, `version label "${version}" differs from APP_VERSION ${APP_VERSION}`);
   scan(frame);
-  return { landedOn: path, harnessPath: location.pathname, prefixServed: location.pathname.startsWith('/pentomino/'), version };
+  return { landedOn: path, harnessPath: location.pathname, prefixServed: location.pathname.startsWith('/pentomino/') };
 });
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -199,15 +196,14 @@ async function runRecipe(recipe) {
   const d = frame.doc();
   if (recipe.name.startsWith('heart')) {
     setValue(frame, /** @type {HTMLSelectElement} */ (q(d, '[data-field="preset"]')), 'heart');
-    setValue(frame, /** @type {HTMLInputElement} */ (q(d, '[data-field="preset-size"]')), '10');
   } else if (recipe.boardRows[0].length !== 10 || recipe.boardRows.length !== 6) {
     setValue(frame, /** @type {HTMLInputElement} */ (q(d, '[data-field="columns"]')), String(recipe.boardRows[0].length));
     setValue(frame, /** @type {HTMLInputElement} */ (q(d, '[data-field="rows"]')), String(recipe.boardRows.length));
   }
-  const radio = /** @type {HTMLInputElement} */ (q(d, `input[type="radio"][value="${recipe.levelId}"]`));
-  assert(!radio.disabled, `${recipe.levelId} is offered for this board`);
-  radio.checked = true;
-  radio.dispatchEvent(new (frame.win().Event)('change', { bubbles: true }));
+  const select = /** @type {HTMLSelectElement} */ (q(d, '[data-field="level"]'));
+  assert([...select.options].some((o) => o.value === recipe.levelId), `${recipe.levelId} is offered for this board`);
+  select.value = recipe.levelId;
+  select.dispatchEvent(new (frame.win().Event)('change', { bubbles: true }));
   setValue(frame, /** @type {HTMLInputElement} */ (q(d, '[data-field="seed"]')), recipe.seedText);
   const start = performance.now();
   q(d, '[data-action="generate-set"]').click();
@@ -472,39 +468,93 @@ function accessibilityReport(frame) {
   return { unnamed, positiveTabindex: positive, liveRegions: live, title: d.title, lang: d.documentElement.lang, h1: qa(d, 'h1').length };
 }
 
-await check('L1', 'Generator desktop layout (>= 900 px): three columns above a full-width puzzle row, sticky action bar, level selector and Copy pack link present', async () => {
+await check('L1', 'Generator desktop layout (>= 900 px): a three-step wizard shows one step at a time; step 2 puts the level settings beside the piece set; Back and the main action sit at the top right of the main screen; level selector and Copy pack link present', async () => {
   const frame = await openFrame('../../generator/index.html', { width: 1280, height: 900, ready: generatorReady });
   const d = frame.doc();
-  const [board, level, set, puzzles] = ['.panel-board', '.panel-level', '.panel-set', '.panel-puzzles'].map((s) => rect(q(d, s)));
-  assert(Math.abs(board.top - level.top) < 3 && Math.abs(level.top - set.top) < 3, 'board, level and set share a row');
-  assert(board.left < level.left && level.left < set.left, 'board, level, set run left to right');
-  assert(puzzles.top >= Math.max(board.bottom, level.bottom, set.bottom) - 2, 'the puzzle row sits below the three columns');
-  assert(puzzles.width > board.width + level.width, 'the puzzle row spans the full width');
-  const sticky = q(d, '.sticky-bar');
-  const position = frame.win().getComputedStyle(sticky).position;
-  assert(position === 'sticky' || position === 'fixed', `sticky bar position ${position}`);
+  const shown = () => qa(d, '[data-step]').filter((n) => !n.hidden).map((n) => n.dataset.step);
+  assert(qa(d, '[data-wizard-step]').length === 3, 'three step buttons');
+  assert(JSON.stringify(shown()) === '["1"]', `only step 1 shows at first: ${shown()}`);
+  assert(!/** @type {HTMLButtonElement} */ (q(d, '[data-wizard-step="2"]')).disabled && /** @type {HTMLButtonElement} */ (q(d, '[data-wizard-step="3"]')).disabled, 'step 2 is open and step 3 waits for a piece set');
+  q(d, '[data-wizard-step="2"]').click();
+  assert(JSON.stringify(shown()) === '["2"]', `only step 2 shows after choosing it: ${shown()}`);
+  const level = rect(q(d, '.panel-level'));
+  const set = rect(q(d, '.panel-set'));
+  assert(Math.abs(level.top - set.top) < 3 && level.left < set.left, 'the level settings sit left of the piece set');
+  const actions = rect(q(d, '.main-actions'));
+  const panelBox = rect(q(d, '[data-step]:not([hidden])'));
+  assert(actions.right <= panelBox.right && panelBox.right - actions.right < 24 && actions.top >= panelBox.top && actions.top - panelBox.top < 24, 'the buttons sit inside the main panel, at its top right');
+  assert(d.querySelector('.sticky-bar') === null, 'there is no sticky toolbar');
   assert(d.querySelector('[data-field="puzzle-level"]') !== null, 'the puzzle-level selector exists');
   assert(d.querySelector('[data-action="copy-pack-link"]') !== null, 'Copy pack link exists');
-  assert(q(d, '.open-player').getAttribute('href') === '../player/', 'Open player link');
   scan(frame);
-  return { board: Math.round(board.left), level: Math.round(level.left), set: Math.round(set.left), stickyPosition: position };
+  return { level: Math.round(level.left), set: Math.round(set.left) };
 });
 
-await check('L2', 'Generator narrow layout (< 900 px): numbered steps stack in order and the action bar stays reachable', async () => {
+await check('L6', 'Generator wide layout (>= 1360 px): puzzles on the left, the step screen in the middle, the steps stacked on the right', async () => {
+  const frame = await openFrame('../../generator/index.html', { width: 1500, height: 900, ready: generatorReady });
+  const d = frame.doc();
+  const [history, main, side] = ['.app-history', '.app-main', '.app-side'].map((s) => rect(q(d, s)));
+  assert(history.right <= main.left + 1 && main.right <= side.left + 1, 'left to right: puzzles, main, steps');
+  assert(Math.abs(history.top - main.top) < 3 && Math.abs(main.top - side.top) < 3, 'the three panels share a row');
+  const steps = qa(d, '[data-wizard-step]').map((b) => rect(b));
+  assert(steps.every((b, i) => i === 0 || b.top > steps[i - 1].top && Math.abs(b.left - steps[0].left) < 2), 'the steps are stacked');
+  const controls = q(d, '[data-field="columns"]').closest('.app-side');
+  assert(controls !== null && ['columns', 'rows', 'preset'].every((f) => q(d, `[data-field="${f}"]`).closest('[data-step-body="1"]') !== null), 'Columns, Rows and Preset live in the right panel, under step 1');
+  q(d, '[data-wizard-step="2"]').click();
+  assert(/** @type {HTMLElement} */ (q(d, '[data-step-body="1"]')).hidden, 'the board settings leave with step 1');
+  const summary = /** @type {HTMLElement} */ (q(d, '[data-step-after="1"]'));
+  assert(!summary.hidden && summary.querySelector('svg') !== null && rect(summary).width > 0, 'a thumbnail of the board shows in the right panel after step 1');
+  q(d, '[data-wizard-step="1"]').click();
+  assert(summary.hidden, 'the thumbnail hides again while the board is edited');
+  q(d, '[data-wizard-step="2"]').click();
+  const actions = rect(q(d, '.main-actions'));
+  const panelBox = rect(q(d, '[data-step]:not([hidden])'));
+  assert(actions.right <= panelBox.right && panelBox.right - actions.right < 24 && actions.top >= panelBox.top && actions.top - panelBox.top < 24, 'Back and the main action sit inside the main panel, at its top right');
+  scan(frame);
+  return { history: Math.round(history.width), main: Math.round(main.width), side: Math.round(side.width) };
+});
+
+await check('L2', 'Generator narrow layout (< 900 px): step 2 stacks the level settings above the piece set and the buttons stay at the top of the main screen', async () => {
   const frame = await openFrame('../../generator/index.html', { width: 800, height: 900, ready: generatorReady });
   const d = frame.doc();
-  const boxes = ['.panel-board', '.panel-level', '.panel-set', '.panel-puzzles'].map((s) => rect(q(d, s)));
-  for (let i = 1; i < boxes.length; i += 1) {
-    assert(boxes[i].top >= boxes[i - 1].bottom - 2, `step ${i + 1} sits below step ${i}`);
-    assert(Math.abs(boxes[i].left - boxes[0].left) < 3, `step ${i + 1} is in the same column`);
-  }
-  assert(qa(d, '.step').length === 4, 'four numbered steps');
+  q(d, '[data-wizard-step="2"]').click();
+  const boxes = ['.panel-pieces', '.panel-level', '.panel-set'].map((s) => rect(q(d, s)));
+  assert(boxes[2].top >= boxes[1].bottom - 2, 'the piece set sits below the level settings');
+  assert(Math.abs(boxes[1].left - boxes[2].left) < 3, 'both are in the same column');
+  assert(qa(d, '.step').length === 3, 'three numbered steps');
   frame.win().scrollTo(0, 0);
   await sleep(50);
-  const bar = rect(q(d, '.sticky-bar'));
-  assert(bar.bottom <= frame.win().innerHeight + 1 && bar.height > 0, `the sticky bar is inside the viewport at the top of the page (bottom ${Math.round(bar.bottom)})`);
+  const actions = rect(q(d, '.main-actions'));
+  assert(actions.top < frame.win().innerHeight && actions.height > 0, `the buttons are inside the viewport at the top of the page (top ${Math.round(actions.top)})`);
   scan(frame);
   return { steps: boxes.map((b) => Math.round(b.top)) };
+});
+
+await check('L5', 'Generator wizard: Next and Back move between steps, step 3 stays closed without a piece set, and a language switch keeps the step', async () => {
+  localStorage.clear();
+  const frame = await openFrame('../../generator/index.html', { ready: generatorReady });
+  const d = frame.doc();
+  const shown = () => qa(d, '[data-step]').filter((n) => !n.hidden).map((n) => n.dataset.step).join();
+  const action = /** @type {HTMLButtonElement} */ (q(d, '[data-slot="main-action"]'));
+  const back = /** @type {HTMLButtonElement} */ (q(d, '[data-slot="main-back"]'));
+  assert(shown() === '1' && back.hidden, 'step 1 first, without Back');
+  assert(action.textContent === 'Next: piece set', `step 1 action: ${action.textContent}`);
+  action.click();
+  assert(shown() === '2' && !back.hidden, 'Next opens step 2 and shows Back');
+  assert(action.textContent === 'Generate Piece Set', `step 2 action: ${action.textContent}`);
+  assert(/** @type {HTMLButtonElement} */ (q(d, '[data-wizard-step="3"]')).disabled, 'step 3 is closed without a piece set');
+  q(d, '[data-lang="vi"]').click();
+  assert(shown() === '2' && d.documentElement.lang === 'vi', 'the step is kept and the page language changed');
+  assert(q(d, '[data-wizard-step="2"] .wizard-name').textContent === 'Tạo bộ mảnh', 'the step names are translated');
+  assert(action.textContent === 'Tạo bộ mảnh', `the action is translated: ${action.textContent}`);
+  assert(q(d, '[data-lang="vi"]').getAttribute('aria-pressed') === 'true', 'the switch shows the language');
+  assert(localStorage.getItem('pentomino:v1:lang') === 'vi', 'the choice is remembered');
+  back.click();
+  assert(shown() === '1' && q(d, '[data-field="columns"]').previousElementSibling?.textContent === 'Số cột', 'Back returns to a translated step 1');
+  assert(q(d, '[data-role="board-status"]').textContent === '60 / 60 ô chơi được · liền một khối', `board status: ${q(d, '[data-role="board-status"]').textContent}`);
+  scan(frame);
+  localStorage.removeItem('pentomino:v1:lang');
+  return { language: d.documentElement.lang };
 });
 
 /** @param {Frame} frame */
