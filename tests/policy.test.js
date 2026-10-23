@@ -5,6 +5,7 @@ import { describe, test } from 'node:test';
 import { offeredLevels } from '../core/engine/levels.js';
 import {
   BUDGETS,
+  ENUMERATION,
   LIMITS,
   POLICY_ID,
   SCORE,
@@ -380,5 +381,10 @@ describe('limits, qualification and budgets', () => {
       progressEvery: 50000, historyKeys: 1000,
     });
     for (const o of [SCORE, SCORE.weights, SCORE.caps, TIME, BUDGETS]) assert.ok(Object.isFrozen(o));
+  });
+
+  test('the arrangement count has its own frozen limits; BUDGETS is pinned above (owner decision 2026-10-23)', () => {
+    assert.deepEqual({ ...ENUMERATION }, { placements: 250000000, nodes: 2500000 });
+    assert.ok(Object.isFrozen(ENUMERATION));
   });
 });

@@ -111,6 +111,23 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  */
 
 /**
+ * Exhaustive count of the piece set's distinct arrangements, run after a `layouts-not-found` batch
+ * (owner decision 2026-10-23). `exhausted`: every arrangement is used, `total` is exact and `earlier`
+ * of them were used before this request; `more`: at least one unused arrangement exists, so the
+ * shortfall is not a proven maximum; `unproven`: the enumeration reached a limit (`why`).
+ * @typedef {object} ArrangementReport
+ * @property {'exhausted' | 'more' | 'unproven'} status
+ * @property {number} [total] Distinct arrangements of the set (`exhausted` only).
+ * @property {number} [earlier] Arrangements used before this request (`exhausted` only).
+ * @property {string} method Always `cell-backtracking-v1`.
+ * @property {number} placements Candidate placements tried by the search (the work measure its limit counts).
+ * @property {number} nodes Search nodes.
+ * @property {number} solutions Complete tilings visited (symmetric images included).
+ * @property {number} elapsedMs
+ * @property {string} [why] `placements-limit`, `nodes-limit`, `deadline` or `error`.
+ */
+
+/**
  * @typedef {object} BatchJobResult
  * @property {'complete' | 'partial' | 'cancelled'} status
  * @property {Pack} [pack] Present when at least one puzzle was accepted.
@@ -118,6 +135,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {string[]} seenLayouts
  * @property {string[]} seenClues
  * @property {'layouts-not-found' | 'difficulty-not-found' | 'uniqueness-not-proved' | 'time-limit'} [reason]
+ * @property {ArrangementReport} [arrangements] Present with reason `layouts-not-found`.
  */
 
 /**
@@ -140,6 +158,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  */
 
 export const MAX_BATCH = 10;
+const ARRANGEMENT_METHOD = 'cell-backtracking-v1';
 const MIN_ACTIVE_CAP = 30;
 const MAX_ACTIVE_CAP = 676;
 const REVISION_MAX = 128;
@@ -439,7 +458,7 @@ export function createGenerationClient(pool, options = {}) {
   /**
    * One pool task of a job; a recycled worker restarts the same deterministic task.
    * @param {Job} job
-   * @param {'setAttempt' | 'puzzleCandidate' | 'certify'} kind
+   * @param {'setAttempt' | 'puzzleCandidate' | 'certify' | 'enumerateLayouts'} kind
    * @param {object} payload
    * @param {AbortSignal | undefined} signal
    * @param {(p: { stage: string, rowTrials: number, bytes: number }) => void} [onProgress]
@@ -773,6 +792,8 @@ export function createGenerationClient(pool, options = {}) {
     let status = 'partial';
     /** @type {BatchJobResult['reason']} */
     let reason;
+    /** @type {ArrangementReport | undefined} */
+    let arrangements;
     const detail = () => ({ accepted: accepted.slice(), seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues] });
     const elapsed = () => clock.now() - job.startedAt;
     /** @param {Partial<GenerationProgress>} extra */
@@ -840,6 +861,55 @@ export function createGenerationClient(pool, options = {}) {
       return /** @type {PuzzleCandidate} */ (value);
     };
 
+    /**
+     * Exhaustive arrangement count after a `layouts-not-found` stop. It never fails the batch: a limit,
+     * the deadline or a worker fault leaves the shortfall unproven; only Cancel changes the outcome.
+     * @returns {Promise<ArrangementReport | 'cancelled'>}
+     */
+    const countArrangements = async () => {
+      const startedAt = clock.now();
+      /** @param {string} why @returns {ArrangementReport} */
+      const unproven = (why) => ({
+        status: 'unproven', method: ARRANGEMENT_METHOD, placements: 0, nodes: 0, solutions: 0, elapsedMs: clock.now() - startedAt, why,
+      });
+      progress({ stage: 'enumerate' });
+      /** @type {unknown} */
+      let value;
+      try {
+        value = await runTask(job, 'enumerateLayouts', {
+          boardRows: boardToRows(set.board),
+          pieces: set.pieces,
+          seenLayouts: [...state.seenLayouts],
+        }, undefined, (p) => progress({ stage: 'enumerate', bytes: p.bytes }));
+      } catch (e) {
+        if (isAbortError(e) && e.reason === 'deadline') {
+          job.timedOut = true;
+          return unproven('deadline');
+        }
+        if (isAbortError(e)) {
+          job.cancelled = true;
+          return 'cancelled';
+        }
+        return unproven('error');
+      }
+      const r = isObject(value) ? value : {};
+      const count = (/** @type {unknown} */ n) => (typeof n === 'number' && Number.isSafeInteger(n) && n >= 0 ? n : 0);
+      const base = {
+        method: ARRANGEMENT_METHOD,
+        placements: count(r.placements),
+        nodes: count(r.nodes),
+        solutions: count(r.solutions),
+        elapsedMs: clock.now() - startedAt,
+      };
+      if (r.status === 'exhausted' && typeof r.total === 'number' && Number.isSafeInteger(r.total) && r.total >= accepted.length) {
+        return { ...base, status: 'exhausted', total: r.total, earlier: r.total - accepted.length };
+      }
+      if (r.status === 'more') {
+        return { ...base, status: 'more' };
+      }
+      return { ...base, status: 'unproven', why: typeof r.why === 'string' ? r.why : 'error' };
+    };
+
     try {
       for (const calibration of state.accepted) {
         accept(calibration);
@@ -890,6 +960,16 @@ export function createGenerationClient(pool, options = {}) {
           reason = state.reason;
         }
       }
+      if (status !== 'cancelled' && reason === 'layouts-not-found') {
+        controller.abort();
+        const counted = await countArrangements();
+        if (counted === 'cancelled') {
+          status = 'cancelled';
+          reason = undefined;
+        } else {
+          arrangements = counted;
+        }
+      }
     } catch (e) {
       throw toFault(e, detail());
     } finally {
@@ -901,6 +981,9 @@ export function createGenerationClient(pool, options = {}) {
     const result = { status, accepted, seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues] };
     if (reason !== undefined) {
       result.reason = reason;
+    }
+    if (arrangements !== undefined) {
+      result.arrangements = arrangements;
     }
     if (accepted.length > 0) {
       result.pack = await assemblePack({
@@ -920,7 +1003,7 @@ export function createGenerationClient(pool, options = {}) {
         }),
       }, detail());
     }
-    if (hooks.onCertificate !== undefined && status !== 'cancelled' && reason !== 'time-limit') {
+    if (hooks.onCertificate !== undefined && status !== 'cancelled' && reason !== 'time-limit' && !job.timedOut) {
       queueCertificates(job, set, accepted, hooks);
     }
     return result;

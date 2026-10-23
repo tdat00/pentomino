@@ -220,3 +220,70 @@ Scope: T24 (BQ-1/BQ-2/BQ-3 higher-limit qualification) on HEAD `5948723`; no eng
 | B10 | Full BQ-1/BQ-2 desktop runs | On the reference laptop (B2) with Chrome or Edge, Firefox and Safari on a comparable Mac: serve with `node tools\serve.mjs --port 8080 --prefix /pentomino/` and open `http://localhost:8080/pentomino/tools/bench/?matrix=../../tools/bench/matrices/bq-1.json&auto=matrix&commit=<sha>` (then `bq-2.json`); the memory API additionally needs COOP/COEP headers, otherwise record the per-tab peak by hand. At least 20 seeds (60 for Hell-1 at the largest area) are already encoded; do not reduce them. Node pre-screen as in the task text (`bq-1-node`, `bq-2-node`). Freeze `core`, `generator`, `player` and `tools\bench` during each run. |
 | B11 | BQ-3 phones | Android Chrome and iPhone Safari (B3) on the same seeds: open the same bench page on the phone (the matrix needs a reachable same-origin server, for example the dev machine's LAN address or a temporary deployment; the bench page has no file chooser for phones), run `bq-3.json`, record per-tab memory by hand (Android: Chrome task manager / `chrome://inspect`; iPhone: Safari Web Inspector), keep the phone plugged in and foregrounded, do not spoof the browser. |
 | B12 | Gate update | Only after a complete, reviewed pass: change `core\engine\qualification.js` for that gate (`status: 'pass'`, `report: <repo-relative report>`), update the pinned assertions in `tests\policy.test.js` and `tests\bq-limits.test.js` in the same commit, add the gate lines to `tasks\init-design\check-list.md`, and re-run the affected cells after any implementation change. A completed honest failure is recorded as `fail` with its report and does not change a limit. |
+
+## Owner decision 2026-10-23 and fix round 2
+
+Scope: the product owner answered the D1/D3/D8 question and the T25 version question on 2026-10-23. Nothing is committed (pending orchestrator). HEAD `62c62e0` plus the working-tree changes listed here.
+
+### Decisions
+
+1. **Fewer arrangements than requested is an acceptable outcome.** Owner, verbatim: "nếu tìm được ít hơn 10 cách xếp khác nhau thì chỉ cần hiện số tối đa tìm được, ví dụ 'tìm được 6/6 cách xếp'." (If fewer than 10 different arrangements can be found, just show the maximum found, for example "found 6/6 arrangements".) This is **option 4 of "Options for D1 / D3" in a stricter form**: the shortfall is accepted only when it is *proven* to be the maximum; the generator rules stay as they are.
+2. **Version stays 1.0.0 for the Generator and the Player** ("giữ app version ở 1.0.0 cả generator và player vì chương trình chưa được release bao giờ": the program has never been released). T25's `PLAYER_VERSION = '1.1.0'` is removed; the player footer shows `APP_VERSION` (1.0.0). The progress version 2 format and the reader's tolerance of version 1 records stay (harmless, and the pack format and `generation.app` stamps are untouched); no version string was bumped.
+
+### What changed
+
+| Area | Change |
+| --- | --- |
+| Engine | New `core\engine\enumerate.js` `enumerateLayouts`: bounded exhaustive enumeration of the distinct arrangements of a piece set (strict `layoutKey`, so symmetric images count once), reported against `known`, the layout keys already used. Result: `exhausted` (every arrangement is in `known`, `total` exact), `more` (an arrangement outside `known` exists; stops at the first), or `limit` (nothing proved). New frozen `ENUMERATION` limits in `policy.js` (250,000,000 placements, 2,500,000 nodes) next to, not inside, `BUDGETS` (pinned by its own test). No generation budget, band, score cap, TIME, LIMITS or gate changed. |
+| Worker | New task kind `enumerateLayouts` (`protocol.js` payload `{ boardRows, pieces, seenLayouts }`, `tasks.js`). It uses no workspace. |
+| Client | `generateBatch` runs the count after a `layouts-not-found` stop, inside the same request: speculative candidates are aborted first, the task runs under the same 115 s watchdog, Cancel terminates it like any task, and a limit, the deadline or a worker fault leaves the shortfall `unproven` without discarding the accepted puzzles. New optional `result.arrangements` (`status`, `total`, `earlier`, `method: cell-backtracking-v1`, `placements`, `nodes`, `solutions`, `elapsedMs`, `why`). The puzzles and keys of a batch are identical with or without it. |
+| UI | `batchShortfall` (generator `jobs.js`, `strings.js`): proven shortfall is an `info` notice with **Generate new piece set** as the secondary action; unproven keeps the warning; a new `enumerate` progress stage. |
+| CLI | `tools\generate.mjs`: proven shortfall exits 0 with the N/M message; every other shortfall keeps exit 2. |
+| Bench | `report.js`: `RunRecord` gains `layoutsExhausted`, `layoutTotal`, `layoutMethod`, `layoutStatus`, `layoutEnumPlacements`, `layoutEnumMs` (old records stay valid and count as unproven); criterion 2 counts a run when it returned ten puzzles **or** `returnedEveryArrangement` (proven, `layoutTotal === acceptedCount`, reason `layouts-not-found`, no errors); cells and Markdown show the strict ten count, the combined rate and the new arrangement table; `runner.js` fills the fields; `SOURCE_FILES` includes `enumerate.js`. |
+| Player | `PLAYER_VERSION` removed, footer uses `APP_VERSION`. |
+
+Exact wording (English UI; `{n}` accepted puzzles, `{total}` distinct arrangements of the set, `{level}` the level label):
+
+- Proven, nothing used before: `Found {n}/{total} arrangements, the most this piece set allows. Generate a new piece set for more {level} puzzles.` (for example "Found 6/6 arrangements, the most this piece set allows.").
+- Proven, earlier requests used some: `Found {n}/{n} remaining arrangements ({total} in total), the most this piece set has left. Generate a new piece set for more {level} puzzles.`
+- Proven, none left: `This piece set has no arrangements left: all {total} have been used. Generate a new piece set for more {level} puzzles.`
+- An unused arrangement exists (proven) but the search did not turn it into a puzzle: `Found {n} of {q} different {level} puzzles. This piece set has more arrangements, but none gave another {level} puzzle in the search. Try again, or generate a new piece set for more.` (warning).
+- Not proven (limit, deadline, fault): `Found {n} of {q} different {level} puzzles; no more were found. This piece set may allow only a few different arrangements — generate a new piece set for more.` (warning; no maximum is claimed).
+- CLI stderr: `generate: found 6/6 arrangements, the most this piece set allows (complete)` (exit 0); `found 7 of 10 Very easy puzzles (layouts-not-found: this piece set has more arrangements, but none gave another puzzle in the search)` or `... no more were found, and it could not be proved that this piece set has no further arrangements` (exit 2).
+
+Arrangements and puzzles are the same thing here: a puzzle is accepted only with a layout key not used before, so "found N/M arrangements" means N puzzles from M possible layouts. An arrangement can exist without an in-band clue set; that case is the "more" wording above, never "N/M".
+
+### Method note (why a dedicated search)
+
+The first version counted with the exact-cover model (DLX). It was correct, but one DLX trial on the large-piece sets costs as much as the model (about 800,000 links): irregular 466 Master seed 3 needed 16.8 s (12,898 row trials) and a fixed row cap could not bound the wait. The shipped search is a first-empty-cell backtracker: the piece that covers the first empty cell has it as its own first cell, so a node tries each (piece, orientation) once; identical shapes are used in index order (no permutation duplicates); after each placement every empty region next to it must hold the smallest unused piece. It agreed with the DLX count on all 41 shortfalls of the table below (same `exhausted`/`more` outcome and totals) and is checked against the exact-cover model in `tests\enumerate.test.js`. Master seed 3 now takes about 2.7 s. Its limits are search steps, so every host gives the same answer; the worst wait before an `unproven` answer is about 9 s on this machine (placement limit), scaling with CPU speed, always inside the 115 s watchdog.
+
+### Re-measurement (T23 repro commands, Node v24.21.0, 4 workers, fresh process per row, 20 seeds)
+
+`bq-2026-10-23-0-fix2-node-irr466.{json,md}` and `bq-2026-10-23-0-fix2-node-6x10.{json,md}`. Every row's result digest and accepted count equals the T23 row of the same seed (100 of 100: `bq-2026-10-22-0-node-irr466-lower.json`, `...-6x10-low.json`), so generated puzzles are unchanged.
+
+| Cell | Ten (strict, as before) | Shortfalls | Proven-exhausted | More (unused arrangement exists) | Unproven | **Criterion 2 (ten or proven-all)** | Enumeration time median / max | Placements median / max | Max response |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| dirr466-hard | 2/20 | 18 | 18 | 0 | 0 | **20/20 (100%) pass** | 217 ms / 816 ms | 3.0 M / 18.4 M | 1.9 s |
+| dirr466-expert | 9/20 | 11 | 9 | 2 | 0 | **18/20 (90%) pass** (exactly the limit) | 412 ms / 6,262 ms | 8.2 M / 172.8 M | 8.4 s |
+| dirr466-master | 14/20 | 6 | 4 | 2 | 0 | **18/20 (90%) pass** (exactly the limit) | 2,206 ms / 7,358 ms | 58.0 M / 199.8 M | 8.6 s |
+| d6x10-very-easy | 16/20 | 4 | 3 | 1 | 0 | **19/20 (95%) pass** | 82 ms / 89 ms | 75.5 k / 905 k | 0.8 s |
+| d6x10-easy | 18/20 | 2 | 2 | 0 | 0 | **20/20 (100%) pass** | 108 ms / 127 ms | 655 k / 1.07 M | 0.7 s |
+
+Totals: 41 shortfalls, 36 proven-exhausted (totals 1, 2, 4 and 8 on irregular 466; 8 and 9 on 6x10), 5 "more" (unproven for the criterion: they still fail), 0 unproven by a limit. Expert and Master sit exactly on the 90% line (18/20), so a different seed list could fail them; the 5 "more" cases are the real remaining gap (below). Cancel probes 6-15 ms; a Cancel during the count settles in about 0.13 s including pack assembly (scratch measurement, Expert seed 14).
+
+Edge subset (`bq-2026-10-23-0-fix2-edge156.{json,md}`, matrix `bq-2026-10-23-0-fix2-edge.matrix.json`; Edge 156 headless on `?matrix=...&auto=matrix`, 27 rows): 3-4 **hand-picked shortfall seeds** per irregular/6x10 cell plus d22x22-hard 3 seeds. These are selected failing seeds, not a rate sample, so the report's per-cell verdicts for them mean nothing. What it shows: the count runs in the worker (Edge: Hard 192-472 ms, Expert 129-6,384 ms, Master 927-7,503 ms, 6x10 51-100 ms), **0 long tasks over 50 ms in all 27 rows**, Cancel 0.7-3.6 ms, 22x22 Hard 3/3 ten puzzles with T10 438-666 ms (BQ-0 Edge A: 542-938 ms) and no enumeration, outcomes agree with Node (`exhausted` 4/8, `more` on the same seeds).
+
+### Still open
+
+- **The 5 "more" shortfalls (irr466 Expert seeds 8 and 9, Master 13 and 18, 6x10 Very Easy seed 5):** the enumeration proves an unused arrangement exists, but the fold (local re-tiling and restarts) never reached it, or it yields no in-band clue set. Under the owner's rule they stay failures. A completion pass that takes the next unused enumerated arrangement as a candidate would turn most of them into puzzles without relaxing anything, but it changes what a failing batch returns (new algorithm path, determinism and fixture review); not done without the owner.
+- **D8 (irregular 558/658, BQ-1/2/3) and the full 43-cell BQ-0 on all platforms are not re-run** (this round measured only the five cells above on Node and Edge). The same mechanism and criterion apply, so they must be re-run with at least 20 seeds before any gate changes. `calibration-reference.js` (T21 landscape criterion 1, "90% of requests complete ten in-band puzzles") is a design-calibration criterion and was left as it is; the owner decision text names BQ criterion 2 only.
+- D2/D4/D6/D9/R1-R3 are unchanged.
+
+### Verification (this round)
+
+| Command | Result |
+| --- | --- |
+| `node --test "tests/**/*.test.js"` | 783 pass, 0 fail (768 before this work; new: `tests\enumerate.test.js`, enumeration cases in tasks, generation-client, generator-controller, benchmark-report, calibration, policy, protocol, cli tests) |
+| `npm run check` / `node tools\record-fixtures.mjs --check` | OK / OK (no fixture re-recorded; no `ALGO_ID` change) |
+| Headless Edge 156 (CDP, `tools\serve.mjs`, 1280x900): `generator-flow.html`, `player-import.html`, `player-controls.html`, `hints.html`, `acceptance.html`, `generator-editor.html`, `rendering.html` | 13/13 (new flow: 7x5 Easy "demo" shows "Found 2/2 arrangements...", then "no arrangements left"), 18/18, 25/25, 10/10, 15 pass + 4 blocked, 24/24, 15/15; no console error or failed request (`player-import` needs a viewport of about 1280x900; a default headless window fails two layout checks, unrelated to this change) |
+

@@ -9,11 +9,12 @@
 import { boardFromRows } from './board.js';
 import { certify } from './clues.js';
 import { rate, UnsatisfiableError } from './difficulty.js';
+import { enumerateLayouts } from './enumerate.js';
 import { GenerationError, puzzleCandidate, setAttempt } from './generate.js';
 import { progressFingerprint } from './keys.js';
 import { packBoard, validatePack } from './pack.js';
 import { parseTaskMessage, validatePayload } from './protocol.js';
-import { BUDGETS } from './policy.js';
+import { BUDGETS, ENUMERATION } from './policy.js';
 import { buildModel, isValidLayout, ModelError, solveFirst } from './tiling.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from './workspace.js';
 
@@ -123,6 +124,21 @@ function verifyPack(input, execution) {
 }
 
 /**
+ * Counts the distinct arrangements of a piece set against the layout keys already used, within the
+ * ENUMERATION limits (owner decision 2026-10-23). It needs no workspace; a limit is "unproven".
+ * @param {{ boardRows: string[], pieces: import('./types.js').Piece[], seenLayouts: string[] }} p
+ * @returns {{ status: 'exhausted' | 'more' | 'unproven', total: number, placements: number, nodes: number,
+ *   solutions: number, why?: string }}
+ */
+function enumerateArrangements(p) {
+  const { limit, status, ...counts } = enumerateLayouts(boardFromRows(p.boardRows), p.pieces, new Set(p.seenLayouts), {
+    placementLimit: ENUMERATION.placements,
+    nodeLimit: ENUMERATION.nodes,
+  });
+  return status === 'limit' ? { ...counts, status: 'unproven', why: `${limit}-limit` } : { ...counts, status };
+}
+
+/**
  * Runs one task synchronously with the caller's workspaces. The payload is
  * validated again here, so a malformed payload never reaches engine code even
  * when a host skips the message layer. Results are the exact engine results
@@ -171,6 +187,8 @@ export function executeTask(kind, payload, execution) {
       const model = buildModel(boardFromRows(p.boardRows), p.pieces, p.clues, execution.main);
       return solveFirst(model, { rowTrialLimit: p.rowLimit, onProgress: trialProgress(execution) });
     }
+    case 'enumerateLayouts':
+      return enumerateArrangements(p);
     default:
       throw new TaskError('invalid-task', 'Unknown task kind');
   }

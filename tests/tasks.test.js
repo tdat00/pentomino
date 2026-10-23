@@ -6,10 +6,11 @@ import { boardFromRows, boardToRows } from '../core/engine/board.js';
 import { certify } from '../core/engine/clues.js';
 import { rate } from '../core/engine/difficulty.js';
 import { puzzleCandidate, setAttempt } from '../core/engine/generate.js';
+import { layoutKey } from '../core/engine/keys.js';
 import { createPack } from '../core/engine/pack.js';
 import { parseWorkerMessage } from '../core/engine/protocol.js';
 import { createTaskHandler, errorReply, executeTask, TaskError } from '../core/engine/tasks.js';
-import { buildModel, isValidLayout, solveFirst } from '../core/engine/tiling.js';
+import { buildModel, isValidLayout, rowPose, solveFirst } from '../core/engine/tiling.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
 import { CLASSIC_PENTOMINOES } from './fixtures/polyominoes.js';
 import { RECIPE_BOARD_ROWS, recipeWitness } from './fixtures/clue-recipes.js';
@@ -108,6 +109,25 @@ describe('executeTask returns exact engine results', () => {
     const run = { ...execution(), onProgress: (/** @type {any} */ p) => events.push(p) };
     executeTask('solveFirst', { boardRows: rows, pieces, clues: [], rowLimit: 2000000, maxSolutions: 1 }, run);
     assert.ok(events.every((e) => e.stage === 'search' && e.rowTrials > 0));
+  });
+
+  test('enumerateLayouts reports exhausted and more outcomes with wire-safe results', () => {
+    const board45 = Array(4).fill('#'.repeat(5));
+    const four = ['F', 'L', 'U', 'Y'].map((id) => /** @type {typeof pieces[number]} */ (pieces.find((p) => p.id === id)));
+    const direct = /** @type {any} */ (executeTask('enumerateLayouts', { boardRows: board45, pieces: four, seenLayouts: [] }, execution()));
+    assert.equal(direct.status, 'more');
+    assert.deepEqual(structuredClone(direct), direct);
+    const ws = createWorkspace(MAIN_WORKSPACE_BYTES);
+    const found = /** @type {Pose[][]} */ ([]);
+    const model = buildModel(boardFromRows(board45), four, [], ws);
+    model.cover.solve({ maxSolutions: Infinity, onSolution: (rowsChosen) => {
+      found.push(Array.from(rowsChosen, (r) => rowPose(model, r)));
+    } });
+    const keys = [...new Set(found.map((layout) => layoutKey(boardFromRows(board45), four, layout)))];
+    const exhausted = /** @type {any} */ (executeTask('enumerateLayouts', { boardRows: board45, pieces: four, seenLayouts: keys }, execution()));
+    assert.equal(exhausted.status, 'exhausted');
+    assert.equal(exhausted.total, 3);
+    assert.equal(exhausted.why, undefined);
   });
 
   test('malformed payloads and unknown kinds never reach the engine', () => {

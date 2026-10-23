@@ -653,6 +653,17 @@ function fillRecord(run, s, spec, caseDef, certificatesAwaited) {
   if (run.partialReason === null && kept.length < QUANTITY && s.batch !== null) {
     run.partialReason = 'invalid-accepted';
   }
+  const arrangements = s.batch?.arrangements;
+  if (arrangements !== undefined) {
+    run.layoutStatus = arrangements.status;
+    run.layoutMethod = arrangements.method;
+    run.layoutEnumPlacements = arrangements.placements;
+    run.layoutEnumMs = arrangements.elapsedMs;
+    if (arrangements.status === 'exhausted') {
+      run.layoutsExhausted = true;
+      run.layoutTotal = arrangements.total ?? null;
+    }
+  }
   if (spec.probeKind === 'cancel') {
     describeCancelProbe(run, s);
   }

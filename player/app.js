@@ -4,7 +4,7 @@
 // user data is rendered with `textContent`; engine work never runs on this
 // thread except the pure game model.
 
-import { PLAYER_VERSION } from '../core/engine/version.js';
+import { APP_VERSION } from '../core/engine/version.js';
 import { el } from '../core/browser/dom.js';
 import { browserStorage } from '../core/browser/storage.js';
 import { shouldOfferStraighten } from '../core/browser/svg-board.js';
@@ -150,7 +150,7 @@ export function mountPlayer(root, env = {}) {
   const gameScreen = el('div', { className: 'game', attrs: { hidden: '' } },
     el('h1', { className: 'sr-only', text: LABELS.appName }), topbar, statusHost, trayHost, boardWrap, toolbarHost, winHost);
   const importHost = el('div', { className: 'import-host', dataset: { host: 'import' } });
-  const version = el('p', { className: 'version' }, 'Version ', el('span', { text: PLAYER_VERSION, attrs: { 'data-app-version': '' } }));
+  const version = el('p', { className: 'version' }, 'Version ', el('span', { text: APP_VERSION, attrs: { 'data-app-version': '' } }));
   root.replaceChildren(gameScreen, importHost, version, live);
   root.classList.add('player');
 

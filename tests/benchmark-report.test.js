@@ -62,6 +62,55 @@ describe('qualification checks', () => {
     assert.equal(allFirst.rates.atLeastOne, 1);
   });
 
+  test('criterion 2 (owner decision 2026-10-23): ten puzzles, or every arrangement that an exhaustive count proved; nothing else', () => {
+    const proven = (/** @type {number} */ n, over = {}) => ({
+      acceptedCount: n, tenthReadyMs: null, partialReason: 'layouts-not-found', layoutsExhausted: true, layoutTotal: n,
+      layoutMethod: 'cell-backtracking-v1', layoutStatus: /** @type {const} */ ('exhausted'), layoutEnumPlacements: 40, layoutEnumMs: 12, ...over,
+    });
+    const rows = (/** @type {number} */ bad, /** @type {Partial<import('../tools/bench/report.js').RunRecord>} */ shortfall) => [
+      ...many(20 - bad, () => ({})), ...Array.from({ length: bad }, (_, i) => run({ rep: 20 - bad + i, ...shortfall })),
+    ];
+    const pass = evaluateCell(rows(5, proven(6)));
+    assert.equal(checkOf(pass, 'complete-ten-rate').status, 'pass');
+    assert.equal(pass.rates.completeTen, 0.75, 'the strict ten rate is still reported');
+    assert.equal(pass.rates.tenOrEveryArrangement, 1);
+    assert.deepEqual([pass.runs.complete, pass.runs.exhausted], [15, 5]);
+    assert.equal(pass.t10.n, 15, 'T10 stays conditional on runs that reached ten');
+    assert.equal(pass.arrangements.exhausted, 5);
+    assert.equal(pass.arrangements.method, 'cell-backtracking-v1');
+
+    const failing = [
+      proven(6, { layoutsExhausted: false, layoutTotal: null, layoutStatus: 'more' }),
+      proven(6, { layoutsExhausted: false, layoutTotal: null, layoutStatus: 'unproven' }),
+      proven(6, { layoutTotal: 7 }),
+      proven(6, { partialReason: 'difficulty-not-found' }),
+      proven(6, { errors: [{ phase: 'validation', code: 'invalid-puzzle', message: 'x' }] }),
+      proven(0, { layoutTotal: 0 }),
+      { acceptedCount: 6, tenthReadyMs: null, partialReason: 'layouts-not-found' },
+    ];
+    for (const shortfall of failing) {
+      const cell = evaluateCell(rows(5, shortfall));
+      assert.equal(checkOf(cell, 'complete-ten-rate').status, 'fail', JSON.stringify(shortfall));
+      assert.equal(cell.runs.exhausted, 0);
+    }
+    const md = renderMarkdown(buildReport({ kind: 'node', profile: 'P', sourceCommit: 'c', sourceDigest: 'd', versions: {}, platform: 'p',
+      browserOrNode: 'node v24', workerCount: 4, lifecycle: 'cold', matrixDigest: 'm', startedAt: 's', finishedAt: 'f', expectedRuns: 20 },
+    rows(5, proven(6))));
+    assert.match(md, /Ten or proven-all/);
+    assert.match(md, /5 proven-all/);
+    assert.match(md, /owner decision 2026-10-23/);
+    assert.match(md, /Arrangement counts after layouts-not-found/);
+  });
+
+  test('records written before the arrangement fields still validate and count as unproven', () => {
+    const { layoutsExhausted, layoutTotal, layoutMethod, layoutStatus, layoutEnumPlacements, layoutEnumMs, ...old } = run({ acceptedCount: 4 });
+    assert.deepEqual(validateRunRecord(old), []);
+    assert.ok(validateRunRecord({ ...old, layoutsExhausted: 'yes' }).length > 0);
+    const cell = evaluateCell([/** @type {any} */ (old)]);
+    assert.equal(cell.runs.exhausted, 0);
+    assert.equal(cell.arrangements.enumerated, 0);
+  });
+
   test('T10 percentiles are conditional on completed runs and labelled so', () => {
     const cell = evaluateCell([...many(18, (i) => ({ tenthReadyMs: 1000 + i })), ...many(2, () => ({ acceptedCount: 3, tenthReadyMs: null }))]);
     assert.equal(cell.t10.conditional, true);

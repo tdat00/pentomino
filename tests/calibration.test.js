@@ -11,8 +11,8 @@ import {
   aggregateLandscape, boardId, buildLandscapeMatrix, checkLandscapeBoards, checkSetPolicy, deterministicBoard, initialG,
   landscapeBoards, rectRows, REFERENCE_ROWS, referenceFor, referencePolicyAgreement, sampleCounts,
 } from '../tools/bench/calibration-reference.js';
-import { newRunRecord } from '../tools/bench/report.js';
-import { validateMatrix } from '../tools/bench/runner.js';
+import { newRunRecord, evaluateCell, returnedEveryArrangement, validateRunRecord } from '../tools/bench/report.js';
+import { releaseHost, runCase, validateMatrix } from '../tools/bench/runner.js';
 import { createNodeHost, loadMatrix, parseArgs, readCheckpoint, reportBase, run, runInChild } from '../tools/calibrate.mjs';
 
 const recipe = JSON.parse(readFileSync(new URL('./fixtures/generation-case.json', import.meta.url), 'utf8'));
@@ -335,6 +335,31 @@ describe('Node runner end to end', () => {
     assert.equal(row.measurementValid, false);
     assert.equal(row.acceptedCount, 0);
     assert.match(row.partialReason ?? '', /child-timeout/);
+  });
+
+  test('a proven-exhausted shortfall is recorded with its arrangement count and meets criterion 2; an unproven one does not', async () => {
+    const source = { commit: 'c', digest: 'd', versions: {} };
+    const host = createNodeHost({ workers: 2, lifecycle: 'cold', freshProcess: false, source });
+    const caseDef = {
+      id: 'd7x5-easy', boardRows: Array(5).fill('#'.repeat(7)), rotation: 0, levelId: 'easy', maxActive: 676, quantity: 10,
+      uniqueness: /** @type {const} */ ('any'), seedPrefix: 'owner', repetitions: 1,
+    };
+    const spec = { caseId: caseDef.id, rep: 0, seed: 'demo', probeKind: /** @type {const} */ ('generation') };
+    try {
+      const row = await runCase(spec, caseDef, host);
+      assert.deepEqual([row.acceptedCount, row.partialReason, row.layoutsExhausted, row.layoutTotal, row.layoutStatus, row.layoutMethod],
+        [2, 'layouts-not-found', true, 2, 'exhausted', 'cell-backtracking-v1']);
+      assert.ok(typeof row.layoutEnumPlacements === 'number' && row.layoutEnumPlacements > 0 && typeof row.layoutEnumMs === 'number');
+      assert.deepEqual(validateRunRecord(row), []);
+      assert.equal(returnedEveryArrangement(row), true);
+      assert.equal(evaluateCell([row]).runs.exhausted, 1);
+      const open = await runCase({ ...spec, seed: 'bq0/d6x10-very-easy/5' },
+        { ...caseDef, id: 'd6x10-very-easy', boardRows: Array(6).fill('#'.repeat(10)), levelId: 'very-easy' }, host);
+      assert.deepEqual([open.acceptedCount, open.layoutsExhausted, open.layoutStatus], [7, false, 'more']);
+      assert.equal(returnedEveryArrangement(open), false);
+    } finally {
+      releaseHost(host);
+    }
   });
 
   test('the landscape profile samples distinct clue counts of the validated witness after the timed interval', async () => {

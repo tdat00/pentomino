@@ -388,6 +388,79 @@ describe('batch requests', () => {
     assert.equal(h.tasks.filter((t) => t.payload.slot === 2).length, 12);
   });
 
+  test('layouts-not-found counts the arrangements: exhausted gives the exact total, history included', async () => {
+    const counted = { status: 'exhausted', total: 3, placements: 400, nodes: 30, solutions: 12 };
+    const h = harness({
+      handler: (t) => (t.kind === 'enumerateLayouts' ? { value: counted } : t.payload.slot <= 3 ? scripted(t) : { value: { fail: 'layout' } }),
+    });
+    const result = await clientOf(h).generateBatch(batchInput());
+    assert.deepEqual([result.status, result.reason, result.accepted.length], ['partial', 'layouts-not-found', 3]);
+    assert.equal(result.arrangements?.status, 'exhausted');
+    assert.equal(result.arrangements?.total, 3);
+    assert.equal(result.arrangements?.earlier, 0);
+    assert.equal(result.arrangements?.method, 'cell-backtracking-v1');
+    assert.equal(result.arrangements?.placements, 400);
+    assert.equal(result.pack?.puzzles.length, 3);
+    const asked = h.tasks.filter((t) => t.kind === 'enumerateLayouts');
+    assert.equal(asked.length, 1);
+    assert.deepEqual(asked[0].payload.seenLayouts, result.seenLayouts, 'the whole history, accepted keys included, is the known set');
+    assert.equal(asked[0].payload.pieces.length, fixture().set.pieces.length);
+
+    const bigger = harness({
+      handler: (t) => (t.kind === 'enumerateLayouts' ? { value: { ...counted, total: 5 } } : t.payload.slot <= 3 ? scripted(t) : { value: { fail: 'layout' } }),
+    });
+    const used = await clientOf(bigger).generateBatch(batchInput({ batchIndex: 2 }));
+    assert.deepEqual([used.arrangements?.total, used.arrangements?.earlier], [5, 2], 'two of the five were used by earlier batches');
+  });
+
+  test('an unused arrangement, a limit, a fault or a deadline never claims a maximum', async () => {
+    /** @param {(t: Task) => Outcome | undefined} count */
+    const hold = (count) => harness({
+      handler: (t) => (t.kind === 'enumerateLayouts' ? count(t) : t.payload.slot <= 3 ? scripted(t) : { value: { fail: 'layout' } }),
+    });
+    const more = await clientOf(hold(() => ({ value: { status: 'more', total: 1, placements: 7, nodes: 3, solutions: 2 } }))).generateBatch(batchInput());
+    assert.equal(more.arrangements?.status, 'more');
+    assert.equal(more.arrangements?.total, undefined);
+    const limit = await clientOf(hold(() => ({ value: { status: 'unproven', total: 0, placements: 90, nodes: 9, solutions: 0, why: 'placements-limit' } }))).generateBatch(batchInput());
+    assert.deepEqual([limit.arrangements?.status, limit.arrangements?.why], ['unproven', 'placements-limit']);
+    const crashed = await clientOf(hold(() => ({ error: 'internal' }))).generateBatch(batchInput());
+    assert.deepEqual([crashed.status, crashed.reason, crashed.accepted.length], ['partial', 'layouts-not-found', 3]);
+    assert.deepEqual([crashed.arrangements?.status, crashed.arrangements?.why], ['unproven', 'error']);
+    const garbage = await clientOf(hold(() => ({ value: { status: 'exhausted', total: 2 } }))).generateBatch(batchInput());
+    assert.equal(garbage.arrangements?.status, 'unproven', 'a total below the accepted count is not believed');
+
+    const slow = hold(() => undefined);
+    const waiting = track(clientOf(slow).generateBatch(batchInput()));
+    await settle();
+    assert.equal(waiting.state, 'pending');
+    slow.clock.advance(115000);
+    await settle();
+    assert.deepEqual([waiting.value.status, waiting.value.reason, waiting.value.accepted.length], ['partial', 'layouts-not-found', 3]);
+    assert.deepEqual([waiting.value.arrangements.status, waiting.value.arrangements.why], ['unproven', 'deadline']);
+  });
+
+  test('cancel during the arrangement count returns the accepted prefix as cancelled', async () => {
+    const h = harness({
+      handler: (t) => (t.kind === 'enumerateLayouts' ? undefined : t.payload.slot <= 3 ? scripted(t) : { value: { fail: 'layout' } }),
+    });
+    const client = clientOf(h);
+    const result = track(client.generateBatch(batchInput()));
+    await settle();
+    assert.equal(h.tasks.filter((t) => t.kind === 'enumerateLayouts').length, 1);
+    client.cancel();
+    await settle();
+    assert.deepEqual([result.value.status, result.value.reason, result.value.accepted.length, result.value.arrangements], ['cancelled', undefined, 3, undefined]);
+    assert.equal(result.value.pack.puzzles.length, 3);
+  });
+
+  test('other partial reasons never run the arrangement count', async () => {
+    const h = harness({ handler: (t) => (t.payload.slot === 1 ? scripted(t) : { value: { fail: 'not-in-band' } }) });
+    const result = await clientOf(h).generateBatch(batchInput({ quantity: 2 }));
+    assert.equal(result.reason, 'difficulty-not-found');
+    assert.equal(result.arrangements, undefined);
+    assert.ok(h.tasks.every((t) => t.kind !== 'enumerateLayouts'));
+  });
+
   test('cancel keeps the accepted prefix and its history', async () => {
     const h = harness({ handler: (t) => scripted(t) });
     const client = clientOf(h);

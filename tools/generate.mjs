@@ -7,8 +7,10 @@
 //   node tools/generate.mjs --recipe tests/fixtures/generation-case.json --workers 1
 //
 // Only the pack JSON goes to stdout (or to --output); progress and errors go to
-// stderr. Exit 0 = complete, 2 = valid partial or cancelled pack, 1 = no usable
-// result or invalid input. A batch is always generated with an empty history:
+// stderr. Exit 0 = complete (ten of ten, or every arrangement of the piece set
+// when it has fewer than requested: "found 6/6 arrangements"), 2 = valid partial
+// or cancelled pack (including a shortfall that could not be proved to be the
+// maximum), 1 = no usable result or invalid input. A batch is always generated with an empty history:
 // `--batch-index N` selects the seed `<seed>#N`, nothing replays earlier batches.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
@@ -51,7 +53,7 @@ options   --count 1-10 (default 5)   --seed <text> (default: random)   --uniquen
           --workers 1-4 (default: cores, at most 4)   --batch-index N (default 1)
           --max-active 30-676 (default ${DEFAULT_MAX_ACTIVE})   --output <file>
 A recipe fixes every semantic input; only --workers, --max-active and --output may accompany it.
-Exit codes: 0 complete, 2 valid partial or cancelled pack, 1 no usable result or invalid input.
+Exit codes: 0 complete (all requested puzzles, or every arrangement of a piece set that has fewer), 2 valid partial or cancelled pack, 1 no usable result or invalid input.
 `;
 
 /**
@@ -370,7 +372,7 @@ export function packText(pack) {
 }
 
 const REASONS = /** @type {Record<string, string>} */ ({
-  'layouts-not-found': 'this piece set may allow only a few different arrangements',
+  'layouts-not-found': 'no more were found, and it could not be proved that this piece set has no further arrangements',
   'difficulty-not-found': 'other arrangements of this piece set did not reach the level',
   'uniqueness-not-proved': 'uniqueness could not be proved for further arrangements',
   'time-limit': 'the time limit was reached',
@@ -490,7 +492,16 @@ export async function run(argv, overrides = {}) {
     if (batch.status === 'complete') {
       return 0;
     }
-    const why = batch.reason === undefined ? batch.status : `${batch.reason}: ${REASONS[batch.reason] ?? batch.reason}`;
+    const arrangements = batch.reason === 'layouts-not-found' ? batch.arrangements : undefined;
+    if (arrangements?.status === 'exhausted' && arrangements.total !== undefined) {
+      const n = batch.accepted.length;
+      io.stderr((arrangements.earlier ?? 0) > 0
+        ? `generate: found ${n}/${n} remaining arrangements (${arrangements.total} in total), the most this piece set has left (complete)\n`
+        : `generate: found ${n}/${arrangements.total} arrangements, the most this piece set allows (complete)\n`);
+      return 0;
+    }
+    const detail = arrangements?.status === 'more' ? 'this piece set has more arrangements, but none gave another puzzle in the search' : REASONS[batch.reason ?? ''];
+    const why = batch.reason === undefined ? batch.status : `${batch.reason}: ${detail ?? batch.reason}`;
     io.stderr(`generate: found ${batch.accepted.length} of ${config.quantity} ${label} puzzles (${why})\n`);
     return 2;
   } catch (e) {

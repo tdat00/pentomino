@@ -530,7 +530,8 @@ export async function run(argv, overrides = {}) {
       onStart: (spec, index, total) => io.stderr(`[${index + 1}/${total}] ${spec.probeKind} ${spec.caseId} #${spec.rep} seed ${spec.seed}\n`),
       onRun: (record) => {
         io.stderr(`    accepted ${record.acceptedCount}/10, T10 ${record.tenthReadyMs ?? 'n/a'} ms, response ${Math.round(record.responseMs)} ms`
-          + `${record.partialReason === null ? '' : `, ${record.partialReason}`}\n`);
+          + `${record.partialReason === null ? '' : `, ${record.partialReason}`}`
+          + `${record.layoutStatus == null ? '' : ` (arrangements ${record.layoutStatus}${record.layoutTotal === null ? '' : ` ${record.layoutTotal}`}, ${Math.round(record.layoutEnumMs ?? 0)} ms)`}\n`);
         if (!record.interrupted) {
           appendFileSync(checkpoint, `${JSON.stringify({ kind: 'run', run: record })}\n`);
         }

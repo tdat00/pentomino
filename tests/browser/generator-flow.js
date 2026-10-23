@@ -341,6 +341,33 @@ await check('real engine: Cancel keeps the set and any accepted puzzles, and a l
   }
 });
 
+await check('real engine: a 7x5 Easy set with two arrangements reports "Found 2/2 arrangements" as a complete outcome, then no arrangements left', async () => {
+  const ctx = mountApp();
+  try {
+    assert(ctx.app.editor.resize(7, 5), 'board resized');
+    chooseLevel(ctx, 'easy');
+    setField(ctx, '[data-field="seed"]', 'demo');
+    q(ctx, '[data-action="generate-set"]').click();
+    await waitFor(() => state(ctx).set !== null && state(ctx).job === null, 'the piece set', 120000);
+    setField(ctx, '[data-field="quantity"]', '10');
+    q(ctx, '[data-action="new-puzzles"]').click();
+    await waitFor(() => state(ctx).job === null && state(ctx).batchIndex === 1, 'the batch', 120000);
+    equal(state(ctx).puzzles.length, 2, 'both arrangements became puzzles');
+    const notice = q(ctx, '[data-role="notice"] .notice');
+    equal(notice.textContent, 'Found 2/2 arrangements, the most this piece set allows. Generate a new piece set for more Easy puzzles.', 'notice text');
+    equal(notice.getAttribute('data-code'), 'N-ARRANGEMENTS', 'notice code');
+    assert(notice.classList.contains('notice-info') && !notice.classList.contains('notice-warning') && !notice.classList.contains('notice-error'), `tone: ${notice.className}`);
+    assert(ctx.root.querySelector('[data-action="new-set"]') !== null, 'a new piece set stays available');
+    equal(qa(ctx, '.puzzle-card').length, 2, 'cards stay visible');
+    q(ctx, '[data-action="add-more"]').click();
+    await waitFor(() => state(ctx).job === null && state(ctx).batchIndex === 2, 'the second batch', 120000);
+    equal(state(ctx).puzzles.length, 2, 'nothing new was added');
+    equal(q(ctx, '[data-role="notice"] .notice').textContent, 'This piece set has no arrangements left: all 2 have been used. Generate a new piece set for more Easy puzzles.', 'second notice');
+  } finally {
+    ctx.destroy();
+  }
+});
+
 /**
  * @param {number} i
  * @param {number} [offset]

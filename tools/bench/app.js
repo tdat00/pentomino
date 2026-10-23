@@ -134,7 +134,8 @@ const fmt = (ms) => (ms === null ? 'n/a' : `${Math.round(ms)} ms`);
 /** @param {import('./report.js').RunRecord} run */
 function addRow(run) {
   const cells = [run.probeKind, run.caseId, run.seed, `${run.acceptedCount}/10`, fmt(run.firstReadyMs), fmt(run.tenthReadyMs),
-    fmt(run.responseMs), fmt(run.cancelLatencyMs), `${fmt(run.maxMainTaskMs)} (${run.mainTaskMethod})`, run.partialReason ?? 'complete'];
+    fmt(run.responseMs), fmt(run.cancelLatencyMs), `${fmt(run.maxMainTaskMs)} (${run.mainTaskMethod})`,
+    `${run.partialReason ?? 'complete'}${run.layoutStatus == null ? '' : ` (arrangements: ${run.layoutStatus}${run.layoutTotal === null ? '' : ` ${run.layoutTotal}`})`}`];
   byId('rows').append(el('tr', { dataset: { valid: String(run.measurementValid) } }, ...cells.map((text) => el('td', { text }))));
 }
 

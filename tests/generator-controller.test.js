@@ -11,7 +11,7 @@ import { layoutKey } from '../core/engine/keys.js';
 import { packBoard, parsePack, serializePack, validatePack } from '../core/engine/pack.js';
 import { BUDGETS } from '../core/engine/policy.js';
 import { isValidLayout } from '../core/engine/tiling.js';
-import { createJobController } from '../generator/jobs.js';
+import { batchShortfall, createJobController } from '../generator/jobs.js';
 import {
   acceptSet, buildPack, carvingHint, createGeneratorStore, defaultGeneratorState, generationBlock, visiblePack,
 } from '../generator/state.js';
@@ -285,6 +285,38 @@ describe('puzzle batches', () => {
       assert.ok(state.seenLayouts.includes('l1'));
       h.destroy();
     }
+  });
+
+  test('a counted arrangement shortfall reads "Found N/M arrangements" and is not a warning; unproven ones are', async () => {
+    const base = { method: 'cell-backtracking-v1', placements: 10, nodes: 3, solutions: 4, elapsedMs: 5 };
+    const cases = /** @type {const} */ ([
+      [{ ...base, status: 'exhausted', total: 2, earlier: 0 }, 'N-ARRANGEMENTS', 'info',
+        'Found 2/2 arrangements, the most this piece set allows. Generate a new piece set for more Normal puzzles.'],
+      [{ ...base, status: 'exhausted', total: 6, earlier: 4 }, 'N-ARRANGEMENTS', 'info',
+        'Found 2/2 remaining arrangements (6 in total), the most this piece set has left. Generate a new piece set for more Normal puzzles.'],
+      [{ ...base, status: 'more' }, 'N-LAYOUTS-LEFT', 'warning',
+        'Found 2 of 4 different Normal puzzles. This piece set has more arrangements, but none gave another Normal puzzle in the search. Try again, or generate a new piece set for more.'],
+      [{ ...base, status: 'unproven', why: 'placements-limit' }, 'N-FEWLAYOUTS', 'warning',
+        'Found 2 of 4 different Normal puzzles; no more were found. This piece set may allow only a few different arrangements — generate a new piece set for more.'],
+    ]);
+    for (const [arrangements, code, kind, text] of cases) {
+      const client = fakeClient({
+        batch: (input, hooks) => {
+          const puzzles = makePuzzles(2, 50);
+          puzzles.forEach((puzzle, index) => hooks.onAccepted({ revision: input.revision, index, puzzle, accepted: index + 1, quantity: input.quantity }));
+          return { status: 'partial', reason: 'layouts-not-found', accepted: puzzles, seenLayouts: ['l1'], seenClues: ['c1'], arrangements };
+        },
+      });
+      const h = harness({ client, accepted: true, state: { quantity: 4 } });
+      await h.controller.newPuzzles();
+      const { notice, puzzles } = h.store.getState();
+      assert.equal(puzzles.length, 2);
+      assert.deepEqual([notice?.code, notice?.kind, notice?.text], [code, kind, text]);
+      assert.deepEqual(notice?.actions, ['new-set'], 'a new piece set stays available');
+      h.destroy();
+    }
+    assert.equal(batchShortfall('layouts-not-found', { n: 0, q: 4, levelId: 'normal', arrangements: { ...base, status: 'exhausted', total: 6, earlier: 6 } })?.text,
+      'This piece set has no arrangements left: all 6 have been used. Generate a new piece set for more Normal puzzles.');
   });
 
   test('a batch without a single result keeps the earlier batch and still counts the request', async () => {

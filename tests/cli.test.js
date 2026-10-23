@@ -163,12 +163,22 @@ describe('runs', () => {
     }
   });
 
-  test('a usable partial pack exits 2 and reports the shortfall', async () => {
+  test('a piece set with fewer arrangements than requested is a complete result: found N/N arrangements, exit 0', async () => {
     const result = await runCli(['--board', '7x5', '--level', 'easy', '--count', '10', '--seed', 'demo', '--workers', '2']);
+    assert.equal(result.code, 0, result.stderr);
+    const pack = packOf(result.stdout);
+    assert.equal(pack.puzzles.length, 2);
+    assert.match(result.stderr, /generate: found 2\/2 arrangements, the most this piece set allows \(complete\)/);
+    assert.ok(!result.stderr.includes('layouts-not-found'));
+  });
+
+  test('a shortfall that is not proven to be the maximum still exits 2', async () => {
+    // The set has more arrangements than the seven found, so no maximum may be claimed.
+    const result = await runCli(['--board', '10x6', '--level', 'very-easy', '--count', '10', '--seed', 'bq0/d6x10-very-easy/5', '--workers', '2']);
     assert.equal(result.code, 2, result.stderr);
     const pack = packOf(result.stdout);
-    assert.ok(pack.puzzles.length >= 1 && pack.puzzles.length < 10);
-    assert.match(result.stderr, new RegExp(`found ${pack.puzzles.length} of 10 Easy puzzles \\(layouts-not-found`));
+    assert.equal(pack.puzzles.length, 7);
+    assert.match(result.stderr, /found 7 of 10 Very easy puzzles \(layouts-not-found: this piece set has more arrangements/);
   });
 
   test('semantic inputs give the same puzzles for another batch index and rotation', async () => {

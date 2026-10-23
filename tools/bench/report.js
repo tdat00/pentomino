@@ -36,7 +36,7 @@ export const CRITERIA = Object.freeze({
 /** Files whose content identifies the measured code; the same list is hashed by Node and by the browser page. */
 export const SOURCE_FILES = Object.freeze([
   'core/engine/board.js', 'core/engine/carve.js', 'core/engine/clues.js', 'core/engine/difficulty.js',
-  'core/engine/dlx.js', 'core/engine/game.js', 'core/engine/generate.js', 'core/engine/geometry.js',
+  'core/engine/dlx.js', 'core/engine/enumerate.js', 'core/engine/game.js', 'core/engine/generate.js', 'core/engine/geometry.js',
   'core/engine/hash.js', 'core/engine/hints.js', 'core/engine/keys.js', 'core/engine/levels.js', 'core/engine/pack.js',
   'core/engine/palette.js', 'core/engine/placements.js', 'core/engine/policy.js', 'core/engine/protocol.js',
   'core/engine/qualification.js', 'core/engine/rng.js', 'core/engine/sharecode.js', 'core/engine/tasks.js',
@@ -62,6 +62,13 @@ export const SOURCE_FILES = Object.freeze([
  * @property {number} responseMs Click to the final answer of the request.
  * @property {number} acceptedCount Validated, in-band, strictly distinct puzzles.
  * @property {string | null} partialReason
+ * @property {boolean} layoutsExhausted Owner decision 2026-10-23: the piece set's distinct arrangements were counted
+ *   exhaustively and every one of them is among the accepted puzzles (the shortfall is a proven maximum).
+ * @property {number | null} layoutTotal Exact number of distinct arrangements when `layoutsExhausted`.
+ * @property {string | null} layoutMethod Enumeration method (`cell-backtracking-v1`) when an enumeration ran, else null.
+ * @property {'exhausted' | 'more' | 'unproven' | null} layoutStatus Outcome of the enumeration, null when none ran.
+ * @property {number | null} layoutEnumPlacements Candidate placements tried by the enumeration.
+ * @property {number | null} layoutEnumMs Wall time of the enumeration inside the request.
  * @property {number} peakAccountedBytes
  * @property {number | null} peakProcessBytes
  * @property {number} ratingSaturatedCount
@@ -102,6 +109,12 @@ export function newRunRecord(init = {}) {
     responseMs: 0,
     acceptedCount: 0,
     partialReason: null,
+    layoutsExhausted: false,
+    layoutTotal: null,
+    layoutMethod: null,
+    layoutStatus: null,
+    layoutEnumPlacements: null,
+    layoutEnumMs: null,
     peakAccountedBytes: 0,
     peakProcessBytes: null,
     ratingSaturatedCount: 0,
@@ -161,6 +174,12 @@ export function validateRunRecord(run) {
     need(name, isNumOrNull(r[name]));
   }
   need('partialReason', r.partialReason === null || typeof r.partialReason === 'string');
+  // Fields added by the 2026-10-23 owner decision; records written before it simply lack them.
+  need('layoutsExhausted', r.layoutsExhausted === undefined || typeof r.layoutsExhausted === 'boolean');
+  for (const name of ['layoutTotal', 'layoutEnumPlacements', 'layoutEnumMs']) {
+    need(name, r[name] === undefined || isNumOrNull(r[name]));
+  }
+  need('layoutMethod', r.layoutMethod === undefined || r.layoutMethod === null || typeof r.layoutMethod === 'string');
   need('mainTaskMethod', MAIN_TASK_METHODS.includes(r.mainTaskMethod));
   need('probeKind', PROBE_KINDS.includes(r.probeKind));
   need('lifecycle', r.lifecycle === 'cold' || r.lifecycle === 'warm');
@@ -255,6 +274,18 @@ function compare(value, limit, inclusive, side) {
 }
 
 /**
+ * Criterion 2 after the owner decision of 2026-10-23: a run that returned fewer than ten puzzles still counts
+ * when the piece set was proven to have no further arrangement and the run returned every one of them.
+ * An unproven shortfall (`more`, `unproven`, no enumeration) never counts.
+ * @param {RunRecord} run
+ * @returns {boolean}
+ */
+export function returnedEveryArrangement(run) {
+  return run.layoutsExhausted === true && run.partialReason === 'layouts-not-found' && run.errors.length === 0
+    && run.acceptedCount >= 1 && run.acceptedCount < QUANTITY && run.layoutTotal === run.acceptedCount;
+}
+
+/**
  * Qualification statistics and checks of one matrix cell. Ordinary generation
  * rows form every statistic; cancel and scaled-watchdog probes stay separate;
  * interrupted rows are counted but excluded from the denominators.
@@ -269,11 +300,14 @@ export function evaluateCell(runs, options = {}) {
   const watchdogs = runs.filter((r) => r.probeKind === 'scaled-watchdog');
   const n = ordinary.length;
   const complete = ordinary.filter((r) => r.acceptedCount >= QUANTITY);
+  const exhausted = ordinary.filter(returnedEveryArrangement);
+  const criterionTwo = complete.length + exhausted.length;
   const atLeastOne = ordinary.filter((r) => r.acceptedCount >= 1);
   const t10Values = complete.map((r) => r.tenthReadyMs).filter(isNum);
   const t1Values = ordinary.map((r) => r.firstReadyMs).filter(isNum);
   const responses = ordinary.map((r) => r.responseMs).filter(isNum);
   const completeRate = n === 0 ? null : complete.length / n;
+  const criterionTwoRate = n === 0 ? null : criterionTwo / n;
   const atLeastOneRate = n === 0 ? null : atLeastOne.length / n;
   const t10 = { conditional: true, basis: 'runs that completed ten puzzles', ...summarize(t10Values) };
   const nodeOnly = n > 0 && ordinary.every(isNodeRun);
@@ -285,9 +319,10 @@ export function evaluateCell(runs, options = {}) {
 
   /** @type {Check[]} */
   const checks = [];
-  checks.push(check('complete-ten-rate', 'Runs with 10 of 10 puzzles (all ordinary runs)',
-    compare(completeRate, CRITERIA.completeTenRate, true, 'lower'), completeRate, `>= ${CRITERIA.completeTenRate}`,
-    `${complete.length} of ${n}`));
+  checks.push(check('complete-ten-rate',
+    'Runs with 10 of 10 puzzles or every proven-available arrangement (all ordinary runs; criterion 2, owner decision 2026-10-23)',
+    compare(criterionTwoRate, CRITERIA.completeTenRate, true, 'lower'), criterionTwoRate, `>= ${CRITERIA.completeTenRate}`,
+    `${criterionTwo} of ${n}: ${complete.length} with ten + ${exhausted.length} proven-exhausted`));
   checks.push(check('at-least-one-rate', 'Runs with at least 1 puzzle (all ordinary runs)',
     compare(atLeastOneRate, CRITERIA.atLeastOneRate, true, 'lower'), atLeastOneRate, `>= ${CRITERIA.atLeastOneRate}`,
     `${atLeastOne.length} of ${n}`));
@@ -353,14 +388,25 @@ export function evaluateCell(runs, options = {}) {
       certificates[key] += r.certificates[key];
     }
   }
+  const counted = ordinary.filter((r) => r.layoutStatus != null);
+  const countedBy = (/** @type {string} */ status) => counted.filter((r) => r.layoutStatus === status).length;
   return {
     caseId,
     platform: nodeOnly ? 'node' : 'browser-or-mixed',
+    arrangements: {
+      method: counted.find((r) => r.layoutMethod != null)?.layoutMethod ?? null,
+      enumerated: counted.length,
+      exhausted: countedBy('exhausted'),
+      more: countedBy('more'),
+      unproven: countedBy('unproven'),
+      placements: summarize(counted.map((r) => r.layoutEnumPlacements).filter(isNum)),
+      ms: summarize(counted.map((r) => r.layoutEnumMs).filter(isNum)),
+    },
     runs: {
-      ordinary: n, expected, missing: missingRuns, complete: complete.length, atLeastOne: atLeastOne.length,
+      ordinary: n, expected, missing: missingRuns, complete: complete.length, exhausted: exhausted.length, atLeastOne: atLeastOne.length,
       interrupted: generation.length - n, cancelProbes: cancels.length, watchdogProbes: watchdogs.length,
     },
-    rates: { completeTen: completeRate, atLeastOne: atLeastOneRate },
+    rates: { completeTen: completeRate, tenOrEveryArrangement: criterionTwoRate, atLeastOne: atLeastOneRate },
     t1: summarize(t1Values),
     t10,
     response: summarize(responses),
@@ -481,22 +527,36 @@ export function renderMarkdown(report, options = {}) {
   }
   lines.push('', '## Reading guide', '',
     '- Rates use every ordinary run of the cell as denominator; interrupted runs are counted separately and excluded.',
+    '- Criterion 2 (owner decision 2026-10-23): a run counts when it returned ten puzzles OR every arrangement of its piece set, the latter only when an exhaustive enumeration proved there is no other one (`proven-all`). Unproven shortfalls fail. "10 of 10" shows the strict ten count.',
     '- T1 = click to validated piece set plus calibration puzzle. T10 = click to the tenth accepted puzzle, including set carving, pool start-up and the immediate New Puzzles (10).',
     '- T10 median/p95/max are CONDITIONAL: they use only runs that completed ten puzzles (n shown); read them with the completion rates.',
     '- Median = middle value (mean of the two middle values when even); p95 = nearest rank ceil(0.95 n); empty samples show n/a.',
     '- Lazy certificates do not delay T10; their settling time is separate. Cancel and watchdog probes are separate rows.',
     '- "not-measured" means the evidence is missing; it never counts as a pass.', '');
   lines.push('## Cells', '',
-    '| Case | Runs | 10 of 10 | >= 1 | T1 median | T10 median* | T10 p95* | T10 max* | Max response | Peak process | Peak accounted | Verdict |',
-    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
+    '| Case | Runs | 10 of 10 | Ten or proven-all | >= 1 | T1 median | T10 median* | T10 p95* | T10 max* | Max response | Peak process | Peak accounted | Verdict |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
   for (const c of report.cells) {
     const runs = `${c.runs.ordinary}${c.runs.expected === null ? '' : `/${c.runs.expected}`}`;
     lines.push(`| ${c.caseId} | ${runs} | ${c.runs.complete}/${c.runs.ordinary} (${fmtPct(c.rates.completeTen)}) | `
+      + `${c.runs.complete + c.runs.exhausted}/${c.runs.ordinary} (${fmtPct(c.rates.tenOrEveryArrangement)}; ${c.runs.exhausted} proven-all) | `
       + `${c.runs.atLeastOne}/${c.runs.ordinary} (${fmtPct(c.rates.atLeastOne)}) | ${fmtMs(c.t1.median)} | ${fmtMs(c.t10.median)} | `
       + `${fmtMs(c.t10.p95)} | ${fmtMs(c.t10.max)} | ${fmtMs(c.response.max)} | ${fmtMiB(c.peak.processMaxBytes)} | `
       + `${fmtMiB(c.peak.accountedMaxBytes)} | ${c.verdict} |`);
   }
   lines.push('', '\\* conditional on completed runs; n per cell: ' + report.cells.map((c) => `${c.caseId} ${c.t10.n}`).join(', '), '');
+  const counted = report.cells.filter((c) => c.arrangements.enumerated > 0);
+  if (counted.length > 0) {
+    lines.push('## Arrangement counts after layouts-not-found (owner decision 2026-10-23)', '',
+      `Method: ${counted[0].arrangements.method}; exhaustive, symmetry-reduced (strict layout keys), bounded by placement and node caps. `
+      + '"proven-all": every arrangement was returned; "more": an unused arrangement exists (shortfall is not a maximum); "unproven": a cap or the deadline stopped the count.', '',
+      '| Case | Counted | proven-all | more | unproven | Placements median / max | Time median / max |', '| --- | --- | --- | --- | --- | --- | --- |');
+    for (const c of counted) {
+      const a = c.arrangements;
+      lines.push(`| ${c.caseId} | ${a.enumerated} | ${a.exhausted} | ${a.more} | ${a.unproven} | ${a.placements.median} / ${a.placements.max} | ${fmtMs(a.ms.median)} / ${fmtMs(a.ms.max)} |`);
+    }
+    lines.push('');
+  }
   if (detail) {
     lines.push('## Criteria checks', '', '| Case | Check | Status | Value | Limit | Note |', '| --- | --- | --- | --- | --- | --- |');
     for (const c of report.cells) {

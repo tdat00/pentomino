@@ -41,6 +41,7 @@ const PAYLOADS = {
   rate: () => ({ boardRows: rows, pieces, clues: [pose] }),
   verifyPack: () => ({ pack: { anything: 1 } }),
   solveFirst: () => ({ boardRows: rows, pieces, clues: [], rowLimit: MAX_ROW_LIMIT, maxSolutions: 1 }),
+  enumerateLayouts: () => ({ boardRows: rows, pieces, seenLayouts: ['a', 'b'] }),
 };
 
 /**

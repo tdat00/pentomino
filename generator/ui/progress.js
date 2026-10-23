@@ -24,7 +24,7 @@ export function formatElapsed(ms) {
  */
 export function describeStage(job) {
   const stage = /** @type {Record<string, string>} */ (STAGE_TEXT)[job.stage] ?? STAGE_TEXT.memory;
-  if (job.stage === 'cancelling') {
+  if (job.stage === 'cancelling' || job.stage === 'enumerate') {
     return stage;
   }
   if (job.kind === 'batch') {

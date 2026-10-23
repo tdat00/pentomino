@@ -14,7 +14,7 @@ import { normalizeSeedText } from './rng.js';
 /** @typedef {import('./types.js').Pose} Pose */
 /** @template T @typedef {import('./types.js').Result<T>} Result */
 
-/** @typedef {'setAttempt' | 'puzzleCandidate' | 'certify' | 'rate' | 'verifyPack' | 'solveFirst'} TaskKind */
+/** @typedef {'setAttempt' | 'puzzleCandidate' | 'certify' | 'rate' | 'verifyPack' | 'solveFirst' | 'enumerateLayouts'} TaskKind */
 /** @typedef {{ type: 'task', id: number, kind: TaskKind, payload: any }} Request */
 /**
  * @typedef {{ type: 'progress', id: number, stage: string, rowTrials: number, bytes: number }
@@ -23,7 +23,7 @@ import { normalizeSeedText } from './rng.js';
  */
 
 export const TASK_KINDS = Object.freeze(/** @type {const} */ ([
-  'setAttempt', 'puzzleCandidate', 'certify', 'rate', 'verifyPack', 'solveFirst',
+  'setAttempt', 'puzzleCandidate', 'certify', 'rate', 'verifyPack', 'solveFirst', 'enumerateLayouts',
 ]));
 /** Largest row-trial limit a task may request. */
 export const MAX_ROW_LIMIT = 2000000;
@@ -466,6 +466,12 @@ const PAYLOADS = {
       ? undefined
       : { boardRows, pieces, clues, rowLimit, maxSolutions: 1 };
   },
+  enumerateLayouts(ctx, o) {
+    const boardRows = readBoardRows(ctx, o.boardRows, 'payload.boardRows');
+    const pieces = readPieces(ctx, o.pieces, 'payload.pieces');
+    const seenLayouts = readHistory(ctx, o.seenLayouts, 'payload.seenLayouts');
+    return [boardRows, pieces, seenLayouts].includes(undefined) ? undefined : { boardRows, pieces, seenLayouts };
+  },
 };
 
 const PAYLOAD_FIELDS = /** @type {Record<TaskKind, { required: string[], optional?: string[] }>} */ ({
@@ -477,6 +483,7 @@ const PAYLOAD_FIELDS = /** @type {Record<TaskKind, { required: string[], optiona
   rate: { required: ['boardRows', 'pieces', 'clues'] },
   verifyPack: { required: ['pack'] },
   solveFirst: { required: ['boardRows', 'pieces', 'clues', 'rowLimit'], optional: ['maxSolutions'] },
+  enumerateLayouts: { required: ['boardRows', 'pieces', 'seenLayouts'] },
 });
 
 /**

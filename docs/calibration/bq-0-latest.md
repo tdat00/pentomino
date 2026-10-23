@@ -269,3 +269,21 @@ See `release-defects.md`, section "Blockers", for exact owner steps: other platf
 | `bq-2026-10-22-0-watchdog-edge.json` | Scaled-watchdog probe output |
 | `release-defects.md` | Defects, Node crash investigation, blockers |
 
+## 9. Update 2026-10-23: owner decision on short piece sets (fix round 2)
+
+The owner decided that a piece set with fewer different arrangements than requested is an acceptable outcome when the shortfall is the proven maximum ("found 6/6 arrangements"), and that the app stays at version 1.0.0 for both apps. BQ-0 criterion 2 therefore now reads: **a run counts when it returns ten distinct valid puzzles, or every arrangement of its piece set when an exhaustive count proved there is no other one** (`layoutsExhausted`, `layoutTotal`, method `cell-backtracking-v1` in the run record); unproven shortfalls still fail. Generation output, bands, budgets, limits and gates are unchanged (100 of 100 re-run Node rows have the same result digests as the T23 rows). The qualification status above is **not** changed: BQ-0 stays unpassed and `QUALIFICATION.bq0` stays `not-run`.
+
+Re-measured cells (Node, 20 seeds, T23 repro commands; criterion 2 per cell; details, enumeration cost and the Edge subset in `release-defects.md`, section "Owner decision 2026-10-23 and fix round 2"):
+
+| Cell | Criterion 2 before (strict ten) | After (ten or proven-all) |
+| --- | --- | --- |
+| dirr466-hard | 2/20 fail | 20/20 pass |
+| dirr466-expert | 9/20 fail | 18/20 pass (exactly 90%) |
+| dirr466-master | 14/20 fail | 18/20 pass (exactly 90%) |
+| d6x10-very-easy | 16/20 fail | 19/20 pass |
+| d6x10-easy | 18/20 (at the limit) | 20/20 pass |
+
+Five shortfalls (Expert 2, Master 2, 6x10 Very Easy 1) are not proven maxima (an unused arrangement exists) and still count as failures; 0 were unproven by a limit. The Edge subset (27 rows, hand-picked failing seeds plus 22x22 Hard) shows no long task over 50 ms and no T10 regression. D8 cells (irregular 558/658) and the 43-cell BQ-0 on every platform have not been re-run.
+
+New raw reports: `bq-2026-10-23-0-fix2-node-irr466.json / .md` (63 rows), `bq-2026-10-23-0-fix2-node-6x10.json / .md` (42 rows), `bq-2026-10-23-0-fix2-edge156.json / .md` with its matrix `bq-2026-10-23-0-fix2-edge.matrix.json` (27 rows; selected seeds, not a rate sample).
+

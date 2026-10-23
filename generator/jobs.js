@@ -75,9 +75,10 @@ function notice(code, text, kind, actions = []) {
 }
 
 /**
- * Maps a partial batch to its design notice (§10.7 trigger table).
+ * Maps a partial batch to its design notice (§10.7 trigger table). A `layouts-not-found` stop with an
+ * exhaustive arrangement count (owner decision 2026-10-23) is a complete outcome, not a warning.
  * @param {string | undefined} reason
- * @param {{ n: number, q: number, levelId: string }} o
+ * @param {{ n: number, q: number, levelId: string, arrangements?: import('../core/browser/generation-client.js').ArrangementReport }} o
  * @returns {StatusNotice | null}
  */
 export function batchShortfall(reason, o) {
@@ -85,8 +86,17 @@ export function batchShortfall(reason, o) {
   switch (reason) {
     case 'time-limit':
       return notice('N-PARTIAL', formatNotice('N-PARTIAL', params), 'warning');
-    case 'layouts-not-found':
+    case 'layouts-not-found': {
+      const found = o.arrangements;
+      if (found?.status === 'exhausted' && found.total !== undefined) {
+        const variant = o.n === 0 ? 'none' : (found.earlier ?? 0) > 0 ? 'rest' : 'all';
+        return notice('N-ARRANGEMENTS', formatNotice('N-ARRANGEMENTS', { ...params, total: found.total }, variant), 'info', ['new-set']);
+      }
+      if (found?.status === 'more') {
+        return notice('N-LAYOUTS-LEFT', formatNotice('N-LAYOUTS-LEFT', params), 'warning', ['new-set']);
+      }
       return notice('N-FEWLAYOUTS', formatNotice('N-FEWLAYOUTS', params), 'warning', ['new-set']);
+    }
     case 'difficulty-not-found':
       return notice('N-SETLEVEL', formatNotice('N-SETLEVEL', params), 'warning', ['new-set']);
     case 'uniqueness-not-proved':
@@ -408,7 +418,7 @@ export function createJobController(options) {
       } else if (status === 'cancelled') {
         outcome = notice('M-CANCELLED-BATCH', formatMessage('M-CANCELLED-BATCH', { n: accepted.length, q: quantity, level: levelLabel(targetLevelId) }), 'info');
       } else if (reason !== undefined) {
-        outcome = batchShortfall(reason, { n: accepted.length, q: quantity, levelId: targetLevelId }) ?? outcome;
+        outcome = batchShortfall(reason, { n: accepted.length, q: quantity, levelId: targetLevelId, arrangements: result?.arrangements }) ?? outcome;
       }
       const pendingIds = result !== null && status !== 'cancelled' && reason !== 'time-limit'
         ? accepted.filter((p) => p.certificate === null || p.certificate === undefined).map((p) => p.id)
