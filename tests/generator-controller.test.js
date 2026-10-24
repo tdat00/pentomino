@@ -738,6 +738,8 @@ describe('real engine flows (slow)', () => {
         hardware: DESKTOP,
         client,
         cancelPending: () => pool.cancelAll(),
+        // The recorded batches were made with the seed "<set seed>#1": feed it as the batch seed so the replay is exact.
+        randomNumber: () => `${recipe.seedText}#1`,
         openPlayer: async (pack, index) => {
           opened.push([pack, index]);
         },
