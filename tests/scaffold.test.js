@@ -90,19 +90,21 @@ describe('app shells', () => {
     "img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; " +
     "base-uri 'self'; form-action 'none'";
 
-  for (const [app, other, css] of [
-    ['generator', 'player', 'generator.css'],
-    ['player', 'generator', 'player.css'],
+  for (const [app, other, css, linksToOther] of [
+    ['generator', 'player', 'generator.css', false],
+    ['player', 'generator', 'player.css', true],
   ]) {
-    test(`${app} shell is independent, CSP-clean and links to ${other}`, () => {
+    test(`${app} shell is independent and CSP-clean${linksToOther ? ` and links to ${other}` : ''}`, () => {
       const html = readRepo(`${app}/index.html`);
       assert.ok(html.includes(`content="${appCsp}"`));
-      assert.ok(html.includes(`href="../${other}/"`));
+      assert.equal(html.includes(`href="../${other}/"`), linksToOther);
       assert.ok(html.includes(`href="./${css}"`));
       assert.ok(html.includes('<script type="module" src="./app.js"></script>'));
       assert.ok(!/<script(?![^>]*\bsrc=)/.test(html));
       const script = readRepo(`${app}/app.js`);
-      assert.ok(script.includes("from '../core/engine/version.js'"));
+      if (app === 'player') {
+        assert.ok(script.includes("from '../core/engine/version.js'"));
+      }
       assert.ok(!script.includes(`../${other}/`));
     });
   }

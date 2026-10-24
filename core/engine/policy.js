@@ -158,6 +158,9 @@ export function kMax(area) {
   return k;
 }
 
+/** Factors of `sizeWindow` (exactly 3/5 and 3/2 there) and its smallest size, for explanations. */
+export const SIZE_WINDOW = Object.freeze({ low: 0.6, high: 1.5, minSize: 3 });
+
 /**
  * Piece-size window [⌊0.6·μ⌋ (at least 3), ⌈1.5·μ⌉] for μ = A/K, in exact integer arithmetic.
  * @param {number} area
@@ -281,28 +284,41 @@ export function histogramFeasible(area, k, o) {
 }
 
 /**
+ * How `pieceCountRange` reaches its counts, for explanations: target mid = base · (A / 60)^0.28 (capped from Hell 1),
+ * spread ±max(0.75, 6 % · mid), clamped to [kMin(A), min(kMax(A), cap)], then only histogram-feasible counts.
+ * @param {string} levelId A valid level id (throws otherwise).
+ * @param {number} area
+ * @returns {{ base: number, referenceArea: number, exponent: number, cap: number, mid: number, spread: number,
+ *   low: number, high: number, from: number, to: number, counts: number[] } | null} null when the level is not offered.
+ */
+export function pieceCountPlan(levelId, area) {
+  const lv = level(levelId);
+  requirePositiveInteger('area', area);
+  if (area < lv.areas[0] || area > lv.areas[1]) return null;
+  const base = K60[lv.index];
+  const cap = lv.index >= HELL_1_INDEX ? K_CAP_FROM_HELL_1[lv.index - HELL_1_INDEX] : Infinity;
+  const mid = Math.min(base * (area / 60) ** COUNT_EXPONENT, cap);
+  const spread = Math.max(0.75, 0.06 * mid);
+  const low = kMin(area);
+  const high = Math.min(kMax(area), cap);
+  let from = Math.max(Math.round(mid - spread), low);
+  let to = Math.min(Math.round(mid + spread), high);
+  if (from > to) from = to = Math.min(Math.max(Math.round(mid), low), high);
+  const counts = [];
+  for (let k = from; k <= to; k++) {
+    if (k >= 1 && histogramFeasible(area, k)) counts.push(k);
+  }
+  return { base, referenceArea: 60, exponent: COUNT_EXPONENT, cap, mid, spread, low, high, from, to, counts };
+}
+
+/**
  * Feasible piece counts for a level on a board area; null when the level is not offered there.
  * @param {string} levelId A valid level id (throws otherwise); non-generatable Hell levels give null.
  * @param {number} area
  * @returns {number[] | null}
  */
 export function pieceCountRange(levelId, area) {
-  const lv = level(levelId);
-  requirePositiveInteger('area', area);
-  if (area < lv.areas[0] || area > lv.areas[1]) return null;
-  const cap = lv.index >= HELL_1_INDEX ? K_CAP_FROM_HELL_1[lv.index - HELL_1_INDEX] : Infinity;
-  const mid = Math.min(K60[lv.index] * (area / 60) ** COUNT_EXPONENT, cap);
-  const w = Math.max(0.75, 0.06 * mid);
-  const low = kMin(area);
-  const high = Math.min(kMax(area), cap);
-  let from = Math.max(Math.round(mid - w), low);
-  let to = Math.min(Math.round(mid + w), high);
-  if (from > to) from = to = Math.min(Math.max(Math.round(mid), low), high);
-  const counts = [];
-  for (let k = from; k <= to; k++) {
-    if (k >= 1 && histogramFeasible(area, k)) counts.push(k);
-  }
-  return counts;
+  return pieceCountPlan(levelId, area)?.counts ?? null;
 }
 
 /**

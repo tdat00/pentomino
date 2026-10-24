@@ -4,15 +4,22 @@ An account-free **Generator** that builds pentomino-style tiling puzzles, and an
 
 > **Status.** This README describes the designed product. The repository is built task by task, so a feature listed here may not be implemented yet. Release acceptance (browser matrix, performance gates) is tracked separately and nothing below promises browser timings before that qualification has been reported.
 
+## Documentation
+
+- [Design brief](docs/design-brief.md): the user experience of the Generator and the Player.
+- [Detailed design](docs/design-detail.md): the developer specification (engine, formats, workers, storage, address, both apps).
+
+Both are living documents, kept in sync with the code. `docs/init-design/` holds the original design and its process records, unchanged.
+
 ## Entry points
 
 | URL | Purpose |
 | --- | --- |
 | `/pentomino/` | Redirects to the Generator, carrying any query string and `#hash` across. |
-| `/pentomino/generator/` | Generator: edit a board, generate puzzles, import and export JSON. |
+| `/pentomino/generator/` | Generator: draw a board, generate piece sets and puzzles, and open a puzzle in the Player. |
 | `/pentomino/player/` | Player: open a puzzle from a link, a file or the local library, and play it. |
 
-The Generator and the Player load independently; each links to the other with a relative link. **Play** in the Generator opens the Player with a portable **hash link** that contains the whole puzzle. When a link would be too long, the Generator falls back to a **local-only library** link; that link works only in the same browser and is labelled as not shareable. Puzzles can also be saved and opened as **JSON files**.
+The Generator and the Player load independently. **Play** in the Generator opens the Player in a new tab with a portable **hash link** that contains the puzzles of the list. When a link would be too long, the Generator falls back to a **local-only library** link; that link works only in the same browser. The Generator has no file import or export; the Player opens **JSON pack files** and exports the packs of its library.
 
 ## Run locally
 
@@ -50,14 +57,28 @@ Native ES modules with JSDoc types and `// @ts-check`, in four layers:
 
 Every module loaded by a browser page or worker uses the `.js` extension. `.mjs` is reserved for Node-only tools under `tools`.
 
+The Generator's interface text is bilingual (English and Vietnamese): `generator/i18n.js` looks texts up in the flat packs `generator/locale.en.js` (base pack, every key) and `generator/locale.vi.js` (same keys and `{placeholders}`; `tests/generator-i18n.test.js` checks both). A new user-visible text needs a key in both packs. The Player keeps its own English texts.
+
 ## Using the Generator
 
-- **Board.** Sizes are written **columns×rows**. The board may be rotated by a display-only 45° view; the puzzle itself is unchanged by rotation. The **Heart** preset is a square board whose top-right quarter is a block.
+The page is a three-step wizard in three panels: the puzzles of the piece set on show on the left, the screen of the current step in the middle, and the three steps on the right, each in its own frame with the settings and the button of that step. From 768 px to 1359 px the puzzles go under the main screen; below 768 px the steps form a row on top and the settings of the current step take a row under them. Under a finished step its frame shows a summary (a thumbnail of the board under step 1; the set number, level, seed and piece sizes under step 2), and clicking the summary returns to that step. The navigator buttons at the top right of the main screen, for example **‹ Step 1 - Create board** and **Step 3 - Create puzzles ›**, or the step headers on the right, move between steps. Step 2 opens once the board can get a piece set (otherwise the buttons are disabled and step 1 says why), and step 3 opens once a piece set is on show.
+
+1. **Create board.** Choose a preset (Rectangle, Heart, Diamond, Cross or Ring) and the rows and columns (3–32 each), then click or drag squares to block or unblock them; blocked squares are marked with a cross. The tools on the board zoom in and out, fit the board, switch on a move tool that drags the view, and turn the view by 45° (⟲ ⟳). `Ctrl`/`Cmd`+`Z` undoes the last board change; with the keyboard, the arrow keys move a cursor and `Space` toggles a square. The status line counts the playable squares and says why a board cannot get a piece set.
+2. **Create piece set.** A table lists every level from Very easy to Hell 3 with the number of pieces, the piece sizes and the pre-placed pieces it means on this board; the **?** next to a number shows how it is worked out, and levels the board cannot use are disabled with the reason. The step frame holds the **Seed** field (✕ clears it, 🎲 draws a random seed) and **New Piece Set**. Under the table, the set on show has a summary such as `Hard | 13 pieces | Piece sizes 7–12 | Seed ABCD-EFGH-JKLM` and its pieces. ◀ **Set n of total** ▶ steps through the sets made for this board, **Remove** drops the set on show with its puzzles, and **Remove all** drops every set of this board after a confirmation. A new set that is the same as one already in the list is not added; that set is shown instead.
+3. **Create puzzles.** The step frame holds the puzzle level (the set's level by default), the **Require unique solution** switch and **New Puzzle**, which adds one puzzle per press. The list on the left shows the puzzles of the set on show, newest first: **Puzzle #n**, the level in bold with the score, the seed, the number of pieces to place, the solution status (*Checking…*, *Unique solution ✓*, *Multiple solutions*, *At least 1 solution*, *No solution exists* or *Uniqueness not checked*) and a preview. ✕ removes one puzzle and **Remove all** in the list header removes them all. The main screen shows the selected puzzle (the newest one until you click a card) with its board, the pieces to place and **Play**, which opens the puzzle in the Player in a new tab.
+
+While a job runs, its button shows a spinner and *Elapsed: m:ss* appears under it; after 30 s the button turns into **Cancel**, and a cancelled batch keeps the puzzles already made. The outcome of the last action (a shortfall, a cancellation, a repeated set or puzzle) is shown above the main screen, with a **Generate new piece set** button where a new set would help.
+
+The **EN | VI** switch in the header changes the language without reloading; the choice is remembered in this browser, and `?lang=vi` or `?lang=en` in the address overrides it. The theme buttons next to it pick the light, dark or high-contrast theme (`generator/theme.css`); without a choice the page follows the system's light or dark setting.
+
+- **Board.** Sizes are written **columns×rows**. The view may be turned in 45° steps; the turn is display-only and never changes the puzzle. The **Heart** preset is a square board whose top-right quarter is blocked, shown at 45°. Editing the board shows the piece sets and puzzles made for the new board, or empty lists; going back to an earlier board brings its sets back.
 - **Pieces.** The piece set has at least 3 pieces and all pieces are distinct. Any valid tiling of the board with the piece set counts as a solution.
-- **Seed.** Seed text makes a result repeatable. **Keep seed** reuses the same text for the next generation. Repeated generation from one seed produces numbered batches (D41 batch index), so batch 2 continues deterministically after batch 1.
-- **New layouts.** Results must be strictly new layouts compared with the ones already shown. Some piece sets have fewer different arrangements than you ask for. When a request stops short because no new arrangement was found, the Generator counts the arrangements of the piece set exhaustively (symmetric images count once, with a fixed work limit). If the count finishes, the result is complete and the Generator says so, for example **Found 6/6 arrangements** (or **Found 2/2 remaining arrangements (6 in total)** when earlier requests used some); **Generate new piece set** stays available for more. Arrangements that the normal search did not reach are not wasted: a completion pass turns each unused arrangement into a puzzle through the same clue selection, level band and distinctness rules, in a fixed order, until the request is full or none is left. If an unused arrangement has no clue set in the level's band, the Generator says how many were tried and that none fits. If the count cannot finish, it reports an honest shortfall without claiming a maximum.
-- **Limits.** Boards launch at up to **484** cells on desktop and **360** on a phone. The design sizes **576** and **484** are enabled only after they have been qualified. A **676** board is an opt-in, experimental setting. A board side is at most **32**. Each generation action has a **60 s** target and a **120 s** hard limit, after which it stops and reports what it has.
-- **Difficulty.** Scores are estimates. Ordinary puzzles do not wait for a uniqueness proof. A puzzle you require to be unique can still fail to be proven; the Generator then says so rather than returning an unproven puzzle. Claims in imported files are unverified until checked.
+- **Seed.** A set seed makes a piece set repeatable: the same board, level, uniqueness switch and seed give the same set. A seed you type or draw with 🎲 is used again by every **New Piece Set**; with an empty field each press draws a new random seed and shows it. Each **New Puzzle** press draws its own random number as the puzzle seed, shown on the card.
+- **New layouts.** Every puzzle must be a strictly new arrangement compared with the puzzles already made from the set (removing a puzzle does not make its arrangement available again), and a puzzle equal to one already in the list is never added. Some piece sets have only a few different arrangements. When a request stops short because no new arrangement was found, the Generator counts the arrangements of the piece set exhaustively (symmetric images count once, with a fixed work limit). If the count finishes, the result is complete and the Generator says so, for example **Found 6/6 arrangements** (or **Found 2/2 remaining arrangements (6 in total)** when earlier requests used some), and offers **Generate new piece set** for more. Arrangements that the normal search did not reach are not wasted: a completion pass turns each unused arrangement into a puzzle through the same clue selection, level band and distinctness rules, in a fixed order, until the request is full or none is left. If an unused arrangement has no clue set in the level's band, the Generator says how many were tried and that none fits. If the count cannot finish, it reports an honest shortfall without claiming a maximum.
+- **Saved work.** The board, the settings and the piece sets with their puzzles are kept in this browser: up to **50** sets for each of the last **10** boards used. With 50 sets, **New Piece Set** is disabled until a set is removed. A list holds at most **100** puzzles; when they would no longer fit a 512 KiB pack, the earlier puzzles move to a separate pack offered with **⬇ Export earlier pack**.
+- **Address.** The settings live in the address, so a reload or a shared link returns to them: `step`, `preset`, `angle` (the view angle), `cells` (the board key `WxH:<base64url bits>`: its size and every enabled and blocked square), `level`, `seed` and `unique=1`. A link with a `seed` and step 2 or 3 shows the set made with that seed: the one saved in this browser, or the same set generated again. Puzzles are not part of the address; use **Play** and share the Player's link.
+- **Limits.** A board needs at least **30** playable squares in one connected region and sides of at most **32**. Boards launch at up to **484** playable squares on desktop and **360** on a phone; the design sizes **576** and **484** are enabled only after they have been qualified. The Generator page does not offer larger boards (the headless `tools\generate.mjs` accepts boards of up to **676**). Each generation action has a **60 s** target and a **120 s** hard limit, after which it stops and reports what it has.
+- **Difficulty.** Scores are estimates. Ordinary puzzles do not wait for a uniqueness proof: their solution status is checked in the background after they appear. A puzzle you require to be unique can still fail to be proven; the Generator then says so rather than returning an unproven puzzle.
 
 ## Using the Player
 
@@ -74,8 +95,8 @@ Every module loaded by a browser page or worker uses the `.js` extension. `.mjs`
 ## Storage and privacy
 
 - Everything stays in the browser. There is no upload, no remote solver and no analytics. Pasted links are read for their data only and are never fetched.
-- Library, progress and preferences use `localStorage` keys under the `pentomino:v1:` namespace. The app never reads, changes or clears other keys of the same origin.
-- Browser storage can be disabled, shared or full. On a quota error the oldest entries of this namespace are dropped once; if saving still fails, play continues in memory and the page says that progress cannot be saved.
+- Library, progress and preferences use `localStorage` keys under the `pentomino:v1:` namespace. The Generator keeps its work (board, settings, piece sets and puzzles) in `pentomino:v1:gen:state`, its language choice in `pentomino:v1:lang` and its theme choice in `pentomino:v1:theme`. The app never reads, changes or clears other keys of the same origin.
+- Browser storage can be disabled, shared or full. On a quota error the oldest entries of this namespace are dropped once (the Generator first drops its oldest saved piece sets); if saving still fails, work continues in memory and the page says that it cannot be saved.
 - Exported files and share links may omit the answer.
 - A local-library link only works in the browser that created it.
 

@@ -50,22 +50,17 @@ describe('shipped fallback while BQ-1..BQ-3 are not passed', () => {
     assert.equal(LIMITS.designMaxActive, 576);
   });
 
-  test('device modes: default desktop, experimental desktop, phone with low memory, phone with unknown memory and stored largeBoards', () => {
-    const base = defaultGeneratorState();
-    const large = { ...base, largeBoards: true };
+  test('device modes: desktop, phone with low memory, phone with unknown memory', () => {
     const desktop = device(false, 8);
     const lowMemoryPhone = device(true, 2);
     const unknownMemoryPhone = device(true, undefined);
     assert.deepEqual([desktop.phone, lowMemoryPhone.phone, unknownMemoryPhone.phone], [false, true, true]);
-    assert.equal(capFor(base, desktop), 484);
-    assert.equal(capFor(large, desktop), 676);
-    assert.equal(capFor(base, lowMemoryPhone), 360);
-    assert.equal(capFor(large, lowMemoryPhone), 360);
-    assert.equal(capFor(base, unknownMemoryPhone), 360);
-    assert.equal(capFor(large, unknownMemoryPhone), 360);
+    assert.equal(capFor(desktop), 484);
+    assert.equal(capFor(lowMemoryPhone), 360);
+    assert.equal(capFor(unknownMemoryPhone), 360);
   });
 
-  test('candidate-cap boards are rejected by the fallback caps and the 676 label stays experimental', () => {
+  test('candidate-cap boards are rejected by the fallback caps', () => {
     const heart = preset('heart', { n: 22 });
     const named = /** @type {[string, import('../core/engine/types.js').Board, number][]} */ ([
       ['24x24', rectangle(24, 24), 576],
@@ -78,16 +73,9 @@ describe('shipped fallback while BQ-1..BQ-3 are not passed', () => {
     for (const [name, board, area] of named) {
       assert.equal(activeCount(board), area, name);
       const state = withBoard(defaultGeneratorState(), board, name === 'heart 22' ? heart.rotation : 0);
-      const large = { ...state, largeBoards: true };
-      assert.equal(describeBoard(state, device(false, 8)).valid, area <= 484, `${name} default desktop`);
-      assert.equal(describeBoard(large, device(false, 8)).valid, true, `${name} large boards desktop`);
+      assert.equal(describeBoard(state, device(false, 8)).valid, area <= 484, `${name} desktop`);
       assert.equal(describeBoard(state, device(true, 2)).valid, false, `${name} low-memory phone`);
-      assert.equal(describeBoard(large, device(true, undefined)).valid, false, `${name} unknown-memory phone, stored largeBoards`);
-      const codes = describeBoard(large, device(false, 8)).notices.map((n) => n.code);
-      assert.equal(codes.includes('N-EXPERIMENTAL'), area > 484, name);
     }
-    assert.equal(describeBoard({ ...withBoard(defaultGeneratorState(), rectangle(27, 25)), largeBoards: true }, device(false, 8)).valid, true, '675 cells');
-    assert.equal(describeBoard({ ...withBoard(defaultGeneratorState(), rectangle(27, 26)), largeBoards: true }, device(false, 8)).valid, false, '702 cells');
   });
 });
 
@@ -142,7 +130,7 @@ describe('level availability is independent of caps and gates', () => {
   test('generation code never reads the gates, limits or qualification', () => {
     const importers = [...jsFiles('core'), ...jsFiles('generator'), ...jsFiles('player')]
       .filter((file) => /qualification\.js/.test(readFileSync(new URL(file, ROOT), 'utf8')));
-    assert.deepEqual(importers.sort(), ['core/engine/policy.js', 'generator/state.js', 'generator/ui/level-panel.js']);
+    assert.deepEqual(importers.sort(), ['core/engine/policy.js']);
     for (const file of jsFiles('core/engine').filter((f) => f !== 'core/engine/policy.js' && f !== 'core/engine/qualification.js')) {
       assert.doesNotMatch(readFileSync(new URL(file, ROOT), 'utf8'), /\bLIMITS\b|\bQUALIFICATION\b|enabledMaxActive|deriveLimits/, file);
     }

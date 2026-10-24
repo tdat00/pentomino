@@ -50,6 +50,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {number} quantity 1-10.
  * @property {string} setSeed Already normalized set seed.
  * @property {number} batchIndex One-based request number on this set; the UI counts every request.
+ * @property {string} [batchSeed] Seed of this request; defaults to `setSeed#batchIndex`. Normalized text, at most 256 characters.
  * @property {'any' | 'require'} uniqueness
  * @property {number} [displayOffset] Visible puzzle count for Add more; defaults to 0.
  * @property {string[]} seenLayouts Session history, at most 1,000 keys.
@@ -725,6 +726,13 @@ export function createGenerationClient(pool, options = {}) {
         batchSeed = batchSeedFor(setSeed, input.batchIndex);
       } catch {
         throw new GenerationError('invalid-input', 'batchIndex must be a positive integer');
+      }
+      if (input.batchSeed !== undefined) {
+        const own = input.batchSeed;
+        if (typeof own !== 'string' || own.length === 0 || own.length > 256 || own.trim().normalize('NFC') !== own) {
+          throw new GenerationError('invalid-input', 'batchSeed must be normalized text of 1 to 256 characters');
+        }
+        batchSeed = own;
       }
       return {
         set,

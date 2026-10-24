@@ -338,6 +338,18 @@ describe('batch requests', () => {
     assert.notEqual(ignored.accepted[0].id, calibration.id, 'a stored claim without a solution is never reused');
   });
 
+  test('a request can bring its own batch seed instead of setSeed#index', async () => {
+    const h = harness({ handler: (t) => scripted(t, 3) });
+    const result = await clientOf(h).generateBatch(batchInput({ quantity: 3, batchIndex: 2, batchSeed: 'my own seed' }));
+    assert.equal(result.pack?.generation.batchSeed, 'my own seed');
+    for (const t of h.tasks) {
+      assert.equal(t.payload.batchSeed, 'my own seed');
+    }
+    for (const bad of ['', ' padded ', 'x'.repeat(257), 5]) {
+      await assert.rejects(() => clientOf(harness()).generateBatch(batchInput({ quantity: 1, batchSeed: /** @type {any} */ (bad) })), { code: 'invalid-input' });
+    }
+  });
+
   test('Add more continues the numbering and keeps the history', async () => {
     const h = harness({ handler: (t) => scripted(t, 3) });
     const first = fixture().chosen.slice(0, 3);

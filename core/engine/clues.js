@@ -9,6 +9,7 @@ import { activeCount } from './board.js';
 import { inBand, rate } from './difficulty.js';
 import { poseCells } from './geometry.js';
 import { clueKey } from './keys.js';
+import { initialClueCount } from './levels.js';
 import { BUDGETS } from './policy.js';
 import { buildModel, countSolutions, isValidLayout } from './tiling.js';
 
@@ -259,7 +260,7 @@ export function selectClues(ctx) {
    */
   const accept = (c) => (c !== null && inBand(c.rating, target) ? finish(c) : null);
 
-  let count = Math.min(K - 2, Math.max(1, Math.round(target.share * K)));
+  let count = initialClueCount(target.share, K);
   const startCount = count;
   const countsTried = new Set();
   for (let step = 0; step < COUNT_CHANGES; step += 1) {

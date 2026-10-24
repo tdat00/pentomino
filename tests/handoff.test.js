@@ -6,7 +6,7 @@ import { parsePack } from '../core/engine/pack.js';
 import { MAX_URL_CHARS, WARN_URL_CHARS } from '../core/engine/sharecode.js';
 import { copyText, el, safeFileName, showToast } from '../core/browser/dom.js';
 import {
-  HandoffError, PIECE_SET_MESSAGE, downloadPack, loadFromFile, loadFromText, openInPlayer, preparePlayerLink, readIncoming,
+  HandoffError, PIECE_SET_MESSAGE, downloadPack, loadFromFile, loadFromText, openInPlayerTab, preparePlayerLink, readIncoming,
 } from '../core/browser/handoff.js';
 import { createStorage } from '../core/browser/storage.js';
 
@@ -100,25 +100,35 @@ test('no link is claimed when saving or readback fails, or the index is invalid'
   }
 });
 
-test('openInPlayer navigates the same tab, or rejects without claiming success', async () => {
+test('openInPlayerTab opens the tab first, points it at the player, and closes it when no link can be made', async () => {
   /** @type {string[]} */
   const visited = [];
-  const location = { assign: (/** @type {string} */ url) => visited.push(url) };
+  let opened = 0;
+  let closed = 0;
+  const openTab = () => {
+    opened += 1;
+    return { location: { assign: (/** @type {string} */ url) => visited.push(url) }, close: () => { closed += 1; }, opener: /** @type {unknown} */ ('generator') };
+  };
   const store = stubStore();
-  await openInPlayer(pack, 0, { base: PREFIX_BASE, location, storage: store });
-  assert.equal(visited.length, 1);
+  await openInPlayerTab(pack, 0, { base: PREFIX_BASE, openTab, storage: store });
+  assert.deepEqual([opened, closed, visited.length], [1, 0, 1]);
   assert.match(visited[0], /\/pentomino\/player\/#pack=1z\./);
   assert.equal(store.calls.save, 1, 'best-effort library save for Recent');
 
   await assert.rejects(
-    openInPlayer(noisy(14000), 0, {
+    openInPlayerTab(noisy(14000), 0, {
       base: PREFIX_BASE,
-      location,
+      openTab,
       storage: stubStore({ saveLibraryPack: () => ({ ok: false, code: 'storage-unavailable', message: 'no' }) }),
     }),
     (error) => error instanceof HandoffError && error.code === 'handoff-unavailable',
   );
-  assert.equal(visited.length, 1, 'no navigation without a link');
+  assert.deepEqual([opened, closed, visited.length], [2, 1, 1], 'the empty tab is closed and nothing is shown without a link');
+
+  await assert.rejects(
+    openInPlayerTab(pack, 0, { base: PREFIX_BASE, openTab: () => null, storage: stubStore() }),
+    (error) => error instanceof HandoffError && error.code === 'popup-blocked',
+  );
 });
 
 test('readIncoming loads portable links and local library links without mutating anything', async () => {

@@ -20,7 +20,8 @@ import { browserStorage } from './storage.js';
  * @typedef {object} HandoffEnv
  * @property {string | URL} [base] Page base, default `document.baseURI`.
  * @property {Pick<import('./storage.js').Storage, 'saveLibraryPack' | 'loadLibraryPack'>} [storage]
- * @property {{ assign: (url: string) => void }} [location] Navigation target for `openInPlayer`.
+ * @property {() => { location: { assign: (url: string) => void }, close: () => void, opener?: unknown } | null} [openTab]
+ *   Opens a blank tab for `openInPlayerTab`; null when the browser refuses it. Default `window.open('about:blank')`.
  */
 
 export const PIECE_SET_MESSAGE = 'This file has pieces but no puzzle — open it in the generator.';
@@ -119,25 +120,39 @@ export async function preparePlayerLink(pack, index, env = {}) {
 }
 
 /**
- * Same-tab navigation to the player. A portable hand-off also tries to save
- * the pack to the library (best effort) so Recent works. Rejects with
- * `HandoffError('handoff-unavailable')` when no link could be prepared; the
- * caller then offers Download and Open player instead of claiming success.
- * Save generator state before calling.
+ * Opens the player in a new tab. The tab is opened first, in the click's own turn, so pop-up blockers let it through,
+ * and gets its address once the link is ready. A portable hand-off also tries to save the pack to the library (best
+ * effort) so Recent works. Rejects with `HandoffError('handoff-unavailable')` when no link could be prepared (the empty
+ * tab is closed; the caller then offers Download and Open player instead of claiming success) and with
+ * `HandoffError('popup-blocked')` when the browser refused the tab.
  * @param {Pack} pack
  * @param {number} index
  * @param {HandoffEnv} [env]
  * @returns {Promise<void>}
  */
-export async function openInPlayer(pack, index, env = {}) {
-  const link = await preparePlayerLink(pack, index, env);
-  if (link.href === null) {
-    throw new HandoffError('handoff-unavailable', link.warning ?? 'The player could not be opened.');
+export async function openInPlayerTab(pack, index, env = {}) {
+  const tab = (env.openTab ?? (() => globalThis.open('about:blank', '_blank')))();
+  if (tab === null || tab === undefined) {
+    throw new HandoffError('popup-blocked', 'The browser blocked the new tab.');
   }
-  if (link.portable) {
-    (env.storage ?? browserStorage()).saveLibraryPack(pack);
+  try {
+    tab.opener = null;
+  } catch {
+    // The tab still opens; it just keeps its link to this page.
   }
-  (env.location ?? globalThis.location).assign(link.href);
+  try {
+    const link = await preparePlayerLink(pack, index, env);
+    if (link.href === null) {
+      throw new HandoffError('handoff-unavailable', link.warning ?? 'The player could not be opened.');
+    }
+    if (link.portable) {
+      (env.storage ?? browserStorage()).saveLibraryPack(pack);
+    }
+    tab.location.assign(link.href);
+  } catch (error) {
+    tab.close();
+    throw error;
+  }
 }
 
 /**

@@ -5,40 +5,136 @@
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pentomino Puzzle Generator</title>
+  <title data-i18n="shell.title">Pentomino Generator</title>
+  <script src="./theme-init.js"></script>
   <link rel="icon" type="image/svg+xml" href="../core/browser/favicon.svg">
   <link rel="stylesheet" href="../core/browser/common.css">
+  <link rel="stylesheet" href="./theme.css">
   <link rel="stylesheet" href="./generator.css">
   <script type="module" src="./app.js"></script>
 </head>
 <body data-app="generator">
+  <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <symbol id="ic-sun" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4"></circle>
+      <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8"></path>
+    </symbol>
+    <symbol id="ic-moon" viewBox="0 0 24 24">
+      <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path>
+    </symbol>
+    <symbol id="ic-contrast" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"></path>
+    </symbol>
+  </svg>
   <header class="app-header">
-    <h1>Pentomino Puzzle Generator</h1>
-    <p class="version">Version <span data-app-version></span></p>
-    <a class="pm-btn open-player" href="../player/">Open player</a>
+    <div class="app-brand">
+      <img class="app-logo" src="../core/browser/favicon.svg" alt="" width="32" height="32">
+      <h1 data-i18n="shell.title">Pentomino Generator</h1>
+    </div>
+    <div class="header-tools">
+      <div class="segmented" role="group" aria-label="Language" data-i18n-attr="aria-label:shell.lang.label">
+        <button type="button" class="segmented__btn" data-lang="en" lang="en" aria-pressed="true"
+          aria-label="English" title="English" data-i18n-attr="aria-label:shell.lang.en.name,title:shell.lang.en.name"
+          data-i18n="shell.lang.en.short">EN</button>
+        <button type="button" class="segmented__btn" data-lang="vi" lang="vi" aria-pressed="false"
+          aria-label="Tiếng Việt" title="Tiếng Việt" data-i18n-attr="aria-label:shell.lang.vi.name,title:shell.lang.vi.name"
+          data-i18n="shell.lang.vi.short">VI</button>
+      </div>
+      <div class="segmented" role="group" aria-label="Theme" data-i18n-attr="aria-label:shell.theme.label">
+        <button type="button" class="segmented__btn segmented__btn--icon" data-theme-value="light" aria-pressed="true"
+          aria-label="Light theme" title="Light theme" data-i18n-attr="aria-label:shell.theme.light,title:shell.theme.light">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#ic-sun"></use></svg>
+        </button>
+        <button type="button" class="segmented__btn segmented__btn--icon" data-theme-value="dark" aria-pressed="false"
+          aria-label="Dark theme" title="Dark theme" data-i18n-attr="aria-label:shell.theme.dark,title:shell.theme.dark">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#ic-moon"></use></svg>
+        </button>
+        <button type="button" class="segmented__btn segmented__btn--icon" data-theme-value="high-contrast" aria-pressed="false"
+          aria-label="High-contrast theme" title="High-contrast theme" data-i18n-attr="aria-label:shell.theme.highContrast,title:shell.theme.highContrast">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#ic-contrast"></use></svg>
+        </button>
+      </div>
+    </div>
   </header>
-  <noscript><p class="notice notice-error">The generator needs JavaScript.</p></noscript>
-  <main class="layout">
-    <section class="panel panel-board" aria-labelledby="heading-board" data-step="1">
-      <h2 id="heading-board"><span class="step" aria-hidden="true">①</span> Board</h2>
-      <div data-slot="board"></div>
-    </section>
-    <section class="panel panel-level" aria-labelledby="heading-level" data-step="2">
-      <h2 id="heading-level"><span class="step" aria-hidden="true">②</span> Level</h2>
-      <div data-slot="level"></div>
-    </section>
-    <section class="panel panel-set" aria-labelledby="heading-set" data-step="3">
-      <h2 id="heading-set"><span class="step" aria-hidden="true">③</span> Piece set</h2>
-      <div data-slot="set"></div>
-    </section>
-    <section class="panel panel-puzzles" aria-labelledby="heading-puzzles" data-step="4">
-      <h2 id="heading-puzzles"><span class="step" aria-hidden="true">④</span> Puzzles</h2>
-      <div data-slot="puzzles"></div>
-    </section>
-  </main>
-  <div class="sticky-bar" role="region" aria-label="Current action">
-    <p class="sticky-status" data-slot="sticky-status"></p>
-    <button type="button" class="primary" data-slot="sticky-action">Generate Piece Set</button>
+  <noscript><p class="notice notice-error" data-i18n="shell.noscript">The generator needs JavaScript.</p></noscript>
+  <div class="app-layout">
+    <nav class="app-side panel wizard" aria-label="Steps" data-i18n-attr="aria-label:wizard.label">
+      <ol class="wizard-steps">
+        <li>
+          <button type="button" class="wizard-step" data-wizard-step="1">
+            <span class="wizard-num" aria-hidden="true">1</span>
+            <span class="wizard-name" data-i18n="wizard.step1.title">Create board</span>
+          </button>
+          <div class="wizard-step-body" data-step-body="1" data-slot="board-controls"></div>
+          <div class="wizard-step-body" data-step-after="1" data-slot="board-summary" hidden></div>
+        </li>
+        <li>
+          <button type="button" class="wizard-step" data-wizard-step="2">
+            <span class="wizard-num" aria-hidden="true">2</span>
+            <span class="wizard-name" data-i18n="wizard.step2.title">Create piece set</span>
+          </button>
+          <div class="wizard-step-body" data-step-body="2" data-slot="set-controls" hidden></div>
+          <div class="wizard-step-body" data-step-after="2" data-slot="set-summary" hidden></div>
+        </li>
+        <li>
+          <button type="button" class="wizard-step" data-wizard-step="3">
+            <span class="wizard-num" aria-hidden="true">3</span>
+            <span class="wizard-name" data-i18n="wizard.step3.title">Create puzzles</span>
+          </button>
+          <div class="wizard-step-body" data-step-body="3" data-slot="puzzle-controls" hidden></div>
+        </li>
+      </ol>
+    </nav>
+    <main class="app-main">
+      <div class="wizard-feedback">
+        <div class="result-notice" role="status" data-role="notice" data-slot="notice"></div>
+      </div>
+      <section class="panel panel-board" aria-labelledby="heading-board" data-step="1">
+        <div class="step-head">
+          <h2 id="heading-board"><span class="step" data-i18n="wizard.stepLabel" data-i18n-args='{"n":1}'>Step 1</span> - <span data-i18n="wizard.step1.title">Create board</span></h2>
+          <div class="step-actions">
+            <div class="main-actions" role="group" aria-label="Steps" data-i18n-attr="aria-label:wizard.label">
+              <button type="button" data-slot="main-back" hidden></button>
+              <button type="button" class="primary" data-slot="main-action"></button>
+            </div>
+          </div>
+        </div>
+        <p class="step-hint" data-i18n="wizard.step1.hint">Choose the size and shape of the board.</p>
+        <div data-slot="board"></div>
+      </section>
+      <section class="panel panel-pieces" aria-labelledby="heading-pieces" data-step="2" hidden>
+        <div class="step-head">
+          <h2 id="heading-pieces"><span class="step" data-i18n="wizard.stepLabel" data-i18n-args='{"n":2}'>Step 2</span> - <span data-i18n="wizard.step2.title">Create piece set</span></h2>
+          <div class="step-actions"></div>
+        </div>
+        <p class="step-hint" data-i18n="wizard.step2.hint">Choose a level, then generate the pieces that tile your board.</p>
+        <div class="step-columns">
+          <div class="step-column panel-level">
+            <div data-slot="level"></div>
+          </div>
+          <div class="step-column panel-set">
+            <h3 data-i18n="wizard.pieces">Piece sets</h3>
+            <div data-slot="set"></div>
+          </div>
+        </div>
+      </section>
+      <section class="panel panel-puzzles" aria-labelledby="heading-puzzles" data-step="3" hidden>
+        <div class="step-head">
+          <h2 id="heading-puzzles"><span class="step" data-i18n="wizard.stepLabel" data-i18n-args='{"n":3}'>Step 3</span> - <span data-i18n="wizard.step3.title">Create puzzles</span></h2>
+          <div class="step-actions"></div>
+        </div>
+        <p class="step-hint" data-i18n="wizard.step3.hint">Generate puzzles from the board and the piece set.</p>
+        <div data-slot="puzzles"></div>
+      </section>
+    </main>
+    <aside class="app-history panel" aria-labelledby="heading-history">
+      <div class="panel-header">
+        <h2 id="heading-history">Puzzles</h2>
+        <div data-slot="cards-actions"></div>
+      </div>
+      <div data-slot="cards"></div>
+    </aside>
   </div>
 </body>
 </html>

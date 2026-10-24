@@ -122,8 +122,6 @@ const storage = {
   },
   getPrefs: () => ({}),
   setPrefs: () => ({ ok: true }),
-  saveLibraryPack: () => ({ ok: true, packId: '0123456789abcdef' }),
-  loadLibraryPack: () => ({ ok: false, issues: [] }),
 };
 
 const root = h('div', { class: 'harness-app' },
@@ -132,13 +130,12 @@ const root = h('div', { class: 'harness-app' },
     h('section', { class: 'panel panel-level' }, h('div', { 'data-slot': 'level' })),
     h('section', { class: 'panel panel-set' }, h('div', { 'data-slot': 'set' })),
     h('section', { class: 'panel panel-puzzles' }, h('div', { 'data-slot': 'puzzles' }))),
-  h('div', { class: 'sticky-bar' }, h('p', { 'data-slot': 'sticky-status' }), h('button', { type: 'button', 'data-slot': 'sticky-action' }, 'Generate Piece Set')));
+  h('div', { class: 'main-actions' }, h('button', { type: 'button', 'data-slot': 'main-action' }, 'New Piece Set')));
 sandbox.append(root);
 
 const app = createGeneratorApp(document, {
   storage: /** @type {any} */ (storage),
   client,
-  confirm: () => true,
   random: () => 'WATCHDOG-SEED',
   controller: { cancelPending: () => pool.cancelAll(), notify: () => {} },
 });
@@ -168,9 +165,8 @@ await check('production TIME constants are unchanged and the host clock is scale
 await check('the real piece set and its engine-verified calibration puzzle are ready', async () => {
   assert(app.editor.resize(10, 6), 'the board was resized to 10 x 6');
   assert(JSON.stringify(boardToRows(state().board)) === JSON.stringify(boardToRows(rectangle(10, 6))), 'default board rows');
-  const radio = /** @type {HTMLInputElement} */ (q('input[type="radio"][value="hard"]'));
-  radio.checked = true;
-  radio.dispatchEvent(new Event('change', { bubbles: true }));
+  const radio = /** @type {HTMLInputElement} */ (q('[data-field="level"] input[value="hard"]'));
+  radio.click();
   q('[data-action="generate-set"]').click();
   await waitFor(() => state().set !== null && state().job === null, 'the piece set', 60000);
   assert(state().notice === null, `no notice after the set: ${state().notice?.text}`);
@@ -180,11 +176,8 @@ await check('the real piece set and its engine-verified calibration puzzle are r
   probe.calibrationPuzzleId = calibrationId;
 });
 
-await check('New Puzzles against busy workers: 115 s virtual stop terminates them and the prefix returns by 120 s virtual', async () => {
-  const quantity = /** @type {HTMLInputElement} */ (q('[data-field="quantity"]'));
-  quantity.value = '10';
-  quantity.dispatchEvent(new Event('input', { bubbles: true }));
-  quantity.dispatchEvent(new Event('change', { bubbles: true }));
+await check('New Puzzle against busy workers: 115 s virtual stop terminates them and the prefix returns by 120 s virtual', async () => {
+  app.store.update({ quantity: 10 });
   const t0 = systemClock.now();
   const virtual0 = clock.now();
   q('[data-action="new-puzzles"]').click();
@@ -224,12 +217,7 @@ await check('the retained prefix and the time-limit notice are shown and the UI 
   probe.noticeText = s.notice?.text;
   probe.acceptedPrefix = s.puzzles.length;
   assert(s.job === null, 'no job is running');
-  assert(q('[data-role="progress"]').hidden, 'the progress panel is hidden');
-  assert(q('[data-action="cancel"]').closest('[hidden]') !== null, 'the Cancel button is not reachable');
-  assert(!/** @type {HTMLButtonElement} */ (q('[data-action="new-puzzles"]')).disabled, 'New Puzzles is enabled again');
-  assert(!/** @type {HTMLButtonElement} */ (q('[data-action="add-more"]')).disabled, 'Add more is enabled again');
-  const sticky = /** @type {HTMLButtonElement} */ (q('[data-slot="sticky-action"]'));
-  assert(sticky.textContent === 'New Puzzles' && !sticky.disabled, `sticky action ${sticky.textContent}`);
+  assert(!/** @type {HTMLButtonElement} */ (q('[data-action="new-puzzles"]')).disabled, 'New Puzzle is enabled again');
   assert(root.querySelectorAll('.puzzle-card').length === s.puzzles.length, 'one card per kept puzzle');
 });
 

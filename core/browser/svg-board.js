@@ -18,6 +18,7 @@ import { activeCenter, fitCellSize, normalizeAngle, rotatedExtent } from '../eng
 /**
  * @typedef {object} BoardViewOptions
  * @property {'play' | 'edit' | 'thumbnail'} mode
+ * @property {boolean} [showBlocked] Thumbnail: frame the whole grid and mark blocked cells like the editor does.
  * @property {number} [rotation] Display angle, counter-clockwise, multiple of 45.
  * @property {number} [cellPx] Initial cell size in CSS px. Without it play/edit fit the host once.
  * @property {boolean} [autoFit] Refit with a ResizeObserver; off by default so layout never moves mid-gesture.
@@ -46,6 +47,8 @@ import { activeCenter, fitCellSize, normalizeAngle, rotatedExtent } from '../eng
  * @property {(model: BoardViewModel) => void} render
  * @property {(theta: number) => void} setRotation
  * @property {(cellPx: number) => void} setZoom
+ * @property {(factor: number, clientX: number, clientY: number) => void} zoomAt Edit: scales the cell size, keeping the point under the pointer still.
+ * @property {(on: boolean) => void} setPanMode Edit: while on, a drag moves the view instead of painting.
  * @property {(x: number, y: number) => void} panTo Centers the viewport on logical board point (x, y).
  * @property {(clientX: number, clientY: number, o?: { includeBlocked?: boolean }) => XY | null} cellAt
  * @property {(clientX: number, clientY: number) => DOMPoint} localPoint
@@ -376,6 +379,20 @@ export function svgEl(tag, attrs = {}, ...children) {
 }
 
 /**
+ * The cross that marks a blocked cell in the editor, so it stands out from an active one.
+ * @param {number} x
+ * @param {number} y
+ * @param {string} stroke
+ * @returns {SVGElement}
+ */
+function crossMark(x, y, stroke) {
+  return svgEl('path', {
+    class: 'pm-cross', d: `M${x + 0.3} ${y + 0.3}L${x + 0.7} ${y + 0.7}M${x + 0.7} ${y + 0.3}L${x + 0.3} ${y + 0.7}`,
+    fill: 'none', stroke, 'stroke-width': 0.08, 'stroke-linecap': 'round', 'pointer-events': 'none',
+  });
+}
+
+/**
  * Pattern definitions for one mounted view. Ids carry the view prefix so two
  * puzzle cards on a page can never reference each other's patterns.
  * @param {string} id
@@ -511,6 +528,7 @@ export function mountBoard(host, opts) {
   const doc = host.ownerDocument;
   const win = /** @type {Window & typeof globalThis} */ (doc.defaultView ?? globalThis);
   const interactive = mode !== 'thumbnail';
+  const wholeGrid = mode === 'edit' || (mode === 'thumbnail' && opts.showBlocked === true);
   const id = nextViewId();
   let theta = normalizeAngle(opts.rotation ?? 0);
   let cellPx = clampZoom(opts.cellPx ?? (mode === 'thumbnail' ? THUMBNAIL_CELL_PX : DEFAULT_CELL_PX));
@@ -521,6 +539,7 @@ export function mountBoard(host, opts) {
   let frame = null;
   let frameKey = '';
   let cellsKey = '';
+  let panMode = false;
   let destroyed = false;
 
   const defs = createDefs(id);
@@ -656,9 +675,9 @@ export function mountBoard(host, opts) {
     const b = m.board;
     // The editor keeps its frame while cells are toggled so painting never
     // shifts the grid; play frames the (fixed) active shape.
-    const key = mode === 'edit' ? `${b.width}x${b.height}` : `${b.width}x${b.height}:${b.active.join('')}`;
+    const key = wholeGrid ? `${b.width}x${b.height}` : `${b.width}x${b.height}:${b.active.join('')}`;
     if (force || frame === null || key !== frameKey) {
-      frame = boardFrame(b, theta, mode);
+      frame = boardFrame(b, theta, wholeGrid ? 'edit' : mode);
       frameKey = key;
     }
   }
@@ -666,7 +685,7 @@ export function mountBoard(host, opts) {
   /** @param {BoardViewModel} m */
   function renderCells(m) {
     const b = m.board;
-    const key = `${mode}:${b.width}x${b.height}:${b.active.join('')}`;
+    const key = `${wholeGrid ? 'grid' : mode}:${b.width}x${b.height}:${b.active.join('')}`;
     if (key === cellsKey) {
       return;
     }
@@ -678,10 +697,12 @@ export function mountBoard(host, opts) {
         const kind = kinds[y * b.width + x];
         if (kind === 0) {
           nodes.push(svgEl('rect', { class: 'pm-cell', x, y, width: 1, height: 1, fill: '#f6f4ec', stroke: '#c9c5b8', 'stroke-width': 0.03 }));
+        } else if (wholeGrid) {
+          // Every blocked cell looks the same in the editor, inside the board or not.
+          nodes.push(svgEl('rect', { class: 'pm-guide', x, y, width: 1, height: 1, fill: 'none', stroke: '#8f8f8f', 'stroke-opacity': 0.7, 'stroke-width': 0.03, 'stroke-dasharray': '0.12 0.1' }));
+          nodes.push(crossMark(x, y, '#6b6b6b'));
         } else if (kind === 2) {
           nodes.push(svgEl('rect', { class: 'pm-hole', x, y, width: 1, height: 1, fill: `url(#${id}-hole)`, stroke: '#2a2a2a', 'stroke-width': 0.03 }));
-        } else if (mode === 'edit') {
-          nodes.push(svgEl('rect', { class: 'pm-guide', x, y, width: 1, height: 1, fill: 'none', stroke: '#8f8f8f', 'stroke-opacity': 0.7, 'stroke-width': 0.03, 'stroke-dasharray': '0.12 0.1' }));
         }
       }
     }
@@ -824,6 +845,39 @@ export function mountBoard(host, opts) {
     }
   }
 
+  /**
+   * @param {number} factor
+   * @param {number} clientX
+   * @param {number} clientY
+   */
+  function zoomAt(factor, clientX, clientY) {
+    if (destroyed || frame === null || !(factor > 0)) {
+      return;
+    }
+    const before = localPoint(clientX, clientY);
+    const next = clampZoom(cellPx * factor);
+    if (next === cellPx) {
+      return;
+    }
+    cellPx = next;
+    sizeFixed = true;
+    applyLayout();
+    const ctm = screenMatrix();
+    if (ctm !== null && Number.isFinite(before.x)) {
+      const p = before.matrixTransform(ctm);
+      scroller.scrollLeft += p.x - clientX;
+      scroller.scrollTop += p.y - clientY;
+    }
+  }
+
+  /** @param {boolean} on */
+  function setPanMode(on) {
+    if (mode === 'edit' && !destroyed) {
+      panMode = on;
+      root.dataset.pan = String(on);
+    }
+  }
+
   /** @param {number} next */
   function setRotation(next) {
     if (destroyed) {
@@ -849,24 +903,82 @@ export function mountBoard(host, opts) {
 
   // Pointer input on the scroll surface: edit paints cells, play reports taps
   // and lets a mouse drag pan a scrollable board.
-  /** @type {{ pointerId: number, type: 'mouse' | 'pen' | 'touch', x: number, y: number, pieceId: string | null, last: XY | null, moved: boolean, panning: boolean, left: number, top: number } | null} */
+  /** @type {{ pointerId: number, type: 'mouse' | 'pen' | 'touch', x: number, y: number, pieceId: string | null, last: XY | null, moved: boolean, panning: boolean, left: number, top: number, pending: { cell: XY, event: PointerEvent } | null } | null} */
   let press = null;
+  /** Edit: touches currently down, for the two-finger pinch and pan. @type {Map<number, XY>} */
+  const touches = new Map();
+  /** @type {{ dist: number, mx: number, my: number } | null} */
+  let pinch = null;
+
+  function pinchState() {
+    const [a, b] = [...touches.values()];
+    return { dist: Math.hypot(a[0] - b[0], a[1] - b[1]), mx: (a[0] + b[0]) / 2, my: (a[1] + b[1]) / 2 };
+  }
+
+  function updatePinch() {
+    const from = pinch;
+    const next = pinchState();
+    if (from !== null) {
+      if (from.dist > 0 && next.dist > 0) {
+        zoomAt(next.dist / from.dist, from.mx, from.my);
+      }
+      scroller.scrollLeft -= next.mx - from.mx;
+      scroller.scrollTop -= next.my - from.my;
+    }
+    pinch = next;
+  }
+
+  /** @param {number} pointerId */
+  function forgetTouch(pointerId) {
+    if (touches.delete(pointerId) && touches.size < 2) {
+      pinch = null;
+    }
+  }
+
+  /** @param {WheelEvent} e */
+  function onWheel(e) {
+    e.preventDefault();
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1;
+    zoomAt(Math.exp(-e.deltaY * unit * 0.0015), e.clientX, e.clientY);
+  }
 
   /** @param {PointerEvent} e */
   function onPointerDown(e) {
-    if (!interactive || press !== null || e.isPrimary === false || (e.pointerType === 'mouse' && e.button !== 0)) {
+    if (!interactive) {
+      return;
+    }
+    if (mode === 'edit' && e.pointerType === 'touch') {
+      touches.set(e.pointerId, [e.clientX, e.clientY]);
+      if (touches.size === 2) {
+        // A second finger turns the gesture into zoom and pan; the first finger's tap is dropped.
+        if (press !== null) {
+          release(press.pointerId);
+          press = null;
+        }
+        pinch = pinchState();
+        return;
+      }
+      if (touches.size > 2) {
+        return;
+      }
+    }
+    if (press !== null || e.isPrimary === false || (e.pointerType === 'mouse' && e.button !== 0)) {
       return;
     }
     const type = /** @type {'mouse' | 'pen' | 'touch'} */ (e.pointerType in TAP_THRESHOLD ? e.pointerType : 'mouse');
     const piece = mode === 'play' ? movableTarget(/** @type {Element | null} */ (e.target)) : null;
     const cell = cellAt(e.clientX, e.clientY, { includeBlocked: mode === 'edit' });
+    const panning = mode === 'edit' && panMode;
+    // A touch may be the start of a pinch, so its first cell waits for a move or the release.
+    const deferred = mode === 'edit' && !panning && type === 'touch' && cell !== null;
     press = {
       pointerId: e.pointerId, type, x: e.clientX, y: e.clientY, pieceId: piece?.getAttribute('data-piece-id') ?? null,
-      last: mode === 'edit' ? cell : null, moved: false, panning: false, left: scroller.scrollLeft, top: scroller.scrollTop,
+      last: mode === 'edit' && !panning && !deferred ? cell : null, moved: false, panning,
+      left: scroller.scrollLeft, top: scroller.scrollTop, pending: deferred ? { cell: /** @type {XY} */ (cell), event: e } : null,
     };
     if (mode === 'edit') {
       capture(e.pointerId);
-      if (cell !== null) {
+      if (cell !== null && !panning && !deferred) {
         opts.onCell?.(cell, e);
       }
     }
@@ -883,10 +995,31 @@ export function mountBoard(host, opts) {
 
   /** @param {PointerEvent} e */
   function onPointerMove(e) {
+    if (mode === 'edit' && touches.has(e.pointerId)) {
+      touches.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pinch !== null) {
+        updatePinch();
+        return;
+      }
+    }
     if (press === null || e.pointerId !== press.pointerId) {
       return;
     }
     if (mode === 'edit') {
+      if (press.panning) {
+        scroller.scrollLeft = press.left - (e.clientX - press.x);
+        scroller.scrollTop = press.top - (e.clientY - press.y);
+        return;
+      }
+      if (press.pending !== null) {
+        if (Math.hypot(e.clientX - press.x, e.clientY - press.y) < TAP_THRESHOLD[press.type]) {
+          return;
+        }
+        const { cell: first, event } = press.pending;
+        press.pending = null;
+        press.last = first;
+        opts.onCell?.(first, event);
+      }
       const cell = cellAt(e.clientX, e.clientY, { includeBlocked: true });
       if (cell !== null && (press.last === null || cell[0] !== press.last[0] || cell[1] !== press.last[1])) {
         press.last = cell;
@@ -911,12 +1044,16 @@ export function mountBoard(host, opts) {
 
   /** @param {PointerEvent} e */
   function onPointerUp(e) {
+    forgetTouch(e.pointerId);
     if (press === null || e.pointerId !== press.pointerId) {
       return;
     }
     const done = press;
     press = null;
     release(e.pointerId);
+    if (done.pending !== null) {
+      opts.onCell?.(done.pending.cell, done.pending.event);
+    }
     if (mode === 'play' && !done.moved) {
       if (done.pieceId !== null) {
         opts.onPiece?.(done.pieceId, e);
@@ -931,6 +1068,7 @@ export function mountBoard(host, opts) {
 
   /** @param {PointerEvent} e */
   function onPointerCancel(e) {
+    forgetTouch(e.pointerId);
     if (press !== null && e.pointerId === press.pointerId) {
       press = null;
       release(e.pointerId);
@@ -969,6 +1107,10 @@ export function mountBoard(host, opts) {
     listen(scroller, 'lostpointercapture', onPointerCancel);
     listen(scroller, 'keydown', onKeyDown);
   }
+  if (mode === 'edit') {
+    scroller.addEventListener('wheel', onWheel, { passive: false });
+    listeners.push([scroller, 'wheel', /** @type {EventListener} */ (onWheel)]);
+  }
 
   /** @type {ResizeObserver | null} */
   let observer = null;
@@ -983,6 +1125,8 @@ export function mountBoard(host, opts) {
     render,
     setRotation,
     setZoom,
+    zoomAt,
+    setPanMode,
     panTo(x, y) {
       if (!destroyed) {
         panTo(x, y);
