@@ -95,6 +95,56 @@ export function boardToRows(b) {
   return rows;
 }
 
+const KEY_DIGITS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+
+/**
+ * Compact identity of a board: "<width>x<height>:<bits>". The bits mark every cell in row-major order (1 = enabled,
+ * 0 = disabled), the first cell in the highest bit, six to a character of the URL-safe base64 alphabet and zero-padded
+ * at the end, so a 20x20 board takes 67 characters. Equal boards have equal keys; the size is part of the key because
+ * 10x6 and 6x10 boards can hold the same bits.
+ * @param {Board} b
+ * @returns {string}
+ */
+export function boardKey(b) {
+  const cells = b.width * b.height;
+  let bits = '';
+  for (let i = 0; i < cells; i += 6) {
+    let digit = 0;
+    for (let j = 0; j < 6; j += 1) {
+      digit = (digit << 1) | (i + j < cells && b.active[i + j] === 1 ? 1 : 0);
+    }
+    bits += KEY_DIGITS[digit];
+  }
+  return `${b.width}x${b.height}:${bits}`;
+}
+
+/**
+ * The board named by `boardKey`.
+ * @param {string} key
+ * @returns {Board}
+ * @throws {RangeError} For anything `boardKey` could not have produced.
+ */
+export function boardFromKey(key) {
+  const match = /^(\d{1,2})x(\d{1,2}):([A-Za-z0-9_-]*)$/.exec(key);
+  if (match === null) {
+    throw new RangeError('not a board key');
+  }
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  if (width < 1 || height < 1) {
+    throw new RangeError('a board needs at least one cell');
+  }
+  const active = new Uint8Array(width * height);
+  for (let i = 0; i < active.length; i += 1) {
+    active[i] = (KEY_DIGITS.indexOf(match[3][Math.floor(i / 6)] ?? 'A') >> (5 - (i % 6))) & 1;
+  }
+  const board = { width, height, active };
+  if (boardKey(board) !== key) {
+    throw new RangeError('not a board key');
+  }
+  return board;
+}
+
 /**
  * @param {number} value
  * @param {string} name

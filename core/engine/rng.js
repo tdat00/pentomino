@@ -175,3 +175,11 @@ export function randomSeedText() {
   }
   return text;
 }
+
+/**
+ * Random puzzle seed: a 32-bit unsigned whole number from crypto.getRandomValues, as decimal text.
+ * @returns {string}
+ */
+export function randomPuzzleSeed() {
+  return String(globalThis.crypto.getRandomValues(new Uint32Array(1))[0]);
+}

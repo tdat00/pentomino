@@ -6,14 +6,15 @@ import { describe, test } from 'node:test';
 import { createGenerationClient, GenerationError } from '../core/browser/generation-client.js';
 import { HandoffError } from '../core/browser/handoff.js';
 import { createPool } from '../core/browser/worker-pool.js';
-import { boardFromRows, rectangle } from '../core/engine/board.js';
+import { boardFromRows, boardKey, rectangle } from '../core/engine/board.js';
 import { layoutKey } from '../core/engine/keys.js';
 import { packBoard, parsePack, serializePack, validatePack } from '../core/engine/pack.js';
 import { BUDGETS } from '../core/engine/policy.js';
 import { isValidLayout } from '../core/engine/tiling.js';
-import { batchShortfall, createJobController } from '../generator/jobs.js';
+import { batchShortfall, createJobController, duplicateGuard } from '../generator/jobs.js';
 import {
-  acceptSet, buildPack, carvingHint, createGeneratorStore, defaultGeneratorState, generationBlock, visiblePack,
+  acceptSet, buildPack, carvingHint, createGeneratorStore, defaultGeneratorState, duplicateSetNumber, generationBlock, setTimelineLength, visiblePack,
+  withBoard,
 } from '../generator/state.js';
 import { formatMessage, formatNotice } from '../generator/strings.js';
 import { nodeWorkerFactory } from '../tools/node-worker.mjs';
@@ -24,7 +25,15 @@ const recipes = JSON.parse(readFileSync(new URL('./fixtures/ui-flow-recipes.json
 const WITNESS = samplePack.witness ?? /** @type {any} */ (samplePack.puzzles[0].solution);
 /** @type {import('../core/engine/types.js').PieceSet} */
 const SET = { board: packBoard(samplePack), pieces: samplePack.pieces, witness: WITNESS, carving: 'flat', macroRegion: null };
+const handPack = /** @type {import('../core/engine/types.js').Pack} */ (
+  /** @type {any} */ (parsePack(readFileSync(new URL('./fixtures/hand-authored-pack.json', import.meta.url), 'utf8'))).value);
+/** A second set with other pieces on another board, for tests that need two different sets. @type {import('../core/engine/types.js').PieceSet} */
+const OTHER_SET = {
+  board: packBoard(handPack), pieces: handPack.pieces, witness: handPack.witness ?? /** @type {any} */ (handPack.puzzles[0].solution), carving: 'flat', macroRegion: null,
+};
 const DESKTOP = { phone: false };
+/** @param {import('../generator/state.js').GeneratorState} state @returns {number} Saved sets of every board (the set on show is not saved). */
+const savedCount = (state) => Object.values(state.setsByBoard).flat().length;
 
 /**
  * @param {number} i
@@ -119,6 +128,8 @@ function harness(o = {}) {
     hardware: DESKTOP,
     client: /** @type {any} */ (client),
     random: () => 'ZZZZ-ZZZZ-ZZZZ',
+    // The fake puzzles of these tests reuse a few real clue sets under different ids, so the real duplicate check is off here.
+    duplicateGuard: () => ({ admit: () => true, rejected: new Set() }),
     setTimer: (fn) => timers.push(fn),
     clearTimer: (handle) => {
       timers[handle - 1] = null;
@@ -130,7 +141,7 @@ function harness(o = {}) {
     beforeNavigate: () => {
       spies.navigations += 1;
     },
-    download: (pack, name, opts) => spies.downloads.push({ pack, name, opts }),
+    download: (pack, name, ...rest) => spies.downloads.push({ pack, name, opts: rest[0] }),
     ...o.options,
   });
   return {
@@ -214,7 +225,63 @@ describe('piece set jobs', () => {
 });
 
 describe('puzzle batches', () => {
-  test('every request increments the batch index; a regenerated set with the same seed starts at 0 again', async () => {
+  test('Remove all empties the list but keeps the seen-history; nothing happens during a job', async () => {
+    const h = harness({ accepted: true, state: { quantity: 3 } });
+    await h.controller.newPuzzles();
+    const seen = h.store.getState().seenLayouts.length;
+    assert.ok(h.store.getState().puzzles.length > 0 && seen > 0);
+    h.controller.removeAllPuzzles();
+    const state = h.store.getState();
+    assert.deepEqual([state.puzzles.length, state.parked.length, state.claimedIds.length, Object.keys(state.puzzleSeeds).length], [0, 0, 0, 0]);
+    assert.equal(state.seenLayouts.length, seen, 'removed puzzles stay in the history');
+    assert.equal(state.batchIndex, 1, 'the batch counter goes on');
+    h.controller.removeAllPuzzles();
+    assert.equal(h.store.getState(), state, 'an empty list is left alone');
+    h.destroy();
+  });
+
+  test('a new puzzle equal to a listed one is not added, and the notice says no more can be made', async () => {
+    /** @type {number[]} */
+    const picks = [0, 0, 1];
+    const client = fakeClient({
+      batch: (input, hooks) => {
+        const puzzle = { ...makePuzzle(picks[input.batchIndex - 1]), id: `fresh${input.batchIndex}` };
+        hooks.onAccepted({ revision: input.revision, index: 0, puzzle, accepted: 1, quantity: 1 });
+        return { status: 'complete', accepted: [puzzle], seenLayouts: [], seenClues: [] };
+      },
+    });
+    const h = harness({ accepted: true, client, state: { quantity: 1 }, options: { duplicateGuard } });
+    await h.controller.newPuzzles();
+    assert.deepEqual(h.store.getState().puzzles.map((p) => p.id), ['fresh1']);
+    await h.controller.addMore();
+    let state = h.store.getState();
+    assert.deepEqual(state.puzzles.map((p) => p.id), ['fresh1'], 'the equal puzzle is not listed, not even while streaming');
+    assert.deepEqual([state.notice?.code, state.notice?.kind], ['M-DUPLICATE', 'error']);
+    assert.equal(state.puzzleSeeds.fresh2, undefined);
+    await h.controller.addMore();
+    state = h.store.getState();
+    assert.deepEqual(state.puzzles.map((p) => p.id), ['fresh1', 'fresh3'], 'a different puzzle still goes in');
+    assert.equal(state.notice, null);
+    h.destroy();
+  });
+
+  test('every press uses its own fresh random whole-number batch seed', async () => {
+    let n = 0;
+    const h = harness({ accepted: true, state: { quantity: 2 }, options: { randomNumber: () => String(1000 + (n += 1)) } });
+    await h.controller.newPuzzles();
+    const first = h.store.getState().puzzles.map((p) => p.id);
+    assert.equal(first.length, 2);
+    assert.deepEqual(first.map((id) => h.store.getState().puzzleSeeds[id]), ['1001', '1001'], 'a press draws a random number');
+    assert.equal(h.client.batches[0].batchSeed, '1001', 'the request carries it');
+    await h.controller.addMore();
+    assert.equal(h.client.batches[1].batchSeed, '1002', 'the next press draws another');
+    const all = h.store.getState();
+    assert.deepEqual(all.puzzles.map((p) => all.puzzleSeeds[p.id]), ['1001', '1001', '1002', '1002']);
+    assert.deepEqual(h.client.batches.map((b) => b.batchIndex), [1, 2], 'the press counter still counts every request');
+    h.destroy();
+  });
+
+  test('every request increments the batch index; a regenerated identical set is refused, so the batch state stays', async () => {
     const h = harness({ accepted: true });
     await h.controller.newPuzzles();
     await h.controller.newPuzzles();
@@ -222,10 +289,11 @@ describe('puzzle batches', () => {
     assert.ok(h.client.batches[1].seenLayouts.length > 0, 'the second request sees the first batch');
     assert.equal(h.client.batches[0].calibration?.id, 'q0', 'the first request reuses the trusted calibration');
     await h.controller.generateSet({ seed: 'seed-one' });
-    assert.equal(h.store.getState().batchIndex, 0);
-    assert.deepEqual(h.store.getState().seenLayouts, []);
+    assert.equal(h.store.getState().notice?.code, 'N-DUPSET');
+    assert.equal(h.store.getState().batchIndex, 2, 'nothing was replaced');
+    assert.ok(h.store.getState().seenLayouts.length > 0);
     await h.controller.newPuzzles();
-    assert.deepEqual([h.client.batches[2].setSeed, h.client.batches[2].batchIndex, h.client.batches[2].seenLayouts], ['seed-one', 1, []]);
+    assert.deepEqual([h.client.batches[2].setSeed, h.client.batches[2].batchIndex], ['seed-one', 3]);
     h.destroy();
   });
 
@@ -546,10 +614,14 @@ describe('links, hand-off and export', () => {
     /** @type {Array<[any, number]>} */
     const opened = [];
     let refuse = false;
+    let block = false;
     const h = harness({
       accepted: true,
       options: {
         openPlayer: async (pack, index) => {
+          if (block) {
+            throw new HandoffError('popup-blocked', 'blocked');
+          }
           if (refuse) {
             throw new HandoffError('handoff-unavailable', 'no link');
           }
@@ -572,6 +644,11 @@ describe('links, hand-off and export', () => {
     refuse = true;
     await h.controller.playAll();
     assert.equal(h.store.getState().notice?.code, 'M-PLAYER-UNAVAILABLE');
+    assert.equal(h.store.getState().puzzles.length, 5);
+    refuse = false;
+    block = true;
+    await h.controller.playAll();
+    assert.equal(h.store.getState().notice?.code, 'M-PLAYER-BLOCKED', 'a blocked tab is explained');
     assert.equal(h.store.getState().puzzles.length, 5);
     h.destroy();
   });
@@ -610,32 +687,31 @@ describe('links, hand-off and export', () => {
     h.destroy();
   });
 
-  test('exports carry every accepted puzzle, pending certificates included, and honor the omit-answers switch', async () => {
-    const h = harness({ accepted: true, state: { omitSolutions: true } });
+  test('exports carry every accepted puzzle with pending certificates and their solutions', async () => {
+    const h = harness({ accepted: true });
     await h.controller.newPuzzles();
     assert.equal(h.store.getState().checking.length, 5);
     h.controller.exportPack();
     h.controller.exportPuzzle(h.store.getState().puzzles[1].id);
-    h.controller.exportSet();
-    const [all, one, set] = h.spies.downloads;
+    assert.equal('exportSet' in h.controller, false, 'there is no piece-set export');
+    const [all, one] = h.spies.downloads;
+    assert.equal(h.spies.downloads.length, 2);
     assert.equal(all.pack.puzzles.length, 5);
     assert.ok(all.pack.puzzles.every((/** @type {any} */ p) => p.certificate === null || p.certificate === undefined));
-    assert.equal(all.opts.omitSolutions, true);
+    assert.equal(all.opts, undefined, 'exports always keep solutions');
     assert.deepEqual(one.pack.puzzles.map((/** @type {any} */ p) => p.id), [h.store.getState().puzzles[1].id]);
-    assert.equal(set.pack.puzzles.length, 0);
-    assert.equal(set.pack.kind, 'piece-set');
-    assert.ok(Array.isArray(set.pack.witness));
     assert.equal(all.pack.generation.batchIndex, 1);
     assert.equal(all.pack.generation.setSeed, 'seed-one');
     h.destroy();
   });
 
   test('stepping through the set history swaps sets without losing any', async () => {
-    const h = harness({ accepted: true });
+    const client = fakeClient({ set: () => ({ status: 'complete', set: OTHER_SET, calibration: null, attempt: 0 }) });
+    const h = harness({ accepted: true, client });
     await h.controller.newPuzzles();
     await h.controller.generateSet({ seed: 'seed-two' });
     const state = h.store.getState();
-    assert.equal(state.setHistory.length, 1);
+    assert.equal(savedCount(state), 1);
     assert.equal(state.setSeed, 'seed-two');
     h.controller.stepSet(1);
     assert.equal(h.store.getState().setSeed, 'seed-one');
@@ -644,9 +720,97 @@ describe('links, hand-off and export', () => {
     assert.equal(h.store.getState().calibrationTrusted, false);
     h.controller.stepSet(-1);
     assert.equal(h.store.getState().setSeed, 'seed-two');
-    assert.equal(h.store.getState().setHistory.length, 1);
+    assert.equal(savedCount(h.store.getState()), 1);
     h.controller.stepSet(-1);
     assert.equal(h.store.getState().setPosition, 0);
+    h.destroy();
+  });
+
+  test('stepping and removing only touch the sets of the board in step 1; the sets of other boards stay saved', async () => {
+    const small = rectangle(5, 4);
+    const SMALL_SET = { ...SET, board: small };
+    const client = fakeClient({ set: () => ({ status: 'complete', set: SMALL_SET, calibration: null, attempt: 0 }) });
+    const h = harness({ accepted: true, client });
+    h.store.update((s) => acceptSet(s, { set: SET, calibration: null, setSeed: 'seed-two' }));
+    assert.equal(setTimelineLength(h.store.getState()), 2, 'two sets for the first board');
+    h.store.update((s) => withBoard(s, small));
+    assert.deepEqual([setTimelineLength(h.store.getState()), h.store.getState().set], [0, null], 'no set for the new board yet: the list is empty');
+    await h.controller.generateSet({ seed: 'seed-small' });
+    let state = h.store.getState();
+    assert.deepEqual([state.setSeed, setTimelineLength(state)], ['seed-small', 1]);
+    assert.deepEqual(Object.keys(state.setsByBoard), [boardKey(SET.board)], 'the first board keeps its own list');
+    h.controller.stepSet(1);
+    h.controller.stepSet(-1);
+    assert.equal(h.store.getState().setSeed, 'seed-small', 'there is nowhere to step on this board');
+    // Back on the first board, its newest set comes up.
+    h.store.update((s) => withBoard(s, SET.board));
+    state = h.store.getState();
+    assert.deepEqual([state.setSeed, setTimelineLength(state)], ['seed-two', 2]);
+    h.controller.stepSet(1);
+    assert.equal(h.store.getState().setSeed, 'seed-one');
+    h.controller.stepSet(-1);
+    state = h.store.getState();
+    assert.deepEqual([state.setSeed, setTimelineLength(state)], ['seed-two', 2]);
+    h.controller.removeAllSets();
+    state = h.store.getState();
+    assert.deepEqual([state.set, Object.keys(state.setsByBoard)], [null, [boardKey(small)]], 'the sets of the small board are still saved');
+    h.destroy();
+  });
+
+  test('a generated set that repeats one in the list (same board and piece shapes) is not added; that set is shown', async () => {
+    const other = fakeClient({
+      set: (/** @type {{ seedText: string }} */ input) => ({
+        status: 'complete', set: input.seedText.startsWith('again') ? SET : OTHER_SET, calibration: null, attempt: 0,
+      }),
+    });
+    const h = harness({ accepted: true, client: other });
+    await h.controller.generateSet({ seed: 'seed-two' });
+    assert.equal(setTimelineLength(h.store.getState()), 2, 'a different set is added');
+    await h.controller.generateSet({ seed: 'seed-three' });
+    let state = h.store.getState();
+    assert.equal(state.notice?.code, 'N-DUPSET');
+    assert.equal(state.notice?.text, formatNotice('N-DUPSET', { n: 2 }), 'it repeats the set on show, Set 2 of 2');
+    assert.deepEqual([state.setSeed, state.setPosition, setTimelineLength(state), state.job], ['seed-two', 0, 2, null], 'nothing is added or changed');
+
+    // On Set 2 (newest), generating Set 1's pieces again jumps back to Set 1.
+    await h.controller.generateSet({ seed: 'again-one' });
+    state = h.store.getState();
+    assert.deepEqual([state.setSeed, state.setPosition, setTimelineLength(state)], ['seed-one', 1, 2], 'switched to the older, repeated set');
+    assert.equal(state.notice?.text, formatNotice('N-DUPSET', { n: 1 }));
+    assert.equal(state.set?.board.width, SET.board.width, 'its board came with it');
+
+    // On Set 1, generating Set 2's pieces again jumps forward to Set 2.
+    await h.controller.generateSet({ seed: 'seed-four' });
+    state = h.store.getState();
+    assert.deepEqual([state.setSeed, state.setPosition, setTimelineLength(state)], ['seed-two', 0, 2], 'switched to the newer, repeated set');
+    assert.equal(state.set?.board.width, OTHER_SET.board.width);
+    assert.equal(duplicateSetNumber(state, OTHER_SET), 2);
+    assert.equal(duplicateSetNumber(state, SET), 1);
+    h.destroy();
+  });
+
+  test('Remove set drops the set on show and its puzzles; Remove all sets clears every set', async () => {
+    const h = harness({ accepted: true });
+    await h.controller.newPuzzles();
+    h.store.update((s) => ['seed-two', 'seed-three'].reduce(
+      (state, setSeed) => acceptSet(state, { set: SET, calibration: null, setSeed }), s));
+    assert.equal(setTimelineLength(h.store.getState()), 3);
+    h.controller.removeSet();
+    let state = h.store.getState();
+    assert.deepEqual([state.setSeed, state.setPosition, setTimelineLength(state)], ['seed-two', 0, 2], 'the next older set takes its place');
+    h.controller.stepSet(1);
+    assert.equal(h.store.getState().setSeed, 'seed-one');
+    assert.equal(h.store.getState().puzzles.length, 5);
+    h.controller.removeSet();
+    state = h.store.getState();
+    assert.deepEqual([state.setSeed, state.setPosition, setTimelineLength(state), state.puzzles.length], ['seed-two', 0, 1, 0],
+      'removing the oldest set falls back to the newer one; its puzzles went with it');
+    h.store.update((s) => acceptSet(s, { set: SET, calibration: null, setSeed: 'seed-four' }));
+    h.controller.removeAllSets();
+    state = h.store.getState();
+    assert.deepEqual([state.set, state.setSeed, savedCount(state), state.puzzles.length, setTimelineLength(state)], [null, null, 0, 0, 0]);
+    h.controller.removeSet();
+    assert.equal(h.store.getState(), state, 'nothing left to remove');
     h.destroy();
   });
 });

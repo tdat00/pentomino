@@ -4,13 +4,14 @@
 // other hosts can replace the job actions.
 import storage from '../core/browser/storage.js';
 import { copyText, showToast } from '../core/browser/dom.js';
+import { svgEl } from '../core/browser/svg-board.js';
 import { createGenerationClient } from '../core/browser/generation-client.js';
-import { downloadPack, openInPlayer, preparePlayerLink } from '../core/browser/handoff.js';
+import { downloadPack, openInPlayerTab, preparePlayerLink } from '../core/browser/handoff.js';
 import { createPool } from '../core/browser/worker-pool.js';
 import { applyTo, detect, getLocale, normalize, onChange, setLocale, t } from './i18n.js';
 import { THEME_KEY, applyTheme, effectiveTheme, normalizeTheme } from './ui/theme.js';
 import {
-  createGeneratorStore, createPersistence, describeBoard, detectHardware, isBusy, loadGeneratorState,
+  createGeneratorStore, createPersistence, describeBoard, detectHardware, loadGeneratorState, setNumber,
 } from './state.js';
 import { createJobController } from './jobs.js';
 import { mountBoardEditor } from './ui/board-editor.js';
@@ -18,10 +19,17 @@ import { mountBoardSummary } from './ui/board-summary.js';
 import { mountLevelPanel } from './ui/level-panel.js';
 import { mountPuzzlePanel } from './ui/puzzle-panel.js';
 import { mountSetPanel } from './ui/set-panel.js';
-import { mountWizard } from './ui/wizard.js';
+import { mountSetSummary } from './ui/set-summary.js';
+import { mountWizard, reachableStep, stepFromSearch } from './ui/wizard.js';
+import { addressParams, applyAddress, withAddress } from './address.js';
 
 /** Where the chosen interface language is remembered (shared by the pages of this site). */
 export const LANGUAGE_KEY = 'pentomino:v1:lang';
+
+/** The generator makes one puzzle each time Generate is pressed; the controller can still make more at once. */
+const PUZZLES_PER_PRESS = 1;
+/** The address follows the settings after this pause, so painting a board does not rewrite it on every square. */
+const ADDRESS_DELAY_MS = 300;
 
 /** @typedef {import('./ui/level-panel.js').GenerateSetRequest} GenerateSetRequest */
 
@@ -109,7 +117,8 @@ function dedicatedTaskRunner(workerFactory) {
 /**
  * @param {Document} doc
  * @param {{ storage?: import('./state.js').StorageLike, env?: any,
- *   random?: () => string, client?: import('../core/browser/generation-client.js').GenerationClient,
+ *   random?: () => string, randomNumber?: () => string, now?: () => number, address?: boolean,
+ *   client?: import('../core/browser/generation-client.js').GenerationClient,
  *   pool?: import('../core/browser/worker-pool.js').Pool, workerFactory?: () => import('../core/browser/worker-pool.js').WorkerLike,
  *   workersAvailable?: boolean, handoff?: import('../core/browser/handoff.js').HandoffEnv,
  *   preferenceStorage?: Pick<Storage, 'setItem'> | null,
@@ -117,7 +126,13 @@ function dedicatedTaskRunner(workerFactory) {
  */
 export function createGeneratorApp(doc, options = {}) {
   const io = options.storage ?? storage;
-  const store = createGeneratorStore(loadGeneratorState(io));
+  // The settings in the address (shared link, reload) win over the saved work; a page without the wizard (a test
+  // fixture) neither reads nor writes them.
+  const addressed = options.address ?? doc.querySelector('[data-wizard-step]') !== null;
+  const search = addressed ? doc.defaultView?.location.search ?? '' : '';
+  const fromAddress = applyAddress(loadGeneratorState(io), search);
+  const requestedStep = stepFromSearch(search);
+  const store = createGeneratorStore({ ...fromAddress.state, quantity: PUZZLES_PER_PRESS });
   const hardware = detectHardware(options.env ?? doc.defaultView ?? globalThis);
   /** @type {GeneratorHandlers} */
   const handlers = {};
@@ -134,7 +149,9 @@ export function createGeneratorApp(doc, options = {}) {
   const editor = mountBoardEditor(slot(doc, 'board'), { store, hardware, controlsHost: optionalSlot(doc, 'board-controls') });
   const summaryHost = optionalSlot(doc, 'board-summary');
   const boardSummary = summaryHost === null ? null : mountBoardSummary(summaryHost, { store });
-  const level = mountLevelPanel(slot(doc, 'level'), { store, hardware, getHandlers: () => handlers, random: options.random });
+  const level = mountLevelPanel(slot(doc, 'level'), {
+    store, hardware, getHandlers: () => handlers, random: options.random, now: options.now, controlsHost: optionalSlot(doc, 'set-controls'),
+  });
   const regions = { set: slot(doc, 'set'), puzzles: slot(doc, 'puzzles') };
 
   const win = doc.defaultView;
@@ -149,18 +166,25 @@ export function createGeneratorApp(doc, options = {}) {
     cancelPending: () => pool?.cancelAll(),
     runWorkerTask: dedicatedTaskRunner(options.workerFactory),
     prepareLink: (pack, index) => preparePlayerLink(pack, index, handoffEnv),
-    openPlayer: (pack, index) => openInPlayer(pack, index, handoffEnv),
-    download: (pack, name, o) => downloadPack(pack, name, o),
+    openPlayer: (pack, index) => openInPlayerTab(pack, index, handoffEnv),
+    download: (pack, name) => downloadPack(pack, name),
     copy: copyText,
     notify: (message, kind) => void showToast(message, { kind }),
     saveLibrary: (pack) => void (handoffEnv.storage ?? storage).saveLibraryPack(pack),
     beforeNavigate: () => persistence.saveNow(),
+    random: options.random,
+    randomNumber: options.randomNumber,
+    ...(options.now === undefined ? {} : { now: options.now }),
     ...options.controller,
   });
   const setPanel = mountSetPanel(regions.set, { store, controller });
+  const setSummaryHost = optionalSlot(doc, 'set-summary');
+  const setSummary = setSummaryHost === null ? null : mountSetSummary(setSummaryHost, { store });
+  const puzzleControlsHost = optionalSlot(doc, 'puzzle-controls');
   const puzzlePanel = mountPuzzlePanel(regions.puzzles, {
-    store, hardware, controller, onNewSet: () => void level.generate(),
-    progressHost: optionalSlot(doc, 'progress'), noticeHost: optionalSlot(doc, 'notice'), cardsHost: optionalSlot(doc, 'cards'),
+    store, hardware, controller, onNewSet: () => void level.generate(), now: options.now,
+    noticeHost: optionalSlot(doc, 'notice'), cardsHost: optionalSlot(doc, 'cards'),
+    controlsHost: puzzleControlsHost, cardsActionsHost: optionalSlot(doc, 'cards-actions'),
   });
   const wizard = mountWizard(doc, { store, hardware });
   const unsubscribeBoard = store.subscribe((state, previous) => {
@@ -169,64 +193,51 @@ export function createGeneratorApp(doc, options = {}) {
     }
   });
   handlers.onGenerateSet = (request) => void controller.generateSet(request);
-  handlers.onNewPuzzles = () => void controller.newPuzzles();
+  handlers.onNewPuzzles = () => void controller.addMore();
   handlers.onAddMore = () => void controller.addMore();
   handlers.onCancel = () => controller.cancel();
   level.refresh();
 
+  // The two buttons at the top right of the main panel walk the wizard: "‹ Step 1 - Create board" and "Step 3 - Create puzzles ›".
   const mainAction = /** @type {HTMLButtonElement} */ (slot(doc, 'main-action'));
   const mainBack = /** @type {HTMLButtonElement | null} */ (optionalSlot(doc, 'main-back'));
-  /** @type {() => void} */
-  let mainRun = () => {};
+
+  /** @param {number} n @returns {string} "Step 2 - Create piece set" */
+  const stepName = (n) => `${t('wizard.stepLabel', { n })} - ${t(`wizard.step${n}.title`)}`;
 
   /**
-   * Sets the label of the main action and the language key that keeps it translated.
-   * @param {string} key
+   * @param {'left' | 'right'} side
+   * @returns {SVGElement} A chevron icon that takes the colour of the button text.
    */
-  function setActionLabel(key) {
-    mainAction.textContent = t(key);
-    mainAction.dataset.i18n = key;
-  }
+  const chevron = (side) => svgEl('svg', { class: 'nav-icon', viewBox: '0 0 16 16', 'aria-hidden': 'true', focusable: 'false' },
+    svgEl('path', {
+      d: side === 'left' ? 'M10.5 3 5.5 8l5 5' : 'M5.5 3l5 5-5 5',
+      fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+    }));
 
-  /** Brings the Back and main-action buttons (top right of the main screen) in line with the step and the state. */
+  /** Brings the two navigator buttons in line with the step that is showing and with how far the work has got. */
   function syncActions() {
     const state = store.getState();
-    const description = describeBoard(state, hardware);
     const step = wizard?.step ?? null;
-    const generateSet = () => {
-      setActionLabel('level.generate');
-      mainAction.disabled = typeof handlers.onGenerateSet !== 'function' || !description.valid || !description.levelOffered;
-      mainRun = () => void level.generate();
-    };
-    if (isBusy(state)) {
-      setActionLabel('progress.cancel');
-      mainAction.disabled = typeof handlers.onCancel !== 'function';
-      mainRun = () => handlers.onCancel?.();
-    } else if (step === 1) {
-      setActionLabel('wizard.next.step2');
-      mainAction.disabled = !description.valid;
-      mainRun = () => void wizard?.next();
-    } else if (step === 2 && state.set !== null && !state.stale) {
-      setActionLabel('wizard.next.step3');
-      mainAction.disabled = false;
-      mainRun = () => void wizard?.next();
-    } else if (state.set !== null && !state.stale) {
-      setActionLabel('puzzles.new');
-      mainAction.disabled = typeof handlers.onNewPuzzles !== 'function';
-      mainRun = () => handlers.onNewPuzzles?.();
-    } else {
-      generateSet();
+    const hasNext = step !== null && step < 3;
+    const hasBack = step !== null && step > 1;
+    mainAction.hidden = !hasNext;
+    if (hasNext) {
+      mainAction.replaceChildren(stepName(step + 1), chevron('right'));
+      mainAction.disabled = step + 1 > reachableStep(state, hardware);
+      mainAction.title = !mainAction.disabled ? ''
+        : step === 1 ? `${t('level.cannot')} ${describeBoard(state, hardware).statusText}` : t('wizard.locked.set');
     }
-    mainAction.title = mainAction.disabled && typeof handlers.onGenerateSet !== 'function'
-      ? t('level.pending')
-      : mainAction.disabled && step === 1 ? `${t('level.cannot')} ${description.statusText}` : '';
     if (mainBack !== null) {
-      mainBack.hidden = step === null || step === 1;
-      mainBack.disabled = step === null || step === 1;
+      mainBack.hidden = !hasBack;
+      mainBack.disabled = !hasBack;
+      if (hasBack) {
+        mainBack.replaceChildren(chevron('left'), stepName(step - 1));
+      }
     }
   }
 
-  const onActionClick = () => mainRun();
+  const onActionClick = () => void wizard?.next();
   const onBackClick = () => void wizard?.back();
   mainAction.addEventListener('click', onActionClick);
   mainBack?.addEventListener('click', onBackClick);
@@ -239,13 +250,70 @@ export function createGeneratorApp(doc, options = {}) {
     }
   }
 
-  const unsubscribe = store.subscribe(syncActions);
+  /** The header of the puzzle list names the set it belongs to: "Set 2/2 puzzles". */
+  const historyTitle = doc.getElementById('heading-history');
+  function syncHistoryTitle() {
+    if (historyTitle !== null) {
+      const { n, total } = setNumber(store.getState());
+      historyTitle.textContent = n === null ? t('puzzles.list') : t('puzzles.setHeading', { n, total });
+    }
+  }
+
+  const unsubscribe = store.subscribe(() => {
+    syncActions();
+    syncHistoryTitle();
+  });
   const unsubscribeWizard = wizard?.onChange(() => {
     placeActions();
     syncActions();
   });
   placeActions();
   syncActions();
+  syncHistoryTitle();
+
+  // The settings of the steps are kept in the address (see address.js), so a link comes back to them.
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  let addressTimer = null;
+  function syncAddress() {
+    addressTimer = null;
+    if (!addressed || win === null) {
+      return;
+    }
+    try {
+      const href = withAddress(win.location.href, addressParams(store.getState()));
+      if (href !== win.location.href) {
+        win.history.replaceState(null, '', href);
+      }
+    } catch {
+      // An address that cannot be changed (a sandboxed frame) only loses the link.
+    }
+  }
+  const unsubscribeAddress = addressed
+    ? store.subscribe((state, previous) => {
+      if (state.board !== previous.board || state.rotation !== previous.rotation || state.presetId !== previous.presetId
+        || state.levelId !== previous.levelId || state.uniqueness !== previous.uniqueness || state.seedText !== previous.seedText
+        || state.keepSeed !== previous.keepSeed || state.setSeed !== previous.setSeed || state.set !== previous.set) {
+        if (addressTimer !== null) {
+          clearTimeout(addressTimer);
+        }
+        addressTimer = setTimeout(syncAddress, ADDRESS_DELAY_MS);
+      }
+    })
+    : () => {};
+  syncAddress();
+
+  // A link that names a seed shows its set: the one saved here, or one made again from the board, the level and the seed.
+  if (addressed && fromAddress.seed !== null && store.getState().setSeed !== fromAddress.seed && (requestedStep ?? 1) >= 2 && level.generate()) {
+    const target = requestedStep ?? 2;
+    const stop = store.subscribe((state) => {
+      if (state.job === null) {
+        stop();
+        if (state.set !== null) {
+          wizard?.go(target);
+        }
+      }
+    });
+  }
 
   const onHide = () => persistence.flush();
   const onVisibility = () => {
@@ -272,9 +340,11 @@ export function createGeneratorApp(doc, options = {}) {
     boardSummary?.refresh();
     level.refresh();
     setPanel.refresh();
+    setSummary?.refresh();
     puzzlePanel.refresh();
     wizard?.refresh();
     syncActions();
+    syncHistoryTitle();
     syncLanguageButtons();
     editor.view.fit();
   });
@@ -350,6 +420,10 @@ export function createGeneratorApp(doc, options = {}) {
     destroy() {
       unsubscribe();
       unsubscribeWizard?.();
+      unsubscribeAddress();
+      if (addressTimer !== null) {
+        clearTimeout(addressTimer);
+      }
       unsubscribeLanguage();
       unsubscribeBoard();
       for (const [button, handler] of languageHandlers) {
@@ -361,6 +435,7 @@ export function createGeneratorApp(doc, options = {}) {
       wizard?.destroy();
       controller.destroy();
       setPanel.destroy();
+      setSummary?.destroy();
       puzzlePanel.destroy();
       mainAction.removeEventListener('click', onActionClick);
       mainBack?.removeEventListener('click', onBackClick);

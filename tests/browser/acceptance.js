@@ -200,48 +200,83 @@ async function runRecipe(recipe) {
     setValue(frame, /** @type {HTMLInputElement} */ (q(d, '[data-field="columns"]')), String(recipe.boardRows[0].length));
     setValue(frame, /** @type {HTMLInputElement} */ (q(d, '[data-field="rows"]')), String(recipe.boardRows.length));
   }
-  const select = /** @type {HTMLSelectElement} */ (q(d, '[data-field="level"]'));
-  assert([...select.options].some((o) => o.value === recipe.levelId), `${recipe.levelId} is offered for this board`);
-  select.value = recipe.levelId;
-  select.dispatchEvent(new (frame.win().Event)('change', { bubbles: true }));
+  const radio = /** @type {HTMLInputElement} */ (q(d, `[data-field="level"] input[value="${recipe.levelId}"]`));
+  assert(!radio.disabled, `${recipe.levelId} is offered for this board`);
+  radio.click();
   setValue(frame, /** @type {HTMLInputElement} */ (q(d, '[data-field="seed"]')), recipe.seedText);
   const start = performance.now();
   q(d, '[data-action="generate-set"]').click();
-  await waitFor(() => qa(d, '[data-role="pieces"] li').length > 0 && q(d, '[data-role="progress"]').hidden, 'the piece set', 150000);
+  await waitFor(() => qa(d, '[data-role="pieces"] li').length > 0 && /** @type {HTMLElement} */ (q(d, '[data-action="generate-set"] .spinner')).hidden, 'the piece set', 150000);
   const setMs = Math.round(performance.now() - start);
   assert(qa(d, '[data-role="pieces"] li').length === recipe.expect.pieces, `${qa(d, '[data-role="pieces"] li').length} pieces, recorded ${recipe.expect.pieces}`);
   assert(qa(d, '[data-role="notice"] .notice').length === 0, `notice after the set: ${q(d, '[data-role="notice"]').textContent}`);
-  setValue(frame, /** @type {HTMLInputElement} */ (q(d, '[data-field="quantity"]')), String(recipe.quantity));
+  q(d, '[data-wizard-step="3"]').click();
+  const summaryLines = qa(d, '[data-role="set-summary-card"] p').map((n) => n.textContent);
+  assert(!(/** @type {HTMLElement} */ (q(d, '[data-step-after="2"]'))).hidden && summaryLines.length === 3, `the side panel shows the set summary on step 3: ${summaryLines}`);
+  assert(summaryLines[0] === 'Set 1/1' && summaryLines[1]?.endsWith(`| ${recipe.seedText}`) && summaryLines[2]?.includes(`${recipe.expect.pieces} pieces`), `summary lines: ${summaryLines}`);
+  const setSummary = /** @type {HTMLElement} */ (q(d, '[data-step-after="2"]'));
+  assert(q(d, '#heading-history').textContent === 'Set 1/1 puzzles', `the header of the puzzle list names its set: ${q(d, '#heading-history').textContent}`);
+  assert(setSummary.getAttribute('role') === 'button', 'the piece set summary is a button');
+  setSummary.click();
+  assert(!(/** @type {HTMLElement} */ (q(d, '[data-step="2"]'))).hidden && setSummary.hidden, 'clicking the piece set summary opens step 2, like its header');
+  q(d, '[data-wizard-step="3"]').click();
+  const stepBody3 = /** @type {HTMLElement} */ (q(d, '[data-step-body="3"]'));
+  assert(!stepBody3.hidden && q(d, '[data-field="puzzle-level"]').closest('[data-step-body="3"]') !== null && q(d, '[data-action="new-puzzles"]').closest('[data-step-body="3"]') !== null,
+    'Level, Require unique solution and New Puzzle live in the right panel, under step 3');
+  assert(/** @type {HTMLElement} */ (q(d, '[data-slot="main-action"]')).hidden && q(d, '[data-slot="main-action"]').getBoundingClientRect().width === 0
+    && q(d, '[data-slot="main-back"]').textContent === 'Step 2 - Create piece set',
+    'step 3 has only the way back to step 2 in the navigator');
+  assert(['[data-field="quantity"]', '[data-action="add-more"]', '[data-action="play-all"]', '[data-action="export-pack"]', '[data-action="copy-pack-link"]'].every((s) => d.querySelector(s) === null),
+    'Quantity, Add more, Play all, Export pack and Copy pack link are gone');
   const batchStart = performance.now();
   q(d, '[data-action="new-puzzles"]').click();
-  await waitFor(() => qa(d, '.puzzle-card').length >= recipe.expect.puzzles && q(d, '[data-role="progress"]').hidden, 'the puzzles', 150000);
+  await waitFor(() => qa(d, '.puzzle-card').length >= 1 && /** @type {HTMLElement} */ (q(d, '[data-action="new-puzzles"] .spinner')).hidden, 'the puzzle', 150000);
   const batchMs = Math.round(performance.now() - batchStart);
-  assert(qa(d, '.puzzle-card').length === recipe.expect.puzzles, `${qa(d, '.puzzle-card').length} cards, recorded ${recipe.expect.puzzles}`);
-  assert(qa(d, '[data-role="notice"] .notice').length === 0, `notice after the batch: ${q(d, '[data-role="notice"]').textContent}`);
-  const scores = qa(d, '.card-rating').map((n) => Number(/est\. score (\d+)/.exec(n.textContent ?? '')?.[1] ?? NaN));
-  assert(JSON.stringify(scores) === JSON.stringify(recipe.expect.scores), `scores ${scores.join(',')} vs recorded ${recipe.expect.scores.join(',')}`);
-  await waitFor(() => qa(d, 'a[data-action="play"]').every((a) => a.getAttribute('href') !== null), 'prepared Play links', 30000);
-  const hrefs = qa(d, 'a[data-action="play"]').map((a) => /** @type {string} */ (a.getAttribute('href')));
+  assert(qa(d, '.puzzle-card').length === 1, `${qa(d, '.puzzle-card').length} cards, one puzzle per press`);
+  assert(qa(d, '[data-role="notice"] .notice').length === 0, `notice after the puzzle: ${q(d, '[data-role="notice"]').textContent}`);
+  const scores = qa(d, '.card-rating').map((n) => Number(/score (\d+)/.exec(n.textContent ?? '')?.[1] ?? NaN));
+  assert(Number.isFinite(scores[0]), `the card shows a score: ${scores}`);
+  const cardLines = qa(d, '.puzzle-card .card-body > p').map((n) => n.textContent ?? '');
+  assert(cardLines.length === 5 && cardLines[0] === 'Puzzle #1' && /^\w[\w ]*: score \d+\+?$/.test(cardLines[1]) && /^Seed: \d+$/.test(cardLines[2])
+    && /^\d+ pieces? to place$/.test(cardLines[3]) && /^(Unique solution ✓|Multiple solutions|Checking…|Uniqueness not (checked|proved)|No solution exists)$/.test(cardLines[4]),
+  `the card shows number, level and score, a numeric seed, pieces to place and solutions: ${cardLines}`);
+  assert(qa(d, '.puzzle-card a').length === 0 && qa(d, '.puzzle-card button').every((b) => b.dataset.action === 'remove' || b.dataset.action === 'select'), 'the card only has its select and remove buttons');
+  assert(!(/** @type {HTMLButtonElement} */ (q(d, '[data-action="remove-all-puzzles"]'))).disabled && q(d, '[data-action="remove-all-puzzles"]').closest('.app-history') !== null,
+    'Remove all sits in the left panel and is enabled once there is a puzzle');
+  const toPlace = Number(/^(\d+)/.exec(cardLines[3])?.[1] ?? NaN);
+  // The cards have no Play button: the link is built from the pack the generator saved, as the old button did.
+  const { browserStorage } = await import('../../core/browser/storage.js');
+  const { preparePlayerLink } = await import('../../core/browser/handoff.js');
+  const { validatePack } = await import('../../core/engine/pack.js');
+  /** @type {any} */
+  let savedState = null;
+  await waitFor(() => {
+    savedState = browserStorage().getGeneratorState();
+    return savedState?.batchPack != null;
+  }, 'the generator to save the puzzle', 10000);
+  const validated = validatePack(savedState.batchPack);
+  assert(validated.ok, 'the saved puzzle pack is valid');
+  const link = await preparePlayerLink(/** @type {any} */ (validated).value, 0, { base: new URL('../../generator/', location.href).href });
+  assert(link.href !== null, 'a player link can be made');
+  const hrefs = [/** @type {string} */ (link.href)];
   playLinks[recipe.name] = hrefs;
-  const clues = Number(/(\d+) pre-placed/.exec(q(d, '.card-clues').textContent ?? '')?.[1] ?? NaN);
-  const titleOnCard = q(d, '.card-title').textContent ?? '';
   scan(frame);
-  q(d, 'a[data-action="play"]').click();
+  frame.win().location.assign(hrefs[0]);
   await waitFor(() => {
     const w = frame.win();
     return w.location.pathname.endsWith('/player/') && w.document.querySelector('#app[data-screen="game"]') !== null;
   }, 'the player to open the puzzle', 30000);
   const p = frame.doc();
   const trayPieces = qa(p, '.tray-piece').length;
-  assert(trayPieces === recipe.expect.pieces - clues, `tray shows ${trayPieces} pieces, expected ${recipe.expect.pieces - clues}`);
+  assert(trayPieces === toPlace, `tray shows ${trayPieces} pieces, the card says ${toPlace} to place`);
   assert(p.querySelector('.pm-board svg') !== null, 'the board is drawn');
   assert((q(p, '.top-title').textContent ?? '').trim() !== '', 'the title is shown');
   scan(frame);
-  return { setMs, batchMs, scores, clues, trayPieces, cardTitle: titleOnCard, playerTitle: q(p, '.top-title').textContent, hrefChars: hrefs[0].length };
+  return { setMs, batchMs, scores, toPlace, trayPieces, playerTitle: q(p, '.top-title').textContent, hrefChars: hrefs[0].length };
 }
 
 for (const recipe of recipes) {
-  await check(`F-${recipe.name}`, `${recipe.name}: Generate Piece Set -> ${recipe.quantity} puzzles -> Play (real pages, real workers, recorded scores)`, () => runRecipe(recipe));
+  await check(`F-${recipe.name}`, `${recipe.name}: Generate Piece Set -> one puzzle -> Play (real pages, real workers; the recorded 10-puzzle batches are replayed in the flow harness)`, () => runRecipe(recipe));
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -468,7 +503,7 @@ function accessibilityReport(frame) {
   return { unnamed, positiveTabindex: positive, liveRegions: live, title: d.title, lang: d.documentElement.lang, h1: qa(d, 'h1').length };
 }
 
-await check('L1', 'Generator desktop layout (>= 900 px): a three-step wizard shows one step at a time; step 2 puts the level settings beside the piece set; Back and the main action sit at the top right of the main screen; level selector and Copy pack link present', async () => {
+await check('L1', 'Generator desktop layout (>= 900 px): a three-step wizard shows one step at a time; step 2 shows the piece set below the level settings; Back and the main action sit at the top right of the main screen; the puzzle level selector is present and Copy pack link is gone', async () => {
   const frame = await openFrame('../../generator/index.html', { width: 1280, height: 900, ready: generatorReady });
   const d = frame.doc();
   const shown = () => qa(d, '[data-step]').filter((n) => !n.hidden).map((n) => n.dataset.step);
@@ -479,13 +514,13 @@ await check('L1', 'Generator desktop layout (>= 900 px): a three-step wizard sho
   assert(JSON.stringify(shown()) === '["2"]', `only step 2 shows after choosing it: ${shown()}`);
   const level = rect(q(d, '.panel-level'));
   const set = rect(q(d, '.panel-set'));
-  assert(Math.abs(level.top - set.top) < 3 && level.left < set.left, 'the level settings sit left of the piece set');
+  assert(set.top >= level.bottom - 2 && Math.abs(level.left - set.left) < 3, 'the piece set sits below the level settings, in one column');
   const actions = rect(q(d, '.main-actions'));
   const panelBox = rect(q(d, '[data-step]:not([hidden])'));
   assert(actions.right <= panelBox.right && panelBox.right - actions.right < 24 && actions.top >= panelBox.top && actions.top - panelBox.top < 24, 'the buttons sit inside the main panel, at its top right');
   assert(d.querySelector('.sticky-bar') === null, 'there is no sticky toolbar');
   assert(d.querySelector('[data-field="puzzle-level"]') !== null, 'the puzzle-level selector exists');
-  assert(d.querySelector('[data-action="copy-pack-link"]') !== null, 'Copy pack link exists');
+  assert(d.querySelector('[data-action="copy-pack-link"]') === null, 'Copy pack link is gone');
   scan(frame);
   return { level: Math.round(level.left), set: Math.round(set.left) };
 });
@@ -502,10 +537,20 @@ await check('L6', 'Generator wide layout (>= 1360 px): puzzles on the left, the 
   assert(controls !== null && ['columns', 'rows', 'preset'].every((f) => q(d, `[data-field="${f}"]`).closest('[data-step-body="1"]') !== null), 'Columns, Rows and Preset live in the right panel, under step 1');
   q(d, '[data-wizard-step="2"]').click();
   assert(/** @type {HTMLElement} */ (q(d, '[data-step-body="1"]')).hidden, 'the board settings leave with step 1');
+  const setControls = /** @type {HTMLElement} */ (q(d, '[data-step-body="2"]'));
+  assert(!setControls.hidden && ['[data-field="seed"]', '[data-action="generate-set"]'].every((s) => q(d, s).closest('[data-step-body="2"]') !== null), 'the set seed and the Generate button live in the right panel, under step 2');
+  assert(d.querySelector('[data-role="progress"]') === null, 'there are no loading panels');
+  const seedRow = [q(d, '[data-field="seed"]'), q(d, '[data-action="roll-seed"]')].map((n) => rect(n));
+  assert(Math.abs(seedRow[0].top - seedRow[1].top) < 6, 'the dice stays beside the seed box');
+  assert(rect(q(d, '[data-action="generate-set"]')).width > 0, 'New Piece Set is visible there');
   const summary = /** @type {HTMLElement} */ (q(d, '[data-step-after="1"]'));
   assert(!summary.hidden && summary.querySelector('svg') !== null && rect(summary).width > 0, 'a thumbnail of the board shows in the right panel after step 1');
   q(d, '[data-wizard-step="1"]').click();
   assert(summary.hidden, 'the thumbnail hides again while the board is edited');
+  q(d, '[data-wizard-step="2"]').click();
+  assert(!summary.hidden && summary.getAttribute('role') === 'button' && summary.tabIndex === 0, 'the board preview is a button');
+  summary.click();
+  assert(summary.hidden && !(/** @type {HTMLElement} */ (q(d, '[data-step="1"]'))).hidden, 'clicking the board preview opens step 1, like its header');
   q(d, '[data-wizard-step="2"]').click();
   const actions = rect(q(d, '.main-actions'));
   const panelBox = rect(q(d, '[data-step]:not([hidden])'));
@@ -537,16 +582,17 @@ await check('L5', 'Generator wizard: Next and Back move between steps, step 3 st
   const shown = () => qa(d, '[data-step]').filter((n) => !n.hidden).map((n) => n.dataset.step).join();
   const action = /** @type {HTMLButtonElement} */ (q(d, '[data-slot="main-action"]'));
   const back = /** @type {HTMLButtonElement} */ (q(d, '[data-slot="main-back"]'));
-  assert(shown() === '1' && back.hidden, 'step 1 first, without Back');
-  assert(action.textContent === 'Next: piece set', `step 1 action: ${action.textContent}`);
+  assert(shown() === '1' && back.hidden && back.getBoundingClientRect().width === 0, 'step 1 first, without Back (nothing drawn in its place)');
+  assert(action.textContent === 'Step 2 - Create piece set' && action.querySelector('.nav-icon') !== null, `step 1 navigator: ${action.textContent}`);
   action.click();
   assert(shown() === '2' && !back.hidden, 'Next opens step 2 and shows Back');
-  assert(action.textContent === 'Generate Piece Set', `step 2 action: ${action.textContent}`);
+  assert(back.textContent === 'Step 1 - Create board' && action.textContent === 'Step 3 - Create puzzles' && back.firstElementChild?.classList.contains('nav-icon') === true && action.lastElementChild?.classList.contains('nav-icon') === true, `step 2 navigator: ${back.textContent} / ${action.textContent}`);
+  assert(action.disabled && action.title !== '', 'Next is closed until there is a piece set, and says why');
   assert(/** @type {HTMLButtonElement} */ (q(d, '[data-wizard-step="3"]')).disabled, 'step 3 is closed without a piece set');
   q(d, '[data-lang="vi"]').click();
   assert(shown() === '2' && d.documentElement.lang === 'vi', 'the step is kept and the page language changed');
   assert(q(d, '[data-wizard-step="2"] .wizard-name').textContent === 'Tạo bộ mảnh', 'the step names are translated');
-  assert(action.textContent === 'Tạo bộ mảnh', `the action is translated: ${action.textContent}`);
+  assert(back.textContent === 'Bước 1 - Tạo bàn' && action.textContent === 'Bước 3 - Tạo đề', `the navigator is translated: ${back.textContent} / ${action.textContent}`);
   assert(q(d, '[data-lang="vi"]').getAttribute('aria-pressed') === 'true', 'the switch shows the language');
   assert(localStorage.getItem('pentomino:v1:lang') === 'vi', 'the choice is remembered');
   back.click();

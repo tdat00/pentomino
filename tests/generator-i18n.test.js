@@ -87,7 +87,7 @@ test('text lookup: placeholders, plural forms, fallback to English and to the ke
   assert.equal(t('set.summary.pieces', { count: 1 }), '1 mảnh');
   assert.equal(t('wizard.step3.title'), 'Tạo đề');
   assert.equal(setLocale('fr', null), 'vi', 'an unsupported code is ignored');
-  assert.equal(raw('wizard.back'), 'Quay lại');
+  assert.equal(raw('wizard.locked.set'), 'Hãy tạo hoặc nhập một bộ mảnh trước.');
   assert.ok(keys('vi').length > 100);
 });
 

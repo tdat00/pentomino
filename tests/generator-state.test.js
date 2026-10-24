@@ -2,17 +2,18 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { activeCount, boardToRows, preset, rectangle } from '../core/engine/board.js';
+import { activeCount, boardFromRows, boardKey, boardToRows, preset, rectangle } from '../core/engine/board.js';
 import { packBoard, parsePack } from '../core/engine/pack.js';
 import { LIMITS } from '../core/engine/policy.js';
 import { batchSeedFor } from '../core/engine/rng.js';
 import { formatNotice } from '../generator/strings.js';
 import {
-  HISTORY_LIMIT, LISTED_LEVEL_IDS, MAX_SAVED_SETS, acceptSet, beginSetRequest, boardsEqual, calibrationCurrent, capFor,
+  HISTORY_LIMIT, LISTED_LEVEL_IDS, MAX_SAVED_SETS, MAX_SETS, acceptSet, beginSetRequest, boardsEqual, calibrationCurrent, capFor,
   createEditHistory, createGeneratorStore, createPersistence, defaultGeneratorState, describeBoard, describeCount,
   describeLevels, detectHardware, isPhone, loadGeneratorState, nextBatch, nearestOfferedLevel,
-  recordBatch, resizeBoard, restoreState, rollSeed, savedSetOf, serializeState, setCell, trimBoard, typeSeed, useSavedSet,
-  validSeed, withBoard,
+  recordBatch, removeAllSets, resizeBoard, restoreState, rollSeed, savedSetOf, serializeState, setCell, setNumber, setTimelineLength, setViewPosition,
+  setsFull, trimBoard,
+  typeSeed, useSavedSet, validSeed, withBoard,
 } from '../generator/state.js';
 
 const parsed = parsePack(readFileSync(new URL('./fixtures/generated-sample-pack.json', import.meta.url), 'utf8'));
@@ -109,14 +110,13 @@ test('a 60-cell board offers Very easy to Master and 360 offers Hard to Hell 2',
 
 test('the piece-count line comes from the policy: 360 squares at Hard', () => {
   const count = describeCount('hard', 360);
-  assert.deepEqual(count, { kmin: 16, kmax: 18, sizeMin: 12, sizeMax: 34, share: 38 });
+  assert.deepEqual(count, { kmin: 16, kmax: 18, sizeMin: 12, sizeMax: 34, share: 38, placedMin: 6, placedMax: 7 });
   assert.equal(describeCount('nightmare', 60), null);
   assert.equal(describeCount('hard', 0), null);
 });
 
 test('notices carry the exact wording and reject missing parameters', () => {
   assert.equal(formatNotice('N-SMALL'), 'A board needs at least 30 playable squares to generate puzzles.');
-  assert.equal(formatNotice('N-STALE'), 'Board changed — generate a new piece set.');
   assert.equal(formatNotice('N-COUNT', { kmin: 16, kmax: 18, level: 'Hard', share: 38 }), 'This board uses 16–18 pieces at Hard, about 38 % pre-placed.');
   assert.equal(formatNotice('N-LEVELS', { highest: 'Master' }, 'above'), 'Levels above Master need a larger board.');
   assert.throws(() => formatNotice('N-CAP', { area: 500 }), RangeError);
@@ -275,23 +275,20 @@ test('trim removes blocked margins as an explicit edit and a level follows the a
   assert.equal(tiny.levelId, 'normal', 'nothing is offered, so the choice stays');
 });
 
-test('a board edit after a set exists marks it stale while the set keeps its board', () => {
+test('a board edit moves the set on show out of sight and the board it was made for brings it back', () => {
   let state = acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: samplePuzzles[0], setSeed: 'alpha' });
-  assert.equal(state.stale, false);
-  const originalBoard = state.set?.board;
   state = { ...state, puzzles: samplePuzzles };
   const edited = withBoard(state, setCell(state.board, 0, 0, 0));
-  assert.equal(edited.stale, true);
-  assert.equal(edited.set?.board, originalBoard, 'the set keeps its own board');
-  assert.equal(activeCount(edited.set?.board ?? rectangle(1, 1)), 60);
-  assert.equal(edited.puzzles.length, 3);
-  assert.equal(describeBoard(edited, DESKTOP).notices[0].text, 'Board changed — generate a new piece set.');
+  assert.equal(edited.set, null, 'there is no set for the board being edited');
+  assert.deepEqual([edited.puzzles.length, edited.setSeed, setTimelineLength(edited)], [0, null, 0]);
+  assert.equal(edited.setsByBoard[boardKey(sampleSet.board)].length, 1, 'the set is kept under the board it was made for');
+  assert.equal(describeBoard(edited, DESKTOP).notices.some((n) => n.code === 'N-STALE'), false);
   const reverted = withBoard(edited, sampleSet.board);
-  assert.equal(reverted.stale, false, 'restoring the board clears stale');
-  assert.equal(withBoard(edited, edited.board, 90).stale, true);
+  assert.deepEqual([reverted.setSeed, reverted.puzzles.map((p) => p.id), reverted.set?.board], ['alpha', samplePuzzles.map((p) => p.id), sampleSet.board],
+    'going back to the board brings its set and puzzles back');
+  assert.deepEqual(reverted.setsByBoard, {}, 'a set on show is not also saved');
   const rotated = withBoard(state, state.board, 90);
-  assert.equal(rotated.stale, false, 'rotating the view never invalidates');
-  assert.equal(rotated.set, state.set);
+  assert.equal(rotated.set, state.set, 'rotating the view never changes the set');
   assert.equal(rotated.puzzles, state.puzzles);
 });
 
@@ -304,7 +301,7 @@ test('Keep seed rules: typing turns it on, the dice keeps it, Generate draws or 
   const random = sequence(['AAAA-AAAA-AAAA', 'BBBB-BBBB-BBBB', 'CCCC-CCCC-CCCC']);
   assert.equal(rollSeed(state, random).seedText, 'AAAA-AAAA-AAAA');
   assert.equal(rollSeed(state, random).keepSeed, true);
-
+  assert.equal(rollSeed(defaultGeneratorState(), () => 'ZZZZ-ZZZZ-ZZZZ').keepSeed, true, 'a rolled seed is kept even from the random default');
   const reused = beginSetRequest({ ...state, seedText: '  Cafe\u0301  ' }, random);
   assert.ok(reused.ok);
   assert.equal(reused.seed, 'Caf\u00e9');
@@ -349,15 +346,19 @@ test('batch seeds increment per request and a regenerated set restarts the seque
   assert.deepEqual(again.seenClues, []);
   assert.deepEqual(again.puzzles, []);
   assert.equal(nextBatch(again)?.batchSeed, 'demo#1', 'the same sequence is reproduced from fresh history');
-  assert.equal(again.setHistory.length, 1);
-  assert.equal(again.setHistory[0].batchIndex, 2);
+  assert.equal(Object.values(again.setsByBoard).flat().length, 1);
+  assert.equal(again.setsByBoard[boardKey(sampleSet.board)][0].batchIndex, 2);
   assert.equal(nextBatch(defaultGeneratorState()), null);
 
   let many = again;
-  for (let i = 0; i < 8; i += 1) {
+  for (let i = 0; i < MAX_SETS + 5; i += 1) {
     many = acceptSet(many, { set: sampleSet, calibration: null, setSeed: `s${i}` });
   }
-  assert.equal(many.setHistory.length, MAX_SAVED_SETS);
+  const manyKey = boardKey(sampleSet.board);
+  assert.equal(many.setsByBoard[manyKey].length, MAX_SAVED_SETS);
+  assert.equal(setTimelineLength(many), MAX_SETS);
+  assert.equal(setsFull(many), true, 'the list is full at 50 sets');
+  assert.equal(setsFull({ ...many, setsByBoard: { [manyKey]: many.setsByBoard[manyKey].slice(1) } }), false);
 });
 
 test('changing the level keeps the set; the calibration is current only for its own settings', () => {
@@ -370,9 +371,9 @@ test('changing the level keeps the set; the calibration is current only for its 
   assert.equal(calibrationCurrent(state), false);
 });
 
-test('serialization round-trips and never stores timers, jobs or large boards', () => {
+test('serialization round-trips and never stores timers, jobs, large boards or the removed omit-solutions switch', () => {
   let state = acceptSet(
-    defaultGeneratorState({ levelId: 'hard', seedText: 'demo', keepSeed: true, uniqueness: 'require', omitSolutions: true, rotation: 90, largeBoards: true }),
+    defaultGeneratorState({ levelId: 'hard', seedText: 'demo', keepSeed: true, uniqueness: 'require', rotation: 90, largeBoards: true }),
     { set: sampleSet, calibration: samplePuzzles[0], setSeed: 'demo' },
   );
   state = recordBatch({ ...state, batchIndex: 2 }, { puzzles: samplePuzzles, seenLayouts: ['L1'], seenClues: ['C1'], append: false });
@@ -382,19 +383,18 @@ test('serialization round-trips and never stores timers, jobs or large boards', 
   assert.equal('largeBoards' in dto, false);
   assert.equal('job' in dto, false);
   assert.deepEqual(Object.keys(dto).sort(), [
-    'batchIndex', 'batchPack', 'boardRows', 'calibrationFor', 'calibrationPack', 'history', 'keepSeed', 'levelId', 'omitSolutions',
-    'rotation', 'seedText', 'setHistory', 'setPack', 'setSeed', 'uniqueness', 'v',
+    'batchIndex', 'batchPack', 'boardRows', 'calibrationFor', 'calibrationPack', 'history', 'keepSeed', 'levelId', 'presetId', 'puzzleSeeds',
+    'rotation', 'seedText', 'setPack', 'setSeed', 'setsByBoard', 'uniqueness', 'v',
   ]);
   const restored = restoreState(JSON.parse(JSON.stringify(dto)));
   assert.equal(restored.levelId, 'hard');
   assert.equal(restored.uniqueness, 'require');
   assert.equal(restored.keepSeed, true);
-  assert.equal(restored.omitSolutions, true);
+  assert.equal('omitSolutions' in restoreState({ ...dto, omitSolutions: true }), false, 'an old stored switch is ignored');
   assert.equal(restored.rotation, 90);
   assert.equal(restored.setSeed, 'demo');
   assert.equal(restored.batchIndex, 2);
   assert.equal(restored.job, null);
-  assert.equal(restored.stale, false);
   assert.equal(restored.puzzles.length, 3);
   assert.equal(restored.calibration?.id, samplePuzzles[0].id);
   assert.deepEqual(restored.calibrationFor, { levelId: 'hard', uniqueness: 'require' });
@@ -402,6 +402,28 @@ test('serialization round-trips and never stores timers, jobs or large boards', 
   assert.equal(restored.set?.carving, 'flat');
   assert.ok(boardsEqual(restored.set?.board ?? rectangle(1, 1), sampleSet.board));
   assert.equal(restored.largeBoards, false);
+});
+
+test('puzzle seeds are saved only for puzzles that exist, restored with them and kept with each saved set', () => {
+  let state = acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: null, setSeed: 'demo' });
+  const [first, second] = samplePuzzles;
+  state = recordBatch({ ...state, batchIndex: 2 }, { puzzles: [first, second], seenLayouts: [], seenClues: [], append: false });
+  state = { ...state, puzzleSeeds: { [first.id]: 'demo#1', [second.id]: 'demo#2', gone: 'demo#7', bad: /** @type {any} */ (5) } };
+  const dto = serializeState(state);
+  assert.deepEqual(dto.puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' }, 'ids that are not puzzles are left out');
+  const restored = restoreState(JSON.parse(JSON.stringify(dto)));
+  assert.deepEqual(restored.puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' });
+  const damaged = restoreState({ ...JSON.parse(JSON.stringify(dto)), puzzleSeeds: { [first.id]: '', [second.id]: 'x'.repeat(300) } });
+  assert.deepEqual(damaged.puzzleSeeds, {}, 'empty or oversized seeds are dropped');
+  assert.deepEqual(restoreState({ ...JSON.parse(JSON.stringify(dto)), puzzleSeeds: ['demo#1'] }).puzzleSeeds, {});
+
+  // A set that moves into the history keeps its seeds, and a new set starts without any.
+  const next = acceptSet(state, { set: sampleSet, calibration: null, setSeed: 'other' });
+  assert.deepEqual(next.puzzleSeeds, {});
+  const savedNext = next.setsByBoard[boardKey(sampleSet.board)][0];
+  assert.deepEqual(/** @type {any} */ (savedNext).puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' });
+  const back = useSavedSet(next, savedNext);
+  assert.deepEqual(back?.puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' });
 });
 
 test('restoring validates every part and falls back individually', () => {
@@ -429,24 +451,63 @@ test('restoring validates every part and falls back individually', () => {
   assert.equal(restoreState('x').set, null);
   assert.equal(restoreState({ ...dto, history: { layouts: [1], clues: ['ok'] } }).seenLayouts.length, 0);
 
-  const withHistory = restoreState({ ...dto, setHistory: [dto, { bad: true }, dto] });
-  assert.equal(withHistory.setHistory.length, 2);
+  const withHistory = restoreState({ ...dto, setsByBoard: { whatever: [dto, { bad: true }, dto] } });
+  assert.deepEqual(Object.keys(withHistory.setsByBoard), [boardKey(sampleSet.board)], 'sets are filed by their own board, not by the stored key');
+  assert.equal(withHistory.setsByBoard[boardKey(sampleSet.board)].length, 2, 'a damaged set is left out');
+  const older = restoreState({ ...dto, setHistory: [dto, { bad: true }, dto] });
+  assert.equal(Object.values(older.setsByBoard).flat().length, 2, 'the older single list of saved sets is still read, and sorted by board');
 });
 
-test('a restored set is stale when the stored board no longer matches', () => {
+test('boardKey: "<width>x<height>:<bits>", one bit per cell in base64url', () => {
+  assert.equal(boardKey(rectangle(3, 3)), '3x3:_4', '9 cells: 111111 111000');
+  assert.equal(boardKey(rectangle(2, 2)), '2x2:8', '4 cells then zero padding: 111100');
+  assert.equal(boardKey(setCell(rectangle(3, 3), 0, 0, 0)), '3x3:f4', 'the first cell is the highest bit: 011111 111000');
+  assert.notEqual(boardKey(rectangle(10, 6)), boardKey(rectangle(6, 10)), 'the size is part of the key');
+  assert.equal(boardKey(rectangle(20, 20)).length, '20x20:'.length + 67, 'a 20x20 board takes 67 characters');
+  assert.equal(boardKey(rectangle(5, 4)), boardKey(boardFromRows(boardToRows(rectangle(5, 4)))));
+});
+
+test('the sets are kept by board: only the sets of the board in step 1 are listed', () => {
+  const small = rectangle(5, 4);
+  const first = acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: null, setSeed: 'a' });
+  const second = acceptSet(first, { set: sampleSet, calibration: null, setSeed: 'b' });
+  assert.deepEqual(Object.keys(second.setsByBoard), [boardKey(sampleSet.board)]);
+  assert.deepEqual([setTimelineLength(second), setViewPosition(second)], [2, { index: 0, total: 2 }]);
+  // Editing the board shows the sets of the new board: none here, so the list is empty and the set goes under its own board.
+  const edited = withBoard(second, small);
+  assert.deepEqual([edited.set, setTimelineLength(edited), setViewPosition(edited)], [null, 0, { index: -1, total: 0 }]);
+  assert.deepEqual(setNumber(edited), { n: null, total: 0 });
+  assert.equal(edited.setsByBoard[boardKey(sampleSet.board)].length, 2, 'both sets are kept for their board');
+  // Back to the old board, its list is there again, newest first.
+  const back = withBoard(edited, sampleSet.board);
+  assert.deepEqual([back.setSeed, setViewPosition(back), setNumber(back)], ['b', { index: 0, total: 2 }, { n: 2, total: 2 }]);
+  // A set for the new board is listed alone; the first board keeps its own list.
+  const other = acceptSet(edited, { set: { ...sampleSet, board: small }, calibration: null, setSeed: 'c' });
+  assert.deepEqual(Object.keys(other.setsByBoard), [boardKey(sampleSet.board)], 'the set on show is not in the dictionary');
+  assert.equal(setTimelineLength(other), 1);
+  const again = acceptSet(withBoard(other, sampleSet.board), { set: sampleSet, calibration: null, setSeed: 'd' });
+  assert.deepEqual(Object.keys(again.setsByBoard).sort(), [boardKey(small), boardKey(sampleSet.board)].sort());
+  assert.equal(again.setsByBoard[boardKey(small)].length, 1);
+  assert.equal(again.setsByBoard[boardKey(sampleSet.board)].length, 2);
+  // Remove all sets clears the board in step 1 only.
+  const cleared = removeAllSets(again);
+  assert.deepEqual(Object.keys(cleared.setsByBoard), [boardKey(small)], 'the other board keeps its sets');
+  assert.equal(cleared.set, null);
+});
+
+test('a restored set that does not belong to the stored board is kept for its own board, not shown', () => {
   const state = acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: null, setSeed: 'demo' });
   const dto = JSON.parse(JSON.stringify(serializeState(state)));
   dto.boardRows = boardToRows(rectangle(8, 8));
   const restored = restoreState(dto);
-  assert.equal(restored.stale, true);
-  assert.ok(restored.set);
-  assert.equal(activeCount(restored.set.board), 60);
+  assert.equal(restored.set, null);
+  assert.equal(restored.setsByBoard[boardKey(sampleSet.board)].length, 1);
 });
 
 test('saved sets can become current again', () => {
   const first = acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: samplePuzzles[0], setSeed: 'one' });
   const second = acceptSet(first, { set: sampleSet, calibration: null, setSeed: 'two' });
-  const saved = second.setHistory[0];
+  const saved = second.setsByBoard[boardKey(sampleSet.board)][0];
   assert.equal(saved.setSeed, 'one');
   assert.ok(savedSetOf(first));
   const back = useSavedSet(second, saved);
@@ -456,14 +517,15 @@ test('saved sets can become current again', () => {
   assert.equal(useSavedSet(second, /** @type {any} */ ({ setSeed: 'x' })), null);
 });
 
-test('loading starts from stored preferences; a legacy largeBoards copy in gen:state is ignored', () => {
+test('loading starts from stored preferences; a stored Large boards opt-in is ignored', () => {
   const dto = { ...serializeState(defaultGeneratorState({ levelId: 'easy' })), largeBoards: true };
   const loaded = loadGeneratorState(fakeStorage({ state: dto }, { largeBoards: false, labels: false }));
   assert.equal(loaded.largeBoards, false);
   assert.equal(loaded.levelId, 'easy');
   assert.equal(loaded.prefs.labels, false);
   assert.equal(loaded.prefs.timer, true);
-  assert.equal(loadGeneratorState(fakeStorage({}, { largeBoards: true })).largeBoards, true);
+  assert.equal(loadGeneratorState(fakeStorage({}, { largeBoards: true })).largeBoards, false, 'the generator no longer offers Large boards');
+  assert.equal(capFor(loadGeneratorState(fakeStorage({}, { largeBoards: true })), DESKTOP), 484);
   const broken = loadGeneratorState({
     getGeneratorState: () => { throw new Error('denied'); },
     setGeneratorState: () => ({ ok: false }),
@@ -510,18 +572,32 @@ test('storage failures never throw: a full storage retries smaller and reports',
   const io = fakeStorage();
   const timers = fakeTimers();
   const failures = [];
-  io.failState = (snapshot) => snapshot.setHistory.length > 0;
+  io.failState = (snapshot) => Object.keys(snapshot.setsByBoard).length > 0;
   createPersistence(store, io, { ...timers, onFailure: (f) => failures.push(f) });
   store.update((s) => acceptSet({ ...s, puzzles: samplePuzzles }, { set: sampleSet, calibration: null, setSeed: 'b' }));
   timers.run();
   assert.equal(failures.length, 1, 'only the full snapshot was refused');
   assert.equal(io.writes.state.length, 1);
-  assert.deepEqual(/** @type {any} */ (io.writes.state[0]).setHistory, []);
+  assert.deepEqual(/** @type {any} */ (io.writes.state[0]).setsByBoard, {});
 
   io.failState = () => true;
   store.update({ levelId: 'easy' });
   assert.doesNotThrow(() => timers.run());
   assert.equal(failures.length, 4);
+
+  const many = createGeneratorStore();
+  let state = many.getState();
+  for (let i = 0; i < 9; i += 1) {
+    state = acceptSet(state, { set: sampleSet, calibration: null, setSeed: `m${i}` });
+  }
+  many.update(() => state);
+  const io2 = fakeStorage();
+  const t3 = fakeTimers();
+  io2.failState = (snapshot) => Math.max(0, ...Object.values(snapshot.setsByBoard).map((list) => list.length)) > 2;
+  createPersistence(many, io2, t3);
+  many.update({ levelId: 'easy' });
+  t3.run();
+  assert.equal(Object.values(/** @type {any} */ (io2.writes.state[0]).setsByBoard)[0].length, 2, 'older sets are dropped a few at a time, newest kept');
 
   const throwing = createGeneratorStore();
   const failing = { ...fakeStorage(), setGeneratorState: () => { throw new Error('denied'); } };

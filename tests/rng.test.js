@@ -11,6 +11,7 @@ import {
   createRngFromState,
   normalizeSeedText,
   randomSeedText,
+  randomPuzzleSeed,
 } from '../core/engine/rng.js';
 
 /** @param {{ nextU32(): number }} rng @param {number} n */
@@ -215,6 +216,16 @@ describe('sampling', () => {
     for (let i = 0; i < 20; i++) assert.ok(items.includes(rng.pick(items)));
     assert.equal(rng.pick(['solo']), 'solo');
     assert.throws(() => rng.pick([]), RangeError);
+  });
+});
+
+describe('puzzle seeds are whole numbers', () => {
+  test('a random puzzle seed is plain decimal text within 32 bits', () => {
+    for (let i = 0; i < 200; i += 1) {
+      const text = randomPuzzleSeed();
+      assert.match(text, /^(0|[1-9]\d*)$/);
+      assert.ok(Number(text) <= 0xFFFFFFFF);
+    }
   });
 });
 

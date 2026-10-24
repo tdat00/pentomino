@@ -74,27 +74,29 @@
             <span class="wizard-num" aria-hidden="true">2</span>
             <span class="wizard-name" data-i18n="wizard.step2.title">Create piece set</span>
           </button>
+          <div class="wizard-step-body" data-step-body="2" data-slot="set-controls" hidden></div>
+          <div class="wizard-step-body" data-step-after="2" data-slot="set-summary" hidden></div>
         </li>
         <li>
           <button type="button" class="wizard-step" data-wizard-step="3">
             <span class="wizard-num" aria-hidden="true">3</span>
             <span class="wizard-name" data-i18n="wizard.step3.title">Create puzzles</span>
           </button>
+          <div class="wizard-step-body" data-step-body="3" data-slot="puzzle-controls" hidden></div>
         </li>
       </ol>
     </nav>
     <main class="app-main">
       <div class="wizard-feedback">
-        <div data-slot="progress"></div>
         <div class="result-notice" role="status" data-role="notice" data-slot="notice"></div>
       </div>
       <section class="panel panel-board" aria-labelledby="heading-board" data-step="1">
         <div class="step-head">
           <h2 id="heading-board"><span class="step" data-i18n="wizard.stepLabel" data-i18n-args='{"n":1}'>Step 1</span> - <span data-i18n="wizard.step1.title">Create board</span></h2>
           <div class="step-actions">
-            <div class="main-actions" role="group" aria-label="Current action" data-i18n-attr="aria-label:shell.status.label">
-              <button type="button" data-slot="main-back" data-i18n="wizard.back" hidden>Back</button>
-              <button type="button" class="primary" data-slot="main-action" data-i18n="level.generate">Generate Piece Set</button>
+            <div class="main-actions" role="group" aria-label="Steps" data-i18n-attr="aria-label:wizard.label">
+              <button type="button" data-slot="main-back" hidden></button>
+              <button type="button" class="primary" data-slot="main-action"></button>
             </div>
           </div>
         </div>
@@ -109,11 +111,10 @@
         <p class="step-hint" data-i18n="wizard.step2.hint">Choose a level, then generate the pieces that tile your board.</p>
         <div class="step-columns">
           <div class="step-column panel-level">
-            <h3 data-i18n="wizard.settings">Settings</h3>
             <div data-slot="level"></div>
           </div>
           <div class="step-column panel-set">
-            <h3 data-i18n="wizard.pieces">Pieces</h3>
+            <h3 data-i18n="wizard.pieces">Piece sets</h3>
             <div data-slot="set"></div>
           </div>
         </div>
@@ -128,7 +129,10 @@
       </section>
     </main>
     <aside class="app-history panel" aria-labelledby="heading-history">
-      <h2 id="heading-history" data-i18n="puzzles.list">Puzzles</h2>
+      <div class="panel-header">
+        <h2 id="heading-history">Puzzles</h2>
+        <div data-slot="cards-actions"></div>
+      </div>
       <div data-slot="cards"></div>
     </aside>
   </div>

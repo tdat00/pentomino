@@ -114,3 +114,14 @@ export function offeredLevels(area) {
   }
   return offered;
 }
+
+/**
+ * Pre-placed pieces the clue search starts from for a puzzle of `pieceCount` pieces: round(share · K),
+ * at least 1 and at most K − 2. The search may move away from it to reach the level's score band.
+ * @param {number} share Initial clue share of the level.
+ * @param {number} pieceCount K, at least 3.
+ * @returns {number}
+ */
+export function initialClueCount(share, pieceCount) {
+  return Math.min(pieceCount - 2, Math.max(1, Math.round(share * pieceCount)));
+}

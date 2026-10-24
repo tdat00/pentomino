@@ -8,7 +8,7 @@ import { MAX_SIDE, preset } from '../../core/engine/board.js';
 import { arrowToGrid, normalizeAngle } from '../../core/engine/view.js';
 import { t } from '../i18n.js';
 import {
-  MIN_EDIT_SIDE, boardsEqual, createEditHistory, describeBoard, isBusy, resizeBoard, setCell, withBoard,
+  MIN_EDIT_SIDE, PRESET_IDS, boardsEqual, createEditHistory, describeBoard, isBusy, resizeBoard, setCell, withBoard,
 } from '../state.js';
 import { loc, locAttrs } from './i18n-dom.js';
 
@@ -18,7 +18,6 @@ import { loc, locAttrs } from './i18n-dom.js';
 /** @typedef {import('../../core/engine/types.js').XY} XY */
 /** @typedef {'rectangle' | 'heart' | 'diamond' | 'cross' | 'ring'} PresetId */
 
-const PRESET_IDS = Object.freeze(['rectangle', 'heart', 'diamond', 'cross', 'ring']);
 const PRESET_DEFAULT_N = Object.freeze({ heart: 10, diamond: 8, cross: 9, ring: 8 });
 const ARROWS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 const ZOOM_STEP = 1.25;
@@ -87,7 +86,6 @@ export function mountBoardEditor(host, options) {
   let gesture = null;
   /** @type {Board | null} */
   let renderedBoard = null;
-  let activePreset = 'rectangle';
   let destroyed = false;
 
   const initial = store.getState();
@@ -165,9 +163,11 @@ export function mountBoardEditor(host, options) {
       return false;
     }
     if (boardsEqual(made.board, state.board) && made.rotation === state.rotation) {
+      store.update((s) => (s.presetId === id ? s : { ...s, presetId: id }));
       return true;
     }
     commitBoard(made.board, made.rotation);
+    store.update((s) => (s.presetId === id ? s : { ...s, presetId: id }));
     return true;
   }
 
@@ -306,6 +306,9 @@ export function mountBoardEditor(host, options) {
     for (const control of [colsInput, rowsInput, presetSelect]) {
       control.disabled = busy;
     }
+    if (presetSelect.value !== state.presetId) {
+      presetSelect.value = state.presetId;
+    }
     boardHost.dataset.busy = String(busy);
   }
 
@@ -350,12 +353,8 @@ export function mountBoardEditor(host, options) {
   listen(colsInput, 'change', () => commitSize(colsInput));
   listen(rowsInput, 'change', () => commitSize(rowsInput));
   listen(presetSelect, 'change', () => {
-    const id = presetSelect.value;
-    if (applySelectedPreset()) {
-      activePreset = id;
-    } else {
-      presetSelect.value = activePreset;
-    }
+    applySelectedPreset();
+    // A refused preset puts the menu back on the one that is in use.
     syncControls(store.getState());
   });
   listen(viewLeft, 'click', () => rotate(45));

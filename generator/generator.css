@@ -148,9 +148,40 @@ body {
   grid-area: history;
 }
 
-.app-history > h2 {
+.app-history > .panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   margin: 0 0 0.75rem;
+}
+
+.app-history > .panel-header > h2 {
+  margin: 0;
   font-size: 1.1rem;
+}
+
+/* Small borderless buttons: Remove all in the list header and the ✕ on each puzzle. */
+button.ghost-small {
+  min-height: 0;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--pm-muted);
+  font-size: 0.8125rem;
+}
+
+button.ghost-small:hover:not(:disabled),
+button.ghost-small:focus-visible {
+  background: color-mix(in srgb, var(--gen-error) 10%, transparent);
+  color: var(--gen-error);
+}
+
+button.ghost-small:disabled {
+  background: transparent;
+  cursor: default;
+  opacity: 0.5;
 }
 
 @media (min-width: 768px) {
@@ -168,6 +199,30 @@ body {
 
   .wizard-steps {
     flex-direction: column;
+  }
+
+  /* Each step is one frame: its header and its inputs and buttons sit inside it. */
+  .wizard-steps > li {
+    padding: 0.375rem 0.5rem 0.5rem;
+    background: var(--gen-color-surface-2);
+    border: 2px solid var(--pm-border);
+    border-radius: var(--gen-radius-2);
+  }
+
+  .wizard-steps > li:has(> .wizard-step[aria-current="step"]) {
+    background: var(--gen-color-accent-soft);
+    border-color: var(--gen-color-accent);
+  }
+
+  .wizard-steps > li:has(> .wizard-step:disabled) {
+    border-style: dashed;
+  }
+
+  .wizard-steps > li > .wizard-step {
+    min-height: 2.5rem;
+    padding-inline: 0.25rem;
+    background: transparent;
+    border-color: transparent;
   }
 }
 
@@ -274,14 +329,79 @@ body {
   display: none;
 }
 
+.wizard-step-body .seed-field {
+  margin: 0 0 0.5rem;
+}
+
+.wizard-step-body .seed-field .control-row {
+  flex-wrap: nowrap;
+}
+
+.wizard-step-body .seed-field .field {
+  flex: 1 1 auto;
+}
+
+.wizard-step-body .puzzle-controls > button {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.wizard-step-body .puzzle-controls > .field {
+  flex: none;
+  margin-bottom: 0.5rem;
+}
+
+.wizard-step-body .set-controls > button {
+  width: 100%;
+}
+
+.set-controls > button + button {
+  margin-top: 0.5rem;
+}
+
+.wizard-step-body[data-step-after] {
+  border-radius: var(--gen-radius-2);
+  cursor: pointer;
+}
+
+.wizard-step-body[data-step-after]:hover .board-summary,
+.wizard-step-body[data-step-after]:hover .set-summary-card {
+  background: var(--gen-color-accent-soft);
+}
+
+.wizard-step-body[data-step-after]:focus-visible {
+  outline: 2px solid var(--gen-color-accent);
+  outline-offset: 2px;
+}
+
 .board-summary {
   display: flex;
   justify-content: center;
   padding: 0.5rem;
   overflow: hidden;
   background: var(--gen-board-bg);
-  border: 1px solid var(--gen-color-divider);
   border-radius: var(--gen-radius-2);
+}
+
+.set-summary-card {
+  padding: 0.5rem 0.75rem;
+  background: var(--gen-color-surface-2);
+  border-radius: var(--gen-radius-2);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.set-summary-card:empty {
+  display: none;
+}
+
+.set-summary-card > p {
+  margin: 0;
+}
+
+.set-summary-card > .set-summary-title {
+  font-weight: 600;
 }
 
 .wizard-step-body .field input[type="number"],
@@ -310,13 +430,21 @@ body {
     flex: 1 0 100%;
     margin-top: 0;
   }
+
+  /* The inputs of the current step sit in one frame under the row of steps. */
+  .wizard-step-body[data-step-body] {
+    padding: 0.5rem 0.75rem;
+    background: var(--gen-color-surface-2);
+    border: 2px solid var(--gen-color-accent);
+    border-radius: var(--gen-radius-2);
+  }
 }
 
 .wizard-feedback {
   min-width: 0;
 }
 
-.wizard-feedback:has(.job-progress:not([hidden]), .result-notice:not(:empty)) {
+.wizard-feedback:has(.result-notice:not(:empty)) {
   margin-bottom: var(--gen-gap);
 }
 
@@ -361,7 +489,7 @@ body {
 
 .step-columns {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--gen-gap);
 }
 
@@ -408,6 +536,47 @@ body {
 
 .field input[type="number"] {
   width: 5rem;
+}
+
+.input-clear {
+  position: relative;
+  display: flex;
+}
+
+.input-clear > input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-right: 2rem;
+}
+
+.input-clear > button.clear-button {
+  position: absolute;
+  top: 50%;
+  right: 0.25rem;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  min-width: 0;
+  height: 1.5rem;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--pm-muted);
+  font-size: 0.8rem;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.input-clear > button.clear-button:hover,
+.input-clear > button.clear-button:focus-visible {
+  background: var(--pm-border);
+  color: var(--pm-ink);
+}
+
+.input-clear > button.clear-button[hidden] {
+  display: none;
 }
 
 .field input,
@@ -516,29 +685,145 @@ body {
 
 .level-field {
   margin: 0 0 0.75rem;
+  overflow-x: auto;
 }
 
-.level-field select {
-  max-width: 100%;
+.level-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
 }
 
-.count-line {
-  margin: 0 0 0.5rem;
+.level-table caption {
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  text-align: start;
+}
+
+.level-table th,
+.level-table td {
+  padding: 0.375rem 0.5rem;
+  border-bottom: 1px solid var(--pm-border);
+  text-align: start;
+  white-space: nowrap;
+}
+
+.level-table thead th {
+  color: var(--pm-muted);
+  font-size: 0.85rem;
   font-weight: 600;
 }
 
-.advanced {
-  margin: 0.75rem 0;
+.level-table tbody th {
+  font-weight: 400;
 }
 
-.advanced summary {
-  min-height: var(--pm-target);
-  font-weight: 600;
+.level-row:not(.is-unavailable) {
   cursor: pointer;
 }
 
-.advanced > * {
-  margin-top: 0.5rem;
+.level-row.is-selected {
+  background: color-mix(in srgb, var(--gen-accent) 14%, transparent);
+}
+
+.level-row.is-selected th {
+  font-weight: 600;
+}
+
+.level-row.is-unavailable {
+  color: var(--pm-muted);
+}
+
+.level-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--pm-target);
+  cursor: inherit;
+}
+
+.level-table td.level-reason {
+  font-style: italic;
+  text-align: start;
+}
+
+.level-num {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+button.help-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 1.125rem;
+  min-width: 0;
+  height: 1.125rem;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid var(--pm-border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--pm-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+}
+
+button.help-icon:hover,
+button.help-icon:focus-visible,
+button.help-icon[aria-describedby] {
+  border-color: var(--gen-accent);
+  color: var(--gen-accent);
+}
+
+.help-tip {
+  position: fixed;
+  z-index: 50;
+  max-width: min(24rem, calc(100vw - 1rem));
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--pm-border);
+  border-radius: 0.5rem;
+  background: var(--pm-surface);
+  box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 0.18);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  pointer-events: none;
+}
+
+.help-tip[hidden] {
+  display: none;
+}
+
+.help-tip .help-title {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.help-tip ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.help-tip .help-note {
+  margin: 0.375rem 0 0;
+  color: var(--pm-muted);
+  font-size: 0.8rem;
+}
+
+.seed-field {
+  margin: 0.75rem 0;
+}
+
+.unique-toggle {
+  margin: 0 0 0.75rem;
+}
+
+.unique-toggle[hidden] {
+  display: none;
 }
 
 .field-error {
@@ -559,6 +844,22 @@ button.primary {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.main-actions > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.main-actions > button[hidden] {
+  display: none;
+}
+
+.nav-icon {
+  flex: none;
+  width: 1em;
+  height: 1em;
 }
 
 @media (max-width: 599px) {
@@ -592,12 +893,29 @@ button.primary {
 /* Piece-set panel */
 
 .piece-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
-  gap: 0.5rem;
+  --piece-min: 88px;
+  --piece-cols: 5;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: 0.5rem;
+  row-gap: 0;
   margin: 0 0 0.5rem;
   padding: 0;
   list-style: none;
+}
+
+/* Every piece is one column of the fullest row wide; the break items (zero height) end each balanced row. */
+.piece-list > .piece-item {
+  box-sizing: border-box;
+  flex: 0 0 calc((100% - (var(--piece-cols) - 1) * 0.5rem) / var(--piece-cols));
+  min-width: 0;
+  margin-bottom: 0.5rem;
+}
+
+.piece-list > .piece-break {
+  flex: 0 0 100%;
+  height: 0;
 }
 
 .piece-item {
@@ -620,28 +938,65 @@ button.primary {
 }
 
 .set-summary {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.75rem;
   font-weight: 600;
+  text-align: center;
 }
 
-.set-board {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  height: 16.5rem;
-  margin: 0.5rem 0;
-  background: var(--gen-board-bg);
-  border: 1px solid var(--gen-color-divider);
-  border-radius: var(--gen-radius-2);
+.set-summary:empty {
+  display: none;
 }
 
 .control-row[hidden],
-.set-board[hidden],
-.job-progress[hidden],
-.card-verify[hidden],
 .set-history[hidden],
-[data-role="set-stale"][hidden],
 [data-role="set-empty"][hidden] {
+  display: none;
+}
+
+/* Three columns: the navigator stays centered in the panel; Remove / Remove all sit on the right. */
+.set-history {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+}
+
+.set-nav {
+  grid-column: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.set-nav[hidden] {
+  display: none;
+}
+
+.set-actions {
+  grid-column: 3;
+  justify-self: end;
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.125rem;
+}
+
+.set-actions > button {
+  min-height: 0;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--pm-muted);
+  font-size: 0.8125rem;
+}
+
+.set-actions > button:hover:not(:disabled),
+.set-actions > button:focus-visible {
+  background: color-mix(in srgb, var(--gen-error) 10%, transparent);
+  color: var(--gen-error);
+}
+
+.set-actions > button[hidden] {
   display: none;
 }
 
@@ -651,46 +1006,7 @@ button.primary {
   font-variant-numeric: tabular-nums;
 }
 
-.import-set > summary {
-  min-height: var(--pm-target);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.import-set textarea {
-  width: 100%;
-  margin-bottom: 0.5rem;
-  padding: 0.25rem 0.5rem;
-  font: inherit;
-  border: 1px solid var(--pm-border);
-  border-radius: 0.375rem;
-}
-
 /* Puzzles panel */
-
-.puzzle-controls .field input[type="number"] {
-  width: 4.5rem;
-}
-
-.job-progress {
-  margin: 0.5rem 0;
-  padding: 0.5rem 0.75rem;
-  background: var(--gen-color-accent-soft);
-  border: 1px solid var(--gen-color-accent);
-  border-radius: var(--gen-radius-2);
-}
-
-.progress-head {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0 0 0.375rem;
-}
-
-.progress-stage {
-  margin: 0;
-  font-weight: 600;
-}
 
 .spinner {
   flex: none;
@@ -724,23 +1040,21 @@ button .spinner {
   }
 }
 
-.progress-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.75rem;
-}
-
-.progress-row progress {
-  flex: 1 1 8rem;
-  min-width: 6rem;
-}
-
-.progress-elapsed {
-  font-variant-numeric: tabular-nums;
-}
-
 .result-notice:empty {
+  display: none;
+}
+
+/* The silent clock under a Generate button while its job runs. */
+.job-elapsed {
+  margin: 0.375rem 0 0;
+  color: var(--gen-color-text-muted);
+  font-size: 0.6875rem;
+  font-style: italic;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.job-elapsed[hidden] {
   display: none;
 }
 
@@ -757,14 +1071,11 @@ button .spinner {
   list-style: none;
 }
 
-.puzzle-cards[data-stale="true"] {
-  opacity: 0.65;
-}
-
 .puzzle-card {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: flex-start;
+  gap: 0.75rem;
   min-width: 0;
   padding: 0.625rem;
   background: var(--gen-color-surface-2);
@@ -772,24 +1083,61 @@ button .spinner {
   border-radius: var(--gen-radius);
 }
 
+.puzzle-card[data-selected="true"] {
+  background: var(--gen-color-accent-soft);
+  border-color: var(--gen-color-accent);
+}
+
+/* The information and the preview are one button that shows the puzzle in the main panel. */
+button.card-select {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  background: none;
+  border: 0;
+  border-radius: var(--gen-radius-2);
+  cursor: pointer;
+}
+
+/* The preview sits bottom right, under the remove button in the corner. */
 .card-thumb {
   flex: none;
-  width: 100%;
-  height: 9.5rem;
-  background: var(--gen-board-bg);
+  align-self: flex-end;
+  width: 7.5rem;
+  height: 6.5rem;
+  margin-top: 1rem;
   border-radius: var(--gen-radius-2);
+}
+
+button.card-remove {
+  position: absolute;
+  top: 0.25rem;
+  inset-inline-end: 0.25rem;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  min-width: 0;
+  padding: 0;
+  line-height: 1;
 }
 
 .card-body {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 0.125rem;
   min-width: 0;
-}
-
-.card-title {
-  margin: 0;
-  font-size: 1rem;
+  overflow-wrap: anywhere;
 }
 
 .card-body p {
@@ -797,12 +1145,71 @@ button .spinner {
   font-size: 0.875rem;
 }
 
-.card-note {
-  color: var(--gen-warning);
+.card-body > .card-heading {
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .badge {
   font-weight: 600;
+}
+
+.puzzle-detail {
+  margin-top: 1rem;
+}
+
+.puzzle-detail[hidden] {
+  display: none;
+}
+
+.detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 0.5rem;
+}
+
+.detail-title {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.detail-tray-title {
+  margin: 1rem 0 0.5rem;
+  font-size: 1rem;
+}
+
+.detail-tray-title[hidden] {
+  display: none;
+}
+
+.detail-board {
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem;
+  overflow: auto;
+  background: var(--gen-board-bg);
+  border: 1px solid var(--gen-color-divider);
+  border-radius: var(--gen-radius-2);
+}
+
+.detail-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detail-piece {
+  display: grid;
+  place-items: center;
+  padding: 0.375rem;
+  background: var(--gen-color-surface-2);
+  border: 1px solid var(--gen-color-divider);
+  border-radius: var(--gen-radius-2);
 }
 
 .badge[data-status="unique"] {
@@ -813,25 +1220,6 @@ button .spinner {
 .badge[data-status="not-proved"],
 .badge[data-status="unchecked"] {
   color: var(--gen-warning);
-}
-
-.card-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-  margin-top: auto;
-  padding-top: 0.375rem;
-}
-
-.card-play {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  text-decoration: none;
-}
-
-.card-play:not([href]) {
-  cursor: pointer;
 }
 
 .parked-pack {

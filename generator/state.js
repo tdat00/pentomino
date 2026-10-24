@@ -4,9 +4,10 @@
 // (design §6.2, §8.6, §10.1–§10.7). Pure: nothing here touches the DOM, and all limits,
 // ranges and level tables come from the engine modules.
 import {
-  MAX_SIDE, activeCount, boardFromRows, boardToRows, rectangle, trimMargins, validateForGeneration,
+  MAX_SIDE, activeCount, boardFromRows, boardKey, boardToRows, rectangle, trimMargins, validateForGeneration,
 } from '../core/engine/board.js';
-import { level, offeredLevels } from '../core/engine/levels.js';
+import { initialClueCount, level, offeredLevels } from '../core/engine/levels.js';
+import { canonicalKey } from '../core/engine/geometry.js';
 import { createPack, packBoard, PackError, serializePack, validatePack } from '../core/engine/pack.js';
 import { BUDGETS, LIMITS, POLICY_ID, enabledMaxActive, pieceCountRange, sizeWindow } from '../core/engine/policy.js';
 import { QUALIFICATION } from '../core/engine/qualification.js';
@@ -32,18 +33,19 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {number} batchIndex
  * @property {{ layouts: string[], clues: string[] }} history
  * @property {{ levelId: string, uniqueness: 'any' | 'require' } | null} [calibrationFor]
+ * @property {Record<string, string>} [puzzleSeeds] Batch seed of each puzzle of `batchPack`, by puzzle id.
  */
 
 /**
  * @typedef {object} GeneratorState
  * @property {Board} board Editor board; `set.board` keeps the board a set was made for.
  * @property {number} rotation Display angle, counter-clockwise, multiple of 45.
+ * @property {string} presetId Board preset last chosen in step 1 (one of PRESET_IDS).
  * @property {string} levelId
  * @property {string} seedText
  * @property {boolean} keepSeed
  * @property {'any' | 'require'} uniqueness
  * @property {boolean} largeBoards Mirror of the stored preference; never written to gen:state.
- * @property {boolean} omitSolutions
  * @property {string | null} setSeed
  * @property {number} batchIndex
  * @property {PieceSet | null} set
@@ -52,8 +54,8 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {Puzzle[]} puzzles
  * @property {string[]} seenLayouts
  * @property {string[]} seenClues
- * @property {readonly SavedSet[]} setHistory
- * @property {boolean} stale
+ * @property {Readonly<Record<string, readonly SavedSet[]>>} setsByBoard Saved sets by board: the key is `boardKey(board)`, the list
+ *   holds the sets made for that board, newest first. The set on show is not in it.
  * @property {null | JobInfo} job Owned by the job controller; never persisted.
  * @property {{ labels: boolean, patterns: boolean, timer: boolean, straighten: boolean }} prefs
  * @property {number} quantity Puzzles per request, 1-10.
@@ -61,8 +63,9 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {StatusNotice | null} notice Outcome of the last action.
  * @property {readonly string[]} checking Puzzle ids whose lazy certificate is still pending.
  * @property {readonly string[]} claimedIds Puzzles whose rating and certificate come from a file or storage.
+ * @property {Readonly<Record<string, string>>} puzzleSeeds Batch seed each puzzle was generated with, by puzzle id.
  * @property {boolean} calibrationTrusted The calibration was produced by this session's engine run.
- * @property {number} setPosition Where the current set sits in the newest-first set timeline.
+ * @property {number} setPosition Where the set on show sits in the newest-first list of the sets of its own board.
  * @property {readonly (readonly Puzzle[])[]} parked Earlier puzzle groups kept as separate packs after a size split.
  * @property {Readonly<Record<string, string>>} verification Solvability status of imported puzzles by id.
  * @property {LinkState} links Prepared player links of the visible pack.
@@ -118,11 +121,17 @@ export const DEFAULT_COLS = 10;
 export const DEFAULT_ROWS = 6;
 export const MIN_EDIT_SIDE = 3;
 export const HISTORY_LIMIT = 50;
-export const MAX_SAVED_SETS = 5;
+/** Most piece sets kept for one board, the one on show included; at the limit Generate is disabled until a set is removed. */
+export const MAX_SETS = 50;
+export const MAX_SAVED_SETS = MAX_SETS - 1;
+/** Most boards whose sets are kept; the board used least recently loses its sets first. */
+export const MAX_SAVED_BOARDS = 10;
 export const PERSIST_DELAY_MS = 300;
 export const STORAGE_VERSION = 1;
 export const DEFAULT_QUANTITY = 5;
 export const DEFAULT_LEVEL_ID = 'normal';
+/** Board presets of step 1, as the preset menu lists them. */
+export const PRESET_IDS = Object.freeze(['rectangle', 'heart', 'diamond', 'cross', 'ring']);
 /** Levels the generator can ever offer (areas up to 676): Very easy … Hell-3. */
 export const LISTED_LEVEL_IDS = Object.freeze(['very-easy', 'easy', 'normal', 'hard', 'expert', 'master', 'nightmare', 'hell-1', 'hell-2', 'hell-3']);
 const FIRST_HELL_INDEX = 7;
@@ -143,12 +152,12 @@ export function defaultGeneratorState(overrides = {}) {
   return {
     board: rectangle(DEFAULT_COLS, DEFAULT_ROWS),
     rotation: 0,
+    presetId: 'rectangle',
     levelId: DEFAULT_LEVEL_ID,
     seedText: '',
     keepSeed: false,
     uniqueness: 'any',
     largeBoards: false,
-    omitSolutions: false,
     setSeed: null,
     batchIndex: 0,
     set: null,
@@ -157,8 +166,7 @@ export function defaultGeneratorState(overrides = {}) {
     puzzles: [],
     seenLayouts: [],
     seenClues: [],
-    setHistory: [],
-    stale: false,
+    setsByBoard: {},
     job: null,
     prefs: { ...DEFAULT_VIEW_PREFS },
     quantity: DEFAULT_QUANTITY,
@@ -166,6 +174,7 @@ export function defaultGeneratorState(overrides = {}) {
     notice: null,
     checking: [],
     claimedIds: [],
+    puzzleSeeds: {},
     calibrationTrusted: false,
     setPosition: 0,
     parked: [],
@@ -400,20 +409,58 @@ export function nearestOfferedLevel(levelId, area) {
 }
 
 /**
- * The state after a structural board edit: marks a set stale when its board differs from the
- * editor board and moves an unavailable level to the nearest offered one.
+ * The state after a structural board edit. The set on show always belongs to the board on show: when the board no
+ * longer matches it, the set joins the saved sets of its own board and the newest set made for the new board takes its
+ * place, or no set is shown at all. An edit that goes back to an earlier board brings its sets back. A level that is
+ * unavailable on the new board moves to the nearest offered one.
  * @param {GeneratorState} state
  * @param {Board} board
  * @param {number} [rotation]
  * @returns {GeneratorState}
  */
 export function withBoard(state, board, rotation = state.rotation) {
-  const stale = state.set !== null && !boardsEqual(state.set.board, board);
   const levelId = nearestOfferedLevel(state.levelId, activeCount(board)) ?? state.levelId;
-  if (board === state.board && rotation === state.rotation && stale === state.stale && levelId === state.levelId) {
+  const fitted = fitSet(board === state.board ? state : { ...state, board });
+  if (fitted === state && rotation === state.rotation && levelId === state.levelId) {
     return state;
   }
-  return { ...state, board, rotation, stale, levelId };
+  return { ...fitted, rotation, levelId };
+}
+
+/**
+ * @param {GeneratorState} state
+ * @returns {GeneratorState} The state with the set on show made for `state.board`: the set of another board is saved
+ *   under its own board and the newest readable set of this board comes instead, or none.
+ */
+function fitSet(state) {
+  const shown = state.set;
+  if (shown !== null && boardsEqual(shown.board, state.board)) {
+    return state;
+  }
+  const current = shown === null ? null : savedSetOf(state);
+  const ownKey = shown === null ? '' : boardKey(shown.board);
+  const setsByBoard = current === null
+    ? state.setsByBoard
+    : withSets(state.setsByBoard, ownKey, insertAt(listOf(state.setsByBoard, ownKey), state.setPosition, current).slice(0, MAX_SAVED_SETS));
+  const key = boardKey(state.board);
+  const list = listOf(setsByBoard, key);
+  /** @type {Set<number>} */
+  const dropped = new Set();
+  for (let i = 0; i < list.length; i += 1) {
+    const read = readSavedSet(list[i]);
+    if (read === null) {
+      dropped.add(i);
+      continue;
+    }
+    return {
+      ...state,
+      ...freshSetExtras(),
+      ...read,
+      setsByBoard: withSets(setsByBoard, key, list.filter((_, at) => at !== i && !dropped.has(at))),
+      setPosition: 0,
+    };
+  }
+  return shown === null && dropped.size === 0 ? state : withoutSet(state, withSets(setsByBoard, key, list.filter((_, at) => !dropped.has(at))));
 }
 
 /**
@@ -457,13 +504,14 @@ export function typeSeed(state, text) {
 }
 
 /**
- * The dice button: a fresh random seed now; Keep seed is unchanged.
+ * The dice button: a fresh random seed now, kept for the next Generate. There is no Keep seed switch in the UI,
+ * so a seed the user can see after rolling must be the one used.
  * @param {GeneratorState} state
  * @param {() => string} [random]
  * @returns {GeneratorState}
  */
 export function rollSeed(state, random = randomSeedText) {
-  return { ...state, seedText: random() };
+  return { ...state, seedText: random(), keepSeed: true };
 }
 
 /**
@@ -483,11 +531,11 @@ export function beginSetRequest(state, random = randomSeedText) {
 
 /**
  * The per-set data a new, restored or imported set starts without.
- * @returns {Pick<GeneratorState, 'notice' | 'checking' | 'batchLevelId' | 'parked' | 'verification' | 'links' | 'claimedIds' | 'setPosition'>}
+ * @returns {Pick<GeneratorState, 'notice' | 'checking' | 'batchLevelId' | 'parked' | 'verification' | 'links' | 'claimedIds' | 'puzzleSeeds' | 'setPosition'>}
  */
 function freshSetExtras() {
   return {
-    notice: null, checking: [], batchLevelId: null, parked: [], verification: {}, links: EMPTY_LINKS, claimedIds: [], setPosition: 0,
+    notice: null, checking: [], batchLevelId: null, parked: [], verification: {}, links: EMPTY_LINKS, claimedIds: [], puzzleSeeds: {}, setPosition: 0,
   };
 }
 
@@ -504,6 +552,49 @@ function insertAt(list, index, item) {
 }
 
 /**
+ * The sets by board with one board's list replaced. The board becomes the most recently used (last), an empty list
+ * removes it, and the boards used least recently go once there are more than MAX_SAVED_BOARDS.
+ * @param {Readonly<Record<string, readonly SavedSet[]>>} setsByBoard
+ * @param {string} key
+ * @param {readonly SavedSet[]} list
+ * @returns {Record<string, readonly SavedSet[]>}
+ */
+function withSets(setsByBoard, key, list) {
+  /** @type {Record<string, readonly SavedSet[]>} */
+  const next = {};
+  for (const [other, sets] of Object.entries(setsByBoard)) {
+    if (other !== key) {
+      next[other] = sets;
+    }
+  }
+  if (list.length > 0) {
+    next[key] = list;
+  }
+  for (const old of Object.keys(next).slice(0, Math.max(0, Object.keys(next).length - MAX_SAVED_BOARDS))) {
+    delete next[old];
+  }
+  return next;
+}
+
+/**
+ * @param {Readonly<Record<string, readonly SavedSet[]>>} setsByBoard
+ * @param {string} key
+ * @returns {readonly SavedSet[]} The saved sets of a board, newest first.
+ */
+function listOf(setsByBoard, key) {
+  return Object.hasOwn(setsByBoard, key) ? setsByBoard[key] : [];
+}
+
+/**
+ * @param {GeneratorState} state
+ * @param {string} key
+ * @returns {readonly SavedSet[]} The saved sets of a board, newest first (the set on show is never in it).
+ */
+function savedFor(state, key) {
+  return listOf(state.setsByBoard, key);
+}
+
+/**
  * A newly accepted set starts at batch 0 with empty history, even when regenerated with the
  * same seed; the previous committed set moves into the (at most 5) set history.
  * @param {GeneratorState} state
@@ -513,10 +604,11 @@ function insertAt(list, index, item) {
  */
 export function acceptSet(state, accepted) {
   const previous = savedSetOf(state);
-  const setHistory = previous === null
-    ? state.setHistory
-    : insertAt(state.setHistory, state.setPosition, previous).slice(0, MAX_SAVED_SETS);
-  const stale = !boardsEqual(accepted.set.board, state.board);
+  // The set on show joins the saved sets of its own board, at the place it had in that list.
+  const previousKey = state.set === null ? '' : boardKey(state.set.board);
+  const setsByBoard = previous === null
+    ? state.setsByBoard
+    : withSets(state.setsByBoard, previousKey, insertAt(savedFor(state, previousKey), state.setPosition, previous).slice(0, MAX_SAVED_SETS));
   return {
     ...state,
     ...freshSetExtras(),
@@ -529,23 +621,23 @@ export function acceptSet(state, accepted) {
     puzzles: [],
     seenLayouts: [],
     seenClues: [],
-    setHistory,
-    stale,
+    setsByBoard,
   };
 }
 
 /**
- * Every New Puzzles / Add more request increments the set's batch index, whatever its outcome,
- * and uses `setSeed#batchIndex`.
+ * Every New Puzzles / Add more request increments the set's batch index, whatever its outcome. Its seed is the given
+ * `batchSeed` or, by default, `setSeed#batchIndex`.
  * @param {GeneratorState} state
+ * @param {string} [batchSeed]
  * @returns {{ state: GeneratorState, batchSeed: string, batchIndex: number } | null} null without a set.
  */
-export function nextBatch(state) {
+export function nextBatch(state, batchSeed) {
   if (state.set === null || state.setSeed === null) {
     return null;
   }
   const batchIndex = state.batchIndex + 1;
-  return { state: { ...state, batchIndex }, batchSeed: batchSeedFor(state.setSeed, batchIndex), batchIndex };
+  return { state: { ...state, batchIndex }, batchSeed: batchSeed ?? batchSeedFor(state.setSeed, batchIndex), batchIndex };
 }
 
 /**
@@ -608,10 +700,11 @@ export function describeLevels(area) {
 }
 
 /**
- * Piece counts, piece sizes and pre-placed share for a level on a board, from the policy APIs.
+ * Piece counts, piece sizes, pre-placed share and pre-placed pieces for a level on a board, from the policy APIs.
  * @param {string} levelId
  * @param {number} area
- * @returns {{ kmin: number, kmax: number, sizeMin: number, sizeMax: number, share: number } | null} null when not offered.
+ * @returns {{ kmin: number, kmax: number, sizeMin: number, sizeMax: number, share: number, placedMin: number, placedMax: number } | null}
+ *   null when not offered.
  */
 export function describeCount(levelId, area) {
   if (!LISTED_LEVEL_IDS.includes(levelId) || !Number.isInteger(area) || area < 1) {
@@ -628,8 +721,10 @@ export function describeCount(levelId, area) {
     sizeMin = Math.min(sizeMin, low);
     sizeMax = Math.max(sizeMax, high);
   }
+  const share = level(levelId).share;
   return {
-    kmin: counts[0], kmax: counts[counts.length - 1], sizeMin, sizeMax, share: Math.round(level(levelId).share * 100),
+    kmin: counts[0], kmax: counts[counts.length - 1], sizeMin, sizeMax, share: Math.round(share * 100),
+    placedMin: initialClueCount(share, counts[0]), placedMax: initialClueCount(share, counts[counts.length - 1]),
   };
 }
 
@@ -682,9 +777,6 @@ export function describeBoard(state, hardware, quantity = DEFAULT_QUANTITY) {
   const count = levelOffered ? describeCount(state.levelId, area) : null;
   const levelName = LISTED_LEVEL_IDS.includes(state.levelId) ? levelLabel(state.levelId) : state.levelId;
 
-  if (state.stale) {
-    notices.push({ code: 'N-STALE', text: formatNotice('N-STALE'), kind: 'warning' });
-  }
   if (warnings.some((w) => w.code === 'board-large')) {
     notices.push({ code: 'N-LARGE', text: formatNotice('N-LARGE'), kind: 'warning' });
   }
@@ -790,6 +882,7 @@ export function savedSetOf(state) {
       batchIndex: state.batchIndex,
       history: { layouts: [...state.seenLayouts], clues: [...state.seenClues] },
       calibrationFor: state.calibrationFor,
+      puzzleSeeds: seedsOfPuzzles(state.puzzleSeeds, state.puzzles),
     };
   } catch {
     return null;
@@ -800,7 +893,8 @@ export function savedSetOf(state) {
  * Engine objects for a stored set; null when its packs do not validate or do not belong together.
  * @param {unknown} saved
  * @returns {{ set: PieceSet, calibration: Puzzle | null, calibrationFor: GeneratorState['calibrationFor'], calibrationTrusted: boolean,
- *   puzzles: Puzzle[], claimedIds: string[], setSeed: string, batchIndex: number, seenLayouts: string[], seenClues: string[] } | null}
+ *   puzzles: Puzzle[], claimedIds: string[], puzzleSeeds: Record<string, string>, setSeed: string, batchIndex: number,
+ *   seenLayouts: string[], seenClues: string[] } | null}
  */
 export function readSavedSet(saved) {
   if (typeof saved !== 'object' || saved === null) {
@@ -850,11 +944,33 @@ export function readSavedSet(saved) {
     calibrationTrusted: false,
     puzzles,
     claimedIds: puzzles.map((p) => p.id),
+    puzzleSeeds: seedsOfPuzzles(dto.puzzleSeeds, puzzles),
     setSeed,
     batchIndex,
     seenLayouts: readKeys(history.layouts),
     seenClues: readKeys(history.clues),
   };
+}
+
+/**
+ * The batch seeds that belong to these puzzles: text of 1–200 characters, one per puzzle id; anything else is dropped.
+ * @param {unknown} source A stored or live `puzzleSeeds` value.
+ * @param {readonly { id: string }[]} puzzles
+ * @returns {Record<string, string>}
+ */
+function seedsOfPuzzles(source, puzzles) {
+  /** @type {Record<string, string>} */
+  const seeds = {};
+  if (typeof source !== 'object' || source === null || Array.isArray(source)) {
+    return seeds;
+  }
+  for (const puzzle of puzzles) {
+    const seed = Object.hasOwn(source, puzzle.id) ? /** @type {Record<string, unknown>} */ (source)[puzzle.id] : undefined;
+    if (typeof seed === 'string' && seed.length >= 1 && seed.length <= 200) {
+      seeds[puzzle.id] = seed;
+    }
+  }
+  return seeds;
 }
 
 /**
@@ -869,7 +985,7 @@ function readKeys(value) {
 }
 
 /**
- * Makes a stored set the current set again (set history navigation).
+ * Makes a stored set the current set again, with its board (set history navigation).
  * @param {GeneratorState} state
  * @param {SavedSet} saved
  * @returns {GeneratorState | null} null when the stored packs no longer validate.
@@ -879,16 +995,7 @@ export function useSavedSet(state, saved) {
   if (read === null) {
     return null;
   }
-  return withStale({ ...state, ...freshSetExtras(), ...read });
-}
-
-/**
- * @param {GeneratorState} state
- * @returns {GeneratorState}
- */
-function withStale(state) {
-  const stale = state.set !== null && !boardsEqual(state.set.board, state.board);
-  return stale === state.stale ? state : { ...state, stale };
+  return withBoard({ ...state, ...freshSetExtras(), ...read }, read.set.board);
 }
 
 // Persistence (design §9.6, §10.6).
@@ -905,18 +1012,19 @@ export function serializeState(state) {
     v: STORAGE_VERSION,
     boardRows: boardToRows(state.board),
     rotation: state.rotation,
+    presetId: state.presetId,
     levelId: state.levelId,
     seedText: state.seedText,
     keepSeed: state.keepSeed,
     uniqueness: state.uniqueness,
-    omitSolutions: state.omitSolutions,
     setSeed: saved?.setSeed ?? null,
     batchIndex: saved?.batchIndex ?? 0,
     setPack: saved?.setPack ?? null,
     calibrationPack: saved?.calibrationPack ?? null,
     batchPack: saved?.batchPack ?? null,
+    puzzleSeeds: saved?.puzzleSeeds ?? {},
     history: saved?.history ?? { layouts: [], clues: [] },
-    setHistory: state.setHistory.slice(0, MAX_SAVED_SETS),
+    setsByBoard: Object.fromEntries(Object.entries(state.setsByBoard).map(([key, sets]) => [key, sets.slice(0, MAX_SAVED_SETS)])),
     ...(saved?.calibrationFor ? { calibrationFor: saved.calibrationFor } : {}),
   };
 }
@@ -945,6 +1053,9 @@ export function restoreState(stored, base = {}) {
   if (Number.isInteger(dto.rotation) && dto.rotation >= 0 && dto.rotation < 360 && dto.rotation % 45 === 0) {
     state.rotation = dto.rotation;
   }
+  if (PRESET_IDS.includes(dto.presetId)) {
+    state.presetId = dto.presetId;
+  }
   if (LISTED_LEVEL_IDS.includes(dto.levelId)) {
     state.levelId = dto.levelId;
   }
@@ -953,21 +1064,39 @@ export function restoreState(stored, base = {}) {
   }
   state.keepSeed = dto.keepSeed === true;
   state.uniqueness = dto.uniqueness === 'require' ? 'require' : 'any';
-  state.omitSolutions = dto.omitSolutions === true;
-  const history = [];
-  if (Array.isArray(dto.setHistory)) {
-    for (const item of dto.setHistory) {
-      if (history.length < MAX_SAVED_SETS && readSavedSet(item) !== null) {
-        history.push(/** @type {SavedSet} */ (item));
+  /** @type {Record<string, SavedSet[]>} */
+  const byBoard = {};
+  /** @param {unknown} item */
+  const keep = (item) => {
+    const read = readSavedSet(item);
+    if (read === null) {
+      return;
+    }
+    // The board of the stored set decides where it goes; a stored key is never trusted.
+    const key = boardKey(read.set.board);
+    byBoard[key] ??= [];
+    if (byBoard[key].length < MAX_SAVED_SETS) {
+      byBoard[key].push(/** @type {SavedSet} */ (item));
+    }
+  };
+  const savedLists = dto.setsByBoard;
+  if (typeof savedLists === 'object' && savedLists !== null && !Array.isArray(savedLists)) {
+    for (const sets of Object.values(savedLists)) {
+      if (Array.isArray(sets)) {
+        sets.forEach(keep);
       }
     }
   }
-  state.setHistory = history;
+  if (Array.isArray(dto.setHistory)) {
+    // Older storage: one list of every saved set, whatever its board.
+    dto.setHistory.forEach(keep);
+  }
+  state.setsByBoard = Object.fromEntries(Object.entries(byBoard).slice(-MAX_SAVED_BOARDS));
   const current = readSavedSet(dto);
   if (current !== null) {
     Object.assign(state, current);
   }
-  return withStale(state);
+  return fitSet(state);
 }
 
 /**
@@ -979,8 +1108,8 @@ export function restoreState(stored, base = {}) {
  */
 
 /**
- * Initial state: preferences (including the Large boards opt-in) are read first and a duplicate
- * `largeBoards` inside gen:state is ignored.
+ * Initial state: preferences are read first. The generator no longer offers the Large boards opt-in, so a stored
+ * `largeBoards` (in prefs or, legacy, in gen:state) is ignored and the normal board limit applies.
  * @param {StorageLike} storage
  * @returns {GeneratorState}
  */
@@ -1000,7 +1129,7 @@ export function loadGeneratorState(storage) {
     stored = null;
   }
   return restoreState(stored, {
-    largeBoards: prefs.largeBoards === true,
+    largeBoards: false,
     prefs: {
       labels: prefs.labels ?? DEFAULT_VIEW_PREFS.labels,
       patterns: prefs.patterns ?? DEFAULT_VIEW_PREFS.patterns,
@@ -1012,8 +1141,8 @@ export function loadGeneratorState(storage) {
 
 /** @type {ReadonlyArray<keyof GeneratorState>} */
 const PERSISTED_KEYS = Object.freeze([
-  'board', 'rotation', 'levelId', 'seedText', 'keepSeed', 'uniqueness', 'omitSolutions', 'setSeed', 'batchIndex',
-  'set', 'calibration', 'calibrationFor', 'puzzles', 'seenLayouts', 'seenClues', 'setHistory',
+  'board', 'rotation', 'presetId', 'levelId', 'seedText', 'keepSeed', 'uniqueness', 'setSeed', 'batchIndex',
+  'set', 'calibration', 'calibrationFor', 'puzzles', 'seenLayouts', 'seenClues', 'setsByBoard',
 ]);
 /** @type {ReadonlyArray<keyof GeneratorState>} */
 const PREF_STATE_KEYS = Object.freeze(['prefs', 'largeBoards']);
@@ -1045,10 +1174,16 @@ export function createPersistence(store, storage, o = {}) {
     if (dirtyState) {
       dirtyState = false;
       const full = serializeState(state);
-      // A full storage drops the optional parts first: older sets, then the visible batch.
-      const reduced = { ...full, setHistory: [] };
-      const minimal = { ...reduced, batchPack: null };
-      for (const snapshot of [full, reduced, minimal]) {
+      // A full storage drops the optional parts first: the oldest sets of every board a few at a time, then the visible batch.
+      const lists = /** @type {Record<string, unknown[]>} */ (full.setsByBoard);
+      const longest = Math.max(0, ...Object.values(lists).map((list) => list.length));
+      const snapshots = [full];
+      for (let kept = Math.floor(longest / 2); kept > 0; kept = Math.floor(kept / 2)) {
+        snapshots.push({ ...full, setsByBoard: Object.fromEntries(Object.entries(lists).map(([key, list]) => [key, list.slice(0, kept)])) });
+      }
+      const reduced = { ...full, setsByBoard: {} };
+      snapshots.push(reduced, { ...reduced, batchPack: null });
+      for (const snapshot of snapshots) {
         if (attempt(() => storage.setGeneratorState(snapshot))) {
           return;
         }
@@ -1257,7 +1392,8 @@ export function generationOf(state, puzzles, createdAt) {
     generation.macroRegion = set.macroRegion.slice();
   }
   if (state.batchIndex >= 1 && state.setSeed !== null) {
-    generation.batchSeed = batchSeedFor(state.setSeed, state.batchIndex);
+    const lastPuzzle = puzzles[puzzles.length - 1];
+    generation.batchSeed = (lastPuzzle === undefined ? undefined : state.puzzleSeeds[lastPuzzle.id]) ?? batchSeedFor(state.setSeed, state.batchIndex);
     generation.batchLevel = puzzles[0]?.rating?.level ?? batchLevelOf(state);
     generation.batchIndex = state.batchIndex;
   }
@@ -1416,9 +1552,22 @@ export function removePuzzle(state, puzzleId) {
 }
 
 /**
- * Steps through the last sets (newest first). The board and rotation of the chosen set come with it.
+ * Remove all: every puzzle of the list goes, with the earlier packs and the cards' extras. The seen-history stays, like
+ * when a single card is removed, so new puzzles never repeat a removed one.
  * @param {GeneratorState} state
- * @param {number} position Index in the newest-first timeline `[current, ...history]` as it was ordered.
+ * @returns {GeneratorState}
+ */
+export function removeAllPuzzles(state) {
+  if (state.puzzles.length === 0 && state.parked.length === 0) {
+    return state;
+  }
+  return { ...state, puzzles: [], parked: [], checking: [], claimedIds: [], puzzleSeeds: {}, verification: {}, notice: null };
+}
+
+/**
+ * Steps through the piece sets of the board made in step 1 (newest first). The rotation of the chosen set comes with it.
+ * @param {GeneratorState} state
+ * @param {number} position Index in the newest-first list of the sets of the board (`setView`).
  * @returns {GeneratorState | null} null when the position does not exist or the stored set no longer validates.
  */
 export function gotoSet(state, position) {
@@ -1426,12 +1575,16 @@ export function gotoSet(state, position) {
   if (current === null || !Number.isInteger(position) || position < 0) {
     return null;
   }
-  const timeline = insertAt(state.setHistory, state.setPosition, current);
+  const view = setView(state);
+  if (position === view.index) {
+    return state;
+  }
+  // The set on show joins the saved sets of its own board, so nothing is lost when it leaves the screen.
+  const ownKey = boardKey(/** @type {PieceSet} */ (state.set).board);
+  const joined = withSets(state.setsByBoard, ownKey, insertAt(savedFor(state, ownKey), state.setPosition, current));
+  const timeline = Object.hasOwn(joined, view.key) ? joined[view.key] : [];
   if (position >= timeline.length) {
     return null;
-  }
-  if (position === state.setPosition) {
-    return state;
   }
   const target = timeline[position];
   const read = readSavedSet(target);
@@ -1443,17 +1596,193 @@ export function gotoSet(state, position) {
     ...state,
     ...freshSetExtras(),
     ...read,
-    setHistory: timeline.filter((_, i) => i !== position),
+    setsByBoard: withSets(joined, view.key, timeline.filter((_, i) => i !== position)),
     setPosition: position,
   }, read.set.board, rotation);
 }
 
 /**
+ * The list of piece sets: the sets of the board made in step 1, `setsByBoard[boardKey(state.board)]`.
  * @param {GeneratorState} state
- * @returns {number} Number of sets in the timeline (current included).
+ * @returns {{ key: string, index: number, total: number }} `key` of the board of step 1; `index` where the set on show
+ *   sits in its list, newest first (-1 when that set was made for another board); `total` sets in the list.
+ */
+export function setView(state) {
+  const key = boardKey(state.board);
+  const saved = savedFor(state, key);
+  const fits = state.set !== null && boardKey(state.set.board) === key;
+  return {
+    key,
+    index: fits ? Math.min(Math.max(0, state.setPosition), saved.length) : -1,
+    total: saved.length + (fits ? 1 : 0),
+  };
+}
+
+/**
+ * @param {GeneratorState} state
+ * @returns {number} Number of sets in the list of the board (the set on show included while it fits the board); 0 without a set.
  */
 export function setTimelineLength(state) {
-  return state.set === null ? 0 : state.setHistory.length + 1;
+  return state.set === null ? 0 : setView(state).total;
+}
+
+/**
+ * @param {GeneratorState} state
+ * @returns {{ index: number, total: number }} Where the set on show sits in the list of the board, newest first
+ *   (`index` -1 when it was made for another board), and the size of that list.
+ */
+export function setViewPosition(state) {
+  const { index, total } = setView(state);
+  return { index, total };
+}
+
+/**
+ * @param {GeneratorState} state
+ * @returns {{ n: number | null, total: number }} The number shown as "Set n/total": sets are numbered oldest first, so the
+ *   newest set is "Set total/total". `n` is null while the set on show was made for another board.
+ */
+export function setNumber(state) {
+  const { index, total } = setViewPosition(state);
+  return { n: index === -1 ? null : total - index, total };
+}
+
+/**
+ * Shows the set of the board in step 1 that was made with a seed.
+ * @param {GeneratorState} state
+ * @param {string} seed
+ * @returns {GeneratorState | null} null when no set of this board has that seed.
+ */
+export function showSetBySeed(state, seed) {
+  const { key, index } = setView(state);
+  if (state.set !== null && state.setSeed === seed && index !== -1) {
+    return state;
+  }
+  const at = savedFor(state, key).findIndex((saved) => saved.setSeed === seed);
+  // The set on show sits inside the list at `index`, so saved sets from there on are one place further.
+  return at === -1 ? null : gotoSet(state, index !== -1 && at >= index ? at + 1 : at);
+}
+
+/**
+ * @param {GeneratorState} state
+ * @returns {boolean} Whether the set list is full: a new set needs a set removed first.
+ */
+export function setsFull(state) {
+  return setTimelineLength(state) >= MAX_SETS;
+}
+
+/**
+ * Identity of a piece set: the board's rows plus the shape of every piece (a shape counts the same turned or
+ * flipped, and piece names and the order do not matter). Two sets with the same key give the same puzzles.
+ * @param {Board} board
+ * @param {readonly { cells: XY[] }[]} pieces
+ * @returns {string}
+ */
+export function setKey(board, pieces) {
+  return `${boardToRows(board).join('/')}|${pieces.map((p) => canonicalKey(p.cells)).sort().join('|')}`;
+}
+
+/**
+ * Whether a new set repeats one already in the list of its board.
+ * @param {GeneratorState} state
+ * @param {PieceSet} set The set that was just generated.
+ * @returns {number | null} Its number in the list (oldest first, as "Set n of total" shows), or null when it is new.
+ */
+export function duplicateSetNumber(state, set) {
+  const current = savedSetOf(state);
+  if (current === null) {
+    return null;
+  }
+  const key = setKey(set.board, set.pieces);
+  const boardId = boardKey(set.board);
+  // Newest first: the set on show sits at `setPosition` of the list of its own board, the others keep their order around it.
+  const saved = savedFor(state, boardId);
+  const timeline = boardKey(/** @type {PieceSet} */ (state.set).board) === boardId ? insertAt(saved, state.setPosition, current) : saved;
+  for (let i = 0; i < timeline.length; i += 1) {
+    try {
+      const pack = timeline[i].setPack;
+      if (setKey(packBoard(pack), pack.pieces) === key) {
+        return timeline.length - i;
+      }
+    } catch {
+      // A stored set that cannot be read never counts as a repeat.
+    }
+  }
+  return null;
+}
+
+/**
+ * @param {GeneratorState} state
+ * @param {Readonly<Record<string, readonly SavedSet[]>>} setsByBoard
+ * @returns {GeneratorState} No set on show; the given sets stay saved.
+ */
+function withoutSet(state, setsByBoard) {
+  return {
+    ...state,
+    ...freshSetExtras(),
+    set: null,
+    calibration: null,
+    calibrationFor: null,
+    calibrationTrusted: false,
+    setSeed: null,
+    batchIndex: 0,
+    puzzles: [],
+    seenLayouts: [],
+    seenClues: [],
+    setsByBoard,
+  };
+}
+
+/**
+ * Remove all sets: every set of the board in the list goes with its puzzles, the set on show included. The sets of other
+ * boards stay saved; the board and the settings stay.
+ * @param {GeneratorState} state
+ * @returns {GeneratorState}
+ */
+export function removeAllSets(state) {
+  return withoutSet(state, withSets(state.setsByBoard, boardKey(state.board), []));
+}
+
+/**
+ * Remove set: the set on show and its puzzles go. The neighbour made for the same board takes its place, the next older
+ * one first, else the next newer one, with its rotation (as when stepping); stored sets that no longer validate are
+ * dropped on the way. Without another set of that board this leaves no set; the sets of other boards stay saved.
+ * @param {GeneratorState} state
+ * @returns {GeneratorState}
+ */
+export function removeCurrentSet(state) {
+  if (state.set === null) {
+    return state;
+  }
+  const ownKey = boardKey(state.set.board);
+  // The saved list has no set on show, so the next older set now sits at `setPosition`.
+  const rest = savedFor(state, ownKey);
+  const from = Math.min(Math.max(0, state.setPosition), rest.length);
+  const order = [
+    ...Array.from({ length: rest.length - from }, (_, i) => from + i),
+    ...Array.from({ length: from }, (_, i) => from - 1 - i),
+  ];
+  /** @type {Set<number>} */
+  const dropped = new Set();
+  for (const index of order) {
+    const read = readSavedSet(rest[index]);
+    if (read === null) {
+      dropped.add(index);
+      continue;
+    }
+    const rotation = /** @type {{ presentation?: { rotation?: number } }} */ (rest[index].setPack).presentation?.rotation ?? 0;
+    let position = index;
+    for (const gone of dropped) {
+      position -= gone < index ? 1 : 0;
+    }
+    return withBoard({
+      ...state,
+      ...freshSetExtras(),
+      ...read,
+      setsByBoard: withSets(state.setsByBoard, ownKey, rest.filter((_, i) => i !== index && !dropped.has(i))),
+      setPosition: position,
+    }, state.board, rotation);
+  }
+  return withoutSet(state, withSets(state.setsByBoard, ownKey, rest.filter((_, i) => !dropped.has(i))));
 }
 
 /**

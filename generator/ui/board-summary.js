@@ -9,7 +9,7 @@ import { thumbnailCellPx } from './puzzle-panel.js';
 /** @typedef {import('../state.js').GeneratorState} GeneratorState */
 /** @typedef {import('../state.js').GeneratorStore} GeneratorStore */
 
-const PREVIEW_PX = 200;
+const PREVIEW_PX = 170;
 
 /**
  * @param {HTMLElement} host

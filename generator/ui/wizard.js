@@ -132,7 +132,9 @@ export function mountWizard(doc, options) {
       /** @type {HTMLElement} */ (body).hidden = /** @type {HTMLElement} */ (body).dataset.stepBody !== String(step);
     }
     for (const body of doc.querySelectorAll('[data-step-after]')) {
-      /** @type {HTMLElement} */ (body).hidden = step <= Number(/** @type {HTMLElement} */ (body).dataset.stepAfter);
+      const summary = /** @type {HTMLElement} */ (body);
+      summary.hidden = step <= Number(summary.dataset.stepAfter);
+      summary.title = `${t('wizard.stepLabel', { n: summary.dataset.stepAfter })} - ${t(`wizard.step${summary.dataset.stepAfter}.title`)}`;
     }
     for (const button of buttons) {
       const number = Number(button.dataset.wizardStep);
@@ -180,6 +182,23 @@ export function mountWizard(doc, options) {
     const onClick = () => void go(Number(button.dataset.wizardStep), { focus: true });
     button.addEventListener('click', onClick);
     handlers.push([button, 'click', onClick]);
+  }
+  // The board preview and the piece set summary under a finished step work like that step's header.
+  for (const summary of /** @type {HTMLElement[]} */ ([...doc.querySelectorAll('[data-step-after]')])) {
+    summary.setAttribute('role', 'button');
+    summary.tabIndex = 0;
+    const open = () => void go(Number(summary.dataset.stepAfter), { focus: true });
+    const onClick = () => open();
+    /** @param {KeyboardEvent} event */
+    const onKey = (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        open();
+      }
+    };
+    summary.addEventListener('click', onClick);
+    summary.addEventListener('keydown', onKey);
+    handlers.push([summary, 'click', onClick], [summary, 'keydown', /** @type {EventListener} */ (onKey)]);
   }
   const unsubscribe = store.subscribe((state, previous) => {
     if (state.set !== previous.set || state.board !== previous.board || state.puzzles !== previous.puzzles) {

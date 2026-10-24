@@ -142,7 +142,7 @@ describe('level availability is independent of caps and gates', () => {
   test('generation code never reads the gates, limits or qualification', () => {
     const importers = [...jsFiles('core'), ...jsFiles('generator'), ...jsFiles('player')]
       .filter((file) => /qualification\.js/.test(readFileSync(new URL(file, ROOT), 'utf8')));
-    assert.deepEqual(importers.sort(), ['core/engine/policy.js', 'generator/state.js', 'generator/ui/level-panel.js']);
+    assert.deepEqual(importers.sort(), ['core/engine/policy.js', 'generator/state.js']);
     for (const file of jsFiles('core/engine').filter((f) => f !== 'core/engine/policy.js' && f !== 'core/engine/qualification.js')) {
       assert.doesNotMatch(readFileSync(new URL(file, ROOT), 'utf8'), /\bLIMITS\b|\bQUALIFICATION\b|enabledMaxActive|deriveLimits/, file);
     }

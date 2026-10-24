@@ -4,14 +4,18 @@
 // state atomically, and prepares links, exports and imports. It never solves anything itself: all
 // searching runs in the client's workers or in the injected worker task runner.
 import { boardToRows } from '../core/engine/board.js';
+import { clueKey, layoutKey } from '../core/engine/keys.js';
 import { MAX_FILE_BYTES, packBoard, parsePack } from '../core/engine/pack.js';
 import { BUDGETS } from '../core/engine/policy.js';
+import { randomPuzzleSeed } from '../core/engine/rng.js';
 import { isValidLayout } from '../core/engine/tiling.js';
 import { loadFromText } from '../core/browser/handoff.js';
 import {
   MAX_PACK_BYTES, MAX_PACK_PUZZLES, acceptSet, addSeenKeys, applyCertificate, batchLevelOf, buildPack, capFor, clampQuantity,
+  duplicateSetNumber,
   generationBlock, gotoSet, historyRoom, importPackState, mergeSeenKeys, nextBatch, packFits, readyLevelId, referenceOf,
-  removePuzzle, renumberTitles, resetHistory, setTimelineLength, visiblePack,
+  removeAllPuzzles, removeAllSets, removeCurrentSet, removePuzzle, renumberTitles, resetHistory, setTimelineLength, setViewPosition, setsFull,
+  validSeed, visiblePack,
 } from './state.js';
 import { t } from './i18n.js';
 import { formatMessage, formatNotice, levelLabel, linkWarning } from './strings.js';
@@ -34,8 +38,8 @@ import { formatMessage, formatNotice, levelLabel, linkWarning } from './strings.
  * @property {(kind: 'solveFirst' | 'verifyPack', payload: object, o: { signal: AbortSignal }) => Promise<unknown>} [runWorkerTask]
  *   Runs one bounded worker task outside the generation client (imports).
  * @property {(pack: Pack, index: number) => Promise<LinkItem>} [prepareLink]
- * @property {(pack: Pack, index: number) => Promise<void>} [openPlayer] Same-tab hand-off; rejects with `handoff-unavailable`.
- * @property {(pack: Pack, fileName: string, o: { omitSolutions: boolean }) => void} [download]
+ * @property {(pack: Pack, index: number) => Promise<void>} [openPlayer] Opens the player in a new tab; rejects with `handoff-unavailable` or `popup-blocked`.
+ * @property {(pack: Pack, fileName: string) => void} [download]
  * @property {(text: string) => Promise<boolean>} [copy]
  * @property {(message: string, kind: 'info' | 'warning' | 'error') => void} [notify]
  * @property {(pack: Pack) => void} [saveLibrary] Best-effort library save before a same-tab hand-off.
@@ -44,6 +48,8 @@ import { formatMessage, formatNotice, levelLabel, linkWarning } from './strings.
  * @property {(fn: () => void, ms: number) => unknown} [setTimer]
  * @property {(handle: any) => void} [clearTimer]
  * @property {() => string} [random]
+ * @property {() => string} [randomNumber] Source of fresh puzzle seeds (whole numbers as text).
+ * @property {typeof duplicateGuard} [duplicateGuard] Replaces the duplicate check of new puzzles (tests whose fake puzzles share clues).
  * @property {number} [linkDelayMs]
  */
 
@@ -60,6 +66,66 @@ const KIB = 1024;
  */
 function notice(code, text, kind, actions = []) {
   return typeof text === 'function' ? { code, text: text(), kind, actions, retext: text } : { code, text, kind, actions };
+}
+
+/**
+ * Recognises a puzzle equal to one already seen on a set: the same id (exact clues), the same clue set or the same
+ * solution up to a board symmetry. Admitting is idempotent per id.
+ * @param {import('../core/engine/types.js').PieceSet} set
+ * @param {Puzzle[]} existing Puzzles already listed; they are admitted without being compared.
+ * @returns {{ admit: (puzzle: Puzzle) => boolean, rejected: Set<string> }}
+ */
+export function duplicateGuard(set, existing) {
+  const ids = new Set();
+  const clues = new Set();
+  const layouts = new Set();
+  /** @type {Set<string>} */
+  const rejected = new Set();
+  /** @type {Set<string>} */
+  const admitted = new Set();
+  /** @param {Puzzle} puzzle @returns {{ clue: string | null, layout: string | null }} */
+  const keysOf = (puzzle) => {
+    try {
+      return {
+        clue: clueKey(set.board, set.pieces, puzzle.clues),
+        layout: Array.isArray(puzzle.solution) ? layoutKey(set.board, set.pieces, puzzle.solution) : null,
+      };
+    } catch {
+      return { clue: null, layout: null };
+    }
+  };
+  /** @param {Puzzle} puzzle */
+  const remember = (puzzle) => {
+    const { clue, layout } = keysOf(puzzle);
+    ids.add(puzzle.id);
+    if (clue !== null) {
+      clues.add(clue);
+    }
+    if (layout !== null) {
+      layouts.add(layout);
+    }
+  };
+  existing.forEach(remember);
+  return {
+    rejected,
+    admit(puzzle) {
+      if (rejected.has(puzzle.id)) {
+        return false;
+      }
+      const { clue, layout } = keysOf(puzzle);
+      const known = ids.has(puzzle.id);
+      if (known && admitted.has(puzzle.id)) {
+        return true;
+      }
+      if (known || (clue !== null && clues.has(clue)) || (layout !== null && layouts.has(layout))) {
+        rejected.add(puzzle.id);
+        return false;
+      }
+      admitted.add(puzzle.id);
+      remember(puzzle);
+      return true;
+    },
+  };
 }
 
 /**
@@ -252,7 +318,7 @@ export function createJobController(options) {
    */
   async function generateSet(request) {
     const state = store.getState();
-    if (state.job !== null) {
+    if (state.job !== null || setsFull(state)) {
       return;
     }
     if (options.workersAvailable === false) {
@@ -280,6 +346,16 @@ export function createJobController(options) {
     }
     if (result.status === 'complete' && result.set !== undefined && result.calibration !== undefined) {
       const { set, calibration } = result;
+      const repeated = duplicateSetNumber(store.getState(), set);
+      if (repeated !== null) {
+        // The same board and pieces as a set already in the list: nothing is added; that set is shown instead.
+        stopBackground();
+        finish(revision, (s) => ({
+          ...(gotoSet(s, setTimelineLength(s) - repeated) ?? s),
+          notice: notice('N-DUPSET', () => formatNotice('N-DUPSET', { n: repeated }), 'info'),
+        }));
+        return;
+      }
       finish(revision, (s) => ({
         ...acceptSet(s, { set, calibration, setSeed: request.seed, calibrationFor: { levelId, uniqueness }, trusted: true }),
         notice: null,
@@ -299,7 +375,7 @@ export function createJobController(options) {
    */
   async function startBatch(append) {
     const state = store.getState();
-    if (state.job !== null || state.set === null || state.setSeed === null || state.stale) {
+    if (state.job !== null || state.set === null || state.setSeed === null) {
       return;
     }
     const block = generationBlock(state, hardware);
@@ -327,7 +403,9 @@ export function createJobController(options) {
     }
 
     const targetLevelId = batchLevelOf(state);
-    const begun = /** @type {NonNullable<ReturnType<typeof nextBatch>>} */ (nextBatch(state));
+    // Every press draws its own random whole-number seed.
+    const batchSeed = validSeed((options.randomNumber ?? randomPuzzleSeed)()) ?? randomPuzzleSeed();
+    const begun = /** @type {NonNullable<ReturnType<typeof nextBatch>>} */ (nextBatch(state, batchSeed));
     const { set, uniqueness, setSeed } = { set: state.set, uniqueness: state.uniqueness, setSeed: state.setSeed };
     const before = state.puzzles;
     const claimedBefore = state.claimedIds;
@@ -337,13 +415,17 @@ export function createJobController(options) {
       && made.levelId === targetLevelId && made.uniqueness === uniqueness;
     const revision = begin('batch', quantity, { batchIndex: begun.batchIndex });
     certRevision = revision;
+    /** The batch seed every puzzle of this request is generated with. @param {Puzzle[]} list @returns {Record<string, string>} */
+    const seedsFor = (list) => Object.fromEntries(list.map((p) => [p.id, begun.batchSeed]));
     /** @type {Puzzle[]} */
     const streamed = [];
+    // Backstop for the engine's own history: a puzzle equal to one already listed is never added.
+    const guard = (options.duplicateGuard ?? duplicateGuard)(set, append ? [...before, ...state.parked.flat()] : []);
 
     /** @param {GeneratorState} s @returns {GeneratorState} */
     const showStreamed = (s) => {
       const puzzles = append ? [...before, ...streamed] : streamed.length > 0 ? [...streamed] : before;
-      return { ...s, puzzles, claimedIds: append ? claimedBefore : [] };
+      return { ...s, puzzles, claimedIds: append ? claimedBefore : [], puzzleSeeds: { ...s.puzzleSeeds, ...seedsFor(streamed) } };
     };
 
     /** @type {Awaited<ReturnType<GenerationClient['generateBatch']>> | null} */
@@ -358,6 +440,7 @@ export function createJobController(options) {
         quantity,
         setSeed,
         batchIndex: begun.batchIndex,
+        batchSeed: begun.batchSeed,
         displayOffset,
         uniqueness,
         seenLayouts: [...state.seenLayouts],
@@ -368,7 +451,7 @@ export function createJobController(options) {
       }, {
         onProgress: (p) => progress(revision, p),
         onAccepted: (event) => {
-          if (!isCurrent(revision)) {
+          if (!isCurrent(revision) || !guard.admit(event.puzzle)) {
             return;
           }
           streamed.push(event.puzzle);
@@ -394,7 +477,8 @@ export function createJobController(options) {
     }
 
     const fault = /** @type {{ accepted?: Puzzle[], seenLayouts?: string[], seenClues?: string[] } | null} */ (failure);
-    const accepted = result !== null ? result.accepted : fault?.accepted ?? streamed;
+    const rawAccepted = result !== null ? result.accepted : fault?.accepted ?? streamed;
+    const accepted = rawAccepted.filter((p) => guard.admit(p));
     const seenLayouts = result !== null ? result.seenLayouts : fault?.seenLayouts ?? [];
     const seenClues = result !== null ? result.seenClues : fault?.seenClues ?? [];
     const status = result?.status ?? 'partial';
@@ -420,6 +504,9 @@ export function createJobController(options) {
       } else if (reason !== undefined) {
         outcome = batchShortfall(reason, { n: accepted.length, q: quantity, levelId: targetLevelId, arrangements: result?.arrangements }) ?? outcome;
       }
+      if (guard.rejected.size > 0 && failure === null) {
+        outcome = notice('M-DUPLICATE', () => formatMessage('M-DUPLICATE'), 'error');
+      }
       const pendingIds = result !== null && status !== 'cancelled' && reason !== 'time-limit'
         ? accepted.filter((p) => p.certificate === null || p.certificate === undefined).map((p) => p.id)
         : [];
@@ -427,6 +514,7 @@ export function createJobController(options) {
         ...s,
         puzzles,
         claimedIds,
+        puzzleSeeds: { ...s.puzzleSeeds, ...seedsFor(accepted) },
         parked,
         seenLayouts: mergeSeenKeys(s.seenLayouts, seenLayouts),
         seenClues: mergeSeenKeys(s.seenClues, seenClues),
@@ -609,6 +697,13 @@ export function createJobController(options) {
     }
   }
 
+  /** Remove all: empties the list of puzzles (the seen-history stays). */
+  function removeAll() {
+    if (store.getState().job === null) {
+      store.update((s) => removeAllPuzzles(s));
+    }
+  }
+
   function clearHistory() {
     if (store.getState().job === null) {
       store.update((s) => resetHistory(s));
@@ -620,19 +715,41 @@ export function createJobController(options) {
     store.update((s) => ({ ...s, quantity: clampQuantity(room), notice: null }));
   }
 
-  /** @param {number} delta -1 = older set, +1 = newer set */
+  /** @param {number} delta 1 = older set, -1 = newer set; only the sets of the board in step 1 are stepped through. */
   function stepSet(delta) {
     const state = store.getState();
     if (state.job !== null) {
       return;
     }
-    const target = state.setPosition + delta;
-    if (target < 0 || target >= setTimelineLength(state)) {
+    const { index, total } = setViewPosition(state);
+    // A set made for another board is on show: older goes to the newest set of the board, newer has nowhere to go.
+    const target = index === -1 ? (delta > 0 ? 0 : -1) : index + delta;
+    if (target < 0 || target >= total) {
       return;
     }
     stopBackground();
     const next = gotoSet(state, target);
     store.update(() => next ?? state);
+  }
+
+  /** Remove set: drops the set on show; a neighbour takes its place. */
+  function removeSet() {
+    const state = store.getState();
+    if (state.job !== null || state.set === null) {
+      return;
+    }
+    stopBackground();
+    store.update((s) => removeCurrentSet(s));
+  }
+
+  /** Remove all sets: the current set, its puzzles and the set history. */
+  function removeSets() {
+    const state = store.getState();
+    if (state.job !== null || state.set === null) {
+      return;
+    }
+    stopBackground();
+    store.update((s) => removeAllSets(s));
   }
 
   // Links, hand-off and exports
@@ -705,6 +822,7 @@ export function createJobController(options) {
   }
 
   /**
+   * Opens the player in a new tab; the generator stays where it is, so nothing is cancelled or stopped.
    * @param {Pack} pack
    * @param {number} index
    */
@@ -713,12 +831,14 @@ export function createJobController(options) {
       return;
     }
     options.beforeNavigate?.();
-    stopBackground();
     try {
       await options.openPlayer(pack, index);
     } catch (error) {
-      if (/** @type {{ code?: unknown }} */ (error)?.code === 'handoff-unavailable') {
+      const code = /** @type {{ code?: unknown }} */ (error)?.code;
+      if (code === 'handoff-unavailable') {
         store.update((s) => ({ ...s, notice: notice('M-PLAYER-UNAVAILABLE', () => formatMessage('M-PLAYER-UNAVAILABLE'), 'warning') }));
+      } else if (code === 'popup-blocked') {
+        store.update((s) => ({ ...s, notice: notice('M-PLAYER-BLOCKED', () => formatMessage('M-PLAYER-BLOCKED'), 'warning') }));
       } else {
         throw error;
       }
@@ -750,7 +870,7 @@ export function createJobController(options) {
       return;
     }
     try {
-      options.download(pack, name, { omitSolutions: store.getState().omitSolutions });
+      options.download(pack, name);
     } catch {
       notify(formatMessage('M-EXPORT-FAILED'), 'error');
     }
@@ -775,13 +895,6 @@ export function createJobController(options) {
     const puzzle = state.puzzles.find((p) => p.id === puzzleId);
     if (puzzle !== undefined && state.set !== null) {
       writeFile(buildPack(state, [puzzle]), `${exportName()}-${puzzle.title ?? puzzle.id}`);
-    }
-  }
-
-  function exportSet() {
-    const state = store.getState();
-    if (state.set !== null) {
-      writeFile(buildPack(state, []), `${exportName()}-piece-set`);
     }
   }
 
@@ -839,16 +952,18 @@ export function createJobController(options) {
     importText,
     importFile,
     removePuzzle: remove,
+    removeAllPuzzles: removeAll,
     resetHistory: clearHistory,
     requestFewer,
     stepSet,
+    removeSet,
+    removeAllSets: removeSets,
     refreshLinks,
     prepareNavigation,
     playAll,
     playPuzzle,
     exportPack,
     exportPuzzle,
-    exportSet,
     exportParked,
     copyPackLink: () => copyLink(0),
     copyPuzzleLink,
