@@ -1,16 +1,13 @@
 // @ts-check
-// Generator state: the observable store, device classification, board edit transitions,
-// seed and batch bookkeeping, derived board/level descriptions and safe persistence
-// (design §6.2, §8.6, §10.1–§10.7). Pure: nothing here touches the DOM, and all limits,
-// ranges and level tables come from the engine modules.
+// Generator state: the store, pure state transitions, derived panel descriptions and persistence. Nothing here touches
+// the DOM.
 import {
-  MAX_SIDE, activeCount, boardFromRows, boardKey, boardToRows, rectangle, trimMargins, validateForGeneration,
+  MAX_SIDE, activeCount, boardFromRows, boardKey, boardToRows, rectangle, validateForGeneration,
 } from '../core/engine/board.js';
 import { initialClueCount, level, offeredLevels } from '../core/engine/levels.js';
 import { canonicalKey } from '../core/engine/geometry.js';
 import { createPack, packBoard, PackError, serializePack, validatePack } from '../core/engine/pack.js';
-import { BUDGETS, LIMITS, POLICY_ID, enabledMaxActive, pieceCountRange, sizeWindow } from '../core/engine/policy.js';
-import { QUALIFICATION } from '../core/engine/qualification.js';
+import { BUDGETS, POLICY_ID, enabledMaxActive, pieceCountRange, sizeWindow } from '../core/engine/policy.js';
 import { batchSeedFor, normalizeSeedText, randomSeedText, RNG_ID, SEED_SCHEME } from '../core/engine/rng.js';
 import { clueKey, layoutKey } from '../core/engine/keys.js';
 import { ALGO_ID, APP_VERSION } from '../core/engine/version.js';
@@ -24,16 +21,15 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
 /** @typedef {import('../core/engine/types.js').XY} XY */
 
 /**
- * A stored set with its seed, batch counter and history. Packs keep it serializable.
+ * A stored set: the set as a piece-set pack, and its puzzles in pack form without a second copy of the board and pieces.
  * @typedef {object} SavedSet
  * @property {Pack} setPack
- * @property {Pack | null} calibrationPack
- * @property {Pack | null} batchPack
+ * @property {Pack['puzzles']} puzzles
  * @property {string} setSeed
  * @property {number} batchIndex
  * @property {{ layouts: string[], clues: string[] }} history
  * @property {{ levelId: string, uniqueness: 'any' | 'require' } | null} [calibrationFor]
- * @property {Record<string, string>} [puzzleSeeds] Batch seed of each puzzle of `batchPack`, by puzzle id.
+ * @property {Record<string, string>} [puzzleSeeds] Batch seed of each puzzle, by puzzle id.
  */
 
 /**
@@ -45,12 +41,12 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {string} seedText
  * @property {boolean} keepSeed
  * @property {'any' | 'require'} uniqueness
- * @property {boolean} largeBoards Mirror of the stored preference; never written to gen:state.
  * @property {string | null} setSeed
  * @property {number} batchIndex
  * @property {PieceSet | null} set
- * @property {Puzzle | null} calibration
- * @property {{ levelId: string, uniqueness: 'any' | 'require' } | null} calibrationFor Settings the calibration was made for; null = unknown.
+ * @property {Puzzle | null} calibration Kept for this session only: the first batch can reuse it.
+ * @property {{ levelId: string, uniqueness: 'any' | 'require' } | null} calibrationFor Level and uniqueness the set was made for;
+ *   null when unknown.
  * @property {Puzzle[]} puzzles
  * @property {string[]} seenLayouts
  * @property {string[]} seenClues
@@ -62,25 +58,19 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {string | null} batchLevelId Level of the puzzle row; null follows the level the set was made for.
  * @property {StatusNotice | null} notice Outcome of the last action.
  * @property {readonly string[]} checking Puzzle ids whose lazy certificate is still pending.
- * @property {readonly string[]} claimedIds Puzzles whose rating and certificate come from a file or storage.
  * @property {Readonly<Record<string, string>>} puzzleSeeds Batch seed each puzzle was generated with, by puzzle id.
  * @property {boolean} calibrationTrusted The calibration was produced by this session's engine run.
  * @property {number} setPosition Where the set on show sits in the newest-first list of the sets of its own board.
  * @property {readonly (readonly Puzzle[])[]} parked Earlier puzzle groups kept as separate packs after a size split.
- * @property {Readonly<Record<string, string>>} verification Solvability status of imported puzzles by id.
- * @property {LinkState} links Prepared player links of the visible pack.
  */
 
 /**
  * @typedef {object} JobInfo
  * @property {number} requestId
  * @property {string} revision
- * @property {string} stage
  * @property {number} startedAt
- * @property {'set' | 'batch' | 'import'} [kind]
- * @property {number} [accepted]
- * @property {number} [quantity]
- * @property {number} [slot] One-based puzzle slot being worked on.
+ * @property {'set' | 'batch'} [kind]
+ * @property {number} [accepted] Puzzles of a batch shown so far.
  * @property {boolean} [cancelling]
  */
 
@@ -89,24 +79,8 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {string} code Notice id (N-*) or a message id (M-*).
  * @property {string} text
  * @property {'error' | 'warning' | 'info'} kind
- * @property {string[]} actions `new-set`, `reset-history`, `smaller-quantity`.
- * @property {number} [room] Remaining history room for `smaller-quantity`.
+ * @property {string[]} actions `new-set`, `reset-history`.
  * @property {() => string} [retext] Builds `text` again, so the notice can follow a language switch.
- */
-
-/**
- * @typedef {object} LinkItem
- * @property {string | null} href
- * @property {boolean} portable
- * @property {string} [warning]
- */
-
-/**
- * `pack` is the exact pack object the links were prepared for; `items[i]` belongs to `ids[i]`.
- * @typedef {object} LinkState
- * @property {Pack | null} pack
- * @property {readonly string[]} ids
- * @property {readonly LinkItem[]} items
  */
 
 /**
@@ -138,9 +112,6 @@ const FIRST_HELL_INDEX = 7;
 const UNIQUE_STANDARD_AREA = 200;
 const MAX_KEY_LENGTH = 8192;
 
-/** @type {LinkState} */
-const EMPTY_LINKS = Object.freeze({ pack: null, ids: Object.freeze([]), items: Object.freeze([]) });
-
 /** @type {GeneratorState['prefs']} */
 const DEFAULT_VIEW_PREFS =  Object.freeze({ labels: true, patterns: true, timer: true, straighten: false });
 
@@ -157,7 +128,6 @@ export function defaultGeneratorState(overrides = {}) {
     seedText: '',
     keepSeed: false,
     uniqueness: 'any',
-    largeBoards: false,
     setSeed: null,
     batchIndex: 0,
     set: null,
@@ -173,13 +143,10 @@ export function defaultGeneratorState(overrides = {}) {
     batchLevelId: null,
     notice: null,
     checking: [],
-    claimedIds: [],
     puzzleSeeds: {},
     calibrationTrusted: false,
     setPosition: 0,
     parked: [],
-    verification: {},
-    links: EMPTY_LINKS,
     ...overrides,
   };
 }
@@ -261,8 +228,6 @@ export function createGeneratorStore(initial) {
 
 /** @typedef {ReturnType<typeof createGeneratorStore>} GeneratorStore */
 
-// Device classification (design §6.2).
-
 /**
  * Phone = coarse primary pointer and (deviceMemory <= 4, unknown, or hardwareConcurrency <= 4).
  * @param {{ coarsePointer: boolean, deviceMemory?: number, hardwareConcurrency?: number }} hw
@@ -297,16 +262,13 @@ export function detectHardware(env = /** @type {any} */ (globalThis)) {
 }
 
 /**
- * Largest board area accepted on this device with the current Large boards preference.
- * @param {Pick<GeneratorState, 'largeBoards'>} state
+ * Largest board area accepted on this device.
  * @param {{ phone: boolean }} hardware
  * @returns {number}
  */
-export function capFor(state, hardware) {
-  return enabledMaxActive({ phone: hardware.phone, largeBoards: state.largeBoards });
+export function capFor(hardware) {
+  return enabledMaxActive({ phone: hardware.phone, largeBoards: false });
 }
-
-// Board edit transitions (all return new boards; inputs are never mutated).
 
 /**
  * @param {Board} a
@@ -363,14 +325,14 @@ export function resizeBoard(board, cols, rows) {
 }
 
 /**
- * Bounded undo history of whole boards (immutable values, so sharing is safe).
+ * Bounded undo history of whole boards.
  * @param {number} [limit]
  */
 export function createEditHistory(limit = HISTORY_LIMIT) {
   /** @type {Board[]} */
   const past = [];
   return {
-    /** Records the board as it was before one edit step. @param {Board} before */
+    /** @param {Board} before The board as it was before one edit step. */
     record(before) {
       past.push(before);
       if (past.length > limit) {
@@ -465,21 +427,11 @@ function fitSet(state) {
 
 /**
  * @param {GeneratorState} state
- * @returns {GeneratorState}
- */
-export function trimBoard(state) {
-  return withBoard(state, trimMargins(state.board));
-}
-
-/**
- * @param {GeneratorState} state
  * @returns {boolean} Controls that change the board or settings are disabled while a job runs.
  */
 export function isBusy(state) {
   return state.job !== null;
 }
-
-// Seeds and batches (design §8.6).
 
 /**
  * @param {string} text
@@ -494,7 +446,7 @@ export function validSeed(text) {
 }
 
 /**
- * Typing a seed turns Keep seed on; clearing the field turns it off.
+ * A typed seed is used by the next Generate; an empty field means a random seed.
  * @param {GeneratorState} state
  * @param {string} text
  * @returns {GeneratorState}
@@ -504,8 +456,7 @@ export function typeSeed(state, text) {
 }
 
 /**
- * The dice button: a fresh random seed now, kept for the next Generate. There is no Keep seed switch in the UI,
- * so a seed the user can see after rolling must be the one used.
+ * The dice button: the rolled seed is on screen, so it is the one the next Generate uses.
  * @param {GeneratorState} state
  * @param {() => string} [random]
  * @returns {GeneratorState}
@@ -515,8 +466,8 @@ export function rollSeed(state, random = randomSeedText) {
 }
 
 /**
- * Seed for a Generate Piece Set request: with Keep seed off a fresh random seed first replaces
- * the field; with it on the field text is used unchanged (trimmed and NFC-normalized).
+ * Seed for a Generate request: the typed or rolled seed (trimmed and NFC-normalized), else a fresh random seed, which
+ * then replaces the field.
  * @param {GeneratorState} state
  * @param {() => string} [random]
  * @returns {{ ok: true, state: GeneratorState, seed: string } | { ok: false, reason: 'invalid-seed' }}
@@ -530,13 +481,11 @@ export function beginSetRequest(state, random = randomSeedText) {
 }
 
 /**
- * The per-set data a new, restored or imported set starts without.
- * @returns {Pick<GeneratorState, 'notice' | 'checking' | 'batchLevelId' | 'parked' | 'verification' | 'links' | 'claimedIds' | 'puzzleSeeds' | 'setPosition'>}
+ * The per-set data a new or restored set starts without.
+ * @returns {Pick<GeneratorState, 'notice' | 'checking' | 'batchLevelId' | 'parked' | 'puzzleSeeds' | 'setPosition'>}
  */
 function freshSetExtras() {
-  return {
-    notice: null, checking: [], batchLevelId: null, parked: [], verification: {}, links: EMPTY_LINKS, claimedIds: [], puzzleSeeds: {}, setPosition: 0,
-  };
+  return { notice: null, checking: [], batchLevelId: null, parked: [], puzzleSeeds: {}, setPosition: 0 };
 }
 
 /**
@@ -595,8 +544,7 @@ function savedFor(state, key) {
 }
 
 /**
- * A newly accepted set starts at batch 0 with empty history, even when regenerated with the
- * same seed; the previous committed set moves into the (at most 5) set history.
+ * A newly accepted set starts at batch 0 with empty history, even when regenerated with the same seed.
  * @param {GeneratorState} state
  * @param {{ set: PieceSet, calibration: Puzzle | null, setSeed: string, calibrationFor?: GeneratorState['calibrationFor'],
  *   trusted?: boolean }} accepted `trusted` marks a calibration the engine produced in this session.
@@ -626,10 +574,9 @@ export function acceptSet(state, accepted) {
 }
 
 /**
- * Every New Puzzles / Add more request increments the set's batch index, whatever its outcome. Its seed is the given
- * `batchSeed` or, by default, `setSeed#batchIndex`.
+ * Every New Puzzle request increments the set's batch index, whatever its outcome.
  * @param {GeneratorState} state
- * @param {string} [batchSeed]
+ * @param {string} batchSeed
  * @returns {{ state: GeneratorState, batchSeed: string, batchIndex: number } | null} null without a set.
  */
 export function nextBatch(state, batchSeed) {
@@ -637,7 +584,7 @@ export function nextBatch(state, batchSeed) {
     return null;
   }
   const batchIndex = state.batchIndex + 1;
-  return { state: { ...state, batchIndex }, batchSeed: batchSeed ?? batchSeedFor(state.setSeed, batchIndex), batchIndex };
+  return { state: { ...state, batchIndex }, batchSeed, batchIndex };
 }
 
 /**
@@ -649,33 +596,6 @@ function mergeKeys(known, added) {
   const merged = [...new Set([...known, ...added])];
   return merged.length > BUDGETS.historyKeys ? merged.slice(merged.length - BUDGETS.historyKeys) : merged;
 }
-
-/**
- * Commits a finished batch: New Puzzles replaces the visible batch, Add more appends; the layout
- * and clue history only grows, so a batch seed is never replayed against a grown history.
- * @param {GeneratorState} state
- * @param {{ puzzles: Puzzle[], seenLayouts: readonly string[], seenClues: readonly string[], append: boolean }} batch
- * @returns {GeneratorState}
- */
-export function recordBatch(state, batch) {
-  return {
-    ...state,
-    puzzles: batch.append ? [...state.puzzles, ...batch.puzzles] : [...batch.puzzles],
-    seenLayouts: mergeKeys(state.seenLayouts, batch.seenLayouts),
-    seenClues: mergeKeys(state.seenClues, batch.seenClues),
-  };
-}
-
-/**
- * @param {GeneratorState} state
- * @returns {boolean} Whether the stored calibration was made for the level and uniqueness now selected.
- */
-export function calibrationCurrent(state) {
-  const made = state.calibrationFor;
-  return state.calibration !== null && made !== null && made.levelId === state.levelId && made.uniqueness === state.uniqueness;
-}
-
-// Derived descriptions for the panels.
 
 /**
  * @typedef {object} LevelEntry
@@ -739,7 +659,7 @@ export function describeCount(levelId, area) {
  * @typedef {object} BoardDescription
  * @property {number} area
  * @property {number} cap
- * @property {boolean} valid No validation error.
+ * @property {boolean} valid
  * @property {string} statusText `{active} / {columns × rows} playable squares · connected` or the validation errors.
  * @property {XY[]} invalidCells Cells to highlight (outside the largest connected region).
  * @property {Notice[]} notices
@@ -750,15 +670,13 @@ export function describeCount(levelId, area) {
  */
 
 /**
- * Everything the panels show about the current board, level and device.
  * @param {GeneratorState} state
  * @param {{ phone: boolean }} hardware
- * @param {number} [quantity] Puzzles per batch, for N-EXPERIMENTAL.
  * @returns {BoardDescription}
  */
-export function describeBoard(state, hardware, quantity = DEFAULT_QUANTITY) {
+export function describeBoard(state, hardware) {
   const area = activeCount(state.board);
-  const cap = capFor(state, hardware);
+  const cap = capFor(hardware);
   const { errors, warnings } = validateForGeneration(state.board, cap);
   /** @type {Notice[]} */
   const notices = [];
@@ -779,9 +697,6 @@ export function describeBoard(state, hardware, quantity = DEFAULT_QUANTITY) {
 
   if (warnings.some((w) => w.code === 'board-large')) {
     notices.push({ code: 'N-LARGE', text: formatNotice('N-LARGE'), kind: 'warning' });
-  }
-  if (!hardware.phone && state.largeBoards && area > LIMITS.releaseMaxActive && area <= cap && QUALIFICATION.bq2.status !== 'pass') {
-    notices.push({ code: 'N-EXPERIMENTAL', text: formatNotice('N-EXPERIMENTAL', { limit: LIMITS.releaseMaxActive, q: quantity }), kind: 'warning' });
   }
   if (count !== null) {
     notices.push({ code: 'N-COUNT', text: formatNotice('N-COUNT', { kmin: count.kmin, kmax: count.kmax, level: levelName, share: count.share }), kind: 'info' });
@@ -810,8 +725,6 @@ export function describeBoard(state, hardware, quantity = DEFAULT_QUANTITY) {
     : t('board.status', { area, total: state.board.width * state.board.height });
   return { area, cap, valid: errors.length === 0, statusText, invalidCells, notices, levels, levelOffered, count, levelNotices };
 }
-
-// Packs: sets, calibration and batches are stored as validated pack documents.
 
 /**
  * @param {PieceSet} set
@@ -876,8 +789,7 @@ export function savedSetOf(state) {
   try {
     return {
       setPack: packOf(state.set, state.rotation, []),
-      calibrationPack: state.calibration === null ? null : packOf(state.set, state.rotation, [state.calibration]),
-      batchPack: state.puzzles.length === 0 ? null : packOf(state.set, state.rotation, state.puzzles),
+      puzzles: state.puzzles.length === 0 ? [] : packOf(state.set, state.rotation, state.puzzles).puzzles,
       setSeed: state.setSeed,
       batchIndex: state.batchIndex,
       history: { layouts: [...state.seenLayouts], clues: [...state.seenClues] },
@@ -893,7 +805,7 @@ export function savedSetOf(state) {
  * Engine objects for a stored set; null when its packs do not validate or do not belong together.
  * @param {unknown} saved
  * @returns {{ set: PieceSet, calibration: Puzzle | null, calibrationFor: GeneratorState['calibrationFor'], calibrationTrusted: boolean,
- *   puzzles: Puzzle[], claimedIds: string[], puzzleSeeds: Record<string, string>, setSeed: string, batchIndex: number,
+ *   puzzles: Puzzle[], puzzleSeeds: Record<string, string>, setSeed: string, batchIndex: number,
  *   seenLayouts: string[], seenClues: string[] } | null}
  */
 export function readSavedSet(saved) {
@@ -911,39 +823,26 @@ export function readSavedSet(saved) {
     return null;
   }
   const set = setFromPack(setResult.value);
-  const rows = JSON.stringify(setResult.value.board.rows);
-  const pieces = JSON.stringify(setResult.value.pieces);
-  /**
-   * @param {unknown} raw
-   * @param {(n: number) => boolean} count
-   * @returns {Puzzle[]}
-   */
-  const related = (raw, count) => {
-    if (raw === null || raw === undefined) {
-      return [];
-    }
-    const result = validatePack(raw);
-    if (!result.ok || JSON.stringify(result.value.board.rows) !== rows || JSON.stringify(result.value.pieces) !== pieces
-      || !count(result.value.puzzles.length)) {
-      return [];
-    }
-    return puzzlesFromPack(result.value);
-  };
-  const calibrationList = related(dto.calibrationPack, (n) => n === 1);
-  const puzzles = related(dto.batchPack, (n) => n >= 1 && n <= 100);
+  const storedPuzzles = dto.puzzles;
+  /** @type {Puzzle[]} */
+  let puzzles = [];
+  if (Array.isArray(storedPuzzles) && storedPuzzles.length >= 1 && storedPuzzles.length <= MAX_PACK_PUZZLES) {
+    // Validated as one pack with the set, so a puzzle that does not fit the set's board and pieces is refused.
+    const result = validatePack({ ...dto.setPack, kind: 'puzzle-pack', puzzles: storedPuzzles });
+    puzzles = result.ok ? puzzlesFromPack(result.value) : [];
+  }
   const history = typeof dto.history === 'object' && dto.history !== null ? dto.history : {};
   const made = dto.calibrationFor;
-  const calibrationFor = calibrationList.length === 1 && typeof made === 'object' && made !== null
+  const calibrationFor = typeof made === 'object' && made !== null
     && LISTED_LEVEL_IDS.includes(made.levelId) && (made.uniqueness === 'any' || made.uniqueness === 'require')
     ? { levelId: /** @type {string} */ (made.levelId), uniqueness: /** @type {'any' | 'require'} */ (made.uniqueness) }
     : null;
   return {
     set,
-    calibration: calibrationList[0] ?? null,
+    calibration: null,
     calibrationFor,
     calibrationTrusted: false,
     puzzles,
-    claimedIds: puzzles.map((p) => p.id),
     puzzleSeeds: seedsOfPuzzles(dto.puzzleSeeds, puzzles),
     setSeed,
     batchIndex,
@@ -985,29 +884,12 @@ function readKeys(value) {
 }
 
 /**
- * Makes a stored set the current set again, with its board (set history navigation).
- * @param {GeneratorState} state
- * @param {SavedSet} saved
- * @returns {GeneratorState | null} null when the stored packs no longer validate.
- */
-export function useSavedSet(state, saved) {
-  const read = readSavedSet(saved);
-  if (read === null) {
-    return null;
-  }
-  return withBoard({ ...state, ...freshSetExtras(), ...read }, read.set.board);
-}
-
-// Persistence (design §9.6, §10.6).
-
-/**
- * Storage shape `pentomino:v1:gen:state`. Timers, jobs, workers and the unvalidated candidates
- * never appear; Large boards lives only in prefs.
+ * Storage shape `pentomino:v1:gen:state`: the step settings, the set on show (the SavedSet fields, when there is one)
+ * and the saved sets of every board. Jobs, timers and session-only data never appear.
  * @param {GeneratorState} state
  * @returns {Record<string, unknown>}
  */
 export function serializeState(state) {
-  const saved = savedSetOf(state);
   return {
     v: STORAGE_VERSION,
     boardRows: boardToRows(state.board),
@@ -1017,15 +899,8 @@ export function serializeState(state) {
     seedText: state.seedText,
     keepSeed: state.keepSeed,
     uniqueness: state.uniqueness,
-    setSeed: saved?.setSeed ?? null,
-    batchIndex: saved?.batchIndex ?? 0,
-    setPack: saved?.setPack ?? null,
-    calibrationPack: saved?.calibrationPack ?? null,
-    batchPack: saved?.batchPack ?? null,
-    puzzleSeeds: saved?.puzzleSeeds ?? {},
-    history: saved?.history ?? { layouts: [], clues: [] },
     setsByBoard: Object.fromEntries(Object.entries(state.setsByBoard).map(([key, sets]) => [key, sets.slice(0, MAX_SAVED_SETS)])),
-    ...(saved?.calibrationFor ? { calibrationFor: saved.calibrationFor } : {}),
+    ...savedSetOf(state),
   };
 }
 
@@ -1048,7 +923,6 @@ export function restoreState(stored, base = {}) {
       state.board = board;
     }
   } catch {
-    // Keep the default board.
   }
   if (Number.isInteger(dto.rotation) && dto.rotation >= 0 && dto.rotation < 360 && dto.rotation % 45 === 0) {
     state.rotation = dto.rotation;
@@ -1068,7 +942,8 @@ export function restoreState(stored, base = {}) {
   const byBoard = {};
   /** @param {unknown} item */
   const keep = (item) => {
-    const read = readSavedSet(item);
+    const saved = upgradeSaved(item);
+    const read = readSavedSet(saved);
     if (read === null) {
       return;
     }
@@ -1076,7 +951,7 @@ export function restoreState(stored, base = {}) {
     const key = boardKey(read.set.board);
     byBoard[key] ??= [];
     if (byBoard[key].length < MAX_SAVED_SETS) {
-      byBoard[key].push(/** @type {SavedSet} */ (item));
+      byBoard[key].push(/** @type {SavedSet} */ (saved));
     }
   };
   const savedLists = dto.setsByBoard;
@@ -1092,7 +967,7 @@ export function restoreState(stored, base = {}) {
     dto.setHistory.forEach(keep);
   }
   state.setsByBoard = Object.fromEntries(Object.entries(byBoard).slice(-MAX_SAVED_BOARDS));
-  const current = readSavedSet(dto);
+  const current = readSavedSet(upgradeSaved(dto));
   if (current !== null) {
     Object.assign(state, current);
   }
@@ -1100,16 +975,28 @@ export function restoreState(stored, base = {}) {
 }
 
 /**
+ * A stored set in the current shape. Older storage kept the puzzles in a second full pack (`batchPack`) and the
+ * calibration puzzle in a third one (`calibrationPack`), which is no longer kept.
+ * @param {unknown} item
+ * @returns {unknown}
+ */
+function upgradeSaved(item) {
+  if (typeof item !== 'object' || item === null || Array.isArray(item)) {
+    return item;
+  }
+  const { calibrationPack: _calibration, batchPack, ...rest } = /** @type {Record<string, any>} */ (item);
+  return 'puzzles' in rest ? rest : { ...rest, puzzles: Array.isArray(batchPack?.puzzles) ? batchPack.puzzles : [] };
+}
+
+/**
  * @typedef {object} StorageLike
  * @property {() => unknown} getGeneratorState
  * @property {(snapshot: unknown) => { ok: boolean }} setGeneratorState
  * @property {() => Record<string, boolean>} getPrefs
- * @property {(partial: Record<string, boolean>) => { ok: boolean }} setPrefs
  */
 
 /**
- * Initial state: preferences are read first. The generator no longer offers the Large boards opt-in, so a stored
- * `largeBoards` (in prefs or, legacy, in gen:state) is ignored and the normal board limit applies.
+ * Initial state, preferences first.
  * @param {StorageLike} storage
  * @returns {GeneratorState}
  */
@@ -1129,7 +1016,6 @@ export function loadGeneratorState(storage) {
     stored = null;
   }
   return restoreState(stored, {
-    largeBoards: false,
     prefs: {
       labels: prefs.labels ?? DEFAULT_VIEW_PREFS.labels,
       patterns: prefs.patterns ?? DEFAULT_VIEW_PREFS.patterns,
@@ -1142,10 +1028,8 @@ export function loadGeneratorState(storage) {
 /** @type {ReadonlyArray<keyof GeneratorState>} */
 const PERSISTED_KEYS = Object.freeze([
   'board', 'rotation', 'presetId', 'levelId', 'seedText', 'keepSeed', 'uniqueness', 'setSeed', 'batchIndex',
-  'set', 'calibration', 'calibrationFor', 'puzzles', 'seenLayouts', 'seenClues', 'setsByBoard',
+  'set', 'calibrationFor', 'puzzles', 'puzzleSeeds', 'seenLayouts', 'seenClues', 'setsByBoard',
 ]);
-/** @type {ReadonlyArray<keyof GeneratorState>} */
-const PREF_STATE_KEYS = Object.freeze(['prefs', 'largeBoards']);
 
 /**
  * Debounced saving of the committed state. Failures never throw: a full or denied storage is
@@ -1161,32 +1045,27 @@ export function createPersistence(store, storage, o = {}) {
   const clearTimer = o.clearTimer ?? ((handle) => globalThis.clearTimeout(handle));
   /** @type {unknown} */
   let timer = null;
-  let dirtyState = false;
-  let dirtyPrefs = false;
+  let dirty = false;
 
   function write() {
     timer = null;
-    const state = store.getState();
-    if (dirtyPrefs) {
-      dirtyPrefs = false;
-      attempt(() => storage.setPrefs({ ...state.prefs, largeBoards: state.largeBoards }));
+    if (!dirty) {
+      return;
     }
-    if (dirtyState) {
-      dirtyState = false;
-      const full = serializeState(state);
-      // A full storage drops the optional parts first: the oldest sets of every board a few at a time, then the visible batch.
-      const lists = /** @type {Record<string, unknown[]>} */ (full.setsByBoard);
-      const longest = Math.max(0, ...Object.values(lists).map((list) => list.length));
-      const snapshots = [full];
-      for (let kept = Math.floor(longest / 2); kept > 0; kept = Math.floor(kept / 2)) {
-        snapshots.push({ ...full, setsByBoard: Object.fromEntries(Object.entries(lists).map(([key, list]) => [key, list.slice(0, kept)])) });
-      }
-      const reduced = { ...full, setsByBoard: {} };
-      snapshots.push(reduced, { ...reduced, batchPack: null });
-      for (const snapshot of snapshots) {
-        if (attempt(() => storage.setGeneratorState(snapshot))) {
-          return;
-        }
+    dirty = false;
+    const full = serializeState(store.getState());
+    // A full storage drops the optional parts first: the oldest sets of every board a few at a time, then the puzzles on show.
+    const lists = /** @type {Record<string, unknown[]>} */ (full.setsByBoard);
+    const longest = Math.max(0, ...Object.values(lists).map((list) => list.length));
+    const snapshots = [full];
+    for (let kept = Math.floor(longest / 2); kept > 0; kept = Math.floor(kept / 2)) {
+      snapshots.push({ ...full, setsByBoard: Object.fromEntries(Object.entries(lists).map(([key, list]) => [key, list.slice(0, kept)])) });
+    }
+    const reduced = { ...full, setsByBoard: {} };
+    snapshots.push(reduced, { ...reduced, puzzles: [], puzzleSeeds: {} });
+    for (const snapshot of snapshots) {
+      if (attempt(() => storage.setGeneratorState(snapshot))) {
+        return;
       }
     }
   }
@@ -1210,13 +1089,10 @@ export function createPersistence(store, storage, o = {}) {
   }
 
   const unsubscribe = store.subscribe((state, previous) => {
-    const changedState = PERSISTED_KEYS.some((key) => !Object.is(state[key], previous[key]));
-    const changedPrefs = PREF_STATE_KEYS.some((key) => !Object.is(state[key], previous[key]));
-    if (!changedState && !changedPrefs) {
+    if (!PERSISTED_KEYS.some((key) => !Object.is(state[key], previous[key]))) {
       return;
     }
-    dirtyState = dirtyState || changedState;
-    dirtyPrefs = dirtyPrefs || changedPrefs;
+    dirty = true;
     if (timer !== null) {
       clearTimer(timer);
     }
@@ -1231,12 +1107,12 @@ export function createPersistence(store, storage, o = {}) {
         write();
       }
     },
-    /** Writes the full current state now, pending change or not (before a same-tab hand-off). */
+    /** Writes the full current state now, pending change or not (before the player opens). */
     saveNow() {
       if (timer !== null) {
         clearTimer(timer);
       }
-      dirtyState = true;
+      dirty = true;
       write();
     },
     destroy() {
@@ -1249,28 +1125,16 @@ export function createPersistence(store, storage, o = {}) {
   };
 }
 
-// Jobs, results and imports (design §6.9, §9.4, §10.4–§10.6). Pure helpers: the controller applies them.
-
 export const MAX_PACK_PUZZLES = 100;
-export const MAX_QUANTITY = 10;
 export const MIN_GENERATION_PIECES = 3;
 export const MAX_PACK_BYTES = 512 * 1024;
 
 /**
- * @param {unknown} value
- * @returns {number} A whole quantity from 1 to 10; unreadable input gives the default.
- */
-export function clampQuantity(value) {
-  const n = Math.trunc(Number(value));
-  return Number.isFinite(n) ? Math.max(1, Math.min(MAX_QUANTITY, n)) : DEFAULT_QUANTITY;
-}
-
-/**
  * @param {GeneratorState} state
- * @returns {string} The level the set was calibrated for, else the selected level.
+ * @returns {string} The level the set was made for, else the selected level.
  */
 export function readyLevelId(state) {
-  return state.calibration !== null && state.calibrationFor !== null ? state.calibrationFor.levelId : state.levelId;
+  return state.calibrationFor?.levelId ?? state.levelId;
 }
 
 /**
@@ -1312,8 +1176,8 @@ function boardIssueText(issue, area, cap) {
 }
 
 /**
- * Why a set cannot start New Puzzles / Add more, or null. A set that is outside the generator's
- * operating limits stays viewable, exportable and playable.
+ * Why a set cannot start New Puzzle, or null. A set that is outside the generator's operating limits stays viewable
+ * and playable.
  * @param {GeneratorState} state
  * @param {{ phone: boolean }} hardware
  * @returns {string | null}
@@ -1330,7 +1194,7 @@ export function generationBlock(state, hardware) {
     return formatMessage('M-NOWITNESS');
   }
   const area = activeCount(set.board);
-  const cap = capFor(state, hardware);
+  const cap = capFor(hardware);
   const { errors } = validateForGeneration(set.board, cap);
   if (errors.length > 0) {
     return boardIssueText(errors[0], area, cap);
@@ -1384,7 +1248,7 @@ export function generationOf(state, puzzles, createdAt) {
   if (state.setSeed !== null) {
     generation.setSeed = state.setSeed;
   }
-  if (state.calibrationFor !== null && state.calibration !== null) {
+  if (state.calibrationFor !== null) {
     generation.setLevel = state.calibrationFor.levelId;
   }
   generation.carving = set.carving;
@@ -1403,7 +1267,6 @@ export function generationOf(state, puzzles, createdAt) {
 }
 
 /**
- * A pack of the current set with the given puzzles (default: the visible ones).
  * @param {GeneratorState} state
  * @param {readonly Puzzle[]} [puzzles]
  * @param {string} [createdAt]
@@ -1428,8 +1291,7 @@ export function buildPack(state, puzzles = state.puzzles, createdAt = new Date()
 let visibleCache = null;
 
 /**
- * The pack of everything visible. The same object is returned until its content changes, so
- * link encodings can be cached and compared by identity.
+ * The pack of everything visible. The same object is returned until its content changes.
  * @param {GeneratorState} state
  * @returns {Pack | null} null without a set or puzzles.
  */
@@ -1462,15 +1324,6 @@ export function packFits(state, puzzles) {
     }
     throw error;
   }
-}
-
-/**
- * @param {GeneratorState} state
- * @param {StatusNotice | null} notice
- * @returns {GeneratorState}
- */
-export function withNotice(state, notice) {
-  return { ...state, notice };
 }
 
 /**
@@ -1561,7 +1414,7 @@ export function removeAllPuzzles(state) {
   if (state.puzzles.length === 0 && state.parked.length === 0) {
     return state;
   }
-  return { ...state, puzzles: [], parked: [], checking: [], claimedIds: [], puzzleSeeds: {}, verification: {}, notice: null };
+  return { ...state, puzzles: [], parked: [], checking: [], puzzleSeeds: {}, notice: null };
 }
 
 /**
@@ -1783,90 +1636,4 @@ export function removeCurrentSet(state) {
     }, state.board, rotation);
   }
   return withoutSet(state, withSets(state.setsByBoard, ownKey, rest.filter((_, i) => !dropped.has(i))));
-}
-
-/**
- * @param {Pack} pack
- * @returns {{ layout: import('../core/engine/types.js').Pose[], source: 'witness' | 'puzzle' } | null}
- *   The validated arrangement an imported set can start from.
- */
-export function referenceOf(pack) {
-  if (Array.isArray(pack.witness)) {
-    return { layout: pack.witness, source: 'witness' };
-  }
-  for (const puzzle of pack.puzzles) {
-    if (Array.isArray(puzzle.solution)) {
-      return { layout: puzzle.solution, source: 'puzzle' };
-    }
-  }
-  return null;
-}
-
-/**
- * Reusable macro-region provenance of an imported pack: only this generator's own algorithm,
- * one integer group id per piece. Anything else is ignored and the set uses flat re-tiling.
- * @param {Pack} pack
- * @returns {{ carving: PieceSet['carving'], macroRegion: number[] | null }}
- */
-export function carvingHint(pack) {
-  const generation = /** @type {Record<string, unknown> | undefined} */ (pack.generation);
-  const k = pack.pieces.length;
-  if (typeof generation === 'object' && generation !== null && generation.algo === ALGO_ID) {
-    const region = generation.macroRegion;
-    if (generation.carving === 'macro' && Array.isArray(region) && region.length === k
-      && region.every((n) => Number.isSafeInteger(n) && n >= 0 && n < k)) {
-      return { carving: 'macro', macroRegion: /** @type {number[]} */ (region).slice() };
-    }
-    if (generation.carving === 'flat') {
-      return { carving: 'flat', macroRegion: null };
-    }
-  }
-  return { carving: 'imported', macroRegion: null };
-}
-
-/**
- * Makes an imported (already validated) pack the current set and visible batch. Ratings and
- * certificates stay claims, no calibration is kept, and the seen-history only contains the
- * puzzles that came with the file.
- * @param {GeneratorState} state
- * @param {Pack} pack
- * @param {import('../core/engine/types.js').Pose[] | null} reference Arrangement found for the set; null when none.
- * @param {() => string} [random]
- * @returns {{ state: GeneratorState, restoredSeed: boolean, restoredIndex: boolean, hint: PieceSet['carving'] }}
- */
-export function importPackState(state, pack, reference, random = randomSeedText) {
-  const board = packBoard(pack);
-  const rotation = pack.presentation?.rotation ?? 0;
-  const generation = /** @type {Record<string, unknown>} */ (typeof pack.generation === 'object' && pack.generation !== null ? pack.generation : {});
-  const foreignSeed = generation.seedScheme !== undefined && generation.seedScheme !== SEED_SCHEME;
-  const fileSeed = !foreignSeed && typeof generation.setSeed === 'string' ? validSeed(generation.setSeed) : null;
-  const setSeed = fileSeed ?? validSeed(random()) ?? randomSeedText();
-  const index = generation.batchIndex;
-  const restoredIndex = Number.isSafeInteger(index) && /** @type {number} */ (index) >= 0;
-  const hint = carvingHint(pack);
-  /** @type {PieceSet} */
-  const set = { board, pieces: pack.pieces, witness: reference, carving: hint.carving, macroRegion: hint.macroRegion };
-  const puzzles = puzzlesFromPack(pack);
-  const accepted = acceptSet(state, { set, calibration: null, setSeed });
-  /** @type {Record<string, string>} */
-  const verification = {};
-  const layouts = [];
-  const clues = [];
-  for (const puzzle of puzzles) {
-    verification[puzzle.id] = puzzle.solution === null ? 'checking' : 'solvable';
-    if (puzzle.solution !== null) {
-      layouts.push(layoutKey(board, pack.pieces, puzzle.solution));
-    }
-    clues.push(clueKey(board, pack.pieces, puzzle.clues));
-  }
-  const next = withBoard({
-    ...accepted,
-    batchIndex: restoredIndex ? /** @type {number} */ (index) : 0,
-    puzzles,
-    claimedIds: puzzles.map((p) => p.id),
-    verification,
-    seenLayouts: mergeKeys([], layouts),
-    seenClues: mergeKeys([], clues),
-  }, board, rotation);
-  return { state: next, restoredSeed: fileSeed !== null, restoredIndex, hint: hint.carving };
 }

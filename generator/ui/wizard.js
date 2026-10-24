@@ -1,8 +1,6 @@
 // @ts-check
-// Three-step wizard of the generator: 1 Create board, 2 Create piece set, 3 Create puzzles. The page holds one
-// section per step (`[data-step]`); only the current one is shown. A later step opens once the earlier work it
-// needs exists: step 2 needs a board that can get a piece set, step 3 needs a piece set. The steps only change
-// what is visible; they never touch the generation logic, the store or the panels.
+// Three-step wizard: shows one `[data-step]` section at a time and opens a later step once the work it needs
+// exists. It only changes what is visible, never the store or the panels.
 import { t } from '../i18n.js';
 import { describeBoard } from '../state.js';
 
@@ -12,7 +10,6 @@ import { describeBoard } from '../state.js';
 export const STEP_COUNT = 3;
 
 /**
- * The furthest step the user may open: a piece set opens step 3, a board that can get one opens step 2.
  * @param {GeneratorState} state
  * @param {{ phone: boolean }} hardware
  * @returns {1 | 2 | 3}
@@ -25,7 +22,6 @@ export function reachableStep(state, hardware) {
 }
 
 /**
- * Why a step cannot be opened yet.
  * @param {number} step
  * @param {ReturnType<typeof describeBoard>} description
  * @returns {string}
@@ -35,7 +31,6 @@ function lockReason(step, description) {
 }
 
 /**
- * Where a visit starts: back at the piece set or the puzzles when saved work exists.
  * @param {GeneratorState} state
  * @returns {1 | 2 | 3}
  */
@@ -46,12 +41,11 @@ export function startStep(state) {
   return state.puzzles.length > 0 ? 3 : 2;
 }
 
-/** Query parameter that keeps the current step in the address, so a reload or a shared link returns to it. */
 export const STEP_PARAM = 'step';
 
 /**
- * @param {string} search A location's query string.
- * @returns {number | null} The step named by the address, or null.
+ * @param {string} search
+ * @returns {number | null}
  */
 export function stepFromSearch(search) {
   const value = new URLSearchParams(search).get(STEP_PARAM);
@@ -60,9 +54,9 @@ export function stepFromSearch(search) {
 }
 
 /**
- * @param {string} href The current address.
+ * @param {string} href
  * @param {number} step
- * @returns {string} The same address with `step` set; other parameters and the hash stay.
+ * @returns {string}
  */
 export function withStep(href, step) {
   const url = new URL(href);
@@ -71,9 +65,8 @@ export function withStep(href, step) {
 }
 
 /**
- * Attaches the wizard to the page when the page has step buttons (`[data-wizard-step]`); a page without them
- * (a test fixture) keeps every panel visible and gets no wizard. The current step lives in the address
- * (`?step=2`): moving to a step adds a history entry, so Back and Forward walk through the steps.
+ * A page without step buttons (a test fixture) gets no wizard and keeps every panel visible. Moving to a step
+ * pushes `?step=n` to the history, so the browser's Back and Forward walk through the steps.
  * @param {Document} doc
  * @param {{ store: GeneratorStore, hardware: { phone: boolean }, initial?: number }} options
  * @returns {null | { readonly step: number, go: (step: number, o?: { focus?: boolean }) => boolean, next: () => boolean,

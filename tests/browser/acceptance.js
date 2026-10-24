@@ -238,7 +238,7 @@ async function runRecipe(recipe) {
   assert(Number.isFinite(scores[0]), `the card shows a score: ${scores}`);
   const cardLines = qa(d, '.puzzle-card .card-body > p').map((n) => n.textContent ?? '');
   assert(cardLines.length === 5 && cardLines[0] === 'Puzzle #1' && /^\w[\w ]*: score \d+\+?$/.test(cardLines[1]) && /^Seed: \d+$/.test(cardLines[2])
-    && /^\d+ pieces? to place$/.test(cardLines[3]) && /^(Unique solution ✓|Multiple solutions|Checking…|Uniqueness not (checked|proved)|No solution exists)$/.test(cardLines[4]),
+    && /^\d+ pieces? to place$/.test(cardLines[3]) && /^(Unique solution ✓|Multiple solutions|Checking…|Uniqueness not checked|At least 1 solution|No solution exists)$/.test(cardLines[4]),
   `the card shows number, level and score, a numeric seed, pieces to place and solutions: ${cardLines}`);
   assert(qa(d, '.puzzle-card a').length === 0 && qa(d, '.puzzle-card button').every((b) => b.dataset.action === 'remove' || b.dataset.action === 'select'), 'the card only has its select and remove buttons');
   assert(!(/** @type {HTMLButtonElement} */ (q(d, '[data-action="remove-all-puzzles"]'))).disabled && q(d, '[data-action="remove-all-puzzles"]').closest('.app-history') !== null,
@@ -252,9 +252,9 @@ async function runRecipe(recipe) {
   let savedState = null;
   await waitFor(() => {
     savedState = browserStorage().getGeneratorState();
-    return savedState?.batchPack != null;
+    return Array.isArray(savedState?.puzzles) && savedState.puzzles.length > 0;
   }, 'the generator to save the puzzle', 10000);
-  const validated = validatePack(savedState.batchPack);
+  const validated = validatePack({ ...savedState.setPack, kind: 'puzzle-pack', puzzles: savedState.puzzles });
   assert(validated.ok, 'the saved puzzle pack is valid');
   const link = await preparePlayerLink(/** @type {any} */ (validated).value, 0, { base: new URL('../../generator/', location.href).href });
   assert(link.href !== null, 'a player link can be made');

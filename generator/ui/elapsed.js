@@ -22,7 +22,7 @@ export function formatElapsed(ms) {
 
 /**
  * @param {GeneratorStore} store
- * @param {readonly string[]} kinds Kinds of job the clock runs for; it is hidden for any other job.
+ * @param {readonly string[]} kinds Job kinds the clock shows for.
  * @param {{ now?: () => number, setInterval?: (fn: () => void, ms: number) => unknown, clearInterval?: (handle: any) => void,
  *   onOverLimit?: () => void }} [options] `onOverLimit` is called once the job has run CANCEL_AFTER_MS.
  * @returns {{ element: HTMLElement, isOver: () => boolean, refresh: () => void, destroy: () => void }}
@@ -38,7 +38,7 @@ export function mountElapsed(store, kinds, options = {}) {
   let shown = null;
   let over = false;
 
-  /** @returns {boolean} Whether the job on show has run long enough to be cancelled from its button. */
+  /** @returns {boolean} */
   const isOver = () => shown !== null && now() - shown.startedAt >= CANCEL_AFTER_MS;
 
   function tick() {

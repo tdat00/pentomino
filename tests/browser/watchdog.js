@@ -122,8 +122,6 @@ const storage = {
   },
   getPrefs: () => ({}),
   setPrefs: () => ({ ok: true }),
-  saveLibraryPack: () => ({ ok: true, packId: '0123456789abcdef' }),
-  loadLibraryPack: () => ({ ok: false, issues: [] }),
 };
 
 const root = h('div', { class: 'harness-app' },

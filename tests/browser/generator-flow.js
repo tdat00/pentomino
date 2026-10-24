@@ -1,12 +1,11 @@
 // @ts-check
-// Browser regression harness for T18 (generator jobs, puzzle cards, imports and exports). It drives the
+// Browser regression harness for T18 (generator jobs, puzzle cards and Play). It drives the
 // real generator panels with DOM events: three real-engine flows in module workers, then scripted
-// clients for streaming, partial results, stale replies, imports and the Play fallbacks. It writes a
+// clients for streaming, partial results, stale replies and Play. It writes a
 // pass/fail list into the page and sets data-result on <html>. It is a developer fixture, not deployed.
 
 import { boardToRows } from '../../core/engine/board.js';
-import { decodeShareCode } from '../../core/engine/sharecode.js';
-import { parsePack, serializePack, validatePack } from '../../core/engine/pack.js';
+import { parsePack, validatePack } from '../../core/engine/pack.js';
 import { createGeneratorApp } from '../../generator/app.js';
 import { balancedRows } from '../../generator/ui/set-panel.js';
 import { formatMessage, formatNotice } from '../../generator/strings.js';
@@ -92,12 +91,12 @@ function h(tag, attrs = {}, ...children) {
 }
 
 /**
- * @param {{ denySave?: boolean, denyLibrary?: boolean }} [o]
+ * @param {{ denySave?: boolean }} [o]
  */
 function memoryStorage(o = {}) {
   /** @type {unknown} */
   let saved = null;
-  const calls = { generatorSaves: 0, libraryPacks: /** @type {any[]} */ ([]) };
+  const calls = { generatorSaves: 0 };
   return {
     calls,
     getGeneratorState: () => saved,
@@ -111,14 +110,6 @@ function memoryStorage(o = {}) {
     },
     getPrefs: () => ({}),
     setPrefs: () => ({ ok: true }),
-    saveLibraryPack: (/** @type {any} */ pack) => {
-      if (o.denyLibrary) {
-        return { ok: false, issues: [] };
-      }
-      calls.libraryPacks.push(pack);
-      return { ok: true, packId: `0123456789abcdef` };
-    },
-    loadLibraryPack: () => (o.denyLibrary ? { ok: false, issues: [] } : { ok: true, value: calls.libraryPacks.at(-1), warnings: [] }),
   };
 }
 
@@ -231,7 +222,7 @@ function setUpBoard(ctx, recipe) {
 }
 
 /**
- * Runs Generate Piece Set then New Puzzles through the real controls.
+ * Runs Generate Piece Set then New Puzzle through the real controls.
  * @param {ReturnType<typeof mountApp>} ctx
  * @param {(typeof recipes)[number]} recipe
  */
@@ -266,23 +257,23 @@ async function runFlow(ctx, recipe) {
 }
 
 for (const recipe of recipes) {
-  await check(`real engine: ${recipe.name} → set → ${recipe.quantity} puzzles → player links`, async () => {
-    const ctx = mountApp();
+  await check(`real engine: ${recipe.name} → set → ${recipe.quantity} puzzles → Play`, async () => {
+    /** @type {Array<{ pack: any, index: number }>} */
+    const opened = [];
+    const ctx = mountApp({ app: { controller: { openPlayer: async (/** @type {any} */ pack, /** @type {number} */ index) => void opened.push({ pack, index }) } } });
     try {
       await runFlow(ctx, recipe);
       const puzzles = state(ctx).puzzles;
       assert(qa(ctx, '.puzzle-card a').length === 0 && qa(ctx, '.puzzle-card button').length === 2 * puzzles.length
         && qa(ctx, '.puzzle-card button').every((b) => b.dataset.action === 'remove' || b.dataset.action === 'select'), 'a card only has its select and remove buttons');
-      await waitFor(() => state(ctx).links.pack !== null && state(ctx).links.items.every((item) => item.href !== null), 'prepared player links', 30000);
-      const href = state(ctx).links.items[puzzles.length - 1].href ?? '';
-      assert(/\/player\/#pack=/.test(href) && href.endsWith(`&i=${puzzles.length - 1}`), `player link: ${href.slice(0, 80)}`);
-      const decoded = await decodeShareCode(/#pack=([^&]+)/.exec(href)?.[1] ?? '');
-      assert(decoded.ok, 'the link decodes');
-      if (decoded.ok) {
-        equal(decoded.value.puzzles.length, puzzles.length, 'link carries every puzzle');
-        equal(decoded.value.pieces.map((p) => p.id), state(ctx).set?.pieces.map((p) => p.id), 'link carries every piece');
-        equal(decoded.value.puzzles.map((p) => p.clues), puzzles.map((p) => p.clues), 'link carries every clue');
-      }
+      q(ctx, '[data-action="play-puzzle"]').click();
+      await waitFor(() => opened.length === 1, 'the player to open');
+      const { pack, index } = opened[0];
+      equal(index, puzzles.length - 1, 'Play opens the puzzle on show');
+      assert(validatePack(pack).ok, 'the pack validates');
+      equal(pack.puzzles.length, puzzles.length, 'the pack carries every puzzle');
+      equal(pack.pieces.map((/** @type {any} */ p) => p.id), state(ctx).set?.pieces.map((p) => p.id), 'the pack carries every piece');
+      equal(pack.puzzles.map((/** @type {any} */ p) => p.clues), puzzles.map((p) => p.clues), 'the pack carries every clue');
     } finally {
       ctx.destroy();
     }
@@ -291,19 +282,19 @@ for (const recipe of recipes) {
 
 await check('real engine: certificates arrive lazily on the default flow and the pack carries them', async () => {
   /** @type {any[]} */
-  const exportedPacks = [];
-  const ctx = mountApp({ app: { controller: { download: (/** @type {any} */ pack) => exportedPacks.push(pack) } } });
+  const openedPacks = [];
+  const ctx = mountApp({ app: { controller: { openPlayer: async (/** @type {any} */ pack) => void openedPacks.push(pack) } } });
   try {
     await runFlow(ctx, recipes[0]);
     assert(state(ctx).checking.length > 0 || state(ctx).puzzles.every((p) => p.certificate !== null), 'certificates start pending');
     await waitFor(() => state(ctx).checking.length === 0, 'certificates', 90000);
     const texts = qa(ctx, '.card-cert').map((n) => n.textContent);
     assert(texts.every((t) => ['Unique solution ✓', 'Multiple solutions', 'At least 1 solution'].includes(t ?? '')), `certificate texts: ${texts.join(' | ')}`);
-    ctx.app.controller.exportPack();
-    const pack = exportedPacks.at(-1);
-    assert(pack !== undefined, 'the pack was exported');
-    equal(pack.puzzles.map((/** @type {any} */ p) => p.certificate?.status ?? null), state(ctx).puzzles.map((p) => p.certificate?.status ?? null), 'the file carries the certificates that are known');
-    assert(pack.puzzles.every((/** @type {any} */ p) => p.certificate !== null && p.certificate !== undefined), 'every certificate settled before export');
+    q(ctx, '[data-action="play-puzzle"]').click();
+    await waitFor(() => openedPacks.length === 1, 'the player to open');
+    const pack = openedPacks[0];
+    equal(pack.puzzles.map((/** @type {any} */ p) => p.certificate?.status ?? null), state(ctx).puzzles.map((p) => p.certificate?.status ?? null), 'the pack carries the certificates that are known');
+    assert(pack.puzzles.every((/** @type {any} */ p) => p.certificate !== null && p.certificate !== undefined), 'every certificate settled before Play');
   } finally {
     ctx.destroy();
   }
@@ -562,7 +553,7 @@ await check('scripted: after 30 s the New Piece Set and New Puzzle buttons turn 
   }
 });
 
-await check('scripted: cards stream in one by one, with Checking first, and progress shows count and Cancel', async () => {
+await check('scripted: cards stream in one by one, with Checking first', async () => {
   const release = { resolve: () => {} };
   const hold = new Promise((resolve) => {
     release.resolve = () => resolve(undefined);
@@ -571,7 +562,6 @@ await check('scripted: cards stream in one by one, with Checking first, and prog
     batch: async (input, hooks) => {
       const accepted = [makePuzzle(1, 0), makePuzzle(2, 1)];
       for (const [index, puzzle] of accepted.entries()) {
-        hooks.onProgress({ stage: 'candidate', slot: index + 1, accepted: index, quantity: input.quantity });
         hooks.onAccepted({ revision: input.revision, index, puzzle, accepted: index + 1, quantity: input.quantity });
         await sleep(30);
       }
@@ -659,50 +649,6 @@ await check('scripted: a stale certificate for an older request never touches th
     equal(q(ctx, '.card-cert').textContent, 'Checking…', 'foreign revision ignored');
     hooks.h.onCertificate({ revision: hooks.input.revision, puzzleId: 'h4', certificate: { status: 'multiple', model: 'dlx-v1', rowLimit: 1, verified: true } });
     await waitFor(() => q(ctx, '.card-cert').textContent === 'Multiple solutions', 'the current certificate');
-    ctx.app.controller.prepareNavigation();
-    equal(state(ctx).checking, [], 'a user action stops pending checks');
-  } finally {
-    ctx.destroy();
-  }
-});
-
-await check('scripted: imports keep current work on failure and restore seed, index, answers and claims on success', async () => {
-  const client = scriptedClient({
-    batch: (input, hooks) => {
-      const accepted = [makePuzzle(6, 0), makePuzzle(7, 1)];
-      accepted.forEach((puzzle, index) => hooks.onAccepted({ revision: input.revision, index, puzzle, accepted: index + 1, quantity: input.quantity }));
-      return { status: 'complete', accepted, seenLayouts: [], seenClues: [] };
-    },
-  });
-  const ctx = mountApp({ app: { client: /** @type {any} */ (client) } });
-  try {
-    await withSet(ctx);
-    q(ctx, '[data-action="new-puzzles"]').click();
-    await waitFor(() => state(ctx).puzzles.length === 2 && state(ctx).job === null, 'the batch');
-    const before = state(ctx);
-    void ctx.app.controller.importText('{"format":"pentomino-pack","version":1');
-    await waitFor(() => state(ctx).notice?.code === 'M-IMPORT-FAILED', 'the import failure');
-    equal(state(ctx).set, before.set, 'set untouched');
-    equal(state(ctx).puzzles, before.puzzles, 'cards untouched');
-    assert(q(ctx, '[data-role="notice"] .notice').textContent?.endsWith('Your current work was not changed.') === true, 'failure text');
-
-    const source = { ...samplePack, generation: { ...samplePack.generation, setSeed: 'import-seed', batchIndex: 4 } };
-    const withAnswers = serializePack(source);
-    const file = new File([withAnswers], 'pack.pentomino.json', { type: 'application/json' });
-    void ctx.app.controller.importFile(file);
-    await waitFor(() => state(ctx).setSeed === 'import-seed', 'the imported set');
-    equal(state(ctx).batchIndex, 4, 'batch index restored');
-    equal(state(ctx).calibration, null, 'no calibration is kept');
-    equal(qa(ctx, '.puzzle-card').length, samplePack.puzzles.length, 'imported puzzles are shown');
-    assert(qa(ctx, '.card-rating').every((n) => !/claimed/.test(n.textContent ?? '')), 'no "(claimed)" text on the cards');
-    assert(qa(ctx, '.card-seed').every((n) => n.hidden), 'imported puzzles have no seed line');
-    assert(Object.values(state(ctx).verification).every((v) => v === 'solvable'), 'stored answers verify without a search');
-    assert(/Imported/.test(q(ctx, '[data-role="summary"]').textContent ?? ''), 'summary says imported');
-    q(ctx, '[data-action="new-puzzles"]').click();
-    await waitFor(() => client.batches.length === 2, 'the next request');
-    equal(client.batches[1].batchIndex, 5, 'the next request continues after the file');
-    await waitFor(() => state(ctx).job === null, 'the request to end');
-    equal(savedCount(ctx.app.store.getState()) >= 1, true, 'the previous set moved into the history');
   } finally {
     ctx.destroy();
   }
@@ -1007,7 +953,7 @@ await check('no CSP violations were reported and the real pages parse', async ()
   equal(violations, [], 'CSP violations');
   const parsed = validatePack(samplePack);
   assert(parsed.ok, 'sample pack still validates');
-  assert(formatMessage('M-LINK-COPIED') === 'Link copied.', 'strings load');
+  assert(formatMessage('M-NEEDS-SET') === 'Generate a piece set first.', 'strings load');
 });
 
 const failed = results.filter((r) => !r.ok);

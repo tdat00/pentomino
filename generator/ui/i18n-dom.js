@@ -5,7 +5,6 @@ import { el } from '../../core/browser/dom.js';
 import { t } from '../i18n.js';
 
 /**
- * A `<span>` whose text is the translation of `key`.
  * @param {string} key
  * @param {import('../../core/browser/dom.js').ElementProps} [props]
  * @param {string} [tag]
@@ -18,7 +17,7 @@ export function loc(key, props = {}, tag = 'span') {
 /**
  * Attributes whose values are translations: `{ 'aria-label': 'board.rotateLeft' }`.
  * @param {Record<string, string>} spec Attribute name -> key.
- * @returns {Record<string, string>} Attributes to merge into `attrs`.
+ * @returns {Record<string, string>}
  */
 export function locAttrs(spec) {
   /** @type {Record<string, string>} */

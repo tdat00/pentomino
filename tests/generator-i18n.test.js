@@ -6,7 +6,7 @@ import { chooseLanguage } from '../generator/app.js';
 import { AVAILABLE, detect, getLocale, has, keys, normalize, packOf, raw, setLocale, t } from '../generator/i18n.js';
 import { batchShortfall } from '../generator/jobs.js';
 import { defaultGeneratorState, describeBoard, describeLevels } from '../generator/state.js';
-import { formatMessage, formatNotice, levelLabel, linkWarning, puzzleTitle } from '../generator/strings.js';
+import { formatMessage, formatNotice, levelLabel } from '../generator/strings.js';
 import { reachableStep, startStep, stepFromSearch, withStep } from '../generator/ui/wizard.js';
 
 const DESKTOP = { phone: false };
@@ -87,7 +87,7 @@ test('text lookup: placeholders, plural forms, fallback to English and to the ke
   assert.equal(t('set.summary.pieces', { count: 1 }), '1 mảnh');
   assert.equal(t('wizard.step3.title'), 'Tạo đề');
   assert.equal(setLocale('fr', null), 'vi', 'an unsupported code is ignored');
-  assert.equal(raw('wizard.locked.set'), 'Hãy tạo hoặc nhập một bộ mảnh trước.');
+  assert.equal(raw('wizard.locked.set'), 'Hãy tạo một bộ mảnh trước.');
   assert.ok(keys('vi').length > 100);
 });
 
@@ -95,22 +95,17 @@ test('notices and messages follow the language and stay strict', () => {
   assert.equal(formatNotice('N-SMALL'), 'A board needs at least 30 playable squares to generate puzzles.');
   setLocale('vi', null);
   assert.equal(formatNotice('N-SMALL'), 'Bàn cần ít nhất 30 ô chơi được để tạo đề.');
-  assert.equal(formatMessage('M-LINK-COPIED'), 'Đã sao chép liên kết.');
+  assert.equal(formatMessage('M-NEEDS-SET'), 'Hãy tạo một bộ mảnh trước.');
   assert.throws(() => formatNotice('N-CAP', { area: 500 }), /missing \{max\}/);
   assert.throws(() => formatNotice('N-LEVELS', { highest: 'Master' }), /needs a variant/);
   assert.match(formatNotice('N-LEVELS', { highest: 'Master' }, 'above'), /Master/);
 });
 
-test('level names, puzzle titles and board descriptions are translated', () => {
+test('level names and board descriptions are translated', () => {
   assert.equal(levelLabel('hard'), 'Hard');
-  assert.equal(puzzleTitle('Hard #3', 2), 'Hard #3');
-  assert.equal(puzzleTitle(undefined, 1), 'Puzzle 2');
   setLocale('vi', null);
   assert.equal(levelLabel('hell-2'), 'Địa ngục 2');
   assert.equal(levelLabel('unknown-level'), 'unknown-level');
-  assert.equal(puzzleTitle('Hard #3', 2), 'Khó #3');
-  assert.equal(puzzleTitle('My own title', 0), 'My own title');
-  assert.equal(puzzleTitle(undefined, 1), 'Đề 2');
   assert.equal(describeLevels(60)[0].label, 'Rất dễ');
   assert.equal(describeBoard(defaultGeneratorState(), DESKTOP).statusText, '60 / 60 ô chơi được · liền một khối');
 });
@@ -121,16 +116,6 @@ test('a stored notice can be written again in the new language', () => {
   assert.match(shown.text, /^Found 2 of 5 different Normal puzzles/);
   setLocale('vi', null);
   assert.match(shown.retext(), /^Chỉ tìm được 2 \/ 5 đề Trung bình khác nhau/);
-});
-
-test('link warnings keep the shared wording in English and are described in other languages', () => {
-  const local = { href: '#x', portable: false, warning: 'core wording' };
-  assert.equal(linkWarning(local), 'core wording');
-  assert.equal(linkWarning({ href: '#x', portable: true, warning: 'long' }), formatNotice('N-LONGLINK'));
-  assert.equal(linkWarning({ href: '#x', portable: false }), undefined);
-  setLocale('vi', null);
-  assert.match(/** @type {string} */ (linkWarning(local)), /chỉ dùng được trong trình duyệt này/);
-  assert.match(/** @type {string} */ (linkWarning({ href: null, portable: false, warning: 'core wording' })), /quá lớn/);
 });
 
 test('the wizard opens step 2 only for a board that can get a piece set, and step 3 only with a piece set', () => {

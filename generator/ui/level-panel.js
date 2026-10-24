@@ -1,11 +1,7 @@
 // @ts-check
-// Generator level panel (design §10.3): a table of every level that compares, for the current board, the
-// piece count, piece sizes and pre-placed pieces, each with a help icon whose tooltip shows the worked calculation.
-// Levels the board cannot use stay listed, disabled, with the reason. The set seed, Require unique solution and
-// Generate Piece Set go to `controlsHost` (step 2 of the side panel) when there is one; the main
-// action at the top right also calls `generate()`.
-// Ranges, sizes and shares come from the policy APIs through `describeBoard`; no generation rule is restated here.
-// There is no Keep seed switch: a seed the user types or rolls is reused; otherwise every Generate draws a fresh one.
+// Step 2 level table plus the set seed and Generate button (in `controlsHost` when given).
+// Ranges come from the policy APIs through `describeBoard`; no generation rule is restated here.
+// A seed the user types or rolls is reused; otherwise every Generate draws a fresh one.
 import { el } from '../../core/browser/dom.js';
 import { randomSeedText } from '../../core/engine/rng.js';
 import { getLocale, t } from '../i18n.js';
@@ -19,8 +15,8 @@ import { mountElapsed } from './elapsed.js';
 
 /**
  * @typedef {object} GenerateSetRequest
- * @property {string} seed Set seed to use (already normalized).
- * @property {GeneratorState} state State with the seed field already updated.
+ * @property {string} seed Already normalized.
+ * @property {GeneratorState} state With the seed field already updated.
  */
 
 /**
@@ -28,10 +24,9 @@ import { mountElapsed } from './elapsed.js';
  * @property {GeneratorStore} store
  * @property {{ phone: boolean }} hardware
  * @property {() => { onGenerateSet?: (request: GenerateSetRequest) => void, onCancel?: () => void }} [getHandlers]
- * @property {() => string} [random] Source of fresh seeds.
- * @property {() => number} [now] Clock of the elapsed time (tests).
- * @property {HTMLElement | null} [controlsHost] Where the set seed and Generate Piece Set go
- *   (the step 2 side panel); defaults to the panel itself.
+ * @property {() => string} [random]
+ * @property {() => number} [now]
+ * @property {HTMLElement | null} [controlsHost] Defaults to the panel itself.
  */
 
 let panelCounter = 0;
@@ -78,7 +73,6 @@ export function mountLevelPanel(host, options) {
   const generateButton = /** @type {HTMLButtonElement} */ (el('button', {
     className: 'primary', attrs: { type: 'button', 'data-action': 'generate-set' },
   }, buttonSpinner, generateLabel, cancelLabel));
-  // True once the job has run long enough (30 s) for the button to cancel it.
   let cancelMode = false;
 
   const seedField = el('div', { className: 'seed-field', dataset: { role: 'seed' } },
@@ -88,14 +82,14 @@ export function mountLevelPanel(host, options) {
       diceButton),
     seedError);
 
-  // One tooltip for every help icon of the table; it lives outside the scrolling table so it is never clipped.
+  // One shared tooltip, outside the scrolling table so it is never clipped.
   const tip = el('div', { className: 'help-tip', attrs: { role: 'tooltip', id: `${uid}-tip`, hidden: '' }, dataset: { role: 'level-help' } });
   /** @type {HTMLElement | null} */
   let tipFor = null;
 
   const controlsHost = options.controlsHost ?? null;
   const fullNote = el('p', { className: 'notice notice-warning', attrs: { role: 'status', hidden: '' }, dataset: { role: 'sets-full' } });
-  const elapsed = mountElapsed(store, ['set', 'import'], { now: options.now, onOverLimit: () => render(store.getState()) });
+  const elapsed = mountElapsed(store, ['set'], { now: options.now, onOverLimit: () => render(store.getState()) });
   const sideControls = el('div', { className: 'set-controls' }, seedField, fullNote, generateButton, elapsed.element);
   const panel = el('div', { className: 'level-panel' }, levelField, levelNotes, cannotBox,
     ...(controlsHost === null ? [sideControls] : []), tip);
@@ -106,7 +100,7 @@ export function mountLevelPanel(host, options) {
 
   /**
    * @param {GeneratorState} state
-   * @returns {boolean} Whether Generate Piece Set can run now (a full set list needs a set removed first).
+   * @returns {boolean}
    */
   function canGenerate(state) {
     const description = describeBoard(state, hardware);
@@ -132,7 +126,6 @@ export function mountLevelPanel(host, options) {
   }
 
   /**
-   * One table row: the level's radio and name, then what it means on this board.
    * @param {import('../state.js').LevelEntry} entry
    * @param {number} area
    * @param {string} selectedId
@@ -278,7 +271,7 @@ export function mountLevelPanel(host, options) {
       store.update({ levelId: target.value });
     }
   });
-  // A click anywhere on an available row chooses its level, not only on the radio and name; help icons only explain.
+  // A click anywhere on an available row chooses its level; help icons only explain.
   listen(levelBody, 'click', (event) => {
     const target = /** @type {HTMLElement} */ (event.target);
     const help = /** @type {HTMLElement | null} */ (target.closest('.help-icon'));

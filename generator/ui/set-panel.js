@@ -1,7 +1,5 @@
 // @ts-check
-// Piece-set panel (design §10.4): on top, the navigator through the kept sets (up to 50) centered in the panel, with
-// Remove and Remove all right-aligned (small, borderless), and the centered summary line under it; then piece
-// thumbnails in the display rotation, in balanced rows.
+// Step 2 piece-set panel: navigator through the kept sets, summary line and piece thumbnails in balanced rows.
 import { el } from '../../core/browser/dom.js';
 import { mountPiecePreview } from '../../core/browser/svg-board.js';
 import { t, getLocale } from '../i18n.js';
@@ -16,8 +14,6 @@ import { loc, locAttrs } from './i18n-dom.js';
 const THUMB_CELL_PX = 12;
 
 /**
- * The parts of the set summary: level (an imported set has none and says Imported), piece count, piece sizes and the
- * set seed (left out when the set has none). `level` and `seed` can be turned off.
  * @param {GeneratorState} state
  * @param {{ level?: boolean, seed?: boolean }} [include]
  * @returns {string[]}
@@ -29,8 +25,7 @@ export function summaryParts(state, include = {}) {
   }
   const { pieces, sizeMin, sizeMax } = describeSet(set);
   const sizes = sizeMin === sizeMax ? t('set.summary.size', { size: sizeMin }) : t('set.summary.sizes', { min: sizeMin, max: sizeMax });
-  const calibrated = state.calibration !== null && state.calibrationFor !== null;
-  const level = !calibrated && set.carving === 'imported' ? t('set.summary.imported') : levelLabel(readyLevelId(state));
+  const level = state.calibrationFor === null && set.carving === 'imported' ? t('set.summary.imported') : levelLabel(readyLevelId(state));
   const parts = [t('set.summary.pieces', { count: pieces }), sizes];
   if (include.level !== false) {
     parts.unshift(level);
@@ -169,8 +164,8 @@ export function mountSetPanel(host, options) {
       preview.render({ t: 0, rotation: state.rotation, showLabels: state.prefs.labels, showPatterns: state.prefs.patterns });
     }
     const { index, total: length } = setViewPosition(state);
-    // The list holds the sets of the board made in step 1. The row shows with any set: Remove set always, the
-    // navigator and Remove all sets once there is somewhere to go.
+    // Only the sets of the current board are listed. Remove shows with any set; the navigator and Remove all only
+    // once there is somewhere to go.
     history.hidden = state.set === null;
     navigator.hidden = length === 0 || (length === 1 && index === 0);
     removeAllButton.hidden = length <= 1;
@@ -207,8 +202,7 @@ export function mountSetPanel(host, options) {
   const unsubscribe = store.subscribe((state, previous) => {
     if (state.set !== previous.set || state.rotation !== previous.rotation || state.job !== previous.job
       || state.setPosition !== previous.setPosition || state.setsByBoard !== previous.setsByBoard || state.board !== previous.board
-      || state.prefs !== previous.prefs
-      || state.calibration !== previous.calibration) {
+      || state.prefs !== previous.prefs || state.calibrationFor !== previous.calibrationFor) {
       render(state);
     }
   });

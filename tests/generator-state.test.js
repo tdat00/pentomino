@@ -5,15 +5,13 @@ import { test } from 'node:test';
 import { activeCount, boardFromRows, boardKey, boardToRows, preset, rectangle } from '../core/engine/board.js';
 import { packBoard, parsePack } from '../core/engine/pack.js';
 import { LIMITS } from '../core/engine/policy.js';
-import { batchSeedFor } from '../core/engine/rng.js';
 import { formatNotice } from '../generator/strings.js';
 import {
-  HISTORY_LIMIT, LISTED_LEVEL_IDS, MAX_SAVED_SETS, MAX_SETS, acceptSet, beginSetRequest, boardsEqual, calibrationCurrent, capFor,
-  createEditHistory, createGeneratorStore, createPersistence, defaultGeneratorState, describeBoard, describeCount,
-  describeLevels, detectHardware, isPhone, loadGeneratorState, nextBatch, nearestOfferedLevel,
-  recordBatch, removeAllSets, resizeBoard, restoreState, rollSeed, savedSetOf, serializeState, setCell, setNumber, setTimelineLength, setViewPosition,
-  setsFull, trimBoard,
-  typeSeed, useSavedSet, validSeed, withBoard,
+  HISTORY_LIMIT, LISTED_LEVEL_IDS, MAX_SAVED_BOARDS, MAX_SAVED_SETS, MAX_SETS, acceptSet, beginSetRequest,
+  boardsEqual, capFor, createEditHistory, createGeneratorStore, createPersistence, defaultGeneratorState, describeBoard,
+  describeCount, describeLevels, detectHardware, gotoSet, isPhone, loadGeneratorState, mergeSeenKeys, nextBatch, nearestOfferedLevel,
+  readSavedSet, readyLevelId, removeAllSets, resizeBoard, restoreState, rollSeed, savedSetOf, serializeState, setCell, setNumber,
+  setTimelineLength, setViewPosition, setsFull, typeSeed, validSeed, withBoard,
 } from '../generator/state.js';
 
 const parsed = parsePack(readFileSync(new URL('./fixtures/generated-sample-pack.json', import.meta.url), 'utf8'));
@@ -36,8 +34,8 @@ const sequence = (values) => {
  * @param {Record<string, boolean>} [prefs]
  */
 function fakeStorage(stored = {}, prefs = {}) {
-  /** @type {{ state: unknown[], prefs: unknown[] }} */
-  const writes = { state: [], prefs: [] };
+  /** @type {{ state: unknown[] }} */
+  const writes = { state: [] };
   return {
     writes,
     failState: /** @type {(snapshot: any) => boolean} */ (() => false),
@@ -51,11 +49,6 @@ function fakeStorage(stored = {}, prefs = {}) {
       return { ok: true };
     },
     getPrefs: () => prefs,
-    /** @param {Record<string, boolean>} partial */
-    setPrefs(partial) {
-      writes.prefs.push(partial);
-      return { ok: true };
-    },
   };
 }
 
@@ -115,12 +108,8 @@ test('the piece-count line comes from the policy: 360 squares at Hard', () => {
   assert.equal(describeCount('hard', 0), null);
 });
 
-test('notices carry the exact wording and reject missing parameters', () => {
-  assert.equal(formatNotice('N-SMALL'), 'A board needs at least 30 playable squares to generate puzzles.');
-  assert.equal(formatNotice('N-COUNT', { kmin: 16, kmax: 18, level: 'Hard', share: 38 }), 'This board uses 16–18 pieces at Hard, about 38 % pre-placed.');
-  assert.equal(formatNotice('N-LEVELS', { highest: 'Master' }, 'above'), 'Levels above Master need a larger board.');
-  assert.throws(() => formatNotice('N-CAP', { area: 500 }), RangeError);
-  assert.throws(() => formatNotice('N-NOPE'), RangeError);
+test('the default board notes its piece count and that higher levels need a larger board', () => {
+  assert.equal(formatNotice('N-COUNT', { kmin: 16, kmax: 18, level: 'Hard', share: 38 }), 'This board uses 16–18 pieces at Hard, about 38% pre-placed.');
   const board = describeBoard(defaultGeneratorState(), DESKTOP);
   assert.deepEqual(board.notices.map((n) => n.code), ['N-COUNT', 'N-LEVELS']);
   assert.equal(board.notices[1].text, 'Levels above Master need a larger board.');
@@ -168,27 +157,22 @@ test('device classification: phone needs a coarse pointer and low or unknown mem
   assert.equal(detectHardware({ matchMedia: () => { throw new Error('no'); } }).phone, false);
 });
 
-test('device caps: 484 desktop, 360 phone, 676 only for desktop Large boards', () => {
+test('device caps: 484 squares on desktop, 360 on phones; above 360 a desktop board is marked large', () => {
   const base = defaultGeneratorState();
-  assert.equal(capFor(base, DESKTOP), LIMITS.releaseMaxActive);
-  assert.equal(capFor(base, PHONE), LIMITS.phoneMaxActive);
-  assert.equal(capFor({ ...base, largeBoards: true }, DESKTOP), 676);
-  assert.equal(capFor({ ...base, largeBoards: true }, PHONE), LIMITS.phoneMaxActive, 'a persisted desktop opt-in is ignored on phones');
+  assert.equal(capFor(DESKTOP), LIMITS.releaseMaxActive);
+  assert.equal(capFor(PHONE), LIMITS.phoneMaxActive);
 
   const big = withBoard(base, rectangle(23, 22));
   assert.equal(activeCount(big.board), 506);
-  let description = describeBoard(big, DESKTOP);
+  const description = describeBoard(big, DESKTOP);
   assert.equal(description.valid, false);
   assert.equal(description.statusText, 'This board has 506 playable squares; the limit on this device is 484.');
-  description = describeBoard({ ...big, largeBoards: true }, DESKTOP);
-  assert.equal(description.valid, true);
-  const codes = description.notices.map((n) => n.code);
-  assert.ok(codes.includes('N-LARGE') && codes.includes('N-EXPERIMENTAL'));
-  assert.equal(description.notices.find((n) => n.code === 'N-EXPERIMENTAL')?.text, 'Experimental: boards above 484 squares may not finish all 5 puzzles within 2 minutes.');
 
   const phoneBoard = withBoard(base, rectangle(19, 19));
   assert.equal(describeBoard(phoneBoard, PHONE).statusText, 'This board has 361 playable squares; the limit on this device is 360.');
-  assert.equal(describeBoard(phoneBoard, DESKTOP).valid, true);
+  const onDesktop = describeBoard(phoneBoard, DESKTOP);
+  assert.equal(onDesktop.valid, true);
+  assert.equal(onDesktop.notices[0].text, 'Large board: generation can take up to 2 minutes.');
 });
 
 test('Require one solution warns only on large Hell boards', () => {
@@ -257,15 +241,7 @@ test('undo history keeps the last 50 steps', () => {
   assert.equal(history.canUndo(), false);
 });
 
-test('trim removes blocked margins as an explicit edit and a level follows the area', () => {
-  let board = rectangle(12, 8);
-  for (let x = 0; x < 12; x += 1) {
-    board = setCell(setCell(board, x, 0, 0), x, 7, 0);
-  }
-  const state = withBoard(defaultGeneratorState(), board);
-  const trimmed = trimBoard(state);
-  assert.equal(trimmed.board.height, 6);
-  assert.equal(activeCount(trimmed.board), 72);
+test('a level the new area does not offer moves to the nearest offered one', () => {
   assert.equal(nearestOfferedLevel('very-easy', 360), 'hard');
   assert.equal(nearestOfferedLevel('hell-3', 60), 'master');
   assert.equal(nearestOfferedLevel('hard', 10), null);
@@ -282,7 +258,6 @@ test('a board edit moves the set on show out of sight and the board it was made 
   assert.equal(edited.set, null, 'there is no set for the board being edited');
   assert.deepEqual([edited.puzzles.length, edited.setSeed, setTimelineLength(edited)], [0, null, 0]);
   assert.equal(edited.setsByBoard[boardKey(sampleSet.board)].length, 1, 'the set is kept under the board it was made for');
-  assert.equal(describeBoard(edited, DESKTOP).notices.some((n) => n.code === 'N-STALE'), false);
   const reverted = withBoard(edited, sampleSet.board);
   assert.deepEqual([reverted.setSeed, reverted.puzzles.map((p) => p.id), reverted.set?.board], ['alpha', samplePuzzles.map((p) => p.id), sampleSet.board],
     'going back to the board brings its set and puzzles back');
@@ -292,7 +267,7 @@ test('a board edit moves the set on show out of sight and the board it was made 
   assert.equal(rotated.puzzles, state.puzzles);
 });
 
-test('Keep seed rules: typing turns it on, the dice keeps it, Generate draws or reuses', () => {
+test('the seed field: a typed or rolled seed is used by Generate; otherwise each Generate draws a fresh seed', () => {
   let state = defaultGeneratorState();
   assert.equal(state.keepSeed, false);
   state = typeSeed(state, 'hello');
@@ -319,95 +294,105 @@ test('Keep seed rules: typing turns it on, the dice keeps it, Generate draws or 
   assert.equal(validSeed('🎲'.repeat(64)), '🎲'.repeat(64));
 });
 
-test('batch seeds increment per request and a regenerated set restarts the sequence', () => {
-  let state = acceptSet(defaultGeneratorState({ keepSeed: true, seedText: 'demo' }), { set: sampleSet, calibration: null, setSeed: 'demo' });
+test('each request counts up the batch index with the seed it is given; a new set starts again from 0', () => {
+  let state = acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: null, setSeed: 'demo' });
   assert.equal(state.batchIndex, 0);
-  const seeds = [];
-  for (let i = 0; i < 2; i += 1) {
-    const batch = nextBatch(state);
+  for (const [i, seed] of ['1001', '1002'].entries()) {
+    const batch = nextBatch(state, seed);
     assert.ok(batch);
-    state = batch.state;
-    seeds.push(batch.batchSeed);
-    state = recordBatch(state, { puzzles: samplePuzzles, seenLayouts: [`l${i}`], seenClues: [`c${i}`], append: i > 0 });
+    assert.deepEqual([batch.batchIndex, batch.batchSeed], [i + 1, seed]);
+    state = { ...batch.state, puzzles: samplePuzzles, seenLayouts: mergeSeenKeys(state.seenLayouts, [`l${i}`]), seenClues: mergeSeenKeys(state.seenClues, [`c${i}`]) };
   }
-  assert.deepEqual(seeds, ['demo#1', 'demo#2']);
-  assert.equal(seeds[0], batchSeedFor('demo', 1));
   assert.equal(state.batchIndex, 2);
-  assert.deepEqual(state.seenLayouts, ['l0', 'l1']);
-  assert.equal(state.puzzles.length, 6, 'Add more appends');
-
-  const failed = nextBatch(state);
-  assert.ok(failed);
-  assert.equal(failed.batchSeed, 'demo#3', 'a failed or cancelled request never rolls the index back');
+  assert.deepEqual([state.seenLayouts, state.seenClues], [['l0', 'l1'], ['c0', 'c1']]);
 
   const again = acceptSet(state, { set: sampleSet, calibration: null, setSeed: 'demo' });
-  assert.equal(again.batchIndex, 0);
-  assert.deepEqual(again.seenLayouts, []);
-  assert.deepEqual(again.seenClues, []);
-  assert.deepEqual(again.puzzles, []);
-  assert.equal(nextBatch(again)?.batchSeed, 'demo#1', 'the same sequence is reproduced from fresh history');
-  assert.equal(Object.values(again.setsByBoard).flat().length, 1);
-  assert.equal(again.setsByBoard[boardKey(sampleSet.board)][0].batchIndex, 2);
-  assert.equal(nextBatch(defaultGeneratorState()), null);
+  assert.deepEqual([again.batchIndex, again.seenLayouts, again.seenClues, again.puzzles], [0, [], [], []], 'even with the same seed');
+  assert.equal(again.setsByBoard[boardKey(sampleSet.board)][0].batchIndex, 2, 'the replaced set is saved with its count');
+  assert.equal(nextBatch(defaultGeneratorState(), '1'), null);
+});
 
-  let many = again;
+test('a board keeps at most 50 sets (49 saved and the one on show); sets are kept for the 10 most recent boards', () => {
+  let many = defaultGeneratorState();
   for (let i = 0; i < MAX_SETS + 5; i += 1) {
     many = acceptSet(many, { set: sampleSet, calibration: null, setSeed: `s${i}` });
   }
-  const manyKey = boardKey(sampleSet.board);
-  assert.equal(many.setsByBoard[manyKey].length, MAX_SAVED_SETS);
+  const key = boardKey(sampleSet.board);
+  assert.equal(many.setsByBoard[key].length, MAX_SAVED_SETS);
   assert.equal(setTimelineLength(many), MAX_SETS);
-  assert.equal(setsFull(many), true, 'the list is full at 50 sets');
-  assert.equal(setsFull({ ...many, setsByBoard: { [manyKey]: many.setsByBoard[manyKey].slice(1) } }), false);
+  assert.equal(setsFull(many), true);
+  assert.equal(setsFull({ ...many, setsByBoard: { [key]: many.setsByBoard[key].slice(1) } }), false);
+
+  let boards = defaultGeneratorState();
+  for (let i = 0; i <= MAX_SAVED_BOARDS + 1; i += 1) {
+    boards = acceptSet(boards, { set: { ...sampleSet, board: rectangle(5 + i, 5) }, calibration: null, setSeed: `b${i}` });
+  }
+  const kept = Object.keys(boards.setsByBoard);
+  assert.equal(kept.length, MAX_SAVED_BOARDS);
+  assert.equal(kept.includes(boardKey(rectangle(5, 5))), false, 'the board used least recently goes');
 });
 
-test('changing the level keeps the set; the calibration is current only for its own settings', () => {
-  let state = acceptSet(defaultGeneratorState({ levelId: 'hard' }), { set: sampleSet, calibration: samplePuzzles[0], setSeed: 's' });
-  assert.equal(calibrationCurrent(state), true);
-  state = { ...state, levelId: 'easy' };
-  assert.equal(calibrationCurrent(state), false);
-  assert.equal(state.set, sampleSet);
-  state = { ...state, levelId: 'hard', uniqueness: 'require' };
-  assert.equal(calibrationCurrent(state), false);
+test('the level a set was made for outlives the session; the calibration puzzle does not', () => {
+  const state = acceptSet(defaultGeneratorState({ levelId: 'hard' }), { set: sampleSet, calibration: samplePuzzles[0], setSeed: 's' });
+  assert.equal(readyLevelId({ ...state, levelId: 'easy' }), 'hard', 'changing the level keeps the set and its level');
+  const restored = restoreState(JSON.parse(JSON.stringify(serializeState(state))));
+  assert.deepEqual([restored.calibration, restored.calibrationTrusted, readyLevelId({ ...restored, levelId: 'easy' })], [null, false, 'hard']);
 });
 
-test('serialization round-trips and never stores timers, jobs, large boards or the removed omit-solutions switch', () => {
+test('serialization round-trips and never stores timers, jobs or the calibration puzzle', () => {
   let state = acceptSet(
-    defaultGeneratorState({ levelId: 'hard', seedText: 'demo', keepSeed: true, uniqueness: 'require', rotation: 90, largeBoards: true }),
+    defaultGeneratorState({ levelId: 'hard', seedText: 'demo', keepSeed: true, uniqueness: 'require', rotation: 90 }),
     { set: sampleSet, calibration: samplePuzzles[0], setSeed: 'demo' },
   );
-  state = recordBatch({ ...state, batchIndex: 2 }, { puzzles: samplePuzzles, seenLayouts: ['L1'], seenClues: ['C1'], append: false });
-  state = { ...state, job: { requestId: 1, revision: 'r', stage: 'x', startedAt: 1 } };
+  state = { ...state, batchIndex: 2, puzzles: samplePuzzles, seenLayouts: ['L1'], seenClues: ['C1'] };
+  state = { ...state, job: { requestId: 1, revision: 'r', startedAt: 1 } };
   const dto = serializeState(state);
   assert.equal(dto.v, 1);
-  assert.equal('largeBoards' in dto, false);
-  assert.equal('job' in dto, false);
   assert.deepEqual(Object.keys(dto).sort(), [
-    'batchIndex', 'batchPack', 'boardRows', 'calibrationFor', 'calibrationPack', 'history', 'keepSeed', 'levelId', 'presetId', 'puzzleSeeds',
+    'batchIndex', 'boardRows', 'calibrationFor', 'history', 'keepSeed', 'levelId', 'presetId', 'puzzleSeeds', 'puzzles',
     'rotation', 'seedText', 'setPack', 'setSeed', 'setsByBoard', 'uniqueness', 'v',
   ]);
+  assert.deepEqual(Object.keys(serializeState(defaultGeneratorState())).sort(), [
+    'boardRows', 'keepSeed', 'levelId', 'presetId', 'rotation', 'seedText', 'setsByBoard', 'uniqueness', 'v',
+  ], 'without a set, no set fields');
   const restored = restoreState(JSON.parse(JSON.stringify(dto)));
   assert.equal(restored.levelId, 'hard');
   assert.equal(restored.uniqueness, 'require');
   assert.equal(restored.keepSeed, true);
-  assert.equal('omitSolutions' in restoreState({ ...dto, omitSolutions: true }), false, 'an old stored switch is ignored');
   assert.equal(restored.rotation, 90);
   assert.equal(restored.setSeed, 'demo');
   assert.equal(restored.batchIndex, 2);
   assert.equal(restored.job, null);
   assert.equal(restored.puzzles.length, 3);
-  assert.equal(restored.calibration?.id, samplePuzzles[0].id);
+  assert.equal(restored.calibration, null);
   assert.deepEqual(restored.calibrationFor, { levelId: 'hard', uniqueness: 'require' });
   assert.deepEqual(restored.seenLayouts, ['L1']);
   assert.equal(restored.set?.carving, 'flat');
   assert.ok(boardsEqual(restored.set?.board ?? rectangle(1, 1), sampleSet.board));
-  assert.equal(restored.largeBoards, false);
+});
+
+test('older storage with the puzzles and the calibration in full packs is read and saved in the current shape', () => {
+  const state = {
+    ...acceptSet(defaultGeneratorState({ levelId: 'hard' }), { set: sampleSet, calibration: samplePuzzles[0], setSeed: 'old' }),
+    puzzles: samplePuzzles,
+  };
+  const { puzzles: _puzzles, ...current } = /** @type {Record<string, any>} */ (JSON.parse(JSON.stringify(serializeState(state))));
+  const setPack = /** @type {any} */ (current.setPack);
+  const fullPack = (/** @type {any[]} */ puzzles) => ({ ...setPack, kind: 'puzzle-pack', puzzles });
+  const savedPuzzles = /** @type {any} */ (savedSetOf(state)).puzzles;
+  const old = { ...current, batchPack: fullPack(savedPuzzles), calibrationPack: fullPack(savedPuzzles.slice(0, 1)) };
+  const legacy = { ...old, setSeed: 'older' };
+  const restored = restoreState({ ...old, setsByBoard: { [boardKey(sampleSet.board)]: [legacy] } });
+  assert.deepEqual([restored.setSeed, restored.puzzles.length], ['old', 3]);
+  const again = /** @type {any} */ (serializeState(restored));
+  const saved = again.setsByBoard[boardKey(sampleSet.board)][0];
+  assert.deepEqual([saved.setSeed, saved.puzzles.length, 'batchPack' in saved, 'calibrationPack' in saved], ['older', 3, false, false]);
 });
 
 test('puzzle seeds are saved only for puzzles that exist, restored with them and kept with each saved set', () => {
   let state = acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: null, setSeed: 'demo' });
   const [first, second] = samplePuzzles;
-  state = recordBatch({ ...state, batchIndex: 2 }, { puzzles: [first, second], seenLayouts: [], seenClues: [], append: false });
+  state = { ...state, batchIndex: 2, puzzles: [first, second] };
   state = { ...state, puzzleSeeds: { [first.id]: 'demo#1', [second.id]: 'demo#2', gone: 'demo#7', bad: /** @type {any} */ (5) } };
   const dto = serializeState(state);
   assert.deepEqual(dto.puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' }, 'ids that are not puzzles are left out');
@@ -422,7 +407,7 @@ test('puzzle seeds are saved only for puzzles that exist, restored with them and
   assert.deepEqual(next.puzzleSeeds, {});
   const savedNext = next.setsByBoard[boardKey(sampleSet.board)][0];
   assert.deepEqual(/** @type {any} */ (savedNext).puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' });
-  const back = useSavedSet(next, savedNext);
+  const back = gotoSet(next, 1);
   assert.deepEqual(back?.puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' });
 });
 
@@ -436,9 +421,9 @@ test('restoring validates every part and falls back individually', () => {
   assert.equal(damaged.levelId, 'normal');
   assert.equal(activeCount(damaged.board), 60);
 
-  const wrongBatch = restoreState({ ...dto, batchPack: { ...dto.batchPack, board: { rows: ['###'] } } });
+  const wrongBatch = restoreState({ ...dto, puzzles: [{ ...dto.puzzles[0], clues: [{ piece: 'nope', x: 0, y: 0, turn: 0, mirrored: false }] }] });
   assert.ok(wrongBatch.set);
-  assert.deepEqual(wrongBatch.puzzles, [], 'a batch for another board is dropped');
+  assert.deepEqual(wrongBatch.puzzles, [], 'puzzles that do not fit the set are dropped');
 
   const noSeed = restoreState({ ...dto, setSeed: '' });
   assert.equal(noSeed.set, null);
@@ -510,31 +495,25 @@ test('saved sets can become current again', () => {
   const saved = second.setsByBoard[boardKey(sampleSet.board)][0];
   assert.equal(saved.setSeed, 'one');
   assert.ok(savedSetOf(first));
-  const back = useSavedSet(second, saved);
+  const back = gotoSet(second, 1);
   assert.ok(back);
   assert.equal(back.setSeed, 'one');
-  assert.equal(back.calibration?.id, samplePuzzles[0].id);
-  assert.equal(useSavedSet(second, /** @type {any} */ ({ setSeed: 'x' })), null);
+  assert.equal(back.calibration, null, 'the calibration puzzle is not saved');
+  assert.deepEqual(back.calibrationFor, first.calibrationFor);
+  assert.equal(readSavedSet(/** @type {any} */ ({ setSeed: 'x' })), null);
 });
 
-test('loading starts from stored preferences; a stored Large boards opt-in is ignored', () => {
+test('loading reads the view preferences and the saved state; unknown stored fields are ignored', () => {
   const dto = { ...serializeState(defaultGeneratorState({ levelId: 'easy' })), largeBoards: true };
-  const loaded = loadGeneratorState(fakeStorage({ state: dto }, { largeBoards: false, labels: false }));
-  assert.equal(loaded.largeBoards, false);
-  assert.equal(loaded.levelId, 'easy');
-  assert.equal(loaded.prefs.labels, false);
-  assert.equal(loaded.prefs.timer, true);
-  assert.equal(loadGeneratorState(fakeStorage({}, { largeBoards: true })).largeBoards, false, 'the generator no longer offers Large boards');
-  assert.equal(capFor(loadGeneratorState(fakeStorage({}, { largeBoards: true })), DESKTOP), 484);
+  const loaded = loadGeneratorState(fakeStorage({ state: dto }, { largeBoards: true, labels: false }));
+  assert.deepEqual([loaded.levelId, loaded.prefs.labels, loaded.prefs.timer], ['easy', false, true]);
+  assert.equal('largeBoards' in loaded, false);
   const broken = loadGeneratorState({
     getGeneratorState: () => { throw new Error('denied'); },
     setGeneratorState: () => ({ ok: false }),
     getPrefs: () => { throw new Error('denied'); },
-    setPrefs: () => ({ ok: false }),
   });
   assert.equal(activeCount(broken.board), 60);
-  assert.equal(capFor(loaded, DESKTOP), 484);
-  assert.equal(capFor(loadGeneratorState(fakeStorage({}, { largeBoards: true })), PHONE), LIMITS.phoneMaxActive);
 });
 
 test('persistence debounces by 300 ms and writes only committed state', () => {
@@ -550,14 +529,10 @@ test('persistence debounces by 300 ms and writes only committed state', () => {
   timers.run();
   assert.equal(io.writes.state.length, 1);
   assert.equal(/** @type {any} */ (io.writes.state[0]).levelId, 'hard');
-  assert.equal(io.writes.prefs.length, 0);
 
-  store.update({ job: { requestId: 1, revision: 'r', stage: 'carving', startedAt: 5 } });
-  assert.equal(timers.pending(), 0, 'jobs are not persisted');
-  store.update({ largeBoards: true });
-  timers.run();
-  assert.deepEqual(io.writes.prefs, [{ labels: true, patterns: true, timer: true, straighten: false, largeBoards: true }]);
-  assert.equal(io.writes.state.length, 1, 'Large boards never touches gen:state');
+  store.update({ job: { requestId: 1, revision: 'r', startedAt: 5 } });
+  store.update({ prefs: { ...store.getState().prefs, labels: false } });
+  assert.equal(timers.pending(), 0, 'jobs and view preferences are not part of the generator state');
 
   store.update({ keepSeed: true });
   persistence.flush();

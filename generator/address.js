@@ -1,9 +1,6 @@
 // @ts-check
-// The settings of the three steps live in the address, so a link shares them and a reload comes back to them:
-//   ?step=2&preset=heart&angle=45&cells=10x10:-D4Pg-D4P_______8&level=hard&seed=ABCD-EFGH-JKLM
-// `step` belongs to the wizard. `cells=<board key>` is the board: its size and every enabled and disabled square.
-// `preset` only says which preset the step 1 list shows. The set on show is not named: it is
-// made again from the board, the level and the seed. Step 3 keeps nothing.
+// The step settings live in the address, so a link shares them and a reload restores them. `preset` only picks the
+// step 1 list entry (`cells` is the board key); the set on show is not named but made again from the settings and `seed`.
 
 import { MAX_SIDE, boardFromKey, boardKey } from '../core/engine/board.js';
 import { LISTED_LEVEL_IDS, MIN_EDIT_SIDE, PRESET_IDS, showSetBySeed, validSeed, withBoard } from './state.js';
@@ -16,7 +13,7 @@ export const ADDRESS_PARAMS = Object.freeze(['preset', 'angle', 'cells', 'level'
 
 /**
  * @param {GeneratorState} state
- * @returns {Record<string, string>} The settings to keep in the address.
+ * @returns {Record<string, string>}
  */
 export function addressParams(state) {
   const { board } = state;
@@ -40,8 +37,8 @@ export function addressParams(state) {
 }
 
 /**
- * @param {string} href The current address.
- * @param {Record<string, string>} params From `addressParams`.
+ * @param {string} href
+ * @param {Record<string, string>} params
  * @returns {string} The address with exactly these settings; `step`, other parameters and the hash stay.
  */
 export function withAddress(href, params) {
@@ -56,9 +53,9 @@ export function withAddress(href, params) {
 }
 
 /**
- * Applies the settings of an address to a state. Parts that are missing or invalid are left as they were.
+ * Parts of the address that are missing or invalid leave the state as it was.
  * @param {GeneratorState} state
- * @param {string} search The location's query string.
+ * @param {string} search
  * @returns {{ state: GeneratorState, seed: string | null }} `seed` is the seed the address names, if any; the state shows
  *   the set made with it when this browser still has it, and the caller makes it again otherwise.
  */

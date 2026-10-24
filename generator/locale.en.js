@@ -17,7 +17,6 @@ export default Object.freeze({
   'shell.theme.light': 'Light theme',
   'shell.theme.dark': 'Dark theme',
   'shell.theme.highContrast': 'High-contrast theme',
-  'shell.status.label': 'Current action',
 
   // Wizard
   'wizard.label': 'Steps',
@@ -28,7 +27,7 @@ export default Object.freeze({
   'wizard.step2.hint': 'Choose a level, then generate the pieces that tile your board.',
   'wizard.step3.title': 'Create puzzles',
   'wizard.step3.hint': 'Choose a level, then generate puzzles one at a time.',
-  'wizard.locked.set': 'Generate or import a piece set first.',
+  'wizard.locked.set': 'Generate a piece set first.',
   'wizard.pieces': 'Piece sets',
 
   // Step 1: board
@@ -55,7 +54,7 @@ export default Object.freeze({
   'board.error.presetBounds': 'The board must be {min}–{max} squares wide and tall.',
   'board.error.invalid': 'Invalid board size',
   'board.error.invalidPreset': 'Invalid preset',
-  'board.issue.disconnected': 'Active cells form {count} separate regions; they must form one connected region',
+  'board.issue.disconnected': 'The playable squares form {count} separate regions; they must form one connected region.',
 
   // Step 2: level and piece set
   'level.legend': 'Difficulty level',
@@ -84,7 +83,7 @@ export default Object.freeze({
   'level.help.pieces.cap': 'Most for this level',
   'level.help.pieces.spread': 'Spread: {mid} ± {spread}',
   'level.help.pieces.limits': 'This board fits {low}–{high} pieces',
-  'level.help.pieces.skipped': 'Skipped, sizes cannot fill the board exactly: {list}',
+  'level.help.pieces.skipped': 'Skipped because the piece sizes cannot fill the board exactly: {list}',
   'level.help.pieces.note': '{base} is the piece count of this level on a {ref}-square board; bigger boards use more pieces.',
   'level.help.size.title': 'Piece size (squares)',
   'level.help.size.smallest': 'Smallest: {pct}% × {area} squares ÷ {k} pieces',
@@ -92,7 +91,7 @@ export default Object.freeze({
   'level.help.size.note': 'Average size = board squares ÷ pieces. The smallest rounds down and is never below {min}; the largest rounds up.',
   'level.help.placed.title': 'Pre-placed pieces',
   'level.help.placed.line': '{pct}% × {k} pieces',
-  'level.help.placed.note': "This level starts with about {pct}% of the pieces placed (rounded, at least 1, all but 2 at most). The generator may then place more or fewer to reach the level's difficulty.",
+  'level.help.placed.note': "This level starts with about {pct}% of the pieces placed (rounded; at least 1 and at most all but 2). The generator may then place more or fewer to reach the level's difficulty.",
   'level.seed': 'Seed',
   'level.seed.placeholder': 'Leave empty for a random seed',
   'level.seed.clear': 'Clear seed',
@@ -105,8 +104,8 @@ export default Object.freeze({
 
   'set.empty': 'No piece set yet. Generate one first.',
   'set.pieces': 'Pieces',
-  'set.pieceName': 'Piece {name}, {count} cells',
-  'set.pieceName_one': 'Piece {name}, {count} cell',
+  'set.pieceName': 'Piece {name}, {count} squares',
+  'set.pieceName_one': 'Piece {name}, {count} square',
   'set.summary.pieces': '{count} pieces',
   'set.summary.pieces_one': '{count} piece',
   'set.summary.size': 'Piece size {size}',
@@ -128,7 +127,7 @@ export default Object.freeze({
   'puzzles.removeAll': 'Remove all',
   'puzzles.removeAll.title': 'Remove every puzzle from the list',
   'puzzles.new': 'New Puzzle',
-  'puzzles.empty.noSet': 'Generate or import a piece set, then choose New Puzzle.',
+  'puzzles.empty.noSet': 'Generate a piece set first, then choose New Puzzle.',
   'puzzles.empty.none': 'No puzzles yet. Choose New Puzzle.',
   'puzzles.list': 'Puzzles',
   'puzzles.setHeading': 'Set {n}/{total} puzzles',
@@ -137,9 +136,7 @@ export default Object.freeze({
   'puzzles.exportParked': '⬇ Export earlier pack',
   'notice.action.newSet': 'Generate new piece set',
   'notice.action.resetHistory': 'Reset history',
-  'notice.action.askFor': 'Ask for {room}',
 
-  'card.title': 'Puzzle {n}',
   'card.preview': 'Puzzle preview',
   'card.noRating': 'No rating',
   'card.heading': 'Puzzle #{n}',
@@ -158,23 +155,15 @@ export default Object.freeze({
   'card.toPlace': '{count} pieces to place',
   'card.toPlace_one': '{count} piece to place',
 
-  'verify.checking': 'Checking solvability…',
-  'verify.solvable': 'Solvable ✓',
-  'verify.unsatisfiable': 'No solution exists',
-  'verify.not-verified': 'Not verified',
-
-  'link.localOnly': 'This link only works in this browser and is not shareable — use Export file to share the puzzle.',
-  'link.tooLarge': "This puzzle is too large for a link and can't be saved in this browser — use Download, then Import file in the player.",
-
   // Progress
   'progress.cancel': 'Cancel',
   'job.elapsed': 'Elapsed: {time}',
 
   // Toasts
-  'toast.saveFailed': "Progress can't be saved in this browser",
+  'toast.saveFailed': "Your work can't be saved in this browser",
 
   // Notices (design §10.7)
-  'notice.N-COUNT': 'This board uses {kmin}–{kmax} pieces at {level}, about {share} % pre-placed.',
+  'notice.N-COUNT': 'This board uses {kmin}–{kmax} pieces at {level}, about {share}% pre-placed.',
   'notice.N-LEVELS.above': 'Levels above {highest} need a larger board.',
   'notice.N-LEVELS.below': 'Levels below {lowest} need a smaller board.',
   'notice.N-PARTIAL': 'Found {n} of {q} different {level} puzzles within the time limit. The piece set was not changed.',
@@ -190,40 +179,28 @@ export default Object.freeze({
   'notice.N-SETLEVEL': 'Found {n} of {q} {level} puzzles: other arrangements of this piece set did not reach {level} difficulty. Try again, or generate a new piece set for {level}.',
   'notice.N-NOSET': "Couldn't create a {level} piece set for this board within the time limit. Try again, choose another level, or change the board.",
   'notice.N-DUPSET': 'This piece set is the same as Set {n} in the list, so it was not added. Showing Set {n}.',
-  'notice.N-UNIQUE': "Found {n} of {q} {level} puzzles with exactly one solution. Turn off 'Require unique solution' or choose another level.",
-  'notice.N-UNIQUE-EXP': "On large Hell puzzles, 'Require unique solution' is experimental and usually fails.",
+  'notice.N-UNIQUE': 'Found {n} of {q} {level} puzzles with exactly one solution. Turn off “Require unique solution” or choose another level.',
+  'notice.N-UNIQUE-EXP': 'On large Hell puzzles, “Require unique solution” is experimental and usually fails.',
   'notice.N-LARGE': 'Large board: generation can take up to 2 minutes.',
-  'notice.N-EXPERIMENTAL': 'Experimental: boards above {limit} squares may not finish all {q} puzzles within 2 minutes.',
   'notice.N-CAP': 'This board has {area} playable squares; the limit on this device is {max}.',
   'notice.N-SMALL': 'A board needs at least 30 playable squares to generate puzzles.',
   'notice.N-TOOLARGE': 'This board and level need more memory than allowed. Choose a smaller board or a lower level.',
-  'notice.N-LONGLINK': 'This link is long; some apps may cut it. Use Export file to share.',
   'notice.N-NOWORKER': 'This browser cannot run the generator (module workers are required).',
 
   // Messages of the job and result code
   'message.M-CANCELLED-SET': 'Cancelled. No new piece set was created; the current piece set was not changed.',
   'message.M-CANCELLED-BATCH': 'Cancelled. Kept {n} of {q} {level} puzzles. The piece set was not changed.',
-  'message.M-CANCELLED-IMPORT': 'Cancelled. Your current work was not changed.',
   'message.M-FAILED': 'Generation stopped: {message}',
-  'message.M-HISTORY-FULL': 'This piece set remembers {used} of {max} arrangements and has room for {room} more puzzles, fewer than the {q} requested. Reset the history (earlier puzzles may then appear again) or ask for fewer.',
+  'message.M-HISTORY-FULL': 'This piece set remembers {used} of {max} arrangements, the most it can keep, so no more puzzles can be generated. Reset the history to go on (earlier puzzles may then appear again).',
   'message.M-PACK-FULL': 'The list holds at most {max} puzzles. Remove some puzzles to add more.',
   'message.M-DUPLICATE': 'The new puzzle is the same as one already in the list, so it was not added. No more new puzzles can be generated for this piece set. Create a new piece set.',
-  'message.M-SPLIT': 'The pack grew past the {kib} KiB file limit, so the earlier {n} puzzles are kept as a separate pack. Export both packs.',
-  'message.M-FEWPIECES': 'This set has fewer than 3 pieces, so new puzzles cannot be generated (one clue plus two movable pieces are needed). You can still view and export it.',
-  'message.M-NOWITNESS': 'No arrangement of this set was found within the search limit, so new puzzles cannot be generated. You can still view and export it.',
-  'message.M-NOARRANGEMENT': 'No arrangement of these pieces fills the board, so new puzzles cannot be generated. You can still view and export it.',
+  'message.M-SPLIT': 'The pack grew past the {kib} KiB file limit, so the earlier {n} puzzles are kept as a separate pack. Export it to keep it.',
+  'message.M-FEWPIECES': 'This set has fewer than 3 pieces, so new puzzles cannot be generated (one clue plus two movable pieces are needed). You can still view it.',
+  'message.M-NOWITNESS': 'No arrangement of this set was found within the search limit, so new puzzles cannot be generated. You can still view it.',
   'message.M-LEVEL-NOT-OFFERED': '{level} is not offered for a board of {area} playable squares.',
-  'message.M-IMPORTED': 'Imported {pieces} pieces and {puzzles} puzzles. Ratings and certificates from a file are claims until checked.',
-  'message.M-IMPORT-HISTORY': 'The earlier history of this piece set is not part of the file, so new puzzles may repeat arrangements generated before.',
-  'message.M-IMPORT-FAILED': 'Could not import: {reason} Your current work was not changed.',
-  'message.M-IMPORT-TOOBIG': 'The file is larger than the {kib} KiB limit.',
-  'message.M-LINK-COPIED': 'Link copied.',
-  'message.M-COPY-FAILED': "Couldn't copy the link. Use Export file to share instead.",
   'message.M-EXPORT-FAILED': 'This pack is too large to export as one file. Remove some puzzles and try again.',
-  'message.M-PLAYER-UNAVAILABLE': "This puzzle is too large for a link and can't be saved in this browser — use Export, then Import file in the player.",
+  'message.M-PLAYER-UNAVAILABLE': "This puzzle is too large to open by link and can't be saved in this browser.",
   'message.M-PLAYER-BLOCKED': 'The browser blocked the new tab. Allow pop-ups for this page and press Play again.',
-  'message.M-NEEDS-SET': 'Generate or import a piece set first.',
-  'message.import.notPack': 'The text is not a puzzle pack.',
-  'message.import.unreadable': 'The file could not be read.',
+  'message.M-NEEDS-SET': 'Generate a piece set first.',
   'message.requestFailed': 'The request failed',
 });

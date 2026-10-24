@@ -1,7 +1,6 @@
 // @ts-check
-// Puzzles panel (design §10.5): the level and the button that adds one puzzle, batch notices and
-// streaming puzzle cards. Cards are reconciled by puzzle id so thumbnails are not rebuilt when a
-// certificate or link arrives. All text is set through textContent.
+// Step 3 puzzles panel. Cards are reconciled by puzzle id so thumbnails are not rebuilt when a certificate
+// arrives. All text is set through textContent.
 import { el } from '../../core/browser/dom.js';
 import { mountBoard, mountPiecePreview } from '../../core/browser/svg-board.js';
 import { activeCount } from '../../core/engine/board.js';
@@ -13,10 +12,7 @@ import { levelLabel } from '../strings.js';
 import { loc, locAttrs } from './i18n-dom.js';
 import { mountElapsed } from './elapsed.js';
 
-/** Size of the puzzle preview in the left panel, in CSS pixels. */
 const CARD_PREVIEW_PX = 116;
-
-/** Size the puzzle in the main panel may take, in CSS pixels; the pieces under it are drawn at 60 % of the cell size of the board. */
 const DETAIL_BOARD_PX = 560;
 const DETAIL_PIECE_SCALE = 0.6;
 
@@ -30,12 +26,12 @@ const DETAIL_PIECE_SCALE = 0.6;
  * @property {GeneratorStore} store
  * @property {{ phone: boolean }} hardware
  * @property {JobController} controller
- * @property {() => void} onNewSet Starts Generate Piece Set with the current settings.
+ * @property {() => void} onNewSet Starts a new piece set with the current settings.
  * @property {() => number} [now]
- * @property {HTMLElement | null} [noticeHost] Where the outcome notice goes; defaults to the top of this panel.
- * @property {HTMLElement | null} [cardsHost] Where the empty hint, the puzzle cards and earlier packs go; defaults to the bottom of this panel.
- * @property {HTMLElement | null} [controlsHost] Where the Level choice and the generate button go (the step 3 side panel); defaults to the top of this panel.
- * @property {HTMLElement | null} [cardsActionsHost] Where the Remove all button goes (the header of the puzzle list); defaults to above the cards.
+ * @property {HTMLElement | null} [noticeHost] Defaults to the top of this panel.
+ * @property {HTMLElement | null} [cardsHost] Empty hint, cards and parked packs; defaults to the bottom of this panel.
+ * @property {HTMLElement | null} [controlsHost] Level choice and generate button; defaults to the top of this panel.
+ * @property {HTMLElement | null} [cardsActionsHost] Remove all button; defaults to above the cards.
  */
 
 let panelCounter = 0;
@@ -53,7 +49,7 @@ export function thumbnailCellPx(board, px) {
 
 /**
  * @param {string} icon
- * @param {string} key Translation key of the label.
+ * @param {string} key
  * @param {string} action
  * @param {string} [className]
  * @returns {HTMLButtonElement}
@@ -64,7 +60,6 @@ function actionButton(icon, key, action, className = '') {
 }
 
 /**
- * Text of the estimated difficulty.
  * @param {Puzzle} puzzle
  * @returns {string}
  */
@@ -107,7 +102,6 @@ export function mountPuzzlePanel(host, options) {
   cancelLabel.hidden = true;
   newButton.prepend(newSpinner);
   newButton.append(cancelLabel);
-  // True once the job has run long enough (30 s) for the button to cancel it.
   let cancelMode = false;
   const elapsed = mountElapsed(store, ['batch'], { now: options.now, onOverLimit: () => render(store.getState()) });
   const controls = el('div', { className: 'puzzle-controls' },
@@ -121,7 +115,6 @@ export function mountPuzzlePanel(host, options) {
   const detailBoard = el('div', { className: 'detail-board' });
   const detailTrayTitle = loc('detail.toPlace', { className: 'detail-tray-title' }, 'h4');
   const detailPieces = el('ul', { className: 'detail-pieces', attrs: { ...locAttrs({ 'aria-label': 'detail.toPlace' }) }, dataset: { role: 'detail-pieces' } });
-  // The puzzle chosen in the list: its board with the pieces already placed, and the pieces still to place under it.
   const detail = el('section', { className: 'puzzle-detail', attrs: { hidden: '' }, dataset: { role: 'puzzle-detail' } },
     detailHead, detailBoard, detailTrayTitle, detailPieces);
   const noticeBox = options.noticeHost ?? el('div', { className: 'result-notice', attrs: { role: 'status' }, dataset: { role: 'notice' } });
@@ -163,7 +156,6 @@ export function mountPuzzlePanel(host, options) {
   let destroyed = false;
   /** @type {string | null} */
   let selectedId = null;
-  // False while the main panel just follows the newest puzzle; true once a card was clicked.
   let userChose = false;
   /** @type {ReturnType<typeof mountBoard> | null} */
   let detailView = null;
@@ -174,8 +166,6 @@ export function mountPuzzlePanel(host, options) {
   let detailPreviews = [];
 
   /**
-   * The information on the left (number, level and score, seed, pieces to place, solutions), the preview on the
-   * right and a small remove button in the top right corner.
    * @param {string} id
    * @param {number} cellPx
    * @returns {Card}
@@ -188,7 +178,7 @@ export function mountPuzzlePanel(host, options) {
     const toPlace = el('p', { className: 'card-clues' });
     const cert = el('p', { className: 'badge card-cert' });
     const remove = /** @type {HTMLButtonElement} */ (el('button', { className: 'card-remove ghost-small', text: '✕', attrs: { type: 'button', 'data-action': 'remove' } }));
-    // The whole information block and preview is one button: it shows this puzzle in the main panel.
+    // The whole card body is one button that shows this puzzle in the main panel.
     const select = /** @type {HTMLButtonElement} */ (el('button', { className: 'card-select', attrs: { type: 'button', 'data-action': 'select', 'aria-pressed': 'false' } },
       el('div', { className: 'card-body' }, heading, rating, seed, toPlace, cert), thumb));
     const item = /** @type {HTMLLIElement} */ (el('li', { className: 'puzzle-card', dataset: { puzzleId: id } }, select, remove));
@@ -251,7 +241,6 @@ export function mountPuzzlePanel(host, options) {
       card.remove.title = removeLabel;
       card.remove.disabled = busy;
       const seed = state.puzzleSeeds[puzzle.id];
-      // The level of the puzzle is bold: "Normal: score 15".
       const ratingText = describeRating(puzzle);
       const levelText = puzzle.rating === null || puzzle.rating === undefined ? '' : levelLabel(puzzle.rating.level);
       card.rating.replaceChildren(...(levelText !== '' && ratingText.startsWith(levelText)
@@ -276,7 +265,6 @@ export function mountPuzzlePanel(host, options) {
     cardList.replaceChildren(...ordered.reverse());
   }
 
-  /** Cell size of the puzzle in the main panel: as large as fits a board at any rotation into the panel. */
   function detailCellPx(/** @type {{ width: number, height: number }} */ board) {
     const span = Math.max(board.width, board.height) * Math.SQRT2 + 1;
     return Math.max(14, Math.min(40, Math.floor(DETAIL_BOARD_PX / span)));
@@ -362,10 +350,6 @@ export function mountPuzzlePanel(host, options) {
     if (notice.actions.includes('reset-history')) {
       actions.append(loc('notice.action.resetHistory', { attrs: { type: 'button', 'data-action': 'reset-history' }, on: { click: () => controller.resetHistory() } }, 'button'));
     }
-    if (notice.actions.includes('smaller-quantity') && notice.room !== undefined) {
-      const room = notice.room;
-      actions.append(el('button', { text: t('notice.action.askFor', { room }), attrs: { type: 'button', 'data-action': 'smaller-quantity' }, on: { click: () => controller.requestFewer(room) } }));
-    }
     if (actions.children.length > 0) {
       nodes.push(actions);
     }
@@ -437,10 +421,8 @@ export function mountPuzzlePanel(host, options) {
     const state = store.getState();
     store.update({ batchLevelId: levelSelect.value === readyLevelId(state) ? null : levelSelect.value });
   });
-  // Every press adds one puzzle to the list.
   listen(newButton, 'click', () => void (cancelMode ? controller.cancel() : controller.addMore()));
   listen(uniqueInput, 'change', () => store.update({ uniqueness: uniqueInput.checked ? 'require' : 'any' }));
-  // Opens the puzzle on show in the player.
   listen(playButton, 'click', () => {
     if (selectedId !== null) {
       void controller.playPuzzle(selectedId);

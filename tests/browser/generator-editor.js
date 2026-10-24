@@ -346,7 +346,7 @@ await check('a board edit moves the set out of sight (empty list for the new boa
 }));
 
 await check('painting and settings are disabled while a job runs, rotation stays usable', () => withEditor({}, {}, (ctx) => {
-  ctx.store.update({ job: { requestId: 1, revision: 'r', stage: 'carving', startedAt: 0 } });
+  ctx.store.update({ job: { requestId: 1, revision: 'r', startedAt: 0 } });
   drag(ctx, [[2, 2]]);
   equal(area(ctx), 60, 'no painting');
   for (const sel of ['[data-field="columns"]', '[data-field="preset"]', '[data-field="seed"]', '[data-action="roll-seed"]', '[data-action="generate-set"]', '[data-field="level"] input[value="normal"]']) {
@@ -425,7 +425,7 @@ await check('levels: 360 squares offer Hard to Hell 2 with policy-derived column
   assert(!tip.hidden && tip.textContent?.startsWith('Number of pieces') === true, 'a click shows it too');
   equal(ctx.store.getState().levelId, 'hard', 'a help click does not choose the row');
   equal(q(ctx, '[data-level="normal"] .level-reason').textContent, 'needs a smaller board', 'smaller-board reason');
-  assert(q(ctx, '[data-role="board-notices"]').textContent?.includes('This board uses 16–18 pieces at Hard, about 38 % pre-placed.'), 'N-COUNT');
+  assert(q(ctx, '[data-role="board-notices"]').textContent?.includes('This board uses 16–18 pieces at Hard, about 38% pre-placed.'), 'N-COUNT');
   assert(!q(ctx, '[data-role="board-notices"]').textContent?.includes('Large board'), '360 is not above the warning size');
 }));
 
@@ -532,7 +532,7 @@ await check('The Require unique solution switch moved to step 3; its warning on 
   equal(ctx.store.getState().levelId, 'hell-1', 'Hell 1 is offered at 360');
   assert(!q(ctx, '[data-role="level-notices"]').textContent?.includes('experimental'), 'no warning while Require is off');
   ctx.store.update({ uniqueness: 'require' });
-  assert(q(ctx, '[data-role="level-notices"]').textContent?.includes("On large Hell puzzles, 'Require unique solution' is experimental and usually fails."), 'N-UNIQUE-EXP');
+  assert(q(ctx, '[data-role="level-notices"]').textContent?.includes('On large Hell puzzles, “Require unique solution” is experimental and usually fails.'), 'N-UNIQUE-EXP');
   equal(ctx.store.getState().uniqueness, 'require', 'setting stored');
   equal(ctx.store.getState().board.width, 20, 'settings never change the board');
 }));

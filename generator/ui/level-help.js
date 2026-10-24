@@ -1,7 +1,6 @@
 // @ts-check
-// Worked explanations behind the numbers of the level table. Each one shows how the generator's own policy
-// (piece-count plan, piece-size window, starting share of pre-placed pieces) arrives at the value in the cell;
-// the values come from the engine functions, so an explanation cannot drift from what is generated.
+// Worked explanations behind the level table numbers. The values come from the engine's policy functions, so an
+// explanation cannot drift from what is generated.
 import { initialClueCount, level } from '../../core/engine/levels.js';
 import { pieceCountPlan, SIZE_WINDOW, sizeWindow } from '../../core/engine/policy.js';
 import { formatNumber as formatLocal, t } from '../i18n.js';
@@ -15,7 +14,7 @@ import { formatNumber as formatLocal, t } from '../i18n.js';
 
 /**
  * @param {number} value
- * @returns {string} At most two decimals, in the page language.
+ * @returns {string}
  */
 export function formatNumber(value) {
   return formatLocal(value, { maximumFractionDigits: 2 });
@@ -46,7 +45,7 @@ function step(text, raw, result, unitKey) {
 }
 
 /**
- * The explanation for one number of the level table, or null when the level has no counts on this board.
+ * Null when the level has no counts on this board.
  * @param {HelpKind} kind
  * @param {string} levelId
  * @param {number} area Playable squares of the board.

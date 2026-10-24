@@ -1,12 +1,7 @@
 // @ts-check
-// Generator interface language (English and Vietnamese). Language packs are flat objects (dotted key ->
-// text) from locale.en.js and locale.vi.js. Texts use `{name}` placeholders; plural forms are keys with the
-// suffix `_one` / `_other` chosen from `args.count` (a missing form falls back to `_other`, then to the plain
-// key). A key missing from the current pack falls back to English, then to the key itself.
-//
-// DOM: `data-i18n="key"` sets the text, `data-i18n-attr="title:key,aria-label:key2"` sets attributes and
-// `data-i18n-args='{"n":3}'` gives both their arguments. DOM access happens only inside `applyTo` and
-// `setLocale`, so the module also loads in Node.
+// Generator interface language. Plural forms are keys suffixed `_one` / `_other`, chosen by `args.count`; a key missing
+// from the current pack falls back to English, then to the key. Only `applyTo` and `setLocale` touch the DOM, so the
+// module also loads in Node.
 import en from './locale.en.js';
 import vi from './locale.vi.js';
 
@@ -71,14 +66,14 @@ export function detect(sources = {}) {
   return DEFAULT_LOCALE;
 }
 
-/** @returns {string} The current language code. */
+/** @returns {string} */
 export function getLocale() {
   return current;
 }
 
 /**
  * @param {string} locale
- * @returns {readonly string[]} Sorted keys of a language pack.
+ * @returns {readonly string[]}
  */
 export function keys(locale = current) {
   return Object.keys(PACKS[normalize(locale) ?? DEFAULT_LOCALE]).sort();
@@ -237,10 +232,10 @@ export function applyTo(root) {
 }
 
 /**
- * Switches the language: updates `<html lang>`, translates the document and tells the listeners, which only
- * happens when the language really changed. An unsupported code is ignored.
+ * Switches the language: updates `<html lang>` and translates the document; listeners hear only of a real change. An
+ * unsupported code is ignored.
  * @param {unknown} code
- * @param {Document | null} [doc] Document to translate; defaults to the global one when there is one.
+ * @param {Document | null} [doc]
  * @returns {string} The language now in effect.
  */
 export function setLocale(code, doc = typeof document === 'undefined' ? null : document) {

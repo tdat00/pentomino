@@ -1,15 +1,14 @@
 // @ts-check
-// User-facing generator text (design §10.7): notices, messages and the small vocabulary shared by the
-// panels. The texts live in the language packs (locale.en.js, locale.vi.js); the functions here pick the
-// current language at call time, so a text built after a language switch follows it.
+// User-facing generator text from the language packs. Each call reads the current language, so text built after a
+// language switch follows it.
 import { level } from '../core/engine/levels.js';
-import { getLocale, has, packOf, raw, t } from './i18n.js';
+import { has, packOf, raw, t } from './i18n.js';
 
 /** @typedef {Record<string, string | number>} NoticeParams */
 
 /**
  * Fills `{name}` placeholders; a missing parameter is a programming error.
- * @param {string} label What is being formatted, for error messages.
+ * @param {string} label For error messages.
  * @param {string} template
  * @param {NoticeParams} params
  * @returns {string}
@@ -42,7 +41,7 @@ export function formatNotice(code, params = {}, variant) {
 }
 
 /**
- * @param {string} code A message id such as 'M-LINK-COPIED'.
+ * @param {string} code A message id such as 'M-PACK-FULL'.
  * @param {NoticeParams} [params]
  * @returns {string}
  */
@@ -67,50 +66,4 @@ export function levelLabel(id) {
   } catch {
     return id;
   }
-}
-
-/** @type {Map<string, string> | null} */
-let englishLevelIds = null;
-
-/**
- * Puzzle titles are stored as "Hard #3" with the English level name; the screen shows them in the current language.
- * @param {string | undefined} title
- * @param {number} index Zero-based position, used when the puzzle has no title.
- * @returns {string}
- */
-export function puzzleTitle(title, index) {
-  if (title === undefined || title === '') {
-    return t('card.title', { n: index + 1 });
-  }
-  const match = /^(.*) #(\d+)$/.exec(title);
-  if (match === null || getLocale() === 'en') {
-    return title;
-  }
-  if (englishLevelIds === null) {
-    const names = packOf('en');
-    englishLevelIds = new Map(Object.keys(names)
-      .filter((key) => key.startsWith('level.name.'))
-      .map((key) => [names[key], key.slice('level.name.'.length)]));
-  }
-  const id = englishLevelIds.get(match[1]);
-  return id === undefined ? title : `${levelLabel(id)} #${match[2]}`;
-}
-
-/**
- * Why a link cannot be shared as it is. The words of an English warning come from the shared browser code; in
- * another language the known cases are described from the link itself.
- * @param {{ href: string | null, portable: boolean, warning?: string }} link
- * @returns {string | undefined}
- */
-export function linkWarning(link) {
-  if (link.warning === undefined) {
-    return undefined;
-  }
-  if (link.portable) {
-    return formatNotice('N-LONGLINK');
-  }
-  if (getLocale() === 'en') {
-    return link.warning;
-  }
-  return link.href === null ? t('link.tooLarge') : t('link.localOnly');
 }

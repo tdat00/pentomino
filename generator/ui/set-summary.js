@@ -1,9 +1,6 @@
 // @ts-check
-// Summary of the chosen piece set, shown under step 2 in the side panel once the wizard is past step 2
-// (like the board thumbnail under step 1), on three lines:
-//   Set 4/6
-//   Expert | ABCD-EFGH-JKLM
-//   14 pieces | Piece sizes 5–13
+// Three-line summary of the chosen piece set under step 2 in the side panel, once the wizard is past step 2:
+// "Set 4/6", "Expert | ABCD-EFGH-JKLM", "14 pieces | Piece sizes 5–13".
 
 import { el } from '../../core/browser/dom.js';
 import { getLocale, t } from '../i18n.js';
@@ -14,7 +11,7 @@ import { summaryParts } from './set-panel.js';
 /** @typedef {import('../state.js').GeneratorStore} GeneratorStore */
 
 /**
- * "Set 4/6": the set's number in the list (oldest first, as the navigator shows it) and the list size.
+ * Numbered oldest first, as the navigator shows it.
  * @param {GeneratorState} state
  * @returns {string}
  */
@@ -24,7 +21,6 @@ export function setTitle(state) {
 }
 
 /**
- * "Expert | ABCD-EFGH-JKLM": the level and the seed; just the level when the set has no seed.
  * @param {GeneratorState} state
  * @returns {string}
  */
@@ -58,7 +54,7 @@ export function mountSetSummary(host, options) {
   }
 
   const unsubscribe = store.subscribe((state, previous) => {
-    if (state.set !== previous.set || state.setSeed !== previous.setSeed || state.calibration !== previous.calibration
+    if (state.set !== previous.set || state.setSeed !== previous.setSeed
       || state.calibrationFor !== previous.calibrationFor || state.levelId !== previous.levelId
       || state.setPosition !== previous.setPosition || state.setsByBoard !== previous.setsByBoard || state.board !== previous.board
       || shownLocale !== getLocale()) {

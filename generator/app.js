@@ -1,12 +1,10 @@
 // @ts-check
-// Generator application shell: wires the store, persistence, the board, level, piece-set and puzzle
-// panels, the job controller and the Back / main-action buttons. `setHandlers` stays available so tests and
-// other hosts can replace the job actions.
+// Generator page shell: wires the store, persistence, panels, job controller and step navigation.
 import storage from '../core/browser/storage.js';
-import { copyText, showToast } from '../core/browser/dom.js';
+import { showToast } from '../core/browser/dom.js';
 import { svgEl } from '../core/browser/svg-board.js';
 import { createGenerationClient } from '../core/browser/generation-client.js';
-import { downloadPack, openInPlayerTab, preparePlayerLink } from '../core/browser/handoff.js';
+import { downloadPack, openInPlayerTab } from '../core/browser/handoff.js';
 import { createPool } from '../core/browser/worker-pool.js';
 import { applyTo, detect, getLocale, normalize, onChange, setLocale, t } from './i18n.js';
 import { THEME_KEY, applyTheme, effectiveTheme, normalizeTheme } from './ui/theme.js';
@@ -23,22 +21,20 @@ import { mountSetSummary } from './ui/set-summary.js';
 import { mountWizard, reachableStep, stepFromSearch } from './ui/wizard.js';
 import { addressParams, applyAddress, withAddress } from './address.js';
 
-/** Where the chosen interface language is remembered (shared by the pages of this site). */
+/** Shared with the other pages of this site. */
 export const LANGUAGE_KEY = 'pentomino:v1:lang';
 
-/** The generator makes one puzzle each time Generate is pressed; the controller can still make more at once. */
+/** One puzzle per Generate press; the controller itself can make more at once. */
 const PUZZLES_PER_PRESS = 1;
-/** The address follows the settings after this pause, so painting a board does not rewrite it on every square. */
+/** Debounces address updates so painting a board does not rewrite it on every square. */
 const ADDRESS_DELAY_MS = 300;
 
 /** @typedef {import('./ui/level-panel.js').GenerateSetRequest} GenerateSetRequest */
 
 /**
- * Actions the job code provides. Missing handlers keep their controls disabled.
+ * A missing handler keeps its control disabled.
  * @typedef {object} GeneratorHandlers
- * @property {(request: GenerateSetRequest) => void} [onGenerateSet] Generate Piece Set (the seed field is already updated).
- * @property {() => void} [onNewPuzzles]
- * @property {() => void} [onAddMore]
+ * @property {(request: GenerateSetRequest) => void} [onGenerateSet]
  * @property {() => void} [onCancel]
  */
 
@@ -64,7 +60,7 @@ function optionalSlot(doc, role) {
   return /** @type {HTMLElement | null} */ (doc.querySelector(`[data-slot="${role}"]`));
 }
 
-/** @returns {Pick<Storage, 'getItem' | 'setItem'> | null} The browser's local storage, or null when it is blocked. */
+/** @returns {Pick<Storage, 'getItem' | 'setItem'> | null} */
 function browserStorage() {
   try {
     return globalThis.localStorage ?? null;
@@ -74,7 +70,7 @@ function browserStorage() {
 }
 
 /**
- * Language for a page load: `?lang=`, then the saved choice, then the browser languages, then English.
+ * `?lang=`, then the saved choice, then the browser languages, then English.
  * @param {{ search?: string, languageStorage?: Pick<Storage, 'getItem'> | null, navigator?: { language?: string, languages?: readonly string[] } }} [sources]
  * @returns {string}
  */
@@ -93,28 +89,6 @@ export function chooseLanguage(sources = {}) {
 }
 
 /**
- * Runs one bounded worker task (an import check) on its own single-worker pool, so it never
- * interferes with the generation client's request numbering.
- * @param {() => import('../core/browser/worker-pool.js').WorkerLike} [workerFactory]
- * @returns {NonNullable<import('./jobs.js').JobControllerOptions['runWorkerTask']>}
- */
-function dedicatedTaskRunner(workerFactory) {
-  return async (kind, payload, { signal }) => {
-    const pool = createPool({ size: 1, ...(workerFactory === undefined ? {} : { workerFactory }) });
-    const abort = () => pool.cancelAll();
-    pool.beginRequest({ requestId: 1, revision: 'import' });
-    signal.addEventListener('abort', abort, { once: true });
-    try {
-      return await pool.run({ requestId: 1, revision: 'import', kind, payload, signal });
-    } finally {
-      signal.removeEventListener('abort', abort);
-      pool.endRequest(1);
-      pool.close();
-    }
-  };
-}
-
-/**
  * @param {Document} doc
  * @param {{ storage?: import('./state.js').StorageLike, env?: any,
  *   random?: () => string, randomNumber?: () => string, now?: () => number, address?: boolean,
@@ -126,11 +100,12 @@ function dedicatedTaskRunner(workerFactory) {
  */
 export function createGeneratorApp(doc, options = {}) {
   const io = options.storage ?? storage;
-  // The settings in the address (shared link, reload) win over the saved work; a page without the wizard (a test
-  // fixture) neither reads nor writes them.
+  // Settings in the address (shared link, reload) win over the saved work. Only the real page (with the wizard)
+  // reads and writes the address; test fixture pages must not.
   const addressed = options.address ?? doc.querySelector('[data-wizard-step]') !== null;
   const search = addressed ? doc.defaultView?.location.search ?? '' : '';
   const fromAddress = applyAddress(loadGeneratorState(io), search);
+  // Read before the wizard mounts: it clamps the step to the work that exists and rewrites the address.
   const requestedStep = stepFromSearch(search);
   const store = createGeneratorStore({ ...fromAddress.state, quantity: PUZZLES_PER_PRESS });
   const hardware = detectHardware(options.env ?? doc.defaultView ?? globalThis);
@@ -164,15 +139,10 @@ export function createGeneratorApp(doc, options = {}) {
     client,
     workersAvailable: options.workersAvailable ?? (options.workerFactory !== undefined || typeof /** @type {any} */ (win ?? globalThis).Worker === 'function'),
     cancelPending: () => pool?.cancelAll(),
-    runWorkerTask: dedicatedTaskRunner(options.workerFactory),
-    prepareLink: (pack, index) => preparePlayerLink(pack, index, handoffEnv),
     openPlayer: (pack, index) => openInPlayerTab(pack, index, handoffEnv),
     download: (pack, name) => downloadPack(pack, name),
-    copy: copyText,
     notify: (message, kind) => void showToast(message, { kind }),
-    saveLibrary: (pack) => void (handoffEnv.storage ?? storage).saveLibraryPack(pack),
     beforeNavigate: () => persistence.saveNow(),
-    random: options.random,
     randomNumber: options.randomNumber,
     ...(options.now === undefined ? {} : { now: options.now }),
     ...options.controller,
@@ -193,21 +163,18 @@ export function createGeneratorApp(doc, options = {}) {
     }
   });
   handlers.onGenerateSet = (request) => void controller.generateSet(request);
-  handlers.onNewPuzzles = () => void controller.addMore();
-  handlers.onAddMore = () => void controller.addMore();
   handlers.onCancel = () => controller.cancel();
   level.refresh();
 
-  // The two buttons at the top right of the main panel walk the wizard: "‹ Step 1 - Create board" and "Step 3 - Create puzzles ›".
   const mainAction = /** @type {HTMLButtonElement} */ (slot(doc, 'main-action'));
   const mainBack = /** @type {HTMLButtonElement | null} */ (optionalSlot(doc, 'main-back'));
 
-  /** @param {number} n @returns {string} "Step 2 - Create piece set" */
+  /** @param {number} n @returns {string} */
   const stepName = (n) => `${t('wizard.stepLabel', { n })} - ${t(`wizard.step${n}.title`)}`;
 
   /**
    * @param {'left' | 'right'} side
-   * @returns {SVGElement} A chevron icon that takes the colour of the button text.
+   * @returns {SVGElement}
    */
   const chevron = (side) => svgEl('svg', { class: 'nav-icon', viewBox: '0 0 16 16', 'aria-hidden': 'true', focusable: 'false' },
     svgEl('path', {
@@ -215,7 +182,6 @@ export function createGeneratorApp(doc, options = {}) {
       fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
     }));
 
-  /** Brings the two navigator buttons in line with the step that is showing and with how far the work has got. */
   function syncActions() {
     const state = store.getState();
     const step = wizard?.step ?? null;
@@ -241,7 +207,7 @@ export function createGeneratorApp(doc, options = {}) {
   const onBackClick = () => void wizard?.back();
   mainAction.addEventListener('click', onActionClick);
   mainBack?.addEventListener('click', onBackClick);
-  /** Keeps the one Back / main-action group in the header of the step that is showing, top right of its panel. */
+  /** The page has one Back / next group; it moves into the header of the step that is showing. */
   function placeActions() {
     const group = doc.querySelector('.main-actions');
     const target = wizard === null ? null : doc.querySelector(`[data-step="${wizard.step}"] .step-actions`);
@@ -250,7 +216,6 @@ export function createGeneratorApp(doc, options = {}) {
     }
   }
 
-  /** The header of the puzzle list names the set it belongs to: "Set 2/2 puzzles". */
   const historyTitle = doc.getElementById('heading-history');
   function syncHistoryTitle() {
     if (historyTitle !== null) {
@@ -271,7 +236,6 @@ export function createGeneratorApp(doc, options = {}) {
   syncActions();
   syncHistoryTitle();
 
-  // The settings of the steps are kept in the address (see address.js), so a link comes back to them.
   /** @type {ReturnType<typeof setTimeout> | null} */
   let addressTimer = null;
   function syncAddress() {
@@ -302,7 +266,7 @@ export function createGeneratorApp(doc, options = {}) {
     : () => {};
   syncAddress();
 
-  // A link that names a seed shows its set: the one saved here, or one made again from the board, the level and the seed.
+  // A link that names a seed shows its set: the one saved here, or one made again from the board, level and seed.
   if (addressed && fromAddress.seed !== null && store.getState().setSeed !== fromAddress.seed && (requestedStep ?? 1) >= 2 && level.generate()) {
     const target = requestedStep ?? 2;
     const stop = store.subscribe((state) => {
@@ -324,7 +288,6 @@ export function createGeneratorApp(doc, options = {}) {
   win?.addEventListener('pagehide', onHide);
   doc.addEventListener('visibilitychange', onVisibility);
 
-  // Language: the switch buttons choose it; every panel then draws its texts again.
   const languageButtons = /** @type {HTMLButtonElement[]} */ ([...doc.querySelectorAll('[data-lang]')]);
   const preferences = options.preferenceStorage === undefined ? browserStorage() : options.preferenceStorage;
 
@@ -368,7 +331,7 @@ export function createGeneratorApp(doc, options = {}) {
   });
   syncLanguageButtons();
 
-  // Theme: the buttons choose it and the choice is remembered; without one the system preference applies.
+  // Without a stored theme the system preference applies.
   const themeButtons = /** @type {HTMLButtonElement[]} */ ([...doc.querySelectorAll('[data-theme-value]')]);
 
   function syncThemeButtons() {
@@ -411,7 +374,7 @@ export function createGeneratorApp(doc, options = {}) {
     puzzlePanel,
     wizard,
     regions,
-    /** Registers the job actions; controls that need them become enabled. @param {GeneratorHandlers} next */
+    /** Lets tests and other hosts replace the job actions. @param {GeneratorHandlers} next */
     setHandlers(next) {
       Object.assign(handlers, next);
       level.refresh();

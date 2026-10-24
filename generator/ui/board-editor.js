@@ -1,7 +1,6 @@
 // @ts-check
-// Generator board panel (design §10.2): size, presets, view rotation, painting, status and notices.
-// Rendering and hit-testing are the shared SVG board in edit mode; every board change goes through the
-// store as a new immutable board (Ctrl+Z undoes the last one).
+// Step 1 board editor on the shared SVG board. Every edit goes through the store as a new immutable board
+// (Ctrl+Z undoes it).
 import { el, showToast } from '../../core/browser/dom.js';
 import { mountBoard } from '../../core/browser/svg-board.js';
 import { MAX_SIDE, preset } from '../../core/engine/board.js';
@@ -27,13 +26,13 @@ let editorCounter = 0;
  * @typedef {object} BoardEditorOptions
  * @property {GeneratorStore} store
  * @property {{ phone: boolean }} hardware
- * @property {HTMLElement | null} [controlsHost] Where Columns, Rows and Preset go; defaults to the top of the panel.
+ * @property {HTMLElement | null} [controlsHost] Defaults to the top of the panel.
  * @property {ReturnType<typeof createEditHistory>} [history]
  * @property {(message: string) => void} [notify] Defaults to a toast.
  */
 
 /**
- * @param {HTMLElement} host Element that receives the panel contents.
+ * @param {HTMLElement} host
  * @param {BoardEditorOptions} options
  */
 export function mountBoardEditor(host, options) {

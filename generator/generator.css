@@ -1,5 +1,4 @@
-/* Generator layout: a three-step wizard in three panels. The page shows one step at a time; Back and the main
-   action sit at the top right of the main screen. Shared rules live in common.css. */
+/* Generator page layout; shared rules live in common.css. */
 
 :root {
   --gen-gap: 1rem;
@@ -70,7 +69,6 @@ body {
   overflow: hidden;
 }
 
-/* Segmented controls: language and theme. */
 .segmented {
   display: inline-flex;
   max-width: 100%;
@@ -118,9 +116,8 @@ body {
   z-index: 2;
 }
 
-/* Three panels, as in sudoku-generator: the puzzles made so far (left), the screen of the current step (main)
-   and the steps of the wizard (right). From 1360 px they are three columns; from 768 px the puzzles move under
-   the main screen; below that everything stacks, with the steps as a row on top. */
+/* From 1360 px: puzzles | current step | wizard steps. From 768 px the puzzles move under the current step;
+   below that everything stacks, with the steps on top. */
 .app-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -161,7 +158,6 @@ body {
   font-size: 1.1rem;
 }
 
-/* Small borderless buttons: Remove all in the list header and the ✕ on each puzzle. */
 button.ghost-small {
   min-height: 0;
   padding: 0.25rem 0.5rem;
@@ -201,7 +197,6 @@ button.ghost-small:disabled {
     flex-direction: column;
   }
 
-  /* Each step is one frame: its header and its inputs and buttons sit inside it. */
   .wizard-steps > li {
     padding: 0.375rem 0.5rem 0.5rem;
     background: var(--gen-color-surface-2);
@@ -431,7 +426,6 @@ button.ghost-small:disabled {
     margin-top: 0;
   }
 
-  /* The inputs of the current step sit in one frame under the row of steps. */
   .wizard-step-body[data-step-body] {
     padding: 0.5rem 0.75rem;
     background: var(--gen-color-surface-2);
@@ -890,8 +884,6 @@ button.primary {
   }
 }
 
-/* Piece-set panel */
-
 .piece-list {
   --piece-min: 88px;
   --piece-cols: 5;
@@ -1006,8 +998,6 @@ button.primary {
   font-variant-numeric: tabular-nums;
 }
 
-/* Puzzles panel */
-
 .spinner {
   flex: none;
   display: inline-block;
@@ -1044,7 +1034,6 @@ button .spinner {
   display: none;
 }
 
-/* The silent clock under a Generate button while its job runs. */
 .job-elapsed {
   margin: 0.375rem 0 0;
   color: var(--gen-color-text-muted);
@@ -1088,7 +1077,6 @@ button .spinner {
   border-color: var(--gen-color-accent);
 }
 
-/* The information and the preview are one button that shows the puzzle in the main panel. */
 button.card-select {
   display: flex;
   flex: 1 1 auto;

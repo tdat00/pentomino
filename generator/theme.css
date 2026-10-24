@@ -1,10 +1,6 @@
-/* Generator theme: the colours, type and component look of sudoku-generator, as three themes selected with
-   <html data-theme="light|dark|high-contrast">. Without a data-theme attribute the light theme applies, or the
-   dark one while the operating system prefers dark. Colours live only in this file (and the few literals the
-   shared stylesheets keep for toasts); tests/generator-theme.test.js computes the contrast of the pairs below.
+/* tests/generator-theme.test.js computes the contrast of the colour pairs below.
    Keep the dark palette of the media block identical to the explicit [data-theme="dark"] block. */
 
-/* ---- Theme independent tokens ---- */
 :root {
   --gen-font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
   --gen-radius-1: 0.25rem;
@@ -16,7 +12,6 @@
   --gen-focus-offset: 2px;
 }
 
-/* ---- Light (default) ---- */
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
@@ -52,7 +47,6 @@
   --gen-shadow-1: 0 1px 2px rgba(16, 24, 40, 0.1), 0 1px 1px rgba(16, 24, 40, 0.06);
 }
 
-/* ---- Dark ---- */
 :root[data-theme="dark"] {
   color-scheme: dark;
 
@@ -87,7 +81,6 @@
   --gen-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-/* ---- Dark, from the operating system preference (only while no explicit theme is chosen) ---- */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     color-scheme: dark;
@@ -124,7 +117,7 @@
   }
 }
 
-/* ---- High contrast (text >= 7:1, borders and focus ring >= 7:1) ---- */
+/* High contrast: text, borders and focus ring >= 7:1. */
 :root[data-theme="high-contrast"] {
   color-scheme: dark;
 
@@ -170,7 +163,7 @@
   }
 }
 
-/* ---- The shared stylesheet (common.css) reads these ---- */
+/* Read by common.css. */
 :root {
   --pm-focus: var(--gen-color-focus);
   --pm-ink: var(--gen-color-text);
@@ -205,7 +198,6 @@ a:hover {
   outline-offset: var(--gen-focus-offset);
 }
 
-/* ---- Buttons ---- */
 button,
 .pm-btn {
   border: 1px solid var(--gen-color-border);
@@ -252,11 +244,9 @@ button.primary:disabled {
   color: var(--gen-color-disabled-text);
 }
 
-/* ---- Fields ---- */
 input[type="text"],
 input[type="number"],
-select,
-textarea {
+select {
   border: 1px solid var(--gen-color-border);
   border-radius: var(--gen-radius-2);
   background-color: var(--gen-color-surface);
@@ -265,20 +255,17 @@ textarea {
 
 input[type="text"]:hover,
 input[type="number"]:hover,
-select:hover,
-textarea:hover {
+select:hover {
   border-color: var(--gen-color-text-muted);
 }
 
 input:disabled,
-select:disabled,
-textarea:disabled {
+select:disabled {
   border-style: dashed;
   background-color: var(--gen-color-surface-2);
   color: var(--gen-color-disabled-text);
 }
 
-/* ---- The board and the pieces ---- */
 .pm-cell {
   fill: var(--gen-board-cell);
   stroke: var(--gen-board-line);
