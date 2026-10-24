@@ -1,25 +1,60 @@
 // @ts-check
-// Every user-visible player message lives here so wording stays consistent and
-// testable. All values are plain text for `textContent`; nothing is markup.
+// Every user-visible player message lives here (in the language packs locale.en.js / locale.vi.js) so wording stays
+// consistent and testable. All values are plain text for `textContent`; nothing is markup. Each read uses the current
+// language, so text built after a language switch follows it.
 import { level } from '../core/engine/levels.js';
+import { has, onChange, t } from './i18n.js';
 
 /** @typedef {import('../core/engine/types.js').Issue} Issue */
 /** @typedef {import('../core/engine/types.js').PackPuzzle} PackPuzzle */
 
-export const PIECE_SET_MESSAGE = 'This file has pieces but no puzzle — open it in the generator.';
-export const UNSUPPORTED_MESSAGE = 'Unsupported puzzle version or rules.';
-export const MISSING_LOCAL_MESSAGE = "This puzzle is not in this browser's library. Import a file or use a portable link.";
-export const INDEX_MESSAGE = 'Puzzle index is out of range.';
-export const SAMPLE_FAILED_MESSAGE = 'The sample puzzle could not be loaded.';
-export const LOAD_FAILED_MESSAGE = 'The puzzle could not be opened.';
+// Messages that the controllers store as plain strings. They are live bindings: a language switch replaces them.
+export let PIECE_SET_MESSAGE = '';
+export let UNSUPPORTED_MESSAGE = '';
+export let MISSING_LOCAL_MESSAGE = '';
+export let INDEX_MESSAGE = '';
+export let SAMPLE_FAILED_MESSAGE = '';
+export let LOAD_FAILED_MESSAGE = '';
 
-export const VERIFICATION_PENDING = 'Checking solvability…';
-export const VERIFICATION_INCONCLUSIVE = 'Solvability not verified';
-export const VERIFICATION_SOLVABLE = 'Solvable ✓';
-export const VERIFICATION_IMPOSSIBLE = 'No solution exists';
+export let VERIFICATION_PENDING = '';
+export let VERIFICATION_INCONCLUSIVE = '';
+export let VERIFICATION_SOLVABLE = '';
+export let VERIFICATION_IMPOSSIBLE = '';
 
-export const CERTIFICATE_NONE = 'Uniqueness not checked';
-export const CERTIFICATE_PENDING = 'Checking…';
+export let CERTIFICATE_NONE = '';
+export let CERTIFICATE_PENDING = '';
+
+function readConstants() {
+  PIECE_SET_MESSAGE = t('msg.pieceSet');
+  UNSUPPORTED_MESSAGE = t('msg.unsupported');
+  MISSING_LOCAL_MESSAGE = t('msg.missingLocal');
+  INDEX_MESSAGE = t('msg.index');
+  SAMPLE_FAILED_MESSAGE = t('msg.sampleFailed');
+  LOAD_FAILED_MESSAGE = t('msg.loadFailed');
+  VERIFICATION_PENDING = t('verify.pending');
+  VERIFICATION_INCONCLUSIVE = t('verify.inconclusive');
+  VERIFICATION_SOLVABLE = t('verify.solvable');
+  VERIFICATION_IMPOSSIBLE = t('verify.impossible');
+  CERTIFICATE_NONE = t('cert.none');
+  CERTIFICATE_PENDING = t('cert.pending');
+}
+readConstants();
+onChange(readConstants);
+
+/**
+ * An object whose text properties read the pack key `<prefix>.<name>` each time.
+ * @param {string} prefix
+ * @param {readonly string[]} names
+ * @returns {Record<string, string>}
+ */
+function texts(prefix, names) {
+  /** @type {Record<string, string>} */
+  const out = {};
+  for (const name of names) {
+    Object.defineProperty(out, name, { enumerable: true, get: () => t(`${prefix}.${name}`) });
+  }
+  return out;
+}
 
 /** Codes of `parsePack`/`validatePack` that mean "a newer or foreign format". */
 const UNSUPPORTED_CODES = new Set(['unsupported-version', 'bad-rules']);
@@ -29,7 +64,7 @@ const UNSUPPORTED_CODES = new Set(['unsupported-version', 'bad-rules']);
  * @returns {string}
  */
 export function invalidPackMessage(message) {
-  return `This file is not a valid Pentomino pack: ${message}`;
+  return t('msg.invalidPack', { message });
 }
 
 /**
@@ -55,15 +90,18 @@ export function messageForIssues(issues) {
     case 'load-failed':
       return String(first.message);
     default:
-      return invalidPackMessage(first ? String(first.message) : 'the data could not be read.');
+      return invalidPackMessage(first ? String(first.message) : t('msg.unreadable'));
   }
 }
 
 /**
  * @param {string} id
- * @returns {string} Human label of a (possibly claimed, unknown) level id.
+ * @returns {string} Human label of a (possibly claimed, unknown) level id, in the current language.
  */
 export function levelLabel(id) {
+  if (has(`level.name.${id}`)) {
+    return t(`level.name.${id}`);
+  }
   try {
     return level(id).label;
   } catch {
@@ -89,8 +127,8 @@ export function ratingLabel(rating, recomputed = false) {
   if (!rating || typeof rating.score !== 'number') {
     return '';
   }
-  const body = `${levelLabel(rating.level)} · score ${scoreText(rating.score)}`;
-  return recomputed ? body : `Claimed ${body}`;
+  const body = t('rating.line', { level: levelLabel(rating.level), score: scoreText(rating.score) });
+  return recomputed ? body : t('rating.claimed', { rating: body });
 }
 
 /**
@@ -105,13 +143,13 @@ export function certificateLabel(certificate, pending = false) {
   const runtime = certificate.verified === true;
   switch (certificate.status) {
     case 'unique':
-      return runtime ? 'Unique solution ✓' : 'Claimed unique solution';
+      return t(runtime ? 'cert.unique' : 'cert.unique.claimed');
     case 'multiple':
-      return runtime ? 'Several solutions' : 'Claimed several solutions';
+      return t(runtime ? 'cert.multiple' : 'cert.multiple.claimed');
     case 'unsatisfiable':
-      return runtime ? VERIFICATION_IMPOSSIBLE : 'Claimed: no solution exists';
+      return runtime ? VERIFICATION_IMPOSSIBLE : t('cert.unsatisfiable.claimed');
     default:
-      return runtime ? 'Uniqueness not proved' : 'Claimed uniqueness not proved';
+      return t(runtime ? 'cert.other' : 'cert.other.claimed');
   }
 }
 
@@ -144,12 +182,11 @@ export function restorationNotice(warnings) {
   if (dropped === 0) {
     return '';
   }
-  const many = warnings.some((w) => w.code === 'too-many-warnings');
   if (warnings.some((w) => w.code === 'progress-invalid')) {
-    return 'Saved progress for this puzzle could not be used and was discarded.';
+    return t('msg.restored.invalid');
   }
-  const count = many ? `${dropped} or more saved moves` : `${dropped} saved ${dropped === 1 ? 'move' : 'moves'}`;
-  return `${count} no longer fit${dropped === 1 && !many ? 's' : ''} this puzzle and ${dropped === 1 && !many ? 'was' : 'were'} discarded.`;
+  const many = warnings.some((w) => w.code === 'too-many-warnings');
+  return t(many ? 'msg.restored.many' : 'msg.restored', { count: dropped });
 }
 
 /**
@@ -157,10 +194,7 @@ export function restorationNotice(warnings) {
  * @returns {string}
  */
 export function puzzleStatusLabel(status) {
-  if (status === 'revealed') {
-    return 'Revealed';
-  }
-  return status === 'solved' ? 'Solved ✓' : status === 'in-progress' ? 'In progress' : 'New';
+  return t(`status.${status === 'revealed' || status === 'solved' || status === 'in-progress' ? status : 'new'}`);
 }
 
 /**
@@ -176,185 +210,87 @@ export function formatElapsed(ms) {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
-export const LABELS = Object.freeze({
-  appName: 'Pentomino Player',
-  menu: '☰ Pack ▾',
-  menuTitle: 'Puzzles in this pack',
-  previous: 'Previous puzzle',
-  next: 'Next puzzle',
-  view: 'View',
-  labels: 'Labels',
-  patterns: 'Patterns',
-  timer: 'Timer',
-  undo: 'Undo',
-  redo: 'Redo',
-  reset: 'Reset',
-  straighten: 'Straighten',
-  straightenOn: 'Straightened',
-  import: 'Import',
-  generator: 'Open the Generator',
-  zoomIn: 'Zoom in',
-  zoomOut: 'Zoom out',
-  zoomFit: 'Fit board',
-  piecesLeft: (/** @type {number} */ n) => `${n} ${n === 1 ? 'piece' : 'pieces'} left`,
-  moves: (/** @type {number} */ n) => `${n} ${n === 1 ? 'move' : 'moves'}`,
-  puzzleNumber: (/** @type {number} */ n) => `Puzzle ${n}`,
-  localLink: "Local link — it only works in this browser.",
-  loading: 'Loading…',
-  continue: 'Continue',
-  restart: 'Restart',
+export const LABELS = Object.freeze(Object.defineProperties(Object.assign(texts('ui', [
+  'previous', 'next', 'view', 'labels', 'patterns', 'timer', 'elapsed', 'undo', 'redo', 'reset', 'straighten', 'straightenOn', 'import',
+  'generator', 'zoom', 'zoomIn', 'zoomOut', 'zoomFit', 'localLink', 'loading', 'continue', 'restart', 'savedProgress', 'trayLabel',
+  'boardLabel', 'boardHelp', 'selectedGroup', 'selectedNone', 'rotateCcw', 'rotateCw', 'flipH', 'flipV', 'place', 'toTray', 'toTrayLabel',
+  'pieceMenu', 'help', 'helpTitle', 'keyColumn', 'actionColumn', 'close', 'results', 'solvedInfo', 'revealedInfo', 'hintsGroup', 'hint',
+  'hintLabel', 'reveal', 'revealLabel', 'placeIt', 'removeIt', 'dismiss', 'cancelCheck', 'revealedBadge', 'hintsUsed', 'revealTitle',
+  'revealBody', 'revealConfirm', 'resetRevealTitle', 'resetRevealBody', 'resetRevealConfirm', 'resetTitle', 'resetBody', 'resetConfirm',
+  'cancel', 'winTitle', 'winTime', 'winMoves', 'winLevel', 'nextPuzzle', 'replay', 'backToGenerator', 'noGame', 'importTitle',
+  'importIntro', 'chooseFile', 'dropHint', 'pasteLabel', 'pasteOpen', 'sample', 'recent', 'recentEmpty', 'open', 'export', 'delete',
+  'confirmDelete', 'back', 'exportFailed', 'deleted',
+]), {
+  piecesLeft: (/** @type {number} */ n) => t('ui.piecesLeft', { count: n }),
+  moves: (/** @type {number} */ n) => t('ui.moves', { count: n }),
+  puzzleNumber: (/** @type {number} */ n) => t('ui.puzzleNumber', { n }),
+  toPlace: (/** @type {number} */ n) => t('card.toPlace', { count: n }),
+  selected: (/** @type {string} */ label) => t('ui.selected', { label }),
+  solvedCount: (/** @type {number} */ solved, /** @type {number} */ total) => t('ui.solvedCount', { solved, total }),
   resumeQuestion: (/** @type {number} */ placed, /** @type {boolean} */ solved, /** @type {boolean} */ revealed = false) => (revealed
-    ? 'You revealed the solution of this puzzle before.'
+    ? t('ui.resume.revealed')
     : solved
-    ? 'You solved this puzzle before.'
-    : `Saved progress found: ${placed} ${placed === 1 ? 'piece' : 'pieces'} placed.`),
-  trayLabel: 'Unplaced pieces',
-  boardHelp: 'Select a piece in the tray, then tap a board cell to preview it and tap the same cell or press Place to drop it. '
-    + 'With the keyboard, press Enter on a piece to pick it up, move it with the arrow keys and press Enter to drop it; press ? for all shortcuts. '
-    + 'Locked clue pieces cannot be moved.',
-  selectedNone: 'Select a piece',
-  selected: (/** @type {string} */ label) => `Selected: ${label}`,
-  rotateCcw: 'Rotate counter-clockwise',
-  rotateCw: 'Rotate clockwise',
-  flipH: 'Mirror left and right',
-  flipV: 'Mirror top and bottom',
-  place: 'Place',
-  toTray: '↩ to tray',
-  toTrayLabel: 'Return to tray',
-  help: 'Shortcuts',
-  helpTitle: 'Keyboard shortcuts',
-  close: 'Close',
-  results: 'Results',
-  solvedInfo: 'Puzzle solved ✓',
-  revealedInfo: 'Solution revealed',
-  hint: 'Hint',
-  hintLabel: 'Get a proven hint',
-  reveal: 'Show solution',
-  revealLabel: 'Show the solution and mark this puzzle as revealed',
-  placeIt: 'Place it',
-  removeIt: 'Remove it',
-  dismiss: 'Dismiss',
-  cancelCheck: 'Cancel check',
-  revealedBadge: 'Revealed — not counted as solved',
-  hintsUsed: 'Hints',
-  revealTitle: 'Show the solution?',
-  revealBody: 'The answer is filled in around the locked clues and this puzzle is marked as revealed. It will not count as solved. You can undo it.',
-  revealConfirm: 'Show solution',
-  resetRevealTitle: 'Reset, then reveal?',
-  resetRevealBody: 'Your placed pieces cannot be completed into a solution. Reset the board and show the solution instead? '
-    + 'This puzzle is marked as revealed and will not count as solved. You can undo it.',
-  resetRevealConfirm: 'Reset, then reveal',
-  resetTitle: 'Reset this puzzle?',
-  resetBody: 'Every placed piece returns to the tray. You can undo this.',
-  resetConfirm: 'Reset',
-  cancel: 'Cancel',
-  winTitle: 'Puzzle solved!',
-  winTime: 'Time',
-  winMoves: 'Moves',
-  winLevel: 'Level',
-  nextPuzzle: 'Next puzzle',
-  replay: 'Replay',
-  backToGenerator: 'Back to generator',
-  noGame: 'No puzzle is open.',
-  importTitle: 'Open a puzzle',
-  importIntro: 'Open a puzzle from a link, a file, pasted text, a recent pack or the sample.',
-  chooseFile: 'Import file',
-  dropHint: 'Drop a .json pack file anywhere on this page (512 KiB at most).',
-  pasteLabel: 'Paste a link, share code or pack JSON',
-  pasteOpen: 'Open pasted text',
-  sample: 'Try the sample',
-  recent: 'Recent packs',
-  recentEmpty: 'No recent packs yet.',
-  open: 'Open',
-  export: 'Export',
-  delete: 'Delete',
-  confirmDelete: 'Confirm delete',
-  back: 'Back to puzzle',
-  solvedCount: (/** @type {number} */ solved, /** @type {number} */ total) => `${solved} of ${total} solved`,
-  exportFailed: 'The pack could not be exported.',
-  deleted: 'Removed from this browser.',
-});
-
-/** @type {Readonly<Record<string, string>>} */
-const REASON_TEXT = Object.freeze({
-  outside: 'it would leave the board',
-  blocked: 'it would cover a blocked cell',
-  clue: 'it would overlap a locked clue',
-  overlap: 'it would overlap another piece',
-});
+      ? t('ui.resume.solved')
+      : t('ui.resume.progress', { count: placed })),
+}), {
+  appName: { enumerable: true, get: () => t('shell.title') },
+  version: { enumerable: true, get: () => t('shell.version') },
+}));
 
 /**
  * @param {string} reason A `canPlace` reason.
  * @returns {string}
  */
 export function reasonText(reason) {
-  return REASON_TEXT[reason] ?? 'that spot is not free';
+  return t(reason === 'outside' || reason === 'blocked' || reason === 'clue' || reason === 'overlap' ? `reason.${reason}` : 'reason.other');
 }
 
 /** Spoken and visible outcomes of piece manipulation; every one is announced through the live region. */
-export const PLAY_TEXT = Object.freeze({
-  noRoom: 'No room to rotate here',
-  selectFirst: 'Select a piece first',
-  noSelection: 'No piece is selected',
-  alreadyInTray: 'The piece is already in the tray',
-  cancelled: 'Cancelled',
-  moveCancelled: 'Move cancelled, the piece stays where it was',
-  undone: 'Undone',
-  redone: 'Redone',
-  nothingToUndo: 'Nothing to undo',
-  nothingToRedo: 'Nothing to redo',
-  resetDone: 'Puzzle reset. All pieces are back in the tray',
-  previewValid: 'Preview. Tap the same cell, press Place or Enter to drop it',
+export const PLAY_TEXT = Object.freeze(Object.assign(texts('play', [
+  'noRoom', 'selectFirst', 'noSelection', 'alreadyInTray', 'cancelled', 'moveCancelled', 'undone', 'redone', 'nothingToUndo',
+  'nothingToRedo', 'resetDone', 'previewValid',
+]), {
   /** @param {string} label @returns {string} */
-  selected: (label) => `Selected piece ${label}`,
+  selected: (label) => t('play.selected', { label }),
   /** @param {string} label @returns {string} */
-  pickedUp: (label) => `Picked up piece ${label}. Move it with the arrow keys, press Enter to drop it, Escape to cancel`,
+  pickedUp: (label) => t('play.pickedUp', { label }),
   /** @param {string} reason @returns {string} */
-  cannotPlace: (reason) => `Cannot place here: ${reasonText(reason)}`,
+  cannotPlace: (reason) => t('play.cannotPlace', { reason: reasonText(reason) }),
   /** @param {string} name Accessible piece name. @returns {string} */
-  placed: (name) => `Placed. ${name}`,
+  placed: (name) => t('play.placed', { name }),
   /** @param {string} name @returns {string} */
-  moved: (name) => `Moved. ${name}`,
+  moved: (name) => t('play.moved', { name }),
   /** @param {string} label @returns {string} */
-  returned: (label) => `Piece ${label} returned to the tray`,
+  returned: (label) => t('play.returned', { label }),
   /** @param {string} label @returns {string} */
-  turned: (label) => `Piece ${label} turned`,
+  turned: (label) => t('play.turned', { label }),
   /** @param {string} total @returns {string} */
-  solved: (total) => `Puzzle solved! ${total}`,
+  solved: (total) => t('play.solved', { total }),
   /**
    * @param {number} row 1-based
    * @param {number} column 1-based
    * @param {string | null} reason Why the ghost cannot be dropped here, or null when it can.
    * @returns {string}
    */
-  ghostAt: (row, column, reason) => `Row ${row}, column ${column}. ${reason === null ? 'Free' : `Not free: ${reasonText(reason)}`}`,
-});
+  ghostAt: (row, column, reason) => t('play.ghostAt', {
+    row, column, state: reason === null ? t('play.ghostFree') : t('play.ghostBlocked', { reason: reasonText(reason) }),
+  }),
+}));
 
 /** Outcomes of hints and reveal; every one is announced through the live region. */
-export const HINT_TEXT = Object.freeze({
-  working: 'Checking for a proven hint…',
-  revealWorking: 'Looking for a complete solution…',
-  cancelled: 'Check cancelled. Nothing was changed.',
-  stale: 'The board changed, so that check was discarded.',
-  complete: 'The puzzle is already complete.',
-  noLongerFits: 'That hint no longer fits the board. Ask for a new hint.',
+export const HINT_TEXT = Object.freeze(Object.assign(texts('hint', [
+  'working', 'revealWorking', 'cancelled', 'stale', 'complete', 'noLongerFits', 'revealed', 'revealUnsat', 'revealImpossible',
+  'revealCancelled', 'revealUnknown', 'revealFailed', 'replayed',
+]), {
   /** @param {string} label @returns {string} */
-  place: (label) => `Hint: piece ${label} fits in a complete solution that keeps every piece you placed. It is highlighted on the board. Press Place it to put it there.`,
+  place: (label) => t('hint.place', { label }),
   /** @param {string} label @returns {string} */
-  remove: (label) => `Hint: if you remove piece ${label}, the puzzle can be completed with all your other pieces kept. `
-    + 'That does not mean it is the only piece that could be moved.',
+  remove: (label) => t('hint.remove', { label }),
   /** @param {string} label @returns {string} */
-  placedHint: (label) => `Placed piece ${label}. You can undo it.`,
+  placedHint: (label) => t('hint.placedHint', { label }),
   /** @param {string} label @returns {string} */
-  removedHint: (label) => `Removed piece ${label}. You can undo it.`,
-  revealed: 'Solution revealed. This puzzle is marked as revealed, not solved.',
-  revealUnsat: 'The pieces you placed cannot be completed into a solution.',
-  revealImpossible: 'This puzzle has no solution, so there is nothing to reveal.',
-  revealCancelled: 'Reveal cancelled. Nothing was changed.',
-  revealUnknown: 'No complete solution was found within this check. Nothing was changed.',
-  revealFailed: 'The solution could not be shown. Nothing was changed.',
-  replayed: 'Fresh puzzle started.',
-});
+  removedHint: (label) => t('hint.removedHint', { label }),
+}));
 
 /**
  * @param {number} ms

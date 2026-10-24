@@ -13,7 +13,7 @@ const MAX_TRAY_CELL_PX = 26;
 // Longest side of the largest piece, in CSS px, so even 50-cell pieces fit a tray slot.
 const TARGET_SLOT_PX = 150;
 const COMPACT_SLOT_PX = 84;
-const COMPACT_QUERY = '(max-width: 899px)';
+const COMPACT_QUERY = '(max-width: 767px)';
 
 /**
  * Cell size of tray pieces: the largest piece decides so all pieces share one scale.

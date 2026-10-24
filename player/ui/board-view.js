@@ -35,6 +35,7 @@ function boardOf(pack) {
  * @property {(pieceId: string, event: PointerEvent | KeyboardEvent) => void} [onPiece] Tap, Enter or Space on a movable piece.
  * @property {(cell: XY, event: PointerEvent) => void} [onCell] Tap on a board cell.
  * @property {string} [describedBy] Id of the element that holds the board instructions.
+ * @property {string} [label] Accessible name of the board.
  */
 
 /**
@@ -60,7 +61,7 @@ const HINT_GLYPHS = Object.freeze({ ArrowLeft: '←', ArrowRight: '→', ArrowUp
 export function createBoardView(host, hooks = {}) {
   const view = mountBoard(host, {
     mode: 'play',
-    label: 'Puzzle board',
+    label: hooks.label ?? 'Puzzle board',
     describedBy: hooks.describedBy,
     onPiece: hooks.onPiece,
     onCell: hooks.onCell,

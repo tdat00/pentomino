@@ -930,7 +930,7 @@ await check('refresh restores progress; saving is debounced; a failing storage n
 
 await check('timer starts at the first move, pauses while hidden and keeps counting afterwards', async () => {
   const m = await game(0);
-  const label = () => m.q('.top-timer').textContent;
+  const label = () => m.q('.game-timer').textContent;
   equal(label(), '0:00', 'zero before the first move');
   await pause(1200);
   equal(label(), '0:00', 'does not run before a move');
@@ -1043,6 +1043,83 @@ await check('no room to rotate: the piece stays, "No room to rotate here" is ann
     }
     m.player.destroy();
   }
+});
+
+await check('piece menu: right-click turns and flips a tray piece; Escape, a click outside and Tab close it; a placed piece can return to the tray', async () => {
+  const m = await game(0);
+  const target = movables(m)[0];
+  const id = target.piece;
+  const button = trayButton(m, id);
+  const t0 = /** @type {number} */ (m.game().tray.get(id));
+  /** @param {Element} node */
+  const rightClick = (node) => {
+    const r = node.getBoundingClientRect();
+    const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: r.left + 8, clientY: r.top + 8, button: 2 });
+    node.dispatchEvent(event);
+    return event;
+  };
+  const menu = () => m.q('.pm-menu');
+  const actions = () => m.qa('.pm-menu [role="menuitem"]').map((n) => n.dataset.action);
+  assert(menu().hidden, 'no menu before the click');
+
+  const event = rightClick(button);
+  assert(event.defaultPrevented, 'the browser menu is replaced');
+  assert(!menu().hidden, 'the menu opens');
+  same(actions(), ['rotate-cw', 'rotate-ccw', 'flip-h', 'flip-v'], 'a tray piece offers turning and flipping');
+  equal(m.game().selected, id, 'the piece is selected');
+  equal(/** @type {HTMLElement} */ (document.activeElement).dataset.action, 'rotate-cw', 'the first action has the focus');
+  const box = menu().getBoundingClientRect();
+  assert(box.left >= 0 && box.top >= 0 && box.right <= innerWidth && box.bottom <= innerHeight, 'the menu stays inside the window');
+
+  m.q('.pm-menu [data-action="rotate-cw"]').click();
+  assert(menu().hidden, 'choosing an action closes the menu');
+  equal(m.game().tray.get(id), transformedT(t0, 'cw', 0), 'turned clockwise on screen');
+  equal(document.activeElement, button, 'the focus returns to the piece');
+
+  rightClick(button);
+  m.q('.pm-menu [data-action="rotate-ccw"]').click();
+  equal(m.game().tray.get(id), t0, 'counter-clockwise undoes it');
+  rightClick(button);
+  m.q('.pm-menu [data-action="flip-h"]').click();
+  equal(m.game().tray.get(id), transformedT(t0, 'flipH', 0), 'flipped left-right');
+  rightClick(button);
+  m.q('.pm-menu [data-action="flip-v"]').click();
+  equal(m.game().tray.get(id), transformedT(transformedT(t0, 'flipH', 0), 'flipV', 0), 'flipped top-bottom');
+
+  rightClick(button);
+  key('ArrowDown');
+  equal(/** @type {HTMLElement} */ (document.activeElement).dataset.action, 'rotate-ccw', 'the arrow keys walk the actions');
+  key('End');
+  equal(/** @type {HTMLElement} */ (document.activeElement).dataset.action, 'flip-v', 'End goes to the last action');
+  key('ArrowDown');
+  equal(/** @type {HTMLElement} */ (document.activeElement).dataset.action, 'rotate-cw', 'and the list wraps');
+  const before = m.game().tray.get(id);
+  key('q');
+  equal(m.game().tray.get(id), before, 'the shortcuts of the page stay quiet inside the menu');
+  const escape = key('Escape');
+  assert(escape.defaultPrevented && menu().hidden, 'Escape closes the menu');
+  equal(document.activeElement, button, 'and returns the focus');
+  assert(m.game().selected === id, 'Escape in the menu keeps the selection');
+
+  rightClick(button);
+  pe(document.body, 'pointerdown', 2, 2);
+  assert(menu().hidden, 'a press outside closes the menu');
+  rightClick(button);
+  key('Tab');
+  assert(menu().hidden, 'Tab closes the menu');
+
+  await dragFromTray(m, id, { index: 1, ops: opsTo(poseT(target), 0, m.game().tray.get(id)), to: handleCell(pieceOf(m, id), target, 1) });
+  same(m.game().placed.get(id), target, 'the piece is placed');
+  const placed = /** @type {Element} */ (boardPiece(m, id));
+  rightClick(placed);
+  same(actions(), ['rotate-cw', 'rotate-ccw', 'flip-h', 'flip-v', 'to-tray'], 'a placed piece can also return to the tray');
+  m.q('.pm-menu [data-action="to-tray"]').click();
+  assert(!m.game().placed.has(id) && m.game().tray.has(id), 'Return to tray takes it off the board');
+
+  const clue = /** @type {Element} */ (m.root.querySelector('.board-host .pm-clue'));
+  rightClick(clue);
+  assert(menu().hidden, 'a locked clue has no menu');
+  m.player.destroy();
 });
 
 await check('no content-security-policy violations', async () => {

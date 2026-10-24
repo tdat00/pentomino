@@ -4,7 +4,9 @@
 // never decide anything about packs themselves.
 
 import { el } from '../../core/browser/dom.js';
+import { getLocale } from '../i18n.js';
 import { LABELS } from '../strings.js';
+import { loc, locAttrs } from './i18n-dom.js';
 
 /** @typedef {import('../state.js').PlayerState} PlayerState */
 
@@ -25,7 +27,7 @@ import { LABELS } from '../strings.js';
  */
 function shortDate(iso) {
   const ms = Date.parse(iso);
-  return Number.isFinite(ms) ? new Date(ms).toLocaleDateString() : '';
+  return Number.isFinite(ms) ? new Date(ms).toLocaleDateString(getLocale()) : '';
 }
 
 /**
@@ -43,7 +45,7 @@ export function createImportView(host, handlers) {
   let renderedConfirming = null;
 
   const fileInput = /** @type {HTMLInputElement} */ (el('input', {
-    attrs: { type: 'file', accept: '.json,application/json', 'aria-label': LABELS.chooseFile, hidden: '' },
+    attrs: { type: 'file', accept: '.json,application/json', hidden: '', ...locAttrs({ 'aria-label': 'ui.chooseFile' }) },
     dataset: { role: 'file-input' },
     on: {
       change: () => {
@@ -55,46 +57,48 @@ export function createImportView(host, handlers) {
       },
     },
   }));
-  const fileButton = el('button', { className: 'pm-btn', text: LABELS.chooseFile, attrs: { type: 'button' }, dataset: { action: 'file' }, on: { click: () => fileInput.click() } });
-  const sampleButton = el('button', { className: 'pm-btn', text: LABELS.sample, attrs: { type: 'button' }, dataset: { action: 'sample' }, on: { click: () => handlers.onSample() } });
-  const backButton = el('button', { className: 'pm-btn', text: LABELS.back, attrs: { type: 'button', hidden: '' }, dataset: { action: 'back' }, on: { click: () => handlers.onBack() } });
+  /**
+   * @param {string} key
+   * @param {string} action
+   * @param {() => void} run
+   * @param {Record<string, string | number | boolean>} [attrs]
+   * @returns {HTMLButtonElement}
+   */
+  const actionButton = (key, action, run, attrs = {}) => /** @type {HTMLButtonElement} */ (loc(key, {
+    className: 'pm-btn', attrs: { type: 'button', ...attrs }, dataset: { action }, on: { click: () => run() },
+  }, 'button'));
+  const fileButton = actionButton('ui.chooseFile', 'file', () => fileInput.click());
+  const sampleButton = actionButton('ui.sample', 'sample', () => handlers.onSample());
+  const backButton = actionButton('ui.back', 'back', () => handlers.onBack(), { hidden: '' });
   const paste = /** @type {HTMLTextAreaElement} */ (el('textarea', {
     className: 'import-paste',
     attrs: { id: 'import-paste', rows: 4, spellcheck: 'false', autocomplete: 'off', autocapitalize: 'off' },
   }));
-  const pasteButton = el('button', {
-    className: 'pm-btn',
-    text: LABELS.pasteOpen,
-    attrs: { type: 'button' },
-    dataset: { action: 'paste' },
-    on: {
-      click: () => {
-        const text = paste.value;
-        if (text.trim() !== '') {
-          handlers.onText(text);
-        }
-      },
-    },
+  const pasteButton = actionButton('ui.pasteOpen', 'paste', () => {
+    const text = paste.value;
+    if (text.trim() !== '') {
+      handlers.onText(text);
+    }
   });
   const error = el('p', { className: 'import-error', attrs: { role: 'alert', hidden: '' } });
-  const busy = el('p', { className: 'import-busy', text: LABELS.loading, attrs: { role: 'status', hidden: '' } });
-  const list = el('ul', { className: 'library', attrs: { 'aria-label': LABELS.recent } });
-  const empty = el('p', { className: 'library-empty', text: LABELS.recentEmpty });
+  const busy = loc('ui.loading', { className: 'import-busy', attrs: { role: 'status', hidden: '' } }, 'p');
+  const list = el('ul', { className: 'library', attrs: locAttrs({ 'aria-label': 'ui.recent' }) });
+  const empty = loc('ui.recentEmpty', { className: 'library-empty' }, 'p');
 
   const section = el('section', { className: 'import', attrs: { 'aria-labelledby': 'import-title' } },
-    el('h1', { text: LABELS.importTitle, attrs: { id: 'import-title' } }),
-    el('p', { text: LABELS.importIntro }),
+    loc('ui.importTitle', { attrs: { id: 'import-title' } }, 'h2'),
+    loc('ui.importIntro', {}, 'p'),
     error,
     busy,
     el('div', { className: 'import-actions' }, fileButton, fileInput, sampleButton, backButton),
-    el('p', { className: 'drop-hint', text: LABELS.dropHint }),
-    el('label', { text: LABELS.pasteLabel, attrs: { for: 'import-paste' } }),
+    loc('ui.dropHint', { className: 'drop-hint' }, 'p'),
+    loc('ui.pasteLabel', { attrs: { for: 'import-paste' } }, 'label'),
     paste,
     el('div', { className: 'import-actions' }, pasteButton),
-    el('h2', { text: LABELS.recent }),
+    loc('ui.recent', {}, 'h3'),
     list,
     empty,
-    el('p', {}, el('a', { text: LABELS.generator, attrs: { href: '../generator/' } })));
+    el('p', {}, loc('ui.generator', { attrs: { href: '../generator/' } }, 'a')));
   host.append(section);
 
   /** @param {PlayerState} state */
@@ -164,6 +168,13 @@ export function createImportView(host, handlers) {
 
   return {
     render,
+    /** Draws the library again, e.g. after a language switch. */
+    refresh() {
+      renderedLibrary = null;
+      if (last !== null) {
+        render(last);
+      }
+    },
     destroy() {
       section.remove();
     },

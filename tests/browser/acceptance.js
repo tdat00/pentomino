@@ -270,9 +270,9 @@ async function runRecipe(recipe) {
   const trayPieces = qa(p, '.tray-piece').length;
   assert(trayPieces === toPlace, `tray shows ${trayPieces} pieces, the card says ${toPlace} to place`);
   assert(p.querySelector('.pm-board svg') !== null, 'the board is drawn');
-  assert((q(p, '.top-title').textContent ?? '').trim() !== '', 'the title is shown');
+  assert((q(p, '.puzzle-title').textContent ?? '').trim() !== '', 'the title is shown');
   scan(frame);
-  return { setMs, batchMs, scores, toPlace, trayPieces, playerTitle: q(p, '.top-title').textContent, hrefChars: hrefs[0].length };
+  return { setMs, batchMs, scores, toPlace, trayPieces, playerTitle: q(p, '.puzzle-title').textContent, hrefChars: hrefs[0].length };
 }
 
 for (const recipe of recipes) {
@@ -313,7 +313,7 @@ await check('I2', 'Player: invalid import keeps the open game, the error is anno
   libraryId = qa(frame.doc(), '[data-action="open"]')[0].dataset.packId ?? null;
   q(frame.doc(), '[data-action="open"]').click();
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the recent pack to open', 15000);
-  const before = { tray: trayCount(frame), title: q(frame.doc(), '.top-title').textContent };
+  const before = { tray: trayCount(frame), title: q(frame.doc(), '.puzzle-title').textContent };
   q(frame.doc(), '[data-action="import"]').click();
   await waitFor(() => frame.doc().querySelector('#app[data-screen="import"]') !== null, 'the import screen');
   setValue(frame, /** @type {HTMLTextAreaElement} */ (q(frame.doc(), '#import-paste')), 'this is not a puzzle { nope');
@@ -324,7 +324,7 @@ await check('I2', 'Player: invalid import keeps the open game, the error is anno
   assert(!q(frame.doc(), '[data-action="back"]').hidden, 'Back is offered while a game is open');
   q(frame.doc(), '[data-action="back"]').click();
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game to return');
-  assert(trayCount(frame) === before.tray && q(frame.doc(), '.top-title').textContent === before.title, 'the old game is unchanged');
+  assert(trayCount(frame) === before.tray && q(frame.doc(), '.puzzle-title').textContent === before.title, 'the old game is unchanged');
   scan(frame);
   return { error: error.textContent, before };
 });
@@ -604,18 +604,23 @@ await check('L5', 'Generator wizard: Next and Back move between steps, step 3 st
 });
 
 /** @param {Frame} frame */
-const topbarOrder = (frame) => qa(frame.doc(), '.topbar > *').map((n) => n.dataset.action ?? n.className.split(' ')[0]);
+const gameBarOrder = (frame) => qa(frame.doc(), '.game-bar .game-stats > *, .game-bar .game-actions > *').map((n) => n.dataset.action ?? n.className.split(' ')[0]);
 
-await check('L3', 'Player desktop layout: top bar order, board with right-hand tray, selection toolbar on pick-up, Straighten present in the top bar', async () => {
-  const frame = await openFrame('../../player/', { width: 1280, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
+await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces panels, game bar over the board, selection toolbar on pick-up, Straighten present in the game bar', async () => {
+  const frame = await openFrame('../../player/', { width: 1400, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game');
   const d = frame.doc();
-  const order = topbarOrder(frame);
-  const expected = ['pack-menu', 'top-title', 'top-timer', 'top-moves', 'undo', 'redo', 'reset', 'straighten', 'import'];
-  assert(JSON.stringify(order) === JSON.stringify(expected), `top bar order ${order.join(' > ')}`);
+  assert(q(d, '.app-header h1').textContent === 'Pentomino Player', 'the header names the page');
+  assert(qa(d, '.app-header [data-lang]').length === 2 && qa(d, '.app-header [data-theme-value]').length === 3, 'language and theme switches');
+  const [history, main, side] = ['.app-history', '.app-main', '.app-side'].map((s) => rect(q(d, s)));
+  assert(history.right <= main.left + 4 && main.right <= side.left + 4, `three panels (${[history, main, side].map((r) => `${Math.round(r.left)}-${Math.round(r.right)}`).join(' | ')})`);
+  assert(qa(d, '.app-history .puzzle-card').length > 0 && q(d, '.app-main').contains(q(d, '.pm-board')) && q(d, '.app-side').contains(q(d, '[data-host="tray"]')), 'each panel holds its content');
+  const order = gameBarOrder(frame);
+  const expected = ['game-timer', 'game-moves', 'undo', 'redo', 'reset', 'straighten'];
+  assert(JSON.stringify(order) === JSON.stringify(expected), `game bar order ${order.join(' > ')}`);
   const board = rect(q(d, '.pm-board'));
   const tray = rect(q(d, '[data-host="tray"]'));
-  assert(tray.left >= board.right - 4 || tray.left > board.left + board.width * 0.6, `tray is on the right (tray ${Math.round(tray.left)}, board right ${Math.round(board.right)})`);
+  assert(tray.left >= board.right - 4, `the pieces are on the right (tray ${Math.round(tray.left)}, board right ${Math.round(board.right)})`);
   q(d, '.tray-piece').click();
   await sleep(100);
   const toolbar = d.querySelector('.selection-actions');
@@ -624,13 +629,13 @@ await check('L3', 'Player desktop layout: top bar order, board with right-hand t
   return { order, trayLeft: Math.round(tray.left), boardRight: Math.round(board.right), straightenHidden: /** @type {HTMLElement} */ (q(d, '[data-action="straighten"]')).hidden };
 });
 
-await check('L4', 'Player narrow layout (< 900 px): top bar, board, selection toolbar, then the tray, in that vertical order', async () => {
-  const frame = await openFrame('../../player/', { width: 800, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
+await check('L4', 'Player narrow layout (< 768 px): header, game (board, selection toolbar), pieces, then puzzles, in that vertical order', async () => {
+  const frame = await openFrame('../../player/', { width: 700, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game');
   const d = frame.doc();
   q(d, '.tray-piece').click();
   await sleep(100);
-  const tops = ['.topbar', '.pm-board', '.selection-actions', '[data-host="tray"]'].map((s) => rect(q(d, s)).top);
+  const tops = ['.app-header', '.pm-board', '.selection-actions', '[data-host="tray"]', '.puzzle-cards'].map((s) => rect(q(d, s)).top);
   for (let i = 1; i < tops.length; i += 1) {
     assert(tops[i] >= tops[i - 1] - 1, `${i} is below ${i - 1}: ${tops.map(Math.round).join(', ')}`);
   }

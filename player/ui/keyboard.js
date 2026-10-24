@@ -3,25 +3,22 @@
 // play-controller actions and calls `preventDefault` only for keys it handled.
 // Shortcuts stay quiet inside text fields, menus and dialogs.
 
+import { t } from '../i18n.js';
+
 /** @typedef {import('../play.js').createPlayController} CreatePlay */
 /** @typedef {ReturnType<CreatePlay>} Play */
 
-/** Key and action text for the help dialog; mirrors the handler below. @type {readonly (readonly [string, string])[]} */
-export const SHORTCUTS = Object.freeze([
-  ['Tab / Shift+Tab', 'Focus tray pieces, then placed pieces'],
-  ['Enter / Space', 'Pick up the piece, or drop it when the ghost is valid'],
-  ['Arrow keys', 'Move the piece one cell (Shift: three cells)'],
-  ['E or R / Q', 'Rotate clockwise / counter-clockwise on screen'],
-  ['F / V', 'Mirror left-right / top-bottom on screen'],
-  ['Delete / Backspace', 'Return the selected piece to the tray'],
-  ['Escape', 'Cancel the move or close a dialog'],
-  ['Ctrl+Z / ⌘Z', 'Undo'],
-  ['Ctrl+Shift+Z / Ctrl+Y', 'Redo'],
-  ['?', 'Show these shortcuts'],
-  ['Hint / Show solution', 'Toolbar buttons: a hint is a proven statement; Show solution asks first and marks the puzzle revealed'],
-]);
+/** Ids of the shortcut list in the language packs (`keys.<id>.key` and `keys.<id>.action`); mirrors the handler below. */
+const SHORTCUT_IDS = Object.freeze(['tab', 'enter', 'arrows', 'rotate', 'mirror', 'delete', 'escape', 'undo', 'redo', 'help', 'menu', 'assist']);
 
-const IGNORED = 'input, textarea, select, [contenteditable="true"], dialog, [role="dialog"], .menu-panel';
+/**
+ * @returns {readonly (readonly [string, string])[]} Key and action text of the help dialog, in the current language.
+ */
+export function shortcutList() {
+  return SHORTCUT_IDS.map((id) => /** @type {const} */ ([t(`keys.${id}.key`), t(`keys.${id}.action`)]));
+}
+
+const IGNORED = 'input, textarea, select, [contenteditable="true"], dialog, [role="dialog"], [role="menu"]';
 const NATIVE_ACTIVATION = 'button, a, summary, select, input';
 const PIECE = '[data-movable="true"], .tray-piece';
 

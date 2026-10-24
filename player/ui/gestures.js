@@ -23,13 +23,14 @@ const CLICK_GUARD_MS = 450;
  * @property {import('../state.js').PlayerStore} store
  * @property {ReturnType<import('./board-view.js').createBoardView>} boardView
  * @property {HTMLElement} trayHost
+ * @property {HTMLElement} [dropHost] Area where a dropped piece goes back to the tray (the tray itself by default).
  * @property {ReturnType<import('./drag-layer.js').createDragLayer>} dragLayer
  */
 
 /**
  * @param {GestureOptions} options
  */
-export function bindGestures({ win, play, store, boardView, trayHost, dragLayer }) {
+export function bindGestures({ win, play, store, boardView, trayHost, dropHost = trayHost, dragLayer }) {
   /** @type {{ last: PointerInfo, shownT: number } | null} */
   let active = null;
   let lastHandled = -Infinity;
@@ -78,7 +79,7 @@ export function bindGestures({ win, play, store, boardView, trayHost, dragLayer 
     const x = info.clientX;
     const y = info.clientY - lift;
     dragLayer.moveTo(x, y);
-    const overTray = inside(trayHost, info.clientX, info.clientY);
+    const overTray = inside(dropHost, info.clientX, info.clientY);
     const overBoard = !overTray && inside(surface, x, y);
     const local = overBoard ? boardView.view.localPoint(x, y) : null;
     play.dragTo(local === null ? null : [local.x, local.y], overTray);

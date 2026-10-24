@@ -150,7 +150,7 @@ const jsonBlob = (o) => new Blob([typeof o === 'string' ? o : JSON.stringify(o)]
 
 /**
  * @param {{ hash?: string, adapter?: ReturnType<typeof memoryAdapter> | null, createPool?: () => any, coarse?: boolean,
- *   width?: number, height?: number }} [o]
+ *   width?: number, height?: number, preferences?: { setItem: (key: string, value: string) => void } }} [o]
  */
 async function mount(o = {}) {
   const root = document.createElement('div');
@@ -184,6 +184,7 @@ async function mount(o = {}) {
     },
     coarsePointer: o.coarse === true,
     listenHashChange: false,
+    preferenceStorage: o.preferences ?? null,
   });
   await player.ready;
   await frame();
@@ -219,21 +220,21 @@ async function mount(o = {}) {
 }
 
 /** @param {Awaited<ReturnType<typeof mount>>} m */
-const title = (m) => m.q('.top-title').textContent ?? '';
+const title = (m) => m.q('.puzzle-title').textContent ?? '';
 
 await check('link: #pack= opens puzzle 2 with claims, badges and no local data', async () => {
   const m = await mount({ hash: `#pack=${sampleCode}&i=1` });
   equal(m.root.dataset.screen, 'game', 'screen');
   assert(m.visible('.game'), 'game visible');
-  assert(title(m).startsWith('Normal #2 · Claimed Normal · score '), `title ${title(m)}`);
+  assert(title(m) === 'Normal #2', `title ${title(m)}`);
+  assert((m.q('.puzzle-info').textContent ?? '').startsWith('Claimed Normal · score '), `info ${m.q('.puzzle-info').textContent}`);
   equal(m.qa('.tray-piece').length, 9 - sample.puzzles[1].clues.length, 'tray count');
-  equal(m.qa('.pm-clue').length, sample.puzzles[1].clues.length, 'clue pieces');
+  equal(m.qa('.board-host .pm-clue').length, sample.puzzles[1].clues.length, 'clue pieces');
   assert(m.q('.pm-board .pm-svg').getBoundingClientRect().width > 100, 'board drawn');
   equal(m.q('[data-badge="verification"]').textContent, 'Solvable ✓', 'verification');
   equal(m.q('[data-badge="certificate"]').textContent, 'Uniqueness not checked', 'certificate');
   assert(!m.visible('[data-badge="local"]'), 'portable link is not local');
   equal(m.urls.length, 0, 'address untouched on load');
-  m.q('[data-action="menu"]').click();
   m.q('[data-action="next"]').click();
   equal(m.location.hash, `#pack=${sampleCode}&i=2`, 'i updated, code kept');
   equal(m.q('[data-action="next"]').hasAttribute('disabled'), true, 'next disabled at the end');
@@ -250,15 +251,19 @@ await check('no hash and an empty library: Import screen offers the sample and o
   m.player.destroy();
 });
 
-await check('sample: real fetch of player/samples/sample-pack.json, three claimed puzzles in the Pack menu', async () => {
+await check('sample: real fetch of player/samples/sample-pack.json, three claimed puzzles in the puzzle list', async () => {
   const m = await mount();
   m.q('[data-action="sample"]').click();
   await waitFor(() => m.root.dataset.screen === 'game', 'sample game');
-  m.q('[data-action="menu"]').click();
-  const items = m.qa('.menu-puzzle').map((n) => n.textContent ?? '');
-  equal(items.length, 3, 'menu entries');
-  assert(/^#1 · Easy · Claimed Easy · score \d+ · New$/.test(items[0]), items[0]);
-  assert(/Claimed Normal/.test(items[1]) && /Claimed Hard/.test(items[2]), 'levels');
+  const cards = m.qa('.puzzle-card');
+  equal(cards.length, 3, 'cards');
+  const text = (/** @type {HTMLElement} */ card, /** @type {string} */ part) => card.querySelector(part)?.textContent ?? '';
+  equal(text(cards[0], '.card-heading'), 'Easy #1', 'heading');
+  assert(/^Claimed Easy · score \d+$/.test(text(cards[0], '.card-rating')), text(cards[0], '.card-rating'));
+  equal(text(cards[0], '.card-status'), 'New', 'status');
+  assert(/Claimed Normal/.test(text(cards[1], '.card-rating')) && /Claimed Hard/.test(text(cards[2], '.card-rating')), 'levels');
+  assert(cards.every((card) => card.querySelector('.pm-board .pm-svg') !== null), 'every card shows a preview');
+  equal(m.qa('.card-select[aria-current="true"]').length, 1, 'one open puzzle');
   equal(m.qa('.library li').length, 1, 'sample joins recent');
   m.player.destroy();
 });
@@ -378,11 +383,10 @@ await check('malicious title is text everywhere: no element, no script, no CSP v
   m.paste(JSON.stringify(malicious));
   await waitFor(() => m.root.dataset.screen === 'game', 'game');
   assert(title(m).includes(maliciousTitle), 'literal title');
-  m.q('[data-action="menu"]').click();
-  assert(m.qa('.menu-puzzle').every((n) => (n.textContent ?? '').includes('<img')), 'menu shows text');
+  assert(m.qa('.card-heading').every((n) => (n.textContent ?? '').includes('<img')), 'the puzzle list shows text');
   m.q('[data-action="import"]').click();
   assert((m.q('.library-title').textContent ?? '') === maliciousTitle, 'library title');
-  equal(m.root.querySelectorAll('img').length, 0, 'no img element');
+  equal(m.root.querySelectorAll('img:not(.app-logo)').length, 0, 'no img element');
   await new Promise((resolve) => setTimeout(resolve, 100));
   equal(/** @type {any} */ (window).__xss, undefined, 'no script ran');
   m.player.destroy();
@@ -452,7 +456,6 @@ await check('unavailable storage: the puzzle opens, play goes on and one honest 
   const m = await mount({ adapter: /** @type {any} */ (hostile), hash: `#pack=${sampleCode}&i=0` });
   equal(m.root.dataset.screen, 'game', 'game open');
   equal(m.q('[data-badge="storage"]').textContent, SAVE_FAILED_MESSAGE, 'warning');
-  m.q('[data-action="menu"]').click();
   m.q('[data-action="next"]').click();
   assert(title(m).startsWith('Normal #2'), 'navigation works');
   m.player.destroy();
@@ -472,9 +475,9 @@ await check('Continue / Restart after reload; puzzle switching saves progress fi
   const pose = sample.puzzles[0].solution.find((/** @type {any} */ p) => !clued.has(p.piece));
   m.player.store.update({ game: reduce(/** @type {any} */ (s.game), { type: 'place', pose }) });
   equal(m.qa('.tray-piece').length, 9 - sample.puzzles[0].clues.length - 1, 'piece left the tray');
-  m.q('[data-action="menu"]').click();
   m.q('[data-action="next"]').click();
   assert(title(m).startsWith('Normal #2'), 'moved on');
+  equal(m.q('.puzzle-card[data-puzzle-index="0"] .card-status').textContent, 'In progress', 'the list shows the progress that was saved');
   m.player.destroy();
 
   const again = await mount({ adapter });
@@ -494,7 +497,6 @@ await check('Labels, Patterns and Timer are independent device preferences; Patt
   const m = await mount({ adapter });
   m.paste(sampleText);
   await waitFor(() => m.root.dataset.screen === 'game', 'game');
-  m.q('[data-action="menu"]').click();
   assert(m.q('[data-pref="patterns"]').closest('label')?.hidden === true, 'no Patterns switch for 9 pieces');
   m.player.destroy();
 
@@ -502,7 +504,6 @@ await check('Labels, Patterns and Timer are independent device preferences; Patt
   const b = await mount({ adapter });
   b.paste(JSON.stringify(big));
   await waitFor(() => b.root.dataset.screen === 'game', 'big game');
-  b.q('[data-action="menu"]').click();
   assert(b.q('[data-pref="patterns"]').closest('label')?.hidden === false, 'Patterns switch for 21 pieces');
   const labelsOn = () => b.root.querySelector('.board-host .pm-labels')?.getAttribute('display');
   const patternCount = () => b.root.querySelectorAll('.pm-pattern').length;
@@ -517,7 +518,7 @@ await check('Labels, Patterns and Timer are independent device preferences; Patt
   equal(patternCount(), 0, 'patterns hidden');
   assert(labelsOn() !== 'none', 'labels unaffected by Patterns');
   b.q('[data-pref="timer"]').click();
-  assert(b.q('.top-timer').hidden, 'timer hidden');
+  assert(b.q('.game-timer').hidden, 'timer hidden');
   const prefs = JSON.parse(adapter.map.get('pentomino:v1:prefs') ?? '{}');
   assert(prefs.labels === true && prefs.patterns === false && prefs.timer === false, JSON.stringify(prefs));
   b.player.destroy();
@@ -551,13 +552,14 @@ await check('presentation angles 0/45/90/315 load, draw and keep fitting after a
   }
 });
 
-await check('Straighten: top-bar toggle only for touch with small cells; display-only', async () => {
+await check('Straighten: toggle only for touch with small cells; display-only', async () => {
   const rotated = { ...sample, presentation: { rotation: 45 } };
   const hash = `#pack=${await encodeShareCode(validatedValue(rotated))}&i=0`;
-  const mouse = await mount({ hash, width: 320, height: 420 });
+  // 520 px leaves the board column about 170 px, so the cells are small.
+  const mouse = await mount({ hash, width: 520, height: 420 });
   assert(!mouse.visible('[data-action="straighten"]'), 'not offered to a mouse');
   mouse.player.destroy();
-  const touch = await mount({ hash, width: 320, height: 420, coarse: true });
+  const touch = await mount({ hash, width: 520, height: 420, coarse: true });
   assert(touch.visible('[data-action="straighten"]'), 'offered to touch with small cells');
   touch.q('[data-action="straighten"]').click();
   await frame();
@@ -573,25 +575,31 @@ await check('Straighten: top-bar toggle only for touch with small cells; display
 
 await check('layout and accessibility contract of the shell', async () => {
   const m = await mount({ hash: `#pack=${sampleCode}&i=0` });
-  const order = ['menu', 'undo', 'redo', 'reset', 'straighten', 'import'].map((a) => m.q(`.topbar [data-action="${a}"]`));
-  const rest = [m.q('.top-title'), m.q('.top-timer'), m.q('.top-moves')];
-  for (let i = 1; i < order.length; i += 1) {
-    assert(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING, `top bar order at ${i}`);
-  }
-  assert(order[0].compareDocumentPosition(rest[0]) & Node.DOCUMENT_POSITION_FOLLOWING, 'title after menu');
-  assert(rest[2].compareDocumentPosition(order[1]) & Node.DOCUMENT_POSITION_FOLLOWING, 'moves before Undo');
-  for (const button of m.qa('.topbar .pm-btn').filter((b) => b.getClientRects().length > 0)) {
-    assert(button.getBoundingClientRect().height >= 35.5, `target height of ${button.dataset.action}`);
-  }
-  const board = m.q('.board-wrap').getBoundingClientRect();
-  const tray = m.q('.tray-host').getBoundingClientRect();
-  const tool = m.q('.toolbar-host').getBoundingClientRect();
-  if (window.innerWidth >= 900) {
-    assert(tray.left >= board.right - 1, 'tray right of the board');
-    assert(tool.top >= board.bottom - 1, 'toolbar under the board');
+  equal(m.q('.app-header h1').textContent, 'Pentomino Player', 'title');
+  equal(m.qa('.app-header [data-lang]').length, 2, 'language switch');
+  equal(m.qa('.app-header [data-theme-value]').length, 3, 'theme switch');
+  const rect = (/** @type {string} */ sel) => m.q(sel).getBoundingClientRect();
+  const history = rect('.app-history');
+  const main = rect('.app-main');
+  const side = rect('.app-side');
+  if (window.innerWidth >= 1360) {
+    assert(history.right <= main.left + 1 && main.right <= side.left + 1, 'puzzles | game | pieces');
+  } else if (window.innerWidth >= 768) {
+    assert(main.right <= side.left + 1 && history.top >= main.bottom - 1, 'game | pieces, puzzles under the game');
   } else {
-    assert(tool.top >= board.bottom - 1 && tray.top >= tool.bottom - 1, 'board, toolbar, tray from top to bottom');
+    assert(main.bottom <= side.top + 1 && side.bottom <= history.top + 1, 'game, pieces, puzzles from top to bottom');
     equal(getComputedStyle(m.q('.tray-host')).overflowX, 'auto', 'tray scrolls horizontally');
+  }
+  assert(m.q('.app-side').contains(m.q('.tray-host')) && m.q('.app-main').contains(m.q('.board-host')) && m.q('.app-history').contains(m.q('.puzzle-cards')),
+    'each panel holds its content');
+  const tops = ['.step-head', '.game-bar', '.board-wrap', '.toolbar-host'].map((sel) => rect(sel).top);
+  assert(tops.every((top, i) => i === 0 || top > tops[i - 1]), `game panel from top to bottom: ${tops.join(', ')}`);
+  const bar = ['.game-timer', '.game-moves', '[data-action="undo"]', '[data-action="redo"]', '[data-action="reset"]'].map((sel) => m.q(`.game-bar ${sel}`));
+  for (let i = 1; i < bar.length; i += 1) {
+    assert(bar[i - 1].compareDocumentPosition(bar[i]) & Node.DOCUMENT_POSITION_FOLLOWING, `timer, moves, Undo, Redo, Reset in order at ${i}`);
+  }
+  for (const button of m.qa('.game .pm-btn').filter((b) => b.getClientRects().length > 0)) {
+    assert(button.getBoundingClientRect().height >= 35.5, `target height of ${button.dataset.action}`);
   }
   const svg = m.q('.pm-board .pm-svg');
   equal(svg.getAttribute('role'), 'application', 'board role');
@@ -603,6 +611,75 @@ await check('layout and accessibility contract of the shell', async () => {
   assert(m.qa('.tray-piece').every((b) => (b.getAttribute('aria-label') ?? '').includes('in tray')), 'tray names');
   assert(m.qa('.tray-piece').every((b) => b.querySelector('svg')?.getAttribute('aria-hidden') === 'true'), 'tray art hidden from AT');
   m.player.destroy();
+});
+
+await check('puzzle list: a card opens its puzzle and marks it; the open card does not reload; Import hides the game, a card returns', async () => {
+  const m = await mount({ hash: `#pack=${sampleCode}&i=0` });
+  equal(m.qa('.puzzle-card').length, 3, 'one card per puzzle');
+  equal(m.q('.card-select[aria-current="true"]').dataset.index, '0', 'the first puzzle is marked');
+  m.q('.puzzle-card[data-puzzle-index="2"] .card-select').click();
+  equal(title(m), 'Hard #3', 'the card opens its puzzle');
+  equal(m.q('.card-select[aria-current="true"]').dataset.index, '2', 'the mark moved');
+  equal(m.qa('.card-select[aria-current="true"]').length, 1, 'only one card is marked');
+  equal(m.location.hash, `#pack=${sampleCode}&i=2`, 'i updated, code kept');
+  equal(m.q('[data-action="next"]').hasAttribute('disabled'), true, 'next disabled at the end');
+  equal(m.q('[data-action="previous"]').hasAttribute('disabled'), false, 'previous enabled');
+  const open = m.player.store.getState().game;
+  m.q('.puzzle-card[data-puzzle-index="2"] .card-select').click();
+  equal(m.player.store.getState().game, open, 'the open puzzle is not reloaded');
+  m.q('[data-action="import"]').click();
+  equal(m.root.dataset.screen, 'import', 'Import replaces the game panel');
+  assert(m.visible('.puzzle-card'), 'the puzzle list stays');
+  assert(!m.visible('.tray-piece'), 'the pieces are not offered while the game is hidden');
+  assert(m.visible('.tray-empty'), 'the pieces panel explains');
+  m.q('.puzzle-card[data-puzzle-index="2"] .card-select').click();
+  equal(m.root.dataset.screen, 'game', 'the open card returns to the game');
+  equal(m.player.store.getState().game, open, 'with the same game');
+  m.q('.puzzle-card[data-puzzle-index="0"] .card-select').click();
+  equal(title(m), 'Easy #1', 'another card');
+  m.player.destroy();
+});
+
+await check('header: EN | VI changes every text and is remembered; the theme buttons set the theme', async () => {
+  const kept = /** @type {Map<string, string>} */ (new Map());
+  const m = await mount({ hash: `#pack=${sampleCode}&i=1`, preferences: { setItem: (key, value) => void kept.set(key, value) } });
+  try {
+    equal(m.q('.app-header h1').textContent, 'Pentomino Player', 'English title');
+    equal(m.q('[data-lang="en"]').getAttribute('aria-pressed'), 'true', 'English is pressed');
+    const left = m.q('.pieces-left').textContent;
+    m.q('[data-lang="vi"]').click();
+    equal(document.documentElement.lang, 'vi', 'the document language');
+    equal(m.q('.app-header h1').textContent, 'Trình chơi Pentomino', 'Vietnamese title');
+    equal(m.q('[data-lang="vi"]').getAttribute('aria-pressed'), 'true', 'Vietnamese is pressed');
+    equal(m.q('[data-action="undo"]').textContent, 'Hoàn tác', 'a fixed text');
+    equal(m.q('[data-action="next"]').textContent, 'Đề sau', 'a button with an icon');
+    assert((m.q('.puzzle-info').textContent ?? '').startsWith('Khai báo: Trung bình · điểm '), `rating ${m.q('.puzzle-info').textContent}`);
+    equal(m.q('[data-badge="verification"]').textContent, 'Giải được ✓', 'a badge');
+    equal(m.q('.pieces-left').textContent, `Còn ${(left ?? '').split(' ')[0]} mảnh`, 'a counter with a number');
+    equal(m.q('.puzzle-card[data-puzzle-index="0"] .card-status').textContent, 'Mới', 'a card');
+    equal(m.q('.tool-btn[data-action="rotate-cw"]').getAttribute('aria-label'), 'Xoay theo chiều kim đồng hồ', 'an attribute');
+    equal(m.q('[data-host="tray"]').getAttribute('aria-label'), 'Các mảnh chưa đặt', 'the tray label');
+    m.q('[data-action="help"]').click();
+    assert(m.qa('.pm-shortcuts tbody th').some((n) => n.textContent === 'Phím mũi tên'), 'the shortcut list is translated');
+    m.q('.pm-help [data-action="help-close"]').click();
+    m.q('[data-action="import"]').click();
+    equal(m.q('[data-action="sample"]').textContent, 'Thử đề mẫu', 'the import screen');
+    equal(kept.get('pentomino:v1:lang'), 'vi', 'the choice is remembered');
+    m.q('[data-lang="en"]').click();
+    equal(m.q('[data-action="sample"]').textContent, 'Try the sample', 'and back');
+    equal(document.documentElement.lang, 'en', 'the document language is English again');
+
+    m.q('[data-theme-value="dark"]').click();
+    equal(document.documentElement.getAttribute('data-theme'), 'dark', 'dark theme');
+    equal(m.q('[data-theme-value="dark"]').getAttribute('aria-pressed'), 'true', 'dark is pressed');
+    equal(kept.get('pentomino:v1:theme'), 'dark', 'the theme is remembered');
+    m.q('[data-theme-value="high-contrast"]').click();
+    equal(document.documentElement.getAttribute('data-theme'), 'high-contrast', 'high contrast');
+  } finally {
+    document.documentElement.removeAttribute('data-theme');
+    m.q('[data-lang="en"]').click();
+    m.player.destroy();
+  }
 });
 
 await check('no CSP violations and no remote requests', async () => {

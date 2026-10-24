@@ -2,9 +2,9 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { THEMES, effectiveTheme, normalizeTheme } from '../generator/ui/theme.js';
+import { THEMES, effectiveTheme, normalizeTheme } from '../core/browser/theme.js';
 
-const css = readFileSync(new URL('../generator/theme.css', import.meta.url), 'utf8').replace(/\r/g, '');
+const css = readFileSync(new URL('../core/browser/theme.css', import.meta.url), 'utf8').replace(/\r/g, '');
 
 /**
  * @param {string} selector The exact selector text of a rule that only declares tokens.

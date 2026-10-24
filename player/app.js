@@ -1,33 +1,38 @@
 // @ts-check
-// Player: builds the screen, wires the store to the views, and attaches the
-// gestures, keyboard, selection toolbar, timer, saving and the win dialog. All
-// user data is rendered with `textContent`; engine work never runs on this
-// thread except the pure game model.
+// Player: builds the screen (header, puzzle list, game, pieces to place), wires the store to the views, and
+// attaches the gestures, keyboard, selection toolbar, piece menu, timer, saving and the win dialog. All user data is
+// rendered with `textContent`; engine work never runs on this thread except the pure game model.
 
 import { APP_VERSION } from '../core/engine/version.js';
 import { el } from '../core/browser/dom.js';
 import { browserStorage } from '../core/browser/storage.js';
-import { shouldOfferStraighten } from '../core/browser/svg-board.js';
+import { shouldOfferStraighten, svgEl } from '../core/browser/svg-board.js';
 import { createPlayController } from './play.js';
 import { createHintController } from './hints.js';
+import { choose, onChange, setLocale, t } from './i18n.js';
 import { puzzleDisplayName } from './puzzle-title.js';
 import { createPlayerController, createPlayerStore, effectiveRotation } from './state.js';
 import {
   HINT_TEXT, LABELS, certificateLabel, formatElapsed, ratingLabel, verificationLabel,
 } from './strings.js';
 import { createBoardView } from './ui/board-view.js';
+import { createContextMenu } from './ui/context-menu.js';
 import { createConfirmDialog, createHelpDialog } from './ui/dialogs.js';
 import { createDragLayer } from './ui/drag-layer.js';
 import { bindGestures } from './ui/gestures.js';
+import { mountHeader } from './ui/header.js';
 import { createHintPanel } from './ui/hint-panel.js';
+import { loc, locAttrs } from './ui/i18n-dom.js';
 import { createImportView } from './ui/import-view.js';
-import { SHORTCUTS, createKeyboard } from './ui/keyboard.js';
-import { createPackMenu } from './ui/pack-menu.js';
+import { createKeyboard } from './ui/keyboard.js';
+import { createPuzzleList } from './ui/puzzle-list.js';
 import { createToolbar } from './ui/toolbar.js';
 import { createTrayView } from './ui/tray-view.js';
+import { createViewOptions } from './ui/view-options.js';
 import { createWinDialog } from './ui/win-dialog.js';
 
 /** @typedef {import('./state.js').PlayerState} PlayerState */
+/** @typedef {import('./play.js').TransformOp} TransformOp */
 
 const MIN_ZOOM_PX = 14;
 const MAX_ZOOM_PX = 64;
@@ -39,6 +44,7 @@ let instances = 0;
  * Injection points; everything defaults to the browser.
  * @typedef {object} PlayerEnv
  * @property {ReturnType<typeof browserStorage>} [storage]
+ * @property {Pick<Storage, 'setItem'> | null} [preferenceStorage] Keeps the language and theme choices (localStorage by default).
  * @property {{ hash: string, pathname: string, search: string }} [location]
  * @property {{ replaceState: (state: unknown, title: string, url: string) => void }} [history]
  * @property {(url: string) => Promise<string>} [fetchText]
@@ -53,6 +59,25 @@ let instances = 0;
  * @property {boolean} [listenHashChange] Default true: react to the address bar.
  */
 
+/** @returns {Pick<Storage, 'setItem'> | null} */
+function browserPreferences() {
+  try {
+    return globalThis.localStorage ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * @param {'left' | 'right'} side
+ * @returns {SVGElement}
+ */
+const chevron = (side) => svgEl('svg', { class: 'nav-icon', viewBox: '0 0 16 16', 'aria-hidden': 'true', focusable: 'false' },
+  svgEl('path', {
+    d: side === 'left' ? 'M10.5 3 5.5 8l5 5' : 'M5.5 3l5 5-5 5',
+    fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+  }));
+
 /**
  * @param {HTMLElement} root
  * @param {PlayerEnv} [env]
@@ -62,6 +87,9 @@ export function mountPlayer(root, env = {}) {
   const win = /** @type {Window & typeof globalThis} */ (doc.defaultView ?? globalThis);
   instances += 1;
   const helpId = `board-help-${instances}`;
+  const historyId = `heading-history-${instances}`;
+  const titleId = `heading-puzzle-${instances}`;
+  const piecesId = `heading-pieces-${instances}`;
   const storage = env.storage ?? browserStorage();
   const store = createPlayerStore({ prefs: storage.getPrefs() });
   const controller = createPlayerController({
@@ -75,51 +103,80 @@ export function mountPlayer(root, env = {}) {
     download: env.download,
   });
 
-  // Top bar: ☰ Pack ▾ │ title · rating │ timer │ moves │ Undo │ Redo │ Reset │ Straighten │ Import
-  const menuHost = el('div', { className: 'pack-menu' });
-  const title = el('span', { className: 'top-title' });
-  const timer = el('span', { className: 'top-timer', attrs: { role: 'timer', 'aria-label': 'Elapsed time' } });
-  const moves = el('span', { className: 'top-moves' });
+  root.replaceChildren();
+  root.classList.add('player');
+  const header = mountHeader(root, { win, preferences: env.preferenceStorage === undefined ? browserPreferences() : env.preferenceStorage });
+
+  // Left panel: the puzzles of the open pack, and Import.
+  const importButton = /** @type {HTMLButtonElement} */ (loc('ui.import', {
+    className: 'pm-btn', attrs: { type: 'button' }, dataset: { action: 'import' }, on: { click: () => controller.showImport() },
+  }, 'button'));
+  const cardsHost = el('div', { dataset: { slot: 'cards' } });
+  const historyPanel = el('aside', { className: 'app-history panel', attrs: { 'aria-labelledby': historyId } },
+    el('div', { className: 'panel-header' }, loc('puzzles.list', { attrs: { id: historyId } }, 'h2'), importButton),
+    cardsHost);
+
+  // Main panel, game: puzzle name and navigation, trust badges and notices, timer and history buttons, board, selection toolbar.
+  const title = el('h2', { className: 'puzzle-title', attrs: { id: titleId } });
   /**
    * @param {string} action
-   * @param {string} text
+   * @param {string} key
+   * @param {'left' | 'right'} side
+   * @param {() => void} run
    * @returns {HTMLButtonElement}
    */
-  const barButton = (action, text) => /** @type {HTMLButtonElement} */ (el('button', {
-    className: 'pm-btn', text, attrs: { type: 'button' }, dataset: { action },
-  }));
-  const undo = barButton('undo', LABELS.undo);
-  const redo = barButton('redo', LABELS.redo);
-  const reset = barButton('reset', LABELS.reset);
+  const navButton = (action, key, side, run) => /** @type {HTMLButtonElement} */ (el('button', {
+    className: side === 'right' ? 'pm-btn primary' : 'pm-btn', attrs: { type: 'button' }, dataset: { action }, on: { click: () => run() },
+  }, ...(side === 'left' ? [chevron('left'), loc(key)] : [loc(key), chevron('right')])));
+  const previous = navButton('previous', 'ui.previous', 'left', () => controller.previousPuzzle());
+  const next = navButton('next', 'ui.next', 'right', () => controller.nextPuzzle());
+  const stepHead = el('div', { className: 'step-head' }, title,
+    el('div', { className: 'step-actions' }, el('div', { className: 'main-actions', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'puzzles.list' }) } }, previous, next)));
+  const info = el('p', { className: 'step-hint puzzle-info' });
+
+  const timer = el('span', { className: 'game-timer', attrs: { role: 'timer', ...locAttrs({ 'aria-label': 'ui.elapsed' }) } });
+  const moves = el('span', { className: 'game-moves' });
+  /**
+   * @param {string} action
+   * @param {string} key
+   * @returns {HTMLButtonElement}
+   */
+  const barButton = (action, key) => /** @type {HTMLButtonElement} */ (loc(key, {
+    className: 'pm-btn', attrs: { type: 'button' }, dataset: { action },
+  }, 'button'));
+  const undo = barButton('undo', 'ui.undo');
+  const redo = barButton('redo', 'ui.redo');
+  const reset = barButton('reset', 'ui.reset');
   for (const button of [undo, redo, reset]) {
     button.disabled = true;
   }
-  const straighten = barButton('straighten', LABELS.straighten);
-  straighten.hidden = true;
-  straighten.addEventListener('click', () => controller.setPref('straighten', !store.getState().prefs.straighten));
-  const importButton = barButton('import', LABELS.import);
-  importButton.addEventListener('click', () => controller.showImport());
-  const topbar = el('header', { className: 'topbar' }, menuHost, title, timer, moves, undo, redo, reset, straighten, importButton);
+  const straighten = /** @type {HTMLButtonElement} */ (el('button', {
+    className: 'pm-btn', text: LABELS.straighten, attrs: { type: 'button', hidden: '' }, dataset: { action: 'straighten' },
+    on: { click: () => controller.setPref('straighten', !store.getState().prefs.straighten) },
+  }));
+  const gameBar = el('div', { className: 'game-bar' },
+    el('div', { className: 'game-stats' }, timer, moves),
+    el('div', { className: 'game-actions' }, undo, redo, reset, straighten));
 
-  // Status line: restoration notice, Continue / Restart, errors and trust badges.
+  // Status: restoration notice, Continue / Restart, errors, hints and trust badges.
   /**
    * @param {string} action
-   * @param {string} text
+   * @param {string} key
    * @param {() => void} run
    */
-  const statusButton = (action, text, run) => el('button', {
-    className: 'pm-btn', text, attrs: { type: 'button' }, dataset: { action }, on: { click: () => run() },
-  });
+  const statusButton = (action, key, run) => loc(key, {
+    className: 'pm-btn', attrs: { type: 'button' }, dataset: { action }, on: { click: () => run() },
+  }, 'button');
   const errorText = el('span', { className: 'status-text' });
   const errorBox = el('div', { className: 'status-error', attrs: { role: 'alert', hidden: '' } }, errorText,
-    statusButton('dismiss-error', 'Dismiss', () => controller.dismissError()));
+    statusButton('dismiss-error', 'ui.dismiss', () => controller.dismissError()));
   const noticeText = el('span', { className: 'status-text' });
   const noticeBox = el('div', { className: 'status-notice', attrs: { role: 'status', hidden: '' } }, noticeText,
-    statusButton('dismiss-notice', 'Dismiss', () => controller.dismissNotice()));
+    statusButton('dismiss-notice', 'ui.dismiss', () => controller.dismissNotice()));
   const resumeText = el('span', { className: 'status-text' });
-  const resumeBox = el('div', { className: 'status-resume', attrs: { role: 'group', 'aria-label': 'Saved progress', hidden: '' } }, resumeText,
-    statusButton('continue', LABELS.continue, () => controller.resume('continue')),
-    statusButton('restart', LABELS.restart, () => controller.resume('restart')));
+  const resumeBox = el('div', { className: 'status-resume', attrs: { role: 'group', hidden: '', ...locAttrs({ 'aria-label': 'ui.savedProgress' }) } }, resumeText,
+    statusButton('continue', 'ui.continue', () => controller.resume('continue')),
+    statusButton('restart', 'ui.restart', () => controller.resume('restart')));
   const badgeVerification = el('span', { className: 'badge badge-verification', dataset: { badge: 'verification' } });
   const badgeCertificate = el('span', { className: 'badge badge-certificate', dataset: { badge: 'certificate' } });
   const badgeLocal = el('span', { className: 'badge badge-local', dataset: { badge: 'local' } });
@@ -128,31 +185,43 @@ export function mountPlayer(root, env = {}) {
   const hintHost = el('div', { className: 'status-hint-host' });
   const statusHost = el('div', { className: 'status-host', dataset: { host: 'status' } }, errorBox, noticeBox, resumeBox, hintHost, badges);
 
-  // Board and tray.
+  // Board and selection toolbar.
   const boardHost = el('div', { className: 'board-host', dataset: { host: 'board' } });
-  const boardHelp = el('p', { className: 'sr-only', text: LABELS.boardHelp, attrs: { id: helpId } });
+  const boardHelp = loc('ui.boardHelp', { className: 'sr-only', attrs: { id: helpId } }, 'p');
   /**
    * @param {string} action
    * @param {string} text
-   * @param {string} label
+   * @param {string} key
    */
-  const zoomButton = (action, text, label) => el('button', { className: 'pm-btn', text, attrs: { type: 'button', 'aria-label': label }, dataset: { action } });
-  const zoomOut = zoomButton('zoom-out', '−', LABELS.zoomOut);
-  const zoomIn = zoomButton('zoom-in', '+', LABELS.zoomIn);
-  const zoomFit = zoomButton('zoom-fit', '⤢', LABELS.zoomFit);
-  const zoom = el('div', { className: 'board-zoom', attrs: { role: 'group', 'aria-label': 'Zoom' } }, zoomOut, zoomIn, zoomFit);
+  const zoomButton = (action, text, key) => el('button', { className: 'pm-btn', text, attrs: { type: 'button', ...locAttrs({ 'aria-label': key }) }, dataset: { action } });
+  const zoomOut = zoomButton('zoom-out', '−', 'ui.zoomOut');
+  const zoomIn = zoomButton('zoom-in', '+', 'ui.zoomIn');
+  const zoomFit = zoomButton('zoom-fit', '⤢', 'ui.zoomFit');
+  const zoom = el('div', { className: 'board-zoom', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'ui.zoom' }) } }, zoomOut, zoomIn, zoomFit);
   const boardWrap = el('div', { className: 'board-wrap' }, boardHost, boardHelp, zoom);
-  const trayHost = el('div', { className: 'tray-host', dataset: { host: 'tray' }, attrs: { role: 'group', 'aria-label': LABELS.trayLabel } });
   const toolbarHost = el('div', { className: 'toolbar-host', dataset: { host: 'toolbar' } });
   const winHost = el('div', { className: 'win-host', dataset: { host: 'win' } });
-  const live = el('div', { className: 'sr-only live-region', attrs: { 'aria-live': 'polite', 'aria-atomic': 'true' }, dataset: { host: 'live' } });
+  const gameScreen = el('section', { className: 'panel game', attrs: { hidden: '', 'aria-labelledby': titleId } },
+    stepHead, info, statusHost, gameBar, boardWrap, toolbarHost, winHost);
 
-  const gameScreen = el('div', { className: 'game', attrs: { hidden: '' } },
-    el('h1', { className: 'sr-only', text: LABELS.appName }), topbar, statusHost, trayHost, boardWrap, toolbarHost, winHost);
-  const importHost = el('div', { className: 'import-host', dataset: { host: 'import' } });
-  const version = el('p', { className: 'version' }, 'Version ', el('span', { text: APP_VERSION, attrs: { 'data-app-version': '' } }));
-  root.replaceChildren(gameScreen, importHost, version, live);
-  root.classList.add('player');
+  // Main panel, import: opens a puzzle from a link, a file, pasted text, the library or the sample.
+  const importHost = el('section', { className: 'panel import-host', dataset: { host: 'import' } });
+  const version = el('p', { className: 'version' }, loc('shell.version'), ' ', el('span', { text: APP_VERSION, attrs: { 'data-app-version': '' } }));
+
+  // Right panel: the pieces still to place and the view switches.
+  const piecesLeft = el('span', { className: 'pieces-left' });
+  const trayEmpty = el('p', { className: 'hint tray-empty' });
+  const trayHost = el('div', { className: 'tray-host', dataset: { host: 'tray' }, attrs: { role: 'group', ...locAttrs({ 'aria-label': 'ui.trayLabel' }) } });
+  const viewHost = el('div', { className: 'view-host' });
+  const sidePanel = el('aside', { className: 'app-side panel', attrs: { 'aria-labelledby': piecesId } },
+    el('div', { className: 'panel-header' }, loc('pieces.title', { attrs: { id: piecesId } }, 'h2'), piecesLeft),
+    trayEmpty, trayHost, viewHost);
+
+  const live = el('div', { className: 'sr-only live-region', attrs: { 'aria-live': 'polite', 'aria-atomic': 'true' }, dataset: { host: 'live' } });
+  // The page order is the focus order: the pieces to place, then the game, then the puzzles. The grid places them.
+  root.append(
+    el('div', { className: 'app-layout' }, sidePanel, el('main', { className: 'app-main' }, gameScreen, importHost), historyPanel),
+    live);
 
   /** @param {string} message */
   function announce(message) {
@@ -201,7 +270,7 @@ export function mountPlayer(root, env = {}) {
     },
     focus: (pieceId, where) => {
       // A dialog, menu or text field that holds the focus keeps it.
-      if (doc.activeElement?.closest('dialog, .menu-panel, input, textarea, select') != null) {
+      if (doc.activeElement?.closest('dialog, [role="menu"], input, textarea, select') != null) {
         return;
       }
       const node = where === 'board'
@@ -213,6 +282,7 @@ export function mountPlayer(root, env = {}) {
 
   const boardView = createBoardView(boardHost, {
     describedBy: helpId,
+    label: LABELS.boardLabel,
     // Pointer taps on pieces belong to the gesture tracker; only Enter and Space arrive here.
     onPiece: (id, event) => {
       if (event.type === 'keydown') {
@@ -233,7 +303,8 @@ export function mountPlayer(root, env = {}) {
     },
   });
   const dragLayer = createDragLayer(root);
-  const gestures = bindGestures({ win, play, store, boardView, trayHost, dragLayer });
+  // A piece let go anywhere over the pieces panel goes back to the tray.
+  const gestures = bindGestures({ win, play, store, boardView, trayHost, dropHost: sidePanel, dragLayer });
   const hints = createHintController({
     store,
     play,
@@ -274,11 +345,11 @@ export function mountPlayer(root, env = {}) {
         showResults();
     }
   });
-  const helpDialog = createHelpDialog(winHost, SHORTCUTS);
+  const helpDialog = createHelpDialog(winHost);
   const resetDialog = createConfirmDialog(winHost, {
-    title: LABELS.resetTitle,
-    message: LABELS.resetBody,
-    confirmText: LABELS.resetConfirm,
+    titleKey: 'ui.resetTitle',
+    messageKey: 'ui.resetBody',
+    confirmKey: 'ui.resetConfirm',
     onConfirm: () => {
       play.reset();
     },
@@ -322,12 +393,19 @@ export function mountPlayer(root, env = {}) {
       });
     }
   }
-  const menu = createPackMenu(menuHost, {
-    onSelect: (index) => controller.goToPuzzle(index),
-    onPrevious: () => controller.previousPuzzle(),
-    onNext: () => controller.nextPuzzle(),
-    onPref: (name, value) => controller.setPref(name, value),
+
+  const puzzleList = createPuzzleList(cardsHost, {
+    onSelect: (index) => {
+      const state = store.getState();
+      if (index === state.index && state.game !== null) {
+        // The puzzle that is open already: no reload, only back from the import screen.
+        controller.closeImport();
+      } else {
+        controller.goToPuzzle(index);
+      }
+    },
   });
+  const viewOptions = createViewOptions(viewHost, { onPref: (name, value) => controller.setPref(name, value) });
   const importView = createImportView(importHost, {
     onFile: (file) => void controller.importFile(file),
     onText: (text) => void controller.importText(text),
@@ -345,6 +423,68 @@ export function mountPlayer(root, env = {}) {
     },
     onBack: () => controller.closeImport(),
   });
+  importHost.append(version);
+
+  // Piece menu: right-click (or the Menu key, or a long press) on a piece of the tray or a movable one on the board.
+  const pieceMenu = createContextMenu(root);
+  /**
+   * @param {string} id
+   * @param {TransformOp} op
+   */
+  const turn = (id, op) => {
+    play.select(id);
+    play.transform(op);
+  };
+  /**
+   * @param {MouseEvent} event
+   * @param {string} id
+   * @param {'tray' | 'board'} from
+   * @param {Element} target
+   */
+  function openPieceMenu(event, id, from, target) {
+    event.preventDefault();
+    if (store.getState().screen !== 'game' || store.getState().game === null || gestures.isDragging() || !play.select(id)) {
+      return;
+    }
+    const box = target.getBoundingClientRect();
+    // A key-triggered menu has no pointer position: it opens under the piece.
+    const fromKey = event.clientX === 0 && event.clientY === 0;
+    /** @type {import('./ui/context-menu.js').MenuEntry[]} */
+    const entries = [
+      { id: 'rotate-cw', icon: '⟳', label: LABELS.rotateCw, shortcut: 'E', run: () => turn(id, 'cw') },
+      { id: 'rotate-ccw', icon: '⟲', label: LABELS.rotateCcw, shortcut: 'Q', run: () => turn(id, 'ccw') },
+      { id: 'flip-h', icon: '⇋', label: LABELS.flipH, shortcut: 'F', run: () => turn(id, 'flipH') },
+      { id: 'flip-v', icon: '⇵', label: LABELS.flipV, shortcut: 'V', run: () => turn(id, 'flipV') },
+      ...(from === 'board' ? [{
+        id: 'to-tray', icon: '↩', label: LABELS.toTrayLabel, shortcut: 'Del', run: () => {
+          play.select(id);
+          play.returnToTray();
+        },
+      }] : []),
+    ];
+    pieceMenu.open({
+      x: fromKey ? box.left : event.clientX,
+      y: fromKey ? box.bottom : event.clientY,
+      entries,
+      opener: target,
+    });
+  }
+  /** @param {Event} event */
+  const onTrayMenu = (event) => {
+    const target = /** @type {Element | null} */ (/** @type {Element} */ (event.target).closest('.tray-piece'));
+    if (target !== null) {
+      openPieceMenu(/** @type {MouseEvent} */ (event), target.getAttribute('data-piece-id') ?? '', 'tray', target);
+    }
+  };
+  /** @param {Event} event */
+  const onBoardMenu = (event) => {
+    const target = /** @type {Element | null} */ (/** @type {Element} */ (event.target).closest('[data-movable="true"]'));
+    if (target !== null) {
+      openPieceMenu(/** @type {MouseEvent} */ (event), target.getAttribute('data-piece-id') ?? '', 'board', target);
+    }
+  };
+  trayHost.addEventListener('contextmenu', onTrayMenu);
+  boardView.view.surface.addEventListener('contextmenu', onBoardMenu);
 
   // The zoom the player chose survives viewport changes; a new puzzle or Fit starts from the fitted size again.
   let userZoomed = false;
@@ -362,13 +502,13 @@ export function mountPlayer(root, env = {}) {
   });
 
   /** @param {PlayerState} state */
-  function renderTopbar(state) {
+  function renderHeadline(state) {
     const { pack, game: g } = state;
     const puzzle = pack?.puzzles[state.index];
+    title.textContent = puzzle ? puzzleDisplayName(puzzle.title, state.index) : '';
     const rating = puzzle ? ratingLabel(puzzle.rating) : '';
-    const name = puzzleDisplayName(puzzle?.title, state.index);
-    title.textContent = puzzle ? [name, rating].filter((part) => part !== '').join(' · ') : '';
-    title.title = title.textContent;
+    const toPlace = puzzle && pack ? LABELS.toPlace(Math.max(0, pack.pieces.length - puzzle.clues.length)) : '';
+    info.textContent = [rating, toPlace].filter((part) => part !== '').join(' · ');
     timer.textContent = g ? formatElapsed(g.elapsedMs) : '';
     timer.hidden = !state.prefs.timer;
     moves.textContent = g ? LABELS.moves(g.moves) : '';
@@ -376,6 +516,8 @@ export function mountPlayer(root, env = {}) {
     undo.disabled = !g || g.history.length === 0 || busy;
     redo.disabled = !g || g.future.length === 0 || busy;
     reset.disabled = !g || busy || (g.placed.size === 0 && [...g.tray.values()].every((t) => t === 0));
+    previous.disabled = pack === null || state.index <= 0;
+    next.disabled = pack === null || state.index >= pack.puzzles.length - 1;
   }
 
   /** @param {PlayerState} state */
@@ -403,6 +545,16 @@ export function mountPlayer(root, env = {}) {
   /** @param {PlayerState} state */
   function renderToolbar(state) {
     toolbar.render(state);
+  }
+
+  /** @param {PlayerState} state */
+  function renderPieces(state) {
+    const showGame = state.screen === 'game' && state.game !== null;
+    const left = state.game?.tray.size ?? 0;
+    piecesLeft.textContent = showGame ? LABELS.piecesLeft(left) : '';
+    trayHost.hidden = !showGame;
+    trayEmpty.hidden = showGame && left > 0;
+    trayEmpty.textContent = showGame ? t('pieces.allPlaced') : t('pieces.empty');
   }
 
   /**
@@ -459,19 +611,21 @@ export function mountPlayer(root, env = {}) {
     const showGame = state.screen === 'game' && state.game !== null;
     gameScreen.hidden = !showGame;
     importHost.hidden = showGame;
-    version.hidden = showGame;
     root.dataset.screen = showGame ? 'game' : 'import';
     root.setAttribute('aria-busy', String(state.loading));
     importView.render(state);
-    menu.render(state);
+    puzzleList.render(state);
+    viewOptions.render(state);
+    renderPieces(state);
     play.onState(state, previous);
     if (!showGame) {
+      pieceMenu.close(false);
       return;
     }
     if (winDialog.isOpen() && (!state.game?.solved || previous?.index !== state.index || previous.pack !== state.pack)) {
       winDialog.hide();
     }
-    renderTopbar(state);
+    renderHeadline(state);
     renderStatus(state);
     renderToolbar(state);
     hintPanel.render(state);
@@ -484,7 +638,7 @@ export function mountPlayer(root, env = {}) {
     }
     if (previous === null || previous.game === null || previous.pack !== state.pack || previous.index !== state.index) {
       userZoomed = false;
-      announce(`${LABELS.puzzleNumber(state.index + 1)} opened. ${LABELS.piecesLeft(state.game?.tray.size ?? 0)}.`);
+      announce(t('live.opened', { puzzle: LABELS.puzzleNumber(state.index + 1), left: LABELS.piecesLeft(state.game?.tray.size ?? 0) }));
     }
     if (state.error !== null && previous?.error !== state.error) {
       announce(state.error.message);
@@ -498,13 +652,28 @@ export function mountPlayer(root, env = {}) {
   // Ui-only changes (a drag in progress, a keyboard cursor) redraw without a store update.
   const stopPlay = play.subscribe(() => {
     renderSurface();
-    renderTopbar(store.getState());
+    renderHeadline(store.getState());
     renderToolbar(store.getState());
   });
   // Hint results redraw the board marks and the status box without a store update.
   const stopHints = hints.subscribe(() => {
     renderSurface();
     hintPanel.render(store.getState());
+  });
+  // A language switch: texts that the page built itself are written again (the fixed ones follow their key).
+  const stopLanguage = onChange(() => {
+    const state = store.getState();
+    boardView.view.svg.setAttribute('aria-label', LABELS.boardLabel);
+    importView.refresh();
+    puzzleList.render(state);
+    renderPieces(state);
+    renderStraighten();
+    if (state.screen === 'game' && state.game !== null) {
+      renderHeadline(state);
+      renderStatus(state);
+      renderToolbar(state);
+      hintPanel.render(state);
+    }
   });
   render(store.getState(), null);
 
@@ -571,6 +740,8 @@ export function mountPlayer(root, env = {}) {
     helpDialog,
     resetDialog,
     gestures,
+    puzzleList,
+    pieceMenu,
     announce,
     renderStraighten,
     destroy() {
@@ -578,11 +749,13 @@ export function mountPlayer(root, env = {}) {
       unsubscribe();
       stopPlay();
       stopHints();
+      stopLanguage();
       hints.destroy();
       gestures.destroy();
       keyboard.destroy();
       play.destroy();
       dragLayer.destroy();
+      pieceMenu.destroy();
       doc.removeEventListener('visibilitychange', onVisibility);
       observer?.disconnect();
       win.cancelAnimationFrame(frame);
@@ -591,8 +764,10 @@ export function mountPlayer(root, env = {}) {
       controller.destroy();
       boardView.destroy();
       trayView.destroy();
-      menu.destroy();
+      puzzleList.destroy();
+      viewOptions.destroy();
       importView.destroy();
+      header.destroy();
       store.destroy();
       root.replaceChildren();
     },
@@ -601,5 +776,6 @@ export function mountPlayer(root, env = {}) {
 
 const autoRoot = document.querySelector('[data-player-root]');
 if (autoRoot instanceof HTMLElement) {
+  setLocale(choose({ search: globalThis.location?.search }), document);
   mountPlayer(autoRoot);
 }

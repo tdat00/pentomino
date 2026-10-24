@@ -1,10 +1,12 @@
 // @ts-check
 // Modal dialogs of the player: a small shared shell on the native <dialog>
 // (focus trap, Escape and inert page come from the browser), a confirmation and
-// the shortcut help. All text goes in through `textContent`.
+// the shortcut help. All text goes in through `textContent`; fixed texts are marked
+// for translation, so they follow a language switch.
 
 import { el } from '../../core/browser/dom.js';
-import { LABELS } from '../strings.js';
+import { loc } from './i18n-dom.js';
+import { shortcutList } from './keyboard.js';
 
 let dialogCount = 0;
 
@@ -21,13 +23,13 @@ let dialogCount = 0;
 
 /**
  * @param {HTMLElement} host Where the dialog element lives.
- * @param {{ title: string, className?: string }} options
+ * @param {{ titleKey: string, className?: string }} options
  * @returns {Modal}
  */
-export function createModal(host, { title, className = '' }) {
+export function createModal(host, { titleKey, className = '' }) {
   dialogCount += 1;
   const headingId = `pm-dialog-title-${dialogCount}`;
-  const heading = el('h2', { className: 'pm-dialog-title', text: title, attrs: { id: headingId } });
+  const heading = loc(titleKey, { className: 'pm-dialog-title', attrs: { id: headingId } }, 'h2');
   const body = el('div', { className: 'pm-dialog-body' });
   const actions = el('div', { className: 'pm-dialog-actions' });
   const dialog = /** @type {HTMLDialogElement} */ (el('dialog', {
@@ -75,27 +77,27 @@ export function createModal(host, { title, className = '' }) {
 }
 
 /**
- * @param {string} text
+ * @param {string} textKey Key of the button text.
  * @param {() => void} run
  * @param {string} action
  * @returns {HTMLButtonElement}
  */
-export function dialogButton(text, run, action) {
-  return /** @type {HTMLButtonElement} */ (el('button', {
-    className: 'pm-btn', text, attrs: { type: 'button' }, dataset: { action }, on: { click: () => run() },
-  }));
+export function dialogButton(textKey, run, action) {
+  return /** @type {HTMLButtonElement} */ (loc(textKey, {
+    className: 'pm-btn', attrs: { type: 'button' }, dataset: { action }, on: { click: () => run() },
+  }, 'button'));
 }
 
 /**
  * @param {HTMLElement} host
- * @param {{ title: string, message: string, confirmText: string, onConfirm: () => void }} options
+ * @param {{ titleKey: string, messageKey: string, confirmKey: string, onConfirm: () => void }} options
  */
-export function createConfirmDialog(host, { title, message, confirmText, onConfirm }) {
-  const modal = createModal(host, { title, className: 'pm-confirm' });
+export function createConfirmDialog(host, { titleKey, messageKey, confirmKey, onConfirm }) {
+  const modal = createModal(host, { titleKey, className: 'pm-confirm' });
   modal.dialog.setAttribute('role', 'alertdialog');
-  modal.body.append(el('p', { text: message }));
-  const cancel = dialogButton(LABELS.cancel, () => modal.close(), 'confirm-cancel');
-  const confirm = dialogButton(confirmText, () => {
+  modal.body.append(loc(messageKey, {}, 'p'));
+  const cancel = dialogButton('ui.cancel', () => modal.close(), 'confirm-cancel');
+  const confirm = dialogButton(confirmKey, () => {
     modal.close();
     onConfirm();
   }, 'confirm-ok');
@@ -113,18 +115,25 @@ export function createConfirmDialog(host, { title, message, confirmText, onConfi
 
 /**
  * @param {HTMLElement} host
- * @param {readonly (readonly [string, string])[]} shortcuts Key and action text.
  */
-export function createHelpDialog(host, shortcuts) {
-  const modal = createModal(host, { title: LABELS.helpTitle, className: 'pm-help' });
+export function createHelpDialog(host) {
+  const modal = createModal(host, { titleKey: 'ui.helpTitle', className: 'pm-help' });
+  const rows = el('tbody');
   const table = el('table', { className: 'pm-shortcuts' },
-    el('thead', {}, el('tr', {}, el('th', { text: 'Key', attrs: { scope: 'col' } }), el('th', { text: 'Action', attrs: { scope: 'col' } }))),
-    el('tbody', {}, ...shortcuts.map(([key, action]) => el('tr', {}, el('th', { text: key, attrs: { scope: 'row' } }), el('td', { text: action })))));
+    el('thead', {}, el('tr', {}, loc('ui.keyColumn', { attrs: { scope: 'col' } }, 'th'), loc('ui.actionColumn', { attrs: { scope: 'col' } }, 'th'))),
+    rows);
   modal.body.append(table);
-  const close = dialogButton(LABELS.close, () => modal.close(), 'help-close');
+  const close = dialogButton('ui.close', () => modal.close(), 'help-close');
   modal.actions.append(close);
+
+  /** The shortcuts are listed in the current language each time the dialog opens. */
+  function fill() {
+    rows.replaceChildren(...shortcutList().map(([key, action]) => el('tr', {}, el('th', { text: key, attrs: { scope: 'row' } }), el('td', { text: action }))));
+  }
+  fill();
   return {
     open() {
+      fill();
       modal.show();
       close.focus();
     },

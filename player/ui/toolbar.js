@@ -1,21 +1,25 @@
 // @ts-check
 // Selection toolbar: the selected piece, rotate / mirror / place / return
-// buttons that duplicate every keyboard action, and the pieces-left counter.
+// buttons that duplicate every keyboard action, the hint buttons and the help.
 
 import { el } from '../../core/browser/dom.js';
 import { LABELS } from '../strings.js';
+import { loc, locAttrs } from './i18n-dom.js';
 
 /** @typedef {import('../state.js').PlayerState} PlayerState */
 /** @typedef {'rotate-ccw' | 'rotate-cw' | 'flip-h' | 'flip-v' | 'place' | 'to-tray' | 'help' | 'results' | 'hint' | 'reveal'} ToolbarAction */
 
-/** @type {readonly (readonly [ToolbarAction, string, string])[]} */
+/**
+ * Action, glyph (an icon button) or null, text key (a text button) or null, label key.
+ * @type {readonly (readonly [ToolbarAction, string | null, string | null, string])[]}
+ */
 const BUTTONS = Object.freeze([
-  ['rotate-ccw', '⟲', LABELS.rotateCcw],
-  ['rotate-cw', '⟳', LABELS.rotateCw],
-  ['flip-h', '⇋', LABELS.flipH],
-  ['flip-v', '⇵', LABELS.flipV],
-  ['place', LABELS.place, LABELS.place],
-  ['to-tray', LABELS.toTray, LABELS.toTrayLabel],
+  ['rotate-ccw', '⟲', null, 'ui.rotateCcw'],
+  ['rotate-cw', '⟳', null, 'ui.rotateCw'],
+  ['flip-h', '⇋', null, 'ui.flipH'],
+  ['flip-v', '⇵', null, 'ui.flipV'],
+  ['place', null, 'ui.place', 'ui.place'],
+  ['to-tray', null, 'ui.toTray', 'ui.toTrayLabel'],
 ]);
 
 /**
@@ -28,26 +32,29 @@ export function createToolbar(host, onAction) {
   const buttons = new Map();
   /**
    * @param {ToolbarAction} action
-   * @param {string} text
-   * @param {string} label
+   * @param {string | null} glyph
+   * @param {string | null} textKey
+   * @param {string} labelKey
    * @returns {HTMLButtonElement}
    */
-  const make = (action, text, label) => {
-    const button = /** @type {HTMLButtonElement} */ (el('button', {
-      className: 'pm-btn tool-btn', text, attrs: { type: 'button', 'aria-label': label, title: label }, dataset: { action },
+  const make = (action, glyph, textKey, labelKey) => {
+    const props = {
+      className: 'pm-btn tool-btn',
+      attrs: { type: 'button', ...locAttrs({ 'aria-label': labelKey, title: labelKey }) },
+      dataset: { action },
       on: { click: () => onAction(action) },
-    }));
+    };
+    const button = /** @type {HTMLButtonElement} */ (textKey === null ? el('button', { ...props, text: glyph ?? '' }) : loc(textKey, props, 'button'));
     buttons.set(action, button);
     return button;
   };
-  const group = el('div', { className: 'selection-actions', attrs: { role: 'group', 'aria-label': 'Selected piece' } },
-    ...BUTTONS.map(([action, text, label]) => make(action, text, label)));
-  const results = make('results', LABELS.results, LABELS.results);
-  const help = make('help', '?', LABELS.help);
-  const assist = el('div', { className: 'assist-actions', attrs: { role: 'group', 'aria-label': 'Hints' } },
-    make('hint', LABELS.hint, LABELS.hintLabel), make('reveal', LABELS.reveal, LABELS.revealLabel));
-  const left = el('span', { className: 'pieces-left' });
-  host.replaceChildren(info, group, assist, results, help, left);
+  const group = el('div', { className: 'selection-actions', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'ui.selectedGroup' }) } },
+    ...BUTTONS.map(([action, glyph, textKey, labelKey]) => make(action, glyph, textKey, labelKey)));
+  const results = make('results', null, 'ui.results', 'ui.results');
+  const help = make('help', '?', null, 'ui.help');
+  const assist = el('div', { className: 'assist-actions', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'ui.hintsGroup' }) } },
+    make('hint', null, 'ui.hint', 'ui.hintLabel'), make('reveal', null, 'ui.reveal', 'ui.revealLabel'));
+  host.replaceChildren(info, group, assist, results, help);
 
   return {
     /** @param {PlayerState} state */
@@ -60,7 +67,6 @@ export function createToolbar(host, onAction) {
       const piece = g.selected === null ? undefined : pack.pieces.find((p) => p.id === g.selected);
       const solved = g.solved;
       info.textContent = g.revealed && solved ? LABELS.revealedInfo : solved ? LABELS.solvedInfo : piece ? LABELS.selected(piece.label) : LABELS.selectedNone;
-      left.textContent = LABELS.piecesLeft(g.tray.size);
       const placed = piece !== undefined && g.placed.has(piece.id);
       const active = piece !== undefined && !solved;
       for (const [action, button] of buttons) {

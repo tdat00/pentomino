@@ -169,16 +169,18 @@ pentomino/                     repository root = site root /pentomino/
 │  │  └─ engine.worker.js      module worker; runs engine tasks (§8.1)
 │  └─ browser/                 DOM helpers shared by both apps
 │     └─ worker-pool.js  generation-client.js  svg-board.js  pointer.js  storage.js  handoff.js
-│        dom.js  common.css  favicon.svg
+│        dom.js  i18n.js  theme.js  theme-init.js  theme.css  common.css  favicon.svg
 ├─ generator/
 │  ├─ index.html  app.js  state.js  jobs.js  address.js  strings.js  i18n.js
-│  ├─ locale.en.js  locale.vi.js  theme-init.js  theme.css  generator.css
+│  ├─ locale.en.js  locale.vi.js  generator.css
 │  └─ ui/  wizard.js  board-editor.js  board-summary.js  level-panel.js  level-help.js
-│          set-panel.js  set-summary.js  puzzle-panel.js  elapsed.js  i18n-dom.js  theme.js
+│          set-panel.js  set-summary.js  puzzle-panel.js  elapsed.js  i18n-dom.js
 ├─ player/
-│  ├─ index.html  app.js  state.js  play.js  hints.js  puzzle-title.js  strings.js  player.css
-│  ├─ ui/  board-view.js  tray-view.js  drag-layer.js  gestures.js  toolbar.js  keyboard.js
-│  │       import-view.js  pack-menu.js  hint-panel.js  dialogs.js  win-dialog.js
+│  ├─ index.html  app.js  state.js  play.js  hints.js  puzzle-title.js  strings.js  i18n.js
+│  ├─ locale.en.js  locale.vi.js  player.css
+│  ├─ ui/  header.js  puzzle-list.js  board-view.js  tray-view.js  drag-layer.js  gestures.js  toolbar.js
+│  │       view-options.js  context-menu.js  keyboard.js  import-view.js  hint-panel.js  dialogs.js
+│  │       win-dialog.js  i18n-dom.js
 │  └─ samples/sample-pack.json
 ├─ tests/                      node:test suites, browser regression pages and fixtures (never deployed)
 ├─ tools/                      generate.mjs (CLI), calibrate.mjs, bench/ (browser benchmark), serve.mjs,
@@ -530,6 +532,8 @@ export function textColorFor(hex: string): '#000000' | '#ffffff';   // WCAG rela
 | `storage.js` | `get`, `set`, `remove` and `list` under `pentomino:v1:`. Wraps every access in try/catch and evicts LRU entries on quota errors (§9.6). |
 | `handoff.js` | `preparePlayerLink(pack, index)` (portable `#pack=` link, else a same-browser `#lib=` link, else none with a warning), `openInPlayerTab(pack, index)` (the generator's Play: opens the player in a new tab), `readIncoming(location) → Promise<Result<{ pack, index }>>`, `downloadPack(pack, fileName)` |
 | `dom.js` | `h()` element helper, toast, clipboard and download helpers |
+| `i18n.js` | `createI18n({ en, vi })` returns the text lookup of one app: `t(key, args)` (`{name}` placeholders; plural keys `_one` / `_other` chosen by `args.count`; a missing key falls back to English, then to the key), `setLocale(code, doc)` (sets `<html lang>`, translates every `data-i18n` / `data-i18n-attr` element, tells the listeners of `onChange`), `applyTo(root)`, `detect` and `choose` (`?lang=`, saved choice, browser languages, English), `has`, `raw`, `formatNumber`. Each app keeps its own packs (`generator/locale.*.js`, `player/locale.*.js`) and calls it through `generator/i18n.js` and `player/i18n.js`. `LANGUAGE_KEY` is the storage key shared by both pages (§9.6). |
+| `theme.js`, `theme-init.js`, `theme.css` | The theme of both apps: `THEMES`, `normalizeTheme`, `effectiveTheme`, `applyTheme`; the early script that sets the stored theme before the first paint; and the three palettes with the base styles of buttons, inputs and board cells (`tests/theme.test.js` checks their contrast). |
 
 ---
 
@@ -1785,8 +1789,8 @@ Play is allowed while checking, and after an inconclusive check. "Not verified" 
 | `pentomino:v1:lib:<packId>` | Pack JSON (`packId` = first 16 hex of SHA-256 of the canonical core content) | — |
 | `pentomino:v1:progress:<fp>` | Progress record (§5.6) | 300 entries, LRU |
 | `pentomino:v1:prefs` | UI preferences: labels, patterns, timer, Straighten view. A stored `largeBoards` flag is ignored. | 1 entry |
-| `pentomino:v1:lang` | Generator interface language: `en` or `vi` (`?lang=` overrides it for one load) | 1 entry |
-| `pentomino:v1:theme` | Generator theme: `light`, `dark` or `high-contrast`; absent = follow the system's light or dark setting | 1 entry |
+| `pentomino:v1:lang` | Interface language of both apps, which share it: `en` or `vi` (`?lang=` overrides it for one load) | 1 entry |
+| `pentomino:v1:theme` | Theme of both apps: `light`, `dark` or `high-contrast`; absent = follow the system's light or dark setting | 1 entry |
 
 - Every access is wrapped in try/catch.
 - On a quota error:
@@ -1993,17 +1997,34 @@ The step settings live in the query string (`generator/address.js`), so a reload
 
 ### 11.1 Layout
 
+The player has a header and three panels, laid out like the generator's (§10.1):
+
 ```text
-┌ ☰ Pack ▾ │ Hard #2 · score 20 │ ⏱ 03:12 │ 17 moves │ ↶ ↷ │ ⟲ Reset │ ⤢ Straighten │ ⤓ Import ┐
-├──────────────────────── Board (SVG, display rotation θ) ─────────────┬──── Tray (SVG, θ) ──────┤
-│      clues hatched + lock icon; ghost shows the drop position         │  A   B   D   F   …       │
-├───────────────────────────────────────────────────────────────────────┴─────────────────────────┤
-│ Selected: F   [⟲] [⟳] [⇋] [⇵] [Place] [↩ to tray]                          7 pieces left        │
-└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Pentomino Player ─────────────────────────────────────────────────────────────────────────────────── [EN|VI] [☀|☾|◐] ┐
+│ Puzzles        [ Import ] │ Hard #2              [‹ Previous puzzle] [Next puzzle ›] │ Pieces to place  4 left    │
+│ ┌────────────────────┐    │ Claimed Hard · score 20 · 6 pieces to place              │ ┌────┐ ┌────┐              │
+│ │ Hard #2         ▦▦ │    │ [Solvable ✓] [Uniqueness not checked]                    │ │ B  │ │ D  │ right-click: │
+│ │ Claimed Hard…   ▦▦ │    │ 3:12   17 moves                 [Undo] [Redo] [Reset]    │ └────┘ └────┘ piece menu   │
+│ │ 6 pieces to place  │    │ ┌────────────────────────────────────────────────────┐   │ ┌──┐                       │
+│ │ In progress        │    │ │ board (SVG, display rotation θ)       [−] [+] [⤢]  │   │ │ G│                       │
+│ └────────────────────┘    │ └────────────────────────────────────────────────────┘   │ └──┘                       │
+│ ┌ Hard #3 … ┐             │ Selected: F [⟲][⟳][⇋][⇵][Place][↩ to tray] [Hint][?]     │ View ☑ Labels ☑ Timer      │
+└────────────────────────────┴───────────────────────────────────────────────────────────┴─────────────────────────────┘
 ```
 
-- Below 900 px: a compact top bar, then the board, the selection toolbar, and the tray (2 rows, horizontal scroll).
-- Large boards (hundreds of cells, up to ~90 pieces): the board supports zoom and pan (drag on empty board area or two-finger pan), and the tray scrolls.
+- **Header.** Logo, the title (**Pentomino Player** / **Trình chơi Pentomino**), the **EN | VI** buttons and the three theme buttons, with the markup and styles of the generator's header (§11.14).
+- **Puzzles panel** (left). Header "Puzzles" with **Import**; then one card per puzzle of the open pack, in pack order and in the generator's card layout: the name (`puzzleDisplayName`), the claimed level and score (*Claimed Hard · score 20*), "N pieces to place", a progress badge (New, In progress, Solved ✓, Revealed) and a preview of the board with its locked pieces, drawn at the presentation angle. The open puzzle is highlighted (`aria-current`). A card opens its puzzle; the card of the puzzle already open does nothing, except on the Import screen, where it returns to the game. Without a pack the panel says so.
+- **Main panel** (middle). The **game** screen shows:
+  - the name of the puzzle with **‹ Previous puzzle** and **Next puzzle ›** at its top right (disabled at the ends of the pack), and under it the rating claim and the number of pieces to place;
+  - the notices (error, restoration notice, Continue / Restart, hint box) and the badges (solvability check, uniqueness claim, local link, storage warning);
+  - the **game bar**: the timer (hidden when the Timer switch is off), the move count, **Undo**, **Redo**, **Reset** and, only when needed, **Straighten**;
+  - the board with its zoom buttons, and under it the selection toolbar (§11.5) with **Hint**, **Show solution** and **?**.
+
+  The **Import** screen (§11.12) replaces the game screen in this panel.
+- **Pieces panel** (right). Header "Pieces to place" with "N pieces left"; the pieces still to place, each drawn at its current orientation and the display angle; the View switches (§11.9). Without a game it says that the pieces of the open puzzle appear here. Letting go of a dragged piece anywhere over this panel returns it to the tray (§11.3). **Right-click** on a piece opens the piece menu (§11.5).
+- Breakpoints, as in the generator: from 1360 px the three panels are columns (Puzzles | Game | Pieces); from 768 px the Game and Pieces panels are columns and the Puzzles panel goes under the game; below 768 px everything stacks (game, pieces, puzzles), the pieces form two rows that scroll horizontally, and the board is shorter. The board takes the height of the window up to the toolbar (at least 18 rem from 768 px). From 768 px the Pieces panel is sticky and scrolls inside itself; so is the Puzzles panel from 1360 px.
+- The page order is the focus order: pieces, game, puzzles (§11.6). The grid places the panels.
+- Large boards (hundreds of cells, up to ~90 pieces): the board supports zoom and pan (drag on empty board area or two-finger pan), and the pieces panel scrolls.
 - The cell size follows §6.3.
 - The Straighten toggle appears only when needed (touch devices with fitted cells < 24 px).
 
@@ -2062,6 +2083,10 @@ The board state is never mutated during a drag or preview.
 ### 11.5 Rotate and flip
 
 - The toolbar has ⟲ ⟳ ⇋ ⇵ in screen space (§6.3), plus ↩ to return a piece to the tray.
+- **Piece menu.** Right-click on a piece of the pieces panel or on a movable piece of the board opens a small menu at the pointer: **Rotate clockwise** (E), **Rotate counter-clockwise** (Q), **Flip left-right** (F), **Flip top-bottom** (V) and, for a placed piece, **Return to tray** (Delete). The Menu key or Shift+F10 on a focused piece opens it under the piece, and a long press does on touch screens whose browser sends `contextmenu`; locked clues have no menu.
+  - Opening it selects the piece, and every entry does what the toolbar button does, so the rules below apply unchanged.
+  - The first entry has the focus. The arrow keys, Home and End walk the entries (the page's shortcuts stay quiet), Enter or Space runs one, and Escape, Tab, a press elsewhere, a scroll or a resize closes it; the focus goes back to the piece when the menu closes by Escape or by choosing an entry.
+  - The menu is a `role="menu"` of buttons (`role="menuitem"`), kept inside the window.
 - **Tray pieces** re-orient in place.
 - **Placed pieces** rotate or flip about their handle cell. If the result is invalid, the player tries one-cell grid kicks in the order (0, −1), (−1, 0), (1, 0), (0, 1).
   - If none fits, the piece does not change: a 200 ms shake plus "No room to rotate here".
@@ -2071,17 +2096,18 @@ The board state is never mutated during a drag or preview.
 
 | Key | Action |
 |---|---|
-| Tab / Shift+Tab | Move focus over tray pieces, then placed movable pieces |
+| Tab / Shift+Tab | Move focus over the pieces to place, then the controls and placed movable pieces of the game, then the puzzles |
 | Enter / Space | Pick up the focused piece (a ghost appears), or drop it if valid |
 | Arrow keys (Shift = 3 cells) | Move the ghost; on rotated boards, by the mapping of §6.3 |
 | E or R / Q | Rotate ⟳ / ⟲ on screen |
 | F / V | Mirror ⇋ / ⇵ on screen |
 | Delete / Backspace | Return the selected placed piece to the tray |
-| Esc | Cancel the pick-up or close a dialog |
+| Esc | Cancel the pick-up or close a dialog or the piece menu |
 | Ctrl/⌘+Z; Ctrl/⌘+Shift+Z or Ctrl+Y | Undo; redo |
+| Right-click, Menu key or Shift+F10 on a piece | Open the piece menu (§11.5) |
 | ? | Show shortcuts |
 
-Shortcuts are ignored while focus is in a text field or a dialog. Visible buttons duplicate every action.
+Shortcuts are ignored while focus is in a text field, a dialog or the piece menu. Visible buttons duplicate every action.
 
 ### 11.7 Touch
 
@@ -2118,7 +2144,7 @@ Shortcuts are ignored while focus is in a text field or a dialog. Visible button
   - For index ≥ 20, `colorFor(i)` generates colors: hue = (i · 137.508°) mod 360, saturation 65 %, lightness alternating between 45 % and 65 %.
 - **Labels.** `labelFor(i)`: A … Z, then AA, AB, …, AZ, BA, … (spreadsheet-style, ≤ 4 characters). Sets reach about 90 pieces on 676-cell boards.
 - **Patterns** (D30). When K > 20, every piece with index ≥ 20 also gets a fill pattern: `patternFor(i)` cycles dots, horizontal lines and vertical lines by ⌊i / 20⌋. Patterns are drawn at low contrast in the stroke color, never as diagonal hatching (reserved for clues), at every zoom level, subject only to the Patterns toggle.
-- **Display toggles.** Two independent switches in the player's ☰ menu (View section). Both are stored in `pentomino:v1:prefs` (§9.6), and the generator's previews follow the same values.
+- **Display toggles.** Two independent switches and the timer switch, in the **View** box under the pieces. Both are stored in `pentomino:v1:prefs` (§9.6), and the generator's previews follow the same values.
   - **Labels** (default on) shows letters on pieces on the board and in the tray. When on, a label is drawn only where its cell is ≥ 10 CSS px at the current zoom; smaller ones appear once the user zooms in. Accessible names (§11.11) always include the label.
   - **Patterns** (default on; the switch is shown only when K > 20) shows the fill patterns above.
   - Neither switch affects the other: hiding labels never hides patterns, and hiding patterns never hides labels.
@@ -2136,15 +2162,16 @@ Shortcuts are ignored while focus is in a text field or a dialog. Visible button
 ### 11.11 Accessibility (target: WCAG 2.2 AA)
 
 - The board has `role="application"` and instructions linked through `aria-describedby`.
-- Pieces are focusable, with labels such as "Piece F, 5 cells, in tray" or "Piece F, on board at row 3, column 5".
-- An `aria-live="polite"` region announces placements, rejection reasons and the win.
+- Pieces are focusable, with labels such as "Piece F, 5 cells, in tray" or "Piece F, on board at row 3, column 5". These names come from `core/browser/svg-board.js` and stay English in both languages.
+- An `aria-live="polite"` region announces placements, rejection reasons and the win, in the interface language.
+- The document language (`<html lang>`) follows the interface language.
 - Focus rings are always visible, and UI contrast is ≥ 4.5:1. Letters (on by default) and hatching remove any reliance on color.
 - Reduced motion is respected, and the whole game can be completed with the keyboard alone.
 
 ### 11.12 Pack navigation and library
 
-- The **☰ Pack** menu lists the pack's puzzles with level, score and status (new / in progress / solved ✓ / revealed), plus previous/next buttons. Its **View** section holds the Labels, Patterns and Timer switches (§11.9, §11.10).
-- The Import screen lists the library (recent packs). Entries can be deleted or exported again.
+- The **Puzzles panel** (§11.1) lists the pack's puzzles with level, score, number of pieces to place and status (new / in progress / solved ✓ / revealed); **‹ Previous puzzle** and **Next puzzle ›** sit at the top of the game panel. The Labels, Patterns and Timer switches are the View box under the pieces (§11.9, §11.10).
+- The **Import** screen opens in the main panel, over the game, from the **Import** button of the Puzzles panel. It offers a file, a pasted link, share code or JSON, the sample and the library (recent packs). Entries can be deleted or exported again. **Back to puzzle** returns to the game, as does a click on the open puzzle's card.
 - With no hash and an empty library, the player opens the Import screen with the Sample pack.
 
 ### 11.13 Hints and show solution
@@ -2155,6 +2182,13 @@ Hints make only proven statements (D27). There are three outcomes:
 - Otherwise: "No repair identified within this check." Never blame a piece without proof.
 
 **Show solution** uses the stored `solution` if it agrees with the current placements; otherwise it runs a solver. It marks the puzzle "revealed", not "solved".
+
+### 11.14 Language and theme
+
+- **Header.** The same switches as the generator's: **EN | VI** (`aria-pressed` marks the language in use) and the light, dark and high-contrast theme buttons (`core/browser/theme.css`; without a choice the page follows the system's light or dark setting). A choice is kept in `pentomino:v1:lang` and `pentomino:v1:theme` (§9.6), which both apps share. The page start language is `?lang=`, then the saved choice, then the browser languages, then English. `theme-init.js` sets a stored theme before the first paint.
+- **Texts.** `player/locale.en.js` is the base pack (every key) and `player/locale.vi.js` has the same keys and `{placeholders}`; plural forms are `_one` / `_other` keys, and Vietnamese needs only the plain key. A new user-visible text needs a key in both packs (`tests/player-i18n.test.js` checks the keys and placeholders, and that every key used by the code exists).
+- **How texts are read.** `player/strings.js` exposes `LABELS`, `PLAY_TEXT`, `HINT_TEXT`, the verification, certificate and rating labels and the loader messages. Each read looks the text up in the current language, so `state.js`, `play.js` and `hints.js` use them unchanged. Fixed texts of the page are built with `loc()` / `locAttrs()` (`player/ui/i18n-dom.js`), which mark the element with `data-i18n`, so `setLocale` rewrites them; texts that the page computes (the puzzle list, the counters, the badges) are drawn again after a switch. The messages the controllers keep as strings (an error, a notice, a hint message) stay in the language they were made in until the next one.
+- **Not translated.** Text that comes from the data (puzzle titles), from the engine (the issue text of a rejected pack), and the accessible names of pieces ("Piece F, 5 cells, in tray", from `core/browser/svg-board.js`) stay English.
 
 ---
 
@@ -2324,6 +2358,8 @@ Run on desktop Chromium, Firefox and Safari, on Android Chrome and on iOS Safari
 12. A 22×22 Hell-3 pack (≈ 75 pieces) shows labels beyond Z, patterns, a scrolling tray, and stays playable with zoom and pan. Turning Labels off keeps the patterns; turning Patterns off keeps the labels.
 13. The area cap and N-CAP follow the device class (§6.2).
 14. A job that reaches 115 s returns its accepted puzzles by 120 s with reason `time-limit`.
+15. The player's **EN | VI** switch changes every text of the page and survives a reload; the theme buttons change the palette (also on the generator, which shares both choices).
+16. Right-click on a piece of the pieces panel opens the piece menu: rotate both ways, flip both ways. On a placed piece it also offers Return to tray. Escape closes it and the focus returns to the piece.
 
 ### 13.4 Performance and calibration
 

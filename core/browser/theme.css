@@ -1,4 +1,5 @@
-/* tests/generator-theme.test.js computes the contrast of the colour pairs below.
+/* Shared by the Generator and the Player (the `--gen-` prefix is historical).
+   tests/generator-theme.test.js computes the contrast of the colour pairs below.
    Keep the dark palette of the media block identical to the explicit [data-theme="dark"] block. */
 
 :root {

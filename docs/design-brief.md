@@ -46,11 +46,15 @@ Counts vary with the selected level and generated set. Blocking cells changes av
 
 ## Player: solve comfortably
 
+The Player looks like the Generator: a header with the title, the **EN | VI** language switch and the theme buttons (light, dark, high contrast), and three panels. The **puzzles** of the open pack are on the left as cards (name, level and score, pieces to place, progress and a preview); the **game** is in the middle (puzzle name and rating claim, the timer and move count, the board, and the toolbar under it); the **pieces to place** are on the right. Below 1360 px the puzzles move under the game, and on a phone the panels stack.
+
 Open a link, choose a recent puzzle, or **Import** a `.json` file by choosing/dropping it. Invalid imports explain the problem without replacing the game.
 
+- Click a puzzle card to play that puzzle, or use **Previous puzzle** and **Next puzzle**. The timer starts with your first move.
 - Board, tray, and dragged pieces use matching angles; labels stay upright. Zoom, pan, and Straighten view help on small screens.
-- Large boards can use pieces of about 50 squares; the tray scrolls.
+- Large boards can use pieces of about 50 squares; the pieces panel scrolls.
 - Drag a piece, or select it, tap a board cell to preview, then confirm. A highlighted square anchors placement. Invalid drops leave the previous position unchanged.
+- **Right-click a piece** (in the pieces panel or on the board) for a menu: rotate clockwise, rotate counter-clockwise, flip left-right, flip top-bottom, and return to the tray.
 - Mouse, keyboard, and touch support every move. Arrows position; E/Q turn; F/V flip; Enter places. Visible buttons duplicate these actions. Pieces turn in 90° steps even on a diagonal board.
 - Starting pieces stay locked. Move or remove your own pieces, undo/redo, or reset.
 - **Any valid completion wins:** every piece used, every playable square covered, no overlaps. Continue with Next puzzle or Replay.

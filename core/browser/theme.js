@@ -1,6 +1,6 @@
 // @ts-check
-// Theme choice; without one the page follows the system preference. theme-init.js applies the stored choice
-// before the first paint.
+// Theme choice of the Generator and the Player; without one the page follows the system preference. theme-init.js
+// applies the stored choice before the first paint.
 
 /** Shared with the other pages of this site; theme-init.js repeats it. */
 export const THEME_KEY = 'pentomino:v1:theme';

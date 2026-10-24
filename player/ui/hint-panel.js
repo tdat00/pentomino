@@ -6,6 +6,7 @@
 import { el } from '../../core/browser/dom.js';
 import { LABELS } from '../strings.js';
 import { createConfirmDialog } from './dialogs.js';
+import { loc } from './i18n-dom.js';
 
 /** @typedef {import('../state.js').PlayerState} PlayerState */
 /** @typedef {import('../hints.js').HintController} HintController */
@@ -27,40 +28,40 @@ export function createHintPanel(host, { hints, dialogHost, onReplay, hintButton 
   const refocus = () => hintButton?.()?.focus();
   /**
    * @param {string} action
-   * @param {string} text
+   * @param {string} textKey
    * @param {() => void} run
    * @returns {HTMLButtonElement}
    */
-  const button = (action, text, run) => /** @type {HTMLButtonElement} */ (el('button', {
-    className: 'pm-btn', text, attrs: { type: 'button' }, dataset: { action }, on: { click: () => run() },
-  }));
+  const button = (action, textKey, run) => /** @type {HTMLButtonElement} */ (loc(textKey, {
+    className: 'pm-btn', attrs: { type: 'button' }, dataset: { action }, on: { click: () => run() },
+  }, 'button'));
   const text = el('span', { className: 'status-text', dataset: { role: 'hint-text' } });
-  const placeIt = button('hint-place', LABELS.placeIt, () => {
+  const placeIt = button('hint-place', 'ui.placeIt', () => {
     hints.applyHint();
     refocus();
   });
-  const removeIt = button('hint-remove', LABELS.removeIt, () => {
+  const removeIt = button('hint-remove', 'ui.removeIt', () => {
     hints.applyHint();
     refocus();
   });
-  const dismiss = button('hint-dismiss', LABELS.dismiss, () => {
+  const dismiss = button('hint-dismiss', 'ui.dismiss', () => {
     hints.dismiss();
     refocus();
   });
-  const cancel = button('hint-cancel', LABELS.cancelCheck, () => {
+  const cancel = button('hint-cancel', 'ui.cancelCheck', () => {
     hints.cancel();
     refocus();
   });
-  const replay = button('hint-replay', LABELS.replay, () => onReplay());
+  const replay = button('hint-replay', 'ui.replay', () => onReplay());
   const root = el('div', { className: 'status-hint', attrs: { hidden: '' }, dataset: { host: 'hint' } },
     text, placeIt, removeIt, cancel, dismiss, replay);
   host.append(root);
 
   let revealConfirmed = false;
   const revealDialog = createConfirmDialog(dialogHost, {
-    title: LABELS.revealTitle,
-    message: LABELS.revealBody,
-    confirmText: LABELS.revealConfirm,
+    titleKey: 'ui.revealTitle',
+    messageKey: 'ui.revealBody',
+    confirmKey: 'ui.revealConfirm',
     onConfirm: () => {
       revealConfirmed = true;
       void hints.reveal();
@@ -75,9 +76,9 @@ export function createHintPanel(host, { hints, dialogHost, onReplay, hintButton 
   });
   let resetConfirmed = false;
   const resetDialog = createConfirmDialog(dialogHost, {
-    title: LABELS.resetRevealTitle,
-    message: LABELS.resetRevealBody,
-    confirmText: LABELS.resetRevealConfirm,
+    titleKey: 'ui.resetRevealTitle',
+    messageKey: 'ui.resetRevealBody',
+    confirmKey: 'ui.resetRevealConfirm',
     onConfirm: () => {
       resetConfirmed = true;
       void hints.reveal({ replace: true });
