@@ -95,13 +95,13 @@ describe('app shells', () => {
     ['player', 'generator', 'player.css', true],
   ]) {
     test(`${app} shell is independent and CSP-clean${linksToOther ? ` and links to ${other}` : ''}`, () => {
-      const html = readRepo(`${app}\\index.html`);
+      const html = readRepo(`${app}/index.html`);
       assert.ok(html.includes(`content="${appCsp}"`));
       assert.equal(html.includes(`href="../${other}/"`), linksToOther);
       assert.ok(html.includes(`href="./${css}"`));
       assert.ok(html.includes('<script type="module" src="./app.js"></script>'));
       assert.ok(!/<script(?![^>]*\bsrc=)/.test(html));
-      const script = readRepo(`${app}\\app.js`);
+      const script = readRepo(`${app}/app.js`);
       if (app === 'player') {
         assert.ok(script.includes("from '../core/engine/version.js'"));
       }
@@ -139,7 +139,7 @@ describe('project configuration', () => {
   });
 
   test('workflow copies only runtime paths and guards later-task tools', () => {
-    const yml = readRepo('.github\\workflows\\pages.yml');
+    const yml = readRepo('.github/workflows/pages.yml');
     assert.ok(yml.includes('cp index.html redirect.js _site/'));
     assert.ok(yml.includes('cp -r core generator player _site/'));
     assert.ok(yml.includes('if [ -f tools/stamp-version.mjs ]'));
@@ -150,10 +150,12 @@ describe('project configuration', () => {
 });
 
 describe('convention checker', () => {
-  test('rejects BOM, LF-only lines, trailing whitespace, tabs and missing final newline', () => {
+  test('rejects BOM, mixed line endings, trailing whitespace, tabs and missing final newline', () => {
     assert.deepEqual(checkText('ok.js', Buffer.from('const a = 1;\r\n')), []);
+    assert.deepEqual(checkText('ok-lf.js', Buffer.from('const a = 1;\nconst b = 2;\n')), []);
     assert.match(checkText('bom.js', Buffer.from('\uFEFFa\r\n')).join('\n'), /BOM/);
-    assert.match(checkText('lf.js', Buffer.from('a\r\nb\n')).join('\n'), /lf\.js:2: LF-only/);
+    assert.match(checkText('lf.js', Buffer.from('a\r\nb\n')).join('\n'), /lf\.js:2: mixed line endings/);
+    assert.match(checkText('crlf.js', Buffer.from('a\nb\r\n')).join('\n'), /crlf\.js:2: mixed line endings/);
     assert.match(checkText('ws.js', Buffer.from('a \r\n')).join('\n'), /trailing whitespace/);
     assert.match(checkText('tab.js', Buffer.from('\ta\r\n')).join('\n'), /tab indentation/);
     assert.match(checkText('eof.js', Buffer.from('a\r\nb')).join('\n'), /final newline/);
@@ -173,7 +175,7 @@ describe('convention checker', () => {
       writeFileSync(join(root, file), 'x\r\n');
     }
     writeFileSync(join(root, 'core', 'bad.js'), 'a\nb\r\n');
-    assert.deepEqual(checkConventions(root), ['core/bad.js:1: LF-only line ending']);
+    assert.deepEqual(checkConventions(root), ['core/bad.js:2: mixed line endings']);
   });
 
   test('the repository itself conforms', () => {

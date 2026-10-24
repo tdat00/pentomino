@@ -38,7 +38,7 @@ On Windows, `run.cmd [port]` starts the same server (default port 8080) and open
 - Node.js 22 or newer. There is no build step and there are no runtime dependencies.
 - Run all tests: `node --test "tests/**/*.test.js"` (keep the quotes: Node expands the glob itself).
 - Skip the slow tests: `node --test --test-skip-pattern=slow "tests/**/*.test.js"` (`npm run test:quick`).
-- Check repository conventions (UTF-8 without BOM, CRLF, final newline, no trailing whitespace) and the static site references: `npm run check`.
+- Check repository conventions (UTF-8 without BOM, consistent line endings, final newline, no trailing whitespace) and the static site references: `npm run check`.
 - Browser regression pages (not deployed): serve with `npm run serve` and open `http://localhost:8080/pentomino/tests/browser/player-controls.html`, `player-import.html` or `hints.html`; each writes a pass/fail list and `data-summary` on `<html>`.
 - Headless generation: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`. The pack goes to stdout (or `--output`), messages to stderr. Exit codes: `0` complete, which includes a piece set that has fewer arrangements than `--count` and whose arrangements were all found and proven to be all (stderr: `found 6/6 arrangements, the most this piece set allows (complete)`); `2` a valid partial or cancelled pack, including a shortfall that is not proven to be the maximum; `1` no usable result or invalid input.
 - Performance and calibration harnesses (screening evidence only; they never change a qualification gate):

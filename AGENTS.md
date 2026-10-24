@@ -8,5 +8,5 @@
 
 ## Checks
 
-- `npm run check` checks repository conventions (CRLF line endings, no trailing whitespace, final newline) and the site files.
+- `npm run check` checks repository conventions (consistent line endings, no trailing whitespace, final newline) and the site files.
 - `npm run test:quick` runs the unit tests without the slow ones; `npm test` runs all of them.
