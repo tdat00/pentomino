@@ -1,7 +1,6 @@
 // @ts-check
-// Hint panel: the status-line box that shows a running check, a proven hint with
-// Place it / Remove it, the revealed marker with Replay, and the two reveal
-// confirmations. It is only a view; `player\hints.js` decides everything.
+// Hint panel: the box under the game bar that shows a running check, a proven hint with Place it / Remove it, the
+// revealed marker with Replay, and the two reveal confirmations. It is only a view; hints.js decides everything.
 
 import { el } from '../../core/browser/dom.js';
 import { LABELS } from '../strings.js';
@@ -16,7 +15,7 @@ import { loc } from './i18n-dom.js';
  * @property {HintController} hints
  * @property {HTMLElement} dialogHost Where the confirmation dialogs live.
  * @property {() => void} onReplay Starts a fresh, unassisted session of the open puzzle.
- * @property {() => HTMLElement | null | undefined} [hintButton] The toolbar's Hint button: it gets the focus back when a panel button disappears.
+ * @property {() => HTMLElement | null | undefined} [hintButton] Gets the focus back when a panel button disappears.
  */
 
 /**
@@ -108,7 +107,7 @@ export function createHintPanel(host, { hints, dialogHost, onReplay, hintButton 
     cancel.hidden = !working;
     dismiss.hidden = working || hint.message === '' || hint.phase === 'reveal-unsat';
     replay.hidden = !revealed;
-    // The panel sits above the toolbar in the page; a keyboard user who asked from the toolbar is taken to the answer.
+    // A keyboard user who asked from the Hint button is taken to the answer.
     if (hint.phase === 'hint' && lastPhase !== 'hint' && hintButton?.() === dialogHost.ownerDocument.activeElement) {
       (placeIt.hidden ? removeIt : placeIt).focus();
     }
@@ -125,8 +124,5 @@ export function createHintPanel(host, { hints, dialogHost, onReplay, hintButton 
       revealConfirmed = false;
       revealDialog.open();
     },
-    revealDialog,
-    resetDialog,
-    root,
   };
 }

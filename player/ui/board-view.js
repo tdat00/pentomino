@@ -1,8 +1,6 @@
 // @ts-check
-// Board adapter: draws the open game (immutable clues, placed pieces, preview
-// ghost, selected piece and cursor handle) through the shared T16 renderer. It
-// never commits moves; the controller layer of T20 attaches pointer trackers to
-// `surface` and reduces actions on the game.
+// Board view: draws the open game (clues, placed pieces, preview ghost, selection, cursor, keyboard arrows and hint
+// marks) with the shared SVG renderer. It never commits moves.
 
 import { canPlace } from '../../core/engine/game.js';
 import { packBoard } from '../../core/engine/pack.js';
@@ -41,7 +39,6 @@ function boardOf(pack) {
 /**
  * @typedef {object} BoardRenderExtras
  * @property {XY | null} [cursor] Grabbed-handle / keyboard cursor cell.
- * @property {XY[]} [invalidCells]
  * @property {string | null} [hiddenPieceId] Placed piece drawn elsewhere (the drag layer) while it is dragged.
  * @property {{ cell: XY, vectors: { key: string, dx: number, dy: number }[] } | null} [hints]
  *   Grid-axis arrows next to the handle cell during a keyboard move on a rotated board.
@@ -131,15 +128,15 @@ export function createBoardView(host, hooks = {}) {
   }
 
   return {
-    /** The shared T16 view: `surface` for pointer trackers, `cellAt`, `panTo`. */
+    /** The shared SVG view: `surface` for pointer trackers, `cellAt`, `panTo`. */
     view,
     /**
-     * @param {Pick<PlayerState, 'pack' | 'game' | 'prefs'>} state
+     * @param {Pick<PlayerState, 'pack' | 'game'>} state
      * @param {number} angle Effective display angle, counter-clockwise degrees.
      * @param {BoardRenderExtras} [extras]
      */
     render(state, angle, extras = {}) {
-      const { pack, game, prefs } = state;
+      const { pack, game } = state;
       if (pack === null || game === null) {
         return;
       }
@@ -162,9 +159,8 @@ export function createBoardView(host, hooks = {}) {
         preview,
         selectedId: game.selected,
         cursor: extras.cursor ?? null,
-        invalidCells: extras.invalidCells ?? [],
-        showLabels: prefs.labels,
-        showPatterns: prefs.patterns && pack.pieces.length > 20,
+        showLabels: true,
+        showPatterns: true,
       });
       renderHints(extras.hints ?? null, angle);
       renderMarks(extras.hintMarks ?? null);

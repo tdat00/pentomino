@@ -1,7 +1,6 @@
 // @ts-check
-// Player: builds the screen (header, puzzle list, game, pieces to place), wires the store to the views, and
-// attaches the gestures, keyboard, selection toolbar, piece menu, timer, saving and the win dialog. All user data is
-// rendered with `textContent`; engine work never runs on this thread except the pure game model.
+// Player page: builds the header and the three panels and wires the store, the controllers and the views together.
+// User data is only ever rendered with `textContent`; the engine runs in workers, except the pure game model.
 
 import { APP_VERSION } from '../core/engine/version.js';
 import { el } from '../core/browser/dom.js';
@@ -34,7 +33,6 @@ import { createWinDialog } from './ui/win-dialog.js';
 /** @typedef {import('./state.js').PlayerState} PlayerState */
 /** @typedef {import('./play.js').TransformOp} TransformOp */
 
-/** The icon of Replay, on its button and in the board menu. */
 const REPLAY_GLYPH = '↻';
 const MIN_ZOOM_PX = 14;
 const MAX_ZOOM_PX = 64;
@@ -103,7 +101,7 @@ export function mountPlayer(root, env = {}) {
     onHelp: () => helpDialog.open(),
   });
 
-  // Left panel: the puzzles of the open pack, and Remove all.
+  // Left panel: the puzzles of the open pack.
   const removeAllButton = /** @type {HTMLButtonElement} */ (el('button', {
     className: 'ghost-small',
     attrs: { type: 'button', ...locAttrs({ title: 'puzzles.removeAll.title' }) },
@@ -115,7 +113,7 @@ export function mountPlayer(root, env = {}) {
     el('div', { className: 'panel-header' }, loc('puzzles.list', { attrs: { id: historyId } }, 'h2'), removeAllButton),
     cardsHost);
 
-  // Main panel, game: puzzle name, trust badges and notices, timer and history buttons, board, selection toolbar.
+  // Main panel: the game screen, or the import screen when no puzzle is open.
   const title = el('h2', { className: 'puzzle-title', attrs: { id: titleId } });
   const stepHead = el('div', { className: 'step-head' }, title);
   const info = el('p', { className: 'step-hint puzzle-info' });
@@ -157,8 +155,6 @@ export function mountPlayer(root, env = {}) {
     ? svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' }, svgEl('use', { href: `#${icon}` }))
     : icon));
   const hintButton = iconButton('hint', 'ic-hint', 'ui.hintLabel', () => void hints.requestHint());
-  // Replay: a brand-new game of the open puzzle (every piece unplaced, timer and moves at zero); it is asked first.
-  // Its glyph is the one of the board menu's "Replay the puzzle".
   const replayButton = iconButton('replay', REPLAY_GLYPH, 'ui.replayPuzzle', () => replayDialog.open());
   hintButton.disabled = true;
   replayButton.disabled = true;
@@ -170,7 +166,6 @@ export function mountPlayer(root, env = {}) {
     el('div', { className: 'game-stats' }, timer, moves),
     el('div', { className: 'game-actions' }, undo, redo, hintButton, replayButton, straighten));
 
-  // Status: restoration notice, errors, hints and trust badges.
   /**
    * @param {string} action
    * @param {string} key
@@ -193,10 +188,8 @@ export function mountPlayer(root, env = {}) {
   const hintHost = el('div', { className: 'status-hint-host' });
   const statusHost = el('div', { className: 'status-host', dataset: { host: 'status' } }, errorBox, noticeBox, badges);
 
-  // Board and selection toolbar.
   const boardHost = el('div', { className: 'board-host', dataset: { host: 'board' } });
   const boardHelp = loc('ui.boardHelp', { className: 'sr-only', attrs: { id: helpId } }, 'p');
-  // Board tools, as in the generator's board editor: zoom out / in, fit, and the view turned by 45°.
   /**
    * @param {string} action
    * @param {string} text
@@ -218,16 +211,15 @@ export function mountPlayer(root, env = {}) {
   const boardTools = el('div', { className: 'board-tools', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'ui.zoom' }) } },
     zoomOut, zoomIn, zoomFit, viewLeft, viewRight);
   const boardWrap = el('div', { className: 'board-wrap' }, boardHost, boardHelp, boardTools);
-  const toolbarHost = el('div', { className: 'toolbar-host', dataset: { host: 'toolbar' } });
   const winHost = el('div', { className: 'win-host', dataset: { host: 'win' } });
   const gameScreen = el('section', { className: 'panel game', attrs: { hidden: '', 'aria-labelledby': titleId } },
     stepHead, info, statusHost, gameBar, hintHost, boardWrap, winHost);
 
-  // Main panel, import: opens a puzzle from a link, a file, pasted text, the library or the sample.
   const importHost = el('section', { className: 'panel import-host', dataset: { host: 'import' } });
   const version = el('p', { className: 'version' }, loc('shell.version'), ' ', el('span', { text: APP_VERSION, attrs: { 'data-app-version': '' } }));
 
-  // Right panel: the pieces still to place.
+  // Right panel: the selection toolbar and the pieces still to place.
+  const toolbarHost = el('div', { className: 'toolbar-host', dataset: { host: 'toolbar' } });
   const piecesLeft = el('span', { className: 'pieces-left' });
   const trayEmpty = el('p', { className: 'hint tray-empty' });
   const trayHost = el('div', { className: 'tray-host', dataset: { host: 'tray' }, attrs: { role: 'group', ...locAttrs({ 'aria-label': 'ui.trayLabel' }) } });
@@ -268,6 +260,7 @@ export function mountPlayer(root, env = {}) {
       return;
     }
     node.classList.remove(className);
+    // Reading the layout makes the browser see the removal, so the animation starts again.
     void node.offsetWidth;
     node.classList.add(className);
     win.setTimeout(() => node.classList.remove(className), ms);
@@ -436,8 +429,8 @@ export function mountPlayer(root, env = {}) {
   });
   importHost.append(version);
 
-  // Piece menu: right-click (or the Menu key, or a long press) on a piece of the tray or a movable one on the board.
-  // A right-click anywhere on the board also lists the actions of the whole puzzle.
+  // Piece menu: a right-click, the Menu key or a long press on a tray piece or a movable board piece. Elsewhere on
+  // the board it lists only the actions of the whole puzzle.
   const pieceMenu = createContextMenu(root);
   /**
    * @param {string} id
@@ -452,7 +445,8 @@ export function mountPlayer(root, env = {}) {
     const g = store.getState().game;
     return [
       {
-        id: 'unplace-all', icon: '↩', label: LABELS.unplaceAll, danger: true, disabled: g === null || g.placed.size === 0 && [...g.tray.values()].every((t) => t === 0),
+        id: 'unplace-all', icon: '↩', label: LABELS.unplaceAll, danger: true,
+        disabled: g === null || (g.placed.size === 0 && [...g.tray.values()].every((t) => t === 0)),
         run: () => {
           play.reset();
         },
@@ -544,7 +538,6 @@ export function mountPlayer(root, env = {}) {
     const toPlace = puzzle && pack ? LABELS.toPlace(Math.max(0, pack.pieces.length - puzzle.clues.length)) : '';
     setRating(info, puzzle?.rating, toPlace);
     timer.textContent = g ? formatElapsed(g.elapsedMs) : '';
-    timer.hidden = !state.prefs.timer;
     moves.textContent = g ? LABELS.moves(g.moves) : '';
     const busy = play.view().dragging;
     undo.disabled = !g || g.history.length === 0 || busy;
@@ -769,15 +762,7 @@ export function mountPlayer(root, env = {}) {
     play,
     hints,
     hintPanel,
-    toolbar,
     winDialog,
-    helpDialog,
-    replayDialog,
-    gestures,
-    puzzleList,
-    pieceMenu,
-    announce,
-    renderStraighten,
     destroy() {
       play.flush();
       unsubscribe();

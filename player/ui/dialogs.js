@@ -1,8 +1,6 @@
 // @ts-check
-// Modal dialogs of the player: a small shared shell on the native <dialog>
-// (focus trap, Escape and inert page come from the browser), a confirmation and
-// the shortcut help. All text goes in through `textContent`; fixed texts are marked
-// for translation, so they follow a language switch.
+// Modal dialogs of the player on the native <dialog> (focus trap, Escape and inert page come from the browser): a
+// confirmation and the shortcut help. Fixed texts are marked for translation, so they follow a language switch.
 
 import { el } from '../../core/browser/dom.js';
 import { loc } from './i18n-dom.js';
@@ -15,7 +13,6 @@ let dialogCount = 0;
  * @property {HTMLDialogElement} dialog
  * @property {HTMLElement} body
  * @property {HTMLElement} actions
- * @property {HTMLElement} heading
  * @property {() => void} show
  * @property {() => void} close
  * @property {() => boolean} isOpen
@@ -50,7 +47,6 @@ export function createModal(host, { titleKey, className = '' }) {
     dialog,
     body,
     actions,
-    heading,
     show() {
       if (dialog.open) {
         return;
@@ -107,7 +103,6 @@ export function createConfirmDialog(host, { titleKey, messageKey, confirmKey, on
       modal.show();
       cancel.focus();
     },
-    close: () => modal.close(),
     isOpen: modal.isOpen,
     dialog: modal.dialog,
   };
@@ -126,7 +121,7 @@ export function createHelpDialog(host) {
   const close = dialogButton('ui.close', () => modal.close(), 'help-close');
   modal.actions.append(close);
 
-  /** The shortcuts are listed in the current language each time the dialog opens. */
+  /** Lists the shortcuts in the current language. */
   function fill() {
     rows.replaceChildren(...shortcutList().map(([key, action]) => el('tr', {}, el('th', { text: key, attrs: { scope: 'row' } }), el('td', { text: action }))));
   }
@@ -137,8 +132,5 @@ export function createHelpDialog(host) {
       modal.show();
       close.focus();
     },
-    close: () => modal.close(),
-    isOpen: modal.isOpen,
-    dialog: modal.dialog,
   };
 }

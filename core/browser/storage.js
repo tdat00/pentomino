@@ -27,7 +27,6 @@ import { packBoard, parsePack, serializePack, validatePack } from '../engine/pac
  * @typedef {object} LibraryEntry
  * @property {string} packId
  * @property {string} title
- * @property {string} createdAt
  * @property {string} lastOpened
  * @property {number} puzzles
  * @property {number} solved
@@ -36,7 +35,8 @@ import { packBoard, parsePack, serializePack, validatePack } from '../engine/pac
 /**
  * Local progress record, version 2. Version 1 records (written before hints)
  * are still read and come back as version 2 with `revealed` false and
- * `hintsUsed` 0; the stored text is rewritten by the next save.
+ * `hintsUsed` 0; the stored text is rewritten by the next save. Older records
+ * may also carry `updatedAt`, which is ignored: the LRU index keeps save times.
  * @typedef {object} Progress
  * @property {2} v
  * @property {Pose[]} placements
@@ -45,21 +45,18 @@ import { packBoard, parsePack, serializePack, validatePack } from '../engine/pac
  * @property {boolean} solved Geometry only; a revealed game is complete but not earned.
  * @property {boolean} revealed
  * @property {number} hintsUsed
- * @property {number} updatedAt Host milliseconds, stamped on save.
  */
 
 /**
  * What `saveProgress` accepts: version 2, or a version 1 shape without the new fields.
- * @typedef {Omit<Progress, 'v' | 'updatedAt' | 'revealed' | 'hintsUsed'> & { v: 1 | 2, revealed?: boolean, hintsUsed?: number, updatedAt?: number }} ProgressInput
+ * @typedef {Omit<Progress, 'v' | 'revealed' | 'hintsUsed'> & { v: 1 | 2, revealed?: boolean, hintsUsed?: number }} ProgressInput
  */
 
 /**
+ * Older versions also stored `labels`, `patterns`, `timer` and `largeBoards`; they are ignored and dropped by
+ * the next write.
  * @typedef {object} Prefs
- * @property {boolean} labels
- * @property {boolean} patterns
- * @property {boolean} timer
  * @property {boolean} straighten
- * @property {boolean} largeBoards
  */
 
 export const NAMESPACE = 'pentomino:v1:';
@@ -79,7 +76,7 @@ const PACK_ID = /^[0-9a-f]{16}$/;
 const FINGERPRINT = /^[A-Za-z0-9_-]{1,64}$/;
 const MAX_PLACEMENTS = 1024;
 /** @type {Prefs} */
-const DEFAULT_PREFS = Object.freeze({ labels: true, patterns: true, timer: true, straighten: false, largeBoards: false });
+const DEFAULT_PREFS = Object.freeze({ straighten: false });
 const PREF_KEYS = /** @type {(keyof Prefs)[]} */ (Object.keys(DEFAULT_PREFS));
 
 /**
@@ -122,7 +119,7 @@ const isPose = (v) => isRecord(v) && typeof v.piece === 'string' && Number.isInt
 function readProgress(v) {
   if (!isRecord(v) || (v.v !== 1 && v.v !== 2) || !Array.isArray(v.placements) || v.placements.length > MAX_PLACEMENTS
     || !v.placements.every(isPose) || typeof v.elapsedMs !== 'number' || !Number.isFinite(v.elapsedMs) || v.elapsedMs < 0
-    || !isCount(v.moves) || typeof v.solved !== 'boolean' || typeof v.updatedAt !== 'number' || !Number.isFinite(v.updatedAt)) {
+    || !isCount(v.moves) || typeof v.solved !== 'boolean') {
     return null;
   }
   // A version 1 record has neither field; a version 2 record must have both.
@@ -140,7 +137,6 @@ function readProgress(v) {
     solved: v.solved,
     revealed: migrated ? false : /** @type {boolean} */ (v.revealed),
     hintsUsed: migrated ? 0 : /** @type {number} */ (v.hintsUsed),
-    updatedAt: v.updatedAt,
   };
 }
 
@@ -150,13 +146,12 @@ function readProgress(v) {
  */
 function readLibraryEntry(v) {
   if (!isRecord(v) || typeof v.packId !== 'string' || !PACK_ID.test(v.packId) || typeof v.title !== 'string'
-    || typeof v.createdAt !== 'string' || typeof v.lastOpened !== 'string' || !isCount(v.puzzles) || !isCount(v.solved)) {
+    || typeof v.lastOpened !== 'string' || !isCount(v.puzzles) || !isCount(v.solved)) {
     return null;
   }
   return {
     packId: v.packId,
     title: v.title.slice(0, 200),
-    createdAt: v.createdAt,
     lastOpened: v.lastOpened,
     puzzles: /** @type {number} */ (v.puzzles),
     solved: /** @type {number} */ (v.solved),
@@ -568,14 +563,12 @@ export function createStorage(adapter, now) {
     if (!written.ok) {
       return written;
     }
-    const stamp = new Date(now()).toISOString();
     const entries = libraryIndex();
     /** @type {LibraryEntry} */
     const entry = {
       packId: id,
       title: titleOf(checked.value),
-      createdAt: entries.find((e) => e.packId === id)?.createdAt ?? stamp,
-      lastOpened: stamp,
+      lastOpened: new Date(now()).toISOString(),
       puzzles: checked.value.puzzles.length,
       solved: countSolved(checked.value),
     };
@@ -629,13 +622,13 @@ export function createStorage(adapter, now) {
     if (typeof fp !== 'string' || !FINGERPRINT.test(fp)) {
       return invalid('Not a progress fingerprint');
     }
-    const clean = readProgress({ ...value, updatedAt: now() });
+    const clean = readProgress(value);
     if (!clean) {
       return invalid('The progress record is not valid');
     }
     const written = writeRaw(`${KEY_PROGRESS_PREFIX}${fp}`, JSON.stringify(clean));
     const index = readProgressIndex().filter((e) => e.fp !== fp);
-    index.push({ fp, at: clean.updatedAt });
+    index.push({ fp, at: now() });
     index.sort((a, b) => a.at - b.at);
     for (const old of index.splice(0, Math.max(0, index.length - MAX_PROGRESS_ENTRIES))) {
       tryRemove(`${KEY_PROGRESS_PREFIX}${old.fp}`);
@@ -662,6 +655,20 @@ export function createStorage(adapter, now) {
       record('invalid-data', 'Saved progress was damaged and was ignored', key);
     }
     return progress;
+  }
+
+  /**
+   * Forgets the progress of one puzzle: its record and its LRU entry.
+   * @param {string} fp
+   * @returns {StorageResult}
+   */
+  function removeProgress(fp) {
+    if (typeof fp !== 'string' || !FINGERPRINT.test(fp)) {
+      return invalid('Not a progress fingerprint');
+    }
+    const removed = remove(`${KEY_PROGRESS_PREFIX}${fp}`);
+    writeProgressIndex(readProgressIndex().filter((e) => e.fp !== fp));
+    return removed;
   }
 
   /**
@@ -717,6 +724,7 @@ export function createStorage(adapter, now) {
     removeLibraryPack,
     saveProgress,
     loadProgress,
+    removeProgress,
     getPrefs,
     setPrefs,
     getGeneratorState: () => readJson(KEY_GENERATOR),
@@ -775,6 +783,8 @@ const storage = {
   saveProgress: (fp, value) => browserStorage().saveProgress(fp, value),
   /** @type {Storage['loadProgress']} */
   loadProgress: (fp) => browserStorage().loadProgress(fp),
+  /** @type {Storage['removeProgress']} */
+  removeProgress: (fp) => browserStorage().removeProgress(fp),
   getPrefs: () => browserStorage().getPrefs(),
   /** @type {Storage['setPrefs']} */
   setPrefs: (partial) => browserStorage().setPrefs(partial),
@@ -785,7 +795,8 @@ const storage = {
 
 export const {
   get, set, remove, list, lastStorageIssue, clearStorageIssue, libraryIndex, saveLibraryPack, loadLibraryPack,
-  touchLibraryPack, removeLibraryPack, saveProgress, loadProgress, getPrefs, setPrefs, getGeneratorState, setGeneratorState,
+  touchLibraryPack, removeLibraryPack, saveProgress, loadProgress, removeProgress, getPrefs, setPrefs, getGeneratorState,
+  setGeneratorState,
 } = storage;
 
 export default storage;

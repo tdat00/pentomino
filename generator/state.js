@@ -53,7 +53,6 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {Readonly<Record<string, readonly SavedSet[]>>} setsByBoard Saved sets by board: the key is `boardKey(board)`, the list
  *   holds the sets made for that board, newest first. The set on show is not in it.
  * @property {null | JobInfo} job Owned by the job controller; never persisted.
- * @property {{ labels: boolean, patterns: boolean, timer: boolean, straighten: boolean }} prefs
  * @property {number} quantity Puzzles per request, 1-10.
  * @property {string | null} batchLevelId Level of the puzzle row; null follows the level the set was made for.
  * @property {StatusNotice | null} notice Outcome of the last action.
@@ -112,9 +111,6 @@ const FIRST_HELL_INDEX = 7;
 const UNIQUE_STANDARD_AREA = 200;
 const MAX_KEY_LENGTH = 8192;
 
-/** @type {GeneratorState['prefs']} */
-const DEFAULT_VIEW_PREFS =  Object.freeze({ labels: true, patterns: true, timer: true, straighten: false });
-
 /**
  * @param {Partial<GeneratorState>} [overrides]
  * @returns {GeneratorState}
@@ -138,7 +134,6 @@ export function defaultGeneratorState(overrides = {}) {
     seenClues: [],
     setsByBoard: {},
     job: null,
-    prefs: { ...DEFAULT_VIEW_PREFS },
     quantity: DEFAULT_QUANTITY,
     batchLevelId: null,
     notice: null,
@@ -909,7 +904,7 @@ export function serializeState(state) {
  * Restores state from a stored value through the validators. Invalid parts fall back to the
  * defaults individually; nothing here throws.
  * @param {unknown} stored
- * @param {Partial<GeneratorState>} [base] Preferences and other non-stored fields.
+ * @param {Partial<GeneratorState>} [base] Fields that are not stored.
  * @returns {GeneratorState}
  */
 export function restoreState(stored, base = {}) {
@@ -993,37 +988,22 @@ function upgradeSaved(item) {
  * @typedef {object} StorageLike
  * @property {() => unknown} getGeneratorState
  * @property {(snapshot: unknown) => { ok: boolean }} setGeneratorState
- * @property {() => Record<string, boolean>} getPrefs
  */
 
 /**
- * Initial state, preferences first.
+ * Initial state from storage.
  * @param {StorageLike} storage
  * @returns {GeneratorState}
  */
 export function loadGeneratorState(storage) {
-  /** @type {Record<string, boolean>} */
-  let prefs = {};
   /** @type {unknown} */
   let stored = null;
-  try {
-    prefs = storage.getPrefs();
-  } catch {
-    prefs = {};
-  }
   try {
     stored = storage.getGeneratorState();
   } catch {
     stored = null;
   }
-  return restoreState(stored, {
-    prefs: {
-      labels: prefs.labels ?? DEFAULT_VIEW_PREFS.labels,
-      patterns: prefs.patterns ?? DEFAULT_VIEW_PREFS.patterns,
-      timer: prefs.timer ?? DEFAULT_VIEW_PREFS.timer,
-      straighten: prefs.straighten ?? DEFAULT_VIEW_PREFS.straighten,
-    },
-  });
+  return restoreState(stored);
 }
 
 /** @type {ReadonlyArray<keyof GeneratorState>} */

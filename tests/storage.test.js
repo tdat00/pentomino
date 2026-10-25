@@ -109,7 +109,7 @@ test('get/set/remove/list refuse foreign keys and never touch foreign values', (
   assert.deepEqual(store.list(''), []);
   store.saveLibraryPack(pack);
   store.saveProgress('abc123', record());
-  store.setPrefs({ timer: false });
+  store.setPrefs({ straighten: true });
   store.setGeneratorState({ rows: 4 });
   store.getGeneratorState();
   store.loadProgress('abc123');
@@ -149,17 +149,17 @@ test('persistent quota failure keeps working in memory with the user message', (
   }
   fake.mode.alwaysQuota = true;
   fake.log.set.length = 0;
-  const result = store.setPrefs({ timer: false });
+  const result = store.setPrefs({ straighten: true });
   assert.deepEqual(result, { ok: false, code: 'quota', message: SAVE_FAILED_MESSAGE });
   assert.equal(fake.log.set.filter((k) => k === `${NAMESPACE}prefs`).length, 2, 'exactly one retry');
-  assert.equal(store.getPrefs().timer, false, 'still readable from memory');
+  assert.equal(store.getPrefs().straighten, true, 'still readable from memory');
   assert.equal(store.lastStorageIssue()?.message, SAVE_FAILED_MESSAGE);
   assert.equal(store.lastStorageIssue()?.code, 'quota');
   store.clearStorageIssue();
   assert.equal(store.lastStorageIssue(), null);
   const bare = fakeStorage({}, { alwaysQuota: true });
   const empty = createStorage(bare, clock());
-  assert.equal(empty.setPrefs({ labels: false }).ok, false);
+  assert.equal(empty.setPrefs({ straighten: true }).ok, false);
   assert.equal(bare.log.set.length, 1, 'nothing to evict, no pointless retry');
 });
 
@@ -167,11 +167,11 @@ test('denied or missing storage never throws and play continues in memory', () =
   for (const adapter of [fakeStorage({}, { deny: true }), null, undefined]) {
     const store = createStorage(adapter, clock());
     assert.equal(store.get(`${NAMESPACE}prefs`), null);
-    assert.deepEqual(store.getPrefs(), { labels: true, patterns: true, timer: true, straighten: false, largeBoards: false });
-    const written = store.setPrefs({ patterns: false });
+    assert.deepEqual(store.getPrefs(), { straighten: false });
+    const written = store.setPrefs({ straighten: true });
     assert.equal(written.ok, false);
     assert.equal(/** @type {any} */ (written).code, 'storage-unavailable');
-    assert.equal(store.getPrefs().patterns, false);
+    assert.equal(store.getPrefs().straighten, true);
     assert.equal(store.saveProgress('abc', record(true)).ok, false);
     assert.equal(store.loadProgress('abc')?.solved, true);
     assert.equal(store.saveLibraryPack(pack).ok, false);
@@ -226,7 +226,7 @@ test('library: LRU of 30, stale and damaged entries, solved counts', () => {
   assert.equal(store.saveLibraryPack(/** @type {any} */ ({ format: 'nope' })).ok, false);
 });
 
-test('a damaged library index is ignored, not trusted', () => {
+test('a damaged library index is ignored, not trusted; a retired createdAt field is dropped', () => {
   const fake = fakeStorage();
   const store = createStorage(fake, clock());
   fake.data.set(`${NAMESPACE}lib:index`, 'not json');
@@ -235,20 +235,22 @@ test('a damaged library index is ignored, not trusted', () => {
   fake.data.set(`${NAMESPACE}lib:index`, JSON.stringify([{ packId: '../x', title: 1 }, null, 5, {
     packId: '0123456789abcdef', title: 'ok', createdAt: 'a', lastOpened: 'b', puzzles: 1, solved: 0,
   }]));
-  assert.deepEqual(store.libraryIndex().map((e) => e.packId), ['0123456789abcdef']);
+  assert.deepEqual(store.libraryIndex(), [{ packId: '0123456789abcdef', title: 'ok', lastOpened: 'b', puzzles: 1, solved: 0 }]);
 });
 
-test('progress: validation, stamped time, 300-entry LRU and exact-geometry keys', () => {
+test('progress: validation, stamped LRU time, 300-entry LRU and exact-geometry keys', () => {
   const fake = fakeStorage(FOREIGN);
   const now = clock();
   const store = createStorage(fake, now);
   assert.equal(store.saveProgress('abc', /** @type {any} */ ({ ...record(), moves: -1 })).ok, false);
   assert.equal(store.saveProgress('../x', record()).ok, false);
   assert.equal(store.saveProgress('abc', /** @type {any} */ ({ ...record(), placements: [{ piece: 1 }] })).ok, false);
-  assert.ok(store.saveProgress('abc', { ...record(true, 9), updatedAt: 1 }).ok);
+  assert.ok(store.saveProgress('abc', /** @type {any} */ ({ ...record(true, 9), updatedAt: 1 })).ok);
   const loaded = store.loadProgress('abc');
   assert.equal(loaded?.moves, 9);
-  assert.ok((loaded?.updatedAt ?? 0) > Date.UTC(2026, 0, 1), 'stamped from host clock');
+  assert.equal(JSON.parse(fake.data.get(`${NAMESPACE}progress:abc`) ?? '{}').updatedAt, undefined, 'a retired updatedAt is not written');
+  const lru = /** @type {{ fp: string, at: number }[]} */ (store.get(`${NAMESPACE}progress-index`));
+  assert.ok((lru.find((e) => e.fp === 'abc')?.at ?? 0) > Date.UTC(2026, 0, 1), 'the LRU index is stamped from the host clock');
   assert.equal(store.loadProgress('missing'), null);
   assert.equal(store.lastStorageIssue(), null, 'a missing entry is not an error');
   fake.data.set(`${NAMESPACE}progress:bad`, '{"v":2}');
@@ -276,6 +278,20 @@ test('progress: validation, stamped time, 300-entry LRU and exact-geometry keys'
   assert.equal(store.loadProgress(fpB), null, 'same public ID, different geometry: no shared progress');
 });
 
+test('removing progress drops the record and its LRU entry only', () => {
+  const fake = fakeStorage(FOREIGN);
+  const store = createStorage(fake, clock());
+  store.saveProgress('one', record());
+  store.saveProgress('two', record());
+  assert.ok(store.removeProgress('one').ok);
+  assert.equal(store.loadProgress('one'), null);
+  assert.ok(store.loadProgress('two'));
+  const lru = /** @type {{ fp: string }[]} */ (store.get(`${NAMESPACE}progress-index`));
+  assert.deepEqual(lru.map((e) => e.fp), ['two']);
+  assert.equal(store.removeProgress('../x').ok, false);
+  assert.deepEqual(Object.fromEntries([...fake.data].filter(([k]) => !k.startsWith(NAMESPACE))), FOREIGN);
+});
+
 test('a lost progress index is rebuilt from key names only', () => {
   const fake = fakeStorage(FOREIGN);
   const store = createStorage(fake, clock());
@@ -284,24 +300,21 @@ test('a lost progress index is rebuilt from key names only', () => {
   fake.data.delete(`${NAMESPACE}progress-index`);
   fake.log.get.length = 0;
   fake.mode.maxKeys = fake.data.size;
-  assert.equal(store.setPrefs({ labels: false }).ok, false, 'the rewritten index took the freed slot');
+  assert.equal(store.setPrefs({ straighten: true }).ok, false, 'the rewritten index took the freed slot');
   assert.equal(fake.log.remove.filter((k) => k.startsWith(`${NAMESPACE}progress:`)).length, 1, 'rebuilt index let eviction find an LRU entry');
   assert.ok(fake.log.get.every((k) => k.startsWith(NAMESPACE)));
 });
 
-test('preferences default, validate and merge', () => {
-  const fake = fakeStorage();
+test('preferences default, validate, and drop retired fields', () => {
+  const fake = fakeStorage({ [`${NAMESPACE}prefs`]: JSON.stringify({ labels: false, patterns: false, timer: false, largeBoards: true }) });
   const store = createStorage(fake, clock());
-  assert.deepEqual(store.getPrefs(), { labels: true, patterns: true, timer: true, straighten: false, largeBoards: false });
-  assert.ok(store.setPrefs({ timer: false }).ok);
-  assert.ok(store.setPrefs({ straighten: true, labels: /** @type {any} */ ('no'), bogus: true }).ok);
-  assert.deepEqual(store.getPrefs(), { labels: true, patterns: true, timer: false, straighten: true, largeBoards: false });
-  const other = createStorage(fake, clock());
-  other.setPrefs({ largeBoards: true });
-  store.setPrefs({ patterns: false });
-  assert.deepEqual(store.getPrefs(), { labels: true, patterns: false, timer: false, straighten: true, largeBoards: true }, 'no clobbering');
+  assert.deepEqual(store.getPrefs(), { straighten: false }, 'retired fields are ignored');
+  assert.ok(store.setPrefs({ straighten: /** @type {any} */ ('no'), bogus: true }).ok);
+  assert.deepEqual(JSON.parse(fake.data.get(`${NAMESPACE}prefs`) ?? ''), { straighten: false }, 'and dropped by the next write');
+  assert.ok(store.setPrefs({ straighten: true }).ok);
+  assert.equal(createStorage(fake, clock()).getPrefs().straighten, true, 'another instance reads the stored value');
   fake.data.set(`${NAMESPACE}prefs`, '[1,2]');
-  assert.equal(store.getPrefs().timer, true);
+  assert.equal(store.getPrefs().straighten, false);
   assert.equal(store.lastStorageIssue()?.code, 'invalid-data');
 });
 

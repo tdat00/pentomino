@@ -161,7 +161,7 @@ export function mountSetPanel(host, options) {
     emptyText.hidden = set !== null;
     summary.textContent = summarizeSet(state);
     for (const preview of previews) {
-      preview.render({ t: 0, rotation: state.rotation, showLabels: state.prefs.labels, showPatterns: state.prefs.patterns });
+      preview.render({ t: 0, rotation: state.rotation, showLabels: true, showPatterns: true });
     }
     const { index, total: length } = setViewPosition(state);
     // Only the sets of the current board are listed. Remove shows with any set; the navigator and Remove all only
@@ -202,7 +202,7 @@ export function mountSetPanel(host, options) {
   const unsubscribe = store.subscribe((state, previous) => {
     if (state.set !== previous.set || state.rotation !== previous.rotation || state.job !== previous.job
       || state.setPosition !== previous.setPosition || state.setsByBoard !== previous.setsByBoard || state.board !== previous.board
-      || state.prefs !== previous.prefs || state.calibrationFor !== previous.calibrationFor) {
+      || state.calibrationFor !== previous.calibrationFor) {
       render(state);
     }
   });

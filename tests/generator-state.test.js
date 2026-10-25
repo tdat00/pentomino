@@ -31,9 +31,8 @@ const sequence = (values) => {
 
 /**
  * @param {Record<string, unknown>} [stored]
- * @param {Record<string, boolean>} [prefs]
  */
-function fakeStorage(stored = {}, prefs = {}) {
+function fakeStorage(stored = {}) {
   /** @type {{ state: unknown[] }} */
   const writes = { state: [] };
   return {
@@ -48,7 +47,6 @@ function fakeStorage(stored = {}, prefs = {}) {
       writes.state.push(JSON.parse(JSON.stringify(snapshot)));
       return { ok: true };
     },
-    getPrefs: () => prefs,
   };
 }
 
@@ -503,15 +501,14 @@ test('saved sets can become current again', () => {
   assert.equal(readSavedSet(/** @type {any} */ ({ setSeed: 'x' })), null);
 });
 
-test('loading reads the view preferences and the saved state; unknown stored fields are ignored', () => {
+test('loading reads the saved state; unknown stored fields are ignored', () => {
   const dto = { ...serializeState(defaultGeneratorState({ levelId: 'easy' })), largeBoards: true };
-  const loaded = loadGeneratorState(fakeStorage({ state: dto }, { largeBoards: true, labels: false }));
-  assert.deepEqual([loaded.levelId, loaded.prefs.labels, loaded.prefs.timer], ['easy', false, true]);
+  const loaded = loadGeneratorState(fakeStorage({ state: dto }));
+  assert.equal(loaded.levelId, 'easy');
   assert.equal('largeBoards' in loaded, false);
   const broken = loadGeneratorState({
     getGeneratorState: () => { throw new Error('denied'); },
     setGeneratorState: () => ({ ok: false }),
-    getPrefs: () => { throw new Error('denied'); },
   });
   assert.equal(activeCount(broken.board), 60);
 });
@@ -531,8 +528,7 @@ test('persistence debounces by 300 ms and writes only committed state', () => {
   assert.equal(/** @type {any} */ (io.writes.state[0]).levelId, 'hard');
 
   store.update({ job: { requestId: 1, revision: 'r', startedAt: 5 } });
-  store.update({ prefs: { ...store.getState().prefs, labels: false } });
-  assert.equal(timers.pending(), 0, 'jobs and view preferences are not part of the generator state');
+  assert.equal(timers.pending(), 0, 'a job is not part of the generator state');
 
   store.update({ keepSeed: true });
   persistence.flush();

@@ -133,7 +133,7 @@ The main design decisions and why they were taken.
 | D27 | Hints / show solution | Only proven statements | An unproved culprit misleads (A.9). |
 | D28 | Folder layout | `core/engine`, `core/workers`, `core/browser`; tests in `/tests` | Clear layering; tests are never deployed |
 | D29 | Deployment | Actions: test → assemble `_site` → deploy. External `redirect.js`. | CSP-compatible |
-| D30 | Colors and labels | 20-color palette, generated colors beyond 20, labels A…Z, AA, AB, …, and fill patterns when K > 20. Labels and patterns have independent display toggles, both on by default (§11.9). | Sets reach ~90 pieces on large boards. |
+| D30 | Colors and labels | 20-color palette, generated colors beyond 20, labels A…Z, AA, AB, …, and fill patterns when K > 20. Labels and patterns are always drawn; there are no display toggles (§11.9). | Sets reach ~90 pieces on large boards. |
 | D31 | Rotating a placed piece | Rotate about its handle cell and try 4 one-cell kicks; otherwise reject. | Predictable |
 | D32 | Size balance | Sizes in [max(3, ⌊0.6μ⌋), ⌈1.5μ⌉]; ≤ ⌊0.4K⌋ pieces of 3–4 cells; μ ≥ 4.5; exact histogram feasibility. There is no spread or large-piece rule. | Scales with μ (360-cell hard needs 12–34-cell pieces); 40 % keeps the user's 13-piece 60-cell master set possible. |
 | D33 | Set construction | Macro carving when μ ≥ 6.5 (regions of 3–6 pieces; 2–3 when K ≤ 12) with global shape-key exclusion; flat carving otherwise or as a fallback; independent validation of every witness | Flat-carved big-piece sets usually have one arrangement; macro sets gave 10 distinct layouts in both reproductions. |
@@ -179,8 +179,8 @@ pentomino/                     repository root = site root /pentomino/
 │  ├─ index.html  app.js  state.js  play.js  hints.js  puzzle-title.js  strings.js  i18n.js
 │  ├─ locale.en.js  locale.vi.js  player.css
 │  ├─ ui/  header.js  puzzle-list.js  board-view.js  tray-view.js  drag-layer.js  gestures.js  toolbar.js
-│  │       view-options.js  context-menu.js  keyboard.js  import-view.js  hint-panel.js  dialogs.js
-│  │       win-dialog.js  i18n-dom.js
+│  │       context-menu.js  keyboard.js  import-view.js  hint-panel.js  dialogs.js  win-dialog.js
+│  │       rating-dom.js  i18n-dom.js
 │  └─ samples/sample-pack.json
 ├─ tests/                      node:test suites, browser regression pages and fixtures (never deployed)
 ├─ tools/                      generate.mjs (CLI), calibrate.mjs, bench/ (browser benchmark), serve.mjs,
@@ -724,7 +724,10 @@ Copy only whitelisted fields into newly created objects; this prevents prototype
          clues:  [[pieceId, absoluteCellsSortedByYX], …] sorted by pieceId }))
   ```
 
-- **Value:** `{ v: 1, placements: Pose[], elapsedMs, moves, solved, updatedAt }`.
+- **Value:** `{ v: 2, placements: Pose[], elapsedMs, moves, solved, revealed, hintsUsed }`. `solved` is geometry only; a revealed game is complete but not earned (§11.13).
+  - Version 1 records (written before hints) have no `revealed` or `hintsUsed`; they are read as `false` and `0`, and the next save writes version 2.
+  - Older records may carry `updatedAt`; it is ignored and dropped by the next save. The save time lives only in the LRU list `pentomino:v1:progress-index` (§9.6).
+  - **Replay** removes the record and its LRU entry; an untouched game is never written.
 - The fingerprint uses exact coordinates. It never uses symmetry-normalized keys, because saved poses refer to exact cells (counterexample in A.9).
 - Colors, titles, rotation, ratings and ids other than piece ids are excluded.
 - **Restore:** re-validate saved placements one by one with `canPlace`. Drop any invalid one and show a notice.
@@ -1786,10 +1789,11 @@ Play is allowed while checking, and after an inconclusive check. "Not verified" 
 | Key | Content | Limit |
 |---|---|---|
 | `pentomino:v1:gen:state` | Generator state (§10.6): board, rotation, preset, level, seed text and its keep flag, uniqueness, the saved sets of each board and the set on show with its puzzles | 1 entry; ≤ 50 sets per board, 10 boards |
-| `pentomino:v1:lib:index` | `[{ packId, title, createdAt, lastOpened, puzzles, solved }]` | 30 packs, LRU |
+| `pentomino:v1:lib:index` | `[{ packId, title, lastOpened, puzzles, solved }]`, most recently opened first; `title`, `puzzles` and `solved` are cached for the Recent list. A `createdAt` field of older versions is ignored and dropped by the next write. | 30 packs, LRU |
 | `pentomino:v1:lib:<packId>` | Pack JSON (`packId` = first 16 hex of SHA-256 of the canonical core content) | — |
 | `pentomino:v1:progress:<fp>` | Progress record (§5.6) | 300 entries, LRU |
-| `pentomino:v1:prefs` | UI preferences: labels, patterns, timer, Straighten view. A stored `largeBoards` flag is ignored. | 1 entry |
+| `pentomino:v1:progress-index` | LRU list of the progress records, `[{ fp, at }]` with `at` the save time in ms, oldest first; rebuilt from the key names when it is lost | 1 entry |
+| `pentomino:v1:prefs` | `{ straighten }`: the Player's Straighten view. Older `labels`, `patterns`, `timer` and `largeBoards` fields are ignored and dropped by the next write. | 1 entry |
 | `pentomino:v1:lang` | Interface language of both apps, which share it: `en` or `vi` (`?lang=` overrides it for one load) | 1 entry |
 | `pentomino:v1:theme` | Theme of both apps: `light`, `dark` or `high-contrast`; absent = follow the system's light or dark setting | 1 entry |
 
@@ -2002,7 +2006,7 @@ The player has a header and three panels, laid out like the generator's (§10.1)
 ```text
 ┌ Pentomino Player ──────────────────────────────────────────────────────────────────────── [? Help] [EN|VI] [☀|☾|◐] ┐
 │ Puzzles   [ Remove all ] │ Hard #2                                                  │ Pieces to place  4 left    │
-│ ┌────────────────────┐    │ **Hard**: score 20 · 6 pieces to place                       │ Selected: F                │
+│ ┌────────────────────┐    │ **Hard**: score 20 · 6 pieces to place                       │                            │
 │ │ Hard #2         ▦▦ │    │ [Solvable ✓] [Uniqueness not checked]                    │ [⟲][⟳][⇋][⇵]               │
 │ │ **Hard**…       ▦▦ │    │ 3:12   17 moves                [Undo] [Redo] [💡] [↻]     │ ┌────┐ ┌────┐ right-click: │
 │ │ 6 pieces to place  │    │ hint message in small text, with [Place it] [Dismiss]    │ │ B  │ │ D  │ piece menu   │
@@ -2018,17 +2022,17 @@ The player has a header and three panels, laid out like the generator's (§10.1)
 - **Main panel** (middle). The **game** screen shows:
   - the name of the puzzle, and under it the rating (level in bold, no "claimed" prefix) and the number of pieces to place; there are no Previous / Next buttons: the puzzle list opens the puzzles, and the win dialog offers *Next puzzle*;
   - the notices (error, restoration notice) and the badges (solvability check, uniqueness claim, local link, storage warning);
-  - the **game bar**: the timer (hidden when the stored Timer preference is off), the move count, and the buttons **Undo**, **Redo**, **Hint** (an icon, a light bulb) and **Replay** (an icon, a circular arrow) and, only when needed, **Straighten**; the icon buttons are named by their `aria-label` and tooltip. **Replay** asks first, then starts a brand-new game of the puzzle: every piece unplaced, timer and moves at zero, history empty and the saved progress erased; it cannot be undone and is disabled while the puzzle is untouched. The buttons are as big as the generator's **Play** button;
+  - the **game bar**: the timer, the move count, and the buttons **Undo**, **Redo**, **Hint** (an icon, a light bulb) and **Replay** (an icon, a circular arrow) and, only when needed, **Straighten**; the icon buttons are named by their `aria-label` and tooltip. **Replay** asks first, then starts a brand-new game of the puzzle: every piece back in the tray, timer and moves at zero, history empty and the saved progress removed (§5.6); it cannot be undone and is disabled while the puzzle is untouched. The buttons are as big as the generator's **Play** button;
   - under the game bar, the hint message (small regular text, with **Place it** / **Remove it**, **Cancel** and **Dismiss** buttons smaller than the game bar's);
-  - the board with its zoom, fit and view-rotation buttons at its top right (as in the generator's board editor; the view angle is local to the open pack and never saved). The selection toolbar (§11.5) is not here but in the Pieces panel. There are no Place, To tray or Show solution buttons: a ghost is committed with a second tap on its cell or Enter, a piece goes back to the tray with Delete or the piece menu, and the reveal action has no button. The keyboard shortcuts list is the **Help** button of the page header (with `?` on the keyboard).
+  - the board with its zoom, fit and view-rotation buttons at its top right (as in the generator's board editor: small 28 px buttons; the view angle is local to the open pack and never saved). The selection toolbar (§11.5) is not here but in the Pieces panel. There are no Place, To tray or Show solution buttons: a ghost is committed with a second tap on its cell or Enter, a piece goes back to the tray with Delete or the piece menu, and the reveal action has no button. The keyboard shortcuts list is the **Help** button of the page header (with `?` on the keyboard).
 
   The **Import** screen (§11.12) replaces the game screen in this panel.
-- **Pieces panel** (right). Header "Pieces to place" with "N pieces left"; under it the selection toolbar (the selected piece, then ⟲ ⟳ ⇋ ⇵; shown while a puzzle is open) and then the pieces still to place, each drawn at its current orientation and the display angle. There is no View box: Labels, Patterns and Timer use the stored preferences (§11.9). Without a game it says that the pieces of the open puzzle appear here. Letting go of a dragged piece anywhere over this panel returns it to the tray (§11.3). **Right-click** on a piece opens the piece menu (§11.5).
+- **Pieces panel** (right). Header "Pieces to place" with "N pieces left"; under it the selection toolbar (⟲ ⟳ ⇋ ⇵ for the selected piece, and **Results** after an earned win; shown while a puzzle is open) and then the pieces still to place, each drawn at its current orientation and the display angle. There is no View box: labels, patterns and the timer always show (§11.9). Without a game it says that the pieces of the open puzzle appear here. Letting go of a dragged piece anywhere over this panel returns it to the tray (§11.3). **Right-click** on a piece opens the piece menu (§11.5).
 - Breakpoints, as in the generator: from 1360 px the three panels are columns (Puzzles | Game | Pieces); from 768 px the Game and Pieces panels are columns and the Puzzles panel goes under the game; below 768 px everything stacks (game, pieces, puzzles), the pieces form two rows that scroll horizontally, and the board is shorter. The board takes the height of the window up to the toolbar (at least 18 rem from 768 px). From 768 px the Pieces panel is sticky and scrolls inside itself; so is the Puzzles panel from 1360 px.
 - The page order is the focus order: pieces, game, puzzles (§11.6). The grid places the panels.
 - Large boards (hundreds of cells, up to ~90 pieces): the board supports zoom and pan (drag on empty board area or two-finger pan), and the pieces panel scrolls.
 - The cell size follows §6.3.
-- The Straighten toggle appears only when needed (touch devices with fitted cells < 24 px).
+- The Straighten toggle appears only when needed (touch devices with fitted cells < 24 px). Its state is the only stored preference (§9.6).
 
 ### 11.2 Game state and rules
 
@@ -2038,8 +2042,13 @@ type GameState = {
   placed: ReadonlyMap<string, Pose>;   // user-placed pieces only; clues are separate and immutable
   tray: ReadonlyMap<string, number>;   // orientation t of each unplaced piece
   selected: string | null; preview: Pose | null;
-  history: readonly Move[]; future: readonly Move[];   // Move = { piece, before: Pose|null, after: Pose|null, tBefore, tAfter }
-  solved: boolean; elapsedMs: number; moves: number;
+  history: readonly MoveCommand[]; future: readonly MoveCommand[];
+  // MoveCommand = { kind: 'piece', piece, before: Pose|null, after: Pose|null, tBefore, tAfter }
+  //             | { kind: 'reset', before, after }   (every movable placement and tray orientation)
+  solved: boolean;                     // geometry only: a complete cover
+  revealed: boolean; hintsUsed: number;   // §11.13
+  elapsedMs: number; moves: number;
+  restoreWarnings: Issue[];            // saved moves dropped on restore; never saved
 };
 ```
 
@@ -2086,7 +2095,7 @@ The board state is never mutated during a drag or preview.
 
 - The toolbar has ⟲ ⟳ ⇋ ⇵ in screen space (§6.3). A piece returns to the tray with Delete or Backspace, the piece menu, or a drop over the pieces panel; there is no button for it.
 - **Piece menu.** Right-click on a piece of the pieces panel or on a movable piece of the board opens a small menu at the pointer: **Rotate clockwise** (E), **Rotate counter-clockwise** (Q), **Flip left-right** (F), **Flip top-bottom** (V) and, for a placed piece, **Return to tray** (Delete) followed by the two puzzle actions below. The Menu key or Shift+F10 on a focused piece opens it under the piece, and a long press does on touch screens whose browser sends `contextmenu`.
-- **Board menu.** Right-click anywhere else on the board (empty cells, outside the board shape, a locked clue) opens the same kind of menu with only the puzzle actions: **Unplace all pieces** (every placed piece goes back to the tray as one undoable action, as the board menu's Unplace all does; disabled when there is nothing to undo) and **Replay the puzzle** (asks first; clears the board, the timer, the moves and the saved progress of this puzzle, which cannot be undone; disabled while the puzzle is untouched).
+- **Board menu.** Right-click anywhere else on the board (empty cells, outside the board shape, a locked clue) opens the same kind of menu with only the puzzle actions: **Return all pieces to the tray** (every placed piece goes back to the tray, and every turned tray piece to its first orientation, as one undoable action; disabled when there is nothing to return) and **Replay the puzzle** (asks first; clears the board, the timer, the moves and the saved progress of this puzzle, which cannot be undone; disabled while the puzzle is untouched).
   - Opening it selects the piece, and every entry does what the toolbar button does, so the rules below apply unchanged.
   - The first entry has the focus. The arrow keys, Home and End walk the entries (the page's shortcuts stay quiet), Enter or Space runs one, and Escape, Tab, a press elsewhere, a scroll or a resize closes it; the focus goes back to the piece when the menu closes by Escape or by choosing an entry.
   - The menu is a `role="menu"` of buttons (`role="menuitem"`), kept inside the window.
@@ -2103,19 +2112,19 @@ The board state is never mutated during a drag or preview.
 | Enter / Space | Pick up the focused piece (a ghost appears), or drop it if valid |
 | Arrow keys (Shift = 3 cells) | Move the ghost; on rotated boards, by the mapping of §6.3 |
 | E or R / Q | Rotate ⟳ / ⟲ on screen |
-| F / V | Mirror ⇋ / ⇵ on screen |
+| F / V | Flip ⇋ / ⇵ on screen |
 | Delete / Backspace | Return the selected placed piece to the tray |
 | Esc | Cancel the pick-up or close a dialog or the piece menu |
 | Ctrl/⌘+Z; Ctrl/⌘+Shift+Z or Ctrl+Y | Undo; redo |
 | Right-click, Menu key or Shift+F10 on a piece | Open the piece menu (§11.5) |
 | ? | Show shortcuts |
 
-Shortcuts are ignored while focus is in a text field, a dialog or the piece menu. Visible buttons duplicate every action.
+Shortcuts are ignored while focus is in a text field, a dialog or the piece menu. The buttons of the selection toolbar also rotate and flip, and the piece menu also returns a piece to the tray. The **Help** dialog lists the rows of this table in the interface language.
 
 ### 11.7 Touch
 
 - `touch-action: none` applies only to the board and tray surfaces, so the page still scrolls elsewhere.
-- Hit targets are ≥ 44 × 44 CSS px.
+- Hit targets are ≥ 44 × 44 CSS px, except the board tools, which are 28 px as in the generator's board editor (still above the 24 px of WCAG 2.2 AA).
 - The lift is 1.25 cells, measured in screen space.
 - No long-press gestures.
 - Optional `navigator.vibrate(10)` on a successful placement.
@@ -2140,25 +2149,21 @@ Shortcuts are ignored while focus is in a text field, a dialog or the piece menu
 - **Pieces.**
   - One SVG `<path>` per outline (`outlineLoops`, even-odd fill for holes), filled with the piece color.
   - A darker stroke (35 % black mix) and faint inner cell seams.
-  - An upright label on the cell nearest the centroid, colored with `textColorFor`, subject to the Labels toggle (see **Display toggles** below).
+  - An upright label on the cell nearest the centroid, colored with `textColorFor`, drawn when its cell is large enough (see **Labels** below).
 - **Clues.** A diagonal-hatch overlay and a lock icon. Clues are neither focusable nor draggable.
 - **Palette** (`BASE_COLORS`, Trubetskoy's 20 distinct colors, used in id order):
   `#e6194b #3cb44b #ffe119 #4363d8 #f58231 #911eb4 #42d4f4 #f032e6 #bfef45 #fabed4 #469990 #dcbeff #9a6324 #fffac8 #800000 #aaffc3 #808000 #ffd8b1 #000075 #a9a9a9`.
   - For index ≥ 20, `colorFor(i)` generates colors: hue = (i · 137.508°) mod 360, saturation 65 %, lightness alternating between 45 % and 65 %.
-- **Labels.** `labelFor(i)`: A … Z, then AA, AB, …, AZ, BA, … (spreadsheet-style, ≤ 4 characters). Sets reach about 90 pieces on 676-cell boards.
-- **Patterns** (D30). When K > 20, every piece with index ≥ 20 also gets a fill pattern: `patternFor(i)` cycles dots, horizontal lines and vertical lines by ⌊i / 20⌋. Patterns are drawn at low contrast in the stroke color, never as diagonal hatching (reserved for clues), at every zoom level, subject only to the Patterns toggle.
-- **Display toggles.** Labels, Patterns and the timer are device preferences stored in `pentomino:v1:prefs` (§9.6), defaulting to on. The Player has no switches for them (they were removed from the right panel) and uses the stored values; the generator's previews follow the same values.
-  - **Labels** (default on) shows letters on pieces on the board and in the tray. When on, a label is drawn only where its cell is ≥ 10 CSS px at the current zoom; smaller ones appear once the user zooms in. Accessible names (§11.11) always include the label.
-  - **Patterns** (default on; used only when K > 20) shows the fill patterns above.
-  - Neither switch affects the other: hiding labels never hides patterns, and hiding patterns never hides labels.
-  - Letters guarantee identity even when two colors look alike. Patterns keep pieces with index ≥ 20 apart when labels are off or too small to draw.
-- **Large boards.** Pieces of up to ~50 cells and trays of up to ~90 pieces are normal on large boards. The tray scrolls. Labels follow the size rule of the Labels toggle.
+- **Labels.** `labelFor(i)`: A … Z, then AA, AB, …, AZ, BA, … (spreadsheet-style, ≤ 4 characters). Sets reach about 90 pieces on 676-cell boards. A label is drawn only where its cell is ≥ 10 CSS px at the current zoom; smaller ones appear once the user zooms in. Accessible names (§11.11) always include the label. Letters guarantee identity even when two colors look alike.
+- **Patterns** (D30). When K > 20, every piece with index ≥ 20 also gets a fill pattern: `patternFor(i)` cycles dots, horizontal lines and vertical lines by ⌊i / 20⌋. Patterns are drawn at low contrast in the stroke color, never as diagonal hatching (reserved for clues), at every zoom level. They keep pieces with index ≥ 20 apart where labels are too small to draw.
+- **No display toggles.** Labels, patterns and the timer always show, in both apps. Older versions stored Labels, Patterns and Timer switches in `pentomino:v1:prefs`; those values are ignored (§9.6).
+- **Large boards.** Pieces of up to ~50 cells and trays of up to ~90 pieces are normal on large boards. The tray scrolls. Labels follow the size rule above.
 
 ### 11.10 Undo, reset, timer and persistence
 
-- **History.** The action history holds up to 500 entries. **Unplace all pieces** (board menu) is undoable; **Replay** asks for confirmation and clears the history.
-- **Timer.** Shown by default (stored preference, no switch). It starts at the first move and pauses while the tab is hidden.
-- **Saving.** Progress is saved by fingerprint (§5.6), debounced 250 ms after each committed action.
+- **History.** The action history holds up to 500 entries. **Return all pieces to the tray** (board menu) is undoable; **Replay** asks for confirmation and clears the history.
+- **Timer.** Always shown. It starts at the first move and pauses while the tab is hidden.
+- **Saving.** Progress is saved by fingerprint (§5.6), debounced 250 ms after each committed action, at once on a win, when the page is hidden and before another puzzle opens. An untouched game is not written; **Replay** removes the record.
 - **Reopening.** A puzzle with saved progress opens with its pieces, time and moves restored, without a question; **Replay the puzzle** (board menu, §11.5) starts it again.
 - **Storage failures** never block play.
 
@@ -2168,14 +2173,14 @@ Shortcuts are ignored while focus is in a text field, a dialog or the piece menu
 - Pieces are focusable, with labels such as "Piece F, 5 cells, in tray" or "Piece F, on board at row 3, column 5". These names come from `core/browser/svg-board.js` and stay English in both languages.
 - An `aria-live="polite"` region announces placements, rejection reasons and the win, in the interface language.
 - The document language (`<html lang>`) follows the interface language.
-- Focus rings are always visible, and UI contrast is ≥ 4.5:1. Letters (on by default) and hatching remove any reliance on color.
+- Focus rings are always visible, and UI contrast is ≥ 4.5:1. Letters and hatching remove any reliance on color.
 - Reduced motion is respected, and the whole game can be completed with the keyboard alone.
 
 ### 11.12 Pack navigation and library
 
 - The **Puzzles panel** (§11.1) lists the pack's puzzles, newest on top, with ✕ on each card and **Remove all** in its header; a card opens its puzzle. There are no Previous / Next buttons in the game panel.
 - The **Import** screen opens in the main panel, over the game, when no pack is open (start-up without a link, **Remove all**, or the last puzzle removed); with a pack open, a dropped file imports it. It offers a file, a pasted link, share code or JSON, the sample and the library (recent packs). Entries can be deleted or exported again. **Back to puzzle** returns to the game, as does a click on the open puzzle's card.
-- With no hash and an empty library, the player opens the Import screen with the Sample pack.
+- Without a link in the address the player opens the Import screen, which offers the Sample; nothing opens by itself.
 
 ### 11.13 Hints and show solution
 
@@ -2359,7 +2364,7 @@ Run on desktop Chromium, Firefox and Safari, on Android Chrome and on iOS Safari
 9. With storage disabled, an oversized link falls back to `#lib` or a file.
 10. A valid tiling different from the stored solution wins.
 11. No score, uniqueness or solvability claim appears after an inconclusive check.
-12. A 22×22 Hell-3 pack (≈ 75 pieces) shows labels beyond Z, patterns, a scrolling tray, and stays playable with zoom and pan. Turning Labels off keeps the patterns; turning Patterns off keeps the labels.
+12. A 22×22 Hell-3 pack (≈ 75 pieces) shows labels beyond Z and patterns together, a scrolling tray, and stays playable with zoom and pan.
 13. The area cap and N-CAP follow the device class (§6.2).
 14. A job that reaches 115 s returns its accepted puzzles by 120 s with reason `time-limit`.
 15. The player's **EN | VI** switch changes every text of the page and survives a reload; the theme buttons change the palette (also on the generator, which shares both choices).

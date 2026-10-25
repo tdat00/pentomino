@@ -1,6 +1,6 @@
 // @ts-check
-// Selection toolbar, at the top of the pieces panel: rotate and mirror buttons for the selected piece (they
-// duplicate the keyboard actions) and the Results button of a solved puzzle.
+// Selection toolbar at the top of the pieces panel: rotate and flip buttons for the selected piece (the same as the
+// keys) and the Results button of a solved puzzle.
 
 import { el } from '../../core/browser/dom.js';
 import { loc, locAttrs } from './i18n-dom.js';
@@ -58,19 +58,14 @@ export function createToolbar(host, onAction) {
         return;
       }
       const piece = g.selected === null ? undefined : pack.pieces.find((p) => p.id === g.selected);
-      const solved = g.solved;
-      const active = piece !== undefined && !solved;
+      const active = piece !== undefined && !g.solved;
       for (const [action, button] of buttons) {
-        switch (action) {
-          case 'results':
-            button.hidden = !(solved && !g.revealed);
-            break;
-          default:
-            button.disabled = !active;
+        if (action === 'results') {
+          button.hidden = !(g.solved && !g.revealed);
+        } else {
+          button.disabled = !active;
         }
       }
     },
-    /** @param {ToolbarAction} action @returns {HTMLButtonElement | undefined} */
-    button: (action) => buttons.get(action),
   };
 }

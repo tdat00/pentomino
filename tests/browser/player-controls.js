@@ -832,7 +832,7 @@ await check('winning: dialog with time, moves, level; Replay starts fresh; Next 
   equal(m.game().solved, false, 'Replay: fresh game');
   equal(m.game().moves, 0, 'Replay: no moves');
   equal(m.game().placed.size, 0, 'Replay: empty board');
-  equal(m.storage.loadProgress(m.store.getState().fingerprints[0])?.placements.length, 0, 'Replay: empty saved record');
+  equal(m.storage.loadProgress(m.store.getState().fingerprints[0]), null, 'Replay: saved record removed');
   await solveByKeyboard(m, 0);
   m.q('[data-action="win-next"]').click();
   equal(m.store.getState().index, 1, 'Next puzzle opens puzzle 2');
@@ -948,7 +948,7 @@ await check('timer starts at the first move, pauses while hidden and keeps count
   m.player.destroy();
 });
 
-await check('Labels and Patterns are independent; names keep label and size; pack data stays unchanged', async () => {
+await check('labels and patterns are drawn together; names keep label and size; pack data stays unchanged', async () => {
   const code = await encodeShareCode(validated(bigSet()));
   const m = await mount({ hash: `#pack=${code}&i=0` });
   const pack = m.store.getState().pack;
@@ -956,16 +956,7 @@ await check('Labels and Patterns are independent; names keep label and size; pac
   const trayLabel = () => m.qa('.tray-piece .pm-labels').filter((n) => n.getAttribute('display') !== 'none').length;
   assert(m.qa('.tray-piece .pm-pattern').length > 0, 'patterns drawn for pieces from index 20');
   assert(trayLabel() > 0, 'labels drawn');
-  m.player.controller.setPref('labels', false);
-  await tick();
-  assert(m.qa('.tray-piece .pm-pattern').length > 0, 'Labels off keeps the patterns');
-  equal(trayLabel(), 0, 'Labels off hides the letters');
   assert((trayButton(m, 'P05').getAttribute('aria-label') ?? '').startsWith('Piece E, 1 cell'), 'accessible name keeps label and size');
-  m.player.controller.setPref('labels', true);
-  m.player.controller.setPref('patterns', false);
-  await tick();
-  equal(m.qa('.tray-piece .pm-pattern').length, 0, 'Patterns off removes the patterns');
-  assert(trayLabel() > 0, 'Patterns off keeps the letters');
   equal(JSON.stringify(m.game().placed.size) + JSON.stringify(m.store.getState().pack), before, 'poses and pack untouched');
   m.player.destroy();
 });
@@ -984,11 +975,14 @@ await check('accessibility: names, board role, live region, 44 px targets, visib
   const name = boardPiece(m, a.piece)?.getAttribute('aria-label') ?? '';
   assert(/^Piece \w+, \d+ cells, on board at row \d+, column \d+$/.test(name), `board name ${name}`);
   await waitFor(() => (live.textContent ?? '').startsWith('Placed.'), 'placement announced');
-  // Visible 44 px targets for every control that is shown; the game bar buttons follow --pm-target (36 px, 44 px for coarse pointers), like the generator's.
+  // Visible 44 px targets for every control that is shown. The game bar buttons follow --pm-target (36 px, 44 px for
+  // coarse pointers) and the board tools are 28 px, as in the generator; both stay above the 24 px of WCAG 2.2 AA.
   const small = m.qa('.game button, .game a.pm-btn').filter((b) => !b.closest('[hidden]') && b.getClientRects().length > 0)
     .filter((b) => { const r = b.getBoundingClientRect(); return r.width < 43.5 || r.height < 43.5; })
-    .filter((b) => !b.classList.contains('tray-piece') && !b.closest('.game-actions'));
+    .filter((b) => !b.classList.contains('tray-piece') && !b.closest('.game-actions') && !b.closest('.board-tools'));
   equal(small.map((b) => `${b.dataset.action ?? b.textContent}:${Math.round(b.getBoundingClientRect().width)}x${Math.round(b.getBoundingClientRect().height)}`).join(', '), '', 'controls below 44x44');
+  const tools = m.qa('.board-tools button').map((b) => b.getBoundingClientRect());
+  assert(tools.length === 5 && tools.every((r) => r.width >= 24 && r.height >= 24), 'board tools are at least 24 px');
   // Keyboard focus is visible.
   const piece = /** @type {HTMLElement} */ (boardPiece(m, a.piece));
   piece.focus();
@@ -1043,7 +1037,7 @@ await check('no room to rotate: the piece stays, "No room to rotate here" is ann
   }
 });
 
-await check('piece menu: right-click turns and flips a tray piece; Escape, a click outside and Tab close it; the board menu lists Unplace all and Replay', async () => {
+await check('piece menu: right-click turns and flips a tray piece; Escape, a click outside and Tab close it; the board menu lists Return all and Replay', async () => {
   const m = await game(0);
   const target = movables(m)[0];
   const id = target.piece;
@@ -1127,9 +1121,9 @@ await check('piece menu: right-click turns and flips a tray piece; Escape, a cli
   const corner = new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: hostBox.left + 3, clientY: hostBox.top + 3, button: 2 });
   host.dispatchEvent(corner);
   assert(corner.defaultPrevented && !menu().hidden, 'a right-click on empty board opens the menu');
-  assert(!m.q('.pm-menu [data-action="unplace-all"]').hasAttribute('disabled'), 'Unplace all is available with a piece on the board');
+  assert(!m.q('.pm-menu [data-action="unplace-all"]').hasAttribute('disabled'), 'Return all is available with a piece on the board');
   m.q('.pm-menu [data-action="unplace-all"]').click();
-  assert(m.game().placed.size === 0 && m.game().tray.has(id), 'Unplace all pieces returns every piece to the tray');
+  assert(m.game().placed.size === 0 && m.game().tray.has(id), 'Return all pieces to the tray empties the board');
   m.q('[data-action="undo"]').click();
   await tick();
   assert(m.game().placed.has(id), 'and it can be undone');

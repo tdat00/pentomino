@@ -1,15 +1,14 @@
 // @ts-check
-// Keyboard shortcuts of the player. One document-level listener maps keys to
-// play-controller actions and calls `preventDefault` only for keys it handled.
-// Shortcuts stay quiet inside text fields, menus and dialogs.
+// Keyboard shortcuts of the player. One document-level listener maps keys to play-controller actions and calls
+// `preventDefault` only for keys it handled. Shortcuts stay quiet inside text fields, menus and dialogs.
 
 import { t } from '../i18n.js';
 
 /** @typedef {import('../play.js').createPlayController} CreatePlay */
 /** @typedef {ReturnType<CreatePlay>} Play */
 
-/** Ids of the shortcut list in the language packs (`keys.<id>.key` and `keys.<id>.action`); mirrors the handler below. */
-const SHORTCUT_IDS = Object.freeze(['tab', 'enter', 'arrows', 'rotate', 'mirror', 'delete', 'escape', 'undo', 'redo', 'help', 'menu', 'assist']);
+/** Rows of the help dialog: `keys.<id>.key` and `keys.<id>.action` in the language packs. Keep in step with `handle`. */
+const SHORTCUT_IDS = Object.freeze(['tab', 'enter', 'arrows', 'rotate', 'mirror', 'delete', 'escape', 'undo', 'redo', 'help', 'menu']);
 
 /**
  * @returns {readonly (readonly [string, string])[]} Key and action text of the help dialog, in the current language.

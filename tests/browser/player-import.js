@@ -311,7 +311,7 @@ await check('every failure shows its exact message and the open game is unchange
     ['rules', () => m.paste(JSON.stringify({ ...sample, rules: 'nope' })), 'Unsupported puzzle version or rules.'],
     ['invalid', () => m.paste(JSON.stringify({ ...sample, board: { rows: ['#'] } })), /^This file is not a valid Pentomino pack: .+/],
     ['not a pack', () => m.paste('just some words'), /^This file is not a valid Pentomino pack: /],
-    ['index', () => m.paste(`#pack=${sampleCode}&i=7`), 'Puzzle index is out of range.'],
+    ['index', () => m.paste(`#pack=${sampleCode}&i=7`), 'This pack has no puzzle with that number.'],
     ['missing local', () => m.paste('#lib=0123456789abcdef&i=0'), "This puzzle is not in this browser's library. Import a file or use a portable link."],
     ['oversized file', () => m.chooseFile(new Blob([new Uint8Array(513 * 1024)])), /^This file is not a valid Pentomino pack: A pack file is at most 524288 bytes/],
   ];
@@ -491,8 +491,8 @@ await check('progress is restored silently after reload; puzzle switching saves 
   again.player.destroy();
 });
 
-await check('the View switches are gone; the saved Labels, Patterns and Timer preferences still apply (Patterns only for K > 20)', async () => {
-  const adapter = memoryAdapter();
+await check('there are no View switches: labels, patterns (K > 20) and the timer always show, whatever older versions stored', async () => {
+  const adapter = memoryAdapter({ 'pentomino:v1:prefs': JSON.stringify({ labels: false, patterns: false, timer: false, straighten: false }) });
   const m = await mount({ adapter });
   m.paste(sampleText);
   await waitFor(() => m.root.dataset.screen === 'game', 'game');
@@ -504,28 +504,11 @@ await check('the View switches are gone; the saved Labels, Patterns and Timer pr
   b.paste(JSON.stringify(big));
   await waitFor(() => b.root.dataset.screen === 'game', 'big game');
   const labelsOn = () => b.root.querySelector('.board-host .pm-labels')?.getAttribute('display');
-  const patternCount = () => b.root.querySelectorAll('.pm-pattern').length;
-  assert(patternCount() > 0, 'patterns drawn');
-  assert(labelsOn() !== 'none' && !b.q('.game-timer').hidden, 'labels and timer are shown by default');
-  b.player.controller.setPref('labels', false);
-  await frame();
-  equal(labelsOn(), 'none', 'labels hidden');
-  assert(patternCount() > 0, 'patterns unaffected by Labels');
-  b.player.controller.setPref('labels', true);
-  b.player.controller.setPref('patterns', false);
-  await frame();
-  equal(patternCount(), 0, 'patterns hidden');
-  assert(labelsOn() !== 'none', 'labels unaffected by Patterns');
-  b.player.controller.setPref('timer', false);
-  assert(b.q('.game-timer').hidden, 'timer hidden');
-  const prefs = JSON.parse(adapter.map.get('pentomino:v1:prefs') ?? '{}');
-  assert(prefs.labels === true && prefs.patterns === false && prefs.timer === false, JSON.stringify(prefs));
+  assert(b.root.querySelectorAll('.pm-pattern').length > 0, 'patterns drawn');
+  assert(labelsOn() !== 'none' && !b.q('.game-timer').hidden, 'labels and timer are shown');
+  b.player.controller.setPref('straighten', true);
+  equal(JSON.parse(adapter.map.get('pentomino:v1:prefs') ?? '{}'), { straighten: true }, 'only Straighten is stored');
   b.player.destroy();
-  const later = await mount({ adapter });
-  later.paste(JSON.stringify(big));
-  await waitFor(() => later.root.dataset.screen === 'game', 'later');
-  equal(later.root.querySelectorAll('.pm-pattern').length, 0, 'patterns stay off on the next visit');
-  later.player.destroy();
 });
 
 await check('presentation angles 0/45/90/315 load, draw and keep fitting after a viewport change', async () => {

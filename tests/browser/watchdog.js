@@ -120,8 +120,6 @@ const storage = {
     memoryStore.generator = JSON.parse(JSON.stringify(snapshot));
     return { ok: true };
   },
-  getPrefs: () => ({}),
-  setPrefs: () => ({ ok: true }),
 };
 
 const root = h('div', { class: 'harness-app' },

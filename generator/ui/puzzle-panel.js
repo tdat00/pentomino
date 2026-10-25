@@ -271,8 +271,7 @@ export function mountPuzzlePanel(host, options) {
         card.view.setRotation(state.rotation);
       }
       card.view.render({
-        board: current.board, pieces: current.pieces, clues: puzzle.clues, placements: [],
-        showLabels: state.prefs.labels, showPatterns: state.prefs.patterns,
+        board: current.board, pieces: current.pieces, clues: puzzle.clues, placements: [], showLabels: true, showPatterns: true,
       });
       ordered.push(card.item);
     });
@@ -327,10 +326,9 @@ export function mountPuzzlePanel(host, options) {
       detailView.setRotation(state.rotation);
     }
     detailView.render({
-      board: set.board, pieces: set.pieces, clues: puzzle.clues, placements: [],
-      showLabels: state.prefs.labels, showPatterns: state.prefs.patterns,
+      board: set.board, pieces: set.pieces, clues: puzzle.clues, placements: [], showLabels: true, showPatterns: true,
     });
-    const signature = [puzzle.id, state.rotation, state.prefs.labels, state.prefs.patterns].join('|');
+    const signature = `${puzzle.id}|${state.rotation}`;
     if (signature === detailSignature) {
       return;
     }
@@ -343,7 +341,7 @@ export function mountPuzzlePanel(host, options) {
       }
       const item = el('li', { className: 'detail-piece', dataset: { pieceId: piece.id } });
       const preview = mountPiecePreview(item, piece, { cellPx: Math.round(detailCellPx(set.board) * DETAIL_PIECE_SCALE), index, count: set.pieces.length, interactive: false });
-      preview.render({ t: 0, rotation: state.rotation, showLabels: state.prefs.labels, showPatterns: state.prefs.patterns });
+      preview.render({ t: 0, rotation: state.rotation, showLabels: true, showPatterns: true });
       detailPreviews.push(preview);
       detailPieces.append(item);
     });

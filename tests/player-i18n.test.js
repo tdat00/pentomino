@@ -60,7 +60,7 @@ test('every key the player code uses exists in English', () => {
   for (const id of ['very-easy', 'easy', 'normal', 'hard', 'expert', 'master', 'nightmare', 'hell-1', 'hell-2', 'hell-3']) {
     used.add(`level.name.${id}`);
   }
-  for (const id of ['tab', 'enter', 'arrows', 'rotate', 'mirror', 'delete', 'escape', 'undo', 'redo', 'help', 'menu', 'assist']) {
+  for (const id of ['tab', 'enter', 'arrows', 'rotate', 'mirror', 'delete', 'escape', 'undo', 'redo', 'help', 'menu']) {
     used.add(`keys.${id}.key`);
     used.add(`keys.${id}.action`);
   }
@@ -79,7 +79,7 @@ test('the language follows ?lang=, then the saved choice, then the browser, then
 });
 
 test('texts keep their English wording and follow a language switch', () => {
-  assert.equal(LABELS.undo, 'Undo');
+  assert.equal(t('ui.undo'), 'Undo');
   assert.equal(LABELS.piecesLeft(1), '1 piece left');
   assert.equal(LABELS.piecesLeft(4), '4 pieces left');
   assert.equal(LABELS.moves(0), '0 moves');
@@ -87,7 +87,7 @@ test('texts keep their English wording and follow a language switch', () => {
   assert.equal(PLAY_TEXT.cannotPlace('clue'), 'Cannot place here: it would overlap a locked clue');
   assert.equal(PLAY_TEXT.ghostAt(2, 3, null), 'Row 2, column 3. Free');
   assert.equal(PLAY_TEXT.ghostAt(2, 3, 'outside'), 'Row 2, column 3. Not free: it would leave the board');
-  assert.equal(HINT_TEXT.place('F'), 'Hint: piece F fits in a complete solution that keeps every piece you placed. It is highlighted on the board. Press Place it to put it there.');
+  assert.equal(HINT_TEXT.place('F'), 'Hint: piece F fits in a complete solution that keeps every piece you placed. It is highlighted on the board. Press “Place it” to put it there.');
   assert.equal(reasonText('anything else'), 'that spot is not free');
   assert.equal(ratingLabel({ model: 'difficulty-v2', score: 20, level: 'hard' }), 'Hard: score 20');
   assert.equal(ratingLabel({ model: 'difficulty-v2', score: 7.25, level: 'very-easy' }), 'Very easy: score 7');
@@ -95,12 +95,12 @@ test('texts keep their English wording and follow a language switch', () => {
   assert.equal(certificateLabel({ status: 'unique' }), 'Unique solution ✓');
   assert.equal(verificationLabel({ status: 'solvable' }), 'Solvable ✓');
   assert.equal(puzzleStatusLabel('in-progress'), 'In progress');
-  assert.equal(INDEX_MESSAGE, 'Puzzle index is out of range.');
+  assert.equal(INDEX_MESSAGE, 'This pack has no puzzle with that number.');
 
   assert.equal(setLocale('vi', null), 'vi');
   assert.equal(getLocale(), 'vi');
-  assert.equal(LABELS.undo, 'Hoàn tác');
-  assert.equal(LABELS.appName, 'Trình chơi Pentomino');
+  assert.equal(t('ui.undo'), 'Hoàn tác');
+  assert.equal(t('shell.title'), 'Trình chơi Pentomino');
   assert.equal(LABELS.piecesLeft(1), 'Còn 1 mảnh');
   assert.equal(LABELS.piecesLeft(4), 'Còn 4 mảnh');
   assert.equal(PLAY_TEXT.noRoom, 'Không đủ chỗ để xoay ở đây');
@@ -110,8 +110,8 @@ test('texts keep their English wording and follow a language switch', () => {
   assert.equal(levelLabel('not-a-level'), 'not-a-level');
   assert.equal(verificationLabel({ status: 'solvable' }), 'Giải được ✓');
   assert.equal(puzzleStatusLabel('revealed'), 'Đã xem lời giải');
-  assert.equal(INDEX_MESSAGE, 'Số thứ tự đề nằm ngoài phạm vi.', 'the messages kept by the controllers are live bindings');
-  assert.equal(shortcutList().length, 12);
+  assert.equal(INDEX_MESSAGE, 'Gói này không có đề với số thứ tự đó.', 'the messages kept by the controllers are live bindings');
+  assert.equal(shortcutList().length, 11);
   assert.ok(shortcutList().every(([key, action]) => key !== '' && action !== ''));
   assert.equal(has('ui.undo'), true);
   assert.equal(t('no.such.key'), 'no.such.key');

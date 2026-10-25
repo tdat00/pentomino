@@ -2,7 +2,7 @@
 // Puzzle list (left panel): one card per puzzle of the open pack, in the generator's card layout: the name, the
 // level and score, the pieces to place, the progress and a preview of the board with its locked pieces. A card
 // opens its puzzle; the open one is marked. A pack can hold 100 puzzles on a large board, so a preview is drawn
-// only once its card comes near the window, and again when its settings change while it is near.
+// only once its card comes near the window, and again when the view angle changes while it is near.
 
 import { el } from '../../core/browser/dom.js';
 import { packBoard } from '../../core/engine/pack.js';
@@ -44,15 +44,13 @@ export function thumbnailCellPx(board, px) {
  * @property {HTMLButtonElement} remove
  * @property {number} index
  * @property {boolean} near The card is close to the window (always true without IntersectionObserver).
- * @property {string} previewKey Settings of the preview that is drawn; empty before the first drawing.
+ * @property {string} previewKey Key of the drawn preview; empty before the first drawing.
  */
 
 /**
  * @typedef {object} Preview
  * @property {string} key
  * @property {number} angle
- * @property {boolean} labels
- * @property {boolean} patterns
  * @property {import('../../core/engine/types.js').Pack} pack
  * @property {import('../../core/engine/types.js').Board} board
  */
@@ -93,7 +91,7 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
     }, { rootMargin: `${NEAR_PX}px` })
     : null;
 
-  /** Draws the preview of a card that is near, when its settings changed. @param {Card} card */
+  /** Draws the preview of a card that is near, when its key changed. @param {Card} card */
   function drawPreview(card) {
     if (!card.near || preview === null || card.previewKey === preview.key) {
       return;
@@ -107,8 +105,8 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
       pieces: preview.pack.pieces,
       clues: preview.pack.puzzles[card.index].clues,
       placements: [],
-      showLabels: preview.labels,
-      showPatterns: preview.patterns,
+      showLabels: true,
+      showPatterns: true,
     });
   }
 
@@ -131,7 +129,6 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
     const toPlace = el('p', { className: 'card-clues' });
     const cert = el('p', { className: 'badge card-cert' });
     const status = el('span', { className: 'badge card-status' });
-    // The whole card is one button that opens this puzzle in the main panel.
     const select = /** @type {HTMLButtonElement} */ (el('button', {
       className: 'card-select', attrs: { type: 'button' }, dataset: { action: 'select', index: String(index) },
       on: { click: () => onSelect(index) },
@@ -196,7 +193,7 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
         const cellPx = thumbnailCellPx(board, CARD_PREVIEW_PX);
         cards = pack.puzzles.map((_, index) => createCard(index, cellPx));
         list.replaceChildren(...cards.map((card) => card.item).reverse());
-        preview = { key: '', angle: 0, labels: true, patterns: false, pack, board };
+        preview = { key: '', angle: 0, pack, board };
         for (const card of cards) {
           observer?.observe(card.item);
         }
@@ -208,8 +205,7 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
       return;
     }
     const angle = effectiveRotation(state);
-    const patterns = state.prefs.patterns && pack.pieces.length > 20;
-    preview = { ...preview, key: `${angle}|${state.prefs.labels}|${patterns}`, angle, labels: state.prefs.labels, patterns };
+    preview = { ...preview, key: String(angle), angle };
     cards.forEach((card, index) => {
       const puzzle = pack.puzzles[index];
       const status = state.statuses[index] ?? 'new';

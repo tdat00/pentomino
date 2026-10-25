@@ -79,7 +79,7 @@ body {
   stroke-linejoin: round;
 }
 
-/* Help: a ghost button at the right end of the header, icon and text, as in Sudoku Player. */
+/* Help: a ghost button at the right end of the header, icon and text. */
 button.header-help {
   display: inline-flex;
   align-items: center;
@@ -460,7 +460,7 @@ button.ghost-small:disabled {
   color: var(--pm-muted);
 }
 
-/* Game: name, trust badges, notices, timer, board and selection toolbar. */
+/* Game: name and rating, notices and badges, the game bar, the hint and the board. */
 
 .status-host {
   display: flex;
@@ -674,7 +674,7 @@ button.ghost-small:disabled {
   display: contents;
 }
 
-/* Every control of the game is at least 44 x 44 CSS px. */
+/* Controls of the game are at least 44 x 44 CSS px; the game bar, the hint box and the board tools set their own. */
 .game .pm-btn,
 .game button,
 .game a.pm-btn,
@@ -783,7 +783,7 @@ button.ghost-small:disabled {
   outline-offset: -2px;
 }
 
-/* Actions that throw something away (Unplace all, Replay) are red; a disabled one stays muted. */
+/* Actions that throw something away (Return all, Replay) are red; a disabled one stays muted. */
 .pm-menu-item--danger:not(:disabled) {
   color: var(--gen-color-danger);
 }
@@ -912,7 +912,7 @@ button.ghost-small:disabled {
   margin-top: 1rem;
 }
 
-/* Confirmation boxes (Replay, Show solution): compact, with smaller buttons. */
+/* Confirmation boxes (Replay and the reveal confirmations): compact, with smaller buttons. */
 .pm-dialog.pm-confirm {
   width: min(22rem, 92vw);
   padding: 0.75rem 1rem;

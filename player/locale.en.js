@@ -1,7 +1,6 @@
 // @ts-check
-// English texts of the player (the base pack: every key exists here, locale.vi.js mirrors it).
-// Keys are dotted; `{name}` marks a value filled in at run time; `_one` / `_other` are plural forms.
-// Pure data: no DOM access.
+// English texts of the player: the base pack, holding every key (locale.vi.js has the same keys).
+// `{name}` marks a value filled in at run time; `_one` / `_other` are plural forms.
 
 /** @type {Readonly<Record<string, string>>} */
 export default Object.freeze({
@@ -59,14 +58,14 @@ export default Object.freeze({
   'ui.loading': 'Loading…',
   'ui.trayLabel': 'Unplaced pieces',
   'ui.boardLabel': 'Puzzle board',
-  'ui.boardHelp': 'Select a piece in the list of pieces to place, then tap a board cell to preview it and tap the same cell or press Enter to drop it. '
+  'ui.boardHelp': 'Select a piece under Pieces to place, then tap a board cell to preview it; tap the same cell again or press Enter to drop it. '
     + 'With the keyboard, press Enter on a piece to pick it up, move it with the arrow keys and press Enter to drop it; press ? for all shortcuts. '
     + 'Right-click a piece to rotate or flip it. Locked clue pieces cannot be moved.',
   'ui.selectedGroup': 'Selected piece',
   'ui.rotateCcw': 'Rotate counter-clockwise',
   'ui.rotateCw': 'Rotate clockwise',
-  'ui.flipH': 'Mirror left and right',
-  'ui.flipV': 'Mirror top and bottom',
+  'ui.flipH': 'Flip left-right',
+  'ui.flipV': 'Flip top-bottom',
   'ui.toTrayLabel': 'Return to tray',
   'ui.pieceMenu': 'Actions',
   'ui.helpTitle': 'Keyboard shortcuts',
@@ -82,15 +81,17 @@ export default Object.freeze({
   'ui.revealedBadge': 'Revealed — not counted as solved',
   'ui.hintsUsed': 'Hints',
   'ui.revealTitle': 'Show the solution?',
-  'ui.revealBody': 'The answer is filled in around the locked clues and this puzzle is marked as revealed. It will not count as solved. You can undo it.',
+  'ui.revealBody': 'The answer will be filled in around the locked clues and this puzzle will be marked as revealed, so it will not count as solved. '
+    + 'You can undo it.',
   'ui.revealConfirm': 'Show solution',
   'ui.resetRevealTitle': 'Reset, then reveal?',
   'ui.resetRevealBody': 'Your placed pieces cannot be completed into a solution. Reset the board and show the solution instead? '
-    + 'This puzzle is marked as revealed and will not count as solved. You can undo it.',
+    + 'This puzzle will be marked as revealed and will not count as solved. You can undo it.',
   'ui.resetRevealConfirm': 'Reset, then reveal',
   'ui.replayTitle': 'Replay this puzzle?',
-  'ui.replayBody': 'Every piece is unplaced, the timer and the moves start again, and the saved progress of this puzzle is erased. This cannot be undone.',
-  'ui.unplaceAll': 'Unplace all pieces',
+  'ui.replayBody': 'All pieces go back to the tray, the timer and the move count start again from zero, and the saved progress of this puzzle is erased. '
+    + 'This cannot be undone.',
+  'ui.unplaceAll': 'Return all pieces to the tray',
   'ui.replayPuzzle': 'Replay the puzzle',
   'ui.cancel': 'Cancel',
   'ui.winTitle': 'Puzzle solved!',
@@ -100,7 +101,6 @@ export default Object.freeze({
   'ui.nextPuzzle': 'Next puzzle',
   'ui.replay': 'Replay',
   'ui.backToGenerator': 'Back to generator',
-  'ui.noGame': 'No puzzle is open.',
   'ui.importTitle': 'Open a puzzle',
   'ui.importIntro': 'Open a puzzle from a link, a file, pasted text, a recent pack or the sample.',
   'ui.chooseFile': 'Import file',
@@ -129,7 +129,7 @@ export default Object.freeze({
   'keys.rotate.key': 'E or R / Q',
   'keys.rotate.action': 'Rotate clockwise / counter-clockwise on screen',
   'keys.mirror.key': 'F / V',
-  'keys.mirror.action': 'Mirror left-right / top-bottom on screen',
+  'keys.mirror.action': 'Flip left-right / top-bottom on screen',
   'keys.delete.key': 'Delete / Backspace',
   'keys.delete.action': 'Return the selected piece to the tray',
   'keys.escape.key': 'Escape',
@@ -142,8 +142,6 @@ export default Object.freeze({
   'keys.help.action': 'Show these shortcuts',
   'keys.menu.key': 'Right-click / Menu key',
   'keys.menu.action': 'Open the piece menu: rotate, flip or return to the tray',
-  'keys.assist.key': 'Hint / Show solution',
-  'keys.assist.action': 'Toolbar buttons: a hint is a proven statement; Show solution asks first and marks the puzzle revealed',
 
   // Levels, ratings and checks
   'level.name.very-easy': 'Very easy',
@@ -176,7 +174,7 @@ export default Object.freeze({
   'msg.pieceSet': 'This file has pieces but no puzzle — open it in the generator.',
   'msg.unsupported': 'Unsupported puzzle version or rules.',
   'msg.missingLocal': "This puzzle is not in this browser's library. Import a file or use a portable link.",
-  'msg.index': 'Puzzle index is out of range.',
+  'msg.index': 'This pack has no puzzle with that number.',
   'msg.sampleFailed': 'The sample puzzle could not be loaded.',
   'msg.loadFailed': 'The puzzle could not be opened.',
   'msg.invalidPack': 'This file is not a valid Pentomino pack: {message}',
@@ -192,15 +190,15 @@ export default Object.freeze({
   'play.noSelection': 'No piece is selected',
   'play.alreadyInTray': 'The piece is already in the tray',
   'play.cancelled': 'Cancelled',
-  'play.moveCancelled': 'Move cancelled, the piece stays where it was',
+  'play.moveCancelled': 'Move cancelled. The piece stays where it was',
   'play.undone': 'Undone',
   'play.redone': 'Redone',
   'play.nothingToUndo': 'Nothing to undo',
   'play.nothingToRedo': 'Nothing to redo',
   'play.resetDone': 'Puzzle reset. All pieces are back in the tray',
-  'play.previewValid': 'Preview. Tap the same cell, press Place or Enter to drop it',
+  'play.previewValid': 'Preview. Tap the same cell again or press Enter to drop it',
   'play.selected': 'Selected piece {label}',
-  'play.pickedUp': 'Picked up piece {label}. Move it with the arrow keys, press Enter to drop it, Escape to cancel',
+  'play.pickedUp': 'Picked up piece {label}. Move it with the arrow keys, then press Enter to drop it or Escape to cancel',
   'play.cannotPlace': 'Cannot place here: {reason}',
   'play.placed': 'Placed. {name}',
   'play.moved': 'Moved. {name}',
@@ -223,7 +221,8 @@ export default Object.freeze({
   'hint.stale': 'The board changed, so that check was discarded.',
   'hint.complete': 'The puzzle is already complete.',
   'hint.noLongerFits': 'That hint no longer fits the board. Ask for a new hint.',
-  'hint.place': 'Hint: piece {label} fits in a complete solution that keeps every piece you placed. It is highlighted on the board. Press Place it to put it there.',
+  'hint.place': 'Hint: piece {label} fits in a complete solution that keeps every piece you placed. It is highlighted on the board. '
+    + 'Press “Place it” to put it there.',
   'hint.remove': 'Hint: if you remove piece {label}, the puzzle can be completed with all your other pieces kept. '
     + 'That does not mean it is the only piece that could be moved.',
   'hint.placedHint': 'Placed piece {label}. You can undo it.',
@@ -234,7 +233,7 @@ export default Object.freeze({
   'hint.revealCancelled': 'Reveal cancelled. Nothing was changed.',
   'hint.revealUnknown': 'No complete solution was found within this check. Nothing was changed.',
   'hint.revealFailed': 'The solution could not be shown. Nothing was changed.',
-  'hint.replayed': 'Fresh puzzle started.',
+  'hint.replayed': 'Puzzle restarted from the beginning.',
 
   // Announcements of the page
   'live.opened': '{puzzle} opened. {left}.',

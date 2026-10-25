@@ -1,7 +1,6 @@
 // @ts-check
-// Victory dialog: time, moves and level of the solved puzzle with Next puzzle,
-// Replay and Back to generator. The dialog is only a view; the app decides what
-// each button does.
+// Victory dialog: time, moves, level and hints of the solved puzzle with Next puzzle, Replay, Back to generator and
+// Close. The app decides what the buttons do.
 
 import { el } from '../../core/browser/dom.js';
 import { formatElapsed } from '../strings.js';
@@ -72,6 +71,5 @@ export function createWinDialog(host, handlers) {
     },
     hide: () => modal.close(),
     isOpen: modal.isOpen,
-    dialog: modal.dialog,
   };
 }

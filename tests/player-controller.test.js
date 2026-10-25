@@ -598,10 +598,9 @@ test('a valid tiling that is not the stored solution wins', () => {
   assert.equal(saved?.placements.length, 2);
 });
 
-test('saving: one write per 250 ms burst, stamped by the host clock; failures never block play', () => {
+test('saving: one write per 250 ms burst; failures never block play', () => {
   const h = harness(sample);
   const [a, b] = movables(sample);
-  const start = h.clock.now();
   /** @param {Pose} pose */
   const place = (pose) => {
     h.play.select(pose.piece);
@@ -624,8 +623,6 @@ test('saving: one write per 250 ms burst, stamped by the host clock; failures ne
   assert.equal(h.saves.length, 1, 'bursts coalesce');
   const record = h.storage.loadProgress(h.fingerprints[0]);
   assert.equal(record?.placements.length, 2);
-  assert.equal(record?.updatedAt, h.clock.now(), 'the host clock stamps the record');
-  assert.equal(h.game().updatedAt, new Date(start + SAVE_DELAY_MS - 1).toISOString());
 
   const failing = harness(sample, { saveFails: true });
   failing.play.select(a.piece);
@@ -686,7 +683,7 @@ test('the timer starts at the first committed move, pauses while hidden and stop
   assert.equal(h.play.clockRunning(), false);
 });
 
-test('display preferences never change poses, scores or fingerprints; Straighten changes the effective angle only', () => {
+test('Straighten changes the effective angle only, never poses or fingerprints', () => {
   const pack = rotated(45);
   const h = harness(pack);
   const id = movables(pack)[0].piece;
@@ -695,15 +692,8 @@ test('display preferences never change poses, scores or fingerprints; Straighten
   const fp = h.store.getState().fingerprints.slice();
   const placed = snapshot(h.game()).placements;
   assert.equal(h.game().tray.get(id), screenFlip(0, 45, 'horizontal'));
-  h.controller.setPref('labels', false);
-  h.controller.setPref('patterns', false);
-  assert.deepEqual(h.store.getState().fingerprints, fp);
-  assert.deepEqual(snapshot(h.game()).placements, placed);
-  assert.equal(h.store.getState().prefs.labels, false);
-  assert.equal(h.store.getState().prefs.patterns, false);
-  h.controller.setPref('labels', true);
-  assert.equal(h.store.getState().prefs.patterns, false, 'the two switches are independent');
   h.controller.setPref('straighten', true);
+  assert.deepEqual(snapshot(h.game()).placements, placed);
   h.play.transform('flipH');
   assert.equal(h.game().tray.get(id), screenFlip(screenFlip(0, 45, 'horizontal'), 0, 'horizontal'));
   assert.deepEqual(h.store.getState().fingerprints, fp);
@@ -730,7 +720,7 @@ test('escape cancels the preview, then the selection; clues are never selectable
   assert.equal(h.play.cancel(), false);
 });
 
-test('the top-bar name does not number a title that already ends in its number', () => {
+test('the game heading does not number a title that already ends in its number', () => {
   assert.equal(puzzleDisplayName('Normal #1', 0), 'Normal #1');
   assert.equal(puzzleDisplayName('Hard #4', 0), 'Hard #4');
   assert.equal(puzzleDisplayName('Warm-up', 2), 'Warm-up #3');

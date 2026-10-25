@@ -1,28 +1,19 @@
 // @ts-check
-// Every user-visible player message lives here (in the language packs locale.en.js / locale.vi.js) so wording stays
-// consistent and testable. All values are plain text for `textContent`; nothing is markup. Each read uses the current
-// language, so text built after a language switch follows it.
+// User-visible texts of the player, looked up in the language packs (locale.en.js / locale.vi.js) at each read, so
+// text built after a language switch follows it. Values are plain text for `textContent`.
 import { level } from '../core/engine/levels.js';
 import { has, onChange, t } from './i18n.js';
 
 /** @typedef {import('../core/engine/types.js').Issue} Issue */
 /** @typedef {import('../core/engine/types.js').PackPuzzle} PackPuzzle */
 
-// Messages that the controllers store as plain strings. They are live bindings: a language switch replaces them.
+// Messages that the controllers keep as plain strings; live bindings that a language switch rewrites.
 export let PIECE_SET_MESSAGE = '';
 export let UNSUPPORTED_MESSAGE = '';
 export let MISSING_LOCAL_MESSAGE = '';
 export let INDEX_MESSAGE = '';
 export let SAMPLE_FAILED_MESSAGE = '';
 export let LOAD_FAILED_MESSAGE = '';
-
-export let VERIFICATION_PENDING = '';
-export let VERIFICATION_INCONCLUSIVE = '';
-export let VERIFICATION_SOLVABLE = '';
-export let VERIFICATION_IMPOSSIBLE = '';
-
-export let CERTIFICATE_NONE = '';
-export let CERTIFICATE_PENDING = '';
 
 function readConstants() {
   PIECE_SET_MESSAGE = t('msg.pieceSet');
@@ -31,12 +22,6 @@ function readConstants() {
   INDEX_MESSAGE = t('msg.index');
   SAMPLE_FAILED_MESSAGE = t('msg.sampleFailed');
   LOAD_FAILED_MESSAGE = t('msg.loadFailed');
-  VERIFICATION_PENDING = t('verify.pending');
-  VERIFICATION_INCONCLUSIVE = t('verify.inconclusive');
-  VERIFICATION_SOLVABLE = t('verify.solvable');
-  VERIFICATION_IMPOSSIBLE = t('verify.impossible');
-  CERTIFICATE_NONE = t('cert.none');
-  CERTIFICATE_PENDING = t('cert.pending');
 }
 readConstants();
 onChange(readConstants);
@@ -151,7 +136,7 @@ export function ratingLabel(rating) {
  */
 export function certificateLabel(certificate, pending = false) {
   if (!certificate) {
-    return pending ? CERTIFICATE_PENDING : CERTIFICATE_NONE;
+    return t(pending ? 'cert.pending' : 'cert.none');
   }
   switch (certificate.status) {
     case 'unique':
@@ -160,9 +145,14 @@ export function certificateLabel(certificate, pending = false) {
     case 'unsatisfiable':
       return t(`cert.${certificate.status}`);
     default:
-      return CERTIFICATE_NONE;
+      return t('cert.none');
   }
 }
+
+/** @type {Readonly<Record<string, string>>} */
+const VERIFICATION_KEYS = Object.freeze({
+  pending: 'verify.pending', solvable: 'verify.solvable', unsatisfiable: 'verify.impossible', 'not-verified': 'verify.inconclusive',
+});
 
 /**
  * Only an exhausted search with zero solutions says "No solution exists".
@@ -170,18 +160,8 @@ export function certificateLabel(certificate, pending = false) {
  * @returns {string} Empty before any check was requested.
  */
 export function verificationLabel(verification) {
-  switch (verification?.status) {
-    case 'pending':
-      return VERIFICATION_PENDING;
-    case 'solvable':
-      return VERIFICATION_SOLVABLE;
-    case 'unsatisfiable':
-      return VERIFICATION_IMPOSSIBLE;
-    case 'not-verified':
-      return VERIFICATION_INCONCLUSIVE;
-    default:
-      return '';
-  }
+  const key = verification ? VERIFICATION_KEYS[verification.status] : undefined;
+  return key === undefined ? '' : t(key);
 }
 
 /**
@@ -221,16 +201,9 @@ export function formatElapsed(ms) {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
-export const LABELS = Object.freeze(Object.defineProperties(Object.assign(texts('ui', [
-  'elapsed', 'undo', 'redo', 'straighten', 'straightenOn',
-  'generator', 'zoom', 'zoomIn', 'zoomOut', 'zoomFit', 'localLink', 'loading', 'trayLabel',
-  'boardLabel', 'boardHelp', 'selectedGroup', 'rotateCcw', 'rotateCw', 'flipH', 'flipV', 'toTrayLabel', 'unplaceAll', 'replayPuzzle',
-  'pieceMenu', 'helpTitle', 'keyColumn', 'actionColumn',   'close', 'results',
-  'hintLabel', 'placeIt', 'removeIt', 'dismiss', 'cancelCheck', 'revealedBadge', 'hintsUsed', 'revealTitle',
-  'revealBody', 'revealConfirm', 'resetRevealTitle', 'resetRevealBody', 'resetRevealConfirm',
-  'cancel', 'winTitle', 'winTime', 'winMoves', 'winLevel', 'nextPuzzle', 'replay', 'backToGenerator', 'noGame', 'importTitle',
-  'importIntro', 'chooseFile', 'dropHint', 'pasteLabel', 'pasteOpen', 'sample', 'recent', 'recentEmpty', 'open', 'export', 'delete',
-  'confirmDelete', 'back', 'exportFailed', 'deleted',
+export const LABELS = Object.freeze(Object.assign(texts('ui', [
+  'straighten', 'straightenOn', 'localLink', 'boardLabel', 'rotateCcw', 'rotateCw', 'flipH', 'flipV', 'toTrayLabel', 'unplaceAll',
+  'replayPuzzle', 'revealedBadge', 'winTime', 'open', 'export', 'delete', 'confirmDelete', 'exportFailed', 'deleted',
 ]), {
   piecesLeft: (/** @type {number} */ n) => t('ui.piecesLeft', { count: n }),
   moves: (/** @type {number} */ n) => t('ui.moves', { count: n }),
@@ -238,9 +211,6 @@ export const LABELS = Object.freeze(Object.defineProperties(Object.assign(texts(
   toPlace: (/** @type {number} */ n) => t('card.toPlace', { count: n }),
   cardHeading: (/** @type {number} */ n) => t('card.heading', { n }),
   solvedCount: (/** @type {number} */ solved, /** @type {number} */ total) => t('ui.solvedCount', { solved, total }),
-}), {
-  appName: { enumerable: true, get: () => t('shell.title') },
-  version: { enumerable: true, get: () => t('shell.version') },
 }));
 
 /**

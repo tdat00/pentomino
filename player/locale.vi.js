@@ -1,7 +1,6 @@
 // @ts-check
-// Vietnamese texts of the player. Same keys and placeholders as locale.en.js (a test checks it). Vietnamese
-// has no plural forms, so only the plain keys are needed. Technical words such as "seed" stay as they are.
-// Pure data: no DOM access.
+// Vietnamese texts of the player: the same keys and placeholders as locale.en.js (a test checks it). Vietnamese
+// has no plural forms, so only the plain keys are needed.
 
 /** @type {Readonly<Record<string, string>>} */
 export default Object.freeze({
@@ -18,7 +17,7 @@ export default Object.freeze({
   'shell.theme.dark': 'Giao diện tối',
   'shell.theme.highContrast': 'Giao diện tương phản cao',
   'shell.help': 'Trợ giúp',
-  'shell.help.title': 'Phím tắt bàn phím',
+  'shell.help.title': 'Phím tắt',
   'shell.footer.copyright': '\u00a9 2026 Dat Le. Phát hành theo giấy phép MIT.',
   'shell.footer.repo': 'Mã nguồn trên GitHub',
   'shell.footer.repo.title': 'Mở mã nguồn của trình chơi trong kho mã pentomino trên GitHub (tab mới)',
@@ -31,7 +30,7 @@ export default Object.freeze({
   'pieces.title': 'Các mảnh cần đặt',
   'pieces.empty': 'Các mảnh của đề đang mở sẽ hiện ở đây.',
   'pieces.allPlaced': 'Mọi mảnh đã nằm trên bàn.',
-  'card.preview': 'Xem trước đề',
+  'card.preview': 'Hình xem trước của đề',
   'card.remove.aria': 'Xóa {title}',
   'card.heading': 'Đề #{n}',
   'card.toPlace': '{count} mảnh cần đặt',
@@ -56,7 +55,7 @@ export default Object.freeze({
   'ui.loading': 'Đang tải…',
   'ui.trayLabel': 'Các mảnh chưa đặt',
   'ui.boardLabel': 'Bàn chơi',
-  'ui.boardHelp': 'Chọn một mảnh trong danh sách các mảnh cần đặt, rồi chạm vào một ô trên bàn để xem trước và chạm lại đúng ô đó hoặc nhấn Enter để thả mảnh xuống. '
+  'ui.boardHelp': 'Chọn một mảnh trong mục Các mảnh cần đặt, rồi chạm vào một ô trên bàn để xem trước; chạm lại đúng ô đó hoặc nhấn Enter để thả mảnh xuống. '
     + 'Với bàn phím, nhấn Enter trên một mảnh để nhấc nó lên, di chuyển bằng phím mũi tên và nhấn Enter để thả; nhấn ? để xem mọi phím tắt. '
     + 'Nhấp chuột phải vào một mảnh để xoay hoặc lật nó. Các mảnh đặt sẵn bị khóa và không di chuyển được.',
   'ui.selectedGroup': 'Mảnh đã chọn',
@@ -66,7 +65,7 @@ export default Object.freeze({
   'ui.flipV': 'Lật trên–dưới',
   'ui.toTrayLabel': 'Trả về khay',
   'ui.pieceMenu': 'Thao tác',
-  'ui.helpTitle': 'Phím tắt bàn phím',
+  'ui.helpTitle': 'Phím tắt',
   'ui.keyColumn': 'Phím',
   'ui.actionColumn': 'Thao tác',
   'ui.close': 'Đóng',
@@ -77,17 +76,19 @@ export default Object.freeze({
   'ui.dismiss': 'Bỏ qua',
   'ui.cancelCheck': 'Hủy kiểm tra',
   'ui.revealedBadge': 'Đã xem lời giải — không tính là đã giải',
-  'ui.hintsUsed': 'Gợi ý',
+  'ui.hintsUsed': 'Số gợi ý',
   'ui.revealTitle': 'Xem lời giải?',
-  'ui.revealBody': 'Lời giải được điền vào quanh các mảnh đặt sẵn và đề này được đánh dấu là đã xem lời giải, nên sẽ không tính là đã giải. Bạn có thể hoàn tác.',
+  'ui.revealBody': 'Lời giải sẽ được điền vào quanh các mảnh đặt sẵn và đề này sẽ được đánh dấu là đã xem lời giải, nên không được tính là đã giải. '
+    + 'Bạn có thể hoàn tác.',
   'ui.revealConfirm': 'Xem lời giải',
   'ui.resetRevealTitle': 'Đặt lại rồi xem lời giải?',
-  'ui.resetRevealBody': 'Các mảnh bạn đã đặt không thể hoàn thành thành một lời giải. Đặt lại bàn và xem lời giải thay vào đó? '
-    + 'Đề này sẽ được đánh dấu là đã xem lời giải và không tính là đã giải. Bạn có thể hoàn tác.',
+  'ui.resetRevealBody': 'Không thể hoàn thành lời giải từ các mảnh bạn đã đặt. Đặt lại bàn rồi xem lời giải? '
+    + 'Đề này sẽ được đánh dấu là đã xem lời giải và không được tính là đã giải. Bạn có thể hoàn tác.',
   'ui.resetRevealConfirm': 'Đặt lại rồi xem lời giải',
   'ui.replayTitle': 'Chơi lại đề này?',
-  'ui.replayBody': 'Mọi mảnh được bỏ đặt, đồng hồ và số nước đi bắt đầu lại, tiến trình đã lưu của đề này bị xóa. Không thể hoàn tác.',
-  'ui.unplaceAll': 'Bỏ đặt tất cả các mảnh',
+  'ui.replayBody': 'Mọi mảnh sẽ trở về khay, đồng hồ và số nước đi được tính lại từ đầu, và tiến trình đã lưu của đề này sẽ bị xóa. '
+    + 'Không thể hoàn tác thao tác này.',
+  'ui.unplaceAll': 'Trả tất cả các mảnh về khay',
   'ui.replayPuzzle': 'Chơi lại đề',
   'ui.cancel': 'Hủy',
   'ui.winTitle': 'Đã giải xong đề!',
@@ -97,7 +98,6 @@ export default Object.freeze({
   'ui.nextPuzzle': 'Đề tiếp theo',
   'ui.replay': 'Chơi lại',
   'ui.backToGenerator': 'Về trình tạo',
-  'ui.noGame': 'Chưa mở đề nào.',
   'ui.importTitle': 'Mở một đề',
   'ui.importIntro': 'Mở một đề từ liên kết, tệp, văn bản đã dán, gói gần đây hoặc đề mẫu.',
   'ui.chooseFile': 'Nhập tệp',
@@ -139,8 +139,6 @@ export default Object.freeze({
   'keys.help.action': 'Hiện các phím tắt này',
   'keys.menu.key': 'Nhấp chuột phải / Phím Menu',
   'keys.menu.action': 'Mở menu của mảnh: xoay, lật hoặc trả về khay',
-  'keys.assist.key': 'Gợi ý / Xem lời giải',
-  'keys.assist.action': 'Các nút trên thanh công cụ: gợi ý là một khẳng định đã được chứng minh; “Xem lời giải” hỏi trước và đánh dấu đề là đã xem lời giải',
 
   // Levels, ratings and checks
   'level.name.very-easy': 'Rất dễ',
@@ -172,15 +170,15 @@ export default Object.freeze({
   // Messages of the loaders
   'msg.pieceSet': 'Tệp này có các mảnh nhưng chưa có đề — hãy mở nó trong trình tạo.',
   'msg.unsupported': 'Phiên bản hoặc luật của đề không được hỗ trợ.',
-  'msg.missingLocal': 'Đề này không có trong thư viện của trình duyệt này. Hãy nhập một tệp hoặc dùng liên kết di động.',
-  'msg.index': 'Số thứ tự đề nằm ngoài phạm vi.',
+  'msg.missingLocal': 'Đề này không có trong thư viện của trình duyệt này. Hãy nhập một tệp hoặc dùng liên kết chia sẻ có chứa đề.',
+  'msg.index': 'Gói này không có đề với số thứ tự đó.',
   'msg.sampleFailed': 'Không tải được đề mẫu.',
   'msg.loadFailed': 'Không mở được đề.',
   'msg.invalidPack': 'Tệp này không phải gói Pentomino hợp lệ: {message}',
   'msg.unreadable': 'không đọc được dữ liệu.',
-  'msg.restored.invalid': 'Không dùng được tiến trình đã lưu của đề này nên đã bỏ nó.',
+  'msg.restored.invalid': 'Tiến trình đã lưu của đề này không dùng được nên đã bị bỏ.',
   'msg.restored': '{count} nước đi đã lưu không còn khớp với đề này nên đã bị bỏ.',
-  'msg.restored.many': '{count} nước đi đã lưu trở lên không còn khớp với đề này nên đã bị bỏ.',
+  'msg.restored.many': 'Có từ {count} nước đi đã lưu trở lên không còn khớp với đề này nên đã bị bỏ.',
 
   // Placement outcomes (announced through the live region)
   'play.noRoom': 'Không đủ chỗ để xoay ở đây',
@@ -188,20 +186,20 @@ export default Object.freeze({
   'play.noSelection': 'Chưa chọn mảnh nào',
   'play.alreadyInTray': 'Mảnh đã ở trong khay',
   'play.cancelled': 'Đã hủy',
-  'play.moveCancelled': 'Đã hủy việc di chuyển, mảnh giữ nguyên vị trí',
+  'play.moveCancelled': 'Đã hủy di chuyển. Mảnh vẫn ở vị trí cũ',
   'play.undone': 'Đã hoàn tác',
   'play.redone': 'Đã làm lại',
   'play.nothingToUndo': 'Không có gì để hoàn tác',
   'play.nothingToRedo': 'Không có gì để làm lại',
   'play.resetDone': 'Đã đặt lại đề. Mọi mảnh đã trở về khay',
-  'play.previewValid': 'Xem trước. Chạm lại đúng ô đó, nhấn Đặt hoặc Enter để thả mảnh',
+  'play.previewValid': 'Xem trước. Chạm lại đúng ô đó hoặc nhấn Enter để thả mảnh',
   'play.selected': 'Đã chọn mảnh {label}',
-  'play.pickedUp': 'Đã nhấc mảnh {label}. Di chuyển bằng phím mũi tên, nhấn Enter để thả, Escape để hủy',
+  'play.pickedUp': 'Đã nhấc mảnh {label}. Di chuyển bằng phím mũi tên, rồi nhấn Enter để thả hoặc Escape để hủy',
   'play.cannotPlace': 'Không đặt được ở đây: {reason}',
   'play.placed': 'Đã đặt. {name}',
   'play.moved': 'Đã di chuyển. {name}',
   'play.returned': 'Mảnh {label} đã trở về khay',
-  'play.turned': 'Mảnh {label} đã xoay',
+  'play.turned': 'Đã xoay mảnh {label}',
   'play.solved': 'Đã giải xong đề! {total}',
   'play.ghostAt': 'Hàng {row}, cột {column}. {state}',
   'play.ghostFree': 'Trống',
@@ -219,18 +217,19 @@ export default Object.freeze({
   'hint.stale': 'Bàn đã thay đổi nên kết quả kiểm tra đó bị bỏ.',
   'hint.complete': 'Đề đã hoàn thành.',
   'hint.noLongerFits': 'Gợi ý đó không còn khớp với bàn. Hãy xin gợi ý mới.',
-  'hint.place': 'Gợi ý: mảnh {label} khớp với một lời giải hoàn chỉnh giữ nguyên mọi mảnh bạn đã đặt. Nó được tô sáng trên bàn. Nhấn “Đặt mảnh này” để đặt nó vào đó.',
-  'hint.remove': 'Gợi ý: nếu bạn gỡ mảnh {label}, đề có thể được hoàn thành với mọi mảnh khác của bạn được giữ nguyên. '
+  'hint.place': 'Gợi ý: mảnh {label} khớp với một lời giải hoàn chỉnh giữ nguyên mọi mảnh bạn đã đặt. Mảnh này được tô sáng trên bàn. '
+    + 'Nhấn “Đặt mảnh này” để đặt nó vào đó.',
+  'hint.remove': 'Gợi ý: nếu gỡ mảnh {label}, bạn có thể hoàn thành đề mà vẫn giữ nguyên mọi mảnh khác đã đặt. '
     + 'Điều đó không có nghĩa đây là mảnh duy nhất có thể di chuyển.',
   'hint.placedHint': 'Đã đặt mảnh {label}. Bạn có thể hoàn tác.',
   'hint.removedHint': 'Đã gỡ mảnh {label}. Bạn có thể hoàn tác.',
   'hint.revealed': 'Đã hiện lời giải. Đề này được đánh dấu là đã xem lời giải, không phải đã giải.',
-  'hint.revealUnsat': 'Các mảnh bạn đã đặt không thể hoàn thành thành một lời giải.',
+  'hint.revealUnsat': 'Không thể hoàn thành lời giải từ các mảnh bạn đã đặt.',
   'hint.revealImpossible': 'Đề này không có lời giải nên không có gì để hiện.',
   'hint.revealCancelled': 'Đã hủy việc xem lời giải. Không có gì thay đổi.',
   'hint.revealUnknown': 'Không tìm thấy lời giải hoàn chỉnh trong lần kiểm tra này. Không có gì thay đổi.',
   'hint.revealFailed': 'Không thể hiện lời giải. Không có gì thay đổi.',
-  'hint.replayed': 'Đã bắt đầu một đề mới tinh.',
+  'hint.replayed': 'Đã chơi lại đề từ đầu.',
 
   // Announcements of the page
   'live.opened': 'Đã mở {puzzle}. {left}.',

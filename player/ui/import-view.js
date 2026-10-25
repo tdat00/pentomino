@@ -1,7 +1,6 @@
 // @ts-check
-// Import screen: file chooser, paste box, sample and the Recent library. Every
-// string is set through `textContent`; actions are reported to handlers and
-// never decide anything about packs themselves.
+// Import screen: file chooser, paste box, sample and the Recent library. It reports actions to its handlers and
+// decides nothing about packs itself.
 
 import { el } from '../../core/browser/dom.js';
 import { getLocale } from '../i18n.js';

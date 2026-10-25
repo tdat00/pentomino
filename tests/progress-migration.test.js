@@ -45,7 +45,7 @@ function memoryAdapter() {
   };
 }
 
-/** A record exactly as version 1 wrote it. */
+/** A record exactly as version 1 wrote it, with the `updatedAt` stamp that is no longer kept. */
 const v1Record = () => ({
   v: 1, placements: PLACEMENTS, elapsedMs: 83000, moves: 5, solved: false, updatedAt: 1700000000000,
 });
@@ -75,15 +75,13 @@ test('a stored version 1 record loads as version 2 with false and 0 and keeps it
     solved: false,
     revealed: false,
     hintsUsed: 0,
-    updatedAt: 1700000000000,
   });
   assert.equal(JSON.parse(adapter.map.get(KEY)).v, 1, 'reading never rewrites the stored text');
   const record = /** @type {any} */ (storage.loadProgress(FP));
   assert.equal(storage.saveProgress(FP, record).ok, true);
   const written = JSON.parse(adapter.map.get(KEY));
-  assert.deepEqual(Object.keys(written), ['v', 'placements', 'elapsedMs', 'moves', 'solved', 'revealed', 'hintsUsed', 'updatedAt']);
+  assert.deepEqual(Object.keys(written), ['v', 'placements', 'elapsedMs', 'moves', 'solved', 'revealed', 'hintsUsed'], 'updatedAt is dropped');
   assert.equal(written.v, 2);
-  assert.equal(written.updatedAt, 1800000000000, 'the save is stamped by the host');
   // The previous shape is still accepted for writing and migrates in the same way.
   assert.equal(storage.saveProgress('other', { v: 1, placements: [], elapsedMs: 1, moves: 0, solved: false }).ok, true);
   assert.deepEqual(JSON.parse(adapter.map.get(`${NAMESPACE}progress:other`)).hintsUsed, 0);
@@ -121,7 +119,7 @@ test('only an earned solve counts in the library; a revealed one does not', () =
 });
 
 test('createGame migrates version 1 and restores version 2 exactly', () => {
-  const old = createGame(pack, 0, { ...v1Record(), updatedAt: '2023-11-14T22:13:20.000Z' });
+  const old = createGame(pack, 0, v1Record());
   assert.equal(old.revealed, false);
   assert.equal(old.hintsUsed, 0);
   assert.deepEqual([...old.placed.keys()], ['E', 'H']);
@@ -129,7 +127,7 @@ test('createGame migrates version 1 and restores version 2 exactly', () => {
   assert.equal(old.moves, 5);
   assert.deepEqual(old.restoreWarnings, []);
 
-  const fresh = createGame(pack, 0, { ...v2Record(PLACEMENTS, { revealed: true }), updatedAt: '2023-11-14T22:13:20.000Z' });
+  const fresh = createGame(pack, 0, v2Record(PLACEMENTS, { revealed: true }));
   assert.equal(fresh.revealed, true);
   assert.equal(fresh.hintsUsed, 2);
   const snap = snapshot(fresh);
@@ -236,11 +234,8 @@ test('a restored revealed game stays revealed; Replay starts a fresh unassisted 
   assert.equal(h.game().hintsUsed, 0);
   assert.equal(h.game().placed.size, 0);
   assert.deepEqual(h.store.getState().statuses, ['new']);
-  const record = JSON.parse(h.adapter.map.get(KEY));
-  assert.equal(record.v, 2);
-  assert.equal(record.revealed, false);
-  assert.equal(record.hintsUsed, 0);
-  assert.deepEqual(record.placements, []);
+  assert.equal(h.adapter.map.has(KEY), false, 'the saved record is removed, not replaced by an empty one');
+  assert.equal(h.storage.loadProgress(FP), null);
 });
 
 test('an earned solved game is still reported as solved, not revealed', async () => {

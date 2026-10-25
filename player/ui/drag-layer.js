@@ -1,7 +1,6 @@
 // @ts-check
-// Drag layer: a full-window, pointer-transparent overlay that carries the clone
-// of the dragged piece at board scale and rotation, with its grabbed cell kept
-// under the pointer. The committed state is never touched here.
+// Drag layer: a full-window overlay, transparent to the pointer, that carries the clone of the dragged piece at
+// board scale and rotation with its grabbed cell under the pointer.
 
 import { el } from '../../core/browser/dom.js';
 import { mountPiecePreview } from '../../core/browser/svg-board.js';
@@ -17,8 +16,6 @@ import { mountPiecePreview } from '../../core/browser/svg-board.js';
  * @property {number} rotation Display angle.
  * @property {number} cellPx Board cell size.
  * @property {number} handleIndex Source cell under the pointer.
- * @property {boolean} showLabels
- * @property {boolean} showPatterns
  */
 
 /**
@@ -45,7 +42,7 @@ export function createDragLayer(parent) {
       layer.hidden = false;
       preview = mountPiecePreview(layer, spec.piece, { cellPx: spec.cellPx, index: spec.index, count: spec.count, name: spec.piece.label });
       preview.svg.classList.add('drag-piece');
-      preview.render({ t: spec.t, rotation: spec.rotation, showLabels: spec.showLabels, showPatterns: spec.showPatterns });
+      preview.render({ t: spec.t, rotation: spec.rotation, showLabels: true, showPatterns: true });
       // A rotated square's bounding box has the same center, so the hit area of the handle cell locates it.
       const hit = preview.svg.querySelector(`.pm-hit[data-source-cell="${spec.handleIndex}"]`);
       const box = preview.svg.getBoundingClientRect();
@@ -69,8 +66,6 @@ export function createDragLayer(parent) {
       preview = null;
       layer.hidden = true;
     },
-    isShown: () => preview !== null,
-    element: layer,
     destroy() {
       preview?.destroy();
       layer.remove();

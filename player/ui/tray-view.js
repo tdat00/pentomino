@@ -1,7 +1,6 @@
 // @ts-check
-// Tray adapter: one button per unplaced piece, drawn at its current tray
-// orientation and the effective display angle through the shared T16 preview.
-// It only reports selection and grab events; the gesture layer turns them into moves.
+// Tray view: one button per unplaced piece, drawn at its tray orientation and the display angle. It only reports
+// selection; the gesture layer turns pointer drags into moves.
 
 import { mountPiecePreview, pieceName } from '../../core/browser/svg-board.js';
 
@@ -22,7 +21,7 @@ const COMPACT_QUERY = '(max-width: 767px)';
  * @param {number} [slotPx] Longest side available to the largest piece.
  * @returns {number}
  */
-export function trayCellPx(pieces, angle, slotPx = TARGET_SLOT_PX) {
+function trayCellPx(pieces, angle, slotPx = TARGET_SLOT_PX) {
   let longest = 1;
   for (const piece of pieces) {
     const xs = piece.cells.map((c) => c[0]);
@@ -37,8 +36,6 @@ export function trayCellPx(pieces, angle, slotPx = TARGET_SLOT_PX) {
 /**
  * @typedef {object} TrayHooks
  * @property {(pieceId: string, event: Event) => void} [onSelect] Click, Enter or Space on a tray piece.
- * @property {(grab: { pieceId: string, sourceCell: number | null, event: PointerEvent }) => void} [onGrab]
- *   Pointer pressed on a tray piece; `sourceCell` indexes the piece's cells at its current orientation.
  */
 
 /**
@@ -58,7 +55,7 @@ export function createTrayView(host, hooks = {}) {
   /** @type {object | null} */
   let lastPack = null;
   let lastCellPx = 0;
-  /** @type {{ state: Pick<PlayerState, 'pack' | 'game' | 'prefs'>, angle: number } | null} */
+  /** @type {{ state: Pick<PlayerState, 'pack' | 'game'>, angle: number } | null} */
   let last = null;
 
   /**
@@ -83,9 +80,6 @@ export function createTrayView(host, hooks = {}) {
     preview.svg.removeAttribute('role');
     preview.svg.removeAttribute('aria-label');
     button.addEventListener('click', (event) => hooks.onSelect?.(id, event));
-    button.addEventListener('pointerdown', (event) => {
-      hooks.onGrab?.({ pieceId: id, sourceCell: preview.sourceCellAt(event.clientX, event.clientY), event });
-    });
     /** @type {Slot} */
     const slot = { button, preview, signature: '' };
     slots.set(id, slot);
@@ -102,11 +96,11 @@ export function createTrayView(host, hooks = {}) {
 
   return {
     /**
-     * @param {Pick<PlayerState, 'pack' | 'game' | 'prefs'>} state
+     * @param {Pick<PlayerState, 'pack' | 'game'>} state
      * @param {number} angle Effective display angle.
      */
     render(state, angle) {
-      const { pack, game, prefs } = state;
+      const { pack, game } = state;
       if (pack === null || game === null) {
         return;
       }
@@ -118,7 +112,6 @@ export function createTrayView(host, hooks = {}) {
         lastPack = pack;
         lastCellPx = cellPx;
       }
-      const showPatterns = prefs.patterns && pack.pieces.length > 20;
       const order = [];
       pack.pieces.forEach((piece, index) => {
         const t = game.tray.get(piece.id);
@@ -127,10 +120,10 @@ export function createTrayView(host, hooks = {}) {
         }
         const slot = ensure(piece.id, piece, index, pack.pieces.length, cellPx);
         const selected = game.selected === piece.id;
-        const signature = `${t}|${angle}|${prefs.labels}|${showPatterns}|${cellPx}`;
+        const signature = `${t}|${angle}|${cellPx}`;
         if (slot.signature !== signature) {
           slot.signature = signature;
-          slot.preview.render({ t, rotation: angle, showLabels: prefs.labels, showPatterns });
+          slot.preview.render({ t, rotation: angle, showLabels: true, showPatterns: true });
         }
         slot.button.setAttribute('aria-pressed', String(selected));
         slot.button.setAttribute('aria-label', pieceName(piece, selected ? 'in tray, selected' : 'in tray'));

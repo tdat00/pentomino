@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import { boardFromRows } from '../core/engine/board.js';
 import { poseCells } from '../core/engine/geometry.js';
 import {
-  EPOCH, MAX_HISTORY, canPlace, createGame, isSolved, poseT, reduce, snapshot,
+  MAX_HISTORY, canPlace, createGame, isSolved, poseT, reduce, snapshot,
 } from '../core/engine/game.js';
 import { progressFingerprint } from '../core/engine/keys.js';
 import { buildModel, countSolutions } from '../core/engine/tiling.js';
@@ -347,7 +347,7 @@ test('inputs, maps and clue arrays are never mutated', () => {
   assert.equal(placed.placed.get('F')?.x, 0);
   assert.equal(placed.history[0].kind === 'piece' && placed.history[0].after?.x, 0);
 
-  const saved = deepFreeze({ v: 1, placements: [pose('B', 1, 0)], elapsedMs: 5, moves: 1, solved: false, updatedAt: EPOCH });
+  const saved = deepFreeze({ v: 1, placements: [pose('B', 1, 0)], elapsedMs: 5, moves: 1, solved: false });
   assert.equal(createGame(pack, 0, saved).placed.size, 1);
 });
 
@@ -369,7 +369,6 @@ test('restoring keeps valid moves and reports each discarded one', () => {
     elapsedMs: 4200,
     moves: 11,
     solved: true,
-    updatedAt: '2026-03-04T05:06:07.000Z',
   };
   const savedCopy = JSON.stringify(saved);
   const s = createGame(pack, 0, /** @type {any} */ (saved));
@@ -387,7 +386,6 @@ test('restoring keeps valid moves and reports each discarded one', () => {
   assert.equal(s.solved, false);
   assert.equal(s.elapsedMs, 4200);
   assert.equal(s.moves, 11);
-  assert.equal(s.updatedAt, '2026-03-04T05:06:07.000Z');
   assert.deepEqual([...s.tray.keys()], ['C', 'D', 'E', 'F', 'G', 'I']);
   assert.equal(s.history.length, 0);
   assert.equal(JSON.stringify(saved), savedCopy);
@@ -397,12 +395,11 @@ test('restoring keeps valid moves and reports each discarded one', () => {
 test('forged solved progress and bad metadata do not create a win', () => {
   const pack = fixturePack();
   const forged = createGame(pack, 0, /** @type {any} */ ({
-    v: 1, placements: [], elapsedMs: -5, moves: 1.5, solved: true, updatedAt: 'yesterday',
+    v: 1, placements: [], elapsedMs: -5, moves: 1.5, solved: true,
   }));
   assert.equal(forged.solved, false);
   assert.equal(forged.elapsedMs, 0);
   assert.equal(forged.moves, 0);
-  assert.equal(forged.updatedAt, EPOCH);
   const wrongVersion = createGame(pack, 0, /** @type {any} */ ({ v: 3, placements: [] }));
   assert.equal(wrongVersion.restoreWarnings[0].code, 'progress-invalid');
   assert.equal(createGame(pack, 0, /** @type {any} */ ('x')).restoreWarnings.length, 1);
@@ -418,7 +415,7 @@ test('forged solved progress and bad metadata do not create a win', () => {
   assert.ok(staleGame.restoreWarnings.length >= 1);
 
   const flood = createGame(pack, 0, /** @type {any} */ ({
-    v: 1, placements: new Array(150).fill(null), elapsedMs: 0, moves: 0, solved: false, updatedAt: EPOCH,
+    v: 1, placements: new Array(150).fill(null), elapsedMs: 0, moves: 0, solved: false,
   }));
   assert.equal(flood.restoreWarnings.length, 101);
   assert.equal(flood.restoreWarnings[100].code, 'too-many-warnings');
@@ -438,12 +435,11 @@ test('snapshot is deterministic, movable-only and round-trips', () => {
   const snap = snapshot(a);
   assert.deepEqual(snap.placements.map((p) => p.piece), ['B', 'H']);
   assert.deepEqual(snap, snapshot(b));
-  assert.deepEqual(Object.keys(snap), ['v', 'placements', 'elapsedMs', 'moves', 'solved', 'revealed', 'hintsUsed', 'updatedAt']);
+  assert.deepEqual(Object.keys(snap), ['v', 'placements', 'elapsedMs', 'moves', 'solved', 'revealed', 'hintsUsed']);
   snap.placements[0].x = 7;
   assert.equal(a.placed.get('B')?.x, 1);
   const round = createGame(pack, 0, JSON.parse(JSON.stringify(snapshot(a))));
   assert.deepEqual(view(round), view(a));
-  assert.equal(snapshot(createGame(pack, 0)).updatedAt, EPOCH);
 });
 
 test('identity is the exact-coordinate fingerprint, not the public puzzle id', () => {

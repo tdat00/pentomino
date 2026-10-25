@@ -582,7 +582,6 @@ await check('the editor survives a broken storage and persists what it can', asy
   let denied = true;
   const io = {
     getGeneratorState: () => { throw new Error('denied'); },
-    getPrefs: () => { throw new Error('denied'); },
     setGeneratorState: (/** @type {unknown} */ snapshot) => {
       if (denied) {
         throw new Error('quota');
@@ -612,7 +611,7 @@ await check('the editor survives a broken storage and persists what it can', asy
     equal(written.length, 0, 'writes wait for the 300 ms debounce');
     await sleep(450);
     equal(written.length, 1, 'one debounced write');
-    const restored = loadGeneratorState({ ...io, getGeneratorState: () => written[0], getPrefs: () => ({}) });
+    const restored = loadGeneratorState({ ...io, getGeneratorState: () => written[0] });
     equal(activeCount(restored.board), 58, 'the saved board restores through the validators');
     assert(app.regions.set && app.regions.puzzles, 'regions are exposed for the job code');
     assert(action.hidden, 'without the wizard screens there is no step navigator');

@@ -323,7 +323,7 @@ await check('reveal asks first, cancelling changes nothing, confirming marks the
   await tick();
   equal(m.game().revealed, false, 'Replay is a fresh unassisted session');
   equal(m.game().placed.size, 0, 'with an empty board');
-  equal(saved(m)?.revealed, false, 'and an empty record');
+  equal(saved(m), null, 'and no saved record');
 });
 
 await check('reveal over an unsolvable position needs an explicit reset-then-reveal', async () => {

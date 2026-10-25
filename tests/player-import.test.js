@@ -14,10 +14,10 @@ import { PoolAbortError, PoolError } from '../core/browser/worker-pool.js';
 import { SAVE_FAILED_MESSAGE, createStorage } from '../core/browser/storage.js';
 import { verifySample } from '../tools/record-fixtures.mjs';
 import {
-  createPlayerController, createPlayerStore, effectiveRotation, hashWithIndex, offersPatterns,
+  createPlayerController, createPlayerStore, effectiveRotation, hashWithIndex,
 } from '../player/state.js';
 import {
-  CERTIFICATE_NONE, INDEX_MESSAGE, MISSING_LOCAL_MESSAGE, SAMPLE_FAILED_MESSAGE, UNSUPPORTED_MESSAGE,
+  INDEX_MESSAGE, MISSING_LOCAL_MESSAGE, SAMPLE_FAILED_MESSAGE, UNSUPPORTED_MESSAGE,
   certificateLabel, formatElapsed, invalidPackMessage, messageForIssues, ratingLabel, ratingParts, restorationNotice, verificationLabel,
 } from '../player/strings.js';
 
@@ -175,8 +175,8 @@ test('exact messages for every mapped failure', async () => {
   assert.equal(messageForIssues([{ code: 'bad-rules', path: 'rules', message: 'x' }]), 'Unsupported puzzle version or rules.');
   assert.equal(messageForIssues([{ code: 'library-missing', path: '$', message: 'x' }]),
     "This puzzle is not in this browser's library. Import a file or use a portable link.");
-  assert.equal(messageForIssues([{ code: 'index-out-of-range', path: '$', message: 'x' }]), 'Puzzle index is out of range.');
-  assert.equal(messageForIssues([{ code: 'invalid-index', path: '$', message: 'x' }]), 'Puzzle index is out of range.');
+  assert.equal(messageForIssues([{ code: 'index-out-of-range', path: '$', message: 'x' }]), 'This pack has no puzzle with that number.');
+  assert.equal(messageForIssues([{ code: 'invalid-index', path: '$', message: 'x' }]), 'This pack has no puzzle with that number.');
   assert.equal(messageForIssues([{ code: 'missing-field', path: 'board', message: 'Missing required field "board"' }]),
     'This file is not a valid Pentomino pack: Missing required field "board"');
   assert.equal(invalidPackMessage('boom'), 'This file is not a valid Pentomino pack: boom');
@@ -190,7 +190,6 @@ test('verification, certificate and rating wording keeps claims apart from proof
   assert.equal(verificationLabel(undefined), '');
   assert.equal(certificateLabel(null), 'Uniqueness not checked');
   assert.equal(certificateLabel(null, true), 'Checking…');
-  assert.equal(CERTIFICATE_NONE, 'Uniqueness not checked');
   assert.equal(certificateLabel({ status: 'unique' }), 'Unique solution ✓');
   assert.equal(certificateLabel({ status: 'multiple' }), 'Multiple solutions');
   assert.equal(certificateLabel({ status: 'not-proved' }), 'At least 1 solution');
@@ -371,7 +370,7 @@ test('failed replacements keep the old game while a new one is loading, and only
   assert.equal(h.state().loading, false);
 });
 
-test('puzzle switching keeps each game’s own progress and Replay empties the saved record', async () => {
+test('puzzle switching keeps each game’s own progress and Replay removes the saved record', async () => {
   const h = setup();
   await h.controller.importText(sampleText);
   const pose = movablePose(sample, 0);
@@ -391,9 +390,10 @@ test('puzzle switching keeps each game’s own progress and Replay empties the s
   h.controller.replay();
   assert.equal(h.state().game?.placed.size, 0);
   assert.equal(h.state().statuses[0], 'new');
+  assert.equal(h.storage.loadProgress(/** @type {string} */ (h.state().fingerprints[0])), null, 'Replay removed the saved record');
   h.controller.goToPuzzle(1);
   h.controller.goToPuzzle(0);
-  assert.equal(h.state().game?.placed.size, 0, 'Replay replaced the saved record');
+  assert.equal(h.state().game?.placed.size, 0, 'and the puzzle reopens empty');
 
   const bad = h.controller.goToPuzzle(3);
   assert.equal(bad.ok, false);
@@ -450,22 +450,17 @@ test('presentation angle is display only: loads at 0/45/90/315, never changes fi
   assert.equal(progressFingerprint(board, sample.pieces, sample.puzzles[0].clues), baseline[0]);
 });
 
-test('display preferences are independent device preferences', async () => {
+test('Straighten is a stored device preference; hashWithIndex only sets i', async () => {
   const adapter = memoryAdapter();
   const h = setup({ adapter });
   await h.controller.importText(sampleText);
-  assert.deepEqual([h.state().prefs.labels, h.state().prefs.patterns, h.state().prefs.timer], [true, true, true]);
-  h.controller.setPref('labels', false);
-  assert.deepEqual([h.state().prefs.labels, h.state().prefs.patterns], [false, true]);
-  h.controller.setPref('patterns', false);
-  h.controller.setPref('labels', true);
-  assert.deepEqual([h.state().prefs.labels, h.state().prefs.patterns, h.state().prefs.timer], [true, false, true]);
-  h.controller.setPref('timer', false);
+  assert.deepEqual(h.state().prefs, { straighten: false });
+  h.controller.setPref('straighten', true);
+  assert.equal(h.state().prefs.straighten, true);
   const later = setup({ adapter });
   await later.controller.start();
-  assert.deepEqual([later.state().prefs.labels, later.state().prefs.patterns, later.state().prefs.timer], [true, false, false]);
-  assert.equal(offersPatterns(sample), false, 'a 9-piece set never offers Patterns');
-  assert.equal(offersPatterns({ ...sample, pieces: Array(21).fill(sample.pieces[0]) }), true);
+  assert.deepEqual(later.state().prefs, { straighten: true });
+  assert.deepEqual(JSON.parse(adapter.map.get('pentomino:v1:prefs') ?? ''), { straighten: true }, 'nothing else is stored');
   assert.equal(hashWithIndex('#pack=1z.abc&i=0', 4), '#pack=1z.abc&i=4');
   assert.equal(hashWithIndex('#lib=0123456789abcdef', 2), '#lib=0123456789abcdef&i=2');
   assert.equal(hashWithIndex('#i=1&pack=1z.x', 3), '#i=3&pack=1z.x');

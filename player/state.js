@@ -1,9 +1,7 @@
 // @ts-check
-// Player state: a tiny observable store plus the DOM-free controller that owns
-// every way a puzzle can arrive (link, file, paste, library, sample), atomic
-// replacement of the open game, progress hand-off to storage, and non-blocking
-// solvability checks through a one-worker pool. Browser services are injected
-// so the same code runs under Node tests and in the page.
+// Player state: a small observable store and the DOM-free controller that opens puzzles from every source (link,
+// file, paste, library, sample), replaces the open game atomically, saves progress and checks solvability in a
+// worker. Browser services are injected, so the same code runs under Node tests and in the page.
 
 import { createGame, snapshot } from '../core/engine/game.js';
 import { packId as computePackId, progressFingerprint } from '../core/engine/keys.js';
@@ -60,7 +58,7 @@ import { INDEX_MESSAGE, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, messageForIs
  */
 
 /** @type {Prefs} */
-const DEFAULT_PREFS = Object.freeze({ labels: true, patterns: true, timer: true, straighten: false, largeBoards: false });
+const DEFAULT_PREFS = Object.freeze({ straighten: false });
 
 /** @returns {PlayerState} */
 function defaultState() {
@@ -153,14 +151,6 @@ export function createPlayerStore(initial = {}) {
 export function effectiveRotation(state) {
   const rotation = state.viewRotation ?? state.pack?.presentation?.rotation ?? 0;
   return state.prefs.straighten ? straightenAngle(rotation) : rotation;
-}
-
-/**
- * @param {Pack | null} pack
- * @returns {boolean} Patterns are offered only above 20 pieces.
- */
-export function offersPatterns(pack) {
-  return (pack?.pieces.length ?? 0) > 20;
 }
 
 /**
@@ -277,11 +267,7 @@ export function createPlayerController(options) {
         return pack.puzzles.map((puzzle) => progressFingerprint(board, pack.pieces, puzzle.clues));
       })();
       const saved = storage.loadProgress(fingerprints[index]);
-      const progress = saved === null ? undefined : {
-        ...saved,
-        updatedAt: Number.isFinite(saved.updatedAt) ? new Date(saved.updatedAt).toISOString() : undefined,
-      };
-      return { ok: true, fingerprints, game: createGame(pack, index, /** @type {any} */ (progress)) };
+      return { ok: true, fingerprints, game: createGame(pack, index, saved ?? undefined) };
     } catch (error) {
       return { ok: false, issues: [{ code: 'invalid-pack', path: '$', message: error instanceof Error ? error.message : 'The puzzle could not be opened.' }] };
     }
@@ -315,7 +301,7 @@ export function createPlayerController(options) {
     return result.ok;
   }
 
-  /** Fresh game for the open puzzle; the saved record is emptied at once. */
+  /** Fresh game for the open puzzle; its saved record is removed at once. */
   function restartOpenGame() {
     const s = store.getState();
     if (!s.pack) {
@@ -324,9 +310,7 @@ export function createPlayerController(options) {
     store.update({ game: createGame(s.pack, s.index), notice: null });
     const fp = s.fingerprints[s.index];
     if (fp !== undefined) {
-      const result = storage.saveProgress(fp, {
-        v: 2, placements: [], elapsedMs: 0, moves: 0, solved: false, revealed: false, hintsUsed: 0,
-      });
+      const result = storage.removeProgress(fp);
       const statuses = s.statuses.slice();
       statuses[s.index] = 'new';
       store.update({ statuses, storageWarning: result.ok ? s.storageWarning : SAVE_FAILED_MESSAGE });

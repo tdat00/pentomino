@@ -108,8 +108,6 @@ function memoryStorage(o = {}) {
       saved = JSON.parse(JSON.stringify(snapshot));
       return { ok: true };
     },
-    getPrefs: () => ({}),
-    setPrefs: () => ({ ok: true }),
   };
 }
 
