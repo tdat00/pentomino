@@ -66,7 +66,10 @@ bookmark keeps it and sending the address shares it.
 
 > **Status.** The repository is built task by task, so a feature listed here may not be finished yet. Release acceptance
 > (browser matrix, performance gates) is tracked separately, and nothing below promises browser timings before that
-> qualification has been reported.
+> qualification has been reported. The automated acceptance of printing a puzzle code, reading it back and opening it
+> in the Player (`puzzle-code-acceptance.html` and `tests/puzzlecode-acceptance.test.js`) is not evidence of a printed
+> sheet: scanning a printed QR code with real Android and iPhone cameras, the 50 mm bar of a physical print at 100 % and
+> typing a printed code on a phone remain checks for the owner before a release.
 
 [Back to top](#top)
 
@@ -299,7 +302,7 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
 - **Browser test pages** (not deployed): run `npm run serve` and open `http://localhost:8080/pentomino/tests/browser/`
   followed by `player-controls.html`, `player-load.html`, `hints.html`, `print.html`, `rendering.html`,
   `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`, `puzzle-code-entry.html`,
-  `puzzle-code-print.html`, `puzzle-code-copy.html`, `puzzle-code-cli-parity.html` or
+  `puzzle-code-print.html`, `puzzle-code-copy.html`, `puzzle-code-cli-parity.html`, `puzzle-code-acceptance.html` or
   `acceptance.html`. Each writes a pass/fail list and `data-summary` on `<html>`. Use a window narrower than 1360 px:
   some checks expect the one- or two-column layout.
 - **Headless generation**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`. The
@@ -411,7 +414,10 @@ tạo ra nó. Không ứng dụng nào nhập hay xuất tệp: địa chỉ c�
 
 > **Trạng thái.** Kho mã được xây dựng theo từng nhiệm vụ, nên một tính năng nêu ở đây có thể chưa hoàn tất. Việc nghiệm
 > thu bản phát hành (ma trận trình duyệt, ngưỡng hiệu năng) được theo dõi riêng, và nội dung dưới đây không hứa hẹn thời
-> gian chạy trên trình duyệt trước khi có kết quả kiểm định đó.
+> gian chạy trên trình duyệt trước khi có kết quả kiểm định đó. Việc nghiệm thu tự động cho chuỗi in mã đề, đọc lại mã và
+> mở đề trong Trình chơi (`puzzle-code-acceptance.html` và `tests/puzzlecode-acceptance.test.js`) không thay cho bản in
+> thật: quét mã QR trên giấy bằng camera điện thoại Android và iPhone thật, thanh 50 mm của bản in vật lý ở 100 % và nhập
+> mã đề in trên giấy bằng điện thoại vẫn là các việc kiểm tra của chủ dự án trước khi phát hành.
 
 [Lên đầu trang](#top)
 
@@ -638,7 +644,8 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
 - **Trang kiểm thử trên trình duyệt** (không được xuất bản): chạy `npm run serve` rồi mở
   `http://localhost:8080/pentomino/tests/browser/` kèm `player-controls.html`, `player-load.html`, `hints.html`,
   `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`,
-  `puzzle-code-entry.html`, `puzzle-code-print.html`, `puzzle-code-copy.html`, `puzzle-code-cli-parity.html` hoặc
+  `puzzle-code-entry.html`, `puzzle-code-print.html`, `puzzle-code-copy.html`, `puzzle-code-cli-parity.html`,
+  `puzzle-code-acceptance.html` hoặc
   `acceptance.html`. Mỗi trang ghi danh sách đạt/không đạt và `data-summary` trên `<html>`. Hãy dùng cửa sổ hẹp hơn
   1360 px: một số bài kiểm tra cần bố cục một hoặc hai cột.
 - **Tạo đề không cần giao diện**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`.

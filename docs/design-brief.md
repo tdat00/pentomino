@@ -87,6 +87,8 @@ The first sheet shows the puzzle's name, its level and score, and its piece set'
 
 **When the code is too long.** The code is reduced only in an approved order, and each step is announced in the dialog before printing: first the optional solution part is left out of both text and QR code; then the QR code uses low error correction; and for the rare puzzle whose core still cannot be made into a QR code, the sheet prints neither code nor QR code and says "This puzzle is too large for a puzzle code." A code is never cut short, and a failure to prepare it is reported as a failure with **Try again**, never as a puzzle that is too large.
 
+**What has been checked.** The path from the printed first sheet to the same puzzle in the Player (the printed code read in order, the QR code decoded to the address that **Copy this puzzle link** writes, the code typed into **Enter puzzle code**, the same board, pieces, clues, angle, name and rating, saved moves restored and Replay) is checked automatically in both apps, in both languages and in the light, dark and high-contrast themes, and at a phone's width. That is not a printed sheet: printing on A4 at 100 % with the 50 mm bar measured, scanning the QR code with real Android and iPhone cameras, typing a printed code on a phone and the clipboard of a real user are checks that the owner does before a release.
+
 ## Limits, waiting, and sharing
 
 Boards need **at least 30 playable squares**, with sides ≤**32**. Launch limits are **484 squares on desktop and 360 in phone mode**. Passing browser checks can raise these to **576 and 484**. The Generator page offers no larger boards; the 676-square ceiling is reserved for the command-line tool.

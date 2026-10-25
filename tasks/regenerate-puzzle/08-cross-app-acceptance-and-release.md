@@ -597,14 +597,14 @@ with the exact remaining operator steps. Do not claim this task is fully done.
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Automated acceptance done and green; **release blocked** on owner gates (BA30 physical print and phone scan, real-user clipboard, Vietnamese human review). Findings F01 (RP03) and F02 (RP06) routed to a fix round by the orchestrator. |
+| Start | 2026-10-26 00:32:43 (+07:00) |
+| End | 2026-10-26 01:25:48 (+07:00) |
+| Duration | 53 min 05 s |
+| Model | claude-sonnet-5.5 (sub-agent `RP08-acceptance`, general-purpose); wave 6, alone (held the documentation slot) |
+| Token usage | 222 model calls; 45,405,489 input (44,750,936 cache read), 303,587 output |
+| AI credits | 914.71 AIU (local usage store, keyed by sub-agent id) |
+| Verification | Developer (tested revision `94da942`): `npm test` 1,134/1,134 (+14 new); `npm run test:quick` 1,117/1,117; `npm run check` OK; `node --test tests\puzzlecode-acceptance.test.js` 14/14; headless Edge 156 (`--disable-extensions`, ports 8708/9208): `puzzle-code-acceptance.html` pass, 22 checks, 74/74 workers ended, 0 CSP/uncaught/off-origin errors, phone phase (390 px touch) pass; 5/5 printed-QR rasters decode (test-only jsQR) to the exact URL Copy link wrote; real `/player/` page in a fresh profile with trusted mouse and keys: 11 journeys pass (typed core in lower case and groups, full code, QR address, progress saved/restored/erased by Replay, typo correction, damaged tail, 243-character oracle with 36 pieces, `&i=1` refused, `#pack=` still opens), same at 390 px; legacy harnesses print 9/9, player-load 19/19, player-controls 27/27, hints 10/10, rendering 17/17, acceptance 16 checks (4 blocked as before), generator-editor 29/29, generator-flow 20/20, watchdog 5/5; feature harnesses puzzle-qr 13/13, worker 12/12, entry 20/20, print 13/13, copy 19/19 (+ keys 3/3, narrow 4/4), cli-parity 15/15; CLI recipe smoke exit 0 with 10 lines whose codes open the same puzzles; assembled site 107 files, `check-site` OK, no jsQR or `tests/` in the deploy graph. Orchestrator re-run: full `node --test "tests/**/*.test.js"` 1,134 pass / 0 fail (49.0 s); `npm run check` OK. |
+| Acceptance | BA01–BA29 pass (BA10 passes through the entry dialog; the `#p=` address path is F01); CLI parity pass; EN/VI × light/dark/high-contrast matrix pass (texts with values, 4.5:1 contrast, roles, focus return, black-on-white QR, accessible names); 390 px coarse-pointer checks pass (CDP emulation, not a phone). Owner-pending and release-blocking: BA30 physical A4 print at 100 % and Android/iPhone camera scans; real-user clipboard; Vietnamese human text review. |
+| Issues & resolutions | No runtime defect against the technical or business acceptance criteria. Findings: **F01** (RP03, low/medium) — saved moves restored through a `#p=` address on page load (a scanned QR) show no "Saved moves restored; Replay starts as printed." notice, while the entry dialog does → orchestrator decision: show the notice on both paths (fix round). **F02** (RP06, low) — the manual-copy field `.pm-copy-field` uses 15 px text; iOS Safari zooms focused fields under 16 px → orchestrator decision: 16 px (fix round). Pre-existing, outside RP01–RP07, recorded only: **N01** the Print dialog's size table (`table.pm-print-sizes`) scrolls sideways at 390 px; **N02** the header Help button is 44 × 36 px with a coarse pointer. Living docs: design-detail §13.2 `puzzlecode-acceptance` row, §13.3 items 24 (acceptance harness) and 25 (real-browser journeys and owner-only release gates); design-brief "Print on paper" "What has been checked." paragraph; README Status note and test-page lists (EN/VI). |
+| Handoff | Tracked: `tests/puzzlecode-acceptance.test.js`, `tests/fixtures/puzzlecode-acceptance.json` (BA01–BA30 matrix), `tests/browser/puzzle-code-acceptance.html` + `.js`. Scratch runners and evidence (git-ignored) in `tests/artifacts/RP08/` (`run.ps1 -Runs 'name\|path?query\|mode\|script'`, `run-real.mjs`, `real-main.json`, `real-narrow.json`, `evidence-index.json`). Owner's manual checklist: (1) print on A4 at 100 % ("Actual size") on two printers a 6×10 core + tail, a 576-cell Hell puzzle with tail and the longest printable code; measure the 50 mm bar, check quiet zone, group order, tail label and continuation sheets; (2) scan each printed QR with a real Android and a real iPhone camera using a phone-reachable deployment (or a LAN server via the local-target override; never a loopback QR); (3) record the URL before opening and compare the loaded puzzle with the source without its library entry; (4) on each phone type a printed core by hand, including a deliberate typo that only opens via "Use this correction", and check the entry and copy fields do not zoom; (5) use Copy link as a real user into a real chat app; (6) Vietnamese reader reviews all new texts; (7) orchestrator-authorized smoke of the deployed build; (8) record sheet/photo, printer, scale option, phone and browser versions and results. |
