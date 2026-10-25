@@ -258,7 +258,7 @@ Node.js 22 or newer. There is no build step and there are no runtime dependencie
 
 ```text
 npm run check        # repository conventions (UTF-8, line endings, final newline, no trailing whitespace) and site references
-npm run test:quick   # unit tests without the slow ones
+npm run test:quick   # unit tests without the slow ones: node --test --test-skip-pattern=slow "tests/**/*.test.js"
 npm test             # all unit tests: node --test "tests/**/*.test.js"
 ```
 
@@ -554,7 +554,7 @@ Node.js 22 trở lên. Không có bước biên dịch và không có thư việ
 
 ```text
 npm run check        # quy ước của kho mã (UTF-8, ký tự xuống dòng, dòng trống cuối tệp, không khoảng trắng thừa) và tham chiếu của trang
-npm run test:quick   # kiểm thử đơn vị, bỏ qua các bài chạy chậm
+npm run test:quick   # kiểm thử đơn vị, bỏ qua các bài chạy chậm: node --test --test-skip-pattern=slow "tests/**/*.test.js"
 npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**/*.test.js"
 ```
 
