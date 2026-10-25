@@ -84,6 +84,7 @@
  * @typedef {object} Puzzle
  * @property {string} id
  * @property {string} [title]
+ * @property {string} [seed] Batch seed the puzzle was generated with, when known.
  * @property {Pose[]} clues
  * @property {Pose[] | null} solution
  * @property {Rating | null} rating
@@ -111,6 +112,7 @@
  * @typedef {object} PackPuzzle
  * @property {string} id
  * @property {string} [title]
+ * @property {string} [seed] Batch seed the puzzle was generated with, when known.
  * @property {Pose[]} clues
  * @property {Pose[] | null} [solution]
  * @property {RatingClaim | null} [rating]

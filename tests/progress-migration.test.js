@@ -211,7 +211,6 @@ test('BAC-4: an existing saved game resumes without losing placements or time', 
   assert.equal(h.game().moves, 5);
   assert.equal(h.game().revealed, false);
   assert.equal(h.game().hintsUsed, 0);
-  assert.deepEqual(h.store.getState().resume, { placed: 2, solved: false });
   assert.deepEqual(h.store.getState().statuses, ['in-progress']);
   assert.equal(h.controller.saveNow(), true);
   const saved = JSON.parse(h.adapter.map.get(KEY));
@@ -230,7 +229,6 @@ test('a restored revealed game stays revealed; Replay starts a fresh unassisted 
   assert.equal(isEarned(h.game()), false);
   assert.equal(h.game().hintsUsed, 4);
   assert.deepEqual(h.store.getState().statuses, ['revealed']);
-  assert.deepEqual(h.store.getState().resume, { placed: MOVABLE.length, solved: true, revealed: true });
   assert.equal(puzzleStatusLabel('revealed'), 'Revealed');
 
   h.controller.replay();
@@ -250,5 +248,4 @@ test('an earned solved game is still reported as solved, not revealed', async ()
   assert.deepEqual(h.store.getState().statuses, ['solved']);
   assert.equal(h.game().revealed, false);
   assert.equal(isEarned(h.game()), true);
-  assert.deepEqual(h.store.getState().resume, { placed: MOVABLE.length, solved: true });
 });

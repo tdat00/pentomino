@@ -10,6 +10,12 @@
   --pm-target: 2.25rem;
 }
 
+/* Always leave room for the vertical scrollbar, so that the generator and the player have the same width whether or
+   not their page scrolls, and the layout does not jump when one switches between them. */
+html {
+  scrollbar-gutter: stable;
+}
+
 *,
 *::before,
 *::after {
@@ -203,4 +209,35 @@ button:disabled {
   width: 1px;
   height: 1px;
   opacity: 0;
+}
+
+/* Footer of the generator and the player: copyright and the link to the source. */
+
+.app-footer {
+  max-width: 100rem;
+  margin-inline: auto;
+  padding: 0.5rem 1rem 1rem;
+  color: var(--gen-color-text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.app-footer__inner {
+  margin: 0;
+}
+
+.app-footer__copy::after {
+  content: "\00b7";
+  display: inline-block;
+  margin-inline: 0.5rem;
+}
+
+.app-footer__link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.app-footer__link:hover {
+  color: var(--gen-color-accent);
 }

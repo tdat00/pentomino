@@ -237,13 +237,14 @@ async function runRecipe(recipe) {
   const scores = qa(d, '.card-rating').map((n) => Number(/score (\d+)/.exec(n.textContent ?? '')?.[1] ?? NaN));
   assert(Number.isFinite(scores[0]), `the card shows a score: ${scores}`);
   const cardLines = qa(d, '.puzzle-card .card-body > p').map((n) => n.textContent ?? '');
-  assert(cardLines.length === 5 && cardLines[0] === 'Puzzle #1' && /^\w[\w ]*: score \d+\+?$/.test(cardLines[1]) && /^Seed: \d+$/.test(cardLines[2])
-    && /^\d+ pieces? to place$/.test(cardLines[3]) && /^(Unique solution ✓|Multiple solutions|Checking…|Uniqueness not checked|At least 1 solution|No solution exists)$/.test(cardLines[4]),
-  `the card shows number, level and score, a numeric seed, pieces to place and solutions: ${cardLines}`);
+  assert(cardLines.length === 4 && cardLines[0] === 'Puzzle #1' && /^\w[\w ]*: score \d+\+?$/.test(cardLines[1])
+    && /^\d+ pieces? to place$/.test(cardLines[2]) && /^(Unique solution ✓|Multiple solutions|Checking…|Uniqueness not checked|At least 1 solution|No solution exists)$/.test(cardLines[3]),
+  `the card shows number, level and score, pieces to place and solutions: ${cardLines}`);
+  assert(/^Seed: \d+$/.test(q(d, '.detail-seed').textContent ?? '') && q(d, '.detail-seed').parentElement === q(d, '.detail-title').parentElement, 'the seed is next to the name in the main panel');
   assert(qa(d, '.puzzle-card a').length === 0 && qa(d, '.puzzle-card button').every((b) => b.dataset.action === 'remove' || b.dataset.action === 'select'), 'the card only has its select and remove buttons');
   assert(!(/** @type {HTMLButtonElement} */ (q(d, '[data-action="remove-all-puzzles"]'))).disabled && q(d, '[data-action="remove-all-puzzles"]').closest('.app-history') !== null,
     'Remove all sits in the left panel and is enabled once there is a puzzle');
-  const toPlace = Number(/^(\d+)/.exec(cardLines[3])?.[1] ?? NaN);
+  const toPlace = Number(/^(\d+)/.exec(cardLines[2])?.[1] ?? NaN);
   // The cards have no Play button: the link is built from the pack the generator saved, as the old button did.
   const { browserStorage } = await import('../../core/browser/storage.js');
   const { preparePlayerLink } = await import('../../core/browser/handoff.js');
@@ -306,24 +307,24 @@ await check('I1', 'Player: file import in a fresh profile opens the game and fil
 /** @type {string | null} */
 let libraryId = null;
 
-await check('I2', 'Player: invalid import keeps the open game, the error is announced and Back returns to it', async () => {
+await check('I2', 'Player: invalid import keeps the open game and the error is announced', async () => {
   const frame = await openFrame('../../player/', { ready: playerReady, hash: '' });
   // The previous check stored the file in the library; open it from Recent.
   await waitFor(() => qa(frame.doc(), '[data-action="open"]').length > 0, 'a recent pack', 10000);
   libraryId = qa(frame.doc(), '[data-action="open"]')[0].dataset.packId ?? null;
   q(frame.doc(), '[data-action="open"]').click();
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the recent pack to open', 15000);
+  assert(frame.doc().querySelector('[data-action="import"]') === null, 'the puzzles panel has no Import button');
   const before = { tray: trayCount(frame), title: q(frame.doc(), '.puzzle-title').textContent };
-  q(frame.doc(), '[data-action="import"]').click();
-  await waitFor(() => frame.doc().querySelector('#app[data-screen="import"]') !== null, 'the import screen');
-  setValue(frame, /** @type {HTMLTextAreaElement} */ (q(frame.doc(), '#import-paste')), 'this is not a puzzle { nope');
-  q(frame.doc(), '[data-action="paste"]').click();
-  await waitFor(() => { const e = q(frame.doc(), '.import-error'); return !e.hidden && (e.textContent ?? '') !== ''; }, 'the import error', 10000);
-  const error = q(frame.doc(), '.import-error');
+  // With a game open, a file dropped on the page is the way to import.
+  const win = /** @type {any} */ (frame.doc().defaultView);
+  const transfer = new win.DataTransfer();
+  transfer.items.add(new win.File(['this is not a puzzle { nope'], 'bad.json', { type: 'application/json' }));
+  q(frame.doc(), '#app').dispatchEvent(new win.DragEvent('drop', { dataTransfer: transfer, bubbles: true, cancelable: true }));
+  await waitFor(() => { const e = q(frame.doc(), '.status-error'); return !e.hidden && (e.textContent ?? '') !== ''; }, 'the import error', 10000);
+  const error = q(frame.doc(), '.status-error');
   assert(error.getAttribute('role') === 'alert', 'the error is an alert');
-  assert(!q(frame.doc(), '[data-action="back"]').hidden, 'Back is offered while a game is open');
-  q(frame.doc(), '[data-action="back"]').click();
-  await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game to return');
+  assert(frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game stays open');
   assert(trayCount(frame) === before.tray && q(frame.doc(), '.puzzle-title').textContent === before.title, 'the old game is unchanged');
   scan(frame);
   return { error: error.textContent, before };
@@ -616,7 +617,7 @@ await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces pane
   assert(history.right <= main.left + 4 && main.right <= side.left + 4, `three panels (${[history, main, side].map((r) => `${Math.round(r.left)}-${Math.round(r.right)}`).join(' | ')})`);
   assert(qa(d, '.app-history .puzzle-card').length > 0 && q(d, '.app-main').contains(q(d, '.pm-board')) && q(d, '.app-side').contains(q(d, '[data-host="tray"]')), 'each panel holds its content');
   const order = gameBarOrder(frame);
-  const expected = ['game-timer', 'game-moves', 'undo', 'redo', 'reset', 'straighten'];
+  const expected = ['game-timer', 'game-moves', 'undo', 'redo', 'hint', 'replay', 'straighten'];
   assert(JSON.stringify(order) === JSON.stringify(expected), `game bar order ${order.join(' > ')}`);
   const board = rect(q(d, '.pm-board'));
   const tray = rect(q(d, '[data-host="tray"]'));
@@ -629,7 +630,7 @@ await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces pane
   return { order, trayLeft: Math.round(tray.left), boardRight: Math.round(board.right), straightenHidden: /** @type {HTMLElement} */ (q(d, '[data-action="straighten"]')).hidden };
 });
 
-await check('L4', 'Player narrow layout (< 768 px): header, game (board, selection toolbar), pieces, then puzzles, in that vertical order', async () => {
+await check('L4', 'Player narrow layout (< 768 px): header, game (board), pieces (selection toolbar, then the pieces), then puzzles, in that vertical order', async () => {
   const frame = await openFrame('../../player/', { width: 700, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game');
   const d = frame.doc();

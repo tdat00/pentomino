@@ -110,46 +110,57 @@ export function levelLabel(id) {
 }
 
 /**
- * @param {number} score
+ * Whole score, with "+" when the rating is capped, as in the generator's cards.
+ * @param {{ score: number, saturated?: boolean }} rating
  * @returns {string}
  */
-function scoreText(score) {
-  return Number.isInteger(score) ? String(score) : score.toFixed(1);
+function scoreText(rating) {
+  const score = Number.isFinite(rating.score) ? Math.round(rating.score) : 0;
+  return `${score}${rating.saturated === true ? '+' : ''}`;
+}
+
+const LEVEL_MARK = '\u0000';
+
+/**
+ * The rating line split around the level name, so that a view can emphasise the level.
+ * @param {PackPuzzle['rating']} rating
+ * @returns {{ before: string, level: string, after: string } | null} Null when the puzzle carries no rating.
+ */
+export function ratingParts(rating) {
+  if (!rating || typeof rating.score !== 'number') {
+    return null;
+  }
+  const [before, after] = t('rating.line', { level: LEVEL_MARK, score: scoreText(rating) }).split(LEVEL_MARK);
+  return { before, level: levelLabel(rating.level), after: after ?? '' };
 }
 
 /**
- * Ratings read from a file are always claims until the runtime re-rates.
  * @param {PackPuzzle['rating']} rating
- * @param {boolean} [recomputed]
  * @returns {string} Empty when the puzzle carries no rating.
  */
-export function ratingLabel(rating, recomputed = false) {
-  if (!rating || typeof rating.score !== 'number') {
-    return '';
-  }
-  const body = t('rating.line', { level: levelLabel(rating.level), score: scoreText(rating.score) });
-  return recomputed ? body : t('rating.claimed', { rating: body });
+export function ratingLabel(rating) {
+  const parts = ratingParts(rating);
+  return parts === null ? '' : `${parts.before}${parts.level}${parts.after}`;
 }
 
 /**
- * @param {{ status: string, verified?: boolean } | null | undefined} certificate
- * @param {boolean} [pending] A runtime certificate is being computed.
+ * Same wording as the generator's cards; a certificate read from a file is shown as it is.
+ * @param {{ status: string } | null | undefined} certificate
+ * @param {boolean} [pending] A certificate is being computed.
  * @returns {string}
  */
 export function certificateLabel(certificate, pending = false) {
   if (!certificate) {
     return pending ? CERTIFICATE_PENDING : CERTIFICATE_NONE;
   }
-  const runtime = certificate.verified === true;
   switch (certificate.status) {
     case 'unique':
-      return t(runtime ? 'cert.unique' : 'cert.unique.claimed');
     case 'multiple':
-      return t(runtime ? 'cert.multiple' : 'cert.multiple.claimed');
+    case 'not-proved':
     case 'unsatisfiable':
-      return runtime ? VERIFICATION_IMPOSSIBLE : t('cert.unsatisfiable.claimed');
+      return t(`cert.${certificate.status}`);
     default:
-      return t(runtime ? 'cert.other' : 'cert.other.claimed');
+      return CERTIFICATE_NONE;
   }
 }
 
@@ -211,12 +222,12 @@ export function formatElapsed(ms) {
 }
 
 export const LABELS = Object.freeze(Object.defineProperties(Object.assign(texts('ui', [
-  'previous', 'next', 'view', 'labels', 'patterns', 'timer', 'elapsed', 'undo', 'redo', 'reset', 'straighten', 'straightenOn', 'import',
-  'generator', 'zoom', 'zoomIn', 'zoomOut', 'zoomFit', 'localLink', 'loading', 'continue', 'restart', 'savedProgress', 'trayLabel',
-  'boardLabel', 'boardHelp', 'selectedGroup', 'selectedNone', 'rotateCcw', 'rotateCw', 'flipH', 'flipV', 'place', 'toTray', 'toTrayLabel',
-  'pieceMenu', 'help', 'helpTitle', 'keyColumn', 'actionColumn', 'close', 'results', 'solvedInfo', 'revealedInfo', 'hintsGroup', 'hint',
-  'hintLabel', 'reveal', 'revealLabel', 'placeIt', 'removeIt', 'dismiss', 'cancelCheck', 'revealedBadge', 'hintsUsed', 'revealTitle',
-  'revealBody', 'revealConfirm', 'resetRevealTitle', 'resetRevealBody', 'resetRevealConfirm', 'resetTitle', 'resetBody', 'resetConfirm',
+  'elapsed', 'undo', 'redo', 'straighten', 'straightenOn',
+  'generator', 'zoom', 'zoomIn', 'zoomOut', 'zoomFit', 'localLink', 'loading', 'trayLabel',
+  'boardLabel', 'boardHelp', 'selectedGroup', 'rotateCcw', 'rotateCw', 'flipH', 'flipV', 'toTrayLabel', 'unplaceAll', 'replayPuzzle',
+  'pieceMenu', 'helpTitle', 'keyColumn', 'actionColumn',   'close', 'results',
+  'hintLabel', 'placeIt', 'removeIt', 'dismiss', 'cancelCheck', 'revealedBadge', 'hintsUsed', 'revealTitle',
+  'revealBody', 'revealConfirm', 'resetRevealTitle', 'resetRevealBody', 'resetRevealConfirm',
   'cancel', 'winTitle', 'winTime', 'winMoves', 'winLevel', 'nextPuzzle', 'replay', 'backToGenerator', 'noGame', 'importTitle',
   'importIntro', 'chooseFile', 'dropHint', 'pasteLabel', 'pasteOpen', 'sample', 'recent', 'recentEmpty', 'open', 'export', 'delete',
   'confirmDelete', 'back', 'exportFailed', 'deleted',
@@ -225,13 +236,8 @@ export const LABELS = Object.freeze(Object.defineProperties(Object.assign(texts(
   moves: (/** @type {number} */ n) => t('ui.moves', { count: n }),
   puzzleNumber: (/** @type {number} */ n) => t('ui.puzzleNumber', { n }),
   toPlace: (/** @type {number} */ n) => t('card.toPlace', { count: n }),
-  selected: (/** @type {string} */ label) => t('ui.selected', { label }),
+  cardHeading: (/** @type {number} */ n) => t('card.heading', { n }),
   solvedCount: (/** @type {number} */ solved, /** @type {number} */ total) => t('ui.solvedCount', { solved, total }),
-  resumeQuestion: (/** @type {number} */ placed, /** @type {boolean} */ solved, /** @type {boolean} */ revealed = false) => (revealed
-    ? t('ui.resume.revealed')
-    : solved
-      ? t('ui.resume.solved')
-      : t('ui.resume.progress', { count: placed })),
 }), {
   appName: { enumerable: true, get: () => t('shell.title') },
   version: { enumerable: true, get: () => t('shell.version') },

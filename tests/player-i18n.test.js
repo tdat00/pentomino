@@ -84,15 +84,15 @@ test('texts keep their English wording and follow a language switch', () => {
   assert.equal(LABELS.piecesLeft(4), '4 pieces left');
   assert.equal(LABELS.moves(0), '0 moves');
   assert.equal(LABELS.toPlace(1), '1 piece to place');
-  assert.equal(LABELS.resumeQuestion(1, false), 'Saved progress found: 1 piece placed.');
   assert.equal(PLAY_TEXT.cannotPlace('clue'), 'Cannot place here: it would overlap a locked clue');
   assert.equal(PLAY_TEXT.ghostAt(2, 3, null), 'Row 2, column 3. Free');
   assert.equal(PLAY_TEXT.ghostAt(2, 3, 'outside'), 'Row 2, column 3. Not free: it would leave the board');
   assert.equal(HINT_TEXT.place('F'), 'Hint: piece F fits in a complete solution that keeps every piece you placed. It is highlighted on the board. Press Place it to put it there.');
   assert.equal(reasonText('anything else'), 'that spot is not free');
-  assert.equal(ratingLabel({ model: 'difficulty-v2', score: 20, level: 'hard' }), 'Claimed Hard · score 20');
-  assert.equal(ratingLabel({ model: 'difficulty-v2', score: 7.25, level: 'very-easy' }, true), 'Very easy · score 7.3');
-  assert.equal(certificateLabel({ status: 'unique', verified: false }), 'Claimed unique solution');
+  assert.equal(ratingLabel({ model: 'difficulty-v2', score: 20, level: 'hard' }), 'Hard: score 20');
+  assert.equal(ratingLabel({ model: 'difficulty-v2', score: 7.25, level: 'very-easy' }), 'Very easy: score 7');
+  assert.equal(ratingLabel({ model: 'difficulty-v2', score: 123.4, level: 'expert', saturated: true }), 'Expert: score 123+');
+  assert.equal(certificateLabel({ status: 'unique' }), 'Unique solution ✓');
   assert.equal(verificationLabel({ status: 'solvable' }), 'Solvable ✓');
   assert.equal(puzzleStatusLabel('in-progress'), 'In progress');
   assert.equal(INDEX_MESSAGE, 'Puzzle index is out of range.');
@@ -105,7 +105,7 @@ test('texts keep their English wording and follow a language switch', () => {
   assert.equal(LABELS.piecesLeft(4), 'Còn 4 mảnh');
   assert.equal(PLAY_TEXT.noRoom, 'Không đủ chỗ để xoay ở đây');
   assert.equal(PLAY_TEXT.ghostAt(2, 3, null), 'Hàng 2, cột 3. Trống');
-  assert.equal(ratingLabel({ model: 'difficulty-v2', score: 20, level: 'hard' }), 'Khai báo: Khó · điểm 20');
+  assert.equal(ratingLabel({ model: 'difficulty-v2', score: 20, level: 'hard' }), 'Khó: điểm 20');
   assert.equal(levelLabel('hell-2'), 'Địa ngục 2');
   assert.equal(levelLabel('not-a-level'), 'not-a-level');
   assert.equal(verificationLabel({ status: 'solvable' }), 'Giải được ✓');

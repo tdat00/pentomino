@@ -7,6 +7,7 @@ import { el } from '../../core/browser/dom.js';
 import { formatElapsed } from '../strings.js';
 import { createModal, dialogButton } from './dialogs.js';
 import { loc } from './i18n-dom.js';
+import { setRating } from './rating-dom.js';
 
 /**
  * @typedef {object} WinHandlers
@@ -19,7 +20,7 @@ import { loc } from './i18n-dom.js';
  * @typedef {object} WinInfo
  * @property {number} elapsedMs
  * @property {number} moves
- * @property {string} level Level and score text; empty when the puzzle carries no rating.
+ * @property {import('../../core/engine/types.js').PackPuzzle['rating']} [rating] Shown with the level in bold; the row is hidden without one.
  * @property {boolean} hasNext
  * @property {number} [hints] Proven hints used; shown only when above zero.
  */
@@ -58,9 +59,9 @@ export function createWinDialog(host, handlers) {
     show(info) {
       time.textContent = formatElapsed(info.elapsedMs);
       moves.textContent = String(info.moves);
-      level.textContent = info.level;
-      levelTerm.hidden = info.level === '';
-      level.hidden = info.level === '';
+      const rated = setRating(level, info.rating);
+      levelTerm.hidden = !rated;
+      level.hidden = !rated;
       const hintCount = info.hints ?? 0;
       hintsUsed.textContent = String(hintCount);
       hintsTerm.hidden = hintCount === 0;

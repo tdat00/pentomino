@@ -19,7 +19,13 @@ function iconSprite() {
       svgEl('path', { d: 'M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z' })),
     svgEl('symbol', { id: 'ic-contrast', viewBox: '0 0 24 24' },
       svgEl('circle', { cx: 12, cy: 12, r: 9 }),
-      svgEl('path', { d: 'M12 3a9 9 0 0 1 0 18z', fill: 'currentColor' })));
+      svgEl('path', { d: 'M12 3a9 9 0 0 1 0 18z', fill: 'currentColor' })),
+    svgEl('symbol', { id: 'ic-hint', viewBox: '0 0 24 24' },
+      svgEl('path', { d: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z' })),
+    svgEl('symbol', { id: 'ic-help', viewBox: '0 0 24 24' },
+      svgEl('circle', { cx: 12, cy: 12, r: 9 }),
+      svgEl('path', { d: 'M9.4 9.3a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2.3-2.6 4' }),
+      svgEl('circle', { cx: 12, cy: 17.3, r: 0.7, fill: 'currentColor' })));
 }
 
 /**
@@ -53,10 +59,17 @@ function themeButton(theme, key, icon) {
 
 /**
  * @param {HTMLElement} host Receives the icon sprite and the header.
- * @param {{ win: Window | null, preferences: Pick<Storage, 'setItem'> | null }} options
+ * @param {{ win: Window | null, preferences: Pick<Storage, 'setItem'> | null, onHelp?: () => void }} options
  */
-export function mountHeader(host, { win, preferences }) {
+export function mountHeader(host, { win, preferences, onHelp }) {
   const doc = host.ownerDocument;
+  const helpButton = el('button', {
+    className: 'pm-btn header-help',
+    attrs: { type: 'button', 'aria-haspopup': 'dialog', ...locAttrs({ title: 'shell.help.title' }) },
+    dataset: { action: 'help' },
+    on: { click: () => onHelp?.() },
+  }, svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' }, svgEl('use', { href: '#ic-help' })),
+  loc('shell.help', { className: 'header-help__label' }));
   const languageButtons = [
     languageButton('en', 'shell.lang.en.short', 'shell.lang.en.name'),
     languageButton('vi', 'shell.lang.vi.short', 'shell.lang.vi.name'),
@@ -72,7 +85,8 @@ export function mountHeader(host, { win, preferences }) {
       loc('shell.title', {}, 'h1')),
     el('div', { className: 'header-tools' },
       el('div', { className: 'segmented', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'shell.lang.label' }) } }, ...languageButtons),
-      el('div', { className: 'segmented', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'shell.theme.label' }) } }, ...themeButtons)));
+      el('div', { className: 'segmented', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'shell.theme.label' }) } }, ...themeButtons),
+      helpButton));
   host.append(iconSprite(), element);
 
   function syncLanguageButtons() {

@@ -771,6 +771,7 @@ function puzzlesFromPack(pack) {
   return pack.puzzles.map((p) => /** @type {Puzzle} */ (/** @type {unknown} */ ({
     id: p.id,
     ...(p.title === undefined ? {} : { title: p.title }),
+    ...(p.seed === undefined ? {} : { seed: p.seed }),
     clues: p.clues,
     solution: p.solution ?? null,
     rating: p.rating ?? null,

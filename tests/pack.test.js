@@ -578,6 +578,19 @@ test('explicit null is accepted for absent optional witness, solution, rating an
   assert.ok(!('witness' in written));
 });
 
+test('a puzzle seed is optional, kept in order after the title and limited to 1-256 characters', () => {
+  const pack = good(parsePack(FIXTURE_TEXT)).value;
+  pack.puzzles[0].seed = '4242';
+  const text = serializePack(pack);
+  assert.deepEqual(Object.keys(JSON.parse(text).puzzles[0]).slice(0, 3), ['id', 'title', 'seed']);
+  assert.equal(good(parsePack(text)).value.puzzles[0].seed, '4242');
+  const wire = JSON.parse(text);
+  wire.puzzles[0].seed = '';
+  assert.equal(parsePack(JSON.stringify(wire)).ok, false);
+  wire.puzzles[0].seed = 'x'.repeat(257);
+  assert.equal(parsePack(JSON.stringify(wire)).ok, false);
+});
+
 test('omitSolutions removes answers without inventing proofs', () => {
   const pack = good(parsePack(FIXTURE_TEXT)).value;
   pack.witness = pack.puzzles[0].solution;

@@ -855,6 +855,7 @@ export function createGenerationClient(pool, options = {}) {
       const puzzle = {
         id: puzzleId(set.board, set.pieces, candidate.clues),
         title: `${label} #${request.offset + accepted.length + 1}`,
+        seed: batchSeed,
         clues: candidate.clues,
         solution: candidate.layout,
         rating: candidate.rating,

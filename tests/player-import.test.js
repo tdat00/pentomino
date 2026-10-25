@@ -18,7 +18,7 @@ import {
 } from '../player/state.js';
 import {
   CERTIFICATE_NONE, INDEX_MESSAGE, MISSING_LOCAL_MESSAGE, SAMPLE_FAILED_MESSAGE, UNSUPPORTED_MESSAGE,
-  certificateLabel, formatElapsed, invalidPackMessage, messageForIssues, ratingLabel, restorationNotice, verificationLabel,
+  certificateLabel, formatElapsed, invalidPackMessage, messageForIssues, ratingLabel, ratingParts, restorationNotice, verificationLabel,
 } from '../player/strings.js';
 
 const sampleText = readFileSync(new URL('../player/samples/sample-pack.json', import.meta.url), 'utf8');
@@ -191,17 +191,15 @@ test('verification, certificate and rating wording keeps claims apart from proof
   assert.equal(certificateLabel(null), 'Uniqueness not checked');
   assert.equal(certificateLabel(null, true), 'Checking…');
   assert.equal(CERTIFICATE_NONE, 'Uniqueness not checked');
-  assert.equal(certificateLabel({ status: 'unique' }), 'Claimed unique solution');
-  assert.equal(certificateLabel({ status: 'multiple' }), 'Claimed several solutions');
-  assert.equal(certificateLabel({ status: 'not-proved' }), 'Claimed uniqueness not proved');
-  assert.equal(certificateLabel({ status: 'unique', verified: true }), 'Unique solution ✓');
-  assert.equal(certificateLabel({ status: 'multiple', verified: true }), 'Several solutions');
-  assert.equal(certificateLabel({ status: 'not-proved', verified: true }), 'Uniqueness not proved');
+  assert.equal(certificateLabel({ status: 'unique' }), 'Unique solution ✓');
+  assert.equal(certificateLabel({ status: 'multiple' }), 'Multiple solutions');
+  assert.equal(certificateLabel({ status: 'not-proved' }), 'At least 1 solution');
+  assert.equal(certificateLabel({ status: 'unsatisfiable' }), 'No solution exists');
   const rating = /** @type {any} */ ({ model: 'difficulty-v2', score: 21, level: 'hard' });
-  assert.equal(ratingLabel(rating), 'Claimed Hard · score 21');
-  assert.equal(ratingLabel(rating, true), 'Hard · score 21');
+  assert.equal(ratingLabel(rating), 'Hard: score 21');
+  assert.deepEqual(ratingParts(rating), { before: '', level: 'Hard', after: ': score 21' });
   assert.equal(ratingLabel(null), '');
-  assert.equal(ratingLabel(/** @type {any} */ ({ score: 3, level: '<img src=x onerror=alert(1)>' })).startsWith('Claimed <img'), true);
+  assert.equal(ratingLabel(/** @type {any} */ ({ score: 3, level: '<img src=x onerror=alert(1)>' })).startsWith('<img'), true);
   assert.equal(formatElapsed(65000), '1:05');
   assert.equal(formatElapsed(3725000), '1:02:05');
   assert.equal(restorationNotice([]), '');
@@ -373,10 +371,9 @@ test('failed replacements keep the old game while a new one is loading, and only
   assert.equal(h.state().loading, false);
 });
 
-test('Continue / Restart and puzzle switching keep each game’s own progress', async () => {
+test('puzzle switching keeps each game’s own progress and Replay empties the saved record', async () => {
   const h = setup();
   await h.controller.importText(sampleText);
-  assert.equal(h.state().resume, null, 'nothing saved yet');
   const pose = movablePose(sample, 0);
   h.store.update((s) => ({ game: reduce(/** @type {any} */ (s.game), { type: 'place', pose }) }));
   assert.equal(h.state().game?.placed.size, 1);
@@ -389,20 +386,14 @@ test('Continue / Restart and puzzle switching keep each game’s own progress', 
 
   h.controller.previousPuzzle();
   assert.equal(h.state().game?.placed.size, 1, 'progress was saved before leaving');
-  assert.deepEqual(h.state().resume, { placed: 1, solved: false });
-  h.controller.resume('continue');
-  assert.equal(h.state().resume, null);
-  assert.equal(h.state().game?.placed.size, 1);
+  assert.equal('resume' in h.state(), false, 'there is no Continue / Restart choice');
 
-  h.controller.goToPuzzle(1);
-  h.controller.goToPuzzle(0);
-  assert.notEqual(h.state().resume, null);
-  h.controller.resume('restart');
+  h.controller.replay();
   assert.equal(h.state().game?.placed.size, 0);
   assert.equal(h.state().statuses[0], 'new');
   h.controller.goToPuzzle(1);
   h.controller.goToPuzzle(0);
-  assert.equal(h.state().resume, null, 'restart replaced the saved record');
+  assert.equal(h.state().game?.placed.size, 0, 'Replay replaced the saved record');
 
   const bad = h.controller.goToPuzzle(3);
   assert.equal(bad.ok, false);
@@ -410,7 +401,7 @@ test('Continue / Restart and puzzle switching keep each game’s own progress', 
   assert.equal(h.state().index, 0);
 });
 
-test('saved progress is matched by exact coordinates and reload offers Continue; discarded moves are reported', async () => {
+test('saved progress is matched by exact coordinates and reload restores it; discarded moves are reported', async () => {
   const adapter = memoryAdapter();
   const first = setup({ adapter });
   await first.controller.importText(sampleText);
@@ -420,7 +411,7 @@ test('saved progress is matched by exact coordinates and reload offers Continue;
 
   const reload = setup({ adapter });
   await reload.controller.importText(sampleText);
-  assert.deepEqual(reload.state().resume, { placed: 1, solved: false });
+  assert.equal(reload.state().game?.placed.size, 1);
   assert.equal(reload.state().notice, null);
 
   const fp = /** @type {string} */ (reload.state().fingerprints[0]);
@@ -511,6 +502,32 @@ test('library: recent entries, delete and export touch only their own pack', asy
   assert.equal(h.state().game?.pack.puzzles.length, 3, 'the open pack keeps playing');
 });
 
+test('removePuzzle and removeAllPuzzles change the open pack and its library entry', async () => {
+  const h = setup();
+  await h.controller.importText(sampleText);
+  const firstId = /** @type {string} */ (h.state().packId);
+  await h.controller.goToPuzzle(1);
+  assert.equal(h.controller.removePuzzle(5).ok, false, 'out of range');
+  assert.equal(h.controller.removePuzzle(0).ok, true);
+  assert.equal(h.state().pack?.puzzles.length, 2);
+  assert.equal(h.state().index, 0, 'the open puzzle keeps its place in the shorter pack');
+  assert.equal(h.state().pack?.puzzles[0].title, sample.puzzles[1].title);
+  assert.notEqual(h.state().packId, firstId, 'the reduced pack is a new library entry');
+  assert.equal(h.state().library.length, 1, 'and the old entry is gone');
+  assert.equal(h.storage.loadLibraryPack(firstId).ok, false);
+  assert.equal(h.controller.removePuzzle(0).ok, true, 'the open puzzle can be removed: its neighbour opens');
+  assert.equal(h.state().pack?.puzzles.length, 1);
+  assert.equal(h.state().screen, 'game');
+  assert.equal(h.controller.removePuzzle(0).ok, true, 'the last puzzle leaves the pack');
+  assert.deepEqual([h.state().pack, h.state().game, h.state().screen, h.state().library.length, h.location.hash], [null, null, 'import', 0, '']);
+
+  await h.controller.importText(sampleText);
+  h.controller.removeAllPuzzles();
+  assert.deepEqual([h.state().pack, h.state().screen, h.state().library.length], [null, 'import', 0]);
+  h.controller.removeAllPuzzles();
+  assert.equal(h.state().screen, 'import', 'without a pack it does nothing');
+});
+
 test('same pack id with different content: the newest content wins everywhere and nothing is duplicated', async () => {
   const h = setup();
   await h.controller.importText(sampleText);
@@ -523,7 +540,7 @@ test('same pack id with different content: the newest content wins everywhere an
   assert.ok(stored.ok);
   assert.equal(stored.value.puzzles[0].title, 'Easy (v2)');
   assert.equal(stored.value.puzzles[0].rating?.score, (sample.puzzles[0].rating?.score ?? 0) + 1);
-  assert.equal(ratingLabel(h.state().pack?.puzzles[0].rating), `Claimed Easy · score ${(sample.puzzles[0].rating?.score ?? 0) + 1}`);
+  assert.equal(ratingLabel(h.state().pack?.puzzles[0].rating), `Easy: score ${(sample.puzzles[0].rating?.score ?? 0) + 1}`);
 });
 
 test('unavailable storage never blocks play and is reported once', async () => {
@@ -558,7 +575,7 @@ test('sample: loaded through the ordinary path from the fixed relative URL; fail
   assert.equal(h.state().screen, 'game');
   assert.equal(h.state().source, 'sample');
   assert.equal(h.state().pack?.puzzles.length, 3);
-  assert.equal(ratingLabel(h.state().pack?.puzzles[0].rating).startsWith('Claimed Easy · score '), true);
+  assert.equal(ratingLabel(h.state().pack?.puzzles[0].rating).startsWith('Easy: score '), true);
 
   const down = setup({ fetchText: async () => { throw new Error('offline'); } });
   await down.controller.openSample();
@@ -588,7 +605,7 @@ test('verification: a validated answer proves solvability only; claims stay clai
   assert.equal(pool.calls.length, 0, 'no search for a validated answer');
   assert.equal(certificateLabel(h.state().pack?.puzzles[0].certificate), 'Uniqueness not checked');
   assert.equal(h.state().pack?.puzzles[0].certificate ?? null, null);
-  assert.equal(ratingLabel(h.state().pack?.puzzles[2].rating).startsWith('Claimed Hard'), true);
+  assert.equal(ratingLabel(h.state().pack?.puzzles[2].rating).startsWith('Hard'), true);
 });
 
 test('verification: answer-free puzzles are searched in a worker; only an exhausted empty search says impossible', async () => {

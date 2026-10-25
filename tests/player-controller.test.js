@@ -12,7 +12,7 @@ import {
   KICKS, SAVE_DELAY_MS, createPlayController, defaultHandle, handleCell, keyStep, orientedHandle, poseWithHandle, rotatePlaced,
   transformedT,
 } from '../player/play.js';
-import { puzzleDisplayName } from '../player/puzzle-title.js';
+import { cardHeading, puzzleDisplayName } from '../player/puzzle-title.js';
 import { createPlayerController, createPlayerStore } from '../player/state.js';
 import { PLAY_TEXT } from '../player/strings.js';
 import { createKeyboard } from '../player/ui/keyboard.js';
@@ -736,4 +736,12 @@ test('the top-bar name does not number a title that already ends in its number',
   assert.equal(puzzleDisplayName('Warm-up', 2), 'Warm-up #3');
   assert.equal(puzzleDisplayName('', 1), 'Puzzle 2');
   assert.equal(puzzleDisplayName(undefined, 0), 'Puzzle 1');
+});
+
+test('card headings follow the generator: generated titles become "Puzzle #n", written titles stay', () => {
+  assert.equal(cardHeading('Expert #2', 1), 'Puzzle #2');
+  assert.equal(cardHeading('Hell 3 #1', 0), 'Puzzle #1');
+  assert.equal(cardHeading('Easy', 4), 'Puzzle #5');
+  assert.equal(cardHeading(undefined, 2), 'Puzzle #3');
+  assert.equal(cardHeading('Warm-up', 2), 'Warm-up #3');
 });

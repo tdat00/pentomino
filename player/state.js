@@ -9,7 +9,7 @@ import { createGame, snapshot } from '../core/engine/game.js';
 import { packId as computePackId, progressFingerprint } from '../core/engine/keys.js';
 import { packBoard } from '../core/engine/pack.js';
 import { parseLocationHash } from '../core/engine/sharecode.js';
-import { straightenAngle } from '../core/engine/view.js';
+import { normalizeAngle, straightenAngle } from '../core/engine/view.js';
 import { downloadPack, loadFromFile, loadFromText, readIncoming } from '../core/browser/handoff.js';
 import { SAVE_FAILED_MESSAGE, browserStorage } from '../core/browser/storage.js';
 import { createPool, isAbortError } from '../core/browser/worker-pool.js';
@@ -35,8 +35,7 @@ import { INDEX_MESSAGE, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, messageForIs
 
 /**
  * `game` is the committed game of `pack[index]`; `error` describes the last
- * refused replacement and never clears the open game. `resume` is set while the
- * Continue / Restart choice is open. `revision` increases with every replaced
+ * refused replacement and never clears the open game. `revision` increases with every replaced
  * pack, so late proof data of an older pack is recognisable.
  * @typedef {object} PlayerState
  * @property {'import' | 'game'} screen
@@ -45,11 +44,12 @@ import { INDEX_MESSAGE, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, messageForIs
  * @property {'hash' | 'file' | 'paste' | 'library' | 'sample' | null} source
  * @property {boolean} local The address is a same-browser `#lib=` link.
  * @property {number} index
+ * @property {number | null} viewRotation Display angle chosen with the board's rotate buttons (counter-clockwise
+ *   degrees); null follows the pack. Local to the open pack and never saved.
  * @property {GameState | null} game
  * @property {boolean} loading
  * @property {PlayerError | null} error
  * @property {Notice | null} notice
- * @property {{ placed: number, solved: boolean, revealed?: true } | null} resume
  * @property {Record<number, Verification>} verificationByPuzzle
  * @property {PuzzleStatus[]} statuses
  * @property {string[]} fingerprints
@@ -71,11 +71,11 @@ function defaultState() {
     source: null,
     local: false,
     index: 0,
+    viewRotation: null,
     game: null,
     loading: false,
     error: null,
     notice: null,
-    resume: null,
     verificationByPuzzle: {},
     statuses: [],
     fingerprints: [],
@@ -144,14 +144,14 @@ export function createPlayerStore(initial = {}) {
 /** @typedef {ReturnType<typeof createPlayerStore>} PlayerStore */
 
 /**
- * Angle the board and tray are drawn at: the pack's presentation angle, or its
- * nearest straight angle when the local Straighten view is on. Never written
- * to the pack and never part of a fingerprint.
- * @param {Pick<PlayerState, 'pack' | 'prefs'>} state
+ * Angle the board and tray are drawn at: the angle the player turned the view to, else the pack's presentation
+ * angle, or the nearest straight angle when the local Straighten view is on. Never written to the pack and never
+ * part of a fingerprint.
+ * @param {Pick<PlayerState, 'pack' | 'prefs' | 'viewRotation'>} state
  * @returns {number}
  */
 export function effectiveRotation(state) {
-  const rotation = state.pack?.presentation?.rotation ?? 0;
+  const rotation = state.viewRotation ?? state.pack?.presentation?.rotation ?? 0;
   return state.prefs.straighten ? straightenAngle(rotation) : rotation;
 }
 
@@ -321,7 +321,7 @@ export function createPlayerController(options) {
     if (!s.pack) {
       return;
     }
-    store.update({ game: createGame(s.pack, s.index), resume: null, notice: null });
+    store.update({ game: createGame(s.pack, s.index), notice: null });
     const fp = s.fingerprints[s.index];
     if (fp !== undefined) {
       const result = storage.saveProgress(fp, {
@@ -387,9 +387,6 @@ export function createPlayerController(options) {
     const source = samePack ? before.source ?? meta.source : meta.source;
     const local = syncHash(source, packId, index);
     const { game } = prepared;
-    const resume = game.placed.size > 0 || game.solved
-      ? { placed: game.placed.size, solved: game.solved, ...(game.revealed ? { revealed: /** @type {const} */ (true) } : {}) }
-      : null;
     const text = restorationNotice(game.restoreWarnings);
     const statuses = samePack ? before.statuses.slice() : prepared.fingerprints.map((fp) => statusOf(fp));
     store.update({
@@ -399,11 +396,11 @@ export function createPlayerController(options) {
       source,
       local,
       index,
+      viewRotation: samePack ? before.viewRotation : null,
       game,
       loading: false,
       error: null,
       notice: text === '' ? null : { kind: 'warning', text },
-      resume,
       verificationByPuzzle: samePack ? before.verificationByPuzzle : {},
       statuses,
       fingerprints: prepared.fingerprints,
@@ -609,18 +606,6 @@ export function createPlayerController(options) {
     previousPuzzle() {
       return this.goToPuzzle(store.getState().index - 1);
     },
-    /** @param {'continue' | 'restart'} choice */
-    resume(choice) {
-      const s = store.getState();
-      if (!s.pack || s.resume === null) {
-        return;
-      }
-      if (choice === 'continue') {
-        store.update({ resume: null });
-        return;
-      }
-      restartOpenGame();
-    },
     /** Replaces the open puzzle with a fresh game and an empty saved record (Replay). */
     replay() {
       restartOpenGame();
@@ -644,12 +629,78 @@ export function createPlayerController(options) {
         storageWarning: result.ok ? s.storageWarning : SAVE_FAILED_MESSAGE,
       }));
     },
+    /**
+     * Turns the display of the open pack by `delta` counter-clockwise degrees (a multiple of 45); display only.
+     * @param {number} delta
+     */
+    rotateView(delta) {
+      store.update((s) => (s.pack === null ? null : {
+        viewRotation: normalizeAngle((s.viewRotation ?? s.pack.presentation?.rotation ?? 0) + delta),
+      }));
+    },
     showImport() {
       refreshLibrary();
       store.update({ screen: 'import', error: null });
     },
     closeImport() {
       store.update((s) => (s.game === null ? null : { screen: 'game', error: null }));
+    },
+    /**
+     * Removes one puzzle from the open pack and from its library entry. The puzzle that was open stays open, or its
+     * neighbour opens when it was the one removed; the last puzzle leaves the pack as `removeAllPuzzles` does.
+     * @param {number} index
+     * @returns {{ ok: boolean }}
+     */
+    removePuzzle(index) {
+      const s = store.getState();
+      const { pack } = s;
+      if (!pack || !Number.isInteger(index) || index < 0 || index >= pack.puzzles.length) {
+        return { ok: false };
+      }
+      if (pack.puzzles.length === 1) {
+        this.removeAllPuzzles();
+        return { ok: true };
+      }
+      saveNow();
+      const reduced = { ...pack, puzzles: pack.puzzles.filter((_, i) => i !== index) };
+      const nextIndex = index < s.index ? s.index - 1 : Math.min(s.index, reduced.puzzles.length - 1);
+      loadToken += 1;
+      const committed = commit(reduced, nextIndex, { source: 'library' });
+      if (!committed.ok) {
+        store.update({ loading: false, error: { code: committed.issues[0].code, message: messageForIssues(committed.issues) } });
+        return { ok: false };
+      }
+      if (index !== s.index) {
+        // Another puzzle stays open: the notice about it need not be shown again.
+        store.update({ notice: s.notice });
+      }
+      store.update({ viewRotation: s.viewRotation });
+      const now = store.getState();
+      if (s.packId !== null && s.packId !== now.packId) {
+        storage.removeLibraryPack(s.packId);
+        refreshLibrary();
+      }
+      return { ok: true };
+    },
+    /** Takes the open pack out of the library and back to the Import screen. Saved progress is kept. */
+    removeAllPuzzles() {
+      const s = store.getState();
+      if (!s.pack) {
+        return;
+      }
+      saveNow();
+      loadToken += 1;
+      if (s.packId !== null) {
+        storage.removeLibraryPack(s.packId);
+      }
+      syncHash('library', null, 0);
+      store.update({
+        ...defaultState(),
+        prefs: s.prefs,
+        storageWarning: s.storageWarning,
+        revision: s.revision + 1,
+        library: storage.libraryIndex(),
+      });
     },
     dismissError() {
       store.update({ error: null });

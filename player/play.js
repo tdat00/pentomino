@@ -312,7 +312,7 @@ export function createPlayController(options) {
   function shouldRun() {
     const s = store.getState();
     const g = s.game;
-    return !destroyed && visible && s.screen === 'game' && g !== null && !g.solved && g.moves > 0 && s.resume === null;
+    return !destroyed && visible && s.screen === 'game' && g !== null && !g.solved && g.moves > 0;
   }
 
   function tick() {
@@ -352,7 +352,7 @@ export function createPlayController(options) {
     const carried = ticker !== null ? Math.max(0, t - lastTick) : 0;
     lastTick = t;
     const stamped = { ...next, preview, elapsedMs: next.elapsedMs + carried, updatedAt: new Date(t).toISOString() };
-    store.update({ game: stamped, resume: null });
+    store.update({ game: stamped });
     syncTimer();
     if (stamped.solved && !before.solved) {
       flush();

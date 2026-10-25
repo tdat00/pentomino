@@ -17,6 +17,9 @@ export default Object.freeze({
   'shell.theme.light': 'Light theme',
   'shell.theme.dark': 'Dark theme',
   'shell.theme.highContrast': 'High-contrast theme',
+  'shell.footer.copyright': '\u00a9 2026 Dat Le. Released under the MIT licence.',
+  'shell.footer.repo': 'Source code on GitHub',
+  'shell.footer.repo.title': 'Open the source of the generator in the pentomino repository on GitHub (new tab)',
 
   // Wizard
   'wizard.label': 'Steps',

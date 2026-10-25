@@ -4,6 +4,7 @@
 import { el } from '../../core/browser/dom.js';
 import { mountBoard, mountPiecePreview } from '../../core/browser/svg-board.js';
 import { activeCount } from '../../core/engine/board.js';
+import { normalizeAngle } from '../../core/engine/view.js';
 import { has, t } from '../i18n.js';
 import {
   MAX_SETS, batchLevelOf, describeLevels, generationBlock, isBusy, readyLevelId, setsFull,
@@ -15,6 +16,7 @@ import { mountElapsed } from './elapsed.js';
 const CARD_PREVIEW_PX = 116;
 const DETAIL_BOARD_PX = 560;
 const DETAIL_PIECE_SCALE = 0.6;
+const ZOOM_STEP = 1.25;
 
 /** @typedef {import('../state.js').GeneratorStore} GeneratorStore */
 /** @typedef {import('../state.js').GeneratorState} GeneratorState */
@@ -110,13 +112,31 @@ export function mountPuzzlePanel(host, options) {
     newButton, elapsed.element);
   const blockText = el('p', { className: 'hint', dataset: { role: 'block' } });
   const detailTitle = el('h3', { className: 'detail-title' });
+  const detailSeed = el('span', { className: 'detail-seed' });
   const playButton = /** @type {HTMLButtonElement} */ (loc('detail.play', { className: 'primary', attrs: { type: 'button', 'data-action': 'play-puzzle' } }, 'button'));
-  const detailHead = el('div', { className: 'detail-head' }, detailTitle, playButton);
+  const detailHead = el('div', { className: 'detail-head' }, el('div', { className: 'detail-name' }, detailTitle, detailSeed), playButton);
   const detailBoard = el('div', { className: 'detail-board' });
+  // The same board tools as step 1: zoom out / in, fit (the default size), and the view turned by 45°.
+  /**
+   * @param {string} text
+   * @param {string} key
+   * @param {string} action
+   * @returns {HTMLButtonElement}
+   */
+  const toolButton = (text, key, action) => /** @type {HTMLButtonElement} */ (el('button', {
+    className: 'rotate-btn', text, attrs: { type: 'button', ...locAttrs({ 'aria-label': key, title: key }), 'data-action': action },
+  }));
+  const detailZoomOut = toolButton('−', 'board.zoomOut', 'detail-zoom-out');
+  const detailZoomIn = toolButton('+', 'board.zoomIn', 'detail-zoom-in');
+  const detailFit = toolButton('⤢', 'board.zoomFit', 'detail-zoom-fit');
+  const detailViewLeft = toolButton('⟲', 'board.rotateLeft', 'detail-view-left');
+  const detailViewRight = toolButton('⟳', 'board.rotateRight', 'detail-view-right');
+  const detailFrame = el('div', { className: 'board-frame' }, detailBoard,
+    el('div', { className: 'board-tools' }, detailZoomOut, detailZoomIn, detailFit, detailViewLeft, detailViewRight));
   const detailTrayTitle = loc('detail.toPlace', { className: 'detail-tray-title' }, 'h4');
   const detailPieces = el('ul', { className: 'detail-pieces', attrs: { ...locAttrs({ 'aria-label': 'detail.toPlace' }) }, dataset: { role: 'detail-pieces' } });
   const detail = el('section', { className: 'puzzle-detail', attrs: { hidden: '' }, dataset: { role: 'puzzle-detail' } },
-    detailHead, detailBoard, detailTrayTitle, detailPieces);
+    detailHead, detailFrame, detailTrayTitle, detailPieces);
   const noticeBox = options.noticeHost ?? el('div', { className: 'result-notice', attrs: { role: 'status' }, dataset: { role: 'notice' } });
   const cardList = el('ol', { className: 'puzzle-cards', attrs: { ...locAttrs({ 'aria-label': 'puzzles.list' }), id: `${uid}-cards` }, dataset: { role: 'cards' } });
   const parkedBox = el('div', { className: 'parked-packs', dataset: { role: 'parked' } });
@@ -142,7 +162,6 @@ export function mountPuzzlePanel(host, options) {
    * @property {ReturnType<typeof mountBoard>} view
    * @property {HTMLElement} heading
    * @property {HTMLElement} rating
-   * @property {HTMLElement} seed
    * @property {HTMLElement} toPlace
    * @property {HTMLElement} cert
    * @property {HTMLButtonElement} select
@@ -174,13 +193,12 @@ export function mountPuzzlePanel(host, options) {
     const thumb = el('div', { className: 'card-thumb' });
     const heading = el('p', { className: 'card-heading' });
     const rating = el('p', { className: 'card-rating' });
-    const seed = el('p', { className: 'card-seed' });
     const toPlace = el('p', { className: 'card-clues' });
     const cert = el('p', { className: 'badge card-cert' });
     const remove = /** @type {HTMLButtonElement} */ (el('button', { className: 'card-remove ghost-small', text: '✕', attrs: { type: 'button', 'data-action': 'remove' } }));
     // The whole card body is one button that shows this puzzle in the main panel.
     const select = /** @type {HTMLButtonElement} */ (el('button', { className: 'card-select', attrs: { type: 'button', 'data-action': 'select', 'aria-pressed': 'false' } },
-      el('div', { className: 'card-body' }, heading, rating, seed, toPlace, cert), thumb));
+      el('div', { className: 'card-body' }, heading, rating, toPlace, cert), thumb));
     const item = /** @type {HTMLLIElement} */ (el('li', { className: 'puzzle-card', dataset: { puzzleId: id } }, select, remove));
     const view = mountBoard(thumb, { mode: 'thumbnail', cellPx, label: t('card.preview') });
     select.addEventListener('click', () => {
@@ -196,7 +214,7 @@ export function mountPuzzlePanel(host, options) {
       const left = /** @type {HTMLButtonElement[]} */ ([...cardList.querySelectorAll('.card-remove')]);
       (left[Math.min(at, left.length - 1)] ?? newButton).focus();
     });
-    return { item, view, heading, rating, seed, toPlace, cert, select, remove, id };
+    return { item, view, heading, rating, toPlace, cert, select, remove, id };
   }
 
   /** @param {GeneratorState} state */
@@ -240,14 +258,11 @@ export function mountPuzzlePanel(host, options) {
       card.remove.setAttribute('aria-label', removeLabel);
       card.remove.title = removeLabel;
       card.remove.disabled = busy;
-      const seed = state.puzzleSeeds[puzzle.id];
       const ratingText = describeRating(puzzle);
       const levelText = puzzle.rating === null || puzzle.rating === undefined ? '' : levelLabel(puzzle.rating.level);
       card.rating.replaceChildren(...(levelText !== '' && ratingText.startsWith(levelText)
         ? [el('strong', { text: levelText }), ratingText.slice(levelText.length)]
         : [ratingText]));
-      card.seed.textContent = seed === undefined ? '' : t('card.seed', { seed });
-      card.seed.hidden = seed === undefined;
       card.toPlace.textContent = t('card.toPlace', { count: Math.max(0, current.pieces.length - puzzle.clues.length) });
       const certificate = describeCertificate(puzzle, { checking: checking.has(puzzle.id) || fresh });
       card.cert.textContent = certificate.text;
@@ -303,6 +318,9 @@ export function mountPuzzlePanel(host, options) {
       detailSet = set;
     }
     detailTitle.textContent = t('card.heading', { n: at + 1 });
+    const detailSeedValue = state.puzzleSeeds[puzzle.id];
+    detailSeed.textContent = detailSeedValue === undefined ? '' : t('card.seed', { seed: detailSeedValue });
+    detailSeed.hidden = detailSeedValue === undefined;
     playButton.disabled = isBusy(state);
     detailView.svg.setAttribute('aria-label', t('detail.board'));
     if (detailView.getState().rotation !== state.rotation) {
@@ -428,6 +446,17 @@ export function mountPuzzlePanel(host, options) {
       void controller.playPuzzle(selectedId);
     }
   });
+  // Zoom keeps to the view; Fit goes back to the default size; the arrows turn the board like step 1 does.
+  listen(detailZoomOut, 'click', () => detailView?.setZoom(detailView.getState().cellPx / ZOOM_STEP));
+  listen(detailZoomIn, 'click', () => detailView?.setZoom(detailView.getState().cellPx * ZOOM_STEP));
+  listen(detailFit, 'click', () => {
+    const set = store.getState().set;
+    if (set !== null) {
+      detailView?.setZoom(detailCellPx(set.board));
+    }
+  });
+  listen(detailViewLeft, 'click', () => store.update((s) => ({ ...s, rotation: normalizeAngle(s.rotation + 45) })));
+  listen(detailViewRight, 'click', () => store.update((s) => ({ ...s, rotation: normalizeAngle(s.rotation - 45) })));
   listen(removeAllButton, 'click', () => {
     controller.removeAllPuzzles();
     newButton.focus();

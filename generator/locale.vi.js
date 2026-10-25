@@ -17,6 +17,9 @@ export default Object.freeze({
   'shell.theme.light': 'Giao diện sáng',
   'shell.theme.dark': 'Giao diện tối',
   'shell.theme.highContrast': 'Giao diện tương phản cao',
+  'shell.footer.copyright': '\u00a9 2026 Dat Le. Phát hành theo giấy phép MIT.',
+  'shell.footer.repo': 'Mã nguồn trên GitHub',
+  'shell.footer.repo.title': 'Mở mã nguồn của trình tạo trong kho mã pentomino trên GitHub (tab mới)',
 
   // Wizard
   'wizard.label': 'Các bước',

@@ -573,6 +573,7 @@ export function textColorFor(hex: string): '#000000' | '#ffffff';   // WCAG rela
 | `witness` | Pose[] | no | A full layout. The generator always writes it for piece sets. |
 | `puzzles[].id` | string | yes | `[A-Za-z0-9_-]{1,64}`, unique in the pack; opaque, never an identity for progress |
 | `puzzles[].title` | string | no | ≤ 80 code points; rendered as text only |
+| `puzzles[].seed` | string | no | 1–256 code points; the batch seed the puzzle was generated with (§8.6). Kept in the file for reference; the Player does not show it; absent in older packs. |
 | `puzzles[].clues` | Pose[] | yes | Locked pre-placed pieces; 0 ≤ count ≤ K−1. The generator writes 1..K−2. |
 | `puzzles[].solution` | Pose[] | no | A full layout that contains every clue; included by default |
 | `puzzles[].rating` | Rating | no | A claim; may be recomputed |
@@ -679,7 +680,7 @@ Generated packs also carry a `rating`, a `certificate` and the full `generation`
    - `kind` constraints hold, and ids are unique.
    - A `solution`, if present, is a valid layout containing every clue pose with the same cells.
    - A `witness` must be a valid layout.
-9. **Claims.** `rating` and `certificate` are type-checked (finite, non-negative score; known status). The UI shows them as "claimed" until this runtime recomputes them (§9.5).
+9. **Claims.** `rating` and `certificate` are type-checked (finite, non-negative score; known status). The UI shows them with the generator's wording, without a "claimed" prefix; the rating's level is bold (§6.11).
 10. **Policy (warnings only).** Pieces smaller than 3 cells, duplicate shapes or pieces with holes produce warnings; the player shows "non-standard piece set".
 
 Copy only whitelisted fields into newly created objects; this prevents prototype pollution. Render every text field with `textContent`.
@@ -1307,9 +1308,9 @@ optional: try removing the added clues one by one (random order), keeping unique
 |---|---|---|---|
 | (none yet) | Certificate pending, or not computed | "Checking…" while pending, else "Uniqueness not checked" | "Uniqueness not checked" |
 | `unique` | Exhaustive count found exactly 1 raw-coordinate solution | "Unique solution ✓" | "Unique solution ✓" |
-| `multiple` | 2 distinct raw solutions found | "Multiple solutions" | "Several solutions" |
-| `not-proved` | The count hit its row limit with ≤ 1 solution found | "At least 1 solution" (the witness exists) | "Uniqueness not proved" |
-| `unsatisfiable` | Exhaustive count found 0 | "No solution exists" (never generated) | An import error ("No solution exists") |
+| `multiple` | 2 distinct raw solutions found | "Multiple solutions" | "Multiple solutions" |
+| `not-proved` | The count hit its row limit with ≤ 1 solution found | "At least 1 solution" (the witness exists) | "At least 1 solution" |
+| `unsatisfiable` | Exhaustive count found 0 | "No solution exists" (never generated) | "No solution exists" for a claim in a file (an import error when the Player's own check proves it) |
 
 - **Default `any`: lazy certificates** (D14). Every in-band puzzle is accepted without a certificate. After the batch's last accepted puzzle (or when the pool is idle), the scheduler runs `certifyTask` per puzzle, lowest slot first:
   - row limit `countRows(A)` = 10,000 for A ≤ 200 and 2,000 above (cap 2 solutions);
@@ -1320,7 +1321,7 @@ optional: try removing the added clues one by one (random order), keeping unique
   - It is a standard option for A ≤ 200 or levels below Hell. Elsewhere step 2 shows N-UNIQUE-EXP ("experimental and usually fails"): above 200 cells, 639 of 670 Hell-level certificates were "not proved" (A.10).
   - Macro-carved sets make multiple solutions common at some levels (e.g. 10 of 10 at 360-cell master, A.10), so `require` rejects more candidates there.
 - **Tie-break (MAY).** When several in-band candidates exist for one slot, prefer one already certified `unique`. Never spend extra search on this.
-- **Player.** Any valid complete placement wins, whatever the status. Certificates read from files are shown as "claimed" until this runtime recomputes them; recomputed ones are marked "verified".
+- **Player.** Any valid complete placement wins, whatever the status. Certificates read from files are shown with the generator's wording, without a "claimed" prefix; the Player does not recompute them.
 
 ---
 
@@ -1651,7 +1652,7 @@ All budgets live in `policy.js` (`BUDGETS`, `TIME`). Node budgets are determinis
     - 🎲 draws a new random seed into the field at once and turns it on;
     - with it on, every press reuses the field's seed unchanged (trimmed and NFC-normalized); with it off, every press first draws a new random seed into the field and uses it.
     - The field therefore always shows the seed of the latest set request, and the set summary shows the seed of the set on show.
-  - **Batch seeds.** Every New Puzzle press increments the set's `batchIndex` (1 for the first request; stored with the set, §9.6, and restarting at 0 for each new set). The generator page draws a fresh random whole number (`crypto.getRandomValues`, a uint32 written in decimal) as the batch seed of each press, keeps it per puzzle (`puzzleSeeds`) and shows it on the card. `tools/generate.mjs` keeps `batchSeed = setSeed + "#" + batchIndex`.
+  - **Batch seeds.** Every New Puzzle press increments the set's `batchIndex` (1 for the first request; stored with the set, §9.6, and restarting at 0 for each new set). The generator page draws a fresh random whole number (`crypto.getRandomValues`, a uint32 written in decimal) as the batch seed of each press, keeps it per puzzle (`puzzleSeeds`) and shows it next to the puzzle name in the main panel (not on the cards). `tools/generate.mjs` keeps `batchSeed = setSeed + "#" + batchIndex`.
     - The batch seed is internal. It is not editable and not subject to the 64-code-point limit.
     - It needs no extra label: candidates use the labels `slot/<i>/<a>` (§6.9).
 - **Test vectors:**
@@ -1778,7 +1779,7 @@ The `verifyPack` worker task checks each puzzle:
 - **With a valid `solution`:** solvable (verified) in O(cells), with no search.
 - **Otherwise:** a bounded `solveFirst` with `verifyRows` gives solvable / unsatisfiable (only if exhausted) / not verified.
 
-Play is allowed while checking, and after an inconclusive check. "Not verified" is never shown as "no solution". Ratings and certificates from files stay "claimed" (§6.11, §7.7).
+Play is allowed while checking, and after an inconclusive check. "Not verified" is never shown as "no solution". Certificates and ratings from files are shown with the generator's wording; the rating's level is bold (§6.11, §7.7).
 
 ### 9.6 Storage
 
@@ -1831,13 +1832,13 @@ Breakpoints: from 1360 px the panels are three columns (Puzzles | Main | Steps).
 ┌ Pentomino Generator ───────────────────────────────────────────────────────────────────────────────── [EN|VI] [☀|☾|◐] ┐
 │ Set 2/2 puzzles  Remove all │ Step 3 - Create puzzles  [‹ Step 2 - Create piece set]  │ ① Create board                │
 │ ┌────────────────────────┐  │ Choose a level, then generate puzzles one at a time.    │   ▦ board thumbnail           │
-│ │ Puzzle #2           ✕  │  │ Puzzle #2                                    [ Play ]   │ ② Create piece set            │
+│ │ Puzzle #2           ✕  │  │ Puzzle #2  Seed: 2846513907                  [ Play ]   │ ② Create piece set            │
 │ │ Hard: score 20   ▦▦▦   │  │ ┌──────────────────────────────┐                        │   Set 2/2                     │
-│ │ Seed: 2846513907 ▦▦▦   │  │ │ board with the clues placed  │                        │   Hard | K7Q2-9MXA-3FWD       │
-│ │ 6 pieces to place      │  │ └──────────────────────────────┘                        │   9 pieces | Piece sizes 4–9  │
-│ │ Unique solution ✓      │  │ Pieces to place                                         │ ③ Create puzzles              │
-│ └────────────────────────┘  │ ▢B ▢D ▢E ▢G ▢H ▢I                                       │   Difficulty level [Hard ▾]   │
-│ ┌ Puzzle #1 … ┐             │                                                         │   ☐ Require unique solution   │
+│ │ 6 pieces to place▦▦▦   │  │ │ board with the clues placed  │                        │   Hard | K7Q2-9MXA-3FWD       │
+│ │ Unique solution ✓      │  │ └──────────────────────────────┘                        │   9 pieces | Piece sizes 4–9  │
+│ └────────────────────────┘  │ Pieces to place                                         │ ③ Create puzzles              │
+│ ┌ Puzzle #1 … ┐             │ ▢B ▢D ▢E ▢G ▢H ▢I                                       │   Difficulty level [Hard ▾]   │
+│                             │                                                         │   ☐ Require unique solution   │
 │                             │                                                         │   [       New Puzzle      ]   │
 │                             │                                                         │   Elapsed: 0:07 (while busy)  │
 └─────────────────────────────┴─────────────────────────────────────────────────────────┴───────────────────────────────┘
@@ -1899,12 +1900,11 @@ Under the level table, the heading "Piece sets" and the set panel:
 - **Puzzle cards (left panel)**, newest on top; the number counts in creation order and follows removals. Each card is one button that selects the puzzle, with a ✕ in its corner:
   - "Puzzle #n";
   - the level in bold and the score: "**Hard**: score 20" (a saturated score gets "+");
-  - "Seed: 2846513907", the batch seed of its press;
   - "6 pieces to place" (K − G);
   - the solution status (§6.11): "Checking…" while it streams in or its lazy certificate is pending, then "Unique solution ✓", "Multiple solutions", "At least 1 solution" or "No solution exists"; "Uniqueness not checked" when no certificate was computed;
   - a thumbnail in the display rotation.
   - ✕ removes the puzzle; **Remove all** in the panel header removes every puzzle of the set and the earlier packs. Removing never shrinks the seen-history, so removed arrangements are not generated again. Both are disabled while a job runs.
-- **Selected puzzle (main panel).** The newest puzzle, until a card is clicked; then that puzzle until it is removed. It shows "Puzzle #n" with **Play** (§9.3) at the top right, the board with the pre-placed pieces, and "Pieces to place": the remaining pieces at 60 % of the board's cell size. Play is disabled while a job runs.
+- **Selected puzzle (main panel).** The newest puzzle, until a card is clicked; then that puzzle until it is removed. It shows "Puzzle #n" and, next to it, "Seed: 2846513907" (the batch seed of its press; the cards do not show it, as in the Player), with **Play** (§9.3) at the top right, the board with the pre-placed pieces and, at its top right, the board tools of step 1 (− / + zoom, ⤢ fit = back to the default size, ⟲ / ⟳ turn the view by 45°; the view angle is the one of step 1, and a zoomed board scrolls inside its frame), and "Pieces to place": the remaining pieces at 60 % of the board's cell size. Play is disabled while a job runs.
 - **Repeated puzzles.** A puzzle with the id, clue key or layout key of a puzzle already in the list is never added; the request then ends with M-DUPLICATE, which suggests a new piece set.
 - **Shortfalls** show their notice (§6.9, §10.7). For `layouts-not-found` and `difficulty-not-found` the notice offers **Generate new piece set**, which runs New Piece Set with the current settings.
 
@@ -2000,28 +2000,30 @@ The step settings live in the query string (`generator/address.js`), so a reload
 The player has a header and three panels, laid out like the generator's (§10.1):
 
 ```text
-┌ Pentomino Player ─────────────────────────────────────────────────────────────────────────────────── [EN|VI] [☀|☾|◐] ┐
-│ Puzzles        [ Import ] │ Hard #2              [‹ Previous puzzle] [Next puzzle ›] │ Pieces to place  4 left    │
-│ ┌────────────────────┐    │ Claimed Hard · score 20 · 6 pieces to place              │ ┌────┐ ┌────┐              │
-│ │ Hard #2         ▦▦ │    │ [Solvable ✓] [Uniqueness not checked]                    │ │ B  │ │ D  │ right-click: │
-│ │ Claimed Hard…   ▦▦ │    │ 3:12   17 moves                 [Undo] [Redo] [Reset]    │ └────┘ └────┘ piece menu   │
-│ │ 6 pieces to place  │    │ ┌────────────────────────────────────────────────────┐   │ ┌──┐                       │
-│ │ In progress        │    │ │ board (SVG, display rotation θ)       [−] [+] [⤢]  │   │ │ G│                       │
-│ └────────────────────┘    │ └────────────────────────────────────────────────────┘   │ └──┘                       │
-│ ┌ Hard #3 … ┐             │ Selected: F [⟲][⟳][⇋][⇵][Place][↩ to tray] [Hint][?]     │ View ☑ Labels ☑ Timer      │
+┌ Pentomino Player ──────────────────────────────────────────────────────────────────────── [? Help] [EN|VI] [☀|☾|◐] ┐
+│ Puzzles   [ Remove all ] │ Hard #2                                                  │ Pieces to place  4 left    │
+│ ┌────────────────────┐    │ **Hard**: score 20 · 6 pieces to place                       │ Selected: F                │
+│ │ Hard #2         ▦▦ │    │ [Solvable ✓] [Uniqueness not checked]                    │ [⟲][⟳][⇋][⇵]               │
+│ │ **Hard**…       ▦▦ │    │ 3:12   17 moves                [Undo] [Redo] [💡] [↻]     │ ┌────┐ ┌────┐ right-click: │
+│ │ 6 pieces to place  │    │ hint message in small text, with [Place it] [Dismiss]    │ │ B  │ │ D  │ piece menu   │
+│ │ In progress        │    │ ┌────────────────────────────────────────────────────┐   │ └────┘ └────┘              │
+│ └────────────────────┘    │ │ board (SVG, display rotation θ)   [− + ⤢ ⟲ ⟳]  │   │ ┌──┐                       │
+│ ┌ Hard #3 … ┐             │ └────────────────────────────────────────────────────┘   │ │ G│                       │
+│                           │                                                          │ └──┘                       │
 └────────────────────────────┴───────────────────────────────────────────────────────────┴─────────────────────────────┘
 ```
 
-- **Header.** Logo, the title (**Pentomino Player** / **Trình chơi Pentomino**), the **EN | VI** buttons and the three theme buttons, with the markup and styles of the generator's header (§11.14).
-- **Puzzles panel** (left). Header "Puzzles" with **Import**; then one card per puzzle of the open pack, in pack order and in the generator's card layout: the name (`puzzleDisplayName`), the claimed level and score (*Claimed Hard · score 20*), "N pieces to place", a progress badge (New, In progress, Solved ✓, Revealed) and a preview of the board with its locked pieces, drawn at the presentation angle. The open puzzle is highlighted (`aria-current`). A card opens its puzzle; the card of the puzzle already open does nothing, except on the Import screen, where it returns to the game. Without a pack the panel says so.
+- **Header.** Logo, the title (**Pentomino Player** / **Trình chơi Pentomino**), a **Help** button (icon and text; opens the keyboard shortcuts dialog), the **EN | VI** buttons and the three theme buttons, with the markup and styles of the generator's header (§11.14).
+- **Puzzles panel** (left). Header "Puzzles" with **Remove all**; then one card per puzzle of the open pack, newest (the last of the pack) on top as in the generator, in the card layout of the generator: the status badge (New, In progress, Solved ✓, Revealed) to the left of the name ("Puzzle #2"; a generated title such as "Expert #2" is shown this way, a title written by hand stays), the rating with its level in bold (**Expert**: score 123; "+" after a capped score), "N pieces to place", the certificate text (§6.11), and a preview of the board with its locked pieces, drawn at the presentation angle. The seed is not shown. The open puzzle is highlighted (`aria-current`). A card opens its puzzle; the card of the puzzle already open does nothing, except on the Import screen, where it returns to the game. A ✕ in the corner of a card removes that puzzle from the pack and from the library entry of the pack (the pack gets a new library id because its content changed; the old entry goes); the puzzle that was open stays open, or its neighbour opens when it was the one removed. **Remove all**, and removing the last puzzle, take the pack out of the library and show the Import screen; saved progress is kept. Without a pack the panel says so and Remove all is disabled. There is no Import button: with a pack open, a file dropped on the page imports it, and Remove all leads back to the Import screen.
 - **Main panel** (middle). The **game** screen shows:
-  - the name of the puzzle with **‹ Previous puzzle** and **Next puzzle ›** at its top right (disabled at the ends of the pack), and under it the rating claim and the number of pieces to place;
-  - the notices (error, restoration notice, Continue / Restart, hint box) and the badges (solvability check, uniqueness claim, local link, storage warning);
-  - the **game bar**: the timer (hidden when the Timer switch is off), the move count, **Undo**, **Redo**, **Reset** and, only when needed, **Straighten**;
-  - the board with its zoom buttons, and under it the selection toolbar (§11.5) with **Hint**, **Show solution** and **?**.
+  - the name of the puzzle, and under it the rating (level in bold, no "claimed" prefix) and the number of pieces to place; there are no Previous / Next buttons: the puzzle list opens the puzzles, and the win dialog offers *Next puzzle*;
+  - the notices (error, restoration notice) and the badges (solvability check, uniqueness claim, local link, storage warning);
+  - the **game bar**: the timer (hidden when the stored Timer preference is off), the move count, and the buttons **Undo**, **Redo**, **Hint** (an icon, a light bulb) and **Replay** (an icon, a circular arrow) and, only when needed, **Straighten**; the icon buttons are named by their `aria-label` and tooltip. **Replay** asks first, then starts a brand-new game of the puzzle: every piece unplaced, timer and moves at zero, history empty and the saved progress erased; it cannot be undone and is disabled while the puzzle is untouched. The buttons are as big as the generator's **Play** button;
+  - under the game bar, the hint message (small regular text, with **Place it** / **Remove it**, **Cancel** and **Dismiss** buttons smaller than the game bar's);
+  - the board with its zoom, fit and view-rotation buttons at its top right (as in the generator's board editor; the view angle is local to the open pack and never saved). The selection toolbar (§11.5) is not here but in the Pieces panel. There are no Place, To tray or Show solution buttons: a ghost is committed with a second tap on its cell or Enter, a piece goes back to the tray with Delete or the piece menu, and the reveal action has no button. The keyboard shortcuts list is the **Help** button of the page header (with `?` on the keyboard).
 
   The **Import** screen (§11.12) replaces the game screen in this panel.
-- **Pieces panel** (right). Header "Pieces to place" with "N pieces left"; the pieces still to place, each drawn at its current orientation and the display angle; the View switches (§11.9). Without a game it says that the pieces of the open puzzle appear here. Letting go of a dragged piece anywhere over this panel returns it to the tray (§11.3). **Right-click** on a piece opens the piece menu (§11.5).
+- **Pieces panel** (right). Header "Pieces to place" with "N pieces left"; under it the selection toolbar (the selected piece, then ⟲ ⟳ ⇋ ⇵; shown while a puzzle is open) and then the pieces still to place, each drawn at its current orientation and the display angle. There is no View box: Labels, Patterns and Timer use the stored preferences (§11.9). Without a game it says that the pieces of the open puzzle appear here. Letting go of a dragged piece anywhere over this panel returns it to the tray (§11.3). **Right-click** on a piece opens the piece menu (§11.5).
 - Breakpoints, as in the generator: from 1360 px the three panels are columns (Puzzles | Game | Pieces); from 768 px the Game and Pieces panels are columns and the Puzzles panel goes under the game; below 768 px everything stacks (game, pieces, puzzles), the pieces form two rows that scroll horizontally, and the board is shorter. The board takes the height of the window up to the toolbar (at least 18 rem from 768 px). From 768 px the Pieces panel is sticky and scrolls inside itself; so is the Puzzles panel from 1360 px.
 - The page order is the focus order: pieces, game, puzzles (§11.6). The grid places the panels.
 - Large boards (hundreds of cells, up to ~90 pieces): the board supports zoom and pan (drag on empty board area or two-finger pan), and the pieces panel scrolls.
@@ -2077,13 +2079,14 @@ The board state is never mutated during a drag or preview.
 
 1. Tapping a piece selects it and highlights its **handle cell**: the grabbed cell, or by default the occupied cell nearest the piece centroid (ties broken by (y, x)).
 2. Tapping a board cell shows the ghost with the handle on that cell.
-3. A second tap on the same cell, the **Place** button or Enter commits. Tapping another cell moves the ghost. Esc, or tapping the tray, cancels.
+3. A second tap on the same cell or Enter commits. Tapping another cell moves the ghost. Esc, or tapping the tray, cancels.
 4. Tapping the already-selected tray piece rotates it ⟳.
 
 ### 11.5 Rotate and flip
 
-- The toolbar has ⟲ ⟳ ⇋ ⇵ in screen space (§6.3), plus ↩ to return a piece to the tray.
-- **Piece menu.** Right-click on a piece of the pieces panel or on a movable piece of the board opens a small menu at the pointer: **Rotate clockwise** (E), **Rotate counter-clockwise** (Q), **Flip left-right** (F), **Flip top-bottom** (V) and, for a placed piece, **Return to tray** (Delete). The Menu key or Shift+F10 on a focused piece opens it under the piece, and a long press does on touch screens whose browser sends `contextmenu`; locked clues have no menu.
+- The toolbar has ⟲ ⟳ ⇋ ⇵ in screen space (§6.3). A piece returns to the tray with Delete or Backspace, the piece menu, or a drop over the pieces panel; there is no button for it.
+- **Piece menu.** Right-click on a piece of the pieces panel or on a movable piece of the board opens a small menu at the pointer: **Rotate clockwise** (E), **Rotate counter-clockwise** (Q), **Flip left-right** (F), **Flip top-bottom** (V) and, for a placed piece, **Return to tray** (Delete) followed by the two puzzle actions below. The Menu key or Shift+F10 on a focused piece opens it under the piece, and a long press does on touch screens whose browser sends `contextmenu`.
+- **Board menu.** Right-click anywhere else on the board (empty cells, outside the board shape, a locked clue) opens the same kind of menu with only the puzzle actions: **Unplace all pieces** (every placed piece goes back to the tray as one undoable action, as the board menu's Unplace all does; disabled when there is nothing to undo) and **Replay the puzzle** (asks first; clears the board, the timer, the moves and the saved progress of this puzzle, which cannot be undone; disabled while the puzzle is untouched).
   - Opening it selects the piece, and every entry does what the toolbar button does, so the rules below apply unchanged.
   - The first entry has the focus. The arrow keys, Home and End walk the entries (the page's shortcuts stay quiet), Enter or Space runs one, and Escape, Tab, a press elsewhere, a scroll or a resize closes it; the focus goes back to the piece when the menu closes by Escape or by choosing an entry.
   - The menu is a `role="menu"` of buttons (`role="menuitem"`), kept inside the window.
@@ -2144,19 +2147,19 @@ Shortcuts are ignored while focus is in a text field, a dialog or the piece menu
   - For index ≥ 20, `colorFor(i)` generates colors: hue = (i · 137.508°) mod 360, saturation 65 %, lightness alternating between 45 % and 65 %.
 - **Labels.** `labelFor(i)`: A … Z, then AA, AB, …, AZ, BA, … (spreadsheet-style, ≤ 4 characters). Sets reach about 90 pieces on 676-cell boards.
 - **Patterns** (D30). When K > 20, every piece with index ≥ 20 also gets a fill pattern: `patternFor(i)` cycles dots, horizontal lines and vertical lines by ⌊i / 20⌋. Patterns are drawn at low contrast in the stroke color, never as diagonal hatching (reserved for clues), at every zoom level, subject only to the Patterns toggle.
-- **Display toggles.** Two independent switches and the timer switch, in the **View** box under the pieces. Both are stored in `pentomino:v1:prefs` (§9.6), and the generator's previews follow the same values.
+- **Display toggles.** Labels, Patterns and the timer are device preferences stored in `pentomino:v1:prefs` (§9.6), defaulting to on. The Player has no switches for them (they were removed from the right panel) and uses the stored values; the generator's previews follow the same values.
   - **Labels** (default on) shows letters on pieces on the board and in the tray. When on, a label is drawn only where its cell is ≥ 10 CSS px at the current zoom; smaller ones appear once the user zooms in. Accessible names (§11.11) always include the label.
-  - **Patterns** (default on; the switch is shown only when K > 20) shows the fill patterns above.
+  - **Patterns** (default on; used only when K > 20) shows the fill patterns above.
   - Neither switch affects the other: hiding labels never hides patterns, and hiding patterns never hides labels.
   - Letters guarantee identity even when two colors look alike. Patterns keep pieces with index ≥ 20 apart when labels are off or too small to draw.
 - **Large boards.** Pieces of up to ~50 cells and trays of up to ~90 pieces are normal on large boards. The tray scrolls. Labels follow the size rule of the Labels toggle.
 
 ### 11.10 Undo, reset, timer and persistence
 
-- **History.** The action history holds up to 500 entries. Reset asks for confirmation and is itself undoable.
-- **Timer.** Optional and shown by default. It starts at the first move and pauses while the tab is hidden.
+- **History.** The action history holds up to 500 entries. **Unplace all pieces** (board menu) is undoable; **Replay** asks for confirmation and clears the history.
+- **Timer.** Shown by default (stored preference, no switch). It starts at the first move and pauses while the tab is hidden.
 - **Saving.** Progress is saved by fingerprint (§5.6), debounced 250 ms after each committed action.
-- **Reopening.** A puzzle with saved progress offers *Continue* (default) or *Restart*.
+- **Reopening.** A puzzle with saved progress opens with its pieces, time and moves restored, without a question; **Replay the puzzle** (board menu, §11.5) starts it again.
 - **Storage failures** never block play.
 
 ### 11.11 Accessibility (target: WCAG 2.2 AA)
@@ -2170,8 +2173,8 @@ Shortcuts are ignored while focus is in a text field, a dialog or the piece menu
 
 ### 11.12 Pack navigation and library
 
-- The **Puzzles panel** (§11.1) lists the pack's puzzles with level, score, number of pieces to place and status (new / in progress / solved ✓ / revealed); **‹ Previous puzzle** and **Next puzzle ›** sit at the top of the game panel. The Labels, Patterns and Timer switches are the View box under the pieces (§11.9, §11.10).
-- The **Import** screen opens in the main panel, over the game, from the **Import** button of the Puzzles panel. It offers a file, a pasted link, share code or JSON, the sample and the library (recent packs). Entries can be deleted or exported again. **Back to puzzle** returns to the game, as does a click on the open puzzle's card.
+- The **Puzzles panel** (§11.1) lists the pack's puzzles, newest on top, with ✕ on each card and **Remove all** in its header; a card opens its puzzle. There are no Previous / Next buttons in the game panel.
+- The **Import** screen opens in the main panel, over the game, when no pack is open (start-up without a link, **Remove all**, or the last puzzle removed); with a pack open, a dropped file imports it. It offers a file, a pasted link, share code or JSON, the sample and the library (recent packs). Entries can be deleted or exported again. **Back to puzzle** returns to the game, as does a click on the open puzzle's card.
 - With no hash and an empty library, the player opens the Import screen with the Sample pack.
 
 ### 11.13 Hints and show solution
@@ -2181,11 +2184,12 @@ Hints make only proven statements (D27). There are three outcomes:
 - **Proven repairing removal.** Removing one specific placed piece makes the position solvable again. Every placed piece is tested, each search exhausted or successful.
 - Otherwise: "No repair identified within this check." Never blame a piece without proof.
 
-**Show solution** uses the stored `solution` if it agrees with the current placements; otherwise it runs a solver. It marks the puzzle "revealed", not "solved".
+**Show solution** (no button in the page since the toolbar was reduced; the logic stays in `hints.js` and `hint-panel.js`) uses the stored `solution` if it agrees with the current placements; otherwise it runs a solver. It marks the puzzle "revealed", not "solved".
 
 ### 11.14 Language and theme
 
 - **Header.** The same switches as the generator's: **EN | VI** (`aria-pressed` marks the language in use) and the light, dark and high-contrast theme buttons (`core/browser/theme.css`; without a choice the page follows the system's light or dark setting). A choice is kept in `pentomino:v1:lang` and `pentomino:v1:theme` (§9.6), which both apps share. The page start language is `?lang=`, then the saved choice, then the browser languages, then English. `theme-init.js` sets a stored theme before the first paint.
+- **Footer.** Both pages end with a centred footer (`footer.app-footer`, styled in `core/browser/common.css`): "© 2026 Dat Le. Released under the MIT licence." and a link "Source code on GitHub" to the page's folder in the repository (`https://github.com/tdat00/pentomino/tree/main/generator` or `.../player`; new tab, `rel="noopener noreferrer"`). The texts are the keys `shell.footer.*` of each locale pack. The generator's footer is in `generator/index.html`; the player builds its own in `player/app.js`.
 - **Texts.** `player/locale.en.js` is the base pack (every key) and `player/locale.vi.js` has the same keys and `{placeholders}`; plural forms are `_one` / `_other` keys, and Vietnamese needs only the plain key. A new user-visible text needs a key in both packs (`tests/player-i18n.test.js` checks the keys and placeholders, and that every key used by the code exists).
 - **How texts are read.** `player/strings.js` exposes `LABELS`, `PLAY_TEXT`, `HINT_TEXT`, the verification, certificate and rating labels and the loader messages. Each read looks the text up in the current language, so `state.js`, `play.js` and `hints.js` use them unchanged. Fixed texts of the page are built with `loc()` / `locAttrs()` (`player/ui/i18n-dom.js`), which mark the element with `data-i18n`, so `setLocale` rewrites them; texts that the page computes (the puzzle list, the counters, the badges) are drawn again after a switch. The messages the controllers keep as strings (an error, a notice, a hint message) stay in the language they were made in until the next one.
 - **Not translated.** Text that comes from the data (puzzle titles), from the engine (the issue text of a rejected pack), and the accessible names of pieces ("Piece F, 5 cells, in tray", from `core/browser/svg-board.js`) stay English.

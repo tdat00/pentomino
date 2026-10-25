@@ -1,13 +1,12 @@
 // @ts-check
-// Selection toolbar: the selected piece, rotate / mirror / place / return
-// buttons that duplicate every keyboard action, the hint buttons and the help.
+// Selection toolbar, at the top of the pieces panel: rotate and mirror buttons for the selected piece (they
+// duplicate the keyboard actions) and the Results button of a solved puzzle.
 
 import { el } from '../../core/browser/dom.js';
-import { LABELS } from '../strings.js';
 import { loc, locAttrs } from './i18n-dom.js';
 
 /** @typedef {import('../state.js').PlayerState} PlayerState */
-/** @typedef {'rotate-ccw' | 'rotate-cw' | 'flip-h' | 'flip-v' | 'place' | 'to-tray' | 'help' | 'results' | 'hint' | 'reveal'} ToolbarAction */
+/** @typedef {'rotate-ccw' | 'rotate-cw' | 'flip-h' | 'flip-v' | 'results'} ToolbarAction */
 
 /**
  * Action, glyph (an icon button) or null, text key (a text button) or null, label key.
@@ -18,8 +17,6 @@ const BUTTONS = Object.freeze([
   ['rotate-cw', '⟳', null, 'ui.rotateCw'],
   ['flip-h', '⇋', null, 'ui.flipH'],
   ['flip-v', '⇵', null, 'ui.flipV'],
-  ['place', null, 'ui.place', 'ui.place'],
-  ['to-tray', null, 'ui.toTray', 'ui.toTrayLabel'],
 ]);
 
 /**
@@ -27,7 +24,6 @@ const BUTTONS = Object.freeze([
  * @param {(action: ToolbarAction) => void} onAction
  */
 export function createToolbar(host, onAction) {
-  const info = el('span', { className: 'selection-info' });
   /** @type {Map<ToolbarAction, HTMLButtonElement>} */
   const buttons = new Map();
   /**
@@ -51,10 +47,7 @@ export function createToolbar(host, onAction) {
   const group = el('div', { className: 'selection-actions', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'ui.selectedGroup' }) } },
     ...BUTTONS.map(([action, glyph, textKey, labelKey]) => make(action, glyph, textKey, labelKey)));
   const results = make('results', null, 'ui.results', 'ui.results');
-  const help = make('help', '?', null, 'ui.help');
-  const assist = el('div', { className: 'assist-actions', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'ui.hintsGroup' }) } },
-    make('hint', null, 'ui.hint', 'ui.hintLabel'), make('reveal', null, 'ui.reveal', 'ui.revealLabel'));
-  host.replaceChildren(info, group, assist, results, help);
+  host.replaceChildren(group, results);
 
   return {
     /** @param {PlayerState} state */
@@ -66,25 +59,11 @@ export function createToolbar(host, onAction) {
       }
       const piece = g.selected === null ? undefined : pack.pieces.find((p) => p.id === g.selected);
       const solved = g.solved;
-      info.textContent = g.revealed && solved ? LABELS.revealedInfo : solved ? LABELS.solvedInfo : piece ? LABELS.selected(piece.label) : LABELS.selectedNone;
-      const placed = piece !== undefined && g.placed.has(piece.id);
       const active = piece !== undefined && !solved;
       for (const [action, button] of buttons) {
         switch (action) {
-          case 'place':
-            button.disabled = !(active && g.preview !== null);
-            break;
-          case 'to-tray':
-            button.disabled = !(active && (placed || g.preview !== null));
-            break;
           case 'results':
             button.hidden = !(solved && !g.revealed);
-            break;
-          case 'hint':
-          case 'reveal':
-            button.disabled = solved;
-            break;
-          case 'help':
             break;
           default:
             button.disabled = !active;

@@ -13,6 +13,7 @@ import { locAttrs } from './i18n-dom.js';
  * @property {string} icon Decorative glyph.
  * @property {string} [shortcut] Key that does the same, shown at the end of the row.
  * @property {boolean} [disabled]
+ * @property {boolean} [danger] Shown in red: the action throws something away.
  * @property {() => void} run
  */
 
@@ -105,7 +106,7 @@ export function createContextMenu(parent) {
       opener = from;
       menu.replaceChildren(...entries.map((entry) => {
         const item = /** @type {HTMLButtonElement} */ (el('button', {
-          className: 'pm-menu-item',
+          className: entry.danger === true ? 'pm-menu-item pm-menu-item--danger' : 'pm-menu-item',
           attrs: { type: 'button', role: 'menuitem', tabindex: -1, ...(entry.shortcut === undefined ? {} : { 'aria-keyshortcuts': entry.shortcut }) },
           dataset: { action: entry.id },
           on: {

@@ -79,6 +79,43 @@ body {
   stroke-linejoin: round;
 }
 
+/* Help: a ghost button at the right end of the header, icon and text, as in Sudoku Player. */
+button.header-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.25rem;
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: transparent;
+  border-color: transparent;
+  border-radius: var(--gen-radius-2);
+}
+
+button.header-help:hover,
+button.header-help:focus-visible {
+  background: var(--gen-color-hover);
+}
+
+/* On a narrow screen only the icon shows; the text stays for screen readers. */
+@media (max-width: 599px) {
+  .header-help__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  button.header-help {
+    padding-inline: 0.5rem;
+  }
+}
+
 .sprite {
   position: absolute;
   width: 0;
@@ -259,31 +296,13 @@ body {
   font-size: 0.875rem;
 }
 
-.main-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-
-.main-actions > button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.nav-icon {
-  flex: none;
-  width: 1em;
-  height: 1em;
-}
-
 /* Puzzle cards of the left panel. */
 
 .puzzle-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
   gap: var(--gen-gap);
-  margin: 0;
+  margin: 0.75rem 0 0;
   padding: 0;
   list-style: none;
 }
@@ -324,12 +343,57 @@ button.card-select {
   cursor: pointer;
 }
 
+/* No hover highlight (nor press shift) on a card: the selected card is marked by the card itself. */
+button.card-select:hover:not(:disabled),
+button.card-select:active:not(:disabled) {
+  background: none;
+  color: inherit;
+  transform: none;
+}
+
+/* The preview sits bottom right, under the remove button in the corner. */
 .card-thumb {
   flex: none;
   align-self: flex-end;
   width: 7.5rem;
   height: 6.5rem;
+  margin-top: 1rem;
   border-radius: var(--gen-radius-2);
+}
+
+button.card-remove {
+  position: absolute;
+  top: 0.25rem;
+  inset-inline-end: 0.25rem;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  min-width: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+button.ghost-small {
+  min-height: 0;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--pm-muted);
+  font-size: 0.8125rem;
+}
+
+button.ghost-small:hover:not(:disabled),
+button.ghost-small:focus-visible {
+  background: color-mix(in srgb, var(--gen-error) 10%, transparent);
+  color: var(--gen-error);
+}
+
+button.ghost-small:disabled {
+  background: transparent;
+  cursor: default;
+  opacity: 0.5;
 }
 
 .card-body {
@@ -346,13 +410,30 @@ button.card-select {
   font-size: 0.875rem;
 }
 
-.card-body > .card-heading {
+.card-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.125rem 0.5rem;
+}
+
+.card-title > .card-heading {
   font-size: 1rem;
   font-weight: 600;
 }
 
-.card-body > .card-status {
-  margin-top: 0.125rem;
+.badge[data-status="unique"] {
+  color: var(--gen-color-success);
+}
+
+.badge[data-status="multiple"],
+.badge[data-status="not-proved"],
+.badge[data-status="unchecked"] {
+  color: var(--gen-warning);
+}
+
+.rating-level {
+  font-weight: 700;
 }
 
 .badge {
@@ -389,7 +470,6 @@ button.card-select {
 
 .status-error,
 .status-notice,
-.status-resume,
 .status-hint {
   display: flex;
   flex-wrap: wrap;
@@ -418,8 +498,21 @@ button.card-select {
 }
 
 .status-hint {
+  margin: 0 0 0.5rem;
   background: var(--gen-color-accent-soft);
   border-color: var(--gen-color-accent);
+}
+
+/* The hint sits under the Undo / Redo / Hint / Replay row: small regular text and buttons smaller than that row's. */
+.status-hint .status-text {
+  font-size: 0.8125rem;
+}
+
+.game .status-hint .pm-btn {
+  min-width: 0;
+  min-height: calc(var(--pm-target) - 0.5rem);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.8125rem;
 }
 
 .status-hint[hidden],
@@ -483,10 +576,28 @@ button.card-select {
   gap: 0.375rem;
 }
 
-.assist-actions,
+/* Undo, Redo, Hint, Replay and Straighten are as big as the generator's Play button. */
+.game .game-actions > button {
+  min-width: var(--pm-target);
+  min-height: var(--pm-target);
+}
+
+/* Hint and Replay are icon buttons: the name is in aria-label and the tooltip. */
+.game .game-actions > button.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  padding: 0.25rem;
+}
+
+.game .game-actions > button.icon-btn--glyph {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
 .selection-actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.375rem;
 }
 
@@ -510,25 +621,52 @@ button.card-select {
   outline-offset: -3px;
 }
 
-.board-zoom {
+/* Board tools: the same small, quiet buttons as the generator's board editor (top right of the board). */
+.board-tools {
   position: absolute;
-  right: 0.5rem;
-  bottom: 0.5rem;
+  top: 0.25rem;
+  right: 1.25rem;
+  z-index: 2;
   display: flex;
-  gap: 0.25rem;
+  gap: 0;
+}
+
+.game .board-tools .view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  width: 1.75rem;
+  min-height: 0;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--gen-radius-pill);
+  background: transparent;
+  color: var(--gen-color-text-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+.game .board-tools .view-btn:hover:not(:disabled),
+.game .board-tools .view-btn:focus-visible {
+  opacity: 1;
+  background: var(--gen-color-hover);
+  color: var(--gen-color-text);
 }
 
 .toolbar-host {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  margin: 0 0 1.25rem;
 }
 
-.selection-info {
-  min-width: 7rem;
-  font-weight: 600;
+.toolbar-host[hidden] {
+  display: none;
 }
 
 /* Dialogs live in the top layer; the host itself takes no space. */
@@ -604,19 +742,6 @@ button.card-select {
   visibility: hidden;
 }
 
-.view-host {
-  margin-top: 0.75rem;
-}
-
-.view-options {
-  display: grid;
-  gap: 0.125rem;
-  margin: 0;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--gen-color-divider);
-  border-radius: var(--gen-radius-2);
-}
-
 /* Piece menu: opened by the right mouse button on a piece. */
 .pm-menu {
   position: fixed;
@@ -656,6 +781,16 @@ button.card-select {
 
 .pm-menu-item:focus-visible {
   outline-offset: -2px;
+}
+
+/* Actions that throw something away (Unplace all, Replay) are red; a disabled one stays muted. */
+.pm-menu-item--danger:not(:disabled) {
+  color: var(--gen-color-danger);
+}
+
+.pm-menu-item--danger:hover:not(:disabled),
+.pm-menu-item--danger:focus-visible {
+  background: var(--gen-color-danger-bg);
 }
 
 .pm-menu-icon {
@@ -775,6 +910,46 @@ button.card-select {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 1rem;
+}
+
+/* Confirmation boxes (Replay, Show solution): compact, with smaller buttons. */
+.pm-dialog.pm-confirm {
+  width: min(22rem, 92vw);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+
+.pm-dialog.pm-confirm .pm-dialog-title {
+  font-size: 1rem;
+}
+
+.pm-dialog.pm-confirm p {
+  margin: 0;
+}
+
+.pm-dialog.pm-confirm .pm-dialog-actions {
+  gap: 0.375rem;
+  margin-top: 0.75rem;
+}
+
+.pm-dialog.pm-confirm .pm-btn {
+  min-width: 0;
+  min-height: calc(var(--pm-target) - 0.5rem);
+  padding: 0.125rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+/* Replay: both buttons on the right, the red Replay on the left of Cancel. */
+.pm-dialog.pm-replay .pm-dialog-actions {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+.pm-dialog.pm-replay [data-action="confirm-ok"] {
+  color: var(--gen-color-danger);
+  background: var(--gen-color-danger-bg);
+  border-color: var(--gen-color-danger);
+  font-weight: 600;
 }
 
 .win-stats {

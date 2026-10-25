@@ -8,10 +8,11 @@ import { el } from '../../core/browser/dom.js';
 import { packBoard } from '../../core/engine/pack.js';
 import { mountBoard } from '../../core/browser/svg-board.js';
 import { getLocale, t } from '../i18n.js';
-import { puzzleDisplayName } from '../puzzle-title.js';
+import { cardHeading } from '../puzzle-title.js';
 import { effectiveRotation } from '../state.js';
-import { LABELS, puzzleStatusLabel, ratingLabel } from '../strings.js';
+import { LABELS, certificateLabel, puzzleStatusLabel } from '../strings.js';
 import { loc, locAttrs } from './i18n-dom.js';
+import { setRating } from './rating-dom.js';
 
 /** @typedef {import('../state.js').PlayerState} PlayerState */
 
@@ -37,8 +38,10 @@ export function thumbnailCellPx(board, px) {
  * @property {HTMLElement} heading
  * @property {HTMLElement} rating
  * @property {HTMLElement} toPlace
+ * @property {HTMLElement} cert
  * @property {HTMLElement} status
  * @property {HTMLButtonElement} select
+ * @property {HTMLButtonElement} remove
  * @property {number} index
  * @property {boolean} near The card is close to the window (always true without IntersectionObserver).
  * @property {string} previewKey Settings of the preview that is drawn; empty before the first drawing.
@@ -55,10 +58,11 @@ export function thumbnailCellPx(board, px) {
  */
 
 /**
+ * The newest puzzle (the last of the pack) is on top, as in the generator.
  * @param {HTMLElement} host
- * @param {{ onSelect: (index: number) => void }} handlers
+ * @param {{ onSelect: (index: number) => void, onRemove: (index: number) => void }} handlers
  */
-export function createPuzzleList(host, { onSelect }) {
+export function createPuzzleList(host, { onSelect, onRemove }) {
   const win = /** @type {Window & typeof globalThis} */ (host.ownerDocument.defaultView);
   const empty = loc('puzzles.empty', { className: 'hint', dataset: { role: 'empty' } }, 'p');
   const list = el('ol', { className: 'puzzle-cards', attrs: locAttrs({ 'aria-label': 'puzzles.list' }), dataset: { role: 'cards' } });
@@ -70,7 +74,7 @@ export function createPuzzleList(host, { onSelect }) {
   let preview = null;
   /**
    * What the cards drew last; a store update that changes none of it (a timer tick) costs nothing.
-   * @type {{ pack: object | null, statuses: object, index: number, screen: string, prefs: object, locale: string } | null}
+   * @type {{ pack: object | null, statuses: object, index: number, screen: string, prefs: object, viewRotation: number | null, locale: string } | null}
    */
   let drawn = null;
   let drawnIndex = -1;
@@ -122,19 +126,32 @@ export function createPuzzleList(host, { onSelect }) {
    */
   function createCard(index, cellPx) {
     const thumb = el('div', { className: 'card-thumb' });
-    const heading = el('p', { className: 'card-heading' });
+    const heading = el('span', { className: 'card-heading' });
     const rating = el('p', { className: 'card-rating' });
     const toPlace = el('p', { className: 'card-clues' });
-    const status = el('p', { className: 'badge card-status' });
+    const cert = el('p', { className: 'badge card-cert' });
+    const status = el('span', { className: 'badge card-status' });
     // The whole card is one button that opens this puzzle in the main panel.
     const select = /** @type {HTMLButtonElement} */ (el('button', {
       className: 'card-select', attrs: { type: 'button' }, dataset: { action: 'select', index: String(index) },
       on: { click: () => onSelect(index) },
-    }, el('div', { className: 'card-body' }, heading, rating, toPlace, status), thumb));
-    const item = /** @type {HTMLLIElement} */ (el('li', { className: 'puzzle-card', dataset: { puzzleIndex: String(index) } }, select));
+    }, el('div', { className: 'card-body' }, el('p', { className: 'card-title' }, status, heading), rating, toPlace, cert), thumb));
+    const remove = /** @type {HTMLButtonElement} */ (el('button', {
+      className: 'card-remove ghost-small', text: '✕', attrs: { type: 'button' }, dataset: { action: 'remove', index: String(index) },
+      on: {
+        click: () => {
+          const at = [...list.querySelectorAll('.card-remove')].indexOf(remove);
+          onRemove(index);
+          // Keep the keyboard where it was: the card that took the place, else the one before it.
+          const left = /** @type {HTMLElement[]} */ ([...list.querySelectorAll('.card-remove')]);
+          left[Math.min(at, left.length - 1)]?.focus();
+        },
+      },
+    }));
+    const item = /** @type {HTMLLIElement} */ (el('li', { className: 'puzzle-card', dataset: { puzzleIndex: String(index) } }, select, remove));
     const view = mountBoard(thumb, { mode: 'thumbnail', cellPx, label: t('card.preview') });
     /** @type {Card} */
-    const card = { item, view, heading, rating, toPlace, status, select, index, near: observer === null, previewKey: '' };
+    const card = { item, view, heading, rating, toPlace, cert, status, select, remove, index, near: observer === null, previewKey: '' };
     byItem.set(item, card);
     return card;
   }
@@ -162,11 +179,11 @@ export function createPuzzleList(host, { onSelect }) {
     const { pack } = state;
     const locale = getLocale();
     if (drawn !== null && drawn.pack === pack && drawn.statuses === state.statuses && drawn.index === state.index
-      && drawn.screen === state.screen && drawn.prefs === state.prefs && drawn.locale === locale) {
+      && drawn.screen === state.screen && drawn.prefs === state.prefs && drawn.viewRotation === state.viewRotation && drawn.locale === locale) {
       return;
     }
     const packChanged = drawn === null || drawn.pack !== pack;
-    drawn = { pack, statuses: state.statuses, index: state.index, screen: state.screen, prefs: state.prefs, locale };
+    drawn = { pack, statuses: state.statuses, index: state.index, screen: state.screen, prefs: state.prefs, viewRotation: state.viewRotation, locale };
     if (packChanged) {
       for (const card of cards) {
         destroyCard(card);
@@ -178,7 +195,7 @@ export function createPuzzleList(host, { onSelect }) {
         const board = packBoard(pack);
         const cellPx = thumbnailCellPx(board, CARD_PREVIEW_PX);
         cards = pack.puzzles.map((_, index) => createCard(index, cellPx));
-        list.replaceChildren(...cards.map((card) => card.item));
+        list.replaceChildren(...cards.map((card) => card.item).reverse());
         preview = { key: '', angle: 0, labels: true, patterns: false, pack, board };
         for (const card of cards) {
           observer?.observe(card.item);
@@ -197,11 +214,15 @@ export function createPuzzleList(host, { onSelect }) {
       const puzzle = pack.puzzles[index];
       const status = state.statuses[index] ?? 'new';
       const current = index === state.index && state.screen === 'game';
-      card.heading.textContent = puzzleDisplayName(puzzle.title, index);
-      const rating = ratingLabel(puzzle.rating);
-      card.rating.textContent = rating;
-      card.rating.hidden = rating === '';
+      card.heading.textContent = cardHeading(puzzle.title, index);
+      const removeLabel = t('card.remove.aria', { title: card.heading.textContent });
+      card.remove.setAttribute('aria-label', removeLabel);
+      card.remove.title = removeLabel;
+      const rating = setRating(card.rating, puzzle.rating);
+      card.rating.hidden = !rating;
       card.toPlace.textContent = LABELS.toPlace(Math.max(0, pack.pieces.length - puzzle.clues.length));
+      card.cert.textContent = certificateLabel(puzzle.certificate);
+      card.cert.dataset.status = puzzle.certificate?.status ?? 'unchecked';
       card.status.textContent = puzzleStatusLabel(status);
       card.status.dataset.status = status;
       card.item.dataset.selected = String(current);

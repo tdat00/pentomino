@@ -49,7 +49,7 @@ function assert(cond, msg) {
  * @param {string} msg
  */
 function equal(a, b, msg) {
-  assert(a === b, `${msg}: expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`);
+  assert(a === b || (typeof a === 'object' && JSON.stringify(a) === JSON.stringify(b)), `${msg}: expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`);
 }
 
 /**
@@ -227,7 +227,8 @@ await check('link: #pack= opens puzzle 2 with claims, badges and no local data',
   equal(m.root.dataset.screen, 'game', 'screen');
   assert(m.visible('.game'), 'game visible');
   assert(title(m) === 'Normal #2', `title ${title(m)}`);
-  assert((m.q('.puzzle-info').textContent ?? '').startsWith('Claimed Normal · score '), `info ${m.q('.puzzle-info').textContent}`);
+  assert((m.q('.puzzle-info').textContent ?? '').startsWith('Normal: score '), `info ${m.q('.puzzle-info').textContent}`);
+  equal(m.q('.puzzle-info strong').textContent, 'Normal', 'level in bold');
   equal(m.qa('.tray-piece').length, 9 - sample.puzzles[1].clues.length, 'tray count');
   equal(m.qa('.board-host .pm-clue').length, sample.puzzles[1].clues.length, 'clue pieces');
   assert(m.q('.pm-board .pm-svg').getBoundingClientRect().width > 100, 'board drawn');
@@ -235,9 +236,9 @@ await check('link: #pack= opens puzzle 2 with claims, badges and no local data',
   equal(m.q('[data-badge="certificate"]').textContent, 'Uniqueness not checked', 'certificate');
   assert(!m.visible('[data-badge="local"]'), 'portable link is not local');
   equal(m.urls.length, 0, 'address untouched on load');
-  m.q('[data-action="next"]').click();
+  m.player.controller.nextPuzzle();
   equal(m.location.hash, `#pack=${sampleCode}&i=2`, 'i updated, code kept');
-  equal(m.q('[data-action="next"]').hasAttribute('disabled'), true, 'next disabled at the end');
+  equal(m.qa('[data-action="next"], [data-action="previous"]').length, 0, 'the main panel has no Previous or Next buttons');
   m.player.destroy();
 });
 
@@ -255,13 +256,14 @@ await check('sample: real fetch of player/samples/sample-pack.json, three claime
   const m = await mount();
   m.q('[data-action="sample"]').click();
   await waitFor(() => m.root.dataset.screen === 'game', 'sample game');
-  const cards = m.qa('.puzzle-card');
+  // The list shows the newest puzzle first; the tests below read the cards in pack order.
+  const cards = [...m.qa('.puzzle-card')].reverse();
   equal(cards.length, 3, 'cards');
   const text = (/** @type {HTMLElement} */ card, /** @type {string} */ part) => card.querySelector(part)?.textContent ?? '';
-  equal(text(cards[0], '.card-heading'), 'Easy #1', 'heading');
-  assert(/^Claimed Easy · score \d+$/.test(text(cards[0], '.card-rating')), text(cards[0], '.card-rating'));
+  equal(text(cards[0], '.card-heading'), 'Puzzle #1', 'heading');
+  assert(/^Easy: score \d+$/.test(text(cards[0], '.card-rating')), text(cards[0], '.card-rating'));
   equal(text(cards[0], '.card-status'), 'New', 'status');
-  assert(/Claimed Normal/.test(text(cards[1], '.card-rating')) && /Claimed Hard/.test(text(cards[2], '.card-rating')), 'levels');
+  assert(/^Normal/.test(text(cards[1], '.card-rating')) && /^Hard/.test(text(cards[2], '.card-rating')), 'levels');
   assert(cards.every((card) => card.querySelector('.pm-board .pm-svg') !== null), 'every card shows a preview');
   equal(m.qa('.card-select[aria-current="true"]').length, 1, 'one open puzzle');
   equal(m.qa('.library li').length, 1, 'sample joins recent');
@@ -276,7 +278,7 @@ await check('file input, drop and paste (link, code, JSON) all open the same way
   assert(/^#lib=[0-9a-f]{16}&i=0$/.test(m.location.hash), `hash ${m.location.hash}`);
   assert(m.visible('[data-badge="local"]'), 'a local link is labeled');
 
-  m.q('[data-action="import"]').click();
+  m.player.controller.showImport();
   assert(m.visible('.import'), 'import screen over the game');
   const transfer = new DataTransfer();
   transfer.items.add(new File([JSON.stringify(sample)], 'drop.json'));
@@ -285,13 +287,13 @@ await check('file input, drop and paste (link, code, JSON) all open the same way
   equal(drop.defaultPrevented, true, 'drop handled');
   await waitFor(() => m.root.dataset.screen === 'game', 'drop game');
 
-  m.q('[data-action="import"]').click();
+  m.player.controller.showImport();
   m.paste(`see https://example.invalid/player/#pack=${sampleCode}&i=2 thanks`);
   await waitFor(() => m.root.dataset.screen === 'game' && title(m).startsWith('Hard #3'), 'pasted link');
-  m.q('[data-action="import"]').click();
+  m.player.controller.showImport();
   m.paste(`code ${sampleCode} here`);
   await waitFor(() => m.root.dataset.screen === 'game' && title(m).startsWith('Easy #1'), 'pasted code');
-  m.q('[data-action="import"]').click();
+  m.player.controller.showImport();
   m.paste(handText);
   await waitFor(() => m.root.dataset.screen === 'game' && title(m).startsWith('Example'), 'pasted json');
   equal(m.qa('.library li').length, 2, 'two packs in Recent');
@@ -314,7 +316,7 @@ await check('every failure shows its exact message and the open game is unchange
     ['oversized file', () => m.chooseFile(new Blob([new Uint8Array(513 * 1024)])), /^This file is not a valid Pentomino pack: A pack file is at most 524288 bytes/],
   ];
   for (const [name, run, expected] of cases) {
-    m.q('[data-action="import"]').click();
+    m.player.controller.showImport();
     await run();
     await waitFor(() => (m.q('.import-error').textContent ?? '') !== '' && !m.q('.import-error').hidden, `${name} message`);
     const text = m.q('.import-error').textContent ?? '';
@@ -333,10 +335,10 @@ await check('library: Recent lists packs; Open, Export and two-step Delete affec
   const m = await mount({ adapter });
   m.paste(sampleText);
   await waitFor(() => m.root.dataset.screen === 'game', 'first');
-  m.q('[data-action="import"]').click();
+  m.player.controller.showImport();
   m.paste(handText);
   await waitFor(() => title(m).startsWith('Example'), 'second');
-  m.q('[data-action="import"]').click();
+  m.player.controller.showImport();
   equal(m.qa('.library li').length, 2, 'entries');
   const first = m.qa('.library li')[1];
   assert((first.textContent ?? '').includes('0 of 3 solved'), `meta ${first.textContent}`);
@@ -344,7 +346,7 @@ await check('library: Recent lists packs; Open, Export and two-step Delete affec
   equal(m.downloads.length, 1, 'export called');
   /** @type {HTMLElement} */ (first.querySelector('[data-action="open"]')).click();
   await waitFor(() => title(m).startsWith('Easy #1'), 'open from library');
-  m.q('[data-action="import"]').click();
+  m.player.controller.showImport();
   const target = m.qa('.library li')[0];
   const id = target.dataset.packId ?? '';
   const del = /** @type {HTMLElement} */ (target.querySelector('[data-action="delete"]'));
@@ -366,10 +368,10 @@ await check('same pack id with different content: newest claims win and Recent k
   const m = await mount({ adapter });
   m.paste(sampleText);
   await waitFor(() => m.root.dataset.screen === 'game', 'first');
-  m.q('[data-action="import"]').click();
+  m.player.controller.showImport();
   m.paste(JSON.stringify(reclaimed));
   await waitFor(() => title(m).startsWith('Easy (v2) #1'), 'second');
-  m.q('[data-action="import"]').click();
+  m.player.controller.showImport();
   equal(m.qa('.library li').length, 1, 'one entry');
   const stored = [...adapter.map.entries()].filter(([k]) => k.startsWith('pentomino:v1:lib:') && !k.endsWith('index'));
   equal(stored.length, 1, 'one record');
@@ -384,7 +386,7 @@ await check('malicious title is text everywhere: no element, no script, no CSP v
   await waitFor(() => m.root.dataset.screen === 'game', 'game');
   assert(title(m).includes(maliciousTitle), 'literal title');
   assert(m.qa('.card-heading').every((n) => (n.textContent ?? '').includes('<img')), 'the puzzle list shows text');
-  m.q('[data-action="import"]').click();
+  m.player.controller.showImport();
   assert((m.q('.library-title').textContent ?? '') === maliciousTitle, 'library title');
   equal(m.root.querySelectorAll('img:not(.app-logo)').length, 0, 'no img element');
   await new Promise((resolve) => setTimeout(resolve, 100));
@@ -397,7 +399,7 @@ await check('verification with the real module worker: solvable and impossible a
   m.paste(JSON.stringify(answerFree));
   await waitFor(() => m.root.dataset.screen === 'game', 'game');
   await waitFor(() => m.q('[data-badge="verification"]').textContent === 'Solvable ✓', 'search result');
-  m.q('[data-action="import"]').click();
+  m.player.controller.showImport();
   m.paste(JSON.stringify(unsatisfiable));
   await waitFor(() => title(m).startsWith('Impossible'), 'impossible pack');
   await waitFor(() => m.q('[data-badge="verification"]').textContent === 'No solution exists', 'proven impossible');
@@ -412,8 +414,7 @@ await check('workers unavailable: "Solvability not verified", play continues', a
   equal(m.q('[data-badge="verification"]').textContent, 'Solvability not verified', 'label');
   const piece = m.qa('.tray-piece')[0];
   piece.click();
-  assert((m.q('.selection-info').textContent ?? '').startsWith('Selected: '), 'a piece can still be picked');
-  equal(piece.getAttribute('aria-pressed'), 'true', 'pressed state');
+  equal(piece.getAttribute('aria-pressed'), 'true', 'a piece can still be picked');
   m.player.destroy();
 });
 
@@ -433,7 +434,7 @@ await check('stale proof data of a replaced pack is discarded; a superseded chec
   await waitFor(() => pending.length === 1, 'first check');
   equal(m.q('[data-badge="verification"]').textContent, 'Checking solvability…', 'pending');
   const staleFp = m.player.store.getState().fingerprints[0];
-  m.q('[data-action="import"]').click();
+  m.player.controller.showImport();
   m.paste(JSON.stringify({ ...answerFree, puzzles: [answerFree.puzzles[2]] }));
   await waitFor(() => pending.length === 2, 'second check');
   pending[0].resolve({ results: [{ index: 0, fingerprint: staleFp, status: 'unsatisfiable' }] });
@@ -456,7 +457,7 @@ await check('unavailable storage: the puzzle opens, play goes on and one honest 
   const m = await mount({ adapter: /** @type {any} */ (hostile), hash: `#pack=${sampleCode}&i=0` });
   equal(m.root.dataset.screen, 'game', 'game open');
   equal(m.q('[data-badge="storage"]').textContent, SAVE_FAILED_MESSAGE, 'warning');
-  m.q('[data-action="next"]').click();
+  m.player.controller.nextPuzzle();
   assert(title(m).startsWith('Normal #2'), 'navigation works');
   m.player.destroy();
   const none = await mount({ adapter: null });
@@ -465,7 +466,7 @@ await check('unavailable storage: the puzzle opens, play goes on and one honest 
   none.player.destroy();
 });
 
-await check('Continue / Restart after reload; puzzle switching saves progress first', async () => {
+await check('progress is restored silently after reload; puzzle switching saves progress first', async () => {
   const adapter = memoryAdapter();
   const m = await mount({ adapter });
   m.paste(sampleText);
@@ -475,7 +476,7 @@ await check('Continue / Restart after reload; puzzle switching saves progress fi
   const pose = sample.puzzles[0].solution.find((/** @type {any} */ p) => !clued.has(p.piece));
   m.player.store.update({ game: reduce(/** @type {any} */ (s.game), { type: 'place', pose }) });
   equal(m.qa('.tray-piece').length, 9 - sample.puzzles[0].clues.length - 1, 'piece left the tray');
-  m.q('[data-action="next"]').click();
+  m.player.controller.nextPuzzle();
   assert(title(m).startsWith('Normal #2'), 'moved on');
   equal(m.q('.puzzle-card[data-puzzle-index="0"] .card-status').textContent, 'In progress', 'the list shows the progress that was saved');
   m.player.destroy();
@@ -483,41 +484,39 @@ await check('Continue / Restart after reload; puzzle switching saves progress fi
   const again = await mount({ adapter });
   again.paste(sampleText);
   await waitFor(() => again.root.dataset.screen === 'game', 'reloaded game');
-  assert(again.visible('.status-resume'), 'Continue / Restart offered');
-  assert((again.q('.status-resume').textContent ?? '').includes('1 piece placed'), again.q('.status-resume').textContent ?? '');
+  assert(again.root.querySelector('.status-resume') === null && !(again.q('[data-host="status"]').textContent ?? '').includes('Saved progress'), 'no Continue / Restart message');
   equal(again.qa('.tray-piece').length, 9 - sample.puzzles[0].clues.length - 1, 'progress restored');
-  again.q('[data-action="restart"]').click();
-  assert(!again.visible('.status-resume'), 'prompt closed');
-  equal(again.qa('.tray-piece').length, 9 - sample.puzzles[0].clues.length, 'restarted');
+  again.player.controller.replay();
+  equal(again.qa('.tray-piece').length, 9 - sample.puzzles[0].clues.length, 'Replay starts over');
   again.player.destroy();
 });
 
-await check('Labels, Patterns and Timer are independent device preferences; Patterns only for K > 20', async () => {
+await check('the View switches are gone; the saved Labels, Patterns and Timer preferences still apply (Patterns only for K > 20)', async () => {
   const adapter = memoryAdapter();
   const m = await mount({ adapter });
   m.paste(sampleText);
   await waitFor(() => m.root.dataset.screen === 'game', 'game');
-  assert(m.q('[data-pref="patterns"]').closest('label')?.hidden === true, 'no Patterns switch for 9 pieces');
+  equal(m.qa('[data-pref], .view-options').length, 0, 'the right panel has no View switches');
   m.player.destroy();
 
   const big = validatedValue(bigSet());
   const b = await mount({ adapter });
   b.paste(JSON.stringify(big));
   await waitFor(() => b.root.dataset.screen === 'game', 'big game');
-  assert(b.q('[data-pref="patterns"]').closest('label')?.hidden === false, 'Patterns switch for 21 pieces');
   const labelsOn = () => b.root.querySelector('.board-host .pm-labels')?.getAttribute('display');
   const patternCount = () => b.root.querySelectorAll('.pm-pattern').length;
   assert(patternCount() > 0, 'patterns drawn');
-  b.q('[data-pref="labels"]').click();
+  assert(labelsOn() !== 'none' && !b.q('.game-timer').hidden, 'labels and timer are shown by default');
+  b.player.controller.setPref('labels', false);
   await frame();
   equal(labelsOn(), 'none', 'labels hidden');
   assert(patternCount() > 0, 'patterns unaffected by Labels');
-  b.q('[data-pref="labels"]').click();
-  b.q('[data-pref="patterns"]').click();
+  b.player.controller.setPref('labels', true);
+  b.player.controller.setPref('patterns', false);
   await frame();
   equal(patternCount(), 0, 'patterns hidden');
   assert(labelsOn() !== 'none', 'labels unaffected by Patterns');
-  b.q('[data-pref="timer"]').click();
+  b.player.controller.setPref('timer', false);
   assert(b.q('.game-timer').hidden, 'timer hidden');
   const prefs = JSON.parse(adapter.map.get('pentomino:v1:prefs') ?? '{}');
   assert(prefs.labels === true && prefs.patterns === false && prefs.timer === false, JSON.stringify(prefs));
@@ -592,11 +591,12 @@ await check('layout and accessibility contract of the shell', async () => {
   }
   assert(m.q('.app-side').contains(m.q('.tray-host')) && m.q('.app-main').contains(m.q('.board-host')) && m.q('.app-history').contains(m.q('.puzzle-cards')),
     'each panel holds its content');
-  const tops = ['.step-head', '.game-bar', '.board-wrap', '.toolbar-host'].map((sel) => rect(sel).top);
+  const tops = ['.step-head', '.game-bar', '.board-wrap'].map((sel) => rect(sel).top);
   assert(tops.every((top, i) => i === 0 || top > tops[i - 1]), `game panel from top to bottom: ${tops.join(', ')}`);
-  const bar = ['.game-timer', '.game-moves', '[data-action="undo"]', '[data-action="redo"]', '[data-action="reset"]'].map((sel) => m.q(`.game-bar ${sel}`));
+  assert(m.q('.app-side').contains(m.q('.toolbar-host')) && rect('.toolbar-host').top < rect('.tray-host').top, 'the selection toolbar is in the pieces panel, above the pieces');
+  const bar = ['.game-timer', '.game-moves', '[data-action="undo"]', '[data-action="redo"]', '[data-action="hint"]', '[data-action="replay"]'].map((sel) => m.q(`.game-bar ${sel}`));
   for (let i = 1; i < bar.length; i += 1) {
-    assert(bar[i - 1].compareDocumentPosition(bar[i]) & Node.DOCUMENT_POSITION_FOLLOWING, `timer, moves, Undo, Redo, Reset in order at ${i}`);
+    assert(bar[i - 1].compareDocumentPosition(bar[i]) & Node.DOCUMENT_POSITION_FOLLOWING, `timer, moves, Undo, Redo, Hint, Replay in order at ${i}`);
   }
   for (const button of m.qa('.game .pm-btn').filter((b) => b.getClientRects().length > 0)) {
     assert(button.getBoundingClientRect().height >= 35.5, `target height of ${button.dataset.action}`);
@@ -616,18 +616,21 @@ await check('layout and accessibility contract of the shell', async () => {
 await check('puzzle list: a card opens its puzzle and marks it; the open card does not reload; Import hides the game, a card returns', async () => {
   const m = await mount({ hash: `#pack=${sampleCode}&i=0` });
   equal(m.qa('.puzzle-card').length, 3, 'one card per puzzle');
+  equal(m.qa('.puzzle-card').map((card) => card.dataset.puzzleIndex), ['2', '1', '0'], 'the newest puzzle is on top');
+  equal(m.qa('[data-action="import"]').length, 0, 'the puzzles panel has no Import button');
+  assert(m.visible('.app-history .panel-header [data-action="remove-all-puzzles"]'), 'Remove all is in the header of the panel');
+  assert(m.qa('.puzzle-card .card-remove').length === 3, 'every card has a remove button');
+  assert(m.q('.puzzle-card .card-title').firstElementChild?.classList.contains('card-status') === true, 'the status is left of the name');
   equal(m.q('.card-select[aria-current="true"]').dataset.index, '0', 'the first puzzle is marked');
   m.q('.puzzle-card[data-puzzle-index="2"] .card-select').click();
   equal(title(m), 'Hard #3', 'the card opens its puzzle');
   equal(m.q('.card-select[aria-current="true"]').dataset.index, '2', 'the mark moved');
   equal(m.qa('.card-select[aria-current="true"]').length, 1, 'only one card is marked');
   equal(m.location.hash, `#pack=${sampleCode}&i=2`, 'i updated, code kept');
-  equal(m.q('[data-action="next"]').hasAttribute('disabled'), true, 'next disabled at the end');
-  equal(m.q('[data-action="previous"]').hasAttribute('disabled'), false, 'previous enabled');
   const open = m.player.store.getState().game;
   m.q('.puzzle-card[data-puzzle-index="2"] .card-select').click();
   equal(m.player.store.getState().game, open, 'the open puzzle is not reloaded');
-  m.q('[data-action="import"]').click();
+  m.player.controller.showImport();
   equal(m.root.dataset.screen, 'import', 'Import replaces the game panel');
   assert(m.visible('.puzzle-card'), 'the puzzle list stays');
   assert(!m.visible('.tray-piece'), 'the pieces are not offered while the game is hidden');
@@ -637,6 +640,32 @@ await check('puzzle list: a card opens its puzzle and marks it; the open card do
   equal(m.player.store.getState().game, open, 'with the same game');
   m.q('.puzzle-card[data-puzzle-index="0"] .card-select').click();
   equal(title(m), 'Easy #1', 'another card');
+  m.player.destroy();
+});
+
+await check('remove: a card removes its puzzle from the pack and the library; Remove all empties the panel and returns to Import', async () => {
+  const m = await mount({ hash: `#pack=${sampleCode}&i=1` });
+  equal(title(m), 'Normal #2', 'the second puzzle is open');
+  const packId = /** @type {string} */ (m.player.store.getState().packId);
+  m.q('.puzzle-card[data-puzzle-index="0"] .card-remove').click();
+  equal(m.qa('.puzzle-card').length, 2, 'one card less');
+  equal(title(m), 'Normal #1', 'the open puzzle stays open, renumbered');
+  equal(m.qa('.puzzle-card').map((card) => card.querySelector('.card-heading')?.textContent), ['Puzzle #2', 'Puzzle #1'], 'renumbered, newest on top');
+  equal(m.player.store.getState().pack?.puzzles.length, 2, 'the open pack has two puzzles');
+  assert(m.player.store.getState().packId !== packId, 'the library holds the reduced pack');
+  equal(m.qa('.library li').length, 1, 'no copy of the old pack is left');
+  m.q('.puzzle-card[data-puzzle-index="0"] .card-remove').click();
+  equal(m.root.dataset.screen, 'game', 'the open puzzle was removed: its neighbour opens');
+  equal(m.qa('.puzzle-card').length, 1, 'one card');
+  m.q('.puzzle-card .card-remove').click();
+  equal(m.root.dataset.screen, 'import', 'the last puzzle leaves the pack');
+  equal(m.qa('.puzzle-card').length, 0, 'no cards');
+  equal(m.qa('.library li').length, 0, 'the pack is out of Recent');
+  assert(m.q('[data-action="remove-all-puzzles"]').hasAttribute('disabled'), 'Remove all is disabled without a pack');
+  m.q('[data-action="sample"]').click();
+  await waitFor(() => m.root.dataset.screen === 'game', 'sample game');
+  m.q('[data-action="remove-all-puzzles"]').click();
+  equal([m.root.dataset.screen, m.qa('.puzzle-card').length, m.location.hash], ['import', 0, ''], 'Remove all');
   m.player.destroy();
 });
 
@@ -652,8 +681,7 @@ await check('header: EN | VI changes every text and is remembered; the theme but
     equal(m.q('.app-header h1').textContent, 'Trình chơi Pentomino', 'Vietnamese title');
     equal(m.q('[data-lang="vi"]').getAttribute('aria-pressed'), 'true', 'Vietnamese is pressed');
     equal(m.q('[data-action="undo"]').textContent, 'Hoàn tác', 'a fixed text');
-    equal(m.q('[data-action="next"]').textContent, 'Đề sau', 'a button with an icon');
-    assert((m.q('.puzzle-info').textContent ?? '').startsWith('Khai báo: Trung bình · điểm '), `rating ${m.q('.puzzle-info').textContent}`);
+    assert((m.q('.puzzle-info').textContent ?? '').startsWith('Trung bình: điểm '), `rating ${m.q('.puzzle-info').textContent}`);
     equal(m.q('[data-badge="verification"]').textContent, 'Giải được ✓', 'a badge');
     equal(m.q('.pieces-left').textContent, `Còn ${(left ?? '').split(' ')[0]} mảnh`, 'a counter with a number');
     equal(m.q('.puzzle-card[data-puzzle-index="0"] .card-status').textContent, 'Mới', 'a card');
@@ -662,7 +690,7 @@ await check('header: EN | VI changes every text and is remembered; the theme but
     m.q('[data-action="help"]').click();
     assert(m.qa('.pm-shortcuts tbody th').some((n) => n.textContent === 'Phím mũi tên'), 'the shortcut list is translated');
     m.q('.pm-help [data-action="help-close"]').click();
-    m.q('[data-action="import"]').click();
+    m.player.controller.showImport();
     equal(m.q('[data-action="sample"]').textContent, 'Thử đề mẫu', 'the import screen');
     equal(kept.get('pentomino:v1:lang'), 'vi', 'the choice is remembered');
     m.q('[data-lang="en"]').click();

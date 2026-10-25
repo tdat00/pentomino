@@ -497,7 +497,8 @@ function drawPiece(piece, cells, o) {
   }, piece.label);
   let lock = null;
   if (o.clue) {
-    lock = svgEl('g', { class: 'pm-lock', transform: `translate(${cx} ${cy}) rotate(${o.theta}) translate(0.3 -0.3) scale(0.3)`, 'pointer-events': 'none' },
+    // The padlock sits in the upper-right corner of the label cell, fully inside it (its halo included).
+    lock = svgEl('g', { class: 'pm-lock', transform: `translate(${cx} ${cy}) rotate(${o.theta}) translate(0.28 -0.25) scale(0.26)`, 'pointer-events': 'none' },
       svgEl('path', { d: 'M-0.3 -0.05V-0.3A0.3 0.3 0 0 1 0.3 -0.3V-0.05', fill: 'none', stroke: '#ffffff', 'stroke-width': 0.4 }),
       svgEl('rect', { x: -0.55, y: -0.1, width: 1.1, height: 0.85, rx: 0.12, fill: '#ffffff' }),
       svgEl('path', { d: 'M-0.3 -0.05V-0.3A0.3 0.3 0 0 1 0.3 -0.3V-0.05', fill: 'none', stroke: '#1f1f1f', 'stroke-width': 0.18 }),
