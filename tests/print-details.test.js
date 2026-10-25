@@ -13,16 +13,24 @@ const lookup = (pack) => (key, args = {}) => pack[key].replace(/\{(\w+)\}/g, (_,
 /** @param {ReturnType<typeof puzzleDetails>} lines */
 const plain = (lines) => lines.map((line) => line.map((part) => (part.bold === true ? `**${part.text}**` : part.text)).join(''));
 
-test('the printed heading names the rating, the seed and the piece set, with the levels in bold', () => {
+test('the printed heading names the rating and the piece set, with the levels in bold, and no puzzle seed', () => {
   const t = lookup(PRINT_TEXTS_EN);
-  assert.deepEqual(plain(puzzleDetails(t, { level: 'Nightmare', score: 123.4 }, '4567', { level: 'Expert', seed: 'ABCD-EFGH-JKLM' })),
-    ['**Nightmare**: score 123, seed 4567', 'Set: **Expert**, ABCD-EFGH-JKLM']);
-  assert.deepEqual(plain(puzzleDetails(lookup(PRINT_TEXTS_VI), { level: 'Khó', score: 8 }, '1', null)), ['**Khó**: điểm 8, seed 1']);
+  assert.deepEqual(plain(puzzleDetails(t, { level: 'Nightmare', score: 123.4 }, { level: 'Expert', seed: 'ABCD-EFGH-JKLM' })),
+    ['**Nightmare**: score 123', 'Set: **Expert**, ABCD-EFGH-JKLM']);
+  assert.deepEqual(plain(puzzleDetails(lookup(PRINT_TEXTS_VI), { level: 'Khó', score: 8 }, null)), ['**Khó**: điểm 8']);
 });
 
 test('what is not known is left out of the printed heading', () => {
   const t = lookup(PRINT_TEXTS_EN);
-  assert.deepEqual(plain(puzzleDetails(t, { level: 'Easy', score: 8, saturated: true }, undefined, null)), ['**Easy**: score 8+']);
-  assert.deepEqual(plain(puzzleDetails(t, null, '9', { level: null, seed: 'S' })), ['Seed: 9', 'Set: S']);
-  assert.deepEqual(puzzleDetails(t, null, null, { level: 'Hard', seed: '' }), []);
+  assert.deepEqual(plain(puzzleDetails(t, { level: 'Easy', score: 8, saturated: true }, null)), ['**Easy**: score 8+']);
+  assert.deepEqual(plain(puzzleDetails(t, null, { level: null, seed: 'S' })), ['Set: S']);
+  assert.deepEqual(puzzleDetails(t, null, { level: 'Hard', seed: '' }), []);
+  assert.deepEqual(puzzleDetails(t, null, null), []);
+});
+
+test('the texts of the removed puzzle-seed line are gone from both languages', () => {
+  for (const pack of [PRINT_TEXTS_EN, PRINT_TEXTS_VI]) {
+    assert.equal(Object.hasOwn(pack, 'print.sheet.seed'), false);
+    assert.equal(Object.hasOwn(pack, 'print.sheet.rating'), false);
+  }
 });

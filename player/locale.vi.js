@@ -52,7 +52,7 @@ export default Object.freeze({
   'ui.viewRight': 'Xoay góc nhìn theo chiều kim đồng hồ',
   'ui.piecesLeft': 'Còn {count} mảnh',
   'ui.moves': '{count} nước đi',
-  'ui.puzzleNumber': 'Đề {n}',
+  'ui.puzzleNumber': 'Đề #{n}',
   'ui.localLink': 'Liên kết cục bộ — chỉ dùng được trong trình duyệt này.',
   'ui.loading': 'Đang tải…',
   'ui.trayLabel': 'Các mảnh chưa đặt',

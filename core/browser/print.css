@@ -120,6 +120,52 @@
   display: none;
 }
 
+/* The puzzle code of the printout: what is prepared, where the QR leads, and what had to be left out. */
+.pm-print-code-box {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+}
+
+.pm-print-code-box [role="status"] {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.pm-print-code-box p,
+.pm-print-code-box ul {
+  margin: 0;
+}
+
+.pm-print-code-status:empty,
+.pm-print-code-target:empty,
+.pm-print-code-notes:empty {
+  display: none;
+}
+
+.pm-print-code-target {
+  overflow-wrap: anywhere;
+  color: var(--pm-muted);
+  font-size: 0.8125rem;
+}
+
+.pm-print-code-notes {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+
+.pm-print-code-box[data-state="error"] .pm-print-code-status {
+  font-weight: 600;
+  color: var(--gen-color-warning, var(--pm-ink));
+}
+
+.pm-print-code-box .pm-btn {
+  justify-self: start;
+}
+
 .pm-print-warning {
   display: block;
   margin-top: 0.25rem;

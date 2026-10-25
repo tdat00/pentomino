@@ -724,8 +724,9 @@ test('the game heading does not number a title that already ends in its number',
   assert.equal(puzzleDisplayName('Normal #1', 0), 'Normal #1');
   assert.equal(puzzleDisplayName('Hard #4', 0), 'Hard #4');
   assert.equal(puzzleDisplayName('Warm-up', 2), 'Warm-up #3');
-  assert.equal(puzzleDisplayName('', 1), 'Puzzle 2');
-  assert.equal(puzzleDisplayName(undefined, 0), 'Puzzle 1');
+  assert.equal(puzzleDisplayName('', 1), 'Puzzle #2');
+  assert.equal(puzzleDisplayName(undefined, 0), 'Puzzle #1');
+  assert.equal(puzzleDisplayName('x'.repeat(76), 3), 'x'.repeat(76), 'a title of more than 75 code points is never numbered');
 });
 
 test('card headings follow the generator: generated titles become "Puzzle #n", written titles stay', () => {

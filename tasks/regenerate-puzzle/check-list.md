@@ -451,9 +451,9 @@ No developer changes qualification or deployment settings to make it green.
 |---|---|---|---|---|
 | RP01 | done (one wave-barrier fix round) | 52m53s | 885.76 | 4f98b37 |
 | RP02 | done | 28m15s | 670.80 | 4eab87b |
-| RP03 | done | 48m00s | 682.91 | (this commit) |
+| RP03 | done | 48m00s | 682.91 | 2d416b8 |
 | RP04 | done | 14m42s | 222.25 | ccde6af |
-| RP05 | | | | |
+| RP05 | done | 52m44s | 939.98 | (this commit) |
 | RP06 | | | | |
 | RP07 | | | | |
 | RP08 | | | | |

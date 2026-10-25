@@ -5,13 +5,17 @@
 
 import { outlineLoops } from '../engine/geometry.js';
 import {
-  PAGE_HEIGHT, PAGE_MARGIN, PAGE_WIDTH, mirrorCells, mirrorX,
+  AREA_WIDTH, CODE_LABEL_SIZE_MM, CONTINUATION_HEADING_SIZE_MM, CONTINUATION_TITLE_SIZE_MM, DETAIL_SIZE_MM, PAGE_HEIGHT, PAGE_MARGIN,
+  PAGE_WIDTH, QR_HOST_SIZE_MM, QR_SCAN_SIZE_MM, TITLE_FIRST_BASELINE, TITLE_SIZE_MM, estimateTextWidth, fitText, mirrorCells, mirrorX,
+  titleBlock,
 } from './print-layout.js';
+import { qrRowRunPath } from './qr.js';
 import { blockedCell, createDefs, drawPiece, nextViewId, pathData, svgEl, SVG_NS } from './svg-board.js';
 
 /** @typedef {import('../engine/types.js').XY} XY */
 /** @typedef {import('./print-layout.js').PrintPlan} PrintPlan */
 /** @typedef {import('./print-layout.js').PiecePlacement} PiecePlacement */
+/** @typedef {import('./print-layout.js').TextMeasure} TextMeasure */
 /** @typedef {(key: string, args?: Record<string, unknown>) => string} Translate */
 
 /**
@@ -20,11 +24,12 @@ import { blockedCell, createDefs, drawPiece, nextViewId, pathData, svgEl, SVG_NS
 
 /**
  * @typedef {object} PrintHeading
- * @property {string} title Puzzle name, e.g. "Puzzle #3".
- * @property {PrintLine[]} details Rating and seeds, already in the reader's language (`puzzleDetails`).
+ * @property {string} title Puzzle name, e.g. "Puzzle #3"; the plan was made for this same title.
+ * @property {PrintLine[]} details Rating and set, already in the reader's language (`puzzleDetails`).
  */
 
 const FONT = 'system-ui, sans-serif';
+const MONO = "ui-monospace, 'Cascadia Mono', Consolas, 'Liberation Mono', monospace";
 const BOARD_FILL = '#f4f4f4';
 const GRID_COLOR = '#9a9a9a';
 const GRID_MM = 0.25;
@@ -37,6 +42,31 @@ const RULER_MM = 50;
 const PIECE_OUTLINE_COLOR = '#000000';
 const PIECE_OUTLINE_MM = 0.6;
 const JOIN_COLOR = '#111111';
+const CODE_COLOR = '#111111';
+const CODE_NOTE_COLOR = '#555555';
+const CODE_TAIL_COLOR = '#444444';
+const NO_CODE_SIZE_MM = 4;
+/** Measuring at a large size keeps font hinting out of the widths. */
+const MEASURE_PX = 100;
+/** The canvas measure is trusted to this much; the layout keeps this share free. */
+const MEASURE_MARGIN = 1.02;
+
+/**
+ * The width of texts in the font the pages are drawn in, measured with a canvas of the page; the layout wraps and
+ * elides by it, so a word never runs under the QR code. Without a canvas the layout's own estimate is used.
+ * @param {Document} [doc]
+ * @returns {TextMeasure}
+ */
+export function createTextMeasure(doc = globalThis.document) {
+  const context = doc?.createElement('canvas').getContext('2d') ?? null;
+  if (context === null) {
+    return estimateTextWidth;
+  }
+  return (text, sizeMm, bold = false) => {
+    context.font = `${bold ? 700 : 400} ${MEASURE_PX}px ${FONT}`;
+    return (context.measureText(text).width / MEASURE_PX) * sizeMm * MEASURE_MARGIN;
+  };
+}
 
 /**
  * @param {number} n
@@ -54,28 +84,43 @@ export function formatMm(value) {
 
 /**
  * @param {string} content
- * @param {{ x: number, y: number, size: number, bold?: boolean, fill?: string, anchor?: 'start' | 'middle' | 'end' }} o
+ * @param {{ x: number, y: number, size: number, bold?: boolean, fill?: string, anchor?: 'start' | 'middle' | 'end', className?: string }} o
  * @returns {SVGElement}
  */
-function textNode(content, { x, y, size, bold = false, fill = '#111111', anchor = 'start' }) {
+function textNode(content, { x, y, size, bold = false, fill = '#111111', anchor = 'start', className }) {
   return svgEl('text', {
+    ...(className === undefined ? {} : { class: className }),
     x: mm(x), y: mm(y), 'font-size': size, 'font-family': FONT, 'font-weight': bold ? 700 : 400, fill, 'text-anchor': anchor,
   }, content);
 }
 
 /**
- * The heading of the puzzle and solution sheets: the title, then each detail line with its bold parts.
- * @param {string} title
+ * The heading of a sheet: the title lines (8 mm, bold), then each detail line with its bold parts.
+ * @param {import('./print-layout.js').TitleBlock} block
  * @param {PrintLine[]} details
  * @returns {SVGElement[]}
  */
-function headingNodes(title, details) {
+function headingNodes(block, details) {
   return [
-    textNode(title, { x: PAGE_MARGIN, y: PAGE_MARGIN + 9, size: 8, bold: true }),
+    ...block.lines.map((line, i) => textNode(line, { x: PAGE_MARGIN, y: block.baselines[i], size: TITLE_SIZE_MM, bold: true, className: 'pm-print-sheet-title' })),
     ...details.map((line, i) => svgEl('text', {
-      class: 'pm-print-detail', x: PAGE_MARGIN, y: mm(PAGE_MARGIN + 16.5 + i * 5.5), 'font-size': 4, 'font-family': FONT, fill: '#444444',
+      class: 'pm-print-detail', x: PAGE_MARGIN, y: mm(block.detailBaselines[i]), 'font-size': DETAIL_SIZE_MM, 'font-family': FONT, fill: '#444444',
     }, ...line.map((part) => svgEl('tspan', { 'font-weight': part.bold === true ? 700 : 400, ...(part.bold === true ? { fill: '#111111' } : {}) }, part.text)))),
   ];
+}
+
+/**
+ * The heading of the solution sheet and of the continuation sheets keeps to one line, so that its header stays above
+ * the 40 mm where the board starts: a longer title is shortened with "…" on paper.
+ * @param {string} title
+ * @param {number} detailCount
+ * @param {TextMeasure} measure
+ * @returns {import('./print-layout.js').TitleBlock}
+ */
+function singleLineBlock(title, detailCount, measure) {
+  const block = titleBlock('', detailCount, AREA_WIDTH, measure);
+  const line = fitText(title, AREA_WIDTH, TITLE_SIZE_MM, true, measure);
+  return line === '' ? block : { ...block, lines: [line], baselines: [TITLE_FIRST_BASELINE] };
 }
 
 /**
@@ -91,6 +136,92 @@ function newPage() {
   svg.append(defs.defs);
   return { svg, id, defs };
 }
+
+/**
+ * One line of the typed code: a single text of exactly `textLength` mm, so its width never depends on the font.
+ * @param {import('./print-layout.js').CodeLine} line
+ * @returns {SVGElement}
+ */
+function codeLineNode(line) {
+  return svgEl('text', {
+    class: 'pm-print-code', 'data-part': line.part, x: mm(line.x), y: mm(line.y), 'font-size': line.size, 'font-family': MONO,
+    'font-weight': 400, fill: line.part === 'tail' ? CODE_TAIL_COLOR : CODE_COLOR, textLength: mm(line.textLength), lengthAdjust: 'spacingAndGlyphs',
+  }, line.text);
+}
+
+/**
+ * The QR symbol: an opaque white box of the size the matrix needs (its quiet zone inside), the black modules as one
+ * path of row runs shifted by the quiet zone.
+ * @param {import('./qr.js').PuzzleQrMatrix} qr
+ * @param {number} x mm
+ * @param {number} y mm
+ * @returns {SVGElement}
+ */
+function qrNode(qr, x, y) {
+  return svgEl('g', {
+    class: 'pm-print-qr', 'data-qr-version': qr.version, 'data-qr-ec': qr.ec, transform: `translate(${mm(x)} ${mm(y)}) scale(${qr.moduleMm})`,
+  },
+  svgEl('rect', { x: 0, y: 0, width: qr.outerModules, height: qr.outerModules, fill: '#ffffff' }),
+  svgEl('path', {
+    transform: `translate(${qr.quietModules} ${qr.quietModules})`, d: qrRowRunPath(qr.rows), fill: '#000000', stroke: 'none', 'shape-rendering': 'crispEdges',
+  }));
+}
+
+/**
+ * The part of the first sheet between the heading and the board: the typed code with its label, the optional tail and
+ * the "continued" notice, and the QR with its captions; or the line that says the puzzle is too large for a code.
+ * @param {PrintPlan} plan
+ * @param {Translate} text
+ * @returns {SVGElement[]}
+ */
+function codeBandNodes(plan, text) {
+  const { band, measure } = plan;
+  /** @type {SVGElement[]} */
+  const nodes = [];
+  if (band.noCodeY !== null) {
+    nodes.push(textNode(fitText(text('print.sheet.noCode'), AREA_WIDTH, NO_CODE_SIZE_MM, false, measure),
+      { x: PAGE_MARGIN, y: band.noCodeY, size: NO_CODE_SIZE_MM, className: 'pm-print-no-code' }));
+  }
+  const { code, qr } = band;
+  if (code !== null) {
+    nodes.push(textNode(fitText(text('print.sheet.code', { count: code.count }), code.labelWidth, CODE_LABEL_SIZE_MM, false, measure),
+      { x: PAGE_MARGIN, y: code.labelY, size: CODE_LABEL_SIZE_MM, fill: CODE_NOTE_COLOR, className: 'pm-print-code-label' }));
+    nodes.push(...code.lines.filter((line) => line.part === 'core').map(codeLineNode));
+    if (code.tailLabelY !== null) {
+      nodes.push(textNode(fitText(text('print.sheet.codeTail'), AREA_WIDTH, CODE_LABEL_SIZE_MM, false, measure),
+        { x: PAGE_MARGIN, y: code.tailLabelY, size: CODE_LABEL_SIZE_MM, fill: CODE_NOTE_COLOR, className: 'pm-print-code-tail-label' }));
+    }
+    nodes.push(...code.lines.filter((line) => line.part === 'tail').map(codeLineNode));
+    if (code.moreY !== null) {
+      nodes.push(textNode(fitText(text('print.sheet.codeMore'), AREA_WIDTH, CODE_LABEL_SIZE_MM, false, measure),
+        { x: PAGE_MARGIN, y: code.moreY, size: CODE_LABEL_SIZE_MM, fill: CODE_NOTE_COLOR, className: 'pm-print-code-more' }));
+    }
+  }
+  const share = plan.share;
+  if (qr !== null && share?.qr) {
+    const middle = qr.x + qr.size / 2;
+    nodes.push(qrNode(share.qr, qr.x, qr.y));
+    nodes.push(textNode(fitText(text('print.sheet.scan'), qr.size, QR_SCAN_SIZE_MM, false, measure),
+      { x: middle, y: qr.scanY, size: QR_SCAN_SIZE_MM, anchor: 'middle', className: 'pm-print-qr-scan' }));
+    nodes.push(textNode(fitText(hostCaption(share.qr.urlPrefix), qr.size, QR_HOST_SIZE_MM, false, measure),
+      { x: middle, y: qr.hostY, size: QR_HOST_SIZE_MM, anchor: 'middle', fill: CODE_NOTE_COLOR, className: 'pm-print-qr-host' }));
+  }
+  return nodes;
+}
+
+/**
+ * @param {string} urlPrefix The QR's address up to `#p=`.
+ * @returns {string} The small caption under the QR: the host, or the scheme of a local file.
+ */
+function hostCaption(urlPrefix) {
+  try {
+    const url = new URL(urlPrefix);
+    return url.host !== '' ? url.host : url.protocol;
+  } catch {
+    return urlPrefix;
+  }
+}
+
 
 /**
  * The cells of a board (or a part of it) with grid lines and a cut line around the playable area, in mm. Holes
@@ -146,7 +277,8 @@ function pieceNode(piece, cells, o) {
 function previewPage(plan, heading, text) {
   const { model, preview, cellMm } = plan;
   const { svg, id, defs } = newPage();
-  svg.append(...headingNodes(heading.title, heading.details));
+  svg.append(...headingNodes(titleBlock(heading.title, heading.details.length, plan.band.head.width, plan.measure), heading.details));
+  svg.append(...codeBandNodes(plan, text));
   const c = preview.cellMm;
   const labels = c >= MIN_LABEL_CELL_MM;
   const board = boardCells(model.active, model.holes ?? [], preview.boardX, preview.boardY, c);
@@ -277,7 +409,7 @@ function solutionPage(plan, sheet, heading, text) {
   const { model } = plan;
   const { layout } = sheet;
   const { svg, id, defs } = newPage();
-  svg.append(...headingNodes(`${heading.title} · ${text('print.sheet.solution')}`, heading.details));
+  svg.append(...headingNodes(singleLineBlock(`${heading.title} · ${text('print.sheet.solution')}`, heading.details.length, plan.measure), heading.details));
   const c = layout.cellMm;
   const clueIds = new Set(model.clues.map((p) => p.piece.id));
   svg.append(boardCells(model.active, model.holes ?? [], layout.boardX, layout.boardY, c));
@@ -286,6 +418,31 @@ function solutionPage(plan, sheet, heading, text) {
       id, defs, index: p.index, count: model.pieces.length, clue: clueIds.has(p.piece.id), labels: c >= MIN_LABEL_CELL_MM,
       outline: PIECE_OUTLINE_MM / c,
     }))));
+  return svg;
+}
+
+/**
+ * A continuation sheet of the typed code: its heading, the puzzle's heading, then the code at full width.
+ * @param {PrintPlan} plan
+ * @param {Extract<import('./print-layout.js').Sheet, { kind: 'code' }>} sheet
+ * @param {PrintHeading} heading
+ * @param {Translate} text
+ * @returns {SVGSVGElement}
+ */
+function codePage(plan, sheet, heading, text) {
+  const { measure } = plan;
+  const { svg } = newPage();
+  svg.append(
+    textNode(fitText(text('print.sheet.codeContinued'), AREA_WIDTH, CONTINUATION_TITLE_SIZE_MM, true, measure),
+      { x: PAGE_MARGIN, y: TITLE_FIRST_BASELINE, size: CONTINUATION_TITLE_SIZE_MM, bold: true, className: 'pm-print-code-title' }),
+    textNode(fitText(heading.title, AREA_WIDTH, CONTINUATION_HEADING_SIZE_MM, false, measure),
+      { x: PAGE_MARGIN, y: PAGE_MARGIN + 16.5, size: CONTINUATION_HEADING_SIZE_MM, fill: '#444444', className: 'pm-print-code-heading' }));
+  svg.append(...sheet.lines.filter((line) => line.part === 'core').map(codeLineNode));
+  if (sheet.tailLabelY !== null) {
+    svg.append(textNode(fitText(text('print.sheet.codeTail'), AREA_WIDTH, CODE_LABEL_SIZE_MM, false, measure),
+      { x: PAGE_MARGIN, y: sheet.tailLabelY, size: CODE_LABEL_SIZE_MM, fill: CODE_NOTE_COLOR, className: 'pm-print-code-tail-label' }));
+  }
+  svg.append(...sheet.lines.filter((line) => line.part === 'tail').map(codeLineNode));
   return svg;
 }
 
@@ -301,28 +458,35 @@ function wrapPage(svg) {
 }
 
 /**
- * The pages to send to the printer, in order: a sheet's back follows its front when printing on two sides.
+ * The pages to send to the printer, in order: a sheet's back follows its front when printing on two sides. The
+ * heading's title and number of detail lines must be those the plan was made for.
  * @param {PrintPlan} plan
  * @param {PrintHeading} heading
  * @param {Translate} text
  * @returns {HTMLElement[]}
  */
 export function buildPrintPages(plan, heading, text) {
+  /** @param {string} caption */
+  const shortened = (caption) => fitText(caption, AREA_WIDTH, 3.2, false, plan.measure);
   return plan.pages.map(({ sheet, side }) => {
     if (sheet.kind === 'preview') {
       return wrapPage(side === 'front' ? previewPage(plan, heading, text) : newPage().svg);
+    }
+    if (sheet.kind === 'code') {
+      // The back of a continuation sheet is blank: the code never appears on a mirrored back.
+      return wrapPage(side === 'front' ? codePage(plan, sheet, heading, text) : newPage().svg);
     }
     if (sheet.kind === 'solution') {
       return wrapPage(solutionPage(plan, sheet, heading, text));
     }
     if (sheet.kind === 'pieces') {
-      const caption = `${heading.title} · ${text('print.sheet.pieces', { n: sheet.n, total: sheet.total })}`;
+      const caption = shortened(`${heading.title} · ${text('print.sheet.pieces', { n: sheet.n, total: sheet.total })}`);
       return wrapPage(piecesPage(plan, sheet, side, caption));
     }
     const part = sheet.total === 1
       ? text('print.sheet.boardWhole')
       : text('print.sheet.boardPart', { n: sheet.tile.n, total: sheet.total, row: sheet.tile.tileRow, col: sheet.tile.tileCol });
     const hint = sheet.tile.joins.length > 0 ? text('print.sheet.boardJoin') : '';
-    return wrapPage(boardPage(plan, sheet, side, `${heading.title} · ${part}`, hint));
+    return wrapPage(boardPage(plan, sheet, side, shortened(`${heading.title} · ${part}`), hint));
   });
 }

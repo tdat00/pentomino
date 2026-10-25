@@ -217,8 +217,19 @@ From 768 px to 1359 px the puzzles go under the game; below 768 px the panels st
 **Print** (a printer icon: right of **Play** in the Generator, right of **Replay** in the Player) opens a dialog that
 prints the puzzle on A4 paper, to solve it offline with cut-out pieces.
 
-- The first sheet always shows the puzzle's name, its level, score and seed, and its piece set's level and seed (so both
-  can be made again), then a small preview of the puzzle with the pieces to place (to read, not to cut).
+- The first sheet shows the puzzle's name (the one the Player shows: "Puzzle #n" when it has no title, a number added to
+  other titles), its level and score, and its piece set's level and seed. Under them is the puzzle's **code** with a **QR
+  code** at the top right: scan the QR code, or type the code into the Player's **Enter puzzle code**, to play the same
+  puzzle again, with no seed. Then comes a small preview of the puzzle with the pieces to place (to read, not to cut).
+- **The code and its QR code** are made on your device when the dialog opens (**Print** waits for "Preparing the puzzle
+  code…"). When the puzzle has a stored answer, it is carried in the part after the dot, printed smaller under "+
+  solution, optional"; that does not print a solution sheet. A long code continues on extra numbered sheets (the QR code
+  stays on the first). A code is never cut short; in the rare case that it is too long for one QR code, the optional
+  solution part is left out, then the QR code uses lower error correction, and if even that is not possible the sheet
+  says so and prints neither code nor QR code. The dialog says each of these before printing.
+- **Where the QR code leads**: to the Player of the page you printed from; from a local page (`localhost`, a network
+  address, a file) to the public Player, which a phone can reach. A checkbox shown only on local pages points it at the
+  local Player instead, for development; it is not remembered.
 - **Include piece set**: every piece of the set, the pre-placed ones too, ready to cut out.
 - **Include board**: the playable squares. A board too big for a sheet is split into parts; a numbered mark on each
   shared edge shows which part joins there.
@@ -277,7 +288,8 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
 
 - **Browser test pages** (not deployed): run `npm run serve` and open `http://localhost:8080/pentomino/tests/browser/`
   followed by `player-controls.html`, `player-load.html`, `hints.html`, `print.html`, `rendering.html`,
-  `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`, `puzzle-code-entry.html` or
+  `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`, `puzzle-code-entry.html`,
+  `puzzle-code-print.html` or
   `acceptance.html`. Each writes a pass/fail list and `data-summary` on `<html>`. Use a window narrower than 1360 px:
   some checks expect the one- or two-column layout.
 - **Headless generation**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`. The
@@ -530,8 +542,18 @@ sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp
 Nút **In** (biểu tượng máy in: bên phải **Chơi** trong trình tạo đề, bên phải **Chơi lại** trong trình chơi) mở hộp thoại
 in đề ra giấy A4, để giải ngoại tuyến với các mảnh cắt rời.
 
-- Tờ đầu tiên luôn in tên đề, mức độ, điểm và seed của đề, cùng mức độ và seed của bộ mảnh (để tạo lại được cả hai), rồi
-  một hình xem trước nhỏ của đề với các mảnh cần đặt (để đọc, không để cắt).
+- Tờ đầu tiên in tên đề (đúng tên trình chơi hiển thị: "Đề #n" khi đề không có tên, các tên khác được thêm số), mức độ và
+  điểm của đề, cùng mức độ và seed của bộ mảnh. Bên dưới là **mã đề** cùng một **mã QR** ở góc trên bên phải: quét mã QR,
+  hoặc gõ mã vào **Nhập mã đề** của trình chơi, để chơi lại đúng đề này, không cần seed. Sau đó là một hình xem trước nhỏ
+  của đề với các mảnh cần đặt (để đọc, không để cắt).
+- **Mã đề và mã QR** được tạo ngay trên máy khi mở hộp thoại (nút **In** chờ "Đang chuẩn bị mã đề…"). Khi đề có lời giải
+  đã lưu, lời giải nằm ở phần sau dấu chấm, in nhỏ hơn dưới dòng "+ lời giải, không bắt buộc"; việc đó không in tờ lời
+  giải. Mã dài sẽ tiếp tục trên các tờ phụ có đánh số (mã QR chỉ ở tờ đầu). Mã không bao giờ bị cắt ngắn; trong trường
+  hợp hiếm khi mã quá dài cho một mã QR, phần lời giải không bắt buộc được bỏ đi, rồi mã QR dùng mức sửa lỗi thấp hơn, và
+  nếu vẫn không được thì tờ giấy nói rõ và không in mã lẫn mã QR. Hộp thoại báo từng việc này trước khi in.
+- **Mã QR dẫn tới đâu**: tới trình chơi của trang bạn in; từ một trang chạy cục bộ (`localhost`, địa chỉ mạng nội bộ,
+  một tệp) thì tới trình chơi công khai mà điện thoại truy cập được. Một ô chọn chỉ hiện trên trang cục bộ cho phép trỏ mã
+  QR tới trình chơi cục bộ, dùng khi phát triển; lựa chọn này không được nhớ.
 - **In cả bộ mảnh**: mọi mảnh của bộ, kể cả các mảnh đặt sẵn, sẵn sàng để cắt.
 - **In cả bàn chơi**: các ô chơi được. Bàn chơi quá lớn so với một tờ sẽ được chia thành nhiều phần; một dấu có đánh số
   trên mỗi cạnh chung cho biết phần nào ghép vào đó.
@@ -592,7 +614,7 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
 - **Trang kiểm thử trên trình duyệt** (không được xuất bản): chạy `npm run serve` rồi mở
   `http://localhost:8080/pentomino/tests/browser/` kèm `player-controls.html`, `player-load.html`, `hints.html`,
   `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`,
-  `puzzle-code-entry.html` hoặc
+  `puzzle-code-entry.html`, `puzzle-code-print.html` hoặc
   `acceptance.html`. Mỗi trang ghi danh sách đạt/không đạt và `data-summary` trên `<html>`. Hãy dùng cửa sổ hẹp hơn
   1360 px: một số bài kiểm tra cần bố cục một hoặc hai cột.
 - **Tạo đề không cần giao diện**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`.

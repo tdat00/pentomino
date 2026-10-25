@@ -6,6 +6,7 @@ import { APP_VERSION } from '../core/engine/version.js';
 import { el } from '../core/browser/dom.js';
 import { browserStorage } from '../core/browser/storage.js';
 import { createPrintDialog, puzzleDetails } from '../core/browser/print-dialog.js';
+import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
 import { createPuzzleCodeDialog } from '../core/browser/puzzle-code-dialog.js';
 import { shouldOfferStraighten, svgEl } from '../core/browser/svg-board.js';
 import { packBoard } from '../core/engine/pack.js';
@@ -371,19 +372,25 @@ export function mountPlayer(root, env = {}) {
     const generation = /** @type {{ setSeed?: unknown, setLevel?: unknown } | undefined} */ (pack.generation);
     const setSeed = typeof generation?.setSeed === 'string' ? generation.setSeed : null;
     const setLevel = typeof generation?.setLevel === 'string' ? generation.setLevel : null;
+    const rotation = viewRotation ?? pack.presentation?.rotation ?? 0;
+    // The code carries the puzzle as stored, with its answer if it has one, at the angle on screen; the Player still
+    // offers no solution sheet (no `solution` in the job).
+    const snapshot = puzzleSnapshot({ rows: pack.board.rows, pieces: pack.pieces, puzzle, index, rotation, untitled: LABELS.puzzleNumber });
     return {
       board: packBoard(pack),
       pieces: pack.pieces,
       clues: puzzle.clues,
-      rotation: viewRotation ?? pack.presentation?.rotation ?? 0,
-      title: puzzleDisplayName(puzzle.title, index),
+      rotation,
+      title: snapshot.heading,
       details: puzzleDetails(t,
         rating && typeof rating.score === 'number' ? { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated } : null,
-        puzzle.seed,
         setSeed === null ? null : { level: setLevel === null ? null : levelLabel(setLevel), seed: setSeed }),
+      snapshot,
     };
   }
-  const printDialog = createPrintDialog({ host: winHost, t, getJob: printJob });
+  const printDialog = createPrintDialog({
+    host: winHost, t, getJob: printJob, createClient: env.createPuzzleCodeClient, watch: (listener) => store.subscribe(listener),
+  });
   const winDialog = createWinDialog(winHost, {
     onNext: () => {
       controller.nextPuzzle();
@@ -748,6 +755,8 @@ export function mountPlayer(root, env = {}) {
       hintPanel.render(state);
     }
     codeDialog.refresh();
+    // A language that changes the printed heading starts a new preparation of the open Print dialog.
+    printDialog.refresh();
   });
   render(store.getState(), null);
 

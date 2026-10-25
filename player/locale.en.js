@@ -55,7 +55,7 @@ export default Object.freeze({
   'ui.piecesLeft_one': '{count} piece left',
   'ui.moves': '{count} moves',
   'ui.moves_one': '{count} move',
-  'ui.puzzleNumber': 'Puzzle {n}',
+  'ui.puzzleNumber': 'Puzzle #{n}',
   'ui.localLink': 'Local link — it only works in this browser.',
   'ui.loading': 'Loading…',
   'ui.trayLabel': 'Unplaced pieces',

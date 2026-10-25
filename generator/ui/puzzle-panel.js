@@ -3,8 +3,9 @@
 // arrives. All text is set through textContent.
 import { el } from '../../core/browser/dom.js';
 import { createPrintDialog, puzzleDetails } from '../../core/browser/print-dialog.js';
+import { puzzleSnapshot } from '../../core/browser/puzzle-snapshot.js';
 import { mountBoard, mountPiecePreview, svgEl } from '../../core/browser/svg-board.js';
-import { activeCount } from '../../core/engine/board.js';
+import { activeCount, boardToRows } from '../../core/engine/board.js';
 import { normalizeAngle } from '../../core/engine/view.js';
 import { has, t } from '../i18n.js';
 import {
@@ -35,6 +36,8 @@ const ZOOM_STEP = 1.25;
  * @property {HTMLElement | null} [cardsHost] Empty hint and cards; defaults to the bottom of this panel.
  * @property {HTMLElement | null} [controlsHost] Level choice and generate button; defaults to the top of this panel.
  * @property {HTMLElement | null} [cardsActionsHost] Remove all button; defaults to above the cards.
+ * @property {() => import('../../core/browser/puzzle-code-client.js').PuzzleCodeClient} [createPuzzleCodeClient] Makes
+ *   the Print dialog's puzzle-code client on first use (default: one module worker).
  */
 
 let panelCounter = 0;
@@ -86,6 +89,39 @@ export function describeCertificate(puzzle, o) {
     return o.checking ? { status: 'checking', text: t('cert.checking') } : { status: 'unchecked', text: t('cert.unchecked') };
   }
   return { status: cert.status, text: t(has(`cert.${cert.status}`) ? `cert.${cert.status}` : 'cert.unchecked') };
+}
+
+/**
+ * @param {GeneratorState} state
+ * @param {string | null} selectedId Id of the puzzle shown in the main panel.
+ * @returns {import('../../core/browser/print-dialog.js').PrintJob | null} What Print makes of that puzzle: the accepted set,
+ *   the selected puzzle and the view angle, the puzzle's displayed heading ("Hard #3", not the card's "Puzzle #3") and a
+ *   snapshot of it for the code. Null without a set or a selected puzzle.
+ */
+export function printJobOf(state, selectedId) {
+  const at = state.set === null || selectedId === null ? -1 : state.puzzles.findIndex((p) => p.id === selectedId);
+  if (state.set === null || at === -1) {
+    return null;
+  }
+  const { set } = state;
+  const puzzle = state.puzzles[at];
+  const rating = puzzle.rating;
+  const setLevel = state.calibrationFor?.levelId ?? null;
+  const snapshot = puzzleSnapshot({
+    rows: boardToRows(set.board), pieces: set.pieces, puzzle, index: at, rotation: state.rotation, untitled: (n) => t('card.heading', { n }),
+  });
+  return {
+    board: set.board,
+    pieces: set.pieces,
+    clues: puzzle.clues,
+    rotation: state.rotation,
+    title: snapshot.heading,
+    details: puzzleDetails(t,
+      rating === null || rating === undefined ? null : { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated },
+      state.setSeed === null ? null : { level: setLevel === null ? null : levelLabel(setLevel), seed: state.setSeed }),
+    solution: puzzle.solution ?? null,
+    snapshot,
+  };
 }
 
 /**
@@ -168,29 +204,12 @@ export function mountPuzzlePanel(host, options) {
 
   /** @returns {import('../../core/browser/print-dialog.js').PrintJob | null} The puzzle shown in the main panel. */
   function printJob() {
-    const state = store.getState();
-    const at = state.set === null || selectedId === null ? -1 : state.puzzles.findIndex((p) => p.id === selectedId);
-    if (state.set === null || at === -1) {
-      return null;
-    }
-    const puzzle = state.puzzles[at];
-    const seed = state.puzzleSeeds[puzzle.id];
-    const rating = puzzle.rating;
-    const setLevel = state.calibrationFor?.levelId ?? null;
-    return {
-      board: state.set.board,
-      pieces: state.set.pieces,
-      clues: puzzle.clues,
-      rotation: state.rotation,
-      title: t('card.heading', { n: at + 1 }),
-      details: puzzleDetails(t,
-        rating === null || rating === undefined ? null : { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated },
-        seed,
-        state.setSeed === null ? null : { level: setLevel === null ? null : levelLabel(setLevel), seed: state.setSeed }),
-      solution: puzzle.solution ?? null,
-    };
+    return printJobOf(store.getState(), selectedId);
   }
-  const printDialog = createPrintDialog({ host: host.ownerDocument.body, t, getJob: printJob, solutionOption: true });
+  const printDialog = createPrintDialog({
+    host: host.ownerDocument.body, t, getJob: printJob, solutionOption: true, createClient: options.createPuzzleCodeClient,
+    watch: (listener) => store.subscribe(listener),
+  });
   /**
    * @typedef {object} Card
    * @property {HTMLLIElement} item
@@ -516,6 +535,8 @@ export function mountPuzzlePanel(host, options) {
     refresh: () => {
       elapsed.refresh();
       render(store.getState());
+      // A language that changes the printed heading starts a new preparation of the open Print dialog.
+      printDialog.refresh();
     },
     destroy() {
       if (destroyed) {
