@@ -2,6 +2,8 @@
 // English texts of the player: the base pack, holding every key (locale.vi.js has the same keys).
 // `{name}` marks a value filled in at run time; `_one` / `_other` are plural forms.
 
+import { PRINT_TEXTS_EN } from '../core/browser/print-texts.js';
+
 /** @type {Readonly<Record<string, string>>} */
 export default Object.freeze({
   // Page frame
@@ -224,4 +226,7 @@ export default Object.freeze({
 
   // Announcements of the page
   'live.opened': '{puzzle} opened. {left}.',
+
+  // Print dialog and printed sheets (shared with the generator)
+  ...PRINT_TEXTS_EN,
 });

@@ -902,7 +902,9 @@ await check('scripted: choosing a card shows its puzzle in the main panel: the b
     assert(!detail.hidden, 'the puzzle appears');
     equal(q(ctx, '.detail-title').textContent, 'Puzzle #1', 'its number');
     const play = q(ctx, '[data-action="play-puzzle"]');
-    equal([play.textContent, play.parentElement === q(ctx, '.detail-head')], ['Play', true], 'Play sits on the same row as the title');
+    equal([play.textContent, play.closest('.detail-head') === q(ctx, '.detail-head')], ['Play', true], 'Play sits on the same row as the title');
+    const printButton = q(ctx, '[data-action="print-puzzle"]');
+    assert(play.nextElementSibling === printButton && printButton.textContent === 'Print', 'Print is right of Play');
     play.click();
     await waitFor(() => opened.length === 1, 'the player to open');
     equal([opened[0].index, opened[0].ids[opened[0].index]], [0, first.id], 'it opens the player on the puzzle on show');

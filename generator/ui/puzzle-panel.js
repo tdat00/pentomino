@@ -2,6 +2,7 @@
 // Step 3 puzzles panel. Cards are reconciled by puzzle id so thumbnails are not rebuilt when a certificate
 // arrives. All text is set through textContent.
 import { el } from '../../core/browser/dom.js';
+import { createPrintDialog } from '../../core/browser/print-dialog.js';
 import { mountBoard, mountPiecePreview } from '../../core/browser/svg-board.js';
 import { activeCount } from '../../core/engine/board.js';
 import { normalizeAngle } from '../../core/engine/view.js';
@@ -114,7 +115,11 @@ export function mountPuzzlePanel(host, options) {
   const detailTitle = el('h3', { className: 'detail-title' });
   const detailSeed = el('span', { className: 'detail-seed' });
   const playButton = /** @type {HTMLButtonElement} */ (loc('detail.play', { className: 'primary', attrs: { type: 'button', 'data-action': 'play-puzzle' } }, 'button'));
-  const detailHead = el('div', { className: 'detail-head' }, el('div', { className: 'detail-name' }, detailTitle, detailSeed), playButton);
+  const printButton = /** @type {HTMLButtonElement} */ (loc('print.button', {
+    attrs: { type: 'button', 'data-action': 'print-puzzle', 'aria-haspopup': 'dialog', ...locAttrs({ title: 'print.button.title' }) },
+  }, 'button'));
+  const detailHead = el('div', { className: 'detail-head' }, el('div', { className: 'detail-name' }, detailTitle, detailSeed),
+    el('div', { className: 'detail-actions' }, playButton, printButton));
   const detailBoard = el('div', { className: 'detail-board' });
   // The same board tools as step 1: zoom out / in, fit (the default size), and the view turned by 45°.
   /**
@@ -155,6 +160,25 @@ export function mountPuzzlePanel(host, options) {
   cardsActionsHost?.append(removeAllButton);
   controlsHost?.append(controls);
 
+  /** @returns {import('../../core/browser/print-dialog.js').PrintJob | null} The puzzle shown in the main panel. */
+  function printJob() {
+    const state = store.getState();
+    const at = state.set === null || selectedId === null ? -1 : state.puzzles.findIndex((p) => p.id === selectedId);
+    if (state.set === null || at === -1) {
+      return null;
+    }
+    const puzzle = state.puzzles[at];
+    const seed = state.puzzleSeeds[puzzle.id];
+    return {
+      board: state.set.board,
+      pieces: state.set.pieces,
+      clues: puzzle.clues,
+      rotation: state.rotation,
+      title: t('card.heading', { n: at + 1 }),
+      subtitle: [describeRating(puzzle), seed === undefined ? '' : t('card.seed', { seed })].filter((part) => part !== '').join(' · '),
+    };
+  }
+  const printDialog = createPrintDialog({ host: host.ownerDocument.body, t, getJob: printJob });
   /**
    * @typedef {object} Card
    * @property {HTMLLIElement} item
@@ -435,6 +459,7 @@ export function mountPuzzlePanel(host, options) {
       void controller.playPuzzle(selectedId);
     }
   });
+  listen(printButton, 'click', () => printDialog.open());
   // Zoom keeps to the view; Fit goes back to the default size; the arrows turn the board like step 1 does.
   listen(detailZoomOut, 'click', () => detailView?.setZoom(detailView.getState().cellPx / ZOOM_STEP));
   listen(detailZoomIn, 'click', () => detailView?.setZoom(detailView.getState().cellPx * ZOOM_STEP));
@@ -470,6 +495,7 @@ export function mountPuzzlePanel(host, options) {
       }
       listeners.length = 0;
       elapsed.destroy();
+      printDialog.destroy();
       for (const card of cards.values()) {
         card.view.destroy();
       }

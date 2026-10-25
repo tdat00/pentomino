@@ -398,7 +398,7 @@ function crossMark(x, y, stroke) {
  * @param {string} id
  * @returns {{ defs: SVGElement, piecePattern: (kind: 'dots' | 'hlines' | 'vlines', color: string) => string }}
  */
-function createDefs(id) {
+export function createDefs(id) {
   const defs = svgEl('defs');
   defs.append(
     svgEl('pattern', { id: `${id}-hole`, width: 0.34, height: 0.34, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' },
@@ -453,7 +453,7 @@ function createDefs(id) {
  * @param {PieceDrawOptions} o
  * @returns {{ group: SVGElement, overlays: { label: SVGElement, lock: SVGElement | null } }}
  */
-function drawPiece(piece, cells, o) {
+export function drawPiece(piece, cells, o) {
   const d = pathData(outlineLoops(cells));
   const group = svgEl('g', { class: `pm-piece ${o.clue ? 'pm-clue' : 'pm-movable'}`, 'data-piece-id': piece.id, 'data-movable': o.movable });
   if (o.movable) {

@@ -2,6 +2,8 @@
 // Vietnamese texts of the player: the same keys and placeholders as locale.en.js (a test checks it). Vietnamese
 // has no plural forms, so only the plain keys are needed.
 
+import { PRINT_TEXTS_VI } from '../core/browser/print-texts.js';
+
 /** @type {Readonly<Record<string, string>>} */
 export default Object.freeze({
   // Page frame
@@ -220,4 +222,7 @@ export default Object.freeze({
 
   // Announcements of the page
   'live.opened': 'Đã mở {puzzle}. {left}.',
+
+  // Hộp thoại in và các tờ in (dùng chung với trình tạo đề)
+  ...PRINT_TEXTS_VI,
 });

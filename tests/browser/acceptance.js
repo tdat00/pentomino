@@ -598,7 +598,7 @@ await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces pane
   assert(history.right <= main.left + 4 && main.right <= side.left + 4, `three panels (${[history, main, side].map((r) => `${Math.round(r.left)}-${Math.round(r.right)}`).join(' | ')})`);
   assert(qa(d, '.app-history .puzzle-card').length > 0 && q(d, '.app-main').contains(q(d, '.pm-board')) && q(d, '.app-side').contains(q(d, '[data-host="tray"]')), 'each panel holds its content');
   const order = gameBarOrder(frame);
-  const expected = ['game-timer', 'game-moves', 'undo', 'redo', 'hint', 'replay', 'straighten'];
+  const expected = ['game-timer', 'game-moves', 'undo', 'redo', 'print', 'hint', 'replay', 'straighten'];
   assert(JSON.stringify(order) === JSON.stringify(expected), `game bar order ${order.join(' > ')}`);
   const board = rect(q(d, '.pm-board'));
   const tray = rect(q(d, '[data-host="tray"]'));

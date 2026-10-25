@@ -5,14 +5,16 @@
 import { APP_VERSION } from '../core/engine/version.js';
 import { el } from '../core/browser/dom.js';
 import { browserStorage } from '../core/browser/storage.js';
+import { createPrintDialog } from '../core/browser/print-dialog.js';
 import { shouldOfferStraighten, svgEl } from '../core/browser/svg-board.js';
+import { packBoard } from '../core/engine/pack.js';
 import { createPlayController } from './play.js';
 import { createHintController } from './hints.js';
 import { choose, onChange, setLocale, t } from './i18n.js';
 import { puzzleDisplayName } from './puzzle-title.js';
 import { createPlayerController, createPlayerStore, effectiveRotation, knownSolvable } from './state.js';
 import {
-  HINT_TEXT, LABELS, certificateLabel, certificateStatus, formatElapsed, verificationLabel,
+  HINT_TEXT, LABELS, certificateLabel, certificateStatus, formatElapsed, ratingLabel, verificationLabel,
 } from './strings.js';
 import { createBoardView } from './ui/board-view.js';
 import { createContextMenu } from './ui/context-menu.js';
@@ -152,8 +154,10 @@ export function mountPlayer(root, env = {}) {
   }, icon.startsWith('ic-')
     ? svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' }, svgEl('use', { href: `#${icon}` }))
     : icon));
+  const printButton = iconButton('print', 'ic-print', 'print.button.title', () => printDialog.open());
   const hintButton = iconButton('hint', 'ic-hint', 'ui.hintLabel', () => void hints.requestHint());
   const replayButton = iconButton('replay', REPLAY_GLYPH, 'ui.replayPuzzle', () => replayDialog.open());
+  printButton.disabled = true;
   hintButton.disabled = true;
   replayButton.disabled = true;
   const straighten = /** @type {HTMLButtonElement} */ (el('button', {
@@ -162,7 +166,7 @@ export function mountPlayer(root, env = {}) {
   }));
   const gameBar = el('div', { className: 'game-bar' },
     el('div', { className: 'game-stats' }, timer, moves),
-    el('div', { className: 'game-actions' }, undo, redo, hintButton, replayButton, straighten));
+    el('div', { className: 'game-actions' }, undo, redo, printButton, hintButton, replayButton, straighten));
 
   /**
    * @param {string} action
@@ -357,6 +361,24 @@ export function mountPlayer(root, env = {}) {
     },
   });
   replayDialog.dialog.classList.add('pm-replay');
+  /** @returns {import('../core/browser/print-dialog.js').PrintJob | null} The open puzzle with its set of pieces. */
+  function printJob() {
+    const { pack, index, game, viewRotation } = store.getState();
+    const puzzle = pack?.puzzles[index];
+    if (pack === null || puzzle === undefined || game === null) {
+      return null;
+    }
+    return {
+      board: packBoard(pack),
+      pieces: pack.pieces,
+      clues: puzzle.clues,
+      rotation: viewRotation ?? pack.presentation?.rotation ?? 0,
+      title: puzzleDisplayName(puzzle.title, index),
+      subtitle: [ratingLabel(puzzle.rating), puzzle.seed === undefined ? '' : t('print.sheet.seed', { seed: puzzle.seed })]
+        .filter((part) => part !== '').join(' · '),
+    };
+  }
+  const printDialog = createPrintDialog({ host: winHost, t, getJob: printJob });
   const winDialog = createWinDialog(winHost, {
     onNext: () => {
       controller.nextPuzzle();
@@ -521,6 +543,7 @@ export function mountPlayer(root, env = {}) {
     undo.disabled = !g || g.history.length === 0 || busy;
     redo.disabled = !g || g.future.length === 0 || busy;
     replayButton.disabled = !g || busy || untouched(g);
+    printButton.disabled = !g;
     hintButton.disabled = !g || g.solved;
   }
 
@@ -740,6 +763,7 @@ export function mountPlayer(root, env = {}) {
       play.destroy();
       dragLayer.destroy();
       pieceMenu.destroy();
+      printDialog.destroy();
       doc.removeEventListener('visibilitychange', onVisibility);
       observer?.disconnect();
       win.cancelAnimationFrame(frame);

@@ -3,6 +3,8 @@
 // has no plural forms, so only the plain keys are needed. Technical words such as "seed" stay as they are.
 // Pure data: no DOM access.
 
+import { PRINT_TEXTS_VI } from '../core/browser/print-texts.js';
+
 /** @type {Readonly<Record<string, string>>} */
 export default Object.freeze({
   // Page frame
@@ -199,4 +201,7 @@ export default Object.freeze({
   'message.M-PLAYER-BLOCKED': 'Trình duyệt đã chặn tab mới. Hãy cho phép cửa sổ bật lên (pop-up) cho trang này rồi nhấn “Chơi” lần nữa.',
   'message.M-NEEDS-SET': 'Hãy tạo một bộ mảnh trước.',
   'message.requestFailed': 'Yêu cầu đã thất bại',
+
+  // Hộp thoại in và các tờ in (dùng chung với trình chơi)
+  ...PRINT_TEXTS_VI,
 });

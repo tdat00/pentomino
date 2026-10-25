@@ -3,6 +3,8 @@
 // Keys are dotted; `{name}` marks a value filled in at run time; `_one` / `_other` are plural forms.
 // Pure data: no DOM access.
 
+import { PRINT_TEXTS_EN } from '../core/browser/print-texts.js';
+
 /** @type {Readonly<Record<string, string>>} */
 export default Object.freeze({
   // Page frame
@@ -202,4 +204,7 @@ export default Object.freeze({
   'message.M-PLAYER-BLOCKED': 'The browser blocked the new tab. Allow pop-ups for this page and press Play again.',
   'message.M-NEEDS-SET': 'Generate a piece set first.',
   'message.requestFailed': 'The request failed',
+
+  // Print dialog and printed sheets (shared with the player)
+  ...PRINT_TEXTS_EN,
 });

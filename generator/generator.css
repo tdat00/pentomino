@@ -1169,6 +1169,14 @@ button.card-remove {
   min-width: 0;
 }
 
+.detail-actions {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 .detail-seed {
   color: var(--pm-muted);
   font-size: 0.875rem;
