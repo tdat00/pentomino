@@ -6,6 +6,7 @@ import { APP_VERSION } from '../core/engine/version.js';
 import { el } from '../core/browser/dom.js';
 import { browserStorage } from '../core/browser/storage.js';
 import { createPrintDialog, puzzleDetails } from '../core/browser/print-dialog.js';
+import { createPuzzleCodeDialog } from '../core/browser/puzzle-code-dialog.js';
 import { shouldOfferStraighten, svgEl } from '../core/browser/svg-board.js';
 import { packBoard } from '../core/engine/pack.js';
 import { createPlayController } from './play.js';
@@ -53,6 +54,8 @@ let instances = 0;
  * @property {string | URL} [baseUrl]
  * @property {() => import('./state.js').PoolLike} [createPool]
  * @property {() => import('./hints.js').PoolLike} [createHintPool] Pool of the hint and reveal searches (default: one module worker).
+ * @property {() => import('../core/browser/puzzle-code-client.js').PuzzleCodeClient} [createPuzzleCodeClient] Client of the puzzle-code worker
+ *   (default: one module worker, started on first use); the page disposes it with the player.
  * @property {boolean} [coarsePointer]
  * @property {boolean} [reducedMotion] Overrides `prefers-reduced-motion`.
  * @property {() => number} [now] Millisecond clock of the timer and the save stamp.
@@ -91,6 +94,9 @@ export function mountPlayer(root, env = {}) {
     fetchText: env.fetchText,
     baseUrl: env.baseUrl,
     createPool: env.createPool,
+    createPuzzleCodeClient: env.createPuzzleCodeClient,
+    // A bad `#p=` address, at start-up or later, shows its failure in the code entry, with the text that was tried.
+    onPuzzleCodeFailure: ({ text, failure }) => codeDialog.open({ text, failure }),
   });
 
   root.replaceChildren();
@@ -112,7 +118,8 @@ export function mountPlayer(root, env = {}) {
     el('div', { className: 'panel-header' }, loc('puzzles.list', { attrs: { id: historyId } }, 'h2'), removeAllButton),
     cardsHost);
 
-  const title = el('h2', { className: 'puzzle-title', attrs: { id: titleId } });
+  // The heading takes the focus when a puzzle opens from the code entry and the button that opened it is gone.
+  const title = el('h2', { className: 'puzzle-title', attrs: { id: titleId, tabindex: -1 } });
   const stepHead = el('div', { className: 'step-head' }, title);
   const info = el('p', { className: 'step-hint puzzle-info' });
 
@@ -425,6 +432,49 @@ export function mountPlayer(root, env = {}) {
   const startView = createStartView(startHost, { onSample: () => void controller.openSample() });
   startHost.append(version);
 
+  // Puzzle code entry, opened from the start screen, from the header (at any time) and by a bad `#p=` address. Its dialog
+  // lives straight in the page root: the dialogs of the game screen sit in a section that the start screen hides.
+  const codeHost = el('div', { className: 'code-host' });
+  root.append(codeHost);
+  /**
+   * Opens a puzzle code through the controller (atomic; the address becomes `#p=<code>`). Saved moves that come back
+   * with the puzzle are said so: the board then differs from the first printed sheet until Replay.
+   * @param {string} text
+   */
+  async function openCode(text) {
+    const result = await controller.loadPuzzleCode(text, { commitAddress: true });
+    const { game, notice } = store.getState();
+    if (result.ok && game !== null && !untouched(game)) {
+      const restored = t('code.restored');
+      store.update({ notice: { kind: notice?.kind ?? 'info', text: notice === null ? restored : `${notice.text} ${restored}` } });
+    }
+    return result;
+  }
+  const codeDialog = createPuzzleCodeDialog({
+    host: codeHost,
+    t,
+    submit: openCode,
+    cancel: () => controller.cancelPuzzleCodeLoad(),
+    openRecovery: openCode,
+    fallbackFocus: () => (store.getState().screen === 'game' ? title : startCodeButton),
+  });
+  const startCodeButton = loc('code.enter', {
+    className: 'pm-btn primary', attrs: { type: 'button' }, dataset: { action: 'enter-code' }, on: { click: () => codeDialog.open({ opener: startCodeButton }) },
+  }, 'button');
+  startHost.querySelector('.start-actions')?.prepend(startCodeButton);
+  // The header is the only bar that stays in view, so the entry is reachable at any time from there too (the piece and
+  // board menus list only piece and puzzle actions). It reads like the Help button: an icon only on a narrow screen.
+  const headerCodeButton = el('button', {
+    className: 'pm-btn header-help header-code',
+    attrs: { type: 'button', 'aria-haspopup': 'dialog', ...locAttrs({ title: 'code.enter' }) },
+    dataset: { action: 'enter-code' },
+    on: { click: () => codeDialog.open({ opener: headerCodeButton }) },
+  }, svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' },
+    svgEl('rect', { x: 2.5, y: 6, width: 19, height: 12, rx: 2 }),
+    svgEl('path', { d: 'M6.5 10H9M11 10h2.5M15 10h2.5M7 14h10' })),
+  loc('code.enter', { className: 'header-help__label' }));
+  header.element.querySelector('.header-help')?.before(headerCodeButton);
+
   // Piece menu: a right-click, the Menu key or a long press on a tray piece or a movable board piece. Elsewhere on
   // the board it lists only the actions of the whole puzzle.
   const pieceMenu = createContextMenu(root);
@@ -697,6 +747,7 @@ export function mountPlayer(root, env = {}) {
       renderToolbar(state);
       hintPanel.render(state);
     }
+    codeDialog.refresh();
   });
   render(store.getState(), null);
 
@@ -744,6 +795,7 @@ export function mountPlayer(root, env = {}) {
     hints,
     hintPanel,
     winDialog,
+    codeDialog,
     destroy() {
       play.flush();
       unsubscribe();
@@ -757,6 +809,9 @@ export function mountPlayer(root, env = {}) {
       dragLayer.destroy();
       pieceMenu.destroy();
       printDialog.destroy();
+      codeDialog.dispose();
+      codeHost.remove();
+      headerCodeButton.remove();
       doc.removeEventListener('visibilitychange', onVisibility);
       observer?.disconnect();
       win.cancelAnimationFrame(frame);

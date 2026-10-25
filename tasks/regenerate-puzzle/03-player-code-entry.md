@@ -695,14 +695,14 @@ Handoff to RP05/RP06:
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Done |
+| Start | 2026-10-25 22:11:25 (+07:00) |
+| End | 2026-10-25 22:59:25 (+07:00) |
+| Duration | 48 min 00 s |
+| Model | claude-sonnet-5.5 (sub-agent `RP03-entry`, general-purpose); wave 3, alone (held the documentation slot from the start) |
+| Token usage | 151 model calls; 35,946,725 input (35,494,230 cache read), 214,862 output |
+| AI credits | 682.91 AIU (local usage store, keyed by sub-agent id) |
+| Verification | Developer: `node --test tests\puzzle-code-dialog.test.js tests\player-puzzle-code-route.test.js tests\player-i18n.test.js` 51/51; full `npm test` 1,041/1,041 (32 new); `npm run check` OK; browser harness `tests/browser/puzzle-code-entry.html` in headless Edge (`--disable-extensions`, ports 8703/9203) → pass, 20 checks, 22 workers spawned and terminated, light/dark/high-contrast, EN/VI and a 390 px Player frame, 6/6 repeated runs; trusted keyboard and paste input on the real Player page (tab order, Enter/Space, paste, Escape focus return, bad `#p=` on load; no horizontal scroll and ≥ 44 px targets at 390 px with a coarse pointer); existing harnesses player-load 19/19, player-controls 27/0 failed, hints 10/0, rendering, print and acceptance still pass. Orchestrator re-run: full `node --test "tests/**/*.test.js"` 1,041 pass / 0 fail (47.1 s); `npm run check` OK. |
+| Acceptance | Business and technical criteria met: a player can type or paste a printed code (any case, groups, O/I/L aliases) from the start screen or the header and get exactly that puzzle; errors are typed and worded in EN/VI with the input kept; a unique typo correction is offered for confirmation and never applied automatically; a damaged solution tail offers opening the core puzzle; saved progress is restored with an announced notice and never erased silently; the address is committed as `#p=<normalized>` only after a successful load; strict CSP kept. |
+| Issues & resolutions | (1) A stale native `close` event from an earlier closing could close the reopened dialog → ignored while `dialog.open` is true. (2) Legacy harnesses `player-controls` and `hints` report through `data-summary`, not `data-result` → their summaries were read. (3) Native focus trap leaves through browser controls at the ends — normal browser behaviour. Deviations: the Player has no menu, so the entry is the start-screen primary action plus a header button before Help (the context menu and game bar are asserted by tests it does not own); both buttons are inserted from `app.js` because `header.js`/`start-view.js` are not owned; the dialog DOM is created on first open (keeps the "no textarea on the start screen" assertion); new passthrough `PlayerEnv.createPuzzleCodeClient` for harness injection; `code.error.worker` omits the non-existent file import; new keys `code.error.cancelled`, `code.correction.use`, `code.recovery.open`, `code.hint`, `code.count_one`; its own test covers `code.` keys because `player-i18n.test.js` skips that prefix. Open (not blocking): an entry in the piece/board context menu; the pre-existing Help button is 44 × 36 px on coarse pointers (outside RP03, noted for RP08). Living docs: design-brief Player header/start screen, new "Entering a puzzle code" paragraph and the `#p=` sentence; design-detail §1, §3, §4.3, D43, §9.1, §9.8, §9.9, §11.1, §11.12, new §11.16, §13; README Player header text, "Entering a puzzle code" bullet and test-page lists (EN/VI). |
+| Handoff | `player/app.js`: code-entry block after `startHost.append(version)`; `mountPlayer` returns `codeDialog`; elements `[data-action="enter-code"]` (first in `.start-actions`), `button.header-code` (before `.header-help`), `div.code-host`, `dialog.pm-dialog.pm-code` with `.pm-code-*` classes. `core/browser/puzzle-code-dialog.js`: `createPuzzleCodeDialog({ host, t, submit, cancel, openRecovery, fallbackFocus })` → `{ open({ text, failure, opener }), close, refresh, isOpen, element, dispose }`, plus `createCodeEntryMachine`, `describeProblem`, `provisionalCount`, `ENTRY_ERROR_CODES`. The dialog calls `controller.loadPuzzleCode(text, { commitAddress: true })` and `controller.cancelPuzzleCodeLoad()`; failures from a bad `#p=` address arrive through `onPuzzleCodeFailure({ text, failure })`. Locale keys `code.enter`, `code.field`, `code.hint`, `code.count` (+ `_one` in EN), `code.open`, `code.correction.use`, `code.recovery.open`, `code.restored`, `code.error.*`, `code.error.candidate` — RP08 adds its own key checks. RP05/RP06: `tests/browser/acceptance.js` asserts the game-bar order and the start screen; `player-controls.js` asserts the context-menu entries — update them when adding Print/Copy elements. `code.restored` goes through the store notice (`role="status"`, dismissible, live region) and Replay clears it. |

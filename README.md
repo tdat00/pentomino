@@ -153,8 +153,8 @@ switches, and both pages share the choices.
 
 ## Using the Player
 
-The page has the Generator's look: a header with the title, **Help**, the **EN | VI** switch and the theme buttons, and
-three panels. The **puzzles** of the open pack are on the left, the **game** (puzzle name and rating, timer and move
+The page has the Generator's look: a header with the title, **Enter puzzle code**, **Help**, the **EN | VI** switch and
+the theme buttons, and three panels. The **puzzles** of the open pack are on the left, the **game** (puzzle name and rating, timer and move
 count, Undo / Redo / Hint / Replay / Print and the board) in the middle, and the **pieces to place**, under the toolbar
 for the selected piece, on the right. The pieces panel has no scroll bar of its own: with many pieces the page scrolls.
 From 768 px to 1359 px the puzzles go under the game; below 768 px the panels stack.
@@ -166,6 +166,16 @@ From 768 px to 1359 px the puzzles go under the game; below 768 px the panels st
   Generator and no saved copy, keeps your saved progress, and reloading it reopens the same puzzle. The address
   always holds the open pack and puzzle. A card in the puzzle list (name, level and score, pieces to place, uniqueness,
   progress, preview), newest on top, opens that puzzle; ✕ on a card removes it and **Remove all** empties the list.
+- **Entering a puzzle code.** **Enter puzzle code** (on the start screen and in the header) opens a dialog where you
+  type or paste the code printed with a puzzle, or a whole puzzle link. Spaces, line breaks and hyphens are ignored,
+  lower case works, and O, I and L are read as 0, 1 and 1; the part after a dot is optional, and a code is at most
+  16,000 characters (32,768 typed or pasted). **Open puzzle** opens it, and the address becomes `#p=<code>`. A code that
+  cannot be opened is explained in the dialog and changes nothing: your text, the open puzzle, its moves and the
+  address stay as they were. If a single mistyped character is the likely cause, the dialog shows where and which
+  character it may be; nothing is corrected until you press **Use this correction**. If only the part after the dot is
+  damaged, **Open without the solution part** opens the puzzle from the part before it (the solution is then searched
+  for in the background). Saved moves for the puzzle come back with a short notice; **Replay** starts again as printed.
+  **Cancel** or `Escape` closes the dialog.
 - **Claims and checks.** Ratings and uniqueness carried by the pack are shown as the pack states them, with the level in
   bold. A puzzle without a uniqueness result reads *At least 1 solution* once a solution is known. Solvability is
   checked in the background; play is never blocked, and *Solvability not verified* never means *No solution exists*.
@@ -267,9 +277,9 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
 
 - **Browser test pages** (not deployed): run `npm run serve` and open `http://localhost:8080/pentomino/tests/browser/`
   followed by `player-controls.html`, `player-load.html`, `hints.html`, `print.html`, `rendering.html`,
-  `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html` or `acceptance.html`. Each writes a
-  pass/fail list and `data-summary` on `<html>`. Use a window narrower than 1360 px: some checks expect the one- or
-  two-column layout.
+  `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`, `puzzle-code-entry.html` or
+  `acceptance.html`. Each writes a pass/fail list and `data-summary` on `<html>`. Use a window narrower than 1360 px:
+  some checks expect the one- or two-column layout.
 - **Headless generation**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`. The
   pack goes to stdout (or `--output`), messages to stderr. Exit codes: `0` complete (including a set whose
   arrangements were all found and proven to be all); `2` a valid partial or cancelled pack; `1` no usable result or
@@ -458,8 +468,8 @@ lựa chọn.
 
 ## Dùng trình chơi
 
-Trang có cùng phong cách với trình tạo đề: đầu trang có tiêu đề, **Trợ giúp**, nút **EN | VI** và các nút giao diện, cùng
-ba khung. Bên trái là các **đề** của gói đang mở, ở giữa là **ván chơi** (tên đề và mức độ, đồng hồ và số nước đi,
+Trang có cùng phong cách với trình tạo đề: đầu trang có tiêu đề, **Nhập mã đề**, **Trợ giúp**, nút **EN | VI** và các nút
+giao diện, cùng ba khung. Bên trái là các **đề** của gói đang mở, ở giữa là **ván chơi** (tên đề và mức độ, đồng hồ và số nước đi,
 Hoàn tác / Làm lại / Gợi ý / Chơi lại / In và bàn chơi), bên phải là **các mảnh cần đặt**, dưới thanh công cụ của mảnh
 đang chọn. Khung các mảnh không có thanh cuộn riêng: khi có nhiều mảnh, cả trang sẽ cuộn. Từ 768 px đến 1359 px, danh
 sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp chồng lên nhau.
@@ -471,6 +481,15 @@ sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp
   tạo đề hay bản sao đã lưu, giữ tiến độ đã lưu của bạn, và tải lại sẽ mở lại đúng đề đó. Địa chỉ
   luôn chứa gói và đề đang mở. Mỗi thẻ trong danh sách đề (tên, mức độ và điểm, số mảnh cần đặt, tính duy nhất, tiến độ,
   hình xem trước), mới nhất ở trên, mở đề đó; ✕ trên thẻ xóa đề và **Xóa tất cả** làm trống danh sách.
+- **Nhập mã đề.** **Nhập mã đề** (trên màn hình bắt đầu và ở đầu trang) mở một hộp thoại để gõ hoặc dán mã in kèm đề, hoặc
+  cả liên kết của đề. Dấu cách, dấu xuống dòng và dấu gạch ngang được bỏ qua, chữ thường cũng được, và chữ O, I, L được
+  đọc là 0, 1, 1; phần sau dấu chấm là không bắt buộc, và một mã dài tối đa 16.000 ký tự (32.768 khi gõ hoặc dán).
+  **Mở đề** sẽ mở đề, và địa chỉ trở thành `#p=<mã>`. Mã không mở được sẽ được giải thích ngay trong hộp thoại và không
+  làm thay đổi gì: văn bản của bạn, đề đang mở, các nước đi và địa chỉ vẫn như cũ. Nếu nhiều khả năng chỉ do gõ sai một
+  ký tự, hộp thoại cho biết vị trí và ký tự có thể đúng; không có gì được sửa cho đến khi bạn nhấn **Dùng cách sửa này**.
+  Nếu chỉ phần sau dấu chấm bị hỏng, **Mở đề không có phần lời giải** mở đề từ phần đứng trước nó (lời giải khi đó được
+  tìm ngầm). Các nước đi đã lưu của đề được khôi phục kèm một thông báo ngắn; **Chơi lại** bắt đầu lại như bản in.
+  **Hủy** hoặc `Escape` đóng hộp thoại.
 - **Thông tin và kiểm tra.** Mức độ và tính duy nhất do gói mang theo được hiển thị đúng như gói ghi, với mức độ in đậm.
   Đề chưa có kết quả về tính duy nhất sẽ ghi *Có ít nhất 1 lời giải* khi đã biết một lời giải. Khả năng giải được kiểm tra
   ngầm; việc chơi không bao giờ bị chặn, và *chưa xác minh khả năng giải* không bao giờ có nghĩa là *không có lời giải*.
@@ -572,7 +591,8 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
 
 - **Trang kiểm thử trên trình duyệt** (không được xuất bản): chạy `npm run serve` rồi mở
   `http://localhost:8080/pentomino/tests/browser/` kèm `player-controls.html`, `player-load.html`, `hints.html`,
-  `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html` hoặc
+  `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`,
+  `puzzle-code-entry.html` hoặc
   `acceptance.html`. Mỗi trang ghi danh sách đạt/không đạt và `data-summary` trên `<html>`. Hãy dùng cửa sổ hẹp hơn
   1360 px: một số bài kiểm tra cần bố cục một hoặc hai cột.
 - **Tạo đề không cần giao diện**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`.
