@@ -136,6 +136,15 @@ export default Object.freeze({
   'code.error.service': 'Puzzle code processing failed. Try again.',
   'code.error.cancelled': 'Opening this code was cancelled because another puzzle was being opened. Open it again if you still want it.',
 
+  // Copy this puzzle link
+  'code.copyLink': 'Copy this puzzle link',
+  'code.copied': 'Link copied',
+  'code.copyFailed': 'Could not copy the link. Select and copy it manually.',
+  'code.copyTooLong': 'This puzzle is too large to share as a link.',
+  'code.copyNoQr': 'Link copied; this puzzle is too large for a printable QR code.',
+  'code.copyLong': 'This link is {count} characters long, and some chat apps cut long links.',
+  'code.copyField': 'Puzzle link',
+
   // Keyboard help
   'keys.tab.key': 'Tab / Shift+Tab',
   'keys.tab.action': 'Focus tray pieces, then placed pieces',

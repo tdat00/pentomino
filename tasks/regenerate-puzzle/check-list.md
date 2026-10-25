@@ -454,7 +454,7 @@ No developer changes qualification or deployment settings to make it green.
 | RP03 | done | 48m00s | 682.91 | 2d416b8 |
 | RP04 | done | 14m42s | 222.25 | ccde6af |
 | RP05 | done | 52m44s | 939.98 | a6c38b8 |
-| RP06 | | | | |
-| RP07 | done (optional, accepted) | 14m01s | 264.25 | (this commit) |
+| RP06 | done | 34m28s | 737.46 | (this commit) |
+| RP07 | done (optional, accepted) | 14m01s | 264.25 | 92dd609 |
 | RP08 | | | | |
 | **Totals** | | | | |

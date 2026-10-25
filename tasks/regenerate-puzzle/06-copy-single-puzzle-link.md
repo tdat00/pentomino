@@ -592,14 +592,14 @@ commit; RP07 may finish its disjoint code while waiting for that lease.
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Done (real-user clipboard evidence remains with RP08) |
+| Start | 2026-10-25 23:56:23 (+07:00) |
+| End | 2026-10-26 00:30:51 (+07:00); code-ready 00:22, fixes and living docs 00:27–00:30 |
+| Duration | 34 min 28 s |
+| Model | claude-sonnet-5.5 (sub-agent `RP06-copy`, general-purpose); wave 5, in parallel with RP07 (documentation slot after RP07's commit) |
+| Token usage | 175 model calls; 38,466,857 input (37,936,799 cache read), 225,600 output |
+| AI credits | 737.46 AIU (local usage store, keyed by sub-agent id) |
+| Verification | Developer: `node --test .\tests\puzzle-copy.test.js` 20/20; with `generator-i18n`, `player-i18n`, `puzzle-code-dialog` 66/66; `scaffold`, `site-tools`, `puzzle-snapshot` 67/67; scoped `checkText` on 16 owned files OK; harness `tests/browser/puzzle-code-copy.html` in headless Edge 156 (`--disable-extensions`, ports 8706/9206, 0 CDP errors, no CSP violations): main 19/19 (1280 × 900), keys 3/3 (trusted Tab/Enter/Space/Escape), narrow 4/4 (390 × 844, coarse pointer); `acceptance.html` PASS 16 checks, 4 blocked (pre-existing environment items), game-bar order check passes; full `npm test` 1,120/1,120; `npm run check` OK. Orchestrator re-run: full `node --test "tests/**/*.test.js"` 1,120 pass / 0 fail (48.5 s); `npm run check` OK. |
+| Acceptance | Business and technical criteria met: "Copy this puzzle link" in the Generator's selected-puzzle row and the Player's game bar copies exactly the URL the printed QR carries for the same snapshot (shared `preparePuzzleShare`, default Player target without the developer override, solution tail included when stored); stale results are dropped when the puzzle changes; clipboard failure opens a fallback dialog with a selectable field; link-length notices at 4,000 / 16,000 characters; whole-pack Play and `#pack=`/`#lib=` unchanged. The clipboard was exercised only under a CDP-granted permission with a programmatic click — not real-user evidence. |
+| Issues & resolutions | (1) Two legacy tests assert no textarea at mount → the fallback dialog is built lazily on the first failure. (2) A worker client runs one operation at a time → Copy uses its own lazily created client per app (sharing Print's would cancel each other). (3) A key change mid-copy (e.g. a certificate arriving in the Generator) drops the result silently; the user clicks again. (4) Orchestrator decisions: authorized one-line update of the Player game-bar order in `tests/browser/acceptance.js` (`…'print', 'copy-puzzle-link', 'straighten'`); `code.copyTooLong` reworded to "This puzzle is too large to share as a link." / "Đề này quá lớn để chia sẻ bằng đường link." because neither app has pack export. Deviations accepted: `prepare` receives the target notice as a third argument so Copy and Print give identical notices; extra keys `code.copyLong` (both apps) and Generator `code.close`; preparation failures reuse `print.code.error`. Living docs: design-brief Generator step 6, Player game bar, new paragraph "Copy this puzzle link shares one puzzle"; design-detail D43, §4.3 (`puzzle-copy.js` row, `puzzle-snapshot.js` row), §9.8, §10.5, §11.1, new §11.17, §13.2, §13.3 item 23; README feature table, Generator/Player text, new "Copying a puzzle link" bullet, Printing cross-reference and test-page lists (EN/VI). |
+| Handoff | Hooks in both apps: `[data-action="copy-puzzle-link"]` with `aria-busy`; fallback `dialog.pm-copy-dialog` with `textarea.pm-copy-field`, `[data-role="copy-notes"]`, `[data-action="copy-close"]`; feedback `.toast-host .toast`. Locale keys `code.copyLink`, `code.copied`, `code.copyFailed`, `code.copyTooLong`, `code.copyNoQr`, `code.copyLong`, `code.copyField` (+ Generator `code.close`). Harness phases `?phase=keys`, `?phase=narrow` and default, driven by `tests/artifacts/RP06/drive.mjs` (stock CDP client plus clipboard-permission grants, focus emulation, touch phone mode). |

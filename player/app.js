@@ -6,6 +6,7 @@ import { APP_VERSION } from '../core/engine/version.js';
 import { el } from '../core/browser/dom.js';
 import { browserStorage } from '../core/browser/storage.js';
 import { createPrintDialog, puzzleDetails } from '../core/browser/print-dialog.js';
+import { copyLinkIcon, createPuzzleCopyControl } from '../core/browser/puzzle-copy.js';
 import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
 import { createPuzzleCodeDialog } from '../core/browser/puzzle-code-dialog.js';
 import { shouldOfferStraighten, svgEl } from '../core/browser/svg-board.js';
@@ -160,9 +161,16 @@ export function mountPlayer(root, env = {}) {
     ? svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' }, svgEl('use', { href: `#${icon}` }))
     : icon));
   const printButton = iconButton('print', 'ic-print', 'print.button.title', () => printDialog.open());
+  // Copy this puzzle link; its click is handled by `copyControl` below.
+  const copyButton = /** @type {HTMLButtonElement} */ (el('button', {
+    className: 'pm-btn icon-btn copy-link-btn',
+    attrs: { type: 'button', ...locAttrs({ 'aria-label': 'code.copyLink', title: 'code.copyLink' }) },
+    dataset: { action: 'copy-puzzle-link' },
+  }, copyLinkIcon()));
   const hintButton = iconButton('hint', 'ic-hint', 'ui.hintLabel', () => void hints.requestHint());
   const replayButton = iconButton('replay', REPLAY_GLYPH, 'ui.replayPuzzle', () => replayDialog.open());
   printButton.disabled = true;
+  copyButton.disabled = true;
   hintButton.disabled = true;
   replayButton.disabled = true;
   const straighten = /** @type {HTMLButtonElement} */ (el('button', {
@@ -171,7 +179,7 @@ export function mountPlayer(root, env = {}) {
   }));
   const gameBar = el('div', { className: 'game-bar' },
     el('div', { className: 'game-stats' }, timer, moves),
-    el('div', { className: 'game-actions' }, undo, redo, hintButton, replayButton, printButton, straighten));
+    el('div', { className: 'game-actions' }, undo, redo, hintButton, replayButton, printButton, copyButton, straighten));
 
   /**
    * @param {string} action
@@ -391,6 +399,14 @@ export function mountPlayer(root, env = {}) {
   const printDialog = createPrintDialog({
     host: winHost, t, getJob: printJob, createClient: env.createPuzzleCodeClient, watch: (listener) => store.subscribe(listener),
   });
+  // Copy this puzzle link: the same snapshot as Print, prepared by the same function, with a client of its own. Its
+  // manual-copy dialog lives in the page root, which the start screen never hides.
+  const copyHost = el('div', { className: 'code-host' });
+  root.append(copyHost);
+  const copyControl = createPuzzleCopyControl({
+    button: copyButton, host: copyHost, t, getSnapshot: () => printJob()?.snapshot ?? null, closeKey: 'ui.close',
+    createClient: env.createPuzzleCodeClient,
+  });
   const winDialog = createWinDialog(winHost, {
     onNext: () => {
       controller.nextPuzzle();
@@ -597,6 +613,7 @@ export function mountPlayer(root, env = {}) {
     redo.disabled = !g || g.future.length === 0 || busy;
     replayButton.disabled = !g || busy || untouched(g);
     printButton.disabled = !g;
+    copyButton.disabled = !g;
     hintButton.disabled = !g || g.solved;
   }
 
@@ -694,6 +711,7 @@ export function mountPlayer(root, env = {}) {
     startHost.hidden = showGame;
     root.dataset.screen = showGame ? 'game' : 'start';
     root.setAttribute('aria-busy', String(state.loading));
+    copyControl.refresh();
     startView.render(state);
     puzzleList.render(state);
     removeAllButton.disabled = state.pack === null;
@@ -818,6 +836,8 @@ export function mountPlayer(root, env = {}) {
       dragLayer.destroy();
       pieceMenu.destroy();
       printDialog.destroy();
+      copyControl.destroy();
+      copyHost.remove();
       codeDialog.dispose();
       codeHost.remove();
       headerCodeButton.remove();

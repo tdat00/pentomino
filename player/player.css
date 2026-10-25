@@ -568,7 +568,7 @@ button.ghost-small:disabled {
   gap: 0.375rem;
 }
 
-/* Undo, Redo, Hint, Replay, Print and Straighten are as big as the generator's Play button. */
+/* Undo, Redo, Hint, Replay, Print, Copy link and Straighten are as big as the generator's Play button. */
 .game .game-actions > button {
   min-width: var(--pm-target);
   min-height: var(--pm-target);
@@ -583,6 +583,31 @@ button.ghost-small:disabled {
 .game .game-actions > button.icon-btn--glyph {
   font-size: 1.25rem;
   line-height: 1;
+}
+
+/* A link that is being prepared shows a dashed, pulsing border; the other controls stay usable. */
+.copy-link-btn[aria-busy="true"] {
+  border-style: dashed;
+  cursor: progress;
+  animation: pm-copy-busy 1s ease-in-out infinite;
+}
+
+@keyframes pm-copy-busy {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copy-link-btn[aria-busy="true"] {
+    opacity: 0.7;
+    animation: none;
+  }
 }
 
 .selection-actions {
@@ -1213,6 +1238,63 @@ button.ghost-small:disabled {
 .pm-code-busy {
   margin: 0.75rem 0 0;
   color: var(--pm-muted);
+}
+
+/* The address of a puzzle link, to select and copy by hand when the clipboard refuses it. */
+.pm-copy-dialog {
+  width: min(34rem, 94vw);
+  max-height: 94vh;
+  padding: 1rem 1.25rem;
+  overflow: auto;
+  color: var(--pm-ink);
+  background: var(--pm-surface);
+  border: 1px solid var(--pm-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 35%);
+}
+
+.pm-copy-dialog::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+
+.pm-copy-label {
+  display: block;
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+}
+
+.pm-copy-field {
+  display: block;
+  width: 100%;
+  min-height: 6rem;
+  padding: 0.5rem 0.625rem;
+  color: var(--pm-ink);
+  font: 0.9375rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  background: var(--pm-surface);
+  border: 1px solid var(--pm-border);
+  border-radius: var(--gen-radius-2);
+  overflow-wrap: anywhere;
+  resize: vertical;
+}
+
+.pm-copy-notes {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.pm-copy-notes:empty {
+  display: none;
+}
+
+.pm-copy-notes p {
+  margin: 0;
+}
+
+.pm-copy-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
 }
 
 /* Below 768 px the pieces are a strip of two scrolling rows under the board. */

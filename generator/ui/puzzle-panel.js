@@ -3,6 +3,7 @@
 // arrives. All text is set through textContent.
 import { el } from '../../core/browser/dom.js';
 import { createPrintDialog, puzzleDetails } from '../../core/browser/print-dialog.js';
+import { copyLinkIcon, createPuzzleCopyControl } from '../../core/browser/puzzle-copy.js';
 import { puzzleSnapshot } from '../../core/browser/puzzle-snapshot.js';
 import { mountBoard, mountPiecePreview, svgEl } from '../../core/browser/svg-board.js';
 import { activeCount, boardToRows } from '../../core/engine/board.js';
@@ -37,7 +38,8 @@ const ZOOM_STEP = 1.25;
  * @property {HTMLElement | null} [controlsHost] Level choice and generate button; defaults to the top of this panel.
  * @property {HTMLElement | null} [cardsActionsHost] Remove all button; defaults to above the cards.
  * @property {() => import('../../core/browser/puzzle-code-client.js').PuzzleCodeClient} [createPuzzleCodeClient] Makes
- *   the Print dialog's puzzle-code client on first use (default: one module worker).
+ *   the puzzle-code client of the Print dialog and, separately, of Copy this puzzle link, each on first use (default: one
+ *   module worker each).
  */
 
 let panelCounter = 0;
@@ -161,8 +163,12 @@ export function mountPuzzlePanel(host, options) {
     className: 'icon-btn',
     attrs: { type: 'button', 'data-action': 'print-puzzle', 'aria-haspopup': 'dialog', ...locAttrs({ 'aria-label': 'print.button.title', title: 'print.button.title' }) },
   }, svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' }, svgEl('use', { href: '#ic-print' }))));
+  // The whole label shows: a link icon and "Copy this puzzle link" (the whole-pack Play stays as it is).
+  const copyButton = /** @type {HTMLButtonElement} */ (el('button', {
+    className: 'copy-link-btn', attrs: { type: 'button', 'data-action': 'copy-puzzle-link' },
+  }, copyLinkIcon(), loc('code.copyLink')));
   const detailHead = el('div', { className: 'detail-head' }, el('div', { className: 'detail-name' }, detailTitle, detailSeed),
-    el('div', { className: 'detail-actions' }, playButton, printButton));
+    el('div', { className: 'detail-actions' }, playButton, printButton, copyButton));
   const detailBoard = el('div', { className: 'detail-board' });
   /**
    * @param {string} text
@@ -209,6 +215,11 @@ export function mountPuzzlePanel(host, options) {
   const printDialog = createPrintDialog({
     host: host.ownerDocument.body, t, getJob: printJob, solutionOption: true, createClient: options.createPuzzleCodeClient,
     watch: (listener) => store.subscribe(listener),
+  });
+  // Copy this puzzle link: the same snapshot as Print, prepared by the same function, with a client of its own.
+  const copyControl = createPuzzleCopyControl({
+    button: copyButton, host: host.ownerDocument.body, t, getSnapshot: () => printJob()?.snapshot ?? null, closeKey: 'code.close',
+    createClient: options.createPuzzleCodeClient,
   });
   /**
    * @typedef {object} Card
@@ -353,6 +364,7 @@ export function mountPuzzlePanel(host, options) {
     const at = set === null || selectedId === null ? -1 : state.puzzles.findIndex((p) => p.id === selectedId);
     if (set === null || at === -1) {
       detail.hidden = true;
+      copyButton.disabled = true;
       detailView?.destroy();
       detailView = null;
       detailSet = null;
@@ -361,6 +373,7 @@ export function mountPuzzlePanel(host, options) {
     }
     const puzzle = state.puzzles[at];
     detail.hidden = false;
+    copyButton.disabled = false;
     if (detailSet !== set) {
       detailView?.destroy();
       detailView = null;
@@ -483,6 +496,7 @@ export function mountPuzzlePanel(host, options) {
     }
     renderCards(state);
     renderDetail(state);
+    copyControl.refresh();
   }
 
   /** @type {Array<[EventTarget, string, EventListener]>} */
@@ -550,6 +564,7 @@ export function mountPuzzlePanel(host, options) {
       listeners.length = 0;
       elapsed.destroy();
       printDialog.destroy();
+      copyControl.destroy();
       for (const card of cards.values()) {
         card.view.destroy();
       }

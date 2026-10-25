@@ -132,6 +132,15 @@ export default Object.freeze({
   'code.error.service': 'Không xử lý được mã đề. Hãy thử lại.',
   'code.error.cancelled': 'Việc mở mã này đã bị hủy vì một đề khác đang được mở. Hãy mở lại nếu bạn vẫn muốn.',
 
+  // Copy this puzzle link
+  'code.copyLink': 'Sao chép liên kết đề này',
+  'code.copied': 'Đã sao chép liên kết',
+  'code.copyFailed': 'Không sao chép được liên kết. Hãy chọn và sao chép thủ công.',
+  'code.copyTooLong': 'Đề này quá lớn để chia sẻ bằng đường link.',
+  'code.copyNoQr': 'Đã sao chép liên kết; đề này quá lớn để có mã QR trên bản in.',
+  'code.copyLong': 'Liên kết này dài {count} ký tự, và một số ứng dụng trò chuyện sẽ cắt bớt liên kết dài.',
+  'code.copyField': 'Liên kết đề',
+
   // Keyboard help
   'keys.tab.key': 'Tab / Shift+Tab',
   'keys.tab.action': 'Di chuyển tiêu điểm qua các mảnh trong khay, rồi các mảnh đã đặt',
