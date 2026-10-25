@@ -128,25 +128,30 @@ export function ratingLabel(rating) {
   return parts === null ? '' : `${parts.before}${parts.level}${parts.after}`;
 }
 
+const CERTIFICATE_STATUSES = new Set(['unique', 'multiple', 'not-proved', 'unsatisfiable']);
+
 /**
- * Same wording as the generator's cards; a certificate read from a file is shown as it is.
+ * Status of the uniqueness badge. A certificate read from a file is shown as it is. Without one, a puzzle whose
+ * solution is known (an included answer, or a successful solvability check) is "not-proved", which reads
+ * "At least 1 solution" as a new puzzle does in the generator; otherwise nothing is claimed.
  * @param {{ status: string } | null | undefined} certificate
- * @param {boolean} [pending] A certificate is being computed.
- * @returns {string}
+ * @param {boolean} [solvable] A solution of the puzzle is known.
+ * @returns {string} Empty when nothing is claimed.
  */
-export function certificateLabel(certificate, pending = false) {
-  if (!certificate) {
-    return t(pending ? 'cert.pending' : 'cert.none');
-  }
-  switch (certificate.status) {
-    case 'unique':
-    case 'multiple':
-    case 'not-proved':
-    case 'unsatisfiable':
-      return t(`cert.${certificate.status}`);
-    default:
-      return t('cert.none');
-  }
+export function certificateStatus(certificate, solvable = false) {
+  const status = certificate ? certificate.status : solvable ? 'not-proved' : '';
+  return CERTIFICATE_STATUSES.has(status) ? status : '';
+}
+
+/**
+ * Same wording as the generator's cards.
+ * @param {{ status: string } | null | undefined} certificate
+ * @param {boolean} [solvable] A solution of the puzzle is known.
+ * @returns {string} Empty when nothing is claimed.
+ */
+export function certificateLabel(certificate, solvable = false) {
+  const status = certificateStatus(certificate, solvable);
+  return status === '' ? '' : t(`cert.${status}`);
 }
 
 /** @type {Readonly<Record<string, string>>} */

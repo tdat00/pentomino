@@ -427,8 +427,7 @@ button.ghost-small:disabled {
 }
 
 .badge[data-status="multiple"],
-.badge[data-status="not-proved"],
-.badge[data-status="unchecked"] {
+.badge[data-status="not-proved"] {
   color: var(--gen-warning);
 }
 

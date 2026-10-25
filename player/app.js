@@ -10,9 +10,9 @@ import { createPlayController } from './play.js';
 import { createHintController } from './hints.js';
 import { choose, onChange, setLocale, t } from './i18n.js';
 import { puzzleDisplayName } from './puzzle-title.js';
-import { createPlayerController, createPlayerStore, effectiveRotation } from './state.js';
+import { createPlayerController, createPlayerStore, effectiveRotation, knownSolvable } from './state.js';
 import {
-  HINT_TEXT, LABELS, certificateLabel, formatElapsed, verificationLabel,
+  HINT_TEXT, LABELS, certificateLabel, certificateStatus, formatElapsed, verificationLabel,
 } from './strings.js';
 import { createBoardView } from './ui/board-view.js';
 import { createContextMenu } from './ui/context-menu.js';
@@ -558,9 +558,10 @@ export function mountPlayer(root, env = {}) {
     badgeVerification.textContent = verificationLabel(verification);
     badgeVerification.hidden = badgeVerification.textContent === '';
     badgeVerification.dataset.status = verification?.status ?? '';
-    badgeCertificate.textContent = puzzle ? certificateLabel(puzzle.certificate) : '';
-    badgeCertificate.dataset.status = puzzle?.certificate?.status ?? 'unchecked';
-    badgeCertificate.hidden = puzzle === undefined;
+    const solvable = knownSolvable(puzzle, verification);
+    badgeCertificate.textContent = certificateLabel(puzzle?.certificate, solvable);
+    badgeCertificate.dataset.status = certificateStatus(puzzle?.certificate, solvable);
+    badgeCertificate.hidden = badgeCertificate.textContent === '';
     badgeLocal.textContent = state.local ? LABELS.localLink : '';
     badgeLocal.hidden = !state.local;
     badgeStorage.textContent = state.storageWarning ?? '';

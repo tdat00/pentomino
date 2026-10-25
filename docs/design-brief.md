@@ -48,6 +48,11 @@ Counts vary with the selected level and generated set. Blocking cells changes av
 
 The Player looks like the Generator: a header with the title, the **EN | VI** language switch and the theme buttons (light, dark, high contrast), and three panels. The **puzzles** of the open pack are on the left as cards (name, rating with the level in bold, pieces to place, uniqueness, progress and a preview); the **game** is in the middle (puzzle name and rating, the timer and move count, Undo, Redo, Hint and Replay, the hint message and the board); the **pieces to place** are on the right, under the toolbar for the selected piece. Below 1360 px the puzzles move under the game, and on a phone the panels stack.
 
+Uniqueness uses the Generator's words. A puzzle that carries no uniqueness result reads **At least 1 solution**, as a new puzzle does in the Generator, once a solution is known.
+
+> [!WARNING]
+> **To be confirmed by the owner.** "Uniqueness not checked" was replaced by "At least 1 solution" to match the Generator. The Player shows it only when a solution is known: the file includes a checked answer, or the background solvability check found one. For a puzzle shared without its answer, while that check runs or when it is inconclusive or finds no solution, the uniqueness text stays empty, so that no solvability claim appears without proof (acceptance check 11 of `design-detail.md` §13.3). Puzzles from the Generator and the sample always include their answer, so they always show it. If "At least 1 solution" should show in every case, this rule and that acceptance check must change together.
+
 Open a link, choose a recent puzzle, or import a `.json` file by choosing/dropping it. Invalid imports explain the problem without replacing the game.
 
 - Click a puzzle card to play that puzzle; ✕ on a card removes it and **Remove all** empties the list. The timer starts with your first move.

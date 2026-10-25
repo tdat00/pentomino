@@ -14,7 +14,7 @@ import { PoolAbortError, PoolError } from '../core/browser/worker-pool.js';
 import { SAVE_FAILED_MESSAGE, createStorage } from '../core/browser/storage.js';
 import { verifySample } from '../tools/record-fixtures.mjs';
 import {
-  createPlayerController, createPlayerStore, effectiveRotation, hashWithIndex,
+  createPlayerController, createPlayerStore, effectiveRotation, hashWithIndex, knownSolvable,
 } from '../player/state.js';
 import {
   INDEX_MESSAGE, MISSING_LOCAL_MESSAGE, SAMPLE_FAILED_MESSAGE, UNSUPPORTED_MESSAGE,
@@ -188,10 +188,10 @@ test('verification, certificate and rating wording keeps claims apart from proof
   assert.equal(verificationLabel({ status: 'unsatisfiable' }), 'No solution exists');
   assert.notEqual(verificationLabel({ status: 'not-verified' }), verificationLabel({ status: 'unsatisfiable' }));
   assert.equal(verificationLabel(undefined), '');
-  assert.equal(certificateLabel(null), 'Uniqueness not checked');
-  assert.equal(certificateLabel(null, true), 'Checking…');
+  assert.equal(certificateLabel(null), '', 'no certificate and no known solution: no claim');
+  assert.equal(certificateLabel(null, true), 'At least 1 solution', 'no certificate but a known solution, as in the generator');
   assert.equal(certificateLabel({ status: 'unique' }), 'Unique solution ✓');
-  assert.equal(certificateLabel({ status: 'multiple' }), 'Multiple solutions');
+  assert.equal(certificateLabel({ status: 'multiple' }, true), 'Multiple solutions', 'a certificate is shown as it is');
   assert.equal(certificateLabel({ status: 'not-proved' }), 'At least 1 solution');
   assert.equal(certificateLabel({ status: 'unsatisfiable' }), 'No solution exists');
   const rating = /** @type {any} */ ({ model: 'difficulty-v2', score: 21, level: 'hard' });
@@ -598,20 +598,27 @@ test('verification: a validated answer proves solvability only; claims stay clai
   await h.controller.importText(sampleText);
   assert.deepEqual(h.state().verificationByPuzzle[0], { status: 'solvable', basis: 'solution' });
   assert.equal(pool.calls.length, 0, 'no search for a validated answer');
-  assert.equal(certificateLabel(h.state().pack?.puzzles[0].certificate), 'Uniqueness not checked');
-  assert.equal(h.state().pack?.puzzles[0].certificate ?? null, null);
+  const puzzle = h.state().pack?.puzzles[0];
+  assert.equal(puzzle?.certificate ?? null, null);
+  assert.equal(certificateLabel(puzzle?.certificate, knownSolvable(puzzle, h.state().verificationByPuzzle[0])), 'At least 1 solution',
+    'an included answer is a known solution');
   assert.equal(ratingLabel(h.state().pack?.puzzles[2].rating).startsWith('Hard'), true);
 });
 
 test('verification: answer-free puzzles are searched in a worker; only an exhausted empty search says impossible', async () => {
-  const pool = enginePool();
+  const pool = manualPool();
   const h = setup({ pool });
   await h.controller.importText(json(answerFree));
+  const puzzle = h.state().pack?.puzzles[0];
+  const uniqueness = () => certificateLabel(puzzle?.certificate, knownSolvable(puzzle, h.state().verificationByPuzzle[0]));
+  assert.equal(uniqueness(), '', 'no claim while the check runs');
+  pool.pending[0].resolve(await enginePool().run(pool.pending[0].task));
   await settle(h);
   assert.deepEqual(h.state().verificationByPuzzle[0], { status: 'solvable', basis: 'search' });
-  assert.equal(pool.calls.length, 1);
-  assert.equal(pool.calls[0].kind, 'verifyPack');
-  assert.equal(pool.calls[0].payload.pack.puzzles.length, 1, 'only the open puzzle is checked');
+  assert.equal(uniqueness(), 'At least 1 solution', 'a solution found by the check is a known solution');
+  assert.equal(pool.pending.length, 1);
+  assert.equal(pool.pending[0].task.kind, 'verifyPack');
+  assert.equal(pool.pending[0].task.payload.pack.puzzles.length, 1, 'only the open puzzle is checked');
 
   const impossible = setup({ pool: enginePool() });
   await impossible.controller.importText(json(unsatisfiable));
@@ -619,6 +626,8 @@ test('verification: answer-free puzzles are searched in a worker; only an exhaus
   await settle(impossible);
   assert.deepEqual(impossible.state().verificationByPuzzle[0], { status: 'unsatisfiable', basis: 'search' });
   assert.equal(verificationLabel(impossible.state().verificationByPuzzle[0]), 'No solution exists');
+  assert.equal(certificateLabel(null, knownSolvable(impossible.state().pack?.puzzles[0], impossible.state().verificationByPuzzle[0])), '',
+    'and no uniqueness claim');
 });
 
 test('verification: inconclusive, crashed and unavailable workers read "not verified", never "no solution"', async () => {

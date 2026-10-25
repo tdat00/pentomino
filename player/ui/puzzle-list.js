@@ -9,8 +9,8 @@ import { packBoard } from '../../core/engine/pack.js';
 import { mountBoard } from '../../core/browser/svg-board.js';
 import { getLocale, t } from '../i18n.js';
 import { cardHeading } from '../puzzle-title.js';
-import { effectiveRotation } from '../state.js';
-import { LABELS, certificateLabel, puzzleStatusLabel } from '../strings.js';
+import { effectiveRotation, knownSolvable } from '../state.js';
+import { LABELS, certificateLabel, certificateStatus, puzzleStatusLabel } from '../strings.js';
 import { loc, locAttrs } from './i18n-dom.js';
 import { setRating } from './rating-dom.js';
 
@@ -72,7 +72,7 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
   let preview = null;
   /**
    * What the cards drew last; a store update that changes none of it (a timer tick) costs nothing.
-   * @type {{ pack: object | null, statuses: object, index: number, screen: string, prefs: object, viewRotation: number | null, locale: string } | null}
+   * @type {{ pack: object | null, statuses: object, verification: object, index: number, screen: string, prefs: object, viewRotation: number | null, locale: string } | null}
    */
   let drawn = null;
   let drawnIndex = -1;
@@ -175,12 +175,16 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
   function render(state) {
     const { pack } = state;
     const locale = getLocale();
-    if (drawn !== null && drawn.pack === pack && drawn.statuses === state.statuses && drawn.index === state.index
-      && drawn.screen === state.screen && drawn.prefs === state.prefs && drawn.viewRotation === state.viewRotation && drawn.locale === locale) {
+    if (drawn !== null && drawn.pack === pack && drawn.statuses === state.statuses && drawn.verification === state.verificationByPuzzle
+      && drawn.index === state.index && drawn.screen === state.screen && drawn.prefs === state.prefs && drawn.viewRotation === state.viewRotation
+      && drawn.locale === locale) {
       return;
     }
     const packChanged = drawn === null || drawn.pack !== pack;
-    drawn = { pack, statuses: state.statuses, index: state.index, screen: state.screen, prefs: state.prefs, viewRotation: state.viewRotation, locale };
+    drawn = {
+      pack, statuses: state.statuses, verification: state.verificationByPuzzle, index: state.index, screen: state.screen, prefs: state.prefs,
+      viewRotation: state.viewRotation, locale,
+    };
     if (packChanged) {
       for (const card of cards) {
         destroyCard(card);
@@ -217,8 +221,10 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
       const rating = setRating(card.rating, puzzle.rating);
       card.rating.hidden = !rating;
       card.toPlace.textContent = LABELS.toPlace(Math.max(0, pack.pieces.length - puzzle.clues.length));
-      card.cert.textContent = certificateLabel(puzzle.certificate);
-      card.cert.dataset.status = puzzle.certificate?.status ?? 'unchecked';
+      const solvable = knownSolvable(puzzle, state.verificationByPuzzle[index]);
+      card.cert.textContent = certificateLabel(puzzle.certificate, solvable);
+      card.cert.dataset.status = certificateStatus(puzzle.certificate, solvable);
+      card.cert.hidden = card.cert.textContent === '';
       card.status.textContent = puzzleStatusLabel(status);
       card.status.dataset.status = status;
       card.item.dataset.selected = String(current);

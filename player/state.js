@@ -154,6 +154,15 @@ export function effectiveRotation(state) {
 }
 
 /**
+ * @param {Pick<import('../core/engine/types.js').PackPuzzle, 'solution'> | undefined} puzzle
+ * @param {Verification | undefined} verification
+ * @returns {boolean} A solution is known: the pack includes a checked answer, or the solvability check found one.
+ */
+export function knownSolvable(puzzle, verification) {
+  return verification?.status === 'solvable' || (puzzle?.solution !== null && puzzle?.solution !== undefined);
+}
+
+/**
  * @param {string} hash
  * @param {number} index
  * @returns {string} The same hash with its `i` parameter set.

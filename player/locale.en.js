@@ -155,8 +155,6 @@ export default Object.freeze({
   'level.name.hell-2': 'Hell 2',
   'level.name.hell-3': 'Hell 3',
   'rating.line': '{level}: score {score}',
-  'cert.none': 'Uniqueness not checked',
-  'cert.pending': 'Checking…',
   'cert.unique': 'Unique solution ✓',
   'cert.multiple': 'Multiple solutions',
   'cert.not-proved': 'At least 1 solution',

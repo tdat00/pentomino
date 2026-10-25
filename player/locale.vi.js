@@ -152,8 +152,6 @@ export default Object.freeze({
   'level.name.hell-2': 'Địa ngục 2',
   'level.name.hell-3': 'Địa ngục 3',
   'rating.line': '{level}: điểm {score}',
-  'cert.none': 'Chưa kiểm tra tính duy nhất',
-  'cert.pending': 'Đang kiểm tra…',
   'cert.unique': 'Lời giải duy nhất ✓',
   'cert.multiple': 'Nhiều lời giải',
   'cert.not-proved': 'Có ít nhất 1 lời giải',

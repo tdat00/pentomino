@@ -233,7 +233,7 @@ await check('link: #pack= opens puzzle 2 with claims, badges and no local data',
   equal(m.qa('.board-host .pm-clue').length, sample.puzzles[1].clues.length, 'clue pieces');
   assert(m.q('.pm-board .pm-svg').getBoundingClientRect().width > 100, 'board drawn');
   equal(m.q('[data-badge="verification"]').textContent, 'Solvable ✓', 'verification');
-  equal(m.q('[data-badge="certificate"]').textContent, 'Uniqueness not checked', 'certificate');
+  equal(m.q('[data-badge="certificate"]').textContent, 'At least 1 solution', 'certificate: the included answer is a known solution');
   assert(!m.visible('[data-badge="local"]'), 'portable link is not local');
   equal(m.urls.length, 0, 'address untouched on load');
   m.player.controller.nextPuzzle();
