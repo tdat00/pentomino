@@ -210,12 +210,16 @@ async function runRecipe(recipe) {
   const setMs = Math.round(performance.now() - start);
   assert(qa(d, '[data-role="pieces"] li').length === recipe.expect.pieces, `${qa(d, '[data-role="pieces"] li').length} pieces, recorded ${recipe.expect.pieces}`);
   assert(qa(d, '[data-role="notice"] .notice').length === 0, `notice after the set: ${q(d, '[data-role="notice"]').textContent}`);
-  q(d, '[data-wizard-step="3"]').click();
+  const select = /** @type {HTMLButtonElement} */ (q(d, '[data-action="select-set"]'));
+  const setBox = q(d, '[data-role="pieces"]').getBoundingClientRect();
+  assert(!select.hidden && select.textContent === 'Select this piece set' && select.getBoundingClientRect().top >= setBox.bottom - 1, 'Select this set sits under the piece set');
+  select.click();
+  assert(!(/** @type {HTMLElement} */ (q(d, '[data-step="3"]'))).hidden, 'Select this set opens step 3');
   const summaryLines = qa(d, '[data-role="set-summary-card"] p').map((n) => n.textContent);
   assert(!(/** @type {HTMLElement} */ (q(d, '[data-step-after="2"]'))).hidden && summaryLines.length === 3, `the side panel shows the set summary on step 3: ${summaryLines}`);
   assert(summaryLines[0] === 'Set 1/1' && summaryLines[1]?.endsWith(`| ${recipe.seedText}`) && summaryLines[2]?.includes(`${recipe.expect.pieces} pieces`), `summary lines: ${summaryLines}`);
   const setSummary = /** @type {HTMLElement} */ (q(d, '[data-step-after="2"]'));
-  assert(q(d, '#heading-history').textContent === 'Set 1/1 puzzles', `the header of the puzzle list names its set: ${q(d, '#heading-history').textContent}`);
+  assert(q(d, '#heading-history').textContent === 'Puzzles of set 1/1', `the header of the puzzle list names its set: ${q(d, '#heading-history').textContent}`);
   assert(setSummary.getAttribute('role') === 'button', 'the piece set summary is a button');
   setSummary.click();
   assert(!(/** @type {HTMLElement} */ (q(d, '[data-step="2"]'))).hidden && setSummary.hidden, 'clicking the piece set summary opens step 2, like its header');
@@ -574,7 +578,7 @@ await check('L5', 'Generator wizard: Next and Back move between steps, step 3 st
   q(d, '[data-lang="vi"]').click();
   assert(shown() === '2' && d.documentElement.lang === 'vi', 'the step is kept and the page language changed');
   assert(q(d, '[data-wizard-step="2"] .wizard-name').textContent === 'Tạo bộ mảnh', 'the step names are translated');
-  assert(back.textContent === 'Bước 1 - Tạo bàn' && action.textContent === 'Bước 3 - Tạo đề', `the navigator is translated: ${back.textContent} / ${action.textContent}`);
+  assert(back.textContent === 'Bước 1 - Tạo bàn chơi' && action.textContent === 'Bước 3 - Tạo đề', `the navigator is translated: ${back.textContent} / ${action.textContent}`);
   assert(q(d, '[data-lang="vi"]').getAttribute('aria-pressed') === 'true', 'the switch shows the language');
   assert(localStorage.getItem('pentomino:v1:lang') === 'vi', 'the choice is remembered');
   back.click();
@@ -598,7 +602,7 @@ await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces pane
   assert(history.right <= main.left + 4 && main.right <= side.left + 4, `three panels (${[history, main, side].map((r) => `${Math.round(r.left)}-${Math.round(r.right)}`).join(' | ')})`);
   assert(qa(d, '.app-history .puzzle-card').length > 0 && q(d, '.app-main').contains(q(d, '.pm-board')) && q(d, '.app-side').contains(q(d, '[data-host="tray"]')), 'each panel holds its content');
   const order = gameBarOrder(frame);
-  const expected = ['game-timer', 'game-moves', 'undo', 'redo', 'print', 'hint', 'replay', 'straighten'];
+  const expected = ['game-timer', 'game-moves', 'undo', 'redo', 'hint', 'replay', 'print', 'straighten'];
   assert(JSON.stringify(order) === JSON.stringify(expected), `game bar order ${order.join(' > ')}`);
   const board = rect(q(d, '.pm-board'));
   const tray = rect(q(d, '[data-host="tray"]'));

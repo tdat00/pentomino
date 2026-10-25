@@ -293,10 +293,7 @@ export function createJobController(options) {
     }
   }
 
-  /**
-   * Generates the next puzzles of the set and adds them after the ones listed.
-   * @returns {Promise<void>}
-   */
+  /** @returns {Promise<void>} */
   async function addMore() {
     const state = store.getState();
     if (state.job !== null || state.set === null || state.setSeed === null) {

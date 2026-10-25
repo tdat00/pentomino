@@ -1,6 +1,5 @@
 // @ts-check
-// Start screen, shown while no puzzle is open: puzzles arrive by link (from the Generator's Play, or a shared or
-// bookmarked address), and the sample is one press away. It also shows why a link could not be opened.
+// Start screen, shown while no puzzle is open.
 
 import { el } from '../../core/browser/dom.js';
 import { loc } from './i18n-dom.js';

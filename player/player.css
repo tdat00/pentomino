@@ -1,6 +1,5 @@
-/* Player layout and chrome. Colours come from ../core/browser/theme.css, shared rules from ../core/browser/common.css;
-   piece and board drawing come from ../core/browser/svg-board.js. The header, the panels and the puzzle cards follow
-   generator/generator.css so that the two pages look alike: puzzles | main | pieces, like puzzles | step | steps. */
+/* Colours come from ../core/browser/theme.css. The header, the panels and the puzzle cards follow
+   generator/generator.css so that the two pages look alike. */
 
 :root {
   --gen-gap: 1rem;
@@ -79,7 +78,6 @@ body {
   stroke-linejoin: round;
 }
 
-/* Help: a ghost button at the right end of the header, icon and text. */
 button.header-help {
   display: inline-flex;
   align-items: center;
@@ -216,15 +214,6 @@ button.header-help:focus-visible {
     grid-template-areas:
       "main side"
       "history side";
-  }
-
-  .app-side {
-    position: sticky;
-    top: var(--gen-gap);
-    max-height: calc(100vh - 2 * var(--gen-gap));
-    max-height: calc(100dvh - 2 * var(--gen-gap));
-    overflow-y: auto;
-    overscroll-behavior: contain;
   }
 }
 
@@ -575,13 +564,12 @@ button.ghost-small:disabled {
   gap: 0.375rem;
 }
 
-/* Undo, Redo, Hint, Replay and Straighten are as big as the generator's Play button. */
+/* Undo, Redo, Hint, Replay, Print and Straighten are as big as the generator's Play button. */
 .game .game-actions > button {
   min-width: var(--pm-target);
   min-height: var(--pm-target);
 }
 
-/* Hint and Replay are icon buttons: the name is in aria-label and the tooltip. */
 .game .game-actions > button.icon-btn {
   display: inline-grid;
   place-items: center;
@@ -741,7 +729,7 @@ button.ghost-small:disabled {
   visibility: hidden;
 }
 
-/* Piece menu: opened by the right mouse button on a piece. */
+/* Piece menu. */
 .pm-menu {
   position: fixed;
   z-index: 70;
@@ -803,7 +791,7 @@ button.ghost-small:disabled {
   font-size: 0.8125rem;
 }
 
-/* Drag layer: full-window and transparent to the pointer; carries the clone of the dragged piece. */
+/* Drag layer: carries the clone of the dragged piece. */
 .drag-layer {
   position: fixed;
   inset: 0;
@@ -911,7 +899,7 @@ button.ghost-small:disabled {
   margin-top: 1rem;
 }
 
-/* Confirmation boxes (Replay and the reveal confirmations): compact, with smaller buttons. */
+/* Confirmation boxes (Replay and the reveal confirmations). */
 .pm-dialog.pm-confirm {
   width: min(22rem, 92vw);
   padding: 0.75rem 1rem;
@@ -951,21 +939,141 @@ button.ghost-small:disabled {
   font-weight: 600;
 }
 
-.win-stats {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 0.25rem 1rem;
-  margin: 0;
+/* Victory dialog. */
+.pm-dialog.pm-win {
+  width: min(24rem, 92vw);
+  padding: 1.25rem 1.25rem 1rem;
+  overflow: hidden;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 0, var(--gen-color-accent-soft) 0, transparent 11rem),
+    var(--pm-surface);
 }
 
-.win-stats dt {
+.win-badge {
+  display: flex;
+  justify-content: center;
+}
+
+.win-badge svg {
+  width: 6rem;
+  height: 6rem;
+}
+
+.win-badge-disc {
+  fill: var(--gen-color-accent);
+}
+
+.win-trophy {
+  fill: #ffd54a;
+  stroke: #8a6100;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.win-sparkle {
+  fill: #ffc21a;
+}
+
+.pm-dialog.pm-win .pm-dialog-title {
+  margin: 0.25rem 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+.win-message {
+  margin: 0;
   color: var(--pm-muted);
 }
 
-.win-stats dd {
-  margin: 0;
-  font-weight: 600;
+.win-stats {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+}
+
+.win-stat {
+  flex: 1 1 0;
+  max-width: 7.5rem;
+  padding: 0.5rem 0.25rem;
+  background: var(--gen-color-surface-2);
+  border: 1px solid var(--gen-color-divider);
+  border-radius: 0.5rem;
+}
+
+.win-stat[hidden] {
+  display: none;
+}
+
+.win-label {
+  color: var(--pm-muted);
+  font-size: 0.75rem;
+}
+
+.win-value {
+  margin: 0.125rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
+}
+
+.pm-dialog.pm-win .pm-dialog-actions {
+  justify-content: flex-end;
+  gap: 0.375rem;
+  margin-top: 1.25rem;
+}
+
+.pm-dialog.pm-win .pm-btn {
+  min-width: 0;
+  min-height: calc(var(--pm-target) - 0.5rem);
+  padding: 0.125rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.pm-dialog.pm-win .pm-btn[hidden] {
+  display: none;
+}
+
+@keyframes pm-win-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+
+  70% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes pm-win-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pm-dialog.pm-win[open] .win-badge svg {
+    animation: pm-win-pop 450ms ease-out;
+  }
+
+  .pm-dialog.pm-win[open] .win-sparkle {
+    animation: pm-win-twinkle 1.6s ease-in-out infinite;
+  }
+
+  .pm-dialog.pm-win[open] .win-sparkle:nth-of-type(2n) {
+    animation-delay: 0.8s;
+  }
 }
 
 .pm-shortcuts {

@@ -109,8 +109,6 @@ button:disabled {
   }
 }
 
-/* Board and piece surfaces. */
-
 .pm-board {
   position: relative;
   width: 100%;
@@ -210,8 +208,6 @@ button:disabled {
   height: 1px;
   opacity: 0;
 }
-
-/* Footer of the generator and the player: copyright and the link to the source. */
 
 .app-footer {
   max-width: 100rem;

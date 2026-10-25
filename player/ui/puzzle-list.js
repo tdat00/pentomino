@@ -1,8 +1,6 @@
 // @ts-check
-// Puzzle list (left panel): one card per puzzle of the open pack, in the generator's card layout: the name, the
-// level and score, the pieces to place, the progress and a preview of the board with its locked pieces. A card
-// opens its puzzle; the open one is marked. A pack can hold 100 puzzles on a large board, so a preview is drawn
-// only once its card comes near the window, and again when the view angle changes while it is near.
+// Puzzle list (left panel). A pack can hold 100 puzzles on a large board, so a preview is drawn only once its card
+// comes near the window, and again when the view angle changes while it is near.
 
 import { el } from '../../core/browser/dom.js';
 import { packBoard } from '../../core/engine/pack.js';
@@ -91,7 +89,7 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
     }, { rootMargin: `${NEAR_PX}px` })
     : null;
 
-  /** Draws the preview of a card that is near, when its key changed. @param {Card} card */
+  /** @param {Card} card */
   function drawPreview(card) {
     if (!card.near || preview === null || card.previewKey === preview.key) {
       return;

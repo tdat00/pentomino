@@ -214,7 +214,7 @@ test('active cells are row-major and unaffected by presets sharing no state', ()
   assert.deepEqual(activeCells(boardFromRows(['.#', '#.'])), [[1, 0], [0, 1]]);
 });
 
-test('the symmetry search agrees with a direct comparison of oriented cell lists on random masks', () => {
+test('the symmetry search agrees with a direct comparison of oriented cell lists on seeded generated masks', () => {
   const rng = createRng('symmetry-masks');
   for (let n = 0; n < 60; n += 1) {
     const w = 2 + rng.int(5);

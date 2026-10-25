@@ -1,8 +1,7 @@
 // @ts-check
-// Interface language shared by the Generator and the Player. `createI18n` takes the flat text packs of an app and
-// returns its lookup functions. Plural forms are keys suffixed `_one` / `_other`, chosen by `args.count`; a key missing
-// from the current pack falls back to English, then to the key. Only `applyTo` and `setLocale` touch the DOM, so the
-// module also loads in Node.
+// Interface language shared by the Generator and the Player. Plural forms are keys suffixed `_one` / `_other`, chosen
+// by `args.count`; a key missing from the current pack falls back to English, then to the key. Only `applyTo` and
+// `setLocale` touch the DOM, so the module also loads in Node.
 
 /** Shared by every page of this site: the language chosen on one page applies to the others. */
 export const LANGUAGE_KEY = 'pentomino:v1:lang';

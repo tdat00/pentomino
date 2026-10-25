@@ -192,7 +192,24 @@ await check('BAC-1: Heart at 45 degrees has 75 cells, a raised notch and a lowes
   const mid = centerOf(view.svg, 4.5, 4.5);
   assert(notch.y < mid.y - 20 && Math.abs(notch.x - mid.x) < 1, 'notch points up on the vertical axis');
   assert(view.cellAt(notch.x, notch.y) === null, 'notch is blocked in play');
+  assert(view.svg.querySelectorAll('.pm-hole, .pm-guide, .pm-cross').length === 0, 'exterior cells are not drawn in play, so a heart reads as a heart');
   view.destroy();
+});
+
+await check('a hole inside the board is grey with a cross, in play and in the editor', () => {
+  const host = makeHost(240, 240);
+  const board = { width: 5, height: 5, active: new Uint8Array(25).fill(1) };
+  board.active[2 * 5 + 2] = 0;
+  for (const mode of /** @type {const} */ (['play', 'edit'])) {
+    const view = mountBoard(host, { mode, rotation: 0, cellPx: 30 });
+    view.render(emptyModel(board));
+    const hole = view.svg.querySelector('.pm-blocked');
+    assert(hole !== null && view.svg.querySelectorAll('.pm-blocked').length === 1 && view.svg.querySelectorAll('.pm-cross').length === 1, `${mode}: one grey cell and one cross`);
+    const fill = getComputedStyle(/** @type {Element} */ (hole)).fill;
+    const [r, g, b] = (fill.match(/\d+/g) ?? []).map(Number);
+    assert(Math.min(r, g, b) >= 180 && Math.max(r, g, b) <= 215 && Math.max(r, g, b) - Math.min(r, g, b) <= 24, `${mode}: grey fill, darker than the board (${fill})`);
+    view.destroy();
+  }
 });
 
 await check('BAC-1: clicking a blocked notch cell in the editor reports it and a controller can unblock it', () => {
@@ -201,7 +218,7 @@ await check('BAC-1: clicking a blocked notch cell in the editor reports it and a
   const view = mountBoard(host, { mode: 'edit', rotation: 45, cellPx: 30, onCell: (cell) => painted.push(cell) });
   const board = { width: 10, height: 10, active: Uint8Array.from(heart.board.active) };
   view.render(emptyModel(board));
-  assert(view.svg.querySelectorAll('.pm-guide').length === 25, 'exterior cells are dashed guides in edit mode');
+  assert(view.svg.querySelectorAll('.pm-guide').length === 25, 'exterior cells are blocked guides in edit mode');
   const p = centerOf(view.svg, 7, 2);
   pointer('pointerdown', view.svg, p.x, p.y);
   const q = centerOf(view.svg, 8, 2);
@@ -446,6 +463,24 @@ await check('BAC-2: preview and board draw the same piece and keep labels uprigh
   }
   view.destroy();
   preview.destroy();
+});
+
+await check('a label past Z shows one letter with its mark, drawn in a print-safe colour with a halo', () => {
+  const host = makeHost(200, 200);
+  for (const [label, char, mark] of [['C', 'C', 'none'], ['AB', 'B', 'circle'], ['BA', 'A', 'square'], ['CA', 'A', 'disc']]) {
+    const preview = mountPiecePreview(host, { id: `x${label}`, label, color: '#e6194b', cells: [[0, 0], [1, 0]] }, { cellPx: 40 });
+    preview.render({ t: 0, rotation: 0, showLabels: true, showPatterns: true });
+    const group = preview.svg.querySelector('.pm-label-group');
+    const text = preview.svg.querySelector('.pm-label');
+    const same = (/** @type {unknown} */ a, /** @type {unknown} */ b, /** @type {string} */ msg) => assert(JSON.stringify(a) === JSON.stringify(b), `${msg}: ${JSON.stringify(a)}`);
+    same([text?.textContent, group?.getAttribute('data-mark')], [char, mark], `label ${label}`);
+    same(preview.svg.querySelector('.pm-label-mark') !== null, mark !== 'none', `label ${label}: mark drawn`);
+    same(preview.svg.querySelector('.pm-fill')?.getAttribute('fill'), '#ff8a80', 'the base red is drawn as a light red');
+    if (mark !== 'disc') {
+      same([text?.getAttribute('fill'), text?.getAttribute('stroke')], ['#000000', '#ffffff'], `label ${label}: black letter, white halo`);
+    }
+    preview.destroy();
+  }
 });
 
 await check('Preview sourceCellAt returns source indices and null for the empty bounding-box corner', () => {

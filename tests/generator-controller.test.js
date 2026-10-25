@@ -723,7 +723,9 @@ describe('generation limits', () => {
 });
 
 describe('controller discipline', () => {
-  test('the controller never runs a solver on the main thread', () => {
+  // A source check: jobs.js must leave all solving to the generation client (workers), so it may not call or import
+  // the engine's solver modules.
+  test('the controller module neither calls nor imports the solver engine (solving stays in the workers)', () => {
     const source = readFileSync(new URL('../generator/jobs.js', import.meta.url), 'utf8');
     assert.doesNotMatch(source, /\b(solveFirst|countSolutions|buildModel|randomTiling|lnsWalk|selectClues|certify|rate)\(/);
     assert.doesNotMatch(source, /from '\.\.\/core\/engine\/(dlx|clues|generate|carve|workspace)\.js'/);

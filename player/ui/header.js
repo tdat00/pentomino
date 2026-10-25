@@ -1,7 +1,6 @@
 // @ts-check
-// Page header, in the markup and classes of the generator's: the logo and title on the left, the EN | VI language
-// switch and the three theme buttons on the right. The choices are kept in this browser under the keys that
-// the generator uses, so a choice made on one page applies to the other.
+// Page header, in the markup and classes of the generator's. The choices are kept in this browser under the keys
+// that the generator uses, so a choice made on one page applies to the other.
 import { el } from '../../core/browser/dom.js';
 import { LANGUAGE_KEY } from '../../core/browser/i18n.js';
 import { svgEl } from '../../core/browser/svg-board.js';
@@ -9,7 +8,7 @@ import { THEME_KEY, applyTheme, effectiveTheme, normalizeTheme } from '../../cor
 import { getLocale, normalize, onChange, setLocale, t } from '../i18n.js';
 import { loc, locAttrs } from './i18n-dom.js';
 
-/** @returns {SVGElement} Icons of the theme buttons. */
+/** @returns {SVGElement} */
 function iconSprite() {
   return svgEl('svg', { class: 'sprite', 'aria-hidden': 'true', focusable: 'false' },
     svgEl('symbol', { id: 'ic-sun', viewBox: '0 0 24 24' },
@@ -60,7 +59,7 @@ function themeButton(theme, key, icon) {
 }
 
 /**
- * @param {HTMLElement} host Receives the icon sprite and the header.
+ * @param {HTMLElement} host
  * @param {{ win: Window | null, preferences: Pick<Storage, 'setItem'> | null, onHelp?: () => void }} options
  */
 export function mountHeader(host, { win, preferences, onHelp }) {

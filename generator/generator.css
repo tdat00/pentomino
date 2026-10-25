@@ -486,6 +486,16 @@ button.ghost-small:disabled {
   min-width: 0;
 }
 
+.set-select {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+.set-select > button[hidden] {
+  display: none;
+}
+
 .step-column > h3 {
   margin: 0 0 0.5rem;
   font-size: 1rem;
@@ -1099,7 +1109,6 @@ button.card-select:active:not(:disabled) {
   transform: none;
 }
 
-/* The preview sits bottom right, under the remove button in the corner. */
 .card-thumb {
   flex: none;
   align-self: flex-end;
@@ -1175,6 +1184,37 @@ button.card-remove {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.detail-actions > .icon-btn {
+  display: inline-grid;
+  place-items: center;
+  padding: 0.25rem;
+}
+
+.detail-solution {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0.25rem 0 0;
+}
+
+button.solution-toggle {
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--gen-accent);
+  font-weight: 600;
+}
+
+button.solution-toggle:hover:not(:disabled),
+button.solution-toggle[aria-pressed="true"] {
+  background: var(--gen-color-accent-soft);
+}
+
+button.solution-toggle:disabled {
+  background: transparent;
+  color: var(--pm-muted);
+  cursor: default;
 }
 
 .detail-seed {

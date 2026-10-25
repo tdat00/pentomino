@@ -2,6 +2,7 @@
 // Step 2 piece-set panel: navigator through the kept sets, summary line and piece thumbnails in balanced rows.
 import { el } from '../../core/browser/dom.js';
 import { mountPiecePreview } from '../../core/browser/svg-board.js';
+import { pieceLabelText } from '../../core/browser/piece-look.js';
 import { t, getLocale } from '../i18n.js';
 import { describeSet, isBusy, readyLevelId, setViewPosition } from '../state.js';
 import { levelLabel } from '../strings.js';
@@ -64,7 +65,8 @@ export function balancedRows(count, maxPerRow) {
 
 /**
  * @param {HTMLElement} host
- * @param {{ store: GeneratorStore, controller: JobController }} options
+ * @param {{ store: GeneratorStore, controller: JobController, onSelect?: () => void }} options `onSelect` shows
+ *   "Select this set" under the set, which moves on to step 3.
  */
 export function mountSetPanel(host, options) {
   const { store, controller } = options;
@@ -81,6 +83,8 @@ export function mountSetPanel(host, options) {
   const setActions = el('span', { className: 'set-actions' }, removeButton, removeAllButton);
   const history = el('div', { className: 'control-row set-history', dataset: { role: 'set-history' } }, navigator, setActions);
   host.append(el('div', { className: 'set-panel' }, history, summary, emptyText, pieceList));
+  const selectButton = /** @type {HTMLButtonElement} */ (loc('set.select', { className: 'primary', attrs: { type: 'button', 'data-action': 'select-set', hidden: '' } }, 'button'));
+  host.append(el('div', { className: 'set-select' }, selectButton));
   const view = host.ownerDocument.defaultView;
 
   /** @type {Array<ReturnType<typeof mountPiecePreview>>} */
@@ -148,11 +152,11 @@ export function mountSetPanel(host, options) {
         for (const { piece, index } of sorted) {
           const thumb = el('span', { className: 'piece-thumb' });
           const item = el('li', { className: 'piece-item', dataset: { pieceId: piece.id } },
-            thumb, el('span', { className: 'piece-name', text: `${piece.label === '' ? piece.id : piece.label} · ${piece.cells.length}` }));
+            thumb, el('span', { className: 'piece-name', text: `${piece.label === '' ? piece.id : pieceLabelText(piece.label)} · ${piece.cells.length}` }));
           pieceList.append(item);
           previews.push(mountPiecePreview(thumb, piece, {
             cellPx: THUMB_CELL_PX, index, count: set.pieces.length, interactive: false,
-            name: t('set.pieceName', { name: piece.label === '' ? piece.id : piece.label, count: piece.cells.length }),
+            name: t('set.pieceName', { name: piece.label === '' ? piece.id : pieceLabelText(piece.label), count: piece.cells.length }),
           }));
         }
         layoutRows();
@@ -167,6 +171,7 @@ export function mountSetPanel(host, options) {
     // Only the sets of the current board are listed. Remove shows with any set; the navigator and Remove all only
     // once there is somewhere to go.
     history.hidden = state.set === null;
+    selectButton.hidden = state.set === null || options.onSelect === undefined;
     navigator.hidden = length === 0 || (length === 1 && index === 0);
     removeAllButton.hidden = length <= 1;
     removeButton.disabled = busy;
@@ -191,6 +196,7 @@ export function mountSetPanel(host, options) {
   listen(olderButton, 'click', () => controller.stepSet(1));
   listen(newerButton, 'click', () => controller.stepSet(-1));
   listen(removeButton, 'click', () => controller.removeSet());
+  listen(selectButton, 'click', () => options.onSelect?.());
   listen(removeAllButton, 'click', () => {
     const length = setViewPosition(store.getState()).total;
     // Removing every set also removes their puzzles, so it asks first.

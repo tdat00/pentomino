@@ -1,8 +1,7 @@
 // @ts-check
-// Hint and reveal orchestration (design §11.13), DOM-free. One request at a time runs `solveFirst` in a worker
-// under the pool's 115/120-second watchdog; a result is applied only while the board, the clues and the player's
-// placements still match the fingerprint taken when the request started. The proofs live in core/engine/hints.js;
-// moves go through the play controller, so a hint placement or a reveal is one undoable game action.
+// Hint and reveal orchestration (design §11.13), DOM-free. One request at a time runs `solveFirst` in a worker; a
+// result is applied only while the position still matches the fingerprint taken when the request started. Moves go
+// through the play controller, so a hint placement or a reveal is one undoable game action.
 
 import { canPlace } from '../core/engine/game.js';
 import { poseCells } from '../core/engine/geometry.js';
@@ -29,7 +28,7 @@ import { HINT_TEXT } from './strings.js';
 
 /**
  * What the board highlights: the cells of the suggested pose (a preview) or of
- * the placed piece a removal repairs. `pulse` is false in reduced-motion mode.
+ * the placed piece a removal repairs.
  * @typedef {object} HintMarks
  * @property {'place' | 'remove'} kind
  * @property {string} piece
@@ -135,7 +134,6 @@ export function createHintController(options) {
     return store.getState().pack?.pieces.find((p) => p.id === id)?.label ?? id;
   }
 
-  /** Ends the in-flight request, stopping its worker. */
   function abortActive() {
     const request = active;
     active = null;
@@ -153,7 +151,6 @@ export function createHintController(options) {
   }
 
   /**
-   * Starts a request for the open game, or null when there is nothing to ask.
    * @returns {{ id: number, fp: string, request: NonNullable<typeof active> } | null}
    */
   function begin() {
@@ -209,7 +206,6 @@ export function createHintController(options) {
   }
 
   /**
-   * Whether the answer of `request` may still be used.
    * @param {NonNullable<typeof active>} request
    * @param {string} fp
    * @returns {boolean}
@@ -219,9 +215,8 @@ export function createHintController(options) {
   }
 
   /**
-   * Ends the request and says whether its answer may still be used. A cancelled
-   * or superseded request stays silent; a changed position has already been
-   * reported by the store listener.
+   * A cancelled or superseded request stays silent; a changed position has
+   * already been reported by the store listener.
    * @param {NonNullable<typeof active>} request
    * @param {string} fp
    * @returns {boolean}
@@ -325,11 +320,7 @@ export function createHintController(options) {
     }
   }
 
-  /**
-   * Puts the hint on the board (or removes the piece), after checking again
-   * that it is still valid for the current position.
-   * @returns {boolean}
-   */
+  /** @returns {boolean} */
   function applyHint() {
     const hint = shown;
     const s = store.getState();
@@ -415,7 +406,6 @@ export function createHintController(options) {
     }
   }
 
-  /** Cancels a running check; nothing on the board changes. */
   function cancel() {
     if (state.phase !== 'working') {
       return;
@@ -425,7 +415,6 @@ export function createHintController(options) {
     announce(HINT_TEXT.cancelled);
   }
 
-  /** Hides a shown hint or a declined reveal prompt. */
   function dismiss() {
     if (state.phase === 'working') {
       cancel();

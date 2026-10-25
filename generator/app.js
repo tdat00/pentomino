@@ -70,7 +70,6 @@ function browserStorage() {
 }
 
 /**
- * `?lang=`, then the saved choice, then the browser languages, then English.
  * @param {{ search?: string, languageStorage?: Pick<Storage, 'getItem'> | null, navigator?: { language?: string, languages?: readonly string[] } }} [sources]
  * @returns {string}
  */
@@ -135,7 +134,7 @@ export function createGeneratorApp(doc, options = {}) {
     ...(options.now === undefined ? {} : { now: options.now }),
     ...options.controller,
   });
-  const setPanel = mountSetPanel(regions.set, { store, controller });
+  const setPanel = mountSetPanel(regions.set, { store, controller, onSelect: () => void wizard?.go(3, { focus: true }) });
   const setSummaryHost = optionalSlot(doc, 'set-summary');
   const setSummary = setSummaryHost === null ? null : mountSetSummary(setSummaryHost, { store });
   const puzzleControlsHost = optionalSlot(doc, 'puzzle-controls');

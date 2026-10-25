@@ -4,7 +4,7 @@
 // back of every sheet must be the front mirrored left-to-right). Writes a pass/fail list into the page, data-summary
 // and data-result on <html>. Developer fixture, not deployed.
 
-import { createPrintDialog } from '../../core/browser/print-dialog.js';
+import { createPrintDialog, puzzleDetails } from '../../core/browser/print-dialog.js';
 import { buildPrintPages } from '../../core/browser/print-sheet.js';
 import { boardFromRows } from '../../core/engine/board.js';
 import { packBoard } from '../../core/engine/pack.js';
@@ -85,7 +85,7 @@ const OPTIONS = { pieces: true, board: true, size: /** @type {const} */ ('medium
  * @returns {HTMLElement[]} The pages, attached to the page so that they can be measured.
  */
 function stagePages(plan) {
-  const pages = buildPrintPages(plan, { title: 'Puzzle #1', subtitle: 'Easy: score 8' }, t);
+  const pages = buildPrintPages(plan, { title: 'Puzzle #1', details: [] }, t);
   document.getElementById('stage')?.append(...pages);
   return pages;
 }
@@ -158,6 +158,58 @@ await check('a heart board prints without its blocked squares, and a big board i
   const parts = pages.slice(1).flatMap((page) => [...page.querySelectorAll('.pm-print-board')]);
   equal(parts.length, plan.boardParts, 'one sheet per part');
   equal(parts.reduce((sum, node) => sum + squaresOf(node), 0), 75, 'every playable square of the heart is printed once, the blocked ones not at all');
+  const boardTiles = plan.sheets.flatMap((s) => (s.kind === 'board' ? [s.tile] : []));
+  const marks = pages.flatMap((page) => [...page.querySelectorAll('.pm-print-join')]);
+  equal(marks.length, boardTiles.reduce((sum, tile) => sum + tile.joins.length, 0), 'a join mark for every joint of every part');
+  assert(marks.length > 0 && marks.every((g) => g.querySelector('polygon') !== null && g.textContent === g.getAttribute('data-to')), 'each mark is a triangle with the neighbour number');
+  assert(pages.some((page) => /match each ▶ mark/.test(page.textContent ?? '')), 'the board sheets say how to join the parts');
+
+  setLocale('en', document);
+  const dialog = createPrintDialog({ host: document.body, t, getJob: () => ({ ...job, title: 'Heart', details: [] }) });
+  dialog.open();
+  /** @type {HTMLElement} */ (dialog.dialog.querySelector('tr[data-size="large"] td:last-child')).click();
+  const said = dialog.dialog.querySelector('[data-role="print-summary"]')?.textContent ?? '';
+  assert(said.startsWith(`The board is printed on ${plan.boardParts} sheets to cut out and join.`), `the dialog explains the split board: ${said}`);
+  dialog.close();
+});
+
+await check('the preview board outlines its pieces in black, and holes are grey with a cross on paper', async () => {
+  const job = sampleJob();
+  const pages = stagePages(planPrint(job, OPTIONS));
+  const outlines = [...pages[0].querySelectorAll('.pm-clue .pm-print-outline')];
+  equal(outlines.length, job.clues.length, 'one dark outline per piece on the preview board');
+  equal(pages[0].querySelectorAll('.pm-print-outline').length, sample.pieces.length, 'the pieces to place are outlined too');
+  assert(outlines.every((path) => path.getAttribute('stroke') === '#000000'), 'the outlines are black');
+  const width = Number(outlines[0].getAttribute('stroke-width')) * planPrint(job, OPTIONS).preview.cellMm;
+  near(width, 0.6, 0.01, 'the outlines are 0.6 mm wide');
+  document.getElementById('stage')?.replaceChildren();
+
+  const active = new Uint8Array(8 * 6).fill(1);
+  active[2 * 8 + 3] = 0;
+  const holed = stagePages(planPrint({ board: { width: 8, height: 6, active }, pieces: sample.pieces, clues: [], rotation: 0 }, OPTIONS));
+  const boards = holed.flatMap((page) => [...page.querySelectorAll('.pm-print-board')]);
+  assert(boards.length === 2, `the preview and the board sheet (${boards.length})`);
+  for (const node of boards) {
+    const hole = node.querySelector('rect.pm-print-hole');
+    assert(hole !== null && hole.getAttribute('fill') === '#c4c4c4' && hole.nextElementSibling?.tagName === 'path', 'the hole is light grey with a cross');
+    assert(!hole?.classList.contains('pm-blocked'), 'the screen theme cannot recolour it on paper');
+  }
+});
+
+await check('the first sheet names the puzzle, its rating and seed, and its piece set, with the level names in bold', async () => {
+  setLocale('en', document);
+  const details = puzzleDetails(t, { level: 'Nightmare', score: 123.4, saturated: false }, '4567', { level: 'Expert', seed: 'ABCD-EFGH-JKLM' });
+  const [page] = buildPrintPages(planPrint(sampleJob(), OPTIONS), { title: 'Puzzle #2', details }, t);
+  document.getElementById('stage')?.append(page);
+  const lines = [...page.querySelectorAll('text.pm-print-detail')];
+  equal(lines.map((n) => n.textContent).join(' | '), 'Nightmare: score 123, seed 4567 | Set: Expert, ABCD-EFGH-JKLM', 'the two lines');
+  equal(lines.map((n) => [...n.querySelectorAll('tspan[font-weight="700"]')].map((s) => s.textContent).join()).join(' | '), 'Nightmare | Expert', 'the levels are bold');
+  equal(page.querySelector('text')?.textContent, 'Puzzle #2', 'the title above them');
+  const board = /** @type {Element} */ (page.querySelector('.pm-print-board'));
+  assert(box(board).y > box(lines[1]).y + box(lines[1]).h, 'the board starts under the heading');
+  equal(puzzleDetails(t, null, '9', null).map((line) => line.map((p) => p.text).join('')).join(), 'Seed: 9', 'without a rating or a set: the seed only');
+  equal(puzzleDetails(t, { level: 'Easy', score: 8, saturated: true }, undefined, { level: null, seed: 'S' }).map((line) => line.map((p) => p.text).join('')).join(' | '),
+    'Easy: score 8+ | Set: S', 'without seeds or a set level, what is known');
 });
 
 await check('the dialog keeps the choices, summarises the paper and prints through the browser', async () => {
@@ -179,27 +231,40 @@ await check('the dialog keeps the choices, summarises the paper and prints throu
     },
     removeEventListener: () => {},
   }));
-  const dialog = createPrintDialog({ host, t, win: stub, getJob: () => ({ ...sampleJob(), title: 'Puzzle #1', subtitle: 'Easy: score 8' }) });
+  const dialog = createPrintDialog({ host, t, win: stub, getJob: () => ({ ...sampleJob(), title: 'Puzzle #1', details: [] }) });
   dialog.open();
   const root = dialog.dialog;
   assert(dialog.isOpen(), 'the dialog opens');
   const q = (/** @type {string} */ selector) => /** @type {HTMLInputElement & HTMLSelectElement & HTMLButtonElement} */ (root.querySelector(selector));
   assert(q('[data-field="print-pieces"]').checked && q('[data-field="print-board"]').checked, 'the piece set and the board are on');
   assert(!q('[data-field="print-duplex"]').checked, 'one side by default');
-  equal(q('[data-field="print-size"]').value, 'medium', 'medium size by default');
-  equal(q('[data-role="print-summary"]').textContent, '3 sheets of A4 · cells of 15 mm', 'summary');
+  const sizeOf = () => /** @type {HTMLInputElement | null} */ (root.querySelector('[data-field="print-size"]:checked'))?.value;
+  equal(sizeOf(), 'medium', 'medium size by default');
+  const options = [...root.querySelectorAll('.pm-print-options > *')].map((n) => n.querySelector('[data-field]')?.getAttribute('data-field'));
+  equal(JSON.stringify(options), JSON.stringify(['print-pieces', 'print-board', 'print-duplex', 'print-size']), 'piece set, board, two sides, then the size table');
+  const sheetsColumn = () => [...root.querySelectorAll('td.pm-print-sheets')].map((td) => td.textContent).join(',');
+  const expectedSheets = (/** @type {Partial<typeof OPTIONS>} */ o) => ['small', 'medium', 'large', 'fit_page']
+    .map((size) => planPrint(sampleJob(), { ...OPTIONS, ...o, size: /** @type {typeof OPTIONS.size} */ (size) }).paper).join(',');
+  const sizeRows = [...root.querySelectorAll('table.pm-print-sizes tbody tr')].map((tr) => [.../** @type {HTMLTableRowElement} */ (tr).cells].slice(0, 2).map((td) => td.textContent?.trim()));
+  equal(JSON.stringify(sizeRows), JSON.stringify([['Small', '10 mm'], ['Medium', '15 mm'], ['Large', '20 mm'], ['Fit to page', 'Largest that fits on one sheet']]), 'the size table: name and cell');
+  equal([...root.querySelectorAll('table.pm-print-sizes thead th')].map((th) => th.textContent).join('|'), 'Size|Cell size|A4 sheets', 'its column heads');
+  equal(sheetsColumn(), expectedSheets({}), 'the sheets each size needs');
+  equal(sheetsColumn().split(',')[1], '3', 'medium: 3 sheets');
+  assert(root.querySelector('.pm-print-note') === null && !/100 ?%/.test(root.textContent ?? ''), 'no note about printing at 100 %');
+  equal(q('[data-role="print-summary"]').textContent, '', 'no summary while the board fits one sheet as it is');
+  assert(!/sheets? of A4/.test(root.textContent ?? ''), 'the total of sheets is only in the table');
 
   q('[data-field="print-duplex"]').checked = true;
   q('[data-field="print-duplex"]').dispatchEvent(new Event('change'));
-  assert(/6 pages, both sides/.test(q('[data-role="print-summary"]').textContent ?? ''), 'two sides doubles the pages');
-  q('[data-field="print-size"]').value = 'large';
-  q('[data-field="print-size"]').dispatchEvent(new Event('change'));
-  assert(/cells of 20 mm/.test(q('[data-role="print-summary"]').textContent ?? ''), 'the size changes the cells');
-  assert(/turned a quarter/.test(q('[data-role="print-summary"]').textContent ?? ''), 'a turned board is said');
+  equal(sheetsColumn(), expectedSheets({ duplex: true }), 'two sides: the same sheets');
+  /** @type {HTMLElement} */ (root.querySelector('tr[data-size="large"] td:last-child')).click();
+  equal(sizeOf(), 'large', 'a click anywhere in a row picks its size');
+  assert(!/cells of|mm/.test(q('[data-role="print-summary"]').textContent ?? ''), 'the summary does not repeat the cell size');
+  equal(q('[data-role="print-summary"]').textContent, 'The board is rotated 90° to save paper.', 'a turned board is said');
   q('[data-field="print-pieces"]').checked = false;
   q('[data-field="print-board"]').checked = false;
   q('[data-field="print-pieces"]').dispatchEvent(new Event('change'));
-  assert(/^1 sheet of A4/.test(q('[data-role="print-summary"]').textContent ?? ''), 'only the preview is left');
+  equal(sheetsColumn(), '1,1,1,1', 'the sheets column follows the other choices: only the preview is left');
 
   q('[data-field="print-pieces"]').checked = true;
   q('[data-field="print-pieces"]').dispatchEvent(new Event('change'));
@@ -214,14 +279,53 @@ await check('the dialog keeps the choices, summarises the paper and prints throu
 
   dialog.open();
   equal(q('[data-field="print-duplex"]').checked, true, 'the choices are kept for the next time');
+  equal(sizeOf(), 'large', 'the size too');
   q('[data-action="print-cancel"]').click();
   assert(!dialog.isOpen(), 'cancel closes');
   equal(printed, 1, 'cancel prints nothing');
 });
 
+await check('Print solution: only where the app offers it, and it adds the solution sheet', async () => {
+  setLocale('en', document);
+  const solution = sample.puzzles[0].solution;
+  /** @type {any[] | null} */
+  let jobSolution = solution;
+  const job = () => ({ ...sampleJob(), title: 'Puzzle #1', details: [], solution: jobSolution });
+  const plain = createPrintDialog({ host: document.body, t, getJob: job });
+  equal(plain.dialog.querySelector('[data-field="print-solution"]'), null, 'not offered by default (the player)');
+  const dialog = createPrintDialog({ host: document.body, t, getJob: job, solutionOption: true });
+  dialog.open();
+  const root = dialog.dialog;
+  const input = /** @type {HTMLInputElement} */ (root.querySelector('[data-field="print-solution"]'));
+  const fields = [...root.querySelectorAll('.pm-print-options > *')].map((n) => n.querySelector('[data-field]')?.getAttribute('data-field'));
+  equal(fields.join(','), 'print-pieces,print-board,print-duplex,print-solution,print-size', 'after Print 2 sides, before the size table');
+  assert(!input.checked && !input.disabled, 'off by default');
+  equal(input.closest('label')?.textContent?.startsWith('Print solution'), true, 'its name');
+  const medium = () => root.querySelector('tr[data-size="medium"] td.pm-print-sheets')?.textContent;
+  const before = Number(medium());
+  input.checked = true;
+  input.dispatchEvent(new Event('change'));
+  equal(Number(medium()), before + 1, 'one more sheet');
+  dialog.close();
+  jobSolution = null;
+  dialog.open();
+  assert(input.disabled && input.closest('label')?.title === 'No solution is stored for this puzzle.', 'no stored solution: disabled with the reason');
+  equal(Number(medium()), before, 'and no extra sheet');
+  dialog.close();
+  jobSolution = solution;
+  const plan = planPrint(job(), { ...OPTIONS, solution: true });
+  const pages = stagePages(plan);
+  const second = pages[1];
+  assert(second !== undefined && /Solution/.test(second.textContent ?? ''), 'the solution is the sheet after the puzzle');
+  equal(second?.querySelectorAll('.pm-print-solution .pm-print-piece').length, sample.pieces.length, 'with every piece');
+  document.getElementById('stage')?.replaceChildren();
+  const both = stagePages(planPrint(job(), { ...OPTIONS, solution: true, duplex: true }));
+  assert(/Solution/.test(both[1].textContent ?? '') && both[1].querySelector('.pm-print-solution') !== null, 'two sides: the solution is the back of the puzzle, not a blank page');
+});
+
 await check('the texts follow the language', async () => {
   setLocale('vi', document);
-  const dialog = createPrintDialog({ host: document.body, t, getJob: () => ({ ...sampleJob(), title: 'Đề #1', subtitle: '' }) });
+  const dialog = createPrintDialog({ host: document.body, t, getJob: () => ({ ...sampleJob(), title: 'Đề #1', details: [] }) });
   equal(dialog.dialog.querySelector('.pm-print-title')?.textContent, 'In đề', 'Vietnamese title');
   setLocale('en', document);
   equal(dialog.dialog.querySelector('.pm-print-title')?.textContent, 'Print puzzle', 'English title after the switch');

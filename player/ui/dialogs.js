@@ -19,7 +19,7 @@ let dialogCount = 0;
  */
 
 /**
- * @param {HTMLElement} host Where the dialog element lives.
+ * @param {HTMLElement} host
  * @param {{ titleKey: string, className?: string }} options
  * @returns {Modal}
  */
@@ -73,7 +73,7 @@ export function createModal(host, { titleKey, className = '' }) {
 }
 
 /**
- * @param {string} textKey Key of the button text.
+ * @param {string} textKey
  * @param {() => void} run
  * @param {string} action
  * @returns {HTMLButtonElement}

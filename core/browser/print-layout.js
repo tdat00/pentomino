@@ -1,10 +1,9 @@
 // @ts-check
-// Paper layout of a puzzle for printing on A4 (millimetres, y grows down): the preview sheet, the piece set packed
-// onto sheets, and the board cut into parts that fit a sheet. Pure geometry, no DOM. The board and the pieces share
-// one cell size, so a printed piece covers exactly one printed board cell. For two-sided printing the back of a
-// sheet is the front mirrored left-to-right (paper turned about its long edge); `mirrorX` and `mirrorCells` give it.
+// Paper layout of a puzzle for printing on A4 (millimetres, y grows down); pure geometry, no DOM. The board and the
+// pieces share one cell size, so a printed piece covers exactly one printed board cell. The back of a two-sided sheet
+// is the front mirrored left-to-right (paper turned about its long edge).
 
-import { activeCells } from '../engine/board.js';
+import { activeCells, classifyBlocked } from '../engine/board.js';
 import { normalizeCells, poseCells, transformCells } from '../engine/geometry.js';
 
 /** @typedef {import('../engine/types.js').XY} XY */
@@ -27,11 +26,13 @@ export const CELL_MM = Object.freeze({ small: 10, medium: 15, large: 20 });
 /** "Fit page" never makes a cell bigger than this, however small the board. */
 export const FIT_PAGE_MAX_CELL_MM = 25;
 
-/** Header of the preview sheet: title and subtitle. */
-export const PREVIEW_TOP = PAGE_MARGIN + 26;
+/** Header of the preview sheet: title and two detail lines (rating and seed, piece set). */
+export const PREVIEW_TOP = PAGE_MARGIN + 30;
 /** Footer of the preview sheet: scale bar and print notes. */
 export const PREVIEW_BOTTOM = PAGE_HEIGHT - PAGE_MARGIN - 14;
 const PREVIEW_MAX_CELL_MM = 10;
+/** The preview is drawn at this share of the largest size the page allows, so it stays a compact reading aid. */
+const PREVIEW_SCALE = 0.6;
 const PREVIEW_MIN_CELL_MM = 1.5;
 const PREVIEW_BOARD_MAX_HEIGHT_MM = 120;
 const PREVIEW_LEGEND_MM = 6;
@@ -71,6 +72,7 @@ export function snapRotation(rotation) {
  * @property {number} cols Board width in cells.
  * @property {number} rows Board height in cells.
  * @property {XY[]} active Playable cells.
+ * @property {XY[]} [holes] Blocked cells enclosed by the board (drawn grey with a cross); exterior ones are left out.
  * @property {OrientedPiece[]} pieces Every piece of the set.
  * @property {{ piece: Piece, index: number, cells: XY[] }[]} clues Pre-placed pieces, in board cells.
  * @property {OrientedPiece[]} toPlace The pieces the player has to place.
@@ -87,6 +89,15 @@ export function orientModel({ board, pieces, clues, rotation }) {
   /** @param {XY[]} cells */
   const turn = (cells) => transformCells(cells, turns);
   const active = turn(activeCells(board));
+  const kinds = classifyBlocked(board);
+  /** @type {XY[]} */
+  const holeCells = [];
+  kinds.forEach((kind, i) => {
+    if (kind === 2) {
+      holeCells.push([i % board.width, Math.floor(i / board.width)]);
+    }
+  });
+  const holes = turn(holeCells);
   const placed = clues.map((pose) => {
     const index = pieces.findIndex((p) => p.id === pose.piece);
     if (index === -1) {
@@ -116,6 +127,7 @@ export function orientModel({ board, pieces, clues, rotation }) {
     cols: maxX - minX + 1,
     rows: maxY - minY + 1,
     active: shift(active),
+    holes: shift(holes),
     pieces: oriented,
     clues: placed.map((p) => ({ ...p, cells: shift(p.cells) })),
     toPlace: oriented.filter((p) => !clueIds.has(p.piece.id)),
@@ -267,9 +279,49 @@ function evenSplit(total, parts) {
  * @property {number} cols Cells across the part.
  * @property {number} rows Cells down the part.
  * @property {XY[]} cells Playable cells of the part, from its own corner.
+ * @property {XY[]} holes Enclosed blocked cells of the part, from its own corner.
+ * @property {BoardJoin[]} joins Marks on the edges this part shares with its neighbours, one per run of shared cells.
  * @property {number} x mm from the left of the sheet to the part's corner.
  * @property {number} y mm from the top.
  */
+
+/**
+ * @typedef {object} BoardJoin
+ * @property {number} x Cell of the part (from its own corner) whose edge carries the mark.
+ * @property {number} y
+ * @property {'left' | 'right' | 'top' | 'bottom'} side Edge of that cell that meets the neighbour.
+ * @property {number} to Number of the neighbouring part.
+ */
+
+/**
+ * Where two neighbouring parts meet: one mark in the middle of each run of cells that are playable on both sides of
+ * the cut, on both parts, so the two marks line up when the parts are joined.
+ * @param {Set<string>} active `x,y` of the playable cells of the whole board.
+ * @param {BoardTile} a The part on the left (or on top).
+ * @param {BoardTile} b The part on the right (or below).
+ * @param {{ start: number, count: number }} along Cells along the cut (rows for a vertical cut, columns otherwise).
+ * @param {number} cut First column (or row) of `b`.
+ * @param {{ start: number }} aOrigin Column (or row) where `a` starts across the cut.
+ * @param {{ start: number }} alongOrigin Where both parts start along the cut.
+ * @param {boolean} vertical
+ */
+function addJoins(active, a, b, along, cut, aOrigin, alongOrigin, vertical) {
+  /** @param {number} i @param {number} j */
+  const on = (i, j) => active.has(vertical ? `${i},${j}` : `${j},${i}`);
+  let run = -1;
+  for (let i = along.start; i <= along.start + along.count; i += 1) {
+    const shared = i < along.start + along.count && on(cut - 1, i) && on(cut, i);
+    if (shared && run === -1) {
+      run = i;
+    } else if (!shared && run !== -1) {
+      const mid = Math.floor((run + i - 1) / 2) - alongOrigin.start;
+      const last = cut - 1 - aOrigin.start;
+      a.joins.push(vertical ? { x: last, y: mid, side: 'right', to: b.n } : { x: mid, y: last, side: 'bottom', to: b.n });
+      b.joins.push(vertical ? { x: 0, y: mid, side: 'left', to: a.n } : { x: mid, y: 0, side: 'top', to: a.n });
+      run = -1;
+    }
+  }
+}
 
 /**
  * The board cut along cell edges into parts that each fit a sheet, centred on it. Parts without a playable cell are
@@ -285,23 +337,44 @@ export function layoutBoard(model, cellMm) {
   const ys = evenSplit(model.rows, Math.ceil(model.rows / perColumn));
   /** @type {BoardTile[]} */
   const tiles = [];
+  /** @type {Map<string, BoardTile>} */
+  const byPlace = new Map();
   ys.forEach((yr, ty) => {
     xs.forEach((xr, tx) => {
-      /** @type {XY[]} */
-      const cells = model.active
+      /** @param {XY[]} list @returns {XY[]} */
+      const inPart = (list) => list
         .filter(([x, y]) => x >= xr.start && x < xr.start + xr.count && y >= yr.start && y < yr.start + yr.count)
         .map(([x, y]) => [x - xr.start, y - yr.start]);
+      const cells = inPart(model.active);
       if (cells.length > 0) {
-        tiles.push({
+        const tile = {
           n: tiles.length + 1,
           tileRow: ty + 1,
           tileCol: tx + 1,
           cols: xr.count,
           rows: yr.count,
           cells,
+          holes: inPart(model.holes ?? []),
+          joins: /** @type {BoardJoin[]} */ ([]),
           x: (PAGE_WIDTH - xr.count * cellMm) / 2,
           y: (PAGE_HEIGHT - yr.count * cellMm) / 2,
-        });
+        };
+        tiles.push(tile);
+        byPlace.set(`${tx},${ty}`, tile);
+      }
+    });
+  });
+  const active = new Set(model.active.map(([x, y]) => `${x},${y}`));
+  ys.forEach((yr, ty) => {
+    xs.forEach((xr, tx) => {
+      const tile = byPlace.get(`${tx},${ty}`);
+      const right = byPlace.get(`${tx + 1},${ty}`);
+      const below = byPlace.get(`${tx},${ty + 1}`);
+      if (tile !== undefined && right !== undefined) {
+        addJoins(active, tile, right, yr, xs[tx + 1].start, xr, yr, true);
+      }
+      if (tile !== undefined && below !== undefined) {
+        addJoins(active, tile, below, xr, ys[ty + 1].start, yr, xr, false);
       }
     });
   });
@@ -320,12 +393,12 @@ export function layoutBoard(model, cellMm) {
 
 /**
  * The preview sheet: the board with its pre-placed pieces under the title, then the pieces to place, all at one
- * scale, as large as the page allows up to 10 mm cells.
+ * scale: 60 % of the largest the page allows (up to 10 mm cells), smaller still when the pieces need it.
  * @param {PrintModel} model
  * @returns {PreviewLayout}
  */
 export function layoutPreview(model) {
-  const start = Math.min(PREVIEW_MAX_CELL_MM, AREA_WIDTH / model.cols, PREVIEW_BOARD_MAX_HEIGHT_MM / model.rows);
+  const start = PREVIEW_SCALE * Math.min(PREVIEW_MAX_CELL_MM, AREA_WIDTH / model.cols, PREVIEW_BOARD_MAX_HEIGHT_MM / model.rows);
   /** @type {PreviewLayout | null} */
   let found = null;
   for (let cell = start; found === null; cell = Math.max(PREVIEW_MIN_CELL_MM, cell * 0.95)) {
@@ -377,11 +450,21 @@ export function mirrorCells(cells, width) {
  * @property {boolean} board Print the board.
  * @property {PrintSize} size
  * @property {boolean} duplex Print on both sides of the paper.
+ * @property {boolean} [solution] Add a last sheet with the solved board (needs the job's solution).
+ */
+
+/**
+ * @typedef {object} SolutionLayout
+ * @property {number} cellMm
+ * @property {number} boardX
+ * @property {number} boardY
+ * @property {{ piece: Piece, index: number, cells: XY[] }[]} placed Every piece of the solution, in board cells.
  */
 
 /**
  * @typedef {{ kind: 'preview' } | { kind: 'pieces', n: number, total: number, placements: PiecePlacement[] }
- *   | { kind: 'board', tile: BoardTile, total: number, tilesAcross: number, tilesDown: number }} Sheet
+ *   | { kind: 'board', tile: BoardTile, total: number, tilesAcross: number, tilesDown: number }
+ *   | { kind: 'solution', layout: SolutionLayout }} Sheet
  */
 
 /**
@@ -390,10 +473,12 @@ export function mirrorCells(cells, width) {
  * @property {PrintOptions} options
  * @property {number} cellMm
  * @property {boolean} reduced
- * @property {boolean} turned The board is printed a quarter turn from the shown view, to need fewer parts. * @property {PreviewLayout} preview
- * @property {Sheet[]} sheets One per sheet of paper, in printing order.
+ * @property {boolean} turned The board is printed a quarter turn from the shown view, to need fewer parts.
+ * @property {PreviewLayout} preview
+ * @property {Sheet[]} sheets The printed faces in order: the puzzle, its solution when asked, the pieces, the board.
  * @property {{ sheet: Sheet, side: 'front' | 'back' }[]} pages The pages sent to the printer: with two sides, the
- *   back of every sheet follows its front (the back of the preview is blank).
+ *   back of every sheet follows its front; the back of the puzzle is blank, or holds the solution when it is printed.
+ * @property {number} paper Sheets of paper needed (on two sides the puzzle and its solution share one).
  * @property {number} boardParts
  */
 
@@ -422,7 +507,26 @@ function chooseModel(job, options) {
 }
 
 /**
+ * The solution sheet: the board with every piece of the solution, as large as the page allows up to 10 mm cells,
+ * under the same heading as the preview.
  * @param {{ board: Board, pieces: Piece[], clues: Pose[], rotation: number }} job
+ * @param {Pose[]} solution
+ * @param {PrintModel} model The model the rest of the printout uses (its angle is kept).
+ * @returns {SolutionLayout}
+ */
+export function layoutSolution(job, solution, model) {
+  const solved = orientModel({ ...job, clues: solution, rotation: model.rotation });
+  const cellMm = floorTenth(Math.min(PREVIEW_MAX_CELL_MM, AREA_WIDTH / model.cols, (PREVIEW_BOTTOM - PREVIEW_TOP) / model.rows));
+  return {
+    cellMm,
+    boardX: PAGE_MARGIN + (AREA_WIDTH - model.cols * cellMm) / 2,
+    boardY: PREVIEW_TOP,
+    placed: solved.clues,
+  };
+}
+
+/**
+ * @param {{ board: Board, pieces: Piece[], clues: Pose[], rotation: number, solution?: Pose[] | null }} job
  * @param {PrintOptions} options
  * @returns {PrintPlan}
  */
@@ -431,6 +535,11 @@ export function planPrint(job, options) {
   const { cellMm, reduced } = cellSizeFor(model, options.size);
   /** @type {Sheet[]} */
   const sheets = [{ kind: 'preview' }];
+  // The solution comes right after the puzzle; on two sides it is the back of the puzzle's sheet.
+  const withSolution = options.solution === true && job.solution !== undefined && job.solution !== null && job.solution.length > 0;
+  if (withSolution) {
+    sheets.push({ kind: 'solution', layout: layoutSolution(job, /** @type {Pose[]} */ (job.solution), model) });
+  }
   if (options.pieces) {
     const packed = layoutPieceSheets(model.pieces, cellMm);
     packed.forEach((placements, i) => sheets.push({ kind: 'pieces', n: i + 1, total: packed.length, placements }));
@@ -445,11 +554,13 @@ export function planPrint(job, options) {
   }
   /** @type {PrintPlan['pages']} */
   const pages = [];
+  const twoSided = options.duplex && sheets.length > 1;
   for (const sheet of sheets) {
     pages.push({ sheet, side: 'front' });
-    if (options.duplex && sheets.length > 1) {
+    if (twoSided && !(withSolution && (sheet.kind === 'preview' || sheet.kind === 'solution'))) {
       pages.push({ sheet, side: 'back' });
     }
   }
-  return { model, options, cellMm, reduced, turned, preview: layoutPreview(model), sheets, pages, boardParts };
+  const paper = sheets.length - (twoSided && withSolution ? 1 : 0);
+  return { model, options, cellMm, reduced, turned, preview: layoutPreview(model), sheets, pages, paper, boardParts };
 }

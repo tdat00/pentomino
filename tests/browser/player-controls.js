@@ -645,6 +645,46 @@ await check('the empty corner of a piece\'s bounding box does not grab it and st
   m.player.destroy();
 });
 
+await check('a press on the frame around a tray piece grabs it by its nearest cell and drags it onto the board', async () => {
+  const m = await game(0);
+  const [target] = movables(m);
+  const button = trayButton(m, target.piece);
+  button.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  await tick();
+  const box = button.getBoundingClientRect();
+  const start = { x: box.left + 2, y: box.top + 2 };
+  const under = /** @type {Element | null} */ (document.elementFromPoint(start.x, start.y));
+  assert(under !== null && button.contains(under) && under.closest('.pm-hit') === null && under.closest('[data-movable="true"]') === null,
+    `the press is on the frame, not on the piece (${under?.tagName})`);
+  let index = -1;
+  let best = Infinity;
+  for (const hit of button.querySelectorAll('.pm-hit[data-source-cell]')) {
+    const c = centerOf(hit);
+    const d = (c.x - start.x) ** 2 + (c.y - start.y) ** 2;
+    if (d < best) {
+      best = d;
+      index = Number(hit.getAttribute('data-source-cell'));
+    }
+  }
+  const tray = m.player.hosts.tray;
+  pe(/** @type {Element} */ (under), 'pointerdown', start.x, start.y);
+  pe(tray, 'pointermove', start.x + 16, start.y + 16);
+  await tick();
+  assert(m.play.view().dragging, 'the drag started from the frame');
+  for (const op of opsTo(poseT(target), 0)) {
+    key(KEY_FOR[op]);
+  }
+  await tick();
+  const to = handleCell(pieceOf(m, target.piece), target, index);
+  const at = await cellCenter(m, to[0], to[1]);
+  pe(tray, 'pointermove', at.x, at.y);
+  await tick();
+  pe(tray, 'pointerup', at.x, at.y);
+  await tick();
+  same(m.game().placed.get(target.piece), target, 'the cell nearest the press is the one that lands under the pointer');
+  m.player.destroy();
+});
+
 await check('wheel turns a dragged piece and shortcut keys stay active during the drag', async () => {
   const m = await game(0);
   const [first] = movables(m);
@@ -810,15 +850,23 @@ await check('keyboard move on a rotated board draws grid-axis arrow hints', asyn
   flat.player.destroy();
 });
 
-await check('winning: dialog with time, moves, level; Replay starts fresh; Next puzzle opens #2; Back link; celebration honours reduced motion', async () => {
+await check('winning: a celebration with time and moves; Replay starts fresh; Next puzzle opens #2; celebration honours reduced motion', async () => {
   const m = await game(0, { reducedMotion: true });
   await solveByKeyboard(m, 0);
   const dialog = /** @type {HTMLDialogElement} */ (m.q('dialog.pm-win'));
   assert(dialog.open, 'dialog open');
+  assert(dialog.querySelector('.win-badge svg') !== null && (m.q('.win-message').textContent ?? '').length > 0, 'a badge and a congratulation');
   assert(/^\d+:\d\d$/.test(m.q('.win-time').textContent ?? ''), 'time shown');
   equal(m.q('.win-moves').textContent, String(m.game().moves), 'moves shown');
-  assert((m.q('.win-level').textContent ?? '').includes('score'), 'level and score shown');
-  equal(m.q('[data-action="win-back"]').getAttribute('href'), '../generator/', 'Back to generator link');
+  assert(dialog.querySelector('.win-level') === null && dialog.querySelector('[data-action="win-back"]') === null, 'no level and no Back to generator');
+  const actions = /** @type {HTMLElement} */ (dialog.querySelector('.pm-dialog-actions'));
+  const buttons = [...actions.querySelectorAll('button')].filter((b) => !b.hidden);
+  equal(buttons.map((b) => b.dataset.action).join(','), 'win-next,win-replay,win-close', 'Next puzzle, Replay on the left of Close');
+  assert(buttons[buttons.length - 1].classList.contains('primary'), 'Close has the strong background');
+  const box = dialog.getBoundingClientRect();
+  const last = buttons[buttons.length - 1].getBoundingClientRect();
+  assert(box.right - last.right < 30 && box.bottom - last.bottom < 30, 'the buttons sit at the bottom right');
+  assert(buttons.every((b) => b.getBoundingClientRect().height < 44), 'small buttons');
   assert(!m.q('.game').classList.contains('is-celebrating'), 'no celebration with reduced motion');
   await waitFor(() => (m.q('[data-host="live"]').textContent ?? '').startsWith('Puzzle solved'), 'win announcement');
   equal(m.adapter.map.size > 0, true, 'progress is saved');

@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import { rectangle } from '../core/engine/board.js';
 import { packBoard } from '../core/engine/pack.js';
 import {
-  AREA_HEIGHT, AREA_WIDTH, CELL_MM, FIT_PAGE_MAX_CELL_MM, PAGE_WIDTH, cellSizeFor, layoutBoard, layoutPieceSheets, layoutPreview,
+  AREA_HEIGHT, AREA_WIDTH, CELL_MM, FIT_PAGE_MAX_CELL_MM, PAGE_WIDTH, PRINT_SIZES, cellSizeFor, layoutBoard, layoutPieceSheets, layoutPreview,
   mirrorCells, mirrorX, orientModel, planPrint, snapRotation,
 } from '../core/browser/print-layout.js';
 import { PRINT_TEXTS_EN, PRINT_TEXTS_VI } from '../core/browser/print-texts.js';
@@ -108,6 +108,36 @@ test('a big board is cut into parts that cover every playable square once and fi
     assert.ok(Math.abs(mirrorX(tile.x, tile.cols * 20) - tile.x) < 1e-9, 'the back of a board part lies on its front');
   }
   assert.deepEqual(tiles.map((t) => t.n), [1, 2, 3, 4, 5, 6]);
+  // Every joint carries a mark on both parts, at the same place of the whole board.
+  const marks = tiles.flatMap((t) => t.joins.map((j) => ({ ...j, from: t.n })));
+  const global = (/** @type {number} */ n, /** @type {number} */ x, /** @type {number} */ y) => {
+    const t = tiles[n - 1];
+    const col = [0, 8, 15][t.tileCol - 1];
+    const row = [0, 11][t.tileRow - 1];
+    return [col + x, row + y];
+  };
+  assert.equal(marks.length, 2 * (2 * 2 + 3), 'three parts across and two down share 7 cuts, each a single run');
+  for (const m of marks) {
+    const back = marks.find((o) => o.from === m.to && o.to === m.from);
+    assert.ok(back !== undefined, `part ${m.to} marks its joint with part ${m.from}`);
+    const [ax, ay] = global(m.from, m.x, m.y);
+    const [bx, by] = global(back.from, back.x, back.y);
+    assert.equal(Math.abs(ax - bx) + Math.abs(ay - by), 1, 'the two marks face each other across the cut');
+  }
+  assert.deepEqual(tiles[0].joins.map((j) => [j.side, j.to]), [['right', 2], ['bottom', 4]]);
+});
+
+test('a joint that is open in the middle gets one mark per run of shared cells, and a whole board none', () => {
+  // Four parts across (8, 8, 7, 7 columns): the cut between parts 2 and 3 is at column 16; column 15 is open in the middle.
+  const active = new Uint8Array(30 * 4).fill(1);
+  for (let y = 1; y < 3; y += 1) {
+    active[y * 30 + 15] = 0;
+  }
+  const model = orientModel({ board: { width: 30, height: 4, active }, pieces: [], clues: [], rotation: 0 });
+  const { tiles } = layoutBoard(model, 20);
+  assert.equal(tiles.length, 4);
+  assert.deepEqual(tiles[1].joins.filter((j) => j.to === 3).map((j) => j.y), [0, 3], 'two runs, two marks');
+  assert.deepEqual(layoutBoard(model, 5).tiles[0].joins, []);
 });
 
 test('blocked parts of a board are not printed', () => {
@@ -121,6 +151,20 @@ test('blocked parts of a board are not printed', () => {
   const { tiles, tilesAcross, tilesDown } = layoutBoard(model, 20);
   assert.ok(tiles.length < tilesAcross * tilesDown);
   assert.equal(tiles.reduce((sum, tile) => sum + tile.cells.length, 0), 30 * 5 * 2 - 25);
+  assert.deepEqual(model.holes, [], 'blocked cells open to the outside are not holes');
+});
+
+test('holes inside the board are kept, turned with it, and land in their board part', () => {
+  const active = new Uint8Array(6 * 4).fill(1);
+  active[1 * 6 + 4] = 0;
+  const board = { width: 6, height: 4, active };
+  assert.deepEqual(orientModel({ board, pieces: [], clues: [], rotation: 0 }).holes, [[4, 1]]);
+  const turned = orientModel({ board, pieces: [], clues: [], rotation: 90 });
+  assert.equal(turned.holes?.length, 1);
+  const [[hx, hy]] = /** @type {[number, number][]} */ (turned.holes);
+  assert.ok(!turned.active.some(([x, y]) => x === hx && y === hy) && hx < turned.cols && hy < turned.rows, 'the hole stays inside the turned board');
+  const { tiles } = layoutBoard(orientModel({ board, pieces: [], clues: [], rotation: 0 }), 40);
+  assert.equal(tiles.reduce((sum, tile) => sum + tile.holes.length, 0), 1, 'the hole is in exactly one part');
 });
 
 test('the back of a piece is its mirror image, at the mirrored place', () => {
@@ -135,7 +179,8 @@ test('the back of a piece is its mirror image, at the mirrored place', () => {
 test('the preview fits the page: board, then the pieces to place at one scale', () => {
   const model = orientModel(sampleJob());
   const preview = layoutPreview(model);
-  assert.ok(preview.cellMm <= 10 && preview.cellMm > 1);
+  const largest = Math.min(10, AREA_WIDTH / model.cols, 120 / model.rows);
+  assert.ok(preview.cellMm <= 0.6 * largest + 1e-9 && preview.cellMm > 1, 'the preview is at most 60 % of the largest the page allows');
   assert.equal(preview.pieces.length, model.toPlace.length);
   assertSeparate(preview.pieces, 0);
   for (const p of preview.pieces) {
@@ -148,7 +193,7 @@ test('the preview fits the page: board, then the pieces to place at one scale', 
     rotation: 0,
   });
   const dense = layoutPreview(crowded);
-  assert.ok(dense.cellMm < 10, 'a crowded preview shrinks to fit');
+  assert.ok(dense.cellMm < 6, 'a crowded preview shrinks to fit');
   assert.ok(Math.max(...dense.pieces.map((p) => p.y + p.h)) <= 297 - 10 - 14 + 1e-6);
 });
 
@@ -198,14 +243,38 @@ test('the printed board and the printed pieces use the same cell size', () => {
   }
 });
 
+test('Print solution puts the solved board right after the puzzle, and on two sides on its back', () => {
+  const solution = pack.puzzles[0].solution;
+  assert.ok(Array.isArray(solution) && solution.length === pack.pieces.length);
+  const without = planPrint({ ...sampleJob(), solution }, OPTIONS);
+  const plan = planPrint({ ...sampleJob(), solution }, { ...OPTIONS, solution: true });
+  assert.equal(plan.paper, without.paper + 1, 'one sheet more on one side');
+  assert.deepEqual(plan.sheets.slice(0, 2).map((s) => s.kind), ['preview', 'solution'], 'the solution follows the puzzle');
+  const sheet = plan.sheets[1];
+  assert.ok(sheet.kind === 'solution');
+  assert.equal(sheet.layout.placed.length, pack.pieces.length);
+  const cells = new Set(sheet.layout.placed.flatMap((p) => p.cells.map(([x, y]) => `${x},${y}`)));
+  assert.equal(cells.size, plan.model.active.length, 'the solution covers the board exactly');
+  assert.ok(plan.model.active.every(([x, y]) => cells.has(`${x},${y}`)));
+  assert.ok(sheet.layout.cellMm <= 10 && sheet.layout.boardX + plan.model.cols * sheet.layout.cellMm <= 200 + 1e-9);
+
+  const duplex = planPrint({ ...sampleJob(), solution }, { ...OPTIONS, solution: true, duplex: true });
+  const plainDuplex = planPrint({ ...sampleJob(), solution }, { ...OPTIONS, duplex: true });
+  assert.deepEqual(duplex.pages.slice(0, 3).map((p) => `${p.sheet.kind}:${p.side}`), ['preview:front', 'solution:front', 'pieces:front'],
+    'two sides: the solution is the back of the puzzle, with no blank page');
+  assert.equal(duplex.paper, plainDuplex.paper, 'and no extra sheet');
+  assert.equal(duplex.pages.length, plainDuplex.pages.length);
+  assert.equal(plainDuplex.pages[1].side, 'back', 'without the solution the back of the puzzle stays blank');
+  assert.equal(planPrint({ ...sampleJob(), solution: null }, { ...OPTIONS, solution: true }).paper, without.paper, 'no solution, no sheet');
+});
+
 test('the texts of the dialog exist in both languages with the same placeholders', () => {
   assert.deepEqual(Object.keys(PRINT_TEXTS_VI).sort(), Object.keys(PRINT_TEXTS_EN).filter((k) => !k.endsWith('_one')).sort());
   for (const [key, text] of Object.entries(PRINT_TEXTS_VI)) {
     const holes = (/** @type {string} */ s) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
     assert.deepEqual(holes(text), holes(PRINT_TEXTS_EN[key]), key);
   }
-  for (const [id, mm] of Object.entries(CELL_MM)) {
-    assert.ok(PRINT_TEXTS_EN[`print.size.${id}`].includes(`${mm} mm`), `the size name of ${id} states its cell size`);
-    assert.ok(PRINT_TEXTS_VI[`print.size.${id}`].includes(`${mm} mm`));
+  for (const id of PRINT_SIZES) {
+    assert.ok(PRINT_TEXTS_EN[`print.size.${id}`] && PRINT_TEXTS_VI[`print.size.${id}`], `the size ${id} has a name`);
   }
 });

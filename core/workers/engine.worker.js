@@ -1,7 +1,6 @@
 // @ts-check
-// Module worker entry: engine modules only. It owns this worker's main and
-// scratch workspaces through the shared task handler and runs every task
-// synchronously; there is no cooperative slicing and no SharedArrayBuffer.
+// Module worker entry: engine modules only. Every task runs synchronously through the shared task handler; there is
+// no cooperative slicing and no SharedArrayBuffer.
 
 import { createTaskHandler } from '../engine/tasks.js';
 

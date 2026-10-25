@@ -56,8 +56,8 @@ Two static web apps share one DOM-free engine in `core/`.
 
 **Generator** (`/pentomino/generator/`), a three-step wizard (§10). The user:
 1. creates a board: size, blocked cells and display rotation;
-2. picks a level among those offered for the board's area and generates a random piece set that provably tiles the board and supports the level (New Piece Set);
-3. generates puzzles from that set, one per New Puzzle press, each with a genuinely different arrangement and some pieces pre-placed.
+2. picks a level among those offered for the board's area and generates a random piece set that provably tiles the board and supports the level (New piece set);
+3. generates puzzles from that set, one per New puzzle press, each with a genuinely different arrangement and some pieces pre-placed.
 
 One difficulty score rates everything. Puzzles go to the player through a self-contained link, opened in a new tab by Play.
 
@@ -67,7 +67,7 @@ One difficulty score rates everything. Puzzles go to the player through a self-c
 
 **Limits.**
 - Boards have 30 to 576 active cells and sides ≤ 32. Until browser qualification passes, release 1 enables 484 cells (360 on phones) [BQ]. The generator page offers nothing above that limit; `tools/generate.mjs` accepts up to 676 cells.
-- Each action (New Piece Set, New Puzzle) targets 60 s and always answers within 120 s, keeping every accepted result.
+- Each action (New piece set, New puzzle) targets 60 s and always answers within 120 s, keeping every accepted result.
 
 ### 1.2 Traceability
 
@@ -88,7 +88,7 @@ Requirements come from the original product brief, including its addendum and th
 | R8 | Pieces may be rotated or flipped to fill 100 % of the board without overlap | 8 orientations; exact cover | 6.1, 6.6 |
 | R9 | Pieces are pairwise distinct, even when rotated or flipped; distinct colors | Canonical keys; palette, generated colors, labels beyond A–Z, patterns | 6.1, 11.9 |
 | R10 | More pieces at higher levels | K grows with level and area | 6.4, 7.5 |
-| R11 | "New Puzzle": 1–10 different puzzles from the same set, changing only the arrangement | Macro carving + local re-tiling; a new layout key AND a new clue key; never clue-only variants; honest partial batches | 6.5, 6.7–6.9 |
+| R11 | "New puzzle": 1–10 different puzzles from the same set, changing only the arrangement | Macro carving + local re-tiling; a new layout key AND a new clue key; never clue-only variants; honest partial batches | 6.5, 6.7–6.9 |
 | R12 | Some pieces pre-placed at random; easy = many, nightmare = few | Initial share per level, then a score-guided clue search; 1 ≤ G ≤ K−2 | 6.10, 7.4 |
 | R13 | Addendum 1–2: the highest (and lowest) level depends on board size; large boards with Hell-2, Hell-3, … | Contiguous availability per level; open ladder | 7.4, 7.5 |
 | R14 | Addendum 3: piece count follows level AND board size; never too many small pieces (examples: 60 cells easy 7–8 / master 11–13; 360 cells hard 16–18 lowest / hell-1 40–42) | K(level, area) formula and final table: 60 → easy 7–8, master 12–13; 360 → hard 16–18 (lowest), hell-1 37–42 | 6.4, 7.5 |
@@ -133,7 +133,7 @@ The main design decisions and why they were taken.
 | D27 | Hints / show solution | Only proven statements | An unproved culprit misleads (A.9). |
 | D28 | Folder layout | `core/engine`, `core/workers`, `core/browser`; tests in `/tests` | Clear layering; tests are never deployed |
 | D29 | Deployment | Actions: test → assemble `_site` → deploy. External `redirect.js`. | CSP-compatible |
-| D30 | Colors and labels | 20-color palette, generated colors beyond 20, labels A…Z, AA, AB, …, and fill patterns when K > 20. Labels and patterns are always drawn; there are no display toggles (§11.9). | Sets reach ~90 pieces on large boards. |
+| D30 | Colors and labels | 20-color palette, generated colors beyond 20, labels A…Z, AA, AB, …, and fill patterns when K > 20. Labels and patterns are always drawn; there are no display toggles. Drawn as one character with a mark past Z, in print-safe drawn colors (§11.9). | Sets reach ~90 pieces on large boards. |
 | D31 | Rotating a placed piece | Rotate about its handle cell and try 4 one-cell kicks; otherwise reject. | Predictable |
 | D32 | Size balance | Sizes in [max(3, ⌊0.6μ⌋), ⌈1.5μ⌉]; ≤ ⌊0.4K⌋ pieces of 3–4 cells; μ ≥ 4.5; exact histogram feasibility. There is no spread or large-piece rule. | Scales with μ (360-cell hard needs 12–34-cell pieces); 40 % keeps the user's 13-piece 60-cell master set possible. |
 | D33 | Set construction | Macro carving when μ ≥ 6.5 (regions of 3–6 pieces; 2–3 when K ≤ 12) with global shape-key exclusion; flat carving otherwise or as a fallback; independent validation of every witness | Flat-carved big-piece sets usually have one arrangement; macro sets gave 10 distinct layouts in both reproductions. |
@@ -144,7 +144,7 @@ The main design decisions and why they were taken.
 | D38 | Memory engineering | Compact model storage (flat typed arrays, no per-row objects), one reusable workspace per worker plus a scratch workspace, worker recycling when the set changes, pre-flight guards (≤ 600,000 rows, ≤ 5,000,000 nodes) and byte accounting | Per-row JS objects, not DLX links, dominated memory (A.10). |
 | D39 | Planning factor | Browser time = 5 s + 4 × Node time for planning; 2.5× is an optimistic sensitivity only. Browser qualification replaces both. | Neither factor was measured. |
 | D40 | Minimum board | 30 active cells for generation; any non-empty board in an incoming pack | Below ~30 cells the formula offers only very-easy, with gaps; such puzzles are trivial. |
-| D41 | Set and batch seeds | A set seed typed or rolled (🎲) is reused by every New Piece Set; an empty seed field draws a new random seed per press. Every puzzle request increments the set's `batchIndex` (stored with the set). The generator page uses a fresh random whole number as the batch seed of each New Puzzle press and shows it on the puzzle card; `tools/generate.mjs` uses `batchSeed = setSeed + "#" + batchIndex`. (§8.6) | Re-running one batch seed would replay already-seen layouts, because the history of a set only grows (D16). |
+| D41 | Set and batch seeds | A set seed typed or rolled (🎲) is reused by every New piece set; an empty seed field draws a new random seed per press. Every puzzle request increments the set's `batchIndex` (stored with the set). The generator page uses a fresh random whole number as the batch seed of each New puzzle press and shows it on the puzzle card; `tools/generate.mjs` uses `batchSeed = setSeed + "#" + batchIndex`. (§8.6) | Re-running one batch seed would replay already-seen layouts, because the history of a set only grows (D16). |
 | D42 | Module file extension | Every module loaded by a browser page or worker uses `.js`. `.mjs` is only for Node tools. (§12.3) | Some static servers send `.mjs` as `text/plain`, and browsers then refuse to load the module. Python 3.14 `http.server` on Windows does this (verified). |
 
 ---
@@ -526,7 +526,7 @@ export function textColorFor(hex: string): '#000000' | '#ffffff';   // WCAG rela
 | Module | API and responsibility |
 |---|---|
 | `worker-pool.js` | `createPool({ size })` returns `{ run(task, onProgress) → Promise<result>, runIdle(task) → Promise<result>, cancelAll(), recycle(), size }`. Cancelling terminates and lazily respawns workers; `recycle()` does the same between piece sets (§8.1). `runIdle` queues lazy certificate tasks at the lowest priority. Hosts the watchdog (115 s dispatch stop, 120 s answer, §8.4) and sums byte accounting (§8.5). |
-| `generation-client.js` | `createGenerationClient(pool)` returns `{ generateSet(request, { onProgress }), generateBatch(request, { onProgress, onAccepted, onCertificate }), cancel() }`. Runs New Piece Set and New Puzzle requests on the pool: speculation and the deterministic fold (§6.9), the arrangement count and completion pass, lazy certificates (§6.11) and the action watchdog. Failures carry the accepted results in a `GenerationError`. |
+| `generation-client.js` | `createGenerationClient(pool)` returns `{ generateSet(request, { onProgress }), generateBatch(request, { onProgress, onAccepted, onCertificate }), cancel() }`. Runs New piece set and New puzzle requests on the pool: speculation and the deterministic fold (§6.9), the arrangement count and completion pass, lazy certificates (§6.11) and the action watchdog. Failures carry the accepted results in a `GenerationError`. |
 | `svg-board.js` | `mountBoard(el, opts)` returns `{ render(model), setRotation(theta), setZoom(cellPx), panTo(x, y), cellAt(clientX, clientY, o?: { includeBlocked?: boolean }) → XY or null, localPoint(clientX, clientY), destroy() }`. `cellAt` returns only active cells by default (play mode); the editor passes `includeBlocked: true` (§6.3). Shared by the player, the editor and thumbnails. |
 | `pointer.js` | Drag/tap state machine with one active pointer, a drag threshold and a lift offset. Shared by the player and the board editor. |
 | `storage.js` | `get`, `set`, `remove` and `list` under `pentomino:v1:`. Wraps every access in try/catch and evicts LRU entries on quota errors (§9.6). |
@@ -534,7 +534,7 @@ export function textColorFor(hex: string): '#000000' | '#ffffff';   // WCAG rela
 | `dom.js` | `h()` element helper, toast, clipboard and download helpers (the download helpers serve the benchmark page's reports) |
 | `i18n.js` | `createI18n({ en, vi })` returns the text lookup of one app: `t(key, args)` (`{name}` placeholders; plural keys `_one` / `_other` chosen by `args.count`; a missing key falls back to English, then to the key), `setLocale(code, doc)` (sets `<html lang>`, translates every `data-i18n` / `data-i18n-attr` element, tells the listeners of `onChange`), `applyTo(root)`, `detect` and `choose` (`?lang=`, saved choice, browser languages, English), `has`, `raw`, `formatNumber`. Each app keeps its own packs (`generator/locale.*.js`, `player/locale.*.js`) and calls it through `generator/i18n.js` and `player/i18n.js`. `LANGUAGE_KEY` is the storage key shared by both pages (§9.6). |
 | `theme.js`, `theme-init.js`, `theme.css` | The theme of both apps: `THEMES`, `normalizeTheme`, `effectiveTheme`, `applyTheme`; the early script that sets the stored theme before the first paint; and the three palettes with the base styles of buttons, inputs and board cells (`tests/theme.test.js` checks their contrast). |
-| `print-layout.js` | Pure paper geometry of a printout in millimetres (§11.15): `planPrint(job, options)` returns the sheets and pages; `orientModel`, `cellSizeFor`, `layoutPieceSheets`, `layoutBoard`, `layoutPreview`, `mirrorX`, `mirrorCells`. It lives here, not in `core/engine/`, because it is part of the printing feature rather than of generation (the benchmark source digest covers the engine only). |
+| `print-layout.js` | Pure paper geometry of a printout in millimetres (§11.15): `planPrint(job, options)` returns the sheets and pages; `orientModel`, `cellSizeFor`, `layoutPieceSheets`, `layoutBoard`, `layoutPreview`, `layoutSolution`, `mirrorX`, `mirrorCells`. It lives here, not in `core/engine/`, because it is part of the printing feature rather than of generation (the benchmark source digest covers the engine only). |
 | `print-sheet.js` | `buildPrintPages(plan, heading, text)` draws the plan as one 210 × 297 mm SVG per page (`.pm-print-page`), reusing `drawPiece` and `createDefs` of `svg-board.js`. |
 | `print-dialog.js`, `print-texts.js`, `print.css` | `createPrintDialog({ host, t, getJob })`: the Print dialog both apps use, and `printPages(doc, win, pages)`, which shows the pages for the browser's print function. `print-texts.js` holds the English and Vietnamese texts (`print.*` keys) that both apps' locale packs spread in. `print.css` styles the dialog and, in `@media print`, shows only the pages. |
 
@@ -713,7 +713,7 @@ Copy only whitelisted fields into newly created objects; this prevents prototype
 ```
 
 - `macroRegion` lists the macro-region index of each piece in piece order; it lets a later session continue generating puzzles with macro-region re-tiling (§6.7). It is absent for flat and imported sets.
-- `batchSeed` is the seed of the last batch request: in packs written by `tools/generate.mjs` it is `setSeed + "#" + batchIndex`; in packs from the generator page it is the random whole number drawn for the newest puzzle's New Puzzle press (§8.6). `batchIndex` is the 1-based number of the batch request on this set (§8.6, D41).
+- `batchSeed` is the seed of the last batch request: in packs written by `tools/generate.mjs` it is `setSeed + "#" + batchIndex`; in packs from the generator page it is the random whole number drawn for the newest puzzle's New puzzle press (§8.6). `batchIndex` is the 1-based number of the batch request on this set (§8.6, D41).
 - `generation` is type-checked only when a pack is read (§5.3); a missing or foreign object never blocks play.
 
 ### 5.6 Progress records and fingerprints
@@ -838,8 +838,8 @@ Primitives, in y-down screen coordinates:
 - Everything on the board lives inside that group: cells, holes, pieces, clue hatching, the ghost and focus rings.
   - Labels are counter-rotated with `rotate(θ, lx, ly)` so they stay upright.
 - The player does not draw exterior blocked cells, so the outline shows the shape (for example, the heart).
-  - Holes are drawn dark and hatched.
-  - The editor draws exterior cells as faint dashed guides, so they can be re-activated.
+  - Holes (blocked cells inside the board) are drawn grey with a cross in the middle (`blockedCell`, themed through `.pm-blocked`).
+  - The editor draws every blocked cell, exterior ones included, the same way, so they can be re-activated.
 - Tray pieces and the drag layer use the same θ (WYSIWYG). A piece looks identical in the tray, while dragged, and on the board.
   - Tray slots are sized from each piece's rotated bounding box.
 
@@ -848,9 +848,9 @@ Primitives, in y-down screen coordinates:
 - `local = DOMPoint(clientX, clientY).matrixTransform(boardGroup.getScreenCTM().inverse())`. This stays correct under page scroll and zoom.
 - The cell under the pointer is `(floor(local.x), floor(local.y))`. It must lie inside W × H; what else counts depends on the mode (`cellAt(…, { includeBlocked })`, §4.3):
   - **Play mode** (player placement, drag ghost, tap-to-place): only active cells count. The transparent corners of a rotated bounding box and blocked cells are therefore outside.
-  - **Edit mode** (board-editor painting): every cell inside W × H counts, active or blocked, including exterior cells (drawn as dashed guides). Otherwise a blocked cell could never be unblocked.
+  - **Edit mode** (board-editor painting): every cell inside W × H counts, active or blocked, including exterior cells (drawn grey with a cross). Otherwise a blocked cell could never be unblocked.
 - **Drag anchor.**
-  - Let s be the grabbed source cell (piece-local, before orientation).
+  - Let s be the grabbed source cell (piece-local, before orientation): the cell pressed, or, for a press on the frame of a tray slot around the piece (`trayPiece` in `player/ui/gestures.js`), the cell of the piece nearest to the press. On the board only the piece's own cells grab it.
   - Under the current t, its position inside `normalize(T_t(cells))` is g.
   - The ghost origin is `floor(local) − g`.
   - Rotating or flipping during a drag recomputes g, so the grabbed cell stays under the pointer.
@@ -1066,7 +1066,7 @@ macroPartition(board, μ, pLo, pHi, rng):              // compact, connected par
 - Carry `regionOf` into `macroRegion` in the same piece order.
 
 **Calibration.**
-- It uses exactly the clue selection of New Puzzle (§6.10).
+- It uses exactly the clue selection of New puzzle (§6.10).
 - The set is "ready for <level>" only when the calibration puzzle is in band, and proven unique when required. In the session that made the set, that puzzle is reused as the first puzzle of the first request when the level and uniqueness still match. It is not stored, so after a reload the first puzzle is generated afresh.
 
 **Unclued benchmark (MAY).**
@@ -1187,11 +1187,11 @@ Let S = `symmetries(board)` (§6.2). Every key is computed in the normalized act
 - **Duplicates.** Two layouts are duplicates iff their layout keys are equal.
   - A new puzzle needs a new layout key AND a new clue key. The player sees only the clues, so two different layouts with identical clues would look like the same puzzle.
 
-### 6.9 Batch generation: 1–10 distinct puzzles ("New Puzzle")
+### 6.9 Batch generation: 1–10 distinct puzzles ("New puzzle")
 
 **Inputs:**
 - set (with witness and `macroRegion`);
-- target level and quantity q ∈ 1..10. The generator page asks for q = 1 on every New Puzzle press (§10.5); `tools/generate.mjs` and the harnesses ask for up to 10;
+- target level and quantity q ∈ 1..10. The generator page asks for q = 1 on every New puzzle press (§10.5); `tools/generate.mjs` and the harnesses ask for up to 10;
 - `batchSeed` (§8.6): `setSeed + "#" + batchIndex` in `tools/generate.mjs`, a fresh random whole number per press on the generator page; and the uniqueness mode;
 - `seen`: the session history of accepted layout keys and clue keys for this set. It holds at most 1,000 keys; when full, the UI asks the user to reset the history (M-HISTORY-FULL).
 
@@ -1255,7 +1255,7 @@ The generator page also rejects any streamed or final puzzle whose id, clue key 
 - "Found 6/6 arrangements, the most this piece set allows. Generate a new piece set for more Hard puzzles."
 
 **Invariants** (D16):
-- New Puzzle never changes the board, the shapes, the colors or K.
+- New puzzle never changes the board, the shapes, the colors or K.
 - Every accepted puzzle has a new layout key and a new clue key. Clue-only variants of an existing layout are never generated and never count toward q.
 
 ### 6.10 Clue selection
@@ -1323,7 +1323,7 @@ optional: try removing the added clues one by one (random order), keeping unique
   - results update the cards as they arrive and are stored in the pack;
   - certificates never delay or change acceptance, and they are excluded from the action's time measurements ("first ten usable puzzles" and "certificates settled" are reported separately);
   - a new job or Cancel terminates pending certificate tasks (Play does not); their puzzles keep `certificate: null`, shown as "Uniqueness not checked".
-- **`require`** (the "Require unique solution" switch of step 3; it also applies to New Piece Set). Only puzzles proven `unique` by `makeUnique` are accepted.
+- **`require`** (the "Require unique solution" switch of step 3; it also applies to New piece set). Only puzzles proven `unique` by `makeUnique` are accepted.
   - It is a standard option for A ≤ 200 or levels below Hell. Elsewhere step 2 shows N-UNIQUE-EXP ("experimental and usually fails"): above 200 cells, 639 of 670 Hell-level certificates were "not proved" (A.10).
   - Macro-carved sets make multiple solutions common at some levels (e.g. 10 of 10 at 360-cell master, A.10), so `require` rejects more candidates there.
 - **Tie-break (MAY).** When several in-band candidates exist for one slot, prefer one already certified `unique`. Never spend extra search on this.
@@ -1561,7 +1561,7 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
 ```
 
 **Request tracking (main thread).**
-- Each user action (New Piece Set and New Puzzle in the generator, verification in the player) gets a monotonically increasing `requestId`, plus the `revision` (a hash) of the board and set it was started for.
+- Each user action (New piece set and New puzzle in the generator, verification in the player) gets a monotonically increasing `requestId`, plus the `revision` (a hash) of the board and set it was started for.
 - Tasks belong to a request. Results whose request is no longer current, or whose revision no longer matches, are discarded, and their workers are terminated.
 - Previously accepted results stay on screen until a replacement is validated.
 - Lazy certificate tasks (§6.11) have the lowest priority; any new user action cancels them.
@@ -1653,12 +1653,12 @@ All budgets live in `policy.js` (`BUDGETS`, `TIME`). Node budgets are determinis
   - An all-zero state (practically impossible) is replaced by `0x9E3779B9, 0x243F6A88, 0xB7E15162, 0x6A09E667`.
 - **Derivation.** `rng.derive(label)` appends `/label` to the label path and hashes again. It does not depend on how much of the parent stream was consumed.
 - **Set and batch seeds** (D41).
-  - **New Piece Set.** The seed text used is the set seed (`setSeed`). The generator page has no Keep-seed switch; an internal `keepSeed` flag decides:
+  - **New piece set.** The seed text used is the set seed (`setSeed`). The generator page has no Keep-seed switch; an internal `keepSeed` flag decides:
     - typing a seed turns it on, and clearing the field (✕ or deleting the text) turns it off;
     - 🎲 draws a new random seed into the field at once and turns it on;
     - with it on, every press reuses the field's seed unchanged (trimmed and NFC-normalized); with it off, every press first draws a new random seed into the field and uses it.
     - The field therefore always shows the seed of the latest set request, and the set summary shows the seed of the set on show.
-  - **Batch seeds.** Every New Puzzle press increments the set's `batchIndex` (1 for the first request; stored with the set, §9.6, and restarting at 0 for each new set). The generator page draws a fresh random whole number (`crypto.getRandomValues`, a uint32 written in decimal) as the batch seed of each press, keeps it per puzzle (`puzzleSeeds`) and shows it next to the puzzle name in the main panel (not on the cards). `tools/generate.mjs` keeps `batchSeed = setSeed + "#" + batchIndex`.
+  - **Batch seeds.** Every New puzzle press increments the set's `batchIndex` (1 for the first request; stored with the set, §9.6, and restarting at 0 for each new set). The generator page draws a fresh random whole number (`crypto.getRandomValues`, a uint32 written in decimal) as the batch seed of each press, keeps it with each puzzle (its `seed`, §10.6) and shows it next to the puzzle name in the main panel (not on the cards). `tools/generate.mjs` keeps `batchSeed = setSeed + "#" + batchIndex`.
     - The batch seed is internal. It is not editable and not subject to the 64-code-point limit.
     - It needs no extra label: candidates use the labels `slot/<i>/<a>` (§6.9).
 - **Test vectors:**
@@ -1776,7 +1776,7 @@ A `piece-set` pack shows: "This link has pieces but no puzzle — open it in the
 
 **Generator.** The generator page has no import: piece sets and puzzles come only from its own generation, and its saved state (§9.6) is read back through `validatePack`. Rules that still apply to sets read back from storage:
 - Stored ratings and certificates are shown as stored and are not recomputed (§6.11, §7.7).
-- A stored set without `macroRegion` (carving `imported`) uses flat-cluster LNS for New Puzzle (§6.7).
+- A stored set without `macroRegion` (carving `imported`) uses flat-cluster LNS for New puzzle (§6.7).
 
 ### 9.5 Verification when a pack opens
 
@@ -1830,13 +1830,13 @@ The generator is a three-step wizard (`generator/ui/wizard.js`): **1 Create boar
 - **Main panel** (middle). The section of the current step, headed "Step N - name", with a one-line hint.
   - At its top right, the navigator buttons "‹ Step N−1 - name" and "Step N+1 - name ›", each shown only when that step exists. The forward one is disabled, with the reason as its tooltip, until the next step can open.
   - Above the sections, one outcome area (`role="status"`) shows the notice of the last action (§10.7), with its action buttons.
-- **Puzzles panel** (left). Header "Set n/total puzzles" ("Puzzles" without a set) with **Remove all**, then the puzzle cards (§10.5).
+- **Puzzles panel** (left). Header "Puzzles of set n/total" ("Puzzles" without a set) with **Remove all**, then the puzzle cards (§10.5).
 
 Breakpoints: from 1360 px the panels are three columns (Puzzles | Main | Steps). From 768 px to 1359 px, Main sits above Puzzles on the left and the steps panel is a sticky column on the right. Below 768 px the steps form a row on top (the current step's settings take a full row under it; below 600 px other steps show only their number), followed by Main and Puzzles.
 
 ```text
 ┌ Pentomino Generator ───────────────────────────────────────────────────────────────────────────────── [EN|VI] [☀|☾|◐] ┐
-│ Set 2/2 puzzles  Remove all │ Step 3 - Create puzzles  [‹ Step 2 - Create piece set]  │ ① Create board                │
+│Puzzles of set 2/2 Remove all│ Step 3 - Create puzzles  [‹ Step 2 - Create piece set]  │ ① Create board                │
 │ ┌────────────────────────┐  │ Choose a level, then generate puzzles one at a time.    │   ▦ board thumbnail           │
 │ │ Puzzle #2           ✕  │  │ Puzzle #2  Seed: 2846513907                  [ Play ]   │ ② Create piece set            │
 │ │ Hard: score 20   ▦▦▦   │  │ ┌──────────────────────────────┐                        │   Set 2/2                     │
@@ -1845,7 +1845,7 @@ Breakpoints: from 1360 px the panels are three columns (Puzzles | Main | Steps).
 │ └────────────────────────┘  │ Pieces to place                                         │ ③ Create puzzles              │
 │ ┌ Puzzle #1 … ┐             │ ▢B ▢D ▢E ▢G ▢H ▢I                                       │   Difficulty level [Hard ▾]   │
 │                             │                                                         │   ☐ Require unique solution   │
-│                             │                                                         │   [       New Puzzle      ]   │
+│                             │                                                         │   [       New puzzle      ]   │
 │                             │                                                         │   Elapsed: 0:07 (while busy)  │
 └─────────────────────────────┴─────────────────────────────────────────────────────────┴───────────────────────────────┘
 ```
@@ -1859,7 +1859,7 @@ Breakpoints: from 1360 px the panels are three columns (Puzzles | Main | Steps).
   - Choosing a preset applies it at once (§6.2): Rectangle with the current Columns and Rows, the others at their default size, with their rotation (Heart and Diamond: 45).
 - **Board (main panel).** The editor (`mountBoard` in edit mode) with a toolbar on the board: ✥ move tool (while on, a drag moves the view instead of painting), − / + zoom, ⤢ fit, ⟲ / ⟳ view rotation. The wheel or a pinch also zooms.
 - **Painting.**
-  - Pointer-down on a cell toggles it and fixes the paint mode for the gesture: block or unblock, the new state of the first cell. Hit-testing uses edit mode (§6.3), so blocked cells can be hit and unblocked at any display rotation. Blocked cells are marked with a cross.
+  - Pointer-down on a cell toggles it and fixes the paint mode for the gesture: block or unblock, the new state of the first cell. Hit-testing uses edit mode (§6.3), so blocked cells can be hit and unblocked at any display rotation. Blocked cells are grey with a cross.
   - Dragging applies that mode. One gesture is one undo step; `Ctrl`/`Cmd`+`Z` undoes up to 50 board changes (size, preset and painting).
   - Keyboard: the arrow keys move a cell cursor (in the on-screen direction, D5) and Space toggles the cell.
   - Size, preset and painting are disabled while a job runs.
@@ -1876,12 +1876,12 @@ Breakpoints: from 1360 px the panels are three columns (Puzzles | Main | Steps).
   - Under the table: N-UNIQUE-EXP when uniqueness is required at a Hell level above 200 cells, and the reason when the board cannot get a set.
 - **Settings (step frame).**
   - **Seed** text field (placeholder "Leave empty for a random seed") with ✕ to clear it and 🎲 to draw a random seed into it (§8.6). An invalid seed (more than 64 code points) shows "Enter a seed of 1–64 characters, or clear the field for a random seed."
-  - **New Piece Set** starts the set job (§6.5, §8.2) with the board, the selected level, the uniqueness switch of step 3 and the seed. It is disabled while a job runs, while the board cannot get a set or the level is not offered, and when the board already has 50 sets (a warning then asks to remove a set first).
+  - **New piece set** starts the set job (§6.5, §8.2) with the board, the selected level, the uniqueness switch of step 3 and the seed. It is disabled while a job runs, while the board cannot get a set or the level is not offered, and when the board already has 50 sets (a warning then asks to remove a set first).
 - **Outcome.**
   - Success: the new set becomes the newest set of the board ("Set total/total") and is shown with no puzzles; the set shown before is saved in the list.
   - A set equal to one already in the board's list (same board rows and the same shapes up to rotation and reflection, `setKey`) is not added: that set is shown instead, with N-DUPSET.
   - No set within the time limit: N-NOSET. Cancel: M-CANCELLED-SET. Both leave the set on show unchanged.
-- Changing the level or the uniqueness switch keeps the set on show. The set keeps the level and uniqueness it was made for (`calibrationFor`), which its summary shows; the next New Piece Set uses the new choice.
+- Changing the level or the uniqueness switch keeps the set on show. The set keeps the level and uniqueness it was made for (`calibrationFor`), which its summary shows; the next New piece set uses the new choice.
 
 ### 10.4 Step 2: Create piece set — the set list
 
@@ -1894,15 +1894,16 @@ Under the level table, the heading "Piece sets" and the set panel:
   - All of them are disabled while a job runs.
 - **Summary line**, e.g. "Hard | 13 pieces | Piece sizes 7–12 | Seed ABCD-EFGH-JKLM" (the seed part is left out when the set has none).
 - **Pieces.** Thumbnails in the board's display rotation, sorted by id, each with its label and size ("C · 5"), laid out in balanced rows (10 pieces on rows of at most 4 give 4, 3, 3).
+- **Select this piece set** (primary, under the pieces at the right, shown while a set is on show): opens step 3 with that set, like the step 3 header.
 - Without a set: "No piece set yet. Generate one first."
 
 ### 10.5 Step 3: Create puzzles
 
 - **Settings (step frame).**
   - **Difficulty level**: the levels offered for the set's board, defaulting to the level the set was made for. Another choice applies to the next puzzles only; the set is kept. A level far from the set's own level may be unreachable with this set; the request then ends with N-SETLEVEL.
-  - **Require unique solution** (off by default). Puzzles must then be proven unique (§6.11). The switch also applies to the next New Piece Set and is kept in the address.
-  - **New Puzzle** adds one puzzle to the list per press: q = 1, a fresh random batch seed, `batchIndex + 1` (§6.9, §8.6). Puzzles stream into the list as they are accepted. It is disabled while a job runs and when the set cannot make puzzles (fewer than 3 pieces, no witness, a board outside the limits, or a level not offered); the reason is shown in the main panel.
-- **Limits of the list.** At most 100 puzzles (M-PACK-FULL). The seen-history of a set holds at most 1,000 layout and clue keys; when it is full, M-HISTORY-FULL offers **Reset history** (earlier arrangements may then reappear). Play opens the whole list as one pack, so the list also ends where that pack would pass 512 KiB: New Puzzle is refused with M-PACK-SIZE when one more puzzle about the size of the newest would not fit (`roomForAnotherPuzzle`), and a new puzzle that turns out larger and does not fit is dropped, with the same message, which then replaces the batch's cancel or shortfall message. The generator has no file export.
+  - **Require unique solution** (off by default). Puzzles must then be proven unique (§6.11). The switch also applies to the next New piece set and is kept in the address.
+  - **New puzzle** adds one puzzle to the list per press: q = 1, a fresh random batch seed, `batchIndex + 1` (§6.9, §8.6). Puzzles stream into the list as they are accepted. It is disabled while a job runs and when the set cannot make puzzles (fewer than 3 pieces, no witness, a board outside the limits, or a level not offered); the reason is shown in the main panel.
+- **Limits of the list.** At most 100 puzzles (M-PACK-FULL). The seen-history of a set holds at most 1,000 layout and clue keys; when it is full, M-HISTORY-FULL offers **Reset history** (earlier arrangements may then reappear). Play opens the whole list as one pack, so the list also ends where that pack would pass 512 KiB: New puzzle is refused with M-PACK-SIZE when one more puzzle about the size of the newest would not fit (`roomForAnotherPuzzle`), and a new puzzle that turns out larger and does not fit is dropped, with the same message, which then replaces the batch's cancel or shortfall message. The generator has no file export.
 - **Puzzle cards (left panel)**, newest on top; the number counts in creation order and follows removals. Each card is one button that selects the puzzle, with a ✕ in its corner:
   - "Puzzle #n";
   - the level in bold and the score: "**Hard**: score 20" (a saturated score gets "+");
@@ -1910,13 +1911,13 @@ Under the level table, the heading "Piece sets" and the set panel:
   - the solution status (§6.11): "Checking…" while it streams in or its lazy certificate is pending, then "Unique solution ✓", "Multiple solutions", "At least 1 solution" or "No solution exists"; "Uniqueness not checked" when no certificate was computed;
   - a thumbnail in the display rotation.
   - ✕ removes the puzzle; **Remove all** in the panel header removes every puzzle of the set. Removing never shrinks the seen-history, so removed arrangements are not generated again. Both are disabled while a job runs.
-- **Selected puzzle (main panel).** The newest puzzle, until a card is clicked; then that puzzle until it is removed. It shows "Puzzle #n" and, next to it, "Seed: 2846513907" (the batch seed of its press; the cards do not show it, as in the Player), with **Play** (§9.3) and, on its right, **Print** (§11.15) at the top right, the board with the pre-placed pieces and, at its top right, the board tools of step 1 (− / + zoom, ⤢ fit = back to the default size, ⟲ / ⟳ turn the view by 45°; the view angle is the one of step 1, and a zoomed board scrolls inside its frame), and "Pieces to place": the remaining pieces at 60 % of the board's cell size. Play is disabled while a job runs.
+- **Selected puzzle (main panel).** The newest puzzle, until a card is clicked; then that puzzle until it is removed. It shows "Puzzle #n" and, next to it, "Seed: 2846513907" (the batch seed of its press; the cards do not show it, as in the Player), with **Play** (§9.3) and, on its right, **Print** (an icon, a printer, named by its `aria-label` and tooltip; §11.15) at the top right, the board with the pre-placed pieces and, at its top right, the board tools of step 1 (− / + zoom, ⤢ fit = back to the default size, ⟲ / ⟳ turn the view by 45°; the view angle is the one of step 1, and a zoomed board scrolls inside its frame), under the board at its right **Show solution** (a borderless toggle, `aria-pressed`; it draws the stored solution on the board around the pre-placed pieces and becomes **Hide solution**; it is off again for every other puzzle shown, and disabled with a tooltip when the puzzle has no stored solution), and "Pieces to place": the remaining pieces at 60 % of the board's cell size. Play is disabled while a job runs.
 - **Repeated puzzles.** A puzzle with the id, clue key or layout key of a puzzle already in the list is never added; the request then ends with M-DUPLICATE, which suggests a new piece set.
-- **Shortfalls** show their notice (§6.9, §10.7). For `layouts-not-found` and `difficulty-not-found` the notice offers **Generate new piece set**, which runs New Piece Set with the current settings.
+- **Shortfalls** show their notice (§6.9, §10.7). For `layouts-not-found` and `difficulty-not-found` the notice offers **Generate new piece set**, which runs New piece set with the current settings.
 
 ### 10.6 Jobs, states and storage
 
-- **Jobs.** New Piece Set (`set`) and New Puzzle (`batch`) are the only jobs; one runs at a time. While it runs, its button shows a spinner (`aria-busy`) and "Elapsed: m:ss" under it (`elapsed.js`, not a live region). After 30 s the same button turns into **Cancel**. Every control that changes the board, the settings, the sets or the puzzles is disabled during a job; the wizard navigation stays available. Accepted puzzles stay after Cancel or a time-limit stop.
+- **Jobs.** New piece set (`set`) and New puzzle (`batch`) are the only jobs; one runs at a time. While it runs, its button shows a spinner (`aria-busy`) and "Elapsed: m:ss" under it (`elapsed.js`, not a live region). After 30 s the same button turns into **Cancel**. Every control that changes the board, the settings, the sets or the puzzles is disabled during a job; the wizard navigation stays available. Accepted puzzles stay after Cancel or a time-limit stop.
 - **Background work.** Lazy certificate checks (§6.11) are not a job: they run on idle workers, update the cards as they finish and stop when a new job starts.
 - **State.** The board on show, its display rotation, the preset of the menu, the level, the seed text and its keep flag, the uniqueness mode, the set on show with its puzzles and history, and the saved sets of every board. The set on show always belongs to the board on show (§10.2).
 - **Storage** (`pentomino:v1:gen:state`, §9.6), written 300 ms after a change and at once on `pagehide`, when the page is hidden and before Play:
@@ -1925,14 +1926,14 @@ Under the level table, the heading "Piece sets" and the set panel:
   { v: 1, boardRows, rotation, presetId, levelId, seedText, keepSeed, uniqueness,
     setsByBoard: { "<board key>": [SavedSet, …] },        // newest first; the set on show is not in it
     setPack, puzzles, setSeed, batchIndex,                 // the set on show (SavedSet fields), if any
-    history: { layouts, clues }, calibrationFor, puzzleSeeds }
-  SavedSet = { setPack, puzzles, setSeed, batchIndex, history, calibrationFor, puzzleSeeds }
+    history: { layouts, clues }, calibrationFor }
+  SavedSet = { setPack, puzzles, setSeed, batchIndex, history, calibrationFor }
   ```
 
-  - `setPack` is a `piece-set` pack (§5.2) of the set's board, rotation, pieces and witness, with the carving and `macroRegion` in `meta`. `puzzles` holds the set's puzzles in pack form without a second copy of the board and pieces. `history` holds the seen layout and clue keys (§6.9). `calibrationFor` is `{ levelId, uniqueness }` the set was made for; the calibration puzzle itself is not stored. `puzzleSeeds` maps puzzle ids to their batch seeds.
+  - `setPack` is a `piece-set` pack (§5.2) of the set's board, rotation, pieces and witness, with the carving and `macroRegion` in `meta`. `puzzles` holds the set's puzzles in pack form without a second copy of the board and pieces; each puzzle carries its batch seed in `seed`, from which the in-memory `puzzleSeeds` map is rebuilt. `history` holds the seen layout and clue keys (§6.9). `calibrationFor` is `{ levelId, uniqueness }` the set was made for; the calibration puzzle itself is not stored.
   - The board key is `boardKey(board)`, the same `WxH:<base64url bits>` text as the address (§10.8).
   - At most 50 sets per board (49 saved plus the one on show) and the sets of the 10 most recently used boards are kept.
-- **Restore.** Only `v: 1` is read. Every part passes its validator and falls back on its own: the board must have sides 3–32, the rotation must be a multiple of 45, packs must pass `validatePack` and their puzzles must fit the set. A saved set goes under the key of its own board (a stored key is never trusted). Older storage is migrated on load: a single `setHistory` list is split by board, and a set's puzzles stored in a second full pack (`batchPack`) move to `puzzles`; a stored `calibrationPack` or `largeBoards` is ignored. Restored ratings and certificates are shown as stored and are not recomputed (§6.11).
+- **Restore.** Only `v: 1` is read. Every part passes its validator and falls back on its own: the board must have sides 3–32, the rotation must be a multiple of 45, packs must pass `validatePack` and their puzzles must fit the set. A saved set goes under the key of its own board (a stored key is never trusted). Older storage is migrated on load: a single `setHistory` list is split by board, and a set's puzzles stored in a second full pack (`batchPack`) move to `puzzles`; a separate `puzzleSeeds` map fills in the seeds of puzzles stored without one; a stored `calibrationPack` or `largeBoards` is ignored. Restored ratings and certificates are shown as stored and are not recomputed (§6.11).
 - **Quota.** A failed write is retried with less: the oldest saved sets of every board are dropped in halving steps, then all saved sets, then the puzzles on show. If even that fails, the page shows once that the work cannot be saved and keeps working in memory.
 - The address settings win over the stored ones on load (§10.8).
 
@@ -1972,7 +1973,7 @@ Texts live in `generator/locale.en.js` (every key) and `generator/locale.vi.js` 
 | M-PLAYER-BLOCKED | Outcome | "The browser blocked the new tab. Allow pop-ups for this page and press Play again." |
 | M-PLAYER-UNAVAILABLE | Outcome | "This puzzle is too large to open by link and can't be saved in this browser." |
 
-The outcome notices of `layouts-not-found` and `difficulty-not-found` carry the **Generate new piece set** button; M-HISTORY-FULL carries **Reset history**. When New Puzzle is pressed while the set cannot make puzzles (M-FEWPIECES, M-NOWITNESS, M-LEVEL-NOT-OFFERED, N-SMALL, N-CAP), that reason is shown as the outcome (code M-BLOCKED).
+The outcome notices of `layouts-not-found` and `difficulty-not-found` carry the **Generate new piece set** button; M-HISTORY-FULL carries **Reset history**. When New puzzle is pressed while the set cannot make puzzles (M-FEWPIECES, M-NOWITNESS, M-LEVEL-NOT-OFFERED, N-SMALL, N-CAP), that reason is shown as the outcome (code M-BLOCKED).
 
 ### 10.8 Address
 
@@ -1993,7 +1994,7 @@ The step settings live in the query string (`generator/address.js`), so a reload
 | `unique` | `1` when "Require unique solution" is on; absent = off | `1` |
 
 - **Writing.** The settings parameters are rewritten with `history.replaceState` 300 ms after a change; a step change adds a history entry. Other parameters (such as `lang`) and the hash are kept.
-- **Reading.** On load, the address wins over the stored state; missing or invalid parameters leave the stored value. A link that carries any setting also carries the uniqueness mode (absent `unique` means off). The board of `cells` is applied as a board edit (§10.2), so the sets saved for it come back. A `seed` fills the seed field (kept for the next New Piece Set) and selects the board's saved set with that seed. When no saved set has it and the link asks for step 2 or 3, New Piece Set runs at once with the board, level, uniqueness and seed of the link, which reproduces the set (§8.6), and the wizard opens the requested step when it is ready.
+- **Reading.** On load, the address wins over the stored state; missing or invalid parameters leave the stored value. A link that carries any setting also carries the uniqueness mode (absent `unique` means off). The board of `cells` is applied as a board edit (§10.2), so the sets saved for it come back. A `seed` fills the seed field (kept for the next New piece set) and selects the board's saved set with that seed. When no saved set has it and the link asks for step 2 or 3, New piece set runs at once with the board, level, uniqueness and seed of the link, which reproduces the set (§8.6), and the wizard opens the requested step when it is ready.
 - **Not in the address:** puzzles and the set list. Puzzles are shared through the player link that Play opens (§9.3). `?lang=en|vi` is read but never written (§9.6).
 
 ---
@@ -2023,15 +2024,15 @@ The player has a header and three panels, laid out like the generator's (§10.1)
 - **Main panel** (middle). The **game** screen shows:
   - the name of the puzzle, and under it the rating (level in bold, no "claimed" prefix) and the number of pieces to place; there are no Previous / Next buttons: the puzzle list opens the puzzles, and the win dialog offers *Next puzzle*;
   - the notices (error, restoration notice) and the badges (solvability check, uniqueness claim, local link, storage warning);
-  - the **game bar**: the timer, the move count, and the buttons **Undo**, **Redo**, **Print** (an icon, a printer; §11.15), **Hint** (an icon, a light bulb) and **Replay** (an icon, a circular arrow) and, only when needed, **Straighten**; the icon buttons are named by their `aria-label` and tooltip. **Print** is disabled while no puzzle is open. **Replay** asks first, then starts a brand-new game of the puzzle: every piece back in the tray, timer and moves at zero, history empty and the saved progress removed (§5.6); it cannot be undone and is disabled while the puzzle is untouched. The buttons are as big as the generator's **Play** button;
+  - the **game bar**: the timer, the move count, and the buttons **Undo**, **Redo**, **Hint** (an icon, a light bulb), **Replay** (an icon, a circular arrow) and **Print** (an icon, a printer; §11.15) and, only when needed, **Straighten**; the icon buttons are named by their `aria-label` and tooltip. **Print** is disabled while no puzzle is open. **Replay** asks first, then starts a brand-new game of the puzzle: every piece back in the tray, timer and moves at zero, history empty and the saved progress removed (§5.6); it cannot be undone and is disabled while the puzzle is untouched. The buttons are as big as the generator's **Play** button;
   - under the game bar, the hint message (small regular text, with **Place it** / **Remove it**, **Cancel** and **Dismiss** buttons smaller than the game bar's);
   - the board with its zoom, fit and view-rotation buttons at its top right (as in the generator's board editor: small 28 px buttons; the view angle is local to the open pack and never saved). The selection toolbar (§11.5) is not here but in the Pieces panel. There are no Place, To tray or Show solution buttons: a ghost is committed with a second tap on its cell or Enter, a piece goes back to the tray with Delete or the piece menu, and the reveal action has no button. The keyboard shortcuts list is the **Help** button of the page header (with `?` on the keyboard).
 
   The **start** screen (§11.12) takes the place of the game screen in this panel while no puzzle is open.
 - **Pieces panel** (right). Header "Pieces to place" with "N pieces left"; under it the selection toolbar (⟲ ⟳ ⇋ ⇵ for the selected piece, and **Results** after an earned win; shown while a puzzle is open) and then the pieces still to place, each drawn at its current orientation and the display angle. There is no View box: labels, patterns and the timer always show (§11.9). Without a game it says that the pieces of the open puzzle appear here. Letting go of a dragged piece anywhere over this panel returns it to the tray (§11.3). **Right-click** on a piece opens the piece menu (§11.5).
-- Breakpoints, as in the generator: from 1360 px the three panels are columns (Puzzles | Game | Pieces); from 768 px the Game and Pieces panels are columns and the Puzzles panel goes under the game; below 768 px everything stacks (game, pieces, puzzles), the pieces form two rows that scroll horizontally, and the board is shorter. The board takes the height of the window up to the toolbar (at least 18 rem from 768 px). From 768 px the Pieces panel is sticky and scrolls inside itself; so is the Puzzles panel from 1360 px.
+- Breakpoints, as in the generator: from 1360 px the three panels are columns (Puzzles | Game | Pieces); from 768 px the Game and Pieces panels are columns and the Puzzles panel goes under the game; below 768 px everything stacks (game, pieces, puzzles), the pieces form two rows that scroll horizontally, and the board is shorter. The board takes the height of the window up to the toolbar (at least 18 rem from 768 px). From 768 px the Pieces panel has no scroll bar of its own: it grows with its pieces and the page scrolls. From 1360 px the Puzzles panel is sticky and scrolls inside itself.
 - The page order is the focus order: pieces, game, puzzles (§11.6). The grid places the panels.
-- Large boards (hundreds of cells, up to ~90 pieces): the board supports zoom and pan (drag on empty board area or two-finger pan), and the pieces panel scrolls.
+- Large boards (hundreds of cells, up to ~90 pieces): the board supports zoom and pan (drag on empty board area or two-finger pan), and many pieces lengthen the pieces panel, which scrolls with the page.
 - The cell size follows §6.3.
 - The Straighten toggle appears only when needed (touch devices with fitted cells < 24 px). Its state is the only stored preference (§9.6).
 
@@ -2138,24 +2139,25 @@ Shortcuts are ignored while focus is in a text field, a dialog or the piece menu
   - **Any** valid complete placement wins. The player never compares with the stored solution.
 - **On solve:**
   1. stop the timer and save the progress as solved;
-  2. show a dialog with time, moves, level and score, and the buttons *Next puzzle*, *Replay* and *Back to generator*;
+  2. show the victory dialog: a trophy badge in sparkles (popping in and twinkling unless reduced motion is asked for), "Puzzle solved!", "Well done! Every piece is in its place.", the time, the moves and, when used, the hints as tiles, and small *Next puzzle* (only when there is a next puzzle), *Replay* and *Close* (primary, with the strong background) buttons, in that order, at the bottom right; there is no level and no link back to the generator;
   3. play a short celebration, unless `prefers-reduced-motion` is set.
 
 ### 11.9 Rendering and colors
 
 - **Board.**
   - Active cells: light fill with thin grid lines.
-  - Holes: dark and hatched.
+  - Holes: grey with a cross in the middle.
   - Exterior cells: not drawn (§6.3).
 - **Pieces.**
-  - One SVG `<path>` per outline (`outlineLoops`, even-odd fill for holes), filled with the piece color.
-  - A darker stroke (35 % black mix) and faint inner cell seams.
-  - An upright label on the cell nearest the centroid, colored with `textColorFor`, drawn when its cell is large enough (see **Labels** below).
+  - One SVG `<path>` per outline (`outlineLoops`, even-odd fill for holes), filled with the piece's drawn color (see **Drawn colors** below).
+  - A darker stroke (35 % black mix) and faint inner cell seams. On paper every piece also gets a 0.6 mm black outline.
+  - An upright label on the cell nearest the centroid, drawn when its cell is large enough (see **Labels** below): one bold character, black on a light fill and white on a dark one (`inkFor`, by the grey level a printer gives the fill), with a halo of the other color, so it reads on any color and on a black-and-white print.
 - **Clues.** A diagonal-hatch overlay and a lock icon. Clues are neither focusable nor draggable.
-- **Palette** (`BASE_COLORS`, Trubetskoy's 20 distinct colors, used in id order):
+- **Palette** (`BASE_COLORS`, Trubetskoy's 20 distinct colors, used in id order and stored with each piece):
   `#e6194b #3cb44b #ffe119 #4363d8 #f58231 #911eb4 #42d4f4 #f032e6 #bfef45 #fabed4 #469990 #dcbeff #9a6324 #fffac8 #800000 #aaffc3 #808000 #ffd8b1 #000075 #a9a9a9`.
   - For index ≥ 20, `colorFor(i)` generates colors: hue = (i · 137.508°) mod 360, saturation 65 %, lightness alternating between 45 % and 65 %.
-- **Labels.** `labelFor(i)`: A … Z, then AA, AB, …, AZ, BA, … (spreadsheet-style, ≤ 4 characters). Sets reach about 90 pieces on 676-cell boards. A label is drawn only where its cell is ≥ 10 CSS px at the current zoom; smaller ones appear once the user zooms in. Accessible names (§11.11) always include the label. Letters guarantee identity even when two colors look alike.
+- **Drawn colors** (`core/browser/piece-look.js`, display only: the stored colors do not change). Each base color is drawn as a color of the same family whose grey level (luma 0.299 R + 0.587 G + 0.114 B) goes light, dark, middle in turn, so pieces with neighbouring letters differ on a black-and-white print: `#ff8a80 #1b7a2f #b38f00 #90b4ff #943a00 #9b59d0 #7fe3f7 #9c1a8f #7fae1e #ffc2d6 #1f6b64 #9479cc #e0b88a #3d4f63 #c25467 #b6f5cf #555f00 #cf7d3c #1a237e #8c8c8c`. Any other stored color is drawn as it is.
+- **Labels.** `labelFor(i)` stores A … Z, then AA, AB, …, AZ, BA, … (spreadsheet-style, ≤ 4 characters). They are always drawn as one character (`pieceGlyph`): A … Z as they are; AA … AZ as the letter in a circle; BA … BZ in a square; CA … CZ white on a black disc (104 distinct looks; a hand-written label such as a pentomino letter is drawn as it is). Text (hints, announcements, accessible names, the generator's piece list) uses the matching characters `pieceLabelText`: Ⓐ, 🄰, 🅐. Sets reach about 90 pieces on 676-cell boards. A label is drawn only where its cell is ≥ 10 CSS px at the current zoom; smaller ones appear once the user zooms in. Accessible names (§11.11) always include the label. Letters guarantee identity even when two colors look alike.
 - **Patterns** (D30). When K > 20, every piece with index ≥ 20 also gets a fill pattern: `patternFor(i)` cycles dots, horizontal lines and vertical lines by ⌊i / 20⌋. Patterns are drawn at low contrast in the stroke color, never as diagonal hatching (reserved for clues), at every zoom level. They keep pieces with index ≥ 20 apart where labels are too small to draw.
 - **No display toggles.** Labels, patterns and the timer always show, in both apps. Older versions stored Labels, Patterns and Timer switches in `pentomino:v1:prefs`; those values are ignored (§9.6).
 - **Large boards.** Pieces of up to ~50 cells and trays of up to ~90 pieces are normal on large boards. The tray scrolls. Labels follow the size rule above.
@@ -2196,23 +2198,24 @@ Hints make only proven statements (D27). There are three outcomes:
 ### 11.14 Language and theme
 
 - **Header.** The same switches as the generator's: **EN | VI** (`aria-pressed` marks the language in use) and the light, dark and high-contrast theme buttons (`core/browser/theme.css`; without a choice the page follows the system's light or dark setting). A choice is kept in `pentomino:v1:lang` and `pentomino:v1:theme` (§9.6), which both apps share. The page start language is `?lang=`, then the saved choice, then the browser languages, then English. `theme-init.js` sets a stored theme before the first paint.
-- **Footer.** Both pages end with a centred footer (`footer.app-footer`, styled in `core/browser/common.css`): "© 2026 Dat Le. Released under the MIT licence." and a link "Source code on GitHub" to the page's folder in the repository (`https://github.com/tdat00/pentomino/tree/main/generator` or `.../player`; new tab, `rel="noopener noreferrer"`). The texts are the keys `shell.footer.*` of each locale pack. The generator's footer is in `generator/index.html`; the player builds its own in `player/app.js`.
+- **Footer.** Both pages end with a centred footer (`footer.app-footer`, styled in `core/browser/common.css`): "© 2026 Dat Le. Released under the MIT License." and a link "Source code on GitHub" to the page's folder in the repository (`https://github.com/tdat00/pentomino/tree/main/generator` or `.../player`; new tab, `rel="noopener noreferrer"`). The texts are the keys `shell.footer.*` of each locale pack. The generator's footer is in `generator/index.html`; the player builds its own in `player/app.js`.
 - **Texts.** `player/locale.en.js` is the base pack (every key) and `player/locale.vi.js` has the same keys and `{placeholders}`; plural forms are `_one` / `_other` keys, and Vietnamese needs only the plain key. A new user-visible text needs a key in both packs (`tests/player-i18n.test.js` checks the keys and placeholders, and that every key used by the code exists).
 - **How texts are read.** `player/strings.js` exposes `LABELS`, `PLAY_TEXT`, `HINT_TEXT`, the verification, certificate and rating labels and the loader messages. Each read looks the text up in the current language, so `state.js`, `play.js` and `hints.js` use them unchanged. Fixed texts of the page are built with `loc()` / `locAttrs()` (`player/ui/i18n-dom.js`), which mark the element with `data-i18n`, so `setLocale` rewrites them; texts that the page computes (the puzzle list, the counters, the badges) are drawn again after a switch. The messages the controllers keep as strings (an error, a notice, a hint message) stay in the language they were made in until the next one.
 - **Not translated.** Text that comes from the data (puzzle titles), from the engine (the issue text of a rejected pack), and the accessible names of pieces ("Piece F, 5 cells, in tray", from `core/browser/svg-board.js`) stay English.
 
 ### 11.15 Printing a puzzle (both apps)
 
-Both apps have a **Print** button with the same dialog and result: the generator's is right of **Play** above the selected puzzle (§10.5); the player's is the printer icon left of **Hint** in the game bar (§11.1). The code is shared (`core/browser/print-*.js`); each app only supplies the puzzle (`getJob()`: the board, the whole piece set, the clues, the display angle, the title "Puzzle #n" and a subtitle with level, score and seed) and its text lookup `t`.
+Both apps have a **Print** button with the same dialog and result: the generator's is the printer icon right of **Play** above the selected puzzle (§10.5); the player's is the printer icon right of **Replay** in the game bar (§11.1). The code is shared (`core/browser/print-*.js`); each app only supplies the puzzle (`getJob()`: the board, the whole piece set, the clues, the display angle, the title "Puzzle #n" and the detail lines made by `puzzleDetails`) and its text lookup `t`.
 
-- **Dialog** (native `<dialog>`, opened with `showModal`). Options: **Print piece set** (on by default), **Include board** (on), **Board size** (Small, Medium (default), Large, Fit page) and **Print 2 sides** (off). The choices are kept while the page lives (not stored). A summary line follows them ("3 sheets of A4 · cells of 15 mm · board in 2 parts"), and a note asks for A4 at 100 % without "fit to page". **Print** builds the pages, closes the dialog and calls `window.print()`; **Cancel** prints nothing.
+- **Dialog** (native `<dialog>`, opened with `showModal`). Options, in this order: **Include piece set** (on by default), **Include board** (on), **Print on both sides** (off), **Print solution** (only in the generator, which passes `solutionOption: true`; off; disabled with a tooltip when the puzzle has no stored solution) and **Board size**: a `<fieldset>` with a table (columns Size, Cell size and A4 sheets; rows Small 10 mm, Medium 15 mm (default), Large 20 mm, Fit to page "Largest that fits on one sheet"; the sheets are worked out with `planPrint` for the open puzzle and the other choices, and change with them), one radio button per row, in the look of the generator's level table (full width, row lines only, the chosen row shaded in the accent colour and bold); a click anywhere in a row picks it. The choices are kept while the page lives (not stored). The paper is said only in the table; a line under it explains the board when needed: "The board is printed on 2 sheets to cut out and join." and "The board is rotated 90° to save paper." (empty and hidden otherwise), with the warning about reduced cells. **Print** builds the pages, closes the dialog and calls `window.print()`; **Cancel** prints nothing.
 - **How it reaches paper.** `printPages` appends a hidden `div.pm-print-root` holding one `div.pm-print-page` (an SVG of 210 × 297 user units, 1 unit = 1 mm, shown at 210 mm × 297 mm) per page, adds `pm-printing` to `<html>` and calls `print()`; `print.css` then hides everything else (`@media print`, `@page { size: A4 portrait; margin: 0 }`, each page 296.5 mm high so that rounding never adds a blank page). On `afterprint` the class and the pages are removed. Nothing leaves the browser and no inline style is used (the CSP of §12.4 is unchanged).
-- **Orientation.** Paper cannot turn by 45°, so the display angle is cut down to a multiple of 90 (a 45° step is dropped: the Heart is printed as its square with a blocked quarter). The board, the pre-placed pieces, the pieces to place and the piece set all turn by that angle. With the board included, the whole printout is turned one more quarter when that needs fewer board parts (or, for Fit page, gives bigger cells); the summary then says so.
-- **Cell size.** Small, Medium and Large are cells of 10, 15 and 20 mm; Fit page is the largest cell, in 0.1 mm steps and at most 25 mm, that puts the whole board on one sheet. The pieces always use the same cell size as the board, whether or not the board is printed, so a printed piece covers exactly one printed board cell. If the largest piece does not fit a sheet at that size (even turned a quarter), the cell is made smaller for both and the dialog says so. The usable area is the sheet minus a 10 mm margin (190 × 277 mm).
-- **First sheet (always).** The title and subtitle, a preview of the board with its pre-placed pieces in the locked style (hatching and padlock) with the legend, and "Pieces to place (n)" with those pieces at the same scale (up to 10 mm cells, smaller when the page is crowded). The preview is for reading the puzzle, not for cutting. The foot has a 50 mm bar and the cell size, so the reader can check that the printer did not scale the page.
+- **Orientation.** Paper cannot turn by 45°, so the display angle is cut down to a multiple of 90 (a 45° step is dropped: the Heart is printed as its square with a blocked quarter). The board, the pre-placed pieces, the pieces to place and the piece set all turn by that angle. With the board included, the whole printout is turned one more quarter when that needs fewer board parts (or, for Fit to page, gives bigger cells); the summary then says so.
+- **Cell size.** Small, Medium and Large are cells of 10, 15 and 20 mm; Fit to page is the largest cell, in 0.1 mm steps and at most 25 mm, that puts the whole board on one sheet. The pieces always use the same cell size as the board, whether or not the board is printed, so a printed piece covers exactly one printed board cell. If the largest piece does not fit a sheet at that size (even turned a quarter), the cell is made smaller for both and the dialog says so. The usable area is the sheet minus a 10 mm margin (190 × 277 mm).
+- **First sheet (always).** The heading, so the puzzle and its piece set can be made again: the title ("Puzzle #2"), then "**Nightmare**: score 123, seed 4567" and "Set: **Expert**, ABCD-EFGH-JKLM" with the level names in bold (`puzzleDetails`; the generator takes the set's level and seed from its state, the player from the pack's `generation.setLevel` and `setSeed`; a part that is not known is left out). Then a preview of the board with its pre-placed pieces in the locked style (hatching and padlock) and a 0.6 mm black outline, so the pieces stay apart on a black-and-white print, with the legend, and "Pieces to place (n)" with those pieces at the same scale (60 % of the largest the page allows, up to 6 mm cells, smaller when the page is crowded). The preview is for reading the puzzle, not for cutting. The foot has a 50 mm bar and the cell size, so the reader can check that the printer did not scale the page.
 - **Piece set.** Every piece of the set, the pre-placed ones too, in the style of an unlocked piece in the game (colour, letter, fill pattern of sets above 20 pieces), packed in rows of tall pieces first with 4 mm of paper between them; a piece wider than the paper is turned a quarter. A caption in the top margin names the sheet.
-- **Board.** The playable cells with a light fill, a grid and a cut line along the outline; blocked cells are not drawn. A board that does not fit a sheet at the chosen size is cut along cell edges into the fewest, evenly sized parts that fit (a part without a playable cell is left out). Each part sits where it would be in the whole region, centred on its sheet, and the caption names it: "Board, part 2 of 6 (row 1, column 2)". The reader cuts the parts and joins them edge to edge.
-- **Two sides.** The back of every sheet follows its front in the page order (the back of the first sheet is blank). It shows the same pieces and board parts **mirrored left to right** about the middle of the sheet (`mirrorX`, `mirrorCells`), at the mirrored place, with letters upright. With the printer set to two-sided printing flipped on the long edge, the two prints of a piece or board part then coincide, so a cut-out piece shows its shape on both sides. A board part is centred, so its back lies on its front.
+- **Board.** The playable cells with a light fill, a grid and a cut line along the outline; holes (blocked cells inside the board) are grey with a cross, as on screen (a grey dark enough to stand out on a black-and-white print), and exterior blocked cells are not drawn. A board that does not fit a sheet at the chosen size is cut along cell edges into the fewest, evenly sized parts that fit (a part without a playable cell is left out). Each part sits where it would be in the whole region, centred on its sheet, and the caption names it: "Board, part 2 of 6 (row 1, column 2)". Where two parts meet, each run of cells that are playable on both sides of the cut gets a mark in its middle on both parts: a dark triangle on the edge with the neighbour's part number, inside the cut line so it stays after cutting; a line in the bottom margin says to match each mark with the mark of the part it names. The reader cuts the parts and joins them edge to edge, mark to mark.
+- **Solution (generator, optional).** Right after the puzzle sheet; with two sides it is printed on the back of the puzzle sheet, so neither has a blank back and no sheet is added. It holds the heading "Puzzle #n · Solution" with the same detail lines, then the board with every piece of the stored solution (`layoutSolution`: the angle of the rest of the printout, cells as large as the page allows up to 10 mm), the pre-placed pieces in their locked style, each piece with the 0.6 mm black outline of the preview.
+- **Two sides.** The back of every sheet follows its front in the page order (the back of the first sheet is blank, or holds the solution when it is printed). It shows the same pieces and board parts **mirrored left to right** about the middle of the sheet (`mirrorX`, `mirrorCells`), at the mirrored place, with letters upright. With the printer set to two-sided printing flipped on the long edge, the two prints of a piece or board part then coincide, so a cut-out piece shows its shape on both sides. A board part is centred, so its back lies on its front.
 - **Texts.** The keys `print.*` of `print-texts.js`, in both languages, are spread into each app's locale pack; the dialog is marked with `data-i18n`, so a language switch updates it.
 
 ---
@@ -2364,14 +2367,14 @@ jobs:
 | `pack` | The §5.2 fixture validates and round-trips. Rejects: wrong format; version 0, −1, 2 or "1"; unknown fields; bad rows; overlapping clues; an invalid solution; oversized input. Accepts the classic 12 pentominoes on 6×10, a piece with a hole (warnings only), `difficulty-v1` ratings (as claims) and a 90-piece pack. `omitSolutions` works. |
 | `sharecode` | `1z` / `1j` round-trips (Node ≥ 22 has `CompressionStream`). A decompression bomb is aborted at 256 KiB. |
 | `game` | place / move / remove / orient / undo / redo / reset. `canPlace` reasons. A moving piece's old cells are excluded. A non-witness tiling wins. Clues are immutable. Restoring progress drops invalid moves. |
-| `print-layout` | The paper layout of §11.15: 45° steps dropped, the board, clues and pieces turn together, the cell sizes (10, 15, 20 mm, Fit page ≤ 25 mm), pieces packed once inside the margins and apart, a too-wide piece turned and the cells shrunk when nothing fits, a big board cut into parts that cover every playable cell once, blocked parts left out, the quarter turn that saves paper, the page list with the backs, the preview fitting the page, and equal English and Vietnamese `print.*` texts. |
+| `print-layout` | The paper layout of §11.15: 45° steps dropped, the board, clues and pieces turn together, the cell sizes (10, 15, 20 mm, Fit to page ≤ 25 mm), pieces packed once inside the margins and apart, a too-wide piece turned and the cells shrunk when nothing fits, a big board cut into parts that cover every playable cell once, blocked parts left out, the quarter turn that saves paper, the page list with the backs, the preview fitting the page, and equal English and Vietnamese `print.*` texts. |
 
 ### 13.3 Browser acceptance checklist
 
 Run on desktop Chromium, Firefox and Safari, on Android Chrome and on iOS Safari. Optional dev-only Playwright smoke tests can come later.
 
 1. `/pentomino/` lands on the generator. Shared modules and workers load under the prefix.
-2. Default board → New Piece Set → New Puzzle (several presses) → Play: the player opens in a new tab and shows the same pieces and clues.
+2. Default board → New piece set → New puzzle (several presses) → Play: the player opens in a new tab and shows the same pieces and clues.
 3. The Heart preset shows as a heart at 45° in both apps. In the editor, clicking a blocked cell of the notch (at 45° and at 0°) unblocks it, and dragging re-blocks cells.
 4. Drag, tap-place, rotate, flip and the keyboard all work at 0°, 45°, 90° and 315°, including on scrolled and zoomed pages.
 5. A Play link opens in another browser profile. A bookmarked player address reopens the same puzzle, and a link pasted into the address bar of an open player opens its puzzle.
@@ -2446,7 +2449,7 @@ L = likelihood, I = impact.
 15. A resize or orientation change during a drag cancels the drag.
 16. Two tabs: the last write wins. Storage unavailable: play and generation continue in memory, and the page says the work cannot be saved.
 17. 21–90 pieces: generated colors, labels beyond Z and patterns; the tray scrolls.
-18. Holes are drawn hatched; exterior cells are not drawn, so a heart reads as a heart.
+18. Holes are drawn grey with a cross; exterior cells are not drawn, so a heart reads as a heart.
 19. A model exceeds the guards (`model-too-large`): N-TOOLARGE; the job ends with the accepted results.
 
 ---

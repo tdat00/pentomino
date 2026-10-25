@@ -2,6 +2,7 @@
 // User-visible texts of the player, looked up in the language packs (locale.en.js / locale.vi.js) at each read, so
 // text built after a language switch follows it. Values are plain text for `textContent`.
 import { level } from '../core/engine/levels.js';
+import { pieceLabelText } from '../core/browser/piece-look.js';
 import { has, onChange, t } from './i18n.js';
 
 /** @typedef {import('../core/engine/types.js').Issue} Issue */
@@ -53,7 +54,6 @@ export function invalidPackMessage(message) {
 }
 
 /**
- * Maps the failure issues of any incoming loader to one message.
  * @param {Issue[] | undefined} issues
  * @returns {string}
  */
@@ -109,7 +109,7 @@ const LEVEL_MARK = '\u0000';
 /**
  * The rating line split around the level name, so that a view can emphasise the level.
  * @param {PackPuzzle['rating']} rating
- * @returns {{ before: string, level: string, after: string } | null} Null when the puzzle carries no rating.
+ * @returns {{ before: string, level: string, after: string } | null}
  */
 export function ratingParts(rating) {
   if (!rating || typeof rating.score !== 'number') {
@@ -121,7 +121,7 @@ export function ratingParts(rating) {
 
 /**
  * @param {PackPuzzle['rating']} rating
- * @returns {string} Empty when the puzzle carries no rating.
+ * @returns {string}
  */
 export function ratingLabel(rating) {
   const parts = ratingParts(rating);
@@ -147,7 +147,7 @@ export function certificateStatus(certificate, solvable = false) {
  * Same wording as the generator's cards.
  * @param {{ status: string } | null | undefined} certificate
  * @param {boolean} [solvable] A solution of the puzzle is known.
- * @returns {string} Empty when nothing is claimed.
+ * @returns {string}
  */
 export function certificateLabel(certificate, solvable = false) {
   const status = certificateStatus(certificate, solvable);
@@ -162,7 +162,7 @@ const VERIFICATION_KEYS = Object.freeze({
 /**
  * Only an exhausted search with zero solutions says "No solution exists".
  * @param {{ status: 'pending' | 'solvable' | 'unsatisfiable' | 'not-verified' } | null | undefined} verification
- * @returns {string} Empty before any check was requested.
+ * @returns {string}
  */
 export function verificationLabel(verification) {
   const key = verification ? VERIFICATION_KEYS[verification.status] : undefined;
@@ -171,7 +171,7 @@ export function verificationLabel(verification) {
 
 /**
  * @param {Issue[]} warnings `game.restoreWarnings`
- * @returns {string} Empty when nothing was discarded.
+ * @returns {string}
  */
 export function restorationNotice(warnings) {
   const dropped = warnings.filter((w) => w.code !== 'too-many-warnings').length;
@@ -225,15 +225,14 @@ export function reasonText(reason) {
   return t(reason === 'outside' || reason === 'blocked' || reason === 'clue' || reason === 'overlap' ? `reason.${reason}` : 'reason.other');
 }
 
-/** Spoken and visible outcomes of piece manipulation; every one is announced through the live region. */
 export const PLAY_TEXT = Object.freeze(Object.assign(texts('play', [
   'noRoom', 'selectFirst', 'noSelection', 'alreadyInTray', 'cancelled', 'moveCancelled', 'undone', 'redone', 'nothingToUndo',
   'nothingToRedo', 'resetDone', 'previewValid',
 ]), {
   /** @param {string} label @returns {string} */
-  selected: (label) => t('play.selected', { label }),
+  selected: (label) => t('play.selected', { label: pieceLabelText(label) }),
   /** @param {string} label @returns {string} */
-  pickedUp: (label) => t('play.pickedUp', { label }),
+  pickedUp: (label) => t('play.pickedUp', { label: pieceLabelText(label) }),
   /** @param {string} reason @returns {string} */
   cannotPlace: (reason) => t('play.cannotPlace', { reason: reasonText(reason) }),
   /** @param {string} name Accessible piece name. @returns {string} */
@@ -241,9 +240,9 @@ export const PLAY_TEXT = Object.freeze(Object.assign(texts('play', [
   /** @param {string} name @returns {string} */
   moved: (name) => t('play.moved', { name }),
   /** @param {string} label @returns {string} */
-  returned: (label) => t('play.returned', { label }),
+  returned: (label) => t('play.returned', { label: pieceLabelText(label) }),
   /** @param {string} label @returns {string} */
-  turned: (label) => t('play.turned', { label }),
+  turned: (label) => t('play.turned', { label: pieceLabelText(label) }),
   /** @param {string} total @returns {string} */
   solved: (total) => t('play.solved', { total }),
   /**
@@ -257,19 +256,18 @@ export const PLAY_TEXT = Object.freeze(Object.assign(texts('play', [
   }),
 }));
 
-/** Outcomes of hints and reveal; every one is announced through the live region. */
 export const HINT_TEXT = Object.freeze(Object.assign(texts('hint', [
   'working', 'revealWorking', 'cancelled', 'stale', 'complete', 'noLongerFits', 'revealed', 'revealUnsat', 'revealImpossible',
   'revealCancelled', 'revealUnknown', 'revealFailed', 'replayed',
 ]), {
   /** @param {string} label @returns {string} */
-  place: (label) => t('hint.place', { label }),
+  place: (label) => t('hint.place', { label: pieceLabelText(label) }),
   /** @param {string} label @returns {string} */
-  remove: (label) => t('hint.remove', { label }),
+  remove: (label) => t('hint.remove', { label: pieceLabelText(label) }),
   /** @param {string} label @returns {string} */
-  placedHint: (label) => t('hint.placedHint', { label }),
+  placedHint: (label) => t('hint.placedHint', { label: pieceLabelText(label) }),
   /** @param {string} label @returns {string} */
-  removedHint: (label) => t('hint.removedHint', { label }),
+  removedHint: (label) => t('hint.removedHint', { label: pieceLabelText(label) }),
 }));
 
 /**

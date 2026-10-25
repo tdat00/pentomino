@@ -128,7 +128,7 @@ const root = h('div', { class: 'harness-app' },
     h('section', { class: 'panel panel-level' }, h('div', { 'data-slot': 'level' })),
     h('section', { class: 'panel panel-set' }, h('div', { 'data-slot': 'set' })),
     h('section', { class: 'panel panel-puzzles' }, h('div', { 'data-slot': 'puzzles' }))),
-  h('div', { class: 'main-actions' }, h('button', { type: 'button', 'data-slot': 'main-action' }, 'New Piece Set')));
+  h('div', { class: 'main-actions' }, h('button', { type: 'button', 'data-slot': 'main-action' }, 'New piece set')));
 sandbox.append(root);
 
 const app = createGeneratorApp(document, {

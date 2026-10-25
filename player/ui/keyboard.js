@@ -41,7 +41,7 @@ function asElement(target) {
 export function createKeyboard({ target, play, showHelp }) {
   /**
    * @param {KeyboardEvent} event
-   * @returns {boolean} Whether the key was handled (and its default prevented).
+   * @returns {boolean}
    */
   function handle(event) {
     if (event.defaultPrevented || event.isComposing || event.altKey) {

@@ -15,6 +15,36 @@ const WHEEL_GAP_MS = 120;
 const CLICK_GUARD_MS = 450;
 
 /**
+ * A press anywhere in a tray slot, the frame around the piece included, grabs that piece: by the cell pressed, or
+ * else by the cell of the piece nearest to the press.
+ * @param {PointerEvent} event
+ * @returns {{ pieceId: string, sourceCell: number | null } | null}
+ */
+export function trayPiece(event) {
+  const target = /** @type {Element | null} */ (event.target);
+  const slot = target !== null && typeof target.closest === 'function' ? target.closest('.tray-piece') : null;
+  const pieceId = slot?.getAttribute('data-piece-id');
+  if (slot === null || slot === undefined || !pieceId) {
+    return null;
+  }
+  const direct = Number(target?.getAttribute('data-source-cell') ?? Number.NaN);
+  if (Number.isInteger(direct) && direct >= 0) {
+    return { pieceId, sourceCell: direct };
+  }
+  let sourceCell = null;
+  let best = Infinity;
+  for (const hit of slot.querySelectorAll('.pm-hit[data-source-cell]')) {
+    const r = hit.getBoundingClientRect();
+    const d = (event.clientX - (r.left + r.width / 2)) ** 2 + (event.clientY - (r.top + r.height / 2)) ** 2;
+    if (d < best) {
+      best = d;
+      sourceCell = Number(hit.getAttribute('data-source-cell'));
+    }
+  }
+  return { pieceId, sourceCell };
+}
+
+/**
  * @typedef {object} GestureOptions
  * @property {Window & typeof globalThis} win
  * @property {Play} play
@@ -136,7 +166,7 @@ export function bindGestures({ win, play, store, boardView, trayHost, dropHost =
   });
 
   const boardTracker = createPointerTracker(surface, handlers('board'));
-  const trayTracker = createPointerTracker(trayHost, handlers('tray'));
+  const trayTracker = createPointerTracker(trayHost, handlers('tray'), { resolve: trayPiece });
 
   // A rotate or mirror during the drag redraws the clone; a drag ended from the
   // keyboard (Escape) releases the pointer.

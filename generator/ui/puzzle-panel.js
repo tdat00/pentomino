@@ -2,8 +2,8 @@
 // Step 3 puzzles panel. Cards are reconciled by puzzle id so thumbnails are not rebuilt when a certificate
 // arrives. All text is set through textContent.
 import { el } from '../../core/browser/dom.js';
-import { createPrintDialog } from '../../core/browser/print-dialog.js';
-import { mountBoard, mountPiecePreview } from '../../core/browser/svg-board.js';
+import { createPrintDialog, puzzleDetails } from '../../core/browser/print-dialog.js';
+import { mountBoard, mountPiecePreview, svgEl } from '../../core/browser/svg-board.js';
 import { activeCount } from '../../core/engine/board.js';
 import { normalizeAngle } from '../../core/engine/view.js';
 import { has, t } from '../i18n.js';
@@ -115,13 +115,19 @@ export function mountPuzzlePanel(host, options) {
   const detailTitle = el('h3', { className: 'detail-title' });
   const detailSeed = el('span', { className: 'detail-seed' });
   const playButton = /** @type {HTMLButtonElement} */ (loc('detail.play', { className: 'primary', attrs: { type: 'button', 'data-action': 'play-puzzle' } }, 'button'));
-  const printButton = /** @type {HTMLButtonElement} */ (loc('print.button', {
-    attrs: { type: 'button', 'data-action': 'print-puzzle', 'aria-haspopup': 'dialog', ...locAttrs({ title: 'print.button.title' }) },
-  }, 'button'));
+  // Shows the stored solution on the board; it goes back off when another puzzle is shown.
+  const solutionButton = /** @type {HTMLButtonElement} */ (loc('detail.showSolution', { className: 'solution-toggle', attrs: { type: 'button', 'data-action': 'show-solution', 'aria-pressed': 'false' } }, 'button'));
+  let solutionShown = false;
+  /** @type {string | null} */
+  let solutionPuzzleId = null;
+  // Icon only: the name is in aria-label and the tooltip.
+  const printButton = /** @type {HTMLButtonElement} */ (el('button', {
+    className: 'icon-btn',
+    attrs: { type: 'button', 'data-action': 'print-puzzle', 'aria-haspopup': 'dialog', ...locAttrs({ 'aria-label': 'print.button.title', title: 'print.button.title' }) },
+  }, svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' }, svgEl('use', { href: '#ic-print' }))));
   const detailHead = el('div', { className: 'detail-head' }, el('div', { className: 'detail-name' }, detailTitle, detailSeed),
     el('div', { className: 'detail-actions' }, playButton, printButton));
   const detailBoard = el('div', { className: 'detail-board' });
-  // The same board tools as step 1: zoom out / in, fit (the default size), and the view turned by 45°.
   /**
    * @param {string} text
    * @param {string} key
@@ -141,7 +147,7 @@ export function mountPuzzlePanel(host, options) {
   const detailTrayTitle = loc('detail.toPlace', { className: 'detail-tray-title' }, 'h4');
   const detailPieces = el('ul', { className: 'detail-pieces', attrs: { ...locAttrs({ 'aria-label': 'detail.toPlace' }) }, dataset: { role: 'detail-pieces' } });
   const detail = el('section', { className: 'puzzle-detail', attrs: { hidden: '' }, dataset: { role: 'puzzle-detail' } },
-    detailHead, detailFrame, detailTrayTitle, detailPieces);
+    detailHead, detailFrame, el('div', { className: 'detail-solution' }, solutionButton), detailTrayTitle, detailPieces);
   const noticeBox = options.noticeHost ?? el('div', { className: 'result-notice', attrs: { role: 'status' }, dataset: { role: 'notice' } });
   const cardList = el('ol', { className: 'puzzle-cards', attrs: { ...locAttrs({ 'aria-label': 'puzzles.list' }), id: `${uid}-cards` }, dataset: { role: 'cards' } });
   const emptyText = el('p', { className: 'hint', dataset: { role: 'empty' } });
@@ -169,16 +175,22 @@ export function mountPuzzlePanel(host, options) {
     }
     const puzzle = state.puzzles[at];
     const seed = state.puzzleSeeds[puzzle.id];
+    const rating = puzzle.rating;
+    const setLevel = state.calibrationFor?.levelId ?? null;
     return {
       board: state.set.board,
       pieces: state.set.pieces,
       clues: puzzle.clues,
       rotation: state.rotation,
       title: t('card.heading', { n: at + 1 }),
-      subtitle: [describeRating(puzzle), seed === undefined ? '' : t('card.seed', { seed })].filter((part) => part !== '').join(' · '),
+      details: puzzleDetails(t,
+        rating === null || rating === undefined ? null : { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated },
+        seed,
+        state.setSeed === null ? null : { level: setLevel === null ? null : levelLabel(setLevel), seed: state.setSeed }),
+      solution: puzzle.solution ?? null,
     };
   }
-  const printDialog = createPrintDialog({ host: host.ownerDocument.body, t, getJob: printJob });
+  const printDialog = createPrintDialog({ host: host.ownerDocument.body, t, getJob: printJob, solutionOption: true });
   /**
    * @typedef {object} Card
    * @property {HTMLLIElement} item
@@ -344,12 +356,29 @@ export function mountPuzzlePanel(host, options) {
     detailSeed.textContent = detailSeedValue === undefined ? '' : t('card.seed', { seed: detailSeedValue });
     detailSeed.hidden = detailSeedValue === undefined;
     playButton.disabled = isBusy(state);
+    if (solutionPuzzleId !== puzzle.id) {
+      solutionPuzzleId = puzzle.id;
+      solutionShown = false;
+    }
+    const solution = puzzle.solution ?? null;
+    if (solution === null) {
+      solutionShown = false;
+    }
+    const solutionKey = solutionShown ? 'detail.hideSolution' : 'detail.showSolution';
+    solutionButton.dataset.i18n = solutionKey;
+    solutionButton.textContent = t(solutionKey);
+    solutionButton.setAttribute('aria-pressed', String(solutionShown));
+    solutionButton.disabled = solution === null;
+    solutionButton.title = solution === null ? t('detail.noSolution') : '';
     detailView.svg.setAttribute('aria-label', t('detail.board'));
     if (detailView.getState().rotation !== state.rotation) {
       detailView.setRotation(state.rotation);
     }
+    const clueIds = new Set(puzzle.clues.map((pose) => pose.piece));
     detailView.render({
-      board: set.board, pieces: set.pieces, clues: puzzle.clues, placements: [], showLabels: true, showPatterns: true,
+      board: set.board, pieces: set.pieces, clues: puzzle.clues,
+      placements: solutionShown && solution !== null ? solution.filter((pose) => !clueIds.has(pose.piece)) : [],
+      showLabels: true, showPatterns: true,
     });
     const signature = `${puzzle.id}|${state.rotation}`;
     if (signature === detailSignature) {
@@ -460,6 +489,10 @@ export function mountPuzzlePanel(host, options) {
     }
   });
   listen(printButton, 'click', () => printDialog.open());
+  listen(solutionButton, 'click', () => {
+    solutionShown = !solutionShown;
+    render(store.getState());
+  });
   // Zoom keeps to the view; Fit goes back to the default size; the arrows turn the board like step 1 does.
   listen(detailZoomOut, 'click', () => detailView?.setZoom(detailView.getState().cellPx / ZOOM_STEP));
   listen(detailZoomIn, 'click', () => detailView?.setZoom(detailView.getState().cellPx * ZOOM_STEP));

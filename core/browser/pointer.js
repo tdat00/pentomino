@@ -1,7 +1,6 @@
 // @ts-check
-// Single-pointer gesture tracker. It captures on a stable surface, reports
-// select / dragStart / dragMove / dragEnd / cancel signals and never mutates
-// game state. Controllers decide what a signal means.
+// Single-pointer gesture tracker: captures on a stable surface and reports select / dragStart / dragMove / dragEnd /
+// cancel signals. It never mutates game state; controllers decide what a signal means.
 
 /**
  * @typedef {object} PointerInfo
