@@ -803,14 +803,14 @@ Handoff to RP03/RP05/RP06:
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Done |
+| Start | 2026-10-25 21:41:19 (+07:00) |
+| End | 2026-10-25 22:09:34 (+07:00) |
+| Duration | 28 min 15 s |
+| Model | claude-sonnet-5.5 (sub-agent `RP02-route`, general-purpose); wave 2, alone (held the documentation slot from the start) |
+| Token usage | 145 model calls; 34,318,196 input (33,866,195 cache read), 219,153 output |
+| AI credits | 670.80 AIU (local usage store, keyed by sub-agent id) |
+| Verification | Developer: six targeted suites 112/112 (protocol 17, tasks 28, sharecode 14, handoff 20, puzzle-code-client 19, player-puzzle-code-route 14); full `npm test` 1,009/1,009; `npm run check` OK; browser harness `tests/browser/puzzle-code-worker.html` in headless Edge 156 (`--disable-extensions`, ports 8702/9202) → pass, 12 checks, 4 workers spawned and terminated, `catalogueStats.sizesBuilt === 0` on the page, 0 CDP errors; a throwaway check on the real Player page opened `#p=<golden>` and the lowercase core-only form, and showed the right start-screen messages for a typo, `&i=1` and an empty `#p=` without rewriting the address. Orchestrator re-run: full `node --test "tests/**/*.test.js"` 1,009 pass / 0 fail (47.1 s); `npm run check` OK. |
+| Acceptance | Business and technical criteria met: encode/decode/repair run only in workers (the cold catalogue is never built on a page); `#p=` opens exactly one puzzle through `readIncoming` with the codec's single `parsePuzzleHash`, rejects `i ≠ 0` and mixed keys with their messages, never rewrites a `p` address; legacy `#pack=`/`#lib=` behaviour and tests unchanged; tail-only damage recovers the core puzzle; cancellation and deadlines map to typed failures. |
+| Issues & resolutions | (1) The first Promise-aware `createTaskHandler` stalled its queue after a sync task → `run`/`release`/`waiting` design with tests. (2) `parseWorkerMessage` is strict and `worker-pool.js` is not owned → `params` and `candidate` ride on `issues[]` entries, passed through unchanged. (3) Node-worker scratch runs need a file script under `tests/artifacts/` (stdin modules break `nodeWorkerFactory`). (4) Deviations: `puzzleCodeUrl` accepts `file:` targets (RP05 decides when to pass one; the caller enforces `MAX_URL_CHARS`); aborted calls reject with `PoolAbortError`, mapped to `cancelled`; `worker-unavailable` text omits the non-existent file import (RP03 owns final texts); extra `createTaskHandler` option `execute` (test seam) and exports `isPuzzleHash`, `readPuzzleCode`; optional snapshot fields default to null; encode compression is automatic. (5) Living docs: design-brief Player address and puzzle-code paragraphs (no entry/print/scan UI claimed); design-detail §1.1, §3.1, §3.2, §4.2, §4.3, §8.1, D43, §9.1, §9.4, §9.5, §9.7, §9.8, new §9.9, §11.12, §13.2, §13.3 item 19; README Player bullet, privacy line, code layout and test-page list (EN/VI). |
+| Handoff | `createPuzzleCodeClient({ pool?, createPool? })` → `{ encode(snapshot), decode(text), repair(text), cancel(), dispose() }` and `failureFromCodeError(error)`; results `{ ok: true, value, warnings }` or `{ ok: false, issues, recovery?, candidate? }`; an injected pool must be dedicated. Issues carry `code`, `path`, `message`, `params?`, `candidate?` (`offset = 4·(group − 1) + position − 1`, `normalizedCode`); `recovery: { kind: 'core-only', code, pack }` when only the tail is bad; service failures `worker-unavailable`, `worker-error` (`params.reason: 'deadline'`); controller failure `cancelled`. Player controller (RP03): options `puzzleCodeClient`, `createPuzzleCodeClient`, `onPuzzleCodeFailure({ text, failure })`; methods `loadPuzzleCode(text, { commitAddress })` (`commitAddress: true` → `replaceState('#p=<normalized>')`) and `cancelPuzzleCodeLoad()`. Routing (RP05–RP08): `parseLocationHashResult(hash)` → `{ p, index: 0 }`; `isPuzzleHash(hash)`; `puzzleCodeUrl(playerTarget, code)` → http(s)/file URL with `#p=<normalized>` and no `i` — keep the selected Player target apart from the current page base. `handoff.js`: `readPuzzleCode(text, env)`; `readIncoming` decodes `p` through `env.decodePuzzle`. Open for RP05: allow `file:` targets only for the developer override; RP03 owns the final failure wording. |

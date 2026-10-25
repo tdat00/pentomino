@@ -161,7 +161,9 @@ From 768 px to 1359 px the puzzles go under the game; below 768 px the panels st
 
 - **Opening a puzzle.** Follow a player link: the Generator's **Play**, or an address that was shared or bookmarked.
   Without a puzzle the page shows a start screen with **Try the sample** and a link to the Generator. A link with pieces
-  but no puzzle is explained, and a link that cannot be opened never replaces the puzzle you are playing. The address
+  but no puzzle is explained, and a link that cannot be opened never replaces the puzzle you are playing. A single
+  puzzle also opens from its one-puzzle code link, `…/player/#p=<code>`: it is decoded in a background worker, needs no
+  Generator and no saved copy, keeps your saved progress, and reloading it reopens the same puzzle. The address
   always holds the open pack and puzzle. A card in the puzzle list (name, level and score, pieces to place, uniqueness,
   progress, preview), newest on top, opens that puzzle; ✕ on a card removes it and **Remove all** empties the list.
 - **Claims and checks.** Ratings and uniqueness carried by the pack are shown as the pack states them, with the level in
@@ -224,7 +226,8 @@ Print at 100 % (actual size): the 50 mm bar on the first sheet shows whether the
 ## Storage and privacy
 
 - Everything stays in the browser: no upload, no remote solver, no analytics. A puzzle travels in the `#pack=` part of
-  its link, which the browser never sends to the server. Share links may omit the answer.
+  its link (or, for a single puzzle, its `#p=` code), which the browser never sends to the server. Share links may omit
+  the answer.
 - Both apps use `localStorage` keys under `pentomino:v1:` only, and never touch other keys of the same origin:
   - Generator: its work (board, settings, piece sets and puzzles) in `gen:state`;
   - Player: the progress of each puzzle (`progress:<fingerprint>`, up to 300, save times in `progress-index`), the
@@ -264,8 +267,9 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
 
 - **Browser test pages** (not deployed): run `npm run serve` and open `http://localhost:8080/pentomino/tests/browser/`
   followed by `player-controls.html`, `player-load.html`, `hints.html`, `print.html`, `rendering.html`,
-  `generator-flow.html`, `generator-editor.html` or `acceptance.html`. Each writes a pass/fail list and `data-summary`
-  on `<html>`. Use a window narrower than 1360 px: some checks expect the one- or two-column layout.
+  `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html` or `acceptance.html`. Each writes a
+  pass/fail list and `data-summary` on `<html>`. Use a window narrower than 1360 px: some checks expect the one- or
+  two-column layout.
 - **Headless generation**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`. The
   pack goes to stdout (or `--output`), messages to stderr. Exit codes: `0` complete (including a set whose
   arrangements were all found and proven to be all); `2` a valid partial or cancelled pack; `1` no usable result or
@@ -279,8 +283,8 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
 
 ```text
 core/engine/    pure, deterministic logic: geometry, boards, tiling, generation, rating, packs, puzzle codes (no DOM, clock or storage)
-core/browser/   rendering (SVG board), storage, i18n, themes, pointer handling, printing, the generation client
-core/workers/   the module worker that runs generation off the main thread, with cancel and deadline watchdogs
+core/browser/   rendering (SVG board), storage, i18n, themes, pointer handling, printing, the generation and puzzle-code clients
+core/workers/   the module worker that runs generation and puzzle codes off the main thread, with cancel and deadline watchdogs
 generator/      Pentomino Generator: page, state, jobs and UI
 player/         Pentomino Player: page, state, play, hints and UI
 tests/          Node unit tests (*.test.js) and browser test pages (tests/browser/)
@@ -462,7 +466,9 @@ sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp
 
 - **Mở một đề.** Mở một liên kết của trình chơi: nút **Chơi** của trình tạo đề, hoặc một địa chỉ được chia sẻ hay đã lưu
   dấu trang. Khi chưa có đề, trang hiện màn hình bắt đầu với **Thử đề mẫu** và liên kết tới trình tạo đề. Liên kết chỉ có
-  mảnh mà không có đề sẽ được giải thích, và một liên kết không mở được không bao giờ thay thế đề bạn đang chơi. Địa chỉ
+  mảnh mà không có đề sẽ được giải thích, và một liên kết không mở được không bao giờ thay thế đề bạn đang chơi. Một đề
+  đơn cũng mở được từ liên kết mã đề của nó, `…/player/#p=<mã>`: mã được giải trong một worker chạy nền, không cần trình
+  tạo đề hay bản sao đã lưu, giữ tiến độ đã lưu của bạn, và tải lại sẽ mở lại đúng đề đó. Địa chỉ
   luôn chứa gói và đề đang mở. Mỗi thẻ trong danh sách đề (tên, mức độ và điểm, số mảnh cần đặt, tính duy nhất, tiến độ,
   hình xem trước), mới nhất ở trên, mở đề đó; ✕ trên thẻ xóa đề và **Xóa tất cả** làm trống danh sách.
 - **Thông tin và kiểm tra.** Mức độ và tính duy nhất do gói mang theo được hiển thị đúng như gói ghi, với mức độ in đậm.
@@ -524,7 +530,8 @@ Hãy in ở tỉ lệ 100% (kích thước thật): thanh 50 mm trên tờ đầ
 ## Lưu trữ và quyền riêng tư
 
 - Mọi thứ ở lại trong trình duyệt: không tải lên, không bộ giải từ xa, không thu thập số liệu. Một đề đi theo phần
-  `#pack=` của liên kết, phần mà trình duyệt không bao giờ gửi lên máy chủ. Liên kết chia sẻ có thể không kèm đáp án.
+  `#pack=` của liên kết (hoặc, với một đề đơn, phần mã `#p=`), phần mà trình duyệt không bao giờ gửi lên máy chủ. Liên
+  kết chia sẻ có thể không kèm đáp án.
 - Cả hai ứng dụng chỉ dùng các khóa `localStorage` có tiền tố `pentomino:v1:`, và không bao giờ đụng tới các khóa khác
   của cùng nguồn gốc:
   - trình tạo đề: công việc của bạn (bàn chơi, thiết lập, bộ mảnh và đề) trong `gen:state`;
@@ -565,9 +572,9 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
 
 - **Trang kiểm thử trên trình duyệt** (không được xuất bản): chạy `npm run serve` rồi mở
   `http://localhost:8080/pentomino/tests/browser/` kèm `player-controls.html`, `player-load.html`, `hints.html`,
-  `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html` hoặc `acceptance.html`. Mỗi trang ghi
-  danh sách đạt/không đạt và `data-summary` trên `<html>`. Hãy dùng cửa sổ hẹp hơn 1360 px: một số bài kiểm tra cần bố
-  cục một hoặc hai cột.
+  `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html` hoặc
+  `acceptance.html`. Mỗi trang ghi danh sách đạt/không đạt và `data-summary` trên `<html>`. Hãy dùng cửa sổ hẹp hơn
+  1360 px: một số bài kiểm tra cần bố cục một hoặc hai cột.
 - **Tạo đề không cần giao diện**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`.
   Gói đề in ra stdout (hoặc `--output`), thông báo ra stderr. Mã thoát: `0` hoàn tất (kể cả khi bộ mảnh đã được tìm đủ và
   chứng minh là hết cách xếp); `2` gói hợp lệ nhưng thiếu hoặc bị hủy; `1` không có kết quả dùng được hoặc đầu vào sai.
@@ -580,8 +587,8 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
 
 ```text
 core/engine/    logic thuần, tất định: hình học, bàn chơi, lát kín, tạo đề, chấm độ khó, gói đề, mã đề (không DOM, đồng hồ hay lưu trữ)
-core/browser/   hiển thị (bàn chơi SVG), lưu trữ, đa ngôn ngữ, giao diện, xử lý con trỏ, in, client tạo đề
-core/workers/   module worker chạy việc tạo đề ngoài luồng chính, có cơ chế hủy và giới hạn thời gian
+core/browser/   hiển thị (bàn chơi SVG), lưu trữ, đa ngôn ngữ, giao diện, xử lý con trỏ, in, client tạo đề và client mã đề
+core/workers/   module worker chạy việc tạo đề và mã đề ngoài luồng chính, có cơ chế hủy và giới hạn thời gian
 generator/      Pentomino Generator: trang, trạng thái, tác vụ và giao diện
 player/         Pentomino Player: trang, trạng thái, ván chơi, gợi ý và giao diện
 tests/          kiểm thử đơn vị Node (*.test.js) và các trang kiểm thử trình duyệt (tests/browser/)

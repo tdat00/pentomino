@@ -6,9 +6,11 @@
 import { createGame, snapshot } from '../core/engine/game.js';
 import { progressFingerprint } from '../core/engine/keys.js';
 import { packBoard } from '../core/engine/pack.js';
-import { MAX_URL_CHARS, encodeShareCode, parseLocationHash } from '../core/engine/sharecode.js';
+import { normalizePuzzleCodeInput } from '../core/engine/puzzlecode-input.js';
+import { MAX_URL_CHARS, encodeShareCode, isPuzzleHash, parseLocationHash } from '../core/engine/sharecode.js';
 import { normalizeAngle, straightenAngle } from '../core/engine/view.js';
-import { readIncoming, readPack } from '../core/browser/handoff.js';
+import { readIncoming, readPack, readPuzzleCode } from '../core/browser/handoff.js';
+import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
 import { SAVE_FAILED_MESSAGE, browserStorage } from '../core/browser/storage.js';
 import { createPool, isAbortError } from '../core/browser/worker-pool.js';
 import { INDEX_MESSAGE, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, messageForIssues, restorationNotice } from './strings.js';
@@ -17,6 +19,9 @@ import { INDEX_MESSAGE, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, messageForIs
 /** @typedef {import('../core/engine/types.js').Issue} Issue */
 /** @typedef {import('../core/engine/game.js').GameState} GameState */
 /** @typedef {import('../core/browser/storage.js').Prefs} Prefs */
+/** @typedef {import('../core/browser/puzzle-code-client.js').PuzzleCodeClient} PuzzleCodeClient */
+/** @typedef {import('../core/browser/puzzle-code-client.js').CodeFailure} CodeFailure */
+/** @template T @typedef {import('../core/browser/puzzle-code-client.js').CodeResult<T>} CodeResult */
 
 /**
  * `pending` is a live check; `not-verified` is inconclusive (never "impossible");
@@ -38,8 +43,9 @@ import { INDEX_MESSAGE, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, messageForIs
  * @property {'start' | 'game'} screen
  * @property {Pack | null} pack
  * @property {string | null} packId Id of the copy saved in this browser for a same-browser `#lib=` address.
- * @property {'hash' | 'library' | 'sample' | null} source `hash`: the pack came from the address; `library`: the
- *   player made it (a puzzle was removed); `sample`: the sample. Both of the latter get a `#pack=` address when it fits.
+ * @property {'hash' | 'library' | 'sample' | null} source `hash`: the pack came from the address (`#pack=` or a one-puzzle
+ *   `#p=` code); `library`: the player made it (a puzzle was removed); `sample`: the sample. Both of the latter get a
+ *   `#pack=` address when it fits.
  * @property {boolean} local The address is a same-browser `#lib=` link.
  * @property {number} index
  * @property {number | null} viewRotation Display angle chosen with the board's rotate buttons (counter-clockwise
@@ -183,6 +189,19 @@ export function hashWithIndex(hash, index) {
 const SAMPLE_PATH = './samples/sample-pack.json';
 const MAX_SAMPLE_CHARS = 600000;
 
+/** The route parser's failure names as the host loader reports them for a `#p=` address, and as the code entry names them. */
+const ENTRY_CODES = /** @type {Record<string, string>} */ ({ 'invalid-index': 'index', 'invalid-hash': 'invalid' });
+
+/**
+ * The failure of a `#p=` address as the code entry presents it: `index` and `invalid` instead of the host's
+ * `invalid-index` and `invalid-hash`. Every other issue, recovery and candidate is kept as it is.
+ * @param {CodeFailure} failure
+ * @returns {CodeFailure}
+ */
+function codeEntryFailure(failure) {
+  return { ...failure, issues: failure.issues.map((issue) => (ENTRY_CODES[issue.code] === undefined ? issue : { ...issue, code: ENTRY_CODES[issue.code] })) };
+}
+
 /**
  * @param {string} url
  * @returns {Promise<string>}
@@ -216,6 +235,14 @@ async function defaultFetchText(url) {
  * @property {(url: string) => Promise<string>} [fetchText] Only ever called with the fixed sample URL.
  * @property {string | URL} [baseUrl] Page base used to resolve the sample path.
  * @property {() => PoolLike} [createPool] Verification pool factory (default: one module worker).
+ * @property {PuzzleCodeClient} [puzzleCodeClient] A caller-owned client for `#p=` addresses and `loadPuzzleCode`; the
+ *   controller cancels but never disposes it. Default: the controller's own client, created on first use.
+ * @property {() => PuzzleCodeClient} [createPuzzleCodeClient] Factory of a controller-owned client (disposed by `destroy`).
+ * @property {(failure: { text: string, failure: CodeFailure }) => void} [onPuzzleCodeFailure] Called when an address
+ *   with a `#p=` key (`openHash`, `start`) cannot open a puzzle; `text` is the address as received. The failure
+ *   (issues named as the code entry names them: `index`, `invalid`, `bad-char`, `core-check` ..., plus any
+ *   `recovery` and `candidate`) changes no state, leaves the open game and its progress alone, and replaces the
+ *   generic `error` of the store, which stays empty. Without it the failure is the store's `error`.
  */
 
 /**
@@ -224,20 +251,49 @@ async function defaultFetchText(url) {
 export function createPlayerController(options) {
   const { store } = options;
   const storage = options.storage ?? browserStorage();
-  const env = { storage };
+  const env = { storage, decodePuzzle: (/** @type {string} */ text) => decodePuzzle(text) };
   const getLocation = () => options.location ?? globalThis.location;
   const getHistory = () => options.history ?? globalThis.history;
   let destroyed = false;
   let loadToken = 0;
+  /** Token of the newest load that reads a puzzle code, until it ends. */
+  let codeLoadToken = /** @type {number | null} */ (null);
   let requestSeq = 0;
   /** @type {PoolLike | null} */
   let pool = null;
   let poolUnavailable = false;
+  /** @type {PuzzleCodeClient | null} */
+  let codeClient = null;
 
   /** @returns {PoolLike} */
   function getPool() {
     pool ??= (options.createPool ?? (() => /** @type {PoolLike} */ (/** @type {unknown} */ (createPool({ size: 1 })))))();
     return pool;
+  }
+
+  /** The controller's dedicated puzzle-code worker: separate from the verification pool, made on first use. */
+  function getCodeClient() {
+    codeClient ??= options.puzzleCodeClient ?? (options.createPuzzleCodeClient ?? createPuzzleCodeClient)();
+    return codeClient;
+  }
+
+  /** @returns {CodeFailure} */
+  const cancelledFailure = () => ({ ok: false, issues: [{ code: 'cancelled', path: '$', message: 'The puzzle code load was cancelled.' }] });
+
+  /**
+   * Decodes through the dedicated client; a cancelled or superseded decode is the `cancelled` failure, never a throw.
+   * @param {string} text
+   * @returns {Promise<CodeResult<import('../core/browser/puzzle-code-client.js').DecodedPuzzleCode>>}
+   */
+  async function decodePuzzle(text) {
+    try {
+      return await getCodeClient().decode(text);
+    } catch (error) {
+      if (isAbortError(error)) {
+        return cancelledFailure();
+      }
+      throw error;
+    }
   }
 
   /** @param {string | null} fp @returns {PuzzleStatus} */
@@ -317,19 +373,27 @@ export function createPlayerController(options) {
   }
 
   /**
-   * Keeps the address in step: a link keeps its code and only `i` changes; any other pack gets a same-browser
-   * `#lib=` link when it is saved, else no hash, until `makePortable` replaces it.
+   * Keeps the address in step: a `#pack=` link keeps its code and only `i` changes; a `#p=` link is never rewritten
+   * (it carries no index, and reloading it must reopen the same puzzle); any other pack gets a same-browser
+   * `#lib=` link when it is saved, else no hash, until `makePortable` replaces it. An explicit `address` (a `#p=`
+   * code the user entered) replaces the hash, `null` leaves it alone.
    * @param {'hash' | 'library' | 'sample'} source
    * @param {string | null} packId
    * @param {number} index
+   * @param {string | null} [address]
    * @returns {boolean} Whether the resulting address is a same-browser link.
    */
-  function syncHash(source, packId, index) {
+  function syncHash(source, packId, index, address) {
     const location = getLocation();
     const current = String(location?.hash ?? '');
-    const next = source === 'hash' && current !== ''
-      ? hashWithIndex(current, index)
-      : packId === null ? '' : `#lib=${packId}&i=${index}`;
+    let next;
+    if (address !== undefined) {
+      next = address ?? current;
+    } else if (source === 'hash' && current !== '') {
+      next = isPuzzleHash(current) ? current : hashWithIndex(current, index);
+    } else {
+      next = packId === null ? '' : `#lib=${packId}&i=${index}`;
+    }
     if (next !== current) {
       try {
         getHistory().replaceState(null, '', next === '' ? `${location.pathname}${location.search}` : next);
@@ -382,7 +446,8 @@ export function createPlayerController(options) {
   /**
    * @param {Pack} pack
    * @param {number} index
-   * @param {{ source: 'hash' | 'library' | 'sample', libraryId?: string, samePack?: boolean }} meta
+   * @param {{ source: 'hash' | 'library' | 'sample', libraryId?: string, samePack?: boolean, address?: string | null }} meta
+   *   `address`: see `syncHash`.
    * @returns {{ ok: true } | { ok: false, issues: Issue[] }}
    */
   function commit(pack, index, meta) {
@@ -409,7 +474,7 @@ export function createPlayerController(options) {
       }
     }
     const source = samePack ? before.source ?? meta.source : meta.source;
-    const local = syncHash(source, packId, index);
+    const local = syncHash(source, packId, index, meta.address);
     const { game } = prepared;
     const text = restorationNotice(game.restoreWarnings);
     const statuses = samePack ? before.statuses.slice() : prepared.fingerprints.map((fp) => statusOf(fp));
@@ -441,30 +506,55 @@ export function createPlayerController(options) {
   /**
    * One in-flight load at a time: only the newest request may commit.
    * @param {() => Promise<import('../core/engine/types.js').Result<{ pack: Pack, index: number }>>} run
-   * @param {{ source: 'hash' | 'library' | 'sample', libraryId?: string, quiet?: string[] }} meta
-   * @returns {Promise<{ ok: boolean, stale?: boolean, issues?: Issue[] }>}
+   * @param {{ source: 'hash' | 'library' | 'sample', libraryId?: string, quiet?: string[], puzzleCode?: string }} meta
+   *   `puzzleCode`: the address (it has a `#p=` key) when this load reads a puzzle code.
+   * @returns {Promise<{ ok: boolean, stale?: boolean, issues?: Issue[], recovery?: CodeFailure['recovery'], candidate?: CodeFailure['candidate'] }>}
    */
   async function load(run, meta) {
     loadToken += 1;
     const token = loadToken;
+    if (meta.puzzleCode !== undefined) {
+      codeLoadToken = token;
+    }
     store.update({ loading: true, error: null });
-    /** @type {import('../core/engine/types.js').Result<{ pack: Pack, index: number }>} */
+    /** @type {import('../core/engine/types.js').Result<{ pack: Pack, index: number }> & Partial<CodeFailure>} */
     let result;
     try {
       result = await run();
     } catch (error) {
       result = { ok: false, issues: [{ code: 'load-failed', path: '$', message: error instanceof Error && error.name === 'LoadError' ? error.message : LOAD_FAILED_MESSAGE }] };
     }
+    if (codeLoadToken === token) {
+      codeLoadToken = null;
+    }
     if (token !== loadToken || destroyed) {
+      return { ok: false, stale: true };
+    }
+    if (!result.ok && result.issues[0]?.code === 'cancelled') {
+      store.update({ loading: false });
       return { ok: false, stale: true };
     }
     if (!result.ok) {
       const quiet = result.issues[0] !== undefined && meta.quiet?.includes(result.issues[0].code) === true;
+      if (meta.puzzleCode !== undefined) {
+        const failure = codeEntryFailure(/** @type {CodeFailure} */ (result));
+        if (options.onPuzzleCodeFailure !== undefined) {
+          store.update({ loading: false, error: null });
+          try {
+            options.onPuzzleCodeFailure({ text: meta.puzzleCode, failure });
+          } catch (error) {
+            console.error(error);
+          }
+          return failure;
+        }
+        store.update({ loading: false, error: { code: failure.issues[0]?.code ?? 'invalid', message: messageForIssues(failure.issues) } });
+        return failure;
+      }
       store.update({
         loading: false,
         error: quiet ? null : { code: result.issues[0]?.code ?? 'invalid-pack', message: messageForIssues(result.issues) },
       });
-      return { ok: false, issues: result.issues };
+      return result;
     }
     const committed = commit(result.value.pack, result.value.index, meta);
     if (!committed.ok) {
@@ -475,11 +565,16 @@ export function createPlayerController(options) {
 
   /**
    * @param {string} hash
-   * @returns {{ source: 'hash', libraryId?: string, quiet: string[] }}
+   * @returns {{ source: 'hash', libraryId?: string, quiet: string[], puzzleCode?: string }}
    */
   function hashMeta(hash) {
     const lib = parseLocationHash(hash)?.lib;
-    return lib === undefined ? { source: 'hash', quiet: ['no-incoming'] } : { source: 'hash', libraryId: lib, quiet: ['no-incoming'] };
+    /** @type {{ source: 'hash', libraryId?: string, quiet: string[], puzzleCode?: string }} */
+    const meta = lib === undefined ? { source: 'hash', quiet: ['no-incoming'] } : { source: 'hash', libraryId: lib, quiet: ['no-incoming'] };
+    if (isPuzzleHash(hash)) {
+      meta.puzzleCode = hash;
+    }
+    return meta;
   }
 
   /**
@@ -587,6 +682,68 @@ export function createPlayerController(options) {
     },
     /** @param {string} hash */
     openHash: (hash) => load(() => readIncoming({ hash }, env), hashMeta(hash)),
+    /**
+     * Opens a puzzle code the user typed, pasted or scanned (a bare or grouped code, or a link with `#p=`), decoded
+     * in the controller's dedicated worker. Atomic: only a valid one-puzzle pack replaces the open game, through the
+     * same commit that restores saved progress for its fingerprint. On any failure (a typed `CodeFailure` with
+     * issues, a damaged tail's `recovery`, a correction `candidate`, `worker-unavailable`, `worker-error`, or
+     * `cancelled` when a newer load or `cancelPuzzleCodeLoad` replaced this one) the open pack, moves, timer,
+     * progress, address and `error` stay as they were; the caller shows the failure. With `commitAddress` the
+     * accepted normalized code becomes the address `#p=<code>`; otherwise the address is not touched.
+     * @param {string} text
+     * @param {{ commitAddress?: boolean }} [loadOptions]
+     * @returns {Promise<CodeResult<{ pack: Pack, index: 0 }>>}
+     */
+    async loadPuzzleCode(text, loadOptions = {}) {
+      loadToken += 1;
+      const token = loadToken;
+      codeLoadToken = token;
+      store.update({ loading: true, error: null });
+      /** @type {import('../core/engine/types.js').Result<{ pack: Pack, index: number }> & Partial<CodeFailure>} */
+      let result;
+      try {
+        result = await readPuzzleCode(text, env);
+      } catch {
+        result = { ok: false, issues: [{ code: 'worker-error', path: '$', message: 'Puzzle code processing failed. Try again.' }] };
+      }
+      if (codeLoadToken === token) {
+        codeLoadToken = null;
+      }
+      if (token !== loadToken || destroyed) {
+        return cancelledFailure();
+      }
+      if (!result.ok) {
+        store.update({ loading: false });
+        return /** @type {CodeFailure} */ (result);
+      }
+      let address = null;
+      if (loadOptions.commitAddress === true) {
+        try {
+          address = `#p=${normalizePuzzleCodeInput(text)}`;
+        } catch {
+          // The accepted text always normalizes; without it the address is simply left alone.
+        }
+      }
+      const committed = commit(result.value.pack, 0, { source: 'hash', address });
+      if (!committed.ok) {
+        store.update({ loading: false });
+        return { ok: false, issues: committed.issues };
+      }
+      return { ok: true, value: { pack: result.value.pack, index: 0 }, warnings: [] };
+    },
+    /**
+     * Stops the puzzle-code load in flight, if any. The controller's revision moves on first, so a reply that
+     * arrives late can no longer commit; then the dedicated client's operation is cancelled. Other loads, the
+     * verification pool and the Generator are not touched.
+     */
+    cancelPuzzleCodeLoad() {
+      if (codeLoadToken !== null && codeLoadToken === loadToken) {
+        loadToken += 1;
+        codeLoadToken = null;
+        store.update({ loading: false });
+      }
+      codeClient?.cancel();
+    },
     openSample() {
       return load(async () => {
         const base = options.baseUrl ?? globalThis.document?.baseURI ?? globalThis.location?.href;
@@ -724,6 +881,15 @@ export function createPlayerController(options) {
         // already closed
       }
       pool = null;
+      try {
+        codeClient?.cancel();
+        if (options.puzzleCodeClient === undefined) {
+          codeClient?.dispose();
+        }
+      } catch {
+        // already disposed
+      }
+      codeClient = null;
     },
   };
 }

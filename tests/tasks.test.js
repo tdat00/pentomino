@@ -1,14 +1,16 @@
 // @ts-check
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { describe, test } from 'node:test';
 
 import { boardFromRows, boardToRows } from '../core/engine/board.js';
 import { certify } from '../core/engine/clues.js';
 import { rate } from '../core/engine/difficulty.js';
 import { completionCandidate, puzzleCandidate, setAttempt } from '../core/engine/generate.js';
-import { layoutKey } from '../core/engine/keys.js';
-import { createPack } from '../core/engine/pack.js';
+import { layoutKey, progressFingerprint } from '../core/engine/keys.js';
+import { createPack, packBoard, parsePack } from '../core/engine/pack.js';
 import { parseWorkerMessage } from '../core/engine/protocol.js';
+import { PuzzleCodeError } from '../core/engine/puzzlecode-input.js';
 import { createTaskHandler, errorReply, executeTask, TaskError } from '../core/engine/tasks.js';
 import { buildModel, isValidLayout, rowPose, solveFirst } from '../core/engine/tiling.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
@@ -321,5 +323,275 @@ describe('task handler', () => {
       delete scope.addEventListener;
     }
     assert.deepEqual(posted.filter((m) => m.type !== 'progress').map((m) => [m.type, m.id]), [['result', 11], ['error', 12]]);
+  });
+
+  test('the module worker entry also settles an asynchronous code task, once, after its Promise resolved', async () => {
+    /** @type {any[]} */
+    const posted = [];
+    /** @type {((event: { data: unknown }) => void)[]} */
+    const listeners = [];
+    const scope = /** @type {any} */ (globalThis);
+    scope.postMessage = (/** @type {any} */ m) => posted.push(m);
+    scope.addEventListener = (/** @type {string} */ _type, /** @type {any} */ fn) => {
+      listeners.push(fn);
+    };
+    try {
+      await import('../core/workers/engine.worker.js?async-code');
+      listeners[0]({ data: task(21, 'decodePuzzleCode', { text: GOLDEN.code }) });
+      assert.equal(posted.length, 0, 'nothing is posted before the decode settled');
+      await until(() => posted.length > 0);
+      listeners[0]({ data: task(22, 'decodePuzzleCode', { text: '1D0J492' }) });
+      await until(() => posted.length > 1);
+    } finally {
+      delete scope.postMessage;
+      delete scope.addEventListener;
+    }
+    assert.deepEqual(posted.map((m) => [m.type, m.id, m.code]), [['result', 21, undefined], ['error', 22, 'core-check']]);
+    assert.ok(posted.every((m) => !(typeof m.then === 'function') && !(typeof m.value?.then === 'function')));
+    assert.equal(posted[0].value.hasTail, true);
+  });
+});
+
+const root = new URL('../', import.meta.url);
+const fixture = JSON.parse(readFileSync(new URL('tests/fixtures/puzzlecode-v1.json', root), 'utf8'));
+const GOLDEN = fixture.goldens[0];
+const samplePack = (() => {
+  const parsed = parsePack(readFileSync(new URL(GOLDEN.source, root), 'utf8'));
+  assert.ok(parsed.ok);
+  return parsed.value;
+})();
+const sampleSnapshot = () => {
+  const puzzle = samplePack.puzzles[GOLDEN.puzzle];
+  return {
+    rows: samplePack.board.rows,
+    rotation: samplePack.presentation?.rotation ?? 0,
+    pieces: samplePack.pieces,
+    title: GOLDEN.title,
+    clues: puzzle.clues,
+    solution: puzzle.solution ?? null,
+    rating: puzzle.rating ?? null,
+    certificate: puzzle.certificate ?? null,
+  };
+};
+
+/**
+ * What a decode promises to give back, in one comparable shape: colours lower case, the answer in piece order.
+ * @param {import('../core/engine/types.js').Pack} pack
+ */
+function contentOf(pack) {
+  const puzzle = pack.puzzles[0];
+  const order = new Map(pack.pieces.map((piece, i) => [piece.id, i]));
+  return JSON.parse(JSON.stringify({
+    rows: pack.board.rows,
+    rotation: pack.presentation?.rotation ?? 0,
+    pieces: pack.pieces.map((p) => ({ id: p.id, label: p.label, color: p.color.toLowerCase(), cells: p.cells })),
+    clues: puzzle.clues,
+    solution: puzzle.solution ? [...puzzle.solution].sort((a, b) => /** @type {number} */ (order.get(a.piece)) - /** @type {number} */ (order.get(b.piece))) : null,
+    rating: puzzle.rating ?? null,
+    certificate: puzzle.certificate ?? null,
+    title: puzzle.title ?? null,
+  }));
+}
+
+/**
+ * @param {() => unknown} test
+ * @param {number} [ms]
+ */
+async function until(test, ms = 10000) {
+  const end = Date.now() + ms;
+  while (!test()) {
+    assert.ok(Date.now() < end, 'timed out');
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+}
+
+const decodeText = (/** @type {string} */ text) => /** @type {Promise<any>} */ (executeTask('decodePuzzleCode', { text }, execution()));
+
+describe('puzzle-code tasks', () => {
+  const taskMessage = (/** @type {number} */ id, /** @type {string} */ kind, /** @type {object} */ payload) => ({ type: 'task', id, kind, payload });
+  const harness = (/** @type {object} */ options = {}) => {
+    /** @type {any[]} */
+    const replies = [];
+    return { replies, handler: createTaskHandler({ post: (r) => replies.push(r), ...options }) };
+  };
+
+  test('solver tasks stay synchronous; code tasks return a Promise of plain data', async () => {
+    const sync = executeTask('rate', { boardRows: rows, pieces, clues: master }, execution());
+    assert.equal(typeof (/** @type {any} */ (sync)).then, 'undefined');
+    const pending = executeTask('decodePuzzleCode', { text: GOLDEN.code }, execution());
+    assert.ok(pending instanceof Promise);
+    const decoded = /** @type {any} */ (await pending);
+    assert.deepEqual(Object.keys(decoded).sort(), ['hasTail', 'pack', 'tailError']);
+    assert.deepEqual(structuredClone(decoded), decoded);
+  });
+
+  test('encoding the sample puzzle gives the frozen golden code, and its decode is the same puzzle', async () => {
+    const encoded = /** @type {any} */ (await executeTask('encodePuzzleCode', { snapshot: sampleSnapshot() }, execution()));
+    assert.equal(encoded.version, 1);
+    assert.equal(encoded.F, GOLDEN.code);
+    assert.equal(encoded.F, `${encoded.C}.${encoded.T}`);
+    assert.equal(encoded.F.length, 45);
+    assert.equal(encoded.C.length, 38);
+    const full = await decodeText(encoded.F);
+    assert.equal(full.hasTail, true);
+    assert.equal(full.tailError, null);
+    const board = packBoard(samplePack);
+    const fingerprint = progressFingerprint(board, samplePack.pieces, samplePack.puzzles[0].clues);
+    assert.equal(progressFingerprint(packBoard(full.pack), full.pack.pieces, full.pack.puzzles[0].clues), fingerprint);
+    assert.deepEqual(contentOf(full.pack), contentOf({ ...samplePack, puzzles: [{ ...samplePack.puzzles[0], title: GOLDEN.title }] }));
+    const core = await decodeText(encoded.C);
+    assert.equal(core.hasTail, false);
+    assert.equal(core.pack.puzzles[0].solution ?? null, null);
+    assert.equal(progressFingerprint(packBoard(core.pack), core.pack.pieces, core.pack.puzzles[0].clues), fingerprint);
+    assert.deepEqual(contentOf(core.pack).clues, contentOf(full.pack).clues);
+  });
+
+  test('lower case, grouping and a pasted link decode like the canonical code', async () => {
+    const grouped = GOLDEN.code.toLowerCase().replace(/(.{4})/g, '$1 ');
+    const link = `https://example.test/pentomino/player/#p=${GOLDEN.code}`;
+    for (const text of [grouped, link, ` ${GOLDEN.code}\n`]) {
+      const decoded = await decodeText(text);
+      assert.equal(decoded.hasTail, true, text);
+    }
+  });
+
+  test('a core error is a rejection that keeps code, params and candidate; a bad tail is a success with tailError', async () => {
+    const changed = GOLDEN.code.slice(0, 5) + (GOLDEN.code[5] === '0' ? '1' : '0') + GOLDEN.code.slice(6);
+    await assert.rejects(decodeText(changed), (e) => {
+      assert.ok(e instanceof PuzzleCodeError);
+      assert.equal(e.code, 'core-check');
+      assert.equal(e.candidate?.correctedCode, GOLDEN.code);
+      return true;
+    });
+    await assert.rejects(decodeText('ab!c'), (e) => e instanceof PuzzleCodeError && e.code === 'bad-char' && e.params?.char === '!');
+    const badTail = GOLDEN.code.slice(0, -1) + (GOLDEN.code.at(-1) === '0' ? '1' : '0');
+    const result = await decodeText(badTail);
+    assert.equal(result.tailError, 'tail-check');
+    assert.equal(result.hasTail, false);
+    assert.equal(result.candidate.correctedCode, GOLDEN.code);
+    assert.equal(result.pack.puzzles.length, 1);
+  });
+
+  test('a malformed code payload never reaches the codec: TaskError directly, invalid-task through the handler', () => {
+    for (const [kind, payload] of /** @type {[string, any][]} */ ([
+      ['decodePuzzleCode', { text: 5 }], ['decodePuzzleCode', { text: 'x'.repeat(32769) }], ['decodePuzzleCode', {}],
+      ['encodePuzzleCode', { snapshot: { ...sampleSnapshot(), extra: 1 } }], ['encodePuzzleCode', { snapshot: null }],
+    ])) {
+      assert.throws(() => executeTask(/** @type {any} */ (kind), payload, execution()), (e) => e instanceof TaskError && e.code === 'invalid-payload' && e.issues.length > 0, kind);
+      const { replies, handler } = harness();
+      handler.handle(taskMessage(3, kind, payload));
+      assert.deepEqual(replies.map((r) => [r.type, r.id, r.code]), [['error', 3, 'invalid-task']], kind);
+      assert.ok(replies[0].issues.length > 0);
+    }
+  });
+
+  test('the handler answers a code task once, after it settled, with data that structured-clones', async () => {
+    const { replies, handler } = harness();
+    handler.handle(taskMessage(1, 'decodePuzzleCode', { text: GOLDEN.code }));
+    assert.equal(replies.length, 0, 'no reply, and certainly no Promise, before it settled');
+    await until(() => replies.length > 0);
+    assert.equal(replies.length, 1);
+    assert.deepEqual([replies[0].type, replies[0].id], ['result', 1]);
+    assert.equal(typeof replies[0].value.then, 'undefined');
+    assert.deepEqual(structuredClone(replies[0]), replies[0]);
+    assert.ok(parseWorkerMessage(replies[0]).ok);
+    handler.handle(taskMessage(2, 'encodePuzzleCode', { snapshot: sampleSnapshot() }));
+    await until(() => replies.length > 1);
+    assert.deepEqual([replies[1].type, replies[1].id, replies[1].value.F], ['result', 2, GOLDEN.code]);
+    handler.handle(taskMessage(3, 'rate', { boardRows: rows, pieces, clues: master }));
+    assert.equal(replies.at(-1).id, 3, 'a solver task is answered before handle returns again');
+  });
+
+  test('codec errors keep their own code, params and candidate through cloning', async () => {
+    const { replies, handler } = harness();
+    const changed = GOLDEN.code.slice(0, 5) + (GOLDEN.code[5] === '0' ? '1' : '0') + GOLDEN.code.slice(6);
+    handler.handle(taskMessage(1, 'decodePuzzleCode', { text: 'ab!c' }));
+    handler.handle(taskMessage(2, 'decodePuzzleCode', { text: changed }));
+    handler.handle(taskMessage(3, 'decodePuzzleCode', { text: '' }));
+    handler.handle(taskMessage(4, 'encodePuzzleCode', { snapshot: { ...sampleSnapshot(), rows: ['##'], clues: [] } }));
+    await until(() => replies.length === 4);
+    assert.deepEqual(replies.map((r) => [r.type, r.id, r.code]), [
+      ['error', 1, 'bad-char'], ['error', 2, 'core-check'], ['error', 3, 'empty'], ['error', 4, 'invalid'],
+    ]);
+    assert.deepEqual(replies[0].issues[0].params, { char: '!' });
+    assert.equal(replies[1].issues[0].candidate.correctedCode, GOLDEN.code);
+    assert.equal(replies[1].issues[0].candidate.component, 'core');
+    for (const reply of replies) {
+      assert.deepEqual(structuredClone(reply), reply);
+      assert.ok(parseWorkerMessage(reply).ok, JSON.stringify(reply).slice(0, 80));
+      assert.ok(!/\n\s+at /.test(reply.message));
+    }
+  });
+
+  /** A task Promise that the test settles by hand. */
+  function deferredExecute() {
+    /** @type {{ resolve: (v: unknown) => void, reject: (e: unknown) => void, execution: any }[]} */
+    const pending = [];
+    /** @type {string[]} */
+    const order = [];
+    /** @type {typeof executeTask} */
+    const execute = (kind, payload, execution) => {
+      order.push(kind);
+      if (kind !== 'decodePuzzleCode') {
+        return { quick: true };
+      }
+      return new Promise((resolve, reject) => {
+        pending.push({ resolve, reject, execution });
+      });
+    };
+    return { execute, pending, order };
+  }
+
+  test('a pending code task keeps the worker: memory progress is its own, later messages wait their turn', async () => {
+    const { execute, pending, order } = deferredExecute();
+    const { replies, handler } = harness({ execute });
+    handler.handle(taskMessage(1, 'decodePuzzleCode', { text: 'A' }));
+    pending[0].execution.main.int32('probe', 64);
+    handler.handle(taskMessage(2, 'rate', { boardRows: rows, pieces, clues: [] }));
+    handler.handle(taskMessage(3, 'rate', { boardRows: rows, pieces, clues: [] }));
+    assert.deepEqual(order, ['decodePuzzleCode'], 'tasks 2 and 3 wait');
+    assert.deepEqual(replies.map((r) => [r.type, r.id, r.stage]), [['progress', 1, 'memory']], 'memory belongs to task 1');
+    pending[0].resolve({ done: 1 });
+    await until(() => replies.length >= 4);
+    assert.deepEqual(replies.filter((r) => r.type !== 'progress').map((r) => [r.type, r.id]), [['result', 1], ['result', 2], ['result', 3]]);
+    assert.deepEqual(order, ['decodePuzzleCode', 'rate', 'rate']);
+    assert.equal(replies.filter((r) => r.type === 'result' && r.id === 1).length, 1, 'exactly one reply');
+    handler.main.int32('after', 4096);
+    assert.equal(replies.filter((r) => r.type === 'progress').length, 1, 'nothing owns the worker once all settled');
+  });
+
+  test('a rejected code task posts one error reply and frees the worker for the next task', async () => {
+    const { execute, pending } = deferredExecute();
+    const { replies, handler } = harness({ execute });
+    handler.handle(taskMessage(5, 'decodePuzzleCode', { text: 'A' }));
+    handler.handle(taskMessage(6, 'rate', { boardRows: rows, pieces, clues: [] }));
+    pending[0].reject(new PuzzleCodeError('invalid', 'broken', { params: { why: 'test' } }));
+    await until(() => replies.length >= 2);
+    assert.deepEqual(replies.map((r) => [r.type, r.id, r.code]), [['error', 5, 'invalid'], ['result', 6, undefined]]);
+    assert.deepEqual(replies[0].issues[0].params, { why: 'test' });
+  });
+
+  test('a code result that cannot be cloned still settles the task with an error, and an unexpected failure is internal', async () => {
+    const { execute, pending } = deferredExecute();
+    /** @type {any[]} */
+    const replies = [];
+    const handler = createTaskHandler({
+      execute,
+      post: (r) => {
+        if (r.type === 'result') {
+          throw new Error('DataCloneError');
+        }
+        replies.push(r);
+      },
+    });
+    handler.handle(taskMessage(7, 'decodePuzzleCode', { text: 'A' }));
+    pending[0].resolve({ fn: () => 1 });
+    await until(() => replies.length === 1);
+    assert.deepEqual([replies[0].type, replies[0].id, replies[0].code], ['error', 7, 'internal']);
+    handler.handle(taskMessage(8, 'decodePuzzleCode', { text: 'A' }));
+    pending[1].reject(new Error('boom'));
+    await until(() => replies.length === 2);
+    assert.equal(replies[1].code, 'internal');
+    assert.equal(replies[1].message, 'boom');
   });
 });

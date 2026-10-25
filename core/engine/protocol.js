@@ -7,6 +7,7 @@
 import { MAX_SIDE } from './board.js';
 import { level } from './levels.js';
 import { BUDGETS } from './policy.js';
+import { MAX_CODE_SYMBOLS, MAX_INPUT_CHARS } from './puzzlecode-input.js';
 import { normalizeSeedText } from './rng.js';
 
 /** @typedef {import('./types.js').Issue} Issue */
@@ -14,16 +15,26 @@ import { normalizeSeedText } from './rng.js';
 /** @typedef {import('./types.js').Pose} Pose */
 /** @template T @typedef {import('./types.js').Result<T>} Result */
 
-/** @typedef {'setAttempt' | 'puzzleCandidate' | 'completionCandidate' | 'certify' | 'rate' | 'verifyPack' | 'solveFirst' | 'enumerateLayouts'} TaskKind */
+/** @typedef {'setAttempt' | 'puzzleCandidate' | 'completionCandidate' | 'certify' | 'rate' | 'verifyPack' | 'solveFirst' | 'enumerateLayouts' | 'encodePuzzleCode' | 'decodePuzzleCode'} TaskKind */
 /** @typedef {{ type: 'task', id: number, kind: TaskKind, payload: any }} Request */
+/**
+ * A correction a worker proposes for a mistyped code symbol (`CodeCandidate` of the codec); offered, never applied.
+ * @typedef {{ component: 'core' | 'tail', group: number, position: number, expected: string, typed: string,
+ *   correctedCode: string }} WireCandidate
+ */
+/**
+ * An error issue; a puzzle-code error adds its message `params` and, for a mistyped core, the `candidate`.
+ * @typedef {Issue & { params?: Record<string, string | number>, candidate?: WireCandidate }} WireIssue
+ */
 /**
  * @typedef {{ type: 'progress', id: number, stage: string, rowTrials: number, bytes: number }
  *   | { type: 'result', id: number, value: unknown }
- *   | { type: 'error', id: number, code: string, message: string, issues?: Issue[] }} Reply
+ *   | { type: 'error', id: number, code: string, message: string, issues?: WireIssue[] }} Reply
  */
 
 export const TASK_KINDS = Object.freeze(/** @type {const} */ ([
   'setAttempt', 'puzzleCandidate', 'certify', 'rate', 'verifyPack', 'solveFirst', 'enumerateLayouts', 'completionCandidate',
+  'encodePuzzleCode', 'decodePuzzleCode',
 ]));
 /** Largest row-trial limit a task may request. */
 export const MAX_ROW_LIMIT = 2000000;
@@ -35,8 +46,15 @@ const MAX_ISSUES = 20;
 const MAX_ID_LENGTH = 64;
 const MAX_COORD = 4096;
 const MAX_MESSAGE = 2000;
+/** Most message values and longest value of a puzzle-code issue (`{ char }` is the usual one). */
+const MAX_PARAMS = 8;
+const MAX_PARAM_STRING = 256;
 /** Most unused arrangements one enumeration task may be asked to return. */
 const MAX_COLLECT = 256;
+/** Bounds of a rating claim's free-form metrics (the pack format allows 4 KiB at depth 8). */
+const MAX_JSON_DEPTH = 8;
+const MAX_JSON_NODES = 4096;
+const MAX_JSON_STRING = 8192;
 
 /**
  * @typedef {object} Ctx
@@ -412,6 +430,144 @@ function readSet(ctx, v, path) {
   return { boardRows, pieces, witness, carving, macroRegion };
 }
 
+/**
+ * @param {Ctx} ctx
+ * @param {unknown} v
+ * @param {string} path
+ * @param {number} maxDepth
+ * @param {{ nodes: number }} budget
+ * @returns {unknown} A fresh copy, or undefined after reporting a problem; `null` is a valid value.
+ */
+function readJson(ctx, v, path, maxDepth, budget) {
+  budget.nodes -= 1;
+  if (budget.nodes < 0) {
+    return fail(ctx, 'invalid-value', path, `${path} holds too many values`);
+  }
+  if (v === null || typeof v === 'boolean') {
+    return v;
+  }
+  if (typeof v === 'number') {
+    return Number.isFinite(v) ? v : fail(ctx, 'invalid-value', path, `${path} must be a finite number`);
+  }
+  if (typeof v === 'string') {
+    return v.length <= MAX_JSON_STRING ? v : fail(ctx, 'invalid-value', path, `${path} is longer than ${MAX_JSON_STRING} characters`);
+  }
+  if (maxDepth <= 0 || (!Array.isArray(v) && !isPlain(v))) {
+    return fail(ctx, 'invalid-type', path, `${path} must be plain JSON data nested at most ${MAX_JSON_DEPTH} levels`);
+  }
+  if (Array.isArray(v)) {
+    /** @type {unknown[]} */
+    const list = [];
+    for (let i = 0; i < v.length; i += 1) {
+      const item = readJson(ctx, v[i], `${path}[${i}]`, maxDepth - 1, budget);
+      if (item === undefined) {
+        return undefined;
+      }
+      list.push(item);
+    }
+    return list;
+  }
+  /** @type {Record<string, unknown>} */
+  const copy = {};
+  for (const key of Object.keys(v)) {
+    if (key.length > MAX_ID_LENGTH) {
+      return fail(ctx, 'invalid-value', `${path}.${key.slice(0, 20)}`, `${path} has a key longer than ${MAX_ID_LENGTH} characters`);
+    }
+    const item = readJson(ctx, v[key], `${path}.${key}`, maxDepth - 1, budget);
+    if (item === undefined) {
+      return undefined;
+    }
+    Object.defineProperty(copy, key, { value: item, enumerable: true, writable: true, configurable: true });
+  }
+  return copy;
+}
+
+/**
+ * A rating claim as the code carries it; its fields are claims and are checked again by the codec.
+ * @param {Ctx} ctx
+ * @param {unknown} v
+ * @param {string} path
+ * @returns {Record<string, unknown> | null | undefined} `null` is a valid absent claim.
+ */
+function readRatingClaim(ctx, v, path) {
+  if (v === null || v === undefined) {
+    return null;
+  }
+  const o = readObject(ctx, v, path, ['model', 'score', 'level'], ['saturated', 'censored', 'metrics']);
+  if (o === undefined) {
+    return undefined;
+  }
+  const model = readString(ctx, o.model, `${path}.model`);
+  const level = readString(ctx, o.level, `${path}.level`);
+  const score = typeof o.score === 'number' && Number.isFinite(o.score) && o.score >= 0
+    ? o.score
+    : fail(ctx, 'invalid-value', `${path}.score`, `${path}.score must be a finite nonnegative number`);
+  /** @type {Record<string, unknown>} */
+  const claim = { model, score, level };
+  for (const key of ['saturated', 'censored']) {
+    if (o[key] !== undefined) {
+      claim[key] = typeof o[key] === 'boolean' ? o[key] : fail(ctx, 'invalid-value', `${path}.${key}`, `${path}.${key} must be a boolean`);
+    }
+  }
+  if (o.metrics !== undefined) {
+    claim.metrics = isPlain(o.metrics)
+      ? readJson(ctx, o.metrics, `${path}.metrics`, MAX_JSON_DEPTH, { nodes: MAX_JSON_NODES })
+      : fail(ctx, 'invalid-type', `${path}.metrics`, `${path}.metrics must be a plain object`);
+  }
+  return Object.values(claim).includes(undefined) ? undefined : claim;
+}
+
+/**
+ * @param {Ctx} ctx
+ * @param {unknown} v
+ * @param {string} path
+ * @returns {Record<string, unknown> | null | undefined} `null` is a valid absent claim.
+ */
+function readCertificateClaim(ctx, v, path) {
+  if (v === null || v === undefined) {
+    return null;
+  }
+  const o = readObject(ctx, v, path, ['status', 'model'], ['rowLimit']);
+  if (o === undefined) {
+    return undefined;
+  }
+  const status = o.status === 'unique' || o.status === 'multiple' || o.status === 'not-proved' || o.status === 'unsatisfiable'
+    ? o.status
+    : fail(ctx, 'invalid-value', `${path}.status`, `${path}.status must be unique, multiple, not-proved or unsatisfiable`);
+  const model = readString(ctx, o.model, `${path}.model`);
+  const rowLimit = o.rowLimit === undefined ? null : readInt(ctx, o.rowLimit, `${path}.rowLimit`, 0, Number.MAX_SAFE_INTEGER);
+  if (status === undefined || model === undefined || rowLimit === undefined) {
+    return undefined;
+  }
+  return rowLimit === null ? { status, model } : { status, model, rowLimit };
+}
+
+/**
+ * The selected puzzle exactly as the codec takes it. Structure and sizes only: the codec validates the puzzle
+ * itself, so a puzzle it refuses is a typed `invalid` code error, not a protocol error.
+ * @param {Ctx} ctx
+ * @param {unknown} v
+ * @param {string} path
+ * @returns {object | undefined}
+ */
+function readSnapshot(ctx, v, path) {
+  const o = readObject(ctx, v, path, ['rows', 'rotation', 'pieces', 'clues'], ['title', 'solution', 'rating', 'certificate']);
+  if (o === undefined) {
+    return undefined;
+  }
+  const rows = readBoardRows(ctx, o.rows, `${path}.rows`);
+  const rotation = readInt(ctx, o.rotation, `${path}.rotation`, 0, 359);
+  const pieces = readPieces(ctx, o.pieces, `${path}.pieces`);
+  const clues = readPoses(ctx, o.clues, `${path}.clues`, MAX_BOARD_CELLS);
+  const solution = o.solution === undefined || o.solution === null ? null : readPoses(ctx, o.solution, `${path}.solution`, MAX_BOARD_CELLS);
+  const title = o.title === undefined || o.title === null ? null : readString(ctx, o.title, `${path}.title`, MAX_STRING, true);
+  const rating = readRatingClaim(ctx, o.rating, `${path}.rating`);
+  const certificate = readCertificateClaim(ctx, o.certificate, `${path}.certificate`);
+  return [rows, rotation, pieces, clues, solution, title, rating, certificate].includes(undefined)
+    ? undefined
+    : { rows, rotation, pieces, title, clues, solution, rating, certificate };
+}
+
 /** @type {Record<TaskKind, (ctx: Ctx, o: Record<string, unknown>) => object | undefined>} */
 const PAYLOADS = {
   setAttempt(ctx, o) {
@@ -491,6 +647,15 @@ const PAYLOADS = {
       ? undefined
       : { set, targetLevelId, quantity, batchSeed, uniqueness, seenLayouts, seenClues, layout };
   },
+  encodePuzzleCode(ctx, o) {
+    const snapshot = readSnapshot(ctx, o.snapshot, 'payload.snapshot');
+    return snapshot === undefined ? undefined : { snapshot };
+  },
+  decodePuzzleCode(ctx, o) {
+    // The codec applies its own normalized-code limits; the empty text is its typed `empty` error.
+    const text = readString(ctx, o.text, 'payload.text', MAX_INPUT_CHARS, true);
+    return text === undefined ? undefined : { text };
+  },
 };
 
 const PAYLOAD_FIELDS = /** @type {Record<TaskKind, { required: string[], optional?: string[] }>} */ ({
@@ -506,6 +671,8 @@ const PAYLOAD_FIELDS = /** @type {Record<TaskKind, { required: string[], optiona
   completionCandidate: {
     required: ['set', 'targetLevelId', 'quantity', 'batchSeed', 'uniqueness', 'seenLayouts', 'seenClues', 'layout'],
   },
+  encodePuzzleCode: { required: ['snapshot'] },
+  decodePuzzleCode: { required: ['text'] },
 });
 
 /**
@@ -570,24 +737,84 @@ export function parseTaskMessage(input) {
 /**
  * @param {Ctx} ctx
  * @param {unknown} v
- * @returns {Issue[] | undefined}
+ * @param {string} path
+ * @returns {Record<string, string | number> | undefined}
+ */
+function readParams(ctx, v, path) {
+  if (!isPlain(v) || Object.keys(v).length > MAX_PARAMS) {
+    return fail(ctx, 'invalid-type', path, `${path} must be a plain object of at most ${MAX_PARAMS} values`);
+  }
+  /** @type {Record<string, string | number>} */
+  const params = {};
+  for (const [key, value] of Object.entries(v)) {
+    const ok = key.length <= MAX_ID_LENGTH && (typeof value === 'number' ? Number.isFinite(value) : typeof value === 'string' && value.length <= MAX_PARAM_STRING);
+    if (!ok) {
+      return fail(ctx, 'invalid-value', `${path}.${key.slice(0, 20)}`, `${path} values must be short strings or finite numbers`);
+    }
+    Object.defineProperty(params, key, { value, enumerable: true, writable: true, configurable: true });
+  }
+  return params;
+}
+
+/**
+ * @param {Ctx} ctx
+ * @param {unknown} v
+ * @param {string} path
+ * @returns {WireCandidate | undefined}
+ */
+function readCandidate(ctx, v, path) {
+  const o = readObject(ctx, v, path, ['component', 'group', 'position', 'expected', 'typed', 'correctedCode']);
+  if (o === undefined) {
+    return undefined;
+  }
+  const component = o.component === 'core' || o.component === 'tail'
+    ? o.component
+    : fail(ctx, 'invalid-value', `${path}.component`, `${path}.component must be core or tail`);
+  const group = readInt(ctx, o.group, `${path}.group`, 1, MAX_CODE_SYMBOLS);
+  const position = readInt(ctx, o.position, `${path}.position`, 1, 4);
+  const expected = readString(ctx, o.expected, `${path}.expected`, 1);
+  const typed = readString(ctx, o.typed, `${path}.typed`, 1);
+  const correctedCode = readString(ctx, o.correctedCode, `${path}.correctedCode`, MAX_CODE_SYMBOLS + 1);
+  if (component === undefined || group === undefined || position === undefined || expected === undefined
+    || typed === undefined || correctedCode === undefined) {
+    return undefined;
+  }
+  return { component, group, position, expected, typed, correctedCode };
+}
+
+/**
+ * @param {Ctx} ctx
+ * @param {unknown} v
+ * @returns {WireIssue[] | undefined}
  */
 function readIssues(ctx, v) {
   const list = readArray(ctx, v, 'message.issues', 100);
   if (list === undefined) {
     return undefined;
   }
-  /** @type {Issue[]} */
+  /** @type {WireIssue[]} */
   const issues = [];
   for (let i = 0; i < list.length; i += 1) {
-    const o = readObject(ctx, list[i], `message.issues[${i}]`, ['code', 'path', 'message']);
-    const code = o && readString(ctx, o.code, `message.issues[${i}].code`, MAX_ID_LENGTH, true);
-    const path = o && readString(ctx, o.path, `message.issues[${i}].path`, MAX_STRING, true);
-    const message = o && readString(ctx, o.message, `message.issues[${i}].message`, MAX_MESSAGE, true);
-    if (code === undefined || path === undefined || message === undefined) {
+    const at = `message.issues[${i}]`;
+    const o = readObject(ctx, list[i], at, ['code', 'path', 'message'], ['params', 'candidate']);
+    const code = o && readString(ctx, o.code, `${at}.code`, MAX_ID_LENGTH, true);
+    const path = o && readString(ctx, o.path, `${at}.path`, MAX_STRING, true);
+    const message = o && readString(ctx, o.message, `${at}.message`, MAX_MESSAGE, true);
+    const params = o && o.params !== undefined ? readParams(ctx, o.params, `${at}.params`) : undefined;
+    const candidate = o && o.candidate !== undefined ? readCandidate(ctx, o.candidate, `${at}.candidate`) : undefined;
+    if (code === undefined || path === undefined || message === undefined
+      || (o?.params !== undefined && params === undefined) || (o?.candidate !== undefined && candidate === undefined)) {
       return undefined;
     }
-    issues.push({ code, path, message });
+    /** @type {WireIssue} */
+    const issue = { code, path, message };
+    if (params !== undefined) {
+      issue.params = params;
+    }
+    if (candidate !== undefined) {
+      issue.candidate = candidate;
+    }
+    issues.push(issue);
   }
   return issues;
 }

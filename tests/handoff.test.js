@@ -6,9 +6,10 @@ import { parsePack } from '../core/engine/pack.js';
 import { MAX_URL_CHARS, WARN_URL_CHARS } from '../core/engine/sharecode.js';
 import { copyText, downloadText, el, safeFileName, showToast } from '../core/browser/dom.js';
 import {
-  HandoffError, PIECE_SET_MESSAGE, openInPlayerTab, preparePlayerLink, readIncoming, readPack,
+  HandoffError, PIECE_SET_MESSAGE, openInPlayerTab, preparePlayerLink, readIncoming, readPack, readPuzzleCode,
 } from '../core/browser/handoff.js';
 import { createStorage } from '../core/browser/storage.js';
+import { isPuzzleHash } from '../core/engine/sharecode.js';
 
 const fixtureText = readFileSync(new URL('./fixtures/hand-authored-pack.json', import.meta.url), 'utf8');
 const parsed = parsePack(fixtureText);
@@ -193,6 +194,138 @@ test('readIncoming reports bad addresses, indexes, codes and piece sets', async 
   assert.ok(!result.ok);
   assert.equal(result.issues[0].code, 'piece-set');
   assert.equal(result.issues[0].message, PIECE_SET_MESSAGE);
+});
+
+const GOLDEN_CODE = '1D0J492G47DMXNG6YCP10HCY05KZW8S4HCN2QR.18V3WE';
+const hashCases = /** @type {{ hash: string, ok: boolean, p?: string, normalized?: string, normalizeError?: string, code?: string }[]} */ (
+  JSON.parse(readFileSync(new URL('./fixtures/puzzlecode-hashes.json', import.meta.url), 'utf8')).cases);
+
+/**
+ * A decoder that records its calls and answers with a canned result.
+ * @param {(text: string) => any} [answer]
+ */
+function spyDecoder(answer = () => ({ ok: true, value: { pack, hasTail: true, tailError: null, code: 'x' }, warnings: [] })) {
+  /** @type {string[]} */
+  const calls = [];
+  return { calls, decodePuzzle: async (/** @type {string} */ text) => (calls.push(text), answer(text)) };
+}
+
+/** A store that must never be touched by a `#p=` load. */
+const untouchedStore = /** @type {any} */ (new Proxy({}, { get: (_t, name) => () => assert.fail(`storage.${String(name)} was used`) }));
+
+test('readIncoming opens #p= through the injected decoder: one puzzle, index 0, nothing saved', async () => {
+  const spy = spyDecoder();
+  const result = await readIncoming({ hash: `#p=${GOLDEN_CODE}` }, { decodePuzzle: spy.decodePuzzle, storage: untouchedStore });
+  assert.ok(result.ok);
+  assert.equal(result.value.pack, pack);
+  assert.equal(result.value.index, 0);
+  assert.deepEqual(spy.calls, [GOLDEN_CODE]);
+  const withIndex = await readIncoming({ hash: `#p=${GOLDEN_CODE}&i=0` }, { decodePuzzle: spy.decodePuzzle, storage: untouchedStore });
+  assert.ok(withIndex.ok);
+  assert.equal(withIndex.value.index, 0);
+  const warned = await readIncoming({ hash: `#p=${GOLDEN_CODE}` }, {
+    decodePuzzle: spyDecoder(() => ({ ok: true, value: { pack, hasTail: false, tailError: null, code: 'x' }, warnings: [{ code: 'w', path: '$', message: 'm' }] })).decodePuzzle,
+  });
+  assert.ok(warned.ok);
+  assert.deepEqual(warned.warnings.map((w) => w.code), ['w']);
+});
+
+test('the decoder gets the normalized value of p: lower case, grouping and encoded spaces are the decoder\'s input rules', async () => {
+  const spy = spyDecoder();
+  for (const hash of [`#p=${GOLDEN_CODE.toLowerCase()}`, `#p=${GOLDEN_CODE.replace(/(.{4})/g, '$1-')}`, `#p=${GOLDEN_CODE.replace(/(.{4})/g, '$1%20')}`]) {
+    assert.ok((await readIncoming({ hash }, { decodePuzzle: spy.decodePuzzle })).ok, hash);
+  }
+  assert.deepEqual(spy.calls, [GOLDEN_CODE, GOLDEN_CODE, GOLDEN_CODE]);
+});
+
+test('every p-bearing fixture hash: structural failures keep the host names, value problems reach the code as bad-char', async () => {
+  let checked = 0;
+  for (const c of hashCases) {
+    const hash = c.hash.includes('://') ? new URL(c.hash).hash : c.hash;
+    if (!isPuzzleHash(hash)) {
+      continue;
+    }
+    checked += 1;
+    const spy = spyDecoder();
+    const result = await readIncoming({ hash }, { decodePuzzle: spy.decodePuzzle, storage: untouchedStore });
+    if (!c.ok) {
+      assert.ok(!result.ok, c.hash);
+      assert.equal(result.issues[0].code, c.code === 'index' ? 'invalid-index' : 'invalid-hash', c.hash);
+      assert.deepEqual(spy.calls, [], c.hash);
+    } else if (c.normalizeError !== undefined) {
+      assert.ok(!result.ok, c.hash);
+      assert.equal(result.issues[0].code, c.normalizeError, c.hash);
+      assert.deepEqual(spy.calls, [], `${c.hash}: p was not decoded twice or read as a link`);
+    } else {
+      assert.ok(result.ok, c.hash);
+      assert.deepEqual(spy.calls, [c.normalized], c.hash);
+    }
+  }
+  assert.ok(checked >= 30);
+});
+
+test('a literal plus and an encoded hash never become a space or a nested route', async () => {
+  const spy = spyDecoder();
+  const plus = await readIncoming({ hash: '#p=1D0J+492G' }, { decodePuzzle: spy.decodePuzzle });
+  assert.ok(!plus.ok);
+  assert.equal(plus.issues[0].code, 'bad-char');
+  assert.deepEqual(plus.issues[0], { code: 'bad-char', path: '$', message: plus.issues[0].message, params: { char: '+' } });
+  const nested = await readIncoming({ hash: '#p=1D0J%23p%3D1D0J' }, { decodePuzzle: spy.decodePuzzle });
+  assert.ok(!nested.ok);
+  assert.equal(nested.issues[0].code, 'bad-char');
+  assert.deepEqual(spy.calls, []);
+});
+
+test('a decoder failure keeps its issues, validated core recovery and candidate, and opens nothing', async () => {
+  const recovery = { kind: 'core-only', code: 'tail-check', pack };
+  const candidate = { normalizedCode: 'x', correctedCode: 'y', component: 'tail', offset: 5, group: 2, position: 2, typed: '0', expected: 'E' };
+  const failing = { ok: false, issues: [{ code: 'tail-check', path: '$.tail', message: 'm' }], recovery, candidate };
+  const result = await readIncoming({ hash: `#p=${GOLDEN_CODE}` }, { decodePuzzle: spyDecoder(() => failing).decodePuzzle, storage: untouchedStore });
+  assert.ok(!result.ok);
+  assert.equal(result.issues[0].code, 'tail-check');
+  assert.equal(/** @type {any} */ (result).recovery, recovery);
+  assert.equal(/** @type {any} */ (result).candidate, candidate);
+  const viaCode = await readPuzzleCode('abc', { decodePuzzle: spyDecoder(() => failing).decodePuzzle });
+  assert.ok(!viaCode.ok);
+  assert.equal(/** @type {any} */ (viaCode).recovery.pack, pack);
+});
+
+test('readPuzzleCode gives the typed text to the decoder untouched and refuses a piece set', async () => {
+  const spy = spyDecoder();
+  const link = `https://example.test/pentomino/player/#p=${GOLDEN_CODE}&i=1`;
+  const result = await readPuzzleCode(link, { decodePuzzle: spy.decodePuzzle });
+  assert.ok(result.ok, 'the decoder, not the loader, judges a pasted link');
+  assert.deepEqual(spy.calls, [link]);
+  const set = { ...pack, kind: /** @type {'piece-set'} */ ('piece-set'), puzzles: [] };
+  const empty = await readPuzzleCode('abc', { decodePuzzle: spyDecoder(() => ({ ok: true, value: { pack: set, hasTail: false, tailError: null, code: 'x' }, warnings: [] })).decodePuzzle });
+  assert.ok(!empty.ok);
+  assert.equal(empty.issues[0].code, 'piece-set');
+});
+
+test('without an injected decoder the loader uses a temporary client: no module workers is worker-unavailable', async (t) => {
+  if (typeof globalThis.Worker === 'function') {
+    t.skip('this runtime has module workers');
+    return;
+  }
+  const result = await readIncoming({ hash: `#p=${GOLDEN_CODE}` }, { storage: untouchedStore });
+  assert.ok(!result.ok);
+  assert.equal(result.issues[0].code, 'worker-unavailable');
+});
+
+test('#pack= and #lib= keep their loaders and never call the puzzle decoder', async () => {
+  const spy = spyDecoder();
+  const link = await preparePlayerLink(pack, 0, { base: PREFIX_BASE });
+  assert.ok(link.href);
+  const portable = await readIncoming({ hash: new URL(link.href).hash }, { decodePuzzle: spy.decodePuzzle });
+  assert.ok(portable.ok);
+  const local = await readIncoming({ hash: '#lib=0123456789abcdef&i=0' }, {
+    decodePuzzle: spy.decodePuzzle, storage: stubStore({ loadLibraryPack: () => ({ ok: true, value: pack, warnings: [] }) }),
+  });
+  assert.ok(local.ok);
+  const mixed = await readIncoming({ hash: `${new URL(link.href).hash}&p=${GOLDEN_CODE}` }, { decodePuzzle: spy.decodePuzzle });
+  assert.ok(!mixed.ok);
+  assert.equal(mixed.issues[0].code, 'invalid-hash');
+  assert.deepEqual(spy.calls, []);
 });
 
 test('readPack opens the first puzzle of pack JSON and rejects the rest', () => {

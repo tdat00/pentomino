@@ -5,14 +5,22 @@ import {
   MAX_URL_CHARS, WARN_URL_CHARS, decodeShareCode, encodeShareCode, parseLocationHashResult, playerUrl,
 } from '../engine/sharecode.js';
 import { parsePack } from '../engine/pack.js';
+import { normalizePuzzleCodeValue } from '../engine/puzzlecode-input.js';
+import { createPuzzleCodeClient, failureFromCodeError } from './puzzle-code-client.js';
 import { browserStorage } from './storage.js';
 
 /** @typedef {import('../engine/types.js').Pack} Pack */
 /** @typedef {import('../engine/types.js').Issue} Issue */
+/** @typedef {import('./puzzle-code-client.js').CodeResult<import('./puzzle-code-client.js').DecodedPuzzleCode>} DecodedCodeResult */
 
 /** @template T @typedef {import('../engine/types.js').Result<T>} Result */
 
 /** @typedef {{ hash: string }} LocationLike */
+
+/**
+ * Decodes one puzzle code to a validated one-puzzle pack in a worker; see `createPuzzleCodeClient().decode`.
+ * @typedef {(text: string) => Promise<DecodedCodeResult>} PuzzleDecode
+ */
 
 /**
  * Injection points for tests; everything defaults to the browser.
@@ -21,6 +29,8 @@ import { browserStorage } from './storage.js';
  * @property {Pick<import('./storage.js').Storage, 'saveLibraryPack' | 'loadLibraryPack'>} [storage]
  * @property {() => { location: { assign: (url: string) => void }, close: () => void, opener?: unknown } | null} [openTab]
  *   Opens a blank tab for `openInPlayerTab`; null when the browser refuses it. Default `window.open('about:blank')`.
+ * @property {PuzzleDecode} [decodePuzzle] Decoder of `#p=` addresses and `readPuzzleCode`. Default: a puzzle-code client
+ *   (one module worker) created for the call and disposed after it; a Player passes its own long-lived client.
  */
 
 export const PIECE_SET_MESSAGE = 'This link has pieces but no puzzle — open it in the generator.';
@@ -168,11 +178,53 @@ function finish(pack, index) {
 }
 
 /**
- * The single incoming loader for `#pack=` and `#lib=` addresses. It returns
+ * @param {PuzzleDecode | undefined} decode
+ * @returns {PuzzleDecode}
+ */
+function puzzleDecoder(decode) {
+  if (decode !== undefined) {
+    return decode;
+  }
+  return async (text) => {
+    const client = createPuzzleCodeClient();
+    try {
+      return await client.decode(text);
+    } finally {
+      client.dispose();
+    }
+  };
+}
+
+/**
+ * Opens one typed, pasted or scanned puzzle code (a bare or grouped code, or a link with `#p=`) as a one-puzzle pack,
+ * decoded in a worker. Like `readIncoming` it changes no application or storage state, so the caller commits after
+ * success. A failure keeps the decoder's typed issues and, for a damaged tail, the validated core-only `recovery`
+ * and any `candidate`; neither is ever opened here. A decoder that was cancelled rejects with its abort error.
+ * @param {string} text
+ * @param {HandoffEnv} [env]
+ * @returns {Promise<Result<{ pack: Pack, index: number }>>}
+ */
+export async function readPuzzleCode(text, env = {}) {
+  const decoded = await puzzleDecoder(env.decodePuzzle)(text);
+  if (!decoded.ok) {
+    return decoded;
+  }
+  const result = finish(decoded.value.pack, 0);
+  return result.ok ? { ok: true, value: result.value, warnings: decoded.warnings } : result;
+}
+
+/**
+ * The single incoming loader for `#pack=`, `#lib=` and `#p=` addresses. It returns
  * validated data and changes no application or storage state; callers commit
  * after success. Failure codes: `no-incoming`, `invalid-hash`, `invalid-code`,
  * `invalid-index`, `index-out-of-range`, `piece-set`, `library-missing`,
- * `library-mismatch`, and the codes of `decodeShareCode` / `parsePack`.
+ * `library-mismatch`, and the codes of `decodeShareCode` / `parsePack`. A `#p=`
+ * address (always puzzle 0, decoded by `env.decodePuzzle`) fails structurally as
+ * `invalid-hash` or `invalid-index` (the host names of the route parser's
+ * `invalid` and `index`), then with the codes of `readPuzzleCode`: the code's
+ * own syntax and checksum codes, `tail-check`/`tail-tag`/`tail-invalid` with a
+ * `recovery`, and `worker-unavailable` / `worker-error`. The value of `p` is
+ * normalized as a bare code, never read as a link or decoded a second time.
  * @param {LocationLike} location
  * @param {HandoffEnv} [env]
  * @returns {Promise<Result<{ pack: Pack, index: number }>>}
@@ -182,7 +234,17 @@ export async function readIncoming(location, env = {}) {
   if (!parsed.ok) {
     return parsed;
   }
-  const { pack: code, lib, index } = parsed.value;
+  const { pack: code, lib, p, index } = parsed.value;
+  if (p !== undefined) {
+    /** @type {string} */
+    let normalized;
+    try {
+      normalized = normalizePuzzleCodeValue(p);
+    } catch (error) {
+      return failureFromCodeError(error);
+    }
+    return readPuzzleCode(normalized, env);
+  }
   const loaded = code !== undefined
     ? await decodeShareCode(code)
     : (env.storage ?? browserStorage()).loadLibraryPack(/** @type {string} */ (lib));

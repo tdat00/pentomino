@@ -2,6 +2,7 @@
 // Portable share codes: UTF-8 compact JSON, optionally raw-deflated, as unpadded
 // base64url with a codec prefix. Uses only native TextEncoder/CompressionStream.
 import { parsePack, serializePack } from './pack.js';
+import { normalizePuzzleCodeValue, parsePuzzleHash } from './puzzlecode-input.js';
 
 /** @typedef {import('./types.js').Pack} Pack */
 /** @typedef {import('./types.js').Issue} Issue */
@@ -280,10 +281,39 @@ export function playerUrl(base, code, index) {
 }
 
 /**
- * Parses a location hash with diagnostics. Unknown keys are ignored; repeated
- * known keys, bad values and hashes without `pack`/`lib` are failures.
+ * Which keys a hash may carry: `pack` (portable share code), `lib` (same-browser library entry) or `p` (a
+ * one-puzzle code, always puzzle index 0), plus the puzzle number `index`.
+ * @typedef {object} IncomingHash
+ * @property {number} index
+ * @property {string} [pack]
+ * @property {string} [lib]
+ * @property {string} [p] Decoded once, not yet normalized.
+ */
+
+/**
+ * @param {string} body Hash without its leading `#`.
+ * @returns {boolean}
+ */
+const bodyHasP = (body) => body.split('&').some((part) => part === 'p' || part.startsWith('p='));
+
+/**
+ * Whether the address uses the one-puzzle `p` key at all (valid or not). Key names are case-sensitive.
  * @param {string} hash With or without the leading `#`.
- * @returns {Result<{ pack?: string, lib?: string, index: number }>}
+ * @returns {boolean}
+ */
+export function isPuzzleHash(hash) {
+  return typeof hash === 'string' && bodyHasP(hash.startsWith('#') ? hash.slice(1) : hash);
+}
+
+/**
+ * Parses a location hash with diagnostics. Unknown keys are ignored; repeated
+ * known keys, bad values and hashes without `pack`/`lib`/`p` are failures.
+ * When a `p` key is present the whole hash goes to `parsePuzzleHash`, the one
+ * structural parser of that route (index and mixed-key rules included); its
+ * `index` failure becomes `invalid-index` and its `invalid` failure
+ * `invalid-hash`. Without a `p` key the legacy rules apply unchanged.
+ * @param {string} hash With or without the leading `#`.
+ * @returns {Result<IncomingHash>}
  */
 export function parseLocationHashResult(hash) {
   if (typeof hash !== 'string') {
@@ -292,6 +322,12 @@ export function parseLocationHashResult(hash) {
   const body = hash.startsWith('#') ? hash.slice(1) : hash;
   if (body === '') {
     return failure('no-incoming', 'The address has no puzzle data');
+  }
+  if (bodyHasP(body)) {
+    const route = parsePuzzleHash(`#${body}`);
+    return route.ok
+      ? { ok: true, value: { p: route.value.p, index: 0 }, warnings: [] }
+      : failure(route.code === 'index' ? 'invalid-index' : 'invalid-hash', route.message);
   }
   /** @type {Map<string, string>} */
   const found = new Map();
@@ -321,7 +357,7 @@ export function parseLocationHashResult(hash) {
   if (rawIndex !== undefined && !HASH_INDEX.test(rawIndex)) {
     return failure('invalid-index', 'The puzzle number in the address must be a nonnegative integer');
   }
-  /** @type {{ pack?: string, lib?: string, index: number }} */
+  /** @type {IncomingHash} */
   const value = { index: rawIndex === undefined ? 0 : Number(rawIndex) };
   if (pack !== undefined) {
     value.pack = pack;
@@ -333,12 +369,46 @@ export function parseLocationHashResult(hash) {
 }
 
 /**
- * `#pack=<code>&i=<index>` (portable) or `#lib=<16-hex>&i=<index>` (same
- * browser). Returns null when the hash carries neither or is malformed.
+ * `#pack=<code>&i=<index>` (portable), `#lib=<16-hex>&i=<index>` (same
+ * browser) or `#p=<puzzle code>` (one puzzle, `index` 0). Returns null when the
+ * hash carries none of them or is malformed.
  * @param {string} hash
- * @returns {{ pack?: string, lib?: string, index: number } | null}
+ * @returns {IncomingHash | null}
  */
 export function parseLocationHash(hash) {
   const result = parseLocationHashResult(hash);
   return result.ok ? result.value : null;
+}
+
+/**
+ * Address of one puzzle for a Player the caller has already chosen: that target without its query and fragment,
+ * then `#p=` and the canonical code (upper case, ungrouped). The target is a selected Player address, never the
+ * page the caller is on; a `file:` target is for the explicit local developer override only (the caller supplies
+ * it), and any other scheme, credentials or an unparsable target are refused. No `i` key is added: a code opens
+ * exactly one puzzle. Length limits are the caller's concern: the complete address against `MAX_URL_CHARS`,
+ * which is a different bound from the code's own 16,000 symbols.
+ * @param {string | URL} playerTarget
+ * @param {string} code A puzzle code as typed or grouped; `C` or `C.T`.
+ * @returns {string}
+ * @throws {RangeError} The target is not a usable Player address.
+ * @throws {import('./puzzlecode-input.js').PuzzleCodeError} The code has an unusable character, dots or length.
+ */
+export function puzzleCodeUrl(playerTarget, code) {
+  /** @type {URL} */
+  let target;
+  try {
+    target = new URL(playerTarget);
+  } catch {
+    throw new RangeError('The Player address is not a valid URL');
+  }
+  if (target.protocol !== 'https:' && target.protocol !== 'http:' && target.protocol !== 'file:') {
+    throw new RangeError('The Player address must be http, https or a local file');
+  }
+  if (target.username !== '' || target.password !== '') {
+    throw new RangeError('The Player address must not contain credentials');
+  }
+  const canonical = normalizePuzzleCodeValue(code);
+  target.search = '';
+  target.hash = '';
+  return `${target.href}#p=${canonical}`;
 }
