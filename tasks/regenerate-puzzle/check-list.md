@@ -457,8 +457,8 @@ No developer changes qualification or deployment settings to make it green.
 | RP06 | done | 34m28s | 737.46 | 94da942 |
 | RP07 | done (optional, accepted) | 14m01s | 264.25 | 92dd609 |
 | RP08 | automated acceptance green; release blocked on owner gates (BA30, clipboard, VI review); F01/F02 fixed in the fix round | 53m05s | 914.71 | 8012276 |
-| Fix F01 (RP03 developer) | done: restored-moves notice also on a `#p=` address on load and on a hash change | 6m12s | 106.39 | (this commit) |
-| Fix F02 (RP06 developer) | done: 16 px manual-copy field in both apps | 1m39s | 51.98 | (this commit) |
+| Fix F01 (RP03 developer) | done: restored-moves notice also on a `#p=` address on load and on a hash change | 6m12s | 106.39 | ba1efa6 |
+| Fix F02 (RP06 developer) | done: 16 px manual-copy field in both apps | 1m39s | 51.98 | ba1efa6 |
 | **Totals** | 8/8 tasks done (RP07 optional, accepted); release blocked on owner gates | 5h05m59s of agent time (waves 1, 5 and the fix round ran in parallel; wall clock 20:46 → 01:34, 4h48m) | 5,476.49 | 9 commits after the docs commit 5ce2af8, on `regenerate-puzzle` (not pushed) |
 
 Final orchestrator re-run after the fix round: full `node --test "tests/**/*.test.js"` 1,134 pass / 0 fail; `npm run check` OK.

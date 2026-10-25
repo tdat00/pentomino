@@ -597,7 +597,7 @@ with the exact remaining operator steps. Do not claim this task is fully done.
 
 | Field | Value |
 |---|---|
-| Status | Automated acceptance done and green; **release blocked** on owner gates (BA30 physical print and phone scan, real-user clipboard, Vietnamese human review). Findings F01 (RP03) and F02 (RP06) routed to a fix round by the orchestrator and fixed there (see the RP03 and RP06 execution logs; commit (this commit)). |
+| Status | Automated acceptance done and green; **release blocked** on owner gates (BA30 physical print and phone scan, real-user clipboard, Vietnamese human review). Findings F01 (RP03) and F02 (RP06) routed to a fix round by the orchestrator and fixed there (see the RP03 and RP06 execution logs; commit ba1efa6). |
 | Start | 2026-10-26 00:32:43 (+07:00) |
 | End | 2026-10-26 01:25:48 (+07:00) |
 | Duration | 53 min 05 s |
