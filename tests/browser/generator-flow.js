@@ -129,15 +129,12 @@ function mountApp(o = {}) {
   const storage = o.storage ?? memoryStorage();
   /** @type {string | null} Batch seed fed to the next puzzle press (recorded batches are replayed with "<set seed>#1"). */
   let batchSeedOverride = null;
-  /** @type {string[]} */
-  const toasts = [];
   const app = createGeneratorApp(document, {
     storage: /** @type {any} */ (storage),
     random: () => `HARN-${String((seedCounter += 1)).padStart(4, '0')}-SEED`,
     randomNumber: () => batchSeedOverride ?? String(1000 + (seedCounter += 1)),
     ...o.app,
     controller: {
-      notify: (/** @type {string} */ message) => toasts.push(message),
       // Scripted puzzles reuse a few real clue sets under other ids; only the real engine runs the real duplicate check.
       ...(o.app?.client === undefined ? {} : { duplicateGuard: () => ({ admit: () => true, rejected: new Set() }) }),
       ...o.app?.controller,
@@ -150,7 +147,6 @@ function mountApp(o = {}) {
     root,
     app,
     storage,
-    toasts,
     /** @param {string | null} seed */
     replayBatchSeed(seed) {
       batchSeedOverride = seed;

@@ -40,7 +40,7 @@ test('every key the player code uses exists in English', () => {
   const files = ['app.js', 'strings.js', ...readdirSync(new URL('../player/ui/', import.meta.url)).map((name) => `ui/${name}`)];
   for (const name of files) {
     const code = readFileSync(new URL(`../player/${name}`, import.meta.url), 'utf8');
-    for (const match of code.matchAll(/'((?:ui|keys|level|rating|cert|verify|status|msg|play|reason|hint|live|shell|puzzles|pieces|card)\.[\w.-]+)'/g)) {
+    for (const match of code.matchAll(/'((?:ui|keys|level|rating|cert|verify|status|msg|play|reason|hint|live|shell|puzzles|pieces|card|start)\.[\w.-]+)'/g)) {
       used.add(match[1]);
     }
     // Names listed for texts('prefix', [...]) stand for the keys `prefix.name`.

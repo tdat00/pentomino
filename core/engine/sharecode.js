@@ -12,9 +12,8 @@ export const MAX_CODE_CHARS = 350000;
 export const MAX_DECODED_BYTES = 256 * 1024;
 export const MAX_URL_CHARS = 16000;
 export const WARN_URL_CHARS = 4000;
-export const MAX_PASTE_CHARS = 600000;
 
-export const NO_DECOMPRESSOR_MESSAGE = "This browser can't open compressed links — use Import file.";
+export const NO_DECOMPRESSOR_MESSAGE = "This browser can't open compressed links.";
 
 const PREFIX_COMPRESSED = '1z.';
 const PREFIX_PLAIN = '1j.';
@@ -342,27 +341,4 @@ export function parseLocationHashResult(hash) {
 export function parseLocationHash(hash) {
   const result = parseLocationHashResult(hash);
   return result.ok ? result.value : null;
-}
-
-/**
- * Finds data in pasted text without fetching anything: raw JSON (returned
- * trimmed), a `#pack=` link, or a bare `1z.`/`1j.` code inside other text.
- * Returns null for oversized input or when nothing usable is found.
- * @param {string} text
- * @returns {string | null}
- */
-export function extractCode(text) {
-  if (typeof text !== 'string' || text.length > MAX_PASTE_CHARS) {
-    return null;
-  }
-  const trimmed = (text.charCodeAt(0) === 0xfeff ? text.slice(1) : text).trim();
-  if (trimmed.startsWith('{')) {
-    return trimmed;
-  }
-  const linked = /[#&?]pack=(1[zj]\.[A-Za-z0-9_-]+)/.exec(trimmed);
-  if (linked) {
-    return linked[1];
-  }
-  const bare = /(?<![A-Za-z0-9_-])1[zj]\.[A-Za-z0-9_-]+/.exec(trimmed);
-  return bare ? bare[0] : null;
 }

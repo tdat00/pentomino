@@ -308,11 +308,7 @@ await check('reveal asks first, cancelling changes nothing, confirming marks the
   assert(m.q('[data-host="hint"] [data-role="hint-text"]').textContent?.includes('not solved'), 'the status line says not solved');
   assert(!m.q('[data-action="hint-replay"]').hidden, 'Replay is offered');
   await waitFor(() => saved(m)?.revealed === true, 'the revealed record');
-  equal(m.store.getState().statuses[0], 'revealed', 'the library status is revealed');
-  m.storage.saveLibraryPack(/** @type {any} */ (m.store.getState().pack));
-  const entry = m.storage.libraryIndex()[0];
-  m.storage.touchLibraryPack(entry.packId);
-  equal(m.storage.libraryIndex()[0].solved, 0, 'a revealed puzzle is not counted as solved');
+  equal(m.store.getState().statuses[0], 'revealed', 'the puzzle list status is revealed');
 
   m.q('[data-action="undo"]').click();
   await tick();

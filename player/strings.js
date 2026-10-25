@@ -131,7 +131,7 @@ export function ratingLabel(rating) {
 const CERTIFICATE_STATUSES = new Set(['unique', 'multiple', 'not-proved', 'unsatisfiable']);
 
 /**
- * Status of the uniqueness badge. A certificate read from a file is shown as it is. Without one, a puzzle whose
+ * Status of the uniqueness badge. A certificate carried by the pack is shown as it is. Without one, a puzzle whose
  * solution is known (an included answer, or a successful solvability check) is "not-proved", which reads
  * "At least 1 solution" as a new puzzle does in the generator; otherwise nothing is claimed.
  * @param {{ status: string } | null | undefined} certificate
@@ -208,14 +208,13 @@ export function formatElapsed(ms) {
 
 export const LABELS = Object.freeze(Object.assign(texts('ui', [
   'straighten', 'straightenOn', 'localLink', 'boardLabel', 'rotateCcw', 'rotateCw', 'flipH', 'flipV', 'toTrayLabel', 'unplaceAll',
-  'replayPuzzle', 'revealedBadge', 'winTime', 'open', 'export', 'delete', 'confirmDelete', 'exportFailed', 'deleted',
+  'replayPuzzle', 'revealedBadge', 'winTime',
 ]), {
   piecesLeft: (/** @type {number} */ n) => t('ui.piecesLeft', { count: n }),
   moves: (/** @type {number} */ n) => t('ui.moves', { count: n }),
   puzzleNumber: (/** @type {number} */ n) => t('ui.puzzleNumber', { n }),
   toPlace: (/** @type {number} */ n) => t('card.toPlace', { count: n }),
   cardHeading: (/** @type {number} */ n) => t('card.heading', { n }),
-  solvedCount: (/** @type {number} */ solved, /** @type {number} */ total) => t('ui.solvedCount', { solved, total }),
 }));
 
 /**

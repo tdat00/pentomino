@@ -4,7 +4,7 @@ import storage from '../core/browser/storage.js';
 import { showToast } from '../core/browser/dom.js';
 import { svgEl } from '../core/browser/svg-board.js';
 import { createGenerationClient } from '../core/browser/generation-client.js';
-import { downloadPack, openInPlayerTab } from '../core/browser/handoff.js';
+import { openInPlayerTab } from '../core/browser/handoff.js';
 import { createPool } from '../core/browser/worker-pool.js';
 import { applyTo, choose, getLocale, normalize, onChange, setLocale, t } from './i18n.js';
 import { LANGUAGE_KEY } from '../core/browser/i18n.js';
@@ -130,8 +130,6 @@ export function createGeneratorApp(doc, options = {}) {
     workersAvailable: options.workersAvailable ?? (options.workerFactory !== undefined || typeof /** @type {any} */ (win ?? globalThis).Worker === 'function'),
     cancelPending: () => pool?.cancelAll(),
     openPlayer: (pack, index) => openInPlayerTab(pack, index, handoffEnv),
-    download: (pack, name) => downloadPack(pack, name),
-    notify: (message, kind) => void showToast(message, { kind }),
     beforeNavigate: () => persistence.saveNow(),
     randomNumber: options.randomNumber,
     ...(options.now === undefined ? {} : { now: options.now }),

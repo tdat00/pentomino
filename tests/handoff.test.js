@@ -4,9 +4,9 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { parsePack } from '../core/engine/pack.js';
 import { MAX_URL_CHARS, WARN_URL_CHARS } from '../core/engine/sharecode.js';
-import { copyText, el, safeFileName, showToast } from '../core/browser/dom.js';
+import { copyText, downloadText, el, safeFileName, showToast } from '../core/browser/dom.js';
 import {
-  HandoffError, PIECE_SET_MESSAGE, downloadPack, loadFromFile, loadFromText, openInPlayerTab, preparePlayerLink, readIncoming,
+  HandoffError, PIECE_SET_MESSAGE, openInPlayerTab, preparePlayerLink, readIncoming, readPack,
 } from '../core/browser/handoff.js';
 import { createStorage } from '../core/browser/storage.js';
 
@@ -60,7 +60,7 @@ test('portable links above 4,000 characters warn but stay portable', async () =>
   const link = await preparePlayerLink(noisy(3500), 0, { base: PREFIX_BASE });
   assert.equal(link.portable, true);
   assert.ok((link.href ?? '').length > WARN_URL_CHARS && (link.href ?? '').length <= MAX_URL_CHARS, `${link.href?.length}`);
-  assert.match(link.warning ?? '', /Export file/);
+  assert.match(link.warning ?? '', /^This link is \d+ characters long, and some chat apps cut long links\.$/);
 });
 
 test('links over 16,000 characters fall back to a labeled local link after readback', async () => {
@@ -68,7 +68,7 @@ test('links over 16,000 characters fall back to a labeled local link after readb
   const link = await preparePlayerLink(noisy(14000), 0, { base: PREFIX_BASE, storage: store });
   assert.equal(link.portable, false);
   assert.equal(link.href, `${PREFIX_BASE.replace('generator/', 'player/')}#lib=0123456789abcdef&i=0`);
-  assert.match(link.warning ?? '', /not shareable/);
+  assert.equal(link.warning, 'This link only works in this browser and cannot be shared.');
   assert.equal(store.calls.save, 1);
 });
 
@@ -87,7 +87,7 @@ test('no link is claimed when saving or readback fails, or the index is invalid'
   });
   assert.equal(failedSave.href, null);
   assert.equal(failedSave.portable, false);
-  assert.match(failedSave.warning ?? '', /Download/);
+  assert.equal(failedSave.warning, "This puzzle is too large for a link and can't be saved in this browser.");
   const failedReadback = await preparePlayerLink(big, 0, {
     base: PREFIX_BASE,
     storage: stubStore({ loadLibraryPack: () => ({ ok: false, issues: [] }) }),
@@ -113,7 +113,7 @@ test('openInPlayerTab opens the tab first, points it at the player, and closes i
   await openInPlayerTab(pack, 0, { base: PREFIX_BASE, openTab, storage: store });
   assert.deepEqual([opened, closed, visited.length], [1, 0, 1]);
   assert.match(visited[0], /\/pentomino\/player\/#pack=1z\./);
-  assert.equal(store.calls.save, 1, 'best-effort library save for Recent');
+  assert.equal(store.calls.save, 0, 'a portable link needs no saved copy');
 
   await assert.rejects(
     openInPlayerTab(noisy(14000), 0, {
@@ -195,28 +195,17 @@ test('readIncoming reports bad addresses, indexes, codes and piece sets', async 
   assert.equal(result.issues[0].message, PIECE_SET_MESSAGE);
 });
 
-test('loadFromText and loadFromFile accept links, codes and JSON, and reject the rest', async () => {
-  const href = /** @type {string} */ ((await preparePlayerLink(pack, 0, { base: PREFIX_BASE })).href);
-  const code = new URL(href).hash.slice(6).split('&')[0];
-  for (const text of [href, `Look: ${href} !`, code, ` ${code} `, JSON.stringify(pack), fixtureText]) {
-    const result = await loadFromText(text);
-    assert.ok(result.ok, text.slice(0, 30));
-    assert.equal(result.value.index, 0);
-    assert.equal(result.value.pack.puzzles[0].id, 'example-1');
+test('readPack opens the first puzzle of pack JSON and rejects the rest', () => {
+  const result = readPack(fixtureText);
+  assert.ok(result.ok);
+  assert.equal(result.value.index, 0);
+  assert.equal(result.value.pack.puzzles[0].id, 'example-1');
+  for (const text of ['', 'hello world', '{"format":"pentomino-pack"}', '[1,2]']) {
+    assert.ok(!readPack(text).ok, text);
   }
-  const lib = await loadFromText('open https://x.test/player/#lib=0123456789abcdef&i=0 now', { storage: stubStore() });
-  assert.ok(lib.ok);
-  for (const text of ['', 'hello world', '{"format":"pentomino-pack"}', '[1,2]', '1z.AAAA']) {
-    const result = await loadFromText(text);
-    assert.ok(!result.ok, text);
-  }
-  const file = (/** @type {number} */ size, /** @type {string} */ text) => ({ size, text: async () => text });
-  assert.ok((await loadFromFile(file(10, JSON.stringify(pack)))).ok);
-  const big = await loadFromFile(file(512 * 1024 + 1, JSON.stringify(pack)));
-  assert.ok(!big.ok);
-  assert.equal(big.issues[0].code, 'pack-too-large');
-  const unreadable = await loadFromFile({ size: 1, text: async () => { throw new Error('io'); } });
-  assert.ok(!unreadable.ok);
+  const pieceSet = readPack(JSON.stringify({ ...pack, kind: 'piece-set', puzzles: [] }));
+  assert.ok(!pieceSet.ok);
+  assert.equal(pieceSet.issues[0].message, PIECE_SET_MESSAGE);
 });
 
 /**
@@ -302,24 +291,20 @@ async function withFakeDom(fn) {
   }
 }
 
-test('downloadPack writes an importable .pentomino.json, optionally without solutions, and revokes the URL', async () => {
+test('downloadText saves through a safe file name and revokes the URL after use', async () => {
   await withFakeDom(async ({ doc, urls, timers }) => {
-    downloadPack(pack, 'My: puzzle?.json');
-    downloadPack(pack, '../evil/name.pentomino.json', { omitSolutions: true });
-    downloadPack(pack, '???');
+    downloadText('My: report.json', '{"a":1}');
+    downloadText('../evil/name.md', '# x', 'text/markdown');
+    downloadText('???', '');
     const links = doc.created.filter((/** @type {any} */ n) => n.tagName === 'a');
-    assert.deepEqual(links.map((/** @type {any} */ n) => n.attrs.download), ['My- puzzle.pentomino.json', 'evil-name.pentomino.json', 'puzzle.pentomino.json']);
+    assert.deepEqual(links.map((/** @type {any} */ n) => n.attrs.download), ['My- report.json', 'evil-name.md', 'puzzle']);
     assert.deepEqual(links.map((/** @type {any} */ n) => n.clicks), [1, 1, 1]);
     assert.ok(links.every((/** @type {any} */ n) => n.removed));
-    const full = await urls.made[0].text();
-    const bare = await urls.made[1].text();
-    assert.ok(full.includes('\n  "format"'), 'readable indentation');
-    assert.ok(parsePack(full).ok && parsePack(bare).ok);
-    assert.ok(full.includes('"solution"') && !bare.includes('"solution"') && !bare.includes('"witness"'));
+    assert.equal(await urls.made[0].text(), '{"a":1}');
+    assert.equal(urls.made[1].type, 'text/markdown;charset=utf-8');
     assert.deepEqual(urls.revoked, [], 'revoked after use, not before');
     timers.forEach((f) => f());
     assert.equal(urls.revoked.length, 3);
-    assert.throws(() => downloadPack({ ...pack, generation: { filler: 'a'.repeat(600 * 1024) } }, 'x'), /exceeds/);
   });
 });
 

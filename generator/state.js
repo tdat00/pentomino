@@ -60,7 +60,6 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {Readonly<Record<string, string>>} puzzleSeeds Batch seed each puzzle was generated with, by puzzle id.
  * @property {boolean} calibrationTrusted The calibration was produced by this session's engine run.
  * @property {number} setPosition Where the set on show sits in the newest-first list of the sets of its own board.
- * @property {readonly (readonly Puzzle[])[]} parked Earlier puzzle groups kept as separate packs after a size split.
  */
 
 /**
@@ -141,7 +140,6 @@ export function defaultGeneratorState(overrides = {}) {
     puzzleSeeds: {},
     calibrationTrusted: false,
     setPosition: 0,
-    parked: [],
     ...overrides,
   };
 }
@@ -477,10 +475,10 @@ export function beginSetRequest(state, random = randomSeedText) {
 
 /**
  * The per-set data a new or restored set starts without.
- * @returns {Pick<GeneratorState, 'notice' | 'checking' | 'batchLevelId' | 'parked' | 'puzzleSeeds' | 'setPosition'>}
+ * @returns {Pick<GeneratorState, 'notice' | 'checking' | 'batchLevelId' | 'puzzleSeeds' | 'setPosition'>}
  */
 function freshSetExtras() {
-  return { notice: null, checking: [], batchLevelId: null, parked: [], puzzleSeeds: {}, setPosition: 0 };
+  return { notice: null, checking: [], batchLevelId: null, puzzleSeeds: {}, setPosition: 0 };
 }
 
 /**
@@ -1293,7 +1291,7 @@ export function visiblePack(state) {
 /**
  * @param {GeneratorState} state
  * @param {readonly Puzzle[]} puzzles
- * @returns {boolean} Whether a pack of these puzzles still fits the 512 KiB file limit.
+ * @returns {boolean} Whether a pack of these puzzles still fits the 512 KiB pack limit.
  */
 export function packFits(state, puzzles) {
   try {
@@ -1305,6 +1303,17 @@ export function packFits(state, puzzles) {
     }
     throw error;
   }
+}
+
+/**
+ * Whether one more puzzle still fits the 512 KiB pack. The newest puzzle stands in for the next one, which comes from
+ * the same set and so has about the same size.
+ * @param {GeneratorState} state
+ * @returns {boolean}
+ */
+export function roomForAnotherPuzzle(state) {
+  const newest = state.puzzles.at(-1);
+  return newest === undefined || packFits(state, [...state.puzzles, newest]);
 }
 
 /**
@@ -1363,7 +1372,6 @@ export function applyCertificate(state, puzzleId, certificate) {
   return {
     ...state,
     puzzles: /** @type {Puzzle[]} */ (puzzles),
-    parked: state.parked.map(swap),
     checking: state.checking.filter((id) => id !== puzzleId),
   };
 }
@@ -1386,16 +1394,16 @@ export function removePuzzle(state, puzzleId) {
 }
 
 /**
- * Remove all: every puzzle of the list goes, with the earlier packs and the cards' extras. The seen-history stays, like
- * when a single card is removed, so new puzzles never repeat a removed one.
+ * Remove all: every puzzle of the list goes, with the cards' extras. The seen-history stays, like when a single card
+ * is removed, so new puzzles never repeat a removed one.
  * @param {GeneratorState} state
  * @returns {GeneratorState}
  */
 export function removeAllPuzzles(state) {
-  if (state.puzzles.length === 0 && state.parked.length === 0) {
+  if (state.puzzles.length === 0) {
     return state;
   }
-  return { ...state, puzzles: [], parked: [], checking: [], puzzleSeeds: {}, notice: null };
+  return { ...state, puzzles: [], checking: [], puzzleSeeds: {}, notice: null };
 }
 
 /**

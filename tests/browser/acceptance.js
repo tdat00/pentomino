@@ -1,7 +1,7 @@
 // @ts-check
 // T23 cross-app acceptance harness. It drives the REAL generator and player pages (unmodified HTML, CSS and
 // modules) in same-origin frames: root redirect, the three recorded production recipes through the real
-// controls and real module workers, Play hand-off, the four import paths of the player, desktop and narrow
+// controls and real module workers, Play hand-off, the ways the player opens a puzzle, desktop and narrow
 // layouts, touch-target size, contrast, accessible names and CSP / external-request hygiene. Each check is
 // pass / fail; checks that need hardware or tools that were not approved are listed as `blocked` with
 // the owner steps, never as passes. It writes the list into the page and sets data-result on <html> to
@@ -281,47 +281,36 @@ for (const recipe of recipes) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// I: player imports
+// I: player links
 
 const pastedLink = new URL(playLinks['default-10x6-normal']?.[0] ?? '', location.href).href;
 
 /** @param {Frame} frame */
 const trayCount = (frame) => qa(frame.doc(), '.tray-piece').length;
 
-await check('I1', 'Player: file import in a fresh profile opens the game and fills the local library', async () => {
+await check('I1', 'Player: a fresh profile shows the start screen; the sample opens and its address becomes a portable link', async () => {
   localStorage.clear();
   const frame = await openFrame('../../player/', { ready: playerReady });
-  assert(frame.doc().querySelector('#app')?.getAttribute('data-screen') === 'import', 'the import screen opens without a link');
-  const win = frame.win();
-  const transfer = new win.DataTransfer();
-  transfer.items.add(new win.File([samplePackText], 'imported.pentomino.json', { type: 'application/json' }));
-  const input = /** @type {HTMLInputElement} */ (q(frame.doc(), '[data-role="file-input"]'));
-  input.files = transfer.files;
-  input.dispatchEvent(new win.Event('change', { bubbles: true }));
-  await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the imported game', 15000);
+  assert(frame.doc().querySelector('#app')?.getAttribute('data-screen') === 'start', 'the start screen opens without a link');
+  assert(frame.doc().querySelector('input[type="file"], textarea') === null, 'there is nothing to import');
+  q(frame.doc(), '[data-action="sample"]').click();
+  await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the sample game', 15000);
   assert(trayCount(frame) > 0, 'the tray has pieces');
+  await waitFor(() => String(frame.win().location.hash).startsWith('#pack='), 'the portable address', 10000);
+  const copies = Object.keys(localStorage).filter((k) => /^pentomino:v1:lib:[0-9a-f]{16}$/.test(k));
+  assert(copies.length === 0, `no pack copy is kept: ${copies}`);
   scan(frame);
-  return { trayPieces: trayCount(frame) };
+  return { trayPieces: trayCount(frame), hashChars: String(frame.win().location.hash).length };
 });
 
-/** @type {string | null} */
-let libraryId = null;
-
-await check('I2', 'Player: invalid import keeps the open game and the error is announced', async () => {
-  const frame = await openFrame('../../player/', { ready: playerReady, hash: '' });
-  // The previous check stored the file in the library; open it from Recent.
-  await waitFor(() => qa(frame.doc(), '[data-action="open"]').length > 0, 'a recent pack', 10000);
-  libraryId = qa(frame.doc(), '[data-action="open"]')[0].dataset.packId ?? null;
-  q(frame.doc(), '[data-action="open"]').click();
-  await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the recent pack to open', 15000);
-  assert(frame.doc().querySelector('[data-action="import"]') === null, 'the puzzles panel has no Import button');
+await check('I2', 'Player: a broken link keeps the open game and the error is announced', async () => {
+  assert(pastedLink.includes('#pack='), 'a Play link was captured from the generator flow');
+  const frame = await openFrame('../../player/', { ready: playerReady, hash: new URL(pastedLink).hash });
+  await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the linked game', 15000);
   const before = { tray: trayCount(frame), title: q(frame.doc(), '.puzzle-title').textContent };
-  // With a game open, a file dropped on the page is the way to import.
-  const win = /** @type {any} */ (frame.doc().defaultView);
-  const transfer = new win.DataTransfer();
-  transfer.items.add(new win.File(['this is not a puzzle { nope'], 'bad.json', { type: 'application/json' }));
-  q(frame.doc(), '#app').dispatchEvent(new win.DragEvent('drop', { dataTransfer: transfer, bubbles: true, cancelable: true }));
-  await waitFor(() => { const e = q(frame.doc(), '.status-error'); return !e.hidden && (e.textContent ?? '') !== ''; }, 'the import error', 10000);
+  // "1j." + base64url of "{ nope": a share code whose data is not a pack.
+  frame.win().location.hash = '#pack=1j.eyBub3Bl&i=0';
+  await waitFor(() => { const e = q(frame.doc(), '.status-error'); return !e.hidden && (e.textContent ?? '') !== ''; }, 'the link error', 10000);
   const error = q(frame.doc(), '.status-error');
   assert(error.getAttribute('role') === 'alert', 'the error is an alert');
   assert(frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game stays open');
@@ -330,25 +319,17 @@ await check('I2', 'Player: invalid import keeps the open game and the error is a
   return { error: error.textContent, before };
 });
 
-await check('I3', 'Player: pasted Play link and share code open the puzzle', async () => {
-  assert(pastedLink.includes('#pack='), 'a Play link was captured from the generator flow');
-  const frame = await openFrame('../../player/', { ready: playerReady });
-  setValue(frame, /** @type {HTMLTextAreaElement} */ (q(frame.doc(), '#import-paste')), `Try this puzzle: ${pastedLink}`);
-  q(frame.doc(), '[data-action="paste"]').click();
-  await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the pasted link to open', 15000);
-  const tray = trayCount(frame);
-  assert(tray > 0, 'the pasted link opened a puzzle');
-  scan(frame);
-  return { tray };
-});
-
-await check('I4', 'Player: #pack= address and #lib= library fallback address open the puzzle', async () => {
-  assert(libraryId !== null, 'a library entry exists');
+await check('I3', 'Player: #pack= address and #lib= same-browser address open the puzzle', async () => {
   const direct = await openFrame('../../player/', { ready: playerReady, hash: new URL(pastedLink).hash });
   await waitFor(() => direct.doc().querySelector('#app[data-screen="game"]') !== null, 'the #pack address', 15000);
   const fromLink = trayCount(direct);
-  const lib = await openFrame('../../player/', { ready: playerReady, hash: `#lib=${libraryId}&i=0` });
+  const { browserStorage } = await import('../../core/browser/storage.js');
+  const { parsePack } = await import('../../core/engine/pack.js');
+  const saved = browserStorage().saveLibraryPack(/** @type {any} */ (parsePack(samplePackText)).value);
+  assert(saved.ok, 'a pack too large for a link is kept in this browser, as Play does');
+  const lib = await openFrame('../../player/', { ready: playerReady, hash: `#lib=${/** @type {any} */ (saved).packId}&i=0` });
   await waitFor(() => lib.doc().querySelector('#app[data-screen="game"]') !== null, 'the #lib address', 15000);
+  assert(!q(lib.doc(), '[data-badge="local"]').hidden, 'the same-browser address is labeled');
   scan(lib);
   return { packTray: fromLink, libTray: trayCount(lib) };
 });
@@ -709,7 +690,7 @@ await check('H1', 'No CSP violations, script errors or unhandled rejections in a
 // Items this machine cannot honestly verify
 
 blocked('B1', 'Real screen-reader smoke test (NVDA on Windows, VoiceOver on macOS and iOS, TalkBack on Android)', 'No screen reader is set up or approved on this machine. Owner: install NVDA (and use a Mac/iPhone for VoiceOver), open the generator and player, tab through pieces and controls, confirm names, the role=application instructions, live announcements and that no focus trap exists; record versions and findings.');
-blocked('B2', 'Approved local axe DevTools audit with zero critical findings', 'No approved axe extension is available. Owner: run axe DevTools on the generator (empty, after a set, with puzzles), the player import screen, the game screen and the win dialog; record the version, pages and results; route findings to T17-T20.');
+blocked('B2', 'Approved local axe DevTools audit with zero critical findings', 'No approved axe extension is available. Owner: run axe DevTools on the generator (empty, after a set, with puzzles), the player start screen, the game screen and the win dialog; record the version, pages and results; route findings to T17-T20.');
 blocked('B3', 'Safari (macOS and iOS), Firefox-on-reference-hardware, Android Chrome and iPhone Safari runs', 'These devices are not available here. Owner: run this page and the BQ-0 benchmark page on each listed platform and record hardware and browser versions.');
 
 const failed = results.filter((r) => r.status === 'fail');

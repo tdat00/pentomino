@@ -1,11 +1,10 @@
 // @ts-check
-// Play hand-off between the independent generator and player pages: prepared
-// links, one validated incoming loader, and pack downloads.
+// Play hand-off between the independent generator and player pages: prepared links and one validated incoming loader.
+// Links are the only way puzzles travel: there is no file import or export.
 import {
-  MAX_URL_CHARS, WARN_URL_CHARS, decodeShareCode, encodeShareCode, extractCode, parseLocationHashResult, playerUrl,
+  MAX_URL_CHARS, WARN_URL_CHARS, decodeShareCode, encodeShareCode, parseLocationHashResult, playerUrl,
 } from '../engine/sharecode.js';
-import { MAX_FILE_BYTES, PackError, parsePack, serializePack } from '../engine/pack.js';
-import { downloadText, safeFileName } from './dom.js';
+import { parsePack } from '../engine/pack.js';
 import { browserStorage } from './storage.js';
 
 /** @typedef {import('../engine/types.js').Pack} Pack */
@@ -24,7 +23,7 @@ import { browserStorage } from './storage.js';
  *   Opens a blank tab for `openInPlayerTab`; null when the browser refuses it. Default `window.open('about:blank')`.
  */
 
-export const PIECE_SET_MESSAGE = 'This file has pieces but no puzzle — open it in the generator.';
+export const PIECE_SET_MESSAGE = 'This link has pieces but no puzzle — open it in the generator.';
 
 export class HandoffError extends Error {
   /**
@@ -67,8 +66,8 @@ function baseOf(env) {
  * `#pack=` links are preferred; when the URL would exceed 16,000 characters
  * (or encoding fails) the pack is saved to the local library and, only after a
  * successful readback, a same-browser `#lib=` link is returned. If both fail
- * `href` is null and `warning` explains the Download / Open player fallback.
- * `warning` is also set for portable links above 4,000 characters.
+ * `href` is null and `warning` says why. `warning` is also set for portable
+ * links above 4,000 characters.
  * @param {Pack} pack
  * @param {number} index
  * @param {HandoffEnv} [env]
@@ -88,11 +87,7 @@ export async function preparePlayerLink(pack, index, env = {}) {
       const href = playerUrl(base, code, index);
       if (href.length <= MAX_URL_CHARS) {
         return href.length > WARN_URL_CHARS
-          ? {
-            href,
-            portable: true,
-            warning: `This link is ${href.length} characters long and some chat apps cut long links — use Export file to share it reliably.`,
-          }
+          ? { href, portable: true, warning: `This link is ${href.length} characters long, and some chat apps cut long links.` }
           : { href, portable: true };
       }
     } catch {
@@ -106,25 +101,23 @@ export async function preparePlayerLink(pack, index, env = {}) {
       return {
         href: playerUrl(base, saved.packId, index),
         portable: false,
-        warning: 'This link only works in this browser and is not shareable — use Export file to share the puzzle.',
+        warning: 'This link only works in this browser and cannot be shared.',
       };
     } catch {
-      // Fall through to the download fallback.
+      // Fall through to the failure below.
     }
   }
   return {
     href: null,
     portable: false,
-    warning: "This puzzle is too large for a link and can't be saved in this browser — use Download, then Import file in the player.",
+    warning: "This puzzle is too large for a link and can't be saved in this browser.",
   };
 }
 
 /**
  * Opens the player in a new tab. The tab is opened first, in the click's own turn, so pop-up blockers let it through,
- * and gets its address once the link is ready. A portable hand-off also tries to save the pack to the library (best
- * effort) so Recent works. Rejects with `HandoffError('handoff-unavailable')` when no link could be prepared (the empty
- * tab is closed; the caller then offers Download and Open player instead of claiming success) and with
- * `HandoffError('popup-blocked')` when the browser refused the tab.
+ * and gets its address once the link is ready. Rejects with `HandoffError('handoff-unavailable')` when no link could be
+ * prepared (the empty tab is closed) and with `HandoffError('popup-blocked')` when the browser refused the tab.
  * @param {Pack} pack
  * @param {number} index
  * @param {HandoffEnv} [env]
@@ -144,9 +137,6 @@ export async function openInPlayerTab(pack, index, env = {}) {
     const link = await preparePlayerLink(pack, index, env);
     if (link.href === null) {
       throw new HandoffError('handoff-unavailable', link.warning ?? 'The player could not be opened.');
-    }
-    if (link.portable) {
-      (env.storage ?? browserStorage()).saveLibraryPack(pack);
     }
     tab.location.assign(link.href);
   } catch (error) {
@@ -204,68 +194,15 @@ export async function readIncoming(location, env = {}) {
 }
 
 /**
- * Loads pasted text: a player link (`#pack=`/`#lib=`), a bare share code or
- * raw pack JSON, always as data, never fetching anything. Puzzle 0 opens
- * unless a link names another.
+ * Reads pack JSON shipped with the page (the sample) and opens its first puzzle.
  * @param {string} text
- * @param {HandoffEnv} [env]
- * @returns {Promise<Result<{ pack: Pack, index: number }>>}
+ * @returns {Result<{ pack: Pack, index: number }>}
  */
-export async function loadFromText(text, env = {}) {
-  const hash = typeof text === 'string' ? /#[^\s#]+/.exec(text)?.[0] : undefined;
-  if (hash !== undefined && parseLocationHashResult(hash).ok) {
-    return readIncoming({ hash }, env);
+export function readPack(text) {
+  const parsed = parsePack(text);
+  if (!parsed.ok) {
+    return parsed;
   }
-  const code = extractCode(text);
-  if (code === null) {
-    return { ok: false, issues: [{ code: 'no-code', path: '$', message: 'No puzzle link, code or file contents were found in the text.' }] };
-  }
-  const loaded = code.startsWith('{') ? parsePack(code) : await decodeShareCode(code);
-  if (!loaded.ok) {
-    return loaded;
-  }
-  const result = finish(loaded.value, 0);
-  return result.ok ? { ok: true, value: result.value, warnings: loaded.warnings } : result;
-}
-
-/**
- * Loads a chosen or dropped file (at most 512 KiB, checked before reading).
- * @param {{ size: number, text: () => Promise<string> }} file
- * @param {HandoffEnv} [env]
- * @returns {Promise<Result<{ pack: Pack, index: number }>>}
- */
-export async function loadFromFile(file, env = {}) {
-  if (!file || file.size > MAX_FILE_BYTES) {
-    return { ok: false, issues: [{ code: 'pack-too-large', path: '$', message: `A pack file is at most ${MAX_FILE_BYTES} bytes` }] };
-  }
-  let text;
-  try {
-    text = await file.text();
-  } catch {
-    return { ok: false, issues: [{ code: 'file-unreadable', path: '$', message: 'The file could not be read.' }] };
-  }
-  return loadFromText(text, env);
-}
-
-/**
- * Downloads `<name>.pentomino.json` (readable indentation when it still fits
- * the 512 KiB import limit). `omitSolutions` removes the witness and answers.
- * @param {Pack} pack
- * @param {string} fileName
- * @param {{ omitSolutions?: boolean }} [o]
- * @throws {PackError} `pack-too-large` when no importable file can be made.
- */
-export function downloadPack(pack, fileName, o = {}) {
-  const omitSolutions = o.omitSolutions === true;
-  let text;
-  try {
-    text = serializePack(pack, { omitSolutions, pretty: true });
-  } catch (error) {
-    if (!(error instanceof PackError) || error.code !== 'pack-too-large') {
-      throw error;
-    }
-    text = serializePack(pack, { omitSolutions });
-  }
-  const stem = safeFileName(String(fileName).replace(/(?:\.pentomino)?\.json$/i, ''));
-  downloadText(`${stem}.pentomino.json`, text);
+  const result = finish(parsed.value, 0);
+  return result.ok ? { ok: true, value: result.value, warnings: parsed.warnings } : result;
 }

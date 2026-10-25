@@ -22,10 +22,10 @@ import { bindGestures } from './ui/gestures.js';
 import { mountHeader } from './ui/header.js';
 import { createHintPanel } from './ui/hint-panel.js';
 import { loc, locAttrs } from './ui/i18n-dom.js';
-import { createImportView } from './ui/import-view.js';
 import { createKeyboard } from './ui/keyboard.js';
 import { createPuzzleList } from './ui/puzzle-list.js';
 import { setRating } from './ui/rating-dom.js';
+import { createStartView } from './ui/start-view.js';
 import { createToolbar } from './ui/toolbar.js';
 import { createTrayView } from './ui/tray-view.js';
 import { createWinDialog } from './ui/win-dialog.js';
@@ -51,7 +51,6 @@ let instances = 0;
  * @property {string | URL} [baseUrl]
  * @property {() => import('./state.js').PoolLike} [createPool]
  * @property {() => import('./hints.js').PoolLike} [createHintPool] Pool of the hint and reveal searches (default: one module worker).
- * @property {(pack: import('../core/engine/types.js').Pack, name: string) => void} [download]
  * @property {boolean} [coarsePointer]
  * @property {boolean} [reducedMotion] Overrides `prefers-reduced-motion`.
  * @property {() => number} [now] Millisecond clock of the timer and the save stamp.
@@ -90,7 +89,6 @@ export function mountPlayer(root, env = {}) {
     fetchText: env.fetchText,
     baseUrl: env.baseUrl,
     createPool: env.createPool,
-    download: env.download,
   });
 
   root.replaceChildren();
@@ -113,7 +111,7 @@ export function mountPlayer(root, env = {}) {
     el('div', { className: 'panel-header' }, loc('puzzles.list', { attrs: { id: historyId } }, 'h2'), removeAllButton),
     cardsHost);
 
-  // Main panel: the game screen, or the import screen when no puzzle is open.
+  // Main panel: the game screen, or the start screen when no puzzle is open.
   const title = el('h2', { className: 'puzzle-title', attrs: { id: titleId } });
   const stepHead = el('div', { className: 'step-head' }, title);
   const info = el('p', { className: 'step-hint puzzle-info' });
@@ -215,7 +213,7 @@ export function mountPlayer(root, env = {}) {
   const gameScreen = el('section', { className: 'panel game', attrs: { hidden: '', 'aria-labelledby': titleId } },
     stepHead, info, statusHost, gameBar, hintHost, boardWrap, winHost);
 
-  const importHost = el('section', { className: 'panel import-host', dataset: { host: 'import' } });
+  const startHost = el('section', { className: 'panel start-host', dataset: { host: 'start' } });
   const version = el('p', { className: 'version' }, loc('shell.version'), ' ', el('span', { text: APP_VERSION, attrs: { 'data-app-version': '' } }));
 
   // Right panel: the selection toolbar and the pieces still to place.
@@ -230,7 +228,7 @@ export function mountPlayer(root, env = {}) {
   const live = el('div', { className: 'sr-only live-region', attrs: { 'aria-live': 'polite', 'aria-atomic': 'true' }, dataset: { host: 'live' } });
   // The page order is the focus order: the pieces to place, then the game, then the puzzles. The grid places them.
   root.append(
-    el('div', { className: 'app-layout' }, sidePanel, el('main', { className: 'app-main' }, gameScreen, importHost), historyPanel),
+    el('div', { className: 'app-layout' }, sidePanel, el('main', { className: 'app-main' }, gameScreen, startHost), historyPanel),
     el('footer', { className: 'app-footer' }, el('p', { className: 'app-footer__inner' },
       loc('shell.footer.copyright', { className: 'app-footer__copy' }),
       loc('shell.footer.repo', {
@@ -400,34 +398,14 @@ export function mountPlayer(root, env = {}) {
 
   const puzzleList = createPuzzleList(cardsHost, {
     onSelect: (index) => {
-      const state = store.getState();
-      if (index === state.index && state.game !== null) {
-        // The puzzle that is open already: no reload, only back from the import screen.
-        controller.closeImport();
-      } else {
+      if (index !== store.getState().index) {
         controller.goToPuzzle(index);
       }
     },
     onRemove: (index) => controller.removePuzzle(index),
   });
-  const importView = createImportView(importHost, {
-    onFile: (file) => void controller.importFile(file),
-    onText: (text) => void controller.importText(text),
-    onSample: () => void controller.openSample(),
-    onOpen: (id) => void controller.openLibraryPack(id),
-    onExport: (id) => {
-      const result = controller.exportLibraryPack(id);
-      if (!result.ok) {
-        announce(result.message ?? LABELS.exportFailed);
-      }
-    },
-    onDelete: (id) => {
-      controller.removeLibraryPack(id);
-      announce(LABELS.deleted);
-    },
-    onBack: () => controller.closeImport(),
-  });
-  importHost.append(version);
+  const startView = createStartView(startHost, { onSample: () => void controller.openSample() });
+  startHost.append(version);
 
   // Piece menu: a right-click, the Menu key or a long press on a tray piece or a movable board piece. Elsewhere on
   // the board it lists only the actions of the whole puzzle.
@@ -638,10 +616,10 @@ export function mountPlayer(root, env = {}) {
   function render(state, previous) {
     const showGame = state.screen === 'game' && state.game !== null;
     gameScreen.hidden = !showGame;
-    importHost.hidden = showGame;
-    root.dataset.screen = showGame ? 'game' : 'import';
+    startHost.hidden = showGame;
+    root.dataset.screen = showGame ? 'game' : 'start';
     root.setAttribute('aria-busy', String(state.loading));
-    importView.render(state);
+    startView.render(state);
     puzzleList.render(state);
     removeAllButton.disabled = state.pack === null;
     renderPieces(state);
@@ -692,7 +670,6 @@ export function mountPlayer(root, env = {}) {
   const stopLanguage = onChange(() => {
     const state = store.getState();
     boardView.view.svg.setAttribute('aria-label', LABELS.boardLabel);
-    importView.refresh();
     puzzleList.render(state);
     renderPieces(state);
     renderStraighten();
@@ -724,19 +701,6 @@ export function mountPlayer(root, env = {}) {
     });
     observer.observe(boardHost);
   }
-
-  root.addEventListener('dragover', (event) => {
-    if (Array.from(/** @type {DragEvent} */ (event).dataTransfer?.types ?? []).includes('Files')) {
-      event.preventDefault();
-    }
-  });
-  root.addEventListener('drop', (event) => {
-    const file = /** @type {DragEvent} */ (event).dataTransfer?.files?.[0];
-    if (file) {
-      event.preventDefault();
-      void controller.importFile(file);
-    }
-  });
 
   const onHashChange = () => {
     void controller.openHash(String((env.location ?? win.location).hash));
@@ -785,7 +749,7 @@ export function mountPlayer(root, env = {}) {
       boardView.destroy();
       trayView.destroy();
       puzzleList.destroy();
-      importView.destroy();
+      startView.destroy();
       header.destroy();
       store.destroy();
       root.replaceChildren();

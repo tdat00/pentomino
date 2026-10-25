@@ -135,7 +135,7 @@ const app = createGeneratorApp(document, {
   storage: /** @type {any} */ (storage),
   client,
   random: () => 'WATCHDOG-SEED',
-  controller: { cancelPending: () => pool.cancelAll(), notify: () => {} },
+  controller: { cancelPending: () => pool.cancelAll() },
 });
 const state = () => app.store.getState();
 const q = (/** @type {string} */ selector) => /** @type {HTMLElement} */ (root.querySelector(selector));

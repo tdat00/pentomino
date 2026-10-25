@@ -1242,8 +1242,3 @@ button.card-remove {
 .badge[data-status="unchecked"] {
   color: var(--gen-warning);
 }
-
-.parked-pack {
-  margin-top: 0.5rem;
-}
-

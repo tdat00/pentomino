@@ -1,18 +1,17 @@
 // @ts-check
-// Browser regression harness for T19 (player loading, library and shell). It
-// mounts the real shell with injected storage, address and pool, writes a
-// pass/fail list into the page and sets data-result on <html>. Developer
-// fixture, not deployed.
+// Browser regression harness for player loading and the shell. It mounts the
+// real shell with injected storage, address and pool, writes a pass/fail list
+// into the page and sets data-result on <html>. Developer fixture, not deployed.
 
 import { reduce } from '../../core/engine/game.js';
 import { colorFor, labelFor } from '../../core/engine/palette.js';
 import { validatePack } from '../../core/engine/pack.js';
-import { encodeShareCode } from '../../core/engine/sharecode.js';
+import { base64urlEncode, encodeShareCode } from '../../core/engine/sharecode.js';
 import { PoolAbortError, PoolError } from '../../core/browser/worker-pool.js';
 import { SAVE_FAILED_MESSAGE, createStorage } from '../../core/browser/storage.js';
 import { mountPlayer } from '../../player/app.js';
 
-const PIECE_SET_MESSAGE = 'This file has pieces but no puzzle — open it in the generator.';
+const PIECE_SET_MESSAGE = 'This link has pieces but no puzzle — open it in the generator.';
 const results = /** @type {Array<{ name: string, ok: boolean, error?: string }>} */ ([]);
 const violations = /** @type {string[]} */ ([]);
 document.addEventListener('securitypolicyviolation', (e) => violations.push(`${e.violatedDirective} ${e.blockedURI}`));
@@ -73,7 +72,6 @@ const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve
 const sampleText = await (await fetch('../../player/samples/sample-pack.json')).text();
 const sample = JSON.parse(sampleText);
 const sampleCode = await encodeShareCode(validatedValue(sample));
-const handText = await (await fetch('../../tests/fixtures/hand-authored-pack.json')).text();
 
 /**
  * @param {unknown} pack
@@ -87,12 +85,11 @@ function validatedValue(pack) {
   return checked.value;
 }
 
+/** Uncompressed share code of any JSON, so links to broken packs can be built. @param {unknown} value */
+const codeOf = (value) => `1j.${base64urlEncode(new TextEncoder().encode(JSON.stringify(value)))}`;
+
 const answerFree = { ...sample, puzzles: sample.puzzles.map((/** @type {any} */ p) => ({ ...p, solution: null })) };
 delete answerFree.witness;
-const reclaimed = {
-  ...sample,
-  puzzles: sample.puzzles.map((/** @type {any} */ p) => ({ ...p, title: `${p.title} (v2)`, rating: { ...p.rating, score: p.rating.score + 1 } })),
-};
 const unsatisfiable = {
   format: 'pentomino-pack',
   version: 1,
@@ -142,11 +139,11 @@ function memoryAdapter(seed = {}) {
   };
 }
 
-/**
- * @param {object} o
- * @returns {Blob}
- */
-const jsonBlob = (o) => new Blob([typeof o === 'string' ? o : JSON.stringify(o)], { type: 'application/json' });
+/** @param {ReturnType<typeof memoryAdapter>} adapter */
+const savedPacks = (adapter) => [...adapter.map.keys()].filter((k) => /^pentomino:v1:lib:[0-9a-f]{16}$/.test(k));
+
+/** @param {unknown} pack @param {number} [i] */
+const linkOf = async (pack, i = 0) => `#pack=${await encodeShareCode(validatedValue(pack))}&i=${i}`;
 
 /**
  * @param {{ hash?: string, adapter?: ReturnType<typeof memoryAdapter> | null, createPool?: () => any, coarse?: boolean,
@@ -167,7 +164,6 @@ async function mount(o = {}) {
   const storage = createStorage(adapter, () => Date.now());
   const location = { hash: o.hash ?? '', pathname: '/player/', search: '' };
   const urls = /** @type {string[]} */ ([]);
-  const downloads = /** @type {string[]} */ ([]);
   const player = mountPlayer(root, {
     storage,
     location,
@@ -179,9 +175,6 @@ async function mount(o = {}) {
     },
     baseUrl: new URL('../../player/', document.baseURI),
     createPool: o.createPool,
-    download: (_pack, name) => {
-      downloads.push(name);
-    },
     coarsePointer: o.coarse === true,
     listenHashChange: false,
     preferenceStorage: o.preferences ?? null,
@@ -203,26 +196,18 @@ async function mount(o = {}) {
     const node = root.querySelector(sel);
     return node !== null && !node.closest('[hidden]') && node.getClientRects().length > 0;
   };
-  /** @param {Blob} blob @param {string} [name] */
-  const chooseFile = async (blob, name = 'pack.pentomino.json') => {
-    const input = /** @type {HTMLInputElement} */ (q('[data-role="file-input"]'));
-    const transfer = new DataTransfer();
-    transfer.items.add(new File([blob], name));
-    input.files = transfer.files;
-    input.dispatchEvent(new Event('change', { bubbles: true }));
+  /** Follows a link to another puzzle, as a change of the address does. @param {string} hash */
+  const follow = (hash) => {
+    location.hash = hash;
+    return player.controller.openHash(hash);
   };
-  /** @param {string} text */
-  const paste = (text) => {
-    /** @type {HTMLTextAreaElement} */ (q('#import-paste')).value = text;
-    q('[data-action="paste"]').click();
-  };
-  return { root, player, adapter, storage, location, urls, downloads, q, qa, visible, chooseFile, paste };
+  return { root, player, adapter, storage, location, urls, q, qa, visible, follow };
 }
 
 /** @param {Awaited<ReturnType<typeof mount>>} m */
 const title = (m) => m.q('.puzzle-title').textContent ?? '';
 
-await check('link: #pack= opens puzzle 2 with claims, badges and no local data', async () => {
+await check('link: #pack= opens puzzle 2 with claims and badges, and stores no copy of the pack', async () => {
   const m = await mount({ hash: `#pack=${sampleCode}&i=1` });
   equal(m.root.dataset.screen, 'game', 'screen');
   assert(m.visible('.game'), 'game visible');
@@ -236,23 +221,41 @@ await check('link: #pack= opens puzzle 2 with claims, badges and no local data',
   equal(m.q('[data-badge="certificate"]').textContent, 'At least 1 solution', 'certificate: the included answer is a known solution');
   assert(!m.visible('[data-badge="local"]'), 'portable link is not local');
   equal(m.urls.length, 0, 'address untouched on load');
+  equal(savedPacks(/** @type {any} */ (m.adapter)), [], 'the link itself keeps the pack');
   m.player.controller.nextPuzzle();
   equal(m.location.hash, `#pack=${sampleCode}&i=2`, 'i updated, code kept');
   equal(m.qa('[data-action="next"], [data-action="previous"]').length, 0, 'the main panel has no Previous or Next buttons');
   m.player.destroy();
 });
 
-await check('no hash and an empty library: Import screen offers the sample and opens nothing', async () => {
-  const m = await mount();
-  equal(m.root.dataset.screen, 'import', 'screen');
-  assert(m.visible('[data-action="sample"]'), 'sample offered');
-  assert(!m.visible('.game'), 'no game');
-  equal(m.qa('.library li').length, 0, 'library empty');
-  assert(m.visible('.library-empty'), 'empty hint');
+await check('#lib= opens the copy saved in this browser and is labeled local', async () => {
+  const adapter = memoryAdapter();
+  const saved = createStorage(adapter, () => Date.now()).saveLibraryPack(validatedValue(sample));
+  assert(saved.ok, 'saved');
+  const id = saved.ok ? saved.packId : '';
+  const m = await mount({ adapter, hash: `#lib=${id}&i=1` });
+  equal(title(m), 'Normal #2', 'title');
+  assert(m.visible('[data-badge="local"]'), 'a same-browser link is labeled');
+  m.player.controller.nextPuzzle();
+  equal(m.location.hash, `#lib=${id}&i=2`, 'i updated, id kept');
   m.player.destroy();
 });
 
-await check('sample: real fetch of player/samples/sample-pack.json, three claimed puzzles in the puzzle list', async () => {
+await check('no hash: the start screen offers the sample and the Generator, and opens nothing', async () => {
+  const m = await mount();
+  equal(m.root.dataset.screen, 'start', 'screen');
+  equal(m.q('.start h2').textContent, 'No puzzle is open', 'heading');
+  assert(m.visible('[data-action="sample"]'), 'sample offered');
+  const generator = /** @type {HTMLAnchorElement} */ (m.q('.start-actions a'));
+  equal([generator.textContent, generator.getAttribute('href')], ['Open the Generator', '../generator/'], 'Generator link');
+  assert(m.visible('.start-keep'), 'how to keep and share a puzzle');
+  assert(!m.visible('.start-error'), 'no error');
+  assert(!m.visible('.game'), 'no game');
+  equal(m.qa('input[type="file"], textarea').length, 0, 'nothing to import');
+  m.player.destroy();
+});
+
+await check('sample: real fetch of player/samples/sample-pack.json, three claimed puzzles, then a portable address', async () => {
   const m = await mount();
   m.q('[data-action="sample"]').click();
   await waitFor(() => m.root.dataset.screen === 'game', 'sample game');
@@ -266,37 +269,9 @@ await check('sample: real fetch of player/samples/sample-pack.json, three claime
   assert(/^Normal/.test(text(cards[1], '.card-rating')) && /^Hard/.test(text(cards[2], '.card-rating')), 'levels');
   assert(cards.every((card) => card.querySelector('.pm-board .pm-svg') !== null), 'every card shows a preview');
   equal(m.qa('.card-select[aria-current="true"]').length, 1, 'one open puzzle');
-  equal(m.qa('.library li').length, 1, 'sample joins recent');
-  m.player.destroy();
-});
-
-await check('file input, drop and paste (link, code, JSON) all open the same way', async () => {
-  const m = await mount();
-  await m.chooseFile(jsonBlob(sampleText));
-  await waitFor(() => m.root.dataset.screen === 'game', 'file game');
-  equal(m.qa('.tray-piece').length, 9 - sample.puzzles[0].clues.length, 'file tray');
-  assert(/^#lib=[0-9a-f]{16}&i=0$/.test(m.location.hash), `hash ${m.location.hash}`);
-  assert(m.visible('[data-badge="local"]'), 'a local link is labeled');
-
-  m.player.controller.showImport();
-  assert(m.visible('.import'), 'import screen over the game');
-  const transfer = new DataTransfer();
-  transfer.items.add(new File([JSON.stringify(sample)], 'drop.json'));
-  const drop = new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer });
-  m.root.dispatchEvent(drop);
-  equal(drop.defaultPrevented, true, 'drop handled');
-  await waitFor(() => m.root.dataset.screen === 'game', 'drop game');
-
-  m.player.controller.showImport();
-  m.paste(`see https://example.invalid/player/#pack=${sampleCode}&i=2 thanks`);
-  await waitFor(() => m.root.dataset.screen === 'game' && title(m).startsWith('Hard #3'), 'pasted link');
-  m.player.controller.showImport();
-  m.paste(`code ${sampleCode} here`);
-  await waitFor(() => m.root.dataset.screen === 'game' && title(m).startsWith('Easy #1'), 'pasted code');
-  m.player.controller.showImport();
-  m.paste(handText);
-  await waitFor(() => m.root.dataset.screen === 'game' && title(m).startsWith('Example'), 'pasted json');
-  equal(m.qa('.library li').length, 2, 'two packs in Recent');
+  await waitFor(() => m.location.hash === `#pack=${sampleCode}&i=0`, 'the address becomes the portable link');
+  assert(!m.visible('[data-badge="local"]'), 'not labeled local');
+  equal(savedPacks(/** @type {any} */ (m.adapter)), [], 'no saved copy is left');
   m.player.destroy();
 });
 
@@ -304,90 +279,42 @@ await check('every failure shows its exact message and the open game is unchange
   const m = await mount({ hash: `#pack=${sampleCode}&i=1` });
   const before = title(m);
   const gameBefore = m.player.store.getState().game;
-  /** @type {[string, () => unknown, RegExp | string][]} */
+  /** @type {[string, string, RegExp | string][]} */
   const cases = [
-    ['piece set', () => m.paste(JSON.stringify({ ...sample, kind: 'piece-set', puzzles: [] })), PIECE_SET_MESSAGE],
-    ['version', () => m.paste(JSON.stringify({ ...sample, version: 9 })), 'Unsupported puzzle version or rules.'],
-    ['rules', () => m.paste(JSON.stringify({ ...sample, rules: 'nope' })), 'Unsupported puzzle version or rules.'],
-    ['invalid', () => m.paste(JSON.stringify({ ...sample, board: { rows: ['#'] } })), /^This file is not a valid Pentomino pack: .+/],
-    ['not a pack', () => m.paste('just some words'), /^This file is not a valid Pentomino pack: /],
-    ['index', () => m.paste(`#pack=${sampleCode}&i=7`), 'This pack has no puzzle with that number.'],
-    ['missing local', () => m.paste('#lib=0123456789abcdef&i=0'), "This puzzle is not in this browser's library. Import a file or use a portable link."],
-    ['oversized file', () => m.chooseFile(new Blob([new Uint8Array(513 * 1024)])), /^This file is not a valid Pentomino pack: A pack file is at most 524288 bytes/],
+    ['piece set', `#pack=${codeOf({ ...sample, kind: 'piece-set', puzzles: [] })}`, PIECE_SET_MESSAGE],
+    ['version', `#pack=${codeOf({ ...sample, version: 9 })}`, 'Unsupported puzzle version or rules.'],
+    ['rules', `#pack=${codeOf({ ...sample, rules: 'nope' })}`, 'Unsupported puzzle version or rules.'],
+    ['invalid', `#pack=${codeOf({ ...sample, board: { rows: ['#'] } })}`, /^This link does not hold a valid Pentomino puzzle: .+/],
+    ['not a code', '#pack=just-words', /^This link does not hold a valid Pentomino puzzle: /],
+    ['index', `#pack=${sampleCode}&i=7`, 'This pack has no puzzle with that number.'],
+    ['missing local', '#lib=0123456789abcdef&i=0',
+      'This link only works in the browser that made it, and this puzzle is not saved here. Open its full link instead.'],
   ];
-  for (const [name, run, expected] of cases) {
-    m.player.controller.showImport();
-    await run();
-    await waitFor(() => (m.q('.import-error').textContent ?? '') !== '' && !m.q('.import-error').hidden, `${name} message`);
-    const text = m.q('.import-error').textContent ?? '';
+  for (const [name, hash, expected] of cases) {
+    await m.player.controller.openHash(hash);
+    await waitFor(() => !m.q('.status-error').hidden, `${name} message`);
+    const text = m.q('.status-error .status-text').textContent ?? '';
     assert(typeof expected === 'string' ? text === expected : expected.test(text), `${name}: ${text}`);
     equal(m.player.store.getState().game, gameBefore, `${name}: same game`);
-    m.q('.import-error').textContent = '';
-    m.player.controller.closeImport();
     equal(title(m), before, `${name}: same title`);
     m.player.store.update({ error: null });
   }
   m.player.destroy();
-});
 
-await check('library: Recent lists packs; Open, Export and two-step Delete affect only their pack', async () => {
-  const adapter = memoryAdapter({ 'other-app:key': 'precious' });
-  const m = await mount({ adapter });
-  m.paste(sampleText);
-  await waitFor(() => m.root.dataset.screen === 'game', 'first');
-  m.player.controller.showImport();
-  m.paste(handText);
-  await waitFor(() => title(m).startsWith('Example'), 'second');
-  m.player.controller.showImport();
-  equal(m.qa('.library li').length, 2, 'entries');
-  const first = m.qa('.library li')[1];
-  assert((first.textContent ?? '').includes('0 of 3 solved'), `meta ${first.textContent}`);
-  /** @type {HTMLElement} */ (first.querySelector('[data-action="export"]')).click();
-  equal(m.downloads.length, 1, 'export called');
-  /** @type {HTMLElement} */ (first.querySelector('[data-action="open"]')).click();
-  await waitFor(() => title(m).startsWith('Easy #1'), 'open from library');
-  m.player.controller.showImport();
-  const target = m.qa('.library li')[0];
-  const id = target.dataset.packId ?? '';
-  const del = /** @type {HTMLElement} */ (target.querySelector('[data-action="delete"]'));
-  del.click();
-  equal(m.qa('.library li').length, 2, 'first click only asks');
-  equal(m.q(`[data-action="delete"][data-pack-id="${id}"]`).textContent, 'Confirm delete', 'confirmation');
-  m.q(`[data-action="delete"][data-pack-id="${id}"]`).click();
-  equal(m.qa('.library li').length, 1, 'removed');
-  equal(adapter.map.get('other-app:key'), 'precious', 'foreign storage intact');
-  assert(!adapter.map.has(`pentomino:v1:lib:${id}`), 'record removed');
-  assert([...adapter.map.keys()].some((k) => k.startsWith('pentomino:v1:lib:')), 'the other pack remains');
-  m.q('[data-action="back"]').click();
-  assert(m.visible('.game'), 'back to the still-open game');
-  m.player.destroy();
-});
-
-await check('same pack id with different content: newest claims win and Recent keeps one entry', async () => {
-  const adapter = memoryAdapter();
-  const m = await mount({ adapter });
-  m.paste(sampleText);
-  await waitFor(() => m.root.dataset.screen === 'game', 'first');
-  m.player.controller.showImport();
-  m.paste(JSON.stringify(reclaimed));
-  await waitFor(() => title(m).startsWith('Easy (v2) #1'), 'second');
-  m.player.controller.showImport();
-  equal(m.qa('.library li').length, 1, 'one entry');
-  const stored = [...adapter.map.entries()].filter(([k]) => k.startsWith('pentomino:v1:lib:') && !k.endsWith('index'));
-  equal(stored.length, 1, 'one record');
-  assert(stored[0][1].includes('Easy (v2)'), 'record holds the new content');
-  m.player.destroy();
+  const start = await mount({ hash: '#lib=0123456789abcdef&i=0' });
+  equal(start.root.dataset.screen, 'start', 'a link that fails on arrival leaves the start screen up');
+  assert(start.visible('.start-error'), 'with the reason on it');
+  equal(start.q('.start-error').textContent,
+    'This link only works in the browser that made it, and this puzzle is not saved here. Open its full link instead.', 'reason');
+  start.player.destroy();
 });
 
 await check('malicious title is text everywhere: no element, no script, no CSP violation', async () => {
   delete (/** @type {any} */ (window)).__xss;
-  const m = await mount();
-  m.paste(JSON.stringify(malicious));
-  await waitFor(() => m.root.dataset.screen === 'game', 'game');
+  const m = await mount({ hash: await linkOf(malicious) });
+  equal(m.root.dataset.screen, 'game', 'game');
   assert(title(m).includes(maliciousTitle), 'literal title');
   assert(m.qa('.card-heading').every((n) => (n.textContent ?? '').includes('<img')), 'the puzzle list shows text');
-  m.player.controller.showImport();
-  assert((m.q('.library-title').textContent ?? '') === maliciousTitle, 'library title');
   equal(m.root.querySelectorAll('img:not(.app-logo)').length, 0, 'no img element');
   await new Promise((resolve) => setTimeout(resolve, 100));
   equal(/** @type {any} */ (window).__xss, undefined, 'no script ran');
@@ -395,12 +322,10 @@ await check('malicious title is text everywhere: no element, no script, no CSP v
 });
 
 await check('verification with the real module worker: solvable and impossible are proven, never guessed', async () => {
-  const m = await mount();
-  m.paste(JSON.stringify(answerFree));
-  await waitFor(() => m.root.dataset.screen === 'game', 'game');
+  const m = await mount({ hash: await linkOf(answerFree) });
+  equal(m.root.dataset.screen, 'game', 'game');
   await waitFor(() => m.q('[data-badge="verification"]').textContent === 'Solvable ✓', 'search result');
-  m.player.controller.showImport();
-  m.paste(JSON.stringify(unsatisfiable));
+  await m.follow(await linkOf(unsatisfiable));
   await waitFor(() => title(m).startsWith('Impossible'), 'impossible pack');
   await waitFor(() => m.q('[data-badge="verification"]').textContent === 'No solution exists', 'proven impossible');
   assert(m.qa('.tray-piece').length === 2, 'play stays possible');
@@ -408,9 +333,11 @@ await check('verification with the real module worker: solvable and impossible a
 });
 
 await check('workers unavailable: "Solvability not verified", play continues', async () => {
-  const m = await mount({ createPool: () => { throw new PoolError('worker-unavailable', 'Module workers are not supported here'); } });
-  m.paste(JSON.stringify(answerFree));
-  await waitFor(() => m.root.dataset.screen === 'game', 'game');
+  const m = await mount({
+    hash: await linkOf(answerFree),
+    createPool: () => { throw new PoolError('worker-unavailable', 'Module workers are not supported here'); },
+  });
+  equal(m.root.dataset.screen, 'game', 'game');
   equal(m.q('[data-badge="verification"]').textContent, 'Solvability not verified', 'label');
   const piece = m.qa('.tray-piece')[0];
   piece.click();
@@ -429,13 +356,11 @@ await check('stale proof data of a replaced pack is discarded; a superseded chec
       pending.push({ resolve, reject });
     }),
   };
-  const m = await mount({ createPool: () => pool });
-  m.paste(JSON.stringify(answerFree));
+  const m = await mount({ createPool: () => pool, hash: await linkOf(answerFree) });
   await waitFor(() => pending.length === 1, 'first check');
   equal(m.q('[data-badge="verification"]').textContent, 'Checking solvability…', 'pending');
   const staleFp = m.player.store.getState().fingerprints[0];
-  m.player.controller.showImport();
-  m.paste(JSON.stringify({ ...answerFree, puzzles: [answerFree.puzzles[2]] }));
+  await m.follow(await linkOf({ ...answerFree, puzzles: [answerFree.puzzles[2]] }));
   await waitFor(() => pending.length === 2, 'second check');
   pending[0].resolve({ results: [{ index: 0, fingerprint: staleFp, status: 'unsatisfiable' }] });
   await frame();
@@ -456,21 +381,26 @@ await check('unavailable storage: the puzzle opens, play goes on and one honest 
   };
   const m = await mount({ adapter: /** @type {any} */ (hostile), hash: `#pack=${sampleCode}&i=0` });
   equal(m.root.dataset.screen, 'game', 'game open');
+  assert(m.q('[data-badge="storage"]').hidden, 'a link needs no storage, so nothing is reported yet');
+  const clued = new Set(sample.puzzles[0].clues.map((/** @type {any} */ c) => c.piece));
+  const pose = sample.puzzles[0].solution.find((/** @type {any} */ p) => !clued.has(p.piece));
+  m.player.store.update((s) => ({ game: reduce(/** @type {any} */ (s.game), { type: 'place', pose }) }));
+  equal(m.player.controller.saveNow(), false, 'the browser refuses the save');
   equal(m.q('[data-badge="storage"]').textContent, SAVE_FAILED_MESSAGE, 'warning');
   m.player.controller.nextPuzzle();
   assert(title(m).startsWith('Normal #2'), 'navigation works');
+  equal(m.qa('[data-badge="storage"]').filter((b) => !b.hidden).length, 1, 'one warning');
   m.player.destroy();
   const none = await mount({ adapter: null });
-  none.paste(sampleText);
+  none.q('[data-action="sample"]').click();
   await waitFor(() => none.root.dataset.screen === 'game', 'no storage game');
+  await waitFor(() => none.location.hash === `#pack=${sampleCode}&i=0`, 'the portable address works without storage');
   none.player.destroy();
 });
 
 await check('progress is restored silently after reload; puzzle switching saves progress first', async () => {
   const adapter = memoryAdapter();
-  const m = await mount({ adapter });
-  m.paste(sampleText);
-  await waitFor(() => m.root.dataset.screen === 'game', 'game');
+  const m = await mount({ adapter, hash: `#pack=${sampleCode}&i=0` });
   const s = m.player.store.getState();
   const clued = new Set(sample.puzzles[0].clues.map((/** @type {any} */ c) => c.piece));
   const pose = sample.puzzles[0].solution.find((/** @type {any} */ p) => !clued.has(p.piece));
@@ -481,9 +411,7 @@ await check('progress is restored silently after reload; puzzle switching saves 
   equal(m.q('.puzzle-card[data-puzzle-index="0"] .card-status').textContent, 'In progress', 'the list shows the progress that was saved');
   m.player.destroy();
 
-  const again = await mount({ adapter });
-  again.paste(sampleText);
-  await waitFor(() => again.root.dataset.screen === 'game', 'reloaded game');
+  const again = await mount({ adapter, hash: `#pack=${sampleCode}&i=0` });
   assert(again.root.querySelector('.status-resume') === null && !(again.q('[data-host="status"]').textContent ?? '').includes('Saved progress'), 'no Continue / Restart message');
   equal(again.qa('.tray-piece').length, 9 - sample.puzzles[0].clues.length - 1, 'progress restored');
   again.player.controller.replay();
@@ -493,16 +421,12 @@ await check('progress is restored silently after reload; puzzle switching saves 
 
 await check('there are no View switches: labels, patterns (K > 20) and the timer always show, whatever older versions stored', async () => {
   const adapter = memoryAdapter({ 'pentomino:v1:prefs': JSON.stringify({ labels: false, patterns: false, timer: false, straighten: false }) });
-  const m = await mount({ adapter });
-  m.paste(sampleText);
-  await waitFor(() => m.root.dataset.screen === 'game', 'game');
+  const m = await mount({ adapter, hash: `#pack=${sampleCode}&i=0` });
   equal(m.qa('[data-pref], .view-options').length, 0, 'the right panel has no View switches');
   m.player.destroy();
 
-  const big = validatedValue(bigSet());
-  const b = await mount({ adapter });
-  b.paste(JSON.stringify(big));
-  await waitFor(() => b.root.dataset.screen === 'game', 'big game');
+  const b = await mount({ adapter, hash: await linkOf(bigSet()) });
+  equal(b.root.dataset.screen, 'game', 'big game');
   const labelsOn = () => b.root.querySelector('.board-host .pm-labels')?.getAttribute('display');
   assert(b.root.querySelectorAll('.pm-pattern').length > 0, 'patterns drawn');
   assert(labelsOn() !== 'none' && !b.q('.game-timer').hidden, 'labels and timer are shown');
@@ -596,7 +520,7 @@ await check('layout and accessibility contract of the shell', async () => {
   m.player.destroy();
 });
 
-await check('puzzle list: a card opens its puzzle and marks it; the open card does not reload; Import hides the game, a card returns', async () => {
+await check('puzzle list: a card opens its puzzle and marks it; the open card does not reload', async () => {
   const m = await mount({ hash: `#pack=${sampleCode}&i=0` });
   equal(m.qa('.puzzle-card').length, 3, 'one card per puzzle');
   equal(m.qa('.puzzle-card').map((card) => card.dataset.puzzleIndex), ['2', '1', '0'], 'the newest puzzle is on top');
@@ -613,42 +537,37 @@ await check('puzzle list: a card opens its puzzle and marks it; the open card do
   const open = m.player.store.getState().game;
   m.q('.puzzle-card[data-puzzle-index="2"] .card-select').click();
   equal(m.player.store.getState().game, open, 'the open puzzle is not reloaded');
-  m.player.controller.showImport();
-  equal(m.root.dataset.screen, 'import', 'Import replaces the game panel');
-  assert(m.visible('.puzzle-card'), 'the puzzle list stays');
-  assert(!m.visible('.tray-piece'), 'the pieces are not offered while the game is hidden');
-  assert(m.visible('.tray-empty'), 'the pieces panel explains');
-  m.q('.puzzle-card[data-puzzle-index="2"] .card-select').click();
-  equal(m.root.dataset.screen, 'game', 'the open card returns to the game');
-  equal(m.player.store.getState().game, open, 'with the same game');
   m.q('.puzzle-card[data-puzzle-index="0"] .card-select').click();
   equal(title(m), 'Easy #1', 'another card');
   m.player.destroy();
 });
 
-await check('remove: a card removes its puzzle from the pack and the library; Remove all empties the panel and returns to Import', async () => {
+await check('remove: a card removes its puzzle and the address follows the shorter pack; Remove all returns to the start screen', async () => {
   const m = await mount({ hash: `#pack=${sampleCode}&i=1` });
+  const adapter = /** @type {ReturnType<typeof memoryAdapter>} */ (m.adapter);
   equal(title(m), 'Normal #2', 'the second puzzle is open');
-  const packId = /** @type {string} */ (m.player.store.getState().packId);
   m.q('.puzzle-card[data-puzzle-index="0"] .card-remove').click();
   equal(m.qa('.puzzle-card').length, 2, 'one card less');
   equal(title(m), 'Normal #1', 'the open puzzle stays open, renumbered');
   equal(m.qa('.puzzle-card').map((card) => card.querySelector('.card-heading')?.textContent), ['Puzzle #2', 'Puzzle #1'], 'renumbered, newest on top');
   equal(m.player.store.getState().pack?.puzzles.length, 2, 'the open pack has two puzzles');
-  assert(m.player.store.getState().packId !== packId, 'the library holds the reduced pack');
-  equal(m.qa('.library li').length, 1, 'no copy of the old pack is left');
+  const shorter = `#pack=${await encodeShareCode(/** @type {any} */ (m.player.store.getState().pack))}&i=0`;
+  await waitFor(() => m.location.hash === shorter, 'the address is the link of the shorter pack');
+  equal(savedPacks(adapter), [], 'no saved copy is left');
   m.q('.puzzle-card[data-puzzle-index="0"] .card-remove').click();
   equal(m.root.dataset.screen, 'game', 'the open puzzle was removed: its neighbour opens');
   equal(m.qa('.puzzle-card').length, 1, 'one card');
   m.q('.puzzle-card .card-remove').click();
-  equal(m.root.dataset.screen, 'import', 'the last puzzle leaves the pack');
+  equal(m.root.dataset.screen, 'start', 'the last puzzle leaves the pack');
   equal(m.qa('.puzzle-card').length, 0, 'no cards');
-  equal(m.qa('.library li').length, 0, 'the pack is out of Recent');
   assert(m.q('[data-action="remove-all-puzzles"]').hasAttribute('disabled'), 'Remove all is disabled without a pack');
   m.q('[data-action="sample"]').click();
   await waitFor(() => m.root.dataset.screen === 'game', 'sample game');
   m.q('[data-action="remove-all-puzzles"]').click();
-  equal([m.root.dataset.screen, m.qa('.puzzle-card').length, m.location.hash], ['import', 0, ''], 'Remove all');
+  equal([m.root.dataset.screen, m.qa('.puzzle-card').length, m.location.hash], ['start', 0, ''], 'Remove all');
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  equal(m.location.hash, '', 'the closed pack gets no address later');
+  equal(savedPacks(adapter), [], 'and leaves nothing saved');
   m.player.destroy();
 });
 
@@ -673,8 +592,9 @@ await check('header: EN | VI changes every text and is remembered; the theme but
     m.q('[data-action="help"]').click();
     assert(m.qa('.pm-shortcuts tbody th').some((n) => n.textContent === 'Phím mũi tên'), 'the shortcut list is translated');
     m.q('.pm-help [data-action="help-close"]').click();
-    m.player.controller.showImport();
-    equal(m.q('[data-action="sample"]').textContent, 'Thử đề mẫu', 'the import screen');
+    m.player.controller.removeAllPuzzles();
+    equal(m.q('.start h2').textContent, 'Chưa mở đề nào', 'the start screen');
+    equal(m.q('[data-action="sample"]').textContent, 'Thử đề mẫu', 'its button');
     equal(kept.get('pentomino:v1:lang'), 'vi', 'the choice is remembered');
     m.q('[data-lang="en"]').click();
     equal(m.q('[data-action="sample"]').textContent, 'Try the sample', 'and back');

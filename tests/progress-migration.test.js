@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import { createGame, isEarned, reduce, snapshot } from '../core/engine/game.js';
 import { progressFingerprint } from '../core/engine/keys.js';
 import { packBoard, parsePack } from '../core/engine/pack.js';
+import { encodeShareCode } from '../core/engine/sharecode.js';
 import { NAMESPACE, createStorage } from '../core/browser/storage.js';
 import { createPlayerController, createPlayerStore } from '../player/state.js';
 import { puzzleStatusLabel } from '../player/strings.js';
@@ -105,19 +106,6 @@ test('version 2 records are validated strictly and unknown versions are ignored'
   assert.equal(ok.storage.saveProgress(FP, /** @type {any} */ ({ ...v2Record([]), hintsUsed: 'x' })).ok, false);
 });
 
-test('only an earned solve counts in the library; a revealed one does not', () => {
-  const adapter = memoryAdapter();
-  const storage = createStorage(adapter, () => 1700000000000);
-  assert.equal(storage.saveLibraryPack(pack).ok, true);
-  assert.equal(storage.saveProgress(FP, { v: 2, placements: MOVABLE, elapsedMs: 1, moves: 8, solved: true, revealed: true, hintsUsed: 0 }).ok, true);
-  const id = /** @type {string} */ (storage.libraryIndex()[0].packId);
-  assert.equal(storage.touchLibraryPack(id).ok, true);
-  assert.equal(storage.libraryIndex()[0].solved, 0);
-  assert.equal(storage.saveProgress(FP, { v: 2, placements: MOVABLE, elapsedMs: 1, moves: 8, solved: true, revealed: false, hintsUsed: 3 }).ok, true);
-  assert.equal(storage.touchLibraryPack(id).ok, true);
-  assert.equal(storage.libraryIndex()[0].solved, 1);
-});
-
 test('createGame migrates version 1 and restores version 2 exactly', () => {
   const old = createGame(pack, 0, v1Record());
   assert.equal(old.revealed, false);
@@ -190,14 +178,15 @@ async function opened(record) {
   }
   const storage = createStorage(adapter, () => 1800000000000);
   const store = createPlayerStore({});
+  const hash = `#pack=${await encodeShareCode(pack)}&i=0`;
   const controller = createPlayerController({
     store,
     storage,
-    location: { hash: '', pathname: '/', search: '' },
+    location: { hash, pathname: '/', search: '' },
     history: { replaceState() {} },
     createPool: () => ({ beginRequest() {}, endRequest() {}, close() {}, run: () => new Promise(() => {}) }),
   });
-  const result = await controller.importText(FIXTURE_TEXT);
+  const result = await controller.openHash(hash);
   assert.equal(result.ok, true);
   return { adapter, storage, store, controller, game: () => /** @type {import('../core/engine/game.js').GameState} */ (store.getState().game) };
 }

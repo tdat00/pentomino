@@ -31,7 +31,7 @@ const ZOOM_STEP = 1.25;
  * @property {() => void} onNewSet Starts a new piece set with the current settings.
  * @property {() => number} [now]
  * @property {HTMLElement | null} [noticeHost] Defaults to the top of this panel.
- * @property {HTMLElement | null} [cardsHost] Empty hint, cards and parked packs; defaults to the bottom of this panel.
+ * @property {HTMLElement | null} [cardsHost] Empty hint and cards; defaults to the bottom of this panel.
  * @property {HTMLElement | null} [controlsHost] Level choice and generate button; defaults to the top of this panel.
  * @property {HTMLElement | null} [cardsActionsHost] Remove all button; defaults to above the cards.
  */
@@ -139,7 +139,6 @@ export function mountPuzzlePanel(host, options) {
     detailHead, detailFrame, detailTrayTitle, detailPieces);
   const noticeBox = options.noticeHost ?? el('div', { className: 'result-notice', attrs: { role: 'status' }, dataset: { role: 'notice' } });
   const cardList = el('ol', { className: 'puzzle-cards', attrs: { ...locAttrs({ 'aria-label': 'puzzles.list' }), id: `${uid}-cards` }, dataset: { role: 'cards' } });
-  const parkedBox = el('div', { className: 'parked-packs', dataset: { role: 'parked' } });
   const emptyText = el('p', { className: 'hint', dataset: { role: 'empty' } });
   const removeAllButton = /** @type {HTMLButtonElement} */ (el('button', {
     className: 'ghost-small',
@@ -151,8 +150,8 @@ export function mountPuzzlePanel(host, options) {
   const inlineRemoveAll = cardsActionsHost === null;
   host.append(el('div', { className: 'puzzle-panel' }, ...(controlsHost === null ? [controls] : []), blockText,
     ...(options.noticeHost ? [] : [noticeBox]), detail,
-    ...(cardsHost === null ? [...(inlineRemoveAll ? [removeAllButton] : []), emptyText, cardList, parkedBox] : [])));
-  cardsHost?.append(...(inlineRemoveAll ? [removeAllButton] : []), emptyText, cardList, parkedBox);
+    ...(cardsHost === null ? [...(inlineRemoveAll ? [removeAllButton] : []), emptyText, cardList] : [])));
+  cardsHost?.append(...(inlineRemoveAll ? [removeAllButton] : []), emptyText, cardList);
   cardsActionsHost?.append(removeAllButton);
   controlsHost?.append(controls);
 
@@ -373,13 +372,6 @@ export function mountPuzzlePanel(host, options) {
   }
 
   /** @param {GeneratorState} state */
-  function renderParked(state) {
-    parkedBox.replaceChildren(...state.parked.map((group, index) => el('div', { className: 'parked-pack control-row', dataset: { parked: String(index) } },
-      el('span', { text: t('puzzles.parked', { count: group.length }) }),
-      loc('puzzles.exportParked', { attrs: { type: 'button', 'data-action': 'export-parked' }, on: { click: () => controller.exportParked(index) } }, 'button'))));
-  }
-
-  /** @param {GeneratorState} state */
   function render(state) {
     if (destroyed) {
       return;
@@ -408,7 +400,7 @@ export function mountPuzzlePanel(host, options) {
     newSpinner.hidden = state.job?.kind !== 'batch';
     newButton.setAttribute('aria-busy', String(!newSpinner.hidden));
     newButton.title = cancelMode ? '' : block ?? '';
-    removeAllButton.disabled = busy || (state.puzzles.length === 0 && state.parked.length === 0) || set === null;
+    removeAllButton.disabled = busy || state.puzzles.length === 0 || set === null;
     blockText.textContent = set !== null && block !== null ? block : '';
     emptyText.textContent = set === null ? t('puzzles.empty.noSet') : !hasPuzzles && !busy ? t('puzzles.empty.none') : '';
     renderNotice(state);
@@ -419,7 +411,6 @@ export function mountPuzzlePanel(host, options) {
     }
     renderCards(state);
     renderDetail(state);
-    renderParked(state);
   }
 
   /** @type {Array<[EventTarget, string, EventListener]>} */

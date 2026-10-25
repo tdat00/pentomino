@@ -182,7 +182,7 @@ test('denied or missing storage never throws and play continues in memory', () =
   }
 });
 
-test('library: LRU of 30, stale and damaged entries, solved counts', () => {
+test('library: LRU of 30, stale and damaged entries', () => {
   const fake = fakeStorage(FOREIGN);
   const store = createStorage(fake, clock());
   const ids = [];
@@ -195,7 +195,7 @@ test('library: LRU of 30, stale and damaged entries, solved counts', () => {
   const index = store.libraryIndex();
   assert.equal(index.length, MAX_LIBRARY_PACKS);
   assert.equal(index[0].packId, ids[ids.length - 1], 'most recent first');
-  assert.equal(index[0].puzzles, 3);
+  assert.deepEqual(Object.keys(index[0]), ['packId', 'lastOpened']);
   assert.equal(store.list(`${NAMESPACE}lib:`).filter((k) => !k.endsWith('index')).length, MAX_LIBRARY_PACKS);
   const gone = store.loadLibraryPack(ids[0]);
   assert.ok(!gone.ok);
@@ -212,21 +212,17 @@ test('library: LRU of 30, stale and damaged entries, solved counts', () => {
   const first = store.saveLibraryPack(pack);
   assert.ok(first.ok);
   assert.equal(first.packId, packId(pack));
-  const fp = progressFingerprint(packBoard(pack), pack.pieces, pack.puzzles[0].clues);
-  assert.equal(store.libraryIndex().find((e) => e.packId === first.packId)?.solved, 0);
-  store.saveProgress(fp, record(true));
+  store.saveLibraryPack(variant(40));
+  assert.notEqual(store.libraryIndex()[0].packId, first.packId);
   assert.ok(store.touchLibraryPack(first.packId).ok);
-  const entry = store.libraryIndex()[0];
-  assert.equal(entry.packId, first.packId);
-  assert.equal(entry.solved, 1);
-  assert.equal(entry.title, 'Example');
+  assert.equal(store.libraryIndex()[0].packId, first.packId, 'opening a pack makes it the most recent');
   assert.equal(store.touchLibraryPack('0123456789abcdef').ok, false);
   assert.ok(store.removeLibraryPack(first.packId).ok);
   assert.equal(store.libraryIndex().some((e) => e.packId === first.packId), false);
   assert.equal(store.saveLibraryPack(/** @type {any} */ ({ format: 'nope' })).ok, false);
 });
 
-test('a damaged library index is ignored, not trusted; a retired createdAt field is dropped', () => {
+test('a damaged library index is ignored, not trusted; retired fields are dropped', () => {
   const fake = fakeStorage();
   const store = createStorage(fake, clock());
   fake.data.set(`${NAMESPACE}lib:index`, 'not json');
@@ -235,7 +231,7 @@ test('a damaged library index is ignored, not trusted; a retired createdAt field
   fake.data.set(`${NAMESPACE}lib:index`, JSON.stringify([{ packId: '../x', title: 1 }, null, 5, {
     packId: '0123456789abcdef', title: 'ok', createdAt: 'a', lastOpened: 'b', puzzles: 1, solved: 0,
   }]));
-  assert.deepEqual(store.libraryIndex(), [{ packId: '0123456789abcdef', title: 'ok', lastOpened: 'b', puzzles: 1, solved: 0 }]);
+  assert.deepEqual(store.libraryIndex(), [{ packId: '0123456789abcdef', lastOpened: 'b' }]);
 });
 
 test('progress: validation, stamped LRU time, 300-entry LRU and exact-geometry keys', () => {

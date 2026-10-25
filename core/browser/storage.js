@@ -1,8 +1,8 @@
 // @ts-check
 // Namespaced, failure-tolerant localStorage wrapper. All access goes through an
 // injected adapter; nothing outside `pentomino:v1:` is read, listed or removed.
-import { packId as computePackId, progressFingerprint } from '../engine/keys.js';
-import { packBoard, parsePack, serializePack, validatePack } from '../engine/pack.js';
+import { packId as computePackId } from '../engine/keys.js';
+import { parsePack, serializePack, validatePack } from '../engine/pack.js';
 
 /** @typedef {import('../engine/types.js').Pack} Pack */
 /** @typedef {import('../engine/types.js').Pose} Pose */
@@ -24,12 +24,11 @@ import { packBoard, parsePack, serializePack, validatePack } from '../engine/pac
 /** @typedef {{ ok: true } | StorageFailure} StorageResult */
 
 /**
+ * Entry of the LRU list of packs saved for same-browser `#lib=` links. Older versions also kept `title`,
+ * `createdAt`, `puzzles` and `solved` for a Recent list; they are ignored and dropped by the next write.
  * @typedef {object} LibraryEntry
  * @property {string} packId
- * @property {string} title
  * @property {string} lastOpened
- * @property {number} puzzles
- * @property {number} solved
  */
 
 /**
@@ -145,27 +144,10 @@ function readProgress(v) {
  * @returns {LibraryEntry | null}
  */
 function readLibraryEntry(v) {
-  if (!isRecord(v) || typeof v.packId !== 'string' || !PACK_ID.test(v.packId) || typeof v.title !== 'string'
-    || typeof v.lastOpened !== 'string' || !isCount(v.puzzles) || !isCount(v.solved)) {
+  if (!isRecord(v) || typeof v.packId !== 'string' || !PACK_ID.test(v.packId) || typeof v.lastOpened !== 'string') {
     return null;
   }
-  return {
-    packId: v.packId,
-    title: v.title.slice(0, 200),
-    lastOpened: v.lastOpened,
-    puzzles: /** @type {number} */ (v.puzzles),
-    solved: /** @type {number} */ (v.solved),
-  };
-}
-
-/**
- * @param {Pack} pack
- * @returns {string}
- */
-function titleOf(pack) {
-  const meta = /** @type {{ title?: unknown } | undefined} */ (pack.meta);
-  const title = typeof meta?.title === 'string' && meta.title !== '' ? meta.title : pack.puzzles[0]?.title;
-  return typeof title === 'string' && title !== '' ? title : 'Untitled puzzle';
+  return { packId: v.packId, lastOpened: v.lastOpened };
 }
 
 /**
@@ -501,27 +483,6 @@ export function createStorage(adapter, now) {
   }
 
   /**
-   * @param {Pack} pack
-   * @returns {number}
-   */
-  function countSolved(pack) {
-    let solved = 0;
-    try {
-      const board = packBoard(pack);
-      for (const puzzle of pack.puzzles) {
-        const fp = progressFingerprint(board, pack.pieces, puzzle.clues);
-        const saved = readProgress(readJson(`${KEY_PROGRESS_PREFIX}${fp}`));
-        if (saved?.solved === true && !saved.revealed) {
-          solved += 1;
-        }
-      }
-    } catch {
-      return solved;
-    }
-    return solved;
-  }
-
-  /**
    * @param {string} id
    * @returns {Result<Pack>}
    */
@@ -533,7 +494,7 @@ export function createStorage(adapter, now) {
     if (text === null) {
       return {
         ok: false,
-        issues: [{ code: 'library-missing', path: '$', message: 'This puzzle is not saved in this browser — open the shared link or import the file instead.' }],
+        issues: [{ code: 'library-missing', path: '$', message: 'This puzzle is not saved in this browser — open its full link instead.' }],
       };
     }
     const parsed = parsePack(text);
@@ -544,6 +505,7 @@ export function createStorage(adapter, now) {
   }
 
   /**
+   * Saves a pack for a same-browser `#lib=` link.
    * @param {Pack} pack
    * @returns {{ ok: true, packId: string } | StorageFailure}
    */
@@ -563,16 +525,7 @@ export function createStorage(adapter, now) {
     if (!written.ok) {
       return written;
     }
-    const entries = libraryIndex();
-    /** @type {LibraryEntry} */
-    const entry = {
-      packId: id,
-      title: titleOf(checked.value),
-      lastOpened: new Date(now()).toISOString(),
-      puzzles: checked.value.puzzles.length,
-      solved: countSolved(checked.value),
-    };
-    const next = [entry, ...entries.filter((e) => e.packId !== id)];
+    const next = [{ packId: id, lastOpened: new Date(now()).toISOString() }, ...libraryIndex().filter((e) => e.packId !== id)];
     for (const old of next.splice(MAX_LIBRARY_PACKS)) {
       tryRemove(`${KEY_LIB_PREFIX}${old.packId}`);
     }
@@ -581,6 +534,7 @@ export function createStorage(adapter, now) {
   }
 
   /**
+   * Marks a saved pack as just opened, so the LRU keeps it longest.
    * @param {string} id
    * @returns {StorageResult}
    */
@@ -590,13 +544,11 @@ export function createStorage(adapter, now) {
       return invalid(loaded.issues[0].message);
     }
     const entries = libraryIndex();
-    const previous = entries.find((e) => e.packId === id);
-    if (!previous) {
+    if (!entries.some((e) => e.packId === id)) {
       const saved = saveLibraryPack(loaded.value);
       return saved.ok ? { ok: true } : saved;
     }
-    const updated = { ...previous, lastOpened: new Date(now()).toISOString(), solved: countSolved(loaded.value) };
-    writeLibraryIndex([updated, ...entries.filter((e) => e.packId !== id)]);
+    writeLibraryIndex([{ packId: id, lastOpened: new Date(now()).toISOString() }, ...entries.filter((e) => e.packId !== id)]);
     return { ok: true };
   }
 

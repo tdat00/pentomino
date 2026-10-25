@@ -8,7 +8,7 @@ An account-free puzzle workshop for players, enthusiasts, parents, and teachers.
 
 **Home → Generator: Create board → Create piece set (New Piece Set) → Create puzzles (New Puzzle) → Play → Player (new tab)**
 
-Visiting `tdat00.github.io/pentomino` opens the Generator. The Player also opens shared links and imports puzzle files without using the Generator.
+Visiting `tdat00.github.io/pentomino` opens the Generator. The Player also opens shared and bookmarked links without using the Generator.
 
 Generated pieces contain at least three joined squares. Sizes vary, but shapes never repeat after turning or flipping. Colors, patterns, and labels continuing beyond Z help distinguish them.
 
@@ -51,9 +51,9 @@ The Player looks like the Generator: a header with the title, the **EN | VI** la
 Uniqueness uses the Generator's words. A puzzle that carries no uniqueness result reads **At least 1 solution**, as a new puzzle does in the Generator, once a solution is known.
 
 > [!WARNING]
-> **To be confirmed by the owner.** "Uniqueness not checked" was replaced by "At least 1 solution" to match the Generator. The Player shows it only when a solution is known: the file includes a checked answer, or the background solvability check found one. For a puzzle shared without its answer, while that check runs or when it is inconclusive or finds no solution, the uniqueness text stays empty, so that no solvability claim appears without proof (acceptance check 11 of `design-detail.md` §13.3). Puzzles from the Generator and the sample always include their answer, so they always show it. If "At least 1 solution" should show in every case, this rule and that acceptance check must change together.
+> **To be confirmed by the owner.** "Uniqueness not checked" was replaced by "At least 1 solution" to match the Generator. The Player shows it only when a solution is known: the pack includes a checked answer, or the background solvability check found one. For a puzzle shared without its answer, while that check runs or when it is inconclusive or finds no solution, the uniqueness text stays empty, so that no solvability claim appears without proof (acceptance check 11 of `design-detail.md` §13.3). Puzzles from the Generator and the sample always include their answer, so they always show it. If "At least 1 solution" should show in every case, this rule and that acceptance check must change together.
 
-Open a link, choose a recent puzzle, or import a `.json` file by choosing/dropping it. Invalid imports explain the problem without replacing the game.
+Puzzles open from their link: the Generator's Play, or an address someone shared or bookmarked. There is no file import or export. The address always holds the open puzzle, so a bookmark keeps it and sending the address shares it; a pack that did not arrive by a portable link (the sample, or a pack after a puzzle was removed) gets one in the address as soon as it is ready. Without a puzzle, a start screen offers the sample and a link to the Generator. A link that cannot be opened explains the problem without replacing the game.
 
 - Click a puzzle card to play that puzzle; ✕ on a card removes it and **Remove all** empties the list. The timer starts with your first move.
 - Board, tray, and dragged pieces use matching angles; labels stay upright. Every piece shows its letter where the squares are big enough, and sets of more than 20 pieces add fill patterns. Zoom, pan, and Straighten view help on small screens.
@@ -73,4 +73,4 @@ Each generation action targets **one minute** and stops with its results or a cl
 
 **A new puzzle is a request, not a guarantee.** For example: “Found 0 of 1 different Hard puzzles within the time limit. The piece set was not changed.” When a set runs out of arrangements the app says so plainly—“Found 6/6 arrangements, the most this piece set allows”—and offers **Generate new piece set**. Some arrangements may differ by only a few pieces. Never silently substitute clue-only variants.
 
-**Play** hands the puzzles to the Player through a portable link; when the link would be too long, a same-browser-only library link is used instead. The Player's portable address can be shared, and the Player exports packs as files, the durable fallback. The Generator itself has no import or export of files; only puzzles moved aside at the 512 KiB pack limit can be exported (“Export earlier pack”).
+**Play** hands the puzzles to the Player through a portable link; when the link would be too long, a same-browser link is used instead, which keeps a copy of the pack in this browser. The Player's portable address can be shared and bookmarked. Neither app imports or exports files. Play opens the whole puzzle list as one pack of at most 512 KiB, so the list is full at that size: New Puzzle then says so, and a new puzzle that would not fit is not added.
