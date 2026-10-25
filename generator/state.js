@@ -53,7 +53,6 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {Readonly<Record<string, readonly SavedSet[]>>} setsByBoard Saved sets by board: the key is `boardKey(board)`, the list
  *   holds the sets made for that board, newest first. The set on show is not in it.
  * @property {null | JobInfo} job Owned by the job controller; never persisted.
- * @property {{ labels: boolean, patterns: boolean, timer: boolean, straighten: boolean }} prefs
  * @property {number} quantity Puzzles per request, 1-10.
  * @property {string | null} batchLevelId Level of the puzzle row; null follows the level the set was made for.
  * @property {StatusNotice | null} notice Outcome of the last action.
@@ -61,7 +60,6 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {Readonly<Record<string, string>>} puzzleSeeds Batch seed each puzzle was generated with, by puzzle id.
  * @property {boolean} calibrationTrusted The calibration was produced by this session's engine run.
  * @property {number} setPosition Where the set on show sits in the newest-first list of the sets of its own board.
- * @property {readonly (readonly Puzzle[])[]} parked Earlier puzzle groups kept as separate packs after a size split.
  */
 
 /**
@@ -112,9 +110,6 @@ const FIRST_HELL_INDEX = 7;
 const UNIQUE_STANDARD_AREA = 200;
 const MAX_KEY_LENGTH = 8192;
 
-/** @type {GeneratorState['prefs']} */
-const DEFAULT_VIEW_PREFS =  Object.freeze({ labels: true, patterns: true, timer: true, straighten: false });
-
 /**
  * @param {Partial<GeneratorState>} [overrides]
  * @returns {GeneratorState}
@@ -138,7 +133,6 @@ export function defaultGeneratorState(overrides = {}) {
     seenClues: [],
     setsByBoard: {},
     job: null,
-    prefs: { ...DEFAULT_VIEW_PREFS },
     quantity: DEFAULT_QUANTITY,
     batchLevelId: null,
     notice: null,
@@ -146,7 +140,6 @@ export function defaultGeneratorState(overrides = {}) {
     puzzleSeeds: {},
     calibrationTrusted: false,
     setPosition: 0,
-    parked: [],
     ...overrides,
   };
 }
@@ -482,10 +475,10 @@ export function beginSetRequest(state, random = randomSeedText) {
 
 /**
  * The per-set data a new or restored set starts without.
- * @returns {Pick<GeneratorState, 'notice' | 'checking' | 'batchLevelId' | 'parked' | 'puzzleSeeds' | 'setPosition'>}
+ * @returns {Pick<GeneratorState, 'notice' | 'checking' | 'batchLevelId' | 'puzzleSeeds' | 'setPosition'>}
  */
 function freshSetExtras() {
-  return { notice: null, checking: [], batchLevelId: null, parked: [], puzzleSeeds: {}, setPosition: 0 };
+  return { notice: null, checking: [], batchLevelId: null, puzzleSeeds: {}, setPosition: 0 };
 }
 
 /**
@@ -771,6 +764,7 @@ function puzzlesFromPack(pack) {
   return pack.puzzles.map((p) => /** @type {Puzzle} */ (/** @type {unknown} */ ({
     id: p.id,
     ...(p.title === undefined ? {} : { title: p.title }),
+    ...(p.seed === undefined ? {} : { seed: p.seed }),
     clues: p.clues,
     solution: p.solution ?? null,
     rating: p.rating ?? null,
@@ -908,7 +902,7 @@ export function serializeState(state) {
  * Restores state from a stored value through the validators. Invalid parts fall back to the
  * defaults individually; nothing here throws.
  * @param {unknown} stored
- * @param {Partial<GeneratorState>} [base] Preferences and other non-stored fields.
+ * @param {Partial<GeneratorState>} [base] Fields that are not stored.
  * @returns {GeneratorState}
  */
 export function restoreState(stored, base = {}) {
@@ -992,37 +986,22 @@ function upgradeSaved(item) {
  * @typedef {object} StorageLike
  * @property {() => unknown} getGeneratorState
  * @property {(snapshot: unknown) => { ok: boolean }} setGeneratorState
- * @property {() => Record<string, boolean>} getPrefs
  */
 
 /**
- * Initial state, preferences first.
+ * Initial state from storage.
  * @param {StorageLike} storage
  * @returns {GeneratorState}
  */
 export function loadGeneratorState(storage) {
-  /** @type {Record<string, boolean>} */
-  let prefs = {};
   /** @type {unknown} */
   let stored = null;
-  try {
-    prefs = storage.getPrefs();
-  } catch {
-    prefs = {};
-  }
   try {
     stored = storage.getGeneratorState();
   } catch {
     stored = null;
   }
-  return restoreState(stored, {
-    prefs: {
-      labels: prefs.labels ?? DEFAULT_VIEW_PREFS.labels,
-      patterns: prefs.patterns ?? DEFAULT_VIEW_PREFS.patterns,
-      timer: prefs.timer ?? DEFAULT_VIEW_PREFS.timer,
-      straighten: prefs.straighten ?? DEFAULT_VIEW_PREFS.straighten,
-    },
-  });
+  return restoreState(stored);
 }
 
 /** @type {ReadonlyArray<keyof GeneratorState>} */
@@ -1312,7 +1291,7 @@ export function visiblePack(state) {
 /**
  * @param {GeneratorState} state
  * @param {readonly Puzzle[]} puzzles
- * @returns {boolean} Whether a pack of these puzzles still fits the 512 KiB file limit.
+ * @returns {boolean} Whether a pack of these puzzles still fits the 512 KiB pack limit.
  */
 export function packFits(state, puzzles) {
   try {
@@ -1324,6 +1303,17 @@ export function packFits(state, puzzles) {
     }
     throw error;
   }
+}
+
+/**
+ * Whether one more puzzle still fits the 512 KiB pack. The newest puzzle stands in for the next one, which comes from
+ * the same set and so has about the same size.
+ * @param {GeneratorState} state
+ * @returns {boolean}
+ */
+export function roomForAnotherPuzzle(state) {
+  const newest = state.puzzles.at(-1);
+  return newest === undefined || packFits(state, [...state.puzzles, newest]);
 }
 
 /**
@@ -1382,7 +1372,6 @@ export function applyCertificate(state, puzzleId, certificate) {
   return {
     ...state,
     puzzles: /** @type {Puzzle[]} */ (puzzles),
-    parked: state.parked.map(swap),
     checking: state.checking.filter((id) => id !== puzzleId),
   };
 }
@@ -1405,16 +1394,16 @@ export function removePuzzle(state, puzzleId) {
 }
 
 /**
- * Remove all: every puzzle of the list goes, with the earlier packs and the cards' extras. The seen-history stays, like
- * when a single card is removed, so new puzzles never repeat a removed one.
+ * Remove all: every puzzle of the list goes, with the cards' extras. The seen-history stays, like when a single card
+ * is removed, so new puzzles never repeat a removed one.
  * @param {GeneratorState} state
  * @returns {GeneratorState}
  */
 export function removeAllPuzzles(state) {
-  if (state.puzzles.length === 0 && state.parked.length === 0) {
+  if (state.puzzles.length === 0) {
     return state;
   }
-  return { ...state, puzzles: [], parked: [], checking: [], puzzleSeeds: {}, notice: null };
+  return { ...state, puzzles: [], checking: [], puzzleSeeds: {}, notice: null };
 }
 
 /**

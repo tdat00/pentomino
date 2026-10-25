@@ -5,16 +5,17 @@
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>T19 player import regression harness</title>
+  <title>Player loading and shell regression harness</title>
   <link rel="icon" type="image/svg+xml" href="../../core/browser/favicon.svg">
   <link rel="stylesheet" href="../../core/browser/common.css">
+  <link rel="stylesheet" href="../../core/browser/theme.css">
   <link rel="stylesheet" href="../../player/player.css">
-  <script type="module" src="./player-import.js"></script>
+  <script type="module" src="./player-load.js"></script>
 </head>
 <body>
   <main>
-    <h1>Player import and shell harness</h1>
-    <p>Developer regression page for T19. It is not part of the deployed site.</p>
+    <h1>Player loading and shell harness</h1>
+    <p>Developer regression page. It is not part of the deployed site.</p>
     <p id="summary" role="status">Running…</p>
     <ol id="results"></ol>
     <div id="stage"></div>

@@ -108,8 +108,6 @@ function memoryStorage(o = {}) {
       saved = JSON.parse(JSON.stringify(snapshot));
       return { ok: true };
     },
-    getPrefs: () => ({}),
-    setPrefs: () => ({ ok: true }),
   };
 }
 
@@ -131,15 +129,12 @@ function mountApp(o = {}) {
   const storage = o.storage ?? memoryStorage();
   /** @type {string | null} Batch seed fed to the next puzzle press (recorded batches are replayed with "<set seed>#1"). */
   let batchSeedOverride = null;
-  /** @type {string[]} */
-  const toasts = [];
   const app = createGeneratorApp(document, {
     storage: /** @type {any} */ (storage),
     random: () => `HARN-${String((seedCounter += 1)).padStart(4, '0')}-SEED`,
     randomNumber: () => batchSeedOverride ?? String(1000 + (seedCounter += 1)),
     ...o.app,
     controller: {
-      notify: (/** @type {string} */ message) => toasts.push(message),
       // Scripted puzzles reuse a few real clue sets under other ids; only the real engine runs the real duplicate check.
       ...(o.app?.client === undefined ? {} : { duplicateGuard: () => ({ admit: () => true, rejected: new Set() }) }),
       ...o.app?.controller,
@@ -152,7 +147,6 @@ function mountApp(o = {}) {
     root,
     app,
     storage,
-    toasts,
     /** @param {string | null} seed */
     replayBatchSeed(seed) {
       batchSeedOverride = seed;
@@ -578,7 +572,8 @@ await check('scripted: cards stream in one by one, with Checking first', async (
     equal(qa(ctx, '.card-cert').map((n) => n.textContent), ['Checking…', 'Checking…'], 'first certificate state');
     equal(ctx.root.querySelector('[data-role="progress"]'), null, 'there is no loading panel');
     equal(qa(ctx, '.puzzle-card .card-rating').map((n) => /^Normal: score \d+$/.test(n.textContent ?? '')), [true, true], 'level and score');
-    equal(qa(ctx, '.puzzle-card .card-seed').map((n) => /^Seed: \d+$/.test(n.textContent ?? '')), [true, true], 'the batch seed on its own line');
+    equal(qa(ctx, '.puzzle-card .card-seed').length, 0, 'the cards do not show the seed');
+    assert(/^Seed: \d+$/.test(q(ctx, '.detail-seed').textContent ?? ''), 'the batch seed is next to the name in the main panel');
     equal(qa(ctx, '.puzzle-card .card-heading').map((n) => n.textContent), ['Puzzle #2', 'Puzzle #1'], 'newest on top, numbered in creation order');
     assert(q(ctx, '[data-action="new-puzzles"]').hasAttribute('disabled'), 'actions are disabled during the job');
     release.resolve();
@@ -765,7 +760,7 @@ await check('scripted: every press adds exactly one puzzle; step 3 offers only L
     await waitFor(() => state(ctx).puzzles.length === 2 && state(ctx).job === null, 'the second puzzle');
     equal(client.batches.map((b) => b.quantity), [1, 1], 'each request asks for one puzzle');
     equal(client.batches.map((b) => b.displayOffset), [0, 1], 'the second one is appended');
-    equal(qa(ctx, '.puzzle-card').map((card) => card.querySelectorAll('.card-body > p').length), [5, 5], 'each card shows number, level with score, seed, pieces to place and solutions');
+    equal(qa(ctx, '.puzzle-card').map((card) => card.querySelectorAll('.card-body > p').length), [4, 4], 'each card shows number, level with score, pieces to place and solutions');
     equal(qa(ctx, '.puzzle-card a').length, 0, 'no card has a link');
     equal(qa(ctx, '.puzzle-card button').map((b) => b.dataset.action), ['select', 'remove', 'select', 'remove'], 'a card only has its select and remove buttons');
     equal(qa(ctx, '.puzzle-card').map((card) => card.dataset.puzzleId), state(ctx).puzzles.map((p) => p.id).reverse(), 'the newest puzzle is on top');
@@ -805,7 +800,12 @@ await check('scripted: step 3 has no seed controls; every press draws its own wh
     q(ctx, '[data-action="new-puzzles"]').click();
     await waitFor(() => state(ctx).puzzles.length === 2 && state(ctx).job === null, 'the second puzzle');
     equal(client.batches.map((b) => b.batchSeed), ['5001', '5002'], 'each press draws a fresh number');
-    equal(qa(ctx, '.card-seed').map((n) => n.textContent), ['Seed: 5002', 'Seed: 5001'], 'each card shows its own seed on its own line, newest first');
+    equal(qa(ctx, '.card-seed').length, 0, 'the cards show no seed');
+    const seedOf = (/** @type {number} */ at) => /** @type {HTMLButtonElement} */ (qa(ctx, '.puzzle-card')[at].querySelector('[data-action="select"]')).click();
+    seedOf(0);
+    equal(q(ctx, '.detail-seed').textContent, 'Seed: 5002', 'the newest puzzle shows its own seed next to the name');
+    seedOf(1);
+    equal([q(ctx, '.detail-title').textContent, q(ctx, '.detail-seed').textContent], ['Puzzle #1', 'Seed: 5001'], 'and the older one its own');
   } finally {
     ctx.destroy();
   }
@@ -902,7 +902,7 @@ await check('scripted: choosing a card shows its puzzle in the main panel: the b
     assert(!detail.hidden, 'the puzzle appears');
     equal(q(ctx, '.detail-title').textContent, 'Puzzle #1', 'its number');
     const play = q(ctx, '[data-action="play-puzzle"]');
-    equal([play.textContent, play.parentElement === q(ctx, '.detail-title').parentElement], ['Play', true], 'Play sits on the same row as the title');
+    equal([play.textContent, play.parentElement === q(ctx, '.detail-head')], ['Play', true], 'Play sits on the same row as the title');
     play.click();
     await waitFor(() => opened.length === 1, 'the player to open');
     equal([opened[0].index, opened[0].ids[opened[0].index]], [0, first.id], 'it opens the player on the puzzle on show');

@@ -673,13 +673,14 @@ await check('wheel turns a dragged piece and shortcut keys stay active during th
   m.player.destroy();
 });
 
-await check('tap placement with the toolbar: rotate, mirror, Place, Enter, Escape and return to tray', async () => {
+await check('tap placement with the toolbar: rotate, mirror, commit, Enter, Escape and return to tray', async () => {
   const m = await game(0);
   const [a, b] = movables(m);
   const pa = pieceOf(m, a.piece);
   await tapTray(m, a.piece);
-  equal(m.q('.selection-info').textContent, `Selected: ${pa.label}`, 'selection shown');
-  assert(m.q('[data-action="place"]').hasAttribute('disabled'), 'Place needs a preview');
+  assert(m.game().selected === pa.id, 'the tapped piece is selected');
+  equal(m.game().preview, null, 'no ghost before a cell is tapped');
+  assert(m.root.querySelector('[data-action="place"], [data-action="to-tray"], [data-action="reveal"]') === null, 'the toolbar has no Place, To tray or Show solution button');
   const surface = m.player.boardView.view.surface;
   const tapCell = async (/** @type {number} */ x, /** @type {number} */ y) => {
     const at = await cellCenter(m, x, y);
@@ -690,16 +691,16 @@ await check('tap placement with the toolbar: rotate, mirror, Place, Enter, Escap
   };
   const want = handleCell(pa, a, defaultHandle(pa, 0));
   await tapCell(want[0], want[1]);
-  assert(!m.q('[data-action="place"]').hasAttribute('disabled'), 'Place is enabled with a ghost');
+  assert(m.game().preview !== null, 'a ghost shows after tapping a cell');
   for (const op of opsTo(poseT(a), 0)) {
     m.q(`[data-action="${{ cw: 'rotate-cw', ccw: 'rotate-ccw', flipH: 'flip-h', flipV: 'flip-v' }[op]}"]`).click();
     await tick();
     same(m.play.view().cursor, want, 'the handle cell stays under the ghost while turning');
   }
   equal(m.game().tray.get(a.piece), poseT(a), 'the buttons turn the tray piece');
-  m.q('[data-action="place"]').click();
+  m.player.play.commitPreview();
   await tick();
-  same(m.game().placed.get(a.piece), a, 'the Place button commits');
+  same(m.game().placed.get(a.piece), a, 'committing the ghost places the piece');
   assert(m.game().preview === null, 'no ghost after placing');
   // Escape cancels a new preview; Enter commits one.
   await tapTray(m, b.piece);
@@ -707,9 +708,9 @@ await check('tap placement with the toolbar: rotate, mirror, Place, Enter, Escap
   key('Escape');
   equal(m.game().preview, null, 'Escape cancels the ghost');
   assert(m.game().selected === b.piece, 'the piece stays selected');
-  // Return a board piece to the tray with the button, and undo it.
+  // Return a board piece to the tray, and undo it.
   m.player.play.select(a.piece);
-  m.q('[data-action="to-tray"]').click();
+  m.player.play.returnToTray();
   await tick();
   assert(m.game().tray.has(a.piece), '↩ returns the piece');
   m.q('[data-action="undo"]').click();
@@ -753,16 +754,15 @@ await check('every key and every button: Tab order, labels, help, undo/redo/rese
   key('z', { ctrlKey: true }, document.body);
   key('y', { ctrlKey: true }, document.body);
   equal(m.game().placed.size, 1, 'Ctrl+Y redoes');
-  // Reset asks first.
-  m.q('[data-action="reset"]').click();
-  assert(m.q('dialog.pm-confirm').hasAttribute('open'), 'reset asks for confirmation');
-  m.q('[data-action="confirm-cancel"]').click();
+  // Replay asks first; it is not undoable.
+  m.q('[data-action="replay"]').click();
+  assert(m.q('dialog.pm-confirm[open]') !== null, 'replay asks for confirmation');
+  m.q('dialog.pm-confirm[open] [data-action="confirm-cancel"]').click();
   equal(m.game().placed.size, 1, 'cancel keeps the board');
-  m.q('[data-action="reset"]').click();
-  m.q('[data-action="confirm-ok"]').click();
-  equal(m.game().placed.size, 0, 'confirmed reset empties the board');
-  m.q('[data-action="undo"]').click();
-  equal(m.game().placed.size, 1, 'reset is undoable');
+  m.q('[data-action="replay"]').click();
+  m.q('dialog.pm-confirm[open] [data-action="confirm-ok"]').click();
+  equal(m.game().placed.size, 0, 'confirmed replay empties the board');
+  same([m.game().moves, m.game().elapsedMs, m.game().history.length], [0, 0, 0], 'moves, time and history start again');
   m.player.destroy();
 });
 
@@ -832,7 +832,7 @@ await check('winning: dialog with time, moves, level; Replay starts fresh; Next 
   equal(m.game().solved, false, 'Replay: fresh game');
   equal(m.game().moves, 0, 'Replay: no moves');
   equal(m.game().placed.size, 0, 'Replay: empty board');
-  equal(m.storage.loadProgress(m.store.getState().fingerprints[0])?.placements.length, 0, 'Replay: empty saved record');
+  equal(m.storage.loadProgress(m.store.getState().fingerprints[0]), null, 'Replay: saved record removed');
   await solveByKeyboard(m, 0);
   m.q('[data-action="win-next"]').click();
   equal(m.store.getState().index, 1, 'Next puzzle opens puzzle 2');
@@ -910,9 +910,7 @@ await check('refresh restores progress; saving is debounced; a failing storage n
   m.player.destroy();
   const again = await mount({ hash: `#pack=${await codeFor(0)}&i=0`, adapter });
   equal(again.game().placed.size, 2, 'the board is restored after a reload');
-  assert(!again.q('.status-resume').hidden, 'Continue / Restart is offered');
-  assert((again.q('.status-resume').textContent ?? '').includes('2 pieces placed'), 'resume text');
-  again.q('[data-action="continue"]').click();
+  assert(again.root.querySelector('.status-resume') === null && !(again.q('[data-host="status"]').textContent ?? '').includes('Saved progress'), 'no Continue / Restart message');
   same(again.game().placed.get(a.piece), a, 'same pose');
   again.player.destroy();
 
@@ -930,7 +928,7 @@ await check('refresh restores progress; saving is debounced; a failing storage n
 
 await check('timer starts at the first move, pauses while hidden and keeps counting afterwards', async () => {
   const m = await game(0);
-  const label = () => m.q('.top-timer').textContent;
+  const label = () => m.q('.game-timer').textContent;
   equal(label(), '0:00', 'zero before the first move');
   await pause(1200);
   equal(label(), '0:00', 'does not run before a move');
@@ -950,7 +948,7 @@ await check('timer starts at the first move, pauses while hidden and keeps count
   m.player.destroy();
 });
 
-await check('Labels and Patterns are independent; names keep label and size; pack data stays unchanged', async () => {
+await check('labels and patterns are drawn together; names keep label and size; pack data stays unchanged', async () => {
   const code = await encodeShareCode(validated(bigSet()));
   const m = await mount({ hash: `#pack=${code}&i=0` });
   const pack = m.store.getState().pack;
@@ -958,16 +956,7 @@ await check('Labels and Patterns are independent; names keep label and size; pac
   const trayLabel = () => m.qa('.tray-piece .pm-labels').filter((n) => n.getAttribute('display') !== 'none').length;
   assert(m.qa('.tray-piece .pm-pattern').length > 0, 'patterns drawn for pieces from index 20');
   assert(trayLabel() > 0, 'labels drawn');
-  m.player.controller.setPref('labels', false);
-  await tick();
-  assert(m.qa('.tray-piece .pm-pattern').length > 0, 'Labels off keeps the patterns');
-  equal(trayLabel(), 0, 'Labels off hides the letters');
   assert((trayButton(m, 'P05').getAttribute('aria-label') ?? '').startsWith('Piece E, 1 cell'), 'accessible name keeps label and size');
-  m.player.controller.setPref('labels', true);
-  m.player.controller.setPref('patterns', false);
-  await tick();
-  equal(m.qa('.tray-piece .pm-pattern').length, 0, 'Patterns off removes the patterns');
-  assert(trayLabel() > 0, 'Patterns off keeps the letters');
   equal(JSON.stringify(m.game().placed.size) + JSON.stringify(m.store.getState().pack), before, 'poses and pack untouched');
   m.player.destroy();
 });
@@ -986,11 +975,14 @@ await check('accessibility: names, board role, live region, 44 px targets, visib
   const name = boardPiece(m, a.piece)?.getAttribute('aria-label') ?? '';
   assert(/^Piece \w+, \d+ cells, on board at row \d+, column \d+$/.test(name), `board name ${name}`);
   await waitFor(() => (live.textContent ?? '').startsWith('Placed.'), 'placement announced');
-  // Visible 44 px targets for every control that is shown.
+  // Visible 44 px targets for every control that is shown. The game bar buttons follow --pm-target (36 px, 44 px for
+  // coarse pointers) and the board tools are 28 px, as in the generator; both stay above the 24 px of WCAG 2.2 AA.
   const small = m.qa('.game button, .game a.pm-btn').filter((b) => !b.closest('[hidden]') && b.getClientRects().length > 0)
     .filter((b) => { const r = b.getBoundingClientRect(); return r.width < 43.5 || r.height < 43.5; })
-    .filter((b) => !b.classList.contains('tray-piece'));
+    .filter((b) => !b.classList.contains('tray-piece') && !b.closest('.game-actions') && !b.closest('.board-tools'));
   equal(small.map((b) => `${b.dataset.action ?? b.textContent}:${Math.round(b.getBoundingClientRect().width)}x${Math.round(b.getBoundingClientRect().height)}`).join(', '), '', 'controls below 44x44');
+  const tools = m.qa('.board-tools button').map((b) => b.getBoundingClientRect());
+  assert(tools.length === 5 && tools.every((r) => r.width >= 24 && r.height >= 24), 'board tools are at least 24 px');
   // Keyboard focus is visible.
   const piece = /** @type {HTMLElement} */ (boardPiece(m, a.piece));
   piece.focus();
@@ -1043,6 +1035,106 @@ await check('no room to rotate: the piece stays, "No room to rotate here" is ann
     }
     m.player.destroy();
   }
+});
+
+await check('piece menu: right-click turns and flips a tray piece; Escape, a click outside and Tab close it; the board menu lists Return all and Replay', async () => {
+  const m = await game(0);
+  const target = movables(m)[0];
+  const id = target.piece;
+  const button = trayButton(m, id);
+  const t0 = /** @type {number} */ (m.game().tray.get(id));
+  /** @param {Element} node */
+  const rightClick = (node) => {
+    const r = node.getBoundingClientRect();
+    const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: r.left + 8, clientY: r.top + 8, button: 2 });
+    node.dispatchEvent(event);
+    return event;
+  };
+  const menu = () => m.q('.pm-menu');
+  const actions = () => m.qa('.pm-menu [role="menuitem"]').map((n) => n.dataset.action);
+  assert(menu().hidden, 'no menu before the click');
+
+  const event = rightClick(button);
+  assert(event.defaultPrevented, 'the browser menu is replaced');
+  assert(!menu().hidden, 'the menu opens');
+  same(actions(), ['rotate-cw', 'rotate-ccw', 'flip-h', 'flip-v'], 'a tray piece offers turning and flipping');
+  equal(m.game().selected, id, 'the piece is selected');
+  equal(/** @type {HTMLElement} */ (document.activeElement).dataset.action, 'rotate-cw', 'the first action has the focus');
+  const box = menu().getBoundingClientRect();
+  assert(box.left >= 0 && box.top >= 0 && box.right <= innerWidth && box.bottom <= innerHeight, 'the menu stays inside the window');
+
+  m.q('.pm-menu [data-action="rotate-cw"]').click();
+  assert(menu().hidden, 'choosing an action closes the menu');
+  equal(m.game().tray.get(id), transformedT(t0, 'cw', 0), 'turned clockwise on screen');
+  equal(document.activeElement, button, 'the focus returns to the piece');
+
+  rightClick(button);
+  m.q('.pm-menu [data-action="rotate-ccw"]').click();
+  equal(m.game().tray.get(id), t0, 'counter-clockwise undoes it');
+  rightClick(button);
+  m.q('.pm-menu [data-action="flip-h"]').click();
+  equal(m.game().tray.get(id), transformedT(t0, 'flipH', 0), 'flipped left-right');
+  rightClick(button);
+  m.q('.pm-menu [data-action="flip-v"]').click();
+  equal(m.game().tray.get(id), transformedT(transformedT(t0, 'flipH', 0), 'flipV', 0), 'flipped top-bottom');
+
+  rightClick(button);
+  key('ArrowDown');
+  equal(/** @type {HTMLElement} */ (document.activeElement).dataset.action, 'rotate-ccw', 'the arrow keys walk the actions');
+  key('End');
+  equal(/** @type {HTMLElement} */ (document.activeElement).dataset.action, 'flip-v', 'End goes to the last action');
+  key('ArrowDown');
+  equal(/** @type {HTMLElement} */ (document.activeElement).dataset.action, 'rotate-cw', 'and the list wraps');
+  const before = m.game().tray.get(id);
+  key('q');
+  equal(m.game().tray.get(id), before, 'the shortcuts of the page stay quiet inside the menu');
+  const escape = key('Escape');
+  assert(escape.defaultPrevented && menu().hidden, 'Escape closes the menu');
+  equal(document.activeElement, button, 'and returns the focus');
+  assert(m.game().selected === id, 'Escape in the menu keeps the selection');
+
+  rightClick(button);
+  pe(document.body, 'pointerdown', 2, 2);
+  assert(menu().hidden, 'a press outside closes the menu');
+  rightClick(button);
+  key('Tab');
+  assert(menu().hidden, 'Tab closes the menu');
+
+  await dragFromTray(m, id, { index: 1, ops: opsTo(poseT(target), 0, m.game().tray.get(id)), to: handleCell(pieceOf(m, id), target, 1) });
+  same(m.game().placed.get(id), target, 'the piece is placed');
+  const placed = /** @type {Element} */ (boardPiece(m, id));
+  rightClick(placed);
+  same(actions(), ['rotate-cw', 'rotate-ccw', 'flip-h', 'flip-v', 'to-tray', 'unplace-all', 'replay'], 'a placed piece can also return to the tray, and the puzzle actions follow');
+  m.q('.pm-menu [data-action="to-tray"]').click();
+  assert(!m.game().placed.has(id) && m.game().tray.has(id), 'Return to tray takes it off the board');
+
+  // A right-click on a locked clue or on empty board lists the actions of the whole puzzle.
+  const clue = /** @type {Element} */ (m.root.querySelector('.board-host .pm-clue'));
+  rightClick(clue);
+  assert(!menu().hidden, 'a locked clue opens the board menu');
+  same(actions(), ['unplace-all', 'replay'], 'only the puzzle actions');
+  key('Escape');
+  await dragFromTray(m, id, { index: 1, ops: opsTo(poseT(target), 0, m.game().tray.get(id)), to: handleCell(pieceOf(m, id), target, 1) });
+  assert(m.game().placed.has(id), 'a piece is on the board again');
+  const host = m.q('.board-host');
+  const hostBox = host.getBoundingClientRect();
+  const corner = new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: hostBox.left + 3, clientY: hostBox.top + 3, button: 2 });
+  host.dispatchEvent(corner);
+  assert(corner.defaultPrevented && !menu().hidden, 'a right-click on empty board opens the menu');
+  assert(!m.q('.pm-menu [data-action="unplace-all"]').hasAttribute('disabled'), 'Return all is available with a piece on the board');
+  m.q('.pm-menu [data-action="unplace-all"]').click();
+  assert(m.game().placed.size === 0 && m.game().tray.has(id), 'Return all pieces to the tray empties the board');
+  m.q('[data-action="undo"]').click();
+  await tick();
+  assert(m.game().placed.has(id), 'and it can be undone');
+  host.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: hostBox.left + 3, clientY: hostBox.top + 3, button: 2 }));
+  m.q('.pm-menu [data-action="replay"]').click();
+  const replayDialog = /** @type {HTMLDialogElement} */ (m.q('dialog.pm-confirm[open]'));
+  assert(replayDialog.open && m.game().placed.has(id), 'Replay asks first and changes nothing yet');
+  m.q('dialog.pm-confirm[open] [data-action="confirm-ok"]').click();
+  await tick();
+  assert(m.game().placed.size === 0 && m.game().moves === 0 && m.game().history.length === 0, 'Replay starts the puzzle again');
+  m.player.destroy();
 });
 
 await check('no content-security-policy violations', async () => {

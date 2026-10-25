@@ -6,7 +6,7 @@ import { deflateRawSync } from 'node:zlib';
 import { parsePack } from '../core/engine/pack.js';
 import {
   MAX_CODE_CHARS, NO_DECOMPRESSOR_MESSAGE, ShareCodeError, base64urlDecode, base64urlEncode, decodeShareCode,
-  encodeShareCode, extractCode, parseLocationHash, parseLocationHashResult, playerUrl,
+  encodeShareCode, parseLocationHash, parseLocationHashResult, playerUrl,
 } from '../core/engine/sharecode.js';
 
 const fixtureText = readFileSync(new URL('./fixtures/hand-authored-pack.json', import.meta.url), 'utf8');
@@ -168,17 +168,4 @@ test('parseLocationHash accepts pack/lib hashes and rejects bad values', () => {
   }
   assert.equal(parseLocationHashResult('#pack=1z.a&i=x').ok, false);
   assert.equal(parseLocationHash(/** @type {any} */ (null)), null);
-});
-
-test('extractCode finds data in codes, links, prose and raw JSON without fetching', async () => {
-  const code = await encodeShareCode(pack);
-  assert.equal(extractCode(code), code);
-  assert.equal(extractCode(`  ${code}\n`), code);
-  assert.equal(extractCode(`Try this puzzle: ${code}, it is fun.`), code);
-  assert.equal(extractCode(`https://example.test/pentomino/player/#pack=${code}&i=2`), code);
-  assert.equal(extractCode(`see https://remote.test/x?1z.fake and ${code}`), '1z.fake', 'data only, first code wins');
-  assert.equal(extractCode(` {"a":1} `), '{"a":1}');
-  assert.equal(extractCode('no code here, 1z. alone, version 21z.x'), null);
-  assert.equal(extractCode('x'.repeat(700000)), null);
-  assert.equal(extractCode(/** @type {any} */ (undefined)), null);
 });

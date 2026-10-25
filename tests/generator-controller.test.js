@@ -119,7 +119,7 @@ function harness(o = {}) {
     state = { ...state, ...o.state };
   }
   const store = createGeneratorStore(state);
-  const spies = { cancelPending: 0, notices: /** @type {string[]} */ ([]), navigations: 0, downloads: /** @type {any[]} */ ([]) };
+  const spies = { cancelPending: 0, navigations: 0 };
   const controller = createJobController({
     store,
     hardware: DESKTOP,
@@ -129,11 +129,9 @@ function harness(o = {}) {
     cancelPending: () => {
       spies.cancelPending += 1;
     },
-    notify: (message) => spies.notices.push(message),
     beforeNavigate: () => {
       spies.navigations += 1;
     },
-    download: (pack, name, ...rest) => spies.downloads.push({ pack, name, opts: rest[0] }),
     ...o.options,
   });
   return {
@@ -214,7 +212,7 @@ describe('puzzle batches', () => {
     assert.ok(h.store.getState().puzzles.length > 0 && seen > 0);
     h.controller.removeAllPuzzles();
     const state = h.store.getState();
-    assert.deepEqual([state.puzzles.length, state.parked.length, Object.keys(state.puzzleSeeds).length], [0, 0, 0]);
+    assert.deepEqual([state.puzzles.length, Object.keys(state.puzzleSeeds).length], [0, 0]);
     assert.equal(state.seenLayouts.length, seen, 'removed puzzles stay in the history');
     assert.equal(state.batchIndex, 1, 'the batch counter goes on');
     h.controller.removeAllPuzzles();
@@ -478,7 +476,7 @@ describe('puzzle batches', () => {
     full.destroy();
   });
 
-  test('a pack that would pass the byte limit is split and its earlier puzzles stay exportable', async () => {
+  test('the list stops at the pack size limit: New Puzzle is refused when no puzzle would fit, and one that does not fit is dropped', async () => {
     const huge = (/** @type {number} */ i) => ({
       ...makePuzzle(i, 0),
       solution: Array.from({ length: 4000 }, () => /** @type {any} */ (makePuzzle(0).solution)[0]),
@@ -490,16 +488,34 @@ describe('puzzle batches', () => {
         return { status: 'complete', accepted: puzzles, seenLayouts: [], seenClues: [] };
       },
     });
-    const h = harness({ client, accepted: true, state: { puzzles: [huge(300), huge(301)].map((p, i) => ({ ...p, title: `Normal #${i + 1}` })), quantity: 2 } });
+    const h = harness({ client, accepted: true, state: { puzzles: [huge(300)], quantity: 2 } });
     await h.controller.addMore();
     const state = h.store.getState();
-    assert.equal(state.notice?.code, 'M-SPLIT');
-    assert.equal(state.parked.length, 1);
-    assert.deepEqual(state.parked[0].map((p) => p.id), ['q300', 'q301']);
-    assert.deepEqual(state.puzzles.map((p) => [p.id, p.title]), [['q200', 'Normal #1'], ['q201', 'Normal #2']]);
-    h.controller.exportParked(0);
-    assert.deepEqual(h.spies.downloads[0].pack.puzzles.map((/** @type {any} */ p) => p.id), ['q300', 'q301']);
+    assert.equal(state.notice?.code, 'M-PACK-SIZE');
+    assert.equal(state.notice?.text, formatMessage('M-PACK-SIZE', { kib: 512 }));
+    assert.deepEqual(state.puzzles.map((p) => p.id), ['q300', 'q200'], 'the puzzle past the limit is not listed');
+
+    await h.controller.addMore();
+    assert.equal(h.client.batches.length, 1, 'a full list starts no job');
+    assert.equal(h.store.getState().notice?.code, 'M-PACK-SIZE');
+    assert.equal(h.store.getState().puzzles.length, 2);
     h.destroy();
+
+    const cancelled = harness({
+      client: fakeClient({
+        batch: (input, hooks) => {
+          const puzzles = [huge(210), huge(211)];
+          puzzles.forEach((puzzle, index) => hooks.onAccepted({ revision: input.revision, index, puzzle, accepted: index + 1, quantity: input.quantity }));
+          return { status: 'cancelled', accepted: puzzles, seenLayouts: [], seenClues: [] };
+        },
+      }),
+      accepted: true,
+      state: { puzzles: [huge(300)], quantity: 2 },
+    });
+    await cancelled.controller.addMore();
+    assert.equal(cancelled.store.getState().notice?.code, 'M-PACK-SIZE', 'a cancelled batch still explains the puzzle it dropped');
+    assert.equal(cancelled.store.getState().puzzles.length, 2);
+    cancelled.destroy();
   });
 
   test('removing a card renumbers the titles but keeps the seen history', async () => {

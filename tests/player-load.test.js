@@ -6,7 +6,7 @@ import { reduce } from '../core/engine/game.js';
 import { levelForScore } from '../core/engine/levels.js';
 import { packBoard, parsePack, validatePack } from '../core/engine/pack.js';
 import { progressFingerprint } from '../core/engine/keys.js';
-import { encodeShareCode } from '../core/engine/sharecode.js';
+import { base64urlEncode, encodeShareCode } from '../core/engine/sharecode.js';
 import { executeTask } from '../core/engine/tasks.js';
 import { MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES, createWorkspace } from '../core/engine/workspace.js';
 import { PIECE_SET_MESSAGE } from '../core/browser/handoff.js';
@@ -14,18 +14,17 @@ import { PoolAbortError, PoolError } from '../core/browser/worker-pool.js';
 import { SAVE_FAILED_MESSAGE, createStorage } from '../core/browser/storage.js';
 import { verifySample } from '../tools/record-fixtures.mjs';
 import {
-  createPlayerController, createPlayerStore, effectiveRotation, hashWithIndex, offersPatterns,
+  createPlayerController, createPlayerStore, effectiveRotation, hashWithIndex, knownSolvable,
 } from '../player/state.js';
 import {
-  CERTIFICATE_NONE, INDEX_MESSAGE, MISSING_LOCAL_MESSAGE, SAMPLE_FAILED_MESSAGE, UNSUPPORTED_MESSAGE,
-  certificateLabel, formatElapsed, invalidPackMessage, messageForIssues, ratingLabel, restorationNotice, verificationLabel,
+  INDEX_MESSAGE, MISSING_LOCAL_MESSAGE, SAMPLE_FAILED_MESSAGE, UNSUPPORTED_MESSAGE,
+  certificateLabel, formatElapsed, invalidPackMessage, messageForIssues, ratingLabel, ratingParts, restorationNotice, verificationLabel,
 } from '../player/strings.js';
 
 const sampleText = readFileSync(new URL('../player/samples/sample-pack.json', import.meta.url), 'utf8');
 const parsedSample = parsePack(sampleText);
 assert.ok(parsedSample.ok);
 const sample = parsedSample.value;
-const handText = readFileSync(new URL('./fixtures/hand-authored-pack.json', import.meta.url), 'utf8');
 
 /** Tiny pack whose pieces cannot tile the board: an I-tromino and an L-tromino on 3x2. */
 const unsatisfiable = {
@@ -44,11 +43,8 @@ const unsatisfiable = {
 /** @param {object} pack @returns {string} */
 const json = (pack) => JSON.stringify(pack);
 
-/** Same core content, different claims: the library id does not change. */
-const reclaimed = {
-  ...sample,
-  puzzles: sample.puzzles.map((p) => ({ ...p, title: `${p.title} (v2)`, rating: p.rating === null || p.rating === undefined ? p.rating : { ...p.rating, score: p.rating.score + 1 } })),
-};
+/** Uncompressed share code of any text, so links to broken packs can be built. @param {string} text */
+const codeOf = (text) => `1j.${base64urlEncode(new TextEncoder().encode(text))}`;
 
 const answerFree = { ...sample, witness: undefined, puzzles: sample.puzzles.map((p) => ({ ...p, solution: null })) };
 delete answerFree.witness;
@@ -71,6 +67,9 @@ function memoryAdapter(seed = {}) {
     },
   };
 }
+
+/** Keys of packs saved for same-browser `#lib=` links. @param {ReturnType<typeof memoryAdapter>} adapter */
+const savedPacks = (adapter) => [...adapter.map.keys()].filter((k) => /^pentomino:v1:lib:[0-9a-f]{16}$/.test(k));
 
 /** Pool that answers verifyPack with the real engine, synchronously and untouched by workers. */
 function enginePool() {
@@ -130,7 +129,6 @@ function setup(o = {}) {
   };
   const store = createPlayerStore({ prefs: storage.getPrefs() });
   const fetched = /** @type {string[]} */ ([]);
-  const downloads = /** @type {string[]} */ ([]);
   const controller = createPlayerController({
     store,
     storage,
@@ -142,11 +140,19 @@ function setup(o = {}) {
       return sampleText;
     }),
     createPool: o.createPool ?? (() => o.pool ?? enginePool()),
-    download: (_pack, name) => {
-      downloads.push(name);
-    },
   });
-  return { adapter, storage, location, urls, store, controller, fetched, downloads, state: () => store.getState() };
+  return { adapter, storage, location, urls, store, controller, fetched, state: () => store.getState() };
+}
+
+/**
+ * Follows the `#pack=` link of `pack`, as opening that address does.
+ * @param {ReturnType<typeof setup>} h
+ * @param {import('../core/engine/types.js').Pack} pack
+ * @param {number} [i]
+ */
+async function openPack(h, pack, i = 0) {
+  h.location.hash = `#pack=${await encodeShareCode(pack)}&i=${i}`;
+  return h.controller.openHash(h.location.hash);
 }
 
 /** @param {ReturnType<typeof setup>} h */
@@ -156,6 +162,14 @@ const settle = async (h) => {
   }
   return h.state();
 };
+
+/** Waits for the asynchronous switch to a portable address. @param {() => boolean} ready */
+async function waitFor(ready) {
+  for (let i = 0; i < 200 && !ready(); i += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  assert.ok(ready(), 'the condition never came true');
+}
 
 /**
  * @param {import('../core/engine/types.js').Pack} pack
@@ -169,17 +183,17 @@ function movablePose(pack, i) {
 }
 
 test('exact messages for every mapped failure', async () => {
-  assert.equal(PIECE_SET_MESSAGE, 'This file has pieces but no puzzle — open it in the generator.');
-  assert.equal(messageForIssues([{ code: 'piece-set', path: '$', message: 'x' }]), 'This file has pieces but no puzzle — open it in the generator.');
+  assert.equal(PIECE_SET_MESSAGE, 'This link has pieces but no puzzle — open it in the generator.');
+  assert.equal(messageForIssues([{ code: 'piece-set', path: '$', message: 'x' }]), 'This link has pieces but no puzzle — open it in the generator.');
   assert.equal(messageForIssues([{ code: 'unsupported-version', path: 'version', message: 'x' }]), 'Unsupported puzzle version or rules.');
   assert.equal(messageForIssues([{ code: 'bad-rules', path: 'rules', message: 'x' }]), 'Unsupported puzzle version or rules.');
   assert.equal(messageForIssues([{ code: 'library-missing', path: '$', message: 'x' }]),
-    "This puzzle is not in this browser's library. Import a file or use a portable link.");
-  assert.equal(messageForIssues([{ code: 'index-out-of-range', path: '$', message: 'x' }]), 'Puzzle index is out of range.');
-  assert.equal(messageForIssues([{ code: 'invalid-index', path: '$', message: 'x' }]), 'Puzzle index is out of range.');
+    'This link only works in the browser that made it, and this puzzle is not saved here. Open its full link instead.');
+  assert.equal(messageForIssues([{ code: 'index-out-of-range', path: '$', message: 'x' }]), 'This pack has no puzzle with that number.');
+  assert.equal(messageForIssues([{ code: 'invalid-index', path: '$', message: 'x' }]), 'This pack has no puzzle with that number.');
   assert.equal(messageForIssues([{ code: 'missing-field', path: 'board', message: 'Missing required field "board"' }]),
-    'This file is not a valid Pentomino pack: Missing required field "board"');
-  assert.equal(invalidPackMessage('boom'), 'This file is not a valid Pentomino pack: boom');
+    'This link does not hold a valid Pentomino puzzle: Missing required field "board"');
+  assert.equal(invalidPackMessage('boom'), 'This link does not hold a valid Pentomino puzzle: boom');
 });
 
 test('verification, certificate and rating wording keeps claims apart from proofs', () => {
@@ -188,20 +202,17 @@ test('verification, certificate and rating wording keeps claims apart from proof
   assert.equal(verificationLabel({ status: 'unsatisfiable' }), 'No solution exists');
   assert.notEqual(verificationLabel({ status: 'not-verified' }), verificationLabel({ status: 'unsatisfiable' }));
   assert.equal(verificationLabel(undefined), '');
-  assert.equal(certificateLabel(null), 'Uniqueness not checked');
-  assert.equal(certificateLabel(null, true), 'Checking…');
-  assert.equal(CERTIFICATE_NONE, 'Uniqueness not checked');
-  assert.equal(certificateLabel({ status: 'unique' }), 'Claimed unique solution');
-  assert.equal(certificateLabel({ status: 'multiple' }), 'Claimed several solutions');
-  assert.equal(certificateLabel({ status: 'not-proved' }), 'Claimed uniqueness not proved');
-  assert.equal(certificateLabel({ status: 'unique', verified: true }), 'Unique solution ✓');
-  assert.equal(certificateLabel({ status: 'multiple', verified: true }), 'Several solutions');
-  assert.equal(certificateLabel({ status: 'not-proved', verified: true }), 'Uniqueness not proved');
+  assert.equal(certificateLabel(null), '', 'no certificate and no known solution: no claim');
+  assert.equal(certificateLabel(null, true), 'At least 1 solution', 'no certificate but a known solution, as in the generator');
+  assert.equal(certificateLabel({ status: 'unique' }), 'Unique solution ✓');
+  assert.equal(certificateLabel({ status: 'multiple' }, true), 'Multiple solutions', 'a certificate is shown as it is');
+  assert.equal(certificateLabel({ status: 'not-proved' }), 'At least 1 solution');
+  assert.equal(certificateLabel({ status: 'unsatisfiable' }), 'No solution exists');
   const rating = /** @type {any} */ ({ model: 'difficulty-v2', score: 21, level: 'hard' });
-  assert.equal(ratingLabel(rating), 'Claimed Hard · score 21');
-  assert.equal(ratingLabel(rating, true), 'Hard · score 21');
+  assert.equal(ratingLabel(rating), 'Hard: score 21');
+  assert.deepEqual(ratingParts(rating), { before: '', level: 'Hard', after: ': score 21' });
   assert.equal(ratingLabel(null), '');
-  assert.equal(ratingLabel(/** @type {any} */ ({ score: 3, level: '<img src=x onerror=alert(1)>' })).startsWith('Claimed <img'), true);
+  assert.equal(ratingLabel(/** @type {any} */ ({ score: 3, level: '<img src=x onerror=alert(1)>' })).startsWith('<img'), true);
   assert.equal(formatElapsed(65000), '1:05');
   assert.equal(formatElapsed(3725000), '1:02:05');
   assert.equal(restorationNotice([]), '');
@@ -232,7 +243,7 @@ test('store: observable, change-only notifications, unsubscribe and destroy', ()
   store.update({ index: 2 });
   store.update((s) => ({ index: s.index + 1 }));
   store.update(() => null);
-  assert.deepEqual(seen, ['import>import:2', 'import>import:3']);
+  assert.deepEqual(seen, ['start>start:2', 'start>start:3']);
   off();
   store.update({ index: 9 });
   assert.equal(seen.length, 2);
@@ -242,19 +253,19 @@ test('store: observable, change-only notifications, unsubscribe and destroy', ()
   assert.equal(store.getState().index, 9);
 });
 
-test('no hash and an empty library: the Import screen stays up and nothing is fetched or opened', async () => {
+test('no hash: the start screen stays up and nothing is fetched, opened or stored', async () => {
   const h = setup();
   await h.controller.start();
   const s = h.state();
-  assert.equal(s.screen, 'import');
+  assert.equal(s.screen, 'start');
   assert.equal(s.game, null);
   assert.equal(s.error, null);
   assert.equal(s.loading, false);
-  assert.deepEqual(s.library, []);
   assert.deepEqual(h.fetched, []);
+  assert.deepEqual([...(h.adapter?.map.keys() ?? [])], []);
 });
 
-test('link: #pack= opens the indexed puzzle without local data and keeps the hash, updating only i', async () => {
+test('link: #pack= opens the indexed puzzle, stores no copy of the pack and keeps the hash, updating only i', async () => {
   const code = await encodeShareCode(sample);
   const h = setup({ hash: `#pack=${code}&i=1` });
   await h.controller.start();
@@ -262,29 +273,34 @@ test('link: #pack= opens the indexed puzzle without local data and keeps the has
   assert.equal(h.state().index, 1);
   assert.equal(h.state().local, false);
   assert.equal(h.state().game?.index, 1);
-  assert.equal(h.state().packId !== null, true, 'the pack joins the Recent library');
+  assert.equal(h.state().packId, null);
+  assert.deepEqual(savedPacks(/** @type {any} */ (h.adapter)), [], 'the link itself keeps the pack');
   assert.deepEqual(h.urls, [], 'an unchanged address is not rewritten');
   h.controller.goToPuzzle(2);
   assert.equal(h.location.hash, `#pack=${code}&i=2`);
   h.controller.previousPuzzle();
   assert.equal(h.location.hash, `#pack=${code}&i=1`);
-  assert.equal(h.state().library.length, 1);
+  await settle(h);
+  assert.equal(h.state().source, 'hash');
 });
 
 test('local #lib= links stay labeled local; a missing record explains itself', async () => {
-  const first = setup();
-  await first.controller.importText(sampleText);
-  const id = /** @type {string} */ (first.state().packId);
-  assert.equal(first.location.hash, `#lib=${id}&i=0`);
-  assert.equal(first.state().local, true);
+  const adapter = memoryAdapter();
+  const saved = createStorage(adapter, () => 0).saveLibraryPack(sample);
+  assert.ok(saved.ok);
+  const id = saved.packId;
 
-  const again = setup({ hash: `#lib=${id}&i=2`, adapter: first.adapter });
-  await again.controller.start();
-  assert.equal(again.state().index, 2);
-  assert.equal(again.state().local, true);
-  again.controller.previousPuzzle();
-  assert.equal(again.location.hash, `#lib=${id}&i=1`);
-  assert.equal(again.state().local, true);
+  const h = setup({ hash: `#lib=${id}&i=2`, adapter });
+  await h.controller.start();
+  assert.equal(h.state().index, 2);
+  assert.equal(h.state().local, true);
+  assert.equal(h.state().packId, id);
+  h.controller.previousPuzzle();
+  assert.equal(h.location.hash, `#lib=${id}&i=1`);
+  assert.equal(h.state().local, true);
+  await settle(h);
+  assert.equal(h.location.hash, `#lib=${id}&i=1`, 'a #lib= link is kept as it is');
+  assert.deepEqual(savedPacks(adapter), [`pentomino:v1:lib:${id}`]);
 
   const gone = setup({ hash: '#lib=0123456789abcdef&i=0' });
   await gone.controller.start();
@@ -292,35 +308,35 @@ test('local #lib= links stay labeled local; a missing record explains itself', a
   assert.equal(gone.state().error?.message, MISSING_LOCAL_MESSAGE);
 });
 
-test('invalid, unsupported, piece-set and out-of-range input explain themselves and leave the open game untouched', async () => {
+test('invalid, unsupported, piece-set and out-of-range links explain themselves and leave the open game untouched', async () => {
   const h = setup();
-  await h.controller.importText(sampleText);
+  await openPack(h, sample);
   const before = h.state();
   assert.ok(before.game);
+  const opened = h.location.hash;
   const code = await encodeShareCode(sample);
   const badBoard = { ...sample, board: { rows: ['#'] } };
   const firstIssue = validatePack(JSON.parse(json(badBoard)));
   assert.equal(firstIssue.ok, false);
   const pieceSet = { ...sample, kind: 'piece-set', puzzles: [] };
 
-  /** @type {[string, () => Promise<unknown>, string][]} */
+  /** @type {[string, string, string | RegExp][]} */
   const cases = [
-    ['invalid pack', () => h.controller.importText(json(badBoard)),
-      invalidPackMessage(/** @type {any} */ (firstIssue).issues[0].message)],
-    ['not JSON', () => h.controller.importText('{ nope'), invalidPackMessage('Not valid JSON')],
-    ['no code', () => h.controller.importText('hello there'), invalidPackMessage('No puzzle link, code or file contents were found in the text.')],
-    ['version', () => h.controller.importText(json({ ...sample, version: 2 })), UNSUPPORTED_MESSAGE],
-    ['rules', () => h.controller.importText(json({ ...sample, rules: 'other-rules' })), UNSUPPORTED_MESSAGE],
-    ['piece set', () => h.controller.importText(json(pieceSet)), PIECE_SET_MESSAGE],
-    ['index', () => h.controller.openHash(`#pack=${code}&i=9`), INDEX_MESSAGE],
-    ['bad index', () => h.controller.openHash(`#pack=${code}&i=-1`), INDEX_MESSAGE],
-    ['missing local', () => h.controller.openHash('#lib=0123456789abcdef&i=0'), MISSING_LOCAL_MESSAGE],
+    ['invalid pack', `#pack=${codeOf(json(badBoard))}`, invalidPackMessage(/** @type {any} */ (firstIssue).issues[0].message)],
+    ['not JSON', `#pack=${codeOf('{ nope')}`, /^This link does not hold a valid Pentomino puzzle: Not valid JSON/],
+    ['not a code', '#pack=hello', invalidPackMessage('The pack in the address is not a pentomino share code')],
+    ['version', `#pack=${codeOf(json({ ...sample, version: 2 }))}`, UNSUPPORTED_MESSAGE],
+    ['rules', `#pack=${codeOf(json({ ...sample, rules: 'other-rules' }))}`, UNSUPPORTED_MESSAGE],
+    ['piece set', `#pack=${codeOf(json(pieceSet))}`, PIECE_SET_MESSAGE],
+    ['index', `#pack=${code}&i=9`, INDEX_MESSAGE],
+    ['bad index', `#pack=${code}&i=-1`, INDEX_MESSAGE],
+    ['missing local', '#lib=0123456789abcdef&i=0', MISSING_LOCAL_MESSAGE],
   ];
-  for (const [name, run, expected] of cases) {
-    await run();
+  for (const [name, hash, expected] of cases) {
+    await h.controller.openHash(hash);
     const now = h.state();
-    if (name === 'not JSON') {
-      assert.match(now.error?.message ?? '', /^This file is not a valid Pentomino pack: Not valid JSON/, name);
+    if (expected instanceof RegExp) {
+      assert.match(now.error?.message ?? '', expected, name);
     } else {
       assert.equal(now.error?.message, expected, name);
     }
@@ -329,54 +345,34 @@ test('invalid, unsupported, piece-set and out-of-range input explain themselves 
     assert.equal(now.screen, 'game', name);
     assert.equal(now.loading, false, name);
   }
-  assert.equal(h.location.hash, `#lib=${before.packId}&i=0`, 'the address was not rewritten by failures');
+  assert.equal(h.location.hash, opened, 'the address was not rewritten by failures');
 });
 
-test('files: size limit, answer-free packs and piece sets', async () => {
-  const h = setup();
-  await h.controller.importText(sampleText);
-  const before = h.state().game;
-  await h.controller.importFile({ size: 600 * 1024, text: async () => assert.fail('must not be read') });
-  assert.match(h.state().error?.message ?? '', /^This file is not a valid Pentomino pack: A pack file is at most 524288 bytes/);
-  assert.equal(h.state().game, before);
-  await h.controller.importFile({ size: 10, text: async () => { throw new Error('denied'); } });
-  assert.match(h.state().error?.message ?? '', /could not be read/);
-
-  const text = json(answerFree);
-  const ok = await h.controller.importFile({ size: text.length, text: async () => text });
-  assert.equal(ok.ok, true);
-  assert.notEqual(h.state().game, before);
-  assert.equal(h.state().source, 'file');
-  assert.match(h.location.hash, /^#lib=[0-9a-f]{16}&i=0$/);
-  assert.equal(h.state().local, true);
-});
-
-test('failed replacements keep the old game while a new one is loading, and only the newest request commits', async () => {
-  const h = setup();
-  await h.controller.importText(sampleText);
-  const open = h.state().game;
+test('the open game stays while a new one is loading, and only the newest request commits', async () => {
   /** @type {(v: string) => void} */
   let release = () => {};
   const slow = new Promise((resolve) => {
     release = resolve;
   });
-  const first = h.controller.importFile({ size: 5, text: () => /** @type {Promise<string>} */ (slow) });
+  const h = setup({ fetchText: () => /** @type {Promise<string>} */ (slow) });
+  await openPack(h, sample);
+  const open = h.state().game;
+  const first = h.controller.openSample();
   assert.equal(h.state().loading, true);
   assert.equal(h.state().game, open, 'old game stays visible while loading');
-  const second = await h.controller.importText(json(reclaimed));
+  const second = await openPack(h, answerFree, 1);
   assert.equal(second.ok, true);
   const winner = h.state().pack;
-  release(handText);
+  release(sampleText);
   const late = await first;
   assert.equal(late.stale, true);
   assert.equal(h.state().pack, winner, 'a late reply of an older request is discarded');
   assert.equal(h.state().loading, false);
 });
 
-test('Continue / Restart and puzzle switching keep each game’s own progress', async () => {
+test('puzzle switching keeps each game’s own progress and Replay removes the saved record', async () => {
   const h = setup();
-  await h.controller.importText(sampleText);
-  assert.equal(h.state().resume, null, 'nothing saved yet');
+  await openPack(h, sample);
   const pose = movablePose(sample, 0);
   h.store.update((s) => ({ game: reduce(/** @type {any} */ (s.game), { type: 'place', pose }) }));
   assert.equal(h.state().game?.placed.size, 1);
@@ -389,20 +385,15 @@ test('Continue / Restart and puzzle switching keep each game’s own progress', 
 
   h.controller.previousPuzzle();
   assert.equal(h.state().game?.placed.size, 1, 'progress was saved before leaving');
-  assert.deepEqual(h.state().resume, { placed: 1, solved: false });
-  h.controller.resume('continue');
-  assert.equal(h.state().resume, null);
-  assert.equal(h.state().game?.placed.size, 1);
+  assert.equal('resume' in h.state(), false, 'there is no Continue / Restart choice');
 
-  h.controller.goToPuzzle(1);
-  h.controller.goToPuzzle(0);
-  assert.notEqual(h.state().resume, null);
-  h.controller.resume('restart');
+  h.controller.replay();
   assert.equal(h.state().game?.placed.size, 0);
   assert.equal(h.state().statuses[0], 'new');
+  assert.equal(h.storage.loadProgress(/** @type {string} */ (h.state().fingerprints[0])), null, 'Replay removed the saved record');
   h.controller.goToPuzzle(1);
   h.controller.goToPuzzle(0);
-  assert.equal(h.state().resume, null, 'restart replaced the saved record');
+  assert.equal(h.state().game?.placed.size, 0, 'and the puzzle reopens empty');
 
   const bad = h.controller.goToPuzzle(3);
   assert.equal(bad.ok, false);
@@ -410,17 +401,17 @@ test('Continue / Restart and puzzle switching keep each game’s own progress', 
   assert.equal(h.state().index, 0);
 });
 
-test('saved progress is matched by exact coordinates and reload offers Continue; discarded moves are reported', async () => {
+test('saved progress is matched by exact coordinates and reload restores it; discarded moves are reported', async () => {
   const adapter = memoryAdapter();
   const first = setup({ adapter });
-  await first.controller.importText(sampleText);
+  await openPack(first, sample);
   const pose = movablePose(sample, 0);
   first.store.update((s) => ({ game: reduce(/** @type {any} */ (s.game), { type: 'place', pose }) }));
   first.controller.saveNow();
 
   const reload = setup({ adapter });
-  await reload.controller.importText(sampleText);
-  assert.deepEqual(reload.state().resume, { placed: 1, solved: false });
+  await openPack(reload, sample);
+  assert.equal(reload.state().game?.placed.size, 1);
   assert.equal(reload.state().notice, null);
 
   const fp = /** @type {string} */ (reload.state().fingerprints[0]);
@@ -432,7 +423,7 @@ test('saved progress is matched by exact coordinates and reload offers Continue;
     solved: false,
   });
   const damaged = setup({ adapter });
-  await damaged.controller.importText(sampleText);
+  await openPack(damaged, sample);
   assert.equal(damaged.state().game?.placed.size, 1);
   assert.match(damaged.state().notice?.text ?? '', /2 saved moves no longer fit this puzzle and were discarded/);
   assert.equal(damaged.state().notice?.kind, 'warning');
@@ -440,12 +431,12 @@ test('saved progress is matched by exact coordinates and reload offers Continue;
 
 test('presentation angle is display only: loads at 0/45/90/315, never changes fingerprints, Straighten is local', async () => {
   const base = setup();
-  await base.controller.importText(sampleText);
+  await openPack(base, sample);
   const baseline = base.state().fingerprints;
   for (const rotation of [0, 45, 90, 315]) {
     const h = setup();
     const rotated = { ...sample, presentation: { rotation } };
-    const result = await h.controller.importText(json(rotated));
+    const result = await openPack(h, rotated);
     assert.equal(result.ok, true, `rotation ${rotation}`);
     assert.equal(h.state().pack?.presentation?.rotation, rotation);
     assert.deepEqual(h.state().fingerprints, baseline, `fingerprints at ${rotation}`);
@@ -459,80 +450,93 @@ test('presentation angle is display only: loads at 0/45/90/315, never changes fi
   assert.equal(progressFingerprint(board, sample.pieces, sample.puzzles[0].clues), baseline[0]);
 });
 
-test('display preferences are independent device preferences', async () => {
+test('Straighten is a stored device preference; hashWithIndex only sets i', async () => {
   const adapter = memoryAdapter();
   const h = setup({ adapter });
-  await h.controller.importText(sampleText);
-  assert.deepEqual([h.state().prefs.labels, h.state().prefs.patterns, h.state().prefs.timer], [true, true, true]);
-  h.controller.setPref('labels', false);
-  assert.deepEqual([h.state().prefs.labels, h.state().prefs.patterns], [false, true]);
-  h.controller.setPref('patterns', false);
-  h.controller.setPref('labels', true);
-  assert.deepEqual([h.state().prefs.labels, h.state().prefs.patterns, h.state().prefs.timer], [true, false, true]);
-  h.controller.setPref('timer', false);
+  await openPack(h, sample);
+  assert.deepEqual(h.state().prefs, { straighten: false });
+  h.controller.setPref('straighten', true);
+  assert.equal(h.state().prefs.straighten, true);
   const later = setup({ adapter });
   await later.controller.start();
-  assert.deepEqual([later.state().prefs.labels, later.state().prefs.patterns, later.state().prefs.timer], [true, false, false]);
-  assert.equal(offersPatterns(sample), false, 'a 9-piece set never offers Patterns');
-  assert.equal(offersPatterns({ ...sample, pieces: Array(21).fill(sample.pieces[0]) }), true);
+  assert.deepEqual(later.state().prefs, { straighten: true });
+  assert.deepEqual(JSON.parse(adapter.map.get('pentomino:v1:prefs') ?? ''), { straighten: true }, 'nothing else is stored');
   assert.equal(hashWithIndex('#pack=1z.abc&i=0', 4), '#pack=1z.abc&i=4');
   assert.equal(hashWithIndex('#lib=0123456789abcdef', 2), '#lib=0123456789abcdef&i=2');
   assert.equal(hashWithIndex('#i=1&pack=1z.x', 3), '#i=3&pack=1z.x');
 });
 
-test('library: recent entries, delete and export touch only their own pack', async () => {
+test('the sample gets a same-browser address at once, then its portable #pack= link; the saved copy is dropped', async () => {
   const adapter = memoryAdapter({ 'other-app:state': 'keep me', 'pentomino:v0:old': 'foreign version' });
   const h = setup({ adapter });
-  await h.controller.importText(sampleText);
-  const firstId = /** @type {string} */ (h.state().packId);
-  await h.controller.importText(handText);
-  const secondId = /** @type {string} */ (h.state().packId);
-  assert.notEqual(firstId, secondId);
-  assert.deepEqual(h.state().library.map((e) => e.packId), [secondId, firstId]);
-
-  const pose = movablePose(sample, 0);
-  await h.controller.openLibraryPack(firstId);
-  h.store.update((s) => ({ game: reduce(/** @type {any} */ (s.game), { type: 'place', pose }) }));
-  h.controller.saveNow();
-  const fp = /** @type {string} */ (h.state().fingerprints[0]);
-
-  const exported = h.controller.exportLibraryPack(firstId);
-  assert.equal(exported.ok, true);
-  assert.equal(h.downloads.length, 1);
-  assert.equal(h.controller.exportLibraryPack('0123456789abcdef').ok, false);
-
-  h.controller.removeLibraryPack(secondId);
-  assert.deepEqual(h.state().library.map((e) => e.packId), [firstId]);
-  assert.equal(h.storage.loadLibraryPack(secondId).ok, false);
-  assert.equal(h.storage.loadLibraryPack(firstId).ok, true);
-  assert.notEqual(h.storage.loadProgress(fp), null, 'progress of other packs is not removed');
+  await h.controller.openSample();
+  const id = /** @type {string} */ (h.state().packId);
+  assert.match(id, /^[0-9a-f]{16}$/);
+  assert.equal(h.urls[0], `#lib=${id}&i=0`);
+  assert.equal(h.state().local, true);
+  await waitFor(() => h.state().source === 'hash');
+  assert.equal(h.location.hash, `#pack=${await encodeShareCode(sample)}&i=0`);
+  assert.deepEqual([h.state().packId, h.state().local], [null, false]);
+  assert.deepEqual(savedPacks(adapter), []);
   assert.equal(adapter.map.get('other-app:state'), 'keep me');
   assert.equal(adapter.map.get('pentomino:v0:old'), 'foreign version');
-  assert.equal(h.state().game?.pack.puzzles.length, 3, 'the open pack keeps playing');
+  h.controller.goToPuzzle(2);
+  assert.equal(h.location.hash, `#pack=${await encodeShareCode(sample)}&i=2`);
 });
 
-test('same pack id with different content: the newest content wins everywhere and nothing is duplicated', async () => {
+test('a link opened while the sample gets its portable address keeps its own address', async () => {
   const h = setup();
-  await h.controller.importText(sampleText);
-  const id = /** @type {string} */ (h.state().packId);
-  await h.controller.importText(json(reclaimed));
-  assert.equal(h.state().packId, id);
-  assert.equal(h.state().library.length, 1);
-  assert.equal(h.state().pack?.puzzles[0].title, 'Easy (v2)');
-  const stored = h.storage.loadLibraryPack(id);
-  assert.ok(stored.ok);
-  assert.equal(stored.value.puzzles[0].title, 'Easy (v2)');
-  assert.equal(stored.value.puzzles[0].rating?.score, (sample.puzzles[0].rating?.score ?? 0) + 1);
-  assert.equal(ratingLabel(h.state().pack?.puzzles[0].rating), `Claimed Easy · score ${(sample.puzzles[0].rating?.score ?? 0) + 1}`);
+  const other = { ...sample, puzzles: sample.puzzles.slice(0, 2) };
+  const link = `#pack=${await encodeShareCode(other)}&i=1`;
+  await h.controller.openSample();
+  h.location.hash = link;
+  await h.controller.openHash(link);
+  await settle(h);
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  assert.equal(h.state().pack?.puzzles.length, 2);
+  assert.equal(h.location.hash, link, 'the late sample link did not replace it');
+});
+
+test('removePuzzle and removeAllPuzzles change the open pack and its address and keep no saved copy', async () => {
+  const h = setup();
+  const adapter = /** @type {ReturnType<typeof memoryAdapter>} */ (h.adapter);
+  await openPack(h, sample, 1);
+  assert.equal(h.controller.removePuzzle(5).ok, false, 'out of range');
+  assert.equal(h.controller.removePuzzle(0).ok, true);
+  assert.equal(h.state().pack?.puzzles.length, 2);
+  assert.equal(h.state().index, 0, 'the open puzzle keeps its place in the shorter pack');
+  assert.equal(h.state().pack?.puzzles[0].title, sample.puzzles[1].title);
+  assert.match(h.location.hash, /^#lib=[0-9a-f]{16}&i=0$/, 'a same-browser address until the new link is ready');
+  await waitFor(() => h.state().source === 'hash');
+  assert.equal(h.location.hash, `#pack=${await encodeShareCode(/** @type {any} */ (h.state().pack))}&i=0`);
+  assert.deepEqual(savedPacks(adapter), []);
+
+  assert.equal(h.controller.removePuzzle(0).ok, true, 'the open puzzle can be removed: its neighbour opens');
+  assert.equal(h.state().pack?.puzzles.length, 1);
+  assert.equal(h.state().screen, 'game');
+  assert.equal(h.controller.removePuzzle(0).ok, true, 'the last puzzle leaves the pack');
+  assert.deepEqual([h.state().pack, h.state().game, h.state().screen, h.location.hash], [null, null, 'start', '']);
+  await settle(h);
+  assert.equal(h.location.hash, '', 'a late portable link of a closed pack is not applied');
+  assert.deepEqual(savedPacks(adapter), []);
+
+  await h.controller.openSample();
+  h.controller.removeAllPuzzles();
+  assert.deepEqual([h.state().pack, h.state().screen, h.location.hash], [null, 'start', '']);
+  assert.deepEqual(savedPacks(adapter), [], 'the same-browser copy goes with the pack');
+  h.controller.removeAllPuzzles();
+  assert.equal(h.state().screen, 'start', 'without a pack it does nothing');
 });
 
 test('unavailable storage never blocks play and is reported once', async () => {
   const none = setup({ adapter: null });
-  await none.controller.importText(sampleText);
+  await none.controller.openSample();
   assert.equal(none.state().screen, 'game');
   assert.equal(none.state().packId, null);
   assert.equal(none.state().storageWarning, SAVE_FAILED_MESSAGE);
-  assert.equal(none.location.hash, '', 'no unusable #lib= address is invented');
+  assert.deepEqual(none.urls, [], 'no unusable #lib= address is invented');
+  await waitFor(() => none.state().source === 'hash');
+  assert.match(none.location.hash, /^#pack=1z\./, 'the portable link still works');
   const pose = movablePose(sample, 0);
   none.store.update((s) => ({ game: reduce(/** @type {any} */ (s.game), { type: 'place', pose }) }));
   assert.equal(none.controller.goToPuzzle(1).ok, true);
@@ -546,7 +550,7 @@ test('unavailable storage never blocks play and is reported once', async () => {
     removeItem: () => { throw new Error('denied'); },
   };
   const hostile = setup({ adapter: /** @type {any} */ (throwing) });
-  await hostile.controller.importText(sampleText);
+  await openPack(hostile, sample);
   assert.equal(hostile.state().screen, 'game');
   assert.equal(hostile.controller.goToPuzzle(2).ok, true);
 });
@@ -558,7 +562,7 @@ test('sample: loaded through the ordinary path from the fixed relative URL; fail
   assert.equal(h.state().screen, 'game');
   assert.equal(h.state().source, 'sample');
   assert.equal(h.state().pack?.puzzles.length, 3);
-  assert.equal(ratingLabel(h.state().pack?.puzzles[0].rating).startsWith('Claimed Easy · score '), true);
+  assert.equal(ratingLabel(h.state().pack?.puzzles[0].rating).startsWith('Easy: score '), true);
 
   const down = setup({ fetchText: async () => { throw new Error('offline'); } });
   await down.controller.openSample();
@@ -566,53 +570,48 @@ test('sample: loaded through the ordinary path from the fixed relative URL; fail
   assert.equal(down.state().game, null);
 });
 
-test('pasted text: link, bare code, JSON and surrounding words all use the shared loader; URLs are never fetched', async () => {
-  const code = await encodeShareCode(sample);
-  const h = setup();
-  await h.controller.importText(`Try this: https://example.invalid/player/#pack=${code}&i=2 — have fun`);
-  assert.equal(h.state().index, 2);
-  await h.controller.importText(`here ${code} ok`);
-  assert.equal(h.state().index, 0);
-  await h.controller.importText(`  ${handText}  `);
-  assert.equal(h.state().pack?.puzzles.length, 1);
-  await h.controller.importText('https://example.invalid/pack.json');
-  assert.match(h.state().error?.message ?? '', /^This file is not a valid Pentomino pack: /);
-  assert.deepEqual(h.fetched, []);
-});
-
 test('verification: a validated answer proves solvability only; claims stay claims', async () => {
   const pool = enginePool();
   const h = setup({ pool });
-  await h.controller.importText(sampleText);
+  await openPack(h, sample);
   assert.deepEqual(h.state().verificationByPuzzle[0], { status: 'solvable', basis: 'solution' });
   assert.equal(pool.calls.length, 0, 'no search for a validated answer');
-  assert.equal(certificateLabel(h.state().pack?.puzzles[0].certificate), 'Uniqueness not checked');
-  assert.equal(h.state().pack?.puzzles[0].certificate ?? null, null);
-  assert.equal(ratingLabel(h.state().pack?.puzzles[2].rating).startsWith('Claimed Hard'), true);
+  const puzzle = h.state().pack?.puzzles[0];
+  assert.equal(puzzle?.certificate ?? null, null);
+  assert.equal(certificateLabel(puzzle?.certificate, knownSolvable(puzzle, h.state().verificationByPuzzle[0])), 'At least 1 solution',
+    'an included answer is a known solution');
+  assert.equal(ratingLabel(h.state().pack?.puzzles[2].rating).startsWith('Hard'), true);
 });
 
 test('verification: answer-free puzzles are searched in a worker; only an exhausted empty search says impossible', async () => {
-  const pool = enginePool();
+  const pool = manualPool();
   const h = setup({ pool });
-  await h.controller.importText(json(answerFree));
+  await openPack(h, answerFree);
+  const puzzle = h.state().pack?.puzzles[0];
+  const uniqueness = () => certificateLabel(puzzle?.certificate, knownSolvable(puzzle, h.state().verificationByPuzzle[0]));
+  assert.equal(uniqueness(), '', 'no claim while the check runs');
+  pool.pending[0].resolve(await enginePool().run(pool.pending[0].task));
   await settle(h);
   assert.deepEqual(h.state().verificationByPuzzle[0], { status: 'solvable', basis: 'search' });
-  assert.equal(pool.calls.length, 1);
-  assert.equal(pool.calls[0].kind, 'verifyPack');
-  assert.equal(pool.calls[0].payload.pack.puzzles.length, 1, 'only the open puzzle is checked');
+  assert.equal(uniqueness(), 'At least 1 solution', 'a solution found by the check is a known solution');
+  assert.equal(pool.pending.length, 1);
+  assert.equal(pool.pending[0].task.kind, 'verifyPack');
+  assert.equal(pool.pending[0].task.payload.pack.puzzles.length, 1, 'only the open puzzle is checked');
 
   const impossible = setup({ pool: enginePool() });
-  await impossible.controller.importText(json(unsatisfiable));
+  await openPack(impossible, /** @type {any} */ (unsatisfiable));
   assert.equal(impossible.state().screen, 'game', 'play stays allowed');
   await settle(impossible);
   assert.deepEqual(impossible.state().verificationByPuzzle[0], { status: 'unsatisfiable', basis: 'search' });
   assert.equal(verificationLabel(impossible.state().verificationByPuzzle[0]), 'No solution exists');
+  assert.equal(certificateLabel(null, knownSolvable(impossible.state().pack?.puzzles[0], impossible.state().verificationByPuzzle[0])), '',
+    'and no uniqueness claim');
 });
 
 test('verification: inconclusive, crashed and unavailable workers read "not verified", never "no solution"', async () => {
   const pool = manualPool();
   const h = setup({ pool });
-  await h.controller.importText(json(answerFree));
+  await openPack(h, answerFree);
   const fp = /** @type {string} */ (h.state().fingerprints[0]);
   pool.pending[0].resolve({ results: [{ index: 0, fingerprint: fp, status: 'not-verified' }] });
   await settle(h);
@@ -620,14 +619,14 @@ test('verification: inconclusive, crashed and unavailable workers read "not veri
 
   const crash = manualPool();
   const c = setup({ pool: crash });
-  await c.controller.importText(json(answerFree));
+  await openPack(c, answerFree);
   crash.pending[0].reject(new PoolError('worker-crashed', 'boom'));
   await settle(c);
   assert.equal(c.state().verificationByPuzzle[0].status, 'not-verified');
   assert.equal(c.state().screen, 'game');
 
   const missing = setup({ createPool: () => { throw new PoolError('worker-unavailable', 'no workers'); } });
-  await missing.controller.importText(json(answerFree));
+  await openPack(missing, answerFree);
   assert.equal(missing.state().verificationByPuzzle[0].status, 'not-verified');
   assert.equal(missing.state().verificationByPuzzle[0].basis, 'unavailable');
   assert.equal(missing.state().game !== null, true, 'manual play stays available');
@@ -635,7 +634,7 @@ test('verification: inconclusive, crashed and unavailable workers read "not veri
   assert.equal(missing.state().verificationByPuzzle[1].status, 'not-verified');
 
   const unavailable = setup({ pool: { beginRequest() {}, endRequest() {}, close() {}, run: () => Promise.reject(new PoolError('worker-unavailable', 'x')) } });
-  await unavailable.controller.importText(json(answerFree));
+  await openPack(unavailable, answerFree);
   await settle(unavailable);
   assert.equal(unavailable.state().verificationByPuzzle[0].status, 'not-verified');
 });
@@ -643,12 +642,12 @@ test('verification: inconclusive, crashed and unavailable workers read "not veri
 test('verification: replies for a replaced pack or a mismatched fingerprint are discarded; superseded checks clear', async () => {
   const pool = manualPool();
   const h = setup({ pool });
-  await h.controller.importText(json(answerFree));
+  await openPack(h, answerFree);
   const staleReply = pool.pending[0];
   const staleFp = /** @type {string} */ (h.state().fingerprints[0]);
   const revision = h.state().revision;
 
-  await h.controller.importText(json({ ...answerFree, puzzles: [answerFree.puzzles[1], answerFree.puzzles[0]] }));
+  await openPack(h, { ...answerFree, puzzles: [answerFree.puzzles[1], answerFree.puzzles[0]] });
   assert.equal(h.state().revision, revision + 1);
   assert.equal(h.state().verificationByPuzzle[0].status, 'pending');
   staleReply.resolve({ results: [{ index: 0, fingerprint: staleFp, status: 'unsatisfiable' }] });
@@ -663,7 +662,7 @@ test('verification: replies for a replaced pack or a mismatched fingerprint are 
   // Rapid switching: the earlier check is superseded and must not stay "pending" forever.
   const rapid = manualPool();
   const r = setup({ pool: rapid });
-  await r.controller.importText(json(answerFree));
+  await openPack(r, answerFree);
   r.controller.goToPuzzle(1);
   rapid.pending[0].reject(new PoolAbortError('superseded'));
   await settle(r);
@@ -677,7 +676,7 @@ test('verification: replies for a replaced pack or a mismatched fingerprint are 
 test('select only marks a piece; destroy stops everything', async () => {
   const pool = manualPool();
   const h = setup({ pool });
-  await h.controller.importText(json(answerFree));
+  await openPack(h, answerFree);
   const placed = h.state().game?.placed;
   h.controller.select('E');
   assert.equal(h.state().game?.selected, 'E');
@@ -687,6 +686,6 @@ test('select only marks a piece; destroy stops everything', async () => {
   h.controller.destroy();
   pool.pending[0].resolve({ results: [] });
   await settle(h);
-  const result = await h.controller.importText(sampleText);
+  const result = await openPack(h, sample);
   assert.equal(result.ok, false);
 });

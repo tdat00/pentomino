@@ -61,7 +61,7 @@ Two static web apps share one DOM-free engine in `core/`.
 
 One difficulty score rates everything. Puzzles go to the player through a self-contained link, opened in a new tab by Play.
 
-**Player** (`/pentomino/player/`). The user imports a pack from a link, file, pasted text or the local library. They drag, rotate and flip pieces onto the board, including boards displayed at 45°. Any valid complete tiling wins.
+**Player** (`/pentomino/player/`). The user opens a pack from its link: a portable `#pack=` link, or a same-browser `#lib=` link. They drag, rotate and flip pieces onto the board, including boards displayed at 45°. Any valid complete tiling wins.
 
 **Runtime.** Heavy computation runs in a pool of up to 4 Web Workers within 2 GB. There is no server, no runtime dependency and no build step.
 
@@ -93,7 +93,7 @@ Requirements come from the original product brief, including its addendum and th
 | R13 | Addendum 1–2: the highest (and lowest) level depends on board size; large boards with Hell-2, Hell-3, … | Contiguous availability per level; open ladder | 7.4, 7.5 |
 | R14 | Addendum 3: piece count follows level AND board size; never too many small pieces (examples: 60 cells easy 7–8 / master 11–13; 360 cells hard 16–18 lowest / hell-1 40–42) | K(level, area) formula and final table: 60 → easy 7–8, master 12–13; 360 → hard 16–18 (lowest), hell-1 37–42 | 6.4, 7.5 |
 | R15 | Addendum 4: find the optimal maximum board size so that generation finishes within 2 min (target 1 min) on the web, with 4 workers and 2 GB | Design ceiling 576 cells, release 484 until qualified; 115 s dispatch stop, 120 s answer; compact memory; qualification tests | 6.2, 8, 8.7, A.10 |
-| P1 | The player imports generator output | Link, file, paste and library; strict validator | 9 |
+| P1 | The player imports generator output | Links (`#pack=`, else a same-browser `#lib=`); strict validator. No file import or export. | 9 |
 | P2 | The player rotates, flips and places pieces to complete the board | Drag, tap and keyboard; D4 algebra; win detection | 11 |
 
 ---
@@ -110,8 +110,8 @@ The main design decisions and why they were taken.
 | D4 | Rotate/flip controls on rotated boards | Screen space. ⟳/⟲ are grid quarter-turns. ⇋/⇵ mirror the piece as seen on screen (§6.3). | Does what the icon shows. Verified for 8 angles × 8 orientations. |
 | D5 | Arrow keys on rotated boards | Move along the grid axis closest to the arrow's on-screen direction. At odd multiples of 45°, use the mapping for θ − 45°. Axis hints are shown. | Arrows bound to logical rows/columns would move pieces in a different screen direction than pressed. |
 | D6 | Board margins | Keep the authored W×H. Analyze symmetry on a copy normalized to the active bounding box. The editor never trims margins. | Stored coordinates never change silently. |
-| D7 | Board connectivity | Generation requires one 4-connected active region. Import accepts any non-empty board. | Simpler carving; valid files are not rejected. |
-| D8 | Game rules vs. generation policy | `rules: "free-polyomino-v1"` covers gameplay only. Size rules, distinct and hole-free shapes are generator policy `mixed-v2`, recorded in `generation.policy`. | Import must accept every rules-valid puzzle. |
+| D7 | Board connectivity | Generation requires one 4-connected active region. The player accepts any non-empty board. | Simpler carving; valid packs are not rejected. |
+| D8 | Game rules vs. generation policy | `rules: "free-polyomino-v1"` covers gameplay only. Size rules, distinct and hole-free shapes are generator policy `mixed-v2`, recorded in `generation.policy`. | The player must accept every rules-valid puzzle. |
 | D9 | Piece count | K_mid = min(K60[L]·(A/60)^0.28, Kcap[L]); window ±max(0.75, 6 %); clamped to [⌈0.75·√A⌉, Kmax(A)]; integer counts filtered by histogram feasibility (§6.4). 360-cell hell-1 = 37–42. | Fits all four user examples; area-neutral at hell levels; monotone in A |
 | D10 | Difficulty formula | `difficulty-v2`: D = round(2U + 8·log10(1 + B_eff)), B_eff = min(B, 5,000). R and H are stored as diagnostics only. | R and H grow with area and over-rated large boards; the simpler score keeps "few clues = hard" on every board size. |
 | D11 | Search-effort estimator | One canonical DLX traversal, saturating at 5,000 branch trials or 50,000 row trials. Actual counters and the stop reason are stored. | Deterministic, bounded cost (≤ ~4 s at 484 cells) |
@@ -127,13 +127,13 @@ The main design decisions and why they were taken.
 | D21 | PRNG and seeds | xoshiro128**. A free-text seed is hashed with SHA-256 to a 128-bit state. | Published reference algorithm; user-friendly seeds |
 | D22 | Hashing | One pure-JS, synchronous SHA-256 in `core` | Identical in pages, workers and Node |
 | D23 | Exchange format | Envelope `format / version / kind / rules`. Board as row strings. Poses `{piece, x, y, turn, mirrored}`. Strict whitelist plus a free `meta` object. Supported versions {1}. | Self-describing, strictly validated, extensible through `meta` |
-| D24 | Solutions in files | Per-puzzle `solution` and the set `witness` are included by default; the format allows omitting them (`omitSolutions`). | O(cells) solvability proof on import |
-| D25 | Hand-off | Primary: compressed `#pack=` link, opened by the generator's Play in a new tab. Fallback: `#lib=` reference. The player also reads and writes JSON files. | Portable and self-contained |
+| D24 | Solutions in packs | Per-puzzle `solution` and the set `witness` are included by default; the format allows omitting them (`omitSolutions`). | O(cells) solvability proof when a pack opens |
+| D25 | Hand-off | Primary: compressed `#pack=` link, opened by the generator's Play in a new tab. Fallback: `#lib=` reference. Neither app reads or writes pack files; the player's address is how a puzzle is kept (bookmark) and shared. | Portable and self-contained |
 | D26 | Progress identity | SHA-256 of exact coordinates: board rows, piece cells and clue cells | Symmetry-normalized keys corrupt saved moves (A.9). |
 | D27 | Hints / show solution | Only proven statements | An unproved culprit misleads (A.9). |
 | D28 | Folder layout | `core/engine`, `core/workers`, `core/browser`; tests in `/tests` | Clear layering; tests are never deployed |
 | D29 | Deployment | Actions: test → assemble `_site` → deploy. External `redirect.js`. | CSP-compatible |
-| D30 | Colors and labels | 20-color palette, generated colors beyond 20, labels A…Z, AA, AB, …, and fill patterns when K > 20. Labels and patterns have independent display toggles, both on by default (§11.9). | Sets reach ~90 pieces on large boards. |
+| D30 | Colors and labels | 20-color palette, generated colors beyond 20, labels A…Z, AA, AB, …, and fill patterns when K > 20. Labels and patterns are always drawn; there are no display toggles (§11.9). | Sets reach ~90 pieces on large boards. |
 | D31 | Rotating a placed piece | Rotate about its handle cell and try 4 one-cell kicks; otherwise reject. | Predictable |
 | D32 | Size balance | Sizes in [max(3, ⌊0.6μ⌋), ⌈1.5μ⌉]; ≤ ⌊0.4K⌋ pieces of 3–4 cells; μ ≥ 4.5; exact histogram feasibility. There is no spread or large-piece rule. | Scales with μ (360-cell hard needs 12–34-cell pieces); 40 % keeps the user's 13-piece 60-cell master set possible. |
 | D33 | Set construction | Macro carving when μ ≥ 6.5 (regions of 3–6 pieces; 2–3 when K ≤ 12) with global shape-key exclusion; flat carving otherwise or as a fallback; independent validation of every witness | Flat-carved big-piece sets usually have one arrangement; macro sets gave 10 distinct layouts in both reproductions. |
@@ -143,7 +143,7 @@ The main design decisions and why they were taken.
 | D37 | Time policy | One budget per action: target 60 s (a qualification criterion), stop dispatching at 115 s, answer by 120 s with all accepted results. No "Try longer" option. | Matches the addendum's 2-minute hard limit |
 | D38 | Memory engineering | Compact model storage (flat typed arrays, no per-row objects), one reusable workspace per worker plus a scratch workspace, worker recycling when the set changes, pre-flight guards (≤ 600,000 rows, ≤ 5,000,000 nodes) and byte accounting | Per-row JS objects, not DLX links, dominated memory (A.10). |
 | D39 | Planning factor | Browser time = 5 s + 4 × Node time for planning; 2.5× is an optimistic sensitivity only. Browser qualification replaces both. | Neither factor was measured. |
-| D40 | Minimum board | 30 active cells for generation; any non-empty board on import | Below ~30 cells the formula offers only very-easy, with gaps; such puzzles are trivial. |
+| D40 | Minimum board | 30 active cells for generation; any non-empty board in an incoming pack | Below ~30 cells the formula offers only very-easy, with gaps; such puzzles are trivial. |
 | D41 | Set and batch seeds | A set seed typed or rolled (🎲) is reused by every New Piece Set; an empty seed field draws a new random seed per press. Every puzzle request increments the set's `batchIndex` (stored with the set). The generator page uses a fresh random whole number as the batch seed of each New Puzzle press and shows it on the puzzle card; `tools/generate.mjs` uses `batchSeed = setSeed + "#" + batchIndex`. (§8.6) | Re-running one batch seed would replay already-seen layouts, because the history of a set only grows (D16). |
 | D42 | Module file extension | Every module loaded by a browser page or worker uses `.js`. `.mjs` is only for Node tools. (§12.3) | Some static servers send `.mjs` as `text/plain`, and browsers then refuse to load the module. Python 3.14 `http.server` on Windows does this (verified). |
 
@@ -169,16 +169,18 @@ pentomino/                     repository root = site root /pentomino/
 │  │  └─ engine.worker.js      module worker; runs engine tasks (§8.1)
 │  └─ browser/                 DOM helpers shared by both apps
 │     └─ worker-pool.js  generation-client.js  svg-board.js  pointer.js  storage.js  handoff.js
-│        dom.js  common.css  favicon.svg
+│        dom.js  i18n.js  theme.js  theme-init.js  theme.css  common.css  favicon.svg
 ├─ generator/
 │  ├─ index.html  app.js  state.js  jobs.js  address.js  strings.js  i18n.js
-│  ├─ locale.en.js  locale.vi.js  theme-init.js  theme.css  generator.css
+│  ├─ locale.en.js  locale.vi.js  generator.css
 │  └─ ui/  wizard.js  board-editor.js  board-summary.js  level-panel.js  level-help.js
-│          set-panel.js  set-summary.js  puzzle-panel.js  elapsed.js  i18n-dom.js  theme.js
+│          set-panel.js  set-summary.js  puzzle-panel.js  elapsed.js  i18n-dom.js
 ├─ player/
-│  ├─ index.html  app.js  state.js  play.js  hints.js  puzzle-title.js  strings.js  player.css
-│  ├─ ui/  board-view.js  tray-view.js  drag-layer.js  gestures.js  toolbar.js  keyboard.js
-│  │       import-view.js  pack-menu.js  hint-panel.js  dialogs.js  win-dialog.js
+│  ├─ index.html  app.js  state.js  play.js  hints.js  puzzle-title.js  strings.js  i18n.js
+│  ├─ locale.en.js  locale.vi.js  player.css
+│  ├─ ui/  header.js  puzzle-list.js  board-view.js  tray-view.js  drag-layer.js  gestures.js  toolbar.js
+│  │       context-menu.js  keyboard.js  start-view.js  hint-panel.js  dialogs.js  win-dialog.js
+│  │       rating-dom.js  i18n-dom.js
 │  └─ samples/sample-pack.json
 ├─ tests/                      node:test suites, browser regression pages and fixtures (never deployed)
 ├─ tools/                      generate.mjs (CLI), calibrate.mjs, bench/ (browser benchmark), serve.mjs,
@@ -202,8 +204,8 @@ Generator page (main thread)                         Worker pool (≤ 4 × core/
   Play: pack ─► share code ─► new tab ../player/#pack=<code>&i=<k>   (fallback: #lib=<packId>)
 
 Player page (main thread)
-  import ─► validatePack ─► game reducer (core/engine/game.js) ─► SVG board + tray
-         └► verifyPack task (1 worker)
+  #pack= / #lib= link ─► validatePack ─► game reducer (core/engine/game.js) ─► SVG board + tray
+                      └► verifyPack task (1 worker)
 ```
 
 Layering rules (MUST):
@@ -493,7 +495,6 @@ export async function encodeShareCode(p: Pack): Promise<string>;   // "1z.<b64ur
 export async function decodeShareCode(code: string, o?: { maxBytes?: number }): Promise<Result<Pack>>;
 export function playerUrl(base: string | URL, code: string, index: number): string;
 export function parseLocationHash(hash: string): { pack?: string; lib?: string; index: number } | null;
-export function extractCode(text: string): string | null;   // from pasted text or a full link
 ```
 
 **`game.js`** (§11): DOM-free player rules.
@@ -528,8 +529,10 @@ export function textColorFor(hex: string): '#000000' | '#ffffff';   // WCAG rela
 | `svg-board.js` | `mountBoard(el, opts)` returns `{ render(model), setRotation(theta), setZoom(cellPx), panTo(x, y), cellAt(clientX, clientY, o?: { includeBlocked?: boolean }) → XY or null, localPoint(clientX, clientY), destroy() }`. `cellAt` returns only active cells by default (play mode); the editor passes `includeBlocked: true` (§6.3). Shared by the player, the editor and thumbnails. |
 | `pointer.js` | Drag/tap state machine with one active pointer, a drag threshold and a lift offset. Shared by the player and the board editor. |
 | `storage.js` | `get`, `set`, `remove` and `list` under `pentomino:v1:`. Wraps every access in try/catch and evicts LRU entries on quota errors (§9.6). |
-| `handoff.js` | `preparePlayerLink(pack, index)` (portable `#pack=` link, else a same-browser `#lib=` link, else none with a warning), `openInPlayerTab(pack, index)` (the generator's Play: opens the player in a new tab), `readIncoming(location) → Promise<Result<{ pack, index }>>`, `downloadPack(pack, fileName)` |
-| `dom.js` | `h()` element helper, toast, clipboard and download helpers |
+| `handoff.js` | `preparePlayerLink(pack, index)` (portable `#pack=` link, else a same-browser `#lib=` link, else none with a warning), `openInPlayerTab(pack, index)` (the generator's Play: opens the player in a new tab), `readIncoming(location) → Promise<Result<{ pack, index }>>` (the one loader of `#pack=` and `#lib=` addresses), `readPack(text)` (pack JSON shipped with the page: the sample) |
+| `dom.js` | `h()` element helper, toast, clipboard and download helpers (the download helpers serve the benchmark page's reports) |
+| `i18n.js` | `createI18n({ en, vi })` returns the text lookup of one app: `t(key, args)` (`{name}` placeholders; plural keys `_one` / `_other` chosen by `args.count`; a missing key falls back to English, then to the key), `setLocale(code, doc)` (sets `<html lang>`, translates every `data-i18n` / `data-i18n-attr` element, tells the listeners of `onChange`), `applyTo(root)`, `detect` and `choose` (`?lang=`, saved choice, browser languages, English), `has`, `raw`, `formatNumber`. Each app keeps its own packs (`generator/locale.*.js`, `player/locale.*.js`) and calls it through `generator/i18n.js` and `player/i18n.js`. `LANGUAGE_KEY` is the storage key shared by both pages (§9.6). |
+| `theme.js`, `theme-init.js`, `theme.css` | The theme of both apps: `THEMES`, `normalizeTheme`, `effectiveTheme`, `applyTheme`; the early script that sets the stored theme before the first paint; and the three palettes with the base styles of buttons, inputs and board cells (`tests/theme.test.js` checks their contrast). |
 
 ---
 
@@ -569,6 +572,7 @@ export function textColorFor(hex: string): '#000000' | '#ffffff';   // WCAG rela
 | `witness` | Pose[] | no | A full layout. The generator always writes it for piece sets. |
 | `puzzles[].id` | string | yes | `[A-Za-z0-9_-]{1,64}`, unique in the pack; opaque, never an identity for progress |
 | `puzzles[].title` | string | no | ≤ 80 code points; rendered as text only |
+| `puzzles[].seed` | string | no | 1–256 code points; the batch seed the puzzle was generated with (§8.6). Kept in the pack for reference; the Player does not show it; absent in older packs. |
 | `puzzles[].clues` | Pose[] | yes | Locked pre-placed pieces; 0 ≤ count ≤ K−1. The generator writes 1..K−2. |
 | `puzzles[].solution` | Pose[] | no | A full layout that contains every clue; included by default |
 | `puzzles[].rating` | Rating | no | A claim; may be recomputed |
@@ -653,7 +657,7 @@ Generated packs also carry a `rating`, a `certificate` and the full `generation`
 
 ### 5.3 Validation: `validatePack`, staged and bounded
 
-1. **Size.** A file is at most 512 KiB. A decoded share code is at most 256 KiB, checked while decompressing (§9.2).
+1. **Size.** A pack is at most 512 KiB of JSON (the generator keeps its puzzle list within it, §10.5). A decoded share code is at most 256 KiB, checked while decompressing (§9.2).
 2. **Parse.** `JSON.parse` without a reviver; the top level must be an object.
 3. **Envelope.**
    - `format` must match exactly.
@@ -675,7 +679,7 @@ Generated packs also carry a `rating`, a `certificate` and the full `generation`
    - `kind` constraints hold, and ids are unique.
    - A `solution`, if present, is a valid layout containing every clue pose with the same cells.
    - A `witness` must be a valid layout.
-9. **Claims.** `rating` and `certificate` are type-checked (finite, non-negative score; known status). The UI shows them as "claimed" until this runtime recomputes them (§9.5).
+9. **Claims.** `rating` and `certificate` are type-checked (finite, non-negative score; known status). The UI shows them with the generator's wording, without a "claimed" prefix; the rating's level is bold (§6.11).
 10. **Policy (warnings only).** Pieces smaller than 3 cells, duplicate shapes or pieces with holes produce warnings; the player shows "non-standard piece set".
 
 Copy only whitelisted fields into newly created objects; this prevents prototype pollution. Render every text field with `textContent`.
@@ -684,7 +688,7 @@ Copy only whitelisted fields into newly created objects; this prevents prototype
 
 - `version` changes only for breaking schema changes. Older versions keep explicit, tested migrations (`migrate[n]`). Unknown versions are rejected.
 - Independent identifiers version the semantics:
-  - `rating.model` (`difficulty-v2`; files carrying `difficulty-v1` ratings are accepted and shown as claims);
+  - `rating.model` (`difficulty-v2`; packs carrying `difficulty-v1` ratings are accepted and shown as claims);
   - `certificate.model` (`dlx-v1`);
   - `generation.algo` (`gen-v2`: macro/flat carving, local LNS, strict batch fold; seeds reproduce only within one algo id);
   - `generation.policy` (`mixed-v2`: size window, small-piece cap, count formula and availability of §6.4 and §7.5);
@@ -706,7 +710,7 @@ Copy only whitelisted fields into newly created objects; this prevents prototype
 
 - `macroRegion` lists the macro-region index of each piece in piece order; it lets a later session continue generating puzzles with macro-region re-tiling (§6.7). It is absent for flat and imported sets.
 - `batchSeed` is the seed of the last batch request: in packs written by `tools/generate.mjs` it is `setSeed + "#" + batchIndex`; in packs from the generator page it is the random whole number drawn for the newest puzzle's New Puzzle press (§8.6). `batchIndex` is the 1-based number of the batch request on this set (§8.6, D41).
-- `generation` is type-checked only on import (§5.3); a missing or foreign object never blocks play.
+- `generation` is type-checked only when a pack is read (§5.3); a missing or foreign object never blocks play.
 
 ### 5.6 Progress records and fingerprints
 
@@ -719,7 +723,10 @@ Copy only whitelisted fields into newly created objects; this prevents prototype
          clues:  [[pieceId, absoluteCellsSortedByYX], …] sorted by pieceId }))
   ```
 
-- **Value:** `{ v: 1, placements: Pose[], elapsedMs, moves, solved, updatedAt }`.
+- **Value:** `{ v: 2, placements: Pose[], elapsedMs, moves, solved, revealed, hintsUsed }`. `solved` is geometry only; a revealed game is complete but not earned (§11.13).
+  - Version 1 records (written before hints) have no `revealed` or `hintsUsed`; they are read as `false` and `0`, and the next save writes version 2.
+  - Older records may carry `updatedAt`; it is ignored and dropped by the next save. The save time lives only in the LRU list `pentomino:v1:progress-index` (§9.6).
+  - **Replay** removes the record and its LRU entry; an untouched game is never written.
 - The fingerprint uses exact coordinates. It never uses symmetry-normalized keys, because saved poses refer to exact cells (counterexample in A.9).
 - Colors, titles, rotation, ratings and ids other than piece ids are excluded.
 - **Restore:** re-validate saved placements one by one with `canPlace`. Drop any invalid one and show a notice.
@@ -776,7 +783,7 @@ Primitives, in y-down screen coordinates:
 
 ### 6.2 Board model, presets and rendering classes
 
-- **Board.** W × H plus an active mask; files store it as row strings. W and H are each at most `LIMITS.maxSide` = 32 in the editor and at most 64 on import.
+- **Board.** W × H plus an active mask; packs store it as row strings. W and H are each at most `LIMITS.maxSide` = 32 in the editor and at most 64 in an incoming pack.
 - **`classifyBlocked`.** Flood fill from outside a 1-cell-padded grid through blocked cells. Reached cells are *exterior*; the remaining blocked cells are *holes*.
 - **`normalizedActive`.** Crops to the active bounding box and returns the offsets (dx, dy).
 - **`symmetries`.** Returns the t values for which `normalize(T_t(activeCells))` equals `normalize(activeCells)`.
@@ -791,7 +798,7 @@ Primitives, in y-down screen coordinates:
   | Phone: `matchMedia('(pointer: coarse)')` and (`navigator.deviceMemory` ≤ 4, or unknown, or `hardwareConcurrency` ≤ 4) | `phoneMaxActive` = 360 | 484 when BQ-3 passes [BQ] |
 
   - The design ceiling without the large-board setting is `designMaxActive` = 576. Boards above 676 cells are never generated; `tools/generate.mjs` takes its own `--max-active` (default 676).
-  - Import, play and verification have no generation limit (§5.3 limits apply).
+  - Opening a pack, play and verification have no generation limit (§5.3 limits apply).
 - **Validation for generation** (`validateForGeneration(board, enabledMaxActive(device))`).
   - Errors:
     - active cells < `LIMITS.minActive` (30) or above the enabled maximum;
@@ -1104,7 +1111,7 @@ Measured sizes: 676 cells with 91 pieces → 348k rows and 2.97 M nodes; 676 cel
 | Rating | canonical | first solution, 5,000 branch trials or 50,000 row trials | B and the stop reason (§7.3) |
 | Certificate | canonical | 2 solutions or the row limit | *unique* = 1 found + exhausted; *multiple* = 2 found; *unsatisfiable* = 0 found + exhausted; otherwise *not proved* |
 | Discovery (random tiling, LNS) | seeded | first solution(s) or cap | a new valid layout |
-| Import verify | canonical | first solution or cap | *solvable*; *unsatisfiable* if exhausted; otherwise *not verified* |
+| Player verify | canonical | first solution or cap | *solvable*; *unsatisfiable* if exhausted; otherwise *not verified* |
 
 - Counting uses raw coordinates; there is no symmetry quotient. One layout class up to board symmetry can therefore hold several raw solutions.
 - Symmetric orientations are deduplicated as rows, so they never create duplicate solutions.
@@ -1301,11 +1308,11 @@ optional: try removing the added clues one by one (random order), keeping unique
 
 | Status | Evidence | Generator card text | Player text |
 |---|---|---|---|
-| (none yet) | Certificate pending, or not computed | "Checking…" while pending, else "Uniqueness not checked" | "Uniqueness not checked" |
+| (none yet) | Certificate pending, or not computed | "Checking…" while pending, else "Uniqueness not checked" | "At least 1 solution" once a solution is known (§9.5), else nothing |
 | `unique` | Exhaustive count found exactly 1 raw-coordinate solution | "Unique solution ✓" | "Unique solution ✓" |
-| `multiple` | 2 distinct raw solutions found | "Multiple solutions" | "Several solutions" |
-| `not-proved` | The count hit its row limit with ≤ 1 solution found | "At least 1 solution" (the witness exists) | "Uniqueness not proved" |
-| `unsatisfiable` | Exhaustive count found 0 | "No solution exists" (never generated) | An import error ("No solution exists") |
+| `multiple` | 2 distinct raw solutions found | "Multiple solutions" | "Multiple solutions" |
+| `not-proved` | The count hit its row limit with ≤ 1 solution found | "At least 1 solution" (the witness exists) | "At least 1 solution" |
+| `unsatisfiable` | Exhaustive count found 0 | "No solution exists" (never generated) | "No solution exists" for a claim in a pack (an error when the Player's own check proves it) |
 
 - **Default `any`: lazy certificates** (D14). Every in-band puzzle is accepted without a certificate. After the batch's last accepted puzzle (or when the pool is idle), the scheduler runs `certifyTask` per puzzle, lowest slot first:
   - row limit `countRows(A)` = 10,000 for A ≤ 200 and 2,000 above (cap 2 solutions);
@@ -1316,7 +1323,7 @@ optional: try removing the added clues one by one (random order), keeping unique
   - It is a standard option for A ≤ 200 or levels below Hell. Elsewhere step 2 shows N-UNIQUE-EXP ("experimental and usually fails"): above 200 cells, 639 of 670 Hell-level certificates were "not proved" (A.10).
   - Macro-carved sets make multiple solutions common at some levels (e.g. 10 of 10 at 360-cell master, A.10), so `require` rejects more candidates there.
 - **Tie-break (MAY).** When several in-band candidates exist for one slot, prefer one already certified `unique`. Never spend extra search on this.
-- **Player.** Any valid complete placement wins, whatever the status. Certificates read from files are shown as "claimed" until this runtime recomputes them; recomputed ones are marked "verified".
+- **Player.** Any valid complete placement wins, whatever the status. Certificates carried by a pack are shown with the generator's wording, without a "claimed" prefix; the Player does not recompute them.
 
 ---
 
@@ -1533,7 +1540,7 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
   ```
 
 - The pool lives in `core/browser/worker-pool.js`.
-- **Recycling** (D38). When the piece set changes (a new set is accepted, imported or restored), the pool terminates and respawns its workers lazily before the next job. This releases allocator pages that a finished set's models leave behind.
+- **Recycling** (D38). When the piece set changes (a new set is accepted or restored), the pool terminates and respawns its workers lazily before the next job. This releases allocator pages that a finished set's models leave behind.
 - The player uses one worker for verification.
 
 **Messages:**
@@ -1550,7 +1557,7 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
 ```
 
 **Request tracking (main thread).**
-- Each user action (New Piece Set and New Puzzle in the generator, import verification in the player) gets a monotonically increasing `requestId`, plus the `revision` (a hash) of the board and set it was started for.
+- Each user action (New Piece Set and New Puzzle in the generator, verification in the player) gets a monotonically increasing `requestId`, plus the `revision` (a hash) of the board and set it was started for.
 - Tasks belong to a request. Results whose request is no longer current, or whose revision no longer matches, are discarded, and their workers are terminated.
 - Previously accepted results stay on screen until a replacement is validated.
 - Lazy certificate tasks (§6.11) have the lowest priority; any new user action cancels them.
@@ -1589,7 +1596,7 @@ All budgets live in `policy.js` (`BUDGETS`, `TIME`). Node budgets are determinis
 | `slotAttempts` | Candidates per batch slot | 12 |
 | `maxRows` / `maxNodes` | Pre-flight model guards (§6.6) | 600,000 / 5,000,000 |
 | `workspaceBytes` / `scratchBytes` / `cacheBytes` | Per worker: main workspace / LNS scratch / optional model cache | 160 MiB / 32 MiB / 32 MiB |
-| `verifyRows` | Import verification without a solution | 2,000,000 |
+| `verifyRows` | Player verification without a solution | 2,000,000 |
 | `progressEvery` | Row trials between progress messages (UI shows ≤ 5 updates/s) | 50,000 |
 | `historyKeys` | Session-history layout keys per set | 1,000 |
 
@@ -1647,7 +1654,7 @@ All budgets live in `policy.js` (`BUDGETS`, `TIME`). Node budgets are determinis
     - 🎲 draws a new random seed into the field at once and turns it on;
     - with it on, every press reuses the field's seed unchanged (trimmed and NFC-normalized); with it off, every press first draws a new random seed into the field and uses it.
     - The field therefore always shows the seed of the latest set request, and the set summary shows the seed of the set on show.
-  - **Batch seeds.** Every New Puzzle press increments the set's `batchIndex` (1 for the first request; stored with the set, §9.6, and restarting at 0 for each new set). The generator page draws a fresh random whole number (`crypto.getRandomValues`, a uint32 written in decimal) as the batch seed of each press, keeps it per puzzle (`puzzleSeeds`) and shows it on the card. `tools/generate.mjs` keeps `batchSeed = setSeed + "#" + batchIndex`.
+  - **Batch seeds.** Every New Puzzle press increments the set's `batchIndex` (1 for the first request; stored with the set, §9.6, and restarting at 0 for each new set). The generator page draws a fresh random whole number (`crypto.getRandomValues`, a uint32 written in decimal) as the batch seed of each press, keeps it per puzzle (`puzzleSeeds`) and shows it next to the puzzle name in the main panel (not on the cards). `tools/generate.mjs` keeps `batchSeed = setSeed + "#" + batchIndex`.
     - The batch seed is internal. It is not editable and not subject to the 64-code-point limit.
     - It needs no extra label: candidates use the labels `slot/<i>/<a>` (§6.9).
 - **Test vectors:**
@@ -1704,16 +1711,17 @@ Pass criteria, for **every** cell of the matrix and every listed browser:
 
 ---
 
-## 9. Hand-off, import and storage
+## 9. Hand-off, links and storage
+
+Puzzles travel only by link: neither app imports or exports files. The player's address always holds the open pack and puzzle, so a bookmark keeps a puzzle and sending the address shares it.
 
 ### 9.1 Mechanisms
 
 | Mechanism | Used for | Notes |
 |---|---|---|
-| `../player/#pack=<code>&i=<k>` | Generator **Play** (opened in a new tab); sharing the player's address | Self-contained and portable; a URL fragment is never sent to a server |
-| `../player/#lib=<packId>&i=<k>` | Play when the link would exceed 16,000 characters, or encoding fails | Same browser only; not shareable |
-| JSON file `*.pentomino.json` | Player import and export of library packs; the generator's "Export earlier pack" after a 512 KiB split (§10.5) | Durable; may omit solutions |
-| Local library | Recent packs and progress (player), generator state | `localStorage`, `pentomino:v1:` namespace (§9.6) |
+| `../player/#pack=<code>&i=<k>` | Generator **Play** (opened in a new tab); the player's address, to bookmark or share | Self-contained and portable; a URL fragment is never sent to a server |
+| `../player/#lib=<packId>&i=<k>` | Play when the link would exceed 16,000 characters, or encoding fails | Same browser only, while its copy is kept (30 packs, LRU); not shareable |
+| Local storage | The copies behind `#lib=` links and progress (player), generator state | `localStorage`, `pentomino:v1:` namespace (§9.6) |
 
 ### 9.2 Share code
 
@@ -1724,7 +1732,7 @@ Pass criteria, for **every** cell of the matrix and every listed browser:
   2. base64url-decode.
   3. For `1z`, read through `DecompressionStream('deflate-raw')` chunk by chunk, aborting once output exceeds 256 KiB.
   4. Decode UTF-8, then run `parsePack`.
-- If `DecompressionStream` is missing: "This browser can't open compressed links — use Import file."
+- If `DecompressionStream` is missing: "This browser can't open compressed links."
 - **Measured sizes** (A.6):
 
   | Pack | Characters |
@@ -1734,59 +1742,58 @@ Pass criteria, for **every** cell of the matrix and every listed browser:
   | 10 puzzles, 360 cells, 40 pieces | ≈ 4.4–4.6k |
   | 10 puzzles, 676 cells, ~90 pieces | ≈ 9–10k (estimated from the above; within the 16,000-character rule) |
 
-- Links above 4,000 characters may be cut by some chat apps; `preparePlayerLink` returns a warning for them that suggests a file instead.
+- Links above 4,000 characters may be cut by some chat apps; `preparePlayerLink` returns a warning for them.
 
 ### 9.3 Play flow
 
 1. **Play** in the main panel of step 3 acts on the selected puzzle. The generator builds a pack of the set on show with every puzzle of the list, solutions included; k is the index of the selected puzzle.
 2. It saves the generator state at once (best effort) and opens a blank tab in the click's own turn, so pop-up blockers let it through.
 3. `code ← encodeShareCode(pack)`, and the URL is built as `new URL('../player/', document.baseURI)` plus `#pack=<code>&i=<k>`.
-   - If the URL is ≤ 16,000 characters, the new tab goes there; the pack is also saved to the library (best effort), so the player's Recent list has it.
-   - Otherwise, if the library save and its readback succeed, the tab goes to `#lib=<packId>&i=<k>`.
+   - If the URL is ≤ 16,000 characters, the new tab goes there. Nothing is saved for it: the link holds the pack.
+   - Otherwise, if saving a copy in this browser and its readback succeed, the tab goes to `#lib=<packId>&i=<k>`.
    - Otherwise the tab is closed and the generator shows M-PLAYER-UNAVAILABLE. A refused tab shows M-PLAYER-BLOCKED.
 4. The player:
-   1. parses the hash, then decodes and validates the pack;
-   2. adds it to the library;
-   3. loads saved progress;
-   4. renders puzzle k.
+   1. parses the hash, then decodes and validates the pack (or loads the saved copy of a `#lib=` link and marks it as most recently opened);
+   2. loads saved progress;
+   3. renders puzzle k.
 5. The hash stays in the URL, so reloads and bookmarks work. Switching puzzles updates `&i=` with `history.replaceState`.
 
 The generator tab stays as it was: nothing is cancelled and background certificate checks continue. Play is disabled while a job runs.
 
-### 9.4 Import paths
+### 9.4 Ways in
 
 **Player:**
-- the URL hash (`#pack` or `#lib`);
-- an **Import file** button, or drag-and-drop (≤ 512 KiB);
-- a **paste box**: a share code, a full link or raw JSON. `extractCode` finds `#pack=…` or `1[zj]\.[A-Za-z0-9_-]+` in the surrounding text;
-- **Recent** (the library);
-- **Sample** (`player/samples/sample-pack.json`).
+- the URL hash (`#pack` or `#lib`); a later change of the hash (a link pasted into the address bar, Back or Forward) opens that puzzle too;
+- **Try the sample** (`player/samples/sample-pack.json`) on the start screen.
 
-A `piece-set` file shows: "This file has pieces but no puzzle — open it in the generator."
+There is no file input, drop target or paste box. A pack that did not arrive by a portable link — the sample, or a pack after a puzzle was removed (§11.12) — is first saved for a `#lib=` address; as soon as its share code is ready, and if `page + #pack=…&i=…` is at most 16,000 characters, the address becomes that `#pack=` link (`history.replaceState`) and the saved copy is removed. If another address was opened meanwhile (a link being loaded), it is left alone.
+
+A `piece-set` pack shows: "This link has pieces but no puzzle — open it in the generator."
 
 **Generator.** The generator page has no import: piece sets and puzzles come only from its own generation, and its saved state (§9.6) is read back through `validatePack`. Rules that still apply to sets read back from storage:
 - Stored ratings and certificates are shown as stored and are not recomputed (§6.11, §7.7).
 - A stored set without `macroRegion` (carving `imported`) uses flat-cluster LNS for New Puzzle (§6.7).
 
-### 9.5 Verification on import
+### 9.5 Verification when a pack opens
 
 The `verifyPack` worker task checks each puzzle:
 - **With a valid `solution`:** solvable (verified) in O(cells), with no search.
 - **Otherwise:** a bounded `solveFirst` with `verifyRows` gives solvable / unsatisfiable (only if exhausted) / not verified.
 
-Play is allowed while checking, and after an inconclusive check. "Not verified" is never shown as "no solution". Ratings and certificates from files stay "claimed" (§6.11, §7.7).
+Play is allowed while checking, and after an inconclusive check. "Not verified" is never shown as "no solution". Certificates and ratings carried by the pack are shown with the generator's wording; the rating's level is bold (§6.11, §7.7). A puzzle without a certificate reads "At least 1 solution" once a solution is known (a valid included `solution`, or a "solvable" result of this check), as a new puzzle does in the generator; until then, and after an inconclusive or unsatisfiable check, no uniqueness text is shown.
 
 ### 9.6 Storage
 
 | Key | Content | Limit |
 |---|---|---|
 | `pentomino:v1:gen:state` | Generator state (§10.6): board, rotation, preset, level, seed text and its keep flag, uniqueness, the saved sets of each board and the set on show with its puzzles | 1 entry; ≤ 50 sets per board, 10 boards |
-| `pentomino:v1:lib:index` | `[{ packId, title, createdAt, lastOpened, puzzles, solved }]` | 30 packs, LRU |
-| `pentomino:v1:lib:<packId>` | Pack JSON (`packId` = first 16 hex of SHA-256 of the canonical core content) | — |
+| `pentomino:v1:lib:index` | `[{ packId, lastOpened }]`, most recently opened first. Fields of older versions (`title`, `createdAt`, `puzzles`, `solved`) are ignored and dropped by the next write. | 30 packs, LRU |
+| `pentomino:v1:lib:<packId>` | Pack JSON behind a `#lib=` link (`packId` = first 16 hex of SHA-256 of the canonical core content). A pack opened from a `#pack=` link is not copied. | — |
 | `pentomino:v1:progress:<fp>` | Progress record (§5.6) | 300 entries, LRU |
-| `pentomino:v1:prefs` | UI preferences: labels, patterns, timer, Straighten view. A stored `largeBoards` flag is ignored. | 1 entry |
-| `pentomino:v1:lang` | Generator interface language: `en` or `vi` (`?lang=` overrides it for one load) | 1 entry |
-| `pentomino:v1:theme` | Generator theme: `light`, `dark` or `high-contrast`; absent = follow the system's light or dark setting | 1 entry |
+| `pentomino:v1:progress-index` | LRU list of the progress records, `[{ fp, at }]` with `at` the save time in ms, oldest first; rebuilt from the key names when it is lost | 1 entry |
+| `pentomino:v1:prefs` | `{ straighten }`: the Player's Straighten view. Older `labels`, `patterns`, `timer` and `largeBoards` fields are ignored and dropped by the next write. | 1 entry |
+| `pentomino:v1:lang` | Interface language of both apps, which share it: `en` or `vi` (`?lang=` overrides it for one load) | 1 entry |
+| `pentomino:v1:theme` | Theme of both apps: `light`, `dark` or `high-contrast`; absent = follow the system's light or dark setting | 1 entry |
 
 - Every access is wrapped in try/catch.
 - On a quota error:
@@ -1801,7 +1808,7 @@ Play is allowed while checking, and after an inconclusive check. "Not verified" 
 - Every input passes `validatePack` before use; nothing is stored on failure.
 - Text is rendered with `textContent` only. Colors must match `#rrggbb`. There is no `eval`, no `new Function` and no `innerHTML` with data.
 - Every page sets a Content-Security-Policy `<meta>` (§12.4).
-- Size limits: file ≤ 512 KiB; share code ≤ 350,000 characters; decoded ≤ 256 KiB; `meta` ≤ 4 KiB.
+- Size limits: pack ≤ 512 KiB; share code ≤ 350,000 characters; decoded ≤ 256 KiB; `meta` ≤ 4 KiB.
 
 ---
 
@@ -1827,13 +1834,13 @@ Breakpoints: from 1360 px the panels are three columns (Puzzles | Main | Steps).
 ┌ Pentomino Generator ───────────────────────────────────────────────────────────────────────────────── [EN|VI] [☀|☾|◐] ┐
 │ Set 2/2 puzzles  Remove all │ Step 3 - Create puzzles  [‹ Step 2 - Create piece set]  │ ① Create board                │
 │ ┌────────────────────────┐  │ Choose a level, then generate puzzles one at a time.    │   ▦ board thumbnail           │
-│ │ Puzzle #2           ✕  │  │ Puzzle #2                                    [ Play ]   │ ② Create piece set            │
+│ │ Puzzle #2           ✕  │  │ Puzzle #2  Seed: 2846513907                  [ Play ]   │ ② Create piece set            │
 │ │ Hard: score 20   ▦▦▦   │  │ ┌──────────────────────────────┐                        │   Set 2/2                     │
-│ │ Seed: 2846513907 ▦▦▦   │  │ │ board with the clues placed  │                        │   Hard | K7Q2-9MXA-3FWD       │
-│ │ 6 pieces to place      │  │ └──────────────────────────────┘                        │   9 pieces | Piece sizes 4–9  │
-│ │ Unique solution ✓      │  │ Pieces to place                                         │ ③ Create puzzles              │
-│ └────────────────────────┘  │ ▢B ▢D ▢E ▢G ▢H ▢I                                       │   Difficulty level [Hard ▾]   │
-│ ┌ Puzzle #1 … ┐             │                                                         │   ☐ Require unique solution   │
+│ │ 6 pieces to place▦▦▦   │  │ │ board with the clues placed  │                        │   Hard | K7Q2-9MXA-3FWD       │
+│ │ Unique solution ✓      │  │ └──────────────────────────────┘                        │   9 pieces | Piece sizes 4–9  │
+│ └────────────────────────┘  │ Pieces to place                                         │ ③ Create puzzles              │
+│ ┌ Puzzle #1 … ┐             │ ▢B ▢D ▢E ▢G ▢H ▢I                                       │   Difficulty level [Hard ▾]   │
+│                             │                                                         │   ☐ Require unique solution   │
 │                             │                                                         │   [       New Puzzle      ]   │
 │                             │                                                         │   Elapsed: 0:07 (while busy)  │
 └─────────────────────────────┴─────────────────────────────────────────────────────────┴───────────────────────────────┘
@@ -1891,16 +1898,15 @@ Under the level table, the heading "Piece sets" and the set panel:
   - **Difficulty level**: the levels offered for the set's board, defaulting to the level the set was made for. Another choice applies to the next puzzles only; the set is kept. A level far from the set's own level may be unreachable with this set; the request then ends with N-SETLEVEL.
   - **Require unique solution** (off by default). Puzzles must then be proven unique (§6.11). The switch also applies to the next New Piece Set and is kept in the address.
   - **New Puzzle** adds one puzzle to the list per press: q = 1, a fresh random batch seed, `batchIndex + 1` (§6.9, §8.6). Puzzles stream into the list as they are accepted. It is disabled while a job runs and when the set cannot make puzzles (fewer than 3 pieces, no witness, a board outside the limits, or a level not offered); the reason is shown in the main panel.
-- **Limits of the list.** At most 100 puzzles (M-PACK-FULL). The seen-history of a set holds at most 1,000 layout and clue keys; when it is full, M-HISTORY-FULL offers **Reset history** (earlier arrangements may then reappear). When the list would no longer fit a 512 KiB pack, the earlier puzzles move to a separate "Earlier pack · n puzzles" under the cards, with **⬇ Export earlier pack** (M-SPLIT); this is the generator's only file export.
+- **Limits of the list.** At most 100 puzzles (M-PACK-FULL). The seen-history of a set holds at most 1,000 layout and clue keys; when it is full, M-HISTORY-FULL offers **Reset history** (earlier arrangements may then reappear). Play opens the whole list as one pack, so the list also ends where that pack would pass 512 KiB: New Puzzle is refused with M-PACK-SIZE when one more puzzle about the size of the newest would not fit (`roomForAnotherPuzzle`), and a new puzzle that turns out larger and does not fit is dropped, with the same message, which then replaces the batch's cancel or shortfall message. The generator has no file export.
 - **Puzzle cards (left panel)**, newest on top; the number counts in creation order and follows removals. Each card is one button that selects the puzzle, with a ✕ in its corner:
   - "Puzzle #n";
   - the level in bold and the score: "**Hard**: score 20" (a saturated score gets "+");
-  - "Seed: 2846513907", the batch seed of its press;
   - "6 pieces to place" (K − G);
   - the solution status (§6.11): "Checking…" while it streams in or its lazy certificate is pending, then "Unique solution ✓", "Multiple solutions", "At least 1 solution" or "No solution exists"; "Uniqueness not checked" when no certificate was computed;
   - a thumbnail in the display rotation.
-  - ✕ removes the puzzle; **Remove all** in the panel header removes every puzzle of the set and the earlier packs. Removing never shrinks the seen-history, so removed arrangements are not generated again. Both are disabled while a job runs.
-- **Selected puzzle (main panel).** The newest puzzle, until a card is clicked; then that puzzle until it is removed. It shows "Puzzle #n" with **Play** (§9.3) at the top right, the board with the pre-placed pieces, and "Pieces to place": the remaining pieces at 60 % of the board's cell size. Play is disabled while a job runs.
+  - ✕ removes the puzzle; **Remove all** in the panel header removes every puzzle of the set. Removing never shrinks the seen-history, so removed arrangements are not generated again. Both are disabled while a job runs.
+- **Selected puzzle (main panel).** The newest puzzle, until a card is clicked; then that puzzle until it is removed. It shows "Puzzle #n" and, next to it, "Seed: 2846513907" (the batch seed of its press; the cards do not show it, as in the Player), with **Play** (§9.3) at the top right, the board with the pre-placed pieces and, at its top right, the board tools of step 1 (− / + zoom, ⤢ fit = back to the default size, ⟲ / ⟳ turn the view by 45°; the view angle is the one of step 1, and a zoomed board scrolls inside its frame), and "Pieces to place": the remaining pieces at 60 % of the board's cell size. Play is disabled while a job runs.
 - **Repeated puzzles.** A puzzle with the id, clue key or layout key of a puzzle already in the list is never added; the request then ends with M-DUPLICATE, which suggests a new piece set.
 - **Shortfalls** show their notice (§6.9, §10.7). For `layouts-not-found` and `difficulty-not-found` the notice offers **Generate new piece set**, which runs New Piece Set with the current settings.
 
@@ -1954,8 +1960,7 @@ Texts live in `generator/locale.en.js` (every key) and `generator/locale.vi.js` 
 | M-HISTORY-FULL | Outcome | "This piece set remembers {used} of {max} arrangements, the most it can keep, so no more puzzles can be generated. Reset the history to go on (earlier puzzles may then appear again)." Offers **Reset history**. |
 | M-PACK-FULL | Outcome | "The list holds at most {max} puzzles. Remove some puzzles to add more." |
 | M-DUPLICATE | Outcome | "The new puzzle is the same as one already in the list, so it was not added. No more new puzzles can be generated for this piece set. Create a new piece set." |
-| M-SPLIT | Outcome | "The pack grew past the {kib} KiB file limit, so the earlier {n} puzzles are kept as a separate pack. Export it to keep it." |
-| M-EXPORT-FAILED | Toast | "This pack is too large to export as one file. Remove some puzzles and try again." (Export earlier pack) |
+| M-PACK-SIZE | Outcome | "The list is full: Play opens all its puzzles as one pack, which holds at most {kib} KiB. Remove some puzzles to add more." |
 | M-FEWPIECES | Step 3 | "This set has fewer than 3 pieces, so new puzzles cannot be generated (one clue plus two movable pieces are needed). You can still view it." |
 | M-NOWITNESS | Step 3 | "No arrangement of this set was found within the search limit, so new puzzles cannot be generated. You can still view it." |
 | M-LEVEL-NOT-OFFERED | Step 3 | "{level} is not offered for a board of {area} playable squares." |
@@ -1993,19 +1998,38 @@ The step settings live in the query string (`generator/address.js`), so a reload
 
 ### 11.1 Layout
 
+The player has a header and three panels, laid out like the generator's (§10.1):
+
 ```text
-┌ ☰ Pack ▾ │ Hard #2 · score 20 │ ⏱ 03:12 │ 17 moves │ ↶ ↷ │ ⟲ Reset │ ⤢ Straighten │ ⤓ Import ┐
-├──────────────────────── Board (SVG, display rotation θ) ─────────────┬──── Tray (SVG, θ) ──────┤
-│      clues hatched + lock icon; ghost shows the drop position         │  A   B   D   F   …       │
-├───────────────────────────────────────────────────────────────────────┴─────────────────────────┤
-│ Selected: F   [⟲] [⟳] [⇋] [⇵] [Place] [↩ to tray]                          7 pieces left        │
-└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Pentomino Player ──────────────────────────────────────────────────────────────────────── [? Help] [EN|VI] [☀|☾|◐] ┐
+│ Puzzles   [ Remove all ] │ Hard #2                                                  │ Pieces to place  4 left    │
+│ ┌────────────────────┐    │ **Hard**: score 20 · 6 pieces to place                       │                            │
+│ │ Hard #2         ▦▦ │    │ [Solvable ✓] [At least 1 solution]                       │ [⟲][⟳][⇋][⇵]               │
+│ │ **Hard**…       ▦▦ │    │ 3:12   17 moves                [Undo] [Redo] [💡] [↻]     │ ┌────┐ ┌────┐ right-click: │
+│ │ 6 pieces to place  │    │ hint message in small text, with [Place it] [Dismiss]    │ │ B  │ │ D  │ piece menu   │
+│ │ In progress        │    │ ┌────────────────────────────────────────────────────┐   │ └────┘ └────┘              │
+│ └────────────────────┘    │ │ board (SVG, display rotation θ)   [− + ⤢ ⟲ ⟳]  │   │ ┌──┐                       │
+│ ┌ Hard #3 … ┐             │ └────────────────────────────────────────────────────┘   │ │ G│                       │
+│                           │                                                          │ └──┘                       │
+└────────────────────────────┴───────────────────────────────────────────────────────────┴─────────────────────────────┘
 ```
 
-- Below 900 px: a compact top bar, then the board, the selection toolbar, and the tray (2 rows, horizontal scroll).
-- Large boards (hundreds of cells, up to ~90 pieces): the board supports zoom and pan (drag on empty board area or two-finger pan), and the tray scrolls.
+- **Header.** Logo, the title (**Pentomino Player** / **Trình chơi Pentomino**), a **Help** button (icon and text; opens the keyboard shortcuts dialog), the **EN | VI** buttons and the three theme buttons, with the markup and styles of the generator's header (§11.14).
+- **Puzzles panel** (left). Header "Puzzles" with **Remove all**; then one card per puzzle of the open pack, newest (the last of the pack) on top as in the generator, in the card layout of the generator: the status badge (New, In progress, Solved ✓, Revealed) to the left of the name ("Puzzle #2"; a generated title such as "Expert #2" is shown this way, a title written by hand stays), the rating with its level in bold (**Expert**: score 123; "+" after a capped score), "N pieces to place", the certificate text (§6.11; "At least 1 solution" without a certificate once a solution is known, §9.5), and a preview of the board with its locked pieces, drawn at the presentation angle. The seed is not shown. The open puzzle is highlighted (`aria-current`). A card opens its puzzle; the card of the puzzle already open does nothing. A ✕ in the corner of a card removes that puzzle from the pack; the shorter pack gets its own address (§11.12); the puzzle that was open stays open, or its neighbour opens when it was the one removed. **Remove all**, and removing the last puzzle, close the pack (its same-browser copy, if any, is removed), clear the address and show the start screen; saved progress is kept. Without a pack the panel says so and Remove all is disabled. There is no Import button and no drop target.
+- **Main panel** (middle). The **game** screen shows:
+  - the name of the puzzle, and under it the rating (level in bold, no "claimed" prefix) and the number of pieces to place; there are no Previous / Next buttons: the puzzle list opens the puzzles, and the win dialog offers *Next puzzle*;
+  - the notices (error, restoration notice) and the badges (solvability check, uniqueness claim, local link, storage warning);
+  - the **game bar**: the timer, the move count, and the buttons **Undo**, **Redo**, **Hint** (an icon, a light bulb) and **Replay** (an icon, a circular arrow) and, only when needed, **Straighten**; the icon buttons are named by their `aria-label` and tooltip. **Replay** asks first, then starts a brand-new game of the puzzle: every piece back in the tray, timer and moves at zero, history empty and the saved progress removed (§5.6); it cannot be undone and is disabled while the puzzle is untouched. The buttons are as big as the generator's **Play** button;
+  - under the game bar, the hint message (small regular text, with **Place it** / **Remove it**, **Cancel** and **Dismiss** buttons smaller than the game bar's);
+  - the board with its zoom, fit and view-rotation buttons at its top right (as in the generator's board editor: small 28 px buttons; the view angle is local to the open pack and never saved). The selection toolbar (§11.5) is not here but in the Pieces panel. There are no Place, To tray or Show solution buttons: a ghost is committed with a second tap on its cell or Enter, a piece goes back to the tray with Delete or the piece menu, and the reveal action has no button. The keyboard shortcuts list is the **Help** button of the page header (with `?` on the keyboard).
+
+  The **start** screen (§11.12) takes the place of the game screen in this panel while no puzzle is open.
+- **Pieces panel** (right). Header "Pieces to place" with "N pieces left"; under it the selection toolbar (⟲ ⟳ ⇋ ⇵ for the selected piece, and **Results** after an earned win; shown while a puzzle is open) and then the pieces still to place, each drawn at its current orientation and the display angle. There is no View box: labels, patterns and the timer always show (§11.9). Without a game it says that the pieces of the open puzzle appear here. Letting go of a dragged piece anywhere over this panel returns it to the tray (§11.3). **Right-click** on a piece opens the piece menu (§11.5).
+- Breakpoints, as in the generator: from 1360 px the three panels are columns (Puzzles | Game | Pieces); from 768 px the Game and Pieces panels are columns and the Puzzles panel goes under the game; below 768 px everything stacks (game, pieces, puzzles), the pieces form two rows that scroll horizontally, and the board is shorter. The board takes the height of the window up to the toolbar (at least 18 rem from 768 px). From 768 px the Pieces panel is sticky and scrolls inside itself; so is the Puzzles panel from 1360 px.
+- The page order is the focus order: pieces, game, puzzles (§11.6). The grid places the panels.
+- Large boards (hundreds of cells, up to ~90 pieces): the board supports zoom and pan (drag on empty board area or two-finger pan), and the pieces panel scrolls.
 - The cell size follows §6.3.
-- The Straighten toggle appears only when needed (touch devices with fitted cells < 24 px).
+- The Straighten toggle appears only when needed (touch devices with fitted cells < 24 px). Its state is the only stored preference (§9.6).
 
 ### 11.2 Game state and rules
 
@@ -2015,8 +2039,13 @@ type GameState = {
   placed: ReadonlyMap<string, Pose>;   // user-placed pieces only; clues are separate and immutable
   tray: ReadonlyMap<string, number>;   // orientation t of each unplaced piece
   selected: string | null; preview: Pose | null;
-  history: readonly Move[]; future: readonly Move[];   // Move = { piece, before: Pose|null, after: Pose|null, tBefore, tAfter }
-  solved: boolean; elapsedMs: number; moves: number;
+  history: readonly MoveCommand[]; future: readonly MoveCommand[];
+  // MoveCommand = { kind: 'piece', piece, before: Pose|null, after: Pose|null, tBefore, tAfter }
+  //             | { kind: 'reset', before, after }   (every movable placement and tray orientation)
+  solved: boolean;                     // geometry only: a complete cover
+  revealed: boolean; hintsUsed: number;   // §11.13
+  elapsedMs: number; moves: number;
+  restoreWarnings: Issue[];            // saved moves dropped on restore; never saved
 };
 ```
 
@@ -2056,12 +2085,17 @@ The board state is never mutated during a drag or preview.
 
 1. Tapping a piece selects it and highlights its **handle cell**: the grabbed cell, or by default the occupied cell nearest the piece centroid (ties broken by (y, x)).
 2. Tapping a board cell shows the ghost with the handle on that cell.
-3. A second tap on the same cell, the **Place** button or Enter commits. Tapping another cell moves the ghost. Esc, or tapping the tray, cancels.
+3. A second tap on the same cell or Enter commits. Tapping another cell moves the ghost. Esc, or tapping the tray, cancels.
 4. Tapping the already-selected tray piece rotates it ⟳.
 
 ### 11.5 Rotate and flip
 
-- The toolbar has ⟲ ⟳ ⇋ ⇵ in screen space (§6.3), plus ↩ to return a piece to the tray.
+- The toolbar has ⟲ ⟳ ⇋ ⇵ in screen space (§6.3). A piece returns to the tray with Delete or Backspace, the piece menu, or a drop over the pieces panel; there is no button for it.
+- **Piece menu.** Right-click on a piece of the pieces panel or on a movable piece of the board opens a small menu at the pointer: **Rotate clockwise** (E), **Rotate counter-clockwise** (Q), **Flip left-right** (F), **Flip top-bottom** (V) and, for a placed piece, **Return to tray** (Delete) followed by the two puzzle actions below. The Menu key or Shift+F10 on a focused piece opens it under the piece, and a long press does on touch screens whose browser sends `contextmenu`.
+- **Board menu.** Right-click anywhere else on the board (empty cells, outside the board shape, a locked clue) opens the same kind of menu with only the puzzle actions: **Return all pieces to the tray** (every placed piece goes back to the tray, and every turned tray piece to its first orientation, as one undoable action; disabled when there is nothing to return) and **Replay the puzzle** (asks first; clears the board, the timer, the moves and the saved progress of this puzzle, which cannot be undone; disabled while the puzzle is untouched).
+  - Opening it selects the piece, and every entry does what the toolbar button does, so the rules below apply unchanged.
+  - The first entry has the focus. The arrow keys, Home and End walk the entries (the page's shortcuts stay quiet), Enter or Space runs one, and Escape, Tab, a press elsewhere, a scroll or a resize closes it; the focus goes back to the piece when the menu closes by Escape or by choosing an entry.
+  - The menu is a `role="menu"` of buttons (`role="menuitem"`), kept inside the window.
 - **Tray pieces** re-orient in place.
 - **Placed pieces** rotate or flip about their handle cell. If the result is invalid, the player tries one-cell grid kicks in the order (0, −1), (−1, 0), (1, 0), (0, 1).
   - If none fits, the piece does not change: a 200 ms shake plus "No room to rotate here".
@@ -2071,22 +2105,23 @@ The board state is never mutated during a drag or preview.
 
 | Key | Action |
 |---|---|
-| Tab / Shift+Tab | Move focus over tray pieces, then placed movable pieces |
+| Tab / Shift+Tab | Move focus over the pieces to place, then the controls and placed movable pieces of the game, then the puzzles |
 | Enter / Space | Pick up the focused piece (a ghost appears), or drop it if valid |
 | Arrow keys (Shift = 3 cells) | Move the ghost; on rotated boards, by the mapping of §6.3 |
 | E or R / Q | Rotate ⟳ / ⟲ on screen |
-| F / V | Mirror ⇋ / ⇵ on screen |
+| F / V | Flip ⇋ / ⇵ on screen |
 | Delete / Backspace | Return the selected placed piece to the tray |
-| Esc | Cancel the pick-up or close a dialog |
+| Esc | Cancel the pick-up or close a dialog or the piece menu |
 | Ctrl/⌘+Z; Ctrl/⌘+Shift+Z or Ctrl+Y | Undo; redo |
+| Right-click, Menu key or Shift+F10 on a piece | Open the piece menu (§11.5) |
 | ? | Show shortcuts |
 
-Shortcuts are ignored while focus is in a text field or a dialog. Visible buttons duplicate every action.
+Shortcuts are ignored while focus is in a text field, a dialog or the piece menu. The buttons of the selection toolbar also rotate and flip, and the piece menu also returns a piece to the tray. The **Help** dialog lists the rows of this table in the interface language.
 
 ### 11.7 Touch
 
 - `touch-action: none` applies only to the board and tray surfaces, so the page still scrolls elsewhere.
-- Hit targets are ≥ 44 × 44 CSS px.
+- Hit targets are ≥ 44 × 44 CSS px, except the board tools, which are 28 px as in the generator's board editor (still above the 24 px of WCAG 2.2 AA).
 - The lift is 1.25 cells, measured in screen space.
 - No long-press gestures.
 - Optional `navigator.vibrate(10)` on a successful placement.
@@ -2111,41 +2146,39 @@ Shortcuts are ignored while focus is in a text field or a dialog. Visible button
 - **Pieces.**
   - One SVG `<path>` per outline (`outlineLoops`, even-odd fill for holes), filled with the piece color.
   - A darker stroke (35 % black mix) and faint inner cell seams.
-  - An upright label on the cell nearest the centroid, colored with `textColorFor`, subject to the Labels toggle (see **Display toggles** below).
+  - An upright label on the cell nearest the centroid, colored with `textColorFor`, drawn when its cell is large enough (see **Labels** below).
 - **Clues.** A diagonal-hatch overlay and a lock icon. Clues are neither focusable nor draggable.
 - **Palette** (`BASE_COLORS`, Trubetskoy's 20 distinct colors, used in id order):
   `#e6194b #3cb44b #ffe119 #4363d8 #f58231 #911eb4 #42d4f4 #f032e6 #bfef45 #fabed4 #469990 #dcbeff #9a6324 #fffac8 #800000 #aaffc3 #808000 #ffd8b1 #000075 #a9a9a9`.
   - For index ≥ 20, `colorFor(i)` generates colors: hue = (i · 137.508°) mod 360, saturation 65 %, lightness alternating between 45 % and 65 %.
-- **Labels.** `labelFor(i)`: A … Z, then AA, AB, …, AZ, BA, … (spreadsheet-style, ≤ 4 characters). Sets reach about 90 pieces on 676-cell boards.
-- **Patterns** (D30). When K > 20, every piece with index ≥ 20 also gets a fill pattern: `patternFor(i)` cycles dots, horizontal lines and vertical lines by ⌊i / 20⌋. Patterns are drawn at low contrast in the stroke color, never as diagonal hatching (reserved for clues), at every zoom level, subject only to the Patterns toggle.
-- **Display toggles.** Two independent switches in the player's ☰ menu (View section). Both are stored in `pentomino:v1:prefs` (§9.6), and the generator's previews follow the same values.
-  - **Labels** (default on) shows letters on pieces on the board and in the tray. When on, a label is drawn only where its cell is ≥ 10 CSS px at the current zoom; smaller ones appear once the user zooms in. Accessible names (§11.11) always include the label.
-  - **Patterns** (default on; the switch is shown only when K > 20) shows the fill patterns above.
-  - Neither switch affects the other: hiding labels never hides patterns, and hiding patterns never hides labels.
-  - Letters guarantee identity even when two colors look alike. Patterns keep pieces with index ≥ 20 apart when labels are off or too small to draw.
-- **Large boards.** Pieces of up to ~50 cells and trays of up to ~90 pieces are normal on large boards. The tray scrolls. Labels follow the size rule of the Labels toggle.
+- **Labels.** `labelFor(i)`: A … Z, then AA, AB, …, AZ, BA, … (spreadsheet-style, ≤ 4 characters). Sets reach about 90 pieces on 676-cell boards. A label is drawn only where its cell is ≥ 10 CSS px at the current zoom; smaller ones appear once the user zooms in. Accessible names (§11.11) always include the label. Letters guarantee identity even when two colors look alike.
+- **Patterns** (D30). When K > 20, every piece with index ≥ 20 also gets a fill pattern: `patternFor(i)` cycles dots, horizontal lines and vertical lines by ⌊i / 20⌋. Patterns are drawn at low contrast in the stroke color, never as diagonal hatching (reserved for clues), at every zoom level. They keep pieces with index ≥ 20 apart where labels are too small to draw.
+- **No display toggles.** Labels, patterns and the timer always show, in both apps. Older versions stored Labels, Patterns and Timer switches in `pentomino:v1:prefs`; those values are ignored (§9.6).
+- **Large boards.** Pieces of up to ~50 cells and trays of up to ~90 pieces are normal on large boards. The tray scrolls. Labels follow the size rule above.
 
 ### 11.10 Undo, reset, timer and persistence
 
-- **History.** The action history holds up to 500 entries. Reset asks for confirmation and is itself undoable.
-- **Timer.** Optional and shown by default. It starts at the first move and pauses while the tab is hidden.
-- **Saving.** Progress is saved by fingerprint (§5.6), debounced 250 ms after each committed action.
-- **Reopening.** A puzzle with saved progress offers *Continue* (default) or *Restart*.
+- **History.** The action history holds up to 500 entries. **Return all pieces to the tray** (board menu) is undoable; **Replay** asks for confirmation and clears the history.
+- **Timer.** Always shown. It starts at the first move and pauses while the tab is hidden.
+- **Saving.** Progress is saved by fingerprint (§5.6), debounced 250 ms after each committed action, at once on a win, when the page is hidden and before another puzzle opens. An untouched game is not written; **Replay** removes the record.
+- **Reopening.** A puzzle with saved progress opens with its pieces, time and moves restored, without a question; **Replay the puzzle** (board menu, §11.5) starts it again.
 - **Storage failures** never block play.
 
 ### 11.11 Accessibility (target: WCAG 2.2 AA)
 
 - The board has `role="application"` and instructions linked through `aria-describedby`.
-- Pieces are focusable, with labels such as "Piece F, 5 cells, in tray" or "Piece F, on board at row 3, column 5".
-- An `aria-live="polite"` region announces placements, rejection reasons and the win.
-- Focus rings are always visible, and UI contrast is ≥ 4.5:1. Letters (on by default) and hatching remove any reliance on color.
+- Pieces are focusable, with labels such as "Piece F, 5 cells, in tray" or "Piece F, on board at row 3, column 5". These names come from `core/browser/svg-board.js` and stay English in both languages.
+- An `aria-live="polite"` region announces placements, rejection reasons and the win, in the interface language.
+- The document language (`<html lang>`) follows the interface language.
+- Focus rings are always visible, and UI contrast is ≥ 4.5:1. Letters and hatching remove any reliance on color.
 - Reduced motion is respected, and the whole game can be completed with the keyboard alone.
 
-### 11.12 Pack navigation and library
+### 11.12 Pack navigation and the address
 
-- The **☰ Pack** menu lists the pack's puzzles with level, score and status (new / in progress / solved ✓ / revealed), plus previous/next buttons. Its **View** section holds the Labels, Patterns and Timer switches (§11.9, §11.10).
-- The Import screen lists the library (recent packs). Entries can be deleted or exported again.
-- With no hash and an empty library, the player opens the Import screen with the Sample pack.
+- The **Puzzles panel** (§11.1) lists the pack's puzzles, newest on top, with ✕ on each card and **Remove all** in its header; a card opens its puzzle. There are no Previous / Next buttons in the game panel.
+- The address is the only way to keep or share a puzzle: it always names the open pack and puzzle (`#pack=…&i=k`, or `#lib=…&i=k` for a pack too large for a link). Switching puzzles changes only `i`. A pack that did not come from a `#pack=` link (the sample, or the shorter pack after ✕) is saved for a same-browser `#lib=` address at once and gets its portable `#pack=` address as soon as its share code is ready and the URL fits 16,000 characters; the saved copy is then removed (§9.4). A `#lib=` link opened as such keeps its address.
+- The **start** screen (`player/ui/start-view.js`) shows in the main panel while no pack is open (start-up without a link, a link that failed on arrival, **Remove all**, or the last puzzle removed): the heading "No puzzle is open", a line on how puzzles open, the reason a link failed (`role="alert"`), **Try the sample**, a link **Open the Generator** (`../generator/`), and a line saying that a bookmark keeps a puzzle and sending the address shares it. Nothing opens by itself.
+- A link that fails while a pack is open shows its message in the game panel and leaves the open game as it was.
 
 ### 11.13 Hints and show solution
 
@@ -2154,7 +2187,15 @@ Hints make only proven statements (D27). There are three outcomes:
 - **Proven repairing removal.** Removing one specific placed piece makes the position solvable again. Every placed piece is tested, each search exhausted or successful.
 - Otherwise: "No repair identified within this check." Never blame a piece without proof.
 
-**Show solution** uses the stored `solution` if it agrees with the current placements; otherwise it runs a solver. It marks the puzzle "revealed", not "solved".
+**Show solution** (no button in the page since the toolbar was reduced; the logic stays in `hints.js` and `hint-panel.js`) uses the stored `solution` if it agrees with the current placements; otherwise it runs a solver. It marks the puzzle "revealed", not "solved".
+
+### 11.14 Language and theme
+
+- **Header.** The same switches as the generator's: **EN | VI** (`aria-pressed` marks the language in use) and the light, dark and high-contrast theme buttons (`core/browser/theme.css`; without a choice the page follows the system's light or dark setting). A choice is kept in `pentomino:v1:lang` and `pentomino:v1:theme` (§9.6), which both apps share. The page start language is `?lang=`, then the saved choice, then the browser languages, then English. `theme-init.js` sets a stored theme before the first paint.
+- **Footer.** Both pages end with a centred footer (`footer.app-footer`, styled in `core/browser/common.css`): "© 2026 Dat Le. Released under the MIT licence." and a link "Source code on GitHub" to the page's folder in the repository (`https://github.com/tdat00/pentomino/tree/main/generator` or `.../player`; new tab, `rel="noopener noreferrer"`). The texts are the keys `shell.footer.*` of each locale pack. The generator's footer is in `generator/index.html`; the player builds its own in `player/app.js`.
+- **Texts.** `player/locale.en.js` is the base pack (every key) and `player/locale.vi.js` has the same keys and `{placeholders}`; plural forms are `_one` / `_other` keys, and Vietnamese needs only the plain key. A new user-visible text needs a key in both packs (`tests/player-i18n.test.js` checks the keys and placeholders, and that every key used by the code exists).
+- **How texts are read.** `player/strings.js` exposes `LABELS`, `PLAY_TEXT`, `HINT_TEXT`, the verification, certificate and rating labels and the loader messages. Each read looks the text up in the current language, so `state.js`, `play.js` and `hints.js` use them unchanged. Fixed texts of the page are built with `loc()` / `locAttrs()` (`player/ui/i18n-dom.js`), which mark the element with `data-i18n`, so `setLocale` rewrites them; texts that the page computes (the puzzle list, the counters, the badges) are drawn again after a switch. The messages the controllers keep as strings (an error, a notice, a hint message) stay in the language they were made in until the next one.
+- **Not translated.** Text that comes from the data (puzzle titles), from the engine (the issue text of a rejected pack), and the accessible names of pieces ("Piece F, 5 cells, in tray", from `core/browser/svg-board.js`) stay English.
 
 ---
 
@@ -2303,7 +2344,7 @@ jobs:
 | `generate` | Fold determinism: identical output for pool sizes 1 and 4 and shuffled completion orders (simulated). New layout AND clue keys; no clue-only variant is ever accepted. The best-distance fallback fills a slot whose candidates were all "too close" with the farthest valid one (`bestDistance`; ties keep the earliest attempt). Partial status, its reason and the prefix property. The calibration puzzle is reused as #1. Lazy `certifyTask` results do not change accepted puzzles. Speculation priority: with a simulated pool of 4 where every attempt 0 is accepted, q = 10 needs 3 dispatch rounds. Batch seeds follow `setSeed#batchIndex`; two consecutive batches on one set use different seeds and both return new layouts; a fresh session with the same seed reproduces batch 1. |
 | `palette` | `labelFor`: 0 → A, 25 → Z, 26 → AA, 701 → ZZ, 702 → AAA. `patternFor` is 'none' for K ≤ 20. Generated colors are valid `#rrggbb`. |
 | `pack` | The §5.2 fixture validates and round-trips. Rejects: wrong format; version 0, −1, 2 or "1"; unknown fields; bad rows; overlapping clues; an invalid solution; oversized input. Accepts the classic 12 pentominoes on 6×10, a piece with a hole (warnings only), `difficulty-v1` ratings (as claims) and a 90-piece pack. `omitSolutions` works. |
-| `sharecode` | `1z` / `1j` round-trips (Node ≥ 22 has `CompressionStream`). A decompression bomb is aborted at 256 KiB. `extractCode` finds codes in surrounding text. |
+| `sharecode` | `1z` / `1j` round-trips (Node ≥ 22 has `CompressionStream`). A decompression bomb is aborted at 256 KiB. |
 | `game` | place / move / remove / orient / undo / redo / reset. `canPlace` reasons. A moving piece's old cells are excluded. A non-witness tiling wins. Clues are immutable. Restoring progress drops invalid moves. |
 
 ### 13.3 Browser acceptance checklist
@@ -2314,16 +2355,18 @@ Run on desktop Chromium, Firefox and Safari, on Android Chrome and on iOS Safari
 2. Default board → New Piece Set → New Puzzle (several presses) → Play: the player opens in a new tab and shows the same pieces and clues.
 3. The Heart preset shows as a heart at 45° in both apps. In the editor, clicking a blocked cell of the notch (at 45° and at 0°) unblocks it, and dragging re-blocks cells.
 4. Drag, tap-place, rotate, flip and the keyboard all work at 0°, 45°, 90° and 315°, including on scrolled and zoomed pages.
-5. Export a pack from the player's library, then import it in another browser profile. Paste a link.
+5. A Play link opens in another browser profile. A bookmarked player address reopens the same puzzle, and a link pasted into the address bar of an open player opens its puzzle.
 6. Complete a puzzle with the keyboard only. Screen-reader smoke test.
 7. An invalid drop and `pointercancel` leave the previous state unchanged.
 8. Cancel responds during a long job, and accepted puzzles remain.
-9. With storage disabled, an oversized link falls back to `#lib` or a file.
+9. With storage disabled, Play of a pack too large for a link shows M-PLAYER-UNAVAILABLE instead of a `#lib` link; portable links still open and play.
 10. A valid tiling different from the stored solution wins.
 11. No score, uniqueness or solvability claim appears after an inconclusive check.
-12. A 22×22 Hell-3 pack (≈ 75 pieces) shows labels beyond Z, patterns, a scrolling tray, and stays playable with zoom and pan. Turning Labels off keeps the patterns; turning Patterns off keeps the labels.
+12. A 22×22 Hell-3 pack (≈ 75 pieces) shows labels beyond Z and patterns together, a scrolling tray, and stays playable with zoom and pan.
 13. The area cap and N-CAP follow the device class (§6.2).
 14. A job that reaches 115 s returns its accepted puzzles by 120 s with reason `time-limit`.
+15. The player's **EN | VI** switch changes every text of the page and survives a reload; the theme buttons change the palette (also on the generator, which shares both choices).
+16. Right-click on a piece of the pieces panel opens the piece menu: rotate both ways, flip both ways. On a placed piece it also offers Return to tray. Escape closes it and the focus returns to the piece.
 
 ### 13.4 Performance and calibration
 
@@ -2353,12 +2396,12 @@ L = likelihood, I = impact.
 | Display-only rotation confuses users (pieces still turn by 90°) | M | L | WYSIWYG tray, screen-space controls, axis hints, Straighten view |
 | Cells too small at 45° on phones or large boards | M | M | Fit rule, zoom, pan, Straighten view, phone area cap |
 | Many pieces are hard to tell apart | M | L | Labels beyond Z, patterns, generated colors, scrolling tray |
-| Long links get truncated | L | L | 16k limit, warning, file export, `#lib` fallback |
+| Long links get truncated | L | L | 16k limit, warning, `#lib` fallback |
 | Shared-origin storage and quota | L | L | Namespace, LRU, try/catch |
 | Mixed old/new modules after a deploy | M | L | Whole-graph `?v=` stamping; no service worker |
 | Seeds stop reproducing after algorithm changes | M | L | `algo`, `policy`, `rng` and model ids recorded in packs |
-| Malicious or corrupt imports | L | M | Staged validation, size limits, `textContent`, CSP |
-| Browser lacks module workers or (De)CompressionStream | L | M | Feature detection, clear messages, `1j` codes, file import |
+| Malicious or corrupt links | L | M | Staged validation, size limits, `textContent`, CSP |
+| Browser lacks module workers or (De)CompressionStream | L | M | Feature detection, clear messages, `1j` codes |
 
 ### 14.2 Edge cases
 
@@ -2371,12 +2414,12 @@ L = likelihood, I = impact.
 7. `require` at Hell levels on large boards usually fails: N-UNIQUE-EXP before, N-UNIQUE with the partial result after.
 8. Editing the board after a set exists switches to the sets of the new board (§10.2); nothing is discarded. Choosing another puzzle level in step 3 keeps the set; if it cannot reach that level, the request ends as `difficulty-not-found` with N-SETLEVEL.
 9. Cancelling a batch keeps the accepted puzzles; pending certificates stay "not checked".
-10. Imports:
+10. Packs from links:
     - without a solution → verify in a worker;
     - proven unsatisfiable → an error state;
     - inconclusive → playable as "not verified";
     - sets without `macroRegion` use flat-cluster LNS when new puzzles are generated.
-11. Non-standard imported sets (duplicate shapes, pieces < 3 cells, holes) are playable with a notice. A pack with zero clues is playable too; the generator never produces one.
+11. Non-standard sets in a link (duplicate shapes, pieces < 3 cells, holes) are playable with a notice. A pack with zero clues is playable too; the generator never produces one.
 12. An unknown version or rule set: show "unsupported" and store nothing.
 13. Progress saved for a different puzzle with the same id is not applied, because the fingerprints differ.
 14. No room to rotate a placed piece: shake and leave it unchanged. A drop partly outside or overlapping reverts.

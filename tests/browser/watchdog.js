@@ -120,8 +120,6 @@ const storage = {
     memoryStore.generator = JSON.parse(JSON.stringify(snapshot));
     return { ok: true };
   },
-  getPrefs: () => ({}),
-  setPrefs: () => ({ ok: true }),
 };
 
 const root = h('div', { class: 'harness-app' },
@@ -137,7 +135,7 @@ const app = createGeneratorApp(document, {
   storage: /** @type {any} */ (storage),
   client,
   random: () => 'WATCHDOG-SEED',
-  controller: { cancelPending: () => pool.cancelAll(), notify: () => {} },
+  controller: { cancelPending: () => pool.cancelAll() },
 });
 const state = () => app.store.getState();
 const q = (/** @type {string} */ selector) => /** @type {HTMLElement} */ (root.querySelector(selector));

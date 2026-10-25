@@ -1,7 +1,20 @@
 // @ts-check
-// Display name of a puzzle in the player's top bar.
+// Display names of puzzles: the heading of the game and the headings of the puzzle cards.
 
 import { LABELS } from './strings.js';
+
+const GENERATED_TITLE = /^(?:Very easy|Easy|Normal|Hard|Expert|Master|Nightmare|Hell [1-9]\d*)(?: #\d+)?$/;
+
+/**
+ * Heading of a card in the puzzles panel, as in the generator: a generated title ("Expert #2", or a bare level name
+ * such as "Easy") shows as "Puzzle #2"; a title somebody wrote stays as it is.
+ * @param {string | undefined} title
+ * @param {number} index Zero-based position in the pack.
+ * @returns {string}
+ */
+export function cardHeading(title, index) {
+  return title === undefined || title === '' || GENERATED_TITLE.test(title) ? LABELS.cardHeading(index + 1) : puzzleDisplayName(title, index);
+}
 
 /**
  * A generated title already ends in its number ("Normal #3"), so it is shown

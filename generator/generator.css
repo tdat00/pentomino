@@ -359,11 +359,6 @@ button.ghost-small:disabled {
   cursor: pointer;
 }
 
-.wizard-step-body[data-step-after]:hover .board-summary,
-.wizard-step-body[data-step-after]:hover .set-summary-card {
-  background: var(--gen-color-accent-soft);
-}
-
 .wizard-step-body[data-step-after]:focus-visible {
   outline: 2px solid var(--gen-color-accent);
   outline-offset: 2px;
@@ -1096,6 +1091,14 @@ button.card-select {
   cursor: pointer;
 }
 
+/* No hover highlight (nor press shift) on a card: the selected card is marked by the card itself. */
+button.card-select:hover:not(:disabled),
+button.card-select:active:not(:disabled) {
+  background: none;
+  color: inherit;
+  transform: none;
+}
+
 /* The preview sits bottom right, under the remove button in the corner. */
 .card-thumb {
   flex: none;
@@ -1158,6 +1161,23 @@ button.card-remove {
   margin: 0 0 0.5rem;
 }
 
+.detail-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.125rem 0.75rem;
+  min-width: 0;
+}
+
+.detail-seed {
+  color: var(--pm-muted);
+  font-size: 0.875rem;
+}
+
+.detail-seed[hidden] {
+  display: none;
+}
+
 .detail-title {
   margin: 0;
   font-size: 1.125rem;
@@ -1173,13 +1193,26 @@ button.card-remove {
 }
 
 .detail-board {
-  display: flex;
-  justify-content: center;
+  display: block;
+  max-height: min(75vh, 44rem);
   padding: 0.75rem;
   overflow: auto;
   background: var(--gen-board-bg);
   border: 1px solid var(--gen-color-divider);
   border-radius: var(--gen-radius-2);
+}
+
+/* A zoomed board scrolls inside the frame; a smaller one stays centered. */
+.detail-board .pm-board {
+  width: max-content;
+  min-width: 100%;
+  height: auto;
+}
+
+.detail-board .pm-board[data-mode="thumbnail"] .pm-scroll {
+  width: auto;
+  height: auto;
+  overflow: visible;
 }
 
 .detail-pieces {
@@ -1209,8 +1242,3 @@ button.card-remove {
 .badge[data-status="unchecked"] {
   color: var(--gen-warning);
 }
-
-.parked-pack {
-  margin-top: 0.5rem;
-}
-

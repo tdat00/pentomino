@@ -12,7 +12,7 @@ import {
   KICKS, SAVE_DELAY_MS, createPlayController, defaultHandle, handleCell, keyStep, orientedHandle, poseWithHandle, rotatePlaced,
   transformedT,
 } from '../player/play.js';
-import { puzzleDisplayName } from '../player/puzzle-title.js';
+import { cardHeading, puzzleDisplayName } from '../player/puzzle-title.js';
 import { createPlayerController, createPlayerStore } from '../player/state.js';
 import { PLAY_TEXT } from '../player/strings.js';
 import { createKeyboard } from '../player/ui/keyboard.js';
@@ -598,10 +598,9 @@ test('a valid tiling that is not the stored solution wins', () => {
   assert.equal(saved?.placements.length, 2);
 });
 
-test('saving: one write per 250 ms burst, stamped by the host clock; failures never block play', () => {
+test('saving: one write per 250 ms burst; failures never block play', () => {
   const h = harness(sample);
   const [a, b] = movables(sample);
-  const start = h.clock.now();
   /** @param {Pose} pose */
   const place = (pose) => {
     h.play.select(pose.piece);
@@ -624,8 +623,6 @@ test('saving: one write per 250 ms burst, stamped by the host clock; failures ne
   assert.equal(h.saves.length, 1, 'bursts coalesce');
   const record = h.storage.loadProgress(h.fingerprints[0]);
   assert.equal(record?.placements.length, 2);
-  assert.equal(record?.updatedAt, h.clock.now(), 'the host clock stamps the record');
-  assert.equal(h.game().updatedAt, new Date(start + SAVE_DELAY_MS - 1).toISOString());
 
   const failing = harness(sample, { saveFails: true });
   failing.play.select(a.piece);
@@ -686,7 +683,7 @@ test('the timer starts at the first committed move, pauses while hidden and stop
   assert.equal(h.play.clockRunning(), false);
 });
 
-test('display preferences never change poses, scores or fingerprints; Straighten changes the effective angle only', () => {
+test('Straighten changes the effective angle only, never poses or fingerprints', () => {
   const pack = rotated(45);
   const h = harness(pack);
   const id = movables(pack)[0].piece;
@@ -695,15 +692,8 @@ test('display preferences never change poses, scores or fingerprints; Straighten
   const fp = h.store.getState().fingerprints.slice();
   const placed = snapshot(h.game()).placements;
   assert.equal(h.game().tray.get(id), screenFlip(0, 45, 'horizontal'));
-  h.controller.setPref('labels', false);
-  h.controller.setPref('patterns', false);
-  assert.deepEqual(h.store.getState().fingerprints, fp);
-  assert.deepEqual(snapshot(h.game()).placements, placed);
-  assert.equal(h.store.getState().prefs.labels, false);
-  assert.equal(h.store.getState().prefs.patterns, false);
-  h.controller.setPref('labels', true);
-  assert.equal(h.store.getState().prefs.patterns, false, 'the two switches are independent');
   h.controller.setPref('straighten', true);
+  assert.deepEqual(snapshot(h.game()).placements, placed);
   h.play.transform('flipH');
   assert.equal(h.game().tray.get(id), screenFlip(screenFlip(0, 45, 'horizontal'), 0, 'horizontal'));
   assert.deepEqual(h.store.getState().fingerprints, fp);
@@ -730,10 +720,18 @@ test('escape cancels the preview, then the selection; clues are never selectable
   assert.equal(h.play.cancel(), false);
 });
 
-test('the top-bar name does not number a title that already ends in its number', () => {
+test('the game heading does not number a title that already ends in its number', () => {
   assert.equal(puzzleDisplayName('Normal #1', 0), 'Normal #1');
   assert.equal(puzzleDisplayName('Hard #4', 0), 'Hard #4');
   assert.equal(puzzleDisplayName('Warm-up', 2), 'Warm-up #3');
   assert.equal(puzzleDisplayName('', 1), 'Puzzle 2');
   assert.equal(puzzleDisplayName(undefined, 0), 'Puzzle 1');
+});
+
+test('card headings follow the generator: generated titles become "Puzzle #n", written titles stay', () => {
+  assert.equal(cardHeading('Expert #2', 1), 'Puzzle #2');
+  assert.equal(cardHeading('Hell 3 #1', 0), 'Puzzle #1');
+  assert.equal(cardHeading('Easy', 4), 'Puzzle #5');
+  assert.equal(cardHeading(undefined, 2), 'Puzzle #3');
+  assert.equal(cardHeading('Warm-up', 2), 'Warm-up #3');
 });

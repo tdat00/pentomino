@@ -1,9 +1,7 @@
 // @ts-check
-// Pointer gestures: binds one pointer tracker to the board and one to the tray
-// and turns their signals into play-controller calls and drag-layer updates.
-// Pieces are handled by the trackers only (never by the board's own onPiece), a
-// touch drag is lifted 1.25 cells above the finger, and the wheel turns the
-// dragged piece. The controller decides every outcome.
+// Pointer gestures: one pointer tracker on the board and one on the tray turn drags and taps into play-controller
+// calls and drag-layer updates. Pieces are handled by the trackers only, never by the board's own onPiece. A touch
+// drag is lifted 1.25 cells above the finger, and the wheel turns the dragged piece.
 
 import { createPointerTracker } from '../../core/browser/pointer.js';
 import { effectiveRotation } from '../state.js';
@@ -12,7 +10,7 @@ import { effectiveRotation } from '../state.js';
 /** @typedef {ReturnType<CreatePlay>} Play */
 /** @typedef {import('../../core/browser/pointer.js').PointerInfo} PointerInfo */
 
-export const TOUCH_LIFT_CELLS = 1.25;
+const TOUCH_LIFT_CELLS = 1.25;
 const WHEEL_GAP_MS = 120;
 const CLICK_GUARD_MS = 450;
 
@@ -23,13 +21,14 @@ const CLICK_GUARD_MS = 450;
  * @property {import('../state.js').PlayerStore} store
  * @property {ReturnType<import('./board-view.js').createBoardView>} boardView
  * @property {HTMLElement} trayHost
+ * @property {HTMLElement} [dropHost] Area where a dropped piece goes back to the tray (the tray itself by default).
  * @property {ReturnType<import('./drag-layer.js').createDragLayer>} dragLayer
  */
 
 /**
  * @param {GestureOptions} options
  */
-export function bindGestures({ win, play, store, boardView, trayHost, dragLayer }) {
+export function bindGestures({ win, play, store, boardView, trayHost, dropHost = trayHost, dragLayer }) {
   /** @type {{ last: PointerInfo, shownT: number } | null} */
   let active = null;
   let lastHandled = -Infinity;
@@ -62,8 +61,6 @@ export function bindGestures({ win, play, store, boardView, trayHost, dragLayer 
       rotation: effectiveRotation(state),
       cellPx: boardView.cellPx(),
       handleIndex: drag.index,
-      showLabels: state.prefs.labels,
-      showPatterns: state.prefs.patterns && state.pack.pieces.length > 20,
     });
     active.shownT = drag.t;
   }
@@ -78,7 +75,7 @@ export function bindGestures({ win, play, store, boardView, trayHost, dragLayer 
     const x = info.clientX;
     const y = info.clientY - lift;
     dragLayer.moveTo(x, y);
-    const overTray = inside(trayHost, info.clientX, info.clientY);
+    const overTray = inside(dropHost, info.clientX, info.clientY);
     const overBoard = !overTray && inside(surface, x, y);
     const local = overBoard ? boardView.view.localPoint(x, y) : null;
     play.dragTo(local === null ? null : [local.x, local.y], overTray);

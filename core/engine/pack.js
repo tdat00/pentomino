@@ -55,7 +55,7 @@ const BOARD_FIELDS = new Set(['rows']);
 const PRESENTATION_FIELDS = new Set(['rotation']);
 const PIECE_FIELDS = new Set(['id', 'label', 'color', 'cells']);
 const POSE_FIELDS = new Set(['piece', 'x', 'y', 'turn', 'mirrored']);
-const PUZZLE_FIELDS = new Set(['id', 'title', 'clues', 'solution', 'rating', 'certificate']);
+const PUZZLE_FIELDS = new Set(['id', 'title', 'seed', 'clues', 'solution', 'rating', 'certificate']);
 const RATING_V2_FIELDS = new Set(['model', 'score', 'level', 'saturated', 'metrics']);
 const RATING_CLAIM_FIELDS = new Set(['model', 'score', 'level', 'saturated', 'censored', 'metrics']);
 const METRICS_FIELDS = new Set(['U', 'B', 'branchTrials', 'rowTrials', 'stop', 'R', 'H']);
@@ -889,6 +889,7 @@ function readPuzzle(ctx, v, path, env) {
   const before = ctx.issues.length;
   const id = fields.has('id') ? readId(ctx, fields.get('id'), child(path, 'id'), PUZZLE_ID, 'Puzzle id') : null;
   const title = fields.has('title') ? readText(ctx, fields.get('title'), child(path, 'title'), 0, 80, 'Puzzle title') : null;
+  const seed = fields.has('seed') ? readText(ctx, fields.get('seed'), child(path, 'seed'), 1, 256, 'Puzzle seed') : null;
   const clues = fields.has('clues')
     ? readPoses(ctx, fields.get('clues'), child(path, 'clues'), env, env.pieces.length - 1, 'too-many-clues')
     : null;
@@ -915,6 +916,9 @@ function readPuzzle(ctx, v, path, env) {
   const puzzle = { id };
   if (title !== null) {
     puzzle.title = title;
+  }
+  if (seed !== null) {
+    puzzle.seed = seed;
   }
   puzzle.clues = clues;
   puzzle.solution = solution;
@@ -1256,6 +1260,9 @@ function toWire(p, omitSolutions) {
     if (puzzle.title !== undefined) {
       out.title = puzzle.title;
     }
+    if (puzzle.seed !== undefined) {
+      out.seed = puzzle.seed;
+    }
     out.clues = canonicalPoses(puzzle.clues, byId);
     if (!omitSolutions && puzzle.solution) {
       out.solution = canonicalPoses(puzzle.solution, byId);
@@ -1337,6 +1344,9 @@ export function createPack(a) {
       const out = { id: puzzle.id };
       if (puzzle.title !== undefined) {
         out.title = puzzle.title;
+      }
+      if (puzzle.seed !== undefined) {
+        out.seed = puzzle.seed;
       }
       out.clues = canonicalPoses(puzzle.clues, byId);
       out.solution = puzzle.solution ? canonicalPoses(puzzle.solution, byId) : null;

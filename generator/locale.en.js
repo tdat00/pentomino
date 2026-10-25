@@ -17,6 +17,9 @@ export default Object.freeze({
   'shell.theme.light': 'Light theme',
   'shell.theme.dark': 'Dark theme',
   'shell.theme.highContrast': 'High-contrast theme',
+  'shell.footer.copyright': '\u00a9 2026 Dat Le. Released under the MIT licence.',
+  'shell.footer.repo': 'Source code on GitHub',
+  'shell.footer.repo.title': 'Open the source of the generator in the pentomino repository on GitHub (new tab)',
 
   // Wizard
   'wizard.label': 'Steps',
@@ -131,9 +134,6 @@ export default Object.freeze({
   'puzzles.empty.none': 'No puzzles yet. Choose New Puzzle.',
   'puzzles.list': 'Puzzles',
   'puzzles.setHeading': 'Set {n}/{total} puzzles',
-  'puzzles.parked': 'Earlier pack · {count} puzzles',
-  'puzzles.parked_one': 'Earlier pack · {count} puzzle',
-  'puzzles.exportParked': '⬇ Export earlier pack',
   'notice.action.newSet': 'Generate new piece set',
   'notice.action.resetHistory': 'Reset history',
 
@@ -193,12 +193,11 @@ export default Object.freeze({
   'message.M-FAILED': 'Generation stopped: {message}',
   'message.M-HISTORY-FULL': 'This piece set remembers {used} of {max} arrangements, the most it can keep, so no more puzzles can be generated. Reset the history to go on (earlier puzzles may then appear again).',
   'message.M-PACK-FULL': 'The list holds at most {max} puzzles. Remove some puzzles to add more.',
+  'message.M-PACK-SIZE': 'The list is full: Play opens all its puzzles as one pack, which holds at most {kib} KiB. Remove some puzzles to add more.',
   'message.M-DUPLICATE': 'The new puzzle is the same as one already in the list, so it was not added. No more new puzzles can be generated for this piece set. Create a new piece set.',
-  'message.M-SPLIT': 'The pack grew past the {kib} KiB file limit, so the earlier {n} puzzles are kept as a separate pack. Export it to keep it.',
   'message.M-FEWPIECES': 'This set has fewer than 3 pieces, so new puzzles cannot be generated (one clue plus two movable pieces are needed). You can still view it.',
   'message.M-NOWITNESS': 'No arrangement of this set was found within the search limit, so new puzzles cannot be generated. You can still view it.',
   'message.M-LEVEL-NOT-OFFERED': '{level} is not offered for a board of {area} playable squares.',
-  'message.M-EXPORT-FAILED': 'This pack is too large to export as one file. Remove some puzzles and try again.',
   'message.M-PLAYER-UNAVAILABLE': "This puzzle is too large to open by link and can't be saved in this browser.",
   'message.M-PLAYER-BLOCKED': 'The browser blocked the new tab. Allow pop-ups for this page and press Play again.',
   'message.M-NEEDS-SET': 'Generate a piece set first.',

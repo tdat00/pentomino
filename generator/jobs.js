@@ -6,10 +6,10 @@ import { clueKey, layoutKey } from '../core/engine/keys.js';
 import { BUDGETS } from '../core/engine/policy.js';
 import { randomPuzzleSeed } from '../core/engine/rng.js';
 import {
-  MAX_PACK_BYTES, MAX_PACK_PUZZLES, acceptSet, addSeenKeys, applyCertificate, batchLevelOf, buildPack, capFor, duplicateSetNumber,
+  MAX_PACK_BYTES, MAX_PACK_PUZZLES, acceptSet, addSeenKeys, applyCertificate, batchLevelOf, capFor, duplicateSetNumber,
   generationBlock, gotoSet, historyRoom, mergeSeenKeys, nextBatch, packFits,
-  removeAllPuzzles, removeAllSets, removeCurrentSet, removePuzzle, renumberTitles, resetHistory, setTimelineLength, setViewPosition, setsFull,
-  validSeed, visiblePack,
+  removeAllPuzzles, removeAllSets, removeCurrentSet, removePuzzle, resetHistory, roomForAnotherPuzzle, setTimelineLength,
+  setViewPosition, setsFull, validSeed, visiblePack,
 } from './state.js';
 import { t } from './i18n.js';
 import { formatMessage, formatNotice, levelLabel } from './strings.js';
@@ -29,8 +29,6 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {boolean} [workersAvailable] False shows N-NOWORKER instead of starting a job.
  * @property {() => void} [cancelPending] Cancels every pool task, idle certificates included.
  * @property {(pack: Pack, index: number) => Promise<void>} [openPlayer] Opens the player in a new tab; rejects with `handoff-unavailable` or `popup-blocked`.
- * @property {(pack: Pack, fileName: string) => void} [download]
- * @property {(message: string, kind: 'info' | 'warning' | 'error') => void} [notify]
  * @property {() => void} [beforeNavigate] Saves the generator state before the player opens.
  * @property {() => number} [now]
  * @property {() => string} [randomNumber] Source of fresh puzzle seeds (whole numbers as text).
@@ -48,6 +46,11 @@ const KIB = 1024;
  */
 function notice(code, text, kind, actions = []) {
   return typeof text === 'function' ? { code, text: text(), kind, actions, retext: text } : { code, text, kind, actions };
+}
+
+/** @returns {StatusNotice} The list is full: one more puzzle would not fit the pack that Play opens. */
+function packSizeNotice() {
+  return notice('M-PACK-SIZE', () => formatMessage('M-PACK-SIZE', { kib: MAX_PACK_BYTES / KIB }), 'warning');
 }
 
 /**
@@ -187,7 +190,6 @@ function errorNotice(error, state) {
 export function createJobController(options) {
   const { store, hardware, client } = options;
   const now = options.now ?? (() => Date.now());
-  const notify = options.notify ?? (() => {});
   let seq = 0;
   /** @type {string | null} */
   let certRevision = null;
@@ -314,6 +316,10 @@ export function createJobController(options) {
       store.update((s) => ({ ...s, notice: notice('M-PACK-FULL', () => formatMessage('M-PACK-FULL', { max: MAX_PACK_PUZZLES }), 'warning') }));
       return;
     }
+    if (!roomForAnotherPuzzle(state)) {
+      store.update((s) => ({ ...s, notice: packSizeNotice() }));
+      return;
+    }
     const quantity = Math.min(state.quantity, room);
     if (historyRoom(state) < quantity) {
       store.update((s) => ({ ...s, notice: historyPrompt(s) }));
@@ -336,7 +342,7 @@ export function createJobController(options) {
     /** @type {Puzzle[]} */
     const streamed = [];
     // Backstop for the engine's own history: a puzzle equal to one already listed is never added.
-    const guard = (options.duplicateGuard ?? duplicateGuard)(set, [...before, ...state.parked.flat()]);
+    const guard = (options.duplicateGuard ?? duplicateGuard)(set, before);
 
     /** @type {Awaited<ReturnType<GenerationClient['generateBatch']>> | null} */
     let result = null;
@@ -396,34 +402,35 @@ export function createJobController(options) {
     const reason = result?.reason;
 
     finish(revision, (s) => {
-      let puzzles = [...before, ...accepted];
-      let parked = s.parked;
+      // A new puzzle can be larger than the one that stood in for it: it is dropped rather than overflowing the pack.
+      let kept = accepted;
+      while (kept.length > 0 && !packFits(s, [...before, ...kept])) {
+        kept = kept.slice(0, -1);
+      }
+      const puzzles = [...before, ...kept];
+      const dropped = kept.length < accepted.length;
       /** @type {StatusNotice | null} */
       let outcome = null;
-      if (before.length > 0 && accepted.length > 0 && !packFits({ ...s, puzzles }, puzzles)) {
-        parked = [...parked, before];
-        puzzles = renumberTitles(accepted);
-        const parkedCount = before.length;
-        outcome = notice('M-SPLIT', () => formatMessage('M-SPLIT', { kib: MAX_PACK_BYTES / KIB, n: parkedCount }), 'warning');
-      }
       if (failure !== null) {
         outcome = errorNotice(failure, s);
+      } else if (dropped) {
+        // Puzzles that were shown while streaming leave the list: that, not how the batch ended, needs explaining.
+        outcome = packSizeNotice();
       } else if (status === 'cancelled') {
-        outcome = notice('M-CANCELLED-BATCH', () => formatMessage('M-CANCELLED-BATCH', { n: accepted.length, q: quantity, level: levelLabel(targetLevelId) }), 'info');
+        outcome = notice('M-CANCELLED-BATCH', () => formatMessage('M-CANCELLED-BATCH', { n: kept.length, q: quantity, level: levelLabel(targetLevelId) }), 'info');
       } else if (reason !== undefined) {
-        outcome = batchShortfall(reason, { n: accepted.length, q: quantity, levelId: targetLevelId, arrangements: result?.arrangements }) ?? outcome;
+        outcome = batchShortfall(reason, { n: kept.length, q: quantity, levelId: targetLevelId, arrangements: result?.arrangements });
       }
-      if (guard.rejected.size > 0 && failure === null) {
+      if (guard.rejected.size > 0 && failure === null && !dropped) {
         outcome = notice('M-DUPLICATE', () => formatMessage('M-DUPLICATE'), 'error');
       }
       const pendingIds = result !== null && status !== 'cancelled' && reason !== 'time-limit'
-        ? accepted.filter((p) => p.certificate === null || p.certificate === undefined).map((p) => p.id)
+        ? kept.filter((p) => p.certificate === null || p.certificate === undefined).map((p) => p.id)
         : [];
       return {
         ...s,
         puzzles,
-        puzzleSeeds: { ...s.puzzleSeeds, ...seedsFor(accepted) },
-        parked,
+        puzzleSeeds: { ...s.puzzleSeeds, ...seedsFor(kept) },
         seenLayouts: mergeSeenKeys(s.seenLayouts, seenLayouts),
         seenClues: mergeSeenKeys(s.seenClues, seenClues),
         checking: pendingIds.filter((id) => puzzles.some((p) => p.id === id)),
@@ -526,24 +533,6 @@ export function createJobController(options) {
     }
   }
 
-  /**
-   * Downloads an earlier pack that was split off at the file size limit.
-   * @param {number} index
-   */
-  function exportParked(index) {
-    const state = store.getState();
-    const group = state.parked[index];
-    if (group === undefined || state.set === null || options.download === undefined) {
-      return;
-    }
-    const pack = buildPack(state, group);
-    try {
-      options.download(pack, `pentomino-${state.setSeed ?? 'set'}-earlier-${index + 1}`);
-    } catch {
-      notify(formatMessage('M-EXPORT-FAILED'), 'error');
-    }
-  }
-
   return {
     generateSet,
     addMore,
@@ -555,7 +544,6 @@ export function createJobController(options) {
     removeSet,
     removeAllSets: removeSets,
     playPuzzle,
-    exportParked,
     destroy() {
       destroyed = true;
     },

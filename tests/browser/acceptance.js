@@ -1,7 +1,7 @@
 // @ts-check
 // T23 cross-app acceptance harness. It drives the REAL generator and player pages (unmodified HTML, CSS and
 // modules) in same-origin frames: root redirect, the three recorded production recipes through the real
-// controls and real module workers, Play hand-off, the four import paths of the player, desktop and narrow
+// controls and real module workers, Play hand-off, the ways the player opens a puzzle, desktop and narrow
 // layouts, touch-target size, contrast, accessible names and CSP / external-request hygiene. Each check is
 // pass / fail; checks that need hardware or tools that were not approved are listed as `blocked` with
 // the owner steps, never as passes. It writes the list into the page and sets data-result on <html> to
@@ -237,13 +237,14 @@ async function runRecipe(recipe) {
   const scores = qa(d, '.card-rating').map((n) => Number(/score (\d+)/.exec(n.textContent ?? '')?.[1] ?? NaN));
   assert(Number.isFinite(scores[0]), `the card shows a score: ${scores}`);
   const cardLines = qa(d, '.puzzle-card .card-body > p').map((n) => n.textContent ?? '');
-  assert(cardLines.length === 5 && cardLines[0] === 'Puzzle #1' && /^\w[\w ]*: score \d+\+?$/.test(cardLines[1]) && /^Seed: \d+$/.test(cardLines[2])
-    && /^\d+ pieces? to place$/.test(cardLines[3]) && /^(Unique solution ✓|Multiple solutions|Checking…|Uniqueness not checked|At least 1 solution|No solution exists)$/.test(cardLines[4]),
-  `the card shows number, level and score, a numeric seed, pieces to place and solutions: ${cardLines}`);
+  assert(cardLines.length === 4 && cardLines[0] === 'Puzzle #1' && /^\w[\w ]*: score \d+\+?$/.test(cardLines[1])
+    && /^\d+ pieces? to place$/.test(cardLines[2]) && /^(Unique solution ✓|Multiple solutions|Checking…|Uniqueness not checked|At least 1 solution|No solution exists)$/.test(cardLines[3]),
+  `the card shows number, level and score, pieces to place and solutions: ${cardLines}`);
+  assert(/^Seed: \d+$/.test(q(d, '.detail-seed').textContent ?? '') && q(d, '.detail-seed').parentElement === q(d, '.detail-title').parentElement, 'the seed is next to the name in the main panel');
   assert(qa(d, '.puzzle-card a').length === 0 && qa(d, '.puzzle-card button').every((b) => b.dataset.action === 'remove' || b.dataset.action === 'select'), 'the card only has its select and remove buttons');
   assert(!(/** @type {HTMLButtonElement} */ (q(d, '[data-action="remove-all-puzzles"]'))).disabled && q(d, '[data-action="remove-all-puzzles"]').closest('.app-history') !== null,
     'Remove all sits in the left panel and is enabled once there is a puzzle');
-  const toPlace = Number(/^(\d+)/.exec(cardLines[3])?.[1] ?? NaN);
+  const toPlace = Number(/^(\d+)/.exec(cardLines[2])?.[1] ?? NaN);
   // The cards have no Play button: the link is built from the pack the generator saved, as the old button did.
   const { browserStorage } = await import('../../core/browser/storage.js');
   const { preparePlayerLink } = await import('../../core/browser/handoff.js');
@@ -270,9 +271,9 @@ async function runRecipe(recipe) {
   const trayPieces = qa(p, '.tray-piece').length;
   assert(trayPieces === toPlace, `tray shows ${trayPieces} pieces, the card says ${toPlace} to place`);
   assert(p.querySelector('.pm-board svg') !== null, 'the board is drawn');
-  assert((q(p, '.top-title').textContent ?? '').trim() !== '', 'the title is shown');
+  assert((q(p, '.puzzle-title').textContent ?? '').trim() !== '', 'the title is shown');
   scan(frame);
-  return { setMs, batchMs, scores, toPlace, trayPieces, playerTitle: q(p, '.top-title').textContent, hrefChars: hrefs[0].length };
+  return { setMs, batchMs, scores, toPlace, trayPieces, playerTitle: q(p, '.puzzle-title').textContent, hrefChars: hrefs[0].length };
 }
 
 for (const recipe of recipes) {
@@ -280,74 +281,55 @@ for (const recipe of recipes) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// I: player imports
+// I: player links
 
 const pastedLink = new URL(playLinks['default-10x6-normal']?.[0] ?? '', location.href).href;
 
 /** @param {Frame} frame */
 const trayCount = (frame) => qa(frame.doc(), '.tray-piece').length;
 
-await check('I1', 'Player: file import in a fresh profile opens the game and fills the local library', async () => {
+await check('I1', 'Player: a fresh profile shows the start screen; the sample opens and its address becomes a portable link', async () => {
   localStorage.clear();
   const frame = await openFrame('../../player/', { ready: playerReady });
-  assert(frame.doc().querySelector('#app')?.getAttribute('data-screen') === 'import', 'the import screen opens without a link');
-  const win = frame.win();
-  const transfer = new win.DataTransfer();
-  transfer.items.add(new win.File([samplePackText], 'imported.pentomino.json', { type: 'application/json' }));
-  const input = /** @type {HTMLInputElement} */ (q(frame.doc(), '[data-role="file-input"]'));
-  input.files = transfer.files;
-  input.dispatchEvent(new win.Event('change', { bubbles: true }));
-  await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the imported game', 15000);
+  assert(frame.doc().querySelector('#app')?.getAttribute('data-screen') === 'start', 'the start screen opens without a link');
+  assert(frame.doc().querySelector('input[type="file"], textarea') === null, 'there is nothing to import');
+  q(frame.doc(), '[data-action="sample"]').click();
+  await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the sample game', 15000);
   assert(trayCount(frame) > 0, 'the tray has pieces');
+  await waitFor(() => String(frame.win().location.hash).startsWith('#pack='), 'the portable address', 10000);
+  const copies = Object.keys(localStorage).filter((k) => /^pentomino:v1:lib:[0-9a-f]{16}$/.test(k));
+  assert(copies.length === 0, `no pack copy is kept: ${copies}`);
   scan(frame);
-  return { trayPieces: trayCount(frame) };
+  return { trayPieces: trayCount(frame), hashChars: String(frame.win().location.hash).length };
 });
 
-/** @type {string | null} */
-let libraryId = null;
-
-await check('I2', 'Player: invalid import keeps the open game, the error is announced and Back returns to it', async () => {
-  const frame = await openFrame('../../player/', { ready: playerReady, hash: '' });
-  // The previous check stored the file in the library; open it from Recent.
-  await waitFor(() => qa(frame.doc(), '[data-action="open"]').length > 0, 'a recent pack', 10000);
-  libraryId = qa(frame.doc(), '[data-action="open"]')[0].dataset.packId ?? null;
-  q(frame.doc(), '[data-action="open"]').click();
-  await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the recent pack to open', 15000);
-  const before = { tray: trayCount(frame), title: q(frame.doc(), '.top-title').textContent };
-  q(frame.doc(), '[data-action="import"]').click();
-  await waitFor(() => frame.doc().querySelector('#app[data-screen="import"]') !== null, 'the import screen');
-  setValue(frame, /** @type {HTMLTextAreaElement} */ (q(frame.doc(), '#import-paste')), 'this is not a puzzle { nope');
-  q(frame.doc(), '[data-action="paste"]').click();
-  await waitFor(() => { const e = q(frame.doc(), '.import-error'); return !e.hidden && (e.textContent ?? '') !== ''; }, 'the import error', 10000);
-  const error = q(frame.doc(), '.import-error');
+await check('I2', 'Player: a broken link keeps the open game and the error is announced', async () => {
+  assert(pastedLink.includes('#pack='), 'a Play link was captured from the generator flow');
+  const frame = await openFrame('../../player/', { ready: playerReady, hash: new URL(pastedLink).hash });
+  await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the linked game', 15000);
+  const before = { tray: trayCount(frame), title: q(frame.doc(), '.puzzle-title').textContent };
+  // "1j." + base64url of "{ nope": a share code whose data is not a pack.
+  frame.win().location.hash = '#pack=1j.eyBub3Bl&i=0';
+  await waitFor(() => { const e = q(frame.doc(), '.status-error'); return !e.hidden && (e.textContent ?? '') !== ''; }, 'the link error', 10000);
+  const error = q(frame.doc(), '.status-error');
   assert(error.getAttribute('role') === 'alert', 'the error is an alert');
-  assert(!q(frame.doc(), '[data-action="back"]').hidden, 'Back is offered while a game is open');
-  q(frame.doc(), '[data-action="back"]').click();
-  await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game to return');
-  assert(trayCount(frame) === before.tray && q(frame.doc(), '.top-title').textContent === before.title, 'the old game is unchanged');
+  assert(frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game stays open');
+  assert(trayCount(frame) === before.tray && q(frame.doc(), '.puzzle-title').textContent === before.title, 'the old game is unchanged');
   scan(frame);
   return { error: error.textContent, before };
 });
 
-await check('I3', 'Player: pasted Play link and share code open the puzzle', async () => {
-  assert(pastedLink.includes('#pack='), 'a Play link was captured from the generator flow');
-  const frame = await openFrame('../../player/', { ready: playerReady });
-  setValue(frame, /** @type {HTMLTextAreaElement} */ (q(frame.doc(), '#import-paste')), `Try this puzzle: ${pastedLink}`);
-  q(frame.doc(), '[data-action="paste"]').click();
-  await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the pasted link to open', 15000);
-  const tray = trayCount(frame);
-  assert(tray > 0, 'the pasted link opened a puzzle');
-  scan(frame);
-  return { tray };
-});
-
-await check('I4', 'Player: #pack= address and #lib= library fallback address open the puzzle', async () => {
-  assert(libraryId !== null, 'a library entry exists');
+await check('I3', 'Player: #pack= address and #lib= same-browser address open the puzzle', async () => {
   const direct = await openFrame('../../player/', { ready: playerReady, hash: new URL(pastedLink).hash });
   await waitFor(() => direct.doc().querySelector('#app[data-screen="game"]') !== null, 'the #pack address', 15000);
   const fromLink = trayCount(direct);
-  const lib = await openFrame('../../player/', { ready: playerReady, hash: `#lib=${libraryId}&i=0` });
+  const { browserStorage } = await import('../../core/browser/storage.js');
+  const { parsePack } = await import('../../core/engine/pack.js');
+  const saved = browserStorage().saveLibraryPack(/** @type {any} */ (parsePack(samplePackText)).value);
+  assert(saved.ok, 'a pack too large for a link is kept in this browser, as Play does');
+  const lib = await openFrame('../../player/', { ready: playerReady, hash: `#lib=${/** @type {any} */ (saved).packId}&i=0` });
   await waitFor(() => lib.doc().querySelector('#app[data-screen="game"]') !== null, 'the #lib address', 15000);
+  assert(!q(lib.doc(), '[data-badge="local"]').hidden, 'the same-browser address is labeled');
   scan(lib);
   return { packTray: fromLink, libTray: trayCount(lib) };
 });
@@ -604,18 +586,23 @@ await check('L5', 'Generator wizard: Next and Back move between steps, step 3 st
 });
 
 /** @param {Frame} frame */
-const topbarOrder = (frame) => qa(frame.doc(), '.topbar > *').map((n) => n.dataset.action ?? n.className.split(' ')[0]);
+const gameBarOrder = (frame) => qa(frame.doc(), '.game-bar .game-stats > *, .game-bar .game-actions > *').map((n) => n.dataset.action ?? n.className.split(' ')[0]);
 
-await check('L3', 'Player desktop layout: top bar order, board with right-hand tray, selection toolbar on pick-up, Straighten present in the top bar', async () => {
-  const frame = await openFrame('../../player/', { width: 1280, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
+await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces panels, game bar over the board, selection toolbar on pick-up, Straighten present in the game bar', async () => {
+  const frame = await openFrame('../../player/', { width: 1400, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game');
   const d = frame.doc();
-  const order = topbarOrder(frame);
-  const expected = ['pack-menu', 'top-title', 'top-timer', 'top-moves', 'undo', 'redo', 'reset', 'straighten', 'import'];
-  assert(JSON.stringify(order) === JSON.stringify(expected), `top bar order ${order.join(' > ')}`);
+  assert(q(d, '.app-header h1').textContent === 'Pentomino Player', 'the header names the page');
+  assert(qa(d, '.app-header [data-lang]').length === 2 && qa(d, '.app-header [data-theme-value]').length === 3, 'language and theme switches');
+  const [history, main, side] = ['.app-history', '.app-main', '.app-side'].map((s) => rect(q(d, s)));
+  assert(history.right <= main.left + 4 && main.right <= side.left + 4, `three panels (${[history, main, side].map((r) => `${Math.round(r.left)}-${Math.round(r.right)}`).join(' | ')})`);
+  assert(qa(d, '.app-history .puzzle-card').length > 0 && q(d, '.app-main').contains(q(d, '.pm-board')) && q(d, '.app-side').contains(q(d, '[data-host="tray"]')), 'each panel holds its content');
+  const order = gameBarOrder(frame);
+  const expected = ['game-timer', 'game-moves', 'undo', 'redo', 'hint', 'replay', 'straighten'];
+  assert(JSON.stringify(order) === JSON.stringify(expected), `game bar order ${order.join(' > ')}`);
   const board = rect(q(d, '.pm-board'));
   const tray = rect(q(d, '[data-host="tray"]'));
-  assert(tray.left >= board.right - 4 || tray.left > board.left + board.width * 0.6, `tray is on the right (tray ${Math.round(tray.left)}, board right ${Math.round(board.right)})`);
+  assert(tray.left >= board.right - 4, `the pieces are on the right (tray ${Math.round(tray.left)}, board right ${Math.round(board.right)})`);
   q(d, '.tray-piece').click();
   await sleep(100);
   const toolbar = d.querySelector('.selection-actions');
@@ -624,13 +611,13 @@ await check('L3', 'Player desktop layout: top bar order, board with right-hand t
   return { order, trayLeft: Math.round(tray.left), boardRight: Math.round(board.right), straightenHidden: /** @type {HTMLElement} */ (q(d, '[data-action="straighten"]')).hidden };
 });
 
-await check('L4', 'Player narrow layout (< 900 px): top bar, board, selection toolbar, then the tray, in that vertical order', async () => {
-  const frame = await openFrame('../../player/', { width: 800, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
+await check('L4', 'Player narrow layout (< 768 px): header, game (board), pieces (selection toolbar, then the pieces), then puzzles, in that vertical order', async () => {
+  const frame = await openFrame('../../player/', { width: 700, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game');
   const d = frame.doc();
   q(d, '.tray-piece').click();
   await sleep(100);
-  const tops = ['.topbar', '.pm-board', '.selection-actions', '[data-host="tray"]'].map((s) => rect(q(d, s)).top);
+  const tops = ['.app-header', '.pm-board', '.selection-actions', '[data-host="tray"]', '.puzzle-cards'].map((s) => rect(q(d, s)).top);
   for (let i = 1; i < tops.length; i += 1) {
     assert(tops[i] >= tops[i - 1] - 1, `${i} is below ${i - 1}: ${tops.map(Math.round).join(', ')}`);
   }
@@ -703,7 +690,7 @@ await check('H1', 'No CSP violations, script errors or unhandled rejections in a
 // Items this machine cannot honestly verify
 
 blocked('B1', 'Real screen-reader smoke test (NVDA on Windows, VoiceOver on macOS and iOS, TalkBack on Android)', 'No screen reader is set up or approved on this machine. Owner: install NVDA (and use a Mac/iPhone for VoiceOver), open the generator and player, tab through pieces and controls, confirm names, the role=application instructions, live announcements and that no focus trap exists; record versions and findings.');
-blocked('B2', 'Approved local axe DevTools audit with zero critical findings', 'No approved axe extension is available. Owner: run axe DevTools on the generator (empty, after a set, with puzzles), the player import screen, the game screen and the win dialog; record the version, pages and results; route findings to T17-T20.');
+blocked('B2', 'Approved local axe DevTools audit with zero critical findings', 'No approved axe extension is available. Owner: run axe DevTools on the generator (empty, after a set, with puzzles), the player start screen, the game screen and the win dialog; record the version, pages and results; route findings to T17-T20.');
 blocked('B3', 'Safari (macOS and iOS), Firefox-on-reference-hardware, Android Chrome and iPhone Safari runs', 'These devices are not available here. Owner: run this page and the BQ-0 benchmark page on each listed platform and record hardware and browser versions.');
 
 const failed = results.filter((r) => r.status === 'fail');

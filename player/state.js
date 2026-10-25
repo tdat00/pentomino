@@ -1,16 +1,14 @@
 // @ts-check
-// Player state: a tiny observable store plus the DOM-free controller that owns
-// every way a puzzle can arrive (link, file, paste, library, sample), atomic
-// replacement of the open game, progress hand-off to storage, and non-blocking
-// solvability checks through a one-worker pool. Browser services are injected
-// so the same code runs under Node tests and in the page.
+// Player state: a small observable store and the DOM-free controller that opens puzzles from the address (or the
+// sample), replaces the open game atomically, keeps the address shareable, saves progress and checks solvability in
+// a worker. Browser services are injected, so the same code runs under Node tests and in the page.
 
 import { createGame, snapshot } from '../core/engine/game.js';
-import { packId as computePackId, progressFingerprint } from '../core/engine/keys.js';
+import { progressFingerprint } from '../core/engine/keys.js';
 import { packBoard } from '../core/engine/pack.js';
-import { parseLocationHash } from '../core/engine/sharecode.js';
-import { straightenAngle } from '../core/engine/view.js';
-import { downloadPack, loadFromFile, loadFromText, readIncoming } from '../core/browser/handoff.js';
+import { MAX_URL_CHARS, encodeShareCode, parseLocationHash } from '../core/engine/sharecode.js';
+import { normalizeAngle, straightenAngle } from '../core/engine/view.js';
+import { readIncoming, readPack } from '../core/browser/handoff.js';
 import { SAVE_FAILED_MESSAGE, browserStorage } from '../core/browser/storage.js';
 import { createPool, isAbortError } from '../core/browser/worker-pool.js';
 import { INDEX_MESSAGE, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, messageForIssues, restorationNotice } from './strings.js';
@@ -19,7 +17,6 @@ import { INDEX_MESSAGE, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, messageForIs
 /** @typedef {import('../core/engine/types.js').Issue} Issue */
 /** @typedef {import('../core/engine/game.js').GameState} GameState */
 /** @typedef {import('../core/browser/storage.js').Prefs} Prefs */
-/** @typedef {import('../core/browser/storage.js').LibraryEntry} LibraryEntry */
 
 /**
  * `pending` is a live check; `not-verified` is inconclusive (never "impossible");
@@ -35,53 +32,52 @@ import { INDEX_MESSAGE, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, messageForIs
 
 /**
  * `game` is the committed game of `pack[index]`; `error` describes the last
- * refused replacement and never clears the open game. `resume` is set while the
- * Continue / Restart choice is open. `revision` increases with every replaced
+ * refused replacement and never clears the open game. `revision` increases with every replaced
  * pack, so late proof data of an older pack is recognisable.
  * @typedef {object} PlayerState
- * @property {'import' | 'game'} screen
+ * @property {'start' | 'game'} screen
  * @property {Pack | null} pack
- * @property {string | null} packId Library id when the pack is saved in this browser.
- * @property {'hash' | 'file' | 'paste' | 'library' | 'sample' | null} source
+ * @property {string | null} packId Id of the copy saved in this browser for a same-browser `#lib=` address.
+ * @property {'hash' | 'library' | 'sample' | null} source `hash`: the pack came from the address; `library`: the
+ *   player made it (a puzzle was removed); `sample`: the sample. Both of the latter get a `#pack=` address when it fits.
  * @property {boolean} local The address is a same-browser `#lib=` link.
  * @property {number} index
+ * @property {number | null} viewRotation Display angle chosen with the board's rotate buttons (counter-clockwise
+ *   degrees); null follows the pack. Local to the open pack and never saved.
  * @property {GameState | null} game
  * @property {boolean} loading
  * @property {PlayerError | null} error
  * @property {Notice | null} notice
- * @property {{ placed: number, solved: boolean, revealed?: true } | null} resume
  * @property {Record<number, Verification>} verificationByPuzzle
  * @property {PuzzleStatus[]} statuses
  * @property {string[]} fingerprints
  * @property {number} revision
  * @property {Prefs} prefs
- * @property {LibraryEntry[]} library
  * @property {string | null} storageWarning
  */
 
 /** @type {Prefs} */
-const DEFAULT_PREFS = Object.freeze({ labels: true, patterns: true, timer: true, straighten: false, largeBoards: false });
+const DEFAULT_PREFS = Object.freeze({ straighten: false });
 
 /** @returns {PlayerState} */
 function defaultState() {
   return {
-    screen: 'import',
+    screen: 'start',
     pack: null,
     packId: null,
     source: null,
     local: false,
     index: 0,
+    viewRotation: null,
     game: null,
     loading: false,
     error: null,
     notice: null,
-    resume: null,
     verificationByPuzzle: {},
     statuses: [],
     fingerprints: [],
     revision: 0,
     prefs: { ...DEFAULT_PREFS },
-    library: [],
     storageWarning: null,
   };
 }
@@ -144,23 +140,24 @@ export function createPlayerStore(initial = {}) {
 /** @typedef {ReturnType<typeof createPlayerStore>} PlayerStore */
 
 /**
- * Angle the board and tray are drawn at: the pack's presentation angle, or its
- * nearest straight angle when the local Straighten view is on. Never written
- * to the pack and never part of a fingerprint.
- * @param {Pick<PlayerState, 'pack' | 'prefs'>} state
+ * Angle the board and tray are drawn at: the angle the player turned the view to, else the pack's presentation
+ * angle, or the nearest straight angle when the local Straighten view is on. Never written to the pack and never
+ * part of a fingerprint.
+ * @param {Pick<PlayerState, 'pack' | 'prefs' | 'viewRotation'>} state
  * @returns {number}
  */
 export function effectiveRotation(state) {
-  const rotation = state.pack?.presentation?.rotation ?? 0;
+  const rotation = state.viewRotation ?? state.pack?.presentation?.rotation ?? 0;
   return state.prefs.straighten ? straightenAngle(rotation) : rotation;
 }
 
 /**
- * @param {Pack | null} pack
- * @returns {boolean} Patterns are offered only above 20 pieces.
+ * @param {Pick<import('../core/engine/types.js').PackPuzzle, 'solution'> | undefined} puzzle
+ * @param {Verification | undefined} verification
+ * @returns {boolean} A solution is known: the pack includes a checked answer, or the solvability check found one.
  */
-export function offersPatterns(pack) {
-  return (pack?.pieces.length ?? 0) > 20;
+export function knownSolvable(puzzle, verification) {
+  return verification?.status === 'solvable' || (puzzle?.solution !== null && puzzle?.solution !== undefined);
 }
 
 /**
@@ -220,7 +217,6 @@ async function defaultFetchText(url) {
  * @property {(url: string) => Promise<string>} [fetchText] Only ever called with the fixed sample URL.
  * @property {string | URL} [baseUrl] Page base used to resolve the sample path.
  * @property {() => PoolLike} [createPool] Verification pool factory (default: one module worker).
- * @property {(pack: Pack, name: string) => void} [download]
  */
 
 /**
@@ -232,7 +228,6 @@ export function createPlayerController(options) {
   const env = { storage };
   const getLocation = () => options.location ?? globalThis.location;
   const getHistory = () => options.history ?? globalThis.history;
-  const download = options.download ?? downloadPack;
   let destroyed = false;
   let loadToken = 0;
   let requestSeq = 0;
@@ -244,10 +239,6 @@ export function createPlayerController(options) {
   function getPool() {
     pool ??= (options.createPool ?? (() => /** @type {PoolLike} */ (/** @type {unknown} */ (createPool({ size: 1 })))))();
     return pool;
-  }
-
-  function refreshLibrary() {
-    store.update({ library: storage.libraryIndex() });
   }
 
   /** @param {string | null} fp @returns {PuzzleStatus} */
@@ -277,11 +268,7 @@ export function createPlayerController(options) {
         return pack.puzzles.map((puzzle) => progressFingerprint(board, pack.pieces, puzzle.clues));
       })();
       const saved = storage.loadProgress(fingerprints[index]);
-      const progress = saved === null ? undefined : {
-        ...saved,
-        updatedAt: Number.isFinite(saved.updatedAt) ? new Date(saved.updatedAt).toISOString() : undefined,
-      };
-      return { ok: true, fingerprints, game: createGame(pack, index, /** @type {any} */ (progress)) };
+      return { ok: true, fingerprints, game: createGame(pack, index, saved ?? undefined) };
     } catch (error) {
       return { ok: false, issues: [{ code: 'invalid-pack', path: '$', message: error instanceof Error ? error.message : 'The puzzle could not be opened.' }] };
     }
@@ -315,18 +302,16 @@ export function createPlayerController(options) {
     return result.ok;
   }
 
-  /** Fresh game for the open puzzle; the saved record is emptied at once. */
+  /** Fresh game for the open puzzle; its saved record is removed at once. */
   function restartOpenGame() {
     const s = store.getState();
     if (!s.pack) {
       return;
     }
-    store.update({ game: createGame(s.pack, s.index), resume: null, notice: null });
+    store.update({ game: createGame(s.pack, s.index), notice: null });
     const fp = s.fingerprints[s.index];
     if (fp !== undefined) {
-      const result = storage.saveProgress(fp, {
-        v: 2, placements: [], elapsedMs: 0, moves: 0, solved: false, revealed: false, hintsUsed: 0,
-      });
+      const result = storage.removeProgress(fp);
       const statuses = s.statuses.slice();
       statuses[s.index] = 'new';
       store.update({ statuses, storageWarning: result.ok ? s.storageWarning : SAVE_FAILED_MESSAGE });
@@ -334,10 +319,9 @@ export function createPlayerController(options) {
   }
 
   /**
-   * Keeps the address in step: a link keeps its code and only `i` changes; a
-   * pack that arrived another way gets a same-browser `#lib=` link when it is
-   * saved, else no hash.
-   * @param {'hash' | 'file' | 'paste' | 'library' | 'sample'} source
+   * Keeps the address in step: a link keeps its code and only `i` changes; any other pack gets a same-browser
+   * `#lib=` link when it is saved, else no hash, until `makePortable` replaces it.
+   * @param {'hash' | 'library' | 'sample'} source
    * @param {string | null} packId
    * @param {number} index
    * @returns {boolean} Whether the resulting address is a same-browser link.
@@ -359,9 +343,48 @@ export function createPlayerController(options) {
   }
 
   /**
+   * The address is how a puzzle is kept and shared, so a pack that did not come from a `#pack=` link (the sample, or
+   * a pack with a puzzle removed) gets one as soon as its code is ready and the link fits; the copy saved for the
+   * same-browser address is then dropped. A pack too large for a link keeps its `#lib=` address.
+   * @param {Pack} pack
+   */
+  async function makePortable(pack) {
+    /** @type {string} */
+    let code;
+    try {
+      code = await encodeShareCode(pack);
+    } catch {
+      return;
+    }
+    const s = store.getState();
+    const location = getLocation();
+    if (destroyed || s.pack !== pack || s.source === 'hash' || !location) {
+      return;
+    }
+    // Another address (a link being opened) must not be overwritten by the link of the pack it replaces.
+    if (String(location.hash ?? '') !== (s.packId === null ? '' : `#lib=${s.packId}&i=${s.index}`)) {
+      return;
+    }
+    const hash = `#pack=${code}&i=${s.index}`;
+    const page = typeof location.href === 'string' ? location.href.split('#')[0] : `${location.pathname}${location.search}`;
+    if (page.length + hash.length > MAX_URL_CHARS) {
+      return;
+    }
+    try {
+      getHistory().replaceState(null, '', hash);
+    } catch {
+      return;
+    }
+    if (s.packId !== null) {
+      storage.removeLibraryPack(s.packId);
+    }
+    store.update({ source: 'hash', packId: null, local: false });
+  }
+
+  /**
    * @param {Pack} pack
    * @param {number} index
-   * @param {{ source: 'hash' | 'file' | 'paste' | 'library' | 'sample', libraryId?: string, samePack?: boolean }} meta
+   * @param {{ source: 'hash' | 'library' | 'sample', libraryId?: string, samePack?: boolean }} meta
    * @returns {{ ok: true } | { ok: false, issues: Issue[] }}
    */
   function commit(pack, index, meta) {
@@ -378,6 +401,9 @@ export function createPlayerController(options) {
       if (meta.libraryId !== undefined) {
         storageWarning = storage.touchLibraryPack(meta.libraryId).ok ? null : SAVE_FAILED_MESSAGE;
         packId = meta.libraryId;
+      } else if (meta.source === 'hash') {
+        // A `#pack=` link carries the whole pack: nothing needs to be saved for it.
+        packId = null;
       } else {
         const saved = storage.saveLibraryPack(pack);
         packId = saved.ok ? saved.packId : null;
@@ -387,9 +413,6 @@ export function createPlayerController(options) {
     const source = samePack ? before.source ?? meta.source : meta.source;
     const local = syncHash(source, packId, index);
     const { game } = prepared;
-    const resume = game.placed.size > 0 || game.solved
-      ? { placed: game.placed.size, solved: game.solved, ...(game.revealed ? { revealed: /** @type {const} */ (true) } : {}) }
-      : null;
     const text = restorationNotice(game.restoreWarnings);
     const statuses = samePack ? before.statuses.slice() : prepared.fingerprints.map((fp) => statusOf(fp));
     store.update({
@@ -399,26 +422,28 @@ export function createPlayerController(options) {
       source,
       local,
       index,
+      viewRotation: samePack ? before.viewRotation : null,
       game,
       loading: false,
       error: null,
       notice: text === '' ? null : { kind: 'warning', text },
-      resume,
       verificationByPuzzle: samePack ? before.verificationByPuzzle : {},
       statuses,
       fingerprints: prepared.fingerprints,
       revision: samePack ? before.revision : before.revision + 1,
-      library: storage.libraryIndex(),
       storageWarning: storageWarning ?? (samePack ? before.storageWarning : null),
     });
     startVerification(index);
+    if (!samePack && source !== 'hash') {
+      void makePortable(pack);
+    }
     return { ok: true };
   }
 
   /**
-   * One in-flight import at a time: only the newest request may commit.
+   * One in-flight load at a time: only the newest request may commit.
    * @param {() => Promise<import('../core/engine/types.js').Result<{ pack: Pack, index: number }>>} run
-   * @param {{ source: 'hash' | 'file' | 'paste' | 'library' | 'sample', libraryId?: string, quiet?: string[] }} meta
+   * @param {{ source: 'hash' | 'library' | 'sample', libraryId?: string, quiet?: string[] }} meta
    * @returns {Promise<{ ok: boolean, stale?: boolean, issues?: Issue[] }>}
    */
   async function load(run, meta) {
@@ -554,24 +579,17 @@ export function createPlayerController(options) {
 
   return {
     /**
-     * Opens the puzzle named by the address, if any. Without one the Import
-     * screen stays up; nothing is opened automatically.
+     * Opens the puzzle named by the address, if any. Without one the start screen stays up; nothing is opened
+     * automatically.
      * @returns {Promise<unknown>}
      */
     start() {
-      refreshLibrary();
       const hash = String(getLocation()?.hash ?? '');
       store.update({ prefs: storage.getPrefs() });
       return load(() => readIncoming({ hash }, env), hashMeta(hash));
     },
     /** @param {string} hash */
     openHash: (hash) => load(() => readIncoming({ hash }, env), hashMeta(hash)),
-    /** @param {string} text */
-    importText: (text) => load(() => loadFromText(text, env), { source: 'paste' }),
-    /** @param {{ size: number, text: () => Promise<string> }} file */
-    importFile: (file) => load(() => loadFromFile(file, env), { source: 'file' }),
-    /** @param {string} id */
-    openLibraryPack: (id) => load(() => readIncoming({ hash: `#lib=${id}&i=0` }, env), { source: 'library', libraryId: id }),
     openSample() {
       return load(async () => {
         const base = options.baseUrl ?? globalThis.document?.baseURI ?? globalThis.location?.href;
@@ -581,7 +599,7 @@ export function createPlayerController(options) {
         } catch {
           return { ok: false, issues: [{ code: 'load-failed', path: '$', message: SAMPLE_FAILED_MESSAGE }] };
         }
-        return loadFromText(text, env);
+        return readPack(text);
       }, { source: 'sample' });
     },
     /**
@@ -609,18 +627,6 @@ export function createPlayerController(options) {
     previousPuzzle() {
       return this.goToPuzzle(store.getState().index - 1);
     },
-    /** @param {'continue' | 'restart'} choice */
-    resume(choice) {
-      const s = store.getState();
-      if (!s.pack || s.resume === null) {
-        return;
-      }
-      if (choice === 'continue') {
-        store.update({ resume: null });
-        return;
-      }
-      restartOpenGame();
-    },
     /** Replaces the open puzzle with a fresh game and an empty saved record (Replay). */
     replay() {
       restartOpenGame();
@@ -644,44 +650,75 @@ export function createPlayerController(options) {
         storageWarning: result.ok ? s.storageWarning : SAVE_FAILED_MESSAGE,
       }));
     },
-    showImport() {
-      refreshLibrary();
-      store.update({ screen: 'import', error: null });
+    /**
+     * Turns the display of the open pack by `delta` counter-clockwise degrees (a multiple of 45); display only.
+     * @param {number} delta
+     */
+    rotateView(delta) {
+      store.update((s) => (s.pack === null ? null : {
+        viewRotation: normalizeAngle((s.viewRotation ?? s.pack.presentation?.rotation ?? 0) + delta),
+      }));
     },
-    closeImport() {
-      store.update((s) => (s.game === null ? null : { screen: 'game', error: null }));
+    /**
+     * Removes one puzzle from the open pack. The puzzle that was open stays open, or its neighbour opens when it was
+     * the one removed; the last puzzle leaves the pack as `removeAllPuzzles` does. The shorter pack gets its own address.
+     * @param {number} index
+     * @returns {{ ok: boolean }}
+     */
+    removePuzzle(index) {
+      const s = store.getState();
+      const { pack } = s;
+      if (!pack || !Number.isInteger(index) || index < 0 || index >= pack.puzzles.length) {
+        return { ok: false };
+      }
+      if (pack.puzzles.length === 1) {
+        this.removeAllPuzzles();
+        return { ok: true };
+      }
+      saveNow();
+      const reduced = { ...pack, puzzles: pack.puzzles.filter((_, i) => i !== index) };
+      const nextIndex = index < s.index ? s.index - 1 : Math.min(s.index, reduced.puzzles.length - 1);
+      loadToken += 1;
+      const committed = commit(reduced, nextIndex, { source: 'library' });
+      if (!committed.ok) {
+        store.update({ loading: false, error: { code: committed.issues[0].code, message: messageForIssues(committed.issues) } });
+        return { ok: false };
+      }
+      if (index !== s.index) {
+        // Another puzzle stays open: the notice about it need not be shown again.
+        store.update({ notice: s.notice });
+      }
+      store.update({ viewRotation: s.viewRotation });
+      const now = store.getState();
+      if (s.packId !== null && s.packId !== now.packId) {
+        storage.removeLibraryPack(s.packId);
+      }
+      return { ok: true };
+    },
+    /** Closes the open pack and shows the start screen. Saved progress is kept. */
+    removeAllPuzzles() {
+      const s = store.getState();
+      if (!s.pack) {
+        return;
+      }
+      saveNow();
+      loadToken += 1;
+      if (s.packId !== null) {
+        storage.removeLibraryPack(s.packId);
+      }
+      syncHash('library', null, 0);
+      store.update({
+        ...defaultState(),
+        prefs: s.prefs,
+        storageWarning: s.storageWarning,
+        revision: s.revision + 1,
+      });
     },
     dismissError() {
       store.update({ error: null });
     },
     dismissNotice() {
       store.update({ notice: null });
-    },
-    /** @param {string} id */
-    removeLibraryPack(id) {
-      const result = storage.removeLibraryPack(id);
-      store.update((s) => ({
-        library: storage.libraryIndex(),
-        packId: s.packId === id ? null : s.packId,
-      }));
-      return result;
-    },
-    /**
-     * @param {string} id
-     * @returns {{ ok: boolean, message?: string }}
-     */
-    exportLibraryPack(id) {
-      const loaded = storage.loadLibraryPack(id);
-      if (!loaded.ok) {
-        return { ok: false, message: messageForIssues(loaded.issues) };
-      }
-      try {
-        const title = /** @type {{ title?: unknown } | undefined} */ (loaded.value.meta)?.title;
-        download(loaded.value, typeof title === 'string' && title !== '' ? title : loaded.value.puzzles[0]?.title ?? 'puzzle');
-        return { ok: true };
-      } catch (error) {
-        return { ok: false, message: error instanceof Error ? error.message : 'The pack could not be exported.' };
-      }
     },
     destroy() {
       destroyed = true;

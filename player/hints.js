@@ -1,11 +1,8 @@
 // @ts-check
-// Hint and reveal orchestration (design section 11.13). DOM-free: it owns the
-// single in-flight request, runs the searches in a worker through the existing
-// `solveFirst` task under the pool's 115/120-second watchdog, and applies a
-// result only while the board, clues and the player's placements still match
-// the fingerprint taken when the request started. The proofs themselves live in
-// `core\engine\hints.js`; moves are committed through the play controller, so a
-// hint placement or a reveal is one undoable game action.
+// Hint and reveal orchestration (design §11.13), DOM-free. One request at a time runs `solveFirst` in a worker
+// under the pool's 115/120-second watchdog; a result is applied only while the board, the clues and the player's
+// placements still match the fingerprint taken when the request started. The proofs live in core/engine/hints.js;
+// moves go through the play controller, so a hint placement or a reveal is one undoable game action.
 
 import { canPlace } from '../core/engine/game.js';
 import { poseCells } from '../core/engine/geometry.js';
@@ -130,11 +127,6 @@ export function createHintController(options) {
     }
   }
 
-  /** @param {string} message */
-  function say(message) {
-    announce(message);
-  }
-
   /**
    * @param {string} id
    * @returns {string}
@@ -252,11 +244,11 @@ export function createHintController(options) {
     if (game.solved) {
       active = null;
       set({ phase: 'idle', task: null, message: HINT_TEXT.complete, marks: null });
-      say(HINT_TEXT.complete);
+      announce(HINT_TEXT.complete);
       return;
     }
     set({ phase: 'working', task: 'hint', message: HINT_TEXT.working, marks: null });
-    say(HINT_TEXT.working);
+    announce(HINT_TEXT.working);
     const puzzle = pack.puzzles[game.index];
     /** @type {import('../core/engine/hints.js').HintResult} */
     let result = { kind: 'unknown', message: HINT_UNKNOWN_MESSAGE };
@@ -296,7 +288,7 @@ export function createHintController(options) {
       const piece = pack.pieces.find((p) => p.id === result.pose.piece);
       if (piece === undefined || !canPlace(game, result.pose).ok) {
         set({ phase: 'idle', task: null, message: HINT_UNKNOWN_MESSAGE, marks: null });
-        say(HINT_UNKNOWN_MESSAGE);
+        announce(HINT_UNKNOWN_MESSAGE);
         return;
       }
       play.apply({ type: 'hint' });
@@ -308,13 +300,13 @@ export function createHintController(options) {
         message,
         marks: { kind: 'place', piece: piece.id, pose: result.pose, cells: poseCells(piece, result.pose), pulse },
       });
-      say(message);
+      announce(message);
     } else if (result.kind === 'remove') {
       const piece = pack.pieces.find((p) => p.id === result.piece);
       const pose = game.placed.get(result.piece);
       if (piece === undefined || pose === undefined) {
         set({ phase: 'idle', task: null, message: HINT_UNKNOWN_MESSAGE, marks: null });
-        say(HINT_UNKNOWN_MESSAGE);
+        announce(HINT_UNKNOWN_MESSAGE);
         return;
       }
       play.apply({ type: 'hint' });
@@ -326,10 +318,10 @@ export function createHintController(options) {
         message,
         marks: { kind: 'remove', piece: piece.id, pose: null, cells: poseCells(piece, pose), pulse },
       });
-      say(message);
+      announce(message);
     } else {
       set({ phase: 'idle', task: null, message: result.message, marks: null });
-      say(result.message);
+      announce(result.message);
     }
   }
 
@@ -347,7 +339,7 @@ export function createHintController(options) {
     if (hintFingerprint(s) !== hint.fp) {
       clearShown();
       set({ phase: 'idle', task: null, message: HINT_TEXT.stale, marks: null });
-      say(HINT_TEXT.stale);
+      announce(HINT_TEXT.stale);
       return false;
     }
     const label = labelOf(hint.piece);
@@ -361,7 +353,7 @@ export function createHintController(options) {
       ? (hint.kind === 'place' ? HINT_TEXT.placedHint(label) : HINT_TEXT.removedHint(label))
       : HINT_TEXT.noLongerFits;
     set({ phase: 'idle', task: null, message, marks: null });
-    say(message);
+    announce(message);
     return applied;
   }
 
@@ -383,11 +375,11 @@ export function createHintController(options) {
     if (game.solved) {
       active = null;
       set({ phase: 'idle', task: null, message: HINT_TEXT.complete, marks: null });
-      say(HINT_TEXT.complete);
+      announce(HINT_TEXT.complete);
       return;
     }
     set({ phase: 'working', task: 'reveal', message: HINT_TEXT.revealWorking, marks: null });
-    say(HINT_TEXT.revealWorking);
+    announce(HINT_TEXT.revealWorking);
     const puzzle = pack.puzzles[game.index];
     /** @type {import('../core/engine/hints.js').Compatible} */
     let found = { status: 'unknown' };
@@ -412,14 +404,14 @@ export function createHintController(options) {
       const done = play.apply({ type: 'reveal', layout: found.layout });
       const message = done ? HINT_TEXT.revealed : HINT_TEXT.revealFailed;
       set({ phase: 'idle', task: null, message, marks: null });
-      say(message);
+      announce(message);
     } else if (found.status === 'unsatisfiable' && !replace) {
       set({ phase: 'reveal-unsat', task: null, message: HINT_TEXT.revealUnsat, marks: null });
-      say(HINT_TEXT.revealUnsat);
+      announce(HINT_TEXT.revealUnsat);
     } else {
       const message = found.status === 'unsatisfiable' ? HINT_TEXT.revealImpossible : HINT_TEXT.revealUnknown;
       set({ phase: 'idle', task: null, message, marks: null });
-      say(message);
+      announce(message);
     }
   }
 
@@ -430,7 +422,7 @@ export function createHintController(options) {
     }
     abortActive();
     set({ phase: 'idle', task: null, message: HINT_TEXT.cancelled, marks: null });
-    say(HINT_TEXT.cancelled);
+    announce(HINT_TEXT.cancelled);
   }
 
   /** Hides a shown hint or a declined reveal prompt. */
@@ -443,7 +435,7 @@ export function createHintController(options) {
     clearShown();
     set({ phase: 'idle', task: null, message: declined ? HINT_TEXT.revealCancelled : '', marks: null });
     if (declined) {
-      say(HINT_TEXT.revealCancelled);
+      announce(HINT_TEXT.revealCancelled);
     }
   }
 
@@ -454,7 +446,7 @@ export function createHintController(options) {
     }
     clearShown();
     set({ phase: 'idle', task: null, message: HINT_TEXT.revealCancelled, marks: null });
-    say(HINT_TEXT.revealCancelled);
+    announce(HINT_TEXT.revealCancelled);
   }
 
   // A result belongs to one exact position; any other position drops it.

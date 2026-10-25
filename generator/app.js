@@ -4,10 +4,11 @@ import storage from '../core/browser/storage.js';
 import { showToast } from '../core/browser/dom.js';
 import { svgEl } from '../core/browser/svg-board.js';
 import { createGenerationClient } from '../core/browser/generation-client.js';
-import { downloadPack, openInPlayerTab } from '../core/browser/handoff.js';
+import { openInPlayerTab } from '../core/browser/handoff.js';
 import { createPool } from '../core/browser/worker-pool.js';
-import { applyTo, detect, getLocale, normalize, onChange, setLocale, t } from './i18n.js';
-import { THEME_KEY, applyTheme, effectiveTheme, normalizeTheme } from './ui/theme.js';
+import { applyTo, choose, getLocale, normalize, onChange, setLocale, t } from './i18n.js';
+import { LANGUAGE_KEY } from '../core/browser/i18n.js';
+import { THEME_KEY, applyTheme, effectiveTheme, normalizeTheme } from '../core/browser/theme.js';
 import {
   createGeneratorStore, createPersistence, describeBoard, detectHardware, loadGeneratorState, setNumber,
 } from './state.js';
@@ -21,8 +22,7 @@ import { mountSetSummary } from './ui/set-summary.js';
 import { mountWizard, reachableStep, stepFromSearch } from './ui/wizard.js';
 import { addressParams, applyAddress, withAddress } from './address.js';
 
-/** Shared with the other pages of this site. */
-export const LANGUAGE_KEY = 'pentomino:v1:lang';
+export { LANGUAGE_KEY };
 
 /** One puzzle per Generate press; the controller itself can make more at once. */
 const PUZZLES_PER_PRESS = 1;
@@ -75,17 +75,7 @@ function browserStorage() {
  * @returns {string}
  */
 export function chooseLanguage(sources = {}) {
-  let stored = null;
-  try {
-    stored = (sources.languageStorage === undefined ? browserStorage() : sources.languageStorage)?.getItem(LANGUAGE_KEY) ?? null;
-  } catch {
-    stored = null;
-  }
-  return detect({
-    urlLang: new URLSearchParams(sources.search ?? '').get('lang'),
-    stored,
-    navigator: sources.navigator ?? globalThis.navigator,
-  });
+  return choose(sources);
 }
 
 /**
@@ -140,8 +130,6 @@ export function createGeneratorApp(doc, options = {}) {
     workersAvailable: options.workersAvailable ?? (options.workerFactory !== undefined || typeof /** @type {any} */ (win ?? globalThis).Worker === 'function'),
     cancelPending: () => pool?.cancelAll(),
     openPlayer: (pack, index) => openInPlayerTab(pack, index, handoffEnv),
-    download: (pack, name) => downloadPack(pack, name),
-    notify: (message, kind) => void showToast(message, { kind }),
     beforeNavigate: () => persistence.saveNow(),
     randomNumber: options.randomNumber,
     ...(options.now === undefined ? {} : { now: options.now }),

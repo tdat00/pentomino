@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import { createGame, isEarned, reduce, snapshot } from '../core/engine/game.js';
 import { progressFingerprint } from '../core/engine/keys.js';
 import { packBoard, parsePack } from '../core/engine/pack.js';
+import { encodeShareCode } from '../core/engine/sharecode.js';
 import { NAMESPACE, createStorage } from '../core/browser/storage.js';
 import { createPlayerController, createPlayerStore } from '../player/state.js';
 import { puzzleStatusLabel } from '../player/strings.js';
@@ -45,7 +46,7 @@ function memoryAdapter() {
   };
 }
 
-/** A record exactly as version 1 wrote it. */
+/** A record exactly as version 1 wrote it, with the `updatedAt` stamp that is no longer kept. */
 const v1Record = () => ({
   v: 1, placements: PLACEMENTS, elapsedMs: 83000, moves: 5, solved: false, updatedAt: 1700000000000,
 });
@@ -75,15 +76,13 @@ test('a stored version 1 record loads as version 2 with false and 0 and keeps it
     solved: false,
     revealed: false,
     hintsUsed: 0,
-    updatedAt: 1700000000000,
   });
   assert.equal(JSON.parse(adapter.map.get(KEY)).v, 1, 'reading never rewrites the stored text');
   const record = /** @type {any} */ (storage.loadProgress(FP));
   assert.equal(storage.saveProgress(FP, record).ok, true);
   const written = JSON.parse(adapter.map.get(KEY));
-  assert.deepEqual(Object.keys(written), ['v', 'placements', 'elapsedMs', 'moves', 'solved', 'revealed', 'hintsUsed', 'updatedAt']);
+  assert.deepEqual(Object.keys(written), ['v', 'placements', 'elapsedMs', 'moves', 'solved', 'revealed', 'hintsUsed'], 'updatedAt is dropped');
   assert.equal(written.v, 2);
-  assert.equal(written.updatedAt, 1800000000000, 'the save is stamped by the host');
   // The previous shape is still accepted for writing and migrates in the same way.
   assert.equal(storage.saveProgress('other', { v: 1, placements: [], elapsedMs: 1, moves: 0, solved: false }).ok, true);
   assert.deepEqual(JSON.parse(adapter.map.get(`${NAMESPACE}progress:other`)).hintsUsed, 0);
@@ -107,21 +106,8 @@ test('version 2 records are validated strictly and unknown versions are ignored'
   assert.equal(ok.storage.saveProgress(FP, /** @type {any} */ ({ ...v2Record([]), hintsUsed: 'x' })).ok, false);
 });
 
-test('only an earned solve counts in the library; a revealed one does not', () => {
-  const adapter = memoryAdapter();
-  const storage = createStorage(adapter, () => 1700000000000);
-  assert.equal(storage.saveLibraryPack(pack).ok, true);
-  assert.equal(storage.saveProgress(FP, { v: 2, placements: MOVABLE, elapsedMs: 1, moves: 8, solved: true, revealed: true, hintsUsed: 0 }).ok, true);
-  const id = /** @type {string} */ (storage.libraryIndex()[0].packId);
-  assert.equal(storage.touchLibraryPack(id).ok, true);
-  assert.equal(storage.libraryIndex()[0].solved, 0);
-  assert.equal(storage.saveProgress(FP, { v: 2, placements: MOVABLE, elapsedMs: 1, moves: 8, solved: true, revealed: false, hintsUsed: 3 }).ok, true);
-  assert.equal(storage.touchLibraryPack(id).ok, true);
-  assert.equal(storage.libraryIndex()[0].solved, 1);
-});
-
 test('createGame migrates version 1 and restores version 2 exactly', () => {
-  const old = createGame(pack, 0, { ...v1Record(), updatedAt: '2023-11-14T22:13:20.000Z' });
+  const old = createGame(pack, 0, v1Record());
   assert.equal(old.revealed, false);
   assert.equal(old.hintsUsed, 0);
   assert.deepEqual([...old.placed.keys()], ['E', 'H']);
@@ -129,7 +115,7 @@ test('createGame migrates version 1 and restores version 2 exactly', () => {
   assert.equal(old.moves, 5);
   assert.deepEqual(old.restoreWarnings, []);
 
-  const fresh = createGame(pack, 0, { ...v2Record(PLACEMENTS, { revealed: true }), updatedAt: '2023-11-14T22:13:20.000Z' });
+  const fresh = createGame(pack, 0, v2Record(PLACEMENTS, { revealed: true }));
   assert.equal(fresh.revealed, true);
   assert.equal(fresh.hintsUsed, 2);
   const snap = snapshot(fresh);
@@ -192,14 +178,15 @@ async function opened(record) {
   }
   const storage = createStorage(adapter, () => 1800000000000);
   const store = createPlayerStore({});
+  const hash = `#pack=${await encodeShareCode(pack)}&i=0`;
   const controller = createPlayerController({
     store,
     storage,
-    location: { hash: '', pathname: '/', search: '' },
+    location: { hash, pathname: '/', search: '' },
     history: { replaceState() {} },
     createPool: () => ({ beginRequest() {}, endRequest() {}, close() {}, run: () => new Promise(() => {}) }),
   });
-  const result = await controller.importText(FIXTURE_TEXT);
+  const result = await controller.openHash(hash);
   assert.equal(result.ok, true);
   return { adapter, storage, store, controller, game: () => /** @type {import('../core/engine/game.js').GameState} */ (store.getState().game) };
 }
@@ -211,7 +198,6 @@ test('BAC-4: an existing saved game resumes without losing placements or time', 
   assert.equal(h.game().moves, 5);
   assert.equal(h.game().revealed, false);
   assert.equal(h.game().hintsUsed, 0);
-  assert.deepEqual(h.store.getState().resume, { placed: 2, solved: false });
   assert.deepEqual(h.store.getState().statuses, ['in-progress']);
   assert.equal(h.controller.saveNow(), true);
   const saved = JSON.parse(h.adapter.map.get(KEY));
@@ -230,7 +216,6 @@ test('a restored revealed game stays revealed; Replay starts a fresh unassisted 
   assert.equal(isEarned(h.game()), false);
   assert.equal(h.game().hintsUsed, 4);
   assert.deepEqual(h.store.getState().statuses, ['revealed']);
-  assert.deepEqual(h.store.getState().resume, { placed: MOVABLE.length, solved: true, revealed: true });
   assert.equal(puzzleStatusLabel('revealed'), 'Revealed');
 
   h.controller.replay();
@@ -238,11 +223,8 @@ test('a restored revealed game stays revealed; Replay starts a fresh unassisted 
   assert.equal(h.game().hintsUsed, 0);
   assert.equal(h.game().placed.size, 0);
   assert.deepEqual(h.store.getState().statuses, ['new']);
-  const record = JSON.parse(h.adapter.map.get(KEY));
-  assert.equal(record.v, 2);
-  assert.equal(record.revealed, false);
-  assert.equal(record.hintsUsed, 0);
-  assert.deepEqual(record.placements, []);
+  assert.equal(h.adapter.map.has(KEY), false, 'the saved record is removed, not replaced by an empty one');
+  assert.equal(h.storage.loadProgress(FP), null);
 });
 
 test('an earned solved game is still reported as solved, not revealed', async () => {
@@ -250,5 +232,4 @@ test('an earned solved game is still reported as solved, not revealed', async ()
   assert.deepEqual(h.store.getState().statuses, ['solved']);
   assert.equal(h.game().revealed, false);
   assert.equal(isEarned(h.game()), true);
-  assert.deepEqual(h.store.getState().resume, { placed: MOVABLE.length, solved: true });
 });

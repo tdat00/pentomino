@@ -422,7 +422,7 @@ describe('assembled scaffold', () => {
     assert.deepEqual(checkSite(site, { expectVersion: SHA }), []);
     assert.deepEqual({ ...hashTree(join(repoRoot, 'core')), ...hashTree(join(repoRoot, 'generator')) }, sourceHashes);
     assert.ok(readFileSync(join(site, 'generator', 'index.html'), 'utf8').includes('src="./app.js?v=abc12345"'));
-    assert.ok(readFileSync(join(site, 'generator', 'index.html'), 'utf8').includes('href="./theme.css?v=abc12345"'));
+    assert.ok(readFileSync(join(site, 'generator', 'index.html'), 'utf8').includes('href="../core/browser/theme.css?v=abc12345"'));
 
     const { buildRedirectTarget } = await import(pathToFileURL(join(site, 'redirect.js')).href);
     assert.equal(

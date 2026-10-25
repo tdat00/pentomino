@@ -12,7 +12,7 @@ import { packBoard } from '../core/engine/pack.js';
 import { arrowToGrid, screenFlip, screenRotate } from '../core/engine/view.js';
 import { alignedOrientedCells, labelCell, pieceName } from '../core/browser/svg-board.js';
 import { effectiveRotation } from './state.js';
-import { PLAY_TEXT, formatElapsed, solvedSummary } from './strings.js';
+import { PLAY_TEXT, solvedSummary } from './strings.js';
 
 /** @typedef {import('../core/engine/types.js').Pose} Pose */
 /** @typedef {import('../core/engine/types.js').Piece} Piece */
@@ -26,7 +26,7 @@ import { PLAY_TEXT, formatElapsed, solvedSummary } from './strings.js';
 export const KICKS = Object.freeze(/** @type {XY[]} */ ([[0, -1], [-1, 0], [1, 0], [0, 1]]));
 export const SAVE_DELAY_MS = 250;
 export const TICK_MS = 1000;
-export const ARROW_KEYS = Object.freeze(/** @type {ArrowKey[]} */ (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']));
+const ARROW_KEYS = Object.freeze(/** @type {ArrowKey[]} */ (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']));
 
 /**
  * Cell of source cell `index` inside the oriented, normalized piece.
@@ -312,7 +312,7 @@ export function createPlayController(options) {
   function shouldRun() {
     const s = store.getState();
     const g = s.game;
-    return !destroyed && visible && s.screen === 'game' && g !== null && !g.solved && g.moves > 0 && s.resume === null;
+    return !destroyed && visible && s.screen === 'game' && g !== null && !g.solved && g.moves > 0;
   }
 
   function tick() {
@@ -351,8 +351,8 @@ export function createPlayController(options) {
     // Time up to this commit belongs to the game that is being replaced.
     const carried = ticker !== null ? Math.max(0, t - lastTick) : 0;
     lastTick = t;
-    const stamped = { ...next, preview, elapsedMs: next.elapsedMs + carried, updatedAt: new Date(t).toISOString() };
-    store.update({ game: stamped, resume: null });
+    const stamped = { ...next, preview, elapsedMs: next.elapsedMs + carried };
+    store.update({ game: stamped });
     syncTimer();
     if (stamped.solved && !before.solved) {
       flush();
@@ -596,17 +596,17 @@ export function createPlayController(options) {
       if (game.preview === null || game.preview.piece !== id) {
         pickUp(id, true);
       }
-      const now2 = openGame();
-      const piece = now2 === null ? undefined : pieceOf(now2, id);
-      if (now2 === null || now2.preview === null || piece === undefined) {
+      const picked = openGame();
+      const piece = picked === null ? undefined : pieceOf(picked, id);
+      if (picked === null || picked.preview === null || piece === undefined) {
         return false;
       }
-      const { board } = tableOf(now2);
-      const index = handleIndex(now2, id, piece);
+      const { board } = tableOf(picked);
+      const index = handleIndex(picked, id, piece);
       const [dx, dy] = keyStep(theta(), key, shift);
-      const [cx, cy] = handleCell(piece, now2.preview, index);
+      const [cx, cy] = handleCell(piece, picked.preview, index);
       const target = /** @type {XY} */ ([Math.max(0, Math.min(board.width - 1, cx + dx)), Math.max(0, Math.min(board.height - 1, cy + dy))]);
-      const pose = poseWithHandle(piece, poseT(now2.preview), index, target);
+      const pose = poseWithHandle(piece, poseT(picked.preview), index, target);
       change({ keyboard: true }, { preview: pose });
       const after = openGame();
       if (after !== null) {
@@ -901,8 +901,6 @@ export function createPlayController(options) {
     },
     /** @returns {boolean} Whether the clock is running. */
     clockRunning: () => ticker !== null,
-    /** @param {number} ms @returns {string} */
-    formatTime: (ms) => formatElapsed(ms),
     destroy() {
       destroyed = true;
       if (saveTimer !== null) {

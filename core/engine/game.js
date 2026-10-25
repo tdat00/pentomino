@@ -1,7 +1,7 @@
 // @ts-check
 // Pure player state: legal placement, transactional commands, bounded undo/redo,
 // complete-cover winning and safe progress restoration. No DOM, storage, timers
-// or clocks: elapsed time and `updatedAt` are stamped by the browser. Every
+// or clocks: elapsed time is counted by the browser. Every
 // function returns new values; inputs, maps and clue arrays are never mutated.
 
 import { boardFromRows } from './board.js';
@@ -58,7 +58,6 @@ import { poseCells } from './geometry.js';
  * @property {number} hintsUsed Proven hints shown in this session.
  * @property {number} elapsedMs
  * @property {number} moves
- * @property {string} updatedAt
  * @property {Issue[]} restoreWarnings
  */
 
@@ -73,7 +72,6 @@ import { poseCells } from './geometry.js';
  * @property {boolean} solved
  * @property {boolean} revealed
  * @property {number} hintsUsed
- * @property {string} updatedAt
  */
 
 /**
@@ -90,7 +88,6 @@ import { poseCells } from './geometry.js';
 /** @typedef {{ ok: true } | { ok: false, reason: PlaceReason }} PlaceResult */
 
 export const MAX_HISTORY = 500;
-export const EPOCH = '1970-01-01T00:00:00.000Z';
 const MAX_WARNINGS = 100;
 
 /**
@@ -355,7 +352,6 @@ export function createGame(pack, index, saved) {
   const warnings = [];
   let elapsedMs = 0;
   let moves = 0;
-  let updatedAt = EPOCH;
   let revealed = false;
   let hintsUsed = 0;
   if (saved !== undefined && saved !== null) {
@@ -368,9 +364,6 @@ export function createGame(pack, index, saved) {
       }
       if (Number.isSafeInteger(saved.moves) && saved.moves >= 0) {
         moves = saved.moves;
-      }
-      if (typeof saved.updatedAt === 'string' && validTimestamp(saved.updatedAt)) {
-        updatedAt = saved.updatedAt;
       }
       if (saved.v === 2) {
         revealed = saved.revealed === true;
@@ -395,18 +388,8 @@ export function createGame(pack, index, saved) {
     hintsUsed,
     elapsedMs,
     moves,
-    updatedAt,
     restoreWarnings: warnings,
   };
-}
-
-/**
- * @param {string} text
- * @returns {boolean}
- */
-function validTimestamp(text) {
-  const ms = Date.parse(text);
-  return Number.isFinite(ms) && new Date(ms).toISOString() === text;
 }
 
 /**
@@ -478,7 +461,6 @@ export function snapshot(s) {
     solved: s.solved,
     revealed: s.revealed,
     hintsUsed: s.hintsUsed,
-    updatedAt: s.updatedAt,
   };
 }
 

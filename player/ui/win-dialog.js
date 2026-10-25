@@ -1,11 +1,12 @@
 // @ts-check
-// Victory dialog: time, moves and level of the solved puzzle with Next puzzle,
-// Replay and Back to generator. The dialog is only a view; the app decides what
-// each button does.
+// Victory dialog: time, moves, level and hints of the solved puzzle with Next puzzle, Replay, Back to generator and
+// Close. The app decides what the buttons do.
 
 import { el } from '../../core/browser/dom.js';
-import { LABELS, formatElapsed } from '../strings.js';
+import { formatElapsed } from '../strings.js';
 import { createModal, dialogButton } from './dialogs.js';
+import { loc } from './i18n-dom.js';
+import { setRating } from './rating-dom.js';
 
 /**
  * @typedef {object} WinHandlers
@@ -18,7 +19,7 @@ import { createModal, dialogButton } from './dialogs.js';
  * @typedef {object} WinInfo
  * @property {number} elapsedMs
  * @property {number} moves
- * @property {string} level Level and score text; empty when the puzzle carries no rating.
+ * @property {import('../../core/engine/types.js').PackPuzzle['rating']} [rating] Shown with the level in bold; the row is hidden without one.
  * @property {boolean} hasNext
  * @property {number} [hints] Proven hints used; shown only when above zero.
  */
@@ -28,28 +29,28 @@ import { createModal, dialogButton } from './dialogs.js';
  * @param {WinHandlers} handlers
  */
 export function createWinDialog(host, handlers) {
-  const modal = createModal(host, { title: LABELS.winTitle, className: 'pm-win' });
+  const modal = createModal(host, { titleKey: 'ui.winTitle', className: 'pm-win' });
   const time = el('dd', { className: 'win-time' });
   const moves = el('dd', { className: 'win-moves' });
   const level = el('dd', { className: 'win-level' });
-  const levelTerm = el('dt', { text: LABELS.winLevel });
-  const hintsTerm = el('dt', { text: LABELS.hintsUsed, attrs: { hidden: '' } });
+  const levelTerm = loc('ui.winLevel', {}, 'dt');
+  const hintsTerm = loc('ui.hintsUsed', { attrs: { hidden: '' } }, 'dt');
   const hintsUsed = el('dd', { className: 'win-hints', attrs: { hidden: '' } });
   modal.body.append(el('dl', { className: 'win-stats' },
-    el('dt', { text: LABELS.winTime }), time,
-    el('dt', { text: LABELS.winMoves }), moves,
+    loc('ui.winTime', {}, 'dt'), time,
+    loc('ui.winMoves', {}, 'dt'), moves,
     levelTerm, level,
     hintsTerm, hintsUsed));
-  const next = dialogButton(LABELS.nextPuzzle, () => {
+  const next = dialogButton('ui.nextPuzzle', () => {
     modal.close();
     handlers.onNext();
   }, 'win-next');
-  const replay = dialogButton(LABELS.replay, () => {
+  const replay = dialogButton('ui.replay', () => {
     modal.close();
     handlers.onReplay();
   }, 'win-replay');
-  const back = el('a', { className: 'pm-btn', text: LABELS.backToGenerator, attrs: { href: handlers.backHref ?? '../generator/' }, dataset: { action: 'win-back' } });
-  const close = dialogButton(LABELS.close, () => modal.close(), 'win-close');
+  const back = loc('ui.backToGenerator', { className: 'pm-btn', attrs: { href: handlers.backHref ?? '../generator/' }, dataset: { action: 'win-back' } }, 'a');
+  const close = dialogButton('ui.close', () => modal.close(), 'win-close');
   modal.actions.append(next, replay, back, close);
 
   return {
@@ -57,9 +58,9 @@ export function createWinDialog(host, handlers) {
     show(info) {
       time.textContent = formatElapsed(info.elapsedMs);
       moves.textContent = String(info.moves);
-      level.textContent = info.level;
-      levelTerm.hidden = info.level === '';
-      level.hidden = info.level === '';
+      const rated = setRating(level, info.rating);
+      levelTerm.hidden = !rated;
+      level.hidden = !rated;
       const hintCount = info.hints ?? 0;
       hintsUsed.textContent = String(hintCount);
       hintsTerm.hidden = hintCount === 0;
@@ -70,6 +71,5 @@ export function createWinDialog(host, handlers) {
     },
     hide: () => modal.close(),
     isOpen: modal.isOpen,
-    dialog: modal.dialog,
   };
 }

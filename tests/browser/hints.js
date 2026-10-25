@@ -282,7 +282,8 @@ await check('reveal asks first, cancelling changes nothing, confirming marks the
   const m = await mount({ pack });
   place(m, [at(solution, 'E')]);
   const clues = JSON.stringify(pack.puzzles[0].clues);
-  const reveal = m.q('[data-action="reveal"]');
+  // The page has no Show solution button; the reveal flow is driven through the hint panel.
+  const reveal = { click: () => m.player.hintPanel.askReveal() };
   reveal.click();
   const dialog = /** @type {HTMLDialogElement} */ (m.q('dialog.pm-reveal'));
   assert(dialog.open, 'a confirmation dialog opens');
@@ -303,16 +304,11 @@ await check('reveal asks first, cancelling changes nothing, confirming marks the
   equal(JSON.stringify(m.store.getState().pack?.puzzles[0].clues), clues, 'the clues are preserved');
   assert(!m.player.winDialog.isOpen(), 'no victory dialog');
   assert(!m.q('.game').classList.contains('is-celebrating'), 'no celebration');
-  equal(m.q('.selection-info').textContent, 'Solution revealed', 'the toolbar says revealed');
   assert(m.q('[data-action="results"]').hidden, 'no Results button for a revealed puzzle');
   assert(m.q('[data-host="hint"] [data-role="hint-text"]').textContent?.includes('not solved'), 'the status line says not solved');
   assert(!m.q('[data-action="hint-replay"]').hidden, 'Replay is offered');
   await waitFor(() => saved(m)?.revealed === true, 'the revealed record');
-  equal(m.store.getState().statuses[0], 'revealed', 'the library status is revealed');
-  m.storage.saveLibraryPack(/** @type {any} */ (m.store.getState().pack));
-  const entry = m.storage.libraryIndex()[0];
-  m.storage.touchLibraryPack(entry.packId);
-  equal(m.storage.libraryIndex()[0].solved, 0, 'a revealed puzzle is not counted as solved');
+  equal(m.store.getState().statuses[0], 'revealed', 'the puzzle list status is revealed');
 
   m.q('[data-action="undo"]').click();
   await tick();
@@ -323,14 +319,14 @@ await check('reveal asks first, cancelling changes nothing, confirming marks the
   await tick();
   equal(m.game().revealed, false, 'Replay is a fresh unassisted session');
   equal(m.game().placed.size, 0, 'with an empty board');
-  equal(saved(m)?.revealed, false, 'and an empty record');
+  equal(saved(m), null, 'and no saved record');
 });
 
 await check('reveal over an unsolvable position needs an explicit reset-then-reveal', async () => {
   const { pack, solution } = regressionPack();
   const m = await mount({ pack });
   place(m, [WRONG_B, ...['E', 'F', 'G', 'H', 'I', 'J'].map((id) => at(solution, id))]);
-  m.q('[data-action="reveal"]').click();
+  m.player.hintPanel.askReveal();
   m.q('dialog.pm-reveal [data-action="confirm-ok"]').click();
   const reset = /** @type {HTMLDialogElement} */ (m.q('dialog.pm-reveal-reset'));
   await waitFor(() => reset.open, 'the reset-then-reveal question', 20000);
@@ -341,7 +337,7 @@ await check('reveal over an unsolvable position needs an explicit reset-then-rev
   equal(m.game().revealed, false, 'and the puzzle unrevealed');
   await waitFor(() => m.live().startsWith('Reveal cancelled'), 'the cancellation to be announced');
 
-  m.q('[data-action="reveal"]').click();
+  m.player.hintPanel.askReveal();
   m.q('dialog.pm-reveal [data-action="confirm-ok"]').click();
   await waitFor(() => reset.open, 'the question again', 20000);
   m.q('dialog.pm-reveal-reset [data-action="confirm-ok"]').click();
@@ -374,11 +370,10 @@ await check('motion: the hint pulse is off in reduced-motion mode and on otherwi
 await check('keyboard and status: toolbar buttons are named, ordered and announced', async () => {
   const { pack, solution } = regressionPack();
   const m = await mount({ pack });
-  const names = ['hint', 'reveal'].map((a) => m.q(`[data-action="${a}"]`));
-  for (const button of names) {
-    assert(button.tagName === 'BUTTON' && button.getAttribute('aria-label') !== null, `${button.dataset.action} is a labelled button`);
-    assert(button.getBoundingClientRect().height >= 44, `${button.dataset.action} is at least 44 px tall`);
-  }
+  const hintButton = m.q('[data-action="hint"]');
+  assert(hintButton.tagName === 'BUTTON' && hintButton.getAttribute('aria-label') !== null && (hintButton.textContent ?? '').trim() === '', 'Hint is an icon button with an accessible name');
+  assert(hintButton.closest('.game-actions') !== null && hintButton.getBoundingClientRect().height >= 35.5, 'Hint sits with Undo, Redo and Replay at their size');
+  assert(m.root.querySelector('[data-action="reveal"]') === null, 'there is no Show solution button');
   place(m, [at(solution, 'E')]);
   m.q('[data-action="hint"]').click();
   await waitFor(() => m.live().includes('Checking') || m.hints.getState().phase === 'hint', 'a progress or result announcement');
@@ -406,7 +401,6 @@ await check('version 2 progress: a version 1 record resumes; hints and reveal su
   equal(m.game().moves, 4, 'and moves');
   equal(m.game().revealed, false, 'not revealed');
   equal(m.game().hintsUsed, 0, 'no hints');
-  m.q('[data-action="continue"]').click();
   m.q('[data-action="hint"]').click();
   await waitFor(() => m.hints.getState().phase === 'hint', 'a hint');
   m.player.play.flush();
@@ -414,7 +408,7 @@ await check('version 2 progress: a version 1 record resumes; hints and reveal su
   equal(raw?.v, 2, 'saved as version 2');
   equal(raw?.hintsUsed, 1, 'the hint is saved');
   equal(raw?.elapsedMs >= 83000, true, 'the time is kept');
-  m.q('[data-action="reveal"]').click();
+  m.player.hintPanel.askReveal();
   m.q('dialog.pm-reveal [data-action="confirm-ok"]').click();
   await waitFor(() => m.game().revealed, 'the reveal', 20000);
   m.player.play.flush();
@@ -426,7 +420,7 @@ await check('version 2 progress: a version 1 record resumes; hints and reveal su
   equal(again.game().hintsUsed, 1, 'with its counter');
   equal(again.store.getState().statuses[0], 'revealed', 'the status is revealed');
   assert(!again.player.winDialog.isOpen(), 'no victory dialog on restore');
-  assert(again.q('[data-host="status"]').textContent?.includes('revealed'), 'the resume question mentions the reveal');
+  assert(/revealed/i.test(again.q('[data-host="hint"] [data-role="hint-text"]').textContent ?? ''), 'the hint box marks the puzzle as revealed');
 });
 
 await check('the shipped sample still solves normally and earns the win', async () => {
