@@ -171,6 +171,7 @@ pentomino/                     repository root = site root /pentomino/
 │     └─ worker-pool.js  generation-client.js  svg-board.js  pointer.js  storage.js  handoff.js
 │        print-layout.js  print-sheet.js  print-dialog.js  print-texts.js  print.css
 │        dom.js  i18n.js  theme.js  theme-init.js  theme.css  common.css  favicon.svg
+│        qr.js  vendor/qrcodegen.js  vendor/qrcodegen.LICENSE
 ├─ generator/
 │  ├─ index.html  app.js  state.js  jobs.js  address.js  strings.js  i18n.js
 │  ├─ locale.en.js  locale.vi.js  generator.css
@@ -183,7 +184,8 @@ pentomino/                     repository root = site root /pentomino/
 │  │       context-menu.js  keyboard.js  start-view.js  hint-panel.js  dialogs.js  win-dialog.js
 │  │       rating-dom.js  i18n-dom.js
 │  └─ samples/sample-pack.json
-├─ tests/                      node:test suites, browser regression pages and fixtures (never deployed)
+├─ tests/                      node:test suites, browser regression pages, fixtures and vendor/jsqr.cjs
+│                              (the test-only QR decoder, §3.3); never deployed
 ├─ tools/                      generate.mjs (CLI), calibrate.mjs, bench/ (browser benchmark), serve.mjs,
 │                              stamp-version.mjs, check-site.mjs, site-scan.mjs, check-conventions.mjs,
 │                              node-worker.mjs, record-fixtures.mjs
@@ -229,6 +231,7 @@ Layering rules (MUST):
 | Compression | Native `CompressionStream` / `DecompressionStream('deflate-raw')` |
 | Tests | Node ≥ 22 with `node:test` and `node:assert/strict`; zero dependencies |
 | Runtime dependencies | None. Dev-only tools such as Playwright are optional. |
+| Bundled third-party code | Source files copied into the repository, not npm dependencies. Runtime: the QR encoder `core/browser/vendor/qrcodegen.js` (Nayuki, MIT, pinned; its notice and provenance are in `qrcodegen.LICENSE`). Tests only: the QR decoder `tests/vendor/jsqr.cjs` (jsQR 1.4.0, Apache-2.0, with `jsqr.LICENSE`), loaded by Node tests as an independent reader; no page, `core/`, `generator/` or `player/` file imports it and it is never deployed. `tests/qr.test.js` pins both by SHA-256 after CRLF-to-LF normalisation. |
 
 ---
 
@@ -537,6 +540,7 @@ export function textColorFor(hex: string): '#000000' | '#ffffff';   // WCAG rela
 | `print-layout.js` | Pure paper geometry of a printout in millimetres (§11.15): `planPrint(job, options)` returns the sheets and pages; `orientModel`, `cellSizeFor`, `layoutPieceSheets`, `layoutBoard`, `layoutPreview`, `layoutSolution`, `mirrorX`, `mirrorCells`. It lives here, not in `core/engine/`, because it is part of the printing feature rather than of generation (the benchmark source digest covers the engine only). |
 | `print-sheet.js` | `buildPrintPages(plan, heading, text)` draws the plan as one 210 × 297 mm SVG per page (`.pm-print-page`), reusing `drawPiece` and `createDefs` of `svg-board.js`. |
 | `print-dialog.js`, `print-texts.js`, `print.css` | `createPrintDialog({ host, t, getJob })`: the Print dialog both apps use, and `printPages(doc, win, pages)`, which shows the pages for the browser's print function. `print-texts.js` holds the English and Vietnamese texts (`print.*` keys) that both apps' locale packs spread in. `print.css` styles the dialog and, in `@media print`, shows only the pages. |
+| `qr.js`, `vendor/qrcodegen.js` | The local QR code of a printed puzzle link. It is pure: no DOM, storage, clipboard or network, and no application state. `makePuzzleQr({ urlPrefix, code, ec? })` returns `{ ok: true, value }` or `{ ok: false, code, message }`. `urlPrefix` is used verbatim (UTF-8 bytes are measured) and must end with `#p=`; the standard one is `https://tdat00.github.io/pentomino/player/#p=` (45 bytes, path case untouched). `code` is the canonical output code, upper case and ungrouped: the core, or core + `.` + tail, treated as opaque (never parsed, repaired or shortened). Input the transfer producer must not send is `qr-invalid-input`; a valid payload that does not fit version 40 is `qr-too-long`. The symbol has two explicit segments, a byte segment for the prefix and an alphanumeric segment for the code, at the requested error correction `ec` (`'M'` by default, `'L'` only when the caller's oversize policy asks for it, never raised to Q or H), automatic mask and the smallest version 1–40. `value` holds `url`, `code`, `urlPrefix`, `ec`, `version`, `modules` (17 + 4 × version), `quietModules` (4), `outerModules` (`modules` + 8), `outerMm`, `moduleMm` and `rows` (one `Uint8Array` of 0/1 per row, data modules only). `qrGeometry(version)` gives the size: `outerMm` = max(25, `outerModules` × 0.5) and `moduleMm` = `outerMm` / `outerModules`, so a module is never under 0.5 mm and a small symbol is enlarged to 25 mm (version 5: 25 mm, 11: 34.5 mm, 40: 92.5 mm). `qrRowRunPath(rows)` returns the SVG path of the black modules in module units, one `M{x} {y}h{w}v1h-{w}z` rectangle per horizontal run in row-major order (an empty string for an all-white matrix; `RangeError` for an empty, non-square or non-0/1 matrix). The symbol is drawn as an opaque white `rect` of `outerModules` square and that path shifted by the quiet zone, with no stroke. `vendor/qrcodegen.js` is the pinned Nayuki encoder, changed only in line endings, trailing blanks and a final `export { qrcodegen };` (§3.3). The print sheet does not use `qr.js` yet. |
 
 ---
 
@@ -1812,6 +1816,7 @@ Play is allowed while checking, and after an inconclusive check. "Not verified" 
 - Every input passes `validatePack` before use; nothing is stored on failure.
 - Text is rendered with `textContent` only. Colors must match `#rrggbb`. There is no `eval`, no `new Function` and no `innerHTML` with data.
 - Every page sets a Content-Security-Policy `<meta>` (§12.4).
+- QR codes are made on the device (`core/browser/qr.js`, §4.3); no puzzle, code or link is sent to a QR service.
 - Size limits: pack ≤ 512 KiB; share code ≤ 350,000 characters; decoded ≤ 256 KiB; `meta` ≤ 4 KiB.
 
 ---
@@ -2276,6 +2281,7 @@ Every app page carries:
 
 - No inline scripts or `style="…"` attributes in markup. Set styles through the CSSOM (`el.style.x = …`) or classes.
 - SVG presentation attributes such as `transform` and `fill` are allowed.
+- A QR symbol (§4.3) is plain SVG with `fill` and `transform` attributes, so it needs no change to the policy; the encoder is a local module and `connect-src 'self'` leaves no way to a QR service.
 
 ### 12.5 Workflow: `.github/workflows/pages.yml`
 
@@ -2368,6 +2374,7 @@ jobs:
 | `sharecode` | `1z` / `1j` round-trips (Node ≥ 22 has `CompressionStream`). A decompression bomb is aborted at 256 KiB. |
 | `game` | place / move / remove / orient / undo / redo / reset. `canPlace` reasons. A moving piece's old cells are excluded. A non-witness tiling wins. Clues are immutable. Restoring progress drops invalid moves. |
 | `print-layout` | The paper layout of §11.15: 45° steps dropped, the board, clues and pieces turn together, the cell sizes (10, 15, 20 mm, Fit to page ≤ 25 mm), pieces packed once inside the margins and apart, a too-wide piece turned and the cells shrunk when nothing fits, a big board cut into parts that cover every playable cell once, blocked parts left out, the quarter turn that saves paper, the page list with the backs, the preview fitting the page, and equal English and Vietnamese `print.*` texts. |
+| `qr` | The five golden payloads give the exact matrix hashes (versions 5, 5, 5, 6, 11) and a second implementation (jsQR, test-only) reads each URL back with a byte and an alphanumeric chunk. Mixed-case and fork prefixes are kept verbatim and capacity follows UTF-8 bytes. Version boundaries: with the standard prefix, version 5 holds 55 code symbols at M and 87 at L, version 40 holds 3322 at M and 4227 at L. `qr-invalid-input` for an empty core, trailing or double dot, lower case, grouping, U/I/O/L, a prefix not ending in `#p=` and an unsupported level; `qr-too-long` beyond version 40. M stays M (the format information is read back: a tiny payload that a boosting encoder would raise to H stays M) and L stays L. The dimension formula for versions 1–40. Row-run path examples, malformed matrices rejected, and an independent rasterization of the path equal to the matrix. Both vendored files match their SHA-256 after CRLF-to-LF normalisation (encoder 45,368 bytes `68453133…`, jsQR `bc40c8a1…`) with their licences; the decoder is absent from every browser import graph; no npm dependency or lockfile; no unsafe DOM or string execution. |
 
 ### 13.3 Browser acceptance checklist
 
@@ -2390,6 +2397,7 @@ Run on desktop Chromium, Firefox and Safari, on Android Chrome and on iOS Safari
 15. The player's **EN | VI** switch changes every text of the page and survives a reload; the theme buttons change the palette (also on the generator, which shares both choices).
 16. Right-click on a piece of the pieces panel opens the piece menu: rotate both ways, flip both ways. On a placed piece it also offers Return to tray. Escape closes it and the focus returns to the piece.
 17. Print (generator's Play row and player's game bar) opens the dialog; the print preview of the browser shows an A4 first sheet, the piece set and the board at the chosen size, with no other part of the page. On paper at 100 %, the 50 mm bar measures 50 mm and a cut-out piece covers exactly one board cell. With two-sided printing flipped on the long edge, the two sides of a piece or board part coincide. `tests/browser/print.html` checks the geometry in millimetres.
+18. `tests/browser/puzzle-qr.html` (strict policy) checks the five golden matrix hashes, then renders symbols of versions 5, 11 and 40 on light, dark and high-contrast surroundings and measures them in millimetres: an opaque white box with the quiet zone of 4 modules on every edge, black modules at 0.5 mm or more, a box of at least 25 mm, and a path that paints exactly the matrix. It is not a phone scan; reading a printed code with real phones stays a physical check.
 
 ### 13.4 Performance and calibration
 

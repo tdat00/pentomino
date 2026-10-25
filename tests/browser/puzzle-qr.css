@@ -1,0 +1,21 @@
+/* Surroundings for the QR adapter harness: the page and the box around each symbol follow the active theme, and the
+   box passes a text colour down to the SVG so that only explicit fills can keep the quiet zone white. */
+
+body {
+  background: var(--gen-color-bg);
+  color: var(--gen-color-text);
+}
+
+.qr-surround {
+  display: inline-block;
+  margin: 0.5rem 1rem 0.5rem 0;
+  padding: 12px;
+  background: var(--gen-color-surface);
+  color: var(--gen-color-text);
+  fill: currentColor;
+  border: 1px solid var(--gen-color-border);
+}
+
+.qr-surround svg {
+  display: block;
+}

@@ -762,14 +762,14 @@ Do not claim an Android/iPhone scan from the jsQR unit tests.
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Done (physical print and phone-scan evidence remains with RP08) |
+| Start | 2026-10-25 20:46:11 (+07:00) |
+| End | 2026-10-25 21:00:53 (+07:00); code-ready 20:58:26, living docs 20:58–21:00 |
+| Duration | 14 min 42 s |
+| Model | claude-sonnet-5.5 (sub-agent `RP04-qr`, general-purpose); wave 1, in parallel with RP01 |
+| Token usage | 65 model calls; 7,606,535 input (7,411,399 cache read), 99,359 output |
+| AI credits | 222.25 AIU (local usage store, keyed by sub-agent id) |
+| Verification | Developer: `node --test .\tests\qr.test.js` 32/32; scoped `checkText` on 6 authored files OK; `checkSite` on `tests/browser/puzzle-qr.html` and `scanSource` on `qr.js`/`qrcodegen.js` clean; headless Edge 156 via CDP on port 8704 → `data-result=pass`, 13/13 cases, 0 CDP errors, 0 CSP violations (with `--disable-extensions`). Orchestrator re-run at the wave barrier: `node --test tests\qr.test.js` 32 pass / 0 fail; `npm run check` OK; full `npm test` 948 tests, 946 pass, 2 fail — both caused by RP01's new engine files (`LIMITS` name, `SOURCE_FILES` list), none in RP04 files. |
+| Acceptance | Business and technical criteria met: upstream bytes matched before adaptation (qrcodegen 45,350 bytes `2511bc17…9480`; jsQR bundle 256,885 bytes `bc40c8a1…0859`; jsQR licence `c6596eb7…ba08`); adapted encoder 46,207 bytes CRLF `c5b15113…71c2` = 45,368 bytes LF-canonical `68453133…18f5`; goldens G1–G5 reproduce the five matrix hashes (versions 5, 5, 5, 6, 11) and jsQR decodes each URL exactly with chunks `byte` + `alphanumeric`; EC M by default, L only on request, never boosted; outer size max(25, (25 + 4v) × 0.5) mm; no remote service, CSP unchanged. |
+| Issues & resolutions | (1) A pre-installed Edge extension logged a "Permissions policy violation: unload" error that failed the CDP error count → re-run with `--disable-extensions` (0 errors); later tasks launch Edge with this flag. (2) Added `tests/browser/puzzle-qr.css` for the themed surrounds (allowed by the task). (3) Extra exports `qrGeometry`, `QR_QUIET_MODULES`, `QR_MIN_MODULE_MM`, `QR_MIN_OUTER_MM`, `QR_MIN_VERSION`, `QR_MAX_VERSION`; extra input validation (`qr-invalid-input` for a prefix with spaces, controls or lone surrogates; `qr-too-long` above the QR standard's absolute limits before allocation); frozen results; `qrRowRunPath` throws `RangeError` on empty, ragged or non-binary matrices. (4) Living docs: design-brief "Limits, waiting, and sharing"; design-detail §3.1, §3.3, §4.3, §9.7, §12.4, §13.2, §13.3; README licence notes (EN/VI). |
+| Handoff | `import { makePuzzleQr, qrRowRunPath, qrGeometry } from '../core/browser/qr.js'`. `makePuzzleQr({ urlPrefix, code, ec? })` → `{ ok: true, value: { url, code, urlPrefix, ec, version, modules, quietModules: 4, outerModules, outerMm, moduleMm, rows } }` or `{ ok: false, code: 'qr-invalid-input' \| 'qr-too-long', message }`. `rows[y][x]` ∈ {0, 1}, quiet zone excluded. Render: `viewBox="0 0 outerModules outerModules"`, width/height `outerMm` mm, opaque `fill="#fff"` rect, `fill="#000"` path from `qrRowRunPath` inside `translate(4 4)`; `stroke="none"` is a safe addition. Capacity with the 45-byte prefix: M v5 ≤ 55 code chars, v40 ≤ 3,322; L v5 ≤ 87, v40 ≤ 4,227 — use the result's `version`, never guess. |

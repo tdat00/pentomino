@@ -1,0 +1,41 @@
+QR Code generator library (compiled from TypeScript)
+
+Copyright (c) Project Nayuki. (MIT License)
+https://www.nayuki.io/page/qr-code-generator-library
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+- The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+- The Software is provided "as is", without warranty of any kind, express or
+  implied, including but not limited to the warranties of merchantability,
+  fitness for a particular purpose and noninfringement. In no event shall the
+  authors or copyright holders be liable for any claim, damages or other
+  liability, whether in an action of contract, tort or otherwise, arising from,
+  out of or in connection with the Software or the use or other dealings in the
+  Software.
+
+Provenance of qrcodegen.js (kept here so the JavaScript stays byte-pinned)
+--------------------------------------------------------------------------
+
+Upstream source:  https://www.nayuki.io/res/qr-code-generator-library/qrcodegen.js
+Upstream size:    45,350 bytes
+Upstream SHA-256: 2511bc17f40a3c41d4a0578995db956b38997334d3d20113a5d4dc5c49c69480
+
+Adaptations, and only these:
+1. Decoded as UTF-8 without a byte order mark.
+2. Line endings normalised to CRLF.
+3. Spaces and tabs removed at the end of lines 52, 640, 644, 790 and 816
+   (parameter lists).
+4. The existing final newline kept.
+5. A blank line and "export { qrcodegen };" appended (CRLF-terminated).
+
+Adapted file: 46,207 bytes with CRLF line endings, SHA-256
+c5b15113a4ec416ba65d1a75acd664d74d8f187a081c46bb622590bef2f971c2 (informative).
+With CRLF normalised to LF: 45,368 bytes, SHA-256
+68453133c5cffbaebe89cdfba48f1bb0918535335bae75adfbdbfde2a8b318f5. This LF digest
+is the portable one that tests/qr.test.js asserts.

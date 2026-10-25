@@ -341,6 +341,11 @@ records, unchanged. [AGENTS.md](AGENTS.md) says how AI agents should work here.
 
 Released under the [MIT License](LICENSE) © 2026 Dat Le.
 
+The repository also contains two third-party source files, neither an npm package, so the app still has no runtime
+dependencies: the [Nayuki QR Code generator library](https://www.nayuki.io/page/qr-code-generator-library) (MIT) in
+`core/browser/vendor/`, with its notice in `qrcodegen.LICENSE`; and, for tests only, jsQR 1.4.0 (Apache-2.0) in
+`tests/vendor/`, which is never part of the site.
+
 [Back to top](#top)
 
 ---
@@ -636,5 +641,10 @@ nguyên không sửa. [AGENTS.md](AGENTS.md) hướng dẫn cách các tác tử
 ## Giấy phép
 
 Phát hành theo [giấy phép MIT](LICENSE) © 2026 Dat Le.
+
+Kho mã còn chứa hai tệp nguồn của bên thứ ba, không phải gói npm, nên ứng dụng vẫn không có phụ thuộc lúc chạy:
+[thư viện tạo mã QR của Nayuki](https://www.nayuki.io/page/qr-code-generator-library) (MIT) trong
+`core/browser/vendor/`, kèm thông báo bản quyền trong `qrcodegen.LICENSE`; và, chỉ cho kiểm thử, jsQR 1.4.0 (Apache-2.0)
+trong `tests/vendor/`, không bao giờ thuộc về trang web.
 
 [Lên đầu trang](#top)
