@@ -1269,7 +1269,7 @@ button.ghost-small:disabled {
   min-height: 6rem;
   padding: 0.5rem 0.625rem;
   color: var(--pm-ink);
-  font: 0.9375rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font: 1rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   background: var(--pm-surface);
   border: 1px solid var(--pm-border);
   border-radius: var(--gen-radius-2);

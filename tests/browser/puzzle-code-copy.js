@@ -88,6 +88,16 @@ function equal(a, b, msg) {
 const pause = (/** @type {number} */ ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
+ * A touch browser (iOS Safari) zooms the page when a field with text under 16 px gets the focus.
+ * @param {HTMLTextAreaElement} field
+ * @param {string} what
+ */
+function noZoomText(field, what) {
+  const px = parseFloat(getComputedStyle(field).fontSize);
+  assert(px >= 16, `${what}: the field text is at least 16 CSS px, so the page does not zoom on focus (${px})`);
+}
+
+/**
  * @param {() => unknown} fn
  * @param {string} msg
  * @param {number} [ms]
@@ -649,6 +659,7 @@ if (phase === 'main') {
       const field = /** @type {HTMLTextAreaElement} */ (dialog.querySelector('textarea'));
       equal(field.value, url, 'the exact link');
       assert(field.readOnly, 'read-only');
+      noZoomText(field, 'Player');
       equal(dialog.querySelector(`label[for="${field.id}"]`)?.textContent, 'Puzzle link', 'labelled');
       equal(dialog.getAttribute('aria-labelledby'), dialog.querySelector('label')?.id, 'the dialog is named by the label');
       assert(dialog.matches(':modal'), 'modal: the game cannot be played behind it');
@@ -847,6 +858,7 @@ if (phase === 'main') {
       const field = /** @type {HTMLTextAreaElement} */ (dialog.querySelector('textarea'));
       equal(field.value, expectedUrl, 'the exact link of the selected puzzle');
       assert(field.readOnly, 'in a read-only field');
+      noZoomText(field, 'Generator');
       equal(dialog.querySelector('[data-action="copy-close"]')?.textContent, 'Close', 'a Close action');
       generatorI18n.setLocale('vi', document);
       equal(dialog.querySelector('[data-action="copy-close"]')?.textContent, 'Đóng', 'Vietnamese Close');
@@ -1088,6 +1100,7 @@ if (phase === 'narrow') {
       const dialog = /** @type {HTMLDialogElement} */ (copyDialog());
       const field = /** @type {HTMLTextAreaElement} */ (dialog.querySelector('textarea'));
       equal(field.value.length, 45 + 3500, 'a 3,545-character link');
+      noZoomText(field, 'Generator on a phone');
       const box = dialog.getBoundingClientRect();
       assert(box.left >= -0.5 && box.right <= innerWidth + 0.5, 'the dialog fits the viewport');
       assert(field.scrollWidth <= field.clientWidth + 1, 'the long link wraps inside the field');
@@ -1109,6 +1122,7 @@ if (phase === 'narrow') {
       await waitFor(() => dialogOpen(), 'the field');
       const dialog = /** @type {HTMLDialogElement} */ (copyDialog());
       const field = /** @type {HTMLTextAreaElement} */ (dialog.querySelector('textarea'));
+      noZoomText(field, 'Player on a phone');
       const box = dialog.getBoundingClientRect();
       assert(box.left >= -0.5 && box.right <= innerWidth + 0.5, 'the dialog fits the viewport');
       assert(field.scrollWidth <= field.clientWidth + 1, 'the long link wraps inside the field');

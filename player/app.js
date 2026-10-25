@@ -11,6 +11,7 @@ import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
 import { createPuzzleCodeDialog } from '../core/browser/puzzle-code-dialog.js';
 import { shouldOfferStraighten, svgEl } from '../core/browser/svg-board.js';
 import { packBoard } from '../core/engine/pack.js';
+import { isPuzzleHash } from '../core/engine/sharecode.js';
 import { createPlayController } from './play.js';
 import { createHintController } from './hints.js';
 import { choose, onChange, setLocale, t } from './i18n.js';
@@ -460,18 +461,36 @@ export function mountPlayer(root, env = {}) {
   const codeHost = el('div', { className: 'code-host' });
   root.append(codeHost);
   /**
-   * Opens a puzzle code through the controller (atomic; the address becomes `#p=<code>`). Saved moves that come back
-   * with the puzzle are said so: the board then differs from the first printed sheet until Replay.
-   * @param {string} text
+   * Saved moves that come back with a puzzle opened from a puzzle code, however the code arrived (typed, pasted, or a
+   * `#p=` address read on load or on a hash change: a scan, a bookmark, a reload), are said so: the board then differs
+   * from the first printed sheet until Replay. Nothing is said when the code did not open or had nothing to restore.
+   * @template {{ ok?: boolean }} R
+   * @param {R} result The result of the load that read the code.
+   * @returns {R}
    */
-  async function openCode(text) {
-    const result = await controller.loadPuzzleCode(text, { commitAddress: true });
+  function sayRestoredMoves(result) {
     const { game, notice } = store.getState();
-    if (result.ok && game !== null && !untouched(game)) {
+    if (result.ok === true && game !== null && !untouched(game)) {
       const restored = t('code.restored');
       store.update({ notice: { kind: notice?.kind ?? 'info', text: notice === null ? restored : `${notice.text} ${restored}` } });
     }
     return result;
+  }
+  /**
+   * @param {string} hash The address that is being opened.
+   * @param {Promise<unknown>} opening The controller's load of it.
+   * @returns {Promise<unknown>}
+   */
+  async function openedAddress(hash, opening) {
+    const result = await opening;
+    return isPuzzleHash(hash) ? sayRestoredMoves(/** @type {{ ok?: boolean }} */ (result)) : result;
+  }
+  /**
+   * Opens a puzzle code through the controller (atomic; the address becomes `#p=<code>`).
+   * @param {string} text
+   */
+  async function openCode(text) {
+    return sayRestoredMoves(await controller.loadPuzzleCode(text, { commitAddress: true }));
   }
   const codeDialog = createPuzzleCodeDialog({
     host: codeHost,
@@ -798,7 +817,8 @@ export function mountPlayer(root, env = {}) {
   }
 
   const onHashChange = () => {
-    void controller.openHash(String((env.location ?? win.location).hash));
+    const hash = String((env.location ?? win.location).hash);
+    void openedAddress(hash, controller.openHash(hash));
   };
   if (env.listenHashChange !== false) {
     win.addEventListener('hashchange', onHashChange);
@@ -809,7 +829,7 @@ export function mountPlayer(root, env = {}) {
   doc.addEventListener('visibilitychange', onVisibility);
   onVisibility();
 
-  const ready = controller.start();
+  const ready = openedAddress(String((env.location ?? win.location).hash), controller.start());
 
   return {
     store,

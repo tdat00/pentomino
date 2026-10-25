@@ -236,7 +236,8 @@ function deferredClient() {
 }
 
 /**
- * @param {{ hash?: string, adapter?: ReturnType<typeof memoryAdapter> | null, client?: () => any, width?: number, height?: number }} [o]
+ * @param {{ hash?: string, adapter?: ReturnType<typeof memoryAdapter> | null, client?: () => any, width?: number, height?: number, hashChange?: boolean }} [o]
+ *   `hashChange: true` lets the page follow `hashchange` events (the harness sends them; the address is the fake `location`).
  */
 async function mount(o = {}) {
   const root = document.createElement('div');
@@ -267,7 +268,7 @@ async function mount(o = {}) {
     baseUrl: new URL('../../player/', document.baseURI),
     createPool: () => /** @type {any} */ (pool),
     createPuzzleCodeClient: o.client,
-    listenHashChange: false,
+    listenHashChange: o.hashChange === true,
     preferenceStorage: null,
   });
   await player.ready;
@@ -703,6 +704,86 @@ await check('saved moves return with the code: an honest notice, live announceme
   await waitFor(() => !isOpen(again), 'the same puzzle by its code');
   equal(again.q('.status-notice .status-text').textContent, EN.restored, 'reopening a puzzle with moves says so');
   again.player.destroy();
+});
+
+await check('saved moves return with a code read from the address too (a reload, a scan, a hash change): said once, nothing to restore says nothing', async () => {
+  const adapter = memoryAdapter();
+  const first = await mount({ adapter, hash: sampleLink });
+  placeOne(first);
+  const fingerprint = first.player.store.getState().fingerprints[0];
+  const saved = first.storage.loadProgress(fingerprint);
+  assert(saved !== null, 'the move was saved');
+  first.player.destroy();
+  const moved = sample.pieces.length - puzzle0.clues.length - 1;
+  const noticeShown = (/** @type {Stage} */ m) => m.visible('.status-notice');
+  const noticeText = (/** @type {Stage} */ m) => m.q('.status-notice .status-text').textContent;
+
+  for (const hash of [`#p=${CORE}`, `#p=${CODE}`, `#p=${CODE.toLowerCase().replace(/(.{4})/g, '$1-')}`]) {
+    const m = await mount({ adapter, hash });
+    equal(m.player.store.getState().pack?.puzzles[0].clues, puzzle0.clues, `${hash}: the printed puzzle`);
+    assert(noticeShown(m), `${hash}: the notice is visible after the address was read`);
+    equal(noticeText(m), EN.restored, `${hash}: it says what happened`);
+    equal(m.q('.status-notice').getAttribute('role'), 'status', `${hash}: a polite status region`);
+    await waitFor(() => m.q('[data-host="live"]').textContent === EN.restored, `${hash}: the live region announces it`);
+    equal(m.urls, [], `${hash}: the address was not rewritten`);
+    m.player.destroy();
+  }
+
+  const replayed = await mount({ adapter, hash: `#p=${CORE}` });
+  assert(noticeShown(replayed), 'a reload says so again');
+  replayed.player.controller.replay();
+  equal(replayed.qa('.tray-piece').length, moved + 1, 'Replay starts as printed');
+  assert(!noticeShown(replayed), 'and clears the notice');
+  replayed.player.destroy();
+  const resaved = await mount({ adapter, hash: sampleLink });
+  placeOne(resaved);
+  resaved.player.destroy();
+
+  const dismissed = await mount({ adapter, hash: `#p=${CORE}` });
+  dismissed.q('.status-notice [data-action="dismiss-notice"]').click();
+  assert(!noticeShown(dismissed), 'it can be dismissed');
+  equal(dismissed.qa('.tray-piece').length, moved, 'without touching the moves');
+  dismissed.player.destroy();
+
+  const fresh = await mount({ hash: `#p=${CORE}` });
+  assertSamePuzzle(fresh, 'fresh');
+  assert(!noticeShown(fresh), 'a puzzle with nothing saved says nothing');
+  fresh.player.destroy();
+
+  const link = await mount({ adapter, hash: sampleLink });
+  equal(link.qa('.tray-piece').length, moved, 'a #pack= link restores the same moves');
+  assert(!noticeShown(link), 'but it is not a puzzle code, and says nothing');
+  link.player.destroy();
+
+  const bad = await mount({ adapter, hash: `#p=${ONE_TYPO}` });
+  assert(isOpen(bad) && bad.player.store.getState().screen === 'start', 'a bad address opens the entry, not a game');
+  assert(!noticeShown(bad), 'and says nothing about restoring');
+  bad.player.destroy();
+
+  const changing = await mount({ adapter, hash: '', hashChange: true });
+  const navigate = async (/** @type {string} */ hash, /** @type {() => boolean} */ done, /** @type {string} */ what) => {
+    changing.location.hash = hash;
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    await waitFor(done, what);
+  };
+  await navigate(`#p=${CORE}`, () => changing.player.store.getState().screen === 'game', 'the code in the address to open');
+  await waitFor(() => noticeShown(changing), 'the notice after a hash change');
+  equal(noticeText(changing), EN.restored, 'a hash change to a code says so');
+  await waitFor(() => changing.q('[data-host="live"]').textContent === EN.restored, 'and announces it');
+  await navigate(sampleLink, () => !noticeShown(changing), 'a pack link to replace the notice');
+  equal(changing.qa('.tray-piece').length, moved, 'the same moves, now from a pack link');
+  await navigate(`#p=${ONE_TYPO}`, () => isOpen(changing), 'a bad code in the address to be explained');
+  assert(!noticeShown(changing), 'a bad code says nothing about restoring');
+  changing.player.destroy();
+
+  const damaged = memoryAdapter();
+  createStorage(damaged, () => Date.now()).saveProgress(fingerprint, {
+    ...saved, placements: [...saved.placements, { piece: 'ZZ', x: 0, y: 0, turn: 0, mirrored: false }],
+  });
+  const warned = await mount({ adapter: damaged, hash: `#p=${CORE}` });
+  const warning = warned.player.store.getState().notice;
+  assert(warning?.kind === 'warning' && /no longer fit/.test(warning.text) && warning.text.endsWith(` ${EN.restored}`), `a discarded move keeps its warning and the restoration follows it: ${warning?.text}`);
+  warned.player.destroy();
 });
 
 await check('Cancel and edits invalidate a request in flight: a late reply can neither open a puzzle nor replace newer input', async () => {

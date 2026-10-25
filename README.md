@@ -178,7 +178,8 @@ From 768 px to 1359 px the puzzles go under the game; below 768 px the panels st
   address stay as they were. If a single mistyped character is the likely cause, the dialog shows where and which
   character it may be; nothing is corrected until you press **Use this correction**. If only the part after the dot is
   damaged, **Open without the solution part** opens the puzzle from the part before it (the solution is then searched
-  for in the background). Saved moves for the puzzle come back with a short notice; **Replay** starts again as printed.
+  for in the background). Saved moves for the puzzle come back with a short notice (also when you reload the page or
+  scan a link to it); **Replay** starts again as printed.
   **Cancel** or `Escape` closes the dialog.
 - **Copying a puzzle link.** **Copy this puzzle link** (the link icon after **Print** in the game bar, and in the
   Generator right of **Print**) copies `…/player/#p=<code>` for the puzzle that is shown: the address that the QR code
@@ -521,7 +522,8 @@ sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp
   làm thay đổi gì: văn bản của bạn, đề đang mở, các nước đi và địa chỉ vẫn như cũ. Nếu nhiều khả năng chỉ do gõ sai một
   ký tự, hộp thoại cho biết vị trí và ký tự có thể đúng; không có gì được sửa cho đến khi bạn nhấn **Dùng cách sửa này**.
   Nếu chỉ phần sau dấu chấm bị hỏng, **Mở đề không có phần lời giải** mở đề từ phần đứng trước nó (lời giải khi đó được
-  tìm ngầm). Các nước đi đã lưu của đề được khôi phục kèm một thông báo ngắn; **Chơi lại** bắt đầu lại như bản in.
+  tìm ngầm). Các nước đi đã lưu của đề được khôi phục kèm một thông báo ngắn (cả khi bạn tải lại trang hoặc quét liên kết
+  của đề); **Chơi lại** bắt đầu lại như bản in.
   **Hủy** hoặc `Escape` đóng hộp thoại.
 - **Sao chép liên kết của đề.** **Sao chép liên kết đề này** (biểu tượng liên kết sau nút **In** trong thanh ván chơi, và
   trong trình tạo đề ở bên phải nút **In**) sao chép `…/player/#p=<mã>` của đề đang hiện: chính địa chỉ mà mã QR trên
