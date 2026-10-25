@@ -39,6 +39,7 @@ export const SOURCE_FILES = Object.freeze([
   'core/engine/dlx.js', 'core/engine/enumerate.js', 'core/engine/game.js', 'core/engine/generate.js', 'core/engine/geometry.js',
   'core/engine/hash.js', 'core/engine/hints.js', 'core/engine/keys.js', 'core/engine/levels.js', 'core/engine/pack.js',
   'core/engine/palette.js', 'core/engine/placements.js', 'core/engine/policy.js', 'core/engine/protocol.js',
+  'core/engine/puzzlecode-input.js', 'core/engine/puzzlecode-v1.js', 'core/engine/puzzlecode.js',
   'core/engine/qualification.js', 'core/engine/rng.js', 'core/engine/sharecode.js', 'core/engine/tasks.js',
   'core/engine/tiling.js', 'core/engine/types.js', 'core/engine/version.js', 'core/engine/view.js',
   'core/engine/workspace.js', 'core/browser/worker-pool.js', 'core/browser/generation-client.js',

@@ -1230,14 +1230,14 @@ Handoff to RP08 includes all fixture oracles and the long-bound slow test.
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Done |
+| Start | 2026-10-25 20:46:11 (+07:00) |
+| End | 2026-10-25 21:39:04 (+07:00); first code-ready 21:28, wave-barrier fix 21:28–21:33, living docs 21:35–21:39 |
+| Duration | 52 min 53 s |
+| Model | claude-sonnet-5.5 (sub-agent `RP01-codec`, general-purpose); wave 1, in parallel with RP04 |
+| Token usage | 174 model calls; 34,259,791 input (33,580,969 cache read), 380,264 output |
+| AI credits | 885.76 AIU (local usage store, keyed by sub-agent id) |
+| Verification | Developer: `node --test tests\puzzlecode.test.js tests\puzzlecode-input.test.js` 62/62 (58/58 with `--test-skip-pattern=slow`); unchanged `pack`/`geometry`/`keys` tests 61/61; after the fix round the four affected files 101/101; scoped `checkText` on all owned files and `tools\bench\report.js` OK. Orchestrator at the wave barrier: first full `npm test` 946/948 (2 guard tests failed on the new engine files) → after the fix, full `node --test "tests/**/*.test.js"` 948 pass / 0 fail (46.8 s), codec suites 62/62, `npm run check` OK. |
+| Acceptance | Business and technical criteria met: all §5.12 golden vectors, edge vectors, the forced-escape and version-2 decode-only vectors reproduce; the five negative vectors are rejected; catalogue hash and frozen tables (128 colours, labels, score thresholds, band edges) pinned; decoder bounds checked before loops/allocation; typed `PuzzleCodeError` codes; correction offered only as a candidate, never applied; catalogue built lazily (≈100 ms for size 10) for the worker; `parsePuzzleHash` is the single `#p=` parser with a 38-case fixture table. Mid-task checkpoint: run as an internal gate (`^raw:` 25/25 + input 7/7 + scoped conventions) after part of the DEFLATE/correction code already existed — accepted, as every later test passes. |
+| Issues & resolutions | (1) Wave-barrier failure in `tests/bq-limits.test.js` (engine files must not name `LIMITS`) → decoder bounds export renamed `CODE_BOUNDS`. (2) Wave-barrier failure in `tests/benchmark-report.test.js` (every engine file must be in `SOURCE_FILES`) → the three `puzzlecode*.js` files added to `tools/bench/report.js` (authorized one-line edit outside the task's ownership). (3) Interpretations not covered by goldens: per-piece identity overrides as three flags then id/label/RGB; board-mask mode = shortest total bits incl. the 5-bit selector, ties to the lowest mode and smallest k (an independent reference test agrees; all five modes win somewhere); the encoder rejects an unsorted shape list under the canonical-order flag; rating counters above caps and overlapping blocked rectangles are `invalid`; `#p=%ZZ&i=1` reports `index` (the `i` check runs first); a decoded empty title becomes absent; colours lower-cased. (4) Its stress pack encodes to 43/45/332 symbols (report: 52/58/359 for a different 3-clue control) — not a defect. (5) Living docs: design-brief "Limits, waiting, and sharing" (puzzle code paragraph, no UI claimed); design-detail glossary, D43, §3.1, §3.3, §4.2 API block, §9.1, §9.7, new §9.8 "Puzzle code", §13.2; README code-layout line (EN/VI). |
+| Handoff | `encodePuzzleCode(snapshot, { compression: 'auto' \| 'raw' \| 'deflate' })` → `{ C, T, F, version }` (async); `decodePuzzleCode(text)` → `{ pack, hasTail, tailError, candidate? }` (async; `tailError` ∈ `'tail-check'`, `'tail-invalid'` with the core still returned). `PuzzleCodeError.code` ∈ `empty`, `bad-char`, `dots`, `too-long`, `core-check`, `version`, `no-deflate`, `invalid`, `index`. Candidate `{ component, group, position, expected, typed, correctedCode }` — offer only. `parsePuzzleHash` in `core/engine/puzzlecode-input.js` is the single hash parser (fixture `tests/fixtures/puzzlecode-hashes.json`). The cold catalogue must run in the worker (RP02). Titles are encoded as the source title (RP05 resolves displayed headings); `F` length counts its dot; `compression: 'raw'` is RP07's seam; bounds export `CODE_BOUNDS`; goldens, edges, negatives, oracle and QR matrix hashes in `tests/fixtures/puzzlecode-v1.json`; the slow 5,732-symbol bound test is `slow: single-symbol CRC syndromes…`; `createPuzzleCodec({ measure, allowDeflate })` is a test-only seam. |

@@ -449,10 +449,10 @@ No developer changes qualification or deployment settings to make it green.
 
 | Task | Status | Duration | AI credits | Commit |
 |---|---|---|---|---|
-| RP01 | | | | |
+| RP01 | done (one wave-barrier fix round) | 52m53s | 885.76 | (this commit) |
 | RP02 | | | | |
 | RP03 | | | | |
-| RP04 | done | 14m42s | 222.25 | (this commit) |
+| RP04 | done | 14m42s | 222.25 | ccde6af |
 | RP05 | | | | |
 | RP06 | | | | |
 | RP07 | | | | |

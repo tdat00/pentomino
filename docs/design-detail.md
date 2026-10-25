@@ -45,6 +45,7 @@ This is the developer specification of the project. The companion document `desi
 | Score / level | The output of the single difficulty formula (`difficulty-v2`), and the band that score falls in. |
 | Saturated rating | A rating whose search-effort term hit its cap; the score is still exact by definition (§7.3). |
 | Certificate | Proven solution-count status: unique / multiple / not proved / unsatisfiable; computed lazily (§6.11). |
+| Puzzle code | A short text that rebuilds one puzzle directly: a checked *core* (board, piece set, clues and claims) and an optional checked *tail* (the stored solution), written `C` or `C.T` (§9.8). |
 
 ---
 
@@ -146,6 +147,7 @@ The main design decisions and why they were taken.
 | D40 | Minimum board | 30 active cells for generation; any non-empty board in an incoming pack | Below ~30 cells the formula offers only very-easy, with gaps; such puzzles are trivial. |
 | D41 | Set and batch seeds | A set seed typed or rolled (🎲) is reused by every New piece set; an empty seed field draws a new random seed per press. Every puzzle request increments the set's `batchIndex` (stored with the set). The generator page uses a fresh random whole number as the batch seed of each New puzzle press and shows it on the puzzle card; `tools/generate.mjs` uses `batchSeed = setSeed + "#" + batchIndex`. (§8.6) | Re-running one batch seed would replay already-seen layouts, because the history of a set only grows (D16). |
 | D42 | Module file extension | Every module loaded by a browser page or worker uses `.js`. `.mjs` is only for Node tools. (§12.3) | Some static servers send `.mjs` as `text/plain`, and browsers then refuse to load the module. Python 3.14 `http.server` on Windows does this (verified). |
+| D43 | Puzzle code | One selected puzzle is rebuilt directly from a self-checking text (`puzzlecode.js`, §9.8), not by replaying seeds: a core with the geometry, piece set, clues and claims, and an optional tail with the stored solution. The codec keeps frozen copies of the data it needs (catalogue, palette, rating tables), decodes to an unchanged pack, bounds every field before reading it, and treats a correction only as a candidate. | A seed alone cannot rebuild a puzzle, because a result depends on the history of its set (D16, D41); the code needs no seed, calibration or search, and a later change of the live engine cannot change how an old code reads. |
 
 ---
 
@@ -164,6 +166,7 @@ pentomino/                     repository root = site root /pentomino/
 │  │  ├─ hash.js  rng.js  geometry.js  board.js  view.js  policy.js  levels.js  qualification.js
 │  │  ├─ workspace.js  placements.js  dlx.js  tiling.js  enumerate.js  carve.js  keys.js  difficulty.js
 │  │  ├─ clues.js  generate.js  tasks.js  hints.js
+│  │  ├─ puzzlecode.js  puzzlecode-input.js  puzzlecode-v1.js
 │  │  └─ pack.js  sharecode.js  game.js  palette.js  protocol.js  types.js  version.js
 │  ├─ workers/
 │  │  └─ engine.worker.js      module worker; runs engine tasks (§8.1)
@@ -228,7 +231,7 @@ Layering rules (MUST):
 | Rendering | SVG with a `viewBox` in cell units |
 | Input | Pointer Events plus keyboard |
 | Concurrency | Module Web Workers. No `SharedArrayBuffer`, because GitHub Pages cannot send COOP/COEP headers. |
-| Compression | Native `CompressionStream` / `DecompressionStream('deflate-raw')` |
+| Compression | Native `CompressionStream` / `DecompressionStream('deflate-raw')` (share codes, and the version-2 puzzle code, §9.8) |
 | Tests | Node ≥ 22 with `node:test` and `node:assert/strict`; zero dependencies |
 | Runtime dependencies | None. Dev-only tools such as Playwright are optional. |
 | Bundled third-party code | Source files copied into the repository, not npm dependencies. Runtime: the QR encoder `core/browser/vendor/qrcodegen.js` (Nayuki, MIT, pinned; its notice and provenance are in `qrcodegen.LICENSE`). Tests only: the QR decoder `tests/vendor/jsqr.cjs` (jsQR 1.4.0, Apache-2.0, with `jsqr.LICENSE`), loaded by Node tests as an independent reader; no page, `core/`, `generator/` or `player/` file imports it and it is never deployed. `tests/qr.test.js` pins both by SHA-256 after CRLF-to-LF normalisation. |
@@ -500,6 +503,36 @@ export async function decodeShareCode(code: string, o?: { maxBytes?: number }): 
 export function playerUrl(base: string | URL, code: string, index: number): string;
 export function parseLocationHash(hash: string): { pack?: string; lib?: string; index: number } | null;
 ```
+
+**`puzzlecode.js`, `puzzlecode-input.js`, `puzzlecode-v1.js`** (§9.8): the single-puzzle code. `encodePuzzleCode` and `decodePuzzleCode` are async (native compression streams); the input functions are synchronous.
+
+```ts
+type PuzzleCodeSnapshot = { rows: string[];                 // board rows with the blocked margins, '#' active, '.' blocked
+                            rotation: number;               // display angle, 0, 45, … 315 (not a paper-fit rotation)
+                            pieces: Piece[]; clues: Pose[]; solution: Pose[] | null;
+                            rating: RatingClaim | null; certificate: CertificateClaim | null;
+                            title: string | null };         // the title the caller resolved; the codec reads no app state
+type EncodedPuzzleCode = { C: string; T: string | null; F: string; version: 1 | 2 };   // F = C, or C + '.' + T; upper case, ungrouped
+type CodeCandidate = { component: 'core' | 'tail'; group: number; position: number;    // one-based group of four, position in it
+                       expected: string; typed: string; correctedCode: string };
+type DecodedPuzzleCode = { pack: Pack; hasTail: boolean;
+                           tailError: null | 'tail-check' | 'tail-tag' | 'tail-invalid'; candidate?: CodeCandidate };
+export async function encodePuzzleCode(s: PuzzleCodeSnapshot, o?: { compression?: 'auto' | 'raw' }): Promise<EncodedPuzzleCode>;
+export async function decodePuzzleCode(text: string): Promise<DecodedPuzzleCode>;   // a code, a grouped code or a link with #p=
+export class PuzzleCodeError extends Error {   // code: 'empty' | 'bad-char' | 'dots' | 'too-long' | 'core-check' | 'version' | 'no-deflate' | 'invalid' | 'index'
+  code: string; params?: Record<string, string | number>; candidate?: CodeCandidate }
+export function parsePuzzleHash(hash: string):
+  { ok: true; value: { p: string; index: 0 } } | { ok: false; code: 'index' | 'invalid'; message: string };
+export function normalizePuzzleCodeInput(text: string): string;    // a link (text with '#') or a bare code → symbols and at most one '.'
+export function normalizePuzzleCodeValue(value: string): string;   // a bare code only
+export const ALPHABET: string;  export const MAX_INPUT_CHARS: number;  export const MAX_CODE_SYMBOLS: number;   // 32768, 16000
+export function createPuzzleCodec(deps?: { measure?: Function; allowDeflate?: boolean }): { encodePuzzleCode; decodePuzzleCode };
+```
+
+- `puzzlecode-input.js` imports no other module (no catalogue, no compression, no `sharecode.js`), so any host can use the parser and normalizers cheaply; it owns `PuzzleCodeError`, which `puzzlecode.js` re-exports.
+- `puzzlecode-v1.js` holds the frozen data and the payload grammar: `CODE_BOUNDS` (the decoder bounds, named apart from the generation limits of `policy.js`), `CRC20`, the rating tables, the default colours and labels, the lazily built catalogue (`catalogueShapes(n)`, `catalogueCount(n)`, `catalogueStats`) and the payload functions. Pages use `puzzlecode.js`; the other two files are for it and for the tests.
+- `createPuzzleCodec` is a test-only seam: `measure` replaces the count-only rating rebuild, and `allowDeflate` lets `compression: 'deflate'` force version 2. The public functions use the default codec; the worker never receives a function. An unknown `compression` value throws `TypeError`.
+- The input snapshot is never mutated, and a decoded pack shares nothing with it.
 
 **`game.js`** (§11): DOM-free player rules.
 
@@ -1731,6 +1764,8 @@ Puzzles travel only by link: neither app imports or exports files. The player's 
 | `../player/#lib=<packId>&i=<k>` | Play when the link would exceed 16,000 characters, or encoding fails | Same browser only, while its copy is kept (30 packs, LRU); not shareable |
 | Local storage | The copies behind `#lib=` links and progress (player), generator state | `localStorage`, `pentomino:v1:` namespace (§9.6) |
 
+The single-puzzle code (`#p=<code>`, §9.8) is a further mechanism that exists in the engine only: no page reads or writes it yet, so the three rows above describe everything the apps do.
+
 ### 9.2 Share code
 
 - **Format.** `"1z." + base64url(deflate-raw(UTF-8(JSON)))`. When `CompressionStream` is missing, `"1j." + base64url(UTF-8(JSON))`.
@@ -1817,7 +1852,47 @@ Play is allowed while checking, and after an inconclusive check. "Not verified" 
 - Text is rendered with `textContent` only. Colors must match `#rrggbb`. There is no `eval`, no `new Function` and no `innerHTML` with data.
 - Every page sets a Content-Security-Policy `<meta>` (§12.4).
 - QR codes are made on the device (`core/browser/qr.js`, §4.3); no puzzle, code or link is sent to a QR service.
-- Size limits: pack ≤ 512 KiB; share code ≤ 350,000 characters; decoded ≤ 256 KiB; `meta` ≤ 4 KiB.
+- Size limits: pack ≤ 512 KiB; share code ≤ 350,000 characters; decoded ≤ 256 KiB; `meta` ≤ 4 KiB. A puzzle code has its own bounds, all checked before the content is read (§9.8).
+
+### 9.8 Puzzle code (`puzzlecode.js`)
+
+The single-puzzle code turns one puzzle into text and back (`encodePuzzleCode`, `decodePuzzleCode`, §4.2). It is implemented in the engine only: no page, route, worker message, print sheet or storage entry uses it yet, and §9.1 to §9.7 describe everything the apps do. It needs no seed, calibration or search; a seed alone cannot rebuild a puzzle, because a result depends on the history of its set (§8.6).
+
+- **Frame.** `F = C` (no stored solution) or `F = C "." T`. The **core** `C` is base32(`Pc`) plus 4 check symbols, where `Pc` is a 5-bit version symbol, the payload and zero bits up to a multiple of 5. The optional **tail** `T` is base32(`Pt`) plus 4 check symbols, where `Pt` is a 5-bit tail tag, the steps and the same fill. A core alone is a complete, playable puzzle; a tail only adds the stored solution.
+- **Check.** CRC-20: generator 0x6C1BD, initial value and final xor 0xFFFFF, no reflection, the 20 bits written as 4 symbols, most significant first; `CRC20("123456789")` = 0xC80C0. The core check covers `Pc`. The tail check covers `Pc + Pt`, not the core's own check symbols (a complete component run through the CRC gives 0x6CDCE), so a tail taken from another puzzle is refused. All checks run before anything is parsed.
+- **Alphabet.** `0123456789ABCDEFGHJKMNPQRSTVWXYZ`: no I, L, O or U. Output is upper case and ungrouped; grouping for paper is a presentation matter.
+- **Version symbol and compression.** 1 is the raw payload. 2 is `EG8(m)` followed by `m` bytes of `deflate-raw` data of the same payload; the inflated data must be exactly ⌈bits / 8⌉ bytes with zero fill. Another value is `version`. Tail tag 1 is the raw solution path; another tag is `tail-tag`. The encoder keeps the shorter complete core and raw wins a tie (raw wins for the sample puzzles; DEFLATE pays only for very repetitive content or a long full-claim rating); without `CompressionStream` it writes raw. Version-2 strings depend on the compressor, so tests compare decoded content, never the string. A version-2 code without `DecompressionStream` is `no-deflate`; a raw code never needs it.
+- **Payload (version 1), in order.**
+  1. Options: a repeated-shape flag, the rating, the title, the certificate.
+  2. `W − 1` and `H − 1` (6 bits each), the board mask, the display angle ÷ 45 (3 bits).
+  3. `EG3(K − 1)`, three flags (canonical piece order, canonical orientation, default identity), and, with the repeated flag, one "same shape as the previous piece" bit per piece.
+  4. The piece sizes, then the shapes: up to 10 cells by catalogue index (or by the colex rank of the indices of one size when the order is canonical), larger pieces by a bounded breadth-first listing of their cells.
+  5. The orientation of each stored piece (3 bits) unless all are canonical; per-piece id, label and RGB overrides unless the identity is the default (`id = label = labelFor(i)`, colour `colorFor(i)`).
+  6. The clues: their count, which pieces, their order, and for each the index of its pose among the legal placements of its shape.
+
+  The tail steps cover the free cells in raster order: at each first free cell, the index of the placement among the candidates (unused pieces in index order, each distinct orientation anchored on that cell). Primitives: `EGk` (Exp-Golomb of order k, exact up to 2^53 − 1 with BigInt), truncated binary, colex subset rank, and `text(s)` (UTF-8, or UTF-16 for a string with a lone surrogate).
+- **Board mask.** `tb(mode, 5)` then: 0 full; 1 blocked-cell gaps (`EG2` count, `k`, gaps); 2 row-major runs starting with an active run (`k`, `EG2` count of stored runs, the runs; the last is implied); 3 greedy blocked rectangles in raster order; 4 bitmap. The encoder writes the shortest, counting the mode selector; a tie goes to the lowest mode and, in modes 1 and 2, to the smallest `k` of 0 to 7.
+- **Rating.** The compact form stores only `stop`, `branchTrials` and `rowTrials`. The decoder rebuilds U = K − G; B (5,000 when saturated, else the trials capped at 5,000); the score, an integer (2U plus the number of thresholds ≤ B); the level from the frozen bands; R, the free cells; and H, from count-only placement counting in the plan's order (size, canonical shape, id), with no exact-cover model and so no workspace limit. The encoder uses the compact form only when the rebuilt claim equals the stored one exactly (`difficulty-v2`, known stop, counters in range); otherwise, or if the rebuild fails, it stores the whole claim as JSON text, so foreign models, `censored`, opaque metrics, fractional scores and inconsistent levels survive. Rating never makes an encode fail. H is exact within one JavaScript engine; score and level do not depend on it.
+- **Title.** Kind 0 none; 1 the label of the decoded rating's level; 2 that label + " #n" (written as `EG2(n − 1)`, n ≤ 2,147,483,647, judged on the digit string before any number conversion); 3 literal text. The label is looked up only for kinds 1 and 2, and needs a known level id (the named levels and `hell-1` … `hell-999`). Resolving the displayed title is the caller's job; the codec stores the title it is given.
+- **Certificate.** A present flag; `tb(status, 4)`; model `dlx-v1` or text; an optional row limit as `EG10`, exact up to 2^53 − 1 (2^53 is `invalid`).
+- **Bounds.** Every count, rank and size prefix is checked before a loop or an allocation, and a correct check does not make a payload trusted.
+
+  | Item | Bound (`CODE_BOUNDS` and the input constants) |
+  |---|---|
+  | Input text; normalised code | ≤ 32,768 characters; ≤ 16,000 symbols (the dot is not a symbol) |
+  | Board | sides ≤ 64; 1 to 1,024 active cells |
+  | Pieces | K 1 to 128; 1 to 128 cells each; catalogue indices, subset ranks and placement indices inside their lists; a breadth-first shape ends within 4n + 8 steps |
+  | Text | id ≤ 8, label ≤ 4, title ≤ 80, model ≤ 64 code points, the size prefix checked at 4× before reading; a whole rating as JSON ≤ 8,192 bytes |
+  | Numbers | `EG` prefixes ≤ 53 − k zeros, values ≤ 2^53 − 1 |
+  | DEFLATE | compressed length within the remaining bits; inflated output ≤ 64 KiB, enforced while streaming in 256-byte writes |
+  | Correction | a covered word ≤ 5,732 symbols |
+
+- **Decoded pack.** An ordinary `pentomino-pack` version 1 document (§5) with one puzzle: `presentation.rotation` carries the display angle, there is no `witness`, `generation` or `meta`, and the puzzle `id` is recomputed by `puzzleId` from the decoded board, pieces and clues. There is no schema change. `validatePack` runs last, so G = K, a layout that does not cover the board and a solution that moves a clue are `invalid`. The only normalisations are: colours lower case, an empty title absent, poses of symmetric pieces in their smallest equivalent orientation, and a solution (present only with a valid tail) in piece order. Stored claims stay claims; no `verified` flag is written. `progressFingerprint` and `puzzleId` equal those of the original geometry and piece ids.
+- **Errors.** `PuzzleCodeError.code` is `empty`, `bad-char` (with `params.char`), `dots`, `too-long`, `core-check` (also for a core shorter than 5 symbols or an empty core before a dot), `version`, `no-deflate`, `invalid` (structure, bounds, expansion, ill-formed UTF-8, `validatePack`) or `index` (a `#p=` link with `i` other than 0). A bad core throws; the first fault from left to right wins in normalisation; anything unexpected inside the decoder becomes `invalid`, so ordinary malformed input never produces another kind of error. Messages are developer-facing English; the apps show their own texts by `code`. `encodePuzzleCode` throws `invalid` for a snapshot that is not a valid puzzle (it passes `createPack` and `validatePack`) and `too-long` when `C`, or `C` plus `T`, exceeds 16,000 symbols.
+- **Tail errors.** A valid core with a bad tail does not throw: `decodePuzzleCode` resolves with the core's pack, `hasTail: false` and `tailError` of `tail-check` (the check fails, or the tail is empty), `tail-tag` (unknown tag) or `tail-invalid` (it decodes but is not a valid layout of this core). Opening the core alone is an explicit user choice, never automatic. A valid tail sets `hasTail: true` and is a validated stored answer.
+- **Correction candidate.** Computed only after a failed check of a core, or of the tail of a valid core; never for a checksum-valid unsupported version or a structure error. The CRC syndrome of the received word is matched with the 31 single-symbol differences at every position (five basis syndromes clocked back one symbol at a time, with no decode per character). The candidate is offered only when exactly one position and difference match and the corrected component then passes its check and a complete bounded decode (for a tail, against its core). `group` and `position` are one-based and counted in the normalised component (a tail from the symbol after the dot, aliases and grouping removed first); `correctedCode` is the whole normalised code with the change, so a UI can confirm it against the input still on screen. Single-symbol syndromes are distinct for words up to 5,732 symbols (177,692 of them; the first collision is at 5,733), so nothing is offered beyond that: the word is the whole core, or for a tail `Pc` plus the tail. Within the bound, two substituted symbols, an adjacent swap and bursts of up to four symbols are always detected; one missing or extra symbol is not corrected. The engine never applies a candidate, opens a puzzle or touches state, storage or navigation.
+- **Frozen data and lazy catalogue.** `puzzlecode-v1.js` keeps its own copies, so a change of the live engine never changes how an old code reads: the CRC constants; the catalogue of free polyominoes of 1 to 10 cells (6,473 shapes, counts 1, 1, 2, 5, 12, 35, 108, 369, 1285, 4655, in canonical form ordered by size then cells, pinned by SHA-256 `049504c2…` in `tests/fixtures/puzzlecode-v1.json`); the 128 default piece colours and labels; and the `difficulty-v2` score thresholds, level bands and caps (5,000 branch trials, 50,000 rows). A test compares the integer score and level tables with `difficulty.js` and `levels.js` for all 640,128 pairs of U 1 to 128 and B 0 to 5,000 as an oracle, never as a dependency. Importing the codec builds nothing: one size of the catalogue is built the first time a piece of that size is encoded or decoded and then cached (all ten sizes take about 0.1 s), and pieces above 10 cells never use it. A host therefore runs the codec, and so its candidate search, in a worker.
+- **`#p=` parser and input.** `parsePuzzleHash(hash)` is the single owner of the structure of the `p` route; the later host address parser delegates to it. It reads the text after the first `#` (or the whole text), splits it on `&` and looks at `p`, `pack`, `lib` and `i` (case-sensitive; other keys are ignored). It returns `invalid` for a repeated known key, a missing or empty `p`, or `p` together with `pack` or `lib`; then, for `i`, nothing or `0` is fine, another value of one to six digits without a leading zero is `index`, and anything else (`00`, a sign, whitespace, longer, percent-escaped) is `invalid`; last, `p` is URI-decoded exactly once (a `+` stays `+`, `%2520` is not decoded twice) and an invalid escape or an empty result is `invalid`. Success is `{ ok: true, value: { p, index: 0 } }` with `p` not yet normalised. `normalizePuzzleCodeInput` sends text containing `#` through the parser and normalises its decoded `p`; any other text is a bare code. Normalising (`normalizePuzzleCodeValue`) removes spaces, tabs, line breaks and `-`, upper-cases ASCII letters, maps O to 0 and I and L to 1, and keeps at most one `.`: another character is `bad-char`, a second dot `dots`, nothing left `empty`, and too much text `too-long`. The structural cases are the table `tests/fixtures/puzzlecode-hashes.json`.
 
 ---
 
@@ -2372,6 +2447,8 @@ jobs:
 | `palette` | `labelFor`: 0 → A, 25 → Z, 26 → AA, 701 → ZZ, 702 → AAA. `patternFor` is 'none' for K ≤ 20. Generated colors are valid `#rrggbb`. |
 | `pack` | The §5.2 fixture validates and round-trips. Rejects: wrong format; version 0, −1, 2 or "1"; unknown fields; bad rows; overlapping clues; an invalid solution; oversized input. Accepts the classic 12 pentominoes on 6×10, a piece with a hole (warnings only), `difficulty-v1` ratings (as claims) and a 90-piece pack. `omitSolutions` works. |
 | `sharecode` | `1z` / `1j` round-trips (Node ≥ 22 has `CompressionStream`). A decompression bomb is aborted at 256 KiB. |
+| `puzzlecode` | The sample and hand-authored goldens reproduce exactly (raw), with the edge vectors (title kinds 2 and 3, certificates 2^50 − 1 and 2^53 − 1, a failed rating rebuild kept whole, a version-2 decode-only code). CRC-20 vectors and residue; exact Exp-Golomb, truncated binary, colex rank and bit I/O; the catalogue count and SHA-256; the 128 default colours and labels; the integer score and level tables against the live functions for all 640,128 pairs. The negative vectors and about 40 crafted payloads with a valid check, each just inside and just outside its bound; a truncation sweep and a mutation fuzz give typed errors only; inflation stops at 64 KiB while streaming. Tails: a core alone is playable, and a bad, spliced or foreign tail never replaces the core. Correction: every one-symbol substitution of a short golden has one unique candidate that is never applied; none for two errors, swaps, bursts or appended symbols; the 5,732-symbol bound (slow: syndromes distinct to 5,732 with the first collision at 5,733, every two-symbol substitution detected). Every board-mask mode against an independent size count. The 1,024-cell, 128-piece count-only stress pack and the 24 × 24 oracle. 150 seeded random puzzles round-trip raw, automatic and DEFLATE and re-encode identically. Inputs are never mutated; importing the module builds no catalogue. |
+| `puzzlecode-input` | The `#p=` parser against `tests/fixtures/puzzlecode-hashes.json`; the normalizers (grouping, aliases, `bad-char`, `dots`, `empty`, `too-long`) and their bounds; `PuzzleCodeError`; no import of `sharecode.js`, a host module or the codec implementation. |
 | `game` | place / move / remove / orient / undo / redo / reset. `canPlace` reasons. A moving piece's old cells are excluded. A non-witness tiling wins. Clues are immutable. Restoring progress drops invalid moves. |
 | `print-layout` | The paper layout of §11.15: 45° steps dropped, the board, clues and pieces turn together, the cell sizes (10, 15, 20 mm, Fit to page ≤ 25 mm), pieces packed once inside the margins and apart, a too-wide piece turned and the cells shrunk when nothing fits, a big board cut into parts that cover every playable cell once, blocked parts left out, the quarter turn that saves paper, the page list with the backs, the preview fitting the page, and equal English and Vietnamese `print.*` texts. |
 | `qr` | The five golden payloads give the exact matrix hashes (versions 5, 5, 5, 6, 11) and a second implementation (jsQR, test-only) reads each URL back with a byte and an alphanumeric chunk. Mixed-case and fork prefixes are kept verbatim and capacity follows UTF-8 bytes. Version boundaries: with the standard prefix, version 5 holds 55 code symbols at M and 87 at L, version 40 holds 3322 at M and 4227 at L. `qr-invalid-input` for an empty core, trailing or double dot, lower case, grouping, U/I/O/L, a prefix not ending in `#p=` and an unsupported level; `qr-too-long` beyond version 40. M stays M (the format information is read back: a tiny payload that a boosting encoder would raise to H stays M) and L stays L. The dimension formula for versions 1–40. Row-run path examples, malformed matrices rejected, and an independent rasterization of the path equal to the matrix. Both vendored files match their SHA-256 after CRLF-to-LF normalisation (encoder 45,368 bytes `68453133…`, jsQR `bc40c8a1…`) with their licences; the decoder is absent from every browser import graph; no npm dependency or lockfile; no unsafe DOM or string execution. |

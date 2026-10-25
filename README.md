@@ -278,7 +278,7 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
 **Code layout.** Native ES modules with JSDoc types and `// @ts-check`, in four layers:
 
 ```text
-core/engine/    pure, deterministic logic: geometry, boards, tiling, generation, rating, packs (no DOM, clock or storage)
+core/engine/    pure, deterministic logic: geometry, boards, tiling, generation, rating, packs, puzzle codes (no DOM, clock or storage)
 core/browser/   rendering (SVG board), storage, i18n, themes, pointer handling, printing, the generation client
 core/workers/   the module worker that runs generation off the main thread, with cancel and deadline watchdogs
 generator/      Pentomino Generator: page, state, jobs and UI
@@ -579,7 +579,7 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
 **Cấu trúc mã.** ES module gốc với kiểu JSDoc và `// @ts-check`, chia thành các lớp:
 
 ```text
-core/engine/    logic thuần, tất định: hình học, bàn chơi, lát kín, tạo đề, chấm độ khó, gói đề (không DOM, đồng hồ hay lưu trữ)
+core/engine/    logic thuần, tất định: hình học, bàn chơi, lát kín, tạo đề, chấm độ khó, gói đề, mã đề (không DOM, đồng hồ hay lưu trữ)
 core/browser/   hiển thị (bàn chơi SVG), lưu trữ, đa ngôn ngữ, giao diện, xử lý con trỏ, in, client tạo đề
 core/workers/   module worker chạy việc tạo đề ngoài luồng chính, có cơ chế hủy và giới hạn thời gian
 generator/      Pentomino Generator: trang, trạng thái, tác vụ và giao diện
