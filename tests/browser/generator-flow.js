@@ -124,7 +124,7 @@ function mountApp(o = {}) {
       h('section', { class: 'panel panel-level' }, h('div', { 'data-slot': 'level' })),
       h('section', { class: 'panel panel-set' }, h('div', { 'data-slot': 'set' })),
       h('section', { class: 'panel panel-puzzles' }, h('div', { 'data-slot': 'puzzles' }))),
-    h('div', { class: 'main-actions' }, h('button', { type: 'button', 'data-slot': 'main-action' }, 'New Piece Set')));
+    h('div', { class: 'main-actions' }, h('button', { type: 'button', 'data-slot': 'main-action' }, 'New piece set')));
   sandbox.append(root);
   const storage = o.storage ?? memoryStorage();
   /** @type {string | null} Batch seed fed to the next puzzle press (recorded batches are replayed with "<set seed>#1"). */
@@ -513,12 +513,12 @@ await check('scripted: after 30 s the New Piece Set and New Puzzle buttons turn 
     /** @param {HTMLElement} button @returns {string} The label on show. */
     const label = (button) => [...button.children].filter((child) => !(/** @type {HTMLElement} */ (child)).hidden && !child.classList.contains('spinner')).map((child) => child.textContent).join('');
     const generate = q(ctx, '[data-action="generate-set"]');
-    equal(label(generate), 'New Piece Set', 'idle label');
+    equal(label(generate), 'New piece set', 'idle label');
     generate.click();
     await waitFor(() => state(ctx).job?.kind === 'set', 'the piece set job');
     clock += 29000;
     await sleep(700);
-    equal([label(generate), generate.disabled], ['New Piece Set', true], 'before 30 s it is a busy button');
+    equal([label(generate), generate.disabled], ['New piece set', true], 'before 30 s it is a busy button');
     clock += 2000;
     await waitFor(() => label(generate) === 'Cancel', 'the Cancel label after 30 s');
     assert(!generate.disabled, 'Cancel can be pressed');
@@ -527,13 +527,13 @@ await check('scripted: after 30 s the New Piece Set and New Puzzle buttons turn 
     await waitFor(() => generate.disabled, 'the button waits for the job to stop');
     freeSet();
     await waitFor(() => state(ctx).job === null, 'the cancelled job to end');
-    equal([state(ctx).notice?.code, label(generate)], ['M-CANCELLED-SET', 'New Piece Set'], 'the button is itself again');
+    equal([state(ctx).notice?.code, label(generate)], ['M-CANCELLED-SET', 'New piece set'], 'the button is itself again');
 
     await withSet(ctx);
     const press = q(ctx, '[data-action="new-puzzles"]');
     press.click();
     await waitFor(() => state(ctx).job?.kind === 'batch', 'the puzzle job');
-    equal([label(press), press.disabled], ['New Puzzle', true], 'a busy button at first');
+    equal([label(press), press.disabled], ['New puzzle', true], 'a busy button at first');
     clock += 31000;
     await waitFor(() => label(press) === 'Cancel', 'the Cancel label on New Puzzle after 30 s');
     assert(!press.disabled, 'Cancel can be pressed');
@@ -541,7 +541,7 @@ await check('scripted: after 30 s the New Piece Set and New Puzzle buttons turn 
     equal(client.cancels, 2, 'it cancels the puzzle job');
     freeBatch();
     await waitFor(() => state(ctx).job === null, 'the cancelled job to end');
-    equal(label(press), 'New Puzzle', 'the button is itself again');
+    equal(label(press), 'New puzzle', 'the button is itself again');
   } finally {
     ctx.destroy();
   }
@@ -752,7 +752,7 @@ await check('scripted: every press adds exactly one puzzle; step 3 offers only L
       equal(ctx.root.querySelector(gone), null, `${gone} is gone`);
     }
     assert(ctx.root.querySelector('[data-field="puzzle-level"]') !== null && ctx.root.querySelector('[data-action="new-puzzles"]') !== null, 'Level and New Puzzle remain');
-    equal(q(ctx, '[data-action="new-puzzles"] > :not(.spinner):not([hidden])').textContent?.trim(), 'New Puzzle', 'the button is singular');
+    equal(q(ctx, '[data-action="new-puzzles"] > :not(.spinner):not([hidden])').textContent?.trim(), 'New puzzle', 'the button is singular');
     await withSet(ctx);
     q(ctx, '[data-action="new-puzzles"]').click();
     await waitFor(() => state(ctx).puzzles.length === 1 && state(ctx).job === null, 'the first puzzle');
@@ -902,7 +902,27 @@ await check('scripted: choosing a card shows its puzzle in the main panel: the b
     assert(!detail.hidden, 'the puzzle appears');
     equal(q(ctx, '.detail-title').textContent, 'Puzzle #1', 'its number');
     const play = q(ctx, '[data-action="play-puzzle"]');
-    equal([play.textContent, play.parentElement === q(ctx, '.detail-head')], ['Play', true], 'Play sits on the same row as the title');
+    equal([play.textContent, play.closest('.detail-head') === q(ctx, '.detail-head')], ['Play', true], 'Play sits on the same row as the title');
+    const printButton = q(ctx, '[data-action="print-puzzle"]');
+    const solutionButton = /** @type {HTMLButtonElement} */ (q(ctx, '[data-action="show-solution"]'));
+    assert(play.nextElementSibling === printButton, 'Print is right of Play');
+    const frame = /** @type {HTMLElement} */ (detail.querySelector('.board-frame'));
+    assert(frame.nextElementSibling?.contains(solutionButton) === true, 'Show solution is under the board');
+    const [frameBox, solutionBox] = [frame.getBoundingClientRect(), solutionButton.getBoundingClientRect()];
+    assert(solutionBox.top >= frameBox.bottom - 1 && Math.abs(solutionBox.right - frameBox.right) <= 1, 'at its right edge');
+    equal(getComputedStyle(solutionButton).borderTopStyle, 'none', 'borderless');
+    assert(printButton.textContent === '' && printButton.querySelector('use')?.getAttribute('href') === '#ic-print', 'Print is the printer icon');
+    equal(printButton.getAttribute('aria-label'), printButton.title, 'its name is in aria-label and the tooltip');
+    const boardPieces = () => detail.querySelectorAll('.detail-board .pm-piece').length;
+    equal([solutionButton.textContent, solutionButton.getAttribute('aria-pressed'), boardPieces()], ['Show solution', 'false', first.clues.length], 'the solution is hidden at first');
+    solutionButton.click();
+    equal([solutionButton.textContent, solutionButton.getAttribute('aria-pressed'), boardPieces()], ['Hide solution', 'true', samplePack.pieces.length], 'Show solution fills the board with the solution');
+    solutionButton.click();
+    equal(boardPieces(), first.clues.length, 'Hide solution takes it away');
+    solutionButton.click();
+    choose(0);
+    equal([solutionButton.getAttribute('aria-pressed'), boardPieces()], ['false', state(ctx).puzzles[1].clues.length], 'another puzzle starts with its solution hidden');
+    choose(1);
     play.click();
     await waitFor(() => opened.length === 1, 'the player to open');
     equal([opened[0].index, opened[0].ids[opened[0].index]], [0, first.id], 'it opens the player on the puzzle on show');

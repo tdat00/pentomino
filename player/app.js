@@ -5,14 +5,16 @@
 import { APP_VERSION } from '../core/engine/version.js';
 import { el } from '../core/browser/dom.js';
 import { browserStorage } from '../core/browser/storage.js';
+import { createPrintDialog, puzzleDetails } from '../core/browser/print-dialog.js';
 import { shouldOfferStraighten, svgEl } from '../core/browser/svg-board.js';
+import { packBoard } from '../core/engine/pack.js';
 import { createPlayController } from './play.js';
 import { createHintController } from './hints.js';
 import { choose, onChange, setLocale, t } from './i18n.js';
 import { puzzleDisplayName } from './puzzle-title.js';
 import { createPlayerController, createPlayerStore, effectiveRotation, knownSolvable } from './state.js';
 import {
-  HINT_TEXT, LABELS, certificateLabel, certificateStatus, formatElapsed, verificationLabel,
+  HINT_TEXT, LABELS, certificateLabel, certificateStatus, formatElapsed, levelLabel, verificationLabel,
 } from './strings.js';
 import { createBoardView } from './ui/board-view.js';
 import { createContextMenu } from './ui/context-menu.js';
@@ -99,7 +101,6 @@ export function mountPlayer(root, env = {}) {
     onHelp: () => helpDialog.open(),
   });
 
-  // Left panel: the puzzles of the open pack.
   const removeAllButton = /** @type {HTMLButtonElement} */ (el('button', {
     className: 'ghost-small',
     attrs: { type: 'button', ...locAttrs({ title: 'puzzles.removeAll.title' }) },
@@ -111,14 +112,13 @@ export function mountPlayer(root, env = {}) {
     el('div', { className: 'panel-header' }, loc('puzzles.list', { attrs: { id: historyId } }, 'h2'), removeAllButton),
     cardsHost);
 
-  // Main panel: the game screen, or the start screen when no puzzle is open.
   const title = el('h2', { className: 'puzzle-title', attrs: { id: titleId } });
   const stepHead = el('div', { className: 'step-head' }, title);
   const info = el('p', { className: 'step-hint puzzle-info' });
 
   /**
    * @param {import('../core/engine/game.js').GameState} g
-   * @returns {boolean} Nothing was done in this game yet: no move, no time, no piece placed or turned.
+   * @returns {boolean}
    */
   const untouched = (g) => g.moves === 0 && g.placed.size === 0 && g.elapsedMs === 0 && [...g.tray.values()].every((t) => t === 0);
   const timer = el('span', { className: 'game-timer', attrs: { role: 'timer', ...locAttrs({ 'aria-label': 'ui.elapsed' }) } });
@@ -137,7 +137,6 @@ export function mountPlayer(root, env = {}) {
     button.disabled = true;
   }
   /**
-   * An icon-only button; its name is in `aria-label` and the tooltip.
    * @param {string} action
    * @param {string} icon Id of a symbol of the sprite, or a glyph when it is not an id (`ic-…`).
    * @param {string} labelKey
@@ -152,8 +151,10 @@ export function mountPlayer(root, env = {}) {
   }, icon.startsWith('ic-')
     ? svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' }, svgEl('use', { href: `#${icon}` }))
     : icon));
+  const printButton = iconButton('print', 'ic-print', 'print.button.title', () => printDialog.open());
   const hintButton = iconButton('hint', 'ic-hint', 'ui.hintLabel', () => void hints.requestHint());
   const replayButton = iconButton('replay', REPLAY_GLYPH, 'ui.replayPuzzle', () => replayDialog.open());
+  printButton.disabled = true;
   hintButton.disabled = true;
   replayButton.disabled = true;
   const straighten = /** @type {HTMLButtonElement} */ (el('button', {
@@ -162,7 +163,7 @@ export function mountPlayer(root, env = {}) {
   }));
   const gameBar = el('div', { className: 'game-bar' },
     el('div', { className: 'game-stats' }, timer, moves),
-    el('div', { className: 'game-actions' }, undo, redo, hintButton, replayButton, straighten));
+    el('div', { className: 'game-actions' }, undo, redo, hintButton, replayButton, printButton, straighten));
 
   /**
    * @param {string} action
@@ -216,7 +217,6 @@ export function mountPlayer(root, env = {}) {
   const startHost = el('section', { className: 'panel start-host', dataset: { host: 'start' } });
   const version = el('p', { className: 'version' }, loc('shell.version'), ' ', el('span', { text: APP_VERSION, attrs: { 'data-app-version': '' } }));
 
-  // Right panel: the selection toolbar and the pieces still to place.
   const toolbarHost = el('div', { className: 'toolbar-host', dataset: { host: 'toolbar' } });
   const piecesLeft = el('span', { className: 'pieces-left' });
   const trayEmpty = el('p', { className: 'hint tray-empty' });
@@ -248,7 +248,6 @@ export function mountPlayer(root, env = {}) {
 
   const reducedMotion = () => env.reducedMotion ?? win.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
   /**
-   * Restarts a one-shot CSS animation class unless motion is reduced.
    * @param {HTMLElement} node
    * @param {string} className
    * @param {number} ms
@@ -273,18 +272,15 @@ export function mountPlayer(root, env = {}) {
     onNoRoom: () => flash(boardWrap, 'is-shaking', 200),
     onSolved: ({ elapsedMs, moves: moveCount }) => {
       const state = store.getState();
-      const puzzle = state.pack?.puzzles[state.index];
       winDialog.show({
         elapsedMs,
         moves: moveCount,
-        rating: puzzle?.rating,
         hasNext: state.pack !== null && state.index + 1 < state.pack.puzzles.length,
         hints: state.game?.hintsUsed ?? 0,
       });
       flash(gameScreen, 'is-celebrating', 1600);
     },
     focus: (pieceId, where) => {
-      // A dialog, menu or text field that holds the focus keeps it.
       if (doc.activeElement?.closest('dialog, [role="menu"], input, textarea, select') != null) {
         return;
       }
@@ -357,6 +353,30 @@ export function mountPlayer(root, env = {}) {
     },
   });
   replayDialog.dialog.classList.add('pm-replay');
+  /** @returns {import('../core/browser/print-dialog.js').PrintJob | null} */
+  function printJob() {
+    const { pack, index, game, viewRotation } = store.getState();
+    const puzzle = pack?.puzzles[index];
+    if (pack === null || puzzle === undefined || game === null) {
+      return null;
+    }
+    const rating = puzzle.rating;
+    const generation = /** @type {{ setSeed?: unknown, setLevel?: unknown } | undefined} */ (pack.generation);
+    const setSeed = typeof generation?.setSeed === 'string' ? generation.setSeed : null;
+    const setLevel = typeof generation?.setLevel === 'string' ? generation.setLevel : null;
+    return {
+      board: packBoard(pack),
+      pieces: pack.pieces,
+      clues: puzzle.clues,
+      rotation: viewRotation ?? pack.presentation?.rotation ?? 0,
+      title: puzzleDisplayName(puzzle.title, index),
+      details: puzzleDetails(t,
+        rating && typeof rating.score === 'number' ? { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated } : null,
+        puzzle.seed,
+        setSeed === null ? null : { level: setLevel === null ? null : levelLabel(setLevel), seed: setSeed }),
+    };
+  }
+  const printDialog = createPrintDialog({ host: winHost, t, getJob: printJob });
   const winDialog = createWinDialog(winHost, {
     onNext: () => {
       controller.nextPuzzle();
@@ -385,11 +405,9 @@ export function mountPlayer(root, env = {}) {
     const g = store.getState().game;
     if (g?.solved && !g.revealed) {
       const state = store.getState();
-      const puzzle = state.pack?.puzzles[state.index];
       winDialog.show({
         elapsedMs: g.elapsedMs,
         moves: g.moves,
-        rating: puzzle?.rating,
         hasNext: state.pack !== null && state.index + 1 < state.pack.puzzles.length,
         hints: g?.hintsUsed ?? 0,
       });
@@ -418,7 +436,7 @@ export function mountPlayer(root, env = {}) {
     play.select(id);
     play.transform(op);
   };
-  /** @returns {import('./ui/context-menu.js').MenuEntry[]} Actions of the whole puzzle. */
+  /** @returns {import('./ui/context-menu.js').MenuEntry[]} */
   function puzzleEntries() {
     const g = store.getState().game;
     return [
@@ -466,7 +484,7 @@ export function mountPlayer(root, env = {}) {
       opener: target,
     });
   }
-  /** @param {MouseEvent} event Right-click on the board away from a movable piece. */
+  /** @param {MouseEvent} event */
   function openBoardMenu(event) {
     event.preventDefault();
     if (store.getState().screen !== 'game' || store.getState().game === null || gestures.isDragging()) {
@@ -521,6 +539,7 @@ export function mountPlayer(root, env = {}) {
     undo.disabled = !g || g.history.length === 0 || busy;
     redo.disabled = !g || g.future.length === 0 || busy;
     replayButton.disabled = !g || busy || untouched(g);
+    printButton.disabled = !g;
     hintButton.disabled = !g || g.solved;
   }
 
@@ -565,7 +584,7 @@ export function mountPlayer(root, env = {}) {
   /**
    * @param {PlayerState} state
    * @param {PlayerState | null} previous
-   * @returns {boolean} Whether anything the board or the tray draws has changed.
+   * @returns {boolean}
    */
   function surfaceChanged(state, previous) {
     const a = previous?.game;
@@ -581,7 +600,6 @@ export function mountPlayer(root, env = {}) {
 
   let drawnUiVersion = -1;
   let drawnHintVersion = -1;
-  /** Redraws the board and the tray with the controller's cursor, hints and hidden piece. */
   function renderSurface() {
     const state = store.getState();
     if (state.screen !== 'game' || state.game === null) {
@@ -682,7 +700,6 @@ export function mountPlayer(root, env = {}) {
   });
   render(store.getState(), null);
 
-  // Viewport changes refit the board; labels and the Straighten offer follow the new cell size.
   /** @type {ResizeObserver | null} */
   let observer = null;
   let frame = 0;
@@ -720,7 +737,6 @@ export function mountPlayer(root, env = {}) {
     store,
     controller,
     ready,
-    /** Containers of the screen: the board and tray hold the gestures, the toolbar its buttons, `win` the dialogs. */
     hosts: { board: boardHost, tray: trayHost, toolbar: toolbarHost, win: winHost, status: statusHost, live },
     boardView,
     trayView,
@@ -740,6 +756,7 @@ export function mountPlayer(root, env = {}) {
       play.destroy();
       dragLayer.destroy();
       pieceMenu.destroy();
+      printDialog.destroy();
       doc.removeEventListener('visibilitychange', onVisibility);
       observer?.disconnect();
       win.cancelAnimationFrame(frame);

@@ -1,9 +1,6 @@
 // @ts-check
-// Generation orchestration (design §6.5, §6.9, §8.2, §8.6; D41). One browser-neutral
-// client drives the worker pool for the Generator, the Node tests and the CLI:
-// it schedules piece-set attempts and batch candidates, feeds the deterministic
-// fold of `generate.js`, streams accepted puzzles and packages only accepted
-// data. It touches no DOM or storage and reads its clock for deadlines and
+// Generation orchestration (design §6.5, §6.9, §8.2, §8.6; D41): one browser-neutral client drives the worker pool
+// for the Generator, the Node tests and the CLI. It touches no DOM or storage and reads its clock for deadlines and
 // metadata only; the pool owns the 115 s watchdog.
 
 import { activeCount, boardFromRows, boardToRows, validateForGeneration } from '../engine/board.js';
@@ -112,8 +109,8 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  */
 
 /**
- * Exhaustive count of the piece set's distinct arrangements, run after a `layouts-not-found` batch
- * (owner decision 2026-10-23), plus the completion pass over the unused ones (fix round 3). `exhausted`:
+ * Exhaustive count of the piece set's distinct arrangements, run after a `layouts-not-found` batch,
+ * plus the completion pass over the unused ones. `exhausted`:
  * every arrangement is used, `total` is exact and `earlier` of them were used before this request; `more`:
  * at least one unused arrangement exists (`tried` of them were run as puzzle candidates, `unusable` gave no
  * puzzle), so a shortfall is not a proven maximum; `unproven`: the enumeration reached a limit (`why`).
@@ -866,7 +863,6 @@ export function createGenerationClient(pool, options = {}) {
     };
 
     /**
-     * Checks a candidate result the fold is about to consume.
      * @param {unknown} value
      * @returns {PuzzleCandidate | { fail: string }}
      */
@@ -943,7 +939,7 @@ export function createGenerationClient(pool, options = {}) {
     };
 
     /**
-     * Completion pass (fix round 3): the unused arrangements the enumeration returned, in layout-key order,
+     * Completion pass: the unused arrangements the enumeration returned, in layout-key order,
      * go through the candidate pipeline until the quantity is reached or they are used up. Candidates run
      * in the pool, up to its width at a time, but are consumed strictly in key order, so the accepted
      * puzzles do not depend on the pool. It never throws for a stop: the deadline ends it with the

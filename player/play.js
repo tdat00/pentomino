@@ -1,9 +1,7 @@
 // @ts-check
-// Play controller: turns taps, drags, keys and toolbar actions into previews and
-// reducer actions on the open game. No DOM and no clocks of its own: timers,
-// the time source and the live region are injected, so the same sequences run
-// under Node tests and in the page. Legality is decided only by `canPlace` and
-// `reduce`; the helpers below just build the candidate poses.
+// Play controller: turns taps, drags, keys and toolbar actions into previews and reducer actions on the open game.
+// No DOM and no clocks of its own (timers, time source and live region are injected), so it also runs under Node.
+// Legality is decided only by `canPlace` and `reduce`; the helpers below just build the candidate poses.
 
 import { activeCells } from '../core/engine/board.js';
 import { canPlace, poseT, reduce } from '../core/engine/game.js';
@@ -65,7 +63,6 @@ export function poseWithHandle(piece, t, index, cell) {
 }
 
 /**
- * Board cell under the handle of a pose.
  * @param {Piece} piece
  * @param {Pose} pose
  * @param {number} index
@@ -121,10 +118,9 @@ export function rotatePlaced(game, pose, index, newT) {
 }
 
 /**
- * Grid-cell step of an arrow key under display angle `theta`.
  * @param {number} theta
  * @param {ArrowKey} key
- * @param {boolean} [shift] Shift moves three cells.
+ * @param {boolean} [shift]
  * @returns {XY}
  */
 export function keyStep(theta, key, shift = false) {
@@ -224,7 +220,7 @@ export function createPlayController(options) {
   /** @type {Set<() => void>} */
   const listeners = new Set();
 
-  /** @returns {GameState | null} The open game while the game screen is up. */
+  /** @returns {GameState | null} */
   function openGame() {
     const s = store.getState();
     return destroyed || s.screen !== 'game' || s.game === null ? null : s.game;
@@ -299,7 +295,6 @@ export function createPlayController(options) {
     }, saveDelay);
   }
 
-  /** Saves now, replacing a pending debounce. */
   function flush() {
     if (saveTimer !== null) {
       unlater(saveTimer);
@@ -336,11 +331,9 @@ export function createPlayController(options) {
   }
 
   /**
-   * Commits a reducer result: stamps time, resets the preview, schedules the
-   * save and reports a win. Returns false for a no-op.
    * @param {GameState} next
    * @param {Pose | null} [preview] Ghost to keep after the commit.
-   * @returns {boolean}
+   * @returns {boolean} False for a no-op.
    */
   function commit(next, preview = null) {
     const before = openGame();
@@ -512,8 +505,7 @@ export function createPlayController(options) {
     },
     select,
     /**
-     * Tap on a piece in the tray or on the board. A second tap on the selected
-     * tray piece turns it clockwise.
+     * A second tap on the selected tray piece turns it clockwise.
      * @param {string} id
      * @param {'tray' | 'board'} from
      * @returns {boolean}
@@ -574,7 +566,7 @@ export function createPlayController(options) {
       }
       return pickUp(id);
     },
-    /** Enter on the board or the page: acts on the selected piece. @returns {boolean} */
+    /** @returns {boolean} */
     activateSelected() {
       const game = openGame();
       return game !== null && game.selected !== null && api.activate(game.selected);
@@ -672,7 +664,7 @@ export function createPlayController(options) {
       return true;
     },
     /**
-     * Cancels a drag, then a preview, then the selection. @returns {boolean} Whether anything was cancelled.
+     * Cancels a drag, then a preview, then the selection. @returns {boolean}
      */
     cancel() {
       const game = openGame();
@@ -690,7 +682,7 @@ export function createPlayController(options) {
       }
       return select(null);
     },
-    /** Delete, Backspace or the toolbar button. @returns {boolean} */
+    /** @returns {boolean} */
     returnToTray() {
       const game = openGame();
       if (game === null || ui.drag !== null) {
@@ -746,7 +738,7 @@ export function createPlayController(options) {
       announce(PLAY_TEXT.redone);
       return true;
     },
-    /** Returns every placed piece to the tray as one undoable step. @returns {boolean} */
+    /** @returns {boolean} */
     reset() {
       const game = openGame();
       if (game === null || ui.drag !== null) {
@@ -772,7 +764,6 @@ export function createPlayController(options) {
       return commit(reduce(game, action), action.type === 'hint' ? game.preview : null);
     },
     /**
-     * Starts dragging a tray or board piece by one of its source cells.
      * @param {{ pieceId: string, sourceCell: number | null }} grab
      * @returns {boolean}
      */
@@ -859,7 +850,6 @@ export function createPlayController(options) {
       change({ drag: null }, { preview: null });
       announce(PLAY_TEXT.moveCancelled);
     },
-    /** Drops the handle, drag and keyboard state, e.g. after a replay. */
     clearInteraction() {
       change({ handle: null, drag: null, keyboard: false });
     },
@@ -899,7 +889,7 @@ export function createPlayController(options) {
       }
       syncTimer();
     },
-    /** @returns {boolean} Whether the clock is running. */
+    /** @returns {boolean} */
     clockRunning: () => ticker !== null,
     destroy() {
       destroyed = true;

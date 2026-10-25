@@ -1,7 +1,6 @@
 // @ts-check
-// Page header, in the markup and classes of the generator's: the logo and title on the left, the EN | VI language
-// switch and the three theme buttons on the right. The choices are kept in this browser under the keys that
-// the generator uses, so a choice made on one page applies to the other.
+// Page header, in the markup and classes of the generator's. The choices are kept in this browser under the keys
+// that the generator uses, so a choice made on one page applies to the other.
 import { el } from '../../core/browser/dom.js';
 import { LANGUAGE_KEY } from '../../core/browser/i18n.js';
 import { svgEl } from '../../core/browser/svg-board.js';
@@ -9,7 +8,7 @@ import { THEME_KEY, applyTheme, effectiveTheme, normalizeTheme } from '../../cor
 import { getLocale, normalize, onChange, setLocale, t } from '../i18n.js';
 import { loc, locAttrs } from './i18n-dom.js';
 
-/** @returns {SVGElement} Icons of the theme buttons. */
+/** @returns {SVGElement} */
 function iconSprite() {
   return svgEl('svg', { class: 'sprite', 'aria-hidden': 'true', focusable: 'false' },
     svgEl('symbol', { id: 'ic-sun', viewBox: '0 0 24 24' },
@@ -22,6 +21,8 @@ function iconSprite() {
       svgEl('path', { d: 'M12 3a9 9 0 0 1 0 18z', fill: 'currentColor' })),
     svgEl('symbol', { id: 'ic-hint', viewBox: '0 0 24 24' },
       svgEl('path', { d: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z' })),
+    svgEl('symbol', { id: 'ic-print', viewBox: '0 0 24 24' },
+      svgEl('path', { d: 'M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z' })),
     svgEl('symbol', { id: 'ic-help', viewBox: '0 0 24 24' },
       svgEl('circle', { cx: 12, cy: 12, r: 9 }),
       svgEl('path', { d: 'M9.4 9.3a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2.3-2.6 4' }),
@@ -58,7 +59,7 @@ function themeButton(theme, key, icon) {
 }
 
 /**
- * @param {HTMLElement} host Receives the icon sprite and the header.
+ * @param {HTMLElement} host
  * @param {{ win: Window | null, preferences: Pick<Storage, 'setItem'> | null, onHelp?: () => void }} options
  */
 export function mountHeader(host, { win, preferences, onHelp }) {

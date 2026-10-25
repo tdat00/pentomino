@@ -44,6 +44,7 @@
   --gen-board-cell: #ffffff;
   --gen-board-line: #c4cbd9;
   --gen-board-mark: #6f7b8f;
+  --gen-board-blocked: #c4c7cc;
 
   --gen-shadow-1: 0 1px 2px rgba(16, 24, 40, 0.1), 0 1px 1px rgba(16, 24, 40, 0.06);
 }
@@ -78,6 +79,7 @@
   --gen-board-cell: #222a36;
   --gen-board-line: #3a4658;
   --gen-board-mark: #94a1b5;
+  --gen-board-blocked: #4a5464;
 
   --gen-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
@@ -113,6 +115,7 @@
     --gen-board-cell: #222a36;
     --gen-board-line: #3a4658;
     --gen-board-mark: #94a1b5;
+    --gen-board-blocked: #4a5464;
 
     --gen-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
   }
@@ -149,6 +152,7 @@
   --gen-board-cell: #141414;
   --gen-board-line: #a8a8a8;
   --gen-board-mark: #ffffff;
+  --gen-board-blocked: #3a3a3a;
 
   --gen-shadow-1: none;
 }
@@ -278,4 +282,10 @@ select:disabled {
 
 .pm-cross {
   stroke: var(--gen-board-mark);
+}
+
+/* A blocked cell: light grey with a cross (svg-board.js blockedCell). */
+.pm-blocked {
+  fill: var(--gen-board-blocked);
+  stroke: var(--gen-board-line);
 }

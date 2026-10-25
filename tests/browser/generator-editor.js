@@ -208,7 +208,8 @@ await check('every blocked cell looks the same in the editor, inside the board o
   drag(ctx, [[4, 3]]);
   drag(ctx, [[0, 0]]);
   const svg = ctx.editor.view.svg;
-  equal([svg.querySelectorAll('.pm-guide').length, svg.querySelectorAll('.pm-cross').length, svg.querySelectorAll('.pm-hole').length], [2, 2, 0], 'two dashed cells with a cross, no dark hole');
+  equal([svg.querySelectorAll('.pm-guide').length, svg.querySelectorAll('.pm-cross').length, svg.querySelectorAll('.pm-hole').length], [2, 2, 0], 'two blocked cells with a cross, the same inside the board and at its edge');
+  equal(svg.querySelectorAll('.pm-guide.pm-blocked').length, 2, 'both grey');
 }));
 
 await check('a blocked exterior guide of the Heart can be reactivated at 45 degrees', () => withEditor({}, {}, (ctx) => {

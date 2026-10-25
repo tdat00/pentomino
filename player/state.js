@@ -83,9 +83,8 @@ function defaultState() {
 }
 
 /**
- * Observable state. `update` takes a patch or a function returning a patch;
- * listeners run synchronously with `(state, previous)` and only when a value
- * actually changed.
+ * `update` takes a patch or a function returning a patch; listeners run
+ * synchronously with `(state, previous)` and only when a value actually changed.
  * @param {Partial<PlayerState>} [initial]
  */
 export function createPlayerStore(initial = {}) {
@@ -154,7 +153,7 @@ export function effectiveRotation(state) {
 /**
  * @param {Pick<import('../core/engine/types.js').PackPuzzle, 'solution'> | undefined} puzzle
  * @param {Verification | undefined} verification
- * @returns {boolean} A solution is known: the pack includes a checked answer, or the solvability check found one.
+ * @returns {boolean}
  */
 export function knownSolvable(puzzle, verification) {
   return verification?.status === 'solvable' || (puzzle?.solution !== null && puzzle?.solution !== undefined);
@@ -163,7 +162,7 @@ export function knownSolvable(puzzle, verification) {
 /**
  * @param {string} hash
  * @param {number} index
- * @returns {string} The same hash with its `i` parameter set.
+ * @returns {string}
  */
 export function hashWithIndex(hash, index) {
   const parts = (hash.startsWith('#') ? hash.slice(1) : hash).split('&');
@@ -302,7 +301,6 @@ export function createPlayerController(options) {
     return result.ok;
   }
 
-  /** Fresh game for the open puzzle; its saved record is removed at once. */
   function restartOpenGame() {
     const s = store.getState();
     if (!s.pack) {
@@ -579,8 +577,7 @@ export function createPlayerController(options) {
 
   return {
     /**
-     * Opens the puzzle named by the address, if any. Without one the start screen stays up; nothing is opened
-     * automatically.
+     * Without an address the start screen stays up; nothing is opened automatically.
      * @returns {Promise<unknown>}
      */
     start() {
@@ -603,7 +600,6 @@ export function createPlayerController(options) {
       }, { source: 'sample' });
     },
     /**
-     * Switches puzzle inside the open pack after saving the current progress.
      * @param {number} index
      * @returns {{ ok: boolean }}
      */
@@ -627,12 +623,11 @@ export function createPlayerController(options) {
     previousPuzzle() {
       return this.goToPuzzle(store.getState().index - 1);
     },
-    /** Replaces the open puzzle with a fresh game and an empty saved record (Replay). */
     replay() {
       restartOpenGame();
     },
     /**
-     * Marks a tray or board piece as selected (null clears it). The play controller (`play.js`) drives selection and moves.
+     * The play controller (`play.js`) drives selection and moves.
      * @param {string | null} pieceId
      */
     select(pieceId) {
@@ -695,7 +690,7 @@ export function createPlayerController(options) {
       }
       return { ok: true };
     },
-    /** Closes the open pack and shows the start screen. Saved progress is kept. */
+    /** Saved progress is kept. */
     removeAllPuzzles() {
       const s = store.getState();
       if (!s.pack) {

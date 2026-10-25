@@ -1,16 +1,7 @@
 // @ts-check
-// Worker pool and action watchdogs (design §8.1, §8.4, §8.5). Tasks belong to
-// one logical action ("request"): `beginRequest` opens it with a revision and
-// starts its single clock; every `run` of that action shares the clock, so no
-// subtask restarts the two-minute budget. A new request, Cancel, a recycle or
-// the 115 s deadline terminates exact worker instances and settles every
-// affected promise with a typed AbortError. Replies from a terminated or
-// replaced worker are ignored, so a late message can never settle a new task.
-//
-// Worker interface (browser `Worker`, or a Node adapter, or a test fake):
-// `postMessage(message)`, `terminate()` and `addEventListener(type, listener)`
-// for `message` (event.data), `error` and `messageerror`. A Node adapter maps
-// its `exit` event to `error`.
+// Worker pool and action watchdogs (design §8.1, §8.4, §8.5). Every `run` of one action (`beginRequest`) shares its
+// clock, so no subtask restarts the two-minute budget. Replies from a terminated or replaced worker are ignored, so a
+// late message can never settle a new task.
 
 import { parseTaskMessage, parseWorkerMessage } from '../engine/protocol.js';
 import { BUDGETS, TIME } from '../engine/policy.js';
@@ -19,8 +10,7 @@ import { BUDGETS, TIME } from '../engine/policy.js';
 /** @typedef {import('../engine/types.js').Issue} Issue */
 
 /**
- * `signal` is an optional additive extension for cancelling one task (for
- * example attempts above the lowest successful one); it is never sent to a worker.
+ * `signal` cancels one task (for example attempts above the lowest successful one); it is never sent to a worker.
  * @typedef {object} PoolTask
  * @property {number} requestId
  * @property {string} revision
@@ -30,6 +20,8 @@ import { BUDGETS, TIME } from '../engine/policy.js';
  */
 
 /**
+ * A browser `Worker`, a Node adapter (which maps its `exit` event to `error`) or a test fake. Events: `message`
+ * (event.data), `error` and `messageerror`.
  * @typedef {object} WorkerLike
  * @property {(message: unknown) => void} postMessage
  * @property {() => void} terminate

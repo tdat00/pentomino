@@ -125,7 +125,6 @@ export function safeFileName(name, fallback = 'puzzle') {
 }
 
 /**
- * Saves a Blob through a transient anchor and revokes the object URL afterwards.
  * @param {string} fileName
  * @param {Blob} blob
  */

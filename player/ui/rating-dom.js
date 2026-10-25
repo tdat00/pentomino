@@ -1,5 +1,4 @@
 // @ts-check
-// Shows a puzzle rating with its difficulty level in bold.
 
 import { el } from '../../core/browser/dom.js';
 import { ratingParts } from '../strings.js';

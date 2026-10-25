@@ -1,6 +1,5 @@
 // @ts-check
-// Hint panel: the box under the game bar that shows a running check, a proven hint with Place it / Remove it, the
-// revealed marker with Replay, and the two reveal confirmations. It is only a view; hints.js decides everything.
+// Hint panel under the game bar. It is only a view; hints.js decides everything.
 
 import { el } from '../../core/browser/dom.js';
 import { LABELS } from '../strings.js';
@@ -13,7 +12,7 @@ import { loc } from './i18n-dom.js';
 /**
  * @typedef {object} HintPanelOptions
  * @property {HintController} hints
- * @property {HTMLElement} dialogHost Where the confirmation dialogs live.
+ * @property {HTMLElement} dialogHost
  * @property {() => void} onReplay Starts a fresh, unassisted session of the open puzzle.
  * @property {() => HTMLElement | null | undefined} [hintButton] Gets the focus back when a panel button disappears.
  */

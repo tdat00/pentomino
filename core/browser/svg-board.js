@@ -1,13 +1,12 @@
 // @ts-check
-// Shared SVG rendering for the board, the tray and thumbnails. The board lives
-// in logical cell units inside one group that carries the display rotation, so
-// hit-testing is the inverse of that group's screen matrix. Nothing here
-// decides legality or mutates game state: controllers pass models in and get
-// cells, pieces and pointer events back.
+// Shared SVG rendering for the board, the tray and thumbnails. The board lives in logical cell units inside one group
+// that carries the display rotation, so hit-testing is the inverse of that group's screen matrix. Nothing here
+// decides legality or mutates game state.
 
 import { activeCells, classifyBlocked } from '../engine/board.js';
 import { outlineLoops, transformCells } from '../engine/geometry.js';
-import { patternFor, textColorFor } from '../engine/palette.js';
+import { patternFor } from '../engine/palette.js';
+import { displayColor, inkFor, pieceGlyph, pieceLabelText } from './piece-look.js';
 import { activeCenter, fitCellSize, normalizeAngle, rotatedExtent } from '../engine/view.js';
 
 /** @typedef {import('../engine/types.js').XY} XY */
@@ -313,7 +312,6 @@ export function seamPath(cells) {
 }
 
 /**
- * Transform index of a pose.
  * @param {Pose} pose
  * @returns {number}
  */
@@ -343,7 +341,7 @@ export function alignedOrientedCells(cells, t) {
  * @returns {string}
  */
 export function pieceName(piece, status = '', cells = null) {
-  const parts = [`Piece ${piece.label}`, `${piece.cells.length} ${piece.cells.length === 1 ? 'cell' : 'cells'}`];
+  const parts = [`Piece ${pieceLabelText(piece.label)}`, `${piece.cells.length} ${piece.cells.length === 1 ? 'cell' : 'cells'}`];
   if (status !== '') {
     let where = '';
     if (cells !== null && cells.length > 0) {
@@ -379,17 +377,44 @@ export function svgEl(tag, attrs = {}, ...children) {
 }
 
 /**
- * The cross that marks a blocked cell in the editor, so it stands out from an active one.
+ * The cross that marks a blocked cell, so it stands out from an active one.
  * @param {number} x
  * @param {number} y
  * @param {string} stroke
+ * @param {string} [className]
  * @returns {SVGElement}
  */
-function crossMark(x, y, stroke) {
+function crossMark(x, y, stroke, className = 'pm-cross') {
   return svgEl('path', {
-    class: 'pm-cross', d: `M${x + 0.3} ${y + 0.3}L${x + 0.7} ${y + 0.7}M${x + 0.7} ${y + 0.3}L${x + 0.3} ${y + 0.7}`,
+    ...(className === '' ? {} : { class: className }),
+    d: `M${x + 0.3} ${y + 0.3}L${x + 0.7} ${y + 0.7}M${x + 0.7} ${y + 0.3}L${x + 0.3} ${y + 0.7}`,
     fill: 'none', stroke, 'stroke-width': 0.08, 'stroke-linecap': 'round', 'pointer-events': 'none',
   });
+}
+
+/** Look of a blocked cell everywhere a board is drawn: a grey square with a cross in the middle, dark enough to tell
+ * from the board on screen and on a black-and-white print. */
+export const BLOCKED_FILL = '#c4c4c4';
+export const BLOCKED_LINE = '#a9a9a9';
+export const BLOCKED_MARK = '#555555';
+
+/**
+ * A blocked cell: a light grey square with a cross. On screen the theme recolours it through its classes; on paper
+ * pass `themed: false` so the colours stay as given.
+ * @param {number} x
+ * @param {number} y
+ * @param {{ className?: string, themed?: boolean, lineWidth?: number }} [o] `className` is added to the square.
+ * @returns {SVGElement[]}
+ */
+export function blockedCell(x, y, { className = '', themed = true, lineWidth = 0.03 } = {}) {
+  const squareClass = themed ? ['pm-blocked', className].filter(Boolean).join(' ') : className;
+  return [
+    svgEl('rect', {
+      ...(squareClass === '' ? {} : { class: squareClass }),
+      x, y, width: 1, height: 1, fill: BLOCKED_FILL, stroke: BLOCKED_LINE, 'stroke-width': lineWidth,
+    }),
+    crossMark(x, y, BLOCKED_MARK, themed ? 'pm-cross' : ''),
+  ];
 }
 
 /**
@@ -398,12 +423,9 @@ function crossMark(x, y, stroke) {
  * @param {string} id
  * @returns {{ defs: SVGElement, piecePattern: (kind: 'dots' | 'hlines' | 'vlines', color: string) => string }}
  */
-function createDefs(id) {
+export function createDefs(id) {
   const defs = svgEl('defs');
   defs.append(
-    svgEl('pattern', { id: `${id}-hole`, width: 0.34, height: 0.34, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' },
-      svgEl('rect', { width: 0.34, height: 0.34, fill: '#3b3b3b' }),
-      svgEl('line', { x1: 0, y1: 0, x2: 0, y2: 0.34, stroke: '#8c8c8c', 'stroke-width': 0.08 })),
     svgEl('pattern', { id: `${id}-clue`, width: 0.3, height: 0.3, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' },
       svgEl('rect', { width: 0.3, height: 0.3, fill: '#ffffff', 'fill-opacity': 0.12 }),
       svgEl('line', { x1: 0, y1: 0, x2: 0, y2: 0.3, stroke: '#000000', 'stroke-opacity': 0.45, 'stroke-width': 0.07 })),
@@ -453,7 +475,7 @@ function createDefs(id) {
  * @param {PieceDrawOptions} o
  * @returns {{ group: SVGElement, overlays: { label: SVGElement, lock: SVGElement | null } }}
  */
-function drawPiece(piece, cells, o) {
+export function drawPiece(piece, cells, o) {
   const d = pathData(outlineLoops(cells));
   const group = svgEl('g', { class: `pm-piece ${o.clue ? 'pm-clue' : 'pm-movable'}`, 'data-piece-id': piece.id, 'data-movable': o.movable });
   if (o.movable) {
@@ -464,10 +486,12 @@ function drawPiece(piece, cells, o) {
     group.setAttribute('role', 'img');
   }
   group.setAttribute('aria-label', o.name);
-  group.append(svgEl('path', { class: 'pm-fill', d, fill: piece.color, 'fill-rule': 'evenodd' }));
+  // Drawn colours come from piece-look.js (display only; the stored colour is unchanged).
+  const color = displayColor(piece.color);
+  group.append(svgEl('path', { class: 'pm-fill', d, fill: color, 'fill-rule': 'evenodd' }));
   const pattern = o.clue || !o.showPatterns ? 'none' : patternFor(o.index, o.count);
   if (pattern !== 'none') {
-    group.append(svgEl('path', { class: 'pm-pattern', d, fill: o.defs.piecePattern(pattern, piece.color), 'fill-rule': 'evenodd', 'pointer-events': 'none' }));
+    group.append(svgEl('path', { class: 'pm-pattern', d, fill: o.defs.piecePattern(pattern, color), 'fill-rule': 'evenodd', 'pointer-events': 'none' }));
   }
   const seams = seamPath(cells);
   if (seams !== '') {
@@ -476,7 +500,7 @@ function drawPiece(piece, cells, o) {
   if (o.clue) {
     group.append(svgEl('path', { class: 'pm-hatch', d, fill: `url(#${o.id}-clue)`, 'fill-rule': 'evenodd', 'pointer-events': 'none' }));
   }
-  group.append(svgEl('path', { class: 'pm-outline', d, fill: 'none', stroke: shade(piece.color), 'stroke-width': OUTLINE_WIDTH, 'stroke-linejoin': 'round', 'pointer-events': 'none' }));
+  group.append(svgEl('path', { class: 'pm-outline', d, fill: 'none', stroke: shade(color), 'stroke-width': OUTLINE_WIDTH, 'stroke-linejoin': 'round', 'pointer-events': 'none' }));
   if (o.selected) {
     group.append(svgEl('path', { class: 'pm-selection', d, fill: 'none', stroke: FOCUS_COLOR, 'stroke-width': 0.14, 'stroke-linejoin': 'round', 'pointer-events': 'none' }));
   }
@@ -489,12 +513,7 @@ function drawPiece(piece, cells, o) {
   const [lx, ly] = labelCell(cells);
   const cx = lx + 0.5;
   const cy = ly + 0.5;
-  const size = piece.label.length <= 1 ? 0.62 : Math.min(0.62, 0.95 / (piece.label.length * 0.62));
-  const label = svgEl('text', {
-    class: 'pm-label', x: cx, y: cy, transform: `rotate(${o.theta} ${cx} ${cy})`, 'text-anchor': 'middle', 'dominant-baseline': 'central',
-    'font-family': 'system-ui, sans-serif', 'font-weight': 700, 'font-size': size, fill: textColorFor(piece.color),
-    stroke: piece.color, 'stroke-width': 0.1, 'paint-order': 'stroke', 'stroke-linejoin': 'round', 'pointer-events': 'none',
-  }, piece.label);
+  const label = labelNode(piece.label, cx, cy, o.theta, color);
   let lock = null;
   if (o.clue) {
     // The padlock sits in the upper-right corner of the label cell, fully inside it (its halo included).
@@ -508,6 +527,44 @@ function drawPiece(piece, cells, o) {
 }
 
 /**
+ * The label of a piece, upright in its label cell: one character, black or white with a halo of the other colour so
+ * it reads on any fill and on a black-and-white print, and its mark (circle, square or black disc) for labels past Z.
+ * @param {string} text The stored label.
+ * @param {number} cx
+ * @param {number} cy
+ * @param {number} theta Display angle, undone so the label stays upright.
+ * @param {string} fill Colour of the piece as drawn.
+ * @returns {SVGElement}
+ */
+function labelNode(text, cx, cy, theta, fill) {
+  const { char, mark } = pieceGlyph(text);
+  const { ink, halo } = inkFor(fill);
+  const marked = mark !== 'none';
+  const size = char.length <= 1 ? (marked ? 0.48 : 0.62) : Math.min(0.62, 0.95 / (char.length * 0.62));
+  const letterFill = mark === 'disc' ? halo : ink;
+  /** @type {SVGElement[]} */
+  const shapes = [];
+  if (mark === 'circle') {
+    shapes.push(
+      svgEl('circle', { cx, cy, r: 0.38, fill: 'none', stroke: halo, 'stroke-width': 0.17 }),
+      svgEl('circle', { class: 'pm-label-mark', cx, cy, r: 0.38, fill: 'none', stroke: ink, 'stroke-width': 0.07 }));
+  } else if (mark === 'square') {
+    shapes.push(
+      svgEl('rect', { x: cx - 0.36, y: cy - 0.36, width: 0.72, height: 0.72, fill: 'none', stroke: halo, 'stroke-width': 0.17 }),
+      svgEl('rect', { class: 'pm-label-mark', x: cx - 0.36, y: cy - 0.36, width: 0.72, height: 0.72, fill: 'none', stroke: ink, 'stroke-width': 0.07 }));
+  } else if (mark === 'disc') {
+    shapes.push(svgEl('circle', { class: 'pm-label-mark', cx, cy, r: 0.4, fill: ink, stroke: halo, 'stroke-width': 0.06 }));
+  }
+  return svgEl('g', { class: 'pm-label-group', 'data-mark': mark, transform: `rotate(${theta} ${cx} ${cy})`, 'pointer-events': 'none' },
+    ...shapes,
+    svgEl('text', {
+      class: 'pm-label', x: cx, y: cy, 'text-anchor': 'middle', 'dominant-baseline': 'central',
+      'font-family': 'system-ui, sans-serif', 'font-weight': 700, 'font-size': size, fill: letterFill,
+      ...(mark === 'disc' ? {} : { stroke: halo, 'stroke-width': 0.12, 'paint-order': 'stroke', 'stroke-linejoin': 'round' }),
+    }, char));
+}
+
+/**
  * @param {Element | null} node
  * @returns {Element | null}
  */
@@ -516,7 +573,7 @@ function movableTarget(node) {
 }
 
 /**
- * Mounts a board view into `host`. See the T16 task for the event contract.
+ * See the T16 task for the event contract.
  * @param {HTMLElement} host
  * @param {BoardViewOptions} opts
  * @returns {BoardView}
@@ -700,10 +757,10 @@ export function mountBoard(host, opts) {
           nodes.push(svgEl('rect', { class: 'pm-cell', x, y, width: 1, height: 1, fill: '#f6f4ec', stroke: '#c9c5b8', 'stroke-width': 0.03 }));
         } else if (wholeGrid) {
           // Every blocked cell looks the same in the editor, inside the board or not.
-          nodes.push(svgEl('rect', { class: 'pm-guide', x, y, width: 1, height: 1, fill: 'none', stroke: '#8f8f8f', 'stroke-opacity': 0.7, 'stroke-width': 0.03, 'stroke-dasharray': '0.12 0.1' }));
-          nodes.push(crossMark(x, y, '#6b6b6b'));
+          nodes.push(...blockedCell(x, y, { className: 'pm-guide' }));
         } else if (kind === 2) {
-          nodes.push(svgEl('rect', { class: 'pm-hole', x, y, width: 1, height: 1, fill: `url(#${id}-hole)`, stroke: '#2a2a2a', 'stroke-width': 0.03 }));
+          // A hole inside the board; exterior cells are not drawn, so a heart reads as a heart.
+          nodes.push(...blockedCell(x, y, { className: 'pm-hole' }));
         }
       }
     }

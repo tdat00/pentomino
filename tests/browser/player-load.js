@@ -496,6 +496,8 @@ await check('layout and accessibility contract of the shell', async () => {
     assert(main.bottom <= side.top + 1 && side.bottom <= history.top + 1, 'game, pieces, puzzles from top to bottom');
     equal(getComputedStyle(m.q('.tray-host')).overflowX, 'auto', 'tray scrolls horizontally');
   }
+  const sideStyle = getComputedStyle(m.q('.app-side'));
+  equal(`${sideStyle.overflowY} ${sideStyle.position} ${sideStyle.maxHeight}`, 'visible static none', 'the pieces panel has no scroll bar of its own; the page scrolls');
   assert(m.q('.app-side').contains(m.q('.tray-host')) && m.q('.app-main').contains(m.q('.board-host')) && m.q('.app-history').contains(m.q('.puzzle-cards')),
     'each panel holds its content');
   const tops = ['.step-head', '.game-bar', '.board-wrap'].map((sel) => rect(sel).top);

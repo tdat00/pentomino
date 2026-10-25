@@ -1,6 +1,5 @@
 // @ts-check
-// Selection toolbar at the top of the pieces panel: rotate and flip buttons for the selected piece (the same as the
-// keys) and the Results button of a solved puzzle.
+// Selection toolbar at the top of the pieces panel.
 
 import { el } from '../../core/browser/dom.js';
 import { loc, locAttrs } from './i18n-dom.js';

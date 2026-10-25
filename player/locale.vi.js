@@ -2,6 +2,8 @@
 // Vietnamese texts of the player: the same keys and placeholders as locale.en.js (a test checks it). Vietnamese
 // has no plural forms, so only the plain keys are needed.
 
+import { PRINT_TEXTS_VI } from '../core/browser/print-texts.js';
+
 /** @type {Readonly<Record<string, string>>} */
 export default Object.freeze({
   // Page frame
@@ -29,8 +31,8 @@ export default Object.freeze({
   'puzzles.empty': 'Chưa mở đề nào. Hãy mở một đề từ liên kết của nó hoặc thử đề mẫu.',
   'pieces.title': 'Các mảnh cần đặt',
   'pieces.empty': 'Các mảnh của đề đang mở sẽ hiện ở đây.',
-  'pieces.allPlaced': 'Mọi mảnh đã nằm trên bàn.',
-  'card.preview': 'Hình xem trước của đề',
+  'pieces.allPlaced': 'Tất cả các mảnh đã nằm trên bàn chơi.',
+  'card.preview': 'Xem trước đề',
   'card.remove.aria': 'Xóa {title}',
   'card.heading': 'Đề #{n}',
   'card.toPlace': '{count} mảnh cần đặt',
@@ -45,9 +47,9 @@ export default Object.freeze({
   'ui.zoom': 'Thu phóng',
   'ui.zoomIn': 'Phóng to',
   'ui.zoomOut': 'Thu nhỏ',
-  'ui.zoomFit': 'Vừa khung nhìn',
-  'ui.viewLeft': 'Xoay bàn ngược chiều kim đồng hồ',
-  'ui.viewRight': 'Xoay bàn theo chiều kim đồng hồ',
+  'ui.zoomFit': 'Hiển thị bàn chơi vừa khung nhìn',
+  'ui.viewLeft': 'Xoay góc nhìn ngược chiều kim đồng hồ',
+  'ui.viewRight': 'Xoay góc nhìn theo chiều kim đồng hồ',
   'ui.piecesLeft': 'Còn {count} mảnh',
   'ui.moves': '{count} nước đi',
   'ui.puzzleNumber': 'Đề {n}',
@@ -55,9 +57,9 @@ export default Object.freeze({
   'ui.loading': 'Đang tải…',
   'ui.trayLabel': 'Các mảnh chưa đặt',
   'ui.boardLabel': 'Bàn chơi',
-  'ui.boardHelp': 'Chọn một mảnh trong mục Các mảnh cần đặt, rồi chạm vào một ô trên bàn để xem trước; chạm lại đúng ô đó hoặc nhấn Enter để thả mảnh xuống. '
-    + 'Với bàn phím, nhấn Enter trên một mảnh để nhấc nó lên, di chuyển bằng phím mũi tên và nhấn Enter để thả; nhấn ? để xem mọi phím tắt. '
-    + 'Nhấp chuột phải vào một mảnh để xoay hoặc lật nó. Các mảnh đặt sẵn bị khóa và không di chuyển được.',
+  'ui.boardHelp': 'Chọn một mảnh trong mục “Các mảnh cần đặt”, rồi chạm vào một ô trên bàn chơi để xem trước; chạm lại đúng ô đó hoặc nhấn Enter để thả mảnh xuống. '
+    + 'Với bàn phím, nhấn Enter trên một mảnh để nhấc nó lên, di chuyển bằng các phím mũi tên rồi nhấn Enter để thả; nhấn ? để xem mọi phím tắt. '
+    + 'Nhấp chuột phải vào một mảnh để xoay hoặc lật nó. Các mảnh đặt sẵn đã bị khóa và không di chuyển được.',
   'ui.selectedGroup': 'Mảnh đã chọn',
   'ui.rotateCcw': 'Xoay ngược chiều kim đồng hồ',
   'ui.rotateCw': 'Xoay theo chiều kim đồng hồ',
@@ -92,17 +94,16 @@ export default Object.freeze({
   'ui.replayPuzzle': 'Chơi lại đề',
   'ui.cancel': 'Hủy',
   'ui.winTitle': 'Đã giải xong đề!',
+  'ui.winMessage': 'Tuyệt vời! Mọi mảnh đã về đúng chỗ.',
   'ui.winTime': 'Thời gian',
   'ui.winMoves': 'Số nước đi',
-  'ui.winLevel': 'Mức độ',
   'ui.nextPuzzle': 'Đề tiếp theo',
   'ui.replay': 'Chơi lại',
-  'ui.backToGenerator': 'Về trình tạo',
   'ui.sample': 'Thử đề mẫu',
 
   // Start screen (no puzzle open)
   'start.title': 'Chưa mở đề nào',
-  'start.intro': 'Đề được mở từ liên kết của nó. Hãy tạo đề trong trình tạo rồi nhấn Chơi, hoặc thử đề mẫu.',
+  'start.intro': 'Mỗi đề được mở từ liên kết của nó. Hãy tạo đề trong trình tạo rồi nhấn “Chơi”, hoặc thử đề mẫu.',
   'start.keep': 'Để quay lại một đề sau này, hãy lưu địa chỉ của nó vào dấu trang. Để chia sẻ đề, hãy gửi địa chỉ đó.',
 
   // Keyboard help
@@ -126,7 +127,7 @@ export default Object.freeze({
   'keys.redo.action': 'Làm lại',
   'keys.help.key': '?',
   'keys.help.action': 'Hiện các phím tắt này',
-  'keys.menu.key': 'Nhấp chuột phải / Phím Menu',
+  'keys.menu.key': 'Nhấp chuột phải / phím Menu',
   'keys.menu.action': 'Mở menu của mảnh: xoay, lật hoặc trả về khay',
 
   // Levels, ratings and checks
@@ -191,7 +192,7 @@ export default Object.freeze({
   'play.ghostAt': 'Hàng {row}, cột {column}. {state}',
   'play.ghostFree': 'Trống',
   'play.ghostBlocked': 'Không trống: {reason}',
-  'reason.outside': 'mảnh sẽ vượt ra ngoài bàn',
+  'reason.outside': 'mảnh sẽ nằm ra ngoài bàn chơi',
   'reason.blocked': 'mảnh sẽ che một ô bị chặn',
   'reason.clue': 'mảnh sẽ chồng lên một mảnh đặt sẵn đã khóa',
   'reason.overlap': 'mảnh sẽ chồng lên mảnh khác',
@@ -201,23 +202,26 @@ export default Object.freeze({
   'hint.working': 'Đang tìm gợi ý đã được chứng minh…',
   'hint.revealWorking': 'Đang tìm một lời giải hoàn chỉnh…',
   'hint.cancelled': 'Đã hủy kiểm tra. Không có gì thay đổi.',
-  'hint.stale': 'Bàn đã thay đổi nên kết quả kiểm tra đó bị bỏ.',
-  'hint.complete': 'Đề đã hoàn thành.',
-  'hint.noLongerFits': 'Gợi ý đó không còn khớp với bàn. Hãy xin gợi ý mới.',
-  'hint.place': 'Gợi ý: mảnh {label} khớp với một lời giải hoàn chỉnh giữ nguyên mọi mảnh bạn đã đặt. Mảnh này được tô sáng trên bàn. '
+  'hint.stale': 'Bàn chơi đã thay đổi nên kết quả kiểm tra đó bị bỏ.',
+  'hint.complete': 'Đề đã được giải xong.',
+  'hint.noLongerFits': 'Gợi ý đó không còn khớp với bàn chơi. Hãy yêu cầu gợi ý mới.',
+  'hint.place': 'Gợi ý: mảnh {label} khớp với một lời giải hoàn chỉnh giữ nguyên mọi mảnh bạn đã đặt. Mảnh này được tô sáng trên bàn chơi. '
     + 'Nhấn “Đặt mảnh này” để đặt nó vào đó.',
   'hint.remove': 'Gợi ý: nếu gỡ mảnh {label}, bạn có thể hoàn thành đề mà vẫn giữ nguyên mọi mảnh khác đã đặt. '
     + 'Điều đó không có nghĩa đây là mảnh duy nhất có thể di chuyển.',
   'hint.placedHint': 'Đã đặt mảnh {label}. Bạn có thể hoàn tác.',
   'hint.removedHint': 'Đã gỡ mảnh {label}. Bạn có thể hoàn tác.',
-  'hint.revealed': 'Đã hiện lời giải. Đề này được đánh dấu là đã xem lời giải, không phải đã giải.',
+  'hint.revealed': 'Đã hiển thị lời giải. Đề này được đánh dấu là đã xem lời giải, không phải đã giải.',
   'hint.revealUnsat': 'Không thể hoàn thành lời giải từ các mảnh bạn đã đặt.',
-  'hint.revealImpossible': 'Đề này không có lời giải nên không có gì để hiện.',
+  'hint.revealImpossible': 'Đề này không có lời giải nên không có gì để hiển thị.',
   'hint.revealCancelled': 'Đã hủy việc xem lời giải. Không có gì thay đổi.',
   'hint.revealUnknown': 'Không tìm thấy lời giải hoàn chỉnh trong lần kiểm tra này. Không có gì thay đổi.',
-  'hint.revealFailed': 'Không thể hiện lời giải. Không có gì thay đổi.',
+  'hint.revealFailed': 'Không thể hiển thị lời giải. Không có gì thay đổi.',
   'hint.replayed': 'Đã chơi lại đề từ đầu.',
 
   // Announcements of the page
   'live.opened': 'Đã mở {puzzle}. {left}.',
+
+  // Hộp thoại in và các tờ in (dùng chung với trình tạo đề)
+  ...PRINT_TEXTS_VI,
 });

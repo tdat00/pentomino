@@ -29,7 +29,8 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {number} batchIndex
  * @property {{ layouts: string[], clues: string[] }} history
  * @property {{ levelId: string, uniqueness: 'any' | 'require' } | null} [calibrationFor]
- * @property {Record<string, string>} [puzzleSeeds] Batch seed of each puzzle, by puzzle id.
+ * @property {Record<string, string>} [puzzleSeeds] Older storage only: batch seed of each puzzle, by puzzle id. Each
+ *   puzzle now carries its own `seed`.
  */
 
 /**
@@ -237,7 +238,6 @@ export function isPhone(hw) {
 }
 
 /**
- * Reads the browser (or an injected stand-in with matchMedia and navigator).
  * @param {{ matchMedia?: (query: string) => { matches: boolean }, navigator?: { deviceMemory?: number, hardwareConcurrency?: number } }} [env]
  * @returns {HardwareClass}
  */
@@ -599,7 +599,6 @@ function mergeKeys(known, added) {
  */
 
 /**
- * Every listed level with its availability at `area`.
  * @param {number} area
  * @returns {LevelEntry[]}
  */
@@ -781,14 +780,16 @@ export function savedSetOf(state) {
     return null;
   }
   try {
+    // The batch seed of each puzzle is stored in the puzzle itself; `puzzleSeeds` is rebuilt from it on reading.
+    const seeds = seedsOfPuzzles(state.puzzleSeeds, state.puzzles);
+    const puzzles = state.puzzles.map((p) => (seeds[p.id] === undefined ? p : { ...p, seed: seeds[p.id] }));
     return {
       setPack: packOf(state.set, state.rotation, []),
-      puzzles: state.puzzles.length === 0 ? [] : packOf(state.set, state.rotation, state.puzzles).puzzles,
+      puzzles: puzzles.length === 0 ? [] : packOf(state.set, state.rotation, puzzles).puzzles,
       setSeed: state.setSeed,
       batchIndex: state.batchIndex,
       history: { layouts: [...state.seenLayouts], clues: [...state.seenClues] },
       calibrationFor: state.calibrationFor,
-      puzzleSeeds: seedsOfPuzzles(state.puzzleSeeds, state.puzzles),
     };
   } catch {
     return null;
@@ -837,7 +838,11 @@ export function readSavedSet(saved) {
     calibrationFor,
     calibrationTrusted: false,
     puzzles,
-    puzzleSeeds: seedsOfPuzzles(dto.puzzleSeeds, puzzles),
+    // Older storage kept the seeds in a separate `puzzleSeeds` map; it still fills in seeds the puzzles lack.
+    puzzleSeeds: {
+      ...seedsOfPuzzles(dto.puzzleSeeds, puzzles),
+      ...seedsOfPuzzles(Object.fromEntries(puzzles.flatMap((p) => (p.seed === undefined ? [] : [[p.id, p.seed]]))), puzzles),
+    },
     setSeed,
     batchIndex,
     seenLayouts: readKeys(history.layouts),
@@ -989,7 +994,6 @@ function upgradeSaved(item) {
  */
 
 /**
- * Initial state from storage.
  * @param {StorageLike} storage
  * @returns {GeneratorState}
  */
@@ -1041,7 +1045,7 @@ export function createPersistence(store, storage, o = {}) {
       snapshots.push({ ...full, setsByBoard: Object.fromEntries(Object.entries(lists).map(([key, list]) => [key, list.slice(0, kept)])) });
     }
     const reduced = { ...full, setsByBoard: {} };
-    snapshots.push(reduced, { ...reduced, puzzles: [], puzzleSeeds: {} });
+    snapshots.push(reduced, { ...reduced, puzzles: [] });
     for (const snapshot of snapshots) {
       if (attempt(() => storage.setGeneratorState(snapshot))) {
         return;
@@ -1394,8 +1398,7 @@ export function removePuzzle(state, puzzleId) {
 }
 
 /**
- * Remove all: every puzzle of the list goes, with the cards' extras. The seen-history stays, like when a single card
- * is removed, so new puzzles never repeat a removed one.
+ * The seen-history stays, so new puzzles never repeat a removed one.
  * @param {GeneratorState} state
  * @returns {GeneratorState}
  */
@@ -1489,7 +1492,6 @@ export function setNumber(state) {
 }
 
 /**
- * Shows the set of the board in step 1 that was made with a seed.
  * @param {GeneratorState} state
  * @param {string} seed
  * @returns {GeneratorState | null} null when no set of this board has that seed.
@@ -1524,7 +1526,6 @@ export function setKey(board, pieces) {
 }
 
 /**
- * Whether a new set repeats one already in the list of its board.
  * @param {GeneratorState} state
  * @param {PieceSet} set The set that was just generated.
  * @returns {number | null} Its number in the list (oldest first, as "Set n of total" shows), or null when it is new.

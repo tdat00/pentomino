@@ -347,7 +347,7 @@ test('serialization round-trips and never stores timers, jobs or the calibration
   const dto = serializeState(state);
   assert.equal(dto.v, 1);
   assert.deepEqual(Object.keys(dto).sort(), [
-    'batchIndex', 'boardRows', 'calibrationFor', 'history', 'keepSeed', 'levelId', 'presetId', 'puzzleSeeds', 'puzzles',
+    'batchIndex', 'boardRows', 'calibrationFor', 'history', 'keepSeed', 'levelId', 'presetId', 'puzzles',
     'rotation', 'seedText', 'setPack', 'setSeed', 'setsByBoard', 'uniqueness', 'v',
   ]);
   assert.deepEqual(Object.keys(serializeState(defaultGeneratorState())).sort(), [
@@ -387,24 +387,30 @@ test('older storage with the puzzles and the calibration in full packs is read a
   assert.deepEqual([saved.setSeed, saved.puzzles.length, 'batchPack' in saved, 'calibrationPack' in saved], ['older', 3, false, false]);
 });
 
-test('puzzle seeds are saved only for puzzles that exist, restored with them and kept with each saved set', () => {
+test('puzzle seeds are stored in their puzzles, restored from them, and kept with each saved set', () => {
   let state = acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: null, setSeed: 'demo' });
   const [first, second] = samplePuzzles;
   state = { ...state, batchIndex: 2, puzzles: [first, second] };
   state = { ...state, puzzleSeeds: { [first.id]: 'demo#1', [second.id]: 'demo#2', gone: 'demo#7', bad: /** @type {any} */ (5) } };
-  const dto = serializeState(state);
-  assert.deepEqual(dto.puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' }, 'ids that are not puzzles are left out');
+  const dto = /** @type {any} */ (serializeState(state));
+  assert.equal('puzzleSeeds' in dto, false, 'no separate map: the seeds are not stored twice');
+  assert.deepEqual(dto.puzzles.map((/** @type {any} */ p) => p.seed), ['demo#1', 'demo#2'], 'each puzzle carries its seed');
   const restored = restoreState(JSON.parse(JSON.stringify(dto)));
   assert.deepEqual(restored.puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' });
-  const damaged = restoreState({ ...JSON.parse(JSON.stringify(dto)), puzzleSeeds: { [first.id]: '', [second.id]: 'x'.repeat(300) } });
+
+  // Older storage: puzzles without seeds and the seeds in a separate map.
+  const unseeded = dto.puzzles.map((/** @type {any} */ { seed: _seed, ...p }) => p);
+  const legacy = { ...JSON.parse(JSON.stringify(dto)), puzzles: unseeded, puzzleSeeds: { [first.id]: 'demo#1', [second.id]: 'demo#2', gone: 'x' } };
+  assert.deepEqual(restoreState(legacy).puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' }, 'an older map still gives the seeds');
+  const damaged = restoreState({ ...legacy, puzzleSeeds: { [first.id]: '', [second.id]: 'x'.repeat(300) } });
   assert.deepEqual(damaged.puzzleSeeds, {}, 'empty or oversized seeds are dropped');
-  assert.deepEqual(restoreState({ ...JSON.parse(JSON.stringify(dto)), puzzleSeeds: ['demo#1'] }).puzzleSeeds, {});
+  assert.deepEqual(restoreState({ ...legacy, puzzleSeeds: ['demo#1'] }).puzzleSeeds, {});
 
   // A set that moves into the history keeps its seeds, and a new set starts without any.
   const next = acceptSet(state, { set: sampleSet, calibration: null, setSeed: 'other' });
   assert.deepEqual(next.puzzleSeeds, {});
-  const savedNext = next.setsByBoard[boardKey(sampleSet.board)][0];
-  assert.deepEqual(/** @type {any} */ (savedNext).puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' });
+  const savedNext = /** @type {any} */ (next.setsByBoard[boardKey(sampleSet.board)][0]);
+  assert.deepEqual([savedNext.puzzles.map((/** @type {any} */ p) => p.seed), 'puzzleSeeds' in savedNext], [['demo#1', 'demo#2'], false]);
   const back = gotoSet(next, 1);
   assert.deepEqual(back?.puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' });
 });

@@ -1,6 +1,5 @@
 // @ts-check
-// Board view: draws the open game (clues, placed pieces, preview ghost, selection, cursor, keyboard arrows and hint
-// marks) with the shared SVG renderer. It never commits moves.
+// Board view: draws the open game with the shared SVG renderer. It never commits moves.
 
 import { canPlace } from '../../core/engine/game.js';
 import { packBoard } from '../../core/engine/pack.js';
@@ -31,9 +30,9 @@ function boardOf(pack) {
 /**
  * @typedef {object} BoardViewHooks
  * @property {(pieceId: string, event: PointerEvent | KeyboardEvent) => void} [onPiece] Tap, Enter or Space on a movable piece.
- * @property {(cell: XY, event: PointerEvent) => void} [onCell] Tap on a board cell.
+ * @property {(cell: XY, event: PointerEvent) => void} [onCell]
  * @property {string} [describedBy] Id of the element that holds the board instructions.
- * @property {string} [label] Accessible name of the board.
+ * @property {string} [label]
  */
 
 /**
@@ -44,7 +43,7 @@ function boardOf(pack) {
  *   Grid-axis arrows next to the handle cell during a keyboard move on a rotated board.
  * @property {{ kind: 'place' | 'remove', pose: Pose | null, cells: XY[], pulse: boolean } | null} [hintMarks]
  *   Proven hint: outlines the cells of a suggested placement (drawn as a preview) or of the piece a removal repairs.
- *   `pulse` is false in reduced-motion mode; the stylesheet only animates marks that ask for it.
+ *   The stylesheet only animates marks with `pulse` (false in reduced-motion mode).
  */
 
 const HINT_COLOR = '#0b5fff';
@@ -128,7 +127,6 @@ export function createBoardView(host, hooks = {}) {
   }
 
   return {
-    /** The shared SVG view: `surface` for pointer trackers, `cellAt`, `panTo`. */
     view,
     /**
      * @param {Pick<PlayerState, 'pack' | 'game'>} state
@@ -171,7 +169,6 @@ export function createBoardView(host, hooks = {}) {
         view.fit();
       }
     },
-    /** Refits to the host after a viewport change; the user's zoom is not kept. */
     refit() {
       view.fit();
     },

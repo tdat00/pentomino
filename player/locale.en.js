@@ -2,6 +2,8 @@
 // English texts of the player: the base pack, holding every key (locale.vi.js has the same keys).
 // `{name}` marks a value filled in at run time; `_one` / `_other` are plural forms.
 
+import { PRINT_TEXTS_EN } from '../core/browser/print-texts.js';
+
 /** @type {Readonly<Record<string, string>>} */
 export default Object.freeze({
   // Page frame
@@ -18,9 +20,9 @@ export default Object.freeze({
   'shell.theme.highContrast': 'High-contrast theme',
   'shell.help': 'Help',
   'shell.help.title': 'Keyboard shortcuts',
-  'shell.footer.copyright': '\u00a9 2026 Dat Le. Released under the MIT licence.',
+  'shell.footer.copyright': '\u00a9 2026 Dat Le. Released under the MIT License.',
   'shell.footer.repo': 'Source code on GitHub',
-  'shell.footer.repo.title': 'Open the source of the player in the pentomino repository on GitHub (new tab)',
+  'shell.footer.repo.title': "Open the player's source code in the pentomino repository on GitHub (new tab)",
 
   // Panels
   'puzzles.list': 'Puzzles',
@@ -46,7 +48,7 @@ export default Object.freeze({
   'ui.zoom': 'Zoom',
   'ui.zoomIn': 'Zoom in',
   'ui.zoomOut': 'Zoom out',
-  'ui.zoomFit': 'Fit board',
+  'ui.zoomFit': 'Fit board to view',
   'ui.viewLeft': 'Rotate the view counter-clockwise',
   'ui.viewRight': 'Rotate the view clockwise',
   'ui.piecesLeft': '{count} pieces left',
@@ -58,7 +60,7 @@ export default Object.freeze({
   'ui.loading': 'Loading…',
   'ui.trayLabel': 'Unplaced pieces',
   'ui.boardLabel': 'Puzzle board',
-  'ui.boardHelp': 'Select a piece under Pieces to place, then tap a board cell to preview it; tap the same cell again or press Enter to drop it. '
+  'ui.boardHelp': 'Select a piece under “Pieces to place”, then tap a board cell to preview it; tap the same cell again or press Enter to drop it. '
     + 'With the keyboard, press Enter on a piece to pick it up, move it with the arrow keys and press Enter to drop it; press ? for all shortcuts. '
     + 'Right-click a piece to rotate or flip it. Locked clue pieces cannot be moved.',
   'ui.selectedGroup': 'Selected piece',
@@ -81,7 +83,7 @@ export default Object.freeze({
   'ui.revealedBadge': 'Revealed — not counted as solved',
   'ui.hintsUsed': 'Hints',
   'ui.revealTitle': 'Show the solution?',
-  'ui.revealBody': 'The answer will be filled in around the locked clues and this puzzle will be marked as revealed, so it will not count as solved. '
+  'ui.revealBody': 'The solution will be filled in around the locked clues, and this puzzle will be marked as revealed, so it will not count as solved. '
     + 'You can undo it.',
   'ui.revealConfirm': 'Show solution',
   'ui.resetRevealTitle': 'Reset, then reveal?',
@@ -95,24 +97,23 @@ export default Object.freeze({
   'ui.replayPuzzle': 'Replay the puzzle',
   'ui.cancel': 'Cancel',
   'ui.winTitle': 'Puzzle solved!',
+  'ui.winMessage': 'Well done! Every piece is in its place.',
   'ui.winTime': 'Time',
   'ui.winMoves': 'Moves',
-  'ui.winLevel': 'Level',
   'ui.nextPuzzle': 'Next puzzle',
   'ui.replay': 'Replay',
-  'ui.backToGenerator': 'Back to generator',
   'ui.sample': 'Try the sample',
 
   // Start screen (no puzzle open)
   'start.title': 'No puzzle is open',
-  'start.intro': 'Puzzles open from their link. Make one in the Generator and press Play, or try the sample.',
+  'start.intro': 'Each puzzle opens from its link. Make one in the Generator and press “Play”, or try the sample.',
   'start.keep': 'To come back to a puzzle later, bookmark its address. To share it, send the address.',
 
   // Keyboard help
   'keys.tab.key': 'Tab / Shift+Tab',
   'keys.tab.action': 'Focus tray pieces, then placed pieces',
   'keys.enter.key': 'Enter / Space',
-  'keys.enter.action': 'Pick up the piece, or drop it when the ghost is valid',
+  'keys.enter.action': 'Pick up the piece, or drop it when the preview is valid',
   'keys.arrows.key': 'Arrow keys',
   'keys.arrows.action': 'Move the piece one cell (Shift: three cells)',
   'keys.rotate.key': 'E or R / Q',
@@ -224,4 +225,7 @@ export default Object.freeze({
 
   // Announcements of the page
   'live.opened': '{puzzle} opened. {left}.',
+
+  // Print dialog and printed sheets (shared with the generator)
+  ...PRINT_TEXTS_EN,
 });

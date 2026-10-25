@@ -1,7 +1,6 @@
 // @ts-check
-// Piece menu: a small menu of actions opened with the right mouse button, the Menu key or Shift+F10, or a long
-// press on touch. It runs the chosen entry; the app decides what the entries do. Arrow keys, Home, End and Escape
-// work as in a native menu, and the focus returns to the piece afterwards.
+// Piece menu: opened with the right mouse button, the Menu key or Shift+F10, or a long press on touch. Arrow keys,
+// Home, End and Escape work as in a native menu, and the focus returns to the piece afterwards.
 
 import { el } from '../../core/browser/dom.js';
 import { locAttrs } from './i18n-dom.js';
@@ -20,7 +19,7 @@ import { locAttrs } from './i18n-dom.js';
 const EDGE_PX = 4;
 
 /**
- * @param {HTMLElement} parent Where the menu element lives.
+ * @param {HTMLElement} parent
  */
 export function createContextMenu(parent) {
   const doc = parent.ownerDocument;

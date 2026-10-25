@@ -1,5 +1,4 @@
 // @ts-check
-// Display names of puzzles: the heading of the game and the headings of the puzzle cards.
 
 import { LABELS } from './strings.js';
 
