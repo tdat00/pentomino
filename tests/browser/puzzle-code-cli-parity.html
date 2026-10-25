@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en" data-result="running">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Puzzle code CLI parity harness</title>
+  <link rel="icon" type="image/svg+xml" href="../../core/browser/favicon.svg">
+  <script type="module" src="./puzzle-code-cli-parity.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Puzzle code CLI parity harness</h1>
+    <p>Developer regression page: the codes printed by <code>tools/generate.mjs --code</code> are decoded by the real module worker and compared with the puzzles they were made from. It is not part of the deployed site.</p>
+    <p id="summary" role="status">Running…</p>
+    <ol id="results"></ol>
+  </main>
+</body>
+</html>

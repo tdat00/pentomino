@@ -594,14 +594,14 @@ than resolved by a private encoder inside the CLI.
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Done (optional task, accepted) |
+| Start | 2026-10-25 23:56:23 (+07:00) |
+| End | 2026-10-26 00:10:25 (+07:00); code-ready ≈ 00:07, living docs 00:08–00:10 |
+| Duration | 14 min 01 s |
+| Model | claude-sonnet-5.5 (sub-agent `RP07-cli`, general-purpose); wave 5, in parallel with RP06 (held the documentation slot first) |
+| Token usage | 77 model calls; 11,420,154 input (11,196,377 cache read), 96,347 output |
+| AI credits | 264.25 AIU (local usage store, keyed by sub-agent id) |
+| Verification | Developer: `node --test tests\cli.test.js tests\puzzlecode-cli.test.js tests\bq-limits.test.js tests\benchmark-report.test.js` 79/79 (`puzzlecode-cli` 29/29, 26/26 without slow); scoped `checkText` on owned files and the three living docs OK; real smoke `--recipe … --workers 1 --code --output` exit 0, 10 lines, pack written (`tests/artifacts/RP07/`); parity harness `tests/browser/puzzle-code-cli-parity.html` in headless Edge 156 (`--disable-extensions`, ports 8707/9207) → pass, 15/15, 0 CDP errors — the browser encoder is byte-equal to the CLI line 4/4, the captured lines (full, core-only, DEFLATE, 24×24 oracle) decode in the real worker, a deliberate mutation failed as expected. Orchestrator at the wave barrier: full `node --test "tests/**/*.test.js"` 1,120 pass / 0 fail (48.4 s); `npm run check` OK. |
+| Acceptance | Business and technical criteria met: `--code` prints one canonical uppercase `F` per accepted puzzle in pack order, built with the same snapshot and codec as Print; `--output` and stderr behave as before; without the flag stdout and files are byte-identical; exit codes unchanged (a partial run keeps exit 2 and the same stderr); the pack is not mutated; worker messages and packs identical with and without `--code`. |
+| Issues & resolutions | (1) Optional `encode` field on the run/helper `io` as a test seam (goldens force `compression: 'raw'`; failure tests inject an encoder error); the shared codec is the default — not a second encoder. (2) Encoding happens before the `--output` write, so a failed encode leaves no pack file (task order). (3) The 4-worker slow test runs in-process to avoid the known 0xC0000005 crash of fresh 4-worker child processes; child-process smokes use `--workers 1`. (4) Living docs: design-brief puzzle-code paragraph (one sentence); design-detail D43, §9.8 intro and a new "Command-line output" bullet, §8.6 corrected (`--batch-index N` only selects the seed `<seed>#N` with an empty history; earlier batches are not replayed), §13.2 `puzzlecode-cli` row, §13.3 item 22; README headless-generation bullet with an example and the test-page lists (EN/VI). |
+| Handoff | `emitGeneratedResult(pack, { code, output }, { stdout, stderr, writeText, encode? })` and the `--code` flag in `tools/generate.mjs`; in user mode the CLI emits exactly the four frozen raw goldens for the sample and hand-authored puzzles; `tests/artifacts/RP07/run-harness.ps1` and `cdp-run.mjs` reproduce the parity run (reads `tests/fixtures/puzzlecode-v1.json`). |

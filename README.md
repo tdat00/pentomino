@@ -289,13 +289,17 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
 - **Browser test pages** (not deployed): run `npm run serve` and open `http://localhost:8080/pentomino/tests/browser/`
   followed by `player-controls.html`, `player-load.html`, `hints.html`, `print.html`, `rendering.html`,
   `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`, `puzzle-code-entry.html`,
-  `puzzle-code-print.html` or
+  `puzzle-code-print.html`, `puzzle-code-cli-parity.html` or
   `acceptance.html`. Each writes a pass/fail list and `data-summary` on `<html>`. Use a window narrower than 1360 px:
   some checks expect the one- or two-column layout.
 - **Headless generation**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`. The
   pack goes to stdout (or `--output`), messages to stderr. Exit codes: `0` complete (including a set whose
   arrangements were all found and proven to be all); `2` a valid partial or cancelled pack; `1` no usable result or
-  invalid input.
+  invalid input. Add `--code` (a flag without a value, also allowed with `--recipe`) to print the puzzle code of every
+  accepted puzzle instead of the pack: one ungrouped, upper-case line per puzzle in pack order, the same code that Print
+  makes for that puzzle (see Printing). With `--output file` the pack is still written to the file; without it no
+  file is made. Progress and errors stay on stderr, and the exit codes and the generation itself do not change, for
+  example `node tools\generate.mjs --recipe tests\fixtures\generation-case.json --workers 1 --code --output pack.json`.
 - **Performance and calibration** (screening only; they never change a qualification gate):
   `node --max-old-space-size=2048 tools\calibrate.mjs --matrix tools\bench\matrices\smoke.json --workers 4 --fresh-process --output docs\calibration\node-smoke`,
   the score landscape (`--profile landscape`, hours, resumable), and the browser page
@@ -614,12 +618,17 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
 - **Trang kiểm thử trên trình duyệt** (không được xuất bản): chạy `npm run serve` rồi mở
   `http://localhost:8080/pentomino/tests/browser/` kèm `player-controls.html`, `player-load.html`, `hints.html`,
   `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`,
-  `puzzle-code-entry.html`, `puzzle-code-print.html` hoặc
+  `puzzle-code-entry.html`, `puzzle-code-print.html`, `puzzle-code-cli-parity.html` hoặc
   `acceptance.html`. Mỗi trang ghi danh sách đạt/không đạt và `data-summary` trên `<html>`. Hãy dùng cửa sổ hẹp hơn
   1360 px: một số bài kiểm tra cần bố cục một hoặc hai cột.
 - **Tạo đề không cần giao diện**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`.
   Gói đề in ra stdout (hoặc `--output`), thông báo ra stderr. Mã thoát: `0` hoàn tất (kể cả khi bộ mảnh đã được tìm đủ và
   chứng minh là hết cách xếp); `2` gói hợp lệ nhưng thiếu hoặc bị hủy; `1` không có kết quả dùng được hoặc đầu vào sai.
+  Thêm `--code` (cờ không có giá trị, dùng được cả với `--recipe`) để in mã đề của từng đề được chấp nhận thay cho gói
+  đề: mỗi đề một dòng, viết hoa, không chia nhóm, theo thứ tự trong gói, đúng mã mà nút In tạo cho đề đó (xem phần In ra
+  giấy). Với `--output tệp`, gói đề vẫn được ghi vào tệp; không có thì không tạo tệp nào. Thông báo và lỗi vẫn ra stderr,
+  còn mã thoát và việc tạo đề không đổi, ví dụ
+  `node tools\generate.mjs --recipe tests\fixtures\generation-case.json --workers 1 --code --output pack.json`.
 - **Hiệu năng và hiệu chỉnh** (chỉ để sàng lọc; không bao giờ thay đổi ngưỡng kiểm định):
   `node --max-old-space-size=2048 tools\calibrate.mjs --matrix tools\bench\matrices\smoke.json --workers 4 --fresh-process --output docs\calibration\node-smoke`,
   bản đồ điểm (`--profile landscape`, chạy nhiều giờ, tiếp tục được), và trang trình duyệt
