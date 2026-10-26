@@ -212,7 +212,7 @@ export function reasonText(reason) {
 }
 
 export const PLAY_TEXT = Object.freeze(Object.assign(texts('play', [
-  'noRoom', 'selectFirst', 'noSelection', 'alreadyInTray', 'cancelled', 'moveCancelled', 'undone', 'redone', 'nothingToUndo',
+  'selectFirst', 'noSelection', 'alreadyInTray', 'cancelled', 'moveCancelled', 'undone', 'redone', 'nothingToUndo',
   'nothingToRedo', 'resetDone', 'previewValid',
 ]), {
   /** @param {string} label @returns {string} */
@@ -229,6 +229,8 @@ export const PLAY_TEXT = Object.freeze(Object.assign(texts('play', [
   returned: (label) => t('play.returned', { label: pieceLabelText(label) }),
   /** @param {string} label @returns {string} */
   turned: (label) => t('play.turned', { label: pieceLabelText(label) }),
+  /** @param {string} label @returns {string} */
+  returnedTurned: (label) => t('play.returnedTurned', { label: pieceLabelText(label) }),
   /** @param {string} total @returns {string} */
   solved: (total) => t('play.solved', { total }),
   /**

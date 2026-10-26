@@ -226,11 +226,11 @@ buttons above the puzzle's name (and **Remove** and **Remove all** under them), 
 - **Placing pieces.** Drag a piece onto the board (in the pieces panel a press anywhere in the piece's frame grabs it;
   the mouse wheel turns it while it is held), or select a piece, tap or click a cell to preview it and tap the same cell
   again or press `Enter` to drop it. Letting go over the pieces panel puts a piece back. A drop that does not fit,
-  `Escape`, a resize or an interrupted touch puts the piece back; pre-placed pieces are locked. Rotating or mirroring a
-  placed piece keeps its grabbed cell in place and nudges the piece, nearest first, to a place where it still covers a
-  cell it had, before saying *No room to rotate here* (also shown for a moment on screen).
+  `Escape`, a resize or an interrupted touch puts the piece back; pre-placed pieces are locked. A placed piece can be
+  dragged to another place, but it is never turned or flipped on the board: rotating or flipping it (menu, toolbar or
+  keys) sends it back to the tray, turned there, as one undoable step.
 - **Piece menu.** Right-click a piece (in the pieces panel, or a placed one on the board), or press and hold it on a
-  touch screen, to turn it, flip it or return it to the tray. The Menu key or `Shift`+`F10` opens it on a focused piece. A right-click on the board also offers
+  touch screen, to turn it, flip it or return it to the tray (a placed piece goes back to the tray first). The Menu key or `Shift`+`F10` opens it on a focused piece. A right-click on the board also offers
   **Return all pieces to the tray** and **Replay the puzzle** (after a confirmation).
 - **Keyboard.** `E` or `R` turn the selected piece clockwise and `Q` counter-clockwise; `F` and `V` flip it left-right
   and top-bottom on screen; the arrow keys move it one cell and `Shift`+arrow three cells; `Enter` or `Space` picks it
@@ -600,11 +600,11 @@ sách thẻ.
 - **Đặt mảnh.** Kéo một mảnh lên bàn chơi (trong khung các mảnh, nhấn vào bất kỳ đâu trong khung của mảnh để cầm nó; con
   lăn chuột xoay mảnh khi đang cầm), hoặc chọn một mảnh, chạm hay nhấn vào một ô để xem trước rồi chạm lại ô đó hoặc nhấn
   `Enter` để đặt. Thả mảnh lên khung các mảnh để trả nó về. Một lần thả không vừa, `Escape`, việc đổi kích thước cửa sổ
-  hoặc thao tác chạm bị gián đoạn đều trả mảnh về; các mảnh đặt sẵn bị khóa. Xoay hay lật một mảnh đã đặt sẽ giữ nguyên ô
-  đang cầm và dịch mảnh, từ gần ra xa, đến chỗ mà nó vẫn che một ô nó đã có, trước khi báo *Không đủ chỗ để xoay ở đây*
-  (thông báo cũng hiện trên màn hình trong chốc lát).
+  hoặc thao tác chạm bị gián đoạn đều trả mảnh về; các mảnh đặt sẵn bị khóa. Mảnh đã đặt có thể kéo sang chỗ khác nhưng
+  không bao giờ được xoay hay lật ngay trên bàn: xoay hoặc lật nó (menu, thanh công cụ hoặc phím) sẽ trả nó về khay, xoay
+  hoặc lật ở đó, thành một bước có thể hoàn tác.
 - **Menu mảnh.** Nhấn chuột phải vào một mảnh (trong khung các mảnh, hoặc mảnh đã đặt trên bàn), hoặc nhấn giữ nó
-  trên màn hình cảm ứng, để xoay, lật hoặc trả nó về khay. Phím Menu hoặc `Shift`+`F10` mở menu cho mảnh đang được chọn. Nhấn chuột phải trên bàn chơi còn có
+  trên màn hình cảm ứng, để xoay, lật hoặc trả nó về khay (mảnh đã đặt sẽ trở về khay trước). Phím Menu hoặc `Shift`+`F10` mở menu cho mảnh đang được chọn. Nhấn chuột phải trên bàn chơi còn có
   **Trả mọi mảnh về khay** và **Chơi lại đề** (sau khi xác nhận).
 - **Bàn phím.** `E` hoặc `R` xoay mảnh đang chọn theo chiều kim đồng hồ, `Q` theo chiều ngược lại; `F` và `V` lật mảnh
   trái-phải và trên-dưới trên màn hình; phím mũi tên di chuyển một ô và `Shift`+mũi tên ba ô; `Enter` hoặc `Space` nhấc

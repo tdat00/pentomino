@@ -62,7 +62,7 @@ export default Object.freeze({
   'ui.boardLabel': 'Bàn chơi',
   'ui.boardHelp': 'Chọn một mảnh trong mục “Các mảnh cần đặt”, rồi chạm vào một ô trên bàn chơi để xem trước; chạm lại đúng ô đó hoặc nhấn Enter để thả mảnh xuống. '
     + 'Với bàn phím, nhấn Enter trên một mảnh để nhấc nó lên, di chuyển bằng các phím mũi tên rồi nhấn Enter để thả; nhấn ? để xem mọi phím tắt. '
-    + 'Nhấp chuột phải hoặc nhấn giữ một mảnh để xoay hoặc lật nó. Các mảnh đặt sẵn đã bị khóa và không di chuyển được.',
+    + 'Nhấp chuột phải hoặc nhấn giữ một mảnh để xoay hoặc lật nó (mảnh trên bàn sẽ trở về khay trước) hoặc trả nó về khay. Kéo một mảnh trên bàn để di chuyển nó. Các mảnh đặt sẵn đã bị khóa và không di chuyển được.',
   'ui.selectedGroup': 'Mảnh đã chọn',
   'ui.rotateCcw': 'Xoay ngược chiều kim đồng hồ',
   'ui.rotateCw': 'Xoay theo chiều kim đồng hồ',
@@ -168,9 +168,9 @@ export default Object.freeze({
   'keys.arrows.key': 'Phím mũi tên',
   'keys.arrows.action': 'Di chuyển mảnh một ô (Shift: ba ô)',
   'keys.rotate.key': 'E hoặc R / Q',
-  'keys.rotate.action': 'Xoay theo / ngược chiều kim đồng hồ trên màn hình',
+  'keys.rotate.action': 'Xoay theo / ngược chiều kim đồng hồ trên màn hình (mảnh trên bàn trở về khay trước)',
   'keys.mirror.key': 'F / V',
-  'keys.mirror.action': 'Lật trái–phải / trên–dưới trên màn hình',
+  'keys.mirror.action': 'Lật trái–phải / trên–dưới trên màn hình (mảnh trên bàn trở về khay trước)',
   'keys.delete.key': 'Delete / Backspace',
   'keys.delete.action': 'Trả mảnh đang chọn về khay',
   'keys.escape.key': 'Escape',
@@ -222,7 +222,6 @@ export default Object.freeze({
   'msg.restored.many': 'Có từ {count} nước đi đã lưu trở lên không còn khớp với đề này nên đã bị bỏ.',
 
   // Placement outcomes (announced through the live region)
-  'play.noRoom': 'Không đủ chỗ để xoay ở đây',
   'play.selectFirst': 'Hãy chọn một mảnh trước',
   'play.noSelection': 'Chưa chọn mảnh nào',
   'play.alreadyInTray': 'Mảnh đã ở trong khay',
@@ -241,6 +240,7 @@ export default Object.freeze({
   'play.moved': 'Đã di chuyển. {name}',
   'play.returned': 'Mảnh {label} đã trở về khay',
   'play.turned': 'Đã xoay mảnh {label}',
+  'play.returnedTurned': 'Mảnh {label} đã trở về khay và được xoay',
   'play.solved': 'Đã giải xong đề! {total}',
   'play.ghostAt': 'Hàng {row}, cột {column}. {state}',
   'play.ghostFree': 'Trống',

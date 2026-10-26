@@ -65,7 +65,7 @@ export default Object.freeze({
   'ui.boardLabel': 'Puzzle board',
   'ui.boardHelp': 'Select a piece under “Pieces to place”, then tap a board cell to preview it; tap the same cell again or press Enter to drop it. '
     + 'With the keyboard, press Enter on a piece to pick it up, move it with the arrow keys and press Enter to drop it; press ? for all shortcuts. '
-    + 'Right-click a piece, or press and hold it, to rotate or flip it. Locked clue pieces cannot be moved.',
+    + 'Right-click a piece, or press and hold it, to rotate or flip it (a piece on the board goes back to the tray first) or to return it to the tray. Drag a piece on the board to move it. Locked clue pieces cannot be moved.',
   'ui.selectedGroup': 'Selected piece',
   'ui.rotateCcw': 'Rotate counter-clockwise',
   'ui.rotateCw': 'Rotate clockwise',
@@ -172,9 +172,9 @@ export default Object.freeze({
   'keys.arrows.key': 'Arrow keys',
   'keys.arrows.action': 'Move the piece one cell (Shift: three cells)',
   'keys.rotate.key': 'E or R / Q',
-  'keys.rotate.action': 'Rotate clockwise / counter-clockwise on screen',
+  'keys.rotate.action': 'Rotate clockwise / counter-clockwise on screen (a piece on the board goes back to the tray first)',
   'keys.mirror.key': 'F / V',
-  'keys.mirror.action': 'Flip left-right / top-bottom on screen',
+  'keys.mirror.action': 'Flip left-right / top-bottom on screen (a piece on the board goes back to the tray first)',
   'keys.delete.key': 'Delete / Backspace',
   'keys.delete.action': 'Return the selected piece to the tray',
   'keys.escape.key': 'Escape',
@@ -227,7 +227,6 @@ export default Object.freeze({
   'msg.restored.many': '{count} or more saved moves no longer fit this puzzle and were discarded.',
 
   // Placement outcomes (announced through the live region)
-  'play.noRoom': 'No room to rotate here',
   'play.selectFirst': 'Select a piece first',
   'play.noSelection': 'No piece is selected',
   'play.alreadyInTray': 'The piece is already in the tray',
@@ -246,6 +245,7 @@ export default Object.freeze({
   'play.moved': 'Moved. {name}',
   'play.returned': 'Piece {label} returned to the tray',
   'play.turned': 'Piece {label} turned',
+  'play.returnedTurned': 'Piece {label} returned to the tray and turned',
   'play.solved': 'Puzzle solved! {total}',
   'play.ghostAt': 'Row {row}, column {column}. {state}',
   'play.ghostFree': 'Free',

@@ -3,7 +3,7 @@
 // User data is only ever rendered with `textContent`; the engine runs in workers, except the pure game model.
 
 import { APP_VERSION } from '../core/engine/version.js';
-import { el, showToast } from '../core/browser/dom.js';
+import { el } from '../core/browser/dom.js';
 import { browserStorage } from '../core/browser/storage.js';
 import { createPrintDialog, puzzleDetails } from '../core/browser/print-dialog.js';
 import { createPuzzleNav } from '../core/browser/puzzle-nav.js';
@@ -18,7 +18,7 @@ import { choose, onChange, setLocale, t } from './i18n.js';
 import { cardHeading, puzzleDisplayName } from './puzzle-title.js';
 import { createPlayerController, createPlayerStore, effectiveRotation, knownSolvable } from './state.js';
 import {
-  HINT_TEXT, LABELS, PLAY_TEXT, certificateLabel, certificateStatus, formatElapsed, levelLabel, verificationLabel,
+  HINT_TEXT, LABELS, certificateLabel, certificateStatus, formatElapsed, levelLabel, verificationLabel,
 } from './strings.js';
 import { createBoardView } from './ui/board-view.js';
 import { createContextMenu } from './ui/context-menu.js';
@@ -43,7 +43,6 @@ const REPLAY_GLYPH = '↻';
 const MIN_ZOOM_PX = 14;
 const MAX_ZOOM_PX = 64;
 const ZOOM_STEP = 1.25;
-const NO_ROOM_TOAST_MS = 2500;
 
 let instances = 0;
 
@@ -284,26 +283,12 @@ export function mountPlayer(root, env = {}) {
     win.setTimeout(() => node.classList.remove(className), ms);
   };
 
-  /** @type {HTMLElement | null} */
-  let noRoomToast = null;
-  // The announcement is for screen readers and the shake lasts 200 ms (and is off with reduced motion): the text
-  // is also shown for a moment, which a touch screen, where a piece is turned from its menu, needs.
-  function showNoRoom() {
-    noRoomToast?.remove();
-    noRoomToast = showToast(PLAY_TEXT.noRoom, { kind: 'warning', durationMs: NO_ROOM_TOAST_MS });
-    noRoomToast.setAttribute('aria-hidden', 'true');
-  }
-
   const play = createPlayController({
     store,
     controller,
     now: env.now,
     saveDelayMs: env.saveDelayMs,
     announce,
-    onNoRoom: () => {
-      flash(boardWrap, 'is-shaking', 200);
-      showNoRoom();
-    },
     onSolved: ({ elapsedMs, moves: moveCount }) => {
       const state = store.getState();
       winDialog.show({
@@ -542,15 +527,18 @@ export function mountPlayer(root, env = {}) {
   });
 
   // Piece menu: a right-click, the Menu key or a long press on a tray piece or a movable board piece. Elsewhere on
-  // the board it lists only the actions of the whole puzzle.
+  // the board it lists only the actions of the whole puzzle. Turning or flipping a board piece sends it to the tray
+  // first; a placed piece is never turned in place.
   const pieceMenu = createContextMenu(root);
   /**
    * @param {string} id
    * @param {TransformOp} op
    */
   const turn = (id, op) => {
-    play.select(id);
-    play.transform(op);
+    if (!play.returnTurned(id, op)) {
+      play.select(id);
+      play.transform(op);
+    }
   };
   /** @returns {import('./ui/context-menu.js').MenuEntry[]} */
   function puzzleEntries() {
@@ -877,7 +865,6 @@ export function mountPlayer(root, env = {}) {
       play.destroy();
       dragLayer.destroy();
       pieceMenu.destroy();
-      noRoomToast?.remove();
       printDialog.destroy();
       shareDialog.dispose();
       shareHost.remove();

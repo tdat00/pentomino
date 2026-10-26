@@ -191,6 +191,22 @@ test('symmetric piece poses and placed-piece orientation', () => {
   assert.equal(reduce(f, { type: 'orient', piece: 'F', t: 2, pose: pose('F', 0, 4, 1) }), f);
 });
 
+test('remove can give the piece its orientation in the tray, as one undoable step', () => {
+  const placed = run(createGame(fixturePack(), 0), [{ type: 'place', pose: pose('F', 0, 4, 2) }]);
+  const turned = reduce(placed, { type: 'remove', piece: 'F', t: 6 });
+  assert.equal(turned.placed.has('F'), false);
+  assert.equal(turned.tray.get('F'), 6);
+  assert.equal(turned.history.length, placed.history.length + 1);
+  assert.equal(reduce(placed, { type: 'remove', piece: 'F' }).tray.get('F'), 2, 'without t the placed orientation stays');
+  for (const t of [-1, 8, 1.5, Number.NaN, '3']) {
+    assert.equal(reduce(placed, /** @type {any} */ ({ type: 'remove', piece: 'F', t })).tray.get('F'), 2, `t = ${t} is ignored`);
+  }
+  const undone = reduce(turned, { type: 'undo' });
+  assert.deepEqual(undone.placed.get('F'), pose('F', 0, 4, 2));
+  assert.equal(undone.tray.has('F'), false);
+  assert.equal(reduce(undone, { type: 'redo' }).tray.get('F'), 6);
+});
+
 test('undo and redo restore exact poses and tray orientations', () => {
   const s0 = createGame(fixturePack(), 0);
   const actions = [
