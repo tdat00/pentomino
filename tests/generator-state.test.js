@@ -369,6 +369,19 @@ test('serialization round-trips and never stores timers, jobs or the calibration
   assert.ok(boardsEqual(restored.set?.board ?? rectangle(1, 1), sampleSet.board));
 });
 
+test('stored sets leave out null claims and an unknown level, and read them back as null', () => {
+  const state = { ...acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: null, setSeed: 'demo' }), puzzles: samplePuzzles };
+  const dto = /** @type {any} */ (JSON.parse(JSON.stringify(serializeState(state))));
+  assert.equal('calibrationFor' in dto, false);
+  for (const puzzle of dto.puzzles) {
+    assert.equal(Object.values(puzzle).includes(null), false, puzzle.id);
+  }
+  const restored = restoreState(dto);
+  assert.equal(restored.calibrationFor, null);
+  assert.deepEqual(restored.puzzles.map((p) => p.certificate), samplePuzzles.map(() => null));
+  assert.deepEqual(restored.puzzles.map((p) => p.solution), samplePuzzles.map((p) => p.solution));
+});
+
 test('older storage with the puzzles and the calibration in full packs is read and saved in the current shape', () => {
   const state = {
     ...acceptSet(defaultGeneratorState({ levelId: 'hard' }), { set: sampleSet, calibration: samplePuzzles[0], setSeed: 'old' }),

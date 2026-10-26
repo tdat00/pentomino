@@ -22,7 +22,7 @@
     { "id": "BA19", "title": "Public fork", "evidence": ["node"] },
     { "id": "BA20", "title": "M capacity exceeded", "evidence": ["node", "browser"] },
     { "id": "BA21", "title": "Neither QR capacity fits", "evidence": ["node", "browser"] },
-    { "id": "BA22", "title": "Copy action in both apps", "evidence": ["node", "browser"] },
+    { "id": "BA22", "title": "Share link of the Player", "evidence": ["node", "browser"] },
     { "id": "BA23", "title": "Clipboard denied", "evidence": ["browser"] },
     { "id": "BA24", "title": "Puzzle seed printed previously", "evidence": ["node", "browser"] },
     { "id": "BA25", "title": "Player has stored answer", "evidence": ["node", "browser"] },

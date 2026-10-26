@@ -145,8 +145,8 @@ export default Object.freeze({
   'share.preparing': 'Preparing the link…',
   'share.qr': 'QR code of the link',
   'share.qr.caption': 'Scan with a phone to play',
-  'share.subtitle.all': 'All {count} puzzles of the list',
-  'share.all.hint': 'The link opens every puzzle of the list, at the selected one.',
+  'share.subtitle.all': 'All {count} puzzles in the list',
+  'share.all.hint': 'The link opens every puzzle in the list, starting at the selected one.',
   'share.copied': 'Copied',
   'share.noQr.short': 'No QR code: the link is too long for one.',
   'share.error': 'The link could not be prepared.',
@@ -155,7 +155,7 @@ export default Object.freeze({
   'share.notice.noTail': 'The stored solutions are left out of the link so that it fits a QR code.',
   'share.notice.lowEc': 'The QR code uses low error correction because the link is long.',
   'share.notice.none': 'The link is too long for a QR code; copy it instead.',
-  'share.long': 'This link is {count} characters long, and some chat apps cut long links.',
+  'share.long': 'This link is {count} characters long; some chat apps cut long links.',
   'code.copied': 'Link copied',
   'code.copyFailed': 'Could not copy the link. Select and copy it manually.',
 
@@ -209,7 +209,7 @@ export default Object.freeze({
   'status.revealed': 'Revealed',
 
   // Messages of the loaders
-  'msg.pieceSet': 'This link has pieces but no puzzle — open it in the generator.',
+  'msg.pieceSet': 'This link has pieces but no puzzle — open it in the Generator.',
   'msg.unsupported': 'Unsupported puzzle version or rules.',
   'msg.index': 'This pack has no puzzle with that number.',
   'msg.sampleFailed': 'The sample puzzle could not be loaded.',

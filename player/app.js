@@ -160,7 +160,6 @@ export function mountPlayer(root, env = {}) {
     ? svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' }, svgEl('use', { href: `#${icon}` }))
     : icon));
   const printButton = iconButton('print', 'ic-print', 'print.button.title', () => printDialog.open());
-  // Share: an icon without a label; its dialog shows the link and its QR code.
   const shareButton = /** @type {HTMLButtonElement} */ (el('button', {
     className: 'pm-btn icon-btn share-btn',
     attrs: { type: 'button', ...locAttrs({ 'aria-label': 'share.button', title: 'share.button' }) },
@@ -426,9 +425,8 @@ export function mountPlayer(root, env = {}) {
   const printDialog = createPrintDialog({
     host: winHost, t, getJob: printJob, getPuzzles: printList, createClient: env.createPuzzleCodeClient, watch: (listener) => store.subscribe(listener),
   });
-  // Share: the link of the selected puzzle, or of every puzzle of the list, with its QR code. The snapshots are the ones
-  // Print makes, so a link carries the same codes as the printed QR code. The dialog lives in the page root, which the
-  // start screen never hides.
+  // The snapshots are the ones Print makes, so a link carries the same codes as the printed QR code. The dialog lives in
+  // the page root, which the start screen never hides.
   const shareHost = el('div', { className: 'code-host' });
   root.append(shareHost);
   /** @type {{ pack: object, rotation: number, label: string, source: import('../core/browser/share-dialog.js').ShareSource } | null} */
@@ -504,14 +502,10 @@ export function mountPlayer(root, env = {}) {
   // lives straight in the page root: the dialogs of the game screen sit in a section that the start screen hides.
   const codeHost = el('div', { className: 'code-host' });
   root.append(codeHost);
-  /**
-   * Opens a puzzle code through the controller (atomic; the address becomes `#p=<code>`).
-   * @param {string} text
-   */
+  /** @param {string} text */
   function openCode(text) {
     return controller.loadPuzzleCode(text, { commitAddress: true });
   }
-  // The entry has no button of its own: it opens when a `#p=` address or a pasted code fails, so the text can be fixed.
   const codeDialog = createPuzzleCodeDialog({
     host: codeHost,
     t,

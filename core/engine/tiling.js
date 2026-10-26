@@ -1,16 +1,10 @@
 // @ts-check
-// Exact-cover tiling model: builds the packed model for (board, pieces, clues)
-// from the shared placement planner, wraps the DLX search so every result is a
-// complete layout (clues included, canonical piece order) and validates layouts
-// independently of any solver. No clocks, storage or DOM; no per-row objects.
+// Exact-cover tiling model: builds the packed model for (board, pieces, clues), wraps the DLX
+// search so results are complete layouts, validates layouts independently of any solver, and
+// adds the seeded discovery searches (restarts, local re-tiling). No clocks, storage or DOM.
 //
-// A workspace holds one live model. Building another model in the same
-// workspace overwrites the buffers, so the older model is marked stale and
-// refuses to solve or decode.
-//
-// The discovery half (random restarts, local re-tiling) lives at the end of the
-// file: it only adds seeded searches on top of the canonical model and never
-// changes what the canonical search or the rating sees.
+// A workspace holds one live model: building another overwrites the buffers, so the older
+// model is marked stale and refuses to solve or decode.
 
 import { ExactCover } from './dlx.js';
 import { poseCells } from './geometry.js';
@@ -89,7 +83,6 @@ function assertLive(m) {
 }
 
 /**
- * Pose of a model row.
  * @param {Model} m
  * @param {number} row
  * @returns {Pose}
@@ -337,12 +330,10 @@ function footprintKey(piece, pose, width) {
 }
 
 /**
- * Local re-tiling: releases the `cluster` pieces (indices into `pieces`), keeps
- * every other pose fixed and searches the released cells with the seeded
- * solver in `ws` (use the scratch workspace). Returns the complete layout with
- * one genuinely different cluster placement picked from at most
- * `maxSolutions` found completions, or null when none differs. The result is
- * validated independently and sorted like `pieces`.
+ * Local re-tiling: releases the `cluster` pieces, keeps every other pose fixed and searches the
+ * released cells with the seeded solver (use the scratch workspace). Returns a complete layout,
+ * sorted like `pieces`, with one genuinely different cluster placement picked from at most
+ * `maxSolutions` completions, or null when none differs.
  * @param {Board} board
  * @param {Piece[]} pieces
  * @param {Pose[]} layout Complete valid layout.

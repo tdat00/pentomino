@@ -1,7 +1,6 @@
 // @ts-check
-// Module worker entry: engine modules only. The solver and generation tasks run synchronously through the shared task
-// handler, with no cooperative slicing and no SharedArrayBuffer; the puzzle-code tasks may await native compression, and
-// the handler answers each of them once its Promise has settled.
+// Module worker entry: engine modules only. Solver and generation tasks run synchronously through the shared task
+// handler (no slicing, no SharedArrayBuffer); puzzle-code tasks may await native compression before replying.
 
 import { createTaskHandler } from '../engine/tasks.js';
 

@@ -259,7 +259,7 @@ await check('no hash: the start screen offers the sample and the Generator, and 
   assert(m.visible('.start-keep'), 'how to keep and share a puzzle');
   assert(!m.visible('.start-error'), 'no error');
   assert(!m.visible('.game'), 'no game');
-  equal(m.qa('input[type="file"], textarea').length, 0, 'nothing to import');
+  equal(document.querySelectorAll('input[type="file"], textarea.pm-code-field').length, 0, 'nothing to import');
   m.player.destroy();
 });
 

@@ -201,9 +201,6 @@ function payloadOf(core) {
   return { bits, end: r.pos };
 }
 
-/** @param {string} symbols */
-const symbolValues = (symbols) => [...symbols].map((c) => v1.ALPHABET.indexOf(c));
-
 /**
  * @param {string} text
  * @param {number} index

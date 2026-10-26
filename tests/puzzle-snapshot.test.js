@@ -11,8 +11,11 @@ import { decodePuzzleCode, encodePuzzleCode } from '../core/engine/puzzlecode.js
 import { puzzleCodeUrl } from '../core/engine/sharecode.js';
 import { puzzleDisplayName } from '../core/browser/puzzle-title.js';
 import {
-  PUBLIC_PLAYER_URL, PuzzleShareError, isSameSnapshot, preparePuzzleShare, puzzlePlayerTarget, puzzleSnapshot,
+  PUBLIC_PLAYER_URL, PuzzleShareError, preparePuzzleShare, puzzlePlayerTarget, puzzleSnapshot,
 } from '../core/browser/puzzle-snapshot.js';
+/** Same code and same printed heading. @param {{ key: string, heading: string } | null} a @param {{ key: string, heading: string } | null} b */
+const isSameSnapshot = (a, b) => a !== null && b !== null && a.key === b.key && a.heading === b.heading;
+
 
 const require = createRequire(import.meta.url);
 /** @type {(data: Uint8ClampedArray, width: number, height: number, options?: { inversionAttempts?: string }) => { data: string } | null} */
@@ -215,7 +218,7 @@ test('the target is the page\'s own Player on every http, https and file page; o
   assert.throws(() => puzzlePlayerTarget('not a url'), RangeError);
 });
 
-test('the QR the sheet prints decodes to exactly the address Copy would use', async () => {
+test('the QR the sheet prints decodes to exactly the address Share would use', async () => {
   const snapshot = snapshotOf(0);
   for (const target of [PUBLIC_PLAYER_URL, 'https://example.org/My-Fork/player/', 'http://192.168.1.20:8705/pentomino/player/', 'file:///Q:/git/pentomino/player/']) {
     const share = await preparePuzzleShare(snapshot, { target, client: codecClient });

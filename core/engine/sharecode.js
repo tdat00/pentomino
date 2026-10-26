@@ -1,6 +1,6 @@
 // @ts-check
-// The addresses puzzles travel in: `…/player/#p=<puzzle code>` for one puzzle, `#p=<code>;<code>…[&i=<n>]` for several.
-// There is no other route into the Player (no pack link, no library link). Structure only: nothing here decodes a code.
+// Puzzle addresses: `…/player/#p=<code>` for one puzzle, `#p=<code>;<code>…[&i=<n>]` for several;
+// the Player has no other route. Structure only: nothing here decodes a code.
 import { normalizePuzzleCodeValue, parsePuzzleHash } from './puzzlecode-input.js';
 
 /** @typedef {import('./types.js').Issue} Issue */
@@ -23,8 +23,7 @@ function failure(code, message, path = '$') {
 }
 
 /**
- * The hash that opens several puzzles: `#p=` and the canonical code of every puzzle, separated by `;`, and `&i=<index>`
- * when the puzzle to open is not the first.
+ * `#p=` with the canonical codes joined by `;`, plus `&i=<index>` unless the first is opened.
  * @param {string[]} codes At least one puzzle code (`C` or `C.T`), as made or grouped.
  * @param {number} [index] The puzzle to open, one of the codes.
  * @returns {string}
@@ -43,8 +42,7 @@ export function puzzleListHash(codes, index = 0) {
 }
 
 /**
- * Address that opens several puzzles in the Player at `base`'s own `../player/` (see `puzzleListHash`). Length limits
- * are the caller's concern (`MAX_URL_CHARS`).
+ * Player address at `base`'s own `../player/`. Length limits are the caller's concern.
  * @param {string | URL} base Page base such as `document.baseURI`.
  * @param {string[]} codes
  * @param {number} [index]
@@ -57,11 +55,9 @@ export function puzzleListUrl(base, codes, index = 0) {
 }
 
 /**
- * What an address carries: the `p` value (one puzzle code, or several separated by `;`) and the puzzle to open, which
- * is 0 for a single code.
  * @typedef {object} IncomingHash
- * @property {string} p Decoded once, not yet normalized.
- * @property {number} index
+ * @property {string} p One code or several separated by `;`; decoded once, not yet normalized.
+ * @property {number} index Puzzle to open; 0 for a single code.
  */
 
 /**
@@ -80,10 +76,8 @@ export function isPuzzleHash(hash) {
 }
 
 /**
- * Parses a location hash with diagnostics. A hash without a `p` key (an empty one, or any other) has no puzzle data
- * (`no-incoming`). With a `p` key the whole hash goes to `parsePuzzleHash`, the one structural parser of that route
- * (index and mixed-key rules included); its `index` failure becomes `invalid-index` and its `invalid` failure
- * `invalid-hash`.
+ * Without a `p` key the result is `no-incoming`; otherwise `parsePuzzleHash` decides, its `index`
+ * failure becoming `invalid-index` and `invalid` becoming `invalid-hash`.
  * @param {string} hash With or without the leading `#`.
  * @returns {Result<IncomingHash>}
  */
@@ -102,22 +96,9 @@ export function parseLocationHashResult(hash) {
 }
 
 /**
- * `#p=<puzzle code>[;<puzzle code>…][&i=<index>]`. Returns null when the hash carries none of them or is malformed.
- * @param {string} hash
- * @returns {IncomingHash | null}
- */
-export function parseLocationHash(hash) {
-  const result = parseLocationHashResult(hash);
-  return result.ok ? result.value : null;
-}
-
-/**
- * Address of one puzzle for a Player the caller has already chosen: that target without its query and fragment,
- * then `#p=` and the canonical code (upper case, ungrouped). The target is a selected Player address, never the
- * page the caller is on; a `file:` target is for the explicit local developer override only (the caller supplies
- * it), and any other scheme, credentials or an unparsable target are refused. No `i` key is added: a code opens
- * exactly one puzzle. Length limits are the caller's concern: the complete address against `MAX_URL_CHARS`,
- * which is a different bound from the code's own 16,000 symbols.
+ * Address of one puzzle: the chosen Player target without query and fragment, then `#p=` and the
+ * canonical code. Only http(s) targets, or `file:` for the explicit local developer override; no
+ * credentials. Length limits (`MAX_URL_CHARS`) are the caller's concern.
  * @param {string | URL} playerTarget
  * @param {string} code A puzzle code as typed or grouped; `C` or `C.T`.
  * @returns {string}

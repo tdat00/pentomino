@@ -114,15 +114,6 @@ export function ratingParts(rating) {
   return { before, level: levelLabel(rating.level), after: after ?? '' };
 }
 
-/**
- * @param {PackPuzzle['rating']} rating
- * @returns {string}
- */
-export function ratingLabel(rating) {
-  const parts = ratingParts(rating);
-  return parts === null ? '' : `${parts.before}${parts.level}${parts.after}`;
-}
-
 const CERTIFICATE_STATUSES = new Set(['unique', 'multiple', 'not-proved', 'unsatisfiable']);
 
 /**

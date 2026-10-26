@@ -19,8 +19,14 @@ import {
 } from '../player/state.js';
 import {
   INDEX_MESSAGE, SAMPLE_FAILED_MESSAGE,
-  certificateLabel, formatElapsed, invalidPackMessage, messageForIssues, ratingLabel, ratingParts, restorationNotice, verificationLabel,
+  certificateLabel, formatElapsed, invalidPackMessage, messageForIssues, ratingParts, restorationNotice, verificationLabel,
 } from '../player/strings.js';
+
+/** The rating line as one text. @param {any} rating */
+const ratingLabel = (rating) => {
+  const parts = ratingParts(rating);
+  return parts === null ? '' : `${parts.before}${parts.level}${parts.after}`;
+};
 
 const sampleText = readFileSync(new URL('../player/samples/sample-pack.json', import.meta.url), 'utf8');
 const parsedSample = parsePack(sampleText);
@@ -201,7 +207,7 @@ function movablePose(pack, i) {
 }
 
 test('exact messages for every mapped failure', async () => {
-  assert.equal(messageForIssues([{ code: 'piece-set', path: '$', message: 'x' }]), 'This link has pieces but no puzzle — open it in the generator.');
+  assert.equal(messageForIssues([{ code: 'piece-set', path: '$', message: 'x' }]), 'This link has pieces but no puzzle — open it in the Generator.');
   assert.equal(messageForIssues([{ code: 'unsupported-version', path: 'version', message: 'x' }]), 'Unsupported puzzle version or rules.');
   assert.equal(messageForIssues([{ code: 'bad-rules', path: 'rules', message: 'x' }]), 'Unsupported puzzle version or rules.');
   assert.equal(messageForIssues([{ code: 'index-out-of-range', path: '$', message: 'x' }]), 'This pack has no puzzle with that number.');

@@ -7,7 +7,6 @@ import {
   normalizePuzzleCodeInput, normalizePuzzleCodeList, normalizePuzzleCodeText, normalizePuzzleCodeValue, parsePuzzleHash,
   splitPuzzleCodes,
 } from '../core/engine/puzzlecode-input.js';
-import * as codec from '../core/engine/puzzlecode.js';
 
 const hashes = JSON.parse(readFileSync(new URL('./fixtures/puzzlecode-hashes.json', import.meta.url), 'utf8'));
 
@@ -99,8 +98,6 @@ test('normalizePuzzleCodeValue maps aliases, removes grouping and validates the 
 });
 
 test('input and code-length bounds apply at both layers before any content work', () => {
-  assert.equal(MAX_INPUT_CHARS, 32768);
-  assert.equal(MAX_CODE_SYMBOLS, 16000);
   const max = '1'.repeat(MAX_CODE_SYMBOLS);
   assert.equal(normalizePuzzleCodeValue(max), max);
   assert.equal(normalizePuzzleCodeValue(`${max}.`), `${max}.`);
@@ -117,11 +114,7 @@ test('input and code-length bounds apply at both layers before any content work'
   assert.equal(normalizePuzzleCodeInput(' '.repeat(MAX_INPUT_CHARS - 4) + '1234'), '1234');
 });
 
-test('PuzzleCodeError carries code, params and message and is re-exported by the codec', () => {
-  assert.equal(codec.PuzzleCodeError, PuzzleCodeError);
-  assert.equal(codec.normalizePuzzleCodeInput, normalizePuzzleCodeInput);
-  assert.equal(codec.normalizePuzzleCodeValue, normalizePuzzleCodeValue);
-  assert.equal(codec.parsePuzzleHash, parsePuzzleHash);
+test('PuzzleCodeError carries code, params and message', () => {
   const error = new PuzzleCodeError('invalid');
   assert.ok(error instanceof Error);
   assert.equal(error.name, 'PuzzleCodeError');

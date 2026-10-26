@@ -60,8 +60,8 @@ export function el(tag, props = {}, ...children) {
  * Shows a text-only status message in a polite live region and removes it
  * after `durationMs`. Style `.toast-host` / `.toast` / `.toast-<kind>` in CSS.
  * @param {string} message
- * @param {{ kind?: 'info' | 'warning' | 'error', durationMs?: number }} [o]
- * @returns {HTMLElement} The toast element.
+ * @param {{ kind?: 'info' | 'warning', durationMs?: number }} [o]
+ * @returns {HTMLElement}
  */
 export function showToast(message, o = {}) {
   const doc = globalThis.document;

@@ -142,7 +142,6 @@ export function createGeneratorApp(doc, options = {}) {
   });
   const wizard = mountWizard(doc, { store, hardware });
 
-  // Import puzzle: the entry dialog of the Player reads a puzzle link or code; the controller brings it in.
   const importButton = /** @type {HTMLButtonElement | null} */ (doc.querySelector('[data-action="import-puzzle"]'));
   /**
    * @param {string} text
@@ -251,10 +250,8 @@ export function createGeneratorApp(doc, options = {}) {
   syncHistoryTitle();
 
   /**
-   * Puzzle codes in the address, `#p=<code>;<code>…` (a Play link of the Player, or its Copy this puzzle link): they are
-   * imported as by Import puzzle (the board, the piece set and every puzzle), and the hash is cleared first, so that a
-   * reload does not bring back a puzzle that was removed. A link that cannot be read opens the import dialog with its
-   * text and the reason.
+   * Imports the puzzle codes of a `#p=` address as Import puzzle does. The hash is cleared first so that a reload does
+   * not bring back a puzzle that was removed; an unreadable link opens the import dialog with the reason.
    * @returns {Promise<void>}
    */
   async function importFromAddress() {

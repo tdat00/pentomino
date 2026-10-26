@@ -1,15 +1,7 @@
 // @ts-check
-// Algorithm X with Dancing Links over typed arrays and an explicit search
-// stack. Rows are one flat Int32Array of column indices plus offsets; no
-// per-row objects exist. Every exit (exhaustion, a limit, the solution limit or
-// a throwing callback) restores all links, so one instance can be solved again
-// and again with identical results. No clocks; canonical mode consumes no RNG.
-//
-// Column choice is MRV: fewest rows, ties to the first header (canonical) or
-// uniform among the minima (seeded, drawing from the RNG only on real ties).
-// A zero-row column is a dead end. Rows are tried in insertion order or, when
-// seeded, in a per-node Fisher-Yates shuffle. A forced row (one candidate) is a
-// row trial but not a branch trial. This traversal is the `dlx-v1` model.
+// Algorithm X with Dancing Links over typed arrays and an explicit search stack.
+// Every exit (including limits and throwing callbacks) restores all links, so an
+// instance can be solved again with identical results. No clocks.
 
 import { BUDGETS } from './policy.js';
 import { dlxViews } from './workspace.js';
@@ -54,7 +46,7 @@ function checkCount(name, value, allowInfinity) {
 
 export class ExactCover {
   /**
-   * Builds the links in the workspace. Columns are 0..numColumns-1; rows are
+   * Columns are 0..numColumns-1; rows are
    * `rowCols[rowStart[r] .. rowStart[r + 1])`. Rows must not repeat a column;
    * a row with no columns can never be selected.
    * @param {Workspace} ws
@@ -134,8 +126,10 @@ export class ExactCover {
   }
 
   /**
-   * Searches for exact covers. Defaults: one solution, no work limits,
-   * canonical order.
+   * The `dlx-v1` traversal: MRV column choice with ties to the first header
+   * (canonical, no RNG) or uniform among the minima (seeded, RNG drawn only on
+   * real ties); rows in insertion order or a per-node Fisher-Yates shuffle. A
+   * forced row (one candidate) is a row trial but not a branch trial.
    * @param {SolveOptions} [o]
    * @returns {SolveResult}
    */

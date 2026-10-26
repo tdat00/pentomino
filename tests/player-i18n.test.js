@@ -5,9 +5,15 @@ import { afterEach, test } from 'node:test';
 import { baseKey } from '../core/browser/i18n.js';
 import { choose, getLocale, has, packOf, setLocale, t } from '../player/i18n.js';
 import {
-  HINT_TEXT, INDEX_MESSAGE, LABELS, PLAY_TEXT, certificateLabel, levelLabel, puzzleStatusLabel, ratingLabel, reasonText, restorationNotice,
+  HINT_TEXT, INDEX_MESSAGE, LABELS, PLAY_TEXT, certificateLabel, levelLabel, puzzleStatusLabel, ratingParts, reasonText, restorationNotice,
   verificationLabel,
 } from '../player/strings.js';
+
+/** The rating line as one text. @param {any} rating */
+const ratingLabel = (rating) => {
+  const parts = ratingParts(rating);
+  return parts === null ? '' : `${parts.before}${parts.level}${parts.after}`;
+};
 import { shortcutList } from '../player/ui/keyboard.js';
 
 afterEach(() => {

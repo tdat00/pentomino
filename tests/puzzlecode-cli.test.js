@@ -585,7 +585,9 @@ describe('run with --code', () => {
     assert.equal(legacy.code, 2, legacy.stderr);
     assert.equal(JSON.parse(legacy.stdout).puzzles.length, 7);
     assert.ok(legacy.stdout.startsWith('{') && legacy.stdout.endsWith('\r\n'));
-    assert.equal(legacy.stderr, coded.stderr.replace('wrote pack.json\n', ''), 'the same progress and explanation on stderr');
+    // Which parallel piece-set attempts report "finished", and in what order, depends on worker timing.
+    const stable = (/** @type {string} */ text) => text.split('\n').filter((line) => !/^piece set: attempt \d+ finished$/.test(line));
+    assert.deepEqual(stable(legacy.stderr), stable(coded.stderr.replace('wrote pack.json\n', '')), 'the same progress and explanation on stderr');
   });
 
   test('output failures exit 1 and are never reported as written', async () => {

@@ -1,9 +1,7 @@
 // @ts-check
-// Puzzle identities. Symmetry keys (`layoutKey`, `clueKey`, `layoutDistance`)
-// recognise arrangements that are the same up to a board symmetry, while
-// `progressFingerprint`, `puzzleId` and `packId` use exact coordinates because
-// saved moves refer to exact cells. Pack-shaped data is read structurally; this
-// module never imports the pack module.
+// Puzzle identities. Symmetry keys (`layoutKey`, `clueKey`, `layoutDistance`) are
+// invariant under board symmetries; `progressFingerprint`, `puzzleId` and `packId`
+// use exact coordinates because saved moves refer to exact cells.
 
 import { boardToRows, normalizedActive, symmetries } from './board.js';
 import { distinctOrientations, normalizeCells, poseCells, TRANSFORMS } from './geometry.js';
@@ -122,8 +120,7 @@ function pieceMap(pieces) {
 }
 
 /**
- * Board in its normalized active frame, with every pose's cells expressed as
- * indices of that frame. The same whole-board translation applies to all poses.
+ * Board in its normalized active frame, with pose cells as frame indices.
  * @typedef {object} Placed
  * @property {Board} frame
  * @property {FrameInfo} info
@@ -258,7 +255,7 @@ function symmetryMaps(frame) {
 }
 
 /**
- * Symmetry maps of a cached frame, built on first use.
+ * Built on first use.
  * @param {FrameInfo} info
  * @returns {Int32Array[]}
  */
@@ -481,9 +478,8 @@ export function puzzleId(b, pieces, clues) {
 
 /**
  * Library identity of a pack's core content: rules, exact board rows, pieces
- * and each puzzle's exact clues in pack order. Titles, colors, labels,
- * rotation, ratings, provenance and public IDs do not matter. Returns the
- * first 16 hex characters of the digest.
+ * and each puzzle's exact clues in pack order (presentation, ratings and
+ * provenance excluded). First 16 hex characters of the digest.
  * @param {Pack} pack
  * @returns {string}
  */

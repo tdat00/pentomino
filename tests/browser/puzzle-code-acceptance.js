@@ -1,15 +1,16 @@
 // @ts-check
 // Browser acceptance harness of the printed-puzzle reconstruction. It runs the whole journey on the real applications
 // in one page: the real Generator (real engine in module workers) and the real Player, the real puzzle-code worker,
-// the real Print dialog and sheets, the real Copy this puzzle link controls and the real code entry. What a printout
+// the real Print dialog and sheets, the real Share dialog of the Player and the real code entry. What a printout
 // carries (its code read back from the sheet in reading order, its QR rasterised) is used to open the puzzle in a fresh
 // Player through the entry dialog, and the opened puzzle is compared value by value with the selected source: board,
 // angle, ordered pieces, original clues, pieces to place, stored answer, claims, heading and progress fingerprint.
 //
 // What the page cannot do is done by the CDP runner: it decodes the rasterised QR codes with the test-only decoder
-// (window.__acceptance.rasters), takes the screenshots this page asks for (?shots=1), runs the phone phase
-// (?phase=narrow, a 390 px touch viewport) and the real-page journeys in a fresh browser profile. This page never
-// claims a physical print or a phone scan.
+// (window.__acceptance.rasters), takes the screenshots this page asks for (?shots=1, data-stage="shot-<name>"), runs the
+// phone phase (?phase=narrow, a 390 px touch viewport) and the keyboard phase (?phase=keys: it presses the trusted key
+// that data-stage="key-<name>" asks for, then sets "key-<name>-done"). This page never claims a physical print or a
+// phone scan.
 //
 // Writes a pass/fail list into the page, data-summary and data-result on <html>. Developer fixture, not deployed.
 
@@ -37,7 +38,7 @@ document.documentElement.dataset.phase = phase;
 
 const NS = 'http://www.w3.org/2000/svg';
 const MM = 25.4 / 96;
-// Print and Copy link both point at the Player of the page the test runs on, also on a local page.
+// Print and Share both point at the Player of the page the test runs on, also on a local page.
 const OWN = new URL('../player/', document.baseURI).href;
 const results = /** @type {Array<{ name: string, ok: boolean, error?: string }>} */ ([]);
 const violations = /** @type {string[]} */ ([]);
@@ -78,23 +79,16 @@ let toDestroy = [];
 const pause = (/** @type {number} */ ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
 
-/** Checks switched off until they are fixed (see tasks/issues.md), by the start of their name. */
-const DISABLED = ['BA05 BA01:', 'BA06 BA07 BA08 BA09:', 'BA15:', 'BA23:', 'BA26:', 'BA29:', 'matrix '];
-
 /**
  * @param {string} name
  * @param {() => void | Promise<void>} fn
  */
 async function check(name, fn) {
-  const isNarrow = name.startsWith('narrow ');
-  if ((phase === 'narrow') !== isNarrow && !name.startsWith('every worker')) {
+  const own = /^(narrow|keys)\b/.exec(name)?.[1] ?? 'main';
+  if (phase !== own && !name.startsWith('every worker')) {
     return;
   }
   if (only !== null && !only.split('|').some((part) => name.includes(part))) {
-    return;
-  }
-  if (DISABLED.some((prefix) => name.startsWith(prefix)) && only === null) {
-    console.log(`CHECK-DISABLED ${name}`);
     return;
   }
   try {
@@ -112,7 +106,7 @@ async function check(name, fn) {
     }
   }
   stage.replaceChildren();
-  document.querySelectorAll('dialog.pm-print-dialog, dialog.pm-copy-dialog, dialog.pm-code, .pm-print-root, .stage-root, .toast-host, .gen-root').forEach((node) => node.remove());
+  document.querySelectorAll('dialog.pm-print-dialog, dialog.pm-share-dialog, dialog.pm-code, .pm-print-root, .stage-root, .toast-host, .gen-root').forEach((node) => node.remove());
   document.documentElement.classList.remove('pm-printing');
   delete document.documentElement.dataset.theme;
   globalThis.Worker = /** @type {any} */ (CountingWorker);
@@ -498,13 +492,18 @@ async function mount(o = {}) {
 }
 /** @typedef {Awaited<ReturnType<typeof mount>>} Stage */
 
-/** The `#p=` address of a pack, as Play makes it: a code per puzzle, made by a client of its own. @param {any} pack @param {number} index */
-async function packHash(pack, index) {
+/**
+ * The `#p=` address of a pack, as Play makes it: a code per puzzle, made by a client of its own.
+ * @param {any} pack
+ * @param {number} index
+ * @param {(n: number) => string} [untitled] The sender's label of an untitled puzzle (English by default).
+ */
+async function packHash(pack, index, untitled) {
   const checked = validatePack(pack);
   assert(checked.ok, `fixture pack is valid: ${JSON.stringify(/** @type {any} */ (checked).issues?.slice(0, 2))}`);
   const client = createPuzzleCodeClient();
   try {
-    const codes = await puzzleCodesOf(/** @type {any} */ (checked).value, { encodePuzzle: (data) => client.encode(data) });
+    const codes = await puzzleCodesOf(/** @type {any} */ (checked).value, { encodePuzzle: (data) => client.encode(data), ...(untitled === undefined ? {} : { untitled }) });
     assert(codes !== null, 'the codes of the pack could be made');
     return `#p=${/** @type {string[]} */ (codes).join(';')}${index === 0 ? '' : `&i=${index}`}`;
   } finally {
@@ -577,6 +576,49 @@ function placeAnyPiece(m) {
 function gameSnapshot(m) {
   const { pack, index, game } = /** @type {any} */ (m.player.store.getState());
   return JSON.stringify({ pack, index, placed: [...(game?.placed.entries() ?? [])], moves: game?.moves, tray: [...(game?.tray.keys() ?? [])], urls: m.urls });
+}
+
+// ---- Share: the real dialog of the Player ------------------------------------------------------------------------------------
+
+/**
+ * Presses the Player's Share control from the focus, as a person does, and waits until the dialog has prepared the
+ * link of the selected puzzle or failed to.
+ * @param {Stage} m
+ */
+async function openShare(m) {
+  const button = m.q('[data-action="share"]');
+  button.focus();
+  button.click();
+  const dialog = /** @type {HTMLDialogElement} */ (m.q('dialog.pm-share-dialog'));
+  assert(dialog.open, 'the Share dialog opens');
+  const state = () => dialog.querySelector('[data-role="share-body"]')?.getAttribute('data-state');
+  await waitFor(() => state() === 'ready' || state() === 'error', 'the Share dialog to prepare the link');
+  const field = /** @type {HTMLTextAreaElement} */ (dialog.querySelector('textarea.pm-share-field'));
+  const copyButton = /** @type {HTMLButtonElement} */ (dialog.querySelector('[data-action="share-copy"]'));
+  const outcome = () => dialog.querySelector('[data-role="share-notes"] [data-i18n="code.copied"], [data-role="share-notes"] [data-i18n="code.copyFailed"]')?.getAttribute('data-i18n') ?? null;
+  return {
+    dialog,
+    button,
+    field,
+    copyButton,
+    state,
+    notes: () => [...dialog.querySelectorAll('[data-role="share-notes"] p')].map((node) => node.textContent ?? ''),
+    qrCode: () => dialog.querySelector('.pm-share-qr-svg')?.getAttribute('data-qr-code') ?? null,
+    /** Presses Copy link and waits until the dialog says how it went (a refusal also selects the field). */
+    async copy() {
+      copyButton.click();
+      await waitFor(() => outcome() !== null, 'the dialog to say whether the link was copied');
+      if (outcome() === 'code.copyFailed') {
+        await waitFor(() => document.activeElement === field, 'the field to take the focus');
+      }
+      return outcome() === 'code.copied' ? 'copied' : 'failed';
+    },
+    /** Closes with its Close button and waits until the focus is back on Share. */
+    async close() {
+      /** @type {HTMLButtonElement} */ (dialog.querySelector('[data-action="share-close"]')).click();
+      await waitFor(() => !dialog.open && document.activeElement === button, 'the focus to return to Share');
+    },
+  };
 }
 
 // ---- Print: the real dialog, the real sheet ---------------------------------------------------------------------------------
@@ -711,12 +753,13 @@ async function readSheets(pages) {
 // ---- the journey: print, read, scan, open in a fresh Player --------------------------------------------------------------------
 
 /**
- * Prints the open puzzle of `m`, copies its link and compares both with the selected source; then enters the printed
- * core, the printed full code and the copied link into fresh Players (new storage, no source data) through the entry
- * dialog and compares what opens with the source. The QR is kept as pixels for the runner, which decodes it with the
- * test-only decoder and opens its URL in another browser profile.
+ * Prints the open puzzle of `m`, copies its link from the Share dialog and compares both with the selected source; then
+ * enters the printed core, the printed full code and the copied link into fresh Players (new storage, no source data)
+ * through the entry dialog and compares what opens with the source. The QR is kept as pixels for the runner, which
+ * decodes it with the test-only decoder and compares its text with the link.
  * @param {string} name
- * @param {{ print: () => HTMLElement, copy: () => HTMLElement, solutionOption?: boolean }} scope The app's Print and Copy controls.
+ * @param {{ print: () => HTMLElement, share?: Stage, solutionOption?: boolean }} scope The app's Print control and the
+ *   Player whose Share dialog copies the link (the Generator has none).
  * @param {ReturnType<typeof viewOf>} expected The selected puzzle as its source holds it.
  * @param {{ expectedCode?: string, expectedHash?: string, expectedVersion?: number }} [o]
  */
@@ -730,13 +773,21 @@ async function printCopyOpen(name, scope, expected, o = {}) {
   const done = print.confirm();
   equal(done.printed, 1, `${name}: printed once`);
   const F = typedCode(done.pages);
-  // Copy this puzzle link beside it (the Player only): the same prepared address.
+  // The Share dialog of the Player: the same prepared address.
   let url = `${OWN}#p=${F}`;
-  if (scope.copy !== undefined) {
-    scope.copy().click();
-    await waitFor(() => writes.length === 1, `${name}: Copy link to write`, 20000);
+  if (scope.share !== undefined) {
+    const share = await openShare(scope.share);
+    equal(share.state(), 'ready', `${name}: the Share dialog is ready`);
+    equal([share.field.value, share.qrCode()], [`${OWN}#p=${F}`, F], `${name}: the Share dialog shows the printed code at this page's Player, and its QR carries that code`);
+    equal(await share.copy(), 'copied', `${name}: Copy link says it copied`);
+    equal(writes.length, 1, `${name}: Copy link wrote once`);
     url = writes[0];
     equal(url, `${OWN}#p=${F}`, `${name}: the copied link is the printed code at this page's Player`);
+    const symbol = /** @type {Element} */ (share.dialog.querySelector('.pm-share-qr-svg'));
+    const shown = await rasterizeQr(symbol, rowsOfPath(symbol));
+    equal(shown.wrong, 0, `${name}: pixels of the Share dialog's QR differing from its matrix`);
+    evidence.rasters.push({ name: `${name}, Share dialog`, url, side: shown.side, gray: shown.gray });
+    await share.close();
   }
   if (o.expectedCode !== undefined) {
     equal(F, o.expectedCode, `${name}: the frozen code`);
@@ -755,7 +806,7 @@ async function printCopyOpen(name, scope, expected, o = {}) {
   if (o.expectedVersion !== undefined) {
     equal(sheets.qrVersion, o.expectedVersion, `${name}: QR version`);
   }
-  equal([sheets.qrEc, sheets.scan], ['M', 'Play Online'], `${name}: the QR level and its caption`);
+  equal([sheets.qrEc, sheets.scan], ['M', 'Play online'], `${name}: the QR level and its caption`);
   assert(!/Puzzle code|\+ solution|score \d+.*Set:/.test(sheets.pageText) && done.pages[0].querySelector('text.pm-print-code, text.pm-print-qr-host') === null,
     `${name}: neither the code nor the address is printed`);
   void T;
@@ -962,13 +1013,13 @@ await check('BA01 BA02 BA03 BA04 BA17 BA22 BA24 BA25: puzzle 2 of 3 — Print, r
   const expected = sourceView({ rows: sampleRows, pieces: samplePieces, puzzle: sample.puzzles[1], index: 1, rotation: 0 });
   equal(expected.heading, 'Normal #2', 'the heading of the selected puzzle');
   assertSameView(openedView(m), expected, 'the source Player');
-  const out = await printCopyOpen('sample 2 of 3', { print: () => m.q('[data-action="print"]'), copy: () => m.q('[data-action="copy-puzzle-link"]') }, expected, {
+  const out = await printCopyOpen('sample 2 of 3', { print: () => m.q('[data-action="print"]'), share: m }, expected, {
     expectedCode: G2.code, expectedHash: qrHash(G2.name), expectedVersion: 5,
   });
   assert(out.T !== null, 'the stored answer is carried with the core');
   assert(out.F.length < 60, `a code is a puzzle, not a pack (${out.F.length})`);
   assert(!out.F.includes(G1.code.slice(0, 20)) && !out.F.includes(G3.code.slice(0, 20)), 'neither neighbour is in the code');
-  assert(spy.encodes >= 2, 'Print and Copy each asked the worker');
+  assert(spy.encodes >= 2, 'Print and Share each asked the worker');
   equal(out.sheets.details.length, 1, 'one detail line: the rating (no set line)');
   assert(/^Normal: score \d+/.test(out.sheets.details[0]), `the level and score stay (${out.sheets.details[0]})`);
   await showSheet('player-sheet-source', out.pages[0]);
@@ -980,7 +1031,7 @@ await check('BA09: the view rotated to 45 degrees is the angle that is printed, 
   await waitFor(() => /** @type {any} */ (m.player.store.getState()).viewRotation === 45, 'the view to turn');
   const expected = sourceView({ rows: sampleRows, pieces: samplePieces, puzzle: sample.puzzles[0], index: 0, rotation: 45 });
   equal(expected.rotation, 45, 'the expected angle is the current view');
-  const out = await printCopyOpen('sample 1 of 3 at 45 degrees', { print: () => m.q('[data-action="print"]'), copy: () => m.q('[data-action="copy-puzzle-link"]') }, expected);
+  const out = await printCopyOpen('sample 1 of 3 at 45 degrees', { print: () => m.q('[data-action="print"]'), share: m }, expected);
   assert(out.F !== G1.code, 'the angle is part of the code');
   const straight = await mount({ hash: await packHash(sample, 0) });
   const plain = await openPrint(straight.q('[data-action="print"]'));
@@ -1001,10 +1052,11 @@ await check('BA05 BA01: the 243-character oracle opened by its code prints that 
   equal(expected.fingerprint, oracle.progressFingerprint, 'the independent progress fingerprint');
   equal(expected.rating, canonical(oracle.rating), 'the complete rating claim');
   equal(m.qa('.tray-piece').length, oracle.pieceCount - oracle.clueCount, 'the pieces still to place');
-  const out = await printCopyOpen('24 x 24, 40 pieces, answer', { print: () => m.q('[data-action="print"]'), copy: () => m.q('[data-action="copy-puzzle-link"]') }, expected, {
+  const out = await printCopyOpen('24 x 24, 40 pieces, answer', { print: () => m.q('[data-action="print"]'), share: m }, expected, {
     expectedCode: oracle.code, expectedHash: qrHash(oracle.name), expectedVersion: 11,
   });
-  equal([out.C.length, out.F.length, out.url.length], [oracle.coreLength, oracle.fullLength, 288], 'core, full code and link lengths');
+  // The link is the oracle's code at this page's Player (288 characters at the public Player).
+  equal([out.C.length, out.F.length, out.url.length], [oracle.coreLength, oracle.fullLength, `${OWN}#p=`.length + oracle.fullLength], 'core, full code and link lengths');
   await showSheet('oracle-sheet', out.pages[0]);
 });
 
@@ -1029,6 +1081,8 @@ function customPack() {
   const shift = (/** @type {any} */ p) => ({ ...p, piece: identity[p.piece][0], x: p.x + left, y: p.y + top });
   const solution = base.puzzles[0].solution.filter((/** @type {any} */ p) => p.piece !== 'D').map(shift);
   const clues = base.puzzles[0].clues.map(shift);
+  // A list may not repeat a puzzle (the same clues), so the second puzzle has one clue more.
+  const moreClues = [...clues, solution.find((/** @type {any} */ p) => !clues.some((/** @type {any} */ c) => c.piece === p.piece))];
   const claims = {
     rating: { model: 'difficulty-v2', score: 51, level: 'hard-2', saturated: false, metrics: { U: 11, B: 120, branchTrials: 30, rowTrials: 900, stop: 'solution', R: 140, H: 6.25 } },
     certificate: { status: 'unique', model: 'dlx-v1', rowLimit: 123456789 },
@@ -1040,7 +1094,7 @@ function customPack() {
     pieces: base.pieces.filter((/** @type {any} */ p) => p.id !== 'D').map((/** @type {any} */ p) => ({ id: identity[p.id][0], label: identity[p.id][1], color: identity[p.id][2], cells: p.cells })),
     puzzles: [
       { id: 'c-1', title: 'Ünïcødé 🧩 Rätsel', clues, solution, ...claims },
-      { id: 'c-2', clues, solution },
+      { id: 'c-2', clues: moreClues, solution },
     ],
   });
   assert(checked.ok, `the custom pack is valid: ${JSON.stringify(/** @type {any} */ (checked).issues?.slice(0, 2))}`);
@@ -1054,7 +1108,7 @@ await check('BA06 BA07 BA08 BA09: custom ids, Unicode labels and RGB, a padded b
   const expected = sourceView({ rows: pack.board.rows, pieces: pack.pieces, puzzle: pack.puzzles[0], index: 0, rotation: 135 });
   equal(expected.heading, 'Ünïcødé 🧩 Rätsel #1', 'a Unicode title keeps its text and takes the position');
   assertSameView(openedView(m), expected, 'the source Player');
-  const out = await printCopyOpen('custom pack', { print: () => m.q('[data-action="print"]'), copy: () => m.q('[data-action="copy-puzzle-link"]') }, expected);
+  const out = await printCopyOpen('custom pack', { print: () => m.q('[data-action="print"]'), share: m }, expected);
   const fresh = await freshOpen('custom pack, again', out.F, expected);
   const opened = /** @type {any} */ (fresh.m.player.store.getState().pack);
   equal(opened.pieces.map((/** @type {any} */ p) => [p.id, p.label]), pack.pieces.map((/** @type {any} */ p) => [p.id, p.label]), 'no generated-default relabelling');
@@ -1152,9 +1206,14 @@ const NOTICE = {
   noTail: 'The code is too long for one QR code; the optional solution part is left out.',
   lowEc: 'The QR code uses low error correction because the code is long.',
   none: 'This puzzle is too large for a puzzle code and a QR code; it will be printed without them.',
+  shareNoTail: 'The stored solutions are left out of the link so that it fits a QR code.',
+  shareLowEc: 'The QR code uses low error correction because the link is long.',
+  shareNone: 'The link is too long for a QR code; copy it instead.',
+  shareLong: (/** @type {number} */ count) => `This link is ${count} characters long; some chat apps cut long links.`,
+  shareTooLarge: 'This puzzle is too large to share as a link.',
 };
 
-await check('BA20 BA21: the capacity ladder reaches the dialog before printing and the sheet after — tail first, then error correction L, then no code and no QR', async () => {
+await check('BA20 BA21: the capacity ladder reaches the dialog before printing, the sheet after and the Share dialog — tail first, then error correction L, then no code and no QR', async () => {
   const hash = await packHash(sample, 0);
   /** @param {number} c @param {number} t @param {boolean} [duplex] */
   const run = async (c, t, duplex = false) => {
@@ -1208,9 +1267,30 @@ await check('BA20 BA21: the capacity ladder reaches the dialog before printing a
       }
     }
   }
+
+  // The Share dialog follows the same ladder: a link too long for any QR is still offered, one over 16,000 characters is not.
+  const prefix = `${OWN}#p=`;
+  /** @param {number} c @param {number} t */
+  const share = async (c, t) => {
+    const writes = stubClipboard('ok');
+    const dialog = await openShare(await mount({ hash, factory: fakeFactory(c, t) }));
+    return { dialog, writes, url: dialog.field.value, notes: dialog.notes(), qr: dialog.qrCode() };
+  };
+  const shareNoTail = await share(3000, 500);
+  equal([shareNoTail.url.length, shareNoTail.url.includes('.', prefix.length), shareNoTail.qr === shareNoTail.url.slice(prefix.length)], [prefix.length + 3000, false, true], 'Share: the core only, in the field and in the QR');
+  equal(shareNoTail.notes, [NOTICE.shareNoTail], 'Share: the stored solution is left out, in words');
+  const shareLow = await share(3400, 500);
+  equal([shareLow.url.length, shareLow.notes], [prefix.length + 3400, [NOTICE.shareNoTail, NOTICE.shareLowEc]], 'Share: then level L');
+  const shareNone = await share(4300, 0);
+  equal([shareNone.url.length, shareNone.qr, shareNone.notes], [prefix.length + 4300, null, [NOTICE.shareNone, NOTICE.shareLong(prefix.length + 4300)]], 'Share: no QR and a long link, said in words');
+  equal(shareNone.dialog.dialog.querySelector('.pm-share-qr-empty')?.textContent, 'No QR code: the link is too long for one.', 'Share: the QR card says why it is empty');
+  equal(await shareNone.dialog.copy(), 'copied', 'Share: the link without a QR is still copied');
+  equal(shareNone.writes, [shareNone.url], 'Share: exactly the link in the field');
+  const shareTooLarge = await share(16000, 0);
+  equal([shareTooLarge.url, shareTooLarge.qr, shareTooLarge.notes, shareTooLarge.dialog.copyButton.disabled], ['', null, [NOTICE.shareTooLarge], true], 'Share: a link over 16,000 characters is not offered');
 });
 
-await check('BA17 BA18: the Print dialog and Copy link both use this page\'s Player; there is no override and nothing is stored', async () => {
+await check('BA17 BA18: the Print dialog and the Share dialog both use this page\'s Player; there is no override and nothing is stored; the copied link opens that puzzle in the real Player page', async () => {
   const writes = stubClipboard('ok');
   const m = await mount({ hash: await packHash(sample, 2) });
   const storage = () => JSON.stringify([Object.entries(localStorage), Object.entries(sessionStorage)]);
@@ -1222,13 +1302,22 @@ await check('BA17 BA18: the Print dialog and Copy link both use this page\'s Pla
   const done = first.confirm();
   assert(done.pages[0].querySelector('text.pm-print-qr-host') === null, 'the sheet does not print the address');
   equal(typedCode(done.pages), G3.code, 'the printed code is the puzzle\'s code');
-  m.q('[data-action="copy-puzzle-link"]').click();
-  await waitFor(() => writes.length === 1, 'Copy link');
-  equal(writes[0], `${OWN}#p=${G3.code}`, 'Copy link uses this page too');
+  const share = await openShare(m);
+  equal(share.notes(), [], 'the Share dialog has no local-page notice');
+  equal(await share.copy(), 'copied', 'Copy link copies');
+  equal(writes, [`${OWN}#p=${G3.code}`], 'the Share dialog uses this page too');
+  await share.close();
   const second = await openPrint(m.q('[data-action="print"]'));
   equal(second.target, OWN, 'a new dialog uses the same target');
   second.cancel();
   equal(storage(), before, 'nothing was stored by the dialogs');
+  // The real Player page (this page's Player address is not a page of the test site) opens the copied address.
+  const hash = writes[0].slice(writes[0].indexOf('#'));
+  const frame = /** @type {HTMLIFrameElement} */ (h('iframe', { width: '1200', height: '800', src: `../../player/index.html${hash}` }));
+  stage.append(frame);
+  const title = () => frame.contentDocument?.querySelector('#app[data-screen="game"] .puzzle-title')?.textContent ?? '';
+  await waitFor(() => title() !== '', 'the real Player page to open the copied link', 30000);
+  equal([title(), frame.contentDocument?.querySelectorAll('.puzzle-card').length, frame.contentWindow?.location.hash], ['Hard #3', 1, hash], 'only that puzzle opens, and the address is kept');
 });
 
 // ---- the real Generator --------------------------------------------------------------------------------------------------------
@@ -1340,7 +1429,7 @@ await check('BA01 BA02 BA03 BA04 BA22 BA23 BA24: the real Generator — one puzz
   checkFirstSheet(done.pages[0], 'Generator first sheet', { qr: true });
   await showSheet('generator-first-sheet', done.pages[0]);
 
-  assert(g.root.querySelector('[data-action="copy-puzzle-link"]') === null, 'the Generator has no Copy this puzzle link control');
+  assert(g.root.querySelector('[data-action="share"], dialog.pm-share-dialog') === null, 'the Generator has no Share control');
 
   // The printed code reaches fresh Players: the same address as the QR, and they re-create the puzzle.
   const out = await printCopyOpen('Generator puzzle 3 of 5', { print: () => g.q('[data-action="print-puzzle"]'), solutionOption: true }, expected);
@@ -1486,14 +1575,16 @@ await check('BA15: a delayed answer for puzzle A cannot print, copy or open anyt
   log.armed = false;
   const m = await mount({ hash: await packHash(sample, 0), factory });
   log.armed = true;
-  // Print: A is being prepared when B is selected.
+  // Print: A is being prepared when B is chosen instead in the dialog's list of puzzles.
   m.q('[data-action="print"]').click();
   const dialog = /** @type {HTMLDialogElement} */ (document.querySelector('dialog.pm-print-dialog[open]'));
   const state = () => dialog.querySelector('[data-role="print-code"]')?.getAttribute('data-state');
   const confirm = /** @type {HTMLButtonElement} */ (dialog.querySelector('[data-action="print-confirm"]'));
   await waitFor(() => log.encodes.length === 1, 'the preparation of puzzle A');
   equal([state(), confirm.disabled], ['preparing', true], 'A is being prepared; Print waits');
-  m.player.controller.goToPuzzle(1);
+  const choice = (/** @type {string} */ id) => /** @type {HTMLInputElement} */ (dialog.querySelector(`li[data-puzzle="${id}"] input`));
+  choice('0').click();
+  choice('1').click();
   await waitFor(() => log.encodes.length === 2, 'a new preparation for puzzle B');
   log.encodes[0].resolve(undefined);
   await pause(400);
@@ -1513,22 +1604,31 @@ await check('BA15: a delayed answer for puzzle A cannot print, copy or open anyt
     return { pages };
   })());
   equal(typedCode(done.pages), G2.code, "only B's code was printed");
-  equal(done.pages[0].querySelector('text.pm-print-sheet-title')?.textContent, 'Normal #2', "with B's heading");
+  equal(done.pages[0].querySelector('text.pm-print-sheet-title')?.textContent, printedName('Normal #2'), "with B's heading");
 
-  // Copy: B is being prepared when A is selected again.
+  // Share: the link of B is being prepared when A is selected again.
+  await m.player.controller.goToPuzzle(1);
   const writes = stubClipboard('ok');
-  const copy = m.q('[data-action="copy-puzzle-link"]');
-  copy.click();
-  await waitFor(() => log.encodes.length === 3, 'the copy of puzzle B');
+  const shareButton = m.q('[data-action="share"]');
+  shareButton.focus();
+  shareButton.click();
+  const share = /** @type {HTMLDialogElement} */ (m.q('dialog.pm-share-dialog'));
+  const shareState = () => share.querySelector('[data-role="share-body"]')?.getAttribute('data-state');
+  const field = /** @type {HTMLTextAreaElement} */ (share.querySelector('textarea.pm-share-field'));
+  const copy = /** @type {HTMLButtonElement} */ (share.querySelector('[data-action="share-copy"]'));
+  await waitFor(() => log.encodes.length === 3, 'the link of puzzle B');
   m.player.controller.goToPuzzle(0);
+  await waitFor(() => log.encodes.length === 4, 'a new link for puzzle A');
   log.encodes[2].resolve(undefined);
   await pause(500);
-  equal([writes, toasts(), copy.getAttribute('aria-busy')], [[], [], 'false'], "B's late link was neither written nor announced");
-  copy.click();
-  await waitFor(() => log.encodes.length === 4, 'the copy of puzzle A');
+  equal([shareState(), field.value, copy.disabled, writes], ['preparing', '', true, []], "B's late link was neither shown nor offered to copy");
   log.encodes[3].resolve(undefined);
-  await waitFor(() => writes.length === 1, 'the link of A');
-  equal(writes, [`${OWN}#p=${G1.code}`], "only the link of the selected puzzle A was written");
+  await waitFor(() => shareState() === 'ready', 'the link of A');
+  equal(field.value, `${OWN}#p=${G1.code}`, 'the dialog shows the link of the selected puzzle A');
+  copy.click();
+  await waitFor(() => writes.length === 1, 'the copy');
+  equal(writes, [`${OWN}#p=${G1.code}`], 'only the link of the selected puzzle A was written');
+  share.close();
 
   // Entry: cancelled while the worker is still decoding.
   const gated = gatedFactory();
@@ -1545,29 +1645,66 @@ await check('BA15: a delayed answer for puzzle A cannot print, copy or open anyt
 
 // ---- the clipboard, headings, regression and capability --------------------------------------------------------------------------
 
-await check('BA23: a refused clipboard in the Player shows the exact link in a read-only, selected field, restores focus, and never says copied — English and Vietnamese', async () => {
-  stubClipboard('deny');
+await check('BA23: a refused clipboard in the Player\'s Share dialog shows the exact link in a read-only, selected field, restores focus, and never says copied — English and Vietnamese', async () => {
+  const writes = stubClipboard('deny');
   const m = await mount({ hash: await packHash(sample, 1) });
-  const button = m.q('[data-action="copy-puzzle-link"]');
-  button.focus();
-  button.click();
-  await waitFor(() => document.querySelector('dialog.pm-copy-dialog[open]') !== null && button.getAttribute('aria-busy') === 'false', 'the manual-copy field');
-  const dialog = /** @type {HTMLDialogElement} */ (document.querySelector('dialog.pm-copy-dialog[open]'));
-  const field = /** @type {HTMLTextAreaElement} */ (dialog.querySelector('textarea.pm-copy-field'));
+  const share = await openShare(m);
+  assert(document.activeElement === share.copyButton, 'the dialog opens on Copy link');
+  equal(await share.copy(), 'failed', 'the copy failed');
+  const { dialog, field } = share;
+  equal([dialog.open, writes], [true, []], 'the dialog stays open and nothing was copied');
   equal(field.value, `${OWN}#p=${G2.code}`, 'the exact link of the selected puzzle');
   assert(field.readOnly && field.selectionStart === 0 && field.selectionEnd === field.value.length && document.activeElement === field, 'read-only, selected and focused');
-  equal(dialog.querySelector('label')?.textContent, 'Puzzle link', 'with its label');
-  equal(dialog.querySelector('[data-role="copy-notes"]')?.textContent, 'Could not copy the link. Select and copy it manually.', 'the failure is said');
-  assert(!/copied/i.test(`${dialog.textContent} ${toasts().join(' ')}`.replace('Could not copy', '')), 'and never "copied"');
-  dialog.requestClose();
-  await waitFor(() => !dialog.open && document.activeElement === button, 'the focus to return to the Copy control');
+  equal(dialog.querySelector(`label[for="${field.id}"]`)?.textContent, 'Link', 'with its label');
+  equal(share.notes(), ['Could not copy the link. Select and copy it manually.'], 'the failure is said');
+  assert(!/copied/i.test(`${dialog.textContent} ${toasts().join(' ')}`.replace('Could not copy', '')) && share.copyButton.dataset.copied === 'false', 'and never "copied"');
+  await share.close();
   playerI18n.setLocale('vi', document);
-  button.click();
-  await waitFor(() => document.querySelector('dialog.pm-copy-dialog[open]') !== null && button.getAttribute('aria-busy') === 'false', 'the Vietnamese field');
-  const vi = /** @type {HTMLDialogElement} */ (document.querySelector('dialog.pm-copy-dialog[open]'));
-  equal(vi.querySelector('label')?.textContent, 'Liên kết đề', 'Vietnamese label');
-  equal(vi.querySelector('[data-role="copy-notes"]')?.textContent, 'Không sao chép được liên kết. Hãy chọn và sao chép thủ công.', 'Vietnamese failure text');
-  equal(/** @type {HTMLTextAreaElement} */ (vi.querySelector('textarea')).value, `${OWN}#p=${G2.code}`, 'the same link');
+  const vi = await openShare(m);
+  equal(await vi.copy(), 'failed', 'the Vietnamese copy failed');
+  equal(vi.dialog.querySelector(`label[for="${vi.field.id}"]`)?.textContent, 'Liên kết', 'Vietnamese label');
+  equal(vi.notes(), ['Không sao chép được liên kết. Hãy chọn và sao chép thủ công.'], 'Vietnamese failure text');
+  equal(vi.field.value, `${OWN}#p=${G2.code}`, 'the same link');
+});
+
+await check('BA22: the real clipboard — the Share dialog says copied exactly when the browser took the link, and otherwise selects the link for a manual copy', async () => {
+  const m = await mount({ hash: await packHash(sample, 1) });
+  const clipboard = navigator.clipboard;
+  const nativeWrite = clipboard?.writeText?.bind(clipboard);
+  /** @type {string[]} */
+  const accepted = [];
+  let legacyCopies = 0;
+  if (nativeWrite !== undefined) {
+    Object.defineProperty(clipboard, 'writeText', {
+      configurable: true,
+      value: async (/** @type {string} */ text) => {
+        await nativeWrite(text);
+        accepted.push(text);
+      },
+    });
+  }
+  const nativeExec = document.execCommand.bind(document);
+  /** @type {any} */ (document).execCommand = (/** @type {string} */ command, /** @type {boolean | undefined} */ ui, /** @type {string | undefined} */ value) => {
+    const done = nativeExec(command, ui, value);
+    legacyCopies += command === 'copy' && done ? 1 : 0;
+    return done;
+  };
+  try {
+    const share = await openShare(m);
+    const outcome = await share.copy();
+    const took = accepted.length === 1 || legacyCopies > 0;
+    equal(outcome, took ? 'copied' : 'failed', 'the dialog says what the browser did');
+    assert(accepted.every((text) => text === `${OWN}#p=${G2.code}`), 'what the browser took is the link');
+    if (!took) {
+      assert(document.activeElement === share.field && share.field.selectionEnd - share.field.selectionStart === share.field.value.length, 'the link is selected for a manual copy');
+    }
+    evidence.realClipboard = { outcome, nativeWrites: accepted.length, legacyCopies, hasFocus: document.hasFocus() };
+  } finally {
+    delete (/** @type {any} */ (document)).execCommand;
+    if (nativeWrite !== undefined) {
+      delete (/** @type {any} */ (clipboard)).writeText;
+    }
+  }
 });
 
 await check('BA26: an untitled puzzle at a later position keeps "Puzzle #n" / "Đề #n" on paper, in the code and in the re-created puzzle', async () => {
@@ -1577,18 +1714,25 @@ await check('BA26: an untitled puzzle at a later position keeps "Puzzle #n" / "�
   }) };
   for (const [lang, heading] of /** @type {const} */ ([['en', 'Puzzle #3'], ['vi', 'Đề #3']])) {
     playerI18n.setLocale(lang, document);
-    const m = await mount({ hash: await packHash(bare, 2) });
+    const untitled = (/** @type {number} */ n) => (lang === 'vi' ? `Đề #${n}` : `Puzzle #${n}`);
+    // The list address is made in the reader's language, as the Player's Share makes it.
+    const m = await mount({ hash: await packHash(bare, 2, untitled) });
     equal(m.q('.puzzle-title').textContent, heading, `${lang}: the heading in the Player`);
     const print = await openPrint(m.q('[data-action="print"]'));
     assert(print.state() === 'ready', 'ready');
     const done = print.confirm();
     const sheets = await readSheets(done.pages);
     equal(sheets.heading, heading, `${lang}: the printed heading`);
-    const expected = sourceView({ rows: sampleRows, pieces: samplePieces, puzzle: bare.puzzles[2], index: 2, rotation: 0, untitled: (n) => (lang === 'vi' ? `Đề #${n}` : `Puzzle #${n}`) });
+    const expected = sourceView({ rows: sampleRows, pieces: samplePieces, puzzle: bare.puzzles[2], index: 2, rotation: 0, untitled });
     equal(expected.heading, heading, `${lang}: the expected heading`);
     const fresh = await freshOpen(`${lang} untitled puzzle 3 of 3`, sheets.F, expected);
     equal(fresh.m.q('.puzzle-title').textContent, heading, `${lang}: the re-created puzzle shows the printed heading`);
   }
+  // A code carries the heading of a later puzzle as it was when the code was made; the first puzzle carries no title.
+  const english = await mount({ hash: await packHash(bare, 2) });
+  equal(english.q('.puzzle-title').textContent, 'Puzzle #3', 'a link made in English keeps its heading in Vietnamese');
+  english.player.controller.goToPuzzle(0);
+  await waitFor(() => english.q('.puzzle-title').textContent === 'Đề #1', 'the untitled first puzzle to take the reader\'s label');
 });
 
 await check('BA28: #pack and #lib are not addresses any more, and the sample opens without the puzzle-code service', async () => {
@@ -1598,18 +1742,22 @@ await check('BA28: #pack and #lib are not addresses any more, and the sample ope
     assert(old.root.dataset.screen === 'start', `${hash} opens nothing`);
   }
   const c = await mount({ factory: spy.factory });
+  equal([/** @type {HTMLButtonElement} */ (c.q('[data-action="share"]')).disabled, /** @type {HTMLButtonElement} */ (c.q('[data-action="print"]')).disabled], [true, true], 'with no puzzle open, Share and Print are disabled');
   c.q('.start-actions [data-action="sample"]').click();
   await waitFor(() => c.root.dataset.screen === 'game', 'the sample to open');
   equal(c.qa('.puzzle-card').length, 3, 'the sample: its three puzzles');
   equal([spy.decodes], [0], 'no code was decoded for the old addresses or the file');
 });
 
-await check('BA29: without module workers the Player says so honestly — nothing is decoded, printed or copied on the main thread', async () => {
+await check('BA29: without module workers the Player says so honestly — nothing is decoded, printed or shared on the main thread', async () => {
   const sizes = catalogueStats.sizesBuilt;
-  const spawned = workers.spawned;
   const writes = stubClipboard('ok');
-  const m = await mount({ hash: await packHash(sample, 0) });
+  // The sample opens with no puzzle code, so no worker was needed before the browser loses them.
+  const m = await mount();
+  m.q('.start-actions [data-action="sample"]').click();
+  await waitFor(() => m.root.dataset.screen === 'game', 'the sample to open');
   globalThis.Worker = /** @type {any} */ (undefined);
+  const spawned = workers.spawned;
   await enterCode(m, G2.code);
   assert(isOpen(m), 'the entry stays open');
   equal(problemOf(m)?.error, 'This browser cannot open puzzle codes because module workers are unavailable. Use a current browser.', 'the capability failure is named');
@@ -1629,9 +1777,13 @@ await check('BA29: without module workers the Player says so honestly — nothin
   window.print = real;
   equal(printed, 0, 'nothing was printed');
   print.cancel();
-  m.q('[data-action="copy-puzzle-link"]').click();
-  await waitFor(() => toasts().length > 0, 'the Copy failure');
-  equal([toasts(), writes], [['The puzzle code could not be prepared.'], []], 'Copy link says so and copies nothing');
+  const share = await openShare(m);
+  equal([share.state(), share.notes(), share.field.value, share.copyButton.disabled], ['error', ['The link could not be prepared.'], '', true], 'the Share dialog says so and offers nothing to copy');
+  assert(share.dialog.querySelector('[data-action="share-retry"]')?.getClientRects().length !== 0, 'Try again is offered');
+  share.copyButton.click();
+  await pause(100);
+  equal(writes, [], 'nothing was copied');
+  await share.close();
   equal([catalogueStats.sizesBuilt, workers.spawned], [sizes, spawned], 'no catalogue on the page and no worker started');
 });
 
@@ -1712,11 +1864,12 @@ function contrastOf(dialog) {
 const TEXTS = {
   en: {
     card: (/** @type {number} */ n) => `Puzzle #${n}`,
-    scan: 'Play Online',
+    scan: 'Play online',
     entry: 'Enter puzzle code',
     check: 'The code has a typing error. Check it against the printout.',
     candidate: (/** @type {number} */ g, /** @type {number} */ p, /** @type {string} */ e, /** @type {string} */ t) => `Possible correction: in group ${g}, character ${p} may be "${e}" instead of "${t}". Compare with the printout.`,
-    copyField: 'Puzzle link',
+    share: 'Share',
+    shareField: 'Link',
     copyFailed: 'Could not copy the link. Select and copy it manually.',
   },
   vi: {
@@ -1725,7 +1878,8 @@ const TEXTS = {
     entry: 'Nhập mã đề',
     check: 'Mã có lỗi nhập. Hãy đối chiếu với bản in.',
     candidate: (/** @type {number} */ g, /** @type {number} */ p, /** @type {string} */ e, /** @type {string} */ t) => `Có thể sửa: ở nhóm ${g}, ký tự ${p} có thể là "${e}" thay vì "${t}". Hãy so với bản in.`,
-    copyField: 'Liên kết đề',
+    share: 'Chia sẻ',
+    shareField: 'Liên kết',
     copyFailed: 'Không sao chép được liên kết. Hãy chọn và sao chép thủ công.',
   },
 };
@@ -1766,21 +1920,29 @@ async function showSheet(name, page) {
 function assertQrSurface(page, label) {
   stage.append(page);
   try {
-    const group = /** @type {Element} */ (page.querySelector('g.pm-print-qr'));
-    equal(getComputedStyle(/** @type {Element} */ (group.querySelector('rect'))).fill, 'rgb(255, 255, 255)', `${label}: the QR box is opaque white`);
-    equal(getComputedStyle(/** @type {Element} */ (group.querySelector('path'))).fill, 'rgb(0, 0, 0)', `${label}: its modules are black`);
-    for (let node = /** @type {Element | null} */ (group); node !== null; node = node.parentElement) {
-      const style = getComputedStyle(node);
-      assert(style.opacity === '1' && (style.filter === 'none') && style.mixBlendMode === 'normal', `${label}: ${node.tagName.toLowerCase()}.${node.getAttribute('class') ?? ''} fades, filters or blends the QR (${style.opacity}, ${style.filter}, ${style.mixBlendMode})`);
-    }
+    assertQrInk(/** @type {Element} */ (page.querySelector('g.pm-print-qr')), label);
   } finally {
     page.remove();
   }
 }
 
+/**
+ * The modules of a QR symbol are black on its opaque white box, and nothing around it fades, filters or blends it.
+ * @param {Element} group The element that holds the box (`rect`) and the modules (`path`).
+ * @param {string} label
+ */
+function assertQrInk(group, label) {
+  equal(getComputedStyle(/** @type {Element} */ (group.querySelector('rect'))).fill, 'rgb(255, 255, 255)', `${label}: the QR box is opaque white`);
+  equal(getComputedStyle(/** @type {Element} */ (group.querySelector('path'))).fill, 'rgb(0, 0, 0)', `${label}: its modules are black`);
+  for (let node = /** @type {Element | null} */ (group); node !== null; node = node.parentElement) {
+    const style = getComputedStyle(node);
+    assert(style.opacity === '1' && (style.filter === 'none') && style.mixBlendMode === 'normal', `${label}: ${node.tagName.toLowerCase()}.${node.getAttribute('class') ?? ''} fades, filters or blends the QR (${style.opacity}, ${style.filter}, ${style.mixBlendMode})`);
+  }
+}
+
 for (const lang of /** @type {const} */ (['en', 'vi'])) {
   for (const theme of ['light', 'dark', 'high-contrast']) {
-    await check(`matrix ${lang} ${theme}: the Print dialog and sheet, the code entry and the manual copy field — their texts with values, 4.5:1 contrast, focus, alerts and a black-on-white QR`, async () => {
+    await check(`matrix ${lang} ${theme}: the Print dialog and sheet, the code entry and the Share dialog — their texts with values, 4.5:1 contrast, focus, alerts and a black-on-white QR`, async () => {
       const T = TEXTS[lang];
       document.documentElement.setAttribute('data-theme', theme);
       playerI18n.setLocale(lang, document);
@@ -1826,30 +1988,63 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
       equal(entry.querySelector(`label[for="${field.id}"]`)?.textContent, lang === 'en' ? 'Puzzle code' : 'Mã đề', 'the field has its visible label');
       equal(entry.getAttribute('aria-labelledby') === null ? null : document.getElementById(/** @type {string} */ (entry.getAttribute('aria-labelledby')))?.textContent, T.entry, 'the dialog is named in the language');
       const nameOf = (/** @type {Element} */ node) => (node.getAttribute('aria-label') ?? node.textContent ?? '').trim();
-      equal([nameOf(m.q('[data-action="copy-puzzle-link"]')), nameOf(m.q('[data-action="code-open"]'))], lang === 'en' ? ['Copy this puzzle link', 'Open puzzle'] : ['Sao chép liên kết đề này', 'Mở đề'], 'the Copy and Open controls are named in the language');
+      equal([nameOf(m.q('[data-action="share"]')), nameOf(m.q('[data-action="code-open"]'))], lang === 'en' ? ['Share', 'Open puzzle'] : ['Chia sẻ', 'Mở đề'], 'the Share and Open controls are named in the language');
       assertNoLeaks(entry, 'entry dialog');
       equal(contrastOf(entry).low, [], 'low contrast in the entry');
       await shot(`entry-${lang}-${theme}`);
       entry.requestClose();
       await waitFor(() => !entry.open, 'the entry to close');
-      assert(document.activeElement === m.q('.puzzle-title'), 'the focus returns to the puzzle title, the fallback of a dialog with no opener');
+      // The opener (the Print dialog's control, gone with it) cannot take the focus back.
+      await waitFor(() => document.activeElement === m.q('.puzzle-title'), 'the focus to return to the puzzle title, the fallback of a dialog with no opener', 2000);
 
-      // A refused clipboard: the field, its label and the failure in the language.
+      // A refused clipboard in the Share dialog: the field, its label and the failure in the language.
       stubClipboard('deny');
-      const copy = m.q('[data-action="copy-puzzle-link"]');
-      copy.focus();
-      copy.click();
-      await waitFor(() => document.querySelector('dialog.pm-copy-dialog[open]') !== null && copy.getAttribute('aria-busy') === 'false', 'the manual-copy field');
-      const manual = /** @type {HTMLDialogElement} */ (document.querySelector('dialog.pm-copy-dialog[open]'));
-      equal([manual.querySelector('label')?.textContent, manual.querySelector('[data-role="copy-notes"]')?.textContent], [T.copyField, T.copyFailed], 'the manual-copy texts');
-      equal(manual.querySelector('[data-role="copy-notes"]')?.getAttribute('role'), 'status', 'the failure is a status');
-      equal(contrastOf(manual).low, [], 'low contrast in the manual-copy dialog');
-      await shot(`copy-${lang}-${theme}`);
-      manual.requestClose();
-      await waitFor(() => !manual.open && document.activeElement === copy, 'the focus to return to the Copy control');
+      const share = await openShare(m);
+      equal(share.dialog.querySelector('h2')?.textContent, T.share, 'the Share dialog title');
+      equal(await share.copy(), 'failed', 'the copy failed');
+      equal([share.dialog.querySelector(`label[for="${share.field.id}"]`)?.textContent, share.notes()], [T.shareField, [T.copyFailed]], 'the Share texts');
+      equal(share.dialog.querySelector('[data-role="share-notes"]')?.getAttribute('role'), 'status', 'the failure is a status');
+      assertNoLeaks(share.dialog, 'Share dialog');
+      equal(contrastOf(share.dialog).low, [], 'low contrast in the Share dialog');
+      assertQrInk(/** @type {Element} */ (share.dialog.querySelector('.pm-share-qr-svg')), `${lang} ${theme} Share dialog`);
+      await shot(`share-${lang}-${theme}`);
+      await share.close();
     });
   }
 }
+
+// ---- trusted keys (run with ?phase=keys: the runner presses the keys) ----------------------------------------------------------
+
+/** Asks the runner to press a trusted key (a CDP key name, "Shift+" for a shifted one) and waits until it has. @param {string} key */
+async function press(key) {
+  document.documentElement.dataset.stage = `key-${key}`;
+  await waitFor(() => document.documentElement.dataset.stage === `key-${key}-done`, `the runner to press ${key}`, 15000);
+  delete document.documentElement.dataset.stage;
+}
+
+await check('keys: Tab goes from Share to Print, Enter opens the Share dialog on Copy link, Enter copies (refused: the link is selected), Escape closes it and the focus returns to Share', async () => {
+  const writes = stubClipboard('deny');
+  const m = await mount({ hash: await packHash(sample, 1) });
+  const shareButton = m.q('[data-action="share"]');
+  const focused = () => `${document.activeElement?.tagName} ${/** @type {HTMLElement | null} */ (document.activeElement)?.dataset?.action ?? ''}`;
+  shareButton.focus();
+  await press('Tab');
+  assert(document.activeElement === m.q('[data-action="print"]'), `Tab from Share reaches Print (${focused()})`);
+  await press('Shift+Tab');
+  assert(document.activeElement === shareButton, `Shift+Tab goes back to Share (${focused()})`);
+  await press('Enter');
+  const dialog = /** @type {HTMLDialogElement} */ (m.q('dialog.pm-share-dialog'));
+  const copy = /** @type {HTMLButtonElement} */ (dialog.querySelector('[data-action="share-copy"]'));
+  const field = /** @type {HTMLTextAreaElement} */ (dialog.querySelector('textarea.pm-share-field'));
+  await waitFor(() => dialog.open && !copy.disabled, 'Enter to open the Share dialog with its link');
+  assert(document.activeElement === copy, `the dialog opens on Copy link (${focused()})`);
+  await press('Enter');
+  await waitFor(() => document.activeElement === field, 'the refused copy to select the link');
+  equal([field.value, field.selectionStart, field.selectionEnd, writes], [`${OWN}#p=${G2.code}`, 0, field.value.length, []], 'the whole link is selected and nothing was copied');
+  await press('Escape');
+  await waitFor(() => !dialog.open, 'Escape to close the dialog');
+  await waitFor(() => document.activeElement === shareButton, 'the focus to return to Share');
+});
 
 // ---- the phone width (run with ?phase=narrow in a 390 px touch viewport) ------------------------------------------------------
 
@@ -1884,7 +2079,7 @@ function assertFits(dialog, label) {
   assert(r.left >= 0 && r.right <= innerWidth + 0.5 && r.top >= 0 && r.bottom <= innerHeight + 0.5, `${label}: the dialog is inside the viewport (${JSON.stringify([r.left, r.top, r.right, r.bottom].map(Math.round))} in ${innerWidth} x ${innerHeight})`);
   const edge = r.left + dialog.clientLeft + dialog.clientWidth;
   const spilled = [...dialog.querySelectorAll('*')].filter((node) => node.getClientRects().length > 0 && node.getBoundingClientRect().right > edge + 1);
-  const own = spilled.filter((node) => node.closest('.pm-print-code-box, .pm-code, .pm-copy-dialog') !== null);
+  const own = spilled.filter((node) => node.closest('.pm-print-code-box, .pm-code, .pm-share-dialog') !== null);
   equal(own.slice(0, 6).map((node) => `${node.tagName.toLowerCase()}.${String(node.getAttribute('class') ?? '').split(' ')[0]} right ${Math.round(node.getBoundingClientRect().right)} > ${Math.round(edge)}`), [], `${label}: nothing of the puzzle-code section spills out of the dialog`);
   if (spilled.length > 0) {
     evidence.notes.push({ label: `${label}: pre-existing — the size table (nowrap columns, unchanged by the puzzle code) is wider than the dialog`, dialogClientWidth: dialog.clientWidth, dialogScrollWidth: dialog.scrollWidth, spilled: spilled.slice(0, 8).map((node) => `${node.tagName.toLowerCase()}.${node.getAttribute('class') ?? ''}`) });
@@ -1911,8 +2106,8 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
     const help = header.querySelector('.header-help');
     const helpBox = help?.getBoundingClientRect();
     evidence.notes.push({ label: `narrow ${lang}: pre-existing Help control`, size: helpBox === undefined ? null : `${Math.round(helpBox.width)}x${Math.round(helpBox.height)}` });
-    const newControls = ['[data-action="copy-puzzle-link"]', '[data-action="print"]'].map((selector) => m.q(selector));
-    equal(smallTargets(m.q('.step-actions')).filter((entry) => /copy-puzzle-link|print/.test(entry)), [], 'Print and Copy this puzzle link are 44 px targets');
+    const newControls = ['[data-action="share"]', '[data-action="print"]'].map((selector) => m.q(selector));
+    equal(smallTargets(m.q('.step-actions')).filter((entry) => /share|print/.test(entry)), [], 'Share and Print are 44 px targets');
     assert(newControls.every((node) => node.getBoundingClientRect().right <= innerWidth + 0.5), 'every control is inside the viewport');
     evidence.notes.push({ label: `narrow ${lang}: every control under 44 px on the game screen`, controls: [...smallTargets(m.root)] });
 
@@ -1937,16 +2132,15 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
     await waitFor(() => !entry.open, 'the entry to close');
 
     stubClipboard('deny');
-    const copy = m.q('[data-action="copy-puzzle-link"]');
-    copy.click();
-    await waitFor(() => document.querySelector('dialog.pm-copy-dialog[open]') !== null && copy.getAttribute('aria-busy') === 'false', 'the manual-copy field');
-    const manual = /** @type {HTMLDialogElement} */ (document.querySelector('dialog.pm-copy-dialog[open]'));
-    assertFits(manual, 'manual-copy dialog');
-    equal(smallTargets(manual), [], 'targets under 44 px in the manual-copy dialog');
-    const copyFont = Number.parseFloat(getComputedStyle(/** @type {Element} */ (manual.querySelector('textarea'))).fontSize);
-    evidence.notes.push({ label: `narrow ${lang}: manual-copy field font size (iOS Safari zooms a focused field under 16 px; to confirm on an iPhone)`, px: copyFont });
-    await shot(`narrow-copy-${lang}`);
-    manual.requestClose();
+    const share = await openShare(m);
+    equal(await share.copy(), 'failed', 'the copy failed');
+    assertFits(share.dialog, 'Share dialog');
+    equal(smallTargets(share.dialog), [], 'targets under 44 px in the Share dialog');
+    assert(share.field.scrollWidth <= share.field.clientWidth + 1, 'the link wraps inside its field');
+    const shareFont = Number.parseFloat(getComputedStyle(share.field).fontSize);
+    evidence.notes.push({ label: `narrow ${lang}: Share field font size (iOS Safari zooms a focused field under 16 px; to confirm on an iPhone)`, px: shareFont });
+    await shot(`narrow-share-${lang}`);
+    await share.close();
     assert(root.scrollWidth <= root.clientWidth, 'no sideways scrolling after the dialogs');
   });
 }

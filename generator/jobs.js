@@ -1,6 +1,6 @@
 // @ts-check
 // Generator job controller: binds the generation client to the store. Every reply is checked against the revision of
-// the job that asked for it, so a stale reply changes nothing. All searching runs in workers.
+// the job that asked for it, so a stale reply changes nothing.
 import { boardToRows } from '../core/engine/board.js';
 import { readPuzzleCode } from '../core/browser/handoff.js';
 import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
@@ -334,7 +334,6 @@ export function createJobController(options) {
     }
 
     const targetLevelId = batchLevelOf(state);
-    // Every press draws its own random whole-number seed.
     const batchSeed = validSeed((options.randomNumber ?? randomPuzzleSeed)()) ?? randomPuzzleSeed();
     const begun = /** @type {NonNullable<ReturnType<typeof nextBatch>>} */ (nextBatch(state, batchSeed));
     const { set, uniqueness, setSeed } = { set: state.set, uniqueness: state.uniqueness, setSeed: state.setSeed };
@@ -544,9 +543,8 @@ export function createJobController(options) {
   }
 
   /**
-   * Reads a puzzle code (or a puzzle link) and brings its board, piece set and puzzle into the Generator (see
-   * `importPuzzle`). A failure of the text or the decoder is the entry dialog's to explain; a newer import or
-   * `cancelImport` drops the older answer before it can change anything.
+   * Imports a puzzle code or link (see `importPuzzle`). A read failure is returned for the import dialog to explain; a
+   * newer import or `cancelImport` drops the older answer before it can change anything.
    * @param {string} text
    * @returns {Promise<{ ok: true, value: { status: import('./state.js').ImportStatus | 'busy' }, warnings: [] } | { ok: false, issues: object[] }>}
    */

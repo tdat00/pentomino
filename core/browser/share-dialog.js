@@ -1,9 +1,6 @@
 // @ts-check
-// The Player's Share dialog: the Player address of the selected puzzle, or of every puzzle of the list, in a read-only
-// field to copy, with the QR code of that very address beside it. Nothing is encoded here: the snapshots, the Player
-// target and the preparation (codes, capacity ladder, address, QR symbol) are the shared ones of `puzzle-snapshot.js`,
-// and the codes are made by a worker. `createShareController` is the DOM-free part: the state, the guards that keep an
-// answer for an older selection from being shown or copied, and the clipboard. `createShareDialog` draws it.
+// The Player's Share dialog: the Player address of the selected puzzle (or the whole list) to copy, beside its QR code.
+// Preparation is the shared one of `puzzle-snapshot.js`; `createShareController` is the DOM-free part.
 
 import { WARN_URL_CHARS } from '../engine/sharecode.js';
 import { copyText, el } from './dom.js';
@@ -284,9 +281,8 @@ function qrSvg(qr) {
  */
 
 /**
- * The dialog: the QR code of the link on the left; on the right the link in a read-only field, the option to cover the
- * whole list, the notices and the Copy button. Texts carry `data-i18n` where fixed, so the app's language switch
- * rewrites them; the notices are drawn again by `refresh()`.
+ * Fixed texts carry `data-i18n`, so the app's language switch rewrites them; the notices are drawn again by
+ * `refreshTexts()`.
  * @param {ShareDialogOptions} options
  */
 export function createShareDialog(options) {
@@ -299,6 +295,8 @@ export function createShareDialog(options) {
   let client = null;
   /** @type {Element | null} */
   let opener = null;
+  /** @type {Element | null} Where the focus went on opening while Copy link was still disabled, until the link is ready. */
+  let focusUntilReady = null;
 
   /** @param {string} key @returns {HTMLElement} */
   const text = (key, tag = 'span', className = '') => el(tag, { className, dataset: { i18n: key }, text: t(key) });
@@ -376,6 +374,13 @@ export function createShareDialog(options) {
     field.placeholder = state.status === 'preparing' ? t('share.preparing') : '';
     const copied = state.copy === 'copied';
     copyButton.disabled = state.status !== 'ready' || state.url === null;
+    if (focusUntilReady !== null && !copyButton.disabled && dialog.open) {
+      // Copy link takes the focus on opening, once it can; not if the focus has moved meanwhile.
+      if (doc.activeElement === focusUntilReady) {
+        copyButton.focus();
+      }
+      focusUntilReady = null;
+    }
     copyButton.dataset.copied = String(copied);
     copyButton.replaceChildren(copied ? checkIcon() : copyIcon(), copyLabel);
     copyLabel.dataset.i18n = copied ? 'share.copied' : 'share.copy';
@@ -444,6 +449,7 @@ export function createShareDialog(options) {
     }
     controller.close();
     client?.cancel();
+    focusUntilReady = null;
     if (opener instanceof HTMLElement && opener.isConnected) {
       opener.focus();
     }
@@ -463,6 +469,7 @@ export function createShareDialog(options) {
         dialog.showModal();
       }
       copyButton.focus();
+      focusUntilReady = copyButton.disabled ? doc.activeElement : null;
     },
     close() {
       if (dialog.open) {

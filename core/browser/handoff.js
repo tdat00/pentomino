@@ -1,7 +1,6 @@
 // @ts-check
-// Play hand-off between the independent generator and player pages: prepared links and one validated incoming loader.
-// Links are the only way puzzles travel: there is no file import or export. A link carries puzzle codes: one `#p=` code
-// per puzzle, separated by `;`. There is no other kind of link.
+// Play hand-off between the generator and player pages: prepared links and the one validated incoming loader.
+// Puzzles travel only as `#p=` links (one code per puzzle, separated by `;`); there is no file import or export.
 import {
   MAX_URL_CHARS, WARN_URL_CHARS, parseLocationHashResult, puzzleListUrl,
 } from '../engine/sharecode.js';
@@ -48,7 +47,7 @@ export const PIECE_SET_MESSAGE = 'This link has pieces but no puzzle — open it
 
 export class HandoffError extends Error {
   /**
-   * @param {string} code `handoff-unavailable` | `invalid-index`
+   * @param {string} code `handoff-unavailable` | `popup-blocked`
    * @param {string} message
    */
   constructor(code, message) {
@@ -67,8 +66,8 @@ function baseOf(env) {
 }
 
 /**
- * The code of puzzles of the pack, as Print and Copy this puzzle link make it (`puzzleSnapshot`, in the worker), at
- * the angle of the pack. The codes are made one after the other: a client runs one operation at a time.
+ * The codes of puzzles of the pack, made like Print and Share make them (`puzzleSnapshot`, in the worker), at the
+ * angle of the pack. The codes are made one after the other: a client runs one operation at a time.
  * @param {Pack} pack
  * @param {HandoffEnv} env
  * @param {number[]} [indexes] The puzzles to encode, in order; every puzzle by default.
@@ -240,11 +239,10 @@ function puzzleDecoder(decode) {
 }
 
 /**
- * Opens one typed, pasted or scanned puzzle code (a bare or grouped code, or a link with `#p=`) as a one-puzzle pack,
- * decoded in a worker; text with several codes separated by `;` opens them all as one pack (see `readPuzzleCodeList`).
- * Like `readIncoming` it changes no application or storage state, so the caller commits after
- * success. A failure keeps the decoder's typed issues and, for a damaged tail, the validated core-only `recovery`
- * and any `candidate`; neither is ever opened here. A decoder that was cancelled rejects with its abort error.
+ * Opens a typed, pasted or scanned puzzle code (bare, grouped, or a `#p=` link) as a one-puzzle pack, or several
+ * `;`-separated codes as one pack. Changes no state; the caller commits after success. A failure keeps the decoder's
+ * issues and, for a damaged tail, the `recovery` and any `candidate`, which are never opened here. A cancelled decoder
+ * rejects with its abort error.
  * @param {string} text
  * @param {HandoffEnv} [env]
  * @returns {Promise<Result<{ pack: Pack, index: number }>>}
@@ -360,17 +358,11 @@ async function readPuzzleCodeList(p, index, env = {}) {
 }
 
 /**
- * The single incoming loader for `#p=` addresses. It returns validated data and changes no application or storage state;
- * callers commit after success. Failure codes: `no-incoming` (a hash without `p`), `invalid-hash`, `invalid-index`,
- * `index-out-of-range`, `piece-set`, and the codes of `readPuzzleCode`. A `#p=`
- * address (puzzle 0 for one code, decoded by `env.decodePuzzle`; with several codes
- * separated by `;`, one pack of them, opened at `i`) fails structurally as
- * `invalid-hash` or `invalid-index` (the host names of the route parser's
- * `invalid` and `index`), then with the codes of `readPuzzleCode`: the code's
- * own syntax and checksum codes, `tail-check`/`tail-tag`/`tail-invalid` with a
- * `recovery` (for one code only), and `worker-unavailable` / `worker-error`. The
- * value of `p` is normalized as a bare code, never read as a link or decoded a
- * second time.
+ * The single incoming loader for `#p=` addresses (several `;`-separated codes open as one pack at `i`). It returns
+ * validated data and changes no state; callers commit after success. Failure codes: `no-incoming` (a hash without
+ * `p`), `invalid-hash`, `invalid-index`, `index-out-of-range`, `piece-set`, and those of `readPuzzleCode` (syntax and
+ * checksum codes, `tail-*` with a `recovery` for one code only, `worker-unavailable` / `worker-error`). The value of `p`
+ * is normalized as a bare code, never read as a link or decoded a second time.
  * @param {LocationLike} location
  * @param {HandoffEnv} [env]
  * @returns {Promise<Result<{ pack: Pack, index: number }>>}

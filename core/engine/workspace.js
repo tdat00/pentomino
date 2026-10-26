@@ -1,17 +1,15 @@
 // @ts-check
-// Grow-only typed-array arenas shared by successive exact-cover models, plus
-// the exact byte accounting and guards that run before any large allocation.
+// Grow-only typed-array arenas shared by successive exact-cover models, with exact byte
+// accounting and guards that run before any large allocation.
 //
-// Shared internal layout (one arena per worker role; T07 builds on it as is):
+// Layout (one arena per worker role):
 //   DLX            Int32 L, R, U, D, C, ROW [N = nonzeros + columns + 1], S [columns + 1]
 //   search stack   Int32 stCol, stRow, stPos, stBase, stChoices [columns + 1]
 //   seeded order   Int32 shuffle [rows] (candidate rows of one search path are disjoint)
 //   packed rows    Int32 rowCols [nonzeros], rowStart [rows + 1]
 //   row metadata   Int16 rowPiece, Uint8 rowT, Int16 rowX, rowY [rows]
 //   maps           Int32 cellColumn [width * height], placementsPerPiece [free pieces]
-// Rows are written in canonical order by `fillArena`, so no sort scratch is
-// needed. A workspace holds one live model: reserving or building another
-// model reuses (and overwrites) the same buffers.
+// A workspace holds one live model: reserving or building another overwrites the buffers.
 
 import { BUDGETS } from './policy.js';
 import {
@@ -83,7 +81,6 @@ function dlxSlotList(columns, nonzeros) {
 }
 
 /**
- * DLX links and search-stack arrays for a model of the given size.
  * @param {Workspace} ws
  * @param {number} columns
  * @param {number} nonzeros
@@ -132,8 +129,7 @@ function modelSlots(columns, rows, nonzeros, cells, freePieces) {
 }
 
 /**
- * Bytes a fresh arena needs for the model: DLX links, stack, packed rows,
- * metadata and maps (no sort scratch: rows are enumerated in canonical order).
+ * Bytes a fresh arena needs for the model.
  * @param {PlacementPlan} plan
  * @param {number} rows
  * @param {number} nonzeros
@@ -317,9 +313,8 @@ export function countModel(b, pieces, clues) {
 }
 
 /**
- * Writes every placement into the arena in canonical row order: each row is
- * its ascending cell columns followed by its piece column. The caller's counts
- * and the enumeration must agree.
+ * Each row is its ascending cell columns followed by its piece column, in
+ * canonical row order. The caller's counts and the enumeration must agree.
  * @param {PlacementPlan} plan
  * @param {Arena} arena
  * @returns {number} Rows written.

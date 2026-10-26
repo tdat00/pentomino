@@ -82,10 +82,9 @@ export const BUDGETS = Object.freeze({
 });
 
 /**
- * Work limits of the exhaustive arrangement count that follows a `layouts-not-found` batch
- * (owner decision 2026-10-23), in search steps: candidate placements tried and search nodes.
- * `collect` is the most unused arrangements the completion pass takes from that search as puzzle
- * candidates (fix round 3). Separate from BUDGETS: no generation budget changes.
+ * Work limits (in search steps) of the exhaustive arrangement count after a `layouts-not-found`
+ * batch. `collect` is the most unused arrangements the completion pass takes as candidates.
+ * Separate from BUDGETS so generation budgets stay unchanged.
  */
 export const ENUMERATION = Object.freeze({
   placements: 250000000,

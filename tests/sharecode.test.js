@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { PuzzleCodeError, normalizePuzzleCodeInput } from '../core/engine/puzzlecode-input.js';
 import {
-  MAX_URL_CHARS, isPuzzleHash, parseLocationHash, parseLocationHashResult, puzzleCodeUrl, puzzleListHash, puzzleListUrl,
+  MAX_URL_CHARS, isPuzzleHash, parseLocationHashResult, puzzleCodeUrl, puzzleListHash, puzzleListUrl,
 } from '../core/engine/sharecode.js';
 
 const GOLDEN_CODE = '1D0J492G47DMXNG6YCP10HCY05KZW8S4HCN2QR.18V3WE';
@@ -24,11 +24,9 @@ test('every p-bearing fixture hash gives the host parser the mapped outcome of t
     const result = parseLocationHashResult(hash);
     if (c.ok) {
       assert.deepEqual(result, { ok: true, value: { p: c.p, index: 0 }, warnings: [] }, c.hash);
-      assert.deepEqual(parseLocationHash(hash), { p: c.p, index: 0 }, c.hash);
     } else {
       assert.ok(!result.ok, c.hash);
       assert.equal(result.issues[0].code, c.code === 'index' ? 'invalid-index' : 'invalid-hash', c.hash);
-      assert.equal(parseLocationHash(hash), null, c.hash);
     }
   }
   assert.ok(checked >= 30, `${checked} p-bearing cases`);
@@ -53,14 +51,13 @@ test('p is the only route: any other hash has no puzzle data, and p with another
   for (const other of ['', '#', '#P=C', '#pack=1j.abc', '#lib=0123456789abcdef', '#pp=1', '#xp=1', '#a=p=1']) {
     assert.equal(isPuzzleHash(other), false, other);
     assert.equal(/** @type {any} */ (parseLocationHashResult(other)).issues[0].code, 'no-incoming', other);
-    assert.equal(parseLocationHash(other), null, other);
   }
   assert.equal(/** @type {any} */ (parseLocationHashResult('#i=0')).issues[0].code, 'no-incoming');
   assert.equal(/** @type {any} */ (parseLocationHashResult(/** @type {any} */ (null))).issues[0].code, 'invalid-hash');
   for (const mixed of ['#p=C&pack=1j.abc', '#pack=1j.abc&p=C', '#p=C&lib=0123456789abcdef', '#lib=0123456789abcdef&p=C']) {
     assert.equal(/** @type {any} */ (parseLocationHashResult(mixed)).issues[0].code, 'invalid-hash', mixed);
   }
-  assert.deepEqual(parseLocationHash(`#p=${GOLDEN_CODE}&i=0`), { p: GOLDEN_CODE, index: 0 });
+  assert.deepEqual(parseLocationHashResult(`#p=${GOLDEN_CODE}&i=0`), { ok: true, value: { p: GOLDEN_CODE, index: 0 }, warnings: [] });
   assert.equal(/** @type {any} */ (parseLocationHashResult(`#p=${GOLDEN_CODE}&i=1`)).issues[0].code, 'invalid-index');
   assert.equal(/** @type {any} */ (parseLocationHashResult(`#p=${GOLDEN_CODE}&i=-1`)).issues[0].code, 'invalid-hash');
   assert.equal(/** @type {any} */ (parseLocationHashResult(`#p=${GOLDEN_CODE}&i=x`)).issues[0].code, 'invalid-hash');
@@ -80,7 +77,7 @@ test('puzzleCodeUrl puts the canonical code after the selected Player target and
   assert.equal(puzzleCodeUrl('file:///Q:/git/pentomino/player/index.html', 'abc'), 'file:///Q:/git/pentomino/player/index.html#p=ABC');
   assert.ok(!puzzleCodeUrl(target, GOLDEN_CODE).includes('&'), 'no i key');
   const link = puzzleCodeUrl(target, GOLDEN_CODE);
-  assert.deepEqual(parseLocationHash(new URL(link).hash), { p: GOLDEN_CODE, index: 0 }, 'it is a route the Player reads back');
+  assert.deepEqual(parseLocationHashResult(new URL(link).hash), { ok: true, value: { p: GOLDEN_CODE, index: 0 }, warnings: [] }, 'it is a route the Player reads back');
 });
 
 test('puzzleListHash and puzzleListUrl join the canonical codes with ";" and add i only for a later puzzle', () => {
@@ -93,7 +90,7 @@ test('puzzleListHash and puzzleListUrl join the canonical codes with ";" and add
   assert.equal(puzzleListUrl('http://localhost:8080/generator/', [a]), `http://localhost:8080/player/#p=${a}`, 'one puzzle: the plain one-puzzle address');
   assert.equal(puzzleListUrl(new URL(base), [a], 0), `https://tdat00.github.io/pentomino/player/#p=${a}`);
   const link = puzzleListUrl(base, [a, '1D0K492H'], 1);
-  assert.deepEqual(parseLocationHash(new URL(link).hash), { p: `${a};1D0K492H`, index: 1 }, 'the Player reads it back');
+  assert.deepEqual(parseLocationHashResult(new URL(link).hash), { ok: true, value: { p: `${a};1D0K492H`, index: 1 }, warnings: [] }, 'the Player reads it back');
   for (const call of [() => puzzleListUrl(base, []), () => puzzleListUrl(base, [a], 1), () => puzzleListUrl(base, [a, a], -1),
     () => puzzleListUrl(base, [a, a], 0.5), () => puzzleListHash([])]) {
     assert.throws(call, RangeError);

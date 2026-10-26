@@ -17,9 +17,8 @@ export function cardHeading(title, index) {
 }
 
 /**
- * The heading of a puzzle in the Player's language: the shared rule of `core/browser/puzzle-title.js` (an untitled
- * puzzle is "Puzzle #n"; a title that ends in a number or has more than 75 code points is shown as it is; any other
- * title gets " #n"). The printed sheet and the puzzle re-created from its code show the same heading.
+ * The shared heading rule of `core/browser/puzzle-title.js` in the Player's language, so the printed sheet and the
+ * puzzle re-created from its code show the same heading.
  * @param {string | undefined} title
  * @param {number} index Zero-based position in the pack.
  * @returns {string}

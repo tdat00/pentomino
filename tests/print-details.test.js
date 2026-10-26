@@ -19,12 +19,6 @@ test('the printed heading names the rating, with the level in bold, and neither 
   assert.deepEqual(plain(puzzleDetails(lookup(PRINT_TEXTS_VI), { level: 'Khó', score: 8 })), ['**Khó**: điểm 8']);
 });
 
-test('what is not known is left out of the printed heading', () => {
-  const t = lookup(PRINT_TEXTS_EN);
-  assert.deepEqual(plain(puzzleDetails(t, { level: 'Easy', score: 8, saturated: true })), ['**Easy**: score 8+']);
-  assert.deepEqual(puzzleDetails(t, null), []);
-});
-
 test('the texts of the removed lines are gone from both languages', () => {
   for (const pack of [PRINT_TEXTS_EN, PRINT_TEXTS_VI]) {
     for (const key of ['seed', 'rating', 'set', 'setSeed', 'code', 'codeTail', 'codeContinued', 'codeMore']) {

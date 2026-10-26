@@ -1,14 +1,10 @@
 // @ts-check
-// Local QR code for a printed puzzle link. A thin adapter over the pinned Nayuki encoder in ./vendor/qrcodegen.js:
-// it encodes the destination prefix as a byte segment and the canonical puzzle code as an alphanumeric segment,
-// requests error correction M (or L when the caller's oversize policy asks for it), never boosts it, and reports the
-// smallest fitting version with its physical size. The strings are opaque payloads: nothing here parses, repairs or
-// shortens a code, and nothing leaves the page. Pure: no DOM, storage, clipboard or network access.
+// Local QR code for a puzzle link: a thin adapter over the pinned Nayuki encoder (./vendor/qrcodegen.js). Codes are
+// opaque payloads, never parsed or shortened here; level M (or L on request) is never boosted. Pure: no DOM or network.
 
 import { qrcodegen } from './vendor/qrcodegen.js';
 
 /**
- * Requested error correction level: M by default, L only when the caller explicitly falls back to it.
  * @typedef {'M' | 'L'} QrEc
  */
 
@@ -247,10 +243,9 @@ export function makeListQr(input) {
 }
 
 /**
- * Checks that `rows` is a nonempty square matrix of 0/1 modules.
  * @param {unknown} rows
  * @returns {asserts rows is ReadonlyArray<ArrayLike<number>>}
- * @throws {RangeError}
+ * @throws {RangeError} Unless `rows` is a nonempty square matrix of 0/1 modules.
  */
 function assertSquareMatrix(rows) {
   const matrix = /** @type {ArrayLike<ArrayLike<unknown> | null>} */ (rows);

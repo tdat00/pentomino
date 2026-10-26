@@ -1,7 +1,7 @@
 // @ts-check
-// Shared difficulty score (`difficulty-v2`, design §7). The score combines the
-// number of pieces to place with the bounded canonical DLX effort until its
-// first solution. Only work counters enter the score: no clocks, no randomness.
+// Shared difficulty score (`difficulty-v2`, design §7): pieces to place plus the bounded
+// canonical DLX effort until the first solution. Only work counters enter the score: no
+// clocks, no randomness.
 
 import { isValidLayout, buildModel, solveFirst } from './tiling.js';
 import { levelForScore } from './levels.js';

@@ -508,7 +508,7 @@ const DETAIL_PITCH_MM = 5.5;
 const NO_CODE_AFTER_DETAIL_MM = 6;
 /** Room reserved under a line's baseline. */
 const LINE_BOTTOM_MM = 2;
-/** QR box: its top-right corner is the corner of the content area; the text column keeps 6 mm clear of it. */
+/** QR box: at the top-left corner of the content area; the text column keeps 6 mm clear of it. */
 const QR_COLUMN_GAP_MM = 6;
 const QR_SCAN_BASELINE_MM = 4.5;
 const QR_COLUMN_END_MM = 7;

@@ -120,7 +120,7 @@
   display: none;
 }
 
-/* The puzzle code of the printout: what is prepared, where the QR leads, and what had to be left out. */
+/* The status of the code preparation and what had to be left out. */
 .pm-print-code-box {
   display: grid;
   gap: 0.5rem;
@@ -174,7 +174,7 @@
   margin-top: 1rem;
 }
 
-/* With a list of puzzles the dialog has two columns: the options, and the puzzles to print with how many go on a sheet. */
+/* With a list of puzzles the dialog has two columns: the options, and the puzzles to print. */
 .pm-print-dialog[data-layout="two"] {
   width: min(58rem, 96vw);
 }
@@ -208,7 +208,6 @@
   display: none;
 }
 
-/* The list of puzzles and the choice of puzzles per page look like the Print dialog of the sudoku generator. */
 .pm-print-field.pm-print-puzzles {
   display: flex;
   flex: 1 1 auto;

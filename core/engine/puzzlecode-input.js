@@ -1,8 +1,7 @@
 // @ts-check
-// Single-puzzle code input handling: the `#p=` hash parser and the two input
-// normalizers. Structural text work only: no catalogue, no compression, no
-// codec implementation and no browser side effect, so every host can import it
-// cheaply. The typed error class of the whole puzzle-code family lives here.
+// Puzzle-code input handling: the `#p=` hash parser and the input normalizers, plus the
+// family's typed error class. Structural text work only (no codec, no browser side
+// effects), so every host can import it cheaply.
 
 /** Crockford-style base32 alphabet; `I`, `L`, `O` and `U` are not symbols. */
 export const ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
@@ -63,10 +62,9 @@ export class PuzzleCodeError extends Error {
 }
 
 /**
- * Structural extraction of the `p` route: no puzzle is decoded and no catalogue
- * is built. The value is URI-decoded exactly once and returned unnormalized. It
- * may hold several puzzle codes separated by `;`; `index` is then the puzzle to
- * open (`i`), which must name one of them. For one code `i` can only be 0.
+ * Structural extraction of the `p` route; nothing is decoded. The value is
+ * URI-decoded exactly once and returned unnormalized. It may hold several codes
+ * separated by `;`; `index` (`i`) then names the one to open, else it must be 0.
  * @param {string} hash With or without `#`, or a whole pasted link.
  * @returns {{ ok: true, value: { p: string, index: number } }
  *   | { ok: false, code: 'index' | 'invalid', message: string }}
@@ -100,7 +98,7 @@ export function parsePuzzleHash(hash) {
     return fail('invalid', 'The address mixes a puzzle code with a pack or library reference.');
   }
   const rawIndex = found.get('i');
-  /** Raw `p` that can carry several codes: a literal `;` or an encoded one, which decodes to `;` only after the index is judged. */
+  /** A literal `;` or an encoded one, which decodes to `;` only after the index is judged. */
   const mayBeList = /;|%3b/i.test(rawP);
   let index = 0;
   if (rawIndex !== undefined && rawIndex !== '0') {
@@ -131,8 +129,7 @@ export function parsePuzzleHash(hash) {
 export const MAX_PUZZLE_CODES = 100;
 
 /**
- * The codes of a `p` value: puzzle codes separated by `;`, in order. Spaces around a code and empty pieces (a trailing
- * `;`) are dropped. Nothing is normalized or checked here.
+ * Codes of a `p` value separated by `;`, trimmed, empty pieces dropped; not normalized.
  * @param {string} value
  * @returns {string[]}
  */
@@ -150,7 +147,7 @@ export function isPuzzleCodeList(value) {
 }
 
 /**
- * Whether the address carries several puzzles: a `p` key whose value has a `;`. Structural only; a malformed address is not a list.
+ * Structural only; a malformed address is not a list.
  * @param {string} hash With or without `#`.
  * @returns {boolean}
  */
@@ -249,10 +246,8 @@ export function normalizePuzzleCodeValue(value) {
 }
 
 /**
- * Normalizes typed, pasted or scanned text: a link (text containing `#`) goes
- * through `parsePuzzleHash` and its decoded `p` value; anything else is a bare
- * code. The result is only characters and at most one dot; its content is
- * checked later by the decoder.
+ * A link (text containing `#`) goes through `parsePuzzleHash`; anything else
+ * is a bare code. Content is checked later by the decoder.
  * @param {string} text
  * @returns {string}
  * @throws {PuzzleCodeError} `empty`, `bad-char`, `dots`, `too-long`, `index` or `invalid`.
@@ -276,8 +271,7 @@ export function normalizePuzzleCodeInput(text) {
 }
 
 /**
- * Like `normalizePuzzleCodeInput`, for text that may carry several puzzles: a link's decoded `p` value or a bare text,
- * its codes separated by `;`.
+ * `normalizePuzzleCodeInput` for text that may carry several `;`-separated puzzles.
  * @param {string} text
  * @returns {{ codes: string[], index: number }} The normalized codes and the puzzle to open (0 for a bare text).
  * @throws {PuzzleCodeError} As `normalizePuzzleCodeInput`, and `index` when the link's puzzle number names no code.

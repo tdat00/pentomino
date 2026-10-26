@@ -24,7 +24,7 @@ import { blockedCell, createDefs, drawPiece, nextViewId, pathData, svgEl, SVG_NS
 /**
  * @typedef {object} PrintHeading
  * @property {string} title Puzzle name, e.g. "Puzzle #3"; the plan was made for this same title.
- * @property {PrintLine[]} details Rating and set, already in the reader's language (`puzzleDetails`).
+ * @property {PrintLine[]} details The rating, already in the reader's language (`puzzleDetails`).
  */
 
 const FONT = 'system-ui, sans-serif';

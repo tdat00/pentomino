@@ -1,11 +1,7 @@
 // @ts-check
-// Single-puzzle code (version 1): frames one puzzle as a typed, checked core
-// and an optional checked tail with the stored answer. A core alone is a valid,
-// playable puzzle; a tail is only ever an addition. The payload grammar and the
-// frozen tables are in `puzzlecode-v1.js`, the input handling in
-// `puzzlecode-input.js`. Compression uses the native streams of the host;
-// nothing here touches the DOM, storage, clock or network, and nothing heavy is
-// built on import. A one-substitution correction is only ever a candidate: the
+// Single-puzzle code (version 1): a typed, checked core (a playable puzzle on its own) and an
+// optional checked tail with the stored answer. Payload grammar is in `puzzlecode-v1.js`, input
+// handling in `puzzlecode-input.js`. A one-substitution correction is only ever a candidate: the
 // engine never applies it and never opens a puzzle by itself.
 
 import { boardFromRows } from './board.js';

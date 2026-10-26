@@ -385,8 +385,7 @@ export function withBoard(state, board, rotation = state.rotation) {
 
 /**
  * @param {GeneratorState} state
- * @returns {GeneratorState} The state with the set on show made for `state.board`: the set of another board is saved
- *   under its own board and the newest readable set of this board comes instead, or none.
+ * @returns {GeneratorState} The state with the set on show made for `state.board` (see `withBoard`).
  */
 function fitSet(state) {
   const shown = state.set;
@@ -860,13 +859,16 @@ export function savedSetOf(state) {
     // The batch seed of each puzzle is stored in the puzzle itself; `puzzleSeeds` is rebuilt from it on reading.
     const seeds = seedsOfPuzzles(state.puzzleSeeds, state.puzzles);
     const puzzles = state.puzzles.map((p) => (seeds[p.id] === undefined ? p : { ...p, seed: seeds[p.id] }));
+    // Null claims are left out; the pack reader restores a missing one as null.
+    const stored = puzzles.length === 0 ? [] : packOf(state.set, state.rotation, puzzles).puzzles
+      .map((p) => /** @type {Pack['puzzles'][number]} */ (Object.fromEntries(Object.entries(p).filter(([, value]) => value !== null))));
     return {
       setPack: packOf(state.set, state.rotation, []),
-      puzzles: puzzles.length === 0 ? [] : packOf(state.set, state.rotation, puzzles).puzzles,
+      puzzles: stored,
       setSeed: state.setSeed,
       batchIndex: state.batchIndex,
       history: { layouts: [...state.seenLayouts], clues: [...state.seenClues] },
-      calibrationFor: state.calibrationFor,
+      ...(state.calibrationFor === null ? {} : { calibrationFor: state.calibrationFor }),
     };
   } catch {
     return null;
@@ -1550,8 +1552,7 @@ export function setTimelineLength(state) {
 
 /**
  * @param {GeneratorState} state
- * @returns {{ index: number, total: number }} Where the set on show sits in the list of the board, newest first
- *   (`index` -1 when it was made for another board), and the size of that list.
+ * @returns {{ index: number, total: number }} As in `setView`.
  */
 export function setViewPosition(state) {
   const { index, total } = setView(state);

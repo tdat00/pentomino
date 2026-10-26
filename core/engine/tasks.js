@@ -1,10 +1,7 @@
 // @ts-check
-// Shared task dispatch (design §8.1-§8.5). `executeTask` is the one entry point every host uses: the browser
-// module worker and the Node worker adapter both call it, so there is no second protocol or second solver.
-// The solver and generation tasks return synchronously; the two puzzle-code tasks return a Promise, because
-// native compression is asynchronous. `createTaskHandler` wraps it with the worker-side message loop:
-// validation, per-worker workspaces with immediate byte accounting, progress and error conversion, and one
-// reply per task after its Promise has settled. Nothing here reads a clock, storage or the DOM.
+// Shared task dispatch (design §8.1-§8.5). `executeTask` is the one entry point of every host (browser
+// worker and Node adapter), so there is no second protocol or solver; `createTaskHandler` adds the
+// worker-side message loop. Nothing here reads a clock, storage or the DOM.
 
 import { boardFromRows } from './board.js';
 import { certify } from './clues.js';
@@ -77,9 +74,8 @@ function hydrateSet(s) {
 }
 
 /**
- * Proof status of every puzzle of a validated pack. A stored solution is a
- * validated exact cover, so it proves existence in O(cells) and nothing is
- * searched; otherwise at most `verifyRows` row trials, and `unsatisfiable`
+ * A stored solution is a validated exact cover, so it proves existence without
+ * a search; otherwise at most `verifyRows` row trials, and `unsatisfiable`
  * only when the search was exhausted with zero solutions.
  * @param {unknown} input
  * @param {EngineExecution} execution
@@ -126,9 +122,9 @@ function verifyPack(input, execution) {
 }
 
 /**
- * Counts the distinct arrangements of a piece set against the layout keys already used, within the
- * ENUMERATION limits (owner decision 2026-10-23). It needs no workspace; a limit is "unproven". With
- * `collect` it also returns the unused arrangements it met, sorted by key, for the completion pass.
+ * Counts the distinct arrangements of a piece set against the used layout keys within the
+ * ENUMERATION limits; a hit limit is "unproven". With `collect` it also returns the unused
+ * arrangements it met, sorted by key, for the completion pass.
  * @param {{ boardRows: string[], pieces: import('./types.js').Piece[], seenLayouts: string[], collect?: number }} p
  * @returns {{ status: 'exhausted' | 'more' | 'unproven', total: number, placements: number, nodes: number,
  *   solutions: number, why?: string, layouts?: { key: string, layout: import('./types.js').Pose[] }[], complete?: boolean }}
@@ -145,11 +141,9 @@ function enumerateArrangements(p) {
 
 /**
  * Runs one task with the caller's workspaces. The payload is validated again here, so a malformed payload never
- * reaches engine code even when a host skips the message layer. Results are the exact engine results (plain data
- * and typed arrays, safe to structured-clone). The solver and generation kinds return their result synchronously;
- * `encodePuzzleCode` and `decodePuzzleCode` return a Promise of it, so a caller that handles every kind awaits
- * the value (`createTaskHandler` does). Throws `TaskError`, `ModelError`, `GenerationError`, `UnsatisfiableError`
- * or a RangeError for arguments the engine itself rejects; a code task rejects with `PuzzleCodeError`.
+ * reaches engine code even when a host skips the message layer. The code tasks return a Promise (native
+ * compression is asynchronous); the others return synchronously. Throws `TaskError`, `ModelError`,
+ * `GenerationError`, `UnsatisfiableError` or RangeError; a code task rejects with `PuzzleCodeError`.
  * @param {TaskKind} kind
  * @param {object} payload
  * @param {EngineExecution} execution
@@ -299,15 +293,10 @@ function metered(ws, changed) {
 const isThenable = (value) => typeof value === 'object' && value !== null && typeof /** @type {{ then?: unknown }} */ (value).then === 'function';
 
 /**
- * Worker-side message handler: one per worker, owning that worker's main and
- * scratch workspaces. `handle` validates a message, runs the task and posts
- * progress/result/error replies through `post`. A solver task is answered
- * before `handle` returns. A task that returns a Promise (the puzzle-code
- * tasks) keeps owning the worker until it settles: exactly one result or
- * error reply is posted after that, memory progress still belongs to it, and
- * a message that arrives meanwhile waits its turn. A Promise is never posted.
- * Memory progress carries the sum of both workspaces' high-water bytes.
- * `execute` replaces `executeTask` (a test seam for deferred tasks).
+ * Worker-side message handler owning one worker's main and scratch workspaces. A task returning a
+ * Promise (the code tasks) keeps owning the worker until it settles: exactly one reply follows, and
+ * messages arriving meanwhile are queued. A Promise is never posted. Memory progress reports the sum
+ * of both workspaces' high-water bytes. `execute` is a test seam replacing `executeTask`.
  * @param {{ post: (reply: Reply) => void, mainBytes?: number, scratchBytes?: number, execute?: typeof executeTask }} options
  * @returns {{ handle: (message: unknown) => void, main: Workspace, scratch: Workspace, bytes: () => number }}
  */

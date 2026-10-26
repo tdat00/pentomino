@@ -1,16 +1,12 @@
 // @ts-check
-// Canonical placement planning for the exact-cover model: validates clues,
-// fixes the column order and enumerates every legal piece placement in the one
-// canonical row order. Counting and filling walk the same enumeration, so row
-// and nonzero counts always equal what a fill writes. Pure and dependency-free
-// apart from T03 geometry; no per-row objects are ever created.
+// Canonical placement planning for the exact-cover model. Counting and filling walk the
+// same enumeration, so row and nonzero counts always equal what a fill writes. Pure; no
+// per-row objects.
 //
-// Column order: free board cells in (y, x) order, then the free pieces sorted
-// by (size, numeric canonical shape tuple, id). Row order: by piece column,
-// then by the sorted absolute cell tuple. Because cell columns ascend in (y, x),
-// that equals "first occupied cell in (y, x) order, then the orientation's
-// offsets relative to that cell, compared numerically", which is how the walk
-// enumerates, so no sort (and no sort scratch memory) is needed.
+// Column order: free cells in (y, x) order, then free pieces by (size, canonical shape, id).
+// Row order: by piece column, then by the sorted absolute cells. As cell columns ascend in
+// (y, x), that equals "first cell in (y, x), then the orientation's relative offsets", which
+// is how the walk enumerates, so no sort is needed.
 
 import { distinctOrientations, normalizeCells, poseCells } from './geometry.js';
 
@@ -47,7 +43,7 @@ import { distinctOrientations, normalizeCells, poseCells } from './geometry.js';
  * @property {PlanOrientation[][]} orientations Per free piece, sorted by relative offsets.
  */
 
-/** Hard model limits shared with `workspace.js` and the T07 model builder. */
+/** Hard model limits, shared with `workspace.js` and `tiling.js`. */
 export const MAX_ROWS = 600000;
 export const MAX_NONZEROS = 5000000;
 const MAX_CELLS = 1 << 16;
@@ -88,7 +84,7 @@ function compareShapes(a, b) {
 }
 
 /**
- * Numeric canonical shape: the smallest normalized orientation.
+ * Smallest normalized orientation.
  * @param {XY[]} cells
  * @returns {XY[]}
  */
@@ -121,9 +117,7 @@ function checkBoard(board) {
 }
 
 /**
- * Validates the input and builds the canonical plan. Clue problems (unknown or
- * repeated pieces, blocked or out-of-range cells, overlaps) are rejected here,
- * before any large buffer exists.
+ * Clue problems are rejected here, before any large buffer exists.
  * @param {Board} board
  * @param {Piece[]} pieces
  * @param {Pose[]} clues

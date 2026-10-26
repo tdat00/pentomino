@@ -20,8 +20,11 @@ import { PIECE_SET_MESSAGE, readIncoming, readPack } from '../core/browser/hando
 import { puzzleDetails } from '../core/browser/print-dialog.js';
 import { PAGE_MARGIN, PAGE_WIDTH, PREVIEW_BOTTOM, estimateTextWidth, planPrint } from '../core/browser/print-layout.js';
 import {
-  PUBLIC_PLAYER_URL, PuzzleShareError, isSameSnapshot, preparePuzzleShare, puzzlePlayerTarget, puzzleSnapshot,
+  PUBLIC_PLAYER_URL, PuzzleShareError, preparePuzzleShare, puzzlePlayerTarget, puzzleSnapshot,
 } from '../core/browser/puzzle-snapshot.js';
+/** Same code and same printed heading. @param {{ key: string, heading: string } | null} a @param {{ key: string, heading: string } | null} b */
+const isSameSnapshot = (a, b) => a !== null && b !== null && a.key === b.key && a.heading === b.heading;
+
 import { MAX_NUMBERED_TITLE_CODE_POINTS, puzzleCodeTitle, puzzleDisplayName } from '../core/browser/puzzle-title.js';
 import { makePuzzleQr, qrGeometry, qrRowRunPath } from '../core/browser/qr.js';
 import { createPool } from '../core/browser/worker-pool.js';
@@ -304,7 +307,7 @@ async function journey(label, pack, index, over = {}) {
   const scanned = scan(drawn);
   assert.ok(scanned !== null, `${label}: the QR decodes`);
   assert.equal(scanned.data, `${PUBLIC_PLAYER_URL}#p=${code.F}`, `${label}: the QR carries the complete URL, prefix case included`);
-  assert.equal(scanned.data, prepared.url, `${label}: and it is the address Copy link copies`);
+  assert.equal(scanned.data, prepared.url, `${label}: and it is the address Share copies`);
   assert.deepEqual(scanned.chunks.map((chunk) => chunk.type), ['byte', 'alphanumeric'], `${label}: byte prefix, alphanumeric code`);
 
   // The address opens the same puzzle (the scan), and so does the typed full code and the typed core alone.
@@ -551,7 +554,7 @@ test('BA12 BA13 BA14 BA15: typos are never applied silently, a bad tail opens no
   assert.ok(Object.isFrozen(first.data) && Object.isFrozen(first.data.clues), 'the snapshot is immutable');
 });
 
-test('BA16 BA22 BA25: print options change the layout, never the code; Print and Copy link share one prepared address; the stored answer adds no solution sheet', async () => {
+test('BA16 BA22 BA25: print options change the layout, never the code; Print and Share use one prepared address; the stored answer adds no solution sheet', async () => {
   const snapshot = puzzleSnapshot({ rows: sample.board.rows, pieces: sample.pieces, puzzle: sample.puzzles[0], index: 0, rotation: 0, untitled: english });
   const target = puzzlePlayerTarget('http://localhost:8708/pentomino/generator/');
   const asPrint = await preparePuzzleShare(snapshot, { target, client });
@@ -742,7 +745,7 @@ test('BA26 BA27: the shared heading rule — untitled later puzzles, 75/76/80 co
   }
 });
 
-test('BA28: #pack and #lib are no longer addresses; file imports still behave as before and never touch the puzzle-code service', async () => {
+test('BA28: #pack and #lib are no longer addresses; a pack file (the sample) still reads as before and never touches the puzzle-code service', async () => {
   const neverDecoded = { decodePuzzle: () => { throw new Error('the code service must not be used'); } };
   for (const hash of ['#pack=1z.AAAA&i=2', '#lib=0123456789abcdef&i=0']) {
     const result = await readIncoming({ hash }, neverDecoded);
@@ -776,7 +779,7 @@ test('BA29: a missing worker is an honest error — nothing is encoded or decode
   broken.dispose();
 });
 
-test('CLI parity: --code prints the very lines that Print and Copy link carry for the same puzzles', async () => {
+test('CLI parity: --code prints the very lines that Print and Share carry for the same puzzles', async () => {
   const lines = [];
   const errors = [];
   await emitGeneratedResult(sample, { code: true }, { stdout: (text) => lines.push(text), stderr: (text) => errors.push(text), writeText: () => { throw new Error('no output file was asked for'); } });

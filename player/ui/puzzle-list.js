@@ -173,7 +173,6 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
   function render(state) {
     const { pack } = state;
     const locale = getLocale();
-    // The open puzzle's status follows its live game, which the saved statuses lag behind.
     const openKey = state.game === null ? '' : `${state.game.placed.size}/${state.game.solved}/${state.game.revealed}`;
     if (drawn !== null && drawn.pack === pack && drawn.statuses === state.statuses && drawn.openKey === openKey
       && drawn.verification === state.verificationByPuzzle

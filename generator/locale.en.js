@@ -171,7 +171,7 @@ export default Object.freeze({
   // Import puzzle: the entry dialog is the Player's (its messages are the same)
   'import.button': 'Import puzzle',
   'import.title': 'Import puzzle',
-  'import.field': 'Puzzle link',
+  'import.field': 'Puzzle link or code',
   'import.hint': 'Paste a puzzle link copied from the Player, or its puzzle code. Spaces, line breaks and hyphens are ignored, and lower case works. The board, the piece set and the puzzle are re-created here.',
   'import.open': 'Import',
   'import.done.new-set': 'Imported: the board, the piece set and the puzzle were added as a new set.',

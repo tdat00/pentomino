@@ -1,8 +1,7 @@
 // @ts-check
-// Board model: active-cell masks, presets, region/exterior analysis, D4
-// symmetries and generation validation. Authored W x H coordinates are never
-// changed implicitly; analysis copies report their offsets. Pure and
-// dependency-free; presentation rotation is not part of board data.
+// Board model: active-cell masks, presets, region analysis, D4 symmetries and
+// generation validation. Pure; authored coordinates are never changed
+// implicitly (analysis copies report their offsets).
 
 import { TRANSFORMS } from './geometry.js';
 
@@ -30,7 +29,7 @@ export function activeCount(b) {
 }
 
 /**
- * Active cells in row-major order, as [x, y].
+ * Row-major order.
  * @param {Board} b
  * @returns {XY[]}
  */
@@ -354,8 +353,7 @@ export function normalizedActive(b) {
 }
 
 /**
- * Explicit edit: crops blocked margins. A board without active cells is
- * returned unchanged (as a copy).
+ * A board without active cells is returned as an unchanged copy.
  * @param {Board} b
  * @returns {Board}
  */

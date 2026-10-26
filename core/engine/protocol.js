@@ -1,8 +1,7 @@
 // @ts-check
-// Wire protocol between the controller and engine workers (design §8.1): task
-// and reply validators. Payloads are plain JSON-compatible DTOs; a message that
-// is not exactly what this module describes never reaches engine execution.
-// Validators return fresh normalized copies, never the caller's objects.
+// Wire protocol between the controller and engine workers (design §8.1): task and
+// reply validators. A message that is not exactly what this module describes never
+// reaches engine execution; validators return fresh normalized copies.
 
 import { MAX_SIDE } from './board.js';
 import { level } from './levels.js';

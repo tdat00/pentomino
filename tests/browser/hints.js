@@ -453,3 +453,4 @@ if (summary) {
   summary.textContent = `${results.length - failed.length}/${results.length} passed`;
 }
 document.documentElement.dataset.summary = JSON.stringify({ total: results.length, failed: failed.map((r) => `${r.name}: ${r.error}`.slice(0, 700)) });
+document.documentElement.dataset.result = failed.length === 0 && results.length > 0 ? 'pass' : 'fail';

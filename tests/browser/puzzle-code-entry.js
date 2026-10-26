@@ -410,7 +410,7 @@ const snapshotOf = (m) => {
 await check('nothing is built before the code is needed: no field, no worker and no catalogue on the page', async () => {
   const before = workers.spawned;
   const m = await mount();
-  equal(m.root.querySelectorAll('textarea').length, 0, 'no code field until the entry is opened');
+  equal(document.querySelectorAll('textarea.pm-code-field').length, 0, 'no code field until the entry is opened');
   equal(workers.spawned, before, 'no worker at mount');
   assert(catalogueStats.sizesBuilt === 0, 'the page never builds the catalogue');
   m.player.destroy();
@@ -927,9 +927,9 @@ await check('Vietnamese: the entry, the count, the offers and every message foll
   await submitText(m, DAMAGED_TAIL);
   equal([shown(m)?.error, m.q('dialog.pm-code [data-action="open-core"]').textContent], ['Phần lời giải (không bắt buộc) có lỗi nhập.', 'Mở đề không có phần lời giải'], 'tail');
   await submitText(m, `#p=${CODE}&i=1`);
-  equal(shown(m)?.error, 'Số đề "&i=…" trong liên kết không trùng với đề nào của liên kết; hãy sửa hoặc bỏ nó.', 'index');
+  equal(shown(m)?.error, 'Số đề "&i=…" trong liên kết không ứng với đề nào trong liên kết; hãy sửa hoặc bỏ nó.', 'index');
   await submitText(m, 'ab!c');
-  equal(shown(m)?.error, 'Mã có ký tự "!", ký tự này không có trong mã đề.', 'bad character');
+  equal(shown(m)?.error, 'Mã chứa ký tự "!", ký tự này không bao giờ có trong mã đề.', 'bad character');
   await submitText(m, VERSION3);
   equal(shown(m)?.error, 'Mã đề này cần phiên bản trình chơi mới hơn.', 'version');
   m.q('dialog.pm-code [data-action="code-cancel"]').click();

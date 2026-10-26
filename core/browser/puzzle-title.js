@@ -1,7 +1,6 @@
 // @ts-check
-// The one heading rule of a puzzle, shared by the Generator, the Player and the printed code: what a puzzle is called
-// on screen and on paper, and which title goes into its puzzle code so that the re-created puzzle shows the same
-// heading. Pure: no DOM, locale or storage; the localized "Puzzle #n" comes in as a callback, so it also loads in Node.
+// The one heading rule of a puzzle (Generator, Player, printed code): its name on screen and on paper, and the title
+// its puzzle code carries so the re-created puzzle shows the same heading. Pure, so it also loads in Node.
 
 /** A title of at most this many code points takes an automatic " #n"; with that suffix it still fits the 80 of a pack. */
 export const MAX_NUMBERED_TITLE_CODE_POINTS = 75;

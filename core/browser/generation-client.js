@@ -297,7 +297,6 @@ function wireSet(set) {
 }
 
 /**
- * Display callbacks never break a job.
  * @template T
  * @param {((value: T) => void) | undefined} fn
  * @param {T} value

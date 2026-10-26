@@ -94,9 +94,8 @@ export function describeCertificate(puzzle, o) {
 /**
  * @param {GeneratorState} state
  * @param {string | null} selectedId Id of the puzzle shown in the main panel.
- * @returns {import('../../core/browser/print-dialog.js').PrintJob | null} What Print makes of that puzzle: the accepted set,
- *   the selected puzzle and the view angle, the puzzle's displayed heading ("Hard #3", not the card's "Puzzle #3") and a
- *   snapshot of it for the code. Null without a set or a selected puzzle.
+ * @returns {import('../../core/browser/print-dialog.js').PrintJob | null} What Print makes of that puzzle, with its card
+ *   heading ("Puzzle #3") and a snapshot for the code. Null without a set or a selected puzzle.
  */
 export function printJobOf(state, selectedId) {
   const at = state.set === null || selectedId === null ? -1 : state.puzzles.findIndex((p) => p.id === selectedId);
@@ -125,9 +124,8 @@ export function printJobOf(state, selectedId) {
 /**
  * @param {GeneratorState} state
  * @param {string | null} selectedId Id of the puzzle shown in the main panel.
- * @returns {import('../../core/browser/print-dialog.js').PrintList | null} The puzzles of the list for the Print dialog
- *   to choose from, in the order of the cards (newest first; printed oldest first), the one on show first chosen. Null
- *   without a set.
+ * @returns {import('../../core/browser/print-dialog.js').PrintList | null} The puzzles for the Print dialog in card order
+ *   (newest first; printed oldest first), the one on show chosen first. Null without a set.
  */
 export function printListOf(state, selectedId) {
   if (state.set === null) {
@@ -177,7 +175,7 @@ export function mountPuzzlePanel(host, options) {
   const detailTitle = el('h3', { className: 'detail-title' });
   const detailSeed = el('span', { className: 'detail-seed' });
   const playButton = /** @type {HTMLButtonElement} */ (loc('detail.play', { className: 'primary', attrs: { type: 'button', 'data-action': 'play-puzzle' } }, 'button'));
-  // Shows the stored solution on the board; it goes back off when another puzzle is shown.
+  // It goes back off when another puzzle is shown.
   const solutionButton = /** @type {HTMLButtonElement} */ (loc('detail.showSolution', { className: 'solution-toggle', attrs: { type: 'button', 'data-action': 'show-solution', 'aria-pressed': 'false' } }, 'button'));
   let solutionShown = false;
   /** @type {string | null} */
@@ -228,7 +226,7 @@ export function mountPuzzlePanel(host, options) {
   cardsActionsHost?.append(removeAllButton);
   controlsHost?.append(controls);
 
-  /** @returns {import('../../core/browser/print-dialog.js').PrintJob | null} The puzzle shown in the main panel. */
+  /** @returns {import('../../core/browser/print-dialog.js').PrintJob | null} */
   function printJob() {
     return printJobOf(store.getState(), selectedId);
   }
@@ -276,7 +274,6 @@ export function mountPuzzlePanel(host, options) {
     const toPlace = el('p', { className: 'card-clues' });
     const cert = el('p', { className: 'badge card-cert' });
     const remove = /** @type {HTMLButtonElement} */ (el('button', { className: 'card-remove ghost-small', text: '✕', attrs: { type: 'button', 'data-action': 'remove' } }));
-    // The whole card body is one button that shows this puzzle in the main panel.
     const select = /** @type {HTMLButtonElement} */ (el('button', { className: 'card-select', attrs: { type: 'button', 'data-action': 'select', 'aria-pressed': 'false' } },
       el('div', { className: 'card-body' }, heading, rating, toPlace, cert), thumb));
     const item = /** @type {HTMLLIElement} */ (el('li', { className: 'puzzle-card', dataset: { puzzleId: id } }, select, remove));
@@ -538,7 +535,6 @@ export function mountPuzzlePanel(host, options) {
     solutionShown = !solutionShown;
     render(store.getState());
   });
-  // Zoom keeps to the view; Fit goes back to the default size; the arrows turn the board like step 1 does.
   listen(detailZoomOut, 'click', () => detailView?.setZoom(detailView.getState().cellPx / ZOOM_STEP));
   listen(detailZoomIn, 'click', () => detailView?.setZoom(detailView.getState().cellPx * ZOOM_STEP));
   listen(detailFit, 'click', () => {

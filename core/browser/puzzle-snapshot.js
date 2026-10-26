@@ -1,10 +1,7 @@
 // @ts-check
-// The one prepared description of a selected puzzle that Print and Copy link both use: an immutable snapshot of what
-// the puzzle code carries (board frame, piece identities, clues, stored answer, claims, view angle and the title the
-// code must hold), the Player address a printout or link opens, and the preparation of the code and its QR symbol with
-// the approved capacity ladder. Pure and Node-importable: nothing here touches the DOM, a worker, storage or the
-// locale; the code is made by an injected client (the worker-backed one in the browser) and the QR by the local
-// adapter.
+// The one prepared description of a selected puzzle that Print and Share both use: an immutable snapshot of what its
+// puzzle code carries, the Player address, and the code and QR made with the capacity ladder. Pure (no DOM, worker,
+// storage or locale): the code comes from an injected client, the QR from the local adapter.
 
 import { boardFromRows } from '../engine/board.js';
 import { createPack } from '../engine/pack.js';
@@ -67,7 +64,7 @@ import { makeListQr, makePuzzleQr } from './qr.js';
  * @property {readonly ShareNotice[]} notices In the order of the ladder.
  */
 
-/** Where a printout or link opens when the page has no usable address of its own (a constant next to the share logic). */
+/** Where a printout or link opens when the page has no usable address of its own. */
 export const PUBLIC_PLAYER_URL = 'https://tdat00.github.io/pentomino/player/';
 
 /**
@@ -240,15 +237,6 @@ export async function preparePuzzleListShare(snapshots, options) {
 }
 
 /**
- * @param {PuzzleSnapshot | null | undefined} a
- * @param {PuzzleSnapshot | null | undefined} b
- * @returns {boolean} Whether both describe the same code and the same printed heading.
- */
-export function isSameSnapshot(a, b) {
-  return a != null && b != null && a.key === b.key && a.heading === b.heading;
-}
-
-/**
  * The Player address a printout or link opens: the page's own Player (`../player/` of its address, right for GitHub
  * Pages, forks and a local page alike), so a printout and a link point at the page the user is on. Only a page that is
  * not http, https or file (no usable address) falls back to the configured public Player.
@@ -273,15 +261,12 @@ export function puzzlePlayerTarget(pageBase) {
 }
 
 /**
- * Prepares the code, the complete address and the QR symbol of a snapshot, following the approved capacity ladder:
- * the shortest encoding first; when the full code does not fit one QR symbol at level M, the optional tail is dropped
- * from both text and QR; when the core still does not fit, error correction L is used; when nothing fits, there is no
- * QR (the sheet then prints neither code nor QR) and the address carries the core only when it is within the URL
- * budget. Identity is never truncated, nothing leaves the page and no library fallback is invented.
+ * Prepares the code, the complete address and the QR symbol of a snapshot with the capacity ladder: the full code at
+ * QR level M, then without the optional tail (text and QR), then level L, then no QR (the sheet prints neither code
+ * nor QR, and the address carries the core only when within the URL budget). Identity is never truncated.
  *
- * The code is made by `client` (a worker in the browser); an encoder or worker failure rejects with a
- * `PuzzleShareError` and is never reported as an oversize puzzle. An abort of the client rejects as the client's own
- * abort error, for the caller to ignore when it has moved on.
+ * An encoder or worker failure rejects with a `PuzzleShareError`, never as an oversize puzzle; an abort of the client
+ * rejects with the client's own abort error, for the caller to ignore when it has moved on.
  * @param {PuzzleSnapshot} snapshot
  * @param {{ target: string, client: PuzzleCodeClientLike }} options
  * @returns {Promise<PreparedPuzzleShare>}

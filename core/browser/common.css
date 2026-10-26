@@ -196,10 +196,6 @@ button:disabled {
   background: #ffe08a;
 }
 
-.toast-error {
-  background: #9b1c1c;
-}
-
 .clipboard-buffer {
   position: fixed;
   left: -9999px;
@@ -345,6 +341,13 @@ button.pm-head-x svg {
   stroke-linecap: round;
 }
 
+@media (pointer: coarse) {
+  button.pm-head-x {
+    width: var(--pm-target);
+    height: var(--pm-target);
+  }
+}
+
 .pm-head .pm-head-title {
   margin: 0;
   font-size: 1.25rem;
@@ -444,7 +447,7 @@ button.pm-head-x svg {
 }
 
 .pm-dialog.pm-code .pm-btn {
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   padding: 0.25rem 1rem;
   border-radius: 0.625rem;
 }

@@ -594,7 +594,7 @@ button.ghost-small:disabled {
   gap: 0.375rem;
 }
 
-/* Undo, Redo, Hint, Replay, Straighten, Print and Copy link are as big as the generator's Play button. */
+/* Undo, Redo, Hint, Replay, Straighten, Share and Print are as big as the generator's Play button. */
 .game .game-actions > button,
 .game .step-actions > button {
   min-width: var(--pm-target);
@@ -1302,6 +1302,13 @@ button.ghost-small:disabled {
   resize: vertical;
 }
 
+/* It takes the focus when the clipboard refuses; under 16 px, touch browsers would zoom. */
+@media (pointer: coarse) {
+  .pm-share-field {
+    font-size: 1rem;
+  }
+}
+
 .pm-share-field:focus {
   border-color: var(--gen-color-accent, var(--pm-focus));
   outline: 2px solid var(--gen-color-accent-soft, #dfe8ff);
@@ -1423,7 +1430,7 @@ input.pm-share-switch:checked::after {
 }
 
 .pm-share-actions .pm-btn {
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   padding: 0.25rem 1rem;
   border-radius: 0.625rem;
 }

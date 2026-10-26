@@ -1,7 +1,6 @@
 // @ts-check
-// Player state: a small observable store and the DOM-free controller that opens puzzles from the address (or the
-// sample), replaces the open game atomically, keeps the address shareable, saves progress and checks solvability in
-// a worker. Browser services are injected, so the same code runs under Node tests and in the page.
+// Player state: the observable store and the DOM-free controller that opens puzzles from the address or the sample,
+// keeps the address shareable, saves progress and checks solvability in a worker. Browser services are injected.
 
 import { createGame, snapshot } from '../core/engine/game.js';
 import { progressFingerprint } from '../core/engine/keys.js';
@@ -185,12 +184,11 @@ export function hashWithIndex(hash, index) {
 const SAMPLE_PATH = './samples/sample-pack.json';
 const MAX_SAMPLE_CHARS = 600000;
 
-/** The route parser's failure names as the host loader reports them for a `#p=` address, and as the code entry names them. */
+/** Route parser failure names as the code entry names them. */
 const ENTRY_CODES = /** @type {Record<string, string>} */ ({ 'invalid-index': 'index', 'invalid-hash': 'invalid' });
 
 /**
- * The failure of a `#p=` address as the code entry presents it: `index` and `invalid` instead of the host's
- * `invalid-index` and `invalid-hash`. Every other issue, recovery and candidate is kept as it is.
+ * Renames the route parser's issue codes (see ENTRY_CODES); everything else is kept.
  * @param {CodeFailure} failure
  * @returns {CodeFailure}
  */
@@ -234,11 +232,10 @@ async function defaultFetchText(url) {
  * @property {PuzzleCodeClient} [puzzleCodeClient] A caller-owned client for `#p=` addresses and `loadPuzzleCode`; the
  *   controller cancels but never disposes it. Default: the controller's own client, created on first use.
  * @property {() => PuzzleCodeClient} [createPuzzleCodeClient] Factory of a controller-owned client (disposed by `destroy`).
- * @property {(failure: { text: string, failure: CodeFailure }) => void} [onPuzzleCodeFailure] Called when an address
- *   with a `#p=` key (`openHash`, `start`) cannot open a puzzle; `text` is the address as received. The failure
- *   (issues named as the code entry names them: `index`, `invalid`, `bad-char`, `core-check` ..., plus any
- *   `recovery` and `candidate`) changes no state, leaves the open game and its progress alone, and replaces the
- *   generic `error` of the store, which stays empty. Without it the failure is the store's `error`.
+ * @property {(failure: { text: string, failure: CodeFailure }) => void} [onPuzzleCodeFailure] Called when a `#p=`
+ *   address (`openHash`, `start`) cannot open a puzzle; `text` is the address as received. The failure (issues named as
+ *   the code entry names them) changes no state and leaves the store's `error` empty. Without this callback the failure
+ *   is the store's `error`.
  */
 
 /**
@@ -668,14 +665,10 @@ export function createPlayerController(options) {
     /** @param {string} hash */
     openHash: (hash) => load(() => readIncoming({ hash }, env), hashMeta(hash)),
     /**
-     * Opens a puzzle code the user typed, pasted or scanned (a bare or grouped code, or a link with `#p=`), decoded
-     * in the controller's dedicated worker; text with several codes separated by `;` opens them as one pack, at the
-     * puzzle the link's `i` names (the first for a bare text). Atomic: only a valid pack replaces the open game, through the
-     * same commit that restores saved progress for its fingerprint. On any failure (a typed `CodeFailure` with
-     * issues, a damaged tail's `recovery`, a correction `candidate`, `worker-unavailable`, `worker-error`, or
-     * `cancelled` when a newer load or `cancelPuzzleCodeLoad` replaced this one) the open pack, moves, timer,
-     * progress, address and `error` stay as they were; the caller shows the failure. With `commitAddress` the
-     * accepted normalized code(s) become the address `#p=<code>[;<code>…]`; otherwise the address is not touched.
+     * Opens a typed, pasted or scanned puzzle code or `#p=` link; several `;`-separated codes open as one pack, at the
+     * puzzle the link's `i` names. Atomic: on any failure (`cancelled` when a newer load or `cancelPuzzleCodeLoad`
+     * replaced this one) the open game, progress, address and `error` stay as they were; the caller shows the failure.
+     * With `commitAddress` the normalized codes become the address; otherwise it is not touched.
      * @param {string} text
      * @param {{ commitAddress?: boolean }} [loadOptions]
      * @returns {Promise<CodeResult<{ pack: Pack, index: number }>>}
@@ -720,9 +713,8 @@ export function createPlayerController(options) {
       return { ok: true, value: { pack: opened, index }, warnings: [] };
     },
     /**
-     * Stops the puzzle-code load in flight, if any. The controller's revision moves on first, so a reply that
-     * arrives late can no longer commit; then the dedicated client's operation is cancelled. Other loads, the
-     * verification pool and the Generator are not touched.
+     * Stops the puzzle-code load in flight, if any. The revision moves on first, so a reply that arrives late can no
+     * longer commit.
      */
     cancelPuzzleCodeLoad() {
       if (codeLoadToken !== null && codeLoadToken === loadToken) {

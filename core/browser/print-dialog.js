@@ -1,16 +1,10 @@
 // @ts-check
-// The Print dialog shared by the Generator and the Player. The pages are drawn into a hidden element of the page
-// (print.css shows only it while printing), so nothing leaves the browser. Texts are marked with `data-i18n`, so the
-// app's language switch refreshes them; `t` is the app's lookup.
+// The Print dialog shared by the Generator and the Player. Pages are drawn into a hidden element that print.css shows
+// only while printing, so nothing leaves the browser.
 //
-// The puzzle codes and the QR symbols are prepared before Print is ready: the dialog takes the snapshot of every puzzle
-// it prints when it opens, prepares their codes one after the other in a worker for that snapshot and Player address,
-// and only then enables Print. Size, piece, board, two-sided, solution and page choices lay the same prepared data out
-// again; a change of a puzzle, its angle or its printed heading, or of the puzzles chosen, starts a new preparation of
-// what is not prepared yet, and a late answer of an older one is ignored.
-//
-// With a list of puzzles the dialog has two columns: the options on the left and, on the right, the puzzles of the list
-// to choose from and how many of them go on a sheet.
+// Codes and QR symbols are prepared in a worker before Print is enabled. Layout choices only lay the prepared data out
+// again; a change of a puzzle, its angle, its heading or the puzzles chosen prepares what is missing, and a late answer
+// of an older preparation is ignored.
 
 import { el } from './dom.js';
 import { CELL_MM, PER_PAGE_CHOICES, PRINT_SIZES, planPrintMany } from './print-layout.js';
@@ -213,7 +207,7 @@ export function createPrintDialog({
   const cancel = /** @type {HTMLButtonElement} */ (el('button', { className: 'pm-btn', attrs: { type: 'button' }, dataset: { action: 'print-cancel', i18n: 'print.cancel' }, text: t('print.cancel') }));
   const confirm = /** @type {HTMLButtonElement} */ (el('button', { className: 'pm-btn primary', attrs: { type: 'button' }, dataset: { action: 'print-confirm', i18n: 'print.confirm' }, text: t('print.confirm') }));
 
-  // The second column: the puzzles of the list to choose from, and how many go on a sheet.
+  // The second column, shown for a list: the puzzles to choose from, and how many go on a sheet.
   const listEl = el('ul', { className: 'pm-print-list', dataset: { role: 'print-list' } });
   const countLine = el('span', { className: 'pm-print-count', attrs: { role: 'status' }, dataset: { role: 'print-count' } });
   const selectAll = /** @type {HTMLButtonElement} */ (el('button', {
@@ -231,7 +225,6 @@ export function createPrintDialog({
   const perPageRadios = PER_PAGE_CHOICES.map((n) => /** @type {HTMLInputElement} */ (el('input', {
     attrs: { type: 'radio', name: perPageName, value: String(n) }, dataset: { field: 'print-per-page' },
   })));
-  // A label and the choices as buttons in a row, the way the sudoku generator's Print dialog has them.
   const perPageField = el('div', { className: 'pm-print-per-page', dataset: { role: 'print-per-page' } },
     el('div', { className: 'pm-print-per-page-row' },
       el('span', { className: 'pm-print-label', attrs: { id: perPageLabelId }, dataset: { i18n: 'print.perPage' }, text: t('print.perPage') }),
@@ -240,7 +233,7 @@ export function createPrintDialog({
     loc('print.perPage.hint', 'small'));
   const side = el('div', { className: 'pm-print-side', attrs: { hidden: '' }, dataset: { role: 'print-side' } }, perPageField, puzzlesField);
 
-  // The puzzle codes and their QR: what is being prepared, where the QR leads, and what had to be left out.
+  // The status of the code preparation and what had to be left out.
   const codeStatus = el('p', { className: 'pm-print-code-status', dataset: { role: 'print-code-status' } });
   const codeNotes = el('ul', { className: 'pm-print-code-notes', dataset: { role: 'print-notices' } });
   const retry = /** @type {HTMLButtonElement} */ (el('button', {
@@ -490,7 +483,6 @@ export function createPrintDialog({
   }
 
   /**
-   * Shows what the codes need, in the dialog's own words.
    * @param {PrintJob[]} jobs
    */
   function renderCode(jobs) {
@@ -569,10 +561,7 @@ export function createPrintDialog({
     return JSON.stringify([list.current, list.items.map((item) => [item.id, item.title, item.detail]), jobsOf(list).map((job) => [shareKey(job), job.title, (job.solution ?? []).length])]);
   }
 
-  /**
-   * Writes the whole dialog again for the current puzzles: the preparation (started for what is not prepared), the list,
-   * the code section, the paper each size needs and the notes on the board.
-   */
+  /** Redraws the whole dialog for the current puzzles and starts preparing the codes still missing. */
   function update() {
     const list = listNow();
     multi = list.items.length > 1;

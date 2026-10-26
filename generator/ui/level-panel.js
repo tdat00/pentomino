@@ -1,7 +1,6 @@
 // @ts-check
 // Step 2 level table plus the set seed and Generate button (in `controlsHost` when given).
 // Ranges come from the policy APIs through `describeBoard`; no generation rule is restated here.
-// A seed the user types or rolls is reused; otherwise every Generate draws a fresh one.
 import { el } from '../../core/browser/dom.js';
 import { randomSeedText } from '../../core/engine/rng.js';
 import { getLocale, t } from '../i18n.js';

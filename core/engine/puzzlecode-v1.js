@@ -1,12 +1,8 @@
 // @ts-check
-// Frozen v1 data and the raw payload codec of the single-puzzle code: exact bit
-// I/O, Exp-Golomb, truncated binary, colex ranks, CRC-20, the free-polyomino
-// catalogue, the frozen identity and rating tables, the version-1 payload and
-// the solution-path tail. Everything here is synchronous and free of DOM,
-// storage, clock and network access. Nothing is built on import: the catalogue
-// grows lazily, one size at a time, on first use. The frozen tables are copies
-// by design: a later change to the live palette, level ladder or rating model
-// must never change how an old code decodes.
+// Frozen v1 data and raw payload codec of the single-puzzle code: bit I/O, Exp-Golomb, colex
+// ranks, CRC-20, the lazily built polyomino catalogue and the solution-path tail. Pure. The frozen
+// tables are copies by design: later changes to the live palette, levels or rating must not change
+// how an old code decodes.
 
 import { boardFromRows, boardToRows } from './board.js';
 import { distinctOrientations, orientedCells, poseCells } from './geometry.js';

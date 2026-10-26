@@ -459,7 +459,7 @@ await check('the real dialog prepares the code in the worker before Print is rea
   const first = win.pages[0];
   equal(typedCode(win.pages), share.code.F, 'the QR of the sheet carries the prepared code');
   assert(first.querySelector('text.pm-print-code, text.pm-print-code-label, text.pm-print-code-tail-label, text.pm-print-qr-host') === null, 'the sheet prints neither the code nor the address');
-  equal(first.querySelector('text.pm-print-qr-scan')?.textContent, 'Play Online', 'the QR is labelled');
+  equal(first.querySelector('text.pm-print-qr-scan')?.textContent, 'Play online', 'the QR is labelled');
   equal(first.querySelector('text.pm-print-sheet-title')?.textContent, 'Easy #1', 'the heading is the snapshot\'s');
   assert(!/seed/i.test(first.textContent ?? ''), 'the puzzle seed is not printed');
   const details = all(first, 'text.pm-print-detail').map((n) => n.textContent);

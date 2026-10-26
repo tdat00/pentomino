@@ -1,11 +1,8 @@
 // @ts-check
-// Browser client of the two puzzle-code worker tasks (`encodePuzzleCode`, `decodePuzzleCode`). Every codec run, and
-// the cold shape catalogue it may build, happens in a module worker of a dedicated one-worker pool that this client
-// creates on its first operation; nothing is decoded on the page's main thread and there is no hidden fallback when
-// workers are missing. The page only normalizes the typed text (structural, cheap) so that it knows the code a reply
-// belongs to. Results use the project's `{ ok, value, warnings }` shape; a failure carries typed issues and, where the
-// worker found them, a validated core-only recovery or a one-symbol correction candidate. Neither is ever applied or
-// opened here: the caller decides after the user confirms.
+// Browser client of the puzzle-code worker tasks (`encodePuzzleCode`, `decodePuzzleCode`), run in a dedicated
+// one-worker pool created on first use; nothing is decoded on the main thread and there is no fallback without
+// workers. A recovery or correction candidate in a failure is never applied here: the caller decides after the user
+// confirms.
 
 import { PuzzleCodeError, normalizePuzzleCodeInput } from '../engine/puzzlecode-input.js';
 import { createPool as createWorkerPool, isAbortError, PoolAbortError, PoolError, WorkerTaskError } from './worker-pool.js';
@@ -28,8 +25,7 @@ import { createPool as createWorkerPool, isAbortError, PoolAbortError, PoolError
  */
 
 /**
- * The valid core of a code whose tail is damaged: an ordinary pack without an answer. It is data, not a decision;
- * nothing opens it until the user chooses to.
+ * The valid core of a code whose tail is damaged: an ordinary pack without an answer, opened only if the user chooses.
  * @typedef {object} CoreRecovery
  * @property {'core-only'} kind
  * @property {'tail-check' | 'tail-tag' | 'tail-invalid'} code
@@ -133,7 +129,6 @@ function failure(code, params) {
 }
 
 /**
- * The typed failure of a codec error raised on the page (input normalization) or anywhere else.
  * @param {unknown} error
  * @returns {CodeFailure}
  */
@@ -274,8 +269,7 @@ function encodedResult(value) {
 }
 
 /**
- * A client with its own lazily created worker. No worker, pool or catalogue exists before the first operation. One
- * operation runs at a time: starting another supersedes the running one.
+ * A client with its own lazily created worker. One operation runs at a time: starting another supersedes it.
  * @param {{ pool?: PoolLike, createPool?: () => PoolLike }} [options] `pool`: a caller-owned pool, never closed
  *   here. `createPool`: factory of a pool this client owns and closes in `dispose` (default: one module worker).
  * @returns {PuzzleCodeClient}
@@ -289,7 +283,6 @@ export function createPuzzleCodeClient(options = {}) {
   let active = null;
 
   /**
-   * One logical operation: one pool request with one task.
    * @param {'encodePuzzleCode' | 'decodePuzzleCode'} kind
    * @param {object} payload
    * @param {string | null} normalized

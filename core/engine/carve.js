@@ -1,7 +1,6 @@
 // @ts-check
-// Piece-set carving (design §6.4–§6.5): quota-constrained flat carving, macro partitioning,
-// finalization into a PieceSet with a complete witness, and an independently written policy
-// validator. Pure; every random choice comes from the injected Rng and every limit is a
+// Piece-set carving (design §6.4–§6.5): flat and macro carving, finalization and policy
+// validation. Pure; randomness comes only from the injected Rng and every limit is a
 // deterministic call/try count.
 import { activeCount } from './board.js';
 import { canonicalKey, hasHole, isConnected, orientedCells, poseCells } from './geometry.js';
@@ -75,7 +74,7 @@ function cellOf(index, width) {
 }
 
 /**
- * Four-neighbour board indices of cell `i` written into `out`; returns how many.
+ * Writes the four-neighbour indices of `i` into `out`; returns how many.
  * @param {number} i
  * @param {number} width
  * @param {number} height
