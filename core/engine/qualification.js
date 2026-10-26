@@ -1,7 +1,7 @@
 // @ts-check
-// Browser-qualification gates (BQ-0..BQ-3, design §8.7). Administrative release state:
-// it only selects shipped limits and labels and is never a score or seed input.
-// Only the qualification task may change these values, and only with a linked report.
+// Browser-qualification gates (BQ-0..BQ-3, design §8.7): administrative release state that
+// only selects shipped limits and labels, never a score or seed input. Change a value only
+// with a linked report.
 
 /**
  * @typedef {object} QualificationEntry

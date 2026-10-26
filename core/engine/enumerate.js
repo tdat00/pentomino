@@ -1,11 +1,8 @@
 // @ts-check
-// Bounded exhaustive count of the distinct arrangements of a piece set on a board (owner
-// decision 2026-10-23): when a batch stops because no new arrangement was found, this proves
-// whether the piece set has any other arrangement. A first-empty-cell backtracking search is used
-// instead of the exact-cover model because the pieces of the sets that need it are large and
-// distinct: one DLX trial there costs about as much as the whole model (hundreds of thousands of
-// links), while a placement attempt here is a few dozen array reads. Canonical order, no RNG, no
-// clock; the limits are counted in search steps, so every host gives the same answer.
+// Bounded exhaustive count of the distinct arrangements of a piece set: proves whether a set has
+// another arrangement once a batch finds no new one. Backtracking instead of DLX because these sets
+// have large distinct pieces, where one DLX trial costs about as much as the whole model. Canonical
+// order, no RNG, no clock; limits count search steps, so every host gives the same answer.
 
 import { canonicalKey, distinctOrientations } from './geometry.js';
 import { layoutKey } from './keys.js';
@@ -29,14 +26,12 @@ import { layoutKey } from './keys.js';
  */
 
 /**
- * Enumerates the tilings of `board` by `pieces` and reports them against `known`, the strict layout
- * keys already used. The cell scan is row-major: the piece that covers the first empty cell has that
- * cell as its own first cell, so each candidate is one (piece, orientation) pair. Pieces of identical
- * shape are used in index order, which removes their interchangeable permutations. After every
- * placement each empty region next to it must be at least as large as the smallest unused piece.
- * The search stops at the first arrangement outside `known`, unless `limits.collect` asks for up to that
- * many of them: the unused arrangements are then gathered (one layout per key) and returned sorted by key,
- * and the search stops when that many are held, a limit is reached or the space is exhausted.
+ * Enumerates the tilings of `board` by `pieces` against `known` (strict layout keys already used).
+ * Row-major cell scan: the piece covering the first empty cell has it as its own first cell, so each
+ * candidate is one (piece, orientation) pair. Identical shapes are used in index order to drop their
+ * permutations. After each placement every adjacent empty region must fit the smallest unused piece.
+ * Stops at the first arrangement outside `known`, unless `limits.collect` asks for up to that many:
+ * they are then gathered (one layout per key) and returned sorted by key.
  * @param {Board} board
  * @param {Piece[]} pieces
  * @param {ReadonlySet<string>} known

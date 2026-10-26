@@ -1,6 +1,6 @@
 // @ts-check
-// Module worker entry: engine modules only. Every task runs synchronously through the shared task handler; there is
-// no cooperative slicing and no SharedArrayBuffer.
+// Module worker entry: engine modules only. Solver and generation tasks run synchronously through the shared task
+// handler (no slicing, no SharedArrayBuffer); puzzle-code tasks may await native compression before replying.
 
 import { createTaskHandler } from '../engine/tasks.js';
 

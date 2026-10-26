@@ -1,11 +1,7 @@
 // @ts-check
-// Proven hints and reveal (design section 11.13, D27). Every positive statement
-// comes with a complete layout that this module re-validates itself: a
-// compatible layout proves that one more piece can be placed, a layout that
-// exists after removing one placed piece proves a repair. An inconclusive or
-// capped search never blames or suggests anything. The search itself is injected
-// (`solve`), so the browser runs it in a worker through the `solveFirst` task and
-// tests run it with any independent oracle; nothing here searches.
+// Proven hints and reveal (design section 11.13, D27). Every positive result comes with a
+// complete layout re-validated here; an inconclusive search never blames or suggests anything.
+// The search is injected (`solve`); nothing here searches.
 
 import { poseCells } from './geometry.js';
 import { BUDGETS } from './policy.js';
@@ -37,9 +33,8 @@ export const HINT_UNKNOWN_MESSAGE = 'No repair identified within this check.';
 export const HINT_ROW_LIMIT = BUDGETS.rateRows;
 
 /**
- * Cell indices of every pose, or null when a pose is malformed, names an
- * unknown or repeated piece, leaves the board, covers a blocked cell or overlaps
- * another pose. `cells` has one sorted array per piece.
+ * Sorted cell indices per piece, or null when a pose is malformed, repeated,
+ * off the board, on a blocked cell or overlapping.
  * @param {Board} board
  * @param {readonly Piece[]} pieces
  * @param {readonly Pose[]} poses
@@ -268,9 +263,8 @@ export async function findCompatibleLayout({ board, pieces, fixed, solution, sol
  */
 
 /**
- * The hint of the design: a proven compatible placement, a proven repairing
- * removal or the honest unknown. A `solve` that throws (cancel, deadline) stops
- * the hint; the caller decides what that means.
+ * A proven compatible placement, a proven repairing removal or unknown. A
+ * throwing `solve` (cancel, deadline) propagates to the caller.
  * @param {HintRequest} request
  * @returns {Promise<HintResult>}
  */

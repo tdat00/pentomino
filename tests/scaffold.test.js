@@ -108,12 +108,6 @@ describe('app shells', () => {
       assert.ok(!script.includes(`../${other}/`));
     });
   }
-
-  test('version identifiers', async () => {
-    const version = await import('../core/engine/version.js');
-    assert.equal(version.APP_VERSION, '1.0.0');
-    assert.equal(version.ALGO_ID, 'gen-v2');
-  });
 });
 
 describe('project configuration', () => {

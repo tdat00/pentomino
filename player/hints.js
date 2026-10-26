@@ -1,7 +1,6 @@
 // @ts-check
-// Hint and reveal orchestration (design §11.13), DOM-free. One request at a time runs `solveFirst` in a worker; a
-// result is applied only while the position still matches the fingerprint taken when the request started. Moves go
-// through the play controller, so a hint placement or a reveal is one undoable game action.
+// Hint and reveal orchestration (design §11.13), DOM-free. A worker result is applied only while the position still
+// matches the fingerprint taken when the request started; moves go through the play controller, so each is undoable.
 
 import { canPlace } from '../core/engine/game.js';
 import { poseCells } from '../core/engine/geometry.js';

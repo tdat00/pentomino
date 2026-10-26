@@ -53,20 +53,24 @@ không bộ giải từ xa, không tải dữ liệu lên, không bước biên 
 
 | App | Live | Source | What it does |
 |---|---|---|---|
-| **Pentomino Generator** | [tdat00.github.io/pentomino/generator](https://tdat00.github.io/pentomino/generator/) | [generator/](generator/) | Draws a board, generates piece sets that provably tile it, makes puzzles from a set at ten levels, prints them and opens them in the Player |
-| **Pentomino Player** | [tdat00.github.io/pentomino/player](https://tdat00.github.io/pentomino/player/) | [player/](player/) | Plays a puzzle from its link: drag or tap to place pieces, undo / redo, proven hints, a timer, saved progress, printing |
+| **Pentomino Generator** | [tdat00.github.io/pentomino/generator](https://tdat00.github.io/pentomino/generator/) | [generator/](generator/) | Draws a board, generates piece sets that provably tile it, makes puzzles from a set at ten levels, prints them, imports a puzzle from its link or code and opens them in the Player |
+| **Pentomino Player** | [tdat00.github.io/pentomino/player](https://tdat00.github.io/pentomino/player/) | [player/](player/) | Plays a puzzle from its link: drag or tap to place pieces, undo / redo, proven hints, a timer, saved progress, printing, sharing a puzzle or the whole list as a link with a QR code |
 
 `/pentomino/` itself redirects to the Generator, carrying any query string and `#hash` across. Both apps are in English
 and Vietnamese, with light, dark and high-contrast themes, and work with mouse, touch and keyboard.
 
 **Play** in the Generator opens the Player in a new tab with a portable **hash link** that holds the puzzles of the
-list. When that link would be too long, the Generator falls back to a **same-browser** `#lib=` link, which only works in
-the browser that made it. Neither app imports or exports files: the Player's address always holds the open puzzle, so a
-bookmark keeps it and sending the address shares it.
+list as puzzle codes: `…/player/#p=<code>;<code>;…`, one code per puzzle, with `&i=<n>` when the puzzle to open is not
+the first. When that link would be too long (over 16,000 characters), only the puzzle to open goes (and the Generator
+says so). Neither app imports or exports files: the Player's address
+always holds the open puzzle, so a bookmark keeps it and sending the address shares it.
 
 > **Status.** The repository is built task by task, so a feature listed here may not be finished yet. Release acceptance
 > (browser matrix, performance gates) is tracked separately, and nothing below promises browser timings before that
-> qualification has been reported.
+> qualification has been reported. The automated acceptance of printing a puzzle code, reading it back and opening it
+> in the Player (`puzzle-code-acceptance.html` and `tests/puzzlecode-acceptance.test.js`) is not evidence of a printed
+> sheet: scanning a printed QR code with real Android and iPhone cameras, the 50 mm bar of a physical print at 100 % and
+> typing a printed code on a phone remain checks for the owner before a release.
 
 [Back to top](#top)
 
@@ -100,9 +104,9 @@ a piece set (otherwise step 1 says why), and step 3 once a piece set is on show.
    place, the solution status (*Checking…*, *Unique solution ✓*, *Multiple solutions*, *At least 1 solution*,
    *No solution exists* or *Uniqueness not checked*) and a preview. ✕ removes one puzzle and **Remove all** in the list
    header removes them all. The main screen shows the selected puzzle (the newest one until you click a card) with its
-   seed, its board and the pieces to place; **Play** opens it in the Player in a new tab, **Print** (the printer icon
-   right of Play) prints it, and **Show solution**, under the board at its right, draws its solution on the board until
-   pressed again (**Hide solution**).
+   seed, its board and the pieces to place; **Play** opens it in the Player in a new tab,    **Print** (the printer icon
+      right of Play) prints it, and **Show solution**, under the board at its right, draws its solution on the board until
+      pressed again (**Hide solution**).
 
 While a job runs, its button shows a spinner and *Elapsed: m:ss* appears under it; after 30 s the button turns into
 **Cancel**, and a cancelled batch keeps the puzzles already made. The outcome of the last action (a shortfall, a
@@ -113,6 +117,17 @@ The **EN | VI** switch in the header changes the language without reloading; the
 and `?lang=vi` or `?lang=en` in the address overrides it. The theme buttons next to it pick the light, dark or
 high-contrast theme; without a choice the page follows the system's light or dark setting. The Player has the same two
 switches, and both pages share the choices.
+
+**Import puzzle** (the header button left of the language switch) opens a dialog where you paste a puzzle link copied
+from the Player (**Share**), or its puzzle code, and press **Import**. The board (at the angle of the
+link), the piece set and the puzzle, with its stored solution and rating when the code carries them, are re-created: the
+board becomes the board of step 1 and the puzzle appears in step 3 in a new piece set (marked *Imported*, with a fresh
+seed). The set on show stays in the list of its board. A puzzle of the piece set that is already on show joins it, and
+a puzzle that is already in the list is not added twice. A link that cannot be read is explained in the dialog and
+changes nothing, as in the Player (a likely single typing mistake is offered as a correction). After an import, **New
+puzzle** works on the imported set: the set's solution comes from the link when it carries one, and is otherwise found in
+the background (if none is found, the button stays disabled with its reason). When the list of the
+board already holds 50 sets, or the puzzle list is full, nothing is imported and a message says so.
 
 - **Board.** Sizes are written **columns×rows**. The view may be turned in 45° steps; the turn is display-only and never
   changes the puzzle. The **Heart** preset is a square board whose top-right quarter is blocked, shown at 45°. Editing
@@ -137,10 +152,10 @@ switches, and both pages share the choices.
   sets for each of the last **10** boards used. With 50 sets, **New piece set** is disabled until a set is removed. A
   list holds at most **100** puzzles, and no more than fit one 512 KiB pack, because **Play** opens the whole list as
   one pack; when the list is full, **New puzzle** says so.
-- **Address.** The settings live in the address, so a reload or a shared link returns to them: `step`, `preset`, `angle`
-  (the view angle), `cells` (the board key `WxH:<base64url bits>`), `level`, `seed` and `unique=1`. A link with a `seed`
-  and step 2 or 3 shows the set made with that seed: the one saved in this browser, or the same set generated again.
-  Puzzles are not part of the address; use **Play** and share the Player's link.
+- **Address.** The address holds only the step (`?step=`; `?lang=` can pick the start language), so a reload returns to
+  the step; the settings are in this
+  browser's saved work. A `#p=` link (one code per puzzle, as **Play** makes it) in the address opens **Import puzzle**
+  and imports its puzzles. Puzzles are not part of the address otherwise; use **Play** and share the Player's link.
 - **Limits.** A board needs at least **30** playable squares in one connected region and sides of at most **32**. Boards
   launch at up to **484** playable squares on desktop and **360** on a phone; larger design sizes are enabled only after
   they have been qualified (the headless `tools\generate.mjs` accepts boards of up to **676**). Each generation action
@@ -153,17 +168,47 @@ switches, and both pages share the choices.
 
 ## Using the Player
 
-The page has the Generator's look: a header with the title, **Help**, the **EN | VI** switch and the theme buttons, and
-three panels. The **puzzles** of the open pack are on the left, the **game** (puzzle name and rating, timer and move
-count, Undo / Redo / Hint / Replay / Print and the board) in the middle, and the **pieces to place**, under the toolbar
+The page has the Generator's look: a header with the title, **Help**, the **EN | VI** switch and
+the theme buttons, and three panels. The **puzzles** of the open pack are on the left, the **game** (puzzle name and rating with Share and Print at its right, timer and move
+count, Undo / Redo / Hint / Replay and the board) in the middle, and the **pieces to place**, under the toolbar
 for the selected piece, on the right. The pieces panel has no scroll bar of its own: with many pieces the page scrolls.
 From 768 px to 1359 px the puzzles go under the game; below 768 px the panels stack.
 
 - **Opening a puzzle.** Follow a player link: the Generator's **Play**, or an address that was shared or bookmarked.
   Without a puzzle the page shows a start screen with **Try the sample** and a link to the Generator. A link with pieces
-  but no puzzle is explained, and a link that cannot be opened never replaces the puzzle you are playing. The address
+  but no puzzle is explained, and a link that cannot be opened never replaces the puzzle you are playing. A puzzle
+  also opens from its code link, `…/player/#p=<code>`, and several puzzles from `…/player/#p=<code1>;<code2>;…`
+  (optionally `&i=<n>`, the puzzle to open, counted from 0; they must share one board and piece set, and none may
+  repeat): each code is decoded in a background worker, no Generator and no saved copy is needed, your saved progress is
+  kept, and reloading reopens the same puzzles. With one code the address is never rewritten; with several it follows
+  the open puzzle (`&i=`). The address
   always holds the open pack and puzzle. A card in the puzzle list (name, level and score, pieces to place, uniqueness,
   progress, preview), newest on top, opens that puzzle; ✕ on a card removes it and **Remove all** empties the list.
+- **Entering a puzzle code.** There is no button for it: the **puzzle code** dialog opens by itself when a `#p=` address
+  (a link or a scanned QR code) cannot be opened, with the address as its text, and there you can fix the code. It holds
+  the code printed with a puzzle, or a whole puzzle link, or several codes separated by `;`. Spaces, line breaks and
+  hyphens are ignored,
+  lower case works, and O, I and L are read as 0, 1 and 1; the part after a dot is optional, and a code is at most
+  16,000 characters (32,768 typed or pasted, at most 100 codes). **Open puzzle** opens it, and the address becomes
+  `#p=<code>`. A code that
+  cannot be opened is explained in the dialog (for a list, with the number of the puzzle) and changes nothing: your text,
+  the open puzzle, its moves and the
+  address stay as they were. If a single mistyped character is the likely cause, the dialog shows where and which
+  character it may be; nothing is corrected until you press **Use this correction**. If only the part after the dot is
+  damaged, **Open without the solution part** opens the puzzle from the part before it (the solution is then searched
+  for in the background); both offers are made for one code only, not for a list. Saved moves for the puzzle come back
+  silently (also when you reload the page or scan a link to it); **Replay** starts again as printed.
+  **Cancel** or `Escape` closes the dialog.
+- **Sharing a puzzle.** **Share** (the icon left of **Print**, on the row of the puzzle title, at its right; the Player
+  only) opens a window with the link of the puzzle that is shown, `…/player/#p=<code>`, in a read-only field and its QR
+  code beside it to scan with a phone: the address that the QR code of the printout carries for it, with its stored
+  solution when it fits. With more than one puzzle in the list, **Share all puzzles in the list** makes one link for
+  the whole list, opening at the selected puzzle. **Copy link** copies it; "Copied" appears only after the browser has
+  taken the text, and if the browser refuses the clipboard the link is selected in the field to copy by hand. When the
+  link is too long for a QR code, the stored solutions are left out first, then the QR code uses lower error correction,
+  and only then is there no QR code (each step is noted); a link over 4,000 characters gets a warning, and one over
+  16,000 characters is not made. Different encoders can write different but equivalent code text for the same puzzle;
+  the puzzle it opens is the same.
 - **Claims and checks.** Ratings and uniqueness carried by the pack are shown as the pack states them, with the level in
   bold. A puzzle without a uniqueness result reads *At least 1 solution* once a solution is known. Solvability is
   checked in the background; play is never blocked, and *Solvability not verified* never means *No solution exists*.
@@ -202,17 +247,35 @@ From 768 px to 1359 px the puzzles go under the game; below 768 px the panels st
 
 ## Printing
 
-**Print** (a printer icon: right of **Play** in the Generator, right of **Replay** in the Player) opens a dialog that
+**Print** (a printer icon: right of **Play** in the Generator, at the right of the puzzle title in the Player) opens a dialog that
 prints the puzzle on A4 paper, to solve it offline with cut-out pieces.
 
-- The first sheet always shows the puzzle's name, its level, score and seed, and its piece set's level and seed (so both
-  can be made again), then a small preview of the puzzle with the pieces to place (to read, not to cut).
+- The first sheet has a **QR code** at the top left, captioned "Play online", and to its right the puzzle's name (the one
+  its card shows in the list: "Puzzle #n") with its level and score. Scan the
+  QR code to play the same puzzle again in the Player, with no seed. The sheet prints no code text, address or seed. Then
+  comes a small preview of the puzzle with the pieces to place (to read, not to cut).
+- **Several puzzles.** When the list has more than one puzzle, the dialog has two columns. The right one has **Puzzles
+  per page** (1, 2 or 4) and **Puzzles to print**: the puzzles of the list in the order of the panel (newest first), each
+  as "Puzzle #n · Level: score n", with **Select all** and **Select none**; the puzzle on show is chosen when the dialog
+  opens. The chosen puzzles are printed in numeric order, each with its own QR code, on the first sheets, 1, 2 (one above
+  the other) or 4 (two by two) to a sheet, with dashed lines to cut along; a QR code too large for a quarter of a sheet is
+  drawn smaller. The piece set and the board are printed once, whatever the number of puzzles.
+- **The QR code** is made on your device when the dialog opens (**Print** waits for "Preparing the puzzle code…"). When
+  the puzzle has a stored answer, it is carried in the code; that does not print a solution sheet. A code is never cut
+  short; in the rare case that it is too long for one QR code, the optional solution part is left out, then the QR code
+  uses lower error correction, and if even that is not possible the sheet says so and prints no QR code. The dialog says
+  each of these before printing.
+- **Where the QR code leads**: to the Player of the page you printed from, always (also on `localhost`, a network
+  address or a file); there is no option to change it. **Share** (see Using the Player) points at the same page
+  and carries the same code.
 - **Include piece set**: every piece of the set, the pre-placed ones too, ready to cut out.
 - **Include board**: the playable squares. A board too big for a sheet is split into parts; a numbered mark on each
   shared edge shows which part joins there.
 - **Print on both sides**: each piece and board part is mirrored on the back, so the cut-out matches on both sides
   (choose two-sided printing, flipped on the long edge).
-- **Print solution** (Generator only): the solved board on the sheet after the puzzle (with two sides, on its back).
+- **Print solution** (Generator only): the solved board after the puzzle (with two sides, on its back). With several
+  puzzles to a sheet, the solutions of the puzzles of that sheet share the next sheet, each behind its puzzle when
+  printing on both sides.
 - **Board size**: a table of Small, Medium and Large (cells of 10, 15 and 20 mm) and Fit to page, with the A4 sheets each
   needs. The pieces use the same cell size as the board, so they sit on it exactly.
 
@@ -223,13 +286,13 @@ Print at 100 % (actual size): the 50 mm bar on the first sheet shows whether the
 
 ## Storage and privacy
 
-- Everything stays in the browser: no upload, no remote solver, no analytics. A puzzle travels in the `#pack=` part of
-  its link, which the browser never sends to the server. Share links may omit the answer.
+- Everything stays in the browser: no upload, no remote solver, no analytics. A puzzle travels in the `#p=` part of
+  its link (one code per puzzle, separated by `;`), which the browser never sends to
+  the server. Share links may omit the answer.
 - Both apps use `localStorage` keys under `pentomino:v1:` only, and never touch other keys of the same origin:
   - Generator: its work (board, settings, piece sets and puzzles) in `gen:state`;
   - Player: the progress of each puzzle (`progress:<fingerprint>`, up to 300, save times in `progress-index`), the
-    Straighten choice (`prefs`), and a copy of a pack only for a same-browser `#lib=` link (`lib:index` and one
-    `lib:<packId>` per pack, the 30 most recently opened);
+    Straighten choice (`prefs`); no pack is stored, a pack lives in its link;
   - both: the language (`lang`) and the theme (`theme`).
 - Browser storage can be disabled, shared or full. On a quota error the oldest entries of this namespace are dropped
   once (the Generator first drops its oldest saved piece sets); if saving still fails, work continues in memory and the
@@ -264,12 +327,19 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
 
 - **Browser test pages** (not deployed): run `npm run serve` and open `http://localhost:8080/pentomino/tests/browser/`
   followed by `player-controls.html`, `player-load.html`, `hints.html`, `print.html`, `rendering.html`,
-  `generator-flow.html`, `generator-editor.html` or `acceptance.html`. Each writes a pass/fail list and `data-summary`
-  on `<html>`. Use a window narrower than 1360 px: some checks expect the one- or two-column layout.
+  `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`, `puzzle-code-entry.html`,
+  `puzzle-code-print.html`, `puzzle-code-cli-parity.html`, `puzzle-code-acceptance.html`, `puzzle-qr.html`,
+  `watchdog.html` or `acceptance.html`. Each writes a pass/fail list, and `data-summary` and `data-result` (`pass` or
+  `fail`) on `<html>`. Use a window narrower than 1360 px:
+  some checks expect the one- or two-column layout.
 - **Headless generation**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`. The
   pack goes to stdout (or `--output`), messages to stderr. Exit codes: `0` complete (including a set whose
   arrangements were all found and proven to be all); `2` a valid partial or cancelled pack; `1` no usable result or
-  invalid input.
+  invalid input. Add `--code` (a flag without a value, also allowed with `--recipe`) to print the puzzle code of every
+  accepted puzzle instead of the pack: one ungrouped, upper-case line per puzzle in pack order, the same code that Print
+  makes for that puzzle (see Printing). With `--output file` the pack is still written to the file; without it no
+  file is made. Progress and errors stay on stderr, and the exit codes and the generation itself do not change, for
+  example `node tools\generate.mjs --recipe tests\fixtures\generation-case.json --workers 1 --code --output pack.json`.
 - **Performance and calibration** (screening only; they never change a qualification gate):
   `node --max-old-space-size=2048 tools\calibrate.mjs --matrix tools\bench\matrices\smoke.json --workers 4 --fresh-process --output docs\calibration\node-smoke`,
   the score landscape (`--profile landscape`, hours, resumable), and the browser page
@@ -278,9 +348,9 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
 **Code layout.** Native ES modules with JSDoc types and `// @ts-check`, in four layers:
 
 ```text
-core/engine/    pure, deterministic logic: geometry, boards, tiling, generation, rating, packs (no DOM, clock or storage)
-core/browser/   rendering (SVG board), storage, i18n, themes, pointer handling, printing, the generation client
-core/workers/   the module worker that runs generation off the main thread, with cancel and deadline watchdogs
+core/engine/    pure, deterministic logic: geometry, boards, tiling, generation, rating, packs, puzzle codes (no DOM, clock or storage)
+core/browser/   rendering (SVG board), storage, i18n, themes, pointer handling, printing, the generation and puzzle-code clients
+core/workers/   the module worker that runs generation and puzzle codes off the main thread, with cancel and deadline watchdogs
 generator/      Pentomino Generator: page, state, jobs and UI
 player/         Pentomino Player: page, state, play, hints and UI
 tests/          Node unit tests (*.test.js) and browser test pages (tests/browser/)
@@ -341,6 +411,11 @@ records, unchanged. [AGENTS.md](AGENTS.md) says how AI agents should work here.
 
 Released under the [MIT License](LICENSE) © 2026 Dat Le.
 
+The repository also contains two third-party source files, neither an npm package, so the app still has no runtime
+dependencies: the [Nayuki QR Code generator library](https://www.nayuki.io/page/qr-code-generator-library) (MIT) in
+`core/browser/vendor/`, with its notice in `qrcodegen.LICENSE`; and, for tests only, jsQR 1.4.0 (Apache-2.0) in
+`tests/vendor/`, which is never part of the site.
+
 [Back to top](#top)
 
 ---
@@ -353,20 +428,23 @@ Released under the [MIT License](LICENSE) © 2026 Dat Le.
 
 | Ứng dụng | Trực tuyến | Mã nguồn | Làm gì |
 |---|---|---|---|
-| **Pentomino Generator** | [tdat00.github.io/pentomino/generator](https://tdat00.github.io/pentomino/generator/) | [generator/](generator/) | Vẽ bàn chơi, tạo các bộ mảnh được chứng minh là lấp kín bàn, tạo đề từ một bộ mảnh ở mười mức độ, in đề và mở đề trong trình chơi |
-| **Pentomino Player** | [tdat00.github.io/pentomino/player](https://tdat00.github.io/pentomino/player/) | [player/](player/) | Chơi một đề từ liên kết của nó: kéo thả hoặc chạm để đặt mảnh, hoàn tác / làm lại, gợi ý đã được chứng minh, đồng hồ, lưu tiến độ, in đề |
+| **Pentomino Generator** | [tdat00.github.io/pentomino/generator](https://tdat00.github.io/pentomino/generator/) | [generator/](generator/) | Vẽ bàn chơi, tạo các bộ mảnh được chứng minh là lấp kín bàn, tạo đề từ một bộ mảnh ở mười mức độ, in đề, nhập một đề từ liên kết hoặc mã của nó và mở đề trong trình chơi |
+| **Pentomino Player** | [tdat00.github.io/pentomino/player](https://tdat00.github.io/pentomino/player/) | [player/](player/) | Chơi một đề từ liên kết của nó: kéo thả hoặc chạm để đặt mảnh, hoàn tác / làm lại, gợi ý đã được chứng minh, đồng hồ, lưu tiến độ, in đề, chia sẻ một đề hoặc cả danh sách bằng liên kết kèm mã QR |
 
 Địa chỉ `/pentomino/` chuyển thẳng tới trình tạo đề, giữ nguyên chuỗi truy vấn và phần `#hash`. Cả hai ứng dụng có tiếng
 Anh và tiếng Việt, giao diện sáng, tối và tương phản cao, dùng được bằng chuột, cảm ứng và bàn phím.
 
-Nút **Chơi** của trình tạo đề mở trình chơi trong thẻ mới bằng một **liên kết hash** mang theo các đề của danh sách. Khi
-liên kết đó quá dài, trình tạo đề dùng liên kết `#lib=` **chỉ trong trình duyệt này**, chỉ mở được trong trình duyệt đã
-tạo ra nó. Không ứng dụng nào nhập hay xuất tệp: địa chỉ của trình chơi luôn chứa đề đang mở, nên lưu dấu trang là giữ
+Nút **Chơi** của trình tạo đề mở trình chơi trong thẻ mới bằng một **liên kết hash** mang theo các đề của danh sách dưới
+dạng mã đề: `…/player/#p=<mã>;<mã>;…`, mỗi đề một mã, kèm `&i=<n>` khi đề cần mở không phải đề đầu. Khi liên kết đó quá
+dài (hơn 16.000 ký tự), chỉ đề cần mở được gửi đi (và trình tạo đề cho biết điều đó). Không ứng dụng nào nhập hay xuất tệp: địa chỉ của trình chơi luôn chứa đề đang mở, nên lưu dấu trang là giữ
 được đề, và gửi địa chỉ đó là chia sẻ được đề.
 
 > **Trạng thái.** Kho mã được xây dựng theo từng nhiệm vụ, nên một tính năng nêu ở đây có thể chưa hoàn tất. Việc nghiệm
 > thu bản phát hành (ma trận trình duyệt, ngưỡng hiệu năng) được theo dõi riêng, và nội dung dưới đây không hứa hẹn thời
-> gian chạy trên trình duyệt trước khi có kết quả kiểm định đó.
+> gian chạy trên trình duyệt trước khi có kết quả kiểm định đó. Việc nghiệm thu tự động cho chuỗi in mã đề, đọc lại mã và
+> mở đề trong Trình chơi (`puzzle-code-acceptance.html` và `tests/puzzlecode-acceptance.test.js`) không thay cho bản in
+> thật: quét mã QR trên giấy bằng camera điện thoại Android và iPhone thật, thanh 50 mm của bản in vật lý ở 100 % và nhập
+> mã đề in trên giấy bằng điện thoại vẫn là các việc kiểm tra của chủ dự án trước khi phát hành.
 
 [Lên đầu trang](#top)
 
@@ -412,6 +490,16 @@ hoặc `?lang=en` trên địa chỉ sẽ được ưu tiên. Các nút giao di�
 nếu chưa chọn, trang theo chế độ sáng hay tối của hệ thống. Trình chơi có hai nút này giống vậy, và hai trang dùng chung
 lựa chọn.
 
+**Nhập đề** (nút ở đầu trang, bên trái nút ngôn ngữ) mở một hộp thoại để dán liên kết đề đã sao chép từ trình chơi
+(**Chia sẻ**), hoặc mã đề của nó, rồi nhấn **Nhập**. Bàn chơi (theo góc nhìn của liên kết), bộ mảnh và đề,
+kèm lời giải đã lưu và mức độ nếu mã có mang theo, được tạo lại: bàn chơi trở thành bàn của bước 1 và đề hiện ở bước 3
+trong một bộ mảnh mới (ghi *Đã nhập*, với seed mới). Bộ mảnh đang hiện vẫn nằm trong danh sách của bàn chơi của nó. Đề
+của bộ mảnh đang hiện sẽ được thêm vào bộ đó, và đề đã có trong danh sách thì không được thêm lại. Liên kết không đọc
+được sẽ được giải thích ngay trong hộp thoại và không làm thay đổi gì, giống trình chơi (nếu nhiều khả năng chỉ do gõ sai
+một ký tự, hộp thoại đề xuất cách sửa). Sau khi nhập, **Tạo đề mới** dùng được trên bộ mảnh đã nhập: lời giải của bộ lấy từ
+liên kết nếu có, nếu không sẽ được tìm ngầm (nếu tìm không ra, nút vẫn bị tắt kèm lý do). Khi danh sách của bàn chơi đã có 50 bộ mảnh, hoặc danh sách đề đã đầy, sẽ không
+nhập gì và có thông báo cho biết.
+
 - **Bàn chơi.** Kích thước ghi theo **cột×hàng**. Góc nhìn có thể xoay theo từng bước 45°; việc xoay chỉ để hiển thị,
   không bao giờ đổi đề. Hình mẫu **Trái tim** là một bàn vuông bị chặn một phần tư góc trên bên phải, hiển thị nghiêng
   45°. Sửa bàn chơi sẽ hiện các bộ mảnh và đề đã tạo cho bàn mới, hoặc danh sách trống; quay lại một bàn trước đó sẽ đưa
@@ -433,10 +521,9 @@ lựa chọn.
   **50** bộ cho mỗi bàn trong **10** bàn dùng gần nhất. Khi đã có 50 bộ, **Tạo bộ mảnh mới** bị vô hiệu cho tới khi bạn
   xóa một bộ. Một danh sách chứa tối đa **100** đề, và không quá lượng vừa một gói 512 KiB, vì **Chơi** mở cả danh sách
   thành một gói; khi danh sách đầy, **Tạo đề mới** sẽ báo.
-- **Địa chỉ.** Các thiết lập nằm trên địa chỉ, nên tải lại trang hoặc mở liên kết được chia sẻ sẽ trở về đúng chúng:
-  `step`, `preset`, `angle` (góc nhìn), `cells` (khóa bàn chơi `WxH:<base64url bits>`), `level`, `seed` và `unique=1`.
-  Một liên kết có `seed` ở bước 2 hoặc 3 hiện bộ mảnh tạo từ seed đó: bộ đã lưu trong trình duyệt này, hoặc tạo lại đúng
-  bộ đó. Đề không nằm trên địa chỉ; hãy dùng **Chơi** và chia sẻ liên kết của trình chơi.
+- **Địa chỉ.** Địa chỉ chỉ chứa bước đang mở (`?step=`; `?lang=` chọn ngôn ngữ khởi đầu), nên tải lại trang sẽ trở về đúng bước; các thiết lập nằm trong
+  công việc đã lưu của trình duyệt này. Một liên kết `#p=` (mỗi đề một mã, như **Chơi** tạo ra) trên địa chỉ mở **Nhập đề**
+  và nhập các đề của nó. Ngoài ra đề không nằm trên địa chỉ; hãy dùng **Chơi** và chia sẻ liên kết của trình chơi.
 - **Giới hạn.** Bàn chơi cần ít nhất **30** ô chơi được trong một vùng liền nhau và mỗi cạnh tối đa **32**. Khi phát hành,
   bàn chơi được dùng tới **484** ô trên máy tính và **360** ô trên điện thoại; các cỡ lớn hơn chỉ được bật sau khi qua
   kiểm định (công cụ dòng lệnh `tools\generate.mjs` nhận bàn tới **676** ô). Mỗi thao tác tạo nhắm tới **60 giây** và có
@@ -449,17 +536,43 @@ lựa chọn.
 
 ## Dùng trình chơi
 
-Trang có cùng phong cách với trình tạo đề: đầu trang có tiêu đề, **Trợ giúp**, nút **EN | VI** và các nút giao diện, cùng
-ba khung. Bên trái là các **đề** của gói đang mở, ở giữa là **ván chơi** (tên đề và mức độ, đồng hồ và số nước đi,
-Hoàn tác / Làm lại / Gợi ý / Chơi lại / In và bàn chơi), bên phải là **các mảnh cần đặt**, dưới thanh công cụ của mảnh
+Trang có cùng phong cách với trình tạo đề: đầu trang có tiêu đề, **Trợ giúp**, nút **EN | VI** và các nút
+giao diện, cùng ba khung. Bên trái là các **đề** của gói đang mở, ở giữa là **ván chơi** (tên đề và mức độ cùng nút Chia sẻ và In ở bên phải tên đề, đồng hồ và số nước đi,
+Hoàn tác / Làm lại / Gợi ý / Chơi lại và bàn chơi), bên phải là **các mảnh cần đặt**, dưới thanh công cụ của mảnh
 đang chọn. Khung các mảnh không có thanh cuộn riêng: khi có nhiều mảnh, cả trang sẽ cuộn. Từ 768 px đến 1359 px, danh
 sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp chồng lên nhau.
 
 - **Mở một đề.** Mở một liên kết của trình chơi: nút **Chơi** của trình tạo đề, hoặc một địa chỉ được chia sẻ hay đã lưu
   dấu trang. Khi chưa có đề, trang hiện màn hình bắt đầu với **Thử đề mẫu** và liên kết tới trình tạo đề. Liên kết chỉ có
-  mảnh mà không có đề sẽ được giải thích, và một liên kết không mở được không bao giờ thay thế đề bạn đang chơi. Địa chỉ
+  mảnh mà không có đề sẽ được giải thích, và một liên kết không mở được không bao giờ thay thế đề bạn đang chơi. Một đề
+  cũng mở được từ liên kết mã đề của nó, `…/player/#p=<mã>`, và nhiều đề từ `…/player/#p=<mã1>;<mã2>;…` (có thể kèm
+  `&i=<n>`, đề cần mở, đếm từ 0; các đề phải cùng một bàn chơi và một bộ mảnh, và không được lặp): mỗi mã được giải
+  trong một worker chạy nền, không cần trình tạo đề hay bản sao đã lưu, giữ tiến độ đã lưu của bạn, và tải lại sẽ mở lại
+  đúng các đề đó. Với một mã, địa chỉ không bao giờ bị viết lại; với nhiều mã, địa chỉ đi theo đề đang mở (`&i=`). Địa chỉ
   luôn chứa gói và đề đang mở. Mỗi thẻ trong danh sách đề (tên, mức độ và điểm, số mảnh cần đặt, tính duy nhất, tiến độ,
   hình xem trước), mới nhất ở trên, mở đề đó; ✕ trên thẻ xóa đề và **Xóa tất cả** làm trống danh sách.
+- **Nhập mã đề.** Không có nút riêng: hộp thoại **mã đề** tự mở khi một địa chỉ `#p=` (liên kết hoặc mã QR đã quét) không mở
+  được, với địa chỉ làm văn bản, để bạn sửa mã. Hộp thoại nhận mã in kèm đề, hoặc
+  cả liên kết của đề, hoặc nhiều mã cách nhau bằng `;`. Dấu cách, dấu xuống dòng và dấu gạch ngang được bỏ qua, chữ thường cũng được, và chữ O, I, L được
+  đọc là 0, 1, 1; phần sau dấu chấm là không bắt buộc, và một mã dài tối đa 16.000 ký tự (32.768 khi gõ hoặc dán, tối đa
+  100 mã).
+  **Mở đề** sẽ mở đề, và địa chỉ trở thành `#p=<mã>`. Mã không mở được sẽ được giải thích ngay trong hộp thoại (với danh
+  sách thì kèm số thứ tự của đề) và không
+  làm thay đổi gì: văn bản của bạn, đề đang mở, các nước đi và địa chỉ vẫn như cũ. Nếu nhiều khả năng chỉ do gõ sai một
+  ký tự, hộp thoại cho biết vị trí và ký tự có thể đúng; không có gì được sửa cho đến khi bạn nhấn **Dùng cách sửa này**.
+  Nếu chỉ phần sau dấu chấm bị hỏng, **Mở đề không có phần lời giải** mở đề từ phần đứng trước nó (lời giải khi đó được
+  tìm ngầm);   cả hai gợi ý này chỉ có với một mã, không có với danh sách. Các nước đi đã lưu của đề được khôi phục lặng lẽ (cả khi bạn tải lại trang hoặc quét liên kết
+  của đề); **Chơi lại** bắt đầu lại như bản in.
+  **Hủy** hoặc `Escape` đóng hộp thoại.
+- **Chia sẻ đề.** **Chia sẻ** (biểu tượng bên trái nút **In**, trên hàng tên đề, ở bên phải hàng; chỉ có trong trình
+  chơi) mở một cửa sổ có liên kết của đề đang hiện, `…/player/#p=<mã>`, trong một ô chỉ đọc, cạnh đó là mã QR để quét bằng
+  điện thoại: đó là địa chỉ mà mã QR trên bản in mang theo cho đề, kèm lời giải đã lưu khi vừa. Khi danh sách có hơn một
+  đề, **Chia sẻ tất cả các đề trong danh sách** tạo một liên kết cho cả danh sách, mở ở đề đang chọn. **Sao chép liên kết**
+  sao chép liên kết đó; "Đã sao chép" chỉ xuất hiện sau khi trình duyệt đã nhận văn bản, và nếu trình duyệt từ chối bảng
+  nhớ tạm thì liên kết được chọn sẵn trong ô để bạn tự sao chép. Khi liên kết quá dài cho một mã QR, lời giải đã lưu được
+  bỏ đi trước, rồi mã QR dùng mức sửa lỗi thấp hơn, và chỉ khi đó vẫn không được mới không có mã QR (mỗi bước đều có ghi
+  chú); liên kết dài hơn 4.000 ký tự có cảnh báo, còn dài hơn 16.000 ký tự thì không được tạo. Các bộ mã hóa khác nhau có
+  thể viết văn bản mã khác nhau nhưng tương đương cho cùng một đề; đề mà nó mở ra là như nhau.
 - **Thông tin và kiểm tra.** Mức độ và tính duy nhất do gói mang theo được hiển thị đúng như gói ghi, với mức độ in đậm.
   Đề chưa có kết quả về tính duy nhất sẽ ghi *Có ít nhất 1 lời giải* khi đã biết một lời giải. Khả năng giải được kiểm tra
   ngầm; việc chơi không bao giờ bị chặn, và *chưa xác minh khả năng giải* không bao giờ có nghĩa là *không có lời giải*.
@@ -497,17 +610,33 @@ sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp
 
 ## In ra giấy
 
-Nút **In** (biểu tượng máy in: bên phải **Chơi** trong trình tạo đề, bên phải **Chơi lại** trong trình chơi) mở hộp thoại
+Nút **In** (biểu tượng máy in: bên phải **Chơi** trong trình tạo đề, bên phải tên đề trong trình chơi) mở hộp thoại
 in đề ra giấy A4, để giải ngoại tuyến với các mảnh cắt rời.
 
-- Tờ đầu tiên luôn in tên đề, mức độ, điểm và seed của đề, cùng mức độ và seed của bộ mảnh (để tạo lại được cả hai), rồi
-  một hình xem trước nhỏ của đề với các mảnh cần đặt (để đọc, không để cắt).
+- Tờ đầu tiên có một **mã QR** ở góc trên bên trái, dưới chú thích "Chơi trực tuyến", và bên phải là tên đề (đúng tên
+  thẻ đề trong danh sách: "Đề #n") cùng mức độ và điểm của đề. Quét mã QR để
+  chơi lại đúng đề này trong trình chơi, không cần seed. Tờ giấy không in mã đề, địa chỉ hay seed. Sau đó là một hình xem
+  trước nhỏ của đề với các mảnh cần đặt (để đọc, không để cắt).
+- **Nhiều đề.** Khi danh sách có nhiều hơn một đề, hộp thoại có hai cột. Cột bên phải có **Số đề mỗi trang** (1, 2 hoặc 4)
+  và **Đề cần in**: các đề trong danh sách theo thứ tự của khung bên cạnh (mới nhất trước), mỗi đề ghi dạng "Đề #n · Mức
+  độ: điểm n", cùng nút **Chọn tất cả** và **Bỏ chọn**; đề đang hiện được chọn sẵn khi mở hộp thoại. Các đề đã chọn được
+  in theo thứ tự số, mỗi đề có mã QR riêng, trên các tờ đầu, 1, 2 (chồng lên nhau) hoặc 4 (hai nhân hai) đề mỗi tờ, có
+  đường nét đứt để cắt; mã QR quá lớn so với một phần tư tờ sẽ được vẽ nhỏ lại. Bộ mảnh và bàn chơi chỉ in một lần, dù có
+  bao nhiêu đề.
+- **Mã QR** được tạo ngay trên máy khi mở hộp thoại (nút **In** chờ "Đang chuẩn bị mã đề…"). Khi đề có lời giải đã lưu,
+  lời giải nằm trong mã; việc đó không in tờ lời giải. Mã không bao giờ bị cắt ngắn; trong trường hợp hiếm khi mã quá dài
+  cho một mã QR, phần lời giải không bắt buộc được bỏ đi, rồi mã QR dùng mức sửa lỗi thấp hơn, và nếu vẫn không được thì
+  tờ giấy nói rõ và không in mã QR. Hộp thoại báo từng việc này trước khi in.
+- **Mã QR dẫn tới đâu**: luôn tới trình chơi của trang bạn in (cả khi là `localhost`, địa chỉ mạng nội bộ hay một tệp);
+  không có lựa chọn để đổi. **Chia sẻ** (xem Dùng trình chơi) trỏ tới cùng trang và mang cùng mã.
 - **In cả bộ mảnh**: mọi mảnh của bộ, kể cả các mảnh đặt sẵn, sẵn sàng để cắt.
 - **In cả bàn chơi**: các ô chơi được. Bàn chơi quá lớn so với một tờ sẽ được chia thành nhiều phần; một dấu có đánh số
   trên mỗi cạnh chung cho biết phần nào ghép vào đó.
 - **In hai mặt**: mỗi mảnh và mỗi phần bàn chơi được in đối xứng ở mặt sau, nên khi cắt ra hai mặt khớp nhau (chọn in hai
   mặt, lật theo cạnh dài).
-- **In lời giải** (chỉ có trong trình tạo đề): bàn chơi đã giải ở tờ ngay sau đề (khi in hai mặt thì ở mặt sau của đề).
+- **In lời giải** (chỉ có trong trình tạo đề): bàn chơi đã giải ngay sau đề (khi in hai mặt thì ở mặt sau của đề). Khi in
+  nhiều đề trên một tờ, lời giải của các đề trên tờ đó nằm chung ở tờ kế tiếp, mỗi lời giải sau lưng đề của nó khi in hai
+  mặt.
 - **Cỡ bàn chơi**: một bảng gồm Nhỏ, Vừa và Lớn (ô 10, 15 và 20 mm) và Vừa một tờ, kèm số tờ A4 mỗi cỡ cần. Các mảnh dùng
   cùng kích thước ô với bàn chơi nên đặt lên khớp chính xác.
 
@@ -519,13 +648,14 @@ Hãy in ở tỉ lệ 100% (kích thước thật): thanh 50 mm trên tờ đầ
 ## Lưu trữ và quyền riêng tư
 
 - Mọi thứ ở lại trong trình duyệt: không tải lên, không bộ giải từ xa, không thu thập số liệu. Một đề đi theo phần
-  `#pack=` của liên kết, phần mà trình duyệt không bao giờ gửi lên máy chủ. Liên kết chia sẻ có thể không kèm đáp án.
+  `#p=` của liên kết (mỗi đề một mã, cách nhau bằng `;`), phần mà trình duyệt không
+  bao giờ gửi lên máy chủ. Liên
+  kết chia sẻ có thể không kèm đáp án.
 - Cả hai ứng dụng chỉ dùng các khóa `localStorage` có tiền tố `pentomino:v1:`, và không bao giờ đụng tới các khóa khác
   của cùng nguồn gốc:
   - trình tạo đề: công việc của bạn (bàn chơi, thiết lập, bộ mảnh và đề) trong `gen:state`;
   - trình chơi: tiến độ của từng đề (`progress:<fingerprint>`, tối đa 300, thời điểm lưu trong `progress-index`), lựa
-    chọn Làm thẳng (`prefs`), và bản sao của một gói chỉ khi dùng liên kết `#lib=` trong cùng trình duyệt (`lib:index` và
-    một `lib:<packId>` cho mỗi gói, 30 gói mở gần nhất);
+    chọn Làm thẳng (`prefs`); không lưu gói nào, gói nằm trong liên kết của nó;
   - cả hai: ngôn ngữ (`lang`) và giao diện (`theme`).
 - Bộ nhớ trình duyệt có thể bị tắt, dùng chung hoặc đầy. Khi vượt hạn mức, các mục cũ nhất trong không gian tên này bị xóa
   một lần (trình tạo đề xóa các bộ mảnh đã lưu cũ nhất trước); nếu vẫn không lưu được, công việc tiếp tục trong bộ nhớ và
@@ -560,12 +690,19 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
 
 - **Trang kiểm thử trên trình duyệt** (không được xuất bản): chạy `npm run serve` rồi mở
   `http://localhost:8080/pentomino/tests/browser/` kèm `player-controls.html`, `player-load.html`, `hints.html`,
-  `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html` hoặc `acceptance.html`. Mỗi trang ghi
-  danh sách đạt/không đạt và `data-summary` trên `<html>`. Hãy dùng cửa sổ hẹp hơn 1360 px: một số bài kiểm tra cần bố
-  cục một hoặc hai cột.
+  `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`,
+  `puzzle-code-entry.html`, `puzzle-code-print.html`, `puzzle-code-cli-parity.html`, `puzzle-code-acceptance.html`,
+  `puzzle-qr.html`, `watchdog.html` hoặc `acceptance.html`. Mỗi trang ghi danh sách đạt/không đạt, cùng `data-summary`
+  và `data-result` (`pass` hoặc `fail`) trên `<html>`. Hãy dùng cửa sổ hẹp hơn
+  1360 px: một số bài kiểm tra cần bố cục một hoặc hai cột.
 - **Tạo đề không cần giao diện**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`.
   Gói đề in ra stdout (hoặc `--output`), thông báo ra stderr. Mã thoát: `0` hoàn tất (kể cả khi bộ mảnh đã được tìm đủ và
   chứng minh là hết cách xếp); `2` gói hợp lệ nhưng thiếu hoặc bị hủy; `1` không có kết quả dùng được hoặc đầu vào sai.
+  Thêm `--code` (cờ không có giá trị, dùng được cả với `--recipe`) để in mã đề của từng đề được chấp nhận thay cho gói
+  đề: mỗi đề một dòng, viết hoa, không chia nhóm, theo thứ tự trong gói, đúng mã mà nút In tạo cho đề đó (xem phần In ra
+  giấy). Với `--output tệp`, gói đề vẫn được ghi vào tệp; không có thì không tạo tệp nào. Thông báo và lỗi vẫn ra stderr,
+  còn mã thoát và việc tạo đề không đổi, ví dụ
+  `node tools\generate.mjs --recipe tests\fixtures\generation-case.json --workers 1 --code --output pack.json`.
 - **Hiệu năng và hiệu chỉnh** (chỉ để sàng lọc; không bao giờ thay đổi ngưỡng kiểm định):
   `node --max-old-space-size=2048 tools\calibrate.mjs --matrix tools\bench\matrices\smoke.json --workers 4 --fresh-process --output docs\calibration\node-smoke`,
   bản đồ điểm (`--profile landscape`, chạy nhiều giờ, tiếp tục được), và trang trình duyệt
@@ -574,9 +711,9 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
 **Cấu trúc mã.** ES module gốc với kiểu JSDoc và `// @ts-check`, chia thành các lớp:
 
 ```text
-core/engine/    logic thuần, tất định: hình học, bàn chơi, lát kín, tạo đề, chấm độ khó, gói đề (không DOM, đồng hồ hay lưu trữ)
-core/browser/   hiển thị (bàn chơi SVG), lưu trữ, đa ngôn ngữ, giao diện, xử lý con trỏ, in, client tạo đề
-core/workers/   module worker chạy việc tạo đề ngoài luồng chính, có cơ chế hủy và giới hạn thời gian
+core/engine/    logic thuần, tất định: hình học, bàn chơi, lát kín, tạo đề, chấm độ khó, gói đề, mã đề (không DOM, đồng hồ hay lưu trữ)
+core/browser/   hiển thị (bàn chơi SVG), lưu trữ, đa ngôn ngữ, giao diện, xử lý con trỏ, in, client tạo đề và client mã đề
+core/workers/   module worker chạy việc tạo đề và mã đề ngoài luồng chính, có cơ chế hủy và giới hạn thời gian
 generator/      Pentomino Generator: trang, trạng thái, tác vụ và giao diện
 player/         Pentomino Player: trang, trạng thái, ván chơi, gợi ý và giao diện
 tests/          kiểm thử đơn vị Node (*.test.js) và các trang kiểm thử trình duyệt (tests/browser/)
@@ -636,5 +773,10 @@ nguyên không sửa. [AGENTS.md](AGENTS.md) hướng dẫn cách các tác tử
 ## Giấy phép
 
 Phát hành theo [giấy phép MIT](LICENSE) © 2026 Dat Le.
+
+Kho mã còn chứa hai tệp nguồn của bên thứ ba, không phải gói npm, nên ứng dụng vẫn không có phụ thuộc lúc chạy:
+[thư viện tạo mã QR của Nayuki](https://www.nayuki.io/page/qr-code-generator-library) (MIT) trong
+`core/browser/vendor/`, kèm thông báo bản quyền trong `qrcodegen.LICENSE`; và, chỉ cho kiểm thử, jsQR 1.4.0 (Apache-2.0)
+trong `tests/vendor/`, không bao giờ thuộc về trang web.
 
 [Lên đầu trang](#top)

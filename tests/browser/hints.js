@@ -6,9 +6,9 @@
 // <html>. Developer fixture, not deployed.
 
 import { validatePack } from '../../core/engine/pack.js';
-import { encodeShareCode } from '../../core/engine/sharecode.js';
 import { createStorage } from '../../core/browser/storage.js';
 import { mountPlayer } from '../../player/app.js';
+import { packHash } from './pack-link.js';
 
 /** @typedef {import('../../core/engine/types.js').Pose} Pose */
 
@@ -143,7 +143,7 @@ async function mount(o) {
   document.body.append(root);
   const adapter = o.adapter ?? memoryAdapter();
   const storage = createStorage(adapter, () => Date.now());
-  const location = { hash: `#pack=${await encodeShareCode(validated(o.pack))}&i=0`, pathname: '/player/', search: '' };
+  const location = { hash: await packHash(validated(o.pack)), pathname: '/player/', search: '' };
   const player = mountPlayer(root, {
     storage,
     location,
@@ -453,3 +453,4 @@ if (summary) {
   summary.textContent = `${results.length - failed.length}/${results.length} passed`;
 }
 document.documentElement.dataset.summary = JSON.stringify({ total: results.length, failed: failed.map((r) => `${r.name}: ${r.error}`.slice(0, 700)) });
+document.documentElement.dataset.result = failed.length === 0 && results.length > 0 ? 'pass' : 'fail';

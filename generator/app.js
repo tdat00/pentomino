@@ -5,12 +5,13 @@ import { showToast } from '../core/browser/dom.js';
 import { svgEl } from '../core/browser/svg-board.js';
 import { createGenerationClient } from '../core/browser/generation-client.js';
 import { openInPlayerTab } from '../core/browser/handoff.js';
+import { createPuzzleCodeDialog } from '../core/browser/puzzle-code-dialog.js';
 import { createPool } from '../core/browser/worker-pool.js';
 import { applyTo, choose, getLocale, normalize, onChange, setLocale, t } from './i18n.js';
 import { LANGUAGE_KEY } from '../core/browser/i18n.js';
 import { THEME_KEY, applyTheme, effectiveTheme, normalizeTheme } from '../core/browser/theme.js';
 import {
-  createGeneratorStore, createPersistence, describeBoard, detectHardware, loadGeneratorState, setNumber,
+  MAX_SETS, createGeneratorStore, createPersistence, describeBoard, detectHardware, loadGeneratorState, setNumber,
 } from './state.js';
 import { createJobController } from './jobs.js';
 import { mountBoardEditor } from './ui/board-editor.js';
@@ -19,15 +20,13 @@ import { mountLevelPanel } from './ui/level-panel.js';
 import { mountPuzzlePanel } from './ui/puzzle-panel.js';
 import { mountSetPanel } from './ui/set-panel.js';
 import { mountSetSummary } from './ui/set-summary.js';
-import { mountWizard, reachableStep, stepFromSearch } from './ui/wizard.js';
-import { addressParams, applyAddress, withAddress } from './address.js';
+import { mountWizard, reachableStep } from './ui/wizard.js';
+import { isPuzzleHash } from '../core/engine/sharecode.js';
 
 export { LANGUAGE_KEY };
 
 /** One puzzle per Generate press; the controller itself can make more at once. */
 const PUZZLES_PER_PRESS = 1;
-/** Debounces address updates so painting a board does not rewrite it on every square. */
-const ADDRESS_DELAY_MS = 300;
 
 /** @typedef {import('./ui/level-panel.js').GenerateSetRequest} GenerateSetRequest */
 
@@ -84,19 +83,16 @@ export function chooseLanguage(sources = {}) {
  *   client?: import('../core/browser/generation-client.js').GenerationClient,
  *   pool?: import('../core/browser/worker-pool.js').Pool, workerFactory?: () => import('../core/browser/worker-pool.js').WorkerLike,
  *   workersAvailable?: boolean, handoff?: import('../core/browser/handoff.js').HandoffEnv,
+ *   createPuzzleCodeClient?: () => import('../core/browser/puzzle-code-client.js').PuzzleCodeClient,
  *   preferenceStorage?: Pick<Storage, 'setItem'> | null,
  *   controller?: Partial<import('./jobs.js').JobControllerOptions> }} [options]
  */
 export function createGeneratorApp(doc, options = {}) {
   const io = options.storage ?? storage;
-  // Settings in the address (shared link, reload) win over the saved work. Only the real page (with the wizard)
-  // reads and writes the address; test fixture pages must not.
+  // The address holds the step (`?step=`) and the language, and puzzle codes in the hash (`#p=<code>;<code>…`), which
+  // are imported below. Only the real page (with the wizard) reads and writes the address; test fixture pages must not.
   const addressed = options.address ?? doc.querySelector('[data-wizard-step]') !== null;
-  const search = addressed ? doc.defaultView?.location.search ?? '' : '';
-  const fromAddress = applyAddress(loadGeneratorState(io), search);
-  // Read before the wizard mounts: it clamps the step to the work that exists and rewrites the address.
-  const requestedStep = stepFromSearch(search);
-  const store = createGeneratorStore({ ...fromAddress.state, quantity: PUZZLES_PER_PRESS });
+  const store = createGeneratorStore({ ...loadGeneratorState(io), quantity: PUZZLES_PER_PRESS });
   const hardware = detectHardware(options.env ?? doc.defaultView ?? globalThis);
   /** @type {GeneratorHandlers} */
   const handlers = {};
@@ -131,6 +127,7 @@ export function createGeneratorApp(doc, options = {}) {
     openPlayer: (pack, index) => openInPlayerTab(pack, index, handoffEnv),
     beforeNavigate: () => persistence.saveNow(),
     randomNumber: options.randomNumber,
+    ...(options.createPuzzleCodeClient === undefined ? {} : { createPuzzleCodeClient: options.createPuzzleCodeClient }),
     ...(options.now === undefined ? {} : { now: options.now }),
     ...options.controller,
   });
@@ -144,6 +141,35 @@ export function createGeneratorApp(doc, options = {}) {
     controlsHost: puzzleControlsHost, cardsActionsHost: optionalSlot(doc, 'cards-actions'),
   });
   const wizard = mountWizard(doc, { store, hardware });
+
+  const importButton = /** @type {HTMLButtonElement | null} */ (doc.querySelector('[data-action="import-puzzle"]'));
+  /**
+   * @param {string} text
+   * @returns {ReturnType<typeof controller.importPuzzleCode>}
+   */
+  async function importCode(text) {
+    const result = await controller.importPuzzleCode(text);
+    if (result.ok) {
+      const { status } = result.value;
+      const refused = status === 'sets-full' || status === 'pack-full' || status === 'busy';
+      showToast(t(`import.done.${status}`, { max: MAX_SETS }), { kind: refused ? 'warning' : 'info' });
+      if (status === 'new-set' || status === 'added') {
+        void wizard?.go(3, { focus: true });
+      }
+    }
+    return result;
+  }
+  const importDialog = importButton === null ? null : createPuzzleCodeDialog({
+    host: doc.body,
+    t,
+    submit: importCode,
+    cancel: () => controller.cancelImport(),
+    openRecovery: importCode,
+    fallbackFocus: () => importButton,
+    keys: { title: 'import.title', field: 'import.field', hint: 'import.hint', open: 'import.open' },
+  });
+  const onImportClick = () => importDialog?.open({ opener: importButton });
+  importButton?.addEventListener('click', onImportClick);
   const unsubscribeBoard = store.subscribe((state, previous) => {
     if (state.board !== previous.board && state.set !== previous.set) {
       editor.history.clear();
@@ -223,48 +249,31 @@ export function createGeneratorApp(doc, options = {}) {
   syncActions();
   syncHistoryTitle();
 
-  /** @type {ReturnType<typeof setTimeout> | null} */
-  let addressTimer = null;
-  function syncAddress() {
-    addressTimer = null;
-    if (!addressed || win === null) {
+  /**
+   * Imports the puzzle codes of a `#p=` address as Import puzzle does. The hash is cleared first so that a reload does
+   * not bring back a puzzle that was removed; an unreadable link opens the import dialog with the reason.
+   * @returns {Promise<void>}
+   */
+  async function importFromAddress() {
+    if (!addressed || win === null || !isPuzzleHash(win.location.hash)) {
       return;
     }
+    const text = win.location.hash;
     try {
-      const href = withAddress(win.location.href, addressParams(store.getState()));
-      if (href !== win.location.href) {
-        win.history.replaceState(null, '', href);
-      }
+      const url = new URL(win.location.href);
+      url.hash = '';
+      win.history.replaceState(null, '', url.href);
     } catch {
-      // An address that cannot be changed (a sandboxed frame) only loses the link.
+      // An address that cannot be changed only keeps its hash.
+    }
+    const result = await importCode(text);
+    if (!result.ok && result.issues[0]?.code !== 'cancelled') {
+      importDialog?.open({ text, failure: /** @type {any} */ (result) });
     }
   }
-  const unsubscribeAddress = addressed
-    ? store.subscribe((state, previous) => {
-      if (state.board !== previous.board || state.rotation !== previous.rotation || state.presetId !== previous.presetId
-        || state.levelId !== previous.levelId || state.uniqueness !== previous.uniqueness || state.seedText !== previous.seedText
-        || state.keepSeed !== previous.keepSeed || state.setSeed !== previous.setSeed || state.set !== previous.set) {
-        if (addressTimer !== null) {
-          clearTimeout(addressTimer);
-        }
-        addressTimer = setTimeout(syncAddress, ADDRESS_DELAY_MS);
-      }
-    })
-    : () => {};
-  syncAddress();
-
-  // A link that names a seed shows its set: the one saved here, or one made again from the board, level and seed.
-  if (addressed && fromAddress.seed !== null && store.getState().setSeed !== fromAddress.seed && (requestedStep ?? 1) >= 2 && level.generate()) {
-    const target = requestedStep ?? 2;
-    const stop = store.subscribe((state) => {
-      if (state.job === null) {
-        stop();
-        if (state.set !== null) {
-          wizard?.go(target);
-        }
-      }
-    });
-  }
+  const onHashChange = () => void importFromAddress();
+  win?.addEventListener('hashchange', onHashChange);
+  void importFromAddress();
 
   const onHide = () => persistence.flush();
   const onVisibility = () => {
@@ -292,6 +301,7 @@ export function createGeneratorApp(doc, options = {}) {
     setPanel.refresh();
     setSummary?.refresh();
     puzzlePanel.refresh();
+    importDialog?.refresh();
     wizard?.refresh();
     syncActions();
     syncHistoryTitle();
@@ -359,6 +369,7 @@ export function createGeneratorApp(doc, options = {}) {
     controller,
     setPanel,
     puzzlePanel,
+    importDialog,
     wizard,
     regions,
     /** Lets tests and other hosts replace the job actions. @param {GeneratorHandlers} next */
@@ -370,10 +381,7 @@ export function createGeneratorApp(doc, options = {}) {
     destroy() {
       unsubscribe();
       unsubscribeWizard?.();
-      unsubscribeAddress();
-      if (addressTimer !== null) {
-        clearTimeout(addressTimer);
-      }
+      win?.removeEventListener('hashchange', onHashChange);
       unsubscribeLanguage();
       unsubscribeBoard();
       for (const [button, handler] of languageHandlers) {
@@ -383,6 +391,8 @@ export function createGeneratorApp(doc, options = {}) {
         button.removeEventListener('click', handler);
       }
       wizard?.destroy();
+      importButton?.removeEventListener('click', onImportClick);
+      importDialog?.dispose();
       controller.destroy();
       setPanel.destroy();
       setSummary?.destroy();

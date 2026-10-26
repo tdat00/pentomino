@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { packBoard, parsePack } from '../core/engine/pack.js';
-import { packId, progressFingerprint } from '../core/engine/keys.js';
-import { MAX_LIBRARY_PACKS, MAX_PROGRESS_ENTRIES, NAMESPACE, SAVE_FAILED_MESSAGE, createStorage } from '../core/browser/storage.js';
+import { progressFingerprint } from '../core/engine/keys.js';
+import { MAX_PROGRESS_ENTRIES, NAMESPACE, SAVE_FAILED_MESSAGE, createStorage } from '../core/browser/storage.js';
 import defaultStorage, * as storageModule from '../core/browser/storage.js';
 
 const parsed = parsePack(readFileSync(new URL('./fixtures/hand-authored-pack.json', import.meta.url), 'utf8'));
@@ -83,22 +83,6 @@ const record = (solved = false, moves = 3) => ({
   solved,
 });
 
-/** Distinct valid pack per `n` (three puzzles, each with a different clue subset). */
-function variant(n) {
-  const subsets = [[], [0], [1], [0, 1]];
-  const base = pack.puzzles[0];
-  return {
-    ...pack,
-    kind: /** @type {'puzzle-pack'} */ ('puzzle-pack'),
-    puzzles: [n & 3, (n >> 2) & 3, (n >> 4) & 3].map((s, j) => ({
-      ...base,
-      id: `v${j}`,
-      title: `Variant ${n}.${j}`,
-      clues: subsets[s].map((i) => base.clues[i]),
-    })),
-  };
-}
-
 test('get/set/remove/list refuse foreign keys and never touch foreign values', () => {
   const fake = fakeStorage(FOREIGN);
   const store = createStorage(fake, clock());
@@ -107,13 +91,11 @@ test('get/set/remove/list refuse foreign keys and never touch foreign values', (
   assert.equal(store.remove('other-app:state').ok, false);
   assert.deepEqual(store.list('other-app:'), []);
   assert.deepEqual(store.list(''), []);
-  store.saveLibraryPack(pack);
   store.saveProgress('abc123', record());
   store.setPrefs({ straighten: true });
   store.setGeneratorState({ rows: 4 });
   store.getGeneratorState();
   store.loadProgress('abc123');
-  store.libraryIndex();
   assert.deepEqual(store.list(`${NAMESPACE}progress:`), [`${NAMESPACE}progress:abc123`]);
   for (const key of [...fake.log.get, ...fake.log.set, ...fake.log.remove]) {
     assert.ok(key.startsWith(NAMESPACE), `touched ${key}`);
@@ -129,16 +111,15 @@ test('quota evicts only namespaced LRU entries and retries once', () => {
   }
   fake.mode.maxKeys = fake.data.size;
   fake.log.set.length = 0;
-  const saved = store.saveLibraryPack(pack);
+  const saved = store.saveProgress('fp-new', record());
   assert.ok(saved.ok, JSON.stringify(saved));
-  const libKey = `${NAMESPACE}lib:${saved.packId}`;
-  assert.equal(fake.log.set.filter((k) => k === libKey).length, 2, 'one retry');
+  const newKey = `${NAMESPACE}progress:fp-new`;
+  assert.equal(fake.log.set.filter((k) => k === newKey).length, 2, 'one retry');
   const left = store.list(`${NAMESPACE}progress:`).map((k) => k.slice(`${NAMESPACE}progress:`.length));
-  assert.deepEqual(left.sort(), ['fp3', 'fp4', 'fp5', 'fp6', 'fp7', 'fp8', 'fp9'], 'oldest quarter evicted');
+  assert.deepEqual(left.sort(), ['fp-new', 'fp3', 'fp4', 'fp5', 'fp6', 'fp7', 'fp8', 'fp9'], 'oldest quarter evicted');
   assert.equal(store.loadProgress('fp0'), null);
   assert.ok(store.loadProgress('fp9'));
   assert.deepEqual(Object.fromEntries([...fake.data].filter(([k]) => !k.startsWith(NAMESPACE))), FOREIGN);
-  assert.ok(store.loadLibraryPack(saved.packId).ok);
 });
 
 test('persistent quota failure keeps working in memory with the user message', () => {
@@ -174,64 +155,10 @@ test('denied or missing storage never throws and play continues in memory', () =
     assert.equal(store.getPrefs().straighten, true);
     assert.equal(store.saveProgress('abc', record(true)).ok, false);
     assert.equal(store.loadProgress('abc')?.solved, true);
-    assert.equal(store.saveLibraryPack(pack).ok, false);
-    assert.deepEqual(store.libraryIndex(), []);
     assert.ok(store.list(NAMESPACE).includes(`${NAMESPACE}prefs`), 'unsaved values are still listed');
     assert.ok(store.lastStorageIssue());
     assert.equal(store.remove(`${NAMESPACE}prefs`).ok, adapter ? false : true);
   }
-});
-
-test('library: LRU of 30, stale and damaged entries', () => {
-  const fake = fakeStorage(FOREIGN);
-  const store = createStorage(fake, clock());
-  const ids = [];
-  for (let n = 0; n < MAX_LIBRARY_PACKS + 3; n += 1) {
-    const saved = store.saveLibraryPack(variant(n));
-    assert.ok(saved.ok);
-    ids.push(saved.packId);
-  }
-  assert.equal(new Set(ids).size, ids.length);
-  const index = store.libraryIndex();
-  assert.equal(index.length, MAX_LIBRARY_PACKS);
-  assert.equal(index[0].packId, ids[ids.length - 1], 'most recent first');
-  assert.deepEqual(Object.keys(index[0]), ['packId', 'lastOpened']);
-  assert.equal(store.list(`${NAMESPACE}lib:`).filter((k) => !k.endsWith('index')).length, MAX_LIBRARY_PACKS);
-  const gone = store.loadLibraryPack(ids[0]);
-  assert.ok(!gone.ok);
-  assert.equal(gone.issues[0].code, 'library-missing');
-  assert.ok(store.loadLibraryPack(ids[5]).ok);
-
-  assert.equal(store.loadLibraryPack('zzzz').ok, false);
-  assert.equal(/** @type {any} */ (store.loadLibraryPack('0123456789abcdef')).issues[0].code, 'library-missing');
-  fake.data.set(`${NAMESPACE}lib:${ids[5]}`, '{"format":');
-  assert.equal(/** @type {any} */ (store.loadLibraryPack(ids[5])).issues[0].code, 'invalid-json');
-  fake.data.set(`${NAMESPACE}lib:${ids[6]}`, JSON.stringify(variant(1)));
-  assert.equal(/** @type {any} */ (store.loadLibraryPack(ids[6])).issues[0].code, 'library-mismatch');
-
-  const first = store.saveLibraryPack(pack);
-  assert.ok(first.ok);
-  assert.equal(first.packId, packId(pack));
-  store.saveLibraryPack(variant(40));
-  assert.notEqual(store.libraryIndex()[0].packId, first.packId);
-  assert.ok(store.touchLibraryPack(first.packId).ok);
-  assert.equal(store.libraryIndex()[0].packId, first.packId, 'opening a pack makes it the most recent');
-  assert.equal(store.touchLibraryPack('0123456789abcdef').ok, false);
-  assert.ok(store.removeLibraryPack(first.packId).ok);
-  assert.equal(store.libraryIndex().some((e) => e.packId === first.packId), false);
-  assert.equal(store.saveLibraryPack(/** @type {any} */ ({ format: 'nope' })).ok, false);
-});
-
-test('a damaged library index is ignored, not trusted; retired fields are dropped', () => {
-  const fake = fakeStorage();
-  const store = createStorage(fake, clock());
-  fake.data.set(`${NAMESPACE}lib:index`, 'not json');
-  assert.deepEqual(store.libraryIndex(), []);
-  assert.equal(store.lastStorageIssue()?.code, 'invalid-data');
-  fake.data.set(`${NAMESPACE}lib:index`, JSON.stringify([{ packId: '../x', title: 1 }, null, 5, {
-    packId: '0123456789abcdef', title: 'ok', createdAt: 'a', lastOpened: 'b', puzzles: 1, solved: 0,
-  }]));
-  assert.deepEqual(store.libraryIndex(), [{ packId: '0123456789abcdef', lastOpened: 'b' }]);
 });
 
 test('progress: validation, stamped LRU time, 300-entry LRU and exact-geometry keys', () => {
@@ -332,6 +259,4 @@ test('generator state round-trips arbitrary JSON and reports unserializable valu
 test('the default lazy instance works without a browser localStorage', () => {
   assert.deepEqual(defaultStorage.getPrefs(), storageModule.getPrefs());
   assert.equal(storageModule.get(`${NAMESPACE}nothing`), null);
-  assert.ok(storageModule.libraryIndex().length >= 0);
-  assert.equal(storageModule.loadLibraryPack('0123456789abcdef').ok, false);
 });

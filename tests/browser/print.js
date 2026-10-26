@@ -196,20 +196,21 @@ await check('the preview board outlines its pieces in black, and holes are grey 
   }
 });
 
-await check('the first sheet names the puzzle, its rating and seed, and its piece set, with the level names in bold', async () => {
+await check('the first sheet names the puzzle and its rating, with the level name in bold, and neither a puzzle seed nor a set line', async () => {
   setLocale('en', document);
-  const details = puzzleDetails(t, { level: 'Nightmare', score: 123.4, saturated: false }, '4567', { level: 'Expert', seed: 'ABCD-EFGH-JKLM' });
-  const [page] = buildPrintPages(planPrint(sampleJob(), OPTIONS), { title: 'Puzzle #2', details }, t);
+  const details = puzzleDetails(t, { level: 'Nightmare', score: 123.4, saturated: false });
+  const [page] = buildPrintPages(planPrint({ ...sampleJob(), title: 'Puzzle #2', details }, OPTIONS), { title: 'Puzzle #2', details }, t);
   document.getElementById('stage')?.append(page);
   const lines = [...page.querySelectorAll('text.pm-print-detail')];
-  equal(lines.map((n) => n.textContent).join(' | '), 'Nightmare: score 123, seed 4567 | Set: Expert, ABCD-EFGH-JKLM', 'the two lines');
-  equal(lines.map((n) => [...n.querySelectorAll('tspan[font-weight="700"]')].map((s) => s.textContent).join()).join(' | '), 'Nightmare | Expert', 'the levels are bold');
-  equal(page.querySelector('text')?.textContent, 'Puzzle #2', 'the title above them');
+  equal(lines.map((n) => n.textContent).join(' | '), 'Nightmare: score 123', 'the one line');
+  equal(lines.map((n) => [...n.querySelectorAll('tspan[font-weight="700"]')].map((s) => s.textContent).join()).join(' | '), 'Nightmare', 'the level is bold');
+  equal(page.querySelector('text')?.textContent, 'Puzzle #2', 'the title above it');
   const board = /** @type {Element} */ (page.querySelector('.pm-print-board'));
-  assert(box(board).y > box(lines[1]).y + box(lines[1]).h, 'the board starts under the heading');
-  equal(puzzleDetails(t, null, '9', null).map((line) => line.map((p) => p.text).join('')).join(), 'Seed: 9', 'without a rating or a set: the seed only');
-  equal(puzzleDetails(t, { level: 'Easy', score: 8, saturated: true }, undefined, { level: null, seed: 'S' }).map((line) => line.map((p) => p.text).join('')).join(' | '),
-    'Easy: score 8+ | Set: S', 'without seeds or a set level, what is known');
+  assert(box(board).y > box(lines[0]).y + box(lines[0]).h, 'the board starts under the heading');
+  assert(!/seed|Set:/i.test(page.textContent ?? ''), 'neither the puzzle seed nor the set is printed');
+  equal(puzzleDetails(t, null).length, 0, 'without a rating: nothing');
+  equal(puzzleDetails(t, { level: 'Easy', score: 8, saturated: true }).map((line) => line.map((p) => p.text).join('')).join(' | '),
+    'Easy: score 8+', 'a saturated score');
 });
 
 await check('the dialog keeps the choices, summarises the paper and prints through the browser', async () => {

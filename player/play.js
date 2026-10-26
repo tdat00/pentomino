@@ -1,7 +1,6 @@
 // @ts-check
 // Play controller: turns taps, drags, keys and toolbar actions into previews and reducer actions on the open game.
-// No DOM and no clocks of its own (timers, time source and live region are injected), so it also runs under Node.
-// Legality is decided only by `canPlace` and `reduce`; the helpers below just build the candidate poses.
+// DOM-free (timers, clock and live region are injected); legality is decided only by `canPlace` and `reduce`.
 
 import { activeCells } from '../core/engine/board.js';
 import { canPlace, poseT, reduce } from '../core/engine/game.js';

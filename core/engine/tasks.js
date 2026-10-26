@@ -1,10 +1,7 @@
 // @ts-check
-// Shared task dispatch (design §8.1-§8.5). `executeTask` is the one synchronous
-// entry point every host uses: the browser module worker and the Node worker
-// adapter both call it, so there is no second protocol or second solver.
-// `createTaskHandler` wraps it with the worker-side message loop: validation,
-// per-worker workspaces with immediate byte accounting, progress and error
-// conversion. Nothing here reads a clock, storage or the DOM.
+// Shared task dispatch (design §8.1-§8.5). `executeTask` is the one entry point of every host (browser
+// worker and Node adapter), so there is no second protocol or solver; `createTaskHandler` adds the
+// worker-side message loop. Nothing here reads a clock, storage or the DOM.
 
 import { boardFromRows } from './board.js';
 import { certify } from './clues.js';
@@ -15,6 +12,7 @@ import { progressFingerprint } from './keys.js';
 import { packBoard, validatePack } from './pack.js';
 import { parseTaskMessage, validatePayload } from './protocol.js';
 import { BUDGETS, ENUMERATION } from './policy.js';
+import { decodePuzzleCode, encodePuzzleCode, PuzzleCodeError } from './puzzlecode.js';
 import { buildModel, isValidLayout, ModelError, solveFirst } from './tiling.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from './workspace.js';
 
@@ -24,6 +22,7 @@ import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '
 /** @typedef {import('./types.js').Workspace} Workspace */
 /** @typedef {import('./protocol.js').TaskKind} TaskKind */
 /** @typedef {import('./protocol.js').Reply} Reply */
+/** @typedef {import('./protocol.js').WireIssue} WireIssue */
 
 /**
  * Typed control error of the task layer. `code` is `invalid-payload`,
@@ -75,9 +74,8 @@ function hydrateSet(s) {
 }
 
 /**
- * Proof status of every puzzle of a validated pack. A stored solution is a
- * validated exact cover, so it proves existence in O(cells) and nothing is
- * searched; otherwise at most `verifyRows` row trials, and `unsatisfiable`
+ * A stored solution is a validated exact cover, so it proves existence without
+ * a search; otherwise at most `verifyRows` row trials, and `unsatisfiable`
  * only when the search was exhausted with zero solutions.
  * @param {unknown} input
  * @param {EngineExecution} execution
@@ -124,9 +122,9 @@ function verifyPack(input, execution) {
 }
 
 /**
- * Counts the distinct arrangements of a piece set against the layout keys already used, within the
- * ENUMERATION limits (owner decision 2026-10-23). It needs no workspace; a limit is "unproven". With
- * `collect` it also returns the unused arrangements it met, sorted by key, for the completion pass.
+ * Counts the distinct arrangements of a piece set against the used layout keys within the
+ * ENUMERATION limits; a hit limit is "unproven". With `collect` it also returns the unused
+ * arrangements it met, sorted by key, for the completion pass.
  * @param {{ boardRows: string[], pieces: import('./types.js').Piece[], seenLayouts: string[], collect?: number }} p
  * @returns {{ status: 'exhausted' | 'more' | 'unproven', total: number, placements: number, nodes: number,
  *   solutions: number, why?: string, layouts?: { key: string, layout: import('./types.js').Pose[] }[], complete?: boolean }}
@@ -142,12 +140,10 @@ function enumerateArrangements(p) {
 }
 
 /**
- * Runs one task synchronously with the caller's workspaces. The payload is
- * validated again here, so a malformed payload never reaches engine code even
- * when a host skips the message layer. Results are the exact engine results
- * (plain data and typed arrays, safe to structured-clone). Throws `TaskError`,
- * `ModelError`, `GenerationError`, `UnsatisfiableError` or a RangeError for
- * arguments the engine itself rejects.
+ * Runs one task with the caller's workspaces. The payload is validated again here, so a malformed payload never
+ * reaches engine code even when a host skips the message layer. The code tasks return a Promise (native
+ * compression is asynchronous); the others return synchronously. Throws `TaskError`, `ModelError`,
+ * `GenerationError`, `UnsatisfiableError` or RangeError; a code task rejects with `PuzzleCodeError`.
  * @param {TaskKind} kind
  * @param {object} payload
  * @param {EngineExecution} execution
@@ -203,13 +199,18 @@ export function executeTask(kind, payload, execution) {
     }
     case 'enumerateLayouts':
       return enumerateArrangements(p);
+    case 'encodePuzzleCode':
+      return encodePuzzleCode(p.snapshot);
+    case 'decodePuzzleCode':
+      return decodePuzzleCode(p.text);
     default:
       throw new TaskError('invalid-task', 'Unknown task kind');
   }
 }
 
 /**
- * Error reply for a failed task; the message is truncated and never carries a stack.
+ * Error reply for a failed task; the message is truncated and never carries a stack. A puzzle-code error keeps its
+ * own `code` and carries its message `params` and `candidate` in its one issue.
  * @param {number} id
  * @param {unknown} error
  * @returns {Reply}
@@ -217,11 +218,22 @@ export function executeTask(kind, payload, execution) {
 export function errorReply(id, error) {
   let code = ERROR_CODES.internal;
   let message = 'The task failed';
-  /** @type {Issue[] | undefined} */
+  /** @type {WireIssue[] | undefined} */
   let issues;
   if (error instanceof TaskError) {
     ({ code, message } = error);
     issues = error.issues.length > 0 ? error.issues : undefined;
+  } else if (error instanceof PuzzleCodeError) {
+    ({ code, message } = error);
+    /** @type {WireIssue} */
+    const issue = { code, path: '$', message: message.slice(0, MAX_MESSAGE) };
+    if (error.params !== undefined) {
+      issue.params = error.params;
+    }
+    if (error.candidate !== undefined) {
+      issue.candidate = error.candidate;
+    }
+    issues = [issue];
   } else if (error instanceof ModelError || error instanceof GenerationError) {
     ({ code, message } = error);
   } else if (error instanceof UnsatisfiableError) {
@@ -275,20 +287,30 @@ function metered(ws, changed) {
 }
 
 /**
- * Worker-side message handler: one per worker, owning that worker's main and
- * scratch workspaces. `handle` validates a message, runs the task
- * synchronously and posts progress/result/error replies through `post`.
- * Memory progress carries the sum of both workspaces' high-water bytes.
- * @param {{ post: (reply: Reply) => void, mainBytes?: number, scratchBytes?: number }} options
+ * @param {unknown} value
+ * @returns {value is PromiseLike<unknown>}
+ */
+const isThenable = (value) => typeof value === 'object' && value !== null && typeof /** @type {{ then?: unknown }} */ (value).then === 'function';
+
+/**
+ * Worker-side message handler owning one worker's main and scratch workspaces. A task returning a
+ * Promise (the code tasks) keeps owning the worker until it settles: exactly one reply follows, and
+ * messages arriving meanwhile are queued. A Promise is never posted. Memory progress reports the sum
+ * of both workspaces' high-water bytes. `execute` is a test seam replacing `executeTask`.
+ * @param {{ post: (reply: Reply) => void, mainBytes?: number, scratchBytes?: number, execute?: typeof executeTask }} options
  * @returns {{ handle: (message: unknown) => void, main: Workspace, scratch: Workspace, bytes: () => number }}
  */
 export function createTaskHandler(options) {
   const rawMain = createWorkspace(options.mainBytes ?? MAIN_WORKSPACE_BYTES);
   const rawScratch = createWorkspace(options.scratchBytes ?? SCRATCH_WORKSPACE_BYTES);
   const bytes = () => rawMain.peakBytes() + rawScratch.peakBytes();
+  const execute = options.execute ?? executeTask;
   /** @type {number | null} */
   let current = null;
   let reported = 0;
+  let awaiting = false;
+  /** @type {{ id: number, kind: TaskKind, payload: object }[]} */
+  const waiting = [];
 
   /** @param {Reply} reply */
   const post = (reply) => {
@@ -315,20 +337,12 @@ export function createTaskHandler(options) {
   const main = metered(rawMain, memory);
   const scratch = metered(rawScratch, memory);
 
-  /** @param {unknown} message */
-  const handle = (message) => {
-    const parsed = parseTaskMessage(message);
-    if (!parsed.ok) {
-      const id = messageId(message);
-      if (id !== null) {
-        post({ type: 'error', id, code: ERROR_CODES.invalidTask, message: 'The task message is invalid', issues: parsed.issues });
-      }
-      return;
-    }
-    const { id, kind, payload } = parsed.value;
+  /** @param {{ id: number, kind: TaskKind, payload: object }} task */
+  const run = ({ id, kind, payload }) => {
     current = id;
+    let pending = false;
     try {
-      const value = executeTask(kind, payload, {
+      const value = execute(kind, payload, {
         main,
         scratch,
         onProgress: (p) => {
@@ -342,12 +356,49 @@ export function createTaskHandler(options) {
           });
         },
       });
-      post({ type: 'result', id, value });
+      if (isThenable(value)) {
+        pending = true;
+        awaiting = true;
+        Promise.resolve(value)
+          .then((settled) => post({ type: 'result', id, value: settled }), (e) => post(errorReply(id, e)))
+          .then(release, release);
+      } else {
+        post({ type: 'result', id, value });
+      }
     } catch (e) {
       post(errorReply(id, e));
     } finally {
-      current = null;
+      if (!pending) {
+        current = null;
+      }
     }
+  };
+
+  /** Frees the worker after a Promise settled and starts the waiting tasks, until one of them is pending again. */
+  const release = () => {
+    current = null;
+    awaiting = false;
+    for (let next = waiting.shift(); next !== undefined; next = awaiting ? undefined : waiting.shift()) {
+      run(next);
+    }
+  };
+
+  /** @param {unknown} message */
+  const handle = (message) => {
+    const parsed = parseTaskMessage(message);
+    if (!parsed.ok) {
+      const id = messageId(message);
+      if (id !== null) {
+        post({ type: 'error', id, code: ERROR_CODES.invalidTask, message: 'The task message is invalid', issues: parsed.issues });
+      }
+      return;
+    }
+    const { id, kind, payload } = parsed.value;
+    if (awaiting) {
+      waiting.push({ id, kind, payload });
+      return;
+    }
+    run({ id, kind, payload });
   };
 
   return { handle, main, scratch, bytes };

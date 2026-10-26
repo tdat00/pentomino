@@ -80,7 +80,6 @@ async function waitFor(test, what, timeoutMs = 60000) {
 }
 
 const recipes = /** @type {any[]} */ ((await (await fetch('../fixtures/ui-flow-recipes.json')).json()).recipes);
-const samplePackText = await (await fetch('../fixtures/generated-sample-pack.json')).text();
 const frameHost = /** @type {HTMLElement} */ (document.getElementById('frames'));
 
 /**
@@ -292,50 +291,43 @@ const pastedLink = new URL(playLinks['default-10x6-normal']?.[0] ?? '', location
 /** @param {Frame} frame */
 const trayCount = (frame) => qa(frame.doc(), '.tray-piece').length;
 
-await check('I1', 'Player: a fresh profile shows the start screen; the sample opens and its address becomes a portable link', async () => {
+await check('I1', 'Player: a fresh profile shows the start screen; the sample opens and its address becomes a #p= list', async () => {
   localStorage.clear();
   const frame = await openFrame('../../player/', { ready: playerReady });
   assert(frame.doc().querySelector('#app')?.getAttribute('data-screen') === 'start', 'the start screen opens without a link');
-  assert(frame.doc().querySelector('input[type="file"], textarea') === null, 'there is nothing to import');
+  assert(frame.doc().querySelector('input[type="file"], textarea.pm-code-field') === null, 'there is nothing to import');
   q(frame.doc(), '[data-action="sample"]').click();
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the sample game', 15000);
   assert(trayCount(frame) > 0, 'the tray has pieces');
-  await waitFor(() => String(frame.win().location.hash).startsWith('#pack='), 'the portable address', 10000);
-  const copies = Object.keys(localStorage).filter((k) => /^pentomino:v1:lib:[0-9a-f]{16}$/.test(k));
+  await waitFor(() => String(frame.win().location.hash).startsWith('#p='), 'the address with the puzzle codes', 10000);
+  const copies = Object.keys(localStorage).filter((k) => !k.includes(':progress') && !k.includes(':prefs') && !k.includes(':lang') && !k.includes(':theme'));
   assert(copies.length === 0, `no pack copy is kept: ${copies}`);
   scan(frame);
   return { trayPieces: trayCount(frame), hashChars: String(frame.win().location.hash).length };
 });
 
-await check('I2', 'Player: a broken link keeps the open game and the error is announced', async () => {
-  assert(pastedLink.includes('#pack='), 'a Play link was captured from the generator flow');
+await check('I2', 'Player: a broken link keeps the open game and its reason is shown in the code dialog', async () => {
+  assert(pastedLink.includes('#p='), 'a Play link (one code per puzzle) was captured from the generator flow');
   const frame = await openFrame('../../player/', { ready: playerReady, hash: new URL(pastedLink).hash });
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the linked game', 15000);
   const before = { tray: trayCount(frame), title: q(frame.doc(), '.puzzle-title').textContent };
-  // "1j." + base64url of "{ nope": a share code whose data is not a pack.
-  frame.win().location.hash = '#pack=1j.eyBub3Bl&i=0';
-  await waitFor(() => { const e = q(frame.doc(), '.status-error'); return !e.hidden && (e.textContent ?? '') !== ''; }, 'the link error', 10000);
-  const error = q(frame.doc(), '.status-error');
-  assert(error.getAttribute('role') === 'alert', 'the error is an alert');
+  frame.win().location.hash = '#p=1D0J492G47DMXNG6YCP10HCY05KZW8S4HCN2QS';
+  await waitFor(() => frame.doc().querySelector('dialog[open] .pm-code-problem') !== null, 'the link error', 10000);
+  const error = q(frame.doc(), 'dialog[open] .pm-code-problem');
+  assert((error.textContent ?? '') !== '', 'the reason is shown');
   assert(frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game stays open');
   assert(trayCount(frame) === before.tray && q(frame.doc(), '.puzzle-title').textContent === before.title, 'the old game is unchanged');
   scan(frame);
   return { error: error.textContent, before };
 });
 
-await check('I3', 'Player: #pack= address and #lib= same-browser address open the puzzle', async () => {
-  const direct = await openFrame('../../player/', { ready: playerReady, hash: new URL(pastedLink).hash });
-  await waitFor(() => direct.doc().querySelector('#app[data-screen="game"]') !== null, 'the #pack address', 15000);
-  const fromLink = trayCount(direct);
-  const { browserStorage } = await import('../../core/browser/storage.js');
-  const { parsePack } = await import('../../core/engine/pack.js');
-  const saved = browserStorage().saveLibraryPack(/** @type {any} */ (parsePack(samplePackText)).value);
-  assert(saved.ok, 'a pack too large for a link is kept in this browser, as Play does');
-  const lib = await openFrame('../../player/', { ready: playerReady, hash: `#lib=${/** @type {any} */ (saved).packId}&i=0` });
-  await waitFor(() => lib.doc().querySelector('#app[data-screen="game"]') !== null, 'the #lib address', 15000);
-  assert(!q(lib.doc(), '[data-badge="local"]').hidden, 'the same-browser address is labeled');
-  scan(lib);
-  return { packTray: fromLink, libTray: trayCount(lib) };
+await check('I3', 'Player: the old #pack= and #lib= addresses open nothing', async () => {
+  for (const hash of ['#pack=1z.AAAA&i=0', '#lib=0123456789abcdef&i=0']) {
+    const frame = await openFrame('../../player/', { ready: playerReady, hash });
+    assert(frame.doc().querySelector('#app')?.getAttribute('data-screen') === 'start', `${hash}: the start screen stays`);
+    scan(frame);
+  }
+  return {};
 });
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -590,7 +582,7 @@ await check('L5', 'Generator wizard: Next and Back move between steps, step 3 st
 });
 
 /** @param {Frame} frame */
-const gameBarOrder = (frame) => qa(frame.doc(), '.game-bar .game-stats > *, .game-bar .game-actions > *').map((n) => n.dataset.action ?? n.className.split(' ')[0]);
+const gameBarOrder = (frame) => qa(frame.doc(), '.step-head .step-actions > *, .game-bar .game-stats > *, .game-bar .game-actions > *').map((n) => n.dataset.action ?? n.className.split(' ')[0]);
 
 await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces panels, game bar over the board, selection toolbar on pick-up, Straighten present in the game bar', async () => {
   const frame = await openFrame('../../player/', { width: 1400, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
@@ -602,8 +594,10 @@ await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces pane
   assert(history.right <= main.left + 4 && main.right <= side.left + 4, `three panels (${[history, main, side].map((r) => `${Math.round(r.left)}-${Math.round(r.right)}`).join(' | ')})`);
   assert(qa(d, '.app-history .puzzle-card').length > 0 && q(d, '.app-main').contains(q(d, '.pm-board')) && q(d, '.app-side').contains(q(d, '[data-host="tray"]')), 'each panel holds its content');
   const order = gameBarOrder(frame);
-  const expected = ['game-timer', 'game-moves', 'undo', 'redo', 'hint', 'replay', 'print', 'straighten'];
-  assert(JSON.stringify(order) === JSON.stringify(expected), `game bar order ${order.join(' > ')}`);
+  const expected = ['share', 'print', 'game-timer', 'game-moves', 'undo', 'redo', 'hint', 'replay', 'straighten'];
+  assert(JSON.stringify(order) === JSON.stringify(expected), `title row and game bar order ${order.join(' > ')}`);
+  const [head, headTitle, shareRect, printRect] = ['.step-head', '.puzzle-title', '[data-action="share"]', '[data-action="print"]'].map((s) => rect(q(d, s)));
+  assert(Math.abs(shareRect.top - headTitle.top) < 40 && shareRect.left > headTitle.left && shareRect.right <= printRect.left && printRect.right <= head.right + 1 && printRect.right > head.right - 8, 'Share and Print are on the title row, at its right');
   const board = rect(q(d, '.pm-board'));
   const tray = rect(q(d, '[data-host="tray"]'));
   assert(tray.left >= board.right - 4, `the pieces are on the right (tray ${Math.round(tray.left)}, board right ${Math.round(board.right)})`);

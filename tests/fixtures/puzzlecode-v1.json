@@ -1,0 +1,184 @@
+{
+  "description": "Frozen v1 vectors of the single-puzzle code. Values are the fixed expected strings of the contract, never regenerated from the implementation.",
+  "catalogue": {
+    "counts": [1, 1, 2, 5, 12, 35, 108, 369, 1285, 4655],
+    "total": 6473,
+    "sha256": "049504c225b9df4aa8f00971c4190ab640dbc66fe7b47e6ec1e654c3f56dae34"
+  },
+  "crc20": {
+    "ascii123456789": "0xC80C0",
+    "completeComponentResidue": "0x6CDCE"
+  },
+  "ratingTables": {
+    "bandEdges": [0, 8, 12, 17, 25, 37, 53, 77, 112, 162, 235],
+    "thresholds": [1, 1, 2, 2, 3, 4, 6, 8, 11, 15, 20, 27, 36, 48, 64, 86, 115, 153, 205, 273, 365, 486, 649, 865, 1154, 1539, 2053, 2738, 3651, 4869],
+    "branchCap": 5000,
+    "rowCap": 50000
+  },
+  "colors": [
+    "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#42d4f4", "#f032e6",
+    "#bfef45", "#fabed4", "#469990", "#dcbeff", "#9a6324", "#fffac8", "#800000", "#aaffc3",
+    "#808000", "#ffd8b1", "#000075", "#a9a9a9", "#2841bd", "#e07b6c", "#28bd67", "#be6ce0",
+    "#bdbd28", "#6cbee0", "#bd2866", "#7ae06c", "#4228bd", "#e0a16c", "#28bd99", "#e06cda",
+    "#8bbd28", "#6c97e0", "#bd2834", "#6ce084", "#7328bd", "#e0c86c", "#28b0bd", "#e06cb4",
+    "#59bd28", "#6c70e0", "#bd4e28", "#6ce0ab", "#a528bd", "#d1e06c", "#287ebd", "#e06c8d",
+    "#28bd29", "#8e6ce0", "#bd8028", "#6ce0d2", "#bd28a3", "#aae06c", "#284cbd", "#e0716c",
+    "#28bd5b", "#b56ce0", "#bdb228", "#6cc7e0", "#bd2872", "#83e06c", "#3628bd", "#e0986c",
+    "#28bd8d", "#dc6ce0", "#97bd28", "#6ca0e0", "#bd2840", "#6ce07b", "#6828bd", "#e0bf6c",
+    "#28bcbd", "#e06cbd", "#65bd28", "#6c79e0", "#bd4328", "#6ce0a2", "#9a28bd", "#dae06c",
+    "#288abd", "#e06c96", "#33bd28", "#856ce0", "#bd7428", "#6ce0c9", "#bd28af", "#b3e06c",
+    "#2858bd", "#e06c6f", "#28bd4f", "#ac6ce0", "#bda628", "#6cd0e0", "#bd287d", "#8ce06c",
+    "#2a28bd", "#e08f6c", "#28bd81", "#d36ce0", "#a2bd28", "#6ca9e0", "#bd284b", "#6ce072",
+    "#5c28bd", "#e0b66c", "#28bdb3", "#e06cc6", "#71bd28", "#6c82e0", "#bd3728", "#6ce099",
+    "#8e28bd", "#e0dd6c", "#2896bd", "#e06c9f", "#3fbd28", "#7c6ce0", "#bd6928", "#6ce0c0",
+    "#bd28bb", "#bce06c", "#2864bd", "#e06c78", "#28bd43", "#a36ce0", "#bd9b28", "#6cd9e0"
+  ],
+  "goldens": [
+    {
+      "name": "sample-1",
+      "source": "player/samples/sample-pack.json",
+      "puzzle": 0,
+      "title": "Easy",
+      "code": "1D0J492G47DMXNG6YCP10HCY05KZW8S4HCN2QR.18V3WE"
+    },
+    {
+      "name": "sample-2",
+      "source": "player/samples/sample-pack.json",
+      "puzzle": 1,
+      "title": "Normal #2",
+      "storedTitle": "Normal",
+      "code": "1D2KTH4A0GXPKPP0VSJR425KR0JJR03GKGJ0N2.1AR9VWV"
+    },
+    {
+      "name": "sample-3",
+      "source": "player/samples/sample-pack.json",
+      "puzzle": 2,
+      "title": "Hard #3",
+      "storedTitle": "Hard",
+      "code": "1DESV14A0GXPKPP0VSJR425KR0EKJ97PGQXMQ.19M0GDB"
+    },
+    {
+      "name": "hand-authored-1",
+      "source": "tests/fixtures/hand-authored-pack.json",
+      "puzzle": 0,
+      "title": "Example",
+      "code": "16YHBRC5PQ0V3528M12FADS1D5515TBQVC9BBY1Y8N835B4XSNGJ9NH.1439213K5"
+    }
+  ],
+  "edges": [
+    {
+      "name": "title-kind-2-maximum",
+      "base": "sample-1",
+      "set": { "title": "Easy #2147483647" },
+      "code": "1D0J80000040000044H823PTETR3F6B0G8PF02SZY4CJ8PPTVH.18XY3J"
+    },
+    {
+      "name": "title-kind-3-one-above",
+      "base": "sample-1",
+      "set": { "title": "Easy #2147483648" },
+      "code": "1D0JCR8NGQ6Y904CS32D1Q6GW36DHM7092G47DMXNG6YCP10HCY05KZW8S4HC9567.18XNYH"
+    },
+    {
+      "name": "certificate-row-limit-2-pow-50-minus-1",
+      "base": "sample-1",
+      "set": { "certificate": { "status": "unique", "model": "dlx-v1", "rowLimit": 1125899906842623 } },
+      "code": "1D0J6C0000000200000001ZY92G47DMXNG6YCP10HCY05KZW8S4HCE9E3.18SDXC"
+    },
+    {
+      "name": "certificate-row-limit-2-pow-53-minus-1",
+      "base": "sample-1",
+      "set": { "certificate": { "status": "unique", "model": "dlx-v1", "rowLimit": 9007199254740991 } },
+      "code": "1D0J6C00000000800000000ZZ4H823PTETR3F6B0G8PF02SZY4CJ8P3647.18QQGB"
+    },
+    {
+      "name": "rating-escape-after-failed-rebuild",
+      "base": "sample-1",
+      "forceRebuildFailure": true,
+      "compression": "raw",
+      "code": "182SQP8KDDXJ6AV1278H68TB6CSMP6XBCEHWJTXHJ48P24WV3DXS6A8HT70P24V35ESJPR8HT49JP2WVS48P24WV1EHTQ4RBMCNJ24EK6C5P76S9C49PPAX3JD5HQ68HTFCH5A8HT6GP24GH278R2R8K2E9GPWRV8AHS6JRBCECH3MC1C49S6YXTME9MP2V3K48X38B12EDT6YW1278H76VVCENT6JVVE48P24MH278S3AB1290H3MCSE6WV36D9J6CW3GC1H6CVKCE1P6NYQTH4A0GXPKPP0VSJR425KR0PFZH34J5GG3YQ.186DV3",
+      "escapedClaim": "{\"model\":\"difficulty-v2\",\"score\":8,\"level\":\"easy\",\"saturated\":false,\"metrics\":{\"U\":4,\"B\":0,\"branchTrials\":0,\"rowTrials\":4,\"stop\":\"solution\",\"R\":25,\"H\":3.7635238801376865}}"
+    }
+  ],
+  "version2DecodeOnly": [
+    {
+      "name": "sample-3-deflate",
+      "source": "player/samples/sample-pack.json",
+      "puzzle": 2,
+      "title": "Hard",
+      "note": "Node zlib at its defaults, 7 inflated fill bits; another compressor gives another string. Same puzzle as the raw sample-3 code with the stored title.",
+      "code": "2HFJYYXK9CARMXF7NW1FEM4T7CT1V45NAVWD8000GHXX.19M0J7Z"
+    }
+  ],
+  "negatives": [
+    {
+      "code": "1D0J492G47DMXNG6YCP10HCY05KZW8S4HDRJT5",
+      "defect": "Raw core with a 1 in its 1-bit padding",
+      "error": "invalid"
+    },
+    {
+      "code": "2HHJYYXK9CARMXF7NW1FEM4T7CT1V45NAVWD9G000085DD",
+      "defect": "Version 2 with one extra inflated zero byte",
+      "error": "invalid"
+    },
+    {
+      "code": "2HFJYYXK9CARMXF7NW1FEM4T7CT1V45NAVWD8200WXKQ",
+      "defect": "Version 2 with a 1 in its inflated fill",
+      "error": "invalid"
+    },
+    {
+      "code": "2HFJYYXK9CARMXF7NW1FEM4T7CT1V45NAVWD8001X1G0",
+      "defect": "Version 2 with a 1 in its outer padding",
+      "error": "invalid"
+    },
+    {
+      "code": "1D0J6C00000000800000001004H823PTETR3F6B0G8PF02SZY4CJ8PQZYQ",
+      "defect": "Certificate rowLimit 2^53, one above the safe range",
+      "error": "invalid"
+    }
+  ],
+  "large": {
+    "name": "large-576-h1-puzzle-1",
+    "code": "1EG2H6A2XE0BZ5TNBYPNFBYQNTVVZF57XNJS67YWYDKZEENH7XSVS3YYTDFKZT7YYTE3YWYEFVS9N3YYC3VDDZ6QXSSSZF73DNQQQXHQFXSHRVZJNYFN0ZTTR5NWKD7XRAJFKYZVKBYYVYTS1ZFA1ZD61TTFMFA3JZKFFKEFSWNQT54VV9ZQ7TPG5ZE28JPP62C5PNNABSE2CX0BYKZ.14ZDJDYJYM30V6MX43A5AWCJY447TZG",
+    "coreLength": 211,
+    "fullLength": 243,
+    "width": 24,
+    "height": 24,
+    "rotation": 0,
+    "pieceCount": 40,
+    "clueCount": 4,
+    "pieceSizes": [20, 19, 19, 18, 18, 17, 17, 17, 17, 17, 17, 17, 16, 16, 16, 15, 15, 14, 14, 14, 14, 14, 13, 13, 13, 13, 13, 13, 13, 12, 12, 12, 12, 12, 11, 11, 11, 11, 10, 10],
+    "clues": [
+      { "piece": "I", "x": 16, "y": 5, "turn": 2, "mirrored": true },
+      { "piece": "P", "x": 5, "y": 0, "turn": 1, "mirrored": true },
+      { "piece": "Z", "x": 14, "y": 11, "turn": 3, "mirrored": false },
+      { "piece": "AL", "x": 4, "y": 20, "turn": 2, "mirrored": false }
+    ],
+    "rating": {
+      "model": "difficulty-v2",
+      "score": 102,
+      "level": "hell-1",
+      "saturated": true,
+      "metrics": {
+        "U": 36,
+        "B": 5000,
+        "branchTrials": 5000,
+        "rowTrials": 5164,
+        "stop": "branch-cap",
+        "R": 520,
+        "H": 10.850818759479644
+      }
+    },
+    "progressFingerprint": "cdc9a3c0ff8691595d395c8a98f634a885bfe2ccf6aded9b1fcebd9ff8cf4425"
+  },
+  "qrMatrices": {
+    "note": "Pinned encoder output for the QR adapter tasks (RP04, RP05, RP08); not asserted by the codec tests.",
+    "prefix": "https://tdat00.github.io/pentomino/player/#p=",
+    "rows": [
+      { "name": "sample-1", "version": 5, "size": 37, "mask": 6, "sha256": "8fd29495b33327d2b34f1c5b0b2554b832bb25d199f12ad21666959a823b0c42" },
+      { "name": "sample-2", "version": 5, "size": 37, "mask": 6, "sha256": "6ca966be5185d6731a4631313c86e06a9445ff187995e62a012320cda64efbc4" },
+      { "name": "sample-3", "version": 5, "size": 37, "mask": 6, "sha256": "fcfb568e43da12bdfdeeab914a4bd80ffa91140536ef7ee1db947c9ea40426c6" },
+      { "name": "hand-authored-1", "version": 6, "size": 41, "mask": 6, "sha256": "bd4069185f71651f1481a73f68bffd5e532aa48980edee7131ba953b8e50974e" },
+      { "name": "large-576-h1-puzzle-1", "version": 11, "size": 61, "mask": 2, "sha256": "7cd76340de36049de81dd86e02614cca72abd3eac9672d0160e5daeb90ed05b7" }
+    ]
+  }
+}

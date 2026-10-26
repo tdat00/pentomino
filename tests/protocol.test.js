@@ -22,6 +22,17 @@ const set = {
   carving: 'imported',
   macroRegion: null,
 };
+const snapshot = () => ({
+  rows,
+  rotation: 45,
+  pieces,
+  title: 'Easy #2',
+  clues: [pose],
+  solution: [pose],
+  rating: { model: 'difficulty-v2', score: 31, level: 'normal', saturated: false, metrics: { U: 3, B: 40, stop: 'solution', nested: { list: [1, 'a', null, true] } } },
+  certificate: { status: 'unique', model: 'dlx-v1', rowLimit: 2000 },
+});
+const CODE = '1D0J492G47DMXNG6YCP10HCY05KZW8S4HCN2QR.18V3WE';
 
 /** @type {Record<string, () => any>} */
 const PAYLOADS = {
@@ -52,6 +63,8 @@ const PAYLOADS = {
     seenClues: [],
     layout: [pose],
   }),
+  encodePuzzleCode: () => ({ snapshot: snapshot() }),
+  decodePuzzleCode: () => ({ text: CODE }),
 };
 
 /**
@@ -216,21 +229,104 @@ describe('task messages', () => {
     assert.ok(validatePayload('verifyPack', { pack: 5 }).ok);
     assert.ok(!validatePayload('verifyPack', {}).ok);
   });
+
+  test('puzzle-code payloads: the snapshot is a strict plain-data copy; omitted optional claims become null', () => {
+    const full = task('encodePuzzleCode', { snapshot: snapshot() });
+    assert.ok(full.ok);
+    assert.deepEqual(full.value.payload.snapshot, snapshot());
+    const { title, solution, rating, certificate, ...minimal } = snapshot();
+    const bare = task('encodePuzzleCode', { snapshot: minimal });
+    assert.ok(bare.ok);
+    assert.deepEqual(bare.value.payload.snapshot, { ...minimal, title: null, solution: null, rating: null, certificate: null });
+    const hostile = { snapshot: { ...snapshot(), rating: { model: 'm', score: 1, level: 'x', metrics: JSON.parse('{"__proto__":{"x":1}}') } } };
+    const copied = /** @type {any} */ (task('encodePuzzleCode', hostile));
+    assert.ok(copied.ok);
+    assert.equal(Object.getPrototypeOf(copied.value.payload.snapshot.rating.metrics), Object.prototype, 'a __proto__ key stays data');
+    assert.equal(Object.hasOwn(copied.value.payload.snapshot.rating.metrics, '__proto__'), true);
+    assert.equal(/** @type {any} */ ({}).x, undefined, 'and pollutes nothing');
+    assert.ok(task('encodePuzzleCode', { snapshot: { ...snapshot(), rating: { model: 'foreign-v9', score: 4.5, level: 'who knows', censored: true } } }).ok);
+  });
+
+  test('puzzle-code snapshots reject unknown fields, wrong types and unbounded metrics', () => {
+    const deep = (/** @type {number} */ n) => (n === 0 ? 1 : { a: deep(n - 1) });
+    /** @type {[string, (s: any) => void][]} */
+    const mutations = [
+      ['unknown snapshot field', (s) => { s.index = 2; }],
+      ['function field', (s) => { s.onDone = () => 1; }],
+      ['missing rows', (s) => { delete s.rows; }],
+      ['ragged rows', (s) => { s.rows = ['###', '##']; }],
+      ['fractional rotation', (s) => { s.rotation = 1.5; }],
+      ['rotation 360', (s) => { s.rotation = 360; }],
+      ['numeric title', (s) => { s.title = 5; }],
+      ['overlong title', (s) => { s.title = 'x'.repeat(513); }],
+      ['clue with unknown field', (s) => { s.clues = [{ ...pose, extra: 1 }]; }],
+      ['solution of a wrong type', (s) => { s.solution = 'yes'; }],
+      ['rating with unknown field', (s) => { s.rating = { model: 'm', score: 1, level: 'x', verified: true }; }],
+      ['negative score', (s) => { s.rating = { model: 'm', score: -1, level: 'x' }; }],
+      ['non-finite score', (s) => { s.rating = { model: 'm', score: Infinity, level: 'x' }; }],
+      ['array metrics', (s) => { s.rating = { model: 'm', score: 1, level: 'x', metrics: [1] }; }],
+      ['too deep metrics', (s) => { s.rating = { model: 'm', score: 1, level: 'x', metrics: deep(12) }; }],
+      ['huge metrics', (s) => { s.rating = { model: 'm', score: 1, level: 'x', metrics: { list: new Array(5000).fill(1) } }; }],
+      ['class instance in metrics', (s) => { s.rating = { model: 'm', score: 1, level: 'x', metrics: { when: new Date(0) } }; }],
+      ['certificate with a bad status', (s) => { s.certificate = { status: 'maybe', model: 'm' }; }],
+      ['certificate with a fractional limit', (s) => { s.certificate = { status: 'unique', model: 'm', rowLimit: 1.5 }; }],
+    ];
+    for (const [name, mutate] of mutations) {
+      const s = snapshot();
+      mutate(s);
+      const parsed = task('encodePuzzleCode', { snapshot: s });
+      assert.ok(!parsed.ok, name);
+      assert.ok(parsed.issues.length > 0 && parsed.issues.every((i) => i.code && i.path), name);
+    }
+    assert.ok(!task('encodePuzzleCode', {}).ok);
+    assert.ok(!task('encodePuzzleCode', { snapshot: snapshot(), options: { compression: 'raw' } }).ok, 'no options travel');
+    assert.ok(!task('encodePuzzleCode', { snapshot: new Map() }).ok);
+  });
+
+  test('decode text is a string of at most 32,768 UTF-16 code units; the codec judges the rest', () => {
+    for (const text of ['', ' ', CODE, '1D0J-492G 47DM', 'not a code at all', 'x'.repeat(32768)]) {
+      assert.ok(task('decodePuzzleCode', { text }).ok, text.slice(0, 20));
+    }
+    for (const text of ['x'.repeat(32769), 5, null, undefined, ['a'], { toString: () => 'a' }]) {
+      assert.ok(!task('decodePuzzleCode', { text }).ok, String(text).slice(0, 20));
+    }
+    assert.ok(!task('decodePuzzleCode', { text: CODE, signal: {} }).ok, 'no AbortSignal');
+    assert.ok(!task('decodePuzzleCode', { text: new URL('https://example.test/') }).ok, 'no URL instance');
+    assert.ok(!task('decodePuzzleCode', {}).ok);
+  });
 });
 
 describe('worker messages', () => {
   test('accepts progress, result and error replies', () => {
+    const candidate = { component: 'core', group: 2, position: 2, expected: '9', typed: '0', correctedCode: '1D0J492G47DMXNG6YCP10HCY05KZW8S4HCN2QR.18V3WE' };
     const good = [
       { type: 'progress', id: 1, stage: 'search', rowTrials: 50000, bytes: 1024 },
       { type: 'result', id: 2, value: { any: ['thing'] } },
       { type: 'result', id: 2, value: null },
       { type: 'error', id: 3, code: 'model-too-large', message: 'too big' },
       { type: 'error', id: 3, code: 'invalid-pack', message: '', issues: [{ code: 'x', path: '$', message: 'm' }] },
+      { type: 'error', id: 4, code: 'bad-char', message: 'm', issues: [{ code: 'bad-char', path: '$', message: 'm', params: { char: '!', at: 3 } }] },
+      { type: 'error', id: 5, code: 'core-check', message: 'm', issues: [{ code: 'core-check', path: '$', message: 'm', candidate }] },
     ];
     for (const message of good) {
       const parsed = parseWorkerMessage(message);
       assert.ok(parsed.ok, JSON.stringify(message));
       assert.deepEqual(parsed.value, message);
+    }
+  });
+
+  test('puzzle-code error issues keep valid params and candidates only', () => {
+    const issue = { code: 'core-check', path: '$', message: 'm' };
+    const candidate = { component: 'tail', group: 1, position: 4, expected: 'A', typed: 'B', correctedCode: 'AAAA.BBBB' };
+    const wrap = (/** @type {object} */ extra) => ({ type: 'error', id: 1, code: 'core-check', message: 'm', issues: [{ ...issue, ...extra }] });
+    assert.ok(parseWorkerMessage(wrap({ candidate })).ok);
+    for (const extra of [
+      { params: 'x' }, { params: { a: {} } }, { params: { a: Infinity } }, { params: Object.fromEntries(Array.from({ length: 9 }, (_, i) => [`k${i}`, i])) },
+      { params: { a: 'x'.repeat(257) } }, { candidate: { ...candidate, component: 'head' } }, { candidate: { ...candidate, position: 5 } },
+      { candidate: { ...candidate, group: 0 } }, { candidate: { ...candidate, expected: 'AB' } }, { candidate: { ...candidate, extra: 1 } },
+      { candidate: { ...candidate, correctedCode: 'A'.repeat(16002) } }, { candidate: 'AAAA' }, { unknown: 1 },
+    ]) {
+      assert.ok(!parseWorkerMessage(wrap(extra)).ok, JSON.stringify(extra).slice(0, 60));
     }
   });
 

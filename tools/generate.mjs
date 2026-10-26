@@ -5,6 +5,7 @@
 //
 //   node tools/generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4
 //   node tools/generate.mjs --recipe tests/fixtures/generation-case.json --workers 1
+//   node tools/generate.mjs --recipe tests/fixtures/generation-case.json --workers 1 --code --output pack.json
 //
 // Only the pack JSON goes to stdout (or to --output); progress and errors go to
 // stderr. Exit 0 = complete (ten of ten, or every arrangement of the piece set
@@ -12,31 +13,39 @@
 // or cancelled pack (including a shortfall that could not be proved to be the
 // maximum), 1 = no usable result or invalid input. A batch is always generated with an empty history:
 // `--batch-index N` selects the seed `<seed>#N`, nothing replays earlier batches.
+//
+// `--code` changes only the output: stdout then holds one puzzle code per accepted puzzle (one uppercase line
+// each, in pack order, the same code the browser prints for that puzzle) instead of the pack JSON, which --output
+// still receives. Generation, seeds, histories and exit codes are untouched.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { pathToFileURL } from 'node:url';
 
 import { createGenerationClient, GenerationError } from '../core/browser/generation-client.js';
+import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
 import { createPool, MAX_POOL_SIZE } from '../core/browser/worker-pool.js';
 import { boardFromRows, boardToRows, MAX_SIDE, preset } from '../core/engine/board.js';
 import { canonicalKey } from '../core/engine/geometry.js';
 import { level } from '../core/engine/levels.js';
 import { parsePack, serializePack } from '../core/engine/pack.js';
+import { ALPHABET, encodePuzzleCode } from '../core/engine/puzzlecode.js';
 import { normalizeSeedText, randomSeedText } from '../core/engine/rng.js';
 
 import { nodeWorkerFactory } from './node-worker.mjs';
 import { currentVersions } from './record-fixtures.mjs';
 
 /** @typedef {import('../core/engine/types.js').Pack} Pack */
+/** @typedef {import('../core/engine/puzzlecode.js').PuzzleCodeSnapshot} PuzzleCodeSnapshot */
 
 export const DEFAULT_MAX_ACTIVE = 676;
 export const MIN_MAX_ACTIVE = 30;
 export const MAX_COUNT = 10;
 const FLAG_NAMES = [
   'board', 'cols', 'rows', 'preset', 'n', 'rotation', 'level', 'count', 'seed', 'uniqueness', 'workers',
-  'output', 'batch-index', 'max-active', 'recipe', 'help',
+  'output', 'batch-index', 'max-active', 'recipe', 'code', 'help',
 ];
-const RECIPE_ONLY_FLAGS = new Set(['workers', 'max-active', 'output', 'recipe', 'help']);
+const RECIPE_ONLY_FLAGS = new Set(['workers', 'max-active', 'output', 'recipe', 'code', 'help']);
+const CODE_LINE = new RegExp(`^[${ALPHABET}]+(?:\\.[${ALPHABET}]+)?$`);
 const RECIPE_FIELDS = [
   'version', 'boardRows', 'rotation', 'levelId', 'quantity', 'seedText', 'batchIndex', 'batchSeed', 'uniqueness',
   'versions', 'expected',
@@ -44,16 +53,18 @@ const RECIPE_FIELDS = [
 const MAX_BOARD_SIDE = 64;
 
 export const USAGE = `usage: node tools/generate.mjs --board <cols>x<rows> --level <id> [options]
-       node tools/generate.mjs --recipe <file.json> [--workers N] [--max-active N] [--output file]
+       node tools/generate.mjs --recipe <file.json> [--workers N] [--max-active N] [--output file] [--code]
 
 board     --board 10x6 | --cols 10 --rows 6 | --preset rectangle|heart|diamond|cross|ring [--n N]
           [--rotation 0|45|...|315]
 level     --level very-easy|easy|normal|hard|expert|master|nightmare|hell-N
 options   --count 1-10 (default 5)   --seed <text> (default: random)   --uniqueness any|require (default any)
           --workers 1-4 (default: cores, at most 4)   --batch-index N (default 1)
-          --max-active 30-676 (default ${DEFAULT_MAX_ACTIVE})   --output <file>
-A recipe fixes every semantic input; only --workers, --max-active and --output may accompany it.
-Exit codes: 0 complete (all requested puzzles, or every arrangement of a piece set that has fewer), 2 valid partial or cancelled pack, 1 no usable result or invalid input.
+          --max-active 30-676 (default ${DEFAULT_MAX_ACTIVE})   --output <file>   --code
+--code    prints one puzzle code per accepted puzzle on stdout, one uppercase line each in pack order, instead of the
+          pack JSON; --output still receives the pack JSON. Progress and errors stay on stderr. It takes no value.
+A recipe fixes every semantic input; only --workers, --max-active, --output and --code may accompany it.
+Exit codes: 0 complete (all requested puzzles, or every arrangement of a piece set that has fewer), 2 valid partial or cancelled pack, 1 no usable result or invalid input. --code does not change them.
 `;
 
 /**
@@ -68,6 +79,7 @@ Exit codes: 0 complete (all requested puzzles, or every arrangement of a piece s
  * @property {number} workers
  * @property {number} maxActive
  * @property {string | undefined} output
+ * @property {boolean} code Print one puzzle code per accepted puzzle on stdout instead of the pack JSON.
  * @property {Record<string, any> | undefined} expected Recipe evidence, compared after the run.
  * @property {boolean} seedGenerated
  */
@@ -93,7 +105,7 @@ function integerFlag(name, text, min, max) {
 
 /**
  * @param {string[]} argv
- * @returns {Map<string, string>} flag name to value; `help` has an empty value.
+ * @returns {Map<string, string>} flag name to value; `help` and `code` have an empty value.
  */
 function readFlags(argv) {
   /** @type {Map<string, string>} */
@@ -109,6 +121,13 @@ function readFlags(argv) {
       throw new RangeError(`--${name} was given twice`);
     }
     if (name === 'help') {
+      flags.set(name, '');
+      continue;
+    }
+    if (name === 'code') {
+      if (match[2] !== undefined) {
+        throw new RangeError('--code takes no value');
+      }
       flags.set(name, '');
       continue;
     }
@@ -176,7 +195,7 @@ function boardFromFlags(flags) {
 
 /**
  * @param {Map<string, string>} flags
- * @returns {{ workers: number, maxActive: number, output: string | undefined }}
+ * @returns {{ workers: number, maxActive: number, output: string | undefined, code: boolean }}
  */
 function hostFlags(flags) {
   const workers = flags.has('workers')
@@ -189,7 +208,7 @@ function hostFlags(flags) {
   if (output !== undefined && output.length === 0) {
     throw new RangeError('--output needs a file name');
   }
-  return { workers, maxActive, output };
+  return { workers, maxActive, output, code: flags.has('code') };
 }
 
 /**
@@ -197,7 +216,7 @@ function hostFlags(flags) {
  * and `batchSeed` must equal `seedText + "#" + batchIndex`. `expected` is kept
  * as evidence for the comparison after the run.
  * @param {unknown} data
- * @returns {Omit<Config, 'workers' | 'maxActive' | 'output' | 'seedGenerated'>}
+ * @returns {Omit<Config, 'workers' | 'maxActive' | 'output' | 'code' | 'seedGenerated'>}
  */
 export function checkRecipe(data) {
   if (typeof data !== 'object' || data === null || Array.isArray(data)) {
@@ -371,6 +390,74 @@ export function packText(pack) {
   return `${serializePack(pack, { pretty: true }).replace(/\n/g, '\r\n')}\r\n`;
 }
 
+/**
+ * @typedef {object} EmitIo
+ * @property {(text: string) => void} stdout
+ * @property {(text: string) => void} stderr
+ * @property {(path: string, text: string) => void} writeText
+ * @property {(snapshot: PuzzleCodeSnapshot) => Promise<{ F: string }>} [encode] The shared codec by default; a test
+ *   seam to force raw compression or a failure.
+ */
+
+/**
+ * The code line of the puzzle at `index`: the same snapshot (displayed heading, effective angle, stored answer) and
+ * codec call as Print and Copy link in the browser, so the same puzzle gives the same code.
+ * @param {Pack} pack
+ * @param {number} index
+ * @param {(snapshot: PuzzleCodeSnapshot) => Promise<{ F: string }>} encode
+ * @returns {Promise<string>} F: the core, or the core and its tail, ungrouped and upper case.
+ */
+async function codeLine(pack, index, encode) {
+  try {
+    const { data } = puzzleSnapshot({
+      rows: pack.board.rows,
+      pieces: pack.pieces,
+      puzzle: pack.puzzles[index],
+      index,
+      rotation: pack.presentation?.rotation ?? 0,
+      untitled: (n) => `Puzzle #${n}`,
+    });
+    const { F } = await encode(data);
+    if (typeof F !== 'string' || !CODE_LINE.test(F)) {
+      throw new Error('the encoder returned a malformed code');
+    }
+    return F;
+  } catch (error) {
+    throw new Error(`no code for puzzle ${index + 1}: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
+  }
+}
+
+/**
+ * Writes an accepted generation result. Default: the pack JSON to stdout, or to `config.output`. With `config.code`:
+ * one code per puzzle, in pack order, on stdout, and the pack JSON still to `config.output` when it is set. Every
+ * code is made before anything is written, so a failure never leaves a partial list; a failure propagates and the
+ * caller keeps its exit-code decision.
+ * @param {Pack} pack An accepted, validated pack; never modified.
+ * @param {{ code: boolean, output?: string }} config
+ * @param {EmitIo} io
+ * @returns {Promise<void>}
+ */
+export async function emitGeneratedResult(pack, config, io) {
+  const text = packText(pack);
+  /** @type {string[]} */
+  const lines = [];
+  if (config.code) {
+    const encode = io.encode ?? encodePuzzleCode;
+    for (let index = 0; index < pack.puzzles.length; index += 1) {
+      lines.push(await codeLine(pack, index, encode));
+    }
+  }
+  if (config.output !== undefined) {
+    io.writeText(config.output, text);
+    io.stderr(`wrote ${config.output}\n`);
+  } else if (!config.code) {
+    io.stdout(text);
+  }
+  if (lines.length > 0) {
+    io.stdout(lines.map((line) => `${line}\n`).join(''));
+  }
+}
+
 const REASONS = /** @type {Record<string, string>} */ ({
   'layouts-not-found': 'no more were found, and it could not be proved that this piece set has no further arrangements',
   'difficulty-not-found': 'other arrangements of this piece set did not reach the level',
@@ -409,6 +496,7 @@ function arrangementDetail(found, label) {
  * @property {(text: string) => void} stderr
  * @property {(path: string) => string} readText
  * @property {(path: string, text: string) => void} writeText
+ * @property {(snapshot: PuzzleCodeSnapshot) => Promise<{ F: string }>} [encode] Replaceable puzzle-code encoder (test seam).
  * @property {() => () => import('../core/browser/worker-pool.js').WorkerLike} [workerFactory]
  * @property {(cancel: () => void) => (() => void)} [onInterrupt] Registers a cancel handler; returns its remover.
  */
@@ -508,12 +596,7 @@ export async function run(argv, overrides = {}) {
       io.stderr(`generate: the pack failed validation: ${checked.issues[0]?.message ?? 'unknown'}\n`);
       return 1;
     }
-    if (config.output === undefined) {
-      io.stdout(text);
-    } else {
-      io.writeText(config.output, text);
-      io.stderr(`wrote ${config.output}\n`);
-    }
+    await emitGeneratedResult(batch.pack, config, io);
     if (batch.status === 'complete') {
       return 0;
     }

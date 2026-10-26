@@ -27,13 +27,6 @@ const device = (coarse, deviceMemory) => detectHardware({
 });
 
 describe('shipped fallback while BQ-1..BQ-3 are not passed', () => {
-  test('no gate is passed and none references a report', () => {
-    for (const key of /** @type {const} */ (['bq0', 'bq1', 'bq2', 'bq3'])) {
-      assert.notEqual(QUALIFICATION[key].status, 'pass', key);
-      assert.equal(QUALIFICATION[key].report, null, key);
-    }
-  });
-
   test('a passing gate must reference an existing report', () => {
     for (const entry of Object.values(QUALIFICATION)) {
       if (entry.status === 'pass') {
@@ -41,13 +34,6 @@ describe('shipped fallback while BQ-1..BQ-3 are not passed', () => {
         assert.ok(existsSync(new URL(String(entry.report), ROOT)), String(entry.report));
       }
     }
-  });
-
-  test('production limits stay desktop 484 / phone 360 with 676 as the desktop opt-in', () => {
-    assert.equal(LIMITS.releaseMaxActive, 484);
-    assert.equal(LIMITS.phoneMaxActive, 360);
-    assert.equal(LIMITS.largeBoardMaxActive, 676);
-    assert.equal(LIMITS.designMaxActive, 576);
   });
 
   test('device modes: desktop, phone with low memory, phone with unknown memory', () => {

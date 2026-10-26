@@ -120,6 +120,45 @@
   display: none;
 }
 
+/* The status of the code preparation and what had to be left out. */
+.pm-print-code-box {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+}
+
+.pm-print-code-box [role="status"] {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.pm-print-code-box p,
+.pm-print-code-box ul {
+  margin: 0;
+}
+
+.pm-print-code-status:empty,
+.pm-print-code-notes:empty {
+  display: none;
+}
+
+.pm-print-code-notes {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+
+.pm-print-code-box[data-state="error"] .pm-print-code-status {
+  font-weight: 600;
+  color: var(--gen-color-warning, var(--pm-ink));
+}
+
+.pm-print-code-box .pm-btn {
+  justify-self: start;
+}
+
 .pm-print-warning {
   display: block;
   margin-top: 0.25rem;
@@ -133,6 +172,215 @@
   justify-content: flex-end;
   gap: 0.5rem;
   margin-top: 1rem;
+}
+
+/* With a list of puzzles the dialog has two columns: the options, and the puzzles to print. */
+.pm-print-dialog[data-layout="two"] {
+  width: min(58rem, 96vw);
+}
+
+.pm-print-body {
+  display: grid;
+  gap: 1rem;
+}
+
+.pm-print-dialog[data-layout="two"] .pm-print-body {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.pm-print-main,
+.pm-print-side {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+/* The second column is as high as the options: its list fills what is left and scrolls, and never makes the dialog taller. */
+.pm-print-dialog[data-layout="two"] .pm-print-side {
+  display: flex;
+  flex-direction: column;
+  min-height: 22rem;
+  contain: size;
+}
+
+.pm-print-side[hidden] {
+  display: none;
+}
+
+.pm-print-field.pm-print-puzzles {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--gen-color-divider, var(--pm-border));
+  border-radius: 0.375rem;
+}
+
+.pm-print-puzzles legend {
+  padding: 0 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.pm-print-list-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.pm-print-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pm-print-puzzles .pm-btn {
+  min-width: 0;
+  min-height: 1.5rem;
+  padding: 0 0.5rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  font-size: 0.8125rem;
+}
+
+.pm-print-puzzles .pm-btn:hover:not(:disabled) {
+  background: var(--gen-color-hover, transparent);
+}
+
+.pm-print-dialog p.pm-print-count,
+.pm-print-count {
+  margin: 0;
+  color: var(--gen-color-text-muted, var(--pm-muted));
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pm-print-list {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 6rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--gen-color-divider, var(--pm-border));
+  border-radius: 0.375rem;
+}
+
+.pm-print-list li + li {
+  border-top: 1px solid var(--gen-color-divider, var(--pm-border));
+}
+
+.pm-print-puzzle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--pm-target);
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+.pm-print-puzzle:hover {
+  background: var(--gen-color-hover, transparent);
+}
+
+.pm-print-puzzle > input {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+}
+
+.pm-print-puzzle > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.pm-print-per-page {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.pm-print-per-page-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.pm-print-label {
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.pm-print-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pm-print-choice {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--pm-target);
+  min-height: var(--pm-target);
+  padding: 0 0.75rem;
+  border: 1px solid var(--gen-color-border, var(--pm-border));
+  border-radius: 0.375rem;
+  background: var(--gen-color-surface, var(--pm-surface));
+  color: var(--gen-color-text, var(--pm-ink));
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.pm-print-choice > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.pm-print-choice:hover {
+  background: var(--gen-color-hover, transparent);
+}
+
+.pm-print-choice:has(> input:checked) {
+  border-color: var(--gen-color-accent, var(--pm-focus));
+  background: var(--gen-color-accent, var(--pm-focus));
+  color: var(--gen-color-accent-text, #ffffff);
+}
+
+.pm-print-choice:has(> input:focus-visible) {
+  outline: 2px solid var(--pm-focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 44rem) {
+  .pm-print-dialog[data-layout="two"] .pm-print-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pm-print-dialog[data-layout="two"] .pm-print-side {
+    min-height: 0;
+    contain: none;
+  }
+
+  .pm-print-list {
+    max-height: 14rem;
+  }
 }
 
 /* The pages are built when Print is pressed and shown only on paper. */

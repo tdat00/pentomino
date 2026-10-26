@@ -6,12 +6,15 @@ import { APP_VERSION } from '../core/engine/version.js';
 import { el } from '../core/browser/dom.js';
 import { browserStorage } from '../core/browser/storage.js';
 import { createPrintDialog, puzzleDetails } from '../core/browser/print-dialog.js';
+import { createShareDialog, shareIcon } from '../core/browser/share-dialog.js';
+import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
+import { createPuzzleCodeDialog } from '../core/browser/puzzle-code-dialog.js';
 import { shouldOfferStraighten, svgEl } from '../core/browser/svg-board.js';
 import { packBoard } from '../core/engine/pack.js';
 import { createPlayController } from './play.js';
 import { createHintController } from './hints.js';
 import { choose, onChange, setLocale, t } from './i18n.js';
-import { puzzleDisplayName } from './puzzle-title.js';
+import { cardHeading, puzzleDisplayName } from './puzzle-title.js';
 import { createPlayerController, createPlayerStore, effectiveRotation, knownSolvable } from './state.js';
 import {
   HINT_TEXT, LABELS, certificateLabel, certificateStatus, formatElapsed, levelLabel, verificationLabel,
@@ -53,6 +56,8 @@ let instances = 0;
  * @property {string | URL} [baseUrl]
  * @property {() => import('./state.js').PoolLike} [createPool]
  * @property {() => import('./hints.js').PoolLike} [createHintPool] Pool of the hint and reveal searches (default: one module worker).
+ * @property {() => import('../core/browser/puzzle-code-client.js').PuzzleCodeClient} [createPuzzleCodeClient] Client of the puzzle-code worker
+ *   (default: one module worker, started on first use); the page disposes it with the player.
  * @property {boolean} [coarsePointer]
  * @property {boolean} [reducedMotion] Overrides `prefers-reduced-motion`.
  * @property {() => number} [now] Millisecond clock of the timer and the save stamp.
@@ -91,6 +96,9 @@ export function mountPlayer(root, env = {}) {
     fetchText: env.fetchText,
     baseUrl: env.baseUrl,
     createPool: env.createPool,
+    createPuzzleCodeClient: env.createPuzzleCodeClient,
+    // A bad `#p=` address, at start-up or later, shows its failure in the code entry, with the text that was tried.
+    onPuzzleCodeFailure: ({ text, failure }) => codeDialog.open({ text, failure }),
   });
 
   root.replaceChildren();
@@ -112,8 +120,8 @@ export function mountPlayer(root, env = {}) {
     el('div', { className: 'panel-header' }, loc('puzzles.list', { attrs: { id: historyId } }, 'h2'), removeAllButton),
     cardsHost);
 
-  const title = el('h2', { className: 'puzzle-title', attrs: { id: titleId } });
-  const stepHead = el('div', { className: 'step-head' }, title);
+  // The heading takes the focus when a puzzle opens from the code entry and the button that opened it is gone.
+  const title = el('h2', { className: 'puzzle-title', attrs: { id: titleId, tabindex: -1 } });
   const info = el('p', { className: 'step-hint puzzle-info' });
 
   /**
@@ -152,18 +160,27 @@ export function mountPlayer(root, env = {}) {
     ? svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' }, svgEl('use', { href: `#${icon}` }))
     : icon));
   const printButton = iconButton('print', 'ic-print', 'print.button.title', () => printDialog.open());
+  const shareButton = /** @type {HTMLButtonElement} */ (el('button', {
+    className: 'pm-btn icon-btn share-btn',
+    attrs: { type: 'button', ...locAttrs({ 'aria-label': 'share.button', title: 'share.button' }) },
+    dataset: { action: 'share' },
+    on: { click: () => shareDialog.open(shareButton) },
+  }, shareIcon()));
   const hintButton = iconButton('hint', 'ic-hint', 'ui.hintLabel', () => void hints.requestHint());
   const replayButton = iconButton('replay', REPLAY_GLYPH, 'ui.replayPuzzle', () => replayDialog.open());
   printButton.disabled = true;
+  shareButton.disabled = true;
   hintButton.disabled = true;
   replayButton.disabled = true;
   const straighten = /** @type {HTMLButtonElement} */ (el('button', {
     className: 'pm-btn', text: LABELS.straighten, attrs: { type: 'button', hidden: '' }, dataset: { action: 'straighten' },
     on: { click: () => controller.setPref('straighten', !store.getState().prefs.straighten) },
   }));
+  // Share and Print share the row of the puzzle title, at its right, with Print last.
+  const stepHead = el('div', { className: 'step-head' }, title, el('div', { className: 'step-actions' }, shareButton, printButton));
   const gameBar = el('div', { className: 'game-bar' },
     el('div', { className: 'game-stats' }, timer, moves),
-    el('div', { className: 'game-actions' }, undo, redo, hintButton, replayButton, printButton, straighten));
+    el('div', { className: 'game-actions' }, undo, redo, hintButton, replayButton, straighten));
 
   /**
    * @param {string} action
@@ -181,9 +198,8 @@ export function mountPlayer(root, env = {}) {
     statusButton('dismiss-notice', 'ui.dismiss', () => controller.dismissNotice()));
   const badgeVerification = el('span', { className: 'badge badge-verification', dataset: { badge: 'verification' } });
   const badgeCertificate = el('span', { className: 'badge badge-certificate', dataset: { badge: 'certificate' } });
-  const badgeLocal = el('span', { className: 'badge badge-local', dataset: { badge: 'local' } });
   const badgeStorage = el('span', { className: 'badge badge-storage', dataset: { badge: 'storage' }, attrs: { role: 'status' } });
-  const badges = el('div', { className: 'status-badges' }, badgeVerification, badgeCertificate, badgeLocal, badgeStorage);
+  const badges = el('div', { className: 'status-badges' }, badgeVerification, badgeCertificate, badgeStorage);
   const hintHost = el('div', { className: 'status-hint-host' });
   const statusHost = el('div', { className: 'status-host', dataset: { host: 'status' } }, errorBox, noticeBox, badges);
 
@@ -353,30 +369,87 @@ export function mountPlayer(root, env = {}) {
     },
   });
   replayDialog.dialog.classList.add('pm-replay');
-  /** @returns {import('../core/browser/print-dialog.js').PrintJob | null} */
-  function printJob() {
-    const { pack, index, game, viewRotation } = store.getState();
-    const puzzle = pack?.puzzles[index];
-    if (pack === null || puzzle === undefined || game === null) {
+  /**
+   * @param {number} at Index of the puzzle in the pack.
+   * @returns {import('../core/browser/print-dialog.js').PrintJob | null}
+   */
+  function printJobAt(at) {
+    const { pack, viewRotation } = store.getState();
+    const puzzle = pack?.puzzles[at];
+    if (pack === null || puzzle === undefined) {
       return null;
     }
     const rating = puzzle.rating;
-    const generation = /** @type {{ setSeed?: unknown, setLevel?: unknown } | undefined} */ (pack.generation);
-    const setSeed = typeof generation?.setSeed === 'string' ? generation.setSeed : null;
-    const setLevel = typeof generation?.setLevel === 'string' ? generation.setLevel : null;
+    const rotation = viewRotation ?? pack.presentation?.rotation ?? 0;
+    // The code carries the puzzle as stored, with its answer if it has one, at the angle on screen; the Player still
+    // offers no solution sheet (no `solution` in the job).
+    const snapshot = puzzleSnapshot({ rows: pack.board.rows, pieces: pack.pieces, puzzle, index: at, rotation, untitled: LABELS.puzzleNumber });
     return {
       board: packBoard(pack),
       pieces: pack.pieces,
       clues: puzzle.clues,
-      rotation: viewRotation ?? pack.presentation?.rotation ?? 0,
-      title: puzzleDisplayName(puzzle.title, index),
+      rotation,
+      title: cardHeading(puzzle.title, at),
       details: puzzleDetails(t,
-        rating && typeof rating.score === 'number' ? { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated } : null,
-        puzzle.seed,
-        setSeed === null ? null : { level: setLevel === null ? null : levelLabel(setLevel), seed: setSeed }),
+        rating && typeof rating.score === 'number' ? { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated } : null),
+      snapshot,
     };
   }
-  const printDialog = createPrintDialog({ host: winHost, t, getJob: printJob });
+  /** @returns {import('../core/browser/print-dialog.js').PrintJob | null} The puzzle on show. */
+  function printJob() {
+    const { index, game } = store.getState();
+    return game === null ? null : printJobAt(index);
+  }
+  /** @returns {import('../core/browser/print-dialog.js').PrintList | null} Every puzzle of the pack, for the Print dialog to choose from. */
+  function printList() {
+    const { pack, index, game } = store.getState();
+    if (pack === null || game === null) {
+      return null;
+    }
+    return {
+      current: String(index),
+      items: pack.puzzles.map((puzzle, at) => {
+        const rating = puzzle.rating;
+        const lines = puzzleDetails(t,
+          rating && typeof rating.score === 'number' ? { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated } : null);
+        return {
+          id: String(at),
+          title: cardHeading(puzzle.title, at),
+          detail: lines.map((line) => line.map((part) => part.text).join('')).join(' '),
+          job: () => printJobAt(at),
+          order: at,
+        };
+      }).reverse(),
+    };
+  }
+  const printDialog = createPrintDialog({
+    host: winHost, t, getJob: printJob, getPuzzles: printList, createClient: env.createPuzzleCodeClient, watch: (listener) => store.subscribe(listener),
+  });
+  // The snapshots are the ones Print makes, so a link carries the same codes as the printed QR code. The dialog lives in
+  // the page root, which the start screen never hides.
+  const shareHost = el('div', { className: 'code-host' });
+  root.append(shareHost);
+  /** @type {{ pack: object, rotation: number, label: string, source: import('../core/browser/share-dialog.js').ShareSource } | null} */
+  let shareMemo = null;
+  /** @returns {import('../core/browser/share-dialog.js').ShareSource | null} */
+  function shareSource() {
+    const { pack, index, game, viewRotation } = store.getState();
+    if (pack === null || game === null) {
+      return null;
+    }
+    const rotation = viewRotation ?? pack.presentation?.rotation ?? 0;
+    const label = LABELS.puzzleNumber(1);
+    if (shareMemo === null || shareMemo.pack !== pack || shareMemo.rotation !== rotation || shareMemo.label !== label) {
+      const snapshots = pack.puzzles.map((puzzle, at) => puzzleSnapshot({
+        rows: pack.board.rows, pieces: pack.pieces, puzzle, index: at, rotation, untitled: LABELS.puzzleNumber,
+      }));
+      shareMemo = { pack, rotation, label, source: { snapshots, index } };
+    }
+    return shareMemo.source.index === index ? shareMemo.source : { snapshots: shareMemo.source.snapshots, index };
+  }
+  const shareDialog = createShareDialog({
+    host: shareHost, t, getSource: shareSource, closeKey: 'ui.close', createClient: env.createPuzzleCodeClient,
+  });
   const winDialog = createWinDialog(winHost, {
     onNext: () => {
       controller.nextPuzzle();
@@ -424,6 +497,23 @@ export function mountPlayer(root, env = {}) {
   });
   const startView = createStartView(startHost, { onSample: () => void controller.openSample() });
   startHost.append(version);
+
+  // Puzzle code entry, opened by a bad `#p=` address so the code can be fixed (it has no button). Its dialog
+  // lives straight in the page root: the dialogs of the game screen sit in a section that the start screen hides.
+  const codeHost = el('div', { className: 'code-host' });
+  root.append(codeHost);
+  /** @param {string} text */
+  function openCode(text) {
+    return controller.loadPuzzleCode(text, { commitAddress: true });
+  }
+  const codeDialog = createPuzzleCodeDialog({
+    host: codeHost,
+    t,
+    submit: openCode,
+    cancel: () => controller.cancelPuzzleCodeLoad(),
+    openRecovery: openCode,
+    fallbackFocus: () => (store.getState().screen === 'game' ? title : null),
+  });
 
   // Piece menu: a right-click, the Menu key or a long press on a tray piece or a movable board piece. Elsewhere on
   // the board it lists only the actions of the whole puzzle.
@@ -540,6 +630,7 @@ export function mountPlayer(root, env = {}) {
     redo.disabled = !g || g.future.length === 0 || busy;
     replayButton.disabled = !g || busy || untouched(g);
     printButton.disabled = !g;
+    shareButton.disabled = !g;
     hintButton.disabled = !g || g.solved;
   }
 
@@ -559,8 +650,6 @@ export function mountPlayer(root, env = {}) {
     badgeCertificate.textContent = certificateLabel(puzzle?.certificate, solvable);
     badgeCertificate.dataset.status = certificateStatus(puzzle?.certificate, solvable);
     badgeCertificate.hidden = badgeCertificate.textContent === '';
-    badgeLocal.textContent = state.local ? LABELS.localLink : '';
-    badgeLocal.hidden = !state.local;
     badgeStorage.textContent = state.storageWarning ?? '';
     badgeStorage.hidden = state.storageWarning === null;
   }
@@ -637,6 +726,7 @@ export function mountPlayer(root, env = {}) {
     startHost.hidden = showGame;
     root.dataset.screen = showGame ? 'game' : 'start';
     root.setAttribute('aria-busy', String(state.loading));
+    shareDialog.refresh();
     startView.render(state);
     puzzleList.render(state);
     removeAllButton.disabled = state.pack === null;
@@ -697,6 +787,11 @@ export function mountPlayer(root, env = {}) {
       renderToolbar(state);
       hintPanel.render(state);
     }
+    codeDialog.refresh();
+    // A language that changes the printed heading starts a new preparation of the open Print dialog.
+    printDialog.refresh();
+    shareDialog.refreshTexts();
+    shareDialog.refresh();
   });
   render(store.getState(), null);
 
@@ -720,7 +815,8 @@ export function mountPlayer(root, env = {}) {
   }
 
   const onHashChange = () => {
-    void controller.openHash(String((env.location ?? win.location).hash));
+    const hash = String((env.location ?? win.location).hash);
+    void controller.openHash(hash);
   };
   if (env.listenHashChange !== false) {
     win.addEventListener('hashchange', onHashChange);
@@ -744,6 +840,7 @@ export function mountPlayer(root, env = {}) {
     hints,
     hintPanel,
     winDialog,
+    codeDialog,
     destroy() {
       play.flush();
       unsubscribe();
@@ -757,6 +854,10 @@ export function mountPlayer(root, env = {}) {
       dragLayer.destroy();
       pieceMenu.destroy();
       printDialog.destroy();
+      shareDialog.dispose();
+      shareHost.remove();
+      codeDialog.dispose();
+      codeHost.remove();
       doc.removeEventListener('visibilitychange', onVisibility);
       observer?.disconnect();
       win.cancelAnimationFrame(frame);

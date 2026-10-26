@@ -1,8 +1,7 @@
 // @ts-check
-// Board model: active-cell masks, presets, region/exterior analysis, D4
-// symmetries and generation validation. Authored W x H coordinates are never
-// changed implicitly; analysis copies report their offsets. Pure and
-// dependency-free; presentation rotation is not part of board data.
+// Board model: active-cell masks, presets, region analysis, D4 symmetries and
+// generation validation. Pure; authored coordinates are never changed
+// implicitly (analysis copies report their offsets).
 
 import { TRANSFORMS } from './geometry.js';
 
@@ -30,7 +29,7 @@ export function activeCount(b) {
 }
 
 /**
- * Active cells in row-major order, as [x, y].
+ * Row-major order.
  * @param {Board} b
  * @returns {XY[]}
  */
@@ -116,33 +115,6 @@ export function boardKey(b) {
     bits += KEY_DIGITS[digit];
   }
   return `${b.width}x${b.height}:${bits}`;
-}
-
-/**
- * The board named by `boardKey`.
- * @param {string} key
- * @returns {Board}
- * @throws {RangeError} For anything `boardKey` could not have produced.
- */
-export function boardFromKey(key) {
-  const match = /^(\d{1,2})x(\d{1,2}):([A-Za-z0-9_-]*)$/.exec(key);
-  if (match === null) {
-    throw new RangeError('not a board key');
-  }
-  const width = Number(match[1]);
-  const height = Number(match[2]);
-  if (width < 1 || height < 1) {
-    throw new RangeError('a board needs at least one cell');
-  }
-  const active = new Uint8Array(width * height);
-  for (let i = 0; i < active.length; i += 1) {
-    active[i] = (KEY_DIGITS.indexOf(match[3][Math.floor(i / 6)] ?? 'A') >> (5 - (i % 6))) & 1;
-  }
-  const board = { width, height, active };
-  if (boardKey(board) !== key) {
-    throw new RangeError('not a board key');
-  }
-  return board;
 }
 
 /**
@@ -381,8 +353,7 @@ export function normalizedActive(b) {
 }
 
 /**
- * Explicit edit: crops blocked margins. A board without active cells is
- * returned unchanged (as a copy).
+ * A board without active cells is returned as an unchanged copy.
  * @param {Board} b
  * @returns {Board}
  */

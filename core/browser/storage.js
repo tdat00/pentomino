@@ -1,10 +1,7 @@
 // @ts-check
 // Namespaced, failure-tolerant localStorage wrapper. All access goes through an
 // injected adapter; nothing outside `pentomino:v1:` is read, listed or removed.
-import { packId as computePackId } from '../engine/keys.js';
-import { parsePack, serializePack, validatePack } from '../engine/pack.js';
 
-/** @typedef {import('../engine/types.js').Pack} Pack */
 /** @typedef {import('../engine/types.js').Pose} Pose */
 /** @typedef {import('../engine/types.js').Issue} Issue */
 
@@ -22,14 +19,6 @@ import { parsePack, serializePack, validatePack } from '../engine/pack.js';
 
 /** @typedef {{ ok: false, code: 'storage-unavailable' | 'quota' | 'invalid-data', message: string }} StorageFailure */
 /** @typedef {{ ok: true } | StorageFailure} StorageResult */
-
-/**
- * Entry of the LRU list of packs saved for same-browser `#lib=` links. Older versions also kept `title`,
- * `createdAt`, `puzzles` and `solved` for a Recent list; they are ignored and dropped by the next write.
- * @typedef {object} LibraryEntry
- * @property {string} packId
- * @property {string} lastOpened
- */
 
 /**
  * Local progress record, version 2. Version 1 records (written before hints)
@@ -59,19 +48,15 @@ import { parsePack, serializePack, validatePack } from '../engine/pack.js';
  */
 
 export const NAMESPACE = 'pentomino:v1:';
-export const MAX_LIBRARY_PACKS = 30;
 export const MAX_PROGRESS_ENTRIES = 300;
 export const SAVE_FAILED_MESSAGE = "Progress can't be saved in this browser";
 
 const KEY_GENERATOR = `${NAMESPACE}gen:state`;
-const KEY_LIB_INDEX = `${NAMESPACE}lib:index`;
-const KEY_LIB_PREFIX = `${NAMESPACE}lib:`;
 const KEY_PROGRESS_PREFIX = `${NAMESPACE}progress:`;
 // Private LRU bookkeeping; deliberately outside the `progress:` prefix.
 const KEY_PROGRESS_INDEX = `${NAMESPACE}progress-index`;
 const KEY_PREFS = `${NAMESPACE}prefs`;
 
-const PACK_ID = /^[0-9a-f]{16}$/;
 const FINGERPRINT = /^[A-Za-z0-9_-]{1,64}$/;
 const MAX_PLACEMENTS = 1024;
 /** @type {Prefs} */
@@ -137,17 +122,6 @@ function readProgress(v) {
     revealed: migrated ? false : /** @type {boolean} */ (v.revealed),
     hintsUsed: migrated ? 0 : /** @type {number} */ (v.hintsUsed),
   };
-}
-
-/**
- * @param {unknown} v
- * @returns {LibraryEntry | null}
- */
-function readLibraryEntry(v) {
-  if (!isRecord(v) || typeof v.packId !== 'string' || !PACK_ID.test(v.packId) || typeof v.lastOpened !== 'string') {
-    return null;
-  }
-  return { packId: v.packId, lastOpened: v.lastOpened };
 }
 
 /**
@@ -326,41 +300,8 @@ export function createStorage(adapter, now) {
   }
 
   /**
-   * @returns {LibraryEntry[]} Most recently opened first.
-   */
-  function libraryIndex() {
-    const raw = readJson(KEY_LIB_INDEX);
-    if (raw === null) {
-      return [];
-    }
-    if (!Array.isArray(raw)) {
-      record('invalid-data', 'The saved puzzle list was damaged and was ignored', KEY_LIB_INDEX);
-      return [];
-    }
-    /** @type {LibraryEntry[]} */
-    const entries = [];
-    const seen = new Set();
-    for (const e of raw) {
-      const entry = readLibraryEntry(e);
-      if (entry && !seen.has(entry.packId)) {
-        seen.add(entry.packId);
-        entries.push(entry);
-      }
-    }
-    return entries.sort((a, b) => (a.lastOpened < b.lastOpened ? 1 : a.lastOpened > b.lastOpened ? -1 : 0));
-  }
-
-  /**
-   * @param {LibraryEntry[]} entries
-   */
-  function writeLibraryIndex(entries) {
-    writeQuiet(KEY_LIB_INDEX, JSON.stringify(entries));
-  }
-
-  /**
-   * Drops least-recently-used entries of this namespace to make room: a
-   * quarter of the progress records, else one library pack. Never touches
-   * preferences, generator state or the protected key.
+   * Drops least-recently-used progress records to make room: a quarter of them. Never touches preferences, generator
+   * state or the protected key.
    * @param {string} protectedKey
    * @returns {number} Entries removed.
    */
@@ -377,15 +318,6 @@ export function createStorage(adapter, now) {
         }
       }
       writeProgressIndex(readProgressIndex().filter((e) => !drop.has(e.fp)));
-      return removed;
-    }
-    const library = libraryIndex()
-      .filter((e) => `${KEY_LIB_PREFIX}${e.packId}` !== protectedKey)
-      .reverse();
-    if (library.length > 0) {
-      const victim = library[0].packId;
-      const removed = tryRemove(`${KEY_LIB_PREFIX}${victim}`) ? 1 : 0;
-      writeLibraryIndex(libraryIndex().filter((e) => e.packId !== victim));
       return removed;
     }
     return 0;
@@ -480,89 +412,6 @@ export function createStorage(adapter, now) {
       record('storage-unavailable', `Saved data could not be removed: ${error instanceof Error ? error.message : 'storage error'}`, key);
       return { ok: false, code: 'storage-unavailable', message: 'Saved data could not be removed' };
     }
-  }
-
-  /**
-   * @param {string} id
-   * @returns {Result<Pack>}
-   */
-  function loadLibraryPack(id) {
-    if (typeof id !== 'string' || !PACK_ID.test(id)) {
-      return { ok: false, issues: [{ code: 'invalid-id', path: '$', message: 'Not a library pack ID' }] };
-    }
-    const text = readRaw(`${KEY_LIB_PREFIX}${id}`);
-    if (text === null) {
-      return {
-        ok: false,
-        issues: [{ code: 'library-missing', path: '$', message: 'This puzzle is not saved in this browser — open its full link instead.' }],
-      };
-    }
-    const parsed = parsePack(text);
-    if (parsed.ok && computePackId(parsed.value) !== id) {
-      return { ok: false, issues: [{ code: 'library-mismatch', path: '$', message: 'The saved puzzle was damaged' }] };
-    }
-    return parsed;
-  }
-
-  /**
-   * Saves a pack for a same-browser `#lib=` link.
-   * @param {Pack} pack
-   * @returns {{ ok: true, packId: string } | StorageFailure}
-   */
-  function saveLibraryPack(pack) {
-    const checked = validatePack(pack);
-    if (!checked.ok) {
-      return invalid(checked.issues[0]?.message ?? 'The pack is not valid');
-    }
-    let text;
-    try {
-      text = serializePack(checked.value);
-    } catch (error) {
-      return invalid(error instanceof Error ? error.message : 'The pack cannot be saved');
-    }
-    const id = computePackId(checked.value);
-    const written = writeRaw(`${KEY_LIB_PREFIX}${id}`, text);
-    if (!written.ok) {
-      return written;
-    }
-    const next = [{ packId: id, lastOpened: new Date(now()).toISOString() }, ...libraryIndex().filter((e) => e.packId !== id)];
-    for (const old of next.splice(MAX_LIBRARY_PACKS)) {
-      tryRemove(`${KEY_LIB_PREFIX}${old.packId}`);
-    }
-    writeLibraryIndex(next);
-    return { ok: true, packId: id };
-  }
-
-  /**
-   * Marks a saved pack as just opened, so the LRU keeps it longest.
-   * @param {string} id
-   * @returns {StorageResult}
-   */
-  function touchLibraryPack(id) {
-    const loaded = loadLibraryPack(id);
-    if (!loaded.ok) {
-      return invalid(loaded.issues[0].message);
-    }
-    const entries = libraryIndex();
-    if (!entries.some((e) => e.packId === id)) {
-      const saved = saveLibraryPack(loaded.value);
-      return saved.ok ? { ok: true } : saved;
-    }
-    writeLibraryIndex([{ packId: id, lastOpened: new Date(now()).toISOString() }, ...entries.filter((e) => e.packId !== id)]);
-    return { ok: true };
-  }
-
-  /**
-   * @param {string} id
-   * @returns {StorageResult}
-   */
-  function removeLibraryPack(id) {
-    if (typeof id !== 'string' || !PACK_ID.test(id)) {
-      return invalid('Not a library pack ID');
-    }
-    const removed = remove(`${KEY_LIB_PREFIX}${id}`);
-    writeLibraryIndex(libraryIndex().filter((e) => e.packId !== id));
-    return removed;
   }
 
   /**
@@ -669,11 +518,6 @@ export function createStorage(adapter, now) {
     clearStorageIssue: () => {
       issue = null;
     },
-    libraryIndex,
-    saveLibraryPack,
-    loadLibraryPack,
-    touchLibraryPack,
-    removeLibraryPack,
     saveProgress,
     loadProgress,
     removeProgress,
@@ -722,15 +566,6 @@ const storage = {
   list: (prefix) => browserStorage().list(prefix),
   lastStorageIssue: () => browserStorage().lastStorageIssue(),
   clearStorageIssue: () => browserStorage().clearStorageIssue(),
-  libraryIndex: () => browserStorage().libraryIndex(),
-  /** @type {Storage['saveLibraryPack']} */
-  saveLibraryPack: (pack) => browserStorage().saveLibraryPack(pack),
-  /** @type {Storage['loadLibraryPack']} */
-  loadLibraryPack: (id) => browserStorage().loadLibraryPack(id),
-  /** @type {Storage['touchLibraryPack']} */
-  touchLibraryPack: (id) => browserStorage().touchLibraryPack(id),
-  /** @type {Storage['removeLibraryPack']} */
-  removeLibraryPack: (id) => browserStorage().removeLibraryPack(id),
   /** @type {Storage['saveProgress']} */
   saveProgress: (fp, value) => browserStorage().saveProgress(fp, value),
   /** @type {Storage['loadProgress']} */
@@ -746,8 +581,8 @@ const storage = {
 };
 
 export const {
-  get, set, remove, list, lastStorageIssue, clearStorageIssue, libraryIndex, saveLibraryPack, loadLibraryPack,
-  touchLibraryPack, removeLibraryPack, saveProgress, loadProgress, removeProgress, getPrefs, setPrefs, getGeneratorState,
+  get, set, remove, list, lastStorageIssue, clearStorageIssue, saveProgress, loadProgress, removeProgress, getPrefs, setPrefs,
+  getGeneratorState,
   setGeneratorState,
 } = storage;
 

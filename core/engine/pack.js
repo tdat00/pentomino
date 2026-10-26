@@ -1,10 +1,7 @@
 // @ts-check
-// Versioned puzzle-pack wire format: staged, bounded validation that returns
-// structured issues instead of throwing, canonical serialization and claim
-// handling. Pure and dependency-free. Everything read from a file is untrusted:
-// core objects are whitelisted and copied field by field, `generation` and
-// `meta` are copied iteratively with depth and node limits, and ratings and
-// certificates are always claims (`verified` is never read or written).
+// Versioned puzzle-pack wire format: bounded validation that returns issues instead of
+// throwing, canonical serialization and claim handling. Input is untrusted: fields are
+// whitelisted and copied; ratings and certificates are claims (`verified` never read).
 
 import { activeCount, boardFromRows, boardToRows, regions } from './board.js';
 import { canonicalKey, canonicalT, hasHole, isConnected, normalizeCells, poseCells } from './geometry.js';
@@ -179,9 +176,8 @@ function ownValue(obj, key) {
 }
 
 /**
- * Own enumerable data properties of a plain object, whitelisted. Reports
- * unknown fields, accessors and missing required fields; null when `v` is
- * not a plain object.
+ * Whitelisted own data properties; reports unknown fields, accessors and
+ * missing required fields. Null when `v` is not a plain object.
  * @param {Ctx} ctx
  * @param {unknown} v
  * @param {string} path
@@ -1018,7 +1014,7 @@ function* readPackSteps(ctx, input) {
   } else {
     const ids = new Set();
     for (let i = 0; i < puzzlesRaw.length; i += 1) {
-      // `forEach` skipped holes of sparse arrays; keep that.
+      // Holes of sparse arrays are skipped.
       const puzzle = i in puzzlesRaw ? readPuzzle(ctx, puzzlesRaw[i], child('puzzles', i), env) : null;
       if (puzzle !== null) {
         if (ids.has(puzzle.id)) {
@@ -1099,9 +1095,8 @@ export function validatePack(input) {
 }
 
 /**
- * `validatePack` with the work cut into slices: `pause` is awaited after the
- * board, pieces and witness and after each puzzle, so a main thread can stay
- * responsive. The result is the same as `validatePack`'s.
+ * `validatePack` that awaits `pause` between steps to keep a main thread
+ * responsive; same result.
  * @param {unknown} input
  * @param {() => Promise<void>} pause
  * @returns {Promise<Result<Pack>>}
@@ -1311,10 +1306,9 @@ export function serializePack(p, o = {}) {
 }
 
 /**
- * Builds a pack from engine objects. The kind follows the puzzle count; poses
- * are written canonically; ratings and certificates become claims (`verified`
- * is dropped). Piece order, and with it any parallel `macroRegion` hint, is
- * preserved. Use `validatePack` to check a pack from an untrusted source.
+ * Builds a pack from engine objects: kind follows the puzzle count, poses are
+ * canonical, ratings and certificates become claims. Piece order (and any
+ * parallel `macroRegion`) is preserved. Does not validate.
  * @param {{ board: Board, rotation: number, pieces: Piece[], witness?: Pose[] | null,
  *   puzzles: Puzzle[] | PackPuzzle[], generation?: object, meta?: object }} a
  * @returns {Pack}
@@ -1369,7 +1363,6 @@ export function createPack(a) {
 }
 
 /**
- * The pack's board as an engine Board.
  * @param {Pack} pack
  * @returns {Board}
  */

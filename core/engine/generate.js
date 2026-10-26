@@ -1,10 +1,7 @@
 // @ts-check
 // Piece-set attempts, puzzle candidates and the deterministic batch fold
 // (design §6.5, §6.7, §6.9, §8.2). Every task is a pure function of its payload
-// and every random stream is named, so one worker or four give the same
-// result. The fold consumes candidates strictly in (slot, attempt) order and
-// reads no clock; the host decides when to stop and maps accepted candidates
-// to wire puzzles.
+// with named random streams, so one worker or four give the same result.
 
 import { activeCount } from './board.js';
 import { certify, countRowLimit, selectClues } from './clues.js';
@@ -217,11 +214,9 @@ export function puzzleCandidate(ctx, slot, attempt) {
 }
 
 /**
- * Candidate for one known layout of the completion pass (fix round 3): the arrangement is given, so
- * there is no walk, and only the clue selection draws random numbers, from the stream
- * `completion/<layout key>` of the batch seed. Everything else is the `puzzleCandidate` pipeline:
- * the same level band, rating, uniqueness mode and excluded clue keys. `ctx` carries the history as of
- * the end of the fold, so the key checks see every puzzle of the batch.
+ * Candidate for one known layout of the completion pass: no walk; only clue selection draws from
+ * the stream `completion/<layout key>` of the batch seed. Otherwise the `puzzleCandidate` pipeline.
+ * `ctx` carries the history as of the end of the fold.
  * @param {BatchContext} ctx
  * @param {Pose[]} layout A complete layout of the context's set.
  * @returns {PuzzleCandidate | CandidateFailure}
@@ -257,7 +252,6 @@ export function completionCandidate(ctx, layout) {
 }
 
 /**
- * The context the completion candidates of one request receive: the history as of the end of the fold.
  * @param {BatchContext} ctx
  * @param {FoldState} s
  * @returns {BatchContext}
@@ -267,9 +261,8 @@ export function completionContext(ctx, s) {
 }
 
 /**
- * Feeds one completion candidate, in layout-key order, to a fold that stopped short. A valid candidate
- * whose layout key and clue key are both new to the fold's history is accepted (the distance preference
- * of the fold does not apply: the arrangements are all that is left). Anything else is a failure.
+ * Feeds one completion candidate (in layout-key order) to a fold that stopped short. Accepted when
+ * both keys are new; the fold's distance preference does not apply here.
  * @param {FoldState} s
  * @param {PuzzleCandidate | CandidateFailure} c
  * @returns {{ state: FoldState, failed: FailReason | null }}
@@ -286,8 +279,8 @@ export function completionAccept(s, c) {
 }
 
 /**
- * Serial reference run of the completion pass over `layouts` (already sorted by key): the same
- * candidates and the same acceptance as the pool-driven pass, one by one, until the quantity is reached.
+ * Serial reference run of the completion pass over `layouts` (sorted by key), equivalent to the
+ * pool-driven pass.
  * @param {BatchContext} ctx
  * @param {FoldState} s A partial fold state.
  * @param {Pose[][]} layouts
@@ -434,8 +427,7 @@ export function foldStart(ctx) {
 }
 
 /**
- * The context every candidate task of this request receives: the original
- * context with the frozen request-start history of the fold.
+ * The original context with the fold's frozen request-start history.
  * @param {BatchContext} ctx
  * @param {FoldState} s
  * @returns {BatchContext}

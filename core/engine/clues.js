@@ -1,8 +1,6 @@
 // @ts-check
-// Clue selection and proof-status certificates (design §6.10–§6.11). A puzzle
-// is a subset of its witness layout: count-guided sampling first, then a small
-// beam search over add/remove/swap moves, never more than 64 rated subsets.
-// Required uniqueness is repaired counterexample by counterexample and is only
+// Clue selection and proof-status certificates (design §6.10–§6.11): count-guided
+// sampling, then a small beam search, at most 64 rated subsets. Uniqueness is only
 // reported after an exhaustive count; cutoffs never become proofs.
 
 import { activeCount } from './board.js';
@@ -177,9 +175,8 @@ function ranked(target, list) {
 }
 
 /**
- * Selects the starting pieces: a subset of the witness whose measured score
- * lies in the target band. Throws RangeError for fewer than three pieces or a
- * layout that is not a complete valid arrangement.
+ * Selects a subset of the witness whose measured score lies in the target band.
+ * Throws RangeError for fewer than three pieces or an invalid layout.
  * @param {SelectContext} ctx
  * @returns {SelectResult}
  */

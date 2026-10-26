@@ -1,25 +1,32 @@
 // @ts-check
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import { reduce } from '../core/engine/game.js';
 import { levelForScore } from '../core/engine/levels.js';
 import { packBoard, parsePack, validatePack } from '../core/engine/pack.js';
 import { progressFingerprint } from '../core/engine/keys.js';
-import { base64urlEncode, encodeShareCode } from '../core/engine/sharecode.js';
 import { executeTask } from '../core/engine/tasks.js';
 import { MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES, createWorkspace } from '../core/engine/workspace.js';
-import { PIECE_SET_MESSAGE } from '../core/browser/handoff.js';
-import { PoolAbortError, PoolError } from '../core/browser/worker-pool.js';
+import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
+import { puzzleCodesOf } from '../core/browser/handoff.js';
+import { PoolAbortError, PoolError, createPool } from '../core/browser/worker-pool.js';
 import { SAVE_FAILED_MESSAGE, createStorage } from '../core/browser/storage.js';
 import { verifySample } from '../tools/record-fixtures.mjs';
+import { nodeWorkerFactory } from '../tools/node-worker.mjs';
 import {
   createPlayerController, createPlayerStore, effectiveRotation, hashWithIndex, knownSolvable,
 } from '../player/state.js';
 import {
-  INDEX_MESSAGE, MISSING_LOCAL_MESSAGE, SAMPLE_FAILED_MESSAGE, UNSUPPORTED_MESSAGE,
-  certificateLabel, formatElapsed, invalidPackMessage, messageForIssues, ratingLabel, ratingParts, restorationNotice, verificationLabel,
+  INDEX_MESSAGE, SAMPLE_FAILED_MESSAGE,
+  certificateLabel, formatElapsed, invalidPackMessage, messageForIssues, ratingParts, restorationNotice, verificationLabel,
 } from '../player/strings.js';
+
+/** The rating line as one text. @param {any} rating */
+const ratingLabel = (rating) => {
+  const parts = ratingParts(rating);
+  return parts === null ? '' : `${parts.before}${parts.level}${parts.after}`;
+};
 
 const sampleText = readFileSync(new URL('../player/samples/sample-pack.json', import.meta.url), 'utf8');
 const parsedSample = parsePack(sampleText);
@@ -43,8 +50,9 @@ const unsatisfiable = {
 /** @param {object} pack @returns {string} */
 const json = (pack) => JSON.stringify(pack);
 
-/** Uncompressed share code of any text, so links to broken packs can be built. @param {string} text */
-const codeOf = (text) => `1j.${base64urlEncode(new TextEncoder().encode(text))}`;
+/** One real Node worker makes the codes of the portable addresses. */
+const realClient = createPuzzleCodeClient({ createPool: () => /** @type {any} */ (createPool({ size: 1, workerFactory: nodeWorkerFactory() })) });
+after(() => realClient.dispose());
 
 const answerFree = { ...sample, witness: undefined, puzzles: sample.puzzles.map((p) => ({ ...p, solution: null })) };
 delete answerFree.witness;
@@ -67,9 +75,6 @@ function memoryAdapter(seed = {}) {
     },
   };
 }
-
-/** Keys of packs saved for same-browser `#lib=` links. @param {ReturnType<typeof memoryAdapter>} adapter */
-const savedPacks = (adapter) => [...adapter.map.keys()].filter((k) => /^pentomino:v1:lib:[0-9a-f]{16}$/.test(k));
 
 /** Pool that answers verifyPack with the real engine, synchronously and untouched by workers. */
 function enginePool() {
@@ -109,7 +114,7 @@ function manualPool() {
 
 /**
  * @param {{ hash?: string, adapter?: ReturnType<typeof memoryAdapter> | null, pool?: any, fetchText?: (url: string) => Promise<string>,
- *   createPool?: () => any }} [o]
+ *   createPool?: () => any, codes?: boolean }} [o] `codes`: the controller makes puzzle codes with a real worker.
  */
 function setup(o = {}) {
   const adapter = o.adapter === undefined ? memoryAdapter() : o.adapter;
@@ -129,6 +134,7 @@ function setup(o = {}) {
   };
   const store = createPlayerStore({ prefs: storage.getPrefs() });
   const fetched = /** @type {string[]} */ ([]);
+  let served = sampleText;
   const controller = createPlayerController({
     store,
     storage,
@@ -137,22 +143,40 @@ function setup(o = {}) {
     baseUrl: 'http://localhost/player/',
     fetchText: o.fetchText ?? (async (url) => {
       fetched.push(url);
-      return sampleText;
+      return served;
     }),
     createPool: o.createPool ?? (() => o.pool ?? enginePool()),
+    ...(o.codes === true ? { puzzleCodeClient: realClient } : {}),
   });
-  return { adapter, storage, location, urls, store, controller, fetched, state: () => store.getState() };
+  return {
+    adapter, storage, location, urls, store, controller, fetched, state: () => store.getState(),
+    /** @param {string} text */
+    serve(text) {
+      served = text;
+    },
+  };
 }
 
 /**
- * Follows the `#pack=` link of `pack`, as opening that address does.
+ * Opens `pack` the way the sample is opened (from a file), at puzzle `i`.
  * @param {ReturnType<typeof setup>} h
  * @param {import('../core/engine/types.js').Pack} pack
  * @param {number} [i]
  */
 async function openPack(h, pack, i = 0) {
-  h.location.hash = `#pack=${await encodeShareCode(pack)}&i=${i}`;
-  return h.controller.openHash(h.location.hash);
+  h.serve(JSON.stringify(pack));
+  const result = await h.controller.openSample();
+  if (result.ok && i > 0) {
+    h.controller.goToPuzzle(i);
+  }
+  return result;
+}
+
+/** The `#p=` list of the puzzles of `pack`, as Play makes it. @param {import('../core/engine/types.js').Pack} pack @param {number} [i] */
+async function listHash(pack, i = 0) {
+  const codes = await puzzleCodesOf(pack, { encodePuzzle: (data) => realClient.encode(data) });
+  assert.ok(codes);
+  return `#p=${codes.join(';')}${i === 0 ? '' : `&i=${i}`}`;
 }
 
 /** @param {ReturnType<typeof setup>} h */
@@ -183,12 +207,9 @@ function movablePose(pack, i) {
 }
 
 test('exact messages for every mapped failure', async () => {
-  assert.equal(PIECE_SET_MESSAGE, 'This link has pieces but no puzzle — open it in the generator.');
-  assert.equal(messageForIssues([{ code: 'piece-set', path: '$', message: 'x' }]), 'This link has pieces but no puzzle — open it in the generator.');
+  assert.equal(messageForIssues([{ code: 'piece-set', path: '$', message: 'x' }]), 'This link has pieces but no puzzle — open it in the Generator.');
   assert.equal(messageForIssues([{ code: 'unsupported-version', path: 'version', message: 'x' }]), 'Unsupported puzzle version or rules.');
   assert.equal(messageForIssues([{ code: 'bad-rules', path: 'rules', message: 'x' }]), 'Unsupported puzzle version or rules.');
-  assert.equal(messageForIssues([{ code: 'library-missing', path: '$', message: 'x' }]),
-    'This link only works in the browser that made it, and this puzzle is not saved here. Open its full link instead.');
   assert.equal(messageForIssues([{ code: 'index-out-of-range', path: '$', message: 'x' }]), 'This pack has no puzzle with that number.');
   assert.equal(messageForIssues([{ code: 'invalid-index', path: '$', message: 'x' }]), 'This pack has no puzzle with that number.');
   assert.equal(messageForIssues([{ code: 'missing-field', path: 'board', message: 'Missing required field "board"' }]),
@@ -265,78 +286,52 @@ test('no hash: the start screen stays up and nothing is fetched, opened or store
   assert.deepEqual([...(h.adapter?.map.keys() ?? [])], []);
 });
 
-test('link: #pack= opens the indexed puzzle, stores no copy of the pack and keeps the hash, updating only i', async () => {
-  const code = await encodeShareCode(sample);
-  const h = setup({ hash: `#pack=${code}&i=1` });
+test('link: #p= opens the indexed puzzle of a list, keeps the codes and updates only i', async () => {
+  const hash = await listHash(sample, 1);
+  const base = hash.replace(/&i=1$/, '');
+  const h = setup({ hash, codes: true });
   await h.controller.start();
   assert.equal(h.state().screen, 'game');
   assert.equal(h.state().index, 1);
-  assert.equal(h.state().local, false);
   assert.equal(h.state().game?.index, 1);
-  assert.equal(h.state().packId, null);
-  assert.deepEqual(savedPacks(/** @type {any} */ (h.adapter)), [], 'the link itself keeps the pack');
+  assert.equal(h.state().source, 'hash');
   assert.deepEqual(h.urls, [], 'an unchanged address is not rewritten');
   h.controller.goToPuzzle(2);
-  assert.equal(h.location.hash, `#pack=${code}&i=2`);
+  assert.equal(h.location.hash, `${base}&i=2`);
   h.controller.previousPuzzle();
-  assert.equal(h.location.hash, `#pack=${code}&i=1`);
+  assert.equal(h.location.hash, `${base}&i=1`);
+  h.controller.goToPuzzle(0);
+  assert.equal(h.location.hash, `${base}&i=0`);
   await settle(h);
   assert.equal(h.state().source, 'hash');
+  assert.deepEqual([...(h.adapter?.map.keys() ?? [])].filter((k) => !k.includes(':progress:') && !k.endsWith(':progress-index')), [],
+    'the address keeps the pack, nothing else is stored');
 });
 
-test('local #lib= links stay labeled local; a missing record explains itself', async () => {
-  const adapter = memoryAdapter();
-  const saved = createStorage(adapter, () => 0).saveLibraryPack(sample);
-  assert.ok(saved.ok);
-  const id = saved.packId;
-
-  const h = setup({ hash: `#lib=${id}&i=2`, adapter });
-  await h.controller.start();
-  assert.equal(h.state().index, 2);
-  assert.equal(h.state().local, true);
-  assert.equal(h.state().packId, id);
-  h.controller.previousPuzzle();
-  assert.equal(h.location.hash, `#lib=${id}&i=1`);
-  assert.equal(h.state().local, true);
-  await settle(h);
-  assert.equal(h.location.hash, `#lib=${id}&i=1`, 'a #lib= link is kept as it is');
-  assert.deepEqual(savedPacks(adapter), [`pentomino:v1:lib:${id}`]);
-
-  const gone = setup({ hash: '#lib=0123456789abcdef&i=0' });
-  await gone.controller.start();
-  assert.equal(gone.state().game, null);
-  assert.equal(gone.state().error?.message, MISSING_LOCAL_MESSAGE);
-});
-
-test('invalid, unsupported, piece-set and out-of-range links explain themselves and leave the open game untouched', async () => {
-  const h = setup();
+test('invalid, index and old-style links leave the open game untouched', async () => {
+  const h = setup({ codes: true });
   await openPack(h, sample);
+  await waitFor(() => h.state().source === 'hash');
   const before = h.state();
   assert.ok(before.game);
   const opened = h.location.hash;
-  const code = await encodeShareCode(sample);
-  const badBoard = { ...sample, board: { rows: ['#'] } };
-  const firstIssue = validatePack(JSON.parse(json(badBoard)));
-  assert.equal(firstIssue.ok, false);
-  const pieceSet = { ...sample, kind: 'piece-set', puzzles: [] };
+  assert.match(opened, /^#p=/);
+  const list = opened.replace(/&i=\d+$/, '');
 
-  /** @type {[string, string, string | RegExp][]} */
+  /** @type {[string, string, string | null][]} */
   const cases = [
-    ['invalid pack', `#pack=${codeOf(json(badBoard))}`, invalidPackMessage(/** @type {any} */ (firstIssue).issues[0].message)],
-    ['not JSON', `#pack=${codeOf('{ nope')}`, /^This link does not hold a valid Pentomino puzzle: Not valid JSON/],
-    ['not a code', '#pack=hello', invalidPackMessage('The pack in the address is not a pentomino share code')],
-    ['version', `#pack=${codeOf(json({ ...sample, version: 2 }))}`, UNSUPPORTED_MESSAGE],
-    ['rules', `#pack=${codeOf(json({ ...sample, rules: 'other-rules' }))}`, UNSUPPORTED_MESSAGE],
-    ['piece set', `#pack=${codeOf(json(pieceSet))}`, PIECE_SET_MESSAGE],
-    ['index', `#pack=${code}&i=9`, INDEX_MESSAGE],
-    ['bad index', `#pack=${code}&i=-1`, INDEX_MESSAGE],
-    ['missing local', '#lib=0123456789abcdef&i=0', MISSING_LOCAL_MESSAGE],
+    ['index', `${list}&i=9`, invalidPackMessage('The puzzle number in the link does not name one of its puzzles; fix or remove it.')],
+    ['bad index', `${list}&i=-1`, null],
+    ['#pack=', '#pack=1z.AAAA&i=0', ''],
+    ['#lib=', '#lib=0123456789abcdef&i=0', ''],
   ];
   for (const [name, hash, expected] of cases) {
     await h.controller.openHash(hash);
     const now = h.state();
-    if (expected instanceof RegExp) {
-      assert.match(now.error?.message ?? '', expected, name);
+    if (expected === '') {
+      assert.equal(now.error, null, `${name}: an address with no puzzle data is simply ignored`);
+    } else if (expected === null) {
+      assert.ok(now.error, name);
     } else {
       assert.equal(now.error?.message, expected, name);
     }
@@ -346,6 +341,8 @@ test('invalid, unsupported, piece-set and out-of-range links explain themselves 
     assert.equal(now.loading, false, name);
   }
   assert.equal(h.location.hash, opened, 'the address was not rewritten by failures');
+  assert.equal(invalidPackMessage('boom'), 'This link does not hold a valid Pentomino puzzle: boom');
+  assert.equal(validatePack({ ...sample, board: { rows: ['#'] } }).ok, false);
 });
 
 test('the open game stays while a new one is loading, and only the newest request commits', async () => {
@@ -354,13 +351,18 @@ test('the open game stays while a new one is loading, and only the newest reques
   const slow = new Promise((resolve) => {
     release = resolve;
   });
-  const h = setup({ fetchText: () => /** @type {Promise<string>} */ (slow) });
-  await openPack(h, sample);
+  let gate = false;
+  let text = sampleText;
+  const h = setup({ fetchText: () => (gate ? /** @type {Promise<string>} */ (slow) : Promise.resolve(text)) });
+  await h.controller.openSample();
   const open = h.state().game;
+  gate = true;
   const first = h.controller.openSample();
   assert.equal(h.state().loading, true);
   assert.equal(h.state().game, open, 'old game stays visible while loading');
-  const second = await openPack(h, answerFree, 1);
+  gate = false;
+  text = JSON.stringify(answerFree);
+  const second = await h.controller.openSample();
   assert.equal(second.ok, true);
   const winner = h.state().pack;
   release(sampleText);
@@ -461,33 +463,35 @@ test('Straighten is a stored device preference; hashWithIndex only sets i', asyn
   await later.controller.start();
   assert.deepEqual(later.state().prefs, { straighten: true });
   assert.deepEqual(JSON.parse(adapter.map.get('pentomino:v1:prefs') ?? ''), { straighten: true }, 'nothing else is stored');
-  assert.equal(hashWithIndex('#pack=1z.abc&i=0', 4), '#pack=1z.abc&i=4');
-  assert.equal(hashWithIndex('#lib=0123456789abcdef', 2), '#lib=0123456789abcdef&i=2');
-  assert.equal(hashWithIndex('#i=1&pack=1z.x', 3), '#i=3&pack=1z.x');
+  assert.equal(hashWithIndex('#p=ABCD;EFGH&i=0', 4), '#p=ABCD;EFGH&i=4');
+  assert.equal(hashWithIndex('#p=ABCD;EFGH', 2), '#p=ABCD;EFGH&i=2');
+  assert.equal(hashWithIndex('#i=1&p=ABCD;EFGH', 3), '#i=3&p=ABCD;EFGH');
 });
 
-test('the sample gets a same-browser address at once, then its portable #pack= link; the saved copy is dropped', async () => {
+test('the sample gets a #p= list of its puzzles as its address, which opens the same pack; the number follows', async () => {
   const adapter = memoryAdapter({ 'other-app:state': 'keep me', 'pentomino:v0:old': 'foreign version' });
-  const h = setup({ adapter });
+  const h = setup({ adapter, codes: true });
   await h.controller.openSample();
-  const id = /** @type {string} */ (h.state().packId);
-  assert.match(id, /^[0-9a-f]{16}$/);
-  assert.equal(h.urls[0], `#lib=${id}&i=0`);
-  assert.equal(h.state().local, true);
+  assert.equal(h.state().source, 'sample');
   await waitFor(() => h.state().source === 'hash');
-  assert.equal(h.location.hash, `#pack=${await encodeShareCode(sample)}&i=0`);
-  assert.deepEqual([h.state().packId, h.state().local], [null, false]);
-  assert.deepEqual(savedPacks(adapter), []);
+  assert.equal(h.location.hash, await listHash(sample));
+  assert.deepEqual(h.urls, [await listHash(sample)], 'the address is written once');
   assert.equal(adapter.map.get('other-app:state'), 'keep me');
   assert.equal(adapter.map.get('pentomino:v0:old'), 'foreign version');
+  assert.deepEqual([...adapter.map.keys()].filter((k) => k.startsWith('pentomino:v1:')), [], 'nothing is stored for the pack');
   h.controller.goToPuzzle(2);
-  assert.equal(h.location.hash, `#pack=${await encodeShareCode(sample)}&i=2`);
+  assert.equal(h.location.hash, `${await listHash(sample)}&i=2`);
+
+  const reload = setup({ hash: h.location.hash, codes: true });
+  await reload.controller.start();
+  assert.equal(reload.state().index, 2);
+  assert.deepEqual(reload.state().fingerprints, h.state().fingerprints, 'the same three puzzles');
 });
 
-test('a link opened while the sample gets its portable address keeps its own address', async () => {
-  const h = setup();
+test('a link opened while the sample gets its address keeps its own address', async () => {
+  const h = setup({ codes: true });
   const other = { ...sample, puzzles: sample.puzzles.slice(0, 2) };
-  const link = `#pack=${await encodeShareCode(other)}&i=1`;
+  const link = await listHash(other, 1);
   await h.controller.openSample();
   h.location.hash = link;
   await h.controller.openHash(link);
@@ -497,49 +501,44 @@ test('a link opened while the sample gets its portable address keeps its own add
   assert.equal(h.location.hash, link, 'the late sample link did not replace it');
 });
 
-test('removePuzzle and removeAllPuzzles change the open pack and its address and keep no saved copy', async () => {
-  const h = setup();
-  const adapter = /** @type {ReturnType<typeof memoryAdapter>} */ (h.adapter);
+test('removePuzzle and removeAllPuzzles change the open pack and its address', async () => {
+  const h = setup({ codes: true });
   await openPack(h, sample, 1);
+  await waitFor(() => h.state().source === 'hash');
   assert.equal(h.controller.removePuzzle(5).ok, false, 'out of range');
   assert.equal(h.controller.removePuzzle(0).ok, true);
   assert.equal(h.state().pack?.puzzles.length, 2);
   assert.equal(h.state().index, 0, 'the open puzzle keeps its place in the shorter pack');
   assert.equal(h.state().pack?.puzzles[0].title, sample.puzzles[1].title);
-  assert.match(h.location.hash, /^#lib=[0-9a-f]{16}&i=0$/, 'a same-browser address until the new link is ready');
-  await waitFor(() => h.state().source === 'hash');
-  assert.equal(h.location.hash, `#pack=${await encodeShareCode(/** @type {any} */ (h.state().pack))}&i=0`);
-  assert.deepEqual(savedPacks(adapter), []);
-
+  const shorter = { ...sample, puzzles: sample.puzzles.slice(1) };
+  await waitFor(() => h.location.hash === '' || h.location.hash.split(';').length === 2);
   assert.equal(h.controller.removePuzzle(0).ok, true, 'the open puzzle can be removed: its neighbour opens');
   assert.equal(h.state().pack?.puzzles.length, 1);
   assert.equal(h.state().screen, 'game');
   assert.equal(h.controller.removePuzzle(0).ok, true, 'the last puzzle leaves the pack');
   assert.deepEqual([h.state().pack, h.state().game, h.state().screen, h.location.hash], [null, null, 'start', '']);
   await settle(h);
-  assert.equal(h.location.hash, '', 'a late portable link of a closed pack is not applied');
-  assert.deepEqual(savedPacks(adapter), []);
+  assert.equal(h.location.hash, '', 'a late link of a closed pack is not applied');
+  assert.ok(shorter.puzzles.length === 2);
 
   await h.controller.openSample();
   h.controller.removeAllPuzzles();
   assert.deepEqual([h.state().pack, h.state().screen, h.location.hash], [null, 'start', '']);
-  assert.deepEqual(savedPacks(adapter), [], 'the same-browser copy goes with the pack');
   h.controller.removeAllPuzzles();
   assert.equal(h.state().screen, 'start', 'without a pack it does nothing');
 });
 
 test('unavailable storage never blocks play and is reported once', async () => {
-  const none = setup({ adapter: null });
+  const none = setup({ adapter: null, codes: true });
   await none.controller.openSample();
   assert.equal(none.state().screen, 'game');
-  assert.equal(none.state().packId, null);
-  assert.equal(none.state().storageWarning, SAVE_FAILED_MESSAGE);
-  assert.deepEqual(none.urls, [], 'no unusable #lib= address is invented');
+  assert.equal(none.state().storageWarning, null, 'nothing is saved until there is progress');
   await waitFor(() => none.state().source === 'hash');
-  assert.match(none.location.hash, /^#pack=1z\./, 'the portable link still works');
+  assert.match(none.location.hash, /^#p=/, 'the address needs no storage');
   const pose = movablePose(sample, 0);
   none.store.update((s) => ({ game: reduce(/** @type {any} */ (s.game), { type: 'place', pose }) }));
   assert.equal(none.controller.goToPuzzle(1).ok, true);
+  assert.equal(none.state().storageWarning, SAVE_FAILED_MESSAGE);
   assert.equal(none.state().game?.index, 1);
 
   const throwing = {

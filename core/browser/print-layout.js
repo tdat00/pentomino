@@ -26,10 +26,52 @@ export const CELL_MM = Object.freeze({ small: 10, medium: 15, large: 20 });
 /** "Fit page" never makes a cell bigger than this, however small the board. */
 export const FIT_PAGE_MAX_CELL_MM = 25;
 
-/** Header of the preview sheet: title and two detail lines (rating and seed, piece set). */
+/** Header of a sheet without a code band (the solution sheet, and a puzzle sheet whose heading is short): title and details. */
 export const PREVIEW_TOP = PAGE_MARGIN + 30;
 /** Footer of the preview sheet: scale bar and print notes. */
 export const PREVIEW_BOTTOM = PAGE_HEIGHT - PAGE_MARGIN - 14;
+
+/**
+ * The room of one puzzle on a puzzle sheet, in the sheet's own coordinates as if the frame were the whole page: it
+ * starts at the page margin, is `width` wide and its content ends at `bottom`. A sheet with several puzzles moves each
+ * frame to its place by a translation, so the layout of a puzzle does not depend on where its frame is.
+ * @typedef {{ width: number, bottom: number }} Frame
+ */
+
+/** @type {Frame} */
+export const PAGE_FRAME = Object.freeze({ width: AREA_WIDTH, bottom: PREVIEW_BOTTOM });
+/** Free paper between the frames of a sheet with several puzzles. */
+export const FRAME_GAP_MM = 6;
+/** Puzzles on one sheet. */
+export const PER_PAGE_CHOICES = Object.freeze(/** @type {PerPage[]} */ ([1, 2, 4]));
+/** @typedef {1 | 2 | 4} PerPage */
+
+/** Height available to the frames of a sheet: from the top margin to the foot (the scale bar). */
+const FRAMES_HEIGHT = PREVIEW_BOTTOM - PAGE_MARGIN;
+
+/**
+ * Where the frames of a sheet are and how large they are.
+ * @param {PerPage} perPage 1 (the whole sheet), 2 (one above the other) or 4 (two by two).
+ * @returns {{ frame: Frame, slots: { dx: number, dy: number, col: number }[], columns: number }} A slot's translation
+ *   from the first frame, and its column (to mirror the sheet's back).
+ */
+export function framesFor(perPage) {
+  if (perPage === 1) {
+    return { frame: PAGE_FRAME, slots: [{ dx: 0, dy: 0, col: 0 }], columns: 1 };
+  }
+  const height = (FRAMES_HEIGHT - FRAME_GAP_MM) / 2;
+  const frame = { width: perPage === 2 ? AREA_WIDTH : (AREA_WIDTH - FRAME_GAP_MM) / 2, bottom: PAGE_MARGIN + height };
+  const stepY = height + FRAME_GAP_MM;
+  if (perPage === 2) {
+    return { frame, slots: [{ dx: 0, dy: 0, col: 0 }, { dx: 0, dy: stepY, col: 0 }], columns: 1 };
+  }
+  const stepX = frame.width + FRAME_GAP_MM;
+  return {
+    frame,
+    slots: [{ dx: 0, dy: 0, col: 0 }, { dx: stepX, dy: 0, col: 1 }, { dx: 0, dy: stepY, col: 0 }, { dx: stepX, dy: stepY, col: 1 }],
+    columns: 2,
+  };
+}
 const PREVIEW_MAX_CELL_MM = 10;
 /** The preview is drawn at this share of the largest size the page allows, so it stays a compact reading aid. */
 const PREVIEW_SCALE = 0.6;
@@ -395,24 +437,26 @@ export function layoutBoard(model, cellMm) {
  * The preview sheet: the board with its pre-placed pieces under the title, then the pieces to place, all at one
  * scale: 60 % of the largest the page allows (up to 10 mm cells), smaller still when the pieces need it.
  * @param {PrintModel} model
+ * @param {number} [top] Where the board starts: under the heading and the code band of the sheet.
  * @returns {PreviewLayout}
  */
-export function layoutPreview(model) {
-  const start = PREVIEW_SCALE * Math.min(PREVIEW_MAX_CELL_MM, AREA_WIDTH / model.cols, PREVIEW_BOARD_MAX_HEIGHT_MM / model.rows);
+export function layoutPreview(model, top = PREVIEW_TOP, frame = PAGE_FRAME) {
+  const width = frame.width;
+  const start = PREVIEW_SCALE * Math.min(PREVIEW_MAX_CELL_MM, width / model.cols, PREVIEW_BOARD_MAX_HEIGHT_MM / model.rows);
   /** @type {PreviewLayout | null} */
   let found = null;
   for (let cell = start; found === null; cell = Math.max(PREVIEW_MIN_CELL_MM, cell * 0.95)) {
-    const boardY = PREVIEW_TOP;
+    const boardY = top;
     const piecesTop = boardY + model.rows * cell + PREVIEW_LEGEND_MM + PREVIEW_SECTION_MM;
-    const items = model.toPlace.map((item) => (item.w * cell > AREA_WIDTH + EPS ? quarterTurned(item) : item))
+    const items = model.toPlace.map((item) => (item.w * cell > width + EPS ? quarterTurned(item) : item))
       .sort((a, b) => b.h - a.h || b.w - a.w || a.index - b.index);
-    const rows = packRows(items.map((item) => ({ w: item.w * cell, h: item.h * cell })), AREA_WIDTH, PREVIEW_GAP_MM);
+    const rows = packRows(items.map((item) => ({ w: item.w * cell, h: item.h * cell })), width, PREVIEW_GAP_MM);
     const last = rows.at(-1);
     const bottom = last === undefined ? piecesTop : piecesTop + last.y + last.h;
-    if (bottom <= PREVIEW_BOTTOM + EPS || cell <= PREVIEW_MIN_CELL_MM + EPS) {
+    if (bottom <= frame.bottom + EPS || cell <= PREVIEW_MIN_CELL_MM + EPS) {
       found = {
         cellMm: cell,
-        boardX: PAGE_MARGIN + (AREA_WIDTH - model.cols * cell) / 2,
+        boardX: PAGE_MARGIN + (width - model.cols * cell) / 2,
         boardY,
         legendY: boardY + model.rows * cell + 4,
         sectionY: boardY + model.rows * cell + PREVIEW_LEGEND_MM + 5.5,
@@ -444,13 +488,219 @@ export function mirrorCells(cells, width) {
   return cells.map(([x, y]) => [width - 1 - x, y]);
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+// The heading and the code band of the first sheet. All numbers are millimetres on the A4 sheet; a text's baseline is
+// its y, and a line reserves its baseline plus 2 mm below it.
+
+/**
+ * Width in mm of a text. The browser supplies the real one (a canvas measure of the font the page is drawn in); this
+ * estimate lets the layout run without a DOM.
+ * @typedef {(text: string, sizeMm: number, bold?: boolean) => number} TextMeasure
+ */
+
+export const TITLE_SIZE_MM = 8;
+export const TITLE_FIRST_BASELINE = PAGE_MARGIN + 9;
+export const TITLE_PITCH_MM = 9;
+export const TITLE_MAX_LINES = 3;
+export const DETAIL_SIZE_MM = 4;
+const DETAIL_AFTER_TITLE_MM = 7.5;
+const DETAIL_PITCH_MM = 5.5;
+const NO_CODE_AFTER_DETAIL_MM = 6;
+/** Room reserved under a line's baseline. */
+const LINE_BOTTOM_MM = 2;
+/** QR box: at the top-left corner of the content area; the text column keeps 6 mm clear of it. */
+const QR_COLUMN_GAP_MM = 6;
+const QR_SCAN_BASELINE_MM = 4.5;
+const QR_COLUMN_END_MM = 7;
+export const QR_SCAN_SIZE_MM = 3.2;
+const BAND_GAP_MM = 4;
+
+/**
+ * A rough width: an average sans-serif letter is about 0.55 em, narrow letters and spaces less, capitals and wide
+ * letters more, bold 8 % wider, plus 3 % for safety.
+ * @type {TextMeasure}
+ */
+export function estimateTextWidth(text, sizeMm, bold = false) {
+  let em = 0;
+  for (const ch of text) {
+    const code = /** @type {number} */ (ch.codePointAt(0));
+    if (ch === ' ') {
+      em += 0.28;
+    } else if ('ijl.,:;!|\'`'.includes(ch)) {
+      em += 0.3;
+    } else if ('mwMW@'.includes(ch)) {
+      em += 0.9;
+    } else if (code >= 0x2e80) {
+      em += 1;
+    } else if (ch >= 'A' && ch <= 'Z') {
+      em += 0.68;
+    } else if (ch >= '0' && ch <= '9') {
+      em += 0.58;
+    } else {
+      em += 0.56;
+    }
+  }
+  return em * sizeMm * (bold ? 1.08 : 1) * 1.03;
+}
+
+/**
+ * The text shortened with "…" so that it fits the width; code points are never split. Text that fits is returned as is.
+ * @param {string} text
+ * @param {number} width mm
+ * @param {number} size mm
+ * @param {boolean} bold
+ * @param {TextMeasure} measure
+ * @returns {string}
+ */
+export function fitText(text, width, size, bold, measure) {
+  if (measure(text, size, bold) <= width + EPS) {
+    return text;
+  }
+  const points = Array.from(text);
+  while (points.length > 0) {
+    points.pop();
+    const shortened = `${points.join('').trimEnd()}…`;
+    if (measure(shortened, size, bold) <= width + EPS) {
+      return shortened;
+    }
+  }
+  return '…';
+}
+
+/**
+ * The title in at most three lines of the given width, broken at spaces; a word wider than a line is broken between
+ * code points (never inside a surrogate pair). A title that needs more lines ends its last line with "…": on paper
+ * only, the title itself is never changed.
+ * @param {string} title
+ * @param {number} width mm
+ * @param {TextMeasure} measure
+ * @param {number} [size]
+ * @returns {string[]}
+ */
+export function wrapTitle(title, width, measure, size = TITLE_SIZE_MM) {
+  const words = title.trim().split(/\s+/).filter((word) => word !== '').slice(0, 400);
+  /** @param {string} text */
+  const fits = (text) => measure(text, size, true) <= width + EPS;
+  /** @type {string[]} */
+  const lines = [];
+  let current = '';
+  for (const word of words) {
+    const joined = current === '' ? word : `${current} ${word}`;
+    if (fits(joined)) {
+      current = joined;
+      continue;
+    }
+    if (current !== '') {
+      lines.push(current);
+      current = '';
+    }
+    if (fits(word)) {
+      current = word;
+      continue;
+    }
+    for (const point of Array.from(word)) {
+      if (current === '' || fits(current + point)) {
+        current += point;
+      } else {
+        lines.push(current);
+        current = point;
+      }
+    }
+  }
+  if (current !== '') {
+    lines.push(current);
+  }
+  if (lines.length <= TITLE_MAX_LINES) {
+    return lines;
+  }
+  const kept = lines.slice(0, TITLE_MAX_LINES);
+  kept[TITLE_MAX_LINES - 1] = fitText(`${kept[TITLE_MAX_LINES - 1]}…`, width, size, true, measure);
+  return kept;
+}
+
+/**
+ * @typedef {object} TitleBlock
+ * @property {string[]} lines The wrapped title (empty for no title).
+ * @property {number} x Left edge of the lines in mm (beside a QR on the left it is under the QR's right edge).
+ * @property {number} width mm the lines may use.
+ * @property {number[]} baselines Baseline of each title line.
+ * @property {number[]} detailBaselines Baseline of each detail line, 7.5 mm under the last title line, 5.5 mm apart.
+ * @property {number} lastBaseline Baseline of the last detail line, or of the last title line.
+ */
+
+/**
+ * The heading of the puzzle sheet: the title wrapped to the width (8 mm bold, 9 mm pitch, the first baseline at 19 mm)
+ * and the detail lines under it. The sheet draws it from the same call, so layout and drawing agree.
+ * @param {string} title
+ * @param {number} detailCount
+ * @param {number} width mm
+ * @param {TextMeasure} measure
+ * @param {number} [x] Left edge in mm.
+ * @returns {TitleBlock}
+ */
+export function titleBlock(title, detailCount, width, measure, x = PAGE_MARGIN) {
+  const lines = title === '' ? [] : wrapTitle(title, width, measure);
+  const baselines = lines.map((_, i) => TITLE_FIRST_BASELINE + i * TITLE_PITCH_MM);
+  const lastTitle = baselines.length > 0 ? baselines[baselines.length - 1] : TITLE_FIRST_BASELINE;
+  const detailBaselines = Array.from({ length: detailCount }, (_, i) => lastTitle + DETAIL_AFTER_TITLE_MM + i * DETAIL_PITCH_MM);
+  return { lines, x, width, baselines, detailBaselines, lastBaseline: detailBaselines.length > 0 ? detailBaselines[detailCount - 1] : lastTitle };
+}
+
+/**
+ * @typedef {object} BandLayout
+ * @property {TitleBlock} head
+ * @property {{ x: number, y: number, size: number, scanY: number, columnEnd: number } | null} qr The QR box (the
+ *   top-left corner of the content area) and the baseline of the caption under it.
+ * @property {number | null} noCodeY Baseline of the "too large for a puzzle code" line, instead of the QR.
+ * @property {number} bottom End of the band: the larger of the heading's last baseline + 2 mm and the QR column.
+ * @property {number} top Where the board preview starts.
+ */
+
+/**
+ * The heading and, when the share has a QR, the QR of the first sheet: the QR at the left, the puzzle name and its
+ * details to the right of it. The puzzle code itself is not printed: the QR carries it.
+ * @param {{ title: string, detailCount: number, share: import('./puzzle-snapshot.js').PreparedPuzzleShare | null | undefined,
+ *   measure: TextMeasure, frame?: Frame }} input A `share` of undefined means the job asks for no code at all. In a frame
+ *   narrower or lower than the page the QR box is drawn smaller than its natural size when it would take more than
+ *   45 % of the frame's width or height (its modules then print below 0.5 mm).
+ * @returns {BandLayout}
+ */
+export function layoutBand({ title, detailCount, share, measure, frame = PAGE_FRAME }) {
+  const qrBox = share?.qr ?? null;
+  const small = frame.width < AREA_WIDTH || frame.bottom < PREVIEW_BOTTOM;
+  const cap = small ? 0.45 * Math.min(frame.width, frame.bottom - PAGE_MARGIN) : Infinity;
+  const size = qrBox === null ? 0 : Math.min(qrBox.outerMm, cap);
+  const columnEnd = qrBox === null ? 0 : PAGE_MARGIN + size + QR_COLUMN_END_MM;
+  const headX = qrBox === null ? PAGE_MARGIN : PAGE_MARGIN + size + QR_COLUMN_GAP_MM;
+  const head = titleBlock(title, detailCount, qrBox === null ? frame.width : frame.width - QR_COLUMN_GAP_MM - size, measure, headX);
+  const labelY = head.lastBaseline + (detailCount > 0 ? NO_CODE_AFTER_DETAIL_MM : DETAIL_AFTER_TITLE_MM);
+
+  if (share === undefined || share === null) {
+    const bottom = head.lastBaseline + LINE_BOTTOM_MM;
+    return { head, qr: null, noCodeY: null, bottom, top: Math.max(PREVIEW_TOP, bottom + BAND_GAP_MM) };
+  }
+  if (qrBox === null) {
+    const bottom = labelY + LINE_BOTTOM_MM;
+    return { head, qr: null, noCodeY: labelY, bottom, top: Math.max(PREVIEW_TOP, bottom + BAND_GAP_MM) };
+  }
+  const bottom = Math.max(head.lastBaseline + LINE_BOTTOM_MM, columnEnd);
+  return {
+    head,
+    qr: { x: PAGE_MARGIN, y: PAGE_MARGIN, size, scanY: PAGE_MARGIN + size + QR_SCAN_BASELINE_MM, columnEnd },
+    noCodeY: null,
+    bottom,
+    top: Math.max(PREVIEW_TOP, bottom + BAND_GAP_MM),
+  };
+}
+
 /**
  * @typedef {object} PrintOptions
  * @property {boolean} pieces Print the piece set.
  * @property {boolean} board Print the board.
  * @property {PrintSize} size
  * @property {boolean} duplex Print on both sides of the paper.
- * @property {boolean} [solution] Add a last sheet with the solved board (needs the job's solution).
+ * @property {boolean} [solution] Add the solved board after the puzzle (for each puzzle that has a stored solution).
+ * @property {PerPage} [perPage] Puzzles on one sheet (1 when absent).
  */
 
 /**
@@ -462,22 +712,60 @@ export function mirrorCells(cells, width) {
  */
 
 /**
- * @typedef {{ kind: 'preview' } | { kind: 'pieces', n: number, total: number, placements: PiecePlacement[] }
+ * @typedef {object} PrintJobInput What the plan reads of a job.
+ * @property {Board} board
+ * @property {Piece[]} pieces
+ * @property {Pose[]} clues
+ * @property {number} rotation
+ * @property {Pose[] | null} [solution]
+ * @property {string} [title] The heading of the puzzle sheet; the plan lays it out in up to three lines.
+ * @property {unknown[]} [details] The detail lines under the title (only their number matters here).
+ * @property {import('./puzzle-snapshot.js').PreparedPuzzleShare | null} [share] The prepared code and QR; undefined asks
+ *   for no code at all, a share without a QR prints the "too large for a puzzle code" line instead.
+ * @property {TextMeasure} [measure] Width of a text in the font the sheet is drawn in (the browser's own measure).
+ */
+
+/**
+ * @typedef {object} FrameItem A puzzle on a sheet: its index in the plan and the translation of its frame.
+ * @property {number} puzzle
+ * @property {number} dx
+ * @property {number} dy
+ */
+
+/**
+ * @typedef {{ kind: 'preview', items: FrameItem[] } | { kind: 'pieces', n: number, total: number, placements: PiecePlacement[] }
  *   | { kind: 'board', tile: BoardTile, total: number, tilesAcross: number, tilesDown: number }
- *   | { kind: 'solution', layout: SolutionLayout }} Sheet
+ *   | { kind: 'solution', layout: SolutionLayout, items: FrameItem[] }} Sheet The puzzle and solution sheets hold one
+ *   frame per puzzle; a solution sheet's `layout` is the one of its first puzzle.
+ */
+
+/**
+ * @typedef {object} PuzzlePlan What the plan lays out for one puzzle of the printout.
+ * @property {PrintModel} model The puzzle's board and pieces, turned like the rest of the printout.
+ * @property {BandLayout} band The heading and the QR of the puzzle's frame.
+ * @property {import('./puzzle-snapshot.js').PreparedPuzzleShare | null} share The prepared code the band was laid out for.
+ * @property {PreviewLayout} preview
+ * @property {SolutionLayout | null} solution Null without the solution option or a stored solution.
  */
 
 /**
  * @typedef {object} PrintPlan
- * @property {PrintModel} model
+ * @property {PrintModel} model The model of the first puzzle: the piece and board sheets are made from it.
  * @property {PrintOptions} options
+ * @property {PerPage} perPage
+ * @property {Frame} frame The room of one puzzle on a puzzle sheet.
+ * @property {PuzzlePlan[]} puzzles The puzzles in print order; `band`, `share`, `preview` below are the first one's.
  * @property {number} cellMm
  * @property {boolean} reduced
  * @property {boolean} turned The board is printed a quarter turn from the shown view, to need fewer parts.
+ * @property {BandLayout} band The heading and the QR of the first sheet.
+ * @property {import('./puzzle-snapshot.js').PreparedPuzzleShare | null} share The prepared code the band was laid out for.
+ * @property {TextMeasure} measure The text measure the band was laid out with; the sheets use it to elide captions.
  * @property {PreviewLayout} preview
- * @property {Sheet[]} sheets The printed faces in order: the puzzle, its solution when asked, the pieces, the board.
+ * @property {Sheet[]} sheets The printed faces in order: the puzzle, the solution when asked, the pieces, the board.
  * @property {{ sheet: Sheet, side: 'front' | 'back' }[]} pages The pages sent to the printer: with two sides, the
- *   back of every sheet follows its front; the back of the puzzle is blank, or holds the solution when it is printed.
+ *   back of every sheet follows its front; the back of the puzzle is blank, or holds the solution when it is printed,
+ *   so each piece and board sheet keeps its mirrored back on its leaf.
  * @property {number} paper Sheets of paper needed (on two sides the puzzle and its solution share one).
  * @property {number} boardParts
  */
@@ -512,55 +800,114 @@ function chooseModel(job, options) {
  * @param {{ board: Board, pieces: Piece[], clues: Pose[], rotation: number }} job
  * @param {Pose[]} solution
  * @param {PrintModel} model The model the rest of the printout uses (its angle is kept).
+ * @param {Frame} [frame] The room of the puzzle on its sheet.
  * @returns {SolutionLayout}
  */
-export function layoutSolution(job, solution, model) {
+export function layoutSolution(job, solution, model, frame = PAGE_FRAME) {
   const solved = orientModel({ ...job, clues: solution, rotation: model.rotation });
-  const cellMm = floorTenth(Math.min(PREVIEW_MAX_CELL_MM, AREA_WIDTH / model.cols, (PREVIEW_BOTTOM - PREVIEW_TOP) / model.rows));
+  const cellMm = floorTenth(Math.min(PREVIEW_MAX_CELL_MM, frame.width / model.cols, (frame.bottom - PREVIEW_TOP) / model.rows));
   return {
     cellMm,
-    boardX: PAGE_MARGIN + (AREA_WIDTH - model.cols * cellMm) / 2,
+    boardX: PAGE_MARGIN + (frame.width - model.cols * cellMm) / 2,
     boardY: PREVIEW_TOP,
     placed: solved.clues,
   };
 }
 
 /**
- * @param {{ board: Board, pieces: Piece[], clues: Pose[], rotation: number, solution?: Pose[] | null }} job
+ * @param {PrintJobInput} job
  * @param {PrintOptions} options
  * @returns {PrintPlan}
  */
 export function planPrint(job, options) {
-  const { model, turned } = chooseModel(job, options);
+  return planPrintMany([job], options);
+}
+
+/**
+ * The printout of one or more puzzles of the same board and piece set. The puzzles come in the order given, `perPage`
+ * of them (1, 2 or 4) on each puzzle sheet; each is followed by its solution sheet when asked (a sheet of the solutions
+ * of the same puzzles, on the back of the puzzle sheet when printing on both sides). The piece set and the board are
+ * printed once, from the first puzzle.
+ * @param {PrintJobInput[]} jobs At least one.
+ * @param {PrintOptions} options
+ * @returns {PrintPlan}
+ */
+export function planPrintMany(jobs, options) {
+  const [first] = jobs;
+  const { model, turned } = chooseModel(first, options);
   const { cellMm, reduced } = cellSizeFor(model, options.size);
+  const measure = first.measure ?? estimateTextWidth;
+  const perPage = options.perPage ?? 1;
+  const { frame, slots, columns } = framesFor(perPage);
+  /** @type {PuzzlePlan[]} */
+  const puzzles = jobs.map((job, i) => {
+    const mine = i === 0 ? model : orientModel({ ...job, rotation: model.rotation });
+    const band = layoutBand({ title: job.title ?? '', detailCount: job.details?.length ?? 0, share: job.share, measure, frame });
+    const stored = options.solution === true && job.solution !== undefined && job.solution !== null && job.solution.length > 0;
+    return {
+      model: mine,
+      band,
+      share: job.share ?? null,
+      preview: layoutPreview(mine, band.top, frame),
+      solution: stored ? layoutSolution(job, /** @type {Pose[]} */ (job.solution), mine, frame) : null,
+    };
+  });
+  const groups = Math.ceil(puzzles.length / perPage);
+  const solvedGroups = Array.from({ length: groups }, (_, g) => puzzles.slice(g * perPage, (g + 1) * perPage).some((p) => p.solution !== null)).filter(Boolean).length;
+  const packed = options.pieces ? layoutPieceSheets(model.pieces, cellMm) : [];
+  const boardLayout = options.board ? layoutBoard(model, cellMm) : null;
+  const twoSided = options.duplex && groups + solvedGroups + packed.length + (boardLayout?.tiles.length ?? 0) > 1;
   /** @type {Sheet[]} */
-  const sheets = [{ kind: 'preview' }];
-  // The solution comes right after the puzzle; on two sides it is the back of the puzzle's sheet.
-  const withSolution = options.solution === true && job.solution !== undefined && job.solution !== null && job.solution.length > 0;
-  if (withSolution) {
-    sheets.push({ kind: 'solution', layout: layoutSolution(job, /** @type {Pose[]} */ (job.solution), model) });
-  }
-  if (options.pieces) {
-    const packed = layoutPieceSheets(model.pieces, cellMm);
-    packed.forEach((placements, i) => sheets.push({ kind: 'pieces', n: i + 1, total: packed.length, placements }));
-  }
-  let boardParts = 0;
-  if (options.board) {
-    const { tiles, tilesAcross, tilesDown } = layoutBoard(model, cellMm);
-    boardParts = tiles.length;
-    for (const tile of tiles) {
-      sheets.push({ kind: 'board', tile, total: tiles.length, tilesAcross, tilesDown });
-    }
-  }
+  const sheets = [];
   /** @type {PrintPlan['pages']} */
   const pages = [];
-  const twoSided = options.duplex && sheets.length > 1;
-  for (const sheet of sheets) {
-    pages.push({ sheet, side: 'front' });
-    if (twoSided && !(withSolution && (sheet.kind === 'preview' || sheet.kind === 'solution'))) {
-      pages.push({ sheet, side: 'back' });
+  let leaves = 0;
+  for (let from = 0; from < puzzles.length; from += perPage) {
+    const group = puzzles.slice(from, from + perPage).map((_, k) => from + k);
+    /** @type {Sheet} */
+    const preview = { kind: 'preview', items: group.map((puzzle, k) => ({ puzzle, dx: slots[k].dx, dy: slots[k].dy })) };
+    sheets.push(preview);
+    pages.push({ sheet: preview, side: 'front' });
+    leaves += 1;
+    const solved = group.filter((puzzle) => puzzles[puzzle].solution !== null);
+    if (solved.length > 0) {
+      // On the back of the paper a puzzle's solution is in the same place seen from behind, so a column is mirrored.
+      const column = (/** @type {number} */ k) => (twoSided && columns === 2 ? 1 - slots[k].col : slots[k].col);
+      const solution = /** @type {Sheet} */ ({
+        kind: 'solution',
+        layout: /** @type {SolutionLayout} */ (puzzles[solved[0]].solution),
+        items: solved.map((puzzle) => {
+          const k = group.indexOf(puzzle);
+          const slot = slots.find((s) => s.dy === slots[k].dy && s.col === column(k)) ?? slots[k];
+          return { puzzle, dx: slot.dx, dy: slot.dy };
+        }),
+      });
+      sheets.push(solution);
+      pages.push({ sheet: solution, side: 'front' });
+      leaves += twoSided ? 0 : 1;
+    } else if (twoSided) {
+      pages.push({ sheet: preview, side: 'back' });
     }
   }
-  const paper = sheets.length - (twoSided && withSolution ? 1 : 0);
-  return { model, options, cellMm, reduced, turned, preview: layoutPreview(model), sheets, pages, paper, boardParts };
+  packed.forEach((placements, i) => {
+    const sheet = /** @type {Sheet} */ ({ kind: 'pieces', n: i + 1, total: packed.length, placements });
+    sheets.push(sheet);
+    pages.push({ sheet, side: 'front' }, ...(twoSided ? [{ sheet, side: /** @type {const} */ ('back') }] : []));
+    leaves += 1;
+  });
+  let boardParts = 0;
+  if (boardLayout !== null) {
+    const { tiles, tilesAcross, tilesDown } = boardLayout;
+    boardParts = tiles.length;
+    for (const tile of tiles) {
+      const sheet = /** @type {Sheet} */ ({ kind: 'board', tile, total: tiles.length, tilesAcross, tilesDown });
+      sheets.push(sheet);
+      pages.push({ sheet, side: 'front' }, ...(twoSided ? [{ sheet, side: /** @type {const} */ ('back') }] : []));
+      leaves += 1;
+    }
+  }
+  return {
+    model, options, perPage, frame, puzzles, cellMm, reduced, turned, band: puzzles[0].band, share: puzzles[0].share, measure,
+    preview: puzzles[0].preview, sheets, pages, paper: leaves, boardParts,
+  };
 }

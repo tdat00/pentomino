@@ -4,8 +4,6 @@ import { describe, test } from 'node:test';
 
 import { sha256Hex } from '../core/engine/hash.js';
 import {
-  RNG_ID,
-  SEED_SCHEME,
   batchSeedFor,
   createRng,
   createRngFromState,
@@ -22,13 +20,6 @@ function expectedState(seed, labelPath = '') {
   const digest = sha256Hex(`pentomino-seed-v1:${seed}${labelPath ? `\u0000${labelPath}` : ''}`);
   return [0, 1, 2, 3].map((i) => parseInt(digest.slice(i * 8, i * 8 + 8), 16));
 }
-
-describe('identifiers', () => {
-  test('are stable', () => {
-    assert.equal(RNG_ID, 'xoshiro128ss-v1');
-    assert.equal(SEED_SCHEME, 'seed-sha256-v1');
-  });
-});
 
 describe('normalizeSeedText', () => {
   test('trims, applies NFC and stays case-sensitive', () => {

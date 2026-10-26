@@ -9,7 +9,7 @@ import { poseT } from '../../core/engine/game.js';
 import { poseCells } from '../../core/engine/geometry.js';
 import { colorFor, labelFor } from '../../core/engine/palette.js';
 import { validatePack } from '../../core/engine/pack.js';
-import { encodeShareCode } from '../../core/engine/sharecode.js';
+import { packHash } from './pack-link.js';
 import { createStorage } from '../../core/browser/storage.js';
 import { mountPlayer } from '../../player/app.js';
 import { defaultHandle, handleCell, transformedT } from '../../player/play.js';
@@ -112,7 +112,7 @@ const codes = new Map();
 /** @param {number} theta */
 async function codeFor(theta) {
   if (!codes.has(theta)) {
-    codes.set(theta, await encodeShareCode(validated({ ...sample, presentation: { rotation: theta } })));
+    codes.set(theta, await packHash(validated({ ...sample, presentation: { rotation: theta } })));
   }
   return /** @type {string} */ (codes.get(theta));
 }
@@ -219,7 +219,7 @@ async function mount(o) {
  * @param {Partial<Parameters<typeof mount>[0]>} [o]
  */
 async function game(theta = 0, o = {}) {
-  const m = await mount({ hash: `#pack=${await codeFor(theta)}&i=0`, ...o });
+  const m = await mount({ hash: await codeFor(theta), ...o });
   equal(m.root.dataset.screen, 'game', 'the game screen is open');
   return m;
 }
@@ -906,8 +906,7 @@ await check('a non-reference tiling wins: a puzzle without a stored answer is so
     ],
     puzzles: [{ id: 'free', title: 'Free', clues: [] }],
   };
-  const code = await encodeShareCode(validated(pack));
-  const m = await mount({ hash: `#pack=${code}&i=0` });
+  const m = await mount({ hash: await packHash(validated(pack)) });
   // The L-trominoes tile the 3x2 board in exactly two ways; place the one the engine never stored.
   const g = m.game();
   const { canPlace, reduce } = await import('../../core/engine/game.js');
@@ -956,7 +955,7 @@ await check('refresh restores progress; saving is debounced; a failing storage n
   const saved = m.storage.loadProgress(m.store.getState().fingerprints[0]);
   equal(saved?.placements.length, 2, 'two placements saved after the debounce');
   m.player.destroy();
-  const again = await mount({ hash: `#pack=${await codeFor(0)}&i=0`, adapter });
+  const again = await mount({ hash: await codeFor(0), adapter });
   equal(again.game().placed.size, 2, 'the board is restored after a reload');
   assert(again.root.querySelector('.status-resume') === null && !(again.q('[data-host="status"]').textContent ?? '').includes('Saved progress'), 'no Continue / Restart message');
   same(again.game().placed.get(a.piece), a, 'same pose');
@@ -997,8 +996,7 @@ await check('timer starts at the first move, pauses while hidden and keeps count
 });
 
 await check('labels and patterns are drawn together; names keep label and size; pack data stays unchanged', async () => {
-  const code = await encodeShareCode(validated(bigSet()));
-  const m = await mount({ hash: `#pack=${code}&i=0` });
+  const m = await mount({ hash: await packHash(validated(bigSet())) });
   const pack = m.store.getState().pack;
   const before = JSON.stringify(m.game().placed.size) + JSON.stringify(pack);
   const trayLabel = () => m.qa('.tray-piece .pm-labels').filter((n) => n.getAttribute('display') !== 'none').length;
@@ -1027,7 +1025,7 @@ await check('accessibility: names, board role, live region, 44 px targets, visib
   // coarse pointers) and the board tools are 28 px, as in the generator; both stay above the 24 px of WCAG 2.2 AA.
   const small = m.qa('.game button, .game a.pm-btn').filter((b) => !b.closest('[hidden]') && b.getClientRects().length > 0)
     .filter((b) => { const r = b.getBoundingClientRect(); return r.width < 43.5 || r.height < 43.5; })
-    .filter((b) => !b.classList.contains('tray-piece') && !b.closest('.game-actions') && !b.closest('.board-tools'));
+    .filter((b) => !b.classList.contains('tray-piece') && !b.closest('.game-actions') && !b.closest('.step-actions') && !b.closest('.board-tools'));
   equal(small.map((b) => `${b.dataset.action ?? b.textContent}:${Math.round(b.getBoundingClientRect().width)}x${Math.round(b.getBoundingClientRect().height)}`).join(', '), '', 'controls below 44x44');
   const tools = m.qa('.board-tools button').map((b) => b.getBoundingClientRect());
   assert(tools.length === 5 && tools.every((r) => r.width >= 24 && r.height >= 24), 'board tools are at least 24 px');
@@ -1062,9 +1060,9 @@ await check('no room to rotate: the piece stays, "No room to rotate here" is ann
       solution: [{ piece: 'P', x: 0, y: 0, turn: 0, mirrored: false }, { piece: 'N', x: 3, y: 0, turn: 0, mirrored: false }, { piece: 'M', x: 4, y: 0, turn: 0, mirrored: false }],
     }],
   };
-  const code = await encodeShareCode(validated(strip));
+  const stripHash = await packHash(validated(strip));
   for (const reduced of [false, true]) {
-    const m = await mount({ hash: `#pack=${code}&i=0`, reducedMotion: reduced });
+    const m = await mount({ hash: stripHash, reducedMotion: reduced });
     m.player.play.select('P');
     m.player.play.pickUp('P');
     m.play.moveKey('ArrowRight');
@@ -1201,3 +1199,4 @@ if (summary) {
   summary.textContent = `${results.length - failed.length}/${results.length} passed`;
 }
 document.documentElement.dataset.summary = JSON.stringify({ total: results.length, failed: failed.map((r) => `${r.name}: ${r.error}`.slice(0, 700)) });
+document.documentElement.dataset.result = failed.length === 0 && results.length > 0 ? 'pass' : 'fail';

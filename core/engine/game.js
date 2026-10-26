@@ -1,8 +1,7 @@
 // @ts-check
 // Pure player state: legal placement, transactional commands, bounded undo/redo,
-// complete-cover winning and safe progress restoration. No DOM, storage, timers
-// or clocks: elapsed time is counted by the browser. Every
-// function returns new values; inputs, maps and clue arrays are never mutated.
+// winning and progress restoration. No DOM, storage or clocks; every function
+// returns new values and never mutates its inputs.
 
 import { boardFromRows } from './board.js';
 import { poseCells } from './geometry.js';
@@ -148,8 +147,8 @@ function samePose(a, b) {
 }
 
 /**
- * Runtime board, piece table and locked clue cells. Throws RangeError for a
- * missing puzzle or an invalid clue (packs are expected to be validated).
+ * Throws RangeError for a missing puzzle or an invalid clue (packs are expected
+ * to be validated).
  * @param {Pack} pack
  * @param {number} index
  * @returns {Context}

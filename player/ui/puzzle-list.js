@@ -70,7 +70,7 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
   let preview = null;
   /**
    * What the cards drew last; a store update that changes none of it (a timer tick) costs nothing.
-   * @type {{ pack: object | null, statuses: object, verification: object, index: number, screen: string, prefs: object, viewRotation: number | null, locale: string } | null}
+   * @type {{ pack: object | null, statuses: object, openKey: string, verification: object, index: number, screen: string, prefs: object, viewRotation: number | null, locale: string } | null}
    */
   let drawn = null;
   let drawnIndex = -1;
@@ -173,15 +173,17 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
   function render(state) {
     const { pack } = state;
     const locale = getLocale();
-    if (drawn !== null && drawn.pack === pack && drawn.statuses === state.statuses && drawn.verification === state.verificationByPuzzle
+    const openKey = state.game === null ? '' : `${state.game.placed.size}/${state.game.solved}/${state.game.revealed}`;
+    if (drawn !== null && drawn.pack === pack && drawn.statuses === state.statuses && drawn.openKey === openKey
+      && drawn.verification === state.verificationByPuzzle
       && drawn.index === state.index && drawn.screen === state.screen && drawn.prefs === state.prefs && drawn.viewRotation === state.viewRotation
       && drawn.locale === locale) {
       return;
     }
     const packChanged = drawn === null || drawn.pack !== pack;
     drawn = {
-      pack, statuses: state.statuses, verification: state.verificationByPuzzle, index: state.index, screen: state.screen, prefs: state.prefs,
-      viewRotation: state.viewRotation, locale,
+      pack, statuses: state.statuses, openKey, verification: state.verificationByPuzzle, index: state.index,
+      screen: state.screen, prefs: state.prefs, viewRotation: state.viewRotation, locale,
     };
     if (packChanged) {
       for (const card of cards) {
@@ -210,8 +212,11 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
     preview = { ...preview, key: String(angle), angle };
     cards.forEach((card, index) => {
       const puzzle = pack.puzzles[index];
-      const status = state.statuses[index] ?? 'new';
       const current = index === state.index && state.screen === 'game';
+      // The open puzzle is judged by its live game: the save that updates `statuses` waits for a pause in play.
+      const live = current && state.game !== null ? state.game : null;
+      const status = live === null ? (state.statuses[index] ?? 'new')
+        : live.revealed ? 'revealed' : live.solved ? 'solved' : live.placed.size > 0 ? 'in-progress' : (state.statuses[index] ?? 'new');
       card.heading.textContent = cardHeading(puzzle.title, index);
       const removeLabel = t('card.remove.aria', { title: card.heading.textContent });
       card.remove.setAttribute('aria-label', removeLabel);

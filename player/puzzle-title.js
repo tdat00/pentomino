@@ -1,5 +1,6 @@
 // @ts-check
 
+import { puzzleDisplayName as sharedDisplayName } from '../core/browser/puzzle-title.js';
 import { LABELS } from './strings.js';
 
 const GENERATED_TITLE = /^(?:Very easy|Easy|Normal|Hard|Expert|Master|Nightmare|Hell [1-9]\d*)(?: #\d+)?$/;
@@ -16,16 +17,12 @@ export function cardHeading(title, index) {
 }
 
 /**
- * A generated title already ends in its number ("Normal #3"), so it is shown
- * as it is; any other title gets the one-based puzzle number appended, and an
- * untitled puzzle is "Puzzle <n>".
+ * The shared heading rule of `core/browser/puzzle-title.js` in the Player's language, so the printed sheet and the
+ * puzzle re-created from its code show the same heading.
  * @param {string | undefined} title
  * @param {number} index Zero-based position in the pack.
  * @returns {string}
  */
 export function puzzleDisplayName(title, index) {
-  if (title === undefined || title === '') {
-    return LABELS.puzzleNumber(index + 1);
-  }
-  return /#\d+$/.test(title) ? title : `${title} #${index + 1}`;
+  return sharedDisplayName(title, index, LABELS.puzzleNumber);
 }
