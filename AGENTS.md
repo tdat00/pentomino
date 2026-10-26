@@ -4,7 +4,10 @@
 
 - The living specification is `docs/design-brief.md` and `docs/design-detail.md`. They must always describe the current code: when a change alters behaviour, storage, URLs or UI, update these two files in the same change.
 - Do not edit files in subfolders of `docs/` (`docs/init-design/`, `docs/calibration/`, ...) or in `tasks/`. They record the original design, reviews and measurements and stay as written.
-- `README.md` is user-facing; keep its feature list and commands correct.
+- `README.md` is a short, English-only overview; keep its feature list and commands correct.
+- `USERGUIDE.md` / `USERGUIDE.vn.md` are the user guide (how to use the apps, for players) and `DEVELOPERGUIDE.md` /
+  `DEVELOPERGUIDE.vn.md` the developer guide (running, testing, code, storage, publishing, contributing). Keep each
+  correct, and the English and Vietnamese versions in step with each other.
 
 ## Checks
 
