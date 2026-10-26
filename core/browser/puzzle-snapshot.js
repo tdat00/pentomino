@@ -9,8 +9,9 @@
 import { boardFromRows } from '../engine/board.js';
 import { createPack } from '../engine/pack.js';
 import { MAX_URL_CHARS, puzzleCodeUrl } from '../engine/sharecode.js';
+import { MAX_PUZZLE_CODES } from '../engine/puzzlecode-input.js';
 import { puzzleCodeTitle, puzzleDisplayName } from './puzzle-title.js';
-import { makePuzzleQr } from './qr.js';
+import { makeListQr, makePuzzleQr } from './qr.js';
 
 /** @typedef {import('../engine/types.js').Piece} Piece */
 /** @typedef {import('../engine/types.js').Pose} Pose */
@@ -141,6 +142,101 @@ export function puzzleSnapshot(source) {
   };
   deepFreeze(data);
   return Object.freeze({ data, heading: puzzleDisplayName(puzzle.title, index, untitled), key: JSON.stringify(data) });
+}
+
+/**
+ * @typedef {object} PreparedListShare
+ * @property {readonly string[]} codes The codes the link carries, in list order (cores only after `noTail`).
+ * @property {string | null} url The complete Player address (`#p=<code>;<code>…`, with `&i=` for a later puzzle), or
+ *   null when it exceeds the URL budget even without the stored answers.
+ * @property {'C.T' | 'C'} carried What the link carries after the ladder.
+ * @property {PuzzleQrMatrix | null} qr Null: the link does not fit one QR symbol.
+ * @property {readonly ShareNotice[]} notices In the order of the ladder.
+ */
+
+/**
+ * Prepares one link for several puzzles of a list, with the capacity ladder of `preparePuzzleShare`: the full codes
+ * first, then the cores only (the stored answers left out of text and QR), then error correction L for the QR, then
+ * no QR. The codes are made one after the other by `client` (it runs one operation at a time).
+ * @param {readonly PuzzleSnapshot[]} snapshots The puzzles in list order.
+ * @param {{ target: string, client: PuzzleCodeClientLike, index?: number }} options `index`: the puzzle to open.
+ * @returns {Promise<PreparedListShare>}
+ */
+export async function preparePuzzleListShare(snapshots, options) {
+  const { target, client } = options;
+  const index = options.index ?? 0;
+  if (snapshots.length === 0 || !Number.isInteger(index) || index < 0 || index >= snapshots.length) {
+    throw new RangeError('There is no puzzle to share.');
+  }
+  /** @type {EncodedCode[]} */
+  const encoded = [];
+  for (const snapshot of snapshots) {
+    const reply = await client.encode(snapshot.data);
+    if (!reply.ok) {
+      throw new PuzzleShareError('encode-failed', reply.issues[0]?.message ?? 'The puzzle code could not be made.', reply.issues);
+    }
+    encoded.push(reply.value);
+  }
+  /** @type {string} */
+  let urlPrefix;
+  try {
+    const probe = puzzleCodeUrl(target, encoded[0].F);
+    urlPrefix = probe.slice(0, probe.length - encoded[0].F.length);
+  } catch (error) {
+    throw new PuzzleShareError('target-invalid', error instanceof Error ? error.message : 'The Player address is not valid.');
+  }
+  const suffix = index > 0 ? `&i=${index}` : '';
+  /** @param {readonly string[]} codes @returns {string | null} */
+  const addressOf = (codes) => {
+    const url = `${urlPrefix}${codes.join(';')}${suffix}`;
+    return codes.length <= MAX_PUZZLE_CODES && url.length <= MAX_URL_CHARS ? url : null;
+  };
+  /**
+   * @param {readonly string[]} codes
+   * @param {'M' | 'L'} ec
+   * @returns {{ url: string, qr: PuzzleQrMatrix } | null}
+   */
+  const attempt = (codes, ec) => {
+    const url = addressOf(codes);
+    if (url === null) {
+      return null;
+    }
+    const made = makeListQr({ urlPrefix, codes, suffix, ec });
+    if (made.ok) {
+      return { url, qr: made.value };
+    }
+    if (made.code === 'qr-too-long') {
+      return null;
+    }
+    throw new PuzzleShareError('qr-failed', made.message);
+  };
+
+  const hasTail = encoded.some((code) => code.T !== null);
+  /** @type {ShareNotice[]} */
+  const notices = [];
+  let codes = encoded.map((code) => code.F);
+  let fit = attempt(codes, 'M');
+  if (fit === null && hasTail) {
+    codes = encoded.map((code) => code.C);
+    notices.push('noTail');
+    fit = attempt(codes, 'M');
+  }
+  if (fit === null) {
+    fit = attempt(codes, 'L');
+    if (fit !== null) {
+      notices.push('lowEc');
+    }
+  }
+  if (fit === null) {
+    notices.push('none');
+  }
+  return Object.freeze({
+    codes: Object.freeze(codes),
+    url: fit === null ? addressOf(codes) : fit.url,
+    carried: codes.some((code) => code.includes('.')) ? 'C.T' : 'C',
+    qr: fit === null ? null : fit.qr,
+    notices: Object.freeze(notices),
+  });
 }
 
 /**

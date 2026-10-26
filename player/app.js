@@ -6,7 +6,7 @@ import { APP_VERSION } from '../core/engine/version.js';
 import { el } from '../core/browser/dom.js';
 import { browserStorage } from '../core/browser/storage.js';
 import { createPrintDialog, puzzleDetails } from '../core/browser/print-dialog.js';
-import { copyLinkIcon, createPuzzleCopyControl } from '../core/browser/puzzle-copy.js';
+import { createShareDialog, shareIcon } from '../core/browser/share-dialog.js';
 import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
 import { createPuzzleCodeDialog } from '../core/browser/puzzle-code-dialog.js';
 import { shouldOfferStraighten, svgEl } from '../core/browser/svg-board.js';
@@ -160,24 +160,25 @@ export function mountPlayer(root, env = {}) {
     ? svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' }, svgEl('use', { href: `#${icon}` }))
     : icon));
   const printButton = iconButton('print', 'ic-print', 'print.button.title', () => printDialog.open());
-  // Copy this puzzle link; its click is handled by `copyControl` below.
-  const copyButton = /** @type {HTMLButtonElement} */ (el('button', {
-    className: 'pm-btn icon-btn copy-link-btn',
-    attrs: { type: 'button', ...locAttrs({ 'aria-label': 'code.copyLink', title: 'code.copyLink' }) },
-    dataset: { action: 'copy-puzzle-link' },
-  }, copyLinkIcon()));
+  // Share: an icon without a label; its dialog shows the link and its QR code.
+  const shareButton = /** @type {HTMLButtonElement} */ (el('button', {
+    className: 'pm-btn icon-btn share-btn',
+    attrs: { type: 'button', ...locAttrs({ 'aria-label': 'share.button', title: 'share.button' }) },
+    dataset: { action: 'share' },
+    on: { click: () => shareDialog.open(shareButton) },
+  }, shareIcon()));
   const hintButton = iconButton('hint', 'ic-hint', 'ui.hintLabel', () => void hints.requestHint());
   const replayButton = iconButton('replay', REPLAY_GLYPH, 'ui.replayPuzzle', () => replayDialog.open());
   printButton.disabled = true;
-  copyButton.disabled = true;
+  shareButton.disabled = true;
   hintButton.disabled = true;
   replayButton.disabled = true;
   const straighten = /** @type {HTMLButtonElement} */ (el('button', {
     className: 'pm-btn', text: LABELS.straighten, attrs: { type: 'button', hidden: '' }, dataset: { action: 'straighten' },
     on: { click: () => controller.setPref('straighten', !store.getState().prefs.straighten) },
   }));
-  // Print and Copy this puzzle link share the row of the puzzle title, at its right.
-  const stepHead = el('div', { className: 'step-head' }, title, el('div', { className: 'step-actions' }, printButton, copyButton));
+  // Share and Print share the row of the puzzle title, at its right, with Print last.
+  const stepHead = el('div', { className: 'step-head' }, title, el('div', { className: 'step-actions' }, shareButton, printButton));
   const gameBar = el('div', { className: 'game-bar' },
     el('div', { className: 'game-stats' }, timer, moves),
     el('div', { className: 'game-actions' }, undo, redo, hintButton, replayButton, straighten));
@@ -425,13 +426,31 @@ export function mountPlayer(root, env = {}) {
   const printDialog = createPrintDialog({
     host: winHost, t, getJob: printJob, getPuzzles: printList, createClient: env.createPuzzleCodeClient, watch: (listener) => store.subscribe(listener),
   });
-  // Copy this puzzle link: the same snapshot as Print, prepared by the same function, with a client of its own. Its
-  // manual-copy dialog lives in the page root, which the start screen never hides.
-  const copyHost = el('div', { className: 'code-host' });
-  root.append(copyHost);
-  const copyControl = createPuzzleCopyControl({
-    button: copyButton, host: copyHost, t, getSnapshot: () => printJob()?.snapshot ?? null, closeKey: 'ui.close',
-    createClient: env.createPuzzleCodeClient,
+  // Share: the link of the selected puzzle, or of every puzzle of the list, with its QR code. The snapshots are the ones
+  // Print makes, so a link carries the same codes as the printed QR code. The dialog lives in the page root, which the
+  // start screen never hides.
+  const shareHost = el('div', { className: 'code-host' });
+  root.append(shareHost);
+  /** @type {{ pack: object, rotation: number, label: string, source: import('../core/browser/share-dialog.js').ShareSource } | null} */
+  let shareMemo = null;
+  /** @returns {import('../core/browser/share-dialog.js').ShareSource | null} */
+  function shareSource() {
+    const { pack, index, game, viewRotation } = store.getState();
+    if (pack === null || game === null) {
+      return null;
+    }
+    const rotation = viewRotation ?? pack.presentation?.rotation ?? 0;
+    const label = LABELS.puzzleNumber(1);
+    if (shareMemo === null || shareMemo.pack !== pack || shareMemo.rotation !== rotation || shareMemo.label !== label) {
+      const snapshots = pack.puzzles.map((puzzle, at) => puzzleSnapshot({
+        rows: pack.board.rows, pieces: pack.pieces, puzzle, index: at, rotation, untitled: LABELS.puzzleNumber,
+      }));
+      shareMemo = { pack, rotation, label, source: { snapshots, index } };
+    }
+    return shareMemo.source.index === index ? shareMemo.source : { snapshots: shareMemo.source.snapshots, index };
+  }
+  const shareDialog = createShareDialog({
+    host: shareHost, t, getSource: shareSource, closeKey: 'ui.close', createClient: env.createPuzzleCodeClient,
   });
   const winDialog = createWinDialog(winHost, {
     onNext: () => {
@@ -617,7 +636,7 @@ export function mountPlayer(root, env = {}) {
     redo.disabled = !g || g.future.length === 0 || busy;
     replayButton.disabled = !g || busy || untouched(g);
     printButton.disabled = !g;
-    copyButton.disabled = !g;
+    shareButton.disabled = !g;
     hintButton.disabled = !g || g.solved;
   }
 
@@ -713,7 +732,7 @@ export function mountPlayer(root, env = {}) {
     startHost.hidden = showGame;
     root.dataset.screen = showGame ? 'game' : 'start';
     root.setAttribute('aria-busy', String(state.loading));
-    copyControl.refresh();
+    shareDialog.refresh();
     startView.render(state);
     puzzleList.render(state);
     removeAllButton.disabled = state.pack === null;
@@ -777,6 +796,8 @@ export function mountPlayer(root, env = {}) {
     codeDialog.refresh();
     // A language that changes the printed heading starts a new preparation of the open Print dialog.
     printDialog.refresh();
+    shareDialog.refreshTexts();
+    shareDialog.refresh();
   });
   render(store.getState(), null);
 
@@ -839,8 +860,8 @@ export function mountPlayer(root, env = {}) {
       dragLayer.destroy();
       pieceMenu.destroy();
       printDialog.destroy();
-      copyControl.destroy();
-      copyHost.remove();
+      shareDialog.dispose();
+      shareHost.remove();
       codeDialog.dispose();
       codeHost.remove();
       doc.removeEventListener('visibilitychange', onVisibility);

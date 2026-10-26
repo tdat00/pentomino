@@ -27,6 +27,9 @@
       <circle cx="12" cy="12" r="9"></circle>
       <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"></path>
     </symbol>
+    <symbol id="ic-import" viewBox="0 0 24 24">
+      <path d="M12 3v12M7 10l5 5 5-5M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path>
+    </symbol>
     <symbol id="ic-print" viewBox="0 0 24 24">
       <path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z"></path>
     </symbol>
@@ -38,7 +41,8 @@
     </div>
     <div class="header-tools">
       <button type="button" class="header-import" data-action="import-puzzle" aria-haspopup="dialog"
-        data-i18n="import.button">Import puzzle</button>
+        ><svg class="icon" aria-hidden="true" focusable="false"><use href="#ic-import"></use></svg
+        ><span data-i18n="import.button">Import puzzle</span></button>
       <div class="segmented" role="group" aria-label="Language" data-i18n-attr="aria-label:shell.lang.label">
         <button type="button" class="segmented__btn" data-lang="en" lang="en" aria-pressed="true"
           aria-label="English" title="English" data-i18n-attr="aria-label:shell.lang.en.name,title:shell.lang.en.name"

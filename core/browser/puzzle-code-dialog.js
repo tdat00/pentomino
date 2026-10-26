@@ -440,8 +440,30 @@ export function createPuzzleCodeDialog({ host, t, submit, cancel, openRecovery, 
   /** Revision of the offers on screen: an offer clicked after the text moved on does nothing. */
   let shownRevision = 0;
 
+  /** A small stroked icon: two links of a chain, drawn with the SVG namespace (no markup is parsed). */
+  function linkIcon() {
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = doc.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    for (const [x, w] of [[2.5, 11], [10.5, 11]]) {
+      const rect = doc.createElementNS(ns, 'rect');
+      rect.setAttribute('x', String(x));
+      rect.setAttribute('y', '8.5');
+      rect.setAttribute('width', String(w));
+      rect.setAttribute('height', '7');
+      rect.setAttribute('rx', '3.5');
+      svg.append(rect);
+    }
+    return svg;
+  }
+
   function build() {
-    const title = el('h2', { className: 'pm-dialog-title', attrs: { id: `${id}-title` } });
+    const title = el('h2', { className: 'pm-dialog-title pm-head-title', attrs: { id: `${id}-title` } });
+    const head = el('header', { className: 'pm-head' },
+      el('span', { className: 'pm-head-badge', attrs: { 'aria-hidden': 'true' } }, linkIcon()),
+      el('div', { className: 'pm-head-titles' }, title));
     const label = el('label', { className: 'pm-code-label', attrs: { for: `${id}-field` } });
     const field = /** @type {HTMLTextAreaElement} */ (el('textarea', {
       className: 'pm-code-field',
@@ -474,8 +496,8 @@ export function createPuzzleCodeDialog({ host, t, submit, cancel, openRecovery, 
       on: { click: () => machine.close() },
     }));
     const dialog = /** @type {HTMLDialogElement} */ (el('dialog', {
-      className: 'pm-dialog pm-code', attrs: { 'aria-labelledby': `${id}-title` }, dataset: { component: 'puzzle-code' },
-    }, title, el('div', { className: 'pm-dialog-body' }, label, field, hint, count, problem, offers, busy),
+      className: 'pm-dialog pm-code pm-pop', attrs: { 'aria-labelledby': `${id}-title` }, dataset: { component: 'puzzle-code' },
+    }, head, el('div', { className: 'pm-dialog-body' }, label, field, hint, count, problem, offers, busy),
     el('div', { className: 'pm-dialog-actions' }, openButton, cancelButton)));
     host.append(dialog);
     // Escape and every other way the platform closes the dialog end the entry too. The event arrives in a later task:

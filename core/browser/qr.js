@@ -181,6 +181,72 @@ export function makePuzzleQr(input) {
 }
 
 /**
+ * Builds the QR symbol of a link that carries several puzzle codes: byte segment `urlPrefix` (up to `#p=`), then each
+ * code as an alphanumeric segment with a byte `;` between them, then the byte `suffix` (`&i=<n>` or nothing). Everything
+ * else is as in `makePuzzleQr`: the requested level without boosting, the smallest version, a data-only matrix.
+ * @param {{ urlPrefix: string, codes: readonly string[], suffix?: string, ec?: QrEc }} input
+ * @returns {QrResult}
+ */
+export function makeListQr(input) {
+  const { urlPrefix, codes, suffix = '' } = input;
+  const ec = input.ec ?? 'M';
+  const problem = inputProblem({ urlPrefix, code: codes?.[0], ec });
+  if (problem !== null) {
+    return { ok: false, code: 'qr-invalid-input', message: problem };
+  }
+  if (!Array.isArray(codes) || codes.length === 0 || codes.some((code) => typeof code !== 'string' || !CODE_PATTERN.test(code))) {
+    return { ok: false, code: 'qr-invalid-input', message: 'Every code must be upper-case Crockford symbols, ungrouped, with at most one nonempty ".tail".' };
+  }
+  if (typeof suffix !== 'string' || !/^(?:&i=\d{1,3})?$/.test(suffix)) {
+    return { ok: false, code: 'qr-invalid-input', message: 'The suffix must be empty or "&i=" and a puzzle number.' };
+  }
+  const encoder = new TextEncoder();
+  /** @type {ReturnType<typeof qrcodegen.QrSegment.makeBytes>[]} */
+  const segments = [qrcodegen.QrSegment.makeBytes(encoder.encode(urlPrefix))];
+  codes.forEach((code, at) => {
+    if (at > 0) {
+      segments.push(qrcodegen.QrSegment.makeBytes(encoder.encode(';')));
+    }
+    segments.push(qrcodegen.QrSegment.makeAlphanumeric(code));
+  });
+  if (suffix !== '') {
+    segments.push(qrcodegen.QrSegment.makeBytes(encoder.encode(suffix)));
+  }
+  let symbol;
+  try {
+    symbol = qrcodegen.QrCode.encodeSegments(
+      segments, ec === 'M' ? qrcodegen.QrCode.Ecc.MEDIUM : qrcodegen.QrCode.Ecc.LOW, QR_MIN_VERSION, QR_MAX_VERSION, -1, false,
+    );
+  } catch (error) {
+    if (error instanceof RangeError && error.message === VENDOR_DATA_TOO_LONG) {
+      return {
+        ok: false,
+        code: 'qr-too-long',
+        message: `The QR code cannot hold this link: it exceeds QR version 40 at error correction ${ec}.`,
+      };
+    }
+    throw error;
+  }
+  /** @type {number} */
+  const version = symbol.version;
+  const geometry = qrGeometry(version);
+  /** @type {Uint8Array[]} */
+  const rows = [];
+  for (let y = 0; y < geometry.modules; y += 1) {
+    const row = new Uint8Array(geometry.modules);
+    for (let x = 0; x < geometry.modules; x += 1) {
+      row[x] = symbol.getModule(x, y) ? 1 : 0;
+    }
+    rows.push(row);
+  }
+  const code = codes.join(';');
+  return {
+    ok: true,
+    value: Object.freeze({ url: urlPrefix + code + suffix, code, urlPrefix, ec, version, ...geometry, rows: Object.freeze(rows) }),
+  };
+}
+
+/**
  * Checks that `rows` is a nonempty square matrix of 0/1 modules.
  * @param {unknown} rows
  * @returns {asserts rows is ReadonlyArray<ArrayLike<number>>}
