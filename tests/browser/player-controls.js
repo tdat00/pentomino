@@ -1183,6 +1183,46 @@ await check('piece menu: right-click turns and flips a tray piece; Escape, a cli
   m.player.destroy();
 });
 
+await check('touch: a press and hold on a tray piece opens its menu (the release is no tap, the menu event that the browser sends after it is ignored); a sideways swipe along the tray is no drag; a mouse never long-presses', async () => {
+  const m = await game(0);
+  const id = movables(m)[0].piece;
+  const hit = /** @type {Element} */ (trayButton(m, id).querySelector('.pm-hit'));
+  const tray = m.player.hosts.tray;
+  const menu = () => m.q('.pm-menu');
+  const at = centerOf(hit);
+
+  pe(hit, 'pointerdown', at.x, at.y, { pointerType: 'touch' });
+  assert(menu().hidden, 'nothing opens at once');
+  await pause(650);
+  assert(!menu().hidden, 'the menu opens after the hold');
+  equal(m.game().selected, id, 'the piece is selected');
+  pe(tray, 'pointerup', at.x, at.y, { pointerType: 'touch' });
+  assert(!menu().hidden && m.game().selected === id, 'the release neither taps (which would select it again) nor closes the menu');
+  const echo = new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: at.x, clientY: at.y, button: 2 });
+  hit.dispatchEvent(echo);
+  assert(echo.defaultPrevented && !menu().hidden, 'the context menu event that follows is only an echo');
+  key('Escape');
+  assert(menu().hidden, 'Escape closes it');
+
+  pe(hit, 'pointerdown', at.x, at.y, { pointerType: 'touch' });
+  pe(tray, 'pointermove', at.x + 30, at.y + 3, { pointerType: 'touch' });
+  await pause(650);
+  pe(tray, 'pointerup', at.x + 30, at.y + 3, { pointerType: 'touch' });
+  assert(menu().hidden && m.play.view().drag === null, 'a swipe along the tray neither opens the menu nor drags');
+
+  pe(hit, 'pointerdown', at.x, at.y, { pointerType: 'touch' });
+  pe(tray, 'pointermove', at.x + 2, at.y - 24, { pointerType: 'touch' });
+  assert(m.play.view().drag !== null, 'a swipe across the tray lifts the piece');
+  pe(tray, 'pointerup', at.x + 2, at.y - 24, { pointerType: 'touch' });
+  await tick();
+
+  pe(hit, 'pointerdown', at.x, at.y);
+  await pause(650);
+  assert(menu().hidden, 'a mouse press held still opens nothing');
+  pe(tray, 'pointerup', at.x, at.y);
+  m.player.destroy();
+});
+
 await check('no content-security-policy violations', async () => {
   equal(violations.length, 0, `violations: ${violations.join('; ')}`);
 });

@@ -22,6 +22,8 @@
  * @property {(info: PointerInfo) => void} [dragMove] Throttled to one call per animation frame.
  * @property {(info: PointerInfo) => void} [dragEnd] Pointer released after a drag.
  * @property {(info: PointerInfo) => void} [cancel] The gesture was interrupted; revert any visual state.
+ * @property {(info: PointerInfo) => void} [longPress] A touch stayed on a piece for `longPressMs` without moving. The
+ *   gesture ends there: nothing follows for that touch (no select, no drag).
  */
 
 /**
@@ -32,6 +34,11 @@
  * @property {EventTarget} [view] Receives keydown (Escape) and resize; defaults to the element's window.
  * @property {(callback: () => void) => number} [schedule] Frame scheduler, `requestAnimationFrame` by default.
  * @property {(handle: number) => void} [unschedule]
+ * @property {number} [longPressMs] Hold time of a touch that reports `longPress`; without it there is none.
+ * @property {boolean} [holdTouchScroll] While a gesture is on a piece, a touch move does not scroll the page or the surface
+ *   (`touch-action` is not honoured on SVG pieces by every browser, which cancels the pointer at the first move).
+ * @property {'x' | 'y'} [scrollAxis] The surface scrolls along this axis under a touch. A touch that moves mainly along
+ *   it is left to the scroll: it never becomes a drag and does not select.
  */
 
 export const DRAG_THRESHOLD_PX = Object.freeze({ mouse: 6, pen: 6, touch: 10 });
@@ -81,7 +88,7 @@ export function createPointerTracker(el, handlers, options = {}) {
     ? globalThis.cancelAnimationFrame(h)
     : globalThis.clearTimeout(h)));
 
-  /** @type {{ info: PointerInfo, dragging: boolean, threshold: number } | null} */
+  /** @type {{ info: PointerInfo, dragging: boolean, scrolling: boolean, threshold: number, timer: ReturnType<typeof setTimeout> | null } | null} */
   let gesture = null;
   /** @type {{ x: number, y: number } | null} */
   let pending = null;
@@ -106,6 +113,13 @@ export function createPointerTracker(el, handlers, options = {}) {
     pending = null;
   }
 
+  function clearTimer() {
+    if (gesture?.timer != null) {
+      globalThis.clearTimeout(gesture.timer);
+      gesture.timer = null;
+    }
+  }
+
   /** @param {number} pointerId */
   function release(pointerId) {
     try {
@@ -125,6 +139,7 @@ export function createPointerTracker(el, handlers, options = {}) {
     if (gesture === null) {
       return;
     }
+    clearTimer();
     const done = gesture;
     gesture = null;
     clearFrame();
@@ -143,6 +158,8 @@ export function createPointerTracker(el, handlers, options = {}) {
     }
     gesture = {
       dragging: false,
+      scrolling: false,
+      timer: null,
       threshold: dragThreshold(e.pointerType),
       info: {
         pointerId: e.pointerId, pointerType: e.pointerType, clientX: e.clientX, clientY: e.clientY,
@@ -154,6 +171,21 @@ export function createPointerTracker(el, handlers, options = {}) {
     } catch {
       // Without capture the gesture still ends on pointerup or pointercancel.
     }
+    if (options.longPressMs !== undefined && options.longPressMs > 0 && e.pointerType === 'touch') {
+      gesture.timer = globalThis.setTimeout(onLongPress, options.longPressMs);
+    }
+  }
+
+  function onLongPress() {
+    if (gesture === null) {
+      return;
+    }
+    const done = gesture;
+    done.timer = null;
+    gesture = null;
+    clearFrame();
+    release(done.info.pointerId);
+    handlers.longPress?.({ ...done.info });
   }
 
   /** @param {PointerEvent} e */
@@ -161,9 +193,19 @@ export function createPointerTracker(el, handlers, options = {}) {
     if (gesture === null || e.pointerId !== gesture.info.pointerId) {
       return;
     }
+    if (gesture.scrolling) {
+      return;
+    }
     if (!gesture.dragging) {
       const { startX, startY } = gesture.info;
       if (Math.hypot(e.clientX - startX, e.clientY - startY) < gesture.threshold) {
+        return;
+      }
+      clearTimer();
+      const along = options.scrollAxis === 'x' ? Math.abs(e.clientX - startX) : Math.abs(e.clientY - startY);
+      const across = options.scrollAxis === 'x' ? Math.abs(e.clientY - startY) : Math.abs(e.clientX - startX);
+      if (e.pointerType === 'touch' && options.scrollAxis !== undefined && along > across) {
+        gesture.scrolling = true;
         return;
       }
       gesture.dragging = true;
@@ -190,6 +232,7 @@ export function createPointerTracker(el, handlers, options = {}) {
     if (gesture === null || e.pointerId !== gesture.info.pointerId) {
       return;
     }
+    clearTimer();
     const done = gesture;
     const info = infoAt(e);
     gesture = null;
@@ -197,7 +240,7 @@ export function createPointerTracker(el, handlers, options = {}) {
     release(done.info.pointerId);
     if (done.dragging) {
       handlers.dragEnd?.(info);
-    } else {
+    } else if (!done.scrolling) {
       handlers.select?.(info);
     }
   }
@@ -225,6 +268,13 @@ export function createPointerTracker(el, handlers, options = {}) {
 
   const onResize = () => abort('resize');
 
+  /** @param {TouchEvent} e */
+  function onTouchMove(e) {
+    if (gesture !== null && !gesture.scrolling && e.cancelable) {
+      e.preventDefault();
+    }
+  }
+
   /** @type {Array<[EventTarget, string, (event: any) => void]>} */
   const wiring = [
     [surface, 'pointerdown', onDown],
@@ -238,6 +288,9 @@ export function createPointerTracker(el, handlers, options = {}) {
   ];
   for (const [target, type, fn] of wiring) {
     target.addEventListener(type, fn);
+  }
+  if (options.holdTouchScroll === true) {
+    surface.addEventListener('touchmove', onTouchMove, { passive: false });
   }
 
   return {
@@ -254,6 +307,7 @@ export function createPointerTracker(el, handlers, options = {}) {
       for (const [target, type, fn] of wiring) {
         target.removeEventListener(type, fn);
       }
+      surface.removeEventListener('touchmove', onTouchMove);
     },
   };
 }

@@ -193,7 +193,7 @@ export function formatElapsed(ms) {
 }
 
 export const LABELS = Object.freeze(Object.assign(texts('ui', [
-  'straighten', 'straightenOn', 'boardLabel', 'rotateCcw', 'rotateCw', 'flipH', 'flipV', 'toTrayLabel', 'unplaceAll',
+  'boardLabel', 'rotateCcw', 'rotateCw', 'flipH', 'flipV', 'toTrayLabel', 'unplaceAll',
   'replayPuzzle', 'revealedBadge', 'winTime',
 ]), {
   piecesLeft: (/** @type {number} */ n) => t('ui.piecesLeft', { count: n }),
@@ -242,10 +242,25 @@ export const PLAY_TEXT = Object.freeze(Object.assign(texts('play', [
   }),
 }));
 
-export const HINT_TEXT = Object.freeze(Object.assign(texts('hint', [
-  'working', 'revealWorking', 'cancelled', 'stale', 'complete', 'noLongerFits', 'revealed', 'revealUnsat', 'revealImpossible',
-  'revealCancelled', 'revealUnknown', 'revealFailed', 'replayed',
-]), {
+/**
+ * Hint texts mark what matters with `**double asterisks**`: the panel shows it in bold and a screen reader hears it plain.
+ * @param {string} text
+ * @returns {{ text: string, bold: boolean }[]}
+ */
+export function richSegments(text) {
+  return text.split(/\*\*(.+?)\*\*/).map((part, i) => ({ text: part, bold: i % 2 === 1 })).filter((segment) => segment.text !== '');
+}
+
+/**
+ * @param {string} text
+ * @returns {string} The text without its bold markers.
+ */
+export function plainText(text) {
+  return richSegments(text).map((segment) => segment.text).join('');
+}
+
+/** The hint texts that name a piece, with their `**bold**` markers; `HINT_TEXT` has the same texts without them. */
+export const HINT_RICH = Object.freeze({
   /** @param {string} label @returns {string} */
   place: (label) => t('hint.place', { label: pieceLabelText(label) }),
   /** @param {string} label @returns {string} */
@@ -254,6 +269,20 @@ export const HINT_TEXT = Object.freeze(Object.assign(texts('hint', [
   placedHint: (label) => t('hint.placedHint', { label: pieceLabelText(label) }),
   /** @param {string} label @returns {string} */
   removedHint: (label) => t('hint.removedHint', { label: pieceLabelText(label) }),
+});
+
+export const HINT_TEXT = Object.freeze(Object.assign(texts('hint', [
+  'working', 'revealWorking', 'cancelled', 'stale', 'complete', 'noLongerFits', 'revealed', 'revealUnsat', 'revealImpossible',
+  'revealCancelled', 'revealUnknown', 'revealFailed', 'replayed',
+]), {
+  /** @param {string} label @returns {string} */
+  place: (label) => plainText(HINT_RICH.place(label)),
+  /** @param {string} label @returns {string} */
+  remove: (label) => plainText(HINT_RICH.remove(label)),
+  /** @param {string} label @returns {string} */
+  placedHint: (label) => plainText(HINT_RICH.placedHint(label)),
+  /** @param {string} label @returns {string} */
+  removedHint: (label) => plainText(HINT_RICH.removedHint(label)),
 }));
 
 /**

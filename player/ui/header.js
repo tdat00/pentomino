@@ -3,6 +3,7 @@
 // that the generator uses, so a choice made on one page applies to the other.
 import { el } from '../../core/browser/dom.js';
 import { LANGUAGE_KEY } from '../../core/browser/i18n.js';
+import { createSettingsDialog } from '../../core/browser/settings-dialog.js';
 import { svgEl } from '../../core/browser/svg-board.js';
 import { THEME_KEY, applyTheme, effectiveTheme, normalizeTheme } from '../../core/browser/theme.js';
 import { getLocale, normalize, onChange, setLocale, t } from '../i18n.js';
@@ -23,6 +24,10 @@ function iconSprite() {
       svgEl('path', { d: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z' })),
     svgEl('symbol', { id: 'ic-print', viewBox: '0 0 24 24' },
       svgEl('path', { d: 'M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z' })),
+    svgEl('symbol', { id: 'ic-settings', viewBox: '0 0 24 24' },
+      svgEl('circle', { cx: 12, cy: 12, r: 9.6, 'stroke-width': 3, 'stroke-dasharray': '2.5 2.48' }),
+      svgEl('circle', { cx: 12, cy: 12, r: 6.8 }),
+      svgEl('circle', { cx: 12, cy: 12, r: 2.4 })),
     svgEl('symbol', { id: 'ic-help', viewBox: '0 0 24 24' },
       svgEl('circle', { cx: 12, cy: 12, r: 9 }),
       svgEl('path', { d: 'M9.4 9.3a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2.3-2.6 4' }),
@@ -71,24 +76,36 @@ export function mountHeader(host, { win, preferences, onHelp }) {
     on: { click: () => onHelp?.() },
   }, svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' }, svgEl('use', { href: '#ic-help' })),
   loc('shell.help', { className: 'header-help__label' }));
-  const languageButtons = [
+  const wideLanguageButtons = [
     languageButton('en', 'shell.lang.en.short', 'shell.lang.en.name'),
     languageButton('vi', 'shell.lang.vi.short', 'shell.lang.vi.name'),
   ];
-  const themeButtons = [
+  const wideThemeButtons = [
     themeButton('light', 'shell.theme.light', 'ic-sun'),
     themeButton('dark', 'shell.theme.dark', 'ic-moon'),
     themeButton('high-contrast', 'shell.theme.highContrast', 'ic-contrast'),
   ];
+  const settingsButton = el('button', {
+    className: 'pm-btn header-settings',
+    attrs: { type: 'button', 'aria-haspopup': 'dialog', ...locAttrs({ title: 'shell.settings' }) },
+    dataset: { action: 'settings' },
+    on: { click: () => settingsDialog.open(settingsButton) },
+  }, svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' }, svgEl('use', { href: '#ic-settings' })),
+  loc('shell.settings', { className: 'header-settings__label' }));
   const element = el('header', { className: 'app-header' },
     el('div', { className: 'app-brand' },
       el('img', { className: 'app-logo', attrs: { src: new URL('../../core/browser/favicon.svg', import.meta.url).href, alt: '', width: 32, height: 32 } }),
       loc('shell.title', {}, 'h1')),
     el('div', { className: 'header-tools' },
-      el('div', { className: 'segmented', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'shell.lang.label' }) } }, ...languageButtons),
-      el('div', { className: 'segmented', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'shell.theme.label' }) } }, ...themeButtons),
+      el('div', { className: 'segmented', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'shell.lang.label' }) } }, ...wideLanguageButtons),
+      el('div', { className: 'segmented', attrs: { role: 'group', ...locAttrs({ 'aria-label': 'shell.theme.label' }) } }, ...wideThemeButtons),
+      settingsButton,
       helpButton));
   host.append(iconSprite(), element);
+  // The narrow header has no room for the two switches: its Settings button opens them in a dialog.
+  const settingsDialog = createSettingsDialog({ host, t });
+  const languageButtons = [...wideLanguageButtons, ...settingsDialog.languageButtons];
+  const themeButtons = [...wideThemeButtons, ...settingsDialog.themeButtons];
 
   function syncLanguageButtons() {
     for (const button of languageButtons) {
@@ -153,6 +170,7 @@ export function mountHeader(host, { win, preferences, onHelp }) {
       for (const [button, handler] of handlers) {
         button.removeEventListener('click', handler);
       }
+      settingsDialog.dispose();
       element.remove();
     },
   };

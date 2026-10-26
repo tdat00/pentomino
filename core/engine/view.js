@@ -186,12 +186,3 @@ export function arrowToGrid(theta, key) {
   }
   return [plain(x), plain(y)];
 }
-
-/**
- * Nearest multiple of 90 degrees, ties toward theta - 45.
- * @param {number} theta
- * @returns {number}
- */
-export function straightenAngle(theta) {
-  return Math.floor(normalizeAngle(theta) / 90) * 90;
-}

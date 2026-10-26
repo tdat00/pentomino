@@ -97,9 +97,64 @@ button.header-help:focus-visible {
   background: var(--gen-color-hover);
 }
 
-/* On a narrow screen only the icon shows; the text stays for screen readers. */
-@media (max-width: 599px) {
-  .header-help__label {
+button.header-settings {
+  display: none;
+}
+
+/* Narrow header: the title and the buttons share one row. The language and theme switches move into the Settings
+   dialog, and Help and Settings keep only their icons (the text stays for screen readers). */
+@media (max-width: 767.98px) {
+  .app-header {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .app-brand {
+    flex: 1 1 auto;
+    gap: 0.5rem;
+  }
+
+  .app-logo {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .app-header h1 {
+    overflow: hidden;
+    font-size: 1.125rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-tools {
+    flex: none;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
+    margin-left: 0;
+  }
+
+  .header-tools > .segmented {
+    display: none;
+  }
+
+  button.header-settings {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0 0.5rem;
+    background: transparent;
+    border-color: transparent;
+    border-radius: var(--gen-radius-2);
+  }
+
+  button.header-settings:hover,
+  button.header-settings:focus-visible {
+    background: var(--gen-color-hover);
+  }
+
+  .header-help__label,
+  .header-settings__label {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -533,6 +588,29 @@ button.ghost-small:disabled {
   font-size: 0.8125rem;
 }
 
+/* The message takes the whole width, with what matters in bold; its buttons are on a row of their own under it. */
+.status-hint {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.375rem;
+}
+
+.status-hint .status-text {
+  flex: none;
+  width: 100%;
+}
+
+.status-hint-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.375rem;
+}
+
+.status-hint-actions:not(:has(> :not([hidden]))) {
+  display: none;
+}
+
 .status-hint[hidden],
 .status-hint [hidden] {
   display: none;
@@ -552,6 +630,10 @@ button.ghost-small:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: 0.375rem;
+}
+
+.status-badges:has(> :not([hidden])) {
+  margin-bottom: 0.5rem;
 }
 
 .status-badges .badge {
@@ -936,6 +1018,10 @@ button.ghost-small:disabled {
   width: min(40rem, 94vw);
 }
 
+.pm-dialog.pm-help .pm-dialog-actions {
+  justify-content: flex-end;
+}
+
 .pm-dialog-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1136,6 +1222,41 @@ button.ghost-small:disabled {
 .pm-shortcuts tbody th {
   white-space: nowrap;
   font-weight: 600;
+}
+
+/* Phones: the shortcut list is smaller, and a long key name wraps. */
+@media (max-width: 767.98px) {
+  .pm-dialog.pm-help {
+    width: min(40rem, 96vw);
+    max-height: calc(100vh - 1rem);
+    max-height: calc(100dvh - 1rem);
+    padding: 0.75rem 0.875rem;
+    overflow-y: auto;
+  }
+
+  .pm-dialog.pm-help .pm-dialog-title {
+    margin-bottom: 0.25rem;
+    font-size: 1.0625rem;
+  }
+
+  .pm-shortcuts {
+    font-size: 0.8125rem;
+    line-height: 1.35;
+  }
+
+  .pm-shortcuts th,
+  .pm-shortcuts td {
+    padding: 0.1875rem 0.375rem;
+  }
+
+  .pm-shortcuts tbody th {
+    width: 38%;
+    white-space: normal;
+  }
+
+  .pm-dialog.pm-help .pm-dialog-actions {
+    margin-top: 0.5rem;
+  }
 }
 
 /* Start screen, while no puzzle is open. */
@@ -1454,27 +1575,151 @@ button.pm-share-copy[data-copied="true"]:not(:disabled) {
   }
 }
 
-/* Below 768 px the pieces are a strip of two scrolling rows under the board. */
-@media (max-width: 767px) {
-  .app-header h1 {
-    font-size: 1.125rem;
+/* Narrow screens. The pieces to place are a bar fixed to the bottom of the screen: one row that scrolls sideways, without
+   the rotate and flip buttons (a long press on a piece opens its menu). The buttons and the panels are smaller. */
+@media (max-width: 767.98px) {
+  .app-layout {
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .panel {
+    padding: 0.75rem;
+  }
+
+  /* The room of the fixed bar, so that the last panel and the footer are not under it. */
+  .player[data-screen="game"] {
+    padding-bottom: var(--pm-tray-space, 8.5rem);
+  }
+
+  .player[data-screen="start"] .app-side {
+    display: none;
+  }
+
+  /* The puzzles are shown one at a time, with the arrows of the game panel. */
+  .app-history {
+    display: none;
+  }
+
+  .app-side {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 20;
+    padding: 0.375rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    border-width: 1px 0 0;
+    border-radius: var(--gen-radius-3) var(--gen-radius-3) 0 0;
+    box-shadow: 0 -2px 10px rgb(0 0 0 / 14%);
+  }
+
+  .app-side .panel-header {
+    margin: 0 0 0.25rem;
+  }
+
+  .app-side .panel-header > h2 {
+    font-size: 0.9375rem;
+  }
+
+  .pieces-left {
+    font-size: 0.8125rem;
+  }
+
+  .selection-actions {
+    display: none;
+  }
+
+  .toolbar-host {
+    margin: 0 0 0.25rem;
+  }
+
+  .toolbar-host:not(:has(> [data-action="results"]:not([hidden]))) {
+    display: none;
+  }
+
+  .tray-empty {
+    margin: 0;
   }
 
   .tray-host {
-    display: grid;
-    grid-auto-flow: column;
-    grid-template-rows: repeat(2, max-content);
-    grid-auto-columns: max-content;
-    align-content: start;
+    flex-wrap: nowrap;
+    align-items: center;
     gap: 0.375rem;
-    min-height: 0;
-    padding-bottom: 0.25rem;
+    min-height: 5.25rem;
+    padding-bottom: 0.125rem;
     overflow-x: auto;
     overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
   }
 
-  .game-bar,
-  .toolbar-host {
-    gap: 0.375rem;
+  .tray-host[data-count="0"] {
+    min-height: 0;
+  }
+
+  /* Sideways swipes scroll the bar; a swipe up lifts the piece out (see ui/gestures.js). */
+  .tray-piece {
+    flex: none;
+    touch-action: pan-x;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  .tray-piece .pm-preview,
+  .tray-piece .pm-hit {
+    touch-action: pan-x;
+  }
+
+  .game-bar {
+    gap: 0.25rem 0.5rem;
+    margin: 0.25rem 0;
+  }
+
+  .game-timer {
+    font-size: 1.25rem;
+  }
+
+  .game-actions {
+    gap: 0.25rem;
+  }
+
+  .game .pm-btn,
+  .game button,
+  .game a.pm-btn,
+  .pm-dialog .pm-btn {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+  }
+
+  .game .game-actions > button.icon-btn--glyph {
+    font-size: 1.125rem;
+  }
+
+  .game .game-actions > button:not(.icon-btn) {
+    padding-inline: 0.5rem;
+  }
+
+  .step-actions {
+    gap: 0.25rem;
+  }
+
+  .pm-menu {
+    min-width: 12rem;
+  }
+
+  .pm-menu-item {
+    grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    min-height: 2.25rem;
+    font-size: 0.875rem;
+  }
+
+  .pm-menu-icon {
+    font-size: 1rem;
+  }
+}
+
+@media (pointer: coarse) {
+  .pm-menu-key {
+    display: none;
   }
 }

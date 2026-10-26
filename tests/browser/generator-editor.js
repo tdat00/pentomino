@@ -590,7 +590,6 @@ await check('the editor survives a broken storage and persists what it can', asy
       written.push(JSON.parse(JSON.stringify(snapshot)));
       return { ok: true };
     },
-    setPrefs: () => ({ ok: true }),
   };
   const app = createGeneratorApp(document, { storage: io });
   try {

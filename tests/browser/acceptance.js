@@ -584,7 +584,7 @@ await check('L5', 'Generator wizard: Next and Back move between steps, step 3 st
 /** @param {Frame} frame */
 const gameBarOrder = (frame) => qa(frame.doc(), '.step-head .step-actions > *, .game-bar .game-stats > *, .game-bar .game-actions > *').map((n) => n.dataset.action ?? n.className.split(' ')[0]);
 
-await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces panels, game bar over the board, selection toolbar on pick-up, Straighten present in the game bar', async () => {
+await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces panels, game bar over the board, selection toolbar on pick-up', async () => {
   const frame = await openFrame('../../player/', { width: 1400, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game');
   const d = frame.doc();
@@ -594,7 +594,7 @@ await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces pane
   assert(history.right <= main.left + 4 && main.right <= side.left + 4, `three panels (${[history, main, side].map((r) => `${Math.round(r.left)}-${Math.round(r.right)}`).join(' | ')})`);
   assert(qa(d, '.app-history .puzzle-card').length > 0 && q(d, '.app-main').contains(q(d, '.pm-board')) && q(d, '.app-side').contains(q(d, '[data-host="tray"]')), 'each panel holds its content');
   const order = gameBarOrder(frame);
-  const expected = ['share', 'print', 'game-timer', 'game-moves', 'undo', 'redo', 'hint', 'replay', 'straighten'];
+  const expected = ['share', 'print', 'game-timer', 'game-moves', 'undo', 'redo', 'hint', 'replay'];
   assert(JSON.stringify(order) === JSON.stringify(expected), `title row and game bar order ${order.join(' > ')}`);
   const [head, headTitle, shareRect, printRect] = ['.step-head', '.puzzle-title', '[data-action="share"]', '[data-action="print"]'].map((s) => rect(q(d, s)));
   assert(Math.abs(shareRect.top - headTitle.top) < 40 && shareRect.left > headTitle.left && shareRect.right <= printRect.left && printRect.right <= head.right + 1 && printRect.right > head.right - 8, 'Share and Print are on the title row, at its right');
@@ -606,19 +606,24 @@ await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces pane
   const toolbar = d.querySelector('.selection-actions');
   assert(toolbar !== null && rect(toolbar).width > 0, 'the selection toolbar appears after choosing a piece');
   scan(frame);
-  return { order, trayLeft: Math.round(tray.left), boardRight: Math.round(board.right), straightenHidden: /** @type {HTMLElement} */ (q(d, '[data-action="straighten"]')).hidden };
+  return { order, trayLeft: Math.round(tray.left), boardRight: Math.round(board.right) };
 });
 
-await check('L4', 'Player narrow layout (< 768 px): header, game (board), pieces (selection toolbar, then the pieces), then puzzles, in that vertical order', async () => {
+await check('L4', 'Player narrow layout (< 768 px): header, game (board), then puzzles in that vertical order; the pieces are a bar fixed to the bottom of the window, in one row, without the turn and flip buttons', async () => {
   const frame = await openFrame('../../player/', { width: 700, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game');
   const d = frame.doc();
   q(d, '.tray-piece').click();
   await sleep(100);
-  const tops = ['.app-header', '.pm-board', '.selection-actions', '[data-host="tray"]', '.puzzle-cards'].map((s) => rect(q(d, s)).top);
+  const tops = ['.app-header', '.pm-board', '.puzzle-cards'].map((s) => rect(q(d, s)).top);
   for (let i = 1; i < tops.length; i += 1) {
     assert(tops[i] >= tops[i - 1] - 1, `${i} is below ${i - 1}: ${tops.map(Math.round).join(', ')}`);
   }
+  const bar = q(d, '.app-side');
+  const win = /** @type {Window} */ (d.defaultView);
+  assert(win.getComputedStyle(bar).position === 'fixed' && Math.abs(rect(bar).bottom - win.innerHeight) < 2, 'the pieces bar is fixed to the bottom of the window');
+  assert(win.getComputedStyle(q(d, '[data-host="tray"]')).flexWrap === 'nowrap', 'the pieces are one row');
+  assert(win.getComputedStyle(q(d, '.selection-actions')).display === 'none', 'no turn and flip buttons');
   scan(frame);
   return { tops: tops.map(Math.round) };
 });

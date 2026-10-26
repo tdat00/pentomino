@@ -247,8 +247,8 @@ export function createPrintDialog({
     el('div', { className: 'pm-print-body' },
       el('div', { className: 'pm-print-main' },
         el('div', { className: 'pm-print-options' }, pieces.label, board.label, duplex.label, ...(solution === null ? [] : [solution.label]), sizeField),
-        codeBox,
-        summary),
+        summary,
+        codeBox),
       side),
     el('div', { className: 'pm-print-actions' }, cancel, confirm)));
   host.append(dialog);

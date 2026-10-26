@@ -132,7 +132,7 @@ function setup(o = {}) {
       location.hash = url.startsWith('#') ? url : '';
     },
   };
-  const store = createPlayerStore({ prefs: storage.getPrefs() });
+  const store = createPlayerStore();
   const fetched = /** @type {string[]} */ ([]);
   let served = sampleText;
   const controller = createPlayerController({
@@ -431,7 +431,7 @@ test('saved progress is matched by exact coordinates and reload restores it; dis
   assert.equal(damaged.state().notice?.kind, 'warning');
 });
 
-test('presentation angle is display only: loads at 0/45/90/315, never changes fingerprints, Straighten is local', async () => {
+test('presentation angle is display only: loads at 0/45/90/315, never changes fingerprints', async () => {
   const base = setup();
   await openPack(base, sample);
   const baseline = base.state().fingerprints;
@@ -443,8 +443,6 @@ test('presentation angle is display only: loads at 0/45/90/315, never changes fi
     assert.equal(h.state().pack?.presentation?.rotation, rotation);
     assert.deepEqual(h.state().fingerprints, baseline, `fingerprints at ${rotation}`);
     assert.equal(effectiveRotation(h.state()), rotation);
-    h.controller.setPref('straighten', true);
-    assert.equal(effectiveRotation(h.state()), [0, 0, 90, 270][[0, 45, 90, 315].indexOf(rotation)]);
     assert.equal(h.state().pack?.presentation?.rotation, rotation, 'the pack itself is untouched');
     assert.deepEqual(h.state().fingerprints, baseline);
   }
@@ -452,17 +450,15 @@ test('presentation angle is display only: loads at 0/45/90/315, never changes fi
   assert.equal(progressFingerprint(board, sample.pieces, sample.puzzles[0].clues), baseline[0]);
 });
 
-test('Straighten is a stored device preference; hashWithIndex only sets i', async () => {
-  const adapter = memoryAdapter();
+test('start drops the retired preferences key and leaves the rest', async () => {
+  const adapter = memoryAdapter({ 'pentomino:v1:prefs': JSON.stringify({ straighten: true }), 'other-app:state': 'keep me' });
   const h = setup({ adapter });
-  await openPack(h, sample);
-  assert.deepEqual(h.state().prefs, { straighten: false });
-  h.controller.setPref('straighten', true);
-  assert.equal(h.state().prefs.straighten, true);
-  const later = setup({ adapter });
-  await later.controller.start();
-  assert.deepEqual(later.state().prefs, { straighten: true });
-  assert.deepEqual(JSON.parse(adapter.map.get('pentomino:v1:prefs') ?? ''), { straighten: true }, 'nothing else is stored');
+  await h.controller.start();
+  assert.equal(adapter.map.has('pentomino:v1:prefs'), false);
+  assert.equal(adapter.map.get('other-app:state'), 'keep me');
+});
+
+test('hashWithIndex only sets i', () => {
   assert.equal(hashWithIndex('#p=ABCD;EFGH&i=0', 4), '#p=ABCD;EFGH&i=4');
   assert.equal(hashWithIndex('#p=ABCD;EFGH', 2), '#p=ABCD;EFGH&i=2');
   assert.equal(hashWithIndex('#i=1&p=ABCD;EFGH', 3), '#i=3&p=ABCD;EFGH');

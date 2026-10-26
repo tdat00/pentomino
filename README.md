@@ -78,11 +78,15 @@ always holds the open puzzle, so a bookmark keeps it and sending the address sha
 
 The page is a three-step wizard in three panels: the puzzles of the piece set on show on the left, the screen of the
 current step in the middle, and the three steps on the right, each in its own frame with the settings and the button of
-that step. From 768 px to 1359 px the puzzles go under the main screen; below 768 px the steps form a row on top and the
-settings of the current step take a row under them. Under a finished step its frame shows a summary (a thumbnail of the
-board under step 1; the set number, level, seed and piece sizes under step 2), and clicking the summary returns to that
+that step. From 768 px to 1359 px the puzzles go under the main screen. Below 768 px (a phone) the page is one column
+of three frames, one per step, as on a wide screen: the step's header, with the summary of a finished step under it, and
+the screen of the current step under its frame. The settings and the button of the current step are a bar fixed to the
+bottom of the screen, and the puzzles are shown one at a time with ◀ ▶ buttons, like the piece sets, instead of a list of
+cards. Under a finished step its frame shows a summary (the preset and size, as in
+"Heart 8×15", with a thumbnail of the
+board under it, under step 1; the set number, level, seed and piece sizes under step 2), and clicking the summary returns to that
 step. The navigator buttons at the top right of the main screen (for example **‹ Step 1 - Create board** and
-**Step 3 - Create puzzles ›**) or the step headers on the right move between steps. Step 2 opens once the board can get
+**Step 3 - Create puzzles ›**) or the step headers (on a phone, the three frames) move between steps. Step 2 opens once the board can get
 a piece set (otherwise step 1 says why), and step 3 once a piece set is on show.
 
 1. **Create board.** Choose a preset (Rectangle, Heart, Diamond, Cross or Ring) and the rows and columns (3–32 each),
@@ -116,9 +120,10 @@ new set would help.
 The **EN | VI** switch in the header changes the language without reloading; the choice is remembered in this browser,
 and `?lang=vi` or `?lang=en` in the address overrides it. The theme buttons next to it pick the light, dark or
 high-contrast theme; without a choice the page follows the system's light or dark setting. The Player has the same two
-switches, and both pages share the choices.
+switches, and both pages share the choices. On a phone (below 768 px) the header has only icons: **Settings** opens a
+dialog with the language and the theme, and **Import puzzle** keeps its icon beside it.
 
-**Import puzzle** (the header button left of the language switch) opens a dialog where you paste a puzzle link copied
+**Import puzzle** (the header button left of the language switch; an icon on a phone) opens a dialog where you paste a puzzle link copied
 from the Player (**Share**), or its puzzle code, and press **Import**. The board (at the angle of the
 link), the piece set and the puzzle, with its stored solution and rating when the code carries them, are re-created: the
 board becomes the board of step 1 and the puzzle appears in step 3 in a new piece set (marked *Imported*, with a fresh
@@ -168,11 +173,17 @@ board already holds 50 sets, or the puzzle list is full, nothing is imported and
 
 ## Using the Player
 
-The page has the Generator's look: a header with the title, **Help**, the **EN | VI** switch and
-the theme buttons, and three panels. The **puzzles** of the open pack are on the left, the **game** (puzzle name and rating with Share and Print at its right, timer and move
+The page has the Generator's look: a header with the title, the **EN | VI** switch, the theme buttons and **Help**,
+and three panels. The **puzzles** of the open pack are on the left, the **game** (puzzle name and rating with Share and Print at its right, timer and move
 count, Undo / Redo / Hint / Replay and the board) in the middle, and the **pieces to place**, under the toolbar
 for the selected piece, on the right. The pieces panel has no scroll bar of its own: with many pieces the page scrolls.
-From 768 px to 1359 px the puzzles go under the game; below 768 px the panels stack.
+From 768 px to 1359 px the puzzles go under the game.
+
+On a phone (below 768 px) the header keeps only the icons of **Settings** (the language and the theme) and **Help**, the
+buttons and fields are smaller, and the **pieces to place** are a bar fixed to the bottom of the screen: one row of
+pieces that you swipe sideways. Swipe a piece up to lift it onto the board; press and hold it for its menu (turn, flip),
+which replaces the turn and flip buttons of the wide layout. The puzzles of the pack are shown one at a time, with ◀ ▶
+buttons above the puzzle's name (and **Remove** and **Remove all** under them), instead of a list of cards.
 
 - **Opening a puzzle.** Follow a player link: the Generator's **Play**, or an address that was shared or bookmarked.
   Without a puzzle the page shows a start screen with **Try the sample** and a link to the Generator. A link with pieces
@@ -217,8 +228,8 @@ From 768 px to 1359 px the puzzles go under the game; below 768 px the panels st
   again or press `Enter` to drop it. Letting go over the pieces panel puts a piece back. A drop that does not fit,
   `Escape`, a resize or an interrupted touch puts the piece back; pre-placed pieces are locked. Rotating or mirroring a
   placed piece keeps its grabbed cell in place and tries a one-cell nudge before saying *No room to rotate here*.
-- **Piece menu.** Right-click a piece (in the pieces panel, or a placed one on the board) to turn it, flip it or return
-  it to the tray. The Menu key or `Shift`+`F10` opens it on a focused piece. A right-click on the board also offers
+- **Piece menu.** Right-click a piece (in the pieces panel, or a placed one on the board), or press and hold it on a
+  touch screen, to turn it, flip it or return it to the tray. The Menu key or `Shift`+`F10` opens it on a focused piece. A right-click on the board also offers
   **Return all pieces to the tray** and **Replay the puzzle** (after a confirmation).
 - **Keyboard.** `E` or `R` turn the selected piece clockwise and `Q` counter-clockwise; `F` and `V` flip it left-right
   and top-bottom on screen; the arrow keys move it one cell and `Shift`+arrow three cells; `Enter` or `Space` picks it
@@ -239,8 +250,8 @@ From 768 px to 1359 px the puzzles go under the game; below 768 px the panels st
   puzzle is then marked **Revealed**: no victory dialog, not counted as solved, until **Replay** starts a fresh session.
 - **View.** Every piece shows its letter where its squares are large enough (zoom in for more). A label is always one
   character: past Z the letter is drawn in a circle, a square or a black disc. Colors and letters stay readable on a
-  black-and-white print, and sets of more than 20 pieces add fill patterns. The **Straighten** view, the language and the
-  theme are remembered in this browser.
+  black-and-white print, and sets of more than 20 pieces add fill patterns. The language and the theme are remembered
+  in this browser.
 - **Progress** is saved locally and restored when the same puzzle is opened again.
 
 [Back to top](#top)
@@ -291,8 +302,8 @@ Print at 100 % (actual size): the 50 mm bar on the first sheet shows whether the
   the server. Share links may omit the answer.
 - Both apps use `localStorage` keys under `pentomino:v1:` only, and never touch other keys of the same origin:
   - Generator: its work (board, settings, piece sets and puzzles) in `gen:state`;
-  - Player: the progress of each puzzle (`progress:<fingerprint>`, up to 300, save times in `progress-index`), the
-    Straighten choice (`prefs`); no pack is stored, a pack lives in its link;
+  - Player: the progress of each puzzle (`progress:<fingerprint>`, up to 300, save times in `progress-index`); no pack
+    is stored, a pack lives in its link;
   - both: the language (`lang`) and the theme (`theme`).
 - Browser storage can be disabled, shared or full. On a quota error the oldest entries of this namespace are dropped
   once (the Generator first drops its oldest saved piece sets); if saving still fails, work continues in memory and the
@@ -452,10 +463,12 @@ dài (hơn 16.000 ký tự), chỉ đề cần mở được gửi đi (và trì
 
 Trang là một trình hướng dẫn ba bước trong ba khung: bên trái là các đề của bộ mảnh đang hiển thị, ở giữa là màn hình của
 bước hiện tại, bên phải là ba bước, mỗi bước một khung riêng với các thiết lập và nút của bước đó. Từ 768 px đến 1359 px,
-danh sách đề chuyển xuống dưới màn hình chính; dưới 768 px, các bước thành một hàng ở trên và thiết lập của bước hiện tại
-nằm ở hàng dưới. Bên dưới một bước đã xong, khung của nó hiện phần tóm tắt (ảnh thu nhỏ của bàn chơi ở bước 1; số thứ
+danh sách đề chuyển xuống dưới màn hình chính. Dưới 768 px (điện thoại), trang là một cột gồm ba khung, mỗi bước một khung như trên màn hình rộng:
+tiêu đề của bước, kèm phần tóm tắt của bước đã xong ngay dưới, và màn hình của bước hiện tại nằm dưới khung của nó. Các
+thiết lập và nút của bước hiện tại là một thanh cố định ở cuối màn hình; các đề được hiện từng đề một với nút ◀ ▶ như các
+bộ mảnh, thay cho danh sách thẻ. Bên dưới một bước đã xong, khung của nó hiện phần tóm tắt (hình mẫu và kích thước, như "Trái tim 8×15", kèm ảnh thu nhỏ của bàn chơi ngay dưới, ở bước 1; số thứ
 tự, mức độ, seed và cỡ mảnh của bộ ở bước 2); nhấn vào phần tóm tắt để quay lại bước đó. Các nút điều hướng ở góc trên
-bên phải màn hình chính (ví dụ **‹ Bước 1 - Tạo bàn chơi** và **Bước 3 - Tạo đề ›**) hoặc tiêu đề các bước bên phải dùng
+bên phải màn hình chính (ví dụ **‹ Bước 1 - Tạo bàn chơi** và **Bước 3 - Tạo đề ›**) hoặc tiêu đề các bước (trên điện thoại là ba khung) dùng
 để chuyển bước. Bước 2 mở khi bàn chơi đủ điều kiện để tạo bộ mảnh (nếu không, bước 1 cho biết lý do), bước 3 mở khi đã
 có một bộ mảnh đang hiển thị.
 
@@ -488,9 +501,10 @@ trùng) hiện phía trên màn hình chính, kèm nút **Tạo bộ mảnh mớ
 Nút **EN | VI** ở đầu trang đổi ngôn ngữ mà không tải lại trang; lựa chọn được nhớ trong trình duyệt này, và `?lang=vi`
 hoặc `?lang=en` trên địa chỉ sẽ được ưu tiên. Các nút giao diện bên cạnh chọn giao diện sáng, tối hoặc tương phản cao;
 nếu chưa chọn, trang theo chế độ sáng hay tối của hệ thống. Trình chơi có hai nút này giống vậy, và hai trang dùng chung
-lựa chọn.
+lựa chọn. Trên điện thoại (dưới 768 px), đầu trang chỉ có các biểu tượng: **Cài đặt** mở một hộp thoại với ngôn ngữ và giao
+diện, còn **Nhập đề** giữ biểu tượng của nó bên cạnh.
 
-**Nhập đề** (nút ở đầu trang, bên trái nút ngôn ngữ) mở một hộp thoại để dán liên kết đề đã sao chép từ trình chơi
+**Nhập đề** (nút ở đầu trang, bên trái nút ngôn ngữ; trên điện thoại chỉ có biểu tượng) mở một hộp thoại để dán liên kết đề đã sao chép từ trình chơi
 (**Chia sẻ**), hoặc mã đề của nó, rồi nhấn **Nhập**. Bàn chơi (theo góc nhìn của liên kết), bộ mảnh và đề,
 kèm lời giải đã lưu và mức độ nếu mã có mang theo, được tạo lại: bàn chơi trở thành bàn của bước 1 và đề hiện ở bước 3
 trong một bộ mảnh mới (ghi *Đã nhập*, với seed mới). Bộ mảnh đang hiện vẫn nằm trong danh sách của bàn chơi của nó. Đề
@@ -536,11 +550,17 @@ nhập gì và có thông báo cho biết.
 
 ## Dùng trình chơi
 
-Trang có cùng phong cách với trình tạo đề: đầu trang có tiêu đề, **Trợ giúp**, nút **EN | VI** và các nút
-giao diện, cùng ba khung. Bên trái là các **đề** của gói đang mở, ở giữa là **ván chơi** (tên đề và mức độ cùng nút Chia sẻ và In ở bên phải tên đề, đồng hồ và số nước đi,
+Trang có cùng phong cách với trình tạo đề: đầu trang có tiêu đề, nút **EN | VI**, các nút
+giao diện và **Trợ giúp**, cùng ba khung. Bên trái là các **đề** của gói đang mở, ở giữa là **ván chơi** (tên đề và mức độ cùng nút Chia sẻ và In ở bên phải tên đề, đồng hồ và số nước đi,
 Hoàn tác / Làm lại / Gợi ý / Chơi lại và bàn chơi), bên phải là **các mảnh cần đặt**, dưới thanh công cụ của mảnh
 đang chọn. Khung các mảnh không có thanh cuộn riêng: khi có nhiều mảnh, cả trang sẽ cuộn. Từ 768 px đến 1359 px, danh
-sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp chồng lên nhau.
+sách đề chuyển xuống dưới ván chơi.
+
+Trên điện thoại (dưới 768 px), đầu trang chỉ giữ biểu tượng **Cài đặt** (ngôn ngữ và giao diện) và **Trợ giúp**, các nút và
+ô nhập nhỏ hơn, còn **các mảnh cần đặt** là một thanh cố định ở cuối màn hình: một hàng mảnh để vuốt ngang. Vuốt một mảnh
+lên để nhấc nó lên bàn chơi; nhấn giữ một mảnh để mở menu của nó (xoay, lật), thay cho các nút xoay và lật của bố cục
+rộng. Các đề của gói được hiện từng đề một, với nút ◀ ▶ phía trên tên đề (và **Xóa**, **Xóa tất cả** ngay dưới), thay cho danh
+sách thẻ.
 
 - **Mở một đề.** Mở một liên kết của trình chơi: nút **Chơi** của trình tạo đề, hoặc một địa chỉ được chia sẻ hay đã lưu
   dấu trang. Khi chưa có đề, trang hiện màn hình bắt đầu với **Thử đề mẫu** và liên kết tới trình tạo đề. Liên kết chỉ có
@@ -581,8 +601,8 @@ sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp
   `Enter` để đặt. Thả mảnh lên khung các mảnh để trả nó về. Một lần thả không vừa, `Escape`, việc đổi kích thước cửa sổ
   hoặc thao tác chạm bị gián đoạn đều trả mảnh về; các mảnh đặt sẵn bị khóa. Xoay hay lật một mảnh đã đặt sẽ giữ nguyên ô
   đang cầm và thử dịch một ô trước khi báo *Không đủ chỗ để xoay ở đây*.
-- **Menu mảnh.** Nhấn chuột phải vào một mảnh (trong khung các mảnh, hoặc mảnh đã đặt trên bàn) để xoay, lật hoặc trả nó
-  về khay. Phím Menu hoặc `Shift`+`F10` mở menu cho mảnh đang được chọn. Nhấn chuột phải trên bàn chơi còn có
+- **Menu mảnh.** Nhấn chuột phải vào một mảnh (trong khung các mảnh, hoặc mảnh đã đặt trên bàn), hoặc nhấn giữ nó
+  trên màn hình cảm ứng, để xoay, lật hoặc trả nó về khay. Phím Menu hoặc `Shift`+`F10` mở menu cho mảnh đang được chọn. Nhấn chuột phải trên bàn chơi còn có
   **Trả mọi mảnh về khay** và **Chơi lại đề** (sau khi xác nhận).
 - **Bàn phím.** `E` hoặc `R` xoay mảnh đang chọn theo chiều kim đồng hồ, `Q` theo chiều ngược lại; `F` và `V` lật mảnh
   trái-phải và trên-dưới trên màn hình; phím mũi tên di chuyển một ô và `Shift`+mũi tên ba ô; `Enter` hoặc `Space` nhấc
@@ -603,7 +623,7 @@ sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp
   **Chơi lại** bắt đầu một lượt mới.
 - **Hiển thị.** Mỗi mảnh hiện chữ cái của nó khi các ô đủ lớn (phóng to để thấy thêm). Nhãn luôn là một ký tự: sau Z, chữ
   cái được vẽ trong vòng tròn, trong hình vuông hoặc trên nền tròn đen. Màu và chữ vẫn dễ đọc khi in trắng đen, và các bộ
-  hơn 20 mảnh có thêm hoa văn tô. Chế độ **Làm thẳng**, ngôn ngữ và giao diện được nhớ trong trình duyệt này.
+  hơn 20 mảnh có thêm hoa văn tô. Ngôn ngữ và giao diện được nhớ trong trình duyệt này.
 - **Tiến độ** được lưu trên máy và khôi phục khi mở lại cùng đề.
 
 [Lên đầu trang](#top)
@@ -654,8 +674,8 @@ Hãy in ở tỉ lệ 100% (kích thước thật): thanh 50 mm trên tờ đầ
 - Cả hai ứng dụng chỉ dùng các khóa `localStorage` có tiền tố `pentomino:v1:`, và không bao giờ đụng tới các khóa khác
   của cùng nguồn gốc:
   - trình tạo đề: công việc của bạn (bàn chơi, thiết lập, bộ mảnh và đề) trong `gen:state`;
-  - trình chơi: tiến độ của từng đề (`progress:<fingerprint>`, tối đa 300, thời điểm lưu trong `progress-index`), lựa
-    chọn Làm thẳng (`prefs`); không lưu gói nào, gói nằm trong liên kết của nó;
+  - trình chơi: tiến độ của từng đề (`progress:<fingerprint>`, tối đa 300, thời điểm lưu trong `progress-index`);
+    không lưu gói nào, gói nằm trong liên kết của nó;
   - cả hai: ngôn ngữ (`lang`) và giao diện (`theme`).
 - Bộ nhớ trình duyệt có thể bị tắt, dùng chung hoặc đầy. Khi vượt hạn mức, các mục cũ nhất trong không gian tên này bị xóa
   một lần (trình tạo đề xóa các bộ mảnh đã lưu cũ nhất trước); nếu vẫn không lưu được, công việc tiếp tục trong bộ nhớ và

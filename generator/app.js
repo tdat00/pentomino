@@ -6,6 +6,7 @@ import { svgEl } from '../core/browser/svg-board.js';
 import { createGenerationClient } from '../core/browser/generation-client.js';
 import { openInPlayerTab } from '../core/browser/handoff.js';
 import { createPuzzleCodeDialog } from '../core/browser/puzzle-code-dialog.js';
+import { createSettingsDialog } from '../core/browser/settings-dialog.js';
 import { createPool } from '../core/browser/worker-pool.js';
 import { applyTo, choose, getLocale, normalize, onChange, setLocale, t } from './i18n.js';
 import { LANGUAGE_KEY } from '../core/browser/i18n.js';
@@ -170,6 +171,11 @@ export function createGeneratorApp(doc, options = {}) {
   });
   const onImportClick = () => importDialog?.open({ opener: importButton });
   importButton?.addEventListener('click', onImportClick);
+  // The narrow header has no room for the language and theme switches: its Settings button opens them in a dialog.
+  const settingsButton = doc.querySelector('[data-action="settings"]');
+  const settingsDialog = settingsButton === null ? null : createSettingsDialog({ host: doc.body, t });
+  const onSettingsClick = () => settingsDialog?.open(settingsButton);
+  settingsButton?.addEventListener('click', onSettingsClick);
   const unsubscribeBoard = store.subscribe((state, previous) => {
     if (state.board !== previous.board && state.set !== previous.set) {
       editor.history.clear();
@@ -361,6 +367,19 @@ export function createGeneratorApp(doc, options = {}) {
 
   wizard?.onChange(() => editor.view.fit());
 
+  // The controls of the current step are a bar fixed to the bottom of a narrow screen: the page leaves room for it (see
+  // generator.css).
+  const bars = /** @type {HTMLElement[]} */ ([...doc.querySelectorAll('[data-step-body]')]);
+  const syncBarSpace = () => {
+    const height = Math.max(0, ...bars.filter((bar) => !bar.hidden).map((bar) => bar.offsetHeight));
+    doc.body.style.setProperty('--gen-bar-space', `${height}px`);
+  };
+  const barObserver = bars.length > 0 && typeof win?.ResizeObserver === 'function' ? new win.ResizeObserver(syncBarSpace) : null;
+  for (const bar of bars) {
+    barObserver?.observe(bar);
+  }
+  syncBarSpace();
+
   return {
     store,
     hardware,
@@ -381,6 +400,7 @@ export function createGeneratorApp(doc, options = {}) {
     destroy() {
       unsubscribe();
       unsubscribeWizard?.();
+      barObserver?.disconnect();
       win?.removeEventListener('hashchange', onHashChange);
       unsubscribeLanguage();
       unsubscribeBoard();
@@ -392,6 +412,8 @@ export function createGeneratorApp(doc, options = {}) {
       }
       wizard?.destroy();
       importButton?.removeEventListener('click', onImportClick);
+      settingsButton?.removeEventListener('click', onSettingsClick);
+      settingsDialog?.dispose();
       importDialog?.dispose();
       controller.destroy();
       setPanel.destroy();

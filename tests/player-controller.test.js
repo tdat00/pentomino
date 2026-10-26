@@ -106,7 +106,7 @@ function harness(pack, o = {}) {
     saves.push({ fp, value });
     return o.saveFails ? { ok: false, code: 'quota' } : realSave(fp, value);
   };
-  const store = createPlayerStore({ prefs: storage.getPrefs() });
+  const store = createPlayerStore();
   const controller = createPlayerController({
     store,
     storage,
@@ -681,23 +681,6 @@ test('the timer starts at the first committed move, pauses while hidden and stop
   h.clock.advance(10000);
   assert.equal(h.game().elapsedMs, done);
   assert.equal(h.play.clockRunning(), false);
-});
-
-test('Straighten changes the effective angle only, never poses or fingerprints', () => {
-  const pack = rotated(45);
-  const h = harness(pack);
-  const id = movables(pack)[0].piece;
-  h.play.select(id);
-  h.play.transform('flipH');
-  const fp = h.store.getState().fingerprints.slice();
-  const placed = snapshot(h.game()).placements;
-  assert.equal(h.game().tray.get(id), screenFlip(0, 45, 'horizontal'));
-  h.controller.setPref('straighten', true);
-  assert.deepEqual(snapshot(h.game()).placements, placed);
-  h.play.transform('flipH');
-  assert.equal(h.game().tray.get(id), screenFlip(screenFlip(0, 45, 'horizontal'), 0, 'horizontal'));
-  assert.deepEqual(h.store.getState().fingerprints, fp);
-  assert.equal(h.store.getState().pack?.presentation?.rotation, 45, 'the pack is untouched');
 });
 
 test('escape cancels the preview, then the selection; clues are never selectable or draggable', () => {

@@ -73,7 +73,6 @@ export const SVG_NS = 'http://www.w3.org/2000/svg';
 export const MIN_LABEL_CELL_PX = 10;
 export const MIN_FIT_CELL_PX = 14;
 export const MAX_FIT_CELL_PX = 64;
-export const STRAIGHTEN_BELOW_CELL_PX = 24;
 export const BOARD_PADDING = 0.5;
 export const PREVIEW_PADDING = 0.25;
 
@@ -112,16 +111,6 @@ export function nextViewId() {
  */
 export function labelsVisible(showLabels, cellPx) {
   return showLabels === true && cellPx >= MIN_LABEL_CELL_PX;
-}
-
-/**
- * Straighten is offered on touch devices when fitted cells are small and the
- * view is not already square to the screen.
- * @param {{ cellPx: number, rotation: number, coarsePointer: boolean }} o
- * @returns {boolean}
- */
-export function shouldOfferStraighten({ cellPx, rotation, coarsePointer }) {
-  return coarsePointer === true && cellPx < STRAIGHTEN_BELOW_CELL_PX && normalizeAngle(rotation) % 90 !== 0;
 }
 
 /**
@@ -806,6 +795,23 @@ export function mountBoard(host, opts) {
     for (const pose of m.placements) {
       draw(pose, false);
     }
+    // A touch keeps sending its events to the node it began on, and the browser cancels it when that node is removed:
+    // so the piece under a finger stays in the page (hidden while the model does not draw it) until the finger is up.
+    const heldId = press !== null && press.type !== 'mouse' ? press.pieceId : null;
+    const held = heldId === null ? null : piecesLayer.querySelector(`[data-movable="true"][data-piece-id="${CSS.escape(heldId)}"]`);
+    if (held !== null) {
+      const fresh = pieceNodes.findIndex((node) => node.getAttribute('data-piece-id') === heldId && node.getAttribute('data-movable') === 'true');
+      if (fresh >= 0) {
+        pieceNodes.splice(fresh, 1);
+      }
+      if (fresh >= 0) {
+        held.removeAttribute('visibility');
+      } else {
+        held.setAttribute('visibility', 'hidden');
+      }
+      pieceNodes.push(held);
+      heldKept = true;
+    }
     piecesLayer.replaceChildren(...pieceNodes);
     labelsLayer.replaceChildren(...labelNodes);
     locksLayer.replaceChildren(...overlayNodes);
@@ -961,6 +967,8 @@ export function mountBoard(host, opts) {
 
   // Pointer input on the scroll surface: edit paints cells, play reports taps
   // and lets a mouse drag pan a scrollable board.
+  /** True while a rendering kept the touched piece's old node in the page (see `renderPieces`). */
+  let heldKept = false;
   /** @type {{ pointerId: number, type: 'mouse' | 'pen' | 'touch', x: number, y: number, pieceId: string | null, last: XY | null, moved: boolean, panning: boolean, left: number, top: number, pending: { cell: XY, event: PointerEvent } | null } | null} */
   let press = null;
   /** Edit: touches currently down, for the two-finger pinch and pan. @type {Map<number, XY>} */
@@ -1100,6 +1108,16 @@ export function mountBoard(host, opts) {
     }
   }
 
+  /** Draws the pieces again once the touch that held a node in the page has ended. */
+  function dropHeld() {
+    if (heldKept) {
+      heldKept = false;
+      if (model !== null && !destroyed) {
+        renderPieces(model);
+      }
+    }
+  }
+
   /** @param {PointerEvent} e */
   function onPointerUp(e) {
     forgetTouch(e.pointerId);
@@ -1109,6 +1127,7 @@ export function mountBoard(host, opts) {
     const done = press;
     press = null;
     release(e.pointerId);
+    dropHeld();
     if (done.pending !== null) {
       opts.onCell?.(done.pending.cell, done.pending.event);
     }
@@ -1130,6 +1149,7 @@ export function mountBoard(host, opts) {
     if (press !== null && e.pointerId === press.pointerId) {
       press = null;
       release(e.pointerId);
+      dropHeld();
     }
   }
 

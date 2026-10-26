@@ -7,7 +7,7 @@ import { progressFingerprint } from '../core/engine/keys.js';
 import { packBoard } from '../core/engine/pack.js';
 import { MAX_PUZZLE_CODES, isPuzzleListHash, normalizePuzzleCodeText } from '../core/engine/puzzlecode-input.js';
 import { MAX_URL_CHARS, isPuzzleHash, puzzleListHash } from '../core/engine/sharecode.js';
-import { normalizeAngle, straightenAngle } from '../core/engine/view.js';
+import { normalizeAngle } from '../core/engine/view.js';
 import { puzzleCodesOf, readIncoming, readPack, readPuzzleCode } from '../core/browser/handoff.js';
 import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
 import { SAVE_FAILED_MESSAGE, browserStorage } from '../core/browser/storage.js';
@@ -17,7 +17,6 @@ import { INDEX_MESSAGE, LABELS, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, mess
 /** @typedef {import('../core/engine/types.js').Pack} Pack */
 /** @typedef {import('../core/engine/types.js').Issue} Issue */
 /** @typedef {import('../core/engine/game.js').GameState} GameState */
-/** @typedef {import('../core/browser/storage.js').Prefs} Prefs */
 /** @typedef {import('../core/browser/puzzle-code-client.js').PuzzleCodeClient} PuzzleCodeClient */
 /** @typedef {import('../core/browser/puzzle-code-client.js').CodeFailure} CodeFailure */
 /** @template T @typedef {import('../core/browser/puzzle-code-client.js').CodeResult<T>} CodeResult */
@@ -55,12 +54,8 @@ import { INDEX_MESSAGE, LABELS, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, mess
  * @property {PuzzleStatus[]} statuses
  * @property {string[]} fingerprints
  * @property {number} revision
- * @property {Prefs} prefs
  * @property {string | null} storageWarning
  */
-
-/** @type {Prefs} */
-const DEFAULT_PREFS = Object.freeze({ straighten: false });
 
 /** @returns {PlayerState} */
 function defaultState() {
@@ -78,7 +73,6 @@ function defaultState() {
     statuses: [],
     fingerprints: [],
     revision: 0,
-    prefs: { ...DEFAULT_PREFS },
     storageWarning: null,
   };
 }
@@ -141,14 +135,12 @@ export function createPlayerStore(initial = {}) {
 
 /**
  * Angle the board and tray are drawn at: the angle the player turned the view to, else the pack's presentation
- * angle, or the nearest straight angle when the local Straighten view is on. Never written to the pack and never
- * part of a fingerprint.
- * @param {Pick<PlayerState, 'pack' | 'prefs' | 'viewRotation'>} state
+ * angle. Never written to the pack and never part of a fingerprint.
+ * @param {Pick<PlayerState, 'pack' | 'viewRotation'>} state
  * @returns {number}
  */
 export function effectiveRotation(state) {
-  const rotation = state.viewRotation ?? state.pack?.presentation?.rotation ?? 0;
-  return state.prefs.straighten ? straightenAngle(rotation) : rotation;
+  return state.viewRotation ?? state.pack?.presentation?.rotation ?? 0;
 }
 
 /**
@@ -659,7 +651,7 @@ export function createPlayerController(options) {
      */
     start() {
       const hash = String(getLocation()?.hash ?? '');
-      store.update({ prefs: storage.getPrefs() });
+      storage.dropRetired?.();
       return load(() => readIncoming({ hash }, env), hashMeta(hash));
     },
     /** @param {string} hash */
@@ -772,17 +764,6 @@ export function createPlayerController(options) {
     },
     saveNow,
     /**
-     * @param {keyof Prefs} name
-     * @param {boolean} value
-     */
-    setPref(name, value) {
-      const result = storage.setPrefs({ [name]: value });
-      store.update((s) => ({
-        prefs: storage.getPrefs(),
-        storageWarning: result.ok ? s.storageWarning : SAVE_FAILED_MESSAGE,
-      }));
-    },
-    /**
      * Turns the display of the open pack by `delta` counter-clockwise degrees (a multiple of 45); display only.
      * @param {number} delta
      */
@@ -834,7 +815,6 @@ export function createPlayerController(options) {
       syncHash('edited', 0);
       store.update({
         ...defaultState(),
-        prefs: s.prefs,
         storageWarning: s.storageWarning,
         revision: s.revision + 1,
       });

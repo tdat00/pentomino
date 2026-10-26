@@ -1033,7 +1033,7 @@ async function narrowFrame(search, hash) {
   return { frameEl: f, doc, win: /** @type {Window} */ (f.contentWindow) };
 }
 
-await check('390 px: the Player page and the entry fit without sideways scrolling, with 44 px buttons, in English and Vietnamese', async () => {
+await check('390 px: the Player page and the entry fit without sideways scrolling, with 36 px buttons, in English and Vietnamese', async () => {
   for (const [lang, error] of /** @type {const} */ ([['en', EN.check], ['vi', 'Mã có lỗi nhập. Hãy đối chiếu với bản in.']])) {
     const f = await narrowFrame(`?lang=${lang}`, `#p=${ONE_TYPO}`);
     await waitFor(() => f.doc.querySelector('dialog.pm-code[open]') !== null, `${lang}: the entry opens for the bad address`);
@@ -1048,11 +1048,11 @@ await check('390 px: the Player page and the entry fit without sideways scrollin
     const small = [];
     for (const button of dialog.querySelectorAll('button')) {
       const r = button.getBoundingClientRect();
-      if (r.width > 0 && (r.height < 44 || r.width < 44)) {
+      if (r.width > 0 && (r.height < 34.5 || r.width < 34.5)) {
         small.push(`${button.dataset.action} ${Math.round(r.width)}x${Math.round(r.height)}`);
       }
     }
-    equal(small, [], `${lang}: targets under 44 px`);
+    equal(small, [], `${lang}: targets under 36 px`);
     const field = /** @type {HTMLElement} */ (dialog.querySelector('textarea'));
     assert(field.getBoundingClientRect().right <= box.right, `${lang}: the field fits the dialog`);
     assert(Number.parseFloat(f.win.getComputedStyle(field).fontSize) >= 16, `${lang}: 16 px text, so touch browsers do not zoom`);

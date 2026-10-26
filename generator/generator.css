@@ -58,6 +58,10 @@ body {
   white-space: nowrap;
 }
 
+button.header-settings {
+  display: none;
+}
+
 .icon {
   display: inline-block;
   flex: none;
@@ -122,6 +126,70 @@ body {
 
 .segmented__btn:focus-visible {
   z-index: 2;
+}
+
+/* Narrow header: the title and the buttons share one row. The language and theme switches move into the Settings
+   dialog, and Import puzzle keeps only its icon. */
+@media (max-width: 767.98px) {
+  .app-header {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .app-brand {
+    flex: 1 1 auto;
+    gap: 0.5rem;
+  }
+
+  .app-logo {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .app-header h1 {
+    overflow: hidden;
+    font-size: 1.125rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-tools {
+    flex: none;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
+    margin-left: 0;
+  }
+
+  .header-tools > .segmented {
+    display: none;
+  }
+
+  .header-tools > button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    padding: 0;
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .header-tools > button:hover,
+  .header-tools > button:focus-visible {
+    background: var(--gen-color-hover);
+  }
+
+  .header-import__label,
+  .header-settings__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 
 /* From 1360 px: puzzles | current step | wizard steps. From 768 px the puzzles move under the current step;
@@ -373,6 +441,25 @@ button.ghost-small:disabled {
 }
 
 .board-summary {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.board-summary-info {
+  min-width: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.board-summary-info > p {
+  margin: 0;
+}
+
+.board-summary-info > .board-summary-title {
+  font-weight: 600;
+}
+
+.board-summary-thumb {
   display: flex;
   justify-content: center;
   padding: 0.5rem;
@@ -405,36 +492,6 @@ button.ghost-small:disabled {
 .wizard-step-body .field input[type="number"],
 .wizard-step-body .field select {
   width: 100%;
-}
-
-@media (max-width: 767px) {
-  .wizard-steps {
-    flex-wrap: wrap;
-  }
-
-  /* The steps stay one row; the settings of the current step take a full row under them. */
-  .wizard-steps > li:has(> .wizard-step-body) {
-    display: contents;
-  }
-
-  .wizard-steps > li:has(> .wizard-step-body) > .wizard-step {
-    flex: 1 1 0;
-    width: auto;
-    min-width: 0;
-  }
-
-  .wizard-step-body {
-    order: 1;
-    flex: 1 0 100%;
-    margin-top: 0;
-  }
-
-  .wizard-step-body[data-step-body] {
-    padding: 0.5rem 0.75rem;
-    background: var(--gen-color-surface-2);
-    border: 2px solid var(--gen-color-accent);
-    border-radius: var(--gen-radius-2);
-  }
 }
 
 .wizard-feedback {
@@ -869,24 +926,142 @@ button.primary {
   height: 1em;
 }
 
-@media (max-width: 599px) {
+/* Narrow screens: one column of three frames, one per step, as in the wide layout: the step's header with the summary
+   of a finished step (the board preview, the piece set) under it. The Main section of the current step comes under its
+   frame, and the puzzles are shown one at a time with arrows (the cards of the wide layout are not listed). The
+   controls of the current step are a bar fixed to the bottom of the screen. The nav and its list give up their boxes
+   so that the frames and Main are siblings that `order` can interleave: frame n is 10n, and Main of the current step
+   10n + 1. */
+@media (max-width: 767.98px) {
+  .app-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem 0.75rem;
+  }
+
+  .app-side,
+  .wizard-steps {
+    display: contents;
+  }
+
   .wizard-steps > li {
-    flex: 0 0 auto;
+    min-width: 0;
+    padding: 0.375rem 0.5rem 0.5rem;
+    background: var(--gen-color-surface-2);
+    border: 2px solid var(--pm-border);
+    border-radius: var(--gen-radius-2);
   }
 
-  .wizard-steps > li:has(> [aria-current="step"]) {
+  .wizard-steps > li:has(> .wizard-step[aria-current="step"]) {
+    background: var(--gen-color-accent-soft);
+    border-color: var(--gen-color-accent);
+  }
+
+  .wizard-steps > li:has(> .wizard-step:disabled) {
+    border-style: dashed;
+  }
+
+  .wizard-steps > li > .wizard-step {
+    min-height: 2.5rem;
+    padding-inline: 0.25rem;
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .wizard-steps > li:nth-child(1) {
+    order: 10;
+  }
+
+  .wizard-steps > li:nth-child(2) {
+    order: 20;
+  }
+
+  .wizard-steps > li:nth-child(3) {
+    order: 30;
+  }
+
+  .app-layout:has([data-wizard-step="1"][aria-current="step"]) > .app-main {
+    order: 11;
+  }
+
+  .app-layout:has([data-wizard-step="2"][aria-current="step"]) > .app-main {
+    order: 21;
+  }
+
+  .app-layout:has([data-wizard-step="3"][aria-current="step"]) > .app-main {
+    order: 31;
+  }
+
+  .app-history {
+    display: none;
+  }
+
+  /* The controls of the current step stay at the bottom of the screen; the page leaves room for them (--gen-bar-space,
+     written by app.js). */
+  body {
+    padding-bottom: var(--gen-bar-space, 0);
+  }
+
+  .wizard-step-body[data-step-body] {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 20;
+    margin: 0;
+    padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    background: var(--gen-color-surface);
+    border-top: 1px solid var(--gen-color-divider);
+    box-shadow: 0 -2px 10px rgb(0 0 0 / 14%);
+  }
+
+  .wizard-step-body[data-step-body] .field {
     flex: 1 1 0;
+    font-size: 0.8125rem;
   }
 
-  .wizard-steps > li:has(> .wizard-step-body) > .wizard-step:not([aria-current="step"]) {
-    flex: 0 0 auto;
+  .wizard-step-body[data-step-body] .field-wide {
+    flex: 2 1 0;
   }
 
-  .wizard-step:not([aria-current="step"]) {
-    padding-inline: 0.5rem;
+  .wizard-step-body[data-step-body] .control-row {
+    flex-wrap: nowrap;
+    margin-bottom: 0;
   }
 
-  .wizard-step:not([aria-current="step"]) .wizard-name {
+  .wizard-step-body[data-step-body] .puzzle-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+
+  .wizard-step-body[data-step-body] .puzzle-controls > .field {
+    flex: 1 1 55%;
+    margin-bottom: 0;
+  }
+
+  .wizard-step-body[data-step-body] .puzzle-controls > .unique-toggle {
+    flex: 1 1 35%;
+    margin: 0;
+    font-size: 0.8125rem;
+  }
+
+  .wizard-step-body[data-step-body] .puzzle-controls > button {
+    flex: 1 1 100%;
+    margin-top: 0;
+  }
+
+  .wizard-step-body[data-step-body] .seed-field {
+    margin-bottom: 0.375rem;
+  }
+
+  .panel {
+    padding: 0.75rem;
+  }
+
+  /* The header of the step above the panel already names it. */
+  .step-head > h2 {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -894,6 +1069,32 @@ button.primary {
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+
+  .step-head {
+    justify-content: flex-end;
+  }
+
+  .step-hint {
+    margin-bottom: 0.5rem;
+  }
+
+  /* The step above the panel is one tap away, so the panel keeps only the way forward. */
+  .main-actions > [data-slot="main-back"] {
+    display: none;
+  }
+
+  .level-table {
+    font-size: 0.8125rem;
+  }
+
+  .level-table thead th {
+    font-size: 0.75rem;
+  }
+
+  .level-table th,
+  .level-table td {
+    padding: 0.1875rem 0.3125rem;
   }
 }
 
@@ -1327,4 +1528,66 @@ button.solution-toggle:disabled {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 1rem;
+}
+
+/* Narrow screens, the rules that must follow the ones above: the navigator of the steps is small, with a border so that it
+   is easy to see, and
+   the piece set's navigator is small, with Remove and Remove all on a row of their own, at the right. */
+@media (max-width: 767.98px) {
+  .main-actions > button {
+    min-height: 1.75rem;
+    padding: 0 0.5rem;
+    color: var(--gen-color-accent);
+    font-size: 0.8125rem;
+    background: transparent;
+    border: 1px solid var(--gen-color-accent);
+  }
+
+  .main-actions > button:hover:not(:disabled),
+  .main-actions > button:focus-visible {
+    background: var(--gen-color-hover);
+  }
+
+  .main-actions > button:disabled {
+    color: var(--gen-color-disabled-text);
+    border-color: var(--gen-color-divider);
+  }
+
+  .set-history {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0.25rem;
+  }
+
+  .set-nav,
+  .set-actions {
+    grid-column: 1;
+  }
+
+  .set-nav {
+    justify-self: center;
+    gap: 0.375rem;
+  }
+
+  .set-nav > button {
+    min-width: 2rem;
+    min-height: 1.75rem;
+    padding: 0 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .set-position {
+    min-width: 4.5rem;
+    font-size: 0.875rem;
+  }
+
+  .set-actions {
+    justify-self: end;
+    flex-wrap: nowrap;
+  }
+
+  .set-actions > button {
+    min-height: 1.5rem;
+    white-space: nowrap;
+    font-size: 0.75rem;
+  }
 }

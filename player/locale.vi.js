@@ -18,6 +18,8 @@ export default Object.freeze({
   'shell.theme.light': 'Giao diện sáng',
   'shell.theme.dark': 'Giao diện tối',
   'shell.theme.highContrast': 'Giao diện tương phản cao',
+  'shell.settings': 'Cài đặt',
+  'shell.settings.close': 'Đóng',
   'shell.help': 'Trợ giúp',
   'shell.help.title': 'Phím tắt',
   'shell.footer.copyright': '\u00a9 2026 Dat Le. Phát hành theo giấy phép MIT.',
@@ -26,6 +28,10 @@ export default Object.freeze({
 
   // Panels
   'puzzles.list': 'Các đề',
+  'puzzles.older': 'Đề trước',
+  'puzzles.newer': 'Đề sau',
+  'puzzles.position': 'Đề {n}/{total}',
+  'puzzles.remove': 'Xóa',
   'puzzles.removeAll': 'Xóa tất cả',
   'puzzles.removeAll.title': 'Xóa mọi đề của gói này khỏi danh sách',
   'puzzles.empty': 'Chưa mở đề nào. Hãy mở một đề từ liên kết của nó hoặc thử đề mẫu.',
@@ -41,8 +47,6 @@ export default Object.freeze({
   'ui.elapsed': 'Thời gian đã chơi',
   'ui.undo': 'Hoàn tác',
   'ui.redo': 'Làm lại',
-  'ui.straighten': 'Làm thẳng',
-  'ui.straightenOn': 'Đã làm thẳng',
   'ui.generator': 'Mở trình tạo',
   'ui.zoom': 'Thu phóng',
   'ui.zoomIn': 'Phóng to',
@@ -253,12 +257,12 @@ export default Object.freeze({
   'hint.stale': 'Bàn chơi đã thay đổi nên kết quả kiểm tra đó bị bỏ.',
   'hint.complete': 'Đề đã được giải xong.',
   'hint.noLongerFits': 'Gợi ý đó không còn khớp với bàn chơi. Hãy yêu cầu gợi ý mới.',
-  'hint.place': 'Gợi ý: mảnh {label} khớp với một lời giải hoàn chỉnh giữ nguyên mọi mảnh bạn đã đặt. Mảnh này được tô sáng trên bàn chơi. '
-    + 'Nhấn “Đặt mảnh này” để đặt nó vào đó.',
-  'hint.remove': 'Gợi ý: nếu gỡ mảnh {label}, bạn có thể hoàn thành đề mà vẫn giữ nguyên mọi mảnh khác đã đặt. '
+  'hint.place': 'Gợi ý: mảnh **{label}** khớp với một lời giải hoàn chỉnh giữ nguyên mọi mảnh bạn đã đặt. Mảnh này được tô sáng trên bàn chơi. '
+    + 'Nhấn **“Đặt mảnh này”** để đặt nó vào đó.',
+  'hint.remove': 'Gợi ý: nếu gỡ mảnh **{label}**, bạn có thể hoàn thành đề mà vẫn giữ nguyên mọi mảnh khác đã đặt. '
     + 'Điều đó không có nghĩa đây là mảnh duy nhất có thể di chuyển.',
-  'hint.placedHint': 'Đã đặt mảnh {label}. Bạn có thể hoàn tác.',
-  'hint.removedHint': 'Đã gỡ mảnh {label}. Bạn có thể hoàn tác.',
+  'hint.placedHint': 'Đã đặt mảnh **{label}**. Bạn có thể hoàn tác.',
+  'hint.removedHint': 'Đã gỡ mảnh **{label}**. Bạn có thể hoàn tác.',
   'hint.revealed': 'Đã hiển thị lời giải. Đề này được đánh dấu là đã xem lời giải, không phải đã giải.',
   'hint.revealUnsat': 'Không thể hoàn thành lời giải từ các mảnh bạn đã đặt.',
   'hint.revealImpossible': 'Đề này không có lời giải nên không có gì để hiển thị.',

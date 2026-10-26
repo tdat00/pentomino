@@ -40,13 +40,6 @@
  * @typedef {Omit<Progress, 'v' | 'revealed' | 'hintsUsed'> & { v: 1 | 2, revealed?: boolean, hintsUsed?: number }} ProgressInput
  */
 
-/**
- * Older versions also stored `labels`, `patterns`, `timer` and `largeBoards`; they are ignored and dropped by
- * the next write.
- * @typedef {object} Prefs
- * @property {boolean} straighten
- */
-
 export const NAMESPACE = 'pentomino:v1:';
 export const MAX_PROGRESS_ENTRIES = 300;
 export const SAVE_FAILED_MESSAGE = "Progress can't be saved in this browser";
@@ -55,13 +48,11 @@ const KEY_GENERATOR = `${NAMESPACE}gen:state`;
 const KEY_PROGRESS_PREFIX = `${NAMESPACE}progress:`;
 // Private LRU bookkeeping; deliberately outside the `progress:` prefix.
 const KEY_PROGRESS_INDEX = `${NAMESPACE}progress-index`;
-const KEY_PREFS = `${NAMESPACE}prefs`;
+// Keys that older versions wrote and nothing reads any more; `dropRetired` removes them.
+const RETIRED_KEYS = Object.freeze([`${NAMESPACE}prefs`]);
 
 const FINGERPRINT = /^[A-Za-z0-9_-]{1,64}$/;
 const MAX_PLACEMENTS = 1024;
-/** @type {Prefs} */
-const DEFAULT_PREFS = Object.freeze({ straighten: false });
-const PREF_KEYS = /** @type {(keyof Prefs)[]} */ (Object.keys(DEFAULT_PREFS));
 
 /**
  * @param {unknown} error
@@ -472,39 +463,11 @@ export function createStorage(adapter, now) {
     return removed;
   }
 
-  /**
-   * @returns {Prefs} Stored booleans over the defaults.
-   */
-  function getPrefs() {
-    const raw = readJson(KEY_PREFS);
-    const prefs = { ...DEFAULT_PREFS };
-    if (isRecord(raw)) {
-      for (const name of PREF_KEYS) {
-        if (typeof raw[name] === 'boolean') {
-          prefs[name] = /** @type {boolean} */ (raw[name]);
-        }
-      }
-    } else if (raw !== null) {
-      record('invalid-data', 'Saved preferences were damaged and were ignored', KEY_PREFS);
+  /** Removes the keys that older versions wrote and nothing reads any more. */
+  function dropRetired() {
+    for (const key of RETIRED_KEYS) {
+      remove(key);
     }
-    return prefs;
-  }
-
-  /**
-   * Merges known boolean preferences into the freshly read stored value.
-   * @param {Partial<Prefs>} partial
-   * @returns {StorageResult}
-   */
-  function setPrefs(partial) {
-    const next = getPrefs();
-    if (isRecord(partial)) {
-      for (const name of PREF_KEYS) {
-        if (typeof partial[name] === 'boolean') {
-          next[name] = /** @type {boolean} */ (partial[name]);
-        }
-      }
-    }
-    return writeRaw(KEY_PREFS, JSON.stringify(next));
   }
 
   return {
@@ -521,8 +484,7 @@ export function createStorage(adapter, now) {
     saveProgress,
     loadProgress,
     removeProgress,
-    getPrefs,
-    setPrefs,
+    dropRetired,
     getGeneratorState: () => readJson(KEY_GENERATOR),
     /** @param {unknown} snapshot */
     setGeneratorState: (snapshot) => set(KEY_GENERATOR, snapshot),
@@ -572,16 +534,14 @@ const storage = {
   loadProgress: (fp) => browserStorage().loadProgress(fp),
   /** @type {Storage['removeProgress']} */
   removeProgress: (fp) => browserStorage().removeProgress(fp),
-  getPrefs: () => browserStorage().getPrefs(),
-  /** @type {Storage['setPrefs']} */
-  setPrefs: (partial) => browserStorage().setPrefs(partial),
+  dropRetired: () => browserStorage().dropRetired(),
   getGeneratorState: () => browserStorage().getGeneratorState(),
   /** @type {Storage['setGeneratorState']} */
   setGeneratorState: (snapshot) => browserStorage().setGeneratorState(snapshot),
 };
 
 export const {
-  get, set, remove, list, lastStorageIssue, clearStorageIssue, saveProgress, loadProgress, removeProgress, getPrefs, setPrefs,
+  get, set, remove, list, lastStorageIssue, clearStorageIssue, saveProgress, loadProgress, removeProgress, dropRetired,
   getGeneratorState,
   setGeneratorState,
 } = storage;

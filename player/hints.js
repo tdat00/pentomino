@@ -9,7 +9,7 @@ import {
 } from '../core/engine/hints.js';
 import { packBoard } from '../core/engine/pack.js';
 import { createPool, isAbortError } from '../core/browser/worker-pool.js';
-import { HINT_TEXT } from './strings.js';
+import { HINT_RICH, HINT_TEXT } from './strings.js';
 
 /** @typedef {import('../core/engine/types.js').Pose} Pose */
 /** @typedef {import('../core/engine/types.js').XY} XY */
@@ -43,6 +43,7 @@ import { HINT_TEXT } from './strings.js';
  * @property {'idle' | 'working' | 'hint' | 'reveal-unsat'} phase
  * @property {'hint' | 'reveal' | null} task
  * @property {string} message Visible status text; empty when there is nothing to say.
+ * @property {string} rich The same text with `**bold**` markers on what matters; empty when `message` has none.
  * @property {HintMarks | null} marks
  * @property {number} version Increases with every change.
  */
@@ -99,7 +100,7 @@ export function createHintController(options) {
   /** @param {string} message */
   const announce = (message) => options.announce?.(message);
   /** @type {HintState} */
-  let state = { phase: 'idle', task: null, message: '', marks: null, version: 0 };
+  let state = { phase: 'idle', task: null, message: '', rich: '', marks: null, version: 0 };
   /** @type {Set<() => void>} */
   const listeners = new Set();
   /** @type {PoolLike | null} */
@@ -119,7 +120,7 @@ export function createHintController(options) {
 
   /** @param {Partial<HintState>} patch */
   function set(patch) {
-    state = { ...state, ...patch, version: state.version + 1 };
+    state = { ...state, rich: '', ...patch, version: state.version + 1 };
     for (const listener of [...listeners]) {
       listener();
     }
@@ -292,6 +293,7 @@ export function createHintController(options) {
         phase: 'hint',
         task: null,
         message,
+        rich: HINT_RICH.place(piece.label),
         marks: { kind: 'place', piece: piece.id, pose: result.pose, cells: poseCells(piece, result.pose), pulse },
       });
       announce(message);
@@ -310,6 +312,7 @@ export function createHintController(options) {
         phase: 'hint',
         task: null,
         message,
+        rich: HINT_RICH.remove(piece.label),
         marks: { kind: 'remove', piece: piece.id, pose: null, cells: poseCells(piece, pose), pulse },
       });
       announce(message);
@@ -342,7 +345,8 @@ export function createHintController(options) {
     const message = applied
       ? (hint.kind === 'place' ? HINT_TEXT.placedHint(label) : HINT_TEXT.removedHint(label))
       : HINT_TEXT.noLongerFits;
-    set({ phase: 'idle', task: null, message, marks: null });
+    const rich = applied ? (hint.kind === 'place' ? HINT_RICH.placedHint(label) : HINT_RICH.removedHint(label)) : '';
+    set({ phase: 'idle', task: null, message, rich, marks: null });
     announce(message);
     return applied;
   }

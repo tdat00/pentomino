@@ -17,7 +17,6 @@ import {
   pieceName,
   seamPath,
   shade,
-  shouldOfferStraighten,
 } from '../core/browser/svg-board.js';
 import { createPointerTracker, dragThreshold } from '../core/browser/pointer.js';
 
@@ -87,14 +86,10 @@ test('rotated frame matches the shared extent for play and covers the whole grid
   }
 });
 
-test('labels need the switch and a 10 px cell; straighten needs touch, small cells and an odd angle', () => {
+test('labels need the switch and a 10 px cell', () => {
   assert.equal(labelsVisible(true, 10), true);
   assert.equal(labelsVisible(true, 9.9), false);
   assert.equal(labelsVisible(false, 40), false);
-  assert.equal(shouldOfferStraighten({ cellPx: 20, rotation: 45, coarsePointer: true }), true);
-  assert.equal(shouldOfferStraighten({ cellPx: 24, rotation: 45, coarsePointer: true }), false);
-  assert.equal(shouldOfferStraighten({ cellPx: 20, rotation: 90, coarsePointer: true }), false);
-  assert.equal(shouldOfferStraighten({ cellPx: 20, rotation: 45, coarsePointer: false }), false);
 });
 
 test('outline path data, seams, shade and label cell', () => {
@@ -139,8 +134,11 @@ test('a board with an enclosed hole frames its active cells and hit-tests the ho
   assert.deepEqual(cellFromLocal(board, 2.5, 1.5, { includeBlocked: true }), [2, 1]);
 });
 
-/** Minimal pointer surface + window fakes. */
-function harness() {
+/**
+ * Minimal pointer surface + window fakes.
+ * @param {Partial<import('../core/browser/pointer.js').PointerTrackerOptions>} [extra]
+ */
+function harness(extra = {}) {
   const surface = new EventTarget();
   const view = new EventTarget();
   /** @type {Array<() => void>} */
@@ -161,7 +159,9 @@ function harness() {
   };
   const tracker = createPointerTracker(surface, {
     select: note('select'), dragStart: note('dragStart'), dragMove: note('dragMove'), dragEnd: note('dragEnd'), cancel: note('cancel'),
+    longPress: note('longPress'),
   }, {
+    ...extra,
     view,
     resolve: (event) => ((/** @type {any} */ (event)).hit ? { pieceId: 'F', sourceCell: 3 } : null),
     schedule: (cb) => frames.push(cb),
@@ -221,6 +221,58 @@ test('a press without drag selects; a drag reports throttled moves then dragEnd'
   assert.deepEqual(h.log, ['dragStart', 'dragMove', 'dragEnd']);
   assert.equal(h.infos.at(-1).clientX, 40);
   assert.equal(h.infos.at(-1).startX, 0);
+});
+
+test('a touch held still reports a long press and nothing after it; moving or a mouse does not', async () => {
+  const wait = () => new Promise((resolve) => { setTimeout(resolve, 60); });
+  const held = harness({ longPressMs: 20 });
+  held.fire('pointerdown', { pointerType: 'touch' });
+  await wait();
+  assert.deepEqual(held.log, ['longPress']);
+  assert.equal(held.infos[0].pieceId, 'F');
+  assert.equal(held.tracker.isActive(), false);
+  assert.equal(held.captured.size, 0, 'capture released');
+  held.fire('pointerup', { pointerType: 'touch' });
+  assert.deepEqual(held.log, ['longPress'], 'the release is no select');
+
+  const moved = harness({ longPressMs: 20 });
+  moved.fire('pointerdown', { pointerType: 'touch' });
+  moved.fire('pointermove', { pointerType: 'touch', clientX: 20 });
+  await wait();
+  assert.deepEqual(moved.log, ['dragStart']);
+
+  const lifted = harness({ longPressMs: 20 });
+  lifted.fire('pointerdown', { pointerType: 'touch' });
+  lifted.fire('pointerup', { pointerType: 'touch' });
+  await wait();
+  assert.deepEqual(lifted.log, ['select']);
+
+  const mouse = harness({ longPressMs: 20 });
+  mouse.fire('pointerdown');
+  await wait();
+  assert.deepEqual(mouse.log, []);
+  mouse.tracker.destroy();
+});
+
+test('a touch that moves mainly along the scroll axis is left to the scroll', () => {
+  const h = harness({ scrollAxis: 'x' });
+  h.fire('pointerdown', { pointerType: 'touch' });
+  h.fire('pointermove', { pointerType: 'touch', clientX: 14, clientY: 4 });
+  h.fire('pointermove', { pointerType: 'touch', clientX: 40, clientY: 30 });
+  assert.deepEqual(h.log, [], 'no drag, even when it later turns');
+  h.fire('pointerup', { pointerType: 'touch', clientX: 40, clientY: 30 });
+  assert.deepEqual(h.log, [], 'and no select');
+  assert.equal(h.tracker.isActive(), false);
+
+  const across = harness({ scrollAxis: 'x' });
+  across.fire('pointerdown', { pointerType: 'touch' });
+  across.fire('pointermove', { pointerType: 'touch', clientX: 4, clientY: -14 });
+  assert.deepEqual(across.log, ['dragStart'], 'a swipe across the axis lifts the piece');
+
+  const mouse = harness({ scrollAxis: 'x' });
+  mouse.fire('pointerdown');
+  mouse.fire('pointermove', { clientX: 14, clientY: 2 });
+  assert.deepEqual(mouse.log, ['dragStart'], 'a mouse always drags');
 });
 
 test('other pointers are ignored while one manipulation is active', () => {
