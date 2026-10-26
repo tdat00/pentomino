@@ -1,7 +1,8 @@
 // @ts-check
 // Pointer gestures: one pointer tracker on the board and one on the tray turn drags and taps into play-controller
 // calls and drag-layer updates. Pieces are handled by the trackers only, never by the board's own onPiece. A touch
-// drag is lifted 1.25 cells above the finger, and the wheel turns the dragged piece.
+// drag is lifted 1.25 cells above the finger, and the wheel turns the dragged piece. A touch held on a piece asks
+// for its menu; a tray that scrolls sideways under the finger is not a drag.
 
 import { createPointerTracker } from '../../core/browser/pointer.js';
 import { effectiveRotation } from '../state.js';
@@ -13,6 +14,9 @@ import { effectiveRotation } from '../state.js';
 const TOUCH_LIFT_CELLS = 1.25;
 const WHEEL_GAP_MS = 120;
 const CLICK_GUARD_MS = 450;
+const LONG_PRESS_MS = 450;
+// The menu that a long press opens is also what the browser's own context menu event would open, a moment later.
+const LONG_PRESS_ECHO_MS = 900;
 
 /**
  * A press anywhere in a tray slot, the frame around the piece included, grabs that piece: by the cell pressed, or
@@ -53,16 +57,18 @@ export function trayPiece(event) {
  * @property {HTMLElement} trayHost
  * @property {HTMLElement} [dropHost] Area where a dropped piece goes back to the tray (the tray itself by default).
  * @property {ReturnType<import('./drag-layer.js').createDragLayer>} dragLayer
+ * @property {(press: { pieceId: string, from: 'tray' | 'board', x: number, y: number }) => void} [onLongPress]
  */
 
 /**
  * @param {GestureOptions} options
  */
-export function bindGestures({ win, play, store, boardView, trayHost, dropHost = trayHost, dragLayer }) {
+export function bindGestures({ win, play, store, boardView, trayHost, dropHost = trayHost, dragLayer, onLongPress }) {
   /** @type {{ last: PointerInfo, shownT: number } | null} */
   let active = null;
   let lastHandled = -Infinity;
   let lastWheel = -Infinity;
+  let lastLongPress = -Infinity;
   const surface = boardView.view.surface;
 
   /**
@@ -153,6 +159,20 @@ export function bindGestures({ win, play, store, boardView, trayHost, dropHost =
       showClone();
       update(info);
     },
+    longPress(info) {
+      lastLongPress = win.performance.now();
+      // The click that may follow the release of this touch is not a tap.
+      const stamp = () => {
+        lastHandled = win.performance.now();
+      };
+      const where = from === 'tray' ? trayHost : surface;
+      where.addEventListener('pointerup', stamp, { once: true });
+      where.addEventListener('pointercancel', stamp, { once: true });
+      lastHandled = lastLongPress;
+      if (info.pieceId !== null) {
+        onLongPress?.({ pieceId: info.pieceId, from, x: info.clientX, y: info.clientY });
+      }
+    },
     dragMove: update,
     dragEnd(info) {
       update(info);
@@ -165,8 +185,8 @@ export function bindGestures({ win, play, store, boardView, trayHost, dropHost =
     },
   });
 
-  const boardTracker = createPointerTracker(surface, handlers('board'));
-  const trayTracker = createPointerTracker(trayHost, handlers('tray'), { resolve: trayPiece });
+  const boardTracker = createPointerTracker(surface, handlers('board'), { longPressMs: LONG_PRESS_MS, holdTouchScroll: true });
+  const trayTracker = createPointerTracker(trayHost, handlers('tray'), { resolve: trayPiece, longPressMs: LONG_PRESS_MS, scrollAxis: 'x' });
 
   // A rotate or mirror during the drag redraws the clone; a drag ended from the
   // keyboard (Escape) releases the pointer.
@@ -195,6 +215,8 @@ export function bindGestures({ win, play, store, boardView, trayHost, dropHost =
     /** @returns {boolean} A pointer gesture ended a moment ago, so the click that follows is already handled. */
     recentlyHandled: () => win.performance.now() - lastHandled < CLICK_GUARD_MS,
     isDragging: () => active !== null,
+    /** @returns {boolean} A long press opened a menu a moment ago, so a context menu event now is its echo. */
+    longPressedRecently: () => win.performance.now() - lastLongPress < LONG_PRESS_ECHO_MS,
     destroy() {
       stopPlay();
       stopStore();

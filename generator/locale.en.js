@@ -19,6 +19,8 @@ export default Object.freeze({
   'shell.theme.light': 'Light theme',
   'shell.theme.dark': 'Dark theme',
   'shell.theme.highContrast': 'High-contrast theme',
+  'shell.settings': 'Settings',
+  'shell.settings.close': 'Close',
   'shell.footer.copyright': '\u00a9 2026 Dat Le. Released under the MIT License.',
   'shell.footer.repo': 'Source code on GitHub',
   'shell.footer.repo.title': "Open the generator's source code in the pentomino repository on GitHub (new tab)",
@@ -130,6 +132,10 @@ export default Object.freeze({
 
   // Step 3: puzzles
   'puzzles.level': 'Difficulty level',
+  'puzzles.older': 'Previous puzzle',
+  'puzzles.newer': 'Next puzzle',
+  'puzzles.position': 'Puzzle {n} of {total}',
+  'puzzles.remove': 'Remove',
   'puzzles.removeAll': 'Remove all',
   'puzzles.removeAll.title': 'Remove every puzzle from the list',
   'puzzles.new': 'New puzzle',

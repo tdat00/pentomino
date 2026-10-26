@@ -33,6 +33,11 @@
     <symbol id="ic-print" viewBox="0 0 24 24">
       <path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z"></path>
     </symbol>
+    <symbol id="ic-settings" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9.6" stroke-width="3" stroke-dasharray="2.5 2.48"></circle>
+      <circle cx="12" cy="12" r="6.8"></circle>
+      <circle cx="12" cy="12" r="2.4"></circle>
+    </symbol>
   </svg>
   <header class="app-header">
     <div class="app-brand">
@@ -41,8 +46,9 @@
     </div>
     <div class="header-tools">
       <button type="button" class="header-import" data-action="import-puzzle" aria-haspopup="dialog"
+        data-i18n-attr="title:import.button"
         ><svg class="icon" aria-hidden="true" focusable="false"><use href="#ic-import"></use></svg
-        ><span data-i18n="import.button">Import puzzle</span></button>
+        ><span class="header-import__label" data-i18n="import.button">Import puzzle</span></button>
       <div class="segmented" role="group" aria-label="Language" data-i18n-attr="aria-label:shell.lang.label">
         <button type="button" class="segmented__btn" data-lang="en" lang="en" aria-pressed="true"
           aria-label="English" title="English" data-i18n-attr="aria-label:shell.lang.en.name,title:shell.lang.en.name"
@@ -65,6 +71,10 @@
           <svg class="icon" aria-hidden="true" focusable="false"><use href="#ic-contrast"></use></svg>
         </button>
       </div>
+      <button type="button" class="header-settings" data-action="settings" aria-haspopup="dialog"
+        data-i18n-attr="title:shell.settings"
+        ><svg class="icon" aria-hidden="true" focusable="false"><use href="#ic-settings"></use></svg
+        ><span class="header-settings__label" data-i18n="shell.settings">Settings</span></button>
     </div>
   </header>
   <noscript><p class="notice notice-error" data-i18n="shell.noscript">The generator needs JavaScript.</p></noscript>

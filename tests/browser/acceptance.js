@@ -438,6 +438,10 @@ function smallTargets(frame) {
     if (style.display === 'none' || style.visibility === 'hidden' || node.closest('[hidden]') !== null || /** @type {HTMLButtonElement} */ (node).disabled) {
       continue;
     }
+    // Documented exceptions: the 28 px board tools, the 24 px ✕ of a puzzle card, and the footer link inside its line of text.
+    if (node.closest('.board-tools') !== null || node.matches('.card-remove') || node.closest('.app-footer') !== null) {
+      continue;
+    }
     const target = node instanceof frame.win().HTMLInputElement && ['checkbox', 'radio'].includes(node.type) ? node.closest('label') ?? node : node;
     const box = rect(target);
     if (box.width === 0 || box.height === 0 || (node.getAttribute('type') === 'file' && node.hasAttribute('hidden'))) {
@@ -584,7 +588,7 @@ await check('L5', 'Generator wizard: Next and Back move between steps, step 3 st
 /** @param {Frame} frame */
 const gameBarOrder = (frame) => qa(frame.doc(), '.step-head .step-actions > *, .game-bar .game-stats > *, .game-bar .game-actions > *').map((n) => n.dataset.action ?? n.className.split(' ')[0]);
 
-await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces panels, game bar over the board, selection toolbar on pick-up, Straighten present in the game bar', async () => {
+await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces panels, game bar over the board, selection toolbar on pick-up', async () => {
   const frame = await openFrame('../../player/', { width: 1400, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game');
   const d = frame.doc();
@@ -594,7 +598,7 @@ await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces pane
   assert(history.right <= main.left + 4 && main.right <= side.left + 4, `three panels (${[history, main, side].map((r) => `${Math.round(r.left)}-${Math.round(r.right)}`).join(' | ')})`);
   assert(qa(d, '.app-history .puzzle-card').length > 0 && q(d, '.app-main').contains(q(d, '.pm-board')) && q(d, '.app-side').contains(q(d, '[data-host="tray"]')), 'each panel holds its content');
   const order = gameBarOrder(frame);
-  const expected = ['share', 'print', 'game-timer', 'game-moves', 'undo', 'redo', 'hint', 'replay', 'straighten'];
+  const expected = ['share', 'print', 'game-timer', 'game-moves', 'undo', 'redo', 'hint', 'replay'];
   assert(JSON.stringify(order) === JSON.stringify(expected), `title row and game bar order ${order.join(' > ')}`);
   const [head, headTitle, shareRect, printRect] = ['.step-head', '.puzzle-title', '[data-action="share"]', '[data-action="print"]'].map((s) => rect(q(d, s)));
   assert(Math.abs(shareRect.top - headTitle.top) < 40 && shareRect.left > headTitle.left && shareRect.right <= printRect.left && printRect.right <= head.right + 1 && printRect.right > head.right - 8, 'Share and Print are on the title row, at its right');
@@ -606,28 +610,34 @@ await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces pane
   const toolbar = d.querySelector('.selection-actions');
   assert(toolbar !== null && rect(toolbar).width > 0, 'the selection toolbar appears after choosing a piece');
   scan(frame);
-  return { order, trayLeft: Math.round(tray.left), boardRight: Math.round(board.right), straightenHidden: /** @type {HTMLElement} */ (q(d, '[data-action="straighten"]')).hidden };
+  return { order, trayLeft: Math.round(tray.left), boardRight: Math.round(board.right) };
 });
 
-await check('L4', 'Player narrow layout (< 768 px): header, game (board), pieces (selection toolbar, then the pieces), then puzzles, in that vertical order', async () => {
+await check('L4', 'Player narrow layout (< 768 px): header, puzzle navigator, then the board in that vertical order, no puzzle cards; the pieces are a bar fixed to the bottom of the window, in one row, without the turn and flip buttons', async () => {
   const frame = await openFrame('../../player/', { width: 700, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game');
   const d = frame.doc();
   q(d, '.tray-piece').click();
   await sleep(100);
-  const tops = ['.app-header', '.pm-board', '.selection-actions', '[data-host="tray"]', '.puzzle-cards'].map((s) => rect(q(d, s)).top);
+  const tops = ['.app-header', '[data-role="puzzle-nav"]', '.pm-board'].map((s) => rect(q(d, s)).top);
   for (let i = 1; i < tops.length; i += 1) {
-    assert(tops[i] >= tops[i - 1] - 1, `${i} is below ${i - 1}: ${tops.map(Math.round).join(', ')}`);
+    assert(tops[i] > tops[i - 1], `${i} is below ${i - 1}: ${tops.map(Math.round).join(', ')}`);
   }
+  const win = /** @type {Window} */ (d.defaultView);
+  assert(win.getComputedStyle(q(d, '.app-history')).display === 'none', 'the puzzle cards are not shown');
+  const bar = q(d, '.app-side');
+  assert(win.getComputedStyle(bar).position === 'fixed' && Math.abs(rect(bar).bottom - win.innerHeight) < 2, 'the pieces bar is fixed to the bottom of the window');
+  assert(win.getComputedStyle(q(d, '[data-host="tray"]')).flexWrap === 'nowrap', 'the pieces are one row');
+  assert(win.getComputedStyle(q(d, '.selection-actions')).display === 'none', 'no turn and flip buttons');
   scan(frame);
   return { tops: tops.map(Math.round) };
 });
 
 const coarsePointer = matchMedia('(pointer: coarse)').matches;
 if (!coarsePointer) {
-  blocked('A1', 'Touch targets >= 44 px in the narrow layouts (generator and player)', 'The 44 px target rule is defined for coarse pointers (common.css, player.css), and this run used a fine pointer. Rerun this page on a touch device or with the browser emulating pointer: coarse (CDP Emulation.setEmulatedMedia) to evaluate it.');
+  blocked('A1', 'Touch targets >= 44 px from 768 px (generator and player)', 'The 44 px target rule is defined for coarse pointers (common.css, page.css, player.css), and this run used a fine pointer. Rerun this page on a touch device or with the browser emulating touch (CDP Emulation.setTouchEmulationEnabled) to evaluate it.');
 } else {
-  await check('A1', 'Touch targets >= 44 px in the narrow layouts (generator and player), coarse pointer active', async () => {
+  await check('A1', 'Touch targets >= 44 px from 768 px (generator and player, at 800 px), coarse pointer active', async () => {
     const gen = await openFrame('../../generator/index.html', { width: 800, height: 900, ready: generatorReady });
     const g = smallTargets(gen);
     scan(gen);

@@ -11,6 +11,7 @@ import { puzzleCodesOf } from '../../core/browser/handoff.js';
 import { PoolAbortError, PoolError } from '../../core/browser/worker-pool.js';
 import { SAVE_FAILED_MESSAGE, createStorage } from '../../core/browser/storage.js';
 import { mountPlayer } from '../../player/app.js';
+import { setLocale } from '../../player/i18n.js';
 
 const results = /** @type {Array<{ name: string, ok: boolean, error?: string }>} */ ([]);
 const violations = /** @type {string[]} */ ([]);
@@ -159,7 +160,7 @@ function memoryAdapter(seed = {}) {
 const otherKeys = (adapter) => [...adapter.map.keys()].filter((k) => !k.includes(':progress'));
 
 /**
- * @param {{ hash?: string, adapter?: ReturnType<typeof memoryAdapter> | null, createPool?: () => any, coarse?: boolean,
+ * @param {{ hash?: string, adapter?: ReturnType<typeof memoryAdapter> | null, createPool?: () => any,
  *   width?: number, height?: number, preferences?: { setItem: (key: string, value: string) => void } }} [o]
  */
 async function mount(o = {}) {
@@ -188,7 +189,6 @@ async function mount(o = {}) {
     },
     baseUrl: new URL('../../player/', document.baseURI),
     createPool: o.createPool,
-    coarsePointer: o.coarse === true,
     listenHashChange: false,
     preferenceStorage: o.preferences ?? null,
   });
@@ -387,6 +387,9 @@ await check('unavailable storage: the puzzle opens, play goes on and one honest 
   m.player.store.update((s) => ({ game: reduce(/** @type {any} */ (s.game), { type: 'place', pose }) }));
   equal(m.player.controller.saveNow(), false, 'the browser refuses the save');
   equal(m.q('[data-badge="storage"]').textContent, SAVE_FAILED_MESSAGE, 'warning');
+  setLocale('vi');
+  equal(m.q('[data-badge="storage"]').textContent, 'Không thể lưu tiến trình trong trình duyệt này', 'the warning follows the language');
+  setLocale('en');
   m.player.controller.nextPuzzle();
   assert(title(m).startsWith('Normal #2'), 'navigation works');
   equal(m.qa('[data-badge="storage"]').filter((b) => !b.hidden).length, 1, 'one warning');
@@ -431,8 +434,7 @@ await check('there are no View switches: labels, patterns (K > 20) and the timer
   const labelsOn = () => b.root.querySelector('.board-host .pm-labels')?.getAttribute('display');
   assert(b.root.querySelectorAll('.pm-pattern').length > 0, 'patterns drawn');
   assert(labelsOn() !== 'none' && !b.q('.game-timer').hidden, 'labels and timer are shown');
-  b.player.controller.setPref('straighten', true);
-  equal(JSON.parse(adapter.map.get('pentomino:v1:prefs') ?? '{}'), { straighten: true }, 'only Straighten is stored');
+  assert(!adapter.map.has('pentomino:v1:prefs'), 'the retired preferences key is dropped');
   b.player.destroy();
 });
 
@@ -457,27 +459,6 @@ await check('presentation angles 0/45/90/315 load, draw and keep fitting after a
     assert(m.qa('.tray-piece').length > 0, `angle ${angle}: tray drawn`);
     m.player.destroy();
   }
-});
-
-await check('Straighten: toggle only for touch with small cells; display-only', async () => {
-  const rotated = { ...sample, presentation: { rotation: 45 } };
-  const hash = await linkOf(rotated);
-  // 520 px leaves the board column about 170 px, so the cells are small.
-  const mouse = await mount({ hash, width: 520, height: 420 });
-  assert(!mouse.visible('[data-action="straighten"]'), 'not offered to a mouse');
-  mouse.player.destroy();
-  const touch = await mount({ hash, width: 520, height: 420, coarse: true });
-  assert(touch.visible('[data-action="straighten"]'), 'offered to touch with small cells');
-  touch.q('[data-action="straighten"]').click();
-  await frame();
-  const group = touch.q('.pm-board-group').getAttribute('transform') ?? '';
-  assert(group.startsWith('rotate(0 ') || group.startsWith('rotate(-0 '), `straightened ${group}`);
-  equal(touch.q('[data-action="straighten"]').getAttribute('aria-pressed'), 'true', 'pressed');
-  equal(touch.player.store.getState().pack?.presentation?.rotation, 45, 'pack data unchanged');
-  touch.player.destroy();
-  const wide = await mount({ hash, coarse: true });
-  assert(!wide.visible('[data-action="straighten"]'), 'cells of 24 px or more need no Straighten');
-  wide.player.destroy();
 });
 
 await check('layout and accessibility contract of the shell', async () => {

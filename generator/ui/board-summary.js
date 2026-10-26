@@ -1,5 +1,6 @@
 // @ts-check
-// Thumbnail of the step 1 board, shown under the step in the side panel once the wizard is past step 1.
+// Summary of the step 1 board, shown under the step in the side panel once the wizard is past step 1: the preset and the
+// size (columns×rows) on the first line, the thumbnail of the board, centered, under it.
 
 import { el } from '../../core/browser/dom.js';
 import { mountBoard } from '../../core/browser/svg-board.js';
@@ -17,8 +18,9 @@ const PREVIEW_PX = 170;
  */
 export function mountBoardSummary(host, options) {
   const { store } = options;
-  const frame = el('div', { className: 'board-summary', dataset: { role: 'board-summary' } });
-  host.append(frame);
+  const info = el('div', { className: 'board-summary-info', dataset: { role: 'board-summary-info' } });
+  const frame = el('div', { className: 'board-summary-thumb', dataset: { role: 'board-summary' } });
+  host.append(el('div', { className: 'board-summary' }, info, frame));
 
   /** @type {ReturnType<typeof mountBoard> | null} */
   let view = null;
@@ -39,6 +41,7 @@ export function mountBoardSummary(host, options) {
       shownLocale = getLocale();
     }
     shownBoard = state.board;
+    info.replaceChildren(el('p', { className: 'board-summary-title', text: `${t(`board.preset.${state.presetId}`)} ${state.board.width}×${state.board.height}` }));
     if (view.getState().rotation !== state.rotation) {
       view.setRotation(state.rotation);
     }
@@ -46,7 +49,7 @@ export function mountBoardSummary(host, options) {
   }
 
   const unsubscribe = store.subscribe((state, previous) => {
-    if (state.board !== previous.board || state.rotation !== previous.rotation) {
+    if (state.board !== previous.board || state.rotation !== previous.rotation || state.presetId !== previous.presetId) {
       render(state);
     }
   });

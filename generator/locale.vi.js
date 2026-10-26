@@ -19,6 +19,8 @@ export default Object.freeze({
   'shell.theme.light': 'Giao diện sáng',
   'shell.theme.dark': 'Giao diện tối',
   'shell.theme.highContrast': 'Giao diện tương phản cao',
+  'shell.settings': 'Cài đặt',
+  'shell.settings.close': 'Đóng',
   'shell.footer.copyright': '\u00a9 2026 Dat Le. Phát hành theo giấy phép MIT.',
   'shell.footer.repo': 'Mã nguồn trên GitHub',
   'shell.footer.repo.title': 'Mở mã nguồn của trình tạo trong kho mã pentomino trên GitHub (tab mới)',
@@ -128,6 +130,10 @@ export default Object.freeze({
 
   // Step 3: puzzles
   'puzzles.level': 'Mức độ khó',
+  'puzzles.older': 'Đề trước',
+  'puzzles.newer': 'Đề sau',
+  'puzzles.position': 'Đề {n}/{total}',
+  'puzzles.remove': 'Xóa',
   'puzzles.removeAll': 'Xóa tất cả',
   'puzzles.removeAll.title': 'Xóa mọi đề khỏi danh sách',
   'puzzles.new': 'Tạo đề mới',
@@ -165,7 +171,7 @@ export default Object.freeze({
   // Toasts
   'toast.saveFailed': 'Không thể lưu công việc của bạn trong trình duyệt này',
 
-  // Nhập đề: hộp thoại nhập là của trình chơi (các thông báo giống nhau)
+  // Import puzzle: the entry dialog is the Player's (its messages are the same)
   'import.button': 'Nhập đề',
   'import.title': 'Nhập đề',
   'import.field': 'Liên kết hoặc mã đề',
@@ -242,6 +248,6 @@ export default Object.freeze({
   'message.M-NEEDS-SET': 'Hãy tạo một bộ mảnh trước.',
   'message.requestFailed': 'Yêu cầu thất bại',
 
-  // Hộp thoại in và các tờ in (dùng chung với trình chơi)
+  // Print dialog and printed sheets (shared with the player)
   ...PRINT_TEXTS_VI,
 });

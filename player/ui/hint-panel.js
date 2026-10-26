@@ -2,7 +2,7 @@
 // Hint panel under the game bar. It is only a view; hints.js decides everything.
 
 import { el } from '../../core/browser/dom.js';
-import { LABELS } from '../strings.js';
+import { LABELS, richSegments } from '../strings.js';
 import { createConfirmDialog } from './dialogs.js';
 import { loc } from './i18n-dom.js';
 
@@ -51,8 +51,9 @@ export function createHintPanel(host, { hints, dialogHost, onReplay, hintButton 
     refocus();
   });
   const replay = button('hint-replay', 'ui.replay', () => onReplay());
+  // The text takes the whole width; the buttons are on a row of their own under it.
   const root = el('div', { className: 'status-hint', attrs: { hidden: '' }, dataset: { host: 'hint' } },
-    text, placeIt, removeIt, cancel, dismiss, replay);
+    text, el('div', { className: 'status-hint-actions' }, placeIt, removeIt, cancel, dismiss, replay));
   host.append(root);
 
   let revealConfirmed = false;
@@ -97,7 +98,7 @@ export function createHintPanel(host, { hints, dialogHost, onReplay, hintButton 
     const revealed = state.game?.revealed === true;
     const working = hint.phase === 'working';
     const text0 = hint.message !== '' ? hint.message : revealed ? LABELS.revealedBadge : '';
-    text.textContent = text0;
+    text.replaceChildren(...richSegments(hint.rich !== '' ? hint.rich : text0).map((segment) => (segment.bold ? el('strong', { text: segment.text }) : segment.text)));
     root.hidden = text0 === '' && !working;
     root.dataset.phase = hint.phase;
     root.dataset.revealed = String(revealed);

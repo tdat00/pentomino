@@ -70,7 +70,7 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
   let preview = null;
   /**
    * What the cards drew last; a store update that changes none of it (a timer tick) costs nothing.
-   * @type {{ pack: object | null, statuses: object, openKey: string, verification: object, index: number, screen: string, prefs: object, viewRotation: number | null, locale: string } | null}
+   * @type {{ pack: object | null, statuses: object, openKey: string, verification: object, index: number, screen: string, viewRotation: number | null, locale: string } | null}
    */
   let drawn = null;
   let drawnIndex = -1;
@@ -176,14 +176,14 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
     const openKey = state.game === null ? '' : `${state.game.placed.size}/${state.game.solved}/${state.game.revealed}`;
     if (drawn !== null && drawn.pack === pack && drawn.statuses === state.statuses && drawn.openKey === openKey
       && drawn.verification === state.verificationByPuzzle
-      && drawn.index === state.index && drawn.screen === state.screen && drawn.prefs === state.prefs && drawn.viewRotation === state.viewRotation
+      && drawn.index === state.index && drawn.screen === state.screen && drawn.viewRotation === state.viewRotation
       && drawn.locale === locale) {
       return;
     }
     const packChanged = drawn === null || drawn.pack !== pack;
     drawn = {
       pack, statuses: state.statuses, openKey, verification: state.verificationByPuzzle, index: state.index,
-      screen: state.screen, prefs: state.prefs, viewRotation: state.viewRotation, locale,
+      screen: state.screen, viewRotation: state.viewRotation, locale,
     };
     if (packChanged) {
       for (const card of cards) {

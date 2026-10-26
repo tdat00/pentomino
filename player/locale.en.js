@@ -18,6 +18,8 @@ export default Object.freeze({
   'shell.theme.light': 'Light theme',
   'shell.theme.dark': 'Dark theme',
   'shell.theme.highContrast': 'High-contrast theme',
+  'shell.settings': 'Settings',
+  'shell.settings.close': 'Close',
   'shell.help': 'Help',
   'shell.help.title': 'Keyboard shortcuts',
   'shell.footer.copyright': '\u00a9 2026 Dat Le. Released under the MIT License.',
@@ -26,6 +28,10 @@ export default Object.freeze({
 
   // Panels
   'puzzles.list': 'Puzzles',
+  'puzzles.older': 'Previous puzzle',
+  'puzzles.newer': 'Next puzzle',
+  'puzzles.position': 'Puzzle {n} of {total}',
+  'puzzles.remove': 'Remove',
   'puzzles.removeAll': 'Remove all',
   'puzzles.removeAll.title': 'Remove every puzzle of this pack from the list',
   'puzzles.empty': 'No puzzle is open. Open one from its link or try the sample.',
@@ -42,8 +48,6 @@ export default Object.freeze({
   'ui.elapsed': 'Elapsed time',
   'ui.undo': 'Undo',
   'ui.redo': 'Redo',
-  'ui.straighten': 'Straighten',
-  'ui.straightenOn': 'Straightened',
   'ui.generator': 'Open the Generator',
   'ui.zoom': 'Zoom',
   'ui.zoomIn': 'Zoom in',
@@ -61,7 +65,7 @@ export default Object.freeze({
   'ui.boardLabel': 'Puzzle board',
   'ui.boardHelp': 'Select a piece under “Pieces to place”, then tap a board cell to preview it; tap the same cell again or press Enter to drop it. '
     + 'With the keyboard, press Enter on a piece to pick it up, move it with the arrow keys and press Enter to drop it; press ? for all shortcuts. '
-    + 'Right-click a piece to rotate or flip it. Locked clue pieces cannot be moved.',
+    + 'Right-click a piece, or press and hold it, to rotate or flip it. Locked clue pieces cannot be moved.',
   'ui.selectedGroup': 'Selected piece',
   'ui.rotateCcw': 'Rotate counter-clockwise',
   'ui.rotateCw': 'Rotate clockwise',
@@ -81,6 +85,7 @@ export default Object.freeze({
   'ui.cancelCheck': 'Cancel check',
   'ui.revealedBadge': 'Revealed — not counted as solved',
   'ui.hintsUsed': 'Hints',
+  'ui.saveFailed': "Progress can't be saved in this browser",
   'ui.revealTitle': 'Show the solution?',
   'ui.revealBody': 'The solution will be filled in around the locked clues, and this puzzle will be marked as revealed, so it will not count as solved. '
     + 'You can undo it.',
@@ -151,7 +156,7 @@ export default Object.freeze({
   'share.noQr.short': 'No QR code: the link is too long for one.',
   'share.error': 'The link could not be prepared.',
   'share.tooLarge': 'This puzzle is too large to share as a link.',
-  'share.tooLarge.all': 'The list is too large to share as one link. Uncheck "Share all puzzles in the list" to share only the selected puzzle.',
+  'share.tooLarge.all': 'The list is too large to share as one link. Uncheck “Share all puzzles in the list” to share only the selected puzzle.',
   'share.notice.noTail': 'The stored solutions are left out of the link so that it fits a QR code.',
   'share.notice.lowEc': 'The QR code uses low error correction because the link is long.',
   'share.notice.none': 'The link is too long for a QR code; copy it instead.',
@@ -258,12 +263,12 @@ export default Object.freeze({
   'hint.stale': 'The board changed, so that check was discarded.',
   'hint.complete': 'The puzzle is already complete.',
   'hint.noLongerFits': 'That hint no longer fits the board. Ask for a new hint.',
-  'hint.place': 'Hint: piece {label} fits in a complete solution that keeps every piece you placed. It is highlighted on the board. '
-    + 'Press “Place it” to put it there.',
-  'hint.remove': 'Hint: if you remove piece {label}, the puzzle can be completed with all your other pieces kept. '
+  'hint.place': 'Hint: piece **{label}** fits in a complete solution that keeps every piece you placed. It is highlighted on the board. '
+    + 'Press **“Place it”** to put it there.',
+  'hint.remove': 'Hint: if you remove piece **{label}**, the puzzle can be completed with all your other pieces kept. '
     + 'That does not mean it is the only piece that could be moved.',
-  'hint.placedHint': 'Placed piece {label}. You can undo it.',
-  'hint.removedHint': 'Removed piece {label}. You can undo it.',
+  'hint.placedHint': 'Placed piece **{label}**. You can undo it.',
+  'hint.removedHint': 'Removed piece **{label}**. You can undo it.',
   'hint.revealed': 'Solution revealed. This puzzle is marked as revealed, not solved.',
   'hint.revealUnsat': 'The pieces you placed cannot be completed into a solution.',
   'hint.revealImpossible': 'This puzzle has no solution, so there is nothing to reveal.',

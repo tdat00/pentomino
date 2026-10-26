@@ -6,10 +6,11 @@ import { APP_VERSION } from '../core/engine/version.js';
 import { el } from '../core/browser/dom.js';
 import { browserStorage } from '../core/browser/storage.js';
 import { createPrintDialog, puzzleDetails } from '../core/browser/print-dialog.js';
+import { createPuzzleNav } from '../core/browser/puzzle-nav.js';
 import { createShareDialog, shareIcon } from '../core/browser/share-dialog.js';
 import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
 import { createPuzzleCodeDialog } from '../core/browser/puzzle-code-dialog.js';
-import { shouldOfferStraighten, svgEl } from '../core/browser/svg-board.js';
+import { svgEl } from '../core/browser/svg-board.js';
 import { packBoard } from '../core/engine/pack.js';
 import { createPlayController } from './play.js';
 import { createHintController } from './hints.js';
@@ -58,7 +59,6 @@ let instances = 0;
  * @property {() => import('./hints.js').PoolLike} [createHintPool] Pool of the hint and reveal searches (default: one module worker).
  * @property {() => import('../core/browser/puzzle-code-client.js').PuzzleCodeClient} [createPuzzleCodeClient] Client of the puzzle-code worker
  *   (default: one module worker, started on first use); the page disposes it with the player.
- * @property {boolean} [coarsePointer]
  * @property {boolean} [reducedMotion] Overrides `prefers-reduced-motion`.
  * @property {() => number} [now] Millisecond clock of the timer and the save stamp.
  * @property {number} [saveDelayMs] Debounce of progress saving (250 by default).
@@ -87,7 +87,7 @@ export function mountPlayer(root, env = {}) {
   const titleId = `heading-puzzle-${instances}`;
   const piecesId = `heading-pieces-${instances}`;
   const storage = env.storage ?? browserStorage();
-  const store = createPlayerStore({ prefs: storage.getPrefs() });
+  const store = createPlayerStore();
   const controller = createPlayerController({
     store,
     storage,
@@ -172,15 +172,11 @@ export function mountPlayer(root, env = {}) {
   shareButton.disabled = true;
   hintButton.disabled = true;
   replayButton.disabled = true;
-  const straighten = /** @type {HTMLButtonElement} */ (el('button', {
-    className: 'pm-btn', text: LABELS.straighten, attrs: { type: 'button', hidden: '' }, dataset: { action: 'straighten' },
-    on: { click: () => controller.setPref('straighten', !store.getState().prefs.straighten) },
-  }));
   // Share and Print share the row of the puzzle title, at its right, with Print last.
   const stepHead = el('div', { className: 'step-head' }, title, el('div', { className: 'step-actions' }, shareButton, printButton));
   const gameBar = el('div', { className: 'game-bar' },
     el('div', { className: 'game-stats' }, timer, moves),
-    el('div', { className: 'game-actions' }, undo, redo, hintButton, replayButton, straighten));
+    el('div', { className: 'game-actions' }, undo, redo, hintButton, replayButton));
 
   /**
    * @param {string} action
@@ -227,8 +223,16 @@ export function mountPlayer(root, env = {}) {
     zoomOut, zoomIn, zoomFit, viewLeft, viewRight);
   const boardWrap = el('div', { className: 'board-wrap' }, boardHost, boardHelp, boardTools);
   const winHost = el('div', { className: 'win-host', dataset: { host: 'win' } });
+  // The narrow layout lists no cards: the arrows step through the puzzles of the pack, one at a time.
+  const puzzleNav = createPuzzleNav({
+    t,
+    onOlder: () => controller.goToPuzzle(store.getState().index - 1),
+    onNewer: () => controller.goToPuzzle(store.getState().index + 1),
+    onRemove: () => controller.removePuzzle(store.getState().index),
+    onRemoveAll: () => controller.removeAllPuzzles(),
+  });
   const gameScreen = el('section', { className: 'panel game', attrs: { hidden: '', 'aria-labelledby': titleId } },
-    stepHead, info, statusHost, gameBar, hintHost, boardWrap, winHost);
+    puzzleNav.element, stepHead, info, statusHost, gameBar, hintHost, boardWrap, winHost);
 
   const startHost = el('section', { className: 'panel start-host', dataset: { host: 'start' } });
   const version = el('p', { className: 'version' }, loc('shell.version'), ' ', el('span', { text: APP_VERSION, attrs: { 'data-app-version': '' } }));
@@ -331,7 +335,15 @@ export function mountPlayer(root, env = {}) {
   });
   const dragLayer = createDragLayer(root);
   // A piece let go anywhere over the pieces panel goes back to the tray.
-  const gestures = bindGestures({ win, play, store, boardView, trayHost, dropHost: sidePanel, dragLayer });
+  const gestures = bindGestures({
+    win, play, store, boardView, trayHost, dropHost: sidePanel, dragLayer,
+    onLongPress: ({ pieceId, from, x, y }) => {
+      const target = from === 'tray' ? trayView.buttonFor(pieceId) : boardView.view.svg.querySelector(`[data-movable="true"][data-piece-id="${CSS.escape(pieceId)}"]`);
+      if (target !== null) {
+        openPieceMenu({ x, y }, pieceId, from, target);
+      }
+    },
+  });
   const hints = createHintController({
     store,
     play,
@@ -541,19 +553,16 @@ export function mountPlayer(root, env = {}) {
     ];
   }
   /**
-   * @param {MouseEvent} event
+   * @param {{ x: number, y: number } | null} point Where the pointer is; null (a key) opens the menu under the piece.
    * @param {string} id
    * @param {'tray' | 'board'} from
    * @param {Element} target
    */
-  function openPieceMenu(event, id, from, target) {
-    event.preventDefault();
+  function openPieceMenu(point, id, from, target) {
     if (store.getState().screen !== 'game' || store.getState().game === null || gestures.isDragging() || !play.select(id)) {
       return;
     }
     const box = target.getBoundingClientRect();
-    // A key-triggered menu has no pointer position: it opens under the piece.
-    const fromKey = event.clientX === 0 && event.clientY === 0;
     /** @type {import('./ui/context-menu.js').MenuEntry[]} */
     const entries = [
       { id: 'rotate-cw', icon: '⟳', label: LABELS.rotateCw, shortcut: 'E', run: () => turn(id, 'cw') },
@@ -568,32 +577,41 @@ export function mountPlayer(root, env = {}) {
       }, ...puzzleEntries()] : []),
     ];
     pieceMenu.open({
-      x: fromKey ? box.left : event.clientX,
-      y: fromKey ? box.bottom : event.clientY,
+      x: point === null ? box.left : point.x,
+      y: point === null ? box.bottom : point.y,
       entries,
       opener: target,
     });
   }
   /** @param {MouseEvent} event */
   function openBoardMenu(event) {
-    event.preventDefault();
     if (store.getState().screen !== 'game' || store.getState().game === null || gestures.isDragging()) {
       return;
     }
     pieceMenu.open({ x: event.clientX, y: event.clientY, entries: puzzleEntries(), opener: null });
   }
+  /**
+   * @param {MouseEvent} event
+   * @returns {{ x: number, y: number } | null} The pointer position; null for a key, which has none.
+   */
+  const pointOf = (event) => (event.clientX === 0 && event.clientY === 0 ? null : { x: event.clientX, y: event.clientY });
   /** @param {Event} event */
   const onTrayMenu = (event) => {
+    event.preventDefault();
     const target = /** @type {Element | null} */ (/** @type {Element} */ (event.target).closest('.tray-piece'));
-    if (target !== null) {
-      openPieceMenu(/** @type {MouseEvent} */ (event), target.getAttribute('data-piece-id') ?? '', 'tray', target);
+    if (target !== null && !gestures.longPressedRecently()) {
+      openPieceMenu(pointOf(/** @type {MouseEvent} */ (event)), target.getAttribute('data-piece-id') ?? '', 'tray', target);
     }
   };
   /** @param {Event} event */
   const onBoardMenu = (event) => {
+    event.preventDefault();
+    if (gestures.longPressedRecently()) {
+      return;
+    }
     const target = /** @type {Element | null} */ (/** @type {Element} */ (event.target).closest('[data-movable="true"]'));
     if (target !== null) {
-      openPieceMenu(/** @type {MouseEvent} */ (event), target.getAttribute('data-piece-id') ?? '', 'board', target);
+      openPieceMenu(pointOf(/** @type {MouseEvent} */ (event)), target.getAttribute('data-piece-id') ?? '', 'board', target);
     } else {
       openBoardMenu(/** @type {MouseEvent} */ (event));
     }
@@ -620,6 +638,7 @@ export function mountPlayer(root, env = {}) {
   function renderHeadline(state) {
     const { pack, game: g } = state;
     const puzzle = pack?.puzzles[state.index];
+    puzzleNav.update({ index: state.index, total: pack?.puzzles.length ?? 0, busy: state.loading });
     title.textContent = puzzle ? puzzleDisplayName(puzzle.title, state.index) : '';
     const toPlace = puzzle && pack ? LABELS.toPlace(Math.max(0, pack.pieces.length - puzzle.clues.length)) : '';
     setRating(info, puzzle?.rating, toPlace);
@@ -650,7 +669,7 @@ export function mountPlayer(root, env = {}) {
     badgeCertificate.textContent = certificateLabel(puzzle?.certificate, solvable);
     badgeCertificate.dataset.status = certificateStatus(puzzle?.certificate, solvable);
     badgeCertificate.hidden = badgeCertificate.textContent === '';
-    badgeStorage.textContent = state.storageWarning ?? '';
+    badgeStorage.textContent = state.storageWarning === null ? '' : t('ui.saveFailed');
     badgeStorage.hidden = state.storageWarning === null;
   }
 
@@ -681,7 +700,7 @@ export function mountPlayer(root, env = {}) {
     return previous === null || a === null || a === undefined || b === null
       || a.placed !== b.placed || a.tray !== b.tray || a.selected !== b.selected || a.preview !== b.preview
       || a.solved !== b.solved || a.pack !== b.pack || a.index !== b.index
-      || previous.prefs !== state.prefs || previous.screen !== state.screen || previous.pack !== state.pack
+      || previous.screen !== state.screen || previous.pack !== state.pack
       || previous.viewRotation !== state.viewRotation
       || hints.getState().version !== drawnHintVersion
       || play.version() !== drawnUiVersion;
@@ -702,18 +721,6 @@ export function mountPlayer(root, env = {}) {
     boardView.render(state, angle, { cursor, hints: axisHints, hiddenPieceId, hintMarks: hintState.marks });
     trayView.render(state, angle);
     trayView.setHidden(hiddenTrayId);
-  }
-
-  function renderStraighten() {
-    const state = store.getState();
-    const rotation = state.viewRotation ?? state.pack?.presentation?.rotation ?? 0;
-    const coarse = env.coarsePointer ?? win.matchMedia?.('(pointer: coarse)')?.matches === true;
-    const offered = state.game !== null
-      && (shouldOfferStraighten({ cellPx: boardView.cellPx(), rotation, coarsePointer: coarse })
-        || (state.prefs.straighten && rotation % 90 !== 0));
-    straighten.hidden = !offered;
-    straighten.setAttribute('aria-pressed', String(state.prefs.straighten));
-    straighten.textContent = state.prefs.straighten ? LABELS.straightenOn : LABELS.straighten;
   }
 
   /**
@@ -748,7 +755,6 @@ export function mountPlayer(root, env = {}) {
       if (previous === null || previous.screen !== 'game') {
         boardView.refit();
       }
-      renderStraighten();
     }
     if (previous === null || previous.game === null || previous.pack !== state.pack || previous.index !== state.index) {
       userZoomed = false;
@@ -780,7 +786,6 @@ export function mountPlayer(root, env = {}) {
     boardView.view.svg.setAttribute('aria-label', LABELS.boardLabel);
     puzzleList.render(state);
     renderPieces(state);
-    renderStraighten();
     if (state.screen === 'game' && state.game !== null) {
       renderHeadline(state);
       renderStatus(state);
@@ -807,12 +812,17 @@ export function mountPlayer(root, env = {}) {
             boardView.refit();
           }
           trayView.refresh();
-          renderStraighten();
         }
       });
     });
     observer.observe(boardHost);
   }
+
+  // The pieces bar is fixed to the bottom of a narrow screen: the page leaves room for it (see player.css).
+  const trayObserver = typeof win.ResizeObserver === 'function'
+    ? new win.ResizeObserver(() => root.style.setProperty('--pm-tray-space', `${sidePanel.offsetHeight}px`))
+    : null;
+  trayObserver?.observe(sidePanel);
 
   const onHashChange = () => {
     const hash = String((env.location ?? win.location).hash);
@@ -860,6 +870,7 @@ export function mountPlayer(root, env = {}) {
       codeHost.remove();
       doc.removeEventListener('visibilitychange', onVisibility);
       observer?.disconnect();
+      trayObserver?.disconnect();
       win.cancelAnimationFrame(frame);
       win.removeEventListener('hashchange', onHashChange);
       win.removeEventListener('pagehide', onPageHide);

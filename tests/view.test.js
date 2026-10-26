@@ -12,7 +12,6 @@ import {
   rotatedExtent,
   screenFlip,
   screenRotate,
-  straightenAngle,
 } from '../core/engine/view.js';
 import { CLASSIC_PENTOMINOES } from './fixtures/polyominoes.js';
 
@@ -135,14 +134,6 @@ test('arrow keys map through the view rotation, with ties toward theta - 45', ()
   const d = displayMatrix(90);
   const [gx, gy] = arrowToGrid(90, 'ArrowRight');
   assert.deepEqual([Math.round(d[0][0] * gx + d[0][1] * gy), Math.round(d[1][0] * gx + d[1][1] * gy)], [1, 0]);
-});
-
-test('straightenAngle snaps to 90 with ties toward theta - 45', () => {
-  const expected = new Map([[0, 0], [45, 0], [90, 90], [135, 90], [180, 180], [225, 180], [270, 270], [315, 270], [-45, 270], [-90, 270], [405, 0]]);
-  for (const [theta, want] of expected) {
-    assert.equal(straightenAngle(theta), want, String(theta));
-  }
-  assert.throws(() => straightenAngle(10), RangeError);
 });
 
 test('rotatedExtent matches published examples and the board frame', () => {

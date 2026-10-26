@@ -88,7 +88,7 @@ function setup(o = {}) {
     },
   };
   const verification = enginePool();
-  const store = createPlayerStore({ prefs: storage.getPrefs() });
+  const store = createPlayerStore();
   /** @type {any[]} */
   const failures = [];
   const controller = createPlayerController({

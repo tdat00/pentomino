@@ -92,7 +92,6 @@ test('get/set/remove/list refuse foreign keys and never touch foreign values', (
   assert.deepEqual(store.list('other-app:'), []);
   assert.deepEqual(store.list(''), []);
   store.saveProgress('abc123', record());
-  store.setPrefs({ straighten: true });
   store.setGeneratorState({ rows: 4 });
   store.getGeneratorState();
   store.loadProgress('abc123');
@@ -130,34 +129,34 @@ test('persistent quota failure keeps working in memory with the user message', (
   }
   fake.mode.alwaysQuota = true;
   fake.log.set.length = 0;
-  const result = store.setPrefs({ straighten: true });
+  const result = store.setGeneratorState({ rows: 4 });
   assert.deepEqual(result, { ok: false, code: 'quota', message: SAVE_FAILED_MESSAGE });
-  assert.equal(fake.log.set.filter((k) => k === `${NAMESPACE}prefs`).length, 2, 'exactly one retry');
-  assert.equal(store.getPrefs().straighten, true, 'still readable from memory');
+  assert.equal(fake.log.set.filter((k) => k === `${NAMESPACE}gen:state`).length, 2, 'exactly one retry');
+  assert.deepEqual(store.getGeneratorState(), { rows: 4 }, 'still readable from memory');
   assert.equal(store.lastStorageIssue()?.message, SAVE_FAILED_MESSAGE);
   assert.equal(store.lastStorageIssue()?.code, 'quota');
   store.clearStorageIssue();
   assert.equal(store.lastStorageIssue(), null);
   const bare = fakeStorage({}, { alwaysQuota: true });
   const empty = createStorage(bare, clock());
-  assert.equal(empty.setPrefs({ straighten: true }).ok, false);
+  assert.equal(empty.setGeneratorState({ rows: 4 }).ok, false);
   assert.equal(bare.log.set.length, 1, 'nothing to evict, no pointless retry');
 });
 
 test('denied or missing storage never throws and play continues in memory', () => {
   for (const adapter of [fakeStorage({}, { deny: true }), null, undefined]) {
     const store = createStorage(adapter, clock());
-    assert.equal(store.get(`${NAMESPACE}prefs`), null);
-    assert.deepEqual(store.getPrefs(), { straighten: false });
-    const written = store.setPrefs({ straighten: true });
+    assert.equal(store.get(`${NAMESPACE}gen:state`), null);
+    assert.equal(store.getGeneratorState(), null);
+    const written = store.setGeneratorState({ rows: 4 });
     assert.equal(written.ok, false);
     assert.equal(/** @type {any} */ (written).code, 'storage-unavailable');
-    assert.equal(store.getPrefs().straighten, true);
+    assert.deepEqual(store.getGeneratorState(), { rows: 4 });
     assert.equal(store.saveProgress('abc', record(true)).ok, false);
     assert.equal(store.loadProgress('abc')?.solved, true);
-    assert.ok(store.list(NAMESPACE).includes(`${NAMESPACE}prefs`), 'unsaved values are still listed');
+    assert.ok(store.list(NAMESPACE).includes(`${NAMESPACE}gen:state`), 'unsaved values are still listed');
     assert.ok(store.lastStorageIssue());
-    assert.equal(store.remove(`${NAMESPACE}prefs`).ok, adapter ? false : true);
+    assert.equal(store.remove(`${NAMESPACE}gen:state`).ok, adapter ? false : true);
   }
 });
 
@@ -223,22 +222,23 @@ test('a lost progress index is rebuilt from key names only', () => {
   fake.data.delete(`${NAMESPACE}progress-index`);
   fake.log.get.length = 0;
   fake.mode.maxKeys = fake.data.size;
-  assert.equal(store.setPrefs({ straighten: true }).ok, false, 'the rewritten index took the freed slot');
+  assert.equal(store.setGeneratorState({ rows: 4 }).ok, false, 'the rewritten index took the freed slot');
   assert.equal(fake.log.remove.filter((k) => k.startsWith(`${NAMESPACE}progress:`)).length, 1, 'rebuilt index let eviction find an LRU entry');
   assert.ok(fake.log.get.every((k) => k.startsWith(NAMESPACE)));
 });
 
-test('preferences default, validate, and drop retired fields', () => {
-  const fake = fakeStorage({ [`${NAMESPACE}prefs`]: JSON.stringify({ labels: false, patterns: false, timer: false, largeBoards: true }) });
+test('dropRetired removes the keys that older versions wrote and nothing else', () => {
+  const fake = fakeStorage({ ...FOREIGN, [`${NAMESPACE}prefs`]: JSON.stringify({ straighten: true }) });
   const store = createStorage(fake, clock());
-  assert.deepEqual(store.getPrefs(), { straighten: false }, 'retired fields are ignored');
-  assert.ok(store.setPrefs({ straighten: /** @type {any} */ ('no'), bogus: true }).ok);
-  assert.deepEqual(JSON.parse(fake.data.get(`${NAMESPACE}prefs`) ?? ''), { straighten: false }, 'and dropped by the next write');
-  assert.ok(store.setPrefs({ straighten: true }).ok);
-  assert.equal(createStorage(fake, clock()).getPrefs().straighten, true, 'another instance reads the stored value');
-  fake.data.set(`${NAMESPACE}prefs`, '[1,2]');
-  assert.equal(store.getPrefs().straighten, false);
-  assert.equal(store.lastStorageIssue()?.code, 'invalid-data');
+  store.saveProgress('one', record());
+  store.dropRetired();
+  assert.equal(fake.data.has(`${NAMESPACE}prefs`), false);
+  assert.ok(store.loadProgress('one'));
+  assert.deepEqual(Object.fromEntries([...fake.data].filter(([k]) => !k.startsWith(NAMESPACE))), FOREIGN);
+  store.dropRetired();
+  for (const adapter of [fakeStorage({}, { deny: true }), null, undefined]) {
+    assert.doesNotThrow(() => createStorage(adapter, clock()).dropRetired());
+  }
 });
 
 test('generator state round-trips arbitrary JSON and reports unserializable values', () => {
@@ -257,6 +257,6 @@ test('generator state round-trips arbitrary JSON and reports unserializable valu
 });
 
 test('the default lazy instance works without a browser localStorage', () => {
-  assert.deepEqual(defaultStorage.getPrefs(), storageModule.getPrefs());
+  assert.equal(defaultStorage.getGeneratorState(), storageModule.getGeneratorState());
   assert.equal(storageModule.get(`${NAMESPACE}nothing`), null);
 });

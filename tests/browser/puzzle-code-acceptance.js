@@ -2049,7 +2049,7 @@ await check('keys: Tab goes from Share to Print, Enter opens the Share dialog on
 // ---- the phone width (run with ?phase=narrow in a 390 px touch viewport) ------------------------------------------------------
 
 /**
- * Interactive controls of a scope that are smaller than 44 px in either direction.
+ * Interactive controls of a scope that are smaller than 36 px (2.25 rem, the size of the controls below 768 px) in either direction.
  * @param {Element} scope
  */
 function smallTargets(scope) {
@@ -2061,7 +2061,7 @@ function smallTargets(scope) {
     }
     const target = node instanceof HTMLInputElement ? (node.closest('label') ?? node) : node;
     const r = target.getBoundingClientRect();
-    if (r.width < 43.5 || r.height < 43.5) {
+    if (r.width < 34.5 || r.height < 34.5) {
       small.push(`${node.tagName.toLowerCase()}[${node.getAttribute('data-action') ?? node.getAttribute('data-field') ?? node.className}] ${Math.round(r.width)}x${Math.round(r.height)}`);
     }
   }
@@ -2087,7 +2087,7 @@ function assertFits(dialog, label) {
 }
 
 for (const lang of /** @type {const} */ (['en', 'vi'])) {
-  await check(`narrow ${lang}: at 390 px with a coarse pointer the new controls and dialogs fit, with 44 px targets and no sideways scrolling`, async () => {
+  await check(`narrow ${lang}: at 390 px with a coarse pointer the new controls and dialogs fit, with 36 px targets and no sideways scrolling`, async () => {
     const T = TEXTS[lang];
     assert(matchMedia('(pointer: coarse)').matches, 'the phase runs with a coarse pointer');
     assert(innerWidth <= 420, `a phone width (${innerWidth})`);
@@ -2107,14 +2107,14 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
     const helpBox = help?.getBoundingClientRect();
     evidence.notes.push({ label: `narrow ${lang}: pre-existing Help control`, size: helpBox === undefined ? null : `${Math.round(helpBox.width)}x${Math.round(helpBox.height)}` });
     const newControls = ['[data-action="share"]', '[data-action="print"]'].map((selector) => m.q(selector));
-    equal(smallTargets(m.q('.step-actions')).filter((entry) => /share|print/.test(entry)), [], 'Share and Print are 44 px targets');
+    equal(smallTargets(m.q('.step-actions')).filter((entry) => /share|print/.test(entry)), [], 'Share and Print are 36 px targets');
     assert(newControls.every((node) => node.getBoundingClientRect().right <= innerWidth + 0.5), 'every control is inside the viewport');
-    evidence.notes.push({ label: `narrow ${lang}: every control under 44 px on the game screen`, controls: [...smallTargets(m.root)] });
+    evidence.notes.push({ label: `narrow ${lang}: every control under 36 px on the game screen`, controls: [...smallTargets(m.root)] });
 
     const print = await openPrint(m.q('[data-action="print"]'));
     equal(print.state(), 'ready', 'the Print dialog is ready');
     assertFits(print.dialog, 'Print dialog');
-    equal(smallTargets(print.dialog), [], 'targets under 44 px in the Print dialog');
+    equal(smallTargets(print.dialog), [], 'targets under 36 px in the Print dialog');
     assert(print.dialog.querySelector('[data-role="print-target"]') === null, 'the dialog shows no address');
     await showCode(print.dialog);
     await shot(`narrow-print-${lang}`);
@@ -2124,7 +2124,7 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
     await enterCode(m, typo);
     const entry = /** @type {HTMLDialogElement} */ (dialogOf(m));
     assertFits(entry, 'entry dialog');
-    equal(smallTargets(entry), [], 'targets under 44 px in the entry');
+    equal(smallTargets(entry), [], 'targets under 36 px in the entry');
     assert(Number.parseFloat(getComputedStyle(fieldOf(m)).fontSize) >= 16, 'a 16 px field, so touch browsers do not zoom');
     equal(problemOf(m)?.candidate, T.candidate(2, 2, 'H', '0'), 'the candidate is complete');
     await shot(`narrow-entry-${lang}`);
@@ -2135,7 +2135,7 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
     const share = await openShare(m);
     equal(await share.copy(), 'failed', 'the copy failed');
     assertFits(share.dialog, 'Share dialog');
-    equal(smallTargets(share.dialog), [], 'targets under 44 px in the Share dialog');
+    equal(smallTargets(share.dialog), [], 'targets under 36 px in the Share dialog');
     assert(share.field.scrollWidth <= share.field.clientWidth + 1, 'the link wraps inside its field');
     const shareFont = Number.parseFloat(getComputedStyle(share.field).fontSize);
     evidence.notes.push({ label: `narrow ${lang}: Share field font size (iOS Safari zooms a focused field under 16 px; to confirm on an iPhone)`, px: shareFont });

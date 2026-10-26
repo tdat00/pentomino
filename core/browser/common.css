@@ -22,6 +22,11 @@ html {
   box-sizing: border-box;
 }
 
+/* The hidden attribute always wins over a display set by a class. */
+[hidden] {
+  display: none !important;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -454,4 +459,124 @@ button.pm-head-x svg {
 
 .pm-dialog.pm-code .pm-btn.primary {
   font-weight: 600;
+}
+
+/* The Settings dialog of the narrow header: language and theme. It has no padding of its own, so that a click that
+   lands on the dialog element is a click on its backdrop. */
+.pm-settings-dialog {
+  width: min(22rem, 92vw);
+  padding: 0;
+  color: var(--pm-ink);
+  background: var(--pm-surface);
+  border: 1px solid var(--pm-border);
+  border-radius: 1rem;
+  box-shadow: 0 24px 64px rgb(10 14 28 / 38%);
+}
+
+.pm-settings-box {
+  padding: 1rem 1.25rem 0.75rem;
+}
+
+.pm-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--gen-color-divider, var(--pm-border));
+}
+
+.pm-settings-label {
+  font-weight: 600;
+}
+
+/* Narrow screens: the buttons and fields are smaller than the 44 px touch targets above, to leave room for the content.
+   The pages' mobile layouts use the same breakpoint. */
+@media (max-width: 767.98px) {
+  :root {
+    --pm-target: 2.25rem;
+  }
+
+  .pm-btn,
+  button,
+  select,
+  input[type="range"],
+  summary,
+  .pm-toggle,
+  a.pm-btn {
+    min-height: 2.25rem;
+    min-width: 2.25rem;
+  }
+
+  input[type="range"] {
+    min-width: 0;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .pm-btn,
+  button {
+    padding: 0.125rem 0.625rem;
+    font-size: 0.875rem;
+  }
+
+  .pm-dialog.pm-code .pm-btn {
+    min-height: 2.25rem;
+  }
+}
+
+/* The previous / next navigator of puzzles (puzzle-nav.js) is for the narrow layouts only. */
+.puzzle-nav {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .puzzle-nav:not([hidden]) {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0 0 0.5rem;
+  }
+
+  .puzzle-nav__row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .puzzle-nav__arrow {
+    min-width: 2rem;
+    min-height: 1.75rem;
+    padding: 0 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .puzzle-nav__position {
+    min-width: 5.5rem;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .puzzle-nav__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.125rem;
+  }
+
+  .puzzle-nav__action {
+    min-height: 1.5rem;
+    padding: 0.125rem 0.5rem;
+    color: var(--pm-muted);
+    font-size: 0.75rem;
+    background: transparent;
+    border: 0;
+  }
 }

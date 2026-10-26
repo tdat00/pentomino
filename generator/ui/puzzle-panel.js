@@ -3,6 +3,7 @@
 // arrives. All text is set through textContent.
 import { el } from '../../core/browser/dom.js';
 import { createPrintDialog, puzzleDetails } from '../../core/browser/print-dialog.js';
+import { createPuzzleNav } from '../../core/browser/puzzle-nav.js';
 import { puzzleSnapshot } from '../../core/browser/puzzle-snapshot.js';
 import { mountBoard, mountPiecePreview, svgEl } from '../../core/browser/svg-board.js';
 import { activeCount, boardToRows } from '../../core/engine/board.js';
@@ -206,8 +207,23 @@ export function mountPuzzlePanel(host, options) {
     el('div', { className: 'board-tools' }, detailZoomOut, detailZoomIn, detailFit, detailViewLeft, detailViewRight));
   const detailTrayTitle = loc('detail.toPlace', { className: 'detail-tray-title' }, 'h4');
   const detailPieces = el('ul', { className: 'detail-pieces', attrs: { ...locAttrs({ 'aria-label': 'detail.toPlace' }) }, dataset: { role: 'detail-pieces' } });
+  // The narrow layout lists no cards: the arrows step through the puzzles, one at a time.
+  const nav = createPuzzleNav({
+    t,
+    onOlder: () => stepPuzzle(-1),
+    onNewer: () => stepPuzzle(1),
+    onRemove: () => {
+      if (selectedId !== null) {
+        controller.removePuzzle(selectedId);
+      }
+    },
+    onRemoveAll: () => {
+      controller.removeAllPuzzles();
+      newButton.focus();
+    },
+  });
   const detail = el('section', { className: 'puzzle-detail', attrs: { hidden: '' }, dataset: { role: 'puzzle-detail' } },
-    detailHead, detailFrame, el('div', { className: 'detail-solution' }, solutionButton), detailTrayTitle, detailPieces);
+    nav.element, detailHead, detailFrame, el('div', { className: 'detail-solution' }, solutionButton), detailTrayTitle, detailPieces);
   const noticeBox = options.noticeHost ?? el('div', { className: 'result-notice', attrs: { role: 'status' }, dataset: { role: 'notice' } });
   const cardList = el('ol', { className: 'puzzle-cards', attrs: { ...locAttrs({ 'aria-label': 'puzzles.list' }), id: `${uid}-cards` }, dataset: { role: 'cards' } });
   const emptyText = el('p', { className: 'hint', dataset: { role: 'empty' } });
@@ -256,6 +272,7 @@ export function mountPuzzlePanel(host, options) {
   let userChose = false;
   /** @type {ReturnType<typeof mountBoard> | null} */
   let detailView = null;
+  let detailZoomed = false;
   /** @type {object | null} */
   let detailSet = null;
   let detailSignature = '';
@@ -356,9 +373,26 @@ export function mountPuzzlePanel(host, options) {
     cardList.replaceChildren(...ordered.reverse());
   }
 
-  function detailCellPx(/** @type {{ width: number, height: number }} */ board) {
+  /** @param {{ width: number, height: number }} board */
+  function detailCellPx(board) {
     const span = Math.max(board.width, board.height) * Math.SQRT2 + 1;
-    return Math.max(14, Math.min(40, Math.floor(DETAIL_BOARD_PX / span)));
+    return Math.max(14, Math.min(40, Math.floor(detailBoardPx() / span)));
+  }
+
+  /** @returns {number} The width the board can use: the frame's, up to the desktop size (the whole of it while hidden). */
+  function detailBoardPx() {
+    const style = detailBoard.ownerDocument.defaultView?.getComputedStyle?.(detailBoard);
+    const edges = ['paddingLeft', 'paddingRight', 'borderLeftWidth', 'borderRightWidth']
+      .reduce((sum, name) => sum + (parseFloat(style?.[/** @type {'paddingLeft'} */ (name)] ?? '') || 0), 0);
+    const inner = detailFrame.clientWidth - edges;
+    return inner > 0 ? Math.min(DETAIL_BOARD_PX, inner) : DETAIL_BOARD_PX;
+  }
+
+  function fitDetail() {
+    const set = store.getState().set;
+    if (set !== null) {
+      detailView?.setZoom(detailCellPx(set.board));
+    }
   }
 
   function clearDetailPieces() {
@@ -368,6 +402,17 @@ export function mountPuzzlePanel(host, options) {
     detailPreviews = [];
     detailPieces.replaceChildren();
     detailSignature = '';
+  }
+
+  /** @param {number} delta -1 for the previous puzzle, 1 for the next. */
+  function stepPuzzle(delta) {
+    const state = store.getState();
+    const next = state.puzzles[state.puzzles.findIndex((p) => p.id === selectedId) + delta];
+    if (next !== undefined) {
+      selectedId = next.id;
+      userChose = true;
+      render(state);
+    }
   }
 
   /** @param {GeneratorState} state */
@@ -384,12 +429,14 @@ export function mountPuzzlePanel(host, options) {
     }
     const puzzle = state.puzzles[at];
     detail.hidden = false;
+    nav.update({ index: at, total: state.puzzles.length, busy: isBusy(state) });
     if (detailSet !== set) {
       detailView?.destroy();
       detailView = null;
       clearDetailPieces();
     }
     if (detailView === null) {
+      detailZoomed = false;
       detailView = mountBoard(detailBoard, { mode: 'thumbnail', cellPx: detailCellPx(set.board), rotation: state.rotation, label: t('detail.board') });
       detailSet = set;
     }
@@ -535,13 +582,17 @@ export function mountPuzzlePanel(host, options) {
     solutionShown = !solutionShown;
     render(store.getState());
   });
-  listen(detailZoomOut, 'click', () => detailView?.setZoom(detailView.getState().cellPx / ZOOM_STEP));
-  listen(detailZoomIn, 'click', () => detailView?.setZoom(detailView.getState().cellPx * ZOOM_STEP));
+  listen(detailZoomOut, 'click', () => {
+    detailZoomed = true;
+    detailView?.setZoom(detailView.getState().cellPx / ZOOM_STEP);
+  });
+  listen(detailZoomIn, 'click', () => {
+    detailZoomed = true;
+    detailView?.setZoom(detailView.getState().cellPx * ZOOM_STEP);
+  });
   listen(detailFit, 'click', () => {
-    const set = store.getState().set;
-    if (set !== null) {
-      detailView?.setZoom(detailCellPx(set.board));
-    }
+    detailZoomed = false;
+    fitDetail();
   });
   listen(detailViewLeft, 'click', () => store.update((s) => ({ ...s, rotation: normalizeAngle(s.rotation + 45) })));
   listen(detailViewRight, 'click', () => store.update((s) => ({ ...s, rotation: normalizeAngle(s.rotation - 45) })));
@@ -552,6 +603,26 @@ export function mountPuzzlePanel(host, options) {
 
   const unsubscribe = store.subscribe((state) => render(state));
   render(store.getState());
+
+  // The frame has no width while its step is hidden, and a screen can change width: until the player zooms by hand,
+  // the board and the pieces follow the width the frame has.
+  let observedWidth = 0;
+  const win = host.ownerDocument.defaultView;
+  const widthObserver = typeof win?.ResizeObserver === 'function'
+    ? new win.ResizeObserver(() => {
+      const width = detailFrame.clientWidth;
+      if (width === observedWidth || destroyed) {
+        return;
+      }
+      observedWidth = width;
+      if (!detailZoomed) {
+        detailSignature = '';
+        render(store.getState());
+        fitDetail();
+      }
+    })
+    : null;
+  widthObserver?.observe(detailFrame);
 
   return {
     refresh: () => {
@@ -565,6 +636,7 @@ export function mountPuzzlePanel(host, options) {
         return;
       }
       destroyed = true;
+      widthObserver?.disconnect();
       unsubscribe();
       for (const [target, type, fn] of listeners) {
         target.removeEventListener(type, fn);
