@@ -1040,7 +1040,7 @@ await check('accessibility: names, board role, live region, 44 px targets, visib
   m.player.destroy();
 });
 
-await check('no room to rotate: the piece stays, "No room to rotate here" is announced, a 200 ms shake unless reduced motion', async () => {
+await check('no room to rotate: the piece stays, "No room to rotate here" is announced and shown, a 200 ms shake unless reduced motion', async () => {
   // A 5x1 strip: the bar fits only lengthwise, so no turn has room.
   const strip = {
     format: 'pentomino-pack',
@@ -1074,6 +1074,12 @@ await check('no room to rotate: the piece stays, "No room to rotate here" is ann
     equal(m.game().placed, before.placed, 'the placement is unchanged');
     equal(m.game().history.length, before.history.length, 'no history entry');
     await waitFor(() => m.q('[data-host="live"]').textContent === 'No room to rotate here', 'the announcement');
+    const toasts = [...document.querySelectorAll('.toast-host .toast')];
+    equal(toasts.map((n) => n.textContent).join('|'), 'No room to rotate here', 'the message is also shown, for touch screens');
+    equal(toasts[0]?.getAttribute('aria-hidden'), 'true', 'the toast does not repeat the announcement');
+    m.q('[data-action="rotate-cw"]').click();
+    await tick();
+    equal(document.querySelectorAll('.toast-host .toast').length, 1, 'a second refusal replaces the message');
     equal(m.q('.board-wrap').classList.contains('is-shaking'), !reduced, reduced ? 'no shake with reduced motion' : 'the shake plays');
     if (!reduced) {
       await pause(300);
@@ -1081,6 +1087,37 @@ await check('no room to rotate: the piece stays, "No room to rotate here" is ann
     }
     m.player.destroy();
   }
+});
+
+await check('piece menu on a touch drop: a bar grabbed by its end and turned moves along to fit, as on the phone that reported it', async () => {
+  // A 3x3 board of three bars. The bar dropped on the top row with its right end held cannot stand up there, since the
+  // natural pose is above the board and the one-cell kicks are too short; it fits two rows lower.
+  const bar = (/** @type {string} */ id, /** @type {string} */ color) => ({ id, label: id, color, cells: [[0, 0], [1, 0], [2, 0]] });
+  const bars = {
+    format: 'pentomino-pack',
+    version: 1,
+    kind: 'puzzle-pack',
+    rules: 'free-polyomino-v1',
+    board: { rows: ['###', '###', '###'] },
+    pieces: [bar('P', '#e6194b'), bar('Q', '#3cb44b'), bar('R', '#ffe119')],
+    puzzles: [{
+      id: 'bars',
+      title: 'Bars',
+      clues: [],
+      solution: [0, 1, 2].map((y) => ({ piece: 'PQR'[y], x: 0, y, turn: 0, mirrored: false })),
+    }],
+  };
+  const m = await mount({ hash: await packHash(validated(bars)) });
+  await dragFromTray(m, 'P', { index: 2, to: [2, 0], type: 'touch' });
+  same(m.game().placed.get('P'), { piece: 'P', x: 0, y: 0, turn: 0, mirrored: false }, 'the bar lies on the top row');
+  const node = /** @type {Element} */ (boardPiece(m, 'P'));
+  const at = centerOf(node);
+  node.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: at.x, clientY: at.y, button: 2 }));
+  m.q('.pm-menu [data-action="rotate-cw"]').click();
+  await tick();
+  same(m.game().placed.get('P'), { piece: 'P', x: 2, y: 0, turn: 1, mirrored: false }, 'the bar stands in the right column');
+  equal(document.querySelectorAll('.toast-host .toast').length, 0, 'nothing is refused');
+  m.player.destroy();
 });
 
 await check('piece menu: right-click turns and flips a tray piece; Escape, a click outside and Tab close it; the board menu lists Return all and Replay', async () => {

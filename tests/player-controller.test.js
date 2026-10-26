@@ -9,7 +9,7 @@ import { packBoard, parsePack } from '../core/engine/pack.js';
 import { arrowToGrid, screenFlip } from '../core/engine/view.js';
 import { createStorage } from '../core/browser/storage.js';
 import {
-  KICKS, SAVE_DELAY_MS, createPlayController, defaultHandle, handleCell, keyStep, orientedHandle, poseWithHandle, rotatePlaced,
+  SAVE_DELAY_MS, createPlayController, defaultHandle, handleCell, keyStep, kickOffsets, orientedHandle, poseWithHandle, rotatePlaced,
   transformedT,
 } from '../player/play.js';
 import { cardHeading, puzzleDisplayName } from '../player/puzzle-title.js';
@@ -267,23 +267,19 @@ function withBar(game, blockers) {
 }
 
 test('placed rotation keeps the handle, then tries the kicks in order and stops at no room', () => {
-  assert.deepEqual(KICKS, [[0, -1], [-1, 0], [1, 0], [0, 1]]);
+  assert.deepEqual(kickOffsets(1), [[0, 0], [0, -1], [-1, 0], [1, 0], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]]);
   const cases = /** @type {[string[], XYLike | null][]} */ ([
     [[], [2, 1]],
     [['d'], [2, 1]],
     [['a'], [1, 1]],
     [['a', 'b'], [3, 1]],
     [['a', 'b', 'c'], [2, 2]],
-    [['a', 'b', 'c', 'd'], null],
+    [['a', 'b', 'c', 'd'], [1, 2]],
   ]);
   for (const [blockers, expected] of cases) {
     const game = withBar(createGame(kickPack(), 0), blockers);
     const pose = /** @type {Pose} */ (game.placed.get('P'));
     const turned = rotatePlaced(game, pose, 1, 1);
-    if (expected === null) {
-      assert.equal(turned, null, blockers.join());
-      continue;
-    }
     assert.ok(turned, blockers.join());
     assert.deepEqual([turned.x, turned.y], expected, `origin with blockers ${blockers.join()}`);
     assert.equal(canPlace(game, turned, 'P').ok, true);
@@ -294,20 +290,42 @@ test('placed rotation keeps the handle, then tries the kicks in order and stops 
   assert.deepEqual(handleCell(free.pack.pieces[0], natural, 1), [2, 2]);
 });
 
+/** A bar on the top edge, turned about its right end, needs the upright bar two cells lower. */
+function edgePack(/** @type {string[]} */ rows) {
+  return /** @type {Pack} */ (/** @type {unknown} */ ({
+    board: { rows },
+    pieces: [{ id: 'P', label: 'P', color: '#e6194b', cells: [[0, 0], [1, 0], [2, 0]] }],
+    puzzles: [{ id: 'e', clues: [] }],
+  }));
+}
+
+test('a long bar turned about its end moves along its own footprint to fit, and never jumps elsewhere', () => {
+  const turnedAt = (/** @type {string[]} */ rows) => {
+    const game = reduce(createGame(edgePack(rows), 0), { type: 'place', pose: { piece: 'P', x: 0, y: 0, turn: 0, mirrored: false } });
+    return rotatePlaced(game, /** @type {Pose} */ (game.placed.get('P')), 2, transformedT(0, 'cw', 0));
+  };
+  assert.deepEqual(turnedAt(['#####', '#####', '#####']), { piece: 'P', x: 2, y: 0, turn: 1, mirrored: false });
+  // The only free upright places (columns 3 and 4) keep no cell of the bar: no room.
+  assert.equal(turnedAt(['#####', '...##', '#####']), null);
+});
+
 test('no-room rotation keeps the state, announces it and asks for a shake', () => {
-  const h = harness(kickPack());
-  h.store.update({ game: withBar(h.game(), ['a', 'b', 'c', 'd']) });
-  h.play.select('P');
-  const before = h.game();
-  h.log.length = 0;
-  assert.equal(h.play.transform('cw'), true);
-  assert.equal(h.game(), before, 'not even a new state object');
-  assert.deepEqual(h.log, [PLAY_TEXT.noRoom]);
-  assert.equal(h.events.noRoom, 1);
-  h.store.update({ game: reduce(h.game(), { type: 'remove', piece: 'd' }) });
-  assert.equal(h.play.transform('cw'), true, 'with room the same turn succeeds as one step');
-  assert.equal(h.game().history.length, 7);
-  assert.equal(poseT(/** @type {Pose} */ (h.game().placed.get('P'))), 1);
+  const strip = harness(edgePack(['#####']));
+  strip.store.update({ game: reduce(strip.game(), { type: 'place', pose: { piece: 'P', x: 1, y: 0, turn: 0, mirrored: false } }) });
+  strip.play.select('P');
+  const before = strip.game();
+  strip.log.length = 0;
+  assert.equal(strip.play.transform('cw'), true);
+  assert.equal(strip.game(), before, 'not even a new state object');
+  assert.deepEqual(strip.log, [PLAY_TEXT.noRoom]);
+  assert.equal(strip.events.noRoom, 1);
+  const open = harness(kickPack());
+  open.store.update({ game: withBar(open.game(), []) });
+  open.play.select('P');
+  assert.equal(open.play.transform('cw'), true, 'with room the same turn succeeds as one step');
+  assert.equal(open.game().history.length, 2);
+  assert.equal(poseT(/** @type {Pose} */ (open.game().placed.get('P'))), 1);
+  assert.equal(open.events.noRoom, 0);
 });
 
 test('tap placement: select, preview, same-cell tap commits once; another cell only moves the ghost', () => {

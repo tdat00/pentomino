@@ -227,7 +227,8 @@ buttons above the puzzle's name (and **Remove** and **Remove all** under them), 
   the mouse wheel turns it while it is held), or select a piece, tap or click a cell to preview it and tap the same cell
   again or press `Enter` to drop it. Letting go over the pieces panel puts a piece back. A drop that does not fit,
   `Escape`, a resize or an interrupted touch puts the piece back; pre-placed pieces are locked. Rotating or mirroring a
-  placed piece keeps its grabbed cell in place and tries a one-cell nudge before saying *No room to rotate here*.
+  placed piece keeps its grabbed cell in place and nudges the piece, nearest first, to a place where it still covers a
+  cell it had, before saying *No room to rotate here* (also shown for a moment on screen).
 - **Piece menu.** Right-click a piece (in the pieces panel, or a placed one on the board), or press and hold it on a
   touch screen, to turn it, flip it or return it to the tray. The Menu key or `Shift`+`F10` opens it on a focused piece. A right-click on the board also offers
   **Return all pieces to the tray** and **Replay the puzzle** (after a confirmation).
@@ -600,7 +601,8 @@ sách thẻ.
   lăn chuột xoay mảnh khi đang cầm), hoặc chọn một mảnh, chạm hay nhấn vào một ô để xem trước rồi chạm lại ô đó hoặc nhấn
   `Enter` để đặt. Thả mảnh lên khung các mảnh để trả nó về. Một lần thả không vừa, `Escape`, việc đổi kích thước cửa sổ
   hoặc thao tác chạm bị gián đoạn đều trả mảnh về; các mảnh đặt sẵn bị khóa. Xoay hay lật một mảnh đã đặt sẽ giữ nguyên ô
-  đang cầm và thử dịch một ô trước khi báo *Không đủ chỗ để xoay ở đây*.
+  đang cầm và dịch mảnh, từ gần ra xa, đến chỗ mà nó vẫn che một ô nó đã có, trước khi báo *Không đủ chỗ để xoay ở đây*
+  (thông báo cũng hiện trên màn hình trong chốc lát).
 - **Menu mảnh.** Nhấn chuột phải vào một mảnh (trong khung các mảnh, hoặc mảnh đã đặt trên bàn), hoặc nhấn giữ nó
   trên màn hình cảm ứng, để xoay, lật hoặc trả nó về khay. Phím Menu hoặc `Shift`+`F10` mở menu cho mảnh đang được chọn. Nhấn chuột phải trên bàn chơi còn có
   **Trả mọi mảnh về khay** và **Chơi lại đề** (sau khi xác nhận).

@@ -19,8 +19,6 @@ import { PLAY_TEXT, solvedSummary } from './strings.js';
 /** @typedef {'cw' | 'ccw' | 'flipH' | 'flipV'} TransformOp */
 /** @typedef {'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown'} ArrowKey */
 
-/** One-cell grid kicks tried, in order, after the natural pose of a rotated or mirrored placed piece. */
-export const KICKS = Object.freeze(/** @type {XY[]} */ ([[0, -1], [-1, 0], [1, 0], [0, 1]]));
 export const SAVE_DELAY_MS = 250;
 export const TICK_MS = 1000;
 const ARROW_KEYS = Object.freeze(/** @type {ArrowKey[]} */ (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']));
@@ -93,8 +91,27 @@ export function transformedT(t, op, theta) {
 }
 
 /**
+ * Grid kicks of a rotated or mirrored placed piece, nearest first: no kick, the one-cell kicks (0, -1), (-1, 0),
+ * (1, 0), (0, 1), then the farther offsets by distance (rows before columns).
+ * @param {number} radius Largest offset on either axis.
+ * @returns {XY[]}
+ */
+export function kickOffsets(radius) {
+  /** @type {XY[]} */
+  const offsets = [];
+  for (let dy = -radius; dy <= radius; dy += 1) {
+    for (let dx = -radius; dx <= radius; dx += 1) {
+      offsets.push([dx, dy]);
+    }
+  }
+  return offsets.sort((a, b) => (a[0] ** 2 + a[1] ** 2) - (b[0] ** 2 + b[1] ** 2) || a[1] - b[1] || a[0] - b[0]);
+}
+
+/**
  * New pose of a placed piece after turning it about its handle: the natural pose
- * first, then the one-cell kicks. `null` when nothing fits.
+ * first, then the kicks. A kick beyond one cell must keep a cell of the piece where it was, so that the
+ * piece turns in place instead of jumping elsewhere; a piece of n cells in a row can need n - 1 cells to
+ * turn about its end. `null` when nothing fits.
  * @param {GameState} game
  * @param {Pose} pose Current placement.
  * @param {number} index Handle source index.
@@ -107,9 +124,12 @@ export function rotatePlaced(game, pose, index, newT) {
     return null;
   }
   const base = poseWithHandle(piece, newT, index, handleCell(piece, pose, index));
-  for (const [dx, dy] of [[0, 0], ...KICKS]) {
+  const reach = Math.max(1, ...alignedOrientedCells(piece.cells, newT).flat());
+  const before = new Set(poseCells(piece, pose).map(([x, y]) => `${x},${y}`));
+  for (const [dx, dy] of kickOffsets(reach)) {
     const candidate = { ...base, x: base.x + dx, y: base.y + dy };
-    if (canPlace(game, candidate, piece.id).ok) {
+    const near = dx * dx + dy * dy <= 1 || poseCells(piece, candidate).some(([x, y]) => before.has(`${x},${y}`));
+    if (near && canPlace(game, candidate, piece.id).ok) {
       return candidate;
     }
   }

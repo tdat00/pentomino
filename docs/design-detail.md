@@ -135,7 +135,7 @@ The main design decisions and why they were taken.
 | D28 | Folder layout | `core/engine`, `core/workers`, `core/browser`; tests in `/tests` | Clear layering; tests are never deployed |
 | D29 | Deployment | Actions: test → assemble `_site` → deploy. External `redirect.js`. | CSP-compatible |
 | D30 | Colors and labels | 20-color palette, generated colors beyond 20, labels A…Z, AA, AB, …, and fill patterns when K > 20. Labels and patterns are always drawn; there are no display toggles. Drawn as one character with a mark past Z, in print-safe drawn colors (§11.9). | Sets reach ~90 pieces on large boards. |
-| D31 | Rotating a placed piece | Rotate about its handle cell and try 4 one-cell kicks; otherwise reject. | Predictable |
+| D31 | Rotating a placed piece | Rotate about its handle cell and try the grid kicks, nearest first (the four one-cell kicks keep their order); a kick of more than one cell must keep a cell of the piece where it was. Otherwise reject, and say so in a message that is visible for a moment. | Predictable; a bar of n cells turned about its end can need n − 1 cells of kick; the live region is not visible and the shake is brief, so the refusal also shows as a toast |
 | D32 | Size balance | Sizes in [max(3, ⌊0.6μ⌋), ⌈1.5μ⌉]; ≤ ⌊0.4K⌋ pieces of 3–4 cells; μ ≥ 4.5; exact histogram feasibility. There is no spread or large-piece rule. | Scales with μ (360-cell hard needs 12–34-cell pieces); 40 % keeps the user's 13-piece 60-cell master set possible. |
 | D33 | Set construction | Macro carving when μ ≥ 6.5 (regions of 3–6 pieces; 2–3 when K ≤ 12) with global shape-key exclusion; flat carving otherwise or as a fallback; independent validation of every witness | Flat-carved big-piece sets usually have one arrangement; macro sets gave 10 distinct layouts in both reproductions. |
 | D34 | Initial pre-placed count | G0 = clamp(round(g_L·K), 1, K−2); g_L = 0.62 − 0.08·L up to nightmare, hell-1 0.10, hell-2 0.06, hell-3+ 0.04; then searched. Count and fraction are both shown. | Monotone "many → few"; centres hell-1 at D ≈ 100 |
@@ -2197,8 +2197,8 @@ The board state is never mutated during a drag or preview.
   - The first entry has the focus. The arrow keys, Home and End walk the entries (the page's shortcuts stay quiet), Enter or Space runs one, and Escape, Tab, a press elsewhere, a scroll or a resize closes it; the focus goes back to the piece when the menu closes by Escape or by choosing an entry.
   - The menu is a `role="menu"` of buttons (`role="menuitem"`), kept inside the window.
 - **Tray pieces** re-orient in place.
-- **Placed pieces** rotate or flip about their handle cell. If the result is invalid, the player tries one-cell grid kicks in the order (0, −1), (−1, 0), (1, 0), (0, 1).
-  - If none fits, the piece does not change: a 200 ms shake plus "No room to rotate here".
+- **Placed pieces** rotate or flip about their handle cell. If the result is invalid, the player tries grid kicks, nearest first (`kickOffsets` of `play.js`): the natural pose, the one-cell kicks in the order (0, −1), (−1, 0), (1, 0), (0, 1), then the farther offsets by distance (rows before columns), up to the longest side of the piece minus one (at least one). A kick of more than one cell is used only when the piece keeps at least one cell where it was, so that it turns in place and never jumps to another part of the board.
+  - If none fits, the piece does not change: a 200 ms shake (not with reduced motion), "No room to rotate here" in the live region and the same text in a warning toast of 2.5 s (`showToast`, hidden from assistive technology so that the announcement is not read twice; a new refusal replaces it). The toast is what a touch screen shows, where the piece menu that turned the piece has already closed and the live region is not visible.
   - A successful re-orientation is one undo step.
 
 ### 11.6 Keyboard
@@ -2606,7 +2606,7 @@ L = likelihood, I = impact.
 11. Non-standard sets in a link (duplicate shapes, pieces < 3 cells, holes) are playable with a notice. A pack with zero clues is playable too; the generator never produces one.
 12. An unknown version or rule set: show "unsupported" and store nothing.
 13. Progress saved for a different puzzle with the same id is not applied, because the fingerprints differ.
-14. No room to rotate a placed piece: shake and leave it unchanged. A drop partly outside or overlapping reverts.
+14. No room to rotate a placed piece: shake, show "No room to rotate here" and leave it unchanged. A drop partly outside or overlapping reverts.
 15. A resize or orientation change during a drag cancels the drag.
 16. Two tabs: the last write wins. Storage unavailable: play and generation continue in memory, and the page says the work cannot be saved.
 17. 21–90 pieces: generated colors, labels beyond Z and patterns; the tray scrolls.
