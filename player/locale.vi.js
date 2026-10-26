@@ -62,7 +62,7 @@ export default Object.freeze({
   'ui.boardLabel': 'Bàn chơi',
   'ui.boardHelp': 'Chọn một mảnh trong mục “Các mảnh cần đặt”, rồi chạm vào một ô trên bàn chơi để xem trước; chạm lại đúng ô đó hoặc nhấn Enter để thả mảnh xuống. '
     + 'Với bàn phím, nhấn Enter trên một mảnh để nhấc nó lên, di chuyển bằng các phím mũi tên rồi nhấn Enter để thả; nhấn ? để xem mọi phím tắt. '
-    + 'Nhấp chuột phải vào một mảnh để xoay hoặc lật nó. Các mảnh đặt sẵn đã bị khóa và không di chuyển được.',
+    + 'Nhấp chuột phải hoặc nhấn giữ một mảnh để xoay hoặc lật nó. Các mảnh đặt sẵn đã bị khóa và không di chuyển được.',
   'ui.selectedGroup': 'Mảnh đã chọn',
   'ui.rotateCcw': 'Xoay ngược chiều kim đồng hồ',
   'ui.rotateCw': 'Xoay theo chiều kim đồng hồ',
@@ -82,6 +82,7 @@ export default Object.freeze({
   'ui.cancelCheck': 'Hủy kiểm tra',
   'ui.revealedBadge': 'Đã xem lời giải — không tính là đã giải',
   'ui.hintsUsed': 'Số gợi ý',
+  'ui.saveFailed': 'Không thể lưu tiến trình trong trình duyệt này',
   'ui.revealTitle': 'Xem lời giải?',
   'ui.revealBody': 'Lời giải sẽ được điền vào quanh các mảnh đặt sẵn và đề này sẽ được đánh dấu là đã xem lời giải, nên không được tính là đã giải. '
     + 'Bạn có thể hoàn tác.',
@@ -135,7 +136,7 @@ export default Object.freeze({
   'code.error.cancelled': 'Việc mở mã này đã bị hủy vì một đề khác đang được mở. Hãy mở lại nếu bạn vẫn muốn.',
   'code.error.puzzle': 'Đề {n}:',
 
-  // Chia sẻ
+  // Share
   'share.button': 'Chia sẻ',
   'share.title': 'Chia sẻ',
   'share.link': 'Liên kết',
@@ -151,7 +152,7 @@ export default Object.freeze({
   'share.noQr.short': 'Không có mã QR: liên kết quá dài để tạo mã QR.',
   'share.error': 'Không chuẩn bị được liên kết.',
   'share.tooLarge': 'Đề này quá lớn để chia sẻ bằng liên kết.',
-  'share.tooLarge.all': 'Danh sách quá lớn để chia sẻ bằng một liên kết. Hãy bỏ chọn "Chia sẻ tất cả các đề trong danh sách" để chỉ chia sẻ đề đang chọn.',
+  'share.tooLarge.all': 'Danh sách quá lớn để chia sẻ bằng một liên kết. Hãy bỏ chọn “Chia sẻ tất cả các đề trong danh sách” để chỉ chia sẻ đề đang chọn.',
   'share.notice.noTail': 'Lời giải đã lưu được bỏ khỏi liên kết để liên kết vừa với một mã QR.',
   'share.notice.lowEc': 'Mã QR dùng mức sửa lỗi thấp vì liên kết dài.',
   'share.notice.none': 'Liên kết quá dài cho một mã QR; hãy sao chép liên kết.',
@@ -274,6 +275,6 @@ export default Object.freeze({
   // Announcements of the page
   'live.opened': 'Đã mở {puzzle}. {left}.',
 
-  // Hộp thoại in và các tờ in (dùng chung với trình tạo đề)
+  // Print dialog and printed sheets (shared with the generator)
   ...PRINT_TEXTS_VI,
 });

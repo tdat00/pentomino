@@ -2,8 +2,7 @@
 // Previous / next navigator of a list of puzzles, for the narrow layouts of both apps (the wide ones list cards). One
 // puzzle shows at a time; the arrows step through the list and Remove and Remove all sit on a row of their own. The app
 // owns the list and the selection: this only draws the position and reports the presses. Its texts carry `data-i18n`,
-// so a language switch rewrites them. The keys are `puzzles.older`, `puzzles.newer`, `puzzles.position` ({n}, {total}),
-// `puzzles.remove` and `puzzles.removeAll`.
+// so a language switch rewrites them.
 
 import { el } from './dom.js';
 

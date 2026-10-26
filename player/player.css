@@ -1,88 +1,20 @@
-/* Colours come from ../core/browser/theme.css. The header, the panels and the puzzle cards follow
-   generator/generator.css so that the two pages look alike. */
+@import url("../core/browser/page.css");
 
-:root {
-  --gen-gap: 1rem;
-  --gen-radius: var(--gen-radius-3);
-  --gen-accent: var(--gen-color-accent);
-  --gen-warning: var(--gen-color-warning);
-  --gen-error: var(--gen-color-danger);
-}
-
-html,
-body {
-  margin: 0;
-}
-
-body {
-  line-height: 1.5;
-}
-
-[hidden] {
-  display: none !important;
-}
+/* The Player's own rules. Colours come from ../core/browser/theme.css; the frame shared with the Generator (header,
+   panels, puzzle cards, dialogs) from ../core/browser/page.css. */
 
 .player {
   min-height: 100vh;
   min-height: 100dvh;
 }
 
-/* Header: logo and title, language and theme switches. */
-
-.app-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem var(--gen-gap);
-  padding: 0.75rem var(--gen-gap);
-  background: var(--gen-color-surface);
-  border-bottom: 1px solid var(--gen-color-divider);
-}
-
-.app-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-}
-
-.app-logo {
-  flex: none;
-  width: 2rem;
-  height: 2rem;
-}
-
-.app-header h1 {
-  margin: 0;
-  font-size: 1.375rem;
-  letter-spacing: -0.01em;
-}
-
-.header-tools {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.75rem;
-  margin-left: auto;
-}
-
-.icon {
-  display: inline-block;
-  flex: none;
-  width: 1.25em;
-  height: 1.25em;
-  fill: none;
-  stroke: currentcolor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
+/* Help: an icon and its name, at the end of the header. */
 
 button.header-help {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  min-height: 2.25rem;
+  min-height: var(--pm-target);
   padding: 0 0.75rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -97,47 +29,8 @@ button.header-help:focus-visible {
   background: var(--gen-color-hover);
 }
 
-button.header-settings {
-  display: none;
-}
-
-/* Narrow header: the title and the buttons share one row. The language and theme switches move into the Settings
-   dialog, and Help and Settings keep only their icons (the text stays for screen readers). */
+/* Narrow header: Help and Settings keep only their icons (the text stays for screen readers). */
 @media (max-width: 767.98px) {
-  .app-header {
-    flex-wrap: nowrap;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-  }
-
-  .app-brand {
-    flex: 1 1 auto;
-    gap: 0.5rem;
-  }
-
-  .app-logo {
-    width: 1.75rem;
-    height: 1.75rem;
-  }
-
-  .app-header h1 {
-    overflow: hidden;
-    font-size: 1.125rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .header-tools {
-    flex: none;
-    flex-wrap: nowrap;
-    gap: 0.25rem;
-    margin-left: 0;
-  }
-
-  .header-tools > .segmented {
-    display: none;
-  }
-
   button.header-settings {
     display: inline-flex;
     align-items: center;
@@ -169,73 +62,8 @@ button.header-settings {
   }
 }
 
-.sprite {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-
-.segmented {
-  display: inline-flex;
-  max-width: 100%;
-}
-
-.segmented__btn {
-  position: relative;
-  display: inline-flex;
-  flex: 1 1 auto;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.25rem;
-  margin-inline-start: -1px;
-  padding: 0 0.75rem;
-  font-size: 0.875rem;
-  white-space: nowrap;
-  background: var(--gen-color-surface);
-  border-radius: 0;
-}
-
-.segmented__btn:first-child {
-  margin-inline-start: 0;
-  border-radius: var(--gen-radius-2) 0 0 var(--gen-radius-2);
-}
-
-.segmented__btn:last-child {
-  border-radius: 0 var(--gen-radius-2) var(--gen-radius-2) 0;
-}
-
-.segmented__btn--icon {
-  flex: none;
-  width: 2.25rem;
-  padding: 0;
-}
-
-.segmented__btn[aria-pressed="true"],
-.segmented__btn[aria-pressed="true"]:hover:not(:disabled) {
-  z-index: 1;
-  border-color: var(--gen-color-accent);
-  background: var(--gen-color-accent);
-  color: var(--gen-color-accent-text);
-}
-
-.segmented__btn:focus-visible {
-  z-index: 2;
-}
-
-/* The header switches keep the 44 px target of every control on touch screens. */
-@media (pointer: coarse) {
-  .segmented__btn {
-    min-height: 44px;
-  }
-
-  .segmented__btn--icon {
-    width: 44px;
-  }
-}
-
-/* From 1360 px: puzzles | game | pieces. From 768 px the puzzles move under the game; below that everything
-   stacks: the game, the pieces, then the puzzles. */
+/* From 1360 px: puzzles | game | pieces. From 768 px the puzzles move under the game. Below 768 px the game is alone:
+   the pieces are a bar fixed to the bottom and the puzzles are shown one at a time (see the end of this file). */
 .app-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -290,15 +118,6 @@ button.header-settings {
 
 /* Panels. */
 
-.panel {
-  min-width: 0;
-  padding: var(--gen-gap);
-  background: var(--gen-color-surface);
-  border: 1px solid var(--gen-color-divider);
-  border-radius: var(--gen-radius);
-  box-shadow: var(--gen-shadow-1);
-}
-
 .panel-header {
   display: flex;
   align-items: center;
@@ -310,14 +129,6 @@ button.header-settings {
 .panel-header > h2 {
   margin: 0;
   font-size: 1.1rem;
-}
-
-.step-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem var(--gen-gap);
 }
 
 .step-head > h2 {
@@ -336,130 +147,7 @@ button.header-settings {
   margin-inline-start: auto;
 }
 
-.step-hint {
-  margin: 0 0 0.75rem;
-  color: var(--pm-muted);
-  font-size: 0.9rem;
-}
-
-.hint {
-  margin: 0 0 0.5rem;
-  color: var(--pm-muted);
-  font-size: 0.875rem;
-}
-
-/* Puzzle cards of the left panel. */
-
-.puzzle-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-  gap: var(--gen-gap);
-  margin: 0.75rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.puzzle-card {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  min-width: 0;
-  padding: 0.625rem;
-  background: var(--gen-color-surface-2);
-  border: 1px solid var(--gen-color-divider);
-  border-radius: var(--gen-radius);
-}
-
-.puzzle-card[data-selected="true"] {
-  background: var(--gen-color-accent-soft);
-  border-color: var(--gen-color-accent);
-}
-
-button.card-select {
-  display: flex;
-  flex: 1 1 auto;
-  align-items: flex-start;
-  gap: 0.75rem;
-  width: 100%;
-  min-width: 0;
-  min-height: 0;
-  padding: 0;
-  margin: 0;
-  color: inherit;
-  font: inherit;
-  text-align: start;
-  background: none;
-  border: 0;
-  border-radius: var(--gen-radius-2);
-  cursor: pointer;
-}
-
-/* No hover highlight (nor press shift) on a card: the selected card is marked by the card itself. */
-button.card-select:hover:not(:disabled),
-button.card-select:active:not(:disabled) {
-  background: none;
-  color: inherit;
-  transform: none;
-}
-
-/* The preview is level with the name, set back from the remove button in the corner. */
-.card-thumb {
-  flex: none;
-  width: 7.5rem;
-  height: 6.5rem;
-  margin-inline-end: 1.25rem;
-  border-radius: var(--gen-radius-2);
-}
-
-button.card-remove {
-  position: absolute;
-  top: 0.25rem;
-  inset-inline-end: 0.25rem;
-  display: grid;
-  place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  min-width: 0;
-  padding: 0;
-  line-height: 1;
-}
-
-button.ghost-small {
-  min-height: 0;
-  padding: 0.25rem 0.5rem;
-  border: 0;
-  border-radius: 0.375rem;
-  background: transparent;
-  color: var(--pm-muted);
-  font-size: 0.8125rem;
-}
-
-button.ghost-small:hover:not(:disabled),
-button.ghost-small:focus-visible {
-  background: color-mix(in srgb, var(--gen-error) 10%, transparent);
-  color: var(--gen-error);
-}
-
-button.ghost-small:disabled {
-  background: transparent;
-  cursor: default;
-  opacity: 0.5;
-}
-
-.card-body {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 0.125rem;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.card-body p {
-  margin: 0;
-  font-size: 0.875rem;
-}
+/* Puzzle cards: the title row and the status colours. */
 
 .card-title {
   display: flex;
@@ -473,10 +161,6 @@ button.ghost-small:disabled {
   font-weight: 600;
 }
 
-.badge[data-status="unique"] {
-  color: var(--gen-color-success);
-}
-
 .badge[data-status="multiple"],
 .badge[data-status="not-proved"] {
   color: var(--gen-warning);
@@ -484,10 +168,6 @@ button.ghost-small:disabled {
 
 .rating-level {
   font-weight: 700;
-}
-
-.badge {
-  font-weight: 600;
 }
 
 .badge[data-status="solved"],
@@ -537,17 +217,13 @@ button.ghost-small:disabled {
   border-color: var(--gen-color-danger);
 }
 
-.status-notice {
-  color: var(--gen-color-warning);
-  background: var(--gen-color-warning-bg);
-  border-color: var(--gen-color-warning);
-}
-
 /* A notice is a quiet line: smaller text, no border, and a smaller borderless dismiss button. */
 .status-notice {
   gap: 0.25rem;
   padding: 0.125rem 0.375rem;
+  color: var(--gen-color-warning);
   font-size: 0.8125rem;
+  background: var(--gen-color-warning-bg);
   border: 0;
 }
 
@@ -570,14 +246,20 @@ button.ghost-small:disabled {
   display: contents;
 }
 
+/* The hint sits under the Undo / Redo / Hint / Replay row. Its message takes the whole width, in small regular text
+   with what matters in bold; its buttons, smaller than that row's, are on a row of their own under it. */
 .status-hint {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.375rem;
   margin: 0 0 0.5rem;
   background: var(--gen-color-accent-soft);
   border-color: var(--gen-color-accent);
 }
 
-/* The hint sits under the Undo / Redo / Hint / Replay row: small regular text and buttons smaller than that row's. */
 .status-hint .status-text {
+  flex: none;
+  width: 100%;
   font-size: 0.8125rem;
 }
 
@@ -588,18 +270,6 @@ button.ghost-small:disabled {
   font-size: 0.8125rem;
 }
 
-/* The message takes the whole width, with what matters in bold; its buttons are on a row of their own under it. */
-.status-hint {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.375rem;
-}
-
-.status-hint .status-text {
-  flex: none;
-  width: 100%;
-}
-
 .status-hint-actions {
   display: flex;
   flex-wrap: wrap;
@@ -608,11 +278,6 @@ button.ghost-small:disabled {
 }
 
 .status-hint-actions:not(:has(> :not([hidden]))) {
-  display: none;
-}
-
-.status-hint[hidden],
-.status-hint [hidden] {
   display: none;
 }
 
@@ -676,7 +341,7 @@ button.ghost-small:disabled {
   gap: 0.375rem;
 }
 
-/* Undo, Redo, Hint, Replay, Straighten, Share and Print are as big as the generator's Play button. */
+/* Undo, Redo, Hint, Replay, Share and Print are as big as the generator's Play button. */
 .game .game-actions > button,
 .game .step-actions > button {
   min-width: var(--pm-target);
@@ -730,20 +395,7 @@ button.ghost-small:disabled {
   border-radius: var(--gen-radius-2);
 }
 
-.board-host .pm-scroll:focus-visible {
-  outline-offset: -3px;
-}
-
 /* Board tools: the same small, quiet buttons as the generator's board editor (top right of the board). */
-.board-tools {
-  position: absolute;
-  top: 0.25rem;
-  right: 1.25rem;
-  z-index: 2;
-  display: flex;
-  gap: 0;
-}
-
 .game .board-tools .view-btn {
   display: inline-flex;
   align-items: center;
@@ -776,10 +428,6 @@ button.ghost-small:disabled {
   align-items: center;
   gap: 0.5rem;
   margin: 0 0 1.25rem;
-}
-
-.toolbar-host[hidden] {
-  display: none;
 }
 
 /* Dialogs live in the top layer; the host itself takes no space. */
@@ -995,38 +643,12 @@ button.ghost-small:disabled {
 }
 
 /* Dialogs: win, confirmation and shortcut help. */
-.pm-dialog {
-  width: min(28rem, 92vw);
-  padding: 1rem 1.25rem;
-  color: var(--pm-ink);
-  background: var(--pm-surface);
-  border: 1px solid var(--pm-border);
-  border-radius: 0.5rem;
-  box-shadow: 0 8px 32px rgb(0 0 0 / 35%);
-}
-
-.pm-dialog::backdrop {
-  background: rgb(0 0 0 / 45%);
-}
-
-.pm-dialog-title {
-  margin: 0 0 0.5rem;
-  font-size: 1.25rem;
-}
-
 .pm-dialog.pm-help {
   width: min(40rem, 94vw);
 }
 
 .pm-dialog.pm-help .pm-dialog-actions {
   justify-content: flex-end;
-}
-
-.pm-dialog-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1rem;
 }
 
 /* Confirmation boxes (Replay and the reveal confirmations). */
@@ -1131,10 +753,6 @@ button.ghost-small:disabled {
   border-radius: 0.5rem;
 }
 
-.win-stat[hidden] {
-  display: none;
-}
-
 .win-label {
   color: var(--pm-muted);
   font-size: 0.75rem;
@@ -1159,10 +777,6 @@ button.ghost-small:disabled {
   min-height: calc(var(--pm-target) - 0.5rem);
   padding: 0.125rem 0.75rem;
   font-size: 0.8125rem;
-}
-
-.pm-dialog.pm-win .pm-btn[hidden] {
-  display: none;
 }
 
 @keyframes pm-win-pop {
@@ -1300,7 +914,8 @@ button.ghost-small:disabled {
   font-size: 0.8125rem;
 }
 
-/* Puzzle code entry and Share: the dialogs sit in the page root, so the host takes no space. Their shared look is in common.css. */
+/* Puzzle code entry and Share: the dialogs sit in the page root, so the host takes no space. The entry's look is in
+   common.css. */
 .code-host {
   display: contents;
 }
@@ -1449,10 +1064,6 @@ button.ghost-small:disabled {
   cursor: pointer;
 }
 
-.pm-share-option[hidden] {
-  display: none;
-}
-
 .pm-share-dialog[data-scope="all"] .pm-share-option {
   background: var(--gen-color-accent-soft, #dfe8ff);
   border-color: var(--gen-color-accent, var(--pm-focus));
@@ -1581,10 +1192,6 @@ button.pm-share-copy[data-copied="true"]:not(:disabled) {
   .app-layout {
     gap: 0.5rem;
     padding: 0.5rem 0.75rem;
-  }
-
-  .panel {
-    padding: 0.75rem;
   }
 
   /* The room of the fixed bar, so that the last panel and the footer are not under it. */

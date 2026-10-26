@@ -11,6 +11,7 @@ import { puzzleCodesOf } from '../../core/browser/handoff.js';
 import { PoolAbortError, PoolError } from '../../core/browser/worker-pool.js';
 import { SAVE_FAILED_MESSAGE, createStorage } from '../../core/browser/storage.js';
 import { mountPlayer } from '../../player/app.js';
+import { setLocale } from '../../player/i18n.js';
 
 const results = /** @type {Array<{ name: string, ok: boolean, error?: string }>} */ ([]);
 const violations = /** @type {string[]} */ ([]);
@@ -386,6 +387,9 @@ await check('unavailable storage: the puzzle opens, play goes on and one honest 
   m.player.store.update((s) => ({ game: reduce(/** @type {any} */ (s.game), { type: 'place', pose }) }));
   equal(m.player.controller.saveNow(), false, 'the browser refuses the save');
   equal(m.q('[data-badge="storage"]').textContent, SAVE_FAILED_MESSAGE, 'warning');
+  setLocale('vi');
+  equal(m.q('[data-badge="storage"]').textContent, 'Không thể lưu tiến trình trong trình duyệt này', 'the warning follows the language');
+  setLocale('en');
   m.player.controller.nextPuzzle();
   assert(title(m).startsWith('Normal #2'), 'navigation works');
   equal(m.qa('[data-badge="storage"]').filter((b) => !b.hidden).length, 1, 'one warning');

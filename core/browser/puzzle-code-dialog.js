@@ -1,8 +1,9 @@
 // @ts-check
-// Puzzle-code entry of the Player. `createCodeEntryMachine` is a DOM-free state machine whose UI revision moves on with
-// every edit, submission, opening and closing, so a late reply can neither open a puzzle nor overwrite newer input.
-// `createPuzzleCodeDialog` shows it in a native <dialog>. A correction or a damaged tail's core is only ever offered,
-// and applied only by an explicit action checked against the current revision and text.
+// Puzzle-code entry (the Player's, and the Generator's Import puzzle). `createCodeEntryMachine` is a DOM-free state
+// machine whose UI revision moves on with every edit, submission, opening and closing, so a late reply can neither open
+// a puzzle nor overwrite newer input. `createPuzzleCodeDialog` shows it in a native <dialog>. A correction or a damaged
+// tail's core is only ever offered, and applied only by an explicit action checked against the current revision and
+// text.
 
 import { normalizePuzzleCodeInput } from '../engine/puzzlecode-input.js';
 import { el } from './dom.js';

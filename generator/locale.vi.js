@@ -171,7 +171,7 @@ export default Object.freeze({
   // Toasts
   'toast.saveFailed': 'Không thể lưu công việc của bạn trong trình duyệt này',
 
-  // Nhập đề: hộp thoại nhập là của trình chơi (các thông báo giống nhau)
+  // Import puzzle: the entry dialog is the Player's (its messages are the same)
   'import.button': 'Nhập đề',
   'import.title': 'Nhập đề',
   'import.field': 'Liên kết hoặc mã đề',
@@ -248,6 +248,6 @@ export default Object.freeze({
   'message.M-NEEDS-SET': 'Hãy tạo một bộ mảnh trước.',
   'message.requestFailed': 'Yêu cầu thất bại',
 
-  // Hộp thoại in và các tờ in (dùng chung với trình chơi)
+  // Print dialog and printed sheets (shared with the player)
   ...PRINT_TEXTS_VI,
 });

@@ -129,10 +129,6 @@
   margin: 0;
 }
 
-.pm-print-code-box[hidden] {
-  display: none;
-}
-
 .pm-print-code-box [role="status"] {
   display: grid;
   gap: 0.25rem;
@@ -208,10 +204,6 @@
   flex-direction: column;
   min-height: 22rem;
   contain: size;
-}
-
-.pm-print-side[hidden] {
-  display: none;
 }
 
 .pm-print-field.pm-print-puzzles {

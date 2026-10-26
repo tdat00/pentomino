@@ -22,6 +22,11 @@ html {
   box-sizing: border-box;
 }
 
+/* The hidden attribute always wins over a display set by a class. */
+[hidden] {
+  display: none !important;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

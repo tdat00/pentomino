@@ -669,7 +669,7 @@ export function mountPlayer(root, env = {}) {
     badgeCertificate.textContent = certificateLabel(puzzle?.certificate, solvable);
     badgeCertificate.dataset.status = certificateStatus(puzzle?.certificate, solvable);
     badgeCertificate.hidden = badgeCertificate.textContent === '';
-    badgeStorage.textContent = state.storageWarning ?? '';
+    badgeStorage.textContent = state.storageWarning === null ? '' : t('ui.saveFailed');
     badgeStorage.hidden = state.storageWarning === null;
   }
 

@@ -562,7 +562,7 @@ function movableTarget(node) {
 }
 
 /**
- * See the T16 task for the event contract.
+ * Draws a board in `host`: the step 1 editor (`edit`), the game board (`play`) or a static preview (`thumbnail`).
  * @param {HTMLElement} host
  * @param {BoardViewOptions} opts
  * @returns {BoardView}
@@ -803,8 +803,6 @@ export function mountBoard(host, opts) {
       const fresh = pieceNodes.findIndex((node) => node.getAttribute('data-piece-id') === heldId && node.getAttribute('data-movable') === 'true');
       if (fresh >= 0) {
         pieceNodes.splice(fresh, 1);
-      }
-      if (fresh >= 0) {
         held.removeAttribute('visibility');
       } else {
         held.setAttribute('visibility', 'hidden');

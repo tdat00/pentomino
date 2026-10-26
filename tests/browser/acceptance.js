@@ -438,6 +438,10 @@ function smallTargets(frame) {
     if (style.display === 'none' || style.visibility === 'hidden' || node.closest('[hidden]') !== null || /** @type {HTMLButtonElement} */ (node).disabled) {
       continue;
     }
+    // Documented exceptions: the 28 px board tools, the 24 px ✕ of a puzzle card, and the footer link inside its line of text.
+    if (node.closest('.board-tools') !== null || node.matches('.card-remove') || node.closest('.app-footer') !== null) {
+      continue;
+    }
     const target = node instanceof frame.win().HTMLInputElement && ['checkbox', 'radio'].includes(node.type) ? node.closest('label') ?? node : node;
     const box = rect(target);
     if (box.width === 0 || box.height === 0 || (node.getAttribute('type') === 'file' && node.hasAttribute('hidden'))) {
@@ -609,18 +613,19 @@ await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces pane
   return { order, trayLeft: Math.round(tray.left), boardRight: Math.round(board.right) };
 });
 
-await check('L4', 'Player narrow layout (< 768 px): header, game (board), then puzzles in that vertical order; the pieces are a bar fixed to the bottom of the window, in one row, without the turn and flip buttons', async () => {
+await check('L4', 'Player narrow layout (< 768 px): header, puzzle navigator, then the board in that vertical order, no puzzle cards; the pieces are a bar fixed to the bottom of the window, in one row, without the turn and flip buttons', async () => {
   const frame = await openFrame('../../player/', { width: 700, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
   await waitFor(() => frame.doc().querySelector('#app[data-screen="game"]') !== null, 'the game');
   const d = frame.doc();
   q(d, '.tray-piece').click();
   await sleep(100);
-  const tops = ['.app-header', '.pm-board', '.puzzle-cards'].map((s) => rect(q(d, s)).top);
+  const tops = ['.app-header', '[data-role="puzzle-nav"]', '.pm-board'].map((s) => rect(q(d, s)).top);
   for (let i = 1; i < tops.length; i += 1) {
-    assert(tops[i] >= tops[i - 1] - 1, `${i} is below ${i - 1}: ${tops.map(Math.round).join(', ')}`);
+    assert(tops[i] > tops[i - 1], `${i} is below ${i - 1}: ${tops.map(Math.round).join(', ')}`);
   }
-  const bar = q(d, '.app-side');
   const win = /** @type {Window} */ (d.defaultView);
+  assert(win.getComputedStyle(q(d, '.app-history')).display === 'none', 'the puzzle cards are not shown');
+  const bar = q(d, '.app-side');
   assert(win.getComputedStyle(bar).position === 'fixed' && Math.abs(rect(bar).bottom - win.innerHeight) < 2, 'the pieces bar is fixed to the bottom of the window');
   assert(win.getComputedStyle(q(d, '[data-host="tray"]')).flexWrap === 'nowrap', 'the pieces are one row');
   assert(win.getComputedStyle(q(d, '.selection-actions')).display === 'none', 'no turn and flip buttons');
@@ -630,9 +635,9 @@ await check('L4', 'Player narrow layout (< 768 px): header, game (board), then p
 
 const coarsePointer = matchMedia('(pointer: coarse)').matches;
 if (!coarsePointer) {
-  blocked('A1', 'Touch targets >= 44 px in the narrow layouts (generator and player)', 'The 44 px target rule is defined for coarse pointers (common.css, player.css), and this run used a fine pointer. Rerun this page on a touch device or with the browser emulating pointer: coarse (CDP Emulation.setEmulatedMedia) to evaluate it.');
+  blocked('A1', 'Touch targets >= 44 px from 768 px (generator and player)', 'The 44 px target rule is defined for coarse pointers (common.css, page.css, player.css), and this run used a fine pointer. Rerun this page on a touch device or with the browser emulating touch (CDP Emulation.setTouchEmulationEnabled) to evaluate it.');
 } else {
-  await check('A1', 'Touch targets >= 44 px in the narrow layouts (generator and player), coarse pointer active', async () => {
+  await check('A1', 'Touch targets >= 44 px from 768 px (generator and player, at 800 px), coarse pointer active', async () => {
     const gen = await openFrame('../../generator/index.html', { width: 800, height: 900, ready: generatorReady });
     const g = smallTargets(gen);
     scan(gen);
