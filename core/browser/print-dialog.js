@@ -3,21 +3,26 @@
 // (print.css shows only it while printing), so nothing leaves the browser. Texts are marked with `data-i18n`, so the
 // app's language switch refreshes them; `t` is the app's lookup.
 //
-// The puzzle code and the QR symbol are prepared before Print is ready: the dialog takes the job's snapshot when it
-// opens, prepares its code in a worker for that snapshot and Player address, and only then enables Print. Size, piece,
-// board, two-sided and solution choices lay the same prepared data out again; a change of the puzzle, its angle or its
-// printed heading starts a new preparation, and a late answer of an older one is ignored.
+// The puzzle codes and the QR symbols are prepared before Print is ready: the dialog takes the snapshot of every puzzle
+// it prints when it opens, prepares their codes one after the other in a worker for that snapshot and Player address,
+// and only then enables Print. Size, piece, board, two-sided, solution and page choices lay the same prepared data out
+// again; a change of a puzzle, its angle or its printed heading, or of the puzzles chosen, starts a new preparation of
+// what is not prepared yet, and a late answer of an older one is ignored.
+//
+// With a list of puzzles the dialog has two columns: the options on the left and, on the right, the puzzles of the list
+// to choose from and how many of them go on a sheet.
 
 import { el } from './dom.js';
-import { CELL_MM, PRINT_SIZES, planPrint } from './print-layout.js';
+import { CELL_MM, PER_PAGE_CHOICES, PRINT_SIZES, planPrintMany } from './print-layout.js';
 import { buildPrintPages, createTextMeasure, formatMm } from './print-sheet.js';
 import { createPuzzleCodeClient } from './puzzle-code-client.js';
-import { isSameSnapshot, preparePuzzleShare, puzzlePlayerTarget } from './puzzle-snapshot.js';
+import { PUBLIC_PLAYER_URL, preparePuzzleShare, puzzlePlayerTarget } from './puzzle-snapshot.js';
 
 /** @typedef {import('../engine/types.js').Board} Board */
 /** @typedef {import('../engine/types.js').Piece} Piece */
 /** @typedef {import('../engine/types.js').Pose} Pose */
 /** @typedef {import('./print-layout.js').PrintOptions} PrintOptions */
+/** @typedef {import('./print-layout.js').PerPage} PerPage */
 /** @typedef {import('./puzzle-snapshot.js').PuzzleSnapshot} PuzzleSnapshot */
 /** @typedef {import('./puzzle-snapshot.js').PreparedPuzzleShare} PreparedPuzzleShare */
 
@@ -27,7 +32,8 @@ import { isSameSnapshot, preparePuzzleShare, puzzlePlayerTarget } from './puzzle
  * @property {Piece[]} pieces Every piece of the set, the pre-placed ones included.
  * @property {Pose[]} clues Pre-placed pieces of the puzzle.
  * @property {number} rotation Angle the board is shown at (counter-clockwise degrees).
- * @property {string} title The heading of the sheet; with a snapshot, its heading.
+ * @property {string} title The heading printed on the puzzle's sheet: the name the puzzle has in the app's list ("Puzzle #6").
+ *   The code in the snapshot carries its own heading.
  * @property {PrintLine[]} details Lines under the title (see `puzzleDetails`).
  * @property {Pose[] | null} [solution] Every piece placed, for the "Print solution" option.
  * @property {PuzzleSnapshot | null} [snapshot] The puzzle exactly as its code carries it. A job without one prints no
@@ -39,15 +45,13 @@ import { isSameSnapshot, preparePuzzleShare, puzzlePlayerTarget } from './puzzle
 const BOLD_MARK = '\u0000';
 
 /**
- * The lines under the title of a printed puzzle, with the level names in bold, so the puzzle and its piece set can be
- * made again: "Nightmare: score 123" and "Set: Expert, ABCD-EFGH-JKLM". The seed of the puzzle is not printed: it
- * cannot recreate the puzzle by itself.
+ * The line under the title of a printed puzzle, with the level name in bold: "Nightmare: score 123". Neither the seed
+ * of the puzzle nor the set's level and seed are printed: they cannot recreate the puzzle by themselves.
  * @param {(key: string, args?: Record<string, unknown>) => string} t
  * @param {{ level: string, score: number, saturated?: boolean } | null} rating Level name already in the reader's language.
- * @param {{ level: string | null, seed: string } | null} set Level name and seed of the piece set.
  * @returns {PrintLine[]}
  */
-export function puzzleDetails(t, rating, set) {
+export function puzzleDetails(t, rating) {
   /**
    * @param {string} key
    * @param {Record<string, unknown>} args
@@ -64,17 +68,33 @@ export function puzzleDetails(t, rating, set) {
     const score = `${Number.isFinite(rating.score) ? Math.round(rating.score) : 0}${rating.saturated === true ? '+' : ''}`;
     lines.push(rich('print.sheet.ratingOnly', { score }, rating.level));
   }
-  if (set !== null && set.seed !== '') {
-    lines.push(set.level === null ? [{ text: t('print.sheet.setSeed', { seed: set.seed }) }] : rich('print.sheet.set', { seed: set.seed }, set.level));
-  }
   return lines;
 }
+
+/**
+ * @typedef {object} PrintListItem A puzzle of the app's list that the dialog offers.
+ * @property {string} id Stable id of the puzzle in its list.
+ * @property {string} title The name the puzzle is shown with.
+ * @property {string} detail Its level and score, already in the reader's language ('' when it has none).
+ * @property {number} [order] Where the puzzle is printed among the chosen ones (ascending); the position in `items`
+ *   when absent. The list may show the puzzles in another order, such as newest first.
+ * @property {() => PrintJob | null} job The puzzle as a job; read for the chosen puzzles only.
+ */
+
+/**
+ * @typedef {object} PrintList
+ * @property {string | null} current Id of the puzzle on show: the one chosen when the dialog opens.
+ * @property {PrintListItem[]} items The puzzles of the list, in order. They share one board and piece set.
+ */
 
 /**
  * @typedef {object} PrintDialogOptions
  * @property {HTMLElement} host Where the dialog element lives.
  * @property {(key: string, args?: Record<string, unknown>) => string} t
  * @property {() => PrintJob | null} getJob The puzzle to print, read when the dialog opens and when Print is pressed.
+ *   Without `getPuzzles` it is the only puzzle.
+ * @property {() => PrintList | null} [getPuzzles] The puzzles of the app's list. With more than one the dialog has a
+ *   second column to choose the puzzles to print and how many go on a sheet; `getJob` is then not used.
  * @property {boolean} [solutionOption] Offer "Print solution" (the generator does; the player does not).
  * @property {Window & typeof globalThis} [win]
  * @property {string | URL} [pageBase] The page's address, from which the Player address is derived (`document.baseURI`).
@@ -87,7 +107,7 @@ export function puzzleDetails(t, rating, set) {
 let dialogCount = 0;
 
 /** @type {PrintOptions} */
-const DEFAULT_OPTIONS = Object.freeze({ pieces: true, board: true, size: 'medium', duplex: false, solution: false });
+const DEFAULT_OPTIONS = Object.freeze({ pieces: true, board: true, size: 'medium', duplex: false, solution: false, perPage: 1 });
 
 /**
  * Prints the pages: they replace the app on paper only while the browser prints.
@@ -118,10 +138,18 @@ export function printPages(doc, win, pages) {
 }
 
 /**
+ * @param {PrintJob} job
+ * @returns {string | null} What identifies the code of the job: its snapshot's heading and content; null for no code.
+ */
+function shareKey(job) {
+  return job.snapshot == null ? null : `${job.snapshot.heading}\u0000${job.snapshot.key}`;
+}
+
+/**
  * @param {PrintDialogOptions} options
  */
 export function createPrintDialog({
-  host, t, getJob, solutionOption = false, win: windowOverride, pageBase, createClient = createPuzzleCodeClient, watch,
+  host, t, getJob, getPuzzles, solutionOption = false, win: windowOverride, pageBase, createClient = createPuzzleCodeClient, watch,
 }) {
   const doc = host.ownerDocument;
   const win = windowOverride ?? /** @type {Window & typeof globalThis} */ (doc.defaultView ?? globalThis);
@@ -129,6 +157,9 @@ export function createPrintDialog({
   const headingId = `pm-print-title-${dialogCount}`;
   /** @type {PrintOptions} */
   let options = { ...DEFAULT_OPTIONS };
+  /** Ids of the puzzles chosen in the list (used only while the list has more than one puzzle). */
+  let selected = new Set(/** @type {string[]} */ ([]));
+  let multi = false;
 
   /**
    * @param {string} key
@@ -182,37 +213,53 @@ export function createPrintDialog({
   const cancel = /** @type {HTMLButtonElement} */ (el('button', { className: 'pm-btn', attrs: { type: 'button' }, dataset: { action: 'print-cancel', i18n: 'print.cancel' }, text: t('print.cancel') }));
   const confirm = /** @type {HTMLButtonElement} */ (el('button', { className: 'pm-btn primary', attrs: { type: 'button' }, dataset: { action: 'print-confirm', i18n: 'print.confirm' }, text: t('print.confirm') }));
 
-  // The puzzle code and its QR: what is being prepared, where the QR leads, and what had to be left out.
+  // The second column: the puzzles of the list to choose from, and how many go on a sheet.
+  const listEl = el('ul', { className: 'pm-print-list', dataset: { role: 'print-list' } });
+  const countLine = el('span', { className: 'pm-print-count', attrs: { role: 'status' }, dataset: { role: 'print-count' } });
+  const selectAll = /** @type {HTMLButtonElement} */ (el('button', {
+    className: 'pm-btn', attrs: { type: 'button' }, dataset: { action: 'print-select-all', i18n: 'print.puzzles.all' }, text: t('print.puzzles.all'),
+  }));
+  const selectNone = /** @type {HTMLButtonElement} */ (el('button', {
+    className: 'pm-btn', attrs: { type: 'button' }, dataset: { action: 'print-select-none', i18n: 'print.puzzles.clear' }, text: t('print.puzzles.clear'),
+  }));
+  const puzzlesField = el('fieldset', { className: 'pm-print-field pm-print-puzzles', dataset: { role: 'print-puzzles' } },
+    loc('print.puzzles', 'legend'),
+    el('div', { className: 'pm-print-list-bar' }, countLine, el('div', { className: 'pm-print-cluster' }, selectAll, selectNone)),
+    listEl);
+  const perPageName = `pm-print-per-page-${dialogCount}`;
+  const perPageLabelId = `pm-print-per-page-label-${dialogCount}`;
+  const perPageRadios = PER_PAGE_CHOICES.map((n) => /** @type {HTMLInputElement} */ (el('input', {
+    attrs: { type: 'radio', name: perPageName, value: String(n) }, dataset: { field: 'print-per-page' },
+  })));
+  // A label and the choices as buttons in a row, the way the sudoku generator's Print dialog has them.
+  const perPageField = el('div', { className: 'pm-print-per-page', dataset: { role: 'print-per-page' } },
+    el('div', { className: 'pm-print-per-page-row' },
+      el('span', { className: 'pm-print-label', attrs: { id: perPageLabelId }, dataset: { i18n: 'print.perPage' }, text: t('print.perPage') }),
+      el('div', { className: 'pm-print-choices', attrs: { role: 'radiogroup', 'aria-labelledby': perPageLabelId } },
+        ...PER_PAGE_CHOICES.map((n, i) => el('label', { className: 'pm-print-choice' }, perPageRadios[i], loc(`print.perPage.${n}`, 'span'))))),
+    loc('print.perPage.hint', 'small'));
+  const side = el('div', { className: 'pm-print-side', attrs: { hidden: '' }, dataset: { role: 'print-side' } }, perPageField, puzzlesField);
+
+  // The puzzle codes and their QR: what is being prepared, where the QR leads, and what had to be left out.
   const codeStatus = el('p', { className: 'pm-print-code-status', dataset: { role: 'print-code-status' } });
-  const codeTarget = el('p', { className: 'pm-print-code-target', dataset: { role: 'print-target' } });
   const codeNotes = el('ul', { className: 'pm-print-code-notes', dataset: { role: 'print-notices' } });
   const retry = /** @type {HTMLButtonElement} */ (el('button', {
     className: 'pm-btn', attrs: { type: 'button', hidden: '' }, dataset: { action: 'print-retry', i18n: 'print.code.retry' }, text: t('print.code.retry'),
   }));
-  const useThisPage = /** @type {HTMLInputElement} */ (el('input', { attrs: { type: 'checkbox' }, dataset: { field: 'print-use-this-page' } }));
-  // Offered on a local page only (see `puzzlePlayerTarget`); the choice lives in the open dialog and is not stored.
-  const useThisPageLabel = el('label', { className: 'pm-print-toggle pm-print-local', attrs: { hidden: '' } }, useThisPage, loc('print.code.useThisPage', 'span'));
   const codeBox = el('div', { className: 'pm-print-code-box', attrs: { hidden: '' }, dataset: { role: 'print-code', state: 'idle' } },
-    el('div', { attrs: { role: 'status' } }, codeStatus, codeTarget, codeNotes), retry, useThisPageLabel);
+    el('div', { attrs: { role: 'status' } }, codeStatus, codeNotes), retry);
   const dialog = /** @type {HTMLDialogElement} */ (el('dialog', { className: 'pm-print-dialog', attrs: { 'aria-labelledby': headingId } },
     el('h2', { className: 'pm-print-title', attrs: { id: headingId }, dataset: { i18n: 'print.title' }, text: t('print.title') }),
     loc('print.intro', 'p'),
-    el('div', { className: 'pm-print-options' }, pieces.label, board.label, duplex.label, ...(solution === null ? [] : [solution.label]), sizeField),
-    codeBox,
-    summary,
+    el('div', { className: 'pm-print-body' },
+      el('div', { className: 'pm-print-main' },
+        el('div', { className: 'pm-print-options' }, pieces.label, board.label, duplex.label, ...(solution === null ? [] : [solution.label]), sizeField),
+        codeBox,
+        summary),
+      side),
     el('div', { className: 'pm-print-actions' }, cancel, confirm)));
   host.append(dialog);
 
-  /**
-   * One preparation of the code: for this snapshot and Player address, in one of three states.
-   * @typedef {object} Session
-   * @property {PuzzleSnapshot | null} snapshot Null for a job that asks for no code.
-   * @property {ReturnType<typeof puzzlePlayerTarget>} info
-   * @property {'preparing' | 'ready' | 'error'} state
-   * @property {PreparedPuzzleShare | null} share
-   */
-  /** @type {Session | null} */
-  let session = null;
   /** True from open() until the dialog is closed: only then is a preparation kept up to date. */
   let active = false;
   /** @type {(() => void) | null} */
@@ -221,13 +268,47 @@ export function createPrintDialog({
   let client = null;
   /** @type {import('./print-layout.js').TextMeasure | null} */
   let measure = null;
+  /** The Player address the QR codes of this opening lead to. */
+  let target = '';
+  /** The prepared codes of this opening by `shareKey`: what a change of the choices never has to prepare again. */
+  const shares = new Map(/** @type {[string, PreparedPuzzleShare][]} */ ([]));
+  /** The preparation under way: the keys it covers. A change of the choices keeps it while it covers what is missing. */
+  /** @type {{ keys: Set<string> } | null} */
+  let running = null;
+  /** What the last failed preparation was missing: the dialog shows the failure until **Try again** or a new choice. */
+  let failedFor = '';
+  let doneCount = 0;
+  let totalCount = 0;
+  let lastSignature = '';
+  /** What the list was last drawn for. */
+  let listSignature = '';
+
+  /** @returns {PrintList} The puzzles on offer. */
+  function listNow() {
+    if (getPuzzles === undefined) {
+      return { current: '', items: [{ id: '', title: '', detail: '', job: getJob }] };
+    }
+    return getPuzzles() ?? { current: null, items: [] };
+  }
+
+  /**
+   * @param {PrintList} list
+   * @returns {PrintJob[]} The jobs to print, in the order of their `order`.
+   */
+  function jobsOf(list) {
+    const chosen = list.items.length > 1 ? list.items.filter((item) => selected.has(item.id)) : list.items;
+    const printed = chosen.map((item, at) => ({ item, key: item.order ?? at })).sort((a, b) => a.key - b.key);
+    return /** @type {PrintJob[]} */ (printed.map(({ item }) => item.job()).filter((job) => job !== null));
+  }
 
   /** @returns {PrintOptions} */
   function read() {
     const chosen = /** @type {import('./print-layout.js').PrintSize} */ (sizeRadios.find((radio) => radio.checked)?.value);
+    const perPage = Number(perPageRadios.find((radio) => radio.checked)?.value);
     return {
       pieces: pieces.input.checked, board: board.input.checked, size: PRINT_SIZES.includes(chosen) ? chosen : 'medium', duplex: duplex.input.checked,
       solution: solution !== null && solution.input.checked && !solution.input.disabled,
+      perPage: multi && PER_PAGE_CHOICES.includes(/** @type {PerPage} */ (perPage)) ? /** @type {PerPage} */ (perPage) : 1,
     };
   }
 
@@ -241,17 +322,17 @@ export function createPrintDialog({
     for (const radio of sizeRadios) {
       radio.checked = radio.value === options.size;
     }
+    for (const radio of perPageRadios) {
+      radio.checked = Number(radio.value) === (options.perPage ?? 1);
+    }
   }
 
-  /**
-   * @returns {ReturnType<typeof puzzlePlayerTarget>} Where the QR leads: the page's own Player on the public web, the
-   *   public Player from a local page unless the developer override is checked.
-   */
-  function targetInfo() {
+  /** @returns {string} Where the QR leads: the Player of the page the dialog is opened on. */
+  function playerTarget() {
     try {
-      return puzzlePlayerTarget(pageBase ?? doc.baseURI, { useThisPage: useThisPage.checked });
+      return puzzlePlayerTarget(pageBase ?? doc.baseURI);
     } catch {
-      return puzzlePlayerTarget('https://localhost/');
+      return PUBLIC_PLAYER_URL;
     }
   }
 
@@ -277,156 +358,276 @@ export function createPrintDialog({
     node.textContent = '';
   }
 
-  /** Cancels the preparation that is running and forgets the session. */
+  /** Cancels the preparation that is running. */
   function drop() {
-    if (session?.state === 'preparing') {
+    if (running !== null) {
       client?.cancel();
     }
-    session = null;
+    running = null;
   }
 
   /**
-   * Starts the preparation of a job's snapshot for the current target. An older preparation that is still running
-   * finds itself replaced and its answer is ignored.
-   * @param {PrintJob} job
+   * @param {PrintJob[]} jobs
+   * @returns {{ key: string, snapshot: PuzzleSnapshot }[]} The codes the jobs still need, each once.
    */
-  function begin(job) {
-    drop();
-    const snapshot = job.snapshot ?? null;
-    const info = targetInfo();
-    if (snapshot === null) {
-      session = { snapshot: null, info, state: 'ready', share: null };
+  function missingOf(jobs) {
+    /** @type {Map<string, PuzzleSnapshot>} */
+    const missing = new Map();
+    for (const job of jobs) {
+      const key = shareKey(job);
+      if (key !== null && !shares.has(key) && !missing.has(key)) {
+        missing.set(key, /** @type {PuzzleSnapshot} */ (job.snapshot));
+      }
+    }
+    return [...missing].map(([key, snapshot]) => ({ key, snapshot }));
+  }
+
+  /**
+   * Starts preparing what the jobs need and is not prepared, unless that is under way or has just failed. An older
+   * preparation that no longer covers it is cancelled and its answer ignored.
+   * @param {PrintJob[]} jobs
+   */
+  function ensure(jobs) {
+    const missing = missingOf(jobs);
+    if (missing.length === 0) {
+      drop();
+      failedFor = '';
       return;
     }
-    /** @type {Session} */
-    const mine = { snapshot, info, state: 'preparing', share: null };
-    session = mine;
-    /** @param {Session['state']} state @param {PreparedPuzzleShare | null} share */
-    const settle = (state, share) => {
-      if (session !== mine) {
-        return;
+    const signature = missing.map((item) => item.key).join('\n');
+    if (failedFor === signature || (running !== null && missing.every((item) => /** @type {{ keys: Set<string> }} */ (running).keys.has(item.key)))) {
+      return;
+    }
+    drop();
+    failedFor = '';
+    /** @type {{ keys: Set<string> }} */
+    const mine = { keys: new Set(missing.map((item) => item.key)) };
+    running = mine;
+    totalCount = missing.length;
+    doneCount = 0;
+    const fail = () => {
+      if (running === mine) {
+        running = null;
+        failedFor = signature;
+        update();
       }
-      mine.state = state;
-      mine.share = share;
-      update();
     };
     try {
       client ??= createClient();
-      preparePuzzleShare(snapshot, { target: info.target, client, targetNotice: info.notice }).then(
-        (share) => settle('ready', share),
-        () => settle('error', null));
     } catch {
-      mine.state = 'error';
+      fail();
+      return;
     }
+    const worker = client;
+    (async () => {
+      for (const { key, snapshot } of missing) {
+        let share;
+        try {
+          share = await preparePuzzleShare(snapshot, { target, client: worker });
+        } catch {
+          fail();
+          return;
+        }
+        if (running !== mine) {
+          return;
+        }
+        shares.set(key, share);
+        doneCount += 1;
+        if (doneCount < totalCount) {
+          renderCode(jobsOf(listNow()));
+        }
+      }
+      if (running === mine) {
+        running = null;
+        update();
+      }
+    })();
+  }
+
+  /**
+   * @param {PrintJob[]} jobs
+   * @returns {boolean} Whether Print may run for these jobs: their codes are prepared, or they ask for none.
+   */
+  function ready(jobs) {
+    return jobs.every((job) => {
+      const key = shareKey(job);
+      return key === null || shares.has(key);
+    });
   }
 
   /**
    * @param {PrintJob} job
-   * @returns {boolean} Whether the session is the preparation of this very job.
+   * @returns {PreparedPuzzleShare | null | undefined} The prepared code; null for a job with no code, undefined while it is not prepared.
    */
-  function current(job) {
-    return session !== null && (job.snapshot == null ? session.snapshot === null : isSameSnapshot(session.snapshot, job.snapshot));
+  function shareOf(job) {
+    const key = shareKey(job);
+    return key === null ? null : shares.get(key);
   }
 
   /**
-   * @param {PrintJob} job
-   * @returns {boolean} Whether Print may run for this job: its code is prepared, or it asks for none.
+   * @param {PrintJob[]} jobs
+   * @returns {'idle' | 'preparing' | 'ready' | 'error'}
    */
-  function ready(job) {
-    return current(job) && session?.state === 'ready';
+  function stateOf(jobs) {
+    if (!jobs.some((job) => shareKey(job) !== null)) {
+      return 'idle';
+    }
+    if (ready(jobs)) {
+      return 'ready';
+    }
+    return failedFor !== '' && failedFor === missingOf(jobs).map((item) => item.key).join('\n') ? 'error' : 'preparing';
   }
 
   /**
-   * @param {PrintJob} job
-   * @param {PreparedPuzzleShare | null | undefined} share
-   * @returns {import('./print-layout.js').PrintJobInput}
+   * @param {PrintJob[]} jobs
+   * @param {PrintOptions} chosen
+   * @returns {import('./print-layout.js').PrintPlan}
    */
-  function planned(job, share) {
+  function plan(jobs, chosen) {
     measure ??= createTextMeasure(doc);
-    return { ...job, title: job.snapshot?.heading ?? job.title, share, measure };
+    const inputs = jobs.map((job) => ({ ...job, share: shareOf(job), measure: /** @type {import('./print-layout.js').TextMeasure} */ (measure) }));
+    return planPrintMany(inputs, chosen);
   }
 
-  /** Shows what the code needs, in the dialog's own words. */
-  function renderCode() {
-    const mine = session;
-    const state = mine === null || mine.snapshot === null ? 'idle' : mine.state;
+  /**
+   * Shows what the codes need, in the dialog's own words.
+   * @param {PrintJob[]} jobs
+   */
+  function renderCode(jobs) {
+    const state = stateOf(jobs);
     codeBox.dataset.state = state;
     codeBox.hidden = state === 'idle';
     retry.hidden = state !== 'error';
-    useThisPageLabel.hidden = mine === null || !mine.info.local || state === 'idle';
     if (state === 'preparing') {
       setText(codeStatus, 'print.code.preparing');
+      if (totalCount > 1 && running !== null) {
+        codeStatus.textContent = `${t('print.code.preparing')} ${Math.min(doneCount + 1, totalCount)} / ${totalCount}`;
+      }
     } else if (state === 'error') {
       setText(codeStatus, 'print.code.error');
     } else {
       clearText(codeStatus);
     }
-    const share = state === 'ready' ? mine?.share ?? null : null;
-    if (share?.qr) {
-      setText(codeTarget, 'print.code.target', { url: mine?.info.target });
+    // Not shown: the dialog says nothing of the address; it is kept for the checks that read where the QR leads.
+    const first = state === 'ready' ? shareOf(jobs[0]) : null;
+    if (first?.qr) {
+      codeBox.dataset.target = target;
     } else {
-      clearText(codeTarget);
+      delete codeBox.dataset.target;
     }
-    // The target's own notices are known at once; the ladder's come with the prepared code.
-    const notices = share !== null ? share.notices : mine?.info.notice ? [mine.info.notice] : [];
-    codeNotes.replaceChildren(...(state === 'idle' || state === 'error' ? [] : notices).map((notice) => {
-      const item = el('li', { dataset: { notice } });
-      setText(item, `print.code.${notice}`);
-      return item;
-    }));
+    // The notices come with the prepared codes; with several puzzles each says which puzzle it is about.
+    /** @type {HTMLElement[]} */
+    const items = [];
+    if (state === 'ready') {
+      for (const job of jobs) {
+        for (const notice of shareOf(job)?.notices ?? []) {
+          const item = el('li', { dataset: { notice } });
+          if (jobs.length > 1) {
+            item.textContent = `${job.title}: ${t(`print.code.${notice}`)}`;
+          } else {
+            setText(item, `print.code.${notice}`);
+          }
+          items.push(item);
+        }
+      }
+    }
+    codeNotes.replaceChildren(...items);
   }
 
   /**
-   * Writes the whole dialog again for the current job: the preparation (restarted when the job's snapshot is no longer
-   * the prepared one), the code section, the paper each size needs and the notes on the board.
+   * Draws the puzzle list again when it has changed; otherwise only the ticks follow the selection.
+   * @param {PrintList} list
+   */
+  function renderList(list) {
+    const signature = JSON.stringify(list.items.map((item) => [item.id, item.title, item.detail]));
+    if (signature !== listSignature) {
+      listSignature = signature;
+      listEl.replaceChildren(...list.items.map((item) => {
+        const input = /** @type {HTMLInputElement} */ (el('input', { attrs: { type: 'checkbox', value: item.id }, dataset: { field: 'print-puzzle' } }));
+        input.addEventListener('change', () => {
+          if (input.checked) {
+            selected.add(item.id);
+          } else {
+            selected.delete(item.id);
+          }
+          update();
+        });
+        return el('li', { dataset: { puzzle: item.id } },
+          el('label', { className: 'pm-print-puzzle' }, input,
+            el('span', {}, el('strong', { text: item.title }), ...(item.detail === '' ? [] : [` · ${item.detail}`]))));
+      }));
+    }
+    for (const input of /** @type {NodeListOf<HTMLInputElement>} */ (listEl.querySelectorAll('input'))) {
+      input.checked = selected.has(input.value);
+    }
+    setText(countLine, 'print.puzzles.count', { count: list.items.filter((item) => selected.has(item.id)).length, total: list.items.length });
+  }
+
+  /** @returns {string} What a change of the app's state would have to differ in for the dialog to need drawing again. */
+  function signatureOf() {
+    const list = listNow();
+    return JSON.stringify([list.current, list.items.map((item) => [item.id, item.title, item.detail]), jobsOf(list).map((job) => [shareKey(job), job.title, (job.solution ?? []).length])]);
+  }
+
+  /**
+   * Writes the whole dialog again for the current puzzles: the preparation (started for what is not prepared), the list,
+   * the code section, the paper each size needs and the notes on the board.
    */
   function update() {
-    const job = getJob();
+    const list = listNow();
+    multi = list.items.length > 1;
+    selected = new Set([...selected].filter((id) => list.items.some((item) => item.id === id)));
+    side.hidden = !multi;
+    dialog.dataset.layout = multi ? 'two' : 'one';
+    if (multi) {
+      renderList(list);
+    }
+    const jobs = jobsOf(list);
     if (solution !== null) {
       // A puzzle without a stored solution cannot print one; the choice comes back with the next puzzle that has one.
-      const none = (job?.solution ?? []).length === 0;
+      const none = jobs.every((job) => (job.solution ?? []).length === 0);
       solution.input.disabled = none;
-      solution.label.title = none ? t('print.solution.none') : '';
+      solution.label.title = none ? t(jobs.length > 1 ? 'print.solution.none.many' : 'print.solution.none') : '';
     }
     options = { ...read(), solution: solution !== null && solution.input.checked };
     if (active) {
-      if (job === null) {
+      if (jobs.length === 0) {
         drop();
-      } else if (!current(job)) {
-        begin(job);
+      } else {
+        ensure(jobs);
       }
     }
-    renderCode();
-    confirm.disabled = job === null || !ready(job);
-    if (job === null) {
-      summary.textContent = '';
+    lastSignature = signatureOf();
+    renderCode(jobs);
+    confirm.disabled = jobs.length === 0 || !ready(jobs);
+    if (jobs.length === 0) {
+      summary.textContent = multi ? t('print.puzzles.empty') : '';
       for (const cell of sheetCells) {
         cell.textContent = '';
       }
       return;
     }
-    const share = ready(job) ? session?.share : undefined;
-    const waiting = job.snapshot != null && !ready(job);
+    const waiting = !ready(jobs);
     for (const [i, id] of PRINT_SIZES.entries()) {
-      // The paper depends on the code only through its continuation sheets, which are known once it is prepared.
-      sheetCells[i].textContent = waiting ? '…' : String(planPrint(planned(job, share), { ...read(), size: id }).paper);
+      // The first sheet is laid out around the QR, which is known once the code is prepared.
+      sheetCells[i].textContent = waiting ? '…' : String(plan(jobs, { ...read(), size: id }).paper);
     }
-    const plan = planPrint(planned(job, share), read());
+    const printout = plan(jobs, read());
     // The table says how much paper each size needs; this line only explains the board.
     const notes = [];
-    if (plan.boardParts > 1) {
-      notes.push(t('print.summary.parts', { count: plan.boardParts }));
+    if (printout.boardParts > 1) {
+      notes.push(t('print.summary.parts', { count: printout.boardParts }));
     }
-    if (plan.turned) {
+    if (printout.turned) {
       notes.push(t('print.summary.turned'));
     }
     summary.textContent = notes.join(' ');
-    if (plan.reduced) {
+    if (printout.reduced) {
       summary.append(el('span', { className: 'pm-print-warning', text: t('print.summary.reduced') }));
     }
   }
 
-  /** Ends the open dialog's work: the preparation is cancelled and the choices that live only while it is open reset. */
+  /** Ends the open dialog's work: the preparation is cancelled and the prepared codes are forgotten. */
   function teardown() {
     if (!active) {
       return;
@@ -435,43 +636,41 @@ export function createPrintDialog({
     unwatch?.();
     unwatch = null;
     drop();
-    useThisPage.checked = false;
+    shares.clear();
+    failedFor = '';
   }
 
   function run() {
-    const job = getJob();
-    if (job === null) {
+    const jobs = jobsOf(listNow());
+    if (jobs.length === 0) {
       return;
     }
-    if (!ready(job)) {
-      // The puzzle changed since the code was prepared: prepare it again; printing needs a new press when it is ready.
+    if (!ready(jobs)) {
+      // A puzzle changed since the codes were prepared: prepare them again; printing needs a new press when they are ready.
       update();
       return;
     }
     options = { ...read(), solution: solution !== null && solution.input.checked };
-    const plan = planPrint(planned(job, session?.share), read());
-    const pages = buildPrintPages(plan, { title: job.snapshot?.heading ?? job.title, details: job.details }, t);
+    const printout = plan(jobs, read());
+    const pages = buildPrintPages(printout, jobs.map((job) => ({ title: job.title, details: job.details })), t);
     teardown();
     dialog.close();
     printPages(doc, win, pages);
   }
 
-  for (const input of [pieces.input, board.input, duplex.input, ...(solution === null ? [] : [solution.input]), ...sizeRadios]) {
+  for (const input of [pieces.input, board.input, duplex.input, ...(solution === null ? [] : [solution.input]), ...sizeRadios, ...perPageRadios]) {
     input.addEventListener('change', update);
   }
-  // Another Player address: the same snapshot is prepared again for it.
-  useThisPage.addEventListener('change', () => {
-    const job = getJob();
-    if (job !== null) {
-      begin(job);
-    }
+  selectAll.addEventListener('click', () => {
+    selected = new Set(listNow().items.map((item) => item.id));
+    update();
+  });
+  selectNone.addEventListener('click', () => {
+    selected = new Set();
     update();
   });
   retry.addEventListener('click', () => {
-    const job = getJob();
-    if (job !== null) {
-      begin(job);
-    }
+    failedFor = '';
     update();
   });
   cancel.addEventListener('click', () => {
@@ -493,13 +692,9 @@ export function createPrintDialog({
     }
     opener = null;
   });
-  /** A change of the app's state: a changed puzzle, angle or heading needs a new preparation. */
+  /** A change of the app's state: a changed puzzle, angle or heading, or list, needs a new preparation. */
   const onSourceChange = () => {
-    if (!active) {
-      return;
-    }
-    const job = getJob();
-    if (job === null || !current(job)) {
+    if (active && signatureOf() !== lastSignature) {
       update();
     }
   };
@@ -512,8 +707,13 @@ export function createPrintDialog({
       }
       opener = doc.activeElement;
       write();
-      useThisPage.checked = false;
-      session = null;
+      shares.clear();
+      failedFor = '';
+      running = null;
+      listSignature = '';
+      target = playerTarget();
+      const list = listNow();
+      selected = new Set(list.current === null ? [] : [list.current]);
       active = true;
       unwatch = watch?.(onSourceChange) ?? null;
       update();
@@ -535,8 +735,18 @@ export function createPrintDialog({
         update();
       }
     },
-    /** What the dialog has prepared, for the page's own checks: the state and the prepared share. */
-    prepared: () => (session === null ? null : { state: session.state, share: session.share, target: session.info.target, snapshot: session.snapshot }),
+    /** What the dialog has prepared for its first puzzle, for the page's own checks: the state and the prepared share. */
+    prepared() {
+      if (!active) {
+        return null;
+      }
+      const [job] = jobsOf(listNow());
+      if (job === undefined) {
+        return null;
+      }
+      const state = stateOf([job]);
+      return { state: state === 'idle' ? 'ready' : state, share: shareOf(job) ?? null, target, snapshot: job.snapshot ?? null };
+    },
     destroy() {
       teardown();
       client?.dispose();

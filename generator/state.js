@@ -6,6 +6,7 @@ import {
 } from '../core/engine/board.js';
 import { initialClueCount, level, offeredLevels } from '../core/engine/levels.js';
 import { canonicalKey } from '../core/engine/geometry.js';
+import { isValidLayout } from '../core/engine/tiling.js';
 import { createPack, packBoard, PackError, serializePack, validatePack } from '../core/engine/pack.js';
 import { BUDGETS, POLICY_ID, enabledMaxActive, pieceCountRange, sizeWindow } from '../core/engine/policy.js';
 import { batchSeedFor, normalizeSeedText, randomSeedText, RNG_ID, SEED_SCHEME } from '../core/engine/rng.js';
@@ -564,6 +565,82 @@ export function acceptSet(state, accepted) {
     seenClues: [],
     setsByBoard,
   };
+}
+
+/**
+ * @param {readonly { id: string, cells: readonly XY[] }[]} a
+ * @param {readonly { id: string, cells: readonly XY[] }[]} b
+ * @returns {boolean} Whether both lists hold the same pieces in the same order: ids and cells as stored, so poses that
+ *   name a piece mean the same thing in either set.
+ */
+function samePieces(a, b) {
+  /** @param {readonly XY[]} cells */
+  const shape = (cells) => cells.map((c) => `${c.x},${c.y}`).sort().join(';');
+  return a.length === b.length && a.every((piece, i) => piece.id === b[i].id && shape(piece.cells) === shape(b[i].cells));
+}
+
+/**
+ * @typedef {'new-set' | 'added' | 'exists' | 'sets-full' | 'pack-full'} ImportStatus
+ */
+
+/**
+ * Brings a puzzle opened from a puzzle code (a one-puzzle pack: its board, pieces, clues, claims and stored answer) into
+ * the Generator. The board becomes the editor board at the angle of the code; the piece set of the code is added as a
+ * new set (the set on show joins the saved sets, as when generating), with an `imported` carving and a fresh seed. When
+ * the set on show already is that set, the puzzle joins it instead; a puzzle with the same clues is not added twice.
+ * @param {GeneratorState} state
+ * @param {Pack} pack One puzzle, as `readPuzzleCode` returns it.
+ * @param {() => string} [random] Source of the seed of a new set.
+ * @returns {{ state: GeneratorState, status: ImportStatus }} `state` is unchanged unless the status is `new-set` or `added`.
+ */
+export function importPuzzle(state, pack, random = randomSeedText) {
+  const decodedSet = setFromPack(pack);
+  const [decoded] = puzzlesFromPack(pack);
+  // The stored answer of the puzzle is a whole arrangement of the set: it is the witness that New puzzle needs.
+  const answer = Array.isArray(decoded.solution) && isValidLayout(decodedSet.board, decodedSet.pieces, decoded.solution) ? decoded.solution : null;
+  const set = answer === null ? decodedSet : { ...decodedSet, witness: answer };
+  const shown = state.set;
+  const sameSet = shown !== null && boardsEqual(shown.board, set.board) && samePieces(shown.pieces, set.pieces);
+  // The list that would hold the new set is the one of its own board: the saved sets of that board, and the set on show when it is one of them.
+  const key = boardKey(set.board);
+  const listed = savedFor(state, key).length + (shown !== null && boardKey(shown.board) === key ? 1 : 0);
+  if (!sameSet && listed >= MAX_SETS) {
+    return { state, status: 'sets-full' };
+  }
+  const base = sameSet ? state.puzzles : [];
+  if (base.length >= MAX_PACK_PUZZLES) {
+    return { state, status: 'pack-full' };
+  }
+  const target = sameSet ? /** @type {PieceSet} */ (shown) : set;
+  try {
+    const key = clueKey(target.board, target.pieces, decoded.clues);
+    if (base.some((p) => clueKey(target.board, target.pieces, p.clues) === key)) {
+      return { state, status: 'exists' };
+    }
+  } catch {
+    // A puzzle whose key cannot be made is not recognised as a repeat.
+  }
+  let n = 1;
+  while (base.some((p) => p.id === `imported-${n}`)) {
+    n += 1;
+  }
+  const puzzle = { ...decoded, id: `imported-${n}` };
+  const rotation = pack.presentation?.rotation ?? 0;
+  /** @type {GeneratorState} */
+  let next;
+  if (sameSet) {
+    // A set that came without an answer gets its witness from this puzzle's answer.
+    next = answer !== null && /** @type {PieceSet} */ (shown).witness === null ? { ...state, set: { .../** @type {PieceSet} */ (shown), witness: answer } } : state;
+  } else {
+    const seed = validSeed(random()) ?? randomSeedText();
+    next = withBoard(acceptSet(state, { set, calibration: null, setSeed: seed, calibrationFor: null }), set.board, rotation);
+  }
+  const puzzles = renumberTitles([...next.puzzles, puzzle]);
+  if (!packFits(next, puzzles)) {
+    return { state, status: 'pack-full' };
+  }
+  const added = addSeenKeys({ ...next, puzzles }, puzzle);
+  return { state: { ...added, notice: null, checking: [] }, status: sameSet ? 'added' : 'new-set' };
 }
 
 /**

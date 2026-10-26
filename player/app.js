@@ -15,7 +15,7 @@ import { isPuzzleHash } from '../core/engine/sharecode.js';
 import { createPlayController } from './play.js';
 import { createHintController } from './hints.js';
 import { choose, onChange, setLocale, t } from './i18n.js';
-import { puzzleDisplayName } from './puzzle-title.js';
+import { cardHeading, puzzleDisplayName } from './puzzle-title.js';
 import { createPlayerController, createPlayerStore, effectiveRotation, knownSolvable } from './state.js';
 import {
   HINT_TEXT, LABELS, certificateLabel, certificateStatus, formatElapsed, levelLabel, verificationLabel,
@@ -123,7 +123,6 @@ export function mountPlayer(root, env = {}) {
 
   // The heading takes the focus when a puzzle opens from the code entry and the button that opened it is gone.
   const title = el('h2', { className: 'puzzle-title', attrs: { id: titleId, tabindex: -1 } });
-  const stepHead = el('div', { className: 'step-head' }, title);
   const info = el('p', { className: 'step-hint puzzle-info' });
 
   /**
@@ -178,9 +177,11 @@ export function mountPlayer(root, env = {}) {
     className: 'pm-btn', text: LABELS.straighten, attrs: { type: 'button', hidden: '' }, dataset: { action: 'straighten' },
     on: { click: () => controller.setPref('straighten', !store.getState().prefs.straighten) },
   }));
+  // Print and Copy this puzzle link share the row of the puzzle title, at its right.
+  const stepHead = el('div', { className: 'step-head' }, title, el('div', { className: 'step-actions' }, printButton, copyButton));
   const gameBar = el('div', { className: 'game-bar' },
     el('div', { className: 'game-stats' }, timer, moves),
-    el('div', { className: 'game-actions' }, undo, redo, hintButton, replayButton, printButton, copyButton, straighten));
+    el('div', { className: 'game-actions' }, undo, redo, hintButton, replayButton, straighten));
 
   /**
    * @param {string} action
@@ -370,35 +371,61 @@ export function mountPlayer(root, env = {}) {
     },
   });
   replayDialog.dialog.classList.add('pm-replay');
-  /** @returns {import('../core/browser/print-dialog.js').PrintJob | null} */
-  function printJob() {
-    const { pack, index, game, viewRotation } = store.getState();
-    const puzzle = pack?.puzzles[index];
-    if (pack === null || puzzle === undefined || game === null) {
+  /**
+   * @param {number} at Index of the puzzle in the pack.
+   * @returns {import('../core/browser/print-dialog.js').PrintJob | null}
+   */
+  function printJobAt(at) {
+    const { pack, viewRotation } = store.getState();
+    const puzzle = pack?.puzzles[at];
+    if (pack === null || puzzle === undefined) {
       return null;
     }
     const rating = puzzle.rating;
-    const generation = /** @type {{ setSeed?: unknown, setLevel?: unknown } | undefined} */ (pack.generation);
-    const setSeed = typeof generation?.setSeed === 'string' ? generation.setSeed : null;
-    const setLevel = typeof generation?.setLevel === 'string' ? generation.setLevel : null;
     const rotation = viewRotation ?? pack.presentation?.rotation ?? 0;
     // The code carries the puzzle as stored, with its answer if it has one, at the angle on screen; the Player still
     // offers no solution sheet (no `solution` in the job).
-    const snapshot = puzzleSnapshot({ rows: pack.board.rows, pieces: pack.pieces, puzzle, index, rotation, untitled: LABELS.puzzleNumber });
+    const snapshot = puzzleSnapshot({ rows: pack.board.rows, pieces: pack.pieces, puzzle, index: at, rotation, untitled: LABELS.puzzleNumber });
     return {
       board: packBoard(pack),
       pieces: pack.pieces,
       clues: puzzle.clues,
       rotation,
-      title: snapshot.heading,
+      title: cardHeading(puzzle.title, at),
       details: puzzleDetails(t,
-        rating && typeof rating.score === 'number' ? { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated } : null,
-        setSeed === null ? null : { level: setLevel === null ? null : levelLabel(setLevel), seed: setSeed }),
+        rating && typeof rating.score === 'number' ? { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated } : null),
       snapshot,
     };
   }
+  /** @returns {import('../core/browser/print-dialog.js').PrintJob | null} The puzzle on show. */
+  function printJob() {
+    const { index, game } = store.getState();
+    return game === null ? null : printJobAt(index);
+  }
+  /** @returns {import('../core/browser/print-dialog.js').PrintList | null} Every puzzle of the pack, for the Print dialog to choose from. */
+  function printList() {
+    const { pack, index, game } = store.getState();
+    if (pack === null || game === null) {
+      return null;
+    }
+    return {
+      current: String(index),
+      items: pack.puzzles.map((puzzle, at) => {
+        const rating = puzzle.rating;
+        const lines = puzzleDetails(t,
+          rating && typeof rating.score === 'number' ? { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated } : null);
+        return {
+          id: String(at),
+          title: cardHeading(puzzle.title, at),
+          detail: lines.map((line) => line.map((part) => part.text).join('')).join(' '),
+          job: () => printJobAt(at),
+          order: at,
+        };
+      }).reverse(),
+    };
+  }
   const printDialog = createPrintDialog({
-    host: winHost, t, getJob: printJob, createClient: env.createPuzzleCodeClient, watch: (listener) => store.subscribe(listener),
+    host: winHost, t, getJob: printJob, getPuzzles: printList, createClient: env.createPuzzleCodeClient, watch: (listener) => store.subscribe(listener),
   });
   // Copy this puzzle link: the same snapshot as Print, prepared by the same function, with a client of its own. Its
   // manual-copy dialog lives in the page root, which the start screen never hides.
@@ -456,7 +483,7 @@ export function mountPlayer(root, env = {}) {
   const startView = createStartView(startHost, { onSample: () => void controller.openSample() });
   startHost.append(version);
 
-  // Puzzle code entry, opened from the start screen, from the header (at any time) and by a bad `#p=` address. Its dialog
+  // Puzzle code entry, opened by a bad `#p=` address so the code can be fixed (it has no button). Its dialog
   // lives straight in the page root: the dialogs of the game screen sit in a section that the start screen hides.
   const codeHost = el('div', { className: 'code-host' });
   root.append(codeHost);
@@ -492,30 +519,15 @@ export function mountPlayer(root, env = {}) {
   async function openCode(text) {
     return sayRestoredMoves(await controller.loadPuzzleCode(text, { commitAddress: true }));
   }
+  // The entry has no button of its own: it opens when a `#p=` address or a pasted code fails, so the text can be fixed.
   const codeDialog = createPuzzleCodeDialog({
     host: codeHost,
     t,
     submit: openCode,
     cancel: () => controller.cancelPuzzleCodeLoad(),
     openRecovery: openCode,
-    fallbackFocus: () => (store.getState().screen === 'game' ? title : startCodeButton),
+    fallbackFocus: () => (store.getState().screen === 'game' ? title : null),
   });
-  const startCodeButton = loc('code.enter', {
-    className: 'pm-btn primary', attrs: { type: 'button' }, dataset: { action: 'enter-code' }, on: { click: () => codeDialog.open({ opener: startCodeButton }) },
-  }, 'button');
-  startHost.querySelector('.start-actions')?.prepend(startCodeButton);
-  // The header is the only bar that stays in view, so the entry is reachable at any time from there too (the piece and
-  // board menus list only piece and puzzle actions). It reads like the Help button: an icon only on a narrow screen.
-  const headerCodeButton = el('button', {
-    className: 'pm-btn header-help header-code',
-    attrs: { type: 'button', 'aria-haspopup': 'dialog', ...locAttrs({ title: 'code.enter' }) },
-    dataset: { action: 'enter-code' },
-    on: { click: () => codeDialog.open({ opener: headerCodeButton }) },
-  }, svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' },
-    svgEl('rect', { x: 2.5, y: 6, width: 19, height: 12, rx: 2 }),
-    svgEl('path', { d: 'M6.5 10H9M11 10h2.5M15 10h2.5M7 14h10' })),
-  loc('code.enter', { className: 'header-help__label' }));
-  header.element.querySelector('.header-help')?.before(headerCodeButton);
 
   // Piece menu: a right-click, the Menu key or a long press on a tray piece or a movable board piece. Elsewhere on
   // the board it lists only the actions of the whole puzzle.
@@ -860,7 +872,6 @@ export function mountPlayer(root, env = {}) {
       copyHost.remove();
       codeDialog.dispose();
       codeHost.remove();
-      headerCodeButton.remove();
       doc.removeEventListener('visibilitychange', onVisibility);
       observer?.disconnect();
       win.cancelAnimationFrame(frame);

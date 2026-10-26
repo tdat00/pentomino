@@ -3,7 +3,6 @@
 // arrives. All text is set through textContent.
 import { el } from '../../core/browser/dom.js';
 import { createPrintDialog, puzzleDetails } from '../../core/browser/print-dialog.js';
-import { copyLinkIcon, createPuzzleCopyControl } from '../../core/browser/puzzle-copy.js';
 import { puzzleSnapshot } from '../../core/browser/puzzle-snapshot.js';
 import { mountBoard, mountPiecePreview, svgEl } from '../../core/browser/svg-board.js';
 import { activeCount, boardToRows } from '../../core/engine/board.js';
@@ -38,8 +37,7 @@ const ZOOM_STEP = 1.25;
  * @property {HTMLElement | null} [controlsHost] Level choice and generate button; defaults to the top of this panel.
  * @property {HTMLElement | null} [cardsActionsHost] Remove all button; defaults to above the cards.
  * @property {() => import('../../core/browser/puzzle-code-client.js').PuzzleCodeClient} [createPuzzleCodeClient] Makes
- *   the puzzle-code client of the Print dialog and, separately, of Copy this puzzle link, each on first use (default: one
- *   module worker each).
+ *   the puzzle-code client of the Print dialog on first use (default: one module worker).
  */
 
 let panelCounter = 0;
@@ -108,7 +106,6 @@ export function printJobOf(state, selectedId) {
   const { set } = state;
   const puzzle = state.puzzles[at];
   const rating = puzzle.rating;
-  const setLevel = state.calibrationFor?.levelId ?? null;
   const snapshot = puzzleSnapshot({
     rows: boardToRows(set.board), pieces: set.pieces, puzzle, index: at, rotation: state.rotation, untitled: (n) => t('card.heading', { n }),
   });
@@ -117,12 +114,39 @@ export function printJobOf(state, selectedId) {
     pieces: set.pieces,
     clues: puzzle.clues,
     rotation: state.rotation,
-    title: snapshot.heading,
+    title: t('card.heading', { n: at + 1 }),
     details: puzzleDetails(t,
-      rating === null || rating === undefined ? null : { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated },
-      state.setSeed === null ? null : { level: setLevel === null ? null : levelLabel(setLevel), seed: state.setSeed }),
+      rating === null || rating === undefined ? null : { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated }),
     solution: puzzle.solution ?? null,
     snapshot,
+  };
+}
+
+/**
+ * @param {GeneratorState} state
+ * @param {string | null} selectedId Id of the puzzle shown in the main panel.
+ * @returns {import('../../core/browser/print-dialog.js').PrintList | null} The puzzles of the list for the Print dialog
+ *   to choose from, in the order of the cards (newest first; printed oldest first), the one on show first chosen. Null
+ *   without a set.
+ */
+export function printListOf(state, selectedId) {
+  if (state.set === null) {
+    return null;
+  }
+  return {
+    current: selectedId,
+    items: state.puzzles.map((puzzle, at) => {
+      const rating = puzzle.rating;
+      const lines = puzzleDetails(t,
+        rating === null || rating === undefined ? null : { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated });
+      return {
+        id: puzzle.id,
+        title: t('card.heading', { n: at + 1 }),
+        detail: lines.map((line) => line.map((part) => part.text).join('')).join(' '),
+        job: () => printJobOf(state, puzzle.id),
+        order: at,
+      };
+    }).reverse(),
   };
 }
 
@@ -163,12 +187,8 @@ export function mountPuzzlePanel(host, options) {
     className: 'icon-btn',
     attrs: { type: 'button', 'data-action': 'print-puzzle', 'aria-haspopup': 'dialog', ...locAttrs({ 'aria-label': 'print.button.title', title: 'print.button.title' }) },
   }, svgEl('svg', { class: 'icon', 'aria-hidden': 'true', focusable: 'false' }, svgEl('use', { href: '#ic-print' }))));
-  // The whole label shows: a link icon and "Copy this puzzle link" (the whole-pack Play stays as it is).
-  const copyButton = /** @type {HTMLButtonElement} */ (el('button', {
-    className: 'copy-link-btn', attrs: { type: 'button', 'data-action': 'copy-puzzle-link' },
-  }, copyLinkIcon(), loc('code.copyLink')));
   const detailHead = el('div', { className: 'detail-head' }, el('div', { className: 'detail-name' }, detailTitle, detailSeed),
-    el('div', { className: 'detail-actions' }, playButton, printButton, copyButton));
+    el('div', { className: 'detail-actions' }, playButton, printButton));
   const detailBoard = el('div', { className: 'detail-board' });
   /**
    * @param {string} text
@@ -213,13 +233,8 @@ export function mountPuzzlePanel(host, options) {
     return printJobOf(store.getState(), selectedId);
   }
   const printDialog = createPrintDialog({
-    host: host.ownerDocument.body, t, getJob: printJob, solutionOption: true, createClient: options.createPuzzleCodeClient,
-    watch: (listener) => store.subscribe(listener),
-  });
-  // Copy this puzzle link: the same snapshot as Print, prepared by the same function, with a client of its own.
-  const copyControl = createPuzzleCopyControl({
-    button: copyButton, host: host.ownerDocument.body, t, getSnapshot: () => printJob()?.snapshot ?? null, closeKey: 'code.close',
-    createClient: options.createPuzzleCodeClient,
+    host: host.ownerDocument.body, t, getJob: printJob, getPuzzles: () => printListOf(store.getState(), selectedId), solutionOption: true,
+    createClient: options.createPuzzleCodeClient, watch: (listener) => store.subscribe(listener),
   });
   /**
    * @typedef {object} Card
@@ -364,7 +379,6 @@ export function mountPuzzlePanel(host, options) {
     const at = set === null || selectedId === null ? -1 : state.puzzles.findIndex((p) => p.id === selectedId);
     if (set === null || at === -1) {
       detail.hidden = true;
-      copyButton.disabled = true;
       detailView?.destroy();
       detailView = null;
       detailSet = null;
@@ -373,7 +387,6 @@ export function mountPuzzlePanel(host, options) {
     }
     const puzzle = state.puzzles[at];
     detail.hidden = false;
-    copyButton.disabled = false;
     if (detailSet !== set) {
       detailView?.destroy();
       detailView = null;
@@ -496,7 +509,6 @@ export function mountPuzzlePanel(host, options) {
     }
     renderCards(state);
     renderDetail(state);
-    copyControl.refresh();
   }
 
   /** @type {Array<[EventTarget, string, EventListener]>} */
@@ -564,7 +576,6 @@ export function mountPuzzlePanel(host, options) {
       listeners.length = 0;
       elapsed.destroy();
       printDialog.destroy();
-      copyControl.destroy();
       for (const card of cards.values()) {
         card.view.destroy();
       }

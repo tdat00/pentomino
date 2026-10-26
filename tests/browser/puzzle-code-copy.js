@@ -14,7 +14,6 @@ import { createPuzzleCodeClient } from '../../core/browser/puzzle-code-client.js
 import { PUBLIC_PLAYER_URL, puzzleSnapshot } from '../../core/browser/puzzle-snapshot.js';
 import { puzzleDisplayName } from '../../core/browser/puzzle-title.js';
 import { createStorage } from '../../core/browser/storage.js';
-import { boardFromRows } from '../../core/engine/board.js';
 import { packBoard, validatePack } from '../../core/engine/pack.js';
 import { catalogueStats } from '../../core/engine/puzzlecode-v1.js';
 import { encodeShareCode } from '../../core/engine/sharecode.js';
@@ -209,6 +208,8 @@ async function withClipboard(mode, fn) {
 // ---- fixtures ----------------------------------------------------------------------------------------------------------
 
 const sample = JSON.parse(await (await fetch('../../player/samples/sample-pack.json')).text());
+// Copy points at the page the user is on, also on a local page; only Print falls back to the public Player there.
+const OWN_PLAYER_URL = new URL('../player/', document.baseURI).href;
 const sampleBoard = packBoard(sample);
 const decoder = createPuzzleCodeClient();
 
@@ -386,10 +387,9 @@ function placeAnyPiece(player) {
 /**
  * What a printout of the open puzzle carries: the target the dialog shows and the code typed on the first sheet.
  * @param {HTMLElement} openButton The Print control of the app.
- * @param {{ useThisPage?: boolean }} [options]
  * @returns {Promise<{ target: string, code: string, url: string }>}
  */
-async function printedLink(openButton, options = {}) {
+async function printedLink(openButton) {
   /** @type {Element[]} */
   let pages = [];
   const realPrint = window.print;
@@ -400,17 +400,12 @@ async function printedLink(openButton, options = {}) {
     openButton.click();
     const dialog = /** @type {HTMLDialogElement} */ (document.querySelector('dialog.pm-print-dialog[open]'));
     assert(dialog !== null, 'the Print dialog opens');
-    if (options.useThisPage === true) {
-      const toggle = /** @type {HTMLInputElement} */ (dialog.querySelector('[data-field="print-use-this-page"]'));
-      toggle.checked = true;
-      toggle.dispatchEvent(new Event('change'));
-    }
     const stateOf = () => dialog.querySelector('[data-role="print-code"]')?.getAttribute('data-state');
     await pause(20);
     await waitFor(() => stateOf() === 'ready', 'the Print dialog to be ready');
-    const target = /opens (.+)$/.exec(dialog.querySelector('[data-role="print-target"]')?.textContent ?? '')?.[1] ?? '';
+    const target = dialog.querySelector('[data-role="print-code"]')?.getAttribute('data-target') ?? '';
     /** @type {HTMLButtonElement} */ (dialog.querySelector('[data-action="print-confirm"]')).click();
-    const code = pages.flatMap((page) => [...page.querySelectorAll('text.pm-print-code')]).map((node) => (node.textContent ?? '').replaceAll(' ', '')).join('');
+    const code = pages.flatMap((page) => [...page.querySelectorAll('g.pm-print-qr')]).map((node) => node.getAttribute('data-qr-code') ?? '').join('');
     window.dispatchEvent(new Event('afterprint'));
     return { target, code, url: `${target}#p=${code}` };
   } finally {
@@ -451,18 +446,7 @@ async function mountGenerator({ hooks = makeHooks(), rotation = 90 } = {}) {
   });
   toDestroy.push(panel);
   await pause(30);
-  return { host, store, panel, hooks, played, button: copyButtonOf(host), print: /** @type {HTMLButtonElement} */ (host.querySelector('[data-action="print-puzzle"]')) };
-}
-
-/**
- * @param {any} state A Generator state.
- * @param {number} index
- * @returns {ReturnType<typeof puzzleSnapshot>} The snapshot of a puzzle of its accepted set, computed independently.
- */
-function generatorSnapshot(state, index) {
-  return puzzleSnapshot({
-    rows: [...sample.board.rows], pieces: sample.pieces, puzzle: state.puzzles[index], index, rotation: state.rotation, untitled: (n) => generatorI18n.t('card.heading', { n }),
-  });
+  return { host, store, panel, hooks, played, print: /** @type {HTMLButtonElement} */ (host.querySelector('[data-action="print-puzzle"]')) };
 }
 
 // ---- colours -----------------------------------------------------------------------------------------------------------
@@ -509,8 +493,8 @@ if (phase === 'main') {
   await check('Player: Copy this puzzle link is a real, named, disabled-without-a-puzzle button in the game bar, in English and Vietnamese', async () => {
     const { root, button } = await openPlayer(sample);
     equal([button.tagName, button.type, button.disabled], ['BUTTON', 'button', false], 'a real enabled button');
-    assert(button.closest('.game-bar .game-actions') !== null, 'in the game bar');
-    equal([...root.querySelectorAll('.game-actions > button')].map((b) => /** @type {HTMLElement} */ (b).dataset.action).filter((a) => a !== 'straighten').slice(-2), ['print', 'copy-puzzle-link'], 'after Print');
+    assert(button.closest('.step-head .step-actions') !== null, 'in the row of the puzzle title');
+    equal([...root.querySelectorAll('.step-actions > button')].map((b) => /** @type {HTMLElement} */ (b).dataset.action), ['print', 'copy-puzzle-link'], 'after Print');
     equal([button.getAttribute('aria-label'), button.title, button.getAttribute('aria-busy')], ['Copy this puzzle link', 'Copy this puzzle link', 'false'], 'English name');
     playerI18n.setLocale('vi', document);
     equal(button.getAttribute('aria-label'), 'Sao chép liên kết đề này', 'Vietnamese name');
@@ -528,7 +512,7 @@ if (phase === 'main') {
       const snapshot = playerSnapshot(player);
       const expected = await decoder.encode(snapshot.data);
       assert(expected.ok, 'the independent encoding works');
-      const expectedUrl = `${PUBLIC_PLAYER_URL}#p=${/** @type {any} */ (expected).value.F}`;
+      const expectedUrl = `${OWN_PLAYER_URL}#p=${/** @type {any} */ (expected).value.F}`;
       const sideEffects = () => {
         const g = /** @type {any} */ (player.store.getState().game);
         return [g.selected, g.moves, g.placed.size, g.revealed, g.hintsUsed, player.store.getState().index, location.hash];
@@ -550,11 +534,11 @@ if (phase === 'main') {
       equal(puzzleDisplayName(decoded.pack.puzzles[0].title, 0), /** @type {HTMLElement} */ (root.querySelector('.puzzle-title')).textContent, 'the heading of the Player');
       assert(!clip.writes[0].includes('#lib') && !clip.writes[0].includes('#pack='), 'a portable one-puzzle link, never a library or pack link');
       const printed = await printedLink(/** @type {HTMLElement} */ (root.querySelector('[data-action="print"]')));
-      equal(printed.url, clip.writes[0], 'Print and Copy give the same address for the same snapshot and default target');
+      equal(printed.url, clip.writes[0], 'Print and Copy give the same address for the same snapshot, both at this page\'s Player');
       equal(JSON.stringify([Object.entries(localStorage), Object.entries(sessionStorage)]), before, 'nothing was stored');
       equal(sideEffects(), effectsBefore, 'Copy moved, selected, revealed and navigated nothing');
       evidence.player.default = {
-        key: await shortHash(snapshot.key), heading: snapshot.heading, angle: snapshot.data.rotation, position: 1, target: PUBLIC_PLAYER_URL,
+        key: await shortHash(snapshot.key), heading: snapshot.heading, angle: snapshot.data.rotation, position: 1, target: OWN_PLAYER_URL,
         carried: decoded.hasTail ? 'C.T' : 'C', F: codeOfLink(clip.writes[0]), written: clip.writes[0], printedEqual: printed.url === clip.writes[0],
       };
       // The announcement follows the language.
@@ -612,16 +596,18 @@ if (phase === 'main') {
     });
   });
 
-  await check('Player: the local Print override changes the printout only; Copy keeps the public target', async () => {
+  await check('Player: Print and Copy both point at this page\'s Player, with no override and no local-page notice', async () => {
     await withClipboard('ok', async (clip) => {
       const { root, button } = await openPlayer(sample);
-      const own = new URL('../player/', document.baseURI).href;
-      const overridden = await printedLink(/** @type {HTMLElement} */ (root.querySelector('[data-action="print"]')), { useThisPage: true });
-      equal(overridden.target, own, "the printout uses this page's Player");
+      const printButton = /** @type {HTMLElement} */ (root.querySelector('[data-action="print"]'));
+      const printed = await printedLink(printButton);
+      equal(printed.target, OWN_PLAYER_URL, "the printout uses this page's Player");
+      assert(document.querySelector('dialog.pm-print-dialog [data-field="print-use-this-page"]') === null, 'the Print dialog has no override');
       await copyAndWait(button);
-      assert(clip.writes[0].startsWith(PUBLIC_PLAYER_URL), `Copy uses the public Player (${clip.writes[0].slice(0, 70)})`);
-      equal(codeOfLink(clip.writes[0]), overridden.code, 'the same code, another target');
-      evidence.player.override = { printed: overridden.target, copied: PUBLIC_PLAYER_URL };
+      assert(clip.writes[0].startsWith(OWN_PLAYER_URL) && !clip.writes[0].startsWith(PUBLIC_PLAYER_URL), `Copy uses this page's Player (${clip.writes[0].slice(0, 70)})`);
+      equal(clip.writes[0], printed.url, 'the same address as the printout');
+      assert(toasts().every((text) => !/local/i.test(text)), 'no local-page notice on Copy');
+      evidence.player.override = { printed: printed.target, copied: OWN_PLAYER_URL };
     });
   });
 
@@ -649,7 +635,7 @@ if (phase === 'main') {
       const { root, player, button } = await openPlayer(sample);
       const snapshot = playerSnapshot(player);
       const expected = /** @type {any} */ (await decoder.encode(snapshot.data)).value.F;
-      const url = `${PUBLIC_PLAYER_URL}#p=${expected}`;
+      const url = `${OWN_PLAYER_URL}#p=${expected}`;
       const movesBefore = /** @type {any} */ (player.store.getState().game).moves;
       const placedBefore = /** @type {any} */ (player.store.getState().game).placed.size;
       assert(root.querySelector('textarea') === null, 'no text field before a failure');
@@ -734,7 +720,7 @@ if (phase === 'main') {
       // Nothing fits one QR symbol: the address of the core is within the whole-URL budget.
       hooks.override = () => fakeCode(5000);
       await copyAndWait(button);
-      equal(clip.writes, [`${PUBLIC_PLAYER_URL}#p=${symbols(5000)}`], 'the core address');
+      equal(clip.writes, [`${OWN_PLAYER_URL}#p=${symbols(5000)}`], 'the core address');
       equal(toasts(), [
         'Link copied; this puzzle is too large for a printable QR code.',
         'This link is 5045 characters long, and some chat apps cut long links.',
@@ -745,7 +731,7 @@ if (phase === 'main') {
       document.querySelectorAll('.toast-host').forEach((node) => node.remove());
       hooks.override = () => fakeCode(2600, 1200);
       await copyAndWait(button);
-      equal(clip.writes, [`${PUBLIC_PLAYER_URL}#p=${symbols(2600)}`], 'the core only, no hidden richer code');
+      equal(clip.writes, [`${OWN_PLAYER_URL}#p=${symbols(2600)}`], 'the core only, no hidden richer code');
       assert(!clip.writes[0].includes('.'.concat(symbols(1200))), 'no tail');
       equal(toasts(), ['Link copied'], 'a plain success (the QR is there, below 4,000 characters)');
       // A whole address above 16,000 characters is not a working link.
@@ -780,146 +766,24 @@ if (phase === 'main') {
     });
   });
 
-  await check('Generator: the action sits beside Play and Print with its whole visible name, in English and Vietnamese', async () => {
-    const { host, button, print } = await mountGenerator();
-    assert(button.closest('.detail-actions') !== null, 'beside Play and Print');
-    equal([...host.querySelectorAll('.detail-actions > button')].map((b) => /** @type {HTMLElement} */ (b).dataset.action), ['play-puzzle', 'print-puzzle', 'copy-puzzle-link'], 'the buttons of the selected puzzle');
-    equal([button.tagName, button.type, button.disabled, button.textContent?.trim()], ['BUTTON', 'button', false, 'Copy this puzzle link'], 'a real button with a visible name');
-    assert(!button.hasAttribute('aria-label') && !button.title, 'the name is the visible text, not a tooltip');
-    assert(print !== null && host.querySelectorAll('[data-action="copy-puzzle-link"]').length === 1, 'one per-puzzle Copy control');
-    assert(host.querySelector('[data-action="copy-pack-link"]') === null, 'the whole-pack action is not repurposed');
-    generatorI18n.setLocale('vi', document);
-    equal(button.textContent?.trim(), 'Sao chép liên kết đề này', 'Vietnamese name');
-    generatorI18n.setLocale('en', document);
-  });
-
-  await check('Generator: Copy writes the selected puzzle of its own set, not the editor board, equal to what Print carries', async () => {
-    await withClipboard('ok', async (clip) => {
-      const { host, store, button, print, hooks } = await mountGenerator();
-      /** @type {HTMLButtonElement} */ (host.querySelector('li[data-puzzle-id="g1"] [data-action="select"]')).click();
-      await pause(30);
-      // The editor board changes after the set was made; the selected puzzle keeps the board of its own set.
-      store.update({ board: boardFromRows(['#####', '#####', '#####', '#####', '#####', '#####']) });
-      await pause(20);
-      const stateNow = /** @type {any} */ (store.getState());
-      const snapshot = generatorSnapshot(stateNow, 1);
-      const expected = /** @type {any} */ (await decoder.encode(snapshot.data)).value.F;
-      await copyAndWait(button);
-      equal(clip.writes, [`${PUBLIC_PLAYER_URL}#p=${expected}`], 'the prepared address of the selected puzzle');
-      equal(JSON.stringify(hooks.encodes[0]), snapshot.key, 'the encoder got the independently computed snapshot');
-      const decoded = await decodeLink(clip.writes[0]);
-      equal(decoded.pack.board.rows, sample.board.rows, 'the board of the accepted set');
-      equal(decoded.pack.presentation.rotation, 90, 'at the angle of the view');
-      equal(poseList(decoded.pack.puzzles[0].clues), poseList(sample.puzzles[1].clues), 'the clues of the selected puzzle only');
-      equal(decoded.pack.puzzles.length, 1, 'no other puzzle');
-      equal(puzzleDisplayName(decoded.pack.puzzles[0].title, 0), 'Normal #2', 'the displayed heading at position 2');
-      equal(decoded.hasTail, true, 'the stored answer travels');
-      const printed = await printedLink(print);
-      equal(printed.url, clip.writes[0], 'Print and Copy give the same address');
-      evidence.generator.default = {
-        key: await shortHash(snapshot.key), heading: snapshot.heading, angle: 90, position: 2, target: PUBLIC_PLAYER_URL,
-        carried: decoded.hasTail ? 'C.T' : 'C', F: codeOfLink(clip.writes[0]), written: clip.writes[0], printedEqual: printed.url === clip.writes[0],
-      };
-      document.querySelectorAll('.toast-host').forEach((node) => node.remove());
-      clip.writes.length = 0;
-      generatorI18n.setLocale('vi', document);
-      await copyAndWait(button);
-      equal([toasts(), clip.writes.length], [['Đã sao chép liên kết'], 1], 'the Vietnamese announcement');
-    });
-  });
-
-  await check('Generator: the local Print override changes the printout only; Copy keeps its default target and the override resets', async () => {
-    await withClipboard('ok', async (clip) => {
-      const { button, print } = await mountGenerator();
-      const own = new URL('../player/', document.baseURI).href;
-      const overridden = await printedLink(print, { useThisPage: true });
-      assert(overridden.target === own && overridden.url.startsWith(own), `the printout uses this page's Player (${overridden.target})`);
-      await copyAndWait(button);
-      assert(clip.writes[0].startsWith(PUBLIC_PLAYER_URL), `Copy uses the public Player (${clip.writes[0].slice(0, 70)})`);
-      equal(codeOfLink(clip.writes[0]), overridden.code, 'the same code, another target');
-      const normal = await printedLink(print);
-      equal(normal.url, clip.writes[0], 'a normal printout equals Copy');
-      print.click();
-      const dialog = /** @type {HTMLDialogElement} */ (document.querySelector('dialog.pm-print-dialog[open]'));
-      assert(!(/** @type {HTMLInputElement} */ (dialog.querySelector('[data-field="print-use-this-page"]'))).checked, 'the override is off again after closing Print');
-      /** @type {HTMLButtonElement} */ (dialog.querySelector('[data-action="print-cancel"]')).click();
-      evidence.generator.override = { printed: overridden.target, copied: PUBLIC_PLAYER_URL, resets: true };
-    });
-  });
-
-  await check('Generator: a refused clipboard shows the field; a selection change while encoding is pending suppresses the old result', async () => {
-    await withClipboard('deny', async (clip) => {
-      const { host, store, button, hooks } = await mountGenerator();
-      const snapshot = generatorSnapshot(/** @type {any} */ (store.getState()), 2);
-      const expectedUrl = `${PUBLIC_PLAYER_URL}#p=${/** @type {any} */ (await decoder.encode(snapshot.data)).value.F}`;
-      button.click();
-      await waitFor(() => dialogOpen(), 'the manual field');
-      const dialog = /** @type {HTMLDialogElement} */ (copyDialog());
-      const field = /** @type {HTMLTextAreaElement} */ (dialog.querySelector('textarea'));
-      equal(field.value, expectedUrl, 'the exact link of the selected puzzle');
-      assert(field.readOnly, 'in a read-only field');
-      noZoomText(field, 'Generator');
-      equal(dialog.querySelector('[data-action="copy-close"]')?.textContent, 'Close', 'a Close action');
-      generatorI18n.setLocale('vi', document);
-      equal(dialog.querySelector('[data-action="copy-close"]')?.textContent, 'Đóng', 'Vietnamese Close');
-      generatorI18n.setLocale('en', document);
-      /** @type {HTMLButtonElement} */ (dialog.querySelector('[data-action="copy-close"]')).click();
-      await pause(30);
-      assert(document.activeElement === button, 'the focus returns to the Copy button');
-      evidence.generator.denied = { fieldEquals: field.value === expectedUrl, focusRestored: true };
-      // The field belongs to the puzzle it was made for: when that puzzle goes, the field goes.
-      button.click();
-      await waitFor(() => dialogOpen(), 'the field again');
-      store.update({ puzzles: store.getState().puzzles.slice(0, 2) });
-      await waitFor(() => !dialogOpen(), 'the field to close when the selected puzzle is gone');
-      equal([clip.writes.length, hooks.encodes.length >= 2], [0, true], 'nothing was copied');
-    });
-    await withClipboard('ok', async (clip) => {
-      const { host, button, hooks } = await mountGenerator();
-      const gate = deferred();
-      hooks.gates.push(gate);
-      button.click();
-      await waitFor(() => hooks.encodes.length === 1, 'the encoding to start');
-      /** @type {HTMLButtonElement} */ (host.querySelector('li[data-puzzle-id="g0"] [data-action="select"]')).click();
-      await pause(30);
-      gate.resolve(undefined);
-      await waitFor(() => !busy(button), 'the stale operation to end');
-      await pause(60);
-      equal([clip.writes, toasts(), dialogOpen()], [[], [], false], 'the puzzle selected at the click is not copied for the new selection');
-      evidence.generator.stale = { staleWrites: clip.writes.length };
-    });
-  });
-
-  await check('Generator: no fitting QR copies the address with the advisory and never a library link', async () => {
-    await withClipboard('ok', async (clip) => {
-      const { button, hooks } = await mountGenerator();
-      hooks.override = () => fakeCode(5000);
-      await copyAndWait(button);
-      equal(clip.writes, [`${PUBLIC_PLAYER_URL}#p=${symbols(5000)}`], 'the core address');
-      equal(toasts()[0], 'Link copied; this puzzle is too large for a printable QR code.', 'the advisory');
-      assert(!clip.writes[0].includes('#lib'), 'no local-library link');
-      evidence.generator.noQr = { advisory: toasts()[0], lib: false };
-    });
-  });
-
-  await check('Generator: Play, Print, Show solution and the whole-pack link path still work; Copy stores nothing', async () => {
-    await withClipboard('ok', async (clip) => {
-      const before = JSON.stringify([Object.entries(localStorage), Object.entries(sessionStorage)]);
-      const { host, button, print, played } = await mountGenerator();
-      await copyAndWait(button);
-      equal(JSON.stringify([Object.entries(localStorage), Object.entries(sessionStorage)]), before, 'no storage written');
-      /** @type {HTMLButtonElement} */ (host.querySelector('[data-action="play-puzzle"]')).click();
-      equal(played, ['g2'], 'Play still opens the selected puzzle');
-      const solution = /** @type {HTMLButtonElement} */ (host.querySelector('[data-action="show-solution"]'));
-      solution.click();
-      equal(solution.getAttribute('aria-pressed'), 'true', 'Show solution still works');
-      print.click();
-      assert(/** @type {HTMLDialogElement} */ (document.querySelector('dialog.pm-print-dialog')).open, 'Print still opens');
-      /** @type {HTMLButtonElement} */ (document.querySelector('dialog.pm-print-dialog [data-action="print-cancel"]')).click();
-      const pack = await preparePlayerLink(/** @type {any} */ (validatePack(sample)).value, 0, { base: location.href });
-      assert(pack.portable && /#pack=1[zj]\./.test(pack.href ?? ''), 'the whole-pack link is unchanged (#pack=)');
-      equal(clip.writes.length, 1, 'only the one copy');
-    });
+  await check('Generator: no Copy this puzzle link control; Play, Print and Show solution still work and nothing is stored', async () => {
+    const before = JSON.stringify([Object.entries(localStorage), Object.entries(sessionStorage)]);
+    const { host, print, played } = await mountGenerator();
+    equal([...host.querySelectorAll('.detail-actions > button')].map((b) => /** @type {HTMLElement} */ (b).dataset.action), ['play-puzzle', 'print-puzzle'], 'the buttons of the selected puzzle');
+    assert(host.querySelector('[data-action="copy-puzzle-link"]') === null && host.querySelector('.copy-link-btn') === null, 'no per-puzzle Copy control');
+    assert(host.querySelector('[data-action="copy-pack-link"]') === null, 'no whole-pack Copy action either');
+    /** @type {HTMLButtonElement} */ (host.querySelector('[data-action="play-puzzle"]')).click();
+    equal(played, ['g2'], 'Play still opens the selected puzzle');
+    const solution = /** @type {HTMLButtonElement} */ (host.querySelector('[data-action="show-solution"]'));
+    solution.click();
+    equal(solution.getAttribute('aria-pressed'), 'true', 'Show solution still works');
+    print.click();
+    assert(/** @type {HTMLDialogElement} */ (document.querySelector('dialog.pm-print-dialog')).open, 'Print still opens');
+    /** @type {HTMLButtonElement} */ (document.querySelector('dialog.pm-print-dialog [data-action="print-cancel"]')).click();
+    const pack = await preparePlayerLink(/** @type {any} */ (validatePack(sample)).value, 0, { base: location.href });
+    assert(pack.portable && /#pack=1[zj]\./.test(pack.href ?? ''), 'the whole-pack link is unchanged (#pack=)');
+    equal(JSON.stringify([Object.entries(localStorage), Object.entries(sessionStorage)]), before, 'no storage written');
+    evidence.generator.noCopy = true;
   });
 
   await check('themes: the control, the field and its notes keep readable colours in light, dark and high contrast', async () => {
@@ -927,16 +791,8 @@ if (phase === 'main') {
       document.documentElement.dataset.theme = theme;
       await withClipboard('deny', async () => {
         const g = await mountGenerator();
-        assert(contrastOf(g.button) >= 4.5, `Generator Copy button in ${theme}: ${contrastOf(g.button).toFixed(2)}`);
-        g.button.click();
-        await waitFor(() => dialogOpen(), 'the field');
-        const dialog = /** @type {HTMLDialogElement} */ (copyDialog());
-        for (const selector of ['textarea', '.pm-copy-dialog', '[data-action="copy-close"]']) {
-          const node = selector === '.pm-copy-dialog' ? dialog : /** @type {Element} */ (dialog.querySelector(selector));
-          assert(contrastOf(node) >= 4.5, `${selector} in ${theme}: ${contrastOf(node).toFixed(2)}`);
-        }
-        /** @type {HTMLButtonElement} */ (dialog.querySelector('[data-action="copy-close"]')).click();
-        await pause(20);
+        assert(g.host.querySelector('[data-action="copy-puzzle-link"]') === null, 'the Generator has no Copy control');
+        assert(contrastOf(g.print) >= 4.5, `Generator Print button in ${theme}: ${contrastOf(g.print).toFixed(2)}`);
         g.panel.destroy();
         stage.replaceChildren();
         const p = await openPlayer(sample);
@@ -1004,7 +860,7 @@ if (phase === 'main') {
     equal(shown, took ? 'Link copied' : 'field', 'the success message is shown exactly when the browser took the text; otherwise the manual field');
     assert(readBack !== 'mismatch', 'what the clipboard holds is the link');
     if (accepted.length === 1) {
-      assert(accepted[0].startsWith(PUBLIC_PLAYER_URL), 'a portable link');
+      assert(accepted[0].startsWith(OWN_PLAYER_URL), 'a portable link to this page\'s Player');
     }
     evidence.real = { nativeWrites: accepted.length, legacyCopies, shown, readBack, hasFocus: document.hasFocus(), userAgent: navigator.userAgent, connected: root.isConnected };
   });
@@ -1043,20 +899,6 @@ if (phase === 'keys') {
     });
   });
 
-  await check('keyboard (trusted keys): Space on the Generator control copies, Escape restores the focus', async () => {
-    await withClipboard('deny', async () => {
-      const { button } = await mountGenerator();
-      button.focus();
-      await press('space');
-      await waitFor(() => dialogOpen(), 'the field after Space');
-      await press('escape2');
-      await waitFor(() => !dialogOpen(), 'Escape to close the field');
-      await pause(60);
-      assert(document.activeElement === button, 'the focus returns to the Copy button');
-      evidence.generator.keys = { space: true, escapeRestoresFocus: true };
-    });
-  });
-
   await check('no content-security-policy violations or uncaught errors', async () => {
     equal(violations, [], 'security policy violations');
     equal(uncaught, [], 'uncaught errors');
@@ -1080,42 +922,25 @@ if (phase === 'narrow') {
     assert(innerWidth <= 400, `the viewport is narrow (${innerWidth})`);
   });
 
-  await check('narrow Generator: the whole label fits, targets are 44 px, the field wraps a long link inside itself', async () => {
-    await withClipboard('deny', async () => {
-      const { host, button, hooks } = await mountGenerator();
-      targetSize(button, 'Generator Copy button');
-      assert(button.scrollWidth <= button.clientWidth + 1, 'the whole name is inside the button');
-      const head = /** @type {HTMLElement} */ (host.querySelector('.detail-head'));
-      assert(head.scrollWidth <= head.clientWidth + 1, 'the detail header does not overflow');
-      for (const action of ['play-puzzle', 'print-puzzle']) {
-        targetSize(/** @type {Element} */ (host.querySelector(`[data-action="${action}"]`)), action);
-      }
-      generatorI18n.setLocale('vi', document);
-      assert(button.scrollWidth <= button.clientWidth + 1 && head.scrollWidth <= head.clientWidth + 1, 'the Vietnamese name fits too');
-      generatorI18n.setLocale('en', document);
-      noSideScroll('Generator');
-      hooks.override = () => fakeCode(3500);
-      button.click();
-      await waitFor(() => dialogOpen(), 'the field');
-      const dialog = /** @type {HTMLDialogElement} */ (copyDialog());
-      const field = /** @type {HTMLTextAreaElement} */ (dialog.querySelector('textarea'));
-      equal(field.value.length, 45 + 3500, 'a 3,545-character link');
-      noZoomText(field, 'Generator on a phone');
-      const box = dialog.getBoundingClientRect();
-      assert(box.left >= -0.5 && box.right <= innerWidth + 0.5, 'the dialog fits the viewport');
-      assert(field.scrollWidth <= field.clientWidth + 1, 'the long link wraps inside the field');
-      targetSize(/** @type {Element} */ (dialog.querySelector('[data-action="copy-close"]')), 'Close');
-      noSideScroll('Generator with the field open');
-      /** @type {HTMLButtonElement} */ (dialog.querySelector('[data-action="copy-close"]')).click();
-    });
+  await check('narrow Generator: no Copy button, Play and Print keep 44 px targets and the header does not overflow', async () => {
+    const { host } = await mountGenerator();
+    const head = /** @type {HTMLElement} */ (host.querySelector('.detail-head'));
+    assert(head.scrollWidth <= head.clientWidth + 1, 'the detail header does not overflow');
+    for (const action of ['play-puzzle', 'print-puzzle']) {
+      targetSize(/** @type {Element} */ (host.querySelector(`[data-action="${action}"]`)), action);
+    }
+    generatorI18n.setLocale('vi', document);
+    assert(head.scrollWidth <= head.clientWidth + 1, 'the Vietnamese header fits too');
+    generatorI18n.setLocale('en', document);
+    noSideScroll('Generator');
   });
 
-  await check('narrow Player: the game bar keeps a 44 px Copy button inside the viewport; the field wraps a long link', async () => {
+  await check('narrow Player: the title row keeps a 44 px Copy button inside the viewport; the field wraps a long link', async () => {
     await withClipboard('deny', async () => {
       const { root, button, hooks } = await openPlayer(sample);
       targetSize(button, 'Player Copy button');
-      const bar = /** @type {HTMLElement} */ (root.querySelector('.game-bar'));
-      assert(bar.scrollWidth <= bar.clientWidth + 1, 'the game bar does not overflow');
+      const bar = /** @type {HTMLElement} */ (root.querySelector('.step-head'));
+      assert(bar.scrollWidth <= bar.clientWidth + 1, 'the title row does not overflow');
       noSideScroll('Player');
       hooks.override = () => fakeCode(3500);
       button.click();
@@ -1159,10 +984,6 @@ if (phase !== 'keys') {
   try {
     const g = await mountGenerator();
     await shot('generator');
-    g.button.click();
-    await waitFor(() => dialogOpen(), 'the field');
-    await shot('generator-field');
-    /** @type {HTMLButtonElement} */ (copyDialog()?.querySelector('[data-action="copy-close"]')).click();
     g.panel.destroy();
     stage.replaceChildren();
     const p = await openPlayer(sample);

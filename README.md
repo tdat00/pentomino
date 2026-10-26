@@ -103,10 +103,9 @@ a piece set (otherwise step 1 says why), and step 3 once a piece set is on show.
    place, the solution status (*Checking…*, *Unique solution ✓*, *Multiple solutions*, *At least 1 solution*,
    *No solution exists* or *Uniqueness not checked*) and a preview. ✕ removes one puzzle and **Remove all** in the list
    header removes them all. The main screen shows the selected puzzle (the newest one until you click a card) with its
-   seed, its board and the pieces to place; **Play** opens it in the Player in a new tab, **Print** (the printer icon
-   right of Play) prints it, **Copy this puzzle link** (right of Print) copies the Player address of that one puzzle,
-   and **Show solution**, under the board at its right, draws its solution on the board until
-   pressed again (**Hide solution**).
+   seed, its board and the pieces to place; **Play** opens it in the Player in a new tab,    **Print** (the printer icon
+      right of Play) prints it, and **Show solution**, under the board at its right, draws its solution on the board until
+      pressed again (**Hide solution**).
 
 While a job runs, its button shows a spinner and *Elapsed: m:ss* appears under it; after 30 s the button turns into
 **Cancel**, and a cancelled batch keeps the puzzles already made. The outcome of the last action (a shortfall, a
@@ -117,6 +116,17 @@ The **EN | VI** switch in the header changes the language without reloading; the
 and `?lang=vi` or `?lang=en` in the address overrides it. The theme buttons next to it pick the light, dark or
 high-contrast theme; without a choice the page follows the system's light or dark setting. The Player has the same two
 switches, and both pages share the choices.
+
+**Import puzzle** (the header button left of the language switch) opens a dialog where you paste a puzzle link copied
+from the Player (**Copy this puzzle link**), or its puzzle code, and press **Import**. The board (at the angle of the
+link), the piece set and the puzzle, with its stored solution and rating when the code carries them, are re-created: the
+board becomes the board of step 1 and the puzzle appears in step 3 in a new piece set (marked *Imported*, with a fresh
+seed). The set on show stays in the list of its board. A puzzle of the piece set that is already on show joins it, and
+a puzzle that is already in the list is not added twice. A link that cannot be read is explained in the dialog and
+changes nothing, as in the Player (a likely single typing mistake is offered as a correction). After an import, **New
+puzzle** works on the imported set: the set's solution comes from the link when it carries one, and is otherwise found in
+the background (if none is found, the button stays disabled with its reason). When the list of the
+board already holds 50 sets, or the puzzle list is full, nothing is imported and a message says so.
 
 - **Board.** Sizes are written **columns×rows**. The view may be turned in 45° steps; the turn is display-only and never
   changes the puzzle. The **Heart** preset is a square board whose top-right quarter is blocked, shown at 45°. Editing
@@ -157,9 +167,9 @@ switches, and both pages share the choices.
 
 ## Using the Player
 
-The page has the Generator's look: a header with the title, **Enter puzzle code**, **Help**, the **EN | VI** switch and
-the theme buttons, and three panels. The **puzzles** of the open pack are on the left, the **game** (puzzle name and rating, timer and move
-count, Undo / Redo / Hint / Replay / Print / Copy this puzzle link and the board) in the middle, and the **pieces to place**, under the toolbar
+The page has the Generator's look: a header with the title, **Help**, the **EN | VI** switch and
+the theme buttons, and three panels. The **puzzles** of the open pack are on the left, the **game** (puzzle name and rating with Print and Copy this puzzle link at its right, timer and move
+count, Undo / Redo / Hint / Replay and the board) in the middle, and the **pieces to place**, under the toolbar
 for the selected piece, on the right. The pieces panel has no scroll bar of its own: with many pieces the page scrolls.
 From 768 px to 1359 px the puzzles go under the game; below 768 px the panels stack.
 
@@ -170,8 +180,9 @@ From 768 px to 1359 px the puzzles go under the game; below 768 px the panels st
   Generator and no saved copy, keeps your saved progress, and reloading it reopens the same puzzle. The address
   always holds the open pack and puzzle. A card in the puzzle list (name, level and score, pieces to place, uniqueness,
   progress, preview), newest on top, opens that puzzle; ✕ on a card removes it and **Remove all** empties the list.
-- **Entering a puzzle code.** **Enter puzzle code** (on the start screen and in the header) opens a dialog where you
-  type or paste the code printed with a puzzle, or a whole puzzle link. Spaces, line breaks and hyphens are ignored,
+- **Entering a puzzle code.** There is no button for it: the **puzzle code** dialog opens by itself when a `#p=` address
+  (a link or a scanned QR code) cannot be opened, with the address as its text, and there you can fix the code. It holds
+  the code printed with a puzzle, or a whole puzzle link. Spaces, line breaks and hyphens are ignored,
   lower case works, and O, I and L are read as 0, 1 and 1; the part after a dot is optional, and a code is at most
   16,000 characters (32,768 typed or pasted). **Open puzzle** opens it, and the address becomes `#p=<code>`. A code that
   cannot be opened is explained in the dialog and changes nothing: your text, the open puzzle, its moves and the
@@ -181,8 +192,8 @@ From 768 px to 1359 px the puzzles go under the game; below 768 px the panels st
   for in the background). Saved moves for the puzzle come back with a short notice (also when you reload the page or
   scan a link to it); **Replay** starts again as printed.
   **Cancel** or `Escape` closes the dialog.
-- **Copying a puzzle link.** **Copy this puzzle link** (the link icon after **Print** in the game bar, and in the
-  Generator right of **Print**) copies `…/player/#p=<code>` for the puzzle that is shown: the address that the QR code
+- **Copying a puzzle link.** **Copy this puzzle link** (the link icon right of **Print**, on the row of the puzzle
+  title, at its right; the Player only) copies `…/player/#p=<code>` for the puzzle that is shown: the address that the QR code
   of the printout carries for it, with its stored solution when it fits. It is never a pack link. While the link is
   prepared the button is marked busy; "Link copied" appears only after the browser has taken the text, and if the
   browser refuses the clipboard a window shows the link in a read-only field to copy by hand. A puzzle with no
@@ -227,29 +238,35 @@ From 768 px to 1359 px the puzzles go under the game; below 768 px the panels st
 
 ## Printing
 
-**Print** (a printer icon: right of **Play** in the Generator, right of **Replay** in the Player) opens a dialog that
+**Print** (a printer icon: right of **Play** in the Generator, at the right of the puzzle title in the Player) opens a dialog that
 prints the puzzle on A4 paper, to solve it offline with cut-out pieces.
 
-- The first sheet shows the puzzle's name (the one the Player shows: "Puzzle #n" when it has no title, a number added to
-  other titles), its level and score, and its piece set's level and seed. Under them is the puzzle's **code** with a **QR
-  code** at the top right: scan the QR code, or type the code into the Player's **Enter puzzle code**, to play the same
-  puzzle again, with no seed. Then comes a small preview of the puzzle with the pieces to place (to read, not to cut).
-- **The code and its QR code** are made on your device when the dialog opens (**Print** waits for "Preparing the puzzle
-  code…"). When the puzzle has a stored answer, it is carried in the part after the dot, printed smaller under "+
-  solution, optional"; that does not print a solution sheet. A long code continues on extra numbered sheets (the QR code
-  stays on the first). A code is never cut short; in the rare case that it is too long for one QR code, the optional
-  solution part is left out, then the QR code uses lower error correction, and if even that is not possible the sheet
-  says so and prints neither code nor QR code. The dialog says each of these before printing.
-- **Where the QR code leads**: to the Player of the page you printed from; from a local page (`localhost`, a network
-  address, a file) to the public Player, which a phone can reach. A checkbox shown only on local pages points it at the
-  local Player instead, for development; it is not remembered. **Copy this puzzle link** (see Using the Player) copies
-  that same address, without the checkbox.
+- The first sheet has a **QR code** at the top left, captioned "Play Online", and to its right the puzzle's name (the one
+  its card shows in the list: "Puzzle #n") with its level and score. Scan the
+  QR code to play the same puzzle again in the Player, with no seed. The sheet prints no code text, address or seed. Then
+  comes a small preview of the puzzle with the pieces to place (to read, not to cut).
+- **Several puzzles.** When the list has more than one puzzle, the dialog has two columns. The right one has **Puzzles
+  per page** (1, 2 or 4) and **Puzzles to print**: the puzzles of the list in the order of the panel (newest first), each
+  as "Puzzle #n · Level: score n", with **Select all** and **Select none**; the puzzle on show is chosen when the dialog
+  opens. The chosen puzzles are printed in numeric order, each with its own QR code, on the first sheets, 1, 2 (one above
+  the other) or 4 (two by two) to a sheet, with dashed lines to cut along; a QR code too large for a quarter of a sheet is
+  drawn smaller. The piece set and the board are printed once, whatever the number of puzzles.
+- **The QR code** is made on your device when the dialog opens (**Print** waits for "Preparing the puzzle code…"). When
+  the puzzle has a stored answer, it is carried in the code; that does not print a solution sheet. A code is never cut
+  short; in the rare case that it is too long for one QR code, the optional solution part is left out, then the QR code
+  uses lower error correction, and if even that is not possible the sheet says so and prints no QR code. The dialog says
+  each of these before printing.
+- **Where the QR code leads**: to the Player of the page you printed from, always (also on `localhost`, a network
+  address or a file); there is no option to change it. **Copy this puzzle link** (see Using the Player) points at the
+  same page and carries the same code.
 - **Include piece set**: every piece of the set, the pre-placed ones too, ready to cut out.
 - **Include board**: the playable squares. A board too big for a sheet is split into parts; a numbered mark on each
   shared edge shows which part joins there.
 - **Print on both sides**: each piece and board part is mirrored on the back, so the cut-out matches on both sides
   (choose two-sided printing, flipped on the long edge).
-- **Print solution** (Generator only): the solved board on the sheet after the puzzle (with two sides, on its back).
+- **Print solution** (Generator only): the solved board after the puzzle (with two sides, on its back). With several
+  puzzles to a sheet, the solutions of the puzzles of that sheet share the next sheet, each behind its puzzle when
+  printing on both sides.
 - **Board size**: a table of Small, Medium and Large (cells of 10, 15 and 20 mm) and Fit to page, with the A4 sheets each
   needs. The pieces use the same cell size as the board, so they sit on it exactly.
 
@@ -452,8 +469,7 @@ có một bộ mảnh đang hiển thị.
    *Nhiều lời giải*, *Có ít nhất 1 lời giải*, *Không có lời giải* hoặc *Chưa kiểm tra tính duy nhất*) và hình xem trước.
    ✕ xóa một đề, **Xóa tất cả** ở đầu danh sách xóa hết. Màn hình chính hiện đề đang chọn (đề mới nhất cho tới khi bạn
    nhấn một thẻ) với seed, bàn chơi và các mảnh cần đặt; **Chơi** mở đề trong trình chơi ở thẻ mới, **In** (biểu tượng
-   máy in bên phải nút Chơi) in đề, **Sao chép liên kết đề này** (bên phải nút In) sao chép địa chỉ trình chơi của riêng
-   đề đó, còn **Xem lời giải** ở góc phải bên dưới bàn chơi vẽ lời giải lên bàn cho tới khi
+   máy in bên phải nút Chơi) in đề, còn **Xem lời giải** ở góc phải bên dưới bàn chơi vẽ lời giải lên bàn cho tới khi
    nhấn lại (**Ẩn lời giải**).
 
 Khi một tác vụ đang chạy, nút của nó hiện vòng quay và dòng *Đã chạy: m:ss* bên dưới; sau 30 giây nút đổi thành **Hủy**,
@@ -464,6 +480,16 @@ Nút **EN | VI** ở đầu trang đổi ngôn ngữ mà không tải lại tran
 hoặc `?lang=en` trên địa chỉ sẽ được ưu tiên. Các nút giao diện bên cạnh chọn giao diện sáng, tối hoặc tương phản cao;
 nếu chưa chọn, trang theo chế độ sáng hay tối của hệ thống. Trình chơi có hai nút này giống vậy, và hai trang dùng chung
 lựa chọn.
+
+**Nhập đề** (nút ở đầu trang, bên trái nút ngôn ngữ) mở một hộp thoại để dán liên kết đề đã sao chép từ trình chơi
+(**Sao chép liên kết đề này**), hoặc mã đề của nó, rồi nhấn **Nhập**. Bàn chơi (theo góc nhìn của liên kết), bộ mảnh và đề,
+kèm lời giải đã lưu và mức độ nếu mã có mang theo, được tạo lại: bàn chơi trở thành bàn của bước 1 và đề hiện ở bước 3
+trong một bộ mảnh mới (ghi *Đã nhập*, với seed mới). Bộ mảnh đang hiện vẫn nằm trong danh sách của bàn chơi của nó. Đề
+của bộ mảnh đang hiện sẽ được thêm vào bộ đó, và đề đã có trong danh sách thì không được thêm lại. Liên kết không đọc
+được sẽ được giải thích ngay trong hộp thoại và không làm thay đổi gì, giống trình chơi (nếu nhiều khả năng chỉ do gõ sai
+một ký tự, hộp thoại đề xuất cách sửa). Sau khi nhập, **Tạo đề mới** dùng được trên bộ mảnh đã nhập: lời giải của bộ lấy từ
+liên kết nếu có, nếu không sẽ được tìm ngầm (nếu tìm không ra, nút vẫn bị tắt kèm lý do). Khi danh sách của bàn chơi đã có 50 bộ mảnh, hoặc danh sách đề đã đầy, sẽ không
+nhập gì và có thông báo cho biết.
 
 - **Bàn chơi.** Kích thước ghi theo **cột×hàng**. Góc nhìn có thể xoay theo từng bước 45°; việc xoay chỉ để hiển thị,
   không bao giờ đổi đề. Hình mẫu **Trái tim** là một bàn vuông bị chặn một phần tư góc trên bên phải, hiển thị nghiêng
@@ -502,9 +528,9 @@ lựa chọn.
 
 ## Dùng trình chơi
 
-Trang có cùng phong cách với trình tạo đề: đầu trang có tiêu đề, **Nhập mã đề**, **Trợ giúp**, nút **EN | VI** và các nút
-giao diện, cùng ba khung. Bên trái là các **đề** của gói đang mở, ở giữa là **ván chơi** (tên đề và mức độ, đồng hồ và số nước đi,
-Hoàn tác / Làm lại / Gợi ý / Chơi lại / In / Sao chép liên kết đề này và bàn chơi), bên phải là **các mảnh cần đặt**, dưới thanh công cụ của mảnh
+Trang có cùng phong cách với trình tạo đề: đầu trang có tiêu đề, **Trợ giúp**, nút **EN | VI** và các nút
+giao diện, cùng ba khung. Bên trái là các **đề** của gói đang mở, ở giữa là **ván chơi** (tên đề và mức độ cùng nút In và Sao chép liên kết đề này ở bên phải tên đề, đồng hồ và số nước đi,
+Hoàn tác / Làm lại / Gợi ý / Chơi lại và bàn chơi), bên phải là **các mảnh cần đặt**, dưới thanh công cụ của mảnh
 đang chọn. Khung các mảnh không có thanh cuộn riêng: khi có nhiều mảnh, cả trang sẽ cuộn. Từ 768 px đến 1359 px, danh
 sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp chồng lên nhau.
 
@@ -515,7 +541,8 @@ sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp
   tạo đề hay bản sao đã lưu, giữ tiến độ đã lưu của bạn, và tải lại sẽ mở lại đúng đề đó. Địa chỉ
   luôn chứa gói và đề đang mở. Mỗi thẻ trong danh sách đề (tên, mức độ và điểm, số mảnh cần đặt, tính duy nhất, tiến độ,
   hình xem trước), mới nhất ở trên, mở đề đó; ✕ trên thẻ xóa đề và **Xóa tất cả** làm trống danh sách.
-- **Nhập mã đề.** **Nhập mã đề** (trên màn hình bắt đầu và ở đầu trang) mở một hộp thoại để gõ hoặc dán mã in kèm đề, hoặc
+- **Nhập mã đề.** Không có nút riêng: hộp thoại **mã đề** tự mở khi một địa chỉ `#p=` (liên kết hoặc mã QR đã quét) không mở
+  được, với địa chỉ làm văn bản, để bạn sửa mã. Hộp thoại nhận mã in kèm đề, hoặc
   cả liên kết của đề. Dấu cách, dấu xuống dòng và dấu gạch ngang được bỏ qua, chữ thường cũng được, và chữ O, I, L được
   đọc là 0, 1, 1; phần sau dấu chấm là không bắt buộc, và một mã dài tối đa 16.000 ký tự (32.768 khi gõ hoặc dán).
   **Mở đề** sẽ mở đề, và địa chỉ trở thành `#p=<mã>`. Mã không mở được sẽ được giải thích ngay trong hộp thoại và không
@@ -525,8 +552,8 @@ sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp
   tìm ngầm). Các nước đi đã lưu của đề được khôi phục kèm một thông báo ngắn (cả khi bạn tải lại trang hoặc quét liên kết
   của đề); **Chơi lại** bắt đầu lại như bản in.
   **Hủy** hoặc `Escape` đóng hộp thoại.
-- **Sao chép liên kết của đề.** **Sao chép liên kết đề này** (biểu tượng liên kết sau nút **In** trong thanh ván chơi, và
-  trong trình tạo đề ở bên phải nút **In**) sao chép `…/player/#p=<mã>` của đề đang hiện: chính địa chỉ mà mã QR trên
+- **Sao chép liên kết của đề.** **Sao chép liên kết đề này** (biểu tượng liên kết bên phải nút **In**, trên hàng tên đề, ở
+  bên phải hàng; chỉ có trong trình chơi) sao chép `…/player/#p=<mã>` của đề đang hiện: địa chỉ mà mã QR trên
   bản in mang theo cho đề đó, kèm lời giải đã lưu khi vừa. Đây không bao giờ là liên kết gói đề. Trong lúc liên kết được
   chuẩn bị, nút hiện trạng thái đang bận; "Đã sao chép liên kết" chỉ xuất hiện sau khi trình duyệt đã nhận văn bản, và
   nếu trình duyệt từ chối bảng nhớ tạm thì một cửa sổ hiện liên kết trong ô chỉ đọc để bạn tự sao chép. Đề không có mã QR
@@ -570,28 +597,33 @@ sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp
 
 ## In ra giấy
 
-Nút **In** (biểu tượng máy in: bên phải **Chơi** trong trình tạo đề, bên phải **Chơi lại** trong trình chơi) mở hộp thoại
+Nút **In** (biểu tượng máy in: bên phải **Chơi** trong trình tạo đề, bên phải tên đề trong trình chơi) mở hộp thoại
 in đề ra giấy A4, để giải ngoại tuyến với các mảnh cắt rời.
 
-- Tờ đầu tiên in tên đề (đúng tên trình chơi hiển thị: "Đề #n" khi đề không có tên, các tên khác được thêm số), mức độ và
-  điểm của đề, cùng mức độ và seed của bộ mảnh. Bên dưới là **mã đề** cùng một **mã QR** ở góc trên bên phải: quét mã QR,
-  hoặc gõ mã vào **Nhập mã đề** của trình chơi, để chơi lại đúng đề này, không cần seed. Sau đó là một hình xem trước nhỏ
-  của đề với các mảnh cần đặt (để đọc, không để cắt).
-- **Mã đề và mã QR** được tạo ngay trên máy khi mở hộp thoại (nút **In** chờ "Đang chuẩn bị mã đề…"). Khi đề có lời giải
-  đã lưu, lời giải nằm ở phần sau dấu chấm, in nhỏ hơn dưới dòng "+ lời giải, không bắt buộc"; việc đó không in tờ lời
-  giải. Mã dài sẽ tiếp tục trên các tờ phụ có đánh số (mã QR chỉ ở tờ đầu). Mã không bao giờ bị cắt ngắn; trong trường
-  hợp hiếm khi mã quá dài cho một mã QR, phần lời giải không bắt buộc được bỏ đi, rồi mã QR dùng mức sửa lỗi thấp hơn, và
-  nếu vẫn không được thì tờ giấy nói rõ và không in mã lẫn mã QR. Hộp thoại báo từng việc này trước khi in.
-- **Mã QR dẫn tới đâu**: tới trình chơi của trang bạn in; từ một trang chạy cục bộ (`localhost`, địa chỉ mạng nội bộ,
-  một tệp) thì tới trình chơi công khai mà điện thoại truy cập được. Một ô chọn chỉ hiện trên trang cục bộ cho phép trỏ mã
-  QR tới trình chơi cục bộ, dùng khi phát triển; lựa chọn này không được nhớ. **Sao chép liên kết đề này** (xem Dùng
-  trình chơi) sao chép chính địa chỉ đó, không có ô chọn.
+- Tờ đầu tiên có một **mã QR** ở góc trên bên trái, dưới chú thích "Chơi trực tuyến", và bên phải là tên đề (đúng tên
+  thẻ đề trong danh sách: "Đề #n") cùng mức độ và điểm của đề. Quét mã QR để
+  chơi lại đúng đề này trong trình chơi, không cần seed. Tờ giấy không in mã đề, địa chỉ hay seed. Sau đó là một hình xem
+  trước nhỏ của đề với các mảnh cần đặt (để đọc, không để cắt).
+- **Nhiều đề.** Khi danh sách có nhiều hơn một đề, hộp thoại có hai cột. Cột bên phải có **Số đề mỗi trang** (1, 2 hoặc 4)
+  và **Đề cần in**: các đề trong danh sách theo thứ tự của khung bên cạnh (mới nhất trước), mỗi đề ghi dạng "Đề #n · Mức
+  độ: điểm n", cùng nút **Chọn tất cả** và **Bỏ chọn**; đề đang hiện được chọn sẵn khi mở hộp thoại. Các đề đã chọn được
+  in theo thứ tự số, mỗi đề có mã QR riêng, trên các tờ đầu, 1, 2 (chồng lên nhau) hoặc 4 (hai nhân hai) đề mỗi tờ, có
+  đường nét đứt để cắt; mã QR quá lớn so với một phần tư tờ sẽ được vẽ nhỏ lại. Bộ mảnh và bàn chơi chỉ in một lần, dù có
+  bao nhiêu đề.
+- **Mã QR** được tạo ngay trên máy khi mở hộp thoại (nút **In** chờ "Đang chuẩn bị mã đề…"). Khi đề có lời giải đã lưu,
+  lời giải nằm trong mã; việc đó không in tờ lời giải. Mã không bao giờ bị cắt ngắn; trong trường hợp hiếm khi mã quá dài
+  cho một mã QR, phần lời giải không bắt buộc được bỏ đi, rồi mã QR dùng mức sửa lỗi thấp hơn, và nếu vẫn không được thì
+  tờ giấy nói rõ và không in mã QR. Hộp thoại báo từng việc này trước khi in.
+- **Mã QR dẫn tới đâu**: luôn tới trình chơi của trang bạn in (cả khi là `localhost`, địa chỉ mạng nội bộ hay một tệp);
+  không có lựa chọn để đổi. **Sao chép liên kết đề này** (xem Dùng trình chơi) trỏ tới cùng trang và mang cùng mã.
 - **In cả bộ mảnh**: mọi mảnh của bộ, kể cả các mảnh đặt sẵn, sẵn sàng để cắt.
 - **In cả bàn chơi**: các ô chơi được. Bàn chơi quá lớn so với một tờ sẽ được chia thành nhiều phần; một dấu có đánh số
   trên mỗi cạnh chung cho biết phần nào ghép vào đó.
 - **In hai mặt**: mỗi mảnh và mỗi phần bàn chơi được in đối xứng ở mặt sau, nên khi cắt ra hai mặt khớp nhau (chọn in hai
   mặt, lật theo cạnh dài).
-- **In lời giải** (chỉ có trong trình tạo đề): bàn chơi đã giải ở tờ ngay sau đề (khi in hai mặt thì ở mặt sau của đề).
+- **In lời giải** (chỉ có trong trình tạo đề): bàn chơi đã giải ngay sau đề (khi in hai mặt thì ở mặt sau của đề). Khi in
+  nhiều đề trên một tờ, lời giải của các đề trên tờ đó nằm chung ở tờ kế tiếp, mỗi lời giải sau lưng đề của nó khi in hai
+  mặt.
 - **Cỡ bàn chơi**: một bảng gồm Nhỏ, Vừa và Lớn (ô 10, 15 và 20 mm) và Vừa một tờ, kèm số tờ A4 mỗi cỡ cần. Các mảnh dùng
   cùng kích thước ô với bàn chơi nên đặt lên khớp chính xác.
 

@@ -2,12 +2,15 @@
 // Generator job controller: binds the generation client to the store. Every reply is checked against the revision of
 // the job that asked for it, so a stale reply changes nothing. All searching runs in workers.
 import { boardToRows } from '../core/engine/board.js';
+import { readPuzzleCode } from '../core/browser/handoff.js';
+import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
+import { isAbortError } from '../core/browser/worker-pool.js';
 import { clueKey, layoutKey } from '../core/engine/keys.js';
 import { BUDGETS } from '../core/engine/policy.js';
 import { randomPuzzleSeed } from '../core/engine/rng.js';
 import {
   MAX_PACK_BYTES, MAX_PACK_PUZZLES, acceptSet, addSeenKeys, applyCertificate, batchLevelOf, capFor, duplicateSetNumber,
-  generationBlock, gotoSet, historyRoom, mergeSeenKeys, nextBatch, packFits,
+  generationBlock, gotoSet, historyRoom, importPuzzle, mergeSeenKeys, nextBatch, packFits,
   removeAllPuzzles, removeAllSets, removeCurrentSet, removePuzzle, resetHistory, roomForAnotherPuzzle, setTimelineLength,
   setViewPosition, setsFull, validSeed, visiblePack,
 } from './state.js';
@@ -32,6 +35,8 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {() => void} [beforeNavigate] Saves the generator state before the player opens.
  * @property {() => number} [now]
  * @property {() => string} [randomNumber] Source of fresh puzzle seeds (whole numbers as text).
+ * @property {() => import('../core/browser/puzzle-code-client.js').PuzzleCodeClient} [createPuzzleCodeClient] Makes the
+ *   client that reads the puzzle codes of Import puzzle, on the first import (default: one module worker).
  * @property {typeof duplicateGuard} [duplicateGuard] Replaces the duplicate check of new puzzles (tests whose fake puzzles share clues).
  */
 
@@ -194,6 +199,9 @@ export function createJobController(options) {
   /** @type {string | null} */
   let certRevision = null;
   let destroyed = false;
+  let importSeq = 0;
+  /** @type {import('../core/browser/puzzle-code-client.js').PuzzleCodeClient | null} */
+  let codeClient = null;
 
   /** @param {string} revision */
   const isCurrent = (revision) => !destroyed && store.getState().job?.revision === revision;
@@ -530,6 +538,79 @@ export function createJobController(options) {
     }
   }
 
+  /**
+   * Reads a puzzle code (or a puzzle link) and brings its board, piece set and puzzle into the Generator (see
+   * `importPuzzle`). A failure of the text or the decoder is the entry dialog's to explain; a newer import or
+   * `cancelImport` drops the older answer before it can change anything.
+   * @param {string} text
+   * @returns {Promise<{ ok: true, value: { status: import('./state.js').ImportStatus | 'busy' }, warnings: [] } | { ok: false, issues: object[] }>}
+   */
+  async function importPuzzleCode(text) {
+    importSeq += 1;
+    const mine = importSeq;
+    const cancelled = { ok: /** @type {const} */ (false), issues: [{ code: 'cancelled', path: '$', message: 'The import was cancelled.' }] };
+    if (store.getState().job !== null) {
+      return { ok: true, value: { status: 'busy' }, warnings: [] };
+    }
+    codeClient ??= (options.createPuzzleCodeClient ?? createPuzzleCodeClient)();
+    const client = codeClient;
+    let read;
+    try {
+      read = await readPuzzleCode(text, { decodePuzzle: (code) => client.decode(code) });
+    } catch (error) {
+      if (isAbortError(error)) {
+        return cancelled;
+      }
+      throw error;
+    }
+    if (destroyed || mine !== importSeq) {
+      return cancelled;
+    }
+    if (!read.ok) {
+      return read;
+    }
+    if (store.getState().job !== null) {
+      return { ok: true, value: { status: 'busy' }, warnings: [] };
+    }
+    stopBackground();
+    /** @type {import('./state.js').ImportStatus} */
+    let status = 'exists';
+    store.update((s) => {
+      const imported = importPuzzle(s, read.value.pack);
+      status = imported.status;
+      return imported.state;
+    });
+    const after = store.getState();
+    if ((status === 'new-set' || status === 'added') && after.set !== null && after.set.witness === null) {
+      void findWitness(after.set, read.value.pack.puzzles[0].clues);
+    }
+    return { ok: true, value: { status }, warnings: [] };
+  }
+
+  /**
+   * A set that came without an answer has no arrangement to build new puzzles from, so New puzzle would stay blocked:
+   * the solver looks for one in a worker, for the clues of the imported puzzle, and the set gets it as its witness. Best
+   * effort: no witness is found when the search is cancelled, runs out of time or finds nothing.
+   * @param {import('../core/engine/types.js').PieceSet} set
+   * @param {import('../core/engine/types.js').Pose[]} clues
+   */
+  async function findWitness(set, clues) {
+    if (options.workersAvailable === false || client.solveWitness === undefined) {
+      return;
+    }
+    const witness = await client.solveWitness({ boardRows: boardToRows(set.board), pieces: set.pieces, clues });
+    if (witness === null || destroyed) {
+      return;
+    }
+    store.update((s) => (s.set === set ? { ...s, set: { ...set, witness } } : s));
+  }
+
+  /** Drops the import that is being read, so that it can change nothing. */
+  function cancelImport() {
+    importSeq += 1;
+    codeClient?.cancel();
+  }
+
   return {
     generateSet,
     addMore,
@@ -541,8 +622,13 @@ export function createJobController(options) {
     removeSet,
     removeAllSets: removeSets,
     playPuzzle,
+    importPuzzleCode,
+    cancelImport,
     destroy() {
       destroyed = true;
+      importSeq += 1;
+      codeClient?.dispose();
+      codeClient = null;
     },
   };
 }

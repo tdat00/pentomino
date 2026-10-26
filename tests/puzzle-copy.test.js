@@ -44,13 +44,13 @@ const prepared = (url, over = {}) => ({
 const urlOfLength = (length) => PREFIX + 'A'.repeat(length - PREFIX.length);
 
 /**
- * @param {{ selected?: any, prepare?: (s: any, target: string, notice: string | null) => Promise<any>,
+ * @param {{ selected?: any, prepare?: (s: any, target: string) => Promise<any>,
  *   writeClipboard?: (text: string) => Promise<boolean> }} [over]
  */
 function rig(over = {}) {
   let selected = over.selected === undefined ? snap('A') : over.selected;
   const log = {
-    /** @type {Array<[string, string, string | null]>} */
+    /** @type {Array<[string, string]>} */
     prepared: [],
     /** @type {string[]} */
     writes: [],
@@ -63,9 +63,9 @@ function rig(over = {}) {
   };
   const action = createPuzzleCopyAction({
     getSnapshot: () => selected,
-    getTarget: () => ({ target: PUBLIC, notice: null }),
-    prepare: over.prepare ?? (async (s, target, notice) => {
-      log.prepared.push([s.key, target, notice]);
+    getTarget: () => PUBLIC,
+    prepare: over.prepare ?? (async (s, target) => {
+      log.prepared.push([s.key, target]);
       return prepared(`${PREFIX}${CORE}.${TAIL}`);
     }),
     writeClipboard: over.writeClipboard ?? (async (text) => {
@@ -89,7 +89,7 @@ describe('createPuzzleCopyAction', () => {
   test('an ordinary link is prepared for the default target and copied exactly once, then announced', async () => {
     const r = rig();
     await r.action.copy();
-    assert.deepEqual(r.log.prepared, [['A', PUBLIC, null]]);
+    assert.deepEqual(r.log.prepared, [['A', PUBLIC]]);
     assert.deepEqual(r.log.writes, [`${PREFIX}${CORE}.${TAIL}`]);
     assert.deepEqual(r.log.notes, ['code.copied']);
     assert.deepEqual(r.log.busy, [true, false]);
@@ -286,29 +286,26 @@ describe('the copied address is the one that Print carries', () => {
 
   for (const [name, page, expected] of /** @type {const} */ ([
     ['a fork on the public web', 'https://Example.org/My-Fork/pentomino/generator/', 'https://example.org/My-Fork/pentomino/player/'],
-    ['a local page', 'http://localhost:8080/pentomino/generator/', PUBLIC],
-    ['a file page', 'file:///C:/pentomino/player/index.html', PUBLIC],
+    ['a local page', 'http://localhost:8080/pentomino/generator/', 'http://localhost:8080/pentomino/player/'],
+    ['a file page', 'file:///C:/pentomino/player/index.html', 'file:///C:/pentomino/player/'],
   ])) {
     test(name, async () => {
-      const info = puzzlePlayerTarget(page);
-      const printed = await preparePuzzleShare(snapshot, { target: info.target, client, targetNotice: info.notice });
+      const target = puzzlePlayerTarget(page);
+      const printed = await preparePuzzleShare(snapshot, { target, client });
       const copied = /** @type {string[]} */ ([]);
       const action = createPuzzleCopyAction({
         getSnapshot: () => snapshot,
-        getTarget: () => {
-          const { target, notice } = puzzlePlayerTarget(page);
-          return { target, notice: notice === 'localTarget' ? 'localTarget' : null };
-        },
-        prepare: (s, target, notice) => preparePuzzleShare(s, { target, client, targetNotice: notice }),
+        getTarget: () => puzzlePlayerTarget(page),
+        prepare: (s, to) => preparePuzzleShare(s, { target: to, client }),
         writeClipboard: async (text) => { copied.push(text); return true; },
         showManualCopy: () => {},
         notify: () => {},
         setBusy: () => {},
       });
       await action.copy();
-      assert.equal(info.target, expected);
-      assert.deepEqual(copied, [`${expected}#p=${CORE}.${TAIL}`]);
-      assert.equal(copied[0], printed.url);
+      assert.equal(target, expected);
+      assert.deepEqual(copied, [`${expected}#p=${CORE}.${TAIL}`], 'the link points at the page the user is on');
+      assert.equal(copied[0], printed.url, 'the same address as Print');
     });
   }
 });

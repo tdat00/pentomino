@@ -5,12 +5,13 @@ import { showToast } from '../core/browser/dom.js';
 import { svgEl } from '../core/browser/svg-board.js';
 import { createGenerationClient } from '../core/browser/generation-client.js';
 import { openInPlayerTab } from '../core/browser/handoff.js';
+import { createPuzzleCodeDialog } from '../core/browser/puzzle-code-dialog.js';
 import { createPool } from '../core/browser/worker-pool.js';
 import { applyTo, choose, getLocale, normalize, onChange, setLocale, t } from './i18n.js';
 import { LANGUAGE_KEY } from '../core/browser/i18n.js';
 import { THEME_KEY, applyTheme, effectiveTheme, normalizeTheme } from '../core/browser/theme.js';
 import {
-  createGeneratorStore, createPersistence, describeBoard, detectHardware, loadGeneratorState, setNumber,
+  MAX_SETS, createGeneratorStore, createPersistence, describeBoard, detectHardware, loadGeneratorState, setNumber,
 } from './state.js';
 import { createJobController } from './jobs.js';
 import { mountBoardEditor } from './ui/board-editor.js';
@@ -84,6 +85,7 @@ export function chooseLanguage(sources = {}) {
  *   client?: import('../core/browser/generation-client.js').GenerationClient,
  *   pool?: import('../core/browser/worker-pool.js').Pool, workerFactory?: () => import('../core/browser/worker-pool.js').WorkerLike,
  *   workersAvailable?: boolean, handoff?: import('../core/browser/handoff.js').HandoffEnv,
+ *   createPuzzleCodeClient?: () => import('../core/browser/puzzle-code-client.js').PuzzleCodeClient,
  *   preferenceStorage?: Pick<Storage, 'setItem'> | null,
  *   controller?: Partial<import('./jobs.js').JobControllerOptions> }} [options]
  */
@@ -131,6 +133,7 @@ export function createGeneratorApp(doc, options = {}) {
     openPlayer: (pack, index) => openInPlayerTab(pack, index, handoffEnv),
     beforeNavigate: () => persistence.saveNow(),
     randomNumber: options.randomNumber,
+    ...(options.createPuzzleCodeClient === undefined ? {} : { createPuzzleCodeClient: options.createPuzzleCodeClient }),
     ...(options.now === undefined ? {} : { now: options.now }),
     ...options.controller,
   });
@@ -144,6 +147,36 @@ export function createGeneratorApp(doc, options = {}) {
     controlsHost: puzzleControlsHost, cardsActionsHost: optionalSlot(doc, 'cards-actions'),
   });
   const wizard = mountWizard(doc, { store, hardware });
+
+  // Import puzzle: the entry dialog of the Player reads a puzzle link or code; the controller brings it in.
+  const importButton = /** @type {HTMLButtonElement | null} */ (doc.querySelector('[data-action="import-puzzle"]'));
+  /**
+   * @param {string} text
+   * @returns {ReturnType<typeof controller.importPuzzleCode>}
+   */
+  async function importCode(text) {
+    const result = await controller.importPuzzleCode(text);
+    if (result.ok) {
+      const { status } = result.value;
+      const refused = status === 'sets-full' || status === 'pack-full' || status === 'busy';
+      showToast(t(`import.done.${status}`, { max: MAX_SETS }), { kind: refused ? 'warning' : 'info' });
+      if (status === 'new-set' || status === 'added') {
+        void wizard?.go(3, { focus: true });
+      }
+    }
+    return result;
+  }
+  const importDialog = importButton === null ? null : createPuzzleCodeDialog({
+    host: doc.body,
+    t,
+    submit: importCode,
+    cancel: () => controller.cancelImport(),
+    openRecovery: importCode,
+    fallbackFocus: () => importButton,
+    keys: { title: 'import.title', field: 'import.field', hint: 'import.hint', open: 'import.open' },
+  });
+  const onImportClick = () => importDialog?.open({ opener: importButton });
+  importButton?.addEventListener('click', onImportClick);
   const unsubscribeBoard = store.subscribe((state, previous) => {
     if (state.board !== previous.board && state.set !== previous.set) {
       editor.history.clear();
@@ -292,6 +325,7 @@ export function createGeneratorApp(doc, options = {}) {
     setPanel.refresh();
     setSummary?.refresh();
     puzzlePanel.refresh();
+    importDialog?.refresh();
     wizard?.refresh();
     syncActions();
     syncHistoryTitle();
@@ -359,6 +393,7 @@ export function createGeneratorApp(doc, options = {}) {
     controller,
     setPanel,
     puzzlePanel,
+    importDialog,
     wizard,
     regions,
     /** Lets tests and other hosts replace the job actions. @param {GeneratorHandlers} next */
@@ -383,6 +418,8 @@ export function createGeneratorApp(doc, options = {}) {
         button.removeEventListener('click', handler);
       }
       wizard?.destroy();
+      importButton?.removeEventListener('click', onImportClick);
+      importDialog?.dispose();
       controller.destroy();
       setPanel.destroy();
       setSummary?.destroy();

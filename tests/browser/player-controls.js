@@ -1027,7 +1027,7 @@ await check('accessibility: names, board role, live region, 44 px targets, visib
   // coarse pointers) and the board tools are 28 px, as in the generator; both stay above the 24 px of WCAG 2.2 AA.
   const small = m.qa('.game button, .game a.pm-btn').filter((b) => !b.closest('[hidden]') && b.getClientRects().length > 0)
     .filter((b) => { const r = b.getBoundingClientRect(); return r.width < 43.5 || r.height < 43.5; })
-    .filter((b) => !b.classList.contains('tray-piece') && !b.closest('.game-actions') && !b.closest('.board-tools'));
+    .filter((b) => !b.classList.contains('tray-piece') && !b.closest('.game-actions') && !b.closest('.step-actions') && !b.closest('.board-tools'));
   equal(small.map((b) => `${b.dataset.action ?? b.textContent}:${Math.round(b.getBoundingClientRect().width)}x${Math.round(b.getBoundingClientRect().height)}`).join(', '), '', 'controls below 44x44');
   const tools = m.qa('.board-tools button').map((b) => b.getBoundingClientRect());
   assert(tools.length === 5 && tools.every((r) => r.width >= 24 && r.height >= 24), 'board tools are at least 24 px');

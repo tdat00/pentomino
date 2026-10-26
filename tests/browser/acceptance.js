@@ -590,7 +590,7 @@ await check('L5', 'Generator wizard: Next and Back move between steps, step 3 st
 });
 
 /** @param {Frame} frame */
-const gameBarOrder = (frame) => qa(frame.doc(), '.game-bar .game-stats > *, .game-bar .game-actions > *').map((n) => n.dataset.action ?? n.className.split(' ')[0]);
+const gameBarOrder = (frame) => qa(frame.doc(), '.step-head .step-actions > *, .game-bar .game-stats > *, .game-bar .game-actions > *').map((n) => n.dataset.action ?? n.className.split(' ')[0]);
 
 await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces panels, game bar over the board, selection toolbar on pick-up, Straighten present in the game bar', async () => {
   const frame = await openFrame('../../player/', { width: 1400, height: 900, ready: playerReady, hash: new URL(pastedLink).hash });
@@ -602,8 +602,10 @@ await check('L3', 'Player desktop layout (1360 px): puzzles | game | pieces pane
   assert(history.right <= main.left + 4 && main.right <= side.left + 4, `three panels (${[history, main, side].map((r) => `${Math.round(r.left)}-${Math.round(r.right)}`).join(' | ')})`);
   assert(qa(d, '.app-history .puzzle-card').length > 0 && q(d, '.app-main').contains(q(d, '.pm-board')) && q(d, '.app-side').contains(q(d, '[data-host="tray"]')), 'each panel holds its content');
   const order = gameBarOrder(frame);
-  const expected = ['game-timer', 'game-moves', 'undo', 'redo', 'hint',   'replay', 'print', 'copy-puzzle-link', 'straighten'];
-  assert(JSON.stringify(order) === JSON.stringify(expected), `game bar order ${order.join(' > ')}`);
+  const expected = ['print', 'copy-puzzle-link', 'game-timer', 'game-moves', 'undo', 'redo', 'hint', 'replay', 'straighten'];
+  assert(JSON.stringify(order) === JSON.stringify(expected), `title row and game bar order ${order.join(' > ')}`);
+  const [head, headTitle, printRect, copyRect] = ['.step-head', '.puzzle-title', '[data-action="print"]', '[data-action="copy-puzzle-link"]'].map((s) => rect(q(d, s)));
+  assert(Math.abs(printRect.top - headTitle.top) < 40 && printRect.left > headTitle.left && copyRect.right <= head.right + 1 && copyRect.right > head.right - 8, 'Print and Copy are on the title row, at its right');
   const board = rect(q(d, '.pm-board'));
   const tray = rect(q(d, '[data-host="tray"]'));
   assert(tray.left >= board.right - 4, `the pieces are on the right (tray ${Math.round(tray.left)}, board right ${Math.round(board.right)})`);

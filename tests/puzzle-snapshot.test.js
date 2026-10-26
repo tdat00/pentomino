@@ -11,7 +11,7 @@ import { decodePuzzleCode, encodePuzzleCode } from '../core/engine/puzzlecode.js
 import { puzzleCodeUrl } from '../core/engine/sharecode.js';
 import { puzzleDisplayName } from '../core/browser/puzzle-title.js';
 import {
-  PUBLIC_PLAYER_URL, PuzzleShareError, isLocalHost, isSameSnapshot, preparePuzzleShare, puzzlePlayerTarget, puzzleSnapshot,
+  PUBLIC_PLAYER_URL, PuzzleShareError, isSameSnapshot, preparePuzzleShare, puzzlePlayerTarget, puzzleSnapshot,
 } from '../core/browser/puzzle-snapshot.js';
 
 const require = createRequire(import.meta.url);
@@ -195,55 +195,29 @@ test('what the code carries re-creates the printed heading, the angle, the clues
   }
 });
 
-test('hosts: loopback, private, link-local and local names are local; public hosts stay public', () => {
-  for (const host of [
-    'localhost', 'LocalHost', 'localhost.', 'dev.localhost', 'app.dev.LOCALHOST.', 'printer.local', 'My-Mac.local.',
-    '127.0.0.1', '127.255.255.254', '10.0.0.1', '10.255.255.255', '172.16.0.1', '172.31.255.255', '192.168.0.1', '192.168.255.255', '169.254.0.1', '169.254.169.254',
-    '[::1]', '::1', '[fc00::1]', 'fd12:3456:789a::1', 'fdff::', '[fe80::1]', 'FE80::ABCD', 'febf::1', '::ffff:7f00:1', '[::ffff:a00:1]', '::ffff:c0a8:101', '::ffff:127.0.0.1', '::ffff:10.1.2.3', '::ffff:169.254.1.1', '::ffff:172.16.0.5',
-  ]) {
-    assert.equal(isLocalHost(host), true, host);
-  }
-  for (const host of [
-    'example.com', 'tdat00.github.io', 'localhost.example.com', 'notlocal', 'local', 'my.locale',
-    '8.8.8.8', '1.1.1.1', '11.0.0.1', '126.0.0.1', '128.0.0.1', '172.15.255.255', '172.32.0.1', '192.167.0.1', '192.169.0.1', '169.253.0.1', '169.255.0.1', '999.1.1.1',
-    '[2001:4860:4860::8888]', '2001:db8::1', 'fe00::1', 'fec0::1', 'fbff::1', 'fe7f::1', '::ffff:808:808', '::ffff:ac0f:1', '::2', '::',
-  ]) {
-    assert.equal(isLocalHost(host), false, host);
-  }
-});
-
-test('the target is the page\'s own Player on the public web and the configured public Player from a local page', () => {
+test('the target is the page\'s own Player on every http, https and file page; only an unusable page uses the configured public Player', () => {
   assert.equal(PUBLIC_PLAYER_URL, 'https://tdat00.github.io/pentomino/player/');
-  assert.deepEqual(puzzlePlayerTarget('https://tdat00.github.io/pentomino/generator/index.html?x=1#y'),
-    { target: 'https://tdat00.github.io/pentomino/player/', local: false, notice: null });
-  assert.deepEqual(puzzlePlayerTarget('https://Example.org/My-Fork/Pentomino/generator/'),
-    { target: 'https://example.org/My-Fork/Pentomino/player/', local: false, notice: null }, 'a fork keeps its case-sensitive path');
-  assert.deepEqual(puzzlePlayerTarget(new URL('https://example.org/player/')).target, 'https://example.org/player/', 'a URL object works; the Player itself');
-  assert.equal(puzzlePlayerTarget('https://8.8.8.8/pentomino/generator/').local, false);
-  assert.equal(puzzlePlayerTarget('https://[2001:4860:4860::8888]/pentomino/generator/').local, false);
-  const own = 'http://localhost:8705/pentomino/player/';
-  for (const page of [
-    'http://localhost:8705/pentomino/generator/', 'http://pentomino.localhost:8705/pentomino/generator/', 'http://box.local/pentomino/generator/',
-    'http://127.0.0.1:8705/pentomino/generator/', 'http://10.1.2.3/pentomino/generator/', 'http://172.20.0.4/pentomino/generator/',
-    'http://192.168.1.20:8080/pentomino/generator/', 'http://169.254.1.1/pentomino/generator/', 'http://[::1]:8705/pentomino/generator/',
-    'http://[fd00::5]/pentomino/generator/', 'http://[fe80::1]/pentomino/generator/', 'http://[::ffff:192.168.0.1]/pentomino/generator/', 'http://LOCALHOST./pentomino/generator/',
-    'file:///Q:/git/pentomino/generator/index.html', 'ftp://example.org/pentomino/generator/',
+  assert.equal(puzzlePlayerTarget('https://tdat00.github.io/pentomino/generator/index.html?x=1#y'), 'https://tdat00.github.io/pentomino/player/');
+  assert.equal(puzzlePlayerTarget('https://Example.org/My-Fork/Pentomino/generator/'), 'https://example.org/My-Fork/Pentomino/player/', 'a fork keeps its case-sensitive path');
+  assert.equal(puzzlePlayerTarget(new URL('https://example.org/player/')), 'https://example.org/player/', 'a URL object works; the Player itself');
+  for (const [page, expected] of [
+    ['http://localhost:8705/pentomino/generator/', 'http://localhost:8705/pentomino/player/'],
+    ['http://127.0.0.1:8705/pentomino/generator/', 'http://127.0.0.1:8705/pentomino/player/'],
+    ['http://192.168.1.20:8080/pentomino/generator/', 'http://192.168.1.20:8080/pentomino/player/'],
+    ['http://[::1]:8705/pentomino/generator/', 'http://[::1]:8705/pentomino/player/'],
+    ['file:///Q:/git/pentomino/generator/index.html', 'file:///Q:/git/pentomino/player/'],
   ]) {
-    assert.deepEqual(puzzlePlayerTarget(page), { target: PUBLIC_PLAYER_URL, local: true, notice: 'localTarget' }, page);
+    assert.equal(puzzlePlayerTarget(page), expected, `${page} points at its own Player`);
   }
-  assert.deepEqual(puzzlePlayerTarget('http://localhost:8705/pentomino/generator/', { useThisPage: true }), { target: own, local: true, notice: 'devTarget' });
-  assert.deepEqual(puzzlePlayerTarget('file:///Q:/git/pentomino/generator/index.html', { useThisPage: true }),
-    { target: 'file:///Q:/git/pentomino/player/', local: true, notice: 'devTarget' });
-  assert.equal(puzzlePlayerTarget('ftp://example.org/pentomino/generator/', { useThisPage: true }).target, PUBLIC_PLAYER_URL, 'only http, https and file pages can be the override');
-  assert.deepEqual(puzzlePlayerTarget('about:blank', { useThisPage: true }), { target: PUBLIC_PLAYER_URL, local: true, notice: 'localTarget' });
-  assert.deepEqual(puzzlePlayerTarget('https://example.org/pentomino/generator/', { useThisPage: true }),
-    { target: 'https://example.org/pentomino/player/', local: false, notice: null }, 'the override is only for local pages');
+  for (const page of ['ftp://example.org/pentomino/generator/', 'about:blank', 'data:text/html,x']) {
+    assert.equal(puzzlePlayerTarget(page), PUBLIC_PLAYER_URL, `${page} has no usable address`);
+  }
   assert.throws(() => puzzlePlayerTarget('not a url'), RangeError);
 });
 
 test('the QR the sheet prints decodes to exactly the address Copy would use', async () => {
   const snapshot = snapshotOf(0);
-  for (const target of [PUBLIC_PLAYER_URL, 'https://example.org/My-Fork/player/', 'http://192.168.1.20:8705/pentomino/player/']) {
+  for (const target of [PUBLIC_PLAYER_URL, 'https://example.org/My-Fork/player/', 'http://192.168.1.20:8705/pentomino/player/', 'file:///Q:/git/pentomino/player/']) {
     const share = await preparePuzzleShare(snapshot, { target, client: codecClient });
     assert.equal(share.url, puzzleCodeUrl(target, share.code.F));
     assert.equal(share.qr?.url, share.url);
@@ -254,14 +228,8 @@ test('the QR the sheet prints decodes to exactly the address Copy would use', as
     // Print and Copy call the same function with the same snapshot and target: one result.
     const again = await preparePuzzleShare(snapshotOf(0), { target, client: codecClient });
     assert.deepEqual(again, share);
+    assert.ok(Object.isFrozen(share) && Object.isFrozen(share.notices) && Object.isFrozen(share.code));
   }
-  const share = await preparePuzzleShare(snapshot, { target: PUBLIC_PLAYER_URL, client: codecClient, targetNotice: 'localTarget' });
-  assert.deepEqual(share.notices, ['localTarget']);
-  assert.ok(Object.isFrozen(share) && Object.isFrozen(share.notices) && Object.isFrozen(share.code));
-  const dev = await preparePuzzleShare(snapshot, { target: 'file:///Q:/git/pentomino/player/', client: codecClient, targetNotice: 'devTarget' });
-  assert.ok(dev.url?.startsWith('file:///Q:/git/pentomino/player/#p='));
-  assert.deepEqual(dev.notices, ['devTarget']);
-  assert.equal(decodeQr(/** @type {NonNullable<typeof dev.qr>} */ (dev.qr).rows)?.data, dev.url);
 });
 
 test('a puzzle without a stored answer has no tail and no dot', async () => {
@@ -308,11 +276,11 @@ test('the capacity ladder: full code, then without the tail, then error correcti
   assert.deepEqual(lowOnly.notices, ['lowEc'], 'nothing to drop: only the error correction notice');
   assert.equal(lowOnly.carried, 'C');
 
-  const none = await preparePuzzleShare(snapshotOf(), { target: PUBLIC_PLAYER_URL, client: fixedClient(symbols(4300), symbols(100)), targetNotice: 'localTarget' });
+  const none = await preparePuzzleShare(snapshotOf(), { target: PUBLIC_PLAYER_URL, client: fixedClient(symbols(4300), symbols(100)) });
   assert.equal(none.qr, null, 'neither code nor QR on the sheet');
   assert.equal(none.carried, 'C');
   assert.equal(none.code.T, null);
-  assert.deepEqual(none.notices, ['noTail', 'none', 'localTarget']);
+  assert.deepEqual(none.notices, ['noTail', 'none']);
   assert.equal(none.url, `${PUBLIC_PLAYER_URL}#p=${symbols(4300)}`, 'a core address within the URL budget can still be copied');
 
   const noneNoTail = await preparePuzzleShare(snapshotOf(), { target: PUBLIC_PLAYER_URL, client: fixedClient(symbols(5000), null) });
@@ -326,7 +294,7 @@ test('the capacity ladder: full code, then without the tail, then error correcti
   assert.deepEqual(noUrl.notices, ['none']);
 });
 
-test('the Generator prints the displayed heading, no puzzle seed, and carries the same code as the Player', async () => {
+test('the Generator prints the name of its card, no puzzle seed, and carries the same code as the Player', async () => {
   const { printJobOf } = await import('../generator/ui/puzzle-panel.js');
   const { setLocale } = await import('../generator/i18n.js');
   const { packBoard } = await import('../core/engine/pack.js');
@@ -341,12 +309,12 @@ test('the Generator prints the displayed heading, no puzzle seed, and carries th
     calibrationFor: { levelId: 'expert' },
   });
   const job = /** @type {NonNullable<ReturnType<typeof printJobOf>>} */ (printJobOf(state, 'g2'));
-  assert.equal(job.title, 'Hard #3', 'the displayed title, not the card heading "Puzzle #3"');
-  assert.equal(job.snapshot?.heading, 'Hard #3');
+  assert.equal(job.title, 'Puzzle #3', 'the name of the card, not the title "Hard #3" that the code carries');
+  assert.equal(job.snapshot?.heading, 'Hard #3', 'the code keeps the displayed heading');
   assert.equal(job.rotation, 90);
   assert.equal(job.solution?.length, pack.pieces.length, 'the Generator keeps its Print solution option');
   const lines = job.details.map((line) => line.map((part) => part.text).join(''));
-  assert.deepEqual(lines, ['Hard: score 21', 'Set: Expert, ABCD-EFGH-JKLM'], 'the rating and the set; the puzzle seed is gone');
+  assert.deepEqual(lines, ['Hard: score 21'], 'the rating only; neither the puzzle seed nor the set line');
   assert.equal(printJobOf(state, 'missing'), null);
   assert.equal(printJobOf({ ...state, set: null }, 'g2'), null);
 
@@ -358,7 +326,7 @@ test('the Generator prints the displayed heading, no puzzle seed, and carries th
   const b = await preparePuzzleShare(player, { target: PUBLIC_PLAYER_URL, client: codecClient });
   assert.deepEqual(a, b);
 
-  // An untitled puzzle is "Puzzle #n" / "Đề #n" in the language of the sheet.
+  // The sheet names an untitled puzzle "Puzzle #n" / "Đề #n" in the language of the sheet, and so does the code.
   const untitled = { ...state, puzzles: [{ ...engine[0], title: undefined }, { ...engine[1], title: undefined }] };
   assert.equal(printJobOf(untitled, 'g1')?.title, 'Puzzle #2');
   setLocale('vi');

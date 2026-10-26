@@ -37,7 +37,8 @@ document.documentElement.dataset.phase = phase;
 
 const NS = 'http://www.w3.org/2000/svg';
 const MM = 25.4 / 96;
-const PUBLIC = 'https://tdat00.github.io/pentomino/player/';
+// Print and Copy link both point at the Player of the page the test runs on, also on a local page.
+const OWN = new URL('../player/', document.baseURI).href;
 const results = /** @type {Array<{ name: string, ok: boolean, error?: string }>} */ ([]);
 const violations = /** @type {string[]} */ ([]);
 const uncaught = /** @type {string[]} */ ([]);
@@ -328,6 +329,18 @@ function viewOf(p) {
   };
 }
 
+/** The title of a generated puzzle ("Normal #2"), which the list and the printed sheet show as "Puzzle #2". */
+const GENERATED_TITLE = /^(?:Very easy|Easy|Normal|Hard|Expert|Master|Nightmare|Hell [1-9]\d*) #(\d+)$/;
+
+/**
+ * @param {string} heading The heading the puzzle's code carries.
+ * @returns {string} The name printed on its sheet: a generated title shows as "Puzzle #n" / "Đề #n", any other as it is.
+ */
+function printedName(heading) {
+  const generated = GENERATED_TITLE.exec(heading);
+  return generated === null ? heading : playerI18n.t('card.heading', { n: Number(generated[1]) });
+}
+
 /**
  * The selected puzzle exactly as the source holds it.
  * @param {{ rows: string[], pieces: any[], puzzle: any, index: number, rotation: number, untitled?: (n: number) => string }} s
@@ -491,9 +504,8 @@ const fieldOf = (/** @type {Stage} */ m) => /** @type {HTMLTextAreaElement} */ (
  */
 async function enterCode(m, text, { wait = true } = {}) {
   if (!isOpen(m)) {
-    const start = m.root.querySelector('.start-actions [data-action="enter-code"]');
-    const button = start !== null && start.getClientRects().length > 0 ? start : m.q('.app-header [data-action="enter-code"]');
-    /** @type {HTMLElement} */ (button).click();
+    // The page has no button for the entry: it opens as it does for a bad `#p=` address.
+    m.player.codeDialog.open();
     await waitFor(() => isOpen(m), 'the entry to open');
   }
   const field = fieldOf(m);
@@ -565,7 +577,7 @@ async function openPrint(openButton, o = {}) {
   return {
     dialog,
     state,
-    target: /opens (.+)$/.exec(dialog.querySelector('[data-role="print-target"]')?.textContent ?? '')?.[1] ?? '',
+    target: dialog.querySelector('[data-role="print-code"]')?.getAttribute('data-target') ?? '',
     notices: () => [...dialog.querySelectorAll('[data-role="print-notices"] li')].map((li) => li.getAttribute('data-notice') ?? ''),
     noticeTexts: () => [...dialog.querySelectorAll('[data-role="print-notices"] li')].map((li) => li.textContent ?? ''),
     confirm() {
@@ -595,10 +607,10 @@ async function openPrint(openButton, o = {}) {
 const all = (page, selector) => [...page.querySelectorAll(selector)];
 
 /**
- * What a reader copies from the sheets, in reading order, without the printed spacing.
+ * The code the QR symbols of the sheets carry (the sheets print no code as text), in reading order.
  * @param {Element[]} pages
  */
-const typedCode = (pages) => pages.flatMap((page) => all(page, 'text.pm-print-code')).map((node) => (node.textContent ?? '').replaceAll(' ', '')).join('');
+const typedCode = (pages) => pages.flatMap((page) => all(page, 'g.pm-print-qr')).map((node) => node.getAttribute('data-qr-code') ?? '').join('');
 
 /**
  * The first sheet's QR group, rasterised at four pixels per module with its quiet zone on a magenta ground (an
@@ -658,7 +670,7 @@ async function rasterizeQr(group, rows) {
 }
 
 /**
- * Everything a printout shows of the code: the text in reading order, the labels and the heading.
+ * Everything a printout shows of the code: the QR's code, its caption and the heading.
  * @param {Element[]} pages
  */
 async function readSheets(pages) {
@@ -668,10 +680,7 @@ async function readSheets(pages) {
     F: typedCode(pages),
     heading: first.querySelector('text.pm-print-sheet-title')?.textContent ?? '',
     details: all(first, 'text.pm-print-detail').map((node) => node.textContent ?? ''),
-    label: first.querySelector('text.pm-print-code-label')?.textContent ?? null,
-    tailLabel: first.querySelector('text.pm-print-code-tail-label')?.textContent ?? null,
     scan: first.querySelector('text.pm-print-qr-scan')?.textContent ?? null,
-    host: first.querySelector('text.pm-print-qr-host')?.textContent ?? null,
     noCode: first.querySelector('text.pm-print-no-code')?.textContent ?? null,
     qrVersion: group === null ? null : Number(group.getAttribute('data-qr-version')),
     qrEc: group?.getAttribute('data-qr-ec') ?? null,
@@ -696,16 +705,19 @@ async function printCopyOpen(name, scope, expected, o = {}) {
   const print = await openPrint(scope.print());
   assert(print.state() === 'ready', `${name}: the Print dialog is ready`);
   assert((print.dialog.querySelector('[data-field="print-solution"]') === null) === (scope.solutionOption !== true), `${name}: only the Generator offers a solution sheet`);
-  equal(print.target, PUBLIC, `${name}: a local page prints the public Player's address`);
-  equal(print.notices(), ['localTarget'], `${name}: and says so`);
+  equal(print.target, OWN, `${name}: the QR leads to this page's Player`);
+  equal(print.notices(), [], `${name}: with no local-page notice`);
   const done = print.confirm();
   equal(done.printed, 1, `${name}: printed once`);
   const F = typedCode(done.pages);
-  // Copy this puzzle link beside it: the same prepared address.
-  scope.copy().click();
-  await waitFor(() => writes.length === 1, `${name}: Copy link to write`, 20000);
-  const url = writes[0];
-  equal(url, `${PUBLIC}#p=${F}`, `${name}: the copied link is the printed code at the public Player`);
+  // Copy this puzzle link beside it (the Player only): the same prepared address.
+  let url = `${OWN}#p=${F}`;
+  if (scope.copy !== undefined) {
+    scope.copy().click();
+    await waitFor(() => writes.length === 1, `${name}: Copy link to write`, 20000);
+    url = writes[0];
+    equal(url, `${OWN}#p=${F}`, `${name}: the copied link is the printed code at this page's Player`);
+  }
   if (o.expectedCode !== undefined) {
     equal(F, o.expectedCode, `${name}: the frozen code`);
   }
@@ -722,11 +734,12 @@ async function printCopyOpen(name, scope, expected, o = {}) {
   if (o.expectedVersion !== undefined) {
     equal(sheets.qrVersion, o.expectedVersion, `${name}: QR version`);
   }
-  equal([sheets.qrEc, sheets.scan, sheets.host], ['M', 'Scan to open', 'tdat00.github.io'], `${name}: captions`);
-  equal(sheets.label, `Puzzle code (${C.length} characters)`, `${name}: the label counts the core`);
-  equal(sheets.tailLabel, T === null ? null : '+ solution, optional', `${name}: the optional tail is labelled`);
+  equal([sheets.qrEc, sheets.scan], ['M', 'Play Online'], `${name}: the QR level and its caption`);
+  assert(!/Puzzle code|\+ solution|score \d+.*Set:/.test(sheets.pageText) && done.pages[0].querySelector('text.pm-print-code, text.pm-print-qr-host') === null,
+    `${name}: neither the code nor the address is printed`);
+  void T;
   assert(!/seed/i.test(sheets.pageText), `${name}: no puzzle seed on the sheets`);
-  equal(sheets.heading, expected.heading, `${name}: the printed heading is the displayed one`);
+  equal(sheets.heading, printedName(expected.heading), `${name}: the printed heading is the name of the puzzle in the list`);
   evidence.rasters.push({ name, url, side: raster.side, gray: raster.gray });
   // Fresh Players: new storage, nothing of the source, the entry dialog as the only way in.
   const core = await freshOpen(`${name} core (typed grouped, lower case)`, C.replace(/(.{4})/g, '$1 ').trim().toLowerCase(), { ...expected, solution: null });
@@ -845,11 +858,12 @@ function checkFirstSheet(page, label, expect) {
     assert(Math.abs(sheet.width * MM - 210) < 0.25 && Math.abs(sheet.height * MM - 297) < 0.25, `${label}: A4, got ${(sheet.width * MM).toFixed(1)} x ${(sheet.height * MM).toFixed(1)} mm`);
     /** @type {Array<[string, { x: number, y: number, w: number, h: number }]>} */
     const boxes = [];
-    for (const selector of ['text.pm-print-sheet-title', 'text.pm-print-detail', 'text.pm-print-code-label', 'text.pm-print-code', 'text.pm-print-code-tail-label', 'text.pm-print-code-more', 'text.pm-print-no-code', 'text.pm-print-qr-scan', 'text.pm-print-qr-host']) {
+    for (const selector of ['text.pm-print-sheet-title', 'text.pm-print-detail', 'text.pm-print-no-code', 'text.pm-print-qr-scan']) {
       for (const node of all(page, selector)) {
         boxes.push([`${selector} "${(node.textContent ?? '').slice(0, 12)}"`, glyphBox(node)]);
       }
     }
+    assert(page.querySelector('text.pm-print-code, text.pm-print-qr-host') === null, `${label}: neither the code nor the address is printed`);
     const group = page.querySelector('g.pm-print-qr');
     if (expect.qr) {
       assert(group !== null, `${label}: a QR code is on the first sheet`);
@@ -859,18 +873,14 @@ function checkFirstSheet(page, label, expect) {
       const side = Math.max(25, (17 + 4 * version + 8) * 0.5);
       assert(Math.abs(box.w - side) < 0.05 && Math.abs(box.h - side) < 0.05, `${label}: QR box ${box.w.toFixed(2)} mm, expected max(25, (N + 8) x 0.5) = ${side} mm for version ${version}`);
       assert(outer === 17 + 4 * version + 8, `${label}: the quiet zone is four modules (outer ${outer})`);
-      assert(Math.abs(box.x + box.w - 200) < 0.05 && Math.abs(box.y - 10) < 0.05, `${label}: the QR sits in the corner of the content area`);
+      assert(Math.abs(box.x - 10) < 0.05 && Math.abs(box.y - 10) < 0.05, `${label}: the QR sits in the top-left corner of the content area`);
       assert(box.w / outer >= 0.5 - 1e-3, `${label}: a module is at least 0.5 mm`);
       boxes.push(['QR box', box]);
       for (const [name, b] of boxes) {
-        if (name !== 'QR box' && !name.includes('qr-') && b.y < 10 + side + 10 - 0.05) {
-          assert(b.x + b.w <= 200 - side - 6 + 0.35, `${label}: ${name} ends at ${(b.x + b.w).toFixed(1)} mm, inside the QR column (${(200 - side - 6).toFixed(1)})`);
+        if (name !== 'QR box' && !name.includes('qr-') && b.y < 10 + side + 7 - 0.05) {
+          assert(b.x >= 10 + side + 6 - 0.35, `${label}: ${name} starts at ${b.x.toFixed(1)} mm, clear of the QR column (${(10 + side + 6).toFixed(1)})`);
         }
       }
-    }
-    for (const node of all(page, 'text.pm-print-code')) {
-      const length = /** @type {SVGTextContentElement} */ (/** @type {unknown} */ (node)).getComputedTextLength();
-      assert(Math.abs(length - Number(node.getAttribute('textLength'))) < 0.35, `${label}: a code line has its fixed width`);
     }
     for (const [name, b] of boxes) {
       assert(b.x >= 10 - 0.3 && b.x + b.w <= 200 + 0.3 && b.y >= 10 - 2 && b.y + b.h <= 287 + 0.3, `${label}: ${name} lies inside the 10 mm margins`);
@@ -930,9 +940,8 @@ await check('BA01 BA02 BA03 BA04 BA17 BA22 BA24 BA25: puzzle 2 of 3 — Print, r
   assert(out.F.length < 60, `a code is a puzzle, not a pack (${out.F.length})`);
   assert(!out.F.includes(G1.code.slice(0, 20)) && !out.F.includes(G3.code.slice(0, 20)), 'neither neighbour is in the code');
   assert(spy.encodes >= 2, 'Print and Copy each asked the worker');
-  equal(out.sheets.details.length, 2, 'two detail lines: the rating and the set line of the pack');
+  equal(out.sheets.details.length, 1, 'one detail line: the rating (no set line)');
   assert(/^Normal: score \d+/.test(out.sheets.details[0]), `the level and score stay (${out.sheets.details[0]})`);
-  assert(/^Set: /.test(out.sheets.details[1]), `the known set line stays (${out.sheets.details[1]})`);
   await showSheet('player-sheet-source', out.pages[0]);
 });
 
@@ -1111,8 +1120,6 @@ await check('BA16: every size, piece, board and two-sided choice of the 40-piece
 
 /** The notices texts of the dialog and the sheet in English. */
 const NOTICE = {
-  localTarget: 'This page is local; the QR code uses the public Player.',
-  devTarget: 'The QR code opens a local address that other devices may not reach.',
   noTail: 'The code is too long for one QR code; the optional solution part is left out.',
   lowEc: 'The QR code uses low error correction because the code is long.',
   none: 'This puzzle is too large for a puzzle code and a QR code; it will be printed without them.',
@@ -1133,74 +1140,64 @@ await check('BA20 BA21: the capacity ladder reaches the dialog before printing a
     return { before, done, sheets: await readSheets(done.pages) };
   };
   const fits = await run(200, 40);
-  equal(fits.before.notices, ['localTarget'], 'a code that fits has only the target notice');
-  equal([fits.sheets.qrEc, fits.sheets.tailLabel], ['M', '+ solution, optional'], 'and carries its answer at level M');
+  equal(fits.before.notices, [], 'a code that fits has no notice');
+  equal([fits.sheets.qrEc, fits.sheets.F.includes('.')], ['M', true], 'and carries its answer at level M');
 
   // 3,501 symbols would fit at level L, but the tail is dropped first and M is kept.
   const noTail = await run(3000, 500);
-  equal(noTail.before.notices, ['noTail', 'localTarget'], 'the notice comes before printing');
+  equal(noTail.before.notices, ['noTail'], 'the notice comes before printing');
   equal(noTail.before.texts[0], NOTICE.noTail, 'in words');
-  equal([noTail.sheets.qrEc, noTail.sheets.tailLabel, noTail.sheets.F.includes('.')], ['M', null, false], 'the tail left text and QR, level M kept');
-  assert(noTail.sheets.F.length === 3000, 'the whole core is printed');
+  equal([noTail.sheets.qrEc, noTail.sheets.F.includes('.')], ['M', false], 'the tail left the QR, level M kept');
+  assert(noTail.sheets.F.length === 3000, 'the whole core is in the QR');
   checkFirstSheet(noTail.done.pages[0], 'tail dropped', { qr: true });
 
   const low = await run(3400, 500);
-  equal(low.before.notices, ['noTail', 'lowEc', 'localTarget'], 'then level L for the core');
-  equal([low.sheets.qrEc, low.sheets.tailLabel, low.sheets.F.length], ['L', null, 3400], 'the core only, at level L');
+  equal(low.before.notices, ['noTail', 'lowEc'], 'then level L for the core');
+  equal([low.sheets.qrEc, low.sheets.F.length], ['L', 3400], 'the core only, at level L');
   assert(low.sheets.qrVersion !== null && low.sheets.qrVersion <= 40, 'a symbol of version 40 at most');
 
   const none = await run(4300, 0);
-  equal(none.before.notices, ['none', 'localTarget'], 'no symbol fits: the notice is shown before printing');
+  equal(none.before.notices, ['none'], 'no symbol fits: the notice is shown before printing');
   equal(none.before.texts[0], NOTICE.none, 'in words');
-  equal([none.sheets.qrVersion, none.sheets.F, none.sheets.noCode], [null, '', 'This puzzle is too large for a puzzle code.'], 'neither code nor QR on the sheet, which says so');
+  equal([none.sheets.qrVersion, none.sheets.F, none.sheets.noCode], [null, '', 'This puzzle is too large for a puzzle code.'], 'no QR on the sheet, which says so');
   checkFirstSheet(none.done.pages[0], 'no code', { qr: false });
-  assert(none.done.pages[0].querySelector('text.pm-print-code, text.pm-print-code-label, text.pm-print-qr-scan') === null, 'no code label and no scan caption either');
+  assert(none.done.pages[0].querySelector('g.pm-print-qr, text.pm-print-qr-scan') === null, 'and no scan caption either');
 
-  // A core that fits the QR but not the first sheet continues on numbered sheets; the backs of a two-sided printout stay blank.
+  // A core that fits the QR but not the first sheet needs no extra sheet: the QR carries it; the backs of a two-sided printout stay blank.
   for (const duplex of [false, true]) {
     const long = await run(3300, 0, duplex);
-    equal(long.sheets.F.length, 3300, `${duplex ? 'two sides' : 'one side'}: every symbol is printed, in order`);
-    const continued = long.done.pages.filter((page) => page.querySelector('text.pm-print-code-title') !== null);
-    assert(continued.length >= 1, 'continuation sheets exist');
-    equal(continued.map((page) => page.querySelector('text.pm-print-code-title')?.textContent), continued.map(() => 'Puzzle code (continued)'), 'with their heading');
-    equal(long.done.pages.filter((page) => page.querySelector('g.pm-print-qr') !== null).length, 1, 'the QR stays on the first sheet');
+    equal(long.sheets.F.length, 3300, `${duplex ? 'two sides' : 'one side'}: every symbol is in the QR, in order`);
+    assert(long.done.pages.every((page) => page.querySelector('text.pm-print-code, text.pm-print-code-title') === null), 'no page carries typed code');
+    equal(long.done.pages.filter((page) => page.querySelector('g.pm-print-qr') !== null).length, 1, 'the QR is on the first sheet only');
     checkFirstSheet(long.done.pages[0], `long core, ${duplex ? 'two sides' : 'one side'}`, { qr: true });
     if (duplex) {
       equal(long.done.pages.length % 2, 0, 'whole leaves');
       for (const [i, page] of long.done.pages.entries()) {
-        if (i % 2 === 1 && page.querySelector('text.pm-print-code, g.pm-print-qr') !== null) {
-          throw new Error(`the back at ${i} carries code`);
+        if (i % 2 === 1 && page.querySelector('g.pm-print-qr') !== null) {
+          throw new Error(`the back at ${i} carries a QR`);
         }
       }
     }
   }
 });
 
-await check('BA17 BA18: a local page offers the override, default off, per open dialog and never stored; Copy keeps the public target', async () => {
+await check('BA17 BA18: the Print dialog and Copy link both use this page\'s Player; there is no override and nothing is stored', async () => {
   const writes = stubClipboard('ok');
   const m = await mount({ hash: await packHash(sample, 2) });
   const storage = () => JSON.stringify([Object.entries(localStorage), Object.entries(sessionStorage)]);
   const before = storage();
   const first = await openPrint(m.q('[data-action="print"]'));
-  const toggle = /** @type {HTMLInputElement} */ (first.dialog.querySelector('[data-field="print-use-this-page"]'));
-  assert(!(/** @type {HTMLElement} */ (toggle.closest('label'))).hidden, 'the override is offered on a local page');
-  assert(!toggle.checked, 'and starts off');
-  equal(first.target, PUBLIC, 'default: the configured public Player');
-  equal(first.noticeTexts(), [NOTICE.localTarget], 'with its warning');
-  toggle.click();
-  const own = new URL('../player/', document.baseURI).href;
-  await waitFor(() => /opens (.+)$/.exec(first.dialog.querySelector('[data-role="print-target"]')?.textContent ?? '')?.[1] === own && first.state() === 'ready', 'the dialog to use this page', 10000);
-  equal(first.notices(), ['devTarget'], 'the override says it is a local address');
-  equal(first.noticeTexts(), [NOTICE.devTarget], 'in words');
+  assert(first.dialog.querySelector('[data-field="print-use-this-page"]') === null, 'the dialog has no override');
+  equal(first.target, OWN, "the QR leads to this page's Player");
+  equal(first.noticeTexts(), [], 'with no local-page notice');
   const done = first.confirm();
-  assert(/127\.0\.0\.1/.test(/** @type {string} */ (done.pages[0].querySelector('text.pm-print-qr-host')?.textContent)), 'the sheet names the local host');
-  equal(typedCode(done.pages), G3.code, 'the code is the same, only the target changed');
+  assert(done.pages[0].querySelector('text.pm-print-qr-host') === null, 'the sheet does not print the address');
+  equal(typedCode(done.pages), G3.code, 'the printed code is the puzzle\'s code');
   m.q('[data-action="copy-puzzle-link"]').click();
   await waitFor(() => writes.length === 1, 'Copy link');
-  equal(writes[0], `${PUBLIC}#p=${G3.code}`, 'Copy link never uses the dialog-only override');
+  equal(writes[0], `${OWN}#p=${G3.code}`, 'Copy link uses this page too');
   const second = await openPrint(m.q('[data-action="print"]'));
-  assert(!(/** @type {HTMLInputElement} */ (second.dialog.querySelector('[data-field="print-use-this-page"]'))).checked, 'a new dialog starts with the override off');
-  equal(second.target, PUBLIC, 'and the public target');
+  equal(second.target, OWN, 'a new dialog uses the same target');
   second.cancel();
   equal(storage(), before, 'nothing was stored by the dialogs');
 });
@@ -1295,11 +1292,11 @@ await check('BA01 BA02 BA03 BA04 BA22 BA23 BA24: the real Generator — one puzz
   solution.click();
   const done = print.confirm();
   const sheets = await readSheets(done.pages);
-  equal(sheets.heading, expected.heading, 'the printed heading is the displayed title of the selected puzzle');
-  assert(!/^Puzzle #/.test(sheets.heading) || /^Puzzle #/.test(expected.heading), 'not the card heading');
-  equal(sheets.details.length, 2, 'level and score, and the set line');
+  equal(sheets.heading, untitled(3), 'the printed heading is the name of the card of the selected puzzle');
+  assert(sheets.heading !== expected.heading, 'not the title that the code carries');
+  equal(sheets.details.length, 1, 'the level and score only');
   assert(/: score \d+/.test(sheets.details[0]), `the level and score stay (${sheets.details[0]})`);
-  assert(sheets.details[1].startsWith('Set: ') && sheets.details[1].endsWith(state.setSeed), `the set line stays (${sheets.details[1]})`);
+  assert(!sheets.pageText.includes(state.setSeed), 'the set seed is not printed');
   const seeds = state.puzzles.map((/** @type {any} */ p) => String(p.seed ?? '')).filter((/** @type {string} */ s) => s.length >= 4);
   assert(!seeds.some((/** @type {string} */ s) => sheets.pageText.includes(s)), 'no puzzle seed is printed');
   const F = sheets.F;
@@ -1308,28 +1305,16 @@ await check('BA01 BA02 BA03 BA04 BA22 BA23 BA24: the real Generator — one puzz
   assert(solutionPage !== undefined, 'a solution sheet was printed');
   stage.append(/** @type {Element} */ (solutionPage));
   assert(rectOf(/** @type {Element} */ (solutionPage.querySelector('.pm-print-board'))).y <= 40.6, 'the solution sheet keeps its own 40 mm top');
-  assert(solutionPage.querySelector('g.pm-print-qr, text.pm-print-code') === null, 'and no phantom code band');
+  assert(solutionPage.querySelector('g.pm-print-qr') === null, 'and no QR');
   solutionPage.remove();
-  equal(done.pages.filter((page) => page.querySelector('text.pm-print-code') !== null).length, 1, 'the code is on one sheet');
+  equal(done.pages.filter((page) => page.querySelector('g.pm-print-qr') !== null).length, 1, 'the QR is on one sheet');
   checkFirstSheet(done.pages[0], 'Generator first sheet', { qr: true });
   await showSheet('generator-first-sheet', done.pages[0]);
 
-  // A refused clipboard: a read-only, selected field with the exact link, and no "copied".
-  restoreClipboard();
-  stubClipboard('deny');
-  const copy = g.q('[data-action="copy-puzzle-link"]');
-  copy.focus();
-  copy.click();
-  await waitFor(() => document.querySelector('dialog.pm-copy-dialog[open]') !== null && copy.getAttribute('aria-busy') === 'false', 'the manual-copy field');
-  const field = /** @type {HTMLTextAreaElement} */ (document.querySelector('dialog.pm-copy-dialog[open] textarea.pm-copy-field'));
-  equal(field.value, `${PUBLIC}#p=${F}`, 'the field holds the exact link');
-  assert(field.readOnly && field.selectionStart === 0 && field.selectionEnd === field.value.length, 'read-only and selected');
-  assert(!toasts().some((text) => /copied/i.test(text)) && !/copied/i.test(document.querySelector('dialog.pm-copy-dialog[open]')?.textContent ?? ''), 'it never says the link was copied');
-  /** @type {HTMLDialogElement} */ (document.querySelector('dialog.pm-copy-dialog[open]')).close();
-  restoreClipboard();
+  assert(g.root.querySelector('[data-action="copy-puzzle-link"]') === null, 'the Generator has no Copy this puzzle link control');
 
-  // The clipboard works: the same address as the QR, and fresh Players re-create the puzzle.
-  const out = await printCopyOpen('Generator puzzle 3 of 5', { print: () => g.q('[data-action="print-puzzle"]'), copy: () => g.q('[data-action="copy-puzzle-link"]'), solutionOption: true }, expected);
+  // The printed code reaches fresh Players: the same address as the QR, and they re-create the puzzle.
+  const out = await printCopyOpen('Generator puzzle 3 of 5', { print: () => g.q('[data-action="print-puzzle"]'), solutionOption: true }, expected);
   equal(out.F, F, 'the same code whether or not the solution sheet was chosen');
   const opened = await freshOpen('Generator puzzle 3 of 5, core only', out.C, { ...expected, solution: null });
   const neighbours = state.puzzles.filter((/** @type {any} */ p) => p.id !== puzzle.id).map((/** @type {any} */ p) => sourceView({ rows: boardToRows(state.set.board), pieces: state.set.pieces, puzzle: p, index: 0, rotation: state.rotation }).clues);
@@ -1507,7 +1492,7 @@ await check('BA15: a delayed answer for puzzle A cannot print, copy or open anyt
   await waitFor(() => log.encodes.length === 4, 'the copy of puzzle A');
   log.encodes[3].resolve(undefined);
   await waitFor(() => writes.length === 1, 'the link of A');
-  equal(writes, [`${PUBLIC}#p=${G1.code}`], "only the link of the selected puzzle A was written");
+  equal(writes, [`${OWN}#p=${G1.code}`], "only the link of the selected puzzle A was written");
 
   // Entry: cancelled while the worker is still decoding.
   const gated = gatedFactory();
@@ -1533,7 +1518,7 @@ await check('BA23: a refused clipboard in the Player shows the exact link in a r
   await waitFor(() => document.querySelector('dialog.pm-copy-dialog[open]') !== null && button.getAttribute('aria-busy') === 'false', 'the manual-copy field');
   const dialog = /** @type {HTMLDialogElement} */ (document.querySelector('dialog.pm-copy-dialog[open]'));
   const field = /** @type {HTMLTextAreaElement} */ (dialog.querySelector('textarea.pm-copy-field'));
-  equal(field.value, `${PUBLIC}#p=${G2.code}`, 'the exact link of the selected puzzle');
+  equal(field.value, `${OWN}#p=${G2.code}`, 'the exact link of the selected puzzle');
   assert(field.readOnly && field.selectionStart === 0 && field.selectionEnd === field.value.length && document.activeElement === field, 'read-only, selected and focused');
   equal(dialog.querySelector('label')?.textContent, 'Puzzle link', 'with its label');
   equal(dialog.querySelector('[data-role="copy-notes"]')?.textContent, 'Could not copy the link. Select and copy it manually.', 'the failure is said');
@@ -1546,7 +1531,7 @@ await check('BA23: a refused clipboard in the Player shows the exact link in a r
   const vi = /** @type {HTMLDialogElement} */ (document.querySelector('dialog.pm-copy-dialog[open]'));
   equal(vi.querySelector('label')?.textContent, 'Liên kết đề', 'Vietnamese label');
   equal(vi.querySelector('[data-role="copy-notes"]')?.textContent, 'Không sao chép được liên kết. Hãy chọn và sao chép thủ công.', 'Vietnamese failure text');
-  equal(/** @type {HTMLTextAreaElement} */ (vi.querySelector('textarea')).value, `${PUBLIC}#p=${G2.code}`, 'the same link');
+  equal(/** @type {HTMLTextAreaElement} */ (vi.querySelector('textarea')).value, `${OWN}#p=${G2.code}`, 'the same link');
 });
 
 await check('BA26: an untitled puzzle at a later position keeps "Puzzle #n" / "Đề #n" on paper, in the code and in the re-created puzzle', async () => {
@@ -1554,7 +1539,7 @@ await check('BA26: an untitled puzzle at a later position keeps "Puzzle #n" / "�
     const { title: _title, ...rest } = p;
     return rest;
   }) };
-  for (const [lang, heading, label] of /** @type {const} */ ([['en', 'Puzzle #3', 'Puzzle code'], ['vi', 'Đề #3', 'Mã đề']])) {
+  for (const [lang, heading] of /** @type {const} */ ([['en', 'Puzzle #3'], ['vi', 'Đề #3']])) {
     playerI18n.setLocale(lang, document);
     const m = await mount({ hash: await packHash(bare, 2) });
     equal(m.q('.puzzle-title').textContent, heading, `${lang}: the heading in the Player`);
@@ -1563,7 +1548,6 @@ await check('BA26: an untitled puzzle at a later position keeps "Puzzle #n" / "�
     const done = print.confirm();
     const sheets = await readSheets(done.pages);
     equal(sheets.heading, heading, `${lang}: the printed heading`);
-    assert((sheets.label ?? '').startsWith(label), `${lang}: the label is in the language (${sheets.label})`);
     const expected = sourceView({ rows: sampleRows, pieces: samplePieces, puzzle: bare.puzzles[2], index: 2, rotation: 0, untitled: (n) => (lang === 'vi' ? `Đề #${n}` : `Puzzle #${n}`) });
     equal(expected.heading, heading, `${lang}: the expected heading`);
     const fresh = await freshOpen(`${lang} untitled puzzle 3 of 3`, sheets.F, expected);
@@ -1697,11 +1681,8 @@ function contrastOf(dialog) {
 /** The texts the user reads, with their values, in each language (the normative wording of the design, not the locale files). */
 const TEXTS = {
   en: {
-    target: (/** @type {string} */ url) => `The QR code opens ${url}`,
-    localTarget: NOTICE.localTarget,
-    label: (/** @type {number} */ n) => `Puzzle code (${n} characters)`,
-    tail: '+ solution, optional',
-    scan: 'Scan to open',
+    card: (/** @type {number} */ n) => `Puzzle #${n}`,
+    scan: 'Play Online',
     entry: 'Enter puzzle code',
     check: 'The code has a typing error. Check it against the printout.',
     candidate: (/** @type {number} */ g, /** @type {number} */ p, /** @type {string} */ e, /** @type {string} */ t) => `Possible correction: in group ${g}, character ${p} may be "${e}" instead of "${t}". Compare with the printout.`,
@@ -1709,11 +1690,8 @@ const TEXTS = {
     copyFailed: 'Could not copy the link. Select and copy it manually.',
   },
   vi: {
-    target: (/** @type {string} */ url) => `Mã QR mở ${url}`,
-    localTarget: 'Trang này đang chạy cục bộ; mã QR dùng trình chơi công khai.',
-    label: (/** @type {number} */ n) => `Mã đề (${n} ký tự)`,
-    tail: '+ lời giải, không bắt buộc',
-    scan: 'Quét để mở',
+    card: (/** @type {number} */ n) => `Đề #${n}`,
+    scan: 'Chơi trực tuyến',
     entry: 'Nhập mã đề',
     check: 'Mã có lỗi nhập. Hãy đối chiếu với bản in.',
     candidate: (/** @type {number} */ g, /** @type {number} */ p, /** @type {string} */ e, /** @type {string} */ t) => `Có thể sửa: ở nhóm ${g}, ký tự ${p} có thể là "${e}" thay vì "${t}". Hãy so với bản in.`,
@@ -1781,8 +1759,9 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
       const printButton = m.q('[data-action="print"]');
       const print = await openPrint(printButton);
       equal(print.state(), 'ready', 'the Print dialog is ready');
-      equal(print.dialog.querySelector('[data-role="print-target"]')?.textContent, T.target(PUBLIC), 'the target text with its address');
-      equal(print.noticeTexts(), [T.localTarget], 'the local-page notice');
+      assert(print.dialog.querySelector('[data-role="print-target"]') === null && !/localhost|127\.0\.0\.1|github\.io/.test(print.dialog.textContent ?? ''), 'the dialog does not show the address');
+      equal(print.target, OWN, 'the QR still leads to this page\'s Player');
+      equal(print.noticeTexts(), [], 'no local-page notice');
       assertNoLeaks(print.dialog, 'Print dialog');
       const dialogContrast = contrastOf(print.dialog);
       equal(dialogContrast.low, [], 'low contrast in the Print dialog');
@@ -1792,10 +1771,9 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
       await shot(`print-${lang}-${theme}`);
       const done = print.confirm();
       const sheets = await readSheets(done.pages);
-      equal(sheets.F, G2.code, 'the code on the sheet');
-      const core = G2.code.slice(0, G2.code.indexOf('.'));
-      equal([sheets.label, sheets.tailLabel, sheets.scan, sheets.host], [T.label(core.length), T.tail, T.scan, 'tdat00.github.io'], 'the sheet texts with their values');
-      equal(sheets.heading, 'Normal #2', 'the heading');
+      equal(sheets.F, G2.code, 'the code in the QR of the sheet');
+      equal(sheets.scan, T.scan, 'the QR caption in the language');
+      equal(sheets.heading, T.card(2), 'the heading is the name of the puzzle in the list');
       assert(/: (score|điểm) \d+$/.test(sheets.details[0]), `the rating line is in the language (${sheets.details[0]})`);
       if (lang === 'vi') {
         assert(!sheets.details[0].includes('score'), 'the rating line has no English word');
@@ -1804,8 +1782,7 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
       await showSheet(`sheet-${lang}-${theme}`, done.pages[0]);
 
       // The code entry with a typo: an alert with the candidate and an explicit action.
-      const headerButton = m.q('.app-header [data-action="enter-code"]');
-      headerButton.focus();
+      assert(m.root.querySelector('[data-action="enter-code"]') === null, 'the page has no Enter puzzle code button');
       const typo = G2.code.slice(0, 5) + '0' + G2.code.slice(6);
       await enterCode(m, typo);
       const entry = /** @type {HTMLDialogElement} */ (dialogOf(m));
@@ -1817,7 +1794,7 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
       equal(field.getAttribute('aria-invalid'), 'true', 'the field is marked invalid, not by colour alone');
       assert((field.getAttribute('aria-describedby') ?? '').split(' ').includes(m.q('.pm-code-problem').id), 'the alert describes the field');
       equal(entry.querySelector(`label[for="${field.id}"]`)?.textContent, lang === 'en' ? 'Puzzle code' : 'Mã đề', 'the field has its visible label');
-      equal([headerButton.textContent?.trim(), entry.getAttribute('aria-labelledby') === null ? null : document.getElementById(/** @type {string} */ (entry.getAttribute('aria-labelledby')))?.textContent], [T.entry, T.entry], 'the header action and the dialog are named in the language');
+      equal(entry.getAttribute('aria-labelledby') === null ? null : document.getElementById(/** @type {string} */ (entry.getAttribute('aria-labelledby')))?.textContent, T.entry, 'the dialog is named in the language');
       const nameOf = (/** @type {Element} */ node) => (node.getAttribute('aria-label') ?? node.textContent ?? '').trim();
       equal([nameOf(m.q('[data-action="copy-puzzle-link"]')), nameOf(m.q('[data-action="code-open"]'))], lang === 'en' ? ['Copy this puzzle link', 'Open puzzle'] : ['Sao chép liên kết đề này', 'Mở đề'], 'the Copy and Open controls are named in the language');
       assertNoLeaks(entry, 'entry dialog');
@@ -1825,7 +1802,7 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
       await shot(`entry-${lang}-${theme}`);
       entry.requestClose();
       await waitFor(() => !entry.open, 'the entry to close');
-      assert(document.activeElement === headerButton, 'the focus returns to the header action that opened the entry');
+      assert(document.activeElement === m.q('.puzzle-title'), 'the focus returns to the puzzle title, the fallback of a dialog with no opener');
 
       // A refused clipboard: the field, its label and the failure in the language.
       stubClipboard('deny');
@@ -1891,8 +1868,7 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
     assert(innerWidth <= 420, `a phone width (${innerWidth})`);
     playerI18n.setLocale(lang, document);
     const start = await mount();
-    const startAction = start.q('.start-actions [data-action="enter-code"]');
-    assert(startAction.getBoundingClientRect().height >= 44 && startAction.getBoundingClientRect().width >= 44, 'the start action is a 44 px target');
+    assert(start.root.querySelector('[data-action="enter-code"]') === null, 'the start screen has no Enter puzzle code button');
     assert(start.root.scrollWidth <= start.root.clientWidth, `the start screen does not scroll sideways (${start.root.scrollWidth} > ${start.root.clientWidth})`);
     await shot(`narrow-start-${lang}`);
     start.player.destroy();
@@ -1902,12 +1878,11 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
     const root = m.root;
     assert(root.scrollWidth <= root.clientWidth, `the game screen does not scroll sideways (${root.scrollWidth} > ${root.clientWidth})`);
     const header = m.q('.app-header');
-    const help = header.querySelector('.header-help:not(.header-code)');
+    const help = header.querySelector('.header-help');
     const helpBox = help?.getBoundingClientRect();
     evidence.notes.push({ label: `narrow ${lang}: pre-existing Help control`, size: helpBox === undefined ? null : `${Math.round(helpBox.width)}x${Math.round(helpBox.height)}` });
-    const newControls = ['.app-header [data-action="enter-code"]', '[data-action="copy-puzzle-link"]', '[data-action="print"]'].map((selector) => m.q(selector));
-    equal(smallTargets(m.q('.game-actions')).filter((entry) => /copy-puzzle-link|print/.test(entry)), [], 'Print and Copy this puzzle link are 44 px targets');
-    equal(smallTargets(header).filter((entry) => /enter-code/.test(entry)), [], 'the header action is a 44 px target');
+    const newControls = ['[data-action="copy-puzzle-link"]', '[data-action="print"]'].map((selector) => m.q(selector));
+    equal(smallTargets(m.q('.step-actions')).filter((entry) => /copy-puzzle-link|print/.test(entry)), [], 'Print and Copy this puzzle link are 44 px targets');
     assert(newControls.every((node) => node.getBoundingClientRect().right <= innerWidth + 0.5), 'every control is inside the viewport');
     evidence.notes.push({ label: `narrow ${lang}: every control under 44 px on the game screen`, controls: [...smallTargets(m.root)] });
 
@@ -1915,9 +1890,7 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
     equal(print.state(), 'ready', 'the Print dialog is ready');
     assertFits(print.dialog, 'Print dialog');
     equal(smallTargets(print.dialog), [], 'targets under 44 px in the Print dialog');
-    equal(print.dialog.querySelector('[data-role="print-target"]')?.textContent, T.target(PUBLIC), 'the target is readable in full');
-    const target = /** @type {HTMLElement} */ (print.dialog.querySelector('[data-role="print-target"]'));
-    assert(target.scrollWidth <= target.clientWidth + 1, 'the target address wraps instead of overflowing');
+    assert(print.dialog.querySelector('[data-role="print-target"]') === null, 'the dialog shows no address');
     await showCode(print.dialog);
     await shot(`narrow-print-${lang}`);
     print.cancel();

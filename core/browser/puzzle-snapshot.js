@@ -54,7 +54,7 @@ import { makePuzzleQr } from './qr.js';
  */
 
 /**
- * @typedef {'noTail' | 'lowEc' | 'none' | 'localTarget' | 'devTarget'} ShareNotice
+ * @typedef {'noTail' | 'lowEc' | 'none'} ShareNotice
  */
 
 /**
@@ -63,10 +63,10 @@ import { makePuzzleQr } from './qr.js';
  * @property {string | null} url The complete Player address, or null when it exceeds the URL budget.
  * @property {'C.T' | 'C'} carried What `url` and the QR carry after the capacity ladder.
  * @property {PuzzleQrMatrix | null} qr Null: the sheet prints neither code nor QR.
- * @property {readonly ShareNotice[]} notices In order: the ladder's, then the target's.
+ * @property {readonly ShareNotice[]} notices In the order of the ladder.
  */
 
-/** Where a printout or link opens when this page is not on the public web (a constant next to the share logic). */
+/** Where a printout or link opens when the page has no usable address of its own (a constant next to the share logic). */
 export const PUBLIC_PLAYER_URL = 'https://tdat00.github.io/pentomino/player/';
 
 /**
@@ -153,103 +153,14 @@ export function isSameSnapshot(a, b) {
 }
 
 /**
- * @param {string} hostname A URL host: lower case, IPv6 in brackets.
- * @returns {number[] | null} The eight 16-bit groups of an IPv6 address, or null when it is not valid.
- */
-function ipv6Groups(hostname) {
-  let text = hostname.startsWith('[') && hostname.endsWith(']') ? hostname.slice(1, -1) : hostname;
-  // A dotted IPv4 tail ("::ffff:127.0.0.1") is two groups.
-  const dotted = /^(.*:)(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(text);
-  if (dotted !== null) {
-    const bytes = dotted.slice(2).map(Number);
-    if (bytes.some((n) => n > 255)) {
-      return null;
-    }
-    text = `${dotted[1]}${((bytes[0] << 8) | bytes[1]).toString(16)}:${((bytes[2] << 8) | bytes[3]).toString(16)}`;
-  }
-  const halves = text.split('::');
-  if (halves.length > 2) {
-    return null;
-  }
-  /** @param {string} part @returns {number[] | null} */
-  const read = (part) => {
-    if (part === '') {
-      return [];
-    }
-    const out = [];
-    for (const group of part.split(':')) {
-      if (!/^[0-9a-f]{1,4}$/.test(group)) {
-        return null;
-      }
-      out.push(Number.parseInt(group, 16));
-    }
-    return out;
-  };
-  const head = read(halves[0]);
-  const tail = halves.length === 2 ? read(halves[1]) : [];
-  if (head === null || tail === null) {
-    return null;
-  }
-  if (halves.length === 1) {
-    return head.length === 8 ? head : null;
-  }
-  const gap = 8 - head.length - tail.length;
-  return gap < 1 ? null : [...head, ...new Array(gap).fill(0), ...tail];
-}
-
-/**
- * @param {number} a
- * @param {number} b
- * @returns {boolean} Whether the IPv4 address starting with these two bytes is loopback, private or link-local.
- */
-function isLocalIpv4(a, b) {
-  return a === 127 || a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254);
-}
-
-/**
- * Whether a host names this machine or its own network. No DNS lookup: only the name and the address ranges count.
- * Case and one trailing DNS dot are ignored; an IPv4-mapped IPv6 address is judged by its IPv4 address.
- * @param {string} host A URL `hostname` (IPv6 in brackets is fine).
- * @returns {boolean}
- */
-export function isLocalHost(host) {
-  const name = host.toLowerCase().replace(/\.$/, '');
-  if (name === 'localhost' || name.endsWith('.localhost') || name.endsWith('.local')) {
-    return true;
-  }
-  const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(name);
-  if (v4 !== null) {
-    const bytes = v4.slice(1).map(Number);
-    return bytes.every((n) => n <= 255) && isLocalIpv4(bytes[0], bytes[1]);
-  }
-  if (!name.includes(':')) {
-    return false;
-  }
-  const groups = ipv6Groups(name);
-  if (groups === null) {
-    return false;
-  }
-  if (groups.slice(0, 7).every((g) => g === 0) && groups[7] === 1) {
-    return true;
-  }
-  if ((groups[0] & 0xfe00) === 0xfc00 || (groups[0] & 0xffc0) === 0xfe80) {
-    return true;
-  }
-  return groups.slice(0, 5).every((g) => g === 0) && groups[5] === 0xffff && isLocalIpv4(groups[6] >> 8, groups[6] & 0xff);
-}
-
-/**
- * The Player address a printout or link opens. A page on the public web points at its own Player (`../player/`, right
- * for GitHub Pages and forks); a local page (localhost, a private or link-local address, `file:` or any other
- * non-http(s) page) points at the configured public Player, because a phone cannot reach the developer's machine.
- * `useThisPage` is the dialog's developer override: on a local page only, the page's own Player is used and the result
- * says so. Copy link calls this without the override.
+ * The Player address a printout or link opens: the page's own Player (`../player/` of its address, right for GitHub
+ * Pages, forks and a local page alike), so a printout and a link point at the page the user is on. Only a page that is
+ * not http, https or file (no usable address) falls back to the configured public Player.
  * @param {string | URL} pageBase The address of the page that makes the printout (its base URL).
- * @param {{ useThisPage?: boolean }} [options]
- * @returns {{ target: string, local: boolean, notice: null | 'localTarget' | 'devTarget' }}
+ * @returns {string}
  * @throws {RangeError} For a page address that is not a URL.
  */
-export function puzzlePlayerTarget(pageBase, options = {}) {
+export function puzzlePlayerTarget(pageBase) {
   /** @type {URL} */
   let base;
   try {
@@ -257,22 +168,12 @@ export function puzzlePlayerTarget(pageBase, options = {}) {
   } catch {
     throw new RangeError('The page address is not a valid URL');
   }
-  /** @type {string | null} */
-  let own = null;
+  const usable = base.protocol === 'http:' || base.protocol === 'https:' || base.protocol === 'file:';
   try {
-    own = new URL('../player/', base).href;
+    return usable ? new URL('../player/', base).href : PUBLIC_PLAYER_URL;
   } catch {
-    own = null;
+    return PUBLIC_PLAYER_URL;
   }
-  const web = base.protocol === 'http:' || base.protocol === 'https:';
-  if (web && !isLocalHost(base.hostname) && own !== null) {
-    return { target: own, local: false, notice: null };
-  }
-  const usable = own !== null && (base.protocol === 'http:' || base.protocol === 'https:' || base.protocol === 'file:');
-  if (options.useThisPage === true && usable) {
-    return { target: /** @type {string} */ (own), local: true, notice: 'devTarget' };
-  }
-  return { target: PUBLIC_PLAYER_URL, local: true, notice: 'localTarget' };
 }
 
 /**
@@ -286,7 +187,7 @@ export function puzzlePlayerTarget(pageBase, options = {}) {
  * `PuzzleShareError` and is never reported as an oversize puzzle. An abort of the client rejects as the client's own
  * abort error, for the caller to ignore when it has moved on.
  * @param {PuzzleSnapshot} snapshot
- * @param {{ target: string, client: PuzzleCodeClientLike, targetNotice?: 'localTarget' | 'devTarget' | null }} options
+ * @param {{ target: string, client: PuzzleCodeClientLike }} options
  * @returns {Promise<PreparedPuzzleShare>}
  */
 export async function preparePuzzleShare(snapshot, options) {
@@ -350,9 +251,6 @@ export async function preparePuzzleShare(snapshot, options) {
   }
   if (fit === null) {
     notices.push('none');
-  }
-  if (options.targetNotice === 'localTarget' || options.targetNotice === 'devTarget') {
-    notices.push(options.targetNotice);
   }
   return Object.freeze({
     code: Object.freeze({ ...code }),

@@ -1,6 +1,6 @@
 // @ts-check
 // Browser regression harness for the printed puzzle code: the real Print dialog with the real puzzle-code worker and
-// the real QR adapter, the first sheet and its continuation sheets measured in millimetres (no overlaps, the QR box,
+// the real QR adapter, the first sheet measured in millimetres (no overlaps, the QR box,
 // the code spans read back in order), duplex accounting, the dialog's preparation lifecycle (pending, stale answers,
 // source changes, close, errors, the oversize ladder, the local override) and the Player's and the Generator's jobs.
 // Writes a pass/fail list into the page, data-summary and data-result on <html> (running until every case, including
@@ -24,6 +24,8 @@ document.documentElement.dataset.result = 'running';
 
 const NS = 'http://www.w3.org/2000/svg';
 const MM = 25.4 / 96;
+// The QR leads to the Player of the page the test runs on.
+const OWN_PLAYER_URL = new URL('../player/', document.baseURI).href;
 const ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 const results = /** @type {Array<{ name: string, ok: boolean, error?: string }>} */ ([]);
 const violations = /** @type {string[]} */ ([]);
@@ -141,7 +143,7 @@ function jobFor(snapshot, over = {}) {
     clues: sample.puzzles[0].clues,
     rotation: 0,
     title: snapshot?.heading ?? 'Puzzle #1',
-    details: puzzleDetails(t, { level: 'Easy', score: 8 }, { level: 'Expert', seed: 'ABCD-EFGH-JKLM' }),
+    details: puzzleDetails(t, { level: 'Easy', score: 8 }),
     snapshot,
     ...over,
   };
@@ -323,9 +325,9 @@ async function qrMismatches(group, rows) {
 
 /**
  * @param {HTMLElement[]} pages
- * @returns {string} Every typed code line of the pages in reading order, spaces removed.
+ * @returns {string} The code of the QR symbols of the pages (the sheet prints no code as text), in reading order.
  */
-const typedCode = (pages) => pages.flatMap((page) => all(page, 'text.pm-print-code')).map((node) => (node.textContent ?? '').replaceAll(' ', '')).join('');
+const typedCode = (pages) => pages.flatMap((page) => all(page, 'g.pm-print-qr')).map((node) => node.getAttribute('data-qr-code') ?? '').join('');
 
 /**
  * Plans and builds the pages of a job and stages them for measuring.
@@ -343,7 +345,7 @@ function stagePlan(job, share, options = {}) {
 
 /**
  * Everything on the first sheet: no overlaps, inside the page and clear of the QR column, the QR where it must be and
- * exactly its matrix, the code spans their fixed width, the preview its 120 mm.
+ * exactly its matrix, nothing typed of the code, the preview its 120 mm.
  * @param {HTMLElement} page
  * @param {ReturnType<typeof planPrint>} plan
  * @param {any} share
@@ -355,12 +357,12 @@ async function checkFirstSheet(page, plan, share, label) {
   near(svg.getBoundingClientRect().height * MM, 297, 0.2, `${label}: page height`);
   /** @type {Array<[string, { x: number, y: number, w: number, h: number }]>} */
   const boxes = [];
-  for (const selector of ['text.pm-print-sheet-title', 'text.pm-print-detail', 'text.pm-print-code-label', 'text.pm-print-code', 'text.pm-print-code-tail-label',
-    'text.pm-print-code-more', 'text.pm-print-no-code', 'text.pm-print-qr-scan', 'text.pm-print-qr-host']) {
+  for (const selector of ['text.pm-print-sheet-title', 'text.pm-print-detail', 'text.pm-print-no-code', 'text.pm-print-qr-scan']) {
     for (const node of all(page, selector)) {
       boxes.push([`${selector} "${(node.textContent ?? '').slice(0, 14)}"`, glyphBox(node)]);
     }
   }
+  assert(page.querySelector('text.pm-print-code, text.pm-print-qr-host') === null, `${label}: neither the code nor the address is printed`);
   const qr = page.querySelector('g.pm-print-qr');
   const band = plan.band;
   if (share.qr !== null) {
@@ -369,7 +371,7 @@ async function checkFirstSheet(page, plan, share, label) {
     const size = share.qr.outerMm;
     near(box.w, size, 0.05, `${label}: QR box width`);
     near(box.h, size, 0.05, `${label}: QR box height`);
-    near(box.x + box.w, 200, 0.05, `${label}: QR right edge at the margin`);
+    near(box.x, 10, 0.05, `${label}: QR left edge at the margin`);
     near(box.y, 10, 0.05, `${label}: QR top edge at the margin`);
     assert(size >= 25 - 1e-9, `${label}: the box is at least 25 mm`);
     assert(box.w / share.qr.outerModules >= 0.5 - 1e-3, `${label}: a module is at least 0.5 mm`);
@@ -377,20 +379,16 @@ async function checkFirstSheet(page, plan, share, label) {
     boxes.push(['QR box', box]);
     const column = size + 10;
     for (const [name, b] of boxes) {
-      if (name !== 'QR box' && b.y < 10 + column - 0.05 && !name.includes('qr-scan') && !name.includes('qr-host')) {
-        assert(b.x + b.w <= 200 - size - 6 + 0.35, `${label}: ${name} ends at ${(b.x + b.w).toFixed(1)}, inside the QR column`);
+      if (name !== 'QR box' && b.y < 10 + column - 0.05 && !name.includes('qr-scan')) {
+        assert(b.x >= 10 + size + 6 - 0.35, `${label}: ${name} starts at ${b.x.toFixed(1)}, clear of the QR column`);
       }
     }
-    for (const node of all(page, 'text.pm-print-qr-scan, text.pm-print-qr-host')) {
+    for (const node of all(page, 'text.pm-print-qr-scan')) {
       const b = rectOf(node);
-      assert(b.w <= size + 0.1, `${label}: a caption is no wider than the box`);
+      assert(b.w <= size + 0.1, `${label}: the caption is no wider than the box`);
     }
   } else {
-    assert(qr === null && all(page, 'text.pm-print-code').length === 0, `${label}: no QR and no code`);
-  }
-  for (const node of all(page, 'text.pm-print-code')) {
-    const length = /** @type {SVGTextContentElement} */ (/** @type {unknown} */ (node)).getComputedTextLength();
-    near(length, Number(node.getAttribute('textLength')), 0.35, `${label}: a code span has its fixed width`);
+    assert(qr === null, `${label}: no QR`);
   }
   for (const [name, b] of boxes) {
     assert(b.x >= 10 - 0.3 && b.x + b.w <= 200 + 0.3 && b.y >= 10 - 2 && b.y + b.h <= 287 + 0.3, `${label}: ${name} lies inside the content area`);
@@ -438,9 +436,10 @@ await check('the real dialog prepares the code in the worker before Print is rea
   assert(!confirm.disabled, 'Print is ready');
   await settle();
   equal(win.printed, 0, 'and nothing was printed by itself');
-  equal(q('[data-role="print-target"]').textContent, `The QR code opens ${PUBLIC_PLAYER_URL}`, 'the target is shown in full');
-  equal([...root.querySelectorAll('[data-role="print-notices"] li')].map((li) => li.textContent), ['This page is local; the QR code uses the public Player.'], 'a local page says so');
-  assert(!q('[data-field="print-use-this-page"]').checked && !q('[data-field="print-use-this-page"]').closest('label')?.hidden, 'the local override is offered, unchecked');
+  equal(q('[data-role="print-code"]').dataset.target, OWN_PLAYER_URL, 'the QR leads to the Player of this page');
+  assert(root.querySelector('[data-role="print-target"]') === null && !(root.textContent ?? '').includes(OWN_PLAYER_URL), 'the dialog does not show the address');
+  equal([...root.querySelectorAll('[data-role="print-notices"] li')].map((li) => li.textContent), [], 'a local page has no notice');
+  assert(root.querySelector('[data-field="print-use-this-page"]') === null, 'there is no override');
   const prepared = /** @type {NonNullable<ReturnType<typeof dialog.prepared>>} */ (dialog.prepared());
   const share = /** @type {NonNullable<typeof prepared.share>} */ (prepared.share);
   equal(share.carried, 'C.T', 'the stored answer is carried');
@@ -451,29 +450,24 @@ await check('the real dialog prepares the code in the worker before Print is rea
   } finally {
     independent.dispose();
   }
-  equal(share.url, puzzleCodeUrl(PUBLIC_PLAYER_URL, share.code.F), 'the address is the public Player and the carried code');
+  equal(share.url, puzzleCodeUrl(OWN_PLAYER_URL, share.code.F), 'the address is the Player of this page and the carried code');
 
   confirm.click();
   equal(win.printed, 1, 'Print prints once');
   assert(!dialog.isOpen(), 'and closes the dialog');
   const first = win.pages[0];
-  equal(typedCode(win.pages), share.code.F, 'the printed spans read back as the prepared code, in order');
-  const label = first.querySelector('text.pm-print-code-label')?.textContent;
-  equal(label, `Puzzle code (${share.code.C.length} characters)`, 'the label counts the core');
-  equal(first.querySelector('text.pm-print-code-tail-label')?.textContent, '+ solution, optional', 'the tail is labelled optional');
-  const core = all(first, 'text.pm-print-code[data-part="core"]');
-  const tail = all(first, 'text.pm-print-code[data-part="tail"]');
-  assert(Number(core[0].getAttribute('font-size')) === 4.2 && Number(tail[0].getAttribute('font-size')) === 3.2, 'the core is larger than the tail');
-  assert((tail[0].textContent ?? '').startsWith('.'), 'the tail starts with its dot');
-  equal(first.querySelector('text.pm-print-qr-scan')?.textContent, 'Scan to open', 'the QR is labelled');
-  equal(first.querySelector('text.pm-print-qr-host')?.textContent, 'tdat00.github.io', 'with its host');
+  equal(typedCode(win.pages), share.code.F, 'the QR of the sheet carries the prepared code');
+  assert(first.querySelector('text.pm-print-code, text.pm-print-code-label, text.pm-print-code-tail-label, text.pm-print-qr-host') === null, 'the sheet prints neither the code nor the address');
+  equal(first.querySelector('text.pm-print-qr-scan')?.textContent, 'Play Online', 'the QR is labelled');
   equal(first.querySelector('text.pm-print-sheet-title')?.textContent, 'Easy #1', 'the heading is the snapshot\'s');
   assert(!/seed/i.test(first.textContent ?? ''), 'the puzzle seed is not printed');
   const details = all(first, 'text.pm-print-detail').map((n) => n.textContent);
-  equal(details, ['Easy: score 8', 'Set: Expert, ABCD-EFGH-JKLM'], 'the rating and the set remain');
+  equal(details, ['Easy: score 8'], 'the rating remains, without a set line');
   const qr = /** @type {Element} */ (first.querySelector('g.pm-print-qr'));
   equal(Number(qr.getAttribute('data-qr-version')), share.qr?.version, 'the QR is the prepared symbol');
   equal(await qrMismatches(qr, /** @type {any} */ (share.qr).rows), 0, 'its pixels are the matrix');
+  const heading = rectOf(/** @type {Element} */ (first.querySelector('text.pm-print-sheet-title')));
+  assert(heading.x >= rectOf(qr).x + rectOf(qr).w, 'the puzzle name is to the right of the QR');
   win.afterPrint();
   equal(document.querySelectorAll('.pm-print-root').length, 0, 'the pages are removed after printing');
   assert(catalogueStats.sizesBuilt === 0, 'no catalogue was built on the main thread');
@@ -485,7 +479,7 @@ await check('the real dialog prepares the code in the worker before Print is rea
   const pxPerMm = 8;
   const size = /** @type {number} */ (share.qr?.outerMm);
   const margin = 1;
-  const left = Math.round((200 - size - margin) * pxPerMm);
+  const left = Math.round((10 - margin) * pxPerMm);
   const top = Math.round((10 - margin) * pxPerMm);
   const side = Math.round((size + 2 * margin) * pxPerMm);
   const canvas = document.createElement('canvas');
@@ -523,7 +517,7 @@ await check('every first-sheet layout case: no overlaps, the QR where it must be
   for (const [name, share] of shares) {
     for (const count of [0, 1, 2]) {
       for (const title of titles) {
-        const details = puzzleDetails(t, { level: 'Easy', score: 8 }, { level: 'Expert', seed: 'ABCD-EFGH-JKLM' }).slice(0, count);
+        const details = puzzleDetails(t, { level: 'Easy', score: 8 }).slice(0, count);
         const { plan, pages } = stagePlan(jobFor(null, { title, details }), share);
         await checkFirstSheet(pages[0], plan, share, `${name}, ${count} details, "${title.slice(0, 12)}…"`);
         const lines = all(pages[0], 'text.pm-print-sheet-title').map((n) => n.textContent ?? '');
@@ -562,7 +556,7 @@ await check('every size, angle and sheet choice keeps the first sheet clear, the
         equal(pages.filter((page) => page.querySelector('g.pm-print-qr') !== null).length, 1, 'one QR code in the whole printout');
         for (const [i, page] of pages.entries()) {
           if (plan.pages[i].side === 'back') {
-            assert(page.querySelector('g.pm-print-qr, text.pm-print-code') === null, 'no code and no QR on a back');
+            assert(page.querySelector('g.pm-print-qr') === null, 'no QR on a back');
           }
         }
         const bare = planPrint({ ...jobFor(null, { rotation, title: 'Easy #1' }), measure: createTextMeasure(document) }, { size, pieces, board: boardOpt, duplex });
@@ -581,48 +575,28 @@ await check('every size, angle and sheet choice keeps the first sheet clear, the
   equal(cases, 128, 'all combinations ran');
 });
 
-await check('a long code continues on numbered sheets, in order, with blank backs on two sides and unchanged cut-outs', async () => {
+await check('a long code adds no sheet: the printout, the blank backs and the cut-outs are those of a job without a code', async () => {
   const share = shareOf(symbols(3000), symbols(300));
   const job = jobFor(null, { title: 'Easy #1', solution: sample.puzzles[0].solution });
-  const bare = planPrint({ ...job, measure: createTextMeasure(document) }, { pieces: true, board: true, size: 'medium', duplex: false });
   for (const duplex of [false, true]) {
     for (const solution of [false, true]) {
       stage.replaceChildren();
       const { plan, pages } = stagePlan(job, share, { duplex, solution });
-      const count = plan.band.continuation.length;
-      assert(count >= 1, 'continuation sheets exist');
       await checkFirstSheet(pages[0], plan, share, `${duplex ? 'two sides' : 'one side'}${solution ? ', solution' : ''}`);
-      equal(typedCode(pages), share.code.F, 'the code reads back in order across the sheets');
-      const kindAt = plan.pages.map((p) => `${p.sheet.kind}:${p.side}`);
-      const continued = pages.flatMap((page, i) => (plan.pages[i].sheet.kind === 'code' && plan.pages[i].side === 'front' ? [page] : []));
-      equal(continued.length, count, 'one page per continuation sheet');
-      continued.forEach((page, i) => {
-        equal(page.querySelector('text.pm-print-code-title')?.textContent, 'Puzzle code (continued)', 'the continuation heading');
-        equal(page.querySelector('text.pm-print-code-heading')?.textContent, 'Easy #1', 'and the puzzle heading');
-        const lines = all(page, 'text.pm-print-code');
-        assert(lines.length > 0 && lines.length <= 46, `up to 46 lines (${lines.length})`);
-        assert(page.querySelector('g.pm-print-qr') === null, 'the QR stays on the first sheet');
-        const boxes = /** @type {Array<[string, { x: number, y: number, w: number, h: number }]>} */ (
-          all(page, 'text').map((node) => [`${node.getAttribute('class')} ${(node.textContent ?? '').slice(0, 10)}`, glyphBox(node)]));
-        assertSeparate(boxes);
-        for (const node of lines) {
-          const b = rectOf(node);
-          const ink = glyphBox(node);
-          assert(b.x >= 9.6 && b.x + b.w <= 200.3 && ink.y + ink.h <= 288,
-            `a continuation line lies inside the content area (${i}): x ${b.x.toFixed(2)}..${(b.x + b.w).toFixed(2)}, ink ${ink.y.toFixed(2)}..${(ink.y + ink.h).toFixed(2)}`);
-          near(/** @type {SVGTextContentElement} */ (/** @type {unknown} */ (node)).getComputedTextLength(), Number(node.getAttribute('textLength')), 0.35, 'fixed width');
-        }
-        equal(Number(lines[0].getAttribute('y')) === 36 || lines[0].getAttribute('data-part') === 'tail', true, 'the code starts at baseline 36');
-      });
+      equal(typedCode(pages), share.code.F, 'the one QR carries the whole code');
+      equal(pages.filter((page) => page.querySelector('g.pm-print-qr') !== null).length, 1, 'the QR is on one sheet only');
+      assert(pages.every((page) => page.querySelector('text.pm-print-code, text.pm-print-code-title') === null), 'no page carries typed code');
+      const bare = planPrint({ ...job, measure: createTextMeasure(document) }, { pieces: true, board: true, size: 'medium', duplex, solution });
+      equal(plan.paper, bare.paper, 'the same paper as without a code');
+      equal(plan.pages.length, bare.pages.length, 'the same pages');
+      equal(plan.cellMm, bare.cellMm, 'the cell size of the cut-outs does not change');
+      const kinds = plan.pages.map((p) => `${p.sheet.kind}:${p.side}`);
       if (duplex) {
+        assert(kinds[0] === 'preview:front' && kinds[1] === (solution ? 'solution:front' : 'preview:back'), `the back of the puzzle sheet is the solution or blank (${kinds.slice(0, 3)})`);
         plan.pages.forEach((page, i) => {
-          if (page.sheet.kind === 'code' && page.side === 'back') {
-            assert(pages[i].querySelector('text, g, path') === null || pages[i].querySelector('.pm-print-code, .pm-print-qr') === null, 'a continuation back has no code');
-            assert(pages[i].querySelector('text.pm-print-code, g.pm-print-qr') === null, 'no code and no QR on a blank back');
-          }
           if ((page.sheet.kind === 'pieces' || page.sheet.kind === 'board') && page.side === 'back') {
             assert(i % 2 === 1, 'a mirrored back sits on the back of its leaf');
-            assert(pages[i].querySelector('text.pm-print-code, g.pm-print-qr') === null, 'no code and no QR on a mirrored back');
+            assert(pages[i].querySelector('g.pm-print-qr') === null, 'no QR on a mirrored back');
             assert(plan.pages[i - 1].sheet === page.sheet && plan.pages[i - 1].side === 'front', 'right behind its own front');
             const fronts = all(pages[i - 1], '.pm-print-piece, .pm-print-board');
             const backs = all(pages[i], '.pm-print-piece, .pm-print-board');
@@ -638,22 +612,6 @@ await check('a long code continues on numbered sheets, in order, with blank back
             }
           }
         });
-        const backs = plan.pages.filter((p) => p.side === 'back' && p.sheet.kind === 'code').length;
-        equal(backs, count, 'a blank back for every continuation sheet');
-        assert(kindAt[0] === 'preview:front' && kindAt[1] === (solution ? 'solution:front' : 'preview:back'), `the back of the puzzle sheet is the solution or blank (${kindAt.slice(0, 3)})`);
-      }
-      const bareSame = planPrint({ ...job, measure: createTextMeasure(document) }, { pieces: true, board: true, size: 'medium', duplex, solution });
-      equal(plan.paper, bareSame.paper + count, 'one more paper per continuation sheet');
-      equal(plan.cellMm, bare.cellMm, 'the cell size of the cut-outs does not change');
-      const last = pages.at(-1);
-      const tile = plan.sheets.at(-1);
-      if (last !== undefined && tile?.kind === 'board') {
-        const shape = rectOf(/** @type {Element} */ (all(duplex ? pages.at(-2) ?? last : last, '.pm-print-board')[0]));
-        near(shape.w, tile.tile.cols * plan.cellMm, 0.4, 'a board cell is still the cell size');
-      }
-      for (const page of pages.slice(1)) {
-        const marks = all(page, 'text').filter((node) => /Puzzle code|Easy #1 ·/.test(node.textContent ?? '') || node.classList.contains('pm-print-code'));
-        assert(marks.every((node) => !plan.pages.some((p) => p.side === 'back' && pages[plan.pages.indexOf(p)] === page)), 'nothing typed on a back');
       }
     }
   }
@@ -664,7 +622,6 @@ await check('a code that cannot be printed shows its sheet without code and QR, 
   const { plan, pages } = stagePlan(jobFor(null, { title: 'Huge #1' }), none);
   await checkFirstSheet(pages[0], plan, none, 'no code');
   equal(all(pages[0], 'text.pm-print-no-code').map((n) => n.textContent), ['This puzzle is too large for a puzzle code.'], 'the notice is on the sheet');
-  equal(plan.band.continuation.length, 0, 'and no continuation sheet');
   equal(plan.pages.length, plan.sheets.length, 'the same pages as without a code');
   assert(PREVIEW_BOTTOM - rectOf(/** @type {Element} */ (pages[0].querySelector('.pm-print-board'))).y >= 120, 'the preview keeps its room');
 });
@@ -674,13 +631,7 @@ await check('the Vietnamese sheet and dialog texts fit the same columns', async 
   const share = shareOf(symbols(38), symbols(6));
   const { plan, pages } = stagePlan(jobFor(null, { title: 'Đề #1' }), share);
   await checkFirstSheet(pages[0], plan, share, 'Vietnamese');
-  equal(first(pages[0], 'text.pm-print-code-label')?.textContent, 'Mã đề (38 ký tự)', 'the label');
-  equal(first(pages[0], 'text.pm-print-code-tail-label')?.textContent, '+ lời giải, không bắt buộc', 'the tail label');
-  equal(first(pages[0], 'text.pm-print-qr-scan')?.textContent, 'Quét để mở', 'the QR caption');
-  const big = shareOf(symbols(3000), symbols(300));
-  const long = stagePlan(jobFor(null, { title: 'Đề #1' }), big);
-  equal(all(long.pages[1], 'text.pm-print-code-title').map((n) => n.textContent), ['Mã đề (tiếp theo)'], 'the continuation heading');
-  equal(first(long.pages[0], 'text.pm-print-code-more')?.textContent, 'Tiếp ở trang sau', 'the notice');
+  equal(first(pages[0], 'text.pm-print-qr-scan')?.textContent, 'Chơi trực tuyến', 'the QR caption');
 
   /** @param {Element} page @param {string} selector */
   function first(page, selector) {
@@ -894,16 +845,16 @@ await check('the capacity ladder reaches the dialog before printing and the shee
     win.afterPrint();
     dialog.destroy();
   };
-  await run(codeOf(symbols(3000), symbols(400)), ['noTail', 'localTarget'], (win) => {
+  await run(codeOf(symbols(3000), symbols(400)), ['noTail'], (win) => {
     equal(typedCode(win.pages), symbols(3000), 'the tail is left out of the text');
     equal(win.pages[0].querySelector('g.pm-print-qr')?.getAttribute('data-qr-ec'), 'M', 'at level M');
     assert(win.pages[0].querySelector('text.pm-print-code[data-part="tail"]') === null, 'no tail text');
   });
-  await run(codeOf(symbols(3500), symbols(100)), ['noTail', 'lowEc', 'localTarget'], (win) => {
+  await run(codeOf(symbols(3500), symbols(100)), ['noTail', 'lowEc'], (win) => {
     equal(win.pages[0].querySelector('g.pm-print-qr')?.getAttribute('data-qr-ec'), 'L', 'error correction L');
     equal(typedCode(win.pages), symbols(3500), 'the core alone');
   });
-  await run(codeOf(symbols(4300), symbols(100)), ['noTail', 'none', 'localTarget'], (win) => {
+  await run(codeOf(symbols(4300), symbols(100)), ['noTail', 'none'], (win) => {
     assert(win.pages[0].querySelector('g.pm-print-qr') === null && win.pages[0].querySelector('text.pm-print-code') === null, 'neither code nor QR');
     equal(win.pages[0].querySelector('text.pm-print-no-code')?.textContent, 'This puzzle is too large for a puzzle code.', 'the line on the sheet');
     equal(win.pages.length, win.pages.filter(() => true).length, 'pages');
@@ -916,7 +867,7 @@ await check('the capacity ladder reaches the dialog before printing and the shee
   ], 'the English notices');
 });
 
-await check('the local override: offered on a local page only, unchecked, per open dialog, nothing stored', async () => {
+await check('the target is the Player of the page the dialog is on; there is no override and nothing is stored', async () => {
   const before = JSON.stringify([Object.entries(localStorage), Object.entries(sessionStorage)]);
   const make = (/** @type {string | undefined} */ pageBase) => {
     const client = instantClient(codeOf(symbols(38), symbols(6)));
@@ -925,51 +876,30 @@ await check('the local override: offered on a local page only, unchecked, per op
     const q = (/** @type {string} */ selector) => /** @type {HTMLInputElement & HTMLElement} */ (dialog.dialog.querySelector(selector));
     const ready = () => waitFor(() => q('[data-role="print-code"]').dataset.state === 'ready', 'ready');
     const notices = () => [...dialog.dialog.querySelectorAll('[data-role="print-notices"] li')].map((li) => li.getAttribute('data-notice'));
-    return { client, dialog, q, ready, notices, target: () => q('[data-role="print-target"]').textContent };
+    return { client, dialog, q, ready, notices, target: () => q('[data-role="print-code"]').dataset.target };
   };
 
   const local = make(undefined);
   local.dialog.open();
   await local.ready();
-  const toggle = local.q('[data-field="print-use-this-page"]');
-  assert(!toggle.checked && !(/** @type {HTMLElement} */ (toggle.closest('label'))).hidden, 'a local page offers the override, unchecked');
-  equal(local.target(), `The QR code opens ${PUBLIC_PLAYER_URL}`, 'the public Player');
-  equal(local.notices(), ['localTarget'], 'with the local notice');
-  toggle.checked = true;
-  toggle.dispatchEvent(new Event('change'));
-  assert(local.q('[data-role="print-code"]').dataset.state === 'preparing' || local.client.calls === 2, 'the same snapshot is prepared again for the new address');
-  await local.ready();
-  const own = new URL('../player/', document.baseURI).href;
-  equal(local.target(), `The QR code opens ${own}`, 'the page\'s own Player');
-  equal(local.notices(), ['devTarget'], 'with the warning instead of the local notice');
-  equal(local.dialog.prepared()?.share?.url, puzzleCodeUrl(own, /** @type {string} */ (local.dialog.prepared()?.share?.code.F)), 'the address and the QR follow');
-  equal(local.client.snapshots[0].rows, local.client.snapshots[1].rows, 'the source geometry is the same snapshot');
-  toggle.checked = false;
-  toggle.dispatchEvent(new Event('change'));
-  await local.ready();
-  equal(local.notices(), ['localTarget'], 'unchecked again');
-  toggle.checked = true;
-  toggle.dispatchEvent(new Event('change'));
-  await local.ready();
-  local.dialog.close();
-  local.dialog.open();
-  await local.ready();
-  assert(!local.q('[data-field="print-use-this-page"]').checked, 'closing and reopening resets it');
-  equal(local.notices(), ['localTarget'], 'to the public Player');
+  assert(local.dialog.dialog.querySelector('[data-field="print-use-this-page"]') === null, 'no override on a local page');
+  equal(local.target(), OWN_PLAYER_URL, 'the Player of this page');
+  equal(local.notices(), [], 'no local notice');
+  equal(local.dialog.prepared()?.share?.url, puzzleCodeUrl(OWN_PLAYER_URL, /** @type {string} */ (local.dialog.prepared()?.share?.code.F)), 'the address and the QR follow');
+  equal(local.client.calls, 1, 'prepared once');
 
   const hosted = make('https://tdat00.github.io/pentomino/generator/');
   hosted.dialog.open();
   await hosted.ready();
-  assert(/** @type {HTMLElement} */ (hosted.q('[data-field="print-use-this-page"]').closest('label')).hidden, 'a public page has no override');
-  equal([hosted.notices(), hosted.target()], [[], 'The QR code opens https://tdat00.github.io/pentomino/player/'], 'its own Player, no local notice');
+  equal([hosted.notices(), hosted.target()], [[], 'https://tdat00.github.io/pentomino/player/'], 'its own Player');
   const fork = make('https://Example.org/My-Fork/pentomino/generator/');
   fork.dialog.open();
   await fork.ready();
-  equal(fork.target(), 'The QR code opens https://example.org/My-Fork/pentomino/player/', 'a fork keeps its case-sensitive path');
+  equal(fork.target(), 'https://example.org/My-Fork/pentomino/player/', 'a fork keeps its case-sensitive path');
   const lan = make('http://192.168.1.20:8080/pentomino/generator/');
   lan.dialog.open();
   await lan.ready();
-  equal(lan.notices(), ['localTarget'], 'a LAN address is local');
+  equal([lan.notices(), lan.target()], [[], 'http://192.168.1.20:8080/pentomino/player/'], 'a LAN address points at itself');
   equal(JSON.stringify([Object.entries(localStorage), Object.entries(sessionStorage)]), before, 'nothing was stored by the dialogs');
 });
 
@@ -1087,7 +1017,7 @@ await check('the Player dialog follows the language: an untitled puzzle heading 
   assert(player.store.getState().game !== null, 'the game is untouched');
 });
 
-await check('the Generator job prints "Hard #3", not the card heading, keeps its solution option and prepares the same way', async () => {
+await check('the Generator job prints the name of its card "Puzzle #3", keeps its solution option and prepares the same way', async () => {
   const { printJobOf } = await import('../../generator/ui/puzzle-panel.js');
   const generator = await import('../../generator/i18n.js');
   const engine = sample.puzzles.map((/** @type {any} */ p, /** @type {number} */ i) => ({ ...p, id: `g${i}`, title: ['Easy #1', 'Normal #2', 'Hard #3'][i], seed: `s${i}` }));
@@ -1107,9 +1037,10 @@ await check('the Generator job prints "Hard #3", not the card heading, keeps its
   assert(prepared?.carried === 'C.T', 'the stored solution is in the code');
   /** @type {HTMLButtonElement} */ (dialog.dialog.querySelector('[data-action="print-confirm"]')).click();
   equal(win.printed, 1, 'printed');
-  equal(win.pages[0].querySelector('text.pm-print-sheet-title')?.textContent, 'Hard #3', 'the displayed heading');
+  equal(win.pages[0].querySelector('text.pm-print-sheet-title')?.textContent, 'Puzzle #3', 'the name of the card, not the title "Hard #3" that the code carries');
+  equal(printJobOf(state, 'g2')?.snapshot?.heading, 'Hard #3', 'the code keeps the displayed heading');
   assert(win.pages.some((page) => /Solution/.test(page.textContent ?? '')), 'with the solution sheet');
-  equal(win.pages.filter((page) => page.querySelector('text.pm-print-code') !== null).length, 1, 'the code is only on the first sheet');
+  equal(win.pages.filter((page) => page.querySelector('g.pm-print-qr') !== null).length, 1, 'the QR is only on the first sheet');
   assert(!/seed/i.test(win.pages[0].textContent ?? ''), 'no puzzle seed');
   const solutionPage = win.pages.find((page) => /Solution/.test(page.textContent ?? '')) ?? win.pages[1];
   assert(rectOf(/** @type {Element} */ (solutionPage.querySelector('.pm-print-board'))).y <= 40.6, 'the solution sheet keeps its board at 40 mm');

@@ -333,15 +333,15 @@ async function submitText(m, text) {
   await settled(m);
 }
 
-/** Opens the entry the way a person does, from the start screen. @param {Stage} m */
+/** Opens the entry the way a bad `#p=` address does: through the dialog, since the page has no button for it. @param {Stage} m */
 async function openFromStart(m) {
-  m.q('.start-actions [data-action="enter-code"]').click();
+  m.player.codeDialog.open();
   await waitFor(() => isOpen(m), 'the entry to open');
 }
 
-/** Opens the entry from the header, at any time. @param {Stage} m */
+/** Opens the entry with a game open. @param {Stage} m */
 async function openFromHeader(m) {
-  m.q('.app-header [data-action="enter-code"]').click();
+  m.player.codeDialog.open();
   await waitFor(() => isOpen(m), 'the entry to open');
 }
 
@@ -404,11 +404,9 @@ await check('nothing is built before the code is needed: no field, no worker and
   m.player.destroy();
 });
 
-await check('start screen: an obvious "Enter puzzle code" action opens a labelled, monospace field with focus in it', async () => {
+await check('the entry has no button on the start screen or in the header; it opens a labelled, monospace field with focus in it', async () => {
   const m = await mount();
-  const start = m.q('.start-actions [data-action="enter-code"]');
-  equal(start.textContent, 'Enter puzzle code', 'the action');
-  assert(m.visible('.start-actions [data-action="enter-code"]') && start.classList.contains('primary'), 'it is the primary action');
+  assert(m.root.querySelector('[data-action="enter-code"]') === null, 'no "Enter puzzle code" button on the start screen or in the header');
   assert(m.visible('.start-actions [data-action="sample"]') && m.q('.start-actions a').getAttribute('href') === '../generator/', 'sample and Generator remain');
   await openFromStart(m);
   const dialog = /** @type {HTMLDialogElement} */ (dialogOf(m));
@@ -428,25 +426,20 @@ await check('start screen: an obvious "Enter puzzle code" action opens a labelle
   assert(field.getAttribute('aria-describedby')?.split(' ').every((id) => document.getElementById(id) !== null), 'described by existing notes');
   escape(m);
   await waitFor(() => !isOpen(m), 'Escape to close');
-  await waitFor(() => document.activeElement === start, 'focus back on the start action');
   equal(m.player.store.getState().screen, 'start', 'nothing opened');
   m.player.destroy();
 });
 
-await check('header action: reachable at any time, also with a game open; Cancel returns the focus to it', async () => {
+await check('with a game open the entry still opens through the dialog; Cancel returns the focus to the puzzle title', async () => {
   const m = await mount({ hash: sampleLink });
   equal(m.root.dataset.screen, 'game', 'a game is open');
-  const button = m.q('.app-header [data-action="enter-code"]');
-  assert(m.visible('.app-header [data-action="enter-code"]'), 'visible in the header');
-  equal(button.getAttribute('aria-haspopup'), 'dialog', 'announced as opening a dialog');
-  assert((button.textContent ?? '').trim() === 'Enter puzzle code', 'has an accessible name');
+  assert(m.root.querySelector('[data-action="enter-code"]') === null, 'no button for it in the header');
   const before = snapshotOf(m);
-  button.click();
-  await waitFor(() => isOpen(m), 'open');
+  await openFromHeader(m);
   same(document.activeElement, fieldOf(m), 'focus in the field');
   m.q('dialog.pm-code [data-action="code-cancel"]').click();
   await waitFor(() => !isOpen(m), 'closed');
-  await waitFor(() => document.activeElement === button, 'focus back on the header action');
+  await waitFor(() => document.activeElement === m.q('.puzzle-title'), 'focus back on the puzzle title');
   equal(snapshotOf(m), before, 'the game is untouched');
   m.player.destroy();
 });
@@ -653,7 +646,6 @@ await check('a bad #p= address at start-up, or later, opens the entry with the a
   equal([isOpen(index), shown(index)?.error], [true, EN.index], 'a puzzle number is refused with its own message');
   escape(index);
   await waitFor(() => !isOpen(index), 'closed');
-  await waitFor(() => document.activeElement === index.q('.start-actions [data-action="enter-code"]'), 'focus on the start action');
   index.player.destroy();
 
   const tail = await mount({ hash: `#p=${DAMAGED_TAIL}` });
@@ -936,8 +928,6 @@ async function settledAfterClick(m) {
 await check('Vietnamese: the entry, the count, the offers and every message follow the language, also while it is open', async () => {
   setLocale('vi', document);
   const m = await mount();
-  equal(m.q('.start-actions [data-action="enter-code"]').textContent, 'Nhập mã đề', 'start action');
-  equal(m.q('.app-header [data-action="enter-code"]').textContent?.trim(), 'Nhập mã đề', 'header action');
   await openFromStart(m);
   equal([m.q('dialog.pm-code label').textContent, m.q('dialog.pm-code [data-action="code-open"]').textContent, m.q('dialog.pm-code [data-action="code-cancel"]').textContent], ['Mã đề', 'Mở đề', 'Hủy'], 'labels');
   typeIn(m, CORE);
@@ -1087,9 +1077,6 @@ await check('390 px: the Player page and the entry fit without sideways scrollin
     const header = f.doc.querySelector('.app-header');
     const overflow = [...(header?.querySelectorAll('button') ?? [])].filter((b) => b.getBoundingClientRect().right > f.win.innerWidth);
     equal(overflow.length, 0, `${lang}: header controls inside the viewport`);
-    const label = /** @type {HTMLElement} */ (f.doc.querySelector('.app-header [data-action="enter-code"] .header-help__label'));
-    assert(label.getBoundingClientRect().width <= 1, `${lang}: only the icon shows in the header`);
-    assert((label.textContent ?? '').length > 3, `${lang}: with its name kept for screen readers`);
     f.frameEl.remove();
   }
 });

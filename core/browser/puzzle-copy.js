@@ -9,7 +9,7 @@
 import { MAX_URL_CHARS, WARN_URL_CHARS } from '../engine/sharecode.js';
 import { copyText, el, showToast } from './dom.js';
 import { createPuzzleCodeClient } from './puzzle-code-client.js';
-import { preparePuzzleShare, puzzlePlayerTarget } from './puzzle-snapshot.js';
+import { PUBLIC_PLAYER_URL, preparePuzzleShare, puzzlePlayerTarget } from './puzzle-snapshot.js';
 import { svgEl } from './svg-board.js';
 import { isAbortError } from './worker-pool.js';
 
@@ -21,9 +21,8 @@ import { isAbortError } from './worker-pool.js';
  * @typedef {object} PuzzleCopyOptions
  * @property {() => PuzzleSnapshot | null} getSnapshot The selected puzzle, from the same provider as Print; null when
  *   there is none (the click then does nothing).
- * @property {() => { target: string, notice: null | 'localTarget' }} getTarget The Player address the link opens: the
- *   normal rule, never the Print dialog's developer override.
- * @property {(snapshot: PuzzleSnapshot, target: string, notice: null | 'localTarget') => Promise<PreparedPuzzleShare>} prepare
+ * @property {() => string} getTarget The Player address the link opens: the page's own Player.
+ * @property {(snapshot: PuzzleSnapshot, target: string) => Promise<PreparedPuzzleShare>} prepare
  *   The shared preparation (`preparePuzzleShare`).
  * @property {(text: string) => Promise<boolean>} writeClipboard Resolves true only when the browser took the text.
  * @property {(url: string) => void} showManualCopy Shows the address in a read-only field to select and copy.
@@ -106,8 +105,8 @@ export function createPuzzleCopyAction(options) {
     /** @returns {boolean} Whether this click is still the latest and its puzzle is still the selected one. */
     const current = () => !disposed && revision === mine && selected()?.key === captured.key;
     try {
-      const { target, notice } = getTarget();
-      const prepared = await prepare(captured, target, notice);
+      const target = getTarget();
+      const prepared = await prepare(captured, target);
       if (!current()) {
         return;
       }
@@ -324,17 +323,16 @@ export function createPuzzleCopyControl(options) {
   const action = createPuzzleCopyAction({
     getSnapshot,
     getTarget() {
-      let info;
       try {
-        info = puzzlePlayerTarget(pageBase ?? doc.baseURI);
+        // The link is for whoever the user pastes it to, from the page they are on: the page's own Player.
+        return puzzlePlayerTarget(pageBase ?? doc.baseURI);
       } catch {
-        info = puzzlePlayerTarget('https://localhost/');
+        return PUBLIC_PLAYER_URL;
       }
-      return { target: info.target, notice: info.notice === 'localTarget' ? 'localTarget' : null };
     },
-    prepare(snapshot, target, notice) {
+    prepare(snapshot, target) {
       client ??= createClient();
-      return preparePuzzleShare(snapshot, { target, client, targetNotice: notice });
+      return preparePuzzleShare(snapshot, { target, client });
     },
     writeClipboard,
     showManualCopy(url) {

@@ -18,7 +18,7 @@ import { after, test } from 'node:test';
 import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
 import { PIECE_SET_MESSAGE, readIncoming, readPack } from '../core/browser/handoff.js';
 import { puzzleDetails } from '../core/browser/print-dialog.js';
-import { PAGE_HEIGHT, PAGE_MARGIN, PAGE_WIDTH, PREVIEW_BOTTOM, PREVIEW_MIN_HEIGHT, estimateTextWidth, planPrint } from '../core/browser/print-layout.js';
+import { PAGE_MARGIN, PAGE_WIDTH, PREVIEW_BOTTOM, estimateTextWidth, planPrint } from '../core/browser/print-layout.js';
 import {
   PUBLIC_PLAYER_URL, PuzzleShareError, isSameSnapshot, preparePuzzleShare, puzzlePlayerTarget, puzzleSnapshot,
 } from '../core/browser/puzzle-snapshot.js';
@@ -198,15 +198,6 @@ function assertOnlyThisPuzzle(pack) {
 // ---- print layout, QR raster ------------------------------------------------------------------------------------------------
 
 /**
- * What a reader copies from the first sheet and the continuation sheets, in reading order, without the printed spacing.
- * @param {ReturnType<typeof planPrint>} plan
- */
-function printedCode(plan) {
-  const lines = [...(plan.band.code?.lines ?? []), ...plan.band.continuation.flatMap((sheet) => sheet.lines)];
-  return lines.map((line) => line.text.replaceAll(' ', '')).join('');
-}
-
-/**
  * The plan of the printout of a snapshot with a prepared share (null: the job carries a share without code).
  * @param {object | null} job Overrides of the plan's job input.
  * @param {ReturnType<typeof puzzleSnapshot>} snapshot
@@ -299,10 +290,10 @@ async function journey(label, pack, index, over = {}) {
   assert.equal(prepared.carried, 'C.T', `${label}: the stored answer is carried`);
   assert.deepEqual(prepared.notices, [], `${label}: no notice for the public target`);
 
-  // The sheet: its code in reading order is exactly the carried F, not a newly encoded substitute.
+  // The sheet carries the QR and nothing typed: the code is the QR's, not a printed substitute.
   const plan = planFor(null, snapshot, prepared);
-  assert.equal(printedCode(plan), code.F, `${label}: the printed code reads back as the carried code`);
-  assert.ok(plan.band.code !== null && plan.band.qr !== null, `${label}: code and QR on the first sheet`);
+  assert.ok(plan.band.qr !== null, `${label}: the QR is on the first sheet`);
+  assert.ok(!('code' in plan.band) && !('continuation' in plan.band), `${label}: no typed code and no continuation sheets`);
 
   // The QR: from the very path the sheet draws, decoded independently to the complete URL.
   const qr = /** @type {NonNullable<typeof prepared.qr>} */ (prepared.qr);
@@ -576,11 +567,12 @@ test('BA12 BA13 BA14 BA15: typos are never applied silently, a bad tail opens no
 
 test('BA16 BA22 BA25: print options change the layout, never the code; Print and Copy link share one prepared address; the stored answer adds no solution sheet', async () => {
   const snapshot = puzzleSnapshot({ rows: sample.board.rows, pieces: sample.pieces, puzzle: sample.puzzles[0], index: 0, rotation: 0, untitled: english });
-  const asPrint = await preparePuzzleShare(snapshot, { target: puzzlePlayerTarget('http://localhost:8708/pentomino/generator/').target, client, targetNotice: 'localTarget' });
-  const asCopy = await preparePuzzleShare(snapshot, { target: puzzlePlayerTarget('http://127.0.0.1:8080/pentomino/player/').target, client, targetNotice: 'localTarget' });
-  assert.equal(asPrint.url, asCopy.url, 'one snapshot, one default target, one address');
-  assert.equal(asPrint.url, `${PUBLIC_PLAYER_URL}#p=${fixture.goldens[0].code}`);
-  assert.deepEqual([asPrint.notices, asCopy.notices], [['localTarget'], ['localTarget']]);
+  const target = puzzlePlayerTarget('http://localhost:8708/pentomino/generator/');
+  const asPrint = await preparePuzzleShare(snapshot, { target, client });
+  const asCopy = await preparePuzzleShare(snapshot, { target: puzzlePlayerTarget('http://localhost:8708/pentomino/player/'), client });
+  assert.equal(asPrint.url, asCopy.url, 'one snapshot, one target (the page the user is on), one address');
+  assert.equal(asPrint.url, `http://localhost:8708/pentomino/player/#p=${fixture.goldens[0].code}`);
+  assert.deepEqual([asPrint.notices, asCopy.notices], [[], []]);
   assert.equal(await client.encode(snapshot.data).then((r) => /** @type {any} */ (r).value.F), asPrint.code.F, 'a fresh encoding agrees');
 
   const layouts = new Set();
@@ -592,7 +584,7 @@ test('BA16 BA22 BA25: print options change the layout, never the code; Print and
     for (const [pieces, board] of [[true, true], [true, false], [false, true], [false, false]]) {
       for (const duplex of [false, true]) {
         const plan = planFor(null, snapshot, shared, { size, pieces, board, duplex });
-        assert.equal(printedCode(plan), shared.code.F, `${size} ${pieces} ${board} ${duplex}: the same code`);
+        assert.deepEqual(plan.band.qr?.x, 10, `${size} ${pieces} ${board} ${duplex}: the QR stays at the left`);
         assert.equal(plan.share?.url, shared.url);
         layouts.add(`${plan.cellMm}|${plan.sheets.length}|${plan.pages.length}`);
       }
@@ -609,17 +601,18 @@ test('BA16 BA22 BA25: print options change the layout, never the code; Print and
   assert.equal(shared.carried, 'C.T');
 });
 
-test('BA17 BA18 BA19: the Player target — configured public Player for a local page, the page\'s own on the web, a fork keeps its path, an override says so', () => {
-  const local = puzzlePlayerTarget('http://localhost:8708/pentomino/generator/');
-  assert.deepEqual(local, { target: PUBLIC_PLAYER_URL, local: true, notice: 'localTarget' });
-  for (const page of ['http://127.0.0.1:8080/pentomino/player/', 'http://192.168.1.20:8080/pentomino/generator/', 'http://[::1]:8080/x/', 'file:///Q:/git/pentomino/generator/index.html']) {
-    assert.equal(puzzlePlayerTarget(page).target, PUBLIC_PLAYER_URL, `${page} is local`);
+test('BA17 BA18 BA19: the Player target — the page\'s own Player on every http, https and file page, a fork keeps its path, only an unusable page uses the public Player', () => {
+  assert.equal(puzzlePlayerTarget('http://localhost:8708/pentomino/generator/'), 'http://localhost:8708/pentomino/player/');
+  for (const [page, own] of [
+    ['http://127.0.0.1:8080/pentomino/generator/', 'http://127.0.0.1:8080/pentomino/player/'],
+    ['http://192.168.1.20:8080/pentomino/generator/', 'http://192.168.1.20:8080/pentomino/player/'],
+    ['file:///Q:/git/pentomino/generator/index.html', 'file:///Q:/git/pentomino/player/'],
+  ]) {
+    assert.equal(puzzlePlayerTarget(page), own, `${page} points at its own Player`);
   }
-  const override = puzzlePlayerTarget('http://192.168.1.20:8080/pentomino/generator/', { useThisPage: true });
-  assert.deepEqual(override, { target: 'http://192.168.1.20:8080/pentomino/player/', local: true, notice: 'devTarget' });
-  assert.deepEqual(puzzlePlayerTarget('http://192.168.1.20:8080/pentomino/generator/'), { target: PUBLIC_PLAYER_URL, local: true, notice: 'localTarget' }, 'the override is not remembered');
-  assert.deepEqual(puzzlePlayerTarget('https://tdat00.github.io/pentomino/generator/', { useThisPage: true }), { target: 'https://tdat00.github.io/pentomino/player/', local: false, notice: null }, 'a public page has no override');
-  assert.deepEqual(puzzlePlayerTarget('https://Example.org/My-Fork/pentomino/generator/'), { target: 'https://example.org/My-Fork/pentomino/player/', local: false, notice: null }, 'a fork keeps its case-sensitive path');
+  assert.equal(puzzlePlayerTarget('https://tdat00.github.io/pentomino/generator/'), 'https://tdat00.github.io/pentomino/player/');
+  assert.equal(puzzlePlayerTarget('https://Example.org/My-Fork/pentomino/generator/'), 'https://example.org/My-Fork/pentomino/player/', 'a fork keeps its case-sensitive path');
+  assert.equal(puzzlePlayerTarget('about:blank'), PUBLIC_PLAYER_URL, 'a page without a usable address uses the public Player');
   assert.throws(() => puzzlePlayerTarget('not a url'), RangeError);
   assert.equal(puzzleCodeUrl('https://example.org/My-Fork/pentomino/player/', fixture.goldens[0].code), `https://example.org/My-Fork/pentomino/player/#p=${fixture.goldens[0].code}`, 'no index and no change of the target\'s case');
 });
@@ -653,14 +646,12 @@ test('BA20 BA21: the capacity ladder — drop the tail before the lower error co
   assert.deepEqual([tooBig.qr, tooBig.url, tooBig.notices], [null, null, ['none']], 'beyond the URL budget there is no address either');
   for (const [name, share] of [['none', none], ['too big', tooBig]]) {
     const plan = planFor(null, snapshot, share);
-    assert.equal(plan.band.code, null, `${name}: no code on the sheet`);
     assert.equal(plan.band.qr, null, `${name}: no QR on the sheet`);
     assert.ok(plan.band.noCodeY !== null, `${name}: the sheet says so`);
-    assert.deepEqual(plan.band.continuation, [], `${name}: no continuation sheet`);
   }
-  // A local page adds its target notice after the ladder's.
-  const both = await preparePuzzleShare(snapshot, { target: PUBLIC_PLAYER_URL, client: fixed(3000, 500), targetNotice: 'localTarget' });
-  assert.deepEqual(both.notices, ['noTail', 'localTarget']);
+  // The notices are the ladder's only: the page the link points at adds none.
+  const both = await preparePuzzleShare(snapshot, { target: PUBLIC_PLAYER_URL, client: fixed(3000, 500) });
+  assert.deepEqual(both.notices, ['noTail']);
   // An encoder failure is an error, never an oversize puzzle.
   await assert.rejects(preparePuzzleShare(snapshot, { target: PUBLIC_PLAYER_URL, client: { encode: async () => ({ ok: false, issues: [{ code: 'worker-error', path: '$', message: 'boom' }] }) } }), PuzzleShareError);
 });
@@ -710,23 +701,12 @@ test('QR box: N = 17 + 4v, outer = N + 8, side = max(25, 0.5 x outer); version 5
     assert.equal(scanned?.data, share.url, `version ${qr.version}: decodes to the address`);
     const plan = planFor(null, snapshot, share);
     const box = /** @type {NonNullable<typeof plan.band.qr>} */ (plan.band.qr);
-    assert.deepEqual([box.x + box.size, box.y], [PAGE_WIDTH - PAGE_MARGIN, PAGE_MARGIN], 'the QR sits in the top-right corner of the content area');
-    assert.equal(printedCode(plan), share.code.F, 'the code reads back whole, in order');
-    // Text beside the QR column ends before the QR; below it the full width is used.
-    const lines = [...(plan.band.code?.lines ?? [])];
-    for (const line of lines) {
-      const top = line.y - line.size;
-      if (top < box.columnEnd - 1e-6) {
-        assert.ok(line.x + line.textLength <= box.x - 5.99, `version ${qr.version}: a line at y ${line.y} stays clear of the QR (${line.x + line.textLength} vs ${box.x})`);
-      }
-      assert.ok(line.x >= PAGE_MARGIN - 1e-6 && line.x + line.textLength <= PAGE_WIDTH - PAGE_MARGIN + 1e-6, 'inside the content area');
-    }
-    assert.ok(PREVIEW_BOTTOM - plan.band.top >= PREVIEW_MIN_HEIGHT - 1e-6, `version ${qr.version}: the preview keeps ${PREVIEW_MIN_HEIGHT} mm (${PREVIEW_BOTTOM - plan.band.top})`);
+    assert.deepEqual([box.x, box.y], [PAGE_MARGIN, PAGE_MARGIN], 'the QR sits in the top-left corner of the content area, left of the puzzle name');
+    // The heading is to the right of the QR column, with the same 6 mm gap whatever the size of the symbol.
+    assert.equal(plan.band.head.x, box.x + box.size + 6);
+    assert.equal(plan.band.head.x + plan.band.head.width, PAGE_WIDTH - PAGE_MARGIN, 'and ends at the right margin');
+    assert.ok(PREVIEW_BOTTOM - plan.band.top >= 120 - 1e-6, `version ${qr.version}: the preview keeps its room (${PREVIEW_BOTTOM - plan.band.top})`);
     assert.ok(plan.band.bottom >= box.y + box.size, 'the band ends under the QR');
-    assert.ok(plan.band.top + PREVIEW_MIN_HEIGHT <= PAGE_HEIGHT - PAGE_MARGIN);
-    for (const sheet of plan.band.continuation) {
-      assert.ok(sheet.lines.every((line) => line.x + line.textLength <= PAGE_WIDTH - PAGE_MARGIN + 1e-6), 'continuation lines fit the width');
-    }
   }
   // Every module the sheet draws is black on opaque white: the matrix, not an inversion, with its quiet zone.
   const qr = /** @type {NonNullable<typeof shares[0]['qr']>} */ (shares[0].qr);
@@ -736,15 +716,15 @@ test('QR box: N = 17 + 4v, outer = N + 8, side = max(25, 0.5 x outer); version 5
   assert.ok(lowOnly.ok && lowOnly.value.ec === 'L' && lowOnly.value.version < 40, 'L is used only when asked, and is not boosted');
 });
 
-test('BA24: the puzzle seed is gone from the printed lines; the level, the score and the set line stay', () => {
-  const lines = puzzleDetails(playerEn.t, { level: 'Easy', score: 8 }, { level: 'Expert', seed: 'ABCD-EFGH-JKLM' });
+test('BA24: the puzzle seed and the set line are gone from the printed lines; only the level and the score stay', () => {
+  const lines = puzzleDetails(playerEn.t, { level: 'Easy', score: 8 });
   const text = lines.map((line) => line.map((part) => part.text).join(''));
-  assert.deepEqual(text, ['Easy: score 8', 'Set: Expert, ABCD-EFGH-JKLM']);
-  assert.ok(!/seed/i.test(text.join(' ')));
-  const vi = puzzleDetails(playerVi.t, { level: 'Dễ', score: 8, saturated: true }, { level: null, seed: 'ABCD-EFGH-JKLM' }).map((line) => line.map((part) => part.text).join(''));
-  assert.deepEqual(vi, ['Dễ: điểm 8+', 'Bộ mảnh: ABCD-EFGH-JKLM']);
-  assert.equal(puzzleDetails.length, 3, 'a puzzle seed is not even a parameter');
-  assert.deepEqual(puzzleDetails(playerEn.t, null, null), []);
+  assert.deepEqual(text, ['Easy: score 8']);
+  assert.ok(!/seed|set/i.test(text.join(' ')));
+  const vi = puzzleDetails(playerVi.t, { level: 'Dễ', score: 8, saturated: true }).map((line) => line.map((part) => part.text).join(''));
+  assert.deepEqual(vi, ['Dễ: điểm 8+']);
+  assert.equal(puzzleDetails.length, 2, 'neither a puzzle seed nor a set is a parameter');
+  assert.deepEqual(puzzleDetails(playerEn.t, null), []);
 });
 
 test('BA26 BA27: the shared heading rule — untitled later puzzles, 75/76/80 code points at positions 1, 2 and 100, also through the codec', async () => {

@@ -11,7 +11,7 @@ import {
 import { puzzleId } from '../engine/keys.js';
 import { level } from '../engine/levels.js';
 import { createPack, validatePackSliced } from '../engine/pack.js';
-import { ENUMERATION, pieceCountRange, POLICY_ID } from '../engine/policy.js';
+import { BUDGETS, ENUMERATION, pieceCountRange, POLICY_ID } from '../engine/policy.js';
 import { batchSeedFor, normalizeSeedText, RNG_ID, SEED_SCHEME } from '../engine/rng.js';
 import { isValidLayout } from '../engine/tiling.js';
 import { ALGO_ID, APP_VERSION } from '../engine/version.js';
@@ -22,6 +22,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
 /** @typedef {import('../engine/types.js').Issue} Issue */
 /** @typedef {import('../engine/types.js').Pack} Pack */
 /** @typedef {import('../engine/types.js').PieceSet} PieceSet */
+/** @typedef {import('../engine/types.js').Piece} Piece */
 /** @typedef {import('../engine/types.js').Pose} Pose */
 /** @typedef {import('../engine/types.js').Puzzle} Puzzle */
 /** @typedef {import('../engine/types.js').PuzzleCandidate} PuzzleCandidate */
@@ -149,6 +150,9 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @typedef {object} GenerationClient
  * @property {(input: SetInput, hooks?: GenerationHooks) => Promise<SetJobResult>} generateSet
  * @property {(input: BatchInput, hooks?: GenerationHooks) => Promise<BatchJobResult>} generateBatch
+ * @property {(input: { boardRows: string[], pieces: Piece[], clues: Pose[], revision?: string }) => Promise<Pose[] | null>} solveWitness
+ *   One arrangement of a piece set that keeps the given clues (the solver's first solution within its row limit), or
+ *   null when none was found, the search was cancelled or it ran out of time.
  * @property {() => void} cancel
  * @property {() => void} recycle
  */
@@ -465,7 +469,7 @@ export function createGenerationClient(pool, options = {}) {
   /**
    * One pool task of a job; a recycled worker restarts the same deterministic task.
    * @param {Job} job
-   * @param {'setAttempt' | 'puzzleCandidate' | 'completionCandidate' | 'certify' | 'enumerateLayouts'} kind
+   * @param {'setAttempt' | 'puzzleCandidate' | 'completionCandidate' | 'certify' | 'enumerateLayouts' | 'solveFirst'} kind
    * @param {object} payload
    * @param {AbortSignal | undefined} signal
    * @param {(p: { stage: string, rowTrials: number, bytes: number }) => void} [onProgress]
@@ -1165,6 +1169,25 @@ export function createGenerationClient(pool, options = {}) {
     }
   }
 
+  /**
+   * @param {{ boardRows: string[], pieces: Piece[], clues: Pose[], revision?: string }} input
+   * @returns {Promise<Pose[] | null>}
+   */
+  async function solveWitness(input) {
+    const job = begin(input.revision);
+    try {
+      const found = /** @type {{ layout?: Pose[] | null } | null} */ (await runTask(job, 'solveFirst', {
+        boardRows: input.boardRows, pieces: input.pieces, clues: input.clues, rowLimit: BUDGETS.verifyRows,
+      }, undefined));
+      return Array.isArray(found?.layout) ? found.layout : null;
+    } catch {
+      // A witness is best effort: a cancelled, timed-out or failed search just finds none.
+      return null;
+    } finally {
+      finish(job);
+    }
+  }
+
   function cancel() {
     const job = latest;
     if (job !== null && job.running) {
@@ -1177,6 +1200,7 @@ export function createGenerationClient(pool, options = {}) {
   return {
     generateSet,
     generateBatch,
+    solveWitness,
     cancel,
     recycle() {
       cancel();

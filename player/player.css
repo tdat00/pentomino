@@ -177,10 +177,6 @@ button.header-help:focus-visible {
   .segmented__btn--icon {
     width: 44px;
   }
-
-  button.header-code {
-    min-height: 44px;
-  }
 }
 
 /* From 1360 px: puzzles | game | pieces. From 768 px the puzzles move under the game; below that everything
@@ -275,6 +271,14 @@ button.header-help:focus-visible {
   margin: 0 0 0.25rem;
   font-size: 1.1rem;
   overflow-wrap: anywhere;
+}
+
+.step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.375rem;
+  margin-inline-start: auto;
 }
 
 .step-hint {
@@ -568,13 +572,15 @@ button.ghost-small:disabled {
   gap: 0.375rem;
 }
 
-/* Undo, Redo, Hint, Replay, Print, Copy link and Straighten are as big as the generator's Play button. */
-.game .game-actions > button {
+/* Undo, Redo, Hint, Replay, Straighten, Print and Copy link are as big as the generator's Play button. */
+.game .game-actions > button,
+.game .step-actions > button {
   min-width: var(--pm-target);
   min-height: var(--pm-target);
 }
 
-.game .game-actions > button.icon-btn {
+.game .game-actions > button.icon-btn,
+.game .step-actions > button.icon-btn {
   display: inline-grid;
   place-items: center;
   padding: 0.25rem;

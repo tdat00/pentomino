@@ -5,9 +5,9 @@ import { test } from 'node:test';
 import { rectangle } from '../core/engine/board.js';
 import { packBoard } from '../core/engine/pack.js';
 import {
-  AREA_HEIGHT, AREA_WIDTH, BAND_LIMIT, CELL_MM, FIT_PAGE_MAX_CELL_MM, PAGE_WIDTH, PREVIEW_BOTTOM, PRINT_SIZES, cellSizeFor, codeGroups,
-  estimateTextWidth, fitText, groupsPerLine, layoutBoard, layoutPieceSheets, layoutPreview, mirrorCells, mirrorX, orientModel, planPrint,
-  snapRotation, titleBlock, wrapTitle,
+  AREA_HEIGHT, AREA_WIDTH, CELL_MM, FIT_PAGE_MAX_CELL_MM, PAGE_WIDTH, PREVIEW_BOTTOM, PRINT_SIZES, cellSizeFor,
+  estimateTextWidth, fitText, layoutBoard, layoutPieceSheets, layoutPreview, mirrorCells, mirrorX, orientModel, planPrint,
+  snapRotation, titleBlock, wrapTitle, framesFor, planPrintMany, FRAME_GAP_MM, PAGE_MARGIN,
 } from '../core/browser/print-layout.js';
 import { PRINT_TEXTS_EN, PRINT_TEXTS_VI } from '../core/browser/print-texts.js';
 import { makePuzzleQr } from '../core/browser/qr.js';
@@ -303,99 +303,52 @@ function shareOf(C, T) {
 /** @param {number} count */
 const details = (count) => Array.from({ length: count }, (_, i) => [{ text: `detail ${i}` }]);
 
-/** @param {ReturnType<typeof planPrint>} plan @returns {string} Everything typed, in reading order, without the spaces. */
-function typedCode(plan) {
-  const lines = [...(plan.band.code?.lines ?? []), ...plan.band.continuation.flatMap((sheet) => sheet.lines)];
-  return lines.map((line) => line.text.replaceAll(' ', '')).join('');
-}
-
-test('the first sheet follows the report\'s mock-up: baselines, QR column and preview top', () => {
+test('the first sheet follows the mock-up: baselines, QR column and preview top; the code and the address are not printed', () => {
   const share = shareOf('1D0J492G47DMXNG6YCP10HCY05KZW8S4HCN2QR', '18V3WE');
-  const plan = planPrint({ ...sampleJob(), title: 'Easy #1', details: details(2), share }, OPTIONS);
+  const plan = planPrint({ ...sampleJob(), title: 'Easy #1', details: details(1), share }, OPTIONS);
   const { band } = plan;
   assert.deepEqual(band.head.baselines, [19]);
-  assert.deepEqual(band.head.detailBaselines, [26.5, 32]);
-  assert.equal(band.code?.labelY, 38, 'the label is 6 mm under the last detail line');
-  assert.equal(band.code?.count, 38);
-  assert.deepEqual(band.code?.lines.map((l) => [l.part, l.y, l.size]), [['core', 44, 4.2], ['tail', 55, 3.2]]);
-  assert.equal(band.code?.lines[0].text, '1D0J 492G 47DM XNG6 YCP1 0HCY 05KZ W8S4 HCN2 QR');
-  assert.equal(band.code?.lines[1].text, '.18V3 WE', 'the dot is printed in front of the tail');
-  assert.equal(band.code?.tailLabelY, 50, '6 mm under the last core line, and the first tail line 5 mm under it');
-  assert.equal(band.code?.moreY, null);
-  assert.deepEqual(band.qr, { x: 175, y: 10, size: 25, scanY: 39.5, hostY: 43.5, columnEnd: 45 });
-  assert.equal(band.bottom, 57, 'the last baseline + 2 mm');
-  assert.equal(band.top, 61, 'the preview starts 4 mm under the band');
-  assert.equal(plan.preview.boardY, 61);
-  assert.equal(band.continuation.length, 0);
-  assert.equal(typedCode(plan), share.code.F);
-  for (const line of band.code?.lines ?? []) {
-    const advance = line.part === 'core' ? 2.52 : 1.92;
-    assert.ok(Math.abs(line.textLength - line.text.length * advance) < 1e-9, 'textLength is the characters times 0.6 em');
-  }
-
-  const one = planPrint({ ...sampleJob(), title: 'Easy #1', details: details(1), share }, OPTIONS).band;
-  assert.equal(one.code?.labelY, 32.5, 'one detail line');
+  assert.deepEqual(band.head.detailBaselines, [26.5]);
+  assert.deepEqual(band.qr, { x: 10, y: 10, size: 25, scanY: 39.5, columnEnd: 42 }, 'the QR box at the left and its one caption: no host line under it');
+  assert.deepEqual([band.head.x, band.head.width], [41, 159], 'the heading starts 6 mm to the right of the QR');
+  assert.equal(band.noCodeY, null);
+  assert.equal(band.bottom, 42, 'the QR column ends the band');
+  assert.equal(band.top, 46, 'the preview starts 4 mm under the band');
+  assert.equal(plan.preview.boardY, 46);
+  assert.deepEqual(Object.keys(band).sort(), ['bottom', 'head', 'noCodeY', 'qr', 'top'], 'no typed code, no continuation sheets');
+  assert.deepEqual(plan.sheets.map((s) => s.kind).slice(0, 2), ['preview', 'pieces'], 'and no sheet for the code');
   const none = planPrint({ ...sampleJob(), title: 'Easy #1', details: [], share }, OPTIONS).band;
-  assert.equal(none.code?.labelY, 26.5, 'no details: 7.5 mm under the last title baseline');
-  assert.equal(none.code?.lines[0].y, 32.5);
+  assert.equal(none.head.lastBaseline, 19);
+  assert.equal(none.top, 46);
 });
 
-test('groups per line: 12 beside a 25 mm box, 7 beside a version-40 box, 15 at full width, never fewer than 1', () => {
-  assert.equal(groupsPerLine(AREA_WIDTH - 6 - 25, 2.52), 12);
-  assert.equal(groupsPerLine(AREA_WIDTH - 6 - 92.5, 2.52), 7);
-  assert.equal(groupsPerLine(AREA_WIDTH, 2.52), 15);
-  assert.equal(groupsPerLine(AREA_WIDTH, 1.92), 19);
-  assert.equal(groupsPerLine(1, 2.52), 1);
-  assert.equal(groupsPerLine(AREA_WIDTH - 6 - 25, 1.92, true), 16, 'the dot costs a character of the first tail line');
-  assert.deepEqual(codeGroups('ABCDEFGHIJ'), ['ABCD', 'EFGH', 'IJ']);
-});
-
-test('a 576-cell code (version 11, 34.5 mm box) and a version-40 box (92.5 mm) keep their text beside them and fit', () => {
+test('a bigger QR box (version 11, version 40) narrows the heading, and the band covers its column', () => {
   const v11 = shareOf(symbols(120), symbols(30));
-  const big = planPrint({ ...sampleJob(), title: 'Big', details: details(2), share: v11 }, OPTIONS);
+  const big = planPrint({ ...sampleJob(), title: 'Big', details: details(1), share: v11 }, OPTIONS);
   assert.ok(big.band.qr !== null && big.band.qr.size >= 25);
-  assert.equal(typedCode(big), v11.code.F);
+  assert.equal(big.band.head.width, AREA_WIDTH - 6 - big.band.qr.size);
 
   const v40 = shareOf(symbols(3000), symbols(300));
   assert.equal(v40.qr?.version, 40);
   assert.equal(v40.qr?.outerMm, 92.5);
-  const plan = planPrint({ ...sampleJob(), title: 'Version forty', details: details(2), share: v40 }, OPTIONS);
-  const { band } = plan;
-  assert.deepEqual(band.qr, { x: 107.5, y: 10, size: 92.5, scanY: 107, hostY: 111, columnEnd: 112.5 });
-  const core = band.code?.lines.filter((l) => l.part === 'core') ?? [];
-  assert.equal(core[0].text.split(' ').length, 7, 'seven groups beside the big box (W = 91.5)');
-  for (const line of core) {
-    const groups = line.text.split(' ').length;
-    const beside = line.y - 4.2 < band.qr.columnEnd;
-    assert.ok(groups <= (beside ? 7 : 15), `a line at ${line.y} holds ${groups} groups`);
-    assert.ok(beside ? groups === 7 : groups === 15 || line === core.at(-1), 'full lines, but the last');
-    assert.ok(line.textLength <= (beside ? 91.5 : 190) + 1e-9, 'the line stays clear of the QR column');
-  }
-  assert.equal(band.code?.labelWidth, 91.5);
-  assert.ok(band.continuation.length > 0, 'a long code continues on the next sheets');
-  assert.ok(band.code?.moreY !== null);
-  assert.equal(typedCode(plan), v40.code.F);
+  const plan = planPrint({ ...sampleJob(), title: 'Version forty', details: details(1), share: v40 }, OPTIONS);
+  assert.deepEqual(plan.band.qr, { x: 10, y: 10, size: 92.5, scanY: 107, columnEnd: 109.5 });
+  assert.deepEqual([plan.band.head.x, plan.band.head.width], [108.5, 91.5]);
+  assert.equal(plan.band.top, 113.5);
+  assert.ok(PREVIEW_BOTTOM - plan.preview.boardY > 150, 'the preview keeps plenty of room');
 });
 
-test('the band never takes more than the first sheet allows, and the preview keeps 120 mm', () => {
+test('the band covers the QR column for every code, title and number of detail lines', () => {
   for (const [C, T] of [[symbols(12), null], [symbols(60), symbols(20)], [symbols(300), symbols(90)], [symbols(1500), symbols(300)], [symbols(3000), symbols(321)], [symbols(3300), null]]) {
     const share = shareOf(C, T);
     for (const count of [0, 1, 2]) {
       for (const title of ['X', 'A title that needs more than one line because it is rather long, as titles go, yes it is', 'W'.repeat(80)]) {
         const plan = planPrint({ ...sampleJob(), title, details: details(count), share }, OPTIONS);
         const { band } = plan;
-        assert.ok(band.bottom <= BAND_LIMIT + 1e-9, `band bottom ${band.bottom}`);
-        assert.ok(PREVIEW_BOTTOM - plan.preview.boardY >= 120 - 1e-9, `the preview keeps 120 mm (${band.top})`);
         assert.equal(plan.preview.boardY, band.top);
-        assert.equal(typedCode(plan), share.code.F);
         const qrEnd = band.qr?.columnEnd ?? 0;
         assert.ok(band.bottom >= qrEnd, 'the band covers the QR column');
-        const last = [...(band.code?.lines ?? [])].at(-1);
-        assert.ok(last !== undefined && last.y + 2 <= band.bottom + 1e-9);
-        if (band.code?.moreY != null) {
-          assert.equal(band.code.moreY, last.y + 5.5, 'the notice follows the last line by 5.5 mm');
-          assert.ok(last.y + 2 + 5.5 <= BAND_LIMIT + 1e-9, 'there is room for the notice');
-        }
+        assert.ok(band.bottom >= band.head.lastBaseline + 2 - 1e-9, 'and the heading');
         const lines = band.head.lines;
         assert.ok(lines.length >= 1 && lines.length <= 3);
         for (const [i, text] of lines.entries()) {
@@ -406,91 +359,13 @@ test('the band never takes more than the first sheet allows, and the preview kee
   }
 });
 
-/**
- * A prepared share with a stand-in QR of the given box size, for the layout alone (the band reads only the box).
- * @param {string} C
- * @param {string | null} T
- * @param {number} [outerMm]
- * @returns {import('../core/browser/puzzle-snapshot.js').PreparedPuzzleShare}
- */
-function layoutShare(C, T, outerMm = 25) {
-  const F = T === null ? C : `${C}.${T}`;
-  const qr = /** @type {import('../core/browser/qr.js').PuzzleQrMatrix} */ (/** @type {unknown} */ ({ outerMm }));
-  return { code: { C, T, F, version: 1 }, url: null, carried: T === null ? 'C' : 'C.T', qr, notices: [] };
-}
-
-test('typed code that does not fit goes to continuation sheets in order, whole groups, the dot kept', () => {
-  const found = new Set();
-  /** @param {ReturnType<typeof planPrint>} plan */
-  const everyLine = (plan) => [...(plan.band.code?.lines ?? []), ...plan.band.continuation.flatMap((s) => s.lines)];
-  for (const box of [25, 34.5, 60]) {
-    for (let core = 800; core <= 1500; core += 3) {
-      for (const tail of [0, 1, 4, 5, 60, 300]) {
-        const share = layoutShare(symbols(core), tail === 0 ? null : symbols(tail), box);
-        const plan = planPrint({ ...sampleJob(), title: 'Easy #1', details: details(2), share }, OPTIONS);
-        assert.equal(typedCode(plan), share.code.F, `${core}.${tail} reads back in order`);
-        const lines = everyLine(plan);
-        const firstTail = lines.find((l) => l.part === 'tail');
-        for (const line of lines) {
-          const text = line.text.replace(/^\./, '');
-          assert.ok(text.split(' ').slice(0, -1).every((g) => g.length === 4), 'a group is never split across lines');
-          assert.equal(line.text.startsWith('.'), line === firstTail, 'only the first tail line has the dot');
-        }
-        const sheets = plan.band.continuation;
-        assert.deepEqual(sheets.map((s) => s.n), sheets.map((_, i) => i + 1));
-        assert.ok(sheets.every((s) => s.total === sheets.length));
-        for (const sheet of sheets) {
-          for (const line of sheet.lines) {
-            assert.equal(line.x, 10);
-            assert.ok(line.y >= 36 && line.y + 2 <= 287 + 1e-9, 'inside the content area');
-            assert.ok(line.textLength <= 190 + 1e-9);
-          }
-          const startsWithLabel = sheet.tailLabelY !== null && sheet.lines[0].part === 'tail';
-          assert.equal(sheet.tailLabelY === 36 ? 41 : 36, sheet.lines[0].y, `the code starts at baseline 36, under a tail label that begins the sheet (${startsWithLabel})`);
-        }
-        if (sheets.length > 0 && tail > 0) {
-          const coreOnFirst = (plan.band.code?.lines.filter((l) => l.part === 'core').reduce((n, l) => n + l.text.replaceAll(' ', '').length, 0) ?? 0);
-          if (plan.band.code?.tailLabelY != null) {
-            found.add('tail starts on the first sheet');
-            assert.ok(plan.band.code.lines.some((l) => l.part === 'tail'), 'a label is never alone');
-          } else if (coreOnFirst === core) {
-            found.add('core complete, tail on a continuation sheet');
-            assert.ok(sheets[0].tailLabelY !== null && sheets[0].lines.some((l) => l.part === 'tail'), 'the label and its first line stay together');
-          } else {
-            found.add('tail starts on a continuation sheet');
-          }
-        }
-      }
-    }
-  }
-  assert.deepEqual([...found].sort(), ['core complete, tail on a continuation sheet', 'tail starts on a continuation sheet', 'tail starts on the first sheet']);
-});
-
-test('a continuation sheet holds 46 lines of 15 groups: 2,760 core symbols, then the rest', () => {
-  const long = layoutShare(symbols(5000), symbols(700), 92.5);
-  const plan = planPrint({ ...sampleJob(), title: 'Long', details: details(2), share: long }, OPTIONS);
-  const [first, second] = plan.band.continuation;
-  assert.ok(first && second && plan.band.continuation.length === 2);
-  assert.equal(first.lines.length, 46, 'up to 46 lines');
-  assert.ok(first.lines.every((l) => l.part === 'core' && l.text.split(' ').length === 15));
-  assert.equal(first.lines.at(-1)?.y, 36 + 45 * 5.5);
-  assert.equal(first.lines.reduce((n, l) => n + l.text.replaceAll(' ', '').length, 0), 2760);
-  assert.equal(first.tailLabelY, null);
-  assert.ok(second.tailLabelY !== null && second.lines.some((l) => l.part === 'tail'), 'the tail starts on the last sheet, under its label');
-  assert.equal(typedCode(plan), long.code.F);
-  const last = second.lines.at(-1);
-  assert.ok(last?.part === 'tail' && last.text.endsWith(symbols(700).slice(-(700 % 4 || 4))), 'the last sheet ends with the last symbols, a short group and all');
-  assert.equal(second.total, 2);
-});
-
-test('without a code the band holds the heading and the "too large" line; without a share there is no band at all', () => {
+test('without a QR the band holds the heading and the "too large" line; without a share there is no band at all', () => {
   const none = { ...shareOf(symbols(40), null), qr: null, url: null };
   const plan = planPrint({ ...sampleJob(), title: 'Huge', details: details(2), share: none }, OPTIONS);
   assert.equal(plan.band.qr, null);
-  assert.equal(plan.band.code, null);
-  assert.equal(plan.band.noCodeY, 38, 'where the code label would be');
+  assert.equal(plan.band.noCodeY, 38, 'under the details');
   assert.equal(plan.band.head.width, 190, 'no QR column, so the full width');
-  assert.equal(plan.band.continuation.length, 0);
+  assert.equal(plan.band.head.x, 10, 'and the heading at the margin');
   assert.equal(plan.preview.boardY, 44);
   const bare = planPrint(sampleJob(), OPTIONS);
   assert.equal(bare.preview.boardY, 40, 'a job without a title keeps today\'s preview top');
@@ -522,24 +397,19 @@ test('long titles wrap at spaces in three lines, break unbroken words between co
   assert.deepEqual([three.baselines, three.detailBaselines], [[19, 28, 37], [44.5, 50]], 'the title\'s 9 mm pitch, the details 7.5 mm under it');
 });
 
-test('continuation sheets: the order, the blank backs and the paper count, one side and two', () => {
+test('the code adds no sheet: the order, the blank backs and the paper count are the same with or without it', () => {
   const solution = pack.puzzles[0].solution;
   const share = shareOf(symbols(3000), symbols(300));
   const job = { ...sampleJob(), title: 'Long', details: details(2), share, solution };
-  const count = planPrint(job, OPTIONS).band.continuation.length;
-  assert.ok(count >= 1);
   const kinds = (/** @type {ReturnType<typeof planPrint>} */ plan) => plan.sheets.map((s) => s.kind);
 
   const one = planPrint(job, { ...OPTIONS, solution: true });
-  assert.deepEqual(kinds(one).slice(0, 2 + count), ['preview', ...Array(count).fill('code'), 'solution'], 'one side: puzzle, continuation sheets, solution');
+  assert.deepEqual(kinds(one).slice(0, 2), ['preview', 'solution'], 'one side: the puzzle, then the solution');
   assert.equal(one.pages.length, one.sheets.length);
   assert.ok(one.pages.every((p) => p.side === 'front'));
 
   const two = planPrint(job, { ...OPTIONS, solution: true, duplex: true });
-  assert.deepEqual(kinds(two).slice(0, 2 + count), ['preview', 'solution', ...Array(count).fill('code')], 'two sides: the solution is the back of the puzzle, the continuation sheets follow');
-  assert.deepEqual(two.pages.slice(0, 2).map((p) => `${p.sheet.kind}:${p.side}`), ['preview:front', 'solution:front']);
-  const codePages = two.pages.filter((p) => p.sheet.kind === 'code').map((p) => p.side);
-  assert.deepEqual(codePages, Array(count).fill(['front', 'back']).flat(), 'every continuation sheet has a blank back');
+  assert.deepEqual(two.pages.slice(0, 3).map((p) => `${p.sheet.kind}:${p.side}`), ['preview:front', 'solution:front', 'pieces:front'], 'two sides: the solution is the back of the puzzle');
   const plain = planPrint(job, { ...OPTIONS, duplex: true });
   assert.equal(plain.pages[1].side, 'back');
   assert.equal(plain.pages[1].sheet.kind, 'preview', 'the back of the puzzle sheet is blank');
@@ -551,11 +421,10 @@ test('continuation sheets: the order, the blank backs and the paper count, one s
       }
     });
   }
-  const without = planPrint({ ...job, share: undefined }, { ...OPTIONS, duplex: true });
-  assert.equal(plain.paper, without.paper + count, 'one more paper per continuation sheet');
-  assert.equal(two.paper, planPrint({ ...job, share: undefined }, { ...OPTIONS, duplex: true, solution: true }).paper + count);
-  const oneWithout = planPrint({ ...job, share: undefined }, OPTIONS);
-  assert.equal(planPrint(job, OPTIONS).paper, oneWithout.paper + count);
+  const without = (/** @type {Parameters<typeof planPrint>[1]} */ options) => planPrint({ ...job, share: undefined }, options);
+  assert.equal(plain.paper, without({ ...OPTIONS, duplex: true }).paper);
+  assert.equal(two.paper, without({ ...OPTIONS, duplex: true, solution: true }).paper);
+  assert.equal(planPrint(job, OPTIONS).paper, without(OPTIONS).paper);
 });
 
 test('the solution sheet keeps its own header and its top of 40 mm, whatever the code band takes', () => {
@@ -583,4 +452,112 @@ test('every option, size and angle keeps the first sheet inside the page: the ba
       }
     }
   }
+});
+
+// ---- Several puzzles, one, two or four to a sheet ---------------------------------------------------------------------
+
+/** @param {number} count @param {import('../core/browser/puzzle-snapshot.js').PreparedPuzzleShare | undefined} [share] */
+const puzzleJobs = (count, share) => Array.from({ length: count }, (_, i) => {
+  const source = pack.puzzles[i % pack.puzzles.length];
+  return { ...sampleJob(), clues: source.clues, solution: source.solution, title: `Puzzle #${i + 1}`, details: details(1), share };
+});
+
+test('one puzzle through planPrintMany is the plan of planPrint', () => {
+  const [job] = puzzleJobs(1);
+  for (const options of [OPTIONS, { ...OPTIONS, duplex: true, solution: true }]) {
+    const a = planPrint(job, options);
+    const b = planPrintMany([job], options);
+    assert.deepEqual(b.sheets.map((s) => s.kind), a.sheets.map((s) => s.kind));
+    assert.deepEqual(b.pages.map((p) => [p.sheet.kind, p.side]), a.pages.map((p) => [p.sheet.kind, p.side]));
+    assert.equal(b.paper, a.paper);
+    assert.deepEqual(b.sheets[0], { kind: 'preview', items: [{ puzzle: 0, dx: 0, dy: 0 }] });
+  }
+});
+
+test('the frames of 2 and 4 puzzles lie inside the page, apart from each other', () => {
+  assert.deepEqual(framesFor(1).slots, [{ dx: 0, dy: 0, col: 0 }]);
+  for (const perPage of /** @type {const} */ ([2, 4])) {
+    const { frame, slots } = framesFor(perPage);
+    assert.equal(slots.length, perPage);
+    const boxes = slots.map((s) => ({ x: PAGE_MARGIN + s.dx, y: PAGE_MARGIN + s.dy, w: frame.width, h: frame.bottom - PAGE_MARGIN }));
+    assertSeparate(boxes, FRAME_GAP_MM - 1e-6);
+    for (const box of boxes) {
+      assert.ok(box.x >= PAGE_MARGIN - 1e-9 && box.x + box.w <= PAGE_WIDTH - PAGE_MARGIN + 1e-9, 'inside the margins across');
+      assert.ok(box.y + box.h <= PREVIEW_BOTTOM + 1e-9, 'above the footer');
+    }
+  }
+});
+
+test('puzzles are grouped by the page, each followed by its solutions; the piece set and the board are printed once', () => {
+  const jobs = puzzleJobs(5);
+  const one = planPrintMany(jobs, { ...OPTIONS, solution: true, perPage: 1 });
+  assert.deepEqual(one.sheets.map((s) => s.kind), ['preview', 'solution', 'preview', 'solution', 'preview', 'solution', 'preview', 'solution', 'preview', 'solution',
+    ...one.sheets.slice(10).map((s) => s.kind)]);
+  assert.equal(one.sheets.filter((s) => s.kind === 'pieces').length, planPrint(jobs[0], OPTIONS).sheets.filter((s) => s.kind === 'pieces').length);
+  assert.equal(one.paper, planPrint(jobs[0], { ...OPTIONS, solution: true }).paper + 8, 'four more puzzles and solutions, nothing else more');
+
+  for (const [perPage, groups] of /** @type {const} */ ([[2, 3], [4, 2]])) {
+    const plan = planPrintMany(jobs, { ...OPTIONS, solution: true, perPage });
+    const puzzleSheets = plan.sheets.filter((s) => s.kind === 'preview');
+    assert.equal(puzzleSheets.length, groups);
+    assert.deepEqual(puzzleSheets.flatMap((s) => (s.kind === 'preview' ? s.items.map((i) => i.puzzle) : [])), [0, 1, 2, 3, 4], 'in order, none lost');
+    assert.deepEqual(plan.sheets.slice(0, 2 * groups).map((s) => s.kind), Array.from({ length: groups }, () => ['preview', 'solution']).flat());
+    assert.equal(plan.perPage, perPage);
+    const alone = planPrint(jobs[0], { ...OPTIONS, solution: true });
+    assert.equal(plan.paper, alone.paper - 2 + 2 * groups, 'the paper of the puzzle and solution sheets, then the same cut-out sheets');
+  }
+});
+
+test('every puzzle of a sheet is laid out inside its own frame', () => {
+  const share = shareOf(symbols(120), symbols(30));
+  const big = shareOf(symbols(3000), symbols(300));
+  for (const perPage of /** @type {const} */ ([1, 2, 4])) {
+    for (const s of [share, big, undefined]) {
+      const plan = planPrintMany(puzzleJobs(4, s), { ...OPTIONS, solution: true, perPage });
+      const { frame } = plan;
+      for (const p of plan.puzzles) {
+        assert.ok(p.preview.boardY + p.model.rows * p.preview.cellMm <= frame.bottom + 1e-6, `${perPage} per page: the board ends in the frame`);
+        assert.ok(p.preview.boardX >= PAGE_MARGIN - 1e-9 && p.preview.boardX + p.model.cols * p.preview.cellMm <= PAGE_MARGIN + frame.width + 1e-6, 'and starts and ends inside its width');
+        for (const piece of p.preview.pieces) {
+          assert.ok(piece.x >= PAGE_MARGIN - 1e-9 && piece.x + piece.w <= PAGE_MARGIN + frame.width + 1e-6, 'a piece to place is inside the width');
+          assert.ok(piece.y + piece.h <= frame.bottom + 1e-6 || p.preview.cellMm <= 1.5 + 1e-9, 'and above the bottom of the frame');
+        }
+        assert.ok(p.band.head.x + p.band.head.width <= PAGE_MARGIN + frame.width + 1e-6, 'the heading is inside the width');
+        if (p.band.qr !== null) {
+          assert.ok(p.band.qr.size <= (perPage === 1 ? 92.5 : 0.45 * Math.min(frame.width, frame.bottom - PAGE_MARGIN)) + 1e-9, 'the QR box is in proportion to the frame');
+          assert.ok(p.band.qr.columnEnd <= frame.bottom, 'its column ends in the frame');
+        }
+        assert.ok(p.solution !== null && p.solution.boardX + p.model.cols * p.solution.cellMm <= PAGE_MARGIN + frame.width + 1e-6);
+        assert.ok(p.solution !== null && p.solution.boardY + p.model.rows * p.solution.cellMm <= frame.bottom + 1e-6, 'the solution too');
+      }
+    }
+  }
+  const small = planPrintMany(puzzleJobs(4, shareOf(symbols(3000), symbols(300))), { ...OPTIONS, perPage: 4 });
+  assert.ok(small.puzzles[0].band.qr !== null && small.puzzles[0].band.qr.size < 92.5, 'a version 40 box is drawn smaller in a quarter of a sheet');
+  const normal = planPrintMany(puzzleJobs(4, shareOf(symbols(120), symbols(30))), { ...OPTIONS, perPage: 4 });
+  assert.equal(normal.puzzles[0].band.qr?.size, normal.puzzles[0].share?.qr?.outerMm, 'a box that fits keeps its size');
+});
+
+test('solutions of the puzzles of a sheet share a sheet, on the back with the columns mirrored; a group without one has a blank back', () => {
+  const jobs = puzzleJobs(5);
+  jobs[2].solution = null;
+  jobs[3].solution = null;
+  jobs[4].solution = null;
+  const dx = framesFor(4).slots[1].dx;
+  const plan = planPrintMany(jobs, { ...OPTIONS, perPage: 4, solution: true, duplex: true });
+  const [front, back] = plan.sheets;
+  assert.ok(front.kind === 'preview' && back.kind === 'solution');
+  assert.deepEqual(back.items.map((i) => [i.puzzle, i.dx, i.dy]), [[0, dx, 0], [1, 0, 0]], 'behind the puzzle that was on the left, the solution is on the right of the back');
+  assert.deepEqual(plan.pages.slice(0, 3).map((p) => `${p.sheet.kind}:${p.side}`), ['preview:front', 'solution:front', 'preview:front']);
+  assert.equal(plan.pages[3].side, 'back', 'the second group has no solution: its back is blank');
+  assert.equal(plan.pages[3].sheet.kind, 'preview');
+  const solutionsOnly = plan.sheets.filter((s) => s.kind === 'solution');
+  assert.equal(solutionsOnly.length, 1, 'no sheet for a group without a solution');
+
+  const oneSided = planPrintMany(jobs, { ...OPTIONS, perPage: 4, solution: true });
+  const sheet = oneSided.sheets[1];
+  assert.ok(sheet.kind === 'solution');
+  assert.deepEqual(sheet.items.map((i) => [i.puzzle, i.dx]), [[0, 0], [1, dx]], 'on its own sheet the places are the same as on the puzzle sheet');
+  assert.ok(oneSided.paper > plan.paper, 'two sides save the solution sheets');
+  assert.equal(planPrintMany(jobs, { ...OPTIONS, perPage: 2, solution: false }).sheets.some((s) => s.kind === 'solution'), false);
 });

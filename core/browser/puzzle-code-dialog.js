@@ -396,7 +396,12 @@ export function createCodeEntryMachine({ submit, cancel, openRecovery }) {
  * @property {() => void} cancel
  * @property {(core: string) => Promise<CodeOutcome>} openRecovery
  * @property {() => HTMLElement | null} [fallbackFocus] Where the focus goes when the opener is gone or hidden.
+ * @property {Partial<typeof DEFAULT_KEYS>} [keys] Text keys of the title, the field label, the hint and the submit
+ *   button, for an app that uses the entry for another purpose (the Generator's Import puzzle).
  */
+
+/** The text keys the dialog writes by itself; the rest (count, offers, messages) are shared. */
+const DEFAULT_KEYS = Object.freeze({ title: 'code.enter', field: 'code.field', hint: 'code.hint', open: 'code.open' });
 
 /**
  * @typedef {object} CodeDialog
@@ -415,7 +420,8 @@ let dialogCount = 0;
  * @param {CodeDialogOptions} options
  * @returns {CodeDialog}
  */
-export function createPuzzleCodeDialog({ host, t, submit, cancel, openRecovery, fallbackFocus }) {
+export function createPuzzleCodeDialog({ host, t, submit, cancel, openRecovery, fallbackFocus, keys }) {
+  const labels = { ...DEFAULT_KEYS, ...keys };
   dialogCount += 1;
   const id = `pm-code-${dialogCount}`;
   const doc = host.ownerDocument;
@@ -498,9 +504,9 @@ export function createPuzzleCodeDialog({ host, t, submit, cancel, openRecovery, 
     }
     const { dialog, field } = ui;
     shownRevision = state.revision;
-    setText(ui.title, t('code.enter'));
-    setText(ui.label, t('code.field'));
-    setText(ui.hint, t('code.hint'));
+    setText(ui.title, t(labels.title));
+    setText(ui.label, t(labels.field));
+    setText(ui.hint, t(labels.hint));
     if (field.value !== state.text) {
       field.value = state.text;
     }
@@ -521,7 +527,7 @@ export function createPuzzleCodeDialog({ host, t, submit, cancel, openRecovery, 
     const waiting = state.phase === 'submitting';
     setText(ui.busy, waiting ? t('ui.loading') : '');
     ui.busy.hidden = !waiting;
-    setText(ui.openButton, t('code.open'));
+    setText(ui.openButton, t(labels.open));
     ui.openButton.disabled = waiting || GROUPING.test(state.text);
     setText(ui.cancelButton, t('ui.cancel'));
     if (state.problem?.input === true) {
