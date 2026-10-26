@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import {
-  ALPHABET, MAX_CODE_SYMBOLS, MAX_INPUT_CHARS, PuzzleCodeError, normalizePuzzleCodeInput, normalizePuzzleCodeValue,
-  parsePuzzleHash,
+  ALPHABET, MAX_CODE_SYMBOLS, MAX_INPUT_CHARS, MAX_PUZZLE_CODES, PuzzleCodeError, isPuzzleCodeList, isPuzzleListHash,
+  normalizePuzzleCodeInput, normalizePuzzleCodeList, normalizePuzzleCodeText, normalizePuzzleCodeValue, parsePuzzleHash,
+  splitPuzzleCodes,
 } from '../core/engine/puzzlecode-input.js';
 import * as codec from '../core/engine/puzzlecode.js';
 
@@ -142,4 +143,59 @@ test('the input module and the codec do not depend on the share-code or host mod
   }
   const input = readFileSync(new URL('../core/engine/puzzlecode-input.js', import.meta.url), 'utf8');
   assert.ok(!/from\s+'\.\//.test(input), 'the input module has no sibling imports');
+});
+
+test('a p value may carry several codes separated by ";", and i then names the puzzle to open', () => {
+  const A = '1D0J492G';
+  const B = '1D0K492H';
+  assert.deepEqual(parsePuzzleHash(`#p=${A};${B}`), { ok: true, value: { p: `${A};${B}`, index: 0 } });
+  assert.deepEqual(parsePuzzleHash(`#p=${A};${B}&i=1`), { ok: true, value: { p: `${A};${B}`, index: 1 } });
+  assert.deepEqual(parsePuzzleHash(`#i=1&p=${A}%3B${B}`), { ok: true, value: { p: `${A};${B}`, index: 1 } }, 'an encoded ";" separates too');
+  assert.deepEqual(parsePuzzleHash(`#p=${A};${B};&i=1`).ok, true, 'a trailing ";" counts no code');
+  for (const [hash, code] of /** @type {[string, string][]} */ ([
+    [`#p=${A};${B}&i=2`, 'index'],
+    [`#p=${A};${B};&i=2`, 'index'],
+    [`#p=${A};&i=1`, 'index'],
+    [`#p=${A}&i=1`, 'index'],
+    [`#p=${A};${B}&i=01`, 'invalid'],
+    [`#p=${A};${B}&i=-1`, 'invalid'],
+    [`#p=${A};${B}&i=1&i=1`, 'invalid'],
+    [`#p=${A};${B}&pack=1z.a`, 'invalid'],
+    ['#p=%ZZ;A&i=1', 'invalid'],
+  ])) {
+    const result = parsePuzzleHash(hash);
+    assert.ok(!result.ok, hash);
+    assert.equal(result.code, code, hash);
+  }
+});
+
+test('splitPuzzleCodes, isPuzzleListHash and normalizePuzzleCodeList read the codes of a list', () => {
+  assert.deepEqual(splitPuzzleCodes('A;B'), ['A', 'B']);
+  assert.deepEqual(splitPuzzleCodes(' A ; ;B;'), ['A', 'B']);
+  assert.deepEqual(splitPuzzleCodes(''), []);
+  assert.equal(isPuzzleCodeList('A;B'), true);
+  assert.equal(isPuzzleCodeList('A'), false);
+  assert.equal(isPuzzleListHash('#p=1D0J;1D0K'), true);
+  assert.equal(isPuzzleListHash('#p=1D0J;'), false, 'one code with a trailing ";" is one puzzle');
+  assert.equal(isPuzzleListHash('#p=1D0J'), false);
+  assert.equal(isPuzzleListHash('#pack=1z.a;b'), false);
+  assert.equal(isPuzzleListHash('#p=1D0J;1D0K&i=5'), false, 'a malformed address is not a list');
+  assert.deepEqual(normalizePuzzleCodeList('1d0j 492g;1d0k-492h.18v3'), ['1D0J492G', '1D0K492H.18V3']);
+  throwsCode(() => normalizePuzzleCodeList(' ; ;'), 'empty');
+  throwsCode(() => normalizePuzzleCodeList('1D0J;1D0!'), 'bad-char', { char: '!' });
+  throwsCode(() => normalizePuzzleCodeList('1D.0J.4;1D0J'), 'dots');
+  throwsCode(() => normalizePuzzleCodeList(Array.from({ length: MAX_PUZZLE_CODES + 1 }, () => '1D0J').join(';')), 'too-long');
+  assert.equal(normalizePuzzleCodeList(Array.from({ length: MAX_PUZZLE_CODES }, () => '1D0J').join(';')).length, MAX_PUZZLE_CODES);
+  throwsCode(() => normalizePuzzleCodeList('1'.repeat(MAX_INPUT_CHARS + 1)), 'too-long');
+});
+
+test('normalizePuzzleCodeText gives the codes and the puzzle of a link or of a bare text', () => {
+  assert.deepEqual(normalizePuzzleCodeText('1d0j492g'), { codes: ['1D0J492G'], index: 0 });
+  assert.deepEqual(normalizePuzzleCodeText('1d0j492g; 1d0k492h'), { codes: ['1D0J492G', '1D0K492H'], index: 0 });
+  assert.deepEqual(normalizePuzzleCodeText('https://x.test/player/#p=1D0J492G;1D0K492H&i=1'), { codes: ['1D0J492G', '1D0K492H'], index: 1 });
+  throwsCode(() => normalizePuzzleCodeText('https://x.test/player/#p=1D0J492G;1D0K492H&i=2'), 'index');
+  throwsCode(() => normalizePuzzleCodeText('https://x.test/player/#p=1D0J492G&i=1'), 'index');
+  throwsCode(() => normalizePuzzleCodeText('https://x/#pack=1j.abc'), 'invalid');
+  // The one-code normalizer still takes a single code only.
+  throwsCode(() => normalizePuzzleCodeInput('1D0J492G;1D0K492H'), 'bad-char', { char: ';' });
 });

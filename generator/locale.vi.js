@@ -194,10 +194,11 @@ export default Object.freeze({
   'code.error.tail': 'Phần lời giải (không bắt buộc) có lỗi nhập.',
   'code.error.tailVersion': 'Phần lời giải (không bắt buộc) cần phiên bản mới hơn.',
   'code.error.tailInvalid': 'Phần lời giải (không bắt buộc) không khớp với đề này.',
-  'code.error.index': 'Mã đề chỉ chứa một đề; hãy bỏ "&i=…" khỏi liên kết.',
+  'code.error.index': 'Số đề "&i=…" trong liên kết không trùng với đề nào của liên kết; hãy sửa hoặc bỏ nó.',
   'code.error.worker': 'Trình duyệt này không đọc được mã đề vì không hỗ trợ worker dạng mô-đun. Hãy dùng trình duyệt mới hơn.',
   'code.error.service': 'Không xử lý được mã đề. Hãy thử lại.',
   'code.error.cancelled': 'Việc nhập mã này đã bị hủy. Hãy nhập lại nếu bạn vẫn muốn.',
+  'code.error.puzzle': 'Đề {n}:',
 
   // Notices (design §10.7)
   'notice.N-COUNT': 'Ở mức {level}, bàn này dùng {kmin}–{kmax} mảnh, khoảng {share}% được đặt sẵn.',
@@ -235,7 +236,8 @@ export default Object.freeze({
   'message.M-FEWPIECES': 'Bộ mảnh này có ít hơn 3 mảnh nên không thể tạo đề mới (cần một mảnh đặt sẵn và hai mảnh để di chuyển). Bạn vẫn có thể xem bộ mảnh này.',
   'message.M-NOWITNESS': 'Không tìm thấy cách xếp nào của bộ mảnh này trong giới hạn tìm kiếm, nên không thể tạo đề mới. Bạn vẫn có thể xem bộ mảnh này.',
   'message.M-LEVEL-NOT-OFFERED': 'Mức {level} không áp dụng cho bàn có {area} ô chơi được.',
-  'message.M-PLAYER-UNAVAILABLE': 'Đề này quá lớn để mở bằng liên kết và không thể lưu trong trình duyệt này.',
+  'message.M-PLAYER-UNAVAILABLE': 'Đề này quá lớn để mở bằng liên kết.',
+  'message.M-PLAYER-ONLY': 'Danh sách đề quá dài cho một liên kết, nên chỉ đề này được mở trong trình chơi.',
   'message.M-PLAYER-BLOCKED': 'Trình duyệt đã chặn tab mới. Hãy cho phép cửa sổ bật lên (pop-up) cho trang này rồi nhấn “Chơi” lần nữa.',
   'message.M-NEEDS-SET': 'Hãy tạo một bộ mảnh trước.',
   'message.requestFailed': 'Yêu cầu thất bại',

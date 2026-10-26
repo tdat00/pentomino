@@ -119,33 +119,6 @@ export function boardKey(b) {
 }
 
 /**
- * The board named by `boardKey`.
- * @param {string} key
- * @returns {Board}
- * @throws {RangeError} For anything `boardKey` could not have produced.
- */
-export function boardFromKey(key) {
-  const match = /^(\d{1,2})x(\d{1,2}):([A-Za-z0-9_-]*)$/.exec(key);
-  if (match === null) {
-    throw new RangeError('not a board key');
-  }
-  const width = Number(match[1]);
-  const height = Number(match[2]);
-  if (width < 1 || height < 1) {
-    throw new RangeError('a board needs at least one cell');
-  }
-  const active = new Uint8Array(width * height);
-  for (let i = 0; i < active.length; i += 1) {
-    active[i] = (KEY_DIGITS.indexOf(match[3][Math.floor(i / 6)] ?? 'A') >> (5 - (i % 6))) & 1;
-  }
-  const board = { width, height, active };
-  if (boardKey(board) !== key) {
-    throw new RangeError('not a board key');
-  }
-  return board;
-}
-
-/**
  * @param {number} value
  * @param {string} name
  * @returns {number}

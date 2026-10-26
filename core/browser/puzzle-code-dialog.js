@@ -219,8 +219,14 @@ export function createCodeEntryMachine({ submit, cancel, openRecovery }) {
   function present(failure, text) {
     const issue = isRecord(failure) && Array.isArray(failure.issues) ? failure.issues[0] : undefined;
     const code = canonicalCode(isRecord(issue) ? issue.code : undefined) || 'worker-error';
+    // A failure of one code of a list names its place (`$.p[1]`): the message says which puzzle it is.
+    const place = isRecord(issue) && typeof issue.path === 'string' ? /^\$\.p\[(\d+)\]$/.exec(issue.path) : null;
     /** @type {Problem} */
-    const problem = { code, params: isRecord(issue) && isRecord(issue.params) ? issue.params : {}, input: INPUT_CODES.has(code) };
+    const problem = {
+      code,
+      params: { ...(isRecord(issue) && isRecord(issue.params) ? issue.params : {}), ...(place === null ? {} : { puzzle: Number(place[1]) + 1 }) },
+      input: INPUT_CODES.has(code),
+    };
     const normalized = normalizedOrNull(text);
     const raw = isRecord(failure) ? failure.candidate : undefined;
     const candidate = isRecord(raw) && normalized !== null && raw.normalizedCode === normalized
@@ -512,7 +518,8 @@ export function createPuzzleCodeDialog({ host, t, submit, cancel, openRecovery, 
     }
     setText(ui.count, t('code.count', { count: provisionalCount(state.text) }));
     const shown = state.problem === null ? null : describeProblem(state.problem);
-    setText(ui.errorText, shown === null ? '' : t(shown.key, shown.params));
+    const puzzle = state.problem?.params.puzzle;
+    setText(ui.errorText, shown === null ? '' : `${puzzle === undefined ? '' : `${t('code.error.puzzle', { n: puzzle })} `}${t(shown.key, shown.params)}`);
     const { candidate } = state;
     setText(ui.candidateText, candidate === null ? '' : t('code.error.candidate', {
       group: candidate.group, position: candidate.position, expected: candidate.expected, typed: candidate.typed,

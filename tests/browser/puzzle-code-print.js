@@ -16,7 +16,8 @@ import { makePuzzleQr } from '../../core/browser/qr.js';
 import { createStorage } from '../../core/browser/storage.js';
 import { packBoard, validatePack } from '../../core/engine/pack.js';
 import { catalogueStats } from '../../core/engine/puzzlecode-v1.js';
-import { encodeShareCode, puzzleCodeUrl } from '../../core/engine/sharecode.js';
+import { puzzleCodeUrl } from '../../core/engine/sharecode.js';
+import { packHash } from './pack-link.js';
 import { mountPlayer } from '../../player/app.js';
 import { setLocale, t } from '../../player/i18n.js';
 
@@ -763,7 +764,7 @@ await check('the dialog\'s lifecycle: pending, stale answers, source changes, op
     equal(dialog.prepared()?.snapshot?.heading, 'Đề #1', 'Vietnamese heading');
     setLocale('en', document);
     dialog.refresh();
-    equal(client.calls.length, 3, 'and back');
+    equal([client.calls.length, dialog.prepared()?.snapshot?.heading], [2, 'Puzzle #1'], 'and back: the code already made for that heading is reused');
     dialog.close();
   }
 
@@ -910,7 +911,7 @@ await check('the target is the Player of the page the dialog is on; there is no 
 async function mountPlayerWith(pack, env = {}) {
   const checked = validatePack(pack);
   assert(checked.ok, 'fixture pack is valid');
-  const code = await encodeShareCode(/** @type {any} */ (checked).value);
+  const hash = await packHash(/** @type {any} */ (checked).value);
   const root = document.createElement('div');
   root.className = 'stage-root';
   document.body.append(root);
@@ -924,7 +925,7 @@ async function mountPlayerWith(pack, env = {}) {
     setItem: (/** @type {string} */ k, /** @type {string} */ v) => void map.set(k, String(v)),
     removeItem: (/** @type {string} */ k) => void map.delete(k),
   };
-  const location = { hash: `#pack=${code}&i=0`, pathname: '/player/', search: '' };
+  const location = { hash, pathname: '/player/', search: '' };
   const player = mountPlayer(root, {
     storage: createStorage(adapter, () => Date.now()),
     location,

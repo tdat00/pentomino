@@ -5,10 +5,10 @@ import { after, test } from 'node:test';
 import { reduce } from '../core/engine/game.js';
 import { progressFingerprint } from '../core/engine/keys.js';
 import { packBoard, parsePack } from '../core/engine/pack.js';
-import { encodeShareCode } from '../core/engine/sharecode.js';
 import { executeTask } from '../core/engine/tasks.js';
 import { MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES, createWorkspace } from '../core/engine/workspace.js';
 import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
+import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
 import { PoolError, createPool } from '../core/browser/worker-pool.js';
 import { createStorage } from '../core/browser/storage.js';
 import { createPlayerController, createPlayerStore } from '../player/state.js';
@@ -96,6 +96,8 @@ function setup(o = {}) {
     storage,
     location,
     history,
+    baseUrl: 'http://localhost/player/',
+    fetchText: async () => JSON.stringify(sample),
     createPool: () => verification,
     ...(o.factory === undefined ? { puzzleCodeClient: o.client ?? realClient } : { createPuzzleCodeClient: o.factory }),
     ...(o.callback === false ? {} : { onPuzzleCodeFailure: (/** @type {any} */ f) => failures.push(f) }),
@@ -103,10 +105,9 @@ function setup(o = {}) {
   return { adapter, storage, location, urls, store, controller, verification, failures, state: () => store.getState() };
 }
 
-/** Opens `sample` through its `#pack=` link, as the address does. @param {ReturnType<typeof setup>} h */
+/** Opens the three puzzles of `sample` as one pack, the way a `#p=` list opens them. @param {ReturnType<typeof setup>} h */
 async function openSample(h) {
-  h.location.hash = `#pack=${await encodeShareCode(sample)}&i=0`;
-  const result = await h.controller.openHash(h.location.hash);
+  const result = await h.controller.loadPuzzleCode((await sampleCodes()).join(';'));
   assert.ok(result.ok);
 }
 
@@ -126,7 +127,7 @@ async function waitFor(ready) {
   assert.ok(ready(), 'the condition never came true');
 }
 
-test('#p= with a full code opens one puzzle with its stored answer, keeps the address exactly and needs no library entry', async () => {
+test('#p= with a full code opens one puzzle with its stored answer and keeps the address exactly', async () => {
   const h = setup({ hash: `#p=${GROUPED}` });
   const before = h.location.hash;
   const result = await h.controller.start();
@@ -136,13 +137,10 @@ test('#p= with a full code opens one puzzle with its stored answer, keeps the ad
   assert.equal(s.index, 0);
   assert.equal(s.pack?.puzzles.length, 1);
   assert.equal(s.source, 'hash');
-  assert.equal(s.packId, null);
-  assert.equal(s.local, false);
   assert.deepEqual(s.fingerprints, [sampleFingerprint], 'progress identity is the fingerprint of the same board, pieces and clues');
   assert.ok(s.pack?.puzzles[0].solution, 'the stored answer came with the code');
   assert.deepEqual(h.urls, [], 'normal loading never rewrites the address');
   assert.equal(h.location.hash, before, 'not lower-cased, grouped, normalized or given &i=0');
-  assert.deepEqual([...h.adapter.map.keys()].filter((k) => k.includes(':lib:')), [], 'nothing was saved to the library');
   assert.deepEqual(s.verificationByPuzzle[0], { status: 'solvable', basis: 'solution' }, 'the stored-answer fast path');
   assert.equal(h.verification.began.length, 0, 'no verification request was needed');
   assert.deepEqual(h.failures, []);
@@ -175,6 +173,96 @@ test('#p=C&i=0 keeps its whole address, reload reopens the same pack, and puzzle
   await reload.controller.start();
   assert.deepEqual(reload.state().pack, h.state().pack, 'the same one-puzzle pack, without any seed or generation');
   assert.deepEqual(reload.urls, []);
+});
+
+/** The codes of the three puzzles of the sample, as Print and Play make them. */
+async function sampleCodes() {
+  /** @type {string[]} */
+  const codes = [];
+  for (const [index, puzzle] of sample.puzzles.entries()) {
+    const snapshot = puzzleSnapshot({ rows: sample.board.rows, pieces: sample.pieces, puzzle, index, rotation: sample.presentation?.rotation ?? 0 });
+    const encoded = await realClient.encode(snapshot.data);
+    assert.ok(encoded.ok);
+    codes.push(encoded.value.F);
+  }
+  return codes;
+}
+
+test('#p= with several codes opens them as one pack at the puzzle named by i, and the address follows the open puzzle', async () => {
+  const codes = await sampleCodes();
+  const hash = `#p=${codes.join(';')}&i=1`;
+  const h = setup({ hash });
+  assert.equal(/** @type {any} */ (await h.controller.start()).ok, true);
+  const s = h.state();
+  assert.equal(s.screen, 'game');
+  assert.equal(s.pack?.puzzles.length, 3);
+  assert.equal(s.index, 1);
+  assert.equal(s.source, 'hash');
+  assert.deepEqual(s.fingerprints, sample.puzzles.map((p) => progressFingerprint(packBoard(sample), sample.pieces, p.clues)), 'every puzzle is the one that was sent');
+  assert.ok(s.pack?.puzzles.every((p) => p.solution), 'the stored answers came with the codes');
+  assert.deepEqual(h.urls, [], 'opening never rewrites the address');
+  assert.equal(h.controller.goToPuzzle(2).ok, true);
+  assert.deepEqual(h.urls, [`#p=${codes.join(';')}&i=2`], 'the number of the open puzzle follows, the codes stay');
+  assert.equal(h.controller.nextPuzzle().ok, false);
+  assert.equal(h.controller.goToPuzzle(0).ok, true);
+  assert.equal(h.location.hash, `#p=${codes.join(';')}&i=0`);
+  const reload = setup({ hash: `#p=${codes.join(';')}&i=2`, adapter: h.adapter });
+  await reload.controller.start();
+  assert.equal(reload.state().index, 2, 'a reload reopens the same puzzle of the same pack');
+  assert.equal(reload.state().pack?.puzzles.length, 3);
+});
+
+test('a list without i opens its first puzzle and the address is left exactly as it came', async () => {
+  const codes = await sampleCodes();
+  const hash = `#p=${codes.join(';')}`;
+  const h = setup({ hash });
+  assert.equal(/** @type {any} */ (await h.controller.start()).ok, true);
+  assert.equal(h.state().index, 0);
+  assert.deepEqual(h.urls, [], 'no &i=0 is added');
+  assert.equal(h.location.hash, hash);
+  assert.equal(h.controller.goToPuzzle(1).ok, true);
+  assert.equal(h.location.hash, `${hash}&i=1`);
+});
+
+test('one code of an address with several is never rewritten, as before', async () => {
+  const [first] = await sampleCodes();
+  const h = setup({ hash: `#p=${first};` });
+  assert.equal(/** @type {any} */ (await h.controller.start()).ok, true);
+  assert.equal(h.state().pack?.puzzles.length, 1);
+  assert.equal(h.controller.nextPuzzle().ok, false);
+  assert.deepEqual(h.urls, []);
+});
+
+test('an address whose second code is wrong changes nothing and names the puzzle', async () => {
+  const [first, second] = await sampleCodes();
+  const h = setup();
+  await openSample(h);
+  const before = h.state();
+  const broken = change(second, 5);
+  const result = await h.controller.openHash(`#p=${first};${broken}`);
+  assert.equal(/** @type {any} */ (result).ok, false);
+  assert.equal(h.state().pack, before.pack, 'the open game stays');
+  assert.equal(h.failures.length, 1);
+  assert.deepEqual(h.failures[0].failure.issues.map((/** @type {any} */ i) => [i.code, i.path]), [['core-check', '$.p[1]']]);
+  assert.equal(h.failures[0].failure.recovery, undefined);
+  const outOfRange = await h.controller.openHash(`#p=${first};${second}&i=2`);
+  assert.equal(/** @type {any} */ (outOfRange).ok, false);
+  assert.equal(h.failures.at(-1).failure.issues[0].code, 'index');
+});
+
+test('loadPuzzleCode opens a typed list, and commitAddress makes the normalized codes and the puzzle number the address', async () => {
+  const codes = await sampleCodes();
+  const h = setup();
+  const typed = `${codes[0].toLowerCase()}; ${codes[1].replace(/(.{4})/g, '$1-')}`;
+  const result = await h.controller.loadPuzzleCode(typed, { commitAddress: true });
+  assert.equal(/** @type {any} */ (result).ok, true);
+  assert.equal(h.state().pack?.puzzles.length, 2);
+  assert.equal(h.state().index, 0);
+  assert.equal(h.location.hash, `#p=${codes[0]};${codes[1].replace(/-/g, '')}`);
+  const link = await h.controller.loadPuzzleCode(`https://example.test/player/#p=${codes.join(';')}&i=2`, { commitAddress: true });
+  assert.equal(/** @type {any} */ (link).ok, true);
+  assert.equal(h.state().index, 2);
+  assert.equal(h.location.hash, `#p=${codes.join(';')}&i=2`);
 });
 
 test('a code with saved progress for its fingerprint restores it through the existing commit path', async () => {
@@ -234,7 +322,7 @@ test('a bad link while a game is open changes nothing and is handed to the failu
   assert.equal(h.failures[0].failure.candidate.normalizedCode, change(CODE, 5));
 });
 
-test('without a failure callback a bad #p= link is the store error; #pack= and #lib= failures keep their legacy presentation', async () => {
+test('without a failure callback a bad #p= link is the store error; #pack= and #lib= are not routes any more', async () => {
   const h = setup({ callback: false });
   const bad = await h.controller.openHash(`#p=${change(CODE, 5)}`);
   assert.equal(bad.ok, false);
@@ -243,13 +331,14 @@ test('without a failure callback a bad #p= link is the store error; #pack= and #
   assert.equal(h.state().pack, null);
   await h.controller.openHash(`#p=${CODE}&i=1`);
   assert.equal(h.state().error?.code, 'index');
-  const legacy = setup();
-  await legacy.controller.openHash('#pack=1z.AAAA');
-  assert.equal(legacy.state().error?.code, 'invalid-compression');
-  const code = await encodeShareCode(sample);
-  await legacy.controller.openHash(`#pack=${code}&i=zzz`);
-  assert.equal(legacy.state().error?.code, 'invalid-index');
-  assert.deepEqual(legacy.failures, [], 'legacy routes never reach the puzzle-code callback');
+  const old = setup();
+  for (const hash of ['#pack=1z.AAAA', '#lib=0123456789abcdef&i=0']) {
+    const result = await old.controller.openHash(hash);
+    assert.equal(result.ok, false, hash);
+    assert.equal(old.state().pack, null, hash);
+    assert.equal(old.state().screen, 'start', hash);
+  }
+  assert.deepEqual(old.failures, [], 'they never reach the puzzle-code callback');
 });
 
 test('a damaged tail offers the validated core as recovery data but opens nothing', async () => {
@@ -270,7 +359,7 @@ test('a damaged tail offers the validated core as recovery data but opens nothin
   assert.equal(h.verification.began.length, 0);
 });
 
-test('without module workers a #p= link fails as worker-unavailable while #pack= links keep working', async () => {
+test('without module workers a #p= link fails as worker-unavailable while the sample still opens', async () => {
   const none = createPuzzleCodeClient({
     createPool: () => /** @type {any} */ (createPool({ size: 1, workerFactory: () => { throw new PoolError('worker-unavailable', 'no workers'); } })),
   });
@@ -278,8 +367,9 @@ test('without module workers a #p= link fails as worker-unavailable while #pack=
   await h.controller.openHash(`#p=${CODE}`);
   assert.equal(h.failures[0].failure.issues[0].code, 'worker-unavailable');
   assert.equal(h.state().pack, null);
-  await openSample(h);
-  assert.equal(h.state().pack?.puzzles.length, sample.puzzles.length, 'existing share-code loading is unaffected');
+  assert.equal((await h.controller.openSample()).ok, true);
+  assert.equal(h.state().pack?.puzzles.length, sample.puzzles.length, 'the sample file does not need a worker');
+  assert.deepEqual(h.urls, [], 'and without codes it gets no address');
   none.dispose();
 });
 

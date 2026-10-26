@@ -9,8 +9,8 @@
 import { reduce } from '../../core/engine/game.js';
 import { parsePack } from '../../core/engine/pack.js';
 import { catalogueStats } from '../../core/engine/puzzlecode-v1.js';
-import { encodeShareCode } from '../../core/engine/sharecode.js';
 import { createPuzzleCodeClient } from '../../core/browser/puzzle-code-client.js';
+import { puzzleCodesOf } from '../../core/browser/handoff.js';
 import { createStorage } from '../../core/browser/storage.js';
 import { PoolError, createPool } from '../../core/browser/worker-pool.js';
 import { setLocale } from '../../player/i18n.js';
@@ -139,7 +139,20 @@ if (!parsed.ok) {
 }
 const sample = parsed.value;
 const puzzle0 = sample.puzzles[0];
-const sampleLink = `#pack=${await encodeShareCode(sample)}&i=0`;
+const sampleCodes = await (async () => {
+  const client = createPuzzleCodeClient();
+  try {
+    const codes = await puzzleCodesOf(sample, { encodePuzzle: (data) => client.encode(data) });
+    if (codes === null) {
+      throw new Error('the codes of the sample could not be made');
+    }
+    return codes;
+  } finally {
+    client.dispose();
+  }
+})();
+/** The address of the three puzzles of the sample, as Play makes it. */
+const sampleLink = `#p=${sampleCodes.join(';')}`;
 /** Raw core of version 3 with a valid check: a future version the checksum cannot catch. */
 const VERSION3 = '3D0J492G47DMXNG6YCP10HCY05KZW8S4HCCWTT';
 /** The codec's negative vector: a 1 in the padding of a raw core. */
@@ -159,12 +172,11 @@ const EN = {
   version: 'This puzzle code needs a newer Player version.',
   invalid: 'This code does not describe a valid puzzle.',
   tail: 'The optional solution part has a typing error.',
-  index: 'A puzzle code opens one puzzle; remove "&i=…" from the link.',
+  index: 'The puzzle number "&i=…" in the link does not name one of its puzzles; fix or remove it.',
   long: 'This code is too long.',
   dots: 'A puzzle code has at most one ".".',
   worker: 'This browser cannot open puzzle codes because module workers are unavailable. Use a current browser.',
   service: 'Puzzle code processing failed. Try again.',
-  restored: 'Saved moves restored; Replay starts as printed.',
   candidate: (/** @type {number} */ group, /** @type {number} */ position, /** @type {string} */ expected, /** @type {string} */ typed) => `Possible correction: in group ${group}, character ${position} may be "${expected}" instead of "${typed}". Compare with the printout.`,
 };
 
@@ -664,7 +676,7 @@ await check('a bad #p= address at start-up, or later, opens the entry with the a
   open.player.destroy();
 });
 
-await check('saved moves return with the code: an honest notice, live announcement, and Replay restores the printed clues', async () => {
+await check('saved moves return with the code, silently, and Replay restores the printed clues', async () => {
   const adapter = memoryAdapter();
   const first = await mount({ adapter, hash: sampleLink });
   placeOne(first);
@@ -676,13 +688,10 @@ await check('saved moves return with the code: an honest notice, live announceme
   await submitText(m, CORE);
   await waitFor(() => !isOpen(m), 'opens');
   equal(m.qa('.tray-piece').length, sample.pieces.length - puzzle0.clues.length - 1, 'the saved move was restored, not erased');
-  assert(m.visible('.status-notice'), 'the notice is visible');
-  equal(m.q('.status-notice .status-text').textContent, EN.restored, 'it says what happened');
-  await waitFor(() => m.q('[data-host="live"]').textContent === EN.restored, 'the live region announces it');
-  equal(m.q('.status-notice').getAttribute('role'), 'status', 'a polite status region');
+  assert(!m.visible('.status-notice'), 'no notice is shown');
+  equal(m.q('[data-host="live"]').textContent, '', 'nothing is announced');
   m.player.controller.replay();
   equal(m.qa('.tray-piece').length, sample.pieces.length - puzzle0.clues.length, 'Replay starts as printed');
-  assert(!m.visible('.status-notice'), 'and the notice is gone');
   m.player.destroy();
 
   const again = await mount({ adapter: memoryAdapter(), hash: sampleLink });
@@ -691,14 +700,14 @@ await check('saved moves return with the code: an honest notice, live announceme
   await openFromHeader(again);
   await submitText(again, TWO_TYPOS);
   equal(snapshotOf(again), before, 'a failed code leaves the saved moves alone');
-  assert(!again.visible('.status-notice'), 'and says nothing about restoring');
+  assert(!again.visible('.status-notice'), 'and says nothing');
   await submitText(again, CORE);
   await waitFor(() => !isOpen(again), 'the same puzzle by its code');
-  equal(again.q('.status-notice .status-text').textContent, EN.restored, 'reopening a puzzle with moves says so');
+  assert(!again.visible('.status-notice'), 'reopening a puzzle with moves says nothing either');
   again.player.destroy();
 });
 
-await check('saved moves return with a code read from the address too (a reload, a scan, a hash change): said once, nothing to restore says nothing', async () => {
+await check('saved moves return with a code read from the address too (a reload, a scan, a hash change), silently', async () => {
   const adapter = memoryAdapter();
   const first = await mount({ adapter, hash: sampleLink });
   placeOne(first);
@@ -708,64 +717,40 @@ await check('saved moves return with a code read from the address too (a reload,
   first.player.destroy();
   const moved = sample.pieces.length - puzzle0.clues.length - 1;
   const noticeShown = (/** @type {Stage} */ m) => m.visible('.status-notice');
-  const noticeText = (/** @type {Stage} */ m) => m.q('.status-notice .status-text').textContent;
 
   for (const hash of [`#p=${CORE}`, `#p=${CODE}`, `#p=${CODE.toLowerCase().replace(/(.{4})/g, '$1-')}`]) {
     const m = await mount({ adapter, hash });
     equal(m.player.store.getState().pack?.puzzles[0].clues, puzzle0.clues, `${hash}: the printed puzzle`);
-    assert(noticeShown(m), `${hash}: the notice is visible after the address was read`);
-    equal(noticeText(m), EN.restored, `${hash}: it says what happened`);
-    equal(m.q('.status-notice').getAttribute('role'), 'status', `${hash}: a polite status region`);
-    await waitFor(() => m.q('[data-host="live"]').textContent === EN.restored, `${hash}: the live region announces it`);
+    equal(m.qa('.tray-piece').length, moved, `${hash}: the saved move came back`);
+    assert(!noticeShown(m), `${hash}: no notice`);
     equal(m.urls, [], `${hash}: the address was not rewritten`);
     m.player.destroy();
   }
 
   const replayed = await mount({ adapter, hash: `#p=${CORE}` });
-  assert(noticeShown(replayed), 'a reload says so again');
   replayed.player.controller.replay();
   equal(replayed.qa('.tray-piece').length, moved + 1, 'Replay starts as printed');
-  assert(!noticeShown(replayed), 'and clears the notice');
   replayed.player.destroy();
   const resaved = await mount({ adapter, hash: sampleLink });
   placeOne(resaved);
   resaved.player.destroy();
-
-  const dismissed = await mount({ adapter, hash: `#p=${CORE}` });
-  dismissed.q('.status-notice [data-action="dismiss-notice"]').click();
-  assert(!noticeShown(dismissed), 'it can be dismissed');
-  equal(dismissed.qa('.tray-piece').length, moved, 'without touching the moves');
-  dismissed.player.destroy();
 
   const fresh = await mount({ hash: `#p=${CORE}` });
   assertSamePuzzle(fresh, 'fresh');
   assert(!noticeShown(fresh), 'a puzzle with nothing saved says nothing');
   fresh.player.destroy();
 
-  const link = await mount({ adapter, hash: sampleLink });
-  equal(link.qa('.tray-piece').length, moved, 'a #pack= link restores the same moves');
-  assert(!noticeShown(link), 'but it is not a puzzle code, and says nothing');
-  link.player.destroy();
-
   const bad = await mount({ adapter, hash: `#p=${ONE_TYPO}` });
   assert(isOpen(bad) && bad.player.store.getState().screen === 'start', 'a bad address opens the entry, not a game');
-  assert(!noticeShown(bad), 'and says nothing about restoring');
+  assert(!noticeShown(bad), 'and says nothing');
   bad.player.destroy();
 
   const changing = await mount({ adapter, hash: '', hashChange: true });
-  const navigate = async (/** @type {string} */ hash, /** @type {() => boolean} */ done, /** @type {string} */ what) => {
-    changing.location.hash = hash;
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
-    await waitFor(done, what);
-  };
-  await navigate(`#p=${CORE}`, () => changing.player.store.getState().screen === 'game', 'the code in the address to open');
-  await waitFor(() => noticeShown(changing), 'the notice after a hash change');
-  equal(noticeText(changing), EN.restored, 'a hash change to a code says so');
-  await waitFor(() => changing.q('[data-host="live"]').textContent === EN.restored, 'and announces it');
-  await navigate(sampleLink, () => !noticeShown(changing), 'a pack link to replace the notice');
-  equal(changing.qa('.tray-piece').length, moved, 'the same moves, now from a pack link');
-  await navigate(`#p=${ONE_TYPO}`, () => isOpen(changing), 'a bad code in the address to be explained');
-  assert(!noticeShown(changing), 'a bad code says nothing about restoring');
+  changing.location.hash = `#p=${CORE}`;
+  window.dispatchEvent(new HashChangeEvent('hashchange'));
+  await waitFor(() => changing.player.store.getState().screen === 'game', 'the code in the address to open');
+  equal(changing.qa('.tray-piece').length, moved, 'a hash change to a code restores the moves');
+  assert(!noticeShown(changing), 'silently');
   changing.player.destroy();
 
   const damaged = memoryAdapter();
@@ -774,7 +759,7 @@ await check('saved moves return with a code read from the address too (a reload,
   });
   const warned = await mount({ adapter: damaged, hash: `#p=${CORE}` });
   const warning = warned.player.store.getState().notice;
-  assert(warning?.kind === 'warning' && /no longer fit/.test(warning.text) && warning.text.endsWith(` ${EN.restored}`), `a discarded move keeps its warning and the restoration follows it: ${warning?.text}`);
+  assert(warning?.kind === 'warning' && /no longer fit/.test(warning.text), `a discarded move keeps its warning: ${warning?.text}`);
   warned.player.destroy();
 });
 
@@ -822,7 +807,7 @@ await check('Cancel and edits invalidate a request in flight: a late reply can n
 
   typeIn(m, CORE);
   m.q('dialog.pm-code [data-action="code-open"]').click();
-  await m.player.controller.openHash(sampleLink);
+  await m.player.controller.openSample();
   fake.calls[3].resolve(reply);
   await settled(m);
   assert(isOpen(m), 'the entry stays open');
@@ -942,7 +927,7 @@ await check('Vietnamese: the entry, the count, the offers and every message foll
   await submitText(m, DAMAGED_TAIL);
   equal([shown(m)?.error, m.q('dialog.pm-code [data-action="open-core"]').textContent], ['Phần lời giải (không bắt buộc) có lỗi nhập.', 'Mở đề không có phần lời giải'], 'tail');
   await submitText(m, `#p=${CODE}&i=1`);
-  equal(shown(m)?.error, 'Mã đề chỉ mở một đề; hãy bỏ "&i=…" khỏi liên kết.', 'index');
+  equal(shown(m)?.error, 'Số đề "&i=…" trong liên kết không trùng với đề nào của liên kết; hãy sửa hoặc bỏ nó.', 'index');
   await submitText(m, 'ab!c');
   equal(shown(m)?.error, 'Mã có ký tự "!", ký tự này không có trong mã đề.', 'bad character');
   await submitText(m, VERSION3);

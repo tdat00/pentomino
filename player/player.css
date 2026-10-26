@@ -348,13 +348,12 @@ button.card-select:active:not(:disabled) {
   transform: none;
 }
 
-/* The preview sits bottom right, under the remove button in the corner. */
+/* The preview is level with the name, set back from the remove button in the corner. */
 .card-thumb {
   flex: none;
-  align-self: flex-end;
   width: 7.5rem;
   height: 6.5rem;
-  margin-top: 1rem;
+  margin-inline-end: 1.25rem;
   border-radius: var(--gen-radius-2);
 }
 
@@ -487,6 +486,29 @@ button.ghost-small:disabled {
   color: var(--gen-color-warning);
   background: var(--gen-color-warning-bg);
   border-color: var(--gen-color-warning);
+}
+
+/* A notice is a quiet line: smaller text, no border, and a smaller borderless dismiss button. */
+.status-notice {
+  gap: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.8125rem;
+  border: 0;
+}
+
+.status-notice .pm-btn {
+  min-width: 0;
+  min-height: 1.5rem;
+  padding: 0 0.5rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: inherit;
+  font-size: 0.8125rem;
+}
+
+.status-notice .pm-btn:hover:not(:disabled) {
+  background: var(--gen-color-hover, transparent);
 }
 
 .status-hint-host {

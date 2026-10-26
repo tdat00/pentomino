@@ -6,12 +6,12 @@
 import { reduce } from '../../core/engine/game.js';
 import { colorFor, labelFor } from '../../core/engine/palette.js';
 import { validatePack } from '../../core/engine/pack.js';
-import { base64urlEncode, encodeShareCode } from '../../core/engine/sharecode.js';
+import { createPuzzleCodeClient } from '../../core/browser/puzzle-code-client.js';
+import { puzzleCodesOf } from '../../core/browser/handoff.js';
 import { PoolAbortError, PoolError } from '../../core/browser/worker-pool.js';
 import { SAVE_FAILED_MESSAGE, createStorage } from '../../core/browser/storage.js';
 import { mountPlayer } from '../../player/app.js';
 
-const PIECE_SET_MESSAGE = 'This link has pieces but no puzzle — open it in the generator.';
 const results = /** @type {Array<{ name: string, ok: boolean, error?: string }>} */ ([]);
 const violations = /** @type {string[]} */ ([]);
 document.addEventListener('securitypolicyviolation', (e) => violations.push(`${e.violatedDirective} ${e.blockedURI}`));
@@ -71,7 +71,26 @@ const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve
 
 const sampleText = await (await fetch('../../player/samples/sample-pack.json')).text();
 const sample = JSON.parse(sampleText);
-const sampleCode = await encodeShareCode(validatedValue(sample));
+
+/** The module worker that makes the codes of the addresses. */
+const codeClient = createPuzzleCodeClient();
+
+/**
+ * The `#p=` address of the puzzles of `pack` (the code of each, separated by `;`), with `&i=` for a later puzzle.
+ * @param {unknown} pack
+ * @param {number} [i]
+ */
+async function linkOf(pack, i = 0) {
+  const codes = await puzzleCodesOf(validatedValue(pack), { encodePuzzle: (data) => codeClient.encode(data) });
+  if (codes === null) {
+    throw new Error('the puzzle codes could not be made');
+  }
+  return `#p=${codes.join(';')}${i === 0 ? '' : `&i=${i}`}`;
+}
+
+const sampleBase = await linkOf(sample);
+/** @param {number} i */
+const sampleAt = (i) => (i === 0 ? sampleBase : `${sampleBase}&i=${i}`);
 
 /**
  * @param {unknown} pack
@@ -84,9 +103,6 @@ function validatedValue(pack) {
   }
   return checked.value;
 }
-
-/** Uncompressed share code of any JSON, so links to broken packs can be built. @param {unknown} value */
-const codeOf = (value) => `1j.${base64urlEncode(new TextEncoder().encode(JSON.stringify(value)))}`;
 
 const answerFree = { ...sample, puzzles: sample.puzzles.map((/** @type {any} */ p) => ({ ...p, solution: null })) };
 delete answerFree.witness;
@@ -139,11 +155,8 @@ function memoryAdapter(seed = {}) {
   };
 }
 
-/** @param {ReturnType<typeof memoryAdapter>} adapter */
-const savedPacks = (adapter) => [...adapter.map.keys()].filter((k) => /^pentomino:v1:lib:[0-9a-f]{16}$/.test(k));
-
-/** @param {unknown} pack @param {number} [i] */
-const linkOf = async (pack, i = 0) => `#pack=${await encodeShareCode(validatedValue(pack))}&i=${i}`;
+/** The stored keys that are not saved progress: a link keeps its pack, so there must be none for a pack. @param {ReturnType<typeof memoryAdapter>} adapter */
+const otherKeys = (adapter) => [...adapter.map.keys()].filter((k) => !k.includes(':progress'));
 
 /**
  * @param {{ hash?: string, adapter?: ReturnType<typeof memoryAdapter> | null, createPool?: () => any, coarse?: boolean,
@@ -207,8 +220,8 @@ async function mount(o = {}) {
 /** @param {Awaited<ReturnType<typeof mount>>} m */
 const title = (m) => m.q('.puzzle-title').textContent ?? '';
 
-await check('link: #pack= opens puzzle 2 with claims and badges, and stores no copy of the pack', async () => {
-  const m = await mount({ hash: `#pack=${sampleCode}&i=1` });
+await check('link: #p= opens puzzle 2 of a list with claims and badges, and stores no copy of the pack', async () => {
+  const m = await mount({ hash: sampleAt(1) });
   equal(m.root.dataset.screen, 'game', 'screen');
   assert(m.visible('.game'), 'game visible');
   assert(title(m) === 'Normal #2', `title ${title(m)}`);
@@ -219,26 +232,21 @@ await check('link: #pack= opens puzzle 2 with claims and badges, and stores no c
   assert(m.q('.pm-board .pm-svg').getBoundingClientRect().width > 100, 'board drawn');
   equal(m.q('[data-badge="verification"]').textContent, 'Solvable ✓', 'verification');
   equal(m.q('[data-badge="certificate"]').textContent, 'At least 1 solution', 'certificate: the included answer is a known solution');
-  assert(!m.visible('[data-badge="local"]'), 'portable link is not local');
   equal(m.urls.length, 0, 'address untouched on load');
-  equal(savedPacks(/** @type {any} */ (m.adapter)), [], 'the link itself keeps the pack');
+  equal(otherKeys(/** @type {any} */ (m.adapter)), [], 'the link itself keeps the pack');
   m.player.controller.nextPuzzle();
-  equal(m.location.hash, `#pack=${sampleCode}&i=2`, 'i updated, code kept');
+  equal(m.location.hash, sampleAt(2), 'i updated, codes kept');
   equal(m.qa('[data-action="next"], [data-action="previous"]').length, 0, 'the main panel has no Previous or Next buttons');
   m.player.destroy();
 });
 
-await check('#lib= opens the copy saved in this browser and is labeled local', async () => {
-  const adapter = memoryAdapter();
-  const saved = createStorage(adapter, () => Date.now()).saveLibraryPack(validatedValue(sample));
-  assert(saved.ok, 'saved');
-  const id = saved.ok ? saved.packId : '';
-  const m = await mount({ adapter, hash: `#lib=${id}&i=1` });
-  equal(title(m), 'Normal #2', 'title');
-  assert(m.visible('[data-badge="local"]'), 'a same-browser link is labeled');
-  m.player.controller.nextPuzzle();
-  equal(m.location.hash, `#lib=${id}&i=2`, 'i updated, id kept');
-  m.player.destroy();
+await check('the old #pack= and #lib= addresses open nothing', async () => {
+  for (const hash of ['#pack=1z.AAAA&i=0', '#lib=0123456789abcdef&i=0']) {
+    const m = await mount({ hash });
+    equal(m.root.dataset.screen, 'start', `${hash}: the start screen stays up`);
+    assert(!m.visible('.start-error'), `${hash}: and says nothing`);
+    m.player.destroy();
+  }
 });
 
 await check('no hash: the start screen offers the sample and the Generator, and opens nothing', async () => {
@@ -269,43 +277,35 @@ await check('sample: real fetch of player/samples/sample-pack.json, three claime
   assert(/^Normal/.test(text(cards[1], '.card-rating')) && /^Hard/.test(text(cards[2], '.card-rating')), 'levels');
   assert(cards.every((card) => card.querySelector('.pm-board .pm-svg') !== null), 'every card shows a preview');
   equal(m.qa('.card-select[aria-current="true"]').length, 1, 'one open puzzle');
-  await waitFor(() => m.location.hash === `#pack=${sampleCode}&i=0`, 'the address becomes the portable link');
-  assert(!m.visible('[data-badge="local"]'), 'not labeled local');
-  equal(savedPacks(/** @type {any} */ (m.adapter)), [], 'no saved copy is left');
+  await waitFor(() => m.location.hash === sampleBase, 'the address becomes the list of the three codes');
+  equal(otherKeys(/** @type {any} */ (m.adapter)), [], 'nothing is stored for the pack');
   m.player.destroy();
 });
 
-await check('every failure shows its exact message and the open game is unchanged', async () => {
-  const m = await mount({ hash: `#pack=${sampleCode}&i=1` });
+await check('a link that cannot be opened shows its reason in the code dialog and the open game is unchanged', async () => {
+  const m = await mount({ hash: sampleAt(1) });
   const before = title(m);
   const gameBefore = m.player.store.getState().game;
-  /** @type {[string, string, RegExp | string][]} */
   const cases = [
-    ['piece set', `#pack=${codeOf({ ...sample, kind: 'piece-set', puzzles: [] })}`, PIECE_SET_MESSAGE],
-    ['version', `#pack=${codeOf({ ...sample, version: 9 })}`, 'Unsupported puzzle version or rules.'],
-    ['rules', `#pack=${codeOf({ ...sample, rules: 'nope' })}`, 'Unsupported puzzle version or rules.'],
-    ['invalid', `#pack=${codeOf({ ...sample, board: { rows: ['#'] } })}`, /^This link does not hold a valid Pentomino puzzle: .+/],
-    ['not a code', '#pack=just-words', /^This link does not hold a valid Pentomino puzzle: /],
-    ['index', `#pack=${sampleCode}&i=7`, 'This pack has no puzzle with that number.'],
-    ['missing local', '#lib=0123456789abcdef&i=0',
-      'This link only works in the browser that made it, and this puzzle is not saved here. Open its full link instead.'],
+    ['bad code', `#p=${sampleBase.slice(3, 20)}`],
+    ['index', `${sampleBase}&i=7`],
+    ['bad index', `${sampleBase}&i=x`],
   ];
-  for (const [name, hash, expected] of cases) {
+  for (const [name, hash] of cases) {
     await m.player.controller.openHash(hash);
-    await waitFor(() => !m.q('.status-error').hidden, `${name} message`);
-    const text = m.q('.status-error .status-text').textContent ?? '';
-    assert(typeof expected === 'string' ? text === expected : expected.test(text), `${name}: ${text}`);
+    await waitFor(() => document.querySelector('dialog[open] .pm-code-problem') !== null, `${name} reason`);
+    assert((document.querySelector('dialog[open] .pm-code-problem')?.textContent ?? '') !== '', `${name}: the reason is shown`);
+    /** @type {HTMLDialogElement | null} */ (document.querySelector('dialog[open]'))?.close();
     equal(m.player.store.getState().game, gameBefore, `${name}: same game`);
     equal(title(m), before, `${name}: same title`);
-    m.player.store.update({ error: null });
+    assert(m.q('.status-error').hidden, `${name}: no second error`);
   }
   m.player.destroy();
 
-  const start = await mount({ hash: '#lib=0123456789abcdef&i=0' });
+  const start = await mount({ hash: `${sampleBase}&i=7` });
   equal(start.root.dataset.screen, 'start', 'a link that fails on arrival leaves the start screen up');
-  assert(start.visible('.start-error'), 'with the reason on it');
-  equal(start.q('.start-error').textContent,
-    'This link only works in the browser that made it, and this puzzle is not saved here. Open its full link instead.', 'reason');
+  await waitFor(() => document.querySelector('dialog[open] .pm-code-problem') !== null, 'reason on arrival');
+  /** @type {HTMLDialogElement | null} */ (document.querySelector('dialog[open]'))?.close();
   start.player.destroy();
 });
 
@@ -379,7 +379,7 @@ await check('unavailable storage: the puzzle opens, play goes on and one honest 
     setItem: () => { throw new Error('denied'); },
     removeItem: () => { throw new Error('denied'); },
   };
-  const m = await mount({ adapter: /** @type {any} */ (hostile), hash: `#pack=${sampleCode}&i=0` });
+  const m = await mount({ adapter: /** @type {any} */ (hostile), hash: sampleAt(0) });
   equal(m.root.dataset.screen, 'game', 'game open');
   assert(m.q('[data-badge="storage"]').hidden, 'a link needs no storage, so nothing is reported yet');
   const clued = new Set(sample.puzzles[0].clues.map((/** @type {any} */ c) => c.piece));
@@ -394,24 +394,25 @@ await check('unavailable storage: the puzzle opens, play goes on and one honest 
   const none = await mount({ adapter: null });
   none.q('[data-action="sample"]').click();
   await waitFor(() => none.root.dataset.screen === 'game', 'no storage game');
-  await waitFor(() => none.location.hash === `#pack=${sampleCode}&i=0`, 'the portable address works without storage');
+  await waitFor(() => none.location.hash === sampleBase, 'the address works without storage');
   none.player.destroy();
 });
 
 await check('progress is restored silently after reload; puzzle switching saves progress first', async () => {
   const adapter = memoryAdapter();
-  const m = await mount({ adapter, hash: `#pack=${sampleCode}&i=0` });
+  const m = await mount({ adapter, hash: sampleAt(0) });
   const s = m.player.store.getState();
   const clued = new Set(sample.puzzles[0].clues.map((/** @type {any} */ c) => c.piece));
   const pose = sample.puzzles[0].solution.find((/** @type {any} */ p) => !clued.has(p.piece));
   m.player.store.update({ game: reduce(/** @type {any} */ (s.game), { type: 'place', pose }) });
   equal(m.qa('.tray-piece').length, 9 - sample.puzzles[0].clues.length - 1, 'piece left the tray');
+  assert((m.q('.puzzle-card[data-puzzle-index="0"] .card-status').textContent ?? '') === 'Playing', 'the open puzzle shows its live status before any save');
   m.player.controller.nextPuzzle();
   assert(title(m).startsWith('Normal #2'), 'moved on');
-  equal(m.q('.puzzle-card[data-puzzle-index="0"] .card-status').textContent, 'In progress', 'the list shows the progress that was saved');
+  equal(m.q('.puzzle-card[data-puzzle-index="0"] .card-status').textContent, 'Playing', 'the list shows the progress that was saved');
   m.player.destroy();
 
-  const again = await mount({ adapter, hash: `#pack=${sampleCode}&i=0` });
+  const again = await mount({ adapter, hash: sampleAt(0) });
   assert(again.root.querySelector('.status-resume') === null && !(again.q('[data-host="status"]').textContent ?? '').includes('Saved progress'), 'no Continue / Restart message');
   equal(again.qa('.tray-piece').length, 9 - sample.puzzles[0].clues.length - 1, 'progress restored');
   again.player.controller.replay();
@@ -421,7 +422,7 @@ await check('progress is restored silently after reload; puzzle switching saves 
 
 await check('there are no View switches: labels, patterns (K > 20) and the timer always show, whatever older versions stored', async () => {
   const adapter = memoryAdapter({ 'pentomino:v1:prefs': JSON.stringify({ labels: false, patterns: false, timer: false, straighten: false }) });
-  const m = await mount({ adapter, hash: `#pack=${sampleCode}&i=0` });
+  const m = await mount({ adapter, hash: sampleAt(0) });
   equal(m.qa('[data-pref], .view-options').length, 0, 'the right panel has no View switches');
   m.player.destroy();
 
@@ -438,7 +439,7 @@ await check('there are no View switches: labels, patterns (K > 20) and the timer
 await check('presentation angles 0/45/90/315 load, draw and keep fitting after a viewport change', async () => {
   for (const angle of [0, 45, 90, 315]) {
     const rotated = { ...sample, presentation: { rotation: angle } };
-    const m = await mount({ hash: `#pack=${await encodeShareCode(validatedValue(rotated))}&i=2` });
+    const m = await mount({ hash: await linkOf(rotated, 2) });
     const group = m.q('.pm-board-group').getAttribute('transform') ?? '';
     assert(group.startsWith(`rotate(${-angle} `) || (angle === 0 && group.startsWith('rotate(0 ')), `angle ${angle}: ${group}`);
     const host = m.q('.board-host').getBoundingClientRect();
@@ -460,7 +461,7 @@ await check('presentation angles 0/45/90/315 load, draw and keep fitting after a
 
 await check('Straighten: toggle only for touch with small cells; display-only', async () => {
   const rotated = { ...sample, presentation: { rotation: 45 } };
-  const hash = `#pack=${await encodeShareCode(validatedValue(rotated))}&i=0`;
+  const hash = await linkOf(rotated);
   // 520 px leaves the board column about 170 px, so the cells are small.
   const mouse = await mount({ hash, width: 520, height: 420 });
   assert(!mouse.visible('[data-action="straighten"]'), 'not offered to a mouse');
@@ -480,7 +481,7 @@ await check('Straighten: toggle only for touch with small cells; display-only', 
 });
 
 await check('layout and accessibility contract of the shell', async () => {
-  const m = await mount({ hash: `#pack=${sampleCode}&i=0` });
+  const m = await mount({ hash: sampleAt(0) });
   equal(m.q('.app-header h1').textContent, 'Pentomino Player', 'title');
   equal(m.qa('.app-header [data-lang]').length, 2, 'language switch');
   equal(m.qa('.app-header [data-theme-value]').length, 3, 'theme switch');
@@ -523,7 +524,7 @@ await check('layout and accessibility contract of the shell', async () => {
 });
 
 await check('puzzle list: a card opens its puzzle and marks it; the open card does not reload', async () => {
-  const m = await mount({ hash: `#pack=${sampleCode}&i=0` });
+  const m = await mount({ hash: sampleAt(0) });
   equal(m.qa('.puzzle-card').length, 3, 'one card per puzzle');
   equal(m.qa('.puzzle-card').map((card) => card.dataset.puzzleIndex), ['2', '1', '0'], 'the newest puzzle is on top');
   equal(m.qa('[data-action="import"]').length, 0, 'the puzzles panel has no Import button');
@@ -535,7 +536,7 @@ await check('puzzle list: a card opens its puzzle and marks it; the open card do
   equal(title(m), 'Hard #3', 'the card opens its puzzle');
   equal(m.q('.card-select[aria-current="true"]').dataset.index, '2', 'the mark moved');
   equal(m.qa('.card-select[aria-current="true"]').length, 1, 'only one card is marked');
-  equal(m.location.hash, `#pack=${sampleCode}&i=2`, 'i updated, code kept');
+  equal(m.location.hash, sampleAt(2), 'i updated, codes kept');
   const open = m.player.store.getState().game;
   m.q('.puzzle-card[data-puzzle-index="2"] .card-select').click();
   equal(m.player.store.getState().game, open, 'the open puzzle is not reloaded');
@@ -545,17 +546,17 @@ await check('puzzle list: a card opens its puzzle and marks it; the open card do
 });
 
 await check('remove: a card removes its puzzle and the address follows the shorter pack; Remove all returns to the start screen', async () => {
-  const m = await mount({ hash: `#pack=${sampleCode}&i=1` });
+  const m = await mount({ hash: sampleAt(1) });
   const adapter = /** @type {ReturnType<typeof memoryAdapter>} */ (m.adapter);
   equal(title(m), 'Normal #2', 'the second puzzle is open');
   m.q('.puzzle-card[data-puzzle-index="0"] .card-remove').click();
   equal(m.qa('.puzzle-card').length, 2, 'one card less');
-  equal(title(m), 'Normal #1', 'the open puzzle stays open, renumbered');
-  equal(m.qa('.puzzle-card').map((card) => card.querySelector('.card-heading')?.textContent), ['Puzzle #2', 'Puzzle #1'], 'renumbered, newest on top');
+  equal(title(m), 'Normal #2', 'the open puzzle stays open, with the name its code carries');
+  equal(m.qa('.puzzle-card').map((card) => card.querySelector('.card-heading')?.textContent), ['Puzzle #2', 'Puzzle #1'], 'cards numbered by place, newest on top');
   equal(m.player.store.getState().pack?.puzzles.length, 2, 'the open pack has two puzzles');
-  const shorter = `#pack=${await encodeShareCode(/** @type {any} */ (m.player.store.getState().pack))}&i=0`;
-  await waitFor(() => m.location.hash === shorter, 'the address is the link of the shorter pack');
-  equal(savedPacks(adapter), [], 'no saved copy is left');
+  const shorter = await linkOf(m.player.store.getState().pack);
+  await waitFor(() => m.location.hash === shorter, 'the address is the list of the shorter pack');
+  equal(otherKeys(adapter), [], 'nothing is stored for the pack');
   m.q('.puzzle-card[data-puzzle-index="0"] .card-remove').click();
   equal(m.root.dataset.screen, 'game', 'the open puzzle was removed: its neighbour opens');
   equal(m.qa('.puzzle-card').length, 1, 'one card');
@@ -569,13 +570,13 @@ await check('remove: a card removes its puzzle and the address follows the short
   equal([m.root.dataset.screen, m.qa('.puzzle-card').length, m.location.hash], ['start', 0, ''], 'Remove all');
   await new Promise((resolve) => setTimeout(resolve, 100));
   equal(m.location.hash, '', 'the closed pack gets no address later');
-  equal(savedPacks(adapter), [], 'and leaves nothing saved');
+  equal(otherKeys(adapter), [], 'and leaves nothing stored');
   m.player.destroy();
 });
 
 await check('header: EN | VI changes every text and is remembered; the theme buttons set the theme', async () => {
   const kept = /** @type {Map<string, string>} */ (new Map());
-  const m = await mount({ hash: `#pack=${sampleCode}&i=1`, preferences: { setItem: (key, value) => void kept.set(key, value) } });
+  const m = await mount({ hash: sampleAt(1), preferences: { setItem: (key, value) => void kept.set(key, value) } });
   try {
     equal(m.q('.app-header h1').textContent, 'Pentomino Player', 'English title');
     equal(m.q('[data-lang="en"]').getAttribute('aria-pressed'), 'true', 'English is pressed');

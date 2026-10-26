@@ -25,13 +25,12 @@ import {
 import { MAX_NUMBERED_TITLE_CODE_POINTS, puzzleCodeTitle, puzzleDisplayName } from '../core/browser/puzzle-title.js';
 import { makePuzzleQr, qrGeometry, qrRowRunPath } from '../core/browser/qr.js';
 import { createPool } from '../core/browser/worker-pool.js';
-import { createStorage } from '../core/browser/storage.js';
 import { boardFromRows } from '../core/engine/board.js';
 import { normalizeCells, poseCells } from '../core/engine/geometry.js';
 import { progressFingerprint } from '../core/engine/keys.js';
 import { validatePack } from '../core/engine/pack.js';
 import { catalogueStats } from '../core/engine/puzzlecode-v1.js';
-import { encodeShareCode, isPuzzleHash, parseLocationHashResult, puzzleCodeUrl } from '../core/engine/sharecode.js';
+import { isPuzzleHash, parseLocationHashResult, puzzleCodeUrl } from '../core/engine/sharecode.js';
 import { createI18n } from '../core/browser/i18n.js';
 import playerEnPack from '../player/locale.en.js';
 import playerViPack from '../player/locale.vi.js';
@@ -510,19 +509,7 @@ test('BA12 BA13 BA14 BA15: typos are never applied silently, a bad tail opens no
   const viaAddress = await readIncoming({ hash: `#p=${damaged}` }, { decodePuzzle: (text) => client.decode(text) });
   assert.ok(!viaAddress.ok && /** @type {any} */ (viaAddress).recovery?.kind === 'core-only', 'an address with a bad tail offers the core and opens nothing');
 
-  /** Every failure leaves the store alone: nothing is read for a puzzle address and nothing is written. */
-  const writes = [];
-  const data = new Map();
-  const adapter = {
-    get length() {
-      return data.size;
-    },
-    key: (/** @type {number} */ i) => [...data.keys()][i] ?? null,
-    getItem: (/** @type {string} */ k) => data.get(k) ?? null,
-    setItem: (/** @type {string} */ k, /** @type {string} */ v) => void (writes.push(k), data.set(k, v)),
-    removeItem: (/** @type {string} */ k) => void data.delete(k),
-  };
-  const storage = createStorage(adapter, () => 1_800_000_000_000);
+  /** Every failure leaves the address alone. */
   /** @type {Array<[string, string]>} */
   const bad = [
     [`#p=${golden}&i=1`, 'invalid-index'],
@@ -534,11 +521,10 @@ test('BA12 BA13 BA14 BA15: typos are never applied silently, a bad tail opens no
     [`#pack=2z.abc&p=${golden}`, 'invalid-hash'],
   ];
   for (const [hash, code] of bad) {
-    const result = await readIncoming({ hash }, { decodePuzzle: (text) => client.decode(text), storage });
+    const result = await readIncoming({ hash }, { decodePuzzle: (text) => client.decode(text) });
     assert.ok(!result.ok, hash);
     assert.equal(/** @type {any} */ (result).issues[0].code, code, hash);
   }
-  assert.deepEqual(writes, [], 'no bad address wrote anything');
   assert.equal(parseLocationHashResult(`#p=${golden}`).ok, true);
   assert.equal(isPuzzleHash(`#p=${golden}`), true);
 
@@ -756,38 +742,19 @@ test('BA26 BA27: the shared heading rule — untitled later puzzles, 75/76/80 co
   }
 });
 
-test('BA28: #pack, #lib and file imports behave as before and never touch the puzzle-code service', async () => {
+test('BA28: #pack and #lib are no longer addresses; file imports still behave as before and never touch the puzzle-code service', async () => {
   const neverDecoded = { decodePuzzle: () => { throw new Error('the code service must not be used'); } };
-  const link = await encodeShareCode(sample);
-  const viaPack = await readIncoming({ hash: `#pack=${link}&i=2` }, neverDecoded);
-  assert.ok(viaPack.ok);
-  const packed = /** @type {any} */ (viaPack).value;
-  assert.equal(packed.index, 2);
-  assert.equal(packed.pack.puzzles.length, 3, 'the whole pack, not one puzzle');
-  assert.deepEqual(packed.pack.puzzles.map((/** @type {any} */ p) => p.clues), sample.puzzles.map((/** @type {any} */ p) => p.clues));
-  assert.equal(isPuzzleHash(`#pack=${link}&i=2`), false);
-
-  const data = new Map();
-  const adapter = {
-    get length() {
-      return data.size;
-    },
-    key: (/** @type {number} */ i) => [...data.keys()][i] ?? null,
-    getItem: (/** @type {string} */ k) => data.get(k) ?? null,
-    setItem: (/** @type {string} */ k, /** @type {string} */ v) => void data.set(k, v),
-    removeItem: (/** @type {string} */ k) => void data.delete(k),
-  };
-  const storage = createStorage(adapter, () => 1_800_000_000_000);
-  const saved = storage.saveLibraryPack(hand);
-  assert.ok(saved.ok);
-  const viaLib = await readIncoming({ hash: `#lib=${/** @type {any} */ (saved).packId}&i=0` }, { ...neverDecoded, storage });
-  assert.ok(viaLib.ok);
-  assert.equal(/** @type {any} */ (viaLib).value.pack.puzzles[0].id, 'example-1');
+  for (const hash of ['#pack=1z.AAAA&i=2', '#lib=0123456789abcdef&i=0']) {
+    const result = await readIncoming({ hash }, neverDecoded);
+    assert.ok(!result.ok, hash);
+    assert.equal(/** @type {any} */ (result).issues[0].code, 'no-incoming', hash);
+    assert.equal(isPuzzleHash(hash), false, hash);
+  }
   const file = readPack(read('player/samples/sample-pack.json'));
   assert.ok(file.ok);
   assert.equal(/** @type {any} */ (file).value.pack.puzzles.length, 3);
   assert.equal(/** @type {any} */ (file).value.index, 0);
-  const set = await readIncoming({ hash: '#lib=0123456789abcdef' }, { ...neverDecoded, storage: /** @type {any} */ ({ loadLibraryPack: () => ({ ok: true, value: { ...hand, kind: 'piece-set', puzzles: [] }, warnings: [] }) }) });
+  const set = readPack(JSON.stringify({ ...hand, kind: 'piece-set', puzzles: [] }));
   assert.ok(!set.ok);
   assert.equal(/** @type {any} */ (set).issues[0].message, PIECE_SET_MESSAGE);
 });

@@ -53,7 +53,6 @@ export default Object.freeze({
   'ui.piecesLeft': 'Còn {count} mảnh',
   'ui.moves': '{count} nước đi',
   'ui.puzzleNumber': 'Đề #{n}',
-  'ui.localLink': 'Liên kết cục bộ — chỉ dùng được trong trình duyệt này.',
   'ui.loading': 'Đang tải…',
   'ui.trayLabel': 'Các mảnh chưa đặt',
   'ui.boardLabel': 'Bàn chơi',
@@ -114,7 +113,6 @@ export default Object.freeze({
   'code.open': 'Mở đề',
   'code.correction.use': 'Dùng cách sửa này',
   'code.recovery.open': 'Mở đề không có phần lời giải',
-  'code.restored': 'Đã khôi phục các nước đi đã lưu; Chơi lại sẽ bắt đầu như bản in.',
   'code.error.empty': 'Hãy nhập hoặc dán mã đề.',
   'code.error.char': 'Mã có ký tự "{char}", ký tự này không có trong mã đề.',
   'code.error.dots': 'Mã đề chỉ có tối đa một dấu ".".',
@@ -127,10 +125,11 @@ export default Object.freeze({
   'code.error.tail': 'Phần lời giải (không bắt buộc) có lỗi nhập.',
   'code.error.tailVersion': 'Phần lời giải (không bắt buộc) cần phiên bản trình chơi mới hơn.',
   'code.error.tailInvalid': 'Phần lời giải (không bắt buộc) không khớp với đề này.',
-  'code.error.index': 'Mã đề chỉ mở một đề; hãy bỏ "&i=…" khỏi liên kết.',
+  'code.error.index': 'Số đề "&i=…" trong liên kết không trùng với đề nào của liên kết; hãy sửa hoặc bỏ nó.',
   'code.error.worker': 'Trình duyệt này không mở được mã đề vì không hỗ trợ worker dạng mô-đun. Hãy dùng trình duyệt mới hơn.',
   'code.error.service': 'Không xử lý được mã đề. Hãy thử lại.',
   'code.error.cancelled': 'Việc mở mã này đã bị hủy vì một đề khác đang được mở. Hãy mở lại nếu bạn vẫn muốn.',
+  'code.error.puzzle': 'Đề {n}:',
 
   // Copy this puzzle link
   'code.copyLink': 'Sao chép liên kết đề này',
@@ -193,7 +192,6 @@ export default Object.freeze({
   // Messages of the loaders
   'msg.pieceSet': 'Liên kết này có các mảnh nhưng chưa có đề — hãy mở nó trong trình tạo.',
   'msg.unsupported': 'Phiên bản hoặc luật của đề không được hỗ trợ.',
-  'msg.missingLocal': 'Liên kết này chỉ dùng được trong trình duyệt đã tạo ra nó, và đề không được lưu ở đây. Hãy mở liên kết đầy đủ của đề.',
   'msg.index': 'Gói này không có đề với số thứ tự đó.',
   'msg.sampleFailed': 'Không tải được đề mẫu.',
   'msg.loadFailed': 'Không mở được đề.',

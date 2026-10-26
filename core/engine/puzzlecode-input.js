@@ -24,7 +24,7 @@ const MESSAGES = Object.freeze({
   version: 'This puzzle code needs a newer version.',
   'no-deflate': 'This browser cannot open compressed puzzle codes.',
   invalid: 'This code does not describe a valid puzzle.',
-  index: 'A puzzle code opens one puzzle; remove the puzzle number from the link.',
+  index: 'The puzzle number in the link does not name one of its puzzles; fix or remove it.',
 });
 
 /**
@@ -64,9 +64,11 @@ export class PuzzleCodeError extends Error {
 
 /**
  * Structural extraction of the `p` route: no puzzle is decoded and no catalogue
- * is built. The value is URI-decoded exactly once and returned unnormalized.
+ * is built. The value is URI-decoded exactly once and returned unnormalized. It
+ * may hold several puzzle codes separated by `;`; `index` is then the puzzle to
+ * open (`i`), which must name one of them. For one code `i` can only be 0.
  * @param {string} hash With or without `#`, or a whole pasted link.
- * @returns {{ ok: true, value: { p: string, index: 0 } }
+ * @returns {{ ok: true, value: { p: string, index: number } }
  *   | { ok: false, code: 'index' | 'invalid', message: string }}
  */
 export function parsePuzzleHash(hash) {
@@ -98,10 +100,17 @@ export function parsePuzzleHash(hash) {
     return fail('invalid', 'The address mixes a puzzle code with a pack or library reference.');
   }
   const rawIndex = found.get('i');
+  /** Raw `p` that can carry several codes: a literal `;` or an encoded one, which decodes to `;` only after the index is judged. */
+  const mayBeList = /;|%3b/i.test(rawP);
+  let index = 0;
   if (rawIndex !== undefined && rawIndex !== '0') {
-    return HASH_INDEX.test(rawIndex)
-      ? fail('index', MESSAGES.index)
-      : fail('invalid', 'The puzzle number in the address is not valid.');
+    if (!HASH_INDEX.test(rawIndex)) {
+      return fail('invalid', 'The puzzle number in the address is not valid.');
+    }
+    if (!mayBeList) {
+      return fail('index', MESSAGES.index);
+    }
+    index = Number(rawIndex);
   }
   let p;
   try {
@@ -112,7 +121,65 @@ export function parsePuzzleHash(hash) {
   if (p === '') {
     return fail('invalid', 'The address has no puzzle code.');
   }
-  return { ok: true, value: { p, index: 0 } };
+  if (index > 0 && index >= splitPuzzleCodes(p).length) {
+    return fail('index', MESSAGES.index);
+  }
+  return { ok: true, value: { p, index } };
+}
+
+/** Most puzzles one address or pasted text may carry: the size of a pack. */
+export const MAX_PUZZLE_CODES = 100;
+
+/**
+ * The codes of a `p` value: puzzle codes separated by `;`, in order. Spaces around a code and empty pieces (a trailing
+ * `;`) are dropped. Nothing is normalized or checked here.
+ * @param {string} value
+ * @returns {string[]}
+ */
+export function splitPuzzleCodes(value) {
+  return value.split(';').map((piece) => piece.trim()).filter((piece) => piece !== '');
+}
+
+/**
+ * Whether a `p` value (decoded) is a list of puzzles rather than one.
+ * @param {string} value
+ * @returns {boolean}
+ */
+export function isPuzzleCodeList(value) {
+  return value.includes(';');
+}
+
+/**
+ * Whether the address carries several puzzles: a `p` key whose value has a `;`. Structural only; a malformed address is not a list.
+ * @param {string} hash With or without `#`.
+ * @returns {boolean}
+ */
+export function isPuzzleListHash(hash) {
+  const parsed = parsePuzzleHash(hash);
+  return parsed.ok && splitPuzzleCodes(parsed.value.p).length > 1;
+}
+
+/**
+ * Normalizes every code of a `p` value (see `splitPuzzleCodes`).
+ * @param {string} value
+ * @returns {string[]} At least one normalized code.
+ * @throws {PuzzleCodeError} `empty`, `too-long` (more than `MAX_PUZZLE_CODES` codes, or too much text) or the error of a code.
+ */
+export function normalizePuzzleCodeList(value) {
+  if (typeof value !== 'string') {
+    throw new PuzzleCodeError('empty');
+  }
+  if (value.length > MAX_INPUT_CHARS) {
+    throw new PuzzleCodeError('too-long');
+  }
+  const pieces = splitPuzzleCodes(value);
+  if (pieces.length === 0) {
+    throw new PuzzleCodeError('empty');
+  }
+  if (pieces.length > MAX_PUZZLE_CODES) {
+    throw new PuzzleCodeError('too-long');
+  }
+  return pieces.map((piece) => normalizePuzzleCodeValue(piece));
 }
 
 /**
@@ -206,4 +273,29 @@ export function normalizePuzzleCodeInput(text) {
     return normalizePuzzleCodeValue(parsed.value.p);
   }
   return normalizePuzzleCodeValue(trimmed);
+}
+
+/**
+ * Like `normalizePuzzleCodeInput`, for text that may carry several puzzles: a link's decoded `p` value or a bare text,
+ * its codes separated by `;`.
+ * @param {string} text
+ * @returns {{ codes: string[], index: number }} The normalized codes and the puzzle to open (0 for a bare text).
+ * @throws {PuzzleCodeError} As `normalizePuzzleCodeInput`, and `index` when the link's puzzle number names no code.
+ */
+export function normalizePuzzleCodeText(text) {
+  if (typeof text !== 'string') {
+    throw new PuzzleCodeError('empty');
+  }
+  if (text.length > MAX_INPUT_CHARS) {
+    throw new PuzzleCodeError('too-long');
+  }
+  const trimmed = text.trim();
+  if (trimmed.includes('#')) {
+    const parsed = parsePuzzleHash(trimmed);
+    if (!parsed.ok) {
+      throw new PuzzleCodeError(parsed.code, parsed.message);
+    }
+    return { codes: normalizePuzzleCodeList(parsed.value.p), index: parsed.value.index };
+  }
+  return { codes: normalizePuzzleCodeList(trimmed), index: 0 };
 }

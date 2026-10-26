@@ -31,7 +31,9 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {GenerationClient} client
  * @property {boolean} [workersAvailable] False shows N-NOWORKER instead of starting a job.
  * @property {() => void} [cancelPending] Cancels every pool task, idle certificates included.
- * @property {(pack: Pack, index: number) => Promise<void>} [openPlayer] Opens the player in a new tab; rejects with `handoff-unavailable` or `popup-blocked`.
+ * @property {(pack: Pack, index: number) => Promise<void | { only?: boolean }>} [openPlayer] Opens the player in a new tab (the
+ *   result's `only`: the list was too long for one link, so only the puzzle at `index` went); rejects with
+ *   `handoff-unavailable` or `popup-blocked`.
  * @property {() => void} [beforeNavigate] Saves the generator state before the player opens.
  * @property {() => number} [now]
  * @property {() => string} [randomNumber] Source of fresh puzzle seeds (whole numbers as text).
@@ -525,7 +527,10 @@ export function createJobController(options) {
     }
     options.beforeNavigate?.();
     try {
-      await options.openPlayer(pack, index);
+      const opened = await options.openPlayer(pack, index);
+      if (opened?.only === true) {
+        store.update((s) => ({ ...s, notice: notice('M-PLAYER-ONLY', () => formatMessage('M-PLAYER-ONLY'), 'info') }));
+      }
     } catch (error) {
       const code = /** @type {{ code?: unknown }} */ (error)?.code;
       if (code === 'handoff-unavailable') {
@@ -573,16 +578,27 @@ export function createJobController(options) {
       return { ok: true, value: { status: 'busy' }, warnings: [] };
     }
     stopBackground();
+    // A link with several puzzles (a Play link) brings all of them: the first makes the set, the others join it.
+    const { pack } = read.value;
     /** @type {import('./state.js').ImportStatus} */
     let status = 'exists';
     store.update((s) => {
-      const imported = importPuzzle(s, read.value.pack);
-      status = imported.status;
-      return imported.state;
+      let current = s;
+      for (const puzzle of pack.puzzles) {
+        const imported = importPuzzle(current, { ...pack, puzzles: [puzzle] });
+        if (imported.status === 'new-set' || imported.status === 'added') {
+          current = imported.state;
+          status = status === 'new-set' ? 'new-set' : imported.status;
+        } else if (imported.status !== 'exists') {
+          status = status === 'exists' ? imported.status : status;
+          break;
+        }
+      }
+      return current;
     });
     const after = store.getState();
     if ((status === 'new-set' || status === 'added') && after.set !== null && after.set.witness === null) {
-      void findWitness(after.set, read.value.pack.puzzles[0].clues);
+      void findWitness(after.set, pack.puzzles[0].clues);
     }
     return { ok: true, value: { status }, warnings: [] };
   }

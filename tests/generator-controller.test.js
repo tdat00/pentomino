@@ -562,6 +562,7 @@ describe('hand-off and set history', () => {
     const opened = [];
     let refuse = false;
     let block = false;
+    let only = false;
     const h = harness({
       accepted: true,
       options: {
@@ -573,6 +574,7 @@ describe('hand-off and set history', () => {
             throw new HandoffError('handoff-unavailable', 'no link');
           }
           opened.push([pack, index]);
+          return { only };
         },
       },
     });
@@ -591,6 +593,10 @@ describe('hand-off and set history', () => {
     assert.equal(h.store.getState().notice?.code, 'M-PLAYER-UNAVAILABLE');
     assert.equal(h.store.getState().puzzles.length, 5);
     refuse = false;
+    only = true;
+    await h.controller.playPuzzle(ids[1]);
+    assert.equal(h.store.getState().notice?.code, 'M-PLAYER-ONLY', 'a list too long for one link says only one puzzle went');
+    only = false;
     block = true;
     await h.controller.playPuzzle(ids[0]);
     assert.equal(h.store.getState().notice?.code, 'M-PLAYER-BLOCKED', 'a blocked tab is explained');

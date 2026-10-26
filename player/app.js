@@ -11,7 +11,6 @@ import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
 import { createPuzzleCodeDialog } from '../core/browser/puzzle-code-dialog.js';
 import { shouldOfferStraighten, svgEl } from '../core/browser/svg-board.js';
 import { packBoard } from '../core/engine/pack.js';
-import { isPuzzleHash } from '../core/engine/sharecode.js';
 import { createPlayController } from './play.js';
 import { createHintController } from './hints.js';
 import { choose, onChange, setLocale, t } from './i18n.js';
@@ -199,9 +198,8 @@ export function mountPlayer(root, env = {}) {
     statusButton('dismiss-notice', 'ui.dismiss', () => controller.dismissNotice()));
   const badgeVerification = el('span', { className: 'badge badge-verification', dataset: { badge: 'verification' } });
   const badgeCertificate = el('span', { className: 'badge badge-certificate', dataset: { badge: 'certificate' } });
-  const badgeLocal = el('span', { className: 'badge badge-local', dataset: { badge: 'local' } });
   const badgeStorage = el('span', { className: 'badge badge-storage', dataset: { badge: 'storage' }, attrs: { role: 'status' } });
-  const badges = el('div', { className: 'status-badges' }, badgeVerification, badgeCertificate, badgeLocal, badgeStorage);
+  const badges = el('div', { className: 'status-badges' }, badgeVerification, badgeCertificate, badgeStorage);
   const hintHost = el('div', { className: 'status-hint-host' });
   const statusHost = el('div', { className: 'status-host', dataset: { host: 'status' } }, errorBox, noticeBox, badges);
 
@@ -488,36 +486,11 @@ export function mountPlayer(root, env = {}) {
   const codeHost = el('div', { className: 'code-host' });
   root.append(codeHost);
   /**
-   * Saved moves that come back with a puzzle opened from a puzzle code, however the code arrived (typed, pasted, or a
-   * `#p=` address read on load or on a hash change: a scan, a bookmark, a reload), are said so: the board then differs
-   * from the first printed sheet until Replay. Nothing is said when the code did not open or had nothing to restore.
-   * @template {{ ok?: boolean }} R
-   * @param {R} result The result of the load that read the code.
-   * @returns {R}
-   */
-  function sayRestoredMoves(result) {
-    const { game, notice } = store.getState();
-    if (result.ok === true && game !== null && !untouched(game)) {
-      const restored = t('code.restored');
-      store.update({ notice: { kind: notice?.kind ?? 'info', text: notice === null ? restored : `${notice.text} ${restored}` } });
-    }
-    return result;
-  }
-  /**
-   * @param {string} hash The address that is being opened.
-   * @param {Promise<unknown>} opening The controller's load of it.
-   * @returns {Promise<unknown>}
-   */
-  async function openedAddress(hash, opening) {
-    const result = await opening;
-    return isPuzzleHash(hash) ? sayRestoredMoves(/** @type {{ ok?: boolean }} */ (result)) : result;
-  }
-  /**
    * Opens a puzzle code through the controller (atomic; the address becomes `#p=<code>`).
    * @param {string} text
    */
-  async function openCode(text) {
-    return sayRestoredMoves(await controller.loadPuzzleCode(text, { commitAddress: true }));
+  function openCode(text) {
+    return controller.loadPuzzleCode(text, { commitAddress: true });
   }
   // The entry has no button of its own: it opens when a `#p=` address or a pasted code fails, so the text can be fixed.
   const codeDialog = createPuzzleCodeDialog({
@@ -664,8 +637,6 @@ export function mountPlayer(root, env = {}) {
     badgeCertificate.textContent = certificateLabel(puzzle?.certificate, solvable);
     badgeCertificate.dataset.status = certificateStatus(puzzle?.certificate, solvable);
     badgeCertificate.hidden = badgeCertificate.textContent === '';
-    badgeLocal.textContent = state.local ? LABELS.localLink : '';
-    badgeLocal.hidden = !state.local;
     badgeStorage.textContent = state.storageWarning ?? '';
     badgeStorage.hidden = state.storageWarning === null;
   }
@@ -830,7 +801,7 @@ export function mountPlayer(root, env = {}) {
 
   const onHashChange = () => {
     const hash = String((env.location ?? win.location).hash);
-    void openedAddress(hash, controller.openHash(hash));
+    void controller.openHash(hash);
   };
   if (env.listenHashChange !== false) {
     win.addEventListener('hashchange', onHashChange);
@@ -841,7 +812,7 @@ export function mountPlayer(root, env = {}) {
   doc.addEventListener('visibilitychange', onVisibility);
   onVisibility();
 
-  const ready = openedAddress(String((env.location ?? win.location).hash), controller.start());
+  const ready = controller.start();
 
   return {
     store,

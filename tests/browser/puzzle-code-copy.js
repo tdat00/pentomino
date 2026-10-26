@@ -16,7 +16,7 @@ import { puzzleDisplayName } from '../../core/browser/puzzle-title.js';
 import { createStorage } from '../../core/browser/storage.js';
 import { packBoard, validatePack } from '../../core/engine/pack.js';
 import { catalogueStats } from '../../core/engine/puzzlecode-v1.js';
-import { encodeShareCode } from '../../core/engine/sharecode.js';
+import { packHash } from './pack-link.js';
 import * as generatorI18n from '../../generator/i18n.js';
 import { createGeneratorStore, detectHardware } from '../../generator/state.js';
 import { mountPuzzlePanel } from '../../generator/ui/puzzle-panel.js';
@@ -314,7 +314,7 @@ async function openPlayer(pack, { index = 0, hooks = makeHooks() } = {}) {
   if (pack !== null) {
     const checked = validatePack(pack);
     assert(checked.ok, 'fixture pack is valid');
-    hash = `#pack=${await encodeShareCode(/** @type {any} */ (checked).value)}&i=${index}`;
+    hash = await packHash(/** @type {any} */ (checked).value, index);
   }
   const root = document.createElement('div');
   root.className = 'stage-root';
@@ -723,7 +723,7 @@ if (phase === 'main') {
       equal(clip.writes, [`${OWN_PLAYER_URL}#p=${symbols(5000)}`], 'the core address');
       equal(toasts(), [
         'Link copied; this puzzle is too large for a printable QR code.',
-        'This link is 5045 characters long, and some chat apps cut long links.',
+        `This link is ${clip.writes[0].length} characters long, and some chat apps cut long links.`,
       ], 'the QR advisory and the long-link warning');
       assert(!toasts().join(' ').includes('QR code. Link copied'), 'no claim that the link is a QR');
       // The tail does not fit the symbol, the core does: the copied address is the core without the tail.
@@ -781,7 +781,7 @@ if (phase === 'main') {
     assert(/** @type {HTMLDialogElement} */ (document.querySelector('dialog.pm-print-dialog')).open, 'Print still opens');
     /** @type {HTMLButtonElement} */ (document.querySelector('dialog.pm-print-dialog [data-action="print-cancel"]')).click();
     const pack = await preparePlayerLink(/** @type {any} */ (validatePack(sample)).value, 0, { base: location.href });
-    assert(pack.portable && /#pack=1[zj]\./.test(pack.href ?? ''), 'the whole-pack link is unchanged (#pack=)');
+    assert(pack.portable && /#p=[0-9A-Z.]+(?:;[0-9A-Z.]+)*$/.test(pack.href ?? ''), 'the Play link carries a code per puzzle (#p=A;B;C), no longer #pack=');
     equal(JSON.stringify([Object.entries(localStorage), Object.entries(sessionStorage)]), before, 'no storage written');
     evidence.generator.noCopy = true;
   });

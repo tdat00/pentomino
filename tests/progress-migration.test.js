@@ -5,7 +5,6 @@ import { test } from 'node:test';
 import { createGame, isEarned, reduce, snapshot } from '../core/engine/game.js';
 import { progressFingerprint } from '../core/engine/keys.js';
 import { packBoard, parsePack } from '../core/engine/pack.js';
-import { encodeShareCode } from '../core/engine/sharecode.js';
 import { NAMESPACE, createStorage } from '../core/browser/storage.js';
 import { createPlayerController, createPlayerStore } from '../player/state.js';
 import { puzzleStatusLabel } from '../player/strings.js';
@@ -178,15 +177,17 @@ async function opened(record) {
   }
   const storage = createStorage(adapter, () => 1800000000000);
   const store = createPlayerStore({});
-  const hash = `#pack=${await encodeShareCode(pack)}&i=0`;
+  const hash = '';
   const controller = createPlayerController({
     store,
     storage,
     location: { hash, pathname: '/', search: '' },
     history: { replaceState() {} },
+    baseUrl: 'http://localhost/player/',
+    fetchText: async () => JSON.stringify(pack),
     createPool: () => ({ beginRequest() {}, endRequest() {}, close() {}, run: () => new Promise(() => {}) }),
   });
-  const result = await controller.openHash(hash);
+  const result = await controller.openSample();
   assert.equal(result.ok, true);
   return { adapter, storage, store, controller, game: () => /** @type {import('../core/engine/game.js').GameState} */ (store.getState().game) };
 }

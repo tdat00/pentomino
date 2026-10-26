@@ -198,10 +198,11 @@ export default Object.freeze({
   'code.error.tail': 'The optional solution part has a typing error.',
   'code.error.tailVersion': 'The optional solution part needs a newer version.',
   'code.error.tailInvalid': 'The optional solution part does not match this puzzle.',
-  'code.error.index': 'A puzzle code holds one puzzle; remove "&i=…" from the link.',
+  'code.error.index': 'The puzzle number "&i=…" in the link does not name one of its puzzles; fix or remove it.',
   'code.error.worker': 'This browser cannot read puzzle codes because module workers are unavailable. Use a current browser.',
   'code.error.service': 'Puzzle code processing failed. Try again.',
   'code.error.cancelled': 'Importing this code was cancelled. Import it again if you still want it.',
+  'code.error.puzzle': 'Puzzle {n}:',
 
   // Notices (design §10.7)
   'notice.N-COUNT': 'This board uses {kmin}–{kmax} pieces at {level}, about {share}% pre-placed.',
@@ -239,7 +240,8 @@ export default Object.freeze({
   'message.M-FEWPIECES': 'This piece set has fewer than 3 pieces, so new puzzles cannot be generated (one pre-placed piece and two movable pieces are needed). You can still view it.',
   'message.M-NOWITNESS': 'No arrangement of this piece set was found within the search limit, so new puzzles cannot be generated. You can still view it.',
   'message.M-LEVEL-NOT-OFFERED': '{level} is not offered for a board with {area} playable squares.',
-  'message.M-PLAYER-UNAVAILABLE': "This puzzle is too large to open by link and can't be saved in this browser.",
+  'message.M-PLAYER-UNAVAILABLE': 'This puzzle is too large to open by link.',
+  'message.M-PLAYER-ONLY': 'The puzzle list is too long for one link, so only this puzzle was opened in the Player.',
   'message.M-PLAYER-BLOCKED': 'The browser blocked the new tab. Allow pop-ups for this page and press “Play” again.',
   'message.M-NEEDS-SET': 'Generate a piece set first.',
   'message.requestFailed': 'The request failed',

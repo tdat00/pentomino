@@ -94,7 +94,7 @@ test('texts keep their English wording and follow a language switch', () => {
   assert.equal(ratingLabel({ model: 'difficulty-v2', score: 123.4, level: 'expert', saturated: true }), 'Expert: score 123+');
   assert.equal(certificateLabel({ status: 'unique' }), 'Unique solution ✓');
   assert.equal(verificationLabel({ status: 'solvable' }), 'Solvable ✓');
-  assert.equal(puzzleStatusLabel('in-progress'), 'In progress');
+  assert.equal(puzzleStatusLabel('in-progress'), 'Playing');
   assert.equal(INDEX_MESSAGE, 'This pack has no puzzle with that number.');
 
   assert.equal(setLocale('vi', null), 'vi');

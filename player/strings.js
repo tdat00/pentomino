@@ -11,7 +11,6 @@ import { has, onChange, t } from './i18n.js';
 // Messages that the controllers keep as plain strings; live bindings that a language switch rewrites.
 export let PIECE_SET_MESSAGE = '';
 export let UNSUPPORTED_MESSAGE = '';
-export let MISSING_LOCAL_MESSAGE = '';
 export let INDEX_MESSAGE = '';
 export let SAMPLE_FAILED_MESSAGE = '';
 export let LOAD_FAILED_MESSAGE = '';
@@ -19,7 +18,6 @@ export let LOAD_FAILED_MESSAGE = '';
 function readConstants() {
   PIECE_SET_MESSAGE = t('msg.pieceSet');
   UNSUPPORTED_MESSAGE = t('msg.unsupported');
-  MISSING_LOCAL_MESSAGE = t('msg.missingLocal');
   INDEX_MESSAGE = t('msg.index');
   SAMPLE_FAILED_MESSAGE = t('msg.sampleFailed');
   LOAD_FAILED_MESSAGE = t('msg.loadFailed');
@@ -66,12 +64,9 @@ export function messageForIssues(issues) {
   switch (first?.code) {
     case 'piece-set':
       return PIECE_SET_MESSAGE;
-    case 'library-missing':
-      return MISSING_LOCAL_MESSAGE;
     case 'index-out-of-range':
     case 'invalid-index':
       return INDEX_MESSAGE;
-    case 'no-decompressor':
     case 'load-failed':
       return String(first.message);
     default:
@@ -207,7 +202,7 @@ export function formatElapsed(ms) {
 }
 
 export const LABELS = Object.freeze(Object.assign(texts('ui', [
-  'straighten', 'straightenOn', 'localLink', 'boardLabel', 'rotateCcw', 'rotateCw', 'flipH', 'flipV', 'toTrayLabel', 'unplaceAll',
+  'straighten', 'straightenOn', 'boardLabel', 'rotateCcw', 'rotateCw', 'flipH', 'flipV', 'toTrayLabel', 'unplaceAll',
   'replayPuzzle', 'revealedBadge', 'winTime',
 ]), {
   piecesLeft: (/** @type {number} */ n) => t('ui.piecesLeft', { count: n }),

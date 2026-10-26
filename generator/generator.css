@@ -1114,12 +1114,12 @@ button.card-select:active:not(:disabled) {
   transform: none;
 }
 
+/* The preview is level with the name, set back from the remove button in the corner. */
 .card-thumb {
   flex: none;
-  align-self: flex-end;
   width: 7.5rem;
   height: 6.5rem;
-  margin-top: 1rem;
+  margin-inline-end: 1.25rem;
   border-radius: var(--gen-radius-2);
 }
 

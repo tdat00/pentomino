@@ -184,6 +184,39 @@ test('the controller reads a code or a link with the real worker and commits the
   }
 });
 
+test('a Play link with several puzzles brings all of them: the first makes the set, the others join it', async () => {
+  const store = createGeneratorStore(defaultGeneratorState());
+  const controller = controllerOn(store);
+  try {
+    const codes = [await codeOf(sample, 0), await codeOf(sample, 1), await codeOf(sample, 2)];
+    const link = `https://example.org/pentomino/player/#p=${codes.join(';')}&i=1`;
+    const done = await controller.importPuzzleCode(link);
+    assert.deepEqual([done.ok, /** @type {any} */ (done).value?.status], [true, 'new-set']);
+    const state = store.getState();
+    assert.equal(state.puzzles.length, 3);
+    assert.equal(state.set?.carving, 'imported');
+    assert.deepEqual(state.puzzles.map((p) => p.solution?.length), sample.puzzles.map((p) => p.solution?.length));
+    const again = await controller.importPuzzleCode(link);
+    assert.equal(/** @type {any} */ (again).value?.status, 'exists', 'the same link adds nothing');
+    assert.equal(store.getState().puzzles.length, 3);
+
+    const partial = createGeneratorStore(defaultGeneratorState());
+    const second = controllerOn(partial);
+    try {
+      assert.equal(/** @type {any} */ (await second.importPuzzleCode(codes[0])).value?.status, 'new-set');
+      const rest = await second.importPuzzleCode(codes.join(';'));
+      assert.equal(/** @type {any} */ (rest).value?.status, 'added', 'a puzzle that is there is skipped, the others are added');
+      assert.equal(partial.getState().puzzles.length, 3);
+    } finally {
+      second.destroy();
+      partial.destroy();
+    }
+  } finally {
+    controller.destroy();
+    store.destroy();
+  }
+});
+
 test('the controller explains a bad code and changes nothing; a busy job or a newer import wins', async () => {
   const store = createGeneratorStore(defaultGeneratorState());
   const controller = controllerOn(store);

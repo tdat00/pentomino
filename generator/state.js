@@ -1570,21 +1570,6 @@ export function setNumber(state) {
 
 /**
  * @param {GeneratorState} state
- * @param {string} seed
- * @returns {GeneratorState | null} null when no set of this board has that seed.
- */
-export function showSetBySeed(state, seed) {
-  const { key, index } = setView(state);
-  if (state.set !== null && state.setSeed === seed && index !== -1) {
-    return state;
-  }
-  const at = savedFor(state, key).findIndex((saved) => saved.setSeed === seed);
-  // The set on show sits inside the list at `index`, so saved sets from there on are one place further.
-  return at === -1 ? null : gotoSet(state, index !== -1 && at >= index ? at + 1 : at);
-}
-
-/**
- * @param {GeneratorState} state
  * @returns {boolean} Whether the set list is full: a new set needs a set removed first.
  */
 export function setsFull(state) {

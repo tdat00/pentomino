@@ -60,9 +60,10 @@ không bộ giải từ xa, không tải dữ liệu lên, không bước biên 
 and Vietnamese, with light, dark and high-contrast themes, and work with mouse, touch and keyboard.
 
 **Play** in the Generator opens the Player in a new tab with a portable **hash link** that holds the puzzles of the
-list. When that link would be too long, the Generator falls back to a **same-browser** `#lib=` link, which only works in
-the browser that made it. Neither app imports or exports files: the Player's address always holds the open puzzle, so a
-bookmark keeps it and sending the address shares it.
+list as puzzle codes: `…/player/#p=<code>;<code>;…`, one code per puzzle, with `&i=<n>` when the puzzle to open is not
+the first. When that link would be too long (over 16,000 characters), only the puzzle to open goes (and the Generator
+says so). Neither app imports or exports files: the Player's address
+always holds the open puzzle, so a bookmark keeps it and sending the address shares it.
 
 > **Status.** The repository is built task by task, so a feature listed here may not be finished yet. Release acceptance
 > (browser matrix, performance gates) is tracked separately, and nothing below promises browser timings before that
@@ -151,10 +152,10 @@ board already holds 50 sets, or the puzzle list is full, nothing is imported and
   sets for each of the last **10** boards used. With 50 sets, **New piece set** is disabled until a set is removed. A
   list holds at most **100** puzzles, and no more than fit one 512 KiB pack, because **Play** opens the whole list as
   one pack; when the list is full, **New puzzle** says so.
-- **Address.** The settings live in the address, so a reload or a shared link returns to them: `step`, `preset`, `angle`
-  (the view angle), `cells` (the board key `WxH:<base64url bits>`), `level`, `seed` and `unique=1`. A link with a `seed`
-  and step 2 or 3 shows the set made with that seed: the one saved in this browser, or the same set generated again.
-  Puzzles are not part of the address; use **Play** and share the Player's link.
+- **Address.** The address holds only the step (`?step=`; `?lang=` can pick the start language), so a reload returns to
+  the step; the settings are in this
+  browser's saved work. A `#p=` link (one code per puzzle, as **Play** makes it) in the address opens **Import puzzle**
+  and imports its puzzles. Puzzles are not part of the address otherwise; use **Play** and share the Player's link.
 - **Limits.** A board needs at least **30** playable squares in one connected region and sides of at most **32**. Boards
   launch at up to **484** playable squares on desktop and **360** on a phone; larger design sizes are enabled only after
   they have been qualified (the headless `tools\generate.mjs` accepts boards of up to **676**). Each generation action
@@ -175,22 +176,28 @@ From 768 px to 1359 px the puzzles go under the game; below 768 px the panels st
 
 - **Opening a puzzle.** Follow a player link: the Generator's **Play**, or an address that was shared or bookmarked.
   Without a puzzle the page shows a start screen with **Try the sample** and a link to the Generator. A link with pieces
-  but no puzzle is explained, and a link that cannot be opened never replaces the puzzle you are playing. A single
-  puzzle also opens from its one-puzzle code link, `…/player/#p=<code>`: it is decoded in a background worker, needs no
-  Generator and no saved copy, keeps your saved progress, and reloading it reopens the same puzzle. The address
+  but no puzzle is explained, and a link that cannot be opened never replaces the puzzle you are playing. A puzzle
+  also opens from its code link, `…/player/#p=<code>`, and several puzzles from `…/player/#p=<code1>;<code2>;…`
+  (optionally `&i=<n>`, the puzzle to open, counted from 0; they must share one board and piece set, and none may
+  repeat): each code is decoded in a background worker, no Generator and no saved copy is needed, your saved progress is
+  kept, and reloading reopens the same puzzles. With one code the address is never rewritten; with several it follows
+  the open puzzle (`&i=`). The address
   always holds the open pack and puzzle. A card in the puzzle list (name, level and score, pieces to place, uniqueness,
   progress, preview), newest on top, opens that puzzle; ✕ on a card removes it and **Remove all** empties the list.
 - **Entering a puzzle code.** There is no button for it: the **puzzle code** dialog opens by itself when a `#p=` address
   (a link or a scanned QR code) cannot be opened, with the address as its text, and there you can fix the code. It holds
-  the code printed with a puzzle, or a whole puzzle link. Spaces, line breaks and hyphens are ignored,
+  the code printed with a puzzle, or a whole puzzle link, or several codes separated by `;`. Spaces, line breaks and
+  hyphens are ignored,
   lower case works, and O, I and L are read as 0, 1 and 1; the part after a dot is optional, and a code is at most
-  16,000 characters (32,768 typed or pasted). **Open puzzle** opens it, and the address becomes `#p=<code>`. A code that
-  cannot be opened is explained in the dialog and changes nothing: your text, the open puzzle, its moves and the
+  16,000 characters (32,768 typed or pasted, at most 100 codes). **Open puzzle** opens it, and the address becomes
+  `#p=<code>`. A code that
+  cannot be opened is explained in the dialog (for a list, with the number of the puzzle) and changes nothing: your text,
+  the open puzzle, its moves and the
   address stay as they were. If a single mistyped character is the likely cause, the dialog shows where and which
   character it may be; nothing is corrected until you press **Use this correction**. If only the part after the dot is
   damaged, **Open without the solution part** opens the puzzle from the part before it (the solution is then searched
-  for in the background). Saved moves for the puzzle come back with a short notice (also when you reload the page or
-  scan a link to it); **Replay** starts again as printed.
+  for in the background); both offers are made for one code only, not for a list. Saved moves for the puzzle come back
+  silently (also when you reload the page or scan a link to it); **Replay** starts again as printed.
   **Cancel** or `Escape` closes the dialog.
 - **Copying a puzzle link.** **Copy this puzzle link** (the link icon right of **Print**, on the row of the puzzle
   title, at its right; the Player only) copies `…/player/#p=<code>` for the puzzle that is shown: the address that the QR code
@@ -277,14 +284,13 @@ Print at 100 % (actual size): the 50 mm bar on the first sheet shows whether the
 
 ## Storage and privacy
 
-- Everything stays in the browser: no upload, no remote solver, no analytics. A puzzle travels in the `#pack=` part of
-  its link (or, for a single puzzle, its `#p=` code), which the browser never sends to the server. Share links may omit
-  the answer.
+- Everything stays in the browser: no upload, no remote solver, no analytics. A puzzle travels in the `#p=` part of
+  its link (one code per puzzle, separated by `;`), which the browser never sends to
+  the server. Share links may omit the answer.
 - Both apps use `localStorage` keys under `pentomino:v1:` only, and never touch other keys of the same origin:
   - Generator: its work (board, settings, piece sets and puzzles) in `gen:state`;
   - Player: the progress of each puzzle (`progress:<fingerprint>`, up to 300, save times in `progress-index`), the
-    Straighten choice (`prefs`), and a copy of a pack only for a same-browser `#lib=` link (`lib:index` and one
-    `lib:<packId>` per pack, the 30 most recently opened);
+    Straighten choice (`prefs`); no pack is stored, a pack lives in its link;
   - both: the language (`lang`) and the theme (`theme`).
 - Browser storage can be disabled, shared or full. On a quota error the oldest entries of this namespace are dropped
   once (the Generator first drops its oldest saved piece sets); if saving still fails, work continues in memory and the
@@ -425,9 +431,9 @@ dependencies: the [Nayuki QR Code generator library](https://www.nayuki.io/page/
 Địa chỉ `/pentomino/` chuyển thẳng tới trình tạo đề, giữ nguyên chuỗi truy vấn và phần `#hash`. Cả hai ứng dụng có tiếng
 Anh và tiếng Việt, giao diện sáng, tối và tương phản cao, dùng được bằng chuột, cảm ứng và bàn phím.
 
-Nút **Chơi** của trình tạo đề mở trình chơi trong thẻ mới bằng một **liên kết hash** mang theo các đề của danh sách. Khi
-liên kết đó quá dài, trình tạo đề dùng liên kết `#lib=` **chỉ trong trình duyệt này**, chỉ mở được trong trình duyệt đã
-tạo ra nó. Không ứng dụng nào nhập hay xuất tệp: địa chỉ của trình chơi luôn chứa đề đang mở, nên lưu dấu trang là giữ
+Nút **Chơi** của trình tạo đề mở trình chơi trong thẻ mới bằng một **liên kết hash** mang theo các đề của danh sách dưới
+dạng mã đề: `…/player/#p=<mã>;<mã>;…`, mỗi đề một mã, kèm `&i=<n>` khi đề cần mở không phải đề đầu. Khi liên kết đó quá
+dài (hơn 16.000 ký tự), chỉ đề cần mở được gửi đi (và trình tạo đề cho biết điều đó). Không ứng dụng nào nhập hay xuất tệp: địa chỉ của trình chơi luôn chứa đề đang mở, nên lưu dấu trang là giữ
 được đề, và gửi địa chỉ đó là chia sẻ được đề.
 
 > **Trạng thái.** Kho mã được xây dựng theo từng nhiệm vụ, nên một tính năng nêu ở đây có thể chưa hoàn tất. Việc nghiệm
@@ -512,10 +518,9 @@ nhập gì và có thông báo cho biết.
   **50** bộ cho mỗi bàn trong **10** bàn dùng gần nhất. Khi đã có 50 bộ, **Tạo bộ mảnh mới** bị vô hiệu cho tới khi bạn
   xóa một bộ. Một danh sách chứa tối đa **100** đề, và không quá lượng vừa một gói 512 KiB, vì **Chơi** mở cả danh sách
   thành một gói; khi danh sách đầy, **Tạo đề mới** sẽ báo.
-- **Địa chỉ.** Các thiết lập nằm trên địa chỉ, nên tải lại trang hoặc mở liên kết được chia sẻ sẽ trở về đúng chúng:
-  `step`, `preset`, `angle` (góc nhìn), `cells` (khóa bàn chơi `WxH:<base64url bits>`), `level`, `seed` và `unique=1`.
-  Một liên kết có `seed` ở bước 2 hoặc 3 hiện bộ mảnh tạo từ seed đó: bộ đã lưu trong trình duyệt này, hoặc tạo lại đúng
-  bộ đó. Đề không nằm trên địa chỉ; hãy dùng **Chơi** và chia sẻ liên kết của trình chơi.
+- **Địa chỉ.** Địa chỉ chỉ chứa bước đang mở (`?step=`; `?lang=` chọn ngôn ngữ khởi đầu), nên tải lại trang sẽ trở về đúng bước; các thiết lập nằm trong
+  công việc đã lưu của trình duyệt này. Một liên kết `#p=` (mỗi đề một mã, như **Chơi** tạo ra) trên địa chỉ mở **Nhập đề**
+  và nhập các đề của nó. Ngoài ra đề không nằm trên địa chỉ; hãy dùng **Chơi** và chia sẻ liên kết của trình chơi.
 - **Giới hạn.** Bàn chơi cần ít nhất **30** ô chơi được trong một vùng liền nhau và mỗi cạnh tối đa **32**. Khi phát hành,
   bàn chơi được dùng tới **484** ô trên máy tính và **360** ô trên điện thoại; các cỡ lớn hơn chỉ được bật sau khi qua
   kiểm định (công cụ dòng lệnh `tools\generate.mjs` nhận bàn tới **676** ô). Mỗi thao tác tạo nhắm tới **60 giây** và có
@@ -537,19 +542,23 @@ sách đề chuyển xuống dưới ván chơi; dưới 768 px các khung xếp
 - **Mở một đề.** Mở một liên kết của trình chơi: nút **Chơi** của trình tạo đề, hoặc một địa chỉ được chia sẻ hay đã lưu
   dấu trang. Khi chưa có đề, trang hiện màn hình bắt đầu với **Thử đề mẫu** và liên kết tới trình tạo đề. Liên kết chỉ có
   mảnh mà không có đề sẽ được giải thích, và một liên kết không mở được không bao giờ thay thế đề bạn đang chơi. Một đề
-  đơn cũng mở được từ liên kết mã đề của nó, `…/player/#p=<mã>`: mã được giải trong một worker chạy nền, không cần trình
-  tạo đề hay bản sao đã lưu, giữ tiến độ đã lưu của bạn, và tải lại sẽ mở lại đúng đề đó. Địa chỉ
+  cũng mở được từ liên kết mã đề của nó, `…/player/#p=<mã>`, và nhiều đề từ `…/player/#p=<mã1>;<mã2>;…` (có thể kèm
+  `&i=<n>`, đề cần mở, đếm từ 0; các đề phải cùng một bàn chơi và một bộ mảnh, và không được lặp): mỗi mã được giải
+  trong một worker chạy nền, không cần trình tạo đề hay bản sao đã lưu, giữ tiến độ đã lưu của bạn, và tải lại sẽ mở lại
+  đúng các đề đó. Với một mã, địa chỉ không bao giờ bị viết lại; với nhiều mã, địa chỉ đi theo đề đang mở (`&i=`). Địa chỉ
   luôn chứa gói và đề đang mở. Mỗi thẻ trong danh sách đề (tên, mức độ và điểm, số mảnh cần đặt, tính duy nhất, tiến độ,
   hình xem trước), mới nhất ở trên, mở đề đó; ✕ trên thẻ xóa đề và **Xóa tất cả** làm trống danh sách.
 - **Nhập mã đề.** Không có nút riêng: hộp thoại **mã đề** tự mở khi một địa chỉ `#p=` (liên kết hoặc mã QR đã quét) không mở
   được, với địa chỉ làm văn bản, để bạn sửa mã. Hộp thoại nhận mã in kèm đề, hoặc
-  cả liên kết của đề. Dấu cách, dấu xuống dòng và dấu gạch ngang được bỏ qua, chữ thường cũng được, và chữ O, I, L được
-  đọc là 0, 1, 1; phần sau dấu chấm là không bắt buộc, và một mã dài tối đa 16.000 ký tự (32.768 khi gõ hoặc dán).
-  **Mở đề** sẽ mở đề, và địa chỉ trở thành `#p=<mã>`. Mã không mở được sẽ được giải thích ngay trong hộp thoại và không
+  cả liên kết của đề, hoặc nhiều mã cách nhau bằng `;`. Dấu cách, dấu xuống dòng và dấu gạch ngang được bỏ qua, chữ thường cũng được, và chữ O, I, L được
+  đọc là 0, 1, 1; phần sau dấu chấm là không bắt buộc, và một mã dài tối đa 16.000 ký tự (32.768 khi gõ hoặc dán, tối đa
+  100 mã).
+  **Mở đề** sẽ mở đề, và địa chỉ trở thành `#p=<mã>`. Mã không mở được sẽ được giải thích ngay trong hộp thoại (với danh
+  sách thì kèm số thứ tự của đề) và không
   làm thay đổi gì: văn bản của bạn, đề đang mở, các nước đi và địa chỉ vẫn như cũ. Nếu nhiều khả năng chỉ do gõ sai một
   ký tự, hộp thoại cho biết vị trí và ký tự có thể đúng; không có gì được sửa cho đến khi bạn nhấn **Dùng cách sửa này**.
   Nếu chỉ phần sau dấu chấm bị hỏng, **Mở đề không có phần lời giải** mở đề từ phần đứng trước nó (lời giải khi đó được
-  tìm ngầm). Các nước đi đã lưu của đề được khôi phục kèm một thông báo ngắn (cả khi bạn tải lại trang hoặc quét liên kết
+  tìm ngầm);   cả hai gợi ý này chỉ có với một mã, không có với danh sách. Các nước đi đã lưu của đề được khôi phục lặng lẽ (cả khi bạn tải lại trang hoặc quét liên kết
   của đề); **Chơi lại** bắt đầu lại như bản in.
   **Hủy** hoặc `Escape` đóng hộp thoại.
 - **Sao chép liên kết của đề.** **Sao chép liên kết đề này** (biểu tượng liên kết bên phải nút **In**, trên hàng tên đề, ở
@@ -635,14 +644,14 @@ Hãy in ở tỉ lệ 100% (kích thước thật): thanh 50 mm trên tờ đầ
 ## Lưu trữ và quyền riêng tư
 
 - Mọi thứ ở lại trong trình duyệt: không tải lên, không bộ giải từ xa, không thu thập số liệu. Một đề đi theo phần
-  `#pack=` của liên kết (hoặc, với một đề đơn, phần mã `#p=`), phần mà trình duyệt không bao giờ gửi lên máy chủ. Liên
+  `#p=` của liên kết (mỗi đề một mã, cách nhau bằng `;`), phần mà trình duyệt không
+  bao giờ gửi lên máy chủ. Liên
   kết chia sẻ có thể không kèm đáp án.
 - Cả hai ứng dụng chỉ dùng các khóa `localStorage` có tiền tố `pentomino:v1:`, và không bao giờ đụng tới các khóa khác
   của cùng nguồn gốc:
   - trình tạo đề: công việc của bạn (bàn chơi, thiết lập, bộ mảnh và đề) trong `gen:state`;
   - trình chơi: tiến độ của từng đề (`progress:<fingerprint>`, tối đa 300, thời điểm lưu trong `progress-index`), lựa
-    chọn Làm thẳng (`prefs`), và bản sao của một gói chỉ khi dùng liên kết `#lib=` trong cùng trình duyệt (`lib:index` và
-    một `lib:<packId>` cho mỗi gói, 30 gói mở gần nhất);
+    chọn Làm thẳng (`prefs`); không lưu gói nào, gói nằm trong liên kết của nó;
   - cả hai: ngôn ngữ (`lang`) và giao diện (`theme`).
 - Bộ nhớ trình duyệt có thể bị tắt, dùng chung hoặc đầy. Khi vượt hạn mức, các mục cũ nhất trong không gian tên này bị xóa
   một lần (trình tạo đề xóa các bộ mảnh đã lưu cũ nhất trước); nếu vẫn không lưu được, công việc tiếp tục trong bộ nhớ và
