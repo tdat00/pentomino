@@ -9,7 +9,7 @@ import { packBoard, parsePack } from '../core/engine/pack.js';
 import { arrowToGrid, screenFlip } from '../core/engine/view.js';
 import { createStorage } from '../core/browser/storage.js';
 import {
-  KICKS, SAVE_DELAY_MS, createPlayController, defaultHandle, handleCell, keyStep, orientedHandle, poseWithHandle, rotatePlaced,
+  SAVE_DELAY_MS, createPlayController, defaultHandle, handleCell, keyStep, orientedHandle, poseWithHandle,
   transformedT,
 } from '../player/play.js';
 import { cardHeading, puzzleDisplayName } from '../player/puzzle-title.js';
@@ -121,7 +121,7 @@ function harness(pack, o = {}) {
     screen: 'game', pack, index, game: createGame(pack, index), fingerprints, statuses: pack.puzzles.map(() => 'new'),
   });
   const log = /** @type {string[]} */ ([]);
-  const events = { solved: /** @type {{ elapsedMs: number, moves: number }[]} */ ([]), noRoom: 0, focus: /** @type {string[]} */ ([]) };
+  const events = { solved: /** @type {{ elapsedMs: number, moves: number }[]} */ ([]), focus: /** @type {string[]} */ ([]) };
   const play = createPlayController({
     store,
     controller,
@@ -131,9 +131,6 @@ function harness(pack, o = {}) {
     setInterval: (fn, ms) => clock.setInterval(fn, ms),
     clearInterval: (id) => clock.clear(id),
     announce: (message) => log.push(message),
-    onNoRoom: () => {
-      events.noRoom += 1;
-    },
     onSolved: (result) => events.solved.push(result),
     focus: (id, where) => events.focus.push(`${where}:${id}`),
   });
@@ -245,69 +242,45 @@ test('handle helpers keep the grabbed cell for every orientation, piece and hand
   assert.deepEqual(keyStep(45, 'ArrowRight'), keyStep(0, 'ArrowRight'));
 });
 
-/** A 5x5 board with a tromino bar and monomino blockers, to exercise every kick. */
-function kickPack() {
-  const mono = (/** @type {string} */ id) => ({ id, label: id, color: '#3cb44b', cells: [[0, 0]] });
-  return /** @type {Pack} */ (/** @type {unknown} */ ({
-    board: { rows: ['#####', '#####', '#####', '#####', '#####'] },
-    pieces: [{ id: 'P', label: 'P', color: '#e6194b', cells: [[0, 0], [1, 0], [2, 0]] }, mono('a'), mono('b'), mono('c'), mono('d')],
-    puzzles: [{ id: 'k', clues: [] }],
-  }));
-}
-
-const BLOCKERS = /** @type {Record<string, XYLike>} */ ({ a: [2, 1], b: [1, 1], c: [3, 1], d: [2, 4] });
-
-/** @param {import('../core/engine/game.js').GameState} game @param {string[]} blockers @returns {import('../core/engine/game.js').GameState} */
-function withBar(game, blockers) {
-  let next = game;
-  for (const id of blockers) {
-    next = reduce(next, { type: 'place', pose: { piece: id, x: BLOCKERS[id][0], y: BLOCKERS[id][1], turn: 0, mirrored: false } });
+test('turning or flipping a placed piece sends it to the tray, turned there, as one undoable step', () => {
+  const h = harness(sample);
+  const target = movables(sample)[0];
+  const id = target.piece;
+  const label = h.piece(id).label;
+  h.store.update({ game: reduce(h.game(), { type: 'place', pose: target }) });
+  for (const op of /** @type {TransformOp[]} */ (['cw', 'ccw', 'flipH', 'flipV'])) {
+    h.play.select(id);
+    const steps = h.game().history.length;
+    h.log.length = 0;
+    h.events.focus.length = 0;
+    assert.equal(h.play.transform(op), true);
+    assert.equal(h.game().placed.has(id), false, `${op}: the piece leaves the board`);
+    assert.equal(h.game().tray.get(id), transformedT(poseT(target), op, 0), `${op}: turned in the tray`);
+    assert.equal(h.game().history.length, steps + 1, `${op}: one step`);
+    assert.equal(h.game().selected, id);
+    assert.deepEqual(h.log, [PLAY_TEXT.returnedTurned(label)]);
+    assert.deepEqual(h.events.focus, [`tray:${id}`]);
+    h.play.undo();
+    assert.deepEqual(h.game().placed.get(id), target, `${op}: Undo puts it back as it was`);
+    assert.equal(h.game().tray.has(id), false);
   }
-  return reduce(next, { type: 'place', pose: { piece: 'P', x: 1, y: 2, turn: 0, mirrored: false } });
-}
-
-test('placed rotation keeps the handle, then tries the kicks in order and stops at no room', () => {
-  assert.deepEqual(KICKS, [[0, -1], [-1, 0], [1, 0], [0, 1]]);
-  const cases = /** @type {[string[], XYLike | null][]} */ ([
-    [[], [2, 1]],
-    [['d'], [2, 1]],
-    [['a'], [1, 1]],
-    [['a', 'b'], [3, 1]],
-    [['a', 'b', 'c'], [2, 2]],
-    [['a', 'b', 'c', 'd'], null],
-  ]);
-  for (const [blockers, expected] of cases) {
-    const game = withBar(createGame(kickPack(), 0), blockers);
-    const pose = /** @type {Pose} */ (game.placed.get('P'));
-    const turned = rotatePlaced(game, pose, 1, 1);
-    if (expected === null) {
-      assert.equal(turned, null, blockers.join());
-      continue;
-    }
-    assert.ok(turned, blockers.join());
-    assert.deepEqual([turned.x, turned.y], expected, `origin with blockers ${blockers.join()}`);
-    assert.equal(canPlace(game, turned, 'P').ok, true);
-  }
-  // Natural pose first: the handle stays on its old cell (2,2) and nothing is kicked.
-  const free = withBar(createGame(kickPack(), 0), []);
-  const natural = /** @type {Pose} */ (rotatePlaced(free, /** @type {Pose} */ (free.placed.get('P')), 1, 1));
-  assert.deepEqual(handleCell(free.pack.pieces[0], natural, 1), [2, 2]);
 });
 
-test('no-room rotation keeps the state, announces it and asks for a shake', () => {
-  const h = harness(kickPack());
-  h.store.update({ game: withBar(h.game(), ['a', 'b', 'c', 'd']) });
-  h.play.select('P');
-  const before = h.game();
-  h.log.length = 0;
+test('the menu turn of a placed piece drops its preview; a tray piece is turned in the tray; a held ghost still turns', () => {
+  const h = harness(sample);
+  const [first, second] = movables(sample);
+  h.store.update({ game: reduce(h.game(), { type: 'place', pose: first }) });
+  assert.equal(h.play.returnTurned(second.piece, 'cw'), false, 'a tray piece is left to the tray turn');
+  assert.equal(h.game().placed.has(first.piece), true);
+  h.play.pickUp(first.piece);
+  assert.ok(h.game().preview);
   assert.equal(h.play.transform('cw'), true);
-  assert.equal(h.game(), before, 'not even a new state object');
-  assert.deepEqual(h.log, [PLAY_TEXT.noRoom]);
-  assert.equal(h.events.noRoom, 1);
-  h.store.update({ game: reduce(h.game(), { type: 'remove', piece: 'd' }) });
-  assert.equal(h.play.transform('cw'), true, 'with room the same turn succeeds as one step');
-  assert.equal(h.game().history.length, 7);
-  assert.equal(poseT(/** @type {Pose} */ (h.game().placed.get('P'))), 1);
+  assert.equal(h.game().placed.has(first.piece), true, 'a picked-up piece is turned as a ghost, on the board');
+  assert.equal(poseT(/** @type {Pose} */ (h.game().preview)), transformedT(poseT(first), 'cw', 0));
+  assert.equal(h.play.returnTurned(first.piece, 'flipH'), true);
+  assert.equal(h.game().preview, null, 'the ghost is dropped');
+  assert.equal(h.game().placed.has(first.piece), false);
+  assert.equal(h.game().tray.get(first.piece), transformedT(poseT(first), 'flipH', 0), 'the turn starts from the placed orientation');
 });
 
 test('tap placement: select, preview, same-cell tap commits once; another cell only moves the ghost', () => {

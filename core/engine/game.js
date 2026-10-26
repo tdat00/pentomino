@@ -76,8 +76,10 @@ import { poseCells } from './geometry.js';
 /**
  * `reveal` replaces every movable placement with the complete `layout` as one
  * undoable command and marks the session revealed. `hint` counts one shown hint.
+ * `remove` sends a placed piece to the tray; its optional `t` is the orientation it has there (the one it was
+ * placed with when left out), so that a turn or flip of a placed piece is one undoable step.
  * @typedef {{ type: 'place' | 'move', pose: Pose }
- *   | { type: 'remove', piece: string }
+ *   | { type: 'remove', piece: string, t?: number }
  *   | { type: 'orient', piece: string, t: number, pose?: Pose }
  *   | { type: 'reveal', layout: Pose[] }
  *   | { type: 'reset' | 'undo' | 'redo' | 'hint' }} Action
@@ -558,7 +560,7 @@ export function reduce(s, a) {
     case 'orient':
       return orient(ctx, s, a);
     case 'remove':
-      return remove(ctx, s, a.piece);
+      return remove(ctx, s, a.piece, a.t);
     case 'reset':
       return reset(ctx, s);
     case 'reveal':
@@ -633,9 +635,10 @@ function orient(ctx, s, a) {
  * @param {Context} ctx
  * @param {GameState} s
  * @param {string} piece
+ * @param {number} [t] Orientation in the tray; a value that is not 0..7 leaves the placed one.
  * @returns {GameState}
  */
-function remove(ctx, s, piece) {
+function remove(ctx, s, piece, t) {
   const current = typeof piece === 'string' ? s.placed.get(piece) : undefined;
   if (!current || ctx.clues.has(piece)) {
     return s;
@@ -646,7 +649,7 @@ function remove(ctx, s, piece) {
     before: current,
     after: null,
     tBefore: poseT(current),
-    tAfter: poseT(current),
+    tAfter: Number.isInteger(t) && /** @type {number} */ (t) >= 0 && /** @type {number} */ (t) <= 7 ? /** @type {number} */ (t) : poseT(current),
   });
 }
 

@@ -135,7 +135,7 @@ The main design decisions and why they were taken.
 | D28 | Folder layout | `core/engine`, `core/workers`, `core/browser`; tests in `/tests` | Clear layering; tests are never deployed |
 | D29 | Deployment | Actions: test → assemble `_site` → deploy. External `redirect.js`. | CSP-compatible |
 | D30 | Colors and labels | 20-color palette, generated colors beyond 20, labels A…Z, AA, AB, …, and fill patterns when K > 20. Labels and patterns are always drawn; there are no display toggles. Drawn as one character with a mark past Z, in print-safe drawn colors (§11.9). | Sets reach ~90 pieces on large boards. |
-| D31 | Rotating a placed piece | Rotate about its handle cell and try 4 one-cell kicks; otherwise reject. | Predictable |
+| D31 | Turning a placed piece | A placed piece is never turned or flipped in place: the piece menu, the toolbar and the keys send it back to the tray, turned there, as one undo step. | The in-place turn needed a handle, kicks and a "no room" message that a touch screen cannot show, and was the least reliable gesture on phones; dragging a placed piece still moves it |
 | D32 | Size balance | Sizes in [max(3, ⌊0.6μ⌋), ⌈1.5μ⌉]; ≤ ⌊0.4K⌋ pieces of 3–4 cells; μ ≥ 4.5; exact histogram feasibility. There is no spread or large-piece rule. | Scales with μ (360-cell hard needs 12–34-cell pieces); 40 % keeps the user's 13-piece 60-cell master set possible. |
 | D33 | Set construction | Macro carving when μ ≥ 6.5 (regions of 3–6 pieces; 2–3 when K ≤ 12) with global shape-key exclusion; flat carving otherwise or as a fallback; independent validation of every witness | Flat-carved big-piece sets usually have one arrangement; macro sets gave 10 distinct layouts in both reproductions. |
 | D34 | Initial pre-placed count | G0 = clamp(round(g_L·K), 1, K−2); g_L = 0.62 − 0.08·L up to nightmare, hell-1 0.10, hell-2 0.06, hell-3+ 0.04; then searched. Count and fraction are both shown. | Monotone "many → few"; centres hell-1 at D ≈ 100 |
@@ -546,7 +546,7 @@ export function createPuzzleCodec(deps?: { measure?: Function; allowDeflate?: bo
 export function createGame(pack: Pack, puzzleIndex: number, saved?: Progress): GameState;
 export function canPlace(s: GameState, pose: Pose, ignorePiece?: string):
   { ok: true } | { ok: false; reason: 'outside' | 'blocked' | 'overlap' | 'clue' };
-export function reduce(s: GameState, a: Action): GameState;   // place | move | remove | orient | reset | undo | redo
+export function reduce(s: GameState, a: Action): GameState;   // place | move | remove (optional tray orientation t) | orient | reset | undo | redo
 export function isSolved(s: GameState): boolean;
 export function snapshot(s: GameState): Progress;
 ```
@@ -2156,6 +2156,8 @@ type GameState = {
 4. Commit atomically, or leave the state unchanged.
 5. Clear the redo stack and run win detection.
 
+A placed piece goes back to the tray with `remove`; its optional `t` (0..7) is the orientation it has there, so a turn or flip of a placed piece (§11.5) is that one command, with `tAfter` different from `tBefore`.
+
 The board state is never mutated during a drag or preview.
 
 ### 11.3 Drag and drop (Pointer Events)
@@ -2191,15 +2193,14 @@ The board state is never mutated during a drag or preview.
 ### 11.5 Rotate and flip
 
 - The toolbar has ⟲ ⟳ ⇋ ⇵ in screen space (§6.3). A piece returns to the tray with Delete or Backspace, the piece menu, or a drop over the pieces panel; there is no button for it.
-- **Piece menu.** Right-click on a piece of the pieces panel or on a movable piece of the board opens a small menu at the pointer: **Rotate clockwise** (E), **Rotate counter-clockwise** (Q), **Flip left-right** (F), **Flip top-bottom** (V) and, for a placed piece, **Return to tray** (Delete) followed by the two puzzle actions below. The Menu key or Shift+F10 on a focused piece opens it under the piece. A touch held still on a tray piece or a movable board piece for 450 ms opens it at the finger (`longPressMs` of the pointer tracker; the gesture ends there, so the release is neither a tap nor a drag, and a `contextmenu` event that follows within 900 ms is its echo and is ignored). Without the toolbar of the narrow layout, this is how a touch screen turns and flips a piece.
+- **Piece menu.** Right-click on a piece of the pieces panel or on a movable piece of the board opens a small menu at the pointer: **Rotate clockwise** (E), **Rotate counter-clockwise** (Q), **Flip left-right** (F), **Flip top-bottom** (V) and, for a placed piece, **Return to tray** (Delete) followed by the two puzzle actions below. The Menu key or Shift+F10 on a focused piece opens it under the piece. A touch held still on a tray piece or a movable board piece for 450 ms opens it at the finger (`longPressMs` of the pointer tracker; the gesture ends there, so the release is neither a tap nor a drag, and a `contextmenu` event that follows within 900 ms is its echo and is ignored). Without the toolbar of the narrow layout, this is how a touch screen turns and flips a piece. On a placed piece the turn and flip entries first send it back to the tray (see **Placed pieces**).
 - **Board menu.** Right-click anywhere else on the board (empty cells, outside the board shape, a locked clue) opens the same kind of menu with only the puzzle actions: **Return all pieces to the tray** (every placed piece goes back to the tray, and every turned tray piece to its first orientation, as one undoable action; disabled when there is nothing to return) and **Replay the puzzle** (asks first; clears the board, the timer, the moves and the saved progress of this puzzle, which cannot be undone; disabled while the puzzle is untouched).
   - Opening it selects the piece, and every entry does what the toolbar button does, so the rules below apply unchanged.
   - The first entry has the focus. The arrow keys, Home and End walk the entries (the page's shortcuts stay quiet), Enter or Space runs one, and Escape, Tab, a press elsewhere, a scroll or a resize closes it; the focus goes back to the piece when the menu closes by Escape or by choosing an entry.
   - The menu is a `role="menu"` of buttons (`role="menuitem"`), kept inside the window.
 - **Tray pieces** re-orient in place.
-- **Placed pieces** rotate or flip about their handle cell. If the result is invalid, the player tries one-cell grid kicks in the order (0, −1), (−1, 0), (1, 0), (0, 1).
-  - If none fits, the piece does not change: a 200 ms shake plus "No room to rotate here".
-  - A successful re-orientation is one undo step.
+- **Placed pieces** are never turned or flipped in place. The piece menu entries, the toolbar buttons and the keys (E, Q, F, V) send a selected placed piece back to the tray, turned or flipped there from the orientation it had on the board (`returnTurned` of `play.js`: the reducer's `remove` with the new orientation `t`). The piece menu entry also drops a preview of that piece. This is one undo step, announced as "Piece X returned to the tray and turned", and the focus goes to the piece in the tray; there is no "no room" outcome. The player then drags it onto the board again. A piece that is held (dragged, or picked up with the keyboard and shown as a ghost) is still turned as a ghost, wherever it is dragged; nothing on the board changes until it is dropped.
+  - Dragging a placed piece to another place is unchanged: it moves in one step when the drop is legal and goes back where it was otherwise.
 
 ### 11.6 Keyboard
 
@@ -2208,15 +2209,15 @@ The board state is never mutated during a drag or preview.
 | Tab / Shift+Tab | Move focus over the pieces to place, then the controls and placed movable pieces of the game, then the puzzles |
 | Enter / Space | Pick up the focused piece (a ghost appears), or drop it if valid |
 | Arrow keys (Shift = 3 cells) | Move the ghost; on rotated boards, by the mapping of §6.3 |
-| E or R / Q | Rotate ⟳ / ⟲ on screen |
-| F / V | Flip ⇋ / ⇵ on screen |
+| E or R / Q | Rotate ⟳ / ⟲ on screen; a selected placed piece goes back to the tray first (§11.5) |
+| F / V | Flip ⇋ / ⇵ on screen; a selected placed piece goes back to the tray first (§11.5) |
 | Delete / Backspace | Return the selected placed piece to the tray |
 | Esc | Cancel the pick-up or close a dialog or the piece menu |
 | Ctrl/⌘+Z; Ctrl/⌘+Shift+Z or Ctrl+Y | Undo; redo |
 | Right-click, Menu key or Shift+F10 on a piece | Open the piece menu (§11.5) |
 | ? | Show shortcuts |
 
-Shortcuts are ignored while focus is in a text field, a dialog or the piece menu. The buttons of the selection toolbar also rotate and flip, and the piece menu also returns a piece to the tray. The **Help** dialog lists the rows of this table in the interface language.
+Shortcuts are ignored while focus is in a text field, a dialog or the piece menu. The buttons of the selection toolbar also rotate and flip (a placed piece goes back to the tray first), and the piece menu also returns a piece to the tray. The **Help** dialog lists the rows of this table in the interface language.
 
 ### 11.7 Touch
 
@@ -2512,7 +2513,7 @@ jobs:
 | `player-puzzle-code-route` | The controller with a real worker client: `#p=` with a full code (stored answer, verification fast path) and with a core (verification pool only), the address and history never rewritten, reload, saved progress restored, bad links changing nothing and named as the code entry names them, damaged tail as recovery data that opens nothing, `worker-unavailable` with the sample still opening, `loadPuzzleCode` with and without `commitAddress`, `cancelPuzzleCodeLoad` and a late success, client ownership, no use of the verification pool by code work; several codes (opened at `i`, the address following the open puzzle, reload, one code of an address never rewritten, a wrong second code named and changing nothing, typed lists and `commitAddress`). |
 | `puzzlecode` | The sample and hand-authored goldens reproduce exactly (raw), with the edge vectors (title kinds 2 and 3, certificates 2^50 − 1 and 2^53 − 1, a failed rating rebuild kept whole, a version-2 decode-only code). CRC-20 vectors and residue; exact Exp-Golomb, truncated binary, colex rank and bit I/O; the catalogue count and SHA-256; the 128 default colours and labels; the integer score and level tables against the live functions for all 640,128 pairs. The negative vectors and about 40 crafted payloads with a valid check, each just inside and just outside its bound; a truncation sweep and a mutation fuzz give typed errors only; inflation stops at 64 KiB while streaming. Tails: a core alone is playable, and a bad, spliced or foreign tail never replaces the core. Correction: every one-symbol substitution of a short golden has one unique candidate that is never applied; none for two errors, swaps, bursts or appended symbols; the 5,732-symbol bound (slow: syndromes distinct to 5,732 with the first collision at 5,733, every two-symbol substitution detected). Every board-mask mode against an independent size count. The 1,024-cell, 128-piece count-only stress pack and the 24 × 24 oracle. 150 seeded random puzzles round-trip raw, automatic and DEFLATE and re-encode identically. Inputs are never mutated; importing the module builds no catalogue. |
 | `puzzlecode-input` | The `#p=` parser against `tests/fixtures/puzzlecode-hashes.json` and for lists (`;`, `i` naming a code, an encoded `;`); `splitPuzzleCodes`, `isPuzzleListHash`, `normalizePuzzleCodeList` (at most 100 codes) and `normalizePuzzleCodeText`; the normalizers (grouping, aliases, `bad-char`, `dots`, `empty`, `too-long`) and their bounds; `PuzzleCodeError`; no import of `sharecode.js`, a host module or the codec implementation. |
-| `game` | place / move / remove / orient / undo / redo / reset. `canPlace` reasons. A moving piece's old cells are excluded. A non-witness tiling wins. Clues are immutable. Restoring progress drops invalid moves. |
+| `game` | place / move / remove (with an optional tray orientation, so that a turn of a placed piece is one command; a value outside 0..7 is ignored) / orient / undo / redo / reset. `canPlace` reasons. A moving piece's old cells are excluded. A non-witness tiling wins. Clues are immutable. Restoring progress drops invalid moves. |
 | `print-layout` | The paper layout of §11.15: 45° steps dropped, the board, clues and pieces turn together, the cell sizes (10, 15, 20 mm, Fit to page ≤ 25 mm), pieces packed once inside the margins and apart, a too-wide piece turned and the cells shrunk when nothing fits, a big board cut into parts that cover every playable cell once, blocked parts left out, the quarter turn that saves paper, the page list with the backs, the preview fitting the page, the heading and the QR band (title wrapping and ellipsis, the QR at the left and the heading's x and width beside 25, 34.5 and 92.5 mm boxes, the band bottom and the preview top, one-sided and two-sided order and paper counts, the no-QR sheet, one puzzle equal through `planPrintMany`, the frames of 2 and 4 inside the page and apart, puzzles grouped by the page with their solutions and the pieces and board once, every puzzle inside its frame with the QR box in proportion, the mirrored solution sheet on the back and the blank back of a group with none), and equal English and Vietnamese `print.*` texts. |
 | `puzzle-title` | The heading rule at its boundaries: absent, empty, ordinary, numbered and long titles; positions 1, 2 and 100; 75, 76 and 80 code points, astral characters counted once; the English and Vietnamese untitled labels; the title the code carries; a re-created puzzle shows the printed heading. |
 | `puzzle-snapshot` | The snapshot is detached, frozen and canonical, and its key holds every code-relevant field but no progress; the target matrix (public, fork with its case, localhost, a LAN address, IPv6 loopback, `file:`, and the schemes with no usable address that use the public Player); the capacity ladder at the version 40 boundaries (3,322 and 4,227 characters), the URL budget and a worker failure that is not an oversize puzzle; the Generator's job (`printJobOf`) and the Player's give the same code for the same puzzle; the detail line holds the rating alone; and the QR of a prepared share read back by jsQR. |
@@ -2541,7 +2542,7 @@ Run on desktop Chromium, Firefox and Safari, on Android Chrome and on iOS Safari
 13. The area cap and N-CAP follow the device class (§6.2).
 14. A job that reaches 115 s returns its accepted puzzles by 120 s with reason `time-limit`.
 15. The player's **EN | VI** switch changes every text of the page and survives a reload; the theme buttons change the palette (also on the generator, which shares both choices).
-16. Right-click on a piece of the pieces panel, or a press held on it on a touch screen, opens the piece menu: rotate both ways, flip both ways. On a placed piece it also offers Return to tray. Escape closes it and the focus returns to the piece.
+16. Right-click on a piece of the pieces panel, or a press held on it on a touch screen, opens the piece menu: rotate both ways, flip both ways. On a placed piece it also offers Return to tray, and its rotate and flip entries send the piece to the tray, turned there (one Undo puts it back). Escape closes it and the focus returns to the piece.
 17. Print (generator's Play row and player's game bar) opens the dialog; the print preview of the browser shows an A4 first sheet, the piece set and the board at the chosen size, with no other part of the page. On paper at 100 %, the 50 mm bar measures 50 mm and a cut-out piece covers exactly one board cell. With two-sided printing flipped on the long edge, the two sides of a piece or board part coincide. `tests/browser/print.html` checks the geometry in millimetres; `tests/browser/puzzle-code-print.html` (item 21) checks the QR band and the Print dialog's preparation.
 18. `tests/browser/puzzle-qr.html` (strict policy) checks the five golden matrix hashes, then renders symbols of versions 5, 11 and 40 on light, dark and high-contrast surroundings and measures them in millimetres: an opaque white box with the quiet zone of 4 modules on every edge, black modules at 0.5 mm or more, a box of at least 25 mm, and a path that paints exactly the matrix. It is not a phone scan; reading a printed code with real phones stays a physical check.
 19. `tests/browser/puzzle-code-worker.html` (strict policy) runs the puzzle-code client over its real module worker, with no mock: the frozen golden from `encode`, `decode` with and without the tail, links and grouped text, a correction candidate and core-only recovery, typed failures, cancel, supersede, two independent clients, `worker-unavailable` and idempotent dispose. It counts the page's `Worker` constructions (one worker per client at a time, none left running) and asserts that the page never builds the cold catalogue and that no policy violation or uncaught error occurs.
@@ -2606,7 +2607,7 @@ L = likelihood, I = impact.
 11. Non-standard sets in a link (duplicate shapes, pieces < 3 cells, holes) are playable with a notice. A pack with zero clues is playable too; the generator never produces one.
 12. An unknown version or rule set: show "unsupported" and store nothing.
 13. Progress saved for a different puzzle with the same id is not applied, because the fingerprints differ.
-14. No room to rotate a placed piece: shake and leave it unchanged. A drop partly outside or overlapping reverts.
+14. Turning or flipping a placed piece: it returns to the tray, turned there (one undo step); there is no no-room case. A drop partly outside or overlapping reverts.
 15. A resize or orientation change during a drag cancels the drag.
 16. Two tabs: the last write wins. Storage unavailable: play and generation continue in memory, and the page says the work cannot be saved.
 17. 21–90 pieces: generated colors, labels beyond Z and patterns; the tray scrolls.

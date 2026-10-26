@@ -756,12 +756,19 @@ await check('tap placement with the toolbar: rotate, mirror, commit, Enter, Esca
   m.q('[data-action="undo"]').click();
   await tick();
   assert(m.game().placed.has(a.piece), 'Undo restores it');
-  // Mirror and quarter-turn of a placed piece keep it on the board (or announce no room).
+  // Mirror of a placed piece: it goes back to the tray, flipped there, as one undoable step (never turned in place).
   m.player.play.select(a.piece);
+  const stepsBefore = m.game().history.length;
   m.q('[data-action="flip-h"]').click();
   await tick();
+  assert(!m.game().placed.has(a.piece), 'a placed piece is not flipped in place');
+  equal(m.game().tray.get(a.piece), transformedT(poseT(a), 'flipH', 0), 'it is flipped in the tray');
+  equal(m.game().history.length, stepsBefore + 1, 'one undo step');
   const live = m.q('[data-host="live"]');
-  await waitFor(() => live.textContent !== '', 'a live announcement');
+  await waitFor(() => (live.textContent ?? '').includes('returned to the tray and turned'), 'a live announcement');
+  m.q('[data-action="undo"]').click();
+  await tick();
+  same(m.game().placed.get(a.piece), a, 'Undo puts the piece back as it was');
   m.player.destroy();
 });
 
@@ -1007,7 +1014,7 @@ await check('labels and patterns are drawn together; names keep label and size; 
   m.player.destroy();
 });
 
-await check('accessibility: names, board role, live region, 44 px targets, visible focus, reduced-motion shake', async () => {
+await check('accessibility: names, board role, live region, 44 px targets, visible focus', async () => {
   const m = await game(0, { reducedMotion: true });
   const [a] = movables(m);
   const board = m.q('.pm-board .pm-svg');
@@ -1040,47 +1047,31 @@ await check('accessibility: names, board role, live region, 44 px targets, visib
   m.player.destroy();
 });
 
-await check('no room to rotate: the piece stays, "No room to rotate here" is announced, a 200 ms shake unless reduced motion', async () => {
-  // A 5x1 strip: the bar fits only lengthwise, so no turn has room.
-  const strip = {
-    format: 'pentomino-pack',
-    version: 1,
-    kind: 'puzzle-pack',
-    rules: 'free-polyomino-v1',
-    board: { rows: ['#####'] },
-    pieces: [
-      { id: 'P', label: 'P', color: '#e6194b', cells: [[0, 0], [1, 0], [2, 0]] },
-      { id: 'M', label: 'M', color: '#3cb44b', cells: [[0, 0]] },
-      { id: 'N', label: 'N', color: '#ffe119', cells: [[0, 0]] },
-    ],
-    puzzles: [{
-      id: 'strip',
-      title: 'Strip',
-      clues: [{ piece: 'M', x: 4, y: 0, turn: 0, mirrored: false }],
-      solution: [{ piece: 'P', x: 0, y: 0, turn: 0, mirrored: false }, { piece: 'N', x: 3, y: 0, turn: 0, mirrored: false }, { piece: 'M', x: 4, y: 0, turn: 0, mirrored: false }],
-    }],
-  };
-  const stripHash = await packHash(validated(strip));
-  for (const reduced of [false, true]) {
-    const m = await mount({ hash: stripHash, reducedMotion: reduced });
-    m.player.play.select('P');
-    m.player.play.pickUp('P');
-    m.play.moveKey('ArrowRight');
-    m.play.commitPreview();
-    equal(m.game().placed.size, 1, 'the bar sits on the strip');
-    const before = m.game();
-    m.q('[data-action="rotate-cw"]').click();
-    await tick();
-    equal(m.game().placed, before.placed, 'the placement is unchanged');
-    equal(m.game().history.length, before.history.length, 'no history entry');
-    await waitFor(() => m.q('[data-host="live"]').textContent === 'No room to rotate here', 'the announcement');
-    equal(m.q('.board-wrap').classList.contains('is-shaking'), !reduced, reduced ? 'no shake with reduced motion' : 'the shake plays');
-    if (!reduced) {
-      await pause(300);
-      assert(!m.q('.board-wrap').classList.contains('is-shaking'), 'the shake ends after 200 ms');
-    }
-    m.player.destroy();
-  }
+await check('touch: a press and hold on a placed piece opens its menu; Rotate sends the piece to the tray and turns it there, never on the board', async () => {
+  const m = await game(0);
+  const target = movables(m)[0];
+  const id = target.piece;
+  await dragFromTray(m, id, { index: 1, ops: opsTo(poseT(target), 0), to: handleCell(pieceOf(m, id), target, 1), type: 'touch' });
+  same(m.game().placed.get(id), target, 'the piece is placed by a lifted drag');
+  const hit = /** @type {Element} */ (/** @type {Element} */ (boardPiece(m, id)).querySelector('.pm-hit[data-source-cell="1"]'));
+  const surface = m.player.boardView.view.surface;
+  const at = centerOf(hit);
+  const menu = () => m.q('.pm-menu');
+  pe(hit, 'pointerdown', at.x, at.y, { pointerType: 'touch' });
+  await pause(650);
+  assert(!menu().hidden, 'the menu opens after the hold');
+  pe(surface, 'pointerup', at.x, at.y, { pointerType: 'touch' });
+  assert(!menu().hidden && m.game().placed.has(id), 'the release neither closes the menu nor moves the piece');
+  const steps = m.game().history.length;
+  m.q('.pm-menu [data-action="rotate-cw"]').click();
+  await tick();
+  assert(!m.game().placed.has(id), 'the piece left the board');
+  equal(m.game().tray.get(id), transformedT(poseT(target), 'cw', 0), 'and was turned in the tray');
+  equal(m.game().history.length, steps + 1, 'as one step');
+  m.q('[data-action="undo"]').click();
+  await tick();
+  same(m.game().placed.get(id), target, 'Undo puts the piece back on the board');
+  m.player.destroy();
 });
 
 await check('piece menu: right-click turns and flips a tray piece; Escape, a click outside and Tab close it; the board menu lists Return all and Replay', async () => {
@@ -1151,6 +1142,14 @@ await check('piece menu: right-click turns and flips a tray piece; Escape, a cli
   const placed = /** @type {Element} */ (boardPiece(m, id));
   rightClick(placed);
   same(actions(), ['rotate-cw', 'rotate-ccw', 'flip-h', 'flip-v', 'to-tray', 'unplace-all', 'replay'], 'a placed piece can also return to the tray, and the puzzle actions follow');
+  // A placed piece is never turned in place: the menu sends it to the tray, turned there (one Undo puts it back).
+  m.q('.pm-menu [data-action="rotate-cw"]').click();
+  assert(!m.game().placed.has(id), 'turning a placed piece takes it off the board');
+  equal(m.game().tray.get(id), transformedT(poseT(target), 'cw', 0), 'and turns it in the tray');
+  m.q('[data-action="undo"]').click();
+  await tick();
+  same(m.game().placed.get(id), target, 'one Undo puts it back as it was');
+  rightClick(/** @type {Element} */ (boardPiece(m, id)));
   m.q('.pm-menu [data-action="to-tray"]').click();
   assert(!m.game().placed.has(id) && m.game().tray.has(id), 'Return to tray takes it off the board');
 

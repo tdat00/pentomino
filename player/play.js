@@ -19,8 +19,6 @@ import { PLAY_TEXT, solvedSummary } from './strings.js';
 /** @typedef {'cw' | 'ccw' | 'flipH' | 'flipV'} TransformOp */
 /** @typedef {'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown'} ArrowKey */
 
-/** One-cell grid kicks tried, in order, after the natural pose of a rotated or mirrored placed piece. */
-export const KICKS = Object.freeze(/** @type {XY[]} */ ([[0, -1], [-1, 0], [1, 0], [0, 1]]));
 export const SAVE_DELAY_MS = 250;
 export const TICK_MS = 1000;
 const ARROW_KEYS = Object.freeze(/** @type {ArrowKey[]} */ (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']));
@@ -93,30 +91,6 @@ export function transformedT(t, op, theta) {
 }
 
 /**
- * New pose of a placed piece after turning it about its handle: the natural pose
- * first, then the one-cell kicks. `null` when nothing fits.
- * @param {GameState} game
- * @param {Pose} pose Current placement.
- * @param {number} index Handle source index.
- * @param {number} newT
- * @returns {Pose | null}
- */
-export function rotatePlaced(game, pose, index, newT) {
-  const piece = game.pack.pieces.find((p) => p.id === pose.piece);
-  if (piece === undefined) {
-    return null;
-  }
-  const base = poseWithHandle(piece, newT, index, handleCell(piece, pose, index));
-  for (const [dx, dy] of [[0, 0], ...KICKS]) {
-    const candidate = { ...base, x: base.x + dx, y: base.y + dy };
-    if (canPlace(game, candidate, piece.id).ok) {
-      return candidate;
-    }
-  }
-  return null;
-}
-
-/**
  * @param {number} theta
  * @param {ArrowKey} key
  * @param {boolean} [shift]
@@ -184,7 +158,6 @@ function tableOf(game) {
  * @property {(fn: () => void, ms: number) => unknown} [setInterval]
  * @property {(handle: unknown) => void} [clearInterval]
  * @property {(message: string) => void} [announce]
- * @property {() => void} [onNoRoom] Shake the board (the caller honours reduced motion).
  * @property {(result: { elapsedMs: number, moves: number }) => void} [onSolved]
  * @property {(pieceId: string, where: 'board' | 'tray') => void} [focus] Keyboard follow-up focus.
  * @property {number} [saveDelayMs]
@@ -432,6 +405,25 @@ export function createPlayController(options) {
     return true;
   }
 
+  /**
+   * A placed piece that is turned or flipped goes back to the tray in its new orientation, as one undoable step; the
+   * preview, if any, is dropped with it.
+   * @param {GameState} game
+   * @param {string} id
+   * @param {Piece} piece
+   * @param {TransformOp} op
+   * @returns {boolean}
+   */
+  function returnTurned(game, id, piece, op) {
+    const t = transformedT(currentT(game, id), op, theta());
+    change({ keyboard: false });
+    if (commit(reduce(game, { type: 'remove', piece: id, t }))) {
+      announce(PLAY_TEXT.returnedTurned(piece.label));
+      options.focus?.(id, 'tray');
+    }
+    return true;
+  }
+
   /** @returns {boolean} False when there is nothing to drop or the ghost is not legal. */
   function commitPreview() {
     const game = openGame();
@@ -606,7 +598,8 @@ export function createPlayController(options) {
       return true;
     },
     /**
-     * Screen-space rotate or mirror of the dragged, previewed or selected piece.
+     * Screen-space rotate or mirror of the dragged, previewed or selected piece. A selected piece that is placed (and
+     * has no preview) goes back to the tray, turned there.
      * @param {TransformOp} op
      * @returns {boolean}
      */
@@ -648,19 +641,26 @@ export function createPlayController(options) {
         return true;
       }
       if (placed !== undefined) {
-        const pose = rotatePlaced(game, placed, index, newT);
-        if (pose === null) {
-          announce(PLAY_TEXT.noRoom);
-          options.onNoRoom?.();
-          return true;
-        }
-        commit(reduce(game, { type: 'orient', piece: id, t: newT, pose }));
-        announce(PLAY_TEXT.turned(piece.label));
-        return true;
+        return returnTurned(game, id, piece, op);
       }
       commit(reduce(game, { type: 'orient', piece: id, t: newT }));
       announce(PLAY_TEXT.turned(piece.label));
       return true;
+    },
+    /**
+     * Turn or flip of a placed piece, from its menu: the piece goes back to the tray and is turned there. A placed
+     * piece is never turned in place, so there is no "no room" outcome.
+     * @param {string} id
+     * @param {TransformOp} op
+     * @returns {boolean}
+     */
+    returnTurned(id, op) {
+      const first = openGame();
+      if (first === null || ui.drag !== null || !first.placed.has(id) || !select(id)) {
+        return false;
+      }
+      const game = /** @type {GameState} */ (openGame());
+      return returnTurned(game, id, /** @type {Piece} */ (pieceOf(game, id)), op);
     },
     /**
      * Cancels a drag, then a preview, then the selection. @returns {boolean}

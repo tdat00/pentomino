@@ -289,7 +289,6 @@ export function mountPlayer(root, env = {}) {
     now: env.now,
     saveDelayMs: env.saveDelayMs,
     announce,
-    onNoRoom: () => flash(boardWrap, 'is-shaking', 200),
     onSolved: ({ elapsedMs, moves: moveCount }) => {
       const state = store.getState();
       winDialog.show({
@@ -528,15 +527,18 @@ export function mountPlayer(root, env = {}) {
   });
 
   // Piece menu: a right-click, the Menu key or a long press on a tray piece or a movable board piece. Elsewhere on
-  // the board it lists only the actions of the whole puzzle.
+  // the board it lists only the actions of the whole puzzle. Turning or flipping a board piece sends it to the tray
+  // first; a placed piece is never turned in place.
   const pieceMenu = createContextMenu(root);
   /**
    * @param {string} id
    * @param {TransformOp} op
    */
   const turn = (id, op) => {
-    play.select(id);
-    play.transform(op);
+    if (!play.returnTurned(id, op)) {
+      play.select(id);
+      play.transform(op);
+    }
   };
   /** @returns {import('./ui/context-menu.js').MenuEntry[]} */
   function puzzleEntries() {

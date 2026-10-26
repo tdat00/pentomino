@@ -109,7 +109,7 @@ test('texts keep their English wording and follow a language switch', () => {
   assert.equal(t('shell.title'), 'Trình chơi Pentomino');
   assert.equal(LABELS.piecesLeft(1), 'Còn 1 mảnh');
   assert.equal(LABELS.piecesLeft(4), 'Còn 4 mảnh');
-  assert.equal(PLAY_TEXT.noRoom, 'Không đủ chỗ để xoay ở đây');
+  assert.equal(PLAY_TEXT.returnedTurned('A'), 'Mảnh A đã trở về khay và được xoay');
   assert.equal(PLAY_TEXT.ghostAt(2, 3, null), 'Hàng 2, cột 3. Trống');
   assert.equal(ratingLabel({ model: 'difficulty-v2', score: 20, level: 'hard' }), 'Khó: điểm 20');
   assert.equal(levelLabel('hell-2'), 'Địa ngục 2');
