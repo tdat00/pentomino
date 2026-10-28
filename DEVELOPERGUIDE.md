@@ -113,7 +113,8 @@ has the same keys and `{placeholders}`, which the i18n tests check. A new visibl
 ## Publishing
 
 `.github/workflows/pages.yml` runs the tests, stages the site, stamps it and verifies it before publishing it on GitHub
-Pages; a failure stops the deployment. Only `index.html`, `redirect.js`, `core`, `generator` and `player` are deployed.
+Pages; a failure stops the deployment. Only `index.html`, `redirect.js`, `sitemap.xml`, `assets`, `core`, `generator` and
+`player` are deployed.
 The site lives under `/pentomino/`, so every link is relative.
 
 | Address | Content |
@@ -139,6 +140,18 @@ node tools\serve.mjs --root _site --port 8081 --prefix /pentomino/
 
 There is no service worker. GitHub Pages caches for up to ten minutes, which is why every reference carries the commit
 version.
+
+**Search engines and link previews** — the `<head>` of `index.html`, `generator/index.html` and `player/index.html`
+carries a description, a canonical link and the Open Graph and Twitter Card tags that Facebook, Zalo, X and Slack show
+when a link is shared. Crawlers run no script, so these tags are static English text. The addresses in the `og:` and
+`twitter:` tags are absolute (`https://tdat00.github.io/pentomino/…`, the one exception to the rule of relative links;
+`check-site.mjs` does not read `<meta>` tags): change them when the site moves. The canonical tag is a `<link>`, so it
+is relative (`./`) to pass `check-site.mjs`. There is no JSON-LD because inline scripts are not allowed. Facebook
+cannot show an SVG, so the preview images are PNGs of 1200×630 pixels in `assets/` (`og-generator.png`,
+`og-player.png`, with `apple-touch-icon.png`); the workflow publishes `assets/` and `sitemap.xml` with the site. After a
+change of the tags or the images, refresh the cache of Facebook with its
+[Sharing Debugger](https://developers.facebook.com/tools/debug/); to be listed in Google, submit
+`https://tdat00.github.io/pentomino/sitemap.xml` in Search Console (a project site cannot serve its own `robots.txt`).
 
 [Back to top](#top)
 

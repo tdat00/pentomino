@@ -16,6 +16,8 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html redirect.js _site/
+          cp sitemap.xml _site/
+          cp -r assets _site/
           cp -r core generator player _site/
           if [ -f tools/stamp-version.mjs ]; then node tools/stamp-version.mjs _site "${GITHUB_SHA::8}"; fi
       - name: Verify staged site

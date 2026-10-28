@@ -28,7 +28,7 @@ function assembleSite(name) {
   for (const file of ['index.html', 'redirect.js']) {
     cpSync(join(repoRoot, file), join(site, file));
   }
-  for (const dir of ['core', 'generator', 'player']) {
+  for (const dir of ['assets', 'core', 'generator', 'player']) {
     cpSync(join(repoRoot, dir), join(site, dir), { recursive: true });
   }
   return site;
@@ -136,6 +136,8 @@ describe('project configuration', () => {
     const yml = readRepo('.github/workflows/pages.yml');
     assert.ok(yml.includes('cp index.html redirect.js _site/'));
     assert.ok(yml.includes('cp -r core generator player _site/'));
+    assert.ok(yml.includes('cp -r assets _site/'));
+    assert.ok(yml.includes('cp sitemap.xml _site/'));
     assert.ok(yml.includes('if [ -f tools/stamp-version.mjs ]'));
     assert.ok(yml.includes('node --test "tests/**/*.test.js"'));
     assert.ok(yml.includes('actions/deploy-pages@v4'));

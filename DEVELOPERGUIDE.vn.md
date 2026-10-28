@@ -115,8 +115,8 @@ gói.
 ## Xuất bản
 
 `.github/workflows/pages.yml` chạy các kiểm thử, dựng bản trang, đóng dấu phiên bản và kiểm tra nó trước khi xuất bản lên
-GitHub Pages; nếu có lỗi thì việc triển khai dừng lại. Chỉ `index.html`, `redirect.js`, `core`, `generator` và `player`
-được triển khai. Trang nằm dưới `/pentomino/`, nên mọi liên kết đều là đường dẫn tương đối.
+GitHub Pages; nếu có lỗi thì việc triển khai dừng lại. Chỉ `index.html`, `redirect.js`, `sitemap.xml`, `assets`, `core`,
+`generator` và `player` được triển khai. Trang nằm dưới `/pentomino/`, nên mọi liên kết đều là đường dẫn tương đối.
 
 | Địa chỉ | Nội dung |
 |---|---|
@@ -140,6 +140,18 @@ node tools\serve.mjs --root _site --port 8081 --prefix /pentomino/
   đúng phiên bản đó; `--entry <relativeHtml>` chỉ kiểm tra các trang được chỉ định.
 
 Không có service worker. GitHub Pages lưu bộ nhớ đệm tới mười phút, vì vậy mọi tham chiếu đều mang phiên bản của commit.
+
+**Công cụ tìm kiếm và xem trước liên kết** — phần `<head>` của `index.html`, `generator/index.html` và
+`player/index.html` có mô tả, thẻ canonical, các thẻ Open Graph và Twitter Card (thứ Facebook, Zalo, X, Slack hiển thị
+khi chia sẻ liên kết). Trình thu thập không chạy script nên các thẻ này là văn bản tiếng Anh tĩnh. Địa chỉ trong thẻ
+`og:` và `twitter:` là địa chỉ tuyệt đối (`https://tdat00.github.io/pentomino/…`, ngoại lệ duy nhất của quy tắc dùng
+liên kết tương đối; `check-site.mjs` không đọc thẻ `<meta>`): hãy đổi chúng khi trang chuyển địa chỉ. Thẻ canonical
+là `<link>` nên phải tương đối (`./`) để qua được `check-site.mjs`. Không dùng JSON-LD vì script nội tuyến bị cấm.
+Facebook không hiển thị được SVG nên ảnh xem trước là tệp PNG 1200×630 điểm ảnh trong `assets/` (`og-generator.png`,
+`og-player.png`, cùng `apple-touch-icon.png`); workflow xuất bản `assets/` và `sitemap.xml` cùng trang. Sau khi đổi thẻ
+hoặc ảnh, làm mới bộ nhớ đệm của Facebook bằng [Sharing Debugger](https://developers.facebook.com/tools/debug/); để
+được Google lập chỉ mục, gửi `https://tdat00.github.io/pentomino/sitemap.xml` trong Search Console (trang dự án không
+tự phục vụ được `robots.txt`).
 
 [Lên đầu trang](#top)
 

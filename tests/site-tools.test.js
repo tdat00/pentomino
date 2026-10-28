@@ -44,7 +44,7 @@ function assembleScaffold() {
   for (const file of ['index.html', 'redirect.js']) {
     cpSync(join(repoRoot, file), join(site, file));
   }
-  for (const dir of ['core', 'generator', 'player']) {
+  for (const dir of ['assets', 'core', 'generator', 'player']) {
     cpSync(join(repoRoot, dir), join(site, dir), { recursive: true });
   }
   return site;
