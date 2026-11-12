@@ -1,9 +1,11 @@
 // @ts-check
 // Deduction solver core (design §7.9): measures a puzzle the way a person solves it. Placements that are
 // forced are made first (R1: a free cell with one possible placement, R2: a piece with one possible
-// placement); the pocket check (R3: a closed region of free cells that the remaining pieces cannot fill
-// exactly) and the lookahead (R6: a placement whose forced consequences break the board is removed) follow;
-// only when nothing helps does the search guess, on the column with the fewest live rows.
+// placement); the pocket rule (R3: a closed region of free cells that the remaining pieces cannot fill
+// exactly is a contradiction, and one that only a single piece can fill gets that piece), the claims (R4: a
+// piece that must cover a cell keeps the other pieces off it, R5: a cell that only one piece can reach claims
+// that piece) and the lookahead (R6: a placement whose forced consequences break the board is removed)
+// follow; only when nothing helps does the search guess, on the column with the fewest live rows.
 // The result describes the path to the first solution (forced placements, the width of every guess), the
 // number of solutions up to a limit, and which cap stopped the search: three independent statuses.
 //
@@ -85,6 +87,9 @@ import { assertLive, ModelError } from './tiling.js';
  * @property {Int32Array} queue Breadth-first queue of the pocket check.
  * @property {Int32Array} seen Visit stamps of the pocket check.
  * @property {Uint8Array} reach Knapsack bits of the pocket check: 1 = one remaining piece, 2 = a sum of several.
+ * @property {Int32Array} compFirst Lowest cell column of each pocket of the last R3 check.
+ * @property {Int32Array} compSize Size of each pocket of the last R3 check.
+ * @property {Int32Array} mark R4 counters of live rows per cell column; zero between two R4 pieces.
  */
 
 const RULES = /** @type {const} */ (['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9']);
@@ -131,6 +136,9 @@ function slotTable(R, C, NZ, NP, NC) {
     ['deduce.queue', 'int32', NC],
     ['deduce.seen', 'int32', NC],
     ['deduce.reach', 'uint8', NC + 1],
+    ['deduce.compFirst', 'int32', NC],
+    ['deduce.compSize', 'int32', NC],
+    ['deduce.mark', 'int32', NC],
   ];
 }
 
@@ -216,9 +224,9 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
   }
   const {
     colStart, colRows, colCount, live, covered, trail, alt, altBase, picked, guessC, guessPlaced,
-    cellIndex, queue, seen, reach,
+    cellIndex, queue, seen, reach, compFirst, compSize, mark: cellMark,
   } = /** @type {Slots} */ (/** @type {unknown} */ (views));
-  const { cellColumn, pieceSizes, width, height } = model;
+  const { cellColumn, pieceSizes, rowPiece, width, height } = model;
   // Reused slots hold unspecified data: everything read below is initialised first.
 
   let work = 0;
@@ -263,8 +271,10 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
   }
   work += width * height;
   seen.fill(0);
-  work += NC;
+  cellMark.fill(0);
+  work += 2 * NC;
   let stamp = 0;
+  let compCount = 0;
 
   /** @type {StateCopy[] | null} */
   const copies = diagnostics.verifyUndo === true ? [] : null;
@@ -429,11 +439,12 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
    * R3 check: a pocket is a 4-connected set of uncovered free cells. Pieces are connected, so every remaining
    * piece lies in one pocket and a pocket is filled by whole pieces: its size must be the sum of some of the
    * remaining piece sizes (`reach` holds the sums, 0/1 knapsack over the piece columns). Any other size is a
-   * contradiction. A failed check is never counted. Placing the one piece that fits a pocket comes with MP03;
-   * the pocket under test is `queue[0 .. tail - 1]` until the next pocket is started.
+   * contradiction. A failed check is never counted. The pockets of a passed check are kept for R3 place, in
+   * ascending order of their lowest cell column (`compFirst`, `compSize`, `compCount`).
    * @returns {number} NONE or CONTRADICTION.
    */
   function ruleR3() {
+    compCount = 0;
     let total = 0;
     for (let p = 0; p < NP; p += 1) {
       if (covered[NC + p] === 0) {
@@ -489,13 +500,190 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
       if (tail > top || reach[tail] === 0) {
         return CONTRADICTION;
       }
+      compFirst[compCount] = c0;
+      compSize[compCount] = tail;
+      compCount += 1;
     }
     return NONE;
   }
 
   /**
-   * The cheap ladder of a lookahead trial: R1, R2 and the R3 check, never R4-R9 or R6, never counted. The work
-   * cap is checked at every pass; a closure that stops proves nothing.
+   * R3 place: after a passed check, a pocket whose size is the size of exactly one remaining piece (`reach`
+   * bit 1 only: no sum of several pieces) is filled by that piece. The piece's placement covers the pocket's
+   * first cell and has as many cells as the pocket, so it is the live row over that cell of that size, when
+   * exactly one exists; with none the position is dead and another rule or the search proves it. Only the
+   * ladder runs it, right after the check, on the pockets the check has just kept.
+   * @param {boolean} counting
+   * @returns {number} NONE or APPLIED (a piece placed).
+   */
+  function ruleR3Place(counting) {
+    for (let i = 0; i < compCount; i += 1) {
+      const size = compSize[i];
+      if (reach[size] !== 1) {
+        continue;
+      }
+      const c0 = compFirst[i];
+      let n = 0;
+      let found = -1;
+      const to = colStart[c0 + 1];
+      for (let k = colStart[c0]; k < to; k += 1) {
+        work += 1;
+        const r = colRows[k];
+        if (live[r] === 1 && rowStart[r + 1] - rowStart[r] - 1 === size) {
+          n += 1;
+          found = r;
+        }
+      }
+      if (n === 1) {
+        select(found);
+        if (counting) {
+          rules[2] += 1;
+        }
+        return APPLIED;
+      }
+    }
+    return NONE;
+  }
+
+  /**
+   * R4, a piece claims cells: a cell that every live row of an uncovered piece covers will be covered by that
+   * piece, so the live rows of the other pieces on the cell are killed. In ascending piece order, the first
+   * piece with a kill ends the application. `mark` counts, per cell column, the live rows of the piece that
+   * cover it; the cells common to all of them are those of the piece's first live row with a count equal to
+   * the number of its live rows. The kills touch other pieces only, so the piece's own rows and the reset of
+   * `mark` are unchanged by them.
+   * @param {boolean} counting
+   * @returns {number} NONE or APPLIED (rows killed).
+   */
+  function ruleR4(counting) {
+    for (let p = 0; p < NP; p += 1) {
+      const pc = NC + p;
+      if (covered[pc] === 1) {
+        continue;
+      }
+      let nLive = 0;
+      let first = -1;
+      const to = colStart[pc + 1];
+      for (let k = colStart[pc]; k < to; k += 1) {
+        work += 1;
+        const r = colRows[k];
+        if (live[r] === 0) {
+          continue;
+        }
+        nLive += 1;
+        if (first === -1) {
+          first = r;
+        }
+        const end = rowStart[r + 1] - 1;
+        for (let j = rowStart[r]; j < end; j += 1) {
+          cellMark[rowCols[j]] += 1;
+          work += 1;
+        }
+      }
+      let killed = 0;
+      if (nLive > 0) {
+        const end = rowStart[first + 1] - 1;
+        for (let j = rowStart[first]; j < end; j += 1) {
+          work += 1;
+          const c = rowCols[j];
+          if (cellMark[c] !== nLive) {
+            continue;
+          }
+          const cellTo = colStart[c + 1];
+          for (let k = colStart[c]; k < cellTo; k += 1) {
+            work += 1;
+            const r2 = colRows[k];
+            if (live[r2] === 1 && rowPiece[r2] !== p) {
+              kill(r2);
+              killed += 1;
+            }
+          }
+        }
+      }
+      for (let k = colStart[pc]; k < to; k += 1) {
+        const r = colRows[k];
+        if (live[r] === 0) {
+          continue;
+        }
+        const end = rowStart[r + 1] - 1;
+        for (let j = rowStart[r]; j < end; j += 1) {
+          cellMark[rowCols[j]] = 0;
+          work += 1;
+        }
+      }
+      if (killed > 0) {
+        if (counting) {
+          rules[3] += killed;
+        }
+        return APPLIED;
+      }
+    }
+    return NONE;
+  }
+
+  /**
+   * R5, a cell claims a piece: when every live row over an uncovered cell belongs to one piece, that piece
+   * covers the cell, so its live rows that miss the cell are killed. In ascending cell order, the first cell
+   * with a kill ends the application.
+   * @param {boolean} counting
+   * @returns {number} NONE or APPLIED (rows killed).
+   */
+  function ruleR5(counting) {
+    for (let c = 0; c < NC; c += 1) {
+      if (covered[c] === 1) {
+        continue;
+      }
+      let P = -1;
+      let one = true;
+      const to = colStart[c + 1];
+      for (let k = colStart[c]; k < to; k += 1) {
+        work += 1;
+        const r = colRows[k];
+        if (live[r] === 0) {
+          continue;
+        }
+        if (P === -1) {
+          P = rowPiece[r];
+        } else if (rowPiece[r] !== P) {
+          one = false;
+          break;
+        }
+      }
+      if (!one || P === -1) {
+        continue;
+      }
+      let killed = 0;
+      const pieceTo = colStart[NC + P + 1];
+      for (let k = colStart[NC + P]; k < pieceTo; k += 1) {
+        work += 1;
+        const r = colRows[k];
+        if (live[r] === 0) {
+          continue;
+        }
+        let covers = false;
+        const end = rowStart[r + 1] - 1;
+        for (let j = rowStart[r]; j < end && !covers; j += 1) {
+          work += 1;
+          covers = rowCols[j] === c;
+        }
+        if (!covers) {
+          kill(r);
+          killed += 1;
+        }
+      }
+      if (killed > 0) {
+        if (counting) {
+          rules[4] += killed;
+        }
+        return APPLIED;
+      }
+    }
+    return NONE;
+  }
+
+  /**
+   * The cheap ladder of a lookahead trial: R1, R2 and the R3 check, never R3 place, R4-R9 or R6, never counted.
+   * The work cap is checked at every pass; a closure that stops proves nothing.
    * @returns {number} NONE (fixpoint), CONTRADICTION or STOPPED (work cap).
    */
   function closure() {
@@ -562,8 +750,8 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
 
   /**
    * Applies the rules in ladder order until none changes the state: the first rule that does ends the pass and
-   * the ladder restarts at R1. Order: R1, R2, the R3 check (a contradiction ends the node), R6. Later rules
-   * plug in here: R3 place after the check, R4 and R5 before R6.
+   * the ladder restarts at R1. Order: R1, R2, the R3 check (a contradiction ends the node), R3 place, R4, R5,
+   * R6. Later rules plug in after R6.
    * @param {boolean} counting Whether the applications are added to the rule counters.
    * @returns {number} NONE (fixpoint), CONTRADICTION or STOPPED (work cap).
    */
@@ -579,6 +767,15 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
       }
       if (step === NONE) {
         step = ruleR3();
+        if (step === NONE) {
+          step = ruleR3Place(counting);
+        }
+      }
+      if (step === NONE) {
+        step = ruleR4(counting);
+      }
+      if (step === NONE) {
+        step = ruleR5(counting);
       }
       if (step === NONE) {
         step = ruleR6(counting);

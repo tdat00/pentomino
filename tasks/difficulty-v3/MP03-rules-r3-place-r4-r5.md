@@ -298,14 +298,14 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP03: R3 place, R4 and R5, rule boards and the soundness oracle`) |
+| Start | 2026-11-12 13:27 (+07:00) |
+| End | 2026-11-12 13:35 developer; 13:38 orchestrator review and commit |
+| Duration | 7 min developer (439 s); about 3 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 54 model calls; 6,487,688 input tokens (6,343,154 cache reads); 50,620 output tokens |
+| AI credits | about 150 (developer) |
+| Verification | Developer: `node --test tests\deduce.test.js tests\deduce-rules.test.js` 20/20 (about 1.1 s); `npm run test:quick` 1,137/1,137 (16.7 s); `npm run check` OK; `git diff --check` clean; a scratch mutation sweep of six mutants (R3 place without `reach === 1`, a weakened R4, an inverted R5 cover test, ...) all killed, scratch deleted. Orchestrator re-run after the developer's final comment-only edit: targeted 20/20, `npm run test:quick` 1,137/1,137 (18 s), `npm run check` OK |
+| Acceptance | MP03-B01..B04 and MP03-T01..T07 met. Diff reviewed: ladder R1, R2, R3 check, `ruleR3Place`, `ruleR4`, `ruleR5`, R6; counts only when `counting` (`rules[2]`, `rules[3]`, `rules[4]`); closure unchanged; three new slots; no cell-to-cell shape comparison (`rowPiece` only, no `canonicalKey`); V2, V3, N3 and the recipe table re-pinned exactly as the task lists |
+| Issues & resolutions | None blocking. Additions accepted: the oracle also runs with `lookaheadWidth` 0 so R6 cannot mask an R4/R5 error; an extra labelled-piece board `['##.##']` with D and D2 (DLX count 2, R3 = 0) kills the "place when two rows share a pocket" mutant. The "R3 check never counted" test was replaced, as MP02b's handoff required, by "R7-R9 have no counts yet, F counts R1-R3 and E counts R6". The `deduce.mark` view is destructured as `cellMark` (name clash with `mark()`) |
+| Handoff | R7-R9 go after `ruleR6` in `ladder(counting)` and stay out of `closure()`. Counters: `rules[2]` R3, `rules[3]` R4, `rules[4]` R5, `rules[5]` R6. `ruleR3()` fills `compFirst[i]`, `compSize[i]` for `i < compCount` (ascending seed order), valid only after a passing check and before the next `ruleR3()` call (including the closure's). `reach` bits: 1 = one piece, 2 = several. Setup adds `2 * NC` work. Oracle hooks in `tests/deduce-rules.test.js`: `BOARDS` (with `dlx` counts), `V_PUZZLES` and an oracle loop over a puzzle list. R2, R3 and R5 are 0 in every recipe; R4 0, 0, 9, 19, 9, 19; E 0, 0, 0, 1, 3, 0 |
