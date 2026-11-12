@@ -32,7 +32,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP02a | [MP02a](MP02a-deduction-core.md) | Deduction core: state, R1 and R2, search, statuses, caps, memory | MP01 | Large | Engine | M1 | 2 |
 | [x] | MP02b | [MP02b](MP02b-pocket-check-and-lookahead.md) | R3 contradiction check, R6 lookahead, E, recipe characterisation | MP02a | Medium | Engine | M1 | 3 |
 | [x] | MP03 | [MP03](MP03-rules-r3-place-r4-r5.md) | R3 place, R4 and R5, rule boards and the soundness oracle | MP02b | Medium | Engine | M1 | 4 |
-| [ ] | MP04 | MP04-rules-r7-r9-and-tiers.md (planned) | R7, R8, R9, tiers, rule counts, oracle on every rule | MP03 | Large | Engine | M1 | 5 |
+| [x] | MP04 | [MP04](MP04-rules-r7-r9-and-tiers.md) | R7, R8, R9, tiers, rule counts, oracle on every rule | MP03 | Large | Engine | M1 | 5 |
 | [ ] | MP05 | MP05-decisive-census.md (planned) | Decisive census, the upper estimate and `Gproved` | MP04 | Large | Engine | M2 decisive guesses | 6 |
 | [ ] | MP06a | MP06a-rate-probe-tool.md (planned) | Probe tool `tools/rate-probe.mjs` and the `tieOrder` diagnostic | MP05 | Medium | Tools | M3 measured fit | 7 |
 | [ ] | MP06b | MP06b-probe-and-v2-baseline.md (planned) | Probe and GV2 runs, `DEDUCE` values, candidate knobs, record | MP06a | Medium + machine time | Measurement | M3 | 8 |
@@ -343,7 +343,7 @@ The orchestrator owns this record.
 | MP02a | Accepted | 11 min developer + 5 min review | about 199 | `difficulty-v3 MP02a` |
 | MP02b | Accepted | 9 min developer + 5 min review | about 127 | `difficulty-v3 MP02b` |
 | MP03 | Accepted | 7 min developer + 3 min review | about 150 | `difficulty-v3 MP03` |
-| MP04 | | | | |
+| MP04 | Accepted | 20 min developer + 5 min review | about 356 | `difficulty-v3 MP04` |
 | MP05 | | | | |
 | MP06a | | | | |
 | MP06b | | | | |

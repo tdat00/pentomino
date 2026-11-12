@@ -5,14 +5,17 @@
 // exactly is a contradiction, and one that only a single piece can fill gets that piece), the claims (R4: a
 // piece that must cover a cell keeps the other pieces off it, R5: a cell that only one piece can reach claims
 // that piece) and the lookahead (R6: a placement whose forced consequences break the board is removed)
-// follow; only when nothing helps does the search guess, on the column with the fewest live rows.
+// follow; the hard deductions come last (R7: the chessboard colouring of a pocket must balance, R8: a
+// placement over a neck must not cut off a pocket the remaining pieces cannot fill, R9: two cells that only
+// the same two pieces reach need both pieces); only when nothing helps does the search guess, on the column
+// with the fewest live rows.
 // The result describes the path to the first solution (forced placements, the width of every guess), the
 // number of solutions up to a limit, and which cap stopped the search: three independent statuses.
 //
 // Pure: no DOM, clock, storage or randomness. Work is counted in deterministic units, so the node cap, the
 // work cap and the memory bound are the only limits. The state lives in `deduce.*` slots of the model's
 // workspace; one table (`slotTable`) drives both the memory precheck and the allocation. The model stays
-// live. Later rules plug into `ladder` (in ladder order) and add rows to the slot table.
+// live. The rules plug into `ladder` in ladder order.
 
 import { DEDUCE } from './policy.js';
 import { assertLive, ModelError } from './tiling.js';
@@ -90,6 +93,24 @@ import { assertLive, ModelError } from './tiling.js';
  * @property {Int32Array} compFirst Lowest cell column of each pocket of the last R3 check.
  * @property {Int32Array} compSize Size of each pocket of the last R3 check.
  * @property {Int32Array} mark R4 counters of live rows per cell column; zero between two R4 pieces.
+ * @property {Int32Array} rowImb Colour imbalance of each row: dark cells minus light cells (R7).
+ * @property {Int32Array} pieceK Absolute colour imbalance of each free piece's rows (R7).
+ * @property {Int32Array} compOf Pocket of each uncovered cell column (R7, R8).
+ * @property {Int32Array} compImb Colour imbalance of each pocket (R7).
+ * @property {Int32Array} candPiece Candidate pieces of the current pocket (R7).
+ * @property {Uint8Array} candOpts Option bits of each candidate: 1 = +pieceK, 2 = -pieceK; 4 and 8 mark the
+ *   options to kill (R7).
+ * @property {Uint8Array} parity The two grids of the exact programme of R7.
+ * @property {Int32Array} disc Discovery numbers of the articulation search (R8).
+ * @property {Int32Array} low Low-link numbers of the articulation search (R8).
+ * @property {Int32Array} dfsStack Stack of the articulation search; queue of the trial floods (R8).
+ * @property {Uint8Array} dfsNext Next neighbour direction of each cell on the stack, 0 to 4 (R8).
+ * @property {Uint8Array} isArt 1 for an articulation cell of its pocket (R8).
+ * @property {Uint8Array} reachMinus Knapsack bits without one piece, one row per distinct piece size (R8).
+ * @property {Int32Array} minusRow Row of `reachMinus` of each piece, -1 while not computed (R8).
+ * @property {Int32Array} sup1 Smaller supporting piece of a cell with exactly two, else -1 (R9).
+ * @property {Int32Array} sup2 Larger supporting piece of a cell with exactly two (R9).
+ * @property {Int32Array} pairCells The cells with exactly two supporting pieces, ascending (R9).
  */
 
 const RULES = /** @type {const} */ (['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9']);
@@ -106,20 +127,30 @@ const STOPPED = 3;
 const CONTINUE = 0;
 const STOP = 1;
 
+// Options of an R7 candidate: the sign of a row's colour imbalance, and the same bits shifted by two for
+// "kill the rows with this option".
+const OPT_PLUS = 1;
+const OPT_MINUS = 2;
+const OPT_BOTH = 3;
+const KILL_SHIFT = 2;
+
 /**
  * Every `deduce.*` slot for a model of these sizes: name, element type, length. The memory precheck and the
  * allocation both read this table. On any path a row dies at most once and a column is covered at most once
  * (the trail holds at most R + C entries); the alternatives of nested guess nodes are pairwise disjoint
  * (`alt` holds at most R); every selected row covers a different piece column (depth and `picked` stay
- * below NP + 1).
+ * below NP + 1). The grids of R7 hold at most floor(Tsz / 2) + 1 areas of 2 Tsz + 1 imbalances each, with Tsz
+ * the area of all free pieces: a programme tracks the smaller of the two sides of a pocket and the pieces'
+ * imbalances add up to at most Tsz.
  * @param {number} R Rows.
  * @param {number} C Columns.
  * @param {number} NZ Nonzeros.
  * @param {number} NP Free pieces.
  * @param {number} NC Free cells.
+ * @param {number} Tsz Area of all free pieces.
  * @returns {[string, 'int32' | 'uint8', number][]}
  */
-function slotTable(R, C, NZ, NP, NC) {
+function slotTable(R, C, NZ, NP, NC, Tsz) {
   return [
     ['deduce.colStart', 'int32', C + 1],
     ['deduce.colRows', 'int32', NZ],
@@ -139,6 +170,23 @@ function slotTable(R, C, NZ, NP, NC) {
     ['deduce.compFirst', 'int32', NC],
     ['deduce.compSize', 'int32', NC],
     ['deduce.mark', 'int32', NC],
+    ['deduce.rowImb', 'int32', R],
+    ['deduce.pieceK', 'int32', NP],
+    ['deduce.compOf', 'int32', NC],
+    ['deduce.compImb', 'int32', NC],
+    ['deduce.candPiece', 'int32', NP],
+    ['deduce.candOpts', 'uint8', NP],
+    ['deduce.parity', 'uint8', 2 * (Math.floor(Tsz / 2) + 1) * (2 * Tsz + 1)],
+    ['deduce.disc', 'int32', NC],
+    ['deduce.low', 'int32', NC],
+    ['deduce.dfsStack', 'int32', NC],
+    ['deduce.dfsNext', 'uint8', NC],
+    ['deduce.isArt', 'uint8', NC],
+    ['deduce.reachMinus', 'uint8', NP * (NC + 1)],
+    ['deduce.minusRow', 'int32', NP],
+    ['deduce.sup1', 'int32', NC],
+    ['deduce.sup2', 'int32', NC],
+    ['deduce.pairCells', 'int32', NC],
   ];
 }
 
@@ -206,8 +254,13 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
   const rowCols = model.rowCols;
   const rowStart = model.rowStart;
   const NZ = rowStart[R];
+  const { cellColumn, pieceSizes, rowPiece, width, height } = model;
+  let Tsz = 0;
+  for (let p = 0; p < NP; p += 1) {
+    Tsz += pieceSizes[p];
+  }
 
-  const table = slotTable(R, C, NZ, NP, NC);
+  const table = slotTable(R, C, NZ, NP, NC, Tsz);
   let bytes = 0;
   for (const [, kind, length] of table) {
     bytes += length * BYTES_PER_ELEMENT[kind];
@@ -225,8 +278,9 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
   const {
     colStart, colRows, colCount, live, covered, trail, alt, altBase, picked, guessC, guessPlaced,
     cellIndex, queue, seen, reach, compFirst, compSize, mark: cellMark,
+    rowImb, pieceK, compOf, compImb, candPiece, candOpts, parity, disc, low, dfsStack, dfsNext, isArt,
+    reachMinus, minusRow, sup1, sup2, pairCells,
   } = /** @type {Slots} */ (/** @type {unknown} */ (views));
-  const { cellColumn, pieceSizes, rowPiece, width, height } = model;
   // Reused slots hold unspecified data: everything read below is initialised first.
 
   let work = 0;
@@ -275,6 +329,32 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
   work += 2 * NC;
   let stamp = 0;
   let compCount = 0;
+
+  /**
+   * Chessboard colour of a free cell column: +1 dark ((x + y) even), -1 light.
+   * @param {number} c
+   */
+  function colour(c) {
+    const i = cellIndex[c];
+    const x = i % width;
+    return ((x + (i - x) / width) & 1) === 0 ? 1 : -1;
+  }
+
+  // A placement's imbalance is +pieceK or -pieceK for every placement of a piece: turning and mirroring keep
+  // the colouring of a shape and moving it by an odd step swaps the colours.
+  for (let r = 0; r < R; r += 1) {
+    const end = rowStart[r + 1] - 1;
+    let imbalance = 0;
+    for (let k = rowStart[r]; k < end; k += 1) {
+      imbalance += colour(rowCols[k]);
+    }
+    rowImb[r] = imbalance;
+  }
+  work += NZ;
+  for (let p = 0; p < NP; p += 1) {
+    pieceK[p] = colStart[NC + p] < colStart[NC + p + 1] ? Math.abs(rowImb[colRows[colStart[NC + p]]]) : 0;
+  }
+  work += NP;
 
   /** @type {StateCopy[] | null} */
   const copies = diagnostics.verifyUndo === true ? [] : null;
@@ -436,6 +516,37 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
   }
 
   /**
+   * Knapsack over the uncovered pieces other than piece `skip` (-1 for none), 0/1: each piece used at most
+   * once. For s = 0 .. `top`, `bits[base + s]` has bit 1 when one of the pieces has size s and bit 2 when
+   * several of them add up to s; it is 0 when no sum of the pieces is s.
+   * @param {Uint8Array} bits
+   * @param {number} base
+   * @param {number} top
+   * @param {number} skip
+   */
+  function fillSums(bits, base, top, skip) {
+    bits.fill(0, base, base + top + 1);
+    work += top + 1;
+    for (let p = 0; p < NP; p += 1) {
+      if (covered[NC + p] === 1 || p === skip) {
+        continue;
+      }
+      const w = pieceSizes[p];
+      if (top >= w) {
+        work += top - w + 1;
+      }
+      for (let s = top; s >= w; s -= 1) {
+        if (bits[base + s - w] !== 0) {
+          bits[base + s] |= 2;
+        }
+        if (s === w) {
+          bits[base + s] |= 1;
+        }
+      }
+    }
+  }
+
+  /**
    * R3 check: a pocket is a 4-connected set of uncovered free cells. Pieces are connected, so every remaining
    * piece lies in one pocket and a pocket is filled by whole pieces: its size must be the sum of some of the
    * remaining piece sizes (`reach` holds the sums, 0/1 knapsack over the piece columns). Any other size is a
@@ -452,25 +563,7 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
       }
     }
     const top = Math.min(total, NC);
-    reach.fill(0, 0, top + 1);
-    work += top + 1;
-    for (let p = 0; p < NP; p += 1) {
-      if (covered[NC + p] === 1) {
-        continue;
-      }
-      const w = pieceSizes[p];
-      if (top >= w) {
-        work += top - w + 1;
-      }
-      for (let s = top; s >= w; s -= 1) {
-        if (reach[s - w] !== 0) {
-          reach[s] |= 2;
-        }
-        if (s === w) {
-          reach[s] |= 1;
-        }
-      }
-    }
+    fillSums(reach, 0, top, -1);
     stamp += 1;
     for (let c0 = 0; c0 < NC; c0 += 1) {
       if (covered[c0] === 1 || seen[c0] === stamp) {
@@ -749,9 +842,533 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
   }
 
   /**
+   * The uncovered cell next to cell column `c` in direction `dir` (0 left, 1 right, 2 up, 3 down), or -1.
+   * @param {number} c
+   * @param {number} dir
+   */
+  function neighbourCell(c, dir) {
+    const i = cellIndex[c];
+    let j = -1;
+    if (dir === 0) {
+      j = i % width > 0 ? i - 1 : -1;
+    } else if (dir === 1) {
+      j = i % width + 1 < width ? i + 1 : -1;
+    } else if (dir === 2) {
+      j = i >= width ? i - width : -1;
+    } else {
+      j = i + width < width * height ? i + width : -1;
+    }
+    if (j < 0) {
+      return -1;
+    }
+    const n = cellColumn[j];
+    return n >= 0 && covered[n] === 0 ? n : -1;
+  }
+
+  /**
+   * Labels the pockets (the 4-connected sets of uncovered free cells) in ascending order of their lowest cell
+   * column: `compOf` of every uncovered cell, `compFirst`, `compSize` and the colour imbalance `compImb`. The
+   * cells of the pockets are listed one pocket after the other in `queue`, each in breadth-first order.
+   * @returns {number} The number of pockets.
+   */
+  function labelPockets() {
+    stamp += 1;
+    let tail = 0;
+    let pockets = 0;
+    for (let c0 = 0; c0 < NC; c0 += 1) {
+      if (covered[c0] === 1 || seen[c0] === stamp) {
+        continue;
+      }
+      const begin = tail;
+      let imbalance = 0;
+      seen[c0] = stamp;
+      queue[tail] = c0;
+      tail += 1;
+      for (let head = begin; head < tail; head += 1) {
+        const c = queue[head];
+        compOf[c] = pockets;
+        imbalance += colour(c);
+        for (let dir = 0; dir < 4; dir += 1) {
+          const v = neighbourCell(c, dir);
+          if (v >= 0 && seen[v] !== stamp) {
+            seen[v] = stamp;
+            queue[tail] = v;
+            tail += 1;
+          }
+        }
+      }
+      work += tail - begin;
+      compFirst[pockets] = c0;
+      compSize[pockets] = tail - begin;
+      compImb[pockets] = imbalance;
+      pockets += 1;
+    }
+    return pockets;
+  }
+
+  /**
+   * The candidates of a pocket: the uncovered pieces with a live row inside it (a live row is connected and
+   * uncovered, so its first cell decides), with the colour imbalances of those rows as option bits.
+   * @param {number} pocket
+   * @returns {number} The number of candidates in `candPiece` and `candOpts`, ascending by piece.
+   */
+  function gather(pocket) {
+    let n = 0;
+    for (let p = 0; p < NP; p += 1) {
+      if (covered[NC + p] === 1) {
+        continue;
+      }
+      const from = colStart[NC + p];
+      const to = colStart[NC + p + 1];
+      let options = 0;
+      for (let k = from; k < to; k += 1) {
+        const r = colRows[k];
+        if (live[r] === 1 && compOf[rowCols[rowStart[r]]] === pocket) {
+          options |= rowImb[r] >= 0 ? OPT_PLUS : OPT_MINUS;
+        }
+      }
+      work += to - from;
+      if (options !== 0) {
+        candPiece[n] = p;
+        candOpts[n] = options;
+        n += 1;
+      }
+    }
+    return n;
+  }
+
+  /**
+   * Whether some of the candidates other than `skip`, each used at most once with one of its options, have
+   * the area `tArea` and the colour imbalance `tImb` together: an exact dynamic programme over the pieces.
+   * It tracks the area placed inside when that is the smaller side and the area left outside otherwise, so
+   * the area dimension is at most min(tArea, slack); `d` stands for the imbalance `d - K`.
+   * @param {number} n Candidates gathered.
+   * @param {number} skip Candidate index left out, or -1.
+   * @param {number} tArea
+   * @param {number} tImb
+   */
+  function reachable(n, skip, tArea, tImb) {
+    let area = 0;
+    let spread = 0;
+    for (let j = 0; j < n; j += 1) {
+      if (j !== skip) {
+        area += pieceSizes[candPiece[j]];
+        spread += pieceK[candPiece[j]];
+      }
+    }
+    work += n;
+    if (tArea < 0 || tArea > area || Math.abs(tImb) > spread) {
+      return false;
+    }
+    const slack = area - tArea;
+    const included = tArea <= slack;
+    const limit = included ? tArea : slack;
+    const W = 2 * spread + 1;
+    const size = (limit + 1) * W;
+    let cur = 0;
+    let next = parity.length / 2;
+    parity.fill(0, cur, cur + size);
+    parity[cur + spread] = 1;
+    work += size;
+    for (let j = 0; j < n; j += 1) {
+      if (j === skip) {
+        continue;
+      }
+      const s = pieceSizes[candPiece[j]];
+      const k = pieceK[candPiece[j]];
+      const options = candOpts[j] & OPT_BOTH;
+      parity.fill(0, next, next + size);
+      work += size;
+      for (let a = 0; a <= limit; a += 1) {
+        for (let d = 0; d < W; d += 1) {
+          if (parity[cur + a * W + d] === 0) {
+            continue;
+          }
+          // The piece goes elsewhere (included: nothing changes; excluded: its area is left outside) or
+          // inside the pocket with one of its options (included: its area is placed; excluded: nothing).
+          let inside = a;
+          if (included) {
+            parity[next + a * W + d] = 1;
+            inside = a + s;
+          } else if (a + s <= limit) {
+            parity[next + (a + s) * W + d] = 1;
+          }
+          if (inside <= limit) {
+            if ((options & OPT_PLUS) !== 0) {
+              parity[next + inside * W + d + k] = 1;
+            }
+            if ((options & OPT_MINUS) !== 0) {
+              parity[next + inside * W + d - k] = 1;
+            }
+          }
+        }
+      }
+      const swap = cur;
+      cur = next;
+      next = swap;
+    }
+    return parity[cur + limit * W + spread + tImb] === 1;
+  }
+
+  /**
+   * R7, parity: colour the board like a chessboard. A pocket is filled by whole pieces lying inside it, so
+   * its area and its colour imbalance are sums over the pieces that have a live row inside it (the
+   * candidates), each used once with the imbalance of one of its live rows there. A pocket that no choice
+   * of candidates can fill is a contradiction (not counted). Otherwise a live row is killed when its piece
+   * with its imbalance leaves a pocket that the other candidates cannot fill; the first pocket with a kill
+   * ends the application. Every check of a pocket uses the candidates gathered before its kills. A check
+   * that starts after the work cap is exceeded proves nothing: the application changes nothing and the next
+   * ladder pass stops the measurement.
+   * @param {boolean} counting
+   * @returns {number} NONE, APPLIED (rows killed) or CONTRADICTION.
+   */
+  function ruleR7(counting) {
+    const pockets = labelPockets();
+    for (let i = 0; i < pockets; i += 1) {
+      const n = gather(i);
+      if (work > limits.work) {
+        return NONE;
+      }
+      if (!reachable(n, -1, compSize[i], compImb[i])) {
+        return CONTRADICTION;
+      }
+    }
+    for (let i = 0; i < pockets; i += 1) {
+      const n = gather(i);
+      let area = 0;
+      for (let j = 0; j < n; j += 1) {
+        area += pieceSizes[candPiece[j]];
+      }
+      work += n;
+      const slack = area - compSize[i];
+      let marked = false;
+      for (let j = 0; j < n; j += 1) {
+        const p = candPiece[j];
+        const options = candOpts[j];
+        if (slack === 0 && (options === OPT_PLUS || options === OPT_MINUS)) {
+          continue;
+        }
+        for (let option = OPT_PLUS; option <= OPT_MINUS; option += 1) {
+          if ((options & option) === 0) {
+            continue;
+          }
+          if (work > limits.work) {
+            return NONE;
+          }
+          const imbalance = option === OPT_PLUS ? pieceK[p] : -pieceK[p];
+          if (!reachable(n, j, compSize[i] - pieceSizes[p], compImb[i] - imbalance)) {
+            candOpts[j] |= option << KILL_SHIFT;
+            marked = true;
+          }
+        }
+      }
+      if (!marked) {
+        continue;
+      }
+      let killed = 0;
+      for (let j = 0; j < n; j += 1) {
+        const doomed = candOpts[j] >> KILL_SHIFT;
+        if (doomed === 0) {
+          continue;
+        }
+        const from = colStart[NC + candPiece[j]];
+        const to = colStart[NC + candPiece[j] + 1];
+        for (let k = from; k < to; k += 1) {
+          const r = colRows[k];
+          if (live[r] === 1 && compOf[rowCols[rowStart[r]]] === i
+            && (doomed & (rowImb[r] >= 0 ? OPT_PLUS : OPT_MINUS)) !== 0) {
+            kill(r);
+            killed += 1;
+          }
+        }
+        work += to - from;
+      }
+      if (killed > 0) {
+        if (counting) {
+          rules[6] += killed;
+        }
+        return APPLIED;
+      }
+    }
+    return NONE;
+  }
+
+  /**
+   * Marks in `isArt` the articulation cells of the pockets: the cells whose removal splits their pocket.
+   * Iterative depth-first low-link search; `dfsStack` is the path and `dfsNext` the next direction to examine
+   * on each cell of it. A cell that is not the root is one when a child's low-link is not below its own
+   * number; a root is one when it has two children.
+   * @param {number} pockets
+   */
+  function findNecks(pockets) {
+    disc.fill(0);
+    isArt.fill(0);
+    work += 2 * NC;
+    let clock = 0;
+    for (let i = 0; i < pockets; i += 1) {
+      const root = compFirst[i];
+      let rootChildren = 0;
+      clock += 1;
+      disc[root] = clock;
+      low[root] = clock;
+      dfsNext[root] = 0;
+      dfsStack[0] = root;
+      let top = 1;
+      work += 1;
+      while (top > 0) {
+        const c = dfsStack[top - 1];
+        if (dfsNext[c] < 4) {
+          const v = neighbourCell(c, dfsNext[c]);
+          dfsNext[c] += 1;
+          work += 1;
+          if (v < 0) {
+            continue;
+          }
+          if (disc[v] === 0) {
+            clock += 1;
+            disc[v] = clock;
+            low[v] = clock;
+            dfsNext[v] = 0;
+            dfsStack[top] = v;
+            top += 1;
+            work += 1;
+          } else if (top < 2 || v !== dfsStack[top - 2]) {
+            low[c] = Math.min(low[c], disc[v]);
+          }
+          continue;
+        }
+        top -= 1;
+        if (top > 0) {
+          const parent = dfsStack[top - 1];
+          low[parent] = Math.min(low[parent], low[c]);
+          if (top === 1) {
+            rootChildren += 1;
+          } else if (low[c] >= disc[parent]) {
+            isArt[parent] = 1;
+          }
+        }
+      }
+      if (rootChildren >= 2) {
+        isArt[root] = 1;
+      }
+    }
+  }
+
+  /**
+   * R8, neck: a live row over an articulation cell with more than `lookaheadWidth` live rows is impossible
+   * when removing its cells leaves a pocket that the other remaining pieces cannot fill (the R3 check with the
+   * row's piece taken out; the pockets other than the neck's are checked the same way, as the piece is no
+   * longer there to fill them). The trial does not select the row. The sums without a piece are computed once
+   * per distinct piece size (`reachMinus`, `minusRow`). The first articulation cell with a kill ends the
+   * application. A cell left without live rows is found by R1 at the next pass.
+   * @param {boolean} counting
+   * @returns {number} NONE or APPLIED (rows killed).
+   */
+  function ruleR8(counting) {
+    const pockets = labelPockets();
+    findNecks(pockets);
+    let total = 0;
+    for (let p = 0; p < NP; p += 1) {
+      if (covered[NC + p] === 0) {
+        total += pieceSizes[p];
+      }
+    }
+    minusRow.fill(-1);
+    work += NP;
+    let sumRows = 0;
+    for (let a = 0; a < NC; a += 1) {
+      if (covered[a] === 1 || isArt[a] === 0 || colCount[a] <= limits.lookaheadWidth) {
+        continue;
+      }
+      const pocket = compOf[a];
+      let begin = 0;
+      for (let i = 0; i < pocket; i += 1) {
+        begin += compSize[i];
+      }
+      const end = begin + compSize[pocket];
+      let killed = 0;
+      const to = colStart[a + 1];
+      for (let k = colStart[a]; k < to; k += 1) {
+        work += 1;
+        const r = colRows[k];
+        if (live[r] === 0) {
+          continue;
+        }
+        work += 1;
+        const p = rowPiece[r];
+        const top = Math.min(total - pieceSizes[p], NC);
+        let sums = minusRow[p];
+        if (sums < 0) {
+          work += NP;
+          for (let q = 0; q < NP && sums < 0; q += 1) {
+            sums = minusRow[q] >= 0 && pieceSizes[q] === pieceSizes[p] ? minusRow[q] : -1;
+          }
+          if (sums < 0) {
+            sums = sumRows;
+            sumRows += 1;
+            fillSums(reachMinus, sums * (NC + 1), top, p);
+          }
+          minusRow[p] = sums;
+        }
+        const base = sums * (NC + 1);
+        let bad = false;
+        for (let i = 0; i < pockets && !bad; i += 1) {
+          bad = i !== pocket && (compSize[i] > top || reachMinus[base + compSize[i]] === 0);
+        }
+        work += pockets;
+        if (!bad) {
+          stamp += 1;
+          const rowEnd = rowStart[r + 1] - 1;
+          for (let j = rowStart[r]; j < rowEnd; j += 1) {
+            seen[rowCols[j]] = stamp;
+          }
+          work += rowEnd - rowStart[r];
+          for (let q = begin; q < end && !bad; q += 1) {
+            const c0 = queue[q];
+            if (seen[c0] === stamp) {
+              continue;
+            }
+            seen[c0] = stamp;
+            dfsStack[0] = c0;
+            let tail = 1;
+            for (let head = 0; head < tail; head += 1) {
+              work += 1;
+              for (let dir = 0; dir < 4; dir += 1) {
+                const v = neighbourCell(dfsStack[head], dir);
+                if (v >= 0 && seen[v] !== stamp) {
+                  seen[v] = stamp;
+                  dfsStack[tail] = v;
+                  tail += 1;
+                }
+              }
+            }
+            bad = tail > top || reachMinus[base + tail] === 0;
+          }
+        }
+        if (bad) {
+          kill(r);
+          killed += 1;
+        }
+      }
+      if (killed > 0) {
+        if (counting) {
+          rules[7] += killed;
+        }
+        return APPLIED;
+      }
+    }
+    return NONE;
+  }
+
+  /**
+   * R9, pair exclusion: two uncovered cells that exactly the same two pieces can cover (by their live rows)
+   * and that no single live row covers must be covered by one piece each, so the live rows of those two
+   * pieces that cover neither cell are killed. The cells with exactly two supporting pieces are listed in
+   * ascending order; the first pair (a, b) with a kill ends the application.
+   * @param {boolean} counting
+   * @returns {number} NONE or APPLIED (rows killed).
+   */
+  function ruleR9(counting) {
+    let listed = 0;
+    for (let c = 0; c < NC; c += 1) {
+      sup1[c] = -1;
+      if (covered[c] === 1) {
+        continue;
+      }
+      let one = -1;
+      let two = -1;
+      let more = false;
+      const to = colStart[c + 1];
+      for (let k = colStart[c]; k < to && !more; k += 1) {
+        work += 1;
+        const r = colRows[k];
+        if (live[r] === 0) {
+          continue;
+        }
+        const p = rowPiece[r];
+        if (one === -1) {
+          one = p;
+        } else if (p !== one && two === -1) {
+          two = p;
+        } else if (p !== one && p !== two) {
+          more = true;
+        }
+      }
+      if (two !== -1 && !more) {
+        sup1[c] = Math.min(one, two);
+        sup2[c] = Math.max(one, two);
+        pairCells[listed] = c;
+        listed += 1;
+      }
+    }
+    for (let x = 0; x < listed; x += 1) {
+      const a = pairCells[x];
+      for (let y = x + 1; y < listed; y += 1) {
+        work += 1;
+        const b = pairCells[y];
+        if (sup1[b] !== sup1[a] || sup2[b] !== sup2[a] || coversBoth(a, b)) {
+          continue;
+        }
+        let killed = 0;
+        for (let side = 0; side < 2; side += 1) {
+          const pc = NC + (side === 0 ? sup1[a] : sup2[a]);
+          const to = colStart[pc + 1];
+          for (let k = colStart[pc]; k < to; k += 1) {
+            const r = colRows[k];
+            if (live[r] === 0) {
+              continue;
+            }
+            let touches = false;
+            const end = rowStart[r + 1] - 1;
+            for (let j = rowStart[r]; j < end && !touches; j += 1) {
+              work += 1;
+              touches = rowCols[j] === a || rowCols[j] === b;
+            }
+            if (!touches) {
+              kill(r);
+              killed += 1;
+            }
+          }
+        }
+        if (killed > 0) {
+          if (counting) {
+            rules[8] += killed;
+          }
+          return APPLIED;
+        }
+      }
+    }
+    return NONE;
+  }
+
+  /**
+   * Whether a live row over cell column `a` also covers cell column `b`.
+   * @param {number} a
+   * @param {number} b
+   */
+  function coversBoth(a, b) {
+    const to = colStart[a + 1];
+    for (let k = colStart[a]; k < to; k += 1) {
+      work += 1;
+      const r = colRows[k];
+      if (live[r] === 0) {
+        continue;
+      }
+      const end = rowStart[r + 1] - 1;
+      for (let j = rowStart[r]; j < end; j += 1) {
+        work += 1;
+        if (rowCols[j] === b) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Applies the rules in ladder order until none changes the state: the first rule that does ends the pass and
    * the ladder restarts at R1. Order: R1, R2, the R3 check (a contradiction ends the node), R3 place, R4, R5,
-   * R6. Later rules plug in after R6.
+   * R6, R7 (also a contradiction), R8, R9.
    * @param {boolean} counting Whether the applications are added to the rule counters.
    * @returns {number} NONE (fixpoint), CONTRADICTION or STOPPED (work cap).
    */
@@ -779,6 +1396,15 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
       }
       if (step === NONE) {
         step = ruleR6(counting);
+      }
+      if (step === NONE) {
+        step = ruleR7(counting);
+      }
+      if (step === NONE) {
+        step = ruleR8(counting);
+      }
+      if (step === NONE) {
+        step = ruleR9(counting);
       }
       if (step === APPLIED) {
         continue;

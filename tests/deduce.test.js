@@ -95,6 +95,9 @@ function flat(model, result) {
       R4: f.rules.R4,
       R5: f.rules.R5,
       R6: f.rules.R6,
+      R7: f.rules.R7,
+      R8: f.rules.R8,
+      R9: f.rules.R9,
       tier: f.deductionTier,
       G: f.G,
       choices: f.choices,
@@ -151,8 +154,8 @@ const VECTORS = [
     puzzle: { board: rect(10, 1), pieces: [M, D, I3, I4], clues: [] },
     expect: {
       path: 'complete', S: 8, solutions: 'many', exhausted: false, stop: 'solution-limit', Gt: 7, nodes: 15,
-      F: 1, R1: 1, R2: 0, R3: 0, R4: 3, R5: 0, R6: 2, E: 2, tier: 2, G: 3, choices: [4, 3, 2], info: 4.585, Cmax: 4,
-      Dmax: 2,
+      F: 1, R1: 1, R2: 0, R3: 0, R4: 1, R5: 0, R6: 3, R7: 3, R8: 6, R9: 0, E: 3, tier: 3, G: 3, choices: [4, 3, 2],
+      info: 4.585, Cmax: 4, Dmax: 2,
       rows: ['M@(0, 0)', 'D@(1, 0)', 'I3@(3, 0)', 'I4@(6, 0)'],
     },
   },
@@ -298,27 +301,37 @@ test('the work cap stops a search that has started and the work of a capped run 
 });
 
 /**
- * Recipes: columns U (free pieces), F (= R1 here), R4 (rows killed), E (rows killed by R6), tier, G, choices, info
- * (4 decimals), Cmax, Dmax, Gt, nodes. R2, R3 and R5 are 0 in every recipe. Characterisation of this ladder
- * version, not a monotonicity theorem; later rules re-pin it.
- * @type {Record<string, { U: number, F: number, R4: number, E: number, tier: number, G: number, choices: number[],
- *   info: string, Cmax: number, Dmax: number, Gt: number, nodes: number }>}
+ * Recipes: columns U (free pieces), F (= R1 here), R4, R5, R7, R8 (rows killed), E (rows killed by R6), tier, G,
+ * choices, info (4 decimals), Cmax, Dmax, Gt, nodes. R2, R3 and R9 are 0 in every recipe. Characterisation of this
+ * ladder version, not a monotonicity theorem; later rules re-pin it.
+ * @type {Record<string, { U: number, F: number, R4: number, R5: number, E: number, R7: number, R8: number,
+ *   tier: number, G: number, choices: number[], info: string, Cmax: number, Dmax: number, Gt: number,
+ *   nodes: number }>}
  */
 const RECIPE_TABLE = {
   'very-easy': {
-    U: 3, F: 3, R4: 0, E: 0, tier: 1, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0, Gt: 0, nodes: 1,
+    U: 3, F: 3, R4: 0, R5: 0, E: 0, R7: 0, R8: 0, tier: 1, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0,
+    Gt: 0, nodes: 1,
   },
-  easy: { U: 4, F: 4, R4: 0, E: 0, tier: 1, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0, Gt: 0, nodes: 1 },
-  normal: { U: 5, F: 5, R4: 9, E: 0, tier: 2, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0, Gt: 0, nodes: 1 },
+  easy: {
+    U: 4, F: 4, R4: 0, R5: 0, E: 0, R7: 0, R8: 0, tier: 1, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0,
+    Gt: 0, nodes: 1,
+  },
+  normal: {
+    U: 5, F: 5, R4: 9, R5: 0, E: 0, R7: 0, R8: 0, tier: 2, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0,
+    Gt: 0, nodes: 1,
+  },
   hard: {
-    U: 7, F: 5, R4: 19, E: 1, tier: 2, G: 2, choices: [3, 5], info: '3.9069', Cmax: 5, Dmax: 2, Gt: 2, nodes: 9,
+    U: 7, F: 5, R4: 19, R5: 0, E: 2, R7: 0, R8: 58, tier: 3, G: 2, choices: [2, 5], info: '3.3219', Cmax: 5,
+    Dmax: 2, Gt: 2, nodes: 8,
   },
   expert: {
-    U: 8, F: 5, R4: 9, E: 3, tier: 2, G: 3, choices: [7, 10, 9], info: '9.2992', Cmax: 10, Dmax: 4, Gt: 5, nodes: 40,
+    U: 8, F: 5, R4: 9, R5: 0, E: 8, R7: 5, R8: 101, tier: 3, G: 3, choices: [2, 6, 2], info: '4.5850', Cmax: 6,
+    Dmax: 4, Gt: 5, nodes: 18,
   },
   master: {
-    U: 10, F: 4, R4: 19, E: 0, tier: 2, G: 6, choices: [6, 2, 7, 5, 7, 6], info: '14.1066', Cmax: 7, Dmax: 6,
-    Gt: 84, nodes: 431,
+    U: 10, F: 6, R4: 0, R5: 45, E: 12, R7: 0, R8: 152, tier: 3, G: 4, choices: [4, 2, 7, 2], info: '6.8074', Cmax: 7,
+    Dmax: 3, Gt: 37, nodes: 145,
   },
 };
 
@@ -351,7 +364,8 @@ test('the six recipes reproduce the pinned characterisation', () => {
     assert.deepEqual([result.search.Gt, result.search.nodes], [want.Gt, want.nodes], level);
     assert.deepEqual([first.E, first.deductionTier, first.rules.R1, first.rules.R2, first.rules.R6],
       [want.E, want.tier, want.F, 0, want.E], level);
-    assert.deepEqual([first.rules.R3, first.rules.R4, first.rules.R5], [0, want.R4, 0], level);
+    assert.deepEqual([first.rules.R3, first.rules.R4, first.rules.R5], [0, want.R4, want.R5], level);
+    assert.deepEqual([first.rules.R7, first.rules.R8, first.rules.R9], [want.R7, want.R8, 0], level);
     assertDomain(result);
     assertValidFirstPath(model, puzzle, result);
   }
@@ -366,21 +380,26 @@ test('N1, N2: the R3 check alone proves V6 at the root, V5 needs R6 or a guess n
   assertFields(v5.model, v5.result, { ...vector('V5').expect, Gt: 1, nodes: 3 }, 'N2');
 });
 
-test('N3: with lookaheadWidth 0 V2 and V3 have no R6 kills, keep R4 and every other value', () => {
-  for (const [id, R4] of [['V2', 1], ['V3', 3]]) {
+test('N3: with lookaheadWidth 0 V2 and V3 have no R6 kills; V3 keeps its other values and R8 tries every neck', () => {
+  const expected = {
+    V2: { R4: 1, tier: 2 },
+    V3: { R4: 1, R7: 3, R8: 9, tier: 3 },
+  };
+  for (const [id, values] of Object.entries(expected)) {
     const { model, result } = measure(vector(id).puzzle, NO_LOOKAHEAD);
-    assertFields(model, result, { ...vector(id).expect, E: 0, R6: 0, R4, tier: 2 }, `N3 ${id}`);
+    assertFields(model, result, { ...vector(id).expect, E: 0, R6: 0, ...values }, `N3 ${id}`);
   }
 });
 
-test('R7-R9 have no counts yet, F counts R1-R3 and E counts R6', () => {
+test('F counts R1-R3, E counts R6 and the tier is the highest tier with a count', () => {
   const puzzles = [...VECTORS.map((v) => v.puzzle), ...Object.keys(RECIPE_TABLE).map(recipePuzzle)];
   for (const puzzle of puzzles) {
     const first = measure(puzzle).result.first;
     if (first !== null) {
-      const { R1, R2, R3, R6, R7, R8, R9 } = first.rules;
-      assert.deepEqual([R7, R8, R9], [0, 0, 0]);
+      const { R1, R2, R3, R4, R5, R6, R7, R8, R9 } = first.rules;
       assert.deepEqual([first.F, first.E], [R1 + R2 + R3, R6]);
+      const tier = R7 + R8 + R9 > 0 ? 3 : R4 + R5 + R6 > 0 ? 2 : R1 + R2 + R3 > 0 ? 1 : 0;
+      assert.equal(first.deductionTier, tier);
     }
   }
 });

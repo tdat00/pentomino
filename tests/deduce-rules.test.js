@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { boardFromRows } from '../core/engine/board.js';
 import { measureDeduction } from '../core/engine/deduce.js';
+import { poseCells } from '../core/engine/geometry.js';
 import { DEDUCE } from '../core/engine/policy.js';
+import { createRng } from '../core/engine/rng.js';
 import { buildModel, countSolutions, rowPose } from '../core/engine/tiling.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES } from '../core/engine/workspace.js';
 import { CLASSIC_PENTOMINOES } from './fixtures/polyominoes.js';
@@ -25,7 +27,11 @@ const L3 = pc('L3', [[0, 0], [1, 0], [0, 1]]);
 const I4 = pc('I4', [[0, 0], [1, 0], [2, 0], [3, 0]]);
 const O4 = pc('O4', [[0, 0], [1, 0], [0, 1], [1, 1]]);
 const T4 = pc('T4', [[0, 0], [1, 0], [2, 0], [1, 1]]);
-const [P, U, L] = [classic('P'), classic('U'), classic('L')];
+// A second piece of T4's shape: direct engine inputs may repeat a shape (the entry points of the product refuse it).
+const T4b = pc('T4b', [[0, 0], [1, 0], [2, 0], [1, 1]]);
+const S4 = pc('S4', [[1, 0], [2, 0], [0, 1], [1, 1]]);
+const L4 = pc('L4', [[0, 0], [1, 0], [2, 0], [0, 1]]);
+const [P, U, L, T, Y] = ['P', 'U', 'L', 'T', 'Y'].map(classic);
 
 /**
  * Each model is built on a fresh workspace.
@@ -44,8 +50,8 @@ function measure(puzzle, limits = DEDUCE) {
 }
 
 /**
- * Rule boards B1-B4 and the R3 near-misses K1 and K2. `dlx` is the exact count; `expect` pins the values of the
- * default ladder (the fields it names are compared).
+ * Rule boards B1-B4 and the R3 near-misses K1 and K2 (MP03), then P7, N7, P8, N8, P9 and K9 (MP04). `dlx` is the
+ * exact count; `expect` pins the values of the default ladder (the fields it names are compared).
  * @type {{ id: string, puzzle: Puzzle, dlx: number, expect: Record<string, unknown> }[]}
  */
 const BOARDS = [
@@ -55,7 +61,8 @@ const BOARDS = [
     dlx: 2,
     expect: {
       path: 'complete', S: 2, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
-      F: 2, R1: 1, R2: 0, R3: 1, R4: 4, R5: 0, R6: 0, E: 0, tier: 2, G: 1, choices: [2], Dmax: 1,
+      F: 2, R1: 1, R2: 0, R3: 1, R4: 4, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 2, G: 1, choices: [2],
+      Dmax: 1,
     },
   },
   {
@@ -64,7 +71,7 @@ const BOARDS = [
     dlx: 2,
     expect: {
       path: 'complete', S: 2, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
-      F: 1, R1: 1, R2: 0, R3: 0, R4: 3, R5: 0, R6: 0, E: 0, tier: 2, G: 1, choices: [2],
+      F: 1, R1: 1, R2: 0, R3: 0, R4: 3, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 2, G: 1, choices: [2],
     },
   },
   {
@@ -73,7 +80,7 @@ const BOARDS = [
     dlx: 2,
     expect: {
       path: 'complete', S: 2, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
-      F: 2, R1: 2, R2: 0, R3: 0, R4: 19, R5: 4, R6: 0, E: 0, tier: 2, G: 1, choices: [2],
+      F: 2, R1: 2, R2: 0, R3: 0, R4: 19, R5: 4, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 2, G: 1, choices: [2],
     },
   },
   {
@@ -82,7 +89,7 @@ const BOARDS = [
     dlx: 1,
     expect: {
       path: 'complete', S: 1, solutions: 'unique', exhausted: true, stop: 'exhausted', Gt: 0, nodes: 1,
-      F: 3, R1: 3, R2: 0, R3: 0, R4: 2, R5: 4, R6: 2, E: 2, tier: 2, G: 0, choices: [],
+      F: 3, R1: 3, R2: 0, R3: 0, R4: 2, R5: 4, R6: 2, R7: 0, R8: 0, R9: 0, E: 2, tier: 2, G: 0, choices: [],
     },
   },
   {
@@ -91,7 +98,8 @@ const BOARDS = [
     dlx: 8,
     expect: {
       path: 'complete', S: 8, solutions: 'many', exhausted: false, stop: 'solution-limit', Gt: 3, nodes: 11,
-      F: 1, R1: 1, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, E: 0, tier: 1, G: 2, choices: [2, 4], Dmax: 1,
+      F: 1, R1: 1, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 1, G: 2, choices: [2, 4],
+      Dmax: 1,
     },
   },
   {
@@ -100,7 +108,86 @@ const BOARDS = [
     dlx: 8,
     expect: {
       path: 'complete', S: 8, solutions: 'many', exhausted: false, stop: 'solution-limit', Gt: 3, nodes: 11,
-      F: 1, R1: 1, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, E: 0, tier: 1, G: 2, choices: [2, 4], Dmax: 1,
+      F: 1, R1: 1, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 1, G: 2, choices: [2, 4],
+      Dmax: 1,
+    },
+  },
+  {
+    // A 4 x 4 board without two opposite dark corners: 6 dark and 8 light cells, and every piece covers as many
+    // dark as light cells, so the parity alone proves that no tiling exists.
+    id: 'P7',
+    puzzle: { board: boardFromRows(['.###', '####', '####', '###.']), pieces: [D, O4, L4, S4], clues: [] },
+    dlx: 0,
+    expect: { path: 'none', S: 0, solutions: 'none', exhausted: true, stop: 'exhausted', Gt: 0, nodes: 1 },
+  },
+  {
+    // Two separated T-shaped regions with imbalance +2 each; either piece fills either: both are not mandatory in
+    // one region.
+    id: 'N7',
+    puzzle: { board: boardFromRows(['###.###', '.#...#.']), pieces: [T4, T4b], clues: [] },
+    dlx: 2,
+    expect: {
+      path: 'complete', S: 2, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
+      F: 1, R1: 1, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 1, G: 1, choices: [2],
+    },
+  },
+  {
+    // An hourglass: the neck cell (3, 2) is an articulation cell with more than four live rows.
+    id: 'P8',
+    puzzle: {
+      board: boardFromRows(['####', '####', '...#', '####', '####', '####']), pieces: [T, L, Y, P, M], clues: [],
+    },
+    dlx: 1,
+    expect: {
+      path: 'complete', S: 1, solutions: 'unique', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 5,
+      F: 4, R1: 2, R2: 2, R3: 0, R4: 4, R5: 0, R6: 6, R7: 0, R8: 35, R9: 0, E: 6, tier: 3, G: 1, choices: [4],
+      info: 2, Cmax: 4, Dmax: 0,
+    },
+  },
+  {
+    // The two halves are joined in two places: there is no neck.
+    id: 'N8',
+    puzzle: {
+      board: boardFromRows(['####', '####', '.#.#', '####', '####', '####']), pieces: [T, L, Y, P, D], clues: [],
+    },
+    dlx: 4,
+    expect: {
+      path: 'complete', S: 4, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 4, nodes: 26,
+      F: 4, R1: 4, R2: 0, R3: 0, R4: 0, R5: 21, R6: 3, R7: 0, R8: 0, R9: 0, E: 3, tier: 2, G: 1, choices: [13],
+      info: 3.7004,
+    },
+  },
+  {
+    id: 'P9',
+    puzzle: { board: rect(4, 3), pieces: [P, D, U], clues: [] },
+    dlx: 4,
+    expect: {
+      path: 'complete', S: 4, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 2, nodes: 15,
+      F: 2, R1: 2, R2: 0, R3: 0, R4: 8, R5: 0, R6: 0, R7: 0, R8: 0, R9: 8, E: 0, tier: 3, G: 1, choices: [12],
+      info: 3.585, Cmax: 12, Dmax: 0,
+    },
+  },
+  {
+    // The cells (0, 0) and (0, 1) share the vertical domino: they are not a pair, and killing the square at x = 1
+    // would lose a solution.
+    id: 'K9',
+    puzzle: { board: rect(3, 2), pieces: [D, O4], clues: [] },
+    dlx: 2,
+    expect: {
+      path: 'complete', S: 2, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
+      F: 1, R1: 1, R2: 0, R3: 0, R4: 5, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 2, G: 1, choices: [2],
+    },
+  },
+  {
+    // Added by MP04 beyond the task's vectors, found by mutating R7: a pocket's candidates are only the pieces with a
+    // live row inside it. Counting the pieces of the other pocket too gives R6 5 and R7 1 here instead of 4 and 2.
+    id: 'X7',
+    puzzle: { board: boardFromRows(['..#.##', '###.##', '###.##']), pieces: [T4, I3, D, L3, M], clues: [] },
+    dlx: 4,
+    expect: {
+      path: 'complete', S: 4, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 4, nodes: 9,
+      F: 2, R1: 1, R2: 1, R3: 0, R4: 19, R5: 0, R6: 4, R7: 2, R8: 0, R9: 0, E: 4, tier: 3, G: 3, choices: [2, 2, 2],
+      info: 3, Cmax: 2, Dmax: 3,
     },
   },
 ];
@@ -113,12 +200,15 @@ const board = (id) => /** @type {(typeof BOARDS)[number]} */ (BOARDS.find((b) =>
  * @param {import('../core/engine/deduce.js').DeductionResult} result
  */
 function flat(result) {
-  const f = /** @type {NonNullable<typeof result.first>} */ (result.first);
+  const f = result.first;
   return {
     path: result.path, S: result.count.S, solutions: result.count.solutions, exhausted: result.count.exhausted,
     stop: result.search.stop, Gt: result.search.Gt, nodes: result.search.nodes,
-    F: f.F, R1: f.rules.R1, R2: f.rules.R2, R3: f.rules.R3, R4: f.rules.R4, R5: f.rules.R5, R6: f.rules.R6,
-    E: f.E, tier: f.deductionTier, G: f.G, choices: f.choices, Dmax: f.Dmax,
+    ...(f === null ? {} : {
+      F: f.F, R1: f.rules.R1, R2: f.rules.R2, R3: f.rules.R3, R4: f.rules.R4, R5: f.rules.R5, R6: f.rules.R6,
+      R7: f.rules.R7, R8: f.rules.R8, R9: f.rules.R9, E: f.E, tier: f.deductionTier, G: f.G, choices: f.choices,
+      info: Number(f.info.toFixed(4)), Cmax: f.Cmax, Dmax: f.Dmax,
+    }),
   };
 }
 
@@ -133,9 +223,12 @@ function check(id) {
   for (const [key, value] of Object.entries(b.expect)) {
     assert.deepEqual(actual[key], value, `${id}: ${key}`);
   }
-  const first = /** @type {NonNullable<typeof result.first>} */ (result.first);
-  assert.equal(first.rows.length, first.F + first.G, id);
-  assert.equal(first.rules.R7 + first.rules.R8 + first.rules.R9, 0, id);
+  const first = result.first;
+  if (first === null) {
+    assert.equal(result.path, 'none', id);
+  } else {
+    assert.equal(first.rows.length, first.F + first.G, id);
+  }
   return { model, result };
 }
 
@@ -158,6 +251,84 @@ test('R3 near-misses: a pocket that two pieces could fill is not placed (K1, K2)
   for (const id of ['K1', 'K2']) {
     const { result } = check(id);
     assert.equal(result.first?.rules.R3, 0, id);
+  }
+});
+
+test('R7 proves a parity contradiction at the root, without a lookahead and without a guess (P7)', () => {
+  const { result } = check('P7');
+  assert.equal(result.first, null);
+  const model = build(board('P7').puzzle);
+  const r = measureDeduction(model, { ...DEDUCE, lookaheadWidth: 0 }, { verifyUndo: true });
+  assert.deepEqual([r.path, r.search.Gt, r.search.nodes, r.count.solutions], ['none', 0, 1, 'none']);
+});
+
+test('R7 keeps two separated regions that either of two pieces can fill (N7)', () => {
+  const { result } = check('N7');
+  assert.equal(result.first?.rules.R7, 0);
+});
+
+test('R7 counts only the pieces with a live row inside a pocket as its candidates (X7)', () => {
+  const { result } = check('X7');
+  assert.equal(result.count.S, board('X7').dlx);
+});
+
+test('R8 removes the placements over a neck that cut off a pocket nothing can fill (P8)', () => {
+  const { result } = check('P8');
+  assert.ok((result.first?.rules.R8 ?? 0) > 0);
+});
+
+test('R8 removes nothing when the narrow passage is not a neck (N8)', () => {
+  const { result } = check('N8');
+  assert.equal(result.first?.rules.R8, 0);
+});
+
+test('R8 with lookaheadWidth 0 tries every neck and still finds only sound kills (P8)', () => {
+  const model = build(board('P8').puzzle);
+  const r = measureDeduction(model, { ...DEDUCE, lookaheadWidth: 0 }, { verifyUndo: true });
+  assert.deepEqual([r.count.S, r.count.exhausted, r.first?.rules.R6, r.first?.deductionTier], [1, true, 0, 3]);
+  assert.ok((r.first?.rules.R8 ?? 0) > 0);
+});
+
+test('R9: two cells that only the same two pieces reach take both pieces away from other places (P9)', () => {
+  const { result } = check('P9');
+  assert.ok((result.first?.rules.R9 ?? 0) > 0);
+});
+
+test('R9 needs the "covers both" test: cells that one placement covers are not a pair (K9)', () => {
+  const { result } = check('K9');
+  assert.equal(result.first?.rules.R9, 0);
+  assert.equal(result.count.S, board('K9').dlx);
+});
+
+test('the DLX counts of the rule boards, and tier 3 exactly when R7 + R8 + R9 is nonzero', () => {
+  for (const b of BOARDS) {
+    const model = build(b.puzzle);
+    assert.equal(countSolutions(model, { cap: Infinity, rowTrialLimit: Infinity }).found, b.dlx, b.id);
+    const first = measureDeduction(model).first;
+    if (first !== null) {
+      const { R7, R8, R9 } = first.rules;
+      assert.equal(first.deductionTier === 3, R7 + R8 + R9 > 0, b.id);
+    }
+  }
+});
+
+test('work caps inside R7, R8 and R9 stop cleanly: the state is restored and the result is deterministic', () => {
+  for (const id of ['P7', 'N7', 'P8', 'N8', 'P9']) {
+    const puzzle = board(id).puzzle;
+    const model = build(puzzle);
+    const full = measureDeduction(model).search.work;
+    const step = Math.max(1, Math.floor(full / 400));
+    let capped = 0;
+    for (let work = 0; work < full; work += step) {
+      const limits = { ...DEDUCE, work };
+      const checked = measureDeduction(model, limits, { verifyUndo: true });
+      assert.deepEqual(checked, measureDeduction(model, limits), `${id}, work cap ${work}`);
+      if (checked.search.stop === 'work-cap') {
+        capped += 1;
+        assert.ok(checked.count.solutions !== 'unique' && checked.count.solutions !== 'none', `${id}, ${work}`);
+      }
+    }
+    assert.ok(capped > 0, id);
   }
 });
 
@@ -200,4 +371,72 @@ test('labelled pieces: two dominoes are two pieces and every arrangement counts 
     assert.equal(r.count.exhausted, true);
     assert.equal(r.first?.rules.R3, 0);
   }
+});
+
+const SHAPES_PARITY = [
+  [[0, 0]], [[0, 0], [1, 0]], [[0, 0], [1, 0], [0, 1]], [[0, 0], [1, 0], [2, 0], [1, 1]],
+  [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]],
+];
+
+test('parity random oracle: the count equals the DLX count with R7, R8 and R9 active, undo verified', () => {
+  const rng = createRng('deduce-oracle-parity');
+  const ws = createWorkspace(MAIN_WORKSPACE_BYTES);
+  let boards = 0;
+  let solvable = 0;
+  let multiple = 0;
+  let clued = 0;
+  const used = [0, 0, 0];
+  for (let trial = 0; trial < 300; trial += 1) {
+    const ps = /** @type {Piece[]} */ (Array.from({ length: 1 + rng.int(5) }, (_, i) => ({
+      id: `p${i}`, label: `p${i}`, color: '#000000', cells: SHAPES_PARITY[rng.int(SHAPES_PARITY.length)],
+    })));
+    const area = ps.reduce((n, p) => n + p.cells.length, 0);
+    const w = 3 + rng.int(3);
+    const h = 3 + rng.int(3);
+    if (area > w * h) {
+      continue;
+    }
+    const active = new Uint8Array(w * h).fill(1);
+    for (let blocked = 0; blocked < w * h - area;) {
+      const at = rng.int(w * h);
+      if (active[at] === 1) {
+        active[at] = 0;
+        blocked += 1;
+      }
+    }
+    const board = { width: w, height: h, active };
+    /** @type {Pose[]} */
+    const clues = [];
+    if (rng.int(2) === 0) {
+      const piece = ps[rng.int(ps.length)];
+      const pose = /** @type {Pose} */ ({
+        piece: piece.id, x: rng.int(w), y: rng.int(h), turn: rng.int(4), mirrored: rng.int(2) === 1,
+      });
+      if (poseCells(piece, pose).every(([x, y]) => x >= 0 && y >= 0 && x < w && y < h && active[y * w + x] === 1)) {
+        clues.push(pose);
+        clued += 1;
+      }
+    }
+    const model = buildModel(board, ps, clues, ws);
+    const expected = countSolutions(model, { cap: Infinity, rowTrialLimit: Infinity }).found;
+    const result = measureDeduction(model, { ...DEDUCE, solutions: Math.max(2, expected + 1) }, { verifyUndo: true });
+    const label = `trial ${trial}`;
+    assert.equal(result.count.S, expected, label);
+    assert.equal(result.count.exhausted, true, label);
+    assert.equal(result.search.stop, 'exhausted', label);
+    assert.equal(result.path, expected > 0 ? 'complete' : 'none', label);
+    boards += 1;
+    if (result.first !== null) {
+      const { R7, R8, R9 } = result.first.rules;
+      used[0] += R7 > 0 ? 1 : 0;
+      used[1] += R8 > 0 ? 1 : 0;
+      used[2] += R9 > 0 ? 1 : 0;
+    }
+    solvable += expected > 0 ? 1 : 0;
+    multiple += expected > 1 ? 1 : 0;
+  }
+  assert.ok(boards >= 200 && solvable >= 40 && multiple >= 20 && clued >= 15,
+    `weak sample: ${boards} boards, ${solvable} solvable, ${multiple} with several solutions, ${clued} clued`);
+  assert.ok(used[0] >= 10 && used[1] >= 10 && used[2] >= 2,
+    `weak sample: R7, R8 and R9 are nonzero on ${used.join(', ')} final paths`);
 });
