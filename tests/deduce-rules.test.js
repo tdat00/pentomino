@@ -61,8 +61,8 @@ const BOARDS = [
     dlx: 2,
     expect: {
       path: 'complete', S: 2, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
-      F: 2, R1: 1, R2: 0, R3: 1, R4: 4, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 2, G: 1, choices: [2],
-      Dmax: 1,
+      F: 2, R1: 1, R2: 0, R3: 1, R4: 4, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 2, G: 0, Gproved: 0,
+      choices: [2], census: [[2, 2, 0, 0]], info: 0, Cmax: 0, Dmax: 0,
     },
   },
   {
@@ -71,7 +71,8 @@ const BOARDS = [
     dlx: 2,
     expect: {
       path: 'complete', S: 2, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
-      F: 1, R1: 1, R2: 0, R3: 0, R4: 3, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 2, G: 1, choices: [2],
+      F: 1, R1: 1, R2: 0, R3: 0, R4: 3, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 2, G: 0, Gproved: 0,
+      choices: [2], census: [[2, 2, 0, 0]], info: 0, Cmax: 0,
     },
   },
   {
@@ -80,7 +81,8 @@ const BOARDS = [
     dlx: 2,
     expect: {
       path: 'complete', S: 2, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
-      F: 2, R1: 2, R2: 0, R3: 0, R4: 19, R5: 4, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 2, G: 1, choices: [2],
+      F: 2, R1: 2, R2: 0, R3: 0, R4: 19, R5: 4, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 2, G: 0, Gproved: 0,
+      choices: [2], census: [[2, 2, 0, 0]], info: 0, Cmax: 0,
     },
   },
   {
@@ -89,7 +91,8 @@ const BOARDS = [
     dlx: 1,
     expect: {
       path: 'complete', S: 1, solutions: 'unique', exhausted: true, stop: 'exhausted', Gt: 0, nodes: 1,
-      F: 3, R1: 3, R2: 0, R3: 0, R4: 2, R5: 4, R6: 2, R7: 0, R8: 0, R9: 0, E: 2, tier: 2, G: 0, choices: [],
+      F: 3, R1: 3, R2: 0, R3: 0, R4: 2, R5: 4, R6: 2, R7: 0, R8: 0, R9: 0, E: 2, tier: 2, G: 0, Gproved: 0,
+      choices: [], census: [],
     },
   },
   {
@@ -98,8 +101,8 @@ const BOARDS = [
     dlx: 8,
     expect: {
       path: 'complete', S: 8, solutions: 'many', exhausted: false, stop: 'solution-limit', Gt: 3, nodes: 11,
-      F: 1, R1: 1, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 1, G: 2, choices: [2, 4],
-      Dmax: 1,
+      F: 1, R1: 1, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 1, G: 0, Gproved: 0,
+      choices: [2, 4], census: [[2, 2, 0, 0], [4, 4, 0, 0]], info: 0, Cmax: 0, Dmax: 0,
     },
   },
   {
@@ -108,8 +111,8 @@ const BOARDS = [
     dlx: 8,
     expect: {
       path: 'complete', S: 8, solutions: 'many', exhausted: false, stop: 'solution-limit', Gt: 3, nodes: 11,
-      F: 1, R1: 1, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 1, G: 2, choices: [2, 4],
-      Dmax: 1,
+      F: 1, R1: 1, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 1, G: 0, Gproved: 0,
+      choices: [2, 4], census: [[2, 2, 0, 0], [4, 4, 0, 0]], info: 0, Cmax: 0, Dmax: 0,
     },
   },
   {
@@ -118,7 +121,7 @@ const BOARDS = [
     id: 'P7',
     puzzle: { board: boardFromRows(['.###', '####', '####', '###.']), pieces: [D, O4, L4, S4], clues: [] },
     dlx: 0,
-    expect: { path: 'none', S: 0, solutions: 'none', exhausted: true, stop: 'exhausted', Gt: 0, nodes: 1 },
+    expect: { path: 'none', S: 0, solutions: 'none', exhausted: true, stop: 'exhausted', Gt: 0, nodes: 1, census: null },
   },
   {
     // Two separated T-shaped regions with imbalance +2 each; either piece fills either: both are not mandatory in
@@ -128,7 +131,8 @@ const BOARDS = [
     dlx: 2,
     expect: {
       path: 'complete', S: 2, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
-      F: 1, R1: 1, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 1, G: 1, choices: [2],
+      F: 1, R1: 1, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 1, G: 0, Gproved: 0,
+      choices: [2], census: [[2, 2, 0, 0]], info: 0, Cmax: 0,
     },
   },
   {
@@ -140,12 +144,13 @@ const BOARDS = [
     dlx: 1,
     expect: {
       path: 'complete', S: 1, solutions: 'unique', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 5,
-      F: 4, R1: 2, R2: 2, R3: 0, R4: 4, R5: 0, R6: 6, R7: 0, R8: 35, R9: 0, E: 6, tier: 3, G: 1, choices: [4],
-      info: 2, Cmax: 4, Dmax: 0,
+      F: 4, R1: 2, R2: 2, R3: 0, R4: 4, R5: 0, R6: 6, R7: 0, R8: 35, R9: 0, E: 6, tier: 3, G: 1, Gproved: 1,
+      choices: [4], census: [[4, 1, 3, 0]], info: 2, Cmax: 4, Dmax: 0,
     },
   },
   {
-    // The two halves are joined in two places: there is no neck.
+    // The two halves are joined in two places: there is no neck. Two of the 13 placements of the guess lead to a
+    // solution, so the guess is counted with the weight log2(13 / 2).
     id: 'N8',
     puzzle: {
       board: boardFromRows(['####', '####', '.#.#', '####', '####', '####']), pieces: [T, L, Y, P, D], clues: [],
@@ -153,8 +158,8 @@ const BOARDS = [
     dlx: 4,
     expect: {
       path: 'complete', S: 4, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 4, nodes: 26,
-      F: 4, R1: 4, R2: 0, R3: 0, R4: 0, R5: 21, R6: 3, R7: 0, R8: 0, R9: 0, E: 3, tier: 2, G: 1, choices: [13],
-      info: 3.7004,
+      F: 4, R1: 4, R2: 0, R3: 0, R4: 0, R5: 21, R6: 3, R7: 0, R8: 0, R9: 0, E: 3, tier: 2, G: 1, Gproved: 1,
+      choices: [13], census: [[13, 2, 11, 0]], info: 2.7004, Cmax: 13, Dmax: 0,
     },
   },
   {
@@ -163,8 +168,8 @@ const BOARDS = [
     dlx: 4,
     expect: {
       path: 'complete', S: 4, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 2, nodes: 15,
-      F: 2, R1: 2, R2: 0, R3: 0, R4: 8, R5: 0, R6: 0, R7: 0, R8: 0, R9: 8, E: 0, tier: 3, G: 1, choices: [12],
-      info: 3.585, Cmax: 12, Dmax: 0,
+      F: 2, R1: 2, R2: 0, R3: 0, R4: 8, R5: 0, R6: 0, R7: 0, R8: 0, R9: 8, E: 0, tier: 3, G: 1, Gproved: 1,
+      choices: [12], census: [[12, 3, 9, 0]], info: 2, Cmax: 12, Dmax: 0,
     },
   },
   {
@@ -175,19 +180,21 @@ const BOARDS = [
     dlx: 2,
     expect: {
       path: 'complete', S: 2, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
-      F: 1, R1: 1, R2: 0, R3: 0, R4: 5, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 2, G: 1, choices: [2],
+      F: 1, R1: 1, R2: 0, R3: 0, R4: 5, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0, E: 0, tier: 2, G: 0, Gproved: 0,
+      choices: [2], census: [[2, 2, 0, 0]], info: 0, Cmax: 0,
     },
   },
   {
     // Added by MP04 beyond the task's vectors, found by mutating R7: a pocket's candidates are only the pieces with a
     // live row inside it. Counting the pieces of the other pocket too gives R6 5 and R7 1 here instead of 4 and 2.
+    // MP05 re-pinned its metrics (not in the task's table): only the root guess has a failing alternative.
     id: 'X7',
     puzzle: { board: boardFromRows(['..#.##', '###.##', '###.##']), pieces: [T4, I3, D, L3, M], clues: [] },
     dlx: 4,
     expect: {
       path: 'complete', S: 4, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 4, nodes: 9,
-      F: 2, R1: 1, R2: 1, R3: 0, R4: 19, R5: 0, R6: 4, R7: 2, R8: 0, R9: 0, E: 4, tier: 3, G: 3, choices: [2, 2, 2],
-      info: 3, Cmax: 2, Dmax: 3,
+      F: 2, R1: 1, R2: 1, R3: 0, R4: 19, R5: 0, R6: 4, R7: 2, R8: 0, R9: 0, E: 4, tier: 3, G: 1, Gproved: 1,
+      choices: [2, 2, 2], census: [[2, 1, 1, 0], [2, 2, 0, 0], [2, 2, 0, 0]], info: 1, Cmax: 2, Dmax: 0,
     },
   },
 ];
@@ -196,7 +203,8 @@ const BOARDS = [
 const board = (id) => /** @type {(typeof BOARDS)[number]} */ (BOARDS.find((b) => b.id === id));
 
 /**
- * The fields the tables pin, in one flat record.
+ * The fields the tables pin, in one flat record; `census` is the `[c, kLow, f, u]` list of the final path, or the
+ * result's `census` (null) when there is no complete path.
  * @param {import('../core/engine/deduce.js').DeductionResult} result
  */
 function flat(result) {
@@ -204,9 +212,11 @@ function flat(result) {
   return {
     path: result.path, S: result.count.S, solutions: result.count.solutions, exhausted: result.count.exhausted,
     stop: result.search.stop, Gt: result.search.Gt, nodes: result.search.nodes,
+    census: result.census,
     ...(f === null ? {} : {
       F: f.F, R1: f.rules.R1, R2: f.rules.R2, R3: f.rules.R3, R4: f.rules.R4, R5: f.rules.R5, R6: f.rules.R6,
-      R7: f.rules.R7, R8: f.rules.R8, R9: f.rules.R9, E: f.E, tier: f.deductionTier, G: f.G, choices: f.choices,
+      R7: f.rules.R7, R8: f.rules.R8, R9: f.rules.R9, E: f.E, tier: f.deductionTier, G: f.G, Gproved: f.Gproved,
+      choices: f.choices, census: f.census.map((n) => [n.c, n.kLow, n.f, n.u]),
       info: Number(f.info.toFixed(4)), Cmax: f.Cmax, Dmax: f.Dmax,
     }),
   };
@@ -227,7 +237,12 @@ function check(id) {
   if (first === null) {
     assert.equal(result.path, 'none', id);
   } else {
-    assert.equal(first.rows.length, first.F + first.G, id);
+    assert.equal(first.rows.length, first.F + first.choices.length, id);
+    // No board of this file needs a census probe: every alternative is decided by the search itself.
+    assert.deepEqual(result.census, { complete: true, undecided: 0, nodes: 0, work: 0 }, id);
+    if (first.G === 0) {
+      assert.deepEqual([first.info, first.Cmax, first.Dmax], [0, 0, 0], id);
+    }
   }
   return { model, result };
 }

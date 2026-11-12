@@ -54,25 +54,42 @@ const poseText = (model, r) => {
 };
 
 /**
- * Metric domain (RES-04): G counts the choices; no guess means no information, width or depth.
+ * Metric domain (RES-04) with the decisive values (MP05): `choices` and `census` have one entry per final-path
+ * guess node; G counts the nodes with kLow < c, info sums log2(c / kLow) over them in path order, Cmax is their
+ * largest c, Gproved counts the nodes with f >= 1 (at most G); no counted node means no information, width or depth.
  * @param {DeductionResult} result
  */
 function assertDomain(result) {
   if (result.first === null) {
+    assert.equal(result.census, null);
     return;
   }
   const f = result.first;
-  assert.equal(f.G, f.choices.length);
-  assert.equal(f.info, f.choices.reduce((sum, c) => sum + Math.log2(c), 0));
-  assert.equal(f.Cmax, f.choices.reduce((max, c) => Math.max(max, c), 0));
-  assert.equal(f.rows.length, f.F + f.G);
+  assert.equal(f.census.length, f.choices.length);
+  f.census.forEach((n, i) => {
+    assert.equal(n.c, f.choices[i]);
+    assert.equal(n.kLow + n.f + n.u, n.c);
+    assert.ok(n.kLow >= 1);
+  });
+  const counted = f.census.filter((n) => n.kLow < n.c);
+  assert.equal(f.G, counted.length);
+  assert.equal(f.Gproved, f.census.filter((n) => n.f >= 1).length);
+  assert.ok(f.Gproved <= f.G);
+  assert.equal(f.info, counted.reduce((sum, n) => sum + Math.log2(n.c / n.kLow), 0));
+  assert.equal(f.Cmax, counted.reduce((max, n) => Math.max(max, n.c), 0));
+  assert.equal(f.rows.length, f.F + f.choices.length);
   if (f.G === 0) {
     assert.deepEqual([f.info, f.Cmax, f.Dmax], [0, 0, 0]);
   }
+  const undecided = f.census.reduce((sum, n) => sum + n.u, 0);
+  const census = /** @type {NonNullable<DeductionResult['census']>} */ (result.census);
+  assert.deepEqual([census.complete, census.undecided], [undecided === 0, undecided]);
+  assert.ok(census.nodes <= result.search.nodes && census.work <= result.search.work);
 }
 
 /**
- * The fields the tables pin, in one flat record.
+ * The fields the tables pin, in one flat record. `census` lists `[c, kLow, f, u]` per node; `cen` is
+ * `result.census` with the work as 0 or 'positive' (its exact value is not pinned).
  * @param {Model} model
  * @param {DeductionResult} result
  */
@@ -100,11 +117,14 @@ function flat(model, result) {
       R9: f.rules.R9,
       tier: f.deductionTier,
       G: f.G,
+      Gproved: f.Gproved,
       choices: f.choices,
+      census: f.census.map((n) => [n.c, n.kLow, n.f, n.u]),
       info: Number(f.info.toFixed(4)),
       Cmax: f.Cmax,
       Dmax: f.Dmax,
       rows: f.rows.map((r) => poseText(model, r)),
+      cen: { ...result.census, work: /** @type {number} */ (result.census?.work) > 0 ? 'positive' : 0 },
     }),
   };
 }
@@ -125,9 +145,13 @@ function assertFields(model, result, expected, label) {
 /** Statuses of a solve that finds exactly one solution and exhausts the search. */
 const UNIQUE = { path: 'complete', S: 1, solutions: 'unique', exhausted: true, stop: 'exhausted' };
 
+/** `result.census` of a census that needed no probe. */
+const NO_CENSUS_COST = { complete: true, undecided: 0, nodes: 0, work: 0 };
+
 /**
  * Vectors V1-V7. A re-pin of a later task changes the tables only. `rows` holds `piece@(x, y)` where the
- * specification names poses and piece ids otherwise (`pieces`).
+ * specification names poses and piece ids otherwise (`pieces`). Since MP05 G, info, Cmax and Dmax count the
+ * decisive guess nodes only; `choices` stays raw.
  * @type {{ id: string, puzzle: Puzzle, expect: Record<string, unknown> }[]}
  */
 const VECTORS = [
@@ -137,7 +161,8 @@ const VECTORS = [
       board: rect(3, 2), pieces: [P, M], clues: [{ piece: 'M', x: 0, y: 0, turn: 0, mirrored: false }],
     },
     expect: {
-      ...UNIQUE, Gt: 0, nodes: 1, F: 1, R1: 1, R2: 0, E: 0, tier: 1, G: 0, info: 0, Cmax: 0, Dmax: 0, choices: [],
+      ...UNIQUE, Gt: 0, nodes: 1, F: 1, R1: 1, R2: 0, E: 0, tier: 1, G: 0, Gproved: 0, info: 0, Cmax: 0, Dmax: 0,
+      choices: [], census: [], cen: NO_CENSUS_COST,
     },
   },
   {
@@ -145,17 +170,18 @@ const VECTORS = [
     puzzle: { board: rect(3, 1), pieces: [M, D], clues: [] },
     expect: {
       path: 'complete', S: 2, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
-      F: 1, R1: 1, R2: 0, R3: 0, R4: 1, R5: 0, R6: 0, E: 0, tier: 2, G: 1, choices: [2], info: 1, Cmax: 2, Dmax: 0,
-      rows: ['M@(0, 0)', 'D@(1, 0)'],
+      F: 1, R1: 1, R2: 0, R3: 0, R4: 1, R5: 0, R6: 0, E: 0, tier: 2, G: 0, Gproved: 0, choices: [2],
+      census: [[2, 2, 0, 0]], cen: NO_CENSUS_COST, info: 0, Cmax: 0, Dmax: 0, rows: ['M@(0, 0)', 'D@(1, 0)'],
     },
   },
   {
     id: 'V3',
     puzzle: { board: rect(10, 1), pieces: [M, D, I3, I4], clues: [] },
     expect: {
-      path: 'complete', S: 8, solutions: 'many', exhausted: false, stop: 'solution-limit', Gt: 7, nodes: 15,
-      F: 1, R1: 1, R2: 0, R3: 0, R4: 1, R5: 0, R6: 3, R7: 3, R8: 6, R9: 0, E: 3, tier: 3, G: 3, choices: [4, 3, 2],
-      info: 4.585, Cmax: 4, Dmax: 2,
+      path: 'complete', S: 8, solutions: 'many', exhausted: false, stop: 'solution-limit', Gt: 7, nodes: 21,
+      F: 1, R1: 1, R2: 0, R3: 0, R4: 1, R5: 0, R6: 3, R7: 3, R8: 6, R9: 0, E: 3, tier: 3, G: 0, Gproved: 0,
+      choices: [4, 3, 2], census: [[4, 4, 0, 0], [3, 3, 0, 0], [2, 2, 0, 0]],
+      cen: { complete: true, undecided: 0, nodes: 6, work: 'positive' }, info: 0, Cmax: 0, Dmax: 0,
       rows: ['M@(0, 0)', 'D@(1, 0)', 'I3@(3, 0)', 'I4@(6, 0)'],
     },
   },
@@ -164,7 +190,7 @@ const VECTORS = [
     puzzle: { board: rect(2, 2), pieces: [D, D2], clues: [] },
     expect: {
       path: 'complete', S: 4, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 5,
-      F: 1, tier: 1, G: 1, choices: [4], info: 2, Cmax: 4,
+      F: 1, tier: 1, G: 0, Gproved: 0, choices: [4], census: [[4, 4, 0, 0]], cen: NO_CENSUS_COST, info: 0, Cmax: 0,
     },
   },
   {
@@ -187,8 +213,8 @@ const VECTORS = [
       board: boardFromRows([...RECIPE_BOARD_ROWS]), pieces: PENTOMINOES, clues: recipeWitness(),
     },
     expect: {
-      ...UNIQUE, Gt: 0, nodes: 1, R1: 0, R2: 0, F: 0, E: 0, tier: 0, G: 0, info: 0, Cmax: 0, Dmax: 0,
-      choices: [], rows: [],
+      ...UNIQUE, Gt: 0, nodes: 1, R1: 0, R2: 0, F: 0, E: 0, tier: 0, G: 0, Gproved: 0, info: 0, Cmax: 0, Dmax: 0,
+      choices: [], census: [], cen: NO_CENSUS_COST, rows: [],
     },
   },
 ];
@@ -213,25 +239,29 @@ test('vectors V1-V7 reproduce, with a valid first path and the metric domain', (
     const { model, result } = measure(v.puzzle);
     assertFields(model, result, v.expect, v.id);
     assertDomain(result);
-    assert.equal(result.census, null, v.id);
     assert.deepEqual(Object.keys(result), ['path', 'first', 'search', 'count', 'census']);
     assert.deepEqual(Object.keys(result.search), ['Gt', 'nodes', 'work', 'stop']);
     assert.deepEqual(Object.keys(result.count), ['S', 'limit', 'exhausted', 'solutions']);
     assert.equal(result.count.limit, DEDUCE.solutions);
     if (result.first === null) {
       assert.equal(result.path, 'none', v.id);
+      assert.equal(result.census, null, v.id);
       continue;
     }
+    assert.deepEqual(Object.keys(/** @type {object} */ (result.census)), ['complete', 'undecided', 'nodes', 'work']);
     assert.deepEqual(Object.keys(result.first), [
-      'F', 'E', 'rules', 'deductionTier', 'G', 'info', 'Cmax', 'Dmax', 'choices', 'rows', 'census',
+      'F', 'E', 'rules', 'deductionTier', 'G', 'Gproved', 'info', 'Cmax', 'Dmax', 'choices', 'rows', 'census',
     ]);
     assert.deepEqual(Object.keys(result.first.rules), ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9']);
-    assert.deepEqual(result.first.census, []);
+    for (const node of result.first.census) {
+      assert.deepEqual(Object.keys(node), ['c', 'kLow', 'f', 'u']);
+    }
     assert.ok(Array.isArray(result.first.choices) && Array.isArray(result.first.rows));
     assertValidFirstPath(model, v.puzzle, result);
   }
   const v1 = measure(vector('V1').puzzle);
   assert.deepEqual(v1.result.first?.rows.map((r) => rowPose(v1.model, r).piece), ['P']);
+  assert.deepEqual(measure(vector('V2').puzzle).result.first?.census, [{ c: 2, kLow: 2, f: 0, u: 0 }]);
 });
 
 /**
@@ -242,8 +272,12 @@ const CAPS = [
   { id: 'C1', vector: 'V2', limits: { nodes: 0 },
     expect: { path: 'capped', stop: 'node-cap', nodes: 0, Gt: 0, S: 0, solutions: 'unknown', exhausted: false } },
   { id: 'C2', vector: 'V2', limits: { nodes: 1 }, expect: { path: 'capped', stop: 'node-cap', nodes: 1, Gt: 1 } },
+  // The census runs after a node cap: nodes 3 = the 2 of the search + 1 probe of the second alternative.
   { id: 'C3', vector: 'V2', limits: { nodes: 2 },
-    expect: { path: 'complete', S: 1, solutions: 'unknown', stop: 'node-cap', nodes: 2, exhausted: false } },
+    expect: {
+      path: 'complete', S: 1, solutions: 'unknown', stop: 'node-cap', nodes: 3, exhausted: false, G: 0, Gproved: 0,
+      census: [[2, 2, 0, 0]], cen: { complete: true, undecided: 0, nodes: 1, work: 'positive' },
+    } },
   { id: 'C4', vector: 'V2', limits: { nodes: 3 }, expect: vector('V2').expect },
   { id: 'C5', vector: 'V2', limits: { work: 1 },
     expect: { path: 'capped', stop: 'work-cap', nodes: 0, Gt: 0, S: 0, solutions: 'unknown', exhausted: false } },
@@ -251,13 +285,25 @@ const CAPS = [
   { id: 'C6b', vector: 'V3', limits: { nodes: 2 }, expect: { path: 'capped', stop: 'node-cap' } },
   { id: 'C6c', vector: 'V3', limits: { nodes: 3 }, expect: { path: 'capped', stop: 'node-cap' } },
   { id: 'C7', vector: 'V3', limits: { nodes: 4 },
-    expect: { path: 'complete', S: 1, solutions: 'unknown', stop: 'node-cap' } },
+    expect: {
+      path: 'complete', S: 1, solutions: 'unknown', stop: 'node-cap', nodes: 18, G: 0,
+      cen: { complete: true, undecided: 0, nodes: 14, work: 'positive' },
+    } },
   { id: 'C8', vector: 'V3', limits: { nodes: 5 },
-    expect: { path: 'complete', S: 2, solutions: 'few', stop: 'node-cap' } },
+    expect: {
+      path: 'complete', S: 2, solutions: 'few', stop: 'node-cap', nodes: 18, G: 0,
+      cen: { complete: true, undecided: 0, nodes: 13, work: 'positive' },
+    } },
   { id: 'C9', vector: 'V3', limits: { solutions: 2 },
-    expect: { path: 'complete', S: 2, solutions: 'many', stop: 'solution-limit', nodes: 5, Gt: 3 } },
+    expect: {
+      path: 'complete', S: 2, solutions: 'many', stop: 'solution-limit', nodes: 18, Gt: 3, G: 0,
+      cen: { complete: true, undecided: 0, nodes: 13, work: 'positive' },
+    } },
   { id: 'C10', vector: 'V3', limits: { solutions: 30 },
-    expect: { path: 'complete', S: 24, solutions: 'few', exhausted: true, stop: 'exhausted', nodes: 41, Gt: 17 } },
+    expect: {
+      path: 'complete', S: 24, solutions: 'few', exhausted: true, stop: 'exhausted', nodes: 41, Gt: 17, G: 0,
+      cen: NO_CENSUS_COST,
+    } },
 ];
 
 test('caps C1-C10: statuses, node counts and no uniqueness from a cap', () => {
@@ -270,7 +316,8 @@ test('caps C1-C10: statuses, node counts and no uniqueness from a cap', () => {
       assert.equal(result.first, null, c.id);
     }
     if (c.limits.nodes !== undefined) {
-      assert.ok(result.search.nodes <= c.limits.nodes, c.id);
+      // The node cap bounds the nodes of the search proper; the census adds its own.
+      assert.ok(result.search.nodes - (result.census?.nodes ?? 0) <= c.limits.nodes, c.id);
     }
     if (result.search.stop === 'node-cap' || result.search.stop === 'work-cap') {
       assert.notEqual(result.count.solutions, 'unique', c.id);
@@ -293,8 +340,13 @@ test('the work cap stops a search that has started and the work of a capped run 
   const a = measure(puzzle, { ...DEDUCE, solutions: 30, work: cap }).result;
   const b = measure(puzzle, { ...DEDUCE, solutions: 30, work: cap }).result;
   assert.equal(a.search.stop, 'work-cap');
-  assert.ok(a.search.work > cap && a.search.work < full.search.work);
-  assert.ok(a.search.nodes > 0 && a.search.nodes < full.search.nodes);
+  // The caps bound the search proper; the totals also hold the census (here a count stopped by the cap).
+  const census = /** @type {NonNullable<typeof a.census>} */ (a.census);
+  assert.ok(census.work > 0 && census.nodes > 0);
+  const searchWork = a.search.work - census.work;
+  assert.ok(searchWork > cap && searchWork < full.search.work);
+  const searchNodes = a.search.nodes - census.nodes;
+  assert.ok(searchNodes > 0 && searchNodes < full.search.nodes);
   assert.notEqual(a.count.solutions, 'unique');
   assert.deepEqual(a, b);
   assert.equal(a.count.exhausted, false);
@@ -303,35 +355,38 @@ test('the work cap stops a search that has started and the work of a capped run 
 /**
  * Recipes: columns U (free pieces), F (= R1 here), R4, R5, R7, R8 (rows killed), E (rows killed by R6), tier, G,
  * choices, info (4 decimals), Cmax, Dmax, Gt, nodes. R2, R3 and R9 are 0 in every recipe. Characterisation of this
- * ladder version, not a monotonicity theorem; later rules re-pin it.
+ * ladder version, not a monotonicity theorem; later rules re-pin it. Every recipe is unique and its count is
+ * exhausted, so the census needs no probe (`census` lists `[c, kLow, f, u]` per node) and the decisive values
+ * equal the raw ones: G = Gproved = the number of nodes.
  * @type {Record<string, { U: number, F: number, R4: number, R5: number, E: number, R7: number, R8: number,
- *   tier: number, G: number, choices: number[], info: string, Cmax: number, Dmax: number, Gt: number,
- *   nodes: number }>}
+ *   tier: number, G: number, choices: number[], census: number[][], info: string, Cmax: number, Dmax: number,
+ *   Gt: number, nodes: number }>}
  */
 const RECIPE_TABLE = {
   'very-easy': {
-    U: 3, F: 3, R4: 0, R5: 0, E: 0, R7: 0, R8: 0, tier: 1, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0,
-    Gt: 0, nodes: 1,
+    U: 3, F: 3, R4: 0, R5: 0, E: 0, R7: 0, R8: 0, tier: 1, G: 0, choices: [], census: [], info: '0.0000', Cmax: 0,
+    Dmax: 0, Gt: 0, nodes: 1,
   },
   easy: {
-    U: 4, F: 4, R4: 0, R5: 0, E: 0, R7: 0, R8: 0, tier: 1, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0,
-    Gt: 0, nodes: 1,
+    U: 4, F: 4, R4: 0, R5: 0, E: 0, R7: 0, R8: 0, tier: 1, G: 0, choices: [], census: [], info: '0.0000', Cmax: 0,
+    Dmax: 0, Gt: 0, nodes: 1,
   },
   normal: {
-    U: 5, F: 5, R4: 9, R5: 0, E: 0, R7: 0, R8: 0, tier: 2, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0,
-    Gt: 0, nodes: 1,
+    U: 5, F: 5, R4: 9, R5: 0, E: 0, R7: 0, R8: 0, tier: 2, G: 0, choices: [], census: [], info: '0.0000', Cmax: 0,
+    Dmax: 0, Gt: 0, nodes: 1,
   },
   hard: {
-    U: 7, F: 5, R4: 19, R5: 0, E: 2, R7: 0, R8: 58, tier: 3, G: 2, choices: [2, 5], info: '3.3219', Cmax: 5,
-    Dmax: 2, Gt: 2, nodes: 8,
+    U: 7, F: 5, R4: 19, R5: 0, E: 2, R7: 0, R8: 58, tier: 3, G: 2, choices: [2, 5],
+    census: [[2, 1, 1, 0], [5, 1, 4, 0]], info: '3.3219', Cmax: 5, Dmax: 2, Gt: 2, nodes: 8,
   },
   expert: {
-    U: 8, F: 5, R4: 9, R5: 0, E: 8, R7: 5, R8: 101, tier: 3, G: 3, choices: [2, 6, 2], info: '4.5850', Cmax: 6,
-    Dmax: 4, Gt: 5, nodes: 18,
+    U: 8, F: 5, R4: 9, R5: 0, E: 8, R7: 5, R8: 101, tier: 3, G: 3, choices: [2, 6, 2],
+    census: [[2, 1, 1, 0], [6, 1, 5, 0], [2, 1, 1, 0]], info: '4.5850', Cmax: 6, Dmax: 4, Gt: 5, nodes: 18,
   },
   master: {
-    U: 10, F: 6, R4: 0, R5: 45, E: 12, R7: 0, R8: 152, tier: 3, G: 4, choices: [4, 2, 7, 2], info: '6.8074', Cmax: 7,
-    Dmax: 3, Gt: 37, nodes: 145,
+    U: 10, F: 6, R4: 0, R5: 45, E: 12, R7: 0, R8: 152, tier: 3, G: 4, choices: [4, 2, 7, 2],
+    census: [[4, 1, 3, 0], [2, 1, 1, 0], [7, 1, 6, 0], [2, 1, 1, 0]], info: '6.8074', Cmax: 7, Dmax: 3, Gt: 37,
+    nodes: 145,
   },
 };
 
@@ -361,6 +416,9 @@ test('the six recipes reproduce the pinned characterisation', () => {
     }, level);
     assert.deepEqual([first.F, first.G, first.choices, first.info.toFixed(4), first.Cmax, first.Dmax],
       [want.F, want.G, want.choices, want.info, want.Cmax, want.Dmax], level);
+    assert.deepEqual(first.census.map((n) => [n.c, n.kLow, n.f, n.u]), want.census, level);
+    assert.equal(first.Gproved, want.G, level);
+    assert.deepEqual(result.census, { complete: true, undecided: 0, nodes: 0, work: 0 }, level);
     assert.deepEqual([result.search.Gt, result.search.nodes], [want.Gt, want.nodes], level);
     assert.deepEqual([first.E, first.deductionTier, first.rules.R1, first.rules.R2, first.rules.R6],
       [want.E, want.tier, want.F, 0, want.E], level);

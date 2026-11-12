@@ -11,6 +11,9 @@
 // with the fewest live rows.
 // The result describes the path to the first solution (forced placements, the width of every guess), the
 // number of solutions up to a limit, and which cap stopped the search: three independent statuses.
+// A guess counts only when it is decisive: the census proves, for every guess node of the path, how many of
+// its alternatives have a solution, how many have none, and how many stay undecided within the census budget;
+// an undecided alternative counts as failing, which makes the values an upper estimate.
 //
 // Pure: no DOM, clock, storage or randomness. Work is counted in deterministic units, so the node cap, the
 // work cap and the memory bound are the only limits. The state lives in `deduce.*` slots of the model's
@@ -29,7 +32,7 @@ import { assertLive, ModelError } from './tiling.js';
  * @property {number} nodes Integer >= 0 or Infinity; node cap.
  * @property {number} solutions Integer >= 2; the count stops at this many solutions.
  * @property {number} work Integer >= 0 or Infinity; work cap (deterministic work units).
- * @property {number} census Integer >= 0 or Infinity; census work budget (used from MP05).
+ * @property {number} census Integer >= 0 or Infinity; work budget of the decisive census.
  * @property {number} memoryBytes Integer >= 0 or Infinity; bytes of all deduce.* slots.
  */
 
@@ -40,7 +43,11 @@ import { assertLive, ModelError } from './tiling.js';
  */
 
 /** @typedef {{ R1: number, R2: number, R3: number, R4: number, R5: number, R6: number, R7: number, R8: number, R9: number }} RuleCounts */
-/** @typedef {{ c: number, kLow: number, f: number, u: number }} CensusNode One per final-path guess node (from MP05). */
+/**
+ * The census of one final-path guess node: of its c alternatives kLow are proved solvable (at least the
+ * path's own), f proved impossible and u undecided; kLow + f + u = c.
+ * @typedef {{ c: number, kLow: number, f: number, u: number }} CensusNode
+ */
 
 /**
  * @typedef {object} FirstPath
@@ -48,13 +55,14 @@ import { assertLive, ModelError } from './tiling.js';
  * @property {number} E Rows killed by R6 on the final path.
  * @property {RuleCounts} rules Final-path counts: placements for R1-R3, killed rows for R4-R9.
  * @property {0 | 1 | 2 | 3} deductionTier Highest tier of a rule with a nonzero count; 0 when none.
- * @property {number} G Guess nodes on the final path.
- * @property {number} info Sum of log2(c) over the final-path guess nodes, in path order; 0 when G = 0.
- * @property {number} Cmax Largest c; 0 when G = 0.
- * @property {number} Dmax Rows selected on the path before the deepest guess node; 0 when G = 0.
- * @property {number[]} choices c of each final-path guess node, root first.
+ * @property {number} G Counted (decisive) guess nodes on the final path: those with kLow < c.
+ * @property {number} Gproved Final-path guess nodes with an alternative proved impossible (f >= 1); <= G.
+ * @property {number} info Sum of log2(c / kLow) over the counted nodes, in path order; 0 when G = 0.
+ * @property {number} Cmax Largest c of a counted node; 0 when G = 0.
+ * @property {number} Dmax Rows selected on the path before the deepest counted node; 0 when G = 0.
+ * @property {number[]} choices c of every final-path guess node, root first (raw: counted or not).
  * @property {number[]} rows Selected rows of the first solution in selection order (clues are not rows).
- * @property {CensusNode[]} census Empty until MP05.
+ * @property {CensusNode[]} census One per final-path guess node, aligned with `choices`.
  */
 
 /**
@@ -65,7 +73,9 @@ import { assertLive, ModelError } from './tiling.js';
  *   stop: 'exhausted' | 'solution-limit' | 'node-cap' | 'work-cap' }} search
  * @property {{ S: number, limit: number, exhausted: boolean,
  *   solutions: 'unique' | 'few' | 'many' | 'unknown' | 'none' }} count
- * @property {null} census Until MP05 (then `{ complete, undecided, nodes, work }`).
+ * @property {{ complete: boolean, undecided: number, nodes: number, work: number } | null} census
+ *   Non-null iff path === 'complete': `complete` is true when no alternative is undecided; `nodes` and `work`
+ *   are the census's share of `search.nodes` and `search.work`.
  */
 
 /** @typedef {'exhausted' | 'solution-limit' | 'node-cap' | 'work-cap'} StopReason */
@@ -86,6 +96,12 @@ import { assertLive, ModelError } from './tiling.js';
  * @property {Int32Array} picked Rows selected on the current path, in order.
  * @property {Int32Array} guessC c of each guess node of the current path.
  * @property {Int32Array} guessPlaced `picked` length at each guess node of the current path.
+ * @property {Int32Array} altAt Index of the alternative being tried at each depth of the current path.
+ * @property {Int32Array} pathAlt Alternatives of the first path's guess nodes, saved at the first solution.
+ * @property {Int32Array} pathAltBase Start of each first-path guess node's alternatives in `pathAlt`.
+ * @property {Int32Array} pathOwn Index of the path's own alternative at each first-path guess node.
+ * @property {Int32Array} pathPlaced `guessPlaced` of each first-path guess node.
+ * @property {Uint8Array} status Census status of each `pathAlt` entry: 0 undecided, 1 failed, 2 solvable.
  * @property {Int32Array} cellIndex Board index of each cell column.
  * @property {Int32Array} queue Breadth-first queue of the pocket check.
  * @property {Int32Array} seen Visit stamps of the pocket check.
@@ -123,9 +139,16 @@ const NONE = 0;
 const APPLIED = 1;
 const CONTRADICTION = 2;
 const STOPPED = 3;
+// Outcome of a census probe: NONE (no solution below), FOUND or STOPPED (the census budget ran out).
+const FOUND = 4;
 
 const CONTINUE = 0;
 const STOP = 1;
+
+// Census status of an alternative of a first-path guess node.
+const UNDECIDED = 0;
+const FAILED = 1;
+const SOLVABLE = 2;
 
 // Options of an R7 candidate: the sign of a row's colour imbalance, and the same bits shifted by two for
 // "kill the rows with this option".
@@ -139,9 +162,10 @@ const KILL_SHIFT = 2;
  * allocation both read this table. On any path a row dies at most once and a column is covered at most once
  * (the trail holds at most R + C entries); the alternatives of nested guess nodes are pairwise disjoint
  * (`alt` holds at most R); every selected row covers a different piece column (depth and `picked` stay
- * below NP + 1). The grids of R7 hold at most floor(Tsz / 2) + 1 areas of 2 Tsz + 1 imbalances each, with Tsz
- * the area of all free pieces: a programme tracks the smaller of the two sides of a pocket and the pieces'
- * imbalances add up to at most Tsz.
+ * below NP + 1). The alternatives of the first path's guess nodes are disjoint as well, so `pathAlt` and
+ * `status` hold at most R entries. The grids of R7 hold at most floor(Tsz / 2) + 1 areas of 2 Tsz + 1
+ * imbalances each, with Tsz the area of all free pieces: a programme tracks the smaller of the two sides of a
+ * pocket and the pieces' imbalances add up to at most Tsz.
  * @param {number} R Rows.
  * @param {number} C Columns.
  * @param {number} NZ Nonzeros.
@@ -163,6 +187,12 @@ function slotTable(R, C, NZ, NP, NC, Tsz) {
     ['deduce.picked', 'int32', NP + 2],
     ['deduce.guessC', 'int32', NP + 2],
     ['deduce.guessPlaced', 'int32', NP + 2],
+    ['deduce.altAt', 'int32', NP + 2],
+    ['deduce.pathAlt', 'int32', R],
+    ['deduce.pathAltBase', 'int32', NP + 2],
+    ['deduce.pathOwn', 'int32', NP + 2],
+    ['deduce.pathPlaced', 'int32', NP + 2],
+    ['deduce.status', 'uint8', R],
     ['deduce.cellIndex', 'int32', NC],
     ['deduce.queue', 'int32', NC],
     ['deduce.seen', 'int32', NC],
@@ -277,6 +307,7 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
   }
   const {
     colStart, colRows, colCount, live, covered, trail, alt, altBase, picked, guessC, guessPlaced,
+    altAt, pathAlt, pathAltBase, pathOwn, pathPlaced, status,
     cellIndex, queue, seen, reach, compFirst, compSize, mark: cellMark,
     rowImb, pieceK, compOf, compImb, candPiece, candOpts, parity, disc, low, dfsStack, dfsNext, isArt,
     reachMinus, minusRow, sup1, sup2, pairCells,
@@ -294,6 +325,17 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
   let stop = 'exhausted';
   /** @type {FirstPath | null} */
   let first = null;
+  // The census (after the count): while it runs, the ladder compares `work` with `workLimit` and exceeding it
+  // stops the census, never the measurement.
+  let workLimit = limits.work;
+  let inCensus = false;
+  let censusStopped = false;
+  let censusNodes = 0;
+  let finalDepth = 0;
+  let finalOpen = 0;
+  /** @type {{ complete: boolean, undecided: number, nodes: number, work: number } | null} */
+  let censusResult = null;
+  let mrvCount = 0;
   const rules = new Int32Array(RULE_COUNT);
   const savedRules = new Int32Array(RULE_COUNT * (NP + 2));
 
@@ -415,16 +457,24 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
     picked[pickedLength++] = r;
   }
 
+  // A mark packs the trail length and the number of selected rows into one integer, so that taking one
+  // allocates nothing: the trail holds at most R + C entries and `picked` at most NP, so a mark stays below
+  // (R + C + 1) * (NP + 2), far under 2^53 for any model the workspace admits.
+  const markSpan = NP + 2;
+
+  /** @returns {number} */
   function mark() {
     if (copies !== null) {
       copies.push(copyState());
     }
-    return { trail: trailLength, picked: pickedLength };
+    return trailLength * markSpan + pickedLength;
   }
 
-  /** @param {{ trail: number, picked: number }} m */
+  /** @param {number} m A value returned by `mark()`. */
   function undo(m) {
-    while (trailLength > m.trail) {
+    const placed = m % markSpan;
+    const keep = (m - placed) / markSpan;
+    while (trailLength > keep) {
       const x = trail[--trailLength];
       work += 1;
       if (x >= 0) {
@@ -439,7 +489,7 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
         covered[-x - 1] = 0;
       }
     }
-    pickedLength = m.picked;
+    pickedLength = placed;
     if (copies !== null && !sameState(/** @type {StateCopy} */ (copies.pop()), copyState())) {
       throw new Error('deduce: undo mismatch');
     }
@@ -775,14 +825,29 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
   }
 
   /**
+   * Whether the work has passed the cap of what is running: `limits.work` for the search, the census budget
+   * for the census. The first stops the measurement (`work-cap`), the second only the census.
+   */
+  function overWork() {
+    if (work <= workLimit) {
+      return false;
+    }
+    if (inCensus) {
+      censusStopped = true;
+    } else {
+      stop = 'work-cap';
+    }
+    return true;
+  }
+
+  /**
    * The cheap ladder of a lookahead trial: R1, R2 and the R3 check, never R3 place, R4-R9 or R6, never counted.
    * The work cap is checked at every pass; a closure that stops proves nothing.
    * @returns {number} NONE (fixpoint), CONTRADICTION or STOPPED (work cap).
    */
   function closure() {
     for (;;) {
-      if (work > limits.work) {
-        stop = 'work-cap';
+      if (overWork()) {
         return STOPPED;
       }
       let step = ruleR1(false);
@@ -1026,7 +1091,7 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
     const pockets = labelPockets();
     for (let i = 0; i < pockets; i += 1) {
       const n = gather(i);
-      if (work > limits.work) {
+      if (work > workLimit) {
         return NONE;
       }
       if (!reachable(n, -1, compSize[i], compImb[i])) {
@@ -1052,7 +1117,7 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
           if ((options & option) === 0) {
             continue;
           }
-          if (work > limits.work) {
+          if (work > workLimit) {
             return NONE;
           }
           const imbalance = option === OPT_PLUS ? pieceK[p] : -pieceK[p];
@@ -1374,8 +1439,7 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
    */
   function ladder(counting) {
     for (;;) {
-      if (work > limits.work) {
-        stop = 'work-cap';
+      if (overWork()) {
         return STOPPED;
       }
       let step = ruleR1(counting);
@@ -1413,7 +1477,11 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
     }
   }
 
-  /** @returns {FirstPath} */
+  /**
+   * The raw values over every final-path guess node; `settleCensus` replaces G, info, Cmax and Dmax by the
+   * decisive ones and fills `Gproved` and `census`.
+   * @returns {FirstPath}
+   */
   function snapshot() {
     const counts = /** @type {RuleCounts} */ (Object.fromEntries(RULES.map((key, i) => [key, rules[i]])));
     const choices = Array.from(guessC.subarray(0, depth));
@@ -1425,6 +1493,7 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
       rules: counts,
       deductionTier: tier,
       G: depth,
+      Gproved: 0,
       info: choices.reduce((sum, c) => sum + Math.log2(c), 0),
       Cmax: choices.reduce((max, c) => Math.max(max, c), 0),
       Dmax: depth === 0 ? 0 : guessPlaced[depth - 1],
@@ -1434,21 +1503,74 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
     };
   }
 
-  /** A node at a fixpoint: a solution, or a guess on the column with the fewest live rows. */
-  function branch() {
-    let best = -1;
-    let bestCount = Infinity;
-    for (let c = 0; c < C; c += 1) {
-      work += 1;
-      if (covered[c] === 0 && colCount[c] < bestCount) {
-        best = c;
-        bestCount = colCount[c];
+  /**
+   * At the first solution: saves the guess nodes of the final path for the census (the search overwrites
+   * `alt` when it goes on). Source 1 of the census: the alternatives before the path's own failed, the own
+   * one is solvable, the later ones are undecided until the count or a probe decides them.
+   */
+  function keepPath() {
+    finalDepth = depth;
+    finalOpen = depth;
+    for (let d = 0; d < depth; d += 1) {
+      const from = altBase[d];
+      const own = altAt[d];
+      pathAltBase[d] = from;
+      pathOwn[d] = own;
+      pathPlaced[d] = guessPlaced[d];
+      for (let j = from; j < altBase[d + 1]; j += 1) {
+        pathAlt[j] = alt[j];
+        status[j] = j - from < own ? FAILED : j - from === own ? SOLVABLE : UNDECIDED;
       }
     }
+    pathAltBase[depth] = altBase[depth];
+  }
+
+  /**
+   * The uncovered column with the fewest live rows; ties go to the lowest column.
+   * @returns {number} The column, or -1 when every column is covered; `mrvCount` is its number of live rows.
+   */
+  function fewestColumn() {
+    let best = -1;
+    mrvCount = Infinity;
+    for (let c = 0; c < C; c += 1) {
+      work += 1;
+      if (covered[c] === 0 && colCount[c] < mrvCount) {
+        best = c;
+        mrvCount = colCount[c];
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Writes the live rows of column `c` in ascending order to `alt` from `base`.
+   * @param {number} c
+   * @param {number} base
+   * @returns {number} The end of the written alternatives.
+   */
+  function listRows(c, base) {
+    let end = base;
+    const to = colStart[c + 1];
+    for (let j = colStart[c]; j < to; j += 1) {
+      work += 1;
+      if (live[colRows[j]] === 1) {
+        alt[end++] = colRows[j];
+      }
+    }
+    return end;
+  }
+
+  /**
+   * A node at a fixpoint: a solution, or a guess on the column with the fewest live rows. After the first
+   * solution, the outcome of every later alternative of an open final-path node is the census's source 2.
+   */
+  function branch() {
+    const best = fewestColumn();
     if (best === -1) {
       S += 1;
       if (S === 1) {
         first = snapshot();
+        keepPath();
       }
       if (S >= limits.solutions) {
         stop = 'solution-limit';
@@ -1457,19 +1579,13 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
       return CONTINUE;
     }
     Gt += 1;
-    const base = altBase[depth];
-    let end = base;
-    const to = colStart[best + 1];
-    for (let j = colStart[best]; j < to; j += 1) {
-      work += 1;
-      if (live[colRows[j]] === 1) {
-        alt[end++] = colRows[j];
-      }
-    }
-    guessC[depth] = bestCount;
-    guessPlaced[depth] = pickedLength;
-    altBase[depth + 1] = end;
-    depth += 1;
+    const d = depth;
+    const base = altBase[d];
+    const end = listRows(best, base);
+    guessC[d] = mrvCount;
+    guessPlaced[d] = pickedLength;
+    altBase[d + 1] = end;
+    depth = d + 1;
     let out = CONTINUE;
     for (let i = base; i < end; i += 1) {
       if (nodes === limits.nodes) {
@@ -1483,16 +1599,24 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
         out = STOP;
         break;
       }
+      altAt[d] = i - base;
+      const solved = S;
       const m = mark();
       select(alt[i]);
       const child = search();
       undo(m);
+      if (d < finalOpen && i - base > pathOwn[d]) {
+        status[pathAltBase[d] + i - base] = S > solved ? SOLVABLE : child === STOP ? UNDECIDED : FAILED;
+      }
       if (child === STOP) {
         out = STOP;
         break;
       }
     }
-    depth -= 1;
+    depth = d;
+    if (d < finalOpen) {
+      finalOpen = d;
+    }
     return out;
   }
 
@@ -1513,11 +1637,153 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
       out = CONTINUE;
     }
     undo(m);
-    rules.set(savedRules.subarray(at, at + RULE_COUNT));
+    for (let i = 0; i < RULE_COUNT; i += 1) {
+      rules[i] = savedRules[at + i];
+    }
     return out;
   }
 
   const afterSetup = copies === null ? null : copyState();
+
+  /**
+   * Existence probe (the census's source 3): the search below the current state, stopping at its first
+   * solution. It counts no rules and changes neither `first` nor S; it needs no alternative of the final
+   * path, so `alt` is free from depth 0 on.
+   * @returns {number} FOUND, NONE (no solution below) or STOPPED (the census budget ran out).
+   */
+  function probe() {
+    const res = ladder(false);
+    if (res === STOPPED) {
+      return STOPPED;
+    }
+    if (res === CONTRADICTION) {
+      return NONE;
+    }
+    const best = fewestColumn();
+    if (best === -1) {
+      return FOUND;
+    }
+    const d = depth;
+    const base = altBase[d];
+    const end = listRows(best, base);
+    altBase[d + 1] = end;
+    depth = d + 1;
+    let out = NONE;
+    for (let i = base; i < end; i += 1) {
+      if (work > workLimit) {
+        censusStopped = true;
+        out = STOPPED;
+        break;
+      }
+      censusNodes += 1;
+      const m = mark();
+      select(alt[i]);
+      out = probe();
+      undo(m);
+      if (out !== NONE) {
+        break;
+      }
+    }
+    depth = d;
+    return out;
+  }
+
+  /**
+   * Runs the ladder of the replay (the final path's own states) and notes a stop of the census. A ladder that
+   * the budget cut short, or an R7 that gave up, leaves `work` above the limit, which the next check finds.
+   */
+  function replayLadder() {
+    const res = ladder(false);
+    if (res === CONTRADICTION) {
+      throw new Error('deduce: census replay left the final path');
+    }
+    if (res === STOPPED || work > workLimit) {
+      censusStopped = true;
+    }
+  }
+
+  /**
+   * Source 3 of the census: probes the alternatives that are still undecided, nodes in path order and
+   * alternatives in ascending order, replaying the final path from the root (the ladder is deterministic, so
+   * the replay reaches the states the search had). Nothing is replayed when nothing is undecided, and the
+   * replay ends with the last undecided alternative.
+   * @returns {number} The number of undecided alternatives left.
+   */
+  function runProbes() {
+    let left = 0;
+    for (let j = 0; j < pathAltBase[finalDepth]; j += 1) {
+      left += status[j] === UNDECIDED ? 1 : 0;
+    }
+    if (left === 0) {
+      return 0;
+    }
+    inCensus = true;
+    workLimit = work + limits.census;
+    const m0 = mark();
+    replayLadder();
+    for (let d = 0; d < finalDepth && left > 0 && !censusStopped; d += 1) {
+      const from = pathAltBase[d];
+      for (let j = from; j < pathAltBase[d + 1] && !censusStopped; j += 1) {
+        if (status[j] !== UNDECIDED) {
+          continue;
+        }
+        if (work > workLimit) {
+          censusStopped = true;
+          break;
+        }
+        censusNodes += 1;
+        const m = mark();
+        select(pathAlt[j]);
+        const out = probe();
+        undo(m);
+        if (out === FOUND || out === NONE) {
+          status[j] = out === FOUND ? SOLVABLE : FAILED;
+          left -= 1;
+        }
+      }
+      if (left > 0 && !censusStopped) {
+        select(pathAlt[from + pathOwn[d]]);
+        replayLadder();
+      }
+    }
+    undo(m0);
+    inCensus = false;
+    return left;
+  }
+
+  /**
+   * After the search: the census of every final-path guess node, the decisive G, info, Cmax and Dmax, and
+   * `Gproved`. A node counts when an alternative is not proved solvable (kLow < c): an undecided alternative
+   * is treated as failing, so an unfinished census gives an upper estimate.
+   * @param {FirstPath} path
+   */
+  function settleCensus(path) {
+    const censusStart = work;
+    const undecided = runProbes();
+    path.G = 0;
+    path.Gproved = 0;
+    path.info = 0;
+    path.Cmax = 0;
+    path.Dmax = 0;
+    for (let d = 0; d < finalDepth; d += 1) {
+      const c = path.choices[d];
+      let kLow = 0;
+      let f = 0;
+      for (let j = pathAltBase[d]; j < pathAltBase[d + 1]; j += 1) {
+        kLow += status[j] === SOLVABLE ? 1 : 0;
+        f += status[j] === FAILED ? 1 : 0;
+      }
+      path.census.push({ c, kLow, f, u: c - kLow - f });
+      path.Gproved += f > 0 ? 1 : 0;
+      if (kLow < c) {
+        path.G += 1;
+        path.info += Math.log2(c / kLow);
+        path.Cmax = Math.max(path.Cmax, c);
+        path.Dmax = pathPlaced[d];
+      }
+    }
+    censusResult = { complete: undecided === 0, undecided, nodes: censusNodes, work: work - censusStart };
+  }
 
   function result() {
     const exhausted = stop === 'exhausted';
@@ -1525,9 +1791,9 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
     return /** @type {DeductionResult} */ ({
       path,
       first: path === 'complete' ? first : null,
-      search: { Gt, nodes, work, stop },
+      search: { Gt, nodes: nodes + censusNodes, work, stop },
       count: { S, limit: limits.solutions, exhausted, solutions: countStatus(S, limits.solutions, exhausted) },
-      census: null,
+      census: censusResult,
     });
   }
 
@@ -1544,6 +1810,12 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
   search();
   if (afterSetup !== null && !sameState(afterSetup, /** @type {StateCopy} */ (copyState()))) {
     throw new Error('deduce: undo mismatch');
+  }
+  if (first !== null) {
+    settleCensus(first);
+    if (afterSetup !== null && !sameState(afterSetup, /** @type {StateCopy} */ (copyState()))) {
+      throw new Error('deduce: undo mismatch');
+    }
   }
   return result();
 }
