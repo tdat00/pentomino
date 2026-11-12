@@ -1,6 +1,6 @@
 # difficulty-v3: clarifications for the plan author
 
-Status: open, 2026-11-12. Questions raised by the two analysts who reviewed `docs/difficulty-v3/plan.md`
+Status: **answered, 2026-11-12** by the plan author (claude-fable-5-2); the disputed rows were decided by the owner on the command line. Summary of the decisions: part E at the end of this file. Questions raised by the two analysts who reviewed `docs/difficulty-v3/plan.md`
 against the code (branch `rating-v3`, commit `77e62cb`), for the plan's author (claude-fable-5-2) to check and
 answer. The owner confirms the answers before they become decisions.
 
@@ -71,7 +71,7 @@ Normal".
 SA2 recommends (a): it carries the proof of P2.1 and needs no special case; (b) compresses the distinctions
 between forced puzzles with a high U; (c) needs new calibration first.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a). Base max 12 and rule 0 / 2 / 4, so base + rule ≤ 16. The constant `base: { max: 16, scale: 6 }` in plan P2.1 is a leftover of the first draft and wrong; the equation is the intended one. The forced bound is "≤ 16" (joint report RES-18).
 
 ### SA2-Q-P02: what happens when the deduction search stops before the first solution, and how is its work bounded?
 
@@ -87,7 +87,7 @@ SA2 recommends (a), plus deterministic work limits on incidences and probes in a
 cap numbers come from the P0.3 probe. (a) may lower hit rates but never invents G; (b) needs a new score and
 label contract; (c) costs more and can change what "a required guess" means.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** Owner decision (asked on the command line, 2026-11-12): **(a), RES-04 branch A.** A path capped before the first solution is unrateable: `rate()` throws `IncompleteRatingError` (`reason: 'path-capped'`), `selectClues` skips the candidate (it costs a profile and is neutral for the count steering), the derived display rating keeps the stored claim with "could not be re-rated". The v3 "+" mark is therefore never produced; `saturated` stays in the claim schema as `false` for v3 and keeps its meaning for stored v2 claims. Work is bounded by deterministic work units as well as nodes (RES-10). MP06 reports the capped share per level and board and sets `DEDUCE.work` so that no path is capped up to master on boards up to 20x18; if hell levels on very large boards become hard to generate, that is reported to the owner with the numbers rather than solved by an estimate. This withdraws the plan's remark that saturation is acceptable at hell levels (plan section 4, P3 step 4).
 
 ### SA2-Q-P03: how do interchangeable (identical-shape) pieces affect G and S?
 
@@ -103,7 +103,7 @@ SA2 recommends (b), documented: (a) is simplest but identity swaps look hard; (b
 solver and separates the rating count from the uniqueness certificate; (c) keeps today's raw count but can
 penalise multiplicity that is only identity.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** Owner decision (asked on the command line, 2026-11-12): **none of the branches. A piece set must not contain two pieces of the same shape, imported sets included; such a set is an error.** Consequences: (1) `core/engine/pack.js:569-574` turns its warning into an error (issue code such as `duplicate-shape`, with the two piece ids), and every other way in gets the same check: puzzle codes (`core/engine/puzzlecode.js` decode), the Generator import and the Player route; the message exists in English and Vietnamese. Shapes are compared with `canonicalKey` (`core/engine/geometry.js:126`), as `core/engine/carve.js:697-707` does for generated sets. (2) RES-09 is closed without a quotient: `shapeGroup` (RES-02) and task MP04b are dropped; guesses, alternatives and S are counted on labelled pieces, which is exact for every admissible set. (3) The engine functions (`rate`, `measureDeduction`, `selectClues`) stay total on direct inputs with twins and behave as branch A there; tests that build such sets on purpose (for example the 41 I-pentomino strip of `tests/clues.test.js:196-214`) keep working and are not a supported product input. (4) This is a format tightening: a pack or link with twins that opened with a warning before is now refused; document it in design section 5.3, the user guides and the release notes of this change. Put the check in the task that touches the pack reader for v3 (RES-21) and add tests for the pack, the code and both apps.
 
 ### SA2-Q-P04: how much search for the band centre (P1)?
 
@@ -120,7 +120,7 @@ Also: centre as a real number `(min + max) / 2` or as the integer-score centre?
 SA2 recommends (a) with the integer-score centre: it balances cost and quality; (b) leaves budget unused
 without a reason; (c) maximises search cost. All three move the deterministic fixtures.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** Confirmed as agreed in RES-15: the centre is the real number `(min + max) / 2`; stop early when a final result (after any uniqueness repair) lies in the central half of the band; otherwise return the best final result seen once 48 profiles are spent (`reserve = 16`, kept for repairs and their re-ratings); an unbounded band has no centre and keeps "first in band".
 
 ### SA2-Q-P05: placement-weighted clue sampling?
 
@@ -134,7 +134,7 @@ layout order.
 
 SA2 recommends (a) first, (c) only with data.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a). Uniform sampling; only the acceptance changes. The direction I gave in plan P1 step 2 was not validated and, as SA1 shows, argued the wrong way round. A weighting rule may come back only with probe data, as a separate change.
 
 ### SA2-Q-P06: one search order or several for the rating?
 
@@ -147,7 +147,7 @@ MRV tie-break order:
 
 SA2 recommends (a), with the noise reported; no automatic switch based on one probe.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a). One canonical order; the probe reports the spread over the column tie rule. The "median of three orders" of plan section 5 is not triggered automatically; it would need its own decision.
 
 ### SA2-Q-P07: what if the largest v3 puzzle code does not fit in a QR code?
 
@@ -161,7 +161,7 @@ limits.
 
 SA2 recommends (a), unless a QR for every puzzle is a release requirement.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** Superseded by the agreed summary claim (see SA1-Q-P3): codes carry `model`, `score`, `level`, `saturated` only, so the largest code stays near today's size class and fits QR version 40. If a code ever does not fit, the existing fallback (no QR) applies; no compact v3 codec in this plan.
 
 ### SA2-Q-P08: how is re-rating on load shown (P2.5)?
 
@@ -175,7 +175,7 @@ Context: report section 4 "P2.5". A puzzle that carries a `difficulty-v2` claim 
 SA2 recommends (a): (b) hides a possibly large level change; (c) departs from the automatic re-rating of P2.5.
 No option changes the claim stored in the URL.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a). Show the v3 level with the note "Re-rated with the current scale (original: …)"; the code, the URL, the title and the export keep the stored claim; print captions use the same rating and note.
 
 ### SA2-Q-P09: which calibration changes are allowed in P3?
 
@@ -188,7 +188,7 @@ Context: report section 4 "P3"; plan section 5 "Hit rate at Hard on large boards
 SA2 recommends (a), keeping the carving architecture out of scope. It also reads "hit rates within ~10 points"
 as percentage points of the matched hit rate, not a relative percentage: please confirm.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** Owner decision (asked on the command line, 2026-11-12): **branch A.** P3 may change the `SCORE_V3` knobs within the JR-P3 ranges, the `DEDUCE` caps, and `K60` and `SHARES` when that is needed to keep hit rates, each change recorded with its before and after data in the calibration report (a `K60` change bumps `POLICY_ID`). Not allowed without a new decision: a new estimator, multi-order aggregation, dropping a diagnostic, a carving redesign, moving band edges. "Within ~10 points" means percentage points of the matched hit rate: confirmed.
 
 ### SA2-Q-P10: replay provenance and fallback contract (P4)?
 
@@ -205,7 +205,7 @@ candidate from its creation.
 SA2 recommends (a), and asks to approve an explicit "steps unavailable" state instead of silently truncating
 "every step".
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a). The versioned compact record with typed origins carried by the candidate from its creation; completion-pass puzzles and puzzles without a record get stages 1-3 (when available) and 7, and the dialog states "steps not available for this puzzle" for the missing stages. The explicit unavailable state is approved; a trace is never truncated silently. My draft record lacked the target level and the uniqueness setting: accepted.
 
 ### SA2-Q-P11: include the optional explanatory Player hints?
 
@@ -218,7 +218,7 @@ piece.
 
 SA2 recommends (a): full P0-P4 covers the catalogue and the Generator replay, not this optional extension.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a). The rule-naming Player hints stay out of this release, as the plan already says ("optional, after P3").
 
 ---
 
@@ -263,7 +263,7 @@ SA2 recommends prototyping B (task MP05), measuring hit rates, cost and census c
 between B and B' (or A) with an explicit incomplete-census policy. The answer is needed before MP08 writes the
 formula.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** Owner decision (asked on the command line, 2026-11-12): **(B), RES-05 branch B.** A guess node counts only when some alternative is proved to fail; `info = Σ log2(c_i / kLow_i)`; when the census cannot finish inside `DEDUCE.census`, the rating is published as a decisive upper estimate (it lies between the true decisive value and the raw value) with `censusComplete: false` and the note "decisive estimate: n alternatives undecided within the work limit". This note is independent of the capped-path policy (SA2-Q-P02 (a)): an incomplete census is rateable, a capped path is not. Author's conditions, taken from SA2: MP05 builds it and MP06 reports hit rate, cost and the share of incomplete censuses per level and board before MP08 writes the formula; if more than a few per cent of accepted puzzles of a level carry an estimate, MP06 raises `DEDUCE.census` or reports to the owner. The fixed few / many penalty of RES-18 stays (branch C's penalty is not used).
 
 ### SA1-Q-P2: how are old (v2) ratings shown by the Player and the Generator (P2.5)?
 
@@ -278,7 +278,7 @@ Context: report section 4 "P2.5". See also SA2-Q-P08 (opposite recommendation).
 
 SA1 recommends (b).
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a), as both analysts now agree and as the plan says: re-rate for display with a note; the stored claim is untouched.
 
 ### SA1-Q-P3: how long may puzzle codes get with v3 claims (P2.4)?
 
@@ -295,7 +295,7 @@ version 40. See also SA2-Q-P07.
 
 SA1 recommends (b) in P2, and (c) only if short codes matter.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (b). Summary claims in codes (`model`, `score`, `level`, `saturated`), full metrics in packs (at most 4,096 UTF-8 bytes and depth 8). Current Players still decode the codes. A compact v3 codec is a later, separate change if short codes matter.
 
 ### SA1-Q-P4: where does per-puzzle provenance live (P4.1)?
 
@@ -308,7 +308,7 @@ Context: report section 4 "P4". A new per-puzzle field `made` makes packs unread
 
 SA1 recommends (b).
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (b). `generation.made`, a map from puzzle id to provenance inside the free-form `generation` object. My per-puzzle `made` field would have made packs unreadable for every current reader (`core/engine/pack.js:200`); withdrawn.
 
 ### SA1-Q-P5: placement-weighted clue sampling (P1 step 2)?
 
@@ -321,7 +321,7 @@ Context: report section 4 "P1": the plan's direction is reasoned the wrong way r
 
 SA1 recommends (a); revisit in P3 if Hard / Expert hit rates drop.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a). Skip it; same answer as SA2-Q-P05.
 
 ### SA1-Q-P6: sets with identical shapes (imported sets only)?
 
@@ -337,7 +337,7 @@ See also SA2-Q-P03 (opposite recommendation).
 
 SA1 recommends (c).
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** Owner decision (asked on the command line, 2026-11-12): **none of the branches. A piece set must not contain two pieces of the same shape, imported sets included; such a set is an error.** Consequences: (1) `core/engine/pack.js:569-574` turns its warning into an error (issue code such as `duplicate-shape`, with the two piece ids), and every other way in gets the same check: puzzle codes (`core/engine/puzzlecode.js` decode), the Generator import and the Player route; the message exists in English and Vietnamese. Shapes are compared with `canonicalKey` (`core/engine/geometry.js:126`), as `core/engine/carve.js:697-707` does for generated sets. (2) RES-09 is closed without a quotient: `shapeGroup` (RES-02) and task MP04b are dropped; guesses, alternatives and S are counted on labelled pieces, which is exact for every admissible set. (3) The engine functions (`rate`, `measureDeduction`, `selectClues`) stay total on direct inputs with twins and behave as branch A there; tests that build such sets on purpose (for example the 41 I-pentomino strip of `tests/clues.test.js:196-214`) keep working and are not a supported product input. (4) This is a format tightening: a pack or link with twins that opened with a warning before is now refused; document it in design section 5.3, the user guides and the release notes of this change. Put the check in the task that touches the pack reader for v3 (RES-21) and add tests for the pack, the code and both apps.
 
 ---
 
@@ -357,7 +357,7 @@ but not a die) is not in the plan's catalogue and changes scores.
 SA2 recommends (a) until (b) is explicitly approved; a generic kernel does not require enabling every pairing of
 column types. SA1 agrees in its response.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a). R4 (piece claims a cell) and R5 (cell claims a piece) only; no cell-to-cell pairing. A shared kernel is fine as an implementation detail.
 
 ### SA2-Q-P13: what feeds the rule bonus of the v3 score?
 
@@ -372,7 +372,7 @@ ambiguous whether a guess also earns the tier-3 bonus.
 SA2 recommends (a); SA1 now agrees. This changes the thresholds for puzzles with several solutions and needs an
 explicit answer.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a). The rule bonus uses the hardest **deduction** tier actually used on the final path (1..3); guesses are scored by the guess term only. The plan's "tier 4 when a guess was needed" is a diagnostic label, not a score input; the wording was ambiguous.
 
 ### AUTH-P1: the provenance record (P4.1), for the plan author
 
@@ -397,7 +397,7 @@ record must therefore be bounded, and the writer drops `generation.made` near th
 
 SA2 accepts either. Please confirm the record and pick the encoding.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** Record confirmed as in RES-27 (`generation.made[puzzleId]`, typed `calibration` / `candidate` / `completion`, origin carried by the candidate, skips defined by execution, explicit stage availability, the writer drops `generation.made` near the 512 KiB limit, the older-Generator limitation documented). Encoding: **(a)**, integer lists capped at 64 subset and 16 repair ordinals, otherwise `'overflow'`. It is readable in a pack, trivially validated (strictly increasing integers within bounds) and skips are rare in practice; an overflow only hides stages 4-6 of that one puzzle.
 
 ### JR-P4: how are auxiliary worker requests scheduled (P2.5, P4.2)? (for the plan author)
 
@@ -415,7 +415,7 @@ the ordinary way would cancel a running generation.
 
 SA2 accepts either, provided the choice is made before task MP10.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** **(a).** An auxiliary method on the existing client and on the Player's pool wrapper: it waits while a generation or verification is active, runs as an idle task, has its own `AbortSignal`, and is aborted when a new generation or verification begins. No second pool: a second worker with its own 160 + 32 MiB workspaces is not acceptable on phones. The choice is made before MP10, as SA2 asks.
 
 ### JR-P1: which old claims get the derived display rating (P2.5)? (for the plan author)
 
@@ -430,7 +430,7 @@ for display, with a note, and the stored claim stays untouched (SA2-Q-P08 / SA1-
 SA2 (`docs/difficulty-v3/gpt-6-astra/4-check-of-joint-report.md` section 4) prefers (b) as the plan's default and
 calls (a) a reasonable explicit extension; (c) would be a separate new display branch.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** **(a).** Claims of `difficulty-v2` and `difficulty-v1` are re-rated for display: both are older scales of the same quantity and the operation is identical, so showing a v1 level next to v3 levels would be the inconsistency the note is meant to remove. Puzzles without any claim are not rated by this change (branch (c) stays out).
 
 ### JR-P2: where does the immutable set origin live (P4.1)? (for the plan author)
 
@@ -441,7 +441,7 @@ current versions at every export (`generator/state.js:1300-1328`).
 - (a) A new key `generation.setOrigin`, written once when the set is made and never re-stamped (SA1 recommends).
 - (b) Reuse the existing set keys and stop re-stamping them.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a). A new `generation.setOrigin`, written once when the set is made and never re-stamped.
 
 ### JR-P3: the knob ranges for the P3 fit (for the plan author)
 
@@ -455,7 +455,7 @@ ranges (all invariants of the fixed decisions kept):
 Confirm these ranges or set others. SA2 treats them as candidate experimental ranges that you approve before
 production values are chosen.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a), as experimental ranges for the fit: `base.max` 8-12 (start 12), `base.scale` 3-12, `rule[2] ≤ rule[3]` with `base.max + rule[3] ≤ 16`, `weights.G` 0-8, `weights.info` 0.5-6, `0 ≤ penalty.few ≤ penalty.many ≤ 8`. The invariants are hard; the ranges bound the search. MP08 writes the production values from the MP06 fit and records them with the evidence; MP12 locks them. A value outside a range needs a new answer.
 
 ### PROC-P1: when are the v3 knobs fitted?
 
@@ -468,7 +468,7 @@ task PV3-14 (`docs/difficulty-v3/gpt-6-astra/1-report.md` section 6.1).
 
 Both analysts now agree on (a) plus a final regression run after P4.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a), confirmed: first fit from the P0.3 probe before v3 is activated, lock before P4, a final regression run after P4. This also answers part D item 8.
 
 ---
 
@@ -517,3 +517,41 @@ From SA1 (report sections 0 and 5.1):
     `buildModel`; `ALGO_ID` is bumped to `gen-v3` with P1.
 14. G of a unique puzzle does not depend on the row order, only on the column tie rule: the "median of three
     tie-break orders" option of plan section 5 is needed only if the probe shows the column rule matters.
+
+---
+
+## Part D: author's response (claude-fable-5-2, 2026-11-12)
+
+All fourteen corrections are accepted; none is disputed. Notes:
+
+- Items 1 and 10: R9 and the "place" half of R3 were unsound as I wrote them; the sound forms of RES-06 and RES-07
+  replace them. R7's optional allocation is accepted.
+- Item 3: my rule 6 about the protocol was wrong; new metric names need no protocol change, the replay task kind does.
+- Item 5: accepted; the old v2 recipes become a characterisation, monotonicity is tested on generated puzzles.
+- Item 8: accepted; the knobs `a = 6, b = 4` were never fitted. See JR-P3 and PROC-P1.
+- Item 9: with SA2-Q-P02 (a) a capped path is unrateable, so v3 never sets `saturated`; a cap during the count only
+  changes `solutions`.
+- Items 11 and 13: accepted (`deduce.js` needs the board dimensions and piece sizes; P1 uses
+  `countPlacements(preparePlacements(...))`; `ALGO_ID` becomes `gen-v3` with P1). With the owner's decision on
+  identical shapes, `deduce.js` no longer needs `canonicalKey`.
+
+## Part E: decisions in one place
+
+| Topic | Decision | By |
+|---|---|---|
+| Guess measure (SA1-Q-P1) | decisive guesses; an unfinished census publishes a labelled upper estimate (RES-05 branch B) | owner |
+| Cap before the first solution (SA2-Q-P02) | unrateable, candidate skipped (RES-04 branch A); v3 has no "+" mark | owner |
+| Identical shapes (SA2-Q-P03 / SA1-Q-P6) | forbidden everywhere, imported sets included: an error; RES-09's quotient and MP04b dropped | owner |
+| Calibration freedoms (SA2-Q-P09) | knobs, caps, K60 and SHARES may change in P3, every change recorded (RES-25 branch A) | owner |
+| Base formula, rule bonus (SA2-Q-P01, SA2-Q-P13) | base max 12, rule 0 / 2 / 4 by deduction tier | author |
+| Clue search (SA2-Q-P04, P05) | real centre, central-half stop, reserve 16; uniform sampling | author |
+| Codes and packs (SA2-Q-P07, SA1-Q-P3) | summary claims in codes, full metrics in packs | author |
+| Old ratings (SA2-Q-P08, SA1-Q-P2, JR-P1) | v2 and v1 claims re-rated for display with a note; stored claim untouched | author |
+| Provenance (SA2-Q-P10, SA1-Q-P4, AUTH-P1, JR-P2) | `generation.made` + `generation.setOrigin`; capped integer skip lists | author |
+| Auxiliary requests (JR-P4) | a method on the existing client and pool; no second pool | author |
+| Knob ranges, fit timing (JR-P3, PROC-P1) | the RES-18 ranges; fit before activation, lock before P4 | author |
+| Everything marked "agreed" in the status table | confirmed as agreed | author |
+
+No PENDING item of `docs/difficulty-v3/report-detailed.md` remains open: RES-04 → A; RES-05 → B; RES-09 → closed
+by the new constraint; RES-18 ranges → accepted; RES-23 scope → v2 and v1; RES-25 → A; RES-27 → encoding a;
+RES-29 → a.
