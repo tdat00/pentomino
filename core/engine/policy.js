@@ -93,14 +93,15 @@ export const ENUMERATION = Object.freeze({
 });
 
 /**
- * Limits of the deduction solver (design §7.9). `work`, `census` and `memoryBytes` are provisional test defaults
- * until the probe measures them.
+ * Limits of the deduction solver (design §7.9). `nodes`, `work` and `census` are measured; `memoryBytes` is still a
+ * provisional default.
  */
 export const DEDUCE = Object.freeze({
   lookaheadWidth: 4,
-  nodes: 20000,
+  // measured: docs/difficulty-v3/probe-2026-11-12.md
+  nodes: 30000,
   solutions: 8,
-  work: 50000000,
+  work: 760000000,
   census: 10000000,
   memoryBytes: 32 * 1048576,
 });

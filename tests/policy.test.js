@@ -391,7 +391,7 @@ describe('limits, qualification and budgets', () => {
 
   test('the deduction solver has its own frozen limits (difficulty-v3)', () => {
     assert.deepEqual({ ...DEDUCE }, {
-      lookaheadWidth: 4, nodes: 20000, solutions: 8, work: 50000000, census: 10000000, memoryBytes: 33554432,
+      lookaheadWidth: 4, nodes: 30000, solutions: 8, work: 760000000, census: 10000000, memoryBytes: 33554432,
     });
     assert.ok(Object.isFrozen(DEDUCE));
   });
