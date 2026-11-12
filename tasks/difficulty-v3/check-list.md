@@ -34,7 +34,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP03 | [MP03](MP03-rules-r3-place-r4-r5.md) | R3 place, R4 and R5, rule boards and the soundness oracle | MP02b | Medium | Engine | M1 | 4 |
 | [x] | MP04 | [MP04](MP04-rules-r7-r9-and-tiers.md) | R7, R8, R9, tiers, rule counts, oracle on every rule | MP03 | Large | Engine | M1 | 5 |
 | [x] | MP05 | [MP05](MP05-decisive-census.md) | Decisive census, the upper estimate and `Gproved` | MP04 | Large | Engine | M2 decisive guesses | 6 |
-| [ ] | MP06a | MP06a-rate-probe-tool.md (planned) | Probe tool `tools/rate-probe.mjs` and the `tieOrder` diagnostic | MP05 | Medium | Tools | M3 measured fit | 7 |
+| [x] | MP06a | [MP06a](MP06a-rate-probe-tool.md) | Probe tool `tools/rate-probe.mjs` and the `tieOrder` diagnostic | MP05 | Medium | Tools | M3 measured fit | 7 |
 | [ ] | MP06b | MP06b-probe-and-v2-baseline.md (planned) | Probe and GV2 runs, `DEDUCE` values, candidate knobs, record | MP06a | Medium + machine time | Measurement | M3 | 8 |
 | [ ] | MP07 | MP07-centre-seeking-clues.md (planned) | Centre-seeking clue selection, the `SelectContext.rate` seam, `gen-v3` | MP06b | Medium–Large | Engine | M4 centre-seeking generation | 9 |
 | [ ] | MP08 | MP08-pure-v3-score.md (planned) | Pure v3 score, breakdown, `SCORE_V3` and types | MP07 | Medium | Engine | M5 v3 active | 10 |
@@ -345,7 +345,7 @@ The orchestrator owns this record.
 | MP03 | Accepted | 7 min developer + 3 min review | about 150 | `difficulty-v3 MP03` |
 | MP04 | Accepted | 20 min developer + 5 min review | about 356 | `difficulty-v3 MP04` |
 | MP05 | Accepted | 21 min developer (1 fix round) + 8 min review | about 406 | `difficulty-v3 MP05` |
-| MP06a | | | | |
+| MP06a | Accepted | 16 min developer + 5 min review | about 346 | `difficulty-v3 MP06a` |
 | MP06b | | | | |
 | MP07 | | | | |
 | MP08 | | | | |

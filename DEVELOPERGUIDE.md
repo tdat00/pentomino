@@ -75,6 +75,18 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
   `node --max-old-space-size=2048 tools\calibrate.mjs --matrix tools\bench\matrices\smoke.json --workers 4 --fresh-process --output docs\calibration\node-smoke`,
   the score landscape (`--profile landscape`, hours, resumable), and the browser page
   `http://localhost:8080/pentomino/tools/bench/` (keep the tab in the foreground).
+- **Rating probe** (diagnostics only; it never changes a rating): `node tools\rate-probe.mjs` rates every puzzle of a
+  pack, of a fresh request or of regenerated landscape requests with the old rating and the deduction solver, and
+  prints one JSON line per puzzle to stdout (or to `--output file`). It is read-only and writes nothing else. Three
+  forms: `--pack file.json`; the generation flags of `tools\generate.mjs`, for example
+  `--board 10x6 --level hard --count 5 --seed demo --workers 2`; and
+  `--landscape 6x10-easy --reps 0-4 --workers 4 --expect report.json` (`--expect` is optional), which regenerates
+  those requests of the score landscape and compares each with the run of a calibration report. Options:
+  `--orders k` (the DLX diagnostic under k seeded orders, default 5, 0 for none), `--tie-orders k` (the deduction
+  under k tie rules, default 1), `--knobs json` (scores for candidate v3 knobs, exploration only) and `--deduce json`
+  (overrides of the deduction limits, for example `{"census":0}`); `json` is JSON text or a file name. Exit codes:
+  `0` every puzzle probed; `2` a generation was partial or an identity check failed (the lines are still written);
+  `1` invalid input or no pack.
 
 **Code layout.** Native ES modules with JSDoc types and `// @ts-check`, in four layers:
 
@@ -85,8 +97,11 @@ core/workers/   the module worker that runs generation and puzzle codes off the 
 generator/      Pentomino Generator: page, state, jobs and UI
 player/         Pentomino Player: page, state, play, hints and UI
 tests/          Node unit tests (*.test.js) and browser test pages (tests/browser/)
-tools/          Node-only tools (.mjs): server, headless generation, calibration, site checks
+tools/          Node-only tools (.mjs): server, headless generation, calibration, rating probe, site checks
 ```
+
+`core/engine/deduce.js` is the deduction solver of the v3 rating ([docs/design-detail.md](docs/design-detail.md) §7.9);
+`tools\rate-probe.mjs` measures it.
 
 Every module loaded by a page or worker uses `.js`; `.mjs` is reserved for Node-only tools. The interface text is in the
 flat packs `generator/locale.en.js` / `locale.vi.js` and `player/locale.en.js` / `locale.vi.js` (printing texts in

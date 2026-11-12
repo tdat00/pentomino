@@ -75,6 +75,18 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
   `node --max-old-space-size=2048 tools\calibrate.mjs --matrix tools\bench\matrices\smoke.json --workers 4 --fresh-process --output docs\calibration\node-smoke`,
   bản đồ điểm (`--profile landscape`, chạy nhiều giờ, tiếp tục được), và trang trình duyệt
   `http://localhost:8080/pentomino/tools/bench/` (giữ thẻ ở phía trước).
+- **Thăm dò chấm độ khó** (chỉ để chẩn đoán; không bao giờ thay đổi điểm): `node tools\rate-probe.mjs` chấm từng đề của
+  một gói đề, của một yêu cầu tạo đề mới hoặc của các yêu cầu bản đồ điểm được tạo lại, bằng cách chấm cũ và bộ giải suy
+  luận, rồi in mỗi đề một dòng JSON ra stdout (hoặc ra `--output tệp`). Công cụ chỉ đọc và không ghi gì khác. Có ba dạng:
+  `--pack tệp.json`; các cờ tạo đề của `tools\generate.mjs`, ví dụ
+  `--board 10x6 --level hard --count 5 --seed demo --workers 2`; và
+  `--landscape 6x10-easy --reps 0-4 --workers 4 --expect báo-cáo.json` (`--expect` không bắt buộc), tạo lại các yêu cầu
+  đó của bản đồ điểm rồi so từng yêu cầu với lượt chạy trong một báo cáo hiệu chỉnh. Tùy chọn: `--orders k` (chẩn đoán
+  DLX theo k thứ tự có hạt giống, mặc định 5, 0 là bỏ qua), `--tie-orders k` (bộ giải suy luận theo k cách chọn khi hòa,
+  mặc định 1), `--knobs json` (điểm theo các núm v3 thử nghiệm, chỉ để thăm dò) và `--deduce json` (ghi đè các giới hạn
+  của bộ giải suy luận, ví dụ `{"census":0}`); `json` là văn bản JSON hoặc tên tệp. Mã thoát: `0` đã thăm dò mọi đề;
+  `2` việc tạo đề chỉ được một phần hoặc phép kiểm tra đồng nhất bị lệch (các dòng vẫn được ghi); `1` đầu vào sai hoặc
+  không có gói đề.
 
 **Cấu trúc mã.** ES module gốc với kiểu JSDoc và `// @ts-check`, chia thành các lớp:
 
@@ -85,8 +97,11 @@ core/workers/   module worker chạy việc tạo đề và mã đề ngoài lu�
 generator/      Pentomino Generator: trang, trạng thái, tác vụ và giao diện
 player/         Pentomino Player: trang, trạng thái, ván chơi, gợi ý và giao diện
 tests/          kiểm thử đơn vị Node (*.test.js) và các trang kiểm thử trình duyệt (tests/browser/)
-tools/          công cụ chỉ chạy bằng Node (.mjs): máy chủ, tạo đề không giao diện, hiệu chỉnh, kiểm tra trang
+tools/          công cụ chỉ chạy bằng Node (.mjs): máy chủ, tạo đề không giao diện, hiệu chỉnh, thăm dò chấm độ khó, kiểm tra trang
 ```
+
+`core/engine/deduce.js` là bộ giải suy luận của cách chấm độ khó v3 ([docs/design-detail.md](docs/design-detail.md) §7.9);
+`tools\rate-probe.mjs` dùng để đo nó.
 
 Mọi module được trang hoặc worker nạp đều dùng đuôi `.js`; `.mjs` dành riêng cho công cụ Node. Chữ trên giao diện nằm
 trong các gói phẳng `generator/locale.en.js` / `locale.vi.js` và `player/locale.en.js` / `locale.vi.js` (chữ khi in nằm

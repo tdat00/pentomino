@@ -644,3 +644,27 @@ test('verifyUndo gives the same results on the vectors and the recipes', () => {
     assert.deepEqual(measure(puzzle, DEDUCE, { verifyUndo: true }).result, plain);
   }
 });
+
+test('tieOrder 0 is the canonical rule, another value picks another tied column, a bad value is a RangeError', () => {
+  const v3 = vector('V3').puzzle;
+  const master = recipePuzzle('master');
+  for (const puzzle of [v3, master]) {
+    assert.deepEqual(measure(puzzle, DEDUCE, { tieOrder: 0 }).result, measure(puzzle).result);
+  }
+  const canonical = measure(v3).result;
+  for (const tieOrder of [1, 2]) {
+    const variant = measure(v3, DEDUCE, { tieOrder });
+    assert.deepEqual([variant.result.path, variant.result.count.solutions], ['complete', 'many']);
+    assert.notDeepEqual(variant.result.first?.rows, canonical.first?.rows, `V3 tieOrder ${tieOrder}`);
+    assertValidFirstPath(variant.model, v3, variant.result);
+
+    const { model, result } = measure(master, DEDUCE, { tieOrder });
+    assert.deepEqual([result.path, result.count.solutions, result.count.exhausted], ['complete', 'unique', true]);
+    assertValidFirstPath(model, master, result);
+    assert.deepEqual(measure(master, DEDUCE, { tieOrder, verifyUndo: true }).result, result);
+  }
+  for (const tieOrder of [-1, 1.5, Number.NaN, Infinity]) {
+    assert.throws(() => measure(v3, DEDUCE, { tieOrder }),
+      (e) => e instanceof RangeError && e.message.includes('tieOrder'), String(tieOrder));
+  }
+});

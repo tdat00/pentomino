@@ -439,7 +439,7 @@ The typed arrays of a `Model` are views into the workspace and valid only while 
 **`deduce.js`** (§7.9): the deduction solver, the measure behind the planned `difficulty-v3` rating. Nothing calls it yet.
 
 ```ts
-export function measureDeduction(m: Model, limits?: DeductionLimits, diagnostics?: { verifyUndo?: boolean }): DeductionResult;
+export function measureDeduction(m: Model, limits?: DeductionLimits, diagnostics?: { verifyUndo?: boolean; tieOrder?: number }): DeductionResult;
 type DeductionLimits = typeof DEDUCE;      // exactly its six fields, validated (RangeError); default DEDUCE
 type DeductionResult = {
   path: 'complete' | 'capped' | 'none';    // the first solution's path
@@ -1629,7 +1629,7 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
 | `census` | 10,000,000 | Work budget of the decisive census (its replay and probes) |
 | `memoryBytes` | 33,554,432 | Bound on the bytes of all `deduce.*` slots |
 
-`work`, `census` and `memoryBytes` are provisional until the probe measures them. A missing or invalid field throws a `RangeError` that names it (`lookaheadWidth` an integer ≥ 0, `solutions` an integer ≥ 2, the others an integer ≥ 0 or `Infinity`). `diagnostics.verifyUndo` is for tests: it copies the state at every mark and throws `deduce: undo mismatch` when an undo does not restore it. No RNG and no clock are used.
+`work`, `census` and `memoryBytes` are provisional until the probe measures them. A missing or invalid field throws a `RangeError` that names it (`lookaheadWidth` an integer ≥ 0, `solutions` an integer ≥ 2, the others an integer ≥ 0 or `Infinity`). `diagnostics.verifyUndo` is for tests: it copies the state at every mark and throws `deduce: undo mismatch` when an undo does not restore it. `diagnostics.tieOrder` (an integer ≥ 0, default 0, else a `RangeError`) is for the probe (`tools/rate-probe.mjs`): among the n uncovered columns with the fewest live rows, in ascending column order, a guess takes the one at position `tieOrder mod n` instead of the first, in the search and in the census probes; 0 is the canonical rule and the extra pass adds no work. Production callers pass no diagnostics. No RNG and no clock are used.
 
 **State and undo.** The columns are those of the model (§6.6): the free cells, then the free pieces; the rows are the placements. The state is `live` (1 while a row is eligible), `covered` (1 once a column is covered), `colCount` (live rows of each column), `picked` (rows selected on the current path) and a CSR transpose of the model (`colStart`, `colRows`: the rows of each column, ascending), built once per call. Selecting a row covers its columns and kills every live row that shares a column with it (the row itself included); every kill and cover is pushed on a trail, and an undo to a mark pops the trail back, so the search leaves the state exactly as the setup made it. The pieces still to place are the uncovered piece columns; the pocket check keeps its own scratch (`cellIndex`, `queue`, `seen`, `reach`, `compFirst`, `compSize`, see Memory), which needs no undo, R4 uses the counters `mark`, which it returns to zero itself, and R7–R9 keep theirs (colour imbalances, candidates, articulation search, supports), which also need no undo because every rule step writes them before it reads them.
 

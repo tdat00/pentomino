@@ -40,6 +40,10 @@ import { assertLive, ModelError } from './tiling.js';
  * Test and probe diagnostics; production callers pass nothing.
  * @typedef {object} DeductionDiagnostics
  * @property {boolean} [verifyUndo] Check after every undo that the state equals the state at the matching mark.
+ * @property {number} [tieOrder] Integer >= 0, default 0 (the canonical rule). Among the n uncovered columns with
+ *   the fewest live rows, in ascending column order, a guess takes the one at position `tieOrder mod n` (the
+ *   canonical rule takes the first), in the search and in the census probes; the probe uses it to measure how
+ *   much G and info depend on the tie rule.
  */
 
 /** @typedef {{ R1: number, R2: number, R3: number, R4: number, R5: number, R6: number, R7: number, R8: number, R9: number }} RuleCounts */
@@ -276,6 +280,10 @@ function countStatus(S, limit, exhausted) {
 export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
   assertLive(model);
   validateLimits(limits);
+  const tieOrder = diagnostics.tieOrder ?? 0;
+  if (!Number.isInteger(tieOrder) || tieOrder < 0) {
+    throw new RangeError(`diagnostics.tieOrder must be an integer >= 0, got ${String(tieOrder)}`);
+  }
 
   const R = model.rowCount;
   const C = model.columns;
@@ -1526,20 +1534,38 @@ export function measureDeduction(model, limits = DEDUCE, diagnostics = {}) {
   }
 
   /**
-   * The uncovered column with the fewest live rows; ties go to the lowest column.
+   * The uncovered column with the fewest live rows; ties go to the lowest column, or with `tieOrder` t to the
+   * tied column at position t mod n of the n tied ones (the second pass adds no work).
    * @returns {number} The column, or -1 when every column is covered; `mrvCount` is its number of live rows.
    */
   function fewestColumn() {
     let best = -1;
+    let ties = 0;
     mrvCount = Infinity;
     for (let c = 0; c < C; c += 1) {
       work += 1;
-      if (covered[c] === 0 && colCount[c] < mrvCount) {
-        best = c;
-        mrvCount = colCount[c];
+      if (covered[c] === 0) {
+        if (colCount[c] < mrvCount) {
+          best = c;
+          mrvCount = colCount[c];
+          ties = 1;
+        } else if (colCount[c] === mrvCount) {
+          ties += 1;
+        }
       }
     }
-    return best;
+    if (tieOrder === 0 || ties < 2) {
+      return best;
+    }
+    let skip = tieOrder % ties;
+    for (let c = best; ; c += 1) {
+      if (covered[c] === 0 && colCount[c] === mrvCount) {
+        if (skip === 0) {
+          return c;
+        }
+        skip -= 1;
+      }
+    }
   }
 
   /**
