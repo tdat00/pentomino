@@ -359,14 +359,14 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP09a1: Two pieces of the same shape refused in packs, links and puzzle codes`) |
+| Start | 2026-11-12 19:01 (+07:00) |
+| End | 2026-11-12 19:13 developer; 19:22 orchestrator review and commit |
+| Duration | 12 min developer (722 s); about 7 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 98 model calls; 17,845,655 input tokens (17,563,128 cache reads); 80,675 output tokens |
+| AI credits | about 327 (developer) |
+| Verification | Developer: the task's targeted `node --test --test-skip-pattern=slow` over nine files 209/209 (7.7 s); `pack.test.js` 36 and `puzzlecode.test.js` 52 alone; `npm run test:quick` 1210/1210 (21.2 s); `npm run check` OK. Orchestrator re-run: targeted 209/209, `test:quick` 1210/1210, `check` OK. `npm test` not run (the slow sweeps run in MP09d2's GA-P2) |
+| Acceptance | MP09a1-B01, B02 and T01-T06 met. Diff reviewed: `checkDistinctShapes` in the pack reader makes a repeated free shape an error `duplicate-shape` at `pieces[i]` with `params {piece, first}` (one per later copy; the old warning is removed), run only when the pieces were read, so malformed input keeps its own issues; `fail` takes optional `params`; `PuzzleCodeError('duplicate-shape')` from decoder and encoder; client passes code and params; the dialog counts it as an input failure and localizes `{piece}`/`{first}`; the Player's `messageForIssues` maps it to `msg.duplicateShape`; EN and VI keys in both apps; the v1 code goldens and the twin tests of keys, placements, tiling, enumerate and carve untouched; the 11 FP02 migrations made |
+| Issues & resolutions | (1) `describeProblem` returned empty params for every code except `bad-char`; it now passes `{piece, first}` with `?` as fallback. (2) `#pack=` is no longer a Player route; the "pack link" case is covered through `openSample`/`readPack` in `player-load.test.js`. (3) The route, client and import tests use a literal twin code (mirror-L pair on a 4x2 board) written by the frozen payload writer. (4) Design §7.9 ("are to refuse such sets in a later step") and §11 item 11 updated, outside the task's documentation slot, because they became inaccurate. (5) Three extra tests: encoder/decoder refusal, engine-level client, Vietnamese `messageForIssues` |
+| Handoff | MP09a2: `readSavedSet` in `generator/state.js` (about line 895) calls `validatePack(dto.setPack)` and returns null when invalid, so a saved twin set is dropped silently until MP09a2 adds the notice; detect it with `issues.some((i) => i.code === 'duplicate-shape')` and read `issue.params`. MP09b and MP09d1: `fail(ctx, code, path, message, params)` stores `params` only when given. MP09e (GC-P2): the browser check of a refused twin code in `tests/browser/puzzle-code-acceptance.js`. MP17: release-note sentence |

@@ -201,6 +201,7 @@ export default Object.freeze({
   'code.error.version': 'This puzzle code needs a newer version.',
   'code.error.deflate': 'This browser cannot open compressed puzzle codes. Use a current browser.',
   'code.error.invalid': 'This code does not describe a valid puzzle.',
+  'code.error.duplicateShape': 'Pieces {piece} and {first} have the same shape (mirror images count as the same shape), so this puzzle cannot be opened.',
   'code.error.tail': 'The optional solution part has a typing error.',
   'code.error.tailVersion': 'The optional solution part needs a newer version.',
   'code.error.tailInvalid': 'The optional solution part does not match this puzzle.',

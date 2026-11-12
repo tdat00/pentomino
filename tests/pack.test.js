@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { boardFromRows } from '../core/engine/board.js';
+import { canonicalKey } from '../core/engine/geometry.js';
 import {
   FORMAT, MAX_FILE_BYTES, MAX_ISSUES, MAX_META_BYTES, PackError, RULES, SUPPORTED_VERSIONS,
   createPack, packBoard, parsePack, serializePack, validatePack, validatePackSliced,
@@ -680,12 +681,16 @@ test('a classic pentomino set is a clean piece-set; non-standard sets warn but s
   const holed = good(validatePack(pieceSet(['###', '###', '###'], [{ id: 'R', cells: ring }, { id: 'm', cells: [[0, 0]] }])));
   assert.deepEqual(holed.warnings.map((w) => [w.code, w.path]), [['piece-hole', 'pieces[0]'], ['small-piece', 'pieces[1]']]);
 
-  const twins = good(validatePack(pieceSet(['##', '##'], [{ id: 'a', cells: [[0, 0], [1, 0]] }, { id: 'b', cells: [[0, 0], [0, 1]] }])));
-  assert.deepEqual(twins.warnings.map((w) => [w.code, w.path]), [
-    ['small-piece', 'pieces[0]'], ['small-piece', 'pieces[1]'], ['duplicate-shape', 'pieces[1]'],
-  ]);
+  const twins = validatePack(pieceSet(['##', '##'], [{ id: 'a', cells: [[0, 0], [1, 0]] }, { id: 'b', cells: [[0, 0], [0, 1]] }]));
+  assert.equal(twins.ok, false);
+  assert.deepEqual(twins.ok ? [] : twins.issues, [{
+    code: 'duplicate-shape',
+    path: 'pieces[1]',
+    message: 'Piece b has the same shape as piece a',
+    params: { piece: 'b', first: 'a' },
+  }]);
 
-  const split = good(validatePack(pieceSet(['#.#'], [{ id: 'a', cells: [[0, 0]] }, { id: 'b', cells: [[0, 0]] }])));
+  const split = good(validatePack(pieceSet(['#.##'], [{ id: 'a', cells: [[0, 0]] }, { id: 'b', cells: [[0, 0], [1, 0]] }])));
   assert.ok(split.warnings.some((w) => w.code === 'board-disconnected'));
   assert.equal(split.value.pieces.length, 2);
 
@@ -694,12 +699,74 @@ test('a classic pentomino set is a clean piece-set; non-standard sets warn but s
   assert.deepEqual(blockedMargin.value.board.rows, ['.###.']);
 });
 
+test('two pieces of the same free shape are refused, one error per later copy, by every reader', async () => {
+  const lShape = [[0, 0], [1, 0], [2, 0], [0, 1]];
+  const mirrored = [[0, 0], [1, 0], [2, 0], [2, 1]];
+  const mirrorPair = pieceSet(['####', '####'], [{ id: 'a', cells: lShape }, { id: 'b', cells: mirrored }]);
+  const refusal = (/** @type {import('../core/engine/types.js').Result<any>} */ r) => (r.ok ? null : r.issues.map((i) => [i.code, i.path, i.params]));
+  assert.deepEqual(refusal(validatePack(mirrorPair)), [['duplicate-shape', 'pieces[1]', { piece: 'b', first: 'a' }]], 'a mirror image is the same shape');
+
+  const domino = [[0, 0], [1, 0]];
+  const threeCopies = pieceSet(['###', '###'], [
+    { id: 'a', cells: domino }, { id: 'b', cells: [[0, 0], [0, 1]] }, { id: 'c', cells: domino },
+  ]);
+  const expected = [
+    ['duplicate-shape', 'pieces[1]', { piece: 'b', first: 'a' }],
+    ['duplicate-shape', 'pieces[2]', { piece: 'c', first: 'a' }],
+  ];
+  assert.deepEqual(refusal(validatePack(threeCopies)), expected);
+  assert.deepEqual(refusal(parsePack(JSON.stringify(threeCopies))), expected);
+  const pause = async () => {};
+  assert.deepEqual(await validatePackSliced(threeCopies, pause), validatePack(threeCopies));
+  assert.deepEqual(refusal(await validatePackSliced(mirrorPair, pause)), [['duplicate-shape', 'pieces[1]', { piece: 'b', first: 'a' }]]);
+
+  const later = pieceSet(['#####', '#####'], [{ id: 'x', cells: [[0, 0]] }, { id: 'y', cells: lShape }, { id: 'z', cells: mirrored }, { id: 'w', cells: [[0, 0]] }]);
+  assert.deepEqual(refusal(validatePack(later)), [
+    ['duplicate-shape', 'pieces[2]', { piece: 'z', first: 'y' }],
+    ['duplicate-shape', 'pieces[3]', { piece: 'w', first: 'x' }],
+  ], 'each copy names the first piece of its shape');
+  const different = pieceSet(['###', '###'], [{ id: 'a', cells: [[0, 0], [1, 0], [2, 0]] }, { id: 'b', cells: [[0, 0], [1, 0], [0, 1]] }]);
+  assert.deepEqual(good(validatePack(different)).warnings, [], 'different shapes stay accepted');
+});
+
+test('the shape check never runs on a pack whose board or pieces were not read', () => {
+  const domino = [[0, 0], [1, 0]];
+  const twins = () => pieceSet(['##', '##'], [{ id: 'a', cells: domino }, { id: 'b', cells: domino }]);
+  /** @param {(p: any) => void} mutate */
+  const issuesOf = (mutate) => {
+    const p = /** @type {any} */ (twins());
+    mutate(p);
+    return errorCodes(validatePack(p));
+  };
+  assert.deepEqual(issuesOf((p) => { p.board.rows = 'abc'; }), ['invalid-type']);
+  assert.deepEqual(issuesOf((p) => { p.board = { rows: ['....'] }; }), ['board-area']);
+  assert.deepEqual(issuesOf((p) => { delete p.board; }), ['missing-field']);
+  assert.deepEqual(issuesOf((p) => { delete p.pieces; }), ['missing-field']);
+  assert.deepEqual(issuesOf((p) => { p.pieces = 'x'; }), ['invalid-type']);
+  assert.deepEqual(issuesOf((p) => { p.pieces[1].cells = [[0, 0], [2, 0]]; }), ['piece-disconnected']);
+  assert.deepEqual(issuesOf((p) => { p.pieces[1].id = 'a'; }), ['duplicate-id']);
+  assert.deepEqual(issuesOf((p) => { p.pieces.push({ id: 'c', label: 'c', color: '#123456', cells: [[0, 0]] }); }), ['area-mismatch']);
+});
+
 test('the largest board (64 x 16 = 1024 cells, eight 128-cell pieces) is accepted', () => {
-  const band = Array.from({ length: 128 }, (_, i) => [i % 64, Math.floor(i / 64)]);
-  const ids = 'abcdefgh';
-  const set = /** @type {any} */ (pieceSet(Array(16).fill('#'.repeat(64)), [...ids].map((id) => ({ id, cells: band }))));
-  set.witness = [...ids].map((id, k) => pose(id, 0, k * 2));
+  // Eight 64 x 2 bands, each given one cell to the next piece and taking one from it, so that all eight differ.
+  const owner = Array.from({ length: 16 }, (_, y) => Array.from({ length: 64 }, () => Math.floor(y / 2)));
+  for (let k = 0; k < 7; k += 1) {
+    owner[2 * k + 1][2 * k + 1] = k + 1;
+    owner[2 * k + 2][2 * k + 40] = k;
+  }
+  const ids = [...'abcdefgh'];
+  const shapes = ids.map((_, k) => {
+    const cells = owner.flatMap((row, y) => row.flatMap((o, x) => (o === k ? [[x, y]] : [])));
+    const minX = Math.min(...cells.map(([x]) => x));
+    const minY = Math.min(...cells.map(([, y]) => y));
+    return { minX, minY, cells: cells.map(([x, y]) => [x - minX, y - minY]) };
+  });
+  assert.equal(new Set(shapes.map((s) => canonicalKey(/** @type {any} */ (s.cells)))).size, 8, 'the eight shapes are pairwise distinct');
+  const set = /** @type {any} */ (pieceSet(Array(16).fill('#'.repeat(64)), ids.map((id, k) => ({ id, cells: shapes[k].cells }))));
+  set.witness = ids.map((id, k) => pose(id, shapes[k].minX, shapes[k].minY));
   const r = good(validatePack(set));
+  assert.deepEqual(r.warnings, []);
   assert.equal(r.value.witness.length, 8);
   assert.equal(r.value.pieces.reduce((n, p) => n + p.cells.length, 0), 1024);
   assertIssue(corrupt((f) => { f.board = { rows: Array(17).fill('#'.repeat(64)) }; }), 'board-area', 'board.rows');

@@ -5,11 +5,13 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { createGenerationClient } from '../core/browser/generation-client.js';
 import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
+import { describeProblem } from '../core/browser/puzzle-code-dialog.js';
 import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
 import { createPool } from '../core/browser/worker-pool.js';
 import { boardKey, boardToRows } from '../core/engine/board.js';
 import { packBoard, parsePack } from '../core/engine/pack.js';
 import { decodePuzzleCode, encodePuzzleCode } from '../core/engine/puzzlecode.js';
+import { setLocale, t } from '../generator/i18n.js';
 import { createJobController } from '../generator/jobs.js';
 import {
   MAX_SETS, createGeneratorStore, defaultGeneratorState, generationBlock, importPuzzle, restoreState, savedSetOf, serializeState,
@@ -212,6 +214,35 @@ test('a Play link with several puzzles brings all of them: the first makes the s
       partial.destroy();
     }
   } finally {
+    controller.destroy();
+    store.destroy();
+  }
+});
+
+test('a code whose pieces repeat a shape imports nothing and the dialog gets its reason, in both languages', async () => {
+  // A 4 x 2 board and the mirror-image pair m1, m2, as the frozen payload writer writes it; only the pack check refuses it.
+  const twinCode = '1G1G84SWH7ADMRMP241063N6TCJB281860GGJ3S';
+  const store = createGeneratorStore(defaultGeneratorState());
+  const controller = controllerOn(store);
+  try {
+    const before = store.getState();
+    const refused = /** @type {any} */ (await controller.importPuzzleCode(`https://example.org/pentomino/player/#p=${twinCode}`));
+    assert.equal(refused.ok, false);
+    assert.deepEqual([refused.issues[0].code, refused.issues[0].params], ['duplicate-shape', { piece: 'm2', first: 'm1' }]);
+    assert.equal(store.getState(), before, 'nothing was imported');
+    const { key, params } = describeProblem(refused.issues[0]);
+    assert.equal(key, 'code.error.duplicateShape');
+    setLocale('en', null);
+    assert.equal(t(key, params), 'Pieces m2 and m1 have the same shape (mirror images count as the same shape), so this puzzle cannot be opened.');
+    setLocale('vi', null);
+    assert.equal(t(key, params), 'Mảnh m2 và mảnh m1 có cùng hình dạng (hình lật đối xứng cũng tính là cùng hình dạng), nên không thể mở đề này.');
+
+    const list = /** @type {any} */ (await controller.importPuzzleCode(`${await codeOf(sample, 0)};${twinCode}`));
+    assert.equal(list.ok, false, 'one refused code refuses the whole list');
+    assert.deepEqual([list.issues[0].code, list.issues[0].path], ['duplicate-shape', '$.p[1]']);
+    assert.equal(store.getState(), before, 'not even the first puzzle of the list was imported');
+  } finally {
+    setLocale('en', null);
     controller.destroy();
     store.destroy();
   }

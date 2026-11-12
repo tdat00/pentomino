@@ -45,6 +45,7 @@
  * @property {string} code
  * @property {string} path
  * @property {string} message
+ * @property {Record<string, string | number>} [params]
  */
 
 /**

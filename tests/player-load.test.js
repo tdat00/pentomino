@@ -17,6 +17,7 @@ import { nodeWorkerFactory } from '../tools/node-worker.mjs';
 import {
   createPlayerController, createPlayerStore, effectiveRotation, hashWithIndex, knownSolvable,
 } from '../player/state.js';
+import { setLocale } from '../player/i18n.js';
 import {
   INDEX_MESSAGE, SAMPLE_FAILED_MESSAGE,
   certificateLabel, formatElapsed, invalidPackMessage, messageForIssues, ratingParts, restorationNotice, verificationLabel,
@@ -215,6 +216,17 @@ test('exact messages for every mapped failure', async () => {
   assert.equal(messageForIssues([{ code: 'missing-field', path: 'board', message: 'Missing required field "board"' }]),
     'This link does not hold a valid Pentomino puzzle: Missing required field "board"');
   assert.equal(invalidPackMessage('boom'), 'This link does not hold a valid Pentomino puzzle: boom');
+  const twins = 'Pieces b and a have the same shape (mirror images count as the same shape), so this puzzle cannot be opened.';
+  assert.equal(messageForIssues([{ code: 'duplicate-shape', path: 'pieces[1]', message: 'x', params: { piece: 'b', first: 'a' } }]), twins);
+  assert.equal(messageForIssues([{ code: 'duplicate-shape', path: 'pieces[1]', message: 'x' }]),
+    'Pieces ? and ? have the same shape (mirror images count as the same shape), so this puzzle cannot be opened.', 'missing values never throw');
+  setLocale('vi', null);
+  try {
+    assert.equal(messageForIssues([{ code: 'duplicate-shape', path: 'pieces[1]', message: 'x', params: { piece: 'b', first: 'a' } }]),
+      'Mảnh b và mảnh a có cùng hình dạng (hình lật đối xứng cũng tính là cùng hình dạng), nên không thể mở đề này.');
+  } finally {
+    setLocale('en', null);
+  }
 });
 
 test('verification, certificate and rating wording keeps claims apart from proofs', () => {
@@ -563,6 +575,28 @@ test('sample: loaded through the ordinary path from the fixed relative URL; fail
   await down.controller.openSample();
   assert.equal(down.state().error?.message, SAMPLE_FAILED_MESSAGE);
   assert.equal(down.state().game, null);
+});
+
+test('a pack with two pieces of one shape is refused with the message naming both pieces, and opens nothing', async () => {
+  const twins = {
+    ...unsatisfiable,
+    board: { rows: ['##', '##'] },
+    pieces: [
+      { id: 'A', label: 'A', color: '#e6194b', cells: [[0, 0], [1, 0]] },
+      { id: 'B', label: 'B', color: '#3cb44b', cells: [[0, 0], [0, 1]] },
+    ],
+    puzzles: [{ id: 't1', title: 'Twins', clues: [] }],
+  };
+  const h = setup();
+  const result = await openPack(h, /** @type {any} */ (twins));
+  assert.equal(result.ok, false);
+  assert.deepEqual(/** @type {any} */ (result).issues.map((/** @type {any} */ i) => [i.code, i.path, i.params]), [['duplicate-shape', 'pieces[1]', { piece: 'B', first: 'A' }]]);
+  assert.equal(h.state().error?.code, 'duplicate-shape');
+  assert.equal(h.state().error?.message, 'Pieces B and A have the same shape (mirror images count as the same shape), so this puzzle cannot be opened.');
+  assert.equal(h.state().game, null);
+  assert.equal(h.state().pack, null);
+  assert.equal(h.state().screen, 'start');
+  assert.deepEqual([...(h.adapter?.map.keys() ?? [])], [], 'nothing is stored');
 });
 
 test('verification: a validated answer proves solvability only; claims stay claims', async () => {

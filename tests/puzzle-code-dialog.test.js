@@ -334,6 +334,21 @@ describe('failures, startup and reopening', () => {
     assert.equal(describeProblem(state.problem ?? { code: '' }).key, 'code.error.worker');
   });
 
+  test('two pieces of one shape fail the typed text and the message names both pieces, in both languages', async () => {
+    const { controller, machine } = openMachine(CORE);
+    machine.submit();
+    await controller.reply(0, failure('duplicate-shape', { params: { piece: 'm2', first: 'm1' } }));
+    const state = machine.getState();
+    assert.deepEqual([state.phase, state.problem?.code, state.problem?.input, state.canOpenCore], ['invalid', 'duplicate-shape', true, false]);
+    const { key, params } = describeProblem(state.problem ?? { code: '' });
+    assert.equal(key, 'code.error.duplicateShape');
+    assert.deepEqual(params, { piece: 'm2', first: 'm1' });
+    assert.equal(t(key, params), 'Pieces m2 and m1 have the same shape (mirror images count as the same shape), so this puzzle cannot be opened.');
+    setLocale('vi', null);
+    assert.equal(t(key, params), 'Mảnh m2 và mảnh m1 có cùng hình dạng (hình lật đối xứng cũng tính là cùng hình dạng), nên không thể mở đề này.');
+    assert.deepEqual(describeProblem({ code: 'duplicate-shape' }).params, { piece: '?', first: '?' }, 'missing values never leave a placeholder');
+  });
+
   test('a failure given to open (a bad address at start-up) is shown for the attempted text, with its offers', () => {
     const controller = fakeController();
     const machine = createCodeEntryMachine(controller.options);
@@ -387,7 +402,7 @@ describe('failures, startup and reopening', () => {
 });
 
 describe('texts', () => {
-  const codes = ['empty', 'bad-char', 'dots', 'too-long', 'core-check', 'version', 'no-deflate', 'invalid', 'index',
+  const codes = ['empty', 'bad-char', 'dots', 'too-long', 'core-check', 'version', 'no-deflate', 'invalid', 'duplicate-shape', 'index',
     'tail-check', 'tail-tag', 'tail-invalid', 'worker-unavailable', 'worker-error', 'cancelled'];
 
   test('every code the controller, the client and the codec can send has its own localized text in both languages', () => {

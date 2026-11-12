@@ -146,10 +146,11 @@ const newCtx = () => ({ issues: [], warnings: [], truncated: false });
  * @param {string} code
  * @param {string} path
  * @param {string} message
+ * @param {Record<string, string | number>} [params]
  */
-function fail(ctx, code, path, message) {
+function fail(ctx, code, path, message, params) {
   if (ctx.issues.length < MAX_ISSUES) {
-    ctx.issues.push({ code, path, message });
+    ctx.issues.push(params === undefined ? { code, path, message } : { code, path, message, params });
   } else {
     ctx.truncated = true;
   }
@@ -551,13 +552,33 @@ function readPieces(ctx, v, area) {
 }
 
 /**
+ * No two pieces of one pack have the same free shape (translations, rotations
+ * and reflections count as the same): one error per later copy, naming it and
+ * the first piece of that shape.
+ * @param {Ctx} ctx
+ * @param {Piece[]} pieces
+ */
+function checkDistinctShapes(ctx, pieces) {
+  /** @type {Map<string, string>} */
+  const shapes = new Map();
+  pieces.forEach((piece, i) => {
+    const key = canonicalKey(piece.cells);
+    const first = shapes.get(key);
+    if (first === undefined) {
+      shapes.set(key, piece.id);
+    } else {
+      fail(ctx, 'duplicate-shape', child('pieces', i), `Piece ${piece.id} has the same shape as piece ${first}`,
+        { piece: piece.id, first });
+    }
+  });
+}
+
+/**
  * Policy warnings only: nothing here makes a rules-valid pack invalid.
  * @param {Ctx} ctx
  * @param {Piece[]} pieces
  */
 function warnAboutPieces(ctx, pieces) {
-  /** @type {Map<string, string>} */
-  const shapes = new Map();
   pieces.forEach((piece, i) => {
     const path = child('pieces', i);
     if (piece.cells.length < 3) {
@@ -565,13 +586,6 @@ function warnAboutPieces(ctx, pieces) {
     }
     if (hasHole(piece.cells)) {
       warn(ctx, 'piece-hole', path, `Piece ${piece.id} has a hole`);
-    }
-    const key = canonicalKey(piece.cells);
-    const first = shapes.get(key);
-    if (first === undefined) {
-      shapes.set(key, piece.id);
-    } else {
-      warn(ctx, 'duplicate-shape', path, `Piece ${piece.id} has the same shape as piece ${first}`);
     }
   });
 }
@@ -986,6 +1000,9 @@ function* readPackSteps(ctx, input) {
   const boardModel = board === null ? null : boardFromRows(board.rows);
   const area = boardModel === null ? 0 : activeCount(boardModel);
   const pieces = boardModel !== null && fields.has('pieces') ? readPieces(ctx, fields.get('pieces'), area) : null;
+  if (pieces !== null) {
+    checkDistinctShapes(ctx, pieces);
+  }
   if (ctx.issues.length > 0 || board === null || boardModel === null || pieces === null) {
     return null;
   }

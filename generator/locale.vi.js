@@ -197,6 +197,7 @@ export default Object.freeze({
   'code.error.version': 'Mã đề này cần phiên bản mới hơn.',
   'code.error.deflate': 'Trình duyệt này không mở được mã đề nén. Hãy dùng trình duyệt mới hơn.',
   'code.error.invalid': 'Mã này không mô tả một đề hợp lệ.',
+  'code.error.duplicateShape': 'Mảnh {piece} và mảnh {first} có cùng hình dạng (hình lật đối xứng cũng tính là cùng hình dạng), nên không thể mở đề này.',
   'code.error.tail': 'Phần lời giải (không bắt buộc) có lỗi nhập.',
   'code.error.tailVersion': 'Phần lời giải (không bắt buộc) cần phiên bản mới hơn.',
   'code.error.tailInvalid': 'Phần lời giải (không bắt buộc) không khớp với đề này.',

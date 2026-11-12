@@ -93,7 +93,9 @@ link), the piece set and the puzzle, with its stored solution and rating when th
 board becomes the board of step 1 and the puzzle appears in step 3 in a new piece set (marked *Imported*, with a fresh
 seed). The set on show stays in the list of its board. A puzzle of the piece set that is already on show joins it, and
 a puzzle that is already in the list is not added twice. A link that cannot be read is explained in the dialog and
-changes nothing, as in the Player (a likely single typing mistake is offered as a correction). After an import, **New
+changes nothing, as in the Player (a likely single typing mistake is offered as a correction). A puzzle or piece set
+with two pieces of the same shape (mirror images included) cannot be opened, and the message names the two pieces.
+After an import, **New
 puzzle** works on the imported set: the set's solution comes from the link when it carries one, and is otherwise found in
 the background (if none is found, the button stays disabled with its reason). When the list of the
 board already holds 50 sets, or the puzzle list is full, nothing is imported and a message says so.
@@ -152,7 +154,9 @@ buttons above the puzzle's name (and **Remove** and **Remove all** under them), 
 
 - **Opening a puzzle.** Follow a player link: the Generator's **Play**, or an address that was shared or bookmarked.
   Without a puzzle the page shows a start screen with **Try the sample** and a link to the Generator. A link with pieces
-  but no puzzle is explained, and a link that cannot be opened never replaces the puzzle you are playing. A puzzle
+  but no puzzle is explained, and a link that cannot be opened never replaces the puzzle you are playing. A puzzle or
+  piece set with two pieces of the same shape (mirror images included) cannot be opened, and the message names the two
+  pieces. A puzzle
   also opens from its code link, `…/player/#p=<code>`, and several puzzles from `…/player/#p=<code1>;<code2>;…`
   (optionally `&i=<n>`, the puzzle to open, counted from 0; they must share one board and piece set, and none may
   repeat): each code is decoded in a background worker, no Generator and no saved copy is needed, your saved progress is

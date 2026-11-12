@@ -182,7 +182,11 @@ function partsFromSnapshot(snapshot) {
   }
   const checked = validatePack(pack);
   if (!checked.ok) {
-    throw invalid(checked.issues[0]?.message ?? 'The puzzle snapshot is not valid.');
+    const [first] = checked.issues;
+    if (first?.code === 'duplicate-shape') {
+      throw new PuzzleCodeError('duplicate-shape', first.message, { params: first.params });
+    }
+    throw invalid(first?.message ?? 'The puzzle snapshot is not valid.');
   }
   const valid = checked.value;
   const puzzle = valid.puzzles[0];
@@ -582,7 +586,8 @@ const defaultCodec = createPuzzleCodec();
  * Encodes one selected puzzle. The shortest complete core wins and raw wins a
  * tie; `compression: 'raw'` is a deterministic test/CLI seam. Without native
  * compression, auto mode uses raw. Throws `PuzzleCodeError`: `invalid` for a
- * snapshot that is not a valid puzzle, `too-long` beyond the decoder's bound.
+ * snapshot that is not a valid puzzle, `duplicate-shape` when two of its pieces
+ * have the same shape, `too-long` beyond the decoder's bound.
  * @param {PuzzleCodeSnapshot} snapshot Never mutated.
  * @param {{ compression?: 'auto' | 'raw' }} [options]
  * @returns {Promise<EncodedPuzzleCode>}
@@ -595,8 +600,9 @@ export function encodePuzzleCode(snapshot, options) {
  * Decodes typed, pasted or scanned text (a bare code, grouped code or a link
  * with `#p=`). Throws `PuzzleCodeError` for every bad core: `empty`,
  * `bad-char`, `dots`, `too-long`, `index`, `core-check` (possibly with a
- * `candidate`), `version`, `no-deflate` and `invalid`. A valid core with a bad
- * tail resolves with `tailError` instead of throwing.
+ * `candidate`), `version`, `no-deflate`, `invalid` and `duplicate-shape` (two
+ * pieces with the same shape, with `params { piece, first }`). A valid core with
+ * a bad tail resolves with `tailError` instead of throwing.
  * @param {string} text
  * @returns {Promise<DecodedPuzzleCode>}
  */

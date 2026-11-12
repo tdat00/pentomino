@@ -44,7 +44,7 @@ const TAIL_CODES = new Set(['tail-check', 'tail-tag', 'tail-invalid']);
 const CHECKSUM_COMPONENT = Object.freeze({ 'core-check': 'core', 'tail-check': 'tail' });
 
 /** Failures caused by what was typed. The others (no workers, no DEFLATE, a failed or cancelled request) are not the text's fault. */
-const INPUT_CODES = new Set(['empty', 'bad-char', 'dots', 'too-long', 'core-check', 'version', 'invalid', 'index', ...TAIL_CODES]);
+const INPUT_CODES = new Set(['empty', 'bad-char', 'dots', 'too-long', 'core-check', 'version', 'invalid', 'duplicate-shape', 'index', ...TAIL_CODES]);
 
 /** Text key of every code the entry can show. */
 const ERROR_KEYS = Object.freeze({
@@ -56,6 +56,7 @@ const ERROR_KEYS = Object.freeze({
   version: 'code.error.version',
   'no-deflate': 'code.error.deflate',
   invalid: 'code.error.invalid',
+  'duplicate-shape': 'code.error.duplicateShape',
   index: 'code.error.index',
   'tail-check': 'code.error.tail',
   'tail-tag': 'code.error.tailVersion',
@@ -154,6 +155,14 @@ function displayChar(value) {
 }
 
 /**
+ * @param {unknown} value
+ * @returns {string}
+ */
+function pieceName(value) {
+  return typeof value === 'string' && value !== '' ? value : '?';
+}
+
+/**
  * @param {unknown} code
  * @returns {string}
  */
@@ -170,7 +179,13 @@ function canonicalCode(code) {
  */
 export function describeProblem({ code, params = {} }) {
   const key = Object.hasOwn(ERROR_KEYS, code) ? /** @type {Record<string, string>} */ (ERROR_KEYS)[code] : ERROR_KEYS['worker-error'];
-  return { key, params: key === ERROR_KEYS['bad-char'] ? { char: displayChar(params.char) } : {} };
+  if (key === ERROR_KEYS['bad-char']) {
+    return { key, params: { char: displayChar(params.char) } };
+  }
+  if (key === ERROR_KEYS['duplicate-shape']) {
+    return { key, params: { piece: pieceName(params.piece), first: pieceName(params.first) } };
+  }
+  return { key, params: {} };
 }
 
 /**

@@ -88,7 +88,8 @@ kèm lời giải đã lưu và mức độ nếu mã có mang theo, được t�
 trong một bộ mảnh mới (ghi *Đã nhập*, với seed mới). Bộ mảnh đang hiện vẫn nằm trong danh sách của bàn chơi của nó. Đề
 của bộ mảnh đang hiện sẽ được thêm vào bộ đó, và đề đã có trong danh sách thì không được thêm lại. Liên kết không đọc
 được sẽ được giải thích ngay trong hộp thoại và không làm thay đổi gì, giống trình chơi (nếu nhiều khả năng chỉ do gõ sai
-một ký tự, hộp thoại đề xuất cách sửa). Sau khi nhập, **Tạo đề mới** dùng được trên bộ mảnh đã nhập: lời giải của bộ lấy từ
+một ký tự, hộp thoại đề xuất cách sửa). Một đề hay bộ mảnh có hai mảnh cùng hình dạng (kể cả hình lật đối xứng) không thể
+mở, và thông báo nêu hai mảnh đó. Sau khi nhập, **Tạo đề mới** dùng được trên bộ mảnh đã nhập: lời giải của bộ lấy từ
 liên kết nếu có, nếu không sẽ được tìm ngầm (nếu tìm không ra, nút vẫn bị tắt kèm lý do). Khi danh sách của bàn chơi đã có 50 bộ mảnh, hoặc danh sách đề đã đầy, sẽ không
 nhập gì và có thông báo cho biết.
 
@@ -144,6 +145,7 @@ sách thẻ.
 - **Mở một đề.** Mở một liên kết của trình chơi: nút **Chơi** của trình tạo đề, hoặc một địa chỉ được chia sẻ hay đã lưu
   dấu trang. Khi chưa có đề, trang hiện màn hình bắt đầu với **Thử đề mẫu** và liên kết tới trình tạo đề. Liên kết chỉ có
   mảnh mà không có đề sẽ được giải thích, và một liên kết không mở được không bao giờ thay thế đề bạn đang chơi. Một đề
+  hay bộ mảnh có hai mảnh cùng hình dạng (kể cả hình lật đối xứng) không thể mở, và thông báo nêu hai mảnh đó. Một đề
   cũng mở được từ liên kết mã đề của nó, `…/player/#p=<mã>`, và nhiều đề từ `…/player/#p=<mã1>;<mã2>;…` (có thể kèm
   `&i=<n>`, đề cần mở, đếm từ 0; các đề phải cùng một bàn chơi và một bộ mảnh, và không được lặp): mỗi mã được giải
   trong một worker chạy nền, không cần trình tạo đề hay bản sao đã lưu, giữ tiến độ đã lưu của bạn, và tải lại sẽ mở lại
