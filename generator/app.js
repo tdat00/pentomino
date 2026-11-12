@@ -12,7 +12,8 @@ import { applyTo, choose, getLocale, normalize, onChange, setLocale, t } from '.
 import { LANGUAGE_KEY } from '../core/browser/i18n.js';
 import { THEME_KEY, applyTheme, effectiveTheme, normalizeTheme } from '../core/browser/theme.js';
 import {
-  MAX_SETS, createGeneratorStore, createPersistence, describeBoard, detectHardware, loadGeneratorState, setNumber,
+  MAX_SETS, createGeneratorStore, createPersistence, describeBoard, detectHardware, loadGeneratorState, saveRestoreCleanup,
+  setNumber,
 } from './state.js';
 import { createJobController } from './jobs.js';
 import { mountBoardEditor } from './ui/board-editor.js';
@@ -106,6 +107,7 @@ export function createGeneratorApp(doc, options = {}) {
       }
     },
   });
+  saveRestoreCleanup(store, persistence);
 
   const editor = mountBoardEditor(slot(doc, 'board'), { store, hardware, controlsHost: optionalSlot(doc, 'board-controls') });
   const summaryHost = optionalSlot(doc, 'board-summary');

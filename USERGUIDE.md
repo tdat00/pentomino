@@ -122,7 +122,9 @@ board already holds 50 sets, or the puzzle list is full, nothing is imported and
 - **Saved work.** The board, the settings and the piece sets with their puzzles are kept in this browser: up to **50**
   sets for each of the last **10** boards used. With 50 sets, **New piece set** is disabled until a set is removed. A
   list holds at most **100** puzzles, and no more than fit one 512 KiB pack, because **Play** opens the whole list as
-  one pack; when the list is full, **New puzzle** says so.
+  one pack; when the list is full, **New puzzle** says so. A saved piece set with two pieces of the same shape (mirror
+  images included) can no longer be used: it is removed when the Generator starts, with a one-time message that says
+  how many sets were removed.
 - **Address.** The address holds only the step (`?step=`; `?lang=` can pick the start language), so a reload returns to
   the step; the settings are in this
   browser's saved work. A `#p=` link (one code per puzzle, as **Play** makes it) in the address opens **Import puzzle**

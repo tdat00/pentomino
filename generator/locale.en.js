@@ -251,6 +251,8 @@ export default Object.freeze({
   'message.M-PLAYER-ONLY': 'The puzzle list is too long for one link, so only this puzzle was opened in the Player.',
   'message.M-PLAYER-BLOCKED': 'The browser blocked the new tab. Allow pop-ups for this page and press “Play” again.',
   'message.M-NEEDS-SET': 'Generate a piece set first.',
+  'message.M-DUPLICATE-SETS': '{count} saved piece sets with two pieces of the same shape were removed: such sets can no longer be used.',
+  'message.M-DUPLICATE-SETS_one': '{count} saved piece set with two pieces of the same shape was removed: such sets can no longer be used.',
   'message.requestFailed': 'The request failed',
 
   // Print dialog and printed sheets (shared with the player)

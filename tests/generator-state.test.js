@@ -3,15 +3,16 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { activeCount, boardFromRows, boardKey, boardToRows, preset, rectangle } from '../core/engine/board.js';
-import { packBoard, parsePack } from '../core/engine/pack.js';
+import { packBoard, parsePack, validatePack } from '../core/engine/pack.js';
 import { LIMITS } from '../core/engine/policy.js';
+import { setLocale } from '../generator/i18n.js';
 import { formatNotice } from '../generator/strings.js';
 import {
   HISTORY_LIMIT, LISTED_LEVEL_IDS, MAX_SAVED_BOARDS, MAX_SAVED_SETS, MAX_SETS, acceptSet, beginSetRequest,
   boardsEqual, capFor, createEditHistory, createGeneratorStore, createPersistence, defaultGeneratorState, describeBoard,
   describeCount, describeLevels, detectHardware, gotoSet, isPhone, loadGeneratorState, mergeSeenKeys, nextBatch, nearestOfferedLevel,
-  readSavedSet, readyLevelId, removeAllSets, resizeBoard, restoreState, rollSeed, savedSetOf, serializeState, setCell, setNumber,
-  setTimelineLength, setViewPosition, setsFull, typeSeed, validSeed, withBoard,
+  readSavedSet, readyLevelId, removeAllSets, resizeBoard, restoreState, rollSeed, saveRestoreCleanup, savedSetOf, serializeState,
+  setCell, setNumber, setTimelineLength, setViewPosition, setsFull, typeSeed, validSeed, withBoard,
 } from '../generator/state.js';
 
 const parsed = parsePack(readFileSync(new URL('./fixtures/generated-sample-pack.json', import.meta.url), 'utf8'));
@@ -595,4 +596,143 @@ test('storage failures never throw: a full storage retries smaller and reports',
   createPersistence(throwing, failing, t2);
   throwing.update({ levelId: 'easy' });
   assert.doesNotThrow(() => t2.run());
+});
+
+/**
+ * Stored sets for the removal of saved sets with two pieces of the same shape (C4 (b)): `dto` is valid, `twinDto` has
+ * two pieces of the same shape (the second piece takes the cells of the first).
+ */
+function twinFixtures() {
+  const state = acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: samplePuzzles[0], setSeed: 'demo' });
+  const dto = JSON.parse(JSON.stringify(serializeState({ ...state, puzzles: samplePuzzles })));
+  const twinDto = JSON.parse(JSON.stringify(dto));
+  twinDto.setPack.pieces[1].cells = JSON.parse(JSON.stringify(twinDto.setPack.pieces[0].cells));
+  const found = validatePack(twinDto.setPack);
+  assert.ok(!found.ok && found.issues[0].code === 'duplicate-shape', 'the fixture fails the shape rule and no other');
+  return { dto, twinDto, key: boardKey(sampleSet.board) };
+}
+
+const EN_ONE = '1 saved piece set with two pieces of the same shape was removed: such sets can no longer be used.';
+const EN_TWO = '2 saved piece sets with two pieces of the same shape were removed: such sets can no longer be used.';
+
+test('restoring removes saved sets with two pieces of the same shape and says so (C4 (b))', () => {
+  const { dto, twinDto, key } = twinFixtures();
+  const clean = restoreState({ ...dto, setsByBoard: { [key]: [dto, dto] } });
+  assert.equal(clean.notice, null, 'no notice without a removed set');
+
+  const one = restoreState({ ...dto, setsByBoard: { [key]: [dto, twinDto, dto] } });
+  assert.equal(one.setsByBoard[key].length, 2, 'the twin set is dropped');
+  assert.deepEqual({ ...one, notice: null }, clean, 'the other sets and the settings restore as before');
+  assert.deepEqual(
+    [one.notice?.code, one.notice?.kind, one.notice?.actions, one.notice?.text],
+    ['M-DUPLICATE-SETS', 'warning', [], EN_ONE],
+  );
+
+  const two = restoreState({ ...dto, setsByBoard: { [key]: [twinDto, dto, twinDto] } });
+  assert.equal(two.setsByBoard[key].length, 1);
+  assert.equal(two.notice?.text, EN_TWO);
+
+  const current = restoreState({ ...twinDto, setsByBoard: {} });
+  assert.deepEqual([current.set, current.setSeed, current.setsByBoard, current.notice?.text], [null, null, {}, EN_ONE], 'a twin current set counts too');
+
+  const everywhere = restoreState({ ...twinDto, setsByBoard: { [key]: [twinDto, dto] }, setHistory: [twinDto, dto] });
+  assert.equal(everywhere.notice?.text, '3 saved piece sets with two pieces of the same shape were removed: such sets can no longer be used.');
+  assert.equal(Object.values(everywhere.setsByBoard).flat().length, 1, 'the valid sets of both lists stay: one on show, one saved');
+  assert.equal(everywhere.setSeed, 'demo');
+
+  const damaged = restoreState({ ...dto, setsByBoard: { [key]: [dto, { bad: true }, { ...dto, setSeed: '' }] } });
+  assert.equal(damaged.notice, null, 'a set that is damaged in another way leaves no notice');
+});
+
+test('the removal notice follows a language switch and is never stored', () => {
+  const { dto, twinDto, key } = twinFixtures();
+  const restored = restoreState({ ...dto, setsByBoard: { [key]: [twinDto, dto, twinDto] } });
+  assert.equal(restored.notice?.text, EN_TWO);
+  try {
+    setLocale('vi', null);
+    assert.equal(
+      restored.notice?.retext?.(),
+      'Đã xóa 2 bộ mảnh đã lưu có hai mảnh cùng hình dạng: những bộ mảnh như vậy không còn dùng được nữa.',
+    );
+    const one = restoreState({ ...dto, setsByBoard: { [key]: [twinDto] } });
+    assert.equal(one.notice?.text, 'Đã xóa 1 bộ mảnh đã lưu có hai mảnh cùng hình dạng: những bộ mảnh như vậy không còn dùng được nữa.');
+  } finally {
+    setLocale('en', null);
+  }
+  assert.equal(restored.notice?.retext?.(), EN_TWO);
+
+  const snapshot = /** @type {Record<string, any>} */ (JSON.parse(JSON.stringify(serializeState(restored))));
+  assert.equal('notice' in snapshot, false);
+  const sets = [snapshot, ...snapshot.setsByBoard[key]];
+  assert.equal(sets.length, 2, 'the twin sets are not in the snapshot');
+  assert.ok(sets.every((saved) => validatePack(saved.setPack).ok));
+
+  const store = createGeneratorStore(restored);
+  const timers = fakeTimers();
+  createPersistence(store, fakeStorage(), timers);
+  store.update((s) => (s.notice?.retext === undefined ? s : { ...s, notice: { ...s.notice, text: s.notice.retext() } }));
+  assert.equal(timers.pending(), 0, 'changing the notice is not a change of the stored state');
+});
+
+test('the startup save writes the cleaned state once, so the notice appears once', () => {
+  const { dto, twinDto, key } = twinFixtures();
+  const io = fakeStorage({ state: { ...dto, setsByBoard: { [key]: [dto, twinDto, dto] } } });
+  const store = createGeneratorStore(loadGeneratorState(io));
+  const timers = fakeTimers();
+  const persistence = createPersistence(store, io, timers);
+  assert.equal(store.getState().notice?.code, 'M-DUPLICATE-SETS');
+  assert.equal(io.writes.state.length, 0, 'loading writes nothing');
+  assert.equal(saveRestoreCleanup(store, persistence), true);
+  assert.equal(io.writes.state.length, 1);
+  const written = /** @type {Record<string, any>} */ (io.writes.state[0]);
+  assert.deepEqual(written, JSON.parse(JSON.stringify(serializeState(store.getState()))));
+  assert.deepEqual([written.setsByBoard[key].length, 'notice' in written], [2, false], 'the valid sets, not the twin set');
+
+  const reloaded = loadGeneratorState(fakeStorage({ state: written }));
+  assert.deepEqual([reloaded.notice, reloaded.setsByBoard[key].length, reloaded.setSeed], [null, 2, 'demo']);
+  persistence.flush();
+  persistence.destroy();
+  assert.equal(io.writes.state.length, 1, 'flush and destroy add no write');
+  assert.equal(timers.pending(), 0);
+});
+
+test('without a removal notice the startup save does nothing', () => {
+  const { dto, key } = twinFixtures();
+  const io = fakeStorage({ state: { ...dto, setsByBoard: { [key]: [dto, { bad: true }, dto] } } });
+  const store = createGeneratorStore(loadGeneratorState(io));
+  const persistence = createPersistence(store, io, fakeTimers());
+  assert.equal(store.getState().notice, null);
+  assert.equal(saveRestoreCleanup(store, persistence), false);
+  store.update({ notice: { code: 'M-NEEDS-SET', text: 'x', kind: 'info', actions: [] } });
+  assert.equal(saveRestoreCleanup(store, persistence), false, 'only the removal notice asks for it');
+  assert.equal(io.writes.state.length, 0);
+});
+
+test('a failing storage at the startup save is reported, never thrown, and the notice stays', () => {
+  const { dto, twinDto, key } = twinFixtures();
+  const stored = { ...dto, setsByBoard: { [key]: [dto, twinDto] } };
+  for (const mode of ['refused', 'throws']) {
+    const io = fakeStorage({ state: stored });
+    if (mode === 'refused') {
+      io.failState = () => true;
+    } else {
+      io.setGeneratorState = () => {
+        throw new Error('denied');
+      };
+    }
+    const store = createGeneratorStore(loadGeneratorState(io));
+    /** @type {unknown[]} */
+    const failures = [];
+    const persistence = createPersistence(store, io, { ...fakeTimers(), onFailure: (failure) => failures.push(failure) });
+    /** @type {boolean | undefined} */
+    let requested;
+    assert.doesNotThrow(() => {
+      requested = saveRestoreCleanup(store, persistence);
+    }, mode);
+    assert.equal(requested, true, mode);
+    assert.ok(failures.length >= 1, `${mode}: onFailure is called`);
+    assert.equal(io.writes.state.length, 0, mode);
+    assert.equal(store.getState().notice?.code, 'M-DUPLICATE-SETS', `${mode}: the notice is still there`);
+    assert.equal(store.getState().notice?.text, EN_ONE, mode);
+  }
 });

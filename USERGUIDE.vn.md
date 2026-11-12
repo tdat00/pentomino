@@ -113,7 +113,9 @@ nhập gì và có thông báo cho biết.
 - **Dữ liệu đã lưu.** Bàn chơi, các thiết lập và các bộ mảnh cùng đề của chúng được giữ trong trình duyệt này: tối đa
   **50** bộ cho mỗi bàn trong **10** bàn dùng gần nhất. Khi đã có 50 bộ, **Tạo bộ mảnh mới** bị vô hiệu cho tới khi bạn
   xóa một bộ. Một danh sách chứa tối đa **100** đề, và không quá lượng vừa một gói 512 KiB, vì **Chơi** mở cả danh sách
-  thành một gói; khi danh sách đầy, **Tạo đề mới** sẽ báo.
+  thành một gói; khi danh sách đầy, **Tạo đề mới** sẽ báo. Một bộ mảnh đã lưu có hai mảnh cùng hình dạng (kể cả hình lật
+  đối xứng) không còn dùng được nữa: bộ đó bị xóa khi trình tạo đề khởi động, kèm một thông báo chỉ hiện một lần cho biết
+  đã xóa bao nhiêu bộ.
 - **Địa chỉ.** Địa chỉ chỉ chứa bước đang mở (`?step=`; `?lang=` chọn ngôn ngữ khởi đầu), nên tải lại trang sẽ trở về đúng bước; các thiết lập nằm trong
   công việc đã lưu của trình duyệt này. Một liên kết `#p=` (mỗi đề một mã, như **Chơi** tạo ra) trên địa chỉ mở **Nhập đề**
   và nhập các đề của nó. Ngoài ra đề không nằm trên địa chỉ; hãy dùng **Chơi** và chia sẻ liên kết của trình chơi.

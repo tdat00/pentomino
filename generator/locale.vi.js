@@ -247,6 +247,7 @@ export default Object.freeze({
   'message.M-PLAYER-ONLY': 'Danh sách đề quá dài cho một liên kết, nên chỉ đề này được mở trong trình chơi.',
   'message.M-PLAYER-BLOCKED': 'Trình duyệt đã chặn tab mới. Hãy cho phép cửa sổ bật lên (pop-up) cho trang này rồi nhấn “Chơi” lần nữa.',
   'message.M-NEEDS-SET': 'Hãy tạo một bộ mảnh trước.',
+  'message.M-DUPLICATE-SETS': 'Đã xóa {count} bộ mảnh đã lưu có hai mảnh cùng hình dạng: những bộ mảnh như vậy không còn dùng được nữa.',
   'message.requestFailed': 'Yêu cầu thất bại',
 
   // Print dialog and printed sheets (shared with the player)

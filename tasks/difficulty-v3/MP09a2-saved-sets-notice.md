@@ -194,14 +194,14 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP09a2: Saved sets with two pieces of the same shape removed with a one-time notice`) |
+| Start | 2026-11-12 19:15 (+07:00) |
+| End | 2026-11-12 19:19 developer; 19:23 orchestrator review and commit |
+| Duration | 5 min developer (284 s); about 4 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 40 model calls; 3,996,984 input tokens (3,879,360 cache reads); 30,591 output tokens |
+| AI credits | about 99 (developer) |
+| Verification | Developer: `node --test tests\generator-state.test.js tests\generator-i18n.test.js` 45/45; `npm run test:quick` 1215/1215 (19 s); `npm run check` OK. Orchestrator re-run: targeted 45/45, `test:quick` 1215/1215, `check` OK |
+| Acceptance | MP09a2-B01, B02 and T01-T05 met (owner decision C4 (b)). Diff reviewed: `restoreState` counts every refused saved set whose first `validatePack` issue is `duplicate-shape` (lists, history, current set) and sets the notice `M-DUPLICATE-SETS` (warning, no actions, `retext` for the language) after `fitSet`; the notice is never serialized; `saveRestoreCleanup(store, persistence)` saves once when that notice is present, never throws, and reports a failure through `onFailure`; `app.js` adds only the import and one call after `createPersistence`; EN keys with `_one`, VI key without plural form; design §10.7 (plus one cross-reference in §10.6), the brief and both guides |
+| Issues & resolutions | (1) A stored set with another defect counts too when its `setPack` has the twin (first issue `duplicate-shape`), as the task states. (2) When the startup write fails, the twin sets stay stored and the notice shows again at the next start; the docs say so. (3) The edit tool reported approximate matches on CRLF files; every result was checked |
+| Handoff | MP09b: no dependency. MP17: release-note sentence "Saved Generator piece sets with two pieces of the same shape (mirror images included) are removed the first time the Generator starts, with a one-time message in English or Vietnamese; the other saved sets are unchanged." |

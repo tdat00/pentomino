@@ -1018,11 +1018,13 @@ export function restoreState(stored, base = {}) {
   state.uniqueness = dto.uniqueness === 'require' ? 'require' : 'any';
   /** @type {Record<string, SavedSet[]>} */
   const byBoard = {};
+  let refused = 0;
   /** @param {unknown} item */
   const keep = (item) => {
     const saved = upgradeSaved(item);
     const read = readSavedSet(saved);
     if (read === null) {
+      refused += duplicateShapeRefusal(saved) ? 1 : 0;
       return;
     }
     // The board of the stored set decides where it goes; a stored key is never trusted.
@@ -1045,11 +1047,34 @@ export function restoreState(stored, base = {}) {
     dto.setHistory.forEach(keep);
   }
   state.setsByBoard = Object.fromEntries(Object.entries(byBoard).slice(-MAX_SAVED_BOARDS));
-  const current = readSavedSet(upgradeSaved(dto));
+  const currentSaved = upgradeSaved(dto);
+  const current = readSavedSet(currentSaved);
   if (current !== null) {
     Object.assign(state, current);
+  } else {
+    refused += duplicateShapeRefusal(currentSaved) ? 1 : 0;
   }
-  return fitSet(state);
+  const fitted = fitSet(state);
+  if (refused === 0) {
+    return fitted;
+  }
+  // Set after `fitSet` so that `freshSetExtras` cannot clear it; the notice itself is never stored.
+  const count = refused;
+  const retext = () => t('message.M-DUPLICATE-SETS', { count });
+  return { ...fitted, notice: { code: 'M-DUPLICATE-SETS', text: retext(), kind: 'warning', actions: [], retext } };
+}
+
+/**
+ * @param {unknown} saved A stored set.
+ * @returns {boolean} Whether its piece set has two pieces of the same shape (`duplicate-shape`), the reason
+ *   `readSavedSet` refuses it.
+ */
+function duplicateShapeRefusal(saved) {
+  if (typeof saved !== 'object' || saved === null) {
+    return false;
+  }
+  const result = validatePack(/** @type {Record<string, any>} */ (saved).setPack);
+  return !result.ok && result.issues[0]?.code === 'duplicate-shape';
 }
 
 /**
@@ -1185,6 +1210,22 @@ export function createPersistence(store, storage, o = {}) {
       }
     },
   };
+}
+
+/**
+ * Saves the restored state once when restoring removed saved sets with two pieces of the same shape (C4 (b)), so
+ * that a reload neither shows the notice again nor finds the removed sets. A failed write is reported through the
+ * persistence's `onFailure` and never thrown; the notice stays on screen either way.
+ * @param {GeneratorStore} store
+ * @param {{ saveNow(): void }} persistence
+ * @returns {boolean} Whether a save was requested.
+ */
+export function saveRestoreCleanup(store, persistence) {
+  if (store.getState().notice?.code !== 'M-DUPLICATE-SETS') {
+    return false;
+  }
+  persistence.saveNow();
+  return true;
 }
 
 export const MAX_PACK_PUZZLES = 100;
