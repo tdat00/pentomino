@@ -5,7 +5,7 @@ import { describe, test } from 'node:test';
 
 import { boardFromRows, boardToRows } from '../core/engine/board.js';
 import { certify } from '../core/engine/clues.js';
-import { rate } from '../core/engine/difficulty.js';
+import { IncompleteRatingError, rate } from '../core/engine/difficulty.js';
 import { completionCandidate, puzzleCandidate, setAttempt } from '../core/engine/generate.js';
 import { layoutKey, progressFingerprint } from '../core/engine/keys.js';
 import { createPack, packBoard, parsePack } from '../core/engine/pack.js';
@@ -283,6 +283,19 @@ describe('task handler', () => {
     assert.ok(errors.every((e) => !/\n\s+at /.test(e.message)));
     assert.equal(errorReply(1, new Error('boom')).type, 'error');
     assert.equal(/** @type {any} */ (errorReply(1, 'weird')).code, 'internal');
+  });
+
+  test('an unrateable puzzle (RES-04) is a rating-incomplete reply with its message', () => {
+    const counters = { nodes: 5, work: 7, stop: /** @type {const} */ ('work-cap') };
+    const error = new IncompleteRatingError('the deduction path was capped', counters);
+    assert.deepEqual(errorReply(7, error),
+      { type: 'error', id: 7, code: 'rating-incomplete', message: 'the deduction path was capped' });
+    assert.equal(error.name, 'IncompleteRatingError');
+    assert.equal(error.code, 'rating-incomplete');
+    assert.equal(error.reason, 'path-capped');
+    assert.ok(error instanceof Error);
+    counters.nodes = 99;
+    assert.deepEqual(error.counters, { nodes: 5, work: 7, stop: 'work-cap' }, 'the counters are an owned copy');
   });
 
   test('a result that cannot be sent still settles the task with an error', () => {

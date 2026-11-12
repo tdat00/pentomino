@@ -5,7 +5,7 @@
 
 import { boardFromRows } from './board.js';
 import { certify } from './clues.js';
-import { rate, UnsatisfiableError } from './difficulty.js';
+import { IncompleteRatingError, rate, UnsatisfiableError } from './difficulty.js';
 import { enumerateLayouts } from './enumerate.js';
 import { completionCandidate, GenerationError, puzzleCandidate, setAttempt } from './generate.js';
 import { progressFingerprint } from './keys.js';
@@ -50,6 +50,7 @@ export const ERROR_CODES = Object.freeze({
   invalidRequest: 'invalid-request',
   modelTooLarge: 'model-too-large',
   unsatisfiable: 'unsatisfiable',
+  ratingIncomplete: 'rating-incomplete',
   historyFull: 'history-full',
   internal: 'internal',
 });
@@ -238,6 +239,9 @@ export function errorReply(id, error) {
     ({ code, message } = error);
   } else if (error instanceof UnsatisfiableError) {
     code = ERROR_CODES.unsatisfiable;
+    message = error.message;
+  } else if (error instanceof IncompleteRatingError) {
+    code = ERROR_CODES.ratingIncomplete;
     message = error.message;
   } else if (error instanceof RangeError || error instanceof TypeError) {
     code = ERROR_CODES.invalidRequest;

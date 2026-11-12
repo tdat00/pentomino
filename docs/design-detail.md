@@ -513,6 +513,9 @@ export function inBand(r: Rating, target: Level): boolean; // target.min ≤ sco
 type ScoreInputV3 = Pick<MetricsV3, 'U' | 'deductionTier' | 'G' | 'info' | 'solutions'>;   // other fields ignored
 type ScoreKnobsV3 = { base: { max: number; scale: number }; rule: readonly number[];
                       weights: { G: number; info: number }; penalty: { few: number; many: number } };
+export class IncompleteRatingError extends Error {   // thrown by the v3 rating when the deduction path is capped (§7.3); nothing throws it before the v3 activation
+  code: 'rating-incomplete'; reason: 'path-capped'; counters: { nodes: number; work: number; stop: 'node-cap' | 'work-cap' };
+}
 ```
 
 **`clues.js`** (§6.10, §6.11)
@@ -1401,6 +1404,9 @@ selectClues({ board, pieces, layout, target, rng, uniqueness, excludeClueKeys, w
       F ← G distinct random pieces of layout, at their layout poses
       if F was tried or clueKey(F) ∈ excludeClueKeys: continue
       r ← rate(board, pieces, F, ws)                               // §7, capped and saturating; one profile
+      if F is spent (unrateable or refused, below):                // the profile is used; F is not a candidate
+        if afterProfile(null) returns a result: return it
+        continue                                                   // counts as neither below nor above the band
       if afterProfile(F, r) returns a result: return it
       add (F, r) to candidates;  count r below or above the band  // an in-band r counts as neither
     if below > 0 and above = 0: G ← G − 1                           // too easy → fewer clues
@@ -1409,22 +1415,24 @@ selectClues({ board, pieces, layout, target, rng, uniqueness, excludeClueKeys, w
     if G ∉ [1, K − 2] or G was already tried: break
   // Phase 2: bounded beam search (beam 4; ≤ BUDGETS.clueSubsets distinct subsets in total)
   moves: add one piece | remove one piece | swap one clue for one non-clue (keeping 1 ≤ G ≤ K − 2)
-  keep the 4 subsets closest to the band; every rated subset goes through afterProfile;
+  keep the 4 subsets closest to the band; every rated subset goes through afterProfile, a spent one through afterProfile(null)
+    and is not kept;
   stop when afterProfile returns a result or the budget is spent
-  afterProfile(F, r):                                              // once per rated subset
-    if finite:
-      note whether r lies below, in or above the central half      // raw rating, in every uniqueness mode
-      if inBand(r, target) and |r.score − centre| < nearest: nearest ← |r.score − centre|; nearestAt ← profiles
-    if inBand(r, target):
-      add (F, r) to inBandList
-      if central(r):
-        R ← finishOnce(F, r)
-        if R ≠ null and central(R.rating): return R                // a central final result stops the search
+  afterProfile(F, r):                                              // once per profile; F is null for a spent profile
+    if F ≠ null:
+      if finite:
+        note whether r lies below, in or above the central half    // raw rating, in every uniqueness mode
+        if inBand(r, target) and |r.score − centre| < nearest: nearest ← |r.score − centre|; nearestAt ← |candidates|
+      if inBand(r, target):
+        add (F, r) to inBandList
+        if central(r):
+          R ← finishOnce(F, r)
+          if R ≠ null and central(R.rating): return R              // a central final result stops the search
     if finite and inBandList ≠ ∅:
       stalled ← no rated r was central and all rated r lie on one side of the central half
-                and profiles − nearestAt ≥ STALL_LIMIT              // STALL_LIMIT = 12: the stall stop
+                and |candidates| − nearestAt ≥ STALL_LIMIT          // STALL_LIMIT = 12: the stall stop, rated candidates only
       if stalled or profiles ≥ BUDGETS.clueSubsets − CENTRE_RESERVE:
-        return chooseBest()                                        // profile 48 of 64 (CENTRE_RESERVE = 16)
+        return chooseBest()                                        // profile 48 of 64 (CENTRE_RESERVE = 16), spent ones included
     return null                                                    // the search goes on
   chooseBest():                                                    // lazy best-first over the final results
     loop:
@@ -1442,6 +1450,7 @@ selectClues({ board, pieces, layout, target, rng, uniqueness, excludeClueKeys, w
       F' ← makeUnique(board, pieces, layout, F, rng, ws, countRows(A))
       if F' = null: this candidate fails                           // final reason: 'uniqueness-not-proved'
       r' ← r if F' = F, else rate(board, pieces, F', ws)           // a repair rating is not a profile
+      if F' ≠ F and (the rating of F' is unrateable, or refused as below): this candidate fails
       if not inBand(r', target): this candidate fails
       if F' ≠ F and clueKey(F') ∈ excludeClueKeys: this candidate fails
       return { ok: true, clues: F', rating: r', certificate: { status: 'unique', model: 'dlx-v1', rowLimit, verified: true } }
@@ -1451,10 +1460,11 @@ selectClues({ board, pieces, layout, target, rng, uniqueness, excludeClueKeys, w
 ```
 
 - The level's initial share implements "easy = many pre-placed pieces, nightmare = few"; no monotonicity in G is assumed.
-- **The search aims at the centre of the band.** The centre is the real number `(min + max) / 2`. A puzzle is accepted at once only when the final result (after any uniqueness repair) lies in the central half of the band; every other in-band result is a fallback. Once 48 of the 64 subsets are rated (`CENTRE_RESERVE = 16` is that stop point), or when the search ends, the in-band final result nearest to the centre is returned, so a band whose central half is reachable only late costs up to 48 ratings per puzzle; the stall stop below ends the search earlier when the central half looks out of reach. An unbounded band (very deep Hell levels) has no centre: every in-band candidate counts as central and the first whose finish succeeds is returned. The sampling stays the uniform shuffle of `sample(count)`.
+- **The search aims at the centre of the band.** The centre is the real number `(min + max) / 2`. A puzzle is accepted at once only when the final result (after any uniqueness repair) lies in the central half of the band; every other in-band result is a fallback. Once 48 of the 64 profiles are used (`CENTRE_RESERVE = 16` is that stop point), or when the search ends, the in-band final result nearest to the centre is returned, so a band whose central half is reachable only late costs up to 48 ratings per puzzle; the stall stop below ends the search earlier when the central half looks out of reach. An unbounded band (very deep Hell levels) has no centre: every in-band candidate counts as central and the first whose finish succeeds is returned. The sampling stays the uniform shuffle of `sample(count)`.
 - In `any` mode the final result is the rated subset itself. In `require` mode a central raw subset whose repaired result is off-centre does not stop the search, a failed repair falls through to the next candidate, and a repaired set that is out of band, or whose clue key is already in `excludeClueKeys`, is never returned; at the stall stop, at profile 48 or at the end, `chooseBest` repairs candidates in order of their raw distance until the nearest finished result is at least as near as every unfinished raw rating.
-- **Stall stop (RES-15a).** `STALL_LIMIT = 12` (next to `BEAM_WIDTH` in `core/engine/clues.js`). For a finite band, after each rated profile and after the central-result check, the search stops and returns `chooseBest()` when all three hold: (1) at least one rated candidate is in band; (2) every rated candidate, in band or not, lies on the same side of the central half (all scores below `centre − (max − min) / 4`, or all above `centre + (max − min) / 4`; a central candidate rated at any time ends this condition for good); (3) the last 12 rated profiles gave no in-band candidate strictly nearer to the centre than the best in-band candidate before them. If `chooseBest()` finds no final result (every repair failed) the search goes on. It is for bands whose central half no clue count can reach (for example Hell 3 on 22 × 22 under `difficulty-v2`, where the highest score is 174 against a central half starting at 180.25), which would otherwise rate 48 subsets per puzzle. The rule reads only the raw subset ratings, in every uniqueness mode: repaired scores never enter it. A subset that is skipped (repeated or excluded) is not a rated candidate and neither advances nor resets the count; the count starts at the first in-band candidate and only a strictly nearer in-band candidate resets it (ties do not). The central stop, the stop at profile 48, the 64 budget, the count steering, the beam, `ranked()` and the unbounded band are unchanged, and the rule draws nothing from the rng. The limit 12 is the smallest value tested that missed no central result on `difficulty-v2` rating sequences; it is re-validated on v3 ratings before v3 is activated.
-- At most `BUDGETS.clueSubsets` (64) subsets are rated per layout (the profiles). The repair ratings of `require` mode come on top: each in-band candidate is repaired at most once, and `onRate` reports only the profiles. A saturated rating at 484 cells costs ≤ ~4 s single-threaded (A.10).
+- **Unrateable and unproved candidates (RES-04, RES-35 / AR1).** A subset whose rating throws `IncompleteRatingError` (the deduction path was capped, §4.2: it is unrateable) and, for a target whose `min` is at least `bandEdge(3)` (Hard or above; the target carries no level index), a subset whose rating has `metrics.Gproved === 0` (no alternative proved to fail) spend a profile and are neutral: they are not rated candidates, are neither below nor above the band, are not in `fresh` of the beam, get no `onRate` and are never rated again. They count toward the 64 profiles and toward the stop at profile 48, and phase 2 keeps sampling while nothing was rated. A repaired set in `require` mode whose rating is unrateable or refused in the same way makes that candidate fail (memoised by `finishOnce`) and the next candidate is tried. Every other error (`UnsatisfiableError`, `ModelError`, `RangeError`, …) propagates unchanged, from a subset rating and from a repair rating. Below Hard the `Gproved` refusal does not apply; an unrateable profile is still spent. Ratings without `Gproved` are never refused by AR1. While `rate` remains `difficulty-v2`, production outputs and fixtures are unchanged: no `difficulty-v2` rating throws or carries `Gproved`, and the rules are exercised with scripted ratings through the `rate` seam. A task `rate` request whose puzzle is unrateable fails with the worker error code `rating-incomplete` (§8.1).
+- **Stall stop (RES-15a).** `STALL_LIMIT = 12` (next to `BEAM_WIDTH` in `core/engine/clues.js`). For a finite band, after each profile and after the central-result check, the search stops and returns `chooseBest()` when all three hold: (1) at least one rated candidate is in band; (2) every rated candidate, in band or not, lies on the same side of the central half (all scores below `centre − (max − min) / 4`, or all above `centre + (max − min) / 4`; a central candidate rated at any time ends this condition for good); (3) the last 12 rated candidates gave no in-band candidate strictly nearer to the centre than the best in-band candidate before them. If `chooseBest()` finds no final result (every repair failed) the search goes on. It is for bands whose central half no clue count can reach (for example Hell 3 on 22 × 22 under `difficulty-v2`, where the highest score is 174 against a central half starting at 180.25), which would otherwise rate 48 subsets per puzzle. The rule reads only the raw subset ratings, in every uniqueness mode: repaired scores never enter it. The stall counter counts rated candidates (`|candidates| − nearestAt`, with `nearestAt` the number of rated candidates when the nearest in-band one was rated): a subset that is skipped (repeated or excluded), unrateable or refused is not a rated candidate, so it is on no side of the central half, is never nearer to the centre, and neither advances nor resets the counter (D21 counting rule); the stop at profile 48 still counts spent profiles. The count starts at the first in-band candidate and only a strictly nearer in-band candidate resets it (ties do not). The central stop, the stop at profile 48, the 64 budget, the count steering, the beam, `ranked()` and the unbounded band are unchanged, and the rule draws nothing from the rng. The limit 12 is the smallest value tested that missed no central result on `difficulty-v2` rating sequences; it is re-validated on v3 ratings before v3 is activated.
+- At most `BUDGETS.clueSubsets` (64) subsets take a rating per layout (the profiles; the unrateable and refused ones are spent profiles). The repair ratings of `require` mode come on top: each in-band candidate is repaired at most once, and `onRate` reports only the profiles that gave a rated candidate. A saturated rating at 484 cells costs ≤ ~4 s single-threaded (A.10).
 - `rate` (optional) replaces the rating function for every rating of the call, subsets and repaired sets; tests and diagnostics use it to script ratings, and the generator never sets it.
 - The generator's step 2 table shows the pre-placed range per level, and each puzzle card shows the number of pieces still to place (K − G).
 
@@ -1486,7 +1496,7 @@ optional: try removing the added clues one by one (random order), keeping unique
   - results update the cards as they arrive and are stored in the pack;
   - certificates never delay or change acceptance, and they are excluded from the action's time measurements ("first ten usable puzzles" and "certificates settled" are reported separately);
   - a new job or Cancel terminates pending certificate tasks (Play does not); their puzzles keep `certificate: null`, shown as "Uniqueness not checked".
-- **`require`** (the "Require unique solution" switch of step 3; it also applies to New piece set). Only puzzles proven `unique` by `makeUnique` are accepted. A repaired clue set whose clue key is already used (`excludeClueKeys`) is rejected and the next candidate is tried (§6.10).
+- **`require`** (the "Require unique solution" switch of step 3; it also applies to New piece set). Only puzzles proven `unique` by `makeUnique` are accepted. A repaired clue set whose clue key is already used (`excludeClueKeys`) is rejected and the next candidate is tried (§6.10). So is a repair whose rating is unrateable (`IncompleteRatingError`) or, for a Hard-or-above target, has `Gproved === 0`: it fails like an out-of-band repair.
   - It is a standard option for A ≤ 200 or levels below Hell. Elsewhere step 2 shows N-UNIQUE-EXP ("experimental and usually fails"): above 200 cells, 639 of 670 Hell-level certificates were "not proved" (A.10).
   - Macro-carved sets make multiple solutions common at some levels (e.g. 10 of 10 at 360-cell master, A.10), so `require` rejects more candidates there.
 - **Tie-break (MAY).** When several in-band candidates exist for one slot, prefer one already certified `unique`. Never spend extra search on this.
@@ -1675,7 +1685,7 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
 
 1. **Level → K.** The count formula gives K (§6.4): more pieces at higher levels and on bigger boards.
 2. **Level → initial G.** The initial share g_L sets the first number of pre-placed pieces (§6.10).
-3. **Acceptance.** Only in-band ratings are accepted, for both the set calibration and every puzzle (§7.3); among them the clue search aims at the centre of the band (§6.10).
+3. **Acceptance.** Only in-band ratings are accepted, for both the set calibration and every puzzle (§7.3); among them the clue search aims at the centre of the band (§6.10). Hard or above also needs a proved decisive guess: a candidate whose rating has `Gproved === 0` is refused (AR1, §7.9). Ratings without `Gproved` (`difficulty-v2`) are never refused; imported puzzles and stored claims are not filtered.
 4. **Labels.** Every card shows `levelForScore(D)`, worded as an estimate.
 
 ### 7.7 Determinism and versioning
@@ -1881,7 +1891,7 @@ The quick tests of `tests/difficulty-v3.test.js` check the formula on the vector
 { type: 'progress', id: number, stage: string, rowTrials: number, bytes: number }  // every BUDGETS.progressEvery row trials
 { type: 'result',   id: number, value: object }
 { type: 'error',    id: number, code: string, message: string,
-  issues?: { code: string, path: string, message: string, params?: object, candidate?: object }[] }   // e.g. 'model-too-large'
+  issues?: { code: string, path: string, message: string, params?: object, candidate?: object }[] }   // e.g. 'model-too-large'; 'rating-incomplete' when a rating's deduction path was capped
 ```
 
 **Request tracking (main thread).**
@@ -2773,7 +2783,7 @@ jobs:
 | `carve` | 50 seeds × (6×10, 8×10, Heart-75, Ring-60, 18×20 at hard): exact partition, distinct keys, sizes inside the window, connected, hole-free, small-piece cap respected. Macro carving at μ ≥ 6.5 on 6×10 (K = 8) and 18×20 (K = 18) yields sets with ≥ 2 layout keys in ≥ 90 % of seeds. After a macro partition fails, the next one starts with no pieces, no shape keys and the full small-piece budget ⌊0.4·K⌋. `validateSet` rejects each injected defect (overlap, hole, duplicate shape, size outside the window). The same seed gives the same set. |
 | `keys` | Layout keys are invariant under board symmetries, so reflected layouts are duplicates. A clue-only change is not a new layout. Distance values. `progressFingerprint` differs for reflected clues (A.9 counterexample). |
 | `difficulty` | Worked examples of §7.2. Saturation at 5,000 branch trials and at 50,000 row trials (effective B = 5,000, actual counters stored). Permuting ids, colors or piece order leaves the rating unchanged. Forced-placement fixture: a puzzle solvable without branching scores 2U [PT]. |
-| `clues` | Always 1 ≤ G ≤ K−2. Initial G follows g_L. `require` mode returns only exhaustively proven unique puzzles. No in-band subset → failure, never a mislabel. 'any' mode returns `certificate: null`. The search returns the first central candidate (central half of the band), else the nearest in-band final result at a stall (12 rated profiles in a row without a nearer in-band candidate while every rated candidate is on one side of the central half, raw ratings only), at profile 48 or at the end; `require` repairs are judged after the repair, memoised, and a repaired clue key in `excludeClueKeys` is rejected; unbounded bands return the first in-band candidate; scripted ratings through the `rate` seam. |
+| `clues` | Always 1 ≤ G ≤ K−2. Initial G follows g_L. `require` mode returns only exhaustively proven unique puzzles. No in-band subset → failure, never a mislabel. 'any' mode returns `certificate: null`. The search returns the first central candidate (central half of the band), else the nearest in-band final result at a stall (12 rated profiles in a row without a nearer in-band candidate while every rated candidate is on one side of the central half, raw ratings only), at profile 48 or at the end; `require` repairs are judged after the repair, memoised, and a repaired clue key in `excludeClueKeys` is rejected; unbounded bands return the first in-band candidate; unrateable and refused subsets (spent, neutral) and repairs (fail), scripted through the `rate` seam. |
 | `generate` | Fold determinism: identical output for pool sizes 1 and 4 and shuffled completion orders (simulated). New layout AND clue keys; no clue-only variant is ever accepted. The best-distance fallback fills a slot whose candidates were all "too close" with the farthest valid one (`bestDistance`; ties keep the earliest attempt). Partial status, its reason and the prefix property. The calibration puzzle is reused as #1. Lazy `certifyTask` results do not change accepted puzzles. Speculation priority: with a simulated pool of 4 where every attempt 0 is accepted, q = 10 needs 3 dispatch rounds. Batch seeds follow `setSeed#batchIndex`; two consecutive batches on one set use different seeds and both return new layouts; a fresh session with the same seed reproduces batch 1. |
 | `palette` | `labelFor`: 0 → A, 25 → Z, 26 → AA, 701 → ZZ, 702 → AAA. `patternFor` is 'none' for K ≤ 20. Generated colors are valid `#rrggbb`. |
 | `pack` | The §5.2 fixture validates and round-trips. Rejects: wrong format; version 0, −1, 2 or "1"; unknown fields; bad rows; overlapping clues; an invalid solution; oversized input. Accepts the classic 12 pentominoes on 6×10, a piece with a hole (warnings only), `difficulty-v1` ratings (as claims) and a 90-piece pack. `omitSolutions` works. |

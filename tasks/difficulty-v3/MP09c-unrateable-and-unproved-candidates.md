@@ -3,11 +3,11 @@
 | Header | Value |
 |---|---|
 | ID | MP09c |
-| Depends on | MP09b (accepted and committed); MP07's `selectClues` structure (`rateSubset`, `finish`, `finishOnce`, `chooseBest`, `afterProfile`, the `SelectContext.rate` seam) |
-| Estimated size | Medium: about 300–450 changed lines (clues.js about 50, difficulty.js about 25, tasks.js about 10, tests about 200–300, documents about 40); about 30–45 minutes |
+| Depends on | MP09b (accepted and committed); MP07's `selectClues` structure as committed in `2b4c5b9` (`rateSubset`, `finish`, `finishOnce`, `chooseBest`, `afterProfile`, the `SelectContext.rate` seam, and the RES-15a stall stop with `STALL_LIMIT = 12`) |
+| Estimated size | Medium: about 350–500 changed lines (clues.js about 55, difficulty.js about 25, tasks.js about 10, tests about 250–350, documents about 45); about 35–50 minutes |
 | Owner role | Engine |
 | Milestone | M5 — v3 active |
-| Design refs | `docs/difficulty-v3/report-detailed.md` RES-04 (the unrateable capped path), RES-35 (a generated Hard-or-above puzzle needs a proved decisive guess), RES-15 (memoised repairs); clarifications SA2-Q-P02 (owner), AR1 (owner, part G); check-list §4.2 D9, D10, D24; cross-review FP10 (`docs/difficulty-v3/gpt-6-astra/6-review-of-task-pack.md`) |
+| Design refs | `docs/difficulty-v3/report-detailed.md` RES-04 (the unrateable capped path), RES-35 (a generated Hard-or-above puzzle needs a proved decisive guess), RES-15 (memoised repairs) and its amendment RES-15a (the stall stop, `clarifications.md` Part I, D21, with its counting rule); clarifications SA2-Q-P02 (owner), AR1 (owner, part G), P-OD4 (owner, part H); check-list §4.2 D9, D10, D21, D24; cross-review FP10 and SP03 (`docs/difficulty-v3/gpt-6-astra/6-review-of-task-pack.md`) |
 | Gates owned | none (this task changes no output: `rate` is still v2 until MP09d2) |
 | Implementation status | Not started |
 
@@ -25,6 +25,12 @@ clue selection, before the rating is switched on:
 - **SA2-Q-P02 (owner):** a puzzle whose deduction search was capped before its first solution is **unrateable**:
   `measureV3` (MP09d1) and so `rate` (from MP09d2) will throw `IncompleteRatingError`. Clue selection must treat such a
   subset as spent and move on, never as a failure of the whole request.
+- **D21 counting rule (plan author, `clarifications.md` Part I; owner P-OD4):** MP07's stall stop (RES-15a) counts
+  rated candidates only. "A profile that is skipped, unrateable (RES-04) or rejected by AR1 is not a rated candidate:
+  it does not count toward (2) and neither advances nor resets the stall counter." MP07 counts the stall with the
+  profile counter, which equals the number of rated candidates only while no profile is spent; this task, which
+  introduces spent profiles, makes the counter count rated candidates. The re-validation of `STALL_LIMIT` on v3
+  ratings is not this task's: it runs in MP09d2, after the switch (orchestrator, after cross-review SP03).
 
 Today `rate` is still `difficulty-v2`: it never throws `IncompleteRatingError` and its ratings carry no `Gproved`, so
 no generated puzzle, pack, fixture or document example changes in this task. The rules are proven with scripted
@@ -35,8 +41,8 @@ ratings through the `SelectContext.rate` seam that MP07 added.
 ### In scope
 
 - `core/engine/difficulty.js`: the exported class `IncompleteRatingError` (nothing throws it yet in production).
-- `core/engine/clues.js`: an unrateable subset and a refused subset spend a profile and are neutral; a repaired
-  rating that is unrateable or refused makes that repair fail.
+- `core/engine/clues.js`: an unrateable subset and a refused subset spend a profile and are neutral (also for the
+  stall stop of RES-15a); a repaired rating that is unrateable or refused makes that repair fail.
 - `core/engine/tasks.js`: the worker error code `rating-incomplete` for `IncompleteRatingError`.
 - Tests in `tests/clues.test.js` and `tests/tasks.test.js`; documents (design §4.2, §6.10, §6.11, §7.6, §8.1, §13.2).
 
@@ -44,8 +50,9 @@ ratings through the `SelectContext.rate` seam that MP07 added.
 
 - `measureV3`, switching `rate` to v3, `MODEL`, renaming the v2 functions, the pinned rating tests and the gates
   (MP09d1, MP09d2). The recorder events `unrateable` and `rejected` / `no-proved-guess` (MP14a).
-- Any change of sampling, of the count steering, of the beam moves, of the centre rule of MP07, of `makeUnique`, of
-  `generate.js`, or of the `IncompleteRatingError` handling outside `selectClues` and `errorReply`.
+- Any change of sampling, of the count steering, of the beam moves, of the centre rule of MP07, of `STALL_LIMIT`, of
+  `makeUnique`, of `generate.js`, or of the `IncompleteRatingError` handling outside `selectClues` and `errorReply`.
+- The D21 re-validation of `STALL_LIMIT` on v3 rating sequences (MP09d2, gate D21-V3).
 
 ## Repository rules
 
@@ -58,22 +65,31 @@ ratings through the `SelectContext.rate` seam that MP07 added.
 
 ## Inputs & context
 
-### Current code (anchors at HEAD `6b772a9` plus MP07; find moved lines by the quoted text)
+### Current code (anchors at HEAD `2b4c5b9`, MP07 committed; find moved lines by the quoted text)
 
 - `core/engine/difficulty.js`: `UnsatisfiableError` (lines 20-28: `export class UnsatisfiableError extends Error {`),
   `rate` (109), `inBand` (121). `MODEL` is `'difficulty-v2'`.
-- `core/engine/clues.js` after MP07 (its task file gives the exact structure):
-  - `selectClues(ctx)` reads `const rateFn = ctx.rate ?? rate;` and uses it for every rating;
+- `core/engine/clues.js` as MP07 committed it:
+  - `const STALL_LIMIT = 12;` (line 60, next to `BEAM_WIDTH`);
+  - `selectClues(ctx)` reads `const rateFn = ctx.rate ?? rate;` (207) and uses it for every rating; the stall state
+    `ratedBelow`, `ratedAbove`, `ratedCentral` (224-226), `nearest` and `nearestAt` (227-228:
+    `let nearestAt = 0;`);
   - `rateSubset(idx)` returns `null` for a repeated, excluded or over-budget subset (no profile), otherwise rates the
-    subset, `profiles += 1`, calls `onRate`, pushes the candidate to `rated` and returns it;
-  - `finish(c)` in `require` mode: `makeUnique`, then `rating = changed ? rateFn(board, pieces, clues, ws) :
-    c.rating`, then `if (!inBand(rating, target)) return null;`, then the `excludeClueKeys` check of a changed key;
-  - `finishOnce(c)` memoises `finish` by the raw subset id; `chooseBest()`; `afterProfile(c)` is called once per rated
-    candidate in phase 1, phase 2 and the beam; it adds an in-band candidate to `inBandList`, may stop on a central
-    final result, and from profile 48 (`profiles >= limit - CENTRE_RESERVE`) returns `chooseBest()` when
-    `inBandList` is not empty;
+    subset (245: `const rating = rateFn(board, pieces, clues, ws);`), `profiles += 1`, calls `onRate`, pushes the
+    candidate to `rated` and returns it;
+  - `finish(c)` in `require` mode: `makeUnique`, then (272) `const rating = changed ? rateFn(board, pieces, clues,
+    ws) : c.rating;`, then `if (!inBand(rating, target)) return null;`, then the `excludeClueKeys` check of a changed
+    key;
+  - `finishOnce(c)` memoises `finish` by the raw subset id; `chooseBest()`; `afterProfile(c)` (343) is called once
+    per rated candidate in phase 1 (395), phase 2 (423) and the beam (482). For a finite band it first records the
+    side of the central half the raw score is on (`ratedCentral`, `ratedBelow`, `ratedAbove`) and, for an in-band
+    candidate strictly nearer to the centre than `nearest`, sets `nearest` and `nearestAt = profiles;` (356); it adds
+    an in-band candidate to `inBandList` and may stop on a central final result; then, when `finite &&
+    inBandList.length > 0`, line 369 `const stalled = !ratedCentral && ratedBelow !== ratedAbove && profiles -
+    nearestAt >= STALL_LIMIT;` and line 370 `if (stalled || profiles >= limit - CENTRE_RESERVE) {` return
+    `chooseBest()`;
   - phase 1 counts each rated sample `below` or `above` the band (count steering); phase 2 runs while
-    `rated.length === 0`; the beam pushes each rated neighbour to `fresh` and stops when `fresh` is empty.
+    `rated.length === 0` (418); the beam pushes each rated neighbour to `fresh` (486) and stops when `fresh` is empty.
 - `core/engine/levels.js:42`: `export function bandEdge(index)`; `bandEdge(3)` is 17, the lower edge of Hard.
 - `core/engine/tasks.js`: `ERROR_CODES` (lines 46-55: `invalidTask` … `internal`), `errorReply(id, error)`
   (218-250; `} else if (error instanceof UnsatisfiableError) {` at 239, then the `RangeError`/`TypeError` branch and
@@ -128,9 +144,16 @@ every caller of rateSubset (phase 1, phase 2, the beam):
   if c === 'spent': continue                                   // neutral: not below, not above, not in fresh
   ... the existing code for a rated candidate (count steering in phase 1, fresh.push in the beam)
 
-afterProfile(c):                                               // c may now be null
-  if c !== null and inBand(c.rating, target): ... unchanged (inBandList, central stop)
-  the reserve check stays as it is (it runs for a spent profile too)
+afterProfile(c):                                               // c is null for a spent profile
+  if c !== null:
+    MP07's code for a rated candidate, unchanged except one expression: the side flags (ratedCentral, ratedBelow,
+    ratedAbove), nearest and nearestAt = rated.length (was: profiles), inBandList, the central stop
+  // a spent profile changes no stall state: not a side, not nearer, no counter step (D21 counting rule)
+  if finite and inBandList.length > 0:                         // MP07's final block, run for a spent profile too
+    stalled = !ratedCentral && ratedBelow !== ratedAbove && rated.length - nearestAt >= STALL_LIMIT
+                                                               // was: profiles - nearestAt
+    if stalled or profiles >= limit - CENTRE_RESERVE: return chooseBest()   // the reserve still counts profiles
+  return null
 
 finish(c), require mode, when the repair changed the clue set:
   try rating = rateFn(board, pieces, clues, ws)
@@ -145,6 +168,10 @@ Consequences (each is tested):
 - A spent subset counts toward the 64 profiles and toward the stop at profile 48, is not added to `rated` (so it never
   seeds the beam and phase 2 keeps sampling while nothing was rated), is neither in band nor below nor above, and
   `onRate` is not called for it. It is never rated again (`tried` already holds it).
+- The stall stop (RES-15a) reads rated candidates only: a spent subset is on no side of the central half, never nearer
+  to the centre, and does not advance or reset the stall counter, which now counts rated candidates
+  (`rated.length - nearestAt`). While nothing is spent, `rated.length` equals `profiles` at every `afterProfile` call
+  (the candidate is pushed to `rated` before it), so MP07's results and tests do not change.
 - Below Hard (`target.min < 17`) nothing changes; a rating without `metrics.Gproved` (every v2 rating, MP07's scripted
   ratings) is never refused.
 - Every error other than `IncompleteRatingError` (`UnsatisfiableError`, `ModelError`, `RangeError`, …) propagates
@@ -200,12 +227,18 @@ N = `level('normal')` (initial count 6). Mode `any` unless stated. "Calls" are t
 | S6 unrateable repair falls through | `byCount({ 5: [21, 1], 6: 'capped', 7: 'capped', 8: 'capped', 9: 'capped' })`, H, `require`, `repair-2` | calls `IYTZX:21/1* IYTWZX:capped YUVWZ:21/1*`; result `YUVWZ`, certificate `unique` |
 | S7 other errors propagate | a seam that throws `new RangeError('boom')`, H, `boom`; and one that throws `new UnsatisfiableError('x')` | `selectClues` throws that same error object |
 | S7b another error at the repair propagates (FP10) | `byCount({ 5: [21, 1], 6: boom })` with `const boom = new RangeError('boom')` created once, H, `require`, `repair-2` | calls `IYTZX:21/1*`, then the repair rating of `IYTZX` (6 clues, `IYTWZX`) throws; `selectClues` throws exactly `boom` (`assert.throws(..., (e) => e === boom)`), not a failed-selection result |
-| S8 spent profiles count for the stop at 48 | `byCount({ 5: [17, 1], 4: 'capped', 6: [30, 0] })`, H, `reserve-spent` | exactly 48 calls, every one a profile (no repair in `any` mode); the 48th call is `LNWZ:capped`; 17 calls followed by `onRate`; result `LYNWZ`, score 17 (all in-band ratings are 17, so the smallest clue key wins) |
+| S8 spent profiles count for the stop at 48 | `byCount({ 5: [17, 1], 4: 'capped', 6: [26, 1] })`, H, `reserve-spent` | exactly 48 calls, every one a profile (no repair in `any` mode): 17 calls `5:17/1*`, 20 calls `6:26/1*` (above the band, so the rated candidates lie on both sides of the central half and the stall stop cannot fire) and 11 calls `4:capped`; the 48th call is `LNWZ:capped`; 37 calls followed by `onRate`; result `LYNWZ`, score 17 (every in-band rating is 17, so the smallest clue key wins) |
+| S8s spent profiles do not advance the stall counter | `byCount({ 5: [17, 1], 4: 'capped', 6: [30, 0] })`, H, `reserve-spent` | 34 calls: 13 `5:17/1*`, 15 `6:30/0` (refused) and 6 `4:capped`; the first six calls `LVNWZ:17/1* ILYFZ:17/1* YPUVN:17/1* IUVWZ:17/1* ILNWZ:17/1* LYNWZ:17/1*`, the last call `LYFWZ:17/1*`; result `LYNWZ`, score 17: the stall stop fires at the 13th rated candidate (the first in-band one and 12 that are not nearer). With MP07's profile counter the search stops after 13 calls, 8 of them rated |
+| ST1 unrateable profiles between rated ones | `bySequence([[18, 1], 'capped', 'capped', 'capped', [18, 1]])`, H, `stall-capped` | calls `PVTFW:18/1* YPNFX:capped IYPUT:capped YVTFX:capped PVTFWZ:18/1* PVTF:18/1* PVFW:18/1* LPVTFW:18/1* PVTNFW:18/1* YPVTFW:18/1* PVTW:18/1* PTFW:18/1* PVTN:18/1* IPVT:18/1* PTF:18/1* YPVF:18/1*` (16 calls, 13 followed by `onRate`); result `YPVF`, score 18, the smallest clue key of the 13 rated subsets (18 is in band, below the central half [19, 23]). With MP07's profile counter the search stops after 13 calls with result `PVTF` |
+| ST2 a refused profile is on no side and not nearer | `bySequence([[18, 1], [18, 1], [18, 1], [18, 1], [18, 1], [18, 1], [18, 1], [21, 0], [18, 1]])`, H, `stall-refused`; and the same list with `[30, 0]` in place of `[21, 0]` | both: calls `YPVTZ:18/1* INFWX:18/1* ILVNW:18/1* YPUVT:18/1* YPVTZX:18/1* LYPTZ:18/1* IYPVTZ:18/1* YPVZ:21/0 YPTZ:18/1* YPVTNZ:18/1* LYPVTZ:18/1* YPVTFZ:18/1* INWX:18/1* IFWX:18/1*` (with `YPVZ:30/0` in the second list; 14 calls, 13 followed by `onRate`); result `YPTZ`, score 18. A refused rating that set a side flag (central for 21, the other side for 30) would prevent the stall stop; with MP07's profile counter the search stops after 13 calls, 12 of them rated |
 | S9 no `Gproved` is never refused | `bySequence` of a v2-like rating `{ model: 'difficulty-v2', score: 21, metrics: { U } }` (no `Gproved`), H, `v2-0` | calls `IYUVX:21*`; result `IYUVX` |
 | S10 the Hard edge | `bySequence([[23, 0]])`, target `{ min: 16, max: 30, share: 0.38 }`, `edge-16`; and `bySequence([[23, 0], [23, 1]])`, target `{ min: 17, max: 30, share: 0.38 }`, `edge-17` | min 16: calls `LYUFZ:23/0*`, result `LYUFZ`; min 17: calls `UVNFX:23/0 ILUVW:23/1*`, result `ILUVW` |
 
 The ids depend on MP07's sampling being exactly as specified (MP07's own vectors pin it). A mismatch is reported with
-the trace (check-list D11), never settled by changing a seed or a value.
+the trace (check-list D11), never settled by changing a seed or a value. The vectors were computed on MP07 as
+committed in `2b4c5b9` with this specification applied (S1 to S7b, S9 and S10 are unchanged by the stall stop; the
+S8 of the first version of this file, 48 calls with the 6-clue subsets refused, became S8s when MP07 added the stall
+stop, and S8 now keeps a rated candidate above the band so that it still reaches the stop at 48).
 
 ## Files to create/modify
 
@@ -225,7 +258,10 @@ Must not edit: any fixture, `rate`, `MODEL`, `measure`, `score`, `generate.js`, 
   rating when the deduction path is capped (§7.3); nothing throws it before the v3 activation".
 - §6.10 (as rewritten by MP07): after the rating line, "an unrateable subset (`IncompleteRatingError`) and, for a target
   whose `min` is at least `bandEdge(3)` (Hard or above), a rating with `metrics.Gproved === 0` spend a profile and are
-  neutral: not rated candidates, not below or above the band, no `onRate`; other errors propagate".
+  neutral: not rated candidates, not below or above the band, no `onRate`; other errors propagate"; and in MP07's
+  stall-stop paragraph: "the stall counter counts rated candidates: a spent profile is on no side of the central half,
+  never nearer to the centre, and neither advances nor resets the counter (D21 counting rule); the stop at profile 48
+  counts spent profiles".
 - §6.11 `require` bullet: a repair whose rating is unrateable or, for a Hard-or-above target, has `Gproved === 0`
   fails like an out-of-band repair, and the next candidate is tried.
 - §7.6 item 3: "Hard or above also needs a proved decisive guess: a candidate whose rating has `Gproved === 0` is
@@ -240,8 +276,10 @@ Must not edit: any fixture, `rate`, `MODEL`, `measure`, `score`, `generate.js`, 
 
 1. `difficulty.js`: `IncompleteRatingError` after `UnsatisfiableError`.
 2. `clues.js`: import `IncompleteRatingError` and `bandEdge`; `refuseUnproved`, `noProvedGuess`; the `rateSubset`,
-   caller and `finish` changes above; update the JSDoc of `rateSubset` (`@returns {Candidate | 'spent' | null}`) and
-   of `afterProfile` (`@param {Candidate | null} c`).
+   caller, `afterProfile` and `finish` changes above (in `afterProfile`: the rated-candidate part under `if (c !==
+   null)`, `nearestAt = rated.length;` and `rated.length - nearestAt >= STALL_LIMIT`; `STALL_LIMIT` keeps its value);
+   update the JSDoc of `rateSubset` (`@returns {Candidate | 'spent' | null}`) and of `afterProfile` (`@param
+   {Candidate | null} c`, "null for a spent profile").
 3. `tasks.js`: the error code and the `errorReply` branch.
 4. Tests (test plan); documents.
 5. `npm run test:quick` and `npm run check`.
@@ -251,7 +289,7 @@ Must not edit: any fixture, `rate`, `MODEL`, `measure`, `score`, `generate.js`, 
 | ID | Criterion | Evidence |
 |---|---|---|
 | MP09c-B01 | For a Hard-or-above target, a candidate without a proved decisive guess is never returned, at the subset or at the repaired rating, while a labelled estimate with a proved decisive guess stays eligible (AR1) | S1, S2, S2b, S4, S10 |
-| MP09c-B02 | An unrateable candidate never fails a request: the search spends one rating on it and goes on | S5, S5b, S6, S8 |
+| MP09c-B02 | An unrateable candidate never fails a request: the search spends one rating on it and goes on; unrateable and refused candidates never make the search stop early on a stall (D21 counting rule) | S5, S5b, S6, S8, S8s, ST1, ST2 |
 | MP09c-B03 | Nothing changes below Hard, for v2 ratings, or for today's generated puzzles and fixtures | S3, S5c, S9; the unchanged quick set |
 
 ## Acceptance criteria — Technical
@@ -265,13 +303,14 @@ Must not edit: any fixture, `rate`, `MODEL`, `measure`, `score`, `generate.js`, 
 | MP09c-T05 | "Hard or above" is `target.min >= bandEdge(3)`; a rating without `metrics.Gproved` is never refused | S9, S10 |
 | MP09c-T06 | `errorReply` maps the error to `code: 'rating-incomplete'` with its message | tasks test |
 | MP09c-T07 | No existing test changes; `npm run test:quick` and `npm run check` pass; documents updated as listed | command output; review |
+| MP09c-T08 | The stall stop counts rated candidates only (`rated.length - nearestAt`, `nearestAt = rated.length`): a spent profile sets no side flag, is never nearer, and neither advances nor resets the counter; `STALL_LIMIT` stays 12; MP07's stall tests pass unchanged | S8s, ST1, ST2; MP07's tests |
 
 ## Test plan
 
 ### Required test cases
 
-- `tests/clues.test.js`: S1 to S10 of the table (with S2b, S5b, S5c and S7b), each as written (calls, `onRate`
-  count, result); for S1 and S5b also that the 20 subsets are pairwise distinct.
+- `tests/clues.test.js`: S1 to S10 of the table (with S2b, S5b, S5c, S7b and S8s) and ST1 and ST2 (both lists), each
+  as written (calls, `onRate` count, result); for S1 and S5b also that the 20 subsets are pairwise distinct.
 - `tests/tasks.test.js`: `errorReply(7, new IncompleteRatingError('the deduction path was capped', { nodes: 5, work:
   7, stop: 'work-cap' }))` deep-equals `{ type: 'error', id: 7, code: 'rating-incomplete', message: 'the deduction
   path was capped' }`; the class fields of MP09c-T01 (a counters object passed in and changed afterwards does not change
@@ -280,7 +319,7 @@ Must not edit: any fixture, `rate`, `MODEL`, `measure`, `score`, `generate.js`, 
 ### Exact commands
 
 ```powershell
-node --test tests\clues.test.js tests\tasks.test.js
+node --test --test-skip-pattern=slow tests\clues.test.js tests\tasks.test.js
 if ($LASTEXITCODE -ne 0) { throw 'targeted tests failed' }
 npm run test:quick
 if ($LASTEXITCODE -ne 0) { throw 'quick set failed' }
@@ -294,21 +333,23 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
   changed.
 - Handoff to MP09d1 and MP09d2: `IncompleteRatingError` (constructor `(message, { nodes, work, stop })`), the `'spent'`
   return of `rateSubset` and the two refusal points; MP09d1's `measureV3` throws the error and MP09d2's tests reach
-  these paths with the real rating. Handoff to MP14a: the points where the recorder events `unrateable` and `rejected`
-  (`no-proved-guess`) and a refused repair (`accepted: false`, same reason) belong.
+  these paths with the real rating. The stall counter counts rated candidates, so MP09d2's no-stall capture and
+  `simulate.mjs` (which reads the `onRate` sequence) measure the same quantity as production; MP09d2 re-validates
+  `STALL_LIMIT` on v3 (gate D21-V3). Handoff to MP14a: the points where the recorder events `unrateable` and
+  `rejected` (`no-proved-guess`) and a refused repair (`accepted: false`, same reason) belong.
 
 ## Execution log
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP09c: Unrateable and unproved candidates spend a profile; AR1 refusal; rating-incomplete`) |
+| Start | 2026-11-12 19:41 (+07:00) |
+| End | 2026-11-12 19:47 developer; 19:55 orchestrator review and commit |
+| Duration | 6 min developer (363 s); about 8 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 46 model calls; 4,958,933 input tokens (4,821,645 cache reads); 41,796 output tokens |
+| AI credits | about 124 (developer) |
+| Verification | Developer: `node --test --test-skip-pattern=slow tests\clues.test.js tests\tasks.test.js` 69/69 (3.1 s); `npm run test:quick` 1242/1242 (19.8 s); `npm run check` OK; `node tools/record-fixtures.mjs --check` OK; mutation check: MP07's `profiles` counter restored makes S8s, ST1 and ST2 fail (S8s 13 calls instead of 34). Orchestrator re-run: targeted 69/69, `check` OK, `record-fixtures --check` OK; `test:quick` once 1242 of 1243 with one failure while the sudoku lock was held (heavy MS05b1 gates on the same machine), then 1242/1242 twice |
+| Acceptance | MP09c-B01..B03 and MP09c-T01..T08 met. Diff reviewed: `IncompleteRatingError` in `difficulty.js`; `rateSubset` returns `'spent'` (a profile, no `onRate`, no candidate) for an `IncompleteRatingError` and, when `target.min >= bandEdge(3)`, for a rating whose `metrics.Gproved === 0`; `finish` returns null for an unrateable or unproved changed repair; `afterProfile(null)` sets no side, is never nearer and the stall counter is `rated.length - nearestAt` (D21 counting rule, cross-review SP03); `tasks.js` maps the error to `rating-incomplete`; other errors propagate unchanged; `STALL_LIMIT` stays 12; no fixture, `rate` or `MODEL` change |
+| Issues & resolutions | (1) Third-pass review TP01 (wording only) applied at dispatch: below Hard the `Gproved` refusal does not apply but an unrateable profile is still spent (S5c). (2) One transient `test:quick` failure (1243 tests reported, one failing) during the orchestrator re-run under machine load, not reproduced in two further runs; its name was not captured; watch for a flaky timing test in later runs. (3) Task anchors drifted (HEAD `a80274b` instead of `2b4c5b9`), found by text; every vector reproduced without seed or value changes. (4) An unchanged repair reuses the subset's rating, which already passed the refusal |
+| Handoff | MP09d1: `measureV3` throws `new IncompleteRatingError('the deduction path was capped', { nodes, work, stop })`, exported from `difficulty.js`. MP09d2: refusal points are `rateSubset` (`'spent'`) and `finish` (null); callers `continue` on `'spent'`; `simulate.mjs` reading the `onRate` sequence measures the same quantity as the production counter; the D21-V3 re-validation is MP09d2's. MP14a: recorder events at the three `'spent'` returns (`unrateable` in the catch, `rejected`/`no-proved-guess` in the `Gproved` branch) and the two `return null` branches of `finish` |

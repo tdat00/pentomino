@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { boardFromRows } from '../core/engine/board.js';
 import { certify, makeUnique, selectClues } from '../core/engine/clues.js';
-import { inBand, rate } from '../core/engine/difficulty.js';
+import { IncompleteRatingError, inBand, rate, UnsatisfiableError } from '../core/engine/difficulty.js';
 import { setAttempt } from '../core/engine/generate.js';
 import { clueKey } from '../core/engine/keys.js';
 import { level, levelForScore } from '../core/engine/levels.js';
@@ -549,6 +549,291 @@ test('slow: stall, a 15 x 20 Hell 2 calibration (K = 50) still reaches the centr
   assert.equal(set.set.pieces.length, 50);
   assert.equal(set.calibration.rating.score, 126, 'the 10th profile; the central half is [124.5, 149.5]');
   assert.equal(set.calibration.clues.length, 2);
+});
+
+// Unrateable and unproved candidates (design §6.10, RES-04, RES-35 / AR1). The scripted v3 ratings carry `Gproved`;
+// H is Hard (centre 21, central half [19, 23], initial clue count 5) and N is Normal (initial clue count 6).
+const H = level('hard');
+const N = level('normal');
+
+/**
+ * @param {Piece[]} p
+ * @param {Pose[]} clues
+ * @param {number} score
+ * @param {number | undefined} Gproved
+ * @param {boolean} [censored] true for a labelled estimate (C1 (b))
+ * @returns {Rating}
+ */
+const v3Rating = (p, clues, score, Gproved, censored = false) => /** @type {Rating} */ (/** @type {unknown} */ ({
+  model: 'difficulty-v3', score, level: levelForScore(score).id, saturated: false,
+  ...(censored ? { censored: true } : {}),
+  metrics: Gproved === undefined ? { U: p.length - clues.length } : { U: p.length - clues.length, Gproved },
+}));
+
+const capped = () => new IncompleteRatingError('the deduction path was capped', { nodes: 5, work: 7, stop: 'work-cap' });
+
+/** @typedef {number | [number, number | undefined] | [number, number | undefined, boolean] | 'capped' | Error} Scripted */
+
+/**
+ * A score (Gproved 1), [score, Gproved], [score, Gproved, true] (a labelled estimate), 'capped' (unrateable) or an
+ * Error (thrown as it is).
+ * @param {Scripted} entry
+ * @param {Piece[]} p
+ * @param {Pose[]} clues
+ * @returns {Rating}
+ */
+function answer(entry, p, clues) {
+  if (entry === 'capped') {
+    throw capped();
+  }
+  if (entry instanceof Error) {
+    throw entry;
+  }
+  if (typeof entry === 'number') {
+    return v3Rating(p, clues, entry, 1);
+  }
+  return v3Rating(p, clues, entry[0], entry[1], entry[2] === true);
+}
+
+/**
+ * A rating seam by number of clues; other counts answer [10, 1].
+ * @param {Record<number, Scripted>} table
+ * @returns {NonNullable<Context['rate']>}
+ */
+const byCount = (table) => (_b, p, clues) => answer(table[clues.length] ?? [10, 1], p, clues);
+
+/**
+ * A rating seam by call order; the last entry repeats.
+ * @param {Scripted[]} list
+ * @returns {NonNullable<Context['rate']>}
+ */
+const bySequence = (list) => {
+  let next = 0;
+  return (_b, p, clues) => answer(list[Math.min(next++, list.length - 1)], p, clues);
+};
+
+/**
+ * `traced`, recording how each rating call ended: `score` or `score/Gproved`, `capped` for an unrateable subset,
+ * `threw` for any other error. A call is a search profile when `onRate` follows it at once.
+ * @typedef {{ ids: string, outcome: string, profile: boolean }} Call
+ * @param {Partial<Context> & Pick<Context, 'target'> & { seed: string }} o
+ * @param {Call[]} [calls] Filled as the calls happen, so that a throwing run can be inspected.
+ * @returns {ReturnType<typeof selectClues>}
+ */
+function tracedOutcomes(o, calls = []) {
+  const inner = o.rate ?? rate;
+  return selectClues({
+    board,
+    pieces,
+    layout,
+    rng: createRng(o.seed),
+    uniqueness: 'any',
+    excludeClueKeys: new Set(),
+    ws,
+    ...o,
+    onRate: () => {
+      calls[calls.length - 1].profile = true;
+    },
+    rate: (b, p, clues, w) => {
+      const call = { ids: ids(clues), outcome: 'threw', profile: false };
+      calls.push(call);
+      try {
+        const r = inner(b, p, clues, w);
+        call.outcome = 'Gproved' in r.metrics ? `${r.score}/${r.metrics.Gproved}` : `${r.score}`;
+        return r;
+      } catch (error) {
+        if (error instanceof IncompleteRatingError) {
+          call.outcome = 'capped';
+        }
+        throw error;
+      }
+    },
+  });
+}
+
+/** @param {Call[]} calls */
+const written = (calls) => calls.map((c) => `${c.ids}:${c.outcome}${c.profile ? '*' : ''}`);
+
+/**
+ * The calls by clue count and ending: `<clues>:<outcome>[*]` to the number of such calls.
+ * @param {Call[]} calls
+ * @returns {Record<string, number>}
+ */
+const tally = (calls) => {
+  /** @type {Record<string, number>} */
+  const counts = {};
+  for (const c of calls) {
+    const name = `${c.ids.length}:${c.outcome}${c.profile ? '*' : ''}`;
+    counts[name] = (counts[name] ?? 0) + 1;
+  }
+  return counts;
+};
+
+/**
+ * @param {Partial<Context> & Pick<Context, 'target'> & { seed: string }} o
+ * @returns {{ result: ReturnType<typeof selectClues>, calls: Call[] }}
+ */
+function outcomes(o) {
+  /** @type {Call[]} */
+  const calls = [];
+  const result = tracedOutcomes(o, calls);
+  return { result, calls };
+}
+
+/** @param {Call[]} calls */
+const allDistinctWith5Clues = (calls) => calls.every((c) => c.ids.length === 5) && new Set(calls.map((c) => c.ids)).size === calls.length;
+
+test('unproved or unrateable subsets, none usable: 20 distinct subsets spent, no onRate', () => {
+  for (const [name, table, seed] of /** @type {const} */ ([
+    ['refused', { 5: [21, 0] }, 'refused-0'],
+    ['unrateable', { 5: 'capped' }, 'capped-0'],
+  ])) {
+    const { result, calls } = outcomes({ rate: byCount(table), target: H, seed });
+    assert.deepEqual(result, { ok: false, reason: 'not-in-band' }, name);
+    assert.equal(calls.length, 20, `${name}: 4 profiles in phase 1 (nothing below or above), then 16 in phase 2`);
+    assert.equal(allDistinctWith5Clues(calls), true, name);
+    assert.equal(calls.some((c) => c.profile), false, `${name}: onRate is never called`);
+  }
+});
+
+test('a Hard subset without a proved decisive guess is refused, then a proved one is taken', () => {
+  const refused = outcomes({ rate: bySequence([[21, 0], [21, 1]]), target: H, seed: 'refused-1' });
+  assert.deepEqual(written(refused.calls), ['LPUVF:21/0', 'UTFZX:21/1*']);
+  assert.ok(refused.result.ok);
+  assert.equal(ids(refused.result.clues), 'UTFZX');
+  assert.equal(refused.result.rating.score, 21);
+  assert.equal(refused.result.certificate, null);
+
+  const estimate = outcomes({ rate: bySequence([[21, 0], [21, 1, true]]), target: H, seed: 'refused-1' });
+  assert.deepEqual(written(estimate.calls), ['LPUVF:21/0', 'UTFZX:21/1*']);
+  assert.ok(estimate.result.ok);
+  assert.equal(ids(estimate.result.clues), 'UTFZX');
+  assert.equal(estimate.result.rating.score, 21);
+  assert.equal(/** @type {{ censored?: boolean }} */ (estimate.result.rating).censored, true);
+  assert.equal(/** @type {{ Gproved?: number }} */ (estimate.result.rating.metrics).Gproved, 1);
+});
+
+test('below Hard a rating without a proved decisive guess is accepted', () => {
+  const { result, calls } = outcomes({ rate: bySequence([[14, 0]]), target: N, seed: 'normal-0' });
+  assert.deepEqual(written(calls), ['YUTFWX:14/0*']);
+  assert.ok(result.ok);
+  assert.equal(ids(result.clues), 'YUTFWX');
+  assert.equal(result.rating.score, 14);
+});
+
+test('an unrateable subset spends a profile and the search goes on', () => {
+  const hard = outcomes({ rate: bySequence(['capped', [21, 1]]), target: H, seed: 'capped-1' });
+  assert.deepEqual(written(hard.calls), ['ILYTZ:capped', 'IVTZX:21/1*']);
+  assert.ok(hard.result.ok);
+  assert.equal(ids(hard.result.clues), 'IVTZX');
+
+  const normal = outcomes({ rate: bySequence(['capped', [14, 0]]), target: N, seed: 'capped-2' });
+  assert.deepEqual(written(normal.calls), ['IYPUTF:capped', 'ILUVTW:14/0*']);
+  assert.ok(normal.result.ok);
+  assert.equal(ids(normal.result.clues), 'ILUVTW');
+});
+
+test('a repair whose rating is refused or unrateable fails and the next candidate is tried', () => {
+  const refused = outcomes({ rate: byCount({ 5: [21, 1], 6: [21, 0], 7: [21, 0], 8: [21, 0], 9: [21, 0] }), target: H,
+    uniqueness: 'require', seed: 'repair-2' });
+  assert.deepEqual(written(refused.calls), ['IYTZX:21/1*', 'IYTWZX:21/0', 'YUVWZ:21/1*']);
+  assert.ok(refused.result.ok);
+  assert.equal(ids(refused.result.clues), 'YUVWZ');
+  assert.equal(refused.result.certificate?.status, 'unique');
+  assert.equal(certify(board, pieces, refused.result.clues, ws, 10000).status, 'unique');
+
+  const unrateable = outcomes({ rate: byCount({ 5: [21, 1], 6: 'capped', 7: 'capped', 8: 'capped', 9: 'capped' }),
+    target: H, uniqueness: 'require', seed: 'repair-2' });
+  assert.deepEqual(written(unrateable.calls), ['IYTZX:21/1*', 'IYTWZX:capped', 'YUVWZ:21/1*']);
+  assert.ok(unrateable.result.ok);
+  assert.equal(ids(unrateable.result.clues), 'YUVWZ');
+  assert.equal(unrateable.result.certificate?.status, 'unique');
+});
+
+test('every error other than IncompleteRatingError propagates as the same object', () => {
+  for (const error of [new RangeError('boom'), new UnsatisfiableError('x')]) {
+    assert.throws(() => outcomes({ rate: () => {
+      throw error;
+    }, target: H, seed: 'boom' }), (e) => e === error);
+  }
+  const boom = new RangeError('boom');
+  /** @type {Call[]} */
+  const calls = [];
+  assert.throws(() => tracedOutcomes({ rate: byCount({ 5: [21, 1], 6: boom }), target: H, uniqueness: 'require',
+    seed: 'repair-2' }, calls), (e) => e === boom);
+  assert.deepEqual(written(calls), ['IYTZX:21/1*', 'IYTWZX:threw']);
+});
+
+test('spent profiles count for the stop at profile 48', () => {
+  const { result, calls } = outcomes({ rate: byCount({ 5: [17, 1], 4: 'capped', 6: [26, 1] }), target: H,
+    seed: 'reserve-spent' });
+  assert.equal(calls.length, 48);
+  assert.deepEqual(tally(calls), { '5:17/1*': 17, '6:26/1*': 20, '4:capped': 11 });
+  assert.equal(written(calls)[47], 'LNWZ:capped');
+  assert.equal(calls.filter((c) => c.profile).length, 37);
+  assert.ok(result.ok);
+  assert.equal(ids(result.clues), 'LYNWZ');
+  assert.equal(result.rating.score, 17);
+});
+
+test('stall, spent profiles do not advance the stall counter', () => {
+  const { result, calls } = outcomes({ rate: byCount({ 5: [17, 1], 4: 'capped', 6: [30, 0] }), target: H,
+    seed: 'reserve-spent' });
+  const text = written(calls);
+  assert.equal(calls.length, 34);
+  assert.deepEqual(tally(calls), { '5:17/1*': 13, '6:30/0': 15, '4:capped': 6 });
+  assert.deepEqual(text.slice(0, 6), ['LVNWZ:17/1*', 'ILYFZ:17/1*', 'YPUVN:17/1*', 'IUVWZ:17/1*', 'ILNWZ:17/1*', 'LYNWZ:17/1*']);
+  assert.equal(text[33], 'LYFWZ:17/1*', 'the stall stop fires at the 13th rated candidate');
+  assert.ok(result.ok);
+  assert.equal(ids(result.clues), 'LYNWZ');
+  assert.equal(result.rating.score, 17);
+});
+
+test('stall, unrateable profiles between rated ones are neutral', () => {
+  const { result, calls } = outcomes({ rate: bySequence([[18, 1], 'capped', 'capped', 'capped', [18, 1]]), target: H,
+    seed: 'stall-capped' });
+  assert.deepEqual(written(calls), ['PVTFW:18/1*', 'YPNFX:capped', 'IYPUT:capped', 'YVTFX:capped', 'PVTFWZ:18/1*',
+    'PVTF:18/1*', 'PVFW:18/1*', 'LPVTFW:18/1*', 'PVTNFW:18/1*', 'YPVTFW:18/1*', 'PVTW:18/1*', 'PTFW:18/1*', 'PVTN:18/1*',
+    'IPVT:18/1*', 'PTF:18/1*', 'YPVF:18/1*']);
+  assert.equal(calls.filter((c) => c.profile).length, 13);
+  assert.ok(result.ok);
+  assert.equal(ids(result.clues), 'YPVF');
+  assert.equal(result.rating.score, 18);
+});
+
+test('stall, a refused profile is on no side of the central half and not nearer', () => {
+  for (const [score, expected] of /** @type {const} */ ([[21, 'YPVZ:21/0'], [30, 'YPVZ:30/0']])) {
+    const list = [[18, 1], [18, 1], [18, 1], [18, 1], [18, 1], [18, 1], [18, 1], [score, 0], [18, 1]];
+    const { result, calls } = outcomes({ rate: bySequence(/** @type {Scripted[]} */ (list)), target: H,
+      seed: 'stall-refused' });
+    assert.deepEqual(written(calls), ['YPVTZ:18/1*', 'INFWX:18/1*', 'ILVNW:18/1*', 'YPUVT:18/1*', 'YPVTZX:18/1*',
+      'LYPTZ:18/1*', 'IYPVTZ:18/1*', expected, 'YPTZ:18/1*', 'YPVTNZ:18/1*', 'LYPVTZ:18/1*', 'YPVTFZ:18/1*', 'INWX:18/1*',
+      'IFWX:18/1*'], String(score));
+    assert.equal(calls.filter((c) => c.profile).length, 13, String(score));
+    assert.ok(result.ok, String(score));
+    assert.equal(ids(result.clues), 'YPTZ', String(score));
+    assert.equal(result.rating.score, 18, String(score));
+  }
+});
+
+test('a rating without Gproved is never refused', () => {
+  const { result, calls } = outcomes({ rate: sequence([21]), target: H, seed: 'v2-0' });
+  assert.deepEqual(written(calls), ['IYUVX:21*']);
+  assert.ok(result.ok);
+  assert.equal(ids(result.clues), 'IYUVX');
+});
+
+test('Hard or above starts at the lower edge of Hard (min 17)', () => {
+  const below = outcomes({ rate: bySequence([[23, 0]]), target: { min: 16, max: 30, share: 0.38 }, seed: 'edge-16' });
+  assert.deepEqual(written(below.calls), ['LYUFZ:23/0*']);
+  assert.ok(below.result.ok);
+  assert.equal(ids(below.result.clues), 'LYUFZ');
+
+  const edge = outcomes({ rate: bySequence([[23, 0], [23, 1]]), target: { min: 17, max: 30, share: 0.38 },
+    seed: 'edge-17' });
+  assert.deepEqual(written(edge.calls), ['UVNFX:23/0', 'ILUVW:23/1*']);
+  assert.ok(edge.result.ok);
+  assert.equal(ids(edge.result.clues), 'ILUVW');
 });
 
 test('invalid inputs are refused', () => {

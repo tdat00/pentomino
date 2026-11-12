@@ -5,13 +5,15 @@
 // half of the band, or when the central half looks out of reach (a stall), else
 // returns the in-band final result nearest to the centre once 48 subsets are rated
 // or the search ends. Uniqueness is only reported after an exhaustive count;
-// cutoffs never become proofs.
+// cutoffs never become proofs. An unrateable subset (RES-04) and, for a Hard-or-above
+// target, a rating without a proved decisive guess (RES-35) spend a profile and count
+// for nothing else.
 
 import { activeCount } from './board.js';
-import { inBand, rate } from './difficulty.js';
+import { IncompleteRatingError, inBand, rate } from './difficulty.js';
 import { poseCells } from './geometry.js';
 import { clueKey } from './keys.js';
-import { initialClueCount } from './levels.js';
+import { bandEdge, initialClueCount } from './levels.js';
 import { BUDGETS } from './policy.js';
 import { buildModel, countSolutions, isValidLayout } from './tiling.js';
 
@@ -187,6 +189,16 @@ function ranked(target, list) {
 }
 
 /**
+ * @param {Rating} r
+ * @returns {boolean} true when the rating reports no proved decisive guess (`metrics.Gproved === 0`).
+ */
+function noProvedGuess(r) {
+  const m = /** @type {unknown} */ (r.metrics);
+  return typeof m === 'object' && m !== null && Object.hasOwn(m, 'Gproved')
+    && /** @type {{ Gproved?: unknown }} */ (m).Gproved === 0;
+}
+
+/**
  * Selects a subset of the witness whose measured score lies in the target band.
  * Throws RangeError for fewer than three pieces or an invalid layout.
  * @param {SelectContext} ctx
@@ -205,6 +217,8 @@ export function selectClues(ctx) {
   const rowLimit = countRowLimit(board);
   // Every rating of this call goes through rateFn: the subsets and the repaired sets.
   const rateFn = ctx.rate ?? rate;
+  // A generated Hard-or-above candidate needs a proved decisive guess (RES-35, AR1).
+  const refuseUnproved = target.min >= bandEdge(3);
   const finite = Number.isFinite(target.max);
   // Centre and half-width of the central half of the band; only used when the band is finite.
   const centre = finite ? (target.min + target.max) / 2 : 0;
@@ -220,7 +234,8 @@ export function selectClues(ctx) {
   let profiles = 0;
   let unproved = false;
   // Stall stop state, from the raw subset ratings only (finite band): which sides of the central half have been
-  // rated, the distance to the centre of the nearest in-band candidate, and the profile count that rated it.
+  // rated, the distance to the centre of the nearest in-band candidate, and how many candidates were rated when it
+  // was. Spent profiles take no part in it (D21 counting rule).
   let ratedBelow = false;
   let ratedAbove = false;
   let ratedCentral = false;
@@ -229,7 +244,8 @@ export function selectClues(ctx) {
 
   /**
    * @param {number[]} idx
-   * @returns {Candidate | null} null when skipped: repeated, excluded or out of budget.
+   * @returns {Candidate | 'spent' | null} null when skipped (repeated, excluded or out of budget: no profile);
+   *   'spent' when the subset took a profile without becoming a candidate (unrateable, or refused as unproved).
    */
   const rateSubset = (idx) => {
     const id = idx.join(',');
@@ -242,8 +258,21 @@ export function selectClues(ctx) {
     if (excludeClueKeys.has(key)) {
       return null;
     }
-    const rating = rateFn(board, pieces, clues, ws);
+    /** @type {Rating} */
+    let rating;
+    try {
+      rating = rateFn(board, pieces, clues, ws);
+    } catch (error) {
+      if (!(error instanceof IncompleteRatingError)) {
+        throw error;
+      }
+      profiles += 1;
+      return 'spent';
+    }
     profiles += 1;
+    if (refuseUnproved && noProvedGuess(rating)) {
+      return 'spent';
+    }
     if (onRate !== undefined) {
       onRate(clues, rating);
     }
@@ -269,7 +298,21 @@ export function selectClues(ctx) {
     // Repair re-rates only a changed clue set; that rating is not a search profile.
     const changed = repaired.length !== c.clues.length;
     const clues = changed ? sortLike(layout, repaired) : c.clues;
-    const rating = changed ? rateFn(board, pieces, clues, ws) : c.rating;
+    /** @type {Rating} */
+    let rating = c.rating;
+    if (changed) {
+      try {
+        rating = rateFn(board, pieces, clues, ws);
+      } catch (error) {
+        if (!(error instanceof IncompleteRatingError)) {
+          throw error;
+        }
+        return null;
+      }
+      if (refuseUnproved && noProvedGuess(rating)) {
+        return null;
+      }
+    }
     if (!inBand(rating, target)) {
       return null;
     }
@@ -334,39 +377,42 @@ export function selectClues(ctx) {
   };
 
   /**
-   * Called once for every rated candidate: a central final result stops the search; so does a stall (RES-15a:
-   * the central half is out of reach); from profile `limit - CENTRE_RESERVE` on, the best final result seen so
-   * far does. The stall reads raw subset ratings only, in every uniqueness mode.
-   * @param {Candidate} c
+   * Called once for every profile: a central final result stops the search; so does a stall (RES-15a: the central
+   * half is out of reach); from profile `limit - CENTRE_RESERVE` on, the best final result seen so far does. The
+   * stall reads raw subset ratings only, in every uniqueness mode, and counts rated candidates: a spent profile
+   * (`c` null) is on no side of the central half, is never nearer and neither advances nor resets the count.
+   * @param {Candidate | null} c Null for a spent profile.
    * @returns {SelectResult | null}
    */
   const afterProfile = (c) => {
-    const inside = inBand(c.rating, target);
-    if (finite) {
-      const offset = c.rating.score - centre;
-      if (Math.abs(offset) <= halfWidth) {
-        ratedCentral = true;
-      } else if (offset < 0) {
-        ratedBelow = true;
-      } else {
-        ratedAbove = true;
+    if (c !== null) {
+      const inside = inBand(c.rating, target);
+      if (finite) {
+        const offset = c.rating.score - centre;
+        if (Math.abs(offset) <= halfWidth) {
+          ratedCentral = true;
+        } else if (offset < 0) {
+          ratedBelow = true;
+        } else {
+          ratedAbove = true;
+        }
+        if (inside && Math.abs(offset) < nearest) {
+          nearest = Math.abs(offset);
+          nearestAt = rated.length;
+        }
       }
-      if (inside && Math.abs(offset) < nearest) {
-        nearest = Math.abs(offset);
-        nearestAt = profiles;
-      }
-    }
-    if (inside) {
-      inBandList.push(c);
-      if (central(c.rating)) {
-        const final = finishOnce(c);
-        if (final !== null && central(final.rating)) {
-          return final;
+      if (inside) {
+        inBandList.push(c);
+        if (central(c.rating)) {
+          const final = finishOnce(c);
+          if (final !== null && central(final.rating)) {
+            return final;
+          }
         }
       }
     }
     if (finite && inBandList.length > 0) {
-      const stalled = !ratedCentral && ratedBelow !== ratedAbove && profiles - nearestAt >= STALL_LIMIT;
+      const stalled = !ratedCentral && ratedBelow !== ratedAbove && rated.length - nearestAt >= STALL_LIMIT;
       if (stalled || profiles >= limit - CENTRE_RESERVE) {
         return chooseBest();
       }
@@ -392,9 +438,12 @@ export function selectClues(ctx) {
       if (c === null) {
         continue;
       }
-      const done = afterProfile(c);
+      const done = afterProfile(c === 'spent' ? null : c);
       if (done !== null) {
         return done;
+      }
+      if (c === 'spent') {
+        continue;
       }
       if (c.rating.score < target.min) {
         below += 1;
@@ -420,7 +469,7 @@ export function selectClues(ctx) {
     if (c === null) {
       continue;
     }
-    const done = afterProfile(c);
+    const done = afterProfile(c === 'spent' ? null : c);
     if (done !== null) {
       return done;
     }
@@ -479,9 +528,12 @@ export function selectClues(ctx) {
         if (c === null) {
           continue;
         }
-        const done = afterProfile(c);
+        const done = afterProfile(c === 'spent' ? null : c);
         if (done !== null) {
           return done;
+        }
+        if (c === 'spent') {
+          continue;
         }
         fresh.push(c);
       }

@@ -54,6 +54,24 @@ export class UnsatisfiableError extends Error {
 }
 
 /**
+ * Thrown when the deduction search was capped (node or work cap) before its first solution: the puzzle is unrateable
+ * (RES-04). `counters` are the search totals at the cap. Nothing is derived from a capped path.
+ */
+export class IncompleteRatingError extends Error {
+  /**
+   * @param {string} message
+   * @param {{ nodes: number, work: number, stop: 'node-cap' | 'work-cap' }} counters
+   */
+  constructor(message, counters) {
+    super(message);
+    this.name = 'IncompleteRatingError';
+    this.code = 'rating-incomplete';
+    this.reason = 'path-capped';
+    this.counters = { nodes: counters.nodes, work: counters.work, stop: counters.stop };
+  }
+}
+
+/**
  * `D = round(2U + 8 log10(1 + B))`, rounded once; `U = 0` scores 0. `B` is the
  * effective (already capped) branch count.
  * @param {number} U Pieces left to place.
