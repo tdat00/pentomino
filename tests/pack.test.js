@@ -479,7 +479,7 @@ test('many problems are capped', () => {
   assert.equal(issues[MAX_ISSUES].code, 'too-many-issues');
 });
 
-test('current ratings are checked strictly', () => {
+test('difficulty-v2 ratings are legacy claims: basic fields checked, metrics kept as opaque bounded JSON', () => {
   const v2 = () => ({
     model: 'difficulty-v2', score: 13, level: 'normal', saturated: false,
     metrics: { U: 4, B: 3, branchTrials: 3, rowTrials: 40, stop: 'solution', R: 20, H: 2.5 },
@@ -492,23 +492,396 @@ test('current ratings are checked strictly', () => {
   const accepted = good(rate(() => {}));
   assert.deepEqual(accepted.value.puzzles[0].rating, v2());
   assert.deepEqual(accepted.warnings, []);
-  assertIssue(rate((r) => { r.censored = true; }), 'unknown-field', 'puzzles[0].rating.censored');
-  assertIssue(rate((r) => { delete r.saturated; }), 'missing-field', 'puzzles[0].rating.saturated');
-  assertIssue(rate((r) => { delete r.metrics; }), 'missing-field', 'puzzles[0].rating.metrics');
-  assertIssue(rate((r) => { r.metrics.extra = 1; }), 'unknown-field', 'puzzles[0].rating.metrics.extra');
-  assertIssue(rate((r) => { delete r.metrics.H; }), 'missing-field', 'puzzles[0].rating.metrics.H');
-  assertIssue(rate((r) => { r.metrics.stop = 'timeout'; }), 'rating-invalid', 'puzzles[0].rating.metrics.stop');
-  assertIssue(rate((r) => { r.metrics.U = 1.5; }), 'rating-invalid', 'puzzles[0].rating.metrics.U');
-  assertIssue(rate((r) => { r.metrics.B = -1; }), 'rating-invalid', 'puzzles[0].rating.metrics.B');
-  assertIssue(rate((r) => { r.metrics.H = Number.POSITIVE_INFINITY; }), 'rating-invalid', 'puzzles[0].rating.metrics.H');
+  // What the strict v2 reader refused is now read as it is stored, without a warning.
+  const kept = /** @type {((r: any) => void)[]} */ ([
+    (r) => { r.censored = true; },
+    (r) => { delete r.saturated; },
+    (r) => { delete r.metrics; },
+    (r) => { r.metrics.extra = 1; },
+    (r) => { delete r.metrics.H; },
+    (r) => { r.metrics.stop = 'timeout'; },
+    (r) => { r.metrics.U = 1.5; },
+    (r) => { r.metrics.B = -1; },
+    (r) => { r.metrics = { oldCounter: 7, nested: { note: 'keep' } }; },
+  ]);
+  for (const edit of kept) {
+    const expected = v2();
+    edit(expected);
+    const r = good(rate(edit));
+    assert.deepEqual(r.value.puzzles[0].rating, expected);
+    assert.deepEqual(r.warnings, []);
+  }
+  assertIssue(rate((r) => { r.metrics.H = Number.POSITIVE_INFINITY; }), 'rating-invalid', 'puzzles[0].rating.metrics');
   assertIssue(rate((r) => { r.score = -1; }), 'rating-invalid', 'puzzles[0].rating.score');
   assertIssue(rate((r) => { r.score = Number.NaN; }), 'rating-invalid', 'puzzles[0].rating.score');
   assertIssue(rate((r) => { r.score = '13'; }), 'rating-invalid', 'puzzles[0].rating.score');
   assertIssue(rate((r) => { r.saturated = 'no'; }), 'rating-invalid', 'puzzles[0].rating.saturated');
   assertIssue(rate((r) => { r.level = ''; }), 'invalid-length', 'puzzles[0].rating.level');
   assertIssue(rate((r) => { r.level = 'x'.repeat(65); }), 'invalid-length', 'puzzles[0].rating.level');
-  assertIssue(rate((r) => { r.metrics = 5; }), 'invalid-type', 'puzzles[0].rating.metrics');
+  assertIssue(rate((r) => { r.metrics = 5; }), 'rating-invalid', 'puzzles[0].rating.metrics');
+  assertIssue(rate((r) => { r.verified = true; }), 'unknown-field', 'puzzles[0].rating.verified');
   assertIssue(corrupt((f) => { f.puzzles[0].rating = 'hard'; }), 'invalid-type', 'puzzles[0].rating');
+});
+
+/**
+ * The claim as `createPack` stores it and as `serializePack` writes it.
+ * @param {any} rating
+ */
+function claimPaths(rating) {
+  const base = good(parsePack(FIXTURE_TEXT)).value;
+  const puzzle = { ...base.puzzles[0], rating };
+  const made = createPack({ board: packBoard(base), rotation: 0, pieces: base.pieces, puzzles: [puzzle] }).puzzles[0].rating;
+  const text = serializePack({ ...base, puzzles: [puzzle] });
+  return { made, text, written: JSON.parse(text).puzzles[0].rating };
+}
+
+test('a legacy v2 claim is written back with every field it was read with (FP04)', () => {
+  const seven = { U: 4, B: 3, branchTrials: 3, rowTrials: 40, stop: 'solution', R: 20, H: 2.5 };
+  const claim = (/** @type {unknown} */ metrics) => ({ model: 'difficulty-v2', score: 13, level: 'normal', saturated: false, metrics });
+  const read = (/** @type {unknown} */ rating) => good(corrupt((f) => { f.puzzles[0].rating = rating; })).value.puzzles[0].rating;
+  const odd = {
+    'an extra key': { ...seven, oldCounter: 7 },
+    'an extra key between the seven': { U: 4, B: 3, oldCounter: 7, branchTrials: 3, rowTrials: 40, stop: 'solution', R: 20, H: 2.5 },
+    'missing keys': { U: 5, B: 3 },
+    'nested opaque values': { oldCounter: 7, nested: { note: 'keep' } },
+  };
+  for (const [name, metrics] of Object.entries(odd)) {
+    const paths = claimPaths(claim(metrics));
+    const again = good(parsePack(paths.text)).value.puzzles[0].rating;
+    for (const stored of [read(claim(metrics)).metrics, paths.made.metrics, paths.written.metrics, again.metrics]) {
+      assert.equal(JSON.stringify(stored), JSON.stringify(metrics), name);
+    }
+    assert.notEqual(paths.made.metrics, metrics, `${name}: detached from the input`);
+  }
+
+  // Exactly the seven keys, in any order, are written in the fixed order.
+  const shuffled = { H: 2.5, R: 20, stop: 'solution', rowTrials: 40, branchTrials: 3, B: 3, U: 4 };
+  const paths = claimPaths(claim(shuffled));
+  assert.equal(JSON.stringify(read(claim(shuffled)).metrics), JSON.stringify(shuffled), 'the reader keeps the stored order');
+  assert.equal(JSON.stringify(paths.made.metrics), JSON.stringify(seven));
+  assert.equal(JSON.stringify(paths.written), JSON.stringify(claim(seven)));
+  assert.equal(JSON.stringify(good(parsePack(paths.text)).value.puzzles[0].rating), JSON.stringify(claim(seven)));
+
+  // A value that is not a plain object is copied, not invented over; the reader judges it afterwards.
+  const listed = claimPaths(claim([1, 2]));
+  assert.deepEqual(listed.made.metrics, [1, 2]);
+  assert.deepEqual(listed.written.metrics, [1, 2]);
+  assert.equal(parsePack(listed.text).ok, false);
+});
+
+test('the generated sample pack re-serialises byte for byte', () => {
+  const text = readFileSync(new URL('./fixtures/generated-sample-pack.json', import.meta.url), 'utf8');
+  const pack = good(parsePack(text));
+  assert.deepEqual(pack.warnings, []);
+  assert.equal(pack.value.puzzles[0].rating.model, 'difficulty-v2');
+  assert.equal(serializePack(pack.value, { pretty: true }), text.replace(/\r\n/g, '\n').replace(/\n$/, ''));
+});
+
+const V3_METRICS = {
+  U: 7, R: 35, H: 3.5, B: 12, branchTrials: 12, rowTrials: 40, dlxStop: 'solution', searchStop: 'exhausted',
+  F: 4, E: 0, rules: { R1: 3, R2: 1, R3: 0, R4: 2, R5: 0, R6: 0, R7: 0, R8: 58, R9: 0 }, deductionTier: 3, tier: 4,
+  G: 2, info: 3.321928094887362, Cmax: 5, Dmax: 2, Gt: 2, nodes: 8, work: 123456, S: 1, solutionLimit: 8,
+  solutions: 'unique', censusComplete: true, censusUndecided: 0, censusNodes: 0, censusWork: 0, Gproved: 2,
+};
+const V3_CLAIM = { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, metrics: V3_METRICS };
+// An estimate: the census did not finish.
+const V3_ESTIMATE = {
+  model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, censored: true,
+  metrics: {
+    ...V3_METRICS, S: 8, searchStop: 'solution-limit', solutions: 'many', censusComplete: false,
+    censusUndecided: 3, nodes: 18, censusNodes: 10, censusWork: 5000, Gproved: 1,
+  },
+};
+const NO_RULES = { R1: 0, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0 };
+const at = (/** @type {string} */ suffix = '') => `puzzles[0].rating${suffix}`;
+const withRating = (/** @type {unknown} */ rating) => corrupt((f) => { f.puzzles[0].rating = rating; });
+const clone = (/** @type {unknown} */ value) => JSON.parse(JSON.stringify(value));
+const reversed = (/** @type {object} */ o) => Object.fromEntries(Object.entries(o).reverse());
+const without = (/** @type {Record<string, unknown>} */ o, /** @type {string} */ key) => Object.fromEntries(Object.entries(o).filter(([k]) => k !== key));
+
+/**
+ * A valid v3 claim with some metrics replaced; `censored` follows the census.
+ * @param {Record<string, unknown>} [patch]
+ * @param {Record<string, number>} [rules]
+ * @returns {any}
+ */
+function v3With(patch = {}, rules = {}) {
+  const metrics = { ...V3_METRICS, ...patch, rules: { ...V3_METRICS.rules, ...rules } };
+  return { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, ...(metrics.censusComplete ? {} : { censored: true }), metrics };
+}
+
+/**
+ * @param {import('../core/engine/types.js').Result<any>} r
+ * @param {string} path
+ */
+function assertOnlyIssue(r, path) {
+  assert.equal(r.ok, false);
+  assert.deepEqual(r.ok ? [] : r.issues.map((i) => [i.code, i.path]), [['rating-invalid', path]]);
+}
+
+test('a difficulty-v3 claim is written in the MetricsV3 order and rewrites byte for byte', () => {
+  const base = good(parsePack(FIXTURE_TEXT)).value;
+  const keys = Object.keys(V3_METRICS);
+  assert.equal(keys.length, 28);
+  for (const claim of [V3_CLAIM, V3_ESTIMATE]) {
+    const scrambled = { ...claim, metrics: { ...reversed(claim.metrics), rules: reversed(claim.metrics.rules) } };
+    const pack = createPack({ board: packBoard(base), rotation: 0, pieces: base.pieces, puzzles: [{ ...base.puzzles[0], rating: scrambled }] });
+    assert.equal(JSON.stringify(pack.puzzles[0].rating), JSON.stringify(claim));
+    const text = serializePack(pack);
+    assert.equal(JSON.stringify(JSON.parse(text).puzzles[0].rating), JSON.stringify(claim));
+    const read = good(parsePack(text));
+    assert.deepEqual(read.warnings, []);
+    const rating = read.value.puzzles[0].rating;
+    assert.deepEqual(rating, claim);
+    assert.deepEqual(Object.keys(rating.metrics), keys);
+    assert.deepEqual(Object.keys(rating.metrics.rules), Object.keys(V3_METRICS.rules));
+    assert.equal(serializePack(read.value), text);
+    assert.equal(serializePack(good(parsePack(serializePack(read.value, { pretty: true }))).value), text);
+    // The reader detaches the claim from its input.
+    const input = clone(claim);
+    const detached = good(withRating(input)).value.puzzles[0].rating;
+    assert.notEqual(detached.metrics, input.metrics);
+    assert.notEqual(detached.metrics.rules, input.metrics.rules);
+  }
+  const estimate = good(withRating(V3_ESTIMATE)).value.puzzles[0].rating;
+  assert.equal(estimate.censored, true);
+  assert.equal(estimate.metrics.censusComplete, false);
+  // A claim is not re-rated: the score and the level are not checked against the metrics.
+  good(withRating({ ...V3_CLAIM, score: 999, level: 'nonsense' }));
+});
+
+test('a difficulty-v3 summary claim has no metrics and may carry censored alone', () => {
+  const summary = { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false };
+  for (const claim of [summary, { ...summary, censored: true }, { ...summary, censored: false }]) {
+    const r = good(withRating(claim));
+    assert.deepEqual(r.value.puzzles[0].rating, claim);
+    assert.deepEqual(r.warnings, []);
+    assert.ok(!('metrics' in r.value.puzzles[0].rating));
+    const paths = claimPaths(claim);
+    assert.ok(!('metrics' in paths.made), 'never zeros');
+    assert.deepEqual(paths.written, claim.censored === true ? claim : summary);
+    assert.deepEqual(Object.keys(paths.written), Object.keys(claim.censored === true ? claim : summary));
+  }
+  assertIssue(withRating({ model: 'difficulty-v3', score: 30, level: 'expert' }), 'missing-field', at('.saturated'));
+  assertIssue(withRating({ ...summary, censored: 'yes' }), 'rating-invalid', at('.censored'));
+  assertIssue(withRating({ ...summary, verified: true }), 'unknown-field', at('.verified'));
+  assertIssue(withRating({ ...summary, score: -1 }), 'rating-invalid', at('.score'));
+  assertIssue(withRating({ ...summary, metrics: null }), 'invalid-type', at('.metrics'));
+});
+
+test('a difficulty-v3 claim is never saturated and its censored mark follows the census', () => {
+  assertIssue(withRating({ ...V3_CLAIM, saturated: true }), 'rating-invalid', at('.saturated'));
+  assertIssue(withRating({ ...V3_CLAIM, saturated: 'no' }), 'rating-invalid', at('.saturated'));
+  assertIssue(withRating({ model: 'difficulty-v3', score: 30, level: 'expert', saturated: true }), 'rating-invalid', at('.saturated'));
+  const unsaturated = without(V3_CLAIM, 'saturated');
+  assertIssue(withRating(unsaturated), 'missing-field', at('.saturated'));
+  assertIssue(withRating({ ...V3_CLAIM, verified: true }), 'unknown-field', at('.verified'));
+
+  assertOnlyIssue(withRating({ ...V3_CLAIM, censored: true }), at('.censored'));
+  assertOnlyIssue(withRating(without(V3_ESTIMATE, 'censored')), at('.censored'));
+  assertOnlyIssue(withRating({ ...V3_ESTIMATE, censored: false }), at('.censored'));
+  assertIssue(withRating({ ...V3_ESTIMATE, censored: 1 }), 'rating-invalid', at('.censored'));
+  good(withRating(V3_ESTIMATE));
+
+  // `censored: false` is read and is never written back.
+  const falseMark = { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, censored: false, metrics: V3_METRICS };
+  const read = good(withRating(falseMark)).value.puzzles[0].rating;
+  const paths = claimPaths(falseMark);
+  assert.equal(read.censored, false);
+  assert.ok(!('censored' in paths.made));
+  assert.ok(!('censored' in paths.written));
+  assert.equal(JSON.stringify(paths.written), JSON.stringify(V3_CLAIM));
+  // A mark another model carries is kept as before.
+  assert.equal(claimPaths({ model: 'difficulty-v1', score: 3, level: 'x', censored: false }).written.censored, false);
+});
+
+test('difficulty-v3 metrics: every field is checked on its own', () => {
+  const rate = (/** @type {(m: any) => void} */ edit) => {
+    const claim = v3With();
+    edit(claim.metrics);
+    return withRating(claim);
+  };
+  const keys = Object.keys(V3_METRICS);
+  good(rate(() => {}));
+  for (const key of keys) {
+    assertIssue(rate((m) => { delete m[key]; }), 'missing-field', at(`.metrics.${key}`));
+  }
+  assertIssue(rate((m) => { m.extra = 1; }), 'unknown-field', at('.metrics.extra'));
+  assertIssue(rate((m) => { m.dlxStop2 = 1; }), 'unknown-field', at('.metrics.dlxStop2'));
+  assertIssue(rate((m) => { m.stop = 'solution'; }), 'unknown-field', at('.metrics.stop'));
+  for (const bad of [5, null, [], 'text']) {
+    assertIssue(withRating({ ...V3_CLAIM, metrics: bad }), 'invalid-type', at('.metrics'));
+  }
+
+  const counts = ['U', 'R', 'B', 'branchTrials', 'rowTrials', 'F', 'E', 'G', 'Cmax', 'Dmax', 'Gt', 'nodes', 'work', 'S',
+    'solutionLimit', 'censusUndecided', 'censusNodes', 'censusWork', 'Gproved'];
+  for (const key of counts) {
+    for (const bad of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1, '3', null, Number.NaN]) {
+      assertOnlyIssue(rate((m) => { m[key] = bad; }), at(`.metrics.${key}`));
+    }
+  }
+  for (const key of Object.keys(V3_METRICS.rules)) {
+    for (const bad of [-1, 0.5, '1', null]) {
+      assertOnlyIssue(rate((m) => { m.rules[key] = bad; }), at(`.metrics.rules.${key}`));
+    }
+  }
+  for (const key of ['H', 'info']) {
+    for (const bad of [-1, Number.NaN, Number.POSITIVE_INFINITY, '1']) {
+      assertOnlyIssue(rate((m) => { m[key] = bad; }), at(`.metrics.${key}`));
+    }
+  }
+  good(rate((m) => { m.H = 0; m.G = 0; m.info = 0; m.Cmax = 0; m.Dmax = 0; m.tier = 3; m.Gproved = 0; }));
+
+  const enums = /** @type {[string, unknown[]][]} */ ([
+    ['dlxStop', ['timeout', 'exhausted', 1, null]],
+    ['searchStop', ['timeout', 'solution', 1, null]],
+    ['solutions', ['several', 'one', 1, null]],
+    ['deductionTier', [-1, 4, 1.5, '3', null]],
+    ['tier', [-1, 5, 2.5, '4', null]],
+    ['censusComplete', ['true', 1, 0, null]],
+  ]);
+  for (const [key, invalid] of enums) {
+    for (const bad of invalid) {
+      assertOnlyIssue(rate((m) => { m[key] = bad; }), at(`.metrics.${key}`));
+    }
+  }
+  for (const stop of ['solution', 'branch-cap', 'row-cap']) {
+    good(rate((m) => { m.dlxStop = stop; }));
+  }
+
+  // `rules` has exactly the keys R1 to R9.
+  assertIssue(rate((m) => { m.rules.R10 = 0; }), 'unknown-field', at('.metrics.rules.R10'));
+  assertIssue(rate((m) => { m.rules.R0 = 0; }), 'unknown-field', at('.metrics.rules.R0'));
+  assertIssue(rate((m) => { delete m.rules.R9; }), 'missing-field', at('.metrics.rules.R9'));
+  assertIssue(rate((m) => { delete m.rules.R1; }), 'missing-field', at('.metrics.rules.R1'));
+  for (const bad of [5, [], null, 'R1']) {
+    assertIssue(rate((m) => { m.rules = bad; }), 'invalid-type', at('.metrics.rules'));
+  }
+});
+
+test('difficulty-v3 metrics: every rule that ties fields together has a valid and an invalid case', () => {
+  const accepts = (/** @type {Record<string, unknown>} */ patch, /** @type {Record<string, number>} */ rules) => good(withRating(v3With(patch, rules)));
+  const refuses = (/** @type {string} */ path, /** @type {Record<string, unknown>} */ patch, /** @type {Record<string, number>} */ rules) => {
+    assertOnlyIssue(withRating(v3With(patch, rules)), at(`.metrics.${path}`));
+  };
+  const only = (/** @type {string} */ key, /** @type {number} */ n) => ({ ...NO_RULES, [key]: n });
+  const exact = { ...NO_RULES, R1: 1, R2: 1, R3: 1, R4: 1, R5: 1, R6: 1, R7: 1, R8: 1, R9: 1 };
+  accepts({}, {});
+
+  // Limit and count: solutionLimit >= 2 and 1 <= S <= solutionLimit.
+  accepts({ solutionLimit: 2 }, {});
+  refuses('solutionLimit', { solutionLimit: 1 }, {});
+  accepts({ S: 8, searchStop: 'solution-limit', solutions: 'many' }, {});
+  refuses('S', { S: 0, solutions: 'unknown' }, {});
+  refuses('S', { S: 9 }, {});
+
+  // Count status (RES-04).
+  accepts({ S: 3, solutions: 'few' }, {});
+  accepts({ S: 8, searchStop: 'exhausted', solutions: 'many' }, {});
+  accepts({ S: 1, searchStop: 'node-cap', solutions: 'unknown' }, {});
+  accepts({ S: 1, searchStop: 'work-cap', solutions: 'unknown' }, {});
+  accepts({ S: 3, searchStop: 'node-cap', solutions: 'few' }, {});
+  refuses('solutions', { solutions: 'few' }, {});
+  refuses('solutions', { S: 3, solutions: 'unique' }, {});
+  refuses('solutions', { S: 3, solutions: 'many' }, {});
+  refuses('solutions', { S: 8, searchStop: 'solution-limit', solutions: 'few' }, {});
+  refuses('solutions', { S: 1, searchStop: 'node-cap', solutions: 'unique' }, {});
+  refuses('solutions', { S: 3, searchStop: 'work-cap', solutions: 'unknown' }, {});
+
+  // The tuple of the decisive guesses.
+  accepts({ G: 0, info: 0, Cmax: 0, Dmax: 0, tier: 3, Gproved: 0 }, {});
+  refuses('G', { G: 0, info: 1, Cmax: 0, Dmax: 0, tier: 3, Gproved: 0 }, {});
+  refuses('G', { G: 0, info: 0, Cmax: 2, Dmax: 0, tier: 3, Gproved: 0 }, {});
+  refuses('G', { G: 0, info: 0, Cmax: 0, Dmax: 1, tier: 3, Gproved: 0 }, {});
+  accepts({ G: 1, Gproved: 1, info: 0.5, Cmax: 2 }, {});
+  refuses('G', { info: 0 }, {});
+  refuses('G', { Cmax: 1 }, {});
+  refuses('G', { Cmax: 0, info: 1 }, {});
+
+  // The tiers follow the rule counts.
+  accepts({ F: 0, deductionTier: 0 }, NO_RULES);
+  accepts({ F: 1, deductionTier: 1 }, only('R1', 1));
+  accepts({ F: 3, deductionTier: 1 }, only('R3', 3));
+  accepts({ F: 0, deductionTier: 2 }, only('R4', 1));
+  accepts({ F: 0, deductionTier: 2 }, only('R5', 1));
+  accepts({ F: 0, E: 2, deductionTier: 2 }, only('R6', 2));
+  accepts({ F: 0, deductionTier: 3 }, only('R7', 1));
+  accepts({ F: 0, deductionTier: 3 }, only('R9', 1));
+  accepts({ F: 3, E: 1, deductionTier: 3 }, exact);
+  refuses('deductionTier', { F: 0, deductionTier: 1 }, only('R4', 1));
+  refuses('deductionTier', { F: 1, deductionTier: 0 }, only('R1', 1));
+  refuses('deductionTier', { deductionTier: 2 }, {});
+  refuses('deductionTier', { F: 0, deductionTier: 1 }, only('R9', 1));
+  accepts({ G: 0, info: 0, Cmax: 0, Dmax: 0, F: 0, deductionTier: 0, tier: 0, Gproved: 0 }, NO_RULES);
+  accepts({ G: 0, info: 0, Cmax: 0, Dmax: 0, F: 1, deductionTier: 1, tier: 1, Gproved: 0 }, only('R1', 1));
+  refuses('tier', { tier: 3 }, {});
+  refuses('tier', { G: 0, info: 0, Cmax: 0, Dmax: 0, tier: 4, Gproved: 0 }, {});
+  refuses('tier', { G: 0, info: 0, Cmax: 0, Dmax: 0, F: 1, deductionTier: 1, tier: 2, Gproved: 0 }, only('R1', 1));
+
+  // The sums.
+  refuses('F', { F: 5 }, {});
+  refuses('F', { F: 3 }, {});
+  refuses('E', { E: 1 }, {});
+  refuses('E', { E: 0 }, { R6: 1 });
+
+  // The census.
+  accepts({ censusComplete: false, censusUndecided: 3, Gproved: 1 }, {});
+  accepts({ censusComplete: false, censusUndecided: 1, Gproved: 2 }, {});
+  refuses('censusComplete', { censusUndecided: 1 }, {});
+  refuses('censusComplete', { censusComplete: false }, {});
+  accepts({ censusNodes: 8, censusWork: 123456 }, {});
+  refuses('censusNodes', { censusNodes: 9 }, {});
+  refuses('censusWork', { censusWork: 123457 }, {});
+
+  // Gproved (RES-35).
+  accepts({ censusComplete: false, censusUndecided: 1, Gproved: 0 }, {});
+  refuses('Gproved', { Gproved: 3 }, {});
+  refuses('Gproved', { censusComplete: false, censusUndecided: 1, Gproved: 3 }, {});
+  refuses('Gproved', { Gproved: 1 }, {});
+  refuses('Gproved', { Gproved: 0 }, {});
+
+  // One issue per failed rule: three broken rules give three issues.
+  const many = withRating(v3With({ F: 9, E: 9, Gproved: 9 }, {}));
+  assert.deepEqual(many.ok ? [] : many.issues.map((i) => i.path), [at('.metrics.F'), at('.metrics.E'), at('.metrics.Gproved')]);
+});
+
+test('difficulty-v3 metrics: the generic bound holds and large legal values stay far below it', () => {
+  const sized = (/** @type {string} */ model, /** @type {number} */ bytes) => withRating({
+    model, score: 1, level: 'x', metrics: { pad: 'x'.repeat(bytes - JSON.stringify({ pad: '' }).length) },
+  });
+  for (const model of ['difficulty-v2', 'difficulty-v1', 'acme-elo/3']) {
+    good(sized(model, 4096));
+    assertIssue(sized(model, 4097), 'rating-invalid', at('.metrics'));
+  }
+  const nested = (/** @type {number} */ n) => Array.from({ length: n }).reduce((inner) => ({ a: inner }), /** @type {unknown} */ (1));
+  for (const model of ['difficulty-v2', 'acme-elo/3']) {
+    good(withRating({ model, score: 1, level: 'x', metrics: nested(9) }));
+    assertIssue(withRating({ model, score: 1, level: 'x', metrics: nested(10) }), 'rating-invalid', at('.metrics'));
+  }
+  assert.deepEqual(good(withRating({ model: 'difficulty-v2', score: 1, level: 'x', metrics: { pad: 'y' } })).warnings, []);
+
+  const big = Number.MAX_SAFE_INTEGER;
+  const large = v3With({
+    U: big, R: big, H: Number.MAX_VALUE, B: big, branchTrials: big, rowTrials: big, F: 0, E: big, G: big, Gproved: big,
+    info: Number.MAX_VALUE, Cmax: big, Dmax: big, Gt: big, nodes: big, work: big, censusNodes: big, censusWork: big,
+    solutionLimit: big,
+  }, { R1: 0, R2: 0, R3: 0, R4: big, R5: big, R6: big, R7: big, R8: big, R9: big });
+  const read = good(withRating(large));
+  assert.deepEqual(read.value.puzzles[0].rating, large);
+  const bytes = new TextEncoder().encode(JSON.stringify(read.value.puzzles[0].rating.metrics)).length;
+  assert.ok(bytes > 500 && bytes < 1500, `${bytes} bytes`);
+  assert.equal(JSON.stringify(claimPaths(large).written), JSON.stringify(large));
+});
+
+test('omitSolutions keeps v3 claims unchanged', () => {
+  const pack = good(parsePack(FIXTURE_TEXT)).value;
+  pack.witness = pack.puzzles[0].solution;
+  for (const claim of [V3_CLAIM, V3_ESTIMATE]) {
+    pack.puzzles[0].rating = clone(claim);
+    const stripped = serializePack(pack, { omitSolutions: true });
+    assert.equal(JSON.stringify(JSON.parse(stripped).puzzles[0].rating), JSON.stringify(claim));
+    assert.deepEqual(good(parsePack(stripped)).value.puzzles[0].rating, claim);
+  }
 });
 
 test('legacy and foreign ratings are preserved as unverified claims', () => {

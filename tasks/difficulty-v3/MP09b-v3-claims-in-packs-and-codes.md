@@ -223,14 +223,14 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP09b: v3 claims in packs and codes, censored, Gproved checks, v2 legacy, summary claims`) |
+| Start | 2026-11-12 19:21 (+07:00) |
+| End | 2026-11-12 19:33 developer; 19:38 orchestrator review and commit |
+| Duration | 12 min developer (722 s); about 5 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 56 model calls; 8,843,229 input tokens (8,618,949 cache reads); 94,003 output tokens |
+| AI credits | about 236 (developer) |
+| Verification | Developer: `node --test --test-skip-pattern=slow tests\pack.test.js tests\puzzlecode.test.js` 102/102 (7.1 s; the first run failed only the strict-v2 test the task replaces); `npm run test:quick` 1229/1229 (19.3 s); `npm run check` OK; `generated-sample-pack.json` re-serialises identically. Orchestrator re-run: targeted 102/102, `test:quick` 1229/1229, `check` OK; `tests/fixtures/puzzlecode-v1.json` and `core/engine/difficulty.js` unchanged |
+| Acceptance | MP09b-B01..B03 and MP09b-T01..T07 met. Diff reviewed: strict `difficulty-v3` claims (`RATING_V3_FIELDS`, `readMetricsV3` with the 28 `MetricsV3` keys in fixed order and the cross-field rules, `Gproved <= G` and `Gproved = G` when the census is complete); `censored` true exactly when the census is incomplete (C1 (b)), written only when true; `difficulty-v2` claims are legacy and keep admitted nonstandard metrics key for key through both writer paths (FP04) within the 4,096-byte and depth bounds; puzzle codes carry a v3 claim as its summary `{model, score, level, saturated: false, censored?}` (`summaryClaim`); v2 snapshots keep the compact form |
+| Issues & resolutions | (1) The existing test "current ratings are checked strictly" became "difficulty-v2 ratings are legacy claims" as the task lists: malformed v2 metrics are now kept opaque; `H: Infinity` is reported at `.metrics`; `metrics: 5` is `rating-invalid`. (2) Spec gaps decided: a cross-field issue sits at the first field of its rule; a `censored` mismatch at `rating.censored`; the `solutions` check is skipped when the limit or `S` rule has failed; the v3 writer orders known keys and appends unknown ones, which the reader then rejects. (3) The task's line anchors and `HEAD 7004175` were stale; code located by text. (4) The `Metrics` typedef in `pack.js` became unused, replaced by `MetricsV3` |
+| Handoff | MP09d1/MP09d2: the reader accepts exactly the task's v3 literals (28 fields in `MetricsV3` order, `saturated: false`, `censored: true` iff the census is incomplete, `solutionLimit >= 2`, `S >= 1`, derived `solutions`, `Gproved <= G`); v3 metrics are about 0.6-1 KB. MP10b: a summary claim has no metrics, so an estimate note is shown without n; v2 claims may lack `saturated` and `metrics` |

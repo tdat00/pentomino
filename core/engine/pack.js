@@ -17,7 +17,7 @@ import { isValidLayout } from './tiling.js';
 /** @typedef {import('./types.js').Puzzle} Puzzle */
 /** @typedef {import('./types.js').RatingClaim} RatingClaim */
 /** @typedef {import('./types.js').CertificateClaim} CertificateClaim */
-/** @typedef {import('./types.js').Metrics} Metrics */
+/** @typedef {import('./types.js').MetricsV3} MetricsV3 */
 /**
  * @template T
  * @typedef {import('./types.js').Result<T>} Result
@@ -53,9 +53,25 @@ const PRESENTATION_FIELDS = new Set(['rotation']);
 const PIECE_FIELDS = new Set(['id', 'label', 'color', 'cells']);
 const POSE_FIELDS = new Set(['piece', 'x', 'y', 'turn', 'mirrored']);
 const PUZZLE_FIELDS = new Set(['id', 'title', 'seed', 'clues', 'solution', 'rating', 'certificate']);
-const RATING_V2_FIELDS = new Set(['model', 'score', 'level', 'saturated', 'metrics']);
+const RATING_V3_FIELDS = new Set(['model', 'score', 'level', 'saturated', 'censored', 'metrics']);
 const RATING_CLAIM_FIELDS = new Set(['model', 'score', 'level', 'saturated', 'censored', 'metrics']);
-const METRICS_FIELDS = new Set(['U', 'B', 'branchTrials', 'rowTrials', 'stop', 'R', 'H']);
+// The write order of `MetricsV3`.
+const METRICS_V3_KEYS = [
+  'U', 'R', 'H', 'B', 'branchTrials', 'rowTrials', 'dlxStop', 'searchStop', 'F', 'E', 'rules', 'deductionTier', 'tier',
+  'G', 'info', 'Cmax', 'Dmax', 'Gt', 'nodes', 'work', 'S', 'solutionLimit', 'solutions', 'censusComplete',
+  'censusUndecided', 'censusNodes', 'censusWork', 'Gproved',
+];
+const METRICS_V3_FIELDS = new Set(METRICS_V3_KEYS);
+const METRICS_V3_COUNTS = [
+  'U', 'R', 'B', 'branchTrials', 'rowTrials', 'F', 'E', 'G', 'Cmax', 'Dmax', 'Gt', 'nodes', 'work', 'S', 'solutionLimit',
+  'censusUndecided', 'censusNodes', 'censusWork', 'Gproved',
+];
+const SEARCH_STOPS = new Set(['exhausted', 'solution-limit', 'node-cap', 'work-cap']);
+const SOLUTION_STATUSES = new Set(['unique', 'few', 'many', 'unknown']);
+const RULE_KEYS = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9'];
+const RULE_FIELDS = new Set(RULE_KEYS);
+// The seven keys of a `difficulty-v2` claim made by this program; only their write order is fixed.
+const LEGACY_V2_METRICS_KEYS = ['U', 'B', 'branchTrials', 'rowTrials', 'stop', 'R', 'H'];
 const CERTIFICATE_FIELDS = new Set(['status', 'model', 'rowLimit']);
 
 /**
@@ -740,46 +756,136 @@ function firstClueMismatch(clues, solution, env) {
 }
 
 /**
+ * Strict reading of `difficulty-v3` metrics: every field alone first, then the rules that tie the fields together
+ * (one issue per failed rule, at the path of its first field). The result is a fresh object in the write order.
  * @param {Ctx} ctx
  * @param {unknown} v
  * @param {string} path
- * @returns {Metrics | null}
+ * @returns {MetricsV3 | null}
  */
-function readMetricsV2(ctx, v, path) {
-  const fields = readFields(ctx, v, path, METRICS_FIELDS, ['U', 'B', 'branchTrials', 'rowTrials', 'stop', 'R', 'H']);
+function readMetricsV3(ctx, v, path) {
+  const before = ctx.issues.length;
+  const fields = readFields(ctx, v, path, METRICS_V3_FIELDS, METRICS_V3_KEYS);
   if (fields === null) {
     return null;
   }
-  const before = ctx.issues.length;
-  for (const key of ['U', 'B', 'branchTrials', 'rowTrials', 'R']) {
-    if (fields.has(key) && !isCount(fields.get(key))) {
-      fail(ctx, 'rating-invalid', child(path, key), `${key} must be a nonnegative integer`);
+  /**
+   * @param {string} key
+   * @param {string} message
+   */
+  const bad = (key, message) => fail(ctx, 'rating-invalid', child(path, key), message);
+  /** @param {string} key */
+  const present = (key) => fields.get(key) !== undefined;
+  for (const key of METRICS_V3_COUNTS) {
+    if (present(key) && !isCount(fields.get(key))) {
+      bad(key, `${key} must be a nonnegative integer`);
     }
   }
-  if (fields.has('H') && !isScore(fields.get('H'))) {
-    fail(ctx, 'rating-invalid', child(path, 'H'), 'H must be a finite nonnegative number');
+  for (const key of ['H', 'info']) {
+    if (present(key) && !isScore(fields.get(key))) {
+      bad(key, `${key} must be a finite nonnegative number`);
+    }
   }
-  if (fields.has('stop') && !STOPS.has(/** @type {string} */ (fields.get('stop')))) {
-    fail(ctx, 'rating-invalid', child(path, 'stop'), 'stop must be solution, branch-cap or row-cap');
+  if (present('dlxStop') && !STOPS.has(/** @type {string} */ (fields.get('dlxStop')))) {
+    bad('dlxStop', 'dlxStop must be solution, branch-cap or row-cap');
+  }
+  if (present('searchStop') && !SEARCH_STOPS.has(/** @type {string} */ (fields.get('searchStop')))) {
+    bad('searchStop', 'searchStop must be exhausted, solution-limit, node-cap or work-cap');
+  }
+  if (present('solutions') && !SOLUTION_STATUSES.has(/** @type {string} */ (fields.get('solutions')))) {
+    bad('solutions', 'solutions must be unique, few, many or unknown');
+  }
+  for (const [key, max] of /** @type {const} */ ([['deductionTier', 3], ['tier', 4]])) {
+    const value = fields.get(key);
+    if (present(key) && !(Number.isInteger(value) && /** @type {number} */ (value) >= 0 && /** @type {number} */ (value) <= max)) {
+      bad(key, `${key} must be an integer from 0 to ${max}`);
+    }
+  }
+  if (present('censusComplete') && typeof fields.get('censusComplete') !== 'boolean') {
+    bad('censusComplete', 'censusComplete must be a boolean');
+  }
+  const rulesPath = child(path, 'rules');
+  const rules = present('rules') ? readFields(ctx, fields.get('rules'), rulesPath, RULE_FIELDS, RULE_KEYS) : null;
+  for (const key of RULE_KEYS) {
+    if (rules !== null && rules.get(key) !== undefined && !isCount(rules.get(key))) {
+      fail(ctx, 'rating-invalid', child(rulesPath, key), `rules.${key} must be a nonnegative integer`);
+    }
+  }
+  if (ctx.issues.length > before || rules === null) {
+    return null;
+  }
+
+  /** @param {string} key */
+  const num = (key) => /** @type {number} */ (fields.get(key));
+  /** @param {string} key */
+  const rule = (key) => /** @type {number} */ (rules.get(key));
+  const [S, limit, G, undecided] = [num('S'), num('solutionLimit'), num('G'), num('censusUndecided')];
+  const complete = fields.get('censusComplete') === true;
+  const limitOk = limit >= 2;
+  if (!limitOk) {
+    bad('solutionLimit', 'solutionLimit must be at least 2');
+  }
+  const countOk = S >= 1 && S <= limit;
+  if (!countOk) {
+    bad('S', 'S must be at least 1 and at most solutionLimit');
+  }
+  if (limitOk && countOk) {
+    const exhausted = fields.get('searchStop') === 'exhausted';
+    const derived = S >= limit ? 'many' : exhausted ? (S === 1 ? 'unique' : 'few') : (S <= 1 ? 'unknown' : 'few');
+    if (fields.get('solutions') !== derived) {
+      bad('solutions', `solutions must be ${derived} for S ${S}, solutionLimit ${limit} and searchStop ${fields.get('searchStop')}`);
+    }
+  }
+  if (G === 0 && (num('info') !== 0 || num('Cmax') !== 0 || num('Dmax') !== 0)) {
+    bad('G', 'G is 0, so info, Cmax and Dmax must be 0');
+  } else if (G > 0 && !(num('info') > 0 && num('Cmax') >= 2)) {
+    bad('G', 'G is above 0, so info must be above 0 and Cmax at least 2');
+  }
+  const high = rule('R7') + rule('R8') + rule('R9') > 0;
+  const middle = rule('R4') + rule('R5') + rule('R6') > 0;
+  const low = rule('R1') + rule('R2') + rule('R3') > 0;
+  const deductionTier = high ? 3 : middle ? 2 : low ? 1 : 0;
+  if (num('deductionTier') !== deductionTier) {
+    bad('deductionTier', `deductionTier must be ${deductionTier} for these rule counts`);
+  }
+  if (num('tier') !== (G > 0 ? 4 : num('deductionTier'))) {
+    bad('tier', 'tier must be 4 when G is above 0, else deductionTier');
+  }
+  if (num('F') !== rule('R1') + rule('R2') + rule('R3')) {
+    bad('F', 'F must be R1 + R2 + R3');
+  }
+  if (num('E') !== rule('R6')) {
+    bad('E', 'E must be R6');
+  }
+  if (complete !== (undecided === 0)) {
+    bad('censusComplete', 'censusComplete must be true exactly when censusUndecided is 0');
+  }
+  if (num('censusNodes') > num('nodes')) {
+    bad('censusNodes', 'censusNodes must not exceed nodes');
+  }
+  if (num('censusWork') > num('work')) {
+    bad('censusWork', 'censusWork must not exceed work');
+  }
+  if (num('Gproved') > G) {
+    bad('Gproved', 'Gproved must not exceed G');
+  } else if (complete && num('Gproved') !== G) {
+    bad('Gproved', 'Gproved must equal G when the census is complete');
   }
   if (ctx.issues.length > before) {
     return null;
   }
-  return /** @type {Metrics} */ ({
-    U: fields.get('U'),
-    B: fields.get('B'),
-    branchTrials: fields.get('branchTrials'),
-    rowTrials: fields.get('rowTrials'),
-    stop: fields.get('stop'),
-    R: fields.get('R'),
-    H: fields.get('H'),
-  });
+  /** @type {Record<string, unknown>} */
+  const out = {};
+  for (const key of METRICS_V3_KEYS) {
+    out[key] = key === 'rules' ? Object.fromEntries(RULE_KEYS.map((k) => [k, rule(k)])) : fields.get(key);
+  }
+  return /** @type {MetricsV3} */ (out);
 }
 
 /**
- * A rating is a claim. `difficulty-v2` is checked strictly; `difficulty-v1`
- * and foreign models are preserved with only their basic fields and opaque
- * bounded metrics, and are never reinterpreted.
+ * A rating is a claim. `difficulty-v3` is checked strictly (a summary claim from a puzzle code may lack its
+ * metrics); `difficulty-v2`, `difficulty-v1` and foreign models are preserved with only their basic fields and
+ * opaque bounded metrics, and are never reinterpreted.
  * @param {Ctx} ctx
  * @param {unknown} v
  * @param {string} path
@@ -790,9 +896,9 @@ function readRating(ctx, v, path) {
     fail(ctx, 'invalid-type', path, 'rating must be an object');
     return null;
   }
-  const current = ownValue(v, 'model') === 'difficulty-v2';
-  const fields = readFields(ctx, v, path, current ? RATING_V2_FIELDS : RATING_CLAIM_FIELDS,
-    current ? ['model', 'score', 'level', 'saturated', 'metrics'] : ['model', 'score', 'level']);
+  const strict = ownValue(v, 'model') === 'difficulty-v3';
+  const fields = readFields(ctx, v, path, strict ? RATING_V3_FIELDS : RATING_CLAIM_FIELDS,
+    strict ? ['model', 'score', 'level', 'saturated'] : ['model', 'score', 'level']);
   if (fields === null) {
     return null;
   }
@@ -809,12 +915,25 @@ function readRating(ctx, v, path) {
       fail(ctx, 'rating-invalid', child(path, key), `Rating ${key} must be a boolean`);
     }
   }
+  if (strict && fields.get('saturated') === true) {
+    fail(ctx, 'rating-invalid', child(path, 'saturated'), 'A difficulty-v3 rating is never saturated');
+  }
   /** @type {unknown} */
   let metrics;
   if (fields.has('metrics')) {
     const mPath = child(path, 'metrics');
-    if (current) {
-      metrics = readMetricsV2(ctx, fields.get('metrics'), mPath);
+    if (strict) {
+      const read = readMetricsV3(ctx, fields.get('metrics'), mPath);
+      if (read !== null && byteLength(JSON.stringify(read)) > MAX_CLAIM_METRICS_BYTES) {
+        fail(ctx, 'rating-invalid', mPath, `Rating metrics exceed ${MAX_CLAIM_METRICS_BYTES} bytes`);
+      } else if (read !== null) {
+        metrics = read;
+        const censored = fields.get('censored');
+        if ((censored === undefined || typeof censored === 'boolean') && (censored === true) === read.censusComplete) {
+          fail(ctx, 'rating-invalid', child(path, 'censored'),
+            read.censusComplete ? 'censored must not be true when the census is complete' : 'censored must be true when the census is not complete');
+        }
+      }
     } else if (!isPlainObject(fields.get('metrics'))) {
       fail(ctx, 'rating-invalid', mPath, 'Rating metrics must be an object');
     } else {
@@ -831,7 +950,7 @@ function readRating(ctx, v, path) {
   if (ctx.issues.length > before || model === null) {
     return null;
   }
-  if (!current && model !== 'difficulty-v1') {
+  if (!strict && model !== 'difficulty-v1' && model !== 'difficulty-v2') {
     warn(ctx, 'unsupported-model', child(path, 'model'), `Rating model "${model}" is not supported; the claim is kept but not used`);
   }
   /** @type {RatingClaim} */
@@ -1203,7 +1322,65 @@ function copyClaimJson(value) {
 }
 
 /**
- * Whitelisted, ordered copy of a rating claim.
+ * Detached copy of a plain object whose keys of `order` come first, in that order, then any other key in its
+ * stored order, so that no admitted key is ever dropped.
+ * @param {Record<string, unknown>} source A copy made by `copyClaimJson`.
+ * @param {string[]} order
+ * @returns {Record<string, unknown>}
+ */
+function orderedCopy(source, order) {
+  /** @type {Record<string, unknown>} */
+  const out = {};
+  /** @param {string} key */
+  const put = (key) => {
+    Object.defineProperty(out, key, { value: source[key], writable: true, enumerable: true, configurable: true });
+  };
+  for (const key of order) {
+    if (Object.hasOwn(source, key)) {
+      put(key);
+    }
+  }
+  for (const key of Object.keys(source)) {
+    if (!order.includes(key)) {
+      put(key);
+    }
+  }
+  return out;
+}
+
+/**
+ * The metrics of a claim, detached. `difficulty-v3` metrics are written in the `MetricsV3` order and
+ * `difficulty-v2` metrics of exactly the seven keys of this program's ratings in their fixed order; any other
+ * metrics are copied as they are (keys in their stored order), so that a legacy claim is written back with
+ * every field it was read with. Reading, not writing, decides what is valid.
+ * @param {RatingClaim | import('./types.js').Rating} r
+ * @param {unknown} metrics
+ * @returns {object}
+ */
+function claimMetrics(r, metrics) {
+  const copy = copyClaimJson(metrics);
+  if (!isPlainObject(copy)) {
+    return /** @type {object} */ (copy);
+  }
+  if (r.model === 'difficulty-v3') {
+    const rules = copy.rules;
+    const ordered = orderedCopy(copy, METRICS_V3_KEYS);
+    if (isPlainObject(rules)) {
+      ordered.rules = orderedCopy(rules, RULE_KEYS);
+    }
+    return ordered;
+  }
+  if (r.model === 'difficulty-v2') {
+    const keys = Object.keys(copy);
+    if (keys.length === LEGACY_V2_METRICS_KEYS.length && LEGACY_V2_METRICS_KEYS.every((key) => keys.includes(key))) {
+      return orderedCopy(copy, LEGACY_V2_METRICS_KEYS);
+    }
+  }
+  return copy;
+}
+
+/**
+ * Whitelisted, ordered copy of a rating claim. A `difficulty-v3` claim carries `censored` only when it is true.
  * @param {RatingClaim | import('./types.js').Rating} r
  * @returns {RatingClaim}
  */
@@ -1213,16 +1390,11 @@ function ratingClaim(r) {
   if (r.saturated !== undefined) {
     out.saturated = r.saturated;
   }
-  if ('censored' in r && r.censored !== undefined) {
+  if ('censored' in r && r.censored !== undefined && (r.model !== 'difficulty-v3' || r.censored === true)) {
     out.censored = r.censored;
   }
   if (r.metrics !== undefined && r.metrics !== null) {
-    if (r.model === 'difficulty-v2') {
-      const m = /** @type {Metrics} */ (r.metrics);
-      out.metrics = { U: m.U, B: m.B, branchTrials: m.branchTrials, rowTrials: m.rowTrials, stop: m.stop, R: m.R, H: m.H };
-    } else {
-      out.metrics = /** @type {object} */ (copyClaimJson(r.metrics));
-    }
+    out.metrics = claimMetrics(r, r.metrics);
   }
   return out;
 }

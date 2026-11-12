@@ -43,7 +43,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP08 | [MP08](MP08-pure-v3-score.md) | Pure v3 score, breakdown, `SCORE_V3` and types | MP07 | Medium | Engine | M5 v3 active | 11 |
 | [x] | MP09a1 | [MP09a1](MP09a1-duplicate-shapes-refused.md) | Two pieces of the same shape refused in packs, links and puzzle codes | MP08 | Medium–Large | Engine and Player | M5 | 12 |
 | [x] | MP09a2 | [MP09a2](MP09a2-saved-sets-notice.md) | Saved Generator sets with two pieces of the same shape: removal and a one-time notice | MP09a1 | Small | Generator | M5 | 13 |
-| [ ] | MP09b | [MP09b](MP09b-v3-claims-in-packs-and-codes.md) | v3 claims in packs and codes: `censored`, `Gproved` checks, v2 legacy, summary claims | MP09a2 | Medium | Engine | M5 | 14 |
+| [x] | MP09b | [MP09b](MP09b-v3-claims-in-packs-and-codes.md) | v3 claims in packs and codes: `censored`, `Gproved` checks, v2 legacy, summary claims | MP09a2 | Medium | Engine | M5 | 14 |
 | [ ] | MP09c | [MP09c](MP09c-unrateable-and-unproved-candidates.md) | Unrateable and unproved candidates in clue selection (RES-04, AR1) | MP09b | Medium | Engine | M5 | 15 |
 | [ ] | MP09d1 | [MP09d1](MP09d1-measure-v3-and-v2-names.md) | `measureV3` and the v2 functions under their v2 names (no switch yet) | MP09c | Medium | Engine | M5 | 16 |
 | [ ] | MP09d2 | [MP09d2](MP09d2-activate-v3.md) | Activate v3: `rate` and `MODEL`, the pinned tests, GF-P2 and GA-P2 | MP09d1 | Medium–Large + gate | Engine | M5 | 17 |
@@ -416,7 +416,7 @@ The orchestrator owns this record.
 | MP08 | Accepted | 8 min developer + 6 min review | about 178 | `difficulty-v3 MP08` |
 | MP09a1 | Accepted | 12 min developer + 7 min review | about 327 | `difficulty-v3 MP09a1` |
 | MP09a2 | Accepted | 5 min developer + 4 min review | about 99 | `difficulty-v3 MP09a2` |
-| MP09b | | | | |
+| MP09b | Accepted | 12 min developer + 5 min review | about 236 | `difficulty-v3 MP09b` |
 | MP09c | | | | |
 | MP09d1 | | | | |
 | MP09d2 | | | | |

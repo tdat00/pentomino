@@ -361,8 +361,8 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 |---|---|
 | Status | Accepted and committed (`difficulty-v3 MP09a1: Two pieces of the same shape refused in packs, links and puzzle codes`) |
 | Start | 2026-11-12 19:01 (+07:00) |
-| End | 2026-11-12 19:13 developer; 19:22 orchestrator review and commit |
-| Duration | 12 min developer (722 s); about 7 min review |
+| End | 2026-11-12 19:13 developer; 19:15 orchestrator review and commit |
+| Duration | 12 min developer (722 s); about 2 min review |
 | Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
 | Token usage | 98 model calls; 17,845,655 input tokens (17,563,128 cache reads); 80,675 output tokens |
 | AI credits | about 327 (developer) |

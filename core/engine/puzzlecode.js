@@ -157,6 +157,27 @@ async function inflateRaw(bytes) {
 // ---------------------------------------------------------------- encoding
 
 /**
+ * A `difficulty-v3` claim travels in a code as its summary (the full metrics stay in packs); any other claim
+ * is passed unchanged.
+ * @param {RatingClaim | null | undefined} rating
+ * @returns {RatingClaim | null}
+ */
+function summaryClaim(rating) {
+  if (rating === undefined || rating === null) {
+    return null;
+  }
+  if (rating.model !== 'difficulty-v3') {
+    return rating;
+  }
+  /** @type {RatingClaim} */
+  const summary = { model: rating.model, score: rating.score, level: rating.level, saturated: false };
+  if (rating.censored === true) {
+    summary.censored = true;
+  }
+  return summary;
+}
+
+/**
  * @param {PuzzleCodeSnapshot} snapshot
  * @returns {PuzzleParts}
  */
@@ -196,7 +217,7 @@ function partsFromSnapshot(snapshot) {
     pieces: valid.pieces,
     clues: puzzle.clues,
     solution: puzzle.solution ?? null,
-    rating: puzzle.rating ?? null,
+    rating: summaryClaim(puzzle.rating),
     certificate: puzzle.certificate ?? null,
     title: puzzle.title === undefined || puzzle.title === '' ? null : puzzle.title,
   };

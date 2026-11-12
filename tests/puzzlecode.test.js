@@ -836,6 +836,115 @@ test('raw: input and a decoded pack are never mutated and are detached from each
   assert.equal(JSON.stringify(v1.catalogueShapes(5)), before);
 });
 
+// ============================================ difficulty-v3 summary claims
+
+const V3_METRICS = {
+  U: 7, R: 35, H: 3.5, B: 12, branchTrials: 12, rowTrials: 40, dlxStop: 'solution', searchStop: 'exhausted',
+  F: 4, E: 0, rules: { R1: 3, R2: 1, R3: 0, R4: 2, R5: 0, R6: 0, R7: 0, R8: 58, R9: 0 }, deductionTier: 3, tier: 4,
+  G: 2, info: 3.321928094887362, Cmax: 5, Dmax: 2, Gt: 2, nodes: 8, work: 123456, S: 1, solutionLimit: 8,
+  solutions: 'unique', censusComplete: true, censusUndecided: 0, censusNodes: 0, censusWork: 0, Gproved: 2,
+};
+const V3_CLAIM = { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, metrics: V3_METRICS };
+// An estimate: the census did not finish.
+const V3_ESTIMATE = {
+  model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, censored: true,
+  metrics: {
+    ...V3_METRICS, S: 8, searchStop: 'solution-limit', solutions: 'many', censusComplete: false,
+    censusUndecided: 3, nodes: 18, censusNodes: 10, censusWork: 5000, Gproved: 1,
+  },
+};
+const V3_SUMMARY = { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false };
+const dominoWith = (/** @type {unknown} */ rating) => base({ rows: ['##'], pieces: [piece('A', [[0, 0], [1, 0]], 'A', '#e6194b')], rating });
+
+/** A raw code of the domino puzzle whose rating is the given JSON text. */
+const dominoCode = (/** @type {string} */ json) => rawCode((w) => {
+  head(w, { rating: (r) => { r.write(1, 1); r.write(0, 1); v1.writeText(r, json); } });
+  complete(w);
+});
+
+test('v3: a code carries the summary of a difficulty-v3 claim, with censored only for an estimate', async () => {
+  const cases = /** @type {[any, any][]} */ ([
+    [V3_CLAIM, V3_SUMMARY],
+    [V3_ESTIMATE, { ...V3_SUMMARY, censored: true }],
+    [{ ...V3_CLAIM, censored: false }, V3_SUMMARY],
+    [V3_SUMMARY, V3_SUMMARY],
+    [{ ...V3_SUMMARY, censored: true }, { ...V3_SUMMARY, censored: true }],
+  ]);
+  for (const [claim, summary] of cases) {
+    const snapshot = { ...sample1, rating: claim };
+    for (const compression of /** @type {const} */ (['raw', 'auto'])) {
+      const encoded = await encodePuzzleCode(deepFreeze(clone(snapshot)), { compression });
+      const decoded = await decodePuzzleCode(encoded.F);
+      const rating = decoded.pack.puzzles[0].rating;
+      assert.deepEqual(rating, summary);
+      assert.ok(!('metrics' in /** @type {object} */ (rating)), 'missing metrics are absent evidence, never zeros');
+      assert.deepEqual(Object.keys(/** @type {object} */ (rating)), Object.keys(summary));
+      assert.deepEqual(contentOf(decoded.pack), expectedOf({ ...sample1, rating: summary }));
+    }
+    // The full claim and its summary give one and the same code.
+    const full = await encodePuzzleCode(snapshot, { compression: 'raw' });
+    const short = await encodePuzzleCode({ ...sample1, rating: summary }, { compression: 'raw' });
+    assert.equal(full.F, short.F);
+  }
+  // The input claim is not touched.
+  const input = deepFreeze(clone({ ...sample1, rating: V3_ESTIMATE }));
+  await encodePuzzleCode(input);
+  assert.deepEqual(input.rating, V3_ESTIMATE);
+});
+
+test('v3: the summary is the frozen codec\'s JSON text in the order model, score, level, saturated, censored', async () => {
+  for (const [claim, summary] of /** @type {[any, any][]} */ ([[V3_CLAIM, V3_SUMMARY], [V3_ESTIMATE, { ...V3_SUMMARY, censored: true }]])) {
+    const encoded = await encodePuzzleCode(dominoWith(claim), { compression: 'raw' });
+    assert.equal(encoded.C, dominoCode(JSON.stringify(summary)));
+    assert.equal(JSON.stringify(summary), claim.censored === true
+      ? '{"model":"difficulty-v3","score":30,"level":"expert","saturated":false,"censored":true}'
+      : '{"model":"difficulty-v3","score":30,"level":"expert","saturated":false}');
+  }
+});
+
+test('v3: a v2 snapshot still uses the compact rating form', async () => {
+  const compact = await encodePuzzleCode(sample1, { compression: 'raw' });
+  const text = await createPuzzleCodec({ measure() { throw new RangeError('no model'); } }).encodePuzzleCode(sample1, { compression: 'raw' });
+  assert.ok(compact.C.length + 100 < text.C.length, 'the v2 claim is rebuilt, not carried as text');
+  assert.deepEqual((await decodePuzzleCode(compact.F)).pack.puzzles[0].rating, sample1.rating);
+});
+
+test('v3: an invalid claim is refused by the encoder, with the reader\'s message', async () => {
+  await rejectsWith(encodePuzzleCode({ ...sample1, rating: { ...V3_CLAIM, metrics: { ...V3_METRICS, G: 0 } } }), 'invalid', /G is 0/);
+  await rejectsWith(encodePuzzleCode({ ...sample1, rating: { ...V3_CLAIM, saturated: true } }), 'invalid', /saturated/);
+  await rejectsWith(encodePuzzleCode({ ...sample1, rating: { ...V3_CLAIM, censored: true } }), 'invalid', /censored/);
+  await rejectsWith(encodePuzzleCode({ ...sample1, rating: { ...V3_ESTIMATE, censored: undefined } }), 'invalid');
+});
+
+test('v3: a hand-made code with a full claim is read strictly; an invalid claim is refused', async () => {
+  for (const claim of [V3_CLAIM, V3_ESTIMATE]) {
+    const decoded = await decodePuzzleCode(dominoCode(JSON.stringify(claim)));
+    assert.deepEqual(decoded.pack.puzzles[0].rating, claim);
+    assert.deepEqual(Object.keys(/** @type {object} */ (decoded.pack.puzzles[0].rating)), Object.keys(claim));
+    // Encoding what was read gives the summary again.
+    const again = await decodePuzzleCode((await encodePuzzleCode(snapshotOf(decoded.pack), { compression: 'raw' })).F);
+    assert.deepEqual(again.pack.puzzles[0].rating, claim.censored === true ? { ...V3_SUMMARY, censored: true } : V3_SUMMARY);
+  }
+  for (const summary of [V3_SUMMARY, { ...V3_SUMMARY, censored: true }, { ...V3_SUMMARY, censored: false }]) {
+    assert.deepEqual((await decodePuzzleCode(dominoCode(JSON.stringify(summary)))).pack.puzzles[0].rating, summary);
+  }
+  const refused = /** @type {[string, unknown, RegExp][]} */ ([
+    ['an invalid tuple', { ...V3_CLAIM, metrics: { ...V3_METRICS, G: 0 } }, /G is 0/],
+    ['Gproved above G', { ...V3_CLAIM, metrics: { ...V3_METRICS, Gproved: 3 } }, /Gproved/],
+    ['a missing metrics field', { ...V3_CLAIM, metrics: { ...V3_METRICS, U: undefined } }, /Missing required field "U"/],
+    ['an unfinished census without the mark', { ...V3_ESTIMATE, censored: undefined }, /censored/],
+    ['the mark on a complete census', { ...V3_CLAIM, censored: true }, /censored/],
+    ['a saturated v3 claim', { ...V3_CLAIM, saturated: true }, /saturated/],
+    ['a summary without its saturated flag', { model: 'difficulty-v3', score: 30, level: 'expert' }, /saturated/],
+  ]);
+  for (const [name, claim, message] of refused) {
+    await rejectsWith(decodePuzzleCode(dominoCode(JSON.stringify(claim))), 'invalid', message).catch((error) => {
+      error.message = `${name}: ${error.message}`;
+      throw error;
+    });
+  }
+});
+
 // ================================================ bounded decoder cases
 
 /**
