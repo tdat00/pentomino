@@ -120,7 +120,8 @@ nhập gì và có thông báo cho biết.
   bàn chơi được dùng tới **484** ô trên máy tính và **360** ô trên điện thoại; các cỡ lớn hơn chỉ được bật sau khi qua
   kiểm định. Mỗi thao tác tạo nhắm tới **60 giây** và có
   giới hạn cứng **120 giây**; khi hết giờ nó dừng và báo những gì đã có.
-- **Độ khó.** Điểm chỉ là ước lượng. Đề thông thường không chờ chứng minh tính duy nhất: tình trạng lời giải được kiểm tra
+- **Độ khó.** Điểm chỉ là ước lượng. Đề mới nhắm vào khoảng giữa thang điểm của mức độ. Đề thông thường không chờ chứng
+  minh tính duy nhất: tình trạng lời giải được kiểm tra
   ngầm sau khi đề xuất hiện. Một đề bạn yêu cầu lời giải duy nhất vẫn có thể không chứng minh được; khi đó trình tạo đề
   nói rõ thay vì trả về một đề chưa được chứng minh.
 

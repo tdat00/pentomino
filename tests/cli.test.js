@@ -108,7 +108,7 @@ describe('argument handling', () => {
     check({ batchSeed: 'fixture-set-0#2' });
     check({ batchIndex: 2 });
     check({ batchIndex: 0, batchSeed: 'fixture-set-0#0' });
-    check({ versions: { ...recipe.versions, algo: 'gen-v3' } });
+    check({ versions: { ...recipe.versions, algo: 'gen-v2' } });
     check({ versions: { ...recipe.versions, extra: 'x' } });
     check({ version: 2 });
     check({ quantity: 11 });

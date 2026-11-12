@@ -32,7 +32,7 @@ Board edits never delete work: the lists switch to the piece sets and puzzles of
 
 ## Levels and typical boards
 
-Very Easy/Easy gives many starting pieces; Normal/Hard offers more choices; Expert/Master gives less guidance; Nightmare/Hell starts with very few pieces. One shared scoring method supplies **estimates, not promised solving times**.
+Very Easy/Easy gives many starting pieces; Normal/Hard offers more choices; Expert/Master gives less guidance; Nightmare/Hell starts with very few pieces. One shared scoring method supplies **estimates, not promised solving times**. A new puzzle aims at the middle of its level's score range, not just anywhere inside it.
 
 | Board | Playable squares | Available levels | Example total piece counts |
 |---|---:|---|---|

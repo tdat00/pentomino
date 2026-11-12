@@ -682,8 +682,107 @@ offered and the answer; the tasks that follow apply it.
 | P-OD1 | 2026-11-12 15:37 | `DEDUCE.census`: the 5 % rule of C5 is not met at 20, 40 or 80 million (at 80M, 10x10-master is still 3/50) | [probe record](probe-2026-11-12.md) sections 6 and 9 (MP06b, `3bd53bc`) | (a) keep 10,000,000 as the rule says and look again at the MP12 calibration; (b) 40,000,000; (c) 80,000,000 | **(a)**: `census` stays 10,000,000; MP12 re-examines it | MP06c onward; MP12a/MP12b |
 | P-OD2 | 2026-11-12 15:37 | `DEDUCE.work` = 760,000,000 is above the 500,000,000 reporting threshold of RES-10 | same record, section 9 item 1 (median deduction 2.8 ms, p95 83 ms, maximum 986 ms; about 1.8 s for a full-cap rating, extrapolated) | (a) accept 760,000,000; (b) a lower cap (some large master puzzles become unrateable) | **(a)**: accepted | pinned in `core/engine/policy.js` by MP06b |
 | P-OD3 | 2026-11-12 16:02 | The initial fit switches the few/many penalty off, (0, 0), inside the range `0 <= few <= many <= 8` but against the intent of SA1-Q-P1 ("the few/many penalty stays") | [fit record](fit-2026-11-12.md) sections 3 and 8 (MP06c, `7ddb259`) | (a) use the fitted knobs with penalty (0, 0) and look again at the penalty in the MP12 calibration on v3-generated puzzles; (b) the best set with a penalty, `12 / 4 / 4 / 4 / 5 / 0.5 / (1, 2)` (55.5 %, no hit in 18x20-hard); (c) other | **(a)**: MP08 writes the fitted knobs, penalty (0, 0); MP12 re-examines the penalty | MP08; MP12a/MP12b |
+| P-OD4 | 2026-11-12 18:09 | D21: RES-15 when the central half is unreachable (Hell 3; MP07 held) | [D21 measurements](d21-measurements-2026-11-12.md); Part I below | (a) recipe quantity 3; (b) first in band when the centre is unreachable; (c) keep the recipe; (d) a measured early-stop rule | **(d)** as answered by the plan author in Part I: RES-15a stall stop, STALL_LIMIT = 12, raw ratings, in MP07 (owner: "kiểm tra và tiếp tục") | MP07; MP09c re-validates N on v3; MP12 reports Hell times |
 
 Information given with these questions, no decision needed: in corpus B (uniqueness required, puzzles made by v2),
 every 18x20 Hard, Expert and Master puzzle has `Gproved = 0` (20/20 each), and corpus A has 58-86 % at Hard; MP06c
 and MP07 measure whether v3 generation reaches Hard on 18x20 under AR1. The DLX diagnostic raises the combined
 rating time by 1.67 times on 18x20, below the "more than doubles" threshold of RES-19.
+
+## Part I: open questions during implementation
+
+Questions raised while the task pack is executed. The plan author answers in the **Answer** line; the owner decides
+where the entry says so. The orchestrator applies the answer to the check-list and the tasks.
+
+### D21: RES-15 when the central half of the band is unreachable (MP07, Hell 3)
+
+**Raised.** 2026-11-12 16:37 by the orchestrator (check-list D21). MP07 is implemented and held, uncommitted, until this
+is answered. The plan author asked for measurements first (2026-11-12 17:20); they are complete.
+
+**Evidence.** [D21 measurements](d21-measurements-2026-11-12.md) (all 14 questions, Summary for Fable first) and the
+raw data and scripts in [d21-2026-11-12/](d21-2026-11-12/). In short:
+
+- Hell 3 on 22x22 (K = 73) has no candidate in the central half: the highest `difficulty-v2` score is 174, the central
+  half starts at 180.25. MP07 uses all 48 ratings per puzzle only to move the result from 170 to 174.
+- Cost: 243 s serial against 5.75 s before MP07 (42 times); the UI flow `square-22x22-hell-3` ends `N-PARTIAL` with 9 of
+  10 puzzles (cut by `dispatchStopMs = 115000`).
+- Only the Hell 3 cells exhaust the 48 ratings; every other measured cell needs at most 10.
+- Simulated early stop ("at least one in-band candidate, all candidates on one side of the central half, N ratings in
+  a row without a closer candidate"): over 2,106 calls, N = 4 misses a central result 42 times, N = 8 twice, N = 12
+  never (it fires only in the two Hell 3 cells). At N = 8 no pinned fixture changes. In `require` mode the rule must
+  use raw ratings, not repaired scores.
+- Estimated cost: 35-55 code lines, 8-10 tests; in MP07 the gates take about 6-8 minutes; in MP09 N must be
+  re-validated on v3 ratings.
+
+**Options.**
+
+| Option | Meaning |
+|---|---|
+| (a) | Keep RES-15 as is; reduce the `square-22x22-hell-3` recipe to quantity 3 (scores [174,174,174]); MP12 reports Hell times |
+| (b) | Amend RES-15: when no clue count can reach the central half, stop at the first candidate in the band |
+| (c) | Keep the recipe as is (rejected by the analysts: the test would depend on time) |
+| (d) | Amend RES-15 with the measured early-stop rule (state N, raw ratings in `require` mode) in MP07 or MP09 |
+
+**Answer (plan author, claude-fable-5-2, 2026-11-12): (d), in MP07, with N = 12 on raw ratings.** (a) is not taken:
+it hides a 42-times slowdown and a partial batch (9 of 10) behind a smaller test, for a gain of 4 points that never
+reaches the central half. (b) as worded needs a bound of the highest reachable score, which exists for v2
+(`2 (K - 1) + 30`) but not for v3, so it would be rebuilt two tasks later. My earlier proposal of N = 8 is withdrawn:
+the measurements show two misses at N = 8, both one rating late, because the count steering needs 9-10 ratings to
+descend two clue counts.
+
+**Amendment RES-15a (stall stop).** In `selectClues`, for a finite band only, checked after each subset profile and
+after the central-result check of RES-15:
+
+```text
+STALL_LIMIT = 12                         // core/engine/clues.js constant, next to BEAM_WIDTH
+stop when all three hold:
+  (1) at least one rated candidate is in band;
+  (2) every rated candidate, in band or not, lies on the same side of the central half
+      (all scores < centre - window, or all scores > centre + window);
+  (3) the last STALL_LIMIT rated profiles gave no in-band candidate strictly nearer to the centre
+      than the best in-band candidate before them.
+on stop: r = chooseBest(); if r !== null: return r; otherwise continue the search as before.
+```
+
+- **Raw ratings only.** Conditions (1) to (3) read the raw subset ratings in every mode; repaired scores never enter
+  them (the measurements show a rule on repaired scores misses a central final result 13 times in 191 `require`
+  calls, and that the raw rule does not fire there). The result of a stop is still the final result of
+  `chooseBest()`, so `require` mode keeps its repair and band check.
+- **Counting.** A profile that is skipped, unrateable (RES-04) or rejected by AR1 is not a rated candidate: it does
+  not count toward (2) and neither advances nor resets the stall counter. The counter starts at the first in-band
+  candidate and resets whenever a strictly nearer in-band candidate is rated. Ties do not reset it.
+- **Unchanged:** the central-half stop, the stop at profile 48 (`reserve = 16`), the 64-profile budget, the count
+  steering, the beam, `ranked()`, unbounded bands (the rule never applies), determinism (no new RNG draw).
+- **Identity.** MP07 is not committed, so the rule is part of `gen-v3`; no further algorithm id.
+
+**Evidence this rests on** (`d21-measurements-2026-11-12.md`, Q8-Q10, Q13): over 2,106 finite-band calls N = 12 fires
+15 times, all in the two Hell 3 cells, and misses no central result; at N = 8 and N = 12 no pinned vector or fixture
+changes (`generation-case.json`, `generated-sample-pack.json`, `default-10x6-normal`, `heart-n10-master` stay
+byte-identical). All sequences are `difficulty-v2`, one seed per cell: the margin of N = 12 is what these data show,
+not a proof.
+
+**What MP07 does now.**
+
+1. Implement RES-15a with the tests the developer listed (fires after 12 non-improving one-sided ratings; does not
+   fire with a central candidate seen, with candidates on both sides, or at 11; returns the best by `ranked()`;
+   `require` mode uses raw ratings; an unbounded band never fires; the two N = 8 miss cases of Q10 as regressions that
+   must still return 126 and 48).
+2. Keep `square-22x22-hell-3` at quantity 10 and pin its scores from the run (the simulation predicts 172 for all
+   ten, at ratings 17-22); it must finish with 10 of 10 puzzles and no `N-PARTIAL`. If it does not, stop and report.
+3. Design §6.10 states the rule and the constant; the D21 measurement record stays as written.
+4. Re-run GF-P1 (expected: identical fixtures) and GA-P1.
+
+**Later tasks.** MP09c (the task that edits the same `afterProfile` for v3 ratings) re-runs the D21 simulation on
+v3 rating sequences for N = 8, 12 and 16 on the same cells and populations: if N = 12 misses a central result there,
+it raises `STALL_LIMIT` to the smallest tested value with no miss and records it; lowering it below 12 needs a new
+answer. MP12 reports, per Hell cell, the ratings per puzzle and the generation time under v3.
+
+**Residual cost, for the owner to know.** With the rule, Hell 3 on 22x22 needs about 19 ratings per puzzle instead
+of 1 before MP07: about 94 s of rating time for ten puzzles in a serial run against 5.75 s (the simulation's figure;
+roughly a minute in the two-worker flow, not measured), and returns 172 instead of 170. That is the price of
+looking for the centre where it cannot be reached under v2; it applies to the cells of the measurement's reach
+table only (22x22, 32x15 and 24x24 Hell 3; 15x20 and 18x18 Hell 2, for some piece counts), and it is measured again
+under v3 in MP09c and MP12. If the owner prefers the old speed on those cells, the alternative is option (b) with the
+v2 bound, valid only until MP09 replaces the rating.
+
+**Orchestrator note (2026-11-12 18:30):** the owner confirmed (d) (decision P-OD4 in Part H). One placement is corrected after cross-review SP03 (SA2): MP09c cannot run the v3 re-validation, because no v3 rater exists before MP09d1 (`measureV3`) and MP09d2 (`rate` and `MODEL` switch). The re-validation for N = 8, 12 and 16 therefore belongs to MP09d2, after the switch and before GF-P2, with the same rule (only a raise of `STALL_LIMIT`; below 12 needs a new answer). MP09c still makes unrateable and AR1-rejected profiles neutral for the stall counter. MP07 is committed with RES-15a: the Hell 3 flow completes 10 of 10 at score 172 in about 56 s, and `npm test` takes 66 s.

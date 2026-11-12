@@ -388,7 +388,7 @@
   ],
   "puzzles": [
     {
-      "id": "pb226d7e75842",
+      "id": "p1a0b524f7a38",
       "title": "Easy",
       "clues": [
         {
@@ -399,11 +399,11 @@
           "mirrored": true
         },
         {
-          "piece": "C",
-          "x": 5,
+          "piece": "B",
+          "x": 0,
           "y": 0,
-          "turn": 0,
-          "mirrored": true
+          "turn": 1,
+          "mirrored": false
         },
         {
           "piece": "E",
@@ -420,10 +420,10 @@
           "mirrored": false
         },
         {
-          "piece": "H",
-          "x": 1,
-          "y": 4,
-          "turn": 2,
+          "piece": "I",
+          "x": 4,
+          "y": 0,
+          "turn": 3,
           "mirrored": false
         }
       ],
@@ -494,17 +494,17 @@
       ],
       "rating": {
         "model": "difficulty-v2",
-        "score": 8,
+        "score": 10,
         "level": "easy",
         "saturated": false,
         "metrics": {
           "U": 4,
-          "B": 0,
-          "branchTrials": 0,
+          "B": 1,
+          "branchTrials": 1,
           "rowTrials": 4,
           "stop": "solution",
-          "R": 25,
-          "H": 3.7635238801376865
+          "R": 24,
+          "H": 2.862802777958082
         }
       }
     },
@@ -732,7 +732,7 @@
   ],
   "generation": {
     "app": "pentomino-generator/1.0.0",
-    "algo": "gen-v2",
+    "algo": "gen-v3",
     "policy": "mixed-v2",
     "rng": "xoshiro128ss-v1",
     "seedScheme": "seed-sha256-v1",

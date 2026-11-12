@@ -240,8 +240,8 @@ test('verification, certificate and rating wording keeps claims apart from proof
   assert.match(restorationNotice([{ code: 'placement-overlap', path: 'x', message: 'x' }]), /1 saved move no longer fits this puzzle and was discarded/);
 });
 
-test('sample pack: valid wire format, real in-band ratings, independent answers, identical to the generated fixture', () => {
-  assert.equal(sampleText, readFileSync(new URL('./fixtures/generated-sample-pack.json', import.meta.url), 'utf8'));
+test('sample pack: valid wire format, real in-band ratings, independent answers, the gen-v2 source of the code goldens', () => {
+  assert.equal(sample.generation.algo, 'gen-v2');
   const checked = validatePack(JSON.parse(sampleText));
   assert.ok(checked.ok, JSON.stringify(!checked.ok && checked.issues));
   assert.deepEqual(checked.warnings, []);

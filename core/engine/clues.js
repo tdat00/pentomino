@@ -1,7 +1,11 @@
 // @ts-check
 // Clue selection and proof-status certificates (design §6.10–§6.11): count-guided
-// sampling, then a small beam search, at most 64 rated subsets. Uniqueness is only
-// reported after an exhaustive count; cutoffs never become proofs.
+// sampling, then a small beam search, at most 64 rated subsets. A finite band is
+// searched for its centre: the search stops early on a final result in the central
+// half of the band, or when the central half looks out of reach (a stall), else
+// returns the in-band final result nearest to the centre once 48 subsets are rated
+// or the search ends. Uniqueness is only reported after an exhaustive count;
+// cutoffs never become proofs.
 
 import { activeCount } from './board.js';
 import { inBand, rate } from './difficulty.js';
@@ -32,12 +36,16 @@ import { buildModel, countSolutions, isValidLayout } from './tiling.js';
  * @property {ReadonlySet<string>} excludeClueKeys
  * @property {Workspace} ws
  * @property {(clues: Pose[], rating: Rating) => void} [onRate]
+ * @property {(board: Board, pieces: Piece[], clues: Pose[], ws: Workspace) => Rating} [rate] Replaces `rate()` of
+ *   difficulty.js for every rating of this call (subsets and repaired sets); diagnostics and tests only.
  */
 
 /**
  * @typedef {{ ok: true, clues: Pose[], rating: Rating, certificate: Certificate | null }
  *   | { ok: false, reason: 'not-in-band' | 'uniqueness-not-proved' }} SelectResult
  */
+
+/** @typedef {Extract<SelectResult, { ok: true }>} Selected */
 
 /**
  * @typedef {object} Candidate
@@ -48,10 +56,14 @@ import { buildModel, countSolutions, isValidLayout } from './tiling.js';
  */
 
 const BEAM_WIDTH = 4;
+// Stall stop (RES-15a): this many rated profiles in a row without an in-band candidate nearer to the centre.
+const STALL_LIMIT = 12;
 const SAMPLES_PER_COUNT = 4;
 const COUNT_CHANGES = 8;
 const MOVES_PER_MEMBER = 8;
 const SMALL_AREA = 200;
+// The search for the band centre stops at profile BUDGETS.clueSubsets - CENTRE_RESERVE (48 of 64).
+const CENTRE_RESERVE = 16;
 
 /**
  * Row limit of a raw uniqueness count: 10,000 up to 200 active cells, else 2,000.
@@ -191,12 +203,29 @@ export function selectClues(ctx) {
   }
   const limit = BUDGETS.clueSubsets;
   const rowLimit = countRowLimit(board);
+  // Every rating of this call goes through rateFn: the subsets and the repaired sets.
+  const rateFn = ctx.rate ?? rate;
+  const finite = Number.isFinite(target.max);
+  // Centre and half-width of the central half of the band; only used when the band is finite.
+  const centre = finite ? (target.min + target.max) / 2 : 0;
+  const halfWidth = finite ? (target.max - target.min) / 4 : 0;
   /** @type {Set<string>} */
   const tried = new Set();
   /** @type {Candidate[]} */
   const rated = [];
+  /** @type {Candidate[]} In-band candidates in rating order. */
+  const inBandList = [];
+  /** @type {Map<string, Selected | null>} Final result of each finished candidate by raw subset id; null: failed. */
+  const finals = new Map();
   let profiles = 0;
   let unproved = false;
+  // Stall stop state, from the raw subset ratings only (finite band): which sides of the central half have been
+  // rated, the distance to the centre of the nearest in-band candidate, and the profile count that rated it.
+  let ratedBelow = false;
+  let ratedAbove = false;
+  let ratedCentral = false;
+  let nearest = Infinity;
+  let nearestAt = 0;
 
   /**
    * @param {number[]} idx
@@ -213,7 +242,7 @@ export function selectClues(ctx) {
     if (excludeClueKeys.has(key)) {
       return null;
     }
-    const rating = rate(board, pieces, clues, ws);
+    const rating = rateFn(board, pieces, clues, ws);
     profiles += 1;
     if (onRate !== undefined) {
       onRate(clues, rating);
@@ -224,8 +253,9 @@ export function selectClues(ctx) {
   };
 
   /**
+   * The final result of an in-band candidate: the raw subset for `any`, else the repaired and re-rated set.
    * @param {Candidate} c In-band candidate.
-   * @returns {SelectResult | null}
+   * @returns {Selected | null}
    */
   const finish = (c) => {
     if (uniqueness === 'any') {
@@ -237,12 +267,111 @@ export function selectClues(ctx) {
       return null;
     }
     // Repair re-rates only a changed clue set; that rating is not a search profile.
-    const clues = repaired.length === c.clues.length ? c.clues : sortLike(layout, repaired);
-    const rating = repaired.length === c.clues.length ? c.rating : rate(board, pieces, clues, ws);
+    const changed = repaired.length !== c.clues.length;
+    const clues = changed ? sortLike(layout, repaired) : c.clues;
+    const rating = changed ? rateFn(board, pieces, clues, ws) : c.rating;
     if (!inBand(rating, target)) {
       return null;
     }
+    if (changed && excludeClueKeys.has(clueKey(board, pieces, clues))) {
+      return null;
+    }
     return { ok: true, clues, rating, certificate: { status: 'unique', model: 'dlx-v1', rowLimit, verified: true } };
+  };
+
+  /**
+   * Finishes a candidate at most once, so that the repair draws from the rng at deterministic points.
+   * @param {Candidate} c
+   * @returns {Selected | null}
+   */
+  const finishOnce = (c) => {
+    const id = c.idx.join(',');
+    if (!finals.has(id)) {
+      finals.set(id, finish(c));
+    }
+    return /** @type {Selected | null} */ (finals.get(id));
+  };
+
+  /**
+   * @param {Rating} r
+   * @returns {boolean} true in the central half of a finite band, and for every rating of an unbounded band.
+   */
+  const central = (r) => !finite || Math.abs(r.score - centre) <= halfWidth;
+
+  /**
+   * Lazy best-first choice over the final results of the in-band candidates: the one whose final score (raw
+   * score while unfinished) is nearest to the centre, finishing candidates until that one is a final result.
+   * @returns {Selected | null} null when no in-band candidate has a final result.
+   */
+  const chooseBest = () => {
+    for (;;) {
+      const open = inBandList.filter((c) => finals.get(c.idx.join(',')) !== null);
+      if (open.length === 0) {
+        return null;
+      }
+      /** @type {Candidate} */
+      let pick = open[0];
+      if (finite) {
+        let pickDistance = Infinity;
+        let pickFinished = false;
+        for (const c of ranked(target, open)) {
+          const final = finals.get(c.idx.join(','));
+          const distance = Math.abs((final ? final.rating : c.rating).score - centre);
+          const finished = final !== undefined;
+          if (distance < pickDistance || (distance === pickDistance && finished && !pickFinished)) {
+            pick = c;
+            pickDistance = distance;
+            pickFinished = finished;
+          }
+        }
+      }
+      const final = finals.get(pick.idx.join(','));
+      if (final !== undefined) {
+        return final;
+      }
+      finishOnce(pick);
+    }
+  };
+
+  /**
+   * Called once for every rated candidate: a central final result stops the search; so does a stall (RES-15a:
+   * the central half is out of reach); from profile `limit - CENTRE_RESERVE` on, the best final result seen so
+   * far does. The stall reads raw subset ratings only, in every uniqueness mode.
+   * @param {Candidate} c
+   * @returns {SelectResult | null}
+   */
+  const afterProfile = (c) => {
+    const inside = inBand(c.rating, target);
+    if (finite) {
+      const offset = c.rating.score - centre;
+      if (Math.abs(offset) <= halfWidth) {
+        ratedCentral = true;
+      } else if (offset < 0) {
+        ratedBelow = true;
+      } else {
+        ratedAbove = true;
+      }
+      if (inside && Math.abs(offset) < nearest) {
+        nearest = Math.abs(offset);
+        nearestAt = profiles;
+      }
+    }
+    if (inside) {
+      inBandList.push(c);
+      if (central(c.rating)) {
+        const final = finishOnce(c);
+        if (final !== null && central(final.rating)) {
+          return final;
+        }
+      }
+    }
+    if (finite && inBandList.length > 0) {
+      const stalled = !ratedCentral && ratedBelow !== ratedAbove && profiles - nearestAt >= STALL_LIMIT;
+      if (stalled || profiles >= limit - CENTRE_RESERVE) {
+        return chooseBest();
+      }
+    }
+    return null;
   };
 
   /**
@@ -250,12 +379,6 @@ export function selectClues(ctx) {
    * @returns {number[]}
    */
   const sample = (count) => rng.shuffle(layout.map((_, i) => i)).slice(0, count).sort((a, b) => a - b);
-
-  /**
-   * @param {Candidate | null} c
-   * @returns {SelectResult | null}
-   */
-  const accept = (c) => (c !== null && inBand(c.rating, target) ? finish(c) : null);
 
   let count = initialClueCount(target.share, K);
   const startCount = count;
@@ -269,7 +392,7 @@ export function selectClues(ctx) {
       if (c === null) {
         continue;
       }
-      const done = accept(c);
+      const done = afterProfile(c);
       if (done !== null) {
         return done;
       }
@@ -293,7 +416,11 @@ export function selectClues(ctx) {
 
   // Phase 2: when every phase-1 sample was skipped, seed the beam afresh.
   for (let attempt = 0; rated.length === 0 && attempt < 4 * SAMPLES_PER_COUNT; attempt += 1) {
-    const done = accept(rateSubset(sample(startCount)));
+    const c = rateSubset(sample(startCount));
+    if (c === null) {
+      continue;
+    }
+    const done = afterProfile(c);
     if (done !== null) {
       return done;
     }
@@ -352,7 +479,7 @@ export function selectClues(ctx) {
         if (c === null) {
           continue;
         }
-        const done = accept(c);
+        const done = afterProfile(c);
         if (done !== null) {
           return done;
         }
@@ -363,6 +490,10 @@ export function selectClues(ctx) {
       break;
     }
     beam = ranked(target, [...beam, ...fresh]).slice(0, BEAM_WIDTH);
+  }
+  const best = chooseBest();
+  if (best !== null) {
+    return best;
   }
   return { ok: false, reason: unproved ? 'uniqueness-not-proved' : 'not-in-band' };
 }
