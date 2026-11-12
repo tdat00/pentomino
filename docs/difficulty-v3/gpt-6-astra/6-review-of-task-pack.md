@@ -379,3 +379,451 @@ required changes implement already accepted behavior or make its evidence valid.
 
 **Sign-off:** first pass complete; **not signed for dispatch of the affected tasks until FP01-FP07 are resolved**.
 MP07, MP08 and MP09c have no algorithmic blocker in this pass. MP09d-MP17 remain unreviewed.
+
+## Second pass
+
+Date: 2026-11-12. Reviewer: SA2, gpt-6-astra. Initial source revision: `60575a4`; MP07 is in progress and
+frozen. No implementation, task file or execution log is edited by this review. The newer owner decisions
+P-OD1-P-OD3 in `clarifications.md` Part H are included: census 10 million pending calibration, work 760 million,
+and the fitted zero penalty pending the MP12 comparison.
+
+### Priority tranche: MP08 and MP09
+
+The following complete task files were reviewed. LastWriteTime is on 2026-11-12 in +07:00.
+
+| File under `tasks/difficulty-v3/` | LastWriteTime | Disposition |
+|---|---|---|
+| `MP08-pure-v3-score.md` | 17:31:00.998 | No blocking contract issue; the fitted values and carried R8 pin are consistent |
+| `MP09a1-duplicate-shapes-refused.md` | 15:43:35.011 | FP02/FP06/FP07 incorporated, including the additional twin fixtures and bounded property migration |
+| `MP09a2-saved-sets-notice.md` | 15:32:03.138 | FP03/FP07 incorporated; startup save and failure path now have explicit ownership and tests |
+| `MP09b-v3-claims-in-packs-and-codes.md` | 15:33:26.273 | FP04/FP06/FP07 incorporated; opaque legacy metrics retained and summary estimate flag preserved |
+| `MP09c-unrateable-and-unproved-candidates.md` | 15:33:26.178 | FP10 incorporated as S2b/S7b; subset/repair accounting remains consistent |
+| `MP09d1-measure-v3-and-v2-names.md` | 15:32:47.196 | Measurement, v2 importer inventory and protocol contracts checked |
+| `MP09d2-activate-v3.md` | 15:32:02.546 | SP01 and SP02 below |
+| `MP09e-code-format-evidence.md` | 16:02:06.511 | Matrix, code framing, share-preparer interface and browser ownership checked |
+
+#### SP01 — Scope the proved-guess promise to generated puzzles
+
+**Severity: Major.** MP09d2's Goal, MP09d2-B01, design-brief text and both user-guide sentences say that Hard and
+above always need a proved/real guess, without limiting this to generated puzzles. That is not the accepted AR1
+contract. `rate` and derived display ratings remain unfiltered; an unfinished census can produce a Hard-or-above
+estimate with `Gproved === 0`. The task's own 41-I-strip rating case exercises that distinction.
+
+**Fix:** say, consistently, "Newly generated Hard-or-above puzzles require at least one proved decisive guess.
+Imported and older puzzles are not filtered; an unfinished-census rating is a labelled estimate." Keep the
+unfiltered `rate` algorithm and its estimate test. MP09d2-B01 must separately require a v3 measurement from `rate`
+and a proved guess from **generation acceptance**. Do not repair the wording by rejecting such ratings in `rate`.
+MP10's display documentation should use the same distinction.
+
+#### SP02 — The activation command sequence aborts on the expected old-fixture failures
+
+**Severity: Major.** MP09d2's exact targeted command includes `tests/generate.test.js` and
+`tests/puzzlecode-cli.test.js`, which consume the old recipe/fixtures. It then unconditionally throws on nonzero
+exit, before GF-P2 can replace those fixtures. The implementation steps expressly allow those same
+fixture-dependent failures before GF-P2. The GA-P2 command similarly throws before the instructed UI-flow
+expectation update.
+
+**Fix:** split the sequence explicitly:
+
+1. Run the measurement, scripted-selection and other fixture-independent checks first, with ordinary fail-fast
+   handling.
+2. Record pre-GF fixture-dependent failures as expected only against the task's named allow-list; any other
+   failure stops the task. Run the announced GF-P2.
+3. Run the complete targeted command with strict exit checking after the fixtures exist.
+4. For GA-P2, retain the first full-suite failure evidence, permit only the listed UI-flow expectation migration
+   after inspecting it, then obtain a passing verification of the changed tests and a clear aggregate gate verdict.
+   D21 remains an owner-controlled exception, not permission to turn arbitrary failures green.
+
+The task must give executable commands for this ordering, rather than a fail-fast script which cannot reach its
+own repair step.
+
+MP08-MP09 REVIEWED
+
+### Remaining reviewed versions
+
+The remainder was read in full. Times below are LastWriteTime on 2026-11-12, +07:00; paths are under
+`tasks/difficulty-v3/` unless stated otherwise. The priority tranche above was completed before the new D21 answer
+arrived at 18:11. That answer is covered separately by SP03; the earlier checkpoint does not approve an impossible
+placement of its new gate.
+
+| File | LastWriteTime | Scope |
+|---|---|---|
+| `check-list.md` | 17:31:01.088; D21 amendment re-read at 18:11:43.281 | index, ownership, D19-D35, traceability, gates; no Done cell edited |
+| `MP06b-probe-and-v2-baseline.md` | 15:31:34.761 | Amendment A1 and completed handoff; verification of FP01/FP05 |
+| `MP06c-initial-fit.md` | 15:55:05.799 | input contract and completed handoff |
+| `MP07-centre-seeking-clues.md` | 15:32:47.153 | FP08 disposition and downstream contracts only; frozen |
+| `MP10a-auxiliary-requests.md` | 16:07:14.196 | whole task |
+| `MP10b1-display-rating-player.md` | 16:10:35.013 | whole task |
+| `MP10b2-display-rating-generator-and-pages.md` | 16:12:54.064 | whole task |
+| `MP11-calibration-tooling.md` | 16:17:05.258 | whole task |
+| `MP12a-calibration-slice.md` | 16:20:44.257 | whole task |
+| `MP12b-full-landscape-and-lock.md` | 16:22:18.453 | whole task |
+| `MP13a-provenance-engine.md` | 16:56:27.926 | whole task |
+| `MP13b-provenance-apps-and-fixture.md` | 17:14:41.037 | whole task |
+| `MP14a-detail-channel-and-clue-recorders.md` | 16:45:53.669 | whole task |
+| `MP14b-set-and-layout-recorders.md` | 16:48:12.667 | whole task |
+| `MP15a-replay-engine.md` | 16:55:02.992 | whole task |
+| `MP15b-replay-worker-task.md` | 16:54:00.055 | whole task |
+| `MP16a-replay-dialog.md` | 16:58:54.268 | whole task |
+| `MP16b-dialog-wiring-and-documents.md` | 17:00:59.791 | whole task |
+| `MP17-final-evidence.md` | 17:20:38.336 | whole task |
+| `docs/difficulty-v3/claude-opus-5.5/6-response-to-task-pack-review.md` | 15:43:50.527 | whole response, verified against the amended tasks |
+| `docs/difficulty-v3/report-detailed.md` | 12:23:19.008 | accepted contracts and task/gate ownership |
+| `docs/difficulty-v3/clarifications.md` | 18:11:43.309 | accepted answers, Parts E-G, P-OD1-P-OD4 and the new Part I answer |
+
+No test, generation, timing, browser or calibration run was started in this second pass. Source reads were used to
+check the named APIs and the existing startup, renderer, solver, recorder, protocol and harness behavior. The
+working-tree MP07 edits were not changed or treated as a new accepted implementation.
+
+### Verification of SA1's FP01-FP10 dispositions
+
+| Finding | Second-pass disposition |
+|---|---|
+| FP01 | Resolved in Amendment A1: classification, real old-cap observation, complete diagnostic inputs and one final-cap cohort; count-cutoff handling is an acceptable addition |
+| FP02 | Resolved in MP09a1: both 128-piece tests and the further affected twin fixtures are explicitly owned; the property migration is bounded |
+| FP03 | Resolved in MP09a2: startup calls `saveRestoreCleanup`, with a durable write and a storage-failure test |
+| FP04 | Resolved in MP09b: ordinary v2 ordering stays; nonstandard admitted legacy metrics survive both writer paths |
+| FP05 | Resolved for MP06b/MP06c: captured inputs, unique labelled runs, manifest, join key and authoritative final observations; SP06 identifies a recurrence in MP12 |
+| FP06 | Resolved in the corrected codec commands and the checklist's targeted-test convention |
+| FP07 | Resolved for MP09a1/a2/b; SP07 identifies the same documentation ownership gap in later tasks |
+| FP08 | Resolved in MP07-B02; RES-15a is now a separate, later authorised amendment, not a reason to reopen FP08 |
+| FP09 | Resolved in the current index, parts map, ownership and traceability; execution marks remain the orchestrator's |
+| FP10 | Resolved: narrowed Goal, eligible estimate case S2b and repair-error propagation case S7b |
+
+All ten dispositions are accepted. This closes the **first-pass** findings; it is not acceptance of the new
+second-pass contracts below.
+
+### Findings continued
+
+#### SP03 — The new D21 v3 revalidation is assigned before a v3 rater exists
+
+**Severity: Blocker.** New evidence during this review: P-OD4 / `clarifications.md` Part I, accepted at 18:09.
+Affects MP09c, MP09d1/d2, MP11/MP12 and checklist D21/D24.
+
+The answer assigns the N = 8, 12, 16 simulation on **v3 rating sequences** to MP09c. But MP09c explicitly adds
+handling while `rate` is still v2, owns no heavy gate, and must not edit `rate`. `measureV3` does not arrive until
+MP09d1; `rate` and `MODEL` switch in MP09d2. The current task cannot run the required production-v3 experiment.
+It also has no command, output directory or time allowance for that experiment. The ordinary v2 sequences used by
+MP07 are not substitute evidence.
+
+**Fix:** have the orchestrator and plan author correct this ownership explicitly, preferably to MP09d2 after the
+switch and before its final fixture/full-suite gates, or to a named post-activation subpart. Give it the D21 case
+population, an executable no-stall counterfactual capture/simulation procedure, N = 8/12/16, workers, time bounds,
+artifact paths and an announced gate. Keep N >= 12; choose 16 only if its measured misses are zero; if neither
+allowed value works, report rather than invent a larger or smaller value. Include skipped, capped and AR1-refused
+profiles in the accounting tests: none advances or resets the stall counter. A changed N must precede the relevant
+fixture refresh. MP12 must receive and report the chosen N and the Hell-cell measurement (SP16).
+
+Do not silently reassign an author's explicit answer or duplicate `measureV3` inside MP09c. MP07 remains frozen.
+This is the finding that needs to go back to the **plan author/orchestrator** now.
+
+#### SP04 — The display-rating tasks miss startup and renderer invalidation
+
+**Severity: Major.** MP10b1, "Where the Player shows it"; MP10b2, "What to build in the Generator".
+
+- The Generator instructions only subscribe to future `set`/`puzzles` reference changes. The app creates its store
+  from `loadGeneratorState` **before** creating the controller (`generator/app.js:96,123`), and
+  `store.subscribe` does not immediately call its listener (`generator/state.js:179-190`). An untouched restored
+  set therefore never supplies its initial wishes, contrary to MP10b2-B01 and test 3.
+- The Player card renderer returns early when its `drawn` inputs are unchanged
+  (`player/ui/puzzle-list.js:176-190`). None is `displayRatings`. Updating the call to `setRating` inside the later
+  loop is insufficient: a reply that changes only the display-rating map leaves the card on its old scale.
+- MP10b1-B02 says a puzzle that cannot be re-rated gets the failure note, but the display table and no-worker tests
+  deliberately suppress it for a settled `unavailable` result. RES-23 says a rating error keeps the claim **with**
+  "could not be re-rated"; this exception is not stated there.
+
+**Fix:** call the Generator's wish builder once on controller construction, then subscribe and unsubscribe on
+destroy; include `displayRatings` in the Player card renderer's invalidation state. Add tests that start from a
+restored store with no user edit and that deliver a derived rating with no navigation/language/verification change.
+Use the failure note for a settled unavailable request too, or obtain and state an explicit exception consistently
+in the business criterion, display table, documents and tests. Pending entries may still show the claim without a
+failure note.
+
+#### SP05 — Auxiliary tests require mutually incompatible queue states
+
+**Severity: Major.** MP10a, required cases 5 and 7, and its “never delay … a certificate” promise.
+
+Case 7 asks for a **running** auxiliary request while a main request is active, then expects `cancelAll()` not to
+settle it. Under rules 1-4 this cannot be the intended fixture: an auxiliary request submitted during main work
+waits, and starting main work after an auxiliary request marks it `byMain` and cancels it. Case 5 likewise needs to
+separate aborting a waiting request beside main work from aborting a running request after main work.
+
+There is a second overstatement: both certificates and auxiliaries use the same FIFO `idleQueue`
+(`core/browser/worker-pool.js:483-498,562-564`). They do not cancel one another, but one idle job can wait for
+another; unchanged `worker-pool.js` cannot prove zero delay for every certificate.
+
+**Fix:** test waiting-auxiliary cancellation while a held main task completes unchanged; separately test a running
+auxiliary under an ended token alongside a held idle certificate. Exercise `cancelAll`/`recycle` and re-queue with
+**no active main request**; exercise new-main cancellation separately and require rejection. State the accepted
+RES-29 promise (“never cancels or supersedes certificates”), rather than a stronger certificate latency guarantee.
+Main-work priority and prompt cancellation remain required.
+
+#### SP06 — MP12 reintroduces destructive probe splits and leaves the fit input implicit
+
+**Severity: Major.** MP12a, "One round", step 2 and "Choosing a change"; MP12b's ordered change round.
+
+The command writes `A-<case>.jsonl`, then advises splitting `--reps 0-4` into `0-1` and `2-4` without different
+filenames or a merge. `rate-probe` rewrites its output (`tools/rate-probe.mjs:647`); the second command loses the
+first observations. Census trials need distinct names too. This is FP05 again, after that finding was correctly
+fixed for MP06. MP06c's actual fit also expects a manifest and `(request, puzzleId)` joins, whereas MP12a hands it
+raw per-command JSONL files and merely says to point the script at them.
+
+**Fix:** prescribe unique `<round>-<case>-r<range>-<budget>.jsonl` paths, a request manifest (including empty and
+partial requests), canonical merging, duplicate/missing-key checks and an explicit adapter to the fit input. Fit
+only complete, identity-matched observations; classify failures before reading `first` or `census`. Preserve every
+old/trial/final file and budget tuple. Regeneration remains allowed by RES-14, but an identity mismatch is not
+silently treated as the same puzzle. Apply A1's complete-diagnostic rule when selecting raised caps; a still-capped
+diagnostic is not an observed maximum. Specify the final verification under the exact chosen tuple.
+
+#### SP07 — Later documentation slots conflict with the same-commit rule
+
+**Severity: Minor.** MP10b1, MP12a, MP13a/b and their checklist ownership rows.
+
+MP10b1 changes visible Player behavior but leaves the living brief to MP10b2. MP12a may change production knobs,
+caps, `K60` or `SHARES` yet says its documentation slot is “none”. MP13a/b change pack metadata and saved state while
+explicitly excluding the brief. `AGENTS.md` requires both living specifications to change in the same behavioral,
+storage or format change.
+
+**Fix:** give these tasks narrow sequential ownership of `docs/design-brief.md` and the relevant
+`docs/design-detail.md` facts. MP12a may leave the final measured landscape narrative to MP12b, but must keep current
+behavior and values/references correct immediately. Do not repair this by editing historical reports. This repeats
+the ownership issue of FP07, not a request for unrelated prose.
+
+#### SP08 — Replay discards an ordinary multi-puzzle pack's valid provenance
+
+**Severity: Blocker.** MP13a's `readProvenance` validity table versus MP15a's first algorithm line and fixture tests.
+
+MP13a rejects a whole `made` map when it has more keys than `puzzleIds.size`. MP15a accepts the pack's whole
+`generation` object but calls:
+
+```js
+readProvenance(generation, new Set([puzzle.id]))
+```
+
+Each GF-P4 pack has four puzzles and four records. The map is therefore rejected before replay; even the
+calibration record vanishes. MP15a's case 1 (“every puzzle of both fixture packs is matched”) cannot pass as written.
+MP15b's one-entry wire payload masks this defect; it does not repair the public engine API.
+
+**Fix:** after bounded structural validation, project the requested puzzle's **own** `made` entry into a one-entry
+object for per-puzzle validation, preserving errors on that entry and `setOrigin`; or explicitly provide all pack
+puzzle ids to the full-map reader. Keep MP13a's whole-pack validation at the actual pack boundary. Test the same
+puzzle with full multi-entry generation metadata and with the one-entry worker form; their results must agree.
+Do not weaken the test by passing a hand-filtered object everywhere while the API still promises whole-pack input.
+
+#### SP09 — Replay's work meter does not count the work specified by RES-29
+
+**Severity: Blocker.** MP14a/b accounting, MP15a `record(event)` and `REPLAY.work`, checklist D31/D33.
+
+MP15a returns from `record` for hidden calibration events **before** accounting for their work. Capped ratings
+emit `unrateable` with no detail, so their potentially large spent work is also zero. Uniqueness work is guessed as
+one `countRowLimit(board)` per emitted repair event: `makeUnique` actually calls `countSolutions` in a loop
+(`core/engine/clues.js`, `makeUnique`), including the final count and successful zero-add repairs which emit no
+event. A bound per count is neither the actual trial count nor necessarily an upper bound on the whole finish.
+
+Thus a candidate replay can spend its set calibration and several expensive failed ratings while the meter
+hardly moves. This is not the accepted “sum of work of every rating, census included, plus every uniqueness
+repair's trial counters, plus one per recorder event”.
+
+**Fix:** add a precise accounting channel in MP14a/b, separate from visible steps. Charge each rating once,
+successful or capped, and each actual uniqueness count's trial value, including zero-add finishes. Charge before
+filtering calibration events; avoid double-counting the census already in `search.work`. Check the bound at every
+accounting/event boundary and propagate the private stop sentinel. Make the measured total available to MP15a's
+case 13 through a defined diagnostic/result contract. Add tight-cap tests that stop during a hidden calibration,
+a capped rating and a zero-add repair. The fix implements RES-29; it is not permission to change solver counters.
+
+#### SP10 — The byte bound is applied after buffering the trace and can be exceeded
+
+**Severity: Major.** MP15a's algorithm, step construction and case 8.
+
+The algorithm buffers all raw events, completes both expensive runs and only then converts and checks bytes.
+More importantly, it reserves the final step's serialized size but never checks that the final step alone fits:
+`steps.push(final)` is unconditional. A small positive `maxBytes` below that size returns an over-budget result.
+Neither custom limits nor an early STOP have a complete state contract: internal `'to-run'` is not a public
+`StageState`, and a byte-truncated result may retain the full comparison state.
+
+**Fix:** define and validate the limit domain; account for retained event/step bytes incrementally rather than
+unbounded buffering. Reject an impossible caller limit before running when the mandatory stored-final step cannot
+fit; do not silently exceed the bound or omit that promised step. Count the chosen serialized representation
+consistently. On any incomplete trace, expose only public stage states
+and do not present its final endpoint as verified. Test a limit smaller than the final step, an early set-stage
+STOP, byte exhaustion during recording, and the maximum retained bytes.
+
+#### SP11 — The final step loses clues without solutions and discards available census detail
+
+**Severity: Major.** MP15a's final-step row; MP16a's board and score-table consumers; RES-29/RES-30.
+
+- The final step places the stored solution “or none” and carries only clue **ids**. MP16a obtains clue poses from
+  `board.placed`. In an `omitSolutions` pack there are no such placements, although `puzzle.clues` still contains
+  the given poses: the stored puzzle's final board loses its clues.
+- The final step always has `detail: null`, even after a matched replay. RES-30 requires the final puzzle's table
+  to use the recorded choices/census when available. The selected event identifies the winning subset/repair, so
+  its detail is available; deliberately dropping it makes the final table say “not available” unnecessarily.
+
+**Fix:** include the known clue placements in the final board even when no solution is stored; never invent the
+remaining placements. For a matched full claim, attach the selected subset or last selected-repair detail from the
+same measurement. Keep unavailable data null for an unavailable replay/summary as appropriate. Test the final
+board of an omitted-solution pack and the final guess-node table of both an unrepaired and repaired winner.
+
+#### SP12 — A legacy v2 metrics object is not proof that its breakdown can be calculated
+
+**Severity: Major.** MP15a's `breakdown` rule and MP16a's legacy-table rule, after MP09b/FP04.
+
+MP09b deliberately admits opaque bounded v2 metrics, including `{ oldCounter: 7 }`. MP15a nevertheless constructs
+`2 * U` and `8 * log10(1 + B)` for **any** v2 claim with metrics. Missing or nonnumeric U/B produces NaN (then null
+after JSON serialization), violates the plain-finite-JSON step contract and can show a fabricated/broken table.
+The first-pass compatibility fix must not be undone by this later consumer.
+
+**Fix:** calculate the frozen v2 terms only when their required inputs are finite numbers in the valid arithmetic
+domain. Otherwise keep the original total, use `breakdown: null` and label the terms unavailable. Do not reject or
+rewrite the legacy claim. Add missing, extended and nonnumeric legacy-metric cases to replay and table tests.
+
+#### SP13 — Two trace tests contradict the valid calibration and repair sequences
+
+**Severity: Major.** MP15a case 2 and MP16b Part A checks 1-2.
+
+MP14a emits rated stage 5, repair stage 6, then further rated/selected stage 5 events in execution order.
+MP15a's “stages never decrease” assertion therefore rejects a normal `require` trace; even a last repair followed
+by `selected` is 6 -> 5. Sorting the trace to satisfy that assertion would destroy its meaning.
+
+MP16b opens the **first** generated card, then requires a stage-4 retile. The first accepted puzzle can be the
+reused calibration, and MP15a explicitly requires that puzzle to have **no stage 4**.
+
+**Fix:** assert the chronological event contract, allowing the specified stage-5/6 interleaving, with final stage 7
+last. For the retile UI test, select a puzzle whose `made.kind === 'candidate'` and pin a bounded fixture/seed that
+provides one. Test the calibration card separately and require no retile stage. Keep the explicit unavailable
+stage assertions; do not make generation perform a fictitious walk.
+
+#### SP14 — D31's zero-add repair exception and its text need one consistent definition
+
+**Severity: Minor.** Checklist D31, MP14a repair paragraph/case 7 and MP16a's locale variants.
+
+MP14a correctly specifies an event for a repair which fails before adding a clue (`addedId: null`,
+`reason: 'not-proved'`). But D31 and case 7 say a finish that adds no clue emits none. Every rejection sentence in
+MP16a also takes `{piece}`, without a no-piece variant.
+
+**Fix:** state “successful zero-add finish emits none; failed zero-add finish emits one failure event” in all three
+places, and give the no-piece failure a locale sentence that does not render “null” as a piece name. Test that exact
+event and both languages. Account for the successful zero-add work separately (SP09).
+
+#### SP15 — Compact mode silently drops the final tie-break of `ranked`
+
+**Severity: Minor.** MP16a's compact filter and synthetic case 1, against RES-30.
+
+RES-30 names the P1 `ranked` comparator. It orders by band distance, centre distance, then canonical clue key
+(`core/engine/clues.js`, `ranked`). MP16a uses only the first two fields and declares every score-distance tie
+not an improvement. A later tied score with a smaller clue key is a strict improvement under the named comparator.
+
+**Fix:** either carry/recompute the same canonical clue key and apply the full comparator, with a tied-score
+regression case, or explicitly record that compact mode uses only a score-distance projection rather than claiming
+to use `ranked`. The former follows the accepted contract without a new choice. Do not change generation's tie-break.
+
+#### SP16 — The calibration pack has no producer for required search/repair evidence
+
+**Severity: Major.** MP11's record schema; MP12a/b's record requirements; RES-25 and the new D21 answer.
+
+RES-25 asks the calibration record to include repaired candidates. Part I now also requires ratings per puzzle and
+generation time for every Hell cell. MP11 records only each accepted puzzle's final clue count/rating and independent
+profile samples; neither records how many subset/repair ratings the search spent, nor whether/how a candidate was
+repaired. A final `metrics.work` is the cost of one rating, not the cost or profile count of the whole search.
+MP12's record outlines cannot recover the missing facts from those fields.
+
+**Fix:** explicitly allocate a bounded measurement producer before the lock: extend the diagnostic instrumentation
+or reuse the D21 capture method, with defined counters and denominators (subset ratings, repair ratings, rejected/
+capped profiles, successful repairs; per selection and/or per accepted puzzle). Give the relevant `require`
+population as well as the Hell cases, commands, artifact paths, worker count and timing slot. Teach the reporting
+task to consume that evidence and assert a small known multi-repair vector. If the evidence is intentionally
+omitted, that needs a stated acceptance change, not a claim that RES-25/D21 were completed.
+
+#### SP17 — GZ can pass on missing outputs or read a stale pack from an earlier run
+
+**Severity: Major.** MP17's generation loop, `summarise.mjs`, probe loop and MP17-T03.
+
+The loop reuses `tests/artifacts/MP17/<name>.json`. A no-result CLI run writes no file; it does not remove a previous
+file. The summary can therefore read a previous run's pack beside the new exit/time. If files really are absent,
+the summary simply continues and can exit 0 with **zero** Hard-or-above puzzles and no failures. It does not check
+the expected 12 unique run identities, exit/output/count consistency or an explicit approved-miss list.
+Conversely, the probe loop unconditionally opens p1/p2/p3, even though the task expressly permits an evidenced
+empty run in a low-availability cell.
+
+**Fix:** use a fresh attempt directory, or remove only this run's named outputs before each invocation; record an
+output digest alongside the invocation. Validate the complete run manifest, expected names/seeds/counts, output
+presence and 0/2/1 exit semantics. An empty/partial result must be an explicit finding or an approved exception linked
+to MP12b, never a successful coverage proof. Require nonzero proved-Hard evidence before making MP17-B01's observed
+claim. Probe only current produced packs and record skipped-empty inputs explicitly. Keep unavailable levels visible
+in the verdict and the release record.
+
+#### SP18 — GZ runs heavy fixture regeneration before announcing the gate
+
+**Severity: Major.** MP17, "The lock checks (step 1, before the announcement)", and implementation steps 1-2.
+
+That allegedly light step includes both `record-fixtures --check` and `--replay-case --check`. Both regenerate
+puzzles; the latter performs the real set and two batches of MP13b's recipe. These are explicitly GZ gate commands,
+not source inspection, and can overlap the other repository's timing run under the written order.
+
+**Fix:** only git inspection and printing locked constants may precede the announcement. Acquire the orchestrator's
+exclusive heavy-run slot **before either fixture check**, include them in the announced duration, and then perform
+the checks/full suite/runs. Keep per-command exit checks and the ten-minute limit. Apply the same rule to retries;
+“--check” means no fixture writes, not no expensive computation.
+
+#### SP19 — The referenced browser driver cannot prove the keyboard criteria, and GZ omits phases
+
+**Severity: Major.** MP16b keyboard check; MP10b2/MP16b/MP17 browser evidence and GZ's “every page” claim.
+
+The native client in `tasks/regenerate-puzzle/check-list.md` §7 only navigates and polls; it sends no
+`Input.dispatchKeyEvent`. Synthetic DOM key events do not prove native Tab traversal or Escape closing a modal.
+The repository already has a trusted-key handshake in
+`tests/browser/puzzle-code-acceptance.js:2018-2045` (`data-stage="key-..."`), but the tasks do not give a driver for it.
+GZ opens that page with no query, so it only runs `phase=main`: its keys and 390 px/coarse-pointer phases are skipped.
+
+There are also evidence gaps in the copied driver: it writes fixed `browser.json`/`browser.png` names (one output
+directory per page/phase is needed), and several older pages expose their counts in `#summary` rather than
+`data-summary` (for example `rendering.js:725-727`, `generator-flow.js:988-990`,
+`acceptance.js:717-720`). Polling only `dataset.summary` cannot record those promised counts.
+
+**Fix:** supply a ready-to-run bounded CDP driver/extension for the known key handshake and use trusted
+Tab/Shift+Tab/Enter/Escape in the replay check. Add explicit GZ runs for main, keys and narrow; set the narrow
+viewport and touch emulation and record each phase separately. Use per-page/per-phase artifact directories and a
+`data-summary`/`#summary` fallback. Give the exact invocations, expected time and cleanup behavior, not a new
+browser-automation design exercise for the developer. Known hardware-blocked checks remain honestly blocked.
+
+### Assessment of D26-D35 and remaining execution risks
+
+| Decision | Assessment |
+|---|---|
+| D26 auxiliary module, no second pool | Mechanism accepted; repair the contradictory fixtures and overly strong certificate wording (SP05) |
+| D27 shared display scheduler | Factoring and claim preservation accepted; startup, invalidation and settled-unavailable presentation need SP04 |
+| D28 calibration record additions | `clues ?? G` compatibility and v3 columns are consistent; add the missing search evidence of SP16 |
+| D29 bounded calibration rounds | Ranges, caps, owner escalation and P-OD1-P-OD3 review are consistent; repair corpus persistence/fit handoff (SP06) |
+| D30 provenance, skip replay, CLI one-line handoff | Accepted; preserve 64/16 encoding caps, 2,128/64 ordinal bounds and writer fallback; fix the per-puzzle/full-map mismatch (SP08) |
+| D31 repair events and extra failure reasons | Useful and compatible implementation detail; make the zero-add exception explicit and expose actual cost (SP09/SP14) |
+| D32 walk `start`, `carveFlat` signature retained | Accepted: the start supplies the layout replay needs; caller-side successful-region events suffice without changing the recursive carve API |
+| D33 `Step.detail`, placement objects, replay bounds | Useful shape refinement; the present metering/byte/final-step algorithm is not accepted (SP09-SP12) |
+| D34 pure replay model beside DOM dialog | Accepted separation; fix trace tests, comparator fidelity and browser proof (SP13/SP15/SP19) |
+| D35 regression-only MP17 and release-notes section | Scope accepted; fix coverage/stale outputs and gate scheduling (SP17/SP18/SP19) |
+
+The sequential ownership model is sound: none of these tasks needs a concurrent writer in this repository. Commands
+generally specify `--workers 4` where the tool supports it, shard/checkpoint handling, output paths and announce rules.
+The exceptions are the new D21 revalidation and the issues above; adding the word “gate” without an executable
+procedure is not enough.
+
+The 20-60 minute sizes are plausible for most coding parts **after** these contracts are repaired. MP15a presently
+bundles API projection, exact comparison, partial-state construction, accounting and output-budget design into one
+60-minute task; it is not ready for a developer without further design work. Consider two sequential parts once the
+contracts are fixed. Keep measurement wall time separate from developer time. In particular, MP13b's search over
+50 seeds can perform a set and two timed batches per seed: “a few minutes” is not an upper bound. Give that search
+a resumable/bounded procedure or a measured accepted seed before its GF-P4 dispatch, and verify that the added
+recorder assertion fits the promised 60-second quick-test allowance.
+
+The new D21 stop changes neither the provenance integer upper bounds nor AR1's intent, but its final value must be
+measured on v3 before the lock. The 5 % census criterion, zero-penalty comparison and accepted 760-million work cap
+remain P-OD1-P-OD3 decisions, not invitations to reopen the score model.
+
+**Second-pass result: 3 Blocker, 13 Major, 3 Minor findings (SP01-SP19).**
+
+**Blockers:** SP03 (D21 gate scheduled before the v3 rater), SP08 (whole-pack provenance rejected by replay),
+SP09 (replay work bound does not meter the accepted computation).
+
+**Sign-off:** second pass complete; **not signed for dispatch of the affected tasks until their findings are
+resolved**. The first-pass FP01-FP10 dispositions are accepted. No task, checklist, implementation or execution log
+was edited. The plan-author follow-up is SP03; the other required fixes implement already accepted contracts or make
+their evidence executable, without changing an owner decision.

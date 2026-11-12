@@ -1,0 +1,260 @@
+# MP10b2 — Derived display rating in the Generator; the browser pages and gate GC-P2 (display)
+
+| Header | Value |
+|---|---|
+| ID | MP10b2 (second half of the report's display part of MP10) |
+| Depends on | MP10b1 (accepted and committed: `core/browser/display-rating.js`, the note texts, the Player views); MP10a (`client.submitAuxiliary`) |
+| Estimated size | Medium–Large: about 400–650 changed lines (the Generator about 100, Node tests about 150–200, browser pages about 150–250, documents about 50); about 50–60 minutes plus the browser runs (about 10–15 minutes) |
+| Owner role | Apps |
+| Milestone | M6 — display rating |
+| Design refs | `docs/difficulty-v3/report-detailed.md` RES-23 (derived display rating; Generator: imported and restored puzzles), RES-29 (auxiliary requests), RES-05 and C1 (b) (estimate note), RES-22 (gate GC-P2); check-list §4.2 D27, §7 (GC-P2 display, browser checks) |
+| Gates owned | GC-P2, display part (check-list §7) |
+| Implementation status | Not started |
+
+## Goal & business context
+
+MP10b1 made the Player show puzzles of the old scale with a rating on today's scale and the original in a note, and
+mark every v3 estimate. The Generator must do the same for the puzzles it did not make with v3: puzzles imported from a
+link, a code or a pack, and the puzzles of sets saved before this version (RES-23). A generation in progress must never
+be slowed down or stopped by this background work; a new generation makes it give way and it resumes afterwards
+(RES-29).
+
+This task also runs the owner's display gate (GC-P2, display part): the browser pages that show ratings, print
+captions included, now show the derived rating and the estimate note in a real browser, with and without the number
+of undecided alternatives.
+
+## Scope
+
+### In scope
+
+- Generator: `generator/state.js` (the state field `displayRatings`, never saved), `generator/jobs.js` (the scheduler
+  and its wishes), `generator/ui/puzzle-panel.js` (cards and print captions), `generator/app.js` (only if the client
+  must be passed on).
+- Node tests: `tests/generator-import.test.js`, `tests/generator-state.test.js` (new cases).
+- Browser pages (the expected rating texts and waits for the derived rating only; one new check each in
+  `tests/browser/print.js` and `tests/browser/generator-flow.js`): `tests/browser/player-load.js`,
+  `tests/browser/puzzle-code-print.js`, `tests/browser/puzzle-code-acceptance.js`, `tests/browser/acceptance.js`,
+  `tests/browser/print.js`, `tests/browser/generator-flow.js`; and their runs (gate GC-P2 display).
+- Documents: `docs/design-detail.md` §10 (where the Generator shows ratings), `docs/design-brief.md` (one sentence),
+  `USERGUIDE.md`, `USERGUIDE.vn.md` (Generator part).
+
+### Out of scope
+
+- `core/browser/display-rating.js`, the note texts, `puzzleDetails`, the Player (MP10b1; a defect goes back as a fix
+  round); `core/browser/auxiliary.js` and the client (MP10a).
+- Generated puzzles: they carry v3 claims and are never re-rated.
+- Any other browser page; the Share dialog (it shows the puzzle's name only, no rating:
+  `core/browser/share-dialog.js:369`).
+
+## Repository rules
+
+- Read `AGENTS.md` and `tasks/difficulty-v3/check-list.md` §3 and §7 first.
+- Browser checks: each check finishes within 1 minute, each page within 10 minutes; a check waits for an asynchronous
+  derived rating with the page's `waitFor` helper (never a fixed long sleep). Expected texts never pin a knob-dependent
+  v3 level or score: match patterns (a level name, an integer score) and the stored original in the note.
+- This task owns the GC-P2 display runs (the six pages of the test plan). **Announce to the orchestrator before
+  starting them** (the Sudoku repository runs in parallel on the same machine; never two heavy runs at once): give the
+  pages and the expected wall time (about 10–15 minutes) in your plan, and start only when the orchestrator says the
+  machine is free.
+- Ports HTTP 8810 and CDP 9310; profile `tests\artifacts\edge-MP10b2\`; evidence `tests\artifacts\MP10b2\`; the
+  procedure and native CDP client of `tasks/regenerate-puzzle/check-list.md` §7 (client wait raised to 540,000 ms).
+  Stop only your own processes, by PID; remove the profile afterwards, also on failure.
+- Never stage, commit, stash, reset, push or switch branches; never edit `tasks/difficulty-v3/`, the reports or
+  `docs/difficulty-v3/`. UTF-8 without BOM, CRLF, final newline, no trailing whitespace.
+
+## Inputs & context
+
+### From MP10b1 (read its module before starting)
+
+- `core/browser/display-rating.js`: `needsDisplayRating(claim)`, `displayRatingKey(fingerprint)` (``
+  `${fingerprint}|${MODEL}` ``), `createDisplayRatings({ submit, onChange, limit })` with `want(wishes)`, `get(key)`,
+  `dispose()`, and `ratingDisplay(claim, entry, { t, levelLabel })` → `{ rating, notes }` or null. Entries: `pending`,
+  `rated` (`rating`), `failed` (`code`), `unavailable`. One request at a time, re-submitted after a main request
+  cancelled it.
+- The notes (keys in `core/browser/print-texts.js`, spread into both apps): "Re-rated with the current scale
+  (original: {level} {score}, {model})", "Could not be re-rated", "Decisive estimate: {count} alternatives undecided
+  within the work limit" (`_one` / `_other`), "Decisive estimate"; and their Vietnamese texts.
+- `puzzleDetails(t, { level, score, saturated, notes })` prints each note as one more line.
+
+### The Generator (anchors at HEAD `7604eff`; MP09a2 and MP10a changed nearby lines; find them by the quoted text)
+
+- State: `defaultGeneratorState` (`generator/state.js:119`); the saved shape `serializeState` (970-988) lists its
+  fields explicitly ("Jobs, timers and session-only data never appear"), so a new field is not saved unless added
+  there — do not add it. Puzzles: `state.puzzles` (each `{ id, title, seed?, clues, solution, rating, certificate }`),
+  the set `state.set` (`board`, `pieces`). Imported puzzles: `importPuzzle(state, pack)` (595) and the import job
+  `importPuzzleCode` (`generator/jobs.js:551-602`); restored sets: `readSavedSet` (885), `restoreState` (992).
+- Controller: `createJobController(options)` (`generator/jobs.js:197`; `client` from options; `destroy` at 641);
+  `stopBackground()` (212-216) calls `options.cancelPending?.()` (the app passes `() => pool?.cancelAll()`): by MP10a's
+  rule 6 a running auxiliary task is then put back in its queue, not lost. Every main request (`generateSet`,
+  `generateBatch`, `solveWitness` for an imported set without an answer, 598-600) aborts the display request, and the
+  scheduler submits it again (MP10b1).
+- Views: `describeRating(puzzle)` (`generator/ui/puzzle-panel.js:70-80`: `card.noRating` or `card.rating` with
+  "level: score[+]"), used for the cards (355-359, the level in bold); print captions in `printJobOf(state,
+  selectedId)` (101-128, `puzzleDetails` at 118-119) and `printListOf(state, selectedId)` (131-154, at 139-140).
+- `client.submitAuxiliary(kind, payload, { signal })` (MP10a). A test or app client without it (`options.client` in
+  `tests/generator-*.test.js` fakes): the scheduler's `submit` must then reject with
+  `new PoolError('worker-unavailable', 'No auxiliary requests')`, which gives `unavailable` entries; also when
+  `options.workersAvailable === false`.
+
+### What to build in the Generator
+
+1. `displayRatings: {}` in `defaultGeneratorState` and the `GeneratorState` typedef (not saved; `restoreState` keeps
+   the default).
+2. In `createJobController`: `const display = createDisplayRatings({ submit, onChange })` with `submit = (kind,
+   payload, o) => client?.submitAuxiliary?.(kind, payload, o) ?? Promise.reject(new PoolError(…))` and `onChange`
+   writing `displayRatings[key]` through `store.update` (delete the key for `undefined`). Subscribe to the store: when
+   `state.set` or `state.puzzles` changes (compare by reference), call `display.want(wishes)` with one wish per puzzle
+   of `state.puzzles`, in list order, whose claim `needsDisplayRating`: `{ key: displayRatingKey(progressFingerprint(
+   state.set.board, state.set.pieces, puzzle.clues)), payload: { boardRows: boardToRows(state.set.board), pieces:
+   state.set.pieces, clues: puzzle.clues } }`; no set → `want([])`. `destroy()` disposes the scheduler.
+3. `describeRating(puzzle, entry)`: with `const shown = ratingDisplay(puzzle.rating, entry, { t, levelLabel })`, null →
+   `t('card.noRating')`; otherwise the card line of `shown.rating` as today, then each note after " · ". The cards look
+   the entry up with the puzzle's key in `state.displayRatings`; the bold level stays the level of the rating shown.
+4. `printJobOf` and `printListOf`: `puzzleDetails(t, { level: levelLabel(shown.rating.level), score:
+   shown.rating.score, saturated: shown.rating.saturated, notes: shown.notes })` (null when `shown` is null).
+
+### Browser pages whose expected rating texts change (MP10b1's Player display; RES-23)
+
+The Player sample (`player/samples/sample-pack.json`, frozen by check-list D20) has `difficulty-v2` claims, so with a
+worker the Player now shows derived v3 ratings with the re-rated note. Edit only these expectations, each after a
+`waitFor` until the note is present (`.rating-note` in the Player views; the sheet's extra detail line in print):
+
+| Page and line (HEAD `7604eff`) | Today | After |
+|---|---|---|
+| `tests/browser/player-load.js:228-229` | `.puzzle-info` starts with "Normal: score "; bold "Normal" | a level name in bold and "score N", then the note "Re-rated with the current scale (original: Normal N, difficulty-v2)" (the original level of that puzzle) |
+| `tests/browser/player-load.js:275-277` | cards "Easy: score N", "Normal…", "Hard…" | each card: a level and a score, then the note with the original Easy, Normal and Hard |
+| `tests/browser/player-load.js:570` | Vietnamese "Trung bình: điểm " | the Vietnamese note with the original "Trung bình" |
+| `tests/browser/puzzle-code-print.js:466` | `['Easy: score 8']` | two lines: "<level>: score N" and the re-rated note with "Easy 8, difficulty-v2" |
+| `tests/browser/puzzle-code-acceptance.js:1024` | `/^Normal: score \d+/` on `details[0]` | `details[0]` matches `/^.+: score \d+$/` and `details[1]` is the re-rated note with "Normal" |
+| `tests/browser/puzzle-code-acceptance.js:1415-1416` (Generator) | `details.length === 1` | `details.length === (puzzle.rating.censored === true ? 2 : 1)`; the second line, when present, is the estimate note |
+| `tests/browser/acceptance.js:240-243` | card lines `/^\w[\w ]*: score \d+\+?$/` | the rating part before " · " matches; a following note, if any, is the re-rated note |
+
+If another page check fails only because of the new notes, report it with its name and the text; do not edit it
+without the orchestrator's approval.
+
+### New browser checks (gate GC-P2 display)
+
+- `tests/browser/print.js`: "the sheet prints the notes of a rating: re-rated, estimate with n and without n, in both
+  languages": `puzzleDetails(t, { level: 'Normal', score: 14, saturated: false, notes: [<re-rated note of a v2 Easy 8
+  claim>, <estimate note with count 3>] })` built through `ratingDisplay` and the real texts; the sheet shows three
+  detail lines in order, the level in bold only on the first; the same with the short estimate note; and in Vietnamese.
+- `tests/browser/generator-flow.js`: "an imported puzzle of the old scale is re-rated on its card; generated puzzles
+  are not": import the code of the Player sample's first puzzle (G1 of `tests/fixtures/puzzlecode-v1.json`, a
+  `difficulty-v2` claim) through the Import puzzle dialog of the real Generator (real workers); `waitFor` the card's
+  note "Re-rated with the current scale (original: Easy 8, difficulty-v2)"; generate one more puzzle in that set and
+  check that a generated card shows no re-rated note; start a generation while a display request is still pending
+  (import a second code and click New puzzle at once): the generation completes with its usual number of puzzles and
+  the second card gets its note afterwards.
+
+## Files to create/modify
+
+| File | Change |
+|---|---|
+| `generator/state.js` | `displayRatings` (default, typedef) |
+| `generator/jobs.js` | the scheduler, its wishes, `destroy` |
+| `generator/ui/puzzle-panel.js` | cards and print captions |
+| `generator/app.js` | only if the client must be passed on |
+| `tests/generator-import.test.js`, `tests/generator-state.test.js` | new cases |
+| the six browser pages of the table and the new checks | expectations and two checks |
+| `docs/design-detail.md`, `docs/design-brief.md`, `USERGUIDE.md`, `USERGUIDE.vn.md` | documents |
+
+Exclusive ownership while active: the files above; scratch under `tests/artifacts/MP10b2/`. Documentation slot: design
+§10 (Generator), the brief's levels paragraph, the user guides' Generator part. Must not edit: the Player, the shared
+display module, the texts, engine files, other pages.
+
+### Documents
+
+- `docs/design-detail.md` §10 (Generator application; the puzzle cards and printing, about lines 2140-2183): imported
+  and restored puzzles with a v1 or v2 claim show the derived display rating of §7.7 with its note; generated puzzles
+  show their v3 rating; an estimate shows its note; the derived ratings are never saved.
+- `docs/design-brief.md`, "Levels and typical boards" (where MP09d2 added the v3 sentence): "Puzzles made before this
+  version keep their stored score and are shown re-rated on today's scale, with the original in a note."
+- `USERGUIDE.md` (Generator part: importing and the puzzle cards) and `USERGUIDE.vn.md`: one or two sentences each, in
+  the terms of MP10b1's Player sentences.
+
+## Implementation steps
+
+1. The Generator state, controller and views; the Node tests; run them.
+2. The browser page edits and the two new checks.
+3. Announce and run the six pages (one at a time); record the results.
+4. Documents; `npm run test:quick`; `npm run check`.
+
+## Acceptance criteria — Business
+
+| ID | Criterion | Evidence |
+|---|---|---|
+| MP10b2-B01 | In the Generator, imported puzzles and puzzles of saved sets with a v2 or v1 claim show a v3 level and score with the original in a note, on the card and on paper; generated puzzles show their own rating | Node tests; the generator-flow check |
+| MP10b2-B02 | Re-rating in the Generator never slows down or stops a generation; after the generation it completes | Node test; the generator-flow check |
+| MP10b2-B03 | In a real browser, both apps show the derived rating and the estimate notes (with and without the number) in English and Vietnamese, on screen and on the printed sheet | GC-P2 display runs |
+
+## Acceptance criteria — Technical
+
+| ID | Criterion | Evidence |
+|---|---|---|
+| MP10b2-T01 | `displayRatings` is in the Generator state and not in `serializeState`; stored claims and saved sets are unchanged byte for byte | `tests/generator-state.test.js` |
+| MP10b2-T02 | Wishes: one per listed puzzle with a v1 or v2 claim, in list order, keyed by fingerprint and `MODEL`; none for v3, unknown or missing claims; a client without `submitAuxiliary` gives `unavailable` entries and no error notice | `tests/generator-import.test.js` |
+| MP10b2-T03 | `describeRating`, `printJobOf` and `printListOf` show the rating and notes of `ratingDisplay` | Node tests |
+| MP10b2-T04 | The six pages pass in the main phase with no CSP violation and no uncaught error; only the listed expectations changed, plus the two new checks | browser evidence; diff |
+| MP10b2-T05 | `npm run test:quick` and `npm run check` pass; documents in both languages | command output; review |
+
+## Test plan
+
+### Exact commands
+
+```powershell
+node --test --test-skip-pattern=slow tests\generator-import.test.js tests\generator-state.test.js tests\generator-i18n.test.js tests\display-rating.test.js
+if ($LASTEXITCODE -ne 0) { throw 'targeted tests failed' }
+
+# announced gate GC-P2 display: ports 8810 / 9310, one page at a time, main phase, the procedure of
+# tasks/regenerate-puzzle/check-list.md section 7
+#   http://127.0.0.1:8810/pentomino/tests/browser/print.html
+#   http://127.0.0.1:8810/pentomino/tests/browser/player-load.html
+#   http://127.0.0.1:8810/pentomino/tests/browser/puzzle-code-print.html
+#   http://127.0.0.1:8810/pentomino/tests/browser/puzzle-code-acceptance.html
+#   http://127.0.0.1:8810/pentomino/tests/browser/acceptance.html
+#   http://127.0.0.1:8810/pentomino/tests/browser/generator-flow.html
+
+npm run test:quick
+if ($LASTEXITCODE -ne 0) { throw 'quick set failed' }
+npm run check
+if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
+```
+
+`tests/browser/acceptance.html` reported "16 checks, 4 blocked" at the regenerate-puzzle release (blocked checks need
+a physical device): the same blocked checks are expected; any new blocked or failed check is reported.
+
+### Required test cases (Node)
+
+1. `tests/generator-import.test.js`: importing a code whose puzzle has a v2 claim with a scripted client
+   (`submitAuxiliary` resolving a fixed v3 rating) → the state gets a `rated` entry under the puzzle's key and
+   `describeRating(puzzle, entry)` gives the derived line with the note; a v1 claim likewise; a v3 summary claim with
+   `censored: true` → no request, and the card shows "Decisive estimate"; an import of a puzzle without a claim → no
+   request; the stored claim of the imported puzzle is deep-equal before and after; a scripted `rating-incomplete` →
+   "Could not be re-rated"; a client without `submitAuxiliary` → `unavailable`, no note, no notice.
+2. Overlap (scripted client): a display request held while `generateBatch` starts → the client's `submitAuxiliary`
+   promise is rejected `cancelled` by the client and submitted again; the batch's result equals the result without the
+   import; after the batch the entry ends `rated`.
+3. `tests/generator-state.test.js`: a restored saved set with v2 claims yields the wishes (in list order); the saved
+   string of `serializeState` is the same with and without entries in `displayRatings`.
+
+## Definition of done & handoff
+
+- Every criterion has its evidence; the reply gives the page verdicts, summaries, check counts, Edge version and error
+  counts, and lists every changed expectation.
+- Handoff to MP11 and later: the display rating needs no calibration change; MP17 re-runs these pages in GZ.
+
+## Execution log
+
+| Field | Value |
+|---|---|
+| Status | |
+| Start | |
+| End | |
+| Duration | |
+| Model | |
+| Token usage | |
+| AI credits | |
+| Verification | |
+| Acceptance | |
+| Issues & resolutions | |
+| Handoff | |
