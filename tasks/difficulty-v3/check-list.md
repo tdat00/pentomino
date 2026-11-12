@@ -29,7 +29,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | Done | ID | File | Title | Depends on | Size | Owner role | Milestone | Wave |
 |---|---|---|---|---|---|---|---|---:|
 | [x] | MP01 | [MP01](MP01-model-metadata.md) | Model metadata for the deduction solver | none | Small | Engine | M1 deduction solver | 1 |
-| [ ] | MP02a | [MP02a](MP02a-deduction-core.md) | Deduction core: state, R1 and R2, search, statuses, caps, memory | MP01 | Large | Engine | M1 | 2 |
+| [x] | MP02a | [MP02a](MP02a-deduction-core.md) | Deduction core: state, R1 and R2, search, statuses, caps, memory | MP01 | Large | Engine | M1 | 2 |
 | [ ] | MP02b | [MP02b](MP02b-pocket-check-and-lookahead.md) | R3 contradiction check, R6 lookahead, E, recipe characterisation | MP02a | Medium | Engine | M1 | 3 |
 | [ ] | MP03 | [MP03](MP03-rules-r3-place-r4-r5.md) | R3 place, R4 and R5, rule boards and the soundness oracle | MP02b | Medium | Engine | M1 | 4 |
 | [ ] | MP04 | MP04-rules-r7-r9-and-tiers.md (planned) | R7, R8, R9, tiers, rule counts, oracle on every rule | MP03 | Large | Engine | M1 | 5 |
@@ -340,7 +340,7 @@ The orchestrator owns this record.
 | Task | Status | Duration | AI credits | Commit |
 |---|---|---|---|---|
 | MP01 | Accepted | 3 min developer + 6 min review | about 56 | `difficulty-v3 MP01` |
-| MP02a | | | | |
+| MP02a | Accepted | 11 min developer + 5 min review | about 199 | `difficulty-v3 MP02a` |
 | MP02b | | | | |
 | MP03 | | | | |
 | MP04 | | | | |

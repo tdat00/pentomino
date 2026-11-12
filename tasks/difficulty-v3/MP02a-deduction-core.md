@@ -495,14 +495,14 @@ memoryBytes: 33554432 })` and `assert.ok(Object.isFrozen(DEDUCE))`.
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP02a: Deduction core`) |
+| Start | 2026-11-12 13:04 (+07:00) |
+| End | 2026-11-12 13:15 developer; 13:19 orchestrator review and commit |
+| Duration | 11 min developer (646 s); about 5 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 53 model calls; 7,046,859 input tokens (6,863,247 cache reads); 84,630 output tokens |
+| AI credits | about 199 (developer) |
+| Verification | Developer: `node --test tests\deduce.test.js tests\policy.test.js tests\benchmark-report.test.js tests\bq-limits.test.js` 76/76 (2.9 s); `npm run test:quick` 1,127/1,127 (16.9 s); `npm run check` OK; `git diff --check` clean; three deliberately broken copies (no cover undo, no picked restore, no counter restore) were caught by `verifyUndo` or the recipe values, then deleted. Orchestrator re-run: targeted 76/76, `npm run test:quick` 1,127/1,127 (17 s), `npm run check` OK |
+| Acceptance | MP02a-B01..B05 and MP02a-T01..T12 met; every vector V1-V7, cap C1-C10 and recipe value matched without dispute; the oracle sample reproduces the reference (274 boards: 64 solvable, 33 with two or more solutions, 16 with a clue, 77 repeating a shape). Diff reviewed: one `slotTable` drives precheck and allocation, engine guard words absent, `DEDUCE` frozen and pinned |
+| Issues & resolutions | Accepted deviations: the per-node rule-counter save area is a local `Int32Array(9 * (NP + 2))` outside the slot table (the slot table stays as specified); `colCount` doubles as the transpose fill cursor; following the pseudocode, `nodes` is incremented before the child's work check, so a `work-cap` stop may count one node not entered; unknown extra keys in `limits` are not rejected (not required); `verifyUndo` also compares the trail length. Anchor drift: `docs/design-detail.md` section 7.8 at 1588 and section 8 at 1598 (task said 1578/1588); `tests/policy.test.js` `ENUMERATION` test one line off |
+| Handoff | Export `measureDeduction(model, limits = DEDUCE, diagnostics = {})` only, plus typedefs. `DEDUCE = { lookaheadWidth: 4, nodes: 20000, solutions: 8, work: 50000000, census: 10000000, memoryBytes: 33554432 }` (frozen). Rules are closures `(counting) => NONE / APPLIED / CONTRADICTION`; R1/R2 use `forcedColumn(from, to, ruleIndex, counting)`; add the R3 check and R6 after R2 in `ladder(counting)` as `if (step === NONE) step = ruleXX(counting)`. `rules` is an `Int32Array(9)` (R1..R9) saved per node; `snapshot()` already derives tier and E. New slots are one row in `slotTable(R, C, NZ, NP)`. Re-pin tables in `tests/deduce.test.js`: `VECTORS`, `CAPS`, `RECIPE_TABLE`. Invariant `rows.length === F + G` asserted |

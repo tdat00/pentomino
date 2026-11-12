@@ -35,7 +35,7 @@ export const CRITERIA = Object.freeze({
 
 /** Files whose content identifies the measured code; the same list is hashed by Node and by the browser page. */
 export const SOURCE_FILES = Object.freeze([
-  'core/engine/board.js', 'core/engine/carve.js', 'core/engine/clues.js', 'core/engine/difficulty.js',
+  'core/engine/board.js', 'core/engine/carve.js', 'core/engine/clues.js', 'core/engine/deduce.js', 'core/engine/difficulty.js',
   'core/engine/dlx.js', 'core/engine/enumerate.js', 'core/engine/game.js', 'core/engine/generate.js', 'core/engine/geometry.js',
   'core/engine/hash.js', 'core/engine/hints.js', 'core/engine/keys.js', 'core/engine/levels.js', 'core/engine/pack.js',
   'core/engine/palette.js', 'core/engine/placements.js', 'core/engine/policy.js', 'core/engine/protocol.js',

@@ -164,7 +164,7 @@ pentomino/                     repository root = site root /pentomino/
 ├─ core/
 │  ├─ engine/                  pure ES modules: no DOM, no storage, no clock; run in page, worker and Node
 │  │  ├─ hash.js  rng.js  geometry.js  board.js  view.js  policy.js  levels.js  qualification.js
-│  │  ├─ workspace.js  placements.js  dlx.js  tiling.js  enumerate.js  carve.js  keys.js  difficulty.js
+│  │  ├─ workspace.js  placements.js  dlx.js  tiling.js  deduce.js  enumerate.js  carve.js  keys.js  difficulty.js
 │  │  ├─ clues.js  generate.js  tasks.js  hints.js
 │  │  ├─ puzzlecode.js  puzzlecode-input.js  puzzlecode-v1.js
 │  │  └─ pack.js  sharecode.js  game.js  palette.js  protocol.js  types.js  version.js
@@ -367,6 +367,8 @@ export const SCORE: Readonly<{ model: 'difficulty-v2'; weights: { U: 2; B: 8 };
                                caps: { branch: 5000; rows: 50000 } }>;   // §7.2, §7.3
 export const BUDGETS: Readonly<Record<string, number>>;     // §8.3
 export const TIME: Readonly<{ targetMs: 60000; dispatchStopMs: 115000; responseMs: 120000 }>;
+export const DEDUCE: Readonly<{ lookaheadWidth: 4; nodes: 20000; solutions: 8; work: 50000000; census: 10000000;
+                                memoryBytes: 33554432 }>;   // §7.9; work, census and memoryBytes provisional
 ```
 
 **`levels.js`** (§7.4, §7.5)
@@ -388,7 +390,7 @@ export function createWorkspace(capacityBytes: number): Workspace;
 export function countModel(b: Board, pieces: Piece[], clues: Pose[]): { rows: number; nodes: number; bytes: number };
 ```
 
-Other modules keep scratch buffers as named, module-prefixed slots of the same workspace (`dlx.shuffle`; the prefix `deduce.` is reserved for the deduction solver), counted by `bytes()` like the model arrays.
+Other modules keep scratch buffers as named, module-prefixed slots of the same workspace (`dlx.shuffle`; the `deduce.*` slots of the deduction solver, §7.9), counted by `bytes()` like the model arrays.
 
 **`dlx.js`** (§6.6)
 
@@ -433,6 +435,24 @@ export function isValidLayout(b: Board, pieces: Piece[], layout: Pose[]): boolea
 ```
 
 The typed arrays of a `Model` are views into the workspace and valid only while the model is live (the next `buildModel` on that workspace overwrites them); `pieceSizes` belongs to the placement plan. Every piece is edge-connected (checked for imported and generated sets).
+
+**`deduce.js`** (§7.9): the deduction solver, the measure behind the planned `difficulty-v3` rating. Nothing calls it yet.
+
+```ts
+export function measureDeduction(m: Model, limits?: DeductionLimits, diagnostics?: { verifyUndo?: boolean }): DeductionResult;
+type DeductionLimits = typeof DEDUCE;      // exactly its six fields, validated (RangeError); default DEDUCE
+type DeductionResult = {
+  path: 'complete' | 'capped' | 'none';    // the first solution's path
+  first: FirstPath | null;                 // non-null iff path = 'complete'
+  search: { Gt: number; nodes: number; work: number; stop: 'exhausted' | 'solution-limit' | 'node-cap' | 'work-cap' };
+  count: { S: number; limit: number; exhausted: boolean; solutions: 'unique' | 'few' | 'many' | 'unknown' | 'none' };
+  census: null };                          // until the census exists
+type FirstPath = { F: number; E: number; rules: Record<'R1' | 'R2' | 'R3' | 'R4' | 'R5' | 'R6' | 'R7' | 'R8' | 'R9', number>;
+                   deductionTier: 0 | 1 | 2 | 3; G: number; info: number; Cmax: number; Dmax: number;
+                   choices: number[]; rows: number[]; census: [] };
+```
+
+Throws `stale model` for a stale model, `RangeError` for an invalid limit and `ModelError` `model-too-large` when its buffers exceed `limits.memoryBytes` or the workspace. It uses no RNG and no clock. The details are in §7.9.
 
 **`carve.js`** (§6.5)
 
@@ -1592,6 +1612,67 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
   - report score distributions by U and area, the in-band hit rate per (board, level), the saturated share, rating cost and certificate outcomes;
   - acceptance: ≥ 90 % of New-Puzzles requests per offered (board, level) complete with 10 in-band puzzles within the budget of §8.3; output in `docs/calibration/`.
 - **Playtests [PT]** (optional, post-release): time and success of human solvers per level, plus a forced-placement fixture (many B = 0 placements). Results MAY justify `difficulty-v3`, using the stored R, H and counters. A new model never relabels stored puzzles.
+
+### 7.9 Deduction solver (`deduce.js`)
+
+`measureDeduction(model, limits = DEDUCE, diagnostics = {})` measures a puzzle the way a person solves it: first the placements that are forced, later also small deductions, and a real guess only when nothing else works. It records how many guesses the path to the first solution needed and how wide they were. It is the measure behind the planned `difficulty-v3` rating (§7.7). **Nothing calls it yet**: rating and generation still use `difficulty-v2`, so §7.1–§7.3 stay correct and no output changes. This section describes the module as it is; each later rule is added to it when it is implemented.
+
+**Input and limits.** A live `Model` (§6.6; a stale model throws `stale model`) and `limits`, exactly the six fields of `DEDUCE` (`policy.js`):
+
+| Field | Value | Meaning |
+|---|---|---|
+| `lookaheadWidth` | 4 | Width of the R6 lookahead; not used yet |
+| `nodes` | 20,000 | Node cap: search nodes, the root included |
+| `solutions` | 8 | The count stops at this many solutions (integer ≥ 2) |
+| `work` | 50,000,000 | Work cap, in the units below |
+| `census` | 10,000,000 | Work budget of the decisive census; not used yet |
+| `memoryBytes` | 33,554,432 | Bound on the bytes of all `deduce.*` slots |
+
+`work`, `census` and `memoryBytes` are provisional until the probe measures them. A missing or invalid field throws a `RangeError` that names it (`lookaheadWidth` an integer ≥ 0, `solutions` an integer ≥ 2, the others an integer ≥ 0 or `Infinity`). `diagnostics.verifyUndo` is for tests: it copies the state at every mark and throws `deduce: undo mismatch` when an undo does not restore it. No RNG and no clock are used.
+
+**State and undo.** The columns are those of the model (§6.6): the free cells, then the free pieces; the rows are the placements. The state is `live` (1 while a row is eligible), `covered` (1 once a column is covered), `colCount` (live rows of each column), `picked` (rows selected on the current path) and a CSR transpose of the model (`colStart`, `colRows`: the rows of each column, ascending), built once per call. Selecting a row covers its columns and kills every live row that shares a column with it (the row itself included); every kill and cover is pushed on a trail, and an undo to a mark pops the trail back, so the search leaves the state exactly as the setup made it. The pieces still to place are the uncovered piece columns.
+
+**Rule ladder.** The rules are tried in the order R1 to R9; the first rule that changes the state ends the pass and the ladder restarts at R1. A rule scans in ascending column order and acts on the first place where it can change the state. Implemented so far:
+
+| Rule | Tier | Does | Counted as |
+|---|---|---|---|
+| R1 forced cell | 1 | An uncovered free cell with one live row: select it | placement, `rules.R1` |
+| R2 forced piece | 1 | An uncovered piece with one live row: select it | placement, `rules.R2` |
+
+Cell columns are scanned before piece columns, so a row forced through both a cell and a piece counts as R1. An uncovered column without a live row is a contradiction and the node is abandoned. `rules` always has the nine keys `R1` to `R9`; the rules not implemented yet count 0. `deductionTier` is the highest tier of a rule with a nonzero count (1: R1–R3, 2: R4–R6, 3: R7–R9; 0 when none), and `F` = R1 + R2 + R3.
+
+**Guess.** At a fixpoint with an uncovered column, the node guesses on the uncovered column with the fewest live rows; ties go to the lowest column index, so a cell column before a piece column. Its live rows, in ascending row order, are the alternatives and their number is the node's width `c` (at least 2). The search is depth-first and uses no randomness. When every column is covered the node is a solution.
+
+**Final path and metrics.** The rule counters are restored when a node returns, so at a solution they hold the counts of the path from the root to that solution; abandoned branches change only `search.Gt` (guess nodes of the whole search), `search.nodes` and `search.work`. At the first solution `first` records: `rules`, `F`, `E` (= R6, rows killed by lookahead), `deductionTier`, `G` (guess nodes on the path), `choices` (their widths, root first), `info` (the sum of `log2 c` in path order), `Cmax` (the largest width), `Dmax` (rows selected before the deepest guess node; a diagnostic) and `rows` (the selected rows of the solution in selection order; clues are not rows). G = 0 gives `info`, `Cmax` and `Dmax` 0. `census` is `null` and `first.census` is `[]` until the census exists.
+
+**Count and statuses.** After the first solution the same search continues until `solutions` solutions, exhaustion or a cap. Three statuses are independent:
+
+| Status | Values |
+|---|---|
+| `path` | `complete` (a solution was found), `capped` (none found and `node-cap` or `work-cap` stopped the search), `none` (exhausted without a solution) |
+| `search.stop` | `exhausted`, `solution-limit`, `node-cap`, `work-cap` |
+| `count.solutions` | `none` (exhausted, S = 0), `unique` (exhausted, S = 1), `many` (S reached the limit), `few` (S ≥ 2, also when a cap stopped the count: S is then a lower bound), `unknown` |
+
+`count.exhausted` is true exactly when the search finished. A cap never proves uniqueness or absence. `first` is non-null iff `path` is `complete`.
+
+**Caps and work.** Before entering a node, `nodes === limits.nodes` stops the search with `node-cap`, otherwise the node is counted; the root is node 1, `nodes: 0` stops before the root and the reported `nodes` never exceeds the cap. `work > limits.work` stops it with `work-cap`; this is checked after the setup, at the start of every ladder pass and before every child node, so the work may exceed the cap by one rule application at most. One work unit is a row–column incidence visited (the transpose build, select, kill and undo), a column examined by a rule or by the column choice, a `colRows` entry scanned, or a trail entry popped, plus `rows + columns` for the initialisation. There is no clock: the caps are the only bound, so a result never depends on speed.
+
+**Memory.** The state lives in these slots of the model's workspace (`Workspace.int32` / `uint8`); they are counted by `bytes()`, reused by the next call and sized from the model before anything is allocated:
+
+| Slot | Type | Length |
+|---|---|---|
+| `deduce.colStart` | Int32 | columns + 1 |
+| `deduce.colRows` | Int32 | nonzeros |
+| `deduce.colCount` | Int32 | columns |
+| `deduce.live` | Uint8 | rows |
+| `deduce.covered` | Uint8 | columns |
+| `deduce.trail` | Int32 | rows + columns |
+| `deduce.alt` | Int32 | rows |
+| `deduce.altBase`, `deduce.picked`, `deduce.guessC`, `deduce.guessPlaced` | Int32 | free pieces + 2 |
+
+If their total exceeds `limits.memoryBytes`, the call throws `ModelError` `model-too-large` and allocates nothing; the workspace's own capacity check can throw the same error. The model stays live.
+
+**Determinism and labelled pieces.** The result depends only on the model, which is canonical (§6.6), and on `limits`: not on ids, colours or input order. Pieces are counted per labelled piece: two pieces of the same shape given directly are two piece columns, so each arrangement is counted per piece (the entry points of the product are to refuse such sets in a later step).
 
 ---
 

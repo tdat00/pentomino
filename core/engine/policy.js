@@ -92,6 +92,19 @@ export const ENUMERATION = Object.freeze({
   collect: 32,
 });
 
+/**
+ * Limits of the deduction solver (design §7.9). `work`, `census` and `memoryBytes` are provisional test defaults
+ * until the probe measures them.
+ */
+export const DEDUCE = Object.freeze({
+  lookaheadWidth: 4,
+  nodes: 20000,
+  solutions: 8,
+  work: 50000000,
+  census: 10000000,
+  memoryBytes: 32 * 1048576,
+});
+
 const K60 = [6, 7.5, 8.5, 10, 11.5, 13, 16, 24, 32, 43, 58, 78];
 const K_CAP_FROM_HELL_1 = [42, 62, 92, 140, 210];
 const HELL_1_INDEX = 7;
