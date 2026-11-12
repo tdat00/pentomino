@@ -388,6 +388,8 @@ export function createWorkspace(capacityBytes: number): Workspace;
 export function countModel(b: Board, pieces: Piece[], clues: Pose[]): { rows: number; nodes: number; bytes: number };
 ```
 
+Other modules keep scratch buffers as named, module-prefixed slots of the same workspace (`dlx.shuffle`; the prefix `deduce.` is reserved for the deduction solver), counted by `bytes()` like the model arrays.
+
 **`dlx.js`** (§6.6)
 
 ```ts
@@ -408,8 +410,14 @@ The links are fully restored after every `solve`, so one instance can be solved 
 
 ```ts
 export type Model = { cover: ExactCover; rowPiece: Int16Array; rowT: Uint8Array; rowX: Int16Array; rowY: Int16Array;
-                      freePieces: string[]; freeCells: number; placementsPerPiece: Int32Array }; // = L_i, canonical order
+                      freePieces: string[]; freeCells: number; placementsPerPiece: Int32Array;  // = L_i, canonical order
+                      clues: Pose[]; pieceOrder: string[];
+                      rowCount: number; rowCols: Int32Array; rowStart: Int32Array;  // row r: its cell columns ascending, then its piece column
+                      columns: number; cellColumn: Int32Array;                      // column of cell y * width + x, or -1
+                      freePieceCount: number; width: number; height: number;
+                      pieceSizes: Int32Array };                                      // free-piece sizes, canonical order
 export function buildModel(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace): Model;   // throws 'model-too-large' (§6.6)
+export function assertLive(m: Model): void;                // throws 'stale model ...' once the workspace built another model
 export function rowPose(m: Model, row: number): Pose;
 export function solveFirst(m: Model, o: { rng?: Rng; rowTrialLimit: number; branchTrialLimit?: number }):
   { layout: Pose[] | null; rowTrials: number; branchTrials: number; exhausted: boolean;
@@ -423,6 +431,8 @@ export function lnsStep(b: Board, pieces: Piece[], layout: Pose[], cluster: numb
 export function lnsWalk(set: PieceSet, start: Pose[], rng: Rng, ws: Workspace, steps: number): Pose[];  // §6.7
 export function isValidLayout(b: Board, pieces: Piece[], layout: Pose[]): boolean;    // O(cells)
 ```
+
+The typed arrays of a `Model` are views into the workspace and valid only while the model is live (the next `buildModel` on that workspace overwrites them); `pieceSizes` belongs to the placement plan. Every piece is edge-connected (checked for imported and generated sets).
 
 **`carve.js`** (§6.5)
 

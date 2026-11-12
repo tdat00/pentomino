@@ -21,8 +21,12 @@ import { fillArena } from './workspace.js';
 /** @typedef {import('./workspace.js').Workspace} Workspace */
 
 /**
- * Packed model. The typed arrays are views into the workspace that built it.
+ * Packed model. The typed arrays are views into the workspace that built it, valid only while
+ * the model is live (`assertLive`): the next `buildModel` or `reserve` on that workspace overwrites
+ * them. `pieceSizes` belongs to the placement plan, not to the workspace.
  * `rowPiece` indexes `freePieces` (canonical order), not the caller's array.
+ * Precondition: every piece is edge-connected (imported sets are checked by `pack.js`, generated
+ * sets by `carve.js`); the pocket rules of the deduction solver rely on it.
  * @typedef {object} Model
  * @property {ExactCover} cover
  * @property {Int16Array} rowPiece
@@ -34,6 +38,16 @@ import { fillArena } from './workspace.js';
  * @property {Int32Array} placementsPerPiece Rows per free piece (L_i), canonical order.
  * @property {Pose[]} clues Copies of the clue poses.
  * @property {string[]} pieceOrder Canonical order of every piece ID, clued or free.
+ * @property {number} rowCount Placement rows.
+ * @property {Int32Array} rowCols Columns of row `r` are `rowCols[rowStart[r] .. rowStart[r + 1] - 1]`:
+ *   its cell columns ascending, then its piece column last.
+ * @property {Int32Array} rowStart [rowCount + 1] offsets into `rowCols`; `rowStart[rowCount]` is the nonzero count.
+ * @property {number} columns `freeCells + freePieceCount`; the piece column of free piece `i` is `freeCells + i`.
+ * @property {Int32Array} cellColumn Column of board cell `y * width + x`, or -1 (blocked or clue cell).
+ * @property {number} freePieceCount Free pieces (piece columns).
+ * @property {number} width Board width.
+ * @property {number} height Board height.
+ * @property {Int32Array} pieceSizes Cell count of each free piece, canonical order.
  */
 
 export { ModelError } from './placements.js';
@@ -68,15 +82,26 @@ export function buildModel(b, pieces, clues, ws) {
     placementsPerPiece: arena.placementsPerPiece,
     clues: plan.clues,
     pieceOrder: plan.pieceOrder,
+    rowCount: arena.rows,
+    rowCols: arena.rowCols,
+    rowStart: arena.rowStart,
+    columns: arena.columns,
+    cellColumn: arena.cellColumn,
+    freePieceCount: plan.freePieceIds.length,
+    width: plan.width,
+    height: plan.height,
+    pieceSizes: plan.pieceSizes,
   };
   LIVE.set(ws, model);
   return model;
 }
 
 /**
+ * Throws when the model's workspace has built another model since; every consumer of a model's
+ * arrays calls it first.
  * @param {Model} m
  */
-function assertLive(m) {
+export function assertLive(m) {
   if (LIVE.get(m.cover.ws) !== m) {
     throw new Error('stale model: its workspace has built another model since');
   }

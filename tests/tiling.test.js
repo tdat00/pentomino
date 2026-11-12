@@ -3,14 +3,19 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { boardFromRows } from '../core/engine/board.js';
 import { canonicalKey, poseCells } from '../core/engine/geometry.js';
+import { countPlacements, preparePlacements } from '../core/engine/placements.js';
 import { countModel, createWorkspace, MAIN_WORKSPACE_BYTES } from '../core/engine/workspace.js';
 import { createRng } from '../core/engine/rng.js';
-import { buildModel, countSolutions, isValidLayout, ModelError, rowPose, solveFirst } from '../core/engine/tiling.js';
+import {
+  assertLive, buildModel, countSolutions, isValidLayout, ModelError, rowPose, solveFirst,
+} from '../core/engine/tiling.js';
 import { CLASSIC_PENTOMINOES } from './fixtures/polyominoes.js';
+import { CLUE_RECIPES, recipeWitness } from './fixtures/clue-recipes.js';
 
 /** @typedef {import('../core/engine/types.js').Piece} Piece */
 /** @typedef {import('../core/engine/types.js').Pose} Pose */
 /** @typedef {import('../core/engine/types.js').Board} Board */
+/** @typedef {import('../core/engine/tiling.js').Model} Model */
 
 const pieces = /** @type {Piece[]} */ ([...CLASSIC_PENTOMINOES]);
 const rect = (/** @type {number} */ w, /** @type {number} */ h) => boardFromRows(Array(h).fill('#'.repeat(w)));
@@ -348,4 +353,126 @@ test('a different valid completion is accepted and symmetric poses are one layou
   const altered = a.map((p) => (p === x ? { ...p, turn: /** @type {0 | 1 | 2 | 3} */ ((p.turn + 1) % 4), mirrored: !p.mirrored } : p));
   assert.ok(isValidLayout(board, pieces, altered));
   assert.equal(footprints(pieces, altered), footprints(pieces, a));
+});
+
+const MASKED = boardFromRows(['###.', '####', '.###']);
+const SQUARE = [[0, 0], [1, 0], [0, 1], [1, 1]];
+const maskedPieces = /** @type {Piece[]} */ ([['a', I3], ['b', SQUARE], ['c', DOMINO], ['d', MONO]]
+  .map(([id, cells]) => ({ id, label: id, color: '#000000', cells })));
+const CLUE_D = /** @type {Pose} */ ({ piece: 'd', x: 0, y: 0, turn: 0, mirrored: false });
+
+/**
+ * Cell columns of the model in board order, which must be 0, 1, 2, ... (free cells in row-major order).
+ * @param {Model} m
+ */
+function assertCellNumbering(m) {
+  const numbered = Array.from(m.cellColumn).filter((c) => c >= 0);
+  assert.deepEqual(numbered, numbered.map((_, i) => i));
+  assert.equal(numbered.length, m.freeCells);
+}
+
+/**
+ * @param {Model} m
+ * @param {Piece[]} ps
+ */
+function assertRowLayout(m, ps) {
+  const { rowCols, rowStart, rowCount, freeCells, cellColumn, width } = m;
+  assert.equal(rowStart.length, rowCount + 1);
+  assert.equal(rowStart[0], 0);
+  assert.equal(rowStart[rowCount], rowCols.length);
+  for (let r = 0; r < rowCount; r += 1) {
+    const pose = rowPose(m, r);
+    const piece = /** @type {Piece} */ (ps.find((p) => p.id === pose.piece));
+    const last = rowStart[r + 1] - 1;
+    const cells = Array.from(rowCols.subarray(rowStart[r], last));
+    assert.equal(rowCols[last], freeCells + m.rowPiece[r], `row ${r}: piece column`);
+    assert.equal(cells.length, m.pieceSizes[m.rowPiece[r]], `row ${r}: cell count`);
+    assert.ok(cells.every((c, i) => c >= 0 && c < freeCells && (i === 0 || c > cells[i - 1])), `row ${r}: ascending cell columns`);
+    const expected = poseCells(piece, pose).map(([x, y]) => cellColumn[y * width + x]).sort((p, q) => p - q);
+    assert.deepEqual(cells, expected, `row ${r}: cells of the pose`);
+  }
+}
+
+test('model metadata on a masked board matches the placement plan', () => {
+  const m = buildModel(MASKED, maskedPieces, [], newWs());
+  const plan = preparePlacements(MASKED, maskedPieces, []);
+  assert.equal(m.width, 4);
+  assert.equal(m.height, 3);
+  assert.equal(m.freeCells, 10);
+  assert.equal(m.freePieceCount, 4);
+  assert.equal(m.columns, 14);
+  assert.equal(m.cover.columns, 14);
+  assert.equal(m.rowCount, 33);
+  assert.equal(m.cover.rowCount, 33);
+  assert.equal(m.rowCount, countPlacements(plan).rows);
+  assert.deepEqual(Array.from(m.cellColumn), [0, 1, 2, -1, 3, 4, 5, 6, -1, 7, 8, 9]);
+  assert.deepEqual(Array.from(m.cellColumn), Array.from(plan.cellColumn));
+  assert.deepEqual(m.freePieces, ['d', 'c', 'a', 'b']);
+  assert.ok(m.pieceSizes instanceof Int32Array);
+  assert.deepEqual(Array.from(m.pieceSizes), [1, 2, 3, 4]);
+  assert.deepEqual(Array.from(m.pieceSizes), Array.from(plan.pieceSizes));
+  m.freePieces.forEach((id, i) => {
+    assert.equal(m.pieceSizes[i], /** @type {Piece} */ (maskedPieces.find((p) => p.id === id)).cells.length);
+  });
+  assertCellNumbering(m);
+});
+
+test('model metadata with a clued piece counts only the free cells and pieces', () => {
+  const m = buildModel(MASKED, maskedPieces, [CLUE_D], newWs());
+  assert.deepEqual(Array.from(m.cellColumn), [-1, 0, 1, -1, 2, 3, 4, 5, -1, 6, 7, 8]);
+  assert.equal(m.freeCells, 9);
+  assert.equal(m.freePieceCount, 3);
+  assert.equal(m.columns, 12);
+  assert.deepEqual(m.freePieces, ['c', 'a', 'b']);
+  assert.deepEqual(Array.from(m.pieceSizes), [2, 3, 4]);
+  assertCellNumbering(m);
+  assertRowLayout(m, maskedPieces);
+});
+
+test('packed rows are the ascending cell columns of the pose, then the piece column', () => {
+  assertRowLayout(buildModel(MASKED, maskedPieces, [], newWs()), maskedPieces);
+  const clues = recipeWitness().filter((p) => CLUE_RECIPES.hard.pieces.includes(p.piece));
+  assert.equal(clues.length, 5);
+  const m = buildModel(rect(10, 6), pieces, clues, newWs());
+  assert.equal(m.freePieceCount, 7);
+  assert.ok(m.rowCount > 0);
+  assertRowLayout(m, pieces);
+});
+
+test('a model with no free piece has empty metadata and no cell column', () => {
+  const board = rect(10, 6);
+  const ws = newWs();
+  const layout = /** @type {Pose[]} */ (solveFirst(buildModel(board, pieces, [], ws), { rowTrialLimit: Infinity }).layout);
+  const m = buildModel(board, pieces, layout, ws);
+  assert.equal(m.rowCount, 0);
+  assert.equal(m.columns, 0);
+  assert.equal(m.freeCells, 0);
+  assert.equal(m.freePieceCount, 0);
+  assert.deepEqual(Array.from(m.rowStart), [0]);
+  assert.equal(m.rowCols.length, 0);
+  assert.equal(m.pieceSizes.length, 0);
+  assert.equal(m.cellColumn.length, 60);
+  assert.ok(m.cellColumn.every((c) => c === -1));
+});
+
+test('assertLive passes for a live model and throws once the workspace built another', () => {
+  const ws = newWs();
+  const old = buildModel(rect(10, 6), pieces, [], ws);
+  assert.equal(assertLive(old), undefined);
+  const fresh = buildModel(rect(2, 1), [{ id: 'a', label: 'a', color: '#000000', cells: DOMINO }], [], ws);
+  assert.throws(() => assertLive(old), /stale/);
+  assert.equal(assertLive(fresh), undefined);
+});
+
+test('model arrays are views of the workspace and a second build allocates nothing', () => {
+  const ws = newWs();
+  const m1 = buildModel(MASKED, maskedPieces, [], ws);
+  const allocations = ws.allocationCount();
+  const m2 = buildModel(MASKED, maskedPieces, [], ws);
+  assert.equal(m2.rowCols.buffer, m1.rowCols.buffer);
+  assert.equal(m2.rowStart.buffer, m1.rowStart.buffer);
+  assert.equal(m2.cellColumn.buffer, m1.cellColumn.buffer);
+  assert.equal(ws.allocationCount(), allocations);
+  assert.ok(m2.pieceSizes instanceof Int32Array);
+  assert.equal(m2.pieceSizes.length, m2.freePieceCount);
 });

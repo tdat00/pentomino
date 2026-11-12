@@ -249,14 +249,14 @@ Do not change any existing test. Use the existing helpers (`rect`, `newWs`, `DOM
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP01: Model metadata for the deduction solver`) |
+| Start | 2026-11-12 12:58 (+07:00) |
+| End | 2026-11-12 13:01 developer; 13:12 orchestrator review and commit |
+| Duration | 3 min developer (194 s); about 6 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 23 model calls; 1,895,060 input tokens (1,814,069 cache reads); 17,239 output tokens |
+| AI credits | about 56 (developer) |
+| Verification | Developer: `node --test tests\tiling.test.js` 21/21 (about 37 s); `npm run test:quick` 1,116/1,116 in 111 suites (about 16 s); `npm run check` OK. Orchestrator re-run: `npm run test:quick` 1,116/1,116 (16.0 s), `npm run check` OK (conventions, site), `node --test tests\tiling.test.js` 21/21 (36.9 s); CRLF/BOM/trailing-whitespace clean |
+| Acceptance | MP01-B01..B03 and MP01-T01..T08 met. Diff reviewed: nine fields appended to the `buildModel` literal straight from `arena`/`plan` (no copies), typedef with lifetime note and connected-pieces precondition, `assertLive` exported with body and message unchanged, workspace header names `dlx.shuffle` and `deduce.*`, `docs/design-detail.md` section 4.2 updated; only the `tiling.js` import line of existing test code changed |
+| Issues & resolutions | None blocking. All measured facts matched; no anchor discrepancy. Additions beyond the plan, accepted: `assertRowLayout` also checks each row's cell count against `pieceSizes`; the zero-row test reuses the first model's workspace so it exercises `subarray` views; `CLUE_RECIPES.hard.pieces` used instead of the literal `'LUNFX'` |
+| Handoff | New fields: `rowCount`, `rowCols`, `rowStart` (length `rowCount + 1`), `columns`, `cellColumn` (length `width * height`, also with zero free pieces), `freePieceCount`, `width`, `height`, `pieceSizes` (plan-owned `Int32Array`). `rowCols`/`rowStart`/`cellColumn` are exact-length workspace views that go stale on the next `buildModel`/`reserve`. `assertLive`, `ModelError`, `buildModel` import from `./tiling.js`. Scratch slots: `model.cover.ws.int32/uint8('deduce.<name>', n)` |
