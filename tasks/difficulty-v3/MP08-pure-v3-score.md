@@ -331,14 +331,14 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP08: Pure v3 score, SCORE_V3 and the v3 types`) |
+| Start | 2026-11-12 18:31 (+07:00) |
+| End | 2026-11-12 18:39 developer; 18:55 orchestrator review and commit |
+| Duration | 8 min developer (497 s); about 6 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 62 model calls; 7,481,852 input tokens (7,289,146 cache reads); 57,204 output tokens |
+| AI credits | about 178 (developer) |
+| Verification | Developer: `node --test tests\difficulty-v3.test.js tests\policy.test.js tests\rate-probe.test.js tests\deduce-rules.test.js` 69/69 (3.4 s); `npm run test:quick` 1202/1202 (17.8 s); `npm run check` OK; R8 mutant (`bad = false`) run through an in-memory loader hook gives R7 5, R8 5 (the pin fails as intended). Orchestrator re-run: targeted 69/69, `test:quick` 1202/1202, `check` OK |
+| Acceptance | MP08-B01..B03 and MP08-T01..T07 met. Diff reviewed: `breakdownV3(m, knobs = SCORE_V3)` validates the metric (RangeError), computes base, rule, guess and penalty in order and rounds once; `scoreV3` uses the production knobs; `SCORE_V3` = base `{max 12, scale 3}`, rule `[0,0,2,2]`, weights `{G 5, info 0.5}`, penalty `{0,0}` from the MP06c fit record under P-OD3, deeply frozen; `SCORE` and `rate` unchanged; `scoreWithKnobs` validates the knobs then delegates to `breakdownV3`; types `MetricsV2`, `MetricsV3`, `RatingV2`, `RatingV3`, `Rating` union; the R8 other-pockets pin added without editing existing tests; design §4.1, §4.2, §7.10 |
+| Issues & resolutions | (1) `Gt` in `MetricsV3` follows D17 (main search only); the task text said "including census"; `nodes` and `work` include the census. (2) `scoreWithKnobs` is slightly stricter than its old local copy (non-integer G, G 0 with info, unknown `solutions` now throw `RangeError`); deduction output always satisfies it and the probe tests pass unchanged. (3) With scale 3 the base reaches `base.max` exactly for large U, so the G = 0 bound holds as `<=` (14 under `SCORE_V3`, 16 under the starting knobs over 8,736 tuples). (4) A pre-existing duplicated sentence in design §7.9 left as is. (5) The developer wrote one scratch file with `Set-Content` and deleted it at once; nothing reached the working tree |
+| Handoff | `breakdownV3(m, knobs)` returns `{base, rule, guess, penalty, unrounded, score}`; inputs `U = pieces.length - clues.length`, `deductionTier = d.first.deductionTier`, `G = d.first.G`, `info = d.first.info`, `solutions = d.count.solutions`. Pins to re-pin when MP12 changes the knobs: the worked examples and recipe values in `tests/difficulty-v3.test.js` (very-easy 8, easy 9, normal 12, hard 24, expert 30, master 37) and the `SCORE_V3` pin in `tests/policy.test.js` |

@@ -51,6 +51,18 @@ export const SCORE = Object.freeze({
   caps: Object.freeze({ branch: 5000, rows: 50000 }),
 });
 
+/**
+ * Knobs of the `difficulty-v3` score (design §7.10), fitted in docs/difficulty-v3/fit-2026-11-12.md (section 3).
+ * Defined but not yet the rating: `rate` stays `difficulty-v2` until the v3 activation.
+ */
+export const SCORE_V3 = Object.freeze({
+  model: 'difficulty-v3',
+  base: Object.freeze({ max: 12, scale: 3 }),
+  rule: Object.freeze([0, 0, 2, 2]),
+  weights: Object.freeze({ G: 5, info: 0.5 }),
+  penalty: Object.freeze({ few: 0, many: 0 }),
+});
+
 export const TIME = Object.freeze({ targetMs: 60000, dispatchStopMs: 115000, responseMs: 120000 });
 
 export const BUDGETS = Object.freeze({

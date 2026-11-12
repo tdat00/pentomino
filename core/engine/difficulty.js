@@ -5,15 +5,41 @@
 
 import { isValidLayout, buildModel, solveFirst } from './tiling.js';
 import { levelForScore } from './levels.js';
-import { SCORE } from './policy.js';
+import { SCORE, SCORE_V3 } from './policy.js';
 
 /** @typedef {import('./types.js').Board} Board */
 /** @typedef {import('./types.js').Piece} Piece */
 /** @typedef {import('./types.js').Pose} Pose */
 /** @typedef {import('./types.js').Metrics} Metrics */
+/** @typedef {import('./types.js').MetricsV3} MetricsV3 */
 /** @typedef {import('./types.js').Rating} Rating */
 /** @typedef {import('./levels.js').Level} Level */
 /** @typedef {import('./workspace.js').Workspace} Workspace */
+
+/**
+ * The inputs of the `difficulty-v3` score: the other fields of `MetricsV3` are ignored.
+ * @typedef {Pick<MetricsV3, 'U' | 'deductionTier' | 'G' | 'info' | 'solutions'>} ScoreInputV3
+ */
+
+/**
+ * The shape of `SCORE_V3`; the probe passes its own (validated) knobs.
+ * @typedef {object} ScoreKnobsV3
+ * @property {{ max: number, scale: number }} base
+ * @property {readonly number[]} rule Rule term by deduction tier 0 to 3.
+ * @property {{ G: number, info: number }} weights
+ * @property {{ few: number, many: number }} penalty
+ */
+
+/**
+ * The terms of the `difficulty-v3` score; `score` is the only rounded value.
+ * @typedef {object} BreakdownV3
+ * @property {number} base
+ * @property {number} rule
+ * @property {number} guess
+ * @property {number} penalty
+ * @property {number} unrounded `base + rule + guess - penalty`.
+ * @property {number} score
+ */
 
 export const MODEL = 'difficulty-v2';
 
@@ -42,6 +68,54 @@ export function score(U, B) {
     throw new RangeError('B must be a non-negative integer');
   }
   return U === 0 ? 0 : Math.round(SCORE.weights.U * U + SCORE.weights.B * Math.log10(1 + B));
+}
+
+const SOLUTIONS_V3 = ['unique', 'few', 'many', 'unknown'];
+
+/**
+ * The terms of the `difficulty-v3` score (design §7.10), evaluated in this order and rounded once:
+ * `base = max (1 - exp(-U / scale))`, the rule term of the deduction tier, `guess = wG G + wInfo info`, the penalty
+ * of a few or many solutions; `unrounded = base + rule + guess - penalty`. `info` is the unquantised double of the
+ * measurement. The knobs are not validated here. Throws `RangeError` for an invalid metric.
+ * @param {ScoreInputV3} m
+ * @param {ScoreKnobsV3} [knobs]
+ * @returns {BreakdownV3}
+ */
+export function breakdownV3(m, knobs = SCORE_V3) {
+  const { U, deductionTier, G, info, solutions } = m;
+  if (!Number.isInteger(U) || U < 0) {
+    throw new RangeError('U must be a non-negative integer');
+  }
+  if (!Number.isInteger(deductionTier) || deductionTier < 0 || deductionTier > 3) {
+    throw new RangeError('deductionTier must be an integer from 0 to 3');
+  }
+  if (!Number.isInteger(G) || G < 0) {
+    throw new RangeError('G must be a non-negative integer');
+  }
+  if (!Number.isFinite(info) || info < 0) {
+    throw new RangeError('info must be a finite number >= 0');
+  }
+  if (G === 0 && info !== 0) {
+    throw new RangeError('info must be 0 when G is 0');
+  }
+  if (!SOLUTIONS_V3.includes(solutions)) {
+    throw new RangeError('solutions must be unique, few, many or unknown');
+  }
+  const base = knobs.base.max * (1 - Math.exp(-U / knobs.base.scale));
+  const rule = knobs.rule[deductionTier];
+  const guess = knobs.weights.G * G + knobs.weights.info * info;
+  const penalty = solutions === 'few' ? knobs.penalty.few : solutions === 'many' ? knobs.penalty.many : 0;
+  const unrounded = base + rule + guess - penalty;
+  return { base, rule, guess, penalty, unrounded, score: U === 0 ? 0 : Math.max(0, Math.round(unrounded)) };
+}
+
+/**
+ * The `difficulty-v3` score of the metrics under the production knobs `SCORE_V3`.
+ * @param {ScoreInputV3} m
+ * @returns {number}
+ */
+export function scoreV3(m) {
+  return breakdownV3(m).score;
 }
 
 /**

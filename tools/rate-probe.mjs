@@ -14,7 +14,7 @@ import { pathToFileURL } from 'node:url';
 import { MAX_POOL_SIZE } from '../core/browser/worker-pool.js';
 import { activeCount, boardFromRows } from '../core/engine/board.js';
 import { measureDeduction } from '../core/engine/deduce.js';
-import { rate } from '../core/engine/difficulty.js';
+import { breakdownV3, rate } from '../core/engine/difficulty.js';
 import { canonicalJson, sha256Hex } from '../core/engine/hash.js';
 import { levelForScore } from '../core/engine/levels.js';
 import { parsePack } from '../core/engine/pack.js';
@@ -245,29 +245,15 @@ export function checkKnobs(knobs) {
 }
 
 /**
- * The local copy of the RES-18 formula (exploration only; MP08 replaces it by `breakdownV3`).
+ * The RES-18 breakdown under candidate knobs (exploration only): validates the knobs (the invariants are an error,
+ * the ranges only a flag), then `breakdownV3` computes every term and the one rounded score.
  * @param {KnobMetrics} m
  * @param {Knobs} knobs
  * @returns {{ base: number, rule: number, guess: number, penalty: number, unrounded: number, score: number }}
  */
 export function scoreWithKnobs(m, knobs) {
   checkKnobs(knobs);
-  const { U, deductionTier, G, info, solutions } = m;
-  if (!Number.isInteger(U) || U < 0) {
-    invalid('U must be a non-negative integer');
-  }
-  if (!Number.isInteger(deductionTier) || deductionTier < 0 || deductionTier > 3) {
-    invalid('deductionTier must be 0, 1, 2 or 3');
-  }
-  if (!Number.isFinite(G) || G < 0 || !Number.isFinite(info) || info < 0) {
-    invalid('G and info must be finite and non-negative');
-  }
-  const base = knobs.base.max * (1 - Math.exp(-U / knobs.base.scale));
-  const rule = knobs.rule[deductionTier];
-  const guess = knobs.weights.G * G + knobs.weights.info * info;
-  const penalty = solutions === 'few' ? knobs.penalty.few : solutions === 'many' ? knobs.penalty.many : 0;
-  const unrounded = base + rule + guess - penalty;
-  return { base, rule, guess, penalty, unrounded, score: U === 0 ? 0 : Math.max(0, Math.round(unrounded)) };
+  return breakdownV3(/** @type {import('../core/engine/difficulty.js').ScoreInputV3} */ (m), knobs);
 }
 
 /**

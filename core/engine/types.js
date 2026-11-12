@@ -53,9 +53,10 @@
  */
 
 /**
- * @typedef {object} Metrics
- * @property {number} U
- * @property {number} B
+ * `difficulty-v2` metrics: the bounded DLX effort of the rating traversal.
+ * @typedef {object} MetricsV2
+ * @property {number} U Pieces left to place.
+ * @property {number} B Effective (capped) branch trials, the value the v2 score uses.
  * @property {number} branchTrials
  * @property {number} rowTrials
  * @property {'solution' | 'branch-cap' | 'row-cap'} stop
@@ -64,12 +65,67 @@
  */
 
 /**
- * @typedef {object} Rating
+ * Alias of `MetricsV2`, kept for the code that rates with `difficulty-v2`.
+ * @typedef {MetricsV2} Metrics
+ */
+
+/**
+ * `difficulty-v3` metrics (design §7.10): fixed field order, every field present in a computed rating.
+ * @typedef {object} MetricsV3
+ * @property {number} U Pieces left to place, as v2.
+ * @property {number} R Free cells, as v2.
+ * @property {number} H Mean log2(1 + placements) per piece to place, as v2.
+ * @property {number} B DLX diagnostic, v2 meaning (the capped value); never enters the v3 score.
+ * @property {number} branchTrials DLX diagnostic, v2 meaning.
+ * @property {number} rowTrials DLX diagnostic, v2 meaning.
+ * @property {'solution' | 'branch-cap' | 'row-cap'} dlxStop The v2 `stop`, renamed.
+ * @property {'exhausted' | 'solution-limit' | 'node-cap' | 'work-cap'} searchStop How the deduction search ended.
+ * @property {number} F Final-path placements by R1, R2 and R3.
+ * @property {number} E Final-path rows killed by R6.
+ * @property {{ R1: number, R2: number, R3: number, R4: number, R5: number, R6: number, R7: number, R8: number, R9: number }} rules
+ *   Final-path counts: placements for R1-R3, killed rows for R4-R9.
+ * @property {0 | 1 | 2 | 3} deductionTier Highest tier of a rule with a nonzero count; the score uses it.
+ * @property {0 | 1 | 2 | 3 | 4} tier Deduction tier, 4 when a decisive guess was needed.
+ * @property {number} G Decisive guesses on the final path.
+ * @property {number} info Decisive information (the full double, not quantised); 0 when G = 0.
+ * @property {number} Cmax Widest decisive guess; 0 when G = 0.
+ * @property {number} Dmax Placement depth of the deepest decisive guess; 0 when G = 0.
+ * @property {number} Gt Guess nodes of the main search (the census is not counted).
+ * @property {number} nodes Search nodes, main search and census.
+ * @property {number} work Search work units, setup and census included.
+ * @property {number} S Solutions counted, at most `solutionLimit`.
+ * @property {number} solutionLimit The count limit used (`DEDUCE.solutions`).
+ * @property {'unique' | 'few' | 'many' | 'unknown'} solutions The count status; the score penalises few and many.
+ * @property {boolean} censusComplete Whether every alternative of the final path was decided.
+ * @property {number} censusUndecided Alternatives left undecided.
+ * @property {number} censusNodes Census share of `nodes`.
+ * @property {number} censusWork Census share of `work`.
+ * @property {number} Gproved Final-path guess nodes with an alternative proved impossible; G when the census is
+ *   complete; not a score input.
+ */
+
+/**
+ * @typedef {object} RatingV2
  * @property {'difficulty-v2'} model
  * @property {number} score
  * @property {string} level
  * @property {boolean} saturated
- * @property {Metrics} metrics
+ * @property {MetricsV2} metrics
+ */
+
+/**
+ * @typedef {object} RatingV3
+ * @property {'difficulty-v3'} model
+ * @property {number} score
+ * @property {string} level
+ * @property {false} saturated
+ * @property {true} [censored] Present exactly when the census is unfinished.
+ * @property {MetricsV3} metrics
+ */
+
+/**
+ * Discriminated by `model`. The engine still produces `RatingV2` only (`rate` is `difficulty-v2`).
+ * @typedef {RatingV2 | RatingV3} Rating
  */
 
 /**

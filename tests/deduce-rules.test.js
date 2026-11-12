@@ -304,6 +304,19 @@ test('R8 with lookaheadWidth 0 tries every neck and still finds only sound kills
   assert.ok((r.first?.rules.R8 ?? 0) > 0);
 });
 
+test('R8 checks the other pockets against the pieces left without the trial row (R8o, lookaheadWidth 0)', () => {
+  const puzzle = { board: boardFromRows(['#.##.###.##', '###..##...#']), pieces: [L4, D, L3, S4, M], clues: [] };
+  assert.equal(countSolutions(build(puzzle), { cap: Infinity, rowTrialLimit: Infinity }).found, 2);
+  const result = measureDeduction(build(puzzle), { ...DEDUCE, lookaheadWidth: 0 }, { verifyUndo: true });
+  assert.deepEqual(flat(result), {
+    path: 'complete', S: 2, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
+    census: [[2, 2, 0, 0]],
+    F: 4, R1: 4, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 12, R8: 9, R9: 0, E: 0, tier: 3, G: 0, Gproved: 0,
+    choices: [2], info: 0, Cmax: 0, Dmax: 0,
+  });
+  assert.deepEqual(result.census, { complete: true, undecided: 0, nodes: 0, work: 0 });
+});
+
 test('R9: two cells that only the same two pieces reach take both pieces away from other places (P9)', () => {
   const { result } = check('P9');
   assert.ok((result.first?.rules.R9 ?? 0) > 0);

@@ -10,6 +10,7 @@ import {
   LIMITS,
   POLICY_ID,
   SCORE,
+  SCORE_V3,
   TIME,
   deriveLimits,
   enabledMaxActive,
@@ -394,5 +395,31 @@ describe('limits, qualification and budgets', () => {
       lookaheadWidth: 4, nodes: 30000, solutions: 8, work: 760000000, census: 10000000, memoryBytes: 33554432,
     });
     assert.ok(Object.isFrozen(DEDUCE));
+  });
+
+  test('difficulty-v3 knobs are the fitted values, frozen, within the invariants and the experimental ranges', () => {
+    // docs/difficulty-v3/fit-2026-11-12.md, section 3 (penalty off by owner decision P-OD3)
+    assert.deepEqual(JSON.parse(JSON.stringify(SCORE_V3)), {
+      model: 'difficulty-v3',
+      base: { max: 12, scale: 3 },
+      rule: [0, 0, 2, 2],
+      weights: { G: 5, info: 0.5 },
+      penalty: { few: 0, many: 0 },
+    });
+    /** @param {object} o @returns {boolean} */
+    const frozenDeep = (o) => Object.isFrozen(o)
+      && Object.values(o).every((v) => typeof v !== 'object' || v === null || frozenDeep(v));
+    assert.ok(frozenDeep(SCORE_V3));
+    const { base, rule, weights, penalty } = SCORE_V3;
+    assert.equal(rule.length, 4);
+    assert.ok(base.max + Math.max(...rule) <= 16);
+    assert.ok(rule[0] === 0 && rule[1] === 0 && rule[2] >= 0 && rule[2] <= rule[3]);
+    assert.ok(penalty.few >= 0 && penalty.few <= penalty.many);
+    assert.ok(weights.G >= 0 && weights.info >= 0 && base.scale > 0);
+    assert.ok(base.max >= 8 && base.max <= 12);
+    assert.ok(base.scale >= 3 && base.scale <= 12);
+    assert.ok(weights.G >= 0 && weights.G <= 8);
+    assert.ok(weights.info >= 0.5 && weights.info <= 6);
+    assert.ok(penalty.many <= 8);
   });
 });

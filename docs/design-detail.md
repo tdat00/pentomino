@@ -256,11 +256,27 @@ type Piece = { id: string; label: string; color: string; cells: XY[] }; // cells
 type PieceSet = { board: Board; pieces: Piece[]; witness: Pose[] | null;
                   carving: 'macro' | 'flat' | 'imported';
                   macroRegion: number[] | null };  // macro-region index per piece (canonical order), §6.5
-type Metrics = { U: number; B: number;              // B = effective (saturated) value used by the score
-                 branchTrials: number; rowTrials: number;     // actual counters of the rating traversal
-                 stop: 'solution' | 'branch-cap' | 'row-cap'; // why the traversal ended
-                 R: number; H: number };                      // diagnostics only (§7.1)
-type Rating = { model: 'difficulty-v2'; score: number; level: string; saturated: boolean; metrics: Metrics };
+type MetricsV2 = { U: number; B: number;            // B = effective (saturated) value used by the score
+                   branchTrials: number; rowTrials: number;     // actual counters of the rating traversal
+                   stop: 'solution' | 'branch-cap' | 'row-cap'; // why the traversal ended
+                   R: number; H: number };                      // diagnostics only (§7.1)
+type Metrics = MetricsV2;                           // alias, kept for the code that rates with difficulty-v2
+type MetricsV3 = {                                  // fixed field order; §7.10 (defined, not yet produced)
+  U: number; R: number; H: number;                  // as v2
+  B: number; branchTrials: number; rowTrials: number; dlxStop: 'solution' | 'branch-cap' | 'row-cap';  // v2 DLX diagnostic
+  searchStop: 'exhausted' | 'solution-limit' | 'node-cap' | 'work-cap';   // how the deduction search ended
+  F: number; E: number;                             // final-path placements by R1-R3; rows killed by R6
+  rules: { R1: number; R2: number; R3: number; R4: number; R5: number; R6: number; R7: number; R8: number; R9: number };
+  deductionTier: 0 | 1 | 2 | 3; tier: 0 | 1 | 2 | 3 | 4;   // tier = 4 when G > 0, else deductionTier
+  G: number; info: number; Cmax: number; Dmax: number;     // decisive values; info is the unquantised double
+  Gt: number; nodes: number; work: number;          // search totals (Gt: main search; nodes and work include the census)
+  S: number; solutionLimit: number; solutions: 'unique' | 'few' | 'many' | 'unknown';
+  censusComplete: boolean; censusUndecided: number; censusNodes: number; censusWork: number;
+  Gproved: number };                                // final-path guess nodes with an alternative proved impossible
+type RatingV2 = { model: 'difficulty-v2'; score: number; level: string; saturated: boolean; metrics: MetricsV2 };
+type RatingV3 = { model: 'difficulty-v3'; score: number; level: string; saturated: false;
+                  censored?: true; metrics: MetricsV3 };      // censored: exactly when the census is unfinished
+type Rating = RatingV2 | RatingV3;                  // discriminated by model; the engine still produces RatingV2 only
 type Certificate = { status: 'unique' | 'multiple' | 'not-proved' | 'unsatisfiable';
                      model: 'dlx-v1'; rowLimit: number; verified: boolean };  // verified = computed by this runtime
 type Puzzle = { id: string; title?: string; clues: Pose[]; solution: Pose[] | null;
@@ -365,6 +381,9 @@ export function planSizes(area: number, k: number, rng: Rng,
                           o?: { window?: [number, number]; avail?: (s: number) => number; smallCap?: number }): number[] | null;
 export const SCORE: Readonly<{ model: 'difficulty-v2'; weights: { U: 2; B: 8 };
                                caps: { branch: 5000; rows: 50000 } }>;   // §7.2, §7.3
+export const SCORE_V3: Readonly<{ model: 'difficulty-v3'; base: { max: 12; scale: 3 }; rule: [0, 0, 2, 2];
+                                  weights: { G: 5; info: 0.5 }; penalty: { few: 0; many: 0 } }>;
+                                                            // §7.10; deeply frozen; fitted, defined but not yet the rating
 export const BUDGETS: Readonly<Record<string, number>>;     // §8.3
 export const TIME: Readonly<{ targetMs: 60000; dispatchStopMs: 115000; responseMs: 120000 }>;
 export const DEDUCE: Readonly<{ lookaheadWidth: 4; nodes: 30000; solutions: 8; work: 760000000; census: 10000000;
@@ -486,8 +505,14 @@ export function puzzleId(b: Board, pieces: Piece[], clues: Pose[]): string;  // 
 export const MODEL = 'difficulty-v2';
 export function measure(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace): { metrics: Metrics; saturated: boolean };
 export function score(U: number, B: number): number;       // pure formula (§7.2); B is the effective value
+export function breakdownV3(m: ScoreInputV3, knobs?: ScoreKnobsV3):   // knobs default to SCORE_V3 and are not validated here
+  { base: number; rule: number; guess: number; penalty: number; unrounded: number; score: number };   // §7.10; RangeError
+export function scoreV3(m: ScoreInputV3): number;           // breakdownV3(m).score under SCORE_V3; defined, `rate` stays v2 until the v3 activation
 export function rate(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace): Rating;
 export function inBand(r: Rating, target: Level): boolean; // target.min ≤ score < target.max
+type ScoreInputV3 = Pick<MetricsV3, 'U' | 'deductionTier' | 'G' | 'info' | 'solutions'>;   // other fields ignored
+type ScoreKnobsV3 = { base: { max: number; scale: number }; rule: readonly number[];
+                      weights: { G: number; info: number }; penalty: { few: number; many: number } };
 ```
 
 **`clues.js`** (§6.10, §6.11)
@@ -1763,6 +1788,52 @@ Cell columns are scanned before piece columns, so a row forced through both a ce
 If their total exceeds `limits.memoryBytes`, the call throws `ModelError` `model-too-large` and allocates nothing; the workspace's own capacity check can throw the same error. The model stays live.
 
 **Determinism and labelled pieces.** The result depends only on the model, which is canonical (§6.6), and on `limits`: not on ids, colours or input order. Pieces are counted per labelled piece: two pieces of the same shape given directly are two piece columns, so each arrangement is counted per piece (the entry points of the product are to refuse such sets in a later step).
+
+### 7.10 Formula `difficulty-v3` (defined; not yet the rating)
+
+The score of the planned `difficulty-v3` rating (§7.7, §7.9): a base for the pieces left to place, a term for the hardest deduction rule the solver needed, a term per decisive guess, and a penalty for puzzles with several solutions. It is written as pure, tested code next to the v2 score (`breakdownV3` and `scoreV3` in `difficulty.js`, `SCORE_V3` in `policy.js`; types `MetricsV3`, `RatingV3`, §4.1), but **nothing uses it yet**: `rate` stays `difficulty-v2` (§7.2), so no rating, puzzle or document a user sees changes. Switching `rate` on is a later step, which also updates §7.1–§7.7.
+
+```text
+breakdownV3(m, knobs = SCORE_V3), m = { U, deductionTier, G, info, solutions } (other fields ignored):
+  base      = knobs.base.max * (1 - exp(-U / knobs.base.scale))
+  rule      = knobs.rule[deductionTier]
+  guess     = knobs.weights.G * G + knobs.weights.info * info
+  penalty   = knobs.penalty.few ('few') | knobs.penalty.many ('many') | 0 ('unique', 'unknown')
+  unrounded = base + rule + guess - penalty            (evaluated in this order)
+  score     = U = 0 ? 0 : max(0, round(unrounded))     (the one rounding)
+  returns { base, rule, guess, penalty, unrounded, score }
+scoreV3(m) = breakdownV3(m).score                       (production knobs only)
+```
+
+**Inputs.** For a `DeductionResult` `d` of `measureDeduction` (§7.9) on the model of a board, pieces and clues: `U = pieces.length - clues.length`, `deductionTier = d.first.deductionTier` (the hardest rule tier, 0–3), `G = d.first.G` (decisive guesses), `info = d.first.info` and `solutions = d.count.solutions`. A value outside its domain throws a `RangeError`: `U` a non-negative integer, `deductionTier` an integer 0–3, `G` a non-negative integer, `info` a finite number ≥ 0 with `info = 0` when `G = 0` (a valid tuple), `solutions` one of `'unique'`, `'few'`, `'many'`, `'unknown'`. The knobs are not validated by `breakdownV3` (the tests validate `SCORE_V3`; `tools/rate-probe.mjs` validates the knobs of its `--knobs` option, then calls `breakdownV3`, so the probe and the score share one implementation).
+
+**Knobs.** `SCORE_V3` is deeply frozen. Its values are the initial fit of `docs/difficulty-v3/fit-2026-11-12.md` (section 3), measured on real generated puzzles:
+
+| Knob | Value | Range or invariant |
+|---|---|---|
+| `base` | `{ max: 12, scale: 3 }` | `max` 8–12, `scale` 3–12 |
+| `rule` (by `deductionTier` 0–3) | `[0, 0, 2, 2]` | `rule[0] = rule[1] = 0 ≤ rule[2] ≤ rule[3]` |
+| `weights` | `{ G: 5, info: 0.5 }` | `G` 0–8, `info` 0.5–6 |
+| `penalty` | `{ few: 0, many: 0 }` | `0 ≤ few ≤ many ≤ 8` |
+
+The invariants are hard: `base.max + max(rule) ≤ 16` (here 14), `rule[0] = rule[1] = 0 ≤ rule[2] ≤ rule[3]`, `0 ≤ penalty.few ≤ penalty.many`, `weights.G ≥ 0`, `weights.info ≥ 0`. The ranges are experimental: a value may move inside them only by a new fit that is recorded. Four values sit on the edge of their range (`base.max`, `base.scale`, `weights.info`, the penalty), and the fit switched the few/many penalty off, `(0, 0)`, by the owner's decision (the fit corpus was generated for v2 levels, which have no uniqueness term); the penalty is examined again on puzzles generated under v3.
+
+**A puzzle without a decisive guess never reaches Hard.** `base` never exceeds `base.max`; with `G = 0` the guess term is 0 and the penalty is ≥ 0, so `unrounded ≤ base.max + max(rule) ≤ 16`, and the score is at most 16, below the lower edge of Hard (17, §7.4). With `SCORE_V3` the bound is 14.
+
+**Rounding and storage.** Only `score` is rounded, once, at the end; `base`, `rule`, `guess`, `penalty` and `unrounded` are the doubles of the evaluation. `info` is the full double the measurement computed and is never quantised: `JSON.stringify` and `JSON.parse` keep every finite number exactly, so `breakdownV3` of stored metrics reproduces the stored score exactly, even when `unrounded` lies within 1e-9 of a half-integer. Screens show `info` with at most 6 decimals as presentation only.
+
+**Worked examples** (`SCORE_V3`; `U = 6`, so `base = 12 (1 - e^-2) = 10.3760`; unique solution; binary guesses, so `info = G`; `guess = 5 G + 0.5 info = 5.5 G`):
+
+| `deductionTier` | `G` | `rule` | `guess` | `unrounded` | `score` |
+|---|---|---|---|---|---|
+| 1 | 1 | 0 | 5.5 | 15.8760 | 16 |
+| 1 | 2 | 0 | 11 | 21.3760 | 21 |
+| 2 | 1 | 2 | 5.5 | 17.8760 | 18 |
+| 2 | 2 | 2 | 11 | 23.3760 | 23 |
+| 3 | 1 | 2 | 5.5 | 17.8760 | 18 |
+| 3 | 2 | 2 | 11 | 23.3760 | 23 |
+
+The quick tests of `tests/difficulty-v3.test.js` check the formula on the vectors of the starting knobs (`base { 12, 6 }`, `rule [0, 0, 2, 4]`, `weights { 6, 4 }`, `penalty { 2, 4 }`, which are test vectors only), the grid of valid tuples (terms, order, one rounding, the penalty by `solutions`, `G = 0` at most 16), the exact JSON round trip, and the invalid inputs; `tests/policy.test.js` pins `SCORE_V3` and its invariants and ranges.
 
 ---
 
