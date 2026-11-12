@@ -5,8 +5,8 @@
 | Purpose | The corrected specification of `docs/difficulty-v3/plan.md` from which the developer task packs are derived: one resolution per decision or contract, the plan's errata, the agreed task breakdown with its gates, risks and effort, and a traceability table |
 | Authors | SA1, claude-opus-5.5 (lead author for this repository) and SA2, gpt-6-astra (checked and co-signed the joint draft; verified this revision, its corrections FC01-FC04 applied); signatures in §9 |
 | Date | 2026-11-12 |
-| Code examined | `77e62cb`, branch `rating-v3` (Windows, Node v26.13.0); the answers are at `04e7e90` (documents only, no code change) |
-| Status | **FINAL — answers applied (`clarifications.md` at `04e7e90`); for acceptance by the owner and the plan author.** Every question of `docs/difficulty-v3/clarifications.md` is answered (the plan author claude-fable-5-2; the disputed rows decided by the owner) and applied here; no pending marker remains. The points of the answers that need a confirmation at acceptance (part F of `clarifications.md`) are listed in §8.2. Signed by both analysts (§9). The task pack stays paused until acceptance |
+| Code examined | `77e62cb`, branch `rating-v3` (Windows, Node v26.13.0); the answers are at `04e7e90` and the acceptance answers at `e73712f` (documents only, no code change) |
+| Status | **ACCEPTED — by the plan author (`clarifications.md` Part G, `e73712f`) and the owner (2026-11-12 11:50); basis of the task pack `tasks/difficulty-v3/`.** Every question of `docs/difficulty-v3/clarifications.md` is answered (the plan author claude-fable-5-2; the disputed rows decided by the owner) and applied here, including the acceptance concerns of part F (C1-C6, §8.2) and the addition AR1 of part G (RES-35); no pending marker remains. Signed by both analysts (§9) |
 
 **Inputs**
 
@@ -17,7 +17,7 @@
 | `docs/difficulty-v3/claude-opus-5.5/2-review-of-gpt-6-astra.md`, `docs/difficulty-v3/gpt-6-astra/2-review-of-claude-opus-5.5.md` | 2. the cross-reviews |
 | `docs/difficulty-v3/claude-opus-5.5/3-response-to-review.md`, `docs/difficulty-v3/gpt-6-astra/3-response-to-review.md` | 3. the responses, final positions and merged breakdowns |
 | `docs/difficulty-v3/gpt-6-astra/4-check-of-joint-report.md` | 4. SA2's check of the first draft: required changes JC01-JC13 |
-| `docs/difficulty-v3/clarifications.md` at `04e7e90` | 5. every question (parts A-C) with the plan author's answers and the owner's decisions, the plan corrections (part D) with the author's response, and the decisions in one place (part E); part F, added afterwards, lists the concerns of §8.2 for acceptance |
+| `docs/difficulty-v3/clarifications.md` at `e73712f` | 5. every question (parts A-C) with the plan author's answers and the owner's decisions, the plan corrections (part D) with the author's response, and the decisions in one place (part E); part F, the concerns of §8.2 with their answers; part G, the addition AR1 and the plan author's acceptance |
 | `docs/difficulty-v3/gpt-6-astra/5-check-of-final-report.md` | 6. SA2's check of the answers-applied revision: required corrections FC01-FC04 (applied), minor consistency edits (applied) and SA2's positions on §8.2 |
 
 **Change log**
@@ -29,6 +29,7 @@
 | 2026-11-12 10:45 | Answers applied (`clarifications.md` at `04e7e90`, part E): RES-04 branch A (a capped path is unrateable; v3 has no "+"); RES-05 branch B (decisive guesses, a labelled upper estimate for an unfinished census, the few/many penalty kept); RES-09 closed and new RES-34 (two pieces of the same shape are an error at every entry; `shapeGroup` and MP04b dropped); RES-25 branch A; JR-P1 (a) v2 and v1 claims; JR-P2 (a); JR-P3 (a) experimental ranges; JR-P4 (a); AUTH-P1 encoding (a); the SA2-Q-P04 wording in RES-15; the SA2-Q-P10 "steps not available" text; part D accepted. Every open item resolved; one "Alternatives not chosen" line per decided item; tasks, gates, risks, effort and traceability updated; remaining concerns for acceptance in §8.2. Status: final, for acceptance |
 | 2026-11-12 11:05 | SA2 verified the answers-applied report and brief: signed subject to FC01-FC04 (estimate wording, auxiliary bootstrap/cancellation, provenance node-limit fallback, nullable duplicate-check input). Exact fixes and positions on C1-C6 are in `docs/difficulty-v3/gpt-6-astra/5-check-of-final-report.md`. Only this row and the SA2 signature were changed here; no tests or code changes. Owner/author acceptance and the task-pack pause remain in force |
 | 2026-11-12 11:13 | Applied SA2-5's FC01-FC04 as written: the decisive guarantee qualified for an unfinished census (§0 item 3, the §2.4 theorem, RES-09, E43, the brief); the auxiliary request aborted by a new generation or verification, waiting or running, and its bootstrap on a fresh or timed-out client with four new tests (RES-29, RES-23, MP10); the provenance writer fallback on the JSON-node and depth limits as well as bytes, with a below-512-KiB node-limit test and the qualified recovery promise (RES-27, MP13); the null guard of the duplicate-shape check with malformed-input tests (RES-34, MP09). Also SA2-5's minor edits: `REPLAY` bounds measured by MP15 and outside the MP12 lock (RES-01, §5.2); "no original clarification remains unanswered" (§0, §5, §5.2, §8.1); "no path of the probe corpus is capped" in the summaries (§1, E41, MP06, §6.1, §7.2). §8.2 records that both analysts recommend C1 (b), C2 (a), C3 (a), C4 (b) and 5 % for C5; option (a) stays applied until part F is answered. SA2's signature: signed (FC01-FC04 applied in this revision). The brief reflects both signatures |
+| 2026-11-12 12:20 | Acceptance applied (`clarifications.md` parts F and G at `e73712f`; the owner accepted at 11:50). C1 (b), owner: `censored: true` on v3 claims, full and summary, exactly when the census is unfinished, with the reader's cross-field check and the generic estimate note for codes (RES-05, RES-19 to RES-23). C2 (a): RES-15 as written; the reserve of 16 is only the stop point at profile 48. C3 (a): release notes in `docs/difficulty-v3/final-<date>.md` (RES-32). C4 (b), owner: a one-time notice in both languages when a saved Generator set with two pieces of the same shape is removed (RES-34). C5: 5 % per level and board cell of the MP06 corpus (RES-05). C6: no objection. AR1, owner: new RES-35 (metric `Gproved` in MP05; `selectClues` refuses an unproved rated candidate for Hard and above in MP09; MP06 reports the rejections; the slow test asserts `Gproved >= 1`; a recorder event in MP14). Tasks, effort, risks, traceability and §8 updated; the task pack dispatches some tasks in suffixed parts (§5) |
 
 **Conventions**
 
@@ -36,11 +37,11 @@
   line n of the plan. SA1-1, SA1-2, SA1-3 are SA1's three files in the order above; SA2-1, SA2-2, SA2-3 are SA2's;
   SA2-4 is SA2's check of the first draft and SA2-5 its check of the answers-applied revision
   (`docs/difficulty-v3/gpt-6-astra/5-check-of-final-report.md`). "Part E" is the table of decisions at the end of
-  `clarifications.md`; part F follows it.
-- **Resolutions are numbered RES-01 to RES-34.** The plan already names the deduction rules R1 to R9; they keep
+  `clarifications.md`; parts F (the acceptance concerns and their answers) and G (AR1 and the acceptance) follow it.
+- **Resolutions are numbered RES-01 to RES-35.** The plan already names the deduction rules R1 to R9; they keep
   those names.
-- Tasks are MP01 to MP17 (§5; the former conditional MP04b is dropped); gates are GV2, GF-P1, GA-P1, GF-P2, GA-P2,
-  GC-P2, GL-P3, GF-P4, GB-P4 and GZ (§5.3).
+- Tasks are MP01 to MP17 (§5; the former conditional MP04b is dropped; the task pack dispatches some of them in
+  suffixed parts, §5); gates are GV2, GF-P1, GA-P1, GF-P2, GA-P2, GC-P2, GL-P3, GF-P4, GB-P4 and GZ (§5.3).
 - "Must" marks what the implementation and its tests check. Every resolution is **final**: agreed by both analysts
   or decided by the owner or the plan author in `clarifications.md` (the deciding question is named). "Alternatives
   not chosen" names the branches of the draft that were decided against, with the deciding question.
@@ -62,13 +63,14 @@
    equation, 16 in `SCORE_V3`; 16 breaks "a forced puzzle caps at Normal"); R9 and the "place" half of R3 are
    unsound as written; the listed metrics cannot rebuild the score; a node cap does not bound the work; the protocol
    warning is wrong; P1's acceptance and P4's provenance are incomplete; several tests and gate commands cannot work
-   as written. RES-01 to RES-34 give the corrected specification; §4 lists the errata.
+   as written. RES-01 to RES-35 give the corrected specification; §4 lists the errata.
 3. **Several solutions and free choices: decisive guesses** (owner, SA1-Q-P1). Sound deductions never remove a row
    of any solution, so a puzzle with S >= 2 always has a branch on the path to its first solution; with the plan's
    raw G a free choice would add at least a + b = 10 points while the penalty refunds only 2 or 4. With a complete
    census a guess node therefore counts only when one of its alternatives is proved to fail; an unfinished census
    publishes a labelled decisive upper estimate (an undecided alternative counts as failing), not a proof that a
-   decisive guess was necessary; the few/many penalty stays (RES-05).
+   decisive guess was necessary, and its claim carries `censored: true` (C1 (b)); the few/many penalty stays (RES-05).
+   A puzzle the Generator makes for Hard or above needs one proved decisive guess, `Gproved >= 1` (owner, AR1, RES-35).
 4. **The starting knobs are far from real data.** After propagation and lookahead a guess node has 2 to 28 live
    alternatives (2 to 10 on the recipes' first paths, up to 28 on a 20x18 Expert puzzle), not about 2 as the plan's
    worked examples assume; with the plan's knobs and the agreed rule term the six 10x6 recipes rate 5, 6, 9, 38, 66,
@@ -85,18 +87,18 @@
 6. **Identical shapes are refused** (owner, SA2-Q-P03 / SA1-Q-P6): a piece set with two pieces of the same free shape
    is an error at every entry (packs, puzzle codes, the Generator import, the Player route), in English and
    Vietnamese; no quotient, no MP04b; counting is on labelled pieces, exact for every admissible set (RES-09, RES-34).
-7. **Status and work.** All original questions are answered (`clarifications.md` at `04e7e90`, part E); no pending
-   marker remains. Five points of the answers need a confirmation at acceptance and one is information (§8.2, part F
-   of `clarifications.md`); both analysts recommend the same options. 17 tasks, one developer at a time, about
-   73-112 agent hours plus machine time for the gate runs (SA2's engineering estimate of the draft scope: 88-139
-   hours). §5 and §6.
+7. **Status and work.** All questions are answered (`clarifications.md` at `e73712f`, parts E, F and G); no pending
+   marker remains. The plan author accepted the report (part G) and the owner accepted it on 2026-11-12 at 11:50; the
+   acceptance answers C1-C6 and AR1 are applied (§8). 17 tasks, one developer at a time, about 75-117 agent hours
+   plus machine time for the gate runs (SA2's engineering estimate of the draft scope: 88-139 hours). §5 and §6.
 
 ---
 
 ## 1. Decisions on every question
 
-Every question of `docs/difficulty-v3/clarifications.md` is answered (at `04e7e90`; the answer under each question
-and part E). "Owner": decided by the owner on the command line; "plan author": answered by claude-fable-5-2.
+Every question of `docs/difficulty-v3/clarifications.md` is answered (at `e73712f`; the answer under each question,
+part E, and parts F and G for the acceptance). "Owner": decided by the owner on the command line; "plan author":
+answered by claude-fable-5-2.
 
 | Question | Topic | Decision | By | Resolution |
 |---|---|---|---|---|
@@ -105,7 +107,7 @@ and part E). "Owner": decided by the owner on the command line; "plan author": a
 | SA2-Q-P03 / SA1-Q-P6 | identical shapes | none of the branches: two pieces of the same shape are an error at every entry; labelled counting; `shapeGroup` and MP04b dropped | owner | RES-09, RES-34 |
 | SA2-Q-P09 | calibration freedoms | branch A: knobs within the JR-P3 ranges, `DEDUCE` caps, K60 and SHARES may change, every change recorded; a K60 change bumps `POLICY_ID`; "~10 points" means percentage points | owner | RES-25 |
 | AUTH-P1 | provenance record, skip encoding | the record of RES-27 confirmed; encoding (a): integer lists capped at 64 subset and 16 repair ordinals, else `'overflow'` | plan author | RES-27 |
-| SA2-Q-P04 | centre search | confirmed: a final result (after any uniqueness repair) in the central half stops early; otherwise the best final result seen once 48 profiles are spent; an unbounded band keeps first in band (applied in RES-15; §8.2 C2) | plan author | RES-15 |
+| SA2-Q-P04 | centre search | confirmed: a final result (after any uniqueness repair) in the central half stops early; otherwise the best final result seen once 48 profiles are spent; an unbounded band keeps first in band (applied in RES-15; wording confirmed in C2) | plan author | RES-15 |
 | JR-P1 | old claims that get a derived display rating | (a) `difficulty-v2` and `difficulty-v1`; puzzles without a claim are not rated | plan author | RES-23 |
 | JR-P2 | key of the immutable set origin | (a) `generation.setOrigin`, written once, never re-stamped | plan author | RES-27 |
 | JR-P3 | ranges of the knob fit | (a) experimental ranges: `base.max` 8-12 (start 12), `base.scale` 3-12, `rule[2] <= rule[3]` with `base.max + rule[3] <= 16`, `weights.G` 0-8, `weights.info` 0.5-6, `0 <= penalty.few <= penalty.many <= 8`; the invariants are hard; a value outside a range needs a new answer | plan author | RES-18, RES-25 |
@@ -123,6 +125,13 @@ and part E). "Owner": decided by the owner on the command line; "plan author": a
 | SA2-Q-P11 | rule-based Player hints | (a) excluded from this release | plan author | RES-33 |
 | task order | one developer, sequential; timing runs never in parallel on the machine | confirmed as agreed | plan author | §5 |
 | part D | plan corrections | all fourteen accepted; item 9: v3 never sets `saturated`; item 11: `deduce.js` needs no `canonicalKey` | plan author | §4 |
+| C1 (part F) | the estimate note in puzzle codes | (b) `censored: true` on v3 claims, full and summary, exactly when `censusComplete` is false; the reader checks it against the metrics of a full claim; a code shows "decisive estimate" without n | owner | RES-05, RES-19, RES-21, RES-22, RES-23 |
+| C2 (part F) | centre search wording | (a) RES-15 as written; the reserve of 16 is only the stop point at profile 48; repairs memoised, not profiles; the 64-profile budget unchanged | plan author | RES-15 |
+| C3 (part F) | where the release notes go | (a) a "Release notes" section of `docs/difficulty-v3/final-<date>.md` (MP17); no `CHANGELOG.md`; the user guides state the refusal (RES-34) | plan author | RES-32, RES-34 |
+| C4 (part F) | saved Generator sets with twins | (b) a one-time notice in English and Vietnamese that a saved piece set with two pieces of the same shape was removed (MP09) | owner | RES-34 |
+| C5 (part F) | "a few per cent" of estimates | 5 % of a level's accepted probe puzzles, per level and board cell of the MP06 corpus | plan author | RES-05 |
+| C6 (part F) | tests and format parts retired by the duplicate-shape error | no objection | plan author | RES-24, RES-34 |
+| AR1 (part G) | generated Hard-or-above puzzles need a proved decisive guess | new metric `Gproved`, not a score input; `selectClues` refuses a rated candidate with `Gproved === 0` for a target of Hard or above; imports and display ratings not filtered | owner | RES-35 |
 
 ---
 
@@ -214,7 +223,7 @@ codes carry summary claims only (RES-22).
 | RES-02 | Model metadata | P0.1 | SA1-1 §4 P0.1 | SA2-1 §4 P0.1 | part D 11 | final |
 | RES-03 | Deduction state, ladder and search | P0.2 | SA1-1 §4 P0.2, SA1-3 §1.2 | SA2-1 §4 P0.2 | - | final |
 | RES-04 | Result, statuses; a capped path is unrateable | P0.2, P2.1 | SA1-3 §4 row 8 | SA2-3 §2.2 | SA2-Q-P02 (owner: branch A), part D 2, 9 | final |
-| RES-05 | Guess measure: decisive guesses | P0.2, P2.1 | SA1-3 §3 | SA2-3 §2.1 | SA1-Q-P1 (owner: branch B) | final |
+| RES-05 | Guess measure: decisive guesses | P0.2, P2.1 | SA1-3 §3 | SA2-3 §2.1 | SA1-Q-P1 (owner: branch B), C1 (owner), C5 | final |
 | RES-06 | Rules R1-R6 | P0.2b | SA1-1 §4 P0.2b | SA2-1 §4 P0.2b | SA2-Q-P12, part D 1, 10 | final |
 | RES-07 | Rules R7-R9 | P0.2b | SA1-1 §4 P0.2b | SA2-1 §4 P0.2b | part D 1 | final |
 | RES-08 | Tiers and rule counts | P0.2b | SA1-3 §2 | SA2-3 §0 | SA2-Q-P13 | final |
@@ -224,15 +233,15 @@ codes carry summary claims only (RES-22).
 | RES-12 | Probe tool | P0.3 | SA1-1 §4 P0.3 | SA2-1 §4 P0.3 | - | final |
 | RES-13 | Order noise and aggregation | P0.3, §5 | SA1-3 §4 row 10 | SA2-3 §3 | SA2-Q-P06, part D 14 | final |
 | RES-14 | Initial fit and v2 baseline | P0.3, P3 | SA1-3 §4 rows 15-16 | SA2-3 §1.1 D8 | PROC-P1, part D 4, 8 | final |
-| RES-15 | Centre-seeking acceptance | P1 | SA1-3 §1.2 | SA2-3 §1.2 | SA2-Q-P04 (author) | final (§8.2 C2) |
+| RES-15 | Centre-seeking acceptance | P1 | SA1-3 §1.2 | SA2-3 §1.2 | SA2-Q-P04 (author), C2 | final |
 | RES-16 | Uniform sampling | P1 step 2 | SA1-1 §4 P1 | SA2-1 §4 P1 | SA2-Q-P05 / SA1-Q-P5, part D 7, 13 | final |
 | RES-17 | P1 versions, tests, gate, docs | P1 | SA1-1 §4 P1 | SA2-1 §4 P1 | part D 13 | final |
 | RES-18 | v3 formula, policy and breakdown | P2.1 | SA1-1 §4 P2.1 | SA2-1 §4 P2.1 | SA2-Q-P01, SA2-Q-P13, JR-P3, part D 8 | final |
-| RES-19 | Measurement, rating and v2 retention | P2.1 | SA1-3 §4 row 23 | SA2-1 §4 P2.1 | part D 2 | final |
+| RES-19 | Measurement, rating and v2 retention | P2.1 | SA1-3 §4 row 23 | SA2-1 §4 P2.1 | part D 2, C1, AR1 | final |
 | RES-20 | Types and protocol | P2.2, §3 rule 6 | SA1-1 §3 | SA2-1 §4 P2.2 | part D 3 | final |
-| RES-21 | Pack reader and writer | P2.3 | SA1-1 §4 P2.3 | SA2-3 §2.3 | v3 metrics size | final |
-| RES-22 | Puzzle codes | P2.4 | SA1-3 §1.2 | SA2-3 §2.3 | SA2-Q-P07 / SA1-Q-P3, part D 6 | final |
-| RES-23 | Derived display rating | P2.5 | SA1-3 §1.1 | SA2-1 §4 P2.5 | SA2-Q-P08 / SA1-Q-P2, JR-P1, JR-P4 | final |
+| RES-21 | Pack reader and writer | P2.3 | SA1-1 §4 P2.3 | SA2-3 §2.3 | v3 metrics size, C1 | final |
+| RES-22 | Puzzle codes | P2.4 | SA1-3 §1.2 | SA2-3 §2.3 | SA2-Q-P07 / SA1-Q-P3, part D 6, C1 | final |
+| RES-23 | Derived display rating | P2.5 | SA1-3 §1.1 | SA2-1 §4 P2.5 | SA2-Q-P08 / SA1-Q-P2, JR-P1, JR-P4, C1 | final |
 | RES-24 | Tests and fixtures moved by P2 | P2 gate | SA1-1 §4 P2.5 | SA2-1 §3.1 | part D 12 | final |
 | RES-25 | Calibration and lock | P3 | SA1-3 §4 rows 11, 15 | SA2-3 §3 | SA2-Q-P09 (owner: branch A), PROC-P1, JR-P3 | final |
 | RES-26 | v3 tests | P3.1, P3.2 | SA1-1 §4 P3 | SA2-1 §4 P3 | part D 5 | final |
@@ -241,9 +250,10 @@ codes carry summary claims only (RES-22).
 | RES-29 | Replay engine and worker task | P4.2 | SA1-1 §4 P4 | SA2-1 §4 P4.2 | JR-P4 | final |
 | RES-30 | Score tables and views | P4.3 | SA1-1 §4 P4 | SA2-1 §4 P4.3 | SA1-Q-P1 | final |
 | RES-31 | Generation Steps dialog | P4.4 | SA1-1 §4 P4 | SA2-1 §4 P4.4 | SA2-Q-P10 | final |
-| RES-32 | Documents | all | SA1-1 §4 | SA2-1 §4 docs | SA2-Q-P03 / SA1-Q-P6 | final (§8.2 C3) |
+| RES-32 | Documents | all | SA1-1 §4 | SA2-1 §4 docs | SA2-Q-P03 / SA1-Q-P6, C3 | final |
 | RES-33 | Out of scope | P0.2b, P1, P2.4, §5 | SA1-3 §4 | SA2-3 §3 | SA2-Q-P11 | final |
-| RES-34 | Duplicate shapes refused at every entry | P0.2b, P2.3, P2.4 | SA1-3 §4 row 6 | SA2-3 §3 | SA2-Q-P03 / SA1-Q-P6 (owner) | final (§8.2 C4, C6) |
+| RES-34 | Duplicate shapes refused at every entry | P0.2b, P2.3, P2.4 | SA1-3 §4 row 6 | SA2-3 §3 | SA2-Q-P03 / SA1-Q-P6 (owner), C4 (owner), C6 | final |
+| RES-35 | A generated Hard-or-above puzzle needs a proved decisive guess | §1.3, P1, P2.1 | - | - | AR1 (owner, part G) | final |
 
 ### RES-01. Invariants and process
 
@@ -342,9 +352,13 @@ DeductionResult = {
   census: { complete, undecided, nodes, work } | null    // non-null iff path === 'complete' (RES-05)
 }
 FirstPath  = { F, E, rules: { R1, R2, R3, R4, R5, R6, R7, R8, R9 }, deductionTier: 0 | 1 | 2 | 3,
-               G, info, Cmax, Dmax, choices: number[], rows: number[], census: CensusNode[] }
+               G, Gproved, info, Cmax, Dmax, choices: number[], rows: number[], census: CensusNode[] }
 CensusNode = { c, kLow, f, u }       // RES-05; one per guess node of the final path, aligned with choices
 ```
+
+- Before the census exists (MP02-MP04) `census` is null, `first.census` is `[]`, `first` has no `Gproved`, and G,
+  info, Cmax and Dmax are the raw values over every final-path guess node. MP05 adds the census, `Gproved`
+  (RES-35) and the decisive values.
 
 - `path`: `complete` when a first solution was found; `none` when the search was exhausted without one (the caller
   throws `UnsatisfiableError`); `capped` when a node or work cap stopped the search before the first solution. A
@@ -387,7 +401,8 @@ CensusNode = { c, kLow, f, u }       // RES-05; one per guess node of the final 
 
 ### RES-05. Guess measure: decisive guesses (P0.2, P2.1)
 
-Decided: SA1-Q-P1, owner, branch B, with the plan author's conditions taken from SA2.
+Decided: SA1-Q-P1, owner, branch B, with the plan author's conditions taken from SA2; the `censored` flag C1 (b)
+(owner) and the 5 % threshold C5 (plan author) of part F; `Gproved` AR1 (owner, part G, RES-35).
 
 - **Census.** Each guess node of the final path records `CensusNode = { c, kLow, f, u }` with kLow + f + u = c:
   kLow alternatives proved solvable (at least 1, the path's own), f proved impossible (subtree exhausted without a
@@ -405,21 +420,28 @@ Decided: SA1-Q-P1, owner, branch B, with the plan author's conditions taken from
   proved free (kLow = c) adds nothing, so free choices among several solutions add nothing.
 - **Unfinished census: a labelled upper estimate.** With u > 0 the rating is published from kLow, so its G and info
   lie between the true decisive values and the raw ones; it has `censusComplete: false` and `censusUndecided` = n
-  (the sum of u). Wherever a v3 rating with metrics and `censusComplete: false` is shown (the Player's and the
-  Generator's rating display, the derived display rating, the replay score table), the note "decisive estimate: n
-  alternatives undecided within the work limit" follows the score, in English and Vietnamese (MP10, RES-30). An
-  incomplete census is rateable; it is independent of the capped-path policy (RES-04: a capped path is not
-  rateable). Summary claims in codes carry no census (§8.2 C1).
+  (the sum of u). Wherever a v3 rating with `censusComplete: false` is shown (the Player's and the Generator's rating
+  display, the derived display rating, the replay score table), the note "decisive estimate: n alternatives undecided
+  within the work limit" follows the score, in English and Vietnamese (MP10, RES-30). An incomplete census is
+  rateable; it is independent of the capped-path policy (RES-04: a capped path is not rateable).
+- **The `censored` flag** (C1 (b), owner). A v3 rating, claim and summary claim carries `censored: true` exactly when
+  `censusComplete` is false, and no `censored` field otherwise (RES-19, RES-21, RES-22). A summary claim in a code
+  carries the flag without metrics, so a puzzle opened from a code shows the generic note "decisive estimate",
+  without n (RES-23). `censored` never adds the "+" of `saturated` (`player/strings.js:94-99` formats only
+  `saturated`).
 - **Reported** in `result.census = { complete, undecided, nodes, work }` and in the metrics `censusComplete`,
   `censusUndecided`, `censusNodes` and `censusWork`, the probes' share of the totals (RES-10, RES-19).
 - **Penalty.** The fixed few/many penalty of RES-18 stays.
 - **Measurement** (MP06, before MP08 writes the formula), per level and board: the hit rate (the share of probe
-  puzzles whose v3 level equals the requested level), the census cost (`censusWork`, time) and the share of ratings
-  with an incomplete census. If more than 5 % of a level's accepted probe puzzles carry an estimate (5 % is this
-  report's reading of the author's "a few per cent", §8.2 C5), MP06 raises `DEDUCE.census` (recorded) or reports to
-  the owner.
+  puzzles whose v3 level equals the requested level), the census cost (`censusWork`, time), the share of ratings
+  with an incomplete census and the in-band candidates that RES-35 rejects. If more than 5 % of a level's accepted
+  probe puzzles in a board cell of the MP06 corpus carry an estimate (C5, plan author: 5 % per level and board cell;
+  strictly above 5 % triggers; the numerator and denominator are recorded; an empty cohort is unavailable evidence,
+  not 0 %), MP06 raises `DEDUCE.census` (recorded) or reports to the owner.
+- **Proved decisive guesses** (AR1, owner): `Gproved`, the number of final-path guess nodes with f >= 1, is computed
+  with the census and gates generated Hard-or-above puzzles (RES-35); it is not a score input.
 - Alternatives not chosen (SA1-Q-P1): A, raw guesses; B', an incomplete census makes the rating unrateable; C, raw
-  guesses with the penalty `weights.info * log2(min(S, 8))`.
+  guesses with the penalty `weights.info * log2(min(S, 8))`. (C1): (a), codes without any estimate mark.
 
 ### RES-06. Rules R1-R6 (P0.2b)
 
@@ -545,8 +567,8 @@ shape (rotations and reflections count as the same shape); such a set is an erro
   'order/' + i), rowTrialLimit, branchTrialLimit })`; `--tie-orders k`: G and info under k deterministic MRV tie
   variants through a diagnostic-only `tieOrder` limit of `measureDeduction` (0 = canonical; never used in
   production); `--knobs <json>`: v3 scores and breakdowns for given `SCORE_V3` knobs (exploration only, RES-18).
-  Every line shows the raw values (from `choices`) and the decisive values side by side, with each node's census and
-  its interval `[log2(c / (c - f)), log2(c / kLow)]` (RES-05).
+  Every line shows the raw values (from `choices`) and the decisive values side by side, with `Gproved` (RES-35), each
+  node's census and its interval `[log2(c / (c - f)), log2(c / kLow)]` (RES-05).
 - Output: one JSON line per puzzle on stdout, progress on stderr. Timings never enter deterministic comparisons; the
   median of an even count is the lower middle value; `identity` records the `resultDigest` check of a regenerated
   request (RES-14).
@@ -563,7 +585,8 @@ shape (rotations and reflections count as the same shape); such a set is an erro
 - Record `docs/difficulty-v3/probe-<date>.md` (new): (a) the noise of G versus B (RES-13); (b) the cost of
   `measureDeduction` on 10x6, 12x12, 20x18 and 26x26 (nodes, work, ms, memory peaks) and of the DLX diagnostic;
   (c) the distributions of G, info, Cmax, `deductionTier` and `solutions` per level and board, both uniqueness modes,
-  with sample counts; capped and census-incomplete shares; the initial fit (RES-14).
+  with sample counts; capped and census-incomplete shares; per level and board, the in-band Hard-or-above probe
+  puzzles with `Gproved = 0` that RES-35 would reject; the initial fit (RES-14).
 
 ### RES-13. Order noise and aggregation (SA2-Q-P06 (a))
 
@@ -602,9 +625,10 @@ shape (rotations and reflections count as the same shape); such a set is an erro
 
 Decided: SA2-Q-P04, plan author: "the centre is the real number `(min + max) / 2`; stop early when a final result
 (after any uniqueness repair) lies in the central half of the band; otherwise return the best final result seen once
-48 profiles are spent (`reserve = 16`, kept for repairs and their re-ratings); an unbounded band has no centre and
-keeps 'first in band'". The algorithm below implements that wording; where it differs from the joint draft (only in
-`require` mode) is §8.2 C2. In `selectClues` (`core/engine/clues.js:183-368`):
+48 profiles are spent; an unbounded band has no centre and keeps 'first in band'". Confirmed in part F C2 (a): RES-15
+as written; the reserve of 16 is only the stop point at profile 48; repair ratings are not search profiles, repairs
+are bounded by memoisation (each in-band candidate is repaired at most once), and the 64-profile budget is unchanged.
+In `selectClues` (`core/engine/clues.js:183-368`):
 
 ```text
 finite     = Number.isFinite(target.max)
@@ -614,7 +638,8 @@ reserve    = 16                              // stop point: profiles >= limit - 
 central(r) = not finite or |r.score - centre| <= window
 inBand     = []                              // rated in-band candidates, in rating order
 
-after each subset profile p (a rated candidate, or an unrateable subset, RES-04):
+after each subset profile p (a rated candidate, an unrateable subset, RES-04, or a rated candidate refused by
+RES-35):
   if p is rated and inBand(p.rating, target):
     inBand.push(p)
     if central(p.rating):
@@ -637,8 +662,8 @@ chooseBest():   // lazy best-first over final results
     if c is finished: return its final result
     finishOnce(c)                                         // records the final result or the failure; loop again
 finishOnce(c):  finish(c), memoised by c's raw subset id; in 'require' mode the repaired clue set fails when its
-                rating leaves the band (as today), when its clueKey is in excludeClueKeys (new) or when its rating
-                throws IncompleteRatingError (RES-04)
+                rating leaves the band (as today), when its clueKey is in excludeClueKeys (new), when its rating
+                throws IncompleteRatingError (RES-04) or when RES-35 refuses its rating
 ```
 
 - In `any` mode `finish` keeps the candidate (final = raw): the result is the first central candidate, else the in-band
@@ -656,8 +681,10 @@ finishOnce(c):  finish(c), memoised by c's raw subset id; in 'require' mode the 
 - Tests (`tests/clues.test.js`): MP07 adds a direct `selectClues` call with an unbounded target (no deep Hell level is
   generated). MP09 adds an `IncompleteRatingError` from a subset rating (one profile spent, neutral steering) and from a
   repaired rating (a failed repair that falls through), neither of which aborts the search or consumes a subset
-  profile a second time.
-- Alternatives not chosen (SA2-Q-P04): `reserve = 0` (search all 64 profiles when no central hit occurs).
+  profile a second time, and the RES-35 cases. Scripted scenarios use the optional `SelectContext.rate` seam that MP07
+  adds (RES-35).
+- Alternatives not chosen (SA2-Q-P04): `reserve = 0` (search all 64 profiles when no central hit occurs). (C2): (b) the
+  draft's raw-rating rule; (c) repair ratings counted as profiles.
 
 ### RES-16. Uniform sampling (P1 step 2)
 
@@ -736,7 +763,7 @@ score   = U === 0 ? 0 : max(0, round(base + rule + guess - penalty))
   `{ metrics: MetricsV3, saturated: false }` (the shape of `measure`, so callers stay uniform):
   1. U = 0: `isValidLayout` or `UnsatisfiableError`; zero metrics with `searchStop: 'exhausted'`, `S: 1`,
      `solutionLimit: limits.deduce.solutions`, `solutions: 'unique'`, `deductionTier: 0`, `dlxStop: 'solution'`,
-     `censusComplete: true` and zero census counters;
+     `censusComplete: true`, zero census counters and `Gproved: 0`;
   2. `buildModel` once; a free piece without placements throws `UnsatisfiableError` (as `measure` does,
      `core/engine/difficulty.js:69-75`);
   3. `measureDeduction(model, limits.deduce)` while the model is live; `path: 'none'` throws `UnsatisfiableError`;
@@ -747,8 +774,9 @@ score   = U === 0 ? 0 : max(0, round(base + rule + guess - penalty))
      (B pinned to the cap when capped); they never enter the v3 score or `saturated`. DLX exhausted without a solution
      while the deduction found one is an internal error.
 - `rate(board, pieces, clues, ws)` returns `{ model: 'difficulty-v3', score: scoreV3(metrics),
-  level: levelForScore(score).id, saturated: false, metrics }` or throws `IncompleteRatingError` (RES-04); `inBand`
-  is unchanged.
+  level: levelForScore(score).id, saturated: false, metrics }`, with `censored: true` between `saturated` and
+  `metrics` exactly when `metrics.censusComplete` is false (C1 (b)), or throws `IncompleteRatingError` (RES-04);
+  `inBand` is unchanged.
 - **Detail channel** (SA2-4 JC09; built in MP14): `rateDetailed(board, pieces, clues, ws)` returns
   `{ rating, detail }`, where `rating` equals what `rate` returns and `detail` is an owned copy of the
   `DeductionResult` of the **same** measurement (`first.choices`, `first.census`, `first.rows`, `count`, `search`,
@@ -773,7 +801,7 @@ has a complete first path, so there is no path field):
 | `G`, `info`, `Cmax`, `Dmax` | integer, finite number (full double), integers | decisive values of the counted nodes (RES-05); valid tuples only (RES-04) |
 | `Gt`, `nodes`, `work` | integers | search totals, including setup scans, the CSR transpose and census probes (RES-10) |
 | `S`, `solutionLimit`, `solutions` | integer <= `solutionLimit`; integer >= 2 (`DEDUCE.solutions`); `'unique'` \| `'few'` \| `'many'` \| `'unknown'` | RES-04 |
-| `censusComplete`, `censusUndecided`, `censusNodes`, `censusWork` | boolean, integers | RES-05; required; the census share of `nodes` and `work` |
+| `censusComplete`, `censusUndecided`, `censusNodes`, `censusWork`, `Gproved` | boolean, integers | RES-05; required; the census share of `nodes` and `work`; `Gproved` = final-path guess nodes with f >= 1 (RES-35), equal to G when the census is complete, not a score input |
 
 A computed v3 claim is about 450-650 bytes (synthetic typical and extreme values with every field of the table): it
 must stay within 4,096 UTF-8 bytes and depth 8 (RES-21).
@@ -781,8 +809,9 @@ must stay within 4,096 UTF-8 bytes and depth 8 (RES-21).
 ### RES-20. Types and protocol (P2.2)
 
 - `core/engine/types.js`: `MetricsV2` (today's `Metrics`, lines 55-64) and `MetricsV3`; `RatingV2` and `RatingV3`
-  (lines 66-73 today) with `Rating = RatingV2 | RatingV3` discriminated by `model`; the engine produces `RatingV3`
-  only. `RatingClaim` (94-102) keeps optional metrics. `PuzzleCandidate` (from line 180) gains its origin in MP13.
+  (lines 66-73 today) with `Rating = RatingV2 | RatingV3` discriminated by `model`; `RatingV3` has the optional
+  `censored?: true` (C1 (b)); the engine produces `RatingV3` only. `RatingClaim` (94-102) keeps optional metrics.
+  `PuzzleCandidate` (from line 180) gains its origin in MP13.
   The `DeductionResult`, `FirstPath` and `CensusNode` typedefs (RES-04) live in `core/engine/deduce.js`;
   `IncompleteRatingError` in `core/engine/difficulty.js`; `Issue` (lines 43-48) gains an optional `params` in MP09
   (RES-34).
@@ -794,7 +823,7 @@ must stay within 4,096 UTF-8 bytes and depth 8 (RES-21).
 
 ### RES-21. Pack reader and writer (P2.3)
 
-- `core/engine/pack.js`: `RATING_V3_FIELDS` (`model`, `score`, `level`, `saturated`, `metrics`),
+- `core/engine/pack.js`: `RATING_V3_FIELDS` (`model`, `score`, `level`, `saturated`, `censored`, `metrics`),
   `METRICS_V3_FIELDS` (RES-19) and `readMetricsV3(ctx, v, path)` next to `readMetricsV2` (734-764): required
   fields, non-negative integers and finite numbers, enums (`dlxStop` from `STOPS`, line 47; `searchStop`;
   `solutions`), `rules` with exactly the keys R1-R9, `deductionTier` 0-3, `tier` 0-4, `solutionLimit` >= 2.
@@ -804,40 +833,48 @@ must stay within 4,096 UTF-8 bytes and depth 8 (RES-21).
   `tier = G > 0 ? 4 : deductionTier`; `S <= solutionLimit`; `solutions` agrees with `S`, `solutionLimit` and
   `searchStop` as defined in RES-04 (`'unique'` only with `searchStop: 'exhausted'` and S = 1, `'many'` only with
   S = `solutionLimit`, never `'none'`); `censusComplete` iff `censusUndecided` = 0; `censusNodes <= nodes` and
-  `censusWork <= work`. A `difficulty-v3` claim must have `saturated: false` (RES-04); `saturated: true` is an
-  invalid claim, like an invalid v2 field today.
+  `censusWork <= work`; `Gproved <= G`, and `Gproved = G` when `censusComplete` (RES-35). A `difficulty-v3` claim
+  must have `saturated: false` (RES-04); `saturated: true` is an invalid claim, like an invalid v2 field today.
+- **The `censored` flag** (C1 (b), owner): optional boolean on a v3 claim; with metrics, `Boolean(censored)` must
+  equal `!metrics.censusComplete` (a mismatch is an invalid claim); a summary claim (no metrics) may carry it alone.
+  The writers emit `censored: true` only for an unfinished census and never write `censored: false`.
 - `readRating` (774-838): `difficulty-v3` is the current model. Required: `model`, `score`, `level`, `saturated`;
   **`metrics` optional** (summary claims from codes, RES-22). Present metrics are read strictly and must also meet
   the generic bound: at most 4,096 UTF-8 bytes and depth 8 (`MAX_CLAIM_METRICS_BYTES`, `CLAIM_JSON_DEPTH`, lines
   40-41), so current app versions, which read v3 as a foreign model, keep the claim. `difficulty-v2` becomes a
   legacy model read like `difficulty-v1` today: basic fields, metrics as opaque bounded JSON, no `unsupported-model`
   warning (line 820). Other models are unchanged (warned, kept, not used).
-- `ratingClaim` (1193-1211): writes v3 metrics in the fixed order of RES-19 (deterministic pack bytes); a claim
-  without metrics stays without metrics (never zeros); v2 as today.
+- `ratingClaim` (1193-1211): writes v3 metrics in the fixed order of RES-19 (deterministic pack bytes) and copies
+  `censored` (lines 1199-1200 already do); a claim without metrics stays without metrics (never zeros); v2 as today.
 - Writer rule (tested): packs written from computed ratings (Generator, `tools/generate.mjs`) carry full v3 metrics.
 - Tests (`tests/pack.test.js`): v3 round trip; v3 without metrics; unknown and missing fields; negative and
   non-finite counters; impossible enum combinations and every cross-field check above (valid and invalid tuples);
   the generic 4,096/4,097-byte boundary with an opaque legacy or foreign-model claim, and the largest legal strict
   v3 metrics separately (well under the bound; no padding field is added to the strict schema to build a size test);
   depth 9; v2 read as legacy without warning; `omitSolutions`; today's v2 cases (`tests/pack.test.js:483, 630`)
-  become legacy-claim cases; `saturated: true` on a v3 claim is refused. The duplicate-shape error of the same reader
-  is RES-34 (same task, MP09).
+  become legacy-claim cases; `saturated: true` on a v3 claim is refused; `censored` with and without metrics (a
+  mismatch with `censusComplete` is refused; a summary claim with `censored: true` is read); `Gproved` above G, and
+  `Gproved` below G with a complete census, are refused. The duplicate-shape error of the same reader is RES-34
+  (MP09).
 
 ### RES-22. Puzzle codes (P2.4)
 
 Final (SA2-Q-P07 superseded; SA1-Q-P3 (b), plan author): summary claims in codes, full metrics in packs.
 
 - When a puzzle code is written, a `difficulty-v3` claim is reduced to `{ model, score, level, saturated }` (with
-  `saturated: false`, RES-04) in the code-snapshot path (`core/engine/puzzlecode.js` and its snapshot builder). The
-  frozen v1 codec already writes a non-rebuildable claim as JSON text (`core/engine/puzzlecode-v1.js:958-967`): no
-  codec version, no change to the frozen v1 maths, no change to `ratingJsonBytes` (8,192).
+  `saturated: false`, RES-04), plus `censored: true` when the full claim has it (C1 (b), RES-05), in the code-snapshot
+  path (`core/engine/puzzlecode.js` and its snapshot builder). The frozen v1 codec already writes a non-rebuildable
+  claim as JSON text (`core/engine/puzzlecode-v1.js:958-967`) in the field order `model`, `score`, `level`,
+  `saturated`, `censored`, `metrics` (`tests/puzzlecode.test.js:710-714`): no codec version, no change to the frozen v1
+  maths, no change to `ratingJsonBytes` (8,192).
 - Decoding validates the snapshot through the pack boundary (`core/engine/puzzlecode.js:163-205`), where RES-21
   accepts a v3 claim without metrics. A decoded summary claim is shown as it is; missing metrics are absent evidence,
-  never manufactured zeros; its Generation Steps table shows the total only. A summary claim carries no census, so a
-  decisive estimate (RES-05) has no note when it is opened from a code (§8.2 C1).
+  never manufactured zeros; its Generation Steps table shows the total only. A summary claim with `censored: true`
+  shows the generic estimate note "decisive estimate", without n (RES-23).
 - v2 claims keep the compact v2 code form. The v2 goldens (`tests/fixtures/puzzlecode-v1.json` and the
-  `tests/puzzlecode*.test.js` families) stay unchanged as compatibility tests; v3 cases are added (summary round trip;
-  a full v3 claim in a hand-made code is read strictly; a current-version reader accepts a summary claim).
+  `tests/puzzlecode*.test.js` families) stay unchanged as compatibility tests; v3 cases are added (summary round trip,
+  with and without `censored: true`; a full v3 claim in a hand-made code is read strictly; a current-version reader
+  accepts a summary claim).
 - Gate GC-P2, format part (MP09): the size matrix on 676-cell production samples (26x26): raw and DEFLATE codes,
   with and without the answer tail, summary and full claims, against `MAX_CODE_SYMBOLS` 16,000
   (`core/engine/puzzlecode-input.js:12`), the URL limits (16,000, warning above 4,000, `core/engine/sharecode.js:11-13`)
@@ -864,24 +901,26 @@ Final (SA2-Q-P08 / SA1-Q-P2 (a); JR-P1 (a) and JR-P4 (a), plan author).
 - Display: the v3 level and score with the note "Re-rated with the current scale (original: {level} {score},
   {model})"; print captions (`core/browser/print-dialog.js:45-62`) and share views use the same rating and note. An
   unrateable puzzle (RES-04) or a rating error keeps the stored claim with "could not be re-rated". A derived rating
-  with `censusComplete: false` also shows the estimate note of RES-05.
-- **Estimate note** (RES-05, MP10): wherever the apps show a v3 rating with metrics and `censusComplete: false` (the
-  Player's rating line, the Generator's puzzle panel, the derived display rating), the note "decisive estimate: n
-  alternatives undecided within the work limit" follows the score (keys in both apps' locale files, English and
-  Vietnamese). A rating without metrics (a summary claim) shows no note.
+  with `censored: true` also shows the estimate note of RES-05.
+- **Estimate note** (RES-05, C1 (b), MP10): wherever the apps show a v3 rating or claim with `censored: true` (the
+  Player's rating line, the Generator's puzzle panel, the derived display rating, print and share captions), a note
+  follows the score: with metrics, "decisive estimate: n alternatives undecided within the work limit" (n =
+  `metrics.censusUndecided`); without metrics (a summary claim from a code), "decisive estimate". Keys in both apps'
+  locale files, English and Vietnamese. A rating without `censored` shows no note; `censored` never adds "+".
 - Strings in `player/locale.en.js`, `player/locale.vi.js`, `generator/locale.en.js`, `generator/locale.vi.js` (the
   `strings.js` files are formatting helpers); parity tests `tests/player-i18n.test.js`, `tests/generator-i18n.test.js`.
 - Tests (`tests/player-load.test.js`, `tests/generator-import.test.js`, `tests/print-details.test.js`,
   `tests/generation-client.test.js`): a v2 and a v1 claim re-rated, a puzzle without a claim not rated, a late reply
-  after navigation, cancellation, no worker, an invalid legacy puzzle, an unrateable puzzle, the estimate note, the
-  original code unchanged, and **overlapping work**: a display request started while a generation (or, in the
+  after navigation, cancellation, no worker, an invalid legacy puzzle, an unrateable puzzle, the estimate note with
+  n (full claim) and without n (a summary claim with `censored: true`), the original code unchanged, and
+  **overlapping work**: a display request started while a generation (or, in the
   Player, a verification) runs neither cancels nor supersedes it, and a new generation or verification started while
   a display request runs aborts the display request (RES-29). The auxiliary bootstrap of RES-29 (FC02 of SA2-5): a
   cold-start re-rating of a puzzle with an included solution (no verification has run, no token exists), a
   re-rating after a timed-out request, cancellation while waiting, and a new main request aborting a waiting
   auxiliary request. Tests do not pin knob-dependent levels (the knobs move in MP12).
 - Alternatives not chosen: re-rating v2 claims only, or also puzzles without a claim (JR-P1); a separate worker pool
-  (JR-P4).
+  (JR-P4); no estimate mark on summary claims (C1 (a)).
 
 ### RES-24. Tests and fixtures moved by P2
 
@@ -913,7 +952,8 @@ Final (SA2-Q-P08 / SA1-Q-P2 (a); JR-P1 (a) and JR-P4 (a), plan author).
   every change with its before and after data. The full-matrix evidence is kept even where availability is poor.
 - **Criteria** (plan P3 step 3): levels ordered on every board size (the median accepted v3 score strictly increases
   with the requested level on every board of the GV2 matrix); Hard and above need G >= 1 (follows from RES-18;
-  tested); each Hard and Expert cell **with a GV2 baseline** keeps a hit rate of at least its GV2 hit rate minus 10
+  tested) and every generated Hard-or-above puzzle has `Gproved >= 1` (RES-35; the slow test of RES-26); each Hard
+  and Expert cell **with a GV2 baseline** keeps a hit rate of at least its GV2 hit rate minus 10
   percentage points (confirmed in SA2-Q-P09); cells without a v2 baseline are reported, never compared with an
   invented baseline. After each knob change the quick and slow tests run again; the last change re-runs GF-P2 and
   GA-P2. The end of MP12 is the **lock**.
@@ -941,7 +981,8 @@ Final (SA2-Q-P08 / SA1-Q-P2 (a); JR-P1 (a) and JR-P4 (a), plan author).
   part D item 5).
 - Slow part (MP11; the test name starts with `slow:` so `npm run test:quick` skips it): generation per offered level on
   10x6 and on a 12x12 fixture board, 3 puzzles each, fixed seeds: the median v3 score increases with the level index
-  and no Hard-or-above puzzle has G = 0; it also records hit and miss counts; under 10 minutes.
+  and every Hard-or-above puzzle has `Gproved >= 1` (AR1, RES-35; this replaces "no Hard-or-above puzzle has G = 0",
+  which it implies); it also records hit and miss counts; under 10 minutes.
 
 ### RES-27. Provenance (P4.1)
 
@@ -1055,15 +1096,19 @@ Skips = { subsets: number[], repairs: number[] } | 'overflow'    // at most 64 s
   { stage: 'clues', kind: 'rated', source, phase, sequence, clueIds, rating, detail, band }
   { stage: 'clues', kind: 'skip', source, sequence }
   { stage: 'clues', kind: 'unrateable', source, phase, sequence, clueIds, reason, band }  // RES-04: 'path-capped'
+  { stage: 'clues', kind: 'rejected', source, phase, sequence, clueIds, rating, detail, band, reason }  // RES-35
   { stage: 'unique', kind: 'repair', source, repairSequence, addedId, clues, rating, detail, accepted }
   { stage: 'clues', kind: 'selected', source, sequence, repairSequence }
   ```
 
   `phase` is `'sample'`, `'seed'` or `'beam'`. A repair whose rating is unrateable has `rating: null`, `detail: null`,
-  `accepted: false` and `reason: 'path-capped'`.
+  `accepted: false` and `reason: 'path-capped'`. A rated subset that RES-35 refuses emits `rejected` with
+  `reason: 'no-proved-guess'` instead of `rated`; a repair whose rating RES-35 refuses has its rating and detail,
+  `accepted: false` and `reason: 'no-proved-guess'`.
 - Must: recorder off and on give identical sets, puzzles and RNG draws, with 1 and 4 workers. Tests
   (`tests/replay-recorders.test.js`): that equality; complete final-path detail on rated events; repair detail; the
-  `selected` event names the accepted candidate and repair; calibration events carry `source: 'calibration'`.
+  `selected` event names the accepted candidate and repair; calibration events carry `source: 'calibration'`; a
+  RES-35 refusal emits `rejected` with its reason.
 
 ### RES-29. Replay engine and worker task (P4.2)
 
@@ -1127,9 +1172,10 @@ Skips = { subsets: number[], repairs: number[] } | 'overflow'    // at most 64 s
 ### RES-30. Score tables and views (P4.3)
 
 - Every rated step and the final puzzle show the `breakdownV3` table: base(U), rule (deduction tier and the counts
-  R1-R9), guess (G, info and, from the recorded `detail` of RES-28, the raw alternatives `choices` and the census of
-  each guess node: c, kLow, f, u, counted or not), penalty (`solutions`: few or many), the rounded total and the band; a
-  rating with `censusComplete: false` carries the estimate note of RES-05. A summary claim shows the total only; a
+  R1-R9), guess (G, `Gproved` (RES-35), info and, from the recorded `detail` of RES-28, the raw alternatives `choices`
+  and the census of each guess node: c, kLow, f, u, counted or not), penalty (`solutions`: few or many), the rounded
+  total and the band; a rating with `censored: true` carries the estimate note of RES-05. A summary claim shows the
+  total only (with the generic estimate note when it carries `censored: true`); a
   legacy v2 final claim shows `2U`, `8 log10(1 + B)` and the total with the frozen v2 constants. Data that is not
   available (a summary claim, a stage without a trace) is labelled unavailable and never shown as zero (SA2-4 JC09);
   stages without a record show "steps not available for this puzzle" (SA2-Q-P10 (a)). An unrateable candidate (RES-04)
@@ -1166,14 +1212,14 @@ Skips = { subsets: number[], repairs: number[] } | 'overflow'    // at most 64 s
 | MP01 | the `Model` type (lines 410-412) and the `workspace.js` note (383-387): new fields, `deduce.*` slots | - |
 | MP02 | new §7.9 "Deduction solver" after §7.8 (line 1578; §8 starts at 1588): state, ladder, R1, R2, R3 check, R6, guesses, statuses, caps, work and memory (SA2-4 JC12) | - |
 | MP03, MP04 | §7.9: the rules R3 place, R4-R9 with their preconditions, tiers and rule counts | - |
-| MP05 | §7.9: the decisive guess measure, the census and the estimate (RES-05) | - |
+| MP05 | §7.9: the decisive guess measure, the census, the estimate and `Gproved` (RES-05, RES-35) | - |
 | MP06 | - (the record `probe-<date>.md` is new) | `DEVELOPERGUIDE.md`, `DEVELOPERGUIDE.vn.md`: `deduce.js`, `rate-probe.mjs` |
 | MP07 | §5.5 (line 751), §6.10 (1314), §6.11 (1364), §7.6 (1564) | `docs/design-brief.md` where it describes clue selection |
-| MP09 | §7.1-7.3 (1389, 1403, 1433): v3 replaces v2 with a short "v2 (historical)" paragraph, linking §7.9; §7.7 (1571): no "+" for v3, unrateable capped paths; §7.8 (1578); §14.1 (2566); claim versus display rating; §5.3 (716-743): item 6 (727-731) gains "pairwise distinct free shapes, error `duplicate-shape`" and item 10 (741) loses duplicate shapes; the code payload (1866-1869): the repeated-shape grammar stays in the frozen format and such codes are refused (RES-34) | `docs/design-brief.md` difficulty paragraph; `USERGUIDE.md`, `USERGUIDE.vn.md` where the score, the levels or "+" are explained, and where links, codes and imports are opened (a set with two pieces of the same shape is refused); `DEVELOPERGUIDE.md`, `DEVELOPERGUIDE.vn.md` |
-| MP10 | §7.7 (display rating, v2 and v1 claims, estimate note), §8.1 (1590): auxiliary requests (RES-29), the Player and Generator sections that show ratings | `USERGUIDE.md`, `USERGUIDE.vn.md` (re-rated note, estimate note) |
+| MP09 | §7.1-7.3 (1389, 1403, 1433): v3 replaces v2 with a short "v2 (historical)" paragraph, linking §7.9; §7.6 (1564): generated Hard-or-above puzzles need `Gproved >= 1` (RES-35); §7.7 (1571): no "+" for v3, unrateable capped paths, the `censored` flag; §7.8 (1578); §14.1 (2566); claim versus display rating; §5.3 (716-743): item 6 (727-731) gains "pairwise distinct free shapes, error `duplicate-shape`" and item 10 (741) loses duplicate shapes; the code payload (1866-1869): the repeated-shape grammar stays in the frozen format and such codes are refused (RES-34) | `docs/design-brief.md` difficulty paragraph; `USERGUIDE.md`, `USERGUIDE.vn.md` where the score, the levels or "+" are explained, and where links, codes and imports are opened (a set with two pieces of the same shape is refused; a saved set with two pieces of the same shape is removed with a notice); `DEVELOPERGUIDE.md`, `DEVELOPERGUIDE.vn.md` |
+| MP10 | §7.7 (display rating, v2 and v1 claims, estimate note with and without n), §8.1 (1590): auxiliary requests (RES-29), the Player and Generator sections that show ratings | `USERGUIDE.md`, `USERGUIDE.vn.md` (re-rated note, estimate note) |
 | MP12 | §7.8: measured v3 parameters and availability | - |
 | MP13-MP16 | §5.2 (619), §5.5 (756), new §6.12 "Generation Steps (replay)", §8.1 (1590), §10.5 (1996), §11.11 (2269); MP14 adds `rateDetailed` and the recorder events to §7.9 | `docs/design-brief.md`; `USERGUIDE.md`, `USERGUIDE.vn.md` (feature); `DEVELOPERGUIDE.md`, `DEVELOPERGUIDE.vn.md` (modules); `README.md` feature line |
-| MP17 | - | release notes of this change, as a section of `docs/difficulty-v3/final-<date>.md` (the repository has no release-notes file; §8.2 C3): the v3 levels, the re-rated display, the estimate note, the refusal of sets with two pieces of the same shape, Generation Steps |
+| MP17 | - | release notes of this change, as a section of `docs/difficulty-v3/final-<date>.md` (C3 (a): the repository has no release-notes file and no `CHANGELOG.md` is added): the v3 levels, the re-rated display, the estimate note, the proved-guess rule for generated Hard-or-above puzzles, the refusal of sets with two pieces of the same shape and the removal notice for saved sets, Generation Steps |
 
 ### RES-33. Out of scope
 
@@ -1188,11 +1234,12 @@ Skips = { subsets: number[], repairs: number[] } | 'overflow'    // at most 64 s
 
 ### RES-34. Duplicate shapes refused at every entry (P0.2b, P2.3, P2.4)
 
-Decided: SA2-Q-P03 / SA1-Q-P6, owner. A piece set must not contain two pieces of the same free shape, imported sets
-included; such a set is an error. Shapes are compared with `canonicalKey` (`core/engine/geometry.js:126`), which
-identifies translations, rotations and reflections, as `core/engine/carve.js:697-707` does for generated sets. This
-is a format tightening: a pack or a link with twins that opened with a warning before is now refused. Owned by MP09,
-the task that changes the pack reader for v3 (RES-21).
+Decided: SA2-Q-P03 / SA1-Q-P6, owner; the saved-set notice C4 (b), owner; C6, no objection (part F). A piece set must
+not contain two pieces of the same free shape, imported sets included; such a set is an error. Shapes are compared
+with `canonicalKey` (`core/engine/geometry.js:126`), which identifies translations, rotations and reflections, as
+`core/engine/carve.js:697-707` does for generated sets. This is a format tightening: a pack or a link with twins that
+opened with a warning before is now refused. Owned by MP09, the task that changes the pack reader for v3 (RES-21; in
+the task pack its first part, MP09a).
 
 - **Pack reader** (`core/engine/pack.js`). The duplicate check of `warnAboutPieces` (558-576, lines 569-574) moves into
   a new `checkDistinctShapes(ctx, pieces)` run right after `readPieces` (988) and before the early return (989-991), so
@@ -1229,8 +1276,14 @@ the task that changes the pack reader for v3 (RES-21).
   Player's pack messages (`messageForIssues`, `player/strings.js:58-75`) gain a `duplicate-shape` case
   (`msg.duplicateShape`). Text, in English and in Vietnamese with the existing terms for piece and puzzle: "Pieces
   {piece} and {first} have the same shape (mirror images count as the same shape), so this puzzle cannot be opened."
-  A saved Generator set with twins (importable before) fails `readSavedSet` and is dropped at restore like any invalid
-  saved set (`generator/state.js:404-409, 1022-1027, 1048`); no notice is added (§8.2 C4).
+  A saved Generator set with twins (importable before) fails `readSavedSet` and is dropped at restore
+  (`generator/state.js:404-409, 1022-1027, 1048`) with a **one-time notice** (C4 (b), owner): today `readSavedSet`
+  (885-899) returns null and loses the reason, so the restore must learn that the refusal was `duplicate-shape` (for
+  example from the first issue of `validatePack(dto.setPack)`) and count such sets; the other sets restore as
+  before; the app shows once, in English and Vietnamese, "A saved piece set with two pieces of the same shape was
+  removed: such sets can no longer be used." (wording adapted to the locale files' style; the count may be shown when
+  more than one set was removed). The notice is transient state, never persisted; the dropped set is gone from storage
+  at the next save, as today, so the notice does not repeat. An invalid set is never kept as playable.
 - **Engine functions stay total** on direct inputs with twins (RES-09): `rate`, `measureDeduction`, `selectClues`,
   `buildModel` and the DLX solvers do not check shapes.
 - **Tests** (MP09):
@@ -1252,21 +1305,67 @@ the task that changes the pack reader for v3 (RES-21).
     localized text; counted as an input failure); `tests/player-puzzle-code-route.test.js` and
     `tests/player-load.test.js` (a `#p=` code and a pack link with twins are refused with the message);
     `tests/generator-import.test.js` (nothing is imported; the dialog shows the reason); `tests/generator-state.test.js`
-    (a saved twin set is dropped at restore and the other sets restore); `tests/player-i18n.test.js` and
-    `tests/generator-i18n.test.js` (key parity); one check in `tests/browser/puzzle-code-acceptance.js` (gate GC-P2).
+    (a saved twin set is dropped at restore, the other sets restore, and the restore reports one removed
+    duplicate-shape set; a restore without such a set reports none; the notice is not persisted); the Generator UI
+    test that shows the notice once (C4 (b)); `tests/player-i18n.test.js` and `tests/generator-i18n.test.js` (key
+    parity); one check in `tests/browser/puzzle-code-acceptance.js` (gate GC-P2).
   - Engine-level twin tests stay unchanged (RES-09); `tests/carve.test.js:341, 379` keep testing carve's own error.
 - **Docs** (MP09): design §5.3 items 6 and 10 (`docs/design-detail.md:727-731, 741`) and the code payload note
   (1866-1869); `USERGUIDE.md` and `USERGUIDE.vn.md` where links, codes and imports are opened (around lines 90-99
-  and 126 of the English guide); the release notes in MP17 (RES-32; §8.2 C3).
+  and 126 of the English guide) and where saved sets are described (the removal notice); the release notes in MP17
+  (RES-32; C3 (a)).
 - Alternatives not chosen (SA2-Q-P03 / SA1-Q-P6): RES-09's branches A (raw counts with a documented limitation), B
-  and C (quotients).
+  and C (quotients). (C4): (a), a silent drop of a saved twin set.
+
+### RES-35. A generated Hard-or-above puzzle needs a proved decisive guess (AR1)
+
+Decided: AR1, owner (part G of `clarifications.md`). RES-05 counts an undecided alternative of an unfinished census as
+failing, so a rating can reach Hard with no alternative proved to fail. That is acceptable for a labelled display
+estimate, not for a puzzle the Generator makes ("Hard and above require at least one real choice", plan §1.3).
+
+- **Metric (MP05).** `Gproved` is the number of final-path guess nodes with f >= 1 (an alternative proved
+  impossible): `first.Gproved` in the `DeductionResult` (RES-04) and `Gproved` in `MetricsV3`, stored with the census
+  metrics (RES-19). `Gproved <= G`; with a complete census `Gproved = G` (with u = 0, kLow < c iff f >= 1); it can be
+  smaller only when `censusComplete` is false. It is **not** a score input: the formula of RES-18 is unchanged. The
+  probe (RES-12) and the replay score table (RES-30) show it.
+- **Acceptance rule (MP09**, the task that makes `selectClues` use v3 ratings; MP07 still runs on v2 ratings).
+  `SelectContext.target` carries `min`, `max` and `share`, not the level index (`core/engine/clues.js:29`), so "level
+  index 3 (Hard) or higher" is tested as `target.min >= bandEdge(3)` (17; `bandEdge` is exported by
+  `core/engine/levels.js:42`), which is the same for every ladder level. For such a target, a rated candidate whose
+  rating has `metrics.Gproved === 0` is refused, whatever its score:
+  - at the subset rating it counts as a profile (`profiles += 1`), is not added to the rated candidates, is neutral
+    for the count steering (neither in band nor below or above) and `onRate` is not called, exactly as an unrateable
+    subset (RES-04);
+  - at a repaired rating (`require` mode) the repair fails (memoised, RES-15) and the next candidate is tried;
+  - below Hard nothing changes; a rating without `metrics.Gproved` is never refused.
+  With a complete census a rating in the Hard band or above has G >= 1 (RES-18) and therefore `Gproved >= 1`: the
+  rule refuses census estimates only.
+- **Not filtered:** `rate()` itself, imported puzzles, stored claims and the derived display rating (RES-23); they
+  show the estimate with its note and the `censored` flag (C1 (b)).
+- **Recorder (MP14):** a refused subset emits `rejected` with `reason: 'no-proved-guess'`; a refused repair has
+  `accepted: false` and the same reason (RES-28). Skip ordinals (RES-27) are unaffected: a refused subset passed the
+  budget and repeat checks and was rated.
+- **Test seam (MP07):** `SelectContext` gains an optional `rate`, a function with the signature of `rate` of
+  `core/engine/difficulty.js` (the default), for diagnostics and tests like `onRate`; production callers never set
+  it. MP07 uses it for the scripted scenarios of RES-15 and RES-17, MP09 for the tests below.
+- **Tests:** MP05 (`tests/deduce-census.test.js`): `Gproved` on a census fixture with u > 0 (a budget-cut census)
+  counts exactly the nodes with f >= 1 and is at most G; with an unlimited census budget `Gproved = G`. MP09
+  (`tests/clues.test.js`): a scripted `selectClues` run for a Hard target where an in-band estimated candidate with
+  `Gproved = 0` is passed over (one profile spent, `onRate` not called) and a later proved one is returned; the same
+  refusal at a repaired rating in `require` mode; a Normal target accepts a candidate with `Gproved = 0`. MP09
+  (`tests/pack.test.js`): the cross-field checks of RES-21. The slow test of RES-26 asserts `Gproved >= 1` for every
+  generated Hard-or-above puzzle.
+- **Measurement (MP06):** per level and board, how many in-band Hard-or-above probe puzzles have `Gproved = 0` (the
+  candidates the rule would refuse), with numerator and denominator, next to the census-incomplete share (RES-05).
+- **Docs (MP09):** design §7.6 (generation acceptance) and §7.9 (the metric, from MP05).
 
 ---
 
 ## 4. Errata of the plan
 
 Part D of `clarifications.md` (D1-D14) folded in with the analysts' other corrections. The plan author accepted all
-fourteen part-D items (part D, author's response) and confirmed the agreed rows; E41-E44 follow from the answers.
+fourteen part-D items (part D, author's response) and confirmed the agreed rows; E41-E44 follow from the answers and
+E45 from AR1 (part G).
 
 | E | Plan text | Correction | Part D | RES |
 |---|---|---|---|---|
@@ -1314,6 +1413,7 @@ fourteen part-D items (part D, author's response) and confirmed the agreed rows;
 | E42 | P2.5 (plan:340): re-rate a `difficulty-v2` claim for display | `difficulty-v2` and `difficulty-v1` claims; never puzzles without a claim (JR-P1) | - | RES-23 |
 | E43 | P0.2 / P2.1: G counts every guess node on the path | decisive guesses: with a complete census a node counts only when an alternative is proved to fail; an unfinished census gives a labelled upper estimate (SA1-Q-P1) | - | RES-05 |
 | E44 | P2.5 / P4.2: the Player rates "in its one-worker pool"; replay as an ordinary task | an auxiliary method on the existing client and pool that never cancels generation or verification (JR-P4) | - | RES-29 |
+| E45 | §1.3 / P1: "Hard and above require at least one real choice", taken as following from the formula | with decisive estimates the formula alone does not prove it; a generated Hard-or-above puzzle needs `Gproved >= 1` (AR1) | - | RES-35 |
 
 ---
 
@@ -1326,7 +1426,10 @@ in separate tasks. Kept from SA1: the v2 baseline inside the probe task;
 the dialog and the final evidence as separate tasks (each is large enough on its own, and the final gate belongs to
 the last task). Dropped: the compact codec task (summary codes agreed) and, after the answers, the conditional quotient
 task MP04b (identical shapes are refused, RES-34). MP05 is unconditional (decisive census, RES-05). The breakdown has
-17 tasks; no original clarification remains unanswered (the confirmations of §8.2 and the tasks they touch: §5.2).
+17 tasks; every question is answered, including the acceptance answers of parts F and G (§5.2). The task pack
+`tasks/difficulty-v3/` dispatches several tasks in suffixed parts so that one developer finishes a part in about 20-60
+minutes: MP02a-b, MP06a-b, MP09a-c, MP10a-b, MP12a-b, MP13a-b, MP14a-b, MP15a-b and MP16a-b
+(`tasks/difficulty-v3/check-list.md` §1); the scope, order and gates of each task are unchanged.
 
 Every task: one developer holds the repository; the task ends with `npm run test:quick` and `npm run check` green
 (never two runs at once), the living documents of RES-32 updated in both languages and tool-written files
@@ -1341,22 +1444,22 @@ dispatch. Agent hours are developer-agent working time, excluding machine time o
 | ID | Title and scope | Depends on | Files owned (exclusive while active) | Gates | Size, agent h | Acceptance focus | SA1-3 / SA2-3 |
 |---|---|---|---|---|---|---|---|
 | MP01 | Model metadata (P0.1; RES-02; RES-10 slot names) | - | `core/engine/tiling.js`, `core/engine/workspace.js` (header comment only), `core/engine/placements.js` (only if a field is missing), `tests/tiling.test.js`, `tests/workspace.test.js`, `docs/design-detail.md` (RES-32) | - | S-M, 1-2 | fields equal the plan's; stale model refused; no output change | MP01 / P-01 |
-| MP02 | Deduction core, non-production (P0.2; RES-03, RES-04, RES-10, RES-11): state, R1, R2, R3 check, R6, MRV guess, the three statuses with `rows` and `choices` (no partial-path record), work and memory in `deduce.*` slots, provisional `DEDUCE` | MP01 | `core/engine/deduce.js` (new), `DEDUCE` in `core/engine/policy.js`, `tests/deduce.test.js` (new), `tests/policy.test.js`, `docs/design-detail.md` (new §7.9) | - | L, 5-8 | tiny exact solution sets; invariance; caps; undo; valid metric domain; accounted buffers; labelled counting of a direct twin input | MP02 / P-02 |
+| MP02 | Deduction core, non-production (P0.2; RES-03, RES-04, RES-10, RES-11): state, R1, R2, R3 check, R6, MRV guess, the three statuses with `rows` and `choices` (no partial-path record), work and memory in `deduce.*` slots, provisional `DEDUCE` | MP01 | `core/engine/deduce.js` (new), `DEDUCE` in `core/engine/policy.js`, `tests/deduce.test.js` (new), `tests/policy.test.js`, `tools/bench/report.js` (`SOURCE_FILES` entry only: `tests/benchmark-report.test.js:281-283` requires every engine module there), `docs/design-detail.md` (new §7.9) | - | L, 5-8; dispatched as MP02a (state, R1, R2, search, statuses, caps, memory) and MP02b (the R3 check, R6, E, the recipe characterisation) | tiny exact solution sets; invariance; caps; undo; valid metric domain; accounted buffers; labelled counting of a direct twin input | MP02 / P-02 |
 | MP03 | R3 place, R4, R5 (P0.2b; RES-06, RES-08) | MP02 | `core/engine/deduce.js`, `tests/deduce-rules.test.js` (new), `docs/design-detail.md` (§7.9) | - | M, 3-4 | positive and near-miss boards; all-solutions oracle | MP03 / P-03a |
 | MP04 | R7, R8, R9, tiers, rule counts, oracle on every rule (P0.2b; RES-07, RES-08, RES-11) | MP03 | `core/engine/deduce.js`, `tests/deduce-rules.test.js`, `docs/design-detail.md` (§7.9) | - | L, 5-7 | R9 regression board; parity and neck boards | MP03 / P-03b |
-| MP05 | Decisive census (RES-05): `CensusNode`, the three sources, the `DEDUCE.census` budget, decisive G, info, Cmax and Dmax, the upper estimate and `result.census` | MP04 | `core/engine/deduce.js`, `census` in `core/engine/policy.js`, `tests/deduce-census.test.js` (new), `docs/design-detail.md` (§7.9) | - | L, 4-6 | unique puzzles unchanged; a free node adds nothing; a cut probe leaves u; the estimate lies between the decisive and the raw values; census cutoff independent of the count | MP02b / P-04 |
-| MP06 | Probe, order study, capped and census-incomplete shares, `DEDUCE` values (no capped path on the probe corpus up to master on boards up to 20x18; `census` by the 5 % rule), candidate knobs within the JR-P3 ranges, hit rates, v2 baseline (P0.3; RES-05, RES-10, RES-12-RES-14) | MP05 | `tools/rate-probe.mjs` (new), `tests/rate-probe.test.js` (new), the `tieOrder` diagnostic in `core/engine/deduce.js`, `DEDUCE` values in `core/engine/policy.js`, `docs/difficulty-v3/probe-<date>.md` and `docs/difficulty-v3/baseline-v2/` (new), `DEVELOPERGUIDE.md`, `DEVELOPERGUIDE.vn.md` | GV2 | M, 3-5 | the three answers of plan P0.3; capped and estimate shares per level and board; proposed knobs; confusion matrix; regenerated requests verified | MP04 / P-05 |
-| MP07 | Centre-seeking acceptance and `gen-v3` (P1; RES-15-RES-17) | MP06 | `core/engine/clues.js`, `core/engine/version.js`, `tests/clues.test.js`, `tests/generate.test.js`, `tests/fixtures/generation-case.json`, `tests/fixtures/generated-sample-pack.json`, `docs/design-detail.md`, `docs/design-brief.md` | GF-P1, GA-P1 | M-L, 3-5 | centre test; lazy best-first in `require` mode; 1 and 4 workers | MP05 / P-06 |
+| MP05 | Decisive census (RES-05): `CensusNode`, the three sources, the `DEDUCE.census` budget, decisive G, info, Cmax and Dmax, the upper estimate, `result.census` and `Gproved` (RES-35) | MP04 | `core/engine/deduce.js`, `census` in `core/engine/policy.js`, `tests/deduce-census.test.js` (new), `docs/design-detail.md` (§7.9) | - | L, 4-7 | unique puzzles unchanged; a free node adds nothing; a cut probe leaves u; the estimate lies between the decisive and the raw values; census cutoff independent of the count; `Gproved` counts the nodes with f >= 1 | MP02b / P-04 |
+| MP06 | Probe, order study, capped and census-incomplete shares, `DEDUCE` values (no capped path on the probe corpus up to master on boards up to 20x18; `census` by the 5 % rule per level and board cell, C5), candidate knobs within the JR-P3 ranges, hit rates, the RES-35 rejections, v2 baseline (P0.3; RES-05, RES-10, RES-12-RES-14, RES-35) | MP05 | `tools/rate-probe.mjs` (new), `tests/rate-probe.test.js` (new), the `tieOrder` diagnostic in `core/engine/deduce.js`, `DEDUCE` values in `core/engine/policy.js`, `docs/difficulty-v3/probe-<date>.md` and `docs/difficulty-v3/baseline-v2/` (new), `DEVELOPERGUIDE.md`, `DEVELOPERGUIDE.vn.md` | GV2 | M, 3-6; dispatched as MP06a (the probe tool) and MP06b (the probe and GV2 runs, the record, the `DEDUCE` values and the proposed knobs) | the three answers of plan P0.3; capped and estimate shares per level and board; `Gproved = 0` rejections per level and board; proposed knobs; confusion matrix; regenerated requests verified | MP04 / P-05 |
+| MP07 | Centre-seeking acceptance, the optional `SelectContext.rate` seam and `gen-v3` (P1; RES-15-RES-17, RES-35 seam) | MP06 | `core/engine/clues.js`, `core/engine/version.js`, `tests/clues.test.js`, `tests/generate.test.js`, `tests/fixtures/generation-case.json`, `tests/fixtures/generated-sample-pack.json`, `docs/design-detail.md`, `docs/design-brief.md` | GF-P1, GA-P1 | M-L, 3-5 | centre test; lazy best-first in `require` mode; 1 and 4 workers; scripted scenarios through the seam | MP05 / P-06 |
 | MP08 | Pure v3: `breakdownV3`, `scoreV3`, the production `SCORE_V3` values from the MP06 fit within the JR-P3 ranges, v3 types; the default stays v2 (P2.1, P2.2; RES-18, RES-20, RES-26 quick part) | MP07 | `core/engine/difficulty.js` (new exports only), `SCORE_V3` in `core/engine/policy.js`, `core/engine/types.js`, `tests/difficulty-v3.test.js` (new), `tests/policy.test.js` | - | M, 2-3 | valid-tuple invariant grid; worked examples; one rounding; exact JSON round trip; values recorded with the evidence | MP06a / P-07 |
-| MP09 | Activate v3: `measureV3`, `rate`, `IncompleteRatingError` and its handling in `selectClues`, `MODEL`, v2 renamed, pack v3 and v2 legacy, summary code claims, pinned tests, docs §7; duplicate shapes refused at every entry (P2.1-P2.4; RES-04, RES-19, RES-21, RES-22, RES-24, RES-34) | MP08 | `core/engine/difficulty.js`, `core/engine/pack.js`, `core/engine/types.js` (`Issue.params`), `core/engine/puzzlecode.js`, `core/engine/puzzlecode-v1.js` (error mapping only), `core/engine/puzzlecode-input.js`, `core/engine/clues.js` (RES-04 handling only), `core/browser/puzzle-code-client.js`, `core/browser/puzzle-code-dialog.js`, `player/strings.js`, `player/locale.en.js`, `player/locale.vi.js`, `generator/locale.en.js`, `generator/locale.vi.js`, `tools/record-fixtures.mjs` (RES-04 handling), `tests/difficulty.test.js`, `tests/pack.test.js`, `tests/puzzlecode.test.js`, `tests/clues.test.js`, `tests/fixtures/clue-recipes.js`, `tests/generate.test.js`, `tests/worker-pool.test.js`, `tests/protocol.test.js`, the app tests of RES-34, `tests/browser/puzzle-code-acceptance.js`, generation fixtures, `docs/design-detail.md`, `docs/design-brief.md`, `USERGUIDE.md`, `USERGUIDE.vn.md`, `DEVELOPERGUIDE.md`, `DEVELOPERGUIDE.vn.md` | GF-P2, GA-P2, GC-P2 (format and the duplicate-shape check) | L, 7-11 (if it outgrows L at dispatch, the app-side part of RES-34, i.e. dialog, client, messages, locales and app tests, becomes MP09b directly after MP09; the pack and code checks stay in MP09) | full suite green; v2 goldens unchanged; cross-field reader checks; twin sets refused with both ids in both apps; malformed boards and pieces still return issues, not a TypeError; code sizes recorded | MP06b, MP09 / P-08 |
-| MP10 | Derived display rating for v2 and v1 claims, the estimate note and the auxiliary request method (P2.5; RES-05 note, RES-23, RES-29 auxiliary contract) | MP09 | `player/state.js`, `player/app.js`, `player/strings.js`, `player/locale.en.js`, `player/locale.vi.js`, `generator/state.js`, `generator/jobs.js`, `generator/ui/puzzle-panel.js`, `generator/strings.js`, `generator/locale.en.js`, `generator/locale.vi.js`, `core/browser/print-dialog.js`, `core/browser/generation-client.js`, `core/browser/worker-pool.js` (only if the auxiliary method needs it), `tests/player-load.test.js`, `tests/generator-import.test.js`, `tests/print-details.test.js`, `tests/player-i18n.test.js`, `tests/generator-i18n.test.js`, `tests/generation-client.test.js`, `tests/worker-pool.test.js`, `docs/design-detail.md` (§7.7, §8.1), user guides | GC-P2 (display) | L, 6-9 | stored claim never changed; v1 and v2 re-rated, no-claim puzzles not rated; stale replies dropped; overlapping work never cancels generation or verification; auxiliary bootstrap on a fresh or timed-out client; estimate note shown | MP10 / P-09 |
+| MP09 | Activate v3: `measureV3`, `rate` (with `censored`), `IncompleteRatingError` and its handling in `selectClues`, the RES-35 refusal of unproved Hard-or-above candidates, `MODEL`, v2 renamed, pack v3 (with `censored` and the `Gproved` checks) and v2 legacy, summary code claims, pinned tests, docs §7; duplicate shapes refused at every entry with the one-time notice for removed saved sets (P2.1-P2.4; RES-04, RES-19, RES-21, RES-22, RES-24, RES-34, RES-35; C1 (b), C4 (b), AR1) | MP08 | `core/engine/difficulty.js`, `core/engine/pack.js`, `core/engine/types.js` (`Issue.params`), `core/engine/puzzlecode.js`, `core/engine/puzzlecode-v1.js` (error mapping only), `core/engine/puzzlecode-input.js`, `core/engine/clues.js` (RES-04 and RES-35 handling only), `core/browser/puzzle-code-client.js`, `core/browser/puzzle-code-dialog.js`, `player/strings.js`, `player/locale.en.js`, `player/locale.vi.js`, `generator/state.js` (saved-set restore and notice only), `generator/app.js` (notice only), `generator/locale.en.js`, `generator/locale.vi.js`, `tools/record-fixtures.mjs` (RES-04 handling), `tests/difficulty.test.js`, `tests/pack.test.js`, `tests/puzzlecode.test.js`, `tests/clues.test.js`, `tests/fixtures/clue-recipes.js`, `tests/generate.test.js`, `tests/worker-pool.test.js`, `tests/protocol.test.js`, the app tests of RES-34, `tests/browser/puzzle-code-acceptance.js`, generation fixtures, `docs/design-detail.md`, `docs/design-brief.md`, `USERGUIDE.md`, `USERGUIDE.vn.md`, `DEVELOPERGUIDE.md`, `DEVELOPERGUIDE.vn.md` | GF-P2, GA-P2, GC-P2 (format and the duplicate-shape check) | L, 9-13; dispatched as MP09a (duplicate shapes, RES-34 with C4 (b)), MP09b (v3 claims in packs and codes, RES-21 and RES-22 with C1 (b)) and MP09c (activation, RES-04 handling, RES-19, RES-24, RES-35; the gates) | full suite green; v2 goldens unchanged; cross-field reader checks (`censored`, `Gproved`); twin sets refused with both ids in both apps; a removed saved twin set announced once; malformed boards and pieces still return issues, not a TypeError; unproved Hard-or-above candidates refused; code sizes recorded | MP06b, MP09 / P-08 |
+| MP10 | Derived display rating for v2 and v1 claims, the estimate note (with n for full claims, without n for summary claims with `censored: true`) and the auxiliary request method (P2.5; RES-05 note, RES-23, RES-29 auxiliary contract; C1 (b)) | MP09 | `player/state.js`, `player/app.js`, `player/strings.js`, `player/locale.en.js`, `player/locale.vi.js`, `generator/state.js`, `generator/jobs.js`, `generator/ui/puzzle-panel.js`, `generator/strings.js`, `generator/locale.en.js`, `generator/locale.vi.js`, `core/browser/print-dialog.js`, `core/browser/generation-client.js`, `core/browser/worker-pool.js` (only if the auxiliary method needs it), `tests/player-load.test.js`, `tests/generator-import.test.js`, `tests/print-details.test.js`, `tests/player-i18n.test.js`, `tests/generator-i18n.test.js`, `tests/generation-client.test.js`, `tests/worker-pool.test.js`, `docs/design-detail.md` (§7.7, §8.1), user guides | GC-P2 (display) | L, 6-10; dispatched as MP10a (the auxiliary request method) and MP10b (the display rating and the estimate note) | stored claim never changed; v1 and v2 re-rated, no-claim puzzles not rated; stale replies dropped; overlapping work never cancels generation or verification; auxiliary bootstrap on a fresh or timed-out client; estimate note shown with and without n | MP10 / P-09 |
 | MP11 | Calibration tooling and the slow test (P3.2; RES-25, RES-26) | MP10 | `tools/bench/runner.js`, `tools/bench/report.js`, `tools/bench/calibration-reference.js`, `tests/calibration.test.js`, `tests/benchmark-report.test.js`, `tests/difficulty-v3.test.js` (slow part) | - | M-L, 3-5 | old records readable; slow test under 10 minutes | MP07 / P-10 |
-| MP12 | Calibration run and **lock** (P3; RES-25, RES-26) | MP11 | knob values in `core/engine/policy.js` (`SCORE_V3` within the JR-P3 ranges, `DEDUCE`, `K60` and `POLICY_ID`), `SHARES` in `core/engine/levels.js`, generation fixtures, `tests/difficulty-v3.test.js`, `docs/difficulty-v3/calibration-<date>.md`, `docs/difficulty-v3/landscape-v3/` and `docs/difficulty-v3/landscape-v3-full/` (new), `docs/design-detail.md` | GL-P3 (GV2 slice, then the full landscape); GF-P2 and GA-P2 again | M, 3-5 | the criteria of RES-25 met or recorded; every change with before and after data; full-matrix evidence kept; lost hit rate from unrateable candidates reported | MP08 / P-11 |
-| MP13 | Provenance (P4.1; RES-27) | MP12 | `core/engine/generate.js`, `core/engine/types.js`, `core/engine/clues.js` (skip ordinals), `core/engine/pack.js` (provenance checks; the writer's byte and JSON-node fallback), `core/browser/generation-client.js`, `generator/state.js`, `generator/jobs.js`, `tools/record-fixtures.mjs`, `tests/generation-client.test.js`, `tests/generator-state.test.js`, `tests/pack.test.js`, `tests/fixtures/replay-case.json` (new), `docs/design-detail.md` | GF-P4 | L, 7-10 | origins survive the fold, reload and export; skips capped, bounded and consumed exactly; near-limit packs (bytes and JSON nodes) stay valid | MP11 / P-12 |
-| MP14 | Recorders and the detail channel (P4.2; RES-19 `rateDetailed`, RES-28) | MP13 | `core/engine/carve.js`, `core/engine/tiling.js` (`lnsWalk`), `core/engine/clues.js` (`record`, `replaySkips`), `core/engine/generate.js`, `core/engine/difficulty.js` (`rateDetailed`), `core/engine/types.js` (`RatingDetail`, event types), `tests/replay-recorders.test.js` (new), `docs/design-detail.md` (§7.9) | - | L, 6-9 | recorder off and on identical; detail from the same measurement; `selected` and `unrateable` events | MP12 / P-13 |
-| MP15 | Replay engine and worker task (P4.2, P4.3 data; RES-29, RES-30) | MP14 | `core/engine/replay.js` (new), `REPLAY` in `core/engine/policy.js`, `core/engine/tasks.js`, `core/engine/protocol.js`, `core/browser/generation-client.js` (the new kind on the auxiliary path), `tests/replay.test.js` (new), `tests/tasks.test.js`, `tests/protocol.test.js`, `tests/generation-client.test.js`, `docs/design-detail.md` | - | L, 7-10 | `matched` on fresh packs; `unavailable`, `mismatch` and `incomplete` (work); stored solution compared | MP12 / P-14 |
-| MP16 | Generation Steps dialog (P4.3 views, P4.4; RES-30, RES-31) | MP15 | `generator/ui/replay-dialog.js` (new), `generator/app.js`, `generator/ui/puzzle-panel.js`, `generator/generator.css`, `core/browser/svg-board.js`, `generator/locale.en.js`, `generator/locale.vi.js`, `tests/browser/replay.html` and `tests/browser/replay.js` (new), affected UI tests, `docs/design-detail.md`, `docs/design-brief.md`, guides, `README.md` | GB-P4 | L, 6-9 | keyboard and screen reader; the button inside `li.puzzle-card`; "steps not available for this puzzle"; explicit incomplete and mismatch states; checks under 1 minute | MP13 / P-15 |
-| MP17 | Final compatibility and regression evidence, release notes (plan §7, last item; RES-32) | MP16 | justified final fixture, test and doc corrections; `docs/difficulty-v3/final-<date>.md` (new, with the release notes) | GZ | M, 2-4 | no Hard-or-above puzzle with G = 0; levels ordered on 10x6 and 20x18; no scoring change since the lock; release notes written | MP14 / P-15 |
+| MP12 | Calibration run and **lock** (P3; RES-25, RES-26) | MP11 | knob values in `core/engine/policy.js` (`SCORE_V3` within the JR-P3 ranges, `DEDUCE`, `K60` and `POLICY_ID`), `SHARES` in `core/engine/levels.js`, generation fixtures, `tests/difficulty-v3.test.js`, `docs/difficulty-v3/calibration-<date>.md`, `docs/difficulty-v3/landscape-v3/` and `docs/difficulty-v3/landscape-v3-full/` (new), `docs/design-detail.md` | GL-P3 (GV2 slice, then the full landscape); GF-P2 and GA-P2 again | M, 3-5; dispatched as MP12a (the GV2 slice again and the knob changes) and MP12b (the full landscape, the final fixtures and the lock) | the criteria of RES-25 met or recorded; every change with before and after data; full-matrix evidence kept; lost hit rate from unrateable candidates reported | MP08 / P-11 |
+| MP13 | Provenance (P4.1; RES-27) | MP12 | `core/engine/generate.js`, `core/engine/types.js`, `core/engine/clues.js` (skip ordinals), `core/engine/pack.js` (provenance checks; the writer's byte and JSON-node fallback), `core/browser/generation-client.js`, `generator/state.js`, `generator/jobs.js`, `tools/record-fixtures.mjs`, `tests/generation-client.test.js`, `tests/generator-state.test.js`, `tests/pack.test.js`, `tests/fixtures/replay-case.json` (new), `docs/design-detail.md` | GF-P4 | L, 7-10; dispatched as MP13a (engine: origins, skip ordinals, pack checks and the writer fallback) and MP13b (apps, the CLI client, the replay fixture) | origins survive the fold, reload and export; skips capped, bounded and consumed exactly; near-limit packs (bytes and JSON nodes) stay valid | MP11 / P-12 |
+| MP14 | Recorders and the detail channel (P4.2; RES-19 `rateDetailed`, RES-28) | MP13 | `core/engine/carve.js`, `core/engine/tiling.js` (`lnsWalk`), `core/engine/clues.js` (`record`, `replaySkips`), `core/engine/generate.js`, `core/engine/difficulty.js` (`rateDetailed`), `core/engine/types.js` (`RatingDetail`, event types), `tests/replay-recorders.test.js` (new), `docs/design-detail.md` (§7.9) | - | L, 6-9; dispatched as MP14a (the detail channel and the clue-stage events) and MP14b (the set and layout recorders) | recorder off and on identical; detail from the same measurement; `selected`, `unrateable` and `rejected` (RES-35) events | MP12 / P-13 |
+| MP15 | Replay engine and worker task (P4.2, P4.3 data; RES-29, RES-30) | MP14 | `core/engine/replay.js` (new), `REPLAY` in `core/engine/policy.js`, `core/engine/tasks.js`, `core/engine/protocol.js`, `core/browser/generation-client.js` (the new kind on the auxiliary path), `tests/replay.test.js` (new), `tests/tasks.test.js`, `tests/protocol.test.js`, `tests/generation-client.test.js`, `docs/design-detail.md` | - | L, 7-10; dispatched as MP15a (the replay engine) and MP15b (the worker task, protocol and client) | `matched` on fresh packs; `unavailable`, `mismatch` and `incomplete` (work); stored solution compared | MP12 / P-14 |
+| MP16 | Generation Steps dialog (P4.3 views, P4.4; RES-30, RES-31) | MP15 | `generator/ui/replay-dialog.js` (new), `generator/app.js`, `generator/ui/puzzle-panel.js`, `generator/generator.css`, `core/browser/svg-board.js`, `generator/locale.en.js`, `generator/locale.vi.js`, `tests/browser/replay.html` and `tests/browser/replay.js` (new), affected UI tests, `docs/design-detail.md`, `docs/design-brief.md`, guides, `README.md` | GB-P4 | L, 6-9; dispatched as MP16a (the dialog, the board highlight and the score table) and MP16b (the card button, the browser page, the gate and the documents) | keyboard and screen reader; the button inside `li.puzzle-card`; "steps not available for this puzzle"; explicit incomplete and mismatch states; checks under 1 minute | MP13 / P-15 |
+| MP17 | Final compatibility and regression evidence, release notes (plan §7, last item; RES-32) | MP16 | justified final fixture, test and doc corrections; `docs/difficulty-v3/final-<date>.md` (new, with the release notes) | GZ | M, 2-4 | every generated Hard-or-above puzzle has `Gproved >= 1` (hence no G = 0); levels ordered on 10x6 and 20x18; no scoring change since the lock; release notes written | MP14 / P-15 |
 
 ### 5.2 Order and lock point
 
@@ -1372,10 +1475,11 @@ MP01 -> MP02 -> MP03 -> MP04 -> MP05 -> MP06 -> MP07 -> MP08 -> MP09 -> MP10
   the clue search, `SHARES` or `K60` needs a new model, algo or policy id and a new qualification (RES-01); MP13-MP17
   must not change any rating or generated puzzle (the recorders are observers; provenance does not change outputs;
   MP15's replay-only `REPLAY` bounds change neither).
-- **Answers.** Every original question is answered (`clarifications.md` part E); no original clarification remains
-  unanswered. The confirmations asked in §8.2 (part F of `clarifications.md`) touch MP06 (C5), MP07 (C2), MP09 (C1,
-  C4, C6), MP10 (C1) and MP17 (C3); each task applies the report as written unless the owner or the plan author
-  changes a point before that task is dispatched.
+- **Answers.** Every question is answered (`clarifications.md` parts E, F and G). The acceptance answers are applied:
+  C1 (b) in RES-05, RES-19 and RES-21 to RES-23 (MP09, MP10); C2 (a) in RES-15 (MP07); C3 (a) in RES-32 (MP17);
+  C4 (b) in RES-34 (MP09); C5 in RES-05 (MP06); AR1 in RES-35 (MP05, MP06, MP07 seam, MP09, MP14, MP11 slow test).
+  The plan author's condition that C1 (b), C4 (b) and AR1 are written down before MP05 starts is met by this
+  revision and by the task pack.
 - **MP01-MP04** build non-production solver code only: nothing in generation or rating calls `measureDeduction`
   before MP09. MP02 implements the three statuses and the raw counters; the census lands in MP05 and the rating
   behaviour (unrateable capped paths) in MP09.
@@ -1392,7 +1496,7 @@ MP01 -> MP02 -> MP03 -> MP04 -> MP05 -> MP06 -> MP07 -> MP08 -> MP09 -> MP10
 | GV2 | MP06 | `node --max-old-space-size=2048 tools\calibrate.mjs --profile landscape --workers 4 --seeds 20 --fresh-process --cases "<regex>" --output docs\difficulty-v3\baseline-v2`, shards of at most 10 minutes over 6x10, 10x10, 12x12 and `18x20`, easy to master; `rate-probe` on regenerated matching requests verified against `resultDigest` (RES-14) | `probe-<date>.md`: hit rates, times, distributions, identity checks |
 | GF-P1, GA-P1 | MP07 | `node tools\record-fixtures.mjs --replace --reason "P1: clue selection aims at the band centre"`; then `npm test` | old and new versions; why pieces, layouts or clue keys moved |
 | GF-P2, GA-P2 | MP09 (again in MP12 after the last knob change) | `node tools\record-fixtures.mjs --replace --reason "P2: difficulty-v3"`; recipe expectations by hand; v3 code cases added, v2 goldens kept; then `npm test` | the changed expectations and why |
-| GC-P2 | MP09 (format), MP10 (display) | the 676-cell code matrix and `tests/browser/puzzle-code-acceptance.html`, including the new check that a code with two pieces of the same shape is refused (MP09); share and print browser checks with derived ratings and the estimate note (MP10) | `codes-<date>.md`; check results |
+| GC-P2 | MP09 (format), MP10 (display) | the 676-cell code matrix and `tests/browser/puzzle-code-acceptance.html`, including the new check that a code with two pieces of the same shape is refused (MP09); share and print browser checks with derived ratings and the estimate note, with and without n (MP10) | `codes-<date>.md`; check results |
 | GL-P3 | MP12 | first the GV2 slice again with `--output docs\difficulty-v3\landscape-v3`; then the full landscape (`--profile landscape --seeds 20 --fresh-process --output docs\difficulty-v3\landscape-v3-full`, all 105 cases on 16 boards) in shards selected by `--cases`; `rate-probe` on regenerated matching requests verified against `resultDigest`; the knob changes | `calibration-<date>.md`: every case id, coverage, incomplete, capped and partial outcomes, times; Hard and Expert comparison only on cells with a GV2 baseline |
 | GF-P4 | MP13 | the new replay-fixture mode of `tools\record-fixtures.mjs` writes `tests/fixtures/replay-case.json`; then `npm test` | the fixture's provenance |
 | GB-P4 | MP16 | `tests/browser/replay.html` and the affected dialog and share pages | check results |
@@ -1411,7 +1515,8 @@ MP01 -> MP02 -> MP03 -> MP04 -> MP05 -> MP06 -> MP07 -> MP08 -> MP09 -> MP10
 | Free choices make multi-solution puzzles Hard | high | decisive guesses (RES-05); the few/many penalty |
 | Unfinished censuses are frequent, so many published ratings are estimates | medium | MP06 measures the share per level and board; above 5 % of a level, `DEDUCE.census` is raised or the owner is told (RES-05); the estimate is labelled |
 | Unrateable (capped) candidates make hell levels on large boards hard to generate | medium-high | `DEDUCE.work` set so that no path of the probe corpus is capped up to master on boards up to 20x18; capped shares and lost hit rates reported; the owner is told with numbers (RES-04, RES-10) |
-| Packs, links and saved Generator sets with two pieces of the same shape, accepted with a warning before, are refused (format tightening) | medium | a clear message in both languages naming both pieces; documented in design §5.3, the guides and the release notes (RES-34; §8.2 C3, C4) |
+| Packs, links and saved Generator sets with two pieces of the same shape, accepted with a warning before, are refused (format tightening) | medium | a clear message in both languages naming both pieces; a one-time notice when a saved set is removed (C4 (b)); documented in design §5.3, the guides and the release notes (RES-34; C3 (a)) |
+| The proved-guess rule refuses estimated Hard-or-above candidates and lowers hit rates where censuses are often unfinished (AR1) | medium | MP06 reports the refusals per level and board next to the census-incomplete share; `DEDUCE.census` raised by the 5 % rule (C5); calibration within SA2-Q-P09 (RES-05, RES-35) |
 | Hard hit rate collapses on large boards (forced 20x18 Hard puzzles fall to Easy; more partial batches) | high | probe before activation; centre-seeking acceptance; matched GV2/GL-P3 comparison; K60 and SHARES within SA2-Q-P09 |
 | Rule work or memory exceeds the budgets despite the node cap | high | work and memory caps, reusable guarded buffers, per-size timings and peaks (RES-10, MP06) |
 | Rating cost x 64 profiles per candidate (deduction, census and the DLX diagnostic) | medium-high | MP06 cost table with the census share; an owner question if the diagnostic doubles the cost (RES-19) |
@@ -1433,19 +1538,23 @@ MP01 -> MP02 -> MP03 -> MP04 -> MP05 -> MP06 -> MP07 -> MP08 -> MP09 -> MP10
 | Part | Tasks | Agent hours (SA1 basis) |
 |---|---|---|
 | Model and deduction solver with R1-R9 | MP01-MP04 | 14-21 |
-| Decisive census | MP05 | 4-6 |
-| Probe, fit, v2 baseline | MP06 | 3-5 |
+| Decisive census and `Gproved` | MP05 | 4-7 |
+| Probe, fit, v2 baseline | MP06 | 3-6 |
 | Clue selection | MP07 | 3-5 |
-| v3 model, activation with the duplicate-shape error, display rating, auxiliary requests | MP08-MP10 | 15-23 (MP08 2-3, MP09 7-11, MP10 6-9) |
+| v3 model, activation with the duplicate-shape error, display rating, auxiliary requests | MP08-MP10 | 17-26 (MP08 2-3, MP09 9-13, MP10 6-10) |
 | Calibration tooling, run and lock | MP11-MP12 | 6-10 |
 | Generation Steps | MP13-MP16 | 26-38 |
 | Final evidence | MP17 | 2-4 |
-| **Total** | 17 tasks | **73-112** |
+| **Total** | 17 tasks (27 dispatched parts) | **75-117** |
 
 SA2's estimate of the same scope is 88-139 engineering hours (SA2-1 §8). The two are different measures and are not
 averaged (SA2-3 §1.1 D10); neither promises an elapsed delivery time. The corrections of SA2-4 added about 4 hours
 (MP10, MP13-MP15); the answers made the census unconditional (MP05, 4-6 hours instead of 1-14 for the conditional
-pair), dropped MP04b and added the duplicate-shape error (MP09, 1-2 hours) and the estimate note (MP10).
+pair), dropped MP04b and added the duplicate-shape error (MP09, 1-2 hours) and the estimate note (MP10). The
+acceptance answers add about 2-5 hours: the `censored` flag (MP09, MP10), the saved-set notice (MP09), `Gproved` and
+its acceptance rule (MP05, MP06, MP09). The eight developer tasks of `tasks/regenerate-puzzle/` took 14-53 minutes of
+agent time each (its check-list, "Orchestrated execution summary"), so the hours above are a generous upper estimate;
+the task pack sizes each dispatched part for about 20-60 minutes.
 
 Machine time of the gates (measured where possible): quick set 15.3-15.9 s and `npm run check` 1.1 s at HEAD (§2.1);
 landscape runs on 6x10 and 10x10 take 0.3-3.1 s per request (`docs/calibration/landscape-slice-2026-10-22.md`, 240
@@ -1463,25 +1572,25 @@ run during the analysis (it must finish within 10 minutes); browser pages a few 
 | Plan section | Resolutions | Tasks | Clarifications |
 |---|---|---|---|
 | §1.1, §1.2, §6 findings | §2 | MP06, MP17 | - |
-| §1.3 decisions | RES-01, RES-04, RES-05, RES-18 | all | SA1-Q-P1, SA2-Q-P02 |
+| §1.3 decisions | RES-01, RES-04, RES-05, RES-18, RES-35 | all | SA1-Q-P1, SA2-Q-P02, AR1 |
 | §2 orientation, §3 rules | RES-01, RES-02, RES-20 | all | part D 3 |
 | P0.1 | RES-02 | MP01 | part D 11 |
-| P0.2 | RES-03, RES-04, RES-05, RES-10, RES-11 | MP02, MP05 | SA1-Q-P1, SA2-Q-P02, part D 2, 5, 9 |
+| P0.2 | RES-03, RES-04, RES-05, RES-10, RES-11, RES-35 (metric) | MP02, MP05 | SA1-Q-P1, SA2-Q-P02, C1, C5, AR1, part D 2, 5, 9 |
 | P0.2b | RES-06, RES-07, RES-08, RES-09, RES-11, RES-33, RES-34 | MP03, MP04, MP09 (RES-34) | SA2-Q-P12, SA2-Q-P13, SA2-Q-P03 / SA1-Q-P6, SA2-Q-P11, part D 1, 10 |
-| P0.3 | RES-12, RES-13, RES-14 | MP06 | SA2-Q-P06, PROC-P1, part D 14 |
-| P1 | RES-15, RES-16, RES-17 | MP07 | SA2-Q-P04, SA2-Q-P05 / SA1-Q-P5, part D 7, 13 |
-| P2.1 | RES-18, RES-19 | MP08, MP09 (MP14: `rateDetailed`) | SA2-Q-P01, SA2-Q-P13, SA2-Q-P02, JR-P3, part D 2, 8 |
+| P0.3 | RES-12, RES-13, RES-14 | MP06 | SA2-Q-P06, PROC-P1, C5, AR1, part D 14 |
+| P1 | RES-15, RES-16, RES-17, RES-35 (seam) | MP07 | SA2-Q-P04, C2, SA2-Q-P05 / SA1-Q-P5, part D 7, 13 |
+| P2.1 | RES-18, RES-19, RES-35 (acceptance rule) | MP08, MP09 (MP14: `rateDetailed`) | SA2-Q-P01, SA2-Q-P13, SA2-Q-P02, JR-P3, C1, AR1, part D 2, 8 |
 | P2.2 | RES-20 | MP08 | part D 3 |
-| P2.3 | RES-21, RES-34 | MP09 | v3 metrics size, SA2-Q-P03 / SA1-Q-P6 |
-| P2.4 | RES-22, RES-34 | MP09 | SA2-Q-P07 / SA1-Q-P3, part D 6 |
-| P2.5 | RES-23, RES-29 (auxiliary requests) | MP10 | SA2-Q-P08 / SA1-Q-P2, JR-P1, JR-P4 |
-| P2 gate and docs | RES-24, RES-32 | MP09 | part D 12 |
-| P3 | RES-25, RES-26 | MP11, MP12 | SA2-Q-P09, PROC-P1, JR-P3, part D 4, 8 |
+| P2.3 | RES-21, RES-34 | MP09 | v3 metrics size, C1, SA2-Q-P03 / SA1-Q-P6, C4, C6 |
+| P2.4 | RES-22, RES-34 | MP09 | SA2-Q-P07 / SA1-Q-P3, C1, part D 6 |
+| P2.5 | RES-23, RES-29 (auxiliary requests) | MP10 | SA2-Q-P08 / SA1-Q-P2, JR-P1, JR-P4, C1 |
+| P2 gate and docs | RES-24, RES-32 | MP09 | part D 12, C6 |
+| P3 | RES-25, RES-26 | MP11, MP12 | SA2-Q-P09, PROC-P1, JR-P3, AR1, part D 4, 8 |
 | P4.1 | RES-27 | MP13 | AUTH-P1, SA2-Q-P10 / SA1-Q-P4, JR-P2 |
-| P4.2 | RES-28, RES-29 | MP14, MP15 | JR-P4 |
+| P4.2 | RES-28, RES-29 | MP14, MP15 | JR-P4, AR1 (`rejected` event) |
 | P4.3 | RES-30 | MP15, MP16 | SA2-Q-P10 |
 | P4.4 | RES-31 | MP16 | SA2-Q-P10 |
-| P4 docs, §7 checklist | RES-32 | MP13-MP17 | - |
+| P4 docs, §7 checklist | RES-32 | MP13-MP17 | C3 |
 | §5 risks | §6.1, RES-10, RES-13, RES-25 | MP06, MP12 | SA2-Q-P06, SA2-Q-P09 |
 
 ### 7.2 Clarifications
@@ -1511,75 +1620,48 @@ run during the analysis (it must finish within 10 minutes); browser pages a few 
 | v3 metrics size | confirmed | plan author | RES-21 | MP09 |
 | task order | confirmed | plan author | §5 | all |
 | part D 1-14 | accepted | plan author | §4 | as listed in §4 |
+| C1 (part F) | (b) `censored: true` on v3 claims, full and summary, exactly when the census is unfinished | owner | RES-05, RES-19, RES-20, RES-21, RES-22, RES-23, RES-30 | MP09, MP10, MP16 |
+| C2 (part F) | (a) RES-15 as written; reserve 16 = stop point at profile 48 | plan author | RES-15 | MP07 |
+| C3 (part F) | (a) release notes in `docs/difficulty-v3/final-<date>.md`; guides state the refusal | plan author | RES-32, RES-34 | MP09, MP17 |
+| C4 (part F) | (b) one-time notice for a removed saved twin set | owner | RES-34 | MP09 |
+| C5 (part F) | 5 % per level and board cell of the MP06 corpus | plan author | RES-05, RES-10 | MP06 |
+| C6 (part F) | no objection | plan author | RES-24, RES-34 | MP09 |
+| AR1 (part G) | `Gproved`; generated Hard-or-above candidates need `Gproved >= 1` | owner | RES-04, RES-05, RES-12, RES-15, RES-19, RES-21, RES-26, RES-28, RES-30, RES-35 | MP05, MP06, MP07 (seam), MP09, MP11, MP14, MP17 |
+| acceptance (part G) | the plan author accepts the report on condition that C1 (b), C4 (b) and AR1 are written down before MP05; the owner accepted on 2026-11-12 at 11:50 | plan author, owner | all | all |
 
 ---
 
-## 8. Decisions applied and remaining concerns
+## 8. Decisions applied and acceptance
 
 ### 8.1 Decisions applied
 
-No pending marker remains and every original question is answered. The open items of the joint draft (revision of
-09:46, commit `e6b0ead`) are resolved as part E of `clarifications.md` states: RES-04 branch A; RES-05 branch B;
-RES-09 closed by the new constraint (RES-34); RES-15 confirmed with the author's wording; RES-18 ranges accepted
-(JR-P3 (a)); RES-23 scope v2 and v1 (JR-P1 (a)); RES-25 branch A; RES-27 encoding (a) and `generation.setOrigin`
-(AUTH-P1, JR-P2); RES-29 mechanism (a) (JR-P4). Each resolution keeps the chosen branch only, with one "Alternatives
-not chosen" line.
+No pending marker remains and every question is answered. The open items of the joint draft (revision of 09:46,
+commit `e6b0ead`) are resolved as part E of `clarifications.md` states: RES-04 branch A; RES-05 branch B; RES-09
+closed by the new constraint (RES-34); RES-15 confirmed with the author's wording; RES-18 ranges accepted (JR-P3 (a));
+RES-23 scope v2 and v1 (JR-P1 (a)); RES-25 branch A; RES-27 encoding (a) and `generation.setOrigin` (AUTH-P1, JR-P2);
+RES-29 mechanism (a) (JR-P4). Each resolution keeps the chosen branch only, with one "Alternatives not chosen" line.
 
-### 8.2 Remaining concerns for acceptance
+### 8.2 Acceptance answers (parts F and G of `clarifications.md`, `e73712f`)
 
-The answers were checked against the code and against each other. None is impossible and none contradicts another.
-Five points need a confirmation, or a different choice, from the owner or the plan author; the report applies the
-choice stated under each. C6 is information only. SA2's check of this revision (SA2-5, "Positions on the acceptance
-concerns") agrees with every recommendation below, so both analysts recommend C1 (b), C2 (a), C3 (a), C4 (b) and
-5 % for C5. These remain recommendations: the owner or the plan author answers part F of `clarifications.md` at
-acceptance, and until then the report keeps option (a) applied for C1-C4 and 5 % for C5.
+The answers to the acceptance concerns were checked against the code and against the rest of the report. None is
+impossible and none contradicts another answer or a code fact; no concern remains. Both analysts had recommended C1
+(b), C2 (a), C3 (a), C4 (b) and 5 % for C5 (SA2-5, "Positions on the acceptance concerns"); the answers follow those
+recommendations.
 
-- **C1. The estimate note is lost in puzzle codes** (SA1-Q-P1 with SA1-Q-P3). SA1-Q-P1 publishes an unfinished census
-  "with `censusComplete: false` and the note", but a code carries a summary claim `{ model, score, level, saturated }`
-  (RES-22), so a puzzle opened from a code shows the estimated score without the note. The claim schema already has an
-  optional `censored` boolean, accepted by current readers on non-v2 claims (`core/engine/pack.js:57, 793-797, 829-833`;
-  written by `ratingClaim`, 1199-1200). Options: (a) accept the gap (applied); (b) write `censored: true` on v3 claims,
-  full and summary, when `censusComplete` is false (cross-field check: `censored` iff not `censusComplete`), so a code
-  shows "decisive estimate" without n; about 1 hour in MP09 and MP10. Both analysts recommend (b). SA2 adds: with an
-  explicit confirmation of the extra summary field, `censored` is added to the strict v3 claim schema and to the
-  summary writer, with the check `Boolean(censored) === !metrics.censusComplete` when metrics exist; a summary claim
-  with `censored: true` shows a generic estimate note, never an invented n; score formatting uses `saturated`, not
-  `censored` (`player/strings.js:94-99`), so no v3 "+" follows.
-- **C2. Centre search** (SA2-Q-P04). The author's wording stops on "a final result (after any uniqueness repair)" in
-  the central half and returns "the best final result seen"; the joint draft stopped on a central raw rating whose
-  repair stayed in band, and ranked by raw ratings. RES-15 now implements the author's wording (lazy best-first over
-  final results; identical to the draft in `any` mode, more repairs possible in `require` mode). The author also calls
-  the reserve of 16 "kept for repairs and their re-ratings", but repair ratings are not search profiles
-  (`core/engine/clues.js:239-241`); RES-15 keeps that accounting and bounds repairs by memoisation (each in-band
-  candidate is repaired at most once). Options: (a) RES-15 as written (applied); (b) the draft's raw-rating rule;
-  (c) count repair ratings as profiles within the 64 (a budget change). Both analysts recommend (a). "The best final
-  result seen" claims nothing about the repaired value of an unfinished candidate; no lower-bound theorem is claimed.
-- **C3. Release notes.** The duplicate-shape refusal is to be documented "in the release notes of this change", but
-  the repository has no release-notes file (no `CHANGELOG`, `RELEASE` or `NEWS` file; `README.md` has the sections
-  Features, Run locally, Develop and test, Publishing, Documents and License). Options: (a) a "Release notes" section
-  of `docs/difficulty-v3/final-<date>.md`, written by MP17 (applied, RES-32); (b) a new root `CHANGELOG.md`, a new
-  living document written by MP09 and MP17; (c) another place named by the owner. Both analysts recommend (a).
-- **C4. Saved Generator sets with twins are lost.** Such a set could be imported before (a warning only) and saved;
-  after MP09 `readSavedSet` refuses it and the restore drops it without a word (`generator/state.js:885-899`; callers
-  404-409, 1022-1027, 1048), as it does today for any invalid saved set. Options: (a) accept the silent drop
-  (applied); (b) MP09 shows a one-time notice in both languages that a saved set with two pieces of the same shape
-  was removed (about 1 hour: a restore flag and a message). Both analysts recommend (b), so that no saved work
-  disappears unexplained: today `readSavedSet` loses the validation reason by returning null
-  (`generator/state.js:895-899`); an invalid set is never kept as playable.
-- **C5. "A few per cent".** SA1-Q-P1's condition ("if more than a few per cent of accepted puzzles of a level carry an
-  estimate, MP06 raises `DEDUCE.census` or reports to the owner") needs a number for MP06's acceptance; the report uses
-  5 % (RES-05, RES-10). Both analysts recommend 5 %, triggered strictly above 5 %, with the numerator, the denominator
-  and the board and level breakdown recorded; an empty accepted cohort is unavailable evidence, not 0 %. Confirm or
-  name the number.
-- **C6. Information: tests and format parts retired by the duplicate-shape error.** (1) `tests/clues.test.js:196-214`
-  keeps its twin input (the author's point 3), but its `any` request targets hell-1, a level chosen for v2 scores; under
-  decisive guesses a swap of twins that the census proves free adds nothing, so v3 may rate the strip lower and MP09
-  re-evaluates the target while keeping the `require` assertion (RES-24). (2) The frozen code format's repeated-shape
-  grammar (`docs/design-detail.md:1867-1869`) can no longer occur in a valid code: the puzzle-code property test loses
-  its twin coverage (`tests/puzzlecode.test.js:2174-2209` requires at least 10 of 150 seeds with twins and with the
-  repeated flag) and the round trips that used `repeatedShapes` are rebuilt (RES-34). (3) Three pack tests that pass
-  twin sets through the reader are rebuilt (`tests/pack.test.js:683-706`). No decision is needed unless the owner
-  objects; SA2 agrees.
+| Item | Concern | Answer | By | Applied in |
+|---|---|---|---|---|
+| C1 | a summary claim in a code lost the estimate note | (b) `censored: true` on v3 ratings, claims and summary claims exactly when `censusComplete` is false; the reader checks `Boolean(censored) === !metrics.censusComplete` on full claims; a summary claim carries the flag alone and shows "decisive estimate" without n; `censored` never adds "+" | owner | RES-05, RES-19, RES-20, RES-21, RES-22, RES-23, RES-30; MP09, MP10 |
+| C2 | the author's "reserve kept for repairs" against the profile accounting | (a) RES-15 as written: the reserve of 16 is only the stop point at profile 48; repairs are memoised and are not profiles; the 64-profile budget is unchanged | plan author | RES-15; MP07 |
+| C3 | the repository has no release-notes file | (a) a "Release notes" section of `docs/difficulty-v3/final-<date>.md` by MP17; no `CHANGELOG.md`; the user guides state the refusal | plan author | RES-32, RES-34; MP09, MP17 |
+| C4 | saved Generator sets with twins disappeared without a word | (b) a one-time notice in English and Vietnamese that a saved set with two pieces of the same shape was removed | owner | RES-34; MP09 |
+| C5 | "a few per cent" of estimated ratings needed a number | 5 % of a level's accepted probe puzzles, per level and board cell of the MP06 corpus (strictly above 5 % triggers; numerator and denominator recorded) | plan author | RES-05, RES-10; MP06 |
+| C6 | tests and format parts retired by the duplicate-shape error (information) | no objection; the hell-1 target of the 41-strip test is re-evaluated in MP09; the repeated-shape grammar stays in the frozen format, unreachable through a valid set | plan author | RES-24, RES-34; MP09 |
+| AR1 | an estimate could make a generated puzzle Hard without a proved decisive guess | new metric `Gproved`, not a score input; `selectClues` refuses a rated candidate with `Gproved === 0` for a Hard-or-above target; imports and display ratings are not filtered; MP06 reports the refusals | owner | RES-35 (and RES-04, RES-05, RES-12, RES-15, RES-19, RES-21, RES-26, RES-28, RES-30); MP05, MP06, MP07 (seam), MP09, MP11, MP14, MP17 |
+
+**Acceptance.** The plan author accepted the report as the basis of the task pack (part G), on condition that C1
+(b), C4 (b) and AR1 are written into the report or the task pack before MP05 starts: they are written into this
+revision (RES-05, RES-19 to RES-23, RES-34, RES-35) and into the task pack `tasks/difficulty-v3/`. The owner accepted
+on 2026-11-12 at 11:50.
 
 ---
 
@@ -1587,11 +1669,12 @@ acceptance, and until then the report keeps option (a) applied for C1-C4 and 5 %
 
 | Analyst | Signature | Notes |
 |---|---|---|
-| SA1, claude-opus-5.5 | **signed**, 2026-11-12 | lead author; this revision applies the answers of `clarifications.md` at `04e7e90` and SA2-5's corrections FC01-FC04 |
-| SA2, gpt-6-astra | **signed (FC01-FC04 applied in this revision)**, 2026-11-12 | Final verification and exact fixes: `docs/difficulty-v3/gpt-6-astra/5-check-of-final-report.md`; C1-C5 still require owner/author acceptance |
+| SA1, claude-opus-5.5 | **signed**, 2026-11-12 | lead author; this revision applies the acceptance answers of `clarifications.md` parts F and G at `e73712f` (C1-C6, AR1) |
+| SA2, gpt-6-astra | **signed (FC01-FC04 applied in the answers-applied revision)**, 2026-11-12 | final verification and exact fixes: `docs/difficulty-v3/gpt-6-astra/5-check-of-final-report.md`; the acceptance revision follows SA2's recommendations on C1-C5 |
 
 History: the first draft (08:48) was checked by SA2 (JC01-JC13, all applied at 09:46; the SA1 note on JC01 stays in
-§2.4, and the SA1 note on JC10 is replaced by the decision JR-P4 (a) in RES-29). This revision applies the answers of
-the plan author and the owner, and SA2's corrections of the answers-applied revision (SA2-5, FC01-FC04, all applied as
-written, with its minor consistency edits). The remaining concerns of §8.2 are for the owner and the plan author at
-acceptance; the task pack stays paused until then.
+§2.4, and the SA1 note on JC10 is replaced by the decision JR-P4 (a) in RES-29). The answers-applied revision applied
+the answers of the plan author and the owner, and SA2's corrections of that revision (SA2-5, FC01-FC04, all applied as
+written, with its minor consistency edits). The acceptance revision (12:20) applies the answers to part F (C1-C6) and
+the owner's addition AR1 (part G, RES-35), after the plan author's and the owner's acceptance; it is the basis of the
+task pack `tasks/difficulty-v3/`.
