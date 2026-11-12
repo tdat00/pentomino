@@ -91,6 +91,7 @@ function flat(model, result) {
       E: f.E,
       R1: f.rules.R1,
       R2: f.rules.R2,
+      R6: f.rules.R6,
       tier: f.deductionTier,
       G: f.G,
       choices: f.choices,
@@ -138,7 +139,7 @@ const VECTORS = [
     puzzle: { board: rect(3, 1), pieces: [M, D], clues: [] },
     expect: {
       path: 'complete', S: 2, solutions: 'few', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
-      F: 1, R1: 1, R2: 0, E: 0, tier: 1, G: 1, choices: [2], info: 1, Cmax: 2, Dmax: 0,
+      F: 1, R1: 1, R2: 0, R6: 1, E: 1, tier: 2, G: 1, choices: [2], info: 1, Cmax: 2, Dmax: 0,
       rows: ['M@(0, 0)', 'D@(1, 0)'],
     },
   },
@@ -147,7 +148,7 @@ const VECTORS = [
     puzzle: { board: rect(10, 1), pieces: [M, D, I3, I4], clues: [] },
     expect: {
       path: 'complete', S: 8, solutions: 'many', exhausted: false, stop: 'solution-limit', Gt: 7, nodes: 15,
-      F: 1, R1: 1, R2: 0, E: 0, tier: 1, G: 3, choices: [4, 3, 2], info: 4.585, Cmax: 4, Dmax: 2,
+      F: 1, R1: 1, R2: 0, R6: 5, E: 5, tier: 2, G: 3, choices: [4, 3, 2], info: 4.585, Cmax: 4, Dmax: 2,
       rows: ['M@(0, 0)', 'D@(1, 0)', 'I3@(3, 0)', 'I4@(6, 0)'],
     },
   },
@@ -163,14 +164,14 @@ const VECTORS = [
     id: 'V5',
     puzzle: { board: rect(3, 2), pieces: [I3, L3], clues: [] },
     expect: {
-      path: 'none', S: 0, solutions: 'none', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
+      path: 'none', S: 0, solutions: 'none', exhausted: true, stop: 'exhausted', Gt: 0, nodes: 1,
     },
   },
   {
     id: 'V6',
     puzzle: { board: boardFromRows(['#...#', '#...#', '##.##']), pieces: [D, I3, L3], clues: [] },
     expect: {
-      path: 'none', S: 0, solutions: 'none', exhausted: true, stop: 'exhausted', Gt: 1, nodes: 3,
+      path: 'none', S: 0, solutions: 'none', exhausted: true, stop: 'exhausted', Gt: 0, nodes: 1,
     },
   },
   {
@@ -293,19 +294,24 @@ test('the work cap stops a search that has started and the work of a capped run 
 });
 
 /**
- * Recipes: columns U (free pieces), F, G, choices, info (4 decimals), Cmax, Dmax, Gt, nodes. Characterisation of
- * this ladder version, not a monotonicity theorem; later rules re-pin it.
- * @type {Record<string, { U: number, F: number, G: number, choices: number[], info: string, Cmax: number,
- *   Dmax: number, Gt: number, nodes: number }>}
+ * Recipes: columns U (free pieces), F, E (rows killed by R6), tier, G, choices, info (4 decimals), Cmax, Dmax, Gt,
+ * nodes. Characterisation of this ladder version, not a monotonicity theorem; later rules re-pin it.
+ * @type {Record<string, { U: number, F: number, E: number, tier: number, G: number, choices: number[],
+ *   info: string, Cmax: number, Dmax: number, Gt: number, nodes: number }>}
  */
 const RECIPE_TABLE = {
-  'very-easy': { U: 3, F: 3, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0, Gt: 0, nodes: 1 },
-  easy: { U: 4, F: 4, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0, Gt: 0, nodes: 1 },
-  normal: { U: 5, F: 4, G: 1, choices: [2], info: '1.0000', Cmax: 2, Dmax: 3, Gt: 1, nodes: 3 },
-  hard: { U: 7, F: 4, G: 3, choices: [4, 5, 3], info: '5.9069', Cmax: 5, Dmax: 4, Gt: 8, nodes: 27 },
-  expert: { U: 8, F: 3, G: 5, choices: [7, 10, 9, 4, 2], info: '12.2992', Cmax: 10, Dmax: 6, Gt: 14, nodes: 66 },
+  'very-easy': { U: 3, F: 3, E: 0, tier: 1, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0, Gt: 0, nodes: 1 },
+  easy: { U: 4, F: 4, E: 0, tier: 1, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0, Gt: 0, nodes: 1 },
+  normal: { U: 5, F: 5, E: 1, tier: 2, G: 0, choices: [], info: '0.0000', Cmax: 0, Dmax: 0, Gt: 0, nodes: 1 },
+  hard: {
+    U: 7, F: 5, E: 4, tier: 2, G: 2, choices: [3, 5], info: '3.9069', Cmax: 5, Dmax: 2, Gt: 2, nodes: 9,
+  },
+  expert: {
+    U: 8, F: 5, E: 4, tier: 2, G: 3, choices: [7, 10, 9], info: '9.2992', Cmax: 10, Dmax: 4, Gt: 5, nodes: 40,
+  },
   master: {
-    U: 10, F: 3, G: 7, choices: [6, 2, 7, 5, 7, 6, 3], info: '15.6915', Cmax: 7, Dmax: 7, Gt: 203, nodes: 770,
+    U: 10, F: 4, E: 3, tier: 2, G: 6, choices: [6, 2, 7, 5, 7, 6], info: '14.1066', Cmax: 7, Dmax: 6, Gt: 84,
+    nodes: 431,
   },
 };
 
@@ -336,9 +342,61 @@ test('the six recipes reproduce the pinned characterisation', () => {
     assert.deepEqual([first.F, first.G, first.choices, first.info.toFixed(4), first.Cmax, first.Dmax],
       [want.F, want.G, want.choices, want.info, want.Cmax, want.Dmax], level);
     assert.deepEqual([result.search.Gt, result.search.nodes], [want.Gt, want.nodes], level);
-    assert.deepEqual([first.E, first.deductionTier, first.rules.R1, first.rules.R2], [0, 1, first.F, 0], level);
+    assert.deepEqual([first.E, first.deductionTier, first.rules.R1, first.rules.R2, first.rules.R6],
+      [want.E, want.tier, want.F, 0, want.E], level);
     assertDomain(result);
     assertValidFirstPath(model, puzzle, result);
+  }
+});
+
+const NO_LOOKAHEAD = { ...DEDUCE, lookaheadWidth: 0 };
+
+test('N1, N2: the R3 check alone proves V6 at the root, V5 needs R6 or a guess node', () => {
+  const v6 = measure(vector('V6').puzzle, NO_LOOKAHEAD);
+  assertFields(v6.model, v6.result, vector('V6').expect, 'N1');
+  const v5 = measure(vector('V5').puzzle, NO_LOOKAHEAD);
+  assertFields(v5.model, v5.result, { ...vector('V5').expect, Gt: 1, nodes: 3 }, 'N2');
+});
+
+test('N3: with lookaheadWidth 0 V2 and V3 have no killed rows and keep every other value', () => {
+  for (const id of ['V2', 'V3']) {
+    const { model, result } = measure(vector(id).puzzle, NO_LOOKAHEAD);
+    assertFields(model, result, { ...vector(id).expect, E: 0, R6: 0, tier: 1 }, `N3 ${id}`);
+  }
+});
+
+test('the R3 check is never counted and only R1, R2 and R6 have counts', () => {
+  const puzzles = [...VECTORS.map((v) => v.puzzle), ...Object.keys(RECIPE_TABLE).map(recipePuzzle)];
+  for (const puzzle of puzzles) {
+    const first = measure(puzzle).result.first;
+    if (first !== null) {
+      const { R1, R2, R6, ...others } = first.rules;
+      assert.deepEqual(others, { R3: 0, R4: 0, R5: 0, R7: 0, R8: 0, R9: 0 });
+      assert.deepEqual([first.F, first.E], [R1 + R2, R6]);
+    }
+  }
+});
+
+test('N4: lookahead trials restore the state exactly, also when the work cap stops one', () => {
+  const puzzles = [vector('V2'), vector('V3'), vector('V5')].map((v) => v.puzzle)
+    .concat(Object.keys(RECIPE_TABLE).map(recipePuzzle));
+  for (const [index, puzzle] of puzzles.entries()) {
+    for (const lookaheadWidth of [2, 4, 12]) {
+      const limits = { ...DEDUCE, lookaheadWidth };
+      assert.deepEqual(measure(puzzle, limits, { verifyUndo: true }).result, measure(puzzle, limits).result,
+        `puzzle ${index}, width ${lookaheadWidth}`);
+    }
+  }
+  for (const puzzle of [vector('V2').puzzle, vector('V5').puzzle]) {
+    const full = measure(puzzle).result.search.work;
+    let capped = 0;
+    for (let work = 0; work < full; work += 1) {
+      const limits = { ...DEDUCE, work };
+      const checked = measure(puzzle, limits, { verifyUndo: true }).result;
+      assert.deepEqual(checked, measure(puzzle, limits).result, `work cap ${work}`);
+      capped += checked.search.stop === 'work-cap' ? 1 : 0;
+    }
+    assert.ok(capped > full / 2, `${capped} of ${full} caps stopped the run`);
   }
 });
 

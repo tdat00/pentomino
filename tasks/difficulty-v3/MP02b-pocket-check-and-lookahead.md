@@ -270,14 +270,14 @@ the code or to report (check-list D11).
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP02b: R3 contradiction check, R6 lookahead, E, recipe characterisation`) |
+| Start | 2026-11-12 13:16 (+07:00) |
+| End | 2026-11-12 13:25 developer; 13:30 orchestrator review and commit |
+| Duration | 9 min developer (543 s); about 5 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 44 model calls; 4,826,670 input tokens (4,703,467 cache reads); 49,094 output tokens |
+| AI credits | about 127 (developer) |
+| Verification | Developer: `node --test tests\deduce.test.js` 14/14 (about 1 s); `npm run test:quick` 1,131/1,131 (17.3 s); `npm run check` OK; `git diff --check` clean; a scratch mutation sweep under `tests\artifacts\MP02b\` (deleted) caught the removed R3 check, the dropped R6 undo, uncounted R6, an unbounded knapsack and a missing `stamp += 1`. Orchestrator re-run: deduce 14/14, `npm run test:quick` 1,131/1,131 (18 s), `npm run check` OK |
+| Acceptance | MP02b-B01..B04 and MP02b-T01..T08 met. Diff reviewed: `ruleR3` (0/1 knapsack over the remaining piece sizes, breadth-first pockets, never counted), `closure` (R1, R2, R3 check only, uncounted, work cap at every pass), `ruleR6` (first column with at most `lookaheadWidth` live rows that yields a contradiction; kills persist within the column), four new slots in `slotTable`; V2, V3, V5, V6 and the recipe table re-pinned as the task's intended contract change; V1, V4, V7 and C1-C10 unchanged |
+| Issues & resolutions | T07 is a review item: a mutant that removes the closure's work-cap check is not caught by any test (the cap is checked at the next ladder pass anyway); verified by review, accepted. Decisions accepted: `ruleR6` returns NONE / APPLIED / STOPPED and counts internally; `closure` returns NONE / CONTRADICTION / STOPPED; knapsack work added in bulk (`top - w + 1` per piece, equal to one unit per update); design section 7.9 notes that the R3 scratch slots need no undo. No anchor moved, no vector disputed |
+| Handoff | Ladder: R1, R2, `ruleR3()` (check), `ruleR6(counting)`. MP03 inserts R3 place right after the check (inside `ruleR3`, where `queue[0 .. tail - 1]` holds the pocket and `reach[tail] === 1` means one remaining piece fits exactly) and R4, R5 before R6; R6 counts in `rules[5]`. New slots `deduce.cellIndex`, `deduce.queue`, `deduce.seen` (Int32, NC) and `deduce.reach` (Uint8, NC + 1); `slotTable(R, C, NZ, NP, NC)`. The test "the R3 check is never counted and only R1, R2 and R6 have counts" must be updated by MP03 when R3 place starts counting; the `flat` helper now reports R6 |
