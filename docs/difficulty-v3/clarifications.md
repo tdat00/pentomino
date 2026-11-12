@@ -671,3 +671,18 @@ owner's four decisions (decisive guesses with a labelled estimate, the unrateabl
 refused at every entry, calibration freedoms). With C1-C5 answered and AR1 added, **the plan author accepts the
 report as the basis of the task pack**, on condition that C1 (b), C4 (b) and AR1 are written into the report or the
 task pack before MP05 starts. The owner's acceptance is separate.
+
+## Part H: owner decisions during implementation
+
+Decisions the owner took while the task pack was being executed. Each entry names the evidence, the options
+offered and the answer; the tasks that follow apply it.
+
+| ID | Date | Question | Evidence | Options | Owner's answer | Applied by |
+|---|---|---|---|---|---|---|
+| P-OD1 | 2026-11-12 15:37 | `DEDUCE.census`: the 5 % rule of C5 is not met at 20, 40 or 80 million (at 80M, 10x10-master is still 3/50) | [probe record](probe-2026-11-12.md) sections 6 and 9 (MP06b, `3bd53bc`) | (a) keep 10,000,000 as the rule says and look again at the MP12 calibration; (b) 40,000,000; (c) 80,000,000 | **(a)**: `census` stays 10,000,000; MP12 re-examines it | MP06c onward; MP12a/MP12b |
+| P-OD2 | 2026-11-12 15:37 | `DEDUCE.work` = 760,000,000 is above the 500,000,000 reporting threshold of RES-10 | same record, section 9 item 1 (median deduction 2.8 ms, p95 83 ms, maximum 986 ms; about 1.8 s for a full-cap rating, extrapolated) | (a) accept 760,000,000; (b) a lower cap (some large master puzzles become unrateable) | **(a)**: accepted | pinned in `core/engine/policy.js` by MP06b |
+
+Information given with these questions, no decision needed: in corpus B (uniqueness required, puzzles made by v2),
+every 18x20 Hard, Expert and Master puzzle has `Gproved = 0` (20/20 each), and corpus A has 58-86 % at Hard; MP06c
+and MP07 measure whether v3 generation reaches Hard on 18x20 under AR1. The DLX diagnostic raises the combined
+rating time by 1.67 times on 18x20, below the "more than doubles" threshold of RES-19.
