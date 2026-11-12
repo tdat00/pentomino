@@ -2,9 +2,12 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
+import { boardFromRows } from '../core/engine/board.js';
+import { rate } from '../core/engine/difficulty.js';
 import { parseWorkerMessage } from '../core/engine/protocol.js';
 import { TIME } from '../core/engine/policy.js';
 import { createTaskHandler } from '../core/engine/tasks.js';
+import { createWorkspace, MAIN_WORKSPACE_BYTES } from '../core/engine/workspace.js';
 import {
   createPool,
   defaultPoolSize,
@@ -812,7 +815,9 @@ describe('pool with the real task handler', () => {
     /** @type {any[]} */
     const seen = [];
     const rating = /** @type {any} */ (await pool.run(task(1), (p) => seen.push(p)));
-    assert.equal(rating.model, 'difficulty-v2');
+    assert.equal(rating.model, 'difficulty-v3');
+    assert.equal(JSON.stringify(rating),
+      JSON.stringify(rate(boardFromRows(rows), pieces, master, createWorkspace(MAIN_WORKSPACE_BYTES))));
     assert.ok(replies.every((r) => parseWorkerMessage(r).ok));
     assert.ok(seen.some((p) => p.stage === 'memory' && p.bytes > 0));
     assert.ok(pool.memory().workerBytes > 0);

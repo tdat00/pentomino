@@ -101,6 +101,8 @@ tools/          Node-only tools (.mjs): server, headless generation, calibration
 ```
 
 `core/engine/deduce.js` is the deduction solver of the v3 rating ([docs/design-detail.md](docs/design-detail.md) §7.9);
+`core/engine/difficulty.js` computes the `difficulty-v3` rating from it (`measureV3`, `rate`) and keeps the v2
+functions (`scoreV2`, `measureV2`, `rateV2`) for stored claims, fixtures and the rating probe.
 `tools\rate-probe.mjs` measures it.
 
 Every module loaded by a page or worker uses `.js`; `.mjs` is reserved for Node-only tools. The interface text is in the

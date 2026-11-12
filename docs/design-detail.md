@@ -21,7 +21,7 @@ This is the developer specification of the project. The companion document `desi
     | Large-board switch (577–676 cells) without the "experimental" label | Not offered: the generator page has no large-board switch; 577–676 cells only through `tools/generate.mjs` | BQ-2 (§8.7) |
     | Phone board limit 484 cells | 360 cells | BQ-3 (§8.7) |
     | Browser planning factor | 5 s + 4 × Node | Replaced by BQ reports |
-    | Level labels vs. human effort; scoring of forced placements; perceived effect of macro carving | `difficulty-v2`, `gen-v3` as specified | Playtests [PT] (§7.8) |
+    | Level labels vs. human effort; scoring of forced placements; perceived effect of macro carving | `difficulty-v3` (knobs from the fit of MP06c, locked by the calibration of MP12), `gen-v3` as specified | Playtests [PT] (§7.8) |
 
 - All tunable values live as data in `core/engine/policy.js` (limits, piece counts, size policy, budgets, score weights and caps) or `core/engine/levels.js` (bands, clue shares, availability). The generated-color and pattern rules live in `palette.js`. Changing a value that affects results requires a new model, policy or algorithm id (§5.4).
 - **Board-size notation.** A × B means columns × rows (W × H) unless stated otherwise. For rectangles, orientation never affects policy, scores or test matrices. The UI labels Columns and Rows explicitly (§10.2).
@@ -42,8 +42,9 @@ This is the developer specification of the project. The companion document `desi
 | Pack | A JSON document holding one board, one piece set and 0–100 puzzles. |
 | Pose | `{piece, x, y, turn, mirrored}`: a piece's orientation and position. |
 | Presentation rotation | A display-only angle of the whole board, in multiples of 45°, counter-clockwise. |
-| Score / level | The output of the single difficulty formula (`difficulty-v2`), and the band that score falls in. |
-| Saturated rating | A rating whose search-effort term hit its cap; the score is still exact by definition (§7.3). |
+| Score / level | The output of the single difficulty formula (`difficulty-v3`, §7.10), and the band that score falls in. |
+| Saturated rating | A stored `difficulty-v2` rating whose search-effort term hit its cap (shown with "+"); `difficulty-v3` ratings are never saturated (§7.3). |
+| Estimate (censored rating) | A v3 rating whose census of the guesses did not finish within its work budget; undecided alternatives count as failing, so the score is an upper estimate, stored with `censored: true` (§7.10). |
 | Certificate | Proven solution-count status: unique / multiple / not proved / unsatisfiable; computed lazily (§6.11). |
 | Puzzle code | A short text that rebuilds one puzzle directly: a checked *core* (board, piece set, clues and claims) and an optional checked *tail* (the stored solution), written `C` or `C.T` (§9.8). |
 
@@ -81,7 +82,7 @@ Requirements come from the original product brief, including its addendum and th
 | T3 | Deploy to `tdat00.github.io/pentomino`; the home page redirects to `/generator`; "Play" opens the player | Pages via GitHub Actions; `index.html` + `redirect.js`; Play link `../player/#p=<code>;<code>…` | 9, 12 |
 | R1 | Pentomino / Puzzlia gameplay | Free-polyomino exact-cover rules `free-polyomino-v1` | 5.2, 6.6 |
 | R2 | Levels very easy … nightmare, hell-1, hell-2, … | Geometric level ladder; Hell-n continues indefinitely | 7.4 |
-| R3 | One shared difficulty score, used to generate sets and puzzles per level | `difficulty-v2`. A set is accepted only with an in-band calibration puzzle; puzzles are accepted only in band. | 6.5, 6.10, 7 |
+| R3 | One shared difficulty score, used to generate sets and puzzles per level | `difficulty-v3` (§7.10). A set is accepted only with an in-band calibration puzzle; puzzles are accepted only in band, aiming at the centre of the band (§6.10) and, for generated puzzles at Hard or above, only with a proved decisive guess (§7.6). Imported puzzles and stored claims are not filtered. | 6.5, 6.10, 7 |
 | R4 | User enters the board size (e.g. 5×12, 6×10) | W × H inputs and presets | 6.2, 10.2 |
 | R5 | Block cells; rotate the board 45°/90° (e.g. a Puzzlia-style heart). **Clarified: display only.** | Blocked-cell painting. `presentation.rotation` in 45° steps, counter-clockwise, ignored by all logic. Heart preset = square with the top-right quarter blocked, shown at 45°. | 6.2, 6.3 |
 | R6 | "Generate Piece Set": random shapes and sizes, each piece ≥ 3 cells | Macro or flat carving; sizes ≥ 3 | 6.4, 6.5 |
@@ -114,10 +115,10 @@ The main design decisions and why they were taken.
 | D7 | Board connectivity | Generation requires one 4-connected active region. The player accepts any non-empty board. | Simpler carving; valid packs are not rejected. |
 | D8 | Game rules vs. generation policy | `rules: "free-polyomino-v1"` covers gameplay only. Size rules, distinct and hole-free shapes are generator policy `mixed-v2`, recorded in `generation.policy`. | The player must accept every rules-valid puzzle. |
 | D9 | Piece count | K_mid = min(K60[L]·(A/60)^0.28, Kcap[L]); window ±max(0.75, 6 %); clamped to [⌈0.75·√A⌉, Kmax(A)]; integer counts filtered by histogram feasibility (§6.4). 360-cell hell-1 = 37–42. | Fits all four user examples; area-neutral at hell levels; monotone in A |
-| D10 | Difficulty formula | `difficulty-v2`: D = round(2U + 8·log10(1 + B_eff)), B_eff = min(B, 5,000). R and H are stored as diagnostics only. | R and H grow with area and over-rated large boards; the simpler score keeps "few clues = hard" on every board size. |
-| D11 | Search-effort estimator | One canonical DLX traversal, saturating at 5,000 branch trials or 50,000 row trials. Actual counters and the stop reason are stored. | Deterministic, bounded cost (≤ ~4 s at 484 cells) |
+| D10 | Difficulty formula | `difficulty-v3` (§7.10): score = base(U) + rule term (hardest deduction tier) + guess term (decisive guesses G and their information) − the few/many penalty, rounded once. `difficulty-v2` (D = round(2U + 8·log10(1 + B_eff)), B_eff = min(B, 5,000)) stays the legacy score of stored claims. | The score follows how people solve (plan §1.3, "make Hard really hard"): R and H stay stored diagnostics only. |
+| D11 | Search-effort estimator | The deduction solver of §7.9 under deterministic node, work and census caps; a capped path is unrateable. One canonical DLX traversal (5,000 branch trials or 50,000 row trials) stays as a stored diagnostic (B). | Deterministic, bounded cost; nothing is rated by a guess about a search that gave up |
 | D12 | Level bands | Geometric: e_L = round(10·1.45^(L−1.5)); Hell-n = level 6 + n, open-ended | Bands scale with the saturating score; ratio fitted to the user's examples |
-| D13 | Shown level | Always the level of the actual score, worded as an estimate. Saturated scores are exact; no "≥" display. | Honest labels |
+| D13 | Shown level | Always the level of the actual score, worded as an estimate. `difficulty-v3` scores are never saturated; an unfinished census is stored as `censored: true` and shown as an estimate; no "≥" display. | Honest labels |
 | D14 | Uniqueness | Default: any valid completion. "Require unique solution" needs an exhaustive raw-coordinate proof; standard for A ≤ 200 or below Hell, experimental otherwise. Certificates are lazy (§6.11). | The user did not require uniqueness; never claim an unproved fact. Certificates took ≈ 35 % of batch CPU at hell levels and were almost never conclusive above 200 cells. |
 | D15 | Piece-set acceptance | A set is ready only once a target-band calibration puzzle exists. The generator page stores only the level and uniqueness the set was made for (`calibrationFor`), not the calibration puzzle. | The unclued score is not a ceiling (A.9). |
 | D16 | Distinct puzzles | Strict: each puzzle needs a new full-layout key AND a new clue key. Preferred distance clamp(⌈K/4⌉, 3, 10), relaxed to a floor of 2, with a best-distance fallback. No clue-only variants; fewer puzzles are returned with an explanation. | The requirement says the arrangement must change. |
@@ -261,7 +262,7 @@ type MetricsV2 = { U: number; B: number;            // B = effective (saturated)
                    stop: 'solution' | 'branch-cap' | 'row-cap'; // why the traversal ended
                    R: number; H: number };                      // diagnostics only (§7.1)
 type Metrics = MetricsV2;                           // alias, kept for the code that rates with difficulty-v2
-type MetricsV3 = {                                  // fixed field order; §7.10 (defined, not yet produced)
+type MetricsV3 = {                                  // fixed field order; §7.10 (produced by `rate`)
   U: number; R: number; H: number;                  // as v2
   B: number; branchTrials: number; rowTrials: number; dlxStop: 'solution' | 'branch-cap' | 'row-cap';  // v2 DLX diagnostic
   searchStop: 'exhausted' | 'solution-limit' | 'node-cap' | 'work-cap';   // how the deduction search ended
@@ -276,7 +277,7 @@ type MetricsV3 = {                                  // fixed field order; §7.10
 type RatingV2 = { model: 'difficulty-v2'; score: number; level: string; saturated: boolean; metrics: MetricsV2 };
 type RatingV3 = { model: 'difficulty-v3'; score: number; level: string; saturated: false;
                   censored?: true; metrics: MetricsV3 };      // censored: exactly when the census is unfinished
-type Rating = RatingV2 | RatingV3;                  // discriminated by model; the engine still produces RatingV2 only
+type Rating = RatingV2 | RatingV3;                  // discriminated by model; the engine produces RatingV3 only, RatingV2 describes stored claims
 type Certificate = { status: 'unique' | 'multiple' | 'not-proved' | 'unsatisfiable';
                      model: 'dlx-v1'; rowLimit: number; verified: boolean };  // verified = computed by this runtime
 type Puzzle = { id: string; title?: string; clues: Pose[]; solution: Pose[] | null;
@@ -455,7 +456,7 @@ export function isValidLayout(b: Board, pieces: Piece[], layout: Pose[]): boolea
 
 The typed arrays of a `Model` are views into the workspace and valid only while the model is live (the next `buildModel` on that workspace overwrites them); `pieceSizes` belongs to the placement plan. Every piece is edge-connected (checked for imported and generated sets).
 
-**`deduce.js`** (§7.9): the deduction solver, the measure behind the planned `difficulty-v3` rating. `measureV3` (§7.10) calls it; the rating does not use it until the v3 activation.
+**`deduce.js`** (§7.9): the deduction solver, the measure behind the `difficulty-v3` rating. `measureV3` (§7.10) calls it for every rating.
 
 ```ts
 export function measureDeduction(m: Model, limits?: DeductionLimits, diagnostics?: { verifyUndo?: boolean; tieOrder?: number }): DeductionResult;
@@ -502,24 +503,24 @@ export function puzzleId(b: Board, pieces: Piece[], clues: Pose[]): string;  // 
 **`difficulty.js`** (§7)
 
 ```ts
-export const MODEL = 'difficulty-v2';
+export const MODEL = 'difficulty-v3';
+export function rate(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace): RatingV3;   // §7.10: scoreV3 of measureV3; censored: true when the census is unfinished; throws UnsatisfiableError, IncompleteRatingError
 export function measureV3(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace,
                           limits?: { deduce: DeductionLimits; dlx: { branch: number; rows: number } }):   // default { deduce: DEDUCE, dlx: SCORE.caps }
-  { metrics: MetricsV3; saturated: false };                // the v3 measurement (§7.10); not the rating yet; throws UnsatisfiableError, IncompleteRatingError (capped path)
+  { metrics: MetricsV3; saturated: false };                // the v3 measurement (§7.10); throws UnsatisfiableError, IncompleteRatingError (capped path)
 export function breakdownV3(m: ScoreInputV3, knobs?: ScoreKnobsV3):   // knobs default to SCORE_V3 and are not validated here
   { base: number; rule: number; guess: number; penalty: number; unrounded: number; score: number };   // §7.10; RangeError
-export function scoreV3(m: ScoreInputV3): number;           // breakdownV3(m).score under SCORE_V3; defined, `rate` stays v2 until the v3 activation
-// difficulty-v2, kept under its v2 names (§7.1-§7.3): stored v2 claims, the frozen Player sample and the probe's `v2` field
+export function scoreV3(m: ScoreInputV3): number;           // breakdownV3(m).score under SCORE_V3
+// difficulty-v2, kept under its v2 names (§7.2): stored v2 claims, the frozen Player sample and the probe's `v2` field
 export function measureV2(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace, limits?: { branch: number; rows: number }):
   { metrics: Metrics; saturated: boolean };
 export function scoreV2(U: number, B: number): number;      // pure formula (§7.2); B is the effective value
 export function rateV2(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace): RatingV2;   // always model 'difficulty-v2'
-export function rate(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace): Rating;       // returns rateV2's result until the v3 activation
 export function inBand(r: Rating, target: Level): boolean; // target.min ≤ score < target.max
 type ScoreInputV3 = Pick<MetricsV3, 'U' | 'deductionTier' | 'G' | 'info' | 'solutions'>;   // other fields ignored
 type ScoreKnobsV3 = { base: { max: number; scale: number }; rule: readonly number[];
                       weights: { G: number; info: number }; penalty: { few: number; many: number } };
-export class IncompleteRatingError extends Error {   // thrown by `measureV3` when the deduction path is capped (§7.3, §7.10); `rate` does not call it until the v3 activation
+export class IncompleteRatingError extends Error {   // thrown by `measureV3` and so by `rate` when the deduction path is capped (§7.3, §7.10)
   code: 'rating-incomplete'; reason: 'path-capped'; counters: { nodes: number; work: number; stop: 'node-cap' | 'work-cap' };
 }
 ```
@@ -828,7 +829,7 @@ Copy only whitelisted fields into newly created objects; this prevents prototype
 
 - `version` changes only for breaking schema changes. Older versions keep explicit, tested migrations (`migrate[n]`). Unknown versions are rejected.
 - Independent identifiers version the semantics:
-  - `rating.model` (`difficulty-v2`; packs carrying `difficulty-v1` ratings are accepted and shown as claims);
+  - `rating.model` (`difficulty-v3`; packs carrying `difficulty-v2` and `difficulty-v1` ratings are accepted and shown as claims);
   - `certificate.model` (`dlx-v1`);
   - `generation.algo` (`gen-v3`: macro/flat carving, local LNS, strict batch fold, centre-seeking clue selection of §6.10; packs made before it carry `gen-v2`; seeds reproduce only within one algo id);
   - `generation.policy` (`mixed-v2`: size window, small-piece cap, count formula and availability of §6.4 and §7.5);
@@ -1409,7 +1410,7 @@ selectClues({ board, pieces, layout, target, rng, uniqueness, excludeClueKeys, w
     repeat 4 times:
       F ← G distinct random pieces of layout, at their layout poses
       if F was tried or clueKey(F) ∈ excludeClueKeys: continue
-      r ← rate(board, pieces, F, ws)                               // §7, capped and saturating; one profile
+      r ← rate(board, pieces, F, ws)                               // §7.10, capped (unrateable above); one profile
       if F is spent (unrateable or refused, below):                // the profile is used; F is not a candidate
         if afterProfile(null) returns a result: return it
         continue                                                   // counts as neither below nor above the band
@@ -1468,9 +1469,9 @@ selectClues({ board, pieces, layout, target, rng, uniqueness, excludeClueKeys, w
 - The level's initial share implements "easy = many pre-placed pieces, nightmare = few"; no monotonicity in G is assumed.
 - **The search aims at the centre of the band.** The centre is the real number `(min + max) / 2`. A puzzle is accepted at once only when the final result (after any uniqueness repair) lies in the central half of the band; every other in-band result is a fallback. Once 48 of the 64 profiles are used (`CENTRE_RESERVE = 16` is that stop point), or when the search ends, the in-band final result nearest to the centre is returned, so a band whose central half is reachable only late costs up to 48 ratings per puzzle; the stall stop below ends the search earlier when the central half looks out of reach. An unbounded band (very deep Hell levels) has no centre: every in-band candidate counts as central and the first whose finish succeeds is returned. The sampling stays the uniform shuffle of `sample(count)`.
 - In `any` mode the final result is the rated subset itself. In `require` mode a central raw subset whose repaired result is off-centre does not stop the search, a failed repair falls through to the next candidate, and a repaired set that is out of band, or whose clue key is already in `excludeClueKeys`, is never returned; at the stall stop, at profile 48 or at the end, `chooseBest` repairs candidates in order of their raw distance until the nearest finished result is at least as near as every unfinished raw rating.
-- **Unrateable and unproved candidates (RES-04, RES-35 / AR1).** A subset whose rating throws `IncompleteRatingError` (the deduction path was capped, §4.2: it is unrateable) and, for a target whose `min` is at least `bandEdge(3)` (Hard or above; the target carries no level index), a subset whose rating has `metrics.Gproved === 0` (no alternative proved to fail) spend a profile and are neutral: they are not rated candidates, are neither below nor above the band, are not in `fresh` of the beam, get no `onRate` and are never rated again. They count toward the 64 profiles and toward the stop at profile 48, and phase 2 keeps sampling while nothing was rated. A repaired set in `require` mode whose rating is unrateable or refused in the same way makes that candidate fail (memoised by `finishOnce`) and the next candidate is tried. Every other error (`UnsatisfiableError`, `ModelError`, `RangeError`, …) propagates unchanged, from a subset rating and from a repair rating. Below Hard the `Gproved` refusal does not apply; an unrateable profile is still spent. Ratings without `Gproved` are never refused by AR1. While `rate` remains `difficulty-v2`, production outputs and fixtures are unchanged: no `difficulty-v2` rating throws or carries `Gproved`, and the rules are exercised with scripted ratings through the `rate` seam. A task `rate` request whose puzzle is unrateable fails with the worker error code `rating-incomplete` (§8.1).
-- **Stall stop (RES-15a).** `STALL_LIMIT = 12` (next to `BEAM_WIDTH` in `core/engine/clues.js`). For a finite band, after each profile and after the central-result check, the search stops and returns `chooseBest()` when all three hold: (1) at least one rated candidate is in band; (2) every rated candidate, in band or not, lies on the same side of the central half (all scores below `centre − (max − min) / 4`, or all above `centre + (max − min) / 4`; a central candidate rated at any time ends this condition for good); (3) the last 12 rated candidates gave no in-band candidate strictly nearer to the centre than the best in-band candidate before them. If `chooseBest()` finds no final result (every repair failed) the search goes on. It is for bands whose central half no clue count can reach (for example Hell 3 on 22 × 22 under `difficulty-v2`, where the highest score is 174 against a central half starting at 180.25), which would otherwise rate 48 subsets per puzzle. The rule reads only the raw subset ratings, in every uniqueness mode: repaired scores never enter it. The stall counter counts rated candidates (`|candidates| − nearestAt`, with `nearestAt` the number of rated candidates when the nearest in-band one was rated): a subset that is skipped (repeated or excluded), unrateable or refused is not a rated candidate, so it is on no side of the central half, is never nearer to the centre, and neither advances nor resets the counter (D21 counting rule); the stop at profile 48 still counts spent profiles. The count starts at the first in-band candidate and only a strictly nearer in-band candidate resets it (ties do not). The central stop, the stop at profile 48, the 64 budget, the count steering, the beam, `ranked()` and the unbounded band are unchanged, and the rule draws nothing from the rng. The limit 12 is the smallest value tested that missed no central result on `difficulty-v2` rating sequences; it is re-validated on v3 ratings before v3 is activated.
-- At most `BUDGETS.clueSubsets` (64) subsets take a rating per layout (the profiles; the unrateable and refused ones are spent profiles). The repair ratings of `require` mode come on top: each in-band candidate is repaired at most once, and `onRate` reports only the profiles that gave a rated candidate. A saturated rating at 484 cells costs ≤ ~4 s single-threaded (A.10).
+- **Unrateable and unproved candidates (RES-04, RES-35 / AR1).** A subset whose rating throws `IncompleteRatingError` (the deduction path was capped, §4.2: it is unrateable) and, for a target whose `min` is at least `bandEdge(3)` (Hard or above; the target carries no level index), a subset whose rating has `metrics.Gproved === 0` (no alternative proved to fail) spend a profile and are neutral: they are not rated candidates, are neither below nor above the band, are not in `fresh` of the beam, get no `onRate` and are never rated again. They count toward the 64 profiles and toward the stop at profile 48, and phase 2 keeps sampling while nothing was rated. A repaired set in `require` mode whose rating is unrateable or refused in the same way makes that candidate fail (memoised by `finishOnce`) and the next candidate is tried. Every other error (`UnsatisfiableError`, `ModelError`, `RangeError`, …) propagates unchanged, from a subset rating and from a repair rating. Below Hard the `Gproved` refusal does not apply; an unrateable profile is still spent. Ratings without `Gproved` (scripted ratings of the tests) are never refused by AR1. `rate` is `difficulty-v3` (§7.10): a generated puzzle at Hard or above therefore has at least one proved decisive guess, while a rating whose census did not finish (`censored: true`) with `Gproved ≥ 1` is accepted as the estimate it is, and imported puzzles and stored claims are not filtered. A task `rate` request whose puzzle is unrateable fails with the worker error code `rating-incomplete` (§8.1).
+- **Stall stop (RES-15a).** `STALL_LIMIT = 12` (next to `BEAM_WIDTH` in `core/engine/clues.js`). For a finite band, after each profile and after the central-result check, the search stops and returns `chooseBest()` when all three hold: (1) at least one rated candidate is in band; (2) every rated candidate, in band or not, lies on the same side of the central half (all scores below `centre − (max − min) / 4`, or all above `centre + (max − min) / 4`; a central candidate rated at any time ends this condition for good); (3) the last 12 rated candidates gave no in-band candidate strictly nearer to the centre than the best in-band candidate before them. If `chooseBest()` finds no final result (every repair failed) the search goes on. It is for bands whose central half no clue count can reach (for example Hell 3 on 22 × 22 under `difficulty-v2`, where the highest score is 174 against a central half starting at 180.25), which would otherwise rate 48 subsets per puzzle. The rule reads only the raw subset ratings, in every uniqueness mode: repaired scores never enter it. The stall counter counts rated candidates (`|candidates| − nearestAt`, with `nearestAt` the number of rated candidates when the nearest in-band one was rated): a subset that is skipped (repeated or excluded), unrateable or refused is not a rated candidate, so it is on no side of the central half, is never nearer to the centre, and neither advances nor resets the counter (D21 counting rule); the stop at profile 48 still counts spent profiles. The count starts at the first in-band candidate and only a strictly nearer in-band candidate resets it (ties do not). The central stop, the stop at profile 48, the 64 budget, the count steering, the beam, `ranked()` and the unbounded band are unchanged, and the rule draws nothing from the rng. The limit 12 is the smallest value tested that missed no central result on `difficulty-v2` rating sequences, and it stays after the re-validation on `difficulty-v3` sequences (`docs/difficulty-v3/d21-v3-2026-11-12.md`): on the cells that complete under v3 the rule fires on 10 of the 1,878 `any`-mode calls and misses no central result (at 8 it would miss three), and none of the 184 `require`-mode calls fires at 12 or at 16, so their final results are the same with and without the stop.
+- At most `BUDGETS.clueSubsets` (64) subsets take a rating per layout (the profiles; the unrateable and refused ones are spent profiles). The repair ratings of `require` mode come on top: each in-band candidate is repaired at most once, and `onRate` reports only the profiles that gave a rated candidate. A `difficulty-v3` rating costs a median of 1.7–58.6 ms (deduction, 6 × 10 to 26 × 26) with a heavy tail (95th percentile 83.1 ms, maximum 985.8 ms; `docs/difficulty-v3/probe-2026-11-12.md`, section 4); a rating that reaches the work cap is unrateable after about 2 s on the large Hell boards (§7.5).
 - `rate` (optional) replaces the rating function for every rating of the call, subsets and repaired sets; tests and diagnostics use it to script ratings, and the generator never sets it.
 - The generator's step 2 table shows the pre-placed range per level, and each puzzle card shows the number of pieces still to place (K − G).
 
@@ -1514,19 +1515,23 @@ optional: try removing the added clues one by one (random order), keeping unique
 
 ### 7.1 Metrics
 
-All metrics are computed for a board, its set and a clue subset.
+All metrics are computed for a board, its set and a clue subset (`measureV3`, §7.10). The score of a `difficulty-v3` rating reads five of them:
 
 | Symbol | Definition | Role |
 |---|---|---|
-| U | Pieces to place: K − G | Score |
-| B | `branchTrials` of the canonical DLX traversal until its first solution, saturating (§7.3) | Score |
-| R | Active cells not covered by clues | Diagnostic only |
-| L_i | Distinct legal placements of free piece i on the free cells: its row count in the model (§6.6). Clues are considered; other free pieces are ignored. | Diagnostic only |
-| H | Mean placement-choice bits: (1 / U) · Σ log2(1 + L_i) | Diagnostic only |
+| U | Pieces to place: K − G | Score (base term) |
+| `deductionTier` | The hardest deduction rule tier (0–3) on the path to the first solution (§7.9) | Score (rule term) |
+| G | Decisive guesses on that path: guesses where at least one alternative fails (§7.9) | Score (guess term) |
+| `info` | The decisive information of those guesses, the full double (§7.10) | Score (guess term) |
+| `solutions` | `unique`, `few`, `many` or `unknown`: how many solutions the bounded count found | Score (penalty) |
 
-R and H grow with the board area for the same task, which made an earlier formula over-rate large boards (A.10). They are stored in `rating.metrics` for a future, playtest-calibrated model [PT].
+Every other field of `rating.metrics` is a stored diagnostic and never enters the score: `R` (active cells not covered by clues) and `H` (mean placement-choice bits, (1 / U) · Σ log2(1 + L_i), with L_i the distinct legal placements of free piece i), the DLX fields of the v2 traversal (`B`, `branchTrials`, `rowTrials`, `dlxStop`, §7.2), `searchStop`, `F`, `E`, `rules`, `tier`, `Cmax`, `Dmax`, `Gt`, `nodes`, `work`, `S`, `solutionLimit`, the census fields (`censusComplete`, `censusUndecided`, `censusNodes`, `censusWork`) and `Gproved`. §7.10 gives their meaning and the write order.
 
-### 7.2 Formula: `difficulty-v2`
+R and H grow with the board area for the same task, which made an earlier formula over-rate large boards (A.10). They stay stored for a future, playtest-calibrated model [PT].
+
+### 7.2 Formula: `difficulty-v2` (legacy)
+
+Stored `difficulty-v2` claims and the frozen puzzle-code rebuild use this formula (`scoreV2`); new ratings use §7.10.
 
 ```text
 D = Math.round(2·U + 8·log10(1 + B))           // B = effective value, ≤ 5,000; rounded once, at the end
@@ -1556,8 +1561,10 @@ U = 0 → D = 0.   Any L_i = 0 → unsolvable: reject before rating.
 | 41 | saturated → 5,000 | 112 | hell-2 |
 | 66 | saturated → 5,000 | 162 | hell-3 |
 
-### 7.3 Caps and saturation
+### 7.3 Caps, saturation and unrateable puzzles
 
+- **`difficulty-v3`.** The deduction search runs under the `DEDUCE` caps (§7.9). A path capped before its first solution is **unrateable**: `rate` throws `IncompleteRatingError` (`rating-incomplete` in the worker protocol) and no score, level or "+" is derived from it; generation spends one profile on such a candidate (§6.10). A census that did not finish within its work budget gives a stored **estimate**: the rating is returned with `censored: true` and the undecided alternatives counted as failing (§7.10). The DLX diagnostic keeps its caps below and its pinned B = 5,000 but never enters the v3 score. A `difficulty-v3` rating is never saturated and never shows "+".
+- **`difficulty-v2` (legacy; stored claims, the frozen Player sample and the probe's `v2` field).** The rest of this section describes the v2 rating. Saturation and "+" remain only for stored v2 claims.
 - **Caps per rating:** `SCORE.caps.branch` = 5,000 branch trials and `SCORE.caps.rows` = 50,000 row trials.
 - **Effective B.** If the traversal finds its first solution, B = min(branchTrials, 5,000). If it stops at either cap first, B = 5,000 and `saturated = true`.
   - Actual `branchTrials`, `rowTrials` and the stop reason are stored separately in `rating.metrics`; at the row cap the actual branch count may be below 5,000.
@@ -1565,7 +1572,7 @@ U = 0 → D = 0.   Any L_i = 0 → unsolvable: reject before rating.
 - A saturated rating proves nothing about solvability. Generated puzzles are solvable by construction (their witness).
 - A watchdog interruption never produces a rating; the candidate is simply lost.
 - Ratings never use wall-clock time, so the same inputs give the same rating on every device.
-- Cost, single thread: unsaturated ratings ≤ 32 ms median on every board; saturated ratings 0.06 s (60 cells), 0.5 s median / 1.3 s p90 (360 cells), 0.8 / 2.7 s (484 cells), ≤ 4.2 s worst at 484 and ≈ 3.7–4.2 s per candidate at 676 (A.10).
+- Cost, single thread (`difficulty-v2`, legacy): unsaturated ratings ≤ 32 ms median on every board; saturated ratings 0.06 s (60 cells), 0.5 s median / 1.3 s p90 (360 cells), 0.8 / 2.7 s (484 cells), ≤ 4.2 s worst at 484 and ≈ 3.7–4.2 s per candidate at 676 (A.10). The cost of a `difficulty-v3` rating is in §6.10.
 
 ### 7.4 Level table
 
@@ -1613,8 +1620,9 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
   | 349–449 | hard | hell-2 |
   | 450–676 | hard | hell-3 |
 
-- Availability is a preset policy, not a score ceiling. For example, a 60-cell set with K = 13 and one clue can score 54 (nightmare) with a saturated B, but nightmare is not offered at 60 cells.
+- Availability is a preset policy, not a score ceiling. For example, under `difficulty-v2` a 60-cell set with K = 13 and one clue can score 54 (nightmare) with a saturated B, but nightmare is not offered at 60 cells.
 - Levels outside a board's interval are shown disabled with the reason "needs a larger board" or "needs a smaller board".
+- **Reachability under `difficulty-v3` (D36; interim until the owner's decision at the calibration, MP12).** The reachability condition above is still the v2 bound `2·(Kmax − 1) + 30`. A capped rating gives no score (§7.3), so a set whose clue subsets are all unrateable ends `not-in-band` after 20 spent profiles. The measurements of `docs/difficulty-v3/d21-v3-2026-11-12.md` (seed `t18-big-a`) show where this happens. In three set attempts per cell, Hell 1 is made on its smallest board (164 cells: two attempts of three, calibration scores 93 and 103) but not on 20 × 20 (400 cells), and Hell 2 and Hell 3 are not made on their smallest boards (266 and 450 cells) or on the mid-size boards, where every subset that was rated lay above the band or was capped. Within the 2 to 14 attempts that fit in the capture limit, no set was made for 15 × 20 Hell 1 and Hell 2, 18 × 18 Hell 2, 22 × 22 Hell 1, 2 and 3, 32 × 15 and 24 × 24 Hell 3, while Nightmare completes 10 of 10 on 22 × 22 and 15 × 20. A request for a level that cannot be made ends with no puzzle (in the two-worker flow `N-NOSET` after the 115 s dispatch stop). The levels stay offered; the intervals are reviewed with the v3 calibration (§7.8).
 
 **Final parameter table.** One row per level and area band where the level is offered:
 - **K** is the union of `pieceCountRange` over the band;
@@ -1696,22 +1704,22 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
 
 ### 7.7 Determinism and versioning
 
-- D is a pure function of: board rows, piece shapes, clue cells, caps and model id.
+- The score is a pure function of: board rows, piece shapes, clue cells, `DEDUCE`, `SCORE_V3` and the model id (a stored `difficulty-v2` claim: the v2 caps and weights).
   - Ids, colors, piece order in the file and display rotation do not affect it, thanks to the canonical order (§6.6).
-- **Bump the model id** (`difficulty-v3`, …) whenever any of these change: a weight, a cap, a band, the traversal order or pruning, or the counter definitions.
+- **Bump the model id** (`difficulty-v4`, …) whenever any of these change: a knob, a cap, a band, a rule of the deduction ladder, the census or a counter definition.
 - Stored ratings keep their model id. The player shows stored ratings as claims; an optional "Re-rate" action recomputes them with the current model.
 
 ### 7.8 Calibration and playtests
 
-- `difficulty-v2`, its bands and the availability table are **final for release 1**. They were fitted to the user's four examples and to 3,458 measured ratings (A.10).
+- `difficulty-v2` was final for release 1 and is now the legacy model (stored claims keep it, §7.2). The v3 knobs come from the initial fit (`docs/difficulty-v3/fit-2026-11-12.md`) and are locked after the calibration of MP12 (`docs/difficulty-v3/calibration-<date>.md`); the bands and the availability table below were fitted to the user's four examples and to 3,458 measured `difficulty-v2` ratings (A.10).
 - `tools/calibrate.mjs` (Node, 4 worker threads) re-runs the score landscape and the table above on the real engine:
   - report score distributions by U and area, the in-band hit rate per (board, level), the saturated share, rating cost and certificate outcomes;
   - acceptance: ≥ 90 % of New-Puzzles requests per offered (board, level) complete with 10 in-band puzzles within the budget of §8.3; output in `docs/calibration/`.
-- **Playtests [PT]** (optional, post-release): time and success of human solvers per level, plus a forced-placement fixture (many B = 0 placements). Results MAY justify `difficulty-v3`, using the stored R, H and counters. A new model never relabels stored puzzles.
+- **Playtests [PT]** (optional, post-release): time and success of human solvers per level, plus a forced-placement fixture (many B = 0 placements). Results MAY justify a later model, using the stored metrics. A new model never relabels stored puzzles.
 
 ### 7.9 Deduction solver (`deduce.js`)
 
-`measureDeduction(model, limits = DEDUCE, diagnostics = {})` measures a puzzle the way a person solves it: first the placements that are forced, later also small deductions, and a real guess only when nothing else works. It records how many decisive guesses the path to the first solution needed (a guess where at least one alternative fails) and how wide they were. It is the measure behind the planned `difficulty-v3` rating (§7.7). **`measureV3` (§7.10) calls it; the rating does not use it yet**: rating and generation still use `difficulty-v2`, so §7.1–§7.3 stay correct and no output changes. This section describes the module as it is; each later rule is added to it when it is implemented.
+`measureDeduction(model, limits = DEDUCE, diagnostics = {})` measures a puzzle the way a person solves it: first the placements that are forced, later also small deductions, and a real guess only when nothing else works. It records how many decisive guesses the path to the first solution needed (a guess where at least one alternative fails) and how wide they were. It is the measure behind the `difficulty-v3` rating (§7.10): **`measureV3` calls it for every rating.** This section describes the module as it is; each later rule is added to it when it is implemented.
 
 **Input and limits.** A live `Model` (§6.6; a stale model throws `stale model`) and `limits`, exactly the six fields of `DEDUCE` (`policy.js`):
 
@@ -1822,9 +1830,9 @@ If their total exceeds `limits.memoryBytes`, the call throws `ModelError` `model
 
 **Determinism and labelled pieces.** The result depends only on the model, which is canonical (§6.6), and on `limits`: not on ids, colours or input order. Pieces are counted per labelled piece: two pieces of the same shape given directly are two piece columns, so each arrangement is counted per piece (the entry points of the product refuse such sets, §5.3; the engine functions stay total on them).
 
-### 7.10 Formula `difficulty-v3` (defined; not yet the rating)
+### 7.10 Formula and rating `difficulty-v3`
 
-The score of the planned `difficulty-v3` rating (§7.7, §7.9): a base for the pieces left to place, a term for the hardest deduction rule the solver needed, a term per decisive guess, and a penalty for puzzles with several solutions. It is written as pure, tested code next to the v2 score (`breakdownV3`, `scoreV3` and the measurement `measureV3` in `difficulty.js`, `SCORE_V3` in `policy.js`; types `MetricsV3`, `RatingV3`, §4.1), but **nothing uses it yet**: `rate` stays `difficulty-v2` (§7.2), so no rating, puzzle or document a user sees changes. Switching `rate` on is a later step, which also updates §7.1–§7.7.
+The score of the `difficulty-v3` rating (§7.7, §7.9): a base for the pieces left to place, a term for the hardest deduction rule the solver needed, a term per decisive guess, and a penalty for puzzles with several solutions. It is pure, tested code (`breakdownV3`, `scoreV3`, the measurement `measureV3` and the rating `rate` in `difficulty.js`, `SCORE_V3` in `policy.js`; types `MetricsV3`, `RatingV3`, §4.1). `rate` is the rating of the engine: the Generator, the set calibration, the worker `rate` task and the fixtures use it; the v2 functions (`scoreV2`, `measureV2`, `rateV2`, §7.2) stay available under their v2 names for stored claims, the frozen Player sample and the rating probe, and generation and the apps never call them.
 
 ```text
 breakdownV3(m, knobs = SCORE_V3), m = { U, deductionTier, G, info, solutions } (other fields ignored):
@@ -1868,7 +1876,7 @@ The invariants are hard: `base.max + max(rule) ≤ 16` (here 14), `rule[0] = rul
 
 The quick tests of `tests/difficulty-v3.test.js` check the formula on the vectors of the starting knobs (`base { 12, 6 }`, `rule [0, 0, 2, 4]`, `weights { 6, 4 }`, `penalty { 2, 4 }`, which are test vectors only), the grid of valid tuples (terms, order, one rounding, the penalty by `solutions`, `G = 0` at most 16), the exact JSON round trip, and the invalid inputs; `tests/policy.test.js` pins `SCORE_V3` and its invariants and ranges.
 
-**Measurement (`measureV3`).** `measureV3(board, pieces, clues, ws, limits = { deduce: DEDUCE, dlx: SCORE.caps })` builds the stored `MetricsV3` of a puzzle from the deduction solver (§7.9) and returns `{ metrics, saturated: false }`: a v3 rating never sets `saturated`. Like the formula it is defined and tested, but `rate` does not call it yet.
+**Measurement (`measureV3`).** `measureV3(board, pieces, clues, ws, limits = { deduce: DEDUCE, dlx: SCORE.caps })` builds the stored `MetricsV3` of a puzzle from the deduction solver (§7.9) and returns `{ metrics, saturated: false }`: a v3 rating never sets `saturated`. Like the formula it is pure and tested; `rate` (below) is its only production caller.
 
 ```text
 measureV3(board, pieces, clues, ws, limits):
@@ -1893,7 +1901,9 @@ zero metrics (U = 0): every number 0 except S 1 and solutionLimit (limits.deduce
 
 The order of step 5 is the write order of `MetricsV3`. The DLX diagnostic (`B`, `branchTrials`, `rowTrials`, `dlxStop`, `R`, `H`) has its `difficulty-v2` meaning and never enters the score or `saturated`; `limits.dlx` lowers its caps for tests only, and a capped `B` stays 5,000. A capped deduction path is unrateable (§7.3): the error carries the counters at the cap and nothing is derived from the path. An unfinished census is not an error: `censusComplete` is `false` exactly when `censusUndecided > 0`, `Gproved ≤ G` (`Gproved = G` when the census is complete), `G` and `info` are then an upper estimate, and a stored claim of such metrics carries `censored: true`. `solutions` is never `'none'`. There is no shape check: pieces of one shape given directly are counted as labelled pieces, as in `measureDeduction`.
 
-The quick tests of `tests/difficulty.test.js` check the key order and the owned `rules`, the zero metrics (also as JSON text) and the refusal of an invalid full layout, a forced placement (`U 1`, `R 5`, `H 1`, `B 0`, `F 1`, `rules.R1 1`, no guess), two pieces of one shape on a 2 × 5 board (`S 2`, `few`, `Gt 1`), a capped path (`node-cap` and `work-cap`), an unfinished census on a strip of 41 `I` pieces with 4 clues, a census cut to 0, the DLX caps (the deduction fields do not change), and that every claim made from these metrics is accepted by the strict pack reader; the v2 names give the v2 values and `rate` equals `rateV2`.
+**Rating (`rate`).** `rate(board, pieces, clues, ws)` is `scoreV3` of `measureV3`: `{ metrics } = measureV3(...)`, `score = scoreV3(metrics)`, and it returns `{ model: MODEL, score, level: levelForScore(score).id, saturated: false, [censored: true,] metrics }` with `MODEL = 'difficulty-v3'`. The keys are written in the order `model`, `score`, `level`, `saturated`, `censored`, `metrics`; `censored: true` is present exactly when `metrics.censusComplete` is `false` (never `censored: false`), and `saturated` is always `false` (no "+" for v3). `rate` never refuses a rating: an estimate is returned whatever its level, even at Hard or above with `Gproved === 0`; only generation refuses such a candidate (AR1, §6.10). It lets `UnsatisfiableError` and `IncompleteRatingError` through (§7.3). `rateV2` is the v2 rating under its v2 name (`model: 'difficulty-v2'` written literally); it serves stored claims, the frozen Player sample and the rating probe.
+
+The quick tests of `tests/difficulty.test.js` check the key order and the owned `rules`, the zero metrics (also as JSON text) and the refusal of an invalid full layout, a forced placement (`U 1`, `R 5`, `H 1`, `B 0`, `F 1`, `rules.R1 1`, no guess), two pieces of one shape on a 2 × 5 board (`S 2`, `few`, `Gt 1`), a capped path (`node-cap` and `work-cap`), an unfinished census on a strip of 41 `I` pieces with 4 clues, a census cut to 0, the DLX caps (the deduction fields do not change), and that every claim made from these metrics is accepted by the strict pack reader; the v2 names give the v2 values. Three tests cover `rate`: its key order (`model`, `score`, `level`, `saturated`, `metrics`; the metrics and the score equal `measureV3` and `scoreV3`, and the strict pack reader accepts the rating), the zero rating of a complete layout (also as JSON text), and an unfinished census on the strip of 41 `I` pieces (`censored: true`, `censusComplete` false, `Gproved` 0, returned at Hard or above because `rate` never refuses a rating); the existing unsatisfiable and invariance tests run on `rate`.
 
 ---
 
@@ -2815,7 +2825,7 @@ jobs:
 | `levels` | Band edges 0, 8, 12, 17, 25, 37, 53, 77, 112, 162, 235, 341. `levelForScore` boundaries, including generated Hell-n. Availability intervals (§7.5) and their contiguity for A = 30..676; `pieceCountRange` is non-empty everywhere inside them. |
 | `carve` | 50 seeds × (6×10, 8×10, Heart-75, Ring-60, 18×20 at hard): exact partition, distinct keys, sizes inside the window, connected, hole-free, small-piece cap respected. Macro carving at μ ≥ 6.5 on 6×10 (K = 8) and 18×20 (K = 18) yields sets with ≥ 2 layout keys in ≥ 90 % of seeds. After a macro partition fails, the next one starts with no pieces, no shape keys and the full small-piece budget ⌊0.4·K⌋. `validateSet` rejects each injected defect (overlap, hole, duplicate shape, size outside the window). The same seed gives the same set. |
 | `keys` | Layout keys are invariant under board symmetries, so reflected layouts are duplicates. A clue-only change is not a new layout. Distance values. `progressFingerprint` differs for reflected clues (A.9 counterexample). |
-| `difficulty` | Worked examples of §7.2 (`scoreV2`, `measureV2`, `rateV2`: the v2 names keep the v2 values, and `rate` equals `rateV2` until the v3 activation). Saturation at 5,000 branch trials and at 50,000 row trials (effective B = 5,000, actual counters stored). Permuting ids, colors or piece order leaves the rating unchanged. Forced-placement fixture: a puzzle solvable without branching scores 2U [PT]. `measureV3` (§7.10): the 28 metrics in the `MetricsV3` order with owned `rules`; the zero metrics and the refusal of an invalid full layout; a forced placement; two pieces of one shape (engine total); a capped path (`IncompleteRatingError`, `node-cap` and `work-cap`); an unfinished census on a 41-piece strip (an estimate, `censusComplete` false, never an error) and a census cut to 0; the DLX caps (the deduction fields and the score do not change, `B` stays 5,000); every claim made from these metrics accepted by the strict pack reader. |
+| `difficulty` | Worked examples of §7.2 (`scoreV2`, `measureV2`, `rateV2`: the v2 names keep the v2 values as legacy). Saturation at 5,000 branch trials and at 50,000 row trials (effective B = 5,000, actual counters stored), through `measureV2`. Permuting ids, colors or piece order leaves the rating unchanged (`rate`). Forced-placement fixture: a puzzle solvable without branching scores 2U under v2 [PT]. `measureV3` (§7.10): the 28 metrics in the `MetricsV3` order with owned `rules`; the zero metrics and the refusal of an invalid full layout; a forced placement; two pieces of one shape (engine total); a capped path (`IncompleteRatingError`, `node-cap` and `work-cap`); an unfinished census on a 41-piece strip (an estimate, `censusComplete` false, never an error) and a census cut to 0; the DLX caps (the deduction fields and the score do not change, `B` stays 5,000); every claim made from these metrics accepted by the strict pack reader. `rate` (§7.10): the key order `model`, `score`, `level`, `saturated`, `metrics` with the metrics and score of `measureV3` and `scoreV3` (forced and seven-clue inputs); the zero rating (also as JSON text); the census estimate on the 41-piece strip (`censored: true`, key order with `censored`, `saturated: false`, `Gproved` 0, returned at Hard or above); unsatisfiable clue sets refused; the v2 worked examples are kept as legacy. |
 | `clues` | Always 1 ≤ G ≤ K−2. Initial G follows g_L. `require` mode returns only exhaustively proven unique puzzles. No in-band subset → failure, never a mislabel. 'any' mode returns `certificate: null`. The search returns the first central candidate (central half of the band), else the nearest in-band final result at a stall (12 rated profiles in a row without a nearer in-band candidate while every rated candidate is on one side of the central half, raw ratings only), at profile 48 or at the end; `require` repairs are judged after the repair, memoised, and a repaired clue key in `excludeClueKeys` is rejected; unbounded bands return the first in-band candidate; unrateable and refused subsets (spent, neutral) and repairs (fail), scripted through the `rate` seam. |
 | `generate` | Fold determinism: identical output for pool sizes 1 and 4 and shuffled completion orders (simulated). New layout AND clue keys; no clue-only variant is ever accepted. The best-distance fallback fills a slot whose candidates were all "too close" with the farthest valid one (`bestDistance`; ties keep the earliest attempt). Partial status, its reason and the prefix property. The calibration puzzle is reused as #1. Lazy `certifyTask` results do not change accepted puzzles. Speculation priority: with a simulated pool of 4 where every attempt 0 is accepted, q = 10 needs 3 dispatch rounds. Batch seeds follow `setSeed#batchIndex`; two consecutive batches on one set use different seeds and both return new layouts; a fresh session with the same seed reproduces batch 1. |
 | `palette` | `labelFor`: 0 → A, 25 → Z, 26 → AA, 701 → ZZ, 702 → AAA. `patternFor` is 'none' for K ≤ 20. Generated colors are valid `#rrggbb`. |

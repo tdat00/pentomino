@@ -388,7 +388,7 @@
   ],
   "puzzles": [
     {
-      "id": "p1a0b524f7a38",
+      "id": "p3e63987d5ea9",
       "title": "Easy",
       "clues": [
         {
@@ -399,11 +399,11 @@
           "mirrored": true
         },
         {
-          "piece": "B",
-          "x": 0,
+          "piece": "C",
+          "x": 5,
           "y": 0,
-          "turn": 1,
-          "mirrored": false
+          "turn": 0,
+          "mirrored": true
         },
         {
           "piece": "E",
@@ -413,9 +413,9 @@
           "mirrored": false
         },
         {
-          "piece": "F",
+          "piece": "G",
           "x": 5,
-          "y": 2,
+          "y": 5,
           "turn": 0,
           "mirrored": false
         },
@@ -493,38 +493,62 @@
         }
       ],
       "rating": {
-        "model": "difficulty-v2",
-        "score": 10,
+        "model": "difficulty-v3",
+        "score": 11,
         "level": "easy",
         "saturated": false,
         "metrics": {
           "U": 4,
-          "B": 1,
-          "branchTrials": 1,
-          "rowTrials": 4,
-          "stop": "solution",
-          "R": 24,
-          "H": 2.862802777958082
+          "R": 26,
+          "H": 3.237821178741743,
+          "B": 3,
+          "branchTrials": 3,
+          "rowTrials": 5,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 3,
+          "E": 0,
+          "rules": {
+            "R1": 2,
+            "R2": 1,
+            "R3": 0,
+            "R4": 42,
+            "R5": 0,
+            "R6": 0,
+            "R7": 0,
+            "R8": 0,
+            "R9": 0
+          },
+          "deductionTier": 2,
+          "tier": 2,
+          "G": 0,
+          "info": 0,
+          "Cmax": 0,
+          "Dmax": 0,
+          "Gt": 1,
+          "nodes": 3,
+          "work": 14331,
+          "S": 2,
+          "solutionLimit": 8,
+          "solutions": "few",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 0
         }
       }
     },
     {
-      "id": "pda86f29ccdca",
+      "id": "p216dd2dc841c",
       "title": "Normal",
       "clues": [
         {
-          "piece": "A",
+          "piece": "B",
           "x": 0,
-          "y": 0,
-          "turn": 3,
-          "mirrored": false
-        },
-        {
-          "piece": "C",
-          "x": 4,
-          "y": 0,
-          "turn": 0,
-          "mirrored": false
+          "y": 2,
+          "turn": 1,
+          "mirrored": true
         },
         {
           "piece": "D",
@@ -534,11 +558,18 @@
           "mirrored": true
         },
         {
-          "piece": "H",
-          "x": 1,
-          "y": 0,
+          "piece": "G",
+          "x": 5,
+          "y": 5,
           "turn": 0,
-          "mirrored": true
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 8,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
         }
       ],
       "solution": [
@@ -607,31 +638,62 @@
         }
       ],
       "rating": {
-        "model": "difficulty-v2",
-        "score": 14,
+        "model": "difficulty-v3",
+        "score": 12,
         "level": "normal",
         "saturated": false,
         "metrics": {
           "U": 5,
-          "B": 2,
-          "branchTrials": 2,
-          "rowTrials": 7,
-          "stop": "solution",
-          "R": 30,
-          "H": 4.3616269256151785
+          "R": 35,
+          "H": 4.758408078005673,
+          "B": 5,
+          "branchTrials": 5,
+          "rowTrials": 9,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 4,
+          "E": 5,
+          "rules": {
+            "R1": 4,
+            "R2": 0,
+            "R3": 0,
+            "R4": 18,
+            "R5": 0,
+            "R6": 5,
+            "R7": 15,
+            "R8": 13,
+            "R9": 0
+          },
+          "deductionTier": 3,
+          "tier": 3,
+          "G": 0,
+          "info": 0,
+          "Cmax": 0,
+          "Dmax": 0,
+          "Gt": 1,
+          "nodes": 3,
+          "work": 72660,
+          "S": 2,
+          "solutionLimit": 8,
+          "solutions": "few",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 0
         }
       }
     },
     {
-      "id": "pfa6fa20b63a4",
+      "id": "pc83c984651da",
       "title": "Hard",
       "clues": [
         {
-          "piece": "B",
-          "x": 4,
-          "y": 2,
-          "turn": 0,
-          "mirrored": false
+          "piece": "A",
+          "x": 5,
+          "y": 3,
+          "turn": 2,
+          "mirrored": true
         },
         {
           "piece": "D",
@@ -641,11 +703,11 @@
           "mirrored": false
         },
         {
-          "piece": "H",
-          "x": 0,
-          "y": 4,
-          "turn": 2,
-          "mirrored": true
+          "piece": "G",
+          "x": 2,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
         }
       ],
       "solution": [
@@ -714,18 +776,49 @@
         }
       ],
       "rating": {
-        "model": "difficulty-v2",
-        "score": 21,
+        "model": "difficulty-v3",
+        "score": 19,
         "level": "hard",
         "saturated": false,
         "metrics": {
           "U": 6,
-          "B": 14,
-          "branchTrials": 14,
-          "rowTrials": 19,
-          "stop": "solution",
           "R": 39,
-          "H": 4.643374964083066
+          "H": 5.226950188896899,
+          "B": 16,
+          "branchTrials": 16,
+          "rowTrials": 21,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 5,
+          "E": 0,
+          "rules": {
+            "R1": 5,
+            "R2": 0,
+            "R3": 0,
+            "R4": 37,
+            "R5": 0,
+            "R6": 0,
+            "R7": 0,
+            "R8": 0,
+            "R9": 0
+          },
+          "deductionTier": 2,
+          "tier": 4,
+          "G": 1,
+          "info": 2.807354922057604,
+          "Cmax": 7,
+          "Dmax": 1,
+          "Gt": 1,
+          "nodes": 8,
+          "work": 38412,
+          "S": 1,
+          "solutionLimit": 8,
+          "solutions": "unique",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 1
         }
       }
     }

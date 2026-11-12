@@ -573,7 +573,7 @@ test('the generated sample pack re-serialises byte for byte', () => {
   const text = readFileSync(new URL('./fixtures/generated-sample-pack.json', import.meta.url), 'utf8');
   const pack = good(parsePack(text));
   assert.deepEqual(pack.warnings, []);
-  assert.equal(pack.value.puzzles[0].rating.model, 'difficulty-v2');
+  assert.equal(pack.value.puzzles[0].rating.model, 'difficulty-v3');
   assert.equal(serializePack(pack.value, { pretty: true }), text.replace(/\r\n/g, '\n').replace(/\n$/, ''));
 });
 

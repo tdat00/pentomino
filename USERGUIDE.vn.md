@@ -123,7 +123,9 @@ nhập gì và có thông báo cho biết.
   bàn chơi được dùng tới **484** ô trên máy tính và **360** ô trên điện thoại; các cỡ lớn hơn chỉ được bật sau khi qua
   kiểm định. Mỗi thao tác tạo nhắm tới **60 giây** và có
   giới hạn cứng **120 giây**; khi hết giờ nó dừng và báo những gì đã có.
-- **Độ khó.** Điểm chỉ là ước lượng. Đề mới nhắm vào khoảng giữa thang điểm của mức độ. Đề thông thường không chờ chứng
+- **Độ khó.** Điểm chỉ là ước lượng. Đề mới nhắm vào khoảng giữa thang điểm của mức độ. Điểm tính theo số mảnh cần đặt,
+  bước suy luận khó nhất cần dùng và số lần phải đoán thật (lựa chọn có phương án sai); đề do trình tạo đề tạo ra từ mức
+  Khó trở lên luôn cần ít nhất một lần đoán thật. Các đề tạo trước phiên bản này giữ nguyên điểm đã lưu. Đề thông thường không chờ chứng
   minh tính duy nhất: tình trạng lời giải được kiểm tra
   ngầm sau khi đề xuất hiện. Một đề bạn yêu cầu lời giải duy nhất vẫn có thể không chứng minh được; khi đó trình tạo đề
   nói rõ thay vì trả về một đề chưa được chứng minh.

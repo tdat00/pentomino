@@ -16,7 +16,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { boardFromRows, boardToRows } from '../core/engine/board.js';
 import { selectClues } from '../core/engine/clues.js';
-import { MODEL, rate } from '../core/engine/difficulty.js';
+import { IncompleteRatingError, MODEL, rate, rateV2 } from '../core/engine/difficulty.js';
 import { firstSetAttempt, runFold } from '../core/engine/generate.js';
 import { canonicalKey } from '../core/engine/geometry.js';
 import { clueKey, layoutKey, puzzleId } from '../core/engine/keys.js';
@@ -185,6 +185,29 @@ export function buildSample(recipe, replay) {
 }
 
 /**
+ * The fresh rating of sample puzzle `i`: `difficulty-v2` for a puzzle that claims it (the Player sample), `rate`
+ * otherwise. A capped puzzle is unrateable and stops the tool with its index.
+ * @param {number} i
+ * @param {import('../core/engine/types.js').Board} board
+ * @param {import('../core/engine/types.js').Piece[]} pieces
+ * @param {Pack['puzzles'][number]} puzzle
+ * @param {import('../core/engine/types.js').Workspace} ws
+ */
+function rateFresh(i, board, pieces, puzzle, ws) {
+  if (puzzle.rating?.model === 'difficulty-v2') {
+    return rateV2(board, pieces, puzzle.clues, ws);
+  }
+  try {
+    return rate(board, pieces, puzzle.clues, ws);
+  } catch (e) {
+    if (e instanceof IncompleteRatingError) {
+      throw new Error(`puzzle ${i}: unrateable, the deduction path was capped (${e.counters.stop})`, { cause: e });
+    }
+    throw e;
+  }
+}
+
+/**
  * Independent verification of a sample pack: valid canonical solutions on three
  * distinct layouts and clue keys, clues taken from their solution, and a fresh
  * rating that matches the stored one and the Easy/Normal/Hard title.
@@ -220,7 +243,7 @@ export function verifySample(pack) {
     }
     layouts.add(layoutKey(board, pack.pieces, solution));
     clues.add(clueKey(board, pack.pieces, puzzle.clues));
-    const fresh = rate(board, pack.pieces, puzzle.clues, ws);
+    const fresh = rateFresh(i, board, pack.pieces, puzzle, ws);
     if (fresh.level !== want || JSON.stringify(fresh) !== JSON.stringify(puzzle.rating)) {
       problems.push(`puzzle ${i}: stored rating differs from a fresh ${want} rating`);
     }

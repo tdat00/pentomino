@@ -125,7 +125,8 @@
  */
 
 /**
- * Discriminated by `model`. The engine still produces `RatingV2` only (`rate` is `difficulty-v2`).
+ * Discriminated by `model`. The engine produces `RatingV3` only (`rate` is `difficulty-v3`); `RatingV2` describes
+ * stored claims.
  * @typedef {RatingV2 | RatingV3} Rating
  */
 

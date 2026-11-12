@@ -61,21 +61,21 @@ test('inBand uses an inclusive minimum and an exclusive maximum', () => {
 
 test('a complete layout scores zero with zero counters', () => {
   const layout = witness60();
-  const r = rate(board60, pieces, layout, ws);
+  const r = rateV2(board60, pieces, layout, ws);
   assert.deepEqual(r, {
-    model: MODEL,
+    model: 'difficulty-v2',
     score: 0,
     level: 'very-easy',
     saturated: false,
     metrics: { U: 0, B: 0, branchTrials: 0, rowTrials: 0, stop: 'solution', R: 0, H: 0 },
   });
-  assert.throws(() => rate(board60, pieces, [...layout.slice(1), { ...layout[1] }], ws), UnsatisfiableError);
+  assert.throws(() => rateV2(board60, pieces, [...layout.slice(1), { ...layout[1] }], ws), UnsatisfiableError);
 });
 
 test('forced placements keep B = 0 and score 2U', () => {
   const b = rect(3, 2);
   const two = [p5, mono];
-  const r = rate(b, two, [{ piece: 'M', x: 0, y: 0, turn: 0, mirrored: false }], ws);
+  const r = rateV2(b, two, [{ piece: 'M', x: 0, y: 0, turn: 0, mirrored: false }], ws);
   assert.equal(r.metrics.U, 1);
   assert.equal(r.metrics.B, 0);
   assert.equal(r.metrics.branchTrials, 0);
@@ -89,7 +89,7 @@ test('forced placements keep B = 0 and score 2U', () => {
 test('metrics carry actual counters and the diagnostics R and H', () => {
   const layout = witness60();
   const clues = layout.slice(0, 7);
-  const r = rate(board60, pieces, clues, ws);
+  const r = rateV2(board60, pieces, clues, ws);
   const model = buildModel(board60, pieces, clues, ws);
   const bits = [...model.placementsPerPiece.subarray(0, model.freePieces.length)]
     .reduce((sum, rows) => sum + Math.log2(1 + rows), 0) / 5;
@@ -328,6 +328,71 @@ test('the DLX diagnostic of measureV3 never enters the deduction fields', () => 
   assert.equal(rowCap.metrics.B, 5000);
 });
 
+test('rate returns the difficulty-v3 rating in its key order', () => {
+  assert.equal(MODEL, 'difficulty-v3');
+  const layout = witness60();
+  const inputs = /** @type {[any, any, any][]} */ ([
+    [board60, pieces, layout.slice(0, 7)],
+    [rect(3, 2), [p5, mono], [forcedClue]],
+  ]);
+  for (const input of inputs) {
+    const r = rate(...input, ws);
+    assert.deepEqual(Object.keys(r), ['model', 'score', 'level', 'saturated', 'metrics']);
+    assert.equal(r.model, 'difficulty-v3');
+    assert.equal(r.saturated, false);
+    assert.deepEqual(r.metrics, measureV3(...input, ws).metrics);
+    assert.deepEqual(Object.keys(r.metrics), METRICS_V3_KEYS);
+    assert.equal(r.score, scoreV3(r.metrics));
+    assert.equal(r.level, levelForScore(r.score).id);
+    assert.equal(r.metrics.censusComplete, true);
+    const pack = JSON.parse(HAND_AUTHORED);
+    pack.puzzles[0].rating = r;
+    const read = validatePack(pack);
+    assert.ok(read.ok, read.ok ? '' : JSON.stringify(read.issues));
+    assert.equal(JSON.stringify(read.value.puzzles[0].rating), JSON.stringify(r));
+  }
+});
+
+test('rate of a complete layout is the zero rating', () => {
+  const layout = witness60();
+  const expected = {
+    model: 'difficulty-v3',
+    score: 0,
+    level: 'very-easy',
+    saturated: false,
+    metrics: {
+      U: 0, R: 0, H: 0, B: 0, branchTrials: 0, rowTrials: 0, dlxStop: 'solution', searchStop: 'exhausted', F: 0, E: 0,
+      rules: noRules(), deductionTier: 0, tier: 0, G: 0, info: 0, Cmax: 0, Dmax: 0, Gt: 0, nodes: 0, work: 0, S: 1,
+      solutionLimit: DEDUCE.solutions, solutions: 'unique', censusComplete: true, censusUndecided: 0, censusNodes: 0,
+      censusWork: 0, Gproved: 0,
+    },
+  };
+  const r = rate(board60, pieces, layout, ws);
+  assert.deepEqual(r, expected);
+  assert.equal(JSON.stringify(r), JSON.stringify(expected));
+  assert.throws(() => rate(board60, pieces, [...layout.slice(1), { ...layout[1] }], ws), UnsatisfiableError);
+});
+
+test('rate marks an unfinished census as an estimate and never refuses it', () => {
+  const wide = boardFromRows(Array(5).fill('#'.repeat(41)));
+  const strip = Array.from({ length: 41 }, (_, i) => ({ ...I5, id: `i${i}` }));
+  const witness = /** @type {Pose[]} */ (solveFirst(buildModel(wide, strip, [], ws), { rowTrialLimit: 1e6 }).layout);
+  const r = rate(wide, strip, witness.slice(0, 4), ws);
+  assert.deepEqual(Object.keys(r), ['model', 'score', 'level', 'saturated', 'censored', 'metrics']);
+  assert.equal(r.censored, true);
+  assert.equal(r.saturated, false);
+  assert.equal(r.metrics.censusComplete, false);
+  assert.equal(r.metrics.Gproved, 0);
+  assert.ok(r.score >= level('hard').min, 'a rating at Hard or above without a proved guess is still returned');
+  assert.equal(r.score, scoreV3(r.metrics));
+  assert.equal(r.level, levelForScore(r.score).id);
+  const pack = JSON.parse(HAND_AUTHORED);
+  pack.puzzles[0].rating = r;
+  const read = validatePack(pack);
+  assert.ok(read.ok, read.ok ? '' : JSON.stringify(read.issues));
+  assert.equal(JSON.stringify(read.value.puzzles[0].rating), JSON.stringify(r));
+});
+
 test('the v2 rating keeps its results under its v2 names', () => {
   const layout = witness60();
   const inputs = /** @type {[any, any, any][]} */ ([
@@ -345,7 +410,4 @@ test('the v2 rating keeps its results under its v2 names', () => {
     [1, 0, 0, 5, 1]);
   const seven = rateV2(...inputs[1], ws);
   assert.equal(seven.score, scoreV2(5, seven.metrics.B));
-  for (const input of inputs) {
-    assert.equal(JSON.stringify(rate(...input, ws)), JSON.stringify(rateV2(...input, ws)));
-  }
 });

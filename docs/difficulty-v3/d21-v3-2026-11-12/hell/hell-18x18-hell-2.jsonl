@@ -1,0 +1,7 @@
+{"kind":"event","tag":"untagged","label":"hell-18x18-hell-2","ev":"start","levelId":"hell-2","seedText":"t18-big-a","quantity":5,"uniqueness":"any","cols":18,"rows":18}
+{"kind":"call","tag":"hell-18x18-hell-2/set/0","mode":"any","K":51,"target":{"min":112,"max":162,"share":0.06},"excluded":0,"ms":42294,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"hell-18x18-hell-2/set/0","capped":20,"cappedWork":15210939502}
+{"kind":"event","tag":"hell-18x18-hell-2/set/0","label":"hell-18x18-hell-2","ev":"set-attempt","j":0,"ok":false,"reason":"not-in-band","ms":42808}
+{"kind":"call","tag":"hell-18x18-hell-2/set/1","mode":"any","K":51,"target":{"min":112,"max":162,"share":0.06},"excluded":0,"ms":42115.2,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"hell-18x18-hell-2/set/1","capped":20,"cappedWork":15211723775}
+{"kind":"event","tag":"hell-18x18-hell-2/set/1","label":"hell-18x18-hell-2","ev":"set-attempt","j":1,"ok":false,"reason":"not-in-band","ms":42281}

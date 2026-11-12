@@ -1,0 +1,13 @@
+{"kind":"event","tag":"untagged","label":"hell-15x20-hell-2","ev":"start","levelId":"hell-2","seedText":"t18-big-a","quantity":1,"uniqueness":"any","cols":15,"rows":20}
+{"kind":"call","tag":"hell-15x20-hell-2/set/0","mode":"any","K":50,"target":{"min":112,"max":162,"share":0.06},"excluded":0,"ms":37980.9,"ratings":[{"s":265,"c":3,"u":47,"b":5000,"bt":5000,"sat":false,"t":20943.6,"kr":0,"h":"8a8d3d1da8"}],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"hell-15x20-hell-2/set/0","capped":17,"cappedWork":12927369473}
+{"kind":"event","tag":"hell-15x20-hell-2/set/0","label":"hell-15x20-hell-2","ev":"set-attempt","j":0,"ok":false,"reason":"not-in-band","ms":38083}
+{"kind":"call","tag":"hell-15x20-hell-2/set/1","mode":"any","K":50,"target":{"min":112,"max":162,"share":0.06},"excluded":0,"ms":40499.1,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"hell-15x20-hell-2/set/1","capped":20,"cappedWork":15209160459}
+{"kind":"event","tag":"hell-15x20-hell-2/set/1","label":"hell-15x20-hell-2","ev":"set-attempt","j":1,"ok":false,"reason":"not-in-band","ms":44477}
+{"kind":"call","tag":"hell-15x20-hell-2/set/2","mode":"any","K":48,"target":{"min":112,"max":162,"share":0.06},"excluded":0,"ms":41713.4,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"hell-15x20-hell-2/set/2","capped":20,"cappedWork":15208854445}
+{"kind":"event","tag":"hell-15x20-hell-2/set/2","label":"hell-15x20-hell-2","ev":"set-attempt","j":2,"ok":false,"reason":"not-in-band","ms":43293}
+{"kind":"call","tag":"hell-15x20-hell-2/set/3","mode":"any","K":50,"target":{"min":112,"max":162,"share":0.06},"excluded":0,"ms":40903.1,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"hell-15x20-hell-2/set/3","capped":20,"cappedWork":15209212215}
+{"kind":"event","tag":"hell-15x20-hell-2/set/3","label":"hell-15x20-hell-2","ev":"set-attempt","j":3,"ok":false,"reason":"not-in-band","ms":41174}

@@ -22,7 +22,7 @@
       "expect": {
         "pieces": 8,
         "puzzles": 5,
-        "scores": [14, 14, 14, 15, 14]
+        "scores": [16, 16, 12, 16, 16]
       }
     },
     {
@@ -47,11 +47,11 @@
       "expect": {
         "pieces": 14,
         "puzzles": 10,
-        "scores": [43, 41, 46, 49, 47, 46, 47, 48, 45, 42]
+        "scores": [45, 42, 44, 45, 42, 43, 49, 45, 44, 44]
       }
     },
     {
-      "name": "square-22x22-hell-3",
+      "name": "square-22x22-nightmare",
       "boardRows": [
         "######################",
         "######################",
@@ -77,14 +77,14 @@
         "######################"
       ],
       "rotation": 0,
-      "levelId": "hell-3",
+      "levelId": "nightmare",
       "seedText": "t18-big-a",
       "quantity": 10,
       "uniqueness": "any",
       "expect": {
-        "pieces": 73,
+        "pieces": 27,
         "puzzles": 10,
-        "scores": [172, 172, 172, 172, 172, 172, 172, 172, 172, 172]
+        "scores": [59, 63, 68, 67, 62, 62, 59, 66, 63, 68]
       }
     }
   ]

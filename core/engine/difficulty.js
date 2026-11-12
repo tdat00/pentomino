@@ -1,8 +1,8 @@
 // @ts-check
-// Shared difficulty score (`difficulty-v2`, design §7): pieces to place plus the bounded
-// canonical DLX effort until the first solution. Only work counters enter the score: no
-// clocks, no randomness. `measureV3` is the `difficulty-v3` measurement (design §7.10); `rate`
-// stays `difficulty-v2` until the activation.
+// Shared difficulty rating (`difficulty-v3`, design §7.10): the deduction measure of how a person solves the
+// puzzle (`measureV3`), scored by `scoreV3`. Only work counters enter the score: no clocks, no randomness. The
+// `difficulty-v2` functions (`scoreV2`, `measureV2`, `rateV2`, design §7.2) are kept for stored claims, the frozen
+// Player sample and the rating probe.
 
 import { measureDeduction } from './deduce.js';
 import { isValidLayout, buildModel, solveFirst } from './tiling.js';
@@ -16,6 +16,7 @@ import { DEDUCE, SCORE, SCORE_V3 } from './policy.js';
 /** @typedef {import('./types.js').MetricsV3} MetricsV3 */
 /** @typedef {import('./types.js').Rating} Rating */
 /** @typedef {import('./types.js').RatingV2} RatingV2 */
+/** @typedef {import('./types.js').RatingV3} RatingV3 */
 /** @typedef {import('./deduce.js').DeductionLimits} DeductionLimits */
 /** @typedef {import('./levels.js').Level} Level */
 /** @typedef {import('./workspace.js').Workspace} Workspace */
@@ -45,7 +46,7 @@ import { DEDUCE, SCORE, SCORE_V3 } from './policy.js';
  * @property {number} score
  */
 
-export const MODEL = 'difficulty-v2';
+export const MODEL = 'difficulty-v3';
 
 /** Thrown when a clue set has no solution: a piece without placements or an exhausted empty search. */
 export class UnsatisfiableError extends Error {
@@ -312,15 +313,26 @@ export function rateV2(board, pieces, clues, ws) {
 }
 
 /**
- * The rating: `difficulty-v2` until the activation of `difficulty-v3`.
+ * The `difficulty-v3` rating of a clue subset (design §7.10): `scoreV3` of `measureV3`. It never refuses a rating
+ * and is never saturated; a rating whose census did not finish is an estimate and carries `censored: true`. Throws
+ * `ModelError` for invalid input, `UnsatisfiableError` and `IncompleteRatingError` (a capped deduction path).
  * @param {Board} board
  * @param {Piece[]} pieces
  * @param {Pose[]} clues
  * @param {Workspace} ws
- * @returns {Rating}
+ * @returns {RatingV3}
  */
 export function rate(board, pieces, clues, ws) {
-  return rateV2(board, pieces, clues, ws);
+  const { metrics } = measureV3(board, pieces, clues, ws);
+  const value = scoreV3(metrics);
+  return {
+    model: MODEL,
+    score: value,
+    level: levelForScore(value).id,
+    saturated: false,
+    ...(metrics.censusComplete ? {} : { censored: true }),
+    metrics,
+  };
 }
 
 /**

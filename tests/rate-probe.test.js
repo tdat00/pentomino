@@ -6,6 +6,7 @@ import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { boardFromRows } from '../core/engine/board.js';
+import { scoreV2 } from '../core/engine/difficulty.js';
 import { canonicalJson, sha256Hex } from '../core/engine/hash.js';
 import { clueKey, layoutKey } from '../core/engine/keys.js';
 import { levelForScore } from '../core/engine/levels.js';
@@ -68,13 +69,13 @@ describe('pack mode', () => {
       assert.deepEqual(Object.keys(line), LINE_FIELDS);
       assert.equal(line.puzzleId, puzzle.id);
       assert.deepEqual(line.board, { width: 10, height: 6, active: 60 });
-      assert.equal(line.sourceModel, 'difficulty-v2');
+      assert.equal(line.sourceModel, 'difficulty-v3');
       assert.equal(line.storedScore, puzzle.rating?.score);
       assert.deepEqual(line.identity, {
         mode: 'pack', caseId: null, rep: null, seed: null, digest: null, expected: null, match: null,
       });
       assert.deepEqual(Object.keys(line.v2), ['score', 'level', 'saturated', 'metrics']);
-      assert.equal(line.v2.score, line.storedScore);
+      assert.equal(line.v2.score, scoreV2(line.v2.metrics.U, line.v2.metrics.B));
       assert.equal(line.v2.metrics.U, samplePack.pieces.length - puzzle.clues.length);
 
       const d = line.deduction;
@@ -98,7 +99,7 @@ describe('pack mode', () => {
       assert.deepEqual(Object.keys(line.modelSize), ['rows', 'nonzeros', 'bytes']);
       assert.ok(line.modelSize.rows > 0 && line.modelSize.nonzeros > line.modelSize.rows && line.modelSize.bytes > 0);
     });
-    assert.equal(lines[2].deduction.raw.G, 1, 'the Hard puzzle has one guess node');
+    assert.ok(lines[2].deduction.raw.G >= 1, 'the Hard puzzle has a guess node (AR1)');
   });
 
   test('tie orders: entry 0 is the canonical result; the summary takes the lower middle value of an even count', async () => {
@@ -359,7 +360,7 @@ describe('generation mode', () => {
       });
       assert.equal(line.board.active, 60);
       assert.equal(line.deduction.path, 'complete');
-      assert.equal(line.v2.level, 'easy');
+      assert.equal(line.v2.level, levelForScore(line.v2.score).id);
     }
   });
 });

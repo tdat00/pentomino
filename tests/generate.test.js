@@ -47,11 +47,16 @@ const board = rectangle(10, 6);
 const RECIPE = JSON.parse(readFileSync(new URL('./fixtures/generation-case.json', import.meta.url), 'utf8'));
 const SAMPLE = JSON.parse(readFileSync(new URL('./fixtures/generated-sample-pack.json', import.meta.url), 'utf8'));
 const FAKE_RATING = /** @type {import('../core/engine/types.js').Rating} */ ({
-  model: 'difficulty-v2',
+  model: 'difficulty-v3',
   score: 30,
   level: 'hard',
   saturated: false,
-  metrics: { U: 5, B: 0, branchTrials: 0, rowTrials: 0, stop: 'solution', R: 0, H: 0 },
+  metrics: {
+    U: 5, R: 25, H: 3, B: 0, branchTrials: 0, rowTrials: 0, dlxStop: 'solution', searchStop: 'exhausted', F: 5, E: 0,
+    rules: { R1: 5, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0 }, deductionTier: 1, tier: 1, G: 0, info: 0,
+    Cmax: 0, Dmax: 0, Gt: 0, nodes: 1, work: 0, S: 1, solutionLimit: 8, solutions: 'unique', censusComplete: true,
+    censusUndecided: 0, censusNodes: 0, censusWork: 0, Gproved: 0,
+  },
 });
 
 const base = /** @type {Pose[]} */ (randomTiling(board, pieces, createRng('p0'), execution.scratch, { totalRowTrials: 100000, restartBase: 2000 }));
@@ -477,8 +482,11 @@ describe('set attempts and puzzle candidates', () => {
 
   test('keeps the witness, produces an in-band calibration puzzle and proves it in require mode', () => {
     for (const uniqueness of /** @type {const} */ (['any', 'require'])) {
-      const r = setAttempt(request({ uniqueness }), 0);
-      assert.ok(r.ok, `${uniqueness}: ${r.ok ? '' : r.reason}`);
+      // Under the fitted knobs attempt 0 of `require` is not-in-band; the lowest successful attempt is 1 (any: 0).
+      const found = firstSetAttempt(request({ uniqueness }), 10);
+      const r = found.result;
+      assert.ok(r, `${uniqueness}: no set attempt of the first ten succeeded (${found.failures.join(', ')})`);
+      assert.equal(r.attempt, uniqueness === 'any' ? 0 : 1);
       assert.ok(isValidLayout(board, r.set.pieces, /** @type {Pose[]} */ (r.set.witness)));
       assert.equal(r.calibration.rating?.level, 'hard');
       assert.deepEqual(r.calibration.solution, r.set.witness);

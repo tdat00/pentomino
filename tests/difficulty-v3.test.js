@@ -7,7 +7,7 @@ import { describe, test } from 'node:test';
 
 import { boardFromRows } from '../core/engine/board.js';
 import { measureDeduction } from '../core/engine/deduce.js';
-import { breakdownV3, scoreV3 } from '../core/engine/difficulty.js';
+import { breakdownV3, rate, scoreV3 } from '../core/engine/difficulty.js';
 import { DEDUCE, SCORE_V3 } from '../core/engine/policy.js';
 import { buildModel } from '../core/engine/tiling.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES } from '../core/engine/workspace.js';
@@ -259,6 +259,14 @@ describe('the deduction result as the input of the score', () => {
       const result = measure(puzzle);
       assert.equal(result.path, 'complete', level);
       assert.equal(scoreV3(scoreInput(puzzle, result)), want, level);
+      const rated = rate(puzzle.board, puzzle.pieces, puzzle.clues, createWorkspace(MAIN_WORKSPACE_BYTES));
+      const input = scoreInput(puzzle, result);
+      assert.equal(rated.score, want, level);
+      assert.deepEqual(
+        [rated.metrics.U, rated.metrics.deductionTier, rated.metrics.G, rated.metrics.info, rated.metrics.solutions],
+        [input.U, input.deductionTier, input.G, input.info, input.solutions],
+        level,
+      );
     }
   });
 });

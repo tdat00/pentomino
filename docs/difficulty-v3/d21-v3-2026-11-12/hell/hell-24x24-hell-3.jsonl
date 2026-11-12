@@ -1,0 +1,10 @@
+{"kind":"event","tag":"untagged","label":"hell-24x24-hell-3","ev":"start","levelId":"hell-3","seedText":"t18-big-a","quantity":5,"uniqueness":"any","cols":24,"rows":24}
+{"kind":"call","tag":"hell-24x24-hell-3/set/0","mode":"any","K":77,"target":{"min":162,"max":235,"share":0.04},"excluded":0,"ms":45523.8,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"hell-24x24-hell-3/set/0","capped":20,"cappedWork":15240910244}
+{"kind":"event","tag":"hell-24x24-hell-3/set/0","label":"hell-24x24-hell-3","ev":"set-attempt","j":0,"ok":false,"reason":"not-in-band","ms":45910}
+{"kind":"call","tag":"hell-24x24-hell-3/set/1","mode":"any","K":80,"target":{"min":162,"max":235,"share":0.04},"excluded":0,"ms":46598.9,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"hell-24x24-hell-3/set/1","capped":20,"cappedWork":15241480364}
+{"kind":"event","tag":"hell-24x24-hell-3/set/1","label":"hell-24x24-hell-3","ev":"set-attempt","j":1,"ok":false,"reason":"not-in-band","ms":46647}
+{"kind":"call","tag":"hell-24x24-hell-3/set/2","mode":"any","K":79,"target":{"min":162,"max":235,"share":0.04},"excluded":0,"ms":47900.1,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"hell-24x24-hell-3/set/2","capped":20,"cappedWork":15240327151}
+{"kind":"event","tag":"hell-24x24-hell-3/set/2","label":"hell-24x24-hell-3","ev":"set-attempt","j":2,"ok":false,"reason":"not-in-band","ms":47960}

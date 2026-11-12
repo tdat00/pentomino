@@ -101,6 +101,8 @@ tools/          công cụ chỉ chạy bằng Node (.mjs): máy chủ, tạo đ
 ```
 
 `core/engine/deduce.js` là bộ giải suy luận của cách chấm độ khó v3 ([docs/design-detail.md](docs/design-detail.md) §7.9);
+`core/engine/difficulty.js` tính điểm `difficulty-v3` từ nó (`measureV3`, `rate`) và giữ các hàm v2 (`scoreV2`,
+`measureV2`, `rateV2`) cho các điểm đã lưu, dữ liệu mẫu và công cụ thăm dò chấm độ khó.
 `tools\rate-probe.mjs` dùng để đo nó.
 
 Mọi module được trang hoặc worker nạp đều dùng đuôi `.js`; `.mjs` dành riêng cho công cụ Node. Chữ trên giao diện nằm

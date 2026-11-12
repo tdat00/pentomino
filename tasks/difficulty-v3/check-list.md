@@ -46,7 +46,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP09b | [MP09b](MP09b-v3-claims-in-packs-and-codes.md) | v3 claims in packs and codes: `censored`, `Gproved` checks, v2 legacy, summary claims | MP09a2 | Medium | Engine | M5 | 14 |
 | [x] | MP09c | [MP09c](MP09c-unrateable-and-unproved-candidates.md) | Unrateable and unproved candidates in clue selection (RES-04, AR1) | MP09b | Medium | Engine | M5 | 15 |
 | [x] | MP09d1 | [MP09d1](MP09d1-measure-v3-and-v2-names.md) | `measureV3` and the v2 functions under their v2 names (no switch yet) | MP09c | Medium | Engine | M5 | 16 |
-| [ ] | MP09d2 | [MP09d2](MP09d2-activate-v3.md) | Activate v3: `rate` and `MODEL`, the pinned tests, GF-P2 and GA-P2 | MP09d1 | Medium–Large + gate | Engine | M5 | 17 |
+| [x] | MP09d2 | [MP09d2](MP09d2-activate-v3.md) | Activate v3: `rate` and `MODEL`, the pinned tests, GF-P2 and GA-P2 | MP09d1 | Medium–Large + gate | Engine | M5 | 17 |
 | [ ] | MP09e | [MP09e](MP09e-code-format-evidence.md) | GC-P2 format evidence: the 676-cell code sizes and the duplicate-shape browser check | MP09d2 | Small–Medium + gate | QA | M5 | 18 |
 | [ ] | MP10a | [MP10a](MP10a-auxiliary-requests.md) | Auxiliary request method on the generation client and the Player's pool | MP09e | Medium | Browser integration | M6 display rating | 19 |
 | [ ] | MP10b1 | [MP10b1](MP10b1-display-rating-player.md) | Derived display rating: the shared rules and the Player | MP10a | Large | Apps | M6 | 20 |
@@ -419,7 +419,7 @@ The orchestrator owns this record.
 | MP09b | Accepted | 12 min developer + 5 min review | about 236 | `difficulty-v3 MP09b` |
 | MP09c | Accepted | 6 min developer + 8 min review | about 124 | `difficulty-v3 MP09c` |
 | MP09d1 | Accepted | 8 min developer + 5 min review | about 169 | `difficulty-v3 MP09d1` |
-| MP09d2 | | | | |
+| MP09d2 | Accepted | about 1 h 37 min developer + 13 min review | about 978 | `difficulty-v3 MP09d2` |
 | MP09e | | | | |
 | MP10a | | | | |
 | MP10b1 | | | | |

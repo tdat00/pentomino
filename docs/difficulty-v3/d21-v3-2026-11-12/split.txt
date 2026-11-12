@@ -1,0 +1,17 @@
+cell-10x6-hard.jsonl: 18 screen lines, 0 require calls
+cell-10x6-master.jsonl: 18 screen lines, 0 require calls
+cell-12x12-master.jsonl: 20 screen lines, 0 require calls
+cell-18x20-hard.jsonl: 18 screen lines, 0 require calls
+cell-18x20-master.jsonl: 18 screen lines, 0 require calls
+generation-case.jsonl: 41 screen lines, 0 require calls
+pop-10x6-hard.jsonl: 220 screen lines, 0 require calls
+pop-10x6-master.jsonl: 220 screen lines, 0 require calls
+pop-12x12-expert.jsonl: 70 screen lines, 0 require calls
+pop-12x12-master.jsonl: 70 screen lines, 0 require calls
+pop-recipe-board.jsonl: 1200 screen lines, 180 require calls
+repl-15x20-nightmare-nostall.jsonl: 33 screen lines, 0 require calls
+repl-22x22-nightmare-nostall.jsonl: 33 screen lines, 0 require calls
+ui-default-10x6-normal.jsonl: 20 screen lines, 0 require calls
+ui-heart-n10-master.jsonl: 33 screen lines, 0 require calls
+vectors.jsonl: 22 screen lines, 5 require calls
+controls: 9 lines

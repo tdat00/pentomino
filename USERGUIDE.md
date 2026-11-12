@@ -133,7 +133,10 @@ board already holds 50 sets, or the puzzle list is full, nothing is imported and
   launch at up to **484** playable squares on desktop and **360** on a phone; larger design sizes are enabled only after
   they have been qualified. Each generation action
   has a **60 s** target and a **120 s** hard limit, after which it stops and reports what it has.
-- **Difficulty.** Scores are estimates. A new puzzle aims at the middle of its level's score range. Ordinary puzzles
+- **Difficulty.** Scores are estimates. A new puzzle aims at the middle of its level's score range. The score counts the
+  pieces to place, the hardest deduction needed and the real guesses (choices where an option fails); puzzles the
+  Generator makes at Hard and above always need at least one real guess. Puzzles made before this version keep their
+  stored score. Ordinary puzzles
   do not wait for a uniqueness proof: their solution status is
   checked in the background after they appear. A puzzle you require to be unique can still fail to be proven; the
   Generator then says so rather than returning an unproven puzzle.

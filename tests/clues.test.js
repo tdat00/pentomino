@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { boardFromRows } from '../core/engine/board.js';
 import { certify, makeUnique, selectClues } from '../core/engine/clues.js';
-import { IncompleteRatingError, inBand, rate, UnsatisfiableError } from '../core/engine/difficulty.js';
+import { IncompleteRatingError, inBand, rate, rateV2, UnsatisfiableError } from '../core/engine/difficulty.js';
 import { setAttempt } from '../core/engine/generate.js';
 import { clueKey } from '../core/engine/keys.js';
 import { level, levelForScore } from '../core/engine/levels.js';
@@ -199,10 +199,16 @@ test('published recipes still hold', () => {
   for (const [id, recipe] of Object.entries(CLUE_RECIPES)) {
     const clues = layout.filter((p) => recipe.pieces.includes(p.piece));
     assert.equal(clues.length, recipe.pieces.length);
+    const v2 = rateV2(board, pieces, clues, ws);
+    assert.equal(v2.score, recipe.score, id);
+    assert.equal(v2.level, id);
+    assert.equal(v2.saturated, false);
     const r = rate(board, pieces, clues, ws);
-    assert.equal(r.score, recipe.score, id);
-    assert.equal(r.level, id);
+    assert.equal(r.level, levelForScore(r.score).id, id);
     assert.equal(r.saturated, false);
+    assert.equal('censored' in r, false, id);
+    assert.equal(/** @type {import('../core/engine/types.js').MetricsV3} */ (r.metrics).solutions, 'unique', id);
+    assert.equal(/** @type {import('../core/engine/types.js').MetricsV3} */ (r.metrics).censusComplete, true, id);
     assert.equal(certify(board, pieces, clues, ws, 10000).status, 'unique');
   }
 });
@@ -248,6 +254,7 @@ test('repeated subsets are rejected before rating', () => {
     excludeClueKeys: new Set(),
     ws,
     onRate: (clues, rating) => rated.push({ clues, rating }),
+    rate: rateV2,
   });
   assert.deepEqual(result, { ok: false, reason: 'not-in-band' });
   assert.equal(rated.length, 3, 'only three one-piece subsets exist');
@@ -257,7 +264,7 @@ test('repeated subsets are rejected before rating', () => {
 test('a band no subset reaches fails without relabelling and within 64 ratings', () => {
   for (const id of ['nightmare', 'hell-1']) {
     const target = level(id);
-    const { result, rated } = run({ target, seed: `none-${id}` });
+    const { result, rated } = run({ target, seed: `none-${id}`, rate: rateV2 });
     assert.deepEqual(result, { ok: false, reason: 'not-in-band' });
     assert.ok(rated.length > 0 && rated.length <= 64);
     assert.equal(distinctSubsets(rated), rated.length);
@@ -267,24 +274,24 @@ test('a band no subset reaches fails without relabelling and within 64 ratings',
 
 test('the beam search finds a band the count-guided stage missed', () => {
   const target = { min: 34, max: 36, share: 0.3 };
-  const { result, rated } = run({ target, seed: 'seed5' });
+  const { result, rated } = run({ target, seed: 'seed5', rate: rateV2 });
   assert.ok(result.ok);
   assert.ok(rated.length > 8 * 4, `phase 1 rates at most 32 subsets, saw ${rated.length}`);
   assert.ok(rated.length <= 64);
   assert.equal(distinctSubsets(rated), rated.length);
   assert.ok(inBand(result.rating, target));
-  assert.deepEqual(result.rating, rate(board, pieces, result.clues, ws));
+  assert.deepEqual(result.rating, rateV2(board, pieces, result.clues, ws));
 });
 
 test('a uniqueness repair that leaves the band is not accepted', () => {
   const target = { min: 36, max: 38, share: 0.3 };
-  const any = run({ target, seed: 'seed3' }).result;
+  const any = run({ target, seed: 'seed3', rate: rateV2 }).result;
   assert.ok(any.ok);
   const repaired = makeUnique(board, pieces, layout, any.clues, createRng('x'), ws, 10000);
   assert.ok(repaired !== null && repaired.length > any.clues.length);
-  assert.equal(inBand(rate(board, pieces, repaired, ws), target), false);
+  assert.equal(inBand(rateV2(board, pieces, repaired, ws), target), false);
 
-  const required = run({ target, seed: 'seed3', uniqueness: 'require' }).result;
+  const required = run({ target, seed: 'seed3', uniqueness: 'require', rate: rateV2 }).result;
   assert.ok(required.ok);
   assert.ok(inBand(required.rating, target));
   assert.equal(required.certificate?.status, 'unique');
@@ -314,7 +321,7 @@ test('any, centre reconstruction', () => {
   ];
   const stops = [];
   for (const { target, seed } of cases) {
-    const { result, rated } = traced({ target, seed });
+    const { result, rated } = traced({ target, seed, rate: rateV2 });
     const expected = expectedAny(target, rated);
     assert.ok(expected.pick !== null, seed);
     assert.deepEqual(result, { ok: true, clues: expected.pick.clues, rating: expected.pick.rating, certificate: null }, seed);
@@ -351,6 +358,7 @@ test('any, end of search', () => {
     excludeClueKeys: new Set(),
     ws,
     onRate: (clues, rating) => rated.push({ clues, rating }),
+    rate: rateV2,
   });
   assert.equal(rated.length, 3);
   assert.ok(result.ok);
@@ -363,14 +371,14 @@ test('any, end of search', () => {
 
 test('unbounded', () => {
   const target = { min: 17, max: Infinity, share: 0.38 };
-  const any = traced({ target, seed: 'unbounded' });
+  const any = traced({ target, seed: 'unbounded', rate: rateV2 });
   assert.equal(any.rated.length, 1);
   assert.ok(any.result.ok);
   assert.deepEqual(any.result.clues, any.rated[0].clues);
   assert.equal(ids(any.result.clues), 'ILVTF');
   assert.equal(any.result.rating.score, 20);
 
-  const required = traced({ target, seed: 'unbounded-1', uniqueness: 'require' });
+  const required = traced({ target, seed: 'unbounded-1', uniqueness: 'require', rate: rateV2 });
   assert.deepEqual(required.calls.map((c) => `${c.ids}:${c.score}:${c.profile ? 'profile' : 'repair'}`),
     ['LVTNX:19:profile', 'LVTNFX:12:repair', 'LTFZX:20:profile']);
   assert.ok(required.result.ok);
@@ -533,7 +541,7 @@ test('stall, an unbounded band never stops on a stall', () => {
 });
 
 test('stall, a search that needs ten ratings still reaches the central result (10 x 6 Master)', () => {
-  const { result, calls } = traced({ target: level('master'), seed: 'pop-master-any-22' });
+  const { result, calls } = traced({ target: level('master'), seed: 'pop-master-any-22', rate: rateV2 });
   assert.deepEqual(calls.map((c) => `${c.ids.length}/${c.score}`),
     ['3/39', '3/35', '3/33', '3/37', '2/36', '2/29', '2/29', '2/38', '1/35', '1/48']);
   assert.ok(result.ok);
@@ -541,14 +549,23 @@ test('stall, a search that needs ten ratings still reaches the central result (1
   assert.equal(result.clues.length, 1);
 });
 
-test('slow: stall, a 15 x 20 Hell 2 calibration (K = 50) still reaches the central result', () => {
+test('slow: a 15 x 20 Nightmare calibration (K = 24) is in band under v3 (D36: replaces the Hell 2 case)', () => {
   const execution = { main: createWorkspace(MAIN_WORKSPACE_BYTES), scratch: createWorkspace(SCRATCH_WORKSPACE_BYTES) };
-  const set = setAttempt({ board: boardFromRows(Array(20).fill('#'.repeat(15))), rotation: 0, levelId: 'hell-2',
+  const set = setAttempt({ board: boardFromRows(Array(20).fill('#'.repeat(15))), rotation: 0, levelId: 'nightmare',
     seedText: 't18-big-a', uniqueness: 'any', execution }, 0);
   assert.ok(set.ok);
-  assert.equal(set.set.pieces.length, 50);
-  assert.equal(set.calibration.rating.score, 126, 'the 10th profile; the central half is [124.5, 149.5]');
-  assert.equal(set.calibration.clues.length, 2);
+  assert.equal(set.set.pieces.length, 24);
+  assert.equal(set.calibration.rating.model, 'difficulty-v3');
+  assert.ok(inBand(set.calibration.rating, level('nightmare')));
+  assert.equal(set.calibration.rating.score, 67);
+  assert.equal(set.calibration.clues.length, 4);
+});
+
+test('slow: an unrateable calibration ends not-in-band with no puzzle (D36)', () => {
+  const execution = { main: createWorkspace(MAIN_WORKSPACE_BYTES), scratch: createWorkspace(SCRATCH_WORKSPACE_BYTES) };
+  const set = setAttempt({ board: boardFromRows(Array(22).fill('#'.repeat(22))), rotation: 0, levelId: 'hell-3',
+    seedText: 't18-big-a', uniqueness: 'any', execution }, 0);
+  assert.deepEqual(set, { ok: false, reason: 'not-in-band' });
 });
 
 // Unrateable and unproved candidates (design §6.10, RES-04, RES-35 / AR1). The scripted v3 ratings carry `Gproved`;
@@ -862,7 +879,7 @@ test('slow: a large required-unique request is never accepted on a cutoff', () =
     board: wide,
     pieces: strip,
     layout: witness,
-    target: level('hell-1'),
+    target: { min: 0, max: Infinity, share: 0.1 },
     excludeClueKeys: new Set(),
     ws,
   };

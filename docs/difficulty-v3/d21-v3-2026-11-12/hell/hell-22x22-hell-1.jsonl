@@ -1,0 +1,13 @@
+{"kind":"event","tag":"untagged","label":"hell-22x22-hell-1","ev":"start","levelId":"hell-1","seedText":"t18-big-a","quantity":5,"uniqueness":"any","cols":22,"rows":22}
+{"kind":"call","tag":"hell-22x22-hell-1/set/0","mode":"any","K":39,"target":{"min":77,"max":112,"share":0.1},"excluded":0,"ms":38906.9,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"hell-22x22-hell-1/set/0","capped":20,"cappedWork":15215207478}
+{"kind":"event","tag":"hell-22x22-hell-1/set/0","label":"hell-22x22-hell-1","ev":"set-attempt","j":0,"ok":false,"reason":"not-in-band","ms":38935}
+{"kind":"call","tag":"hell-22x22-hell-1/set/1","mode":"any","K":42,"target":{"min":77,"max":112,"share":0.1},"excluded":0,"ms":38645.8,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"hell-22x22-hell-1/set/1","capped":20,"cappedWork":15217815353}
+{"kind":"event","tag":"hell-22x22-hell-1/set/1","label":"hell-22x22-hell-1","ev":"set-attempt","j":1,"ok":false,"reason":"not-in-band","ms":38664}
+{"kind":"call","tag":"hell-22x22-hell-1/set/2","mode":"any","K":40,"target":{"min":77,"max":112,"share":0.1},"excluded":0,"ms":39922.5,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"hell-22x22-hell-1/set/2","capped":20,"cappedWork":15215524413}
+{"kind":"event","tag":"hell-22x22-hell-1/set/2","label":"hell-22x22-hell-1","ev":"set-attempt","j":2,"ok":false,"reason":"not-in-band","ms":39936}
+{"kind":"call","tag":"hell-22x22-hell-1/set/3","mode":"any","K":40,"target":{"min":77,"max":112,"share":0.1},"excluded":0,"ms":42042.8,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"hell-22x22-hell-1/set/3","capped":20,"cappedWork":15217832457}
+{"kind":"event","tag":"hell-22x22-hell-1/set/3","label":"hell-22x22-hell-1","ev":"set-attempt","j":3,"ok":false,"reason":"not-in-band","ms":42055}
