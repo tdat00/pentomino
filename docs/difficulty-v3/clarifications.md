@@ -555,3 +555,83 @@ All fourteen corrections are accepted; none is disputed. Notes:
 No PENDING item of `docs/difficulty-v3/report-detailed.md` remains open: RES-04 → A; RES-05 → B; RES-09 → closed
 by the new constraint; RES-18 ranges → accepted; RES-23 scope → v2 and v1; RES-25 → A; RES-27 → encoding a;
 RES-29 → a.
+
+---
+
+## Part F: remaining concerns after the answers were applied (for acceptance)
+
+Raised by the lead analyst while applying the answers to `docs/difficulty-v3/report-detailed.md` (section 8.2). None of
+the answers is impossible or contradicts another; C1-C5 need a confirmation or a different choice. The report applies
+option (a) of each. C6 is information only.
+
+### C1: the estimate note is lost in puzzle codes (SA1-Q-P1 with SA1-Q-P3)
+
+An unfinished census is published "with `censusComplete: false` and the note", but a code carries the summary claim
+`{ model, score, level, saturated }` (RES-22), so a puzzle opened from a code shows the estimated score without the
+note. The claim schema already has an optional `censored` boolean, accepted by current readers on non-v2 claims
+(`core/engine/pack.js:57, 793-797, 829-833`; written by `ratingClaim`, 1199-1200).
+
+- (a) Accept the gap (applied in the report).
+- (b) Write `censored: true` on v3 claims, full and summary, when `censusComplete` is false (cross-field check:
+  `censored` if and only if not `censusComplete`), so a code shows "decisive estimate" without n; about 1 hour in
+  MP09 and MP10 (SA1 recommends).
+
+**Answer:**
+
+### C2: centre search wording (SA2-Q-P04)
+
+The answer stops on "a final result (after any uniqueness repair)" in the central half and returns "the best final
+result seen"; the joint draft stopped on a central raw rating whose repair stayed in band and ranked raw ratings. RES-15
+now follows the answer (lazy best-first over final results; the same as the draft in `any` mode, more repairs possible
+in `require` mode). The answer also calls the reserve of 16 "kept for repairs and their re-ratings", but repair ratings
+are not search profiles (`core/engine/clues.js:239-241`); RES-15 keeps that accounting and bounds repairs by
+memoisation (each in-band candidate is repaired at most once).
+
+- (a) RES-15 as written (applied; SA1 recommends).
+- (b) The draft's raw-rating rule.
+- (c) Count repair ratings as profiles within the 64 (a budget change).
+
+**Answer:**
+
+### C3: where the release notes go
+
+The duplicate-shape refusal is to be documented "in the release notes of this change", but the repository has no
+release-notes file (no `CHANGELOG`, `RELEASE` or `NEWS`; `README.md` has no such section).
+
+- (a) A "Release notes" section of `docs/difficulty-v3/final-<date>.md`, written by MP17 (applied; SA1 recommends).
+- (b) A new root `CHANGELOG.md`, a new living document written by MP09 and MP17.
+- (c) Another place you name.
+
+**Answer:**
+
+### C4: saved Generator sets with two pieces of the same shape
+
+Such a set could be imported before (a warning only) and saved; after MP09 `readSavedSet` refuses it and the restore
+drops it without a word (`generator/state.js:885-899`; callers 404-409, 1022-1027, 1048), as it does today for any
+invalid saved set.
+
+- (a) Accept the silent drop (applied).
+- (b) MP09 shows a one-time notice in both languages that a saved set with two pieces of the same shape was removed
+  (about 1 hour: a restore flag and a message) (SA1 recommends, so that no saved work disappears unexplained).
+
+**Answer:**
+
+### C5: "a few per cent" of estimated ratings
+
+The answer to SA1-Q-P1 says: "if more than a few per cent of accepted puzzles of a level carry an estimate, MP06 raises
+`DEDUCE.census` or reports to the owner". MP06 needs a number for its acceptance; the report uses **5 %** (RES-05,
+RES-10). Confirm or name the number.
+
+**Answer:**
+
+### C6: information only, tests and format parts retired by the duplicate-shape error
+
+1. `tests/clues.test.js:196-214` keeps its twin input (answer point 3), but its `any` request targets hell-1, a level
+   chosen for v2 scores; under decisive guesses a swap of twins is a free choice and adds nothing, so v3 may rate the
+   strip lower; MP09 re-evaluates the target and keeps the `require` assertion (RES-24).
+2. The frozen code format's repeated-shape grammar (`docs/design-detail.md:1867-1869`) can no longer occur in a valid
+   code: the puzzle-code property test loses its twin coverage (`tests/puzzlecode.test.js:2174-2209`) and the round
+   trips that used `repeatedShapes` are rebuilt (RES-34).
+3. Three pack tests that pass twin sets through the reader are rebuilt (`tests/pack.test.js:683-706`).
+
+No decision is needed unless you object.
