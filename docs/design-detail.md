@@ -455,7 +455,7 @@ export function isValidLayout(b: Board, pieces: Piece[], layout: Pose[]): boolea
 
 The typed arrays of a `Model` are views into the workspace and valid only while the model is live (the next `buildModel` on that workspace overwrites them); `pieceSizes` belongs to the placement plan. Every piece is edge-connected (checked for imported and generated sets).
 
-**`deduce.js`** (§7.9): the deduction solver, the measure behind the planned `difficulty-v3` rating. Nothing calls it yet.
+**`deduce.js`** (§7.9): the deduction solver, the measure behind the planned `difficulty-v3` rating. `measureV3` (§7.10) calls it; the rating does not use it until the v3 activation.
 
 ```ts
 export function measureDeduction(m: Model, limits?: DeductionLimits, diagnostics?: { verifyUndo?: boolean; tieOrder?: number }): DeductionResult;
@@ -503,17 +503,23 @@ export function puzzleId(b: Board, pieces: Piece[], clues: Pose[]): string;  // 
 
 ```ts
 export const MODEL = 'difficulty-v2';
-export function measure(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace): { metrics: Metrics; saturated: boolean };
-export function score(U: number, B: number): number;       // pure formula (§7.2); B is the effective value
+export function measureV3(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace,
+                          limits?: { deduce: DeductionLimits; dlx: { branch: number; rows: number } }):   // default { deduce: DEDUCE, dlx: SCORE.caps }
+  { metrics: MetricsV3; saturated: false };                // the v3 measurement (§7.10); not the rating yet; throws UnsatisfiableError, IncompleteRatingError (capped path)
 export function breakdownV3(m: ScoreInputV3, knobs?: ScoreKnobsV3):   // knobs default to SCORE_V3 and are not validated here
   { base: number; rule: number; guess: number; penalty: number; unrounded: number; score: number };   // §7.10; RangeError
 export function scoreV3(m: ScoreInputV3): number;           // breakdownV3(m).score under SCORE_V3; defined, `rate` stays v2 until the v3 activation
-export function rate(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace): Rating;
+// difficulty-v2, kept under its v2 names (§7.1-§7.3): stored v2 claims, the frozen Player sample and the probe's `v2` field
+export function measureV2(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace, limits?: { branch: number; rows: number }):
+  { metrics: Metrics; saturated: boolean };
+export function scoreV2(U: number, B: number): number;      // pure formula (§7.2); B is the effective value
+export function rateV2(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace): RatingV2;   // always model 'difficulty-v2'
+export function rate(b: Board, pieces: Piece[], clues: Pose[], ws: Workspace): Rating;       // returns rateV2's result until the v3 activation
 export function inBand(r: Rating, target: Level): boolean; // target.min ≤ score < target.max
 type ScoreInputV3 = Pick<MetricsV3, 'U' | 'deductionTier' | 'G' | 'info' | 'solutions'>;   // other fields ignored
 type ScoreKnobsV3 = { base: { max: number; scale: number }; rule: readonly number[];
                       weights: { G: number; info: number }; penalty: { few: number; many: number } };
-export class IncompleteRatingError extends Error {   // thrown by the v3 rating when the deduction path is capped (§7.3); nothing throws it before the v3 activation
+export class IncompleteRatingError extends Error {   // thrown by `measureV3` when the deduction path is capped (§7.3, §7.10); `rate` does not call it until the v3 activation
   code: 'rating-incomplete'; reason: 'path-capped'; counters: { nodes: number; work: number; stop: 'node-cap' | 'work-cap' };
 }
 ```
@@ -1705,7 +1711,7 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
 
 ### 7.9 Deduction solver (`deduce.js`)
 
-`measureDeduction(model, limits = DEDUCE, diagnostics = {})` measures a puzzle the way a person solves it: first the placements that are forced, later also small deductions, and a real guess only when nothing else works. It records how many decisive guesses the path to the first solution needed (a guess where at least one alternative fails) and how wide they were. It is the measure behind the planned `difficulty-v3` rating (§7.7). **Nothing calls it yet**: rating and generation still use `difficulty-v2`, so §7.1–§7.3 stay correct and no output changes. This section describes the module as it is; each later rule is added to it when it is implemented.
+`measureDeduction(model, limits = DEDUCE, diagnostics = {})` measures a puzzle the way a person solves it: first the placements that are forced, later also small deductions, and a real guess only when nothing else works. It records how many decisive guesses the path to the first solution needed (a guess where at least one alternative fails) and how wide they were. It is the measure behind the planned `difficulty-v3` rating (§7.7). **`measureV3` (§7.10) calls it; the rating does not use it yet**: rating and generation still use `difficulty-v2`, so §7.1–§7.3 stay correct and no output changes. This section describes the module as it is; each later rule is added to it when it is implemented.
 
 **Input and limits.** A live `Model` (§6.6; a stale model throws `stale model`) and `limits`, exactly the six fields of `DEDUCE` (`policy.js`):
 
@@ -1818,7 +1824,7 @@ If their total exceeds `limits.memoryBytes`, the call throws `ModelError` `model
 
 ### 7.10 Formula `difficulty-v3` (defined; not yet the rating)
 
-The score of the planned `difficulty-v3` rating (§7.7, §7.9): a base for the pieces left to place, a term for the hardest deduction rule the solver needed, a term per decisive guess, and a penalty for puzzles with several solutions. It is written as pure, tested code next to the v2 score (`breakdownV3` and `scoreV3` in `difficulty.js`, `SCORE_V3` in `policy.js`; types `MetricsV3`, `RatingV3`, §4.1), but **nothing uses it yet**: `rate` stays `difficulty-v2` (§7.2), so no rating, puzzle or document a user sees changes. Switching `rate` on is a later step, which also updates §7.1–§7.7.
+The score of the planned `difficulty-v3` rating (§7.7, §7.9): a base for the pieces left to place, a term for the hardest deduction rule the solver needed, a term per decisive guess, and a penalty for puzzles with several solutions. It is written as pure, tested code next to the v2 score (`breakdownV3`, `scoreV3` and the measurement `measureV3` in `difficulty.js`, `SCORE_V3` in `policy.js`; types `MetricsV3`, `RatingV3`, §4.1), but **nothing uses it yet**: `rate` stays `difficulty-v2` (§7.2), so no rating, puzzle or document a user sees changes. Switching `rate` on is a later step, which also updates §7.1–§7.7.
 
 ```text
 breakdownV3(m, knobs = SCORE_V3), m = { U, deductionTier, G, info, solutions } (other fields ignored):
@@ -1861,6 +1867,33 @@ The invariants are hard: `base.max + max(rule) ≤ 16` (here 14), `rule[0] = rul
 | 3 | 2 | 2 | 11 | 23.3760 | 23 |
 
 The quick tests of `tests/difficulty-v3.test.js` check the formula on the vectors of the starting knobs (`base { 12, 6 }`, `rule [0, 0, 2, 4]`, `weights { 6, 4 }`, `penalty { 2, 4 }`, which are test vectors only), the grid of valid tuples (terms, order, one rounding, the penalty by `solutions`, `G = 0` at most 16), the exact JSON round trip, and the invalid inputs; `tests/policy.test.js` pins `SCORE_V3` and its invariants and ranges.
+
+**Measurement (`measureV3`).** `measureV3(board, pieces, clues, ws, limits = { deduce: DEDUCE, dlx: SCORE.caps })` builds the stored `MetricsV3` of a puzzle from the deduction solver (§7.9) and returns `{ metrics, saturated: false }`: a v3 rating never sets `saturated`. Like the formula it is defined and tested, but `rate` does not call it yet.
+
+```text
+measureV3(board, pieces, clues, ws, limits):
+  1. U = pieces.length - clues.length. U = 0: UnsatisfiableError('the clues are not a complete valid layout') unless the
+     clues are a valid complete layout, else the zero metrics (below).
+  2. model = buildModel(board, pieces, clues, ws), once; bits = sum of log2(1 + placements) over the free pieces; a free
+     piece without placements: UnsatisfiableError('piece <id> has no legal placement').
+  3. d = measureDeduction(model, limits.deduce).
+       d.path 'none'   -> UnsatisfiableError('the clues have no solution')
+       d.path 'capped' -> IncompleteRatingError('the deduction path was capped', { nodes, work, stop } of d.search)
+  4. The DLX diagnostic, on the same model: run = solveFirst(model, { rowTrialLimit: limits.dlx.rows,
+     branchTrialLimit: limits.dlx.branch }). dlxStop = 'solution' when it found a layout; an exhausted search without
+     one is an internal error (the deduction found a solution); otherwise 'row-cap' or 'branch-cap'.
+     B = min(run.branchTrials, 5,000) with a solution, else 5,000: the v2 value.
+  5. The metrics, in this order: U, R (free cells), H (bits / U), B, branchTrials, rowTrials, dlxStop,
+     searchStop (d.search.stop), F, E, rules (R1 ... R9, an owned copy), deductionTier, tier (4 when G > 0, else
+     deductionTier), G, info, Cmax, Dmax (all of d.first), Gt, nodes, work (d.search), S, solutionLimit, solutions
+     (d.count), censusComplete, censusUndecided, censusNodes, censusWork (d.census), Gproved (d.first).
+zero metrics (U = 0): every number 0 except S 1 and solutionLimit (limits.deduce.solutions); dlxStop 'solution',
+  searchStop 'exhausted', rules all 0, solutions 'unique', censusComplete true.
+```
+
+The order of step 5 is the write order of `MetricsV3`. The DLX diagnostic (`B`, `branchTrials`, `rowTrials`, `dlxStop`, `R`, `H`) has its `difficulty-v2` meaning and never enters the score or `saturated`; `limits.dlx` lowers its caps for tests only, and a capped `B` stays 5,000. A capped deduction path is unrateable (§7.3): the error carries the counters at the cap and nothing is derived from the path. An unfinished census is not an error: `censusComplete` is `false` exactly when `censusUndecided > 0`, `Gproved ≤ G` (`Gproved = G` when the census is complete), `G` and `info` are then an upper estimate, and a stored claim of such metrics carries `censored: true`. `solutions` is never `'none'`. There is no shape check: pieces of one shape given directly are counted as labelled pieces, as in `measureDeduction`.
+
+The quick tests of `tests/difficulty.test.js` check the key order and the owned `rules`, the zero metrics (also as JSON text) and the refusal of an invalid full layout, a forced placement (`U 1`, `R 5`, `H 1`, `B 0`, `F 1`, `rules.R1 1`, no guess), two pieces of one shape on a 2 × 5 board (`S 2`, `few`, `Gt 1`), a capped path (`node-cap` and `work-cap`), an unfinished census on a strip of 41 `I` pieces with 4 clues, a census cut to 0, the DLX caps (the deduction fields do not change), and that every claim made from these metrics is accepted by the strict pack reader; the v2 names give the v2 values and `rate` equals `rateV2`.
 
 ---
 
@@ -2782,13 +2815,13 @@ jobs:
 | `levels` | Band edges 0, 8, 12, 17, 25, 37, 53, 77, 112, 162, 235, 341. `levelForScore` boundaries, including generated Hell-n. Availability intervals (§7.5) and their contiguity for A = 30..676; `pieceCountRange` is non-empty everywhere inside them. |
 | `carve` | 50 seeds × (6×10, 8×10, Heart-75, Ring-60, 18×20 at hard): exact partition, distinct keys, sizes inside the window, connected, hole-free, small-piece cap respected. Macro carving at μ ≥ 6.5 on 6×10 (K = 8) and 18×20 (K = 18) yields sets with ≥ 2 layout keys in ≥ 90 % of seeds. After a macro partition fails, the next one starts with no pieces, no shape keys and the full small-piece budget ⌊0.4·K⌋. `validateSet` rejects each injected defect (overlap, hole, duplicate shape, size outside the window). The same seed gives the same set. |
 | `keys` | Layout keys are invariant under board symmetries, so reflected layouts are duplicates. A clue-only change is not a new layout. Distance values. `progressFingerprint` differs for reflected clues (A.9 counterexample). |
-| `difficulty` | Worked examples of §7.2. Saturation at 5,000 branch trials and at 50,000 row trials (effective B = 5,000, actual counters stored). Permuting ids, colors or piece order leaves the rating unchanged. Forced-placement fixture: a puzzle solvable without branching scores 2U [PT]. |
+| `difficulty` | Worked examples of §7.2 (`scoreV2`, `measureV2`, `rateV2`: the v2 names keep the v2 values, and `rate` equals `rateV2` until the v3 activation). Saturation at 5,000 branch trials and at 50,000 row trials (effective B = 5,000, actual counters stored). Permuting ids, colors or piece order leaves the rating unchanged. Forced-placement fixture: a puzzle solvable without branching scores 2U [PT]. `measureV3` (§7.10): the 28 metrics in the `MetricsV3` order with owned `rules`; the zero metrics and the refusal of an invalid full layout; a forced placement; two pieces of one shape (engine total); a capped path (`IncompleteRatingError`, `node-cap` and `work-cap`); an unfinished census on a 41-piece strip (an estimate, `censusComplete` false, never an error) and a census cut to 0; the DLX caps (the deduction fields and the score do not change, `B` stays 5,000); every claim made from these metrics accepted by the strict pack reader. |
 | `clues` | Always 1 ≤ G ≤ K−2. Initial G follows g_L. `require` mode returns only exhaustively proven unique puzzles. No in-band subset → failure, never a mislabel. 'any' mode returns `certificate: null`. The search returns the first central candidate (central half of the band), else the nearest in-band final result at a stall (12 rated profiles in a row without a nearer in-band candidate while every rated candidate is on one side of the central half, raw ratings only), at profile 48 or at the end; `require` repairs are judged after the repair, memoised, and a repaired clue key in `excludeClueKeys` is rejected; unbounded bands return the first in-band candidate; unrateable and refused subsets (spent, neutral) and repairs (fail), scripted through the `rate` seam. |
 | `generate` | Fold determinism: identical output for pool sizes 1 and 4 and shuffled completion orders (simulated). New layout AND clue keys; no clue-only variant is ever accepted. The best-distance fallback fills a slot whose candidates were all "too close" with the farthest valid one (`bestDistance`; ties keep the earliest attempt). Partial status, its reason and the prefix property. The calibration puzzle is reused as #1. Lazy `certifyTask` results do not change accepted puzzles. Speculation priority: with a simulated pool of 4 where every attempt 0 is accepted, q = 10 needs 3 dispatch rounds. Batch seeds follow `setSeed#batchIndex`; two consecutive batches on one set use different seeds and both return new layouts; a fresh session with the same seed reproduces batch 1. |
 | `palette` | `labelFor`: 0 → A, 25 → Z, 26 → AA, 701 → ZZ, 702 → AAA. `patternFor` is 'none' for K ≤ 20. Generated colors are valid `#rrggbb`. |
 | `pack` | The §5.2 fixture validates and round-trips. Rejects: wrong format; version 0, −1, 2 or "1"; unknown fields; bad rows; overlapping clues; an invalid solution; oversized input. Accepts the classic 12 pentominoes on 6×10, a piece with a hole (warnings only), `difficulty-v1` ratings (as claims) and a 90-piece pack. `omitSolutions` works. |
 | `sharecode` | The `#p=` route: every `p`-bearing case of `tests/fixtures/puzzlecode-hashes.json` through the host parser (`index` → `invalid-index`, `invalid` → `invalid-hash`) and through the pasted-link normaliser, any hash without `p` (the old `pack` / `lib` included) as `no-incoming`, `p` mixed with another route key refused, `puzzleCodeUrl` (clears query and fragment, canonical code, no `i`, only http, https and file, no credentials, no length check) and `puzzleListHash` / `puzzleListUrl` (the canonical codes joined by `;`, `&i=` after the first, the page's own Player). |
-| `protocol`, `tasks` | The two puzzle-code kinds: strict snapshot and text validation, error replies with `params` and `candidate`. Solver tasks stay synchronous; code tasks return a Promise that the handler awaits: one reply after it settled, nothing cloned that is not data, deferred resolve and reject, memory progress owned by the pending task, later messages waiting their turn; the sample encodes to its frozen golden and decodes with and without the tail; codec errors keep their code, `params` and candidate through structured cloning; the module worker entry settles a code task. |
+| `protocol`, `tasks` | The two puzzle-code kinds: strict snapshot and text validation (a `difficulty-v3` claim, its summary and a worker `result` carrying the claim keep every field, `censored` and the 28 metrics included, in order), error replies with `params` and `candidate`. Solver tasks stay synchronous; code tasks return a Promise that the handler awaits: one reply after it settled, nothing cloned that is not data, deferred resolve and reject, memory progress owned by the pending task, later messages waiting their turn; the sample encodes to its frozen golden and decodes with and without the tail; codec errors keep their code, `params` and candidate through structured cloning; the module worker entry settles a code task. |
 | `handoff` | `#p=` through an injected decoder: index 0, nothing saved, the normalised value handed on, a literal `+` and an encoded `#` as `bad-char`, structural failures with the host names, recovery and candidate kept, `#pack=` and `#lib=` no longer routes (`no-incoming`). Several codes: opened as one pack in order and at `i` (lower case, grouping, an encoded `;`, a trailing `;`), refused before any decoding for a number or text that is wrong, a failing code named by place (`$.p[k]`) with no recovery and the others never decoded, a different board or piece set and a repeated puzzle refused, typed and pasted lists through `readPuzzleCode` while one code stays the decoder's. Play links: `preparePlayerLink` builds `#p=<code>;<code>…` with an injected encoder (one code per puzzle, `&i=` only after the first, a warning above 4,000 characters, only the puzzle to open (`only`) above 16,000 or for more than 100 puzzles, no link for a code that cannot be made or a puzzle too long for any link) and `openInPlayerTab` reports `only`; the real codec reads its own link back with the stored answers. |
 | `puzzle-code-client` | Real Node worker: the frozen golden, decode with and without the tail, candidates with `offset` (core and tail), core-only recovery, `repair`, typed codec failures, bad snapshots, pasted links with no worker work on failure, no main-thread catalogue. Pool doubles: lazy owned worker, one request per operation and always ended, `worker-unavailable`, `worker-error`, the watchdog, cancel, supersede, dispose (twice), a late reply ignored, two clients with distinct request IDs. |
 | `puzzle-code-dialog` | The code-entry state machine with an injected controller whose replies the test resolves by hand: submit A, edit to B, late A; close then late reply; a late failure; success; a rejected request; dispose while awaiting; the candidate offered only for a checksum failure of the same normalised text (not for other text, another component, a future version, an invalid structure or no change), applied only by its own action while the revision and the text still match, and then submitted again, with its own error kept; a link's candidate; the core offered only for a damaged tail with a returned core, submitted alone through the recovery path, never for a bad core, a code without a dot or an edited text; blank input never reaching the controller; `worker-unavailable` as a service failure; a failure given to `open`; a second opening replacing stale state; refused actions; a revision that only grows. Every failure code has its own key in both languages; the host loader names are aliased; an invisible character is named by its code point; the count; the module imports only the text normalizer and `dom.js`, builds no markup and no style; every `code.*` key used exists in both packs. |

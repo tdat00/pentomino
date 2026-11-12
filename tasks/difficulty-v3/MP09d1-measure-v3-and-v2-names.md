@@ -213,14 +213,14 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP09d1: measureV3 and the v2 functions under their v2 names`) |
+| Start | 2026-11-12 19:50 (+07:00) |
+| End | 2026-11-12 19:58 developer; 20:03 orchestrator review and commit |
+| Duration | 8 min developer (466 s); about 5 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 57 model calls; 7,394,826 input tokens (7,227,017 cache reads); 55,151 output tokens |
+| AI credits | about 169 (developer) |
+| Verification | Developer: `node --test --test-skip-pattern=slow tests\difficulty.test.js tests\difficulty-v3.test.js tests\protocol.test.js tests\puzzlecode.test.js tests\rate-probe.test.js` 115/115 (7.2 s); `npm run test:quick` 1253/1253 (19.5 s); `npm run check` OK; `record-fixtures --check` OK. Orchestrator re-run (sudoku lock held): targeted 115/115, `test:quick` 1253/1253, `check` OK, `record-fixtures --check` OK; no importer of the old names `score` or `measure` remains |
+| Acceptance | MP09d1-B* and MP09d1-T01..T06 met. Diff reviewed: `measureV3(board, pieces, clues, ws, limits = { deduce: DEDUCE, dlx: SCORE.caps })` returns the 28 `MetricsV3` keys in fixed order with `saturated: false` (the U = 0 literal, `tier` 4 when G > 0, `Gproved` from the first path, the census fields) and the v2 DLX diagnostic beside it; throws `UnsatisfiableError` (invalid layout, a piece without placement, no solution) and `IncompleteRatingError` with `{nodes, work, stop}` for a capped path; `scoreV2`, `measureV2` and `rateV2` keep the v2 bodies, `rateV2` writes `'difficulty-v2'` literally; `rate` delegates to `rateV2` and `MODEL` stays `difficulty-v2`; the probe's `v2` field uses `rateV2`; MP09b's reader accepts every produced claim (estimates with `censored: true`) |
+| Issues & resolutions | (1) One more existing call `score(5, ...)` in the test "metrics carry actual counters and the diagnostics R and H" renamed to `scoreV2` (value unchanged). (2) One assertion added beyond the task (`censusUndecided > 0` in the cut-census case) so that "exactly when" is not vacuous. (3) The flaky quick test seen in MP09c's review did not recur |
+| Handoff | MP09d2: switch `rate` to `measureV3` + `scoreV3` and `MODEL` to `difficulty-v3`; `measureV3` throws `UnsatisfiableError` and `IncompleteRatingError`; the forced, twin, capped and census-estimate values pinned in `tests/difficulty.test.js` are reusable as `rate` references; for a v3 claim `censored` is true exactly when `censusComplete` is false |

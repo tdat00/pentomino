@@ -14,7 +14,7 @@ import { pathToFileURL } from 'node:url';
 import { MAX_POOL_SIZE } from '../core/browser/worker-pool.js';
 import { activeCount, boardFromRows } from '../core/engine/board.js';
 import { measureDeduction } from '../core/engine/deduce.js';
-import { breakdownV3, rate } from '../core/engine/difficulty.js';
+import { breakdownV3, rateV2 } from '../core/engine/difficulty.js';
 import { canonicalJson, sha256Hex } from '../core/engine/hash.js';
 import { levelForScore } from '../core/engine/levels.js';
 import { parsePack } from '../core/engine/pack.js';
@@ -366,7 +366,7 @@ function probePuzzle(pack, board, puzzle, settings, identity) {
       B.push(run.layout === null ? SCORE.caps.branch : Math.min(run.branchTrials, SCORE.caps.branch));
     }
     started = performance.now();
-    const rating = rate(board, pieces, clues, ws);
+    const rating = rateV2(board, pieces, clues, ws);
     const dlxMs = performance.now() - started;
 
     const raw = first === null ? null : {

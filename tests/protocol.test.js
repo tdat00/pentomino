@@ -34,6 +34,23 @@ const snapshot = () => ({
 });
 const CODE = '1D0J492G47DMXNG6YCP10HCY05KZW8S4HCN2QR.18V3WE';
 
+const V3_METRICS = {
+  U: 7, R: 35, H: 3.5, B: 12, branchTrials: 12, rowTrials: 40, dlxStop: 'solution', searchStop: 'exhausted',
+  F: 4, E: 0, rules: { R1: 3, R2: 1, R3: 0, R4: 2, R5: 0, R6: 0, R7: 0, R8: 58, R9: 0 }, deductionTier: 3, tier: 4,
+  G: 2, info: 3.321928094887362, Cmax: 5, Dmax: 2, Gt: 2, nodes: 8, work: 123456, S: 1, solutionLimit: 8,
+  solutions: 'unique', censusComplete: true, censusUndecided: 0, censusNodes: 0, censusWork: 0, Gproved: 2,
+};
+const V3_CLAIM = { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, metrics: V3_METRICS };
+// An estimate: the census did not finish.
+const V3_ESTIMATE = {
+  model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, censored: true,
+  metrics: {
+    ...V3_METRICS, S: 8, searchStop: 'solution-limit', solutions: 'many', censusComplete: false,
+    censusUndecided: 3, nodes: 18, censusNodes: 10, censusWork: 5000, Gproved: 1,
+  },
+};
+const V3_SUMMARY = { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, censored: true };
+
 /** @type {Record<string, () => any>} */
 const PAYLOADS = {
   setAttempt: () => ({ boardRows: rows, rotation: 45, levelId: 'hard', seedText: 'demo', uniqueness: 'any', attempt: 3 }),
@@ -247,6 +264,21 @@ describe('task messages', () => {
     assert.ok(task('encodePuzzleCode', { snapshot: { ...snapshot(), rating: { model: 'foreign-v9', score: 4.5, level: 'who knows', censored: true } } }).ok);
   });
 
+  test('puzzle-code snapshots keep difficulty-v3 claims and summaries field for field', () => {
+    for (const rating of [V3_ESTIMATE, V3_SUMMARY, V3_CLAIM]) {
+      const parsed = validatePayload('encodePuzzleCode', { snapshot: { ...snapshot(), rating } });
+      const expected = JSON.stringify(rating);
+      assert.ok(parsed.ok, expected);
+      const copy = /** @type {any} */ (parsed.value).snapshot.rating;
+      assert.equal(JSON.stringify(copy), expected, 'no field dropped, added or reordered');
+      assert.notEqual(copy, rating);
+      if ('metrics' in rating) {
+        assert.notEqual(copy.metrics, rating.metrics);
+        assert.notEqual(copy.metrics.rules, rating.metrics.rules);
+      }
+    }
+  });
+
   test('puzzle-code snapshots reject unknown fields, wrong types and unbounded metrics', () => {
     const deep = (/** @type {number} */ n) => (n === 0 ? 1 : { a: deep(n - 1) });
     /** @type {[string, (s: any) => void][]} */
@@ -313,6 +345,15 @@ describe('worker messages', () => {
       assert.ok(parsed.ok, JSON.stringify(message));
       assert.deepEqual(parsed.value, message);
     }
+  });
+
+  test('a difficulty-v3 rating claim in a result reply is unchanged', () => {
+    const message = { type: 'result', id: 9, value: V3_ESTIMATE };
+    const parsed = parseWorkerMessage(message);
+    assert.ok(parsed.ok);
+    assert.deepEqual(parsed.value, message);
+    assert.equal(JSON.stringify(/** @type {any} */ (parsed.value).value), JSON.stringify(V3_ESTIMATE));
+    assert.equal(JSON.stringify(parsed.value), JSON.stringify(message));
   });
 
   test('puzzle-code error issues keep valid params and candidates only', () => {

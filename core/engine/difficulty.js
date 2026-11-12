@@ -1,11 +1,13 @@
 // @ts-check
 // Shared difficulty score (`difficulty-v2`, design §7): pieces to place plus the bounded
 // canonical DLX effort until the first solution. Only work counters enter the score: no
-// clocks, no randomness.
+// clocks, no randomness. `measureV3` is the `difficulty-v3` measurement (design §7.10); `rate`
+// stays `difficulty-v2` until the activation.
 
+import { measureDeduction } from './deduce.js';
 import { isValidLayout, buildModel, solveFirst } from './tiling.js';
 import { levelForScore } from './levels.js';
-import { SCORE, SCORE_V3 } from './policy.js';
+import { DEDUCE, SCORE, SCORE_V3 } from './policy.js';
 
 /** @typedef {import('./types.js').Board} Board */
 /** @typedef {import('./types.js').Piece} Piece */
@@ -13,6 +15,8 @@ import { SCORE, SCORE_V3 } from './policy.js';
 /** @typedef {import('./types.js').Metrics} Metrics */
 /** @typedef {import('./types.js').MetricsV3} MetricsV3 */
 /** @typedef {import('./types.js').Rating} Rating */
+/** @typedef {import('./types.js').RatingV2} RatingV2 */
+/** @typedef {import('./deduce.js').DeductionLimits} DeductionLimits */
 /** @typedef {import('./levels.js').Level} Level */
 /** @typedef {import('./workspace.js').Workspace} Workspace */
 
@@ -72,13 +76,13 @@ export class IncompleteRatingError extends Error {
 }
 
 /**
- * `D = round(2U + 8 log10(1 + B))`, rounded once; `U = 0` scores 0. `B` is the
+ * The `difficulty-v2` score: `D = round(2U + 8 log10(1 + B))`, rounded once; `U = 0` scores 0. `B` is the
  * effective (already capped) branch count.
  * @param {number} U Pieces left to place.
  * @param {number} B Effective branch trials.
  * @returns {number}
  */
-export function score(U, B) {
+export function scoreV2(U, B) {
   if (!Number.isInteger(U) || U < 0) {
     throw new RangeError('U must be a non-negative integer');
   }
@@ -137,7 +141,7 @@ export function scoreV3(m) {
 }
 
 /**
- * Metrics of a board, its set and a clue subset. Throws `ModelError` for invalid
+ * The `difficulty-v2` metrics of a board, its set and a clue subset. Throws `ModelError` for invalid
  * input and `UnsatisfiableError` when the clues cannot be completed. `limits`
  * lowers the work caps for tests; the effective B of a capped search stays 5,000.
  * @param {Board} board
@@ -147,7 +151,7 @@ export function scoreV3(m) {
  * @param {{ branch: number, rows: number }} [limits]
  * @returns {{ metrics: Metrics, saturated: boolean }}
  */
-export function measure(board, pieces, clues, ws, limits = SCORE.caps) {
+export function measureV2(board, pieces, clues, ws, limits = SCORE.caps) {
   const U = pieces.length - clues.length;
   if (U === 0) {
     if (!isValidLayout(board, pieces, clues)) {
@@ -192,6 +196,123 @@ export function measure(board, pieces, clues, ws, limits = SCORE.caps) {
 }
 
 /**
+ * The `difficulty-v3` metrics of a board, its set and a clue subset (design §7.10): the deduction measure
+ * (`measureDeduction`) and, beside it, the v2 DLX diagnostic, which never enters the score. Throws `ModelError` for
+ * invalid input, `UnsatisfiableError` when the clues cannot be completed and `IncompleteRatingError` when the
+ * deduction path was capped. `limits.dlx` lowers the DLX caps for tests; its B stays pinned to 5,000 when capped.
+ * An unfinished census is not an error: it is reported in `censusComplete` and `censusUndecided`. A rating never
+ * has `saturated` (it stays `false`) and never has `solutions: 'none'`. No shape check: twin pieces are counted as
+ * labelled pieces.
+ * @param {Board} board
+ * @param {Piece[]} pieces
+ * @param {Pose[]} clues
+ * @param {Workspace} ws
+ * @param {{ deduce: DeductionLimits, dlx: { branch: number, rows: number } }} [limits]
+ * @returns {{ metrics: MetricsV3, saturated: false }}
+ */
+export function measureV3(board, pieces, clues, ws, limits = { deduce: DEDUCE, dlx: SCORE.caps }) {
+  const U = pieces.length - clues.length;
+  if (U === 0) {
+    if (!isValidLayout(board, pieces, clues)) {
+      throw new UnsatisfiableError('the clues are not a complete valid layout');
+    }
+    return {
+      metrics: {
+        U: 0, R: 0, H: 0, B: 0, branchTrials: 0, rowTrials: 0, dlxStop: 'solution', searchStop: 'exhausted',
+        F: 0, E: 0, rules: { R1: 0, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0 },
+        deductionTier: 0, tier: 0, G: 0, info: 0, Cmax: 0, Dmax: 0, Gt: 0, nodes: 0, work: 0,
+        S: 1, solutionLimit: limits.deduce.solutions, solutions: 'unique',
+        censusComplete: true, censusUndecided: 0, censusNodes: 0, censusWork: 0, Gproved: 0,
+      },
+      saturated: false,
+    };
+  }
+  const model = buildModel(board, pieces, clues, ws);
+  let bits = 0;
+  for (let i = 0; i < model.freePieces.length; i += 1) {
+    const rows = model.placementsPerPiece[i];
+    if (rows === 0) {
+      throw new UnsatisfiableError(`piece ${model.freePieces[i]} has no legal placement`);
+    }
+    bits += Math.log2(1 + rows);
+  }
+  const d = measureDeduction(model, limits.deduce);
+  if (d.path === 'none') {
+    throw new UnsatisfiableError('the clues have no solution');
+  }
+  if (d.path === 'capped') {
+    throw new IncompleteRatingError('the deduction path was capped', {
+      nodes: d.search.nodes,
+      work: d.search.work,
+      stop: /** @type {'node-cap' | 'work-cap'} */ (d.search.stop),
+    });
+  }
+  const first = /** @type {NonNullable<typeof d.first>} */ (d.first);
+  const census = /** @type {NonNullable<typeof d.census>} */ (d.census);
+  const run = solveFirst(model, { rowTrialLimit: limits.dlx.rows, branchTrialLimit: limits.dlx.branch });
+  /** @type {MetricsV3['dlxStop']} */
+  let dlxStop = 'solution';
+  if (run.layout === null) {
+    if (run.exhausted) {
+      throw new Error('internal: the DLX diagnostic found no solution where the deduction found one');
+    }
+    dlxStop = run.stop === 'row-limit' ? 'row-cap' : 'branch-cap';
+  }
+  return {
+    metrics: {
+      U,
+      R: model.freeCells,
+      H: bits / U,
+      B: dlxStop === 'solution' ? Math.min(run.branchTrials, SCORE.caps.branch) : SCORE.caps.branch,
+      branchTrials: run.branchTrials,
+      rowTrials: run.rowTrials,
+      dlxStop,
+      searchStop: d.search.stop,
+      F: first.F,
+      E: first.E,
+      rules: {
+        R1: first.rules.R1, R2: first.rules.R2, R3: first.rules.R3, R4: first.rules.R4, R5: first.rules.R5,
+        R6: first.rules.R6, R7: first.rules.R7, R8: first.rules.R8, R9: first.rules.R9,
+      },
+      deductionTier: first.deductionTier,
+      tier: first.G > 0 ? 4 : first.deductionTier,
+      G: first.G,
+      info: first.info,
+      Cmax: first.Cmax,
+      Dmax: first.Dmax,
+      Gt: d.search.Gt,
+      nodes: d.search.nodes,
+      work: d.search.work,
+      S: d.count.S,
+      solutionLimit: d.count.limit,
+      solutions: /** @type {MetricsV3['solutions']} */ (d.count.solutions),
+      censusComplete: census.complete,
+      censusUndecided: census.undecided,
+      censusNodes: census.nodes,
+      censusWork: census.work,
+      Gproved: first.Gproved,
+    },
+    saturated: false,
+  };
+}
+
+/**
+ * The `difficulty-v2` rating, kept under its v2 name: stored `difficulty-v2` claims, the frozen Player sample and the
+ * probe's `v2` field rate with it. The model is written literally, so it stays v2 when `MODEL` moves on.
+ * @param {Board} board
+ * @param {Piece[]} pieces
+ * @param {Pose[]} clues
+ * @param {Workspace} ws
+ * @returns {RatingV2}
+ */
+export function rateV2(board, pieces, clues, ws) {
+  const { metrics, saturated } = measureV2(board, pieces, clues, ws);
+  const value = scoreV2(metrics.U, metrics.B);
+  return { model: 'difficulty-v2', score: value, level: levelForScore(value).id, saturated, metrics };
+}
+
+/**
+ * The rating: `difficulty-v2` until the activation of `difficulty-v3`.
  * @param {Board} board
  * @param {Piece[]} pieces
  * @param {Pose[]} clues
@@ -199,9 +320,7 @@ export function measure(board, pieces, clues, ws, limits = SCORE.caps) {
  * @returns {Rating}
  */
 export function rate(board, pieces, clues, ws) {
-  const { metrics, saturated } = measure(board, pieces, clues, ws);
-  const value = score(metrics.U, metrics.B);
-  return { model: MODEL, score: value, level: levelForScore(value).id, saturated, metrics };
+  return rateV2(board, pieces, clues, ws);
 }
 
 /**

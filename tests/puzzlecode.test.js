@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { deflateRawSync } from 'node:zlib';
 import { boardFromRows } from '../core/engine/board.js';
-import { score as liveScore } from '../core/engine/difficulty.js';
+import { scoreV2 as liveScore } from '../core/engine/difficulty.js';
 import { canonicalKey, orientedCells } from '../core/engine/geometry.js';
 import { progressFingerprint, puzzleId } from '../core/engine/keys.js';
 import { levelForScore } from '../core/engine/levels.js';
