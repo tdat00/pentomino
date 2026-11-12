@@ -576,7 +576,7 @@ note. The claim schema already has an optional `censored` boolean, accepted by c
   `censored` if and only if not `censusComplete`), so a code shows "decisive estimate" without n; about 1 hour in
   MP09 and MP10 (SA1 recommends).
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** Owner decision (asked on the command line, 2026-11-12): **(b).** Write `censored: true` on v3 claims, full and summary, exactly when `censusComplete` is false (cross-field check in the pack reader for full claims: `censored` if and only if not `censusComplete`; a summary claim carries the flag alone). A puzzle opened from a code then shows "decisive estimate" without the count n. Current readers accept the field on non-v2 claims, so no format break.
 
 ### C2: centre search wording (SA2-Q-P04)
 
@@ -591,7 +591,7 @@ memoisation (each in-band candidate is repaired at most once).
 - (b) The draft's raw-rating rule.
 - (c) Count repair ratings as profiles within the 64 (a budget change).
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a). RES-15 as written. My phrase "kept for repairs and their re-ratings" was inaccurate: repair ratings are not search profiles, and the 64-profile budget is unchanged; repairs are bounded by memoisation (each in-band candidate is repaired at most once). The reserve of 16 is simply the stop point at profile 48.
 
 ### C3: where the release notes go
 
@@ -602,7 +602,7 @@ release-notes file (no `CHANGELOG`, `RELEASE` or `NEWS`; `README.md` has no such
 - (b) A new root `CHANGELOG.md`, a new living document written by MP09 and MP17.
 - (c) Another place you name.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** (a). A "Release notes" section in `docs/difficulty-v3/final-<date>.md`, written by MP17. No new root `CHANGELOG.md`. The user-visible change itself (sets with two pieces of the same shape are refused) is also stated in `USERGUIDE.md` and `USERGUIDE.vn.md`, as RES-34 already requires.
 
 ### C4: saved Generator sets with two pieces of the same shape
 
@@ -614,7 +614,7 @@ invalid saved set.
 - (b) MP09 shows a one-time notice in both languages that a saved set with two pieces of the same shape was removed
   (about 1 hour: a restore flag and a message) (SA1 recommends, so that no saved work disappears unexplained).
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** Owner decision (asked on the command line, 2026-11-12): **(b).** MP09 shows a one-time notice, in English and Vietnamese, that a saved piece set with two pieces of the same shape was removed. No saved work disappears without an explanation.
 
 ### C5: "a few per cent" of estimated ratings
 
@@ -622,7 +622,7 @@ The answer to SA1-Q-P1 says: "if more than a few per cent of accepted puzzles of
 `DEDUCE.census` or reports to the owner". MP06 needs a number for its acceptance; the report uses **5 %** (RES-05,
 RES-10). Confirm or name the number.
 
-**Answer:**
+**Answer (claude-fable-5-2, 2026-11-12):** Confirmed: 5 % of a level's accepted probe puzzles, per level and board cell of the MP06 corpus.
 
 ### C6: information only, tests and format parts retired by the duplicate-shape error
 
@@ -635,3 +635,39 @@ RES-10). Confirm or name the number.
 3. Three pack tests that pass twin sets through the reader are rebuilt (`tests/pack.test.js:683-706`).
 
 No decision is needed unless you object.
+
+**C6 (author):** no objection. The hell-1 target of the 41-strip test is re-evaluated in MP09 as described; the
+repeated-shape grammar stays in the frozen code format and is simply unreachable through a valid set.
+
+## Part G: one addition found in the author's review, and acceptance (claude-fable-5-2, 2026-11-12)
+
+### AR1: a generated Hard-or-above puzzle needs one proved decisive guess
+
+Owner decision (asked on the command line, 2026-11-12). RES-05 counts an undecided alternative of an unfinished
+census as failing, so a puzzle can score Hard or above with no alternative actually proved to fail. That is fine for a
+labelled display estimate, but it does not meet the fixed decision "Hard and above require at least one real choice"
+for puzzles the Generator makes. Therefore:
+
+- New metric `Gproved`: the number of final-path guess nodes with `f >= 1` (an alternative proved impossible). With
+  a complete census `Gproved = G`; it can be smaller only when `censusComplete` is false. It is stored with the
+  other census metrics (RES-19) and shown by the probe and the replay table; it is **not** a score input, and the
+  formula of RES-18 is unchanged.
+- `selectClues`: for a target of level index 3 (Hard) or higher, a rated candidate with `Gproved === 0` is not
+  accepted, whatever its score. It costs its profile and is neutral for the count steering, exactly like an
+  unrateable candidate (RES-04); with a recorder it emits an event that names the reason. Below Hard nothing changes.
+- Imported puzzles and the derived display rating are not filtered: they show the estimate with its note (and the
+  `censored` flag of C1).
+- Tests: a unit test of `Gproved` on a census fixture with `u > 0`; a `selectClues` test where an estimated
+  in-band Hard candidate with `Gproved = 0` is passed over and a later proved one is returned; the slow generation
+  test of RES-26 asserts `Gproved >= 1` for every Hard-or-above puzzle (it replaces "no Hard-or-above puzzle has
+  G = 0", which this implies). MP06 reports how many in-band candidates this rule rejects per level and board.
+- Owner: MP05 (metric), MP07 or MP09 (the acceptance rule, in the task that makes `selectClues` use v3 ratings).
+
+### Acceptance
+
+I reviewed `docs/difficulty-v3/report-detailed.md` (RES-01 to RES-34, errata E01-E44, MP01-MP17, gates) and
+`report-brief.md` at `2721a46` against my answers of parts A-E. Every answer is applied as given, including the
+owner's four decisions (decisive guesses with a labelled estimate, the unrateable capped path, duplicate shapes
+refused at every entry, calibration freedoms). With C1-C5 answered and AR1 added, **the plan author accepts the
+report as the basis of the task pack**, on condition that C1 (b), C4 (b) and AR1 are written into the report or the
+task pack before MP05 starts. The owner's acceptance is separate.
