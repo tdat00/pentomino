@@ -65,7 +65,8 @@ có một bộ mảnh đang hiển thị.
    đó. Một bộ mới trùng với bộ đã có trong danh sách sẽ không được thêm; bộ đã có sẽ được hiển thị.
 3. **Tạo đề.** Khung của bước có mức độ của đề (mặc định là mức của bộ mảnh), công tắc **Yêu cầu lời giải duy nhất** và
    nút **Tạo đề mới**, mỗi lần nhấn thêm một đề. Danh sách bên trái hiện các đề của bộ đang hiển thị, mới nhất ở trên:
-   **Đề #n**, mức độ in đậm kèm điểm, số mảnh cần đặt, tình trạng lời giải (*Đang kiểm tra…*, *Lời giải duy nhất ✓*,
+   **Đề #n**, mức độ in đậm kèm điểm (với đề theo thang điểm cũ: đã chấm lại, kèm đánh giá gốc trong một ghi chú phía sau;
+   xem *Độ khó*), số mảnh cần đặt, tình trạng lời giải (*Đang kiểm tra…*, *Lời giải duy nhất ✓*,
    *Nhiều lời giải*, *Có ít nhất 1 lời giải*, *Không có lời giải* hoặc *Chưa kiểm tra tính duy nhất*) và hình xem trước.
    ✕ xóa một đề, **Xóa tất cả** ở đầu danh sách xóa hết. Màn hình chính hiện đề đang chọn (đề mới nhất cho tới khi bạn
    nhấn một thẻ) với seed, bàn chơi và các mảnh cần đặt; **Chơi** mở đề trong trình chơi ở thẻ mới, **In** (biểu tượng
@@ -125,7 +126,13 @@ nhập gì và có thông báo cho biết.
   giới hạn cứng **120 giây**; khi hết giờ nó dừng và báo những gì đã có.
 - **Độ khó.** Điểm chỉ là ước lượng. Đề mới nhắm vào khoảng giữa thang điểm của mức độ. Điểm tính theo số mảnh cần đặt,
   bước suy luận khó nhất cần dùng và số lần phải đoán thật (lựa chọn có phương án sai); đề do trình tạo đề tạo ra từ mức
-  Khó trở lên luôn cần ít nhất một lần đoán thật. Các đề tạo trước phiên bản này giữ nguyên điểm đã lưu. Đề thông thường không chờ chứng
+  Khó trở lên luôn cần ít nhất một lần đoán thật. Các đề tạo trước phiên bản này giữ nguyên điểm đã lưu; trình tạo đề
+  hiển thị những đề nó nhập vào, và đề của các bộ mảnh đã lưu từ trước phiên bản này, đã chấm lại theo thang điểm hiện
+  tại, kèm đánh giá gốc trong một ghi chú ("Đã chấm lại theo thang điểm hiện tại (gốc: Dễ 8, difficulty-v2)"). Việc chấm
+  lại chạy ngầm, không bao giờ làm chậm việc tạo đề, và cho tới khi xong chỉ hiện đánh giá đã lưu; nếu không có worker nào
+  chấm lại được thì đánh giá đã lưu được giữ, kèm "Không chấm lại được". Đề do chính trình tạo đề tạo ra không bao giờ bị
+  chấm lại, và khi chưa đếm xong các phương án đoán, đánh giá được đánh dấu "Ước lượng quyết định". Đánh giá đã lưu và
+  các bộ mảnh đã lưu không bao giờ thay đổi. Đề thông thường không chờ chứng
   minh tính duy nhất: tình trạng lời giải được kiểm tra
   ngầm sau khi đề xuất hiện. Một đề bạn yêu cầu lời giải duy nhất vẫn có thể không chứng minh được; khi đó trình tạo đề
   nói rõ thay vì trả về một đề chưa được chứng minh.
@@ -226,7 +233,7 @@ Nút **In** (biểu tượng máy in: bên phải **Chơi** trong trình tạo �
 in đề ra giấy A4, để giải ngoại tuyến với các mảnh cắt rời.
 
 - Tờ đầu tiên có một **mã QR** ở góc trên bên trái, dưới chú thích "Chơi trực tuyến", và bên phải là tên đề (đúng tên
-  thẻ đề trong danh sách: "Đề #n") cùng mức độ và điểm của đề (trong trình chơi, là đánh giá mà nó đang hiện, kèm các ghi
+  thẻ đề trong danh sách: "Đề #n") cùng mức độ và điểm của đề (là đánh giá mà ứng dụng đang hiện, kèm các ghi
   chú của đánh giá ở những dòng bên dưới: đánh giá gốc của đề được chấm lại, "Ước lượng quyết định"). Quét mã QR để
   chơi lại đúng đề này trong trình chơi, không cần seed. Tờ giấy không in mã đề, địa chỉ hay seed. Sau đó là một hình xem
   trước nhỏ của đề với các mảnh cần đặt (để đọc, không để cắt).

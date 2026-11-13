@@ -10,8 +10,9 @@ import { isValidLayout } from '../core/engine/tiling.js';
 import { createPack, packBoard, PackError, serializePack, validatePack } from '../core/engine/pack.js';
 import { BUDGETS, POLICY_ID, enabledMaxActive, pieceCountRange, sizeWindow } from '../core/engine/policy.js';
 import { batchSeedFor, normalizeSeedText, randomSeedText, RNG_ID, SEED_SCHEME } from '../core/engine/rng.js';
-import { clueKey, layoutKey } from '../core/engine/keys.js';
+import { clueKey, layoutKey, progressFingerprint } from '../core/engine/keys.js';
 import { ALGO_ID, APP_VERSION } from '../core/engine/version.js';
+import { displayRatingKey, needsDisplayRating } from '../core/browser/display-rating.js';
 import { t } from './i18n.js';
 import { formatMessage, formatNotice, levelLabel } from './strings.js';
 
@@ -62,6 +63,9 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {Readonly<Record<string, string>>} puzzleSeeds Batch seed each puzzle was generated with, by puzzle id.
  * @property {boolean} calibrationTrusted The calibration was produced by this session's engine run.
  * @property {number} setPosition Where the set on show sits in the newest-first list of the sets of its own board.
+ * @property {Readonly<Record<string, import('../core/browser/display-rating.js').DisplayEntry>>} displayRatings The derived
+ *   display ratings (`displayRatingKey` → entry) of the puzzles with a rating on an older scale (design §7.7). Owned by the
+ *   job controller's scheduler; never saved, and the stored claims are never changed.
  */
 
 /**
@@ -142,8 +146,38 @@ export function defaultGeneratorState(overrides = {}) {
     puzzleSeeds: {},
     calibrationTrusted: false,
     setPosition: 0,
+    displayRatings: {},
     ...overrides,
   };
+}
+
+// The key changes with the set or the clues only, so it is made once for the cards and the wishes.
+/** @type {WeakMap<object, { board: Board, pieces: PieceSet['pieces'], key: string }>} */
+const displayKeys = new WeakMap();
+
+/**
+ * @param {PieceSet} set The set on show.
+ * @param {Puzzle} puzzle One of its puzzles.
+ * @returns {string} The key of the puzzle's derived display rating.
+ */
+export function displayKeyOf(set, puzzle) {
+  const known = displayKeys.get(puzzle.clues);
+  if (known !== undefined && known.board === set.board && known.pieces === set.pieces) {
+    return known.key;
+  }
+  const key = displayRatingKey(progressFingerprint(set.board, set.pieces, puzzle.clues));
+  displayKeys.set(puzzle.clues, { board: set.board, pieces: set.pieces, key });
+  return key;
+}
+
+/**
+ * @param {Pick<GeneratorState, 'set' | 'displayRatings'>} state
+ * @param {Puzzle} puzzle
+ * @returns {import('../core/browser/display-rating.js').DisplayEntry | undefined} The scheduler's entry for a puzzle of the
+ *   set on show with a rating on an older scale; undefined for any other puzzle.
+ */
+export function displayEntryOf(state, puzzle) {
+  return state.set === null || !needsDisplayRating(puzzle.rating) ? undefined : state.displayRatings?.[displayKeyOf(state.set, puzzle)];
 }
 
 /**

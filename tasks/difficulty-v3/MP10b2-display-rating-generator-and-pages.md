@@ -4,7 +4,7 @@
 |---|---|
 | ID | MP10b2 (second half of the report's display part of MP10) |
 | Depends on | MP10b1 (accepted and committed: `core/browser/display-rating.js`, the note texts, the Player views); MP10a (`client.submitAuxiliary`) |
-| Estimated size | Medium–Large: about 400–650 changed lines (the Generator about 100, Node tests about 150–200, browser pages about 150–250, documents about 50); about 50–60 minutes plus the browser runs (about 10–15 minutes) |
+| Estimated size | Medium–Large: about 400–650 changed lines (the Generator about 100, Node tests about 150–200, browser pages about 150–250, documents about 50); about 50–60 minutes plus the browser runs (about 10–15 minutes); Amendment D1 (known issue KI-1) adds about 150–180 lines (the worker pool about 35, its Node tests about 110–130, the design about 5), about 20–30 minutes and about 17 minutes of page runs |
 | Owner role | Apps |
 | Milestone | M6 — display rating |
 | Design refs | `docs/difficulty-v3/report-detailed.md` RES-23 (derived display rating; Generator: imported and restored puzzles), RES-29 (auxiliary requests), RES-05 and C1 (b) (estimate note), RES-22 (gate GC-P2); check-list §4.2 D27, §7 (GC-P2 display, browser checks) |
@@ -55,8 +55,8 @@ of undecided alternatives.
   v3 level or score: match patterns (a level name, an integer score) and the stored original in the note.
 - This task owns the GC-P2 display runs (the six pages of the test plan). **Announce to the orchestrator before
   starting them** (the Sudoku repository runs in parallel on the same machine; never two heavy runs at once): give the
-  pages and the expected wall time (about 10–15 minutes) in your plan, and start only when the orchestrator says the
-  machine is free.
+  pages and the expected wall time (about 10–15 minutes, plus about 17 minutes for the 20 runs of Amendment D1) in
+  your plan, and start only when the orchestrator says the machine is free.
 - Ports HTTP 8810 and CDP 9310; profile `tests\artifacts\edge-MP10b2\`; evidence `tests\artifacts\MP10b2\`; the
   procedure and native CDP client of `tasks/regenerate-puzzle/check-list.md` §7 (client wait raised to 540,000 ms).
   Two more changes to the copied client (cross-review TP17): set `RP_EVIDENCE_DIR` to
@@ -174,12 +174,13 @@ without the orchestrator's approval.
 | `generator/ui/puzzle-panel.js` | cards and print captions |
 | `generator/app.js` | only if the client must be passed on |
 | `tests/generator-import.test.js`, `tests/generator-state.test.js` | new cases |
+| `core/browser/worker-pool.js`, `tests/worker-pool.test.js` | Amendment D1 (KI-1): the delayed load retry and its five Node cases |
 | the six browser pages of the table and the new checks | expectations and three checks |
 | `docs/design-detail.md`, `docs/design-brief.md`, `USERGUIDE.md`, `USERGUIDE.vn.md` | documents |
 
 Exclusive ownership while active: the files above; scratch under `tests/artifacts/MP10b2/`. Documentation slot: design
-§10 (Generator), the brief's levels paragraph, the user guides' Generator part. Must not edit: the Player, the shared
-display module, the texts, engine files, other pages.
+§10 (Generator), design §8.1's **Pool.** bullets (Amendment D1), the brief's levels paragraph, the user guides'
+Generator part. Must not edit: the Player, the shared display module, the texts, engine files, other pages.
 
 ### Documents
 
@@ -194,9 +195,11 @@ display module, the texts, engine files, other pages.
 
 ## Implementation steps
 
+0. Amendment D1 (at the end of this file): the worker pool's load retry, its five Node cases and the design bullet.
 1. The Generator state, controller and views; the Node tests; run them.
 2. The browser page edits and the three new checks.
-3. Announce and run the six pages (one at a time); record the results.
+3. Announce and run the six pages (one at a time), then Amendment D1's 20 runs of `puzzle-code-acceptance.html`;
+   record the results.
 4. Documents; `npm run test:quick`; `npm run check`.
 
 ## Acceptance criteria — Business
@@ -217,13 +220,15 @@ display module, the texts, engine files, other pages.
 | MP10b2-T04 | The six pages pass in the main phase with no CSP violation and no uncaught error; only the listed expectations changed, plus the three new checks (the card-redraw check among them) | browser evidence; diff |
 | MP10b2-T05 | `npm run test:quick` and `npm run check` pass; documents in both languages | command output; review |
 | MP10b2-T06 | The controller sends the wishes of the state it starts with once at creation, with no store update needed; it re-sends them when `state.set` or `state.puzzles` changes; after `destroy()` nothing is sent | `tests/generator-state.test.js` case 3 |
+| MP10b2-T07 | Amendment D1's pool contract: a load failure (a plain `error` event before any reply) is retried once, after `LOAD_RETRY_DELAY_MS`, on a new worker with the same message while the slot stays reserved; every other `error` still rejects with `worker-crashed`; aborts, `recycle` and `close` cancel a pending retry; the three existing crash tests pass unchanged | `tests/worker-pool.test.js` (Amendment D1, cases 1-5) |
+| MP10b2-T08 | Amendment D1's 20-run check: 20 consecutive runs of `puzzle-code-acceptance.html` whose page result is `pass`, or the documented stop | `tests/artifacts/MP10b2/ki1-loop.log` and the runs' evidence |
 
 ## Test plan
 
 ### Exact commands
 
 ```powershell
-node --test --test-skip-pattern=slow tests\generator-import.test.js tests\generator-state.test.js tests\generator-i18n.test.js tests\display-rating.test.js
+node --test --test-skip-pattern=slow tests\generator-import.test.js tests\generator-state.test.js tests\generator-i18n.test.js tests\display-rating.test.js tests\worker-pool.test.js
 if ($LASTEXITCODE -ne 0) { throw 'targeted tests failed' }
 
 # announced gate GC-P2 display: ports 8810 / 9310, one page at a time, main phase, the procedure of
@@ -234,6 +239,8 @@ if ($LASTEXITCODE -ne 0) { throw 'targeted tests failed' }
 #   http://127.0.0.1:8810/pentomino/tests/browser/puzzle-code-acceptance.html
 #   http://127.0.0.1:8810/pentomino/tests/browser/acceptance.html
 #   http://127.0.0.1:8810/pentomino/tests/browser/generator-flow.html
+# then Amendment D1: 20 runs of puzzle-code-acceptance.html, one locked command each; log in
+# tests\artifacts\MP10b2\ki1-loop.log
 
 npm run test:quick
 if ($LASTEXITCODE -ne 0) { throw 'quick set failed' }
@@ -267,21 +274,143 @@ a physical device): the same blocked checks are expected; any new blocked or fai
 ## Definition of done & handoff
 
 - Every criterion has its evidence; the reply gives the page verdicts, summaries, check counts, Edge version and error
-  counts, and lists every changed expectation.
+  counts, and lists every changed expectation; and Amendment D1's result (its "Handoff" paragraph).
 - Handoff to MP11 and later: the display rating needs no calibration change; MP17 re-runs these pages in GZ.
+
+## Amendment D1 (before dispatch: known issue KI-1, a delayed load retry in the worker pool)
+
+Added by SA1 on 2026-11-13, before dispatch; the analysis is in
+`docs/difficulty-v3/claude-opus-5.5/7-response-to-second-pass.md` §9. It adds step 0, two code files, one design
+bullet, criteria MP10b2-T07 and T08 and a 20-run browser check; the header, the repository rules, the files table, the
+steps, the criteria, the test plan and the definition of done point here. Nothing else above changes.
+
+**Why.** Known issue KI-1 (check-list "Known issues"): `tests/browser/puzzle-code-acceptance.html` fails in 2 to 3 of
+10 runs, in BA09, BA05 or the first BA01 check. MP09e's instrumented runs (git-ignored:
+`tests/artifacts/MP09e/dbg53.console.json` and `dbg31.console.json`) show the sequence. BA09 starts with
+`mount({ hash: await packHash(sample, 0) })`: `packHash` disposes its client, which terminates its worker (worker 8, at
+2,465 ms); the Player creates its decode worker 5 ms later (worker 9), and that worker fires `error` 41 ms after
+creation, before any reply, as a plain `Event` with no `message`, `filename` or `lineno`. In `dbg31` the failing
+worker is BA09's first (`packHash`'s), created just after the previous check's cleanup; it fires the same event 19 ms
+after creation, and that run's only CDP error is a canceled `Script` request. A browser fires such an event when a
+worker's script or a static import fails to load; a runtime exception arrives as an `ErrorEvent` with a message. The
+pool turns it into `worker-crashed`, so the puzzle-code step fails, and the check's message depends on the step:
+"the codes of the pack could be made", "timed out: the view to turn", "the Print dialog is ready", "expected "game",
+got "start"" (BA05) or "the entry accepted the text (Puzzle code processing failed. Try again.)". The apps run the
+same sequence (an aborted or stale busy task whose worker is discarded and replaced; `recycle` after a set change,
+D38; a disposed client followed by a new one), so the fix belongs in the pool, not in the page. The retry waits
+because the failure follows a termination by a few milliseconds, and a retry follows one too (that of the failed
+worker).
+
+**Files** (this task's exclusive ownership; the check-list's ownership row, §2 "Exclusive ownership", lists them):
+
+| File | Change |
+|---|---|
+| `core/browser/worker-pool.js` | `LOAD_RETRY_DELAY_MS` (new export), the `Slot` and `Entry` typedefs and literals, `discard`, a new `reload`, the listeners of `spawn` |
+| `tests/worker-pool.test.js` | five cases in `describe('crashes and unavailable workers')` |
+| `docs/design-detail.md` §8.1 | one bullet in **Pool.** |
+
+No other file changes for D1: not `core/browser/puzzle-code-client.js`, not the pages (beyond this task's table), not
+`tools/node-worker.mjs`, whose `error` events always carry a `message` (`tools/node-worker.mjs:29-30`), so Node keeps
+today's behaviour.
+
+**Contract** (`core/browser/worker-pool.js`).
+
+1. `export const LOAD_RETRY_DELAY_MS = 100;` next to `MEMORY_UI_INTERVAL_MS`.
+2. An instance is *answered* once it has delivered a `message` or a `messageerror` event (a flag local to `spawn`,
+   set first in both listeners).
+3. A *load failure* is an `error` event of the slot's current instance that arrives before the instance is answered
+   and whose `message` is not a string (`typeof event?.message !== 'string'`).
+4. On a load failure, when the slot has a busy entry whose `reloaded` is false, call `reload(slot, entry)`:
+   `entry.reloaded = true`; terminate the instance as `discard` does (`slot.worker = null`, `slot.bytes = 0`,
+   `terminate()` in a try block, `account()`) but keep `slot.busy === entry` and `entry.slot === slot`, so that the
+   slot stays reserved and every abort still finds the task; then `slot.retryTimer = clock.setTimeout(fire,
+   LOAD_RETRY_DELAY_MS)`. `fire`: `slot.retryTimer = null`; if `closed`, `entry.settled` or `slot.busy !== entry`,
+   return; otherwise `slot.busy = null`, `entry.slot = null`, `dispatch(entry, slot)` (the new worker gets the same
+   message and id; if no worker can be created, `dispatch` rejects the task as today and the slot stays free), then
+   `pump()`. The caller sees nothing: no rejection, no progress, no new error code.
+5. Every other `error` keeps today's `failSlot(slot, 'worker-crashed', ...)`: a second load failure of the same
+   entry, an error after the instance answered, an error whose `message` is a string (also `''`), or no busy entry.
+   Events of a non-current instance stay ignored.
+6. `discard` first clears a pending retry (`clock.clearTimeout(slot.retryTimer)`, then `null`), so that `abortEntry`
+   (signal, deadline, supersession, `cancelAll`, preemption), `recycle` and `close` cancel it.
+7. The `Slot` typedef gains `@property {unknown} retryTimer` (`null` in the slot literal of `createPool`); the
+   `Entry` typedef gains `@property {boolean} reloaded` (`false` in the entry literal of `enqueue`). Each task has its
+   own single retry.
+
+**Node tests** (`tests/worker-pool.test.js`, `describe('crashes and unavailable workers')`, with the file's `setup`
+(its `clock` is the fake clock), `task`, `track`, `flush` and `FakeWorker`'s `emit`, `send` and `result`;
+`new Event('error')` is a Node global; "advance" is `clock.advance(LOAD_RETRY_DELAY_MS)`):
+
+1. Load failure, then success: `workers[0].emit('error', new Event('error'))` before any reply → the task is pending,
+   `workers[0].terminated`, still one worker; after the advance two workers, and `workers[1].messages` deep-equals
+   `workers[0].messages` (one message, same id); `workers[1].result('ok')` → the task resolves `'ok'`.
+2. Second load failure: case 1 up to the replacement, then the same event from `workers[1]` → the task rejects at once
+   with a `PoolError` of code `worker-crashed`; another advance creates no worker; a new task gets its own retry.
+3. Not a load failure: `emit('error', { message: '' })` before any reply → `worker-crashed` at once; a `progress`
+   message (`{ type: 'progress', id: w.taskId(), stage: 's', rowTrials: 0, bytes: 1 }`) and then the plain event →
+   `worker-crashed`; in both, an advance creates no worker.
+4. The slot stays reserved: pool size 1, tasks a and b; worker 0 fails to load with a → no worker is created for b
+   before the advance; after it the replacement holds a's message only; `result('a')` → a resolves and b is sent to
+   the same worker.
+5. A pending retry is cancelled: during the pause, `pool.close()` → the task rejects `closed`, `clock.pending()` is 0
+   and an advance creates no worker; in a second pool, the task's `signal` aborts it → `cancelled`, `clock.pending()`
+   drops by one (the retry timer; the request's deadline timer stays) and an advance creates no worker.
+
+The three existing tests that emit `error` with a message (lines 326, 351 and 776) pass unchanged.
+
+**Design** (`docs/design-detail.md` §8.1, a bullet of **Pool.** after "Recycling (D38)"): "**Load failure** (KI-1). A
+worker whose script does not load fires a plain `error` event before it sends anything; a browser can cancel the
+script request of a worker started just after another one was terminated. The pool then terminates that worker and,
+after 100 ms (`LOAD_RETRY_DELAY_MS`), sends the same task to a new one, once per task; the slot stays reserved
+meanwhile. A second load failure of the task, or any other `error`, rejects the task with `worker-crashed` as
+before."
+
+**Step 0** (before step 1): the pool change, the five cases, `node --test tests\worker-pool.test.js`, the design
+bullet.
+
+**The 20-run check** (part of the announced GC-P2 display runs, after the six pages):
+
+- `puzzle-code-acceptance.html` with this task's page edits, 20 consecutive runs, one at a time, each its own locked
+  command, each with the page procedure of "Repository rules", a fresh profile and `RP_EVIDENCE_DIR` =
+  `tests\artifacts\MP10b2\puzzle-code-acceptance\ki1-<i>`. The GC-P2 run of that page may count as run 1.
+- One line per run in `tests\artifacts\MP10b2\ki1-loop.log`: the run, the page result, the failed check names, the
+  CDP error count and kinds, the wall time and the summary's `spawned` count. In MP09e's passing runs that count was
+  always 122; take the most frequent count of the 20 runs as the reference: one more marks a run in which the pool
+  replaced a worker (reported, not a criterion).
+- MP09e's git-ignored `tests\artifacts\MP09e\baseline-loop.ps1` and `run-page.ps1` may be copied into
+  `tests\artifacts\MP10b2\` and adapted (ports 8810 and 9310, profile `edge-MP10b2`, this task's evidence paths and
+  client); never edit MP09e's files.
+- Pass (MP10b2-T08): 20 of 20 runs with page result `pass`. At the measured rate (5 of 20 runs in MP09e's two loops),
+  20 clean runs by chance have a probability of about 0.3 % (0.75^20), and about 1.2 % at 2 in 10.
+- The client's error rule stays. A run whose page passed and whose only CDP error is a canceled `Script` request
+  (`Network.loadingFailed`, `canceled: true`) is listed as such and counts as a pass for T08; if it is the GC-P2 run
+  of the page (MP10b2-T04), that run is repeated once. Of MP09e's 24 recorded runs, only the instrumented `dbg31`
+  captured that event.
+- A failure of another signature is handled as any page failure of this task. A failure of the KI-1 signature (a
+  failed check whose message is one of the five of "Why", or any failed check whose message contains "Puzzle code
+  processing failed"): raise `LOAD_RETRY_DELAY_MS` to 300 once (code, test and design text) and restart the count at
+  run 1. If it fails again with that signature, stop the loop, keep the change (it is correct and its tests pass),
+  record the runs and report: GC-P2 display is then judged with the known-flake rule (one re-run of the page on this
+  signature), and KI-1 stays open.
+
+**Handoff.** The reply gives the 20-run table (page results, failed names, CDP errors, `spawned` counts), the delay in
+force (100 or 300 ms) and whether KI-1 can be closed. MP17: once T08 has passed, a failure of the KI-1 signature is a
+regression, not the known flake.
+
+AMENDMENT D1 READY
 
 ## Execution log
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP10b2: Derived display rating in the Generator; the browser pages and gate GC-P2 (display); KI-1 closed`) |
+| Start | 2026-11-13 09:19 (+07:00) |
+| End | 2026-11-13 10:03 developer; 10:08 orchestrator review and commit |
+| Duration | 45 min developer (about 25 min of it page runs, 20 of them the D1 check); about 5 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 194 model calls; 41,066,875 input tokens (40,523,723 cache reads); 175,668 output tokens |
+| AI credits | about 717 (developer) |
+| Verification | Developer: targeted `node --test` (the task's five files) 121/121; `npm run test:quick` 1333/1333 (29 s); `npm run check` OK; `record-fixtures --check` OK; GC-P2 display, each page under its own timing lock (Edge 157, ports 8810/9310, fresh profile): `print` 10 pass, `puzzle-code-print` 13, `player-load` 19, `puzzle-code-acceptance` 24 (9/9 QR, 0 CDP errors, spawned 123 = terminated 123), `acceptance` "PASS 16 checks, 4 blocked" as expected, `generator-flow` 21/21; D1 20-run check 20/20 (09:40-10:00, 43-49 s each, 0 CDP errors, no KI-1 signature, delay stays 100 ms). Orchestrator re-run: `test:quick` 1333/1333; `worker-pool`, `generator-import`, `generator-state`, `display-rating`, `player-load` 153/153; `check` OK; `record-fixtures --check` OK |
+| Acceptance | MP10b2-B01..B03 and T01..T05, T07, T08 met. Diff reviewed: the Generator's job controller wishes display ratings for the puzzles of the set on show whose claim is on an older scale (at creation and when the set or the puzzles change), through `client.submitAuxiliary` (rejected as `worker-unavailable` without it), into `state.displayRatings` (never saved); cards, list and print jobs show the derived rating and notes; generation is never held back. D1: `worker-pool.js` retries a task once, after `LOAD_RETRY_DELAY_MS` (100 ms) on a new worker, when its worker fires a plain `error` (no message) before any reply; the slot stays reserved, `discard` clears a pending retry, every other error stays `worker-crashed`; five Node cases; design §8.1 bullet |
+| Issues & resolutions | (1) SA1 refined D1's "20-run check" after dispatch; the orchestrator passed the refinements (KI-1 signature, canceled-Script rule, `spawned` column, the 300 ms rule) to the developer; none triggered. (2) `tests/browser/player-load.js` had not passed since MP09a1 (`dfea36d`): its `bigSet()` of 21 monominoes is refused as duplicate shapes; replaced by the 21 distinct free polyominoes of 1-5 cells on a 9 x 10 board without one corner (tiling found by the engine, validated by `validatePack`). (3) `generator-flow.js`: the scripted `makePuzzle` carried v2 claims and the scripted client has no `submitAuxiliary`, so cards read "Could not be re-rated"; it now carries a v3 summary claim. (4) Task table against the code: `puzzle-code-print.js:466` reads a hand-built job, so the expected details are built with `ratingDisplay` and compared with `fitDetailLine`; `puzzle-code-acceptance.js:1024` used a stub pool that never answers, now a real `createPool({ size: 1 })` (spawned 122 to 123); `acceptance.js:243` cards are generated v3 puzzles, so only a "Decisive estimate" note is allowed. (5) No announcement channel for page runs: the timing-lock protocol was used. (6) KI-1 closed by T08 (check-list "Known issues") |
+| Handoff | MP11: nothing to calibrate (no scale change). MP17: re-run `print`, `puzzle-code-print`, `player-load`, `puzzle-code-acceptance`, `acceptance`, `generator-flow` in GZ; `puzzle-code-acceptance` spawns 123 workers as it stands; KI-1 is closed, so a failure of its signature is a regression, with no re-run allowance; a scripted client or stub that carries v2 claims without `submitAuxiliary` shows "Could not be re-rated" |

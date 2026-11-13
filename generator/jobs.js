@@ -3,13 +3,14 @@
 // the job that asked for it, so a stale reply changes nothing.
 import { boardToRows } from '../core/engine/board.js';
 import { readPuzzleCode } from '../core/browser/handoff.js';
+import { createDisplayRatings, needsDisplayRating } from '../core/browser/display-rating.js';
 import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
-import { isAbortError } from '../core/browser/worker-pool.js';
+import { PoolError, isAbortError } from '../core/browser/worker-pool.js';
 import { clueKey, layoutKey } from '../core/engine/keys.js';
 import { BUDGETS } from '../core/engine/policy.js';
 import { randomPuzzleSeed } from '../core/engine/rng.js';
 import {
-  MAX_PACK_BYTES, MAX_PACK_PUZZLES, acceptSet, addSeenKeys, applyCertificate, batchLevelOf, capFor, duplicateSetNumber,
+  MAX_PACK_BYTES, MAX_PACK_PUZZLES, acceptSet, addSeenKeys, applyCertificate, batchLevelOf, capFor, displayKeyOf, duplicateSetNumber,
   generationBlock, gotoSet, historyRoom, importPuzzle, mergeSeenKeys, nextBatch, packFits,
   removeAllPuzzles, removeAllSets, removeCurrentSet, removePuzzle, resetHistory, roomForAnotherPuzzle, setTimelineLength,
   setViewPosition, setsFull, validSeed, visiblePack,
@@ -204,6 +205,52 @@ export function createJobController(options) {
   let importSeq = 0;
   /** @type {import('../core/browser/puzzle-code-client.js').PuzzleCodeClient | null} */
   let codeClient = null;
+
+  // Derived display ratings (design §7.7): the puzzles of the set on show whose rating is on an older scale are rated
+  // again in the background, one request at a time, and the answers go to `state.displayRatings`.
+  const display = createDisplayRatings({
+    submit: (kind, payload, submitOptions) => (options.workersAvailable === false || typeof client?.submitAuxiliary !== 'function'
+      ? Promise.reject(new PoolError('worker-unavailable', 'No auxiliary requests'))
+      : client.submitAuxiliary(kind, payload, submitOptions)),
+    onChange: (key, entry) => store.update((s) => {
+      const next = { ...s.displayRatings };
+      if (entry === undefined) {
+        delete next[key];
+      } else {
+        next[key] = entry;
+      }
+      return { ...s, displayRatings: next };
+    }),
+  });
+
+  /** @param {GeneratorState} state */
+  function wishDisplayRatings(state) {
+    const { set } = state;
+    /** @type {import('../core/browser/display-rating.js').DisplayWish[]} */
+    const wishes = [];
+    if (set !== null) {
+      const boardRows = boardToRows(set.board);
+      for (const puzzle of state.puzzles) {
+        if (needsDisplayRating(puzzle.rating)) {
+          wishes.push({ key: displayKeyOf(set, puzzle), payload: { boardRows, pieces: set.pieces, clues: puzzle.clues } });
+        }
+      }
+    }
+    display.want(wishes);
+  }
+
+  // A restored set that nobody touches is rated too, so the start-up state is wished at once; a later change of the
+  // set or of the puzzles wishes again.
+  let wishedSet = store.getState().set;
+  let wishedPuzzles = store.getState().puzzles;
+  wishDisplayRatings(store.getState());
+  const unsubscribe = store.subscribe((state) => {
+    if (state.set !== wishedSet || state.puzzles !== wishedPuzzles) {
+      wishedSet = state.set;
+      wishedPuzzles = state.puzzles;
+      wishDisplayRatings(state);
+    }
+  });
 
   /** @param {string} revision */
   const isCurrent = (revision) => !destroyed && store.getState().job?.revision === revision;
@@ -641,6 +688,8 @@ export function createJobController(options) {
     destroy() {
       destroyed = true;
       importSeq += 1;
+      unsubscribe();
+      display.dispose();
       codeClient?.dispose();
       codeClient = null;
     },

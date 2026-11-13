@@ -6,11 +6,13 @@ import { activeCount, boardFromRows, boardKey, boardToRows, preset, rectangle } 
 import { packBoard, parsePack, validatePack } from '../core/engine/pack.js';
 import { LIMITS } from '../core/engine/policy.js';
 import { setLocale } from '../generator/i18n.js';
+import { createJobController } from '../generator/jobs.js';
 import { formatNotice } from '../generator/strings.js';
 import {
   HISTORY_LIMIT, LISTED_LEVEL_IDS, MAX_SAVED_BOARDS, MAX_SAVED_SETS, MAX_SETS, acceptSet, beginSetRequest,
   boardsEqual, capFor, createEditHistory, createGeneratorStore, createPersistence, defaultGeneratorState, describeBoard,
-  describeCount, describeLevels, detectHardware, gotoSet, isPhone, loadGeneratorState, mergeSeenKeys, nextBatch, nearestOfferedLevel,
+  describeCount, describeLevels, detectHardware, displayEntryOf, displayKeyOf, gotoSet, isPhone, loadGeneratorState, mergeSeenKeys,
+  nextBatch, nearestOfferedLevel,
   readSavedSet, readyLevelId, removeAllSets, resizeBoard, restoreState, rollSeed, saveRestoreCleanup, savedSetOf, serializeState,
   setCell, setNumber, setTimelineLength, setViewPosition, setsFull, typeSeed, validSeed, withBoard,
 } from '../generator/state.js';
@@ -735,4 +737,76 @@ test('a failing storage at the startup save is reported, never thrown, and the n
     assert.equal(store.getState().notice?.code, 'M-DUPLICATE-SETS', `${mode}: the notice is still there`);
     assert.equal(store.getState().notice?.text, EN_ONE, mode);
   }
+});
+
+const playerClaims = /** @type {any[]} */ (/** @type {any} */ (parsePack(readFileSync(new URL('../player/samples/sample-pack.json', import.meta.url), 'utf8'))).value.puzzles)
+  .map((p) => p.rating);
+/** The sample's puzzles with the claims of the old scale (`difficulty-v2`) that the Player sample carries. */
+const oldScalePuzzles = samplePuzzles.map((p, i) => ({ ...p, rating: playerClaims[i] }));
+const derivedRating = { model: 'difficulty-v3', score: 14, level: 'normal', saturated: false, metrics: { censusComplete: true, censusUndecided: 0 } };
+
+test('the derived display ratings are in the state and never in the saved text; a restored state starts without them', () => {
+  assert.deepEqual(defaultGeneratorState().displayRatings, {});
+  const state = { ...acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: null, setSeed: 'demo' }), puzzles: oldScalePuzzles };
+  const plain = JSON.stringify(serializeState(state));
+  const entries = Object.fromEntries(state.puzzles.map((p, i) => [displayKeyOf(sampleSet, p), i === 0 ? { status: 'rated', rating: derivedRating } : { status: 'unavailable' }]));
+  assert.equal(Object.keys(entries).length, 3);
+  const withEntries = { ...state, displayRatings: /** @type {any} */ (entries) };
+  assert.equal(JSON.stringify(serializeState(withEntries)), plain, 'the same saved text with and without entries');
+  assert.equal(plain.includes('displayRatings'), false);
+  assert.equal(plain.includes('difficulty-v3'), false, 'no derived rating reaches the storage');
+  const restored = restoreState(JSON.parse(plain));
+  assert.deepEqual(restored.displayRatings, {});
+  assert.deepEqual(restored.puzzles.map((p) => p.rating), playerClaims, 'the stored claims are those that were saved');
+  assert.equal(JSON.stringify(serializeState(restored)), plain, 'and saving them again changes no byte');
+  assert.equal(displayEntryOf({ ...withEntries, set: sampleSet }, withEntries.puzzles[0])?.status, 'rated');
+  assert.equal(displayEntryOf({ ...withEntries, set: sampleSet }, { ...withEntries.puzzles[0], rating: derivedRating }), undefined, 'a v3 claim has no entry');
+  assert.equal(displayEntryOf({ ...withEntries, set: null }, withEntries.puzzles[0]), undefined, 'without a set there is no key');
+});
+
+test('the controller wishes the derived ratings of the state it starts with, once and with no store update; it wishes again on a change; destroy stops it', async () => {
+  const io = fakeStorage({ state: JSON.parse(JSON.stringify(serializeState({
+    ...acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: null, setSeed: 'demo' }), puzzles: oldScalePuzzles,
+  }))) });
+  const store = createGeneratorStore(loadGeneratorState(io));
+  /** @type {{ kind: string, payload: any }[]} */
+  const calls = [];
+  const client = /** @type {any} */ ({
+    generateSet: async () => ({ status: 'cancelled' }),
+    generateBatch: async () => ({ status: 'cancelled' }),
+    cancel() {},
+    submitAuxiliary: async (/** @type {string} */ kind, /** @type {any} */ payload) => {
+      calls.push({ kind, payload });
+      return derivedRating;
+    },
+  });
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const waitFor = async (/** @type {() => boolean} */ ok) => {
+    for (let i = 0; i < 500 && !ok(); i += 1) {
+      await tick();
+    }
+    assert.ok(ok());
+  };
+  const rated = () => Object.values(store.getState().displayRatings).filter((entry) => entry.status === 'rated').length;
+  const controller = createJobController({ store, hardware: DESKTOP, client });
+  assert.equal(calls.length, 1, 'the first request is sent at once, before any update of the store');
+  await waitFor(() => rated() === 3);
+  assert.deepEqual(calls.map((call) => call.kind), ['rate', 'rate', 'rate']);
+  assert.deepEqual(calls.map((call) => call.payload.clues), store.getState().puzzles.map((p) => p.clues), 'in list order');
+  assert.deepEqual(calls[0].payload.boardRows, boardToRows(sampleSet.board));
+  assert.deepEqual(calls[0].payload.pieces, sampleSet.pieces);
+
+  // A new puzzle in the list is wished; the answers already there are not asked for again.
+  const [first] = store.getState().puzzles;
+  store.update((s) => ({ ...s, puzzles: [...s.puzzles, { ...first, id: 'more-1', clues: first.clues.slice(1) }] }));
+  await waitFor(() => rated() === 4);
+  assert.equal(calls.length, 4);
+
+  controller.destroy();
+  store.update((s) => ({ ...s, puzzles: [...s.puzzles, { ...first, id: 'more-2', clues: first.clues.slice(2) }] }));
+  await tick();
+  await tick();
+  assert.equal(calls.length, 4, 'after destroy nothing is sent');
+  assert.equal(rated(), 4);
+  store.destroy();
 });

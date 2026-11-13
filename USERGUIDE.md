@@ -68,7 +68,8 @@ a piece set (otherwise step 1 says why), and step 3 once a piece set is on show.
    that is the same as one already in the list is not added; that set is shown instead.
 3. **Create puzzles.** The step frame holds the puzzle level (the set's level by default), the
    **Require unique solution** switch and **New puzzle**, which adds one puzzle per press. The list on the left shows the
-   puzzles of the set on show, newest first: **Puzzle #n**, the level in bold with the score, the number of pieces to
+   puzzles of the set on show, newest first: **Puzzle #n**, the level in bold with the score (for a puzzle of an older
+   scale, re-rated, with its original rating in a note after it; see *Difficulty*), the number of pieces to
    place, the solution status (*Checking…*, *Unique solution ✓*, *Multiple solutions*, *At least 1 solution*,
    *No solution exists* or *Uniqueness not checked*) and a preview. ✕ removes one puzzle and **Remove all** in the list
    header removes them all. The main screen shows the selected puzzle (the newest one until you click a card) with its
@@ -136,7 +137,12 @@ board already holds 50 sets, or the puzzle list is full, nothing is imported and
 - **Difficulty.** Scores are estimates. A new puzzle aims at the middle of its level's score range. The score counts the
   pieces to place, the hardest deduction needed and the real guesses (choices where an option fails); puzzles the
   Generator makes at Hard and above always need at least one real guess. Puzzles made before this version keep their
-  stored score. Ordinary puzzles
+  stored score; the Generator shows the ones it imports, and those of piece sets saved before this version, re-rated on
+  today's scale, with the original rating in a note ("Re-rated with the current scale (original: Easy 8,
+  difficulty-v2)"). The re-rating runs in the background, never slows down a generation, and until it has finished the
+  stored rating shows alone; if no worker can do it, the stored rating stays, with "Could not be re-rated". Puzzles the
+  Generator makes itself are never re-rated, and a count of the guess alternatives that did not finish is marked
+  "Decisive estimate". Stored ratings and saved sets never change. Ordinary puzzles
   do not wait for a uniqueness proof: their solution status is
   checked in the background after they appear. A puzzle you require to be unique can still fail to be proven; the
   Generator then says so rather than returning an unproven puzzle.
@@ -243,7 +249,7 @@ buttons above the puzzle's name (and **Remove** and **Remove all** under them), 
 prints the puzzle on A4 paper, to solve it offline with cut-out pieces.
 
 - The first sheet has a **QR code** at the top left, captioned "Play online", and to its right the puzzle's name (the one
-  its card shows in the list: "Puzzle #n") with its level and score (in the Player, the rating it shows, with its notes
+  its card shows in the list: "Puzzle #n") with its level and score (the rating the app shows, with its notes
   as lines under it: the original rating of a re-rated puzzle, "Decisive estimate"). Scan the
   QR code to play the same puzzle again in the Player, with no seed. The sheet prints no code text, address or seed. Then
   comes a small preview of the puzzle with the pieces to place (to read, not to cut).

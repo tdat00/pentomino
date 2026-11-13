@@ -51,7 +51,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP09e | [MP09e](MP09e-code-format-evidence.md) | GC-P2 format evidence: the 676-cell code sizes and the duplicate-shape browser check | MP09d2 | Small–Medium + gate | QA | M5 | 18 |
 | [x] | MP10a | [MP10a](MP10a-auxiliary-requests.md) | Auxiliary request method on the generation client and the Player's pool | MP09e | Medium | Browser integration | M6 display rating | 19 |
 | [x] | MP10b1 | [MP10b1](MP10b1-display-rating-player.md) | Derived display rating: the shared rules and the Player | MP10a | Large | Apps | M6 | 20 |
-| [ ] | MP10b2 | [MP10b2](MP10b2-display-rating-generator-and-pages.md) | Derived display rating in the Generator; the browser pages and gate GC-P2 (display) | MP10b1 | Medium–Large + gate | Apps | M6 | 21 |
+| [x] | MP10b2 | [MP10b2](MP10b2-display-rating-generator-and-pages.md) | Derived display rating in the Generator; the browser pages and gate GC-P2 (display) | MP10b1 | Medium–Large + gate | Apps | M6 | 21 |
 | [ ] | MP11 | [MP11](MP11-calibration-tooling.md) | Calibration tooling for v3 and the slow v3 test | MP10b2 | Medium | Tools | M7 calibrated and locked | 22 |
 | [ ] | MP12a | [MP12a](MP12a-calibration-slice.md) | Calibration slice: the GV2 cases again with v3, and the knob changes | MP11 | Medium + machine time | Measurement | M7 | 23 |
 | [ ] | MP12b1 | [MP12b1](MP12b1-full-landscape.md) | Full landscape with v3 (gate GL-P3, full part) | MP12a | Small–Medium + machine time | Measurement | M7 | 24 |
@@ -106,7 +106,7 @@ All 35 waves are sequential: one task at a time in this repository.
 | 18 | MP09e | the code-size record and the browser page `tests/browser/puzzle-code-acceptance.js` (GC-P2 format) |
 | 19 | MP10a | `core/browser/auxiliary.js` (new), `generation-client.js`, `player/state.js` and their tests |
 | 20 | MP10b1 | `core/browser/display-rating.js` (new), the print texts, the Player's state and views, the user guides |
-| 21 | MP10b2 | the Generator's state, jobs and cards; the browser pages (GC-P2 display); the user guides |
+| 21 | MP10b2 | the Generator's state, jobs and cards; the browser pages (GC-P2 display); the user guides; the worker pool's load retry (KI-1, Amendment D1) |
 | 22 | MP11 | `tools/bench/*`, the calibration tests, the slow test |
 | 23 | MP12a | knob values; the GL-P3 slice |
 | 24 | MP12b1 | the full landscape (GL-P3, full part) under `docs/difficulty-v3/landscape-v3-full/` |
@@ -151,7 +151,7 @@ runs never overlap (§7).
 | MP09e | `docs/difficulty-v3/codes-<date>.md` (new), `tests/browser/puzzle-code-acceptance.js` (the duplicate-shape check); scratch under `tests/artifacts/MP09e/` | engine and app code |
 | MP10a | `core/browser/auxiliary.js` (new), `core/browser/generation-client.js`, `player/state.js` (the queue and `submitAuxiliary`), `tests/auxiliary.test.js` (new), `tests/generation-client.test.js` and `tests/player-load.test.js` (new cases), `tools/bench/report.js` (one `SOURCE_FILES` entry, `core/browser/auxiliary.js`; TP18); docs: design §8.1, the developer guides' code layout if it lists the browser modules | `core/browser/worker-pool.js`, the apps' UI and locale files, engine files |
 | MP10b1 | `core/browser/display-rating.js` (new), `core/browser/print-texts.js` (the note texts), `core/browser/print-dialog.js` (`puzzleDetails` notes), `player/state.js`, `player/app.js`, `player/ui/rating-dom.js`, `player/ui/puzzle-list.js`, `tests/display-rating.test.js` (new), `tests/player-load.test.js`, `tests/print-details.test.js`; docs: design §7.7 and the Player sections of §11, `docs/design-brief.md` (the Player sentence), the user guides' Player part | the Generator, the browser pages, engine files, `core/browser/auxiliary.js` |
-| MP10b2 | `generator/state.js` (`displayRatings`), `generator/jobs.js` (the scheduler), `generator/ui/puzzle-panel.js` (cards and print captions), `generator/app.js` (only if the client must be passed on), `tests/generator-import.test.js`, `tests/generator-state.test.js`, the six browser pages of its table; scratch under `tests/artifacts/MP10b2/`; docs: design §10, `docs/design-brief.md` (levels), the user guides' Generator part | the Player, `core/browser/display-rating.js`, the texts, engine files, other pages |
+| MP10b2 | `generator/state.js` (`displayRatings`), `generator/jobs.js` (the scheduler), `generator/ui/puzzle-panel.js` (cards and print captions), `generator/app.js` (only if the client must be passed on), `tests/generator-import.test.js`, `tests/generator-state.test.js`, the six browser pages of its table, `core/browser/worker-pool.js` and `tests/worker-pool.test.js` (Amendment D1, KI-1); scratch under `tests/artifacts/MP10b2/`; docs: design §10, design §8.1 (the **Pool.** bullets; Amendment D1), `docs/design-brief.md` (levels), the user guides' Generator part | the Player, `core/browser/display-rating.js`, the texts, engine files, other pages |
 | MP11 | `tools/bench/runner.js`, `tools/bench/report.js`, `tools/bench/calibration-reference.js`, `tests/calibration.test.js`, `tests/benchmark-report.test.js`, `tests/difficulty-v3.test.js` (slow part) | `policy.js` |
 | MP12a | knob values in `core/engine/policy.js` (`SCORE_V3`, `DEDUCE`, `K60`, `POLICY_ID`) and `SHARES` in `core/engine/levels.js` (only when changed), the knob-dependent pins (`tests/policy.test.js`, `tests/difficulty-v3.test.js`, the clue tests MP09d2 lists, `tests/fixtures/ui-flow-recipes.json`), the generation fixtures by the tool, `docs/difficulty-v3/landscape-v3/`, `docs/difficulty-v3/calibration-slice-<date>.md` (new) | algorithm code, `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json` |
 | MP12b1 | `docs/difficulty-v3/landscape-v3-full/` (new: the shard reports, `shards-<date>.md`, `aggregate-<date>.json` and `.md`); scratch under `tests/artifacts/MP12b1/`; no documentation slot | code, tests, fixtures, MP12a's record and folders, `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json` |
@@ -439,7 +439,7 @@ The orchestrator owns this record.
 | MP09e | Accepted (known flake recorded) | about 1 h 33 min developer (incl. 25 min flake baseline) + 10 min review | about 547 | `difficulty-v3 MP09e` |
 | MP10a | Accepted | 14 min developer + 2 min review | about 237 | `difficulty-v3 MP10a` |
 | MP10b1 | Accepted (print overflow fixed in the task) | 24 min developer in two rounds + 5 min review | about 617 | `difficulty-v3 MP10b1` |
-| MP10b2 | | | | |
+| MP10b2 | Accepted (GC-P2 display passed; KI-1 closed by D1) | 45 min developer (incl. about 25 min page runs) + 5 min review | about 717 | `difficulty-v3 MP10b2` |
 | MP11 | | | | |
 | MP12a | | | | |
 | MP12b1 | | | | |
@@ -460,4 +460,4 @@ The orchestrator owns this record.
 
 | Id | Found in | Issue | Status |
 |---|---|---|---|
-| KI-1 | MP09e | `tests/browser/puzzle-code-acceptance.html` fails intermittently in old checks (BA09, once BA05, once the first BA01 check): a module worker emits `error` shortly after creation ("Puzzle code processing failed"; CDP shows a canceled `Script` request near a `terminate()`). Pre-existing: HEAD `cd2e079`'s page 3 of 10 runs, MP09e's page 2 of 10, 23 of 32 runs passed overall | Open; a follow-up fix is to be assigned (candidates: one respawn in `core/browser/worker-pool.js`, or a pause in the page's `check` cleanup). Until then MP10b2 and MP17 treat one failure of this signature as the known flake and re-run the page once |
+| KI-1 | MP09e | `tests/browser/puzzle-code-acceptance.html` fails intermittently in old checks (BA09, once BA05, once the first BA01 check): a module worker emits `error` shortly after creation ("Puzzle code processing failed"; CDP shows a canceled `Script` request near a `terminate()`). Pre-existing: HEAD `cd2e079`'s page 3 of 10 runs, MP09e's page 2 of 10, 23 of 32 runs passed overall | **Closed by MP10b2** (2026-11-13): Amendment D1, a delayed load retry in `core/browser/worker-pool.js` (`LOAD_RETRY_DELAY_MS` 100); MP10b2-T08 passed, 20 of 20 consecutive page runs with no failure of this signature. It predated rating-v3 (unchanged since the merge base `9d45142`). MP17 runs the page with no re-run allowance: a failure of this signature is a regression |

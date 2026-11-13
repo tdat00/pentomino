@@ -69,6 +69,8 @@ async function waitFor(test, what, timeoutMs = 60000) {
 
 const sandbox = /** @type {HTMLElement} */ (document.getElementById('sandbox'));
 const recipes = (await (await fetch('../fixtures/ui-flow-recipes.json')).json()).recipes;
+/** The codes of the puzzles of the Player sample, whose claims are on the old scale (`difficulty-v2`). */
+const sampleCodes = /** @type {string[]} */ ((await (await fetch('../fixtures/puzzlecode-v1.json')).json()).goldens.slice(0, 2).map((/** @type {{ code: string }} */ g) => g.code));
 const samplePack = /** @type {any} */ (parsePack(await (await fetch('../fixtures/generated-sample-pack.json')).text())).value;
 const witness = samplePack.witness ?? samplePack.puzzles[0].solution;
 /** A second set on the same 10 x 6 board with other pieces: generating twice must not give the same set. */
@@ -115,7 +117,8 @@ let seedCounter = 0;
 
 /**
  * The harness batch size: most flows below were written for batches of 5 (the app itself starts at 1 per press).
- * @param {{ app?: Record<string, any>, storage?: ReturnType<typeof memoryStorage>, quantity?: number }} [o]
+ * @param {{ app?: Record<string, any>, storage?: ReturnType<typeof memoryStorage>, quantity?: number, importButton?: boolean }} [o]
+ *   `importButton`: the page has the Import puzzle button, so the app mounts its dialog.
  */
 function mountApp(o = {}) {
   const root = h('div', { class: 'harness-app' },
@@ -124,7 +127,8 @@ function mountApp(o = {}) {
       h('section', { class: 'panel panel-level' }, h('div', { 'data-slot': 'level' })),
       h('section', { class: 'panel panel-set' }, h('div', { 'data-slot': 'set' })),
       h('section', { class: 'panel panel-puzzles' }, h('div', { 'data-slot': 'puzzles' }))),
-    h('div', { class: 'main-actions' }, h('button', { type: 'button', 'data-slot': 'main-action' }, 'New piece set')));
+    h('div', { class: 'main-actions' }, h('button', { type: 'button', 'data-slot': 'main-action' }, 'New piece set')),
+    ...(o.importButton === true ? [h('button', { type: 'button', 'data-action': 'import-puzzle' }, 'Import puzzle')] : []));
   sandbox.append(root);
   const storage = o.storage ?? memoryStorage();
   /** @type {string | null} Batch seed fed to the next puzzle press (recorded batches are replayed with "<set seed>#1"). */
@@ -352,6 +356,64 @@ await check('real engine: a 7x5 Easy set with two arrangements reports "Found 2/
 });
 
 /**
+ * Imports a puzzle code through the Import puzzle dialog of the page.
+ * @param {ReturnType<typeof mountApp>} ctx
+ * @param {string} code
+ */
+async function importCode(ctx, code) {
+  q(ctx, '[data-action="import-puzzle"]').click();
+  const dialog = /** @type {HTMLDialogElement | undefined} */ ([...document.querySelectorAll('dialog.pm-code')].find((d) => /** @type {HTMLDialogElement} */ (d).open));
+  assert(dialog !== undefined, 'the Import puzzle dialog opens');
+  const field = /** @type {HTMLTextAreaElement} */ (dialog.querySelector('.pm-code-field'));
+  field.value = code;
+  field.dispatchEvent(new Event('input', { bubbles: true }));
+  /** @type {HTMLElement} */ (dialog.querySelector('[data-action="code-open"]')).click();
+  await waitFor(() => !dialog.open, 'the import to finish', 30000);
+}
+
+/**
+ * @param {ReturnType<typeof mountApp>} ctx
+ * @param {string} id
+ * @returns {string[]} The notes drawn on the card of puzzle `id`.
+ */
+const notesOf = (ctx, id) => qa(ctx, `li[data-puzzle-id="${id}"] .card-rating .rating-note`).map((n) => n.textContent ?? '');
+
+await check('an imported puzzle of the old scale is re-rated on its card; generated puzzles are not, and a generation is not held back by it', async () => {
+  const ctx = mountApp({ importButton: true, quantity: 1 });
+  try {
+    await importCode(ctx, sampleCodes[0]);
+    equal(state(ctx).puzzles.map((p) => p.id), ['imported-1'], 'the puzzle of the code is in the list');
+    equal(state(ctx).puzzles[0].rating?.model, 'difficulty-v2', 'its claim is on the old scale');
+    await waitFor(() => notesOf(ctx, 'imported-1').length > 0, 'the card to show the derived rating', 45000);
+    equal(notesOf(ctx, 'imported-1')[0], 'Re-rated with the current scale (original: Easy 8, difficulty-v2)', 'the note names the original rating');
+    const first = /** @type {HTMLElement} */ (q(ctx, 'li[data-puzzle-id="imported-1"] .card-rating'));
+    assert(/^[\w ]+: score \d+\+? · Re-rated/.test(first.textContent ?? ''), `the level and score of the current scale, then the note: ${first.textContent}`);
+    equal(first.querySelector('strong')?.textContent, (first.textContent ?? '').split(':')[0], 'with the level in bold');
+    equal(state(ctx).puzzles[0].rating?.model, 'difficulty-v2', 'the stored claim does not change');
+
+    // A generated puzzle carries its own rating on the current scale and is never rated again.
+    q(ctx, '[data-action="new-puzzles"]').click();
+    await waitFor(() => state(ctx).job === null && state(ctx).puzzles.length === 2, 'a generated puzzle', 60000);
+    const generated = state(ctx).puzzles[1];
+    equal(generated.rating?.model, 'difficulty-v3', 'the generated puzzle has a claim of the current scale');
+    assert(!notesOf(ctx, generated.id).some((note) => note.startsWith('Re-rated')), `no re-rated note on a generated card: ${notesOf(ctx, generated.id)}`);
+    equal(Object.keys(state(ctx).displayRatings).length, 1, 'only the imported puzzle was rated again');
+
+    // A generation that starts while the second import is still being rated: it completes, and the card gets its note after it.
+    await importCode(ctx, sampleCodes[1]);
+    equal(state(ctx).puzzles.length, 3, 'the second code joined the set');
+    q(ctx, '[data-action="new-puzzles"]').click();
+    await waitFor(() => state(ctx).job === null && state(ctx).puzzles.length === 4, 'the generation to complete with its puzzle', 60000);
+    equal(state(ctx).notice, null, 'no notice after the generation');
+    await waitFor(() => notesOf(ctx, 'imported-2').length > 0, 'the second card to show its note', 45000);
+    equal(notesOf(ctx, 'imported-2')[0], 'Re-rated with the current scale (original: Normal 14, difficulty-v2)', 'the note of the second card');
+    equal(notesOf(ctx, 'imported-1')[0], 'Re-rated with the current scale (original: Easy 8, difficulty-v2)', 'the first card keeps its note');
+  } finally {
+    ctx.destroy();
+  }
+});
+
+/**
  * @param {number} i
  * @param {number} [offset]
  */
@@ -362,7 +424,7 @@ function makePuzzle(i, offset = 0) {
     title: `Normal #${offset + 1}`,
     clues: base.clues,
     solution: base.solution,
-    rating: { model: 'difficulty-v2', score: 14, level: 'normal', saturated: false, metrics: base.rating?.metrics ?? { U: 1, B: 1, branchTrials: 1, rowTrials: 1, stop: 'solution', R: 1, H: 1 } },
+    rating: { model: 'difficulty-v3', score: 14, level: 'normal', saturated: false },
     certificate: null,
   };
 }

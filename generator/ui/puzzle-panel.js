@@ -7,10 +7,11 @@ import { createPuzzleNav } from '../../core/browser/puzzle-nav.js';
 import { puzzleSnapshot } from '../../core/browser/puzzle-snapshot.js';
 import { mountBoard, mountPiecePreview, svgEl } from '../../core/browser/svg-board.js';
 import { activeCount, boardToRows } from '../../core/engine/board.js';
+import { ratingDisplay } from '../../core/browser/display-rating.js';
 import { normalizeAngle } from '../../core/engine/view.js';
 import { has, t } from '../i18n.js';
 import {
-  MAX_SETS, batchLevelOf, describeLevels, generationBlock, isBusy, readyLevelId, setsFull,
+  MAX_SETS, batchLevelOf, describeLevels, displayEntryOf, generationBlock, isBusy, readyLevelId, setsFull,
 } from '../state.js';
 import { levelLabel } from '../strings.js';
 import { loc, locAttrs } from './i18n-dom.js';
@@ -67,16 +68,39 @@ function actionButton(icon, key, action, className = '') {
 }
 
 /**
- * @param {Puzzle} puzzle
- * @returns {string}
+ * @param {{ level: string, score: number, saturated?: boolean }} rating
+ * @returns {string} The rating line: "Normal: score 14" (with "+" when the rating is capped).
  */
-export function describeRating(puzzle) {
-  const rating = puzzle.rating;
-  if (rating === null || rating === undefined) {
-    return t('card.noRating');
-  }
+function ratingLine(rating) {
   const score = Number.isFinite(rating.score) ? Math.round(rating.score) : 0;
   return t('card.rating', { level: levelLabel(rating.level), score: `${score}${rating.saturated === true ? '+' : ''}` });
+}
+
+/**
+ * @param {Puzzle} puzzle
+ * @param {import('../../core/browser/display-rating.js').DisplayEntry} [entry] The derived rating of the puzzle, when it has one.
+ * @returns {string} What the card shows: the rating line (the derived one once it is there), then each note after " · ".
+ */
+export function describeRating(puzzle, entry) {
+  const shown = ratingDisplay(puzzle.rating, entry, { t, levelLabel });
+  return shown === null ? t('card.noRating') : [ratingLine(shown.rating), ...shown.notes].join(' · ');
+}
+
+/**
+ * Draws what `describeRating` says: the level in bold, each note in a `rating-note` span.
+ * @param {HTMLElement} target
+ * @param {ReturnType<typeof ratingDisplay>} shown
+ */
+function drawRating(target, shown) {
+  if (shown === null) {
+    target.textContent = t('card.noRating');
+    return;
+  }
+  const line = ratingLine(shown.rating);
+  const level = levelLabel(shown.rating.level);
+  target.replaceChildren(
+    ...(level !== '' && line.startsWith(level) ? [el('strong', { text: level }), line.slice(level.length)] : [line]),
+    ...shown.notes.flatMap((note) => [' · ', el('span', { className: 'rating-note', text: note })]));
 }
 
 /**
@@ -94,6 +118,19 @@ export function describeCertificate(puzzle, o) {
 
 /**
  * @param {GeneratorState} state
+ * @param {Puzzle} puzzle
+ * @returns {import('../../core/browser/print-sheet.js').PrintLine[]} The lines under the title of the puzzle on paper: its
+ *   rating (the derived one once it is there) and the notes.
+ */
+function detailsOf(state, puzzle) {
+  const shown = ratingDisplay(puzzle.rating, displayEntryOf(state, puzzle), { t, levelLabel });
+  return puzzleDetails(t, shown === null
+    ? null
+    : { level: levelLabel(shown.rating.level), score: shown.rating.score, saturated: shown.rating.saturated, notes: shown.notes });
+}
+
+/**
+ * @param {GeneratorState} state
  * @param {string | null} selectedId Id of the puzzle shown in the main panel.
  * @returns {import('../../core/browser/print-dialog.js').PrintJob | null} What Print makes of that puzzle, with its card
  *   heading ("Puzzle #3") and a snapshot for the code. Null without a set or a selected puzzle.
@@ -105,7 +142,6 @@ export function printJobOf(state, selectedId) {
   }
   const { set } = state;
   const puzzle = state.puzzles[at];
-  const rating = puzzle.rating;
   const snapshot = puzzleSnapshot({
     rows: boardToRows(set.board), pieces: set.pieces, puzzle, index: at, rotation: state.rotation, untitled: (n) => t('card.heading', { n }),
   });
@@ -115,8 +151,7 @@ export function printJobOf(state, selectedId) {
     clues: puzzle.clues,
     rotation: state.rotation,
     title: t('card.heading', { n: at + 1 }),
-    details: puzzleDetails(t,
-      rating === null || rating === undefined ? null : { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated }),
+    details: detailsOf(state, puzzle),
     solution: puzzle.solution ?? null,
     snapshot,
   };
@@ -134,18 +169,13 @@ export function printListOf(state, selectedId) {
   }
   return {
     current: selectedId,
-    items: state.puzzles.map((puzzle, at) => {
-      const rating = puzzle.rating;
-      const lines = puzzleDetails(t,
-        rating === null || rating === undefined ? null : { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated });
-      return {
-        id: puzzle.id,
-        title: t('card.heading', { n: at + 1 }),
-        detail: lines.map((line) => line.map((part) => part.text).join('')).join(' '),
-        job: () => printJobOf(state, puzzle.id),
-        order: at,
-      };
-    }).reverse(),
+    items: state.puzzles.map((puzzle, at) => ({
+      id: puzzle.id,
+      title: t('card.heading', { n: at + 1 }),
+      detail: detailsOf(state, puzzle).map((line) => line.map((part) => part.text).join('')).join(' · '),
+      job: () => printJobOf(state, puzzle.id),
+      order: at,
+    })).reverse(),
   };
 }
 
@@ -352,11 +382,7 @@ export function mountPuzzlePanel(host, options) {
       card.remove.setAttribute('aria-label', removeLabel);
       card.remove.title = removeLabel;
       card.remove.disabled = busy;
-      const ratingText = describeRating(puzzle);
-      const levelText = puzzle.rating === null || puzzle.rating === undefined ? '' : levelLabel(puzzle.rating.level);
-      card.rating.replaceChildren(...(levelText !== '' && ratingText.startsWith(levelText)
-        ? [el('strong', { text: levelText }), ratingText.slice(levelText.length)]
-        : [ratingText]));
+      drawRating(card.rating, ratingDisplay(puzzle.rating, displayEntryOf(state, puzzle), { t, levelLabel }));
       card.toPlace.textContent = t('card.toPlace', { count: Math.max(0, current.pieces.length - puzzle.clues.length) });
       const certificate = describeCertificate(puzzle, { checking: checking.has(puzzle.id) || fresh });
       card.cert.textContent = certificate.text;

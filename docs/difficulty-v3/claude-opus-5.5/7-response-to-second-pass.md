@@ -2,10 +2,10 @@
 
 | Field | Value |
 |---|---|
-| Date | 2026-11-12 (+07:00) |
+| Date | 2026-11-12 (+07:00); §9 (KI-1) 2026-11-13 |
 | Responder | SA1, claude-opus-5.5 (author of the pack) |
 | Review answered | [`../gpt-6-astra/6-review-of-task-pack.md`](../gpt-6-astra/6-review-of-task-pack.md) § "Second pass" (SA2, gpt-6-astra): SP01-SP19; § "Third pass": TP01-TP05 (MP09 series), TP13-TP15 (MP09d2), TP06-TP12 and TP16-TP19 (§4) |
-| Source revision | `05fa958` (MP08 committed); MP07 committed as `2b4c5b9`; third pass at `041ff83` (MP09d1 committed) |
+| Source revision | `05fa958` (MP08 committed); MP07 committed as `2b4c5b9`; third pass at `041ff83` (MP09d1 committed); §9 at `ed54ecc` (MP10b1 committed) |
 | Order of work | as the orchestrator asked: SP01-SP03 (the MP09 series) first, then SP04 and SP05 (MP10a, MP10b), then the rest |
 | Not changed | dispatched or accepted task files (MP01-MP08, then each task once dispatched); the Done column, the release record and the execution summary of the check-list; the reports, `plan.md`, SA2's folder; `clarifications.md` only by the new questions D36 and D37 in Part I |
 
@@ -364,3 +364,76 @@ at 253 (228), `createPuzzleCodec` at 588 (563), `encodePuzzleCode` at 616 (590) 
 The task names each function, so a developer finds them.
 
 MP09e OK
+
+## 9. KI-1: where the fix belongs, and how
+
+Read-only investigation (2026-11-13): git history, the code and MP09e's git-ignored evidence under
+`tests/artifacts/MP09e/`; no page run.
+
+**It predates rating-v3.** The merge base with `main` is `9d45142` (2026-10-28), and `main` has not moved since.
+`core/browser/worker-pool.js`, `core/workers/engine.worker.js` and `tests/browser/puzzle-code-acceptance.html` are the
+same at `9d45142` and at HEAD `ed54ecc`; `core/browser/puzzle-code-client.js` differs by one code in `CODEC_CODES`
+(RES-34), and `tests/browser/puzzle-code-acceptance.js` only by MP09e's three additions (`claimsOf`, the summary claim
+of the Generator journey, the RES-34 check). The failing checks and the helpers they use (`check`, `packHash`,
+`mount`) date from the page's commits of 2026-10-26 (`8012276` to `3df6798`). The one rating-v3 effect on the path: the
+worker's static module graph grew from 25 modules (390,153 bytes) to 26 (481,202 bytes, +23 %), so every worker takes
+longer to load, which may widen the window. The rate at `9d45142` is not measured (no page runs).
+
+**What fails.**
+- `dbg53.console.json`: BA09 starts with `mount({ hash: await packHash(sample, 0) })`. Worker 8 (`packHash`'s client)
+  answers at 2,454 ms and is terminated at 2,465 by the client's `dispose()`; worker 9 (the Player's decode worker) is
+  created at 2,470 and fires `error` at 2,511, before any reply; the pool then discards it.
+- `dbg31.console.json`: the failing worker is BA09's first (`packHash`'s), created just after the previous check's
+  cleanup; it fires `error` 19 ms after creation, with `message`, `filename` and `lineno` undefined: a plain `Event`,
+  which a browser fires when a worker's script or a static import fails to load (a runtime exception is an
+  `ErrorEvent` with a message). That run's only CDP error is `Network.loadingFailed` (`Script`, `net::ERR_ABORTED`,
+  `canceled: true`). The engine worker has no dynamic `import()`, so the canceled request is most likely the new
+  worker's own load.
+- The pool maps the event to `worker-crashed` (`core/browser/worker-pool.js:429-433`), so the puzzle-code step fails;
+  the check's message depends on the step: "the codes of the pack could be made", "timed out: the view to turn", "the
+  Print dialog is ready", "expected "game", got "start"" (BA05) or "the entry accepted the text (Puzzle code
+  processing failed. Try again.)". These are the 8 KI-1 failures of MP09e's 24 recorded runs; MP09e's passing runs
+  all spawned 122 workers.
+
+**Approach: (A), in the pool.**
+- (A) A delayed load retry in `core/browser/worker-pool.js`: on a plain `error` before any reply, terminate the
+  worker, wait 100 ms with the slot reserved, then send the same task to a new worker, once per task; every other
+  `error` stays `worker-crashed`. It also protects the apps, which run the same sequence: an aborted or stale busy
+  task whose worker is discarded and replaced, `recycle` after a set change (D38), a disposed client and a new one.
+  The wait avoids repeating the trigger, since the retry itself follows a termination (that of the failed worker).
+- (B) A pause in the page's `check` cleanup: rejected. It would reach `dbg31`'s case (a spawn after the previous
+  check's cleanup) but not `dbg53`'s, which happens inside one check (`packHash`, then `mount`), and a page-only pause
+  would hide a product race.
+- (C) A retry in `puzzle-code-client.js`: rejected. It covers puzzle codes only, not generation, verification or the
+  auxiliary ratings of MP10a and MP10b1.
+
+**Placement: Amendment D1 at the end of MP10b2** (written before its dispatch, before its Execution log, like A1 and
+B1). MP10b2 is the next task and runs this page in its GC-P2 display gate, so the proof costs about 17 more minutes
+under the same announcement: 20 consecutive runs whose page result is `pass` (by chance about 0.3 % at MP09e's 5
+failures in 20). The fix is file-disjoint from MP10b2's other work (the pool, its Node tests and one design bullet;
+about 150-180 lines). D1 cannot block GC-P2 display: after one bounded step (100 to 300 ms) it stops and reports, and
+the known-flake rule applies as today. A separate task before MP17 would cost one more dispatch and leave MP10b2's
+runs under the flake rule.
+
+**Files changed for this placement.**
+- `tasks/difficulty-v3/MP10b2-display-rating-generator-and-pages.md`: "Amendment D1" (contract, five Node cases, the
+  design bullet, the 20-run check with its log, the fallback and the stop, the handoff), with pointers in the header,
+  the repository rules, the files table and ownership sentence, step 0 and step 3, criteria MP10b2-T07 and T08, the
+  test plan and the definition of done.
+- `tasks/difficulty-v3/check-list.md`: MP10b2's rows in §2, the wave table and "Exclusive ownership". The
+  orchestrator set KI-1's status in "Known issues" (assigned to MP10b2 Amendment D1; closed when MP10b2-T08 passes,
+  after which MP17 has no re-run allowance).
+
+**Late clarifications.** MP10b2 was dispatched while this section was being finished (its first code change is at
+09:20). Three clarifications reached D1 after the dispatch, before 09:27; none changes the contract, the Node cases or
+the files:
+1. "Why" lists the five failure messages of MP09e's runs (the visible message depends on the step that lost its
+   worker) and says that `dbg31`'s failing worker is BA09's first, `packHash`'s.
+2. The 20-run check's KI-1 signature is "a failed check whose message is one of the five of 'Why', or any failed check
+   whose message contains 'Puzzle code processing failed'". The first text said "a worker `error` and 'Puzzle code
+   processing failed'", which a page run cannot see and which misses four of the five messages.
+3. The ownership row is named "§2 'Exclusive ownership'" (the first text said "§5").
+
+The orchestrator may pass item 2 to the developer as an addendum.
+
+KI-1 PLACED

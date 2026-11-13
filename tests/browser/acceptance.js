@@ -240,7 +240,10 @@ async function runRecipe(recipe) {
   const scores = qa(d, '.card-rating').map((n) => Number(/score (\d+)/.exec(n.textContent ?? '')?.[1] ?? NaN));
   assert(Number.isFinite(scores[0]), `the card shows a score: ${scores}`);
   const cardLines = qa(d, '.puzzle-card .card-body > p').map((n) => n.textContent ?? '');
-  assert(cardLines.length === 4 && cardLines[0] === 'Puzzle #1' && /^\w[\w ]*: score \d+\+?$/.test(cardLines[1])
+  // A generated puzzle has a rating of the current scale: the line, and the estimate note when its census did not finish.
+  const [ratingLine, ...ratingNotes] = (cardLines[1] ?? '').split(' · ');
+  assert(cardLines.length === 4 && cardLines[0] === 'Puzzle #1' && /^\w[\w ]*: score \d+\+?$/.test(ratingLine ?? '')
+    && ratingNotes.every((note) => note.startsWith('Decisive estimate'))
     && /^\d+ pieces? to place$/.test(cardLines[2]) && /^(Unique solution ✓|Multiple solutions|Checking…|Uniqueness not checked|At least 1 solution|No solution exists)$/.test(cardLines[3]),
   `the card shows number, level and score, pieces to place and solutions: ${cardLines}`);
   assert(/^Seed: \d+$/.test(q(d, '.detail-seed').textContent ?? '') && q(d, '.detail-seed').parentElement === q(d, '.detail-title').parentElement, 'the seed is next to the name in the main panel');

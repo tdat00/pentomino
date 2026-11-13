@@ -5,11 +5,13 @@
 // and data-result on <html>. Developer fixture, not deployed.
 
 import { createPrintDialog, puzzleDetails } from '../../core/browser/print-dialog.js';
-import { buildPrintPages } from '../../core/browser/print-sheet.js';
+import { ratingDisplay } from '../../core/browser/display-rating.js';
+import { buildPrintPages, createTextMeasure, fitDetailLine } from '../../core/browser/print-sheet.js';
 import { boardFromRows } from '../../core/engine/board.js';
 import { packBoard } from '../../core/engine/pack.js';
 import { planPrint } from '../../core/browser/print-layout.js';
 import { setLocale, t } from '../../player/i18n.js';
+import { levelLabel } from '../../player/strings.js';
 
 const MM_PER_PX = 25.4 / 96;
 const results = /** @type {Array<{ name: string, ok: boolean, error?: string }>} */ ([]);
@@ -211,6 +213,55 @@ await check('the first sheet names the puzzle and its rating, with the level nam
   equal(puzzleDetails(t, null).length, 0, 'without a rating: nothing');
   equal(puzzleDetails(t, { level: 'Easy', score: 8, saturated: true }).map((line) => line.map((p) => p.text).join('')).join(' | '),
     'Easy: score 8+', 'a saturated score');
+});
+
+await check('the sheet prints the notes of a rating: re-rated, estimate with n and without n, in both languages', async () => {
+  const claim = { model: 'difficulty-v2', score: 8, level: 'easy', saturated: false };
+  /** A worker's answer on today's scale whose census did not finish; `undecided` is the count, absent for the short note. @param {number | null} undecided */
+  const estimate = (undecided) => ({
+    model: 'difficulty-v3', score: 14.4, level: 'normal', saturated: false, censored: true,
+    ...(undecided === null ? {} : { metrics: { censusComplete: false, censusUndecided: undecided } }),
+  });
+  const wanted = {
+    en: {
+      level: 'Normal',
+      lines: ['Normal: score 14', 'Re-rated with the current scale (original: Easy 8, difficulty-v2)'],
+      estimate: ['Decisive estimate: 3 alternatives undecided within the work limit', 'Decisive estimate'],
+    },
+    vi: {
+      level: 'Trung bình',
+      lines: ['Trung bình: điểm 14', 'Đã chấm lại theo thang điểm hiện tại (gốc: Dễ 8, difficulty-v2)'],
+      estimate: ['Ước lượng quyết định: 3 phương án chưa phân định trong giới hạn tính toán', 'Ước lượng quyết định'],
+    },
+  };
+  const measure = createTextMeasure(document);
+  try {
+    for (const lang of /** @type {const} */ (['en', 'vi'])) {
+      setLocale(lang, document);
+      for (const [at, undecided] of [3, null].entries()) {
+        const shown = /** @type {NonNullable<ReturnType<typeof ratingDisplay>>} */ (
+          ratingDisplay(claim, { status: 'rated', rating: estimate(undecided) }, { t, levelLabel }));
+        const details = puzzleDetails(t, { level: levelLabel(shown.rating.level), score: shown.rating.score, saturated: shown.rating.saturated, notes: shown.notes });
+        const expected = [...wanted[lang].lines, wanted[lang].estimate[at]];
+        const label = `${lang}, ${undecided === null ? 'without' : 'with'} the number`;
+        equal(details.map((line) => line.map((p) => p.text).join('')).join(' | '), expected.join(' | '), `${label}: the lines of the job, from the real texts`);
+        const plan = planPrint({ ...sampleJob(), title: 'Puzzle #2', details }, OPTIONS);
+        const [page] = buildPrintPages(plan, { title: 'Puzzle #2', details }, t);
+        document.getElementById('stage')?.append(page);
+        const lines = [...page.querySelectorAll('text.pm-print-detail')];
+        // Paper shortens a line to the heading block with an ellipsis; with no QR beside it these lines are whole.
+        equal(lines.map((n) => n.textContent).join(' | '), details.map((line) => fitDetailLine(line, plan.band.head.width, measure).map((p) => p.text).join('')).join(' | '),
+          `${label}: three detail lines in order`);
+        equal(lines.length, 3, `${label}: the rating and its two notes`);
+        assert(lines.every((n, i) => n.textContent === expected[i]), `${label}: none is cut: ${lines.map((n) => n.textContent).join(' | ')}`);
+        equal(lines.map((n) => [...n.querySelectorAll('tspan[font-weight="700"]')].map((s) => s.textContent).join()).join(' | '), `${wanted[lang].level} |  | `,
+          `${label}: only the level of the first line is bold`);
+        document.getElementById('stage')?.replaceChildren();
+      }
+    }
+  } finally {
+    setLocale('en', document);
+  }
 });
 
 await check('the dialog keeps the choices, summarises the paper and prints through the browser', async () => {

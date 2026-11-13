@@ -70,6 +70,8 @@ export const MAIN_BUDGET_BYTES = 300 * 1048576;
 export const WORKER_LIMIT_BYTES = BUDGETS.workspaceBytes + BUDGETS.scratchBytes + BUDGETS.cacheBytes;
 /** UI memory callbacks are limited to 5 per second; accounting itself is immediate. */
 export const MEMORY_UI_INTERVAL_MS = 200;
+/** Pause before a task whose worker failed to load is sent to a new worker (once per task). */
+export const LOAD_RETRY_DELAY_MS = 100;
 export const MAX_POOL_SIZE = 4;
 
 /** Rejection of a task that was cancelled, superseded, stale or past the deadline. `reason` says which. */
@@ -165,6 +167,7 @@ function defaultWorkerFactory() {
  * @property {WorkerLike | null} worker
  * @property {Entry | null} busy
  * @property {number} bytes
+ * @property {unknown} retryTimer
  */
 
 /**
@@ -178,6 +181,7 @@ function defaultWorkerFactory() {
  * @property {((p: { stage: string, rowTrials: number, bytes: number }) => void) | undefined} onProgress
  * @property {Slot | null} slot
  * @property {boolean} settled
+ * @property {boolean} reloaded
  * @property {(() => void) | null} cleanup
  */
 
@@ -194,7 +198,7 @@ export function createPool(options = {}) {
   const factory = options.workerFactory ?? defaultWorkerFactory;
   const clock = options.clock ?? systemClock;
   /** @type {Slot[]} */
-  const slots = Array.from({ length: size }, (_, index) => ({ index, worker: null, busy: null, bytes: 0 }));
+  const slots = Array.from({ length: size }, (_, index) => ({ index, worker: null, busy: null, bytes: 0, retryTimer: null }));
   /** @type {Map<number, Entry>} */
   const registry = new Map();
   /** @type {Entry[]} */
@@ -289,6 +293,10 @@ export function createPool(options = {}) {
   /** Terminates the exact worker instance of a slot; it is recreated lazily. @param {Slot} slot */
   const discard = (slot) => {
     const { worker } = slot;
+    if (slot.retryTimer !== null) {
+      clock.clearTimeout(slot.retryTimer);
+      slot.retryTimer = null;
+    }
     slot.worker = null;
     slot.busy = null;
     slot.bytes = 0;
@@ -424,14 +432,27 @@ export function createPool(options = {}) {
   /** @param {Slot} slot @returns {WorkerLike} */
   const spawn = (slot) => {
     const instance = factory();
+    // An instance that has delivered any message was loaded: its later errors are crashes.
+    let answered = false;
     try {
-      instance.addEventListener('message', (event) => onMessage(slot, instance, event?.data));
+      instance.addEventListener('message', (event) => {
+        answered = true;
+        onMessage(slot, instance, event?.data);
+      });
       instance.addEventListener('error', (event) => {
-        if (slot.worker === instance) {
-          failSlot(slot, 'worker-crashed', `The worker stopped: ${String(event?.message ?? 'unknown error').slice(0, 200)}`);
+        if (slot.worker !== instance) {
+          return;
         }
+        // A plain event (no message) before any reply is a script that failed to load.
+        const { busy } = slot;
+        if (!answered && typeof event?.message !== 'string' && busy !== null && !busy.reloaded) {
+          reload(slot, busy);
+          return;
+        }
+        failSlot(slot, 'worker-crashed', `The worker stopped: ${String(event?.message ?? 'unknown error').slice(0, 200)}`);
       });
       instance.addEventListener('messageerror', () => {
+        answered = true;
         if (slot.worker === instance) {
           failSlot(slot, 'worker-protocol', 'The worker sent a message that could not be read');
         }
@@ -471,6 +492,35 @@ export function createPool(options = {}) {
   };
 
   const freeSlot = () => slots.find((s) => s.busy === null && s.worker !== null) ?? slots.find((s) => s.busy === null);
+
+  /**
+   * Retries a task whose worker failed to load once, on a new worker after a pause. The slot stays reserved for it, so
+   * every abort still finds the task and no other task takes the slot.
+   * @param {Slot} slot
+   * @param {Entry} entry
+   */
+  const reload = (slot, entry) => {
+    entry.reloaded = true;
+    const { worker } = slot;
+    slot.worker = null;
+    slot.bytes = 0;
+    try {
+      worker?.terminate();
+    } catch {
+      // nothing more to release
+    }
+    account();
+    slot.retryTimer = clock.setTimeout(() => {
+      slot.retryTimer = null;
+      if (closed || entry.settled || slot.busy !== entry) {
+        return;
+      }
+      slot.busy = null;
+      entry.slot = null;
+      dispatch(entry, slot);
+      pump();
+    }, LOAD_RETRY_DELAY_MS);
+  };
 
   function pump() {
     if (pumping) {
@@ -551,6 +601,7 @@ export function createPool(options = {}) {
       onProgress,
       slot: null,
       settled: false,
+      reloaded: false,
       cleanup: null,
     };
     const { signal } = task;

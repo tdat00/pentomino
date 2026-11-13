@@ -93,6 +93,37 @@ const sampleBase = await linkOf(sample);
 /** @param {number} i */
 const sampleAt = (i) => (i === 0 ? sampleBase : `${sampleBase}&i=${i}`);
 
+/** The puzzles of the sample carry `difficulty-v2` claims, so the Player rates them again: the note keeps the original. */
+const ORIGINAL_LEVELS = { en: ['Easy', 'Normal', 'Hard'], vi: ['Dễ', 'Trung bình', 'Khó'] };
+/** @param {number} i @param {'en' | 'vi'} [lang] */
+const reratedNote = (i, lang = 'en') => {
+  const { score, model } = sample.puzzles[i].rating;
+  const level = ORIGINAL_LEVELS[lang][i];
+  return lang === 'en' ? `Re-rated with the current scale (original: ${level} ${score}, ${model})`
+    : `Đã chấm lại theo thang điểm hiện tại (gốc: ${level} ${score}, ${model})`;
+};
+
+/**
+ * Checks the text of a rating drawn for puzzle `i` of the sample once it is rated again: a level name and an integer score of
+ * today's scale (never pinned), the note with the original claim, and at most the estimate note after it.
+ * @param {string} text
+ * @param {number} i
+ * @param {'en' | 'vi'} [lang]
+ * @param {boolean} [tail] The text ends with the pieces to place (the rating line of the game).
+ * @returns {string} The level name shown.
+ */
+function derivedLine(text, i, lang = 'en', tail = false) {
+  const [line, ...notes] = text.split(' · ');
+  if (tail) {
+    notes.pop();
+  }
+  const [level, score] = line.split(lang === 'en' ? ': score ' : ': điểm ');
+  assert(/^\p{Lu}[\p{L}\d -]*$/u.test(level) && /^\d+\+?$/.test(score ?? ''), `rating line of "${text}"`);
+  equal(notes[0], reratedNote(i, lang), 'the re-rated note');
+  assert(notes.slice(1).every((note) => note.startsWith(lang === 'en' ? 'Decisive estimate' : 'Ước lượng quyết định')), `notes of "${text}"`);
+  return level;
+}
+
 /**
  * @param {unknown} pack
  * @returns {any}
@@ -122,16 +153,32 @@ const unsatisfiable = {
 const maliciousTitle = '<img src=x onerror="window.__xss=1">';
 const malicious = { ...sample, meta: { title: maliciousTitle }, puzzles: sample.puzzles.map((/** @type {any} */ p) => ({ ...p, title: maliciousTitle })) };
 
-/** 21 monominoes on 3x7: more than 20 pieces, so Patterns exists. */
+/** The 21 free polyominoes of 1 to 5 cells on a 9x10 board without one corner: more than 20 pieces, so Patterns exists. */
 function bigSet() {
-  const pieces = Array.from({ length: 21 }, (_, i) => ({ id: `P${String(i + 1).padStart(2, '0')}`, label: labelFor(i), color: colorFor(i), cells: [[0, 0]] }));
-  const solution = pieces.map((p, i) => ({ piece: p.id, x: i % 7, y: Math.floor(i / 7), turn: 0, mirrored: false }));
+  const shapes = [
+    [[0, 0]], [[0, 0], [1, 0]], [[0, 0], [1, 0], [2, 0]], [[0, 0], [1, 0], [0, 1]],
+    [[0, 0], [1, 0], [2, 0], [3, 0]], [[0, 0], [1, 0], [2, 0], [0, 1]], [[0, 0], [1, 0], [2, 0], [1, 1]],
+    [[0, 0], [1, 0], [0, 1], [1, 1]], [[1, 0], [0, 1], [1, 1], [0, 2]],
+    [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]], [[0, 0], [1, 0], [2, 0], [3, 0], [0, 1]], [[0, 0], [1, 0], [2, 0], [3, 0], [1, 1]],
+    [[0, 0], [0, 1], [1, 1], [2, 1], [0, 2]], [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1]], [[1, 0], [0, 1], [1, 1], [2, 1], [0, 2]],
+    [[0, 0], [1, 0], [2, 0], [0, 1], [2, 1]], [[2, 0], [0, 1], [1, 1], [2, 1], [0, 2]], [[1, 0], [2, 0], [3, 0], [0, 1], [1, 1]],
+    [[0, 0], [1, 0], [2, 0], [0, 1], [0, 2]], [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]], [[1, 0], [2, 0], [0, 1], [1, 1], [0, 2]],
+  ];
+  const pieces = shapes.map((cells, i) => ({ id: `P${String(i + 1).padStart(2, '0')}`, label: labelFor(i), color: colorFor(i), cells }));
+  // Each entry: piece number, x, y, turn, mirrored.
+  const placed = [
+    [1, 4, 8, 0, false], [2, 7, 4, 1, false], [3, 9, 3, 1, false], [4, 2, 3, 0, false], [5, 0, 4, 1, false], [6, 6, 7, 2, true],
+    [7, 8, 6, 1, false], [8, 8, 0, 0, false], [9, 3, 1, 1, false], [10, 2, 0, 0, false], [11, 7, 3, 1, false], [12, 4, 5, 1, false],
+    [14, 0, 1, 3, false], [16, 5, 1, 1, false], [19, 7, 0, 3, false], [13, 0, 6, 3, false], [18, 6, 4, 3, false], [15, 2, 6, 2, true],
+    [21, 1, 0, 3, false], [17, 1, 4, 0, true], [20, 3, 3, 0, false],
+  ];
+  const solution = placed.map(([n, x, y, turn, mirrored]) => ({ piece: pieces[Number(n) - 1].id, x, y, turn, mirrored }));
   return {
     format: 'pentomino-pack',
     version: 1,
     kind: 'puzzle-pack',
     rules: 'free-polyomino-v1',
-    board: { rows: ['#######', '#######', '#######'] },
+    board: { rows: ['.#########', ...Array.from({ length: 8 }, () => '##########')] },
     pieces,
     puzzles: [{ id: 'big1', title: 'Big', clues: [solution[0]], solution }],
   };
@@ -225,8 +272,9 @@ await check('link: #p= opens puzzle 2 of a list with claims and badges, and stor
   equal(m.root.dataset.screen, 'game', 'screen');
   assert(m.visible('.game'), 'game visible');
   assert(title(m) === 'Normal #2', `title ${title(m)}`);
-  assert((m.q('.puzzle-info').textContent ?? '').startsWith('Normal: score '), `info ${m.q('.puzzle-info').textContent}`);
-  equal(m.q('.puzzle-info strong').textContent, 'Normal', 'level in bold');
+  await waitFor(() => m.root.querySelector('.puzzle-info .rating-note') !== null, 'the rating on the current scale', 30000);
+  const level = derivedLine(m.q('.puzzle-info').textContent ?? '', 1, 'en', true);
+  equal(m.q('.puzzle-info strong').textContent, level, 'level in bold');
   equal(m.qa('.tray-piece').length, 9 - sample.puzzles[1].clues.length, 'tray count');
   equal(m.qa('.board-host .pm-clue').length, sample.puzzles[1].clues.length, 'clue pieces');
   assert(m.q('.pm-board .pm-svg').getBoundingClientRect().width > 100, 'board drawn');
@@ -272,13 +320,33 @@ await check('sample: real fetch of player/samples/sample-pack.json, three claime
   equal(cards.length, 3, 'cards');
   const text = (/** @type {HTMLElement} */ card, /** @type {string} */ part) => card.querySelector(part)?.textContent ?? '';
   equal(text(cards[0], '.card-heading'), 'Puzzle #1', 'heading');
-  assert(/^Easy: score \d+$/.test(text(cards[0], '.card-rating')), text(cards[0], '.card-rating'));
   equal(text(cards[0], '.card-status'), 'New', 'status');
-  assert(/^Normal/.test(text(cards[1], '.card-rating')) && /^Hard/.test(text(cards[2], '.card-rating')), 'levels');
   assert(cards.every((card) => card.querySelector('.pm-board .pm-svg') !== null), 'every card shows a preview');
   equal(m.qa('.card-select[aria-current="true"]').length, 1, 'one open puzzle');
+  // Each puzzle is rated again on today's scale, one request at a time: the card shows its level and score, then the note.
+  await waitFor(() => m.qa('.puzzle-card').every((card) => card.querySelector('.rating-note') !== null), 'the cards on the current scale', 45000);
+  const rated = [...m.qa('.puzzle-card')].reverse();
+  rated.forEach((card, i) => {
+    const level = derivedLine(text(card, '.card-rating'), i);
+    equal(card.querySelector('.card-rating strong')?.textContent, level, `card ${i + 1}: level in bold`);
+  });
   await waitFor(() => m.location.hash === sampleBase, 'the address becomes the list of the three codes');
   equal(otherKeys(/** @type {any} */ (m.adapter)), [], 'nothing is stored for the pack');
+  m.player.destroy();
+});
+
+await check('a derived rating alone redraws the cards: with no navigation, language or verification change, every old-scale card gets its note', async () => {
+  const m = await mount({ hash: sampleAt(0) });
+  await waitFor(() => m.q('[data-badge="verification"]').textContent === 'Solvable ✓', 'the open puzzle to be verified', 30000);
+  const { index } = m.player.store.getState();
+  const language = document.documentElement.lang;
+  // From here only the replies of the display ratings change the store: the cards must follow them.
+  await waitFor(() => m.qa('.puzzle-card').length === 3 && m.qa('.puzzle-card').every((card) => card.querySelector('.rating-note') !== null),
+    'every card to show its note', 45000);
+  [...m.qa('.puzzle-card')].reverse().forEach((card, i) => derivedLine(card.querySelector('.card-rating')?.textContent ?? '', i));
+  const after = m.player.store.getState();
+  equal([after.index, document.documentElement.lang], [index, language], 'no navigation and no language change');
+  equal(Object.values(after.displayRatings).map((entry) => entry.status), ['rated', 'rated', 'rated'], 'three derived ratings');
   m.player.destroy();
 });
 
@@ -559,6 +627,7 @@ await check('header: EN | VI changes every text and is remembered; the theme but
   const kept = /** @type {Map<string, string>} */ (new Map());
   const m = await mount({ hash: sampleAt(1), preferences: { setItem: (key, value) => void kept.set(key, value) } });
   try {
+    await waitFor(() => m.root.querySelector('.puzzle-info .rating-note') !== null, 'the rating on the current scale', 30000);
     equal(m.q('.app-header h1').textContent, 'Pentomino Player', 'English title');
     equal(m.q('[data-lang="en"]').getAttribute('aria-pressed'), 'true', 'English is pressed');
     const left = m.q('.pieces-left').textContent;
@@ -567,7 +636,7 @@ await check('header: EN | VI changes every text and is remembered; the theme but
     equal(m.q('.app-header h1').textContent, 'Trình chơi Pentomino', 'Vietnamese title');
     equal(m.q('[data-lang="vi"]').getAttribute('aria-pressed'), 'true', 'Vietnamese is pressed');
     equal(m.q('[data-action="undo"]').textContent, 'Hoàn tác', 'a fixed text');
-    assert((m.q('.puzzle-info').textContent ?? '').startsWith('Trung bình: điểm '), `rating ${m.q('.puzzle-info').textContent}`);
+    derivedLine(m.q('.puzzle-info').textContent ?? '', 1, 'vi', true);
     equal(m.q('[data-badge="verification"]').textContent, 'Giải được ✓', 'a badge');
     equal(m.q('.pieces-left').textContent, `Còn ${(left ?? '').split(' ')[0]} mảnh`, 'a counter with a number');
     equal(m.q('.puzzle-card[data-puzzle-index="0"] .card-status').textContent, 'Mới', 'a card');

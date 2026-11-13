@@ -20,12 +20,14 @@ import { progressFingerprint } from '../../core/engine/keys.js';
 import { packBoard, parsePack, validatePack } from '../../core/engine/pack.js';
 import { catalogueStats } from '../../core/engine/puzzlecode-v1.js';
 import { puzzleCodesOf } from '../../core/browser/handoff.js';
+import { ratingDisplay } from '../../core/browser/display-rating.js';
 import { createPuzzleCodeClient } from '../../core/browser/puzzle-code-client.js';
 import { puzzleDisplayName } from '../../core/browser/puzzle-title.js';
 import { createStorage } from '../../core/browser/storage.js';
 import { createPool } from '../../core/browser/worker-pool.js';
 import { createGeneratorApp } from '../../generator/app.js';
 import * as generatorI18n from '../../generator/i18n.js';
+import { levelLabel } from '../../generator/strings.js';
 import { mountPlayer } from '../../player/app.js';
 import * as playerI18n from '../../player/i18n.js';
 
@@ -148,6 +150,15 @@ async function waitFor(fn, msg, ms = 20000) {
     await pause(10);
   }
   throw new Error(`timed out: ${msg}`);
+}
+
+/**
+ * Whether a printed detail line is `full`: paper cuts a long line to the heading block and ends it with an ellipsis.
+ * @param {string} printed
+ * @param {string} full
+ */
+function printedAs(printed, full) {
+  return printed === full || (printed.endsWith('…') && printed.length > 1 && full.startsWith(printed.slice(0, -1).trimEnd()));
 }
 
 /** @template T */
@@ -441,7 +452,8 @@ function clientSpy(wrap = /** @type {(inner: ReturnType<typeof createPuzzleCodeC
 }
 
 /**
- * @param {{ hash?: string, adapter?: ReturnType<typeof memoryAdapter>, factory?: () => any, width?: number, height?: number }} [o]
+ * @param {{ hash?: string, adapter?: ReturnType<typeof memoryAdapter>, factory?: () => any, width?: number, height?: number,
+ *   pool?: any }} [o] `pool`: the Player's engine pool (default: the stub that never answers).
  */
 async function mount(o = {}) {
   await useStyles('player');
@@ -455,7 +467,7 @@ async function mount(o = {}) {
   const adapter = o.adapter ?? memoryAdapter();
   const location = { hash: o.hash ?? '', pathname: '/player/', search: '' };
   const urls = /** @type {string[]} */ ([]);
-  const pool = stubPool();
+  const pool = o.pool ?? stubPool();
   const player = mountPlayer(root, {
     storage: createStorage(adapter, () => Date.now()),
     location,
@@ -1008,12 +1020,18 @@ const samplePieces = /** @type {any[]} */ (sample.pieces);
 
 await check('BA01 BA02 BA03 BA04 BA17 BA22 BA24 BA25: puzzle 2 of 3 — Print, read the code in order, rasterise the QR, Copy the link, open it in fresh Players', async () => {
   const spy = clientSpy();
-  const m = await mount({ hash: await packHash(sample, 1), factory: spy.factory });
+  // The sample's claims are on the old scale: with real workers this Player rates the puzzle again, and the sheet shows the
+  // rating of today's scale and a note with the original.
+  const pool = createPool({ size: 1 });
+  toDestroy.push({ destroy: () => pool.close() });
+  const m = await mount({ hash: await packHash(sample, 1), factory: spy.factory, pool });
   equal(m.root.dataset.screen, 'game', 'the source Player shows a puzzle');
   equal(/** @type {any} */ (m.player.store.getState().pack).puzzles.length, 3, 'its pack holds three puzzles');
   const expected = sourceView({ rows: sampleRows, pieces: samplePieces, puzzle: sample.puzzles[1], index: 1, rotation: 0 });
   equal(expected.heading, 'Normal #2', 'the heading of the selected puzzle');
   assertSameView(openedView(m), expected, 'the source Player');
+  await waitFor(() => Object.values(m.player.store.getState().displayRatings).filter((entry) => entry.status !== 'pending').length === 3,
+    'the three puzzles to be rated again', 45000);
   const out = await printCopyOpen('sample 2 of 3', { print: () => m.q('[data-action="print"]'), share: m }, expected, {
     expectedCode: G2.code, expectedHash: qrHash(G2.name), expectedVersion: 5,
   });
@@ -1021,8 +1039,11 @@ await check('BA01 BA02 BA03 BA04 BA17 BA22 BA24 BA25: puzzle 2 of 3 — Print, r
   assert(out.F.length < 60, `a code is a puzzle, not a pack (${out.F.length})`);
   assert(!out.F.includes(G1.code.slice(0, 20)) && !out.F.includes(G3.code.slice(0, 20)), 'neither neighbour is in the code');
   assert(spy.encodes >= 2, 'Print and Share each asked the worker');
-  equal(out.sheets.details.length, 1, 'one detail line: the rating (no set line)');
-  assert(/^Normal: score \d+/.test(out.sheets.details[0]), `the level and score stay (${out.sheets.details[0]})`);
+  const [rating, rerated, ...more] = out.sheets.details;
+  assert(/^.+: score \d+\+?$/.test(rating), `the level and score of today's scale (${rating})`);
+  assert(printedAs(rerated ?? '', `Re-rated with the current scale (original: Normal ${sample.puzzles[1].rating.score}, ${sample.puzzles[1].rating.model})`),
+    `the note with the original follows (${rerated})`);
+  assert(more.length <= 1 && more.every((line) => line.startsWith('Decisive')), `at most the estimate note after it (${more})`);
   await showSheet('player-sheet-source', out.pages[0]);
 });
 
@@ -1413,8 +1434,11 @@ await check('BA01 BA02 BA03 BA04 BA22 BA23 BA24: the real Generator — one puzz
   const sheets = await readSheets(done.pages);
   equal(sheets.heading, untitled(3), 'the printed heading is the name of the card of the selected puzzle');
   assert(sheets.heading !== expected.heading, 'not the title that the code carries');
-  equal(sheets.details.length, 1, 'the level and score only');
+  // An estimate shows its note under the rating; a puzzle whose census finished has the rating line alone (no set line).
+  const notes = /** @type {NonNullable<ReturnType<typeof ratingDisplay>>} */ (ratingDisplay(puzzle.rating, undefined, { t: generatorI18n.t, levelLabel })).notes;
+  equal(sheets.details.length, puzzle.rating.censored === true ? 2 : 1, 'the level and score, and the estimate note of a rating that is one');
   assert(/: score \d+/.test(sheets.details[0]), `the level and score stay (${sheets.details[0]})`);
+  assert(notes.length === sheets.details.length - 1 && notes.every((note, i) => printedAs(sheets.details[i + 1], note)), `the estimate note, if any (${sheets.details})`);
   assert(!sheets.pageText.includes(state.setSeed), 'the set seed is not printed');
   const seeds = state.puzzles.map((/** @type {any} */ p) => String(p.seed ?? '')).filter((/** @type {string} */ s) => s.length >= 4);
   assert(!seeds.some((/** @type {string} */ s) => sheets.pageText.includes(s)), 'no puzzle seed is printed');
