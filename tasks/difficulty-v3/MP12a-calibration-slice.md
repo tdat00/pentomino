@@ -1029,14 +1029,14 @@ On a tree with a knob change, the quick set runs only after GF-P2 (before it, it
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP12a: Calibration slice: the GV2 cases again with v3, and the knob changes`); the rounds' files were committed earlier in the pause-state commit `a25960c`, the close in this commit |
+| Start | 2026-11-13 12:24 (+07:00), first developer (rounds 0-2); close 20:54 |
+| End | 2026-11-13 17:49 first developer, cancelled by the owner's pause; close 21:02 developer, 21:15 orchestrator commit |
+| Duration | first developer about 5 h 25 min (machine runs about 1.5 h of it: round 0 12:30-13:31, round 1 13:40-14:14, round 2 16:39-17:11; owner waits for P-OD7 and P-OD8 included); close 8 min developer (four locked commands 155.6 s, lock waits 0 s); about 10 min review. The pause (17:52-20:54) is not counted |
+| Model | claude-sonnet-5.5 (two developers: rounds 0-2 in the previous orchestrator session, the close in this one); orchestrator review claude-opus-5.5 |
+| Token usage | 390 model calls (342 + 48); 91,638,952 input tokens (90,212,585 cache reads); 378,757 output tokens |
+| AI credits | about 1,638 (developers: about 1,519 for rounds 0-2, about 119 for the close) |
+| Verification | Close developer (`MP12a-close-addendum.md`): identity check (digest `34cea386…`, versions `gen-v3`, `mixed-v2`, `xoshiro128ss-v1`, `difficulty-v3`; diff since `f33aa71` exactly the 7 expected files); `record-fixtures --check` OK (0.6 s); UI-flow recipes 29/29 (9.4 s); GA-P2 final `npm test` 1,360/1,360 (122.6 s, TAP `tests/artifacts/MP12a/ga-p2-r2-final.txt`, the EPERM exception not needed); quick set 1,340/1,340 (23.0 s); `launch.mjs --self-test` 23 of 23, `criteria.mjs --self-test` 5 of 5; `npm run check` OK; CRLF without BOM. Orchestrator re-run: quick set 1,340/1,340 (22.7 s under the timing lock); `npm run check` OK |
+| Acceptance | MP12a-B01..B03 and T01..T06 as evaluated in the record (C1, C2, C3 and C5 pass; C4 with the two owner-accepted exceptions, P-OD7 and P-OD8); close criteria MP12a-C01..C05 met. Diff reviewed: the record gains §7.2's P-OD8 sentence, §8.5's closing line, §8.6-§8.9 (P-OD8 and the PR-P1 rows, GF-P2 and GA-P2 of round 2, the test plan) and §9 "Handoff"; `docs/design-detail.md` §7.8 states the census change with both exceptions and R7 as a known limitation, §7.9 names both exceptions without the duplicated sentences, §4.2's `SCORE_V3` comment is current. No `SOURCE_FILES` file, test or fixture changed by the close |
+| Issues & resolutions | (1) C4 failed after round 0 in five cells and after round 2 in 10x10-master (7.0 %) and 18x20-master (11.0 %): the owner raised `census` to 80,000,000 (P-OD7) and accepted both cells' estimates (P-OD8 (a)); the task stopped by its orders, no fourth round. (2) The owner's pause at 17:52 cancelled the first developer during the close; the close ran after the plan author's answer to PR-P1 from `MP12a-close-addendum.md` (binding). (3) `tests/site-tools.test.js` EPERM in the first round-2 GA-P2 run (17:45): passed alone at 17:48 and did not recur in the final `npm test`; a named item for MP17 (record §8.6). (4) The stale comment above `SCORE_V3` in `core/engine/policy.js` stays to keep the source digest; MP12b3 corrects it. (5) The close's quick-set command added a TAP reporter to count the tests (recorded in §8.9) |
+| Handoff | MP12b1: reuse the 18 round-2 reports of `docs/difficulty-v3/landscape-v3/r2/` by the digest `34cea386…` and the four version keys; the costly cells are the Master cells and 18x20-expert (10x10-master's work at 58.6 % of the cap). MP12b2: lock `12 / 3 / [0, 0, 2, 3] / G 5 / info 0.5 / (1, 2)` unless MP12b1 breaks C1 or C3; the two accepted census exceptions; R7 a known limitation; `STALL_LIMIT` 12. Owner: nothing open from this task |

@@ -835,7 +835,9 @@ yield as GV2, so no D36 finding for a GV2 cell.
    cell is not part of the exception the owner accepted (18x20-master), the task has no round left (three are the
    ceiling) and no further value is allowed by its rules, so the task stopped and no value was chosen. For the owner:
    accept 10x10-master's remaining estimates as well (the same kind of acceptance as 18x20-master), or decide on
-   another way to treat the cell. 18x20-master is 11.0 % (22 of 200), within the accepted exception.
+   another way to treat the cell. 18x20-master is 11.0 % (22 of 200), within the accepted exception. Decided by the
+   owner on 2026-11-13 at 17:44: P-OD8 (a), 10x10-master's census estimates are accepted like 18x20-master's; `census`
+   stays 80,000,000 and the task closes (sections 8.6-8.9).
 2. **Order noise** (section 6.4): a puzzle's v3 score depends on the tie order of the deduction by up to 12 at Hard
    (12x12-hard; 6 at 10x10-hard, none at 6x10 and 18x20), up to 7 at Expert (11 at 6x10-expert) and 6 to 13 at Master (one decisive guess is worth 5
    points). The generator and rating use the canonical order, so a stored score is stable; no aggregation was adopted
@@ -915,7 +917,98 @@ above, as in 8.2), the strict fixture files and the quick set, the final `npm te
 and the handoff of section 9 with round 2 as the slice evidence. If the owner decides otherwise, the pins of sections 3.2
 and 3.4 move with the new value.
 
-## 9. Handoff (the task is stopped at the owner's rule; MP12b1 and MP12b2 wait for the owner's answer on 10x10-master)
+Done after P-OD8 (a): sections 8.6 to 8.9.
+
+### 8.6 The owner's decision P-OD8 and the plan author's answer to PR-P1
+
+**P-OD8** (`clarifications-resolved.md` Part H; asked 2026-11-13 17:25, answered 17:44). The question: C4 after P-OD7
+fails in 10x10-master (14 of 200 census estimates, 7.0 %; the bound of 5 % is 10 puzzles; 17.0 % at 10,000,000), a cell
+outside the owner's 18x20-master exception, and the three-round ceiling is used up. The evidence: the other sixteen
+cells are at most 2.5 % (18x20-master 11.0 %, within its exception), the probe corpus of the round has 10x10-master at
+4 % (2 of 50), C1, C2, C3 and C5 pass (sections 6.3, 6.5, 6.7 and 7.2). The options: (a) accept 10x10-master's remaining
+estimates as well and close MP12a at 80,000,000; (b) a fourth round with a larger `census` (for example 160,000,000),
+outside the task's ceiling, at further deduction cost; (c) the plan author answers. **The answer (owner, 2026-11-13
+17:44): (a).** The 7.0 % are accepted, the same kind of acceptance as 18x20-master's; `census` stays 80,000,000 and
+MP12a closes. No value changed.
+
+**The plan author's answer to PR-P1** (`docs/difficulty-v3/clarifications-resolved.md` Part I, PR-P1, 2026-11-13,
+recorded with the owner's decision P-OD9), the rows that concern the slice:
+
+| Row | Position |
+|---|---|
+| K2 to K5, the tuple | `12 / 3 / [0, 0, 2, 3] / G 5 / info 0.5 / (1, 2)` (`base.max / base.scale / rule / weights.G / weights.info / penalty`) is the tuple to lock, unless MP12b1 breaks C1 or C3; values on range edges are acceptable (the ranges bounded the search, they were not predictions) |
+| K6 | accepted: a puzzle without a decisive guess scores at most 15, below Hard |
+| K10, G6, the census and the 5 % rule | accepted, with the owner's two exceptions (18x20-master, P-OD7; 10x10-master, P-OD8). On the full landscape a cell above 5 % census estimates is a listed finding, shipped with the estimate note and the `censored` flag; only a cell above 25 % goes to the owner, with the cost of a larger census; no census change in MP12b |
+| R7, order noise | confirmed: one canonical order and no median. It is a property of the label, not an instability (a given puzzle always gets the same rating, and the Generator aims at the band centre); a median of three orders would triple the rating cost. A known limitation of design §7.8, with the numbers of section 6.4 |
+| P-OD9 | D36 is decided, option (i) (a level is offered only where v3 can make it). Stops and reviews as in the Sudoku repository: a part stops for the owner only for a correctness failure or when it would have to change a recorded decision; a performance or availability finding is a named item with its numbers, in MP12b2's record or in MP17; the analysts cross-review only MP12b2's lock, MP12b3 and MP15a1 |
+
+Named items of the close:
+
+1. **EPERM in the cleanup hook of `tests/site-tools.test.js`** (for MP17). The first GA-P2 run of round 2
+   (17:45:18-17:47:22, `tests/artifacts/MP12a/ga-p2-r2-first.txt`) ended that file with `EPERM, Permission denied` from
+   `rmSync` in its cleanup hook (`tests/site-tools.test.js:20`), which could not remove the folder
+   `tests/artifacts/site-tools-1XNSQz`; the file's 36 tests had passed. The file passes alone (17:48:16-17:48:22, 36 of
+   36, exit 0) and the final `npm test` of the close (section 8.8) did not repeat it. It predates this task's change:
+   the test touches no rating.
+2. **The comment above `SCORE_V3` in `core/engine/policy.js`** still reads "Defined but not yet the rating: `rate`
+   stays `difficulty-v2` until the v3 activation": a source file is not edited by this close (the source digest must
+   stay as in the round-2 reports), so MP12b3 corrects it; `docs/design-detail.md` §4.2 is corrected here.
+3. Nothing new from the GA-P2 verification (section 8.8): no failure, no EPERM, no run at its limit.
+
+### 8.7 GF-P2 for the round-2 tuple
+
+The orchestrator ran GF-P2 for the round-2 tuple at 17:44 (both fixtures carry the file time 17:44:42). The reason text
+of that command is not recorded; the fixtures do not store it. The close ran no `--replace`. Step 2 of the close, the
+check only (label `MP12a close fixture check`, 20:54:58-20:54:59, 0.6 s, lock wait 0 s): `record-fixtures: OK`. The
+diff of the two fixtures between `f33aa71` and HEAD (`git diff --numstat f33aa71 HEAD`): `generation-case.json` 11
+insertions and 11 deletions, `generated-sample-pack.json` 32 and 39; 43 added and 50 removed in all, the totals of
+section 8.1. Whether the rewrite of 17:44 changed the content written after round 1 is not recorded (that output was
+overwritten before any commit); the state check of section 8.4 (`--check` OK under 80,000,000 before the rewrite) says
+that the census change reproduced the same puzzles.
+
+### 8.8 GA-P2 for the round-2 tuple
+
+- **First run** (label `MP12a r2 GA-P2 first run`, 17:45:18-17:47:22, 123.8 s, lock wait 0 s,
+  `tests/artifacts/MP12a/ga-p2-r2-first.txt`): 1,361 tests, 1,358 pass, 3 fail. Two are the `scores` of the recipes
+  `heart-n10-master` and `square-22x22-nightmare` of `tests/generator-controller.test.js` (each only at its `scores`
+  assertion, as in 8.2 and 8.4); the third is `tests/site-tools.test.js`, whose 36 tests passed and whose cleanup hook
+  failed with EPERM (section 8.6).
+- **The migration** (17:48, orchestrator): `expect.scores` of those two recipes in `tests/fixtures/ui-flow-recipes.json`,
+  to the values of section 8.4: `heart-n10-master` [44, 43, 48, 44, 41, 48, 46, 49, 43, 49], `square-22x22-nightmare`
+  [71, 60, 67, 66, 60, 61, 63, 63, 60, 65]. No key, level, count or other recipe changed.
+- **`tests/site-tools.test.js` alone** (17:48:16-17:48:22): 36 of 36, exit 0 (`tests/artifacts/MP12a/r2/site-tools.log`).
+- **The close checked the file** before its runs: it holds the two lists above, and its diff between `f33aa71` and HEAD
+  changes only the three `scores` lines of `default-10x6-normal` (round 1's values, `[15, 16, 13, 13, 16]`),
+  `heart-n10-master` and `square-22x22-nightmare`.
+- **The runs of the close**, under the lock:
+
+| Command (label) | Result | Start-end | Seconds | Lock wait (s) |
+|---|---|---|---|---|
+| UI-flow file (`MP12a close UI-flow recipes`: `--test tests/generator-controller.test.js`) | 29 of 29 pass | 20:55:27-20:55:37 | 9.4 | 0 |
+| final `npm test` (`MP12a close GA-P2 final`: `--test tests/**/*.test.js`, TAP in `tests/artifacts/MP12a/ga-p2-r2-final.txt`, not tracked) | 1,360 tests, 125 suites, 1,360 pass, 0 fail | 20:55:52-20:57:54 | 122.6 | 0 |
+
+The final `npm test` passed at its first run, so no second run (`MP12a close GA-P2 final 2`) was needed.
+
+### 8.9 The test plan on the round-2 tree
+
+| Command | Result | Seconds | Lock wait (s) |
+|---|---|---|---|
+| `git status --short`; `git diff --stat f33aa71 HEAD -- core tools tests/fixtures tests/policy.test.js tests/difficulty-v3.test.js tests/clues.test.js` | nothing changed outside `tests/artifacts/` and the pack's own paths (`tasks/difficulty-v3/`, `clarifications*.md`, the analysts' folders); the diff touches exactly `core/engine/policy.js`, the two generation fixtures, `ui-flow-recipes.json`, `tests/policy.test.js`, `tests/difficulty-v3.test.js` and `tests/clues.test.js` | not timed | none |
+| the identity (`computeSourceDigest`, `currentVersions()`) | `sourceDigest` `34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918`; versions `gen-v3`, `mixed-v2`, `xoshiro128ss-v1`, `difficulty-v3` | not timed | none |
+| `node tools/record-fixtures.mjs --check` (`MP12a close fixture check`) | `record-fixtures: OK` | 0.6 | 0 |
+| UI-flow file (`MP12a close UI-flow recipes`) | 29 of 29 pass | 9.4 | 0 |
+| the final `npm test` (`MP12a close GA-P2 final`) | 1,360 of 1,360 pass | 122.6 | 0 |
+| quick set (`MP12a close quick set`: `--test --test-skip-pattern=slow tests/**/*.test.js`, TAP reporter to `tests/artifacts/MP12a/close-quick.txt` for the counts) | 1,340 of 1,340 pass (124 suites) | 23.0 | 0 |
+| `launch.mjs --self-test` | `launch self-test: 23 of 23 cases as expected` | under 1 | none |
+| `criteria.mjs --self-test` | `criteria self-test: 5 of 5 synthetic rounds as expected` | under 1 | none |
+| format check of the record, `docs/design-detail.md`, `launch.mjs` and `criteria.mjs` (CRLF, BOM) | all four `CRLF only`, `no BOM` | under 1 | none |
+| `npm run check` (run last, after the record and the design were complete) | `check-conventions: OK`, `check-site: OK` | not timed | none |
+
+Command time of the four locked commands: 155.6 s; no lock wait in any of them (the helper pauses 15 s after each
+release). The close measured nothing and edited no `SOURCE_FILES` file, test or fixture: the source digest is the one of
+the 18 round-2 reports.
+
+## 9. Handoff
 
 - **Knobs and caps in the tree.** `SCORE_V3`: `base { max: 12, scale: 3 }`, `rule [0, 0, 2, 3]`, `weights { G: 5,
   info: 0.5 }`, `penalty { few: 1, many: 2 }`. `DEDUCE`: `{ lookaheadWidth: 4, nodes: 30000, solutions: 8,
@@ -925,20 +1018,27 @@ and 3.4 move with the new value.
   manifest, the 90 packs and `final.jsonl`), the slice evidence of GL-P3 for the tuple above. Source identity of its
   reports: digest `34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918`, versions `{ algo: gen-v3, policy:
   mixed-v2, rng: xoshiro128ss-v1, model: difficulty-v3, app: 1.0.0 }`, `sourceCommit` `f33aa71...+uncommitted-changes`
-  (the tree with both changes; the digest, not the commit, is what `publish` checks). `r1/` (digest `97e1a5a1...`, the
-  census at 10,000,000) and `r0/` (the old score tuple) are kept as evidence.
+  (the tree with both changes, committed in `a25960c`; the digest, not the commit, is what `publish` checks). `r1/`
+  (digest `97e1a5a1...`, the census at 10,000,000) and `r0/` (the old score tuple) are kept as evidence.
 - **The launcher** is `docs/difficulty-v3/landscape-v3/launch.mjs` (`run`, `publish`, `--self-test`; the identity fix of
   section 1.1 and TP29 are in); the criteria script is `docs/difficulty-v3/landscape-v3/criteria.mjs`. MP12b1 runs the
   full landscape with the same launcher and lock helper.
-- **GF-P2 and GA-P2** ran after round 1 only; for the round-2 tuple they are **not run** (section 8.4: two UI-flow
-  recipes would be migrated, the generation fixtures check OK). MP12b1 and MP12b2 should wait for the owner's answer and
-  the steps of section 8.5.
-- **For the owner:** C4 holds in sixteen cells, fails in 18x20-master (11.0 %, accepted) and in 10x10-master (7.0 %, 14 of
-  200, not covered by the decision); the work cap stays at 760,000,000; the penalty is (1, 2) with `rule[3]` = 3.
-- **For MP12b1:** the cells with the largest cost are the Master cells and 18x20-expert; the 10x10-master request is the
+- **GF-P2 and GA-P2** ran for the round-2 tuple (sections 8.7 and 8.8): the fixture check is OK, the UI-flow file passes
+  29 of 29 and the final `npm test` 1,360 of 1,360; the quick set (1,340 of 1,340), both self-tests and `npm run check`
+  pass on the same tree (section 8.9). Nothing was measured again and no source file changed since round 2, so the
+  slice evidence stays valid for the tuple above.
+- **For the owner:** nothing open from this task. C4 holds in sixteen cells and fails in 18x20-master (11.0 %) and in
+  10x10-master (7.0 %, 14 of 200), both accepted (P-OD7, P-OD8); the work cap stays at 760,000,000; the penalty is
+  (1, 2) with `rule[3]` = 3 (section 4).
+- **For MP12b1:** reuse the 18 round-2 reports only under an equal source digest (`34cea386...`) and equal values of the
+  four version keys `algo`, `policy`, `rng` and `model` (the reports also carry `app`, which `currentVersions()` lacks,
+  section 1.1). The cells with the largest cost are the Master cells and 18x20-expert; the 10x10-master request is the
   slowest (a median of 9.0 s per request of ten puzzles in round 2) and its work reaches 58.6 % of the work cap. No GV2
   cell lacks a puzzle.
-- **For MP12b2:** the GV2 cells made puzzles with the same request completion rate and yield as v2, so no D36 finding
-  arises from the slice; the Hell report and the search evidence are MP12b2's own work, and `STALL_LIMIT` stays 12 (its
-  re-examination is skipped).
+- **For MP12b2:** the tuple to lock is `12 / 3 / [0, 0, 2, 3] / G 5 / info 0.5 / (1, 2)` unless MP12b1 breaks C1 or
+  C3 (section 8.6); the two accepted census exceptions are 18x20-master (11.0 %) and 10x10-master (7.0 %); R7 (one
+  canonical order, no median) is a known limitation of design §7.8, with the numbers of section 6.4; `STALL_LIMIT` stays
+  12 and its re-examination is skipped; the GV2 cells made puzzles with the same request completion rate and yield as
+  v2, so no D36 finding arises from the slice (the Hell report and the search evidence are MP12b2's own work); the named
+  items of section 8.6 (the EPERM for MP17, the stale `SCORE_V3` comment for MP12b3).
 

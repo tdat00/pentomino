@@ -59,7 +59,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP10b1 | [MP10b1](MP10b1-display-rating-player.md) | Derived display rating: the shared rules and the Player | MP10a | Large | Apps | M6 | 20 |
 | [x] | MP10b2 | [MP10b2](MP10b2-display-rating-generator-and-pages.md) | Derived display rating in the Generator; the browser pages and gate GC-P2 (display) | MP10b1 | Medium–Large + gate | Apps | M6 | 21 |
 | [x] | MP11 | [MP11](MP11-calibration-tooling.md) | Calibration tooling for v3 and the slow v3 test | MP10b2 | Medium | Tools | M7 calibrated and locked | 22 |
-| [ ] | MP12a | [MP12a](MP12a-calibration-slice.md) | Calibration slice: the GV2 cases again with v3, and the knob changes | MP11 | Medium + machine time | Measurement | M7 | 23 |
+| [x] | MP12a | [MP12a](MP12a-calibration-slice.md) | Calibration slice: the GV2 cases again with v3, and the knob changes | MP11 | Medium + machine time | Measurement | M7 | 23 |
 | [ ] | MP12b1 | [MP12b1](MP12b1-full-landscape.md) | Full landscape with v3 (gate GL-P3, full part) | MP12a | Small–Medium + machine time | Measurement | M7 | 24 |
 | [ ] | MP12b2 | [MP12b2](MP12b2-search-evidence-and-lock.md) | Search evidence (gate GS-P3), the Hell report, the owner's questions and the lock of the tuple | MP12b1 | Medium + machine time | Measurement | M7 | 25 |
 | [ ] | MP12b3 | [MP12b3](MP12b3-hell-availability-and-fail-fast.md) | Hell availability (D36 (i)), the fail-fast and the end of the lock | MP12b2 and the owner's answers to its questions | Large + gates | Engine and Generator | M7 | 26 |
@@ -593,7 +593,7 @@ The orchestrator owns this record.
 | MP10b1 | Accepted (print overflow fixed in the task) | 24 min developer in two rounds + 5 min review | about 617 | `difficulty-v3 MP10b1` |
 | MP10b2 | Accepted (GC-P2 display passed; KI-1 closed by D1) | 45 min developer (incl. about 25 min page runs) + 2 min review | about 717 | `difficulty-v3 MP10b2` |
 | MP11 | Accepted | 9 min developer + 3 min review | about 182 | `difficulty-v3 MP11` |
-| MP12a | | | | |
+| MP12a | Accepted (C4: two owner-accepted census exceptions, P-OD7 and P-OD8; closed by its addendum after the pause) | about 5 h 25 min developer in three rounds (machine about 1.5 h) + 8 min close + 10 min review | about 1,638 | `difficulty-v3 MP12a` |
 | MP12b1 | | | | |
 | MP12b2 | | | | |
 | MP12b3 | | | | |
