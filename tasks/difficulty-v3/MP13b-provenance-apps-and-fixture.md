@@ -51,6 +51,19 @@ an older Generator keeps no origin rather than a wrong one. No rating, puzzle, h
 - Run only the commands of the test plan. `tools/record-fixtures.mjs` with `--replay-case --search` or `--create`, and
   `npm test`, run **only** as gate GF-P4 (below), announced first. Never stage, commit, stash, reset, push or switch
   branches; never edit `tasks/difficulty-v3/`, the reports or `docs/difficulty-v3/`.
+- **Amendment L1 (lock; orchestrator decision 2026-11-13).** The Sudoku repository runs on the same machine. Save the
+  helper `Invoke-Dv3Timed` of check-list §7 ("Shared-machine lock protocol") verbatim as
+  `tests/artifacts/MP13b/dv3-lock.ps1` and dot-source it in every call. Every test run, every
+  `tools/record-fixtures.mjs` run that generates puzzles (`--search`, `--create`, `--check` once the file exists) and
+  `npm test` go through it, as written in the test plan and the gate: one bounded command per acquisition of the
+  lock, at most 590 s, at least 15 s between releasing the lock and taking it again (the helper waits), never a lock
+  held across a series of commands. Only `npm run check`, the CRLF check, the `--replay-case --check` before the gate
+  (it stops at "file missing") and, while you work, a single test file that ends within 10 seconds run without it. A
+  command that the helper stops at its limit has an error: report it, never rerun it outside the helper. Two
+  exceptions: a `--search` stopped there is resumed like its exit 1, from the seed after its last printed line; an
+  `npm test` stopped there runs again as two commands, the quick set and
+  `--test --test-name-pattern=slow tests/**/*.test.js`, both recorded. The reply gives each invocation's label, exit,
+  seconds and lock wait.
 - The fixture is written by the tool, normalised to CRLF by it (`toFileText`), and never edited by hand.
 - UTF-8 without BOM, CRLF, final newline, no trailing whitespace.
 
@@ -279,10 +292,13 @@ orchestrator instead), `player/`, the UI modules or the other fixtures.
 ### Exact commands (while working)
 
 ```powershell
-node --test --test-skip-pattern=slow tests/generation-client.test.js tests/cli.test.js tests/generator-state.test.js tests/generator-controller.test.js tests/generate.test.js
-if ($LASTEXITCODE -ne 0) { throw 'targeted tests failed' }
-npm run test:quick
-if ($LASTEXITCODE -ne 0) { throw 'quick tests failed' }
+. tests\artifacts\MP13b\dv3-lock.ps1
+$r = Invoke-Dv3Timed -Task 'MP13b targeted tests' -NodeArgs @('--test', '--test-skip-pattern=slow',
+  'tests/generation-client.test.js', 'tests/cli.test.js', 'tests/generator-state.test.js',
+  'tests/generator-controller.test.js', 'tests/generate.test.js')
+if ($r.Exit -ne 0) { throw 'targeted tests failed' }
+$r = Invoke-Dv3Timed -Task 'MP13b quick set' -NodeArgs @('--test', '--test-skip-pattern=slow', 'tests/**/*.test.js')
+if ($r.Exit -ne 0) { throw 'quick tests failed' }
 npm run check
 if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 ```
@@ -291,27 +307,31 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 
 Announce in your reply plan: "GF-P4: `record-fixtures --replay-case --search` (each run at most 540 s, resumed with
 `--from` until a seed is selected), `--create --seed <n>`, `--check`, then `npm test` (about as long as the last full
-run in the MP12b2 Execution log)". The Sudoku repository runs in parallel on the same machine; never two heavy runs
-at once: start only when the orchestrator says the machine is free.
+run in the MP12b2 Execution log)". The Sudoku repository runs in parallel on the same machine: start after the
+orchestrator's go; each command then goes through the lock helper (Amendment L1), which interleaves the gate with the
+Sudoku repository's runs.
 
 ```powershell
 New-Item -ItemType Directory -Force tests\artifacts\MP13b | Out-Null
-node tools\record-fixtures.mjs --replay-case --search 2>&1 | Tee-Object -FilePath tests\artifacts\MP13b\search-0.txt
-"search: exit $LASTEXITCODE"
-# exit 1 (the 540 s bound): run again with --from <next> into search-<next>.txt, until a seed is selected or seed 49
-# is done; then choose n by the selection rule from all the printed lines
-node tools\record-fixtures.mjs --replay-case --create --seed <n>
-if ($LASTEXITCODE -ne 0) { throw 'replay fixture not recorded' }
+. tests\artifacts\MP13b\dv3-lock.ps1
+$r = Invoke-Dv3Timed -Task 'MP13b GF-P4 search 0' -NodeArgs @('tools/record-fixtures.mjs', '--replay-case', '--search')
+"search: exit $($r.Exit)"
+# exit 1 (the tool's 540 s bound): the same command with '--from', '<next>' and the label 'MP13b GF-P4 search <next>',
+# until a seed is selected or seed 49 is done; the helper prints the tool's lines to the console (keep them for the
+# reply); then choose n by the selection rule from all the printed lines
+$r = Invoke-Dv3Timed -Task 'MP13b GF-P4 create' -NodeArgs @('tools/record-fixtures.mjs', '--replay-case', '--create',
+  '--seed', '<n>')
+if ($r.Exit -ne 0) { throw 'replay fixture not recorded' }
 node -e "const t=require('fs').readFileSync('tests/fixtures/replay-case.json','utf8');console.log(/[^\r]\n/.test(t)?'LF found':'CRLF only')"
-node tools\record-fixtures.mjs --replay-case --check
-if ($LASTEXITCODE -ne 0) { throw 'replay fixture does not replay' }
-npm test
-if ($LASTEXITCODE -ne 0) { throw 'npm test failed' }
+$r = Invoke-Dv3Timed -Task 'MP13b GF-P4 check' -NodeArgs @('tools/record-fixtures.mjs', '--replay-case', '--check')
+if ($r.Exit -ne 0) { throw 'replay fixture does not replay' }
+$r = Invoke-Dv3Timed -Task 'MP13b GF-P4 npm test' -NodeArgs @('--test', 'tests/**/*.test.js')
+if ($r.Exit -ne 0) { throw 'npm test failed' }
 ```
 
-Each command must finish within 10 minutes; a longer run has an error: stop it and report. Record in the reply: the
-search lines (every seed tried, with its outcome and time), the chosen seed, whether it has a subset skip, the record
-kinds of the eight puzzles, the file size, the versions, each command's duration and the `npm test` counts.
+The helper bounds each command at 590 s (Amendment L1). Record in the reply: the search lines (every seed tried, with
+its outcome and time), the chosen seed, whether it has a subset skip, the record kinds of the eight puzzles, the file
+size, the versions, each command's duration and lock wait, and the `npm test` counts.
 
 ### Required test cases
 

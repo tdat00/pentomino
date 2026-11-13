@@ -42,12 +42,20 @@ plays.
 
 ## Repository rules
 
-- Read `AGENTS.md` and `tasks/difficulty-v3/check-list.md` §3 first.
+- Read `AGENTS.md` and `tasks/difficulty-v3/check-list.md` §3 and §7 first.
 - `replay.js` is an engine module: `// @ts-check`, JSDoc, no DOM, storage, clock or randomness; it must not contain
   the words `LIMITS`, `QUALIFICATION`, `enabledMaxActive` or `deriveLimits`, not even in a comment
   (`tests/bq-limits.test.js:116-122`).
 - Run only the commands of the test plan; no gate. Never stage, commit, stash, reset, push or switch branches; never
   edit `tasks/difficulty-v3/`, the reports or `docs/difficulty-v3/`.
+- **Amendment L1 (lock; orchestrator decision 2026-11-13).** The Sudoku repository runs on the same machine. Save the
+  helper `Invoke-Dv3Timed` of check-list §7 ("Shared-machine lock protocol") verbatim as
+  `tests/artifacts/MP15a1/dv3-lock.ps1` and dot-source it in every call. Every test run of the test plan goes through
+  it, as written there: one bounded command per acquisition of the lock, at most 590 s, at least 15 s between
+  releasing the lock and taking it again (the helper waits), never a lock held across a series of commands. Only
+  `npm run check` and, while you work, a single test file that ends within 10 seconds run without it. A command that
+  the helper stops at its limit has an error: report it, never rerun it outside the helper. The reply gives each
+  invocation's label, exit, seconds and lock wait.
 - UTF-8 without BOM, CRLF, final newline, no trailing whitespace.
 
 ## Inputs & context
@@ -318,10 +326,12 @@ Exclusive ownership while this task runs: the files above.
 ### Exact commands
 
 ```powershell
-node --test --test-skip-pattern=slow tests/replay.test.js tests/policy.test.js tests/benchmark-report.test.js tests/bq-limits.test.js
-if ($LASTEXITCODE -ne 0) { throw 'targeted tests failed' }
-npm run test:quick
-if ($LASTEXITCODE -ne 0) { throw 'quick tests failed' }
+. tests\artifacts\MP15a1\dv3-lock.ps1
+$r = Invoke-Dv3Timed -Task 'MP15a1 targeted tests' -NodeArgs @('--test', '--test-skip-pattern=slow',
+  'tests/replay.test.js', 'tests/policy.test.js', 'tests/benchmark-report.test.js', 'tests/bq-limits.test.js')
+if ($r.Exit -ne 0) { throw 'targeted tests failed' }
+$r = Invoke-Dv3Timed -Task 'MP15a1 quick set' -NodeArgs @('--test', '--test-skip-pattern=slow', 'tests/**/*.test.js')
+if ($r.Exit -ne 0) { throw 'quick tests failed' }
 npm run check
 if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 ```

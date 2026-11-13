@@ -392,19 +392,20 @@ describe('limits, qualification and budgets', () => {
 
   test('the deduction solver has its own frozen limits (difficulty-v3)', () => {
     assert.deepEqual({ ...DEDUCE }, {
-      lookaheadWidth: 4, nodes: 30000, solutions: 8, work: 760000000, census: 10000000, memoryBytes: 33554432,
+      lookaheadWidth: 4, nodes: 30000, solutions: 8, work: 760000000, census: 80000000, memoryBytes: 33554432,
     });
     assert.ok(Object.isFrozen(DEDUCE));
   });
 
   test('difficulty-v3 knobs are the fitted values, frozen, within the invariants and the experimental ranges', () => {
-    // docs/difficulty-v3/fit-2026-11-12.md, section 3 (penalty off by owner decision P-OD3)
+    // docs/difficulty-v3/fit-2026-11-12.md, section 3, with rule[3] 2 to 3 and the penalty (0, 0) to (1, 2) of the P3
+    // slice (P-OD3): docs/difficulty-v3/calibration-slice-2026-11-13.md
     assert.deepEqual(JSON.parse(JSON.stringify(SCORE_V3)), {
       model: 'difficulty-v3',
       base: { max: 12, scale: 3 },
-      rule: [0, 0, 2, 2],
+      rule: [0, 0, 2, 3],
       weights: { G: 5, info: 0.5 },
-      penalty: { few: 0, many: 0 },
+      penalty: { few: 1, many: 2 },
     });
     /** @param {object} o @returns {boolean} */
     const frozenDeep = (o) => Object.isFrozen(o)

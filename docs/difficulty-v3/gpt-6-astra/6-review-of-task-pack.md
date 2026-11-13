@@ -1824,3 +1824,69 @@ but its ordered-change qualification needs TP30 before the whole tranche can be 
 small accompanying clarifications. No new owner or plan-author decision is needed for these fixes.
 
 MP12 BLOCKED: TP30
+
+## MP12b final verification
+
+2026-11-13, HEAD `f33aa71` (the pack snapshot; MP11's engine/tooling remains the reviewed baseline).
+Scope: MP12b1 and MP12b2, SA1's response section 11 and TP30-TP33. MP12a remains frozen; its earlier sign-off
+and the already-dispatched TP29 addendum are unchanged.
+
+| Input | SHA-256 prefix | Written (+07:00) |
+|---|---|---|
+| `tasks/difficulty-v3/MP12b1-full-landscape.md` | `a037705e52ac` | 12:28:57 |
+| `tasks/difficulty-v3/MP12b2-search-evidence-and-lock.md` | `8b1c093a13a0` | 12:39:27 |
+| `tasks/difficulty-v3/check-list.md` | `94d38dacb9ad` | 12:36:12 |
+
+| Finding | Result |
+|---|---|
+| TP30 | Resolved. The ordered round now includes fresh captures and canonical `prod` ratings for the same 90 requests, evaluates C1-C5 against the unchanged GV2 baseline, replaces record §4's old table, recomputes affected P-OD1/P-OD2 evidence, and stops on a failed or unavailable criterion. Source checks prevent an earlier tuple's passing table from being carried into the lock. Ownership, gates and the time estimate include this work. |
+| TP31 | Resolved. All 25 prescreens are read and validated first to derive the protocol. Only the selected report's runs enter the aggregate. A boundary which succeeds in its full run remains the boundary; no second case is promoted. Tests (g)-(i) cover the boundary, double counting and invalid protocol inputs. |
+| TP32 | Resolved. A changed source identity requires the complete landscape/P-OD6 population and the associated evidence again. The incompatible narrower-rerun exception is removed; old reports are neither copied nor re-stamped. |
+| TP33 | Resolved. `$s` remains the script root; `$data`, `$full` and `$criteriaFolder` select the new evidence. Captures, the new HL manifest, logs and derived tables use `$data`; the observer's relative import stays valid. |
+
+### Compatibility with the frozen criteria script
+
+The separate `landscape-v3-change-1/slice/` is correct. The inspected `criteria.mjs:313-336` requires exactly one
+dated report per GV2 case and rejects other dated JSON files in that folder. The 18 reports therefore belong in
+`slice/`; the full aggregate and other cases remain in its parent. The non-recursive scan ignores `slice/probe/`.
+
+The command uses the existing `--round`, `--baseline` and `--final` flags and legitimately omits optional `--fit`
+(`criteria.mjs:527-565`). Exit 0 means the inputs could be evaluated, **not** that C1-C5 passed. MP12b2's explicit
+status-based stop in change-round step 7 correctly covers that distinction. No change or addendum to MP12a's
+criteria script is needed.
+
+Light checks, with no live data:
+
+- The exact criteria input loader, evaluated in memory with virtual filesystem functions, accepted the new
+  18-case slice layout and its `probe/` subfolder with no fit file. It loaded a current request rate of 80% and
+  baseline rate of 95% from their separate inputs. It rejected a parent layout containing a Hell report and the
+  aggregate, as expected.
+- The exact `Assert-CriteriaSource` function passed four memory-only cases: current identity accepted; old digest,
+  changed version and missing case rejected.
+- MP12b1's four PowerShell blocks, MP12b2's two and the checklist's helper block parse.
+
+Only the criteria/probe-driver source was read to check these contracts. No live report, captured pack or manifest
+was opened or changed; no criteria command was run against the live round, and no timing lock, generation or heavy
+test was started.
+
+### TP34 — Finish the local probe-copy path adaptation
+
+**Severity: Minor; MP12b2 implementation note, not an MP12a addendum.**
+
+When adapting the scratch driver for change-round step 5, account for the extra `change-1` directory. The current
+`tests/artifacts/MP12a/corpus.mjs:13-18` uses six `../../../core/...` or `../../../tools/...` imports, while
+`lib.mjs:15-23` derives the repository root with three parent steps and derives `ROUND_DIR` from `MP12A_ROUND`.
+A literal copy one level deeper will not resolve correctly.
+
+In the **MP12b2 copies only**, use four parent steps/import prefixes, set `ROUND_DIR` to the new `slice/`, and
+replace the MP12a-specific round/date configuration with this round's configuration. The expected-report lookup
+(`corpus.mjs:116`) must select the unique dated report of that case in the new slice; do not assume every shard
+has the same start date or fall back to MP12a's old folder. Keep all outputs in the already-specified new paths.
+Check those resolved paths before the first capture. This completes the task's existing copy-and-adapt instruction;
+it requires no change to the frozen originals or to `criteria.mjs`.
+
+**Sign-off:** TP30-TP33 are closed. No Blocker or Major remains in the MP12 tranche. TP34 is a small local-copy
+note for the future ordered-change branch. The existing owner gates and all measured acceptance requirements stay
+in force; this verifies the task pack, not the as-yet-unrun calibration outcome.
+
+MP12 VERIFIED

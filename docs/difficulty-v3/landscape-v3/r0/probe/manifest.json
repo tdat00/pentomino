@@ -1,0 +1,5345 @@
+{
+  "schema": 1,
+  "date": "2026-11-13",
+  "sourceCommit": "f33aa7158aec19cbd06b7a788c69b25b0050fafe",
+  "requests": [
+    {
+      "request": "A-6x10-easy-r0",
+      "corpus": "A",
+      "caseId": "6x10-easy",
+      "board": "6x10",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-easy/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-easy-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-easy-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/6x10-easy/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-easy/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 8,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-easy-r0.json",
+      "identity": {
+        "digest": "1856331300a18a77c6ad366c410db8db31b38bd098e5913c496de81614815025",
+        "expected": "1856331300a18a77c6ad366c410db8db31b38bd098e5913c496de81614815025",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-easy-r1",
+      "corpus": "A",
+      "caseId": "6x10-easy",
+      "board": "6x10",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-easy/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-easy-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-easy-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/6x10-easy/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-easy/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-easy-r1.json",
+      "identity": {
+        "digest": "87c002976a436f716921b93425ae7b28e7fe3f9ac44146e7e468e280f211b019",
+        "expected": "87c002976a436f716921b93425ae7b28e7fe3f9ac44146e7e468e280f211b019",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-easy-r2",
+      "corpus": "A",
+      "caseId": "6x10-easy",
+      "board": "6x10",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-easy/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-easy-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-easy-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/6x10-easy/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-easy/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-easy-r2.json",
+      "identity": {
+        "digest": "ce461836348e7d027a52e35c2188d1bc386012505e75f787f46e2cb8da299404",
+        "expected": "ce461836348e7d027a52e35c2188d1bc386012505e75f787f46e2cb8da299404",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-easy-r3",
+      "corpus": "A",
+      "caseId": "6x10-easy",
+      "board": "6x10",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-easy/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-easy-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-easy-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/6x10-easy/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-easy/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-easy-r3.json",
+      "identity": {
+        "digest": "2208e594690e96a58d66e850f440e774b631ba51d13faba38eeef16385e32fd7",
+        "expected": "2208e594690e96a58d66e850f440e774b631ba51d13faba38eeef16385e32fd7",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-easy-r4",
+      "corpus": "A",
+      "caseId": "6x10-easy",
+      "board": "6x10",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-easy/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-easy-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-easy-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/6x10-easy/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-easy/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-easy-r4.json",
+      "identity": {
+        "digest": "192366b3db6341fdbe41db9c20357f5f5d2dcfd0c645c8714bd057a9a027257d",
+        "expected": "192366b3db6341fdbe41db9c20357f5f5d2dcfd0c645c8714bd057a9a027257d",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-normal-r0",
+      "corpus": "A",
+      "caseId": "6x10-normal",
+      "board": "6x10",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-normal/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-normal-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-normal-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/6x10-normal/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-normal/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-normal-r0.json",
+      "identity": {
+        "digest": "fd9f06d2988e4555c92442c4988933a84b3724fde22209cc2f69beb77e7f577f",
+        "expected": "fd9f06d2988e4555c92442c4988933a84b3724fde22209cc2f69beb77e7f577f",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-normal-r1",
+      "corpus": "A",
+      "caseId": "6x10-normal",
+      "board": "6x10",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-normal/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-normal-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-normal-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/6x10-normal/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-normal/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-normal-r1.json",
+      "identity": {
+        "digest": "8b69e5e159314f5ed726e66e26a975a64b301dc4e1f0edc0e32343b66c663b21",
+        "expected": "8b69e5e159314f5ed726e66e26a975a64b301dc4e1f0edc0e32343b66c663b21",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-normal-r2",
+      "corpus": "A",
+      "caseId": "6x10-normal",
+      "board": "6x10",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-normal/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-normal-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-normal-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/6x10-normal/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-normal/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-normal-r2.json",
+      "identity": {
+        "digest": "e7e5d5819779653cf43506ccf3d45aa2b5545a66ceefcc41f8973156c84969c1",
+        "expected": "e7e5d5819779653cf43506ccf3d45aa2b5545a66ceefcc41f8973156c84969c1",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-normal-r3",
+      "corpus": "A",
+      "caseId": "6x10-normal",
+      "board": "6x10",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-normal/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-normal-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-normal-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/6x10-normal/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-normal/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-normal-r3.json",
+      "identity": {
+        "digest": "6235cd86643e17779fc766409a11db7040c58baea39d2aaecba6ea57110d9d3b",
+        "expected": "6235cd86643e17779fc766409a11db7040c58baea39d2aaecba6ea57110d9d3b",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-normal-r4",
+      "corpus": "A",
+      "caseId": "6x10-normal",
+      "board": "6x10",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-normal/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-normal-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-normal-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/6x10-normal/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-normal/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 8,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-normal-r4.json",
+      "identity": {
+        "digest": "7952a91ea70f5e12573cbcd9b9c64957f5a5ecc30c677c113aa619272a6a4d3f",
+        "expected": "7952a91ea70f5e12573cbcd9b9c64957f5a5ecc30c677c113aa619272a6a4d3f",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-hard-r0",
+      "corpus": "A",
+      "caseId": "6x10-hard",
+      "board": "6x10",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-hard/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-hard-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-hard-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/6x10-hard/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-hard/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-hard-r0.json",
+      "identity": {
+        "digest": "750b3f4c31861a3b955ced3d7052ed657051cf006bd1a151c9411259e2b337af",
+        "expected": "750b3f4c31861a3b955ced3d7052ed657051cf006bd1a151c9411259e2b337af",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-hard-r1",
+      "corpus": "A",
+      "caseId": "6x10-hard",
+      "board": "6x10",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-hard/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-hard-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-hard-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/6x10-hard/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-hard/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-hard-r1.json",
+      "identity": {
+        "digest": "333920b08135e93b43d690f7020dff1b193e72b0c8ff34f65e6dfa76d450253d",
+        "expected": "333920b08135e93b43d690f7020dff1b193e72b0c8ff34f65e6dfa76d450253d",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-hard-r2",
+      "corpus": "A",
+      "caseId": "6x10-hard",
+      "board": "6x10",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-hard/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-hard-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-hard-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/6x10-hard/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-hard/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-hard-r2.json",
+      "identity": {
+        "digest": "2dfa49c9d4c0dfcef0f34ecd6f6c334bceb06a2c66ebc6af2c4a6e345bb5be12",
+        "expected": "2dfa49c9d4c0dfcef0f34ecd6f6c334bceb06a2c66ebc6af2c4a6e345bb5be12",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-hard-r3",
+      "corpus": "A",
+      "caseId": "6x10-hard",
+      "board": "6x10",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-hard/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-hard-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-hard-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/6x10-hard/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-hard/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-hard-r3.json",
+      "identity": {
+        "digest": "7d8350508ae52c8ec32ec41411b587d4965379f55926dcdeca1a2a8a3b4515dc",
+        "expected": "7d8350508ae52c8ec32ec41411b587d4965379f55926dcdeca1a2a8a3b4515dc",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-hard-r4",
+      "corpus": "A",
+      "caseId": "6x10-hard",
+      "board": "6x10",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-hard/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-hard-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-hard-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/6x10-hard/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-hard/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-hard-r4.json",
+      "identity": {
+        "digest": "e0d98702881478bad042d07a2cba28ecba43be34fac3ea3c1312709a31c5669c",
+        "expected": "e0d98702881478bad042d07a2cba28ecba43be34fac3ea3c1312709a31c5669c",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-expert-r0",
+      "corpus": "A",
+      "caseId": "6x10-expert",
+      "board": "6x10",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-expert/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-expert-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-expert-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/6x10-expert/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-expert/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-expert-r0.json",
+      "identity": {
+        "digest": "4b6c577c789599592f7ecfaae94fae5ed5f48bc80f9bc02b7d991dd682e88985",
+        "expected": "4b6c577c789599592f7ecfaae94fae5ed5f48bc80f9bc02b7d991dd682e88985",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-expert-r1",
+      "corpus": "A",
+      "caseId": "6x10-expert",
+      "board": "6x10",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-expert/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-expert-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-expert-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/6x10-expert/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-expert/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-expert-r1.json",
+      "identity": {
+        "digest": "80fea6923887ba2352f73ce94ccf45d1d887e246bcad1371baac33683e8df604",
+        "expected": "80fea6923887ba2352f73ce94ccf45d1d887e246bcad1371baac33683e8df604",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-expert-r2",
+      "corpus": "A",
+      "caseId": "6x10-expert",
+      "board": "6x10",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-expert/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-expert-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-expert-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/6x10-expert/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-expert/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-expert-r2.json",
+      "identity": {
+        "digest": "ea7f1c5a32f89aef583c3e1a66555f772150cead5e9c277ce5ac63797e01bb2f",
+        "expected": "ea7f1c5a32f89aef583c3e1a66555f772150cead5e9c277ce5ac63797e01bb2f",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-expert-r3",
+      "corpus": "A",
+      "caseId": "6x10-expert",
+      "board": "6x10",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-expert/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-expert-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-expert-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/6x10-expert/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-expert/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-expert-r3.json",
+      "identity": {
+        "digest": "cd13b6dfe0371af5b38db9966c34ea5296d5d5d4ce9500b1b581d9bfd54b27ef",
+        "expected": "cd13b6dfe0371af5b38db9966c34ea5296d5d5d4ce9500b1b581d9bfd54b27ef",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-expert-r4",
+      "corpus": "A",
+      "caseId": "6x10-expert",
+      "board": "6x10",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-expert/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-expert-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-expert-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/6x10-expert/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-expert/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-expert-r4.json",
+      "identity": {
+        "digest": "433a2d53fc3f3554a33fa7ce5086320ab9991b6a1b0a47c3f0812ae9db560a05",
+        "expected": "433a2d53fc3f3554a33fa7ce5086320ab9991b6a1b0a47c3f0812ae9db560a05",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-master-r0",
+      "corpus": "A",
+      "caseId": "6x10-master",
+      "board": "6x10",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-master/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-master-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-master-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/6x10-master/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-master/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-master-r0.json",
+      "identity": {
+        "digest": "1ab8dac5f57b2f47e857626aa6a7ee5855488f99bf7e92f0600f35454badbbde",
+        "expected": "1ab8dac5f57b2f47e857626aa6a7ee5855488f99bf7e92f0600f35454badbbde",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-master-r1",
+      "corpus": "A",
+      "caseId": "6x10-master",
+      "board": "6x10",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-master/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-master-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-master-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/6x10-master/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-master/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-master-r1.json",
+      "identity": {
+        "digest": "4a331976d30a6f675e90aa082f6f9ceca77109d1468fd90286280972ee731ff3",
+        "expected": "4a331976d30a6f675e90aa082f6f9ceca77109d1468fd90286280972ee731ff3",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-master-r2",
+      "corpus": "A",
+      "caseId": "6x10-master",
+      "board": "6x10",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-master/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-master-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-master-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/6x10-master/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-master/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-master-r2.json",
+      "identity": {
+        "digest": "d4d9e358e0bdfc0e009a7c516758d5b1478defe0c9bc242ea37c2fe8bf151fc8",
+        "expected": "d4d9e358e0bdfc0e009a7c516758d5b1478defe0c9bc242ea37c2fe8bf151fc8",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-master-r3",
+      "corpus": "A",
+      "caseId": "6x10-master",
+      "board": "6x10",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-master/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-master-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-master-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/6x10-master/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-master/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-master-r3.json",
+      "identity": {
+        "digest": "1597c244312fcc9540c6a671c5f29cba0ec953ba311495dfa49465026e15f92f",
+        "expected": "1597c244312fcc9540c6a671c5f29cba0ec953ba311495dfa49465026e15f92f",
+        "match": true
+      }
+    },
+    {
+      "request": "A-6x10-master-r4",
+      "corpus": "A",
+      "caseId": "6x10-master",
+      "board": "6x10",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/6x10-master/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-6x10-master-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-master-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/6x10-master/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/6x10-master/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-6x10-master-r4.json",
+      "identity": {
+        "digest": "43ef1a3f7bf8aee1c2a7045e4b48f18b2f0e6e4ddcff5bf19e16b70a03703552",
+        "expected": "43ef1a3f7bf8aee1c2a7045e4b48f18b2f0e6e4ddcff5bf19e16b70a03703552",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-easy-r0",
+      "corpus": "A",
+      "caseId": "10x10-easy",
+      "board": "10x10",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-easy/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-easy-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-easy-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/10x10-easy/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-easy/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-easy-r0.json",
+      "identity": {
+        "digest": "9b423089fcbfa72df8cb08844880ecd75f9b4c021e2531c434386ede8dd6c121",
+        "expected": "9b423089fcbfa72df8cb08844880ecd75f9b4c021e2531c434386ede8dd6c121",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-easy-r1",
+      "corpus": "A",
+      "caseId": "10x10-easy",
+      "board": "10x10",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-easy/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-easy-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-easy-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/10x10-easy/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-easy/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-easy-r1.json",
+      "identity": {
+        "digest": "0f63261f9e8849e5529cc954568aa819f4f1bc4d0890d11069950e381da8379c",
+        "expected": "0f63261f9e8849e5529cc954568aa819f4f1bc4d0890d11069950e381da8379c",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-easy-r2",
+      "corpus": "A",
+      "caseId": "10x10-easy",
+      "board": "10x10",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-easy/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-easy-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-easy-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/10x10-easy/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-easy/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-easy-r2.json",
+      "identity": {
+        "digest": "9540884e3be1edc180738c451fdcde337d53ab4b38e65512b1b76b2b5447b89b",
+        "expected": "9540884e3be1edc180738c451fdcde337d53ab4b38e65512b1b76b2b5447b89b",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-easy-r3",
+      "corpus": "A",
+      "caseId": "10x10-easy",
+      "board": "10x10",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-easy/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-easy-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-easy-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/10x10-easy/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-easy/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-easy-r3.json",
+      "identity": {
+        "digest": "60e0712c1f8f3c5b25b69ab9668103e49f8dd9f827d32ab76db114004a53b211",
+        "expected": "60e0712c1f8f3c5b25b69ab9668103e49f8dd9f827d32ab76db114004a53b211",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-easy-r4",
+      "corpus": "A",
+      "caseId": "10x10-easy",
+      "board": "10x10",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-easy/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-easy-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-easy-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/10x10-easy/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-easy/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-easy-r4.json",
+      "identity": {
+        "digest": "413c066a576b858c90b704634a35ecf5f21ae43481a4e4ff187655d39c6bad24",
+        "expected": "413c066a576b858c90b704634a35ecf5f21ae43481a4e4ff187655d39c6bad24",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-normal-r0",
+      "corpus": "A",
+      "caseId": "10x10-normal",
+      "board": "10x10",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-normal/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-normal-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-normal-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/10x10-normal/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-normal/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-normal-r0.json",
+      "identity": {
+        "digest": "b3b1d83e5ff30275fa7b993e0f84c18e1899b04823265bf16ca4abdc3af7ee66",
+        "expected": "b3b1d83e5ff30275fa7b993e0f84c18e1899b04823265bf16ca4abdc3af7ee66",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-normal-r1",
+      "corpus": "A",
+      "caseId": "10x10-normal",
+      "board": "10x10",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-normal/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-normal-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-normal-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/10x10-normal/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-normal/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-normal-r1.json",
+      "identity": {
+        "digest": "1d316bb36a6c3c12cb7f65fb6582888ff6b0b1d286a0adace9be996056df4d0e",
+        "expected": "1d316bb36a6c3c12cb7f65fb6582888ff6b0b1d286a0adace9be996056df4d0e",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-normal-r2",
+      "corpus": "A",
+      "caseId": "10x10-normal",
+      "board": "10x10",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-normal/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-normal-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-normal-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/10x10-normal/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-normal/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-normal-r2.json",
+      "identity": {
+        "digest": "66a1669ac33ae5c74b82987b8e116cef17e438c3c8d83d1b7adfbe378019cc58",
+        "expected": "66a1669ac33ae5c74b82987b8e116cef17e438c3c8d83d1b7adfbe378019cc58",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-normal-r3",
+      "corpus": "A",
+      "caseId": "10x10-normal",
+      "board": "10x10",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-normal/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-normal-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-normal-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/10x10-normal/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-normal/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-normal-r3.json",
+      "identity": {
+        "digest": "7ff7c50ff66fca712023900a13b637df9392670a57f869e4027272f4b16e42ff",
+        "expected": "7ff7c50ff66fca712023900a13b637df9392670a57f869e4027272f4b16e42ff",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-normal-r4",
+      "corpus": "A",
+      "caseId": "10x10-normal",
+      "board": "10x10",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-normal/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-normal-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-normal-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/10x10-normal/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-normal/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-normal-r4.json",
+      "identity": {
+        "digest": "69a0ca3134c67d4876605f3fac28831990007419d7ede66847183e8d8331e269",
+        "expected": "69a0ca3134c67d4876605f3fac28831990007419d7ede66847183e8d8331e269",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-hard-r0",
+      "corpus": "A",
+      "caseId": "10x10-hard",
+      "board": "10x10",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-hard/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-hard-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-hard-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/10x10-hard/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-hard/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-hard-r0.json",
+      "identity": {
+        "digest": "ec358e509d2bd615f4336e33417e1a33424fec528873a2de498821edc78613ff",
+        "expected": "ec358e509d2bd615f4336e33417e1a33424fec528873a2de498821edc78613ff",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-hard-r1",
+      "corpus": "A",
+      "caseId": "10x10-hard",
+      "board": "10x10",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-hard/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-hard-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-hard-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/10x10-hard/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-hard/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-hard-r1.json",
+      "identity": {
+        "digest": "38d389d6e0bdeb601cd87d549b8bcd14dc86e286a56fe88ff1c2c90667063c76",
+        "expected": "38d389d6e0bdeb601cd87d549b8bcd14dc86e286a56fe88ff1c2c90667063c76",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-hard-r2",
+      "corpus": "A",
+      "caseId": "10x10-hard",
+      "board": "10x10",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-hard/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-hard-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-hard-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/10x10-hard/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-hard/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-hard-r2.json",
+      "identity": {
+        "digest": "5579ae452bdcdcaef88af7fdb097fc24a91296d024f6eea2b0c671e6380bc545",
+        "expected": "5579ae452bdcdcaef88af7fdb097fc24a91296d024f6eea2b0c671e6380bc545",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-hard-r3",
+      "corpus": "A",
+      "caseId": "10x10-hard",
+      "board": "10x10",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-hard/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-hard-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-hard-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/10x10-hard/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-hard/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-hard-r3.json",
+      "identity": {
+        "digest": "3dfec1289492874ee7782800b5c774d4d2c4bfdfd8154032ae4372cd45957218",
+        "expected": "3dfec1289492874ee7782800b5c774d4d2c4bfdfd8154032ae4372cd45957218",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-hard-r4",
+      "corpus": "A",
+      "caseId": "10x10-hard",
+      "board": "10x10",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-hard/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-hard-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-hard-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/10x10-hard/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-hard/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-hard-r4.json",
+      "identity": {
+        "digest": "0d786b85971d898081bea7453332b1d7f7f2ebf9b6e31816a9dab78d6d5d9f8a",
+        "expected": "0d786b85971d898081bea7453332b1d7f7f2ebf9b6e31816a9dab78d6d5d9f8a",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-expert-r0",
+      "corpus": "A",
+      "caseId": "10x10-expert",
+      "board": "10x10",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-expert/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-expert-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-expert-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/10x10-expert/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-expert/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-expert-r0.json",
+      "identity": {
+        "digest": "9150593ea58f79f02f58fc43c5d47dcefaf9deb301218d6a2a79f993742cf204",
+        "expected": "9150593ea58f79f02f58fc43c5d47dcefaf9deb301218d6a2a79f993742cf204",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-expert-r1",
+      "corpus": "A",
+      "caseId": "10x10-expert",
+      "board": "10x10",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-expert/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-expert-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-expert-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/10x10-expert/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-expert/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-expert-r1.json",
+      "identity": {
+        "digest": "9c696fc5c0ada0563bc2d8ea07da502d29f5497ac8fa5850d879dac2ba74ce2e",
+        "expected": "9c696fc5c0ada0563bc2d8ea07da502d29f5497ac8fa5850d879dac2ba74ce2e",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-expert-r2",
+      "corpus": "A",
+      "caseId": "10x10-expert",
+      "board": "10x10",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-expert/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-expert-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-expert-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/10x10-expert/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-expert/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-expert-r2.json",
+      "identity": {
+        "digest": "dd3ccb5a98a507f2cf7946aa7646cb09c61c3303c48fdb89dcbef54c46f61ed8",
+        "expected": "dd3ccb5a98a507f2cf7946aa7646cb09c61c3303c48fdb89dcbef54c46f61ed8",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-expert-r3",
+      "corpus": "A",
+      "caseId": "10x10-expert",
+      "board": "10x10",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-expert/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-expert-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-expert-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/10x10-expert/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-expert/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-expert-r3.json",
+      "identity": {
+        "digest": "8a531d5b3ff0db9a33211a74b159bca736b310f93cbf18924ef52abdea9bc863",
+        "expected": "8a531d5b3ff0db9a33211a74b159bca736b310f93cbf18924ef52abdea9bc863",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-expert-r4",
+      "corpus": "A",
+      "caseId": "10x10-expert",
+      "board": "10x10",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-expert/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-expert-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-expert-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/10x10-expert/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-expert/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-expert-r4.json",
+      "identity": {
+        "digest": "328b891b0d7353b2515e941d76f00fd449e056dd592d60eed6308e799a0d7895",
+        "expected": "328b891b0d7353b2515e941d76f00fd449e056dd592d60eed6308e799a0d7895",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-master-r0",
+      "corpus": "A",
+      "caseId": "10x10-master",
+      "board": "10x10",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-master/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-master-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-master-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/10x10-master/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-master/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-master-r0.json",
+      "identity": {
+        "digest": "c3c09f9de37fdf80040be21d0ba69ada8231280aa8bc0aae8dbec9f9fc6e3698",
+        "expected": "c3c09f9de37fdf80040be21d0ba69ada8231280aa8bc0aae8dbec9f9fc6e3698",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-master-r1",
+      "corpus": "A",
+      "caseId": "10x10-master",
+      "board": "10x10",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-master/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-master-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-master-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/10x10-master/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-master/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-master-r1.json",
+      "identity": {
+        "digest": "4817049737dea9c0b67de815b017d41bdb20c88b97014c3dcaea9f7598cbbb73",
+        "expected": "4817049737dea9c0b67de815b017d41bdb20c88b97014c3dcaea9f7598cbbb73",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-master-r2",
+      "corpus": "A",
+      "caseId": "10x10-master",
+      "board": "10x10",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-master/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-master-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-master-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/10x10-master/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-master/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-master-r2.json",
+      "identity": {
+        "digest": "e3adc1df8e0563565a46016b3e91aa2295c75507609587fe7b44ff8c457ed293",
+        "expected": "e3adc1df8e0563565a46016b3e91aa2295c75507609587fe7b44ff8c457ed293",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-master-r3",
+      "corpus": "A",
+      "caseId": "10x10-master",
+      "board": "10x10",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-master/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-master-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-master-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/10x10-master/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-master/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-master-r3.json",
+      "identity": {
+        "digest": "e21ca67e0bc71c5aa88e518d20ec95ae961157c8f4f91bbb0a67e4ff7cbe211d",
+        "expected": "e21ca67e0bc71c5aa88e518d20ec95ae961157c8f4f91bbb0a67e4ff7cbe211d",
+        "match": true
+      }
+    },
+    {
+      "request": "A-10x10-master-r4",
+      "corpus": "A",
+      "caseId": "10x10-master",
+      "board": "10x10",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/10x10-master/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-10x10-master-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-master-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/10x10-master/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/10x10-master/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-10x10-master-r4.json",
+      "identity": {
+        "digest": "8a34ab882b9337b51589cb3d5f719029762584b2d0783bd03ace3389957ca070",
+        "expected": "8a34ab882b9337b51589cb3d5f719029762584b2d0783bd03ace3389957ca070",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-easy-r0",
+      "corpus": "A",
+      "caseId": "12x12-easy",
+      "board": "12x12",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-easy/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-easy-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-easy-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/12x12-easy/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-easy/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-easy-r0.json",
+      "identity": {
+        "digest": "8fb8d41137a05cb42ef30f97e881fd76faf363055153f6f4cfc2dbff742328b7",
+        "expected": "8fb8d41137a05cb42ef30f97e881fd76faf363055153f6f4cfc2dbff742328b7",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-easy-r1",
+      "corpus": "A",
+      "caseId": "12x12-easy",
+      "board": "12x12",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-easy/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-easy-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-easy-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/12x12-easy/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-easy/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-easy-r1.json",
+      "identity": {
+        "digest": "104f688e805afaf6ca9ee1bf80f94fd30351945426b990bfb54cc788ac7c9c85",
+        "expected": "104f688e805afaf6ca9ee1bf80f94fd30351945426b990bfb54cc788ac7c9c85",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-easy-r2",
+      "corpus": "A",
+      "caseId": "12x12-easy",
+      "board": "12x12",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-easy/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-easy-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-easy-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/12x12-easy/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-easy/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-easy-r2.json",
+      "identity": {
+        "digest": "4e2ce8c9b13296c1745712706579130d84a298f7291a65c60d7920810b1c11eb",
+        "expected": "4e2ce8c9b13296c1745712706579130d84a298f7291a65c60d7920810b1c11eb",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-easy-r3",
+      "corpus": "A",
+      "caseId": "12x12-easy",
+      "board": "12x12",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-easy/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-easy-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-easy-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/12x12-easy/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-easy/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-easy-r3.json",
+      "identity": {
+        "digest": "f536e6cf79b49255ceeefa3753ae64c6f701465e3404e8d4ab6eca43a64a088b",
+        "expected": "f536e6cf79b49255ceeefa3753ae64c6f701465e3404e8d4ab6eca43a64a088b",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-easy-r4",
+      "corpus": "A",
+      "caseId": "12x12-easy",
+      "board": "12x12",
+      "level": "easy",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-easy/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-easy-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-easy-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "easy",
+        "quantity": 10,
+        "seedText": "landscape/12x12-easy/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-easy/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-easy-r4.json",
+      "identity": {
+        "digest": "567dfb3506fc9dc5ed93191908d824cf5b99f3497d4483c7f8f2c4c73c496eb4",
+        "expected": "567dfb3506fc9dc5ed93191908d824cf5b99f3497d4483c7f8f2c4c73c496eb4",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-normal-r0",
+      "corpus": "A",
+      "caseId": "12x12-normal",
+      "board": "12x12",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-normal/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-normal-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-normal-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/12x12-normal/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-normal/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-normal-r0.json",
+      "identity": {
+        "digest": "fb3738a9d813bc12c335d82fc8260310704fa3f45f90e551a749a7c5c4455685",
+        "expected": "fb3738a9d813bc12c335d82fc8260310704fa3f45f90e551a749a7c5c4455685",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-normal-r1",
+      "corpus": "A",
+      "caseId": "12x12-normal",
+      "board": "12x12",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-normal/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-normal-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-normal-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/12x12-normal/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-normal/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-normal-r1.json",
+      "identity": {
+        "digest": "400972cf833f587d7477dc2218eacb538a9be24ea2471d7a47c68a2e2348ab96",
+        "expected": "400972cf833f587d7477dc2218eacb538a9be24ea2471d7a47c68a2e2348ab96",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-normal-r2",
+      "corpus": "A",
+      "caseId": "12x12-normal",
+      "board": "12x12",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-normal/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-normal-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-normal-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/12x12-normal/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-normal/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-normal-r2.json",
+      "identity": {
+        "digest": "c34b7e5977002a967f4573bd6b4429e37e665ccadb90c9ad4774746457f067fd",
+        "expected": "c34b7e5977002a967f4573bd6b4429e37e665ccadb90c9ad4774746457f067fd",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-normal-r3",
+      "corpus": "A",
+      "caseId": "12x12-normal",
+      "board": "12x12",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-normal/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-normal-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-normal-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/12x12-normal/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-normal/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-normal-r3.json",
+      "identity": {
+        "digest": "bb2417ffb4f33eff1692ff97c8992c42b965c2c2d11bb3f12a35cbd4d9222b4d",
+        "expected": "bb2417ffb4f33eff1692ff97c8992c42b965c2c2d11bb3f12a35cbd4d9222b4d",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-normal-r4",
+      "corpus": "A",
+      "caseId": "12x12-normal",
+      "board": "12x12",
+      "level": "normal",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-normal/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-normal-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-normal-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "normal",
+        "quantity": 10,
+        "seedText": "landscape/12x12-normal/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-normal/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-normal-r4.json",
+      "identity": {
+        "digest": "18a47a831b54d3c3ef384d32ac597c4598ac4774200f9c3a3f2d1f41cb12cdf2",
+        "expected": "18a47a831b54d3c3ef384d32ac597c4598ac4774200f9c3a3f2d1f41cb12cdf2",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-hard-r0",
+      "corpus": "A",
+      "caseId": "12x12-hard",
+      "board": "12x12",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-hard/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-hard-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-hard-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/12x12-hard/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-hard/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-hard-r0.json",
+      "identity": {
+        "digest": "af472794286b84afde47ae577dc92a22a17d7add8bb895aac47f194ed675aa25",
+        "expected": "af472794286b84afde47ae577dc92a22a17d7add8bb895aac47f194ed675aa25",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-hard-r1",
+      "corpus": "A",
+      "caseId": "12x12-hard",
+      "board": "12x12",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-hard/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-hard-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-hard-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/12x12-hard/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-hard/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-hard-r1.json",
+      "identity": {
+        "digest": "43995f4a14e88058c9693833674016fd5d5b8e4f680338a886f986341bba7400",
+        "expected": "43995f4a14e88058c9693833674016fd5d5b8e4f680338a886f986341bba7400",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-hard-r2",
+      "corpus": "A",
+      "caseId": "12x12-hard",
+      "board": "12x12",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-hard/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-hard-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-hard-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/12x12-hard/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-hard/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-hard-r2.json",
+      "identity": {
+        "digest": "fe91498196c8b22f0412919345c89ff55b545cfd6045f540a970385ad34640bd",
+        "expected": "fe91498196c8b22f0412919345c89ff55b545cfd6045f540a970385ad34640bd",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-hard-r3",
+      "corpus": "A",
+      "caseId": "12x12-hard",
+      "board": "12x12",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-hard/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-hard-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-hard-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/12x12-hard/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-hard/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-hard-r3.json",
+      "identity": {
+        "digest": "6b330b651470731232c1d1f08242a5410911c40487a662a7a00d07a57488ee9a",
+        "expected": "6b330b651470731232c1d1f08242a5410911c40487a662a7a00d07a57488ee9a",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-hard-r4",
+      "corpus": "A",
+      "caseId": "12x12-hard",
+      "board": "12x12",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-hard/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-hard-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-hard-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/12x12-hard/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-hard/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-hard-r4.json",
+      "identity": {
+        "digest": "abd6456a27e7097db998f2495b3ad59233e7ec363e914a978fdc09faba4c1857",
+        "expected": "abd6456a27e7097db998f2495b3ad59233e7ec363e914a978fdc09faba4c1857",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-expert-r0",
+      "corpus": "A",
+      "caseId": "12x12-expert",
+      "board": "12x12",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-expert/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-expert-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-expert-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/12x12-expert/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-expert/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-expert-r0.json",
+      "identity": {
+        "digest": "36c0c3096ebaf6e2c02d8c1edc5c9a47ec7655b3b5cb0dead7be5738d2d1b83c",
+        "expected": "36c0c3096ebaf6e2c02d8c1edc5c9a47ec7655b3b5cb0dead7be5738d2d1b83c",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-expert-r1",
+      "corpus": "A",
+      "caseId": "12x12-expert",
+      "board": "12x12",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-expert/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-expert-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-expert-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/12x12-expert/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-expert/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-expert-r1.json",
+      "identity": {
+        "digest": "10d2eb524857a079814db2a16a7a153c8e82208a3a5a1dce7ee5fbbf9e82cd97",
+        "expected": "10d2eb524857a079814db2a16a7a153c8e82208a3a5a1dce7ee5fbbf9e82cd97",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-expert-r2",
+      "corpus": "A",
+      "caseId": "12x12-expert",
+      "board": "12x12",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-expert/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-expert-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-expert-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/12x12-expert/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-expert/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-expert-r2.json",
+      "identity": {
+        "digest": "3c8975db7920d009e226ce92365f7a4807a63d6dbca0255df137a54dd7a80ea2",
+        "expected": "3c8975db7920d009e226ce92365f7a4807a63d6dbca0255df137a54dd7a80ea2",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-expert-r3",
+      "corpus": "A",
+      "caseId": "12x12-expert",
+      "board": "12x12",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-expert/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-expert-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-expert-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/12x12-expert/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-expert/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-expert-r3.json",
+      "identity": {
+        "digest": "9f4e92c5bbe82c56f8a862db2354a4cc5b86d871aaead8b7e519bae68847e6fb",
+        "expected": "9f4e92c5bbe82c56f8a862db2354a4cc5b86d871aaead8b7e519bae68847e6fb",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-expert-r4",
+      "corpus": "A",
+      "caseId": "12x12-expert",
+      "board": "12x12",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-expert/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-expert-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-expert-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/12x12-expert/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-expert/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-expert-r4.json",
+      "identity": {
+        "digest": "3c43676fd109fc6222aa1cd13f82ac16e3b6f1222d08bf34b3d361c47e7c9cb9",
+        "expected": "3c43676fd109fc6222aa1cd13f82ac16e3b6f1222d08bf34b3d361c47e7c9cb9",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-master-r0",
+      "corpus": "A",
+      "caseId": "12x12-master",
+      "board": "12x12",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-master/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-master-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-master-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/12x12-master/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-master/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-master-r0.json",
+      "identity": {
+        "digest": "a80f34d9017f7a8b6c33850da124abe07ee4120c03ed54b7ae5acd70a508e99b",
+        "expected": "a80f34d9017f7a8b6c33850da124abe07ee4120c03ed54b7ae5acd70a508e99b",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-master-r1",
+      "corpus": "A",
+      "caseId": "12x12-master",
+      "board": "12x12",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-master/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-master-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-master-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/12x12-master/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-master/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-master-r1.json",
+      "identity": {
+        "digest": "b6de92c7bdbee6715b41491e7c18ee765b30491831a8ce6cc2b5a1a400525ceb",
+        "expected": "b6de92c7bdbee6715b41491e7c18ee765b30491831a8ce6cc2b5a1a400525ceb",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-master-r2",
+      "corpus": "A",
+      "caseId": "12x12-master",
+      "board": "12x12",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-master/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-master-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-master-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/12x12-master/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-master/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-master-r2.json",
+      "identity": {
+        "digest": "8ae126dd2a1a9f6d2a0f0ffe489d26e65d87751517957d10e63ef6bfc7ac9d7f",
+        "expected": "8ae126dd2a1a9f6d2a0f0ffe489d26e65d87751517957d10e63ef6bfc7ac9d7f",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-master-r3",
+      "corpus": "A",
+      "caseId": "12x12-master",
+      "board": "12x12",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-master/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-master-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-master-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/12x12-master/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-master/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-master-r3.json",
+      "identity": {
+        "digest": "cb49786def47973f33e4002f8351875152148d256acfcd89c0f90b09220f664a",
+        "expected": "cb49786def47973f33e4002f8351875152148d256acfcd89c0f90b09220f664a",
+        "match": true
+      }
+    },
+    {
+      "request": "A-12x12-master-r4",
+      "corpus": "A",
+      "caseId": "12x12-master",
+      "board": "12x12",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/12x12-master/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-12x12-master-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-master-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############",
+          "############"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/12x12-master/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/12x12-master/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-12x12-master-r4.json",
+      "identity": {
+        "digest": "018d5c4a4cbb1eb0fe70c303bec8c97c4084e987327e3ba7a4c5119e8bd75cc7",
+        "expected": "018d5c4a4cbb1eb0fe70c303bec8c97c4084e987327e3ba7a4c5119e8bd75cc7",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-hard-r0",
+      "corpus": "A",
+      "caseId": "18x20-hard",
+      "board": "18x20",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-hard/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-hard-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-hard-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/18x20-hard/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-hard/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-hard-r0.json",
+      "identity": {
+        "digest": "33a5db023aa6ae263b26a5582c1731a97ea196d11505dc9f7c6ea60ed3b50518",
+        "expected": "33a5db023aa6ae263b26a5582c1731a97ea196d11505dc9f7c6ea60ed3b50518",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-hard-r1",
+      "corpus": "A",
+      "caseId": "18x20-hard",
+      "board": "18x20",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-hard/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-hard-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-hard-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/18x20-hard/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-hard/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-hard-r1.json",
+      "identity": {
+        "digest": "80c2bb8725b671943066cd852c6973a8d63231f4d9c31615a477b7a0a784d423",
+        "expected": "80c2bb8725b671943066cd852c6973a8d63231f4d9c31615a477b7a0a784d423",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-hard-r2",
+      "corpus": "A",
+      "caseId": "18x20-hard",
+      "board": "18x20",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-hard/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-hard-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-hard-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/18x20-hard/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-hard/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-hard-r2.json",
+      "identity": {
+        "digest": "a4e5a2c9851293e9886aaab3c0a2cec4d4a4da39d0a496d77ddd6bce0a88de81",
+        "expected": "a4e5a2c9851293e9886aaab3c0a2cec4d4a4da39d0a496d77ddd6bce0a88de81",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-hard-r3",
+      "corpus": "A",
+      "caseId": "18x20-hard",
+      "board": "18x20",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-hard/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-hard-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-hard-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/18x20-hard/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-hard/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-hard-r3.json",
+      "identity": {
+        "digest": "7c6126150b969cd9b16c2718eabe498bdae73bd1f05e8d31751c77dae2a9f60b",
+        "expected": "7c6126150b969cd9b16c2718eabe498bdae73bd1f05e8d31751c77dae2a9f60b",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-hard-r4",
+      "corpus": "A",
+      "caseId": "18x20-hard",
+      "board": "18x20",
+      "level": "hard",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-hard/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-hard-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-hard-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "quantity": 10,
+        "seedText": "landscape/18x20-hard/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-hard/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-hard-r4.json",
+      "identity": {
+        "digest": "5b2c597e4eded75e0693a904a7ec64bb049e2691f0eac346f0c534f14be80b10",
+        "expected": "5b2c597e4eded75e0693a904a7ec64bb049e2691f0eac346f0c534f14be80b10",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-expert-r0",
+      "corpus": "A",
+      "caseId": "18x20-expert",
+      "board": "18x20",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-expert/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-expert-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-expert-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/18x20-expert/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-expert/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-expert-r0.json",
+      "identity": {
+        "digest": "062a9364d402705e29415638ec28b75640277579b82decb70f5ab5221bcc090e",
+        "expected": "062a9364d402705e29415638ec28b75640277579b82decb70f5ab5221bcc090e",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-expert-r1",
+      "corpus": "A",
+      "caseId": "18x20-expert",
+      "board": "18x20",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-expert/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-expert-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-expert-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/18x20-expert/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-expert/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-expert-r1.json",
+      "identity": {
+        "digest": "8d490f802c148ef7b38120de34004d07ad835055beb277812a88992872f72e8a",
+        "expected": "8d490f802c148ef7b38120de34004d07ad835055beb277812a88992872f72e8a",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-expert-r2",
+      "corpus": "A",
+      "caseId": "18x20-expert",
+      "board": "18x20",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-expert/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-expert-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-expert-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/18x20-expert/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-expert/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-expert-r2.json",
+      "identity": {
+        "digest": "c1e1ca8179ac3dd40d0c65f0e0b43ef3abe00d476983aa8f4f4f5d97100b07e2",
+        "expected": "c1e1ca8179ac3dd40d0c65f0e0b43ef3abe00d476983aa8f4f4f5d97100b07e2",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-expert-r3",
+      "corpus": "A",
+      "caseId": "18x20-expert",
+      "board": "18x20",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-expert/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-expert-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-expert-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/18x20-expert/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-expert/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-expert-r3.json",
+      "identity": {
+        "digest": "0e82651fd4fd1ed764caf16265bdbc6e9cd14af864fdfbc3f21305deb7ab8f17",
+        "expected": "0e82651fd4fd1ed764caf16265bdbc6e9cd14af864fdfbc3f21305deb7ab8f17",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-expert-r4",
+      "corpus": "A",
+      "caseId": "18x20-expert",
+      "board": "18x20",
+      "level": "expert",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-expert/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-expert-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-expert-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "expert",
+        "quantity": 10,
+        "seedText": "landscape/18x20-expert/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-expert/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-expert-r4.json",
+      "identity": {
+        "digest": "91626e80e8aede74bf126e4b8951eb1d041d730ace9f41d6f422a7c5f485358c",
+        "expected": "91626e80e8aede74bf126e4b8951eb1d041d730ace9f41d6f422a7c5f485358c",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-master-r0",
+      "corpus": "A",
+      "caseId": "18x20-master",
+      "board": "18x20",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-master/0",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-master-r0.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-master-r0.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/18x20-master/0",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-master/0#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-master-r0.json",
+      "identity": {
+        "digest": "f0377aba06a4c3d6812998772b8cf4db8089f5f9f65044a2bf787c377c078a77",
+        "expected": "f0377aba06a4c3d6812998772b8cf4db8089f5f9f65044a2bf787c377c078a77",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-master-r1",
+      "corpus": "A",
+      "caseId": "18x20-master",
+      "board": "18x20",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-master/1",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-master-r1.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-master-r1.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/18x20-master/1",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-master/1#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-master-r1.json",
+      "identity": {
+        "digest": "32a27d1240aa5082ecfc4273a548d29f73d1b4e64c6b73b4b49035069c533d49",
+        "expected": "32a27d1240aa5082ecfc4273a548d29f73d1b4e64c6b73b4b49035069c533d49",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-master-r2",
+      "corpus": "A",
+      "caseId": "18x20-master",
+      "board": "18x20",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-master/2",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-master-r2.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-master-r2.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/18x20-master/2",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-master/2#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-master-r2.json",
+      "identity": {
+        "digest": "8ab80515cec3f36a0175f25ac48614d9e85efe05b2e158ec9523b9f355ce1b68",
+        "expected": "8ab80515cec3f36a0175f25ac48614d9e85efe05b2e158ec9523b9f355ce1b68",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-master-r3",
+      "corpus": "A",
+      "caseId": "18x20-master",
+      "board": "18x20",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-master/3",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-master-r3.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-master-r3.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/18x20-master/3",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-master/3#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-master-r3.json",
+      "identity": {
+        "digest": "6ea6301552bd932094821371ca477c792428777eafbb4b7dbb7afb30b2d611e1",
+        "expected": "6ea6301552bd932094821371ca477c792428777eafbb4b7dbb7afb30b2d611e1",
+        "match": true
+      }
+    },
+    {
+      "request": "A-18x20-master-r4",
+      "corpus": "A",
+      "caseId": "18x20-master",
+      "board": "18x20",
+      "level": "master",
+      "uniqueness": "any",
+      "seed": "landscape/18x20-master/4",
+      "count": 10,
+      "generate": [
+        "tools/generate.mjs",
+        "--recipe",
+        "tests/artifacts/MP12a/r0/recipes/A-18x20-master-r4.json",
+        "--workers",
+        "4",
+        "--max-active",
+        "676",
+        "--output",
+        "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-master-r4.json"
+      ],
+      "recipe": {
+        "version": 1,
+        "boardRows": [
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################",
+          "##################"
+        ],
+        "rotation": 0,
+        "levelId": "master",
+        "quantity": 10,
+        "seedText": "landscape/18x20-master/4",
+        "batchIndex": 1,
+        "batchSeed": "landscape/18x20-master/4#1",
+        "uniqueness": "any",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3"
+        }
+      },
+      "exit": 0,
+      "accepted": 10,
+      "pack": "docs/difficulty-v3/landscape-v3/r0/probe/packs/A-18x20-master-r4.json",
+      "identity": {
+        "digest": "3f67435a5f0b21870e61413624f2f8ad04c16d3fb156360486b3bf3c1cbf367b",
+        "expected": "3f67435a5f0b21870e61413624f2f8ad04c16d3fb156360486b3bf3c1cbf367b",
+        "match": true
+      }
+    }
+  ],
+  "finalDeduce": {
+    "lookaheadWidth": 4,
+    "nodes": 30000,
+    "solutions": 8,
+    "work": 760000000,
+    "census": 10000000,
+    "memoryBytes": 33554432
+  }
+}

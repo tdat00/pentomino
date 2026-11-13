@@ -7,7 +7,7 @@
 | Estimated size | Medium: about 300–500 changed lines (the aggregation script with its self-test about 250, the shard table, the aggregate; no product code); about 45–60 minutes of developer work plus machine time: about 9.5–14.5 hours in bounded invocations under the lock protocol (cross-review TP20; the waits for the Sudoku repository come on top): about 3–8 hours for the 80 cases that are not Hell, about 2.5 hours for the 25 Hell prescreens, and the 20-request Hell runs of owner decision P-OD6 (D37 (c)): about 40 minutes for each boundary case (at most one per Hell level) and up to about 40 minutes for each Hell case whose prescreen made a puzzle (expected at most three); projected again after the first 20 cases and with the Hell run plan |
 | Owner role | Measurement |
 | Milestone | M7 — calibrated and locked |
-| Design refs | `docs/difficulty-v3/report-detailed.md` RES-25 (the full landscape, "kept even where availability is poor"), RES-26, RES-35; clarifications PROC-P1 (a), SA2-Q-P09 (branch A), P-OD1 and P-OD3, P-OD5 (D36) in part H, Part I D37, answered (c), with owner decision P-OD6 in part H (the Hell population; cross-review TP08); check-list §4.2 D21, D29, D36, D37 and §7 (the shared-machine lock protocol); cross-review TP20, TP25, TP27 (`docs/difficulty-v3/gpt-6-astra/6-review-of-task-pack.md`, MP12 tranche) |
+| Design refs | `docs/difficulty-v3/report-detailed.md` RES-25 (the full landscape, "kept even where availability is poor"), RES-26, RES-35; clarifications PROC-P1 (a), SA2-Q-P09 (branch A), P-OD1 and P-OD3, P-OD5 (D36) in part H, Part I D37, answered (c), with owner decision P-OD6 in part H (the Hell population; cross-review TP08); check-list §4.2 D21, D29, D36, D37 and §7 (the shared-machine lock protocol); cross-review TP20, TP25, TP27, TP30 (the layout of MP12b2's change round), TP31 (`docs/difficulty-v3/gpt-6-astra/6-review-of-task-pack.md`, MP12 tranche and its re-verification) |
 | Gates owned | GL-P3 (full landscape; check-list §7) |
 | Implementation status | Not started |
 
@@ -173,28 +173,39 @@ A durable script (CRLF, `// @ts-check`), run as `node docs/difficulty-v3/landsca
 docs/difficulty-v3/landscape-v3-full --slice docs/difficulty-v3/landscape-v3/r<k> --date <date>` or with
 `--self-test`. It:
 
-1. **Selects one report per case** of `buildLandscapeMatrix({ seeds: 20 })`, by name, never by reading every JSON file
-   of a folder: the 20-request report `<case>-YYYY-MM-DD.json` of the full folder; else, for a Hell case, its
-   prescreen `<case>-s3-YYYY-MM-DD.json`; else, for a GV2 case, the slice report `<case>-YYYY-MM-DD.json` of the slice
-   folder. Two files that match one pattern are an error. The `-s3` report of a case that also has a 20-request report
-   is never read: its 3 requests are the first 3 of the 20 (same seeds), so reading both would count them twice
-   (TP08).
-2. **Derives the protocol (P-OD6)** of each case: N = 20 for a case that is not Hell; for a Hell case, from the
-   prescreens: N = 20 when its prescreen accepted a puzzle, N = 20 for the boundary case of its level, else N = 3
-   ("reduced (D37, P-OD6)", with the boundary case of its level).
-3. **Validates before it selects** (TP27): the chosen report is `complete`; its rows of the case are exactly the reps
-   0 to N - 1 (a 3-request report never stands for a case that requires 20); no row is interrupted; every chosen
-   report, a reused slice report included, has the same `meta.sourceDigest` and `meta.versions`. Each case gets a
-   status: `measured` (N = 20, valid), `reduced (D37, P-OD6)` (N = 3, valid), `missing` (no report where the protocol
-   needs one) or `invalid` (a report that fails a check). A partial or missing report is never a D37 waiver and never
-   becomes "no puzzle observed" evidence because its file exists.
-4. **Stops on a gap**: when a case is `missing` or `invalid`, it prints the coverage table and exits 2 without writing
+1. **Reads the prescreens first** (the protocol input; cross-review TP31): for each of the 25 Hell cases of
+   `buildLandscapeMatrix({ seeds: 20 })`, exactly one prescreen `<case>-s3-YYYY-MM-DD.json` in the full folder itself
+   (never its subfolders), validated like any selected report (step 4) with N = 3: `complete`, its rows of the case
+   exactly the reps 0 to 2, none interrupted, the shared source identity. A Hell case without exactly one valid
+   prescreen is `missing` or `invalid`, and the protocol of its level cannot be derived: the script stops on the gap
+   (step 5).
+2. **Derives the protocol (P-OD6)** of each case from the prescreens only: N = 20 for a case that is not Hell; per
+   Hell level, N = 20 for every case whose prescreen accepted a puzzle; the **boundary case** of the level is the case
+   with the fewest active cells (ties in matrix order) among the level's cases whose prescreen accepted no puzzle, and
+   it needs N = 20 whatever its 20-request report shows: a boundary case that makes a puzzle in its full run stays the
+   boundary, and no second case is promoted; every other Hell case needs N = 3 ("reduced (D37, P-OD6)", with the
+   boundary case of its level).
+3. **Selects one report per case**, by name, never by reading every JSON file of a folder, in the folder itself (not
+   its subfolders): for N = 20, the 20-request report `<case>-YYYY-MM-DD.json` of the full folder, else, for a GV2
+   case, the slice report `<case>-YYYY-MM-DD.json` of the slice folder; for N = 3, the prescreen read in step 1. Two
+   files that match one pattern are an error, and so is a 20-request report of a case whose protocol is N = 3 (a run
+   outside the P-OD6 plan: `invalid`, reported). A prescreen of a case that needs 20 is read for the protocol but its
+   runs are never appended to the aggregate's run list beside the selected 20-request report: its 3 requests are the
+   first 3 of the 20 (same seeds), so appending both would count them twice (TP08).
+4. **Validates every report it reads** (TP27), before the selection is used: the chosen report is `complete`; its
+   rows of the case are exactly the reps 0 to N - 1 (a 3-request report never stands for a case that requires 20); no
+   row is interrupted; every report read (the prescreens and the chosen reports, a reused slice report included) has
+   the same `meta.sourceDigest` and `meta.versions`. Each case gets a status: `measured` (N = 20, valid), `reduced
+   (D37, P-OD6)` (N = 3, valid), `missing` (no report where the protocol needs one) or `invalid` (a report that fails
+   a check). A partial or missing report is never a D37 waiver and never becomes "no puzzle observed" evidence because
+   its file exists.
+5. **Stops on a gap**: when a case is `missing` or `invalid`, it prints the coverage table and exits 2 without writing
    the durable files; the task then runs the missing case or reports to the orchestrator (an unresolved measurement
    goes to the orchestrator before the lock).
-5. **Otherwise** keeps the chosen reports' `runs`, calls `aggregateLandscape(runs, buildLandscapeMatrix({ seeds: 20 }))`
+6. **Otherwise** keeps the chosen reports' `runs`, calls `aggregateLandscape(runs, buildLandscapeMatrix({ seeds: 20 }))`
    and `renderLandscapeMarkdown(...)`, and writes, once and CRLF, into the `--full` folder (here
-   `docs/difficulty-v3/landscape-v3-full/`; an ordered change round of MP12b2 passes its own folder); it refuses to
-   overwrite an existing aggregate:
+   `docs/difficulty-v3/landscape-v3-full/`; an ordered change round of MP12b2 passes its own folder, with the GV2
+   reports in its subfolder `slice/` as `--slice`); it refuses to overwrite an existing aggregate:
    - `aggregate-<date>.json`: `{ aggregate, coverage, lists, source }` (`source` is the shared `sourceDigest` and
      `versions`; `coverage` has one entry per case in matrix order, `{ caseId, requiredN, reps, report, boundaryCase,
      status, recorded, requested }`, with `report` the repository-relative path of the selected report JSON (null when
@@ -231,7 +242,15 @@ difference:
   rule of the first text);
 - (e) a Hell case whose prescreen made a puzzle but which has no 20-request report: `missing`;
 - (f) per level, the boundary case is the one with the fewest active cells among the cases without a prescreen
-  puzzle, and it requires 20.
+  puzzle, and it requires 20;
+- (g) the boundary case's prescreen accepted no puzzle and its 20-request report accepted some (TP31): it stays the
+  boundary of its level, `measured` with N = 20; the next larger case without a prescreen puzzle stays `reduced (D37,
+  P-OD6)` with N = 3, and no second case of the level requires 20;
+- (h) a case whose prescreen made a puzzle, with its valid 20-request report: the aggregate's run list holds its 20
+  runs once (`recorded` 20, not 23); its prescreen is read for the protocol only;
+- (i) a Hell case without a prescreen, and a reduced case that also has a 20-request report: `missing` and `invalid`
+  (the protocol of the first one's level cannot be derived; the second report is outside the plan), exit 2, nothing
+  written.
 
 ## Files to create/modify
 
@@ -268,10 +287,10 @@ folders, `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json`.
 | ID | Criterion | Evidence |
 |---|---|---|
 | MP12b1-T01 | Every shard ran through MP12a's launcher under the lock helper, each invocation in the shard table (times, launcher exit, rows, lock wait), every resume the identical command after exit 3; every report was published once by `launch.mjs publish`; no checkpoint of a published case is left and none was deleted before publication | the shard table; `git status` |
-| MP12b1-T02 | The aggregation script takes exactly one validated report per case by its rules (never a `-s3` report beside the 20-request report of the same case; one source identity across the chosen reports, reused slice reports included), uses the tools' `aggregateLandscape` over their runs and the full matrix, writes the protocol coverage table, and its lists guard null values (TP27); it wrote nothing while a case was missing or invalid | `aggregate.mjs`; the aggregate files |
+| MP12b1-T02 | The aggregation script reads and validates the 25 prescreens first and derives the P-OD6 protocol from them alone (a boundary case keeps its role whatever its full run shows), then takes exactly one validated report per case by its rules (a prescreen is never appended beside the 20-request report of the same case; one source identity across every report read, reused slice reports included; TP31), uses the tools' `aggregateLandscape` over their runs and the full matrix, writes the protocol coverage table, and its lists guard null values (TP27); it wrote nothing while a case was missing or invalid | `aggregate.mjs`; the aggregate files |
 | MP12b1-T03 | The quick set (under the lock) and `npm run check` pass; the folder's files are CRLF without BOM | command output |
 | MP12b1-T04 | The 25 Hell prescreens ran before any other Hell run; every Hell case with a puzzle in its prescreen and exactly one boundary case per Hell level (the fewest active cells among the level's cases without a puzzle; none when every prescreen of the level made a puzzle) have a 20-request report; every other Hell case is reduced, with its boundary case named | the shard table; the coverage table |
-| MP12b1-T05 | `aggregate.mjs --self-test` passes its cases (a) to (f); a slice report was reused only by equal source identity, with MP12a's commit named | command output; the shard table |
+| MP12b1-T05 | `aggregate.mjs --self-test` passes its cases (a) to (i); a slice report was reused only by equal source identity, with MP12a's commit named | command output; the shard table |
 
 ## Test plan
 

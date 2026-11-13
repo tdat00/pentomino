@@ -2,10 +2,10 @@
 
 | Field | Value |
 |---|---|
-| Date | 2026-11-12 (+07:00); §9 (KI-1) 2026-11-13; §10 (MP12 tranche) 2026-11-13 |
+| Date | 2026-11-12 (+07:00); §9 (KI-1) 2026-11-13; §10 (MP12 tranche) 2026-11-13; §11 (MP12 re-verification) 2026-11-13; §12 (schedule question of the orchestrator) 2026-11-13 |
 | Responder | SA1, claude-opus-5.5 (author of the pack) |
-| Review answered | [`../gpt-6-astra/6-review-of-task-pack.md`](../gpt-6-astra/6-review-of-task-pack.md) § "Second pass" (SA2, gpt-6-astra): SP01-SP19; § "Third pass": TP01-TP05 (MP09 series), TP13-TP15 (MP09d2), TP06-TP12 and TP16-TP19 (§4); § "MP12 tranche": TP20-TP28 (§10) |
-| Source revision | `05fa958` (MP08 committed); MP07 committed as `2b4c5b9`; third pass at `041ff83` (MP09d1 committed); §9 at `ed54ecc` (MP10b1 committed); §10 at `a85ed55` (MP11 committed) |
+| Review answered | [`../gpt-6-astra/6-review-of-task-pack.md`](../gpt-6-astra/6-review-of-task-pack.md) § "Second pass" (SA2, gpt-6-astra): SP01-SP19; § "Third pass": TP01-TP05 (MP09 series), TP13-TP15 (MP09d2), TP06-TP12 and TP16-TP19 (§4); § "MP12 tranche": TP20-TP28 (§10); § "MP12 re-verification": TP29-TP33 (§11) |
+| Source revision | `05fa958` (MP08 committed); MP07 committed as `2b4c5b9`; third pass at `041ff83` (MP09d1 committed); §9 at `ed54ecc` (MP10b1 committed); §10 at `a85ed55` (MP11 committed); §11 at `f33aa71` (the pack snapshot with §10); §12 at `f33aa71` |
 | Order of work | as the orchestrator asked: SP01-SP03 (the MP09 series) first, then SP04 and SP05 (MP10a, MP10b), then the rest |
 | Not changed | dispatched or accepted task files (MP01-MP08, then each task once dispatched); the Done column, the release record and the execution summary of the check-list; the reports, `plan.md`, SA2's folder; `clarifications.md` only by the new questions D36 and D37 in Part I |
 
@@ -611,3 +611,282 @@ and the simulation are inside the guard.
 needs the orchestrator's go-ahead under SA2-Q-P09 branch A. D36 (P-OD5) and D37 (P-OD6) apply as decided.
 
 MP12 FIXED
+
+## 11. MP12 re-verification: TP29-TP33 (MP12b1, MP12b2)
+
+SA2's re-verification ([`../gpt-6-astra/6-review-of-task-pack.md`](../gpt-6-astra/6-review-of-task-pack.md) § "MP12
+re-verification", 2026-11-13, at `a85ed55`; the pack snapshot is `f33aa71`) verified MP12a and kept MP12b1 and MP12b2
+blocked on TP30. All five findings are accepted; none is disputed. MP12a is dispatched and frozen: TP29 went to its
+developer as SA2 wrote it, and TP30 needs no change of MP12a (below), so this section adds no MP12a addendum.
+
+| Finding | Severity | Disposition | Where |
+|---|---|---|---|
+| TP29 an explicit interrupt must not become a scheduled resume | Minor | Accepted as SA2 wrote it (an MP12a developer addendum, passed by the orchestrator) | MP12a only. MP12b1 and MP12b2 resume only on exit 3 and stop on any other exit, so an interrupted invocation (now exit 2) stops them: no change |
+| TP30 a change round regenerated the data but not the C1-C5 evaluation | Major | Accepted | MP12b2 change round steps 1, 4, 5, 7 and 8 (new: the slice criteria from a new probe corpus with `criteria.mjs`; record §4 replaced) and its PowerShell block, record §2-§5 and §11, the lock evidence, files table, ownership, implementation step 5, header, T05, T09 (new), test plan (`$criteriaFolder`, `Assert-CriteriaSource`, the synthetic 95/90/80 handoff check); MP12b1 `aggregate.mjs` (the change round's `slice` subfolder); check-list D29, GL-P3 and ownership rows |
+| TP31 prescreens read for the protocol, excluded from the aggregate | Minor | Accepted | MP12b1 `aggregate.mjs` steps 1-4 (prescreens first, the protocol from them alone, then the selection and the validation), self-test cases (g)-(i), T02, T05; check-list ownership row |
+| TP32 the optional narrower rerun is incompatible with the strict aggregate | Minor | Accepted | MP12b2 change round step 1 (the exception removed: the complete population whenever the identity changes) |
+| TP33 script paths and change-round data paths | Minor | Accepted | MP12b2 test plan (`$s` for the scripts, `$data` for everything written, the change round's three values), change round step 6, files table; check-list GS-P3 row |
+
+**TP30.**
+
+- **Where the slice goes.** A change round publishes its 18 GV2 cases into `landscape-v3-change-1/slice/`, the layout
+  of an MP12a round folder. MP12a's read-only `criteria.mjs` therefore runs on it unchanged, with exactly one report
+  per GV2 case. Every other case, the prescreens, the shard table and the aggregate stay in the parent folder.
+  MP12b1's `aggregate.mjs` takes `slice/` as its `--slice` and searches the full folder without its subfolders.
+  SA2 placed the probe in `landscape-v3-change-1/probe/`. Putting it under `slice/` instead keeps the script's folder
+  rule satisfied, so MP12a needs no addendum. MP12a's 12:32 draft of the script confirms this (untracked, read only:
+  `docs/difficulty-v3/landscape-v3/criteria.mjs:320-336`): any dated JSON of another case in the round folder, the
+  aggregate and the prescreens included, is an input error, so the parent folder could not be the `--round`.
+- **The probe corpus.** It is MP12a's procedure for the same 90 requests, label `prod` only, run through the helper
+  at 570 s, into `slice/probe/`. No result of an earlier tuple stands in for it.
+- **The criteria table.** It goes to `landscape-v3-change-1/criteria-<date>.md` and replaces MP12a's reference in
+  record §4. P-OD1 and P-OD2 are recomputed; P-OD3 stays labelled with MP12a's tuple.
+- **Stops.** A failed or unavailable criterion, or an input error of the script, stops the task before the record
+  and the lock.
+- **The handoff check.** `Assert-CriteriaSource` checks that every GV2 report behind record §4 carries the locked
+  tree's identity. It runs in both paths:
+  - without a change round, on MP12a's final round; it fails there only if MP12b1 could not reuse the slice, and
+    that is a stop;
+  - after a change round, on the change round's `slice/`.
+
+  SA2's example is a synthetic check that runs before §4: the GV2 rate is 95 %, an old tuple's 90 % passes C2 and
+  the new tuple's 80 % fails it. Under the new identity the old folder is refused and the new one is accepted.
+
+**TP31.** `aggregate.mjs` now works in this order:
+
+1. It reads and validates the 25 prescreens with N = 3. A missing or invalid prescreen leaves its level's protocol
+   underivable, which is a stop.
+2. It derives the protocol from the prescreens alone. The boundary case keeps its role even when its full run makes
+   a puzzle, and no second case is promoted.
+3. It selects one report per case. A prescreen of a 20-request case is never appended to the run list:
+   `aggregateLandscape` counts every row and does not deduplicate by rep, so the case shows 20, not 23. A 20-request
+   report outside the plan is `invalid`.
+4. It checks one identity across every report it reads, the prescreens included.
+
+Self-test (g) is SA2's case; (h) is the double count; (i) covers a missing prescreen and a report outside the plan.
+
+**TP32.** The narrower variant is gone. Every allowed change edits a file of `SOURCE_FILES`
+(`tools/bench/report.js:37-48` lists `policy.js`, `levels.js` and `clues.js`), and the aggregate accepts one shared
+identity. A change round therefore reruns the complete population in new folders. The orchestrator gets its
+projection first: about 12-18 hours, including the probe corpus. Reusing cases across identities would need its own
+data contract, outside this pack.
+
+**TP33.** The test plan keeps `$s` for the four scripts and `$data` for everything it writes. A change round sets three
+values:
+
+- `$data = "$s/change-1"`;
+- `$full`, the change aggregate, which gives `$ref`, `Identity`'s reference and HL's selected reports;
+- `$criteriaFolder`.
+
+The HL manifest lives under `$data`, so a change round starts a new one. The scripts are never copied: `observe.mjs`
+imports `../d21-2026-11-12/register.mjs` from its own folder. A forgotten `$full` fails closed, because `Identity`
+stops on the changed digest.
+
+**Checks** (scratch only, nothing generated):
+
+- **MP12b2 test-plan block, normal path.** It ran on a stub tree with a private lock folder. MP09d2's observations
+  were reusable, so there were no availability captures, and `Assert-CriteriaSource` passed on a stub of MP12a's
+  final round.
+- **Change-round path.** It ran on the same tree after an engine change:
+  - every capture, the availability probe and the tables went under `change-1/`, with a new HL manifest whose three
+    cases were captured again from the change round's reports;
+  - the scripts were loaded from `$s`, and the first pass's files were left untouched;
+  - the change `slice/` was accepted, and MP12a's final round was refused under the new identity.
+
+  A third run, with `$full` left at MP12b1's aggregate, stopped at the first `Identity` without writing a capture.
+  The synthetic handoff check refused the old table in both passes.
+- **Change-round shard block.** On stubs it resumed after a scheduled pause, published a GV2 case into `slice/` and
+  a Hell prescreen into the parent folder, and called the aggregate and criteria scripts with the expected arguments.
+  It left no lock.
+- **Parsing and repository check.** Every PowerShell block of MP12b1, MP12b2 and the check-list parses, and
+  `npm run check` passes.
+
+**Questions.** None for the owner or the plan author; no threshold changes, and D36 and D37 are not reopened.
+
+MP12b FIXED
+
+## 12. Schedule: MP13+ beside MP12b
+
+The orchestrator asked (2026-11-13 12:53) whether MP13a-MP16b can run while MP12b1 and MP12b2 run their captures,
+at what risk and for what gain. Read at `f33aa71`: the task files MP12b1-MP17, the check-list, `plan.md`, report §5.2,
+`tools/calibrate.mjs`, `tools/bench/runner.js`, `core/engine/policy.js` and the lock helper of the Sudoku check-list.
+Nothing was run; no task file and no check-list row was changed.
+
+### 12.1 What MP13a-MP16b take from MP12
+
+| Task | Locked values, `POLICY_ID`, areas | Fixtures and recipes | Files shared with MP12b1 or MP12b2 |
+|---|---|---|---|
+| MP13a | none: `provenanceVersions()` reads the ids at run time; `SKIP_BOUNDS` come from `BUDGETS` and the loop constants, which no MP12 change may touch (D29, D19); `level(id)` checks ids, not areas | the recipe of `generation-case.json`, compared with the run; case 6 needs a candidate at slot 1, attempt 0; cases 1-5 use scripted seams or compare with the run | only in a change round: the `STALL_LIMIT` line of `clues.js`, the knob-dependent pins of `tests/clues.test.js` and `tests/generate.test.js` |
+| MP13b | the replay fixture stores `currentVersions()` and eight 10 x 6 Hard puzzles made with the current knobs | `tests/fixtures/replay-case.json` (new, GF-P4) | only in a change round: `tests/generate.test.js`, as MP13a |
+| MP14a | none: `rateDetailed` is compared with `rate`; the meter logs are pinned on scripted ratings (`req-0`, `req-2`, S6) and uniqueness counts | the recipe, compared with the run | only in a change round: `clues.js` (`STALL_LIMIT`) |
+| MP14b | none (`pieceCountRange` is computed) | the recipe; cases 3 and 4 need candidates at slot 1, attempts 0 and 2 | none |
+| MP15a1 | `REPLAY.work = 256 * (DEDUCE.work + DEDUCE.census)` (D33): its pin follows a change of either cap | the fixture, compared with the run; case 16 only measures | only in a change round: `policy.js`, `tests/policy.test.js` |
+| MP15a2, MP15b, MP16a | none | the fixture (steps, a worker payload, a real replay), compared with the run | none |
+| MP16b | none | the replay page uses the fixture; `generator-flow` and `acceptance` generate with the current knobs | none (MP12b2 may add one sentence to the brief's "Levels and typical boards", MP16b edits another paragraph); under D36 (i) MP12b3 edits the areas, design §7.5, the brief and both user guides |
+
+No task needs a locked value. Report §5.2 draws MP13-MP17 after the lock with the rule that they "must not change any
+rating or generated puzzle (the recorders are observers; provenance does not change outputs ...)", a rule about
+outputs, and the plan's P4 "Order" says that P4.1 and P4.2 "do not depend on v3 and can ship first". The only artefact
+bound to the knobs is `tests/fixtures/replay-case.json`; one pin follows `DEDUCE`, and three recipe cases assume that
+a given attempt makes a candidate.
+
+What the side tasks do need is MP12a's commit. MP12a changes the knob values, re-pins `tests/clues.test.js`,
+`tests/generate.test.js`, `tests/policy.test.js`, `tests/difficulty-v3.test.js` and the UI-flow recipes, and re-records
+the generation fixtures: files that MP13a, MP13b and MP15a1 extend or read. After MP12a, and without a change round,
+`rating-v3` receives only records and documents (MP12b1's folder; MP12b2's folders, record, design §7.5 and §7.8, at
+most one sentence of the brief), which no side task edits. Starting before MP12a's commit would gain at most one task
+and invite merges in the files MP12a re-pins: not recommended.
+
+### 12.2 Risk (a): perturbing the captures
+
+- **Outcomes, not only times.** The landscape's results depend on the wall clock: the pool stops dispatching a request
+  after `TIME.dispatchStopMs` = 115 s (`core/engine/policy.js:66`, `core/browser/worker-pool.js:364` and `:643`),
+  the runner stops a row after 400 s (`tools/calibrate.mjs:46`, `child-timeout`; the launcher keeps the default) and
+  waits 30 s for certificates (`tools/bench/runner.js:75`). MP12b2's capture limits are recorded outcomes. Load beside
+  a capture lowers completion (C2) and moves partial outcomes, so the lock protects the evidence itself.
+- **The rule exists.** From MP12a on, check-list §7 sends every command of more than about 10 s (the quick set,
+  `npm test`, the slow tests, `tools/record-fixtures.mjs`, browser pages) through `Invoke-Dv3Timed`, one bounded
+  command per acquisition. Two gaps remain:
+  1. MP13a-MP17 were written before it. Their command blocks run `node --test`, `npm run test:quick`, `npm test` and
+     the browser runner directly and never mention the lock. That needs Amendment L1 (12.4) in either schedule.
+  2. The lock does not protect the checkout. Each landscape row is a fresh Node process that imports
+     `core/engine/*.js` from the working tree (`--fresh-process`, `tools/calibrate.mjs:326`). A side edit in progress
+     changes what later rows run, and every report's `meta.sourceDigest` covers `SOURCE_FILES`, so MP12b1's
+     aggregate refuses the mixed identities and the landscape is lost. Both would also write `tests/artifacts/`
+     (check-list §3). Work beside MP12b therefore needs a second worktree; no rule replaces it.
+- **Unlocked commands.** `node --test` runs files in parallel, up to 15 processes on this 16-thread machine (64 GB),
+  so any run of several files belongs under the lock. Editing, read-only git, `npm run check` and one test file run
+  with `--test-concurrency=1` that ends within 10 s can stay outside.
+- **Three lock users.** Both helpers stop waiting after 10 minutes (`Invoke-Dv3Timed` here; Sudoku's
+  `Invoke-Dv3Node`, `$until = (Get-Date).AddMinutes(10)`). Today a waiter waits for one holder, which releases within
+  about 10 minutes. With the landscape (at most 590 s), a Sudoku measurement (at most 540 s) and a side run taking
+  the slot in turn, a waiter can see it taken for more than 10 minutes. The throw ends MP12b1's shard block
+  (`MP12b1-full-landscape.md:115-118`) or the Sudoku command until someone restarts it: guard G3.
+- **Cost.** The side stream holds the lock for about 30-60 minutes in all (per task 1.5-2.5 minutes of targeted
+  runs, the quick set and the orchestrator's re-run; GF-P4 7-25 minutes; GB-P4 5-15 minutes), and MP12b lasts about
+  as much longer. Each side run waits about 5 minutes on average for the current invocation: about 3-5 hours over the
+  chain, off the critical path.
+
+### 12.3 Risk (b): a change round after the side chain
+
+It does not fit inside MP12b2's change round: the side commits are not on `rating-v3` then, and MP12b2 would have to
+own GF-P4, GB-P4 and the side tests. It belongs to an integration task after the lock (MP16c, 12.4). When the locked
+tuple differs from MP12a's, MP16c re-pins:
+
+1. `tests/fixtures/replay-case.json`. `--replay-case --check` compares the whole text, versions included. Re-record
+   with `--replace --seed <n> --reason <text>` when seed n still meets MP13b's conditions and qualifies, else with
+   `--search` and MP13b's selection rule; then `npm test`.
+2. The `REPLAY` pin of `tests/policy.test.js`, when `DEDUCE.work` or `DEDUCE.census` changed and MP15a1 pinned `work`
+   as a number (nothing when it pins the D33 expression).
+3. MP13a case 6 and MP14b cases 3 and 4, only when the new `RECIPE.expected` leaves slot 1 without a candidate at
+   attempt 0 or 2: the nearest attempt with the same `start`.
+4. The merges with the change round's own edits: `policy.js` (`REPLAY` beside the knobs), `clues.js` (`STALL_LIMIT`
+   beside the recorders), `tests/policy.test.js`, `tests/clues.test.js`, `tests/generate.test.js`.
+5. GB-P4 again (the replay page uses the fixture; two pages generate with the knobs).
+
+That is about 1.5-2.5 hours instead of 0.5-0.75. A change round is ordered after MP12b2's first pass, when the side
+chain has normally finished. The owner's D36 answer comes at the same point: (i) adds MP12b3's areas and texts (text
+merges and GB-P4 again); (iii) changes nothing now; (ii), a different contract for Hell, may change `selectClues`
+itself, which MP13a and MP14a instrument: the side stream then stops at its next task boundary and MP16c is planned
+with the new task.
+
+### 12.4 Proposal: a side stream from MP12a's commit
+
+| Task | Dependency now | Proposed |
+|---|---|---|
+| MP12b1, MP12b2 (MP12b3) | as written | unchanged, in the main checkout on `rating-v3` |
+| MP13a | MP12b2 (the lock) | MP12a (accepted and committed), in the side worktree on `rating-v3-steps` |
+| MP13b-MP16b | the previous task | unchanged, accepted and committed on `rating-v3-steps` |
+| MP16c (new) | - | the lock (MP12b2, or MP12b3 under D36 (i)) and MP16b |
+| MP17 | MP16b and the lock | MP16c |
+
+The two streams share only the timing lock. Guards, as check-list text for the orchestrator's decision:
+
+- **G1 Worktree.** The orchestrator runs `git worktree add -b rating-v3-steps ../pentomino-steps <MP12a commit>`.
+  Side developers work and run commands only there, never in the main checkout; the orchestrator's re-runs of a side
+  task also run there, under the lock. A side commit holds the task's product files only; pack files
+  (`tasks/difficulty-v3/`, logs, addenda) are committed on `rating-v3` only. Before each side dispatch the
+  orchestrator runs `git -C ../pentomino-steps merge --no-edit rating-v3` while `rating-v3` holds only pack, record
+  and document commits since MP12a, so the worktree reads the current pack; after a change round's first commit,
+  addenda go in the dispatch prompt instead. `rating-v3` receives no side commit before MP16c; MP12b2's identity
+  checks would refuse the changed digest anyway.
+- **G2 Amendment L1** for MP13a-MP17, needed in the serial schedule too:
+
+  > **Amendment L1 (lock).** Run every command of the test plan that takes more than about 10 seconds or runs more
+  > than one test file (the targeted runs, `npm run test:quick`, `npm test`, `tools/record-fixtures.mjs`, the browser
+  > runner one page and phase at a time) through `Invoke-Dv3Timed` of check-list §7, saved as
+  > `tests/artifacts/<task id>/dv3-lock.ps1`, with the command's node arguments (`npm run test:quick` is
+  > `--test --test-skip-pattern=slow tests/**/*.test.js`, `npm test` is `--test tests/**/*.test.js`). Only
+  > `npm run check` and one test file run with `--test-concurrency=1` within 10 seconds run without it. The reply
+  > gives each invocation's seconds and lock wait.
+
+- **G3 Wait limit.** In the helper of check-list §7, `-ge 10` becomes `-ge 30` ("within 30 minutes"), for MP12b1
+  (with TP34), MP12b2 and the side stream, and the Sudoku helper's `AddMinutes(10)` becomes 30 while both pentomino
+  streams run (SA2's pack). One holder still releases within 10 minutes, so a stale lock is still reported, later.
+- **G4 Acceptance.** A side task is accepted on MP12a's knobs: `record-fixtures --check` and the quick set pass on the
+  side branch. Check-list §6's "after the lock" rule and MP13a's "loops at the lock" check are proven again on the
+  locked tree by MP16c. On `rating-v3` the lock commit precedes every MP13-MP17 change, as report §5.2 draws it.
+
+**MP16c, integration on the lock** (new; Small, or Medium with gates after a change round). After the lock commit,
+with the main checkout idle, the orchestrator runs `git merge --no-ff --no-commit rating-v3-steps`. The developer
+resolves conflicts in content only (both sides' additions kept, the locked values from `rating-v3`) and runs under
+the lock: the quick set, `npm run check`, `record-fixtures --check` (the locked generation fixtures: MP13a-MP16b
+change no output), `record-fixtures --replay-case --check` and `npm test`. When the locked tuple equals MP12a's, a
+difference in either check is a defect for the owning task; when it differs, the re-pins of 12.3 and GB-P4 follow,
+each named in the reply. The orchestrator then commits `difficulty-v3 MP16c: ...`, removes the worktree and deletes
+the merged branch. D35 still finds the lock as the latest `difficulty-v3 MP12b` commit.
+
+**Time** from MP12a's commit (MP12b1 and MP12b2 from their headers; MP13a-MP16b at the commit-to-commit pace of
+MP08-MP11, 6-78 minutes a task, GF-P4 and GB-P4 included; MP17 from its header):
+
+| | Serial (now) | Side stream |
+|---|---|---|
+| MP12b1 and MP12b2 | 13.5-20 h | 14-21 h (the side stream's lock time added) |
+| After the lock | MP13a-MP16b 5-7 h, MP17 2-2.7 h | MP16c 0.5-0.75 h, MP17 2-2.7 h |
+| Total | about 20.5-30 h | about 16.5-24.5 h |
+| With a change round (12-18 h) | about 32.5-48 h | about 29.5-44 h (MP16c 1.5-2.5 h) |
+
+The side stream saves about 3-6 hours, or 1.5-5 hours with a change round. The side chain (5-7 hours, plus 3-5 hours
+of lock waits) fits inside MP12b1 and MP12b2. Serially the pack ends those hours later, not a day: the long parts,
+the landscape and a change round, are the same in both schedules.
+
+**Recommendation.** Take the side stream if G3 can be applied in both repositories; it costs MP12b about 30-60 minutes
+and adds one integration task. Without G3, stay serial: a third lock user would then stop MP12b1's shard block or a
+Sudoku measurement whenever two holders keep a waiter out for 10 minutes. Either way, MP13a-MP17 need Amendment L1.
+
+**Owner.** The integrated history keeps report §5.2's order and its rule (MP16c proves them on the locked tree); what
+changes is when MP13a-MP16b are developed. The plan allows P4.1 and P4.2 first, so I see no owner decision, only a
+notice. If the orchestrator finds it material, the question is (a) the side stream with G1-G4 and MP16c, or (b) the
+serial order; I recommend (a).
+
+SCHEDULE PROPOSED
+
+**Orchestrator decision 2026-11-13: serial (the critical path is sudoku).** About 40 Sudoku tasks remain after its
+recovery tasks, so the whole job ends with Sudoku in either schedule; a pentomino side stream would not move that end,
+and it would add a third lock user that slows Sudoku's runs. The plan's sequencing is unchanged: G1, G4, MP16c and the
+Sudoku half of G3 are not adopted. Applied, as the parts that hold in either schedule (request of 13:17):
+
+- **Amendment L1** in MP13a, MP13b, MP14a, MP14b, MP15a1, MP15a2, MP15b, MP16a, MP16b and MP17 (none dispatched). Each
+  has a "Repository rules" bullet: save the helper as `tests/artifacts/<ID>/dv3-lock.ps1` and dot-source it, one
+  bounded command per lock, the 15 s gap, and what may run without it. Every timed or heavy command block now calls
+  `Invoke-Dv3Timed`:
+  - the targeted runs and the quick set in every task;
+  - GF-P4's search, create, check and `npm test` (MP13b);
+  - the GB-P4 pages, one page and phase per invocation, five in all (MP16b; before, one invocation of 8-12 minutes);
+  - in MP17 the two fixture checks, `npm test`, the 12 generation runs, `summarise.mjs` (with an output-file
+    argument, since the helper redirects nothing), the `rate-probe` runs and the 19 browser runs, one per invocation
+    (before, four invocations of 4-10 minutes, which could pass the 590 s bound).
+
+  An `npm test` stopped at the bound runs again as the quick set plus `--test --test-name-pattern=slow`; a GF-P4
+  search stopped there resumes after its last printed seed.
+- **Wait limit** of the helper in check-list §7: 20 minutes instead of 10. The bullet gives the reason and says that a
+  copy saved earlier keeps its 10 minutes until its task ends.
+- **Checks** (scratch only):
+  - every PowerShell block of the eleven edited files parses;
+  - the MP17 generation loop and page loop ran against stubs, with the helper on a scratch lock folder: exit codes
+    0, 1 and 2, the skipped row, the digests, one evidence folder per run, the failure list, the throw on exit 2, and
+    the lock released;
+  - the `summarise.mjs` output capture wrote CRLF lines and kept exit 1, and the edited script parses;
+  - `npm run check` passes.
+
+L1 APPLIED

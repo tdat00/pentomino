@@ -494,7 +494,7 @@
       ],
       "rating": {
         "model": "difficulty-v3",
-        "score": 11,
+        "score": 10,
         "level": "easy",
         "saturated": false,
         "metrics": {
@@ -540,36 +540,29 @@
       }
     },
     {
-      "id": "p216dd2dc841c",
+      "id": "p99009a3b9913",
       "title": "Normal",
       "clues": [
         {
-          "piece": "B",
+          "piece": "A",
           "x": 0,
-          "y": 2,
-          "turn": 1,
-          "mirrored": true
-        },
-        {
-          "piece": "D",
-          "x": 6,
-          "y": 3,
-          "turn": 0,
-          "mirrored": true
-        },
-        {
-          "piece": "G",
-          "x": 5,
-          "y": 5,
-          "turn": 0,
-          "mirrored": false
-        },
-        {
-          "piece": "I",
-          "x": 8,
           "y": 0,
-          "turn": 1,
+          "turn": 3,
           "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 4,
+          "y": 2,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 1,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
         }
       ],
       "solution": [
@@ -643,26 +636,26 @@
         "level": "normal",
         "saturated": false,
         "metrics": {
-          "U": 5,
-          "R": 35,
-          "H": 4.758408078005673,
-          "B": 5,
-          "branchTrials": 5,
-          "rowTrials": 9,
+          "U": 6,
+          "R": 41,
+          "H": 4.817926839092638,
+          "B": 11,
+          "branchTrials": 11,
+          "rowTrials": 14,
           "dlxStop": "solution",
           "searchStop": "exhausted",
           "F": 4,
-          "E": 5,
+          "E": 8,
           "rules": {
-            "R1": 4,
-            "R2": 0,
+            "R1": 3,
+            "R2": 1,
             "R3": 0,
-            "R4": 18,
-            "R5": 0,
-            "R6": 5,
-            "R7": 15,
-            "R8": 13,
-            "R9": 0
+            "R4": 55,
+            "R5": 3,
+            "R6": 8,
+            "R7": 0,
+            "R8": 40,
+            "R9": 8
           },
           "deductionTier": 3,
           "tier": 3,
@@ -670,10 +663,10 @@
           "info": 0,
           "Cmax": 0,
           "Dmax": 0,
-          "Gt": 1,
-          "nodes": 3,
-          "work": 72660,
-          "S": 2,
+          "Gt": 3,
+          "nodes": 7,
+          "work": 355489,
+          "S": 4,
           "solutionLimit": 8,
           "solutions": "few",
           "censusComplete": true,

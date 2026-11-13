@@ -41,13 +41,21 @@ MP16b puts the button on each puzzle card and verifies the dialog in a browser.
 
 ## Repository rules
 
-- Read `AGENTS.md` and `tasks/difficulty-v3/check-list.md` §3 first.
+- Read `AGENTS.md` and `tasks/difficulty-v3/check-list.md` §3 and §7 first.
 - Browser modules: `// @ts-check`, JSDoc, ES modules with `.js`; `replay-model.js` has no DOM, no timers of its own
   (the scheduler is injected) and no storage.
 - Every visible text has a key in both packs with the same `{placeholders}` (`tests/generator-i18n.test.js:23`), in
   natural Vietnamese. No text is built by concatenating translated fragments.
 - Run only the commands of the test plan; no browser page in this part. Never stage, commit, stash, reset, push or
   switch branches; never edit `tasks/difficulty-v3/`, the reports or `docs/difficulty-v3/`.
+- **Amendment L1 (lock; orchestrator decision 2026-11-13).** The Sudoku repository runs on the same machine. Save the
+  helper `Invoke-Dv3Timed` of check-list §7 ("Shared-machine lock protocol") verbatim as
+  `tests/artifacts/MP16a/dv3-lock.ps1` and dot-source it in every call. Every test run of the test plan goes through
+  it, as written there: one bounded command per acquisition of the lock, at most 590 s, at least 15 s between
+  releasing the lock and taking it again (the helper waits), never a lock held across a series of commands. Only
+  `npm run check` and, while you work, a single test file that ends within 10 seconds run without it. A command that
+  the helper stops at its limit has an error: report it, never rerun it outside the helper. The reply gives each
+  invocation's label, exit, seconds and lock wait.
 - UTF-8 without BOM, CRLF, final newline, no trailing whitespace.
 
 ## Inputs & context
@@ -289,10 +297,12 @@ Exclusive ownership while this task runs: the files above.
 ### Exact commands
 
 ```powershell
-node --test --test-skip-pattern=slow tests/replay-model.test.js tests/generator-i18n.test.js tests/render-model.test.js
-if ($LASTEXITCODE -ne 0) { throw 'targeted tests failed' }
-npm run test:quick
-if ($LASTEXITCODE -ne 0) { throw 'quick tests failed' }
+. tests\artifacts\MP16a\dv3-lock.ps1
+$r = Invoke-Dv3Timed -Task 'MP16a targeted tests' -NodeArgs @('--test', '--test-skip-pattern=slow',
+  'tests/replay-model.test.js', 'tests/generator-i18n.test.js', 'tests/render-model.test.js')
+if ($r.Exit -ne 0) { throw 'targeted tests failed' }
+$r = Invoke-Dv3Timed -Task 'MP16a quick set' -NodeArgs @('--test', '--test-skip-pattern=slow', 'tests/**/*.test.js')
+if ($r.Exit -ne 0) { throw 'quick tests failed' }
 npm run check
 if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 ```

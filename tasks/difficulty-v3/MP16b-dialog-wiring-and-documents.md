@@ -43,7 +43,16 @@ provenance and replay work (MP13a to MP16b) for users and developers, in English
 
 - Read `AGENTS.md` and `tasks/difficulty-v3/check-list.md` §3 and §7 first.
 - Browser pages run **only** in gate GB-P4, announced first; each check logs its start and finishes within 1 minute;
-  each page within 10 minutes.
+  each page within the runner's 540 s bound.
+- **Amendment L1 (lock; orchestrator decision 2026-11-13).** The Sudoku repository runs on the same machine. Save the
+  helper `Invoke-Dv3Timed` of check-list §7 ("Shared-machine lock protocol") verbatim as
+  `tests/artifacts/MP16b/dv3-lock.ps1` and dot-source it in every call. Every test run and every browser run go
+  through it, as written in the test plan and in "Running the pages": one bounded command per acquisition of the lock
+  (one page and phase per runner invocation), at most 590 s, at least 15 s between releasing the lock and taking it
+  again (the helper waits), never a lock held across a series of commands. Only `npm run check` and, while you work,
+  a single test file that ends within 10 seconds run without it. A command that the helper stops at its limit has an
+  error: report it, never rerun it outside the helper. The reply gives each invocation's label, exit, seconds and
+  lock wait.
 - Never stage, commit, stash, reset, push or switch branches; never edit `tasks/difficulty-v3/`, the reports or
   `docs/difficulty-v3/`.
 - UTF-8 without BOM, CRLF, final newline, no trailing whitespace; no absolute path in a document.
@@ -439,16 +448,23 @@ writeFileSync(join(evidence, 'runs.json'), JSON.stringify({ server: server.pid, 
 process.exitCode = failed === 0 ? 0 : 1;
 ```
 
-Run from the repository root (about 8–12 minutes; start it in async mode and read its output):
+Run from the repository root, one page and phase per invocation of the lock helper (Amendment L1; each about 1-2
+minutes plus its lock wait; start the loop in async mode and read its output):
 
 ```powershell
-node tests\artifacts\MP16b\pages.mjs --task MP16b --http 8816 --cdp 9316 --evidence tests\artifacts\MP16b\pages replay replay:keys rendering generator-flow acceptance
-"pages: exit $LASTEXITCODE"
+. tests\artifacts\MP16b\dv3-lock.ps1
+$pages = @('replay', 'replay:keys', 'rendering', 'generator-flow', 'acceptance')
+for ($i = 0; $i -lt $pages.Count; $i++) {
+  $t = Invoke-Dv3Timed -Task "MP16b GB-P4 $($pages[$i])" -NodeArgs @('tests/artifacts/MP16b/pages.mjs', '--task',
+    'MP16b', '--http', '8816', '--cdp', '9316', '--evidence', "tests/artifacts/MP16b/pages/$($i + 1)", $pages[$i])
+  "page $($i + 1) $($pages[$i]): exit $($t.Exit)"
+  if ($t.TimedOut -or $t.Exit -eq 2) { throw "page run $($pages[$i]) stopped at the limit or did not start: report it" }
+}
 ```
 
 Announce the gate in your reply plan ("GB-P4: five runs, the four pages and the keys phase of replay, about 10
-minutes"): the Sudoku repository runs in parallel on the same machine; never two heavy runs at once: start only when
-the orchestrator says the machine is free. `tests/browser/acceptance.html` reported "16 checks, 4 blocked" at the
+minutes plus the lock waits"); each run goes through the lock helper, which interleaves the gate with the Sudoku
+repository's runs. `tests/browser/acceptance.html` reported "16 checks, 4 blocked" at the
 regenerate-puzzle release (blocked checks need a physical device): the same blocked checks are expected; any new
 blocked or failed check is reported.
 
@@ -483,14 +499,14 @@ blocked or failed check is reported.
 | documents of the list above | as described |
 
 Exclusive ownership while this task runs: the files above; scratch under `tests/artifacts/MP16b/` (the runner
-`pages.mjs` and the evidence) and the Edge profile `tests\artifacts\edge-MP16b\`.
+`pages.mjs`, the lock helper `dv3-lock.ps1` and the evidence) and the Edge profile `tests\artifacts\edge-MP16b\`.
 
 ## Implementation steps
 
 1. `replaySourceOf` and its Node test; the card button; the app wiring.
 2. The browser page and the rendering check.
 3. Run the targeted Node tests and the quick set; save the runner; announce GB-P4; run the five runs (one runner
-   invocation, one run at a time); fix what they show (only in the files of this task); record the results.
+   invocation each, through the lock helper); fix what they show (only in the files of this task); record the results.
 4. The documents in both languages; `npm run test:quick`; `npm run check`.
 
 ## Acceptance criteria — Business
@@ -511,7 +527,7 @@ Exclusive ownership while this task runs: the files above; scratch under `tests/
 | MP16b-T01 | The button is the third button inside `li.puzzle-card`; without `onReplay` the card is unchanged | page check 6; review |
 | MP16b-T02 | `replaySourceOf` returns the set, the puzzle, the state's origin and the puzzle's record, or null | case N1 |
 | MP16b-T03 | `highlightedIds` renders `data-highlighted` and `.pm-highlight` only when given | rendering check |
-| MP16b-T04 | GB-P4: the five runs pass (replay main and keys, rendering, generator-flow, acceptance: the known blocked checks only), no CSP violation, no uncaught error; checks under 1 minute; one evidence directory per page and phase | gate record; `runs.json` |
+| MP16b-T04 | GB-P4: the five runs pass (replay main and keys, rendering, generator-flow, acceptance: the known blocked checks only), no CSP violation, no uncaught error; checks under 1 minute; one evidence directory per page and phase | gate record; the five `runs.json` |
 | MP16b-T06 | Checks 1-2 use a `candidate` card and check 12 the calibration card (no stage 4 step); check 5 uses trusted keys only (the runner's `pressed` list is not empty) | page checks 1, 2, 5, 12; `browser.json` |
 | MP16b-T05 | `npm run test:quick` and `npm run check` pass; documents in step in both languages | command output; review |
 
@@ -520,13 +536,15 @@ Exclusive ownership while this task runs: the files above; scratch under `tests/
 ### Exact commands
 
 ```powershell
-node --test --test-skip-pattern=slow tests/generator-state.test.js tests/generator-i18n.test.js tests/replay-model.test.js
-if ($LASTEXITCODE -ne 0) { throw 'targeted tests failed' }
+. tests\artifacts\MP16b\dv3-lock.ps1
+$r = Invoke-Dv3Timed -Task 'MP16b targeted tests' -NodeArgs @('--test', '--test-skip-pattern=slow',
+  'tests/generator-state.test.js', 'tests/generator-i18n.test.js', 'tests/replay-model.test.js')
+if ($r.Exit -ne 0) { throw 'targeted tests failed' }
 
-# announced gate GB-P4: ports 8816 / 9316, the runner command of "Running the pages" (five runs, one at a time)
+# announced gate GB-P4: ports 8816 / 9316, the loop of "Running the pages" (five runs, one helper invocation each)
 
-npm run test:quick
-if ($LASTEXITCODE -ne 0) { throw 'quick tests failed' }
+$r = Invoke-Dv3Timed -Task 'MP16b quick set' -NodeArgs @('--test', '--test-skip-pattern=slow', 'tests/**/*.test.js')
+if ($r.Exit -ne 0) { throw 'quick tests failed' }
 npm run check
 if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 ```

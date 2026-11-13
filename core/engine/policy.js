@@ -52,15 +52,17 @@ export const SCORE = Object.freeze({
 });
 
 /**
- * Knobs of the `difficulty-v3` score (design §7.10), fitted in docs/difficulty-v3/fit-2026-11-12.md (section 3).
+ * Knobs of the `difficulty-v3` score (design §7.10), fitted in docs/difficulty-v3/fit-2026-11-12.md (section 3) and
+ * changed in the P3 slice, round 0 to 1 (rule[3] 2 to 3, penalty (0, 0) to (1, 2), P-OD3):
+ * docs/difficulty-v3/calibration-slice-2026-11-13.md.
  * Defined but not yet the rating: `rate` stays `difficulty-v2` until the v3 activation.
  */
 export const SCORE_V3 = Object.freeze({
   model: 'difficulty-v3',
   base: Object.freeze({ max: 12, scale: 3 }),
-  rule: Object.freeze([0, 0, 2, 2]),
+  rule: Object.freeze([0, 0, 2, 3]),
   weights: Object.freeze({ G: 5, info: 0.5 }),
-  penalty: Object.freeze({ few: 0, many: 0 }),
+  penalty: Object.freeze({ few: 1, many: 2 }),
 });
 
 export const TIME = Object.freeze({ targetMs: 60000, dispatchStopMs: 115000, responseMs: 120000 });
@@ -106,7 +108,8 @@ export const ENUMERATION = Object.freeze({
 
 /**
  * Limits of the deduction solver (design §7.9). `nodes`, `work` and `census` are measured; `memoryBytes` is still a
- * provisional default.
+ * provisional default. `census` was raised from 10000000 to 80000000 in the P3 slice, round 2 (owner decision P-OD7):
+ * docs/difficulty-v3/calibration-slice-2026-11-13.md.
  */
 export const DEDUCE = Object.freeze({
   lookaheadWidth: 4,
@@ -114,7 +117,7 @@ export const DEDUCE = Object.freeze({
   nodes: 30000,
   solutions: 8,
   work: 760000000,
-  census: 10000000,
+  census: 80000000,
   memoryBytes: 32 * 1048576,
 });
 

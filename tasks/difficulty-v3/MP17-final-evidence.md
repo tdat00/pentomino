@@ -64,16 +64,28 @@ no generated fixture changes. Anything else is a defect report. A failing test i
 
 - Read `AGENTS.md` and `tasks/difficulty-v3/check-list.md` §3, §6 and §7 first.
 - **Announce the gate to the orchestrator before starting it** (the Sudoku repository runs in parallel on the same
-  machine; never two heavy runs at once): "GZ: the two fixture checks (about as long as in the GF-P2 record of MP09d2,
-  or of the last task that re-recorded the fixtures, and the GF-P4 record of MP13b), `npm test` (about 5–10 minutes),
-  12 generation runs (about 15–30 minutes), the re-rating and up to 3 `rate-probe` runs (about 5–15 minutes), 19
-  browser runs in four invocations (16 pages in the main phase, the keys and narrow phases of
-  `puzzle-code-acceptance`, the keys phase of `replay`; about 20–30 minutes); about 70–100 minutes in total, one run
-  at a time". Start only when the orchestrator says the machine is free. Only the lock inspection (step 1: git
-  commands and `lock-values.mjs`, which prints constants) runs before the announcement; a retry of any gate command,
-  the fixture checks included, waits for the orchestrator's go in the same way (cross-review SP18).
-- Every test, probe and generation run finishes within 10 minutes and every browser check within 1 minute; a longer
-  run has an error: stop it by its PID and report it.
+  machine): "GZ: the two fixture checks (about as long as in the GF-P2 record of MP09d2, or of the last task that
+  re-recorded the fixtures, and the GF-P4 record of MP13b), `npm test` (a few minutes), 12 generation runs (about
+  15–30 minutes), the re-rating and up to 3 `rate-probe` runs (about 5–15 minutes), 19 browser runs, one per
+  invocation (16 pages in the main phase, the keys and narrow phases of `puzzle-code-acceptance`, the keys phase of
+  `replay`; about 20–30 minutes); about 70–100 minutes in total plus the lock waits, one run at a time". Start after
+  the orchestrator's go; every command of the gate then goes through the lock helper (Amendment L1), which interleaves
+  the gate with the Sudoku repository's runs. Only the lock inspection (step 1: git commands and `lock-values.mjs`,
+  which prints constants) runs before the announcement; a retry of any gate command, the fixture checks included,
+  waits for the orchestrator's go in the same way (cross-review SP18).
+- **Amendment L1 (lock; orchestrator decision 2026-11-13).** Save the helper `Invoke-Dv3Timed` of check-list §7
+  ("Shared-machine lock protocol") verbatim as `tests/artifacts/MP17/dv3-lock.ps1` and dot-source it in every call.
+  Every gate command (the two fixture checks, `npm test`, the 12 generation runs, `summarise.mjs`, the `rate-probe`
+  runs and the 19 browser runs, one page and phase per runner invocation) and the final quick set go through it, as
+  written in this file: one bounded command per acquisition of the lock, at most 590 s, at least 15 s between
+  releasing the lock and taking it again (the helper waits), never a lock held across a series of commands. Only the
+  lock inspection (git commands and `lock-values.mjs`), the reads of the offered levels and of the knobs,
+  `npm run check` and the CRLF check run without it. A command that the helper stops at its limit has an error:
+  report it, never rerun it outside the helper (an `npm test` stopped there runs again as two commands, the quick set
+  and `--test --test-name-pattern=slow tests/**/*.test.js`, both recorded). The record gives each invocation's label,
+  exit, seconds and lock wait.
+- Every browser check finishes within 1 minute and every command within the helper's 590 s bound (AGENTS.md: 10
+  minutes); a longer run has an error: report it.
 - Never stage, commit, stash, reset, push or switch branches; never edit `tasks/difficulty-v3/`, the reports,
   `plan.md`, `clarifications.md`, the analysts' folders or an earlier record under `docs/difficulty-v3/`.
 - UTF-8 without BOM, CRLF, final newline, no trailing whitespace; no absolute path in a document. Check
@@ -171,6 +183,7 @@ manifest `runs.json` records for every run its exit code, time, and the size and
 without one); `summarise.mjs` reads only the packs of this attempt whose digest matches.
 
 ```powershell
+. tests\artifacts\MP17\dv3-lock.ps1
 $gz = "tests\artifacts\MP17\gz-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 if (Test-Path $gz) { throw "attempt directory $gz exists" }
 New-Item -ItemType Directory $gz | Out-Null
@@ -192,26 +205,29 @@ foreach ($r in $runs) {
     '{0}: {1} is not offered on {2}, not run' -f $r[0], $r[2], $r[1]
     continue
   }
-  $start = Get-Date
-  node tools\generate.mjs --board $r[1] --level $r[2] --count $r[3] --seed $r[4] --workers 4 --output $out 2> "$gz\$($r[0]).err.txt"
-  $code = $LASTEXITCODE
-  $ms = [int]((Get-Date) - $start).TotalMilliseconds
+  $t = Invoke-Dv3Timed -Task "MP17 $($r[0])" -NodeArgs @('tools/generate.mjs', '--board', $r[1], '--level', $r[2],
+    '--count', [string]$r[3], '--seed', $r[4], '--workers', '4', '--output', $out)
+  if ($t.TimedOut) { throw "MP17 $($r[0]): stopped at the 590 s limit; stop and report it" }
+  $code = $t.Exit
+  $ms = [int]($t.Seconds * 1000)
   $present = Test-Path $out
   $log += [pscustomobject]@{ name = $r[0]; board = $r[1]; level = $r[2]; count = $r[3]; seed = $r[4]; skipped = $null; exit = $code; ms = $ms
     bytes = $(if ($present) { (Get-Item $out).Length } else { $null }); sha256 = $(if ($present) { (Get-FileHash -Algorithm SHA256 $out).Hash.ToLower() } else { $null }) }
-  '{0}: exit {1}, {2} ms, {3}' -f $r[0], $code, $ms, $(if ($present) { 'pack written' } else { 'no pack' })
+  '{0}: exit {1}, {2} ms (lock wait {3} s), {4}' -f $r[0], $code, $ms, $t.WaitedSeconds, $(if ($present) { 'pack written' } else { 'no pack' })
 }
 ConvertTo-Json -InputObject $log | Set-Content -Encoding utf8 "$gz\runs.json"
 "attempt directory: $gz"
 ```
 
 Keep the printed attempt directory: the next commands use it (`$gz` must be set again in every new PowerShell
-call, for example `$gz = 'tests\artifacts\MP17\gz-20270101-120000'`). This block was checked on a scratch tree
-with a reduced run list (manifest, skipped rows, digests).
+call, for example `$gz = 'tests\artifacts\MP17\gz-20270101-120000'`, and the helper dot-sourced again). `ms` is the
+command's own time, without the lock wait; the tool's messages go to the console (the helper redirects nothing). This
+block, with the helper and a scratch lock folder, was checked on a scratch tree with a reduced run list (manifest,
+skipped rows, digests, exit codes 0, 1 and 2).
 
 Each command normally ends within a few minutes (the generation client stops dispatching a batch at 115 s, `TIME` in
-`core/engine/policy.js`); one still running after 10 minutes is stopped by its PID (find it by its command line with
-`Get-CimInstance Win32_Process -Filter "Name='node.exe'"`) and reported.
+`core/engine/policy.js`); the helper stops one that reaches 590 s, with its whole process tree, and the block stops:
+report it.
 
 ### The re-rating and the checks (`tests/artifacts/MP17/summarise.mjs`, scratch)
 
@@ -219,10 +235,12 @@ Each command normally ends within a few minutes (the generation client stops dis
 // @ts-check
 // MP17 scratch (not committed): checks the run manifest of one GZ attempt directory, re-rates every puzzle of its
 // packs, checks the claims, the bands and AR1, and prints the tables of the final record. Exit 1 when a check fails.
-// Usage (from the repository root): node tests/artifacts/MP17/summarise.mjs <attempt directory>
+// Usage (from the repository root): node tests/artifacts/MP17/summarise.mjs <attempt directory> [<output file>]
+// (Amendment L1: run through the lock helper, which redirects nothing; the output file receives the printed lines.)
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { format } from 'node:util';
 
 import { boardFromRows } from '../../../core/engine/board.js';
 import { rate } from '../../../core/engine/difficulty.js';
@@ -242,8 +260,18 @@ const EXPECTED = [
 ];
 const dir = process.argv[2];
 if (!dir || !existsSync(join(dir, 'runs.json'))) {
-  console.error('usage: summarise.mjs <attempt directory with runs.json>');
+  console.error('usage: summarise.mjs <attempt directory with runs.json> [<output file>]');
   process.exit(2);
+}
+const outFile = process.argv[3];
+if (outFile) {
+  /** @type {string[]} */ const printed = [];
+  const print = console.log;
+  console.log = (...args) => {
+    printed.push(format(...args));
+    print(...args);
+  };
+  process.on('exit', () => writeFileSync(outFile, printed.map((l) => `${l}\r\n`).join('')));
 }
 const area = (/** @type {string} */ board) => board.split('x').map(Number).reduce((a, b) => a * b, 1);
 const median = (/** @type {number[]} */ xs) => {
@@ -369,7 +397,15 @@ for (const f of failures) console.log(`FAIL ${f}`);
 process.exitCode = failures.length === 0 ? 0 : 1;
 ```
 
-Run it with `node tests\artifacts\MP17\summarise.mjs $gz > "$gz\summary.md"` and check `$LASTEXITCODE`. It checks
+Run it through the lock helper (it re-rates every puzzle), with `summary.md` of the attempt as its output file:
+
+```powershell
+. tests\artifacts\MP17\dv3-lock.ps1
+$t = Invoke-Dv3Timed -Task 'MP17 summarise' -NodeArgs @('tests/artifacts/MP17/summarise.mjs', $gz, "$gz\summary.md")
+"summarise: exit $($t.Exit)"
+```
+
+Exit 0 passes; any other exit, or a stop at the limit, is reported. It checks
 the manifest first (the 12 runs of the table in order; exit 0 with a pack of `count` puzzles, exit 2 with a pack of 1
 to `count - 1` puzzles, exit 1 without a pack; the digest of every pack; a run skipped only when its level is not
 offered, and run only when it is). A `FAIL` line is a defect (or a finding): stop and report it with the pack file;
@@ -379,7 +415,8 @@ observed puzzles. Each `MISS` line (a level not offered, a run without a result,
 or the owner's D36 answer that stopped offering it, or as a finding in §10; it is never counted as coverage.
 "Levels ordered" holds when every puzzle is in the band of its requested level (no `FAIL`), so the score ranges of
 the levels of one board are disjoint and increase with the level index; the U, tier and G medians per level are
-reported as facts. The script was checked on a scratch tree (manifest, digest, skip and exit-code failures).
+reported as facts. The script was checked on a scratch tree (manifest, digest, skip and exit-code failures); its
+output file (Amendment L1) was checked on a stub with the same capture.
 
 ### The `rate-probe` run (10x6 and 20x18)
 
@@ -389,11 +426,13 @@ reads only packs of this attempt (cross-review SP17); a run without a pack is li
 older file:
 
 ```powershell
+. tests\artifacts\MP17\dv3-lock.ps1
 node -e "import('./core/engine/policy.js').then(({ SCORE_V3: k }) => require('fs').writeFileSync(process.argv[1], JSON.stringify({ model: k.model, base: k.base, rule: k.rule, weights: k.weights, penalty: k.penalty })))" "$gz\knobs.json"
 foreach ($n in 'p1', 'p2', 'p3') {
   if (-not (Test-Path "$gz\$n.json")) { "probe ${n}: skipped, no pack in this attempt (see runs.json)"; continue }
-  node tools\rate-probe.mjs --pack "$gz\$n.json" --orders 5 --tie-orders 3 --knobs "$gz\knobs.json" --output "$gz\probe-$n.jsonl"
-  if ($LASTEXITCODE -ne 0) { throw "rate-probe $n failed" }
+  $t = Invoke-Dv3Timed -Task "MP17 rate-probe $n" -NodeArgs @('tools/rate-probe.mjs', '--pack', "$gz\$n.json",
+    '--orders', '5', '--tie-orders', '3', '--knobs', "$gz\knobs.json", '--output', "$gz\probe-$n.jsonl")
+  if ($t.Exit -ne 0) { throw "rate-probe $n failed" }
 }
 ```
 
@@ -420,10 +459,12 @@ After the orchestrator's go, the first commands of the gate (each regenerates pu
 fixtures recorded at the lock, the second MP13b's set and two batches):
 
 ```powershell
-node tools\record-fixtures.mjs --check
-if ($LASTEXITCODE -ne 0) { throw 'fixture check failed' }
-node tools\record-fixtures.mjs --replay-case --check
-if ($LASTEXITCODE -ne 0) { throw 'replay fixture check failed' }
+. tests\artifacts\MP17\dv3-lock.ps1
+$t = Invoke-Dv3Timed -Task 'MP17 fixture check' -NodeArgs @('tools/record-fixtures.mjs', '--check')
+if ($t.Exit -ne 0) { throw 'fixture check failed' }
+$t = Invoke-Dv3Timed -Task 'MP17 replay fixture check' -NodeArgs @('tools/record-fixtures.mjs', '--replay-case',
+  '--check')
+if ($t.Exit -ne 0) { throw 'replay fixture check failed' }
 ```
 
 `tests/artifacts/MP17/lock-values.mjs` (scratch):
@@ -472,18 +513,25 @@ puzzle-code-cli-parity puzzle-code-entry    puzzle-code-print     puzzle-code-wo
 puzzle-qr             rendering             replay                watchdog
 ```
 
-Four invocations, one after the other (each about 4–10 minutes; start each in async mode and read its output):
+Nineteen invocations of the lock helper, one page and phase each, in this order (each about 1–2 minutes plus its lock
+wait; start the loop in async mode and read its output):
 
 ```powershell
+. tests\artifacts\MP17\dv3-lock.ps1
 $b = "$gz\browser"
-node tests\artifacts\MP17\pages.mjs --task MP17 --http 8817 --cdp 9317 --evidence "$b\1" acceptance generator-editor generator-flow hints player-controls
-"browser 1: exit $LASTEXITCODE"
-node tests\artifacts\MP17\pages.mjs --task MP17 --http 8817 --cdp 9317 --evidence "$b\2" player-load print puzzle-code-acceptance puzzle-code-cli-parity puzzle-code-entry
-"browser 2: exit $LASTEXITCODE"
-node tests\artifacts\MP17\pages.mjs --task MP17 --http 8817 --cdp 9317 --evidence "$b\3" puzzle-code-print puzzle-code-worker puzzle-qr rendering replay watchdog
-"browser 3: exit $LASTEXITCODE"
-node tests\artifacts\MP17\pages.mjs --task MP17 --http 8817 --cdp 9317 --evidence "$b\4" puzzle-code-acceptance:keys puzzle-code-acceptance:narrow replay:keys
-"browser 4: exit $LASTEXITCODE"
+$pages = @('acceptance', 'generator-editor', 'generator-flow', 'hints', 'player-controls', 'player-load', 'print',
+  'puzzle-code-acceptance', 'puzzle-code-cli-parity', 'puzzle-code-entry', 'puzzle-code-print', 'puzzle-code-worker',
+  'puzzle-qr', 'rendering', 'replay', 'watchdog', 'puzzle-code-acceptance:keys', 'puzzle-code-acceptance:narrow',
+  'replay:keys')
+$failed = @()
+for ($i = 0; $i -lt $pages.Count; $i++) {
+  $t = Invoke-Dv3Timed -Task "MP17 page $($pages[$i])" -NodeArgs @('tests/artifacts/MP17/pages.mjs', '--task', 'MP17',
+    '--http', '8817', '--cdp', '9317', '--evidence', ('{0}\{1:d2}' -f $b, ($i + 1)), $pages[$i])
+  "browser $($i + 1) $($pages[$i]): exit $($t.Exit)"
+  if ($t.TimedOut -or $t.Exit -eq 2) { throw "browser run $($pages[$i]) stopped at the limit or did not start: report it" }
+  if ($t.Exit -ne 0) { $failed += $pages[$i] }
+}
+"failed runs: $($failed.Count) $($failed -join ', ')"
 ```
 
 A run passes with `data-result="pass"`, no CSP violation and no uncaught error (the runner's `PASS` line);
@@ -595,8 +643,8 @@ MP17 no section of `docs/design-detail.md`). Must not edit: everything of "Out o
 2. Write `summarise.mjs` and copy MP16b's runner to `pages.mjs`; announce GZ with the plan of "Repository rules";
    wait for the go.
 3. The two fixture checks; `npm test` (record counts and duration); the 12 generation runs into a fresh attempt
-   directory; `summarise.mjs`; the knobs file and the `rate-probe` runs of the packs that exist; the four browser
-   invocations (19 runs). Stop and report on a defect; do not continue to the next run family with an unexplained
+   directory; `summarise.mjs`; the knobs file and the `rate-probe` runs of the packs that exist; the 19 browser
+   invocations, one run each. Stop and report on a defect; do not continue to the next run family with an unexplained
    failure.
 4. The documents sweep and the corrections, if any.
 5. The record with the release notes; `npm run test:quick`; `npm run check`; the CRLF check of the record.
@@ -618,7 +666,7 @@ MP17 no section of `docs/design-detail.md`). Must not edit: everything of "Out o
 | MP17-T01 | The lock inspection passes before the announcement (empty diffs of `levels.js`, `version.js`, `deduce.js`; `policy.js` adds only `REPLAY`; the values equal the lock record), and both fixture checks exit 0 as the first gate commands | command output; record §2 |
 | MP17-T02 | `npm test` passes, with counts and duration recorded | command output; record §3 |
 | MP17-T03 | The manifest of one fresh attempt directory has the 12 runs with consistent exit codes, packs and digests; every claim of its packs equals a fresh `rate` of its puzzle (`canonicalJson`), every puzzle is in its requested band, and `summarise.mjs` exits 0; every `rate-probe` line has no error and `v3.score` equal to `storedScore` | `summary.md`; `runs.json`; the `probe-*.jsonl` files; record §5–§7 |
-| MP17-T04 | The 19 runs pass (the 16 pages in the main phase, the keys and narrow phases of `puzzle-code-acceptance`, the keys phase of `replay`; acceptance: the known blocked checks only) with no CSP violation and no uncaught error, each check under 1 minute; servers and browsers stopped by PID; the profile removed | record §4; the four `runs.json` |
+| MP17-T04 | The 19 runs pass (the 16 pages in the main phase, the keys and narrow phases of `puzzle-code-acceptance`, the keys phase of `replay`; acceptance: the known blocked checks only) with no CSP violation and no uncaught error, each check under 1 minute; servers and browsers stopped by PID; the profile removed | record §4; the 19 `runs.json` |
 | MP17-T05 | Only the record and the listed justified corrections changed (`git --no-pager status --short`); no file under `core/`, `tools/`, `generator/`, `player/` or `tests/fixtures/` changed | `git status`; review |
 | MP17-T06 | `npm run test:quick` and `npm run check` pass; the record is CRLF without BOM, with a final newline and no absolute path | command output |
 
@@ -627,17 +675,18 @@ MP17 no section of `docs/design-detail.md`). Must not edit: everything of "Out o
 ### Exact commands
 
 The lock inspection, the fixture checks, the generation runs, `summarise.mjs`, the `rate-probe` runs and the browser
-runs as written above. Then:
+runs as written above, each through the lock helper as written there (Amendment L1). Then:
 
 ```powershell
 # announced gate GZ (after the lock inspection): the two fixture checks (above), then the full suite
-npm test
-if ($LASTEXITCODE -ne 0) { throw 'npm test failed' }
+. tests\artifacts\MP17\dv3-lock.ps1
+$t = Invoke-Dv3Timed -Task 'MP17 npm test' -NodeArgs @('--test', 'tests/**/*.test.js')
+if ($t.Exit -ne 0) { throw 'npm test failed' }
 
-# ... the generation runs, summarise.mjs, rate-probe, the four browser invocations (above) ...
+# ... the generation runs, summarise.mjs, rate-probe, the 19 browser invocations (above) ...
 
-npm run test:quick
-if ($LASTEXITCODE -ne 0) { throw 'quick tests failed' }
+$t = Invoke-Dv3Timed -Task 'MP17 quick set' -NodeArgs @('--test', '--test-skip-pattern=slow', 'tests/**/*.test.js')
+if ($t.Exit -ne 0) { throw 'quick tests failed' }
 npm run check
 if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 node -e "const t=require('fs').readFileSync(process.argv[1],'utf8');console.log(/[^\r]\n/.test(t)?'LF found':'CRLF only')" docs\difficulty-v3\final-<date>.md

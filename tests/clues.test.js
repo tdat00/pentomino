@@ -557,8 +557,8 @@ test('slow: a 15 x 20 Nightmare calibration (K = 24) is in band under v3 (D36: r
   assert.equal(set.set.pieces.length, 24);
   assert.equal(set.calibration.rating.model, 'difficulty-v3');
   assert.ok(inBand(set.calibration.rating, level('nightmare')));
-  assert.equal(set.calibration.rating.score, 67);
-  assert.equal(set.calibration.clues.length, 4);
+  assert.equal(set.calibration.rating.score, 70);
+  assert.equal(set.calibration.clues.length, 3);
 });
 
 test('slow: an unrateable calibration ends not-in-band with no puzzle (D36)', () => {

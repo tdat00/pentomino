@@ -127,17 +127,32 @@ describe('breakdownV3 and scoreV3', () => {
   });
 
   test('worked examples of the production knobs: U = 6, binary guesses, unique', () => {
-    // base = 12 (1 - e^-2) = 10.3760; guess = 5 G + 0.5 info with info = G; rule 0 for tier 1, 2 for tiers 2 and 3.
+    // base = 12 (1 - e^-2) = 10.3760; guess = 5 G + 0.5 info with info = G; rule 0 for tier 1, 2 for tier 2, 3 for tier 3.
     const examples = /** @type {const} */ ([
-      [1, 1, 16], [1, 2, 21], [2, 1, 18], [2, 2, 23], [3, 1, 18], [3, 2, 23],
+      [1, 1, 16], [1, 2, 21], [2, 1, 18], [2, 2, 23], [3, 1, 19], [3, 2, 24],
     ]);
     for (const [deductionTier, G, score] of examples) {
       const m = { U: 6, deductionTier, G, info: G, solutions: /** @type {const} */ ('unique') };
       const got = breakdownV3(m);
       assert.ok(Math.abs(got.base - 10.376) < 1e-3, `tier ${deductionTier} G ${G}`);
       assert.equal(got.guess, 5.5 * G);
-      assert.equal(got.rule, deductionTier === 1 ? 0 : 2);
+      assert.equal(got.rule, [0, 0, 2, 3][deductionTier]);
       assert.equal(got.score, score, `tier ${deductionTier} G ${G}: ${got.unrounded}`);
+      assert.equal(scoreV3(m), score);
+    }
+  });
+
+  test('worked examples of the production penalty: few solutions take 1, many take 2', () => {
+    // the same U = 6 base 10.3760 and guess 5.5 G: tier 2, G = 1: 10.376 + 2 + 5.5 = 17.876 (unique 18); tier 3, G = 2:
+    // 10.376 + 3 + 11 = 24.376 (unique 24).
+    const examples = /** @type {const} */ ([
+      [2, 1, 'unique', 18], [2, 1, 'few', 17], [2, 1, 'many', 16], [3, 2, 'unique', 24], [3, 2, 'few', 23], [3, 2, 'many', 22],
+    ]);
+    for (const [deductionTier, G, solutions, score] of examples) {
+      const m = { U: 6, deductionTier, G, info: G, solutions };
+      const got = breakdownV3(m);
+      assert.equal(got.penalty, { unique: 0, few: 1, many: 2 }[solutions], `${solutions}`);
+      assert.equal(got.score, score, `tier ${deductionTier} G ${G} ${solutions}: ${got.unrounded}`);
       assert.equal(scoreV3(m), score);
     }
   });
@@ -250,7 +265,7 @@ describe('the deduction result as the input of the score', () => {
 
   test('the six clue recipes: score of the mapped deduction result (characterisation under the fitted knobs)', () => {
     // Pinned for the knobs of SCORE_V3; they move when the knobs are fitted again, and no order is asserted.
-    const expected = { 'very-easy': 8, easy: 9, normal: 12, hard: 24, expert: 30, master: 37 };
+    const expected = { 'very-easy': 8, easy: 9, normal: 12, hard: 25, expert: 31, master: 38 };
     assert.deepEqual(Object.keys(expected), Object.keys(CLUE_RECIPES));
     const pieces = [...CLASSIC_PENTOMINOES];
     for (const [level, want] of Object.entries(expected)) {

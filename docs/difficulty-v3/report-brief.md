@@ -6,7 +6,7 @@
 | Who | orchestrator: GitHub Copilot CLI (Claude Opus 5.5) · analysts: **claude-opus-5.5** (Claude Opus 5.5, long context, max reasoning; lead author of the joint report) and **gpt-6-astra** (GPT-6 Astra, long context, max reasoning) · plan author: **claude-fable-5-2** · implementers, later: claude-sonnet-5.5 sub-agents |
 | Code examined | `77e62cb` (branch `rating-v3`); the answers are in `04e7e90` and the acceptance answers in `e73712f` (documents only) |
 | State | **analysis done and accepted; no code changed.** The joint report, signed by both analysts, was accepted by the plan author (`clarifications.md` part G, `e73712f`) and by the owner (11:50); the acceptance answers C1-C6 and the addition AR1 are applied. It is the basis of the task pack `tasks/difficulty-v3/`, now being written |
-| Details | [`report-detailed.md`](report-detailed.md) (the joint report and implementation spec: RES-01 to RES-35, errata E01-E45, tasks, gates, risks, traceability, acceptance answers); [`clarifications.md`](clarifications.md) (every question and its answer; all decisions in part E; the acceptance concerns with their answers in part F; AR1 and the acceptance in part G) |
+| Details | [`report-detailed.md`](report-detailed.md) (the joint report and implementation spec: RES-01 to RES-35, errata E01-E45, tasks, gates, risks, traceability, acceptance answers); [`clarifications-resolved.md`](clarifications-resolved.md) (every question and its answer; all decisions in part E; the acceptance concerns with their answers in part F; AR1 and the acceptance in part G) |
 
 ## What was asked
 
@@ -85,7 +85,7 @@ design decision goes to the owner.
 | proved decisive guess (AR1) | new metric `Gproved`; the Generator refuses a Hard-or-above candidate with `Gproved = 0`; imports not filtered | owner |
 | other acceptance points (C2, C3, C5, C6) | clue search as specified (the reserve of 16 is only the stop point); release notes in the final record; 5 % of a level's probe puzzles per board as the estimate threshold; no objection to the retired twin tests | plan author |
 
-All decisions with their wording: [`clarifications.md`](clarifications.md), parts E, F and G.
+All decisions with their wording: [`clarifications-resolved.md`](clarifications-resolved.md), parts E, F and G.
 
 **Acceptance answers** (report §8.2; part F of `clarifications.md`): every answer follows the analysts'
 recommendations (C1 and C4 decided by the owner). AR1 (part G) was added by the owner during the plan author's review.
@@ -178,7 +178,7 @@ carried out one at a time.
 |---|---|
 | `report-brief.md` | this file |
 | [`report-detailed.md`](report-detailed.md) | the joint report and implementation spec: baseline and verified findings, resolutions RES-01 to RES-35, errata, tasks and gates, risks and effort, traceability, acceptance answers, sign-off |
-| [`clarifications.md`](clarifications.md) | every question of both analysts with the plan author's answers and the owner's decisions; part E: the decisions in one place; part F: the acceptance concerns and their answers; part G: AR1 and the acceptance |
+| [`clarifications-resolved.md`](clarifications-resolved.md) | every question of both analysts with the plan author's answers and the owner's decisions; part E: the decisions in one place; part F: the acceptance concerns and their answers; part G: AR1 and the acceptance |
 | [`plan.md`](plan.md) | the plan (claude-fable-5-2) |
 | [`claude-opus-5.5/`](claude-opus-5.5/) `1-report.md` … `3-response-to-review.md` | independent analysis → review of the other report → response |
 | [`gpt-6-astra/`](gpt-6-astra/) `1-report.md` … `5-check-of-final-report.md` | independent analysis → review → response → check of the joint report → check of the final report (FC01-FC04, applied) |
