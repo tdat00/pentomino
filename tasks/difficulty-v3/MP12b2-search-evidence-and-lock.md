@@ -513,8 +513,12 @@ boards when a unique solution is required: in the v2-made corpus B none of those
 population R (one request of 10 puzzles each, 570 s) are the first evidence. For each of the three cells whose
 capture accepted no puzzle, two more captures follow in the same block: seeds `probe-require/18x20-<level>/1` and
 `/2`, labels `r-18x20-<level>-1` and `-2`, the other arguments unchanged, 570 s each, so that the outcome rests on
-three requests, the evidence P-OD9 asks of a Hell case. Record per cell: the requests, the accepted puzzles, the
-search outcomes (rated, refused for lack of a proved guess, capped), the repairs and their outcomes, the times.
+three requests, the evidence P-OD9 asks of a Hell case. A capture's accepted puzzles are counted as the summary counts
+them (the test plan's `AcceptedOf`, cross-review RP05): the `end` event's `accepted`; in a capture stopped at its
+limit, the `slot` of its last `accepted` event, else the `fold-start` event's `fromCalibration`, else 0, censored. A
+capture stopped after reusing the calibration's puzzle has made one, though it has no `accepted` event. Record per
+cell: the requests, the accepted puzzles, the search outcomes (rated, refused for lack of a proved guess, capped), the
+repairs and their outcomes, the times.
 
 When a cell made no puzzle in its three requests, the outcome is put to the owner with these numbers, not worked
 around (the plan author: "Hard and above are not offered with `require` on those areas"):
@@ -703,20 +707,35 @@ order and records each step (the record and the change round's `runs.md`):
    `final.jsonl`, into `docs/difficulty-v3/landscape-v3-change-1/criteria-<date>.md` (block below; without `--fit`:
    MP12a's fit and P-OD3 stay labelled with MP12a's tuple). `slice/` holds exactly one report per GV2 case, as an
    MP12a round folder does, so the script runs unchanged; it refuses a dated report of any other case in its round
-   folder, so the parent folder is never its `--round`. The diagnostic samples stay apart (TP21).
+   folder, so the parent folder is never its `--round`. The diagnostic samples stay apart (TP21). The table keeps the
+   statuses the script prints; its branch lines (`final`, `caps`, `census`, `availability`, `order`) are MP12a's
+   search recommendations, recorded as printed and never followed here: step 7 decides (cross-review RP01).
 6. **GS-P3 again** (TP33): the test plan's block with the data root `$data = "$s/change-1"`, `$full` the change
    aggregate (so `Identity` and HL's selected reports come from it) and `$criteriaFolder` the change round's `slice`
    folder. The scripts stay at `$s` and are never copied: `observe.mjs` imports `../d21-2026-11-12/register.mjs`
    relative to its own folder. Captures, the HL manifest (a new one: the first manifest's case ids would skip every
    capture), `runs.md`, `summary.md`, `failfast.md` and `avail-summary.md` go under `$data`; the availability probe
    runs, since the engine changed and the reuse check fails by itself.
-7. **Stops before the record and the lock**: a `missing` or `invalid` case of the change aggregate; an input error of
-   `criteria.mjs` (exit 1); a criterion of the new C1-C5 table that fails or is unavailable in a cell that stays
-   offered (with its numbers; the disposition of an earlier table is never carried over to changed results); a
-   semantic failure: report to the orchestrator before the lock. An availability result that changed (a level made or
-   lost on an area), an HL capture without a puzzle and any other performance or availability observation are named
-   items (P-OD9), no stop: the Hell areas of D39 are derived again from the change aggregate. P-OD5, P-OD6 as changed
-   by P-OD9, and P-OD9 stay as decided, no threshold changes, and no fail-fast is implemented here.
+7. **Stops before the record and the lock, by this table only** (PR-P1, P-OD9; cross-review RP01). The change round's
+   `criteria-<date>.md` keeps the statuses `criteria.mjs` prints, and record §4 quotes them; the script's branch lines
+   and `allPass` are not this task's control flow. Each result gets its disposition from the table, never from an
+   earlier table: MP12a's statuses and the owner's census acceptances (P-OD7, P-OD8) stay as history beside the new
+   numbers.
+
+   | Result of the change round | Disposition |
+   |---|---|
+   | A `missing` or `invalid` case of the change aggregate; an input error of `criteria.mjs` (exit 1); a criterion `unavailable` because an input is missing, lost or corrupt (no GV2 baseline rate or no recorded request for C2, no `prod` line for C5, a report or pack that cannot be read) | Stop: the evidence is invalid. Report before the lock |
+   | C1 fails (a GV2 board whose medians are present and out of order) or C2 fails (a Hard or Expert request completion rate more than its 10 points below GV2), in a cell that stays offered | Stop before the lock and report with the numbers: the orchestrator decides (a further change needs its own order) |
+   | C3 fails (`provedZero` above 0 at Hard or above) | Stop: a correctness failure (AR1); report it with the puzzles |
+   | C5 fails (a capped `prod` line: the canonical re-rating of an accepted puzzle does not complete) | Stop and report with the lines: an accepted puzzle's rating completes under the accepted caps (P-OD2), and a cap change would change a recorded decision |
+   | C4 above 5 % in a cell | A listed finding with its share (record §5; a named item of P-OD9); its puzzles ship with the estimate note and the `censored` flag. No stop, no census change |
+   | C4 above 25 % in a cell | As above, and the owner question of "Census estimates above 5 %" in the reply; the task does not wait for the answer |
+   | A criterion `unavailable` because a cell made no puzzle (C1 on a board where a level has no median; C3 or C4 of a cell without an accepted v3 puzzle) | An availability finding (P-OD9), a named item; for a cell that is not Hell, "A cell that is not Hell without a puzzle" applies. No stop |
+   | A level made or lost on an area, an HL capture without a puzzle, any other performance or availability observation | A named item (P-OD9), no stop: the Hell areas of D39 are derived again from the change aggregate |
+   | A semantic failure (a premise that no longer holds) | Stop and report |
+
+   P-OD5, P-OD6 as changed by P-OD9, and P-OD9 stay as decided, no threshold changes, and no fail-fast is implemented
+   here.
 8. **The record from current-tuple evidence** (TP30): §3 from the change aggregate; §4 the change round's C1-C5 table
    (`criteria-<date>.md`), replacing the reference to MP12a's final round, after `Assert-CriteriaSource` (test plan)
    passed on the `slice` folder; §5 P-OD1 from the change aggregate's list 3 and P-OD2 from the new `final.jsonl` and
@@ -783,12 +802,13 @@ if ($LASTEXITCODE -ne 0) { throw 'criteria.mjs: input error; stop and report' }
 | knob values, `STALL_LIMIT`, re-pins, fixtures | only in an ordered change round |
 
 Exclusive ownership while active: the files above; scratch under `tests/artifacts/MP12b2/` (the lock helper
-`dv3-lock.ps1`, the self-test file, `handoff-check/`, and in a change round `change-1/`: the landscape staging, the
-D36 re-observations, the probe driver copy, its runs, recipes and run log). Documentation slot: design §7.8 (below).
-Design §7.5, `docs/design-brief.md` and the guides are MP12b3's (the Hell areas and their consequences). Must not
-edit: algorithm code (outside a change round), MP12a's and MP12b1's records, folders and scripts (`launch.mjs`,
-`criteria.mjs`, `aggregate.mjs` are run, never changed), MP09d2's folder and the D21 folder `d21-2026-11-12/` (its
-`flow.mjs` is copied, never edited), `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json`.
+`dv3-lock.ps1`, the self-test file, `handoff-check/`, `accepted-check/`, and in a change round `change-1/`: the
+landscape staging, the D36 re-observations, the probe driver copy, its runs, recipes and run log). Documentation slot:
+design §7.8 (below). Design §7.5, `docs/design-brief.md` and the guides are MP12b3's (the Hell areas and their
+consequences). Must not edit: algorithm code (outside a change round), MP12a's and MP12b1's records, folders and
+scripts (`launch.mjs`, `criteria.mjs`, `aggregate.mjs` are run, never changed), MP09d2's folder and the D21 folder
+`d21-2026-11-12/` (its `flow.mjs` is copied, never edited), `player/samples/sample-pack.json` (check-list D20, kept by
+owner decision P-OD10), `tests/fixtures/puzzlecode-v1.json`.
 
 ### `docs/design-detail.md` §7.8 (after MP12a's close)
 
@@ -804,8 +824,8 @@ could drift).
 ## Implementation steps
 
 1. Read the inputs; save the lock helper; create `observe.mjs` exactly, write `summary.mjs`, copy and edit
-   `flow-case.mjs`, write `failfast.mjs`; run the summary and fail-fast self-tests, `node --check` and the refused
-   `flow-case.mjs` call (all quick, no lock: nothing is generated).
+   `flow-case.mjs`, write `failfast.mjs`; run the summary and fail-fast self-tests, `node --check`, the refused
+   `flow-case.mjs` call and the synthetic check of `AcceptedOf` (RP05) (all quick, no lock: nothing is generated).
 2. The identity (`Identity`) against MP12b1's aggregate; the reuse check for MP09d2's observations (TP25).
 3. Write each block's plan into `runs.md`, then run the blocks one capture per lock: R + A (with the two extra
    captures of each 18x20 R cell that made no puzzle), then H, then HL (the rep rule and the manifest), then the
@@ -840,12 +860,12 @@ could drift).
 | MP12b2-T02 | Every capture of R, A, H, HL (and `avail/` and S when run) ran through `Invoke-Dv3Timed`, one capture per lock, within its limit, and is in `runs.md` with its outcome and lock wait, never overwritten; the identity before and after each block equals the landscape's; the summary's denominators are stated (TP20, TP25) | `runs.md`; the folder |
 | MP12b2-T03 | The stall decision follows the recorded D21 decision and MP09d2's table: `$runStallRecheck` is set only from that decision, never by a text search; a raise happens only in an ordered change round with GF-P2 and GA-P2 (TP28) | record §8; the test plan; diff |
 | MP12b2-T04 | `failfast.mjs --self-test` passes its four cases (SA2's combined case, an all-capped completed request, an F2-lost successful call, a censored tail); `failfast.md` gives F1, F2 and F1 + F2 over R, A, H and HL with completed baselines, triggers, observed false stops, correct stops and unknown outcomes (TP24) | command output; `failfast.md` |
-| MP12b2-T05 | `record-fixtures --check` and the final `npm test` pass on the locked tree under the lock helper; no `core/` or `tools/` change in this task without an ordered change round; a change round ran only under the rule of PR-P1 (C1 or C3 failing in a cell that stays offered, or C2 failing) and followed its nine steps: the complete population again in new folders (TP32), the slice criteria from a new probe corpus with `criteria.mjs` and record §4 replaced by that table (TP30), GS-P3 under its own data root with the scripts at `$s` (TP33) and the copied probe driver adapted as the path note says (TP34), every stop reported before the lock (TP25, TP26) | command output; diff; record |
+| MP12b2-T05 | `record-fixtures --check` and the final `npm test` pass on the locked tree under the lock helper; no `core/` or `tools/` change in this task without an ordered change round; a change round ran only under the rule of PR-P1 (C1 or C3 failing in a cell that stays offered, or C2 failing) and followed its nine steps: the complete population again in new folders (TP32), the slice criteria from a new probe corpus with `criteria.mjs` and record §4 replaced by that table (TP30), GS-P3 under its own data root with the scripts at `$s` (TP33) and the copied probe driver adapted as the path note says (TP34), the dispositions of step 7's table, every stop reported before the lock and no stop for census estimates (TP25, TP26, RP01) | command output; diff; record |
 | MP12b2-T06 | Design §7.8 has the measured parameters, the census findings, R7 as a known limitation and the lock statement; `npm run test:quick` and `npm run check` pass; records CRLF without BOM | review; command output |
 | MP12b2-T07 | `flow-case.mjs` differs from `flow.mjs` only by the two edits (the record quotes the `--stat`); HL has one capture for each of the 20 Hell cases outside H, its rep by the rule and its manifest entry; no ratio divides one population's count by another's accepted puzzles (TP23) | `hell-landscape/`; record §7 |
 | MP12b2-T08 | MP09d2's observations count as final-tuple evidence only with the quoted reuse argument (it fails at the resume); the availability probe ran again into `avail/`, and the derived areas of D39 come from final-tuple observations only (TP25) | record §1, §9; `avail-summary.md` |
 | MP12b2-T09 | The criteria table of record §4 comes from GV2 reports with the locked tree's identity: the synthetic handoff check refused the old passing table (GV2 95 %, old 90 %, new 80 %) and `Assert-CriteriaSource` passed on the folder behind §4 (TP30) | command output; record §4 |
-| MP12b2-T10 | Each 18x20 cell of population R whose first capture made no puzzle has its two extra captures (seeds `/1`, `/2`) in `require/`, through the capture function, with their rows in `runs.md` (PR-P1) | `require/`; `runs.md`; record §6 |
+| MP12b2-T10 | Each 18x20 cell of population R whose first capture made no puzzle (counted by `AcceptedOf`, the summary's rule, whose synthetic check passed; RP05) has its two extra captures (seeds `/1`, `/2`) in `require/`, through the capture function, with their rows in `runs.md` (PR-P1) | `require/`; `runs.md`; record §6 |
 | MP12b2-T11 | The derived areas of record §9 follow check-list D39 exactly (the meeting rule, the interval, the contiguity step), one table per Hell level, from the coverage and cells of the aggregate in force | record §9; the aggregate |
 
 ## Test plan
@@ -911,6 +931,40 @@ function Capture([string]$Out, [string]$Preload, [string]$Script, [string[]]$Arg
   if (-not $r.TimedOut -and $r.Exit -ne 0) { throw "$Out ended with exit $($r.Exit): stop and report" }
   $outcome
 }
+# the accepted puzzles of a capture, by the summary's rule (cross-review RP05): the end event's accepted; without an
+# end, the slot of the last accepted event, else fold-start's fromCalibration (a puzzle reused from the calibration has
+# no accepted event), else 0, censored
+function AcceptedOf([string]$File) {
+  $events = @(Get-Content -LiteralPath $File | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object kind -EQ 'event')
+  $end = @($events | Where-Object ev -EQ 'end')
+  if ($end.Count -gt 0) {
+    return [ordered]@{ status = $end[-1].status; accepted = [int]$end[-1].accepted; censored = $false }
+  }
+  $acc = @($events | Where-Object ev -EQ 'accepted')
+  $fs = @($events | Where-Object ev -EQ 'fold-start')
+  $n = if ($acc.Count -gt 0) { [int]$acc[-1].slot } elseif ($fs.Count -gt 0) { [int]$fs[0].fromCalibration } else { 0 }
+  [ordered]@{ status = 'stopped at the limit'; accepted = $n; censored = $true }
+}
+# AcceptedOf on five synthetic captures (RP05): nothing is generated, no lock
+$ac = 'tests/artifacts/MP12b2/accepted-check'
+New-Item -ItemType Directory -Force $ac | Out-Null
+$start = '{"kind":"event","ev":"start"}'
+$cal = '{"kind":"event","ev":"fold-start","fromCalibration":1}'
+foreach ($x in @(
+    @('end', @($start, $cal, '{"kind":"event","ev":"end","status":"complete","accepted":10}'), 10, $false),
+    @('set-failed', @($start, '{"kind":"event","ev":"end","status":"set-failed","setMs":5}'), 0, $false),
+    @('calibration-only', @($start, $cal), 1, $true),
+    @('later-accepted', @($start, $cal, '{"kind":"event","ev":"accepted","slot":2}',
+      '{"kind":"event","ev":"accepted","slot":3}'), 3, $true),
+    @('nothing', @($start), 0, $true))) {
+  $name, $lines, $n, $censored = $x
+  $f = "$ac/$name.jsonl"
+  [IO.File]::WriteAllText((Join-Path (Get-Location) $f), (($lines -join "`r`n") + "`r`n"))
+  $got = AcceptedOf $f
+  if ($got.accepted -ne $n -or $got.censored -ne $censored) {
+    throw "AcceptedOf ${name}: $($got.accepted) (censored $($got.censored)), expected $n (censored $censored)"
+  }
+}
 
 # block R + A: one line per capture of the table, in its order, for example:
 Add-Content "$data/runs.md" '| plan R + A: the 20 captures of the table, 570 s each at most, expected 20-40 minutes | | | | | |'
@@ -919,13 +973,12 @@ $null = Capture "$data/require/r-6x10-hard.jsonl" "$s/observe.mjs" "$d/flow.mjs"
   '--seed', 'probe-require/6x10-hard/0', '--uniqueness', 'require', '--quantity', '10', '--label', 'r-6x10-hard') 570
 $null = Capture "$data/any/a-12x12-master.jsonl" "$s/observe.mjs" "$d/flow.mjs" @('--board', '12x12', '--level', 'master',
   '--seed', 'search/12x12-master/0', '--quantity', '5', '--label', 'a-12x12-master') 570
-# population R on 18x20 (PR-P1): two more requests for each cell whose first capture accepted no puzzle
+# population R on 18x20 (PR-P1): two more requests for each cell whose first capture accepted no puzzle (AcceptedOf)
 foreach ($lv in 'hard', 'expert', 'master') {
-  $first = "$data/require/r-18x20-$lv.jsonl"
-  $ends = @(Get-Content $first | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.kind -eq 'event' -and $_.ev -eq 'end' })
-  $acc = @(Get-Content $first | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.kind -eq 'event' -and $_.ev -eq 'accepted' })
-  $made = if ($ends.Count -gt 0) { [int]$ends[-1].accepted } else { $acc.Count }
-  if ($made -gt 0) { continue }
+  $first = AcceptedOf "$data/require/r-18x20-$lv.jsonl"
+  $row = "population R: r-18x20-$lv accepted $($first.accepted)$(if ($first.censored) { '*' }) ($($first.status))"
+  Add-Content "$data/runs.md" "| $row | | | | | |"
+  if ($first.accepted -gt 0) { continue }
   foreach ($n in 1, 2) {
     $null = Capture "$data/require/r-18x20-$lv-$n.jsonl" "$s/observe.mjs" "$d/flow.mjs" @('--board', '18x20', '--level',
       $lv, '--seed', "probe-require/18x20-$lv/$n", '--uniqueness', 'require', '--quantity', '10', '--label',
@@ -964,18 +1017,8 @@ foreach ($case in $hl) {
   $out = "$data/hell-landscape/hl-$case.jsonl"
   $outcome = Capture $out "$s/observe.mjs" "$s/flow-case.mjs" @('--case', $case, '--rep', "$($run.rep)", '--quantity',
     '10', '--label', "hl-$case") $limit
-  $events = @(Get-Content $out | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object kind -EQ 'event')
-  $end = @($events | Where-Object ev -EQ 'end')
-  $acc = @($events | Where-Object ev -EQ 'accepted')
-  $fs = @($events | Where-Object ev -EQ 'fold-start')
-  if ($end.Count -gt 0) {
-    $accepted = [int]$end[-1].accepted
-    $final = [ordered]@{ status = $end[-1].status; accepted = $accepted; censored = $false }
-  } else {
-    $accepted = if ($acc.Count -gt 0) { [int]$acc[-1].slot }
-      elseif ($fs.Count -gt 0) { [int]$fs[0].fromCalibration } else { 0 }
-    $final = [ordered]@{ status = 'stopped at the limit'; accepted = $accepted; censored = $true }
-  }
+  $final = AcceptedOf $out
+  $accepted = $final.accepted
   $manifest.Add([ordered]@{ caseId = $case; rep = $run.rep; seedText = "landscape/$case/$($run.rep)"; report = $report
     rule = $rule; acceptedCount = $run.acceptedCount; K = $run.details.K; partialReason = $run.partialReason
     quantity = 10; limitS = $limit; capture = $out; outcome = $outcome; final = $final; source = $ref })
@@ -1107,7 +1150,9 @@ round values (TP33), put every capture, a new HL manifest (all three cases captu
 reports), the availability probe and the derived tables under `change-1/`, loaded the scripts from `$s`, left the first
 pass's files as they were, accepted the change round's `slice` folder and refused MP12a's final round under the new
 identity; the synthetic 95/90/80 check refused the old passing table in both passes (TP30). A forgotten `$full` fails
-closed: `Identity` stops on the changed digest.
+closed: `Identity` stops on the changed digest. `AcceptedOf` (cross-review RP05) replaced the two inline counts of
+population R and HL after those runs; its five synthetic captures in the block check it, and the analyst ran that part
+of the block alone, outside the repository (it passed).
 
 ## Definition of done & handoff
 

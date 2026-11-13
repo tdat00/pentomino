@@ -21,10 +21,10 @@ where its 20-request run completed as the other levels must; elsewhere it is not
 nowhere is never generated (`[Infinity, Infinity]`). The Generator's level list, the design, the brief and both user
 guides follow. Packs and links made earlier still open, and their puzzles are re-rated for display as before.
 
-When the owner agreed at MP12b2, it also builds the fail-fast (the plan author recommends F1 + F2): a request whose
-difficulty ratings all reach their work limits ends in seconds with a clear notice, because irregular boards can still
-meet such sets after the Hell levels are hidden. When the owner accepted the population-R outcome, it stops offering
-`require` (a proven unique solution) at Hard and above on the areas the owner set.
+When the owner agreed at MP12b2, it also builds the fail-fast mechanism the owner chose (the plan author recommends
+F1 + F2: a request whose difficulty ratings all reach their work limits ends in seconds with a clear notice), because
+irregular boards can still meet such sets after the Hell levels are hidden. When the owner accepted the population-R
+outcome, it stops offering `require` (a proven unique solution) at Hard and above on the areas the owner set.
 
 Then the lock is complete: from this task's commit on, MP13a to MP17 change no rating and no generated puzzle.
 
@@ -153,9 +153,11 @@ substitute for a 20-request run.
 **A3. The policy id and two stale comments** (`core/engine/policy.js`). `POLICY_ID` becomes `'mixed-v3'` (design §5.4:
 "Any change to … availability interval … requires a new id"; `mixed-v2` was released with the old intervals; RES-01,
 check-list D29's precedent for `K60` and `SHARES`). The header comment says `mixed-v3` and that it differs from
-`mixed-v2` only by the Hell areas of §7.5. The `SCORE_V3` comment drops the stale sentence of line 58 and says the
-knobs are the locked v3 knobs (the fit and the calibration slice). No other line of `policy.js` changes; `K60`,
-`K_CAP_FROM_HELL_1`, `SHARES` and every count rule stay (a pinned `pieceCountRange` of an offered level does not move).
+`mixed-v2` only in availability: the Hell areas of §7.5 and, with part C built, `require` at Hard and above only up to
+`REQUIRE_FROM_HARD_MAX_AREA` (§6.11; one id for both, since they ship inside this unreleased boundary). The `SCORE_V3`
+comment drops the stale sentence of line 58 and says the knobs are the locked v3 knobs (the fit and the calibration
+slice). No other line of `policy.js` changes; `K60`, `K_CAP_FROM_HELL_1`, `SHARES` and every count rule stay (a pinned
+`pieceCountRange` of an offered level does not move).
 
 **A4. The Generator's level list** (`generator/state.js`). `LISTED_LEVEL_IDS` follows its own definition, "levels the
 generator can ever offer (areas up to 676)": the named levels and each Hell level whose new interval contains an area
@@ -198,17 +200,32 @@ BQ-1, is for a later qualification outside difficulty-v3.
 on the derived areas: change an assertion only when it fails after A2 to A6, or when it names a level and area that
 are no longer offered; an assertion that still holds stays as it is.
 
+After A2, each Hell level is in one of three states at a test's area, and every changed assertion says which state it
+checks (cross-review RP02):
+
+- **offered** (its new interval contains the area): what a test asserts about it there stays as it is;
+- **listed, not offered here** (a finite interval that misses the area): the level keeps its row in `describeLevels`
+  and in the Generator, disabled, with the reason `larger` below its lower end or `smaller` above its upper end;
+  `pieceCountRange` is null there and `setAttempt` refuses a request (`RangeError`, "level <id> is not offered for
+  <area> cells"; the client `level-unavailable`);
+- **retired** (`[Infinity, Infinity]`): the level is not in `LISTED_LEVEL_IDS` (A4), so it has no row, no
+  `describeLevels` entry and no notice anywhere (`generator/state.js:715-720`, `generator/ui/level-panel.js:218`); a
+  request is refused as above.
+
+Never assert a disabled row for a retired level, never assert a refusal where the level is still offered, and never
+change `AREAS` or list a retired level again to make a test pass.
+
 | Test | Change |
 |---|---|
 | `tests/levels.test.js`: the `AREAS` copy (line 10), "availability boundaries are exact", "business examples", "lowest and highest level per area band" | the new intervals; a level with `[Infinity, Infinity]` is checked as offered on no area from 30 to 676 instead of at its ends (`offeredLevels(Infinity)` throws); the area rows of 164 to 676 cells by the new table |
 | `tests/policy.test.js`: the anchor rows `['hell-1', 360, 37, 42]`, `['hell-2', 360, 50, 56]`, `['hell-3', 484, 73, 80]`, `['hell-3', 676, 80, 90]` (line 192); "Hell caps bound the count" (lines 239-243); the `POLICY_ID` pin (line 343) | a row whose level is no longer offered at its area moves to the test "is null where a level is not offered"; a cap test moves to the largest area where its level is still offered and the cap binds, else it asserts `pieceCountRange` null there and says so in its name; `POLICY_ID` `'mixed-v3'` |
 | `tests/bq-limits.test.js` "Heart 363 is never offered Hell-3; 484 and larger boards are" (line 106) | the Heart 363 list and the Hell 3 areas of the new table |
-| `tests/bq0-matrix.test.js` (the level lists of lines 77-104, the 60-seed test of line 111), `tests/bq-higher-matrix.test.js` (`SIX`, `FOUR`, the Heart lists, the case counts 18, 18 and 14, the 60-seed test of line 137) | the level lists and counts follow the edited matrices; "every level is offered" and "covers every offered level" stay; the 60-seed assertions apply to "Hell-1 at the largest area" only where Hell 1 is offered there, and the test names say so |
+| `tests/bq0-matrix.test.js` (the level lists of lines 77-104, the 60-seed test of line 111, the planning test "plans one cancel probe per cell and one generation row per seed" of lines 122-127), `tests/bq-higher-matrix.test.js` (`SIX`, `FOUR`, the Heart lists, the case counts 18, 18 and 14, the 60-seed test of line 137) | the level lists and counts follow the edited matrices; "every level is offered" and "covers every offered level" stay; the 60-seed assertions apply to "Hell-1 at the largest area" only where Hell 1 is offered there, and the test names say so. The bq0 planning test keeps its two counts (one cancel probe per case and one generation row per repetition, over the edited matrix) and its seed check of `d22x22-hell-1` while that case stays; when A6 removed it, the seed check names the retained `d22x22-hard` (Hard is not a Hell level; 20 repetitions): its generation seeds are distinct and as many as its `repetitions`, and `planRuns(matrix)` has no row of `d22x22-hell-1` (cross-review RP03). No test is skipped, and no seed or repetition of a retained case changes. `bq-higher-matrix.test.js`'s planning test (line 149) has no case id and stays |
 | `tests/calibration.test.js` "every row of the design table is present and inside its level's offered areas" (line 22: 56 rows, `referenceFor('hell-1', 600)`, `referenceFor('hell-3', 470)`) | the new row count; the two examples move to rows that stay offered, or, for a retired band, `referenceFor` is `undefined` and the row is found in `RETIRED_REFERENCE_ROWS` with its values (`nodeS` 48.6, the boards); "the exact policy agrees" (line 46), "boards … include 32x15" (line 70) and "every reference row has … a cell" (line 104) must pass unchanged |
-| `tests/generator-state.test.js` "a 60-cell board offers … and 360 offers Hard to Hell 2" (line 93), "Require one solution warns only on large Hell boards" (line 179), `describeLevels(676).length` | the 360 list and reasons of the new table; a Hell example moves to an area where a Hell level is offered above 200 cells, or, when none is, the test asserts that no Hell level is offered there and its name says so; new: `LISTED_LEVEL_IDS` equals the ids offered on at least one area from 30 to 676 |
+| `tests/generator-state.test.js` "a 60-cell board offers … and 360 offers Hard to Hell 2" (line 93), "Require one solution warns only on large Hell boards" (line 179), `describeLevels(676).length` | the 360 list of the new table; a reason is asserted only for a listed level (for a retired one, `describeLevels(360).find((l) => l.id === id)` is `undefined`); `describeLevels(676).length` stays equal to `LISTED_LEVEL_IDS.length`. The `N-UNIQUE-EXP` test (`withBoard` moves the level to the nearest offered one, `generator/state.js:412`): its Hell example moves to a board where a Hell level is offered above 200 cells, or, when none is, the test asserts that the level moved off Hell and no notice appears there, with a name that says so; new: `LISTED_LEVEL_IDS` equals the ids offered on at least one area from 30 to 676 |
 | `tests/generator-level-help.test.js` "piece-count help follows the policy plan and ends on the table range" (line 43: `levelHelp('pieces', 'hell-1', 676)`, the cap line "Most for this level" 42) | the largest area where Hell 1 is offered and the cap line still shows; if it shows nowhere, the assertion becomes `levelHelp` null at 676, with a message that says so |
-| `tests/clues.test.js` "slow: an unrateable calibration ends not-in-band with no puzzle (D36)" (line 564: 22 x 22 `hell-3`) | MP12a's table "The D36 and fixture re-pins" (its row "The unrateable calibration", command B under the lock), applied only to the inputs of MP09d2's C1 order that are still offered: the first whose attempt 0 is all capped becomes the test's board and level (seed and attempt unchanged). If none is offered or none is all capped, that is the intended effect of P-OD9, not a stop: the test becomes a quick one that `setAttempt` refuses 22 x 22 `hell-3` (`RangeError`, "level hell-3 is not offered for 484 cells"), named so, and the failure mode of an unrateable calibration stays pinned by MP09c's scripted test of line 703 (and part B's tests); a named item in the record |
-| `tests/browser/generator-editor.js` "levels: 360 squares offer Hard to Hell 2" (line 399), "The Require unique solution switch … warning on large Hell boards" (line 528) | the 360 list of the new table; the Hell 1 click and the `N-UNIQUE-EXP` check move to a board where a Hell level is offered above 200 cells, or, when none is, the check asserts the Hell rows are disabled there; run the page (part D) |
+| `tests/clues.test.js` "slow: an unrateable calibration ends not-in-band with no puzzle (D36)" (line 564: 22 x 22 `hell-3`) | By the state of Hell 3 at 484 cells (cross-review RP02). **Still offered:** the test stays as it is: A2 to A6 change neither its set nor its rating (`pieceCountRange` inside an interval does not depend on the interval's ends, `POLICY_ID` is no RNG input, and the tuple is locked), so a failure after A2 to A6 is a stop (part B's change of its expected reason is apart). **Not offered (listed elsewhere or retired):** the test fails with the `RangeError` of `setAttempt`; apply MP12a's table "The D36 and fixture re-pins" (its row "The unrateable calibration", command B under the lock) to the inputs of MP09d2's C1 order that are still offered: the first whose attempt 0 is all capped becomes the test's board and level (seed and attempt unchanged). If none is offered or none is all capped, that is the intended effect of P-OD9, not a stop: the real-case premise is retired, and the test becomes a quick one that `setAttempt` refuses 22 x 22 `hell-3` (`RangeError`, "level hell-3 is not offered for 484 cells", true in this branch only), named so; the failure mode of an unrateable calibration stays pinned by MP09c's scripted test of line 703 (and part B's tests); a named item in the record |
+| `tests/browser/generator-editor.js` "levels: 360 squares offer Hard to Hell 2" (line 399), "The Require unique solution switch … warning on large Hell boards" (line 528) | the 360 list of the new table (the enabled radios: a listed Hell level that is not offered at 360 is a disabled row, a retired one has no row); the Hell 1 click and the `N-UNIQUE-EXP` check move to a board where a Hell level is offered above 200 cells. When none is, the check asserts at 360 what the states give: each listed Hell level's row present and disabled (a click leaves the level unchanged, no `N-UNIQUE-EXP`), and no row at all (`input[value="hell-1"]` absent) for a retired Hell level; the test name says which. Run the page (part D) |
 
 Any other failing test is a stop. Not affected (checked at `55c0c61`): `tests/cli.test.js:155` and
 `tests/puzzlecode-cli.test.js:540` (Hell 3 on 10 x 6 stays refused), `tests/benchmark-matrix.test.js:58`,
@@ -248,55 +265,76 @@ packs) reads `ok`, keeps its claim, is imported by the Generator as an Imported 
 ### Part B: the fail-fast (only as the owner answered; check-list D40)
 
 The semantics are MP12b2's (its "The fail-fast proposal" and `failfast.mjs`), so the owner's answer means exactly what
-its table measured. Build only what the owner chose. With "none", skip this part: the design (§7.5) and the record say
-that a request whose ratings all reach their work limits still runs to the time limit (named item for MP17's release
-notes).
+its table measured. Build only what the owner chose (cross-review RP04):
 
-- **The result `unrateable`** (with F1, F2 or both). `selectClues` returns `{ ok: false, reason: 'unrateable' }`
-  exactly when the call spent at least one profile and every profile it spent was unrateable (`IncompleteRatingError`;
-  none rated, none refused by AR1). `rateSubset` returns `'spent'` for both kinds, so count the unrateable profiles in
-  its `catch` beside `profiles`. Without F2 this is decided at the end of the search (today's line 550, before the
+| Owner's choice | F2: a selection call ends after four profiles that are all unrateable | F1: a set request ends at its first attempt whose calibration was entirely unrateable | Notice `N-NOSET-UNRATEABLE` |
+|---|---|---|---|
+| F1 only | no: the call runs its whole search | yes, by the lowest attempt index | yes |
+| F2 only | yes | no: the cut attempt is one failed attempt, and a later successful attempt still wins | no (F2 alone adds no notice) |
+| F1 + F2 | yes | yes, reading the calibration as F2 cut it | yes |
+| none | no | no | no |
+
+With "none", skip this part: the design (§7.5) and the record say that a request whose ratings all reach their work
+limits still runs to the time limit (named item for MP17's release notes). Each item below names the choices it belongs
+to: "F1" is F1 only or F1 + F2, "F2" is F2 only or F1 + F2, and "any" is every choice except none.
+
+- **The result `unrateable`** (any). `selectClues` returns `{ ok: false, reason: 'unrateable' }` exactly when the call
+  spent at least one profile and every profile it spent was unrateable (`IncompleteRatingError`; none rated, none
+  refused by AR1). `rateSubset` returns `'spent'` for both kinds, so count the unrateable profiles in its `catch` beside
+  `profiles`. Without F2 this is decided at the end of the search (today's line 550, before the
   `uniqueness-not-proved` and `not-in-band` outcomes: such a call has no candidate). `SelectResult` (line 47) and
   `SetAttemptResult` (`core/engine/types.js:221`) gain the reason; `FailReason` (`generate.js:23`) does not.
-- **F2**: a constant `FAIL_FAST_PROFILES = 4` next to `STALL_LIMIT`, with a one-line comment; in `afterProfile`
+- **F2** (F2). A constant `FAIL_FAST_PROFILES = 4` next to `STALL_LIMIT`, with a one-line comment; in `afterProfile`
   (line 387), for a spent profile, the call returns the `unrateable` result when `profiles === FAIL_FAST_PROFILES` and
   all of them were unrateable. A rated or refused profile among the first four, or fewer than four profiles in the
   whole call, never fires it. No RNG draw, rating or order of any other call changes (each call has its own stream).
-- **Candidates** (`puzzleCandidate`, `completionCandidate`): `{ fail: sel.reason === 'unrateable' ? 'not-in-band' :
-  sel.reason }`, so the batch fold, its failure tallies and its notices are unchanged.
-- **F1**: `setAttempt` already passes the calibration's reason on (`{ ok: false, reason: cal.reason }`).
-  `firstSetAttempt(req, maxAttempts = 32, attempt = setAttempt)` (the third parameter a test seam, like
-  `SelectContext.rate`; `tools/record-fixtures.mjs` is its caller) ends at the first attempt whose reason is
-  `unrateable` and returns `{ result: null, failures }`. In the client's `generateSet`, the ordered scan of the
-  resolved prefix returns `{ status: 'failed', reason: 'unrateable', failures: tally() }` at the first attempt index
-  whose result is a failure with that reason, before any later index is read (the lowest-index rule: a later success
-  never overrides it, whatever the pool width; the `finally` block aborts the attempts in flight).
-  `SetJobResult.reason` and its comment (line 103) gain `unrateable`. With F2 only, a set attempt cut by F2 is one
-  failed attempt (`unrateable` in the tally) and the request goes on as today.
-- **The notice**: `generator/jobs.js` shows a new notice `N-NOSET-UNRATEABLE` (outcome, warning) for a failed set
+- **Candidates** (any). `puzzleCandidate` and `completionCandidate` return `{ fail: sel.reason === 'unrateable' ?
+  'not-in-band' : sel.reason }`, so the batch fold, its failure tallies and its notices are unchanged.
+- **The test seam** (any). `firstSetAttempt(req, maxAttempts = 32, attempt = setAttempt)`: the third parameter is a
+  test seam, like `SelectContext.rate`; `tools/record-fixtures.mjs`, its caller, passes none.
+- **F1** (F1). `setAttempt` already passes the calibration's reason on (`{ ok: false, reason: cal.reason }`).
+  `firstSetAttempt` ends at the first attempt whose reason is `unrateable` and returns `{ result: null, failures }`. In
+  the client's `generateSet`, the ordered scan of the resolved prefix returns `{ status: 'failed', reason:
+  'unrateable', failures: tally() }` at the first attempt index whose result is a failure with that reason, before any
+  later index is read (the lowest-index rule: a later success never overrides it, whatever the pool width; the
+  `finally` block aborts the attempts in flight). `SetJobResult.reason` and its comment (line 103) gain `unrateable`.
+- **F2 only.** `firstSetAttempt` and the client's ordered scan stay as today: a set attempt cut by F2 is one failed
+  attempt (`unrateable` among the failures), the request goes on, a later successful attempt wins, and a request that
+  finds no set fails as today (`time-limit`, or `attempts-exhausted` with `maxSetAttempts`). `SetJobResult`,
+  `generator/jobs.js`, the locales and `tests/generator-controller.test.js` do not change.
+- **The notice** (F1). `generator/jobs.js` shows a new notice `N-NOSET-UNRATEABLE` (outcome, warning) for a failed set
   request with reason `unrateable`, else `N-NOSET` as today; its text is the owner's wording, else MP12b2's draft:
   EN "Couldn't create a {level} piece set for this board: the difficulty ratings it tried reached their work limits.
   Choose another level or change the board." VN "Không tạo được bộ mảnh mức {level} cho bàn này: các lần đo độ khó đã
   thử đều chạm giới hạn tính toán. Hãy chọn mức khác hoặc đổi bàn." Both locales, the same keys and placeholders.
   `tools/generate.mjs` prints the reason as today (`(unrateable)`); no other CLI change.
-- **No id change**: F1 and F2 end failing requests earlier and change no accepted puzzle where no false stop occurs
-  (MP12b2's table); they are part of `gen-v3`, whose lock completes with this task (check-list D35, D40). Evidence:
-  GF-P2 shows no puzzle change and `npm test` keeps every UI-flow recipe; a change there is a false stop: stop.
-- **Tests** (intended contract change and new cases): `tests/clues.test.js` line 703, the `unrateable` variant: with
-  F2, 4 profiles and `{ ok: false, reason: 'unrateable' }`; with F1 only, 20 profiles and that reason (the `refused`
-  variant stays 20 and `not-in-band`); new: F2 does not fire when the fourth profile is refused (`[21, 0]`) or rated,
-  and a call with three unrateable profiles then a rated in-band one still succeeds; `tests/generate.test.js`:
-  `firstSetAttempt` with a scripted seam (attempt 0 `unrateable`, attempt 1 `ok`) returns no result and one failure,
-  and a call without `unrateable` keeps today's lowest success; `tests/generation-client.test.js` with the scripted
-  harness: attempt 0 `unrateable` and attempt 1 `ok` resolved first, the request fails with `unrateable`; attempt 0
-  `ok` and attempt 1 `unrateable`, it succeeds; attempt 0 `not-in-band`, attempt 1 `unrateable`, attempt 2 `ok`, it
-  fails at 1; `tests/generator-controller.test.js`: the failed set with `unrateable` gives `N-NOSET-UNRATEABLE` (beside
-  the `time-limit` row of line 171). When the D36 slow test of `tests/clues.test.js:564` still runs (A7: Hell 3 still
-  offered on 484 cells), its expected reason becomes `unrateable` if attempt 0's calibration was entirely unrateable:
-  re-observe it by MP12a's command B and pin what it shows.
-- **Documents**: design §6.5 (a set request ends at its first attempt whose calibration was entirely unrateable), §6.10
-  (F2 and the `unrateable` result), §10.3 ("No set within the time limit" bullet) and §10.7 (the notice row), §14.2
-  item 3; the user guides (the notice, both languages).
+- **No id change** (any). The chosen mechanism ends failing requests or calls earlier and changes no accepted puzzle
+  where no false stop occurs (MP12b2's table); it is part of `gen-v3`, whose lock completes with this task (check-list
+  D35, D40). Evidence: GF-P2 shows no puzzle change and `npm test` keeps every UI-flow recipe; a change there is a false
+  stop: stop.
+- **Tests** (intended contract change and new cases), by choice:
+  - any: `tests/clues.test.js` line 703, the `unrateable` variant gives `{ ok: false, reason: 'unrateable' }`, after 4
+    profiles with F2 and after 20 with F1 only (the `refused` variant stays 20 and `not-in-band`); `puzzleCandidate`
+    and `completionCandidate` map `unrateable` to `not-in-band`. When the D36 slow test of `tests/clues.test.js:564`
+    still runs (A7: unchanged on 484 cells, or re-pinned to an offered input), its expected reason becomes
+    `unrateable` if its attempt's calibration was entirely unrateable: re-observe it by MP12a's command B and pin what
+    it shows;
+  - F2: F2 does not fire when the fourth profile is refused (`[21, 0]`) or rated, and a call with three unrateable
+    profiles then a rated in-band one still succeeds;
+  - F1: `tests/generate.test.js`: `firstSetAttempt` with the seam (attempt 0 `unrateable`, attempt 1 `ok`) returns no
+    result and one failure, and a call without `unrateable` keeps today's lowest success;
+    `tests/generation-client.test.js` with the scripted harness: attempt 0 `unrateable` and attempt 1 `ok` resolved
+    first, the request fails with `unrateable`; attempt 0 `ok` and attempt 1 `unrateable`, it succeeds; attempt 0
+    `not-in-band`, attempt 1 `unrateable`, attempt 2 `ok`, it fails at 1; `tests/generator-controller.test.js`: the
+    failed set with `unrateable` gives `N-NOSET-UNRATEABLE` (beside the `time-limit` row of line 171);
+  - F2 only, the converse: `tests/generate.test.js`: `firstSetAttempt` with the seam (attempt 0 `unrateable`, attempt
+    1 `ok`) returns attempt 1's result with the failures `['unrateable']`; `tests/generation-client.test.js` with the
+    scripted harness: attempt 0 `unrateable` and attempt 1 `ok` resolved first, the request succeeds with attempt 1.
+- **Documents** (both languages where there are two). Any: design §6.10 (the `unrateable` result, and F2 when built).
+  F1: design §6.5 (a set request ends at its first attempt whose calibration was entirely unrateable), §10.3 ("No set
+  within the time limit" bullet), §10.7 (the notice row), §14.2 item 3, and the user guides (the notice). F2 only:
+  design §6.5 and §14.2 item 3 say that such a set request still runs to its time limit, each such attempt ending after
+  four profiles (the known limitation for MP17's release notes); no user-guide change.
 
 ### Part C: `require` at Hard and above (only when the owner accepted (R-a); check-list D41)
 
@@ -356,7 +394,7 @@ After parts A to C and their targeted tests:
 | `tools/bench/calibration-reference.js` | `REFERENCE_ROWS`, `RETIRED_REFERENCE_ROWS`, `landscapeBoards` (A5) |
 | `tools/bench/matrices/bq-0.json`, `bq-1.json`, `bq-2.json`, `bq-3.json` | cases no longer offered removed (A6) |
 | the tests of A7, `tests/generator-import.test.js` (A8) | as the table says |
-| part B: `core/engine/clues.js`, `core/engine/generate.js`, `core/engine/types.js` (`SetAttemptResult`), `core/browser/generation-client.js`, `generator/jobs.js`, `generator/locale.en.js`, `generator/locale.vi.js`, `tests/clues.test.js`, `tests/generate.test.js`, `tests/generation-client.test.js`, `tests/generator-controller.test.js` | as part B says |
+| part B, by the owner's choice (the table of part B): `core/engine/clues.js`, `core/engine/generate.js`, `core/engine/types.js` (`SetAttemptResult`), `tests/clues.test.js`, `tests/generate.test.js`, `tests/generation-client.test.js`; with F1 also `core/browser/generation-client.js`, `generator/jobs.js`, `generator/locale.en.js`, `generator/locale.vi.js`, `tests/generator-controller.test.js` | as part B says |
 | part C: `core/engine/generate.js`, `core/browser/generation-client.js`, `generator/state.js`, the Generator locales, their tests | as part C says |
 | `tests/fixtures/generation-case.json`, `tests/fixtures/generated-sample-pack.json` | by the tool (GF-P2; the policy id only) |
 | `docs/design-detail.md`, `docs/design-brief.md`, `USERGUIDE.md`, `USERGUIDE.vn.md`, `README.md` | A9, B, C, D7 |
@@ -365,15 +403,17 @@ After parts A to C and their targeted tests:
 Exclusive ownership while active: the files above; scratch under `tests/artifacts/MP12b3/` (the helper, `derive.mjs`,
 the page runner copies and evidence, the TAP files) and the Edge profile `tests\artifacts\edge-MP12b3\`. Must not edit:
 `SCORE_V3`, `DEDUCE`, `K60`, `SHARES`, `STALL_LIMIT`, `core/engine/deduce.js`, `core/engine/difficulty.js`,
-`core/engine/version.js`, `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json`,
-`tests/fixtures/ui-flow-recipes.json`, the MP12 records and folders, `docs/calibration/`.
+`core/engine/version.js`, `player/samples/sample-pack.json` (check-list D20, kept by owner decision P-OD10),
+`tests/fixtures/puzzlecode-v1.json`, `tests/fixtures/ui-flow-recipes.json`, the MP12 records and folders,
+`docs/calibration/`.
 
 ### Documentation slot
 
 - `docs/design-detail.md`: §7.5 (availability, the D36 paragraph, the Hell rows of the parameter table), §5.4, the
   §6.4 heading, the §4.2 `levels.js` block, §8.7, §10.3, §13.2 (the `policy` row), §1.2 R13, the §2 D35 row, and
-  §7.8 (the completion sentence after MP12b2's lock statement; MP12b2 owns the rest of §7.8); part B: §6.5, §6.10,
-  §10.3, §10.7, §14.2; part C: §6.11, §7.5, the §2 D14 row, §10.7.
+  §7.8 (the completion sentence after MP12b2's lock statement; MP12b2 owns the rest of §7.8); part B, by the choice:
+  §6.10 (any), §6.5 and §14.2 (F1, or F2 only's limitation), §10.3 and §10.7 (F1); part C: §6.11, §7.5, the §2 D14
+  row, §10.7.
 - `docs/design-brief.md` (line 27 and the table "Levels and typical boards", lines 42-43), `USERGUIDE.md`,
   `USERGUIDE.vn.md`, `README.md` (line 16), as A9, B and C say.
 
@@ -394,7 +434,7 @@ the page runner copies and evidence, the TAP files) and the Edge profile `tests\
 |---|---|---|
 | MP12b3-B01 | The Generator offers a Hell level only on the board areas where v3 made it as reliably as the other levels (at least 90 % of 20 requests complete), and nowhere else; a Hell level made nowhere is not listed | `levels.js`; the record's derivation tables; the Generator's list; the editor page |
 | MP12b3-B02 | Packs and links made before still open, keep their stored claims and are re-rated for display as before | A8's test; the unchanged reader and display tests |
-| MP12b3-B03 | When the owner agreed: a set request whose ratings all reach their work limits ends early with a clear notice in both languages, and no puzzle that a request made before changes | part B's tests; GF-P2's diff; `npm test` |
+| MP12b3-B03 | When the owner agreed, the chosen mechanism and no other: with F1 (alone or with F2), a set request whose ratings all reach their work limits ends early with a clear notice in both languages; with F2 only, such an attempt ends after four profiles and a later successful attempt still wins (no notice); with any choice, no puzzle that a request made before changes | part B's tests; GF-P2's diff; `npm test` |
 | MP12b3-B04 | When the owner accepted it: `require` at Hard and above is refused, with a message, from the owner's area | part C's tests |
 | MP12b3-B05 | The design, the brief, both user guides and the README describe the new availability, and the lock is complete | the documents; design §7.8; the record |
 
@@ -406,7 +446,7 @@ the page runner copies and evidence, the TAP files) and the Edge profile `tests\
 | MP12b3-T02 | `POLICY_ID` is `mixed-v3`; `SCORE_V3`, `DEDUCE`, `K60`, `SHARES`, `STALL_LIMIT`, `deduce.js`, `difficulty.js` and `version.js` are unchanged; the stale `SCORE_V3` comment is gone | `git --no-pager diff` |
 | MP12b3-T03 | `LISTED_LEVEL_IDS` equals the levels offered on some area from 30 to 676 (a test); the landscape keeps the 16 boards of `55c0c61` (A5); every BQ case is offered and only the cases no longer offered were removed | tests; the record |
 | MP12b3-T04 | Only the tests of A7, A8 and parts B and C changed, each as its row says and listed in the reply; no test was weakened beyond the stated contract change | the diff; the reply |
-| MP12b3-T05 | Part B, when built, follows MP12b2's definitions: `unrateable` exactly for all-unrateable calls, F2 at four profiles, F1 by the lowest attempt index in the serial and the pooled paths, candidates mapped to `not-in-band` | part B's tests |
+| MP12b3-T05 | Part B, when built, follows MP12b2's definitions and builds only the owner's choice (part B's table; RP04): `unrateable` exactly for all-unrateable calls and candidates mapped to `not-in-band` (any choice); F2 at four profiles (F2 only, F1 + F2); F1 by the lowest attempt index in the serial and the pooled paths, with the notice (F1 only, F1 + F2); with F2 only, a later successful attempt still wins in both paths and no notice exists | part B's tests |
 | MP12b3-T06 | GF-P2 changed only the `policy` values of the two fixtures; `--check`, the strict checks, the quick set and the final `npm test` pass under the lock; the browser page(s) pass (the runner's `PASS` line, no CSP violation, no uncaught error) | the gate record; the TAP file; the page evidence |
 | MP12b3-T07 | The record exists with every section of D6; design §7.8 has the completion sentence; `npm run check` passes; every written file is CRLF without BOM | the files; command output |
 

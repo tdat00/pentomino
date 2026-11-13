@@ -44,9 +44,10 @@ This is a regression run only (PROC-P1 (a)): no refit, no knob change, no algori
 ### Out of scope
 
 - Any change under `core/`, `tools/`, `generator/` or `player/` (code and locales), any pinned rating or generation
-  value, any generated fixture, `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json`. A defect found
-  by GZ is reported to the orchestrator with its evidence; the orchestrator sends it to the task that owns the file as
-  a fix round (check-list §2, step 5) and GZ is repeated for what the fix touches.
+  value, any generated fixture, `player/samples/sample-pack.json` (check-list D20, kept byte-for-byte by owner decision
+  P-OD10), `tests/fixtures/puzzlecode-v1.json`. A defect found by GZ is reported to the orchestrator with its evidence;
+  the orchestrator sends it to the task that owns the file as a fix round (check-list §2, step 5) and GZ is repeated for
+  what the fix touches.
 - A refit or a change of any knob, cap, band, rule, counter, clue-search setting, `SHARES` or `K60` (locked).
 - Physical devices (printers, phone cameras): the blocked checks of `tests/browser/acceptance.html` stay blocked.
 - The release decision record (check-list §9) and the execution summary: the orchestrator's. Merging and pushing.
@@ -616,10 +617,11 @@ correct a statement that does not hold and report it. The facts to state:
   shows; when the owner kept it (R-b), the known limitation in plain words.
 - **Generated puzzles.** The Generator aims at the middle of the requested level's band. Every generated Hard-or-above
   puzzle has at least one proved decisive guess. A candidate whose deduction exceeds the solver's limits is not rated
-  and is skipped; v3 ratings never show the "+" mark. When the fail-fast was built (check-list D40), a piece-set
-  request whose ratings all reach their work limits ends early with its notice (quote `notice.N-NOSET-UNRATEABLE` of
-  `generator/locale.en.js`); when it was not, the known limitation (such a request runs to the time limit). The same
-  seed makes different puzzles than earlier versions (algorithm `gen-v3`, policy `mixed-v3`, rating
+  and is skipped; v3 ratings never show the "+" mark. When the fail-fast was built with F1 (check-list D40; alone or
+  with F2), a piece-set request whose ratings all reach their work limits ends early with its notice (quote
+  `notice.N-NOSET-UNRATEABLE` of `generator/locale.en.js`); with F2 only, each such attempt ends sooner but the request
+  still runs to its time limit, with no new notice; with none, the known limitation (such a request runs to the time
+  limit). The same seed makes different puzzles than earlier versions (algorithm `gen-v3`, policy `mixed-v3`, rating
   `difficulty-v3`); a seed reproduces a puzzle only with the same versions.
 - **Estimates.** When the check of a guess's alternatives cannot finish within its budget, the score is an upper
   estimate: packs mark it with `censored: true` and the apps show the estimate note (with the number of undecided
@@ -629,7 +631,9 @@ correct a statement that does not hold and report it. The facts to state:
   (`difficulty-v1`, `difficulty-v2`) are re-rated for display with the new model, with a note; when the re-rating is
   not possible the stored rating is shown with "could not be re-rated". Packs, links and puzzle codes made by earlier
   versions keep opening (except sets with two pieces of the same shape); version-1 puzzle codes are unchanged; new codes
-  carry a short rating (model, score, level, the "+" flag and, for an estimate, `censored`), packs the full one.
+  carry a short rating (model, score, level, the "+" flag and, for an estimate, `censored`), packs the full one. The
+  Player's built-in sample is unchanged (owner decision P-OD10, check-list D20): its puzzles keep their
+  `difficulty-v2` ratings and are shown re-rated with the note.
 - **Two pieces of the same shape.** A piece set with two pieces of the same shape is refused when a pack, a link or a
   puzzle code is opened and when the Generator imports it, with an error message (before, the pack reader only
   warned). A saved Generator set with two pieces of the same shape is removed when the Generator starts, with a

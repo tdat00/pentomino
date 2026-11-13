@@ -193,3 +193,29 @@ PENTOMINO CROSS-CHECK DONE: 0 blocking, 4 major, 1 minor
 Ids per file:
 - `tasks/difficulty-v3/MP12b2-search-evidence-and-lock.md`: RP01, RP05.
 - `tasks/difficulty-v3/MP12b3-hell-availability-and-fail-fast.md`: RP02, RP03, RP04.
+
+## Verification of the fixes
+
+2026-11-13, SA2. Checked the uncommitted fixes over `a1b9354`, the requested task/checklist sections and
+`docs/difficulty-v3/claude-opus-5.5/9-response-to-cross-check.md`. This section supersedes the outstanding
+finding counts and the earlier D20-open status above; the original review remains historical.
+
+| Finding | Verdict |
+|---|---|
+| RP01 | Closed. MP12b2 steps 5/7 and T05, with checklist D29, preserve raw criteria but apply the explicit disposition table. Census above 5% is a finding, above 25% additionally an owner question; neither blocks the lock. Missing/corrupt evidence is distinguished from availability-caused unavailable statistics. |
+| RP02 | Closed. A7 distinguishes offered, listed-but-unavailable and retired levels. The narrowing is accepted: while 484-cell Hell 3 stays offered, A2-A6 leave its deterministic input/output unchanged, so the existing D36 slow test stays; part B's reason change is handled separately. Refusal is asserted only in the genuinely unavailable branch. |
+| RP03 | Closed. A7 now owns the BQ-0 planning assertion, uses retained d22x22-hard and its declared repetitions when the Hell case is removed, and checks that no removed-case rows remain. |
+| RP04 | Closed. Part B, B03, T05 and checklist D40 consistently follow the owner's mechanism choice. F2-only permits later success in both serial and pooled paths and adds no F1 notice; tests and documentation are conditional. |
+| RP05 | Closed. AcceptedOf uses end.accepted, then last accepted.slot, then fromCalibration, then zero, preserving censoring. Both population R and HL use it; T10 and the five synthetic-check definitions match. No check was executed here. |
+
+The RP02 narrowing is supported by `core/engine/policy.js:322-339`: interval ends only gate availability,
+not the counts inside an offered interval; POLICY_ID is not a generation RNG input. A3 also now describes
+the optional require restriction under the same unreleased mixed-v3 policy.
+
+P-OD10 correctly records **keep**: D20 and checklist section 9 are decided, the open clarification entry is
+removed, and the Player sample stays byte-for-byte with no new task.
+
+No remaining RP finding or new decision request. Only this section was written: no pack edits, tests
+(including npm run check), generation, timing runs, staging or commits.
+
+PENTOMINO VERIFIED
