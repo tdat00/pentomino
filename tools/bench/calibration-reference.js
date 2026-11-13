@@ -324,14 +324,43 @@ export function referencePolicyAgreement(r) {
   return { policyK: [lo, hi], agrees: Math.abs(lo - r.k[0]) <= K_TOLERANCE && Math.abs(hi - r.k[1]) <= K_TOLERANCE };
 }
 
-/** @param {readonly number[]} values @returns {Record<string, number>} */
+/** @param {readonly (number | string)[]} values @returns {Record<string, number>} */
 function histogram(values) {
   /** @type {Record<string, number>} */
   const out = {};
-  for (const v of [...values].sort((a, b) => a - b)) {
+  const order = (/** @type {number | string} */ a, /** @type {number | string} */ b) => (
+    typeof a === 'number' && typeof b === 'number' ? a - b : String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0);
+  for (const v of [...values].sort(order)) {
     out[String(v)] = (out[String(v)] ?? 0) + 1;
   }
   return out;
+}
+
+/**
+ * The v3 block of one cell (RES-25): the distribution of the v3 measures of its accepted puzzles. `provedZero` counts
+ * the accepted puzzles with no proved real choice in a cell of the Hard-or-above levels (always 0 by RES-35).
+ * Puzzles without v3 metrics (records written before v3) are not counted.
+ * @param {Record<string, any>[]} puzzles
+ * @param {string} levelId
+ */
+function v3Block(puzzles, levelId) {
+  const rated = puzzles.filter((p) => typeof p.metrics === 'object' && p.metrics !== null);
+  if (rated.length === 0) {
+    return null;
+  }
+  const metric = (/** @type {string} */ name) => rated.map((p) => p.metrics[name]);
+  const censored = rated.filter((p) => p.censored === true).length;
+  return {
+    accepted: rated.length,
+    score: summarize(rated.map((p) => p.score)),
+    G: histogram(metric('G')),
+    info: summarize(metric('info')),
+    Cmax: histogram(metric('Cmax')),
+    tier: histogram(metric('deductionTier')),
+    solutions: histogram(metric('solutions')),
+    censored: { count: censored, share: censored / rated.length },
+    provedZero: level(levelId).index >= 3 ? rated.filter((p) => p.metrics.Gproved === 0).length : 0,
+  };
 }
 
 /**
@@ -378,6 +407,7 @@ export function aggregateLandscape(runs, matrix) {
     const details = rows.map((r) => r.details).filter((d) => d !== null);
     const ks = details.map((d) => d.K).filter((v) => typeof v === 'number');
     const violations = details.flatMap((d) => d.policy?.violations ?? []);
+    const accepted = details.flatMap((d) => d.puzzles ?? []);
     const samples = rows.flatMap((r) => r.samples);
     allSamples.push(...samples.map((s) => ({ ...s, levelId: c.levelId })));
     const t10 = complete.map((r) => r.tenthReadyMs).filter((v) => typeof v === 'number');
@@ -424,15 +454,17 @@ export function aggregateLandscape(runs, matrix) {
         min: details.length === 0 ? null : Math.min(...details.map((d) => d.sizes[0])),
         max: details.length === 0 ? null : Math.max(...details.map((d) => d.sizes[d.sizes.length - 1])),
       },
-      G: {
+      clues: {
         initial: histogram(details.map((d) => d.initialG).filter((v) => typeof v === 'number')),
-        accepted: histogram(details.flatMap((d) => (d.puzzles ?? []).map((p) => p.G))),
+        accepted: histogram(accepted.map((p) => p.clues ?? p.G).filter((v) => typeof v === 'number')),
       },
+      v3: v3Block(accepted, c.levelId),
       saturation: {
         acceptedShare: ratio(rows.reduce((s, r) => s + r.ratingSaturatedCount, 0), rows.reduce((s, r) => s + r.acceptedCount, 0)),
         sampledShare: ratio(goodSamples.filter((s) => s.saturated).length, goodSamples.length),
       },
       sampledInBandRate: ratio(goodSamples.filter((s) => s.inBand).length, goodSamples.length),
+      sampledUnrateable: details.reduce((s, d) => s + (d.sampleUnrateable ?? 0), 0),
       profileLatency: {
         kind: 'RPC round trip of a canonical rating task (includes message transfer), not worker CPU time',
         ...summarize(goodSamples.map((s) => s.ratingMs)),
@@ -603,6 +635,25 @@ export function renderLandscapeMarkdown(agg, meta) {
     L.push(`| ${c.caseId} | ${c.area} | ${c.runs.recorded}/${c.runs.requested} | ${pct(c.requestInBandRate)} | `
       + `${sec(c.t10Conditional.median)} | ${sec(c.t10Conditional.p95)} | ${sec(c.maxT10Ms)} | ${kObs} | ${pol} | `
       + `${pct(c.sampledInBandRate)} | ${pct(c.saturation.sampledShare)} | ${c.criterion1.status} |`);
+  }
+  L.push('', '## v3 measures per cell', '',
+    'Measures of the accepted puzzles of the timed runs. "-" means the cell has no accepted puzzle rated by `difficulty-v3` (for example records written before v3). '
+    + '"Census estimates" counts the ratings whose census did not finish; "Hard+ with Gproved = 0" counts accepted puzzles of the Hard-or-above levels without a proved real choice (always 0, RES-35).', '',
+    '| Cell | Accepted | Score median | Score p95 | G median | info median | Cmax max | Tier 0/1/2/3 | Solutions unique/few/many/unknown | Census estimates | Hard+ with Gproved = 0 |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
+  const fmt = (/** @type {number | null} */ v) => (v === null ? '-' : String(Math.round(v * 100) / 100));
+  const histValues = (/** @type {Record<string, number>} */ h) => Object.entries(h).flatMap(([k, n]) => Array(n).fill(Number(k)));
+  const split = (/** @type {Record<string, number>} */ h, /** @type {string[]} */ keys) => keys.map((k) => h[k] ?? 0).join('/');
+  for (const c of agg.cells) {
+    const v = c.v3;
+    if (v === null) {
+      L.push(`| ${c.caseId} | ${Array(10).fill('-').join(' | ')} |`);
+      continue;
+    }
+    const cmax = histValues(v.Cmax);
+    L.push(`| ${c.caseId} | ${v.accepted} | ${fmt(v.score.median)} | ${fmt(v.score.p95)} | ${fmt(median(histValues(v.G)))} | `
+      + `${fmt(v.info.median)} | ${cmax.length === 0 ? '-' : Math.max(...cmax)} | ${split(v.tier, ['0', '1', '2', '3'])} | `
+      + `${split(v.solutions, ['unique', 'few', 'many', 'unknown'])} | ${v.censored.count}/${v.accepted} | ${v.provedZero} |`);
   }
   L.push('', '## Reference rows (criteria 2 and 3)', '',
     '| Row | Boards | Node ref max | 2x bound | Max T10 now | Status | Policy K vs table | Note |', '| --- | --- | --- | --- | --- | --- | --- | --- |');

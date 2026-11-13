@@ -74,7 +74,8 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
 - **Hiệu năng và hiệu chỉnh** (chỉ để sàng lọc; không bao giờ thay đổi ngưỡng kiểm định):
   `node --max-old-space-size=2048 tools\calibrate.mjs --matrix tools\bench\matrices\smoke.json --workers 4 --fresh-process --output docs\calibration\node-smoke`,
   bản đồ điểm (`--profile landscape`, chạy nhiều giờ, tiếp tục được), và trang trình duyệt
-  `http://localhost:8080/pentomino/tools/bench/` (giữ thẻ ở phía trước).
+  `http://localhost:8080/pentomino/tools/bench/` (giữ thẻ ở phía trước). Báo cáo bản đồ điểm cho thấy các số đo v3 của
+  từng ô (điểm, các lần đoán quyết định, bậc suy luận, các điểm chấm ước lượng).
 - **Thăm dò chấm độ khó** (chỉ để chẩn đoán; không bao giờ thay đổi điểm): `node tools\rate-probe.mjs` chấm từng đề của
   một gói đề, của một yêu cầu tạo đề mới hoặc của các yêu cầu bản đồ điểm được tạo lại, bằng cách chấm cũ và bộ giải suy
   luận, rồi in mỗi đề một dòng JSON ra stdout (hoặc ra `--output tệp`). Công cụ chỉ đọc và không ghi gì khác. Có ba dạng:

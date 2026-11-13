@@ -263,14 +263,14 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP11: Calibration tooling for v3 and the slow v3 test`) |
+| Start | 2026-11-13 10:06 (+07:00) |
+| End | 2026-11-13 10:15 developer; 10:22 orchestrator review and commit |
+| Duration | 9 min developer (the slow test 101 s under the timing lock); about 7 min review (with the orchestrator's slow-test run) |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 62 model calls; 8,882,478 input tokens (8,701,362 cache reads); 49,304 output tokens |
+| AI credits | about 182 (developer) |
+| Verification | Developer: targeted `node --test --test-skip-pattern=slow` (calibration, benchmark-report, difficulty-v3) 62/62 (7.6 s); the slow test under the timing lock 1/1 (101.4 s, lock wait 0 s); `npm run test:quick` 1339/1339 on the second run (the first run had one timing-verdict failure, below); `npm run check` OK; `record-fixtures --check` OK. Orchestrator re-run: targeted 62/62; `test:quick` 1339/1339; `check` OK; `record-fixtures --check` OK; the slow test under the timing lock 1/1 (102 s) |
+| Acceptance | MP11-B01..B03 and T01..T05 met. Diff reviewed: the runner records `clues`, the 13 v3 measures in design order, `censored`, `ratingCensoredCount` and the unrateable samples (`rating-incomplete`); `validateRunRecord` accepts a missing or numeric `ratingCensoredCount`; `aggregateLandscape` reads `clues ?? G` (old records stay readable), adds the per-cell `v3` block (`censored`, `provedZero` for Hard and above) and `sampledUnrateable`, and the Markdown "v3 measures per cell" table; the certificate table gains "census estimates"; `SOURCE_FILES` keeps MP10a's entry. Slow test, 3 hits and 0 misses at every level: medians 10x6 6, 9, 12, 23, 31, 44 and 12x12 10, 13, 19, 34, 45, 65 (strictly increasing); every Hard-or-above puzzle has `Gproved >= 1` (1 to 7); 12x12 Nightmare costs 92.8 of the 101 s |
+| Issues & resolutions | (1) One `npm run test:quick` run failed once on "the smoke matrix writes valid reports..." (`tests/calibration.test.js:393`): a cell verdict `fail` instead of `node-screening-only`, a timing-derived verdict, right after the slow run; it passed alone before, on the immediate rerun and in the orchestrator's run; recorded as a load-sensitive quick test, not caused by MP11. (2) Moved anchors: design §7.8's `calibrate.mjs` bullet at 1736-1738 (task: 1612-1614), the guides' sentence at 77-78 (task: 75-76). (3) The intended change at `calibration.test.js:387` is an exact sorted key-set check of the 17 sample keys (stricter than the field count). (4) `histogram` sorts strings too, so the tier and solutions histograms work. (5) `provedZero` uses the cell's requested level (equal to the puzzle's level for validated in-band puzzles). (6) A small `isCensored(rating)` helper in `runner.js` |
+| Handoff | MP12a: each landscape cell has `clues`, `v3` (null without v3 data) and `sampledUnrateable`; run records have `ratingCensoredCount`; `details.puzzles[]` and `samples[]` have the new shapes; the Markdown has the "v3 measures per cell" table and `benchmark-report` the "census estimates" column. The slow test runs in `npm test` (GA-P2), pins no score, uses seeds `v3-slow/<board>/<level>`; its scores above are MP12's starting point; 12x12 Nightmare is where its time goes; it covers no Hell level |

@@ -9,7 +9,7 @@ import { canonicalJson, sha256Hex } from '../core/engine/hash.js';
 import { level, offeredLevels } from '../core/engine/levels.js';
 import {
   aggregateLandscape, boardId, buildLandscapeMatrix, checkLandscapeBoards, checkSetPolicy, deterministicBoard, initialG,
-  landscapeBoards, rectRows, REFERENCE_ROWS, referenceFor, referencePolicyAgreement, sampleCounts,
+  landscapeBoards, rectRows, REFERENCE_ROWS, referenceFor, referencePolicyAgreement, renderLandscapeMarkdown, sampleCounts,
 } from '../tools/bench/calibration-reference.js';
 import { newRunRecord, evaluateCell, returnedEveryArrangement, validateRunRecord } from '../tools/bench/report.js';
 import { releaseHost, runCase, validateMatrix } from '../tools/bench/runner.js';
@@ -216,7 +216,85 @@ describe('landscape aggregation', () => {
     assert.deepEqual(agg.scoreByU.map((g) => g.key), [6, 8]);
     assert.equal(agg.scoreByArea[0].key, 60);
     assert.equal(agg.scoreByU[1].saturatedShare, 1);
-    assert.deepEqual(c.G.accepted, { 3: 20, 4: 20 });
+    assert.deepEqual(c.clues.accepted, { 3: 20, 4: 20 });
+    assert.equal(c.v3, null, 'records without v3 metrics have no v3 block');
+    assert.equal(c.sampledUnrateable, 0);
+  });
+
+  /**
+   * @param {number} clues
+   * @param {number} score
+   * @param {Record<string, unknown>} [m]
+   * @param {boolean} [censored]
+   */
+  const v3Puzzle = (clues, score, m = {}, censored = false) => ({
+    clues, U: 9 - clues, score, level: 'hard', saturated: false, censored,
+    metrics: {
+      deductionTier: 2, G: 1, Gproved: 1, info: 1, Cmax: 4, Dmax: 1, solutions: 'unique', censusComplete: !censored,
+      censusUndecided: censored ? 1 : 0, F: 2, E: 0, nodes: 10, work: 100, ...m,
+    },
+  });
+  const v3Details = (/** @type {any[]} */ puzzles, /** @type {Record<string, unknown>} */ extra = {}) => (
+    { area: 60, K: 9, sizes: [4, 4, 4, 5, 7, 7, 9, 10, 10], initialG: 3, policy: { violations: [] }, puzzles, ...extra });
+  const mixedPuzzles = [
+    v3Puzzle(3, 60),
+    v3Puzzle(4, 70, { G: 2, Gproved: 0, info: 3, Cmax: 9, deductionTier: 3, solutions: 'few' }, true),
+  ];
+
+  test('new-format records give the clue counts and the v3 block of a cell', () => {
+    const id = '6x10-hard';
+    const c = cell(aggregateLandscape(reps(id, () => ({ details: v3Details(mixedPuzzles) })), only([id])), id);
+    assert.deepEqual(c.clues.accepted, { 3: 20, 4: 20 });
+    assert.deepEqual(c.v3, {
+      accepted: 40,
+      score: { n: 40, min: 60, median: 65, p95: 70, max: 70 },
+      G: { 1: 20, 2: 20 },
+      info: { n: 40, min: 1, median: 2, p95: 3, max: 3 },
+      Cmax: { 4: 20, 9: 20 },
+      tier: { 2: 20, 3: 20 },
+      solutions: { few: 20, unique: 20 },
+      censored: { count: 20, share: 0.5 },
+      provedZero: 20,
+    });
+  });
+
+  test('provedZero counts only the Hard-or-above levels', () => {
+    const below = cell(aggregateLandscape(reps('6x10-normal', () => ({ details: v3Details(mixedPuzzles) })), only(['6x10-normal'])), '6x10-normal');
+    assert.equal(below.v3.provedZero, 0);
+    assert.equal(below.v3.G['2'], 20, 'the other measures are still counted');
+    const none = cell(aggregateLandscape(reps('6x10-hard', () => ({ details: v3Details([mixedPuzzles[0]]) })), only(['6x10-hard'])), '6x10-hard');
+    assert.equal(none.v3.provedZero, 0);
+  });
+
+  test('old and new records aggregate their clue counts together', () => {
+    const id = '6x10-hard';
+    const agg = aggregateLandscape(reps(id, (i) => ({
+      details: v3Details(i < 10 ? [{ G: 3 }, { G: 5 }] : [mixedPuzzles[0], { ...mixedPuzzles[1], clues: 5 }]),
+    })), only([id]));
+    const c = cell(agg, id);
+    assert.deepEqual(c.clues.accepted, { 3: 20, 5: 20 });
+    assert.equal(c.v3.accepted, 20, 'only the records with v3 metrics enter the v3 block');
+    assert.equal(c.v3.censored.count, 10);
+  });
+
+  test('the unrateable samples of the runs are summed', () => {
+    const id = '6x10-hard';
+    const agg = aggregateLandscape(reps(id, (i) => ({ details: v3Details([], i < 5 ? { sampleUnrateable: 2 } : {}) })), only([id]));
+    assert.equal(cell(agg, id).sampledUnrateable, 10);
+  });
+
+  test('the Markdown shows the v3 table, and "-" for a cell without v3 data', () => {
+    const meta = { date: 'D', sourceCommit: 'c', sourceDigest: 'd', seeds: 20, workers: 1 };
+    const withV3 = '6x10-hard';
+    const without = '6x10-normal';
+    const records = [...reps(withV3, () => ({ details: v3Details(mixedPuzzles) })), ...reps(without)];
+    const md = renderLandscapeMarkdown(aggregateLandscape(records, only([withV3, without])), meta);
+    const header = '| Cell | Accepted | Score median | Score p95 | G median | info median | Cmax max | Tier 0/1/2/3 | Solutions unique/few/many/unknown | Census estimates | Hard+ with Gproved = 0 |';
+    const table = md.slice(md.indexOf('## v3 measures per cell'), md.indexOf('## Reference rows'));
+    assert.ok(table.includes(header));
+    assert.ok(table.includes(`| ${withV3} | 40 | 65 | 70 | 1.5 | 2 | 9 | 0/0/20/20 | 20/20/0/0 | 20/40 | 20 |`), table);
+    assert.ok(table.includes(`| ${without} | - | - | - | - | - | - | - | - | - | - |`), table);
+    assert.ok(md.indexOf('## Cells') < md.indexOf('## v3 measures per cell'));
   });
 
   test('cells without runs stay listed as incomplete and nothing is skipped silently', () => {
@@ -380,16 +458,32 @@ describe('Node runner end to end', () => {
     assert.ok(r.acceptedCount >= 1 && r.acceptedCount <= 10);
     assert.equal(r.lifecycle, 'cold');
     assert.equal(r.samples.length > 0, true);
-    const counts = [...new Set(r.samples.map((/** @type {any} */ s) => s.G))];
+    const counts = [...new Set(r.samples.map((/** @type {any} */ s) => s.clues))];
     assert.deepEqual(counts, sampleCounts(r.details.K, r.details.initialG));
     assert.equal(r.samples.length, counts.length * 2);
+    const sampleKeys = ['A', 'K', 'clues', 'U', 'score', 'inBand', 'saturated', 'censored', 'deductionTier', 'G', 'Gproved',
+      'censusComplete', 'branchTrials', 'rowTrials', 'ratingMs', 'certificateStatus', 'sample'];
     for (const s of r.samples) {
-      assert.deepEqual(Object.keys(s).filter((k) => ['A', 'K', 'G', 'U', 'score', 'inBand', 'saturated', 'branchTrials', 'rowTrials', 'ratingMs', 'certificateStatus'].includes(k)).length, 11);
-      assert.equal(s.U, s.K - s.G);
+      assert.deepEqual(Object.keys(s).sort(), [...sampleKeys].sort());
+      assert.equal(s.U, s.K - s.clues);
+      assert.equal(typeof s.censored, 'boolean');
+      assert.ok(Number.isInteger(s.deductionTier) && s.deductionTier >= 0 && s.deductionTier <= 3);
+      assert.ok(Number.isInteger(s.G) && s.Gproved <= s.G);
+    }
+    assert.equal(r.details.sampleUnrateable, 0, 'every sample of this run is rateable');
+    assert.equal(r.ratingCensoredCount, r.details.puzzles.filter((/** @type {any} */ p) => p.censored).length);
+    for (const p of r.details.puzzles) {
+      assert.deepEqual(Object.keys(p), ['clues', 'U', 'score', 'level', 'saturated', 'censored', 'metrics']);
+      assert.equal(p.U, r.details.K - p.clues);
+      assert.deepEqual(Object.keys(p.metrics), ['deductionTier', 'G', 'Gproved', 'info', 'Cmax', 'Dmax', 'solutions',
+        'censusComplete', 'censusUndecided', 'F', 'E', 'nodes', 'work']);
     }
     assert.equal(json.calibration.cells.length, 1);
     assert.equal(json.calibration.cells[0].criterion1.status, 'incomplete');
+    assert.equal(json.calibration.cells[0].v3.accepted, r.acceptedCount);
+    assert.equal(json.calibration.cells[0].v3.provedZero, 0);
     assert.match(lines(`${base}.md`), /Production-engine calibration landscape/);
+    assert.match(lines(`${base}.md`), /## v3 measures per cell/);
     rmSync(ARTIFACTS, { recursive: true, force: true });
   });
 });

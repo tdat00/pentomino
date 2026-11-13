@@ -1,16 +1,20 @@
 // @ts-check
-// Quick part of the difficulty-v3 tests (design §7.10): the pure score formula, its production knobs and the mapping
-// from a deduction result to the formula's inputs. The slow part (generation orders the levels) belongs to the
-// calibration task.
+// Tests of the difficulty-v3 rating (design §7.10). The quick part: the pure score formula, its production knobs and
+// the mapping from a deduction result to the formula's inputs. The slow part, at the end: generation orders the levels
+// and every Hard-or-above puzzle has a proved guess (skipped by `npm run test:quick`).
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
 import { boardFromRows } from '../core/engine/board.js';
 import { measureDeduction } from '../core/engine/deduce.js';
 import { breakdownV3, rate, scoreV3 } from '../core/engine/difficulty.js';
+import { firstSetAttempt, runFold } from '../core/engine/generate.js';
+import { offeredLevels } from '../core/engine/levels.js';
 import { DEDUCE, SCORE_V3 } from '../core/engine/policy.js';
 import { buildModel } from '../core/engine/tiling.js';
-import { createWorkspace, MAIN_WORKSPACE_BYTES } from '../core/engine/workspace.js';
+import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
+import { rectRows } from '../tools/bench/calibration-reference.js';
+import { median } from '../tools/bench/report.js';
 import { CLUE_RECIPES, RECIPE_BOARD_ROWS, recipeWitness } from './fixtures/clue-recipes.js';
 import { CLASSIC_PENTOMINOES } from './fixtures/polyominoes.js';
 
@@ -269,4 +273,45 @@ describe('the deduction result as the input of the score', () => {
       );
     }
   });
+});
+
+test('slow: v3 generation orders the levels on 10x6 and 12x12, and every Hard-or-above puzzle has a proved guess', (t) => {
+  const execution = { main: createWorkspace(MAIN_WORKSPACE_BYTES), scratch: createWorkspace(SCRATCH_WORKSPACE_BYTES) };
+  const quantity = 3;
+  for (const [cols, rows] of [[10, 6], [12, 12]]) {
+    const id = `${cols}x${rows}`;
+    const board = boardFromRows(rectRows(cols, rows));
+    /** @type {{ id: string, median: number }[]} */
+    const medians = [];
+    for (const lv of offeredLevels(cols * rows)) {
+      const seedText = `v3-slow/${id}/${lv.id}`;
+      const started = performance.now();
+      const found = firstSetAttempt({ board, rotation: 0, levelId: lv.id, seedText, uniqueness: 'any', execution });
+      const accepted = found.result === null ? [] : runFold({
+        set: found.result.set, calibration: found.result.calibration, targetLevelId: lv.id, quantity,
+        batchSeed: `${seedText}#1`, uniqueness: 'any', seenLayouts: new Set(), seenClues: new Set(), execution,
+      }).accepted;
+      const seconds = (performance.now() - started) / 1000;
+      const ratings = accepted.map((c) => /** @type {import('../core/engine/types.js').RatingV3} */ (c.rating));
+      for (const r of ratings) {
+        assert.equal(r.model, 'difficulty-v3', `${id} ${lv.id}`);
+        assert.equal(r.saturated, false, `${id} ${lv.id}`);
+        if (lv.index >= 3) {
+          assert.ok(r.metrics.Gproved >= 1, `${id} ${lv.id}: a Hard-or-above puzzle needs a proved guess (score ${r.score})`);
+        }
+      }
+      const scores = ratings.map((r) => r.score);
+      const middle = median(scores);
+      if (middle !== null) {
+        medians.push({ id: lv.id, median: middle });
+      }
+      t.diagnostic(`${id} ${lv.id}: hits ${ratings.length}, misses ${quantity - ratings.length}, scores [${scores.join(', ')}], `
+        + `Gproved [${ratings.map((r) => r.metrics.Gproved).join(', ')}], ${seconds.toFixed(1)} s`);
+    }
+    assert.ok(medians.length >= 4, `${id}: at least four levels have puzzles (${medians.map((m) => m.id).join(', ')})`);
+    for (let i = 1; i < medians.length; i += 1) {
+      assert.ok(medians[i - 1].median < medians[i].median,
+        `${id}: the median of ${medians[i].id} (${medians[i].median}) is above that of ${medians[i - 1].id} (${medians[i - 1].median})`);
+    }
+  }
 });

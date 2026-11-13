@@ -52,7 +52,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP10a | [MP10a](MP10a-auxiliary-requests.md) | Auxiliary request method on the generation client and the Player's pool | MP09e | Medium | Browser integration | M6 display rating | 19 |
 | [x] | MP10b1 | [MP10b1](MP10b1-display-rating-player.md) | Derived display rating: the shared rules and the Player | MP10a | Large | Apps | M6 | 20 |
 | [x] | MP10b2 | [MP10b2](MP10b2-display-rating-generator-and-pages.md) | Derived display rating in the Generator; the browser pages and gate GC-P2 (display) | MP10b1 | Medium–Large + gate | Apps | M6 | 21 |
-| [ ] | MP11 | [MP11](MP11-calibration-tooling.md) | Calibration tooling for v3 and the slow v3 test | MP10b2 | Medium | Tools | M7 calibrated and locked | 22 |
+| [x] | MP11 | [MP11](MP11-calibration-tooling.md) | Calibration tooling for v3 and the slow v3 test | MP10b2 | Medium | Tools | M7 calibrated and locked | 22 |
 | [ ] | MP12a | [MP12a](MP12a-calibration-slice.md) | Calibration slice: the GV2 cases again with v3, and the knob changes | MP11 | Medium + machine time | Measurement | M7 | 23 |
 | [ ] | MP12b1 | [MP12b1](MP12b1-full-landscape.md) | Full landscape with v3 (gate GL-P3, full part) | MP12a | Small–Medium + machine time | Measurement | M7 | 24 |
 | [ ] | MP12b2 | [MP12b2](MP12b2-search-evidence-and-lock.md) | Search evidence (gate GS-P3), the Hell report, the owner's questions and the lock | MP12b1 | Medium + machine time | Measurement | M7 | 25 |
@@ -440,7 +440,7 @@ The orchestrator owns this record.
 | MP10a | Accepted | 14 min developer + 2 min review | about 237 | `difficulty-v3 MP10a` |
 | MP10b1 | Accepted (print overflow fixed in the task) | 24 min developer in two rounds + 5 min review | about 617 | `difficulty-v3 MP10b1` |
 | MP10b2 | Accepted (GC-P2 display passed; KI-1 closed by D1) | 45 min developer (incl. about 25 min page runs) + 5 min review | about 717 | `difficulty-v3 MP10b2` |
-| MP11 | | | | |
+| MP11 | Accepted | 9 min developer + 7 min review | about 182 | `difficulty-v3 MP11` |
 | MP12a | | | | |
 | MP12b1 | | | | |
 | MP12b2 | | | | |

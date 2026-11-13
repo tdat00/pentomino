@@ -74,7 +74,8 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
 - **Performance and calibration** (screening only; they never change a qualification gate):
   `node --max-old-space-size=2048 tools\calibrate.mjs --matrix tools\bench\matrices\smoke.json --workers 4 --fresh-process --output docs\calibration\node-smoke`,
   the score landscape (`--profile landscape`, hours, resumable), and the browser page
-  `http://localhost:8080/pentomino/tools/bench/` (keep the tab in the foreground).
+  `http://localhost:8080/pentomino/tools/bench/` (keep the tab in the foreground). The landscape report shows the v3 measures
+  per cell (score, decisive guesses, deduction tier, census estimates).
 - **Rating probe** (diagnostics only; it never changes a rating): `node tools\rate-probe.mjs` rates every puzzle of a
   pack, of a fresh request or of regenerated landscape requests with the old rating and the deduction solver, and
   prints one JSON line per puzzle to stdout (or to `--output file`). It is read-only and writes nothing else. Three

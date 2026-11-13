@@ -1734,8 +1734,8 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
 
 - `difficulty-v2` was final for release 1 and is now the legacy model (stored claims keep it, §7.2). The v3 knobs come from the initial fit (`docs/difficulty-v3/fit-2026-11-12.md`) and are locked after the calibration of MP12 (`docs/difficulty-v3/calibration-<date>.md`); the bands and the availability table below were fitted to the user's four examples and to 3,458 measured `difficulty-v2` ratings (A.10).
 - `tools/calibrate.mjs` (Node, 4 worker threads) re-runs the score landscape and the table above on the real engine:
-  - report score distributions by U and area, the in-band hit rate per (board, level), the saturated share, rating cost and certificate outcomes;
-  - acceptance: ≥ 90 % of New-Puzzles requests per offered (board, level) complete with 10 in-band puzzles within the budget of §8.3; output in `docs/calibration/`.
+  - report score distributions by U and area, and per (board, level) the in-band hit rate, the saturated share, rating cost and certificate outcomes, next to the `difficulty-v3` measures of the accepted puzzles of the cell: the v3 score distribution, the decisive guesses G and their information, `Cmax`, the hardest deduction tier, the solution counts, the share of census estimates (`censored: true`) and the Hard-or-above puzzles without a proved guess (always 0 by RES-35); the diagnostic samples that cannot be rated (`rating-incomplete`) are counted; records written before v3 (clue count `G`, no v3 fields) stay readable;
+  - acceptance: ≥ 90 % of New-Puzzles requests per offered (board, level) complete with 10 in-band puzzles within the budget of §8.3; output in `docs/calibration/` (history; for `difficulty-v3` under `docs/difficulty-v3/`).
 - **Playtests [PT]** (optional, post-release): time and success of human solvers per level, plus a forced-placement fixture (many B = 0 placements). Results MAY justify a later model, using the stored metrics. A new model never relabels stored puzzles.
 
 ### 7.9 Deduction solver (`deduce.js`)
