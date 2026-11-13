@@ -9,6 +9,7 @@ import { MAX_PUZZLE_CODES, isPuzzleListHash, normalizePuzzleCodeText } from '../
 import { MAX_URL_CHARS, isPuzzleHash, puzzleListHash } from '../core/engine/sharecode.js';
 import { normalizeAngle } from '../core/engine/view.js';
 import { createAuxiliaryQueue } from '../core/browser/auxiliary.js';
+import { createDisplayRatings, displayRatingKey, needsDisplayRating } from '../core/browser/display-rating.js';
 import { puzzleCodesOf, readIncoming, readPack, readPuzzleCode } from '../core/browser/handoff.js';
 import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
 import { SAVE_FAILED_MESSAGE, browserStorage } from '../core/browser/storage.js';
@@ -19,6 +20,7 @@ import { INDEX_MESSAGE, LABELS, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, mess
 /** @typedef {import('../core/engine/types.js').Issue} Issue */
 /** @typedef {import('../core/engine/game.js').GameState} GameState */
 /** @typedef {import('../core/browser/puzzle-code-client.js').PuzzleCodeClient} PuzzleCodeClient */
+/** @typedef {import('../core/browser/display-rating.js').DisplayEntry} DisplayEntry */
 /** @typedef {import('../core/browser/puzzle-code-client.js').CodeFailure} CodeFailure */
 /** @template T @typedef {import('../core/browser/puzzle-code-client.js').CodeResult<T>} CodeResult */
 
@@ -54,6 +56,9 @@ import { INDEX_MESSAGE, LABELS, LOAD_FAILED_MESSAGE, SAMPLE_FAILED_MESSAGE, mess
  * @property {Record<number, Verification>} verificationByPuzzle
  * @property {PuzzleStatus[]} statuses
  * @property {string[]} fingerprints
+ * @property {Record<string, DisplayEntry>} displayRatings The derived display ratings (`displayRatingKey` → entry) of
+ *   the puzzles with a rating on an older scale (design §7.7). Kept across packs as a cache; never saved, and the
+ *   stored claims are never changed.
  * @property {number} revision
  * @property {string | null} storageWarning
  */
@@ -73,6 +78,7 @@ function defaultState() {
     verificationByPuzzle: {},
     statuses: [],
     fingerprints: [],
+    displayRatings: {},
     revision: 0,
     storageWarning: null,
   };
@@ -266,6 +272,40 @@ export function createPlayerController(options) {
     },
     kinds: ['rate'],
   });
+
+  // Derived display ratings (design §7.7): the store mirrors the scheduler's entries.
+  const displayRatings = createDisplayRatings({
+    submit: (kind, payload, submitOptions) => aux.submit(kind, payload, submitOptions),
+    onChange: (key, entry) => store.update((s) => {
+      const next = { ...s.displayRatings };
+      if (entry === undefined) {
+        delete next[key];
+      } else {
+        next[key] = entry;
+      }
+      return { displayRatings: next };
+    }),
+  });
+
+  /** Wishes a derived rating for every puzzle of the open pack that has a claim on an older scale, the open one first. */
+  function wantDisplayRatings() {
+    const { pack, index, fingerprints } = store.getState();
+    /** @type {import('../core/browser/display-rating.js').DisplayWish[]} */
+    const wishes = [];
+    if (pack !== null && fingerprints.length === pack.puzzles.length) {
+      const order = [index, ...pack.puzzles.map((_, at) => at).filter((at) => at !== index)];
+      for (const at of order) {
+        const puzzle = pack.puzzles[at];
+        if (puzzle !== undefined && needsDisplayRating(puzzle.rating)) {
+          wishes.push({
+            key: displayRatingKey(fingerprints[at]),
+            payload: { boardRows: pack.board.rows, pieces: pack.pieces, clues: puzzle.clues },
+          });
+        }
+      }
+    }
+    displayRatings.want(wishes);
+  }
 
   /** The controller's dedicated puzzle-code worker: separate from the verification pool, made on first use. */
   function getCodeClient() {
@@ -483,6 +523,7 @@ export function createPlayerController(options) {
       storageWarning: samePack ? before.storageWarning : null,
     });
     startVerification(index);
+    wantDisplayRatings();
     if (!samePack && source !== 'hash') {
       void makePortable(pack);
     }
@@ -838,9 +879,11 @@ export function createPlayerController(options) {
       syncHash('edited', 0);
       store.update({
         ...defaultState(),
+        displayRatings: s.displayRatings,
         storageWarning: s.storageWarning,
         revision: s.revision + 1,
       });
+      wantDisplayRatings();
     },
     dismissError() {
       store.update({ error: null });
@@ -860,6 +903,7 @@ export function createPlayerController(options) {
     destroy() {
       destroyed = true;
       loadToken += 1;
+      displayRatings.dispose();
       aux.dispose();
       try {
         pool?.close();

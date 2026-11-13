@@ -178,7 +178,13 @@ sách thẻ.
   bỏ đi trước, rồi mã QR dùng mức sửa lỗi thấp hơn, và chỉ khi đó vẫn không được mới không có mã QR (mỗi bước đều có ghi
   chú); liên kết dài hơn 4.000 ký tự có cảnh báo, còn dài hơn 16.000 ký tự thì không được tạo. Các bộ mã hóa khác nhau có
   thể viết văn bản mã khác nhau nhưng tương đương cho cùng một đề; đề mà nó mở ra là như nhau.
-- **Thông tin và kiểm tra.** Mức độ và tính duy nhất do gói mang theo được hiển thị đúng như gói ghi, với mức độ in đậm.
+- **Thông tin và kiểm tra.** Mức độ và tính duy nhất do gói mang theo được hiển thị đúng như gói ghi, với mức độ in đậm,
+  trừ đánh giá theo thang cũ, vốn được chấm lại theo thang hiện tại. Đề tạo trước thang điểm hiện tại hiển thị mức độ và
+  điểm đã chấm lại theo thang hiện tại, kèm đánh giá gốc trong một ghi chú ("Đã chấm lại theo thang điểm hiện tại (gốc:
+  Dễ 8, difficulty-v2)"). Việc chấm lại chạy ngầm, sau khi kiểm tra khả năng giải, nên cho tới khi xong chỉ hiện đánh giá
+  đã lưu. Khi chưa đếm xong các phương án đoán, đánh giá được đánh dấu "Ước lượng quyết định". Nếu việc chấm lại không
+  tìm được lời giải đầu tiên trong giới hạn, hoặc trình duyệt không có worker, đánh giá gốc được giữ nguyên, kèm "Không
+  chấm lại được". Đánh giá đã lưu, mã đề và địa chỉ không bao giờ thay đổi.
   Đề chưa có kết quả về tính duy nhất sẽ ghi *Có ít nhất 1 lời giải* khi đã biết một lời giải. Khả năng giải được kiểm tra
   ngầm; việc chơi không bao giờ bị chặn, và *chưa xác minh khả năng giải* không bao giờ có nghĩa là *không có lời giải*.
 - **Đặt mảnh.** Kéo một mảnh lên bàn chơi (trong khung các mảnh, nhấn vào bất kỳ đâu trong khung của mảnh để cầm nó; con
@@ -220,7 +226,8 @@ Nút **In** (biểu tượng máy in: bên phải **Chơi** trong trình tạo �
 in đề ra giấy A4, để giải ngoại tuyến với các mảnh cắt rời.
 
 - Tờ đầu tiên có một **mã QR** ở góc trên bên trái, dưới chú thích "Chơi trực tuyến", và bên phải là tên đề (đúng tên
-  thẻ đề trong danh sách: "Đề #n") cùng mức độ và điểm của đề. Quét mã QR để
+  thẻ đề trong danh sách: "Đề #n") cùng mức độ và điểm của đề (trong trình chơi, là đánh giá mà nó đang hiện, kèm các ghi
+  chú của đánh giá ở những dòng bên dưới: đánh giá gốc của đề được chấm lại, "Ước lượng quyết định"). Quét mã QR để
   chơi lại đúng đề này trong trình chơi, không cần seed. Tờ giấy không in mã đề, địa chỉ hay seed. Sau đó là một hình xem
   trước nhỏ của đề với các mảnh cần đặt (để đọc, không để cắt).
 - **Nhiều đề.** Khi danh sách có nhiều hơn một đề, hộp thoại có hai cột. Cột bên phải có **Số đề mỗi trang** (1, 2 hoặc 4)

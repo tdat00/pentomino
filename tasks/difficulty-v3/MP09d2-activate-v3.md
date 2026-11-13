@@ -1278,8 +1278,8 @@ AMENDMENT B1 READY
 |---|---|
 | Status | Accepted and committed (`difficulty-v3 MP09d2: Activate v3: rate and MODEL, the pinned tests, D21-V3, GF-P2 and GA-P2`) |
 | Start | 2026-11-12 20:45 (+07:00) |
-| End | 2026-11-13 06:02 developer; 06:15 orchestrator review and commit |
-| Duration | about 1 h 37 min developer active (20:45-22:19 and 05:59-06:02); the 7 h 40 min from 22:19 to 05:59 had no model call (the machine was asleep overnight) and is not counted; about 13 min review |
+| End | 2026-11-13 06:02 developer; 06:06 orchestrator review and commit |
+| Duration | about 1 h 37 min developer active (20:45-22:19 and 05:59-06:02); the 7 h 40 min from 22:19 to 05:59 had no model call (the machine was asleep overnight) and is not counted; about 4 min review (with the orchestrator's full `npm test`) |
 | Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
 | Token usage | 241 model calls; 61,862,331 input tokens (61,154,050 cache reads); 189,033 output tokens |
 | AI credits | about 978 (developer) |

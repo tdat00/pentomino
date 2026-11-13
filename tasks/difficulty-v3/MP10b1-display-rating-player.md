@@ -343,14 +343,14 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP10b1: Derived display rating: the shared rules and the Player`) |
+| Start | 2026-11-13 08:21 (+07:00) |
+| End | 2026-11-13 08:45 developer (first round 08:21-08:39, print-overflow round 08:40-08:45); 08:48 orchestrator review and commit |
+| Duration | 24 min developer in two rounds; about 5 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 156 model calls; 37,122,845 input tokens (36,727,961 cache reads); 151,371 output tokens |
+| AI credits | about 617 (developer) |
+| Verification | Developer: targeted `node --test --test-skip-pattern=slow` (the task's six files plus `tests\print-layout.test.js`) 125/125 (7.2 s); `npm run test:quick` 1320/1320 (28.4 s); `npm run check` OK; `record-fixtures --check` OK; mutation checks (no `want` call: 9 failures; `fitDetailLine` bypassed: the end-to-end print test fails). Orchestrator re-run: the same targeted set 125/125, `test:quick` 1320/1320, `check` OK, `record-fixtures --check` OK |
+| Acceptance | MP10b1-B01..B04 and T01..T06 met. Diff reviewed: new `core/browser/display-rating.js` (`needsDisplayRating`, `displayRatingKey`, `createDisplayRatings`, `ratingDisplay`); the Player's `displayRatings` (never saved) and scheduler on `controller.submitAuxiliary`, re-submitted after a preempting verification; the rating line, the cards (the redraw check compares `displayRatings`), the Print job and list (`detailsAt`) show the derived v3 rating with its notes; the five `rating.note.*` texts in English and Vietnamese; `puzzleDetails` prints the notes as extra lines and keeps two parameters; the stored claim, the code and the address unchanged |
+| Issues & resolutions | (1) Five MP10a auxiliary-request tests in `tests/player-load.test.js` broke because the sample and `answerFree` packs carry v2 claims and now post display requests at start-up; the developer opened the same packs with `rating: null` (`sampleUnrated`, `answerFreeUnrated`), no assertion changed; accepted by the orchestrator. (2) Print overflow found by the developer: the English notes are about 136-152 mm wide, wider than the heading column and the 92 mm frames of 4-per-page printing. Orchestrator decision: fix it in MP10b1 like the title rule; `core/browser/print-sheet.js` and `tests/print-layout.test.js` added to the task's files; new `fitDetailLine` shortens a detail line with "…" to the heading block's width on paper (screen texts and the number of detail lines unchanged); design §11.15 and §4.3 updated. (3) Eviction of the display cache: only the first `limit` wishes are heard and entries a current wish needs are never evicted (the developer's reading of "cache of 1,000"). (4) A `rated` reply without a finite score or level shows the claim with "Could not be re-rated". (5) Documentation beyond the slot: design §3.1 layout line and §4.3 rows, and the stale `puzzleDetails(t, rating, set)` signature in §4.3 corrected. (6) Moved anchors: `createPlayerStore` 86, `prepare` 318, `commit` 456; design §7.7 at about 1706 |
+| Handoff | MP10b2: `createDisplayRatings({ submit: client.submitAuxiliary, onChange, limit? })` fits the Generator; wishes from `displayRatingKey(progressFingerprint(...))` with the payload `{ boardRows, pieces, clues }`; mirror the Player's `displayRatingOf` and `setRating(..., notes)` (class `rating-note`, notes joined with " · "). Browser pages to update: `tests/browser/player-load.js` (228-229, 275-277, 570; case 13, the card redraw), `tests/browser/puzzle-code-print.js:466`, `tests/browser/puzzle-code-acceptance.js:1024`, `tests/browser/acceptance.js:240-243`, `tests/browser/print.js` if it uses the Player's jobs; printed notes may end with "…" in narrow frames (`text.pm-print-detail`); the sample's three v2-claimed puzzles are re-rated in the Player, and the default test `enginePool` has no `runIdle` (entries end "Could not be re-rated") |

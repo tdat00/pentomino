@@ -353,8 +353,8 @@ that records calls; `setup` from line 117):
 |---|---|
 | Status | Accepted and committed (`difficulty-v3 MP10a: Auxiliary request method on the generation client and the Player's pool`) |
 | Start | 2026-11-13 08:05 (+07:00) |
-| End | 2026-11-13 08:19 developer; 08:30 orchestrator review and commit |
-| Duration | 14 min developer; about 10 min review |
+| End | 2026-11-13 08:19 developer; 08:20 orchestrator commit |
+| Duration | 14 min developer; about 2 min review |
 | Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
 | Token usage | 66 model calls; 9,224,239 input tokens (9,023,585 cache reads); 96,696 output tokens |
 | AI credits | about 237 (developer) |

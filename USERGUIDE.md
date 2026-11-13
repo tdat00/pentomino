@@ -195,7 +195,13 @@ buttons above the puzzle's name (and **Remove** and **Remove all** under them), 
   16,000 characters is not made. Different encoders can write different but equivalent code text for the same puzzle;
   the puzzle it opens is the same.
 - **Claims and checks.** Ratings and uniqueness carried by the pack are shown as the pack states them, with the level in
-  bold. A puzzle without a uniqueness result reads *At least 1 solution* once a solution is known. Solvability is
+  bold, except that a rating made on an older scale is shown again on today's scale. A puzzle made before the current
+  scale shows its level and score re-rated on today's scale, with the original rating in a note ("Re-rated with the
+  current scale (original: Easy 8, difficulty-v2)"). The re-rating runs in the background, after the solvability check,
+  so until it has finished the stored rating shows alone. An unfinished count of the guess alternatives is marked
+  "Decisive estimate". If the re-rating cannot find the first solution within the limits, or the browser has no worker,
+  the original rating stays, with "Could not be re-rated". The stored rating, the puzzle code and the address never
+  change. A puzzle without a uniqueness result reads *At least 1 solution* once a solution is known. Solvability is
   checked in the background; play is never blocked, and *Solvability not verified* never means *No solution exists*.
 - **Placing pieces.** Drag a piece onto the board (in the pieces panel a press anywhere in the piece's frame grabs it;
   the mouse wheel turns it while it is held), or select a piece, tap or click a cell to preview it and tap the same cell
@@ -237,7 +243,8 @@ buttons above the puzzle's name (and **Remove** and **Remove all** under them), 
 prints the puzzle on A4 paper, to solve it offline with cut-out pieces.
 
 - The first sheet has a **QR code** at the top left, captioned "Play online", and to its right the puzzle's name (the one
-  its card shows in the list: "Puzzle #n") with its level and score. Scan the
+  its card shows in the list: "Puzzle #n") with its level and score (in the Player, the rating it shows, with its notes
+  as lines under it: the original rating of a re-rated puzzle, "Decisive estimate"). Scan the
   QR code to play the same puzzle again in the Player, with no seed. The sheet prints no code text, address or seed. Then
   comes a small preview of the puzzle with the pieces to place (to read, not to cut).
 - **Several puzzles.** When the list has more than one puzzle, the dialog has two columns. The right one has **Puzzles

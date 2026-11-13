@@ -7,21 +7,25 @@ import { levelForScore } from '../core/engine/levels.js';
 import { packBoard, parsePack, validatePack } from '../core/engine/pack.js';
 import { progressFingerprint } from '../core/engine/keys.js';
 import { executeTask } from '../core/engine/tasks.js';
+import { validatePayload } from '../core/engine/protocol.js';
 import { MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES, createWorkspace } from '../core/engine/workspace.js';
 import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
 import { puzzleCodesOf } from '../core/browser/handoff.js';
-import { PoolAbortError, PoolError, createPool } from '../core/browser/worker-pool.js';
+import { displayRatingKey, ratingDisplay } from '../core/browser/display-rating.js';
+import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
+import { PoolAbortError, PoolError, WorkerTaskError, createPool } from '../core/browser/worker-pool.js';
 import { SAVE_FAILED_MESSAGE, createStorage } from '../core/browser/storage.js';
 import { verifySample } from '../tools/record-fixtures.mjs';
 import { nodeWorkerFactory } from '../tools/node-worker.mjs';
 import {
   createPlayerController, createPlayerStore, effectiveRotation, hashWithIndex, knownSolvable,
 } from '../player/state.js';
-import { setLocale } from '../player/i18n.js';
+import { setLocale, t } from '../player/i18n.js';
 import {
   INDEX_MESSAGE, SAMPLE_FAILED_MESSAGE,
-  certificateLabel, formatElapsed, invalidPackMessage, messageForIssues, ratingParts, restorationNotice, verificationLabel,
+  certificateLabel, formatElapsed, invalidPackMessage, levelLabel, messageForIssues, ratingParts, restorationNotice, verificationLabel,
 } from '../player/strings.js';
+import { displayRatingOf, setRating } from '../player/ui/rating-dom.js';
 
 /** The rating line as one text. @param {any} rating */
 const ratingLabel = (rating) => {
@@ -57,6 +61,15 @@ after(() => realClient.dispose());
 
 const answerFree = { ...sample, witness: undefined, puzzles: sample.puzzles.map((p) => ({ ...p, solution: null })) };
 delete answerFree.witness;
+
+/**
+ * The same pack with no rating claim: nothing is re-rated, so a test of the auxiliary queue itself sees only its own
+ * requests (every puzzle of the sample carries a `difficulty-v2` claim, which the Player re-rates in the background).
+ * @param {import('../core/engine/types.js').Pack} pack
+ */
+const unrated = (pack) => ({ ...pack, puzzles: pack.puzzles.map((p) => ({ ...p, rating: null })) });
+const sampleUnrated = unrated(sample);
+const answerFreeUnrated = unrated(/** @type {any} */ (answerFree));
 
 /** @param {Record<string, string>} [seed] */
 function memoryAdapter(seed = {}) {
@@ -769,7 +782,7 @@ test('select only marks a piece; destroy stops everything', async () => {
 test('auxiliary request: the first one of a fresh player bootstraps its own token, and request ids keep increasing', async () => {
   const pool = auxPool();
   const h = setup({ pool });
-  await openPack(h, sample);
+  await openPack(h, sampleUnrated);
   assert.deepEqual(pool.calls, [], 'a stored answer makes no verification request');
   const out = track(h.controller.submitAuxiliary('rate', rateInput));
   await settle(h);
@@ -779,7 +792,7 @@ test('auxiliary request: the first one of a fresh player bootstraps its own toke
   pool.idle[0].resolve({ rating: 'scripted' });
   await settle(h);
   assert.deepEqual([out.state, out.value], ['resolved', { rating: 'scripted' }]);
-  await openPack(h, answerFree);
+  await openPack(h, answerFreeUnrated);
   assert.deepEqual(pool.calls.slice(3), [['begin', 2, `${h.state().revision}:0`]]);
   await assert.rejects(h.controller.submitAuxiliary('verifyPack', {}), TypeError);
 });
@@ -787,7 +800,7 @@ test('auxiliary request: the first one of a fresh player bootstraps its own toke
 test('auxiliary request: a verification in flight is not touched; the request waits and runs under its token', async () => {
   const pool = auxPool();
   const h = setup({ pool });
-  await openPack(h, answerFree);
+  await openPack(h, answerFreeUnrated);
   const stamp = `${h.state().revision}:0`;
   const out = track(h.controller.submitAuxiliary('rate', rateInput));
   await settle(h);
@@ -808,7 +821,7 @@ test('auxiliary request: another puzzle starts a verification and rejects a wait
   const run = async (withAux) => {
     const pool = auxPool();
     const h = setup({ pool });
-    await openPack(h, answerFree);
+    await openPack(h, answerFreeUnrated);
     const aux = withAux ? track(h.controller.submitAuxiliary('rate', rateInput)) : null;
     await settle(h);
     h.controller.goToPuzzle(1);
@@ -837,7 +850,7 @@ test('auxiliary request: another puzzle starts a verification and rejects a wait
 test('auxiliary request: after a verification that timed out it bootstraps a new token', async () => {
   const pool = auxPool();
   const h = setup({ pool });
-  await openPack(h, answerFree);
+  await openPack(h, answerFreeUnrated);
   pool.timeouts[0]();
   pool.verify[0].reject(new PoolAbortError('deadline'));
   await settle(h);
@@ -866,7 +879,7 @@ test('auxiliary request: a pool that cannot begin a request or has no runIdle re
 test('auxiliary request: destroy rejects waiting and running requests as closed, and refuses new ones', async () => {
   const pool = auxPool();
   const h = setup({ pool });
-  await openPack(h, answerFree);
+  await openPack(h, answerFreeUnrated);
   const waiting = track(h.controller.submitAuxiliary('rate', rateInput));
   await settle(h);
   assert.equal(waiting.state, 'pending');
@@ -880,11 +893,330 @@ test('auxiliary request: destroy rejects waiting and running requests as closed,
 
   const idlePool = auxPool();
   const r = setup({ pool: idlePool });
-  await openPack(r, sample);
+  await openPack(r, sampleUnrated);
   const running = track(r.controller.submitAuxiliary('rate', rateInput));
   await settle(r);
   assert.equal(idlePool.idle.length, 1);
   r.controller.destroy();
   await settle(r);
   assert.deepEqual([running.state, running.error?.reason], ['rejected', 'closed']);
+});
+
+const V3_METRICS = {
+  U: 7, R: 35, H: 3.5, B: 12, branchTrials: 12, rowTrials: 40, dlxStop: 'solution', searchStop: 'exhausted',
+  F: 4, E: 0, rules: { R1: 3, R2: 1, R3: 0, R4: 2, R5: 0, R6: 0, R7: 0, R8: 58, R9: 0 }, deductionTier: 3, tier: 4,
+  G: 2, info: 3.321928094887362, Cmax: 5, Dmax: 2, Gt: 2, nodes: 8, work: 123456, S: 1, solutionLimit: 8,
+  solutions: 'unique', censusComplete: true, censusUndecided: 0, censusNodes: 0, censusWork: 0, Gproved: 2,
+};
+
+/** A scripted `difficulty-v3` rating as the worker's `rate` returns it; its level and score are the test's, not the engine's. */
+const v3Rating = (/** @type {object} */ extra = {}) => ({ model: 'difficulty-v3', score: 14, level: 'normal', saturated: false, metrics: V3_METRICS, ...extra });
+
+/** A v3 rating whose census did not finish. @param {number} undecided */
+const v3Estimate = (undecided) => ({
+  ...v3Rating({ censored: true }),
+  metrics: {
+    ...V3_METRICS, S: 8, searchStop: 'solution-limit', solutions: 'many', censusComplete: false, censusUndecided: undecided,
+    nodes: 18, censusNodes: 10, censusWork: 5000, Gproved: 1,
+  },
+});
+
+/**
+ * The pack with the ratings of some puzzles replaced (`null` removes it, `undefined` keeps it).
+ * @param {import('../core/engine/types.js').Pack} pack
+ * @param {unknown[]} ratings
+ * @returns {any}
+ */
+const withRatings = (pack, ratings) => ({ ...pack, puzzles: pack.puzzles.map((p, i) => ({ ...p, rating: ratings[i] === undefined ? p.rating : ratings[i] })) });
+
+test('display rating: a v2 or v1 claim shows the derived v3 rating with the original in a note; the stored claim never changes', async () => {
+  for (const model of ['difficulty-v2', 'difficulty-v1']) {
+    const pool = auxPool();
+    const h = setup({ pool });
+    await openPack(h, withRatings(sample, sample.puzzles.map((p) => ({ ...p.rating, model }))));
+    await settle(h);
+    const pack = /** @type {any} */ (h.state().pack);
+    const stored = structuredClone(pack.puzzles[0].rating);
+    assert.equal(stored.model, model);
+    assert.equal(pool.idle.length, 1, 'one request at a time');
+    const { task } = pool.idle[0];
+    assert.equal(task.kind, 'rate');
+    assert.deepEqual(task.payload, { boardRows: pack.board.rows, pieces: pack.pieces, clues: pack.puzzles[0].clues }, 'the open puzzle first');
+    assert.equal(validatePayload('rate', task.payload).ok, true, 'the worker accepts the payload');
+    const key = displayRatingKey(h.state().fingerprints[0]);
+    assert.deepEqual(h.state().displayRatings[key], { status: 'pending' });
+    assert.deepEqual(displayRatingOf(h.state(), 0), { rating: stored, notes: [] }, 'a request not yet settled shows the claim alone');
+
+    const reply = v3Rating();
+    pool.idle[0].resolve(reply);
+    await settle(h);
+    assert.deepEqual(h.state().displayRatings[key], { status: 'rated', rating: reply });
+    const shown = ratingDisplay(pack.puzzles[0].rating, h.state().displayRatings[key], { t, levelLabel });
+    assert.equal(shown?.rating, reply);
+    assert.deepEqual(shown?.notes, [`Re-rated with the current scale (original: Easy 8, ${model})`]);
+    assert.deepEqual(displayRatingOf(h.state(), 0), shown);
+    assert.equal(h.state().pack, pack, 'the pack is the one that was opened');
+    assert.deepEqual(h.state().pack?.puzzles[0].rating, stored, 'the stored claim is untouched');
+    assert.deepEqual([...(h.adapter?.map.keys() ?? [])], [], 'the derived rating is never saved');
+    assert.equal(pool.idle.length, 2, 'the next puzzle is asked for');
+    assert.deepEqual(pool.idle[1].task.payload.clues, pack.puzzles[1].clues);
+  }
+});
+
+test('display rating: the rating line writes its notes after the rating and before the tail', () => {
+  const doc = {
+    createElement: (/** @type {string} */ tag) => ({
+      tag,
+      className: '',
+      textContent: '',
+      dataset: {},
+      children: /** @type {any[]} */ ([]),
+      append(/** @type {any[]} */ ...nodes) {
+        this.children.push(...nodes);
+      },
+      setAttribute() {},
+      addEventListener() {},
+    }),
+    createTextNode: (/** @type {string} */ text) => ({ text }),
+  };
+  const saved = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', { value: doc, configurable: true, writable: true });
+  try {
+    const target = /** @type {any} */ ({
+      nodes: [],
+      replaceChildren(/** @type {any[]} */ ...nodes) {
+        this.nodes = nodes;
+      },
+    });
+    const line = () => target.nodes.map((/** @type {any} */ node) => (typeof node === 'string' ? node : node.textContent)).join('');
+    const rating = { model: 'difficulty-v3', score: 14, level: 'normal', saturated: false };
+    assert.equal(setRating(target, rating, '3 pieces to place', ['Note one', 'Note two']), true);
+    assert.equal(line(), 'Normal: score 14 · Note one · Note two · 3 pieces to place');
+    assert.deepEqual(target.nodes.filter((/** @type {any} */ node) => typeof node !== 'string').map((/** @type {any} */ node) => [node.className, node.textContent]),
+      [['rating-level', 'Normal'], ['rating-note', 'Note one'], ['rating-note', 'Note two']]);
+    setRating(target, rating, '3 pieces to place');
+    assert.equal(line(), 'Normal: score 14 · 3 pieces to place', 'as before without notes');
+    setRating(target, rating);
+    assert.equal(line(), 'Normal: score 14');
+    assert.equal(setRating(target, undefined, 'tail'), true);
+    assert.equal(line(), 'tail');
+    assert.equal(setRating(target, undefined), false);
+  } finally {
+    if (saved === undefined) {
+      Reflect.deleteProperty(globalThis, 'document');
+    } else {
+      Object.defineProperty(globalThis, 'document', saved);
+    }
+  }
+});
+
+test('display rating: a puzzle without a claim, or with a v3 claim, is never re-rated', async () => {
+  const none = auxPool();
+  const h = setup({ pool: none });
+  await openPack(h, sampleUnrated);
+  await settle(h);
+  assert.deepEqual([none.idle.length, none.calls, h.state().displayRatings], [0, [], {}], 'no rate task is ever posted');
+  assert.equal(displayRatingOf(h.state(), 0), null, 'no claim, no rating line');
+
+  const pool = auxPool();
+  const mixed = setup({ pool });
+  await openPack(mixed, withRatings(sample, [undefined, null, v3Rating()]));
+  await settle(mixed);
+  assert.equal(pool.idle.length, 1, 'only the puzzle with an older claim');
+  assert.deepEqual(pool.idle[0].task.payload.clues, mixed.state().pack?.puzzles[0].clues);
+  pool.idle[0].resolve(v3Rating());
+  await settle(mixed);
+  assert.equal(pool.idle.length, 1, 'and nothing after it');
+  assert.equal(Object.keys(mixed.state().displayRatings).length, 1);
+});
+
+test('display rating: a reply that arrives after the pack was replaced is dropped, and the request was aborted', async () => {
+  const pool = auxPool();
+  const h = setup({ pool });
+  await openPack(h, sample);
+  await settle(h);
+  const oldKey = displayRatingKey(h.state().fingerprints[0]);
+  const first = pool.idle[0];
+  assert.equal(first.task.signal.aborted, false);
+  await openPack(h, { ...sample, puzzles: [sample.puzzles[2], sample.puzzles[1]] });
+  await settle(h);
+  assert.equal(first.task.signal.aborted, true, 'aborted through its own signal');
+  assert.equal(h.state().displayRatings[oldKey], undefined, 'its entry went with it');
+  assert.equal(pool.idle.length, 2);
+  assert.deepEqual(pool.idle[1].task.payload.clues, h.state().pack?.puzzles[0].clues, 'the open puzzle of the new pack is next');
+  first.resolve(v3Rating());
+  await settle(h);
+  const newKey = displayRatingKey(h.state().fingerprints[0]);
+  assert.deepEqual(Object.keys(h.state().displayRatings), [newKey], 'a late reply for the old key is dropped');
+  assert.equal(h.state().displayRatings[newKey].status, 'pending');
+  pool.idle[1].resolve(v3Rating({ score: 30 }));
+  await settle(h);
+  assert.equal(h.state().displayRatings[newKey].status, 'rated');
+});
+
+test('display rating: removing every puzzle stops the request but keeps the answers; destroy stops it too', async () => {
+  const pool = auxPool();
+  const h = setup({ pool });
+  await openPack(h, sample);
+  await settle(h);
+  const key0 = displayRatingKey(h.state().fingerprints[0]);
+  pool.idle[0].resolve(v3Rating());
+  await settle(h);
+  assert.equal(pool.idle.length, 2);
+  h.controller.removeAllPuzzles();
+  assert.equal(pool.idle[1].task.signal.aborted, true);
+  assert.deepEqual(Object.keys(h.state().displayRatings), [key0], 'the answer stays, the pending entry goes');
+  await openPack(h, sample);
+  await settle(h);
+  assert.equal(pool.idle.length, 3, 'the answered puzzle is not asked again');
+  assert.deepEqual(pool.idle[2].task.payload.clues, h.state().pack?.puzzles[1].clues);
+  assert.equal(displayRatingOf(h.state(), 0)?.notes.length, 1, 'and shows its derived rating at once');
+
+  h.controller.destroy();
+  assert.equal(pool.idle[2].task.signal.aborted, true);
+  const shown = h.state().displayRatings;
+  pool.idle[2].resolve(v3Rating());
+  await settle(h);
+  assert.equal(h.state().displayRatings, shown, 'nothing changes after destroy');
+});
+
+test('display rating: with no worker the puzzles keep their claims with "Could not be re-rated", and nothing fails', async () => {
+  const missing = setup({ createPool: () => { throw new PoolError('worker-unavailable', 'no workers'); } });
+  const noIdle = setup({ pool: enginePool() });
+  for (const h of [missing, noIdle]) {
+    await openPack(h, sample);
+    await settle(h);
+    assert.deepEqual(Object.values(h.state().displayRatings), [{ status: 'unavailable' }, { status: 'unavailable' }, { status: 'unavailable' }]);
+    assert.equal(h.state().error, null);
+    assert.equal(h.state().screen, 'game');
+    for (const at of [0, 1, 2]) {
+      assert.deepEqual(displayRatingOf(h.state(), at), { rating: h.state().pack?.puzzles[at].rating, notes: ['Could not be re-rated'] });
+    }
+    assert.equal(h.controller.goToPuzzle(1).ok, true);
+    assert.equal(h.state().error, null);
+  }
+});
+
+test('display rating: an unrateable puzzle keeps its claim with "Could not be re-rated"; the next one is still asked for', async () => {
+  const pool = auxPool();
+  const h = setup({ pool });
+  await openPack(h, sample);
+  await settle(h);
+  pool.idle[0].reject(new WorkerTaskError('rating-incomplete', 'the first path was capped'));
+  await settle(h);
+  pool.idle[1].reject(new WorkerTaskError('unsatisfiable', 'no solution'));
+  await settle(h);
+  const keys = [0, 1, 2].map((at) => displayRatingKey(h.state().fingerprints[at]));
+  assert.deepEqual(h.state().displayRatings[keys[0]], { status: 'failed', code: 'rating-incomplete' });
+  assert.deepEqual(h.state().displayRatings[keys[1]], { status: 'failed', code: 'unsatisfiable' });
+  for (const at of [0, 1]) {
+    assert.deepEqual(displayRatingOf(h.state(), at), { rating: h.state().pack?.puzzles[at].rating, notes: ['Could not be re-rated'] });
+  }
+  assert.equal(h.state().error, null);
+  assert.equal(pool.idle.length, 3);
+  pool.idle[2].resolve(v3Rating());
+  await settle(h);
+  assert.equal(h.state().displayRatings[keys[2]].status, 'rated');
+  h.controller.goToPuzzle(0);
+  h.controller.goToPuzzle(1);
+  await settle(h);
+  assert.equal(pool.idle.length, 3, 'a failed puzzle is not asked for again');
+});
+
+test('display rating: re-rating never delays or cancels a verification; after a new one it is asked for again', async () => {
+  const pool = auxPool();
+  const h = setup({ pool });
+  await openPack(h, answerFree);
+  await settle(h);
+  const stamp = `${h.state().revision}:0`;
+  assert.deepEqual(pool.calls, [['begin', 1, stamp]], 'the verification began first, and the display request waits');
+  assert.equal(pool.idle.length, 0);
+  assert.equal(h.state().verificationByPuzzle[0].status, 'pending');
+  pool.verify[0].resolve(await enginePool().run(pool.verify[0].task));
+  await settle(h);
+  assert.deepEqual(h.state().verificationByPuzzle[0], { status: 'solvable', basis: 'search' }, 'the result is applied unchanged');
+  assert.deepEqual(pool.calls, [['begin', 1, stamp], ['end', 1], ['idle', 1, stamp]], 'then the display request runs');
+  const key0 = displayRatingKey(h.state().fingerprints[0]);
+  assert.equal(h.state().displayRatings[key0].status, 'pending');
+
+  h.controller.goToPuzzle(1);
+  assert.equal(h.state().verificationByPuzzle[1].status, 'pending');
+  // The pool aborts idle work when a main request begins.
+  pool.idle[0].reject(new PoolAbortError('preempted'));
+  await settle(h);
+  assert.equal(pool.idle.length, 1, 'the display request waits for the new verification');
+  assert.equal(h.state().verificationByPuzzle[1].status, 'pending', 'the verification was not cancelled');
+  assert.equal(h.state().displayRatings[key0].status, 'pending');
+  pool.verify[1].resolve(await enginePool().run(pool.verify[1].task));
+  await settle(h);
+  assert.deepEqual(h.state().verificationByPuzzle[1], { status: 'solvable', basis: 'search' });
+  assert.equal(pool.idle.length, 2, 'submitted again after the main request');
+  assert.deepEqual(pool.idle[1].task.payload.clues, h.state().pack?.puzzles[0].clues, 'the same puzzle again');
+  pool.idle[1].resolve(v3Rating());
+  await settle(h);
+  assert.equal(h.state().displayRatings[key0].status, 'rated');
+  assert.equal(pool.idle.length, 3, 'then the next puzzle');
+});
+
+test('display rating: a v3 estimate is marked, with n when its metrics are known and without it for a code\'s summary claim', async () => {
+  const summary = { model: 'difficulty-v3', score: 33, level: 'expert', saturated: false, censored: true };
+  const pool = auxPool();
+  const h = setup({ pool });
+  await openPack(h, withRatings(sample, [v3Estimate(2), summary, v3Rating()]));
+  await settle(h);
+  assert.equal(pool.idle.length, 0, 'a v3 claim is not rated again');
+  const pack = /** @type {any} */ (h.state().pack);
+  const shown = [0, 1, 2].map((at) => displayRatingOf(h.state(), at));
+  assert.deepEqual(shown.map((one) => one?.notes), [['Decisive estimate: 2 alternatives undecided within the work limit'], ['Decisive estimate'], []]);
+  assert.deepEqual(shown.map((one) => one?.rating), pack.puzzles.map((/** @type {any} */ p) => p.rating), 'the claim itself is shown');
+  assert.equal(shown[0]?.rating.saturated, false, 'an estimate never adds "+"');
+  setLocale('vi', null);
+  try {
+    assert.deepEqual([0, 1].map((at) => displayRatingOf(h.state(), at)?.notes), [
+      ['Ước lượng quyết định: 2 phương án chưa phân định trong giới hạn tính toán'], ['Ước lượng quyết định'],
+    ]);
+  } finally {
+    setLocale('en', null);
+  }
+});
+
+test('display rating: the code of a re-rated puzzle is the code of its stored claim', async () => {
+  const pool = auxPool();
+  const h = setup({ pool });
+  await openPack(h, sample);
+  await settle(h);
+  const pack = /** @type {any} */ (h.state().pack);
+  const snapshot = () => puzzleSnapshot({ rows: pack.board.rows, pieces: pack.pieces, puzzle: pack.puzzles[0], index: 0, rotation: 0 });
+  const before = snapshot();
+  pool.idle[0].resolve(v3Rating());
+  await settle(h);
+  assert.equal(h.state().displayRatings[displayRatingKey(h.state().fingerprints[0])].status, 'rated');
+  const after = snapshot();
+  assert.equal(after.key, before.key, 'the same code, whatever is shown');
+  assert.equal(after.data.rating?.model, 'difficulty-v2');
+  assert.deepEqual(after.data.rating, h.state().pack?.puzzles[0].rating);
+});
+
+test('display rating: a Player created on the sample or on a link asks for the open puzzle first, with no user action', async () => {
+  const sampled = auxPool();
+  const s = setup({ pool: sampled });
+  await s.controller.openSample();
+  await settle(s);
+  assert.deepEqual(sampled.idle.map((one) => one.task.kind), ['rate']);
+  assert.deepEqual(sampled.idle[0].task.payload.clues, s.state().pack?.puzzles[0].clues);
+
+  const pool = auxPool();
+  const h = setup({ hash: await listHash(sample, 1), codes: true, pool });
+  await h.controller.start();
+  await waitFor(() => pool.idle.length > 0);
+  const pack = /** @type {any} */ (h.state().pack);
+  assert.equal(h.state().index, 1);
+  assert.equal(pack.puzzles[1].rating?.model, 'difficulty-v2');
+  assert.deepEqual(pool.idle[0].task.payload.clues, pack.puzzles[1].clues, 'the puzzle on show first');
+  pool.idle[0].resolve(v3Rating());
+  await settle(h);
+  assert.deepEqual(pool.idle[1].task.payload.clues, pack.puzzles[0].clues, 'then the others in the order of the pack');
+  pool.idle[1].resolve(v3Rating());
+  await settle(h);
+  assert.deepEqual(pool.idle[2].task.payload.clues, pack.puzzles[2].clues);
 });

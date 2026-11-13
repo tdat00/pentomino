@@ -39,10 +39,12 @@ import { PUBLIC_PLAYER_URL, preparePuzzleShare, puzzlePlayerTarget } from './puz
 const BOLD_MARK = '\u0000';
 
 /**
- * The line under the title of a printed puzzle, with the level name in bold: "Nightmare: score 123". Neither the seed
- * of the puzzle nor the set's level and seed are printed: they cannot recreate the puzzle by themselves.
+ * The lines under the title of a printed puzzle: the rating, with the level name in bold ("Nightmare: score 123"), then
+ * one line for each note of the rating (the derived display rating's, see `ratingDisplay`). Neither the seed of the
+ * puzzle nor the set's level and seed are printed: they cannot recreate the puzzle by themselves.
  * @param {(key: string, args?: Record<string, unknown>) => string} t
- * @param {{ level: string, score: number, saturated?: boolean } | null} rating Level name already in the reader's language.
+ * @param {{ level: string, score: number, saturated?: boolean, notes?: string[] } | null} rating Level name already in the
+ *   reader's language; the notes already in the reader's language too.
  * @returns {PrintLine[]}
  */
 export function puzzleDetails(t, rating) {
@@ -61,6 +63,9 @@ export function puzzleDetails(t, rating) {
   if (rating !== null) {
     const score = `${Number.isFinite(rating.score) ? Math.round(rating.score) : 0}${rating.saturated === true ? '+' : ''}`;
     lines.push(rich('print.sheet.ratingOnly', { score }, rating.level));
+    for (const note of rating.notes ?? []) {
+      lines.push([{ text: note }]);
+    }
   }
   return lines;
 }

@@ -1,7 +1,8 @@
 // @ts-check
 // Texts of the Print dialog and of the printed sheets, shared by the Generator and the Player: each app's locale packs
-// spread these in, so the two apps word printing the same. `{name}` marks a value filled in at run time; `_one` /
-// `_other` are plural forms.
+// spread these in, so the two apps word printing the same. The `rating.note.*` texts, the notes of a rating (the
+// derived display rating and the estimate), are shared in the same way. `{name}` marks a value filled in at run time;
+// `_one` / `_other` are plural forms.
 
 /** @type {Readonly<Record<string, string>>} */
 export const PRINT_TEXTS_EN = Object.freeze({
@@ -46,6 +47,11 @@ export const PRINT_TEXTS_EN = Object.freeze({
   'print.sheet.legend': 'Pieces with a hatched pattern and a padlock are already on the board at the start.',
   'print.sheet.toPlace': 'Pieces to place ({count})',
   'print.sheet.ratingOnly': '{level}: score {score}',
+  'rating.note.rerated': 'Re-rated with the current scale (original: {level} {score}, {model})',
+  'rating.note.notRerated': 'Could not be re-rated',
+  'rating.note.estimate_one': 'Decisive estimate: {count} alternative undecided within the work limit',
+  'rating.note.estimate_other': 'Decisive estimate: {count} alternatives undecided within the work limit',
+  'rating.note.estimateShort': 'Decisive estimate',
   'print.sheet.scan': 'Play online',
   'print.sheet.noCode': 'This puzzle is too large for a puzzle code.',
   'print.code.preparing': 'Preparing the puzzle code…',
@@ -106,6 +112,10 @@ export const PRINT_TEXTS_VI = Object.freeze({
   'print.sheet.legend': 'Các mảnh có nền gạch chéo và ổ khóa là những mảnh đã đặt sẵn trên bàn chơi lúc bắt đầu.',
   'print.sheet.toPlace': 'Các mảnh cần đặt ({count})',
   'print.sheet.ratingOnly': '{level}: điểm {score}',
+  'rating.note.rerated': 'Đã chấm lại theo thang điểm hiện tại (gốc: {level} {score}, {model})',
+  'rating.note.notRerated': 'Không chấm lại được',
+  'rating.note.estimate_other': 'Ước lượng quyết định: {count} phương án chưa phân định trong giới hạn tính toán',
+  'rating.note.estimateShort': 'Ước lượng quyết định',
   'print.sheet.scan': 'Chơi trực tuyến',
   'print.sheet.noCode': 'Đề này quá lớn để tạo mã đề.',
   'print.code.preparing': 'Đang chuẩn bị mã đề…',

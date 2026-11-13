@@ -358,8 +358,8 @@ node -e "const t=require('fs').readFileSync(process.argv[1],'utf8');console.log(
 |---|---|
 | Status | Accepted and committed (`difficulty-v3 MP09e: GC-P2 format evidence: the 676-cell code sizes and the duplicate-shape browser check`) |
 | Start | 2026-11-13 06:30 (+07:00) |
-| End | 2026-11-13 08:03 developer (implementation 06:30-07:05, flake baseline 07:40-08:03); 08:10 orchestrator review and commit |
-| Duration | about 1 h 33 min developer (of which about 25 min the requested flake baseline); about 10 min review |
+| End | 2026-11-13 08:03 developer (implementation 06:30-07:05, flake baseline 07:40-08:03); 08:05 orchestrator commit |
+| Duration | about 1 h 33 min developer (of which about 25 min the requested flake baseline); about 10 min review (07:05-07:12 and 08:03-08:05) |
 | Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
 | Token usage | 135 model calls; 26,777,396 input tokens (26,159,607 cache reads); 130,953 output tokens |
 | AI credits | about 547 (developer) |

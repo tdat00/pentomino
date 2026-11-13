@@ -30,7 +30,7 @@ import { createHintPanel } from './ui/hint-panel.js';
 import { loc, locAttrs } from './ui/i18n-dom.js';
 import { createKeyboard } from './ui/keyboard.js';
 import { createPuzzleList } from './ui/puzzle-list.js';
-import { setRating } from './ui/rating-dom.js';
+import { displayRatingOf, setRating } from './ui/rating-dom.js';
 import { createStartView } from './ui/start-view.js';
 import { createToolbar } from './ui/toolbar.js';
 import { createTrayView } from './ui/tray-view.js';
@@ -381,16 +381,29 @@ export function mountPlayer(root, env = {}) {
   });
   replayDialog.dialog.classList.add('pm-replay');
   /**
+   * The lines under the title of puzzle `at` on paper: its rating (the derived one when the puzzle has it) and the notes.
+   * @param {PlayerState} state
+   * @param {number} at
+   * @returns {import('../core/browser/print-sheet.js').PrintLine[]}
+   */
+  function detailsAt(state, at) {
+    const shown = displayRatingOf(state, at);
+    const rating = shown?.rating;
+    return puzzleDetails(t,
+      rating && typeof rating.score === 'number'
+        ? { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated, notes: shown.notes } : null);
+  }
+  /**
    * @param {number} at Index of the puzzle in the pack.
    * @returns {import('../core/browser/print-dialog.js').PrintJob | null}
    */
   function printJobAt(at) {
-    const { pack, viewRotation } = store.getState();
+    const state = store.getState();
+    const { pack, viewRotation } = state;
     const puzzle = pack?.puzzles[at];
     if (pack === null || puzzle === undefined) {
       return null;
     }
-    const rating = puzzle.rating;
     const rotation = viewRotation ?? pack.presentation?.rotation ?? 0;
     // The code carries the puzzle as stored, with its answer if it has one, at the angle on screen; the Player still
     // offers no solution sheet (no `solution` in the job).
@@ -401,8 +414,7 @@ export function mountPlayer(root, env = {}) {
       clues: puzzle.clues,
       rotation,
       title: cardHeading(puzzle.title, at),
-      details: puzzleDetails(t,
-        rating && typeof rating.score === 'number' ? { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated } : null),
+      details: detailsAt(state, at),
       snapshot,
     };
   }
@@ -413,20 +425,19 @@ export function mountPlayer(root, env = {}) {
   }
   /** @returns {import('../core/browser/print-dialog.js').PrintList | null} Every puzzle of the pack, for the Print dialog to choose from. */
   function printList() {
-    const { pack, index, game } = store.getState();
+    const state = store.getState();
+    const { pack, index, game } = state;
     if (pack === null || game === null) {
       return null;
     }
     return {
       current: String(index),
       items: pack.puzzles.map((puzzle, at) => {
-        const rating = puzzle.rating;
-        const lines = puzzleDetails(t,
-          rating && typeof rating.score === 'number' ? { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated } : null);
+        const lines = detailsAt(state, at);
         return {
           id: String(at),
           title: cardHeading(puzzle.title, at),
-          detail: lines.map((line) => line.map((part) => part.text).join('')).join(' '),
+          detail: lines.map((line) => line.map((part) => part.text).join('')).join(' · '),
           job: () => printJobAt(at),
           order: at,
         };
@@ -643,7 +654,8 @@ export function mountPlayer(root, env = {}) {
     puzzleNav.update({ index: state.index, total: pack?.puzzles.length ?? 0, busy: state.loading });
     title.textContent = puzzle ? puzzleDisplayName(puzzle.title, state.index) : '';
     const toPlace = puzzle && pack ? LABELS.toPlace(Math.max(0, pack.pieces.length - puzzle.clues.length)) : '';
-    setRating(info, puzzle?.rating, toPlace);
+    const shown = displayRatingOf(state, state.index);
+    setRating(info, shown?.rating, toPlace, shown?.notes);
     timer.textContent = g ? formatElapsed(g.elapsedMs) : '';
     moves.textContent = g ? LABELS.moves(g.moves) : '';
     const busy = play.view().dragging;

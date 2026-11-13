@@ -5,10 +5,11 @@ import { test } from 'node:test';
 import { rectangle } from '../core/engine/board.js';
 import { packBoard } from '../core/engine/pack.js';
 import {
-  AREA_HEIGHT, AREA_WIDTH, CELL_MM, FIT_PAGE_MAX_CELL_MM, PAGE_WIDTH, PREVIEW_BOTTOM, PRINT_SIZES, cellSizeFor,
+  AREA_HEIGHT, AREA_WIDTH, CELL_MM, DETAIL_SIZE_MM, FIT_PAGE_MAX_CELL_MM, PAGE_WIDTH, PREVIEW_BOTTOM, PRINT_SIZES, cellSizeFor,
   estimateTextWidth, fitText, layoutBoard, layoutPieceSheets, layoutPreview, mirrorCells, mirrorX, orientModel, planPrint,
   snapRotation, titleBlock, wrapTitle, framesFor, planPrintMany, FRAME_GAP_MM, PAGE_MARGIN,
 } from '../core/browser/print-layout.js';
+import { buildPrintPages, fitDetailLine } from '../core/browser/print-sheet.js';
 import { PRINT_TEXTS_EN, PRINT_TEXTS_VI } from '../core/browser/print-texts.js';
 import { makePuzzleQr } from '../core/browser/qr.js';
 
@@ -560,4 +561,111 @@ test('solutions of the puzzles of a sheet share a sheet, on the back with the co
   assert.deepEqual(sheet.items.map((i) => [i.puzzle, i.dx]), [[0, 0], [1, dx]], 'on its own sheet the places are the same as on the puzzle sheet');
   assert.ok(oneSided.paper > plan.paper, 'two sides save the solution sheets');
   assert.equal(planPrintMany(jobs, { ...OPTIONS, perPage: 2, solution: false }).sheets.some((s) => s.kind === 'solution'), false);
+});
+
+// ---- Detail lines on paper are shortened to the width of the heading --------------------------------------------------
+
+const RERATED_EN = 'Re-rated with the current scale (original: Normal 14, difficulty-v2)';
+const RERATED_VI = 'Đã chấm lại theo thang điểm hiện tại (gốc: Bình thường 14, difficulty-v2)';
+/** @param {{ text: string, bold?: boolean }[]} parts */
+const lineWidth = (parts) => parts.reduce((sum, part) => sum + estimateTextWidth(part.text, DETAIL_SIZE_MM, part.bold === true), 0);
+const lonelySurrogate = /[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/;
+
+test('fitDetailLine keeps a line that fits; a long one loses its last code points to "…", the parts before it stay', () => {
+  const note = [{ text: RERATED_EN }];
+  assert.equal(fitDetailLine(note, 190, estimateTextWidth), note, 'a line that fits is the same line');
+
+  const cut = fitDetailLine(note, 60, estimateTextWidth);
+  const longest = Math.max(...Array.from({ length: RERATED_EN.length }, (_, n) => n)
+    .filter((n) => lineWidth([{ text: `${RERATED_EN.slice(0, n).trimEnd()}…` }]) <= 60));
+  assert.deepEqual(cut, [{ text: `${RERATED_EN.slice(0, longest).trimEnd()}…` }], 'as much as fits, then an ellipsis');
+  assert.ok(lineWidth(cut) <= 60);
+
+  const rating = [{ text: 'Normal', bold: true }, { text: ': score 14' }];
+  assert.equal(fitDetailLine(rating, 44.6, estimateTextWidth), rating);
+  const squeezed = fitDetailLine(rating, 25, estimateTextWidth);
+  assert.deepEqual(squeezed[0], rating[0], 'the bold level before it stays whole');
+  assert.ok(squeezed.length === 2 && squeezed[1].text.endsWith('…') && lineWidth(squeezed) <= 25);
+  const tiny = fitDetailLine(rating, 10, estimateTextWidth);
+  assert.ok(tiny.length === 1 && tiny[0].bold === true && tiny[0].text.endsWith('…') && lineWidth(tiny) <= 10,
+    'a part that cannot fit even as "…" is dropped, and the one before it is shortened');
+  assert.deepEqual(fitDetailLine(rating, 1, estimateTextWidth), [{ text: '…' }]);
+
+  const emoji = fitDetailLine([{ text: '😀'.repeat(40) }], 30, estimateTextWidth);
+  assert.ok(emoji[0].text.endsWith('…') && !lonelySurrogate.test(emoji[0].text), 'never inside a surrogate pair');
+  assert.ok(lineWidth(emoji) <= 30);
+});
+
+/** A recording stand-in for `document`: elements keep their attributes and children, which is all the sheets need. */
+function withFakeDocument(/** @type {() => void} */ run) {
+  const saved = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  const element = (/** @type {string} */ tag) => ({
+    tag,
+    attrs: /** @type {Record<string, string>} */ ({}),
+    children: /** @type {any[]} */ ([]),
+    setAttribute(/** @type {string} */ name, /** @type {string} */ value) {
+      this.attrs[name] = value;
+    },
+    removeAttribute(/** @type {string} */ name) {
+      delete this.attrs[name];
+    },
+    append(/** @type {any[]} */ ...nodes) {
+      this.children.push(...nodes);
+    },
+  });
+  const document = { createElementNS: (/** @type {string} */ _ns, /** @type {string} */ tag) => element(tag), createElement: element, createTextNode: (/** @type {string} */ text) => ({ text }) };
+  Object.defineProperty(globalThis, 'document', { value: document, configurable: true, writable: true });
+  try {
+    run();
+  } finally {
+    if (saved === undefined) {
+      Reflect.deleteProperty(globalThis, 'document');
+    } else {
+      Object.defineProperty(globalThis, 'document', saved);
+    }
+  }
+}
+
+/** @param {any} node @param {(node: any) => boolean} match @returns {any[]} */
+const findAll = (node, match) => [...(match(node) ? [node] : []), ...(node.children ?? []).flatMap((/** @type {any} */ child) => findAll(child, match))];
+/** @param {any} node @returns {string} */
+const textOf = (node) => node.text ?? (node.children ?? []).map(textOf).join('');
+/** The detail lines drawn on a page, in order, as parts. @param {any} page */
+const detailLines = (page) => findAll(page, (node) => node.tag === 'text' && node.attrs.class === 'pm-print-detail')
+  .map((node) => node.children.map((/** @type {any} */ tspan) => (tspan.attrs['font-weight'] === '700' ? { text: textOf(tspan), bold: true } : { text: textOf(tspan) })));
+
+test('on paper a note is cut with "…" to the width of its heading in every frame, on the puzzle and the solution sheets', () => {
+  const rating = [{ text: 'Normal', bold: true }, { text: ': score 14' }];
+  const short = [{ text: 'Could not be re-rated' }];
+  const narrow = [shareOf(symbols(120), symbols(30)), undefined, shareOf(symbols(3000), symbols(300)), shareOf(symbols(120), symbols(30))];
+  withFakeDocument(() => {
+    for (const [note, texts] of /** @type {const} */ ([[RERATED_EN, PRINT_TEXTS_EN], [RERATED_VI, PRINT_TEXTS_VI]])) {
+      const t = (/** @type {string} */ key, /** @type {Record<string, unknown>} */ args = {}) => texts[key].replace(/\{(\w+)\}/g, (_, name) => String(args[name]));
+      const jobs = puzzleJobs(4).map((job, i) => ({ ...job, details: [rating, [{ text: note }], short], share: narrow[i] }));
+      const plan = planPrintMany(jobs, { ...OPTIONS, perPage: 4, solution: true });
+      const pages = buildPrintPages(plan, jobs.map((job) => ({ title: job.title, details: job.details })), t);
+      const solutionAt = plan.pages.findIndex((p) => p.sheet.kind === 'solution');
+      assert.ok(solutionAt > 0);
+      const widths = plan.puzzles.map((p) => p.band.head.width);
+      assert.ok(Math.min(...widths) < 50 && Math.max(...widths) === 92, 'the frames are the smallest ones, with and without a code box');
+      for (const [sheet, limits] of /** @type {const} */ ([[pages[0], widths], [pages[solutionAt], widths.map(() => 92)]])) {
+        const lines = detailLines(sheet);
+        assert.equal(lines.length, 12);
+        limits.forEach((limit, i) => {
+          const [ratingLine, noteLine, shortLine] = lines.slice(i * 3, i * 3 + 3);
+          assert.deepEqual(ratingLine, rating, 'the rating line fits');
+          assert.ok(noteLine.length === 1 && noteLine[0].text.endsWith('…') && note.startsWith(noteLine[0].text.slice(0, -1)), 'the note ends with an ellipsis');
+          assert.ok(lineWidth(noteLine) <= limit + 1e-9, `the note fits ${limit} mm`);
+          assert.ok(lineWidth(shortLine) <= limit + 1e-9);
+          if (limit > 50) {
+            assert.deepEqual(shortLine, short, 'a short note stays as it is');
+          }
+        });
+      }
+    }
+
+    const wide = planPrintMany(puzzleJobs(1).map((job) => ({ ...job, details: [rating, [{ text: RERATED_EN }]], share: undefined })), OPTIONS);
+    const [page] = buildPrintPages(wide, [{ title: 'Puzzle #1', details: [rating, [{ text: RERATED_EN }]] }], (key) => PRINT_TEXTS_EN[key]);
+    assert.deepEqual(detailLines(page)[1], [{ text: RERATED_EN }], 'a note that fits its heading is printed whole');
+  });
 });
