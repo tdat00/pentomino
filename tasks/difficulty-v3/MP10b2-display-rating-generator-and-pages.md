@@ -405,8 +405,8 @@ AMENDMENT D1 READY
 |---|---|
 | Status | Accepted and committed (`difficulty-v3 MP10b2: Derived display rating in the Generator; the browser pages and gate GC-P2 (display); KI-1 closed`) |
 | Start | 2026-11-13 09:19 (+07:00) |
-| End | 2026-11-13 10:03 developer; 10:08 orchestrator review and commit |
-| Duration | 45 min developer (about 25 min of it page runs, 20 of them the D1 check); about 5 min review |
+| End | 2026-11-13 10:03 developer; 10:05 orchestrator commit |
+| Duration | 45 min developer (about 25 min of it page runs, 20 of them the D1 check); about 2 min review |
 | Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
 | Token usage | 194 model calls; 41,066,875 input tokens (40,523,723 cache reads); 175,668 output tokens |
 | AI credits | about 717 (developer) |

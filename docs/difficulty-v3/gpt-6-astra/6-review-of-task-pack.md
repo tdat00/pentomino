@@ -1351,3 +1351,476 @@ TP13/TP14 were already binding at dispatch as recorded above.
 for sequential dispatch with those addenda. No task, implementation, fixture, execution log or checklist was edited.
 
 MP10-MP11 VERIFIED
+
+## MP12 tranche: calibration slice, full landscape and lock
+
+Read-only verification, 2026-11-13. Requested baseline: `30232a5`. MP11 was running when this review started and
+was committed as `a85ed55` during it. I checked its delivered interfaces and Execution log as well as its task
+contract; that does not change the baseline for the earlier engine work.
+
+| File under `tasks/difficulty-v3/` | Last written (+07:00) | SHA-256 prefix |
+|---|---|---|
+| `MP12a-calibration-slice.md` | 2026-11-12 20:45:19 | `a99994331fc0` |
+| `MP12b1-full-landscape.md` | 2026-11-13 06:16:35 | `1732d433cbe3` |
+| `MP12b2-search-evidence-and-lock.md` | 2026-11-13 06:16:57 | `469594e7d4b0` |
+
+SA1's response sections 3-5 and 7, D36/P-OD5, D37/P-OD6, the MP09d2 record and handoff, and MP11's committed
+handoff were read. No task file, implementation, fixture, checklist or other analyst's file was edited.
+
+### Verified parts and light checks
+
+| Item | Result |
+|---|---|
+| Actual activation outcome | Correct in the task inputs: v3 is active; `STALL_LIMIT` is 12 and is **not** inert; population S is therefore skipped. The recipe is `square-22x22-nightmare`, quantity 10. |
+| D36 characterisations | `tests/clues.test.js:552-569` has the 15 x 20 Nightmare case, K 24, score 67, 4 clues, and the separate 22 x 22 Hell 3 unrateable case, both seed `t18-big-a`, attempt 0. The negative input is not the old 15 x 20 Hell 2 input. |
+| Hell evidence | The 164-cell board made Hell 1 in 2 of 3 set attempts. Do not abbreviate all other failures as "every profile capped": the 266-cell Hell 2 row has 26 rated profiles above its band and 102 capped profiles. MP12b1/b2 carry that distinction correctly. |
+| TP06 | The general test order is corrected: fixture-independent checks between rounds; GF-P2 before fixture-dependent checks; the first GA-P2 result retained; only completed UI-flow recipes migrate. TP26 below makes the D36 re-pin handoff explicit. |
+| SP06 | Capturing once, the identity join, budget labels and the fit adapter are specified. The new problem is the meaning of the fitting objective versus C2, not the capture mechanism (TP22). |
+| TP07 | The new observer works with the committed `finish` closure and its returned object identities. The old repaired-result/index inference problem is fixed. |
+| TP08 / D37 | The population is correctly carried: all 25 prescreens; 20 requests for every successful prescreen and exactly one smallest failing boundary case per Hell level; other Hell cases retain 3 requests. No second boundary is selected if its full run succeeds. The aggregate must not read both reports for a promoted cell. |
+| SP07 | MP12a owns same-commit updates for changed values and example piece counts; MP12b2 owns the measured parameters, the lock and the conditional Hell sentence. The owner fork to MP12b3 for option (i) is explicit. |
+| MP11 API | Delivered as specified: `clues`, the v3 metric subset, per-cell `v3`, `sampledUnrateable`, and `ratingCensoredCount`. The important distinctions are in TP21, TP23 and TP27. |
+| KI-1 | No MP12 task changes its implementation or its browser acceptance allowance. No KI-1 finding in this tranche. |
+
+Two small, non-timing checks ran from stdin, with no scratch files:
+
+1. Pure matrix/aggregation checks: 105 cases, 16 boards, 25 Hell cases (12/9/4). An empty cell has `v3: null`.
+   A three-row reduced Hell cell passed to the stipulated full matrix retains `runs.requested: 20`,
+   `runs.recorded: 3` and the legacy 20-seed criterion. The literal list-2 expression throws on `v3: null`.
+2. The exact embedded observer, with its import resolved to the existing D21 module, ran the four scripted cases.
+   JSONL writes were intercepted in memory. All four expected attempt/finish strings and selected clues matched:
+   S4 `YUVWZ`, S4ok `IYTWZX`, S6 `YUVWZ`, and `repair-ri-0` `IUTWX`. There were 18 raw rated attempts; four repair
+   ratings (2 rated, 1 refused, 1 capped); six finishes (2 unique, 2 repaired, 1 refused, 1 capped). The last case's
+   chosen finish is `4@5:repaired>5*` although the old result index is 3. No real rating or generation corpus ran.
+
+The three task files pass CRLF/no-BOM/final-newline/trailing-whitespace checks. Their PowerShell fences parse
+(4, 3 and 1 blocks respectively). This is syntax evidence, not proof of the run-control contracts below.
+No landscape, recorder, slow suite, full suite or browser gate was run by this review.
+
+### TP20 — Make the timing lock and bounded landscape resume executable
+
+**Severity: Major. Files: all three MP12 tasks; especially MP12a:50-56,98-104 and MP12b1:49-55,88-110.**
+
+Announcing a batch is not the timing-lock protocol. Neither landscape command nor the MP12b2 `Capture` helper
+acquires the shared lock. Moreover, a single `--seeds 20` Hell command takes about 40 minutes by the task's own
+estimate. Its per-row child limit is 400 seconds, not a limit on the command (`tools/calibrate.mjs:46,521`).
+MP12a says to finish the current row and resume, but supplies no signal or wrapper; its exit check rejects the
+normal interrupted exit 2. MP12b1 instead kills the command, potentially losing its current row. A parent-only
+kill also does not specify cleanup of a fresh-process child and that child's workers.
+
+**Exact fix.**
+
+- Route every timed command through the orchestrator's existing two-repository lock helper: wait for the other
+  repository's lock, acquire the Pentomino timing lock exclusively, recheck, and release only the lock owned by this
+  invocation in `finally`. Record lock wait separately from measured time. Apply this to probes, captures, the slow
+  test, GF-P2 and both GA-P2 runs, not just the landscape.
+- Give MP12a ownership of a small task-local landscape launcher and have MP12b1 use it read-only. The existing
+  `run(argv, overrides)` API supports the necessary graceful stop (`tools/calibrate.mjs:443-580`):
+  use `onInterrupt(callback)` to request a pause after 150 seconds; retain the existing 400-second child limit;
+  enforce a separate outer deadline of 590 seconds with PID-tree cleanup. Thus even a row started immediately
+  before the pause normally has 400 seconds to finish, with time left for report writing. A hard timeout remains
+  an error, not a successful pause.
+- Exit 2 after that scheduled pause means resume the **same** arguments, output/checkpoint and 20-request matrix.
+  Do not lower `--seeds`, use `--restart`, change a seed, or discard a completed row to make an invocation fit.
+  Stop on an unusable checkpoint or unexpected failure. Delete the checkpoint only after the required rows have
+  completed. Verify the report's row keys before publication.
+- Preserve partial report snapshots or use a mutable staging prefix and publish the completed report once.
+  `calibrate.mjs:576-577` rewrites its report files on resume; that must not silently contradict "records are never
+  overwritten". The checkpoint remains the tool's normal mutable checkpoint.
+- Apply the same outer bound to MP12a's capture/rating commands. If one captured pack needs smaller rating shards,
+  split its puzzle IDs, not its generation request or identity. Keep the 300-second H limit. For R/A/S use a
+  deadline below 600 seconds so cleanup does not exceed the task's overall ten-minute limit.
+
+Test the launcher's pause/resume and timeout cleanup with a small fake child before the expensive runs. This is
+run control only: no production request budget, child-row budget, worker count or population changes.
+
+### TP21 — Diagnostic sampling failures are not capped accepted puzzles
+
+**Severity: Major. File: MP12a:124, its C5 criterion and the change-selection rules that use it.**
+
+The second half of C5 requires `sampledUnrateable === 0`. That field does not count the accepted-puzzle corpus.
+The benchmark deliberately rates random clue subsets at several clue counts, twice each
+(`tools/bench/runner.js:423-487`), including sparse subsets much harder than the requested level. For example,
+`sampleCounts(30, 4)` includes 1, 2 and 3 clues as well as 28. MP11 counts a capped diagnostic separately;
+it does not promise every such subset is rateable.
+
+Consequently this criterion can force repeated cap increases or stop calibration even though every generated
+puzzle and its canonical re-probe is rateable. Conversely, a request that creates no set has no diagnostic
+samples, so a zero here is not evidence that its generation profiles were uncapped. RES-25 requires these
+outcomes to be reported; it does not require every randomly sampled clue subset to complete.
+
+**Exact fix.** Keep the first half of C5: canonical `prod` re-ratings of the captured, accepted puzzles at the same
+caps must not be capped. Keep diagnostic `sampledUnrateable` counts and their attempted-sample denominators in
+the record, separately from accepted-puzzle census shares and from GS-P3's generation-profile counts. Remove the
+zero-diagnostic requirement and never feed those arbitrary subsets into the accepted-corpus cap-sizing rule.
+Any stronger all-subsets requirement would be a new decision, not an implication of P-OD2.
+
+Add a pure criteria-check case with complete accepted puzzles and one capped diagnostic: the accepted-path
+criterion passes and the diagnostic is still reported. A capped canonical re-probe must fail it.
+
+### TP22 — C2 uses request success, but its tuning trigger uses accepted-puzzle hits
+
+**Severity: Major. File: MP12a:121,205-217; reference: MP06c:109-118.**
+
+C2 correctly compares the fraction of 20 requests that complete ten in-band puzzles. MP06c's fitting objective
+instead counts individual retained puzzle lines that re-score into their requested band. The task then compares
+that predicted puzzle hit rate with the request-success bound to decide whether `SHARES` or `K60` may change.
+These denominators are not interchangeable.
+
+There is a stronger failure on this new corpus: for nonempty identity-matched cells of newly accepted v3 puzzles,
+the current tuple already has 100% puzzle hits, satisfies the ordering constraint and has distance zero from
+itself. The stated grid objective therefore keeps the current tuple, even if most generation requests are partial
+or fail. Its predicted rate cannot fall below C2's bound. The task can repeat an unchanged round three times
+without reaching the already-authorised availability controls.
+
+**Exact fix.** Name the two measures separately: `requestCompletionRate` for C2, `puzzleRescoreHitRate` for the
+MP06c fit and the P-OD3 comparison. Preserve the accepted grid and penalty experiment; do not claim that its
+rescore predicts missing puzzles or completed requests. Replace the `SHARES`/`K60` trigger with **measured C2
+failure**, not the rescore rate. If the best score tuple is unchanged, do not consume another round with it:
+prepare one justified `SHARES`/`K60` trial under SA2-Q-P09, record the proposed values and obtain the orchestrator's
+go-ahead for that next round; if no justified trial is available, stop with the numbers. A changed score tuple
+still needs the next real generation measurement. The three-round ceiling stays.
+
+Use a pure case where all retained puzzles are in-band but no request reaches ten: puzzle hits 100%, request
+success 0%. It must enter the availability branch, not pass C2 or schedule an identical score-only round.
+
+### TP23 — The Hell report still names a producer which does not supply its fields
+
+**Severity: Major. File: MP12b2:424-427 and B02; related to the remaining SP16 evidence obligation.**
+
+The record says ratings per puzzle come from MP12b1's 20-request reports. They do not. MP11's
+`details.puzzles[]` stores final puzzle metrics, not all selection attempts; `ratingCensoredCount` counts accepted
+estimates; diagnostic samples are another population. None is the number of generation ratings, refused
+profiles or repair ratings. The run schema also does not provide the requested `setMs`/`foldMs` decomposition
+(`tools/bench/runner.js:705-733`, `tools/bench/report.js:104-153`).
+
+The five H captures supply these observations for their own cells only, and contain no Hell 1 case. They cannot
+supply them for successful Hell 1 landscape cells or for every other zero-puzzle cell in the owner table.
+The repaired-candidate producer is now correct; this separate per-cell producer gap remains.
+
+**Exact fix.** Add a named, bounded GS-P3 companion population for the Hell cells not covered by H:
+
+- Select each case from the actual landscape matrix, including its exact `boardRows`, rotation and uniqueness;
+  do not replace `15x15b10` by a rectangle. A task-local variant of the serial flow driver must accept a case ID
+  and use those rows. The existing `flow.mjs --board WxH` interface cannot express that board.
+- For a cell with accepted puzzles, use a seed identified in its selected report, preferably the lowest rep that
+  completed the request. For a zero-puzzle cell use rep 0. Capture with `observe.mjs`, state quantity and limits,
+  and retain the companion's input manifest, source tuple and final event. These are labelled diagnostic
+  replays, not additional independent landscape requests.
+- Derive ratings per accepted puzzle from that companion's attempt totals and its own accepted count; derive
+  set/fold/total times from its events. Keep landscape hit rates and response-time statistics in separate columns.
+  Never divide one population's rating count by another population's accepted count.
+- For zero accepted puzzles show the ratio as unavailable. For a timed-out capture show observed completed-call
+  counts and censoring explicitly, not a complete request failure or invented zero. A required successful-cell
+  ratio which cannot be measured within the bound is a stop/report point.
+
+Amend the capture table, commands, summary, ownership and machine-time estimate accordingly. Alternatively,
+assign actual full-run instrumentation to an explicit earlier tooling task; do not infer missing counters from
+MP11's existing fields.
+
+### TP24 — The fail-fast check does not evaluate the combined mechanism or censored tails
+
+**Severity: Major. File: MP12b2:377-399, B03 and T04.**
+
+Item 2 proposes F1, F2 and F1+F2; item 3 defines only separate F1 and F2 checks. Adding their results is unsound:
+
+- Attempt 0 has four capped raw profiles, then a rated out-of-band profile; its calibration ultimately fails.
+- Attempt 1 succeeds.
+- F1 alone does not fire at attempt 0, since not all its profiles were capped. F2 alone loses no successful
+  selection there. But F2 truncates attempt 0 to four capped profiles, so F1+F2 now stops the whole request and
+  loses attempt 1.
+
+A pure synthetic check reproduced exactly this distinction: independent false stops 0 and 0, combined false stops
+1. Further, H captures are deliberately killed after 300 seconds. Absence of a later success in an unfinished
+file is **unknown**, not proof of zero false stops.
+
+**Exact fix.** Define F1+F2 over the effective prefix after F2 has truncated a calibration. Its first qualifying
+set attempt terminates the request; compare that against later successful baseline set-attempt events. Keep the
+F2 check for a truncated selection that itself succeeded. Add synthetic checks for the example above, a genuinely
+all-capped completed request, an F2-lost successful call, and a trigger followed by a censored tail.
+
+Report per mechanism: evaluated completed baselines, triggers, observed false stops, and unknown outcomes.
+Only completed baselines can contribute to the zero-observed-false-stop claim; unknowns remain visible and
+cannot establish safety. Say "no false stop observed in N completed baselines", not that a finite corpus proves
+no future request can succeed. Qualification of an implementation remains later work.
+
+The notice should also describe an observation, not impossibility: for example, "No <level> puzzle was found
+within the search limits; the attempted ratings reached their work limits", with the corresponding Vietnamese
+text. Retain the serial/two-worker distinction and label any composed time saving as a counterfactual estimate.
+
+### TP25 — The lock and area decision need final-source evidence, including after a change round
+
+**Severity: Major. File: MP12b2:333-355,440-447 and the lock/record sections.**
+
+The smallest-area availability results come from MP09d2, before MP12a is allowed to change weights, caps, `K60`
+and `SHARES`. Those boards (164, 266 and 450 active cells) are absent from the full landscape. Thus after a change,
+the historical Hell 1 success at score 93/103 is not evidence that the final tuple still makes that level there.
+Nevertheless the task uses these observations to derive the largest successful and smallest unsuccessful areas
+for option (i).
+
+An ordered change round has the same problem on a larger scale: it runs affected landscape cells and the slice,
+but does not explicitly rebuild the final aggregate, repeat affected search/fail-fast evidence or refresh the
+owner table before locking. A global score/cap change can affect every generation cell; "affected" must not mean
+only the cells which failed earlier.
+
+**Exact fix.**
+
+1. Give each evidence population its generating/rating tuple and relevant source identity. Historical MP09d2
+   observations stay historical. If the relevant tuple changed, repeat its three-attempt smallest-area probe
+   under the final tuple, with the original seed and exact boards (164 means 13 x 13 with 5 blocked). Use bounded
+   invocations of the existing availability driver; keep each attempt's identity and distinguish set attempts
+   from full quantity-10 requests. If inputs affecting these results are unchanged, document that reuse instead.
+2. Derive proposed area boundaries from final-tuple observations only. Keep the old results alongside them for
+   comparison, never as interchangeable samples. A boundary is an observed availability policy choice, not a
+   proof that every shape of an area is impossible.
+3. Before an ordered change, enumerate affected cases and evidence. A global rating/cap change normally affects
+   all cases; a narrower set needs a stated dependency argument. Afterward rebuild the selected-report map and
+   aggregate, rerun affected GS-P3/availability evidence, recompute the fail-fast table, and refresh the owner's
+   question. Use new output paths; do not overwrite or pool different tuples.
+4. An unresolved measurement or changed availability decision stops the lock. The already specified option-(i)
+   handoff to MP12b3 stays; do not reopen P-OD5/P-OD6 or implement a fail-fast in this task.
+
+The same provenance discipline permits reuse of MP12a's measured working-tree code after its commit: equality
+of the measured source digest/tuple is what matters. Do not reject it solely because the subsequent MP12a commit
+records the very knob edits already present during measurement; document the committed counterpart explicitly.
+
+### TP26 — Spell out all four D36/fixture re-pins before the strict final gate
+
+**Severity: Minor, binding before a knob change. File: MP12a:219-242,274-280 and MP12b2's change round.**
+
+The broad MP09d2 reference grants the right files, but the explicit instructions name only the 15 x 20 slow test
+and then say any slow D36 failure stops GA-P2. Expand that reference into the following table and a bounded
+characterisation check before the first strict final `npm test`:
+
+| Pin | Required treatment |
+|---|---|
+| 15 x 20 Nightmare, `t18-big-a`, attempt 0 | Measure the same request at the new tuple; re-pin K/score/clue count from checked output (currently 24/67/4). A request that no longer succeeds is a finding, not permission to change its seed or level. |
+| All UI-flow recipes, including `square-22x22-nightmare` | Keep quantity and request inputs; migrate `expect.pieces`, `expect.puzzles`, `expect.scores` only after complete batches with no notice, as the existing first-GA procedure requires. |
+| Unrateable calibration input | Keep the 22 x 22 Hell 3 attempt only while current-source observations establish the unrateable premise. `not-in-band` alone does not prove it: a now-rateable but out-of-band calibration returns the same object. When affected by a change, re-observe its profiles; if necessary select a documented still-all-capped input by a fixed bounded rule, or stop if none is established. |
+| Generation fixture scores/keys/versions | GF-P2 alone refreshes `generation-case.json` and `generated-sample-pack.json`; then the strict fixture tests. No hand editing of claims, no weakening of `checkRecipe`, and no changes to the frozen Player sample or code vector. |
+
+For static recipe characterisations, a score-only change may reuse pinned deduction inputs. A cap change requires
+current deduction inputs first, then an independent `breakdownV3` calculation; blindly re-scoring old deduction
+metrics is not enough. Semantic failures remain stops; authorised numerical characterisations must be settled
+before the final strict verdict. Add the same table to the ordered-change handoff by reference.
+
+### TP27 — Handle null metrics and distinguish the D37 waiver from missing coverage
+
+**Severity: Minor. File: MP12b1:135-160,193-195; MP12a criteria and MP12b2 record readers.**
+
+MP11 deliberately returns `v3: null` without accepted v3 data
+(`tools/bench/calibration-reference.js:340-362`). The stated list-2/list-3 expressions need a null guard. The pure
+probe threw `Cannot read properties of null (reading 'score')` when applying the literal list-2 expression.
+
+**Exact fix.** List 2 requires `v3 !== null`, a finite band and `v3.score.n > 0`, then the parenthesised
+one-sided-score disjunction. List 3 requires `v3 !== null` and `v3.censored.share > 0.05`. Missing score, census or
+proved-guess statistics are unavailable, not zero. Keep the no-puzzle row with its actual observations. Do not
+silently evaluate an empty median or count an empty cell as measured ordering evidence.
+
+Keep the shared aggregator's original 20-request coverage/criteria unchanged. Add an explicit protocol-coverage
+table with required N = 3 or 20 by P-OD6, completed distinct rep keys, selected report, boundary reference and
+measurement status. A reduced cell can satisfy that protocol while the legacy aggregate still says 3/20;
+explain both. An arbitrary partial 20-request report or missing report is not a D37 waiver and must not become
+"no puzzle observed" evidence merely because its file exists. Validate completion/source/row keys before the
+selection rule accepts a report; unresolved missing measurements go to the orchestrator before the lock.
+
+Use pure cases for a valid reduced zero-puzzle cell, a complete positive cell, and a missing/unfinished cell.
+No shared benchmark threshold needs to be weakened.
+
+### TP28 — Remove the stale inert-stall wording and guard its command block
+
+**Severity: Minor. File: MP12b2:22-23 and its final PowerShell block.**
+
+The inputs correctly say the rule was not inert, but the Goal still says "When MP09d2 found the stall stop inert".
+The PowerShell block also executes S unconditionally; its "only when" comment is not a guard.
+
+**Exact fix.** State the actual outcome in the Goal. Initialise an explicit `runStallRecheck` flag to false from
+the recorded D21 decision and put the S capture, file enumeration and simulation inside that conditional. Do not
+derive the flag by searching for the word "inert": the record contains it in negative statements too. On this
+source, S is skipped and the record explains why.
+
+### Machine time, stop points and disposition
+
+- MP12a's 30-60 minutes per round is a provisional estimate, not a limit on the complete case. It covers 360
+  landscape requests, 90 captures and 90 pack re-probes, plus any diagnostic budget trials. Project again from
+  the first small and large cases; do not spend a second unchanged round (TP22).
+- MP12b1's components imply about 5.5-10.5 hours before promoted/boundary full runs. Three 40-minute boundary runs
+  and three successful-case full runs add up to four hours: about 9.5-14.5 hours in that example. The task's header
+  already says the extra runs are additional; do not quote 6-11 hours as an all-inclusive promise.
+- Existing GS-P3 has 20 R/A captures at a 600-second ceiling and five H captures at 300 seconds: up to 225 minutes,
+  not a guaranteed 45-90. TP23 and any final-tuple availability refresh add work which must be budgeted separately.
+  MP11's committed slow test took about 102 seconds, mostly 12 x 12 Nightmare; that is useful current evidence
+  for the between-round gate, not a promise after a cap/policy change.
+- Preserve the existing stops for an out-of-range knob, an unresolved criterion after round 2, a semantic test
+  failure, an incomplete fixed UI-flow request, N = 16 missing a central result if S ever runs, and the owner
+  decision. Add the explicit timeout, missing-producer and stale/incomplete-evidence stops above.
+
+**Disposition:** 0 Blocker, 6 Major (TP20-TP25), 3 Minor (TP26-TP28). The accepted D36/D37 decisions do not need to
+be reopened. The existing owner question (i)/(ii)/(iii) remains, after final-source evidence exists. TP07's
+observer and TP08's population fixes are verified; MP12a is not ready to dispatch until TP20-TP22 are fixed, and
+the tranche cannot be signed off until TP23-TP25 are fixed too.
+
+MP12 BLOCKED: TP20, TP21, TP22, TP23, TP24, TP25
+
+## MP12 re-verification
+
+2026-11-13, HEAD `a85ed55`. SA1's response section 10 and the revised tasks/checklist are the inputs.
+This section supersedes the earlier blocked status only for the parts explicitly signed off below.
+
+### MP12a first
+
+Reviewed `MP12a-calibration-slice.md` SHA-256 `3bc45bcb63a9...` (written 11:32 +07:00) and the shared-lock
+checklist SHA-256 `8acf289f10c3...` (11:50 +07:00).
+
+| Finding | Re-verification |
+|---|---|
+| TP20 | Resolved for dispatch. The launcher uses the delivered `run(argv, overrides)` API, pauses at 150 seconds, preserves the 400-second child budget and resumes only its distinguished scheduled-pause exit 3. Dated staging keeps report/checkpoint names stable across midnight; publication checks completeness, repetitions and source identity before copying once. Every expensive command uses the shared bounded helper. One minor explicit-interrupt edge is TP29 below. |
+| TP21 | Resolved. C5 covers canonical re-ratings of accepted puzzles only. Diagnostic unrateable samples retain their attempted-sample denominator, do not gate C5 and do not size the accepted-path cap. |
+| TP22 | Resolved. C2 uses measured request completion; the fit and penalty comparison use puzzle rescore hits. An availability failure cannot schedule an unchanged tuple. One evidence-based `SHARES`/`K60` proposal requires the orchestrator's go-ahead; absent justification, the task stops. |
+| TP26 | Resolved. All four re-pin classes are explicit, with bounded current-source D36 observations before the strict tests. The negative case needs all-capped evidence, not merely `not-in-band`; its fallback order is finite. A `DEDUCE` change requires fresh recipe deduction inputs before formula checking. |
+| TP27, MP12a part | Resolved. Null metrics make ordering/other relevant criteria unavailable rather than zero. The criteria script has the requested pure cases and treats missing reports/repetitions as input errors. |
+
+**Lock interleaving with MS05r4.** The helper holds the mutex for one bounded Node invocation, not the surrounding
+case/round loop. It releases it before its mandatory 15-second sleep; only after that sleep can the `do/while`
+resume call acquire another lock. Captures/ratings are limited to 570 seconds and other commands to 590 seconds;
+normal landscape invocations finish after the scheduled pause plus the existing child deadline. The Sudoku
+helper checks the matching lock names and polls every five seconds. With the orchestrator's specified 15-second
+gaps on the Sudoku side too, neither series immediately takes the lock back ahead of the waiting peer. No lock is
+held during a series-wide wait or across the next invocation. This satisfies the requested interleaving rule,
+without claiming a stricter FIFO scheduler.
+
+**Checks.** The exact embedded launcher's existing self-test passed 22/22 using only its in-memory filesystem.
+MP12a's six PowerShell blocks and the shared helper's block parse. The `package.json` Node test commands, dated
+`reportBase`, source-digest API and `onInterrupt` behavior match the committed tooling. No production generation,
+real mutex acquisition, slow run or fixture rewrite was performed.
+
+#### TP29 — An explicit interrupt must not become a scheduled resume
+
+**Severity: Minor; precise MP12a developer addendum.**
+
+The launcher says Ctrl+C is an unscheduled stop, but its handler only calls `onSignal`. If the current row then
+runs beyond the scheduled timer, `paused` becomes true and exit 2 becomes exit 3: the outer loop resumes despite
+the explicit interruption.
+
+An in-memory reproduction emitted SIGINT, let the scheduled timer fire while the fake row finished, and added
+one checkpoint row. Actual launcher exit: 3; stated contract: 2. The real calibration API supports this sequence
+because it finishes the current row after either interrupt.
+
+Add a separate `interrupted` boolean, set it in the SIGINT handler, and classify
+`code === 2 && interrupted` as exit 2 **before** either scheduled-pause case. The timer may still request its
+pause, but it cannot erase the explicit stop. Add this one memory-only case to the self-test and update its
+expected count from 22 to 23. No budget, seed, checkpoint or lock-policy change is needed.
+
+**MP12a disposition:** no Blocker or Major remains. Dispatchable with the small TP29 addendum; MP12b1/b2 are
+reviewed separately below.
+
+MP12a VERIFIED
+
+### MP12b1 and MP12b2
+
+Reviewed `MP12b1-full-landscape.md` SHA-256 `25e37e9b02fb...` (11:49 +07:00) and
+`MP12b2-search-evidence-and-lock.md` SHA-256 `573b83f63f00...` (11:55 +07:00), with the same checklist revision.
+
+| Finding | Re-verification |
+|---|---|
+| TP20, remaining tasks | Resolved. Both tasks use MP12a's bounded launcher/shared helper, release between invocations and retain the 15-second gap. R/A use 570 seconds, H 300, HL 180 or 570; capture timeouts are explicitly censored, not passes. |
+| TP23 | Resolved. H plus the new HL population cover all 25 Hell cells. The driver preserves actual board rows, rotation, seed convention and quantity; the selected-report path and rep rule are explicit. Ratios use the capture's own observed counts, with censoring shown; landscape request rates remain separate. The missing-successful-companion stop is explicit. |
+| TP24 | Resolved. F1+F2 is evaluated on the effective prefix, not by adding separate results. Censored tails are unknown; completed baselines and observed false stops are separate. The four required synthetic cases include the composition counterexample. No universal safety claim or impossibility notice remains. |
+| TP25 | Source identity checks, historical-data reuse, current-tuple availability probes and new output folders are corrected. The ordered-change branch still omits re-evaluation of the acceptance criteria: TP30 below. Two smaller branch-contract clarifications are TP32/TP33. |
+| TP27 | Null guards, actual sample denominators, explicit protocol coverage, missing/invalid statuses and one selected run population are corrected. Clarify the prescreen read versus aggregation distinction as TP31. |
+| TP28 | Resolved. The actual non-inert decision is stated; S's capture, enumeration and simulation are inside the explicit false-by-default guard. |
+
+**Additional light checks.**
+
+- The exact new case-argument block, evaluated without starting generation, produced the 15 x 15 blocked board
+  with 215 active cells, seed `landscape/15x15b10-hell-1/3`, quantity 10 and uniqueness `any`. Unknown case, absent
+  rep, reps -1, 1.5 and 20 all refused. H and the command block's HL list form a disjoint cover of the current
+  matrix's 25 Hell cases.
+- The embedded observer is byte-identical after newline normalisation to the observer at `a85ed55`
+  (SHA-256 `696bd54d78d1...`); the earlier four-case verification therefore still applies.
+- The historical engine comparison against `eea5fed` and current engine status both print nothing at this HEAD.
+  The reuse argument is valid now, but must be checked again after MP12a's possible knob changes.
+- MP12b1's four PowerShell blocks and MP12b2's one block parse. All four reviewed files retain CRLF, no BOM,
+  no trailing whitespace and a final newline. No real capture, benchmark, lock or suite was run.
+
+#### TP30 — Re-evaluate the criteria after an ordered change, not just its generation data
+
+**Severity: Major; remaining part of TP25. File: MP12b2:558-560,585-618.**
+
+Record section 4 still takes the criteria from **MP12a's final round**, by reference. The ordered-change steps
+rerun the landscape and search populations, rebuild the aggregate and refresh availability decisions, but do not
+re-run `criteria.mjs`, replace that old criteria table or obtain its new canonical probe input. The only other
+mention of `criteria.mjs` is its read-only ownership restriction.
+
+Fresh generation data and a matching source digest do not establish C2. For example, a GV2 rate of 95% sets an
+85% bound. An earlier slice at 90% passes, while a changed tuple at 80% fails. The latter still makes puzzles on
+the same areas; neither the availability-change stop nor the ordinary quick/slow tests necessarily catches this.
+The general landscape aggregate is not the GV2 comparison, and its intentionally retained Hell failures prevent
+using its overall verdict as a substitute.
+
+**Exact fix, within the accepted contract.**
+
+1. Add the slice criteria and their probe input to the ordered round's evidence inventory. After the new reports,
+   repeat MP12a's capture-once/canonical-`prod` procedure for the same 90 matching requests, under the helper and
+   the same 570-second bounds, into `landscape-v3-change-1/probe/` (new packs, manifest and `final.jsonl`).
+   No old tuple's captured results may stand in for these current inputs.
+2. Run the existing, read-only `criteria.mjs` on the change round's 18 GV2 reports, the unchanged GV2 baseline and
+   that new `final.jsonl`. Its report selection must ignore the other full-landscape cases and the aggregate;
+   it still requires exactly one valid report for each GV2 case. Keep diagnostic samples separate as in TP21.
+3. Replace record section 4's reference with this current-tuple C1-C5 table when a change round ran. Recompute the
+   P-OD1/P-OD2 numbers affected by the change; the P-OD3 experiment remains labelled with its own tuple.
+   A failed or unavailable criterion returns to the orchestrator with numbers before the lock; a prior
+   disposition is not silently carried across changed results.
+4. Add these outputs to ownership, the estimated time, T05 and the pre-lock stop list. Nothing here changes a
+   threshold or reopens D36/D37.
+
+A synthetic handoff check should use the 95%/90%/80% example: the new source identity and valid report coverage
+must not leave the old passing C2 table in the lock record.
+
+#### TP31 — Read prescreens for the protocol; exclude their runs from the aggregate
+
+**Severity: Minor. File: MP12b1, aggregation steps 1-3.**
+
+Step 1 says a promoted cell's `-s3` report is "never read", while step 2 must derive the P-OD6 plan from all
+prescreens. The intended exclusion is from the aggregated run population, not from protocol inputs.
+
+Read and validate the 25 three-rep prescreens first to determine successful cells and the original boundary of
+each level. Then choose one report's `runs` per case. Change "never read" to "never appended to the aggregate's
+run list alongside the selected 20-request report". Add the case where the original boundary has no puzzle in
+its prescreen but makes one in its full run: it remains the boundary and no second case is promoted.
+
+#### TP32 — The optional narrowed rerun is incompatible with the strict aggregate
+
+**Severity: Minor; binding before choosing that branch. File: MP12b2:591-610.**
+
+The default whole-landscape rerun is executable. The optional narrower rerun is not specified consistently:
+`aggregate.mjs` requires every case and one shared source digest, and its change-round invocation searches only
+the new folder. Every allowed production-value edit changes a hashed source file (`SOURCE_FILES`,
+`tools/bench/report.js:37-48`). Unrerun cases are therefore either missing, or have the previous digest if copied;
+the strict aggregate correctly refuses them.
+
+For this pack, remove the narrower-rerun exception and require the complete landscape/P-OD6 population whenever
+the source identity changes. That is already the default cost given to the orchestrator. A later proposal for
+proved-compatible per-case reuse needs its own explicit data contract; do not re-stamp old evidence or weaken
+the present aggregate opportunistically. This fails closed today, so it does not block the ordinary tranche.
+
+#### TP33 — Separate script paths from change-round data paths
+
+**Severity: Minor; binding for an ordered change round. File: MP12b2:604-610,885-889.**
+
+Make "in place of `$s` for the populations" unambiguous. Keep a script root at `search-<date>` and introduce a
+separate data root, initially the same folder and later `search-<date>/change-1`. The observer, summary,
+`flow-case.mjs` and fail-fast script remain at the script root; captures, manifests, `runs.md` and derived tables
+use the data root, with the change aggregate supplying `$ref`.
+
+Do not move/copy the observer into `change-1` without changing its import: its fixed
+`../d21-2026-11-12/register.mjs` would resolve to the wrong directory there. In particular, HL's manifest must
+be the new data-root manifest, not the old manifest whose case IDs cause the loop to skip captures.
+Add a no-generation stub pass of the change-round path, not only the initial/resume paths already checked.
+
+**Final re-verification disposition.** MP12a is dispatchable with TP29; its fair lock interleaving is verified.
+MP12b1 has no Blocker or Major (TP31 is a precise clarification). MP12b2's normal measurement path is corrected,
+but its ordered-change qualification needs TP30 before the whole tranche can be signed off. TP32/TP33 are
+small accompanying clarifications. No new owner or plan-author decision is needed for these fixes.
+
+MP12 BLOCKED: TP30

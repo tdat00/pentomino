@@ -2,10 +2,10 @@
 
 | Field | Value |
 |---|---|
-| Date | 2026-11-12 (+07:00); §9 (KI-1) 2026-11-13 |
+| Date | 2026-11-12 (+07:00); §9 (KI-1) 2026-11-13; §10 (MP12 tranche) 2026-11-13 |
 | Responder | SA1, claude-opus-5.5 (author of the pack) |
-| Review answered | [`../gpt-6-astra/6-review-of-task-pack.md`](../gpt-6-astra/6-review-of-task-pack.md) § "Second pass" (SA2, gpt-6-astra): SP01-SP19; § "Third pass": TP01-TP05 (MP09 series), TP13-TP15 (MP09d2), TP06-TP12 and TP16-TP19 (§4) |
-| Source revision | `05fa958` (MP08 committed); MP07 committed as `2b4c5b9`; third pass at `041ff83` (MP09d1 committed); §9 at `ed54ecc` (MP10b1 committed) |
+| Review answered | [`../gpt-6-astra/6-review-of-task-pack.md`](../gpt-6-astra/6-review-of-task-pack.md) § "Second pass" (SA2, gpt-6-astra): SP01-SP19; § "Third pass": TP01-TP05 (MP09 series), TP13-TP15 (MP09d2), TP06-TP12 and TP16-TP19 (§4); § "MP12 tranche": TP20-TP28 (§10) |
+| Source revision | `05fa958` (MP08 committed); MP07 committed as `2b4c5b9`; third pass at `041ff83` (MP09d1 committed); §9 at `ed54ecc` (MP10b1 committed); §10 at `a85ed55` (MP11 committed) |
 | Order of work | as the orchestrator asked: SP01-SP03 (the MP09 series) first, then SP04 and SP05 (MP10a, MP10b), then the rest |
 | Not changed | dispatched or accepted task files (MP01-MP08, then each task once dispatched); the Done column, the release record and the execution summary of the check-list; the reports, `plan.md`, SA2's folder; `clarifications.md` only by the new questions D36 and D37 in Part I |
 
@@ -437,3 +437,177 @@ the files:
 The orchestrator may pass item 2 to the developer as an addendum.
 
 KI-1 PLACED
+
+## 10. MP12 tranche: TP20-TP28 (MP12a, MP12b1, MP12b2)
+
+SA2's review: [`../gpt-6-astra/6-review-of-task-pack.md`](../gpt-6-astra/6-review-of-task-pack.md) § "MP12 tranche"
+(2026-11-13; MP11 committed as `a85ed55` during it). All nine findings are accepted; none is disputed. The fixes use
+MP11's delivered interfaces at `a85ed55`: `run(argv, overrides)` of `tools/calibrate.mjs` with its `onInterrupt`
+hook, `reportBase`, the checkpoint and the exit codes 0, 1 and 2; `aggregateLandscape` with `v3: null`,
+`requestInBandRate` and `sampledUnrateable`; the run records' `details.sampleFailures`; `computeSourceDigest` over
+`SOURCE_FILES`. They follow the orchestrator's fairness rule: at least 15 s between locked runs, one bounded run per
+lock, no lock held across a series.
+
+| Finding | Severity | Disposition | Where |
+|---|---|---|---|
+| TP20 the timing lock and a bounded, resumable landscape | Major | Accepted | check-list §7 "Shared-machine lock protocol" (new: the helper `Invoke-Dv3Timed`, fairness, the 590 s bound, the process-tree stop), §2 step 2, §7 intro and GL-P3 row; MP12a "Run control" (new: the launcher `launch.mjs`, staging, exit codes, publication, self-test, fake-tree check), round step 1, the probe driver, the between-round checks, GF-P2 and GA-P2, test plan; MP12b1 and MP12b2 below |
+| TP21 diagnostic sampling failures are not capped accepted puzzles | Major | Accepted | MP12a C5, "Diagnostic samples are not accepted puzzles", "Choosing a change" (C5), the criteria script (cases 1 and 2); check-list D29 |
+| TP22 C2 counts request success, its trigger counted puzzle hits | Major | Accepted | MP12a C2, the fit input, "Choosing a change" (the availability branch), round step 4, the criteria script (case 3), MP12a-B01 and T03; check-list D29 |
+| TP26 the four D36 and fixture re-pins | Minor | Accepted | MP12a "The D36 and fixture re-pins" (table, commands A and B), "Pinned tests", the between-round checks (both D36 slow tests) |
+
+**TP20.**
+
+- The lock. SA2 is right: announcing is not the lock protocol, and this pack's check-list had none. MP09e and MP10b2
+  used task-local `Invoke-Locked` helpers that create the lock with `Set-Content` (not exclusively), do not recheck
+  the other lock and neither bound nor clean up the command. Check-list §7 now has the protocol and one helper,
+  `Invoke-Dv3Timed`, on the model of the Sudoku helper (`dv3-timing.lock` here, `dv3-sudoku.lock` there; exclusive
+  create, recheck, back-off after a race, removal of its own lock only). It puts the fairness rule in the helper
+  itself (15 s after every release, so any loop of locked runs leaves the gap), bounds each invocation at 590 s with
+  a deepest-first stop of the process tree, measures the lock wait apart and passes `D21_OUT` through
+  `-Environment`. `npm test` and the quick set run as their `package.json` node commands through it. Checked in a
+  scratch lock folder: exits 0 and 3, an environment value with a space, a two-process fake tree stopped at 5 s with
+  both processes gone and the lock released, a 10 s wait for the other lock, a missing lock folder (it throws at
+  once), and a relative lock folder from a PowerShell location other than the process directory. That last check
+  found a defect of my first text: `[IO.File]::Open` resolves a relative path against the process directory, so the
+  helper now resolves the folder first.
+- The launcher. MP12a creates `docs/difficulty-v3/landscape-v3/launch.mjs` exactly as given (about 400 lines with its
+  self-test); MP12b1 and MP12b2 use it read-only. It calls MP11's `run(argv, { onInterrupt })`
+  (`tools/calibrate.mjs:454-581`) in its own process. The hook requests the pause at 150 s and `calibrate.mjs`
+  finishes the row in progress (child limit 400 s, `:46`), so an invocation ends by about 555 s, inside the helper's
+  590 s. The exit codes separate the scheduled pause (3: the identical command again) from an unexpected stop (2), an
+  unusable checkpoint or invalid input (1) and completion (0, also when the pause fell into the last row, which
+  `calibrate.mjs` reports as 2). A paused invocation that recorded no row is 2, so a resume loop cannot spin.
+  `--restart` and an output outside `tests/artifacts/` or without a date are refused: a dated base keeps `reportBase`
+  (`:436-441`) and the checkpoint name stable across midnight, and the staged files are the ones `calibrate.mjs`
+  rewrites at every resume (`:577-578`). `publish` checks completeness, the rows against `expectedRuns`, the reps
+  0 to n - 1 of each case (so no row twice), that no row was interrupted, the source digest and versions against the
+  tree, and the Markdown; it never overwrites, then copies both files and deletes the checkpoint. 22 self-test cases;
+  each of 16 single-condition mutations fails the self-test. SA2's "exit 2 after the scheduled pause means resume"
+  is kept in substance as the launcher's exit 3, because `calibrate.mjs` returns 2 in both situations.
+- The other timed commands. Every capture and rating command of MP12a runs under the helper with a 570 s bound
+  (TP20's R/A/S bound, applied to the slice too). A pack whose rating exceeds it stops the task: `rate-probe --pack`
+  has no puzzle selector, so splitting by puzzle ids has no tool, and a request is never regenerated. The
+  between-round checks, the D36 slow tests, GF-P2, the strict checks and both GA-P2 runs go through the helper; the
+  first GA-P2 run keeps its evidence through a TAP reporter destination, since the helper does not redirect output.
+
+**TP21.** C5 keeps only the accepted-path half: no `capped` line among the canonical `prod` re-ratings of the captured
+accepted puzzles. `sampledUnrateable` is reported per cell with its denominator (the rated samples plus
+`details.sampleFailures`), never gates and never feeds the cap rule; a request without a set has no samples. The
+criteria script's cases 1 and 2 are SA2's pure cases.
+
+**TP22.** Two names: `requestCompletionRate` (C2; MP11's `requestInBandRate`) and `puzzleRescoreHitRate` (MP06c's fit
+and P-OD3). The `SHARES` or `K60` trigger is now the measured C2 failure, or a cell without puzzles (C1
+unavailable). Because the current tuple has 100 % rescore hits and distance 0 on a v3-made corpus, the grid is run
+once to show it and never schedules an unchanged round. The task prepares one evidence-based trial (the request
+outcomes, K against `pieceCountRange`, and at most one serial capture per failing cell under MP09d2's `spent.mjs`
+showing where the rated scores fall against the band), records it and stops for the orchestrator's go-ahead, or
+stops with the numbers. The three-round ceiling stays. SA2's pure case is case 3 of the criteria script. The penalty
+comparison of P-OD3 keeps the grid and now says that the corpus favours the current knobs.
+
+**TP26.** MP12a has SA2's four-row table: the 15 x 20 Nightmare test re-pinned from the checked output of the same set
+attempt (command A); the UI-flow recipes migrated only after complete batches; the unrateable input re-observed after
+any knob change under MP09d2's observer (command B, `avail.mjs --attempts 1`) and replaced only by the rule of
+MP09d2's record §3.3, or a stop; the generation fixtures by GF-P2 only. "Pinned tests" says that a `DEDUCE` change
+needs current deduction inputs before `breakdownV3`. The between-round checks run both D36 slow tests. MP12b2's
+change round refers to the table.
+
+MP12a READY
+
+### The rest of the tranche: TP23, TP24, TP25, TP27, TP28 (MP12b1, MP12b2)
+
+| Finding | Severity | Disposition | Where |
+|---|---|---|---|
+| TP23 the Hell report named a producer that does not supply its fields | Major | Accepted (SA2's first fix: a companion population) | MP12b2 GS-P3 table (HL row), "The Hell companion HL" (new: `flow-case.mjs` with its exact block, the rep rule, the manifest, what it gives, the stop), the summary contract (censored rows, one TOTAL row per population), record §6 and §7, files table, B02, T07, test plan (block HL); MP12b1 `coverage` entries of the aggregate (the selected report's path); check-list ownership and GS-P3 rows |
+| TP24 the fail-fast check did not evaluate the combined mechanism or censored tails | Major | Accepted | MP12b2 "The fail-fast proposal" item 3 (new durable `failfast.mjs`: F1, F2 and F1 + F2 on the effective prefix, completed baselines, outcome categories, four self-test cases) and item 4 (the notice as an observation), record §10, B03, T04, test plan |
+| TP25 the lock and the area decision need final-source evidence, also after a change round | Major | Accepted | MP12b2 "Evidence provenance and the final tuple" (new: the identity of each block, the reuse argument for MP09d2's observations, the availability probe again, boundaries from final-tuple observations only), the owner's question, "Findings and an ordered change round" (six ordered steps, new paths), the lock evidence, record §1, T02, T05, T08, test plan (`Identity`, the reuse check, the availability block); MP12b1 slice reuse by source identity and `aggregate.mjs` writing into its `--full` folder; check-list ownership and GS-P3 rows |
+| TP27 null metrics; the D37 waiver against missing coverage | Minor | Accepted | MP12b1 `aggregate.mjs` (new: selection by name, the P-OD6 protocol, validation and statuses, exit 2 on a gap, the protocol coverage table, null-guarded lists, self-test cases (a)-(f)); MP12a criteria script and "Missing values"; MP12b2 record §3 |
+| TP28 stale inert-stall wording; an unguarded S block | Minor | Accepted | MP12b2 Goal, scope, inputs, the stall section, record §8, B04, T03, test plan (`$runStallRecheck = $false`, S inside the guard) |
+
+**TP23.** I took SA2's first fix. HL is one labelled diagnostic replay for each of the 20 Hell cases that H does not
+cover (Hell 1 on the 12 boards, Hell 2 on 18x20, 20x20, 20x21, 32x15, 22x22, 24x24 and 26x26, Hell 3 on 26x26; MP11's
+matrix at `a85ed55` has 25 Hell cases, all rotation 0, `any`, quantity 10, 20 repetitions). Its driver
+`flow-case.mjs` is `flow.mjs` with two edits only, the header and the argument block, given exactly: the case comes
+from `buildLandscapeMatrix`, so `15x15b10` keeps its blocked cells, and the seed from `seedFor`
+(`landscape/<case id>/<rep>`, batch seed `#1` as the landscape's `batchIndex` 1). I ran the block without
+generating: the expected board, level, seed and label for a valid case, and exit 1 for an unknown case and for a rep
+of 20, -1, 1.5 or none. The rep is the selected report's lowest complete rep, else its lowest rep with a puzzle, else
+rep 0. The limit is 570 s, or 180 s for a cell without a landscape puzzle. A manifest names each input, the rule,
+the limit, the outcome, the final event and the identity. Each population's ratios are its own: zero accepted
+puzzles is unavailable, never 0, and a censored row is marked. A landscape cell with puzzles whose replay accepts
+none within 570 s stops the task. While writing the summary contract I found that puzzles accepted from the
+calibration have no `accepted` event: a censored file now counts the `slot` of its last `accepted` event, else the
+`fold-start` event's `fromCalibration`. MP12b1's aggregate JSON now fixes the shape of its `coverage` entries, so
+MP12b2 reads the selected report's path instead of guessing it. SA2's alternative, an earlier tooling task, would
+change MP11's committed run schema, which the browser benchmark shares. I did not choose it.
+
+**TP24.** `failfast.mjs` is durable and has SA2's definitions. F2 cuts a call after four capped raw attempts and is a
+false stop only when that call succeeded. F1 fires at the first set attempt whose raw attempts are all capped. F1 + F2
+walks the set attempts on the prefix that F2 leaves: a cut successful call is a false stop, and the walk ends there.
+Otherwise F1 is judged on that prefix: a false stop when a later set attempt succeeds, a correct stop in a completed
+baseline (a file with an `end` event), and unknown in a censored tail. The report gives, per mechanism, the completed
+baselines, triggers, observed false stops, correct stops and unknown outcomes. The self-test covers SA2's four cases;
+its combined case gives 0, 0 and 1 false stops. The proposal is worded "no false stop observed in N completed
+baselines". The notice is an observation in English and Vietnamese. Serial and two-worker times stay apart, and a
+time saving is a counterfactual estimate.
+
+**TP25.**
+
+- **Identity.** `Identity` prints `sourceDigest`, `versions`, HEAD and the core/tools state into `runs.md` before and
+  after every block. It stops when `sourceDigest` or `versions` differ from MP12b1's aggregate `source`, or from the
+  change round's aggregate after an ordered change round.
+- **Reusing MP09d2's observations.** They count only with a quoted reuse argument:
+  - `git diff --stat eea5fed -- core/engine` and `git status --porcelain -- core/engine` print nothing;
+  - the versions are equal;
+  - the knob literals of MP09d2's record §1 equal the tree's, because its captures ran before its commit.
+
+  At `a85ed55` all three hold: both git commands print nothing, and `SCORE_V3`, `DEDUCE` and `STALL_LIMIT` 12 equal
+  §1.
+- **Availability probe again.** Without that argument, the six availability captures run again on MP09d2's exact
+  boards, seed and file names (999 s at MP09d2).
+- **Boundaries.** Option (i)'s boundaries come from final-tuple observations only.
+- **Change round.** It runs in six ordered steps:
+  1. enumerate the evidence, where a global change reaches every case and population;
+  2. the re-pins by MP12a's TP26 table;
+  3. the between-round checks;
+  4. the evidence again in new paths (`landscape-v3-change-1/`, `search-<date>/change-1/`), with the selected-report
+     map and the aggregate rebuilt;
+  5. GF-P2 and GA-P2;
+  6. the stops.
+
+  `aggregate.mjs` writes into its `--full` folder for that purpose.
+- **SA2's last paragraph.** MP12b1's reuse of MP12a's slice by equal measured identity, with MP12a's commit named,
+  answers it.
+
+**TP27.** MP12b1's `aggregate.mjs` selects one report per case by name and never reads an `-s3` report beside the
+20-request report of the same case. It derives the P-OD6 protocol, validates completeness, the reps, the row keys and
+one shared identity, and gives each case a status: `measured`, `reduced (D37, P-OD6)`, `missing` or `invalid`. On a gap
+it exits 2 without writing. Its coverage table shows the protocol N beside the shared aggregator's "3 / 20". The
+lists have SA2's null guards. Its six self-test cases include SA2's three pure cases and the `v3: null` case that
+threw in SA2's probe.
+
+**TP28.** The Goal states MP09d2's outcome (not inert, 10 firings at N = 12). `$runStallRecheck` starts `$false`. It
+is set by hand only from a recorded D21 decision, never by searching for the word. The S capture, the file listing
+and the simulation are inside the guard.
+
+**Machine time** (SA2's "Machine time, stop points and disposition"). I took the corrections:
+
+- MP12a's 30-60 minutes per round is provisional and re-projected from the first cases.
+- MP12b1 is 9.5-14.5 hours, plus lock waits and 15 s per invocation.
+- MP12b2's header gives expected times with the upper bounds of its limits in brackets: R and A 20-40 minutes [190];
+  H 25 [25]; HL 60-90 [190]; the availability probe 16 [57], only when needed; the lock commands about 10 minutes.
+- A change round is budgeted from its enumerated evidence.
+- The listed stops are kept, and the timeout, missing-producer and stale-evidence stops are added.
+
+**Checks of the new text** (scratch only, nothing generated):
+
+- The MP12b2 test-plan block ran on a stub tree with a private lock folder, in two passes. The first pass ended at the
+  HL stop, with the manifest kept. The second ran the availability branch, the summaries, S skipped, the lock commands
+  and the identity rows. A rerun skipped the HL cases of the manifest and the availability files already captured.
+- Every PowerShell block of MP12a, MP12b1, MP12b2 and the check-list parses.
+- The identity one-liner at `a85ed55` gives digest `b4aa119a…` with `gen-v3`, `mixed-v2`, `xoshiro128ss-v1` and
+  `difficulty-v3`.
+
+**Questions.** None for the owner or the plan author. The `SHARES` or `K60` trial of MP12a's availability branch
+needs the orchestrator's go-ahead under SA2-Q-P09 branch A. D36 (P-OD5) and D37 (P-OD6) apply as decided.
+
+MP12 FIXED

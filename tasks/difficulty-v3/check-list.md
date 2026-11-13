@@ -108,7 +108,7 @@ All 35 waves are sequential: one task at a time in this repository.
 | 20 | MP10b1 | `core/browser/display-rating.js` (new), the print texts, the Player's state and views, the user guides |
 | 21 | MP10b2 | the Generator's state, jobs and cards; the browser pages (GC-P2 display); the user guides; the worker pool's load retry (KI-1, Amendment D1) |
 | 22 | MP11 | `tools/bench/*`, the calibration tests, the slow test |
-| 23 | MP12a | knob values; the GL-P3 slice |
+| 23 | MP12a | knob values; the GL-P3 slice; the landscape launcher and the criteria script that MP12b1 and MP12b2 use |
 | 24 | MP12b1 | the full landscape (GL-P3, full part) under `docs/difficulty-v3/landscape-v3-full/` |
 | 25 | MP12b2 | the search evidence (GS-P3), the Hell report and the owner's questions, the fixtures again only in an ordered change round, and the lock |
 | 26 | MP13a | after the lock: `clues.js`, `generate.js`, `types.js`, `pack.js` (provenance) |
@@ -153,9 +153,9 @@ runs never overlap (§7).
 | MP10b1 | `core/browser/display-rating.js` (new), `core/browser/print-texts.js` (the note texts), `core/browser/print-dialog.js` (`puzzleDetails` notes), `player/state.js`, `player/app.js`, `player/ui/rating-dom.js`, `player/ui/puzzle-list.js`, `tests/display-rating.test.js` (new), `tests/player-load.test.js`, `tests/print-details.test.js`; docs: design §7.7 and the Player sections of §11, `docs/design-brief.md` (the Player sentence), the user guides' Player part | the Generator, the browser pages, engine files, `core/browser/auxiliary.js` |
 | MP10b2 | `generator/state.js` (`displayRatings`), `generator/jobs.js` (the scheduler), `generator/ui/puzzle-panel.js` (cards and print captions), `generator/app.js` (only if the client must be passed on), `tests/generator-import.test.js`, `tests/generator-state.test.js`, the six browser pages of its table, `core/browser/worker-pool.js` and `tests/worker-pool.test.js` (Amendment D1, KI-1); scratch under `tests/artifacts/MP10b2/`; docs: design §10, design §8.1 (the **Pool.** bullets; Amendment D1), `docs/design-brief.md` (levels), the user guides' Generator part | the Player, `core/browser/display-rating.js`, the texts, engine files, other pages |
 | MP11 | `tools/bench/runner.js`, `tools/bench/report.js`, `tools/bench/calibration-reference.js`, `tests/calibration.test.js`, `tests/benchmark-report.test.js`, `tests/difficulty-v3.test.js` (slow part) | `policy.js` |
-| MP12a | knob values in `core/engine/policy.js` (`SCORE_V3`, `DEDUCE`, `K60`, `POLICY_ID`) and `SHARES` in `core/engine/levels.js` (only when changed), the knob-dependent pins (`tests/policy.test.js`, `tests/difficulty-v3.test.js`, the clue tests MP09d2 lists, `tests/fixtures/ui-flow-recipes.json`), the generation fixtures by the tool, `docs/difficulty-v3/landscape-v3/`, `docs/difficulty-v3/calibration-slice-<date>.md` (new) | algorithm code, `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json` |
-| MP12b1 | `docs/difficulty-v3/landscape-v3-full/` (new: the shard reports, `shards-<date>.md`, `aggregate-<date>.json` and `.md`); scratch under `tests/artifacts/MP12b1/`; no documentation slot | code, tests, fixtures, MP12a's record and folders, `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json` |
-| MP12b2 | `docs/difficulty-v3/search-<date>/` (new: `observe.mjs`, `summary.mjs`, the GS-P3 captures, `runs.md`, `summary.md`, `stall-simulate.md`), `docs/difficulty-v3/calibration-<date>.md` (new); knob values, `STALL_LIMIT`, re-pins and fixtures only in an ordered change round; scratch under `tests/artifacts/MP12b2/`; docs: design §7.8 (the lock), §7.5 (the Hell sentence), `docs/design-brief.md` (one sentence, only by its rule) | algorithm code outside a change round, MP12a's and MP12b1's records and folders, MP09d2's folder, `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json` |
+| MP12a | knob values in `core/engine/policy.js` (`SCORE_V3`, `DEDUCE`, `K60`, `POLICY_ID`) and `SHARES` in `core/engine/levels.js` (only when changed), the knob-dependent pins (`tests/policy.test.js`, `tests/difficulty-v3.test.js`, the clue tests MP09d2 lists, `tests/fixtures/ui-flow-recipes.json`), the generation fixtures by the tool, `docs/difficulty-v3/landscape-v3/` (new: the round folders, the landscape launcher `launch.mjs` and the criteria script `criteria.mjs`; TP20-TP22), `docs/difficulty-v3/calibration-slice-<date>.md` (new); scratch under `tests/artifacts/MP12a/` | algorithm code, `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json` |
+| MP12b1 | `docs/difficulty-v3/landscape-v3-full/` (new: the shard reports, `shards-<date>.md`, the aggregation script `aggregate.mjs` with its self-test (TP27), `aggregate-<date>.json` and `.md`); MP12a's `launch.mjs` used read-only; scratch under `tests/artifacts/MP12b1/`; no documentation slot | code, tests, fixtures, MP12a's record and folders, `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json` |
+| MP12b2 | `docs/difficulty-v3/search-<date>/` (new: `observe.mjs`, `summary.mjs`, `flow-case.mjs` (TP23), `failfast.mjs` (TP24), the GS-P3 captures with `hell-landscape/manifest.json`, the availability captures when rerun (TP25), `runs.md`, `summary.md`, `failfast.md`, `avail-summary.md`, `stall-simulate.md`), `docs/difficulty-v3/calibration-<date>.md` (new); knob values, `STALL_LIMIT`, re-pins and fixtures, `docs/difficulty-v3/landscape-v3-change-1/` and `search-<date>/change-1/` only in an ordered change round (TP25); scratch under `tests/artifacts/MP12b2/`; docs: design §7.8 (the lock), §7.5 (the Hell sentence), `docs/design-brief.md` (one sentence, only by its rule) | algorithm code outside a change round, MP12a's and MP12b1's records and folders (their scripts are used read-only), MP09d2's folder and `d21-2026-11-12/` (its `flow.mjs` is copied, never edited), `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json` |
 | MP13a | `core/engine/clues.js` (skip ordinals, `SKIP_BOUNDS`, `skips` on results), `core/engine/generate.js` (`made` on candidates, `provenanceVersions`, `capSkips`), `core/engine/types.js` (provenance types), `core/engine/pack.js` (`PROVENANCE`, `provenanceProblem`, `readProvenance`, the writer fallback), `tests/clues.test.js`, `tests/generate.test.js`, `tests/pack.test.js`; docs: design §5.2, §5.5, §6.10, `docs/design-brief.md` (one sentence, "Limits, waiting, and sharing"; SP07) | `core/browser/`, `generator/`, `player/`, `tools/`, the fixtures |
 | MP13b | `core/browser/generation-client.js`, `tools/generate.mjs` (one line), `generator/state.js`, `generator/jobs.js`, `tools/record-fixtures.mjs` (`--replay-case`), `tests/fixtures/replay-case.json` (new, by gate GF-P4), `tests/generation-client.test.js`, `tests/cli.test.js`, `tests/generator-state.test.js`, `tests/generator-controller.test.js`, `tests/generate.test.js`; docs: design §5.5, §10.5, §13 (fixtures), `docs/design-brief.md` (one sentence, "Generator: make a challenge"; SP07) | `core/engine/`, `player/`, the UI modules, the other fixtures |
 | MP14a | `core/engine/difficulty.js` (`rateDetailed`), `core/engine/clues.js` (`record`, `recordSource`, `replaySkips`, `SkipReplayError`, the events, the `hooks` `{ onAdd, onCount }` of `makeUnique`, the work meter `SelectContext.charge`), `core/engine/tiling.js` (only `countSolutions` returns `rowTrials`; cross-review SP09), `core/engine/types.js` (`RatingDetail`, `ClueEvent`), `tests/replay-recorders.test.js` (new), `tests/difficulty.test.js`, `tests/tiling.test.js` (case 16); docs: design §6.10, §7.9 | `generate.js`, `carve.js`, the rest of `tiling.js` (MP14b's) |
@@ -176,7 +176,8 @@ before a developer edits it.
    of `docs/difficulty-v3/report-detailed.md` and `docs/difficulty-v3/report-brief.md` together with this pack
    `tasks/difficulty-v3/` (message `difficulty-v3: accepted report and task pack`). Nothing is pushed.
 2. The orchestrator launches the developer of the next task with the task file and this check-list. A task that owns a
-   gate (§7) runs its gate only when the Sudoku repository runs no gate, landscape or timing run.
+   gate (§7) runs its gate only when the Sudoku repository runs no gate, landscape or timing run; from MP12a on, through
+   the shared-machine lock protocol of §7 instead (bounded runs interleaved with the Sudoku repository's).
 3. The developer implements, runs the commands of the task and replies with the evidence of §8. It never stages,
    commits, stashes, resets, pushes or switches branches, and never edits this pack, an Execution log,
    `docs/difficulty-v3/plan.md`, `clarifications.md`, the two reports or the analysts' folders.
@@ -300,7 +301,7 @@ the report's RES-01.
 | D26 | Auxiliary requests (MP10a; RES-29, JR-P4 (a)): a new module `core/browser/auxiliary.js` (`createAuxiliaryQueue`) serves the generation client (`submitAuxiliary`) and the Player's store; `core/browser/worker-pool.js` is unchanged. An auxiliary task waits while a main request (generation or verification) is active and never begins or cancels one; it runs under the newest ended request token, else bootstraps an idle-only token; a new main request or its own signal aborts it (`PoolAbortError('cancelled')`); any other abort puts it back in the waiting list unreported; non-abort errors pass through; the kinds are an allow-list (`rate`; MP15b adds `replayPuzzle` for the Generator). It shares the pool's FIFO idle queue with lazy certificates and never cancels or supersedes them; no certificate latency is promised (cross-review SP05). |
 | D27 | Derived display rating (MP10b1, MP10b2; RES-23, JR-P1 (a)): the shared rules are in `core/browser/display-rating.js` (MP10b1): only `difficulty-v2` and `difficulty-v1` claims are re-rated; the key is `` `${progressFingerprint}|${MODEL}` ``; a scheduler (`createDisplayRatings`) sends one `rate` request at a time through `submitAuxiliary`, the puzzle on show first, keeps rated and failed entries (at most 1,000), submits again after an abort it did not cause, and marks later wishes unavailable after `worker-unavailable`; a failed or unavailable entry shows the stored claim with "Could not be re-rated", a pending one the claim alone (cross-review SP04); the notes are `rating.note.rerated`, `rating.note.notRerated`, `rating.note.estimate` (count `censusUndecided`) and `rating.note.estimateShort` (summary claims). The Player's card renderer and the Generator's wish builder react to the start-up state and to a reply alone (SP04). MP10b1 does the Player, print and share; MP10b2 the Generator and the browser pages of GC-P2 (display). The stored claim is never changed. |
 | D28 | Calibration records (MP11; RES-25, RES-26): accepted puzzles are recorded as `{ clues, U, score, level, saturated, censored, metrics }` (`clues` was `G`; `metrics` is the v3 subset, null for another model) and profile samples gain the v3 fields; readers use `x.clues ?? x.G`, so old records stay readable; each landscape cell gets a `v3` block with `provedZero` (accepted Hard-or-above puzzles with `Gproved === 0`) and the census-estimate share; `ratingCensoredCount` and `sampledUnrateable` are counted. The slow test "slow: v3 generation orders the levels on 10x6 and 12x12, and every Hard-or-above puzzle has a proved guess" is run once by MP11 (§7). |
-| D29 | Calibration rounds (MP12a, MP12b1, MP12b2; RES-25, SA2-Q-P09 branch A, P-OD1 to P-OD3): MP12a runs the 18 GV2 cases with v3 in at most three rounds under `docs/difficulty-v3/landscape-v3/r<n>/` with the criteria C1 (levels ordered on the four GV2 boards), C2 (Hard and Expert hit rate at least the GV2 rate minus 10 points), C3 (`provedZero` 0), C4 (at most 5 % census estimates per cell) and C5 (no capped path); a failing criterion chooses the change by MP12a's rules (census 20, 40 or 80 million; caps by D19's rule; knobs re-fitted on MP06c's grid by distance to the current knobs; `SHARES`, or `K60` with a `POLICY_ID` bump; the penalty comparison of P-OD3 in round 0); after round 2 a failing criterion is a finding for the owner. MP12b1 runs the full landscape and aggregates it under `docs/difficulty-v3/landscape-v3-full/`; MP12b2 adds the search evidence (GS-P3), the Hell report and the owner's questions (D36), records everything in `calibration-<date>.md`, changes nothing unless the orchestrator orders a change round, and writes the lock (or hands the lock to MP12b3 when the owner chooses D36 (i)). |
+| D29 | Calibration rounds (MP12a, MP12b1, MP12b2; RES-25, SA2-Q-P09 branch A, P-OD1 to P-OD3): MP12a runs the 18 GV2 cases with v3 in at most three rounds under `docs/difficulty-v3/landscape-v3/r<n>/` with the criteria C1 (levels ordered on the four GV2 boards), C2 (Hard and Expert request completion rate, `requestCompletionRate`, at least the GV2 rate minus 10 points), C3 (`provedZero` 0), C4 (at most 5 % census estimates per cell) and C5 (no capped path among the canonical re-ratings of the accepted puzzles; the landscape's diagnostic samples are reported, never gated; TP21); a failing criterion chooses the change by MP12a's rules (census 20, 40 or 80 million; caps by D19's rule; a measured C2 failure or an empty cell: one evidence-based `SHARES` or `K60` trial (with a `POLICY_ID` bump) with the orchestrator's go-ahead, or a stop with the numbers, never another round with an unchanged tuple (TP22); MP06c's grid by distance to the current knobs for an ordering failure, and the penalty comparison of P-OD3 in round 0, both scored by `puzzleRescoreHitRate`); after round 2 a failing criterion is a finding for the owner. Every long run goes through MP12a's launcher and the lock protocol of §7 (TP20). MP12b1 runs the full landscape and aggregates it under `docs/difficulty-v3/landscape-v3-full/`; MP12b2 adds the search evidence (GS-P3), the Hell report and the owner's questions (D36), records everything in `calibration-<date>.md`, changes nothing unless the orchestrator orders a change round, and writes the lock (or hands the lock to MP12b3 when the owner chooses D36 (i)). |
 | D30 | Provenance (MP13a, MP13b, MP14a; RES-27, AUTH-P1 (a)): MP13a records skip ordinals (a subset ordinal for each executed `tried.add` of `rateSubset`; a repair ordinal for each executed `finish` in `require` mode, taken at its start; memoised results get none) within `SKIP_BOUNDS` (2,128 subset and 64 repair ordinals, from the loop limits of `clues.js`, pinned against `PROVENANCE`), writes `made` on candidates, and adds `PROVENANCE = { schema: 1, subsetSkips: 64, repairSkips: 16, subsetOrdinals: 2128, repairOrdinals: 64 }`, `provenanceProblem` and `readProvenance` to `pack.js` (an invalid record is removed with the warning `provenance-ignored`) with the writer fallback (drop `made` when the pack would pass the JSON-node or byte limit, else `invalid-json` or `pack-too-large`). MP13b writes `setOrigin` and `made` in the client and the Generator, adds one line to `tools/generate.mjs` and the `--replay-case` mode of `tools/record-fixtures.mjs` (gate GF-P4). MP14a adds `replaySkips`: every recorded skip must be consumed exactly, else `SkipReplayError` (`unreachable` or `unused`). |
 | D31 | Repair events (MP14a; the report leaves a repair that adds several clues open): `makeUnique` gains an optional `onAdd`; each added clue emits one `repair` event, and the events of one finish share a `repairSequence`; only the last carries `rating`, `detail` and `accepted`, and `reason` when refused (`not-proved`, `path-capped`, `no-proved-guess`, `out-of-band` or `excluded`); earlier events have `accepted: null`; a successful zero-add finish emits none (its count is charged), and a failed zero-add finish (`makeUnique` fails before adding a clue) emits one failure event (`addedId: null`, `accepted: false`, `reason: 'not-proved'`), shown without a piece name (MP16a; cross-review SP14). |
 | D32 | Set and layout recorders (MP14b): `carveFlat` keeps its signature (its callers report the accepted regions); the walk emits `{ stage: 'layout', kind: 'start', start, layout }` (`start` is `'witness'` or `'restart'`) before its moves; `observe` is a parameter of `setAttempt` and `puzzleCandidate`, `record` of `carveMacro`, `carveFlatSet` and `lnsWalk`; with no observer every output is identical. |
@@ -350,10 +351,12 @@ never changed; **N6** the Generator can replay how a puzzle was made (Generation
 ## 7. Gates (pre-approved; run by the owning task)
 
 Commands run from the repository root in PowerShell, attached and monitored, checking `$LASTEXITCODE` after each. A
-gate task names its gate run (commands, shards, expected duration) in its plan before starting it; the orchestrator
-dispatches gate tasks only while the Sudoku repository runs no gate, landscape or timing run, so that timing-sensitive
-runs of the two repositories never overlap. Long runs are split into shards of at most 10 minutes (calibration shards
-selected with `--cases`); the task records the command, start, end, duration and result of each shard.
+gate task names its gate run (commands, shards, expected duration) in its plan before starting it. Timing-sensitive
+runs of the two repositories never overlap: up to MP11 the orchestrator dispatched gate tasks only while the Sudoku
+repository ran no gate, landscape or timing run; from MP12a on, every such command goes through the shared-machine
+lock protocol at the end of this section, which interleaves the bounded runs of the two repositories fairly. Long runs
+are split into bounded invocations of at most 590 s (calibration shards selected with `--cases` and resumed by MP12a's
+landscape launcher); the task records the command, start, end, duration, lock wait and result of each invocation.
 
 | Gate | Task | Command or check | Record |
 |---|---|---|---|
@@ -364,8 +367,8 @@ selected with `--cases`); the task records the command, start, end, duration and
 | GF-P2, GA-P2 | MP09d2; MP12a after a knob change; MP12b2 (the final `npm test`, and GF-P2 only in an ordered change round) | `node tools\record-fixtures.mjs --replace --reason "P2: difficulty-v3"`; the recipe expectations by hand; v3 code cases added, v2 code goldens kept; then `npm test` | the changed expectations and why |
 | GC-P2 | MP09e (format and the duplicate-shape refusal), MP10b2 (display) | the 676-cell code matrix and `tests/browser/puzzle-code-acceptance.html`; share and print browser checks with derived ratings and the estimate note, with and without n | `docs/difficulty-v3/codes-<date>.md`; check results |
 | slow test | MP11 | `node --test --test-name-pattern="^slow: v3 generation" tests\difficulty-v3.test.js`, once, announced (about 2–8 minutes) | duration and the per-board diagnostics (in the reply) |
-| GL-P3 | MP12a (slice), MP12b1 (full) | the GV2 slice again with `--output docs\difficulty-v3\landscape-v3`; then the full landscape (`--profile landscape --seeds 20 --fresh-process --output docs\difficulty-v3\landscape-v3-full`, all 105 cases on 16 boards; the 25 Hell cases by P-OD6 (D37 (c)): a 3-request prescreen, then 20 requests where a puzzle is made and for the boundary case of each Hell level, the others reduced) in shards selected by `--cases`; `rate-probe` on regenerated matching requests verified against `resultDigest` | MP12a: `docs/difficulty-v3/calibration-slice-<date>.md`; MP12b1: `docs/difficulty-v3/landscape-v3-full/` (`shards-<date>.md`, `aggregate-<date>.json` and `.md`: every case id, coverage, incomplete, capped and partial outcomes, times; Hard and Expert compared only on cells with a GV2 baseline), summarised in MP12b2's `docs/difficulty-v3/calibration-<date>.md` |
-| GS-P3 | MP12b2 | the search-evidence captures: `docs\difficulty-v3\d21-2026-11-12\flow.mjs` under the observer `docs\difficulty-v3\search-<date>\observe.mjs` for the populations R (`require`, 6x10 and 18x20), A (`any`, the four GV2 boards, Hard to Master) and H (the Hell cells of D21), and S (only when MP09d2 found the stall stop inert) under MP09d2's `nostall.mjs`; one serial process per capture, 300-600 s each, in announced blocks (R and A about 20-40 minutes, H up to 25 minutes); then `summary.mjs` with its self-test | `docs/difficulty-v3/search-<date>/` (the captures, `runs.md`, `summary.md`, `stall-simulate.md`); sections 6-10 of `docs/difficulty-v3/calibration-<date>.md` (search evidence, Hell report, stall stop, the cells v3 cannot make with the owner's question, the fail-fast proposal) |
+| GL-P3 | MP12a (slice), MP12b1 (full) | the GV2 slice again, then the full landscape (`--profile landscape --workers 4 --seeds 20 --fresh-process`, all 105 cases on 16 boards; the 25 Hell cases by P-OD6 (D37 (c)): a 3-request prescreen, then 20 requests where a puzzle is made and for the boundary case of each Hell level, the others reduced), one case per shard selected by `--cases`, each shard run by MP12a's launcher `docs/difficulty-v3/landscape-v3/launch.mjs` in bounded invocations under the lock protocol below (staged under `tests/artifacts/<task id>/landscape/`, resumed after its scheduled pause, published once into `docs/difficulty-v3/landscape-v3/r<k>/` or `landscape-v3-full/`; TP20); `rate-probe --pack` on the matching requests, captured once and verified against `resultDigest` (SP06) | MP12a: `docs/difficulty-v3/calibration-slice-<date>.md`; MP12b1: `docs/difficulty-v3/landscape-v3-full/` (`shards-<date>.md`, `aggregate-<date>.json` and `.md`: every case id, coverage, incomplete, capped and partial outcomes, times; Hard and Expert compared only on cells with a GV2 baseline), summarised in MP12b2's `docs/difficulty-v3/calibration-<date>.md` |
+| GS-P3 | MP12b2 | the search-evidence captures: `docs\difficulty-v3\d21-2026-11-12\flow.mjs` under the observer `docs\difficulty-v3\search-<date>\observe.mjs` for the populations R (`require`, 6x10 and 18x20), A (`any`, the four GV2 boards, Hard to Master) and H (the Hell cells of D21), `docs\difficulty-v3\search-<date>\flow-case.mjs` under the same observer for HL (the 20 other Hell cases of the landscape, one diagnostic replay each; TP23), and S (only under a recorded D21 decision "inert on the v3 corpus"; skipped on this source, TP28) under MP09d2's `nostall.mjs`; one serial process per capture under the lock protocol below, limits R and A 570 s, H 300 s, HL 180 s (no puzzle in the landscape) or 570 s; the identity of each block against the landscape's, and MP09d2's availability probe again under the final tuple when its observations cannot be reused (engine, versions or knobs changed since `eea5fed`; TP25); then `summary.mjs` and `failfast.mjs`, each with its self-test (TP24) | `docs/difficulty-v3/search-<date>/` (the captures, `hell-landscape/manifest.json`, `runs.md`, `summary.md`, `failfast.md`, `avail-summary.md` when rerun, `stall-simulate.md`); sections 6-10 of `docs/difficulty-v3/calibration-<date>.md` (search evidence, Hell report, stall stop, the cells v3 cannot make with the owner's question, the fail-fast proposal) |
 | GF-P4 | MP13b | the new replay-fixture mode of `tools\record-fixtures.mjs` writes `tests/fixtures/replay-case.json`; then `npm test` | the fixture's provenance |
 | GB-P4 | MP16b | `tests/browser/replay.html` (main and keys phases), `rendering.html`, `generator-flow.html` and `acceptance.html`, with MP16b's runner (trusted keys, one evidence directory per page and phase; cross-review SP19) | check results |
 | GZ | MP17 | before the announcement only the lock inspection (the diff of the locked constants, printed values); in the gate: the fixture checks (`node tools\record-fixtures.mjs --check` and `--replay-case --check`; cross-review SP18); `npm test`; the plan §6 probe and runs of every offered level on 10x6 and 20x18 (`tools/generate.mjs`, small counts, a fresh attempt directory with a checked manifest; SP17), their claims re-rated; a small `rate-probe` run on 10x6 and 20x18; every page of `tests/browser/` in the main phase plus the keys and narrow phases of `puzzle-code-acceptance` and the keys phase of `replay` (MP16b's runner; SP19) | `docs/difficulty-v3/final-<date>.md`, with the release notes |
@@ -377,6 +380,121 @@ selected with `--cases`); the task records the command, start, end, duration and
 `node tools/serve.mjs --port 88NN --prefix /pentomino/`; throwaway profile `tests\artifacts\edge-MPnn\`. Record the
 server and browser PIDs, stop them by PID and remove the profile afterwards, also on failure. If a port is busy, report
 it; never stop someone else's process.
+
+### Shared-machine lock protocol (from MP12a on; cross-review TP20)
+
+The Sudoku repository runs its gates on the same machine. From MP12a on, every command of this pack that runs tests,
+generation, rating or a measurement and can take more than about 10 seconds (landscape invocations, captures, rating
+runs, the slow tests, `tools/record-fixtures.mjs`, `npm test` and `npm run test:quick`, browser pages) runs through
+the helper below, one bounded command per acquisition of the lock.
+
+- Lock files (mutexes only; no script, log or measurement goes there): `$env:TEMP\dv3-timing.lock` is this
+  repository's, `$env:TEMP\dv3-sudoku.lock` the Sudoku repository's. The helper waits until both are absent, creates
+  its own exclusively, rechecks the other one (after a race it releases its lock and backs off 5-15 s) and removes only
+  its own lock, in `finally`. Never delete another task's lock; a slot that stays taken for 10 minutes is reported to
+  the orchestrator, not guessed away.
+- Fairness (orchestrator, 2026-11-13, as in the Sudoku check-list §7): at least 15 seconds between releasing the lock
+  and taking it again (the helper waits 15 s after every release); no lock is held across a series of commands; a long
+  run is a series of bounded invocations (MP12a's landscape launcher).
+- Bound: at most 590 s per invocation (`-LimitSeconds`, default 590; a task may set less). At the limit the helper
+  stops the whole process tree (deepest first), releases the lock and returns `TimedOut`. A command stopped at its
+  limit is a failure unless its task defines that limit as a recorded outcome (the capture limits of MP12b2); its
+  partial output never counts as a pass.
+- Record: the helper prints and returns the label, the exit code (null when stopped), start, end, seconds and the lock
+  wait, which is measured apart from the command's time; the task's record keeps them.
+- Arguments go to `node` as given, without shell re-quoting. `npm test` runs as its `package.json` command,
+  `node --test "tests/**/*.test.js"` (the literal pattern, which Node expands), and `npm run test:quick` as
+  `node --test --test-skip-pattern=slow "tests/**/*.test.js"`; `npm run check` takes seconds and needs no lock. An
+  environment variable of the command (for example `D21_OUT`) goes in `-Environment`, not in the session.
+- Save the helper verbatim as `tests/artifacts/<task id>/dv3-lock.ps1` and dot-source it in every call (shell
+  functions do not persist between tool calls). It needs PowerShell 7 and supersedes the task-local `Invoke-Locked`
+  helpers of MP09e and MP10b2. `-LockDir` is only for MP12a's fake-tree check of the helper itself.
+
+```powershell
+function Invoke-Dv3Timed {
+  param(
+    [Parameter(Mandatory = $true)][string]$Task,
+    [Parameter(Mandatory = $true)][string[]]$NodeArgs,
+    [int]$LimitSeconds = 590,
+    [hashtable]$Environment = @{},
+    [string]$LockDir = $env:TEMP
+  )
+  if ($LimitSeconds -lt 1 -or $LimitSeconds -gt 590) { throw "LimitSeconds must be 1-590: split the command instead" }
+  $LockDir = (Resolve-Path -LiteralPath $LockDir -ErrorAction Stop).ProviderPath
+  $other = Join-Path $LockDir 'dv3-sudoku.lock'
+  $mine = Join-Path $LockDir 'dv3-timing.lock'
+  $asked = Get-Date
+  $lock = $null
+  while ($null -eq $lock) {
+    while ((Test-Path -LiteralPath $other) -or (Test-Path -LiteralPath $mine)) {
+      if (((Get-Date) - $asked).TotalMinutes -ge 10) { throw "No timing slot within 10 minutes for $Task; report to the orchestrator" }
+      Start-Sleep -Seconds 5
+    }
+    try {
+      $lock = [IO.File]::Open($mine, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::Read)
+    } catch [IO.IOException] {
+      if (-not (Test-Path -LiteralPath $mine)) { throw }
+      $lock = $null
+      continue
+    }
+    $bytes = [Text.Encoding]::UTF8.GetBytes("$PID|pentomino|$Task|$([DateTime]::UtcNow.ToString('o'))")
+    $lock.Write($bytes, 0, $bytes.Length)
+    $lock.Flush()
+    if (Test-Path -LiteralPath $other) {
+      $lock.Dispose()
+      $lock = $null
+      Remove-Item -LiteralPath $mine -ErrorAction Stop
+      Start-Sleep -Seconds (Get-Random -Minimum 5 -Maximum 16)
+    }
+  }
+  $waited = [math]::Round(((Get-Date) - $asked).TotalSeconds, 1)
+  $p = $null
+  $timedOut = $false
+  $killed = @()
+  $start = Get-Date
+  try {
+    $si = [Diagnostics.ProcessStartInfo]::new('node')
+    $si.UseShellExecute = $false
+    $si.WorkingDirectory = (Get-Location).Path
+    foreach ($a in $NodeArgs) { $si.ArgumentList.Add($a) }
+    foreach ($k in $Environment.Keys) { $si.Environment[$k] = [string]$Environment[$k] }
+    $p = [Diagnostics.Process]::Start($si)
+    $timedOut = -not $p.WaitForExit($LimitSeconds * 1000)
+  } finally {
+    if ($p -and -not $p.HasExited) {
+      $all = Get-CimInstance Win32_Process
+      $owned = [Collections.Generic.List[int]]::new()
+      $owned.Add($p.Id)
+      for ($i = 0; $i -lt $owned.Count; $i++) {
+        foreach ($c in ($all | Where-Object ParentProcessId -EQ $owned[$i])) {
+          if (-not $owned.Contains([int]$c.ProcessId)) { $owned.Add([int]$c.ProcessId) }
+        }
+      }
+      for ($i = $owned.Count - 1; $i -ge 0; $i--) { Stop-Process -Id $owned[$i] -Force -ErrorAction SilentlyContinue }
+      $killed = $owned.ToArray()
+      $null = $p.WaitForExit(10000)
+    }
+    $end = Get-Date
+    $lock.Dispose()
+    Remove-Item -LiteralPath $mine -ErrorAction Stop
+    Start-Sleep -Seconds 15
+  }
+  $exit = if ($timedOut) { $null } else { $p.ExitCode }
+  $global:LASTEXITCODE = if ($timedOut) { 124 } else { $exit }
+  $outcome = if ($timedOut) { "stopped at the $LimitSeconds s limit" } else { "exit $exit" }
+  $seconds = [math]::Round(($end - $start).TotalSeconds, 1)
+  Write-Host "[$Task] $outcome; start $($start.ToString('HH:mm:ss')) end $($end.ToString('HH:mm:ss')); $seconds s; lock wait $waited s"
+  [pscustomobject]@{
+    Task = $Task; Exit = $exit; TimedOut = $timedOut; Killed = $killed; Start = $start; End = $end; Seconds = $seconds
+    WaitedSeconds = $waited
+  }
+}
+```
+
+Use: `$r = Invoke-Dv3Timed -Task '<task> <what>' -NodeArgs @(<node arguments>)`, then check `$r.TimedOut` and
+`$r.Exit` (also in `$LASTEXITCODE`; 124 when stopped). The analysts ran this helper with a scratch `-LockDir`: exit
+codes 0 and 3, an environment value with a space, a two-process fake tree stopped at 5 s (both processes gone, lock
+released), a 10 s wait for the other lock and a missing lock folder (it throws at once instead of waiting).
 
 ## 8. Evidence and sign-off
 
@@ -439,8 +557,8 @@ The orchestrator owns this record.
 | MP09e | Accepted (known flake recorded) | about 1 h 33 min developer (incl. 25 min flake baseline) + 10 min review | about 547 | `difficulty-v3 MP09e` |
 | MP10a | Accepted | 14 min developer + 2 min review | about 237 | `difficulty-v3 MP10a` |
 | MP10b1 | Accepted (print overflow fixed in the task) | 24 min developer in two rounds + 5 min review | about 617 | `difficulty-v3 MP10b1` |
-| MP10b2 | Accepted (GC-P2 display passed; KI-1 closed by D1) | 45 min developer (incl. about 25 min page runs) + 5 min review | about 717 | `difficulty-v3 MP10b2` |
-| MP11 | Accepted | 9 min developer + 7 min review | about 182 | `difficulty-v3 MP11` |
+| MP10b2 | Accepted (GC-P2 display passed; KI-1 closed by D1) | 45 min developer (incl. about 25 min page runs) + 2 min review | about 717 | `difficulty-v3 MP10b2` |
+| MP11 | Accepted | 9 min developer + 3 min review | about 182 | `difficulty-v3 MP11` |
 | MP12a | | | | |
 | MP12b1 | | | | |
 | MP12b2 | | | | |

@@ -265,8 +265,8 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 |---|---|
 | Status | Accepted and committed (`difficulty-v3 MP11: Calibration tooling for v3 and the slow v3 test`) |
 | Start | 2026-11-13 10:06 (+07:00) |
-| End | 2026-11-13 10:15 developer; 10:22 orchestrator review and commit |
-| Duration | 9 min developer (the slow test 101 s under the timing lock); about 7 min review (with the orchestrator's slow-test run) |
+| End | 2026-11-13 10:15 developer; 10:18 orchestrator commit |
+| Duration | 9 min developer (the slow test 101 s under the timing lock); about 3 min review (with the orchestrator's slow-test run) |
 | Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
 | Token usage | 62 model calls; 8,882,478 input tokens (8,701,362 cache reads); 49,304 output tokens |
 | AI credits | about 182 (developer) |
