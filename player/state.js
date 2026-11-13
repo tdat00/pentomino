@@ -8,6 +8,7 @@ import { packBoard } from '../core/engine/pack.js';
 import { MAX_PUZZLE_CODES, isPuzzleListHash, normalizePuzzleCodeText } from '../core/engine/puzzlecode-input.js';
 import { MAX_URL_CHARS, isPuzzleHash, puzzleListHash } from '../core/engine/sharecode.js';
 import { normalizeAngle } from '../core/engine/view.js';
+import { createAuxiliaryQueue } from '../core/browser/auxiliary.js';
 import { puzzleCodesOf, readIncoming, readPack, readPuzzleCode } from '../core/browser/handoff.js';
 import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
 import { SAVE_FAILED_MESSAGE, browserStorage } from '../core/browser/storage.js';
@@ -208,6 +209,7 @@ async function defaultFetchText(url) {
  * @typedef {object} PoolLike
  * @property {(r: { requestId: number, revision: string, onTimeout?: (info: unknown) => void }) => void} beginRequest
  * @property {(task: { requestId: number, revision: string, kind: 'verifyPack', payload: object }) => Promise<unknown>} run
+ * @property {(task: { requestId: number, revision: string, kind: 'rate', payload: object, signal?: AbortSignal }) => Promise<unknown>} [runIdle]
  * @property {(requestId: number) => void} endRequest
  * @property {() => void} close
  */
@@ -255,6 +257,15 @@ export function createPlayerController(options) {
     pool ??= (options.createPool ?? (() => /** @type {PoolLike} */ (/** @type {unknown} */ (createPool({ size: 1 })))))();
     return pool;
   }
+
+  const aux = createAuxiliaryQueue({
+    getPool: () => /** @type {import('../core/browser/auxiliary.js').AuxiliaryPool} */ (/** @type {unknown} */ (getPool())),
+    allocate: () => {
+      requestSeq += 1;
+      return requestSeq;
+    },
+    kinds: ['rate'],
+  });
 
   /** The controller's dedicated puzzle-code worker: separate from the verification pool, made on first use. */
   function getCodeClient() {
@@ -593,6 +604,7 @@ export function createPlayerController(options) {
     const id = requestSeq;
     const fingerprint = s.fingerprints[index];
     const stamp = `${revision}:${index}`;
+    let timedOut = false;
     /** @param {unknown} reason */
     const giveUp = (reason) => {
       if (isAbortError(reason) && reason.reason !== 'deadline') {
@@ -608,8 +620,18 @@ export function createPlayerController(options) {
     let active;
     try {
       active = getPool();
-      active.beginRequest({ requestId: id, revision: stamp, onTimeout: () => giveUp(null) });
+      aux.mainBegin({ requestId: id, revision: stamp });
+      active.beginRequest({
+        requestId: id,
+        revision: stamp,
+        onTimeout: () => {
+          timedOut = true;
+          giveUp(null);
+        },
+      });
     } catch {
+      // The queue ignores this unless mainBegin ran for this request.
+      aux.mainEnd({ requestId: id, revision: stamp }, true);
       poolUnavailable = true;
       set({ status: 'not-verified', basis: 'unavailable' });
       return;
@@ -641,6 +663,7 @@ export function createPlayerController(options) {
         } catch {
           // The pool may already be closed.
         }
+        aux.mainEnd({ requestId: id, revision: stamp }, timedOut);
       });
   }
 
@@ -825,9 +848,19 @@ export function createPlayerController(options) {
     dismissNotice() {
       store.update({ notice: null });
     },
+    /**
+     * One background task (`rate`) on the verification pool: it waits while a verification runs and gives way to a
+     * new one (`PoolAbortError('cancelled')`), as does its own `signal` (design §8.1).
+     * @param {string} kind
+     * @param {object} payload
+     * @param {{ signal?: AbortSignal }} [submitOptions]
+     * @returns {Promise<unknown>}
+     */
+    submitAuxiliary: (kind, payload, submitOptions) => aux.submit(kind, payload, submitOptions ?? {}),
     destroy() {
       destroyed = true;
       loadToken += 1;
+      aux.dispose();
       try {
         pool?.close();
       } catch {

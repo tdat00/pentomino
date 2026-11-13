@@ -113,6 +113,53 @@ function manualPool() {
   };
 }
 
+/** Pool that records every call and leaves `run` (verification) and `runIdle` (auxiliary) to the test. */
+function auxPool() {
+  /** @type {unknown[][]} */
+  const calls = [];
+  /** @type {(() => void)[]} */
+  const timeouts = [];
+  /** @type {{ task: any, resolve: (v: unknown) => void, reject: (e: unknown) => void }[]} */
+  const verify = [];
+  /** @type {{ task: any, resolve: (v: unknown) => void, reject: (e: unknown) => void }[]} */
+  const idle = [];
+  return {
+    calls,
+    verify,
+    idle,
+    timeouts,
+    beginRequest(/** @type {{ requestId: number, revision: string, onTimeout?: () => void }} */ r) {
+      calls.push(['begin', r.requestId, r.revision]);
+      if (r.onTimeout !== undefined) {
+        timeouts.push(r.onTimeout);
+      }
+    },
+    endRequest(/** @type {number} */ id) {
+      calls.push(['end', id]);
+    },
+    close() {
+      calls.push(['close']);
+    },
+    run: (/** @type {any} */ task) => new Promise((resolve, reject) => {
+      verify.push({ task, resolve, reject });
+    }),
+    runIdle: (/** @type {any} */ task) => new Promise((resolve, reject) => {
+      calls.push(['idle', task.requestId, task.revision]);
+      idle.push({ task, resolve, reject });
+    }),
+  };
+}
+
+/** @param {Promise<unknown>} promise */
+function track(promise) {
+  /** @type {{ state: string, value?: any, error?: any }} */
+  const out = { state: 'pending' };
+  promise.then((value) => Object.assign(out, { state: 'resolved', value }), (error) => Object.assign(out, { state: 'rejected', error }));
+  return out;
+}
+
+const rateInput = { boardRows: sample.board.rows, pieces: sample.pieces, clues: sample.puzzles[0].clues };
+
 /**
  * @param {{ hash?: string, adapter?: ReturnType<typeof memoryAdapter> | null, pool?: any, fetchText?: (url: string) => Promise<string>,
  *   createPool?: () => any, codes?: boolean }} [o] `codes`: the controller makes puzzle codes with a real worker.
@@ -717,4 +764,127 @@ test('select only marks a piece; destroy stops everything', async () => {
   await settle(h);
   const result = await openPack(h, sample);
   assert.equal(result.ok, false);
+});
+
+test('auxiliary request: the first one of a fresh player bootstraps its own token, and request ids keep increasing', async () => {
+  const pool = auxPool();
+  const h = setup({ pool });
+  await openPack(h, sample);
+  assert.deepEqual(pool.calls, [], 'a stored answer makes no verification request');
+  const out = track(h.controller.submitAuxiliary('rate', rateInput));
+  await settle(h);
+  assert.deepEqual(pool.calls, [['begin', 1, 'aux-1'], ['end', 1], ['idle', 1, 'aux-1']]);
+  assert.equal(pool.idle[0].task.kind, 'rate');
+  assert.deepEqual(pool.idle[0].task.payload, rateInput);
+  pool.idle[0].resolve({ rating: 'scripted' });
+  await settle(h);
+  assert.deepEqual([out.state, out.value], ['resolved', { rating: 'scripted' }]);
+  await openPack(h, answerFree);
+  assert.deepEqual(pool.calls.slice(3), [['begin', 2, `${h.state().revision}:0`]]);
+  await assert.rejects(h.controller.submitAuxiliary('verifyPack', {}), TypeError);
+});
+
+test('auxiliary request: a verification in flight is not touched; the request waits and runs under its token', async () => {
+  const pool = auxPool();
+  const h = setup({ pool });
+  await openPack(h, answerFree);
+  const stamp = `${h.state().revision}:0`;
+  const out = track(h.controller.submitAuxiliary('rate', rateInput));
+  await settle(h);
+  assert.deepEqual(pool.calls, [['begin', 1, stamp]], 'it waits while the verification runs');
+  assert.equal(h.state().verificationByPuzzle[0].status, 'pending');
+  pool.verify[0].resolve(await enginePool().run(pool.verify[0].task));
+  await settle(h);
+  assert.deepEqual(h.state().verificationByPuzzle[0], { status: 'solvable', basis: 'search' });
+  assert.deepEqual(pool.calls, [['begin', 1, stamp], ['end', 1], ['idle', 1, stamp]]);
+  assert.equal(out.state, 'pending');
+  pool.idle[0].resolve({ rating: 'scripted' });
+  await settle(h);
+  assert.deepEqual([out.state, out.value], ['resolved', { rating: 'scripted' }]);
+});
+
+test('auxiliary request: another puzzle starts a verification and rejects a waiting request as cancelled', async () => {
+  /** @param {boolean} withAux */
+  const run = async (withAux) => {
+    const pool = auxPool();
+    const h = setup({ pool });
+    await openPack(h, answerFree);
+    const aux = withAux ? track(h.controller.submitAuxiliary('rate', rateInput)) : null;
+    await settle(h);
+    h.controller.goToPuzzle(1);
+    pool.verify[0].reject(new PoolAbortError('superseded'));
+    await settle(h);
+    return { h, pool, aux };
+  };
+  const plain = await run(false);
+  const withAux = await run(true);
+  assert.equal(withAux.aux?.state, 'rejected');
+  assert.ok(withAux.aux?.error instanceof PoolAbortError);
+  assert.equal(withAux.aux?.error.reason, 'cancelled');
+  assert.deepEqual(withAux.h.state().verificationByPuzzle, plain.h.state().verificationByPuzzle);
+  assert.equal(withAux.h.state().verificationByPuzzle[1].status, 'pending');
+  assert.deepEqual(withAux.pool.calls, plain.pool.calls, 'the pool saw the same calls, and no auxiliary task');
+  withAux.pool.verify[1].resolve(await enginePool().run(withAux.pool.verify[1].task));
+  await settle(withAux.h);
+  const later = track(withAux.h.controller.submitAuxiliary('rate', rateInput));
+  await settle(withAux.h);
+  assert.deepEqual(withAux.pool.calls.at(-1), ['idle', 2, `${withAux.h.state().revision}:1`], 'a later request runs under the last token');
+  withAux.pool.idle[0].resolve({ rating: 'scripted' });
+  await settle(withAux.h);
+  assert.equal(later.state, 'resolved');
+});
+
+test('auxiliary request: after a verification that timed out it bootstraps a new token', async () => {
+  const pool = auxPool();
+  const h = setup({ pool });
+  await openPack(h, answerFree);
+  pool.timeouts[0]();
+  pool.verify[0].reject(new PoolAbortError('deadline'));
+  await settle(h);
+  assert.equal(h.state().verificationByPuzzle[0].status, 'not-verified');
+  const out = track(h.controller.submitAuxiliary('rate', rateInput));
+  await settle(h);
+  assert.deepEqual(pool.calls.slice(2), [['begin', 2, 'aux-2'], ['end', 2], ['idle', 2, 'aux-2']]);
+  pool.idle[0].resolve({ rating: 'scripted' });
+  await settle(h);
+  assert.equal(out.state, 'resolved');
+});
+
+test('auxiliary request: a pool that cannot begin a request or has no runIdle rejects it as worker-unavailable', async () => {
+  const unavailable = new PoolError('worker-unavailable', 'no workers');
+  const broken = setup({
+    pool: { beginRequest() { throw unavailable; }, endRequest() {}, close() {}, run: () => Promise.reject(unavailable), runIdle: () => Promise.resolve({}) },
+  });
+  await openPack(broken, answerFree);
+  assert.equal(broken.state().verificationByPuzzle[0].basis, 'unavailable');
+  await assert.rejects(broken.controller.submitAuxiliary('rate', rateInput), (e) => e instanceof PoolError && e.code === 'worker-unavailable');
+  const plain = setup({ pool: enginePool() });
+  await openPack(plain, sample);
+  await assert.rejects(plain.controller.submitAuxiliary('rate', rateInput), (e) => e instanceof PoolError && e.code === 'worker-unavailable');
+});
+
+test('auxiliary request: destroy rejects waiting and running requests as closed, and refuses new ones', async () => {
+  const pool = auxPool();
+  const h = setup({ pool });
+  await openPack(h, answerFree);
+  const waiting = track(h.controller.submitAuxiliary('rate', rateInput));
+  await settle(h);
+  assert.equal(waiting.state, 'pending');
+  h.controller.destroy();
+  await settle(h);
+  assert.deepEqual([waiting.state, waiting.error?.reason], ['rejected', 'closed']);
+  assert.deepEqual(pool.calls.at(-1), ['close']);
+  const later = track(h.controller.submitAuxiliary('rate', rateInput));
+  await settle(h);
+  assert.deepEqual([later.state, later.error?.reason], ['rejected', 'closed']);
+
+  const idlePool = auxPool();
+  const r = setup({ pool: idlePool });
+  await openPack(r, sample);
+  const running = track(r.controller.submitAuxiliary('rate', rateInput));
+  await settle(r);
+  assert.equal(idlePool.idle.length, 1);
+  r.controller.destroy();
+  await settle(r);
+  assert.deepEqual([running.state, running.error?.reason], ['rejected', 'closed']);
 });

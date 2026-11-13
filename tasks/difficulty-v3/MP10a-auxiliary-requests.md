@@ -351,14 +351,14 @@ that records calls; `setup` from line 117):
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP10a: Auxiliary request method on the generation client and the Player's pool`) |
+| Start | 2026-11-13 08:05 (+07:00) |
+| End | 2026-11-13 08:19 developer; 08:30 orchestrator review and commit |
+| Duration | 14 min developer; about 10 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 66 model calls; 9,224,239 input tokens (9,023,585 cache reads); 96,696 output tokens |
+| AI credits | about 237 (developer) |
+| Verification | Developer: targeted `node --test --test-skip-pattern=slow` on the five files 144/144 (23 s); `npm run test:quick` 1284/1284 (27 s); `npm run check` OK; `record-fixtures --check` OK; two mutation checks in `auxiliary.js` caught and restored. Orchestrator re-run: `tests\auxiliary.test.js`, `generation-client`, `player-load`, `worker-pool`, `bench-report` 116/116; `test:quick` 1284/1284; `check` OK; `record-fixtures --check` OK |
+| Acceptance | MP10a-B01..B03 and T01..T05 met. Diff reviewed: `createAuxiliaryQueue` (new `core/browser/auxiliary.js`) waits while a main request is active, reuses the ended request's token (dropped after a time-out, a `stale`, `superseded`, `deadline` or `ended` abort), re-queues a pool abort, rejects with `cancelled` on a new main request or its own signal and with `closed` on `dispose`, bootstraps a token on a cold pool and never throws into `finish`; the generation client's `begin` / `finish` and the Player's `startVerification` notify it; `submitAuxiliary` on both owners; `core/browser/worker-pool.js` unchanged and no existing test edited; `SOURCE_FILES` covers the new module; design §8.1 "Auxiliary requests" with the eight rules |
+| Issues & resolutions | (1) §8.1 was at line 1912 (not 1734); located by name. (2) Documentation beyond §8.1, by AGENTS.md (the design describes the current code): `auxiliary.js` in the `core/browser` file tree and the §4.3 module table, `submitAuxiliary` in the `generation-client.js` row, "and auxiliary" in the `runIdle` sentence; accepted. (3) Rule 6 also drops the token on `deadline` and `ended` (otherwise a re-run under a timed-out token could loop); unreachable today; accepted. (4) The developer guides list layers, not modules: unchanged. (5) `tsc` is not installed and not in the test plan |
+| Handoff | MP10b1: `controller.submitAuxiliary('rate', { boardRows, pieces, clues }, { signal })` in the Player and `client.submitAuxiliary(...)` in the Generator resolve a `RatingV3` or reject with `PoolAbortError` (`cancelled`, `closed`), `WorkerTaskError` (`rating-incomplete`, `unsatisfiable`) or `PoolError` (`worker-unavailable`); a new generation or verification cancels a pending rating, so a caller that still wants it resubmits; a pool without `runIdle` (the Player's default test `enginePool`) rejects with `worker-unavailable`. MP15b: add `'replayPuzzle'` to the `kinds` array in `createGenerationClient` |

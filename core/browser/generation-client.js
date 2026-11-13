@@ -15,8 +15,10 @@ import { BUDGETS, ENUMERATION, pieceCountRange, POLICY_ID } from '../engine/poli
 import { batchSeedFor, normalizeSeedText, RNG_ID, SEED_SCHEME } from '../engine/rng.js';
 import { isValidLayout } from '../engine/tiling.js';
 import { ALGO_ID, APP_VERSION } from '../engine/version.js';
+import { createAuxiliaryQueue } from './auxiliary.js';
 import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-pool.js';
 
+/** @typedef {import('./auxiliary.js').AuxiliaryPool} AuxiliaryPool */
 /** @typedef {import('../engine/types.js').Board} Board */
 /** @typedef {import('../engine/types.js').Certificate} Certificate */
 /** @typedef {import('../engine/types.js').Issue} Issue */
@@ -153,6 +155,10 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {(input: { boardRows: string[], pieces: Piece[], clues: Pose[], revision?: string }) => Promise<Pose[] | null>} solveWitness
  *   One arrangement of a piece set that keeps the given clues (the solver's first solution within its row limit), or
  *   null when none was found, the search was cancelled or it ran out of time.
+ * @property {(kind: string, payload: object, options?: { signal?: AbortSignal }) => Promise<unknown>} submitAuxiliary
+ *   One background task (kind `rate`, payload `{ boardRows, pieces, clues }`) that waits while a request of this client
+ *   is active, runs on the pool's idle queue and rejects with `PoolAbortError('cancelled')` when a new request begins
+ *   or its `signal` aborts (design §8.1); it never cancels a request, a hint or a certificate.
  * @property {() => void} cancel
  * @property {() => void} recycle
  */
@@ -428,6 +434,14 @@ export function createGenerationClient(pool, options = {}) {
   let lastRequestId = 0;
   /** @type {Job | null} */
   let latest = null;
+  const aux = createAuxiliaryQueue({
+    getPool: () => /** @type {AuxiliaryPool} */ (/** @type {unknown} */ (pool)),
+    allocate: () => {
+      lastRequestId += 1;
+      return lastRequestId;
+    },
+    kinds: ['rate'],
+  });
 
   /** @param {string | undefined} revision @returns {Job} */
   function begin(revision) {
@@ -435,14 +449,20 @@ export function createGenerationClient(pool, options = {}) {
     const tag = revisionOf(revision, requestId);
     /** @type {Job} */
     const job = { requestId, revision: tag, startedAt: clock.now(), running: true, cancelled: false, timedOut: false, wake: null };
-    pool.beginRequest({
-      requestId,
-      revision: tag,
-      onTimeout: () => {
-        job.timedOut = true;
-        job.wake?.();
-      },
-    });
+    aux.mainBegin({ requestId, revision: tag });
+    try {
+      pool.beginRequest({
+        requestId,
+        revision: tag,
+        onTimeout: () => {
+          job.timedOut = true;
+          job.wake?.();
+        },
+      });
+    } catch (e) {
+      aux.mainEnd({ requestId, revision: tag }, true);
+      throw e;
+    }
     lastRequestId = requestId;
     latest = job;
     return job;
@@ -455,6 +475,7 @@ export function createGenerationClient(pool, options = {}) {
   function finish(job) {
     job.running = false;
     pool.endRequest(job.requestId);
+    aux.mainEnd({ requestId: job.requestId, revision: job.revision }, job.timedOut);
   }
 
   /** @param {Job} job @returns {Promise<void>} */
@@ -1200,6 +1221,7 @@ export function createGenerationClient(pool, options = {}) {
     generateSet,
     generateBatch,
     solveWitness,
+    submitAuxiliary: (kind, payload, submitOptions) => aux.submit(kind, payload, submitOptions ?? {}),
     cancel,
     recycle() {
       cancel();

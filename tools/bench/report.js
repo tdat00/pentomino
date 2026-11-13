@@ -43,6 +43,7 @@ export const SOURCE_FILES = Object.freeze([
   'core/engine/qualification.js', 'core/engine/rng.js', 'core/engine/sharecode.js', 'core/engine/tasks.js',
   'core/engine/tiling.js', 'core/engine/types.js', 'core/engine/version.js', 'core/engine/view.js',
   'core/engine/workspace.js', 'core/browser/worker-pool.js', 'core/browser/generation-client.js',
+  'core/browser/auxiliary.js',
   'core/workers/engine.worker.js', 'tools/bench/runner.js', 'tools/bench/report.js',
   'tools/bench/responsiveness.js', 'tools/bench/calibration-reference.js',
 ]);

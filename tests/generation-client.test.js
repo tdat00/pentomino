@@ -744,6 +744,157 @@ describe('batch requests', () => {
   });
 });
 
+describe('auxiliary requests', () => {
+  const rated = { rating: 'scripted' };
+  const ratePayload = {
+    boardRows: ['###', '###'],
+    pieces: [
+      { id: 'A', label: 'A', color: '#e6194b', cells: [[0, 0], [0, 1], [1, 1]] },
+      { id: 'B', label: 'B', color: '#3cb44b', cells: [[0, 0], [1, 0], [2, 0]] },
+    ],
+    clues: [],
+  };
+  const certificate = { status: 'unique', model: 'dlx-v1', rowLimit: 10000, verified: true };
+  /** @param {ReturnType<typeof harness>} h @param {string} kind */
+  const heldOf = (h, kind) => h.held.filter((t) => t.kind === kind);
+
+  test('a fresh client runs the request on a bootstrapped token; only rate is allowed', async () => {
+    const h = harness({ handler: (t) => (t.kind === 'rate' ? { value: rated } : undefined) });
+    const client = clientOf(h);
+    assert.deepEqual(await client.submitAuxiliary('rate', ratePayload), rated);
+    assert.deepEqual(h.tasks.map((t) => t.kind), ['rate']);
+    await assert.rejects(client.submitAuxiliary('certify', ratePayload), TypeError);
+    assert.deepEqual(await client.submitAuxiliary('rate', ratePayload, { signal: new AbortController().signal }), rated);
+  });
+
+  test('during a batch it waits and changes nothing in the batch; the certificates are still delivered', async () => {
+    /** @param {boolean} withAux */
+    const run = async (withAux) => {
+      let gate = true;
+      const h = harness({
+        handler: (t) => {
+          if (t.kind === 'certify') {
+            return undefined;
+          }
+          if (t.kind === 'rate') {
+            return { value: rated };
+          }
+          return gate ? undefined : scripted(t);
+        },
+      });
+      const client = clientOf(h);
+      /** @type {any[]} */
+      const events = [];
+      const batch = track(client.generateBatch(batchInput({ quantity: 2, revision: 'r-aux' }), { onCertificate: (e) => events.push(e) }));
+      const aux = withAux ? track(client.submitAuxiliary('rate', ratePayload)) : null;
+      await settle();
+      assert.equal(batch.state, 'pending');
+      assert.equal(aux?.state ?? 'pending', 'pending');
+      assert.equal(h.tasks.some((t) => t.kind === 'rate'), false, 'it waits while the batch is active');
+      gate = false;
+      for (const t of h.held.filter((x) => x.kind === 'puzzleCandidate')) {
+        h.answer(t, scripted(t));
+      }
+      await settle();
+      assert.equal(batch.state, 'resolved');
+      assert.equal(aux === null || aux.state === 'resolved', true, 'it runs once the batch has ended');
+      assert.deepEqual(aux?.value ?? rated, rated);
+      const lazy = heldOf(h, 'certify');
+      assert.equal(lazy.length, 2);
+      for (const t of lazy) {
+        h.answer(t, { value: certificate });
+      }
+      await settle();
+      return { result: batch.value, events: events.map((e) => [e.revision, e.puzzleId]) };
+    };
+    const plain = await run(false);
+    const withAux = await run(true);
+    assert.equal(plain.result.status, 'complete');
+    assert.deepEqual(withAux.result, plain.result);
+    assert.equal(plain.events.length, 2);
+    assert.deepEqual(withAux.events, plain.events);
+  });
+
+  test('a second batch rejects a waiting request as cancelled and completes like a batch without it', async () => {
+    const second = () => batchInput({ revision: 'rb', quantity: 1, calibration: fixture().calibration });
+    const base = await clientOf(harness()).generateBatch(second());
+    const h = harness({ handler: (t) => (t.kind === 'rate' ? { value: rated } : undefined) });
+    const client = clientOf(h);
+    const first = track(client.generateBatch(batchInput({ revision: 'ra' })));
+    await settle();
+    const aux = track(client.submitAuxiliary('rate', ratePayload));
+    await settle();
+    assert.equal(aux.state, 'pending');
+    const result = await client.generateBatch(second());
+    await settle();
+    assert.equal(aux.state, 'rejected');
+    assert.equal(aux.error.reason, 'cancelled');
+    assert.equal(first.value.status, 'cancelled');
+    assert.deepEqual(result, base);
+    assert.equal(h.tasks.some((t) => t.kind === 'rate'), false, 'it was never posted');
+    assert.deepEqual(await client.submitAuxiliary('rate', ratePayload), rated, 'a later request runs');
+  });
+
+  test('after a batch that timed out it bootstraps a new token and request ids keep increasing', async () => {
+    const h = harness({ handler: (t) => (t.kind === 'rate' ? { value: rated } : (t.payload.slot <= 3 ? scripted(t) : undefined)) });
+    /** @type {number[]} */
+    const ids = [];
+    const pool = {
+      ...h.pool,
+      /** @param {any} r */
+      beginRequest: (r) => {
+        ids.push(r.requestId);
+        h.pool.beginRequest(r);
+      },
+    };
+    const client = createGenerationClient(pool, { clock: h.clock, createdAt: () => CREATED_AT });
+    const batch = track(client.generateBatch(batchInput()));
+    await settle();
+    assert.equal(batch.state, 'pending');
+    h.clock.advance(115000);
+    await settle();
+    assert.deepEqual([batch.value.status, batch.value.reason], ['partial', 'time-limit']);
+    assert.deepEqual(await client.submitAuxiliary('rate', ratePayload), rated);
+    assert.deepEqual(ids, [1, 2], 'the bootstrap took the next id');
+    const next = await client.generateBatch(batchInput({ quantity: 1, calibration: fixture().calibration }));
+    assert.equal(next.status, 'complete');
+    assert.deepEqual(ids, [1, 2, 3]);
+  });
+
+  test('cancel during a batch does not reject a waiting request; it runs after the batch', async () => {
+    const h = harness({ handler: (t) => (t.kind === 'rate' ? { value: rated } : undefined) });
+    const client = clientOf(h);
+    const batch = track(client.generateBatch(batchInput()));
+    await settle();
+    const aux = track(client.submitAuxiliary('rate', ratePayload));
+    await settle();
+    client.cancel();
+    assert.equal(aux.state, 'pending');
+    await settle();
+    assert.equal(batch.value.status, 'cancelled');
+    assert.deepEqual([aux.state, aux.value], ['resolved', rated]);
+  });
+
+  test('cancelAll and recycle between requests put a running request back in the queue', async () => {
+    const h = harness();
+    const client = clientOf(h);
+    const out = track(client.submitAuxiliary('rate', ratePayload));
+    await settle();
+    h.pool.cancelAll();
+    await settle();
+    client.recycle();
+    await settle();
+    assert.equal(out.state, 'pending');
+    const posted = heldOf(h, 'rate');
+    assert.equal(posted.length, 3, 'it was posted again after each');
+    h.answer(posted[0], { value: { late: true } });
+    h.answer(posted[1], { value: { late: true } });
+    h.answer(posted[2], { value: rated });
+    await settle();
+    assert.deepEqual([out.state, out.value], ['resolved', rated]);
+  });
+});
+
 /**
  * A pool of real engine workers whose replies arrive in a scrambled order.
  * @param {number} size
