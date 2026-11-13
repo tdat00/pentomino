@@ -288,7 +288,8 @@ function claimsOf(rating, certificate) {
     if (rating.censored !== undefined) {
       r.censored = rating.censored;
     }
-    if (rating.metrics !== undefined && rating.metrics !== null) {
+    // A code carries the summary of a difficulty-v3 claim (RES-22); its metrics stay in the pack.
+    if (rating.model !== 'difficulty-v3' && rating.metrics !== undefined && rating.metrics !== null) {
       const m = rating.metrics;
       r.metrics = rating.model === 'difficulty-v2' ? { U: m.U, B: m.B, branchTrials: m.branchTrials, rowTrials: m.rowTrials, stop: m.stop, R: m.R, H: m.H } : m;
     }
@@ -1435,6 +1436,9 @@ await check('BA01 BA02 BA03 BA04 BA22 BA23 BA24: the real Generator — one puzz
   const out = await printCopyOpen('Generator puzzle 3 of 5', { print: () => g.q('[data-action="print-puzzle"]'), solutionOption: true }, expected);
   equal(out.F, F, 'the same code whether or not the solution sheet was chosen');
   const opened = await freshOpen('Generator puzzle 3 of 5, core only', out.C, { ...expected, solution: null });
+  const openedRating = /** @type {any} */ (opened.m.player.store.getState()).pack.puzzles[0].rating;
+  assert(puzzle.rating?.model === 'difficulty-v3' && puzzle.rating.metrics !== undefined, 'the generated puzzle has a full v3 claim');
+  equal(openedRating, { model: puzzle.rating.model, score: puzzle.rating.score, level: puzzle.rating.level, saturated: false, ...(puzzle.rating.censored === true ? { censored: true } : {}) }, 'the code carries the summary claim (RES-22)');
   const neighbours = state.puzzles.filter((/** @type {any} */ p) => p.id !== puzzle.id).map((/** @type {any} */ p) => sourceView({ rows: boardToRows(state.set.board), pieces: state.set.pieces, puzzle: p, index: 0, rotation: state.rotation }).clues);
   assert(!neighbours.some((clues) => JSON.stringify(clues) === JSON.stringify(openedView(opened.m).clues)), 'no neighbour has the opened clues');
 });
@@ -2144,6 +2148,37 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
     assert(root.scrollWidth <= root.clientWidth, 'no sideways scrolling after the dialogs');
   });
 }
+
+// RES-34: an L pentomino and its mirror image on a 5 x 2 board (default identity: pieces A and B), written with the
+// frozen v1 grammar below the pack check; the decoder refuses it with `duplicate-shape` and params { piece: 'B', first: 'A' }.
+const TWIN_CODE = '1G2084V8248S341';
+await check('RES-34 duplicate shapes: a code whose two pieces have the same shape (a piece and its mirror image) is refused by the real Player, from the entry and from the address, in English and Vietnamese, and nothing opens', async () => {
+  const en = playerI18n.t('code.error.duplicateShape', { piece: 'B', first: 'A' });
+  assert(en.includes('B') && en.includes('A'), `the English text names both pieces (${en})`);
+  assert(en !== playerI18n.t('code.error.invalid'), 'and it is not the generic text');
+
+  const m = await mount();
+  await enterCode(m, TWIN_CODE);
+  assert(isOpen(m), 'the entry stays open');
+  const problem = problemOf(m);
+  assert(problem !== null, 'the entry shows a problem');
+  equal(problem.error, en, 'the entry names both pieces');
+  equal([problem.candidate, problem.useCorrection, problem.openCore], [null, false, false], 'no correction, no candidate and no core offered');
+  equal([m.root.dataset.screen, m.urls, m.adapter.map.size, fieldOf(m).value], ['start', [], 0, TWIN_CODE], 'nothing opened, no address written, nothing stored, the code stays in the field');
+
+  playerI18n.setLocale('vi', document);
+  const vi = playerI18n.t('code.error.duplicateShape', { piece: 'B', first: 'A' });
+  assert(vi !== en, 'the Vietnamese text differs from the English one');
+  await enterCode(m, TWIN_CODE);
+  equal(problemOf(m)?.error, vi, 'the entry names both pieces in Vietnamese');
+  playerI18n.setLocale('en', document);
+
+  const a = await mount({ hash: `#p=${TWIN_CODE}` });
+  await waitFor(() => isOpen(a) && problemOf(a) !== null, 'the entry to open with the address as its problem');
+  equal(problemOf(a)?.error, en, 'the address names both pieces');
+  assert(/** @type {any} */ (a.player.store.getState()).screen !== 'game', 'no game is open');
+  equal(a.adapter.map.size, 0, 'nothing was stored');
+});
 
 await check('every worker this page started has ended, the page built no catalogue, no CSP violation, no uncaught error, only local requests', async () => {
   assert(catalogueStats.sizesBuilt === 0, 'the page built the catalogue');

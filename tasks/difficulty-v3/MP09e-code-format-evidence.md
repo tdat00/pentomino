@@ -356,14 +356,14 @@ node -e "const t=require('fs').readFileSync(process.argv[1],'utf8');console.log(
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP09e: GC-P2 format evidence: the 676-cell code sizes and the duplicate-shape browser check`) |
+| Start | 2026-11-13 06:30 (+07:00) |
+| End | 2026-11-13 08:03 developer (implementation 06:30-07:05, flake baseline 07:40-08:03); 08:10 orchestrator review and commit |
+| Duration | about 1 h 33 min developer (of which about 25 min the requested flake baseline); about 10 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 135 model calls; 26,777,396 input tokens (26,159,607 cache reads); 130,953 output tokens |
+| AI credits | about 547 (developer) |
+| Verification | Developer: `generate` 26x26 hard x3 (exit 0, 1 s) and nightmare x3 (exit 0, 3 s); `code-sizes.mjs` 54 rows, 0 problems (8 s); browser pages one at a time under the timing lock: `puzzle-code-acceptance` 24/24 (final run, 43 s), `puzzle-code-entry` 21/21, `puzzle-code-cli-parity` 15/15, no CDP error; `node --test --test-skip-pattern=slow tests\puzzlecode-acceptance.test.js` 14/14; `npm run test:quick` 1256/1256; `npm run check` OK; `record-fixtures --check` OK. Orchestrator re-run: targeted 14/14, `test:quick` 1256/1256, `check` OK, `record-fixtures --check` OK; format of the three committed files OK |
+| Acceptance | MP09e-B01..B03 and T01..T05 met. Record `docs/difficulty-v3/codes-2026-11-13.md` (the run day): summary-claim codes at most 415 symbols `F`, URL 460, QR v14-M (`auto` 404/449/v13); the hand-made full claim at most 1,187 / 1,232 / v24 (`auto` 969 / 1,014 / v22); no URL above 4,000, no ladder notice, every code decodes strictly; the summary claim costs 110 symbols over the compact v2 form on hard and 143-144 on nightmare (all nightmare claims `censored`). Fewest-clue sample: nightmare on 26 x 26 (`codes-v3/26x26-nightmare`, 4 clues, 30 pieces), hell-3 skipped by the D36 rule. Page diff reviewed (+36/-1): `claimsOf` drops the metrics of a `difficulty-v3` claim (RES-22), the Generator journey asserts the opened summary claim, and the RES-34 check refuses `1G2084V8248S341` (`duplicate-shape`, `{ piece: 'B', first: 'A' }`) from the entry (English and Vietnamese) and from the address with nothing opened or stored |
+| Issues & resolutions | (1) TP15 addendum applied: `$skipHell3 = $false`, then `$true` from MP09d2's record §2.1, §2.2 and §2.8 (also §4 and §2.6). (2) SA1's moved-anchor note (MP08, MP09a1, MP09b) passed at dispatch; functions located by name. (3) Known flake, pre-existing: `puzzle-code-acceptance` fails intermittently in old checks (BA09, once BA05, once the first BA01 check) with a module worker `error` event shortly after creation ("Puzzle code processing failed"; CDP shows a canceled `Script` request near a `terminate()`). Baseline requested by the orchestrator: HEAD's page 3 of 10 runs with that failure (and 10 of 10 fail deterministically in the Generator journey, since MP09d2, on the rating mismatch that MP09e's `claimsOf` rule fixes); MP09e's page 2 of 10 on a quiet machine; 23 of 32 runs passed overall. Not caused by MP09e; recorded in the check-list as a known issue for a follow-up (candidate fixes: one respawn in `core/browser/worker-pool.js`, or a pause in the page's `check` cleanup). (4) `docs/design-detail.md` §13.2 item 23 lists the page's checks one by one: the orchestrator added the summary-claim assertion and the RES-34 check (the task's documentation rule). (5) The longest codes are nightmare (30 pieces), not hard (21): piece count drives the length |
+| Handoff | MP10b2: keep the summary rule in `claimsOf`. MP17: one BA05 or BA09 failure of this signature is the known flake, not a regression, until the follow-up fixes it. Evidence under `tests/artifacts/MP09e/` (git-ignored; `final-*.json`, `base-*.json`, `mp09e-*.json`) |

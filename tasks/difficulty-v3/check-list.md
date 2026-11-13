@@ -48,7 +48,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP09c | [MP09c](MP09c-unrateable-and-unproved-candidates.md) | Unrateable and unproved candidates in clue selection (RES-04, AR1; the D21 counting rule) | MP09b | Medium | Engine | M5 | 15 |
 | [x] | MP09d1 | [MP09d1](MP09d1-measure-v3-and-v2-names.md) | `measureV3` and the v2 functions under their v2 names (no switch yet) | MP09c | Medium | Engine | M5 | 16 |
 | [x] | MP09d2 | [MP09d2](MP09d2-activate-v3.md) | Activate v3: `rate` and `MODEL`, the pinned tests, D21-V3, GF-P2 and GA-P2 | MP09d1 | Large + gates | Engine | M5 | 17 |
-| [ ] | MP09e | [MP09e](MP09e-code-format-evidence.md) | GC-P2 format evidence: the 676-cell code sizes and the duplicate-shape browser check | MP09d2 | Small–Medium + gate | QA | M5 | 18 |
+| [x] | MP09e | [MP09e](MP09e-code-format-evidence.md) | GC-P2 format evidence: the 676-cell code sizes and the duplicate-shape browser check | MP09d2 | Small–Medium + gate | QA | M5 | 18 |
 | [ ] | MP10a | [MP10a](MP10a-auxiliary-requests.md) | Auxiliary request method on the generation client and the Player's pool | MP09e | Medium | Browser integration | M6 display rating | 19 |
 | [ ] | MP10b1 | [MP10b1](MP10b1-display-rating-player.md) | Derived display rating: the shared rules and the Player | MP10a | Large | Apps | M6 | 20 |
 | [ ] | MP10b2 | [MP10b2](MP10b2-display-rating-generator-and-pages.md) | Derived display rating in the Generator; the browser pages and gate GC-P2 (display) | MP10b1 | Medium–Large + gate | Apps | M6 | 21 |
@@ -436,7 +436,7 @@ The orchestrator owns this record.
 | MP09c | Accepted | 6 min developer + 8 min review | about 124 | `difficulty-v3 MP09c` |
 | MP09d1 | Accepted | 8 min developer + 5 min review | about 169 | `difficulty-v3 MP09d1` |
 | MP09d2 | Accepted | about 1 h 37 min developer + 13 min review | about 978 | `difficulty-v3 MP09d2` |
-| MP09e | | | | |
+| MP09e | Accepted (known flake recorded) | about 1 h 33 min developer (incl. 25 min flake baseline) + 10 min review | about 547 | `difficulty-v3 MP09e` |
 | MP10a | | | | |
 | MP10b1 | | | | |
 | MP10b2 | | | | |
@@ -455,3 +455,9 @@ The orchestrator owns this record.
 | MP16b | | | | |
 | MP17 | | | | |
 | **Totals** | | | | |
+
+### Known issues (orchestrator)
+
+| Id | Found in | Issue | Status |
+|---|---|---|---|
+| KI-1 | MP09e | `tests/browser/puzzle-code-acceptance.html` fails intermittently in old checks (BA09, once BA05, once the first BA01 check): a module worker emits `error` shortly after creation ("Puzzle code processing failed"; CDP shows a canceled `Script` request near a `terminate()`). Pre-existing: HEAD `cd2e079`'s page 3 of 10 runs, MP09e's page 2 of 10, 23 of 32 runs passed overall | Open; a follow-up fix is to be assigned (candidates: one respawn in `core/browser/worker-pool.js`, or a pause in the page's `check` cleanup). Until then MP10b2 and MP17 treat one failure of this signature as the known flake and re-run the page once |
