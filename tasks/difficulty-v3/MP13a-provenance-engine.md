@@ -3,7 +3,7 @@
 | Header | Value |
 |---|---|
 | ID | MP13a (first part of the report's MP13; MP13b writes the records from the apps and the CLI and records the replay fixture) |
-| Depends on | MP12b (accepted and committed: the calibration lock) |
+| Depends on | MP12b2 (accepted and committed: the calibration lock; MP12b3 instead when the owner chose D36 (i)) |
 | Estimated size | Medium–Large: about 650–850 changed lines (`generate.js` about 60, `clues.js` about 30, `types.js` about 50, `pack.js` about 200, tests about 350, documents about 50); about 50–60 minutes |
 | Owner role | Engine |
 | Milestone | M8 — provenance and recorders |
@@ -13,7 +13,7 @@
 
 ## Goal & business context
 
-The owner wants the Generator to show how a puzzle was made ("Generation Steps", MP15a to MP16b): the piece set
+The owner wants the Generator to show how a puzzle was made ("Generation Steps", MP15a1 to MP16b): the piece set
 being carved, the layout being re-tiled, the clue sets that were rated and repaired, and the final puzzle with its
 score table. The replay re-runs the deterministic generation, so it needs a small record of where each puzzle came
 from. The plan author fixed the record (AUTH-P1, JR-P2 (a), SA1-Q-P4 (b)): `generation.setOrigin` (how the piece set
@@ -45,9 +45,9 @@ and the apps start writing the records in MP13b.
 - Writing the records into packs from the client, the Generator or the CLI; the saved Generator sets; the replay
   fixture and gate GF-P4 (MP13b).
 - `ctx.replaySkips` (the replay side of the skip ordinals) and the recorders (MP14a, MP14b); the replay engine
-  (MP15a).
+  (MP15a1).
 - Any change of a rating, a generated puzzle, a candidate's other fields, an RNG draw or a fixture: after the lock
-  (end of MP12b) MP13a to MP17 must not change any rating or generated puzzle (report §5.2, check-list §6).
+  (end of MP12b2) MP13a to MP17 must not change any rating or generated puzzle (report §5.2, check-list §6).
 
 ## Repository rules
 
@@ -145,7 +145,7 @@ history). The replay does not have that history, so the record names the points 
   });
   ```
 
-  If the loops at MP12b differ from this description (constants, the phase-2 bound or the beam's stop rule), stop and
+  If the loops at the lock differ from this description (constants, the phase-2 bound or the beam's stop rule), stop and
   report it: the bounds 2,128 and 64 are part of the accepted record format.
 - **Encoding** (AUTH-P1 (a)): a record keeps at most 64 subset and 16 repair ordinals; above either, the record
   stores `skips: 'overflow'` and the replay reports the clue stages of that puzzle as unavailable.
@@ -359,9 +359,10 @@ record.
 | `tests/generate.test.js` | new cases 6–11 |
 | `tests/pack.test.js` | new cases 12–20 |
 | `docs/design-detail.md` | §5.2, §5.5 and §6.10 (below) |
+| `docs/design-brief.md` | one sentence (documentation slot; cross-review SP07) |
 
 Exclusive ownership while this task runs: the files above. Do not edit `core/browser/`, `generator/`, `player/`,
-`tools/`, the fixtures or `docs/design-brief.md`.
+`tools/` or the fixtures.
 
 ### Documentation slot
 
@@ -375,6 +376,11 @@ Exclusive ownership while this task runs: the files above. Do not edit `core/bro
 - §5.2 "Pack document", the `generation` row of the field table (line 669: "Provenance and generation policy (§5.5);
   type-checked only"): add that its `setOrigin` and `made` records are checked and ignored with a warning when
   invalid (§5.5).
+- `docs/design-brief.md`, "Limits, waiting, and sharing", after the paragraph that starts "**A puzzle code rebuilds
+  one puzzle exactly.**" (AGENTS.md: both living specifications change with a format change; cross-review SP07): "A
+  pack can also record how its piece set and each puzzle were made (seeds, attempts and the code versions), for a
+  later step-by-step replay; puzzle codes do not carry this record, and a pack whose record is damaged or foreign
+  still opens, without it."
 
 ## Implementation steps
 

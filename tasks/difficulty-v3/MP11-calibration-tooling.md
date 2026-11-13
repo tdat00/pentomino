@@ -58,7 +58,7 @@ always need a proved real choice.
 
 ## Inputs & context
 
-### Code (anchors at HEAD `7604eff`; MP07 to MP10b2 do not change `tools/bench/`)
+### Code (anchors at HEAD `041ff83`; MP09d2 to MP10b2 do not change `tools/bench/`)
 
 - `tools/bench/runner.js:676-702`: after a run, `run.details = { area, K, sizes, setAttempt, initialG, policy,
   puzzles: kept.map((v) => ({ G: v.puzzle.clues.length, U: sizes.length - v.puzzle.clues.length, score:

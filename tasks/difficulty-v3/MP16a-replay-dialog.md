@@ -3,7 +3,7 @@
 | Header | Value |
 |---|---|
 | ID | MP16a (first part of the report's MP16; MP16b adds the card button, the wiring, the browser page, gate GB-P4 and the documents) |
-| Depends on | MP15b (accepted and committed: `client.replayPuzzle`, `ReplayResult`, the step table of MP15a) |
+| Depends on | MP15b (accepted and committed: `client.replayPuzzle`, `ReplayResult`, the step table of MP15a2) |
 | Estimated size | Large: about 800–1,000 changed lines (`replay-model.js` about 250, `replay-dialog.js` about 250, `svg-board.js` about 20, locales about 160, CSS about 80, tests about 250); about 60 minutes |
 | Owner role | Generator UI |
 | Milestone | M9 — Generation Steps |
@@ -52,30 +52,38 @@ MP16b puts the button on each puzzle card and verifies the dialog in a browser.
 
 ## Inputs & context
 
-### The replay result (MP15a, MP15b)
+### The replay result (MP15a1, MP15a2, MP15b)
 
 ```text
 client.replayPuzzle({ set, puzzle, setOrigin, made }, { signal }) -> Promise<ReplayResult>
   rejects: PoolAbortError('cancelled' | 'closed'), WorkerTaskError, PoolError ('worker-unavailable')
 ReplayResult = { status: 'matched' | 'unavailable' | 'mismatch' | 'incomplete', reason,
-                 stages: { set, candidate, final }, compared, steps }
+                 stages: { set, candidate, final }, compared, work, steps }
+  stages.set, stages.candidate: 'replayed' | 'unavailable' | 'mismatch' | 'stopped' (candidate also 'calibration')
 Step = { stage (1-7), kind, board: { placed: { id, cells, pose }[], lifted: string[], clues: string[] },
          rating, breakdown, detail, band, note, args }
 ```
 
 - Stages: 1 piece count (`count`), 2 carving (`carve`), 3 pieces (`piece`), 4 layout (`start`, `retile`), 5 clues
   (`rated`, `skip`, `unrateable`, `rejected`, `selected`), 6 uniqueness (`repair`), 7 the puzzle (`final`, always the
-  last step). A calibration puzzle has no stage 4 and its clue steps carry `args.source === 'calibration'`.
-- `note` is `replay.step.<kind>`; `args` per kind as MP15a's table: `count { k, min, max }`, `carve { mode, parts }`,
+  last step). Steps come in the order they happened: in `require` mode stages 5 and 6 interleave (a repair, then more
+  rated clue sets). A calibration puzzle has no stage 4 and its clue steps carry `args.source === 'calibration'`. A
+  stage whose state is `stopped` was cut by a limit: it has its steps so far, or none.
+- `note` is `replay.step.<kind>`; `args` per kind as MP15a2's table: `count { k, min, max }`, `carve { mode, parts }`,
   `piece { n }`, `start { start }`, `retile { step, lifted, changed }`, `rated { sequence, phase, source }`, `skip {
   sequence, source }`, `unrateable { sequence, phase, source, reason }`, `rejected { sequence, phase, source, reason
-  }`, `repair { repairSequence, added, accepted, reason }`, `selected { sequence, repairSequence, source }`, `final {
-  status }`.
+  }`, `repair { repairSequence, added, accepted, reason }` (`added` is null for a uniqueness check that failed before
+  adding a clue, D31), `selected { sequence, repairSequence, source }`, `final { status, detailStep }`.
 - `breakdown`: `{ base, rule, guess, penalty, unrounded, score }` (`breakdownV3`) for a v3 rating with metrics; `{
-  model: 'difficulty-v2', u, b, score }` for a v2 claim with metrics; null otherwise. `detail` (`RatingDetail`):
-  `first.choices` and `first.census` (`{ c, kLow, f, u }` per final-path guess node) when the step's rating was
-  computed during the replay; null otherwise. `rating.metrics` has `U`, `deductionTier`, `rules` (R1-R9), `G`,
-  `Gproved`, `info`, `solutions`, `censusComplete`, `censusUndecided`; `rating.censored === true` marks an estimate.
+  model: 'difficulty-v2', u, b, score }` for a v2 claim whose `U` and `B` are valid numbers; null otherwise (a summary
+  claim, opaque legacy metrics, another model): null means "not available", never 0 (cross-review SP12). `detail`
+  (`RatingDetail`): `first.choices` and `first.census` (`{ c, kLow, f, u }` per final-path guess node) when the step's
+  rating was computed during the replay; null otherwise. The final step's `detail` is always null; when the replay
+  matched a full claim, `args.detailStep` is the index of the step whose `detail` measured the final puzzle (the
+  winning `rated` step, or the accepted `repair` step), else null (cross-review SP11). The final step's `placed` holds
+  the stored solution, or only the stored clues when the puzzle was shared without its solution. `rating.metrics` has
+  `U`, `deductionTier`, `rules` (R1-R9), `G`, `Gproved`, `info`, `solutions`, `censusComplete`, `censusUndecided`;
+  `rating.censored === true` marks an estimate.
 - Unavailable stages have no steps; the result's `reason` names why (`no-set-origin`, `set-versions`, `no-record`,
   `record-invalid`, `completion`, `overflow`, `record-versions`, `calibration-needs-set`); mismatch reasons: `set`,
   `skips`, `candidate-failed`, `board`, `pieces`, `witness`, `clues`, `rating`, `solution`; incomplete reasons:
@@ -85,12 +93,16 @@ Step = { stage (1-7), kind, board: { placed: { id, cells, pose }[], lifted: stri
 
 - **Every step**: all steps in order.
 - **Compact** (default): the first step of each stage, every `repair` step, the `selected` step, the final step, and
-  each `rated` step that strictly improves the best so far under the P1 comparator, computed over the `rated` steps
-  in order: `d(step) = [bandDistance, centreDistance]` with `bandDistance = 0` when `min <= score < max` (max null:
-  no upper edge), else the distance to the nearest in-band score (`min - score`, or `score - max + 1`), and
-  `centreDistance = |score - (min + max) / 2|` (0 when `max` is null); a step is kept when `d` is lexicographically
-  smaller than every earlier `rated` step's `d`. Ties are not improvements, so the result is deterministic. Keep the
-  original order; never duplicate a step.
+  each `rated` step that strictly improves the best so far under the P1 comparator `ranked` of
+  `core/engine/clues.js` (cross-review SP15: all three of its keys), computed over the `rated` steps in order: `d(step)
+  = [bandDistance, centreDistance, key]` with `bandDistance = 0` when `min <= score < max` (max null: no upper edge),
+  else the distance to the nearest in-band score (`min - score`, or `score - max + 1`); `centreDistance = |score -
+  (min + max) / 2|` (0 when `max` is null); and `key` the canonical clue key of the step's clue set,
+  `clueKey(set.board, set.pieces, poses)` (`core/engine/keys.js`) with `poses` = the poses of the `board.placed` items
+  whose ids are in `board.clues`. A step is kept when `d` is lexicographically smaller (numbers, then the key as a
+  string with `<`) than every earlier `rated` step's `d`; an equal `d` (the same clue set) is not an improvement. The
+  filter takes the key function as a parameter (`compactSteps(steps, keyOf)`), so tests can give synthetic keys. Keep
+  the original order; never duplicate a step. Generation's own tie-break is not changed.
 - Neither view presents a partial trace as the generated puzzle: with status `incomplete` or `mismatch` the status
   line stays visible on every step and the final step's sentence says "stored puzzle", not "generated puzzle".
 
@@ -109,9 +121,12 @@ For a step with a rating:
 | Band | `band` (`min`–`max`, or "from min" when `max` is null) |
 
 - A summary claim (no metrics, `breakdown` null) shows only the total and the band; every other row reads "not
-  available" — never 0 (SA2-4 JC09).
-- A legacy v2 final claim with metrics shows the rows "2 × U" (`breakdown.u`), "8 × log10(1 + B)" (`breakdown.b`) and
+  available" — never 0 (SA2-4 JC09). The same holds for any rating whose `breakdown` is null (opaque legacy metrics,
+  another model; cross-review SP12).
+- A legacy v2 claim with a breakdown shows the rows "2 × U" (`breakdown.u`), "8 × log10(1 + B)" (`breakdown.b`) and
   the total.
+- The final step's Guess nodes come from `steps[args.detailStep].detail` when `args.detailStep` is not null (the
+  measurement of the matched final puzzle, cross-review SP11), else "not available".
 - An `unrateable` step shows "unrateable: the deduction path was capped" and no score; a `rejected` step shows its
   table and "refused: no proved guess" (RES-35).
 
@@ -170,10 +185,13 @@ export function createReplayDialog(options)
   the header with title and close cross, `data-i18n` on fixed texts, `refreshTexts()` for the rest), class
   `pm-replay-dialog pm-pop`, `aria-labelledby` the title, `data-role="replay-dialog"`.
 - Content: the status line (`role="status"`); the stage list (seven stages, each marked available or "steps not
-  available for this puzzle"); a board host (`mountBoard(host, { mode: 'thumbnail', … })` or the play mode without
-  interaction, `label` from the locale) rendered from the current step: `placements` = the `placed` items with a pose
-  that are not clues, `clues` = the poses of `board.clues` ids, `highlightedIds` = `board.lifted` for stage 4, the
-  added piece for a `repair` step, the clue ids for `selected`; items without a pose are not drawn (stage 1-3 of an
+  available for this puzzle"; stages 1-3 follow `result.stages.set` and stages 4-6 `result.stages.candidate`: every
+  stage of a group whose state is `stopped` is marked `replay.stage.stopped`, with or without steps, and any other
+  stage without steps `replay.notAvailable`; stage 7 always has the final step; cross-review SP14, TP12); a board
+  host (`mountBoard(host, { mode: 'thumbnail', … })` or the play mode without interaction, `label` from the locale)
+  rendered from the current step: `placements` = the `placed` items with a pose that are not clues, `clues` = the
+  poses of `board.clues` ids, `highlightedIds` = `board.lifted` for stage 4, the added piece for a `repair` step (none
+  when `args.added` is null), the clue ids for `selected`; items without a pose are not drawn (stage 1-3 of an
   incomplete replay); the step sentence; the score table (a `<table>` with a caption) or "no score for this step";
   controls: previous, next, play/pause (one toggle button with `aria-pressed`), a labelled range slider over the
   visible steps (`aria-valuetext` = the step sentence), the view switch (two radio buttons: key steps / every step),
@@ -202,7 +220,10 @@ export function createReplayDialog(options)
 `replay.step.rated.calibration` (`{sequence}`, `{score}`), `replay.step.skip` (`{sequence}`), `replay.step.unrateable`
 (`{sequence}`), `replay.step.rejected` (`{sequence}`, `{score}`), `replay.step.repair.added` (`{piece}`),
 `replay.step.repair.accepted` (`{piece}`, `{score}`), `replay.step.repair.rejected.<reason>` (`{piece}`) for
-`not-proved`, `path-capped`, `no-proved-guess`, `out-of-band`, `excluded`, `replay.step.selected`,
+`not-proved`, `path-capped`, `no-proved-guess`, `out-of-band`, `excluded`, `replay.step.repair.failedBeforeClue` (no
+placeholder: "The uniqueness check failed before any clue was added."; used when `args.added` is null, cross-review
+SP14, so that no piece name such as "null" is ever shown), `replay.stage.stopped` ("Stopped at a limit."),
+`replay.step.selected`,
 `replay.step.final.generated`, `replay.step.final.stored`, and the table `replay.table.caption`, `replay.table.base`
 (`{u}`), `replay.table.rules` (`{tier}`, `{counts}`), `replay.table.rules.none`, `replay.table.guess` (`{g}`,
 `{gproved}`, `{info}`), `replay.table.node` (`{n}`, `{c}`, `{klow}`, `{f}`, `{u}`), `replay.table.counted`,
@@ -212,7 +233,8 @@ export function createReplayDialog(options)
 `rating.note.estimate_one`, `rating.note.estimate_other` (`{count}`) and `rating.note.estimateShort` of
 `core/browser/print-texts.js` (MP10b1). `replay.step.<kind>` sentences are chosen by `stepText(step)`: the note plus a
 variant (`carve` by `args.mode`, `start` by `args.start`, `retile` by `args.changed`, `rated` by `args.source`, `repair`
-by `accepted` and `reason`, `final` by the result's status: `generated` only for `matched`).
+by `added` (null: `failedBeforeClue`), `accepted` and `reason`, `final` by the result's status: `generated` only for
+`matched`). The stage list marks a stage `stopped` (its state in `result.stages`) with `replay.stage.stopped`.
 
 ## Files to create/modify
 
@@ -230,8 +252,8 @@ Exclusive ownership while this task runs: the files above.
 
 ### Documentation slot
 
-- §6.12 "Generation Steps (replay)" (created by MP15a): a paragraph on the two views, the compact filter and the
-  score table (unavailable data never shown as zero).
+- §6.12 "Generation Steps (replay)" (created by MP15a1, steps by MP15a2): a paragraph on the two views, the compact
+  filter (the full `ranked` comparator) and the score table (unavailable data never shown as zero).
 - §11.11 "Accessibility" (line 2443 at HEAD): the dialog's focus, keyboard, live region (no tick announcements),
   reduced motion and labelled slider.
 
@@ -257,7 +279,7 @@ Exclusive ownership while this task runs: the files above.
 | ID | Criterion | Evidence |
 |---|---|---|
 | MP16a-T01 | Compact filter exactly as specified (deterministic, ordered, no duplicates); every-step view is the identity | cases 1, 2 |
-| MP16a-T02 | Score-table rows as specified, including summary, v2, unrateable, refused and estimate cases; unavailable never 0 | cases 3–6 |
+| MP16a-T02 | Score-table rows as specified, including summary, v2, unrateable, refused and estimate cases, a null breakdown with metrics, and the final step's guess nodes through `args.detailStep`; unavailable never 0 | cases 3–6 |
 | MP16a-T03 | Controller state machine: loading, ready, failure kinds, stale results ignored, playback, view switch, close aborts only its own signal | cases 9, 10 |
 | MP16a-T04 | `highlightedIds` is additive: no change without it | review; MP16b's rendering check |
 | MP16a-T05 | Locale parity and placeholders | `tests/generator-i18n.test.js` |
@@ -277,21 +299,29 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 
 ### Required test cases (`tests/replay-model.test.js`)
 
-Use a real result: `replayPuzzle` (MP15a) on the first candidate puzzle of `tests/fixtures/replay-case.json`, built
+Use a real result: `replayPuzzle` (MP15a2) on the first candidate puzzle of `tests/fixtures/replay-case.json`, built
 once per file, plus small synthetic step lists.
 
 1. Compact filter on synthetic `rated` steps with band 17–25 (centre 21) and scores 10, 30, 12, 20, 21, 21, 22 (in
-   that order): `d` is [7, 11], [6, 9], [5, 9], [0, 1], [0, 0], [0, 0], [0, 1], so kept are 10, 30, 12, 20 and the
-   first 21; the second 21 (a tie) and 22 are not kept. With `max: null` and min 17, scores 10, 12, 17, 30 (`d` [7, 0],
-   [5, 0], [0, 0], [0, 0]) keep 10, 12 and 17.
+   that order) and synthetic keys `k1` … `k7` given by `keyOf`: `d` is [7, 11, k1], [6, 9, k2], [5, 9, k3], [0, 1, k4],
+   [0, 0, k5], [0, 0, k6], [0, 1, k7], so kept are 10, 30, 12, 20 and the first 21; the second 21 is not kept
+   (`k6 > k5`) and 22 is not kept. With the second 21's key `k0` (smaller than `k5`) it is kept: a tied score with a
+   smaller clue key is a strict improvement under `ranked` (cross-review SP15). With `max: null` and min 17, scores
+   10, 12, 17, 30 (`d` [7, 0, …], [5, 0, …], [0, 0, …], [0, 0, …], keys increasing) keep 10, 12 and 17. On the real
+   result, `keyOf` is `clueKey` as specified and the kept `rated` steps are those an independent loop with
+   `clueKey` keeps.
 2. On the real result: the compact view contains the first step of each stage present, every `repair` step, the
    `selected` step and the final step, in the original order, without duplicates; the every-step view equals
    `result.steps`.
 3. Score table of a real `rated` step: rows Base, Rules, Guesses, Guess nodes (one per `detail.first.census` entry,
    counted exactly when kLow < c), Penalty, Total (equal to `rating.score`), Band; the sum `base + rule + guess -
-   penalty` equals `breakdown.unrounded`.
+   penalty` equals `breakdown.unrounded`. The final step of the real result (SP11, TP12): its own `detail` is null,
+   `args.detailStep` is the index i of the step that measured the final puzzle (`steps[i].detail` not null), and its
+   Guess nodes rows equal those of `steps[i]` (same count, same c, kLow, f, u and counted marks); a synthetic copy of
+   the final step with `args.detailStep: null` shows the Guess nodes row as the "not available" key.
 4. A summary claim step (rating without metrics, breakdown null): only Total and Band have values; every other row is
-   the "not available" key, never a 0.
+   the "not available" key, never a 0. The same for a synthetic step whose rating has metrics but whose `breakdown` is
+   null (as MP15a2 gives for opaque or overflowing legacy metrics, SP12, TP11): no row shows 0, `Infinity` or `NaN`.
 5. A v2 final claim with metrics: rows "2 × U", "8 × log10(1 + B)" and Total.
 6. An `unrateable` step: the unrateable row and no score; a `rejected` step: the table and the refused row; a
    `censored: true` rating: the estimate note with the count from `censusUndecided` (full claim) and without it
@@ -299,10 +329,18 @@ once per file, plus small synthetic step lists.
 7. `stepText` returns an existing locale key (checked against `generator/locale.en.js`) with the documented
    placeholders for every kind and variant of the real result and of synthetic `carve` (macro, flat), `start`
    (witness, restart), `retile` (changed, same) and the five repair reasons; the final step uses
-   `replay.step.final.generated` only for status `matched`.
-8. Stage summary and status text: for results with status `unavailable` (reason `completion`), `mismatch` (reason
-   `rating`) and `incomplete` (reason `work`): the stages without steps are marked not available with
-   `replay.notAvailable`, and the status text names the reason's key.
+   `replay.step.final.generated` only for status `matched`. A synthetic `repair` step with `args: { repairSequence: 1,
+   added: null, accepted: false, reason: 'not-proved' }` (a uniqueness check that failed before adding a clue; SP14,
+   TP12) gives `replay.step.repair.failedBeforeClue` with no placeholder; its English and Vietnamese texts exist, the
+   sentence rendered in each language contains neither "null" nor "{piece}", and the step highlights no piece.
+8. Stage list and status text (SP14, TP12): (a) status `unavailable` (reason `completion`): every stage without steps
+   is marked `replay.notAvailable` and the status text names `replay.reason.completion`; (b) `mismatch` (reason
+   `rating`): the status text names `replay.field.rating`; (c) `incomplete` (reason `work`) with `stages.set ===
+   'replayed'` and `stages.candidate === 'stopped'` (a synthetic result cut after one `rated` step): stages 4-6 are
+   marked `replay.stage.stopped`, stage 5 keeps its step, and none of stages 4-6 is marked `replay.notAvailable`;
+   (d) the early stop of MP15a1's case 8 (`maxSteps` 1: `stages.set` and `stages.candidate` both `'stopped'`, the
+   final step only): stages 1-6 are marked `replay.stage.stopped`, distinct from `replay.notAvailable`, and the status
+   text names `replay.limit.steps`.
 9. Controller: `open` → `loading` → `ready`; `close` aborts the signal given to `run` and nothing else; a result that
    arrives after `close` or after a second `open` is ignored; a rejection `PoolError('worker-unavailable')` gives
    `failure: 'worker-unavailable'`, a `WorkerTaskError` gives `failure: 'failed'`, a `PoolAbortError('cancelled')`

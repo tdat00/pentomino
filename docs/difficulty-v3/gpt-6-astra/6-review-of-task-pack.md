@@ -827,3 +827,527 @@ SP09 (replay work bound does not meter the accepted computation).
 resolved**. The first-pass FP01-FP10 dispositions are accepted. No task, checklist, implementation or execution log
 was edited. The plan-author follow-up is SP03; the other required fixes implement already accepted contracts or make
 their evidence executable, without changing an owner decision.
+
+## Third pass
+
+### MP09c: SP03 counting rule and dispatch check
+
+**Basis.** HEAD `a80274b` (MP09b), MP07 at `2b4c5b9`, and `clarifications.md` Part I, D21. No implementation
+file was changed. The selector at HEAD is identical to MP07's committed selector.
+
+| File | LastWriteTime (2026-11-12, +07:00) | Scope |
+|---|---|---|
+| `tasks/difficulty-v3/MP09c-unrateable-and-unproved-candidates.md` | 18:41:36 | Whole task, including the revised S8, S8s, ST1 and both ST2 lists |
+| `docs/difficulty-v3/clarifications.md` | 19:09:46 | D21 counting rule and re-validation placement; D36/P-OD5 read for the next part |
+| `docs/difficulty-v3/claude-opus-5.5/7-response-to-second-pass.md` | 19:00:08 | SP01-SP03 response; the remaining dispositions were not present in this version |
+
+**SP03, selector part: accepted.** MP07 sets `nearestAt = profiles` at `core/engine/clues.js:356` and tests
+`profiles - nearestAt >= STALL_LIMIT` at line 369. That must change when MP09c introduces spent profiles:
+`nearestAt = rated.length` and `rated.length - nearestAt >= STALL_LIMIT` implement Part I's rule exactly.
+Refused and unrateable profiles update no side flag or nearest state, do not advance the stall counter, and
+still consume the separate profile reserve. Moving v3 re-validation to MP09d2 is also correct; its executable
+procedure is checked in the next part, not signed off by this selector check.
+
+The output-identity claim is correct **while no profile is spent**. Each successful `rateSubset` increments
+`profiles` and pushes one candidate before `afterProfile` runs. Skips do neither; repairs do neither. Therefore
+`profiles === rated.length` at every relevant call. Production v2 ratings have no `Gproved` and never throw the
+new error, so the change preserves MP07's existing production outputs and RNG consumption.
+
+A short read-only Node probe applied the task's changes **in memory**, not to repository code. It reproduced:
+
+| Vector | Calls | `onRate` | Result clues | With the old profile-based stall counter |
+|---|---:|---:|---|---|
+| S8 | 48 | 37 | `LYNWZ` | Still 48; the above-band rated candidates disable the stall, isolating the reserve stop |
+| S8s | 34 | 13 | `LYNWZ` | 13 calls |
+| ST1 | 16 | 13 | `YPVF` | 13 calls, result `PVTF` |
+| ST2, refused score 21 | 14 | 13 | `YPTZ` | 13 calls |
+| ST2, refused score 30 | 14 | 13 | `YPTZ` | 13 calls |
+| S1, all refused | 20 | 0 | No result | 20 calls |
+| S5b, all unrateable | 20 | 0 | No result | 20 calls |
+
+S8's groups were exactly 17 rated five-clue, 20 rated six-clue and 11 capped four-clue profiles; the last was
+`LNWZ:capped`. S8s's groups were 13 rated, 15 refused and six capped profiles, ending at `LYFWZ`. Twenty
+additional no-spent controls produced identical results, seam-call traces and notifications with the original
+MP07 selector and the in-memory specification. This verifies the task vectors, not an implementation or a gate;
+no full suite, fixture recording or timing-sensitive run was performed.
+
+**MP09b compatibility: accepted.** AR1 filters generated candidates only, not imported claims, and keeps a
+`censored: true` candidate with `Gproved >= 1`. The committed strict reader (`core/engine/pack.js:768-940`) permits
+that combination, checks `Gproved <= G`, and requires equality when the census is complete. MP09c does not alter
+the wire shape. Its deliberately partial `v3Rating` objects are selector-seam doubles, **not valid full v3 pack
+claims**; keep them local to these tests and use MP09b's complete fixtures at a pack/protocol boundary.
+`IncompleteRatingError` is caught only at the two intended rating points; the new worker reply uses the existing
+free-string error-code contract. The unchanged legacy rating path is retained.
+
+#### TP01 — "Nothing changes below Hard" is too broad
+
+**Severity: Minor.** MP09c, "Consequences" third bullet and MP09c-B03.
+
+S5c correctly requires an unrateable Normal profile to be spent. Thus only the **AR1 refusal**, not the new
+unrateable handling, is disabled below Hard. Replace the bullet with:
+
+> Below Hard the `Gproved` refusal does not apply; an unrateable profile is still spent (S5c). Ratings without
+> `Gproved` are never refused by AR1. While `rate` remains v2, production outputs and fixtures are unchanged.
+
+Make B03 say the same. This is wording only; the pseudocode, test vectors and counted-stall rule are unambiguous
+and executable.
+
+**MP09c sign-off:** no Blocker or Major finding; dispatch may proceed. TP01 is an editorial correction, not a
+change of policy, algorithm or test expectations.
+
+MP09c VERIFIED
+
+### MP09d1, MP09d2 and MP09e
+
+| File under `tasks/difficulty-v3/` | LastWriteTime (2026-11-12, +07:00) | Disposition |
+|---|---|---|
+| `MP09d1-measure-v3-and-v2-names.md` | 15:32:47 | No blocking finding |
+| `MP09d2-activate-v3.md` | 19:23:42 | SP01 accepted; SP02/SP03 need the corrections below |
+| `MP09e-code-format-evidence.md` | 19:23:56 | Format contract accepted; the D36 command branch needs an editorial correction |
+
+MP09d1 preserves the v2 function bodies, makes `rateV2`'s model literal independent of `MODEL`, and maps the
+deduction result to all 28 strict v3 metrics. Its rename list includes the frozen-code score comparison and the
+probe's v2 column. The error paths, census flags and DLX diagnostic agree with MP09b. A small inline check also
+confirmed that MP09d2's actual `FAKE_RATING` literal passes the committed strict pack reader. No gate was run.
+
+**SP01: closed.** The Goal, B01, census-estimate test and living-document slots now distinguish generation
+acceptance from rating/import. `rate` may return an estimate with `Gproved === 0`; generated Hard-or-above puzzles
+may not use it.
+
+**D36/P-OD5: substantially applied.** The task now owns the Hell-failure captures, a same-board replacement recipe
+proved to make ten puzzles in serial and in the two-worker flow, a retained unrateable-calibration test, an
+availability probe, and the completed-cell D21-V3 pass. It does not silently raise caps, reduce the recipe quantity,
+fabricate v3 ratings from old Hell results, or change offerings. The interim publication restriction is explicit.
+The 15 x 20 replacement test remains a calibration test; its selection capture currently asks only for one puzzle.
+Part I precision 2 says "with 10 of 10 puzzles": use quantity ten and require a complete ten-puzzle capture when
+qualifying that replacement level too, while keeping the final unit test focused on calibration.
+
+#### TP02 — Phase B still stops before the fixture migration it permits
+
+**Severity: Major; SP02 not closed.** MP09d2, Test plan, Phase B, and MP09d2-T08.
+
+There are three concrete problems with the six-name allow-list:
+
+1. TAP reports enclosing failed suites as well as leaves. The parser collects them, but `runs`
+   (`tests/cli.test.js:135`), `real engine through the pool` (`tests/generation-client.test.js:807`),
+   `Node runner end to end` (`tests/calibration.test.js:281`) and `run with --code`
+   (`tests/puzzlecode-cli.test.js:423`) are not allowed. An inline TAP reproduction using the exact parser and
+   an allowed failing recipe leaf rejected its parent `runs`.
+2. Two more fixture-dependent leaves are not allowed: `tests/generate.test.js:734` ("a second batch with carried
+   history ...", which compares the rerun with `RECIPE.expected` at line 748) and line 764 ("the recorder refuses
+   to overwrite ...", whose first assertion requires `--check` to return zero before GF-P2).
+3. Before GF-P2 the old recipe's model version is necessarily wrong. `tools/generate.mjs:275-278` throws
+   `RangeError('the recipe needs model difficulty-v2, this build has difficulty-v3')`. That also breaks the
+   recipe-argument test at `tests/cli.test.js:95` and recipe flag cases, and contradicts the instruction to stop
+   on **any** exception even in an allowed test.
+
+**Correction:** keep Phase A as the fail-fast pre-migration check; run fixture-dependent test files only after
+GF-P2, when Phase E runs them strictly. A pre-migration full quick run may be retained as labelled diagnostic
+output, not as this incomplete allow-list gate. Update T08 and the implementation steps accordingly. Do not
+weaken the final full quick/full-suite verdict or the recipe version check.
+
+#### TP03 — The reused simulator cannot certify a repaired final result
+
+**Severity: Major; remaining SP03 gate issue.** MP09d2, D21-V3 decision table and Phase C3.
+
+`d21-2026-11-12/simulate.mjs:25-61` returns the best **raw** candidate's score and key when the stall condition
+fires. `compare` (lines 73-91) labels an earlier stop a missed central result solely because the baseline final
+result is central. It never evaluates `chooseBest`, repair success, or the repaired score. In `require` mode an
+earlier `chooseBest` can return that same central repaired result, or fail and continue. Neither case is the
+miss the script reports. For example, thirteen raw scores of 18 in Hard can trigger a repair to 21; comparing
+their raw 18 with a later baseline final 21 wrongly labels the centre as missed.
+
+**Correction:** use the simulation as a screening result. Before applying the raise/stop decision to a positive
+`require`-mode result, compare the actual final results under N = 12 and N = 16 with the no-stall baseline for
+the same input. The affected populations are `pop-recipe-board` and the real-rating require vectors: give their
+bounded rerun commands/load hook and compare by tag. Only an observed lost central final result may drive this
+decision; report conservative raw triggers separately.
+
+Also keep the nine scripted `difficulty-v2` vector cases in `vectors.mjs:23-52` as mechanics controls, outside
+the production-v3 TOTAL or explicitly in a separate table. The current observer records no model field and the
+task currently calls the combined TOTAL v3 evidence.
+
+#### TP04 — The promised 164-cell availability boundary is replaced by 165
+
+**Severity: Minor.** MP09d2, C2's first row; checklist D36.
+
+The absence of a 164-cell rectangle with sides at most 32 does not make a supported 164-cell board impossible.
+`deterministicBoard(164)` already returns `{ cols: 13, rows: 13, blocked: 5 }`
+(`tools/bench/calibration-reference.js:163`); `rectRows` builds it. A read-only check confirmed exactly 164
+active cells, no generation-validation errors, and Hell 1 offered.
+
+**Correction:** use that board for D36 precision 4, extending `avail.mjs` with an area or blocked-cell input
+(or explicitly constructing these rows). Keep three attempts, the seed and the budget unchanged. Name the capture
+`avail-13x13b5-hell-1`; record active area, not only the bounding rectangle. The other boundary rows are correct.
+
+#### TP05 — The fewest-clue sample still has two conflicting fallback recipes
+
+**Severity: Minor.** MP09e, "Samples" and Exact commands.
+
+The old paragraph says Hell 3 falls back to Hell 2; the D36 paragraph says skip Hell 2 and use Nightmare, then
+Master. The exact command block still unconditionally runs Hell 3, even when the new D36 rule says to skip it.
+
+**Correction:** remove the superseded Hell-2 fallback and make the command block follow the D36 decision:
+documented skip or one Hell-3 attempt, then Nightmare and, only if needed, Master. Retain Hard -> Expert for the
+long-code sample. Also update the checklist's business-traceability row "Hell levels under v3 (D36, open)";
+the decision is (a)/P-OD5, not an answer still to be obtained.
+
+**MP09d sign-off:** MP09d1 can proceed. MP09d2 needs TP02 and TP03 corrected before dispatch; the D36 boundary
+and MP09e wording fixes need no new owner decision. The SP01 correction and the placement of D21-V3 after
+activation/before GF-P2 are accepted.
+
+MP09d BLOCKED: TP02, TP03
+
+### Remaining published fixes: MP10, MP12 and the split replay engine
+
+| File under `tasks/difficulty-v3/` | LastWriteTime (2026-11-12, +07:00) | Reviewed correction |
+|---|---|---|
+| `MP10a-auxiliary-requests.md` | 19:01:17 | SP05: reachable waiting/running cases and the FIFO certificate contract |
+| `MP10b1-display-rating-player.md` | 19:04:52 | SP04: startup, card invalidation, unavailable note; SP07: same-task brief |
+| `MP10b2-display-rating-generator-and-pages.md` | 19:05:13 | SP04: initial wishes for restored state and the browser redraw check |
+| `MP12a-calibration-slice.md` | 19:33:02 | SP06: captured corpus, labels, manifest, identity join and fit adapter; SP07: documentation slot |
+| `MP12b1-full-landscape.md` | 19:35:18 | New split, full-landscape population and aggregate |
+| `MP12b2-search-evidence-and-lock.md` | 19:42:00 | SP16: observer, repair evidence, stall re-examination and fail-fast proposal |
+| `MP14a-detail-channel-and-clue-recorders.md` | 19:52:12 | SP09/SP14: separate accounting and explicit zero-add semantics |
+| `MP14b-set-and-layout-recorders.md` | 19:52:52 | SP09: pass the meter through the hidden set calibration |
+| `MP15a1-replay-runs.md` | 19:58:56 | SP08-SP10/SP13: projection, bounded runs, stage states and chronological events |
+| `MP15a2-replay-steps.md` | 19:58:57 | SP10-SP13: byte reservation, final clues/detail, legacy terms and interleaving |
+
+**Accepted corrections.** SP04 and SP05 are implemented in the task contracts and their tests. SP06's original
+overwrite/implicit-fit defects are corrected: packs are captured once, each budget has a separate path, missing
+or mismatched identities remain visible, and the fit consumes the manifest-joined complete observations.
+SP08's one-entry projection fixes the full-pack API without weakening whole-pack validation. SP09 now meters
+successful, refused and capped ratings, every actual uniqueness count (including zero-add finishes), and hidden
+calibration events, without counting census work twice. The recorder identities and throwing-meter tests are
+specified. SP11 is corrected in the engine by final clue placements and `args.detailStep`; SP13's engine tests
+now allow stage-5/6 interleaving and omit the calibration walk.
+
+The split into MP15a1/MP15a2 is useful. Its new internal `ReplayRun`, however, needs TP09 below; its byte
+algorithm still needs TP10. The final UI consumers and pack-wide propagation are checked separately.
+
+#### TP06 — MP12a repeats the pre-fixture test-order problem after a knob change
+
+**Severity: Major.** MP12a, "One round" step 4, Implementation step 3 and the placement of GF-P2.
+
+After changing a knob and re-pinning unit tables, the task requires `npm run test:quick` before the next round.
+But the generation fixtures are regenerated only after the **last** round. A score/share change can change the
+recorded clue keys and scores; a `K60`/`POLICY_ID` change also makes the old recipe fail its version check
+immediately. Re-pinning the unit tables alone cannot make that full quick command pass.
+
+**Correction:** between rounds run the listed fixture-independent policy/difficulty/clue checks and the owned
+slow v3 test; defer fixture-dependent/full quick tests until GF-P2 at the final tuple. Alternatively explicitly
+own GF-P2 after each change, but do not require a green old-fixture run before it. The final quick suite and GA-P2
+remain strict. Apply the same ordering to any ordered change round in MP12b2.
+
+#### TP07 — The new search observer cannot derive its promised repair and timing statistics
+
+**Severity: Major; SP16 only partly closed.** MP12b2, observer, summary, self-test and fail-fast proposal.
+
+The inference "`result.ok && result.ri === null` means a successful repair" misses a repaired result that is also
+one of the previously rated subsets. A bounded in-memory probe on MP07's committed selector found this on its
+**first** case (about 19 ms): recipe board, target Hard, `require`, seed `repair-ri-0`, constant score 18:
+the returned candidate was repaired from `IUTX` to `IUTWX`, but the final key is raw rating **3 of 13**.
+The proposed summary counts no successful repair. These no-spent mechanics are unchanged by MP09c.
+
+Nor does the final `call.result` identify a failed/refused repair: S4 itself returns a later successful raw
+candidate after refusing the earlier repair. The current attempt shape merges raw and repair refusals/caps.
+Finally, no attempt carries elapsed time: its `t` is deduction tier, not milliseconds. The promised median/largest
+time **per unrateable rating**, needed for F1/F2's predictions, cannot be recovered from aggregate `call.ms` or
+the old observer's intervals between successful raw ratings.
+
+**Correction:** in the read-only measurement hook, explicitly bracket `finish` calls, retain raw-vs-repair phase
+and acceptance/selected identity, and time each rating attempt separately. Do not infer repair ownership from
+key membership or the final success flag. Extend the self-test with the `repair-ri-0` case above, alongside
+S4/S4ok/S6, and define the successful-repair denominator. This changes measurement only, not production counters.
+
+#### TP08 — Three Hell repetitions are not the approved full landscape
+
+**Severity: Major; needs the plan author's/owner's approval if retained.** MP12b1, Goal and Shards.
+
+The accepted full landscape uses at least 20 fixed seeds per cell. D36 precision 4 authorises three set attempts
+for MP09d2's small availability probe; it does not authorise replacing MP12's full Hell cells by three runs.
+Labelling the three-run report reduced is honest, but does not make GL-P3 complete or prove "cells v3 cannot make".
+A rare successful request may simply not occur in the first three seeds.
+
+**Correction:** use the three-run block as a prescreen only, retaining the 20-run gate, or obtain an explicit
+population waiver before dispatch and carry it into the gate, record and lock criteria. Say "no puzzle observed
+in N requests", not proven impossibility. When a prescreen is followed by 20 runs, the aggregate must select the
+20-run report only; never count its first three seeds again from the `-s3` report. Prescribe that per-case
+selection rather than reading every JSON report in the folder.
+
+#### TP09 — `ReplayRun.set` is not plain JSON
+
+**Severity: Major.** MP15a1, ReplayRun contract, MP15a1-T05 and required case 13.
+
+The new internal result returns `set: r.set`, a real `PieceSet`. Its board has `active: Uint8Array`
+(`core/engine/types.js:22`, `core/engine/board.js:63`). Therefore
+`JSON.parse(JSON.stringify(run))` cannot deep-equal `run`, even on the first matched fixture. MP15a2 legitimately
+needs that engine set and deliberately omits it from the public result.
+
+**Correction:** keep the internal `PieceSet`. Require the JSON round trip for `events` and the non-set result
+fields; retain a structured-clone/determinism check for the whole internal run. Require full plain JSON for
+`ReplayResult` in MP15a2/MP15b. Do not make a developer change the engine Board representation to satisfy this test.
+
+#### TP10 — The byte reserve is not always maximal, and array framing is uncounted
+
+**Severity: Major; SP10 not closed.** MP15a2, Algorithm and required cases 5-6; corresponding event-byte wording
+in MP15a1.
+
+`finalStep(input, 'unavailable', maxSteps - 1)` is not the largest final step for a small step limit: JSON `null`
+is four bytes, whereas index `0` is one. An inline check of the specified step shape gave 202 reserved bytes
+for `maxSteps = 1`, but 205 for the actual unavailable final step, or **207** for its one-element `steps` array.
+Also, summing `JSON.stringify(step)` lengths omits the array's brackets and separators: N steps cost another
+N + 1 bytes.
+
+**Correction:** define the bound as `utf8Length(JSON.stringify(steps))`; reserve the larger of the final forms
+with `detailStep: null` and with the largest allowed index, plus the two brackets. Charge one comma per added
+non-final step as well as that step's bytes. Apply a consistent conservative framing count to the retained-event
+guard. Test exact-fit/one-byte-less limits with `maxSteps = 1`, an unavailable result, and a multi-step trace.
+The existing preflight rejection and cleared comparison state on a byte cut are otherwise correct.
+
+#### TP11 — Finite legacy inputs can still produce an infinite term
+
+**Severity: Major; remaining edge/test contradiction in SP12.** MP15a2, `breakdownOf`, v2 branch and case 4.
+
+`U = Number.MAX_VALUE` is finite and nonnegative, so it passes the proposed guard, but `2 * U` is `Infinity`
+and becomes null in JSON. MP09b deliberately allows such finite opaque legacy numbers.
+
+**Correction:** after computing the legacy terms, require the **results** to be finite too; otherwise use
+`breakdown: null` and keep the original total. Use this valid finite-overflow input in case 4 and its UI equivalent.
+Replace case 4's existing `U: Infinity` input: it is not valid pack JSON and, even with a null breakdown, its
+unchanged stored claim in the final step contains Infinity, contradicting the same case's whole-result JSON
+round-trip assertion. Do not silently rewrite that claim to make the test pass.
+
+### MP16a: the final table, zero-add wording and compact ordering
+
+Reviewed `tasks/difficulty-v3/MP16a-replay-dialog.md`, LastWriteTime **20:00:41**.
+
+SP15 is corrected: the compact filter now uses band distance, centre distance and canonical clue key. Its new
+tied-score/smaller-key case distinguishes it from the old two-key projection. The unbounded-band treatment agrees
+with the committed comparator's effective key tie-break. SP11's final detail pointer and stored-clue placements
+are carried into the dialog; SP12's null-breakdown display is explicit. SP14 now has a no-piece failure sentence
+and a separate stopped-stage label.
+
+#### TP12 — Finish the UI tests for the newly added final/zero-add/stopped cases
+
+**Severity: Minor.** MP16a, required cases 3, 7 and 8.
+
+The prose has the fixes, but the test plan still checks a real `rated` table rather than the final step's
+`detailStep` lookup, and does not explicitly require the synthetic zero-add failure. Case 8 still says that
+stages without steps are unavailable, although an early limit now produces `stopped`.
+
+**Correction:** add (1) a final step whose own detail is null and whose `detailStep` points to a real measured
+step, checking the same guess-node rows; (2) `added: null`, `accepted: false`, `reason: 'not-proved'`, checking
+`failedBeforeClue` in both languages and no "null" piece name; (3) an early-limit result with empty stopped stages,
+checking `replay.stage.stopped`, distinct from unavailable. No new behavior or owner decision is needed.
+
+### Third-pass checkpoint (20:14)
+
+**Findings so far: 0 Blocker, 8 Major, 4 Minor (TP01-TP12).** MP09c is verified and has been dispatched with
+TP01 passed to its developer. MP09d1 has no blocking finding. MP09d2 is not ready until TP02/TP03 are resolved.
+
+This is not final sign-off on the remaining pack. At this checkpoint the response file still ends after
+SP01-SP03 (LastWriteTime 19:00:08), and the following revisions have not yet been published:
+
+- MP13a/MP13b's remaining SP07 documentation correction (files still 16:56:27 / 17:14:41).
+- MP16b's candidate/calibration browser distinction and native-key proof (still 17:00:59; SP13/SP19).
+- MP17's coverage, stale-output protection, gate announcement and browser-phase fixes (still 17:20:38;
+  SP17-SP19).
+- Final checklist/split-task propagation and the complete response to SP04-SP19.
+
+The next check covers those published revisions, the final dispositions, and any corrections to TP01-TP12.
+Only this review file has been edited; no task, checklist, production code, fixture or execution log was changed
+by the reviewer. All probes were short and in memory; no heavy gate ran.
+
+### Critical-path re-verification: MP09d2 READY at 20:29
+
+Scope: MP09d2 and MP09e's TP05 change only, against committed HEAD `041ff83`. Reviewed versions:
+
+| File | LastWriteTime (2026-11-12, +07:00) |
+|---|---|
+| `tasks/difficulty-v3/MP09d2-activate-v3.md` | 20:26:45.832 |
+| `tasks/difficulty-v3/MP09e-code-format-evidence.md` | 20:11:05.846 |
+| `docs/difficulty-v3/claude-opus-5.5/7-response-to-second-pass.md` | 20:28:57.095 |
+
+**TP02's ordering fix is accepted.** Phase A is the only pre-GF test gate, Phase B is a saved diagnostic,
+and Phase E runs all eleven named files strictly, then the whole quick set. All eleven files exist.
+`checkRecipe` is unchanged at `tools/generate.mjs:275-279`, explicitly protected by T08 and outside the task's
+owned changes. The newly committed delegation test creates a separate, small migration omission (TP13 below).
+
+**The identical-prefix property is correct, including spent profiles.** In committed `clues.js:248-285`,
+a capped/refused subset increments `profiles` but neither calls `onRate` nor enters `rated`.
+`afterProfile` changes its side/nearest state only for a candidate and tests
+`rated.length - nearestAt >= STALL_LIMIT` (`clues.js:384-418`). A spent profile cannot turn a false stall
+condition true. Both variants retain the same profile-48 reserve, central check, memoised repairs and RNG
+operations. Therefore the only first divergence can occur after the rated candidate that first satisfies the
+N-dependent condition, and the logged prefix through that candidate is identical. If the condition never holds,
+the whole run is identical. After a firing whose repairs fail, further RNG draws may differ: the script correctly
+does not require the later prefix to match.
+
+Eight short scripted probes of the actual committed selector, with only the constant changed in memory, confirmed
+that property in `any` and `require` modes, at N = 12 and 16, with two capped profiles and one AR1 refusal, and
+without spent profiles. Both the rated prefix and the RNG-call trace matched. The first firings were at rated
+candidate 13 and 17; the no-stall baseline had 45 rated candidates. Total probe time was about 81 ms.
+
+**The new scripts are executable and their input mapping is correct.** Their literal fenced sources were executed
+with in-memory filesystem/module doubles (no generation and no files written). `rerun.mjs` reproduces exactly the
+184 finite-band, real-rating require inputs of `pop.mjs --recipe-board 200` and `vectors.mjs`: same tag, seed,
+target, board, pieces and layout. The split removes all require calls from A and separates the nine scripted
+controls. Both preloads change only the single guarded constant. Certification exercised identical results,
+a genuine central loss and a missing partner; the latter exits 1. Its classification of a changed but still
+central result needs TP14.
+
+**Bounds and D36.** The new captures are serial, independently capped at 600 s; C1's other captures are
+180-300 s, and C2's six runs are 300 s with three attempts each. The 20-45 minute C3 estimate explicitly includes
+the two approximately 1.5-minute reruns; all blocks require the orchestrator's slot. The 15 x 20 replacement now
+requires attempt 0 to succeed and ten of ten puzzles. `--blocked 5` produces the specified 164-cell board and
+label. TP04 is closed. MP09e now has one Hell-3/Nightmare/Master order with the documented skip; no Hell-2
+fallback remains. TP05 is closed, subject only to TP15's non-blocking initialization clarification.
+
+#### TP13 — The just-committed v2-delegation assertion still fails Phase A
+
+**Severity: Major.** MP09d2's pinned-test table, against `tests/difficulty.test.js:331-351`.
+
+MP09d1 added "the v2 rating keeps its results under its v2 names". Its final loop, lines 348-350, asserts
+`JSON.stringify(rate(...)) === JSON.stringify(rateV2(...))`. That is deliberately true before activation and
+necessarily false afterwards (the model alone differs). MP09d2's table does not authorise migrating this test,
+and Phase A runs it before any gate. The "only these; anything else ... is reported" rule therefore stops the task.
+
+**Exact fix:** add this named test to the table. Preserve all `rateV2` pins at lines 331-347; remove the obsolete
+live-`rate` equality loop (or move its live side into the new v3 `rate` cases). Explicitly do this before Phase A.
+Do not change `rateV2`, the fixture version check or the final suite requirements.
+
+#### TP14 — Certification counts a different central result as a lost central result
+
+**Severity: Major.** MP09d2's `certify.mjs`, the `else if (central(b))` branch, and its definition of lost.
+
+After a genuine firing, the script increments `lost` whenever the baseline is central and the final key/score
+differs. The rerun may itself still be central. RES-15's success condition is the central half, not preservation
+of one particular baseline puzzle.
+
+The exact script, on an in-memory Hard-band example, classified baseline score 21 and a different repaired
+puzzle also scoring 21 as `lost = 1`, despite an identical prefix through rating 13 and both results lying in
+[19, 23]. With N = 16 unchanged, the decision table then raises the limit unnecessarily; if both reruns return
+different central puzzles, it can stop the gate on a nonexistent loss.
+
+**Exact fix:** use `else if (central(b) && !central(x))` for `lost`. A changed result which remains central belongs
+in `other changed results`, not `lost`. Update the accompanying definition. Add synthetic cases for a different
+central key at score 21, a different central score of 20, and a real loss to score 18 or no result. Only the last
+two outcomes lose centrality. The prefix proof and the remainder of the decision table need no change.
+
+#### TP15 — Initialize the conditional sample flag explicitly
+
+**Severity: Minor; developer addendum only.** MP09e, Exact commands.
+
+Set `$skipHell3 = $false` before applying the record-based override to true. The current block reads an unset
+variable on the non-skip path (and fails under strict PowerShell). This does not change the fallback decision.
+
+**Result:** the rerun architecture, prefix property, bounds, TP02 ordering, TP04 and TP05 are verified.
+Two precise task corrections remain before MP09d2 dispatch: TP13 and TP14. No gate was run and no implementation
+was edited; only this review file was changed.
+
+MP09d BLOCKED: TP13, TP14
+
+### Orchestrator dispatch addendum — 2026-11-12 20:48
+
+**TP13/TP14 applied by the orchestrator at MP09d2 dispatch.** The exact fixes above were included as a binding
+developer addendum. They no longer block MP09d2; the earlier blocked marker records the reviewed file revision,
+not the dispatched task with its addendum. MP09d2 is now frozen and in implementation.
+
+TP15 will be passed to MP09e in the same way. No MP09d2 or MP09e task file was edited by this reviewer.
+
+### MP10-MP11 READY tranche
+
+Reviewed against HEAD `041ff83`, including the Execution log handoffs of MP09a1, MP09a2, MP09b, MP09c and
+MP09d1. MP09d2's ongoing implementation and MP09e are outside this review.
+
+| File under `tasks/difficulty-v3/` | LastWriteTime (2026-11-12, +07:00) |
+|---|---|
+| `MP10a-auxiliary-requests.md` | 20:42:10.942 |
+| `MP10b1-display-rating-player.md` | 20:42:10.948 |
+| `MP10b2-display-rating-generator-and-pages.md` | 20:42:10.970 |
+| `MP11-calibration-tooling.md` | 20:42:10.964 |
+
+SA1's §2 dispositions and `MP10-MP11 READY` were read in the response revision last written at 20:43:28.180.
+
+| Earlier finding | Verification |
+|---|---|
+| SP04 | Accepted. The Generator sends startup wishes before relying on its non-immediate subscription; the Player's card invalidation includes `displayRatings`; both failed and unavailable outcomes retain the claim with the failure note. Tests cover untouched restored state and a reply-only redraw. The quoted startup and renderer anchors agree with the committed code. |
+| SP05 | Accepted. The tests now distinguish waiting beside main work from running under an ended token. The queue uses the owner's allocator, bootstraps only when idle, and does not claim zero latency for certificates sharing the FIFO idle queue. Main-request cancellation and maintenance re-queue cases are separate. |
+| SP07, MP10 portion | Accepted. MP10b1 owns the Player's brief/detail/EN+VI guide updates in the same change; MP10b2 owns the corresponding Generator updates. MP10a adds internal plumbing, not an already-visible feature. The later MP12/MP13 portions are not closed by this review. |
+| SP16, MP11 portion | MP11's accepted-puzzle metrics and diagnostic sampling counts are consistent and implementable. They are not a measurement of every generation profile or repair. The additional search-evidence producer is now MP12b2/GS-P3; its TP07 remains for the MP12+ review, not a prerequisite of MP11. |
+| SP19, MP10b2 portion | Main-phase page coverage, ports, announcement, timeout and PID cleanup are specified. The small per-page evidence/summary correction below remains. Native-key and GZ phase proof belong to the later tasks and are not signed off here. |
+
+**Compatibility with the delivered MP09 contracts.**
+
+- Re-rating uses the existing `rate` payload `{ boardRows, pieces, clues }` and the existing pool, not a new task
+  kind or a second pool. `rating-incomplete` is a `WorkerTaskError` code, matching MP09c; MP11's `errorCode`
+  helper reads that code directly.
+- MP09b's legacy v1/v2 claims may lack metrics or saturation. The display logic does not need those metrics to
+  request a fresh rating and never rewrites the claim. Full v3 estimates use `censusUndecided`; summary claims
+  without metrics get the short note and are not needlessly re-rated.
+- The Generator builds its controller after restore/duplicate-set cleanup, so startup wishes use the surviving
+  sets. Updating only `displayRatings` does not replace the one-time cleanup notice or the explicit saved-state
+  fields.
+- MP11's metric names match the 28-field measurement delivered by MP09d1. The legacy clue count `G` is read as
+  `clues ?? G`, separately from decisive guesses in v3 metrics. Old records may omit `ratingCensoredCount`;
+  new aggregates must treat that absence as zero, as required by the old-record tests.
+- `level(id).index`, `firstSetAttempt`, `runFold`, the workspace APIs and the sampling/error locations exist as
+  named. MP11's one owned slow test is announced, estimated at 2-8 minutes and subject to the ten-minute limit;
+  it does not authorise a landscape run or `npm test` here.
+
+All four task files passed read-only CRLF/no-BOM/final-newline/trailing-whitespace checks and their PowerShell
+blocks parse. No application suite, browser page, timing run or gate was started by this review.
+
+#### TP16 — Distinguish an unfinished census from an unrateable path in the guide sentence
+
+**Severity: Minor; MP10b1 developer addendum.** The suggested USERGUIDE sentence says a puzzle whose "rating
+could not be finished within the work limit" shows a decisive estimate. That is too broad: a capped first path
+is unrateable; only an unfinished census gets the estimate mark.
+
+Use, in both languages: "An unfinished census of the guess alternatives is marked as a decisive estimate.
+If the first solution cannot be found within the limits, the stored rating stays with 'Could not be re-rated'."
+The display table and tests already distinguish these cases correctly.
+
+#### TP17 — Preserve one evidence directory per browser page and read the legacy summary element
+
+**Severity: Minor; MP10b2 developer addendum (the main-phase part of SP19).** The referenced native client writes
+fixed `browser.json` and `browser.png` names under `RP_EVIDENCE_DIR`, and reads only `dataset.summary`
+(`tasks/regenerate-puzzle/check-list.md:378-389`). `generator-flow.js:988` and `acceptance.js:717` put their counts
+in `#summary` instead.
+
+For each page set `RP_EVIDENCE_DIR` to `tests\artifacts\MP10b2\<page-name>\main`. In the copied driver's
+evaluation expression use `document.documentElement.dataset.summary || document.querySelector("#summary")?.textContent || ""`.
+Keep the existing pass/error assertions and timeout. This preserves all six results and the promised counts;
+no new browser phase or production change is needed.
+
+#### TP18 — Include the new client dependency in the benchmark source digest
+
+**Severity: Minor; MP10a developer addendum.** `tools/bench/report.js:37-48` hashes the generation client and pool
+but not the new `core/browser/auxiliary.js` which that client will import and execute. A later change of that helper
+would otherwise leave the measurement source digest unchanged.
+
+Give MP10a narrow ownership of the `SOURCE_FILES` list and add `core/browser/auxiliary.js` beside the other browser
+generation modules. Run the existing quick `tests/benchmark-report.test.js` along with its targeted checks.
+Do not add display/UI files that the benchmark does not execute.
+
+#### TP19 — Carry the stated no-worker flag into the Generator submit wrapper
+
+**Severity: Minor; MP10b2 developer addendum.** "The Generator" correctly requires an unavailable entry when
+`options.workersAvailable === false`, but implementation item 2's shorthand checks only whether the client method
+exists. `generator/app.js:124-128` can supply both a client and an explicit false flag.
+
+Before calling the client, reject with `PoolError('worker-unavailable', ...)` when that flag is false or the method
+is absent. Add a case with a present spy method and `workersAvailable: false`: zero submissions, unavailable
+entry/failure note, no general error notice. This implements the already-stated contract.
+
+**Relay, not another review:** SA1 reports `MP09d2 AMENDMENT B1 READY` (about 21:10) in its response file.
+It carries TP13/TP14 and their self-test into the frozen task's amendment, and additionally authorises the
+post-GF/pre-Phase-E v2-pin migrations in `tests/pack.test.js:576` and `tests/rate-probe.test.js:71,77,101`.
+The orchestrator should pass that amendment to the active MP09d2 developer. It was not re-reviewed in this tranche;
+TP13/TP14 were already binding at dispatch as recorded above.
+
+**Sign-off:** no Blocker or Major finding in MP10a-MP11; four precise minor addenda, TP16-TP19. The scope is ready
+for sequential dispatch with those addenda. No task, implementation, fixture, execution log or checklist was edited.
+
+MP10-MP11 VERIFIED

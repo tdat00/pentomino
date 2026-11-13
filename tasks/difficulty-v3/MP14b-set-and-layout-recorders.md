@@ -16,7 +16,7 @@
 Generation Steps replays a puzzle from the carving of its piece set to its final clues. MP14a reports the clue and
 repair steps; this task reports the earlier steps: how many pieces the set got, how the board was cut into parts and
 carved into pieces, where the layout walk started and how each local re-tiling changed it. With these events the
-replay engine (MP15a) can show every stage. As in MP14a, the recorders only observe: generation makes the same sets,
+replay engine (MP15a1) can show every stage. As in MP14a, the recorders only observe: generation makes the same sets,
 layouts and puzzles with or without them.
 
 ## Scope
@@ -25,7 +25,8 @@ layouts and puzzles with or without them.
 
 - `core/engine/generate.js`: an optional `observe` parameter on `setAttempt` and `puzzleCandidate`; the `count`
   event; the walk's `start` event (D32); passing the observer to carving, the walk and clue selection (the set
-  calibration's call with `recordSource: 'calibration'`), and `replaySkips` to clue selection.
+  calibration's call with `recordSource: 'calibration'`), `replaySkips` to clue selection, and the work meter
+  `charge` (MP14a) to every clue selection of the attempt.
 - `core/engine/carve.js`: an optional `record` parameter on `carveMacro` (beside its control hooks) and
   `carveFlatSet`; the `carve` and `piece` events.
 - `core/engine/tiling.js`: an optional `record` parameter on `lnsWalk`; the `retile` events.
@@ -83,6 +84,8 @@ Anchors are at HEAD `60575a4`; MP13a edited `puzzleCandidate`, `completionCandid
 /**
  * @typedef {object} Observe
  * @property {(event: RecordEvent) => void} [record] Observer (RES-28).
+ * @property {(units: number) => void} [charge] Work meter (RES-29, MP14a): passed to every `selectClues` call of
+ *   the attempt (the set calibration's included); a throwing `charge` propagates.
  * @property {{ subsets: number[], repairs: number[] }} [replaySkips] Replay control for the candidate's clue
  *   selection (MP14a); puzzleCandidate only.
  */
@@ -95,8 +98,11 @@ export function lnsWalk(set, start, rng, ws, steps = BUDGETS.lnsSteps, record)
 
 Existing callers pass nothing and behave exactly as before. With `observe.replaySkips`, `puzzleCandidate` passes it
 to `selectClues` (which then ignores `excludeClueKeys`, MP14a); the caller of a replay passes an empty `seenLayouts`
-(MP15a). `observe.record` is passed to `selectClues` as `record` (source `'candidate'`) in `puzzleCandidate`, and with
-`recordSource: 'calibration'` in `setAttempt`.
+(MP15a1). `observe.record` is passed to `selectClues` as `record` (source `'candidate'`) in `puzzleCandidate`, and with
+`recordSource: 'calibration'` in `setAttempt`. `observe.charge` is passed to `selectClues` as `charge` in both,
+whether or not `record` is set (cross-review SP09: a candidate replay drops the calibration's events but must still
+meter the calibration's work); carving and the walk are not charged (RES-29: "carving and tiling stay bounded by
+their own budgets").
 
 ### Events (RES-28; field order as written; every value plain JSON; cells as `[x, y]` pairs)
 
@@ -172,6 +178,7 @@ Exclusive ownership while this task runs: the files above. `core/engine/clues.js
 | MP14b-T03 | `setAttempt`, `puzzleCandidate` and `runFold` results are deep-equal with and without `record` | cases 5, 6 |
 | MP14b-T04 | `replaySkips` through `puzzleCandidate` reproduces a candidate made with excluded keys | case 7 |
 | MP14b-T05 | Events are plain JSON and not mutated after delivery | case 8 |
+| MP14b-T06 | `observe.charge` reaches every `selectClues` call of `setAttempt` (calibration included, with or without `record`) and of `puzzleCandidate`; carving and the walk are not charged; a throwing `charge` propagates; results are unchanged | case 9 |
 
 ## Test plan
 
@@ -215,6 +222,12 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
    replaySkips: made.skips })` returns a candidate deep-equal to the original.
 8. Plain JSON: every set and layout event survives `structuredClone` and a JSON round trip deep-equal, and its JSON
    at delivery equals its JSON after the call.
+9. The work meter passes through (cross-review SP09): `setAttempt` on the recipe request at its winning attempt with
+   `{ charge }` only (no `record`) calls `charge` at least once per rating of the calibration (the calibration's
+   `selectClues` is metered without a recorder), and with `{ record, charge }` the `charge` calls come before the
+   calibration's first clue event and none comes between `count`, `carve` and `piece` events (carving is not
+   charged); `puzzleCandidate(ctx, 1, 0, { charge })` calls `charge` and its result deep-equals the call without it;
+   a `charge` that throws a fresh error on its first call makes `setAttempt` throw exactly that error.
 
 The existing real-engine client tests at pool widths 1 and 4 must pass unchanged (no task or protocol change).
 
@@ -222,9 +235,10 @@ The existing real-engine client tests at pool widths 1 and 4 must pass unchanged
 
 - Every criterion has its evidence; the reply lists the signatures, one example of each event kind and the test
   counts.
-- Handoff to MP15a: `setAttempt(req, attempt, { record })` gives stages 1-3 (`count`, `carve`, `piece`, then the
-  calibration's clue events); `puzzleCandidate(ctx, slot, attempt, { record, replaySkips })` gives stages 4-6
-  (`start`, `retile`, the clue and repair events, `selected`); MP14a's `SkipReplayError` signals a skip mismatch.
+- Handoff to MP15a1: `setAttempt(req, attempt, { record, charge })` gives stages 1-3 (`count`, `carve`, `piece`, then
+  the calibration's clue events) and meters the calibration; `puzzleCandidate(ctx, slot, attempt, { record,
+  replaySkips, charge })` gives stages 4-6 (`start`, `retile`, the clue and repair events, `selected`); MP14a's
+  `SkipReplayError` signals a skip mismatch.
 
 ## Execution log
 

@@ -59,12 +59,12 @@ Generator and updates and runs the browser pages.
 
 ## Inputs & context
 
-### Code (anchors at HEAD `7604eff`; MP10a adds `submitAuxiliary` to `player/state.js`)
+### Code (anchors at HEAD `041ff83`; MP10a adds `submitAuxiliary` to `player/state.js`)
 
 - `core/engine/difficulty.js`: `MODEL` (`'difficulty-v3'` after MP09d2). `core/engine/keys.js:459`:
   `progressFingerprint(board, pieces, clues)`; `core/engine/board.js`: `boardFromRows`; `core/engine/pack.js`:
   `packBoard(pack)`.
-- The worker `rate` task: payload `{ boardRows, pieces, clues }` (`core/engine/protocol.js:671`), value a `RatingV3`
+- The worker `rate` task: payload `{ boardRows, pieces, clues }` (`core/engine/protocol.js:666`), value a `RatingV3`
   (`model`, `score`, `level`, `saturated: false`, `censored: true` only for an estimate, `metrics` with
   `censusUndecided`); failures `WorkerTaskError` with code `rating-incomplete` (a capped path, RES-04) or
   `unsatisfiable`.
@@ -75,7 +75,7 @@ Generator and updates and runs the browser pages.
   of every puzzle of the pack, computed in `prepare`, 307-318, committed at 449-470); `createPlayerStore` (85).
 - Rating views: `setRating(target, rating, tail)` (`player/ui/rating-dom.js:13-25`) writes the line "level in bold:
   score" and appends `tail` after " · "; it is called for the rating line (`player/app.js:646`, `renderHeadline`) and
-  for each card (`player/ui/puzzle-list.js:224-225`). `ratingParts(rating)` (`player/strings.js:107-115`) formats the
+  for each card (`player/ui/puzzle-list.js:224-225`). `ratingParts(rating)` (`player/strings.js:111-117`) formats the
   line with `rating.line` and `scoreText` ("+" only for `saturated: true`).
 - Print and share: `printJobAt(at)` (`player/app.js:387-407`) and `printList()` (412-432) call
   `puzzleDetails(t, { level: levelLabel(rating.level), score, saturated })`; the Share dialog and the Print dialog use
@@ -152,9 +152,13 @@ export function ratingDisplay(claim, entry, text) { … }
 | none (null or missing) | any | — (returns null) | — |
 | `difficulty-v3` (full or summary) | any | the claim | the estimate note when `claim.censored === true` |
 | `difficulty-v2` or `difficulty-v1` | `rated` | the derived v3 rating | the re-rated note, then the estimate note when the derived rating has `censored: true` |
-| `difficulty-v2` or `difficulty-v1` | `failed` | the claim | the not-re-rated note |
-| `difficulty-v2` or `difficulty-v1` | none, `pending`, `unavailable` | the claim | none |
+| `difficulty-v2` or `difficulty-v1` | `failed` or `unavailable` | the claim | the not-re-rated note |
+| `difficulty-v2` or `difficulty-v1` | none or `pending` | the claim | none |
 | another model | any | the claim | none |
+
+A settled `unavailable` entry (no worker, or a pool that runs no auxiliary task) is a puzzle that cannot be re-rated
+here, so it carries the same note as a failed one (RES-23: a rating error keeps the claim with "could not be
+re-rated"; cross-review SP04). Only a request not yet settled (`pending`, or no entry yet) shows the claim alone.
 
 Notes (keys in `core/browser/print-texts.js`, below):
 
@@ -183,12 +187,17 @@ Notes (keys in `core/browser/print-texts.js`, below):
   ...s.displayRatings }; if (entry === undefined) delete next[key]; else next[key] = entry; return { displayRatings:
   next }; })`. After every commit of a pack or an index (where `fingerprints` is written, about 449-470) and on
   removals, call `want(...)` with the wishes of the pack's puzzles that `needsDisplayRating`, the open puzzle first.
-  `destroy()` disposes it before the queue.
+  The pack a Player opens at start-up goes through the same commit path, so its wishes are sent without a user
+  action; a test pins it (case 12). `destroy()` disposes it before the queue.
 - Views: compute `ratingDisplay(puzzle.rating, state.displayRatings[displayRatingKey(state.fingerprints[i])], { t,
   levelLabel })` and pass `rating` and `notes`:
   - `setRating(target, rating, tail, notes = [])`: the line as today for `rating`, then each note after " · ", then
     `tail`; give the notes a class (`rating-note`) so a page can find them.
   - `renderHeadline` (`player/app.js:646`) and the cards (`player/ui/puzzle-list.js:224`).
+  - The card renderer skips work when nothing it draws changed (`player/ui/puzzle-list.js:176-190`: `drawn.pack`,
+    `statuses`, `openKey`, `verification`, `index`, `screen`, `viewRotation`, `locale`). Add `displayRatings:
+    state.displayRatings` to `drawn` and to that comparison, so that a reply which changes only the display ratings
+    redraws the cards (cross-review SP04); `renderHeadline` gets the same treatment if it has such a check.
   - `printJobAt` and `printList`: `puzzleDetails(t, { level, score, saturated, notes })`.
 - `puzzleDetails(t, rating)`: `rating` may carry `notes?: string[]`; each note becomes one more line `[{ text: note }]`
   after the rating line. The declared parameters stay two.
@@ -203,10 +212,11 @@ Notes (keys in `core/browser/print-texts.js`, below):
 | `player/state.js` | `displayRatings`, the scheduler, `want` calls, `destroy` |
 | `player/ui/rating-dom.js`, `player/app.js`, `player/ui/puzzle-list.js` | the views |
 | `tests/display-rating.test.js` (new), `tests/player-load.test.js`, `tests/print-details.test.js` | tests |
-| `docs/design-detail.md`, `USERGUIDE.md`, `USERGUIDE.vn.md` | documents |
+| `docs/design-detail.md`, `docs/design-brief.md`, `USERGUIDE.md`, `USERGUIDE.vn.md` | documents |
 
 Exclusive ownership while active: the files above. Documentation slot: design §7.7 and the Player sections of §11;
-the user guides' Player part. Must not edit: the Generator, the browser pages, engine files, `auxiliary.js`.
+the brief's "Player: solve comfortably" section (one sentence); the user guides' Player part. Must not edit: the
+Generator, the browser pages, engine files, `auxiliary.js`.
 
 ### Documents
 
@@ -215,10 +225,17 @@ the user guides' Player part. Must not edit: the Generator, the browser pages, e
   after a new main request, cache of 1,000, never saved), the notes and their texts, and that the stored claim, the
   code and the URL never change; a v3 rating with `censored: true` always shows the estimate note. §11 (Player): where
   the line, the cards and the captions show the notes.
+- `docs/design-brief.md`, "Player: solve comfortably", after the sentence that lists what the cards show (cross-review
+  SP07: the living brief changes with the behaviour): "A puzzle rated on an older scale shows its level and score
+  re-rated on today's scale, with the original rating in a note, or with "Could not be re-rated" when that is not
+  possible; a rating whose count of guesses did not finish says that it is an estimate. The stored rating, the code
+  and the address never change."
 - `USERGUIDE.md` (Player part, "Using the Player", the rating line; and "Printing") and `USERGUIDE.vn.md` (the same
-  places): two sentences each, for example "A puzzle made before the current scale shows its level and score re-rated
-  on today's scale, with the original rating in a note; a puzzle whose rating could not be finished within the work
-  limit shows 'decisive estimate'." and the natural Vietnamese equivalent.
+  places): two or three sentences each, for example "A puzzle made before the current scale shows its level and score
+  re-rated on today's scale, with the original rating in a note. An unfinished count of the guess alternatives is
+  marked 'decisive estimate'. If the re-rating cannot find the first solution within the limits, the original rating
+  stays, with 'Could not be re-rated'." and the natural Vietnamese equivalent (cross-review TP16: only an unfinished
+  census is an estimate; a capped first path is unrateable).
 
 ## Implementation steps
 
@@ -232,7 +249,7 @@ the user guides' Player part. Must not edit: the Generator, the browser pages, e
 | ID | Criterion | Evidence |
 |---|---|---|
 | MP10b1-B01 | In the Player, a puzzle with a v2 or v1 claim shows a v3 level and score with the original rating in a note, on its rating line, its card, and its print and share captions; the stored claim, the code and the address never change | Player tests |
-| MP10b1-B02 | A puzzle without a claim is not re-rated; a puzzle that cannot be re-rated keeps its stored rating with "Could not be re-rated" | Player tests |
+| MP10b1-B02 | A puzzle without a claim is not re-rated; a puzzle that cannot be re-rated (a failed request, or no worker) keeps its stored rating with "Could not be re-rated"; a request not yet settled shows the stored rating alone | Player tests (cases 7, 8) |
 | MP10b1-B03 | Every v3 estimate is marked: "Decisive estimate: n alternatives …" with metrics, "Decisive estimate" for a code's summary claim, in English and Vietnamese | unit and Player tests |
 | MP10b1-B04 | Re-rating never delays or cancels the verification of a puzzle | overlap test |
 
@@ -242,10 +259,10 @@ the user guides' Player part. Must not edit: the Generator, the browser pages, e
 |---|---|---|
 | MP10b1-T01 | `needsDisplayRating`, `displayRatingKey` and `ratingDisplay` follow the tables exactly | `tests/display-rating.test.js` |
 | MP10b1-T02 | The scheduler runs one request at a time in wish order, re-submits after a main-request cancel, drops a late reply after `want` or `dispose`, caches rated and failed entries (limit 1,000), and stops on `worker-unavailable` | `tests/display-rating.test.js` |
-| MP10b1-T03 | `displayRatings` is in the Player state and never saved; `pack.puzzles[i].rating` is never changed | Player tests |
+| MP10b1-T03 | `displayRatings` is in the Player state and never saved; `pack.puzzles[i].rating` is never changed; the card renderer's `drawn` state includes `displayRatings`, so a reply alone redraws the cards; the start-up pack sends its wishes | Player tests (cases 4, 12); diff review; MP10b2's page check (case 13) |
 | MP10b1-T04 | `puzzleDetails` prints the notes as extra lines and still declares two parameters | `tests/print-details.test.js`; `tests/puzzlecode-acceptance.test.js` passes |
 | MP10b1-T05 | The texts exist in both languages with the same placeholders; `npm run test:quick` and `npm run check` pass | i18n tests; command output |
-| MP10b1-T06 | Design §7.7 and §11 and the user guides (both languages) describe the display rating and the notes | review |
+| MP10b1-T06 | Design §7.7 and §11, the brief's Player sentence and the user guides (both languages) describe the display rating and the notes | review |
 
 ## Test plan
 
@@ -272,8 +289,8 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
    note "Re-rated with the current scale (original: Easy 8, difficulty-v2)"; a saturated v2 claim shows "8+" in the
    note; a derived rating with `censored: true` and `censusUndecided: 3` adds "Decisive estimate: 3 alternatives
    undecided within the work limit" (and `censusUndecided: 1` the `_one` form); a summary claim with `censored: true`
-   gives "Decisive estimate"; a failed entry gives the claim and "Could not be re-rated"; a pending, missing or
-   unavailable entry gives the claim without notes; a v3 claim without `censored` has no note; null claim → null.
+   gives "Decisive estimate"; a failed or unavailable entry gives the claim and "Could not be re-rated"; a pending or
+   missing entry gives the claim without notes; a v3 claim without `censored` has no note; null claim → null.
 3. Scheduler with a scripted `submit` (deferred promises): order (the first wish first, one at a time); a value →
    `rated`; `WorkerTaskError('rating-incomplete', …)` → `failed` with that code; a `PoolAbortError('cancelled')` it
    did not cause → submitted again, still `pending`, then `rated`; `want` without the key in flight → its signal is
@@ -294,7 +311,7 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 6. Navigation: a reply that arrives after the pack was replaced is dropped (no entry for the old key appears after the
    replacement); the request in flight was aborted through its signal.
 7. No worker (`createPool` throws `PoolError('worker-unavailable')`, or a pool without `runIdle`): entries
-   `unavailable`, no note, no error state.
+   `unavailable`; the view shows the stored claim with "Could not be re-rated"; no error state.
 8. Unrateable: the scripted `rate` answers `{ error: 'rating-incomplete' }` (or `unsatisfiable`) → `failed`, and the
    view shows the stored claim with "Could not be re-rated".
 9. Overlap: with a verification in flight (its `run` held), the display request waits; the verification's result is
@@ -304,6 +321,13 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
     2; a summary claim with `censored: true` (a pack without metrics, as a code gives) shows "Decisive estimate".
 11. The code of a re-rated puzzle is the code of its stored claim: `puzzleSnapshot(...)` of the open puzzle carries the
     stored v2 claim (the print and share snapshots are unchanged).
+12. Start-up: a Player created on a hash or the sample whose pack has v2 claims posts a `rate` task for the open puzzle
+    first, with no user action after creation.
+13. Card redraw (cross-review SP04): the list has no Node test DOM (its cards are checked by the browser page
+    `tests/browser/player-load.js`), so this case is a browser check that MP10b2 adds with its page updates: after the
+    pack is open and verified, with no navigation, language or verification change, the page waits until the cards
+    show the derived level and the re-rated note. In this task, the `drawn` change is reviewed in the diff, and the
+    reply quotes the new comparison.
 
 ## Definition of done & handoff
 
@@ -312,7 +336,8 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 - Handoff to MP10b2: use the same module in the Generator (`client.submitAuxiliary`), update the browser pages whose
   expected rating texts change in the Player (`tests/browser/player-load.js:228-229, 275-277, 570`,
   `tests/browser/puzzle-code-print.js:466`, `tests/browser/puzzle-code-acceptance.js:1024`, `tests/browser/print.js`
-  if it uses the Player's jobs, `tests/browser/acceptance.js:240-243`) and run gate GC-P2 display.
+  if it uses the Player's jobs, `tests/browser/acceptance.js:240-243`), add the card-redraw check of case 13 to
+  `tests/browser/player-load.js`, and run gate GC-P2 display.
 
 ## Execution log
 

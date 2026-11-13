@@ -16,9 +16,13 @@
 Puzzles saved or shared before v3 carry an older rating. The owner decided that both apps show them with a rating on
 today's scale, computed in the background (RES-23, MP10b1 and MP10b2), and later the Generator replays how a puzzle
 was made (MP15b). Both jobs run on the worker that the app already has, as **auxiliary requests**: they must never
-stop, delay or replace what the user started — a generation in the Generator, a verification in the Player, hints or
-certificates — and a new generation or verification makes them give way (RES-29, plan author's answer JR-P4 (a): an
-auxiliary method on the existing client and pool, no second worker pool, which phones could not afford).
+stop or replace what the user started — a generation in the Generator, a verification in the Player, hints or
+certificates — they never delay a generation or a verification (they wait while one is active), and a new generation
+or verification makes them give way (RES-29, plan author's answer JR-P4 (a): an auxiliary method on the existing
+client and pool, no second worker pool, which phones could not afford). Lazy certificates and auxiliary tasks share
+the pool's idle queue in submission order (`core/browser/worker-pool.js:483-498, 562-564`): an auxiliary task never
+cancels or supersedes a certificate, but one idle task may wait for another (cross-review SP05); no stronger latency
+promise is made.
 
 This task builds that mechanism and nothing visible: no app shows anything new yet.
 
@@ -54,7 +58,7 @@ This task builds that mechanism and nothing visible: no app shows anything new y
 
 ## Inputs & context
 
-### The pool (anchors at HEAD `7604eff`; MP07 to MP09e do not change `core/browser/worker-pool.js`)
+### The pool (anchors at HEAD `041ff83`; MP09d2 and MP09e do not change `core/browser/worker-pool.js`)
 
 - `runIdle(task)` (`core/browser/worker-pool.js:573`, `enqueue(task, true)` at 513-568): `task = { requestId, revision,
   kind, payload, signal? }`. It rejects `PoolAbortError('stale')` unless `requestId` and `revision` equal the pool's
@@ -116,7 +120,7 @@ An auxiliary request is one idle-priority task submitted with `submitAuxiliary(k
    or `PoolError` (for example `worker-unavailable`). A pool that cannot be created, or that has no `runIdle`, rejects
    the submission with `PoolError('worker-unavailable', …)`.
 8. Kinds: the owner's allow-list. Here both owners allow `'rate'` (payload `{ boardRows, pieces, clues }`,
-   `core/engine/protocol.js:671`); MP15b adds `'replayPuzzle'` to the Generator's list. Another kind rejects with a
+   `core/engine/protocol.js:666`); MP15b adds `'replayPuzzle'` to the Generator's list. Another kind rejects with a
    `TypeError` (a programming error).
 
 ### `core/browser/auxiliary.js` (new)
@@ -219,6 +223,7 @@ A running entry re-queued by rule 6 keeps its caller's `signal` listener; its ne
 | `core/browser/auxiliary.js` (new) | `createAuxiliaryQueue` |
 | `core/browser/generation-client.js` | the queue, `begin` / `finish` calls, `submitAuxiliary`, typedef |
 | `player/state.js` | the queue, `startVerification` calls, `submitAuxiliary`, `destroy`, `PoolLike` |
+| `tools/bench/report.js` | one `SOURCE_FILES` entry, `'core/browser/auxiliary.js'`, after `'core/browser/generation-client.js'` (lines 37-48; cross-review TP18: the benchmarked generation client imports it, so the source digest must cover it) |
 | `tests/auxiliary.test.js` (new) | the queue's cases |
 | `tests/generation-client.test.js`, `tests/player-load.test.js` | integration cases (new tests only) |
 | `docs/design-detail.md` | §8.1 |
@@ -248,7 +253,7 @@ lazy certificates **and auxiliary requests**.
 
 | ID | Criterion | Evidence |
 |---|---|---|
-| MP10a-B01 | Background work of the display rating and the replay can never stop, delay or replace a generation, a verification, a hint or a certificate | overlap tests (both owners) |
+| MP10a-B01 | Background work of the display rating and the replay can never stop or replace a generation, a verification, a hint or a certificate, and never delays a generation or a verification (it waits while one is active); it shares the idle queue with certificates in submission order (RES-29: it never cancels or supersedes them) | overlap tests (both owners) |
 | MP10a-B02 | A new generation or verification makes background work give way at once; a background job that the user closes stops at once | abort tests |
 | MP10a-B03 | The first background job of a freshly opened app works without any earlier generation or verification (a stored answer skips verification) | cold-start tests |
 
@@ -259,7 +264,7 @@ lazy certificates **and auxiliary requests**.
 | MP10a-T01 | `createAuxiliaryQueue` follows rules 1-8 exactly: waits while a main request is active; reuses an ended, non-timed-out token; bootstraps with one allocator id (`beginRequest` then `endRequest`) only when nothing is active or running; re-queues on other aborts; reports `cancelled` only for its own signal and a new main request; passes errors through | `tests/auxiliary.test.js` |
 | MP10a-T02 | `client.submitAuxiliary` and `controller.submitAuxiliary` exist with the stated signature; `begin`, `finish` and `startVerification` notify the queue; request ids stay strictly increasing across main and bootstrap requests | integration tests |
 | MP10a-T03 | A generation batch and a Player verification give exactly the same results with and without a concurrent auxiliary request (accepted puzzles, certificates, verification status) | integration tests |
-| MP10a-T04 | `worker-pool.js` is unchanged; existing tests are unchanged; `npm run test:quick` and `npm run check` pass | diff; command output |
+| MP10a-T04 | `worker-pool.js` is unchanged; existing tests are unchanged; `SOURCE_FILES` lists `core/browser/auxiliary.js` (no UI or display file); `tests/benchmark-report.test.js`, `npm run test:quick` and `npm run check` pass | diff; command output |
 | MP10a-T05 | Design §8.1 describes the mechanism | review |
 
 ## Test plan
@@ -267,7 +272,7 @@ lazy certificates **and auxiliary requests**.
 ### Exact commands
 
 ```powershell
-node --test --test-skip-pattern=slow tests\auxiliary.test.js tests\generation-client.test.js tests\player-load.test.js tests\worker-pool.test.js
+node --test --test-skip-pattern=slow tests\auxiliary.test.js tests\generation-client.test.js tests\player-load.test.js tests\worker-pool.test.js tests\benchmark-report.test.js
 if ($LASTEXITCODE -ne 0) { throw 'targeted tests failed' }
 npm run test:quick
 if ($LASTEXITCODE -ne 0) { throw 'quick set failed' }
@@ -281,18 +286,29 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 `FakeWorker`, `createFakeClock` and `harness` helpers of `tests/generation-client.test.js:26-133` into the new file;
 a held task is answered by the test). `allocate` is a counter that the test inspects.
 
+The queue states the tests use are only the reachable ones (cross-review SP05): an auxiliary submission **waits**
+while a main request is active and **runs** only while none is active (rules 2-3), so "running beside an active main
+request" never occurs; every start runs all waiting entries at once.
+
 1. Cold start: `submit('rate', p)` → one `beginRequest({ requestId: 1, revision: 'aux-1' })`, one `endRequest(1)`, one
    posted `rate` task under that token; the scripted value resolves the promise; the allocator advanced once.
 2. Token reuse: `mainBegin(t)`, the pool's `beginRequest(t)`, `endRequest`, `mainEnd(t, false)`; then `submit` → no
    new `beginRequest`, the task carries `t`; the allocator did not advance.
 3. Waiting: `submit` while a main request is active → nothing posted; `mainEnd` → posted and resolved.
-4. New main request: one waiting and one running submission (held); `mainBegin(t2)` and `beginRequest(t2)` → both
-   reject with `PoolAbortError` whose `reason` is `'cancelled'`; a main task of `t2` then runs normally.
-5. Own signal: aborting while waiting rejects `cancelled` and posts nothing; aborting while running rejects
-   `cancelled`, and a held main task of the same pool still resolves with its value.
+4. New main request, two cases. (a) Running: two submissions run under an ended token (held, no main request
+   active); `mainBegin(t2)` then the pool's `beginRequest(t2)` → both reject with `PoolAbortError` whose `reason` is
+   `'cancelled'` (rule 4, even though the pool aborted them as stale or superseded); a main task of `t2` then runs
+   normally. (b) Waiting: a submission waits while main request `t1` is active (its task held); `mainBegin(t2)` →
+   it rejects `cancelled` at once and was never posted.
+5. Own signal, two cases. (a) Waiting beside main work: a submission waits while a main request is active with a held
+   main task; aborting its signal rejects `cancelled`, posts nothing, and the held main task then resolves with its
+   value unchanged. (b) Running beside a certificate: no main request is active; a lazy certificate of the ended token
+   (`pool.runIdle` with kind `certify`, held) and a running auxiliary task (held); aborting the auxiliary signal
+   rejects `cancelled`; the certificate then resolves with its value.
 6. Timed out: `mainEnd(t, true)` → the next `submit` bootstraps a new token (allocator + 1).
-7. Re-queue: a running auxiliary task, then the owner calls `pool.cancelAll()` (not the signal) while a main request is
-   active → the promise does not settle; after `mainEnd` the task is posted again and resolves once. The same with
+7. Re-queue with no main request active: a running auxiliary task under an ended token (held); the owner calls
+   `pool.cancelAll()` (as `client.cancel()` or the Generator's `cancelPending` do) → the promise does not settle; the
+   task is posted again under the same token (rule 6) and resolves once with the second answer. The same with
    `pool.recycle()`.
 8. Errors: a `rate` task answered `{ error: 'rating-incomplete' }` rejects with a `WorkerTaskError` of that code; a
    `getPool` that throws `PoolError('worker-unavailable', …)` rejects with it; a pool without `runIdle` rejects with
@@ -304,13 +320,13 @@ a held task is answered by the test). `allocate` is a counter that the test insp
 10. A fresh client: `client.submitAuxiliary('rate', payload)` resolves with the scripted value (bootstrap).
 11. During `generateBatch` (certify tasks held): an auxiliary request submitted while the batch runs waits; the batch's
     accepted puzzles equal those of the same batch without it; after the batch it resolves; the held certificates are
-    still delivered (`onCertificate`) afterwards.
+    still delivered (`onCertificate`) afterwards (possibly after the auxiliary task: the idle queue is FIFO).
 12. A second `generateBatch` started while an auxiliary request waits rejects it with `cancelled` and completes like a
     batch without it.
 13. A batch that times out (advance the fake clock past `TIME.dispatchStopMs`): a later auxiliary request bootstraps a
     new token and resolves; the next `generateBatch` still gets a strictly larger request id.
-14. `client.cancel()` during a batch does not reject a waiting or running auxiliary request; it resolves after the
-    batch ends.
+14. `client.cancel()` during a batch (the auxiliary request waits) does not reject it; it is posted after the batch
+    ends and resolves.
 
 `tests/player-load.test.js` (a scripted pool object with `beginRequest`, `endRequest`, `run`, `runIdle` and `close`
 that records calls; `setup` from line 117):

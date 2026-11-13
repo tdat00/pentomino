@@ -112,14 +112,30 @@ Samples (announced runs; the seeds are fixed so that anyone can regenerate them)
 
 ```powershell
 node tools\generate.mjs --board 26x26 --level hard --count 3 --seed codes-v3/26x26-hard --uniqueness any --workers 4 --output tests\artifacts\MP09e\26x26-hard.json
-node tools\generate.mjs --board 26x26 --level hell-3 --count 3 --seed codes-v3/26x26-hell-3 --uniqueness any --workers 4 --output tests\artifacts\MP09e\26x26-hell-3.json
+# the fewest-clue sample: hell-3, nightmare, master in the order and with the skip rule below (Exact commands)
 ```
 
-Exit 0 or 2 with at least one puzzle is a sample. With exit 1 (no puzzle), use the neighbouring level once (hard →
-expert with the seed `codes-v3/26x26-expert`; hell-3 → hell-2 with `codes-v3/26x26-hell-2`) and record it; a request
-that still gives nothing is a finding for the owner (v3 availability on 26 x 26), and the matrix is then built from
-the samples that exist. Record per request: the exit code, the number of puzzles, the wall time, and per puzzle its id,
-level, score, `censored` and the number of clues.
+Exit 0 or 2 with at least one puzzle is a sample. With exit 1 (no puzzle) from the hard request, use expert once with
+the seed `codes-v3/26x26-expert` and record it. The fewest-clue sample follows the D36 rule below (it replaces the
+earlier hell-3 → hell-2 fallback, which is withdrawn). A request that still gives nothing is a finding for the owner
+(v3 availability on 26 x 26), and the matrix is then built from the samples that exist. Record per request: the exit
+code, the number of puzzles, the wall time, and per puzzle its id, level, score, `censored` and the number of clues.
+
+Hell levels on large boards (check-list D36, `clarifications.md` Part I; answered (a), owner decision P-OD5;
+cross-review TP05): SA1's probe found v3 ratings of Hell sets on boards from 15 x 20 to 24 x 24 capped, so a Hell
+request on 26 x 26 is expected to end with exit 1 after about 4 minutes. The Hell levels stay offered until the
+owner's MP12 decision. The fewest-clue sample is taken in this order, stopping at the first request that gives a
+sample:
+
+1. hell-3 (`--level hell-3 --seed codes-v3/26x26-hell-3`), once, unless MP09d2's record
+   (`docs/difficulty-v3/d21-v3-<date>.md`, sections 2 and 4) shows that Hell 3 made no puzzle on 22 x 22 and 24 x 24:
+   then skip it and say so in the record;
+2. nightmare (`--level nightmare --seed codes-v3/26x26-nightmare`), once;
+3. master (`--level master --seed codes-v3/26x26-master`), once.
+
+hell-2 and hell-1 are never requested here. Record the Hell outcome (run and failed, or skipped by the rule) as D36
+evidence. The fewest-clue sample only bounds the short end; the long end (hard) is the one the 4,000-character and QR
+limits depend on.
 
 Write the scratch script `tests/artifacts/MP09e/code-sizes.mjs` (Node, ES module, imports the repository modules by
 relative path; it reads the sample packs with `parsePack`). For every puzzle of every sample, with `data` =
@@ -296,9 +312,19 @@ if ($LASTEXITCODE -ne 0) { throw 'traceability test failed' }
 # announced gate runs (one at a time)
 New-Item -ItemType Directory -Force tests\artifacts\MP09e | Out-Null
 node tools\generate.mjs --board 26x26 --level hard --count 3 --seed codes-v3/26x26-hard --uniqueness any --workers 4 --output tests\artifacts\MP09e\26x26-hard.json
-"exit $LASTEXITCODE"
-node tools\generate.mjs --board 26x26 --level hell-3 --count 3 --seed codes-v3/26x26-hell-3 --uniqueness any --workers 4 --output tests\artifacts\MP09e\26x26-hell-3.json
-"exit $LASTEXITCODE"
+"hard: exit $LASTEXITCODE"
+# only when hard gave exit 1:
+#   node tools\generate.mjs --board 26x26 --level expert --count 3 --seed codes-v3/26x26-expert --uniqueness any --workers 4 --output tests\artifacts\MP09e\26x26-expert.json
+# the fewest-clue sample, in the order of the D36 rule, stopping at the first exit 0 or 2:
+$fewest = @()
+if (-not $skipHell3) { $fewest += 'hell-3' }   # set $skipHell3 = $true first when MP09d2's record shows no Hell 3 puzzle on 22x22 and 24x24
+$fewest += @('nightmare', 'master')
+foreach ($lv in $fewest) {
+  node tools\generate.mjs --board 26x26 --level $lv --count 3 --seed "codes-v3/26x26-$lv" --uniqueness any --workers 4 --output "tests\artifacts\MP09e\26x26-$lv.json"
+  $code = $LASTEXITCODE
+  "${lv}: exit $code"
+  if ($code -eq 0 -or $code -eq 2) { break }
+}
 node tests\artifacts\MP09e\code-sizes.mjs
 if ($LASTEXITCODE -ne 0) { throw 'size script failed' }
 

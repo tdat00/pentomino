@@ -3,7 +3,7 @@
 | Header | Value |
 |---|---|
 | ID | MP15b (second part of the report's MP15) |
-| Depends on | MP15a (accepted and committed: `replayPuzzle`, `REPLAY`, `ReplayResult`); MP10a's auxiliary queue (`submitAuxiliary`, `kinds`) |
+| Depends on | MP15a2 (accepted and committed: `replayPuzzle`, `ReplayResult`; with MP15a1's `runReplay` and `REPLAY`); MP10a's auxiliary queue (`submitAuxiliary`, `kinds`) |
 | Estimated size | Medium: about 350–500 changed lines (protocol about 50, tasks about 15, client about 40, tests about 250, documents about 25); about 40 minutes |
 | Owner role | Browser integration |
 | Milestone | M9 — Generation Steps |

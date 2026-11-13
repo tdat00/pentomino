@@ -16,7 +16,7 @@
 MP13a gave every engine candidate its origin record. This task makes the records reach the packs people keep: the
 generation client writes `generation.setOrigin` and `generation.made` into the packs it builds (the CLI's output
 included), and the Generator keeps them for the set on show and its saved sets and writes them when it exports or
-shares a pack. It also records a small pack through the ordinary client path as the fixture the replay tests of MP15a
+shares a pack. It also records a small pack through the ordinary client path as the fixture the replay tests of MP15a1
 and the browser page of MP16b use (gate GF-P4).
 
 The set origin is written once, when the set is made, and never re-stamped (plan author, JR-P2 (a)): a set made by
@@ -39,7 +39,7 @@ an older Generator keeps no origin rather than a wrong one. No rating, puzzle, h
 
 ### Out of scope
 
-- The engine records and pack checks (MP13a); the recorders (MP14a, MP14b); the replay (MP15a, MP15b); any UI
+- The engine records and pack checks (MP13a); the recorders (MP14a, MP14b); the replay (MP15a1, MP15a2, MP15b); any UI
   (MP16a, MP16b). No visible change in either app.
 - Puzzle codes: they carry no provenance (RES-27). The Player ignores `generation`.
 - Re-stamping: `generationOf` keeps writing the current versions in its existing keys (`algo`, `policy`, …), exactly
@@ -48,9 +48,9 @@ an older Generator keeps no origin rather than a wrong one. No rating, puzzle, h
 ## Repository rules
 
 - Read `AGENTS.md` and `tasks/difficulty-v3/check-list.md` §3 and §7 first.
-- Run only the commands of the test plan. `tools/record-fixtures.mjs` with `--replay-case --create` and `npm test` run
-  **only** as gate GF-P4 (below), announced first. Never stage, commit, stash, reset, push or switch branches; never
-  edit `tasks/difficulty-v3/`, the reports or `docs/difficulty-v3/`.
+- Run only the commands of the test plan. `tools/record-fixtures.mjs` with `--replay-case --search` or `--create`, and
+  `npm test`, run **only** as gate GF-P4 (below), announced first. Never stage, commit, stash, reset, push or switch
+  branches; never edit `tasks/difficulty-v3/`, the reports or `docs/difficulty-v3/`.
 - The fixture is written by the tool, normalised to CRLF by it (`toFileText`), and never edited by hand.
 - UTF-8 without BOM, CRLF, final newline, no trailing whitespace.
 
@@ -154,12 +154,15 @@ Jobs (`generator/jobs.js`):
 A new mode, independent of the existing fixtures:
 
 ```text
-node tools/record-fixtures.mjs --replay-case --create | --check | --replace --reason <text> [--dir <path>]
+node tools/record-fixtures.mjs --replay-case --search [--from <n>] [--dir <path>]
+node tools/record-fixtures.mjs --replay-case --create --seed <n> | --check | --replace --seed <n> --reason <text> [--dir <path>]
 ```
 
-- File `replay-case.json` in the fixture directory; `--create` refuses an existing file, `--replace` needs a
-  non-empty `--reason`, `--check` regenerates and compares, never writes (the same rules and exit codes as the
-  existing modes: 0 success, 1 refused or differs, 2 usage).
+- File `replay-case.json` in the fixture directory; `--create` refuses an existing file (before generating);
+  `--replace` needs a non-empty `--reason`; `--check` regenerates and compares, never writes (the same rules and exit
+  codes as the existing modes: 0 success, 1 refused or differs, 2 usage). `--seed <n>` is required by `--create` and
+  `--replace`, and `--from <n>` is optional for `--search` (default 0); both take an integer from 0 to 49 (otherwise
+  exit 2).
 - Generation goes through the ordinary client path: `createGenerationClient(createPool({ size: 1, workerFactory:
   nodeWorkerFactory() }), { createdAt: () => '2026-01-01T00:00:00.000Z' })` (imports as in `tools/generate.mjs`:
   `createPool` from `../core/browser/worker-pool.js`, `nodeWorkerFactory` from `./node-worker.mjs`); close the pool
@@ -177,10 +180,18 @@ node tools/record-fixtures.mjs --replay-case --create | --check | --replace --re
         // must be complete
   ```
 
-  Take the first n that meets these conditions **and** has a `candidate` record with a non-empty `skips.subsets` in
-  `b1.made` or `b2.made`; when no n in 0 … 49 has such a record, take the first n that meets the other conditions
-  and print that the fixture has no subset skip. When no n meets the conditions, exit 1 with a message (report it:
-  do not change the recipe on your own).
+  Seed n meets the conditions when all three calls are complete and b1's first puzzle is the reused calibration; it
+  **qualifies** when it also has a `candidate` record with a non-empty `skips.subsets` in `b1.made` or `b2.made`.
+- `--search` (bounded and resumable; cross-review SP07, SA2's assessment: a seed costs a set and two batches, so the
+  search over 50 seeds has no small upper bound) writes nothing. From `--from` upward it prints one line per seed,
+  `replay-case-<n>: ok|failed <reason>, subset skip yes|no, <ms> ms`, and stops at the first seed that qualifies
+  ("selected replay-case-<n>", exit 0), after seed 49 ("no seed with a subset skip", exit 0), or when 540 seconds have
+  passed, checked between seeds ("stopped at the 540 s bound; continue with --from <next>", exit 1). The selection
+  rule, applied by you from the printed lines of all runs: the first n (from 0) that qualifies; when no n in 0 … 49
+  qualifies, the first n that meets the conditions (the fixture then has no subset skip: say so); when no n meets
+  them, report it (do not change the recipe on your own).
+- `--create --seed <n>` and `--replace --seed <n>` generate seed n once, check the conditions again (exit 1 with the
+  failed condition when they do not hold) and write the file; they print whether it has a subset skip.
 - File content (two-space JSON, CRLF, final newline, via `toFileText`):
 
   ```text
@@ -214,9 +225,10 @@ node tools/record-fixtures.mjs --replay-case --create | --check | --replace --re
 | `tests/generator-controller.test.js` | case 13 |
 | `tests/generate.test.js` | case 14 (the recorder test) |
 | `docs/design-detail.md` | §5.5, §10.5, the fixtures paragraph of §13 |
+| `docs/design-brief.md` | one sentence (documentation slot; cross-review SP07) |
 
 Exclusive ownership while this task runs: the files above. Do not edit `core/engine/` (report a defect of MP13a to the
-orchestrator instead), `player/`, the UI modules, the other fixtures or `docs/design-brief.md`.
+orchestrator instead), `player/`, the UI modules or the other fixtures.
 
 ### Documentation slot
 
@@ -225,13 +237,17 @@ orchestrator instead), `player/`, the UI modules, the other fixtures or `docs/de
 - §10.5 "Step 3: Create puzzles" (line 2170): the Generator keeps each set's origin and each puzzle's record with the
   saved set and writes them into exported and shared packs (used by Generation Steps, MP16b).
 - §13 fixtures paragraph: `tests/fixtures/replay-case.json` and its recorder mode.
+- `docs/design-brief.md`, "Generator: make a challenge", the paragraph that starts "Board edits never delete work"
+  (AGENTS.md: both living specifications change with a storage change; cross-review SP07), one sentence: "Each saved
+  piece set also keeps how it and its puzzles were made, and the packs the Generator exports or shares carry that
+  record (the puzzle codes of links do not); a set imported from a link or a code has none."
 
 ## Implementation steps
 
 1. Client: `generationMeta`, `finishSet`, `checkBatch`, `checkOutcome`, `accept`, the result and the typedefs.
 2. CLI line; Generator state and jobs.
-3. Recorder mode (without running `--create`); the tests; `--replay-case --check` must fail cleanly ("file missing")
-   until the gate writes the file — the quick test of case 14 that needs the file is added in step 5.
+3. Recorder mode (without running `--search` or `--create`); the tests; `--replay-case --check` must fail cleanly
+   ("file missing") until the gate writes the file — the quick test of case 14 that needs the file is added in step 5.
 4. Run the targeted tests and the quick set; then announce and run gate GF-P4.
 5. After the gate: add case 14's `--replay-case --check` assertion, run the targeted test file again and the quick
    set, then `npm run check`.
@@ -256,7 +272,7 @@ orchestrator instead), `player/`, the UI modules, the other fixtures or `docs/de
 | MP13b-T04 | Records are equal for pool widths 1 and 4 (the existing `semantic()` comparisons include `generation`) | case 6; existing real-engine tests |
 | MP13b-T05 | Saved sets round-trip `setOrigin` and `made`; invalid stored records are dropped silently; older stored sets load with `setOrigin: null` and `puzzleMade: {}` | cases 8, 9 |
 | MP13b-T06 | `generationOf` writes the records of exactly the exported puzzles and the set origin unchanged | case 10 |
-| MP13b-T07 | The recorder mode follows the create/check/replace rules and the selection rule; GF-P4 evidence recorded | case 14; gate record |
+| MP13b-T07 | The recorder mode follows the create/check/replace rules, the bounded resumable search (540 s, `--from`) and the selection rule; GF-P4 evidence recorded with every search line | case 14; gate record |
 
 ## Test plan
 
@@ -273,12 +289,18 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 
 ### Gate GF-P4 (pre-approved; announce it to the orchestrator before starting)
 
-Announce in your reply plan: "GF-P4: `record-fixtures --replay-case --create` (a few minutes at most), then `npm
-test` (about as long as the last full run in the MP12b Execution log)". The Sudoku repository runs in parallel on the
-same machine; never two heavy runs at once: start only when the orchestrator says the machine is free.
+Announce in your reply plan: "GF-P4: `record-fixtures --replay-case --search` (each run at most 540 s, resumed with
+`--from` until a seed is selected), `--create --seed <n>`, `--check`, then `npm test` (about as long as the last full
+run in the MP12b2 Execution log)". The Sudoku repository runs in parallel on the same machine; never two heavy runs
+at once: start only when the orchestrator says the machine is free.
 
 ```powershell
-node tools\record-fixtures.mjs --replay-case --create
+New-Item -ItemType Directory -Force tests\artifacts\MP13b | Out-Null
+node tools\record-fixtures.mjs --replay-case --search 2>&1 | Tee-Object -FilePath tests\artifacts\MP13b\search-0.txt
+"search: exit $LASTEXITCODE"
+# exit 1 (the 540 s bound): run again with --from <next> into search-<next>.txt, until a seed is selected or seed 49
+# is done; then choose n by the selection rule from all the printed lines
+node tools\record-fixtures.mjs --replay-case --create --seed <n>
 if ($LASTEXITCODE -ne 0) { throw 'replay fixture not recorded' }
 node -e "const t=require('fs').readFileSync('tests/fixtures/replay-case.json','utf8');console.log(/[^\r]\n/.test(t)?'LF found':'CRLF only')"
 node tools\record-fixtures.mjs --replay-case --check
@@ -288,8 +310,8 @@ if ($LASTEXITCODE -ne 0) { throw 'npm test failed' }
 ```
 
 Each command must finish within 10 minutes; a longer run has an error: stop it and report. Record in the reply: the
-chosen seed, whether it has a subset skip, the record kinds of the eight puzzles, the file size, the versions, each
-command's duration and the `npm test` counts.
+search lines (every seed tried, with its outcome and time), the chosen seed, whether it has a subset skip, the record
+kinds of the eight puzzles, the file size, the versions, each command's duration and the `npm test` counts.
 
 ### Required test cases
 
@@ -342,14 +364,19 @@ file):
 `tests/generate.test.js` (the test "the recorder refuses to overwrite, requires a reason to replace, and --check
 replays cleanly"):
 
-14. After the gate: `run('--replay-case', '--check')` exits 0, `run('--replay-case', '--create')` exits 1 with
-    "already exist", `run('--replay-case', '--replace')` exits 2, and the existing assertions stay. The added runs
-    must finish within 60 seconds together; report their duration (if longer, report it rather than moving the test).
+14. After the gate: `run('--replay-case', '--check')` exits 0, `run('--replay-case', '--create', '--seed', '0')` exits
+    1 with "already exist", `run('--replay-case', '--replace', '--seed', '0')` (no reason) exits 2,
+    `run('--replay-case', '--create')` (no seed) and `run('--replay-case', '--search', '--from', '50')` exit 2, and the
+    existing assertions stay (never run `--search` itself in a test; the refused and usage runs exit before any
+    generation). Report the duration of the `--check` run: when it alone takes more than 15 seconds, move that one
+    assertion into its own test whose name ends with " (slow)" (as the `fixture-set-1` test of the same file does), so
+    that `npm run test:quick` skips it and `npm test` keeps it (cross-review SP07); the other runs stay in the quick
+    test.
 
 ## Definition of done & handoff
 
 - Every criterion has its evidence; the reply gives the gate record of GF-P4 and the test counts.
-- Handoff to MP14a and MP15a: packs from the client carry `generation.setOrigin` and `generation.made`; the Generator
+- Handoff to MP14a and MP15a1: packs from the client carry `generation.setOrigin` and `generation.made`; the Generator
   state has `setOrigin` and `puzzleMade`; `tests/fixtures/replay-case.json` holds two batch packs of one 10 x 6 Hard
   `require` set (seed in its `recipe`), with a calibration record and candidate records (and a subset skip if the
   reply says so).

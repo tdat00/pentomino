@@ -32,7 +32,8 @@ of undecided alternatives.
   must be passed on).
 - Node tests: `tests/generator-import.test.js`, `tests/generator-state.test.js` (new cases).
 - Browser pages (the expected rating texts and waits for the derived rating only; one new check each in
-  `tests/browser/print.js` and `tests/browser/generator-flow.js`): `tests/browser/player-load.js`,
+  `tests/browser/print.js`, `tests/browser/generator-flow.js` and `tests/browser/player-load.js`, the last one being
+  MP10b1's case 13): `tests/browser/player-load.js`,
   `tests/browser/puzzle-code-print.js`, `tests/browser/puzzle-code-acceptance.js`, `tests/browser/acceptance.js`,
   `tests/browser/print.js`, `tests/browser/generator-flow.js`; and their runs (gate GC-P2 display).
 - Documents: `docs/design-detail.md` §10 (where the Generator shows ratings), `docs/design-brief.md` (one sentence),
@@ -58,6 +59,12 @@ of undecided alternatives.
   machine is free.
 - Ports HTTP 8810 and CDP 9310; profile `tests\artifacts\edge-MP10b2\`; evidence `tests\artifacts\MP10b2\`; the
   procedure and native CDP client of `tasks/regenerate-puzzle/check-list.md` §7 (client wait raised to 540,000 ms).
+  Two more changes to the copied client (cross-review TP17): set `RP_EVIDENCE_DIR` to
+  `tests\artifacts\MP10b2\<page-name>\main` for each page (the client writes the fixed names `browser.json` and
+  `browser.png`, so one shared directory keeps only the last page), and read the summary as
+  `summary:(document.documentElement.dataset.summary||document.querySelector('#summary')?.textContent||'')` in its
+  evaluation expression (`tests/browser/acceptance.js:716-717` and `generator-flow.js:987-988` write their counts only
+  to `#summary`). Keep its pass/error assertions.
   Stop only your own processes, by PID; remove the profile afterwards, also on failure.
 - Never stage, commit, stash, reset, push or switch branches; never edit `tasks/difficulty-v3/`, the reports or
   `docs/difficulty-v3/`. UTF-8 without BOM, CRLF, final newline, no trailing whitespace.
@@ -76,7 +83,7 @@ of undecided alternatives.
   within the work limit" (`_one` / `_other`), "Decisive estimate"; and their Vietnamese texts.
 - `puzzleDetails(t, { level, score, saturated, notes })` prints each note as one more line.
 
-### The Generator (anchors at HEAD `7604eff`; MP09a2 and MP10a changed nearby lines; find them by the quoted text)
+### The Generator (anchors at HEAD `041ff83`; MP10a changes nearby lines; find them by the quoted text)
 
 - State: `defaultGeneratorState` (`generator/state.js:119`); the saved shape `serializeState` (970-988) lists its
   fields explicitly ("Jobs, timers and session-only data never appear"), so a new field is not saved unless added
@@ -93,20 +100,28 @@ of undecided alternatives.
   selectedId)` (101-128, `puzzleDetails` at 118-119) and `printListOf(state, selectedId)` (131-154, at 139-140).
 - `client.submitAuxiliary(kind, payload, { signal })` (MP10a). A test or app client without it (`options.client` in
   `tests/generator-*.test.js` fakes): the scheduler's `submit` must then reject with
-  `new PoolError('worker-unavailable', 'No auxiliary requests')`, which gives `unavailable` entries; also when
-  `options.workersAvailable === false`.
+  `new PoolError('worker-unavailable', 'No auxiliary requests')` (`PoolError` from `core/browser/worker-pool.js:92`),
+  which gives `unavailable` entries; also when `options.workersAvailable === false`, even if the client has the
+  method (`generator/app.js:124-128` passes both a client and the flag; cross-review TP19).
 
 ### What to build in the Generator
 
 1. `displayRatings: {}` in `defaultGeneratorState` and the `GeneratorState` typedef (not saved; `restoreState` keeps
    the default).
 2. In `createJobController`: `const display = createDisplayRatings({ submit, onChange })` with `submit = (kind,
-   payload, o) => client?.submitAuxiliary?.(kind, payload, o) ?? Promise.reject(new PoolError(…))` and `onChange`
-   writing `displayRatings[key]` through `store.update` (delete the key for `undefined`). Subscribe to the store: when
-   `state.set` or `state.puzzles` changes (compare by reference), call `display.want(wishes)` with one wish per puzzle
-   of `state.puzzles`, in list order, whose claim `needsDisplayRating`: `{ key: displayRatingKey(progressFingerprint(
-   state.set.board, state.set.pieces, puzzle.clues)), payload: { boardRows: boardToRows(state.set.board), pieces:
-   state.set.pieces, clues: puzzle.clues } }`; no set → `want([])`. `destroy()` disposes the scheduler.
+   payload, o) => options.workersAvailable === false || typeof client?.submitAuxiliary !== 'function' ?
+   Promise.reject(new PoolError('worker-unavailable', 'No auxiliary requests')) : client.submitAuxiliary(kind, payload,
+   o)` (the flag is checked first: TP19) and `onChange` writing `displayRatings[key]` through `store.update` (delete
+   the key for `undefined`). A function
+   `wishDisplayRatings(state)` calls `display.want(wishes)` with one wish per puzzle of `state.puzzles`, in list order,
+   whose claim `needsDisplayRating`: `{ key: displayRatingKey(progressFingerprint(state.set.board, state.set.pieces,
+   puzzle.clues)), payload: { boardRows: boardToRows(state.set.board), pieces: state.set.pieces, clues: puzzle.clues
+   } }`; no set → `want([])`. Call it **once when the controller is created**, with `store.getState()` (the app builds
+   the store from `loadGeneratorState` before the controller, `generator/app.js:97, 124`, and `store.subscribe` does
+   not call a new listener at once, `generator/state.js:179-190`: without this call a restored set that the user does
+   not touch would never be rated; cross-review SP04). Then subscribe to the store: when `state.set` or
+   `state.puzzles` changes (compare by reference with the last values seen), call it again. `destroy()` unsubscribes
+   and disposes the scheduler.
 3. `describeRating(puzzle, entry)`: with `const shown = ratingDisplay(puzzle.rating, entry, { t, levelLabel })`, null →
    `t('card.noRating')`; otherwise the card line of `shown.rating` as today, then each note after " · ". The cards look
    the entry up with the puzzle's key in `state.displayRatings`; the bold level stays the level of the rating shown.
@@ -119,7 +134,7 @@ The Player sample (`player/samples/sample-pack.json`, frozen by check-list D20) 
 worker the Player now shows derived v3 ratings with the re-rated note. Edit only these expectations, each after a
 `waitFor` until the note is present (`.rating-note` in the Player views; the sheet's extra detail line in print):
 
-| Page and line (HEAD `7604eff`) | Today | After |
+| Page and line (HEAD `041ff83`; MP09e adds a check to `puzzle-code-acceptance.js`: find the line by its text) | Today | After |
 |---|---|---|
 | `tests/browser/player-load.js:228-229` | `.puzzle-info` starts with "Normal: score "; bold "Normal" | a level name in bold and "score N", then the note "Re-rated with the current scale (original: Normal N, difficulty-v2)" (the original level of that puzzle) |
 | `tests/browser/player-load.js:275-277` | cards "Easy: score N", "Normal…", "Hard…" | each card: a level and a score, then the note with the original Easy, Normal and Hard |
@@ -145,6 +160,10 @@ without the orchestrator's approval.
   check that a generated card shows no re-rated note; start a generation while a display request is still pending
   (import a second code and click New puzzle at once): the generation completes with its usual number of puzzles and
   the second card gets its note afterwards.
+- `tests/browser/player-load.js` (MP10b1's case 13, cross-review SP04): "a derived rating alone redraws the cards":
+  open the sample, wait until it is verified, then make no navigation, language or verification change and `waitFor`
+  every card with a `difficulty-v2` claim to show a `.rating-note` with the re-rated text (the reply changes only the
+  display ratings, so this fails if the card renderer's `drawn` state ignores them).
 
 ## Files to create/modify
 
@@ -155,7 +174,7 @@ without the orchestrator's approval.
 | `generator/ui/puzzle-panel.js` | cards and print captions |
 | `generator/app.js` | only if the client must be passed on |
 | `tests/generator-import.test.js`, `tests/generator-state.test.js` | new cases |
-| the six browser pages of the table and the new checks | expectations and two checks |
+| the six browser pages of the table and the new checks | expectations and three checks |
 | `docs/design-detail.md`, `docs/design-brief.md`, `USERGUIDE.md`, `USERGUIDE.vn.md` | documents |
 
 Exclusive ownership while active: the files above; scratch under `tests/artifacts/MP10b2/`. Documentation slot: design
@@ -168,14 +187,15 @@ display module, the texts, engine files, other pages.
   and restored puzzles with a v1 or v2 claim show the derived display rating of §7.7 with its note; generated puzzles
   show their v3 rating; an estimate shows its note; the derived ratings are never saved.
 - `docs/design-brief.md`, "Levels and typical boards" (where MP09d2 added the v3 sentence): "Puzzles made before this
-  version keep their stored score and are shown re-rated on today's scale, with the original in a note."
+  version keep their stored score and are shown re-rated on today's scale, with the original in a note, in both
+  apps." (MP10b1 added the Player's sentence; this one covers the Generator's imported and restored puzzles.)
 - `USERGUIDE.md` (Generator part: importing and the puzzle cards) and `USERGUIDE.vn.md`: one or two sentences each, in
   the terms of MP10b1's Player sentences.
 
 ## Implementation steps
 
 1. The Generator state, controller and views; the Node tests; run them.
-2. The browser page edits and the two new checks.
+2. The browser page edits and the three new checks.
 3. Announce and run the six pages (one at a time); record the results.
 4. Documents; `npm run test:quick`; `npm run check`.
 
@@ -183,7 +203,7 @@ display module, the texts, engine files, other pages.
 
 | ID | Criterion | Evidence |
 |---|---|---|
-| MP10b2-B01 | In the Generator, imported puzzles and puzzles of saved sets with a v2 or v1 claim show a v3 level and score with the original in a note, on the card and on paper; generated puzzles show their own rating | Node tests; the generator-flow check |
+| MP10b2-B01 | In the Generator, imported puzzles and puzzles of saved sets with a v2 or v1 claim show a v3 level and score with the original in a note, on the card and on paper, also when the user does not touch the restored set; when no worker can rate them they show their claim with "Could not be re-rated"; generated puzzles show their own rating | Node tests; the generator-flow check |
 | MP10b2-B02 | Re-rating in the Generator never slows down or stops a generation; after the generation it completes | Node test; the generator-flow check |
 | MP10b2-B03 | In a real browser, both apps show the derived rating and the estimate notes (with and without the number) in English and Vietnamese, on screen and on the printed sheet | GC-P2 display runs |
 
@@ -192,10 +212,11 @@ display module, the texts, engine files, other pages.
 | ID | Criterion | Evidence |
 |---|---|---|
 | MP10b2-T01 | `displayRatings` is in the Generator state and not in `serializeState`; stored claims and saved sets are unchanged byte for byte | `tests/generator-state.test.js` |
-| MP10b2-T02 | Wishes: one per listed puzzle with a v1 or v2 claim, in list order, keyed by fingerprint and `MODEL`; none for v3, unknown or missing claims; a client without `submitAuxiliary` gives `unavailable` entries and no error notice | `tests/generator-import.test.js` |
+| MP10b2-T02 | Wishes: one per listed puzzle with a v1 or v2 claim, in list order, keyed by fingerprint and `MODEL`; none for v3, unknown or missing claims; a client without `submitAuxiliary`, or `workersAvailable: false` with a client that has it (zero calls), gives `unavailable` entries, shown as the claim with "Could not be re-rated", and no error notice | `tests/generator-import.test.js` |
 | MP10b2-T03 | `describeRating`, `printJobOf` and `printListOf` show the rating and notes of `ratingDisplay` | Node tests |
-| MP10b2-T04 | The six pages pass in the main phase with no CSP violation and no uncaught error; only the listed expectations changed, plus the two new checks | browser evidence; diff |
+| MP10b2-T04 | The six pages pass in the main phase with no CSP violation and no uncaught error; only the listed expectations changed, plus the three new checks (the card-redraw check among them) | browser evidence; diff |
 | MP10b2-T05 | `npm run test:quick` and `npm run check` pass; documents in both languages | command output; review |
+| MP10b2-T06 | The controller sends the wishes of the state it starts with once at creation, with no store update needed; it re-sends them when `state.set` or `state.puzzles` changes; after `destroy()` nothing is sent | `tests/generator-state.test.js` case 3 |
 
 ## Test plan
 
@@ -230,12 +251,18 @@ a physical device): the same blocked checks are expected; any new blocked or fai
    `describeRating(puzzle, entry)` gives the derived line with the note; a v1 claim likewise; a v3 summary claim with
    `censored: true` → no request, and the card shows "Decisive estimate"; an import of a puzzle without a claim → no
    request; the stored claim of the imported puzzle is deep-equal before and after; a scripted `rating-incomplete` →
-   "Could not be re-rated"; a client without `submitAuxiliary` → `unavailable`, no note, no notice.
+   "Could not be re-rated"; a client without `submitAuxiliary` → `unavailable`, and the card shows the claim with
+   "Could not be re-rated" (MP10b1's table, cross-review SP04), no notice; a client whose `submitAuxiliary` is a spy,
+   with `workersAvailable: false` → the spy is never called, the entry is `unavailable` with the same card text, and
+   no error notice (TP19).
 2. Overlap (scripted client): a display request held while `generateBatch` starts → the client's `submitAuxiliary`
    promise is rejected `cancelled` by the client and submitted again; the batch's result equals the result without the
    import; after the batch the entry ends `rated`.
-3. `tests/generator-state.test.js`: a restored saved set with v2 claims yields the wishes (in list order); the saved
-   string of `serializeState` is the same with and without entries in `displayRatings`.
+3. `tests/generator-state.test.js` and the controller: a store created from a saved state with a set whose puzzles
+   have v2 claims, then `createJobController` with a scripted client, and **no store update afterwards** → the client
+   receives the wishes' `rate` requests in list order and the entries end `rated` (the start-up call of SP04); after
+   `destroy()` a later store update sends nothing. The saved string of `serializeState` is the same with and without
+   entries in `displayRatings`.
 
 ## Definition of done & handoff
 

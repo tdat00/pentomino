@@ -683,6 +683,8 @@ offered and the answer; the tasks that follow apply it.
 | P-OD2 | 2026-11-12 15:37 | `DEDUCE.work` = 760,000,000 is above the 500,000,000 reporting threshold of RES-10 | same record, section 9 item 1 (median deduction 2.8 ms, p95 83 ms, maximum 986 ms; about 1.8 s for a full-cap rating, extrapolated) | (a) accept 760,000,000; (b) a lower cap (some large master puzzles become unrateable) | **(a)**: accepted | pinned in `core/engine/policy.js` by MP06b |
 | P-OD3 | 2026-11-12 16:02 | The initial fit switches the few/many penalty off, (0, 0), inside the range `0 <= few <= many <= 8` but against the intent of SA1-Q-P1 ("the few/many penalty stays") | [fit record](fit-2026-11-12.md) sections 3 and 8 (MP06c, `7ddb259`) | (a) use the fitted knobs with penalty (0, 0) and look again at the penalty in the MP12 calibration on v3-generated puzzles; (b) the best set with a penalty, `12 / 4 / 4 / 4 / 5 / 0.5 / (1, 2)` (55.5 %, no hit in 18x20-hard); (c) other | **(a)**: MP08 writes the fitted knobs, penalty (0, 0); MP12 re-examines the penalty | MP08; MP12a/MP12b |
 | P-OD4 | 2026-11-12 18:09 | D21: RES-15 when the central half is unreachable (Hell 3; MP07 held) | [D21 measurements](d21-measurements-2026-11-12.md); Part I below | (a) recipe quantity 3; (b) first in band when the centre is unreachable; (c) keep the recipe; (d) a measured early-stop rule | **(d)** as answered by the plan author in Part I: RES-15a stall stop, STALL_LIMIT = 12, raw ratings, in MP07 (owner: "kiểm tra và tiếp tục") | MP07; MP09c re-validates N on v3; MP12 reports Hell times |
+| P-OD5 | 2026-11-12 19:09 | D36: Hell levels on large boards are unrateable under v3 (capped) | [d36-hell-probe.txt](claude-opus-5.5/d36-hell-probe.txt); Part I, D36 | (a) activate as specified, MP12 proposes; (b) engine investigation first; (c) raise the work cap; (d) reopen SA2-Q-P02 | **(a)**, as answered by the plan author in Part I with four MP09d2 precisions (owner: "fable", the plan author answers); the choice (i) stop offering, (ii) a different contract, (iii) a separate engine project is put to the owner at MP12 | MP09d2; MP12a/MP12b |
+| P-OD6 | 2026-11-12 21:55 | D37: the Hell population of the full MP12 landscape (25 Hell cases, up to about 17 hours at 20 requests) | Part I, D37 (SA1, from cross-review TP08) | (a) 20 requests for every Hell case; (b) a 3-request prescreen, 20 only where a puzzle is made; (c) (b) plus 20 requests for the boundary case of each Hell level | **(c)** | MP12b1; MP12b2 (the owner question (i)/(ii)/(iii) states its evidence) |
 
 Information given with these questions, no decision needed: in corpus B (uniqueness required, puzzles made by v2),
 every 18x20 Hard, Expert and Master puzzle has `Gproved = 0` (20/20 each), and corpus A has 58-86 % at Hard; MP06c
@@ -786,3 +788,140 @@ under v3 in MP09c and MP12. If the owner prefers the old speed on those cells, t
 v2 bound, valid only until MP09 replaces the rating.
 
 **Orchestrator note (2026-11-12 18:30):** the owner confirmed (d) (decision P-OD4 in Part H). One placement is corrected after cross-review SP03 (SA2): MP09c cannot run the v3 re-validation, because no v3 rater exists before MP09d1 (`measureV3`) and MP09d2 (`rate` and `MODEL` switch). The re-validation for N = 8, 12 and 16 therefore belongs to MP09d2, after the switch and before GF-P2, with the same rule (only a raise of `STALL_LIMIT`; below 12 needs a new answer). MP09c still makes unrateable and AR1-rejected profiles neutral for the stall counter. MP07 is committed with RES-15a: the Hell 3 flow completes 10 of 10 at score 172 in about 56 s, and `npm test` takes 66 s.
+
+### D36: Hell levels on large boards are unrateable under v3 (MP09d2, MP12)
+
+**Raised.** 2026-11-12 by SA1 while moving the D21 re-validation into MP09d2 (it needs v3 sequences of the Hell cells).
+Open. MP09d2 is the first task it affects; the answer is needed before MP09d2's GA-P2.
+
+**Evidence.** [d36-hell-probe.txt](claude-opus-5.5/d36-hell-probe.txt), produced by
+[d36-hell-probe.mjs](claude-opus-5.5/d36-hell-probe.mjs) at HEAD `05fa958` (read only). The sets are those the D21
+flow builds (set attempt 0, seed `t18-big-a`); each line rates random clue subsets of the set's witness with
+`measureDeduction`:
+
+- Pinned `DEDUCE` (work 760,000,000, nodes 30,000): 26 of 27 ratings are capped (`work-cap`, 1.6-2.5 s each): 12 on
+  the 22x22 Hell 3 set (K = 73) with 0 to 8 clues, and 3 on each of 22x22 Hell 1 (K = 39), 22x22 Hell 2 (K = 54),
+  15x20 Hell 2 (K = 50), 18x18 Hell 2 (K = 51) and 24x24 Hell 3 (K = 77), at the calibration clue count and at 2 and
+  6 more clues. The one complete rating (22x22 Hell 1 with 10 clues) scores 65, Nightmare. The controls (20x18 and
+  12x12 Master sets) complete in 2-50 ms.
+- Ten times the work cap (7,600,000,000, nodes 300,000): 3 of 3 still capped, 32-46 s each.
+- `lookaheadWidth: 0`: 3 of 3 capped, about 2 s each.
+- At the cap the search has made only 289 to 6,707 nodes: about 0.1 to 2.6 million units of work per node on these
+  boards. Under v2 these calibrations reached Hell with scores up to 2 (K - 1) + 30, the value at the DLX branch cap
+  (D21 record). RES-04 withdrew "saturation is acceptable at hell levels"; the report's risk table (row "Unrateable
+  (capped) candidates make hell levels on large boards hard to generate", medium-high) says the owner is told with
+  numbers.
+
+**Consequences if nothing changes.** After MP09c a calibration whose subsets are all unrateable spends 20 profiles
+(about 40-50 s here) and ends `not-in-band`, so these set requests fail after up to 32 attempts (in the two-worker UI
+flow at `dispatchStopMs`, 115 s, with no puzzle). In MP09d2 the UI-flow recipe `square-22x22-hell-3` (D21: must
+complete 10 of 10) and MP07's slow test "15 x 20 Hell 2 calibration" fail, and the D21-V3 capture gets no v3
+sequence from the Hell cells, the only cells where the stall stop fired under v2. In MP12 the landscape's Hell cases
+on large boards give no puzzles. The offered levels (`offeredLevels`, the `areas` of `levels.js`) do not change, so
+the Generator still offers these levels.
+
+**Options.**
+
+| Option | Meaning |
+|---|---|
+| (a) | Activate v3 as specified. MP09d2 records the Hell failures and replaces the recipe `square-22x22-hell-3` and the 15 x 20 Hell 2 slow test by the highest level the same board completes under v3 (from the D21-V3 captures; quantity unchanged). MP12 measures availability per board and level and puts to the owner whether levels that cannot be made stop being offered (a separate, later change) |
+| (b) | Before MP09d2, a bounded engine investigation (a new task) of the first-solution search on these inputs: where the work goes, and a guess order or setup change that keeps the rule semantics. Any change moves the MP02a-MP05 pins, MP06's corpus and MP06c's fit, which are re-run |
+| (c) | Raise `DEDUCE.work` (P-OD2 reopened): ten times the cap is not enough and costs 30-45 s per rating |
+| (d) | Reopen SA2-Q-P02 for generation (rate a capped candidate another way): contradicts the owner's "never solved by an estimate" |
+
+**Recommendation (SA1).** (a), so that the activation is not held; (b) only if the owner wants Hell levels on large
+boards under v3, as a task of its own after MP09d2 with its own fit re-run. Under (a) the Generator offers levels it
+cannot make until MP12's proposal is decided: the owner should know this before MP09d2.
+
+**Answer (plan author, claude-fable-5-2, 2026-11-12): (a) now. (c) and (d) are rejected; (b) is not done inside
+this plan.** The owner is told below what this means for the Hell levels, because the MP12 proposal will be an
+owner decision and it is larger than "some cells are slow".
+
+**Reading of the evidence.** I checked `d36-hell-probe.txt`. The result is not a tuning problem:
+
+- Ten times the work cap changes nothing (3 of 3 still capped at 32-46 s), and switching the lookahead off changes
+  nothing. So neither (c) nor a cheaper ladder inside (b) is likely to help by the factor that would be needed.
+- The one rating that completes shows why: 22x22 Hell 1 with 10 clues (29 pieces to place) has G = 8,
+  `Gproved` = 5 and scores 65, which is Nightmare. A Hell 1 score (77 or more) needs more decisive guesses on more
+  free pieces than that, and each added guess with many alternatives multiplies the search. A puzzle that scores in
+  a Hell band is, by the model's own definition, close to or beyond what a bounded search can finish.
+- Under v2 these puzzles were not solved either: every Hell 3 rating of the D21 record is saturated at the DLX
+  branch cap, and the score is `2 (K - 1) + 30`, a function of the clue count alone. The v2 Hell levels on these
+  boards were "the solver gave up", published with a "+". The owner's decision on SA2-Q-P02 (a capped path is
+  unrateable, never an estimate) removes exactly that label, so losing these levels is the direct consequence of
+  that decision, not a defect of the deduction solver. (d) would undo the decision and is not chosen here.
+
+**What MP09d2 does (option (a), with these precisions).**
+
+1. Activate v3 as specified. Record every Hell failure of the recipes and slow tests with its outcome
+   (profiles spent, all `path-capped`, time).
+2. Replace the UI-flow recipe `square-22x22-hell-3` and the "15 x 20 Hell 2 calibration" slow test by the highest
+   level the same board completes under v3 with 10 of 10 puzzles (quantity unchanged), found from the D21-V3
+   captures; the D21 requirement "10 of 10, no `N-PARTIAL`" moves to that recipe. Keep one small test that pins the
+   present behaviour of an unrateable calibration (ends `not-in-band` after its profiles, no puzzle, no crash), so
+   the failure mode stays visible instead of disappearing from the suite.
+3. D21-V3 (the stall-stop re-validation of RES-15a): run it on whatever cells complete under v3. If the stall stop
+   fires in none of them, `STALL_LIMIT` stays 12, the record says "inert on the v3 corpus", and the rule is
+   re-examined by MP12 with the landscape data. No Hell sequence is fabricated from v2 ratings.
+4. Add to MP09d2's record one availability probe that costs minutes, not hours: for Hell 1, Hell 2 and Hell 3, the
+   smallest board each level is offered on (`AREAS` in `core/engine/levels.js:22-34`: 164, 266 and 450 cells) and
+   one mid-size board, 3 set attempts each, reporting rated / capped profiles and the best score seen. This tells
+   the owner before MP12 whether Hell is unreachable only on large boards or everywhere.
+
+**What MP12 puts to the owner (with the landscape numbers).** For every (board area, level) that v3 cannot make:
+
+- (i) stop offering it: raise or close the level's `areas` interval so the Generator no longer shows a level it
+  cannot produce (a change of `levels.js`, design §7.5, both user guides; packs and links made earlier still open
+  and are re-rated for display as decided); or
+- (ii) keep the level for those areas under an explicitly different contract, for example "beyond the measured
+  range: the search budget was exhausted", shown as such and never as a score. This reopens SA2-Q-P02 for Hell
+  levels only and needs the owner's explicit decision; it is not implied by anything in this plan; or
+- (iii) a separate engine project (option (b)): a faster first-solution search for boards with 30 or more free
+  pieces, with its own corpus, fit and qualification. Not part of difficulty-v3.
+
+MP12 also proposes a fail-fast for unrateable requests, so that a set request whose calibrations are all capped
+ends in seconds with a clear notice instead of at `dispatchStopMs` (115 s); the mechanism is specified then, with
+the measured numbers, not improvised in MP09d2.
+
+**Interim.** Between MP09d2 and the MP12 decision the branch `rating-v3` offers Hell levels it cannot make on these
+boards and a request for one ends after up to 115 s with no puzzle. Nothing is pushed or deployed from this branch
+before MP12 and MP17, so no user sees that state; if the branch were to be published earlier, (i) must be decided
+first.
+
+**For the owner, now.** Under the decisions already taken, v3 will most likely not be able to generate Hell 1 to
+Hell 3 on the large boards where v2 offered them, and possibly not anywhere; step 4 above measures which. This
+follows from "a capped search gives no rating". The choice between (i), (ii) and (iii) is yours at MP12; the
+plan author's recommendation at this point is (i), with (iii) as later work if Hell levels matter, because (ii)
+reintroduces a label the rating cannot back.
+
+### D37: the Hell population of the full MP12 landscape (MP12b1)
+
+**Raised.** 2026-11-12 by SA1, from SA2's cross-review TP08 (`gpt-6-astra/6-review-of-task-pack.md`, third pass).
+Open. MP12b1 is the first task it affects; the answer is needed before MP12b1's Hell runs, which come after its 80
+other cases (several hours after dispatch).
+
+**Question.** Gate GL-P3 measures every landscape case with 20 requests (RES-25, "kept even where availability is
+poor"). 25 of the 105 cases are Hell cases: Hell 1 on 14x14, 15x15b10, 16x16, 15x20, 18x18, 18x20, 20x20, 20x21,
+32x15, 22x22, 24x24 and 26x26; Hell 2 on the nine boards from 15x20 to 26x26; Hell 3 on 32x15, 22x22, 24x24 and
+26x26. By D36 most of them are expected to make no puzzle, and a request that makes none runs to the dispatch limit,
+about 2 minutes. 20 requests then cost about 40 minutes per case, up to about 17 hours for the 25 cases, in announced
+batches of at most an hour on the machine the Sudoku work shares. 3 requests cost about 6 minutes per case, 2.5 hours
+in all. Three requests without a puzzle do not show that a cell cannot be made: a cell that succeeds once in five
+requests shows no puzzle in three requests about half the time (0.8^3 = 0.51), in twenty about once in a hundred
+(0.8^20 = 0.012). D36's precision 4 (MP09d2's three-attempt availability probe) was a probe, not this population.
+
+**Options.**
+
+| Option | Meaning |
+|---|---|
+| (a) | 20 requests for every Hell case, as GL-P3 says: up to about 17 more hours of machine time |
+| (b) | A waiver for Hell cases: 3 requests each (a prescreen); a case with a puzzle is run with 20; a case without stays at 3 and is reported as "no puzzle observed in 3 requests", never as "cannot be made"; MP12b2's question (i)/(ii)/(iii) and the lock record say on what evidence they rest |
+| (c) | (b), plus 20 requests for the boundary case of each Hell level: the smallest board of the level whose prescreen made no puzzle (at most 3 cases, about 2 more hours); the larger boards of the level stay at 3 requests, and the record says that their result is read from the boundary case and their own 3 requests |
+
+**Recommendation (SA1).** (c). The owner's choice (i) ("stop offering") moves the lower end of a level's `areas`
+interval, so the evidence must be strongest at that end. On larger boards the same level places more pieces, and
+D36 found every profile capped there; 3 requests plus a 20-request boundary case decide those cells about as well as
+20 requests would, at a fraction of the machine time. MP12b1 runs the 25 prescreens first in any case and waits for
+the answer before any further Hell run.
+
+**Answer (owner, 2026-11-12 21:55): (c).** Every Hell case gets the 3-request prescreen; a case that makes a puzzle is run with 20 requests; the boundary case of each Hell level (the smallest board of the level whose prescreen made no puzzle) is run with 20 requests; the other cases stay at 3 and are reported as "no puzzle observed in 3 requests", never as "cannot be made". Owner decision P-OD6 in Part H.
