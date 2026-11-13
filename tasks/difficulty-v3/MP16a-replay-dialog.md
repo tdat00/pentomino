@@ -262,8 +262,8 @@ Exclusive ownership while this task runs: the files above.
 
 - §6.12 "Generation Steps (replay)" (created by MP15a1, steps by MP15a2): a paragraph on the two views, the compact
   filter (the full `ranked` comparator) and the score table (unavailable data never shown as zero).
-- §11.11 "Accessibility" (line 2443 at HEAD): the dialog's focus, keyboard, live region (no tick announcements),
-  reduced motion and labelled slider.
+- §11.11 "Accessibility" (line 2632 at HEAD `55c0c61`): the dialog's focus, keyboard, live region (no tick
+  announcements), reduced motion and labelled slider.
 
 ## Implementation steps
 

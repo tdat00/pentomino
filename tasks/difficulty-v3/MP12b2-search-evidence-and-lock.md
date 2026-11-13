@@ -2,12 +2,12 @@
 
 | Header | Value |
 |---|---|
-| ID | MP12b2 (third part of the report's MP12; the **lock** of the v3 rating and generation) |
+| ID | MP12b2 (third part of the report's MP12; the **lock** of the v3 rating tuple, which MP12b3 completes) |
 | Depends on | MP12b1 (accepted and committed: `docs/difficulty-v3/landscape-v3-full/` with the aggregate and its three lists) |
-| Estimated size | Medium–Large: about 600–1,000 changed lines (`observe.mjs` given, `summary.mjs` about 150, `flow-case.mjs` about 20 changed lines of a copy, `failfast.mjs` with its self-test about 200, the record about 300, design §7.5 and §7.8 about 30; re-pins only in an ordered change round); about 60–90 minutes of developer work plus machine time under the lock protocol (cross-review TP20; the waits for the Sudoku repository and at least 15 s per lock release come on top). Expected, with the upper bound of the limits in brackets: GS-P3 R and A 20 captures, 20–40 minutes [190]; H five, 25 minutes [25]; HL 20 diagnostic replays, 60–90 minutes [190] (TP23); the availability probe again only when MP09d2's observations cannot be reused, six captures, about 16 minutes [57] (TP25); the final lock commands about 10 minutes. An ordered change round reruns the complete population (TP30, TP32): about 12–18 hours more (the landscape 9.5–14.5 hours, the slice probe corpus 20–35 minutes, GS-P3 about 2–3 hours, re-pins, checks, GF-P2 and GA-P2 about 30 minutes), projected to the orchestrator before it starts |
+| Estimated size | Medium–Large: about 600–1,000 changed lines (`observe.mjs` given, `summary.mjs` about 150, `flow-case.mjs` about 20 changed lines of a copy, `failfast.mjs` with its self-test about 200, the record about 300, design §7.8 about 30; re-pins only in an ordered change round); about 60–90 minutes of developer work plus machine time under the lock protocol (cross-review TP20; the waits for the Sudoku repository and at least 15 s per lock release come on top). Expected, with the upper bound of the limits in brackets: GS-P3 R and A 20 captures, 20–40 minutes [190], plus two more captures for each 18x20 cell of R without a puzzle (PR-P1), up to 6 [57]; H five, 25 minutes [25]; HL 20 diagnostic replays, 60–90 minutes [190] (TP23); the availability probe again, six captures, about 16 minutes [57] (TP25: MP12a changed `core/engine/policy.js` after `eea5fed`, so MP09d2's observations cannot be reused); the final lock commands about 10 minutes. An ordered change round reruns the complete population (TP30, TP32): about 12–18 hours more (the landscape 7.5–12.5 hours, the slice probe corpus 20–35 minutes, GS-P3 about 2–3 hours, re-pins, checks, GF-P2 and GA-P2 about 30 minutes), projected to the orchestrator before it starts |
 | Owner role | Measurement |
 | Milestone | M7 — calibrated and locked |
-| Design refs | `docs/difficulty-v3/report-detailed.md` RES-25 (the record: repaired candidates, capped outcomes; the lock), RES-01 (what the lock means), RES-26, RES-35; RES-15a and Part I D21 ("MP12 reports, per Hell cell, the ratings per puzzle and the generation time under v3"); Part I D36 and P-OD5 (the owner's question and the fail-fast proposal; the stall rule re-examined here only under a recorded "inert" decision); clarifications PROC-P1 (a), SA2-Q-P09 (branch A), P-OD1, P-OD2, P-OD3; Part I D37 and P-OD6 (the Hell population; the owner question states its evidence); check-list §4.2 D21, D29, D35, D36, D37 and §7 (the shared-machine lock protocol); cross-review SP16, SP07 (`docs/difficulty-v3/gpt-6-astra/6-review-of-task-pack.md`, second pass) and TP20, TP23, TP24, TP25, TP26, TP28 (its MP12 tranche), TP30, TP32, TP33 (its re-verification) |
+| Design refs | `docs/difficulty-v3/report-detailed.md` RES-25 (the record: repaired candidates, capped outcomes; the lock), RES-01 (what the lock means), RES-26, RES-35; RES-15a and Part I D21 ("MP12 reports, per Hell cell, the ratings per puzzle and the generation time under v3"); Part I D36 and P-OD5, **decided (i) by P-OD9** (no D36 question here; the fail-fast table is still put to the owner); clarifications PROC-P1 (a), SA2-Q-P09 (branch A), P-OD1, P-OD2, P-OD3; Part I D37 and P-OD6, changed by P-OD9 (the Hell population); **Part I PR-P1** (the plan author's answer: the tuple to lock, R7, the census findings, population R, the change-round rule); check-list §4.2 D21, D29, D35 to D41 and §7 (the shared-machine lock protocol); cross-review SP16, SP07 (`docs/difficulty-v3/gpt-6-astra/6-review-of-task-pack.md`, second pass) and TP20, TP23, TP24, TP25, TP26, TP28 (its MP12 tranche), TP30, TP32, TP33 (its re-verification), TP34 (its final verification) |
 | Gates owned | GS-P3 (search evidence, new; check-list §7); GA-P2 (the final `npm test`); GF-P2 and GA-P2 again only in an ordered change round |
 | Implementation status | Not started |
 
@@ -16,15 +16,25 @@
 The calibration record must say not only what the landscape produced but how the search got there (RES-25:
 repaired candidates, capped outcomes; cross-review SP16): how many clue sets were rated, refused for lack of a proved
 guess (AR1), unrateable, repaired, per selection and per accepted puzzle. The plan author also asked for the Hell
-cells' ratings per puzzle and generation time under v3 (D21), for the owner's decision on every board-and-level cell
-that v3 cannot make (D36), and for a measured fail-fast proposal, so that a request that cannot succeed ends in
-seconds with a clear notice instead of after two minutes. MP09d2 found the stall stop **not** inert: it fired on 10
-`any`-mode calls at N = 12 and `STALL_LIMIT` stays 12 (its record §5.5). Population S, the re-examination of an inert
-rule, is therefore skipped on this source, and the record says why (cross-review TP28).
+cells' ratings per puzzle and generation time under v3 (D21), and for a measured fail-fast proposal, so that a request
+that cannot succeed ends in seconds with a clear notice instead of after two minutes. MP09d2 found the stall stop
+**not** inert: it fired on 10 `any`-mode calls at N = 12 and `STALL_LIMIT` stays 12 (its record §5.5). Population S,
+the re-examination of an inert rule, is therefore skipped on this source, and the record says why (cross-review TP28).
 
-Then the task writes the calibration record and **locks**: after it no knob, cap, rule, counter, clue-search setting,
-`SHARES` or `K60` may change without a new model, algorithm or policy id and a new qualification (RES-01); MP13a to
-MP17 must not change any rating or generated puzzle.
+The owner has decided D36 (P-OD9, recorded in the plan author's answer to PR-P1): option (i), stop offering what v3
+cannot make. This task therefore asks no D36 question: it records the Hell evidence and derives, by the rule of
+check-list D39, the Hell areas that MP12b3 sets. It still puts three things to the owner, with their numbers: the
+fail-fast table (the plan author recommends F1 + F2, built in MP12b3); population R, the 18x20 Hard, Expert and Master
+requests with `--uniqueness require`, because it decides whether "Hard is really hard" holds on large boards when a
+unique solution is required (in the v2-made corpus none of those puzzles had a decisive guess); and a landscape cell
+with more than 25 % census estimates, if there is one.
+
+Then the task writes the calibration record and **locks the tuple** `12 / 3 / [0, 0, 2, 3] / G 5 / info 0.5 / (1, 2)`
+with `DEDUCE`, `STALL_LIMIT`, `K60` and `SHARES` (the plan author's answer to PR-P1: this tuple, unless MP12b1 broke
+C1 or C3): after it no knob, cap, rule, counter, clue-search setting, `SHARES` or `K60` may change without a new
+model, algorithm or policy id and a new qualification (RES-01). MP12b3 completes the lock with the changes decided
+for availability (the Hell `AREAS`, the fail-fast when the owner agrees, the population-R outcome when the owner
+accepts it); from MP12b3's commit on, MP13a to MP17 must not change any rating or generated puzzle (check-list D35).
 
 ## Scope
 
@@ -33,21 +43,21 @@ MP17 must not change any rating or generated puzzle.
 - Gate GS-P3: the search-evidence captures (populations R, A, H, the Hell companion HL and, only when a recorded D21
   decision says "inert on the v3 corpus", S), their summary and self-test, and the fail-fast check `failfast.mjs` with
   its self-test.
-- The evidence provenance and, when MP09d2's observations cannot be reused, its availability probe again under the
-  final tuple (cross-review TP25).
+- The evidence provenance and the availability probe again under the final tuple (cross-review TP25; MP09d2's
+  observations cannot be reused, see "Evidence provenance and the final tuple").
 - The stall re-examination (only under that recorded decision; skipped on this source, TP28).
-- The owner's question on the cells v3 cannot make (D36) and the fail-fast proposal, in the record and the reply.
+- The Hell availability record and the derived areas of check-list D39 (no owner question); the owner questions on the
+  fail-fast, on population R and on census cells above 25 %, in the record and the reply.
 - The record `docs/difficulty-v3/calibration-<date>.md` (the whole calibration: MP12a and MP12b1 by reference with
   their numbers, the search evidence, the Hell report, the questions, the final values, the lock).
-- `docs/design-detail.md` §7.8 (measured parameters and the lock) and §7.5 (the Hell sentence of MP09d2 updated with
-  the measured result); `docs/design-brief.md` only by the rule of the documentation slot.
+- `docs/design-detail.md` §7.8 (measured parameters, R7 as a known limitation, the census findings and the lock).
 - The lock's evidence: `record-fixtures --check` and the final `npm test` (GA-P2).
 
 ### Out of scope
 
 - A knob, cap, `STALL_LIMIT` or fixture change, unless the orchestrator orders a change round (below).
-- Implementing the owner's choice on the cells v3 cannot make, or the fail-fast: if the owner chooses option (i), the
-  analysts write task part MP12b3 from this task's numbers, and the lock moves to it (below).
+- The Hell `AREAS`, design §7.5, the guides, the fail-fast and the population-R outcome: MP12b3 implements them from
+  this task's record and the owner's answers.
 - Any algorithm change (RES-25: not allowed without a new decision).
 
 ## Repository rules
@@ -62,6 +72,12 @@ MP17 must not change any rating or generated puzzle.
 - A capture that reaches its own limit is a recorded outcome ("stopped at the limit", reduced, its lines kept); any
   other command stopped at its limit, an unexpected exit or a changed source identity inside a block stops the work:
   report it.
+- **Stops and questions (owner decision P-OD9, check-list D38).** The task stops for the owner only for a correctness
+  failure or when it would have to change a recorded decision. A performance or availability finding (a slow cell, a
+  cell without puzzles, a capture that made nothing, a census share above 5 %) is a named item with its numbers in the
+  record (§13), never a stop. The owner questions of this task (the fail-fast, population R, a census cell above 25 %)
+  are put in the reply; the task does not wait for their answers: it locks the tuple, and the orchestrator gives the
+  answers to MP12b3.
 - Records are written once; nothing under `docs/difficulty-v3/landscape-v3/`, `landscape-v3-full/`, `baseline-v2/`,
   `d21-2026-11-12/`, `d21-v3-2026-11-12/` or the earlier records is edited. UTF-8 without BOM, CRLF, no absolute path
   in a record.
@@ -73,11 +89,12 @@ MP17 must not change any rating or generated puzzle.
 - MP12b1: `docs/difficulty-v3/landscape-v3-full/aggregate-<date>.json|.md` (the protocol coverage and the three
   lists: cells without a puzzle, one-sided cells, census cells), `shards-<date>.md` and the published reports (the
   selected report of each case is named in the coverage table); the source identity the landscape ran on.
-- MP12a: `docs/difficulty-v3/calibration-slice-<date>.md` (criteria, changes, P-OD1 to P-OD3 outcomes, findings), the
+- MP12a: `docs/difficulty-v3/calibration-slice-<date>.md` (criteria, changes, P-OD1 to P-OD3 outcomes, P-OD7 and
+  P-OD8, the PR-P1 rows of its §8.6, findings), the
   launcher `docs/difficulty-v3/landscape-v3/launch.mjs` and its "Run control" (used read-only, only in an ordered
   change round), its table "The D36 and fixture re-pins" (TP26), and, for an ordered change round only, its criteria
   script `docs/difficulty-v3/landscape-v3/criteria.mjs` (read-only), "The probe corpus of a round" with its adapted
-  driver under `tests/artifacts/MP12a/`, and the final round's folder `docs/difficulty-v3/landscape-v3/r<k>/` behind
+  driver under `tests/artifacts/MP12a/`, and the final round's folder `docs/difficulty-v3/landscape-v3/r2/` behind
   record §4 (TP30).
 - MP09d2: `docs/difficulty-v3/d21-v3-2026-11-12.md` (the `STALL_LIMIT` decision, "inert on the v3 corpus" or not,
   the Hell outcomes, the availability probe, the two-worker time of the failing Hell recipe) and its folder
@@ -336,14 +353,15 @@ populations: `require` (R), `any` (A), `hell` (H), `hell-landscape` (HL), `stall
 
 | Population | Captures | Arguments | Limit (s) |
 |---|---|---|---|
-| R (`require`; repaired candidates, RES-25) | `r-6x10-<level>` for `easy`, `normal`, `hard`, `expert`, `master`; `r-18x20-<level>` for `hard`, `expert`, `master` (the cells of MP06b's corpus B) | `--board <board> --level <level> --seed probe-require/<board>-<level>/0 --uniqueness require --quantity 10 --label <name>` | 570 |
+| R (`require`; repaired candidates, RES-25; population R of PR-P1) | `r-6x10-<level>` for `easy`, `normal`, `hard`, `expert`, `master`; `r-18x20-<level>` for `hard`, `expert`, `master` (the cells of MP06b's corpus B); for an 18x20 cell whose capture accepted no puzzle, also `r-18x20-<level>-1` and `-2` (seeds `.../1`, `.../2`) | `--board <board> --level <level> --seed probe-require/<board>-<level>/0 --uniqueness require --quantity 10 --label <name>` | 570 |
 | A (`any`; AR1 refusals and unrateable profiles) | `a-<board>-<level>` for the boards `6x10`, `10x10`, `12x12`, `18x20` and the levels `hard`, `expert`, `master` | `--board <board> --level <level> --seed search/<board>-<level>/0 --quantity 5 --label <name>` | 570 |
 | H (Hell cells of D21) | `h-22x22-hell-3` (`--quantity 10`); `h-32x15-hell-3`, `h-24x24-hell-3`, `h-15x20-hell-2`, `h-18x18-hell-2` (`--quantity 5`) | `--board <board> --level <level> --seed t18-big-a --quantity <n> --label <name>` | 300 |
 | HL (the Hell companion; cross-review TP23) | `hl-<case id>` for the 20 Hell cases of the landscape that H does not cover: Hell 1 on all 12 boards, Hell 2 on 18x20, 20x20, 20x21, 32x15, 22x22, 24x24 and 26x26, Hell 3 on 26x26 | `--case <case id> --rep <rep> --quantity 10 --label hl-<case id>` (`flow-case.mjs`; the rep by the rule below) | 180 when the case's selected report accepted no puzzle; 570 when it accepted some |
 
-Blocks: R and A together (expected 20–40 minutes), then H (25 minutes: these requests usually fail at their limit),
-then HL (expected 60–90 minutes), then the availability probe only when MP09d2's observations cannot be reused (about
-17 minutes; below). A capture stopped at its limit is labelled reduced in `runs.md` and keeps its lines.
+Blocks: R and A together (expected 20–40 minutes, plus up to six extra R captures of 570 s at most), then H (25
+minutes: these requests usually fail at their limit), then HL (expected 60–90 minutes), then the availability probe
+(about 17 minutes; it runs at the resume, below). A capture stopped at its limit is labelled reduced in `runs.md` and
+keeps its lines.
 
 ### The Hell companion HL (cross-review TP23)
 
@@ -401,8 +419,10 @@ landscape request and never pools with the landscape's numbers.
   their outcomes; the time per capped and per rated rating; set, fold and total time from its events. The landscape's
   request completion rate and response times stay in separate columns from MP12b1's report. A ratio never divides one
   population's count by another population's accepted puzzles.
-- **A stop**: a cell whose selected report accepted puzzles but whose HL capture accepted none within 570 s has no
-  measurable ratio within the bound: stop and report to the orchestrator before the record.
+- **A capture without a puzzle**: a cell whose selected report accepted puzzles but whose HL capture accepted none
+  within 570 s has no measurable ratio within the bound. That is an availability finding (P-OD9): record it as a named
+  item in §7 and §13 with the capture's numbers (attempts, outcomes, times) and the landscape's request completion rate
+  beside it, and go on; it is no stop.
 
 ### Evidence provenance and the final tuple (cross-review TP25)
 
@@ -417,9 +437,10 @@ landscape request and never pools with the landscape's numbers.
   the knobs are unchanged since then: `git --no-pager diff --stat eea5fed -- core/engine` and `git status --porcelain
   -- core/engine` print nothing, `versions` are `gen-v3`, `mixed-v2`, `xoshiro128ss-v1`, `difficulty-v3`, and the knob
   literals of MP09d2's record §1 (`DEDUCE`, `SCORE_V3`, `STALL_LIMIT` 12; the captures ran before that commit) equal
-  the tree's; the record quotes that output as the reuse argument (at `a85ed55` both git commands print nothing;
-  MP12a changes `core/engine` only when it changes a knob). Otherwise they stay in the record as historical, side by
-  side, and never pool with the new observations.
+  the tree's; the record quotes that output as the reuse argument. At the resume (`55c0c61`) the check fails:
+  MP12a changed `SCORE_V3` (`rule[3]`, the penalty) and `DEDUCE.census` in `core/engine/policy.js` after `eea5fed`.
+  So the availability probe runs again under the final tuple (below), and MP09d2's observations stay in the record as
+  historical, side by side, never pooled with the new observations.
 - **The availability probe again** (only when that check fails): the six captures of MP09d2's record §4 under the
   final tuple, with its seed and exact boards, three set attempts each, into
   `$s/avail/avail-<board>[b<n>]-<level>.jsonl` (MP09d2's file names; preload
@@ -429,9 +450,9 @@ landscape request and never pools with the landscape's numbers.
   cells, `deterministicBoard(164)`), `20x20` `hell-1`, `19x14` `hell-2` (266), `20x20` `hell-2`, `25x18` `hell-3`
   (450), `22x22` `hell-3`. Then `node ./docs/difficulty-v3/d21-v3-2026-11-12/summarise.mjs <the six files>` into
   `$s/avail-summary.md`. The record keeps set attempts apart from full quantity-10 requests.
-- **Boundaries from final-tuple observations only.** The proposed area boundaries of option (i) (below) come from
-  observations of the final tuple: the landscape, H, HL and, when rerun, the availability probe, or MP09d2's when the
-  reuse argument holds. Older results stay beside them for comparison, never as interchangeable samples. A boundary is
+- **Areas from final-tuple observations only.** The Hell areas derived below (check-list D39) come from observations
+  of the final tuple: the landscape (its 20-request runs and its prescreens), H, HL and the availability probe run
+  again. MP09d2's older results stay beside them for comparison, never as interchangeable samples. An area boundary is
   an observed availability choice, not a proof that every shape of an area is impossible.
 
 ### The stall re-examination (only when a recorded D21 decision says "inert on the v3 corpus"; TP28)
@@ -451,58 +472,78 @@ to 16 only through an ordered change round (MP09d2's listed re-pins, then GF-P2 
 misses: report, a new answer of the plan author is needed. When list 2 is empty, record that the rule has no cell to
 act on in the landscape.
 
-### The owner's question: cells v3 cannot make (D36, P-OD5)
+### The Hell availability (D36 decided (i), owner decision P-OD9; check-list D39)
 
 For every (board area, level) of MP12b1's list 1, and every Hell cell of populations H and HL that made no puzzle: a
 table with board, area, level, requests, the failure reasons, the profiles per failed calibration and their outcomes
 (from H and HL, and from the availability probe where the cell was measured), and the time a request ran before it
 failed (serial: `setMs` per set attempt; two-worker flow: MP09d2's recipe measurement). Each row says "no puzzle
-observed in N requests" with its N, and "reduced (D37, P-OD6)" where MP12b1 kept 3 requests, with the boundary case of
-its level; each row names its population and source identity (TP25); the record never calls a cell impossible
-(cross-review TP08).
+observed in N requests" with its N, and "reduced (P-OD9)" where MP12b1 kept 3 requests; each row names its population
+and source identity (TP25); the record never calls a cell impossible (cross-review TP08).
 
-**The evidence the question rests on (D37, owner decision P-OD6).** The record states it above the table, per Hell
-level: the boundary case (board, active cells and the result of its 20 requests); the cases whose prescreen made a
-puzzle (20 requests each, with their request completion rates); the cases kept at the 3-request prescreen ("reduced
-(D37, P-OD6)", read with the boundary case); populations H and HL; and the measurements of the smallest offered areas,
-which the landscape does not contain: MP09d2's (`docs/difficulty-v3/d21-v3-2026-11-12.md` §4 and §6) when the reuse
-argument of "Evidence provenance and the final tuple" holds, else the availability probe run again under the final
-tuple, with MP09d2's results beside it as history. MP09d2 found: Hell 1 made on the 164-cell board (13 x 13 with 5
-blocked: 2 of 3 attempts, calibration scores 93 and 103) and on no board of 300 cells or more (every profile capped);
-Hell 2 not made on the 266-cell board (19 x 14: 26 rated profiles, all above the band, and 102 capped) or on 300, 324,
-400 and 484 cells; Hell 3 on none of 450, 480, 484 and 576 cells (all capped). Each row names its source (a landscape
-case with its N, an H or HL capture, an availability capture) and its failure mode: every profile unrateable (capped),
-or rated profiles only above the band. For option (i) the record gives, per level, the largest area with an observed
-puzzle and the smallest area without one, each with its N and source, from final-tuple observations only: (i) moves
-the level's `areas` interval (`core/engine/levels.js`, `AREAS`: Hell 1 from 164, Hell 2 from 266 and Hell 3 from 450
-cells, none with an upper end).
+**The evidence the areas rest on.** The record states it above the table, per Hell level: the cases whose prescreen
+made a puzzle (20 requests each, with their request completion rates); the cases kept at the 3-request prescreen
+("reduced (P-OD9)": a case that makes no puzzle in three requests is not offered and needs no further evidence, the
+plan author's answer to PR-P1); populations H and HL; and the availability probe run again under the final tuple on
+the smallest offered areas, which the landscape does not contain (164, 266 and 450 cells), with MP09d2's results
+beside it as history (`docs/difficulty-v3/d21-v3-2026-11-12.md` §4 and §6: Hell 1 made on the 164-cell board, 2 of 3
+attempts, and on no board of 300 cells or more; Hell 2 not made on 266 cells or more; Hell 3 on none of 450 to 576
+cells). Each row names its source (a landscape case with its N, an H or HL capture, an availability capture) and its
+failure mode: every profile unrateable (capped), or rated profiles only above the band.
 
-Then the options, word for word from the plan author's answer (`clarifications.md` Part I, D36), each with its
-consequence:
+**The derived areas (check-list D39).** Per Hell level, a table of its landscape cases in ascending area: case,
+area, N, status, `requestInBandRate` of its cell (unavailable for a reduced case) and "meets" (yes exactly when N is 20,
+the status is `measured` and the rate is at least 0.90: at least 18 of the 20 requests completed ten in-band puzzles,
+the acceptance of design §7.8 that the other levels are held to). Under it, the interval that D39 gives, written as
+MP12b3 will write it in `AREAS` (`[lo, hi]`, `hi` `Infinity` when the run of meeting cases reaches the level's
+largest case, or `[Infinity, Infinity]`), after the contiguity step of D39 (a Hell level is offered only where the
+level below it is). No owner question: the owner decided (i). MP12b3 applies this table and stops if its own
+computation differs. The reply gives the table.
 
-- (i) stop offering it: raise or close the level's `areas` interval so that the Generator no longer shows a level it
-  cannot produce (`core/engine/levels.js`, design §7.5, the brief, both user guides; packs and links made earlier still
-  open and are re-rated for display as decided). **The plan author's recommendation.**
-- (ii) keep the level for those areas under an explicitly different contract ("beyond the measured range: the search
-  budget was exhausted"), shown as such and never as a score; this reopens SA2-Q-P02 for Hell levels only and needs the
-  owner's explicit decision.
-- (iii) a separate engine project (D36 option (b)): a faster first-solution search for boards with 30 or more free
-  pieces, with its own corpus, fit and qualification; not part of difficulty-v3.
+**A cell that is not Hell without a puzzle** (not expected: every GV2 cell made puzzles, and Nightmare completes on
+22x22 and 15x20): a named finding in §9 and §13 with its numbers. The reply names it for the orchestrator, who asks
+the owner whether P-OD9's (i) applies to it as well (MP12b3 then gets an addendum); without that answer MP12b3 changes
+only the Hell levels. It is no stop.
 
-The plan author's recommendation, quoted: "(i), with (iii) as later work if Hell levels matter, because (ii)
-reintroduces a label the rating cannot back."
+### Population R: `--uniqueness require` on 18x20 at Hard, Expert and Master (PR-P1)
 
-The reply puts the question to the orchestrator, who relays the owner's answer. The task then continues:
+The plan author wants this measurement reported, because it decides whether "Hard is really hard" holds on large
+boards when a unique solution is required: in the v2-made corpus B none of those puzzles had a decisive guess
+(`fit-2026-11-12.md` §8, finding 7). The captures `r-18x20-hard`, `r-18x20-expert` and `r-18x20-master` of
+population R (one request of 10 puzzles each, 570 s) are the first evidence. For each of the three cells whose
+capture accepted no puzzle, two more captures follow in the same block: seeds `probe-require/18x20-<level>/1` and
+`/2`, labels `r-18x20-<level>-1` and `-2`, the other arguments unchanged, 570 s each, so that the outcome rests on
+three requests, the evidence P-OD9 asks of a Hell case. Record per cell: the requests, the accepted puzzles, the
+search outcomes (rated, refused for lack of a proved guess, capped), the repairs and their outcomes, the times.
 
-- **(i)**: stop before the lock; the analysts write MP12b3 ("stop offering the levels v3 cannot make") from this
-  table; MP12b3 changes the areas, the tests that pin them, design §7.5, the brief and the guides, and takes over the
-  lock steps below (its commit message also starts with `difficulty-v3 MP12b`, check-list D35).
-- **(ii) or (iii)**: recorded in the record (§9) as the owner's answer with its follow-up outside this pack; this task
-  continues with the lock. The levels stay offered, so the brief gets the sentence of the documentation slot.
+When a cell made no puzzle in its three requests, the outcome is put to the owner with these numbers, not worked
+around (the plan author: "Hard and above are not offered with `require` on those areas"):
 
-### The fail-fast proposal (D36; a proposal, not implemented)
+- (R-a) accept: Hard and above (level index 3 or more) with `--uniqueness require` stop being offered on boards from
+  A0 active cells, the area the owner sets; the record proposes 360, the smallest area measured without a puzzle, and
+  names 201, the area above which `require` is already experimental for Hell puzzles (design §2 D14; the notice
+  `N-UNIQUE-EXP` of `generator/state.js`). Implemented in MP12b3 (its part C, check-list D41);
+- (R-b) keep offering them: such a request ends without a puzzle, recorded as a known limitation (design §6.11 and
+  the release notes of MP17);
+- (R-c) another answer of the owner.
 
-From H and HL, from MP09d2's records and from R and A (the check against false stops):
+When every cell made a puzzle the record reports the numbers and no question is asked; a cell with 1 to 9 puzzles in
+its request is a named availability finding (P-OD9), no question.
+
+### Census estimates above 5 % (PR-P1; check-list D29)
+
+From list 3 of the aggregate in force: every cell above 5 % census estimates is a listed finding with its share in
+record §5; its puzzles ship with the estimate note and the `censored` flag (AR1 already guarantees a generated
+Hard-or-above puzzle a proved decisive guess, so an estimate can overstate a score but cannot invent the level's
+defining property). A cell above 25 % is put to the owner with the cost of a larger census from MP12a's record (§4.1
+and §6.5: the shares at 10, 20, 40 and 80 million on the slice cells and the deduction time they cost); no larger
+census is measured here, and no census change is made in MP12b (PR-P1).
+
+### The fail-fast proposal (an owner question; built in MP12b3 when the owner agrees)
+
+From H and HL, from the availability probe, from MP09d2's records (history) and from R and A (the check against
+false stops). After P-OD9 the Hell levels stop being offered where v3 cannot make them, but irregular boards can still
+meet unrateable sets (the plan author, PR-P1), so the proposal stays:
 
 1. Numbers: per Hell cell, the time per unrateable rating (the `ms` of the `capped` attempts: median, largest; TP07),
    the profiles a failed calibration spends (expected 20: MP09c's S5b), the set attempts a request makes before the
@@ -535,13 +576,18 @@ From H and HL, from MP09d2's records and from R and A (the check against false s
      `set-failed`): F1 and F1 + F2 one correct stop each, F2 no false stop; (c) a call with four capped raw attempts
      then a rated in-band one, `result.ok` true: F2 1 false stop, F1 none, F1 + F2 1; (d) F1 fires at attempt 0 in a
      file without `end` and no later success: unknown 1, false stops 0, completed baselines 0.
-4. The notice it would show, an observation, not a statement of impossibility, in English and Vietnamese (draft for
-   the owner; the wording of an implementation is later work): "No <level> puzzle was found within the search limits:
-   the difficulty ratings tried reached their work limits." / "Không tìm thấy đề mức <level> trong giới hạn tìm kiếm:
-   các lần đo độ khó đã thử đều chạm giới hạn tính toán."
+4. The notice F1 would show when a set request ends, an observation, not a statement of impossibility, in English and
+   Vietnamese (draft for the owner; MP12b3 uses the owner's wording, else this one): "Couldn't create a {level} piece
+   set for this board: the difficulty ratings it tried reached their work limits. Choose another level or change the
+   board." / "Không tạo được bộ mảnh mức {level} cho bàn này: các lần đo độ khó đã thử đều chạm giới hạn tính toán.
+   Hãy chọn mức khác hoặc đổi bàn." F2 alone adds no notice: a batch call it cuts is one failed candidate, and the
+   batch keeps its notices.
 
-The owner decides; implementing it is a later task (it changes generation, so after the lock it needs a new
-algorithm id).
+The owner chooses F1, F2, F1 + F2 or none; the plan author recommends F1 + F2 (end a selection call after four
+profiles that are all unrateable, and end a set request after an attempt whose calibration was entirely
+unrateable). A mechanism with an observed false stop is not proposed. MP12b3 builds the chosen mechanism before the
+lock is complete, within `gen-v3` (check-list D35, D40); with "none", nothing is built and MP12b3 records the
+limitation (design §7.5, MP17's release notes).
 
 ### The record `docs/difficulty-v3/calibration-<date>.md`
 
@@ -552,8 +598,8 @@ English, CRLF:
    (the landscape, R and A, H, HL, the availability probe) with the reuse argument for MP09d2's observations or the
    statement that they were measured again (TP25).
 2. Coverage (the coverage table of the aggregate in force, by reference with its totals: MP12b1's, or the change
-   round's after an ordered change round; the Hell run plan of P-OD6: the boundary case of each level and the reduced
-   Hell cases named; HL's manifest: case, rep, rule and limit per capture).
+   round's after an ordered change round; the Hell run plan of P-OD9: the Hell cases run with 20 requests and the
+   reduced Hell cases; HL's manifest: case, rep, rule and limit per capture).
 3. Per board and level (from the aggregate in force): request completion rate (MP12a's `requestCompletionRate`, MP11's
    `requestInBandRate`), yield, T10 median and p95, peak memory, the v3 score distribution (median, p95), the G,
    `info`, Cmax, `deductionTier` and `solutions` distributions, the census-estimate share, `provedZero` (must be 0),
@@ -565,14 +611,18 @@ English, CRLF:
    (`landscape-v3-change-1/criteria-<date>.md`), which replaces that reference (MP12a's table stays as history,
    labelled with its identity). For the other boards, the level ordering and the Hard and Expert request completion
    rates as reported facts (never compared with an invented baseline).
-5. P-OD1 (census estimates per cell over the whole landscape against the 5 % rule; list 3 of the aggregate in force),
-   P-OD2 (capped paths of accepted puzzles: none, or the cells, from the `final.jsonl` behind §4; the unrateable
-   profiles of the search evidence), both recomputed after a change round; P-OD3 (MP12a's outcome, labelled with
-   MP12a's tuple).
+5. P-OD1 (census estimates per cell over the whole landscape against the 5 % rule; list 3 of the aggregate in force:
+   every cell above 5 % listed with its share, shipped with the estimate note and the `censored` flag; a cell above
+   25 % with the owner question of "Census estimates above 5 %"), P-OD2 (capped paths of accepted puzzles: none, or the
+   cells, from the `final.jsonl` behind §4; the unrateable profiles of the search evidence), both recomputed after a
+   change round; P-OD3 (MP12a's outcome, labelled with MP12a's tuple).
 6. Search evidence (GS-P3, cross-review SP16): the summary tables of R, A, H and HL, each population in its own table
    with its denominators and source identity; repaired candidates (RES-25; TP07): the repair attempts, the successful
    repairs and the results from a repair of R, each with its denominator, and the finish outcomes; the time per rated
-   and per capped rating; the self-test result. Censored rows keep their `*`.
+   and per capped rating; the self-test result. Censored rows keep their `*`. Then **population R on 18x20** (PR-P1):
+   per Hard, Expert and Master cell the requests (one, or three when the first made no puzzle), the accepted puzzles,
+   the search and repair outcomes and the times, and, when a cell made no puzzle in three requests, the owner question
+   with options (R-a), (R-b) and (R-c).
 7. Hell report (D21): per Hell cell, from H or HL (one capture each): the ratings per accepted puzzle and the
    generation time (set, fold, total), or the failure with its profiles and time; beside it, in separate columns, the
    aggregate's request completion rate and response times for the landscape cases (none for H's seed `t18-big-a`);
@@ -581,33 +631,43 @@ English, CRLF:
 8. The stall stop: MP09d2's D21-V3 decision (on this source: not inert, 10 firings at N = 12; `STALL_LIMIT` 12;
    population S skipped, with that reason) and, only when a recorded decision said inert, the re-examination S
    (captures, the TOTAL rows for N = 8, 12 and 16, the decision).
-9. Levels v3 cannot make (D36): the evidence statement (P-OD6), the table, the options with their consequences, the
-   plan author's recommendation and the owner's answer when it is given.
+9. Hell availability (D36 decided (i), P-OD9): the evidence statement, the table of the cells without a puzzle, the
+   derived areas of check-list D39 for MP12b3, and the cells that are not Hell without a puzzle (named findings).
 10. The fail-fast proposal: the numbers, F1, F2 and F1 + F2 with the completed baselines, triggers, observed false
-    stops, correct stops and unknown outcomes of `failfast.md`, the self-test result and the notice.
+    stops, correct stops and unknown outcomes of `failfast.md`, the self-test result, the notice, the plan author's
+    recommendation (F1 + F2) and the owner question.
 11. The final values and every change since MP08 (from MP12a's record, and the change round's when one ran), with the
     reasons.
 12. The lock statement (below).
-13. Findings for the owner (cells with poor availability, orderings that fail outside the GV2 boards, census
-    estimates above 5 %, long times, a fail-fast or stall finding), or "none".
+13. Findings and questions for the owner: the named items of P-OD9 (cells with poor availability, orderings that fail
+    outside the GV2 boards, census estimates above 5 %, long times, an HL capture without a puzzle, a fail-fast or
+    stall finding), the known limitation R7 (one canonical search order, no median: the plan author's answer to PR-P1;
+    the order-noise numbers of MP12a's record §6.4), and the owner questions of this task (the fail-fast; population R
+    when a cell made no puzzle; a census cell above 25 %; a cell that is not Hell without a puzzle), or "none".
 
 ### Findings and an ordered change round (cross-review TP25, TP26, TP30, TP32, TP33)
 
-A finding is reported in the reply before the lock; the orchestrator decides. Without an order, nothing changes. If it
-orders a change round, the task does the following in this order and records each step (the record and the change
-round's `runs.md`):
+A finding is reported in the reply before the lock; the orchestrator decides. **When a change round is ordered (the
+plan author's answer to PR-P1, owner decision P-OD9; check-list D29):** only when C1 (levels ordered) or C3
+(`Gproved >= 1` at Hard and above) fails in a cell that stays offered, or when C2 fails, that is, a Hard or Expert
+request completion rate falls more than its 10 points below GV2. Never for census estimates (a cell above 5 % is a
+listed finding, above 25 % an owner question, and no census change is made in MP12b), never for a Hell cell (P-OD9:
+MP12b3 stops offering what v3 cannot make), never for any other performance or availability finding (a named item).
+A C3 failure is also a correctness failure (AR1 refuses such candidates): stop and report it with the puzzles.
+Without an order, nothing changes. If the orchestrator orders a change round, the task does the following in this
+order and records each step (the record and the change round's `runs.md`):
 
 1. **Enumerate before changing.** The record names the change (within the ranges of RES-18 and SA2-Q-P09 branch A,
    as MP12a's "Choosing a change", or the `STALL_LIMIT` raise of the re-examination) and the evidence it affects,
-   which is all of it. Every allowed change edits a file of `SOURCE_FILES` (`tools/bench/report.js:37-48`: `policy.js`,
+   which is all of it. Every allowed change edits a file of `SOURCE_FILES` (`tools/bench/report.js:37-46`: `policy.js`,
    `levels.js`, `clues.js` and the rest of the engine), so the source identity changes, and MP12b1's `aggregate.mjs`
    accepts one shared identity only. A change round therefore runs the complete population again, with no narrower
-   variant in this pack (TP32): the 25 Hell prescreens and the P-OD6 plan derived again from them, every other
+   variant in this pack (TP32): the 25 Hell prescreens and the P-OD9 plan derived again from them, every other
    landscape case, the 18 GV2 cases with the slice criteria and their probe corpus (TP30), R, A, H, HL, the
    availability probe and the fail-fast table. An earlier report is never copied or re-stamped; reusing cases across
    identities would need its own data contract, outside this pack. Before the runs, the orchestrator gets the
-   projection: the landscape 9.5–14.5 hours, the probe corpus 20–35 minutes, GS-P3 about 2–3 hours, the re-pins,
-   checks, GF-P2 and GA-P2 about 30 minutes: about 12–18 hours, plus the lock waits.
+   projection: the landscape 7.5–12.5 hours, the probe corpus 20–35 minutes, GS-P3 about 2–3 hours, the re-pins,
+   checks, GF-P2 and GA-P2 about 30 minutes: about 10–16 hours, plus the lock waits.
 2. **The change and its re-pins**: MP12a's "Pinned tests" and its table "The D36 and fixture re-pins" (TP26), each
    pin settled as that table says, its commands A and B run with this task's helper and folders
    (`tests\artifacts\MP12b2\dv3-lock.ps1`, `tests/artifacts/MP12b2/change-1/d36/`, task labels `MP12b2 change-1 …`).
@@ -615,7 +675,7 @@ round's `runs.md`):
 3. **The between-round checks** of MP12a's "Test order around a knob change", under the lock (the
    fixture-independent files and the slow tests only; before GF-P2 the fixture-dependent files and the quick set fail
    by design and gate nothing; TP06).
-4. **The landscape again**, by MP12b1's shard procedure (its order and its Hell prescreens and P-OD6 plan) with the
+4. **The landscape again**, by MP12b1's shard procedure (its order and its Hell prescreens and P-OD9 plan) with the
    block below: staged under `tests/artifacts/MP12b2/change-1/landscape/`, the 18 GV2 cases published into
    `docs/difficulty-v3/landscape-v3-change-1/slice/` (the layout of an MP12a round folder), every other case into
    `docs/difficulty-v3/landscape-v3-change-1/`, the invocations in its `shards-<date>.md`. Then the block's
@@ -629,7 +689,15 @@ round's `runs.md`):
    `docs/difficulty-v3/landscape-v3-change-1/slice/probe`, `RUNS_DIR` `tests/artifacts/MP12b2/change-1/runs`,
    `RECIPES_DIR` `tests/artifacts/MP12b2/change-1/recipes` and the run log
    `tests/artifacts/MP12b2/change-1/runlog.jsonl`; when MP12a's copies are gone, it is written again from MP06b
-   Amendment A1, as MP12a says. The packs, `manifest.json` and `final.jsonl` go to `slice/probe/`; a capture that
+   Amendment A1, as MP12a says. **Path note (cross-review TP34):** the copies sit one folder deeper than MP12a's, so in
+   them only (never in MP12a's originals or in `criteria.mjs`): the six `../../../core/...` and `../../../tools/...`
+   imports of `corpus.mjs` (its lines 13-18 at the resume) and the repository root of `lib.mjs` (three parent steps at
+   its lines 15-23) take four parent steps; `ROUND_DIR` is the change round's `slice/` folder, and the round and date
+   settings (`MP12A_ROUND`, `MP12A_DATE`) are replaced by this round's; the expected-report lookup (`corpus.mjs:116`,
+   `` `${ROUND_DIR}/${d.caseId}-${DATE}.json` ``) selects the unique dated report of the case in the new `slice/`
+   (shards may start on different dates), never MP12a's folder. Print the resolved paths of `ROOT`, `ROUND_DIR`,
+   `CORPUS_DIR`, `RUNS_DIR` and `RECIPES_DIR` and check them before the first capture. The packs, `manifest.json` and
+   `final.jsonl` go to `slice/probe/`; a capture that
    exits 2 or an identity mismatch is recorded, never substituted (RES-14); no result of an earlier tuple stands in
    for these inputs. Then the read-only `criteria.mjs` on that folder, the unchanged GV2 baseline and the new
    `final.jsonl`, into `docs/difficulty-v3/landscape-v3-change-1/criteria-<date>.md` (block below; without `--fit`:
@@ -643,17 +711,18 @@ round's `runs.md`):
    capture), `runs.md`, `summary.md`, `failfast.md` and `avail-summary.md` go under `$data`; the availability probe
    runs, since the engine changed and the reuse check fails by itself.
 7. **Stops before the record and the lock**: a `missing` or `invalid` case of the change aggregate; an input error of
-   `criteria.mjs` (exit 1); a criterion of the new C1-C5 table that fails or is unavailable (with its numbers; the
-   disposition of an earlier table is never carried over to changed results); an HL stop; a semantic failure; an
-   availability decision that changed (a level made or lost on an area, against the owner's question as asked):
-   report to the orchestrator before the lock. P-OD5 and P-OD6 stay as decided, no threshold changes, and no
-   fail-fast is implemented here.
+   `criteria.mjs` (exit 1); a criterion of the new C1-C5 table that fails or is unavailable in a cell that stays
+   offered (with its numbers; the disposition of an earlier table is never carried over to changed results); a
+   semantic failure: report to the orchestrator before the lock. An availability result that changed (a level made or
+   lost on an area), an HL capture without a puzzle and any other performance or availability observation are named
+   items (P-OD9), no stop: the Hell areas of D39 are derived again from the change aggregate. P-OD5, P-OD6 as changed
+   by P-OD9, and P-OD9 stay as decided, no threshold changes, and no fail-fast is implemented here.
 8. **The record from current-tuple evidence** (TP30): §3 from the change aggregate; §4 the change round's C1-C5 table
    (`criteria-<date>.md`), replacing the reference to MP12a's final round, after `Assert-CriteriaSource` (test plan)
    passed on the `slice` folder; §5 P-OD1 from the change aggregate's list 3 and P-OD2 from the new `final.jsonl` and
-   search evidence, P-OD3 labelled with MP12a's tuple; §6, §7, §9 and §10 from `$data`, the owner's question refreshed
-   from these results only. The earlier tables stay in the record as history, side by side, labelled with their
-   identity.
+   search evidence, P-OD3 labelled with MP12a's tuple; §6, §7, §9 and §10 from `$data`, the derived areas and the owner
+   questions refreshed from these results only. The earlier tables stay in the record as history, side by side,
+   labelled with their identity.
 9. **GF-P2, the strict post-GF-P2 checks and GA-P2**, exactly as MP12a's "GF-P2 and GA-P2" block with this task's
    helper and the reason `P3: v3 calibration (final)`; the first `npm test` is kept in
    `tests/artifacts/MP12b2/ga-p2-first.txt`.
@@ -696,9 +765,12 @@ if ($LASTEXITCODE -ne 0) { throw 'criteria.mjs: input error; stop and report' }
   `npm test` equals the identity of the record's evidence (MP12b1's landscape, or the change round's), and the GV2
   reports behind record §4 carry it too (`Assert-CriteriaSource`; TP30).
 - Statement, in the record and in design §7.8: "The `difficulty-v3` rating (`SCORE_V3`, `DEDUCE`), the clue search
-  (`gen-v3`, `STALL_LIMIT`), `K60`, `SHARES` and `POLICY_ID` are locked at <revision>. Any later change of a weight, a
-  cap, a band, a rule of the deduction ladder, the census, a counter, the clue search, `SHARES` or `K60` needs a new
-  model, algorithm or policy id and a new qualification."
+  (`gen-v3`, `STALL_LIMIT`), `K60` and `SHARES` are locked at the commit of MP12b2 (`difficulty-v3 MP12b2`); MP12b3
+  completes the lock with the availability decided by the owner (the Hell `AREAS`, P-OD9; the policy id and, when the
+  owner agreed, the fail-fast and the population-R outcome), and from its commit on no rating or generated puzzle
+  changes. Any later change of a weight, a cap, a band, an availability interval, a rule of the deduction ladder, the
+  census, a counter, the clue search, `SHARES` or `K60` needs a new model, algorithm or policy id and a new
+  qualification." Name the commit by its message, not by a hash (the orchestrator makes it after the reply).
 
 ## Files to create/modify
 
@@ -707,28 +779,26 @@ if ($LASTEXITCODE -ne 0) { throw 'criteria.mjs: input error; stop and report' }
 | `docs/difficulty-v3/search-<date>/` (new) | `observe.mjs`, `summary.mjs`, `flow-case.mjs` (TP23), `failfast.mjs` (TP24), the captures under `require/`, `any/`, `hell/`, `hell-landscape/` (with `manifest.json`) and, when run, `avail/` (TP25) and `stall/`; `runs.md`, `summary.md`, `failfast.md`, `avail-summary.md` (when `avail/` ran), `stall-simulate.md` (when S ran); `change-1/` (the data root of an ordered change round, same layout, no scripts; TP33) |
 | `docs/difficulty-v3/landscape-v3-change-1/` (new, only in an ordered change round) | the change round's published landscape reports and Hell prescreens, `shards-<date>.md`, `aggregate-<date>.json` and `.md`, `criteria-<date>.md`; `slice/` with the 18 GV2 reports and `probe/` (`packs/`, `manifest.json`, `final.jsonl`) (TP30, TP32) |
 | `docs/difficulty-v3/calibration-<date>.md` (new) | the record |
-| `docs/design-detail.md` | §7.8; §7.5 (the Hell sentence) |
-| `docs/design-brief.md` | only by the rule below |
+| `docs/design-detail.md` | §7.8 |
 | knob values, `STALL_LIMIT`, re-pins, fixtures | only in an ordered change round |
 
 Exclusive ownership while active: the files above; scratch under `tests/artifacts/MP12b2/` (the lock helper
 `dv3-lock.ps1`, the self-test file, `handoff-check/`, and in a change round `change-1/`: the landscape staging, the
-D36 re-observations, the probe driver copy, its runs, recipes and run log). Documentation slot:
-design §7.8 (below); design §7.5, the sentence MP09d2 added about the Hell levels, updated with the measured result
-(which levels and boards v3 could not make) and, once given, the owner's answer; `docs/design-brief.md` "Levels and
-typical boards", one sentence, only when the owner keeps levels v3 cannot make on offer ((ii) not yet implemented, or
-(iii)): "Hell levels are listed for the boards in the table, but the current rating cannot measure them on the boards
-named in the design notes, so a request for one ends without a puzzle." (cross-review SP07). Must not edit: algorithm
-code (outside a change round), MP12a's and MP12b1's records, folders and scripts (`launch.mjs`, `criteria.mjs`,
-`aggregate.mjs` are run, never changed), MP09d2's folder and the D21 folder `d21-2026-11-12/` (its `flow.mjs` is
-copied, never edited), `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json`.
+D36 re-observations, the probe driver copy, its runs, recipes and run log). Documentation slot: design §7.8 (below).
+Design §7.5, `docs/design-brief.md` and the guides are MP12b3's (the Hell areas and their consequences). Must not
+edit: algorithm code (outside a change round), MP12a's and MP12b1's records, folders and scripts (`launch.mjs`,
+`criteria.mjs`, `aggregate.mjs` are run, never changed), MP09d2's folder and the D21 folder `d21-2026-11-12/` (its
+`flow.mjs` is copied, never edited), `player/samples/sample-pack.json`, `tests/fixtures/puzzlecode-v1.json`.
 
-### `docs/design-detail.md` §7.8 (after MP09d2's edits)
+### `docs/design-detail.md` §7.8 (after MP12a's close)
 
 Replace the provisional sentence on the v3 knobs with the measured parameters: the final `SCORE_V3` and `DEDUCE`
-values, `K60` and `SHARES` (unchanged or changed, with the reason), `STALL_LIMIT`, the request completion rates and
-availability in two or three sentences with a link to `docs/difficulty-v3/calibration-<date>.md`, the census-estimate
-share, and the lock statement. §7.9 and §7.10 keep pointing to `policy.js` for the values (no copy of numbers that
+values (the tuple `12 / 3 / [0, 0, 2, 3] / G 5 / info 0.5 / (1, 2)`, `census` 80,000,000), `K60` and `SHARES`
+(unchanged), `STALL_LIMIT`, the request completion rates and availability in two or three sentences with a link to
+`docs/difficulty-v3/calibration-<date>.md`, the census-estimate share (the cells above 5 %, listed with their shares;
+their puzzles carry the estimate note), and the lock statement. Keep the bullet "Known limitation: one search order
+(R7)" that MP12a's close wrote, with a link to the new record. Leave the Hell areas to MP12b3 (it rewrites §7.5 and
+adds its own sentence to §7.8). §7.9 and §7.10 keep pointing to `policy.js` for the values (no copy of numbers that
 could drift).
 
 ## Implementation steps
@@ -737,17 +807,20 @@ could drift).
    `flow-case.mjs`, write `failfast.mjs`; run the summary and fail-fast self-tests, `node --check` and the refused
    `flow-case.mjs` call (all quick, no lock: nothing is generated).
 2. The identity (`Identity`) against MP12b1's aggregate; the reuse check for MP09d2's observations (TP25).
-3. Write each block's plan into `runs.md`, then run the blocks one capture per lock: R + A, then H, then HL (the rep
-   rule and the manifest), then the availability probe only when the reuse check failed; the identity before and
-   after each block; summarise (`summary.md`, `avail-summary.md`) and run `failfast.mjs` into `failfast.md`.
+3. Write each block's plan into `runs.md`, then run the blocks one capture per lock: R + A (with the two extra
+   captures of each 18x20 R cell that made no puzzle), then H, then HL (the rep rule and the manifest), then the
+   availability probe (the reuse check fails at the resume); the identity before and after each block; summarise
+   (`summary.md`, `avail-summary.md`) and run `failfast.mjs` into `failfast.md`.
 4. The stall re-examination only when `$runStallRecheck` is true (on this source it is false: S is skipped and the
    record says why).
-5. The owner's question and the fail-fast proposal; the record (§9 waits for the answer; §4 only after the test
-   plan's synthetic handoff check and `Assert-CriteriaSource` on the folder behind it, TP30); report findings and
-   the question, and wait for the orchestrator's decision (an ordered change round runs as its section says, with
-   its own data root, TP33).
-6. Without option (i): under the lock helper, `record-fixtures --check`, the final `npm test`, the quick set; the
-   identity after them; design §7.8 and §7.5 (and the brief by its rule), the lock statement; `npm run check`.
+5. The Hell availability with the derived areas of D39, population R, the census cells, the fail-fast proposal; the
+   record (§4 only after the test plan's synthetic handoff check and `Assert-CriteriaSource` on the folder behind it,
+   TP30). A change round runs only when the orchestrator orders it by the rule of "Findings and an ordered change
+   round" (with its own data root, TP33).
+6. Under the lock helper, `record-fixtures --check`, the final `npm test`, the quick set; the identity after them;
+   design §7.8 and the lock statement; `npm run check`. Then the reply, with the owner questions (the fail-fast;
+   population R when a cell made no puzzle; a census cell above 25 %; a cell that is not Hell without a puzzle) and the
+   table of derived areas for MP12b3; the task does not wait for the answers.
 
 ## Acceptance criteria — Business
 
@@ -755,9 +828,9 @@ could drift).
 |---|---|---|
 | MP12b2-B01 | The calibration record shows how the search reached its puzzles: rated, refused (AR1), unrateable and repair ratings, successful repairs, per selection and per accepted puzzle, for `require` and `any` cells | record §6; the summary |
 | MP12b2-B02 | Every Hell cell of the landscape is reported from a capture of its own population (H or HL; TP23) with ratings per accepted puzzle and generation time under v3, or its failure with numbers, censoring shown; the landscape's request completion rates stay in their own columns (D21) | record §7; `hell-landscape/manifest.json` |
-| MP12b2-B03 | The owner gets, for every cell v3 cannot make, the facts with the evidence each rests on (P-OD6: its requests, the boundary case of its level; the smallest areas measured under the final tuple or MP09d2's with the reuse argument; TP25) and the three options with the plan author's recommendation, and a measured fail-fast proposal stated as "no false stop observed in N completed baselines" with its unknown outcomes (D36, TP24) | record §9, §10; `failfast.md`; the reply |
+| MP12b2-B03 | The record gives, for every cell without a puzzle, the facts with the evidence each rests on (P-OD9: its requests; the smallest areas measured under the final tuple; TP25), and the Hell areas that check-list D39 derives for MP12b3 (no D36 question: decided (i)); the owner gets a measured fail-fast proposal stated as "no false stop observed in N completed baselines" with its unknown outcomes and the plan author's recommendation (TP24), population R's outcome on 18x20 with three requests per cell without a puzzle (PR-P1), and every census cell above 25 % | record §5, §6, §9, §10, §13; `failfast.md`; the reply |
 | MP12b2-B04 | The stall stop follows the recorded D21 decision: on this source (not inert) S is skipped with the reason; S runs only under a recorded "inert" decision, and `STALL_LIMIT` stays 12 or is raised to 16 only by the rule (TP28) | record §8 |
-| MP12b2-B05 | The v3 rating and generation are locked on the tree whose identity the evidence carries, and the design document says what the lock means | record §12; design §7.8 |
+| MP12b2-B05 | The v3 rating tuple is locked on the tree whose identity the evidence carries; the design document says what the lock means, that MP12b3 completes it, and states R7 as a known limitation | record §12, §13; design §7.8 |
 
 ## Acceptance criteria — Technical
 
@@ -767,11 +840,13 @@ could drift).
 | MP12b2-T02 | Every capture of R, A, H, HL (and `avail/` and S when run) ran through `Invoke-Dv3Timed`, one capture per lock, within its limit, and is in `runs.md` with its outcome and lock wait, never overwritten; the identity before and after each block equals the landscape's; the summary's denominators are stated (TP20, TP25) | `runs.md`; the folder |
 | MP12b2-T03 | The stall decision follows the recorded D21 decision and MP09d2's table: `$runStallRecheck` is set only from that decision, never by a text search; a raise happens only in an ordered change round with GF-P2 and GA-P2 (TP28) | record §8; the test plan; diff |
 | MP12b2-T04 | `failfast.mjs --self-test` passes its four cases (SA2's combined case, an all-capped completed request, an F2-lost successful call, a censored tail); `failfast.md` gives F1, F2 and F1 + F2 over R, A, H and HL with completed baselines, triggers, observed false stops, correct stops and unknown outcomes (TP24) | command output; `failfast.md` |
-| MP12b2-T05 | `record-fixtures --check` and the final `npm test` pass on the locked tree under the lock helper; no `core/` or `tools/` change in this task without an ordered change round; an ordered change round followed its nine steps: the complete population again in new folders (TP32), the slice criteria from a new probe corpus with `criteria.mjs` and record §4 replaced by that table (TP30), GS-P3 under its own data root with the scripts at `$s` (TP33), every stop reported before the lock (TP25, TP26) | command output; diff; record |
-| MP12b2-T06 | Design §7.8 has the measured parameters and the lock statement, §7.5 the measured Hell result; the brief follows its rule; `npm run test:quick` and `npm run check` pass; records CRLF without BOM | review; command output |
+| MP12b2-T05 | `record-fixtures --check` and the final `npm test` pass on the locked tree under the lock helper; no `core/` or `tools/` change in this task without an ordered change round; a change round ran only under the rule of PR-P1 (C1 or C3 failing in a cell that stays offered, or C2 failing) and followed its nine steps: the complete population again in new folders (TP32), the slice criteria from a new probe corpus with `criteria.mjs` and record §4 replaced by that table (TP30), GS-P3 under its own data root with the scripts at `$s` (TP33) and the copied probe driver adapted as the path note says (TP34), every stop reported before the lock (TP25, TP26) | command output; diff; record |
+| MP12b2-T06 | Design §7.8 has the measured parameters, the census findings, R7 as a known limitation and the lock statement; `npm run test:quick` and `npm run check` pass; records CRLF without BOM | review; command output |
 | MP12b2-T07 | `flow-case.mjs` differs from `flow.mjs` only by the two edits (the record quotes the `--stat`); HL has one capture for each of the 20 Hell cases outside H, its rep by the rule and its manifest entry; no ratio divides one population's count by another's accepted puzzles (TP23) | `hell-landscape/`; record §7 |
-| MP12b2-T08 | MP09d2's observations count as final-tuple evidence only with the quoted reuse argument; otherwise the availability probe ran again into `avail/` and the boundaries of option (i) come from final-tuple observations only (TP25) | record §1, §9; `avail-summary.md` |
+| MP12b2-T08 | MP09d2's observations count as final-tuple evidence only with the quoted reuse argument (it fails at the resume); the availability probe ran again into `avail/`, and the derived areas of D39 come from final-tuple observations only (TP25) | record §1, §9; `avail-summary.md` |
 | MP12b2-T09 | The criteria table of record §4 comes from GV2 reports with the locked tree's identity: the synthetic handoff check refused the old passing table (GV2 95 %, old 90 %, new 80 %) and `Assert-CriteriaSource` passed on the folder behind §4 (TP30) | command output; record §4 |
+| MP12b2-T10 | Each 18x20 cell of population R whose first capture made no puzzle has its two extra captures (seeds `/1`, `/2`) in `require/`, through the capture function, with their rows in `runs.md` (PR-P1) | `require/`; `runs.md`; record §6 |
+| MP12b2-T11 | The derived areas of record §9 follow check-list D39 exactly (the meeting rule, the interval, the contiguity step), one table per Hell level, from the coverage and cells of the aggregate in force | record §9; the aggregate |
 
 ## Test plan
 
@@ -784,7 +859,7 @@ $data = $s   # the data root of captures and tables; "$s/change-1" in an ordered
 $d = 'docs/difficulty-v3/d21-2026-11-12'
 $v = 'docs/difficulty-v3/d21-v3-2026-11-12'   # MP09d2's folder (read only)
 $full = 'docs/difficulty-v3/landscape-v3-full/aggregate-<date>.json'   # MP12b1's; a change round: its own aggregate
-$criteriaFolder = 'docs/difficulty-v3/landscape-v3/r<k>'   # MP12a's final round; a change round: its slice folder
+$criteriaFolder = 'docs/difficulty-v3/landscape-v3/r2'   # MP12a's final round; a change round: its slice folder
 New-Item -ItemType Directory -Force "$data/require", "$data/any", "$data/hell", "$data/hell-landscape",
   'tests\artifacts\MP12b2' | Out-Null
 
@@ -844,6 +919,19 @@ $null = Capture "$data/require/r-6x10-hard.jsonl" "$s/observe.mjs" "$d/flow.mjs"
   '--seed', 'probe-require/6x10-hard/0', '--uniqueness', 'require', '--quantity', '10', '--label', 'r-6x10-hard') 570
 $null = Capture "$data/any/a-12x12-master.jsonl" "$s/observe.mjs" "$d/flow.mjs" @('--board', '12x12', '--level', 'master',
   '--seed', 'search/12x12-master/0', '--quantity', '5', '--label', 'a-12x12-master') 570
+# population R on 18x20 (PR-P1): two more requests for each cell whose first capture accepted no puzzle
+foreach ($lv in 'hard', 'expert', 'master') {
+  $first = "$data/require/r-18x20-$lv.jsonl"
+  $ends = @(Get-Content $first | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.kind -eq 'event' -and $_.ev -eq 'end' })
+  $acc = @(Get-Content $first | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.kind -eq 'event' -and $_.ev -eq 'accepted' })
+  $made = if ($ends.Count -gt 0) { [int]$ends[-1].accepted } else { $acc.Count }
+  if ($made -gt 0) { continue }
+  foreach ($n in 1, 2) {
+    $null = Capture "$data/require/r-18x20-$lv-$n.jsonl" "$s/observe.mjs" "$d/flow.mjs" @('--board', '18x20', '--level',
+      $lv, '--seed', "probe-require/18x20-$lv/$n", '--uniqueness', 'require', '--quantity', '10', '--label',
+      "r-18x20-$lv-$n") 570
+  }
+}
 Identity 'after R + A'
 
 # block H: the five captures of the table, for example:
@@ -893,7 +981,10 @@ foreach ($case in $hl) {
     quantity = 10; limitS = $limit; capture = $out; outcome = $outcome; final = $final; source = $ref })
   $text = (ConvertTo-Json @($manifest) -Depth 6) -replace "`r?`n", "`r`n"
   [IO.File]::WriteAllText((Join-Path (Get-Location) $mf), "$text`r`n")
-  if ($rule -ne 'none' -and $accepted -eq 0) { throw "hl-${case}: the landscape made puzzles, the replay none: stop and report" }
+  if ($rule -ne 'none' -and $accepted -eq 0) {
+    # an availability finding, no stop (P-OD9): record it as a named item and go on
+    Add-Content "$data/runs.md" "| named item: hl-$case accepted no puzzle within $limit s; its landscape report made some (P-OD9) | | | | | |"
+  }
 }
 Identity 'after HL'
 
@@ -1008,7 +1099,8 @@ written by PowerShell 7 (UTF-8 without BOM, CRLF): check them with the one-liner
 the reply. The analysts ran this block at `a85ed55` on a stub tree (stub drivers and tools, a private lock folder,
 `<date>` and `<k>` replaced, four and then three HL cases): the rep rule (`complete` rep 1, `some-puzzle` rep 2, `none`
 rep 0 at 180 s), the censored count (calibration 1 + accepted events to slot 3 gives 3), a `set-failed` end, the HL
-stop with the manifest kept, the availability branch with MP09d2's six file names and arguments, S skipped, the lock
+stop with the manifest kept (since P-OD9 a named item, not a stop), the availability branch with MP09d2's six file
+names and arguments, S skipped, the lock
 commands and the identity rows all behaved as written; a rerun skipped the HL cases of the manifest and the
 availability files already captured. A second pass on the same tree, after an engine change and with the three change
 round values (TP33), put every capture, a new HL manifest (all three cases captured again, from the change round's
@@ -1021,12 +1113,13 @@ closed: `Identity` stops on the changed digest.
 
 - Every criterion has its evidence; the reply gives the self-test results (summary, fail-fast), the identity rows and
   the reuse statement, the record §4 source check (TP30), the summary tables, the Hell report (H and HL with the
-  manifest), the stall decision, the owner's question with its table and evidence statement, the fail-fast proposal
-  with its outcome categories, the findings, the machine time with the lock waits, and (after the lock) the lock
-  revision.
-- Handoff to MP13a to MP17: the lock revision; from now on no rating or generated puzzle may change (check-list §6);
-  MP17 compares its final evidence with this record. If the owner chose option (i), the handoff is to MP12b3 instead,
-  which locks.
+  manifest), the stall decision, the Hell availability with its evidence statement and the derived areas of D39,
+  population R, the census cells, the fail-fast proposal with its outcome categories, the named items, the owner
+  questions (each with its numbers and options), the machine time with the lock waits, and the lock statement.
+- Handoff to MP12b3 (always; check-list D35): the record, the derived areas of D39, the aggregate in force, the
+  owner questions; the orchestrator adds the owner's answers (recorded in `clarifications-resolved.md` Part H) to
+  MP12b3's dispatch. MP12b3 completes the lock; from its commit on no rating or generated puzzle may change
+  (check-list §6), and MP17 compares its final evidence with this record and MP12b3's.
 
 ## Execution log
 

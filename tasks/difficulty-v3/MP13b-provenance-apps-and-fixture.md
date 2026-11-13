@@ -35,7 +35,7 @@ an older Generator keeps no origin rather than a wrong one. No rating, puzzle, h
 - Tests: `tests/generation-client.test.js`, `tests/generator-state.test.js`, `tests/generator-controller.test.js`,
   `tests/generate.test.js` (the recorder test only), `tests/cli.test.js` (one case).
 - Documents: `docs/design-detail.md` §5.5 (who writes the keys), §10.5 (the Generator keeps them) and the fixtures
-  paragraph of §13 (line 2659 at HEAD: "**Fixtures** live in `tests/fixtures/`.").
+  paragraph of §13 (line 2848 at HEAD: "**Fixtures** live in `tests/fixtures/`.").
 
 ### Out of scope
 
@@ -69,8 +69,9 @@ an older Generator keeps no origin rather than a wrong one. No rating, puzzle, h
 
 ## Inputs & context
 
-Anchors are at HEAD `60575a4`; MP09a2 and MP10b2 edit `generator/state.js`, MP10a and MP10b2 edit
-`core/browser/generation-client.js` and `generator/jobs.js`: find moved lines by the quoted text.
+Anchors are at HEAD `55c0c61` (checked in the resume revision); MP12b3 edits `generator/state.js` (the level list)
+and, with the fail-fast, `core/browser/generation-client.js` and `generator/jobs.js`; MP13a edits the engine: find
+moved lines by the quoted text.
 
 ### From MP13a
 
@@ -88,11 +89,11 @@ Anchors are at HEAD `60575a4`; MP09a2 and MP10b2 edit `generator/state.js`, MP10
 
 ### Generation client (`core/browser/generation-client.js`)
 
-- `generationMeta(p)` (line 340) builds the `generation` object in a fixed key order ending with
+- `generationMeta(p)` (line 346) builds the `generation` object in a fixed key order ending with
   `meta.uniqueness = p.uniqueness; meta.createdAt = p.createdAt;`. Add two optional parameters `p.setOrigin`
   (`SetOrigin`) and `p.made` (`Record<string, Made>`) and, after `createdAt`, write `meta.setOrigin` (a copy) when
   given and `meta.made` (a copy) when given and not empty. Existing keys and their order are unchanged.
-- `finishSet(request, value)` (line 665): build
+- `finishSet(request, value)` (line 686): build
 
   ```js
   const setOrigin = { schema: 1, seed: request.seedText, level: request.levelId, attempt: value.attempt,
@@ -100,19 +101,19 @@ Anchors are at HEAD `60575a4`; MP09a2 and MP10b2 edit `generator/state.js`, MP10
   ```
 
   pass it to `generationMeta` and return it: `{ status: 'complete', set, calibration, attempt, setOrigin, pack }`.
-  `SetJobResult` (typedef near line 102) gains `@property {SetOrigin} [setOrigin] Present with status complete.`
-- `BatchInput` (typedef near line 44) gains `@property {SetOrigin} [setOrigin] Origin of the set, as its set result
-  gave it; written into the pack unchanged.` `checkBatch` (line 703): when `input.setOrigin !== undefined` and
+  `SetJobResult` (typedef near line 104) gains `@property {SetOrigin} [setOrigin] Present with status complete.`
+- `BatchInput` (typedef near line 46) gains `@property {SetOrigin} [setOrigin] Origin of the set, as its set result
+  gave it; written into the pack unchanged.` `checkBatch` (line 726): when `input.setOrigin !== undefined` and
   `provenanceProblem('setOrigin', input.setOrigin) !== null`, throw `GenerationError('invalid-input', 'setOrigin is not
   a valid set origin')` (inside the existing `try`, so the history detail is attached); return it in the request.
-- `generateBatch` (line 763): a local `/** @type {Record<string, Made>} */ const made = {};`.
-  - `checkOutcome` (line 872): a valid candidate also needs `provenanceProblem('made', value.made) === null`;
+- `generateBatch` (line 784): a local `/** @type {Record<string, Made>} */ const made = {};`.
+  - `checkOutcome` (line 893): a valid candidate also needs `provenanceProblem('made', value.made) === null`;
     otherwise the existing `GenerationError('internal', 'The worker sent an invalid puzzle candidate', detail())`.
-  - `accept(candidate)` (line 859): after building `puzzle`, `made[puzzle.id] = candidate.made;` and the
+  - `accept(candidate)` (line 875): after building `puzzle`, `made[puzzle.id] = candidate.made;` and the
     `onAccepted` event gains `made: candidate.made`. Calibration reuse (`for (const calibration of state.accepted)`)
     and the completion pass go through `accept` too.
   - The result gains `made` (a copy of the map: one record per accepted puzzle) and the batch pack's
-    `generationMeta(…)` call (line 1123) gains `setOrigin: request.setOrigin` and `made`.
+    `generationMeta(…)` call (line 1143) gains `setOrigin: request.setOrigin` and `made`.
   - `AcceptedEvent` gains `@property {Made} made`; `BatchJobResult` gains `@property {Record<string, Made>} made`.
   - `GenerationError` details are unchanged (the Generator takes the records from the accepted events).
 - Imports: `provenanceVersions` from `../engine/generate.js` (already imported from there), `provenanceProblem`
@@ -128,34 +129,34 @@ set.setOrigin,`. Its packs then carry both keys; `tests/cli.test.js` compares ru
 
 State and storage:
 
-- `GeneratorState` (typedef at lines 38-64) gains `@property {SetOrigin | null} setOrigin How the set on show was
+- `GeneratorState` (typedef at line 39) gains `@property {SetOrigin | null} setOrigin How the set on show was
   made (RES-27); null for an imported set or a set saved by an older version.` and `@property {Readonly<Record<string,
   Made>>} puzzleMade Origin record of each puzzle, by puzzle id.`; `defaultGeneratorState` sets `setOrigin: null`
-  and `puzzleMade: {}`; `freshSetExtras()` (line 480) adds `puzzleMade: {}`; `withoutSet` (line 1624) adds
-  `setOrigin: null`; `removeAllPuzzles` (line 1484) adds `puzzleMade: {}`.
-- `SavedSet` (typedef near line 25) gains `@property {SetOrigin} [setOrigin]` and `@property {Record<string, Made>}
+  and `puzzleMade: {}`; `freshSetExtras()` (line 514) adds `puzzleMade: {}`; `withoutSet` (line 1699) adds
+  `setOrigin: null`; `removeAllPuzzles` (line 1559) adds `puzzleMade: {}`.
+- `SavedSet` (typedef near line 27) gains `@property {SetOrigin} [setOrigin]` and `@property {Record<string, Made>}
   [made] Records of the stored puzzles.`
-- `savedSetOf(state)` (line 854): add `setOrigin` when not null and `made` = the records of `state.puzzles` that have
+- `savedSetOf(state)` (line 888): add `setOrigin` when not null and `made` = the records of `state.puzzles` that have
   one (omitted when empty).
-- `readSavedSet(saved)` (line 885): `const provenance = readProvenance({ setOrigin: dto.setOrigin, made: dto.made },
+- `readSavedSet(saved)` (line 919): `const provenance = readProvenance({ setOrigin: dto.setOrigin, made: dto.made },
   new Set(puzzles.map((p) => p.id)));` and return `setOrigin: provenance.setOrigin` and `puzzleMade:
   provenance.made`; problems are ignored (storage is not a pack; nothing is shown). Its return typedef gains both.
   `restoreState` (`Object.assign(state, current)`) and `gotoSet` (`...read`) then carry them without further change.
-- `acceptSet(state, accepted)` (line 546): `accepted` gains `setOrigin?: SetOrigin | null`; the new state has
+- `acceptSet(state, accepted)` (line 580): `accepted` gains `setOrigin?: SetOrigin | null`; the new state has
   `setOrigin: accepted.setOrigin ?? null` (the spread of `freshSetExtras()` already empties `puzzleMade`).
   `importPuzzle` passes no origin for a new set (`imported` carving, fresh seed); a puzzle imported into the set on
   show keeps the state's origin and gets no record.
-- `PERSISTED_KEYS` (line 1091) adds `'setOrigin'` and `'puzzleMade'`.
-- `generationOf(state, puzzles, createdAt)` (line 1300): after `generation.createdAt = createdAt;` write
+- `PERSISTED_KEYS` (line 1150) adds `'setOrigin'` and `'puzzleMade'`.
+- `generationOf(state, puzzles, createdAt)` (line 1375): after `generation.createdAt = createdAt;` write
   `generation.setOrigin` (a copy) when `state.setOrigin !== null`, and `generation.made` = the records of `puzzles`
   found in `state.puzzleMade` (omitted when none). `buildPack`, `visiblePack` and `packFits` need no change
   (`serializePack` leaves `made` out near the limit, so `packFits` never drops a puzzle for its record).
 
 Jobs (`generator/jobs.js`):
 
-- `generateSet(request)` (line 255): `acceptSet(s, { set, calibration, setSeed: request.seed, calibrationFor: {
+- `generateSet(request)` (line 302): `acceptSet(s, { set, calibration, setSeed: request.seed, calibrationFor: {
   levelId, uniqueness }, trusted: true, setOrigin: result.setOrigin ?? null })`.
-- `addMore()` (line 316): in the `client.generateBatch({ … })` input add `...(state.setOrigin === null ? {} : {
+- `addMore()` (line 354): in the `client.generateBatch({ … })` input add `...(state.setOrigin === null ? {} : {
   setOrigin: state.setOrigin })`. Note: the local variable `made` in `addMore` is `state.calibrationFor`; name the new
   record map differently (for example `records`). In `onAccepted`, when the puzzle is admitted, also store
   `records[event.puzzle.id] = event.made` and update `puzzleMade: { ...s.puzzleMade, [event.puzzle.id]: event.made }`
@@ -181,7 +182,9 @@ node tools/record-fixtures.mjs --replay-case --create --seed <n> | --check | --r
   `createPool` from `../core/browser/worker-pool.js`, `nodeWorkerFactory` from `./node-worker.mjs`); close the pool
   in a `finally`.
 - Recipe: board 10 x 6 (`BOARD_ROWS`), rotation 0, level `'hard'`, uniqueness `'require'`, quantity 4, set seeds
-  `replay-case-<n>` for n = 0 … 49. For each n:
+  `replay-case-<n>` for n = 0 … 49 (offered after MP12b3: its Hell areas do not touch 60 cells, and a `require` rule of
+  check-list D41 starts far above them; if the owner's area A0 were 60 or less, ask the orchestrator for an addendum).
+  For each n:
 
   ```text
   set = generateSet({ boardRows, rotation, levelId, seedText, uniqueness, maxActive: 676 })   // must be complete
@@ -247,7 +250,7 @@ orchestrator instead), `player/`, the UI modules or the other fixtures.
 
 - §5.5: who writes the keys (the client for the CLI and the Generator; `setOrigin` once, when the set is made, never
   re-stamped; `made` for every accepted puzzle) and that an imported set has no origin.
-- §10.5 "Step 3: Create puzzles" (line 2170): the Generator keeps each set's origin and each puzzle's record with the
+- §10.5 "Step 3: Create puzzles" (line 2354): the Generator keeps each set's origin and each puzzle's record with the
   saved set and writes them into exported and shared packs (used by Generation Steps, MP16b).
 - §13 fixtures paragraph: `tests/fixtures/replay-case.json` and its recorder mode.
 - `docs/design-brief.md`, "Generator: make a challenge", the paragraph that starts "Board edits never delete work"
@@ -307,7 +310,7 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 
 Announce in your reply plan: "GF-P4: `record-fixtures --replay-case --search` (each run at most 540 s, resumed with
 `--from` until a seed is selected), `--create --seed <n>`, `--check`, then `npm test` (about as long as the last full
-run in the MP12b2 Execution log)". The Sudoku repository runs in parallel on the same machine: start after the
+run in the MP12b3 Execution log)". The Sudoku repository runs in parallel on the same machine: start after the
 orchestrator's go; each command then goes through the lock helper (Amendment L1), which interleaves the gate with the
 Sudoku repository's runs.
 

@@ -59,19 +59,19 @@ provenance and replay work (MP13a to MP16b) for users and developers, in English
 
 ## Inputs & context
 
-Anchors are at HEAD `60575a4`; MP09a2, MP10b2 and MP13b edited `generator/app.js`, `generator/state.js` and
-`generator/ui/puzzle-panel.js`: find moved lines by the quoted text.
+Anchors are at HEAD `55c0c61` (resume revision); MP09a2, MP10b2, MP12b3 and MP13b edited `generator/app.js`,
+`generator/state.js` and `generator/ui/puzzle-panel.js`: find moved lines by the quoted text.
 
 ### The card (`generator/ui/puzzle-panel.js`)
 
-`createCard(id, cellPx)` (line 287) builds
+`createCard(id, cellPx)` (line 317) builds
 
 ```js
 const item = /** @type {HTMLLIElement} */ (el('li', { className: 'puzzle-card', dataset: { puzzleId: id } }, select, remove));
 ```
 
 with `select` = `button.card-select` (heading, rating, clue count, certificate, thumbnail) and `remove` =
-`button.card-remove`; their listeners follow (lines 298-310: selection, and removal that keeps the focus on the next
+`button.card-remove`; their listeners follow (lines 328-340: selection, and removal that keeps the focus on the next
 `.card-remove`, else the previous, else the New puzzle button).
 
 Change (RES-31, SA2-4 JC13): when the panel's options have `onReplay`, create `replay` = `button.card-replay
@@ -80,20 +80,20 @@ ghost-small` (`type="button"`, `data-action="replay"`, text `t('replay.button')`
 build the item as `el('li', …, select, replay, remove)`: a **third button inside the same `li`**, not inside
 `button.card-select` and not a direct child of the list. Its click calls `onReplay(id, replay)`. Selection, removal,
 focus return and the Tab order (select, How it was made, remove) are otherwise unchanged; the removal focus logic still
-uses `.card-remove`. Without `onReplay` the card is exactly as before. `mountPuzzlePanel(host, options)` (line 156)
+uses `.card-remove`. Without `onReplay` the card is exactly as before. `mountPuzzlePanel(host, options)` (line 186)
 documents the new option `onReplay?: (puzzleId: string, opener: HTMLElement) => void`. Style the button in
 `generator/generator.css` only if MP16a's styles do not cover `.card-replay` (list the change).
 
 ### The app (`generator/app.js`)
 
-- After the client is created (line 120: `const client = options.client ?? createGenerationClient(…)`): when
+- After the client is created (line 122: `const client = options.client ?? createGenerationClient(…)`): when
   `typeof client.replayPuzzle === 'function'`, create `replayDialog = createReplayDialog({ host: doc.body, t, closeKey:
   'replay.close', run: (source, signal) => client.replayPuzzle(source, { signal }) })`; otherwise no dialog and no
   `onReplay` (scripted test clients keep today's cards).
 - Pass `onReplay: (puzzleId, opener) => { const source = replaySourceOf(store.getState(), puzzleId); if (source !==
-  null) replayDialog.open(source, opener); }` to `mountPuzzlePanel` (line 139).
+  null) replayDialog.open(source, opener); }` to `mountPuzzlePanel` (line 141).
 - In the language-change handler (`const unsubscribeLanguage = onChange(() => { … importDialog?.refresh(); … })`,
-  line 302), call `replayDialog?.refreshTexts()`; in `destroy()` (line 400), `replayDialog?.dispose()`.
+  line 304), call `replayDialog?.refreshTexts()`; in `destroy()` (line 402), `replayDialog?.dispose()`.
 
 ### The source (`generator/state.js`)
 
@@ -118,7 +118,7 @@ end the page sets `data-result` (`pass` or `fail`) and `data-summary` (`<passed>
 of `tasks/regenerate-puzzle/check-list.md` §7.
 
 Part A — the real Generator with real workers (`mountApp` with a fixed `random` seed; the 10 x 6 board; level Hard;
-quantity 2). The page reads its phase as `tests/browser/puzzle-code-acceptance.js:33` does (`new
+quantity 2). The page reads its phase as `tests/browser/puzzle-code-acceptance.js:34-35` does (`new
 URLSearchParams(location.search).get('phase') ?? 'main'`): the main phase runs every check but 5, and `?phase=keys`
 runs check 5 only, whose keys the runner presses (cross-review SP19). The kind of each card is read from the
 Generator's state, `ctx.app.store.getState().puzzleMade[id]?.kind` for the `data-puzzle-id` of each
@@ -138,7 +138,7 @@ that need a layout walk use a `candidate` card (cross-review SP13).
 4. "slider": setting the slider to the last value shows the final step (stage 7) and its score table with a Total
    equal to the card's score.
 5. "keyboard" (`?phase=keys` only; trusted keys, never synthetic `KeyboardEvent`s, which prove neither Tab traversal
-   nor the dialog's native Escape): copy `press(key)` of `tests/browser/puzzle-code-acceptance.js:2018-2023` (the page
+   nor the dialog's native Escape): copy `press(key)` of `tests/browser/puzzle-code-acceptance.js:2046-2050` (the page
    sets `data-stage="key-<name>"` and waits up to 15 s for `key-<name>-done`; names `Tab`, `Shift+Tab`, `Enter`,
    `Escape`, `ArrowRight`). Make a set and two puzzles as in check 1; focus the candidate card's `button.card-replay`
    and `press('Enter')`: the dialog opens with the focus on its close control. Each `press('Tab')` moves the focus to
@@ -470,17 +470,17 @@ blocked or failed check is reported.
 
 ### Documents (RES-32, MP13-MP16 row; EN and VI in the same task)
 
-- `docs/design-detail.md` §10.5 "Step 3: Create puzzles" (line 2170 at HEAD): the "How it was made" button on each
+- `docs/design-detail.md` §10.5 "Step 3: Create puzzles" (line 2354 at HEAD): the "How it was made" button on each
   card, the dialog (link §6.12 and §11.11), what "Steps not available for this puzzle" means (imported puzzles, sets or
   puzzles made by an older version, completion-pass puzzles, an overflowing record).
 - `docs/design-brief.md`: the Generator's feature list gains Generation Steps in one or two sentences.
 - `USERGUIDE.md` (Generator part, line 41 at HEAD) and `USERGUIDE.vn.md` (line 40): a short subsection "How a puzzle
   was made": open it from a card, the two views (key steps, every step), Play and the slider, the score table, and when
   steps are not available.
-- `DEVELOPERGUIDE.md` and `DEVELOPERGUIDE.vn.md` "Code layout" (line 91 at HEAD): `core/engine/replay.js`,
+- `DEVELOPERGUIDE.md` and `DEVELOPERGUIDE.vn.md` "Code layout" (line 92 at HEAD): `core/engine/replay.js`,
   `generator/ui/replay-model.js`, `generator/ui/replay-dialog.js`, `tests/browser/replay.html`, and the
   `--replay-case` mode of `tools/record-fixtures.mjs` (MP13b).
-- `README.md` "Features" (lines 13-24): one line, for example "Generation Steps: replay how the generator made a
+- `README.md` "Features" (lines 13-28): one line, for example "Generation Steps: replay how the generator made a
   puzzle, step by step, with its score table."
 
 ## Files to create/modify

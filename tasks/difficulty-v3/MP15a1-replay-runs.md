@@ -29,7 +29,7 @@ plays.
   reserveBytes)` returning a `ReplayRun`; the `ReplayRun` and `StageState` typedefs; private helpers.
 - `core/engine/policy.js`: `REPLAY`; `tests/policy.test.js`: its pin.
 - `tools/bench/report.js`: the `SOURCE_FILES` entry for `core/engine/replay.js` (D12;
-  `tests/benchmark-report.test.js:281-283` requires every engine module there).
+  `tests/benchmark-report.test.js:289-299` requires every engine module there).
 - Tests: `tests/replay.test.js` (new): the run cases below.
 - Documents: `docs/design-detail.md` new §6.12 "Generation Steps (replay)" (its first part), §4.2 (the `replay.js`
   and `policy.js` blocks), §13.2 (a `replay` row).
@@ -63,7 +63,9 @@ plays.
 ### What earlier tasks provide
 
 - `setAttempt(req, attempt, { record, charge })` → `{ ok: true, set, calibration, attempt }` or `{ ok: false, reason
-  }`; events `count`, `carve`, `piece`, then the calibration's clue and repair events with `source: 'calibration'`;
+  }` (`reason` includes `'unrateable'` when MP12b3 built the fail-fast, check-list D40; the replay re-runs only the
+  recorded attempt `origin.attempt`, so a failure there, whatever its reason, is the mismatch `set`); events `count`,
+  `carve`, `piece`, then the calibration's clue and repair events with `source: 'calibration'`;
   `charge` meters every rating and uniqueness count of the calibration (MP14a, MP14b).
 - `puzzleCandidate(ctx, slot, attempt, { record, replaySkips, charge })` → a `PuzzleCandidate` (`layout`,
   `layoutKey`, `clueKey`, `clues`, `rating`, `certificate`, `made`) or `{ fail }`; events `start`, `retile`, the clue
@@ -285,7 +287,7 @@ Exclusive ownership while this task runs: the files above.
 
 ### Documentation slot
 
-- New §6.12 "Generation Steps (replay)" after §6.11 (line 1425 at HEAD `a80274b`; find "### 6.11"): the record it
+- New §6.12 "Generation Steps (replay)" after §6.11 (line 1493 at HEAD `55c0c61`; find "### 6.11"): the record it
   needs (link §5.5) and the projection of the puzzle's own record; the seven stages and their events; stage
   availability (preflight) and the stage states including `stopped`; the statuses and reasons; the exact final
   comparison and `compared`; the bounds `REPLAY` and the work meter (what counts: every rating's work, every

@@ -60,8 +60,8 @@ layouts and puzzles with or without them.
 
 ## Inputs & context
 
-Anchors are at HEAD `60575a4`; MP13a edited `puzzleCandidate`, `completionCandidate` and the reused calibration
-(`made`, `startKind`): find moved lines by the quoted text.
+Anchors are at HEAD `55c0c61` (resume revision); MP13a edited `puzzleCandidate`, `completionCandidate` and the
+reused calibration (`made`, `startKind`): find moved lines by the quoted text.
 
 ### Where the steps happen
 
@@ -73,8 +73,8 @@ Anchors are at HEAD `60575a4`; MP13a edited `puzzleCandidate`, `completionCandid
 - `carveMacro(b, k, rng, budgets, hooks)` (`core/engine/carve.js:494`): per partition attempt, `parts =
   macroPartition(b, mu, perPart, rng)` (skipped when null or fewer than 2 parts), `quotas = allocateCounts(…)`
   (skipped when null), then each part is carved with `carveFlat`; a failed part discards the whole partition; on
-  success `return { regions, regionOf }` (line 552). Control hooks: `hooks?.partitionStart?.(…)` (514) and
-  `hooks?.beforePart?.(…)` (523, may fail the partition).
+  success `if (allOk) return { regions, regionOf };` (line 550). Control hooks: `hooks?.partitionStart?.(…)` (514)
+  and `hooks?.beforePart?.(…)` (523, may fail the partition).
 - `carveFlatSet(board, k, rng, budgets)` (281): up to `sizePlans` plans: `sizes = planSizes(area, k, rng)` (null
   ends it), `result = carveFlat(board, sizes, rng, …)`; the first non-null result is returned.
 - Cell indexes are row-major: `cellOf(index, width)` (`carve.js:71`) gives `[x, y]`.
@@ -160,8 +160,8 @@ Exclusive ownership while this task runs: the files above. `core/engine/clues.js
 
 ### Documentation slot
 
-- §6.5 "Piece-set generation" (line 1051): the `count`, `carve` and `piece` events and the calibration's clue events.
-- §6.7 "Local re-tiling (LNS) and random tilings" (line 1212): the `start` and `retile` events.
+- §6.5 "Piece-set generation" (line 1105): the `count`, `carve` and `piece` events and the calibration's clue events.
+- §6.7 "Local re-tiling (LNS) and random tilings" (line 1266): the `start` and `retile` events.
 
 ## Implementation steps
 

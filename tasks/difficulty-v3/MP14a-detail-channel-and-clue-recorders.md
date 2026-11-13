@@ -64,7 +64,8 @@ puzzles and random draws; claims, packs and codes stay aggregate-only.
 
 ## Inputs & context
 
-Anchors refer to the code as MP07, MP09c, MP09d1, MP09d2 and MP13a left it; find the places by the quoted names.
+Anchors refer to the code as MP07, MP09c, MP09d1, MP09d2, MP12b3 and MP13a left it; find the places by the quoted
+names (the resume revision checked them at `55c0c61`).
 
 ### The measurement today (MP09d1, MP09d2)
 
@@ -170,7 +171,9 @@ Where they are emitted:
   (`finishOnce`) emit nothing and charge nothing.
 - `selected`: once, right before an `ok: true` result is returned: `sequence` = the chosen candidate's `seq`,
   `repairSequence` = the ordinal of its finish when that finish added clues, else null. A failure result emits no
-  `selected` event.
+  `selected` event. When MP12b3 built the fail-fast (check-list D40), a call that F2 ends at its fourth profile has
+  emitted its four `unrateable` events and returns `{ ok: false, reason: 'unrateable' }`: no `selected` event, and no
+  other change (the recorders observe F2, they never move it).
 - Every event object is built fresh, contains only JSON values (strings, finite numbers, booleans, null, arrays,
   plain objects; `rating` is the rating object itself, which is plain JSON), and is never touched again after
   `record(event)`; a throwing `record` propagates (it is the caller's observer).
@@ -274,9 +277,9 @@ and `tiling.js` passes to MP14b after this task (this task changes only `countSo
 
 ### Documentation slot
 
-- §7.9 "Deduction solver" (line 1647 at HEAD): a paragraph "Detail channel": `rateDetailed`, the owned copy, no second
+- §7.9 "Deduction solver" (line 1741 at HEAD): a paragraph "Detail channel": `rateDetailed`, the owned copy, no second
   solve, only recorders use it.
-- §6.10 "Clue selection" (line 1345): the recorder events (the list above, in short), D31's repair steps (with the
+- §6.10 "Clue selection" (line 1399): the recorder events (the list above, in short), D31's repair steps (with the
   zero-add rule), the skip replay and `SkipReplayError`, the work meter (`charge`: what is charged and when), and the
   rule that recorders and the meter never change the result.
 
@@ -366,7 +369,9 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
    add, say so in a code comment, and leave its rendering to MP16a's synthetic test.
 8. `selected`: exactly one per `ok` result, last of all events; its `sequence` is the `seq` of the candidate whose
    clues (or, after a repair, whose raw subset) the result came from; `repairSequence` is the ordinal of the repair
-   that produced the result's clues, or null; no `selected` event on a failure.
+   that produced the result's clues, or null; no `selected` event on a failure. Only when MP12b3 built F2: a scripted
+   call whose first four subsets are capped emits exactly four `unrateable` events and no `selected` event, and
+   returns `{ ok: false, reason: 'unrateable' }`.
 9. Replay of subset skips: record a call with an excluded key (case 3's third call) and take its `skips`; a second call
    with `replaySkips: skips` and an **empty** `excludeClueKeys` gives a deep-equal result and the same events.
 10. Replay of a repair skip: the same for MP13a's case 3 (`req-3`, excluded repaired key): the replayed result has

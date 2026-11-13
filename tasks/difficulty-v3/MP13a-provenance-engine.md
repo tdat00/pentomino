@@ -3,7 +3,7 @@
 | Header | Value |
 |---|---|
 | ID | MP13a (first part of the report's MP13; MP13b writes the records from the apps and the CLI and records the replay fixture) |
-| Depends on | MP12b2 (accepted and committed: the calibration lock; MP12b3 instead when the owner chose D36 (i)) |
+| Depends on | MP12b3 (accepted and committed: the end of the lock, check-list D35; since owner decision P-OD9 MP12b3 always runs after MP12b2) |
 | Estimated size | Medium–Large: about 650–850 changed lines (`generate.js` about 60, `clues.js` about 30, `types.js` about 50, `pack.js` about 200, tests about 350, documents about 50); about 50–60 minutes |
 | Owner role | Engine |
 | Milestone | M8 — provenance and recorders |
@@ -47,7 +47,8 @@ and the apps start writing the records in MP13b.
 - `ctx.replaySkips` (the replay side of the skip ordinals) and the recorders (MP14a, MP14b); the replay engine
   (MP15a1).
 - Any change of a rating, a generated puzzle, a candidate's other fields, an RNG draw or a fixture: after the lock
-  (end of MP12b2) MP13a to MP17 must not change any rating or generated puzzle (report §5.2, check-list §6).
+  (complete at the end of MP12b3, check-list D35) MP13a to MP17 must not change any rating or generated puzzle (report
+  §5.2, check-list §6).
 
 ## Repository rules
 
@@ -68,8 +69,9 @@ and the apps start writing the records in MP13b.
 
 ## Inputs & context
 
-Anchors are at HEAD `60575a4`. MP07 and MP09c rewrite parts of `selectClues`, MP09a1 and MP09b edit `pack.js`, MP08
-and MP09a1 edit `types.js`: find a moved line by the quoted text.
+Anchors are at HEAD `55c0c61` (checked in the resume revision; MP12b3 may move lines of `clues.js`, `generate.js` and
+`types.js` when it builds the fail-fast of check-list D40). MP07 and MP09c rewrote parts of `selectClues`, MP09a1 and
+MP09b edited `pack.js`, MP08 and MP09a1 edited `types.js`: find a moved line by the quoted text.
 
 ### The record (RES-27; decided by the plan author)
 
@@ -85,12 +87,12 @@ Made = { schema: 1, kind: 'calibration' }
 Skips = { subsets: number[], repairs: number[] } | 'overflow'    // at most 64 subset and 16 repair ordinals
 ```
 
-- Both keys live in the free-form `generation` object (`core/engine/pack.js:978-979`); a per-puzzle field would fail
+- Both keys live in the free-form `generation` object (`core/engine/pack.js:1112`); a per-puzzle field would fail
   `PUZZLE_FIELDS` (line 55) in every current reader. Puzzle codes carry no provenance.
 - Field order when written is the order above (`schema` first). `versions` holds the running code's ids:
   `algo` = `ALGO_ID` (`core/engine/version.js:4`), `policy` = `POLICY_ID` (`core/engine/policy.js:17`), `rng` =
   `RNG_ID` and `seedScheme` = `SEED_SCHEME` (`core/engine/rng.js:6-7`), `ratingModel` = `MODEL`
-  (`core/engine/difficulty.js:18`; `'difficulty-v3'` since MP09d2).
+  (`core/engine/difficulty.js:49`; `'difficulty-v3'` since MP09d2).
 - `start` is the observed outcome: a restart can fall back to the witness (below).
 - A `calibration` record marks the set calibration's puzzle reused as puzzle #1; a `completion` record marks a puzzle
   of the completion pass (its clue stages are not replayed, RES-33).
@@ -101,7 +103,7 @@ A batch candidate's clue selection excludes the clue keys already used (`exclude
 history). The replay does not have that history, so the record names the points where the exclusion acted:
 
 - **Subset ordinal**: the 0-based index, within one `selectClues` call, of a `rateSubset` call that passed the budget
-  and repeat checks and executed `tried.add(id)`. At HEAD (`core/engine/clues.js:205-215`):
+  and repeat checks and executed `tried.add(id)`. At HEAD (`core/engine/clues.js:249-259`):
 
   ```js
   const rateSubset = (idx) => {
@@ -170,6 +172,10 @@ history). The replay does not have that history, so the record names the points 
  */
 ```
 
+The failure union is the one MP12b3 left: when it built the fail-fast (check-list D40) it also has `'unrateable'`, and
+the call may return that failure early (F2, at its fourth profile); keep that reason and that `return` as they are (a
+failure result gets no `skips`). The bounds below do not change: F2 only shortens a call.
+
 `skips` lists every skip of the whole call up to the return, in increasing order, uncapped (the bounds above cap it).
 Build it in the function's local state (`let subsetOrdinal = 0`, `let repairOrdinal = 0`, two arrays) and attach a
 fresh copy to every `ok: true` result: the `any`-mode result built in `finish`, the `require`-mode result, and a result
@@ -203,12 +209,12 @@ lists include the skips that happened after that candidate was finished. Failure
   },
   ```
 
-- `completionCandidate` (line 222): `made: { schema: 1, kind: 'completion' }`.
+- `completionCandidate` (line 224): `made: { schema: 1, kind: 'completion' }`.
 - `calibrationCandidate` (line 345, used by `foldStart` for slot 1): `made: { schema: 1, kind: 'calibration' }`.
 - `setAttempt` is unchanged: the calibration's `selectClues` call excludes nothing, and the set origin is written by
   the client (MP13b).
-- The fold carries the candidate object unchanged: `foldAccept` (line 486) may accept the slot's earlier `best`
-  (lines 531-532: `if (best !== null) { return withAccepted(s, best); }`), whose `made` names its own attempt, not the
+- The fold carries the candidate object unchanged: `foldAccept` (line 495) may accept the slot's earlier `best`
+  (lines 527-528: `if (best !== null) { return withAccepted(s, best); }`), whose `made` names its own attempt, not the
   attempt at which it was accepted. No fold code changes.
 - New exports:
 
@@ -269,16 +275,16 @@ lists include the skips that happened after that candidate was finished. Failure
  */
 ```
 
-`PuzzleCandidate` (lines 181-189) gains `@property {Made} made Origin of the candidate (RES-27); set by every engine
+`PuzzleCandidate` (lines 238-246) gains `@property {Made} made Origin of the candidate (RES-27); set by every engine
 candidate function and carried unchanged by the fold.`
 
 ### Pack reader and writer (`core/engine/pack.js`)
 
 Limits that every current reader applies to `generation` (RES-27 "Pack limits"): at most 100,000 JSON values
 (`MAX_JSON_NODES`, line 39), depth 32 (`MAX_JSON_DEPTH`, line 38) and 512 KiB (`MAX_FILE_BYTES`, line 30), checked by
-`readJsonObject` (lines 323-337, called at 978-979 with `generation-too-large`); above any of them **the whole pack
-fails** in every current version. The writer checks only the bytes today (`serializePack`, 1292-1306,
-`pack-too-large`), and `createPack` copies `generation` with `copyClaimJson` (1352-1354), which throws
+`readJsonObject` (line 340, called at 1112 with `generation-too-large`); above any of them **the whole pack
+fails** in every current version. The writer checks only the bytes today (`serializePack`, lines 1481-1495,
+`pack-too-large`), and `createPack` copies `generation` with `copyClaimJson` (line 1542), which throws
 `PackError('invalid-json')` above the node or depth limit.
 
 Constants and helpers (exported):
@@ -324,7 +330,7 @@ Validity (every rule is tested):
 | `versions` | a plain object with exactly `algo`, `policy`, `rng`, `seedScheme`, `ratingModel`, each a string of 1–64 UTF-16 units |
 | `made` | a plain object with at most as many own keys as `puzzleIds` has entries (else the whole map is a problem); each key is in `puzzleIds` (else that entry is a problem) |
 
-The reader, in `readPackSteps`, right before `if (generation !== null) { pack.generation = generation; }` (line 1045;
+The reader, in `readPackSteps`, right before `if (generation !== null) { pack.generation = generation; }` (line 1181;
 `generation` is the reader's own deep copy, so it may be edited): when it has an own `setOrigin` or `made`, call
 `readProvenance(generation, new Set(puzzles.map((p) => p.id)))`, replace `setOrigin` by the valid copy or delete it,
 replace `made` by the valid entries or delete it when none is left, and add one warning per problem with
@@ -374,14 +380,14 @@ Exclusive ownership while this task runs: the files above. Do not edit `core/bro
 
 ### Documentation slot
 
-- §5.5 "Generation metadata" (line 787): add the two keys to the example (a short `setOrigin` and one `made` entry),
+- §5.5 "Generation metadata" (line 841): add the two keys to the example (a short `setOrigin` and one `made` entry),
   then a bullet each: what they record, who writes them (the client, the Generator and the CLI from MP13b), the field
   table in short, the skip encoding and `'overflow'`, the reader's checks (invalid records are ignored with a
   `provenance-ignored` warning; the puzzle stays usable), the writer fallback (bytes and JSON values) and the
   documented limitation "a Generator older than this change drops `generation.made` and `generation.setOrigin` when it
   re-exports a pack".
-- §6.10 "Clue selection" (line 1345): one paragraph on the subset and repair ordinals and the bounds 2,128 and 64.
-- §5.2 "Pack document", the `generation` row of the field table (line 669: "Provenance and generation policy (§5.5);
+- §6.10 "Clue selection" (line 1399): one paragraph on the subset and repair ordinals and the bounds 2,128 and 64.
+- §5.2 "Pack document", the `generation` row of the field table (line 706: "Provenance and generation policy (§5.5);
   type-checked only"): add that its `setOrigin` and `made` records are checked and ignored with a warning when
   invalid (§5.5).
 - `docs/design-brief.md`, "Limits, waiting, and sharing", after the paragraph that starts "**A puzzle code rebuilds
@@ -439,7 +445,7 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 ### Intended contract change
 
 C1. A test that compares a whole `ok: true` `SelectResult` with a literal (for example `assert.deepEqual(result, { ok:
-true, clues, rating, certificate: null }, …)` near `tests/clues.test.js:303` at HEAD) adds the `skips` field with the
+true, clues, rating, certificate: null }, …)` near `tests/clues.test.js:327` at HEAD) adds the `skips` field with the
 values the run gives, after checking them against the oracle of case 1 where the call has `any` mode. List every such
 test in the reply. No other existing assertion changes.
 

@@ -54,8 +54,8 @@ bounded payload reader, and a client method that submits it on the auxiliary pat
 
 ## Inputs & context
 
-Anchors are at HEAD `60575a4`; MP09c and MP10a edited `tasks.js` and `generation-client.js`: find moved lines by the
-quoted text.
+Anchors are at HEAD `55c0c61` (resume revision); MP09c and MP10a edited `tasks.js` and `generation-client.js`
+(MP12b3 and MP13b edit the client again): find moved lines by the quoted text.
 
 ### Protocol (`core/engine/protocol.js`)
 
@@ -81,7 +81,7 @@ quoted text.
 
 ### Worker task (`core/engine/tasks.js`)
 
-In `executeTask` (line 152), after the `rate` case:
+In `executeTask` (line 153), after the `rate` case:
 
 ```js
 case 'replayPuzzle':
@@ -97,7 +97,7 @@ used in the worker.
 ### Client (`core/browser/generation-client.js`)
 
 - MP10a created the auxiliary queue with `kinds: ['rate']`; make it `['rate', 'replayPuzzle']`.
-- New method on the client (and in the `GenerationClient` typedef near line 150):
+- New method on the client (and in the `GenerationClient` typedef near line 152):
 
   ```js
   /**
@@ -139,7 +139,7 @@ Exclusive ownership while this task runs: the files above.
 
 ### Documentation slot
 
-§8.1 "Worker pool and protocol" (line 1764 at HEAD): the `replayPuzzle` task kind (payload, result, errors) and that
+§8.1 "Worker pool and protocol" (line 1935 at HEAD): the `replayPuzzle` task kind (payload, result, errors) and that
 it runs only on the auxiliary path (link §6.12).
 
 ## Implementation steps

@@ -4,6 +4,8 @@ Moved from [clarifications.md](clarifications.md) on 2026-11-13 at the owner's r
 file is resolved: answered by the plan author or decided by the owner. Ids and part letters are unchanged, so a
 reference such as "clarifications.md Part H" in a task file or a record is found here. The questions that still
 need the plan author's answer are in [clarifications.md](clarifications.md); when one is answered, it moves here.
+PR-P1, the review of the progress at the pause, was answered by the plan author on 2026-11-13 and moved here
+unchanged by SA1 at the resume (the end of Part I); the owner decision it records is P-OD9 (Part H).
 
 ---
 
@@ -694,6 +696,7 @@ offered and the answer; the tasks that follow apply it.
 | P-OD6 | 2026-11-12 21:55 | D37: the Hell population of the full MP12 landscape (25 Hell cases, up to about 17 hours at 20 requests) | Part I, D37 (SA1, from cross-review TP08) | (a) 20 requests for every Hell case; (b) a 3-request prescreen, 20 only where a puzzle is made; (c) (b) plus 20 requests for the boundary case of each Hell level | **(c)** | MP12b1; MP12b2 (the owner question (i)/(ii)/(iii) states its evidence) |
 | P-OD7 | 2026-11-13 14:35 | C4 (P-OD1 revisited at MP12a): census estimates above 5 % in five slice cells with `census` 10,000,000 (round 1: 6x10-master 33 %, 10x10-master 17 %, 12x12-master 12.5 %, 18x20-expert 25.5 %, 18x20-master 67 %); at 80,000,000 four cells are at most 5 % on the probe corpus, 18x20-master stays at 12-14 %; cost of 80M: deduction median +10 ms, p95 +100 ms, maximum unchanged | [calibration slice](calibration-slice-2026-11-13.md) sections 4.1 and 6.2 (MP12a) | keep 10,000,000 (the D19 rule when 80M is not enough) and accept census estimates in those cells; raise to 80,000,000 and accept 18x20-master's remaining estimates; the plan author answers | **Raise `DEDUCE.census` to 80,000,000**; 18x20-master's remaining census estimates (about 12-14 %) are accepted. A `DEDUCE` change, verified by the next MP12a round | MP12a (round 2), then MP12b1/MP12b2 on the new value |
 | P-OD8 | 2026-11-13 17:25 | C4 after P-OD7 (MP12a round 2, `census` 80,000,000): 10x10-master has 14 of 200 census estimates (7.0 %; 17.0 % at 10M; the bound of 5 % is 10 puzzles), outside the owner's 18x20-master exception; 18x20-master is 11.0 %, within it; the other sixteen cells are at most 2.5 %; the probe corpus of the same round has 10x10-master at 4 % (2 of 50); C1, C2, C3 and C5 pass; the three-round ceiling is used up; cost of 80M on the probe corpus: deduction median 49.2 against 45.1 ms, p95 361.9 against 238.6 ms | [calibration slice](calibration-slice-2026-11-13.md) sections 6.5, 6.7 and 7.2 (MP12a) | (a) accept 10x10-master's remaining estimates as well (the same kind of acceptance as 18x20-master) and close MP12a at 80,000,000; (b) a fourth round with a larger `census` (for example 160,000,000), outside the task's ceiling, at further deduction cost; (c) the plan author answers | **(a)**: 10x10-master's remaining census estimates (7.0 %) are accepted, the same kind of acceptance as 18x20-master; `census` stays 80,000,000 and MP12a closes (owner, 2026-11-13 17:44) | MP12a (close: GF-P2, GA-P2, final `npm test`), then MP12b1/MP12b2 |
+| P-OD9 | 2026-11-13 (on the command line; recorded by the plan author in the answer to PR-P1, commit `55c0c61`, 19:07) | PR-P1, the review of the progress at the pause: decide D36 now, and lighten the stop and review rules of the remaining parts | [working-status.md](working-status.md); Part I, D36 and PR-P1 (the plan author's answer) | D36: (i) stop offering what v3 cannot make, (ii) a different contract, (iii) a separate engine project; stops and reviews: as in the Sudoku repository (its S-OD4) | **D36 (i)**: a Hell level is offered only on the board areas where MP12b1's 20-request run meets the completion criterion of the other levels, else `[Infinity, Infinity]`; MP12b1 keeps the 3-request prescreen of the 25 Hell cases and runs 20 requests only for a case whose prescreen made a puzzle (D37 (c)'s boundary case is dropped where the prescreen made nothing); MP12b3 is no longer conditional. **Stops**: a part stops for the owner only for a correctness failure or when it would have to change a recorded decision; a performance or availability finding is a named item with its numbers, in MP12b2's record or in MP17. **Reviews**: the analysts cross-review only MP12b2's lock, MP12b3 and MP15a1; the orchestrator checks the other parts | MP12b1, MP12b2, MP12b3, MP13a to MP17; check-list D36, D37, D38 |
 
 Information given with these questions, no decision needed: in corpus B (uniqueness required, puzzles made by v2),
 every 18x20 Hard, Expert and Master puzzle has `Gproved = 0` (20/20 each), and corpus A has 58-86 % at Hard; MP06c
@@ -903,6 +906,16 @@ follows from "a capped search gives no rating". The choice between (i), (ii) and
 plan author's recommendation at this point is (i), with (iii) as later work if Hell levels matter, because (ii)
 reintroduces a label the rating cannot back.
 
+**Owner decision (P-OD9, 2026-11-13): (i).** Taken on the command line and recorded by the plan author in the answer
+to PR-P1 (the end of this part). Options (ii) and (iii) are not chosen; (iii), a faster first-solution search for
+large boards, stays possible later work outside difficulty-v3. What follows: MP12b1 keeps the 3-request prescreen of
+the 25 Hell cases and runs 20 requests only for a Hell case whose prescreen made a puzzle (D37 below); MP12b2 asks no
+D36 question, still presents the fail-fast table (the plan author recommends F1 + F2, built in MP12b3) and reports
+population R; MP12b3, no longer conditional, changes the `AREAS` of `core/engine/levels.js` so that a Hell level is
+offered only on the board areas where MP12b1's 20-request run meets the same completion criterion as the other
+levels, and a Hell level that meets it nowhere gets `[Infinity, Infinity]`; design §7.5, both user guides and the
+Generator's level list follow; packs and links made earlier still open and are re-rated for display. Check-list D36.
+
 ### D37: the Hell population of the full MP12 landscape (MP12b1)
 
 **Raised.** 2026-11-12 by SA1, from SA2's cross-review TP08 (`gpt-6-astra/6-review-of-task-pack.md`, third pass).
@@ -934,3 +947,91 @@ D36 found every profile capped there; 3 requests plus a 20-request boundary case
 the answer before any further Hell run.
 
 **Answer (owner, 2026-11-12 21:55): (c).** Every Hell case gets the 3-request prescreen; a case that makes a puzzle is run with 20 requests; the boundary case of each Hell level (the smallest board of the level whose prescreen made no puzzle) is run with 20 requests; the other cases stay at 3 and are reported as "no puzzle observed in 3 requests", never as "cannot be made". Owner decision P-OD6 in Part H.
+
+**Changed by P-OD9 (owner, 2026-11-13).** The 20-request run of the boundary case of each Hell level is dropped where
+the prescreen made nothing: a Hell case that makes no puzzle in three requests is not offered and needs no further
+evidence (the plan author's answer to PR-P1). Every Hell case keeps its 3-request prescreen, and a case whose
+prescreen made a puzzle is run with 20 requests. Check-list D37.
+
+### PR-P1: review of the progress at the pause
+
+**Raised by the orchestrator at the owner's request, 2026-11-13. Answer requested from Fable (plan author).**
+
+The owner paused all work on 2026-11-13 at 17:52 so that the plan author reviews the progress before the work
+continues. [working-status.md](working-status.md) gives the state at the pause (22 of 35 tasks committed; MP12a
+paused while closing), the issues met and the resolution chosen for each, and the differences from the plan,
+the analysts' report and the accepted task pack. The pause state is committed on `rating-v3`.
+
+Requested:
+
+1. The direction to take next: whether the remaining sequence (close MP12a, then MP12b1, MP12b2 and MP13a to
+   MP17) continues as planned or changes.
+2. Any difference in working-status.md section 5 that you do not accept, and what replaces it.
+
+**Plan-author answer (claude-fable-5-2, 2026-11-13).** I read working-status.md in full. Two owner decisions
+were taken on the command line the same day and are recorded here as **P-OD9**: D36 is decided now, option (i);
+and a lighter stop and review rule for the remaining parts.
+
+**1. Direction: continue in the planned order, with the Hell work reduced.** This repository is on course: 22 of
+35 parts, v3 active since MP09d2, and the slice confirms the original goal on the four measured boards (levels
+ordered, every Hard-or-above puzzle with a proved decisive guess, no capped path, completion equal to v2). Close
+MP12a, then MP12b1, MP12b2, MP12b3, MP13a to MP17, serial. I accept the orchestrator's choice not to open a side
+stream: the saving (3 to 6 hours) is small beside the Sudoku repository's remaining work on the same machine.
+
+- **D36 is decided: (i), stop offering what v3 cannot make (owner, P-OD9).** Consequences:
+  - MP12b1 keeps the 3-request prescreen of the 25 Hell cases (it is what locates the boundary) and runs the 20
+    requests only for a Hell case whose prescreen made a puzzle. The 20-request "boundary case of each Hell level"
+    of D37 (c) is dropped where the prescreen made nothing: a case that makes no puzzle in three requests is not
+    offered and needs no further evidence.
+  - MP12b3 is no longer conditional. It changes the `AREAS` of `core/engine/levels.js` so that a Hell level is
+    offered only on the board areas where MP12b1's 20-request run meets the same completion criterion as the
+    other levels; a Hell level that meets it nowhere gets `[Infinity, Infinity]` (never generated), as the table
+    already allows. Design §7.5, both user guides and the Generator's level list follow; packs and links made
+    earlier still open and are re-rated for display, as decided. Option (iii), a faster first-solution search for
+    large boards, stays possible later work outside difficulty-v3.
+  - MP12b2 no longer asks the owner the D36 question. It still presents the fail-fast table; my recommendation is
+    F1 + F2 (end a selection call after four profiles that are all unrateable, and end a set request after an
+    attempt whose calibration was entirely unrateable), built in MP12b3, because irregular boards can still meet
+    unrateable sets after the levels are hidden.
+- **Stops and reviews (owner, P-OD9).** As in the Sudoku repository: a part stops for the owner only for a
+  correctness failure or when it would have to change a recorded decision; a performance or availability finding
+  is recorded as a named item with its numbers and goes to MP12b2's record or to MP17. The analysts cross-review
+  only parts that change rating or generation semantics (MP12b2's lock, MP12b3) and the replay comparison
+  (MP15a1); the other parts are checked by the orchestrator.
+- **No change round for estimates or for Hell.** MP12b2 orders a change round only if C1 (levels ordered) or C3
+  (`Gproved >= 1` at Hard and above) fails in a cell that stays offered, or if C2 fails by more than its 10
+  points. A cell above 5 % census estimates is a recorded finding (point 2 below), never a reason to rerun the
+  complete population.
+
+**2. Section 5: every difference is accepted, with these remarks.**
+
+| Rows | Position |
+|---|---|
+| K2 to K5, the tuple `12 / 3 / [0, 0, 2, 3] / G 5 / info 0.5 / (1, 2)` | **This is the tuple to lock**, unless MP12b1 breaks C1 or C3. Values on range edges are acceptable: the ranges of JR-P3 bounded the search, they were not predictions, and I do not want them widened for another fit. What the tuple says is simple and is what was asked for: with `base.scale` 3 the piece count stops mattering after about six pieces, and the level is carried by the number of decisive guesses (about 1 for Hard, 2 to 3 for Expert, 5 to 7 for Master, 8 or more for Nightmare); the number of alternatives adds little. The penalty (1, 2) restores what SA1-Q-P1 said; the data do not separate it from (0, 0), so the documented intent wins |
+| K6 | Accepted: a puzzle without a decisive guess scores at most 15, below Hard |
+| K8, K9 | Accepted (D19, P-OD2) |
+| K10, G6, the census and the 5 % rule | Accepted, including the owner's two exceptions. For the full landscape: a cell above 5 % is listed with its share and shipped with the estimate note and the `censored` flag; AR1 already guarantees that a generated Hard-or-above puzzle has a proved decisive guess, so an estimate can overstate a score but cannot invent the level's defining property. Only a cell above 25 % is put to the owner, with the cost of a larger census. No further census change in MP12b |
+| R7, order noise | **Confirmed: one canonical order, no median.** The slice's spread (G by up to 2 at Hard in 3 of 50 lines of one cell) is what plan §5 was worried about, and with 5 points per guess it can move a puzzle by one level. It is a property of the label, not an instability: a given puzzle always gets the same rating, and the Generator aims at the band centre. A median of three orders would triple the rating cost, which on Master is already the slow part. It is recorded as a known limitation in design §7.8 and in the final record |
+| R9, C5, the Hell rows | Decided above (P-OD9) |
+| G2, G8, G9, G10, the calibration structure | Accepted, with the reductions of point 1 |
+| G4, C2 by request completion rate | Accepted. The generator only returns in-band puzzles, so completion is the availability the plan's "hit rate" meant; a rescore measures the score model, not the generation |
+| G7 (TP21), G11 | Accepted |
+| F2 (FP04), F7 (the load retry D1), F8 (`fitDetailLine`) | Accepted. D1 fixes a flake that predates this work; keep MP17's "no re-run allowance" for that page |
+| F4, the Player's built-in sample (check-list D20) | My recommendation to the owner: leave the sample file byte-for-byte (it is the source of the frozen v1 code goldens). Its v2 claims are already re-rated for display with the note, so the Player shows v3 levels for it; no task is needed |
+| 5.6 to 5.9 | Accepted |
+
+**3. Remaining work to the original goal, in order.**
+
+1. Close MP12a (the four closing steps of working-status §2.2), with P-OD8 and this answer recorded.
+2. MP12b1, full landscape, Hell reduced as above.
+3. MP12b2: search evidence, the lists, the fail-fast table, design §7.8, the lock on the tuple above.
+4. MP12b3: `AREAS` for the Hell levels and the fail-fast (F1 + F2 if the owner agrees at MP12b2).
+5. MP13a to MP16b: provenance, recorders, replay and the Generation Steps dialog, on the locked source.
+6. MP17: final regression and compatibility evidence, the release notes, and the plan §6 probe on 10x6 and 20x18,
+   which must show no Hard-or-above puzzle without a proved decisive guess.
+
+One measurement I want reported by MP12b2, because it decides whether "Hard is really hard" holds on large boards
+when a unique solution is required: population R (18x20 Hard, Expert and Master with `--uniqueness require`). In
+the v2-made corpus none of those puzzles had a decisive guess. If v3 cannot make them either, the honest outcome
+is the same as for Hell: Hard and above are not offered with `require` on those areas, and that is put to the
+owner with the numbers at MP12b2, not worked around.

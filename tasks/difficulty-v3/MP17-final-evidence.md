@@ -3,11 +3,11 @@
 | Header | Value |
 |---|---|
 | ID | MP17 (the report's MP17, dispatched whole) |
-| Depends on | MP16b (accepted and committed: the card button, `tests/browser/replay.html`, the GB-P4 record) and, through it, every earlier part; the lock of MP12b2 (or MP12b3, check-list D35) |
+| Depends on | MP16b (accepted and committed: the card button, `tests/browser/replay.html`, the GB-P4 record) and, through it, every earlier part; the lock, begun by MP12b2 and completed by MP12b3 (check-list D35; since owner decision P-OD9 the lock commit is always MP12b3's) |
 | Estimated size | Medium: about 300–500 changed lines (the record about 250–400 lines with the release notes; justified corrections, if any); about 50–60 minutes of work plus about 70–100 minutes of machine time (gate GZ) |
 | Owner role | QA and release |
 | Milestone | M10 — verified |
-| Design refs | `docs/difficulty-v3/report-detailed.md` §5.1 (MP17 row), §5.2 (the lock), §5.3 (GZ), RES-01 and RES-25 (what the lock means), RES-32 (MP17 row: the release notes), RES-35 (AR1); `docs/difficulty-v3/plan.md` §1.1, §6 and §7 (last item); clarifications C3 (a), AR1 (part G), PROC-P1 (a); check-list §6, §7, §9 |
+| Design refs | `docs/difficulty-v3/report-detailed.md` §5.1 (MP17 row), §5.2 (the lock), §5.3 (GZ), RES-01 and RES-25 (what the lock means), RES-32 (MP17 row: the release notes), RES-35 (AR1); `docs/difficulty-v3/plan.md` §1.1, §6 and §7 (last item); clarifications C3 (a), AR1 (part G), PROC-P1 (a), and the plan author's answer to PR-P1 with owner decision P-OD9 (`docs/difficulty-v3/clarifications-resolved.md`: the plan §6 probe must show no Hard-or-above puzzle without a proved decisive guess; R7 a known limitation; the "no re-run allowance" of the code page); check-list §4.2 D35, D38 to D41, §6, §7, §9 |
 | Gates owned | **GZ**: the two fixture checks; `npm test`; the plan §6 probe and the level runs on 10x6 and 20x18 (`tools/generate.mjs`, small counts, a fresh attempt directory); a small `tools/rate-probe.mjs` run; every page of `tests/browser/` in headless Edge in the main phase, plus the keys and narrow phases of `puzzle-code-acceptance` and the keys phase of `replay` (ports 8817 and 9317; MP16b's runner) |
 | Implementation status | Not started |
 
@@ -20,8 +20,8 @@ task proves, on the finished branch, that the change does what was asked and bro
 - the plan's own reproduction (plan §6), which on 2026-11-11 showed 20x18 Hard puzzles that needed no choice at all
   (B = 0), now shows only Hard-or-above puzzles with a proved decisive guess (`Gproved >= 1`, hence G >= 1);
 - on 10x6 and 20x18 every offered level still produces puzzles in its band, in increasing order;
-- nothing in the rating or the generation changed after the lock (MP12b2): Generation Steps (MP13a to MP16b) only
-  observes;
+- nothing in the rating or the generation changed after the lock (MP12b2, completed by MP12b3): Generation Steps
+  (MP13a to MP16b) only observes;
 - the full test suite and every browser page pass;
 - users get release notes of the change (C3 (a)): there is no release-notes file in the repository and no
   `CHANGELOG.md` is added, so the notes are a section of the final record.
@@ -94,8 +94,8 @@ no generated fixture changes. Anything else is a defect report. A failing test i
 ## Inputs & context
 
 At the start, `git --no-pager status --short` must show no change outside `tasks/difficulty-v3/`; otherwise report it
-before running anything. Line anchors below are at HEAD `60575a4`; later tasks moved lines: find them by the quoted
-text.
+before running anything. Line anchors below are at HEAD `55c0c61` (checked in the resume revision); later tasks moved
+lines: find them by the quoted text.
 
 ### What the evidence must show (report §5.1, MP17 row; plan §7, last item)
 
@@ -105,14 +105,19 @@ text.
 4. Release notes written.
 5. `npm run test:quick` and `npm run check` green.
 
-### The lock (MP12b2) and what may differ since
+### The lock (MP12b2 and MP12b3) and what may differ since
 
-- The lock commit is the latest commit of MP12b2, or of MP12b3 when the owner chose D36 (i) (both messages start
-  with `difficulty-v3 MP12b`; MP12b1 comes earlier):
-  `git --no-pager log -1 --format="%H %s" --grep="^difficulty-v3 MP12b"`. Its record, the **lock record**, is
-  `docs/difficulty-v3/calibration-<date>.md` (find it with `Get-ChildItem docs\difficulty-v3\calibration-2*.md`; MP12a's
-  `calibration-slice-<date>.md` is the slice record): its header lists the final knobs and caps as literals, §3 the
-  per-board and per-level results (with `provedZero`, which must be 0), §12 the lock statement (MP12b2's layout).
+- The lock commit is MP12b3's (owner decision P-OD9 made it unconditional; check-list D35): the latest commit whose
+  message starts with `difficulty-v3 MP12b` (MP12b1 and MP12b2 come earlier):
+  `git --no-pager log -1 --format="%H %s" --grep="^difficulty-v3 MP12b"`. Its subject must start with
+  `difficulty-v3 MP12b3`; otherwise stop and report it. Two records describe the lock. The **lock record** is MP12b2's
+  `docs/difficulty-v3/calibration-<date>.md` (find it with `Get-ChildItem docs\difficulty-v3\calibration-2*.md`;
+  MP12a's `calibration-slice-<date>.md` is the slice record): its header lists the final knobs and caps as literals
+  (the tuple `12 / 3 / [0, 0, 2, 3] / G 5 / info 0.5 / (1, 2)` unless MP12b2 ran a change round), §3 the per-board
+  and per-level results (with `provedZero`, which must be 0), §12 the lock statement (MP12b2's layout), and R7 (one
+  canonical order, no median) as a known limitation. The **availability record** is MP12b3's
+  `docs/difficulty-v3/availability-<date>.md`: the Hell areas of `AREAS` (check-list D39), `POLICY_ID` `mixed-v3`,
+  the fail-fast (check-list D40) and the `require` rule (D41) as built or not, the BQ cases removed and its named items.
 - Allowed since the lock (MP13a to MP16b; they add observers and new modules, never a rating or a generated puzzle):
   `core/engine/policy.js` gains `REPLAY` (MP15a1) and nothing else; `core/engine/difficulty.js` gains `rateDetailed`
   (MP14a); `clues.js`, `generate.js`, `carve.js`, `tiling.js` gain skip ordinals and recorders (MP13a, MP14a, MP14b);
@@ -123,7 +128,7 @@ text.
   compares the whole text; `--replay-case --check` does the same for MP13b's replay fixture) and the pinned tests
   (`tests/policy.test.js` pins `SCORE_V3` and `DEDUCE`; `tests/difficulty-v3.test.js`, `tests/clues.test.js` and the
   recorder tests pin ratings and selections).
-- `K60` (`core/engine/policy.js`, `const K60 = [...]`, line 109 at HEAD) and `SHARES` (`core/engine/levels.js`,
+- `K60` (`core/engine/policy.js`, `const K60 = [...]`, line 124 at HEAD) and `SHARES` (`core/engine/levels.js`,
   `const SHARES = [...]`, line 18) are module-private: compare their source lines.
 
 ### Baselines to compare with
@@ -147,9 +152,11 @@ text.
 
 ### Offered levels and bands
 
-`offeredLevels(60)` is very-easy, easy, normal, hard, expert, master; `offeredLevels(360)` is hard, expert, master,
-nightmare, hell-1, hell-2 (`core/engine/levels.js`, `AREAS`; as at HEAD `60575a4`: an owner answer to MP12b2's D36
-question may stop offering a level on a board, and the runs below follow `offeredLevels` as it is after the lock).
+`offeredLevels(60)` is very-easy, easy, normal, hard, expert, master. At HEAD `55c0c61`, before MP12b3,
+`offeredLevels(360)` is hard, expert, master, nightmare, hell-1, hell-2; MP12b3 sets the Hell areas from the
+landscape (owner decision P-OD9, check-list D39), so after the lock Hell 1 and Hell 2 may no longer be offered on 360
+cells (its availability record gives the list). The runs below follow `offeredLevels` as it is after the lock; a level
+no longer offered is a `MISS` line whose approved exception is the availability record.
 Band lower edges `bandEdge(0..8)`: 0, 8, 12, 17, 25, 37, 53, 77, 112. Hard is level index 3; "Hard or above" is
 index >= 3.
 
@@ -412,7 +419,8 @@ offered, and run only when it is). A `FAIL` line is a defect (or a finding): sto
 do not change a value. In particular it fails when the attempt has no Hard-or-above puzzle at all: MP17-B01 needs
 observed puzzles. Each `MISS` line (a level not offered, a run without a result, a partial run) must appear in record
 §6 either as an approved exception, quoting the lock record's cell (6x10 or 18x20 at that level, with its hit rate)
-or the owner's D36 answer that stopped offering it, or as a finding in §10; it is never counted as coverage.
+or MP12b3's availability record that stopped offering the level there (owner decision P-OD9), or as a finding in
+§10; it is never counted as coverage.
 "Levels ordered" holds when every puzzle is in the band of its requested level (no `FAIL`), so the score ranges of
 the levels of one board are disjoint and increase with the level index; the U, tier and G medians per level are
 reported as facts. The script was checked on a scratch tree (manifest, digest, skip and exit-code failures); its
@@ -447,7 +455,9 @@ Before the announcement, only git commands and the printing of constants (cross-
 
 ```powershell
 $lock = (git --no-pager log -1 --format=%H --grep="^difficulty-v3 MP12b")
-if (-not $lock) { throw 'no lock commit (MP12b2 or MP12b3) found' }
+if (-not $lock) { throw 'no lock commit found' }
+$subject = (git --no-pager log -1 --format=%s $lock)
+if (-not $subject.StartsWith('difficulty-v3 MP12b3')) { throw "the latest MP12b commit is not MP12b3's: $subject" }
 git --no-pager diff --stat $lock HEAD -- core tools
 git --no-pager diff $lock HEAD -- core/engine/levels.js core/engine/version.js core/engine/deduce.js
 git --no-pager diff $lock HEAD -- core/engine/policy.js
@@ -471,10 +481,11 @@ if ($t.Exit -ne 0) { throw 'replay fixture check failed' }
 
 ```js
 // @ts-check
-// MP17 scratch: prints the locked values for comparison with the lock record.
+// MP17 scratch: prints the locked values for comparison with the lock record and the availability record.
 import { readFileSync } from 'node:fs';
 
 import { MODEL } from '../../../core/engine/difficulty.js';
+import { level } from '../../../core/engine/levels.js';
 import { DEDUCE, POLICY_ID, SCORE_V3 } from '../../../core/engine/policy.js';
 import { currentVersions } from '../../../tools/record-fixtures.mjs';
 
@@ -484,11 +495,13 @@ const line = (/** @type {string} */ file, /** @type {string} */ name) =>
 console.log(JSON.stringify({ MODEL, POLICY_ID, versions: currentVersions(), SCORE_V3, DEDUCE }));
 console.log(line('policy.js', 'K60'));
 console.log(line('levels.js', 'SHARES'));
+console.log(['hell-1', 'hell-2', 'hell-3'].map((id) => `${id} ${level(id).areas.join('-')}`).join('; '));
 ```
 
-Pass: the diff of `levels.js`, `version.js` and `deduce.js` is empty; the diff of `policy.js` has no removed line and
-its added lines are the `REPLAY` constant with its comment; the printed `SCORE_V3`, `DEDUCE`, `POLICY_ID`, `K60` and
-`SHARES` equal the literals of the lock record, `MODEL` is `difficulty-v3` and `versions.algo` is `gen-v3`. **Any
+Pass: the lock commit is MP12b3's; the diff of `levels.js`, `version.js` and `deduce.js` is empty; the diff of
+`policy.js` has no removed line and its added lines are the `REPLAY` constant with its comment; the printed
+`SCORE_V3`, `DEDUCE`, `K60` and `SHARES` equal the literals of the lock record, `POLICY_ID` is `mixed-v3` and the Hell
+areas equal the availability record's `AREAS`, `MODEL` is `difficulty-v3` and `versions.algo` is `gen-v3`. **Any
 failure of the inspection: stop and report it to the orchestrator; do not announce the gate.** Then, inside the gate,
 both fixture checks exit 0; a failure stops the gate (report it; the rest of GZ does not start).
 
@@ -536,35 +549,45 @@ for ($i = 0; $i -lt $pages.Count; $i++) {
 
 A run passes with `data-result="pass"`, no CSP violation and no uncaught error (the runner's `PASS` line);
 `acceptance.html` with its known blocked checks only. A run that passed in an earlier gate of this pack and fails
-now is a regression (defect report). A run not made earlier in this pack (for example `hints`, `player-controls`,
-`generator-editor`, `puzzle-code-worker`, `puzzle-qr`, `watchdog`, the keys and narrow phases of
-`puzzle-code-acceptance`) that fails because an expectation pins a value an accepted task changed on purpose may be
-corrected under the rule above; any other failure is a defect report. A run that times out (540 s) is a failure:
-the last `CHECK-START` lines in its `browser.json` (`lastLogs`) show the check that stalled.
+now is a regression (defect report). **No re-run allowance** (known issue KI-1, closed by Amendment D1 in MP10b2;
+kept by the plan author, PR-P1): every run, the three runs of `puzzle-code-acceptance` included, counts once; a run
+is never repeated to obtain a pass, and a failure of the KI-1 signature (a module worker emits `error` shortly after
+creation, "Puzzle code processing failed") is a regression of D1, reported as a defect. A run not made earlier in
+this pack (for example `hints`, `player-controls`, `puzzle-code-worker`, `puzzle-qr`, `watchdog`, the keys and narrow
+phases of `puzzle-code-acceptance`; `generator-editor` ran in MP12b3) that fails because an expectation pins a value
+an accepted task changed on purpose may be corrected under the rule above; any other failure is a defect report. A
+run that times out (540 s) is a failure: the last `CHECK-START` lines in its `browser.json` (`lastLogs`) show the
+check that stalled.
 
 ### The record `docs/difficulty-v3/final-<date>.md`
 
 English, CRLF, no BOM, relative links only. Sections:
 
-1. **Header**: date, code revision (`git rev-parse --short HEAD`), the lock commit, Node version, CPU count, the gate
-   announcement and its start and end, total machine time.
-2. **Lock**: the printed values against the lock record (equal, or the difference), the diff summary (`--stat`) and
-   the `policy.js` addition (the inspection before the announcement); the two fixture checks (the first gate
-   commands) with their durations.
+1. **Header**: date, code revision (`git rev-parse --short HEAD`), the lock commit (MP12b3's), Node version, CPU
+   count, the gate announcement and its start and end, total machine time.
+2. **Lock**: the printed values against the lock record and the availability record (equal, or the difference), the
+   diff summary (`--stat`) and the `policy.js` addition (the inspection before the announcement); the two fixture
+   checks (the first gate commands) with their durations.
 3. **Full suite**: `npm test` counts (tests, pass, fail, skipped), duration; the AR1 slow test by name.
 4. **Browser runs**: a table (page, phase, result, summary, duration, keys pressed) of the 19 runs from the four
-   `runs.json` files; the blocked checks of `acceptance.html`; the PIDs stopped and the profile removed.
+   `runs.json` files; the blocked checks of `acceptance.html`; the PIDs stopped and the profile removed; the statement
+   that no run was repeated (no re-run allowance).
 5. **The plan §6 probe, before and after**: the plan §1.1 table (before, v2) next to the rows of `p1`, `p2` and `p3`
-   (after, v3: U, tier, G, `Gproved`, info, score, B and the DLX stop per puzzle).
+   (after, v3: U, tier, G, `Gproved`, info, score, B and the DLX stop per puzzle), with the statement the plan author
+   asked for (PR-P1): no Hard-or-above puzzle of these runs is without a proved decisive guess (or the counterexample,
+   a defect).
 6. **Levels on 10x6 and 20x18**: the attempt directory; the per-level table of `summary.md`; every `MISS` line as an
-   approved exception (the lock record's cell and hit rate, or the owner's D36 answer) or as a finding in §10; levels
-   not offered or without a puzzle stay visible in the table; the ordering statement.
+   approved exception (the lock record's cell and hit rate, or MP12b3's availability record, P-OD9) or as a finding in
+   §10; levels not offered or without a puzzle stay visible in the table; the ordering statement.
 7. **`rate-probe`**: per puzzle of `p1` to `p3`: the score check, G, `Gproved`, the tie-order spread, B under the
-   seeded orders, the deduction time; a probe skipped for want of a pack, with its run's `MISS` line.
+   seeded orders, the deduction time; a probe skipped for want of a pack, with its run's `MISS` line. The tie-order
+   spread is reported against R7 (one canonical order, no median; design §7.8): a known limitation, not a defect.
 8. **AR1**: generated Hard-or-above puzzles in these runs and how many have `Gproved = 0` (must be 0); the slow test;
    the lock record's `provedZero` over the landscape.
 9. **Corrections made in this task**: each with the file, the reason and the accepted task it follows; or "none".
-10. **Findings for the owner**: or "none".
+10. **Findings for the owner**: or "none"; with the named items of MP12b2's and MP12b3's records that are still open
+    (performance and availability findings, P-OD9) and the known limitations (R7; the fail-fast or the `require` rule
+    when the owner chose not to build them).
 11. **Release notes** (below).
 
 ### Release notes (C3 (a); RES-32, MP17 row)
@@ -580,16 +603,28 @@ correct a statement that does not hold and report it. The facts to state:
 - **Difficulty (`difficulty-v3`).** The score follows how a person solves the puzzle: forced placements and
   deductions first (the rule ladder R1 to R9 in four tiers), then decisive guesses (choices whose wrong alternatives
   can be proved impossible). A puzzle that needs no guess scores below Hard. The level names and their score bands are
-  unchanged, and so are the board sizes each level is offered on, unless the owner's D36 answer (lock record) stopped
-  offering a level on some boards: then name those levels and boards, as users will no longer find them (cross-review
-  SP17: unavailable levels stay visible); the score of a given puzzle differs from before.
+  unchanged; the score of a given puzzle differs from before. A puzzle is always rated in one canonical order, so it
+  always gets the same score, though a different order of the same deductions can count a guess more or fewer (R7, a
+  known limitation, design §7.8).
+- **Levels offered (owner decision P-OD9).** The Hell levels are offered only on the board sizes where the new rating
+  can make them: name, from MP12b3's availability record, each Hell level and the board sizes it is no longer offered
+  on (or that it is no longer offered at all), as users will no longer find them (cross-review SP17: a Hell level
+  offered on some board sizes stays visible, disabled, on the others; a Hell level offered nowhere leaves the
+  Generator's list); the other levels keep their board sizes. Packs and links made before still open, and their
+  puzzles are re-rated for display. When the owner accepted the population-R outcome (check-list D41), also: "Require
+  unique solution" at Hard and above is not offered from the owner's board size on, with the message the Generator
+  shows; when the owner kept it (R-b), the known limitation in plain words.
 - **Generated puzzles.** The Generator aims at the middle of the requested level's band. Every generated Hard-or-above
   puzzle has at least one proved decisive guess. A candidate whose deduction exceeds the solver's limits is not rated
-  and is skipped; v3 ratings never show the "+" mark. The same seed makes different puzzles than earlier versions
-  (algorithm `gen-v3`, rating `difficulty-v3`); a seed reproduces a puzzle only with the same versions.
+  and is skipped; v3 ratings never show the "+" mark. When the fail-fast was built (check-list D40), a piece-set
+  request whose ratings all reach their work limits ends early with its notice (quote `notice.N-NOSET-UNRATEABLE` of
+  `generator/locale.en.js`); when it was not, the known limitation (such a request runs to the time limit). The same
+  seed makes different puzzles than earlier versions (algorithm `gen-v3`, policy `mixed-v3`, rating
+  `difficulty-v3`); a seed reproduces a puzzle only with the same versions.
 - **Estimates.** When the check of a guess's alternatives cannot finish within its budget, the score is an upper
   estimate: packs mark it with `censored: true` and the apps show the estimate note (with the number of undecided
-  alternatives when the full rating is known, without it for a rating read from a puzzle code).
+  alternatives when the full rating is known, without it for a rating read from a puzzle code). Name the board sizes
+  and levels where MP12b2's record lists more than 5 % estimates (PR-P1: shipped with the note and the flag).
 - **Puzzles from earlier versions.** A stored rating is never changed. Puzzles rated by earlier versions
   (`difficulty-v1`, `difficulty-v2`) are re-rated for display with the new model, with a note; when the re-rating is
   not possible the stored rating is shown with "could not be re-rated". Packs, links and puzzle codes made by earlier
@@ -638,8 +673,9 @@ MP17 no section of `docs/design-detail.md`). Must not edit: everything of "Out o
 
 ## Implementation steps
 
-1. Check the tree; find the lock commit and the lock record; write `lock-values.mjs`; run the lock inspection (git
-   commands and `lock-values.mjs` only). Stop and report on any failure.
+1. Check the tree; find the lock commit (MP12b3's), the lock record and the availability record; write
+   `lock-values.mjs`; run the lock inspection (git commands and `lock-values.mjs` only). Stop and report on any
+   failure.
 2. Write `summarise.mjs` and copy MP16b's runner to `pages.mjs`; announce GZ with the plan of "Repository rules";
    wait for the go.
 3. The two fixture checks; `npm test` (record counts and duration); the 12 generation runs into a fresh attempt
@@ -654,7 +690,7 @@ MP17 no section of `docs/design-detail.md`). Must not edit: everything of "Out o
 | ID | Criterion | Evidence |
 |---|---|---|
 | MP17-B01 | Every generated Hard-or-above puzzle of the final runs has a proved decisive guess (`Gproved >= 1`, hence G >= 1), and the runs produced at least one such puzzle; the plan §6 probe no longer shows Hard puzzles without a real choice | record §5, §8; `summary.md`; the slow test |
-| MP17-B02 | On 10x6 and 20x18 every offered level produces puzzles in its band, so the levels are ordered; every partial or empty run and every level no longer offered is listed and matches the lock record (or the owner's D36 answer), otherwise it is a finding | record §6 |
+| MP17-B02 | On 10x6 and 20x18 every offered level produces puzzles in its band, so the levels are ordered; every partial or empty run and every level no longer offered is listed and matches the lock record (or MP12b3's availability record, P-OD9), otherwise it is a finding | record §6 |
 | MP17-B03 | Nothing in the rating or the generation changed after the lock | record §2 |
 | MP17-B04 | Everything else still works: the full suite and every browser page pass (the known blocked checks only) | record §3, §4 |
 | MP17-B05 | Users have release notes on the six topics of RES-32, true to the delivered behaviour | record §11 |
@@ -663,7 +699,7 @@ MP17 no section of `docs/design-detail.md`). Must not edit: everything of "Out o
 
 | ID | Criterion | Evidence |
 |---|---|---|
-| MP17-T01 | The lock inspection passes before the announcement (empty diffs of `levels.js`, `version.js`, `deduce.js`; `policy.js` adds only `REPLAY`; the values equal the lock record), and both fixture checks exit 0 as the first gate commands | command output; record §2 |
+| MP17-T01 | The lock inspection passes before the announcement (empty diffs of `levels.js`, `version.js`, `deduce.js`; `policy.js` adds only `REPLAY`; the lock commit is MP12b3's; the values equal the lock record and the availability record), and both fixture checks exit 0 as the first gate commands | command output; record §2 |
 | MP17-T02 | `npm test` passes, with counts and duration recorded | command output; record §3 |
 | MP17-T03 | The manifest of one fresh attempt directory has the 12 runs with consistent exit codes, packs and digests; every claim of its packs equals a fresh `rate` of its puzzle (`canonicalJson`), every puzzle is in its requested band, and `summarise.mjs` exits 0; every `rate-probe` line has no error and `v3.score` equal to `storedScore` | `summary.md`; `runs.json`; the `probe-*.jsonl` files; record §5–§7 |
 | MP17-T04 | The 19 runs pass (the 16 pages in the main phase, the keys and narrow phases of `puzzle-code-acceptance`, the keys phase of `replay`; acceptance: the known blocked checks only) with no CSP violation and no uncaught error, each check under 1 minute; servers and browsers stopped by PID; the profile removed | record §4; the 19 `runs.json` |
