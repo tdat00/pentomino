@@ -33,7 +33,7 @@ decisions of this pack (§4), not open questions for the developer.
 
 | Done | ID | File | Title | Depends on | Size | Machine time (projection) | Confirms or refutes (§5 rows) | Order |
 |---|---|---|---|---|---|---|---|---:|
-| [ ] | IGP-00 | [00](00-harness-foundation.md) | Harness foundation: copies, variants, bounded runners, lanes, records, identity | none | Large, about 1,300 lines | 9 min | harness fidelity (R00) | 1 |
+| [x] | IGP-00 | [00](00-harness-foundation.md) | Harness foundation: copies, variants, bounded runners, lanes, records, identity | none | Large, about 1,300 lines | 9 min | harness fidelity (R00) | 1 |
 | [ ] | IGP-01 | [01](01-p1p5-prototype-headline.md) | PM3 prototype of P1 to P5 and the headline before/after | IGP-00 | Large, about 950 lines | 62 min (high 78) | report §2 rows 14x14, 15x15b10, 12x12, 26x26 Nightmare, two Master cells, Hell 1 26x26; dead-end share; window profiles; batch waves; locate profiles (R01 to R08, R10 to R13, R18, R19, R29) | 2 |
 | [ ] | IGP-02 | [02](02-pm4-screen-certificate.md) | PM4: the screen certificate and the `W_screen` economics | IGP-00 | Medium, about 450 lines | 23 min | IG-P-Q01's certificate; P2's saving; useful ratings lost at 95, 190 and 380 M (R14, R15, R17) | 3 |
 | [ ] | IGP-03 | [03](03-pm3-variants-and-budgets.md) | PM3 variants (W 95 and 380 M, arity 3) and the P5 budget inputs | IGP-01 | Medium, about 300 lines | 20 min (+4 optional) | IG-P-Q08, Q09, Q10; re-rating cost (R16, R18, R20, R21) | 4 |
@@ -62,7 +62,7 @@ certificate in full. The frozen round may follow the plan author's order instead
 | Task | Owns (creates or edits) | Must not edit |
 |---|---|---|
 | IGP-00 | `tools/ig-proto/` (new): `README.md`, `lib/paths.mjs`, `lib/records.mjs`, `lib/tree.mjs`, `lib/engine.mjs`, `lib/sets.mjs`, `lib/calls.mjs`, `lib/lanes.mjs`, `lib/lane-worker.mjs`, `lib/budget.mjs`, `firewall.mjs`, `boards.mjs`, `data/boards-v1.json`, `variants/base.json`, `variants/instr.json`, `variants/log.json`, `variants/files/log/core/engine/ig-log.js`, `arm.mjs`, `identity.mjs`, `self-test.mjs`, `run-task.ps1`, `plans/IGP-00.json`; evidence `docs/improve-generating/evidence/provisional/IGP-00/` | every file outside `tools/ig-proto/` and its evidence folder |
-| IGP-01 | `tools/ig-proto/`: `variants/p1p5.json`, `variants/p1p5-main.json`, `variants/files/p1p5/core/engine/ig-select-proto.js`, `fit-prior.mjs`, `data/prior-v1.json`, `verify.mjs`, `compare.mjs`, `plans/IGP-01.json`; additions to `lib/tree.mjs` (`paramFiles`), `ig-log.js` (the API the prototype calls), `self-test.mjs` (`--proto`) and `README.md`; evidence `IGP-01/` | as IGP-00; IGP-00's tested behaviour (an addition keeps the IGP-00 self-test passing) |
+| IGP-01 | `tools/ig-proto/`: `variants/p1p5.json`, `variants/p1p5-main.json`, `variants/files/p1p5/core/engine/ig-select-proto.js`, `fit-prior.mjs`, `data/prior-v1.json`, `verify.mjs`, `compare.mjs`, `plans/IGP-01.json`; additions to `lib/tree.mjs` (`paramFiles`), `ig-log.js` (the API the prototype calls), `self-test.mjs` (`--proto`) and `README.md`; the IGP-00 review fixes, first and only those: `run-task.ps1` (charging of failed invocations), `variants/instr.json` and `ig-log.js` (main-search and census R7 cuts apart), `lib/calls.mjs` (`r7CutCensus`; `recordedCall` refuses a `log`-chain tree), `lib/lanes.mjs` (`setHorizon` only lowers); evidence `IGP-01/` | as IGP-00; IGP-00's tested behaviour (an addition keeps the IGP-00 self-test passing) |
 | IGP-02 | `tools/ig-proto/pm4.mjs`, `plans/IGP-02.json`, `README.md` (one section); evidence `IGP-02/` | as IGP-00; `lib/` except a bug fix the review names |
 | IGP-03 | `tools/ig-proto/variants/p1p5-w095.json`, `p1p5-w380.json`, `p1p5-main-a3.json`, `p1p5-w190-rerate-window.json`, the arity-3 and window-rerate branches of `ig-select-proto.js`, `budgets.mjs`, additions to `compare.mjs` (task-qualified arms, per-`W` and arity-3 sections) and `self-test.mjs` (their cases), `plans/IGP-03.json`; evidence `IGP-03/` | as IGP-00; the default path of `ig-select-proto.js` (the IGP-01 numbers must stay reproducible) |
 | IGP-04 | `tools/ig-proto/variants/p6.json`, `w8.json`, `log-p6.json`, `log-p6-w8.json`, `p1p5-main-p6-w8.json`, the P6 branch of `ig-log.js` (`withP6`) and its call in `ig-select-proto.js`, additions to `compare.mjs` (factors, identity across arms, memory) and `self-test.mjs` (`--p6`), `plans/IGP-04.json`; evidence `IGP-04/` | as IGP-00; the default paths of `ig-log.js` and `ig-select-proto.js` |
@@ -123,7 +123,10 @@ A record is written once. A correction is a new file with a suffix (`-r2`) and a
   content: the source digest of `SOURCE_FILES`, the firewall manifest (`firewall.mjs`: SHA-256 of every file under
   `core/`, `generator/`, `player/`, `tests/` without `tests/artifacts/`, `tools/` without `tools/ig-proto/`, and the root
   files), the tree identities, and a source label the runner receives (`-SourceLabel`). Every tree patches its copy of
-  `tools/calibrate.mjs` so that its `readSource` (lines 241-252) runs no git either (IGP-00 "meta" edits).
+  `tools/calibrate.mjs` so that its `readSource` (lines 241-252) runs no git either (IGP-00 "meta" edits). The label of
+  this provisional round stays `rating-v3 runtime cd5d17f (worktree 0e1283e)` for every task, even after commits of
+  documents or of the harness move the worktree's head: it names the runtime and the pack's starting point, and the
+  source digest (`34cea386…`, MP12b1's) is the identity of the measured code.
 - **Copies, never edits.** A variant is a copy of `core/`, `tools/` (without `tools/ig-proto/`) and `package.json`
   under `tests/artifacts/ig-proto/tree/<variant>/`, with anchored text edits and added files (IGP-00 §2). Every edit's
   anchor must occur exactly once; otherwise the build stops and names the edit. A production file is never edited, not
@@ -326,9 +329,14 @@ pack competes for the same quiet slots.
   started, and every earlier record stays.
 - **Accounting.** The runner appends one line per locked invocation to
   `tests/artifacts/ig-proto/<label>/<task>/invocations.jsonl`: step, start, end, wall seconds, node seconds (from the
-  step's state file; the wall seconds when an invocation failed without writing it), lock wait = wall − node, counted =
-  node + min(lock wait, 45 s), the horizon and the budget decision. Waits beyond the 45 s quiet period (difficulty-v3
-  busy) are not counted. The record's `meta.invocations` sums them.
+  step's state file; for a failed invocation without it, the node seconds the lock helper printed, 300 when killed, 0
+  when node never started; never the wall time), lock wait = wall − node, counted = node + min(lock wait, 45 s), the
+  horizon and the budget decision. Waiting for difficulty-v3 is never charged: waits beyond the 45 s quiet period are
+  not counted. The record's `meta.invocations` sums them.
+- **Debugging runs.** A developer's locked run outside the task's plan (debugging, a partial self-test) also goes
+  through the runner, with a scratch plan whose task id is `<task>-dev` (for example `IGP-01-dev`), so that its
+  invocations are logged and count in the round's total (not in the task's cap). Invocation records, journals and
+  states are never deleted; the reply lists the debugging invocations and their counted time.
 - **Budget guard (D-IG11).** Before each locked invocation the allowance left is `A = min(1.25 × the task's §1
   allocation − the task's counted total, 10,800 s − the round's counted total)`, each cap raised by an approval. When
   `H` is below the step's `minHorizonS` (its smallest unit of work: R + 20 s for an arm step, otherwise the value in its
@@ -374,7 +382,7 @@ has pushed `improve-generating`. The plan author then receives the summary for p
 
 | ID | Status | Start | End | Machine time (counted) | Lock waits | Commit |
 |---|---|---|---|---|---|---|
-| IGP-00 | not started | | | | | |
+| IGP-00 | accepted (R00 holds; self-test 9/9) | 2026-11-14 21:00 | 21:56 (accepted 22:10) | 407.9 s (+ 356 s reconstructed debug) | 496.5 s | `improve-generating IGP-00` |
 | IGP-01 | not started | | | | | |
 | IGP-02 | not started | | | | | |
 | IGP-03 | not started | | | | | |

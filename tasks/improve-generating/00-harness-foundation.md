@@ -65,7 +65,7 @@ before the round's allocation is passed.
   (line 1814).
 - `core/engine/policy.js`: `pieceCountPlan` returns null when the level is not offered on the area (line 327).
 - `core/engine/difficulty.js`: `measureV3(board, pieces, clues, ws, limits)` (line 214), `rate` (line 325),
-  `IncompleteRatingError` with `details { nodes, work, stop }` (line 65).
+  `IncompleteRatingError` with `counters { nodes, work, stop }` (lines 65-77).
 - MP12b1's reports: `docs/difficulty-v3/landscape-v3-full/<case>-2026-11-1[34].json` and
   `docs/difficulty-v3/landscape-v3/r2/`, `meta.sourceDigest`
   `34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918`.
@@ -152,24 +152,29 @@ A tree is `tests/artifacts/ig-proto/tree/<variant>/`: a copy of `core/`, `tools/
 
   | Edit | File | Find (exact) | Replace or append |
   |---|---|---|---|
-  | instr-1 | `core/engine/deduce.js` | `  let first = null;\n` | the anchor followed by `  let igWorkFirst = -1;\n  let igNodesFirst = -1;\n  let igR7Cut = 0;\n` |
+  | instr-1 | `core/engine/deduce.js` | `  let first = null;\n` | the anchor followed by `  let igWorkFirst = -1;\n  let igNodesFirst = -1;\n  let igR7Cut = 0;\n  let igR7CutCensus = 0;\n` |
   | instr-2 | `core/engine/deduce.js` | `        first = snapshot();\n` | the anchor followed by `        igWorkFirst = work;\n        igNodesFirst = nodes;\n` |
-  | instr-3 | `core/engine/deduce.js` | `      if (work > workLimit) {\n        return NONE;\n      }\n      if (!reachable(n, -1, compSize[i], compImb[i])) {\n` | the same with `        igR7Cut += 1;\n` before `        return NONE;\n` |
-  | instr-4 | `core/engine/deduce.js` | `          if (work > workLimit) {\n            return NONE;\n          }\n          const imbalance = option === OPT_PLUS ? pieceK[p] : -pieceK[p];\n` | the same with `            igR7Cut += 1;\n` before `            return NONE;\n` |
-  | instr-5 | `core/engine/deduce.js` | `  function result() {\n` | the anchor followed by `    igLast = { workFirst: igWorkFirst, nodesFirst: igNodesFirst, r7Cut: igR7Cut };\n` |
-  | instr-6 | `core/engine/deduce.js` | append | `\n/** @type {?{ workFirst: number, nodesFirst: number, r7Cut: number }} Instrumentation of the last measurement (ig-proto). */\nlet igLast = null;\n\n/** Returns and clears the instrumentation of the last measurement (null when there was none). */\nexport function igTake() {\n  const value = igLast;\n  igLast = null;\n  return value;\n}\n` |
+  | instr-3 | `core/engine/deduce.js` | `      if (work > workLimit) {\n        return NONE;\n      }\n      if (!reachable(n, -1, compSize[i], compImb[i])) {\n` | the same with `        if (inCensus) {\n          igR7CutCensus += 1;\n        } else {\n          igR7Cut += 1;\n        }\n` before `        return NONE;\n` |
+  | instr-4 | `core/engine/deduce.js` | `          if (work > workLimit) {\n            return NONE;\n          }\n          const imbalance = option === OPT_PLUS ? pieceK[p] : -pieceK[p];\n` | the same with `            if (inCensus) {\n              igR7CutCensus += 1;\n            } else {\n              igR7Cut += 1;\n            }\n` before `            return NONE;\n` |
+  | instr-5 | `core/engine/deduce.js` | `  function result() {\n` | the anchor followed by `    igLast = { workFirst: igWorkFirst, nodesFirst: igNodesFirst, r7Cut: igR7Cut, r7CutCensus: igR7CutCensus };\n` |
+  | instr-6 | `core/engine/deduce.js` | append | `\n/** @type {?{ workFirst: number, nodesFirst: number, r7Cut: number, r7CutCensus: number }} Instrumentation of the last measurement (ig-proto). */\nlet igLast = null;\n\n/** Returns and clears the instrumentation of the last measurement (null when there was none). */\nexport function igTake() {\n  const value = igLast;\n  igLast = null;\n  return value;\n}\n` |
   | instr-7 | `tools/bench/runner.js` | `      resultDigest: sha256Hex(canonicalJson({\n` | `      igSetKey: sha256Hex(canonicalJson(set.pieces.map((p) => p.cells))),\n      igPuzzleKeys: kept.map((v) => sha256Hex(canonicalJson({ layoutKey: v.layoutKey, clueKey: v.clueKey }))),\n` followed by the anchor |
   | diag-1 | `core/engine/policy.js` | `  if (area < lv.areas[0] \|\| area > lv.areas[1]) return null;\n` | `  if (IG.diagnosticOffers !== true && (area < lv.areas[0] \|\| area > lv.areas[1])) return null;\n` |
   | diag-2 | `core/engine/policy.js` | append | `\nimport { IG } from './ig-params.js';\n` |
 
   Params: `{ "variant": "instr", "diagnosticOffers": true }`. Every reader of the instrumentation calls `igTake()` right
   after a rating attempt in the same thread, so a stale value can never be read (a measurement that stops before
-  `result()`, or a clue set with no free piece, yields null). `r7Cut` counts R7's early NONE answers caused by the work
-  limit; with the canonical limit it is 0 unless the run was capped. Diagnostic offers change nothing on an offered
-  cell (D-IG13). `instr-7` is a test-side metadata seam: it adds to every run record's `details` the set key and one
-  key per accepted puzzle in acceptance order (both computed from values the runner already holds; extra `details`
-  fields pass `validateRunRecord`, `tools/bench/report.js:166-213`), so that two keyed arms can be compared puzzle by
-  puzzle (check-list §3 "Determinism"). The `base` tree stays unedited and has no keys.
+  `result()`, or a clue set with no free piece, yields null). `workFirst` and `nodesFirst` are -1 when the run never
+  reached a first solution (a capped run); null means no instrumentation (the `base` tree, or no measurement). `r7Cut`
+  counts R7's early NONE answers caused by the work limit in the **main search** (with the canonical limit, 0 unless
+  the run was capped); `r7CutCensus` counts those of the census, whose budget is relative (`deduce.js:1746-1747`,
+  `inCensus`), so they are normal whenever the census stops early (IGP-00's `log` arm shows them on 37 of its 128
+  ratings with an estimated census). PM4's R7 coverage uses `r7Cut` only (amendment after the IGP-00 review: the first
+  version counted both in one field). Diagnostic offers change nothing on an offered cell (D-IG13). `instr-7` is a
+  test-side metadata seam: it adds to every run record's `details` the set key and one key per accepted puzzle in
+  acceptance order (both computed from values the runner already holds; extra `details` fields pass
+  `validateRunRecord`, `tools/bench/report.js:166-213`), so that two keyed arms can be compared puzzle by puzzle
+  (check-list §3 "Determinism"). The `base` tree stays unedited and has no keys.
 - **`log`** (extends `instr`; today's search with durable per-probe logs):
 
   | Edit | File | Find (exact) | Replace or append |
@@ -231,10 +236,11 @@ Runs inside a tree only. It imports `node:fs`, `node:path`, `node:worker_threads
     own), whether or not a rating follows;
   - `{ t: 'p', call, i, tuple }` after every completed rating attempt, with tuple `[phase, count, outcome, score,
     mainWork, censusWork, workFirst, nodesFirst, nodes, censusNodes, stop, r7Cut, ms, flags]`: `score` null without a
-    rating; `mainWork = metrics.work - metrics.censusWork` for a rating, `error.details.work` for a capped one;
-    `censusWork` and `censusNodes` 0 without a census; `workFirst`, `nodesFirst`, `r7Cut` from `igTake()` (null when it
-    returns null); `nodes = metrics.nodes` or `details.nodes`; `stop = metrics.searchStop` or `details.stop`; `ms` with
-    three decimals; `flags`: `e` when the census is incomplete (an estimate), `r` when refused by AR1;
+    rating; `mainWork = metrics.work - metrics.censusWork` for a rating, `error.counters.work` for a capped one;
+    `censusWork` and `censusNodes` 0 without a census; `workFirst`, `nodesFirst`, `r7Cut` (main search only) from
+    `igTake()` (null when it returns null; -1 for no first solution); `nodes = metrics.nodes` or `counters.nodes`;
+    `stop = metrics.searchStop` or `counters.stop`; `ms` with three decimals; `flags`: `e` when the census is incomplete
+    (an estimate), `r` when refused by AR1, `c` when `r7CutCensus > 0`;
   - `{ t: 'end', call, result, score, clueCount, ms, work, profiles, rerates, accepted, at }`: `result` is `ok`,
     `not-in-band`, `uniqueness-not-proved`, `no-window` or `error`; `work` sums mainWork and censusWork; `accepted` is
     `{ boardRows, pieces, clues, rating }` of an ok result when `IG.logAccepted`, else null.
@@ -280,23 +286,28 @@ Runs inside a tree only. It imports `node:fs`, `node:path`, `node:worker_threads
   - `screenRating(engine, board, pieces, clues, ws, W)`: `measureV3(board, pieces, clues, ws, { deduce: { ...DEDUCE,
     work: W }, dlx: SCORE.caps })` and a rating built exactly as `rate()` builds it (`difficulty.js:325-334`). Required:
     with `W = DEDUCE.work` it deep-equals `rate()`.
-  - `rateRecord(engine, { board, pieces, clues, ws, W })`: one canonical (no `W`) or screened rating and its record:
-    the tuple fields of §4 by name plus `level`, `side`, `ar1`, `censored`, `solutions`, `rating` (for a rating) or
-    `details` (for a capped one).
+  - `rateRecord(engine, { board, pieces, clues, ws, W, levelId, idx })`: one canonical (no `W`) or screened rating and
+    its record: the tuple fields of §4 by name plus `r7CutCensus`, `level`, `side` and `ar1` (against the band of the
+    optional `levelId`; without it the outcome is `rated`), `censored`, `solutions`, `rating` (for a rating) or
+    `details` (`{ nodes, work, stop }` from the error's `counters`, for a capped one).
   - `recordedCall(engine, { set, levelId, rng, ws, onProfile })`: today's `selectClues` of the tree on the witness,
     `uniqueness 'any'`, no exclusion, with a `rate` seam that records every rating (`rateRecord` fields plus `idx`, the
     witness positions of the clues, found by piece id) and passes each record to `onProfile` as it completes. Returns
-    `{ result: { ok, reason, clueCount, score }, profiles }`.
+    `{ result: { ok, reason, clueCount, score }, profiles }`. It runs on `instr` (PM4, PM1) or `base` (PM2, whose
+    records then have null instrumentation) only, and throws on a tree whose chain includes `log`: there its seam would
+    consume `igTake()` before the journal does.
   - `windowSubsets(engine, { set, seedText, offsets, perCount, startCount })`: for each `g = startCount + offset` within
     1 to K - 2 and `s < perCount`: `createRng(normalizeSeedText(seedText), 'ig/window/<g>/<s>')`, shuffle the witness
     positions, keep the first `g`, sorted.
 - `lib/lanes.mjs` and `lib/lane-worker.mjs`:
-  - `createLanes({ variant, size = 4, horizonS })`: `size` worker threads on the tree of `variant` (`ensureTree`;
-    `treeId` recorded), each with a main workspace (`createWorkspace(MAIN_WORKSPACE_BYTES)`); `horizonS` is the
-    invocation's horizon H (check-list §7), measured from the process start.
-  - Job kinds: `rate` `{ boardRows, pieces, clues, W? }` → `rateRecord`; `call` `{ caseId, levelId, boardRows,
-    seedText, maxAttempts, window?: { offsets, perCount } }` → `firstCarvedSet`, `recordedCall` with `calRng` (each
-    profile posted to the host as it completes), then the window subsets rated canonically.
+  - `createLanes({ variant, size = 4, horizonS, limits, testKinds })`: `size` worker threads on the tree of `variant`
+    (`ensureTree`; `treeId` recorded), each with a main workspace (`createWorkspace(MAIN_WORKSPACE_BYTES)`); `horizonS`
+    is the invocation's horizon H (check-list §7), measured from the process start. `limits` (overrides of the 30 s and
+    120 s rules) and `testKinds` (synthetic job kinds) are for the self-test only and are never passed by a measuring
+    script; `setHorizon(s)` may only lower the horizon (`min` with the current one).
+  - Job kinds: `rate` `{ boardRows, pieces, clues, W?, levelId?, idx? }` → `rateRecord`; `call` `{ caseId, levelId,
+    boardRows, seedText, maxAttempts, window?: { offsets, perCount } }` → `firstCarvedSet`, `recordedCall` with `calRng`
+    (each profile posted to the host as it completes), then the window subsets rated canonically.
   - Admission, with e the elapsed time: a `rate` job starts only when e + 30 s ≤ H; a `call` job only when e + 120 s ≤
     H − 15 s. The supervisor (the host thread) cuts a `rate` job running longer than 30 s (a defect: the job and its
     inputs are recorded, the task stops) and a `call` job at H − 15 s: it terminates the lane, records the call
@@ -391,13 +402,16 @@ pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\IGP
 - `#Requires -Version 7`; `$ErrorActionPreference = 'Stop'`; `Set-Location (Join-Path $PSScriptRoot '..\..')`;
   dot-source `-LockHelper`.
 - Plan schema: `{ "task": "IGP-NN", "allocationMinutes": n, "optionalMinutes": m, "steps": [ { "id", "locked",
-  "repeatUntilDone", "optional", "projectS", "minHorizonS", "node": [ ... ], "state": "<path under
+  "repeatUntilDone", "optional", "projectS", "invocations", "minHorizonS", "node": [ ... ], "state": "<path under
   tests/artifacts/ig-proto/<label>/>" } ] }` (`optionalMinutes`, default 0, joins the allocation with
-  `-IncludeOptional`). `minHorizonS` is the step's smallest unit of work: for an `arm.mjs run` step R + 20 s (110 s on
-  the fast shards, 280 s on slow cells); for `self-test.mjs` 120 s; 60 s for steps that only rate (`verify.mjs`, PM4
-  `screens`, PM1 `windows` and `scan`); 150 s for steps that run calls (PM4 `calls`, PM1 `failed-sets`, PM2 `run`). The
-  runner appends `--label <Label> --source-label <SourceLabel>` to every `node` list, and `--horizon-s <H>` to every
-  locked one.
+  `-IncludeOptional`). `projectS` is the forecast of the step's node seconds and `invocations` the expected number of
+  locked invocations (default 1); both feed only `-DryRun`, which adds 45 s per expected invocation and passes the
+  running forecast to `budget.mjs decide --forecast-s` (a real invocation always passes 0). The `projectS` values of the
+  task files' plan tables are indicative; the developer may restate them under this definition. `minHorizonS` is the
+  step's smallest unit of work: for an `arm.mjs run` step R + 20 s (110 s on the fast shards, 280 s on slow cells); for
+  `self-test.mjs` 120 s; 60 s for steps that only rate (`verify.mjs`, PM4 `screens`, PM1 `windows` and `scan`); 150 s
+  for steps that run calls (PM4 `calls`, PM1 `failed-sets`, PM2 `run`). The runner appends `--label <Label>
+  --source-label <SourceLabel>` to every `node` list, and `--horizon-s <H>` to every locked one.
 - Unlocked step: `node @args`; a non-zero exit stops the runner.
 - Locked step: before each invocation, `lib/budget.mjs decide` with the task allocation, the step's `minHorizonS` and
   the approvals; `stop` ends the runner with exit code 4 and the printed reason. Otherwise `Invoke-IgNode -Repo
@@ -406,10 +420,12 @@ pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\IGP
   (`lastInvocation.progress` all zero) ends the runner with exit code 4. Any exception of the helper (a non-zero exit, a
   kill at 300 s) ends the runner: no retry.
 - After each locked invocation append to `tests/artifacts/ig-proto/<Label>/<task>/invocations.jsonl`: `{ task, step,
-  start, end, wallSeconds, nodeSeconds, lockWaitSeconds, countedSeconds, horizonS, killed, exit, done, budget }` (node
-  seconds from the state file's `lastInvocation.seconds`, 300 when killed, and the wall seconds when a failed
-  invocation wrote no new `lastInvocation`, so a failed attempt is charged in full; lock wait = wall − node; counted =
-  node + min(lock wait, 45)).
+  start, end, wallSeconds, nodeSeconds, lockWaitSeconds, countedSeconds, horizonS, killed, exit, done, budget }`. Node
+  seconds: the state file's new `lastInvocation.seconds`; for a failed invocation without it, the seconds the helper
+  printed for the node process (`IG <task> exit=<n> seconds=<s>`, captured from its information stream, for example
+  with `-InformationVariable`), 300 when killed, 0 when node never started. Never the wall time: waiting for
+  difficulty-v3 is never charged (amendment after the IGP-00 review). Lock wait = wall − node; counted = node +
+  min(lock wait, 45).
 - Print the round's and the task's counted totals after each step. `-DryRun` evaluates the budget decisions of the plan
   against the current log, adds the steps' `projectS` as a forecast, and prints both without running anything.
 
@@ -438,6 +454,8 @@ differs, when a row line names another seed, or when `base`'s `copyDigest` diffe
 
 Each case prints `PASS <name>` or `FAIL <name>: <reason>`; the script writes its `state.json` (`done`, results,
 `lastInvocation.seconds`) and exits 1 on any failure. Its bound: about 60 s; it carves and rates only small cases.
+`--only <cases>` runs a subset, for development only (under the lock when a case rates); acceptance evidence is a full
+run under the runner.
 
 1. Paths and fingerprint guard: `ROOT` is the repository root; no path under `tools/ig-proto/` is in `SOURCE_FILES`; no
    file under `tools/ig-proto/` and no tree's copy of `tools/calibrate.mjs` contains a call that starts git.
@@ -449,8 +467,9 @@ Each case prints `PASS <name>` or `FAIL <name>: <reason>`; the script writes its
    calibration's clues.
 4. Instr equality: corpus = on `10x10-hard`, seeds `ig-selftest/instr/0` and `/1`: window subsets at offsets -1, 0, 1,
    2 from the start count, 2 each; plus 2 subsets of `12x12-nightmare` (seed `ig-selftest/instr/n`) at its start count.
-   `base` and `instr` give deep-equal ratings, or errors of the same class with equal `details`; every complete `instr`
-   rating has `0 <= workFirst <= mainWork`; after each rating `igTake()` returns a value once and then null.
+   `base` and `instr` give deep-equal ratings, or errors of the same class with equal `counters`; every complete `instr`
+   rating has `0 <= workFirst <= mainWork`, and `r7Cut` 0 unless its stop is `work-cap` (canonical limit; census cuts go
+   to `r7CutCensus`); after each rating `igTake()` returns a value once and then null.
 5. Log equality and journal: `setAttempt` for attempts 0 and 1 of two `10x10-hard` seeds gives deep-equal results in
    `base` and `log`; with `IG_LOG_DIR` under `tests/artifacts/ig-proto/selftest/logs`, the journal has a `start`, phase
    lines, `p` lines and an `end` per call; a call interrupted inside a worker (a synthetic worker terminated after its
@@ -573,14 +592,14 @@ check. A failing case is fixed in the harness, never by changing a production fi
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (pack author: IGP-00 ACCEPT; code fixes folded into IGP-01's step 0) |
+| Start | 2026-11-14 21:00 (+07:00) |
+| End | 2026-11-14 21:56 developer (runner plan 21:45:01-21:55:39, exit 0); 22:10 author acceptance; orchestrator commit |
+| Duration | 56 min developer; six locked invocations through the runner (node 137.9 s, counted 407.9 s = 137.9 + 6 x 45 s; priority wait 496.5 s, not counted) |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (pack author review, opus-ig); claude-opus-5.5 (orchestrator) |
+| Token usage | 113 model calls; 28,722,141 input tokens (28,179,695 cache reads); 235,703 output tokens |
+| AI credits | about 653 (developer) |
+| Verification | `tools/ig-proto/` (README, `run-task.ps1`, `arm.mjs`, `identity.mjs`, `firewall.mjs`, `boards.mjs`, `self-test.mjs`, `lib/` paths/records/budget/tree/engine/sets/calls/lanes/lane-worker, `data/boards-v1.json` with 105 cases, `plans/IGP-00.json`, variants `base`/`instr`/`log` with `ig-log.js`); self-test 9/9 under the runner (23.9 s); **R00 holds**: on all 4 seeds `resultDigest` equal at 10/10 accepted for MP12b1~base, MP12b1~log and base~log; median time ratios base/MP12b1 1.014, log/MP12b1 1.031, log/base 1.022; one journal append 0.307 ms; the base copy's digest `34cea386…` equals the worktree's (MP12b1's source). `npm run check` passes; firewall: 279 production files unchanged; no tracked file changed. Evidence: `docs/improve-generating/evidence/provisional/IGP-00/` |
+| Acceptance | B01-B03 and T01-T06 met (developer; confirmed by the pack author's read-only review) |
+| Issues & resolutions | (1) Debugging used 7 locked invocations under the dev ids IGP-98/IGP-99 (about 41 s node) whose records the developer deleted; disclosed here and reconstructed by the orchestrator as one line in `tests/artifacts/ig-proto/provisional/IGP-00-dev/invocations.jsonl` (counted 356 s = 41 + 7 x 45, `reconstructed: true`) so the round guard counts it; new rule: debug runs go through the runner as `<task>-dev` and their records are never deleted. (2) Failed invocations were charged wall time including the priority wait (spec bug): corrected in 00 section 8 and check-list section 7 to node seconds (300 if killed, 0 if never started) plus 45 s grace; no IGP-00 record affected. (3) Accepted additions: optional `levelId` on `rateRecord`; lanes `setHorizon` (may only lower), `limits`, `testKinds` and self-test `--only` (development only); plan-step `invocations` and `budget.mjs --forecast-s` (dry-run only). (4) `IncompleteRatingError` carries `counters`; spec fixed. `-SourceLabel` stays `cd5d17f (worktree 0e1283e)` for the provisional round. (5) New author finding: `r7Cut` mixes census-phase cuts (37 of 231 complete ratings, all census cuts); split into `r7Cut` and `r7CutCensus` with a `c` journal flag, in IGP-01's step 0 before IGP-02 |
+| Handoff | IGP-01 step 0 before any locked invocation: the charging fix, the R7 split and `c` flag, the `recordedCall` guard (refuse a `log` tree), `setHorizon` lower-only, README updates; self-test runs IGP-00's cases 1-9 then `--proto` in one invocation |

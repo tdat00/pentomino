@@ -262,13 +262,23 @@ application ends each action at 115 s.
 | `tools/ig-proto/verify.mjs`, `compare.mjs` | new |
 | `tools/ig-proto/plans/IGP-01.json` | new |
 | `tools/ig-proto/lib/tree.mjs` | `paramFiles` |
-| `tools/ig-proto/variants/files/log/core/engine/ig-log.js` | exports the prototype needs; nothing else changes |
-| `tools/ig-proto/self-test.mjs` | `--proto` cases |
-| `tools/ig-proto/README.md` | the prototype and the comparison |
+| `tools/ig-proto/variants/files/log/core/engine/ig-log.js` | exports the prototype needs; the `c` flag (census R7 cuts); nothing else changes |
+| `tools/ig-proto/self-test.mjs` | `--proto` cases; case 4 also checks `r7Cut` (main search) and `r7CutCensus` |
+| `tools/ig-proto/run-task.ps1`, `variants/instr.json`, `lib/calls.mjs`, `lib/lanes.mjs` | the IGP-00 review fixes of step 0 only |
+| `tools/ig-proto/README.md` | the prototype and the comparison; the IGP-00 review fixes (charging, test-only knobs, R7 fields) |
 | `docs/improve-generating/evidence/provisional/IGP-01/` | new records |
 
 ## Implementation steps
 
+0. The IGP-00 review fixes, before any locked invocation of this task (IGP-00 §3, §5, §8 as amended):
+   - `run-task.ps1`: a failed invocation without a fresh state is charged the node seconds the lock helper printed
+     (300 when killed, 0 when node never started), never the wall time;
+   - `variants/instr.json` (instr-1, instr-3 to instr-6): R7 cuts counted apart by `inCensus` (`r7Cut` main search,
+     `r7CutCensus` census); `ig-log.js` adds the `c` flag; `lib/calls.mjs` records `r7CutCensus`;
+   - `lib/calls.mjs`: `recordedCall` throws on a tree whose chain includes `log`; `lib/lanes.mjs`: `setHorizon` keeps
+     the smaller horizon;
+   - README: the charging rule, the test-only knobs (`limits`, `testKinds`, `setHorizon`, `--only`), `invocations` and
+     `--forecast-s` (dry run only), the R7 fields and the -1 sentinel.
 1. `fit-prior.mjs` and `data/prior-v1.json`; `paramFiles`; the two manifests; `tree.mjs check-edits --all`.
 2. `ig-select-proto.js` with its test seams; the `--proto` self-test cases.
 3. `verify.mjs`, `compare.mjs`, the plan.
@@ -284,7 +294,7 @@ The run plan `tools/ig-proto/plans/IGP-01.json` (allocation 62 minutes; the runn
 | firewall-snapshot | no | `tools/ig-proto/firewall.mjs snapshot --task IGP-01` | | |
 | fit-prior | no | `tools/ig-proto/fit-prior.mjs` | | |
 | trees | no | `tools/ig-proto/lib/tree.mjs build base log p1p5-main` | | |
-| self-test-proto | yes, once | `tools/ig-proto/self-test.mjs --proto` | 135 | `IGP-01/self-test/state.json` |
+| self-test-proto | yes, once | `tools/ig-proto/self-test.mjs --proto` (IGP-00's cases 1 to 9 first, then the `--proto` cases, in one invocation) | 135 | `IGP-01/self-test/state.json` |
 | before-fast | yes, until done | `--arm before --shard fast --variant log --cases 26x26-nightmare:0-5,14x14-master:0-4,26x26-master:0-4 --row-limit-s 90` | 330 | `IGP-01/before/fast/state.json` |
 | after-fast | yes, until done | `--arm after --shard fast --variant p1p5-main --cases 26x26-nightmare:0-5,14x14-master:0-4,26x26-master:0-4 --row-limit-s 90` | 330 | `IGP-01/after/fast/state.json` |
 | before-14x14, after-14x14 | yes, until done | `--arm before --shard 14x14-nightmare --variant log --cases 14x14-nightmare:0-2 --row-limit-s 260`; the same with `--arm after --variant p1p5-main` | 330 | `IGP-01/<arm>/14x14-nightmare/state.json` |

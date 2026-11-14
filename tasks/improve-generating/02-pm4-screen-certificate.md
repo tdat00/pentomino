@@ -93,9 +93,10 @@ solution is known (`workFirst > 0`) gets three more screens, chosen from its own
 
 Each boundary screen is classified as above and checked the same way (a certified boundary screen is impossible by
 construction and would be a defect). The record counts, for every class, the runs observed, and the runs with an R7 cut
-(`r7Cut > 0`); a class or the R7 case with no observation is reported as a **named coverage gap**, never as covered "by
-the argument". The certificate's verdict is: 0 violations on the certified runs, with the observed coverage of each
-named case.
+in the main search (`r7Cut > 0`; census-phase cuts, `r7CutCensus`, follow the census's relative budget and are reported
+apart, never as R7 coverage); a class or the R7 case with no observation is reported as a **named coverage gap**, never
+as covered "by the argument". The certificate's verdict is: 0 violations on the certified runs, with the observed
+coverage of each named case.
 
 ### Economics per cell and `W` (on today's call profiles; window profiles reported apart)
 
