@@ -7,7 +7,7 @@
 | Estimated size | Medium: about 300–500 changed lines (the record about 250–400 lines with the release notes; justified corrections, if any); about 50–60 minutes of work plus about 70–100 minutes of machine time (gate GZ) |
 | Owner role | QA and release |
 | Milestone | M10 — verified |
-| Design refs | `docs/difficulty-v3/report-detailed.md` §5.1 (MP17 row), §5.2 (the lock), §5.3 (GZ), RES-01 and RES-25 (what the lock means), RES-32 (MP17 row: the release notes), RES-35 (AR1); `docs/difficulty-v3/plan.md` §1.1, §6 and §7 (last item); clarifications C3 (a), AR1 (part G), PROC-P1 (a), and the plan author's answer to PR-P1 with owner decision P-OD9 (`docs/difficulty-v3/clarifications-resolved.md`: the plan §6 probe must show no Hard-or-above puzzle without a proved decisive guess; R7 a known limitation; the "no re-run allowance" of the code page); check-list §4.2 D35, D38 to D41, §6, §7, §9 |
+| Design refs | `docs/difficulty-v3/report-detailed.md` §5.1 (MP17 row), §5.2 (the lock), §5.3 (GZ), RES-01 and RES-25 (what the lock means), RES-32 (MP17 row: the release notes), RES-35 (AR1); `docs/difficulty-v3/plan.md` §1.1, §6 and §7 (last item); clarifications C3 (a), AR1 (part G), PROC-P1 (a), and the plan author's answer to PR-P1 with owner decision P-OD9 (`docs/difficulty-v3/clarifications-resolved.md`: the plan §6 probe must show no Hard-or-above puzzle without a proved decisive guess; R7 a known limitation; the "no re-run allowance" of the code page); the plan author's answer to PR-P2 (Part I of the same file: the remaining parts unchanged; four findings carried to MP12b2's record and to this record as named items, §10 below); check-list §4.2 D35, D38 to D41, §6, §7, §9 |
 | Gates owned | **GZ**: the two fixture checks; `npm test`; the plan §6 probe and the level runs on 10x6 and 20x18 (`tools/generate.mjs`, small counts, a fresh attempt directory); a small `tools/rate-probe.mjs` run; every page of `tests/browser/` in headless Edge in the main phase, plus the keys and narrow phases of `puzzle-code-acceptance` and the keys phase of `replay` (ports 8817 and 9317; MP16b's runner) |
 | Implementation status | Not started |
 
@@ -588,7 +588,14 @@ English, CRLF, no BOM, relative links only. Sections:
 9. **Corrections made in this task**: each with the file, the reason and the accepted task it follows; or "none".
 10. **Findings for the owner**: or "none"; with the named items of MP12b2's and MP12b3's records that are still open
     (performance and availability findings, P-OD9) and the known limitations (R7; the fail-fast or the `require` rule
-    when the owner chose not to build them).
+    when the owner chose not to build them). Among them, by name and with the numbers of MP12b2's record §13, the four
+    findings the plan author carried in PR-P2 (named items, no stop): Nightmare request completion below 90 % on
+    12x12, 14x14, 15x15b10, 16x16 and 15x20; the 43 Nightmare requests that answered after more than 120 s (each action
+    within its own budget); one selection call can outlast the 115 s stop (about 150 s, its result discarded); and the
+    census confound (the fast large-board Nightmare cells carry more census estimates, not measured). Say for each
+    whether MP12b3 (the fail-fast, when built) or a later accepted task changed it (MP13a to MP16b do not touch
+    generation time), and that a faster generator is later work outside difficulty-v3
+    (`docs/improve-generating/plan.md`, not authorised).
 11. **Release notes** (below).
 
 ### Release notes (C3 (a); RES-32, MP17 row)

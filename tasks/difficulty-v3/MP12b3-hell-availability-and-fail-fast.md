@@ -7,7 +7,7 @@
 | Estimated size | Large: part A about 600–900 changed lines (`levels.js` about 15, `policy.js` about 5, `generator/state.js` about 10, `tools/bench/calibration-reference.js` about 60, the four BQ matrices (cases removed), tests about 250, documents about 150, the record about 120); part B, when built, about 250–350 more (`clues.js` about 25, `generate.js` about 15, the client about 15, `generator/jobs.js` about 10, locales 4, tests about 150, documents about 50); part C, when built, about 150–250 more. About 60–90 minutes of developer work plus about 20–30 minutes of machine time under the lock (GF-P2, the fixture-dependent files, the quick set, `npm test`, one or two browser pages) |
 | Owner role | Engine and Generator |
 | Milestone | M7 — calibrated and locked |
-| Design refs | `docs/difficulty-v3/clarifications-resolved.md` Part H P-OD9 and Part I PR-P1 (the plan author's answer) and D36 (decided (i)); `docs/difficulty-v3/report-detailed.md` RES-01 ("Versions": `POLICY_ID` becomes `mixed-v3` when P3 changes a table of the policy), RES-25 (calibration and lock); design-detail §5.4 (an availability change needs a new policy id), §7.5 (availability, D35), §7.8 (acceptance: at least 90 % of the requests complete); check-list §4.2 D20, D29, D35, D36, D38, D39, D40, D41 and §7 |
+| Design refs | `docs/difficulty-v3/clarifications-resolved.md` Part H P-OD9 and Part I PR-P1 (the plan author's answer) and D36 (decided (i)); Part I PR-P2 (the plan author's review: the withdrawal of the Hell levels is a limit of the present search, not a proof that their bands are unreachable under v3); `docs/difficulty-v3/report-detailed.md` RES-01 ("Versions": `POLICY_ID` becomes `mixed-v3` when P3 changes a table of the policy), RES-25 (calibration and lock); design-detail §5.4 (an availability change needs a new policy id), §7.5 (availability, D35), §7.8 (acceptance: at least 90 % of the requests complete); check-list §4.2 D20, D29, D35, D36, D38, D39, D40, D41 and §7 |
 | Gates owned | GF-P2 (the generation fixtures re-recorded for the new policy id only; their puzzles must not change), GA-P2 (the final `npm test`), the browser page `generator-editor` (and `generator-flow` when part B is built) |
 | Implementation status | Not started |
 
@@ -15,7 +15,9 @@
 
 The owner asked that Hard be really hard and that every level the Generator offers be one it can make. Under v3 a
 capped search gives no rating (SA2-Q-P02), so on large boards the Hell levels cannot be rated and requests for them
-end after two minutes without a puzzle (D36). The owner has decided (P-OD9): stop offering what v3 cannot make. This
+end after two minutes without a puzzle (D36). The owner has decided (P-OD9): stop offering what v3 cannot make. The
+plan author's review (PR-P2) adds that this is a limit of the present clue search, not a proof that the Hell bands are
+unreachable under v3; the documents below say so. This
 task sets the board areas of the Hell levels from the landscape that MP12b1 measured: a Hell level stays offered only
 where its 20-request run completed as the other levels must; elsewhere it is not offered, and a Hell level made
 nowhere is never generated (`[Infinity, Infinity]`). The Generator's level list, the design, the brief and both user
@@ -243,18 +245,21 @@ packs) reads `ok`, keeps its claim, is imported by the Generator as an Imported 
 
 - `docs/design-detail.md`: §7.5 — the "Offered for A in" row, the table "Resulting range of levels", the paragraph
   "Reachability under `difficulty-v3` (D36; interim …)" replaced by the rule of D39 and the measured result (per Hell
-  level, its areas and the evidence, with links to the calibration record and this task's record), and the Hell rows
+  level, its areas and the evidence, with links to the calibration record and this task's record; stated as a limit of
+  the present search, not of the bands, PR-P2), and the Hell rows
   of the final parameter table (offered bands only, split as in A5; the retired rows under a short heading "Measured
   before difficulty-v3, no longer offered (D36 (i), P-OD9)"); §5.4 (`mixed-v3`, "packs made before it carry
   `mixed-v2`"); the §6.4 heading; §4.2 (the `levels.js` block: "both ends may be `Infinity`: never offered"); §8.7
   "Matrix rules" (its example and the 60-seed rule's subject); §10.3 "Level table" ("Very easy … <the last listed
   level>"); §13.2, the `policy` row (the anchor rows); §1.2 R13 and §2 D35 (one clause each: "under `difficulty-v3`
-  the Hell levels are offered only where the v3 rating can make them, D36 (i), owner decision P-OD9"). Historical
+  the Hell levels are offered only where the present generator can make them, a limit of its search rather than a
+  proof that their bands are unreachable (PR-P2), D36 (i), owner decision P-OD9"). Historical
   rationale and evidence (§7.4's band-ratio note, §14, Appendix A) stay as written.
 - `docs/design-brief.md`: the table "Levels and typical boards" (the 18 × 20 and 22 × 22 rows: available levels and
   example piece counts, recomputed with `pieceCountRange`), the sentence on "Require unique solution … experimental for
   Hell puzzles above 200 squares" when no Hell level is offered above 200 cells, and one sentence: "Hell levels are
-  offered only on the board sizes where the current rating can make them; packs and links made before still open."
+  offered only on the board sizes where the current generator can make them, a limit of its present search; packs and
+  links made before still open."
 - `USERGUIDE.md` and `USERGUIDE.vn.md`: "A table lists every level from Very easy to Hell 3" (EN line 61, VN line 59)
   with the last listed level; the "Difficulty" paragraph gets the sentence of the brief.
 - `README.md` line 16, "makes puzzles from a set at ten levels": the number of listed levels.

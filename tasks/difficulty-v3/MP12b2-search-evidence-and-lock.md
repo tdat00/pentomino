@@ -4,10 +4,10 @@
 |---|---|
 | ID | MP12b2 (third part of the report's MP12; the **lock** of the v3 rating tuple, which MP12b3 completes) |
 | Depends on | MP12b1 (accepted and committed: `docs/difficulty-v3/landscape-v3-full/` with the aggregate and its three lists) |
-| Estimated size | Medium–Large: about 600–1,000 changed lines (`observe.mjs` given, `summary.mjs` about 150, `flow-case.mjs` about 20 changed lines of a copy, `failfast.mjs` with its self-test about 200, the record about 300, design §7.8 about 30; re-pins only in an ordered change round); about 60–90 minutes of developer work plus machine time under the lock protocol (cross-review TP20; the waits for the Sudoku repository and at least 15 s per lock release come on top). Expected, with the upper bound of the limits in brackets: GS-P3 R and A 20 captures, 20–40 minutes [190], plus two more captures for each 18x20 cell of R without a puzzle (PR-P1), up to 6 [57]; H five, 25 minutes [25]; HL 20 diagnostic replays, 60–90 minutes [190] (TP23); the availability probe again, six captures, about 16 minutes [57] (TP25: MP12a changed `core/engine/policy.js` after `eea5fed`, so MP09d2's observations cannot be reused); the final lock commands about 10 minutes. An ordered change round reruns the complete population (TP30, TP32): about 12–18 hours more (the landscape 7.5–12.5 hours, the slice probe corpus 20–35 minutes, GS-P3 about 2–3 hours, re-pins, checks, GF-P2 and GA-P2 about 30 minutes), projected to the orchestrator before it starts |
+| Estimated size | Medium–Large: about 600–1,000 changed lines (`observe.mjs` given, `summary.mjs` about 150, `flow-case.mjs` about 20 changed lines of a copy, `failfast.mjs` with its self-test about 200, the record about 300, design §7.8 about 30; re-pins only in an ordered change round); about 60–90 minutes of developer work plus machine time under the lock protocol (cross-review TP20; the waits for the Sudoku repository and at least 15 s per lock release come on top). Expected, with the upper bound of the limits in brackets: GS-P3 R and A 20 captures, 20–40 minutes [190], plus two more captures for each 18x20 cell of R without a puzzle (PR-P1), up to 6 [57]; H five, 25 minutes [25]; HL three diagnostic replays, the Hell cases whose prescreen made a puzzle, 25–29 minutes [29] (TP23; PR-P2 amendment: was 20 replays, 60–90 minutes [190]); N five `any`-mode Nightmare captures, 20–40 minutes [48] (PR-P2 amendment); the availability probe again, six captures, about 16 minutes [57] (TP25: MP12a changed `core/engine/policy.js` after `eea5fed`, so MP09d2's observations cannot be reused); the final lock commands about 10 minutes. An ordered change round reruns the complete population (TP30, TP32): about 12–18 hours more (the landscape 7.5–12.5 hours, the slice probe corpus 20–35 minutes, GS-P3 about 2–3 hours, re-pins, checks, GF-P2 and GA-P2 about 30 minutes), projected to the orchestrator before it starts |
 | Owner role | Measurement |
 | Milestone | M7 — calibrated and locked |
-| Design refs | `docs/difficulty-v3/report-detailed.md` RES-25 (the record: repaired candidates, capped outcomes; the lock), RES-01 (what the lock means), RES-26, RES-35; RES-15a and Part I D21 ("MP12 reports, per Hell cell, the ratings per puzzle and the generation time under v3"); Part I D36 and P-OD5, **decided (i) by P-OD9** (no D36 question here; the fail-fast table is still put to the owner); clarifications PROC-P1 (a), SA2-Q-P09 (branch A), P-OD1, P-OD2, P-OD3; Part I D37 and P-OD6, changed by P-OD9 (the Hell population); **Part I PR-P1** (the plan author's answer: the tuple to lock, R7, the census findings, population R, the change-round rule); check-list §4.2 D21, D29, D35 to D41 and §7 (the shared-machine lock protocol); cross-review SP16, SP07 (`docs/difficulty-v3/gpt-6-astra/6-review-of-task-pack.md`, second pass) and TP20, TP23, TP24, TP25, TP26, TP28 (its MP12 tranche), TP30, TP32, TP33 (its re-verification), TP34 (its final verification) |
+| Design refs | `docs/difficulty-v3/report-detailed.md` RES-25 (the record: repaired candidates, capped outcomes; the lock), RES-01 (what the lock means), RES-26, RES-35; RES-15a and Part I D21 ("MP12 reports, per Hell cell, the ratings per puzzle and the generation time under v3"); Part I D36 and P-OD5, **decided (i) by P-OD9** (no D36 question here; the fail-fast table is still put to the owner); clarifications PROC-P1 (a), SA2-Q-P09 (branch A), P-OD1, P-OD2, P-OD3; Part I D37 and P-OD6, changed by P-OD9 (the Hell population); **Part I PR-P1** (the plan author's answer: the tuple to lock, R7, the census findings, population R, the change-round rule); **Part I PR-P2** (the plan author's review of the generator: no change of algorithm, bound or sequence; the capture recommendation, applied by the PR-P2 amendment after the check against D40; four carried findings); check-list §4.2 D21, D29, D35 to D42 and §7 (the shared-machine lock protocol); cross-review SP16, SP07 (`docs/difficulty-v3/gpt-6-astra/6-review-of-task-pack.md`, second pass) and TP20, TP23, TP24, TP25, TP26, TP28 (its MP12 tranche), TP30, TP32, TP33 (its re-verification), TP34 (its final verification) |
 | Gates owned | GS-P3 (search evidence, new; check-list §7); GA-P2 (the final `npm test`); GF-P2 and GA-P2 again only in an ordered change round |
 | Implementation status | Not started |
 
@@ -15,6 +15,12 @@
 exception" before the Execution log first. It adds a named item to record §1 and §13, marks the MP12b1 times of
 22 cases as not slot-protected, and adds a conditional safeguard after block HL. Where it differs from the text below,
 it wins.
+
+**Pack amendment after PR-P2 (binding; SA1, 2026-11-14).** Read the section "Pack amendment after PR-P2: the Hell and
+Nightmare captures" before the Execution log as well. HL keeps only the Hell cases whose prescreen made a puzzle, a new
+population N (`any`-mode Nightmare on five boards) enters the false-stop check, and record §13 carries the plan
+author's four findings. The places it changes are marked "PR-P2 amendment" in the text; where anything still differs,
+the amendment wins over the text below and over the dispatch addendum.
 
 ## Goal & business context
 
@@ -45,9 +51,9 @@ accepts it); from MP12b3's commit on, MP13a to MP17 must not change any rating o
 
 ### In scope
 
-- Gate GS-P3: the search-evidence captures (populations R, A, H, the Hell companion HL and, only when a recorded D21
-  decision says "inert on the v3 corpus", S), their summary and self-test, and the fail-fast check `failfast.mjs` with
-  its self-test.
+- Gate GS-P3: the search-evidence captures (populations R, A, H, the Hell companion HL, the Nightmare population N of
+  the PR-P2 amendment and, only when a recorded D21 decision says "inert on the v3 corpus", S), their summary and
+  self-test, and the fail-fast check `failfast.mjs` with its self-test.
 - The evidence provenance and the availability probe again under the final tuple (cross-review TP25; MP09d2's
   observations cannot be reused, see "Evidence provenance and the final tuple").
 - The stall re-examination (only under that recorded decision; skipped on this source, TP28).
@@ -309,8 +315,8 @@ Definitions used by the summary and the record:
   with a `start` but no `end` event shows "stopped at the limit", the `set` event's `setMs` when there is one, and the
   completed calls only; a file without a `start` event, such as the self-test's own file, shows `-` in the columns of
   set attempts, accepted puzzles, attempts per accepted puzzle and the three times). Then a TOTAL row per population
-  folder (`require`, `any`, `hell`, `hell-landscape`, `stall`); a ratio is never formed across files of different
-  populations. Every column states its denominator in the header.
+  folder (`require`, `any`, `hell`, `hell-landscape`, `nightmare` (PR-P2 amendment), `stall`); a ratio is never
+  formed across files of different populations. Every column states its denominator in the header.
 - `--self-test` (run as `node --import ./<folder>/observe.mjs ./<folder>/summary.mjs --self-test` with `D21_OUT` set
   to a new file under `tests/artifacts/MP12b2/`) imports, only in this mode and with dynamic `import()` from
   `D21_ROOT` (default the working directory) as `register.mjs` does: `core/engine/board.js` (`boardFromRows`),
@@ -350,21 +356,24 @@ Definitions used by the summary and the record:
 ### GS-P3: the captures
 
 `$s` is `docs/difficulty-v3/search-<date>`, `$d` is `docs/difficulty-v3/d21-2026-11-12`. Every capture runs
-`node --import ./$s/observe.mjs ./$d/flow.mjs <arguments>` (HL: `./$s/flow-case.mjs`) into
+`node --import ./$s/observe.mjs ./$d/flow.mjs <arguments>` (HL and N: `./$s/flow-case.mjs`) into
 `$s/<population>/<name>.jsonl` with the `Capture` function of the test plan: it refuses to overwrite, runs the capture
 through `Invoke-Dv3Timed` (one capture per lock; the helper stops the whole process tree at the capture's limit) and
 writes a row to `$s/runs.md` with the lock wait. One serial process per capture. The folder names are the
-populations: `require` (R), `any` (A), `hell` (H), `hell-landscape` (HL), `stall` (S).
+populations: `require` (R), `any` (A), `hell` (H), `hell-landscape` (HL), `nightmare` (N, PR-P2 amendment), `stall`
+(S).
 
 | Population | Captures | Arguments | Limit (s) |
 |---|---|---|---|
 | R (`require`; repaired candidates, RES-25; population R of PR-P1) | `r-6x10-<level>` for `easy`, `normal`, `hard`, `expert`, `master`; `r-18x20-<level>` for `hard`, `expert`, `master` (the cells of MP06b's corpus B); for an 18x20 cell whose capture accepted no puzzle, also `r-18x20-<level>-1` and `-2` (seeds `.../1`, `.../2`) | `--board <board> --level <level> --seed probe-require/<board>-<level>/0 --uniqueness require --quantity 10 --label <name>` | 570 |
 | A (`any`; AR1 refusals and unrateable profiles) | `a-<board>-<level>` for the boards `6x10`, `10x10`, `12x12`, `18x20` and the levels `hard`, `expert`, `master` | `--board <board> --level <level> --seed search/<board>-<level>/0 --quantity 5 --label <name>` | 570 |
 | H (Hell cells of D21) | `h-22x22-hell-3` (`--quantity 10`); `h-32x15-hell-3`, `h-24x24-hell-3`, `h-15x20-hell-2`, `h-18x18-hell-2` (`--quantity 5`) | `--board <board> --level <level> --seed t18-big-a --quantity <n> --label <name>` | 300 |
-| HL (the Hell companion; cross-review TP23) | `hl-<case id>` for the 20 Hell cases of the landscape that H does not cover: Hell 1 on all 12 boards, Hell 2 on 18x20, 20x20, 20x21, 32x15, 22x22, 24x24 and 26x26, Hell 3 on 26x26 | `--case <case id> --rep <rep> --quantity 10 --label hl-<case id>` (`flow-case.mjs`; the rep by the rule below) | 180 when the case's selected report accepted no puzzle; 570 when it accepted some |
+| HL (the Hell companion; cross-review TP23; PR-P2 amendment) | `hl-<case id>` for each Hell case of the aggregate in force that H does not cover and whose prescreen made a puzzle (coverage `requiredN` 20, status `measured`; P-OD9): on MP12b1's aggregate `14x14-hell-1`, `24x24-hell-1` and `26x26-hell-1`. Before the amendment: the 20 Hell cases outside H; the other 17 now have no capture (no puzzle in their prescreens; P-OD9: no further evidence) | `--case <case id> --rep <rep> --quantity 10 --label hl-<case id>` (`flow-case.mjs`; the rep by the rule below) | 180 when the case's selected report accepted no puzzle; 570 when it accepted some |
+| N (`any`-mode Nightmare: the false-stop check where F2 acts once no Hell level is offered; PR-P2 amendment) | `n-<case id>` for the landscape cases `12x12-nightmare`, `14x14-nightmare`, `15x15b10-nightmare`, `16x16-nightmare` and `15x20-nightmare` (the Nightmare cells below 90 % request completion in MP12b1) | `--case <case id> --rep 0 --quantity 5 --label n-<case id>` (`flow-case.mjs`: the case's own rows, `15x15b10` with its blocked cells, and the landscape seed of rep 0, chosen without looking at its outcome) | 570 |
 
 Blocks: R and A together (expected 20–40 minutes, plus up to six extra R captures of 570 s at most), then H (25
-minutes: these requests usually fail at their limit), then HL (expected 60–90 minutes), then the availability probe
+minutes: these requests usually fail at their limit), then HL (three captures, expected 25–29 minutes) with the
+dispatch addendum's safeguard after it, then N (five captures, expected 20–40 minutes), then the availability probe
 (about 17 minutes; it runs at the resume, below). A capture stopped at its limit is labelled reduced in `runs.md` and
 keeps its lines.
 
@@ -374,8 +383,9 @@ MP12b1's reports give each Hell cell's request outcomes and times, not the gener
 record keeps the accepted puzzles' final metrics (`details.puzzles[]`), `ratingCensoredCount` counts accepted
 estimates, and the diagnostic samples are another population; none counts the ratings, refused or capped profiles or
 repairs of the search, and the record has no set and fold split. The five H captures cover their own cells only, and
-no Hell 1 cell. HL adds one labelled diagnostic replay for each of the other 20 Hell cases; it is not an independent
-landscape request and never pools with the landscape's numbers.
+no Hell 1 cell. HL adds one labelled diagnostic replay for each Hell case outside H whose prescreen made a puzzle
+(PR-P2 amendment: three cases on MP12b1's aggregate; before it, each of the other 20 Hell cases); it is not an
+independent landscape request and never pools with the landscape's numbers.
 
 - **The driver** `$s/flow-case.mjs` (new): `Copy-Item $d/flow.mjs $s/flow-case.mjs`, then two edits and no other. (1)
   The six usage lines of the header comment (from `// D21 driver` to `--seed t18-big-a --quantity 5`) become `// MP12b2
@@ -431,7 +441,7 @@ landscape request and never pools with the landscape's numbers.
 
 ### Evidence provenance and the final tuple (cross-review TP25)
 
-- **Identity of each population.** Before and after each block (R and A, H, HL, the availability probe), print the
+- **Identity of each population.** Before and after each block (R and A, H, HL, N, the availability probe), print the
   tree's identity with the function `Identity` of the test plan (`sourceDigest` over `SOURCE_FILES` and `versions`,
   then `git rev-parse HEAD` and whether `git status --porcelain -- core tools` is empty) into `runs.md`. The
   `sourceDigest` and `versions` must equal those of MP12b1's landscape (its aggregate's `source`; after an ordered
@@ -481,10 +491,13 @@ act on in the landscape.
 
 For every (board area, level) of MP12b1's list 1, and every Hell cell of populations H and HL that made no puzzle: a
 table with board, area, level, requests, the failure reasons, the profiles per failed calibration and their outcomes
-(from H and HL, and from the availability probe where the cell was measured), and the time a request ran before it
-failed (serial: `setMs` per set attempt; two-worker flow: MP09d2's recipe measurement). Each row says "no puzzle
-observed in N requests" with its N, and "reduced (P-OD9)" where MP12b1 kept 3 requests; each row names its population
-and source identity (TP25); the record never calls a cell impossible (cross-review TP08).
+(from H and HL, and from the availability probe where the cell was measured; a reduced case that none of them covers
+shows "no capture (PR-P2 amendment)" there), and the time a request ran before it failed (serial: `setMs` per set
+attempt; two-worker flow: MP09d2's recipe measurement; for a case without a capture, its prescreen's request times).
+Each row says "no puzzle observed in N requests" with its N, and "reduced (P-OD9)" where MP12b1 kept 3 requests; each
+row names its population and source identity (TP25); the record never calls a cell impossible (cross-review TP08). It
+states the plan author's reading (PR-P2, part 1, point 1): the evidence shows that this search does not reach the
+Hell bands, not that the bands are unreachable under v3.
 
 **The evidence the areas rest on.** The record states it above the table, per Hell level: the cases whose prescreen
 made a puzzle (20 requests each, with their request completion rates); the cases kept at the 3-request prescreen
@@ -550,19 +563,21 @@ census is measured here, and no census change is made in MP12b (PR-P1).
 
 ### The fail-fast proposal (an owner question; built in MP12b3 when the owner agrees)
 
-From H and HL, from the availability probe, from MP09d2's records (history) and from R and A (the check against
-false stops). After P-OD9 the Hell levels stop being offered where v3 cannot make them, but irregular boards can still
-meet unrateable sets (the plan author, PR-P1), so the proposal stays:
+From H and HL, from the availability probe, from MP09d2's records (history) and from R, A and N (the check against
+false stops; N, PR-P2 amendment: the Nightmare cells where unrateable calls remain once no Hell level is offered). After
+P-OD9 the Hell levels stop being offered where v3 cannot make them, but irregular boards can still meet unrateable
+sets (the plan author, PR-P1), so the proposal stays:
 
 1. Numbers: per Hell cell, the time per unrateable rating (the `ms` of the `capped` attempts: median, largest; TP07),
    the profiles a failed calibration spends (expected 20: MP09c's S5b), the set attempts a request makes before the
-   limit, and the time to failure serial and in the two-worker flow (about 115 s, `TIME.dispatchStopMs`).
+   limit, and the time to failure serial and in the two-worker flow (about 115 s, `TIME.dispatchStopMs`); per N cell,
+   the share of `capped` raw attempts and the time per capped and per rated rating (PR-P2 amendment).
 2. Mechanisms, each with its predicted time to failure from these numbers, serial and two-worker kept apart, and any
    time saving labelled a counterfactual estimate: **F1** a set request ends after the first set attempt whose
    calibration had no rated profile and every profile unrateable; **F2** a selection call ends after its first four
    profiles (the first phase) are all unrateable; **F1 + F2** both, where F1 reads the calibration as F2 has cut it.
-3. The false-stop check `$s/failfast.mjs` (new, durable; cross-review TP24), over every capture of R, A, H and HL (the
-   `attempts` lines, each paired with the `call` line before it; tags `<label>/set/<j>` for set attempt j and
+3. The false-stop check `$s/failfast.mjs` (new, durable; cross-review TP24), over every capture of R, A, H, HL and N
+   (the `attempts` lines, each paired with the `call` line before it; tags `<label>/set/<j>` for set attempt j and
    `<label>/slot/<slot>/<attempt>` for the batch; the `set-attempt` and `end` events). Only a file with an `end`
    event is a **completed baseline**; a capture stopped at its limit is censored after its last event. Definitions:
    - **F2** fires on a call whose first four raw attempts (`ph: 'raw'`, in order) exist and are all `capped`; it is a
@@ -579,6 +594,10 @@ meet unrateable sets (the plan author, PR-P1), so the proposal stays:
      outcomes. Only completed baselines count toward "no false stop observed in N completed baselines"; unknowns stay
      visible and never establish safety; never write that a finite corpus proves no request could succeed. A
      mechanism is proposable only with zero observed false stops; qualifying an implementation is later work.
+   - **N on its own (PR-P2 amendment).** The script runs a second time over N's captures alone, into
+     `failfast-nightmare.md`, so that the owner sees each mechanism's evidence at Nightmare, where F2 will act once no
+     Hell level is offered. When F2 has no trigger there, the record says so: F2's effect at Nightmare stays
+     unmeasured, a named item (§13), and "no false stop observed" is never written for it.
    - `--self-test` (pure, no file) checks four synthetic files and exits 1 on any difference: (a) attempt 0 has four
      capped raw attempts then a rated out-of-band one and fails, attempt 1 succeeds, `end` present: F1 0 false stops,
      F2 0, F1 + F2 1 (SA2's case); (b) a completed request whose every attempt is all capped (`end` status
@@ -604,7 +623,7 @@ English, CRLF:
 
 1. Header: date, code revision, Node version, CPU count, the final knobs and caps (as literals), `STALL_LIMIT`, the
    commands, total machine time (MP12a, MP12b1, MP12b2) and the lock waits; the source identity of each population
-   (the landscape, R and A, H, HL, the availability probe) with the reuse argument for MP09d2's observations or the
+   (the landscape, R and A, H, HL, N, the availability probe) with the reuse argument for MP09d2's observations or the
    statement that they were measured again (TP25).
 2. Coverage (the coverage table of the aggregate in force, by reference with its totals: MP12b1's, or the change
    round's after an ordered change round; the Hell run plan of P-OD9: the Hell cases run with 20 requests and the
@@ -625,34 +644,40 @@ English, CRLF:
    25 % with the owner question of "Census estimates above 5 %"), P-OD2 (capped paths of accepted puzzles: none, or the
    cells, from the `final.jsonl` behind §4; the unrateable profiles of the search evidence), both recomputed after a
    change round; P-OD3 (MP12a's outcome, labelled with MP12a's tuple).
-6. Search evidence (GS-P3, cross-review SP16): the summary tables of R, A, H and HL, each population in its own table
-   with its denominators and source identity; repaired candidates (RES-25; TP07): the repair attempts, the successful
-   repairs and the results from a repair of R, each with its denominator, and the finish outcomes; the time per rated
-   and per capped rating; the self-test result. Censored rows keep their `*`. Then **population R on 18x20** (PR-P1):
-   per Hard, Expert and Master cell the requests (one, or three when the first made no puzzle), the accepted puzzles,
-   the search and repair outcomes and the times, and, when a cell made no puzzle in three requests, the owner question
-   with options (R-a), (R-b) and (R-c).
-7. Hell report (D21): per Hell cell, from H or HL (one capture each): the ratings per accepted puzzle and the
+6. Search evidence (GS-P3, cross-review SP16): the summary tables of R, A, H, HL and N, each population in its own
+   table with its denominators and source identity; repaired candidates (RES-25; TP07): the repair attempts, the
+   successful repairs and the results from a repair of R, each with its denominator, and the finish outcomes; the time
+   per rated and per capped rating; the self-test result. Censored rows keep their `*`. Then **population R on 18x20**
+   (PR-P1): per Hard, Expert and Master cell the requests (one, or three when the first made no puzzle), the accepted
+   puzzles, the search and repair outcomes and the times, and, when a cell made no puzzle in three requests, the owner
+   question with options (R-a), (R-b) and (R-c).
+7. Hell report (D21): per H cell and per HL case, from its capture (one each): the ratings per accepted puzzle and the
    generation time (set, fold, total), or the failure with its profiles and time; beside it, in separate columns, the
    aggregate's request completion rate and response times for the landscape cases (none for H's seed `t18-big-a`);
-   the `STALL_LIMIT` in force. A count of one population is never divided by another population's accepted puzzles;
-   the availability probe's set attempts stay apart from quantity-10 requests.
+   the `STALL_LIMIT` in force. Every other Hell case of the landscape (17 on MP12b1's aggregate; PR-P2 amendment) has
+   a row from its prescreen alone: its 3 requests, each request's outcome and time, ratings per accepted puzzle
+   unavailable (no puzzle), labelled "no capture (P-OD9: no further evidence)". So every Hell cell keeps its ratings per
+   puzzle and generation time under v3 (D21). A count of one population is never divided by another population's
+   accepted puzzles; the availability probe's set attempts stay apart from quantity-10 requests.
 8. The stall stop: MP09d2's D21-V3 decision (on this source: not inert, 10 firings at N = 12; `STALL_LIMIT` 12;
    population S skipped, with that reason) and, only when a recorded decision said inert, the re-examination S
    (captures, the TOTAL rows for N = 8, 12 and 16, the decision).
 9. Hell availability (D36 decided (i), P-OD9): the evidence statement, the table of the cells without a puzzle, the
    derived areas of check-list D39 for MP12b3, and the cells that are not Hell without a puzzle (named findings).
 10. The fail-fast proposal: the numbers, F1, F2 and F1 + F2 with the completed baselines, triggers, observed false
-    stops, correct stops and unknown outcomes of `failfast.md`, the self-test result, the notice, the plan author's
-    recommendation (F1 + F2) and the owner question.
+    stops, correct stops and unknown outcomes of `failfast.md` and, apart, of `failfast-nightmare.md` (N alone: the
+    evidence where F2 acts once no Hell level is offered; PR-P2 amendment), the self-test result, the notice, the plan
+    author's recommendation (F1 + F2) and the owner question.
 11. The final values and every change since MP08 (from MP12a's record, and the change round's when one ran), with the
     reasons.
 12. The lock statement (below).
 13. Findings and questions for the owner: the named items of P-OD9 (cells with poor availability, orderings that fail
     outside the GV2 boards, census estimates above 5 %, long times, an HL capture without a puzzle, a fail-fast or
-    stall finding), the known limitation R7 (one canonical search order, no median: the plan author's answer to PR-P1;
-    the order-noise numbers of MP12a's record §6.4), and the owner questions of this task (the fail-fast; population R
-    when a cell made no puzzle; a census cell above 25 %; a cell that is not Hell without a puzzle), or "none".
+    stall finding), the four findings the plan author carried in PR-P2 (named items, no stop; the PR-P2 amendment
+    gives them with their numbers), the known limitation R7 (one canonical search order, no median: the plan author's
+    answer to PR-P1; the order-noise numbers of MP12a's record §6.4), and the owner questions of this task (the
+    fail-fast; population R when a cell made no puzzle; a census cell above 25 %; a cell that is not Hell without a
+    puzzle), or "none".
 
 ### Findings and an ordered change round (cross-review TP25, TP26, TP30, TP32, TP33)
 
@@ -672,7 +697,7 @@ order and records each step (the record and the change round's `runs.md`):
    `levels.js`, `clues.js` and the rest of the engine), so the source identity changes, and MP12b1's `aggregate.mjs`
    accepts one shared identity only. A change round therefore runs the complete population again, with no narrower
    variant in this pack (TP32): the 25 Hell prescreens and the P-OD9 plan derived again from them, every other
-   landscape case, the 18 GV2 cases with the slice criteria and their probe corpus (TP30), R, A, H, HL, the
+   landscape case, the 18 GV2 cases with the slice criteria and their probe corpus (TP30), R, A, H, HL, N, the
    availability probe and the fail-fast table. An earlier report is never copied or re-stamped; reusing cases across
    identities would need its own data contract, outside this pack. Before the runs, the orchestrator gets the
    projection: the landscape 7.5–12.5 hours, the probe corpus 20–35 minutes, GS-P3 about 2–3 hours, the re-pins,
@@ -716,11 +741,12 @@ order and records each step (the record and the change round's `runs.md`):
    statuses the script prints; its branch lines (`final`, `caps`, `census`, `availability`, `order`) are MP12a's
    search recommendations, recorded as printed and never followed here: step 7 decides (cross-review RP01).
 6. **GS-P3 again** (TP33): the test plan's block with the data root `$data = "$s/change-1"`, `$full` the change
-   aggregate (so `Identity` and HL's selected reports come from it) and `$criteriaFolder` the change round's `slice`
-   folder. The scripts stay at `$s` and are never copied: `observe.mjs` imports `../d21-2026-11-12/register.mjs`
-   relative to its own folder. Captures, the HL manifest (a new one: the first manifest's case ids would skip every
-   capture), `runs.md`, `summary.md`, `failfast.md` and `avail-summary.md` go under `$data`; the availability probe
-   runs, since the engine changed and the reuse check fails by itself.
+   aggregate (so `Identity`, HL's case list and HL's selected reports come from it) and `$criteriaFolder` the change
+   round's `slice` folder. The scripts stay at `$s` and are never copied: `observe.mjs` imports
+   `../d21-2026-11-12/register.mjs` relative to its own folder. Captures, the HL manifest (a new one: the first
+   manifest's case ids would skip every capture), `runs.md`, `summary.md`, `failfast.md`, `failfast-nightmare.md` and
+   `avail-summary.md` go under `$data`; the availability probe runs, since the engine changed and the reuse check fails
+   by itself.
 7. **Stops before the record and the lock, by this table only** (PR-P1, P-OD9; cross-review RP01). The change round's
    `criteria-<date>.md` keeps the statuses `criteria.mjs` prints, and record §4 quotes them; the script's branch lines
    and `allPass` are not this task's control flow. Each result gets its disposition from the table, never from an
@@ -800,7 +826,7 @@ if ($LASTEXITCODE -ne 0) { throw 'criteria.mjs: input error; stop and report' }
 
 | File | Change |
 |---|---|
-| `docs/difficulty-v3/search-<date>/` (new) | `observe.mjs`, `summary.mjs`, `flow-case.mjs` (TP23), `failfast.mjs` (TP24), the captures under `require/`, `any/`, `hell/`, `hell-landscape/` (with `manifest.json`) and, when run, `avail/` (TP25) and `stall/`; `runs.md`, `summary.md`, `failfast.md`, `avail-summary.md` (when `avail/` ran), `stall-simulate.md` (when S ran); `change-1/` (the data root of an ordered change round, same layout, no scripts; TP33) |
+| `docs/difficulty-v3/search-<date>/` (new) | `observe.mjs`, `summary.mjs`, `flow-case.mjs` (TP23), `failfast.mjs` (TP24), the captures under `require/`, `any/`, `hell/`, `hell-landscape/` (with `manifest.json`), `nightmare/` (N, PR-P2 amendment) and, when run, `avail/` (TP25) and `stall/`; `runs.md`, `summary.md`, `failfast.md`, `failfast-nightmare.md` (PR-P2 amendment), `avail-summary.md` (when `avail/` ran), `stall-simulate.md` (when S ran); `change-1/` (the data root of an ordered change round, same layout, no scripts; TP33) |
 | `docs/difficulty-v3/landscape-v3-change-1/` (new, only in an ordered change round) | the change round's published landscape reports and Hell prescreens, `shards-<date>.md`, `aggregate-<date>.json` and `.md`, `criteria-<date>.md`; `slice/` with the 18 GV2 reports and `probe/` (`packs/`, `manifest.json`, `final.jsonl`) (TP30, TP32) |
 | `docs/difficulty-v3/calibration-<date>.md` (new) | the record |
 | `docs/design-detail.md` | §7.8 |
@@ -833,9 +859,10 @@ could drift).
    `flow-case.mjs` call and the synthetic check of `AcceptedOf` (RP05) (all quick, no lock: nothing is generated).
 2. The identity (`Identity`) against MP12b1's aggregate; the reuse check for MP09d2's observations (TP25).
 3. Write each block's plan into `runs.md`, then run the blocks one capture per lock: R + A (with the two extra
-   captures of each 18x20 R cell that made no puzzle), then H, then HL (the rep rule and the manifest), then the
-   availability probe (the reuse check fails at the resume); the identity before and after each block; summarise
-   (`summary.md`, `avail-summary.md`) and run `failfast.mjs` into `failfast.md`.
+   captures of each 18x20 R cell that made no puzzle), then H, then HL (the Hell cases with a puzzle: the rep rule and
+   the manifest) with the dispatch addendum's safeguard, then N (PR-P2 amendment), then the availability probe (the
+   reuse check fails at the resume); the identity before and after each block; summarise (`summary.md`,
+   `avail-summary.md`) and run `failfast.mjs` into `failfast.md` and, over N alone, `failfast-nightmare.md`.
 4. The stall re-examination only when `$runStallRecheck` is true (on this source it is false: S is skipped and the
    record says why).
 5. The Hell availability with the derived areas of D39, population R, the census cells, the fail-fast proposal; the
@@ -852,8 +879,8 @@ could drift).
 | ID | Criterion | Evidence |
 |---|---|---|
 | MP12b2-B01 | The calibration record shows how the search reached its puzzles: rated, refused (AR1), unrateable and repair ratings, successful repairs, per selection and per accepted puzzle, for `require` and `any` cells | record §6; the summary |
-| MP12b2-B02 | Every Hell cell of the landscape is reported from a capture of its own population (H or HL; TP23) with ratings per accepted puzzle and generation time under v3, or its failure with numbers, censoring shown; the landscape's request completion rates stay in their own columns (D21) | record §7; `hell-landscape/manifest.json` |
-| MP12b2-B03 | The record gives, for every cell without a puzzle, the facts with the evidence each rests on (P-OD9: its requests; the smallest areas measured under the final tuple; TP25), and the Hell areas that check-list D39 derives for MP12b3 (no D36 question: decided (i)); the owner gets a measured fail-fast proposal stated as "no false stop observed in N completed baselines" with its unknown outcomes and the plan author's recommendation (TP24), population R's outcome on 18x20 with three requests per cell without a puzzle (PR-P1), and every census cell above 25 % | record §5, §6, §9, §10, §13; `failfast.md`; the reply |
+| MP12b2-B02 | Every Hell cell of the landscape is reported with its ratings per accepted puzzle and generation time under v3, or its failure with numbers, censoring shown: an H cell and a Hell case whose prescreen made a puzzle from a capture of its own population (H or HL; TP23), every other Hell case from its prescreen, labelled "no capture" (PR-P2 amendment; P-OD9); the landscape's request completion rates stay in their own columns (D21) | record §7; `hell-landscape/manifest.json` |
+| MP12b2-B03 | The record gives, for every cell without a puzzle, the facts with the evidence each rests on (P-OD9: its requests; the smallest areas measured under the final tuple; TP25), and the Hell areas that check-list D39 derives for MP12b3 (no D36 question: decided (i)); the owner gets a measured fail-fast proposal stated as "no false stop observed in N completed baselines" with its unknown outcomes and the plan author's recommendation (TP24), with N's numbers apart (PR-P2 amendment), population R's outcome on 18x20 with three requests per cell without a puzzle (PR-P1), and every census cell above 25 % | record §5, §6, §9, §10, §13; `failfast.md`; `failfast-nightmare.md`; the reply |
 | MP12b2-B04 | The stall stop follows the recorded D21 decision: on this source (not inert) S is skipped with the reason; S runs only under a recorded "inert" decision, and `STALL_LIMIT` stays 12 or is raised to 16 only by the rule (TP28) | record §8 |
 | MP12b2-B05 | The v3 rating tuple is locked on the tree whose identity the evidence carries; the design document says what the lock means, that MP12b3 completes it, and states R7 as a known limitation | record §12, §13; design §7.8 |
 
@@ -862,12 +889,12 @@ could drift).
 | ID | Criterion | Evidence |
 |---|---|---|
 | MP12b2-T01 | `observe.mjs` exactly as given (repairs observed through the `finish` bracket, each attempt timed; TP07); `summary.mjs` to its contract (censored rows marked, one TOTAL row per population folder); the self-test passes with the four cases of the table (`repair-ri-0` among them) and the summary row of its own file | command output |
-| MP12b2-T02 | Every capture of R, A, H, HL (and `avail/` and S when run) ran through `Invoke-Dv3Timed`, one capture per lock, within its limit, and is in `runs.md` with its outcome and lock wait, never overwritten; the identity before and after each block equals the landscape's; the summary's denominators are stated (TP20, TP25) | `runs.md`; the folder |
+| MP12b2-T02 | Every capture of R, A, H, HL, N (and `avail/` and S when run) ran through `Invoke-Dv3Timed`, one capture per lock, within its limit, and is in `runs.md` with its outcome and lock wait, never overwritten; the identity before and after each block equals the landscape's; the summary's denominators are stated (TP20, TP25) | `runs.md`; the folder |
 | MP12b2-T03 | The stall decision follows the recorded D21 decision and MP09d2's table: `$runStallRecheck` is set only from that decision, never by a text search; a raise happens only in an ordered change round with GF-P2 and GA-P2 (TP28) | record §8; the test plan; diff |
-| MP12b2-T04 | `failfast.mjs --self-test` passes its four cases (SA2's combined case, an all-capped completed request, an F2-lost successful call, a censored tail); `failfast.md` gives F1, F2 and F1 + F2 over R, A, H and HL with completed baselines, triggers, observed false stops, correct stops and unknown outcomes (TP24) | command output; `failfast.md` |
+| MP12b2-T04 | `failfast.mjs --self-test` passes its four cases (SA2's combined case, an all-capped completed request, an F2-lost successful call, a censored tail); `failfast.md` gives F1, F2 and F1 + F2 over R, A, H, HL and N, and `failfast-nightmare.md` over N alone (PR-P2 amendment), with completed baselines, triggers, observed false stops, correct stops and unknown outcomes (TP24) | command output; `failfast.md`; `failfast-nightmare.md` |
 | MP12b2-T05 | `record-fixtures --check` and the final `npm test` pass on the locked tree under the lock helper; no `core/` or `tools/` change in this task without an ordered change round; a change round ran only under the rule of PR-P1 (C1 or C3 failing in a cell that stays offered, or C2 failing) and followed its nine steps: the complete population again in new folders (TP32), the slice criteria from a new probe corpus with `criteria.mjs` and record §4 replaced by that table (TP30), GS-P3 under its own data root with the scripts at `$s` (TP33) and the copied probe driver adapted as the path note says (TP34), the dispositions of step 7's table, every stop reported before the lock and no stop for census estimates (TP25, TP26, RP01) | command output; diff; record |
 | MP12b2-T06 | Design §7.8 has the measured parameters, the census findings, R7 as a known limitation and the lock statement; `npm run test:quick` and `npm run check` pass; records CRLF without BOM | review; command output |
-| MP12b2-T07 | `flow-case.mjs` differs from `flow.mjs` only by the two edits (the record quotes the `--stat`); HL has one capture for each of the 20 Hell cases outside H, its rep by the rule and its manifest entry; no ratio divides one population's count by another's accepted puzzles (TP23) | `hell-landscape/`; record §7 |
+| MP12b2-T07 | `flow-case.mjs` differs from `flow.mjs` only by the two edits (the record quotes the `--stat`); HL has one capture for each Hell case outside H whose prescreen made a puzzle (three on MP12b1's aggregate; PR-P2 amendment), its rep by the rule and its manifest entry; no ratio divides one population's count by another's accepted puzzles (TP23) | `hell-landscape/`; record §7 |
 | MP12b2-T08 | MP09d2's observations count as final-tuple evidence only with the quoted reuse argument (it fails at the resume); the availability probe ran again into `avail/`, and the derived areas of D39 come from final-tuple observations only (TP25) | record §1, §9; `avail-summary.md` |
 | MP12b2-T09 | The criteria table of record §4 comes from GV2 reports with the locked tree's identity: the synthetic handoff check refused the old passing table (GV2 95 %, old 90 %, new 80 %) and `Assert-CriteriaSource` passed on the folder behind §4 (TP30) | command output; record §4 |
 | MP12b2-T10 | Each 18x20 cell of population R whose first capture made no puzzle (counted by `AcceptedOf`, the summary's rule, whose synthetic check passed; RP05) has its two extra captures (seeds `/1`, `/2`) in `require/`, through the capture function, with their rows in `runs.md` (PR-P1) | `require/`; `runs.md`; record §6 |
@@ -886,7 +913,7 @@ $v = 'docs/difficulty-v3/d21-v3-2026-11-12'   # MP09d2's folder (read only)
 $full = 'docs/difficulty-v3/landscape-v3-full/aggregate-<date>.json'   # MP12b1's; a change round: its own aggregate
 $criteriaFolder = 'docs/difficulty-v3/landscape-v3/r2'   # MP12a's final round; a change round: its slice folder
 New-Item -ItemType Directory -Force "$data/require", "$data/any", "$data/hell", "$data/hell-landscape",
-  'tests\artifacts\MP12b2' | Out-Null
+  "$data/nightmare", 'tests\artifacts\MP12b2' | Out-Null   # nightmare/: population N (PR-P2 amendment)
 
 # self-tests and checks: nothing is generated, no lock
 $env:D21_OUT = 'tests/artifacts/MP12b2/selftest.jsonl'
@@ -999,15 +1026,19 @@ $null = Capture "$data/hell/h-22x22-hell-3.jsonl" "$s/observe.mjs" "$d/flow.mjs"
   'hell-3', '--seed', 't18-big-a', '--quantity', '10', '--label', 'h-22x22-hell-3') 300
 Identity 'after H'
 
-# block HL (TP23): the 20 Hell cases outside H, the rep by the rule, the manifest rewritten after each capture
-$hl = @('14x14-hell-1', '15x15b10-hell-1', '16x16-hell-1', '15x20-hell-1', '18x18-hell-1', '18x20-hell-1',
-  '20x20-hell-1', '20x21-hell-1', '32x15-hell-1', '22x22-hell-1', '24x24-hell-1', '26x26-hell-1', '18x20-hell-2',
-  '20x20-hell-2', '20x21-hell-2', '32x15-hell-2', '22x22-hell-2', '24x24-hell-2', '26x26-hell-2', '26x26-hell-3')
+# block HL (TP23; PR-P2 amendment): the Hell cases outside H whose prescreen made a puzzle (coverage requiredN 20,
+# status measured; P-OD9), the rep by the rule, the manifest rewritten after each capture
+$hCases = @('22x22-hell-3', '32x15-hell-3', '24x24-hell-3', '15x20-hell-2', '18x18-hell-2')   # the cells of H
 $coverage = (Get-Content $full -Raw | ConvertFrom-Json).coverage
+$hl = @($coverage | Where-Object { $_.caseId -match '-hell-\d+$' -and $_.requiredN -eq 20 -and
+  $_.status -eq 'measured' -and $hCases -notcontains $_.caseId } | ForEach-Object { $_.caseId })
+if ($full -like '*landscape-v3-full/aggregate-*' -and ($hl -join ' ') -ne '14x14-hell-1 24x24-hell-1 26x26-hell-1') {
+  throw "HL on MP12b1's aggregate must be 14x14-hell-1, 24x24-hell-1 and 26x26-hell-1, got: $($hl -join ', ')"
+}
 $mf = "$data/hell-landscape/manifest.json"
 $manifest = [Collections.Generic.List[object]]::new()
 if (Test-Path $mf) { foreach ($e in @(Get-Content $mf -Raw | ConvertFrom-Json)) { $manifest.Add($e) } }   # a resume
-Add-Content "$data/runs.md" '| plan HL: 20 captures, 180 s (no puzzle in the landscape) or 570 s, expected 60-90 minutes | | | | | |'
+Add-Content "$data/runs.md" "| plan HL: $($hl.Count) captures, 570 s each at most, expected 25-29 minutes | | | | | |"
 Identity 'before HL'
 foreach ($case in $hl) {
   if (@($manifest | Where-Object caseId -EQ $case).Count -gt 0) { continue }   # captured before a resume
@@ -1035,6 +1066,20 @@ foreach ($case in $hl) {
   }
 }
 Identity 'after HL'
+# (the dispatch addendum's slot safeguard runs here, after Identity 'after HL')
+
+# block N (PR-P2 amendment): any-mode Nightmare on the five boards below 90 % request completion in MP12b1, rep 0
+# (chosen without looking at its outcome), quantity 5: the false-stop check where F2 acts once no Hell level is offered
+$nCases = @('12x12-nightmare', '14x14-nightmare', '15x15b10-nightmare', '16x16-nightmare', '15x20-nightmare')
+Add-Content "$data/runs.md" '| plan N: 5 captures, 570 s each at most, expected 20-40 minutes | | | | | |'
+Identity 'before N'
+foreach ($case in $nCases) {
+  $out = "$data/nightmare/n-$case.jsonl"
+  if (Test-Path -LiteralPath $out) { continue }   # captured before a resume (its row is in runs.md)
+  $null = Capture $out "$s/observe.mjs" "$s/flow-case.mjs" @('--case', $case, '--rep', '0', '--quantity', '5',
+    '--label', "n-$case") 570
+}
+Identity 'after N'
 
 # the availability probe again, only when MP09d2's observations cannot be reused (TP25)
 $engineDiff = @(git --no-pager diff --stat eea5fed -- core/engine)
@@ -1063,13 +1108,18 @@ if (-not $reuse) {
   if ($LASTEXITCODE -ne 0) { throw 'summarise.mjs failed' }
 }
 
-# summary and fail-fast over R, A, H and HL (no lock: nothing is generated)
-$files = @('require', 'any', 'hell', 'hell-landscape' | ForEach-Object {
+# summary and fail-fast over R, A, H, HL and N (no lock: nothing is generated)
+$files = @('require', 'any', 'hell', 'hell-landscape', 'nightmare' | ForEach-Object {
   $pop = $_; Get-ChildItem "$data/$pop/*.jsonl" | Sort-Object Name | ForEach-Object { "$data/$pop/$($_.Name)" } })
 node "./$s/summary.mjs" @files | Set-Content "$data/summary.md"
 if ($LASTEXITCODE -ne 0) { throw 'summary failed' }
 node "./$s/failfast.mjs" @files | Set-Content "$data/failfast.md"
 if ($LASTEXITCODE -ne 0) { throw 'failfast failed' }
+# N alone (PR-P2 amendment): each mechanism's evidence at Nightmare
+$nFiles = @(Get-ChildItem "$data/nightmare/*.jsonl" | Sort-Object Name |
+  ForEach-Object { "$data/nightmare/$($_.Name)" })
+node "./$s/failfast.mjs" @nFiles | Set-Content "$data/failfast-nightmare.md"
+if ($LASTEXITCODE -ne 0) { throw 'failfast over N failed' }
 
 # population S (TP28): only under a recorded D21 decision "inert on the v3 corpus"; on this source it stays $false
 $runStallRecheck = $false   # set to $true by hand only from that recorded decision, never from a text search
@@ -1138,12 +1188,13 @@ round's aggregate and `$criteriaFolder` its `slice` folder; the scripts stay at 
 `Assert-CriteriaSource` on MP12a's final round fails only if MP12b1 could not reuse the slice by identity: then the
 criteria need a current-tuple evaluation (steps 5 and 8 of the change round), and the task stops and reports. After a
 stop that was reported, and only when the orchestrator lets the task go on, a block resumes with its next capture: R,
-A and H by their remaining lines (`Capture` refuses an existing file), HL and the availability block by running them
-again (they skip the cases already in the manifest and the files already captured); the identity rows are written
+A and H by their remaining lines (`Capture` refuses an existing file), HL, N and the availability block by running
+them again (they skip the cases already in the manifest and the files already captured); the identity rows are written
 again.
 
-`runs.md`, `summary.md`, `failfast.md`, `avail-summary.md`, `hell-landscape/manifest.json` and `stall-simulate.md` are
-written by PowerShell 7 (UTF-8 without BOM, CRLF): check them with the one-liner of check-list §3 and fix them before
+`runs.md`, `summary.md`, `failfast.md`, `failfast-nightmare.md`, `avail-summary.md`, `hell-landscape/manifest.json` and
+`stall-simulate.md` are written by PowerShell 7 (UTF-8 without BOM, CRLF): check them with the one-liner of check-list
+§3 and fix them before
 the reply. The analysts ran this block at `a85ed55` on a stub tree (stub drivers and tools, a private lock folder,
 `<date>` and `<k>` replaced, four and then three HL cases): the rep rule (`complete` rep 1, `some-puzzle` rep 2, `none`
 rep 0 at 180 s), the censored count (calibration 1 + accepted events to slot 3 gives 3), a `set-failed` end, the HL
@@ -1157,15 +1208,21 @@ pass's files as they were, accepted the change round's `slice` folder and refuse
 identity; the synthetic 95/90/80 check refused the old passing table in both passes (TP30). A forgotten `$full` fails
 closed: `Identity` stops on the changed digest. `AcceptedOf` (cross-review RP05) replaced the two inline counts of
 population R and HL after those runs; its five synthetic captures in the block check it, and the analyst ran that part
-of the block alone, outside the repository (it passed).
+of the block alone, outside the repository (it passed). The lines of the PR-P2 amendment (HL's case list from the
+coverage, block N and the fail-fast run over N alone) came after those runs: SA1 checked HL's list, its reps and rules,
+and N's case ids, boards and seeds against MP12b1's aggregate and `buildLandscapeMatrix` without generating anything
+(HL `14x14-hell-1` rep 2 and `24x24-hell-1` rep 2, rule `some-puzzle`, and `26x26-hell-1` rep 1, rule `complete`;
+in MP12b1, rep 0 of the N cases accepted 10 puzzles in four cases and 1 in `14x14-nightmare`, which ended
+`time-limit`).
 
 ## Definition of done & handoff
 
 - Every criterion has its evidence; the reply gives the self-test results (summary, fail-fast), the identity rows and
-  the reuse statement, the record §4 source check (TP30), the summary tables, the Hell report (H and HL with the
-  manifest), the stall decision, the Hell availability with its evidence statement and the derived areas of D39,
-  population R, the census cells, the fail-fast proposal with its outcome categories, the named items, the owner
-  questions (each with its numbers and options), the machine time with the lock waits, and the lock statement.
+  the reuse statement, the record §4 source check (TP30), the summary tables (N's among them), the Hell report (H and
+  HL with the manifest), the stall decision, the Hell availability with its evidence statement and the derived areas
+  of D39, population R, the census cells, the fail-fast proposal with its outcome categories (N's apart), the named
+  items (the four of PR-P2 among them), the owner questions (each with its numbers and options), the machine time
+  with the lock waits, and the lock statement.
 - Handoff to MP12b3 (always; check-list D35): the record, the derived areas of D39, the aggregate in force, the
   owner questions; the orchestrator adds the owner's answers (recorded in `clarifications-resolved.md` Part H) to
   MP12b3's dispatch. MP12b3 completes the lock; from its commit on no rating or generated puzzle may change
@@ -1195,22 +1252,22 @@ in 22 cases. The sources share one local clock, and a window is accurate to abou
 | `26x26-master` | 2 | 19.0 | 256.0 | 20 of 20, max T10 23.3 s | none (not Hell) |
 | `26x26-nightmare` | 1 | 1.0 | 496.7 | 20 of 20, max T10 35.8 s | none (not Hell) |
 | `14x14-hell-1` (prescreen) | 4 | 28.0 | 422.3 | 1 accepted puzzle: its 20 requests follow by MP12b1's rule | HL |
-| `15x15b10-hell-1` (prescreen) | 1 | 2.0 | 348.0 | no puzzle in 3 requests | HL |
-| `16x16-hell-1` (prescreen) | 4 | 21.5 | 346.6 | no puzzle in 3 requests | HL |
-| `15x20-hell-1` (prescreen) | 9 | 33.9 | 346.7 | no puzzle in 3 requests | HL |
+| `15x15b10-hell-1` (prescreen) | 1 | 2.0 | 348.0 | no puzzle in 3 requests | none (PR-P2 amendment) |
+| `16x16-hell-1` (prescreen) | 4 | 21.5 | 346.6 | no puzzle in 3 requests | none (PR-P2 amendment) |
+| `15x20-hell-1` (prescreen) | 9 | 33.9 | 346.7 | no puzzle in 3 requests | none (PR-P2 amendment) |
 | `15x20-hell-2` (prescreen) | 30 | 27.3 | 346.8 | no puzzle in 3 requests | H |
-| `18x18-hell-1` (prescreen) | 1 | 1.5 | 346.8 | no puzzle in 3 requests | HL |
+| `18x18-hell-1` (prescreen) | 1 | 1.5 | 346.8 | no puzzle in 3 requests | none (PR-P2 amendment) |
 | `18x18-hell-2` (prescreen) | 6 | 20.1 | 346.8 | no puzzle in 3 requests | H |
-| `18x20-hell-1` (prescreen) | 17 | 45.4 | 346.7 | no puzzle in 3 requests | HL |
-| `18x20-hell-2` (prescreen) | 1 | 6.0 | 346.6 | no puzzle in 3 requests | HL |
-| `20x20-hell-1` (prescreen) | 1 | 7.0 | 346.8 | no puzzle in 3 requests | HL |
-| `20x20-hell-2` (prescreen) | 3 | 26.5 | 346.8 | no puzzle in 3 requests | HL |
-| `20x21-hell-1` (prescreen) | 3 | 12.0 | 347.2 | no puzzle in 3 requests | HL |
-| `20x21-hell-2` (prescreen) | 8 | 18.8 | 346.5 | no puzzle in 3 requests | HL |
-| `32x15-hell-1` (prescreen) | 1 | 10.0 | 346.5 | no puzzle in 3 requests | HL |
-| `32x15-hell-2` (prescreen) | 4 | 18.3 | 346.5 | no puzzle in 3 requests | HL |
+| `18x20-hell-1` (prescreen) | 17 | 45.4 | 346.7 | no puzzle in 3 requests | none (PR-P2 amendment) |
+| `18x20-hell-2` (prescreen) | 1 | 6.0 | 346.6 | no puzzle in 3 requests | none (PR-P2 amendment) |
+| `20x20-hell-1` (prescreen) | 1 | 7.0 | 346.8 | no puzzle in 3 requests | none (PR-P2 amendment) |
+| `20x20-hell-2` (prescreen) | 3 | 26.5 | 346.8 | no puzzle in 3 requests | none (PR-P2 amendment) |
+| `20x21-hell-1` (prescreen) | 3 | 12.0 | 347.2 | no puzzle in 3 requests | none (PR-P2 amendment) |
+| `20x21-hell-2` (prescreen) | 8 | 18.8 | 346.5 | no puzzle in 3 requests | none (PR-P2 amendment) |
+| `32x15-hell-1` (prescreen) | 1 | 10.0 | 346.5 | no puzzle in 3 requests | none (PR-P2 amendment) |
+| `32x15-hell-2` (prescreen) | 4 | 18.3 | 346.5 | no puzzle in 3 requests | none (PR-P2 amendment) |
 | `32x15-hell-3` (prescreen) | 1 | 3.0 | 346.6 | no puzzle in 3 requests | H |
-| `22x22-hell-1` (prescreen) | 6 | 15.9 | 346.6 | no puzzle in 3 requests | HL |
+| `22x22-hell-1` (prescreen) | 6 | 15.9 | 346.6 | no puzzle in 3 requests | none (PR-P2 amendment) |
 | **22 cases** | **112** | **351.3** | | | |
 
 **What the overlap can and cannot change.**
@@ -1238,7 +1295,8 @@ in 22 cases. The sources share one local clock, and a window is accurate to abou
   22 cases) and a pointer to §13;
 - in record §13, the table above, the assessment above and the conclusion: MP12b1's evidence stands, and no C1 to C5
   status, no list of the aggregate and no row of the D39 table changes because of it, unless the safeguard (3) finds
-  otherwise. It is no stop and no owner question.
+  otherwise. For the 13 prescreens that no capture covers since the PR-P2 amendment, the conclusion adds the residual
+  of (3). It is no stop and no owner question.
 
 **2. The times of these 22 cases are not slot-protected.** Wherever the record quotes a time that MP12b1 measured for
 one of these cases (§3: T10 median and p95; §7: the landscape's response times beside H and HL; any other place),
@@ -1247,8 +1305,13 @@ mark the number with `†` and give the legend "† not slot-protected: Sudoku w
 this task's own captures are not marked.
 
 **3. The safeguard, after block HL.** The block below reads, with `AcceptedOf`, the capture that covers each of the
-16 Hell prescreens without a puzzle: H, with D21's seed, for `15x20-hell-2`, `18x18-hell-2` and `32x15-hell-3`; HL,
-with the landscape's seed, for the other 13. One row per case goes into `runs.md`.
+16 Hell prescreens without a puzzle that one still covers: H, with D21's seed, for `15x20-hell-2`, `18x18-hell-2` and
+`32x15-hell-3`. One row per case goes into `runs.md`. **PR-P2 amendment:** HL no longer captures the other 13 (it keeps
+only the Hell cases whose prescreen made a puzzle), so they have no protected re-observation. One `runs.md` row names
+them, and the item in §13 states the residual: their reduced rows rest on MP12b1's prescreens alone; the overlap could
+only have pushed them towards "no puzzle" (at most 45.4 of 346.7 s, `18x20-hell-1`, under 1 % of the case's work); a
+reduced case is not offered by D39 and needs no further evidence (P-OD9); and none of the three Hell cases that made
+puzzles completed 90 % of its 20 requests (best 45 %), so no D39 interval would plausibly change.
 
 - A capture that accepted no puzzle (0, censored or not): nothing more. MP12b1's reduced row stands.
 - A capture that accepted one or more puzzles: that case's prescreen runs again under the lock, with MP12b1's shard
@@ -1268,18 +1331,15 @@ with the landscape's seed, for the other 13. One row per case goes into `runs.md
   run: the change round runs every prescreen again.
 
 ```powershell
-# the slot addendum, after Identity 'after HL' (test plan): the 16 Hell prescreens of MP12b1 without a puzzle that
-# the Sudoku work overlapped, each with the H or HL capture that covers it
+# the slot addendum, after Identity 'after HL' (test plan): the Hell prescreens of MP12b1 without a puzzle that the
+# Sudoku work overlapped and a capture of this task still covers (PR-P2 amendment: H's three; HL keeps none of them)
 $cover = [ordered]@{
-  '15x15b10-hell-1' = 'hell-landscape/hl-15x15b10-hell-1'; '16x16-hell-1' = 'hell-landscape/hl-16x16-hell-1'
-  '15x20-hell-1' = 'hell-landscape/hl-15x20-hell-1'; '18x18-hell-1' = 'hell-landscape/hl-18x18-hell-1'
-  '18x20-hell-1' = 'hell-landscape/hl-18x20-hell-1'; '20x20-hell-1' = 'hell-landscape/hl-20x20-hell-1'
-  '20x21-hell-1' = 'hell-landscape/hl-20x21-hell-1'; '32x15-hell-1' = 'hell-landscape/hl-32x15-hell-1'
-  '22x22-hell-1' = 'hell-landscape/hl-22x22-hell-1'; '18x20-hell-2' = 'hell-landscape/hl-18x20-hell-2'
-  '20x20-hell-2' = 'hell-landscape/hl-20x20-hell-2'; '20x21-hell-2' = 'hell-landscape/hl-20x21-hell-2'
-  '32x15-hell-2' = 'hell-landscape/hl-32x15-hell-2'; '15x20-hell-2' = 'hell/h-15x20-hell-2'
-  '18x18-hell-2' = 'hell/h-18x18-hell-2'; '32x15-hell-3' = 'hell/h-32x15-hell-3'
+  '15x20-hell-2' = 'hell/h-15x20-hell-2'; '18x18-hell-2' = 'hell/h-18x18-hell-2'; '32x15-hell-3' = 'hell/h-32x15-hell-3'
 }
+$uncovered = @('15x15b10-hell-1', '16x16-hell-1', '15x20-hell-1', '18x18-hell-1', '18x20-hell-1', '20x20-hell-1',
+  '20x21-hell-1', '32x15-hell-1', '22x22-hell-1', '18x20-hell-2', '20x20-hell-2', '20x21-hell-2', '32x15-hell-2')
+Add-Content "$data/runs.md" ("| slot addendum: no capture since the PR-P2 amendment, reduced rows from MP12b1's " +
+  "prescreens alone: $($uncovered -join ', ') | | | | | |")
 # MP12b1's shard command for one case, under the lock, published into $data/landscape-again (never MP12b1's folder)
 function LandscapeAgain([string]$Case, [int]$Seeds) {
   $date = Get-Date -Format 'yyyy-MM-dd'
@@ -1326,11 +1386,88 @@ foreach ($case in $again) {
 
 | ID | Criterion | Evidence |
 |---|---|---|
-| MP12b2-T12 | The slot-exception item is in record §1 and §13, with the table and the assessment; every MP12b1 time of the 22 cases that the record quotes carries `†`; `runs.md` has the safeguard's 16 rows; every prescreen run again, and its 20 requests if any, followed this addendum (under the lock, on the landscape's identity, published into `$data/landscape-again/`) | record §1, §3, §7, §9, §13; `runs.md` |
+| MP12b2-T12 | The slot-exception item is in record §1 and §13, with the table and the assessment (and, for the 13 prescreens without a capture since the PR-P2 amendment, the residual of (3)); every MP12b1 time of the 22 cases that the record quotes carries `†`; `runs.md` has the safeguard's 3 rows and the row naming the 13; every prescreen run again, and its 20 requests if any, followed this addendum (under the lock, on the landscape's identity, published into `$data/landscape-again/`) | record §1, §3, §7, §9, §13; `runs.md` |
 
 **Files and reply.** `$data/landscape-again/` is new, and only when the safeguard runs a prescreen again: it holds the
 published reports, staged under `tests/artifacts/MP12b2/landscape-again/`. The reply gives the item in one line and,
 when the safeguard ran, the case, both prescreens, the 20-request report if any, and the outcome.
+
+## Pack amendment after PR-P2: the Hell and Nightmare captures (binding; SA1, 2026-11-14)
+
+The pack author wrote this section after the plan author answered PR-P2 (Part I of
+`docs/difficulty-v3/clarifications-resolved.md`, 2026-11-14) and before this task's dispatch (Pentomino is paused by
+owner decision P-OD11). It is part of the task. The places it changed in the text above are marked "PR-P2 amendment";
+where anything still differs, this section wins over the text above and over the dispatch addendum.
+
+**Why a pack amendment and not an owner question.** The plan author recommended keeping the Hell captures of the three
+cases that made puzzles, dropping the HL captures of the cases that made none, and adding `any`-mode Nightmare captures
+on 12x12, 14x14, 15x15b10, 16x16 and 15x20 for the false-stop check, to be checked against check-list D40. No recorded
+decision fixes the capture list:
+
+- D40 fixes what MP12b3 builds (F1, F2, the notice, a changed fixture or recipe as a false stop) and that the owner
+  chooses at MP12b2. It names no capture.
+- D41 fixes population R, which does not change.
+- D21 (P-OD4) asks MP12 to report, per Hell cell, the ratings per puzzle and the generation time under v3. MP12b1's
+  landscape gives the time for every Hell case, and record §7 keeps a row for every Hell case.
+- D36 (P-OD5) asks for the fail-fast proposal with measured numbers: H, HL, the availability probe and N give them.
+- P-OD9: a Hell case without a puzzle in three requests is not offered and needs no further evidence.
+- HL (cross-review TP23), the false-stop populations (TP24) and the GS-P3 row of check-list §7 are pack text. Check-list
+  §4.2 D42 records this amendment, and the GS-P3 row reads with it.
+
+**What changes.**
+
+1. **HL**: one capture for each Hell case of the aggregate in force that H does not cover and whose prescreen made a
+   puzzle (coverage `requiredN` 20, status `measured`). On MP12b1's aggregate these are `14x14-hell-1` (rep 2, rule
+   `some-puzzle`), `24x24-hell-1` (rep 2, `some-puzzle`) and `26x26-hell-1` (rep 1, `complete`), 570 s each. The other
+   17 HL captures are dropped. The test plan derives the list from `$full` and stops if MP12b1's aggregate gives
+   another list.
+2. **H stays** as it is (five captures of at most 300 s). The plan author's text drops only HL captures, and H carries
+   D21's Hell cells (P-OD4's report), the fail-fast's numbers at Hell 2 and Hell 3, and three cases of the slot
+   safeguard.
+3. **N** (new, folder `nightmare/`): `n-<case id>` for `12x12-nightmare`, `14x14-nightmare`, `15x15b10-nightmare`,
+   `16x16-nightmare` and `15x20-nightmare`, through `flow-case.mjs` with rep 0 (chosen without looking at its
+   outcome), quantity 5 (as A) and the cases' `any` mode, 570 s each, the identity before and after; after HL and the
+   slot safeguard, before the availability probe.
+4. **The summary and the false-stop check**: a TOTAL row for `nightmare`; `failfast.mjs` over R, A, H, HL and N into
+   `failfast.md`, and again over N alone into `failfast-nightmare.md`. The record gives N's numbers apart (§6, §10):
+   they are the evidence for F2 where it will act once no Hell level is offered. When F2 has no trigger in N, its
+   effect at Nightmare stays unmeasured, a named item, as the plan author said.
+5. **The slot safeguard** of the dispatch addendum reads H's three captures. The other 13 overlapped prescreens have
+   no capture, and record §13 states the residual (the addendum's (3)).
+6. **Record §7 and §9** keep a row for every Hell case; a case without a capture has its prescreen alone, labelled "no
+   capture". §9 states the plan author's reading: the evidence shows that this search does not reach the Hell bands,
+   not that they are unreachable under v3.
+
+Machine time of the Hell and Nightmare blocks: H 25 minutes [25], HL 25–29 [29] and N 20–40 [48], 70–94 minutes in all
+[102], against 85–115 [215] before (the upper bound of the limits in brackets).
+
+**The plan author's four findings (PR-P2; named items, no stop under P-OD9).** Record §13 lists them with their
+numbers and sources (MP12b1's aggregate and shard table, the plan author's answer to PR-P2, and
+`docs/difficulty-v3/generator-state-2026-11-14.md` §3.10 and §5); record §3 shows the numbers in its table.
+
+1. **Nightmare below 90 % completion** (`requestInBandRate`): 12x12 85 %, 14x14 55 %, 15x15b10 55 %, 16x16 75 % and
+   15x20 75 %. The level stays offered there: D39 withdraws only Hell levels, and these cells made puzzles (check-list
+   D39: "A level that is not Hell keeps its areas").
+2. **The 43 Nightmare requests over 120 s** (of the landscape's 70; the other 27 are Hell 1): 14x14 12, 15x15b10 10,
+   16x16 7, 15x20 5, 12x12 4, 18x18 2, and 10x10, 20x20 and 20x21 1 each. Each action stayed within its own budget
+   (the set stage at most 114.1 s, the batch after it at most 115.2 s); the set request and its batch together took
+   more than 120 s.
+3. **One selection call can outlast the 115 s stop**: 64 profiles at up to about 2.4 s each is about 150 s, and the
+   call's whole result is discarded. The plan author calls it a present defect, not only a risk.
+4. **The census confound**: the fast Nightmare cells of the large boards carry more census estimates (49.5 % to 97.0 %
+   on 360 to 676 cells; 84.5 % on 24x24 and 97.0 % on 26x26) than the slow boards of 196 to 324 cells (34.0 % to
+   49.2 %). An unfinished census counts undecided alternatives as failing (an upper estimate), so their speed may be
+   the estimate reaching the band early. Not measured. The cells above 25 % go to the owner as already decided (record
+   §5); this item adds no question.
+
+The record adds that a faster generator is later work outside difficulty-v3 (`docs/improve-generating/plan.md`, saved
+by the plan author and not authorised). MP17 carries the four findings to its final record (its §10).
+
+**Acceptance (added).**
+
+| ID | Criterion | Evidence |
+|---|---|---|
+| MP12b2-T13 | HL has exactly the Hell cases outside H whose prescreen made a puzzle (three on MP12b1's aggregate); N has its five captures in `nightmare/` (rep 0, quantity 5, 570 s, through `Capture`, rows in `runs.md`, the identity before and after); `summary.md` has a `nightmare` TOTAL row; `failfast-nightmare.md` exists and record §10 gives N's results apart, "unmeasured" when F2 has no trigger there; record §13 has the four findings of PR-P2 with their numbers (PR-P2 amendment) | `hell-landscape/manifest.json`; `nightmare/`; `runs.md`; `summary.md`; `failfast-nightmare.md`; record §6, §10, §13 |
 
 ## Execution log
 
