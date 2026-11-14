@@ -35,13 +35,13 @@ decisions of this pack (§4), not open questions for the developer.
 |---|---|---|---|---|---|---|---|---:|
 | [x] | IGP-00 | [00](00-harness-foundation.md) | Harness foundation: copies, variants, bounded runners, lanes, records, identity | none | Large, about 1,300 lines | 9 min | harness fidelity (R00) | 1 |
 | [x] | IGP-01 | [01](01-p1p5-prototype-headline.md) | PM3 prototype of P1 to P5 and the headline before/after | IGP-00 | Large, about 950 lines | 62 min (high 78) | report §2 rows 14x14, 15x15b10, 12x12, 26x26 Nightmare, two Master cells, Hell 1 26x26; dead-end share; window profiles; batch waves; locate profiles (R01 to R08, R10 to R13, R18, R19, R29) | 2 |
-| [ ] | IGP-02 | [02](02-pm4-screen-certificate.md) | PM4: the screen certificate and the `W_screen` economics | IGP-00 | Medium, about 450 lines | 25 min | IG-P-Q01's certificate; P2's saving; useful ratings lost at 95, 190 and 380 M (R14, R15, R17) | 3 |
-| [ ] | IGP-03 | [03](03-pm3-variants-and-budgets.md) | PM3 variants (W 95 and 380 M, arity 3) and the P5 budget inputs | IGP-01 | Medium, about 300 lines | 17 min (+4 optional) | IG-P-Q08, Q09, Q10; re-rating cost (R16, R18, R20, R21) | 4 |
+| [x] | IGP-02 | [02](02-pm4-screen-certificate.md) | PM4: the screen certificate and the `W_screen` economics | IGP-00 | Medium, about 450 lines | 25 min | IG-P-Q01's certificate; P2's saving; useful ratings lost at 95, 190 and 380 M (R14, R15, R17) | 3 |
+| [ ] | IGP-03 | [03](03-pm3-variants-and-budgets.md) | PM3 variants (W 95 and 380 M, no screen, arity 3) and the P5 budget inputs | IGP-01 | Medium, about 330 lines | 23 min (+5 optional) | IG-P-Q08, Q09, Q10; the screen's share of the gain and of the clue-count shift (IG-P-Q17); re-rating cost (R16, R18, R20, R21, R32, R33) | 4 |
 | [ ] | IGP-04 | [04](04-first-phase-factor.md) | First-phase factor: P6, and eight workers as an unadmitted upper bound | IGP-01 | Medium, about 200 lines | 28 min | P6, P8's upper bound, the ÷1.9 assumption, memory (R22, R23, R25, R26) | 5 |
 | [ ] | IGP-05 | [05](05-pm1-tranche1-slice.md) | PM1 tranche 1, reduced first slice | IGP-00 | Medium, about 450 lines | 23 min | windows of Hell 1 on 215-484 cells, Hell 2, Hell 3; fine counts; failed Hell 1 sets (R27 to R29) | 6 |
 | [ ] | IGP-06 | [06](06-pm2-kernel-profile.md) | PM2 rating profile on 10x10 and 12x12 Nightmare | IGP-00 | Small, about 300 lines | 8 min | P7's sensitivity; IG-P-Q12 (R24, R30) | 7 |
 | [ ] | IGP-07 | [07](07-results-summary.md) | Estimate-vs-measured summary and re-run index | IGP-01 to IGP-06 | Small, about 250 lines | none | the §5 table and R31 | 8 |
-|  |  |  | **Total** |  |  | **about 172 min (actual so far: §7)** |  |  |
+|  |  |  | **Total** |  |  | **about 178 min (actual so far: §7)** |  |  |
 
 Sizes count new harness lines. Developer time comes on top: about 3 to 4 hours each for IGP-00 and IGP-01, 1 to 2
 hours for the others. Machine time is counted as in §7 (node time plus the wrapper's 45 s quiet period per locked
@@ -64,7 +64,7 @@ certificate in full. The frozen round may follow the plan author's order instead
 | IGP-00 | `tools/ig-proto/` (new): `README.md`, `lib/paths.mjs`, `lib/records.mjs`, `lib/tree.mjs`, `lib/engine.mjs`, `lib/sets.mjs`, `lib/calls.mjs`, `lib/lanes.mjs`, `lib/lane-worker.mjs`, `lib/budget.mjs`, `firewall.mjs`, `boards.mjs`, `data/boards-v1.json`, `variants/base.json`, `variants/instr.json`, `variants/log.json`, `variants/files/log/core/engine/ig-log.js`, `arm.mjs`, `identity.mjs`, `self-test.mjs`, `run-task.ps1`, `plans/IGP-00.json`; evidence `docs/improve-generating/evidence/provisional/IGP-00/` | every file outside `tools/ig-proto/` and its evidence folder |
 | IGP-01 | `tools/ig-proto/`: `variants/p1p5.json`, `variants/p1p5-main.json`, `variants/files/p1p5/core/engine/ig-select-proto.js`, `fit-prior.mjs`, `data/prior-v1.json`, `verify.mjs`, `compare.mjs`, `plans/IGP-01.json`; additions to `lib/tree.mjs` (`paramFiles`), `ig-log.js` (the API the prototype calls), `self-test.mjs` (`--proto`) and `README.md`; the IGP-00 review fixes, first and only those: `run-task.ps1` (charging of failed invocations), `variants/instr.json` and `ig-log.js` (main-search and census R7 cuts apart), `lib/calls.mjs` (`r7CutCensus`; `recordedCall` refuses a `log`-chain tree), `lib/lanes.mjs` (`setHorizon` only lowers); evidence `IGP-01/` | as IGP-00; IGP-00's tested behaviour (an addition keeps the IGP-00 self-test passing) |
 | IGP-02 | `tools/ig-proto/pm4.mjs`, `plans/IGP-02.json`, `README.md` (one section); evidence `IGP-02/` | as IGP-00; `lib/` except a bug fix the review names |
-| IGP-03 | `tools/ig-proto/variants/p1p5-w095.json`, `p1p5-w380.json`, `p1p5-main-a3.json`, `p1p5-w190-rerate-window.json`, the arity-3 and window-rerate branches of `ig-select-proto.js`, `budgets.mjs`, additions to `compare.mjs` (task-qualified arms, per-`W` and arity-3 sections) and `self-test.mjs` (their cases), `plans/IGP-03.json`; evidence `IGP-03/` | as IGP-00; the default path of `ig-select-proto.js` (the IGP-01 numbers must stay reproducible) |
+| IGP-03 | `tools/ig-proto/variants/p1p5-w095.json`, `p1p5-w380.json`, `p1p5-w760.json`, `p1p5-main-a3.json`, the arity-3 branch of `ig-select-proto.js`, `budgets.mjs`, additions to `compare.mjs` (task-qualified arms; per-`W`, split, shift, offset and arity-3 sections; the w760 journal check) and `self-test.mjs` (their cases), `plans/IGP-03.json`; evidence `IGP-03/` | as IGP-00; the default path of `ig-select-proto.js` (the IGP-01 numbers must stay reproducible); `pm4.mjs` (IGP-02's `run.json` pins its hash) |
 | IGP-04 | `tools/ig-proto/variants/p6.json`, `w8.json`, `log-p6.json`, `log-p6-w8.json`, `p1p5-main-p6-w8.json`, the P6 branch of `ig-log.js` (`withP6`) and its call in `ig-select-proto.js`, additions to `compare.mjs` (factors, identity across arms, memory) and `self-test.mjs` (`--p6`), `plans/IGP-04.json`; evidence `IGP-04/` | as IGP-00; the default paths of `ig-log.js` and `ig-select-proto.js` |
 | IGP-05 | `tools/ig-proto/pm1.mjs`, `plans/IGP-05.json`, `README.md` (one section); evidence `IGP-05/` | as IGP-00 |
 | IGP-06 | `tools/ig-proto/pm2.mjs`, `pm2-worker.mjs`, `plans/IGP-06.json`, `README.md` (one section); evidence `IGP-06/` | as IGP-00 |
@@ -206,9 +206,9 @@ A record is written once. A correction is a new file with a suffix (`-r2`) and a
 | D-IG2 | Every measured arm runs a patched copy of the source (a "tree"), never the worktree's modules: `base` (only the no-git edit of the copied `tools/calibrate.mjs`), `instr` (instrumentation, diagnostic offers), `log` (durable per-probe logs of today's search), `p1p5-*` (the prototype), `p6`, `w8` and their compositions | one mechanism for all tasks; module identity stays consistent inside a copy; production files are never touched |
 | D-IG3 | Request-level arms use MP12b1's seeds `landscape/<case>/<rep>` (explicit `seeds` of a bench matrix), so that the "before" arm reproduces MP12b1's puzzles and both arms pair seed by seed; harness corpora use their own seeds (`ig-pm4/…`, `ig-pm1/…`, `ig-pm2/…`, `ig-selftest/…`) | pairing, identity check, and no reuse of the measured seeds for fitting |
 | D-IG4 | Matched cohorts in IGP-01: on the fast shard (26x26 Nightmare reps 0-5, 14x14 and 26x26 Master reps 0-4) and on the slow cells (14x14, 15x15b10, 12x12 Nightmare and Hell 1 26x26, reps 0-2) both arms run the same seeds. No after-only extension. They can show a large factor; they cannot give a p95 | 3 h machine budget; one slow request per invocation (D-IG12) |
-| D-IG5 | The prototype implements P1 (sequential bracketing on one nested family), P2 (screen with the certificate of IG-P-Q01), P3 (a screen-capped profile reads as too few clues), P4 (a fitted table prior), P5 (fail at once only on a canonical no-window verdict; budgets recorded, not enforced), with IG-P-Q07's AR1 direction. `W_screen` in IGP-01: 190 M for Master and Nightmare, 380 M for the Hell levels; IGP-03 adds 95 M (control) and 380 M on Nightmare | IG-P-Q01, Q07, Q09; Hell 1's useful ratings are near the cap (report §4) |
+| D-IG5 | The prototype implements P1 (sequential bracketing on one nested family), P2 (screen with the certificate of IG-P-Q01), P3 (a screen-capped profile reads as too few clues), P4 (a fitted table prior), P5 (fail at once only on a canonical no-window verdict; budgets recorded, not enforced), with IG-P-Q07's AR1 direction. `W_screen` in IGP-01: 190 M for Master and Nightmare, 380 M for the Hell levels; IGP-03 adds 95 M (control) and 380 M on Nightmare, and the prototype without the screen (760 M, the canonical limit) on 14x14 and 12x12 Nightmare (IGP-02 review, IG-P-Q17) | IG-P-Q01, Q07, Q09, Q17; Hell 1's useful ratings are near the cap (report §4) |
 | D-IG6 | P4's table prior: per cell, the median clue share of the accepted puzzles of MP12b1 reps 10-19 (held out from the measured reps 0-9), with its source and version recorded. The per-set calibration prior is not prototyped (it needs a new payload field) | IG-P-Q03 and Q04; no in-sample fit |
-| D-IG7 | The re-rating rule of IG-P-Q01: a call that would end without a final in-band result first re-rates canonically up to four screen-capped profiles nearest the window (by distance to the window count, then the higher count, then probe order). The four are one **shared allowance per call** (`rerateMax`): the no-window rescue of phase A and the end-of-call re-rating draw from it, and so does the optional window re-rating. The "re-rate when the bracket closes" reading is an optional IGP-03 variant on 12x12 Nightmare | the plan author's rule first; 12x12's dear useful ratings make the other reading worth one measurement; one allowance keeps a call's extra canonical work bounded and comparable across variants |
+| D-IG7 | The re-rating rule of IG-P-Q01: a call that would end without a final in-band result first re-rates canonically up to four screen-capped profiles nearest the window (by distance to the window count, then the higher count, then probe order). The four are one **shared allowance per call** (`rerateMax`): the no-window rescue of phase A and the end-of-call re-rating draw from it, and so would the window re-rating. The "re-rate when the bracket closes" reading is deferred to a later round (IGP-02 review): on IGP-01's journals it would fire on 2 of 39 calls on 12x12 Nightmare (7 of 48 on 14x14, 10 of 47 on Hell 1 26x26), and it re-rates probes one clue below the window count, so it acts on IG-P-Q17's clue-count shift and is measured with the criterion that answer chooses | the plan author's rule first; one allowance keeps a call's extra canonical work bounded and comparable across variants |
 | D-IG8 | The arity-3 set-stage variant (IG-P-Q08) is simulated in one worker; its T1 effect is an idealised call-level Projection (a lower bound on T1, assuming idle lanes); every probe, wasted ones included, is counted; nothing is adopted from it | the smallest prototype that gives the number; the real set stage already runs attempts in parallel |
 | D-IG9 | Not prototyped in this round: P7 (PM2 gives a sensitivity only), the per-set calibration prior, P5's enforced budgets and attempt limit, a lowered `N_screen` (the plan author's first version does not lower it), P8's width and admission rules (IG-P-Q05; eight workers are run only as an unadmitted upper bound), walked layouts and the held-out window audit (PM1 tranche 2), the error rate of estimated AR1 directions (needs a raised census budget), repeated exact states (PM2, later), browser runs, 16x16 and 15x20 Nightmare | outside the 3 h budget or not needed for the numbers of this round |
 | D-IG10 | PM1 tranche 1 is reduced to a first slice of about 0.8 worker-hours (IGP-05). The rest of tranche 1 (about 9 worker-hours, 2.5 h on four lanes) is a later round that needs the owner's approval | tranche 1's 10 worker-hours do not fit the 3 h budget |
@@ -239,7 +239,7 @@ shift of the accepted puzzles (R32) is reported beside every time verdict of the
 | R04 | 15x15b10 Nightmare after P1-P5: T10 median | Opus 13.8 s (86.23 / 6.25); Astra 13.7 s | | IGP-01 | |
 | R05 | 12x12 Nightmare after P1-P5: T10 median | Opus about 39-48 s (P1 and P4 about 1.3 to 1.6); Astra 44.5 s | | IGP-01 | |
 | R06 | 26x26 Nightmare after P1-P5: T10 median | Opus 15.5 s (18.61 / 1.2); Astra 17.8 s | | IGP-01 | |
-| R07 | Master after P1-P5 (14x14 and 26x26) | unchanged (both); today 2.57 s and 8.36 s | | IGP-01 | |
+| R07 | Master after P1-P5 (14x14 and 26x26) | unchanged (both); today 2.57 s and 8.36 s | | IGP-01; IGP-03 (26x26 at 380 M) | |
 | R08 | Hell 1 26x26 after P1-P5: T10 median; ten of n | Opus about 28 s; Astra 50-60 s; both only if a window holds | | IGP-01 | |
 | R09 | 16x16 and 15x20 Nightmare after P1-P5 | not measured in this round (D-IG9) | later round | | |
 | R10 | Dead-end share of today's batch profile time | a heuristic 30-60 % on 196-300 cells; 5-10 % on 12x12 and 18x18 (report §4) | | IGP-01 `before` arm | |
@@ -248,7 +248,7 @@ shift of the accepted puzzles (R32) is reported beside every time verdict of the
 | R13 | Batch waves for nine slots at four workers (a proxy) | 2.25 (Opus) or 2.75 (Astra) | | IGP-01 | |
 | R14 | Screen certificate (IG-P-Q01 (b)): certified screens equal canonical | 0 violations required; otherwise fallback (c) | | IGP-02 | |
 | R15 | Useful ratings lost (in band, screen-capped) at 95 / 190 / 380 M | "95 M is low for Nightmare"; 190-380 M is about 0.6-1.2 s of main work (report §4, IG-P-Q09) | | IGP-02 | |
-| R16 | Work per accepted puzzle at 95 / 190 / 380 M (14x14 and 12x12 Nightmare) | the minimiser picks W (IG-P-Q09); on 12x12, P2 gives "about nothing" | | IGP-03 | |
+| R16 | Work per accepted puzzle at 95 / 190 / 380 M and without the screen (14x14 and 12x12 Nightmare) | the minimiser picks W (IG-P-Q09); on 12x12, P2 gives "about nothing" | | IGP-03 | |
 | R17 | P2's saving on today's call profiles | the capped share at the start count (3-89 %) times the cap's cost less the screen's | | IGP-02 | |
 | R18 | Canonical re-ratings per call and their share of work | priced in PM4 and PM3 (no number) | | IGP-01, IGP-03 | |
 | R19 | Locate profiles per call with the table prior (P4) | "2 to 6 profiles per candidate instead of up to 64" (plan P4); P4 x 1.05-1.15 (report §4) | | IGP-01 | |
@@ -265,6 +265,7 @@ shift of the accepted puzzles (R32) is reported beside every time verdict of the
 | R30 | Rating-time shares by phase and function on 10x10 and 12x12 Nightmare | unknown; P7 and P11 targets (IG-P-Q12) | | IGP-06 | |
 | R31 | After all phases (Projection): measured P1-P5 ÷ (measured P6 x eight-worker bound, with a stated transfer range) ÷ P7 assumption | the analysts' after-all values: 14x14 8.0 / 7.94 s, 15x15b10 6.3 / 7.22 s, 12x12 16 / 21.7 s, 26x26 7.0 / 8.84 s, Hell 1 26x26 15 / 25-30 s | | IGP-07 | |
 | R32 | Population of the accepted puzzles, before (and MP12b1's 20 reps) against after: clue share p10 / median / p90, U, score position in the band, central share, per cell | the same population (implicit in both analyses' factors) | | IGP-01 `compare-r2`; IGP-03 per `W` | |
+| R33 | The split of P1-P5's gain and of the clue-count shift between the search without the screen and the screen (before → no screen → 190 M on 14x14 and 12x12 Nightmare), with the shift's two parts: requests served on an earlier set than today's; the clue shift on the same set | none in the analyses (added after IGP-02); IG-P-Q17's addendum gives a rough split, an indication only: on today's call profiles the screen alone saves 2.0 times on 12x12 and 4.0 on 14x14 Nightmare | | IGP-03 `compare` | |
 
 ## 6. Re-run on the frozen source
 
@@ -359,22 +360,30 @@ pack competes for the same quiet slots.
 | IGP-00 | 6 | 4.5 min | 4.5 min | 9 min |
 | IGP-01 | 30 | 40 min (high 55) | 22.5 min | 62 min (high 78) |
 | IGP-02 | 9 | 18 min | 7 min | 25 min |
-| IGP-03 | 15 (+3 optional) | 6 min (+2 optional) | 11 min (+2 optional) | 17 min (+4 optional; allocation 22) |
+| IGP-03 | 19 (+2 optional) | 8.5 min (+3 optional) | 14 min (+1.5 optional) | 23 min (+5 optional; allocation 28) |
 | IGP-04 | 16 | 16 min | 12 min | 28 min |
 | IGP-05 | 9 | 16 min | 7 min | 23 min |
 | IGP-06 | 3 | 5.5 min | 2.5 min | 8 min |
 | IGP-07 | 0 | 0 | 0 | 0 |
-| **Total** | **88** | **about 106 min** | **about 67 min** | **about 172 min** |
+| **Total** | **92** | **about 109 min** | **about 70 min** | **about 178 min** |
 
 Counts follow the bounds above: one slow row per invocation, every self-test, dry run and verification invocation
-included. The high case of a prototype that gains nothing did not happen (IGP-01). About 38 % of the counted time is the
-wrapper's quiet period, the price of one slow request per invocation.
+included. The high case of a prototype that gains nothing did not happen (IGP-01). About 39 % of the counted time is the
+wrapper's quiet period, the price of one slow request per invocation. IGP-03's row was raised after the IGP-02 review
+(the no-screen arm); the measured position is in the paragraphs below.
 
 **Actual after IGP-01** (from the invocation logs): 4,087 s counted (68.1 min): IGP-00 407.9 s and its debugging 356 s
 (a reconstructed line), IGP-01 3,152.4 s (52.5 min against its 62) and its debugging 170.5 s. Left in the round:
 6,713 s (111.9 min) for IGP-02 to IGP-06, projected at about 101 min (25 + 17 + 28 + 23 + 8; the optional step of
 IGP-03 not included, to be run only if at least 15 min remain after IGP-04). The guard stops the round at 180 min
 unless the orchestrator approves more (D-IG11).
+
+**Actual after IGP-02** (from the invocation logs): 5,216 s counted (86.9 min): the 4,087 s above, IGP-02 1,018.5 s
+(17.0 min against its 25) and its debugging 110.5 s. Left in the round: 5,584 s (93.1 min) for IGP-03 to IGP-06,
+projected at about 82 min (23 + 28 + 23 + 8): IGP-03 gained the no-screen arm and lost the window re-rating arm in the
+IGP-02 review. This replaces the rule above for IGP-03's optional step, now the no-screen arm on Hell 1 26x26 (about 5
+min): it runs only with the owner's approval of extra round minutes, or when at least 97 min (the projection, the step
+and 10 min of margin) are left when IGP-03 is dispatched; otherwise it is a later-round item.
 
 ## 8. Evidence and sign-off
 
@@ -393,7 +402,7 @@ has pushed `improve-generating`. The plan author then receives the summary for p
 |---|---|---|---|---|---|---|
 | IGP-00 | accepted (R00 holds; self-test 9/9) | 2026-11-14 21:00 | 21:56 (accepted 22:10) | 407.9 s (+ 356 s reconstructed debug) | 496.5 s | `improve-generating IGP-00` |
 | IGP-01 | accepted (headline measured; population shift, IG-P-Q17) | 2026-11-14 22:07 | 2026-11-15 00:41 (accepted 00:50) | 3,152 s (+ 170.5 s dev) | 4,912 s | `improve-generating IGP-01` |
-| IGP-02 | not started | | | | | |
+| IGP-02 | accepted (certificate holds, 0 violations / 862; no W yet) | 2026-11-15 00:59 | 02:02 (accepted 02:10) | 1,018.5 s (+ 110.5 s dev) | about 1,468 s | `improve-generating IGP-02` |
 | IGP-03 | not started | | | | | |
 | IGP-04 | not started | | | | | |
 | IGP-05 | not started | | | | | |

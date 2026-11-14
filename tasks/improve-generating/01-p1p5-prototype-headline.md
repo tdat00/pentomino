@@ -35,8 +35,9 @@ production changes.
 
 ### Out of scope
 
-- The W variants 95 M and 380 M on Nightmare, the arity-3 set stage, the window re-rating and the P5 budget analysis
-  (IGP-03); P6 and eight workers (IGP-04); PM4's corpus (IGP-02); 16x16 and 15x20 Nightmare (later round).
+- The W variants 95 M and 380 M and the no-screen arm on Nightmare, the arity-3 set stage and the P5 budget analysis
+  (IGP-03); the window re-rating (deferred, check-list D-IG7); P6 and eight workers (IGP-04); PM4's corpus (IGP-02);
+  16x16 and 15x20 Nightmare (later round).
 - P5's enforced budgets and attempt limit, the per-set calibration prior, a lowered `N_screen` (check-list D-IG9).
 
 ## Repository rules
@@ -74,8 +75,8 @@ copies today's helpers it needs (`bandDistance`, `ranked`, `noProvedGuess`, `sor
 **Parameters** (from `IG` of `ig-params.js`): `W` (a map by level id with `default`), `U0` 8, `rerateMax` 4, `rerate`
 `end`, `a3` false, `prior` (the table), `logAccepted` true. For a call, `W = IG.W[target.id] ?? IG.W.default`; with `W
 >= DEDUCE.work` every rating is canonical. `rerateMax` is the call's **shared allowance** of canonical re-ratings: the
-rescue of phase A, phase E and (in IGP-03's `rerate: 'window'` variant) the window re-rating all draw from it, each
-taking at most what remains, so a call never makes more than four (D-IG7).
+rescue of phase A, phase E and (in the `rerate: 'window'` variant, deferred to a later round, D-IG7) the window
+re-rating all draw from it, each taking at most what remains, so a call never makes more than four (D-IG7).
 
 **Screened rating.** `screen(clues)`: `measureV3(board, pieces, clues, ws, { deduce: { ...DEDUCE, work: W }, dlx:
 SCORE.caps })` and the rating built as `rate()` builds it (`rate()` itself when `W >= DEDUCE.work`). Test seams

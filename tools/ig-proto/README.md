@@ -38,6 +38,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `verify.mjs` | every accepted prototype rating against its canonical rating (IGP-01) |
 | `compare.mjs` | paired before/after comparison on matched seeds (IGP-01) |
 | `compare-r2.mjs` | corrected comparison record of IGP-01 (`compare-r2.json|md`): puzzle population per cell, like-with-like caveats, the n = 1 and mixed-cell readings; analysis of the published runs only, unlocked |
+| `pm4.mjs` | PM4 (IGP-02): `calls`, `screens` (locked) and `report` (unlocked): the screen certificate and the `W_screen` economics |
 | `firewall.mjs` | snapshot and check of the production files |
 | `boards.mjs` | writes or checks `data/boards-v1.json`, the frozen board catalogue |
 | `self-test.mjs` | self-tests, run under the lock |
@@ -186,6 +187,44 @@ either side.
 `compare.mjs` pairs the arms seed by seed (matched cohorts) and writes `compare.json|md`: the headline cells, the
 identity of the before arm against MP12b1, the stage tables and the multipliers (dead-end share, window profiles,
 re-ratings, locate profiles and proofs, work per accepted puzzle, waves, set-stage share, start-count capped share).
+
+## PM4: the screen certificate and the `W_screen` economics (IGP-02)
+
+`pm4.mjs` measures P2's screen on real profiles; it runs on the `instr` tree and changes nothing but `DEDUCE.work`.
+
+```powershell
+node tools\ig-proto\pm4.mjs calls   --shard <name> --cases <id>[,<id>...] --label <L> [--run-id <id>] [--task <T>]   # locked
+node tools\ig-proto\pm4.mjs screens --shard <name> --cases <id>[,<id>...] --label <L> [--run-id <id>] [--task <T>]   # locked
+node tools\ig-proto\pm4.mjs report  --label <L> [--run-id <id>] [--task <T>]                                         # unlocked
+```
+
+- **Corpus.** Seven cells (`10x10`, `12x12`, `14x14`, `15x15b10`, `26x26` Nightmare, `26x26-hell-1`, `26x26-master`), four
+  sets each (seeds `ig-pm4/<case>/<i>`). A set's call profiles are every canonical rating of today's set-stage call
+  (`recordedCall` with the set's `calRng`); the window profiles are three subsets each at the start count + 1 to + 4.
+- **Screens.** Every profile is rated again at 95, 190 and 380 M, and, when its canonical rating is complete with a known
+  first solution, at three boundary limits taken from its own record (main work - 1, work to the first solution - 1, the
+  middle of the count tail; a coinciding limit is rated once and keeps both kinds). Classes: `certified` (a rating with
+  main work <= `W`: must deep-equal the canonical rating, else a violation and a stop), `scap0` (capped before the first
+  solution), `scap1` (a rating with main work > `W` and stop `work-cap`), `over` (a rating with main work > `W` and another
+  stop). R7 coverage counts `r7Cut` of the main search only; `r7CutCensus` is reported apart.
+- **Runs and shards.** `--run-id main` (the default: seven cells) or `dry` (`10x10-nightmare`, one set); the manifest is fixed in
+  `pm4.mjs`. The first invocation writes `tests/artifacts/ig-proto/<L>/<task>/<run-id>/run.json` (manifest, `treeId`, harness
+  hash) and every later one checks it, so `pm4.mjs` must not change between the first `calls` and the `report`. A shard is a
+  name with an immutable cell list (`calls-<shard>-state.json`, `screens-<shard>-state.json`); a cell belongs to one shard of a
+  kind. Per-cell files: `<case>/calls.json` (sets with pieces and witness, canonical profiles, window profiles) and
+  `<case>/screens.checkpoint.jsonl` (one line per finished screen; `screens` resumes from it). A `calls` invocation that
+  started calls and wrote no result stops the next one (a started observation without its record).
+- **Report.** `report` requires every manifest cell in exactly one done `calls` shard and one done `screens` shard, checks every
+  profile's three fixed screens and the certified-class invariants, and writes `pm4.json`, `pm4.md` and
+  `profiles-<case>.jsonl` to `docs/improve-generating/evidence/<L>/IGP-02/` (for the `main` run of task `IGP-02` only; a `dry`
+  run or a developer's run writes to `<run>/report/` under `tests/artifacts/`). It exits 1 when a violation exists.
+- **Economics** (per cell and `W`, on today's call profiles; window profiles apart): class shares, useful ratings lost
+  (canonical complete, in band, not refused by AR1, and not certified), where the losses lie (clue share and offset from the
+  start count of the lost useful ratings against all useful ones), misdirections (screen-capped profiles whose canonical side
+  is below the band or in it), cost ratio, net ratio, P2 saving and the cost per useful rating, the share with main work <=
+  `W`, the work to the first solution, the start-count capped share and the canonical cost by clue offset from the start count.
+- **Developer runs.** `--task IGP-02-dev` (with `--run-id dry` or `dev<n>`) keeps every file under
+  `tests/artifacts/ig-proto/<L>/IGP-02-dev/`; locked ones go through `run-task.ps1` with a scratch plan of task `IGP-02-dev`.
 
 ## Re-running on the frozen source
 

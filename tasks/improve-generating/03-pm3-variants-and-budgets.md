@@ -1,13 +1,13 @@
-# IGP-03 — PM3 variants (W 95 and 380 M, arity 3) and the P5 budget inputs
+# IGP-03 — PM3 variants (W 95 and 380 M, no screen, arity 3) and the P5 budget inputs
 
 | Header | Value |
 |---|---|
 | ID | IGP-03 |
-| Depends on | IGP-01 (accepted and committed); IGP-02's per-`W` losses are read when present |
-| Estimated size | Medium: about 300 new lines (the arity-3 and window-rerate branches of `ig-select-proto.js` about 90, `budgets.mjs` 120, `compare.mjs` additions 60, four manifests, the plan); about 1 to 2 hours of developer work; machine time about 17 minutes (allocation 22, a margin for slower rows), plus 4 for the optional step |
+| Depends on | IGP-01 (accepted and committed); IGP-02 (accepted): its per-`W` figures and its canonical cost by clue offset are read from `IGP-02/pm4.json` |
+| Estimated size | Medium: about 330 new lines (the arity-3 branch of `ig-select-proto.js` about 60, `budgets.mjs` 120, `compare.mjs` additions 120, four manifests, the plan); about 1.5 to 2.5 hours of developer work; machine time about 23 minutes (allocation 28, a margin for slower rows), plus 5 for the optional shard |
 | Owner role | Measurement prototype |
-| Confirms or refutes | IG-P-Q09: work per accepted puzzle at 95, 190 and 380 M on 14x14 and 12x12 Nightmare (R16); IG-P-Q08: the arity-3 set stage, every probe counted, with an idealised call-level T1 bound only (R20); IG-P-Q10: inputs for P5's per-level budgets (R21); the re-rating cost (R18); how the accepted puzzles' clue counts depend on `W` (R32); whether 380 M removes IGP-01's mixed 26x26 Master result (R07) |
-| Design refs | `clarifications.md` IG-P-Q01 (re-rating), Q08, Q09, Q10; plan §3 P1 (parallel variant), P5; check-list §4 D-IG5, D-IG7, D-IG8, D-IG12 |
+| Confirms or refutes | IG-P-Q09: work per accepted puzzle at 95, 190 and 380 M and without the screen on 14x14 and 12x12 Nightmare (R16); IG-P-Q17: how much of the speed-up and of the clue-count shift is the screen's, and how the shift depends on `W` (R32, R33); IG-P-Q08: the arity-3 set stage, every probe counted, with an idealised call-level T1 bound only (R20); IG-P-Q10: inputs for P5's per-level budgets (R21); the re-rating cost (R18); whether 380 M removes IGP-01's mixed 26x26 Master result (R07) |
+| Design refs | `clarifications.md` IG-P-Q01 (re-rating), Q08, Q09, Q10, Q17 and its addendum after IGP-02; plan §3 P1 (parallel variant), P2, P3, P5; check-list §4 D-IG5, D-IG7, D-IG8, D-IG12 |
 | Label | provisional (pre-freeze); frozen re-run by check-list §6 |
 | Implementation status | Not started |
 
@@ -20,19 +20,33 @@ probe it rates (IG-P-Q08); and P5's budgets fitted per level from measured call 
 inputs for those three on the cells where they matter most. Its samples are small (two seeds per cell and arm): PM4's
 corpus (IGP-02) carries most of the `W` economics.
 
+After IGP-02 the plan author is asked whether the prototype may move the accepted puzzles to more clues inside the band
+(IG-P-Q17 and its addendum). PM4 found in-band ratings rare and dear at today's start count on 12x12, 14x14 and
+15x15b10 Nightmare and Hell 1 26x26 and common two to four clues higher, and IGP-01's prototype served some requests on
+sets today's search gives up on. This task therefore also runs the prototype without the screen (`W_screen` at the
+canonical limit, 760 M) on 14x14 and 12x12 Nightmare. Beside the before arm and the screened arms on matched seeds, it
+splits the gain and the shift between the search without the screen (P1, P3 on canonical caps, P4) and the screen (P2,
+and P3's reading of a screen cap). It recommends no `W_screen`: that choice waits for the answer to IG-P-Q17.
+
 ## Scope
 
 ### In scope
 
-- Variants `p1p5-w095`, `p1p5-w380`, `p1p5-main-a3` and, optional, `p1p5-w190-rerate-window`, with the two new
-  branches of `ig-select-proto.js`.
-- `budgets.mjs`; the per-`W` and arity-3 sections of `compare.mjs`; `plans/IGP-03.json`; the records.
+- Variants `p1p5-w095`, `p1p5-w380`, `p1p5-w760` and `p1p5-main-a3`, with the arity-3 branch of
+  `ig-select-proto.js` (the no-screen variant needs no code, §3).
+- `budgets.mjs`; the per-`W`, split, shift, offset and arity-3 sections of `compare.mjs`; `plans/IGP-03.json`; the
+  records.
 
 ### Out of scope
 
-- Changing the default path of the prototype (with `a3` false and `rerate` `end` the code path is IGP-01's).
+- Changing the default path of the prototype (with `a3` false the code path is IGP-01's).
 - Hell 1 at 190 M, the W variants on other cells, a request-level scheduling model of the arity-3 variant (later
   round).
+- The window re-rating variant (D-IG7's other reading), deferred after the IGP-02 review. On IGP-01's journals its
+  trigger (phase A ends without a hit, the bracket closed, the `loAbove` probe screen-capped) occurs on 2 of the 39
+  calls on 12x12 Nightmare, 7 of 48 on 14x14 and 10 of 47 on Hell 1 26x26. It re-rates probes one clue below the
+  window count, so it acts on the clue-count shift and is measured with the criterion that IG-P-Q17's answer chooses.
+  A prototype of such a criterion (for example the addendum's (c4)) is out of scope too, unless the owner adds it.
 
 ## Repository rules
 
@@ -44,6 +58,13 @@ The check-list §3 and §7. Locked commands through the runner only; no git.
   and their published records.
 - The set stage: `setAttempt` runs one `selectClues` call per attempt; the pool runs attempts in parallel and consumes
   the lowest successful one (`generate.js:86-147`); the journal tags these calls `stage: 'set'` with their `attempt`.
+- IGP-01's records: `before|after/<shard>.runs.json` (per request `details.setAttempt`, `details.igSetKey`,
+  `details.K`, `details.puzzles[].clues`), the journals, whose `start` lines carry `stage`, `attempt`, `K`,
+  `startCount` (today's start count), `priorCount` and `W`, and `compare-r2.json` (the population section, the format
+  of the per-`W` population table).
+- IGP-02's `pm4.json`: per cell `perW.<W>` (`usefulLost`, `cost`, `perUseful`) and `costByOffset.<bucket>` (`n`,
+  `capped`, `cappedShare`, `useful`, `msMedian`; buckets `<0`, `0` to `4` and `>4` of the offset from the start
+  count). `pm4.mjs` is not modified (IGP-02's `run.json` pins its hash).
 
 ## Design
 
@@ -53,8 +74,8 @@ The check-list §3 and §7. Locked commands through the runner only; no git.
 |---|---|---|---|
 | `p1p5-w095` | `p1p5` | `W { default: 95000000 }` | the control (IG-P-Q09) |
 | `p1p5-w380` | `p1p5` | `W { default: 380000000 }` | the upper value |
+| `p1p5-w760` | `p1p5` | `W { default: 760000000 }` | no screen (§3): the split of IG-P-Q17's addendum |
 | `p1p5-main-a3` | `p1p5-main` | `a3: true` | the arity-3 set stage (IG-P-Q08) |
-| `p1p5-w190-rerate-window` (optional) | `p1p5` | `rerate: 'window'` | the other reading of the re-rating rule (D-IG7) |
 
 ### 2. Arity-3 set stage (`IG.a3` and `ctx.igStage === 'set'`)
 
@@ -82,40 +103,60 @@ stage already runs attempts in parallel on the pool and consumes them in order, 
 measured gain; the record states the assumption and shows how many attempts were in flight when the winning call ran
 (from the journal). Nothing is adopted from it (IG-P-Q08).
 
-### 3. Window re-rating (optional variant)
+### 3. No-screen arm (`p1p5-w760`)
 
-With `IG.rerate === 'window'`: when phase A ends without a hit, both ends known, `hiBelow - loAbove == 1` and the
-`loAbove` probe screen-capped, the screen-capped probes are re-rated canonically right away in the order of IGP-01
-phase E (distance to `wc`, then the higher count, then probe order), as many as the call's shared allowance leaves
-(`rerateMax` in all, D-IG7), each becoming a candidate through `afterProfile`; then phase B starts. The end-of-call
-rule still applies to the screen-capped probes not yet re-rated, with what remains of the allowance.
+`W` equal to `DEDUCE.work` (760 M, `core/engine/policy.js`) makes `screened` false in `ig-select-proto.js` (`const
+screened = W < DEDUCE.work`): `rateScreen` returns the canonical rating, `recordRating` gets `W` null, a capped probe is
+journaled `capped` (not `scap0`) and reads as too few clues (P3 on a canonical cap), no probe is screen-capped and
+nothing is re-rated. Everything else is IGP-01's prototype (the same prior, phases and early stop), so the arm needs no
+code. `compare.mjs` checks its journals (every `start` line has `W` 760,000,000; no `scap0`, `scap1` or `over` outcome;
+no re-rating) and fails otherwise. Its rows can be slower than the screened arms': every capped probe costs a full
+canonical rating (about 2 s on these cells, PM4).
 
 ### 4. P5 budget inputs (`budgets.mjs`)
 
-`node tools\ig-proto\budgets.mjs --arms IGP-01/after,IGP-03/w095,IGP-03/w380,IGP-03/a3 --label <L>`: from the journals,
-per arm, cell and stage, each call's cumulative work in probe order (screens and re-ratings); for budgets B = 1, 2, 4,
-6, 8 and 12 G units: `okBeyond` (the share of ok calls whose cumulative work passed B before their result: such a call
-would have been stopped at B, but it might still have returned an earlier retained candidate, and a probe already
-running when B passes overshoots it), `failedAbove` (the work of failed calls above B), unfinished calls apart; the
-median work rate per arm (units per ms over all tuples) to show B in seconds. Writes
+`node tools\ig-proto\budgets.mjs --arms IGP-01/after,IGP-03/w095,IGP-03/w380,IGP-03/w760,IGP-03/a3 --label <L>`: from
+the journals, per arm, cell and stage, each call's cumulative work in probe order (screens and re-ratings); for budgets
+B = 1, 2, 4, 6, 8 and 12 G units: `okBeyond` (the share of ok calls whose cumulative work passed B before their result:
+such a call would have been stopped at B, but it might still have returned an earlier retained candidate, and a probe
+already running when B passes overshoots it), `failedAbove` (the work of failed calls above B), unfinished calls apart;
+the median work rate per arm (units per ms over all tuples) to show B in seconds. Writes
 `docs/improve-generating/evidence/<L>/IGP-03/budgets.json|md`. It changes no search: P5's budgets stay recorded, not
 enforced (D-IG9), and the record says these are inputs, not fitted budgets.
 
 ### 5. Comparison
 
-`compare.mjs` accepts task-qualified arms (`IGP-01/after`) and pairs matched seeds only. Pairs:
-`IGP-01/before:w095`, `IGP-01/before:w380`, `IGP-01/after:w095`, `IGP-01/after:w380`, `IGP-01/after:a3`, and
-`IGP-01/after:rerate-window` when run. It adds:
+`compare.mjs` accepts task-qualified arms (`IGP-01/after`) and pairs matched seeds only; `--pm4 IGP-02` names the PM4
+record it reads. Pairs: `IGP-01/before:w095`, `IGP-01/before:w380`, `IGP-01/before:w760`, `IGP-01/after:w095`,
+`IGP-01/after:w380`, `IGP-01/after:w760` and `IGP-01/after:a3`. It adds:
 
-- per `W` (95, 190 from IGP-01, 380) and cell: T10 and response (`summarize`), completion, work per accepted puzzle,
-  profiles per accepted puzzle, screen-capped probes, re-ratings per call and their share of work, useful ratings lost
-  (screen-capped probes whose canonical re-rating was in band), unfinished calls, and the `W` with the least median work
-  per accepted puzzle on these two seeds (R16, descriptive), with IGP-02's per-`W` losses beside it when present;
+- per `W` (95, 190 from IGP-01, 380, and none: the w760 arm) and cell: T10 and response (`summarize`), completion,
+  work per accepted puzzle, profiles per accepted puzzle, capped probes (screen-capped; canonically capped for w760),
+  re-ratings per call and their share of work, useful ratings lost (screen-capped probes whose canonical re-rating was
+  in band), unfinished calls, and the `W` with the least median work per accepted puzzle on these two seeds (R16,
+  descriptive), with IGP-02's figures for the cell and `W` beside it (`pm4.json` `cells.<case>.perW.<W>`: useful
+  ratings lost, `cost.saving`, `perUseful`);
 - per `W` and cell, the population of the accepted puzzles (R32, as IGP-01's `compare-r2`): clue share p10 / median /
   p90, U, score position and central share, beside the before arm and MP12b1's 20 reps, so that the dependence of the
   clue-count shift and of the speed-up on `W` is read together;
+- the split (R33) on 14x14 and 12x12 Nightmare, and on Hell 1 26x26 when its optional shard ran: T10 (by the
+  check-list §5 rule, response time and completion where an arm lacks T10, as on 14x14 Nightmare reps 0-1 today) and
+  median clue share for the before arm, w760, w380, w190 (IGP-01's after arm) and w095, with the paired factors before
+  → w760 (the search without the screen) and w760 → w190 (the screen), each with its n;
+- the two parts of the clue-count shift (IG-P-Q17's addendum), per arm and cell: (i) the set each request was served on
+  (`details.setAttempt`, `details.igSetKey`), counting the requests served on an earlier set than the before arm's;
+  (ii) on requests served on the same set (equal `igSetKey`), the difference of the median accepted clue count against
+  the before arm and against the w760 arm, per request and its median;
+- clue offsets from today's start count (the `startCount` of the journals' `start` lines; PM4's buckets): per arm and
+  cell, the accepted puzzles by offset, and the probes by offset (count, capped share, in-band share, median ms) beside
+  IGP-02's canonical cost by offset of the cell (`pm4.json` `cells.<case>.costByOffset`);
+- 26x26 Master at 380 M against IGP-01's after arm (190 M) and before arm on reps 0-4: screen-capped probes, the paired
+  T10 ratio and the accepted puzzles by offset (R07);
 - for `a3`: probes per set-stage call against IGP-01's after arm on the same seeds (wasted probes included), the
   rounds, serial and critical ms, the idealised call-level T1 bound and the measured T1 of both arms (R20).
+
+Every split, shift and offset table is labelled a two-seed indication. No `W_screen` is recommended: R16's minimiser is
+descriptive, and the choice per level waits for the answer to IG-P-Q17 and the frozen round.
 
 ## Cells, seeds and sample sizes
 
@@ -124,54 +165,58 @@ enforced (D-IG9), and the record says these are inputs, not fitted budgets.
 | w095 | `p1p5-w095` | 14x14-nightmare 0-1; 12x12-nightmare 0-1 | 260 s | IGP-01 before and after, reps 0-1 |
 | w380 | `p1p5-w380` | the same; and 26x26-master 0-4 (shard `fast-master`) | 260 s; 90 s for 26x26-master | IGP-01 before and after, reps 0-1 (26x26-master: 0-4) |
 | a3 | `p1p5-main-a3` | 14x14-nightmare 0-1; 26x26-hell-1 0-1 | 260 s | IGP-01 after, reps 0-1 |
-| rerate-window (optional) | `p1p5-w190-rerate-window` | 12x12-nightmare 0-1 | 260 s | IGP-01 after, reps 0-1 |
+| w760 | `p1p5-w760` | 14x14-nightmare 0-1; 12x12-nightmare 0-1 | 260 s | IGP-01 before and after, reps 0-1 |
+| w760, optional shard | `p1p5-w760` | 26x26-hell-1 0-1 | 260 s | IGP-01 before and after, reps 0-1 |
 
 Four workers; one row per invocation on the 260 s shards (check-list §7); the five 26x26 Master rows share a 90 s shard
 (added after the IGP-01 review: does W = 380 M remove that cell's mixed result and its screen-capping?). Each arm's
-accepted ratings are verified canonically (`verify.mjs`).
+accepted ratings are verified canonically (`verify.mjs`; for w760 this checks the tree, its ratings being canonical
+already). The optional shard runs only when the orchestrator passes `-IncludeOptional`: with the owner's approval of
+extra round minutes, or when at least 97 minutes are left in the round at dispatch (check-list §7).
 
 ## Files to create/modify
 
 | File | Change |
 |---|---|
-| `tools/ig-proto/variants/p1p5-w095.json`, `p1p5-w380.json`, `p1p5-main-a3.json`, `p1p5-w190-rerate-window.json` | new |
-| `tools/ig-proto/variants/files/p1p5/core/engine/ig-select-proto.js` | the arity-3 and window-rerate branches only |
+| `tools/ig-proto/variants/p1p5-w095.json`, `p1p5-w380.json`, `p1p5-w760.json`, `p1p5-main-a3.json` | new |
+| `tools/ig-proto/variants/files/p1p5/core/engine/ig-select-proto.js` | the arity-3 branch only |
 | `tools/ig-proto/budgets.mjs` | new |
-| `tools/ig-proto/compare.mjs` | task-qualified arms; the per-`W` and arity-3 sections |
-| `tools/ig-proto/self-test.mjs` | arity-3 and window-rerate cases in `--proto` |
+| `tools/ig-proto/compare.mjs` | task-qualified arms; the per-`W`, split, shift, offset and arity-3 sections; the w760 journal check |
+| `tools/ig-proto/self-test.mjs` | arity-3 cases in `--proto` |
 | `tools/ig-proto/plans/IGP-03.json` | new |
 | `docs/improve-generating/evidence/provisional/IGP-03/` | new records |
 
 ## Implementation steps
 
-1. The branches, with self-test cases: on the synthetic curve of IGP-01 (no prior, K = 15, `a3` on, stage `set`), the
-   first round after the gallop probes the counts 4, 2 and 5 (`g = 6` between 1 and 7: 1 + 3, 1 + 1, 1 + 4) in that
-   order and hits at 4; the two other probes are journaled as rated; with `a3` on and stage `batch` the path is
-   IGP-01's. The window re-rating case: the screen-capped `loAbove` probe is re-rated before phase B.
+1. The arity-3 branch, with self-test cases: on the synthetic curve of IGP-01 (no prior, K = 15, `a3` on, stage
+   `set`), the first round after the gallop probes the counts 4, 2 and 5 (`g = 6` between 1 and 7: 1 + 3, 1 + 1, 1 + 4)
+   in that order and hits at 4; the two other probes are journaled as rated; with `a3` on and stage `batch` the path is
+   IGP-01's. `rerate` other than `end` still throws (the window reading is deferred).
 2. Re-run `self-test.mjs --proto`: the IGP-01 cases still pass unchanged (the default path).
-3. `budgets.mjs`, the comparison additions, the plan; run it; `npm run check`; the firewall check.
+3. `budgets.mjs`, the comparison additions with the w760 journal check of §3, the plan; run it; `npm run check`; the
+   firewall check.
 
 ## Commands
 
-The run plan `tools/ig-proto/plans/IGP-03.json` (allocation 22 minutes, `optionalMinutes` 4; the runner adds `--label`
+The run plan `tools/ig-proto/plans/IGP-03.json` (allocation 28 minutes, `optionalMinutes` 6; the runner adds `--label`
 and `--source-label`; arm steps are `tools/ig-proto/arm.mjs run --task IGP-03 ... --workers 4 --row-limit-s 260`
 unless stated):
 
 | Step | Locked | Node arguments | projectS | State |
 |---|---|---|---:|---|
 | firewall-snapshot | no | `tools/ig-proto/firewall.mjs snapshot --task IGP-03` | | |
-| trees | no | `tools/ig-proto/lib/tree.mjs build base p1p5-w095 p1p5-w380 p1p5-main-a3 p1p5-w190-rerate-window` | | |
+| trees | no | `tools/ig-proto/lib/tree.mjs build base p1p5-w095 p1p5-w380 p1p5-w760 p1p5-main-a3` | | |
 | self-test-proto | yes, once | `tools/ig-proto/self-test.mjs --proto` | 135 | `IGP-03/self-test/state.json` |
 | w095-14x14, w095-12x12 | yes, until done | `--arm w095 --shard <case> --variant p1p5-w095 --cases <case>:0-1` | 330 | `IGP-03/w095/<case>/state.json` |
 | w380-14x14, w380-12x12 | yes, until done | the same with `--arm w380 --variant p1p5-w380` | 330 | |
 | w380-master | yes, until done | `--arm w380 --shard fast-master --variant p1p5-w380 --cases 26x26-master:0-4 --row-limit-s 90` | 120 | `IGP-03/w380/fast-master/state.json` |
 | a3-14x14, a3-hell1 | yes, until done | `--arm a3 --shard <case> --variant p1p5-main-a3 --cases 14x14-nightmare:0-1` and `26x26-hell-1:0-1` | 330 | |
-| rerate-window-12x12 | yes, until done; optional | `--arm rerate-window --shard 12x12-nightmare --variant p1p5-w190-rerate-window --cases 12x12-nightmare:0-1` | 330 | |
-| verify | yes, until done | `tools/ig-proto/verify.mjs --task IGP-03 --arm w095,w380,a3` | 150 | `IGP-03/verify/state.json` |
-| verify-rerate-window | yes, until done; optional | `tools/ig-proto/verify.mjs --task IGP-03 --arm rerate-window` | 90 | `IGP-03/verify-rerate-window/state.json` |
+| w760-14x14, w760-12x12 | yes, until done | the same as w095 with `--arm w760 --variant p1p5-w760` | 330 | `IGP-03/w760/<case>/state.json` |
+| w760-hell1 | yes, until done; optional | `--arm w760 --shard 26x26-hell-1 --variant p1p5-w760 --cases 26x26-hell-1:0-1` | 330 | `IGP-03/w760/26x26-hell-1/state.json` |
+| verify | yes, until done | `tools/ig-proto/verify.mjs --task IGP-03 --arm w095,w380,w760,a3` | 210 | `IGP-03/verify/state.json` |
 | publish (each arm) | no | `tools/ig-proto/arm.mjs publish --task IGP-03 --arm <arm>` | | |
-| budgets | no | `tools/ig-proto/budgets.mjs --arms IGP-01/after,IGP-03/w095,IGP-03/w380,IGP-03/a3` | | |
-| compare | no | `tools/ig-proto/compare.mjs --task IGP-03 --pairs IGP-01/before:w095,IGP-01/before:w380,IGP-01/after:w095,IGP-01/after:w380,IGP-01/after:a3 --reference mp12b1` (plus `IGP-01/after:rerate-window` when run) | | |
+| budgets | no | `tools/ig-proto/budgets.mjs --arms IGP-01/after,IGP-03/w095,IGP-03/w380,IGP-03/w760,IGP-03/a3` | | |
+| compare | no | `tools/ig-proto/compare.mjs --task IGP-03 --pairs IGP-01/before:w095,IGP-01/before:w380,IGP-01/before:w760,IGP-01/after:w095,IGP-01/after:w380,IGP-01/after:w760,IGP-01/after:a3 --reference mp12b1 --pm4 IGP-02` | | |
 | firewall-check | no | `tools/ig-proto/firewall.mjs check --task IGP-03` | | |
 
 ```powershell
@@ -183,11 +228,19 @@ npm run check
 if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 ```
 
-Projection: twelve rows on the 260 s shards (one per invocation, check-list §7) and five 26x26 Master rows in one 90 s
-invocation; at IGP-01's measured after-arm speed (14x14 Nightmare about 10 s, 12x12 about 8 s, Hell 1 26x26 about 35
-s, 26x26 Master about 14 s per request) about 250 s of rows with their overhead, one verify invocation (about 60 s),
-the self-test (about 30 s): fifteen locked commands, about 6 minutes of node time and 11 of quiet periods, 17 minutes
-in all (allocation 22); the optional arm adds two rows and one verify invocation (about 4 minutes).
+`-IncludeOptional` is added only under the rule stated in "Cells, seeds and sample sizes".
+
+Projection: sixteen rows on the 260 s shards (one per invocation, check-list §7) and five 26x26 Master rows in one 90 s
+invocation. The screened arms run at about IGP-01's after-arm speed (14x14 Nightmare about 10 s, 12x12 about 8 s, Hell
+1 26x26 about 35 s, 26x26 Master about 14 s per request). The w760 arm is slower: pricing every screen-capped probe of
+IGP-01's after-arm journals as a canonical cap at PM4's median time (about 2.2 s) gives 2.8 to 3.3 times the rating
+time on 14x14 Nightmare and 2.1 to 2.2 on 12x12 for reps 0-1 (an upper estimate for the same path, a Projection), so
+about 18 to 25 s and 10 to 23 s per request; a search without the screen that fared like today's would take up to
+today's 157 to 185 s on 14x14. In all about 390 s of rows with their overhead, one verify invocation (about 100 s),
+the self-test (about 30 s): nineteen locked commands, about 8.5 minutes of node time and 14 of quiet periods, 23
+minutes in all (allocation 28; about 30 if the w760 rows took today's time). The optional shard (Hell 1 26x26 without
+the screen: 1.4 to 1.5 times the after arm's rating time on the same pricing, about 55 to 60 s per request) adds two
+rows and about 40 s of verification (about 5 minutes).
 
 ## Record formats
 
@@ -195,22 +248,25 @@ in all (allocation 22); the optional arm adds two rows and one verify invocation
 - `budgets.json`: `{ meta, budgets: [1e9, 2e9, 4e9, 6e9, 8e9, 12e9], arms: { '<arm>': { workPerMs, cells: { '<case>': {
   '<stage>': { okCalls, failedCalls, unfinishedCalls, okBeyond: { '<B>': share }, failedAbove: { '<B>': units } } } } } }
   }`; `budgets.md` with one table per cell and the caveats of §4.
-- `compare.json|md` with the per-`W` table (R16), the per-`W` population table (R32), the arity-3 table (R20, labelled a
-  Projection) and the re-rating figures (R18).
+- `compare.json|md` with the per-`W` table (R16, IGP-02's figures beside), the per-`W` population table (R32), the
+  split table (R33), the two shift tables (sets served; the same-set clue shift), the offset tables beside PM4's cost
+  by offset, the 26x26 Master table (R07), the arity-3 table (R20, labelled a Projection) and the re-rating figures
+  (R18); the split, shift and offset tables labelled two-seed indications.
 
 ## Acceptance criteria — Business
 
 | ID | Criterion | Evidence |
 |---|---|---|
-| IGP-03-B01 | On 14x14 and 12x12 Nightmare, work per accepted puzzle, T10 and completion are given at 95, 190 and 380 M on matched seeds, with the losses (re-ratings, useful ratings lost), labelled as two-seed indications beside PM4's corpus | `compare.md` |
+| IGP-03-B01 | On 14x14 and 12x12 Nightmare, work per accepted puzzle, T10 and completion are given at 95, 190 and 380 M and without the screen on matched seeds, with the losses (re-ratings, useful ratings lost) and IGP-02's figures beside them, labelled as two-seed indications; no `W_screen` is recommended | `compare.md` |
 | IGP-03-B02 | The arity-3 set stage is measured counting every probe, wasted ones included; its T1 figure is labelled an idealised call-level Projection with its assumption | `compare.md` |
 | IGP-03-B03 | P5's budget inputs per cell and stage exist for six budgets, with their caveats | `budgets.md` |
+| IGP-03-B04 | The split (R33) on 14x14 and 12x12 Nightmare: the factors before → w760 → w190 with their n, the population per arm, the two parts of the shift (sets served; the same-set clue shift) and the accepted puzzles and probes by clue offset beside PM4's cost by offset, labelled a two-seed indication | `compare.md` |
 
 ## Acceptance criteria — Technical
 
 | ID | Criterion | Evidence |
 |---|---|---|
-| IGP-03-T01 | With `a3` false and `rerate` `end`, the prototype's path is IGP-01's (the IGP-01 self-test cases pass unchanged); the new self-test cases pass | self-test output |
+| IGP-03-T01 | With `a3` false the prototype's path is IGP-01's (the IGP-01 self-test cases pass unchanged; `rerate` other than `end` still throws); the new self-test cases pass; the w760 journals pass the check of §3 | self-test output; `compare.md` |
 | IGP-03-T02 | Every accepted rating of every arm equals its canonical rating | `verify-<arm>.md` |
 | IGP-03-T03 | Locked commands within their bounds, in `invocations.jsonl`; no started row rerun; records per the check-list §3; `npm run check` and the firewall check pass | runner log; command output |
 
@@ -220,9 +276,9 @@ The `--proto` self-test with the new cases; the verify steps; the run plan.
 
 ## Definition of done & handoff
 
-- The reply gives the per-`W` table, the arity-3 result with its label, the budget table, the counted machine time and
-  the lock waits.
-- Handoff to IGP-07: `compare.json`, `budgets.json`.
+- The reply gives the per-`W` table, the split and the two parts of the shift, the 26x26 Master result, the arity-3
+  result with its label, the budget table, the counted machine time and the lock waits.
+- Handoff to IGP-07 and to the next report on IG-P-Q17: `compare.json`, `budgets.json`.
 
 ## Execution log
 

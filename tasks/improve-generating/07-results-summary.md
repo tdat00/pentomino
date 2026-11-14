@@ -6,7 +6,7 @@
 | Depends on | IGP-01 to IGP-06 (accepted and committed; a skipped optional step is reported as "later round") |
 | Estimated size | Small: about 250 new lines (`summary.mjs`, the README's re-run index, the plan); about 1 hour of developer work; no machine time (it reads records only) |
 | Owner role | Measurement prototype (reporting) |
-| Confirms or refutes | the check-list §5 table (R00 to R31), including R31, a Projection of the all-phases times from the measured factors |
+| Confirms or refutes | the check-list §5 table (R00 to R33), including R31, a Projection of the all-phases times from the measured factors |
 | Design refs | check-list §5 (rows, estimates, descriptive verdicts), §6 (re-run); report §2; the analysts' P1 to P5 scenario rows; `clarifications.md` "Direction after the joint report" (midpoints are not gates) and "Next actions" 4 (plan version 2 with measured numbers) |
 | Label | provisional (pre-freeze); frozen re-run by check-list §6 |
 | Implementation status | Not started |
@@ -47,7 +47,7 @@ The check-list §3. No lock is needed: nothing is rated or timed. No git.
 | R01 | `IGP-01/compare.json` | the `before` arm's T10 median and p95, completion, drift against MP12b1 |
 | R02, R04, R05, R06, R08 | `IGP-01/compare.json` | the after arm's T10 median, completion, censoring, paired ratio on matched seeds, the fewer-puzzles marks |
 | R03 | `IGP-01/compare.json` | completion before and after per failing Nightmare cell |
-| R07 | `IGP-01/compare.json` | the paired T10 ratio on both Master cells |
+| R07 | `IGP-01/compare.json`; `IGP-03/compare.json` | the paired T10 ratio on both Master cells; 26x26 Master at 380 M |
 | R10, R11 | `IGP-01/compare.json` | dead-end share of profile time (batch, set, both); dead-end entries after |
 | R12, R13, R19 | `IGP-01/compare.json` | window profiles per ok call; waves (proxy); locate probes per call and no-window proofs |
 | R14, R15, R17 | `IGP-02/pm4.json` | violations, coverage and gaps; useful ratings lost per `W`; P2's saving on today's mix |
@@ -57,6 +57,8 @@ The check-list §3. No lock is needed: nothing is rated or timed. No git.
 | R24, R30 | `IGP-06/pm2.json` | kernel share and P7 sensitivity; phase and category shares |
 | R27, R28 | `IGP-05/pm1.json` | in-band and eligible ratings per cell; failure classes |
 | R29 | `IGP-01/compare.json` and `IGP-05/pm1.json` | start-count capped shares |
+| R32 | `IGP-01/compare-r2.json`, `IGP-03/compare.json` | the population of the accepted puzzles per cell and arm (clue share p10 / median / p90, U, score position, central share), per `W` |
+| R33 | `IGP-03/compare.json` | the split (the factors before → no screen → 190 M with their n; the median clue shares) and the shift's two parts |
 | R09 | none | "later round" |
 | R31 | derived here | below |
 
@@ -68,7 +70,8 @@ analysts' values, and **inconclusive** with fewer than three paired values or no
 printed beside, and a row whose after arm delivered fewer puzzles carries that mark. For a factor with a stated range
 (P6, the eight-worker bound, the dead-end share): **inside** or **outside**. For R14: **holds** or **fails**, with the
 coverage gaps. A row without an estimate is **measured (no estimate)**. A row whose step did not run is **later round**.
-Every verdict cites its record and formula.
+R32 and R33 carry no verdict: their values are printed, the population beside every time verdict of its cell, and the
+answer to IG-P-Q17 judges them. Every verdict cites its record and formula.
 
 ### R31: after all phases (Projection)
 

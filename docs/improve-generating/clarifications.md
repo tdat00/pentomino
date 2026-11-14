@@ -628,4 +628,67 @@ blind play comparison of the two populations. (b) is the conservative fallback.
   (the prototype).
 - `tasks/improve-generating/check-list.md` §5 (R32), `02-pm4-screen-certificate.md`, `03-pm3-variants-and-budgets.md`.
 
+**Addendum after IGP-02 (PM4), 2026-11-15 (Opus).**
+
+- *The ratings are right.* PM4's screen certificate holds: 862 certified screen runs, each equal to its canonical
+  rating, with every named case observed (399 overshoots, 812 caps after the first solution, 1,062 caps before it, 484
+  runs with an R7 cut in the main search, none of them certified). The shift is a change of population, not a rating
+  error.
+- *Where the in-band ratings are.* On four sets per cell (each the first set of its seed), PM4 rated canonically today's
+  set-stage call profiles, most of them at today's start count (the level's share of K), and three random subsets per
+  set at each clue offset +1 to +4. Useful = a complete canonical rating in the band, not refused by AR1:
+
+| Cell | Useful / profiles (capped) at the start count | +1 | +2 | +3 | +4 | Median rating time, start count → best offset |
+|---|---|---|---|---|---|---|
+| 12x12 Nightmare | 2 / 29 (76 %) | 7 / 23 (13 %) | 6 / 16 (13 %) | 7 / 16 (0 %) | 8 / 12 (0 %) | 2.26 s → 0.15 s (+4) |
+| 14x14 Nightmare | 0 / 78 (100 %) | 0 / 12 (100 %) | 0 / 12 (83 %) | 4 / 12 (42 %) | 4 / 12 (25 %) | 2.18 s → 0.72 s (+4) |
+| 15x15b10 Nightmare | 1 / 53 (96 %) | 2 / 16 (56 %) | 3 / 12 (42 %) | 7 / 12 (17 %) | 5 / 12 (0 %) | 2.07 s → 0.12 s (+3) |
+| Hell 1 26x26 | 1 / 65 (98 %) | 1 / 14 (86 %) | 5 / 12 (58 %) | 4 / 12 (58 %) | 5 / 12 (33 %) | 2.11 s → 1.75 s (+4) |
+| 26x26 Nightmare | 5 / 15 (7 %) | 8 / 14 (0 %) | 2 / 12 (0 %) | 1 / 12 (0 %) | 1 / 12 (0 %) | 0.77 s → 0.44 s (+1) |
+| 10x10 Nightmare | 4 / 13 (0 %) | 7 / 16 (0 %) | 9 / 12 (0 %) | 6 / 12 (0 %) | 1 / 12 (0 %) | 1.02 s → 0.49 s (+2) |
+
+  The median covers every profile at the offset, capped ones included; the best offset has the highest useful share
+  (the cheaper one on a tie). On 26x26 Master the useful ratings lie at or below the start count (14 of 29 profiles
+  below it, 6 of 21 at it, 2 of 14 at +1, none at +2 to +4). On 12x12, 14x14 and 15x15b10 Nightmare and Hell 1 26x26,
+  in-band ratings are rare at today's start count (0 to 7 % of the profiles, 76 to 100 % capped) and common two to four
+  clues higher (33 to 67 % at the best offset), where a rating costs 3 to 17 times less on the three Nightmare cells
+  (Hell 1: about the same). On 14x14 Nightmare PM4 found no in-band rating below +3 on its four sets.
+- *Two parts of the shift.* In IGP-01, 5 of the 12 requests on the slow cells (14x14 Nightmare seeds 0 and 1, 15x15b10
+  seed 2, Hell 1 26x26 seeds 1 and 2) were served today on a later set (attempts 1, 3, 4, 7 and 7), because today's
+  set-stage search failed on the earlier ones, while the prototype served all five on attempt 0: sets today's search
+  gives up on, served at higher clue counts. On the 7 slow-cell requests served on the same set in both arms, the
+  prototype's median clue count was still higher: +1 to +2 on 12x12, 14x14 and 15x15b10 Nightmare, +2.5 on Hell 1
+  26x26; on 26x26 Nightmare (the same sets throughout) 0 to +2.
+- *A rough split of the gains* (an indication only: it divides a request-time ratio by a rating-cost ratio). On today's
+  call profiles the screen alone, at the after arm's `W_screen` and without moving the count, saves 2.0 times on 12x12
+  Nightmare, 3.7 on 15x15b10 Nightmare and 1.15 on 26x26 Nightmare (190 M), and 1.8 on Hell 1 26x26 (380 M); on 14x14
+  Nightmare 4.0, where it only makes today's capped ratings cheaper. IGP-01 measured 9.3, 8.2, 2.0 and 5.0 times on T10
+  for the first four. The remainder, roughly 4.7, 2.2, 1.75 and 2.8 times, comes from rating elsewhere: on 12x12 and
+  15x15b10 Nightmare and Hell 1, at the higher clue counts of the shift; on 26x26 Nightmare, from the search itself
+  (see above).
+- *Consequences for the options.* Under (b), the sets of the first part stay unserved at today's counts, so requests
+  that meet them keep today's slow set stage and its failures: the loss (b) expects includes the completion gains on
+  14x14 and 15x15b10 Nightmare and Hell 1 26x26, and what remains on the slow cells is roughly the screen's 1.8 to 4
+  times and part of the dead-end saving. A bound on the cell's median as in (c1) can hold on 14x14 Nightmare only by
+  serving fewer puzzles from sets like PM4's four. A rule per set keeps them: (c4) accept the lowest in-band count the
+  call can find, probing one or two counts below its first in-band hit before it accepts; that limits the second part
+  at the cost of a few dearer probes.
+- *What follows in this round.* IGP-03 (next; about 23 minutes of machine time) adds a no-screen arm (`W_screen` at
+  the canonical 760 M: the prototype's search without P2) on 14x14 and 12x12 Nightmare beside 95, 190 and 380 M, and
+  reports per arm the sets served, the same-set clue shift and the population: how much of the gain and of the shift is
+  the screen's. The same arm on Hell 1 26x26 is optional (about 5 more minutes, with the owner's approval). The variant
+  that re-rates when the bracket closes (D-IG7's other reading) is deferred: it re-rates probes one clue below the
+  window count, so it acts on the shift and belongs with the chosen criterion. No `W_screen` per level is recommended
+  before IGP-03 and this answer; PM4 already shows that most of Hell 1's useful window ratings exceed 380 M (8 of 14
+  lost at 380 M).
+- *Recommendation, updated (Opus, the pack's author; Astra has not reviewed it).* Still decide after IGP-03, but judge
+  the population per set, not per cell: today's distribution on these cells is that of the sets today's search can
+  serve. If a bound is wanted, (c4) is the form I now expect rather than (c1); its probe cost needs a prototype arm, as
+  a short addition to this round if the owner approves it, or in the frozen round.
+- *Evidence.* `docs/improve-generating/evidence/provisional/IGP-02/pm4.md` (the certificate and its coverage, the
+  canonical cost by clue offset per cell, the `W_screen` economics), `pm4.json` (`cells.<case>.costByOffset`,
+  `cells.<case>.perW`) and `profiles-<case>.jsonl`;
+  `docs/improve-generating/evidence/provisional/IGP-01/before/*.runs.json` and `after/*.runs.json`
+  (`details.setAttempt`, `details.igSetKey` and `details.puzzles[].clues` per request).
+
 Plan-author answer:

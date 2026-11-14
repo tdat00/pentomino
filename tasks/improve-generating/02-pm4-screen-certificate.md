@@ -87,8 +87,9 @@ The fixed values may miss the cases the plan author named, so every complete can
 solution is known (`workFirst > 0`) gets three more screens, chosen from its own record:
 
 - `W = mainWork - 1` (the run passes `W` at its very end: an `over` or a `scap1`);
-- `W = workFirst - 1` (the limit is passed before the first solution: a `scap0`, or an `over` when no check fires in
-  between);
+- `W = workFirst - 1` (the limit is passed before the first solution: a `scap0`, a `scap1` when the step that passes
+  `W` also finds the first solution, `workFirst` being read after that step, or an `over` when no check fires in
+  between; IGP-02 observed 355 `scap1` and 21 `over`, so `scap0` is covered by the fixed limits);
 - `W = workFirst + floor((mainWork - workFirst) / 2)` when the count tail is at least 2 units (a cap during the count
   tail: a `scap1`, or an `over`).
 
@@ -241,14 +242,14 @@ of its first invocation. The shard and run checks run before any lane starts (co
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (pack author: IGP-02 ACCEPT, no fixes; one wording fix in this file by the author) |
+| Start | 2026-11-15 00:59 (+07:00) |
+| End | 2026-11-15 02:02 developer (plan 01:22:37-01:59:43); 02:10 author acceptance; orchestrator commit |
+| Duration | 1 h 03 min developer; 7 locked invocations (node 703.5 s, counted 1,018.5 s of the 1,500 s allocation); IGP-02-dev 2 invocations (counted 110.5 s); priority waits about 1,468 s, not counted; round counted 5,216 s of 10,800 s |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (pack author review, opus-ig); claude-opus-5.5 (orchestrator) |
+| Token usage | 102 model calls; 26,726,038 input tokens (26,361,039 cache reads); 161,979 output tokens |
+| AI credits | about 517 (developer) |
+| Verification | `tools/ig-proto/pm4.mjs` (about 1,340 lines) and `plans/IGP-02.json`; evidence `docs/improve-generating/evidence/provisional/IGP-02/` (`pm4.md`, `pm4.json`, `profiles-*.jsonl` for seven cells incl. 26x26 Master). **R14 certificate holds:** 862 certified runs, all deep-equal to canonical, 0 violations; over 399 (all equal canonical), scap1 812, scap0 1,062; boundary runs 1,107 (`mainWork-1` only over, all equal canonical; `workFirst-1` scap1 355 / over 21; `tail-mid` scap1 353 / over 23). R7: main-search `r7Cut` in 484 screen runs (scap0 408, scap1 76; none certifiable by construction) and 128 canonical profiles; census cuts reported apart (227 screen runs, 66 certified all equal canonical; 43 canonical). `npm run check` passes; firewall 279 production files unchanged |
+| Acceptance | B01, B02, T01-T04 met (developer; confirmed by the pack author) |
+| Issues & resolutions | (1) W economics on today's call profiles (pooled): useful lost 19 / 13 / 9 of 47 at 95 / 190 / 380 M, P2 saving 4.0 / 2.7 / 1.7, time per useful 12.1 s -> 3.0 / 4.6 / 7.3 s; window profiles lose 44 / 33 / 15 of 92; the saving is large on 14x14 and 15x15b10, about 2x on 12x12, none on 10x10, 26x26 Nightmare and Master; Hell 1 loses 8 of 14 useful windows even at 380 M. **No W recommended yet**: it waits for IGP-03 and the plan author's answer to IG-P-Q17. (2) Where the losses lie: corrected for cell, the clue-share shift of lost useful ratings is only 0.006-0.011 of K. (3) 26x26 Master: today's profile mix does not explain the 39 caps IGP-01's prototype saw. (4) Cost by clue offset (for IG-P-Q17): on 12x12 the median canonical time is 2.26 s at the start count against 0.15 s at +4; on 15x15b10 2.07 s against 0.06 s; added to IG-P-Q17 as an addendum with a new option (c4) by the pack author. (5) Deviations accepted: `pm4.mjs` about 3x the estimate with its hash pinned in `run.json` (a later report fix needs a fix round); `--task` flag and `dev<n>` run ids; `projectS` restated; the dry step runs `calls` only; extra tables |
+| Handoff | IGP-03 (pack amended): new no-screen `w760` arm on 14x14 and 12x12 Nightmare reps 0-1 (row R33: before -> no screen -> 190 M); the set each request was served on and the same-set clue shift; accepted puzzles and probes by clue offset beside PM4's cost table; PM4's per-W figures; 26x26 Master at 380 M; no W recommended; window re-rating arm deferred; the optional Hell 1 `w760` only with approval or at least 97 min left |
