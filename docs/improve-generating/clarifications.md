@@ -487,3 +487,14 @@ illustrative factor. They order the work; they are not gates.
    tranche 1 first. Nothing in `core/` or `generator/` changes in phase 0.
 3. Architect: phase 1's design (P6, P8) may start in parallel; it does not depend on phase 0.
 4. After phase 0: revise `plan.md` to version 2 with measured numbers before `gen-v4` is designed.
+
+---
+
+## Owner decisions (2026-11-14, 19:10, through `ask_user` and email)
+
+| Id | Decision |
+|---|---|
+| OD-P1 | **Approved, with the D21 line (IG-P-Q06):** a new `algo` version `gen-v4` after difficulty-v3 closes; seeds give other puzzles; under `gen-v4` a capped profile counts as "too few clues". |
+| OD-P2 | **Approved:** the DLX diagnostic runs only for accepted puzzles (P6). |
+| IG-P-Q02 | Open: one deadline or two budgets is decided after PM3 and before P5's design. |
+| Phase 0 | **Confirmed:** the official phase-0 measurements start once difficulty-v3 freezes (post-MP17). Prototypes are built now as harnesses outside every fingerprint with no production change; their numbers are provisional (pre-freeze) and are re-run on the frozen source. |

@@ -1,0 +1,222 @@
+# IGP-04 — First-phase factor: P6, and eight workers as an unadmitted upper bound
+
+| Header | Value |
+|---|---|
+| ID | IGP-04 |
+| Depends on | IGP-01 (accepted and committed) |
+| Estimated size | Medium: about 200 new lines (two manifests with edits, three compositions, the P6 branch of `ig-log.js` and its call in `ig-select-proto.js`, factor, identity and memory sections of `compare.mjs`, the plan); about 1 to 2 hours of developer work; machine time about 28 minutes |
+| Owner role | Measurement prototype |
+| Confirms or refutes | report §4: P6 x 1.03-1.2 at Nightmare and x 1.15-1.6 at Master (R22); P8's batch x 1.3-1.9 and set stage x 1.0-1.3 as an **unadmitted upper bound** (R23); the first-phase factor ÷1.9 (Opus's illustrative assumption) with P7 still assumed (R25, a Projection); both memory criteria at eight workers (R26) |
+| Design refs | plan §3 P6, P8; report §2 ("first phase"), §4, §5 item 6; `clarifications.md` IG-P-Q05 (gates at four workers, eight beside; the width and admission rules), owner decision OD-P2 (P6 approved); check-list §4 D-IG2, D-IG9, D-IG12 |
+| Label | provisional (pre-freeze); frozen re-run by check-list §6 |
+| Implementation status | Not started |
+
+## Goal & business context
+
+The report's "after first phase" column divides today's times by 1.9: P6 (the DLX diagnostic only for accepted
+puzzles), P7 (a same-units kernel) and P8 (a wider pool), all giving the same puzzles. That factor was one analyst's
+illustration. This task measures P6 in isolation on today's search (the fast cells, arms A and B), the combined P6 ×
+eight-worker factor on today's search (A and C) and on the prototype (E and F; this pair changes both P6 and the width,
+so it does not isolate P6), with the same puzzles required, and records both bench memory criteria at eight workers.
+P7 is not prototyped (IGP-06 gives a sensitivity only).
+
+Eight workers here are **not** P8 as the plan author accepted it: IG-P-Q05 sets the width to the larger of today's
+width and `min(8, hardwareConcurrency - 1)`, above four only with `deviceMemory` of at least 8, and admits a task only
+when its workspace ceiling times the width plus the main budget fits both memory checks. This task raises
+`MAX_POOL_SIZE` to 8 without that admission, so its numbers are an unadmitted throughput upper bound, labelled so
+everywhere; a memory criterion that fails is a finding, never a reason to relax a check.
+
+## Scope
+
+### In scope
+
+- Variants `p6` and `w8` and the compositions `log-p6`, `log-p6-w8`, `p1p5-main-p6-w8`; the P6 branch of `ig-log.js`.
+- Five arms, their verification and identity, the factor and memory analysis.
+
+### Out of scope
+
+- P8's width rule and admission policy (phase-1 design), P7 and P11; browser runs; widths other than four and eight.
+
+## Repository rules
+
+The check-list §3 and §7. Eight-worker arms run only under the wrapper like every other arm; no git.
+
+## Inputs & context
+
+- `core/engine/difficulty.js:253-262`: `measureV3` runs `solveFirst` (the DLX diagnostic) after every completed
+  deduction; it fills `B`, `branchTrials`, `rowTrials` and `dlxStop` only, which never enter the score (`scoreV3`,
+  line 140). Capped profiles never reach it.
+- `core/browser/worker-pool.js:75` `MAX_POOL_SIZE = 4`; `tools/calibrate.mjs:160` limits `--workers` to it;
+  `WORKER_LIMIT_BYTES` (line 70) and `MAIN_BUDGET_BYTES`; `tools/bench/report.js:24-34` (`processBytes` 1.5 GiB) and
+  329-359 (accounted limit = worker count × `WORKER_LIMIT_BYTES` + `MAIN_BUDGET_BYTES`).
+- MP12b1's peaks with four workers: at most 404 MiB accounted and 655 MiB per process (report §5 item 6); eight 224 MiB
+  ceilings plus the main budget give 2,092 MiB accounted in the worst case.
+
+## Design
+
+### 1. Variants
+
+- **`p6`** (edits only; composed, never alone):
+
+  | Edit | File | Find (exact) | Replace or append |
+  |---|---|---|---|
+  | p6-1 | `core/engine/difficulty.js` | `  const run = solveFirst(model, { rowTrialLimit: limits.dlx.rows, branchTrialLimit: limits.dlx.branch });\n` | `  const run = igDlx.skip ? { layout: [], exhausted: false, stop: 'skipped', branchTrials: 0, rowTrials: 0 } : solveFirst(model, { rowTrialLimit: limits.dlx.rows, branchTrialLimit: limits.dlx.branch });\n` |
+  | p6-2 | `core/engine/difficulty.js` | append | `\n/** P6 prototype switch (ig-proto): the search skips the DLX diagnostic; the returned result gets it back. */\nexport const igDlx = { skip: false };\n` |
+
+  Params `{ "p6": true, "logAccepted": true }`.
+- **`w8`**: edit `w8-1` in `core/browser/worker-pool.js`, find `export const MAX_POOL_SIZE = 4;\n`, replace `export const
+  MAX_POOL_SIZE = 8;\n`. No params.
+- **Compositions:** `log-p6` extends `log`, `p6`; `log-p6-w8` extends `log`, `p6`, `w8`; `p1p5-main-p6-w8` extends
+  `p1p5-main`, `p6`, `w8`.
+
+### 2. The P6 branch (`ig-log.js`, used by `igDispatch` and by the prototype)
+
+- `ig-log.js` imports `difficulty.js` as a namespace (`import * as difficulty`), so trees without `p6` still load;
+  `difficulty.igDlx` is undefined there and the branch is off.
+- `withP6(ctx, run)`: when `IG.p6`, sets `igDlx.skip = true`, runs the search, and restores `false` in a `finally`
+  (other tasks of the worker, such as `rate`, keep the canonical diagnostic). For an ok result it recomputes the
+  diagnostic once on the returned clues: `solveFirst(buildModel(board, pieces, clues, ws), { rowTrialLimit:
+  SCORE.caps.rows, branchTrialLimit: SCORE.caps.branch })`, fills `B`, `branchTrials`, `rowTrials` and `dlxStop` exactly
+  as `measureV3` does (lines 253-262, including the error when no solution is found where the deduction found one),
+  and returns the result with the completed rating. `igDispatch` wraps `v3` in it; the prototype calls it around its
+  search.
+- Required: every accepted rating of a `p6` arm deep-equals its canonical rating (`verify.mjs`), and the identity rule
+  of the check-list §3 holds between each `p6` arm and its non-`p6` arm.
+
+### 3. Arms
+
+| Arm | Variant | Workers | Cells and reps | Row limit R |
+|---|---|---:|---|---:|
+| A | `log` | 4 | fast: 26x26-nightmare 0-3, 26x26-master 0-3, 14x14-master 0-3; slow: 12x12-nightmare 0-1 | 90 s; 260 s |
+| B | `log-p6` | 4 | fast only | 90 s |
+| C | `log-p6-w8` | 8 | fast; 12x12-nightmare 0-1 | 90 s; 260 s |
+| E | `p1p5-main` | 4 | 14x14-nightmare 0-1 | 260 s |
+| F | `p1p5-main-p6-w8` | 8 | 14x14-nightmare 0-1 | 260 s |
+
+A and E are run again here (not taken from IGP-01) so that each factor compares runs of one session. MP12b1's
+responses on A's fast seeds total about 150 s; 12x12 Nightmare reps 0-1 about 100 s; 14x14 Nightmare after P1-P5 is
+projected at about 15 to 25 s per request.
+
+### 4. Factors, identity and memory (`compare.mjs` additions)
+
+Pairs `A:B` (P6 alone on today's search, fast cells: the only isolated P6 factor), `B:C` (the eight-worker bound,
+fast cells), `A:C` (P6 x eight, fast cells and 12x12), `E:F` (P6 x eight on the prototype, 14x14: a combined factor,
+not P6 alone). For each pair and cell, the median of the paired per-seed ratios (before / after), matched seeds only,
+with completion beside, on:
+
+| Quantity | Meaning | §5 row |
+|---|---|---|
+| T10 | the whole first phase on ten puzzles (both reached ten) | R22, R23 |
+| T1 | the set stage (P8's "set x 1.0-1.3") | R23 |
+| T10 − T1 | the batch (P8's "batch x 1.3-1.9") | R23 |
+| response | every request | |
+
+The first-phase factor (R25) is a Projection: A:C's T10 factor × the P7 assumption (1.3; range 1.1 to 1.8), set against
+÷1.9; the same on E:F. Every eight-worker figure carries the label "unadmitted upper bound". P6's work saving is also
+given from the call journals of A and B (Σ rating ms per call with and without the diagnostic), a finer measure than
+the request ratio. Identity: prefix identity (check-list §3; every arm here runs a keyed tree) between A and B, A and
+C, and E and F on every seed (required; a difference is a stop). Memory, per row of every arm: `peakAccountedBytes`
+against worker count × `WORKER_LIMIT_BYTES` + `MAIN_BUDGET_BYTES` (constants read from the arm's tree) and
+`peakProcessBytes` against 1.5 GiB; pass or fail and the maximum per arm (R26).
+
+## Files to create/modify
+
+| File | Change |
+|---|---|
+| `tools/ig-proto/variants/p6.json`, `w8.json`, `log-p6.json`, `log-p6-w8.json`, `p1p5-main-p6-w8.json` | new |
+| `tools/ig-proto/variants/files/log/core/engine/ig-log.js` | `withP6`; `igDispatch` uses it |
+| `tools/ig-proto/variants/files/p1p5/core/engine/ig-select-proto.js` | wraps its search in `withP6` |
+| `tools/ig-proto/compare.mjs` | factors, identity across arms, memory |
+| `tools/ig-proto/self-test.mjs` | a `--p6` case |
+| `tools/ig-proto/plans/IGP-04.json` | new |
+| `docs/improve-generating/evidence/provisional/IGP-04/` | new records |
+
+## Implementation steps
+
+1. The manifests and `withP6`; a `--p6` self-test case: on the corpus of IGP-00's case 4, a `log-p6` call returns a
+   rating that deep-equals the `log` call's, and the profiles inside it skipped the diagnostic (the check is the
+   equality; the skipped calls are counted).
+2. The comparison additions; the plan; run it; `npm run check`; the firewall check.
+
+## Commands
+
+The run plan `tools/ig-proto/plans/IGP-04.json` (allocation 28 minutes; the runner adds `--label` and
+`--source-label`; arm steps are `tools/ig-proto/arm.mjs run --task IGP-04 ...`):
+
+| Step | Locked | Node arguments | projectS | State |
+|---|---|---|---:|---|
+| firewall-snapshot | no | `tools/ig-proto/firewall.mjs snapshot --task IGP-04` | | |
+| trees | no | `tools/ig-proto/lib/tree.mjs build base log log-p6 log-p6-w8 p1p5-main p1p5-main-p6-w8` | | |
+| self-test | yes, once | `tools/ig-proto/self-test.mjs --p6` | 105 | `IGP-04/self-test/state.json` |
+| A-fast, B-fast, C-fast | yes, until done | `--arm <A,B,C> --shard fast --variant <log, log-p6, log-p6-w8> --workers <4,4,8> --cases 26x26-nightmare:0-3,26x26-master:0-3,14x14-master:0-3 --row-limit-s 90` | 330 | `IGP-04/<arm>/fast/state.json` |
+| A-12x12, C-12x12 | yes, until done | `--arm <A,C> --shard 12x12-nightmare --variant <log, log-p6-w8> --workers <4,8> --cases 12x12-nightmare:0-1 --row-limit-s 260` | 330 | |
+| E, F | yes, until done | `--arm <E,F> --shard 14x14-nightmare --variant <p1p5-main, p1p5-main-p6-w8> --workers <4,8> --cases 14x14-nightmare:0-1 --row-limit-s 260` | 330 | |
+| verify | yes, until done | `tools/ig-proto/verify.mjs --task IGP-04 --arm B,C,F` | 150 | `IGP-04/verify/state.json` |
+| publish (each arm) | no | `tools/ig-proto/arm.mjs publish --task IGP-04 --arm <arm>` | | |
+| compare | no | `tools/ig-proto/compare.mjs --task IGP-04 --pairs A:B,B:C,A:C,E:F --reference mp12b1` | | |
+| firewall-check | no | `tools/ig-proto/firewall.mjs check --task IGP-04` | | |
+
+```powershell
+pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\IGP-04.json -Label provisional `
+  -SourceLabel 'rating-v3 runtime cd5d17f (worktree 0e1283e)' `
+  -LockHelper "$env:USERPROFILE\.copilot\session-state\c2f29688-8568-4f25-bace-e644d381e5f9\files\ig-lock.ps1"
+if ($LASTEXITCODE -ne 0) { throw "IGP-04 run plan stopped: exit $LASTEXITCODE" }
+npm run check
+if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
+```
+
+Projection: fast shards about 150 to 190 s each (A, B, C; one or two invocations each, six budgeted), 12x12 rows about
+50 s each and 14x14 rows about 20 s each (eight rows, one per invocation), one verify invocation (about 90 s), the
+self-test (about 60 s): sixteen locked commands, about 16 minutes of node time (per-row process start included) and 12
+of quiet periods. If IGP-01 shows that the prototype gains nothing, E and F take about today's 14x14 times (about 10
+minutes more) and the pack author re-plans them before this task runs.
+
+## Record formats
+
+- Published arms and `verify-<arm>.json|md` (as IGP-01).
+- `compare.json`: per pair and cell `{ factors: { t10, t1, batch, response }, n, completion, identity, label }`;
+  `firstPhase: { measured: { today, prototype }, p7Assumption: { likely: 1.3, low: 1.1, high: 1.8 }, projection,
+  against: 1.9 }`; `memory: { '<arm>': { workers, accountedLimit, maxAccounted, processLimit, maxProcess, pass } }`.
+  `compare.md` with one table per pair, the labels, and the memory table.
+
+## Acceptance criteria — Business
+
+| ID | Criterion | Evidence |
+|---|---|---|
+| IGP-04-B01 | P6's factor is measured in isolation on today's search (A:B, matched seeds, the same puzzles), and the combined P6 × eight-worker factor on today's search (A:C) and on the prototype (E:F), each labelled as what it is | `compare.md` |
+| IGP-04-B02 | Eight workers are measured as an unadmitted throughput upper bound, labelled so, never reported as the accepted P8 policy | `compare.md` |
+| IGP-04-B03 | The ÷1.9 assumption is set against measured P6 × the eight-worker bound with P7 assumed, as a Projection; both memory criteria are reported at eight workers | `compare.md` |
+
+## Acceptance criteria — Technical
+
+| ID | Criterion | Evidence |
+|---|---|---|
+| IGP-04-T01 | Prefix identity holds between A and B, A and C, E and F on every seed; every accepted rating of B, C, F equals its canonical rating | `compare.md`; `verify-<arm>.md` |
+| IGP-04-T02 | Without `p6` in the chain the trees load and behave as before (the IGP-00 and IGP-01 self-tests pass); `igDlx.skip` is restored after every call | self-test output; code review |
+| IGP-04-T03 | Locked commands within their horizons, in `invocations.jsonl`; records per the check-list §3; `npm run check` and the firewall check pass | runner log; command output |
+
+## Test plan
+
+The `--p6` self-test case; the IGP-00 self-test and `--proto` again (no regression); the verify steps; the run plan.
+
+## Definition of done & handoff
+
+- The reply gives the factor tables with their labels, the memory table, the projected first-phase factor, the counted
+  machine time and the lock waits.
+- Handoff to IGP-07: `compare.json` (R22, R23, R25, R26).
+
+## Execution log
+
+| Field | Value |
+|---|---|
+| Status | |
+| Start | |
+| End | |
+| Duration | |
+| Model | |
+| Token usage | |
+| AI credits | |
+| Verification | |
+| Acceptance | |
+| Issues & resolutions | |
+| Handoff | |

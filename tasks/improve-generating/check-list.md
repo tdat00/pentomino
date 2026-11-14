@@ -1,0 +1,384 @@
+# improve-generating (Pentomino), phase 0 — prototype task pack: index and acceptance
+
+**Scope:** prototype harnesses that measure the estimates of the joint report
+([`docs/improve-generating/report.md`](../../docs/improve-generating/report.md)) on this machine before any `gen-v4`
+design. First the headline rows of report §2 (14x14, 15x15b10, 12x12 and 26x26 Nightmare, Master, Hell 1 26x26) before
+and after a prototype of P1 to P5 on paired seeds; then the multipliers behind them (PM4's screen certificate and the
+`W_screen` variants, PM3's probes and variants, the first-phase factor of P6 and P8); then a reduced first slice of PM1
+tranche 1 and PM2 on 10x10 and 12x12. Measurement only: nothing in `core/`, `generator/`, `player/` or `tests/`
+changes (plan author's "Direction after the joint report"; owner instruction of 2026-11-14: "create prototype code to
+verify the estimates in the report; only prototype code that checks puzzle generation; do not change other functions
+of the generator source; give difficulty-v3 priority for resources").
+**Status:** written and cross-reviewed (gpt-6-astra, 18 findings applied); not started. Eight tasks, IGP-00 to IGP-07.
+**Label:** every number of this round is **provisional (pre-freeze)**. It is measured on the `rating-v3` runtime of
+this worktree (runtime commit `cd5d17f`; the worktree head `0e1283e` adds documents only). Its source digest is MP12b1's
+(`34cea386…`, the `sourceDigest` of every MP12b1 report, whose `sourceCommit` is `917052a`), so the same seed gives
+MP12b1's puzzles; IGP-00's self-test recomputes the digest. The plan author wants the gating numbers on the frozen
+post-MP17 source; every harness re-runs there with one command per task (§6).
+**Traceability:** report.md §2, §3, §4 and §6; [`clarifications.md`](../../docs/improve-generating/clarifications.md):
+the plan author's answers to IG-P-Q01 to IG-P-Q16, "Direction after the joint report" and the owner decisions of
+2026-11-14 (OD-P1 and OD-P2 approved, IG-P-Q02 open, phase 0 confirmed); [`plan.md`](../../docs/improve-generating/plan.md)
+§3 (P1 to P8) and §5 (PM1 to PM4); the analysts' P1 to P5 scenario rows (`claude-opus-5.5/2-cross-review.md` §1.3-§1.5
+and `gpt-6-astra/2-cross-review.md` §6). The measured baselines are MP12b1's reports in
+`docs/difficulty-v3/landscape-v3-full/` and the slice reports it reused in `docs/difficulty-v3/landscape-v3/r2/`.
+**Execution:** one `claude-sonnet-5.5` developer per task, one task at a time, in this worktree (branch
+`improve-generating`). The orchestrator reviews, fills the Execution logs and the §5 rows, commits and pushes. Developer
+questions go to the pack author (agent Opus, claude-opus-5.5) through the orchestrator.
+**Code base:** `0e1283e`. Line anchors quote that tree; a later task finds an anchor by its quoted text.
+
+Each task carries the design it needs: algorithms, cells, seeds, sample sizes, commands and record formats. They are
+decisions of this pack (§4), not open questions for the developer.
+
+## 1. Task index
+
+| Done | ID | File | Title | Depends on | Size | Machine time (projection) | Confirms or refutes (§5 rows) | Order |
+|---|---|---|---|---|---|---|---|---:|
+| [ ] | IGP-00 | [00](00-harness-foundation.md) | Harness foundation: copies, variants, bounded runners, lanes, records, identity | none | Large, about 1,300 lines | 9 min | harness fidelity (R00) | 1 |
+| [ ] | IGP-01 | [01](01-p1p5-prototype-headline.md) | PM3 prototype of P1 to P5 and the headline before/after | IGP-00 | Large, about 950 lines | 62 min (high 78) | report §2 rows 14x14, 15x15b10, 12x12, 26x26 Nightmare, two Master cells, Hell 1 26x26; dead-end share; window profiles; batch waves; locate profiles (R01 to R08, R10 to R13, R18, R19, R29) | 2 |
+| [ ] | IGP-02 | [02](02-pm4-screen-certificate.md) | PM4: the screen certificate and the `W_screen` economics | IGP-00 | Medium, about 450 lines | 23 min | IG-P-Q01's certificate; P2's saving; useful ratings lost at 95, 190 and 380 M (R14, R15, R17) | 3 |
+| [ ] | IGP-03 | [03](03-pm3-variants-and-budgets.md) | PM3 variants (W 95 and 380 M, arity 3) and the P5 budget inputs | IGP-01 | Medium, about 300 lines | 20 min (+4 optional) | IG-P-Q08, Q09, Q10; re-rating cost (R16, R18, R20, R21) | 4 |
+| [ ] | IGP-04 | [04](04-first-phase-factor.md) | First-phase factor: P6, and eight workers as an unadmitted upper bound | IGP-01 | Medium, about 200 lines | 28 min | P6, P8's upper bound, the ÷1.9 assumption, memory (R22, R23, R25, R26) | 5 |
+| [ ] | IGP-05 | [05](05-pm1-tranche1-slice.md) | PM1 tranche 1, reduced first slice | IGP-00 | Medium, about 450 lines | 23 min | windows of Hell 1 on 215-484 cells, Hell 2, Hell 3; fine counts; failed Hell 1 sets (R27 to R29) | 6 |
+| [ ] | IGP-06 | [06](06-pm2-kernel-profile.md) | PM2 rating profile on 10x10 and 12x12 Nightmare | IGP-00 | Small, about 300 lines | 8 min | P7's sensitivity; IG-P-Q12 (R24, R30) | 7 |
+| [ ] | IGP-07 | [07](07-results-summary.md) | Estimate-vs-measured summary and re-run index | IGP-01 to IGP-06 | Small, about 250 lines | none | the §5 table and R31 | 8 |
+|  |  |  | **Total** |  |  | **about 173 min (high case: §7)** |  |  |
+
+Sizes count new harness lines. Developer time comes on top: about 3 to 4 hours each for IGP-00 and IGP-01, 1 to 2
+hours for the others. Machine time is counted as in §7 (node time plus the wrapper's 45 s quiet period per locked
+command; longer waits while difficulty-v3 runs are not counted).
+
+## 2. Order, ownership and protocol
+
+### Order
+
+Strictly one task at a time, in the order of §1. IGP-01 comes right after the foundation so that the headline rows get
+paired before/after numbers first (orchestrator's instruction for this round). IGP-01 re-rates every accepted prototype
+puzzle canonically, so a failure of the screen certificate cannot leak into its numbers; PM4 (IGP-02) then covers the
+certificate in full. The frozen round may follow the plan author's order instead (PM4 and PM1 tranche 1 first,
+`clarifications.md` "Next actions" 2): the run plans are independent files.
+
+### Exclusive ownership
+
+| Task | Owns (creates or edits) | Must not edit |
+|---|---|---|
+| IGP-00 | `tools/ig-proto/` (new): `README.md`, `lib/paths.mjs`, `lib/records.mjs`, `lib/tree.mjs`, `lib/engine.mjs`, `lib/sets.mjs`, `lib/calls.mjs`, `lib/lanes.mjs`, `lib/lane-worker.mjs`, `lib/budget.mjs`, `firewall.mjs`, `boards.mjs`, `data/boards-v1.json`, `variants/base.json`, `variants/instr.json`, `variants/log.json`, `variants/files/log/core/engine/ig-log.js`, `arm.mjs`, `identity.mjs`, `self-test.mjs`, `run-task.ps1`, `plans/IGP-00.json`; evidence `docs/improve-generating/evidence/provisional/IGP-00/` | every file outside `tools/ig-proto/` and its evidence folder |
+| IGP-01 | `tools/ig-proto/`: `variants/p1p5.json`, `variants/p1p5-main.json`, `variants/files/p1p5/core/engine/ig-select-proto.js`, `fit-prior.mjs`, `data/prior-v1.json`, `verify.mjs`, `compare.mjs`, `plans/IGP-01.json`; additions to `lib/tree.mjs` (`paramFiles`), `ig-log.js` (the API the prototype calls), `self-test.mjs` (`--proto`) and `README.md`; evidence `IGP-01/` | as IGP-00; IGP-00's tested behaviour (an addition keeps the IGP-00 self-test passing) |
+| IGP-02 | `tools/ig-proto/pm4.mjs`, `plans/IGP-02.json`, `README.md` (one section); evidence `IGP-02/` | as IGP-00; `lib/` except a bug fix the review names |
+| IGP-03 | `tools/ig-proto/variants/p1p5-w095.json`, `p1p5-w380.json`, `p1p5-main-a3.json`, `p1p5-w190-rerate-window.json`, the arity-3 and window-rerate branches of `ig-select-proto.js`, `budgets.mjs`, additions to `compare.mjs` (task-qualified arms, per-`W` and arity-3 sections) and `self-test.mjs` (their cases), `plans/IGP-03.json`; evidence `IGP-03/` | as IGP-00; the default path of `ig-select-proto.js` (the IGP-01 numbers must stay reproducible) |
+| IGP-04 | `tools/ig-proto/variants/p6.json`, `w8.json`, `log-p6.json`, `log-p6-w8.json`, `p1p5-main-p6-w8.json`, the P6 branch of `ig-log.js` (`withP6`) and its call in `ig-select-proto.js`, additions to `compare.mjs` (factors, identity across arms, memory) and `self-test.mjs` (`--p6`), `plans/IGP-04.json`; evidence `IGP-04/` | as IGP-00; the default paths of `ig-log.js` and `ig-select-proto.js` |
+| IGP-05 | `tools/ig-proto/pm1.mjs`, `plans/IGP-05.json`, `README.md` (one section); evidence `IGP-05/` | as IGP-00 |
+| IGP-06 | `tools/ig-proto/pm2.mjs`, `pm2-worker.mjs`, `plans/IGP-06.json`, `README.md` (one section); evidence `IGP-06/` | as IGP-00 |
+| IGP-07 | `tools/ig-proto/summary.mjs`, `plans/IGP-07.json`, `README.md` (the re-run index); evidence `docs/improve-generating/evidence/provisional/summary.json` and `summary.md` | as IGP-00; every earlier record (read only) |
+
+A record is written once. A correction is a new file with a suffix (`-r2`) and a line in the task's Markdown.
+
+### Per-task protocol
+
+1. Step 0 (orchestrator, once): this pack is committed on `improve-generating` (`improve-generating: phase-0 prototype
+   pack (Pentomino)`).
+2. The orchestrator launches the developer of the next task with the task file and this check-list.
+3. The developer implements, runs the task's run plan through the runner (§7) and replies with the evidence of §8. It
+   runs **no git command at all**, read-only ones included, and never edits this pack, an Execution log,
+   `docs/improve-generating/plan.md`, `clarifications.md`, `report.md` or the analysts' folders.
+4. The orchestrator reviews the result against the task's acceptance tables, runs `npm run check`, fills the Execution
+   log and the §5 rows the task measured, and commits once per accepted task (`improve-generating IGP-NN: <title>`). It
+   pushes at the milestones: after IGP-01 (the headline), after IGP-04 (the multipliers) and after IGP-07 (the round).
+5. A rejected task goes back to its developer with the review notes; a defect found later goes back to the owner of
+   the file as a fix round recorded in both Execution logs.
+
+### Stops and questions
+
+- **Stop for the pack author** only for a correctness or control failure: a production file changed (the firewall
+  check); an accepted prototype rating that differs from its canonical rating; a certificate violation in IGP-02; a
+  required identity that fails (§3 "Determinism"); an anchored edit that no longer matches; a tree, harness or flag
+  change under a started shard; a started observation without its record (a killed or crashed invocation); a wrapper
+  kill at 300 s (the bounds of §7 make it impossible, so it is a defect); the budget guard of §7.
+- **Never a stop:** a slow cell, a low completion rate, a refuted estimate, a losing variant, a censored call. These are
+  the measurements: they go into the records and §5 with their numbers, and the task goes on.
+- **Never an automatic rerun** of a started observation. Only work that never started is resumed; anything else needs a
+  fix-round decision of the pack author, and the earlier evidence stays.
+- **Questions.** A developer never settles a design question (an algorithm, a cell, a seed, a sample size, a
+  threshold, the meaning of a record field). It asks the pack author through the orchestrator; the answer is binding
+  unless it needs the plan author or the owner.
+
+## 3. Conventions for the harness
+
+- **Where the code lives: outside every fingerprint (checked for this pack).**
+  - Bench and calibration identity: `SOURCE_FILES` (`tools/bench/report.js:37-47`) hashed by `computeSourceDigest`
+    (`tools/bench/report.js:662`): the `core/engine/*.js` files, three `core/browser/` modules,
+    `core/workers/engine.worker.js` and four `tools/bench/` files. `tests/benchmark-report.test.js:289` requires every
+    `core/engine/*.js` file to be listed, so a new engine file would fail `npm test`.
+  - Published Generator and Player: `.github/workflows/pages.yml:17-22` copies `core`, `generator` and `player` (plus
+    the root page files) into the site and stamps it; `tools/check-site.mjs:9` forbids `tools`, `tests`, `docs` and
+    `tasks` in the artifact.
+  - Puzzle and version identity: `progressFingerprint` (`core/engine/keys.js:459`) hashes board, pieces and clues;
+    `ALGO_ID` `gen-v3` (`core/engine/version.js:4`), `POLICY_ID` (`core/engine/policy.js:17`), `MODEL`
+    (`core/engine/difficulty.js:49`); the regression fixtures are written only by `tools/record-fixtures.mjs`.
+  - Hence: the harness code lives in **`tools/ig-proto/`** (not hashed, not published, not in the `npm test` glob
+    `tests/**/*.test.js`, not under `tools/bench/`, whose files are digest inputs). The convention checker scans
+    `tools/` (`tools/check-conventions.mjs:8`), so the format rules hold there. Patched copies, logs and checkpoints
+    live under **`tests/artifacts/ig-proto/`** (git-ignored by `.gitignore`, skipped by the checker). Records go to
+    **`docs/improve-generating/evidence/<label>/<task>/`** (the plan's evidence folder, plan §5).
+- **No git.** No developer command and no harness code runs git, read-only commands included. Identity comes from
+  content: the source digest of `SOURCE_FILES`, the firewall manifest (`firewall.mjs`: SHA-256 of every file under
+  `core/`, `generator/`, `player/`, `tests/` without `tests/artifacts/`, `tools/` without `tools/ig-proto/`, and the root
+  files), the tree identities, and a source label the runner receives (`-SourceLabel`). Every tree patches its copy of
+  `tools/calibrate.mjs` so that its `readSource` (lines 241-252) runs no git either (IGP-00 "meta" edits).
+- **Copies, never edits.** A variant is a copy of `core/`, `tools/` (without `tools/ig-proto/`) and `package.json`
+  under `tests/artifacts/ig-proto/tree/<variant>/`, with anchored text edits and added files (IGP-00 §2). Every edit's
+  anchor must occur exactly once; otherwise the build stops and names the edit. A production file is never edited, not
+  even for a moment.
+- **Tree identity.** A tree's `treeId` is the SHA-256 over every copied source text, the resolved manifests, the
+  copy-only files and the parameter files; the `harnessHash` covers `tools/ig-proto/lib/` and the driver scripts. Every
+  shard, state file and checkpoint header records both; a run whose tree or harness differs from the one its shard
+  started with exits before it measures anything. In every tree except `base`, the copy's `SOURCE_FILES` also lists the
+  added engine files, so the copy's own source digest tells variants apart.
+- **Modules.** Node tools are `.mjs`, with `// @ts-check` on the first line, JSDoc types, 2-space indent, single quotes
+  and semicolons; no dependency is installed. Copy-only engine files under `tools/ig-proto/variants/files/` are `.js`,
+  written for their place in a copy (`core/engine/`) with the engine's conventions; they may use `node:fs`,
+  `node:worker_threads` and `performance.now()`, because a copy only runs in Node.
+- **Paths.** `lib/paths.mjs` resolves the repository root as `fileURLToPath(new URL('../../../', import.meta.url))`
+  (three parents of `tools/ig-proto/lib/`); `run-task.ps1` uses `Join-Path $PSScriptRoot '..\..'` (two parents of
+  `tools/ig-proto/`). PowerShell commands in this pack use backslashes, and so do the file-system paths in plan files
+  (escaped in JSON); the step tables of the task files show script paths with `/` for readability only. Record fields
+  keep repository-relative paths with `/`: they are identifiers, not file-system paths.
+- **Determinism.** Randomness comes only from seeded `createRng` streams named in the task; the prototype search draws
+  only from `ctx.rng`. Results are written in job order, never in completion order. A run record's
+  `details.puzzles[].clues` is a clue **count** (`tools/bench/runner.js:715-725`), so numeric summaries never prove that
+  two runs made the same puzzles. The comparison of two runs of one seed uses three levels, each named as such:
+  - **puzzle identity:** `details.resultDigest` (over the accepted layout keys, clue keys and scores, lines 726-730) is
+    equal, compared whenever both runs accepted the same number of puzzles, partial responses included; or, between two
+    arms that both carry the test-side keys (every tree except `base`, IGP-00 edit `instr-7`), the common prefix of
+    `details.igPuzzleKeys` is equal, and `details.igSetKey` is equal (**prefix identity**);
+  - **metric-prefix agreement:** the set summary (`details.K`, `sizes`, `setAttempt`) and the accepted puzzles' `clues`
+    (count), `U`, `score`, `metrics.work` and `metrics.nodes` agree on the common prefix. It is the only check when the
+    accepted counts differ and one side has no keys (MP12b1, `base`); the record then says "metric-prefix agreement;
+    puzzle identity not established", never "identity";
+  - a shorter run (fewer accepted puzzles) is a deadline effect and is recorded as such.
+
+  Required (a failure is a stop): the `base` copy has the worktree's source digest; `base` and `log` agree with MP12b1
+  on every seed at the strongest level available (a differing digest at equal counts, or a disagreement inside the
+  common prefix, is a failure); `log`, `log-p6` and `log-p6-w8` agree on every seed by prefix identity, as do
+  `p1p5-main` and `p1p5-main-p6-w8`; every accepted prototype rating equals its canonical rating (`verify.mjs`).
+- **Records.** JSON with 2-space indent plus a Markdown summary; UTF-8 without BOM, CRLF, a final newline, no trailing
+  whitespace; repository-relative paths with `/`; no absolute path. Raw files (copies, logs, checkpoints, profiles) stay
+  under `tests/artifacts/ig-proto/`. A published JSONL file stays below 5 MB; above that, publish the per-call summary
+  only and say so in the Markdown. Every JSON record has this `meta` block:
+
+  ```json
+  "meta": {
+    "format": "ig-proto-<kind>", "version": 1, "task": "IGP-01",
+    "label": "provisional", "labelText": "provisional (pre-freeze)", "createdAt": "<ISO time>",
+    "source": {
+      "label": "<-SourceLabel>", "sourceDigest": "<computeSourceDigest of the worktree>",
+      "versions": { "algo": "gen-v3", "policy": "mixed-v2", "rng": "xoshiro128ss-v1", "model": "difficulty-v3", "app": "1.0.0" },
+      "equalsMp12b1Source": true, "firewall": "<SHA-256 of the firewall manifest>"
+    },
+    "harness": { "harnessHash": "<sha256>", "files": { "tools/ig-proto/<file>": "<sha256>" } },
+    "trees": { "<variant>": { "treeId": "<sha256>", "copyDigest": "<sha256>", "edits": ["<edit id>"], "params": {} } },
+    "machine": { "cpu": "<model>", "logicalCores": 16, "totalMemoryBytes": 0, "node": "v26.13.0", "platform": "<os>" },
+    "invocations": { "count": 0, "nodeSeconds": 0, "countedSeconds": 0, "lockWaitSeconds": 0 },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\IGP-01.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  }
+  ```
+
+  Every Markdown record starts, after its title, with the banner: `> **Provisional (pre-freeze).** Measured on <source
+  label> (source digest <first 8 hex>…, equal to MP12b1's source), not on the frozen post-MP17 source. Re-run:
+  <command>.` (`frozen` records say "Frozen post-MP17 source" instead).
+- **Kinds of numbers,** as in the report: *Measured*; *Derived* (computed from measured data; the record names the
+  formula); *Projection* (depends on an assumption, which the record names). A proxy says so in its name.
+- **Statistics.** `median`, `percentile` and `summarize` of `tools/bench/report.js:220-257` (median of an even count is
+  the mean of the two middle values; p95 is nearest-rank), so that "today" reproduces the report's values. T10
+  statistics use the requests that reached ten; completion is "reached ten of n" and is always shown beside a time. A
+  paired comparison uses only matched cohorts (the same seeds in both arms).
+- **Hand-off checks.** `npm run check` passes; `node tools\ig-proto\firewall.mjs check --task <id>` reports the
+  production files unchanged against the snapshot taken at the task's start; under `tools/`, only `tools/ig-proto/`
+  changed.
+
+## 4. Decisions taken for this pack
+
+| Id | Decision | Why |
+|---|---|---|
+| D-IG1 | Harness in `tools/ig-proto/`, copies and logs in `tests/artifacts/ig-proto/`, records in `docs/improve-generating/evidence/<label>/` | §3 fingerprint check; plan §5 names the evidence folder |
+| D-IG2 | Every measured arm runs a patched copy of the source (a "tree"), never the worktree's modules: `base` (only the no-git edit of the copied `tools/calibrate.mjs`), `instr` (instrumentation, diagnostic offers), `log` (durable per-probe logs of today's search), `p1p5-*` (the prototype), `p6`, `w8` and their compositions | one mechanism for all tasks; module identity stays consistent inside a copy; production files are never touched |
+| D-IG3 | Request-level arms use MP12b1's seeds `landscape/<case>/<rep>` (explicit `seeds` of a bench matrix), so that the "before" arm reproduces MP12b1's puzzles and both arms pair seed by seed; harness corpora use their own seeds (`ig-pm4/…`, `ig-pm1/…`, `ig-pm2/…`, `ig-selftest/…`) | pairing, identity check, and no reuse of the measured seeds for fitting |
+| D-IG4 | Matched cohorts in IGP-01: on the fast shard (26x26 Nightmare reps 0-5, 14x14 and 26x26 Master reps 0-4) and on the slow cells (14x14, 15x15b10, 12x12 Nightmare and Hell 1 26x26, reps 0-2) both arms run the same seeds. No after-only extension. They can show a large factor; they cannot give a p95 | 3 h machine budget; one slow request per invocation (D-IG12) |
+| D-IG5 | The prototype implements P1 (sequential bracketing on one nested family), P2 (screen with the certificate of IG-P-Q01), P3 (a screen-capped profile reads as too few clues), P4 (a fitted table prior), P5 (fail at once only on a canonical no-window verdict; budgets recorded, not enforced), with IG-P-Q07's AR1 direction. `W_screen` in IGP-01: 190 M for Master and Nightmare, 380 M for the Hell levels; IGP-03 adds 95 M (control) and 380 M on Nightmare | IG-P-Q01, Q07, Q09; Hell 1's useful ratings are near the cap (report §4) |
+| D-IG6 | P4's table prior: per cell, the median clue share of the accepted puzzles of MP12b1 reps 10-19 (held out from the measured reps 0-9), with its source and version recorded. The per-set calibration prior is not prototyped (it needs a new payload field) | IG-P-Q03 and Q04; no in-sample fit |
+| D-IG7 | The re-rating rule of IG-P-Q01: a call that would end without a final in-band result first re-rates canonically up to four screen-capped profiles nearest the window (by distance to the window count, then the higher count, then probe order). The four are one **shared allowance per call** (`rerateMax`): the no-window rescue of phase A and the end-of-call re-rating draw from it, and so does the optional window re-rating. The "re-rate when the bracket closes" reading is an optional IGP-03 variant on 12x12 Nightmare | the plan author's rule first; 12x12's dear useful ratings make the other reading worth one measurement; one allowance keeps a call's extra canonical work bounded and comparable across variants |
+| D-IG8 | The arity-3 set-stage variant (IG-P-Q08) is simulated in one worker; its T1 effect is an idealised call-level Projection (a lower bound on T1, assuming idle lanes); every probe, wasted ones included, is counted; nothing is adopted from it | the smallest prototype that gives the number; the real set stage already runs attempts in parallel |
+| D-IG9 | Not prototyped in this round: P7 (PM2 gives a sensitivity only), the per-set calibration prior, P5's enforced budgets and attempt limit, a lowered `N_screen` (the plan author's first version does not lower it), P8's width and admission rules (IG-P-Q05; eight workers are run only as an unadmitted upper bound), walked layouts and the held-out window audit (PM1 tranche 2), the error rate of estimated AR1 directions (needs a raised census budget), repeated exact states (PM2, later), browser runs, 16x16 and 15x20 Nightmare | outside the 3 h budget or not needed for the numbers of this round |
+| D-IG10 | PM1 tranche 1 is reduced to a first slice of about 0.8 worker-hours (IGP-05). The rest of tranche 1 (about 9 worker-hours, 2.5 h on four lanes) is a later round that needs the owner's approval | tranche 1's 10 worker-hours do not fit the 3 h budget |
+| D-IG11 | Budget guard: before every locked invocation the runner computes the allowance left (the task's §1 allocation with a 25 % margin, and the round's 180 minutes, each less what was counted) and gives the invocation a horizon that fits it; when the horizon is too short for the step's smallest unit of work, it stops and asks for the orchestrator's approval (`-ApprovedRoundMinutes`, `-ApprovedTaskMinutes`), which is logged. Forecasts (`projectS`) only feed the projection tables | owner's budget for this round; an invocation can never take more than its horizon, whatever it was forecast to take |
+| D-IG12 | Bounded invocations: every locked command ends by its horizon (at most 285 s) by construction (§7): one-row calibrate runs with an admission check, supervised calls cut before the horizon and recorded as censored, supervised rating jobs admitted by a fixed bound, families checkpointed after each probe | the wrapper's 300 s kill must never act as the sharder |
+| D-IG13 | Frozen-round Hell cells: the board catalogue is frozen now (`data/boards-v1.json`, every landscape case of this source), and every tree except `base` bypasses the offer check of `pieceCountPlan` (copy only, `diagnosticOffers`), so that PM1, PM4 and the Hell headline can still examine Hell cells that the frozen source no longer offers. Such a run is labelled "diagnostic offer"; it never enables a production offer | the plan author's main phase-0 question (Hell 2 and 3 windows) must stay answerable on the frozen source |
+
+## 5. Estimate vs measured (to be filled)
+
+The estimates are the analysts' **P1 to P5 scenario rows at four workers** (Opus: `claude-opus-5.5/2-cross-review.md`
+§1.3-§1.4, reconciled factors applied to today's medians; Astra: `gpt-6-astra/2-cross-review.md` §6, "First search work
+P1-P5, 4W"), all Projections. The plan author: report midpoints and these values order the work; they are not gates.
+Descriptive verdicts (IGP-07): for a time, **below both**, **between** (each analyst's value widened by a factor 1.35
+for the small samples) or **above both**, and **inconclusive** with fewer than three paired values or no T10; for a
+factor with a stated range, **inside** or **outside**; for R14, **holds** or **fails**. A row that uses an unmeasured
+factor (P7) stays a Projection. A faster request that delivers fewer puzzles is never read as a gain: completion is
+always shown beside.
+
+| Row | Quantity | Estimate (kind; source) | Measured, provisional | Task, record | Verdict |
+|---|---|---|---|---|---|
+| R00 | Harness fidelity: `base` and `log` agree with MP12b1 (puzzle identity by digest where the accepted counts are equal; otherwise metric-prefix agreement, puzzle identity not established) | required agreement | | IGP-00 `identity` | |
+| R01 | 14x14 Nightmare today: T10 median / p95, ten of 20 | 112.98 / 151.64 s, 11 of 20 (Measured; MP12b1) | re-run on reps 0-2; drift | IGP-01 `compare` | |
+| R02 | 14x14 Nightmare after P1-P5, four workers: T10 median | Opus 17.7 s (112.98 / 6.4); Astra 16.0 s (tail 21.5-35.3) | | IGP-01 | |
+| R03 | Completion after P1-P5 on 12x12, 14x14 and 15x15b10 Nightmare | Opus about 19-20 of 20 after all phases; Astra unknown (report §3) | | IGP-01 | |
+| R04 | 15x15b10 Nightmare after P1-P5: T10 median | Opus 13.8 s (86.23 / 6.25); Astra 13.7 s | | IGP-01 | |
+| R05 | 12x12 Nightmare after P1-P5: T10 median | Opus about 39-48 s (P1 and P4 about 1.3 to 1.6); Astra 44.5 s | | IGP-01 | |
+| R06 | 26x26 Nightmare after P1-P5: T10 median | Opus 15.5 s (18.61 / 1.2); Astra 17.8 s | | IGP-01 | |
+| R07 | Master after P1-P5 (14x14 and 26x26) | unchanged (both); today 2.57 s and 8.36 s | | IGP-01 | |
+| R08 | Hell 1 26x26 after P1-P5: T10 median; ten of n | Opus about 28 s; Astra 50-60 s; both only if a window holds | | IGP-01 | |
+| R09 | 16x16 and 15x20 Nightmare after P1-P5 | not measured in this round (D-IG9) | later round | | |
+| R10 | Dead-end share of today's batch profile time | a heuristic 30-60 % on 196-300 cells; 5-10 % on 12x12 and 18x18 (report §4) | | IGP-01 `before` arm | |
+| R11 | Dead-end entries per call after P1-P5 | expected none (a hypothesis, not a requirement) | | IGP-01 | |
+| R12 | Window profiles per successful call | about four (a scenario parameter, report §2) | | IGP-01 | |
+| R13 | Batch waves for nine slots at four workers (a proxy) | 2.25 (Opus) or 2.75 (Astra) | | IGP-01 | |
+| R14 | Screen certificate (IG-P-Q01 (b)): certified screens equal canonical | 0 violations required; otherwise fallback (c) | | IGP-02 | |
+| R15 | Useful ratings lost (in band, screen-capped) at 95 / 190 / 380 M | "95 M is low for Nightmare"; 190-380 M is about 0.6-1.2 s of main work (report §4, IG-P-Q09) | | IGP-02 | |
+| R16 | Work per accepted puzzle at 95 / 190 / 380 M (14x14 and 12x12 Nightmare) | the minimiser picks W (IG-P-Q09); on 12x12, P2 gives "about nothing" | | IGP-03 | |
+| R17 | P2's saving on today's call profiles | the capped share at the start count (3-89 %) times the cap's cost less the screen's | | IGP-02 | |
+| R18 | Canonical re-ratings per call and their share of work | priced in PM4 and PM3 (no number) | | IGP-01, IGP-03 | |
+| R19 | Locate profiles per call with the table prior (P4) | "2 to 6 profiles per candidate instead of up to 64" (plan P4); P4 x 1.05-1.15 (report §4) | | IGP-01 | |
+| R20 | Arity-3 set stage: probes counted, idealised call-level T1 bound | adopted only with a clear gain (IG-P-Q08) | | IGP-03 | |
+| R21 | P5 budget inputs: share of ok calls whose work passes 1 to 12 G units | the 6 G figure is withdrawn (IG-P-Q10) | | IGP-03 | |
+| R22 | P6 factor on T10 | x 1.03-1.2 at Nightmare, x 1.15-1.6 at Master | | IGP-04 | |
+| R23 | Eight workers, unadmitted upper bound | batch x 1.3-1.9 (likely 1.6), set stage x 1.0-1.3 | | IGP-04 | |
+| R24 | P7 sensitivity | x 1.1-1.8 (likely 1.3); PM2 first | kernel share and sensitivity table | IGP-06 | |
+| R25 | First-phase factor P6 x P7 x P8 on T10 (Projection: P7 assumed) | ÷1.9 (Opus's illustrative assumption) | measured P6 x eight-worker bound x the P7 assumption | IGP-04, IGP-06 | |
+| R26 | Memory at eight workers: both bench criteria | can exceed 1.5 GiB in the worst case (2,092 MiB accounted) | | IGP-04 | |
+| R27 | In-band ratings on Hell 1 at 215-484 cells, Hell 2, Hell 3 (score-in-band and AR1-eligible apart) | unknown: no in-band rating ever observed (report §2, IG-P-Q16) | | IGP-05 | |
+| R28 | Why Hell 1 sets fail on 14x14 and 24x24 | unknown | | IGP-05 | |
+| R29 | Capped share at the start count; window counts (14x14, 12x12, 26x26 Nightmare) | 0.89, 0.53, 0.10 (report §1, from MP12b1's samples) | | IGP-01 `before`, IGP-05 | |
+| R30 | Rating-time shares by phase and function on 10x10 and 12x12 Nightmare | unknown; P7 and P11 targets (IG-P-Q12) | | IGP-06 | |
+| R31 | After all phases (Projection): measured P1-P5 ÷ (measured P6 x eight-worker bound, with a stated transfer range) ÷ P7 assumption | the analysts' after-all values: 14x14 8.0 / 7.94 s, 15x15b10 6.3 / 7.22 s, 12x12 16 / 21.7 s, 26x26 7.0 / 8.84 s, Hell 1 26x26 15 / 25-30 s | | IGP-07 | |
+
+## 6. Re-run on the frozen source
+
+When difficulty-v3 is frozen (after MP17) and the orchestrator has brought `improve-generating` onto that source:
+
+1. `node tools\ig-proto\lib\tree.mjs check-edits --all` (no lock: it builds nothing and rates nothing). It lists every
+   anchored edit that no longer matches. Edits of `core/engine/clues.js`, `core/engine/generate.js`,
+   `core/engine/policy.js` and `tools/calibrate.mjs` are expected to need new anchors after MP12b3, MP13a, MP14a and
+   MP14b. The pack author re-derives them (a maintenance change of `tools/ig-proto/variants/`, recorded in IGP-07's
+   re-run index); the developer does not.
+2. Per task, in the order the plan author wants (PM4, PM1, PM3, PM2):
+   `pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\IGP-0N.json -Label frozen
+   -SourceLabel <label> -LockHelper <path>`. Records go to `docs/improve-generating/evidence/frozen/`; nothing
+   provisional is overwritten.
+3. `node tools\ig-proto\summary.mjs --label frozen`.
+
+On the frozen source the "before" arms measure the frozen `gen-v3`; MP12b1 is then a different source, and the
+identity rows report "different source" instead of a stop. Cells come from the frozen catalogue `data/boards-v1.json`;
+a cell that the frozen source no longer offers runs as a "diagnostic offer" (D-IG13) and is labelled so. The pack author
+sets the frozen round's sample sizes when that round is approved (the plans carry the reps; a frozen plan may widen
+them), with its own budget.
+
+## 7. Machine, priority and lock protocol
+
+difficulty-v3 has priority on this machine. The Sudoku repository's difficulty-v3 runs are active; Pentomino's
+difficulty-v3 is paused (P-OD11) until Sudoku reaches MS07e, but its lock rules still apply; Sudoku's improve-generating
+pack competes for the same quiet slots.
+
+- **One wrapper.** Every command that may run longer than 10 s goes through `Invoke-IgNode` of the low-priority helper
+  `$env:USERPROFILE\.copilot\session-state\c2f29688-8568-4f25-bace-e644d381e5f9\files\ig-lock.ps1` (the orchestrator
+  gives the new path if it moves). The runner `tools/ig-proto/run-task.ps1` dot-sources it from `-LockHelper` and calls:
+
+  ```powershell
+  . $LockHelper
+  Invoke-IgNode -Repo pentomino -Task '<task> <step>' -NodeArgs @('--max-old-space-size=2048', '<script>', '<arguments>', '--label', '<label>')
+  ```
+
+  The helper starts only after both difficulty-v3 locks (`dv3-sudoku.lock` and `dv3-timing.lock` in `$env:TEMP`) have
+  been absent for 45 s, holds the Pentomino lock (`dv3-timing.lock`) while node runs, kills the process tree at 300 s and
+  throws on a non-zero exit. It has no environment parameter: configuration goes into the node arguments.
+- **Never** use `Invoke-Dv3Timed`, MP12a's launcher or any difficulty-v3 wrapper for this pack; never create, hold or
+  delete a lock file by hand; never run a timed command, a generation or a rating corpus outside the wrapper. Commands
+  that take seconds and rate nothing (building a tree, the firewall, publishing, comparing, reports, summaries,
+  `npm run check`) run directly.
+- **Exit protocol.** A locked script exits 0 whenever it recorded its work, finished or not; `state.json` says
+  `done`, keeps the inner tool's codes (for example `calibrateCode: 2`) and reports the invocation's progress
+  (`lastInvocation.progress`: rows, calls, jobs or probes recorded); it exits 1 only on an error or a stop. The runner
+  repeats a `repeatUntilDone` step while it exits 0 with `done: false`; an invocation that exits 0 with no progress is
+  a stop (exit 4).
+- **Horizon.** The runner gives every locked invocation a horizon `H` (seconds from the start of the node process):
+  `H = min(285, A − 45 − 10)`, where `A` is the allowance left (below). Every locked script takes `--horizon-s H` and
+  admits no work that could end after `H`.
+- **Bounded invocations (D-IG12).** With elapsed time `e` since the process started:
+  - request rows (`arm.mjs`): calibrate runs one row at a time with a child limit R (90 s on the fast shard, 260 s on
+    slow cells; a row above R is recorded as censored at R, and above 260 s it is a defect); a row starts only when
+    e + R + 10 s ≤ H, so slow cells run one row per invocation and need H ≥ 270 s;
+  - rating jobs (lanes, `rate`, and PM2's profiled ratings): a canonical rating does at most 760 M + 80 M units of work
+    (about 5.4 s at the slowest probe rate, 157 M units/s); a job starts only when e + 30 s ≤ H, and a supervisor
+    outside the rating's thread cuts any job at 30 s as a defect;
+  - call jobs (lanes, `call`): a selectClues call is not bounded by itself, so the supervisor cuts every call at H − 15
+    s, terminates its lane and records the call as censored with every profile it had completed (profiles are streamed
+    one by one); a call starts only when at least 120 s remain before H − 15 s;
+  - families (PM1): driven probe by probe, checkpointed after each probe, admitted like rating jobs.
+- **Kills and reruns.** A kill at 300 s is a defect and a stop (the bounds above exclude it). Nothing started is rerun
+  automatically: the runner stops and the pack author decides a fix round; resumption covers only work that never
+  started, and every earlier record stays.
+- **Accounting.** The runner appends one line per locked invocation to
+  `tests/artifacts/ig-proto/<label>/<task>/invocations.jsonl`: step, start, end, wall seconds, node seconds (from the
+  step's state file; the wall seconds when an invocation failed without writing it), lock wait = wall − node, counted =
+  node + min(lock wait, 45 s), the horizon and the budget decision. Waits beyond the 45 s quiet period (difficulty-v3
+  busy) are not counted. The record's `meta.invocations` sums them.
+- **Budget guard (D-IG11).** Before each locked invocation the allowance left is `A = min(1.25 × the task's §1
+  allocation − the task's counted total, 10,800 s − the round's counted total)`, each cap raised by an approval. When
+  `H` is below the step's `minHorizonS` (its smallest unit of work: R + 20 s for an arm step, otherwise the value in its
+  plan, IGP-00 §8), the runner stops with exit code 4 and prints what it needs; it goes on only with
+  `-ApprovedRoundMinutes` or `-ApprovedTaskMinutes` given by the orchestrator, recorded in the log. Because no
+  invocation outlives its horizon, the counted total cannot pass a cap without an approval. `projectS` (the step's
+  forecast) is used only for the projections and for `-DryRun`.
+- **One run at a time** in this worktree; the developer starts nothing else while a runner is active.
+
+**Budget of this round (projection).**
+
+| Task | Locked commands (about) | Node time | Quiet periods | Counted |
+|---|---:|---:|---:|---:|
+| IGP-00 | 6 | 4.5 min | 4.5 min | 9 min |
+| IGP-01 | 30 | 40 min (high 55) | 22.5 min | 62 min (high 78) |
+| IGP-02 | 9 | 16 min | 7 min | 23 min |
+| IGP-03 | 14 (+3 optional) | 9.5 min (+2 optional) | 10.5 min (+2 optional) | 20 min (+4 optional) |
+| IGP-04 | 16 | 16 min | 12 min | 28 min |
+| IGP-05 | 9 | 16 min | 7 min | 23 min |
+| IGP-06 | 3 | 5.5 min | 2.5 min | 8 min |
+| IGP-07 | 0 | 0 | 0 | 0 |
+| **Total** | **87** | **about 108 min** | **about 66 min** | **about 173 min** |
+
+Counts follow the bounds above: one slow row per invocation, every self-test, dry run and verification invocation
+included. The high case is a prototype that gains nothing on the slow cells: IGP-01 then takes about 78 min, and IGP-03
+and IGP-04 would take about 18 and 10 min more if they ran unchanged (about 217 min in all); the pack author then
+re-plans IGP-03 and IGP-04 after IGP-01 instead, and the guard stops the round at 180 min unless the orchestrator
+approves more (D-IG11). About 38 % of the counted time is the wrapper's quiet period, the price of one slow request per
+invocation.
+
+## 8. Evidence and sign-off
+
+Each developer's reply gives: the files created; the run plan's steps with their exits, node seconds and lock waits;
+the counted machine time against the projection and any budget approval; the firewall result; the records written; the
+acceptance table with the evidence per row; the values of the §5 rows the task measured; the named findings; any
+question for the pack author.
+
+The round is complete when IGP-07's summary exists, every §5 row has a value or "later round", and the orchestrator
+has pushed `improve-generating`. The plan author then receives the summary for plan version 2 (`clarifications.md`
+"Next actions" 4) and decides the frozen round.
+
+### Execution summary
+
+| ID | Status | Start | End | Machine time (counted) | Lock waits | Commit |
+|---|---|---|---|---|---|---|
+| IGP-00 | not started | | | | | |
+| IGP-01 | not started | | | | | |
+| IGP-02 | not started | | | | | |
+| IGP-03 | not started | | | | | |
+| IGP-04 | not started | | | | | |
+| IGP-05 | not started | | | | | |
+| IGP-06 | not started | | | | | |
+| IGP-07 | not started | | | | | |
