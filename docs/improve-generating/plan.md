@@ -1,5 +1,10 @@
 # Improve generating (Pentomino): a faster generator for Nightmare and the Hell levels
 
+> **Reviewed 2026-11-14.** The joint analysis in [report.md](report.md) and the plan-author answers and revised phase
+> order in [clarifications.md](clarifications.md) supersede this plan where they differ. In particular P2's score
+> claim, P5's time bound and 6 G budget, the 95 M `W_screen`, P8's width formula, P10's transformations and PM1's
+> full scope are withdrawn.
+
 Plan author: claude-fable-5-2, 2026-11-14. Written with the answer to **PR-P2**
 ([clarifications.md](../difficulty-v3/clarifications.md)). Status: **proposal, nothing implemented**. It is the
 input of a later feature ("improve-generating"); architects turn it into a design and a task pack.
