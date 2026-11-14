@@ -11,6 +11,11 @@
 | Gates owned | GS-P3 (search evidence, new; check-list §7); GA-P2 (the final `npm test`); GF-P2 and GA-P2 again only in an ordered change round |
 | Implementation status | Not started |
 
+**Dispatch addendum (binding; SA1, 2026-11-14).** Read the section "Dispatch addendum: MP12b1's measurement-slot
+exception" before the Execution log first. It adds a named item to record §1 and §13, marks the MP12b1 times of
+22 cases as not slot-protected, and adds a conditional safeguard after block HL. Where it differs from the text below,
+it wins.
+
 ## Goal & business context
 
 The calibration record must say not only what the landscape produced but how the search got there (RES-25:
@@ -1165,6 +1170,167 @@ of the block alone, outside the repository (it passed).
   owner questions; the orchestrator adds the owner's answers (recorded in `clarifications-resolved.md` Part H) to
   MP12b3's dispatch. MP12b3 completes the lock; from its commit on no rating or generated puzzle may change
   (check-list §6), and MP17 compares its final evidence with this record and MP12b3's.
+
+## Dispatch addendum: MP12b1's measurement-slot exception (binding; SA1, 2026-11-14)
+
+The pack author wrote this section after MP12b1 had started and before this task's dispatch. It is part of the task,
+and where it differs from the text above, it wins.
+
+**What happened.** From 03:09 to 06:12 on 2026-11-14, the Sudoku repository's task MS05b3 ran generation commands
+without the shared lock of check-list §7: 134 commands of at most 10 s each and 25 first attempts stopped at 10 s,
+474.5 s of single-thread work in all. 112 of those windows overlapped MP12b1 invocations that held the lock: 351.3 s
+in 22 cases. The sources share one local clock, and a window is accurate to about a second:
+
+- the Sudoku repository's `docs/difficulty-v3/evidence/MS05b3/runs.jsonl`: the cells with `slot` `none`, and the
+  stopped first attempt of each cell with `escalated` true, counted as 10 s;
+- MP12b1's run log `tests/artifacts/MP12b1/invocations.jsonl` and its published reports;
+- SA1's analysis: the Sudoku repository's `docs/difficulty-v3/claude-opus-5.5/10-review-of-recovery-steps.md` §7
+  (IR07 and 7.3).
+
+| MP12b1 case (report) | Sudoku windows | Overlap (s) | Case's invocation time (s) | MP12b1 outcome | Capture in this task |
+|---|---:|---:|---:|---|---|
+| `22x22-master` | 3 | 11.4 | 197.8 | 20 of 20 rows complete, max T10 16.2 s | none (not Hell) |
+| `24x24-nightmare` | 5 | 18.6 | 601.8 | 20 of 20, max T10 64.0 s | none (not Hell) |
+| `26x26-hard` | 1 | 4.0 | 82.0 | 20 of 20, max T10 4.9 s | none (not Hell) |
+| `26x26-master` | 2 | 19.0 | 256.0 | 20 of 20, max T10 23.3 s | none (not Hell) |
+| `26x26-nightmare` | 1 | 1.0 | 496.7 | 20 of 20, max T10 35.8 s | none (not Hell) |
+| `14x14-hell-1` (prescreen) | 4 | 28.0 | 422.3 | 1 accepted puzzle: its 20 requests follow by MP12b1's rule | HL |
+| `15x15b10-hell-1` (prescreen) | 1 | 2.0 | 348.0 | no puzzle in 3 requests | HL |
+| `16x16-hell-1` (prescreen) | 4 | 21.5 | 346.6 | no puzzle in 3 requests | HL |
+| `15x20-hell-1` (prescreen) | 9 | 33.9 | 346.7 | no puzzle in 3 requests | HL |
+| `15x20-hell-2` (prescreen) | 30 | 27.3 | 346.8 | no puzzle in 3 requests | H |
+| `18x18-hell-1` (prescreen) | 1 | 1.5 | 346.8 | no puzzle in 3 requests | HL |
+| `18x18-hell-2` (prescreen) | 6 | 20.1 | 346.8 | no puzzle in 3 requests | H |
+| `18x20-hell-1` (prescreen) | 17 | 45.4 | 346.7 | no puzzle in 3 requests | HL |
+| `18x20-hell-2` (prescreen) | 1 | 6.0 | 346.6 | no puzzle in 3 requests | HL |
+| `20x20-hell-1` (prescreen) | 1 | 7.0 | 346.8 | no puzzle in 3 requests | HL |
+| `20x20-hell-2` (prescreen) | 3 | 26.5 | 346.8 | no puzzle in 3 requests | HL |
+| `20x21-hell-1` (prescreen) | 3 | 12.0 | 347.2 | no puzzle in 3 requests | HL |
+| `20x21-hell-2` (prescreen) | 8 | 18.8 | 346.5 | no puzzle in 3 requests | HL |
+| `32x15-hell-1` (prescreen) | 1 | 10.0 | 346.5 | no puzzle in 3 requests | HL |
+| `32x15-hell-2` (prescreen) | 4 | 18.3 | 346.5 | no puzzle in 3 requests | HL |
+| `32x15-hell-3` (prescreen) | 1 | 3.0 | 346.6 | no puzzle in 3 requests | H |
+| `22x22-hell-1` (prescreen) | 6 | 15.9 | 346.6 | no puzzle in 3 requests | HL |
+| **22 cases** | **112** | **351.3** | | | |
+
+**What the overlap can and cannot change.**
+
+- A landscape request has a wall-clock limit (`TIME`, `core/engine/policy.js:68`: dispatch stop 115 s, response
+  120 s), and the T10 and response times are wall times. The rest is work-bounded and fixed by the seed:
+  - the generation client folds candidates in a fixed slot order, whatever the workers' timing
+    (`core/browser/generation-client.js:1057-1061`);
+  - the census, the caps, the proved real choice and a puzzle's score count work, not time.
+
+  So the overlap can change an outcome only for a request that reaches its limit, and it can only remove work.
+- The machine has 8 cores and 16 logical processors. A landscape row uses a main thread and 4 workers, and the Sudoku
+  command one thread, so nothing was oversubscribed. The effect goes through the shared cache, memory and clock speed:
+  a few percent at most, during the overlapped seconds only.
+- The five cells that are not Hell completed 20 of 20 rows, the slowest in 64.0 s, far below the stop. Their puzzles,
+  ratings and C1 to C5 inputs are those of an idle machine. C2's only overlapped cell, `26x26-hard`, finished every
+  row in 4.9 s or less.
+- The 16 Hell prescreens without a puzzle ran every request to the 115 s stop. The overlap could only push them
+  towards "no puzzle", that is towards not offering a level (D39), never towards a false offer. In the worst case,
+  `18x20-hell-1` (45.4 of 346.7 s), the lost work is under 1 % of the case. `14x14-hell-1` made its puzzle anyway.
+
+**1. The named item (P-OD9).** Record it as "MP12b1 measurement-slot exception (MS05b3, 2026-11-14 03:09 to 06:12)":
+
+- in record §1, one sentence beside MP12b1's machine time and lock waits, with the totals (112 windows, 351.3 s,
+  22 cases) and a pointer to §13;
+- in record §13, the table above, the assessment above and the conclusion: MP12b1's evidence stands, and no C1 to C5
+  status, no list of the aggregate and no row of the D39 table changes because of it, unless the safeguard (3) finds
+  otherwise. It is no stop and no owner question.
+
+**2. The times of these 22 cases are not slot-protected.** Wherever the record quotes a time that MP12b1 measured for
+one of these cases (§3: T10 median and p95; §7: the landscape's response times beside H and HL; any other place),
+mark the number with `†` and give the legend "† not slot-protected: Sudoku work without the lock overlapped this case
+(§13)". Keep the numbers as measured: never adjust, drop or replace them. MP12b1's records stay unedited. The times of
+this task's own captures are not marked.
+
+**3. The safeguard, after block HL.** The block below reads, with `AcceptedOf`, the capture that covers each of the
+16 Hell prescreens without a puzzle: H, with D21's seed, for `15x20-hell-2`, `18x18-hell-2` and `32x15-hell-3`; HL,
+with the landscape's seed, for the other 13. One row per case goes into `runs.md`.
+
+- A capture that accepted no puzzle (0, censored or not): nothing more. MP12b1's reduced row stands.
+- A capture that accepted one or more puzzles: that case's prescreen runs again under the lock, with MP12b1's shard
+  command and seeds (`--seeds 3`; the launcher derives `landscape/<case id>/<rep>`), on the landscape's source
+  identity (`Identity` before and after). It is staged under `tests/artifacts/MP12b2/landscape-again/` and published
+  into `$data/landscape-again/`; MP12b1's folder stays unedited.
+  - If no request of the new prescreen accepted a puzzle, MP12b1's reduced row stands, and record §9 names both
+    prescreens.
+  - If one did, the case is a Hell case whose prescreen made a puzzle (P-OD9). Its 20 requests run the same way
+    (`--seeds 20`; up to about 70 minutes when the requests run to the limit; the plan goes into `runs.md` first).
+    Record §9's D39 table then takes that report for the case (N 20, status `measured`, the `requestInBandRate` of its
+    cell), labelled with the report, and the item in §13 says so.
+  - MP12b3 derives D39 from the aggregate in force and stops at a difference (its A1). So the reply names the case and
+    the reports, and the orchestrator gives MP12b3 an addendum.
+- The safeguard is no stop, and it changes no threshold, decision or rule of D39.
+- In an ordered change round, the item stays as history, labelled with MP12b1's identity, and the safeguard does not
+  run: the change round runs every prescreen again.
+
+```powershell
+# the slot addendum, after Identity 'after HL' (test plan): the 16 Hell prescreens of MP12b1 without a puzzle that
+# the Sudoku work overlapped, each with the H or HL capture that covers it
+$cover = [ordered]@{
+  '15x15b10-hell-1' = 'hell-landscape/hl-15x15b10-hell-1'; '16x16-hell-1' = 'hell-landscape/hl-16x16-hell-1'
+  '15x20-hell-1' = 'hell-landscape/hl-15x20-hell-1'; '18x18-hell-1' = 'hell-landscape/hl-18x18-hell-1'
+  '18x20-hell-1' = 'hell-landscape/hl-18x20-hell-1'; '20x20-hell-1' = 'hell-landscape/hl-20x20-hell-1'
+  '20x21-hell-1' = 'hell-landscape/hl-20x21-hell-1'; '32x15-hell-1' = 'hell-landscape/hl-32x15-hell-1'
+  '22x22-hell-1' = 'hell-landscape/hl-22x22-hell-1'; '18x20-hell-2' = 'hell-landscape/hl-18x20-hell-2'
+  '20x20-hell-2' = 'hell-landscape/hl-20x20-hell-2'; '20x21-hell-2' = 'hell-landscape/hl-20x21-hell-2'
+  '32x15-hell-2' = 'hell-landscape/hl-32x15-hell-2'; '15x20-hell-2' = 'hell/h-15x20-hell-2'
+  '18x18-hell-2' = 'hell/h-18x18-hell-2'; '32x15-hell-3' = 'hell/h-32x15-hell-3'
+}
+# MP12b1's shard command for one case, under the lock, published into $data/landscape-again (never MP12b1's folder)
+function LandscapeAgain([string]$Case, [int]$Seeds) {
+  $date = Get-Date -Format 'yyyy-MM-dd'
+  $name = if ($Seeds -eq 3) { "$Case-s3-$date" } else { "$Case-$date" }
+  $stage = "tests/artifacts/MP12b2/landscape-again/$name"
+  $node = @('--max-old-space-size=2048', 'docs/difficulty-v3/landscape-v3/launch.mjs', 'run', '--profile',
+    'landscape', '--workers', '4', '--seeds', "$Seeds", '--fresh-process', '--cases', "^$Case$", '--output', $stage)
+  do {
+    $r = Invoke-Dv3Timed -Task "MP12b2 again $name" -NodeArgs $node
+    Add-Content "$data/runs.md" ("| $stage | $($r.Start.ToString('HH:mm:ss')) | $($r.End.ToString('HH:mm:ss')) | " +
+      "$($r.Seconds) | launcher exit $($r.Exit) | $($r.WaitedSeconds) |")
+    if ($r.TimedOut) { throw "MP12b2 again ${name}: the 590 s limit was reached; stop and report" }
+  } while ($r.Exit -eq 3)
+  if ($r.Exit -ne 0) { throw "MP12b2 again ${name}: launcher exit $($r.Exit); stop and report" }
+  New-Item -ItemType Directory -Force "$data/landscape-again" | Out-Null
+  node docs/difficulty-v3/landscape-v3/launch.mjs publish $stage "$data/landscape-again" --seeds "$Seeds" | Out-Host
+  if ($LASTEXITCODE -ne 0) { throw "MP12b2 again ${name}: publish refused" }
+  "$data/landscape-again/$name.json"   # the function's only output: the published report
+}
+$again = @()
+foreach ($case in $cover.Keys) {
+  $got = AcceptedOf "$data/$($cover[$case]).jsonl"
+  $mark = if ($got.censored) { '*' } else { '' }
+  Add-Content "$data/runs.md" "| slot addendum: $case, $($cover[$case]) accepted $($got.accepted)$mark | | | | | |"
+  if ($got.accepted -gt 0) { $again += $case }
+}
+foreach ($case in $again) {
+  Add-Content "$data/runs.md" "| plan slot addendum: the prescreen of $case again, 3 requests, about 6 minutes | | | | | |"
+  Identity "before $case again"
+  $report = LandscapeAgain $case 3
+  $made = @((Get-Content $report -Raw | ConvertFrom-Json).runs | Where-Object {
+    $_.caseId -eq $case -and $_.probeKind -eq 'generation' -and $_.acceptedCount -ge 1 }).Count
+  Add-Content "$data/runs.md" "| slot addendum: $report, requests with a puzzle: $made of 3 | | | | | |"
+  if ($made -gt 0) {
+    Add-Content "$data/runs.md" "| plan slot addendum: $case, 20 requests, up to about 70 minutes | | | | | |"
+    $twenty = LandscapeAgain $case 20
+    Add-Content "$data/runs.md" "| slot addendum: $twenty published; record §9 takes it for $case | | | | | |"
+  }
+  Identity "after $case again"
+}
+```
+
+**Acceptance (added).**
+
+| ID | Criterion | Evidence |
+|---|---|---|
+| MP12b2-T12 | The slot-exception item is in record §1 and §13, with the table and the assessment; every MP12b1 time of the 22 cases that the record quotes carries `†`; `runs.md` has the safeguard's 16 rows; every prescreen run again, and its 20 requests if any, followed this addendum (under the lock, on the landscape's identity, published into `$data/landscape-again/`) | record §1, §3, §7, §9, §13; `runs.md` |
+
+**Files and reply.** `$data/landscape-again/` is new, and only when the safeguard runs a prescreen again: it holds the
+published reports, staged under `tests/artifacts/MP12b2/landscape-again/`. The reply gives the item in one line and,
+when the safeguard ran, the case, both prescreens, the 20-request report if any, and the outcome.
 
 ## Execution log
 
