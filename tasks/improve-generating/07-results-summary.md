@@ -58,10 +58,10 @@ The check-list §3. No lock is needed: nothing is rated or timed. No git.
 | R21 | `IGP-03/budgets.json` | `okBeyond` and `failedAbove` per budget |
 | R22, R23, R25, R26 | `IGP-04/compare.json`; for R23 also IGP-04's journals | P6 factor; the eight-worker upper bound, with the per-rating time ratio of twin calls B / C (one rating's slowdown at eight workers on this machine: 0.92, 0.80 and 0.78 in the IGP-04 review, computed as `compare.mjs` computes A / B) and the machine (cpu, logical cores); the projected first-phase factor; memory |
 | R24, R30 | `IGP-06/pm2.json` | kernel share and P7 sensitivity; phase and category shares |
-| R27, R28 | `IGP-05/pm1.json` | in-band and eligible ratings per cell; failure classes |
+| R27, R28 | `IGP-05/pm1.json`; `IGP-05/families-<part>.jsonl`; `IGP-03h/compare.json` when its part 2 ran | in-band and eligible ratings per cell, with the share of them whose census was censored (after the IGP-05 review: 37 of part 1's 55, all 8 of Hell 2), beside MP12b1's censored share of accepted puzzles on the same level (on Hell 1 26x26, 134 of 134); failure classes; the request-level indication on Hell 1 20x20 without the screen |
 | R29 | `IGP-01/compare.json` and `IGP-05/pm1.json` | start-count capped shares |
 | R32 | `IGP-01/compare-r2.json`, `IGP-03/compare.json` | the population of the accepted puzzles per cell and arm (clue share p10 / median / p90, U, score position, central share), per `W` |
-| R33 | `IGP-03/compare.json`; `IGP-03h/compare.json` when it ran | the split (the factors before → no screen → 190 M, or 380 M on Hell 1, with their n; the median clue shares) and the shift's two parts |
+| R33 | `IGP-03/compare.json`; `IGP-03h/compare.json` and `IGP-03h/c5/compare.json` when they ran | the split (the factors before → no screen → 190 M, or 380 M on Hell 1, with their n; the median clue shares) and the shift's two parts; on 12x12 Nightmare, the screen's factor and same-set clue shift per seed over reps 0 to 5 |
 | R09 | none | "later round" |
 | R31 | derived here | below |
 

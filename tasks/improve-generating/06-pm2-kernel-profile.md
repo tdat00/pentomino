@@ -3,7 +3,7 @@
 | Header | Value |
 |---|---|
 | ID | IGP-06 |
-| Depends on | IGP-00 (accepted and committed) |
+| Depends on | IGP-00 (accepted and committed); IGP-03 and IGP-04 (accepted): their results are read for the report |
 | Estimated size | Small: about 300 new lines (`pm2.mjs` and `pm2-worker.mjs`); about 1 to 2 hours of developer work; machine time about 8 minutes (a dry invocation and one or two main invocations, three budgeted) |
 | Owner role | Measurement prototype |
 | Confirms or refutes | report §4 P7 (x 1.1-1.8, likely 1.3): a hypothetical kernel-speed sensitivity from the measured rating-time shares (R24); IG-P-Q12: where rating time goes on the two cells whose useful ratings are dear (R30); the DLX diagnostic's share (P6's basis, a cross-check of IGP-04) |
@@ -105,6 +105,20 @@ sensitivity is Derived and hypothetical: with the kernel share k (the `search` a
 faster in the same units gives 1 / (1 − k + k / s) on rating time; the record gives it for s = 1.25, 1.5, 2 and 3, and
 the kernel speed-up needed for the report's x 1.1, 1.3 and 1.8. The `dlx` share is reported beside IGP-04's P6 factor.
 
+**Additions after the IGP-03 and IGP-04 reviews (report only).**
+
+- *By profile class.* Besides the whole corpus, the phase shares, the kernel share k and the P7 sensitivity are given
+  for today's call profiles and for the window subsets (offsets 1 to 4) apart, and within each for complete and capped
+  ratings apart. The complete ratings of the window subsets are the closest to the prototype's mix (IGP-03: without
+  the screen, 5 of 49 ratings capped on 12x12 Nightmare), and R31 applies P7 to the prototype's times.
+- *What P7 must reach.* After IGP-04, P6 and eight workers give about 1.0 on the prototype, so P7 is the remaining
+  first-phase lever. The needed kernel speed-up is also given for the rating-time factors 1.87 (÷1.9 on the
+  prototype) and 1.91 (÷1.9 on today's 12x12 Nightmare), per class, with "not reachable" when 1 / (1 − k) is at or
+  below the factor.
+- *P6 beside it.* The `dlx` share per class is set beside IGP-04's P6 figures: 10 to 23 % of rating time saved on
+  today's search (A:B), and about 0 to 7 % on the prototype (Derived in the IGP-04 review: E:F's twin-call rating
+  ratio, 0.86, divided by the eight-worker slowdown of B:C's twin calls, 0.80 to 0.92).
+
 ## Files to create/modify
 
 | File | Change |
@@ -152,7 +166,9 @@ commands, about 5.5 minutes of node time and 2.5 of quiet periods.
 - `pm2.json`: `{ meta, samplingIntervalUs: 1000, corpus: { calls, censored, profiles }, cells: { '<case>': { ratings: {
   complete, capped }, ratingMs, phases: { '<phase>': { ms, share } }, categories: { '<name>': { ms, share } },
   phaseByCategory: { ... }, top: [{ function, file, ms, share }], kernelShare, p7Sensitivity: { '<s>': factor },
-  neededKernelSpeedup: { '1.1': s, '1.3': s, '1.8': s }, dlxShare, reductionCheck: { rawProfiles, equal } } } }`.
+  neededKernelSpeedup: { '1.1': s, '1.3': s, '1.8': s, '1.87': s, '1.91': s }, dlxShare, byClass: { '<call|window>':
+  { '<complete|capped>': { ratings, ratingMs, phases, kernelShare, p7Sensitivity, neededKernelSpeedup, dlxShare } } },
+  reductionCheck: { rawProfiles, equal } } } }`.
 - `pm2.md`: the banner; the phase and category tables of both cells; the top functions; the P7 sensitivity table,
   labelled hypothetical; notes: the sampling profiler adds a little time and attributes inlined functions to their
   callers; carving and layout work are outside the denominator.
@@ -163,6 +179,7 @@ commands, about 5.5 minutes of node time and 2.5 of quiet periods.
 |---|---|---|
 | IGP-06-B01 | Where rating time goes on 10x10 and 12x12 Nightmare, by phase and by function, so that P7's items can be ranked (IG-P-Q12, Q13) | `pm2.md` |
 | IGP-06-B02 | P7's hypothetical sensitivity from the measured kernel share, set against the report's x 1.1-1.8, never presented as a measured gain | `pm2.md` |
+| IGP-06-B03 | The kernel share and the P7 sensitivity per profile class (call profiles and window subsets; complete and capped), the kernel speed-up needed for 1.87 and 1.91 or "not reachable", and the `dlx` share beside IGP-04's P6 figures | `pm2.md` |
 
 ## Acceptance criteria — Technical
 

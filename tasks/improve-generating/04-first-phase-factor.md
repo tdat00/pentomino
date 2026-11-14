@@ -222,7 +222,7 @@ The `--p6` self-test case; the IGP-00 self-test and `--proto` again (no regressi
 |---|---|
 | Status | Accepted (pack author: IGP-04 ACCEPT, no fixes; the `verify.mjs` wording goes to IGP-07) |
 | Start | 2026-11-15 03:21 (+07:00) |
-| End | 2026-11-15 05:35 developer (plan 03:36-05:34, mostly priority waits); 05:55 author acceptance; orchestrator commit |
+| End | 2026-11-15 05:35 developer (plan 03:36-05:34, mostly priority waits); 05:42 author acceptance; orchestrator commit |
 | Duration | 2 h 14 min elapsed, mostly waiting behind difficulty-v3; 11 locked invocations (node 762 s, counted 1,257 s of the 28 min allocation); no dev runs; priority waits 5,636 s beyond the quiet period, not counted; round counted 7,469 s of 10,800 s |
 | Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (pack author review, opus-ig); claude-opus-5.5 (orchestrator) |
 | Token usage | 125 model calls; 34,387,340 input tokens (34,010,788 cache reads); 138,539 output tokens |

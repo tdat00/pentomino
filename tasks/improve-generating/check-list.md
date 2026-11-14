@@ -37,9 +37,9 @@ decisions of this pack (§4), not open questions for the developer.
 | [x] | IGP-01 | [01](01-p1p5-prototype-headline.md) | PM3 prototype of P1 to P5 and the headline before/after | IGP-00 | Large, about 950 lines | 62 min (high 78) | report §2 rows 14x14, 15x15b10, 12x12, 26x26 Nightmare, two Master cells, Hell 1 26x26; dead-end share; window profiles; batch waves; locate profiles (R01 to R08, R10 to R13, R18, R19, R29) | 2 |
 | [x] | IGP-02 | [02](02-pm4-screen-certificate.md) | PM4: the screen certificate and the `W_screen` economics | IGP-00 | Medium, about 450 lines | 25 min | IG-P-Q01's certificate; P2's saving; useful ratings lost at 95, 190 and 380 M (R14, R15, R17) | 3 |
 | [x] | IGP-03 | [03](03-pm3-variants-and-budgets.md) | PM3 variants (W 95 and 380 M, no screen, arity 3) and the P5 budget inputs | IGP-01 | Medium, about 330 lines | 23 min | IG-P-Q08, Q09, Q10; the screen's share of the gain and of the clue-count shift (IG-P-Q17); re-rating cost (R16, R18, R20, R21, R32, R33) | 4 |
-| [ ] | IGP-03h | [03](03-pm3-variants-and-budgets.md#follow-up-igp-03h-the-no-screen-arm-on-hell-1-26x26-optional) | Optional follow-up: the no-screen arm on Hell 1 26x26 | IGP-03, IGP-06 | none (no new code) | about 5 min | R33 on Hell 1 (IG-P-Q17) | 7a |
+| [ ] | IGP-03h | [03](03-pm3-variants-and-budgets.md#follow-up-igp-03h-the-no-screen-arm-on-hell-1-and-more-12x12-seeds-optional) | Optional follow-up: the no-screen arm on Hell 1 26x26; optionally on Hell 1 20x20 and more 12x12 seeds | IGP-03, IGP-06 | none (a report-only addition allowed) | about 5 min (+11 optional) | R33 on Hell 1 and 12x12 (IG-P-Q17); a request-level indication for Hell 1 on 400 cells (IG-P-Q16, OD-P4) | 7a |
 | [x] | IGP-04 | [04](04-first-phase-factor.md) | First-phase factor: P6, and eight workers as an unadmitted upper bound | IGP-01 | Medium, about 200 lines | 28 min | P6, P8's upper bound, the ÷1.9 assumption, memory (R22, R23, R25, R26) | 5 |
-| [ ] | IGP-05 | [05](05-pm1-tranche1-slice.md) | PM1 tranche 1, reduced first slice | IGP-00 | Medium, about 450 lines | 23 min | windows of Hell 1 on 215-484 cells, Hell 2, Hell 3; fine counts; failed Hell 1 sets (R27 to R29) | 6 |
+| [x] | IGP-05 | [05](05-pm1-tranche1-slice.md) | PM1 tranche 1, reduced first slice | IGP-00 | Medium, about 450 lines | 23 min | windows of Hell 1 on 215-484 cells, Hell 2, Hell 3; fine counts; failed Hell 1 sets (R27 to R29) | 6 |
 | [ ] | IGP-06 | [06](06-pm2-kernel-profile.md) | PM2 rating profile on 10x10 and 12x12 Nightmare | IGP-00 | Small, about 300 lines | 8 min | P7's sensitivity; IG-P-Q12 (R24, R30) | 7 |
 | [ ] | IGP-07 | [07](07-results-summary.md) | Estimate-vs-measured summary and re-run index | IGP-01 to IGP-06 | Small, about 250 lines | none | the §5 table and R31 | 8 |
 |  |  |  | **Total** |  |  | **about 178 min (actual so far: §7)** |  |  |
@@ -69,7 +69,7 @@ certificate in full. The frozen round may follow the plan author's order instead
 | IGP-04 | `tools/ig-proto/variants/p6.json`, `w8.json`, `log-p6.json`, `log-p6-w8.json`, `p1p5-main-p6-w8.json`, the P6 branch of `ig-log.js` (`withP6`) and its call in `ig-select-proto.js`, additions to `compare.mjs` (factors, identity across arms, memory; first, the IGP-03 review's arity-3 note) and `self-test.mjs` (`--p6`), `plans/IGP-04.json`; evidence `IGP-04/` | as IGP-00; the default paths of `ig-log.js` and `ig-select-proto.js` |
 | IGP-05 | `tools/ig-proto/pm1.mjs`, `plans/IGP-05.json`, `README.md` (one section); evidence `IGP-05/` | as IGP-00 |
 | IGP-06 | `tools/ig-proto/pm2.mjs`, `pm2-worker.mjs`, `plans/IGP-06.json`, `README.md` (one section); evidence `IGP-06/` | as IGP-00 |
-| IGP-03h | `tools/ig-proto/plans/IGP-03h.json`; evidence `IGP-03h/` | as IGP-00; every tool and variant (no code change) |
+| IGP-03h | `tools/ig-proto/plans/IGP-03h.json`; a report-only addition to `compare.mjs` (an arm-only section for a cell without a before partner); evidence `IGP-03h/` | as IGP-00; every other tool and variant (no measurement code) |
 | IGP-07 | `tools/ig-proto/summary.mjs`, `plans/IGP-07.json`, `README.md` (the re-run index), `verify.mjs` (the wording of its record only, after the IGP-04 review); evidence `docs/improve-generating/evidence/provisional/summary.json` and `summary.md` | as IGP-00; every earlier record (read only) |
 
 A record is written once. A correction is a new file with a suffix (`-r2`) and a line in the task's Markdown. Before the
@@ -366,7 +366,7 @@ pack competes for the same quiet slots.
 | IGP-01 | 30 | 40 min (high 55) | 22.5 min | 62 min (high 78) |
 | IGP-02 | 9 | 18 min | 7 min | 25 min |
 | IGP-03 | 19 | 8.5 min | 14 min | 23 min (allocation 28) |
-| IGP-03h (optional, not in the total) | 3 | 3 min | 2 min | 5 min (allocation 6) |
+| IGP-03h (optional, not in the total) | 3 (+5 optional) | 3 min (+5 optional) | 2 min (+6 optional) | 5 min (+11 optional; allocation 6 + 12) |
 | IGP-04 | 16 | 16 min | 12 min | 28 min |
 | IGP-05 | 9 | 16 min | 7 min | 23 min |
 | IGP-06 | 3 | 5.5 min | 2.5 min | 8 min |
@@ -403,6 +403,12 @@ frozen-round item.
 (23 min), IGP-06 (8 min) and, when at least 8 min are left after IGP-06, IGP-03h (about 5 min); then IGP-07, which
 locks nothing. At their 25 % caps the three would take 46.3 min, so the plan fits without an approval.
 
+**Actual after IGP-05** (from the invocation logs): 8,485 s counted (141.4 min): the 7,469 s above, IGP-05 752.1 s
+(12.5 min against its 23) and its debugging 263.7 s. Left in the round: 2,315 s (38.6 min) for IGP-06 (8 min) and
+IGP-03h (5 min, and 11 more for its optional parts: Hell 1 20x20 and four more 12x12 seeds, added in the IGP-05
+review), about 24 min in all; at their 25 % caps 32.5 min, so it fits without an approval. Order: IGP-06; IGP-03h, its
+optional parts only when at least 20 min are left at its dispatch; then IGP-07.
+
 ## 8. Evidence and sign-off
 
 Each developer's reply gives: the files created; the run plan's steps with their exits, node seconds and lock waits;
@@ -423,7 +429,7 @@ has pushed `improve-generating`. The plan author then receives the summary for p
 | IGP-02 | accepted (certificate holds, 0 violations / 862; no W yet) | 2026-11-15 00:59 | 02:02 (accepted 02:10) | 1,018.5 s (+ 110.5 s dev) | about 1,468 s | `improve-generating IGP-02` |
 | IGP-03 | accepted (R33 split; no W yet) | 2026-11-15 02:28 | 03:06 (accepted 03:20) | 949.6 s (+ 46.2 s dev) | 648.3 s | `improve-generating IGP-03` |
 | IGP-03h | optional; not started | | | | | |
-| IGP-04 | accepted (/1.9 refuted as a general factor) | 2026-11-15 03:21 | 05:35 (accepted 05:55) | 1,257 s | 5,636 s | `improve-generating IGP-04` |
-| IGP-05 | not started | | | | | |
+| IGP-04 | accepted (/1.9 refuted as a general factor) | 2026-11-15 03:21 | 05:35 (accepted 05:42) | 1,257 s | 5,636 s | `improve-generating IGP-04` |
+| IGP-05 | accepted (Hell 1 windows on 215-484 cells; Hell 3 none observed) | 2026-11-15 05:45 | 06:31 (accepted 06:38) | 752 s (+ 264 s dev) | 837 s | `improve-generating IGP-05` |
 | IGP-06 | not started | | | | | |
 | IGP-07 | not started | | | | | |

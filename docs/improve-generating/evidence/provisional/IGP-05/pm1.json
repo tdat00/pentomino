@@ -1,0 +1,6219 @@
+{
+  "meta": {
+    "format": "ig-proto-pm1",
+    "version": 1,
+    "task": "IGP-05",
+    "label": "provisional",
+    "labelText": "provisional (pre-freeze)",
+    "createdAt": "2026-11-14T23:30:26.273Z",
+    "source": {
+      "label": "rating-v3 runtime cd5d17f (worktree 0e1283e)",
+      "sourceDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "equalsMp12b1Source": true,
+      "firewall": "c617f9eab21d8cd3fb556784ba851972be68e3859002122dea9bfdac222d672e"
+    },
+    "harness": {
+      "harnessHash": "ac7b1b0d51e5e9881010578f2e115a6447f5fe8bab9a38064bd386d0fce10f8a",
+      "files": {
+        "tools/ig-proto/lib/budget.mjs": "fd931d9f44d1fc5bc481db2e2d2c99ed46790150ade8c62e836b729e11410801",
+        "tools/ig-proto/lib/calls.mjs": "e0173ff8975335cb0f2103fd0b8f00cd1793f0de633d3b87f51c587d7d49d20c",
+        "tools/ig-proto/lib/engine.mjs": "316f4d2c3feadd18c971bfaa7baab6c5f8c6991d1f2140e3e30300b1b3a07540",
+        "tools/ig-proto/lib/lane-worker.mjs": "7a705736a276ee17e07095526ae467d4ac62a26ccb5becc0e53cfcebcd158e24",
+        "tools/ig-proto/lib/lanes.mjs": "628e3f217541435c9065599ba5053231ea217fdd3bfeb9aaad76ab8eb936b235",
+        "tools/ig-proto/lib/paths.mjs": "6db4a7adeedf3500390cb84875667f44478dd8e486d6d55919149c2af6bede62",
+        "tools/ig-proto/lib/records.mjs": "c9f3b021096bb57a93445c8156e4cbf77654ee32128343359690508a42d5bf2c",
+        "tools/ig-proto/lib/sets.mjs": "66fecf6372dc30badd94f018b171e4bc12555426e446768dc4f6c29c443d7a2d",
+        "tools/ig-proto/lib/tree.mjs": "ff7ea5d67ad0dd40f1dc105e1584181b59078d4ca6392b9eb7b3078293068f83",
+        "tools/ig-proto/arm.mjs": "5fe5854f1fb183d6827b7c18f55bd5fc16de6206db4d73c7e1b7543f0aec2165",
+        "tools/ig-proto/boards.mjs": "656194b446de6345c5c7ce4b5d136cab4e0acd09d61e062bd3eb0640a986f53b",
+        "tools/ig-proto/budgets.mjs": "39a33e74aebe4b33d419ef9a77abd47d5fe2a37cf6c89188fde60e333b4e7b4d",
+        "tools/ig-proto/compare-r2.mjs": "7e468994174d7fb581763e329e7f36981eadf8dcbc6474aa399c54f81ae58262",
+        "tools/ig-proto/compare.mjs": "243862cbd3f5997a7d3ccb0e43f4fb8a318c3349fa8b640679d8811d6dea123c",
+        "tools/ig-proto/firewall.mjs": "cd60483c07622c5137c4b297e6bd1fa8334adedadcf167f6d5ead61cc735ff83",
+        "tools/ig-proto/fit-prior.mjs": "941b6ac19dab01dea1851b3aa34d952c9adc52e72e249be00185729a9cd6e88a",
+        "tools/ig-proto/identity.mjs": "8b9123dcfc0f31ba4d2c06b134544a6e219358d009ae5f935b49d9ac6febe1fc",
+        "tools/ig-proto/pm1.mjs": "eb5448500ed81ab97ebb92aad040bbaec781d3224587ce60ec9248a59e644177",
+        "tools/ig-proto/pm4.mjs": "6b3a58e53ea3b56fe8c151dc97948aef0a73abe685ec094cc7ecb52b764f9b53",
+        "tools/ig-proto/run-task.ps1": "5d5bc46ee095e16315522f8bc6a2a47c5d8cc891ec151236d31e2652708a86ac",
+        "tools/ig-proto/self-test.mjs": "94f8d06aae3d62b72820bcc679089f57bcf5411816eab2429612d06c903bf7ce",
+        "tools/ig-proto/verify.mjs": "1d013ed389fd0f65922c3bd6f7559a8f5a431dbcd8a7fc3c27fccef7d07431eb",
+        "tools/ig-proto/data/boards-v1.json": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+        "tools/ig-proto/data/prior-v1.json": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133"
+      }
+    },
+    "trees": {
+      "instr": {
+        "treeId": "8ac35127a112a1c5aaddfc28b4c96fdd910ac0fb49e19783847a3562dfc7f1c2",
+        "copyDigest": "e7def5e77f8026ce8c252de291aa4d0fbacdfb2000675792a4d0e746cce8dc5d",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "instr",
+          "diagnosticOffers": true
+        }
+      }
+    },
+    "machine": {
+      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "platform": "win32 10.0.26300 x64"
+    },
+    "invocations": {
+      "count": 6,
+      "nodeSeconds": 482.065,
+      "countedSeconds": 752.065,
+      "lockWaitSeconds": 1105.246
+    },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\IGP-05.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  },
+  "run": "main",
+  "status": {
+    "windows": {
+      "ran": true,
+      "done": true,
+      "cases": [
+        "15x15b10-hell-1",
+        "16x16-hell-1",
+        "15x20-hell-1",
+        "18x18-hell-1",
+        "18x20-hell-1",
+        "20x20-hell-1",
+        "20x21-hell-1",
+        "32x15-hell-1",
+        "22x22-hell-1",
+        "15x20-hell-2",
+        "18x18-hell-2",
+        "18x20-hell-2",
+        "20x20-hell-2",
+        "20x21-hell-2",
+        "32x15-hell-2",
+        "22x22-hell-2",
+        "24x24-hell-2",
+        "26x26-hell-2",
+        "32x15-hell-3",
+        "22x22-hell-3",
+        "24x24-hell-3",
+        "26x26-hell-3"
+      ],
+      "sets": 2,
+      "orders": 2,
+      "families": {
+        "planned": 88,
+        "recorded": 88,
+        "inFlight": 0
+      },
+      "calls": null
+    },
+    "scan": {
+      "ran": true,
+      "done": true,
+      "cases": [
+        "14x14-nightmare",
+        "12x12-nightmare",
+        "26x26-nightmare"
+      ],
+      "sets": 2,
+      "orders": 2,
+      "families": {
+        "planned": 12,
+        "recorded": 12,
+        "inFlight": 0
+      },
+      "calls": null
+    },
+    "failed-sets": {
+      "ran": true,
+      "done": true,
+      "cases": [
+        "14x14-hell-1",
+        "24x24-hell-1"
+      ],
+      "sets": 4,
+      "orders": 2,
+      "families": {
+        "planned": 16,
+        "recorded": 16,
+        "inFlight": 0
+      },
+      "calls": {
+        "planned": 8,
+        "recorded": 8
+      }
+    }
+  },
+  "part1": {
+    "15x15b10-hell-1": {
+      "level": "hell-1",
+      "band": {
+        "min": 77,
+        "max": 112
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/15x15b10-hell-1/0",
+          "attempt": 0,
+          "K": 34,
+          "area": 215,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/15x15b10-hell-1/1",
+          "attempt": 0,
+          "K": 34,
+          "area": 215,
+          "startCount": 3,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 3,
+        "families": 2
+      },
+      "eligible": {
+        "ratings": 3,
+        "families": 2
+      },
+      "maxScore": 179,
+      "gapToBand": -102,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 34,
+          "startCount": 3,
+          "lastComplete": 12,
+          "cappedAt": 11,
+          "offsetLastComplete": 9
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 34,
+          "startCount": 3,
+          "lastComplete": 15,
+          "cappedAt": 14,
+          "offsetLastComplete": 12
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 34,
+          "startCount": 3,
+          "lastComplete": 13,
+          "cappedAt": 12,
+          "offsetLastComplete": 10
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 34,
+          "startCount": 3,
+          "lastComplete": 2,
+          "cappedAt": 1,
+          "offsetLastComplete": -1
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 40,
+      "capped": 13,
+      "msPerRating": 1227.382,
+      "msPerInBand": 16365.091,
+      "byOffset": {
+        "0": {
+          "ratings": 1,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 1,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 1,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 1,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 1,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 5,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 30,
+          "inBand": 3,
+          "eligible": 3
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 12,
+          "offset": 9,
+          "score": 79,
+          "eligible": true,
+          "mainWork": 287152753
+        },
+        {
+          "count": 16,
+          "offset": 13,
+          "score": 79,
+          "eligible": true,
+          "mainWork": 148649633
+        },
+        {
+          "count": 15,
+          "offset": 12,
+          "score": 79,
+          "eligible": true,
+          "mainWork": 152044660
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 3,
+            "of": 3,
+            "share": 1
+          },
+          "eligible": {
+            "n": 3,
+            "of": 3,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 1,
+            "of": 3,
+            "share": 0.333333
+          },
+          "eligible": {
+            "n": 1,
+            "of": 3,
+            "share": 0.333333
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 0,
+            "of": 3,
+            "share": 0
+          },
+          "eligible": {
+            "n": 0,
+            "of": 3,
+            "share": 0
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 3 (3 eligible) in 2 of 4 families"
+    },
+    "16x16-hell-1": {
+      "level": "hell-1",
+      "band": {
+        "min": 77,
+        "max": 112
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/16x16-hell-1/0",
+          "attempt": 0,
+          "K": 34,
+          "area": 256,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/16x16-hell-1/1",
+          "attempt": 0,
+          "K": 37,
+          "area": 256,
+          "startCount": 4,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 3,
+        "families": 2
+      },
+      "eligible": {
+        "ratings": 3,
+        "families": 2
+      },
+      "maxScore": 106,
+      "gapToBand": -29,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 34,
+          "startCount": 3,
+          "lastComplete": 17,
+          "cappedAt": 16,
+          "offsetLastComplete": 14
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 34,
+          "startCount": 3,
+          "lastComplete": 13,
+          "cappedAt": 12,
+          "offsetLastComplete": 10
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 37,
+          "startCount": 4,
+          "lastComplete": 13,
+          "cappedAt": 12,
+          "offsetLastComplete": 9
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 37,
+          "startCount": 4,
+          "lastComplete": 13,
+          "cappedAt": 12,
+          "offsetLastComplete": 9
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 45,
+      "capped": 17,
+      "msPerRating": 1075.896,
+      "msPerInBand": 16138.446,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 41,
+          "inBand": 3,
+          "eligible": 3
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 13,
+          "offset": 9,
+          "score": 99,
+          "eligible": true,
+          "mainWork": 760081807
+        },
+        {
+          "count": 14,
+          "offset": 10,
+          "score": 92,
+          "eligible": true,
+          "mainWork": 218265264
+        },
+        {
+          "count": 13,
+          "offset": 9,
+          "score": 106,
+          "eligible": true,
+          "mainWork": 760049733
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 3,
+            "of": 3,
+            "share": 1
+          },
+          "eligible": {
+            "n": 3,
+            "of": 3,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 3,
+            "of": 3,
+            "share": 1
+          },
+          "eligible": {
+            "n": 3,
+            "of": 3,
+            "share": 1
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 2,
+            "of": 3,
+            "share": 0.666667
+          },
+          "eligible": {
+            "n": 2,
+            "of": 3,
+            "share": 0.666667
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 3 (3 eligible) in 2 of 4 families"
+    },
+    "15x20-hell-1": {
+      "level": "hell-1",
+      "band": {
+        "min": 77,
+        "max": 112
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/15x20-hell-1/0",
+          "attempt": 0,
+          "K": 40,
+          "area": 300,
+          "startCount": 4,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/15x20-hell-1/1",
+          "attempt": 0,
+          "K": 39,
+          "area": 300,
+          "startCount": 4,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 4,
+        "families": 2
+      },
+      "eligible": {
+        "ratings": 4,
+        "families": 2
+      },
+      "maxScore": 115,
+      "gapToBand": -38,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 40,
+          "startCount": 4,
+          "lastComplete": 16,
+          "cappedAt": 15,
+          "offsetLastComplete": 12
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 40,
+          "startCount": 4,
+          "lastComplete": 19,
+          "cappedAt": 18,
+          "offsetLastComplete": 15
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 39,
+          "startCount": 4,
+          "lastComplete": 16,
+          "cappedAt": 15,
+          "offsetLastComplete": 12
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 39,
+          "startCount": 4,
+          "lastComplete": 16,
+          "cappedAt": 15,
+          "offsetLastComplete": 12
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 42,
+      "capped": 11,
+      "msPerRating": 1064.103,
+      "msPerInBand": 11173.077,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 38,
+          "inBand": 4,
+          "eligible": 4
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 16,
+          "offset": 12,
+          "score": 94,
+          "eligible": true,
+          "mainWork": 760045104
+        },
+        {
+          "count": 17,
+          "offset": 13,
+          "score": 82,
+          "eligible": true,
+          "mainWork": 760079139
+        },
+        {
+          "count": 19,
+          "offset": 15,
+          "score": 91,
+          "eligible": true,
+          "mainWork": 109561801
+        },
+        {
+          "count": 18,
+          "offset": 14,
+          "score": 109,
+          "eligible": true,
+          "mainWork": 313386081
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 4,
+            "of": 4,
+            "share": 1
+          },
+          "eligible": {
+            "n": 4,
+            "of": 4,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 3,
+            "of": 4,
+            "share": 0.75
+          },
+          "eligible": {
+            "n": 3,
+            "of": 4,
+            "share": 0.75
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 2,
+            "of": 4,
+            "share": 0.5
+          },
+          "eligible": {
+            "n": 2,
+            "of": 4,
+            "share": 0.5
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 4 (4 eligible) in 2 of 4 families"
+    },
+    "18x18-hell-1": {
+      "level": "hell-1",
+      "band": {
+        "min": 77,
+        "max": 112
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/18x18-hell-1/0",
+          "attempt": 0,
+          "K": 39,
+          "area": 324,
+          "startCount": 4,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/18x18-hell-1/1",
+          "attempt": 0,
+          "K": 36,
+          "area": 324,
+          "startCount": 4,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 6,
+        "families": 2
+      },
+      "eligible": {
+        "ratings": 6,
+        "families": 2
+      },
+      "maxScore": 107,
+      "gapToBand": -30,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 39,
+          "startCount": 4,
+          "lastComplete": 12,
+          "cappedAt": 11,
+          "offsetLastComplete": 8
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 39,
+          "startCount": 4,
+          "lastComplete": 17,
+          "cappedAt": 16,
+          "offsetLastComplete": 13
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 36,
+          "startCount": 4,
+          "lastComplete": 12,
+          "cappedAt": 11,
+          "offsetLastComplete": 8
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 36,
+          "startCount": 4,
+          "lastComplete": 12,
+          "cappedAt": 11,
+          "offsetLastComplete": 8
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 45,
+      "capped": 13,
+      "msPerRating": 881.184,
+      "msPerInBand": 6608.876,
+      "byOffset": {
+        "0": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 39,
+          "inBand": 6,
+          "eligible": 6
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 13,
+          "offset": 9,
+          "score": 87,
+          "eligible": true,
+          "mainWork": 760078844
+        },
+        {
+          "count": 12,
+          "offset": 8,
+          "score": 87,
+          "eligible": true,
+          "mainWork": 760085870
+        },
+        {
+          "count": 14,
+          "offset": 10,
+          "score": 80,
+          "eligible": true,
+          "mainWork": 724371207
+        },
+        {
+          "count": 12,
+          "offset": 8,
+          "score": 107,
+          "eligible": true,
+          "mainWork": 159966038
+        },
+        {
+          "count": 13,
+          "offset": 9,
+          "score": 83,
+          "eligible": true,
+          "mainWork": 110281163
+        },
+        {
+          "count": 14,
+          "offset": 10,
+          "score": 78,
+          "eligible": true,
+          "mainWork": 87463172
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 5,
+            "of": 6,
+            "share": 0.833333
+          },
+          "eligible": {
+            "n": 5,
+            "of": 6,
+            "share": 0.833333
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 3,
+            "of": 6,
+            "share": 0.5
+          },
+          "eligible": {
+            "n": 3,
+            "of": 6,
+            "share": 0.5
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 3,
+            "of": 6,
+            "share": 0.5
+          },
+          "eligible": {
+            "n": 3,
+            "of": 6,
+            "share": 0.5
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 6 (6 eligible) in 2 of 4 families"
+    },
+    "18x20-hell-1": {
+      "level": "hell-1",
+      "band": {
+        "min": 77,
+        "max": 112
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/18x20-hell-1/0",
+          "attempt": 0,
+          "K": 37,
+          "area": 360,
+          "startCount": 4,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/18x20-hell-1/1",
+          "attempt": 0,
+          "K": 39,
+          "area": 360,
+          "startCount": 4,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 6,
+        "families": 3
+      },
+      "eligible": {
+        "ratings": 6,
+        "families": 3
+      },
+      "maxScore": 95,
+      "gapToBand": -18,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 37,
+          "startCount": 4,
+          "lastComplete": 11,
+          "cappedAt": 10,
+          "offsetLastComplete": 7
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 37,
+          "startCount": 4,
+          "lastComplete": 11,
+          "cappedAt": 10,
+          "offsetLastComplete": 7
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 39,
+          "startCount": 4,
+          "lastComplete": 15,
+          "cappedAt": 14,
+          "offsetLastComplete": 11
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 39,
+          "startCount": 4,
+          "lastComplete": 13,
+          "cappedAt": 12,
+          "offsetLastComplete": 9
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 45,
+      "capped": 13,
+      "msPerRating": 802.082,
+      "msPerInBand": 6015.612,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 41,
+          "inBand": 6,
+          "eligible": 6
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 11,
+          "offset": 7,
+          "score": 95,
+          "eligible": true,
+          "mainWork": 239497897
+        },
+        {
+          "count": 11,
+          "offset": 7,
+          "score": 84,
+          "eligible": true,
+          "mainWork": 372407756
+        },
+        {
+          "count": 12,
+          "offset": 8,
+          "score": 78,
+          "eligible": true,
+          "mainWork": 173356554
+        },
+        {
+          "count": 15,
+          "offset": 11,
+          "score": 78,
+          "eligible": true,
+          "mainWork": 39151009
+        },
+        {
+          "count": 13,
+          "offset": 9,
+          "score": 87,
+          "eligible": true,
+          "mainWork": 202192139
+        },
+        {
+          "count": 14,
+          "offset": 10,
+          "score": 78,
+          "eligible": true,
+          "mainWork": 39433226
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 4,
+            "of": 6,
+            "share": 0.666667
+          },
+          "eligible": {
+            "n": 4,
+            "of": 6,
+            "share": 0.666667
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 3,
+            "of": 6,
+            "share": 0.5
+          },
+          "eligible": {
+            "n": 3,
+            "of": 6,
+            "share": 0.5
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 0,
+            "of": 6,
+            "share": 0
+          },
+          "eligible": {
+            "n": 0,
+            "of": 6,
+            "share": 0
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 6 (6 eligible) in 3 of 4 families"
+    },
+    "20x20-hell-1": {
+      "level": "hell-1",
+      "band": {
+        "min": 77,
+        "max": 112
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/20x20-hell-1/0",
+          "attempt": 0,
+          "K": 40,
+          "area": 400,
+          "startCount": 4,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/20x20-hell-1/1",
+          "attempt": 0,
+          "K": 41,
+          "area": 400,
+          "startCount": 4,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 11,
+        "families": 4
+      },
+      "eligible": {
+        "ratings": 11,
+        "families": 4
+      },
+      "maxScore": 108,
+      "gapToBand": -31,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 40,
+          "startCount": 4,
+          "lastComplete": 11,
+          "cappedAt": 10,
+          "offsetLastComplete": 7
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 40,
+          "startCount": 4,
+          "lastComplete": 14,
+          "cappedAt": 13,
+          "offsetLastComplete": 10
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 41,
+          "startCount": 4,
+          "lastComplete": 17,
+          "cappedAt": 16,
+          "offsetLastComplete": 13
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 41,
+          "startCount": 4,
+          "lastComplete": 16,
+          "cappedAt": 15,
+          "offsetLastComplete": 12
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 44,
+      "capped": 12,
+      "msPerRating": 903.328,
+      "msPerInBand": 3613.313,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 42,
+          "inBand": 11,
+          "eligible": 11
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 12,
+          "offset": 8,
+          "score": 99,
+          "eligible": true,
+          "mainWork": 379418137
+        },
+        {
+          "count": 11,
+          "offset": 7,
+          "score": 108,
+          "eligible": true,
+          "mainWork": 576988839
+        },
+        {
+          "count": 13,
+          "offset": 9,
+          "score": 99,
+          "eligible": true,
+          "mainWork": 376317916
+        },
+        {
+          "count": 14,
+          "offset": 10,
+          "score": 91,
+          "eligible": true,
+          "mainWork": 44981357
+        },
+        {
+          "count": 15,
+          "offset": 11,
+          "score": 77,
+          "eligible": true,
+          "mainWork": 109001384
+        },
+        {
+          "count": 14,
+          "offset": 10,
+          "score": 94,
+          "eligible": true,
+          "mainWork": 457479178
+        },
+        {
+          "count": 15,
+          "offset": 11,
+          "score": 81,
+          "eligible": true,
+          "mainWork": 94172239
+        },
+        {
+          "count": 17,
+          "offset": 13,
+          "score": 97,
+          "eligible": true,
+          "mainWork": 249501123
+        },
+        {
+          "count": 18,
+          "offset": 14,
+          "score": 83,
+          "eligible": true,
+          "mainWork": 71117220
+        },
+        {
+          "count": 16,
+          "offset": 12,
+          "score": 100,
+          "eligible": true,
+          "mainWork": 209187791
+        },
+        {
+          "count": 18,
+          "offset": 14,
+          "score": 78,
+          "eligible": true,
+          "mainWork": 91889933
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 7,
+            "of": 11,
+            "share": 0.636364
+          },
+          "eligible": {
+            "n": 7,
+            "of": 11,
+            "share": 0.636364
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 6,
+            "of": 11,
+            "share": 0.545455
+          },
+          "eligible": {
+            "n": 6,
+            "of": 11,
+            "share": 0.545455
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 2,
+            "of": 11,
+            "share": 0.181818
+          },
+          "eligible": {
+            "n": 2,
+            "of": 11,
+            "share": 0.181818
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 11 (11 eligible) in 4 of 4 families"
+    },
+    "20x21-hell-1": {
+      "level": "hell-1",
+      "band": {
+        "min": 77,
+        "max": 112
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/20x21-hell-1/0",
+          "attempt": 0,
+          "K": 40,
+          "area": 420,
+          "startCount": 4,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/20x21-hell-1/1",
+          "attempt": 0,
+          "K": 41,
+          "area": 420,
+          "startCount": 4,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 3,
+        "families": 1
+      },
+      "eligible": {
+        "ratings": 3,
+        "families": 1
+      },
+      "maxScore": 88,
+      "gapToBand": -11,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 40,
+          "startCount": 4,
+          "lastComplete": 14,
+          "cappedAt": 13,
+          "offsetLastComplete": 10
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 40,
+          "startCount": 4,
+          "lastComplete": 17,
+          "cappedAt": 16,
+          "offsetLastComplete": 13
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 41,
+          "startCount": 4,
+          "lastComplete": 15,
+          "cappedAt": 14,
+          "offsetLastComplete": 11
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 41,
+          "startCount": 4,
+          "lastComplete": 15,
+          "cappedAt": 14,
+          "offsetLastComplete": 11
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 43,
+      "capped": 11,
+      "msPerRating": 658.414,
+      "msPerInBand": 9437.268,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 41,
+          "inBand": 3,
+          "eligible": 3
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 17,
+          "offset": 13,
+          "score": 86,
+          "eligible": true,
+          "mainWork": 67815611
+        },
+        {
+          "count": 15,
+          "offset": 11,
+          "score": 88,
+          "eligible": true,
+          "mainWork": 607627635
+        },
+        {
+          "count": 16,
+          "offset": 12,
+          "score": 88,
+          "eligible": true,
+          "mainWork": 604126355
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 2,
+            "of": 3,
+            "share": 0.666667
+          },
+          "eligible": {
+            "n": 2,
+            "of": 3,
+            "share": 0.666667
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 2,
+            "of": 3,
+            "share": 0.666667
+          },
+          "eligible": {
+            "n": 2,
+            "of": 3,
+            "share": 0.666667
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 2,
+            "of": 3,
+            "share": 0.666667
+          },
+          "eligible": {
+            "n": 2,
+            "of": 3,
+            "share": 0.666667
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 3 (3 eligible) in 1 of 4 families"
+    },
+    "32x15-hell-1": {
+      "level": "hell-1",
+      "band": {
+        "min": 77,
+        "max": 112
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/32x15-hell-1/0",
+          "attempt": 0,
+          "K": 39,
+          "area": 480,
+          "startCount": 4,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/32x15-hell-1/1",
+          "attempt": 0,
+          "K": 42,
+          "area": 480,
+          "startCount": 4,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 6,
+        "families": 3
+      },
+      "eligible": {
+        "ratings": 6,
+        "families": 3
+      },
+      "maxScore": 102,
+      "gapToBand": -25,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 39,
+          "startCount": 4,
+          "lastComplete": 13,
+          "cappedAt": 12,
+          "offsetLastComplete": 9
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 39,
+          "startCount": 4,
+          "lastComplete": 11,
+          "cappedAt": 10,
+          "offsetLastComplete": 7
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 42,
+          "startCount": 4,
+          "lastComplete": 11,
+          "cappedAt": 10,
+          "offsetLastComplete": 7
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 42,
+          "startCount": 4,
+          "lastComplete": 12,
+          "cappedAt": 11,
+          "offsetLastComplete": 8
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 43,
+      "capped": 9,
+      "msPerRating": 911.111,
+      "msPerInBand": 6529.628,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 41,
+          "inBand": 6,
+          "eligible": 6
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 11,
+          "offset": 7,
+          "score": 99,
+          "eligible": true,
+          "mainWork": 549287897
+        },
+        {
+          "count": 12,
+          "offset": 8,
+          "score": 99,
+          "eligible": true,
+          "mainWork": 547952309
+        },
+        {
+          "count": 13,
+          "offset": 9,
+          "score": 90,
+          "eligible": true,
+          "mainWork": 189329042
+        },
+        {
+          "count": 14,
+          "offset": 10,
+          "score": 90,
+          "eligible": true,
+          "mainWork": 188493620
+        },
+        {
+          "count": 11,
+          "offset": 7,
+          "score": 102,
+          "eligible": true,
+          "mainWork": 238007201
+        },
+        {
+          "count": 12,
+          "offset": 8,
+          "score": 89,
+          "eligible": true,
+          "mainWork": 542975290
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 6,
+            "of": 6,
+            "share": 1
+          },
+          "eligible": {
+            "n": 6,
+            "of": 6,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 4,
+            "of": 6,
+            "share": 0.666667
+          },
+          "eligible": {
+            "n": 4,
+            "of": 6,
+            "share": 0.666667
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 3,
+            "of": 6,
+            "share": 0.5
+          },
+          "eligible": {
+            "n": 3,
+            "of": 6,
+            "share": 0.5
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 6 (6 eligible) in 3 of 4 families"
+    },
+    "22x22-hell-1": {
+      "level": "hell-1",
+      "band": {
+        "min": 77,
+        "max": 112
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/22x22-hell-1/0",
+          "attempt": 0,
+          "K": 40,
+          "area": 484,
+          "startCount": 4,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/22x22-hell-1/1",
+          "attempt": 0,
+          "K": 40,
+          "area": 484,
+          "startCount": 4,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 5,
+        "families": 3
+      },
+      "eligible": {
+        "ratings": 5,
+        "families": 3
+      },
+      "maxScore": 92,
+      "gapToBand": -15,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 40,
+          "startCount": 4,
+          "lastComplete": 10,
+          "cappedAt": 9,
+          "offsetLastComplete": 6
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 40,
+          "startCount": 4,
+          "lastComplete": 13,
+          "cappedAt": 12,
+          "offsetLastComplete": 9
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 40,
+          "startCount": 4,
+          "lastComplete": 12,
+          "cappedAt": 11,
+          "offsetLastComplete": 8
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 40,
+          "startCount": 4,
+          "lastComplete": 11,
+          "cappedAt": 10,
+          "offsetLastComplete": 7
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 42,
+      "capped": 9,
+      "msPerRating": 650.76,
+      "msPerInBand": 5466.383,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 4,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 38,
+          "inBand": 5,
+          "eligible": 5
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 10,
+          "offset": 6,
+          "score": 92,
+          "eligible": true,
+          "mainWork": 344309677
+        },
+        {
+          "count": 11,
+          "offset": 7,
+          "score": 92,
+          "eligible": true,
+          "mainWork": 276977700
+        },
+        {
+          "count": 14,
+          "offset": 10,
+          "score": 91,
+          "eligible": true,
+          "mainWork": 515177112
+        },
+        {
+          "count": 13,
+          "offset": 9,
+          "score": 91,
+          "eligible": true,
+          "mainWork": 515626185
+        },
+        {
+          "count": 11,
+          "offset": 7,
+          "score": 83,
+          "eligible": true,
+          "mainWork": 213520531
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 5,
+            "of": 5,
+            "share": 1
+          },
+          "eligible": {
+            "n": 5,
+            "of": 5,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 5,
+            "of": 5,
+            "share": 1
+          },
+          "eligible": {
+            "n": 5,
+            "of": 5,
+            "share": 1
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 2,
+            "of": 5,
+            "share": 0.4
+          },
+          "eligible": {
+            "n": 2,
+            "of": 5,
+            "share": 0.4
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 5 (5 eligible) in 3 of 4 families"
+    },
+    "15x20-hell-2": {
+      "level": "hell-2",
+      "band": {
+        "min": 112,
+        "max": 162
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/15x20-hell-2/0",
+          "attempt": 0,
+          "K": 52,
+          "area": 300,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/15x20-hell-2/1",
+          "attempt": 0,
+          "K": 49,
+          "area": 300,
+          "startCount": 3,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 0,
+        "families": 0
+      },
+      "eligible": {
+        "ratings": 0,
+        "families": 0
+      },
+      "maxScore": 103,
+      "gapToBand": 9,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 52,
+          "startCount": 3,
+          "lastComplete": 26,
+          "cappedAt": 25,
+          "offsetLastComplete": 23
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 52,
+          "startCount": 3,
+          "lastComplete": 27,
+          "cappedAt": 26,
+          "offsetLastComplete": 24
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 49,
+          "startCount": 3,
+          "lastComplete": 24,
+          "cappedAt": 23,
+          "offsetLastComplete": 21
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 49,
+          "startCount": 3,
+          "lastComplete": 23,
+          "cappedAt": 22,
+          "offsetLastComplete": 20
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 44,
+      "capped": 12,
+      "msPerRating": 963.086,
+      "msPerInBand": null,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 44,
+          "inBand": 0,
+          "eligible": 0
+        }
+      },
+      "inBandRatings": [],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        }
+      },
+      "verdict": "none observed in 4 families"
+    },
+    "18x18-hell-2": {
+      "level": "hell-2",
+      "band": {
+        "min": 112,
+        "max": 162
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/18x18-hell-2/0",
+          "attempt": 0,
+          "K": 52,
+          "area": 324,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/18x18-hell-2/1",
+          "attempt": 0,
+          "K": 54,
+          "area": 324,
+          "startCount": 3,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 0,
+        "families": 0
+      },
+      "eligible": {
+        "ratings": 0,
+        "families": 0
+      },
+      "maxScore": 106,
+      "gapToBand": 6,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 52,
+          "startCount": 3,
+          "lastComplete": 28,
+          "cappedAt": 27,
+          "offsetLastComplete": 25
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 52,
+          "startCount": 3,
+          "lastComplete": 24,
+          "cappedAt": 23,
+          "offsetLastComplete": 21
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 54,
+          "startCount": 3,
+          "lastComplete": 25,
+          "cappedAt": 24,
+          "offsetLastComplete": 22
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 54,
+          "startCount": 3,
+          "lastComplete": 27,
+          "cappedAt": 26,
+          "offsetLastComplete": 24
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 43,
+      "capped": 13,
+      "msPerRating": 926.618,
+      "msPerInBand": null,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 43,
+          "inBand": 0,
+          "eligible": 0
+        }
+      },
+      "inBandRatings": [],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        }
+      },
+      "verdict": "none observed in 4 families"
+    },
+    "18x20-hell-2": {
+      "level": "hell-2",
+      "band": {
+        "min": 112,
+        "max": 162
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/18x20-hell-2/0",
+          "attempt": 0,
+          "K": 55,
+          "area": 360,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/18x20-hell-2/1",
+          "attempt": 0,
+          "K": 52,
+          "area": 360,
+          "startCount": 3,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 1,
+        "families": 1
+      },
+      "eligible": {
+        "ratings": 1,
+        "families": 1
+      },
+      "maxScore": 115,
+      "gapToBand": -3,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 55,
+          "startCount": 3,
+          "lastComplete": 27,
+          "cappedAt": 26,
+          "offsetLastComplete": 24
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 55,
+          "startCount": 3,
+          "lastComplete": 26,
+          "cappedAt": 25,
+          "offsetLastComplete": 23
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 52,
+          "startCount": 3,
+          "lastComplete": 26,
+          "cappedAt": 25,
+          "offsetLastComplete": 23
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 52,
+          "startCount": 3,
+          "lastComplete": 29,
+          "cappedAt": 28,
+          "offsetLastComplete": 26
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 42,
+      "capped": 10,
+      "msPerRating": 979.171,
+      "msPerInBand": 41125.196,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 42,
+          "inBand": 1,
+          "eligible": 1
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 27,
+          "offset": 24,
+          "score": 115,
+          "eligible": true,
+          "mainWork": 760055415
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          },
+          "eligible": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          },
+          "eligible": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          },
+          "eligible": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 1 (1 eligible) in 1 of 4 families"
+    },
+    "20x20-hell-2": {
+      "level": "hell-2",
+      "band": {
+        "min": 112,
+        "max": 162
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/20x20-hell-2/0",
+          "attempt": 0,
+          "K": 55,
+          "area": 400,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/20x20-hell-2/1",
+          "attempt": 0,
+          "K": 54,
+          "area": 400,
+          "startCount": 3,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 0,
+        "families": 0
+      },
+      "eligible": {
+        "ratings": 0,
+        "families": 0
+      },
+      "maxScore": 110,
+      "gapToBand": 2,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 55,
+          "startCount": 3,
+          "lastComplete": 26,
+          "cappedAt": 25,
+          "offsetLastComplete": 23
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 55,
+          "startCount": 3,
+          "lastComplete": 26,
+          "cappedAt": 25,
+          "offsetLastComplete": 23
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 54,
+          "startCount": 3,
+          "lastComplete": 33,
+          "cappedAt": 32,
+          "offsetLastComplete": 30
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 54,
+          "startCount": 3,
+          "lastComplete": 28,
+          "cappedAt": 27,
+          "offsetLastComplete": 25
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 41,
+      "capped": 10,
+      "msPerRating": 774.802,
+      "msPerInBand": null,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 41,
+          "inBand": 0,
+          "eligible": 0
+        }
+      },
+      "inBandRatings": [],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        }
+      },
+      "verdict": "none observed in 4 families"
+    },
+    "20x21-hell-2": {
+      "level": "hell-2",
+      "band": {
+        "min": 112,
+        "max": 162
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/20x21-hell-2/0",
+          "attempt": 0,
+          "K": 58,
+          "area": 420,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/20x21-hell-2/1",
+          "attempt": 0,
+          "K": 54,
+          "area": 420,
+          "startCount": 3,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 1,
+        "families": 1
+      },
+      "eligible": {
+        "ratings": 1,
+        "families": 1
+      },
+      "maxScore": 116,
+      "gapToBand": -4,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 58,
+          "startCount": 3,
+          "lastComplete": 32,
+          "cappedAt": 31,
+          "offsetLastComplete": 29
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 58,
+          "startCount": 3,
+          "lastComplete": 33,
+          "cappedAt": 32,
+          "offsetLastComplete": 30
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 54,
+          "startCount": 3,
+          "lastComplete": 22,
+          "cappedAt": 21,
+          "offsetLastComplete": 19
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 54,
+          "startCount": 3,
+          "lastComplete": 28,
+          "cappedAt": 27,
+          "offsetLastComplete": 25
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 47,
+      "capped": 15,
+      "msPerRating": 1134.819,
+      "msPerInBand": 53336.483,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 1,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 46,
+          "inBand": 1,
+          "eligible": 1
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 22,
+          "offset": 19,
+          "score": 116,
+          "eligible": true,
+          "mainWork": 344592213
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          },
+          "eligible": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          },
+          "eligible": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 0,
+            "of": 1,
+            "share": 0
+          },
+          "eligible": {
+            "n": 0,
+            "of": 1,
+            "share": 0
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 1 (1 eligible) in 1 of 4 families"
+    },
+    "32x15-hell-2": {
+      "level": "hell-2",
+      "band": {
+        "min": 112,
+        "max": 162
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/32x15-hell-2/0",
+          "attempt": 0,
+          "K": 61,
+          "area": 480,
+          "startCount": 4,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/32x15-hell-2/1",
+          "attempt": 0,
+          "K": 59,
+          "area": 480,
+          "startCount": 4,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 2,
+        "families": 1
+      },
+      "eligible": {
+        "ratings": 2,
+        "families": 1
+      },
+      "maxScore": 113,
+      "gapToBand": -1,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 61,
+          "startCount": 4,
+          "lastComplete": 32,
+          "cappedAt": 31,
+          "offsetLastComplete": 28
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 61,
+          "startCount": 4,
+          "lastComplete": 28,
+          "cappedAt": 27,
+          "offsetLastComplete": 24
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 59,
+          "startCount": 4,
+          "lastComplete": 29,
+          "cappedAt": 28,
+          "offsetLastComplete": 25
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 59,
+          "startCount": 4,
+          "lastComplete": 29,
+          "cappedAt": 28,
+          "offsetLastComplete": 25
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 45,
+      "capped": 11,
+      "msPerRating": 765.888,
+      "msPerInBand": 17232.477,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 1,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 44,
+          "inBand": 2,
+          "eligible": 2
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 33,
+          "offset": 29,
+          "score": 113,
+          "eligible": true,
+          "mainWork": 487107380
+        },
+        {
+          "count": 32,
+          "offset": 28,
+          "score": 113,
+          "eligible": true,
+          "mainWork": 488189526
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 2,
+            "of": 2,
+            "share": 1
+          },
+          "eligible": {
+            "n": 2,
+            "of": 2,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 2,
+            "of": 2,
+            "share": 1
+          },
+          "eligible": {
+            "n": 2,
+            "of": 2,
+            "share": 1
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 2,
+            "of": 2,
+            "share": 1
+          },
+          "eligible": {
+            "n": 2,
+            "of": 2,
+            "share": 1
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 2 (2 eligible) in 1 of 4 families"
+    },
+    "22x22-hell-2": {
+      "level": "hell-2",
+      "band": {
+        "min": 112,
+        "max": 162
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/22x22-hell-2/0",
+          "attempt": 0,
+          "K": 60,
+          "area": 484,
+          "startCount": 4,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/22x22-hell-2/1",
+          "attempt": 0,
+          "K": 57,
+          "area": 484,
+          "startCount": 3,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 1,
+        "families": 1
+      },
+      "eligible": {
+        "ratings": 1,
+        "families": 1
+      },
+      "maxScore": 112,
+      "gapToBand": 0,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 60,
+          "startCount": 4,
+          "lastComplete": 35,
+          "cappedAt": 34,
+          "offsetLastComplete": 31
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 60,
+          "startCount": 4,
+          "lastComplete": 32,
+          "cappedAt": 31,
+          "offsetLastComplete": 28
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 57,
+          "startCount": 3,
+          "lastComplete": 30,
+          "cappedAt": 29,
+          "offsetLastComplete": 27
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 57,
+          "startCount": 3,
+          "lastComplete": 30,
+          "cappedAt": 29,
+          "offsetLastComplete": 27
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 42,
+      "capped": 10,
+      "msPerRating": 652.049,
+      "msPerInBand": 27386.04,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 42,
+          "inBand": 1,
+          "eligible": 1
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 32,
+          "offset": 28,
+          "score": 112,
+          "eligible": true,
+          "mainWork": 385046915
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          },
+          "eligible": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          },
+          "eligible": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          },
+          "eligible": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 1 (1 eligible) in 1 of 4 families"
+    },
+    "24x24-hell-2": {
+      "level": "hell-2",
+      "band": {
+        "min": 112,
+        "max": 162
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/24x24-hell-2/0",
+          "attempt": 0,
+          "K": 59,
+          "area": 576,
+          "startCount": 4,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/24x24-hell-2/1",
+          "attempt": 0,
+          "K": 62,
+          "area": 576,
+          "startCount": 4,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 1,
+        "families": 1
+      },
+      "eligible": {
+        "ratings": 1,
+        "families": 1
+      },
+      "maxScore": 119,
+      "gapToBand": -7,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 59,
+          "startCount": 4,
+          "lastComplete": 30,
+          "cappedAt": 29,
+          "offsetLastComplete": 26
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 59,
+          "startCount": 4,
+          "lastComplete": 24,
+          "cappedAt": 23,
+          "offsetLastComplete": 20
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 62,
+          "startCount": 4,
+          "lastComplete": 27,
+          "cappedAt": 26,
+          "offsetLastComplete": 23
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 62,
+          "startCount": 4,
+          "lastComplete": 30,
+          "cappedAt": 29,
+          "offsetLastComplete": 26
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 48,
+      "capped": 16,
+      "msPerRating": 1055.87,
+      "msPerInBand": 50681.77,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 3,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 45,
+          "inBand": 1,
+          "eligible": 1
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 24,
+          "offset": 20,
+          "score": 119,
+          "eligible": true,
+          "mainWork": 677000681
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          },
+          "eligible": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          },
+          "eligible": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          },
+          "eligible": {
+            "n": 1,
+            "of": 1,
+            "share": 1
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 1 (1 eligible) in 1 of 4 families"
+    },
+    "26x26-hell-2": {
+      "level": "hell-2",
+      "band": {
+        "min": 112,
+        "max": 162
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/26x26-hell-2/0",
+          "attempt": 0,
+          "K": 58,
+          "area": 676,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/26x26-hell-2/1",
+          "attempt": 0,
+          "K": 62,
+          "area": 676,
+          "startCount": 4,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 2,
+        "families": 2
+      },
+      "eligible": {
+        "ratings": 2,
+        "families": 2
+      },
+      "maxScore": 118,
+      "gapToBand": -6,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 58,
+          "startCount": 3,
+          "lastComplete": 19,
+          "cappedAt": 18,
+          "offsetLastComplete": 16
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 58,
+          "startCount": 3,
+          "lastComplete": 23,
+          "cappedAt": 22,
+          "offsetLastComplete": 20
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 62,
+          "startCount": 4,
+          "lastComplete": 28,
+          "cappedAt": 27,
+          "offsetLastComplete": 24
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 62,
+          "startCount": 4,
+          "lastComplete": 20,
+          "cappedAt": 19,
+          "offsetLastComplete": 16
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 52,
+      "capped": 18,
+      "msPerRating": 1041.912,
+      "msPerInBand": 27089.721,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 4,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 48,
+          "inBand": 2,
+          "eligible": 2
+        }
+      },
+      "inBandRatings": [
+        {
+          "count": 19,
+          "offset": 16,
+          "score": 112,
+          "eligible": true,
+          "mainWork": 383446723
+        },
+        {
+          "count": 23,
+          "offset": 20,
+          "score": 118,
+          "eligible": true,
+          "mainWork": 693284088
+        }
+      ],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 2,
+            "of": 2,
+            "share": 1
+          },
+          "eligible": {
+            "n": 2,
+            "of": 2,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 2,
+            "of": 2,
+            "share": 1
+          },
+          "eligible": {
+            "n": 2,
+            "of": 2,
+            "share": 1
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 2,
+            "of": 2,
+            "share": 1
+          },
+          "eligible": {
+            "n": 2,
+            "of": 2,
+            "share": 1
+          }
+        }
+      },
+      "verdict": "in-band ratings observed: 2 (2 eligible) in 2 of 4 families"
+    },
+    "32x15-hell-3": {
+      "level": "hell-3",
+      "band": {
+        "min": 162,
+        "max": 235
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/32x15-hell-3/0",
+          "attempt": 1,
+          "K": 74,
+          "area": 480,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/32x15-hell-3/1",
+          "attempt": 3,
+          "K": 77,
+          "area": 480,
+          "startCount": 3,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 0,
+        "families": 0
+      },
+      "eligible": {
+        "ratings": 0,
+        "families": 0
+      },
+      "maxScore": 78,
+      "gapToBand": 84,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 74,
+          "startCount": 3,
+          "lastComplete": 38,
+          "cappedAt": 37,
+          "offsetLastComplete": 35
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 74,
+          "startCount": 3,
+          "lastComplete": 43,
+          "cappedAt": 42,
+          "offsetLastComplete": 40
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 77,
+          "startCount": 3,
+          "lastComplete": 45,
+          "cappedAt": 44,
+          "offsetLastComplete": 42
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 77,
+          "startCount": 3,
+          "lastComplete": 45,
+          "cappedAt": 44,
+          "offsetLastComplete": 42
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 51,
+      "capped": 18,
+      "msPerRating": 747.899,
+      "msPerInBand": null,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 51,
+          "inBand": 0,
+          "eligible": 0
+        }
+      },
+      "inBandRatings": [],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        }
+      },
+      "verdict": "none observed in 4 families"
+    },
+    "22x22-hell-3": {
+      "level": "hell-3",
+      "band": {
+        "min": 162,
+        "max": 235
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/22x22-hell-3/0",
+          "attempt": 0,
+          "K": 74,
+          "area": 484,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/22x22-hell-3/1",
+          "attempt": 0,
+          "K": 74,
+          "area": 484,
+          "startCount": 3,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 0,
+        "families": 0
+      },
+      "eligible": {
+        "ratings": 0,
+        "families": 0
+      },
+      "maxScore": 115,
+      "gapToBand": 47,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 74,
+          "startCount": 3,
+          "lastComplete": 45,
+          "cappedAt": 44,
+          "offsetLastComplete": 42
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 74,
+          "startCount": 3,
+          "lastComplete": 42,
+          "cappedAt": 41,
+          "offsetLastComplete": 39
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 74,
+          "startCount": 3,
+          "lastComplete": 45,
+          "cappedAt": 44,
+          "offsetLastComplete": 42
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 74,
+          "startCount": 3,
+          "lastComplete": 41,
+          "cappedAt": 40,
+          "offsetLastComplete": 38
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 47,
+      "capped": 15,
+      "msPerRating": 993.305,
+      "msPerInBand": null,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 47,
+          "inBand": 0,
+          "eligible": 0
+        }
+      },
+      "inBandRatings": [],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        }
+      },
+      "verdict": "none observed in 4 families"
+    },
+    "24x24-hell-3": {
+      "level": "hell-3",
+      "band": {
+        "min": 162,
+        "max": 235
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/24x24-hell-3/0",
+          "attempt": 0,
+          "K": 83,
+          "area": 576,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/24x24-hell-3/1",
+          "attempt": 0,
+          "K": 86,
+          "area": 576,
+          "startCount": 3,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 0,
+        "families": 0
+      },
+      "eligible": {
+        "ratings": 0,
+        "families": 0
+      },
+      "maxScore": 103,
+      "gapToBand": 59,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 83,
+          "startCount": 3,
+          "lastComplete": 49,
+          "cappedAt": 48,
+          "offsetLastComplete": 46
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 83,
+          "startCount": 3,
+          "lastComplete": 49,
+          "cappedAt": 48,
+          "offsetLastComplete": 46
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 86,
+          "startCount": 3,
+          "lastComplete": 51,
+          "cappedAt": 50,
+          "offsetLastComplete": 48
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 86,
+          "startCount": 3,
+          "lastComplete": 45,
+          "cappedAt": 44,
+          "offsetLastComplete": 42
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 51,
+      "capped": 18,
+      "msPerRating": 1068.3,
+      "msPerInBand": null,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 51,
+          "inBand": 0,
+          "eligible": 0
+        }
+      },
+      "inBandRatings": [],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        }
+      },
+      "verdict": "none observed in 4 families"
+    },
+    "26x26-hell-3": {
+      "level": "hell-3",
+      "band": {
+        "min": 162,
+        "max": 235
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/26x26-hell-3/0",
+          "attempt": 0,
+          "K": 87,
+          "area": 676,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/26x26-hell-3/1",
+          "attempt": 0,
+          "K": 80,
+          "area": 676,
+          "startCount": 3,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "boundary": 4
+      },
+      "inBand": {
+        "ratings": 0,
+        "families": 0
+      },
+      "eligible": {
+        "ratings": 0,
+        "families": 0
+      },
+      "maxScore": 94,
+      "gapToBand": 68,
+      "boundaries": [
+        {
+          "set": 0,
+          "order": 0,
+          "K": 87,
+          "startCount": 3,
+          "lastComplete": 54,
+          "cappedAt": 53,
+          "offsetLastComplete": 51
+        },
+        {
+          "set": 0,
+          "order": 1,
+          "K": 87,
+          "startCount": 3,
+          "lastComplete": 53,
+          "cappedAt": 52,
+          "offsetLastComplete": 50
+        },
+        {
+          "set": 1,
+          "order": 0,
+          "K": 80,
+          "startCount": 3,
+          "lastComplete": 48,
+          "cappedAt": 47,
+          "offsetLastComplete": 45
+        },
+        {
+          "set": 1,
+          "order": 1,
+          "K": 80,
+          "startCount": 3,
+          "lastComplete": 43,
+          "cappedAt": 42,
+          "offsetLastComplete": 40
+        }
+      ],
+      "cheapSideCapped": 0,
+      "ratings": 52,
+      "capped": 20,
+      "msPerRating": 956.074,
+      "msPerInBand": null,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 52,
+          "inBand": 0,
+          "eligible": 0
+        }
+      },
+      "inBandRatings": [],
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        }
+      },
+      "verdict": "none observed in 4 families"
+    }
+  },
+  "pooled": {
+    "hell-1": {
+      "cells": 9,
+      "families": 36,
+      "ratings": 389,
+      "inBand": 47,
+      "eligible": 47,
+      "byOffset": {
+        "0": {
+          "ratings": 3,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 5,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 1,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 9,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 13,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 7,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 351,
+          "inBand": 47,
+          "eligible": 47
+        }
+      },
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 39,
+            "of": 47,
+            "share": 0.829787
+          },
+          "eligible": {
+            "n": 39,
+            "of": 47,
+            "share": 0.829787
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 30,
+            "of": 47,
+            "share": 0.638298
+          },
+          "eligible": {
+            "n": 30,
+            "of": 47,
+            "share": 0.638298
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 16,
+            "of": 47,
+            "share": 0.340426
+          },
+          "eligible": {
+            "n": 16,
+            "of": 47,
+            "share": 0.340426
+          }
+        }
+      }
+    },
+    "hell-2": {
+      "cells": 9,
+      "families": 36,
+      "ratings": 404,
+      "inBand": 8,
+      "eligible": 8,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 9,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 395,
+          "inBand": 8,
+          "eligible": 8
+        }
+      },
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 8,
+            "of": 8,
+            "share": 1
+          },
+          "eligible": {
+            "n": 8,
+            "of": 8,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 8,
+            "of": 8,
+            "share": 1
+          },
+          "eligible": {
+            "n": 8,
+            "of": 8,
+            "share": 1
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 7,
+            "of": 8,
+            "share": 0.875
+          },
+          "eligible": {
+            "n": 7,
+            "of": 8,
+            "share": 0.875
+          }
+        }
+      }
+    },
+    "hell-3": {
+      "cells": 4,
+      "families": 16,
+      "ratings": 201,
+      "inBand": 0,
+      "eligible": 0,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 201,
+          "inBand": 0,
+          "eligible": 0
+        }
+      },
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          },
+          "eligible": {
+            "n": 0,
+            "of": 0,
+            "share": null
+          }
+        }
+      }
+    }
+  },
+  "part2": {
+    "14x14-nightmare": {
+      "level": "nightmare",
+      "band": {
+        "min": 53,
+        "max": 77
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/14x14-nightmare/0",
+          "attempt": 0,
+          "K": 21,
+          "area": 196,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/14x14-nightmare/1",
+          "attempt": 0,
+          "K": 24,
+          "area": 196,
+          "startCount": 3,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "three-capped": 4
+      },
+      "counts": {
+        "1": {
+          "n": 1,
+          "offset": [
+            -2
+          ],
+          "scoreMedian": null,
+          "scoreMin": null,
+          "scoreMax": null,
+          "cappedShare": 1,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": null,
+          "countTail": null
+        },
+        "2": {
+          "n": 2,
+          "offset": [
+            -1
+          ],
+          "scoreMedian": null,
+          "scoreMin": null,
+          "scoreMax": null,
+          "cappedShare": 1,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": null,
+          "countTail": null
+        },
+        "3": {
+          "n": 2,
+          "offset": [
+            0
+          ],
+          "scoreMedian": null,
+          "scoreMin": null,
+          "scoreMax": null,
+          "cappedShare": 1,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": null,
+          "countTail": null
+        },
+        "4": {
+          "n": 3,
+          "offset": [
+            1
+          ],
+          "scoreMedian": 81,
+          "scoreMin": 81,
+          "scoreMax": 81,
+          "cappedShare": 0.666667,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 23629263,
+          "countTail": 1122065
+        },
+        "5": {
+          "n": 4,
+          "offset": [
+            2
+          ],
+          "scoreMedian": 63.5,
+          "scoreMin": 63,
+          "scoreMax": 64,
+          "cappedShare": 0.5,
+          "inBandShare": 0.5,
+          "eligibleShare": 0.5,
+          "workFirst": 89372392,
+          "countTail": 1002632
+        },
+        "6": {
+          "n": 4,
+          "offset": [
+            3
+          ],
+          "scoreMedian": 50,
+          "scoreMin": 49,
+          "scoreMax": 51,
+          "cappedShare": 0.5,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 18585860,
+          "countTail": 5159307
+        },
+        "7": {
+          "n": 4,
+          "offset": [
+            4
+          ],
+          "scoreMedian": 44,
+          "scoreMin": 36,
+          "scoreMax": 75,
+          "cappedShare": 0.25,
+          "inBandShare": 0.25,
+          "eligibleShare": 0.25,
+          "workFirst": 2994527,
+          "countTail": 168238
+        },
+        "8": {
+          "n": 4,
+          "offset": [
+            5
+          ],
+          "scoreMedian": 49.5,
+          "scoreMin": 30,
+          "scoreMax": 68,
+          "cappedShare": 0,
+          "inBandShare": 0.5,
+          "eligibleShare": 0.5,
+          "workFirst": 9589155,
+          "countTail": 177444
+        },
+        "9": {
+          "n": 4,
+          "offset": [
+            6
+          ],
+          "scoreMedian": 35.5,
+          "scoreMin": 15,
+          "scoreMax": 49,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 1325121,
+          "countTail": 158959
+        },
+        "10": {
+          "n": 4,
+          "offset": [
+            7
+          ],
+          "scoreMedian": 27,
+          "scoreMin": 15,
+          "scoreMax": 49,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 1049625,
+          "countTail": 147943
+        },
+        "11": {
+          "n": 4,
+          "offset": [
+            8
+          ],
+          "scoreMedian": 19,
+          "scoreMin": 12,
+          "scoreMax": 37,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 1146338,
+          "countTail": 139192
+        },
+        "12": {
+          "n": 4,
+          "offset": [
+            9
+          ],
+          "scoreMedian": 15.5,
+          "scoreMin": 11,
+          "scoreMax": 24,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 471709,
+          "countTail": 116767
+        },
+        "13": {
+          "n": 4,
+          "offset": [
+            10
+          ],
+          "scoreMedian": 13.5,
+          "scoreMin": 12,
+          "scoreMax": 14,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 65682,
+          "countTail": 5438
+        },
+        "14": {
+          "n": 2,
+          "offset": [
+            11
+          ],
+          "scoreMedian": 14,
+          "scoreMin": 14,
+          "scoreMax": 14,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 44516,
+          "countTail": 3891
+        },
+        "15": {
+          "n": 2,
+          "offset": [
+            12
+          ],
+          "scoreMedian": 13,
+          "scoreMin": 13,
+          "scoreMax": 13,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 21155,
+          "countTail": 2671
+        },
+        "16": {
+          "n": 2,
+          "offset": [
+            13
+          ],
+          "scoreMedian": 12,
+          "scoreMin": 11,
+          "scoreMax": 13,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 9462,
+          "countTail": 1642
+        }
+      },
+      "startCount": [
+        3
+      ],
+      "startCountCappedShare": {
+        "families": 4,
+        "rated": 2,
+        "capped": 2,
+        "share": 1,
+        "stoppedAbove": 2,
+        "aboveRange": 0,
+        "upperBoundIfStoppedAreCapped": 1,
+        "mp12b1": 0.89,
+        "byFamily": [
+          {
+            "set": 0,
+            "order": 0,
+            "startCount": 3,
+            "status": "capped"
+          },
+          {
+            "set": 0,
+            "order": 1,
+            "startCount": 3,
+            "status": "capped"
+          },
+          {
+            "set": 1,
+            "order": 0,
+            "startCount": 3,
+            "status": "stopped-above"
+          },
+          {
+            "set": 1,
+            "order": 1,
+            "startCount": 3,
+            "status": "stopped-above"
+          }
+        ]
+      },
+      "windowCounts": [
+        {
+          "count": 5,
+          "offset": [
+            2
+          ],
+          "inBandShare": 0.5,
+          "eligibleShare": 0.5
+        },
+        {
+          "count": 7,
+          "offset": [
+            4
+          ],
+          "inBandShare": 0.25,
+          "eligibleShare": 0.25
+        },
+        {
+          "count": 8,
+          "offset": [
+            5
+          ],
+          "inBandShare": 0.5,
+          "eligibleShare": 0.5
+        }
+      ],
+      "ratings": 50,
+      "inBand": {
+        "ratings": 5
+      },
+      "eligible": {
+        "ratings": 5
+      },
+      "byOffset": {
+        "0": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 3,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 4,
+          "inBand": 2,
+          "eligible": 2
+        },
+        "3": {
+          "ratings": 4,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 4,
+          "inBand": 1,
+          "eligible": 1
+        },
+        "<0": {
+          "ratings": 3,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 30,
+          "inBand": 2,
+          "eligible": 2
+        }
+      },
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 1,
+            "of": 5,
+            "share": 0.2
+          },
+          "eligible": {
+            "n": 1,
+            "of": 5,
+            "share": 0.2
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 0,
+            "of": 5,
+            "share": 0
+          },
+          "eligible": {
+            "n": 0,
+            "of": 5,
+            "share": 0
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 0,
+            "of": 5,
+            "share": 0
+          },
+          "eligible": {
+            "n": 0,
+            "of": 5,
+            "share": 0
+          }
+        }
+      }
+    },
+    "12x12-nightmare": {
+      "level": "nightmare",
+      "band": {
+        "min": 53,
+        "max": 77
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/12x12-nightmare/0",
+          "attempt": 0,
+          "K": 20,
+          "area": 144,
+          "startCount": 3,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/12x12-nightmare/1",
+          "attempt": 0,
+          "K": 22,
+          "area": 144,
+          "startCount": 3,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "three-capped": 3,
+        "all-counts": 1
+      },
+      "counts": {
+        "1": {
+          "n": 2,
+          "offset": [
+            -2
+          ],
+          "scoreMedian": 129,
+          "scoreMin": 129,
+          "scoreMax": 129,
+          "cappedShare": 0.5,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 483595087,
+          "countTail": 276497422
+        },
+        "2": {
+          "n": 3,
+          "offset": [
+            -1
+          ],
+          "scoreMedian": 97,
+          "scoreMin": 97,
+          "scoreMax": 97,
+          "cappedShare": 0.666667,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 525089104,
+          "countTail": 235003026
+        },
+        "3": {
+          "n": 4,
+          "offset": [
+            0
+          ],
+          "scoreMedian": null,
+          "scoreMin": null,
+          "scoreMax": null,
+          "cappedShare": 1,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": null,
+          "countTail": null
+        },
+        "4": {
+          "n": 4,
+          "offset": [
+            1
+          ],
+          "scoreMedian": 95.5,
+          "scoreMin": 86,
+          "scoreMax": 105,
+          "cappedShare": 0.5,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 208799003,
+          "countTail": 316729488
+        },
+        "5": {
+          "n": 4,
+          "offset": [
+            2
+          ],
+          "scoreMedian": 83,
+          "scoreMin": 63,
+          "scoreMax": 90,
+          "cappedShare": 0.25,
+          "inBandShare": 0.25,
+          "eligibleShare": 0.25,
+          "workFirst": 118505612,
+          "countTail": 133746234
+        },
+        "6": {
+          "n": 4,
+          "offset": [
+            3
+          ],
+          "scoreMedian": 83,
+          "scoreMin": 63,
+          "scoreMax": 97,
+          "cappedShare": 0.25,
+          "inBandShare": 0.25,
+          "eligibleShare": 0.25,
+          "workFirst": 212669894,
+          "countTail": 19423055
+        },
+        "7": {
+          "n": 4,
+          "offset": [
+            4
+          ],
+          "scoreMedian": 46.5,
+          "scoreMin": 43,
+          "scoreMax": 50,
+          "cappedShare": 0.5,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 25047697,
+          "countTail": 644174
+        },
+        "8": {
+          "n": 4,
+          "offset": [
+            5
+          ],
+          "scoreMedian": 50.5,
+          "scoreMin": 30,
+          "scoreMax": 69,
+          "cappedShare": 0,
+          "inBandShare": 0.5,
+          "eligibleShare": 0.5,
+          "workFirst": 26351802,
+          "countTail": 631428
+        },
+        "9": {
+          "n": 4,
+          "offset": [
+            6
+          ],
+          "scoreMedian": 46.5,
+          "scoreMin": 20,
+          "scoreMax": 64,
+          "cappedShare": 0,
+          "inBandShare": 0.5,
+          "eligibleShare": 0.5,
+          "workFirst": 8543011,
+          "countTail": 71945
+        },
+        "10": {
+          "n": 4,
+          "offset": [
+            7
+          ],
+          "scoreMedian": 43,
+          "scoreMin": 20,
+          "scoreMax": 62,
+          "cappedShare": 0,
+          "inBandShare": 0.25,
+          "eligibleShare": 0.25,
+          "workFirst": 3974849,
+          "countTail": 67071
+        },
+        "11": {
+          "n": 4,
+          "offset": [
+            8
+          ],
+          "scoreMedian": 22.5,
+          "scoreMin": 14,
+          "scoreMax": 35,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 407001,
+          "countTail": 35755
+        },
+        "12": {
+          "n": 4,
+          "offset": [
+            9
+          ],
+          "scoreMedian": 22.5,
+          "scoreMin": 13,
+          "scoreMax": 35,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 394575,
+          "countTail": 32733
+        },
+        "13": {
+          "n": 2,
+          "offset": [
+            10
+          ],
+          "scoreMedian": 27,
+          "scoreMin": 25,
+          "scoreMax": 29,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 504553,
+          "countTail": 294642
+        },
+        "14": {
+          "n": 2,
+          "offset": [
+            11
+          ],
+          "scoreMedian": 18.5,
+          "scoreMin": 18,
+          "scoreMax": 19,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 124348,
+          "countTail": 23685
+        }
+      },
+      "startCount": [
+        3
+      ],
+      "startCountCappedShare": {
+        "families": 4,
+        "rated": 4,
+        "capped": 4,
+        "share": 1,
+        "stoppedAbove": 0,
+        "aboveRange": 0,
+        "upperBoundIfStoppedAreCapped": 1,
+        "mp12b1": 0.53,
+        "byFamily": [
+          {
+            "set": 0,
+            "order": 0,
+            "startCount": 3,
+            "status": "capped"
+          },
+          {
+            "set": 0,
+            "order": 1,
+            "startCount": 3,
+            "status": "capped"
+          },
+          {
+            "set": 1,
+            "order": 0,
+            "startCount": 3,
+            "status": "capped"
+          },
+          {
+            "set": 1,
+            "order": 1,
+            "startCount": 3,
+            "status": "capped"
+          }
+        ]
+      },
+      "windowCounts": [
+        {
+          "count": 5,
+          "offset": [
+            2
+          ],
+          "inBandShare": 0.25,
+          "eligibleShare": 0.25
+        },
+        {
+          "count": 6,
+          "offset": [
+            3
+          ],
+          "inBandShare": 0.25,
+          "eligibleShare": 0.25
+        },
+        {
+          "count": 8,
+          "offset": [
+            5
+          ],
+          "inBandShare": 0.5,
+          "eligibleShare": 0.5
+        },
+        {
+          "count": 9,
+          "offset": [
+            6
+          ],
+          "inBandShare": 0.5,
+          "eligibleShare": 0.5
+        },
+        {
+          "count": 10,
+          "offset": [
+            7
+          ],
+          "inBandShare": 0.25,
+          "eligibleShare": 0.25
+        }
+      ],
+      "ratings": 49,
+      "inBand": {
+        "ratings": 7
+      },
+      "eligible": {
+        "ratings": 7
+      },
+      "byOffset": {
+        "0": {
+          "ratings": 4,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 4,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 4,
+          "inBand": 1,
+          "eligible": 1
+        },
+        "3": {
+          "ratings": 4,
+          "inBand": 1,
+          "eligible": 1
+        },
+        "4": {
+          "ratings": 4,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 5,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 24,
+          "inBand": 5,
+          "eligible": 5
+        }
+      },
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 4,
+            "of": 7,
+            "share": 0.571429
+          },
+          "eligible": {
+            "n": 4,
+            "of": 7,
+            "share": 0.571429
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 4,
+            "of": 7,
+            "share": 0.571429
+          },
+          "eligible": {
+            "n": 4,
+            "of": 7,
+            "share": 0.571429
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 1,
+            "of": 7,
+            "share": 0.142857
+          },
+          "eligible": {
+            "n": 1,
+            "of": 7,
+            "share": 0.142857
+          }
+        }
+      }
+    },
+    "26x26-nightmare": {
+      "level": "nightmare",
+      "band": {
+        "min": 53,
+        "max": 77
+      },
+      "planned": 4,
+      "families": 4,
+      "sets": [
+        {
+          "seed": "ig-pm1/26x26-nightmare/0",
+          "attempt": 0,
+          "K": 31,
+          "area": 676,
+          "startCount": 4,
+          "offeredInSource": true
+        },
+        {
+          "seed": "ig-pm1/26x26-nightmare/1",
+          "attempt": 0,
+          "K": 31,
+          "area": 676,
+          "startCount": 4,
+          "offeredInSource": true
+        }
+      ],
+      "results": {
+        "all-counts": 4
+      },
+      "counts": {
+        "1": {
+          "n": 4,
+          "offset": [
+            -3
+          ],
+          "scoreMedian": 106,
+          "scoreMin": 100,
+          "scoreMax": 112,
+          "cappedShare": 0.5,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 653508770,
+          "countTail": 4828215
+        },
+        "2": {
+          "n": 4,
+          "offset": [
+            -2
+          ],
+          "scoreMedian": 97.5,
+          "scoreMin": 82,
+          "scoreMax": 100,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 493548582,
+          "countTail": 13834774
+        },
+        "3": {
+          "n": 4,
+          "offset": [
+            -1
+          ],
+          "scoreMedian": 94.5,
+          "scoreMin": 82,
+          "scoreMax": 101,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 360496533,
+          "countTail": 13246189
+        },
+        "4": {
+          "n": 4,
+          "offset": [
+            0
+          ],
+          "scoreMedian": 87,
+          "scoreMin": 74,
+          "scoreMax": 101,
+          "cappedShare": 0,
+          "inBandShare": 0.25,
+          "eligibleShare": 0.25,
+          "workFirst": 210368749,
+          "countTail": 18788399
+        },
+        "5": {
+          "n": 4,
+          "offset": [
+            1
+          ],
+          "scoreMedian": 74,
+          "scoreMin": 58,
+          "scoreMax": 84,
+          "cappedShare": 0,
+          "inBandShare": 0.75,
+          "eligibleShare": 0.75,
+          "workFirst": 64265535,
+          "countTail": 7254777
+        },
+        "6": {
+          "n": 4,
+          "offset": [
+            2
+          ],
+          "scoreMedian": 60.5,
+          "scoreMin": 58,
+          "scoreMax": 69,
+          "cappedShare": 0,
+          "inBandShare": 1,
+          "eligibleShare": 1,
+          "workFirst": 79891540,
+          "countTail": 5728505
+        },
+        "7": {
+          "n": 4,
+          "offset": [
+            3
+          ],
+          "scoreMedian": 54.5,
+          "scoreMin": 27,
+          "scoreMax": 64,
+          "cappedShare": 0,
+          "inBandShare": 0.5,
+          "eligibleShare": 0.5,
+          "workFirst": 50451172,
+          "countTail": 3312768
+        },
+        "8": {
+          "n": 4,
+          "offset": [
+            4
+          ],
+          "scoreMedian": 32.5,
+          "scoreMin": 27,
+          "scoreMax": 57,
+          "cappedShare": 0,
+          "inBandShare": 0.25,
+          "eligibleShare": 0.25,
+          "workFirst": 26605573,
+          "countTail": 2342919
+        },
+        "9": {
+          "n": 4,
+          "offset": [
+            5
+          ],
+          "scoreMedian": 26,
+          "scoreMin": 21,
+          "scoreMax": 43,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 15883918,
+          "countTail": 1918375
+        },
+        "10": {
+          "n": 4,
+          "offset": [
+            6
+          ],
+          "scoreMedian": 24.5,
+          "scoreMin": 21,
+          "scoreMax": 27,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 9853075,
+          "countTail": 1583693
+        },
+        "11": {
+          "n": 4,
+          "offset": [
+            7
+          ],
+          "scoreMedian": 23,
+          "scoreMin": 18,
+          "scoreMax": 27,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 6265320,
+          "countTail": 1112017
+        },
+        "12": {
+          "n": 4,
+          "offset": [
+            8
+          ],
+          "scoreMedian": 17,
+          "scoreMin": 14,
+          "scoreMax": 27,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 2278294,
+          "countTail": 663825
+        },
+        "13": {
+          "n": 4,
+          "offset": [
+            9
+          ],
+          "scoreMedian": 17,
+          "scoreMin": 12,
+          "scoreMax": 27,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 1470585,
+          "countTail": 555681
+        },
+        "14": {
+          "n": 4,
+          "offset": [
+            10
+          ],
+          "scoreMedian": 16,
+          "scoreMin": 12,
+          "scoreMax": 27,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 942081,
+          "countTail": 517253
+        },
+        "15": {
+          "n": 4,
+          "offset": [
+            11
+          ],
+          "scoreMedian": 16,
+          "scoreMin": 12,
+          "scoreMax": 27,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 646068,
+          "countTail": 473048
+        },
+        "16": {
+          "n": 4,
+          "offset": [
+            12
+          ],
+          "scoreMedian": 16,
+          "scoreMin": 12,
+          "scoreMax": 20,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 262133,
+          "countTail": 304144
+        },
+        "17": {
+          "n": 4,
+          "offset": [
+            13
+          ],
+          "scoreMedian": 16,
+          "scoreMin": 12,
+          "scoreMax": 20,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 195399,
+          "countTail": 282894
+        },
+        "18": {
+          "n": 4,
+          "offset": [
+            14
+          ],
+          "scoreMedian": 12,
+          "scoreMin": 12,
+          "scoreMax": 20,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 40391,
+          "countTail": 7689
+        },
+        "19": {
+          "n": 4,
+          "offset": [
+            15
+          ],
+          "scoreMedian": 12,
+          "scoreMin": 12,
+          "scoreMax": 20,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 21670,
+          "countTail": 3893
+        },
+        "20": {
+          "n": 4,
+          "offset": [
+            16
+          ],
+          "scoreMedian": 12,
+          "scoreMin": 12,
+          "scoreMax": 12,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 19007,
+          "countTail": 3398
+        },
+        "21": {
+          "n": 4,
+          "offset": [
+            17
+          ],
+          "scoreMedian": 12,
+          "scoreMin": 12,
+          "scoreMax": 12,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 14831,
+          "countTail": 2587
+        },
+        "22": {
+          "n": 4,
+          "offset": [
+            18
+          ],
+          "scoreMedian": 11,
+          "scoreMin": 11,
+          "scoreMax": 11,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 13531,
+          "countTail": 2371
+        },
+        "23": {
+          "n": 4,
+          "offset": [
+            19
+          ],
+          "scoreMedian": 11,
+          "scoreMin": 11,
+          "scoreMax": 11,
+          "cappedShare": 0,
+          "inBandShare": 0,
+          "eligibleShare": 0,
+          "workFirst": 12736,
+          "countTail": 2251
+        }
+      },
+      "startCount": [
+        4
+      ],
+      "startCountCappedShare": {
+        "families": 4,
+        "rated": 4,
+        "capped": 0,
+        "share": 0,
+        "stoppedAbove": 0,
+        "aboveRange": 0,
+        "upperBoundIfStoppedAreCapped": 0,
+        "mp12b1": 0.1,
+        "byFamily": [
+          {
+            "set": 0,
+            "order": 0,
+            "startCount": 4,
+            "status": "complete"
+          },
+          {
+            "set": 0,
+            "order": 1,
+            "startCount": 4,
+            "status": "complete"
+          },
+          {
+            "set": 1,
+            "order": 0,
+            "startCount": 4,
+            "status": "complete"
+          },
+          {
+            "set": 1,
+            "order": 1,
+            "startCount": 4,
+            "status": "complete"
+          }
+        ]
+      },
+      "windowCounts": [
+        {
+          "count": 4,
+          "offset": [
+            0
+          ],
+          "inBandShare": 0.25,
+          "eligibleShare": 0.25
+        },
+        {
+          "count": 5,
+          "offset": [
+            1
+          ],
+          "inBandShare": 0.75,
+          "eligibleShare": 0.75
+        },
+        {
+          "count": 6,
+          "offset": [
+            2
+          ],
+          "inBandShare": 1,
+          "eligibleShare": 1
+        },
+        {
+          "count": 7,
+          "offset": [
+            3
+          ],
+          "inBandShare": 0.5,
+          "eligibleShare": 0.5
+        },
+        {
+          "count": 8,
+          "offset": [
+            4
+          ],
+          "inBandShare": 0.25,
+          "eligibleShare": 0.25
+        }
+      ],
+      "ratings": 92,
+      "inBand": {
+        "ratings": 11
+      },
+      "eligible": {
+        "ratings": 11
+      },
+      "byOffset": {
+        "0": {
+          "ratings": 4,
+          "inBand": 1,
+          "eligible": 1
+        },
+        "1": {
+          "ratings": 4,
+          "inBand": 3,
+          "eligible": 3
+        },
+        "2": {
+          "ratings": 4,
+          "inBand": 4,
+          "eligible": 4
+        },
+        "3": {
+          "ratings": 4,
+          "inBand": 2,
+          "eligible": 2
+        },
+        "4": {
+          "ratings": 4,
+          "inBand": 1,
+          "eligible": 1
+        },
+        "<0": {
+          "ratings": 12,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 60,
+          "inBand": 0,
+          "eligible": 0
+        }
+      },
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 4,
+            "of": 11,
+            "share": 0.363636
+          },
+          "eligible": {
+            "n": 4,
+            "of": 11,
+            "share": 0.363636
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 0,
+            "of": 11,
+            "share": 0
+          },
+          "eligible": {
+            "n": 0,
+            "of": 11,
+            "share": 0
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 0,
+            "of": 11,
+            "share": 0
+          },
+          "eligible": {
+            "n": 0,
+            "of": 11,
+            "share": 0
+          }
+        }
+      }
+    }
+  },
+  "part3": {
+    "14x14-hell-1": {
+      "sets": [
+        {
+          "seed": "ig-pm1/14x14-hell-1/fs/0",
+          "K": 32,
+          "startCount": 3,
+          "offeredInSource": true,
+          "outcome": "ok",
+          "callResult": {
+            "ok": false,
+            "reason": "not-in-band",
+            "clueCount": null,
+            "score": null
+          },
+          "censored": false,
+          "cutAtS": null,
+          "profiles": 20,
+          "startCountProfiles": {
+            "n": 20,
+            "capped": 20,
+            "refused": 0
+          },
+          "inBandProfiles": 0,
+          "eligibleProfiles": 0,
+          "failure": "dead-end",
+          "families": 2,
+          "familyResults": [
+            "boundary",
+            "boundary"
+          ],
+          "inBandOffsets": [
+            {
+              "order": 0,
+              "count": 11,
+              "offset": 8,
+              "score": 105,
+              "eligible": true
+            },
+            {
+              "order": 0,
+              "count": 13,
+              "offset": 10,
+              "score": 81,
+              "eligible": true
+            },
+            {
+              "order": 0,
+              "count": 14,
+              "offset": 11,
+              "score": 78,
+              "eligible": true
+            }
+          ],
+          "maxScore": 117
+        },
+        {
+          "seed": "ig-pm1/14x14-hell-1/fs/1",
+          "K": 34,
+          "startCount": 3,
+          "offeredInSource": true,
+          "outcome": "ok",
+          "callResult": {
+            "ok": false,
+            "reason": "not-in-band",
+            "clueCount": null,
+            "score": null
+          },
+          "censored": false,
+          "cutAtS": null,
+          "profiles": 20,
+          "startCountProfiles": {
+            "n": 20,
+            "capped": 20,
+            "refused": 0
+          },
+          "inBandProfiles": 0,
+          "eligibleProfiles": 0,
+          "failure": "dead-end",
+          "families": 2,
+          "familyResults": [
+            "boundary",
+            "boundary"
+          ],
+          "inBandOffsets": [
+            {
+              "order": 0,
+              "count": 12,
+              "offset": 9,
+              "score": 93,
+              "eligible": true
+            }
+          ],
+          "maxScore": 93
+        },
+        {
+          "seed": "ig-pm1/14x14-hell-1/fs/2",
+          "K": 32,
+          "startCount": 3,
+          "offeredInSource": true,
+          "outcome": "ok",
+          "callResult": {
+            "ok": false,
+            "reason": "not-in-band",
+            "clueCount": null,
+            "score": null
+          },
+          "censored": false,
+          "cutAtS": null,
+          "profiles": 20,
+          "startCountProfiles": {
+            "n": 20,
+            "capped": 20,
+            "refused": 0
+          },
+          "inBandProfiles": 0,
+          "eligibleProfiles": 0,
+          "failure": "dead-end",
+          "families": 2,
+          "familyResults": [
+            "boundary",
+            "boundary"
+          ],
+          "inBandOffsets": [
+            {
+              "order": 0,
+              "count": 12,
+              "offset": 9,
+              "score": 80,
+              "eligible": true
+            }
+          ],
+          "maxScore": 80
+        },
+        {
+          "seed": "ig-pm1/14x14-hell-1/fs/3",
+          "K": 34,
+          "startCount": 3,
+          "offeredInSource": true,
+          "outcome": "ok",
+          "callResult": {
+            "ok": false,
+            "reason": "not-in-band",
+            "clueCount": null,
+            "score": null
+          },
+          "censored": false,
+          "cutAtS": null,
+          "profiles": 20,
+          "startCountProfiles": {
+            "n": 20,
+            "capped": 20,
+            "refused": 0
+          },
+          "inBandProfiles": 0,
+          "eligibleProfiles": 0,
+          "failure": "dead-end",
+          "families": 2,
+          "familyResults": [
+            "boundary",
+            "boundary"
+          ],
+          "inBandOffsets": [
+            {
+              "order": 0,
+              "count": 14,
+              "offset": 11,
+              "score": 79,
+              "eligible": true
+            },
+            {
+              "order": 1,
+              "count": 14,
+              "offset": 11,
+              "score": 96,
+              "eligible": true
+            }
+          ],
+          "maxScore": 96
+        }
+      ],
+      "classes": {
+        "dead-end": 4
+      },
+      "made": 0,
+      "familyProbes": 87,
+      "inBand": 7,
+      "eligible": 7,
+      "byOffset": {
+        "0": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "3": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 0,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "<0": {
+          "ratings": 8,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 79,
+          "inBand": 7,
+          "eligible": 7
+        }
+      },
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 7,
+            "of": 7,
+            "share": 1
+          },
+          "eligible": {
+            "n": 7,
+            "of": 7,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 6,
+            "of": 7,
+            "share": 0.857143
+          },
+          "eligible": {
+            "n": 6,
+            "of": 7,
+            "share": 0.857143
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 6,
+            "of": 7,
+            "share": 0.857143
+          },
+          "eligible": {
+            "n": 6,
+            "of": 7,
+            "share": 0.857143
+          }
+        }
+      },
+      "level": {
+        "level": "hell-1",
+        "band": {
+          "min": 77,
+          "max": 112
+        }
+      }
+    },
+    "24x24-hell-1": {
+      "sets": [
+        {
+          "seed": "ig-pm1/24x24-hell-1/fs/0",
+          "K": 42,
+          "startCount": 4,
+          "offeredInSource": true,
+          "outcome": "ok",
+          "callResult": {
+            "ok": false,
+            "reason": "not-in-band",
+            "clueCount": null,
+            "score": null
+          },
+          "censored": false,
+          "cutAtS": null,
+          "profiles": 20,
+          "startCountProfiles": {
+            "n": 20,
+            "capped": 20,
+            "refused": 0
+          },
+          "inBandProfiles": 0,
+          "eligibleProfiles": 0,
+          "failure": "dead-end",
+          "families": 2,
+          "familyResults": [
+            "boundary",
+            "boundary"
+          ],
+          "inBandOffsets": [
+            {
+              "order": 0,
+              "count": 11,
+              "offset": 7,
+              "score": 108,
+              "eligible": true
+            },
+            {
+              "order": 0,
+              "count": 12,
+              "offset": 8,
+              "score": 108,
+              "eligible": true
+            },
+            {
+              "order": 0,
+              "count": 13,
+              "offset": 9,
+              "score": 96,
+              "eligible": true
+            }
+          ],
+          "maxScore": 113
+        },
+        {
+          "seed": "ig-pm1/24x24-hell-1/fs/1",
+          "K": 42,
+          "startCount": 4,
+          "offeredInSource": true,
+          "outcome": "ok",
+          "callResult": {
+            "ok": false,
+            "reason": "not-in-band",
+            "clueCount": null,
+            "score": null
+          },
+          "censored": false,
+          "cutAtS": null,
+          "profiles": 20,
+          "startCountProfiles": {
+            "n": 20,
+            "capped": 20,
+            "refused": 0
+          },
+          "inBandProfiles": 0,
+          "eligibleProfiles": 0,
+          "failure": "dead-end",
+          "families": 2,
+          "familyResults": [
+            "boundary",
+            "boundary"
+          ],
+          "inBandOffsets": [],
+          "maxScore": 75
+        },
+        {
+          "seed": "ig-pm1/24x24-hell-1/fs/2",
+          "K": 39,
+          "startCount": 4,
+          "offeredInSource": true,
+          "outcome": "ok",
+          "callResult": {
+            "ok": false,
+            "reason": "not-in-band",
+            "clueCount": null,
+            "score": null
+          },
+          "censored": false,
+          "cutAtS": null,
+          "profiles": 20,
+          "startCountProfiles": {
+            "n": 20,
+            "capped": 20,
+            "refused": 0
+          },
+          "inBandProfiles": 0,
+          "eligibleProfiles": 0,
+          "failure": "dead-end",
+          "families": 2,
+          "familyResults": [
+            "boundary",
+            "boundary"
+          ],
+          "inBandOffsets": [
+            {
+              "order": 0,
+              "count": 8,
+              "offset": 4,
+              "score": 99,
+              "eligible": true
+            },
+            {
+              "order": 1,
+              "count": 6,
+              "offset": 2,
+              "score": 98,
+              "eligible": true
+            }
+          ],
+          "maxScore": 113
+        },
+        {
+          "seed": "ig-pm1/24x24-hell-1/fs/3",
+          "K": 42,
+          "startCount": 4,
+          "offeredInSource": true,
+          "outcome": "ok",
+          "callResult": {
+            "ok": false,
+            "reason": "not-in-band",
+            "clueCount": null,
+            "score": null
+          },
+          "censored": false,
+          "cutAtS": null,
+          "profiles": 20,
+          "startCountProfiles": {
+            "n": 20,
+            "capped": 20,
+            "refused": 0
+          },
+          "inBandProfiles": 0,
+          "eligibleProfiles": 0,
+          "failure": "dead-end",
+          "families": 2,
+          "familyResults": [
+            "boundary",
+            "boundary"
+          ],
+          "inBandOffsets": [
+            {
+              "order": 0,
+              "count": 12,
+              "offset": 8,
+              "score": 84,
+              "eligible": true
+            },
+            {
+              "order": 0,
+              "count": 11,
+              "offset": 7,
+              "score": 97,
+              "eligible": true
+            },
+            {
+              "order": 1,
+              "count": 9,
+              "offset": 5,
+              "score": 100,
+              "eligible": true
+            }
+          ],
+          "maxScore": 100
+        }
+      ],
+      "classes": {
+        "dead-end": 4
+      },
+      "made": 0,
+      "familyProbes": 90,
+      "inBand": 8,
+      "eligible": 8,
+      "byOffset": {
+        "0": {
+          "ratings": 2,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "1": {
+          "ratings": 4,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "2": {
+          "ratings": 2,
+          "inBand": 1,
+          "eligible": 1
+        },
+        "3": {
+          "ratings": 4,
+          "inBand": 0,
+          "eligible": 0
+        },
+        "4": {
+          "ratings": 4,
+          "inBand": 1,
+          "eligible": 1
+        },
+        "<0": {
+          "ratings": 4,
+          "inBand": 0,
+          "eligible": 0
+        },
+        ">4": {
+          "ratings": 70,
+          "inBand": 6,
+          "eligible": 6
+        }
+      },
+      "mainWorkAbove": {
+        "95": {
+          "inBand": {
+            "n": 8,
+            "of": 8,
+            "share": 1
+          },
+          "eligible": {
+            "n": 8,
+            "of": 8,
+            "share": 1
+          }
+        },
+        "190": {
+          "inBand": {
+            "n": 6,
+            "of": 8,
+            "share": 0.75
+          },
+          "eligible": {
+            "n": 6,
+            "of": 8,
+            "share": 0.75
+          }
+        },
+        "380": {
+          "inBand": {
+            "n": 5,
+            "of": 8,
+            "share": 0.625
+          },
+          "eligible": {
+            "n": 5,
+            "of": 8,
+            "share": 0.625
+          }
+        }
+      },
+      "level": {
+        "level": "hell-1",
+        "band": {
+          "min": 77,
+          "max": 112
+        }
+      }
+    }
+  },
+  "discoveries": {
+    "total": 93,
+    "windows": 55,
+    "scan": 23,
+    "failedSets": 15
+  },
+  "harnessNotes": [],
+  "notReached": [],
+  "limitations": [
+    "Part 1 is a reduced diagnostic: per cell two sets and two nested orders, one boundary search from the cheap side and a short scan next to the cap. Non-monotone windows (a window below a capped count, or between two complete counts that are far apart) can be missed, so a cell without an in-band rating is \"none observed\", never \"no window\".",
+    "A family whose cheap-side counts K - 8, K - 4 and K - 2 were all capped (\"capped-at-cheap-side\") shows nothing about the counts below them; the cap there is recorded as a limitation of the diagnostic.",
+    "A family that ended \"no-cap\" rated every count its doubling reached as complete down to count 1 or to the clamp; its scan next to the cap is not run.",
+    "Part 2 stops a family after three consecutive capped counts, so counts below the stop (the start count of 14x14 and 12x12 Nightmare among them) are not rated; the start-count capped share is given for the families that rated it, and the families whose scan stopped above it are counted apart, never inferred capped.",
+    "Part 3 uses four sets per cell and two orders per failed set; a call cut at the invocation deadline is recorded as censored with its profiles.",
+    "Every number is provisional (pre-freeze): the rating-v3 runtime of this worktree on the instr tree (diagnostic offers, D-IG13), not the frozen post-MP17 source.",
+    "Times (ms per rating) come from four concurrent lanes on a 16-logical-core machine, shared with difficulty-v3 only by the lock protocol."
+  ],
+  "laterRound": {
+    "scope": "The rest of tranche 1 (D-IG10): per cell 10 sets x 3 layouts (the witness and two walked layouts) x 2 orders in part 1, with full count scans; the same scope on the three Nightmare cells of part 2; 20 sets per cell in part 3. Tranche 2 (walked layouts on further cells, the held-out window audit) comes after it if tranche 1 leaves P4 or P1 undecided.",
+    "workerHours": 9,
+    "wallHours": 2.5,
+    "needs": "the owner's approval"
+  }
+}

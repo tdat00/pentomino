@@ -40,6 +40,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `budgets.mjs` | P5's budget inputs per arm, cell and stage from the journals: `budgets.json|md` (IGP-03; unlocked) |
 | `compare-r2.mjs` | corrected comparison record of IGP-01 (`compare-r2.json|md`): puzzle population per cell, like-with-like caveats, the n = 1 and mixed-cell readings; analysis of the published runs only, unlocked |
 | `pm4.mjs` | PM4 (IGP-02): `calls`, `screens` (locked) and `report` (unlocked): the screen certificate and the `W_screen` economics |
+| `pm1.mjs` | PM1 tranche 1, reduced first slice (IGP-05): `windows`, `scan`, `failed-sets` (locked) and `report` (unlocked) |
 | `firewall.mjs` | snapshot and check of the production files |
 | `boards.mjs` | writes or checks `data/boards-v1.json`, the frozen board catalogue |
 | `self-test.mjs` | self-tests, run under the lock |
@@ -263,6 +264,51 @@ node tools\ig-proto\pm4.mjs report  --label <L> [--run-id <id>] [--task <T>]    
   changes no search: the budgets stay recorded, not enforced.
 - **Harness hash.** `compare.mjs`, `budgets.mjs` and `self-test.mjs` are driver scripts: the shards of an arm refuse to
   continue once any of them changed, so they are final before the first shard starts.
+
+## PM1 tranche 1, reduced first slice (IGP-05)
+
+`pm1.mjs` runs canonical ratings of nested clue families on the `instr` tree (diagnostic offers, D-IG13); it changes nothing
+but the clue subsets it rates.
+
+```powershell
+node tools\ig-proto\pm1.mjs windows     --cases <ids> --sets 2 --orders 2 --label <L> [--run-id <id>] [--task <T>]   # locked
+node tools\ig-proto\pm1.mjs scan        --cases <ids> --sets 2 --orders 2 --label <L> [--run-id <id>] [--task <T>]   # locked
+node tools\ig-proto\pm1.mjs failed-sets --cases <ids> --sets 4 --orders 2 --label <L> [--run-id <id>] [--task <T>]   # locked
+node tools\ig-proto\pm1.mjs report      --label <L> [--run-id <id>] [--task <T>]                                      # unlocked
+```
+
+- **Families.** A family is a set (seed `ig-pm1/<case>/<i>`, or `ig-pm1/<case>/fs/<i>` in part 3: the first of eight attempts
+  whose carve succeeds) and an order `o` (`createRng(normalizeSeedText(seed), 'ig-pm1/order/<o>')` shuffling the witness
+  positions); `clues(c)` is the first `c` positions, sorted, so the counts of a family are nested. A count is rated once:
+  the algorithms replay from the ratings made so far, so a family's checkpoint is its list of probes.
+- **Lanes.** Four lanes, one family per lane (four `createLanes` objects of size 1, never more: eight would inflate the
+  measured time per rating by 9-28 % on this machine). Every probe is a canonical `rate` job admitted by its bound
+  (check-list §7). `progress.json` (header with `treeId` and harness hash; the in-flight families and the completed ones that
+  wait for an earlier family) is rewritten after every probe; `families.jsonl` gets completed families in the fixed order
+  (cells, sets, orders) only; `discoveries.jsonl` gets every in-band rating with its full inputs at once.
+- **Parts.** `windows` (part 1): boundary search from the cheap side (more clues) by doubling, bisection, then a scan of
+  the five counts above the boundary; results `boundary`, `no-cap`, `capped-at-cheap-side`, `no-set`, `error`. `scan` (part 2):
+  every count from K - 8 down to 1, stopped by three consecutive capped counts. `failed-sets` (part 3): today's
+  set-stage call per set (`call` job, one per lane, profiles streamed; a call cut at the horizon is `censored`), its
+  failure classified (`censored`, `in-band-refused`, `limit` at 64 profiles, `dead-end`: no rated candidate, every profile
+  capped or refused, `never-in-band`, `other`), then the part-1 algorithm on two orders of every set whose call made no
+  puzzle (a censored call included; a set without a carve has none). A call is never rerun.
+- **Flags per part.** The first invocation of a part writes its `state.json` header (cells, sets, orders, `treeId`,
+  `harnessHash`); every later one checks it and exits 1 on a difference. `--horizon-s` is the runner's; `--max-probes N` is a
+  test option and only the first invocation of a part honours it (it stops after N probes, so that a plan step that repeats
+  the same arguments resumes the family from its checkpoint and finishes it).
+- **Records.** Artifacts under `tests/artifacts/ig-proto/<L>/IGP-05/<run-id>/<part>/` (`state.json`, `progress.json`,
+  `families.jsonl`, `discoveries.jsonl`, `calls.json`). The report writes `docs/improve-generating/evidence/<L>/IGP-05/`
+  (`pm1.json`, `pm1.md`, `families-<part>.jsonl`, `discoveries.jsonl`) for the `main` run of task `IGP-05` and
+  `<run-id>/report/` under the artifacts otherwise. It checks the fixed order, the boundary pairs and that every in-band
+  rating is in `discoveries.jsonl`; a harness hash that differs from a part's header (a report-only change) is recorded in
+  `pm1.json` and `pm1.md`, both hashes named. Families or calls not run (the budget guard stopped a part) are listed as
+  "not reached (budget)", never as "none observed".
+- **Offsets and main work.** Every rating carries `startCount` (`startCountFor`, as PM4) and `offset` = count - start count;
+  the report gives in-band and eligible ratings by PM4's offset buckets (`<0`, `0` to `4`, `>4`), part 2 beside PM4's
+  useful share of the same cell, and the share of in-band and eligible ratings whose main work exceeds 95, 190 and 380 M.
+- **Developer runs.** `--task IGP-05-dev` (any `--run-id`) keeps every file under `tests/artifacts/ig-proto/<L>/IGP-05-dev/`;
+  locked ones go through `run-task.ps1` with a scratch plan of task `IGP-05-dev`.
 
 ## Re-running on the frozen source
 

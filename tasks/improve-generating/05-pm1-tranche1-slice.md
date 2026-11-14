@@ -236,14 +236,14 @@ The dry run with its stop and resume before the plan; the report's checks: every
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (pack author: IGP-05 ACCEPT, no fixes; IG-P-Q18 raised to the plan author) |
+| Start | 2026-11-15 05:45 (+07:00) |
+| End | 2026-11-15 06:31 developer (plan 06:03:56-06:30:27); 06:38 author acceptance; orchestrator commit |
+| Duration | 46 min developer; 6 locked invocations (node 482 s, counted 752 s of the 23 min projection); IGP-05-dev 4 invocations (counted 264 s); priority waits 837 s beyond the quiet period, not counted; round counted 8,485 s of 10,800 s |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (pack author review, opus-ig); claude-opus-5.5 (orchestrator) |
+| Token usage | 80 model calls; 16,979,818 input tokens (16,676,283 cache reads); 134,556 output tokens |
+| AI credits | about 377 (developer) |
+| Verification | `tools/ig-proto/pm1.mjs` (about 1,450 lines) and `plans/IGP-05.json`; evidence `docs/improve-generating/evidence/provisional/IGP-05/` (`pm1.md`, `pm1.json`, `families-windows|scan|failed-sets.jsonl`, `discoveries.jsonl` with 93 full inputs, all consistent). 88 window families all `boundary`, none "not reached (budget)"; four lanes; stop and resume proved in the dry run and part 1; `npm run check` passes; firewall 279 production files unchanged |
+| Acceptance | B01-B05, T01-T03 met (developer; confirmed by the pack author) |
+| Issues & resolutions | (1) **Hell 1 on 215-484 cells has windows on all nine cells:** 47 in-band ratings of 389, all eligible, 27 central, at +6 to +15 clues above today's start count. (2) **Hell 2:** 8 of 404, all at the band's bottom edge (112-119), +16 to +29 clues, 7 of 8 above 380 M of main work. (3) **Hell 3:** none observed in 16 families; the best complete scores 78-115 sit at the work cap, 47-84 points short of 162. (4) Fine counts: 14x14 Nightmare 5/50 in band (+2 to +5), 12x12 7/49 (+2 to +7), 26x26 11/92 (0 to +4). (5) R28: today's 8 failing Hell 1 calls dead-end at the start count (20 of 20 profiles capped), while 7 of 8 of those sets have eligible windows 2-11 clues higher. (6) Main work above 95 / 190 / 380 M: Hell 1 39 / 30 / 16 of 47. (7) 37 of 55 in-band window ratings have an incomplete census, as today's accepted puzzles do (R27, stated in IGP-07). (8) Deviations 1-7 accepted (`--max-probes` on the first invocation, one rating per count per family, a stricter `dead-end` rule, the capped share with its small n, four size-1 lanes, the harness-hash note, `pm1.mjs` about 3x its estimate); discoveries not re-rated (reproducible from saved inputs) |
+| Handoff | IG-P-Q18 to the plan author (Hell 3 route "not offered"; Hell 2 PM3 in a later round and edge-of-band acceptability; 215-484-cell Hell 1 in phase 3's landscape with the Q17 set-level rule). IGP-06 (amended): kernel share and P7 sensitivity by profile type; the kernel speed-up needed for P7 1.87 / 1.91 or "not reachable"; the DLX share beside IGP-04's P6 figures; new row IGP-06-B03. IGP-03h with optional parts (extra 12x12 seeds, no-screen Hell 1 20x20) if at least 20 min remain |

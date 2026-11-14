@@ -761,3 +761,106 @@ blind play comparison of the two populations. (b) is the conservative fallback.
   `*.calls.jsonl`) and `verify-*.md`.
 
 Plan-author answer:
+
+---
+
+### IG-P-Q18: Where PM1 found Hell windows: the routes of Hell 3 and Hell 2, and Hell 1 on 215 to 484 cells
+
+*Blocks: the Hell 2 and Hell 3 route (IG-P-Q16, OD-P3), the cell list of phase 3's Hell 1 landscape (OD-P4, IG-P-Q11),
+and P4's prior and `W_screen` for the Hell levels in `gen-v4`. From: IGP-05 (PM1 tranche 1, reduced first slice);
+raised by Opus (SA1, the pack's author).*
+
+**Question.** PM1's first slice gives the first observations of Hell windows on the cells where today's search makes
+no set. Do you accept (1) "not offered" as Hell 3's route; (2) a PM3 run for Hell 2 in a later round before its route
+is chosen, and are Hell 2 puzzles at the bottom edge of the band acceptable; (3) Hell 1 on 215 to 484 cells in phase
+3's landscape, with IG-P-Q17's set-level rule applied where today serves nothing?
+
+**What was measured.** IGP-05 ran PM1's reduced slice in the order of IG-P-Q04, every rating canonical (the `instr`
+tree). On each of 22 cells without a curve: two sets × two nested orders, each a boundary search from the cheap side
+(many clues) down to the work cap and a short scan next to it. Then fine counts on three Nightmare cells, and today's
+failing Hell 1 sets on 14x14 and 24x24. "In band" counts the score; "eligible" adds AR1 (Gproved ≥ 1); "central" is
+within a quarter of the band width of its centre. Offsets are counts less today's start count (`initialClueCount`, the
+level's share of K). It is a reduced diagnostic: "none observed" is never "no window".
+
+| Level and boards | Families with an in-band rating | In-band ratings of all (eligible; central) | Scores (band) | Offset from today's start count | Clue share, median [range] | Main work above 190 / 380 M |
+|---|---|---|---|---|---|---|
+| Hell 1: 15x15b10, 16x16, 15x20, 18x18, 18x20, 20x20, 20x21, 32x15, 22x22 (215 to 484 cells) | 22 of 36, on every board | 47 of 389 (47; 27) | 77 to 109 ([77, 112)) | +6 to +15 | 0.35 [0.25-0.49] | 30 / 16 of 47 |
+| Hell 2: 15x20, 18x18, 18x20, 20x20, 20x21, 32x15, 22x22, 24x24, 26x26 (300 to 676 cells) | 7 of 36, on 6 boards (none on 15x20, 18x18, 20x20) | 8 of 404 (8; 0) | 112 to 119 ([112, 162)) | +16 to +29 | 0.45 [0.33-0.54] | 8 / 7 of 8 |
+| Hell 3: 32x15, 22x22, 24x24, 26x26 (480 to 676 cells) | 0 of 16 | 0 of 201 | best complete 78 to 115 ([162, 235)) | - | - | - |
+
+- *Hell 3.* The best complete scores come from the counts next to the work cap (the canonical `DEDUCE.work`, 760 M) and
+  stay 47 to 84 points short of 162; with fewer clues the ratings cap. On these boards no rating within the cap reaches
+  Hell 3. That is not a sampling gap: the full tranche 1 would add sets and layouts, not close 47 to 84 points.
+- *Hell 2.* Windows exist on six of nine boards but are thin, dear and at the edge: 2 % of the diagnostic's ratings,
+  none central, every one in the lowest 14 % of the band (112 to 119, just above Hell 1's top, 112), 17 to 53 s of
+  rating per in-band rating in this diagnostic. The search accepts a non-central in-band puzzle when no central one is
+  found (IGP-01: one such puzzle in each arm on Hell 1 26x26).
+- *Hell 1 on 215 to 484 cells.* Windows on every board, all eligible, more than half central, 3.6 to 16.4 s of rating
+  per in-band rating. The direction's "Hell 1 is plausible only on 576 and 676 cells, and only if a window holds" no
+  longer holds for windows: in this slice they hold from 215 cells up. Their request-level cost is not measured yet.
+- *Why today fails (R28).* Today's set-stage call on four sets each of 14x14 and 24x24 Hell 1 is a dead end on all 8:
+  its 20 profiles at the start count are all capped, so it never rates a candidate. On 7 of the 8 sets, PM1's families
+  found eligible in-band ratings 2 to 11 clues higher (15 ratings, 7 central; 14x14: 4 of 4 sets at +8 to +11; 24x24: 3
+  of 4 at +2 to +9). Their main work exceeds 380 M on 6 of 7 (14x14) and 5 of 8 (24x24).
+- *An incomplete census (R27).* 37 of the 55 in-band window ratings, all 8 of Hell 2's among them, were rated with a
+  census stopped at its relative budget. Today's accepted puzzles stand on the same footing (MP12b1's records count
+  134 censored ratings for its 134 accepted Hell 1 26x26 puzzles, 194 for 200 on 26x26 Nightmare), so this is not a
+  defect, but a complete census could score these puzzles differently; the frozen round reports the share again.
+
+**What `gen-v4` needs to serve these cells.**
+
+1. *Leave the start count.* Today's dead end is the cause (R28); P3's sided reading of a capped profile and P1's
+   bracketing remove it.
+2. *A starting prior where today has no accepted puzzles.* P4's table comes from MP12b1's accepted puzzles, which these
+   cells do not have. PM1's window counts (about 0.35 of K given on Hell 1) or the prototype's cheap-side start (K − 8)
+   can replace it.
+3. *No screen for Hell.* A screen at 380 M would lose a third of these windows' in-band ratings (16 of 47; 6 of 7 and
+   5 of 8 on the failing sets), so `W_screen` for the Hell levels sits at the canonical limit, which (c5) of IG-P-Q17's
+   addendum after IGP-03 gives as well.
+
+**How it meets IG-P-Q17.** Where today serves nothing there is no today's distribution. Read literally, (b) and (c1)
+of IG-P-Q17 would block these cells: their windows lie 2 to 15 clues above today's start count, with about 0.35 of K
+given against 0.13 for today's Hell 1 26x26 puzzles. The split of the addendum after IGP-03 applies instead: (c5) is
+measured against the search without the screen, and the set-level part (sets today's search gives up on) covers every
+set of these cells. The answer to IG-P-Q17's set-level part therefore decides whether these cells can be offered: if
+the band and AR1 define the level whatever the share of given pieces, they are phase-3 candidates; if not, they stay
+unoffered.
+
+**Why it matters.** IG-P-Q16's answer chose the Hell 2 and Hell 3 route from measured cost, and this is the first
+measurement. Phase 3's landscape (OD-P4: D39 and the matching browser runs) needs its cell list, and `gen-v4`'s design
+needs P4's prior and `W_screen` for the Hell levels, before phase 2 is designed.
+
+**Options.**
+
+1. Hell 3: (a) not offered, the route closed in this feature (a change of the rating's cap or scale belongs to
+   difficulty-v3); (b) kept open until the full tranche 1 (about 9 worker-hours, owner's approval, D-IG10).
+2. Hell 2: (a) a PM3 run for Hell 2 in a later round (the prototype without the screen and with a start near PM1's
+   windows, on two or three boards), then the route: live, packs or not offered; (b) decide now: packs or not offered.
+   And: (i) Hell 2 puzzles at the bottom edge of the band are acceptable; (ii) only central or near-central ones (then
+   Hell 2 stays unoffered on these observations).
+3. Hell 1 on 215 to 484 cells: (a) in phase 3's landscape, D39 and the browser runs deciding the offer as OD-P4 says,
+   with IG-P-Q17's set-level rule where today serves nothing; (b) only the direction's 576 and 676 cells.
+
+**Recommendation (Opus, the pack's author; Astra has not reviewed this question).** 1 (a): the gap is 47 to 84 points
+at the cap, not a sample. 2 (a), with (i) or (ii) settled by the owner first: under (ii) the PM3 run is not needed and
+Hell 2 is recorded as not offered on these observations. 3 (a): the windows hold on every board of the slice, today's
+failure is the dead end that P1 and P3 remove, and OD-P4's gates stay as they are; `gen-v4`'s design takes the three
+needs above as requirements for the Hell levels.
+
+**What will be reported, and when.** IGP-03h (this round, its optional part 2, about 5 minutes): the prototype without
+the screen on Hell 1 20x20, two requests, where MP12b1's prescreen made no puzzle in three requests, each stopped at
+the 115 s time limit; reported as an addendum here. IGP-07: the round's summary (R27 to R29). The frozen round
+(post-MP17): PM1 again, and the rest of tranche 1 if approved.
+
+**Evidence.**
+
+- `docs/improve-generating/evidence/provisional/IGP-05/pm1.md`: part 1 per cell and pooled by level, by offset and main
+  work; part 2's fine counts; part 3's failure classes; the limitations. `pm1.json`; `families-windows.jsonl`,
+  `families-scan.jsonl` and `families-failed-sets.jsonl` (every rating, with `censored`); `discoveries.jsonl` (the 93
+  in-band ratings with their full inputs, so that each can be re-rated).
+- `docs/difficulty-v3/landscape-v3-full/<case>-s3-2026-11-14.json`: MP12b1's prescreens of these cells (no set made);
+  `<case>-2026-11-1[34].json`: today's accepted puzzles and their `ratingCensoredCount`.
+- `tasks/improve-generating/05-pm1-tranche1-slice.md` (the reduced design and its limits) and
+  `03-pm3-variants-and-budgets.md` ("Follow-up IGP-03h").
+
+Plan-author answer:

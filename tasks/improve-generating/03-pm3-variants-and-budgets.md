@@ -280,37 +280,62 @@ The `--proto` self-test with the new cases; the verify steps; the run plan.
   result with its label, the budget table, the counted machine time and the lock waits.
 - Handoff to IGP-07 and to the next report on IG-P-Q17: `compare.json`, `budgets.json`.
 
-## Follow-up IGP-03h: the no-screen arm on Hell 1 26x26 (optional)
+## Follow-up IGP-03h: the no-screen arm on Hell 1, and more 12x12 seeds (optional)
 
 IGP-03's optional shard did not run: the round had 93.1 minutes left at its dispatch, under the rule's 97. It becomes
-a follow-up with its own task id, so that IGP-03's published records stay as they are. It runs after IGP-06 when at
-least 8 minutes are left in the round, before IGP-07; otherwise it is a frozen-round item (check-list §7). It needs no
-new code: the variant `p1p5-w760` and every tool exist. Its tree id differs from IGP-03's `p1p5-w760` if IGP-04 has
-changed `ig-select-proto.js` (the `withP6` call); the default path stays IGP-01's, and the record names the tree id.
+a follow-up with its own task id, so that IGP-03's published records stay as they are; after the IGP-05 review it gains
+two optional parts. It runs after IGP-06 and before IGP-07 (check-list §7): the required part when at least 8 minutes
+are left in the round, the optional parts too (`-IncludeOptional`) when at least 20 are left; otherwise they are
+frozen-round items. It needs no measurement code: the variants `p1p5-w760` and `p1p5-main` and every tool exist; a
+report-only addition to `compare.mjs` is allowed for part 2. Its tree ids differ from IGP-03's if IGP-04 changed
+`ig-select-proto.js` (the `withP6` call); the default path stays IGP-01's, and the records name the tree ids.
 
-Purpose: R33 on Hell 1 26x26 (IG-P-Q17, the addendum after IGP-03): the split before → no screen → 380 M (IGP-01's
-after arm), the sets served and the same-set clue shift, and the clue offsets beside PM4's cost by offset, labelled a
-two-seed indication. No `W_screen` is recommended.
+1. *Required.* Hell 1 26x26, reps 0-1, without the screen: R33 on Hell 1 (IG-P-Q17, the addendum after IGP-03). The
+   record gives the split before → no screen → 380 M (IGP-01's after arm), the sets served, the same-set clue shift and
+   the clue offsets beside PM4's cost by offset, labelled a two-seed indication.
+2. *Optional.* Hell 1 20x20, reps 0-1, without the screen (added after the IGP-05 review): the first request-level
+   indication on a Hell 1 cell of 215 to 484 cells. Today's search makes no set there: MP12b1's prescreen
+   (`docs/difficulty-v3/landscape-v3-full/20x20-hell-1-s3-2026-11-14.json`) delivered no puzzle in three requests, each
+   stopped at the 115 s time limit. PM1 found in-band, eligible ratings in all four of its families, 7 to 14 clues
+   above today's start count, two of eleven above 380 M of main work. The prior table has no entry for this cell, so
+   the prototype starts at K − 8 (`U0`) and searches down. The record gives ten of n, T1, T10 or the response, the
+   accepted puzzles' clue shares, offsets and score positions, and MP12b1's prescreen outcome beside them. If
+   `compare.mjs` drops a cell without a before partner, it gains an arm-only section (report only).
+3. *Optional.* 12x12 Nightmare, reps 2-5, without the screen (`w760`) and at 190 M (`main`, variant `p1p5-main`): four
+   more seeds for the screen's speed factor and its same-set clue shift, on which (c5) of IG-P-Q17's addendum after
+   IGP-03 rests (two seeds there). `main` rep 2 must reproduce IGP-01's after arm (equal `resultDigest`; a difference is
+   a stop). The record gives, per seed, the T10 ratio no screen / 190 M and the same-set clue shift 190 M − no screen,
+   beside IGP-03's reps 0 and 1.
 
-The run plan `tools/ig-proto/plans/IGP-03h.json` (allocation 6 minutes):
+No `W_screen` is recommended.
+
+The run plan `tools/ig-proto/plans/IGP-03h.json` (allocation 6 minutes, `optionalMinutes` 12; arm steps are
+`tools/ig-proto/arm.mjs run --task IGP-03h ... --workers 4 --row-limit-s 260`):
 
 | Step | Locked | Node arguments | projectS | State |
 |---|---|---|---:|---|
 | firewall-snapshot | no | `tools/ig-proto/firewall.mjs snapshot --task IGP-03h` | | |
-| trees | no | `tools/ig-proto/lib/tree.mjs build base p1p5-w760` | | |
-| w760-hell1 | yes, until done | `tools/ig-proto/arm.mjs run --task IGP-03h --arm w760 --shard 26x26-hell-1 --variant p1p5-w760 --workers 4 --cases 26x26-hell-1:0-1 --row-limit-s 260` | 130 | `IGP-03h/w760/26x26-hell-1/state.json` |
-| verify | yes, until done | `tools/ig-proto/verify.mjs --task IGP-03h --arm w760` | 60 | `IGP-03h/verify/state.json` |
-| publish | no | `tools/ig-proto/arm.mjs publish --task IGP-03h --arm w760` | | |
+| trees | no | `tools/ig-proto/lib/tree.mjs build base p1p5-w760 p1p5-main` | | |
+| w760-hell1 | yes, until done | `--arm w760 --shard 26x26-hell-1 --variant p1p5-w760 --cases 26x26-hell-1:0-1` | 130 | `IGP-03h/w760/26x26-hell-1/state.json` |
+| w760-hell1-20x20 | yes, until done; optional | `--arm w760 --shard 20x20-hell-1 --variant p1p5-w760 --cases 20x20-hell-1:0-1` | 260 | `IGP-03h/w760/20x20-hell-1/state.json` |
+| w760-12x12 | yes, until done; optional | `--arm w760 --shard 12x12-nightmare --variant p1p5-w760 --cases 12x12-nightmare:2-5` | 60 | `IGP-03h/w760/12x12-nightmare/state.json` |
+| main-12x12 | yes, until done; optional | `--arm main --shard 12x12-nightmare --variant p1p5-main --cases 12x12-nightmare:2-5` | 50 | `IGP-03h/main/12x12-nightmare/state.json` |
+| verify | yes, until done | `tools/ig-proto/verify.mjs --task IGP-03h --arm w760` | 90 | `IGP-03h/verify-w760/state.json` |
+| verify-main | yes, until done; optional | `tools/ig-proto/verify.mjs --task IGP-03h --arm main` | 40 | `IGP-03h/verify-main/state.json` |
+| publish-w760 | no | `tools/ig-proto/arm.mjs publish --task IGP-03h --arm w760` | | |
+| publish-main | no; optional | `tools/ig-proto/arm.mjs publish --task IGP-03h --arm main` | | |
 | compare | no | `tools/ig-proto/compare.mjs --task IGP-03h --pairs IGP-01/before:w760,IGP-01/after:w760 --reference mp12b1 --pm4 IGP-02` | | |
+| compare-c5 | no; optional | `tools/ig-proto/compare.mjs --task IGP-03h --pairs main:w760 --reference mp12b1 --out-dir docs/improve-generating/evidence/provisional/IGP-03h/c5` | | |
 | firewall-check | no | `tools/ig-proto/firewall.mjs check --task IGP-03h` | | |
 
-Projection: two rows of about 55 to 60 s (IGP-01's after arm on these seeds, 42.2 and 37.2 s, times 1.4 to 1.5, the
-pricing of the projection under Commands), each in its own invocation, and one verify invocation: three locked
-commands, about 3 minutes of node time and 2 of quiet periods, 5 minutes in all. Records under
-`docs/improve-generating/evidence/provisional/IGP-03h/` (the arm, `verify-w760.json|md`, `compare.json|md`).
-Acceptance: IGP-03-T02 and T03 for this arm, the w760 journal check of §3, and the Hell 1 split, sets served and
-offsets in `compare.md`.
-
+Projection. Part 1: two rows of about 55 to 60 s (IGP-01's after arm on these seeds, 42.2 and 37.2 s, times 1.4 to 1.5,
+the pricing of the projection under Commands), each in its own invocation, and the verify invocation: about 5 minutes.
+Part 2: two rows of at most the 115 s time limit each, in their own invocations: about 4 to 6 minutes. Part 3: eight
+rows of about 5 to 15 s (IGP-03: 9.2 s without the screen, 7.9 s at 190 M), two to an invocation where the horizon
+admits them, and `verify-main`: about 6 minutes. In all about 16 minutes (allocation 18 with the optional parts).
+Records under `docs/improve-generating/evidence/provisional/IGP-03h/` (the arms, `verify-<arm>.json|md`,
+`compare.json|md`, `c5/compare.json|md`). Acceptance: IGP-03-T02 and T03 for these arms, the w760 journal check of §3,
+part 3's identity check, and the content of parts 1 to 3 in the comparisons.
 ## Execution log
 
 | Field | Value |
