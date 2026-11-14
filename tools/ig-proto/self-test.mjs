@@ -2,7 +2,9 @@
 // Self-test of the harness (IGP-00 §10). Run under the lock wrapper by run-task.ps1; it carves and rates only small
 // cases (about 60 s). Each case prints `PASS <name>` or `FAIL <name>: <reason>`; the state file records the results
 // and the script exits 1 on any failure.
-//   node tools\ig-proto\self-test.mjs --label <L> --source-label <SL> --horizon-s <H> [--only 1,3]
+//   node tools\ig-proto\self-test.mjs --label <L> --source-label <SL> --horizon-s <H> [--only 1,3] [--proto] [--task <T>]
+// `--proto` (IGP-01) adds the prototype's cases after IGP-00's nine; its state goes to <T>/self-test/state.json
+// (default IGP-01 with --proto, else IGP-00).
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -13,7 +15,7 @@ import { Worker } from 'node:worker_threads';
 import { SOURCE_FILES } from '../bench/report.js';
 import { checkText } from '../check-conventions.mjs';
 import { decide, readInvocations } from './lib/budget.mjs';
-import { rateAttempt, screenRating, startCountFor, windowSubsets } from './lib/calls.mjs';
+import { rateAttempt, recordedCall, screenRating, startCountFor, windowSubsets } from './lib/calls.mjs';
 import { loadEngine } from './lib/engine.mjs';
 import { createLanes } from './lib/lanes.mjs';
 import { artifactDir, elapsedS, IG_DIR, parseArgs, rel, ROOT } from './lib/paths.mjs';
@@ -230,6 +232,9 @@ const cases = [
         if (instr[i].error === null) {
           complete += 1;
           assert(r.workFirst !== null && r.workFirst >= 0 && r.workFirst <= r.mainWork, `workFirst ${r.workFirst} is outside 0..${r.mainWork} (item ${i})`);
+          assert(r.r7Cut === 0 || r.stop === 'work-cap', `r7Cut ${r.r7Cut} of a rating whose stop is ${r.stop}: census cuts belong to r7CutCensus (item ${i})`);
+          assert(Number.isInteger(r.r7CutCensus) && r.r7CutCensus >= 0, `r7CutCensus ${r.r7CutCensus} (item ${i})`);
+          assert((r.r7CutCensus > 0) === r.flags.includes('c'), `the c flag does not follow r7CutCensus ${r.r7CutCensus}: ${r.flags} (item ${i})`);
         }
       });
       assert(complete > 0, 'no complete instr rating in the corpus');
@@ -353,8 +358,9 @@ const cases = [
         assert(out.done && out.defect === null, 'the lanes did not finish the corpus');
         out.results.forEach((r, i) => same({ ...r, ms: 0 }, { ...instr[i].record, ms: 0 }, `lane result ${i} differs from the in-process result`));
         lanes.setHorizon(elapsedS() + 20);
+        lanes.setHorizon(285);
         const refused = await lanes.runAll([jobs[0]]);
-        assert(!refused.done && refused.results[0] === undefined, 'a rate job was admitted with less than 30 s to the horizon');
+        assert(!refused.done && refused.results[0] === undefined, 'a rate job was admitted with less than 30 s to the horizon (setHorizon must only lower it)');
       } finally {
         await lanes.close();
       }
@@ -456,6 +462,273 @@ const cases = [
   },
 ];
 
+/** @type {number} */
+let horizonS = 285;
+
+/** @param {string} dir @returns {any[]} Every journal line of the folder, files in name order. */
+function readJournal(dir) {
+  return readdirSync(dir).sort().flatMap((n) => readFileSync(join(dir, n), 'utf8').split('\n').filter((l) => l !== '').map((l) => JSON.parse(l)));
+}
+
+/** @param {any[]} lines @returns {any[]} The journal without the fields that differ between two runs (at, ms, call). */
+function stable(lines) {
+  return lines.map((l) => {
+    const { at, ms, call, ...rest } = l;
+    if (Array.isArray(rest.tuple)) {
+      rest.tuple = rest.tuple.map((/** @type {any} */ v, /** @type {number} */ i) => (i === 12 ? 0 : v));
+    }
+    return rest;
+  });
+}
+
+/**
+ * A synthetic rating (IGP-01 test plan): main work 1 unit, `Gproved` 1 and a complete census unless said otherwise.
+ * @param {number} score
+ * @param {{ work?: number, Gproved?: number, stop?: string }} [o]
+ */
+const synthetic = (score, { work = 1, Gproved = 1, stop = 'exhausted' } = {}) => ({
+  model: 'difficulty-v3', score, level: 'st', saturated: false,
+  metrics: { work, censusWork: 0, nodes: 1, censusNodes: 0, searchStop: stop, Gproved, censusComplete: true },
+});
+
+/** The synthetic band of the P1 cases: it sits above Hard's edge, so the AR1 refusal applies. */
+const BAND = Object.freeze({ id: 'st-band', min: 55, max: 70, share: 0.3 });
+
+/** @returns {Promise<{ seedText: string, carved: any }>} The first of ig-selftest/proto/k15/0..49 of 10x10-master with 15 pieces. */
+async function k15Set() {
+  if (memo.k15 === undefined) {
+    const { e } = await engine('p1p5-main');
+    const entry = caseBoard('10x10-master');
+    for (let n = 0; n < 50 && memo.k15 === undefined; n += 1) {
+      const seedText = `ig-selftest/proto/k15/${n}`;
+      const carved = firstCarvedSet(e, { boardRows: entry.boardRows, levelId: entry.levelId, seedText });
+      if (carved.ok && carved.K === 15) {
+        memo.k15 = { seedText, carved };
+      }
+    }
+    assert(memo.k15 !== undefined, 'no seed ig-selftest/proto/k15/0 to 49 of 10x10-master carves a set of 15 pieces');
+    memo.protoNotes = { ...memo.protoNotes, k15Seed: memo.k15.seedText };
+  }
+  return memo.k15;
+}
+
+/**
+ * One call of the prototype on the K = 15 set with synthetic screen and canonical ratings and its journal.
+ * @param {string} name
+ * @param {{ prior: number | null, screen: (c: number) => any, canon?: (c: number) => any }} spec A function returns a
+ *   rating or 'cap' (an IncompleteRatingError).
+ */
+async function protoCall(name, { prior, screen, canon = screen }) {
+  const { e, ws } = await engine('p1p5-main');
+  const { carved } = await k15Set();
+  const make = (/** @type {(c: number) => any} */ fn) => (/** @type {any[]} */ clues) => {
+    const r = fn(clues.length);
+    if (r === 'cap') {
+      throw new e.difficulty.IncompleteRatingError('synthetic cap', { nodes: 1, work: e.policy.DEDUCE.work, stop: 'work-cap' });
+    }
+    return r;
+  };
+  const dir = fresh(join(SELFTEST_DIR, 'logs', `proto-${name}`));
+  process.env.IG_LOG_DIR = dir;
+  process.env.IG_ROW = `selftest~${name}`;
+  let result;
+  try {
+    result = e.clues.selectClues({
+      board: carved.board, pieces: carved.set.pieces, layout: carved.set.witness, target: BAND,
+      rng: e.rng.createRng(e.rng.normalizeSeedText('ig-selftest/proto/p1'), `selftest/${name}`), uniqueness: 'any',
+      excludeClueKeys: new Set(), ws, igScreen: make(screen), igCanonical: make(canon), igPrior: prior, igStage: 'set',
+    });
+  } finally {
+    delete process.env.IG_LOG_DIR;
+    delete process.env.IG_ROW;
+  }
+  const lines = readJournal(dir);
+  const tuples = lines.filter((l) => l.t === 'p').map((l) => l.tuple);
+  const counts = (/** @type {string} */ phase) => tuples.filter((t) => t[0] === phase).map((t) => t[1]);
+  return { result, lines, tuples, counts, end: lines.find((l) => l.t === 'end'), phases: lines.filter((l) => l.t === 'phase').map((l) => l.phase) };
+}
+
+const protoCases = [
+  {
+    name: 'proto: tree, paramFiles, prior and recordedCall guard',
+    async run() {
+      const main = await ensureTree('p1p5-main');
+      const plain = await ensureTree('p1p5');
+      const log = await ensureTree('log');
+      assert(main.chain.join('>') === 'base>instr>log>p1p5>p1p5-main', `chain ${main.chain.join('>')}`);
+      assert(main.copyDigest !== plain.copyDigest || main.treeId !== plain.treeId, 'p1p5 and p1p5-main are not told apart');
+      assert(main.copyDigest !== log.copyDigest, 'the prototype copy has the log copy digest');
+      const prior = JSON.parse(readFileSync(join(IG_DIR, 'data', 'prior-v1.json'), 'utf8'));
+      same(main.params.prior, prior.cells, 'params.prior is not the cells of data/prior-v1.json');
+      assert(main.params.W.default === 190000000 && main.params.W['hell-1'] === 380000000 && plain.params.W['hell-1'] === undefined, 'the W parameters of the two manifests');
+      assert(readFileSync(join(main.root, 'tools', 'bench', 'report.js'), 'utf8').includes('core/engine/ig-select-proto.js'), "the copy's SOURCE_FILES does not list ig-select-proto.js");
+      assert(prior.rule.includes('reps 10-19') && Object.keys(prior.cells).length > 0, 'the prior does not record its rule');
+      const root = fresh(join(SELFTEST_DIR, 'param-files'));
+      writeFileSync(join(root, 'p.json'), '{"cells":{"a@1":{"share":0.5}}}\n');
+      const manifests = { 'st-pf': { id: 'st-pf', extends: ['base'], paramFiles: { prior: 'p.json' } } };
+      const a = planTree('st-pf', { manifests, paramRoot: root });
+      same(a.params.prior, { 'a@1': { share: 0.5 } }, 'paramFiles did not put the cells under params.prior');
+      writeFileSync(join(root, 'p.json'), '{"cells":{"a@1":{"share":0.6}}}\n');
+      assert(planTree('st-pf', { manifests, paramRoot: root }).treeId !== a.treeId, 'a changed parameter file did not change the treeId');
+      rmSync(root, { recursive: true, force: true });
+      for (const variant of ['log', 'p1p5-main']) {
+        const { e, ws } = await engine(variant);
+        let message = '';
+        try {
+          recordedCall(e, { set: {}, levelId: 'hard', rng: null, ws });
+        } catch (err) {
+          message = err instanceof Error ? err.message : String(err);
+        }
+        assert(message.includes('refuses a tree whose chain includes log'), `recordedCall did not refuse the ${variant} tree: ${message}`);
+      }
+    },
+  },
+  {
+    name: 'proto: P1 locate, rescue and re-rating order (synthetic)',
+    async run() {
+      const { nearestFirst } = await import(pathToFileURL(join((await ensureTree('p1p5-main')).root, 'core', 'engine', 'ig-select-proto.js')).href);
+      same(
+        nearestFirst([{ count: 6, n: 1 }, { count: 8, n: 2 }, { count: 7, n: 3 }, { count: 8, n: 0 }, { count: 6, n: 0 }], 7).map((/** @type {any} */ p) => `${p.count}.${p.n}`),
+        ['7.3', '8.0', '8.2', '6.0', '6.1'], 'the re-rating order (distance to wc, higher count, probe order)',
+      );
+      const down = (/** @type {number} */ c) => (c <= 2 ? 'cap' : synthetic(100 - 10 * c));
+      const expect = (/** @type {any} */ got, /** @type {any} */ want, /** @type {string} */ what) => same(got, want, `${what}: got ${JSON.stringify(got)}`);
+
+      let r = await protoCall('noprior', { prior: null, screen: down });
+      expect(r.counts('locate'), [7, 1, 4], 'no prior: locate probes');
+      assert(r.end.locate.hit === 4 && r.end.locate.result === 'hit' && r.end.result === 'ok', `no prior: hit ${JSON.stringify(r.end.locate)}`);
+      assert(r.result.ok && r.result.clues.length === 4, 'no prior: the result is not the 4-clue hit');
+
+      r = await protoCall('prior6', { prior: 6, screen: down });
+      expect(r.counts('locate'), [6, 5, 3, 4], 'prior 6: locate probes');
+      assert(r.end.locate.hit === 4 && r.end.locate.prior === 6, 'prior 6: hit at 4');
+
+      r = await protoCall('overwork', { prior: null, screen: (c) => (c === 7 ? synthetic(30, { work: 190000001, stop: 'work-cap' }) : down(c)) });
+      assert(r.tuples[0][2] === 'scap1', `a rating above W is not scap1: ${r.tuples[0][2]}`);
+      expect(r.counts('locate').slice(0, 2), [7, 13], 'main work above W counts as above (the march goes up)');
+
+      r = await protoCall('ar1in', { prior: null, screen: (c) => (c === 4 ? synthetic(60, { Gproved: 0 }) : down(c)) });
+      expect(r.counts('locate'), [7, 1, 4], 'AR1-refused in band: locate probes');
+      assert(r.tuples.find((t) => t[1] === 4)[2] === 'ar1' && r.end.locate.result === 'hit' && r.end.locate.hit === 4, 'AR1-refused in band is a window hit');
+      assert(r.result.ok === false && r.end.accepted === null && r.end.result !== 'ok', 'an AR1-refused probe was accepted');
+
+      r = await protoCall('below1', { prior: null, screen: () => synthetic(30) });
+      expect(r.counts('locate'), [7, 1], 'all below: locate probes');
+      assert(r.end.result === 'no-window' && r.end.locate.result === 'below-to-one' && r.end.locate.noWindowProof === 'canonical', `all below: ${JSON.stringify(r.end.locate)}`);
+      assert(r.result.ok === false && r.result.reason === 'not-in-band' && !r.phases.includes('window'), 'all below: the call did not end at once');
+
+      const capAll = () => 'cap';
+      r = await protoCall('confirmed', { prior: null, screen: capAll, canon: () => synthetic(90) });
+      expect(r.counts('locate'), [7, 13], 'confirmed: locate probes');
+      expect(r.counts('rescue'), [13, 7], 'confirmed: rescue order');
+      assert(r.end.result === 'no-window' && r.end.locate.noWindowProof === 'confirmed' && r.end.rerates === 2, `confirmed: ${JSON.stringify(r.end.locate)}`);
+      expect(r.end.locate.rescue.map((/** @type {any} */ x) => `${x.count}:${x.side}`), ['13:above', '7:above'], 'confirmed: rescue sides');
+
+      r = await protoCall('heuristic', { prior: 2, screen: capAll, canon: () => synthetic(90) });
+      expect(r.counts('locate'), [2, 3, 5, 9, 13], 'heuristic: locate probes');
+      expect(r.counts('rescue'), [13, 9, 5, 3], 'heuristic: rescue order (rerateMax 4, count 2 stays)');
+      assert(r.end.result === 'no-window' && r.end.locate.noWindowProof === 'heuristic' && r.end.rerates === 4 && r.counts('rerate').length === 0, `heuristic: ${JSON.stringify(r.end.locate)}`);
+
+      r = await protoCall('rebracketed', { prior: null, screen: capAll, canon: (c) => synthetic(100 - 10 * c) });
+      expect(r.counts('locate'), [7, 13, 1, 4, 5, 6], 'rebracketed: locate probes');
+      expect(r.counts('rescue'), [13, 7], 'rebracketed: rescue order');
+      const loc = r.end.locate;
+      assert(loc.result === 'window' && loc.hiBelow === 7 && loc.loAbove === 6 && loc.wc === 7 && loc.noWindowProof === 'rebracketed', `rebracketed: ${JSON.stringify(loc)}`);
+      assert(r.phases.includes('window'), 'rebracketed: the call did not go on to phase B');
+      assert(r.counts('rescue').length + r.counts('rerate').length <= 4 && r.counts('rerate').length <= 2 && r.end.rerates <= 4, 'rebracketed: phase E exceeded the shared allowance');
+      assert(r.counts('rerate').length === 2, `rebracketed: phase E re-rated ${r.counts('rerate').length}, expected the two the allowance leaves`);
+
+      r = await protoCall('rescuedin', { prior: null, screen: capAll, canon: (c) => synthetic(c === 13 ? 60 : 90) });
+      expect(r.counts('rescue'), [13, 7], 'rescued in: the rescue re-rates 13 first, then 7, and the call finishes on the 13-clue candidate');
+      assert(r.end.locate.noWindowProof === 'rescued-in' && r.end.result === 'ok' && r.end.clueCount === 13 && r.end.rerates === 2, `rescued in: ${JSON.stringify(r.end.locate)} ${r.end.result}`);
+
+      r = await protoCall('rescuedrefused', { prior: null, screen: capAll, canon: (c) => (c === 13 ? synthetic(60, { Gproved: 0 }) : synthetic(90)) });
+      expect(r.counts('rescue'), [13, 7], 'rescued in, refused: rescue order');
+      assert(r.tuples.find((t) => t[0] === 'rescue')[2] === 'ar1', 'rescued in, refused: the re-rating is not an AR1 refusal');
+      assert(r.end.locate.noWindowProof === 'rescued-in' && r.end.locate.hit === 13 && r.end.locate.noWindowProof !== 'confirmed', 'rescued in, refused: not a window hit at 13');
+      assert(r.phases.includes('window') && r.phases.includes('p2'), 'rescued in, refused: no phase B or no dead end (a refusal is no candidate)');
+      assert(r.result.ok === false && r.end.accepted === null, 'rescued in, refused: a refused rating was accepted');
+      assert(r.counts('rescue').length + r.counts('rerate').length === r.end.rerates && r.end.rerates <= 4, 'rescued in, refused: the allowance is not shared');
+    },
+  },
+  {
+    name: 'proto: P2 canonical at the cap, repeatable',
+    async run() {
+      const { e, ws } = await engine('p1p5-main');
+      const entry = caseBoard('10x10-hard');
+      const seedText = 'ig-selftest/proto/p2';
+      const carved = firstCarvedSet(e, { boardRows: entry.boardRows, levelId: entry.levelId, seedText });
+      assert(carved.ok, 'the carve of the P2 set failed');
+      const c = /** @type {any} */ (carved);
+      /** @type {any[]} */
+      const journals = [];
+      /** @type {any[]} */
+      const results = [];
+      for (const run of [1, 2]) {
+        const dir = fresh(join(SELFTEST_DIR, 'logs', `proto-p2-${run}`));
+        process.env.IG_LOG_DIR = dir;
+        process.env.IG_ROW = 'selftest~p2';
+        try {
+          results.push(e.clues.selectClues({
+            board: c.board, pieces: c.set.pieces, layout: c.set.witness, target: e.levels.level(entry.levelId),
+            rng: e.rng.createRng(e.rng.normalizeSeedText(seedText), 'selftest/p2'), uniqueness: 'any', excludeClueKeys: new Set(), ws,
+            igW: e.policy.DEDUCE.work, igStage: 'set',
+          }));
+        } finally {
+          delete process.env.IG_LOG_DIR;
+          delete process.env.IG_ROW;
+        }
+        journals.push(stable(readJournal(dir)));
+      }
+      assert(results[0].ok, `the P2 call found no puzzle: ${results[0].reason}`);
+      same(results[0].rating, e.difficulty.rate(c.board, c.set.pieces, results[0].clues, ws), 'the result rating is not rate() of its clues');
+      same(results[0], results[1], 'two runs of one seed gave different results');
+      same(journals[0], journals[1], 'two runs of one seed gave different journals (at, ms and the call id aside)');
+      assert(journals[0].every((l) => l.t !== 'start' || l.W === e.policy.DEDUCE.work), 'the start line does not record W');
+    },
+  },
+  {
+    name: 'proto: P3 screen on a real 12x12 Nightmare set, and the prior',
+    async run() {
+      const { e, ws } = await engine('p1p5-main');
+      const entry = caseBoard('12x12-nightmare');
+      const seedText = 'ig-selftest/proto/n';
+      const carved = firstCarvedSet(e, { boardRows: entry.boardRows, levelId: entry.levelId, seedText });
+      assert(carved.ok, 'the carve of the 12x12 Nightmare set failed');
+      const c = /** @type {any} */ (carved);
+      const cell = JSON.parse(readFileSync(join(IG_DIR, 'data', 'prior-v1.json'), 'utf8')).cells['nightmare@144'];
+      const wantPrior = Math.min(c.K - 2, Math.max(1, Math.round(cell.share * c.K)));
+      let ok = 0;
+      for (let n = 0; n < 3 && (n === 0 || elapsedS() + 150 < horizonS); n += 1) {
+        const dir = fresh(join(SELFTEST_DIR, 'logs', `proto-n${n}`));
+        process.env.IG_LOG_DIR = dir;
+        process.env.IG_ROW = 'selftest~n';
+        let res;
+        try {
+          res = e.clues.selectClues({
+            board: c.board, pieces: c.set.pieces, layout: c.set.witness, target: e.levels.level(entry.levelId),
+            rng: e.rng.createRng(e.rng.normalizeSeedText(seedText), `selftest/n/${n}`), uniqueness: 'any', excludeClueKeys: new Set(), ws, igStage: 'set',
+          });
+        } finally {
+          delete process.env.IG_LOG_DIR;
+          delete process.env.IG_ROW;
+        }
+        const lines = readJournal(dir);
+        const start = lines.find((l) => l.t === 'start');
+        assert(start.W === 190000000 && start.priorCount === wantPrior, `start line: W ${start.W}, priorCount ${start.priorCount}, expected ${wantPrior}`);
+        if (res.ok) {
+          ok += 1;
+          same(res.rating, e.difficulty.rate(c.board, c.set.pieces, res.clues, ws), 'an ok result rating is not its canonical rating');
+        }
+        if (ok > 0) {
+          break;
+        }
+      }
+      memo.protoNotes = { ...memo.protoNotes, nightmareOkResults: ok };
+    },
+  },
+];
+
 /** @param {string} text @returns {string} The text without the worktree's absolute root (records refuse it). */
 function scrub(text) {
   const root = ROOT.replace(/[\\/]+$/, '');
@@ -464,13 +737,15 @@ function scrub(text) {
 
 /** @param {string[]} argv @returns {Promise<number>} */
 async function main(argv) {
-  const { args } = parseArgs(argv, { values: ['label', 'source-label', 'horizon-s', 'only'] });
+  const { args, on } = parseArgs(argv, { values: ['label', 'source-label', 'horizon-s', 'only', 'task'], switches: ['proto'] });
   const label = args.label ?? 'selftest';
+  const task = args.task ?? (on.has('proto') ? 'IGP-01' : 'IGP-00');
   const only = args.only === undefined ? null : args.only.split(',').map(Number);
+  horizonS = Number(args['horizon-s'] ?? 285);
   const startedAt = new Date(Date.now() - elapsedS() * 1000).toISOString();
   /** @type {{ name: string, pass: boolean, reason: string | null, ms: number }[]} */
   const results = [];
-  for (const [i, c] of cases.entries()) {
+  for (const [i, c] of [...cases, ...(on.has('proto') ? protoCases : [])].entries()) {
     if (only !== null && !only.includes(i + 1)) {
       continue;
     }
@@ -487,11 +762,11 @@ async function main(argv) {
   }
   const failures = results.filter((r) => !r.pass).length;
   const seconds = Math.round(elapsedS() * 1000) / 1000;
-  writeJson(join(artifactDir(label, 'IGP-00', 'self-test'), 'state.json'), {
-    format: 'ig-proto-state', version: 1, task: 'IGP-00', step: 'self-test', label, done: failures === 0, results,
-    appendCostMs: memo.appendCostMs ?? null,
+  writeJson(join(artifactDir(label, task, 'self-test'), 'state.json'), {
+    format: 'ig-proto-state', version: 1, task, step: 'self-test', label, done: failures === 0, results,
+    appendCostMs: memo.appendCostMs ?? null, protoNotes: memo.protoNotes ?? null,
     lastInvocation: {
-      start: startedAt, end: new Date().toISOString(), seconds, horizonS: Number(args['horizon-s'] ?? 285), progress: { cases: results.length - failures },
+      start: startedAt, end: new Date().toISOString(), seconds, horizonS, progress: { cases: results.length - failures },
     },
   });
   process.stdout.write(`self-test: ${results.length - failures} passed, ${failures} failed (${seconds} s)\n`);

@@ -1,0 +1,22 @@
+{
+  "id": "p1p5",
+  "extends": ["log"],
+  "description": "Prototype of P1 to P5 (ig-select-proto.js): the exported search is the prototype, logged per probe. W 190 M for every level.",
+  "edits": [
+    {
+      "id": "p1p5-1",
+      "file": "core/engine/clues.js",
+      "find": "import { igDispatch, igPhase } from './ig-log.js';\n",
+      "replace": "import { igDispatch, igPhase } from './ig-log.js';\nimport { igSelectProto } from './ig-select-proto.js';\n"
+    },
+    {
+      "id": "p1p5-2",
+      "file": "core/engine/clues.js",
+      "find": "  return igDispatch(ctx, selectCluesV3);\n",
+      "replace": "  return igSelectProto(ctx);\n"
+    }
+  ],
+  "files": ["p1p5"],
+  "params": { "logAccepted": true, "U0": 8, "rerateMax": 4, "rerate": "end", "a3": false, "W": { "default": 190000000 } },
+  "paramFiles": { "prior": "data/prior-v1.json" }
+}

@@ -19,6 +19,9 @@ import { bandEdge, initialClueCount } from './levels.js';
  * @property {number} i Probes recorded so far.
  * @property {number} work Main plus census work of the recorded probes.
  * @property {number} rerates Canonical re-ratings (the prototype sets it).
+ * @property {number | null} W Screen limit of the call (the prototype; null: canonical).
+ * @property {number | null} priorCount Prior start count of the call (the prototype; null without a prior).
+ * @property {object} [locate] Summary of the prototype's locate phase, written on the `end` line.
  * @property {number} t0
  * @property {boolean} logging
  * @property {any} ctx
@@ -44,9 +47,10 @@ function write(line) {
 /**
  * Opens a call: one `start` line.
  * @param {any} ctx The SelectContext, plus `igStage` and `igAttempt` set by the caller.
+ * @param {{ W?: number | null, priorCount?: number | null }} [extra] The prototype's screen limit and prior count.
  * @returns {Call}
  */
-export function startCall(ctx) {
+export function startCall(ctx, extra = {}) {
   sequence += 1;
   const row = process.env.IG_ROW ?? 'unrowed';
   /** @type {Call} */
@@ -56,6 +60,8 @@ export function startCall(ctx) {
     i: 0,
     work: 0,
     rerates: 0,
+    W: extra.W ?? null,
+    priorCount: extra.priorCount ?? null,
     t0: performance.now(),
     logging: process.env.IG_LOG_DIR !== undefined,
     ctx,
@@ -66,7 +72,7 @@ export function startCall(ctx) {
     write({
       t: 'start', call: call.id, v: 1, variant: IG.variant, row, stage: ctx.igStage ?? 'other', attempt: ctx.igAttempt ?? null,
       level: ctx.target.id ?? null, min: ctx.target.min, max: ctx.target.max, K, A: activeCount(ctx.board),
-      startCount: initialClueCount(ctx.target.share, K), priorCount: null, W: null, at: now(),
+      startCount: initialClueCount(ctx.target.share, K), priorCount: call.priorCount, W: call.W, at: now(),
     });
   }
   return call;
@@ -156,6 +162,9 @@ export function recordRating(call, phase, count, fn, W) {
     if (refused) {
       flags += 'r';
     }
+    if ((ins?.r7CutCensus ?? 0) > 0) {
+      flags += 'c';
+    }
     outcome = refused ? 'ar1' : sideOf(target, score);
     if (W !== null && mainWork > W) {
       outcome = stop === 'work-cap' ? 'scap1' : 'over';
@@ -215,7 +224,7 @@ export function endCall(call, res) {
   }
   write({
     t: 'end', call: call.id, result, score, clueCount, ms: round3(performance.now() - call.t0), work: call.work,
-    profiles: call.i, rerates: call.rerates, accepted, at: now(),
+    profiles: call.i, rerates: call.rerates, accepted, ...(call.locate === undefined ? {} : { locate: call.locate }), at: now(),
   });
 }
 

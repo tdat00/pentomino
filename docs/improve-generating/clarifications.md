@@ -498,3 +498,134 @@ illustrative factor. They order the work; they are not gates.
 | OD-P2 | **Approved:** the DLX diagnostic runs only for accepted puzzles (P6). |
 | IG-P-Q02 | Open: one deadline or two budgets is decided after PM3 and before P5's design. |
 | Phase 0 | **Confirmed:** the official phase-0 measurements start once difficulty-v3 freezes (post-MP17). Prototypes are built now as harnesses outside every fingerprint with no production change; their numbers are provisional (pre-freeze) and are re-run on the frozen source. |
+
+---
+
+## Questions after the first prototype measurements (2026-11-15)
+
+Raised by the phase-0 prototype pack (`tasks/improve-generating/`) after its first measurements. The numbers are
+provisional (pre-freeze): measured on the current `rating-v3` runtime (source digest `34cea386…`, MP12b1's), with
+matched cohorts of three to six seeds per cell. The official numbers come from the frozen round (post-MP17).
+
+### IG-P-Q17: May P1 to P5 move the accepted puzzles to more clues inside the band?
+
+*Blocks: P3 and P4 in `gen-v4` (phase 2), the fit of `W_screen` (IG-P-Q09), and how PM3's gains are read. From:
+IGP-01 (PM3's prototype of P1 to P5); raised by Opus (SA1, the pack's author).*
+
+**Question.** The prototype keeps the score band and its centre, but on Nightmare and Hell 1 its accepted puzzles carry
+one to three more clues than today's. Is that acceptable for the level (a), must P1 to P5 keep today's clue-count
+distribution (b), or should another criterion bound the change (c)?
+
+**What was measured.** IGP-01 ran the prototype (`p1p5-main`: P1 to P5, `W_screen` 190 M units, 380 M on Hell, four
+workers) and today's search on the same seeds. Every one of the 413 puzzles the prototype's calls returned (among them
+the 280 its requests accepted) carries its canonical rating (0 mismatches), and the scores stay central: every
+accepted puzzle of both arms lies in the middle half of its band, except one of 30 after and one of 25 before on Hell 1
+26x26. The clue counts move:
+
+| Cell | Today (MP12b1, 20 reps): clue share p10 / median / p90 (n); median clues of median K | After (IGP-01): clue share p10 / median / p90 (n); median clues of median K | Median clues, shift | Score position, today / after |
+|---|---|---|---|---|
+| 12x12 Nightmare | 0.158 / 0.211 / 0.250 (185); 4 of 19 | 0.200 / 0.263 / 0.316 (30); 5 of 19 | +1 | 0.63 / 0.40 |
+| 14x14 Nightmare | 0.143 / 0.190 / 0.190 (126); 4 of 21 | 0.190 / 0.255 / 0.318 (30); 5.5 of 22 | +1.5 | 0.56 / 0.50 |
+| 15x15b10 Nightmare | 0.136 / 0.182 / 0.227 (141); 4 of 22 | 0.182 / 0.227 / 0.304 (30); 5 of 22 | +1 | 0.54 / 0.48 |
+| 26x26 Nightmare | 0.125 / 0.133 / 0.161 (200); 4 of 31.5 | 0.129 / 0.167 / 0.219 (60); 5 of 31.5 | +1 | 0.52 / 0.50 |
+| Hell 1 26x26 | 0.100 / 0.128 / 0.154 (134); 5 of 39 | 0.143 / 0.205 / 0.256 (30); 8 of 41 | +3 | 0.57 / 0.43 |
+| 14x14 Master | 0.176 / 0.222 / 0.278 (200); 4 of 18 | 0.176 / 0.235 / 0.353 (50); 4 of 18 | 0 | 0.50 / 0.50 |
+| 26x26 Master | 0.125 / 0.189 / 0.231 (200); 5 of 25.5 | 0.083 / 0.160 / 0.200 (50); 4 of 25 | −1 | 0.47 / 0.50 |
+
+Clue share = clues / K (K: the pieces of the set); p10 and p90 by nearest rank; score position = (score − band minimum)
+/ band width, 0.5 being the centre. The after arm covers reps 0-2 (0-5 on 26x26 Nightmare, 0-4 on the Masters): 30 to
+60 puzzles per cell.
+
+**Mechanism (the pack author's reading of the journals; the causal split is not measured yet).**
+
+1. P4 starts above today's start. The table prior is MP12b1's accepted median (reps 10-19), which on every Nightmare
+   and Hell 1 cell lies one clue above today's start count (the level's share of K, `initialClueCount`): for example
+   4 instead of 3 of 21 pieces on 14x14 Nightmare.
+2. P3 climbs on a screen-capped probe. Today's search skips a capped profile and stays near its start count; the
+   prototype reads a screen-capped probe as "too few clues" and moves up. On 14x14 Nightmare the locate phase moved up
+   from its start in 31 of the 48 ok calls (median +2 clues), 30 of them after a screen-capped locate probe (12x12
+   Nightmare: 24 of 39 calls, 22 of them; 15x15b10: 35 of 51, 34; Hell 1 26x26: 32 of 47, 30; 26x26 Nightmare: 43 of
+   77, 27; the Masters: 19 of 74 with 2, and 3 of 77 with none).
+3. The first central rating ends the call, as today. On 14x14 Nightmare 41 of the 48 ok calls found their count in the
+   locate phase (a hit), and 25 ended in that phase. The call thus accepts the first central puzzle at the first
+   count, going up, where a rating completes within `W_screen`. Accepted clues minus today's start count, median: +2
+   on 12x12, 14x14 and 15x15b10 Nightmare, +4 on Hell 1 26x26, +1 on 26x26 Nightmare, 0 and −2 on the Masters.
+
+**The headline speed-ups and the share the shift may have.** Paired T10 ratios, today's search over the prototype, on
+matched seeds: 12x12 Nightmare 9.26 (n 3); 15x15b10 Nightmare 8.22 (n 2; ten puzzles reached on 2 of 3 seeds, then 3
+of 3); Hell 1 26x26 5.03 (n 2; 2 of 3, then 3 of 3); 14x14 Nightmare 3.82 (n 1, as today reaches ten on one of the
+three seeds) with a response ratio of 20.3 (n 3; 1 of 3, then 3 of 3); 26x26 Nightmare 2.01 (n 6); 14x14 Master 1.25
+(n 5); 26x26 Master 0.83 (n 5). IGP-01 cannot split these gains between a faster search and a cheaper population.
+Indications from the journals:
+
+- The cells with the largest gains have the largest shifts; the Masters, without an upward shift, gain nothing.
+- On 12x12, 14x14 and 15x15b10 Nightmare and Hell 1 26x26, today's search almost never rates at the prototype's
+  median number of unknown pieces U (one or two fewer than today's; 2 to 4 of its ratings per cell). Those ratings
+  were never capped, against 54 %, 21 %, 15 % and 30 % capped at today's median U, and on the three Nightmare cells
+  they cost a third to a half of today's median rating (Hell 1: about the same, n 2).
+- On 26x26 Nightmare, ratings at the two U cost the same (median 0.76 and 0.77 s; 2 % and 8 % capped; n 97 and 142):
+  its 2 times comes mostly from the search itself.
+
+A large but unmeasured part of the 5 to 9 times on 12x12 and 15x15b10 Nightmare and Hell 1 26x26, and of the
+completion gains on 14x14, 15x15b10 and Hell 1, may therefore come from the population shift; little of 26x26
+Nightmare's 2 times does.
+
+**Why it matters.** The level contract of difficulty-v3 is the score band; the clue count is not part of it, and OD-P1
+already accepts that `gen-v4` gives other puzzles per seed under P3's rule. It did not say that the population may move
+inside the band: one to three more given pieces per puzzle on Nightmare and Hell 1, towards the cheap end of the
+window. The score was built and validated on today's population; whether it ranks puzzles with more given pieces the
+same way is not tested here. The report's estimates assumed today's population, so these gains are not a like-for-like
+test of them. The answer constrains P3, P4 and `W_screen` (IG-P-Q09) before `gen-v4` is designed, and decides whether
+PM3's gate needs a population criterion.
+
+**Options.**
+
+- (a) The shift is acceptable for the level: the score band and its centre are kept. The gains stand as measured, and
+  PM3 keeps reporting the population per cell.
+- (b) P1 to P5 must keep today's clue-count distribution. Constraints: P4 starts at today's start count, not above it;
+  P3 may move the count up on a screen-capped probe only after a canonical re-rating, or `W_screen` must exceed the main
+  work of most useful ratings at today's counts (towards the canonical 760 M, that is no screen); a call may not accept
+  a hit above today's distribution. Expected loss: much of the gain on 12x12, 14x14 and 15x15b10 Nightmare and Hell 1
+  26x26 (removing today's dead end still helps there), little on 26x26 Nightmare. Not measured yet; IGP-03's 380 M arm
+  gives a first point.
+- (c) Another criterion, for example: (c1) a bound on the shift, such as the median clue count of the accepted puzzles
+  within one clue of today's on every cell, with P4's prior and `W_screen` fitted under that bound; (c2) a target count
+  per call, drawn from today's accepted distribution of the cell, the first central puzzle at that count being
+  accepted, so that P1 and P3 still remove the dead end while the population stays; (c3) a target position inside the
+  band, with a tie-break towards fewer clues among a call's central candidates.
+
+**What will be reported, and when (this provisional round).**
+
+- IGP-01 `compare-r2` (in preparation): this population table per cell, with today, the before arm and the after arm.
+- IGP-02 (PM4, next; about 25 minutes of machine time): on seven cells, 26x26 Master added, the clue share of the
+  useful ratings each `W_screen` (95, 190 and 380 M) discards against all useful ratings, and the cost of canonical
+  ratings from the start count to four clues above it: how much cheaper the shifted counts are.
+- IGP-03 (PM3 variants, after IGP-02; about 17 minutes): the 95 M and 380 M arms on 14x14 and 12x12 Nightmare, and
+  380 M on 26x26 Master, with T10 and the population per `W`: how the shift and the gain move together.
+- IGP-07: the round's summary, with the population beside every time verdict (check-list §5, R32).
+- The frozen round (post-MP17) repeats PM3 with larger cohorts; a prototype of option (b) or (c) can join it once one is
+  chosen.
+
+**Recommendation (Opus, the pack's author; Astra has not reviewed this question).** Neither (a) unconditionally nor
+(b) now. Decide after IGP-02 and IGP-03 report (about 40 minutes of machine time, in this round); until then, read the
+IGP-01 gains on 12x12, 14x14 and 15x15b10 Nightmare and Hell 1 26x26 as upper bounds for a population-preserving
+search. My expected answer is (c1): a bound of about one clue on the median per cell, checked as a population gate in
+phase 2's PM3 on the production code, with `W_screen` per level fitted by IG-P-Q09's criterion (the least expected
+work per accepted puzzle) under that bound; if 380 M keeps the population and most of the gain, that fit settles it.
+(a) only if the owner explicitly accepts more given pieces at the same score for these levels, ideally after a small
+blind play comparison of the two populations. (b) is the conservative fallback.
+
+**Evidence.**
+
+- `docs/improve-generating/evidence/provisional/IGP-01/compare.md`: the headline, the per-stage outcomes, the locate
+  results and the multipliers; `compare-r2.md`: the population table (in preparation).
+- `docs/improve-generating/evidence/provisional/IGP-01/before/` and `after/`: `*.runs.json` (the accepted puzzles:
+  `details.puzzles[].clues`, `U`, `score`, and `details.K`) and `*.calls.jsonl` (every rating with its phase, clue count,
+  outcome and time; each call's `locate` summary on its `end` line).
+- `docs/improve-generating/evidence/provisional/IGP-01/verify-after.md`: 413 of 413 ratings canonical.
+- `docs/difficulty-v3/landscape-v3-full/<case>-2026-11-1[34].json`: MP12b1, today's 20 reps per cell.
+- `tools/ig-proto/data/prior-v1.json` (P4's prior) and `tools/ig-proto/variants/files/p1p5/core/engine/ig-select-proto.js`
+  (the prototype).
+- `tasks/improve-generating/check-list.md` §5 (R32), `02-pm4-screen-certificate.md`, `03-pm3-variants-and-budgets.md`.
+
+Plan-author answer:

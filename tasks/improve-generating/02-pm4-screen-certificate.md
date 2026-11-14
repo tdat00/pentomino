@@ -4,9 +4,9 @@
 |---|---|
 | ID | IGP-02 |
 | Depends on | IGP-00 (accepted and committed); independent of IGP-01 |
-| Estimated size | Medium: about 450 new lines (`pm4.mjs`); about 1 to 2 hours of developer work; machine time about 23 minutes (projection: four `calls` invocations, three or four `screens` invocations, a dry run: nine locked commands at most; check-list §7) |
+| Estimated size | Medium: about 450 new lines (`pm4.mjs`); about 1 to 2 hours of developer work; machine time about 25 minutes (projection: four `calls` invocations, three or four `screens` invocations, a dry run: nine locked commands at most; check-list §7) |
 | Owner role | Measurement prototype |
-| Confirms or refutes | IG-P-Q01: the certificate "main work at the end ≤ `W_screen`, with every other limit unchanged" gives the canonical rating (R14); IG-P-Q09: useful ratings lost and misdirections at 95, 190 and 380 M (R15); report §4 P2: the saving on today's capped profiles (R17); the start-count capped share (R29, cross-check) |
+| Confirms or refutes | IG-P-Q01: the certificate "main work at the end ≤ `W_screen`, with every other limit unchanged" gives the canonical rating (R14); IG-P-Q09: useful ratings lost and misdirections at 95, 190 and 380 M (R15); report §4 P2: the saving on today's capped profiles (R17); the start-count capped share (R29, cross-check); where in the window the screen discards usable ratings, by clue share (R32's mechanism); the screen-capping behind IGP-01's 26x26 Master result (R07) |
 | Design refs | plan §3 P2, §5 PM4; report §4 (P2), §5 item 1, §6 item 2; `clarifications.md` IG-P-Q01 (b) with (c) as fallback, Q04 (record work and nodes to the first solution, the count tail and the census apart), Q09 (95 M kept as control); check-list §4 D-IG3, D-IG9, D-IG12, D-IG13 |
 | Label | provisional (pre-freeze); frozen re-run by check-list §6 |
 | Implementation status | Not started |
@@ -24,7 +24,7 @@ NONE), and measures what each `W_screen` costs and loses on today's profile mix.
 
 ### In scope
 
-- `pm4.mjs` with `calls`, `screens` and `report`; the corpus of six cells; boundary probes for the named cases; the
+- `pm4.mjs` with `calls`, `screens` and `report`; the corpus of seven cells; boundary probes for the named cases; the
   records.
 
 ### Out of scope
@@ -53,9 +53,10 @@ The check-list §3 and §7. Locked commands through the runner only; no git.
 
 ### Corpus
 
-Cells: `10x10-nightmare`, `12x12-nightmare`, `14x14-nightmare`, `15x15b10-nightmare`, `26x26-nightmare`, `26x26-hell-1`.
-Per cell four sets, seeds `ig-pm4/<case>/<i>` for i = 0 to 3, each the first attempt from 0 whose carve succeeds (up
-to 8). Per set:
+Cells: `10x10-nightmare`, `12x12-nightmare`, `14x14-nightmare`, `15x15b10-nightmare`, `26x26-nightmare`, `26x26-hell-1`,
+and `26x26-master` (added after the IGP-01 review: there the prototype screen-capped about 7 % of its probes at 190 M
+where today's search never capped, and its T10 was mixed). Per cell four sets, seeds `ig-pm4/<case>/<i>` for i = 0 to
+3, each the first attempt from 0 whose carve succeeds (up to 8). Per set:
 
 - **Call profiles:** today's set-stage call (`recordedCall` with the set's `calRng`, the production code path of
   `setAttempt`), every rating it makes, canonical, in order, streamed to the host. A call cut at the invocation
@@ -105,6 +106,7 @@ coverage of each named case.
 | shares | certified, `scap0`, `scap1`, `over` among the call profiles | Measured |
 | violations | certified results that differ from canonical (must be 0) | Measured |
 | useful ratings lost | canonical complete, in band and AR1-eligible profiles that are screen-capped at `W`, over all such profiles | Measured |
+| where the losses lie | the clue share (count / K) of the useful ratings lost against that of all useful ratings: median and p10 / p90 per `W` (the screen keeps the cheap, high-clue part of the window: R32's mechanism) | Measured |
 | misdirection | screen-capped profiles whose canonical side is below the band (P3 reads them as "too few clues": the wrong direction), and in band (lost), over all screen-capped | Measured |
 | cost ratio | Σ screen ms / Σ canonical ms over the call profiles | Derived |
 | net ratio | (Σ screen ms + Σ canonical ms of the lost useful ratings, re-rated once) / Σ canonical ms | Derived |
@@ -122,7 +124,7 @@ node tools\ig-proto\pm4.mjs screens --shard <name> --cases <id>[,<id>...] --labe
 node tools\ig-proto\pm4.mjs report --label <L> [--run-id <id>]
 ```
 
-- **Runs.** `--run-id` (default `main`) names an immutable run whose manifest is fixed in `pm4.mjs`: `main` = the six
+- **Runs.** `--run-id` (default `main`) names an immutable run whose manifest is fixed in `pm4.mjs`: `main` = the seven
   cells above × four sets × the three fixed `W` plus the boundary probes; `dry` = `10x10-nightmare` × one set. The
   first invocation of a run writes `tests/artifacts/ig-proto/<L>/IGP-02/<run-id>/run.json` (the manifest, `treeId`,
   harness hash); every invocation checks that file against the manifest, the tree and the harness, and exits 1 on a
@@ -160,7 +162,7 @@ node tools\ig-proto\pm4.mjs report --label <L> [--run-id <id>]
 
 ## Commands
 
-The run plan `tools/ig-proto/plans/IGP-02.json` (allocation 23 minutes; the runner adds `--label` and
+The run plan `tools/ig-proto/plans/IGP-02.json` (allocation 25 minutes; the runner adds `--label` and
 `--source-label`):
 
 | Step | Locked | Node arguments | projectS | State |
@@ -168,9 +170,9 @@ The run plan `tools/ig-proto/plans/IGP-02.json` (allocation 23 minutes; the runn
 | firewall-snapshot | no | `tools/ig-proto/firewall.mjs snapshot --task IGP-02` | | |
 | tree | no | `tools/ig-proto/lib/tree.mjs build instr` | | |
 | dry | yes, until done | `tools/ig-proto/pm4.mjs calls --run-id dry --shard all --cases 10x10-nightmare` | 90 | `IGP-02/dry/calls-all-state.json` |
-| calls-small | yes, until done | `tools/ig-proto/pm4.mjs calls --shard small --cases 10x10-nightmare,12x12-nightmare,26x26-nightmare` | 330 | `IGP-02/main/calls-small-state.json` |
+| calls-small | yes, until done | `tools/ig-proto/pm4.mjs calls --shard small --cases 10x10-nightmare,12x12-nightmare,26x26-nightmare,26x26-master` | 330 | `IGP-02/main/calls-small-state.json` |
 | calls-14x14, calls-15x15b10, calls-hell1 | yes, until done | `tools/ig-proto/pm4.mjs calls --shard <14x14, 15x15b10, hell1> --cases <14x14-nightmare, 15x15b10-nightmare, 26x26-hell-1>` | 330 | `IGP-02/main/calls-<shard>-state.json` |
-| screens | yes, until done | `tools/ig-proto/pm4.mjs screens --shard all --cases 10x10-nightmare,12x12-nightmare,14x14-nightmare,15x15b10-nightmare,26x26-nightmare,26x26-hell-1` | 330 | `IGP-02/main/screens-all-state.json` |
+| screens | yes, until done | `tools/ig-proto/pm4.mjs screens --shard all --cases 10x10-nightmare,12x12-nightmare,14x14-nightmare,15x15b10-nightmare,26x26-nightmare,26x26-hell-1,26x26-master` | 330 | `IGP-02/main/screens-all-state.json` |
 | report | no | `tools/ig-proto/pm4.mjs report` | | |
 | firewall-check | no | `tools/ig-proto/firewall.mjs check --task IGP-02` | | |
 
@@ -183,9 +185,9 @@ npm run check
 if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 ```
 
-`calls-small` holds twelve calls on four lanes (about 90 s); a Hell 1 26x26 call can make 64 profiles at up to about
+`calls-small` holds sixteen calls on four lanes (about 110 s); a Hell 1 26x26 call can make 64 profiles at up to about
 2.4 s each, so its cell has an invocation of its own, and a call still running at the deadline is recorded censored.
-Projection: calls about 330 s of node time, screens and boundary probes about 600 s (about 160 profiles per cell, three
+Projection: calls about 350 s of node time, screens and boundary probes about 680 s (about 160 profiles per cell, three
 fixed screens each, three boundary screens for the complete ones), dry run about 30 s; eight or nine locked commands,
 budgeted as nine.
 
@@ -210,7 +212,7 @@ budgeted as nine.
 
 | ID | Criterion | Evidence |
 |---|---|---|
-| IGP-02-B01 | The certificate is checked on real profiles of six cells and holds with 0 violations, or the task stops with the failing profiles; for each named case (overshoot stops, caps after the first solution, R7's early NONE) the observed runs are counted, and a case not observed is a named gap | `pm4.md` |
+| IGP-02-B01 | The certificate is checked on real profiles of seven cells and holds with 0 violations, or the task stops with the failing profiles; for each named case (overshoot stops, caps after the first solution, R7's early NONE) the observed runs are counted, and a case not observed is a named gap | `pm4.md` |
 | IGP-02-B02 | For 95, 190 and 380 M: the useful ratings lost, the misdirections and the cost on today's profile mix are given per cell, so that IG-P-Q09's fit has its inputs | `pm4.md` |
 
 ## Acceptance criteria — Technical
@@ -218,7 +220,7 @@ budgeted as nine.
 | ID | Criterion | Evidence |
 |---|---|---|
 | IGP-02-T01 | Screens change only `DEDUCE.work`; the canonical records carry work and nodes to the first solution, the count tail, the census apart, the stop and the R7 cuts | code review; `profiles-<case>.jsonl` |
-| IGP-02-T02 | Corpus as specified: six cells, four sets each, every call profile (censored calls included) and twelve window subsets per set; boundary probes for every complete profile with a known first solution; jobs in a fixed order; results in job order | `pm4.json`; code review |
+| IGP-02-T02 | Corpus as specified: seven cells, four sets each, every call profile (censored calls included) and twelve window subsets per set; boundary probes for every complete profile with a known first solution; jobs in a fixed order; results in job order | `pm4.json`; code review |
 | IGP-02-T03 | Every locked invocation stayed within its horizon and is in `invocations.jsonl`; `screens` resumed from its checkpoint; every shard kept its own immutable cell list and state, and the report covers each manifest cell exactly once; the dry run kept its own run id | runner log; `pm4.json` |
 | IGP-02-T04 | Records follow the check-list §3; `npm run check` and the firewall check pass | command output |
 

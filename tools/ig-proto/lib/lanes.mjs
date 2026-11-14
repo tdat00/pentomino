@@ -174,9 +174,9 @@ export async function createLanes({ variant, size = 4, horizonS, limits = {}, te
     treeId: tree.treeId,
     lanes,
     runAll,
-    /** @param {number} seconds A new horizon, measured from the process start (the self-test shortens it). */
+    /** @param {number} seconds A new horizon, measured from the process start; it may only lower the horizon. */
     setHorizon(seconds) {
-      horizon = seconds;
+      horizon = Math.min(horizon, seconds);
     },
     async close() {
       await Promise.all(lanes.map((l) => l.worker.terminate()));

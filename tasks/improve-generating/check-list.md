@@ -34,14 +34,14 @@ decisions of this pack (§4), not open questions for the developer.
 | Done | ID | File | Title | Depends on | Size | Machine time (projection) | Confirms or refutes (§5 rows) | Order |
 |---|---|---|---|---|---|---|---|---:|
 | [x] | IGP-00 | [00](00-harness-foundation.md) | Harness foundation: copies, variants, bounded runners, lanes, records, identity | none | Large, about 1,300 lines | 9 min | harness fidelity (R00) | 1 |
-| [ ] | IGP-01 | [01](01-p1p5-prototype-headline.md) | PM3 prototype of P1 to P5 and the headline before/after | IGP-00 | Large, about 950 lines | 62 min (high 78) | report §2 rows 14x14, 15x15b10, 12x12, 26x26 Nightmare, two Master cells, Hell 1 26x26; dead-end share; window profiles; batch waves; locate profiles (R01 to R08, R10 to R13, R18, R19, R29) | 2 |
-| [ ] | IGP-02 | [02](02-pm4-screen-certificate.md) | PM4: the screen certificate and the `W_screen` economics | IGP-00 | Medium, about 450 lines | 23 min | IG-P-Q01's certificate; P2's saving; useful ratings lost at 95, 190 and 380 M (R14, R15, R17) | 3 |
-| [ ] | IGP-03 | [03](03-pm3-variants-and-budgets.md) | PM3 variants (W 95 and 380 M, arity 3) and the P5 budget inputs | IGP-01 | Medium, about 300 lines | 20 min (+4 optional) | IG-P-Q08, Q09, Q10; re-rating cost (R16, R18, R20, R21) | 4 |
+| [x] | IGP-01 | [01](01-p1p5-prototype-headline.md) | PM3 prototype of P1 to P5 and the headline before/after | IGP-00 | Large, about 950 lines | 62 min (high 78) | report §2 rows 14x14, 15x15b10, 12x12, 26x26 Nightmare, two Master cells, Hell 1 26x26; dead-end share; window profiles; batch waves; locate profiles (R01 to R08, R10 to R13, R18, R19, R29) | 2 |
+| [ ] | IGP-02 | [02](02-pm4-screen-certificate.md) | PM4: the screen certificate and the `W_screen` economics | IGP-00 | Medium, about 450 lines | 25 min | IG-P-Q01's certificate; P2's saving; useful ratings lost at 95, 190 and 380 M (R14, R15, R17) | 3 |
+| [ ] | IGP-03 | [03](03-pm3-variants-and-budgets.md) | PM3 variants (W 95 and 380 M, arity 3) and the P5 budget inputs | IGP-01 | Medium, about 300 lines | 17 min (+4 optional) | IG-P-Q08, Q09, Q10; re-rating cost (R16, R18, R20, R21) | 4 |
 | [ ] | IGP-04 | [04](04-first-phase-factor.md) | First-phase factor: P6, and eight workers as an unadmitted upper bound | IGP-01 | Medium, about 200 lines | 28 min | P6, P8's upper bound, the ÷1.9 assumption, memory (R22, R23, R25, R26) | 5 |
 | [ ] | IGP-05 | [05](05-pm1-tranche1-slice.md) | PM1 tranche 1, reduced first slice | IGP-00 | Medium, about 450 lines | 23 min | windows of Hell 1 on 215-484 cells, Hell 2, Hell 3; fine counts; failed Hell 1 sets (R27 to R29) | 6 |
 | [ ] | IGP-06 | [06](06-pm2-kernel-profile.md) | PM2 rating profile on 10x10 and 12x12 Nightmare | IGP-00 | Small, about 300 lines | 8 min | P7's sensitivity; IG-P-Q12 (R24, R30) | 7 |
 | [ ] | IGP-07 | [07](07-results-summary.md) | Estimate-vs-measured summary and re-run index | IGP-01 to IGP-06 | Small, about 250 lines | none | the §5 table and R31 | 8 |
-|  |  |  | **Total** |  |  | **about 173 min (high case: §7)** |  |  |
+|  |  |  | **Total** |  |  | **about 172 min (actual so far: §7)** |  |  |
 
 Sizes count new harness lines. Developer time comes on top: about 3 to 4 hours each for IGP-00 and IGP-01, 1 to 2
 hours for the others. Machine time is counted as in §7 (node time plus the wrapper's 45 s quiet period per locked
@@ -222,10 +222,13 @@ The estimates are the analysts' **P1 to P5 scenario rows at four workers** (Opus
 §1.3-§1.4, reconciled factors applied to today's medians; Astra: `gpt-6-astra/2-cross-review.md` §6, "First search work
 P1-P5, 4W"), all Projections. The plan author: report midpoints and these values order the work; they are not gates.
 Descriptive verdicts (IGP-07): for a time, **below both**, **between** (each analyst's value widened by a factor 1.35
-for the small samples) or **above both**, and **inconclusive** with fewer than three paired values or no T10; for a
-factor with a stated range, **inside** or **outside**; for R14, **holds** or **fails**. A row that uses an unmeasured
-factor (P7) stays a Projection. A faster request that delivers fewer puzzles is never read as a gain: completion is
-always shown beside.
+for the small samples) or **above both**, and **inconclusive** with fewer than three after-arm values (requests that
+reached ten) in the matched cohort; a paired factor is always given with its n and is no factor estimate below n = 3
+(14x14 Nightmare in IGP-01: n = 1, because today reaches ten on one of its three seeds; its response ratio and
+completion carry the comparison). For a factor with a stated range, **inside** or **outside**; for R14, **holds** or
+**fails**. A row that uses an unmeasured factor (P7) stays a Projection. A faster request that delivers fewer puzzles is
+never read as a gain: completion is always shown beside. The estimates assume today's puzzle population; a measured
+shift of the accepted puzzles (R32) is reported beside every time verdict of the cell.
 
 | Row | Quantity | Estimate (kind; source) | Measured, provisional | Task, record | Verdict |
 |---|---|---|---|---|---|
@@ -261,6 +264,7 @@ always shown beside.
 | R29 | Capped share at the start count; window counts (14x14, 12x12, 26x26 Nightmare) | 0.89, 0.53, 0.10 (report §1, from MP12b1's samples) | | IGP-01 `before`, IGP-05 | |
 | R30 | Rating-time shares by phase and function on 10x10 and 12x12 Nightmare | unknown; P7 and P11 targets (IG-P-Q12) | | IGP-06 | |
 | R31 | After all phases (Projection): measured P1-P5 ÷ (measured P6 x eight-worker bound, with a stated transfer range) ÷ P7 assumption | the analysts' after-all values: 14x14 8.0 / 7.94 s, 15x15b10 6.3 / 7.22 s, 12x12 16 / 21.7 s, 26x26 7.0 / 8.84 s, Hell 1 26x26 15 / 25-30 s | | IGP-07 | |
+| R32 | Population of the accepted puzzles, before (and MP12b1's 20 reps) against after: clue share p10 / median / p90, U, score position in the band, central share, per cell | the same population (implicit in both analyses' factors) | | IGP-01 `compare-r2`; IGP-03 per `W` | |
 
 ## 6. Re-run on the frozen source
 
@@ -336,7 +340,9 @@ pack competes for the same quiet slots.
 - **Debugging runs.** A developer's locked run outside the task's plan (debugging, a partial self-test) also goes
   through the runner, with a scratch plan whose task id is `<task>-dev` (for example `IGP-01-dev`), so that its
   invocations are logged and count in the round's total (not in the task's cap). Invocation records, journals and
-  states are never deleted; the reply lists the debugging invocations and their counted time.
+  states are never deleted; the reply lists the debugging invocations and their counted time. Debugging output stays
+  under `tests/artifacts/ig-proto/` (the `selftest` label or an artifacts output folder), never under
+  `docs/improve-generating/evidence/`. No git command at all, not even `git --version`.
 - **Budget guard (D-IG11).** Before each locked invocation the allowance left is `A = min(1.25 × the task's §1
   allocation − the task's counted total, 10,800 s − the round's counted total)`, each cap raised by an approval. When
   `H` is below the step's `minHorizonS` (its smallest unit of work: R + 20 s for an arm step, otherwise the value in its
@@ -352,20 +358,23 @@ pack competes for the same quiet slots.
 |---|---:|---:|---:|---:|
 | IGP-00 | 6 | 4.5 min | 4.5 min | 9 min |
 | IGP-01 | 30 | 40 min (high 55) | 22.5 min | 62 min (high 78) |
-| IGP-02 | 9 | 16 min | 7 min | 23 min |
-| IGP-03 | 14 (+3 optional) | 9.5 min (+2 optional) | 10.5 min (+2 optional) | 20 min (+4 optional) |
+| IGP-02 | 9 | 18 min | 7 min | 25 min |
+| IGP-03 | 15 (+3 optional) | 6 min (+2 optional) | 11 min (+2 optional) | 17 min (+4 optional; allocation 22) |
 | IGP-04 | 16 | 16 min | 12 min | 28 min |
 | IGP-05 | 9 | 16 min | 7 min | 23 min |
 | IGP-06 | 3 | 5.5 min | 2.5 min | 8 min |
 | IGP-07 | 0 | 0 | 0 | 0 |
-| **Total** | **87** | **about 108 min** | **about 66 min** | **about 173 min** |
+| **Total** | **88** | **about 106 min** | **about 67 min** | **about 172 min** |
 
 Counts follow the bounds above: one slow row per invocation, every self-test, dry run and verification invocation
-included. The high case is a prototype that gains nothing on the slow cells: IGP-01 then takes about 78 min, and IGP-03
-and IGP-04 would take about 18 and 10 min more if they ran unchanged (about 217 min in all); the pack author then
-re-plans IGP-03 and IGP-04 after IGP-01 instead, and the guard stops the round at 180 min unless the orchestrator
-approves more (D-IG11). About 38 % of the counted time is the wrapper's quiet period, the price of one slow request per
-invocation.
+included. The high case of a prototype that gains nothing did not happen (IGP-01). About 38 % of the counted time is the
+wrapper's quiet period, the price of one slow request per invocation.
+
+**Actual after IGP-01** (from the invocation logs): 4,087 s counted (68.1 min): IGP-00 407.9 s and its debugging 356 s
+(a reconstructed line), IGP-01 3,152.4 s (52.5 min against its 62) and its debugging 170.5 s. Left in the round:
+6,713 s (111.9 min) for IGP-02 to IGP-06, projected at about 101 min (25 + 17 + 28 + 23 + 8; the optional step of
+IGP-03 not included, to be run only if at least 15 min remain after IGP-04). The guard stops the round at 180 min
+unless the orchestrator approves more (D-IG11).
 
 ## 8. Evidence and sign-off
 
@@ -383,7 +392,7 @@ has pushed `improve-generating`. The plan author then receives the summary for p
 | ID | Status | Start | End | Machine time (counted) | Lock waits | Commit |
 |---|---|---|---|---|---|---|
 | IGP-00 | accepted (R00 holds; self-test 9/9) | 2026-11-14 21:00 | 21:56 (accepted 22:10) | 407.9 s (+ 356 s reconstructed debug) | 496.5 s | `improve-generating IGP-00` |
-| IGP-01 | not started | | | | | |
+| IGP-01 | accepted (headline measured; population shift, IG-P-Q17) | 2026-11-14 22:07 | 2026-11-15 00:41 (accepted 00:50) | 3,152 s (+ 170.5 s dev) | 4,912 s | `improve-generating IGP-01` |
 | IGP-02 | not started | | | | | |
 | IGP-03 | not started | | | | | |
 | IGP-04 | not started | | | | | |

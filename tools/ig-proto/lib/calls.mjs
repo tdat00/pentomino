@@ -1,6 +1,8 @@
 // @ts-check
 // Recorded calls, screened and canonical ratings, window subsets (IGP-00 §5). Every function takes the engine of a
 // tree (lib/engine.mjs), so the same code measures `base`, `instr`, `log` and the prototype trees.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const round3 = (/** @type {number} */ x) => Math.round(x * 1000) / 1000;
 
@@ -74,6 +76,9 @@ function toRecord(engine, { count, rating, error, ms, ins, W, levelId, idx }) {
     if (ar1) {
       flags += 'r';
     }
+    if ((ins?.r7CutCensus ?? 0) > 0) {
+      flags += 'c';
+    }
     if (side === null) {
       outcome = 'rated';
     } else if (ar1) {
@@ -121,6 +126,7 @@ function toRecord(engine, { count, rating, error, ms, ins, W, levelId, idx }) {
     censusNodes,
     stop,
     r7Cut: ins?.r7Cut ?? null,
+    r7CutCensus: ins?.r7CutCensus ?? null,
     ms,
     flags,
     ...extra,
@@ -165,8 +171,8 @@ export function rateRecord(engine, o) {
 
 /**
  * Today's `selectClues` of the tree on the witness (`uniqueness 'any'`, no exclusion) with a `rate` seam that records
- * every rating. On a `log` tree the logger's own tuple loses the instrumentation fields, because this seam consumes
- * `igTake()` first: use the `instr` tree for recorded calls.
+ * every rating. It throws on a tree whose chain includes `log`: there the seam would consume `igTake()` before the
+ * journal does. Use the `instr` or `base` tree.
  * @param {import('./engine.mjs').Engine} engine
  * @param {{ set: any, levelId: string, rng: any, ws: any, onProfile?: (record: Record<string, any>) => void }} o
  *   `set` is a PieceSet or a carve result holding one.
@@ -174,6 +180,10 @@ export function rateRecord(engine, o) {
  *   profiles: Record<string, any>[] }}
  */
 export function recordedCall(engine, { set, levelId, rng, ws, onProfile }) {
+  const chain = JSON.parse(readFileSync(join(engine.root, 'ig-tree.json'), 'utf8')).chain ?? [];
+  if (chain.includes('log')) {
+    throw new Error('recordedCall refuses a tree whose chain includes log: its rate seam would take igTake() before the journal');
+  }
   const pieceSet = set.set ?? set;
   const { board, pieces, witness } = pieceSet;
   /** @type {Record<string, any>[]} */

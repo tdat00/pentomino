@@ -80,7 +80,10 @@ taking at most what remains, so a call never makes more than four (D-IG7).
 **Screened rating.** `screen(clues)`: `measureV3(board, pieces, clues, ws, { deduce: { ...DEDUCE, work: W }, dlx:
 SCORE.caps })` and the rating built as `rate()` builds it (`rate()` itself when `W >= DEDUCE.work`). Test seams
 (self-test only): `ctx.igScreen(clues, W)` and `ctx.igCanonical(clues)` replace the screened and the canonical rating;
-`ctx.igPrior` (a number or null), when defined, replaces the table lookup.
+`ctx.igPrior` (a number or null), when defined, replaces the table lookup; `ctx.igW` replaces the call's `W`
+(accepted after the IGP-01 review, as are the exported `nearestFirst` for its test, `self-test.mjs --task`,
+`verify.mjs --step`, `compare.mjs --out-dir` for scratch output under `tests/artifacts/` only, and the `trees` step
+building `instr` and `p1p5` too).
 
 **`probe(idx, phase)`** (replaces `rateSubset`): skipped (returns null, no profile) when `profiles >= limit`, the subset
 was tried, or its clue key is excluded, exactly as today. Otherwise one screened rating through `recordRating` of
@@ -231,6 +234,7 @@ in both arms** (matched cohorts), and writes `docs/improve-generating/evidence/<
 | work per accepted puzzle | per request: Σ work of the batch and completion calls / `acceptedCount` (and with the set stage), with the unfinished calls' unknown tails reported beside; median | R16 input |
 | waves (proxy) | per request that reached ten: (T10 − T1) / the median ms of its ok batch calls; median. A proxy: it ignores layout work and counts speculative and rejected calls | R13 |
 | set-stage share | per request that reached ten: T1 / T10; median (IG-P-Q02's reserve) | |
+| population (`compare-r2`, added after the IGP-01 review) | per cell, the accepted puzzles of the before arm, the after arm and MP12b1's 20 reps: clue share (clues / K) p10 / median / p90, U median, K median, score position in the band ((score − min) / (max − min)) median, central share | R32 |
 
 The Markdown gives, per cell: MP12b1 on the same seeds, the before arm, the after arm, the paired ratios and the
 completion; then the per-stage tables; then the §5 values with their kind and formula. Every "after" value is labelled
@@ -327,6 +331,13 @@ about 90 s; about 30 locked commands, 22.5 minutes of quiet periods.
   t1, t10, response, stages }, after: { ... }, paired: { seeds: [...], t10Ratio, responseRatio, completion,
   fewerPuzzles }, drift, identity } } }], rows: { R01: { value, kind, formula }, ... }, journal: { appends, appendCostMs } }`;
   `compare.md` as §4.
+- `compare-r2.json|md` (a correction file, after the IGP-01 review; `compare.json|md` stay as written): the same content
+  plus, per cell, `population: { mp12b1, before, after }` (§4 "population") and three notes in the Markdown: the
+  estimates are the P1-P5 rows at four workers applied to MP12b1's 20-rep T10 medians, while the measured values are
+  medians of 3 to 6 matched seeds and come from a shifted population (R32); 14x14 Nightmare's paired T10 factor has n = 1
+  (today reaches ten on one of its three seeds), so its response ratio and completion carry the comparison; 26x26
+  Master is mixed (paired T10 ratios 0.38 to 2.13, two seeds faster, three slower, n = 5) and its after arm screen-capped
+  about 7 % of its probes where the before arm never capped. Unlocked; no machine time.
 
 ## Acceptance criteria — Business
 
@@ -395,14 +406,14 @@ about 90 s; about 30 locked commands, 22.5 minutes of quiet periods.
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (pack author: IGP-01 ACCEPT; `compare-r2` written before IGP-02; IG-P-Q17 raised to the plan author) |
+| Start | 2026-11-14 22:07 (+07:00) |
+| End | 2026-11-15 00:41 developer (plan 22:44-00:39, exit 0); 00:50 author acceptance; 00:55 `compare-r2`; orchestrator commit |
+| Duration | 2 h 34 min developer; 26 locked invocations (node 1,982 s, counted 3,152 s of the 4,650 s cap; priority wait 4,912 s, not counted); IGP-01-dev 2 runs (170.5 s counted); round total counted 4,087 s of 10,800 s |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (pack author review, opus-ig); claude-opus-5.5 (orchestrator) |
+| Token usage | 158 model calls; 55,940,510 input tokens (54,909,891 cache reads); 256,768 output tokens |
+| AI credits | about 1,064 (developer) |
+| Verification | Step 0: self-test 13/13 (IGP-00's cases 1-9 and four `--proto` cases): failed-invocation charging (node seconds, 300 if killed, plus 45 s grace, never the wait), `r7Cut`/`r7CutCensus` split with the `c` flag, `recordedCall` refuses a `log` tree, `setHorizon` lower-only. Headline (provisional; T10 median, before -> after; paired ratio): 14x14 Nightmare 46.54 s (1 of 3 reach ten) -> 8.94 s (3 of 3), 3.82 (n 1), response 20.3 (n 3); 15x15b10 Nightmare 59.52 -> 8.45 s, 8.22; 12x12 Nightmare 53.12 -> 5.74 s, 9.26; 26x26 Nightmare 26.53 -> 11.94 s, 2.01; 14x14 Master 3.17 -> 2.66 s, 1.25; 26x26 Master 12.26 -> 13.43 s, 0.83 (mixed: 0.38-2.13); Hell 1 26x26 149.87 s (2 of 3) -> 37.25 s (3 of 3), 5.03. Before arm equals MP12b1 on all 28 seeds (`resultDigest`); 413/413 accepted ratings equal canonical on `base`; firewall 279 production files unchanged; `npm run check` passes. Evidence: `docs/improve-generating/evidence/provisional/IGP-01/` (`compare`, `compare-r2`, `verify-after`, runs and journals) |
+| Acceptance | B01-B03, T01-T06 met (developer; confirmed by the pack author's read-only review) |
+| Issues & resolutions | (1) **The prototype makes different puzzles** (author finding, recorded in `compare-r2`): median clue share after vs MP12b1 is +0.053 (12x12 N), +0.065 (14x14 N), +0.045 (15x15b10 N), +0.077 (Hell 1 26x26), +0.033 (26x26 N), +0.013 (14x14 M), -0.029 (26x26 M): 1-3 more clues per puzzle on Nightmare and Hell 1 at the same score. Part of the speed-up comes from the population shift; raised as IG-P-Q17 to the plan author. (2) Like-with-like: the estimate column is the P1-P5 rows (R02-R08), applied to MP12b1's 20-seed medians, assuming today's puzzles. (3) 14x14 Nightmare's paired factor rests on one seed; 26x26 Master is mixed, with 39 of 550 probes screen-capped at W = 190 M (none before), measured further in IGP-02/IGP-03. (4) No real rescue, P5 no-window end or re-rating occurred; those paths ran in the synthetic tests only. (5) The dev evidence copy under `docs/` was deleted (raw logs and records kept under `tests/artifacts`, accepted); additions `ctx.igW`, `nearestFirst`, `--task`, `--out-dir`, `--step` accepted; one stray `git --version` with no repository access |
+| Handoff | IGP-02: add `26x26-master` to the PM4 corpus and report where the lost useful ratings lie by clue share per W; R7 coverage from the main-search `r7Cut` only; debug runs as `IGP-02-dev`; about 112 min left in the round. IGP-03: the 380 M arm adds 26x26 Master reps 0-4 and reports the population per W. IG-P-Q17 open with the plan author |

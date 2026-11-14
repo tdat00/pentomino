@@ -4,9 +4,9 @@
 |---|---|
 | ID | IGP-03 |
 | Depends on | IGP-01 (accepted and committed); IGP-02's per-`W` losses are read when present |
-| Estimated size | Medium: about 300 new lines (the arity-3 and window-rerate branches of `ig-select-proto.js` about 90, `budgets.mjs` 120, `compare.mjs` additions 60, four manifests, the plan); about 1 to 2 hours of developer work; machine time about 20 minutes, plus 4 for the optional step |
+| Estimated size | Medium: about 300 new lines (the arity-3 and window-rerate branches of `ig-select-proto.js` about 90, `budgets.mjs` 120, `compare.mjs` additions 60, four manifests, the plan); about 1 to 2 hours of developer work; machine time about 17 minutes (allocation 22, a margin for slower rows), plus 4 for the optional step |
 | Owner role | Measurement prototype |
-| Confirms or refutes | IG-P-Q09: work per accepted puzzle at 95, 190 and 380 M on 14x14 and 12x12 Nightmare (R16); IG-P-Q08: the arity-3 set stage, every probe counted, with an idealised call-level T1 bound only (R20); IG-P-Q10: inputs for P5's per-level budgets (R21); the re-rating cost (R18) |
+| Confirms or refutes | IG-P-Q09: work per accepted puzzle at 95, 190 and 380 M on 14x14 and 12x12 Nightmare (R16); IG-P-Q08: the arity-3 set stage, every probe counted, with an idealised call-level T1 bound only (R20); IG-P-Q10: inputs for P5's per-level budgets (R21); the re-rating cost (R18); how the accepted puzzles' clue counts depend on `W` (R32); whether 380 M removes IGP-01's mixed 26x26 Master result (R07) |
 | Design refs | `clarifications.md` IG-P-Q01 (re-rating), Q08, Q09, Q10; plan §3 P1 (parallel variant), P5; check-list §4 D-IG5, D-IG7, D-IG8, D-IG12 |
 | Label | provisional (pre-freeze); frozen re-run by check-list §6 |
 | Implementation status | Not started |
@@ -111,6 +111,9 @@ enforced (D-IG9), and the record says these are inputs, not fitted budgets.
   profiles per accepted puzzle, screen-capped probes, re-ratings per call and their share of work, useful ratings lost
   (screen-capped probes whose canonical re-rating was in band), unfinished calls, and the `W` with the least median work
   per accepted puzzle on these two seeds (R16, descriptive), with IGP-02's per-`W` losses beside it when present;
+- per `W` and cell, the population of the accepted puzzles (R32, as IGP-01's `compare-r2`): clue share p10 / median /
+  p90, U, score position and central share, beside the before arm and MP12b1's 20 reps, so that the dependence of the
+  clue-count shift and of the speed-up on `W` is read together;
 - for `a3`: probes per set-stage call against IGP-01's after arm on the same seeds (wasted probes included), the
   rounds, serial and critical ms, the idealised call-level T1 bound and the measured T1 of both arms (R20).
 
@@ -119,12 +122,13 @@ enforced (D-IG9), and the record says these are inputs, not fitted budgets.
 | Arm | Variant | Cells and reps | Row limit R | Paired with (matched seeds) |
 |---|---|---|---:|---|
 | w095 | `p1p5-w095` | 14x14-nightmare 0-1; 12x12-nightmare 0-1 | 260 s | IGP-01 before and after, reps 0-1 |
-| w380 | `p1p5-w380` | the same | 260 s | IGP-01 before and after, reps 0-1 |
+| w380 | `p1p5-w380` | the same; and 26x26-master 0-4 (shard `fast-master`) | 260 s; 90 s for 26x26-master | IGP-01 before and after, reps 0-1 (26x26-master: 0-4) |
 | a3 | `p1p5-main-a3` | 14x14-nightmare 0-1; 26x26-hell-1 0-1 | 260 s | IGP-01 after, reps 0-1 |
 | rerate-window (optional) | `p1p5-w190-rerate-window` | 12x12-nightmare 0-1 | 260 s | IGP-01 after, reps 0-1 |
 
-Four workers; one row per invocation (check-list §7). Each arm's accepted ratings are verified canonically
-(`verify.mjs`).
+Four workers; one row per invocation on the 260 s shards (check-list §7); the five 26x26 Master rows share a 90 s shard
+(added after the IGP-01 review: does W = 380 M remove that cell's mixed result and its screen-capping?). Each arm's
+accepted ratings are verified canonically (`verify.mjs`).
 
 ## Files to create/modify
 
@@ -149,8 +153,9 @@ Four workers; one row per invocation (check-list §7). Each arm's accepted ratin
 
 ## Commands
 
-The run plan `tools/ig-proto/plans/IGP-03.json` (allocation 20 minutes, `optionalMinutes` 4; the runner adds `--label`
-and `--source-label`; arm steps are `tools/ig-proto/arm.mjs run --task IGP-03 ... --workers 4 --row-limit-s 260`):
+The run plan `tools/ig-proto/plans/IGP-03.json` (allocation 22 minutes, `optionalMinutes` 4; the runner adds `--label`
+and `--source-label`; arm steps are `tools/ig-proto/arm.mjs run --task IGP-03 ... --workers 4 --row-limit-s 260`
+unless stated):
 
 | Step | Locked | Node arguments | projectS | State |
 |---|---|---|---:|---|
@@ -159,6 +164,7 @@ and `--source-label`; arm steps are `tools/ig-proto/arm.mjs run --task IGP-03 ..
 | self-test-proto | yes, once | `tools/ig-proto/self-test.mjs --proto` | 135 | `IGP-03/self-test/state.json` |
 | w095-14x14, w095-12x12 | yes, until done | `--arm w095 --shard <case> --variant p1p5-w095 --cases <case>:0-1` | 330 | `IGP-03/w095/<case>/state.json` |
 | w380-14x14, w380-12x12 | yes, until done | the same with `--arm w380 --variant p1p5-w380` | 330 | |
+| w380-master | yes, until done | `--arm w380 --shard fast-master --variant p1p5-w380 --cases 26x26-master:0-4 --row-limit-s 90` | 120 | `IGP-03/w380/fast-master/state.json` |
 | a3-14x14, a3-hell1 | yes, until done | `--arm a3 --shard <case> --variant p1p5-main-a3 --cases 14x14-nightmare:0-1` and `26x26-hell-1:0-1` | 330 | |
 | rerate-window-12x12 | yes, until done; optional | `--arm rerate-window --shard 12x12-nightmare --variant p1p5-w190-rerate-window --cases 12x12-nightmare:0-1` | 330 | |
 | verify | yes, until done | `tools/ig-proto/verify.mjs --task IGP-03 --arm w095,w380,a3` | 150 | `IGP-03/verify/state.json` |
@@ -177,11 +183,11 @@ npm run check
 if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 ```
 
-Projection: twelve rows (one per invocation, check-list §7; about 30 to 60 s each if the scenario rows hold, about 430
-s with their overhead), one verify invocation (about 60 s), the self-test (about 90 s): fourteen locked commands, about
-9.5 minutes of node time and 10.5 of quiet periods; the optional arm adds two rows and one verify invocation (about 4
-minutes). If IGP-01 shows that the prototype gains nothing, the rows take about today's times (about 28 minutes of node
-time) and the pack author re-plans this task before it runs.
+Projection: twelve rows on the 260 s shards (one per invocation, check-list §7) and five 26x26 Master rows in one 90 s
+invocation; at IGP-01's measured after-arm speed (14x14 Nightmare about 10 s, 12x12 about 8 s, Hell 1 26x26 about 35
+s, 26x26 Master about 14 s per request) about 250 s of rows with their overhead, one verify invocation (about 60 s),
+the self-test (about 30 s): fifteen locked commands, about 6 minutes of node time and 11 of quiet periods, 17 minutes
+in all (allocation 22); the optional arm adds two rows and one verify invocation (about 4 minutes).
 
 ## Record formats
 
@@ -189,8 +195,8 @@ time) and the pack author re-plans this task before it runs.
 - `budgets.json`: `{ meta, budgets: [1e9, 2e9, 4e9, 6e9, 8e9, 12e9], arms: { '<arm>': { workPerMs, cells: { '<case>': {
   '<stage>': { okCalls, failedCalls, unfinishedCalls, okBeyond: { '<B>': share }, failedAbove: { '<B>': units } } } } } }
   }`; `budgets.md` with one table per cell and the caveats of §4.
-- `compare.json|md` with the per-`W` table (R16), the arity-3 table (R20, labelled a Projection) and the re-rating
-  figures (R18).
+- `compare.json|md` with the per-`W` table (R16), the per-`W` population table (R32), the arity-3 table (R20, labelled a
+  Projection) and the re-rating figures (R18).
 
 ## Acceptance criteria — Business
 
