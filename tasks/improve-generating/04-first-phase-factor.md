@@ -3,7 +3,7 @@
 | Header | Value |
 |---|---|
 | ID | IGP-04 |
-| Depends on | IGP-01 (accepted and committed) |
+| Depends on | IGP-01 (accepted and committed); IGP-03 (accepted): `ig-select-proto.js` carries the arity-3 branch, so the `p1p5` tree ids differ from IGP-01's while the default path is unchanged |
 | Estimated size | Medium: about 200 new lines (two manifests with edits, three compositions, the P6 branch of `ig-log.js` and its call in `ig-select-proto.js`, factor, identity and memory sections of `compare.mjs`, the plan); about 1 to 2 hours of developer work; machine time about 28 minutes |
 | Owner role | Measurement prototype |
 | Confirms or refutes | report §4: P6 x 1.03-1.2 at Nightmare and x 1.15-1.6 at Master (R22); P8's batch x 1.3-1.9 and set stage x 1.0-1.3 as an **unadmitted upper bound** (R23); the first-phase factor ÷1.9 (Opus's illustrative assumption) with P7 still assumed (R25, a Projection); both memory criteria at eight workers (R26) |
@@ -51,6 +51,10 @@ The check-list §3 and §7. Eight-worker arms run only under the wrapper like ev
   329-359 (accounted limit = worker count × `WORKER_LIMIT_BYTES` + `MAIN_BUDGET_BYTES`).
 - MP12b1's peaks with four workers: at most 404 MiB accounted and 655 MiB per process (report §5 item 6); eight 224 MiB
   ceilings plus the main budget give 2,092 MiB accounted in the worst case.
+- Tree ids (after the IGP-03 review): IGP-03 added the arity-3 branch to `ig-select-proto.js`, and this task adds the
+  `withP6` call, so the `p1p5-main` tree of arm E differs from IGP-01's (`treeId` 6e1ff491…). The default path is
+  unchanged: IGP-03's `a3` arm reproduced IGP-01's after-arm puzzles on all four of its requests (equal `resultDigest`
+  and `igPuzzleKeys`). Arms pair by seed, never by tree id; every record names its tree ids.
 
 ## Design
 
@@ -93,9 +97,11 @@ The check-list §3 and §7. Eight-worker arms run only under the wrapper like ev
 | E | `p1p5-main` | 4 | 14x14-nightmare 0-1 | 260 s |
 | F | `p1p5-main-p6-w8` | 8 | 14x14-nightmare 0-1 | 260 s |
 
-A and E are run again here (not taken from IGP-01) so that each factor compares runs of one session. MP12b1's
-responses on A's fast seeds total about 150 s; 12x12 Nightmare reps 0-1 about 100 s; 14x14 Nightmare after P1-P5 is
-projected at about 15 to 25 s per request.
+A and E are run again here (not taken from IGP-01) so that each factor compares runs of one session. E also checks the
+prototype's default path after the arity-3 and `withP6` changes: its puzzles must equal IGP-01's after arm on both seeds
+(`resultDigest`; a difference is a stop). MP12b1's responses on A's fast seeds total about 150 s; 12x12 Nightmare reps
+0-1 about 100 s (IGP-01's before arm: 73.0 and 27.9 s); 14x14 Nightmare after P1-P5 takes about 6 to 9 s per request
+(IGP-01's after arm: 5.5 and 8.9 s; IGP-03's 190 M T10 median 7.2 s).
 
 ### 4. Factors, identity and memory (`compare.mjs` additions)
 
@@ -115,9 +121,10 @@ The first-phase factor (R25) is a Projection: A:C's T10 factor × the P7 assumpt
 ÷1.9; the same on E:F. Every eight-worker figure carries the label "unadmitted upper bound". P6's work saving is also
 given from the call journals of A and B (Σ rating ms per call with and without the diagnostic), a finer measure than
 the request ratio. Identity: prefix identity (check-list §3; every arm here runs a keyed tree) between A and B, A and
-C, and E and F on every seed (required; a difference is a stop). Memory, per row of every arm: `peakAccountedBytes`
-against worker count × `WORKER_LIMIT_BYTES` + `MAIN_BUDGET_BYTES` (constants read from the arm's tree) and
-`peakProcessBytes` against 1.5 GiB; pass or fail and the maximum per arm (R26).
+C, and E and F on every seed, and digest identity between E and IGP-01's after arm (required; a difference is a stop).
+Memory, per row of every arm: `peakAccountedBytes` against worker count × `WORKER_LIMIT_BYTES` + `MAIN_BUDGET_BYTES`
+(constants read from the arm's tree) and `peakProcessBytes` against 1.5 GiB; pass or fail and the maximum per arm
+(R26).
 
 ## Files to create/modify
 
@@ -126,13 +133,17 @@ against worker count × `WORKER_LIMIT_BYTES` + `MAIN_BUDGET_BYTES` (constants re
 | `tools/ig-proto/variants/p6.json`, `w8.json`, `log-p6.json`, `log-p6-w8.json`, `p1p5-main-p6-w8.json` | new |
 | `tools/ig-proto/variants/files/log/core/engine/ig-log.js` | `withP6`; `igDispatch` uses it |
 | `tools/ig-proto/variants/files/p1p5/core/engine/ig-select-proto.js` | wraps its search in `withP6` |
-| `tools/ig-proto/compare.mjs` | factors, identity across arms, memory |
+| `tools/ig-proto/compare.mjs` | factors, identity across arms (E against IGP-01's after arm included), memory; the arity-3 note of the IGP-03 study (step 0) |
 | `tools/ig-proto/self-test.mjs` | a `--p6` case |
 | `tools/ig-proto/plans/IGP-04.json` | new |
 | `docs/improve-generating/evidence/provisional/IGP-04/` | new records |
 
 ## Implementation steps
 
+0. Fix from the IGP-03 review, first: in `compare.mjs`, the arity-3 section of the IGP-03 study no longer states "their
+   puzzles differ (the arity-3 probe order changes the random stream)"; it states per seed whether the two arms' puzzles
+   are identical, from `resultDigest`. On IGP-03's four requests they are identical, so its T1 comparison is between
+   runs with the same results. IGP-03's published record stays as it is; its execution log carries the correction.
 1. The manifests and `withP6`; a `--p6` self-test case: on the corpus of IGP-00's case 4, a `log-p6` call returns a
    rating that deep-equals the `log` call's, and the profiles inside it skipped the diagnostic (the check is the
    equality; the skipped calls are counted).
@@ -165,11 +176,11 @@ npm run check
 if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 ```
 
-Projection: fast shards about 150 to 190 s each (A, B, C; one or two invocations each, six budgeted), 12x12 rows about
-50 s each and 14x14 rows about 20 s each (eight rows, one per invocation), one verify invocation (about 90 s), the
-self-test (about 60 s): sixteen locked commands, about 16 minutes of node time (per-row process start included) and 12
-of quiet periods. If IGP-01 shows that the prototype gains nothing, E and F take about today's 14x14 times (about 10
-minutes more) and the pack author re-plans them before this task runs.
+Projection (restated after IGP-03): fast shards about 150 to 190 s each (A, B, C; one or two invocations each), 12x12
+rows 28 to 73 s for A and less for C, 14x14 rows about 6 to 9 s for E and less for F, one verify invocation (about 90
+s), the self-test (about 60 s). Rows share an invocation when the horizon admits them (IGP-03 used 13 locked
+invocations instead of 19), so about 12 to 16 locked commands: about 13 minutes of node time (per-row process start
+included) and 9 to 12 of quiet periods, about 23 minutes likely; the allocation stays 28 minutes.
 
 ## Record formats
 
@@ -191,7 +202,7 @@ minutes more) and the pack author re-plans them before this task runs.
 
 | ID | Criterion | Evidence |
 |---|---|---|
-| IGP-04-T01 | Prefix identity holds between A and B, A and C, E and F on every seed; every accepted rating of B, C, F equals its canonical rating | `compare.md`; `verify-<arm>.md` |
+| IGP-04-T01 | Prefix identity holds between A and B, A and C, E and F on every seed, and E's puzzles equal IGP-01's after arm on both seeds (`resultDigest`); every accepted rating of B, C, F equals its canonical rating | `compare.md`; `verify-<arm>.md` |
 | IGP-04-T02 | Without `p6` in the chain the trees load and behave as before (the IGP-00 and IGP-01 self-tests pass); `igDlx.skip` is restored after every call | self-test output; code review |
 | IGP-04-T03 | Locked commands within their horizons, in `invocations.jsonl`; records per the check-list §3; `npm run check` and the firewall check pass | runner log; command output |
 

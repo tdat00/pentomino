@@ -36,7 +36,8 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `identity.mjs` | identity of the arms against MP12b1 (`identity.json` and `identity.md`) |
 | `fit-prior.mjs`, `data/prior-v1.json` | P4's table prior, fitted from MP12b1's reps 10-19 (IGP-01) |
 | `verify.mjs` | every accepted prototype rating against its canonical rating (IGP-01) |
-| `compare.mjs` | paired before/after comparison on matched seeds (IGP-01) |
+| `compare.mjs` | paired comparison on matched seeds (IGP-01); with task-qualified arms (`IGP-01/before:w095`) a study (IGP-03): per-W, population, split, shift, offset, 26x26 Master and arity-3 sections beside IGP-02's PM4 record, and the check of the no-screen journals |
+| `budgets.mjs` | P5's budget inputs per arm, cell and stage from the journals: `budgets.json|md` (IGP-03; unlocked) |
 | `compare-r2.mjs` | corrected comparison record of IGP-01 (`compare-r2.json|md`): puzzle population per cell, like-with-like caveats, the n = 1 and mixed-cell readings; analysis of the published runs only, unlocked |
 | `pm4.mjs` | PM4 (IGP-02): `calls`, `screens` (locked) and `report` (unlocked): the screen certificate and the `W_screen` economics |
 | `firewall.mjs` | snapshot and check of the production files |
@@ -61,6 +62,9 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `log` | `instr` | today's search logged per probe (`core/engine/ig-log.js`): the exported `selectClues` dispatches to the unchanged search |
 | `p1p5` | `log` | the prototype of P1 to P5 (`core/engine/ig-select-proto.js`, IGP-01): `selectClues` is the prototype; `W` 190 M for every level; the P4 table prior (`paramFiles`) |
 | `p1p5-main` | `p1p5` | the same with `W` 380 M for the Hell levels (D-IG5): the arm of the headline |
+| `p1p5-w095`, `p1p5-w380` | `p1p5` | `W` 95 M (the control) and 380 M for every level (IGP-03) |
+| `p1p5-w760` | `p1p5` | `W` 760 M, the canonical limit: no screen, so a capped probe is a canonical cap (IGP-03) |
+| `p1p5-main-a3` | `p1p5-main` | `a3: true`: the arity-3 bisection of phase A in the set stage (IGP-03) |
 
 Every variant except `base` gets `core/engine/ig-params.js` (`IG`, the merged params) and lists its added engine files
 in the copy's `SOURCE_FILES` (`meta-2`), so that the copy's own source digest tells variants apart. `treeId` is the
@@ -71,7 +75,7 @@ the `cells` of the JSON file under `params.prior` and the file into `treeId`.
 ```powershell
 node tools\ig-proto\lib\tree.mjs list
 node tools\ig-proto\lib\tree.mjs check-edits --all      # lists every edit whose anchor no longer matches
-node tools\ig-proto\lib\tree.mjs build base instr log p1p5 p1p5-main   # prints: <id> <treeId> <copyDigest> built|reused
+node tools\ig-proto\lib\tree.mjs build base instr log p1p5 p1p5-main p1p5-w095 p1p5-w380 p1p5-w760 p1p5-main-a3   # prints: <id> <treeId> <copyDigest> built|reused
 ```
 
 ## Commands
@@ -94,6 +98,8 @@ node tools\ig-proto\self-test.mjs --label selftest [--only 1,3] [--proto] [--tas
 node tools\ig-proto\fit-prior.mjs [--replace]       # recomputes data\prior-v1.json; exit 1 when it differs (unlocked)
 node tools\ig-proto\verify.mjs --task T --arm A[,A2] --label provisional --source-label <label> --horizon-s 285   # locked
 node tools\ig-proto\compare.mjs --task T --pairs before:after --reference mp12b1 --label provisional                # unlocked
+node tools\ig-proto\compare.mjs --task IGP-03 --pairs IGP-01/before:w095,IGP-01/after:a3 --reference mp12b1 --pm4 IGP-02 --label provisional   # study
+node tools\ig-proto\budgets.mjs --arms IGP-01/after,IGP-03/w095 --label provisional [--task IGP-03]                # unlocked
 ```
 
 `--only` (a subset of the self-test's cases), `limits` and `testKinds` of `createLanes`, and `setHorizon` are for the
@@ -225,6 +231,33 @@ node tools\ig-proto\pm4.mjs report  --label <L> [--run-id <id>] [--task <T>]    
   `W`, the work to the first solution, the start-count capped share and the canonical cost by clue offset from the start count.
 - **Developer runs.** `--task IGP-02-dev` (with `--run-id dry` or `dev<n>`) keeps every file under
   `tests/artifacts/ig-proto/<L>/IGP-02-dev/`; locked ones go through `run-task.ps1` with a scratch plan of task `IGP-02-dev`.
+
+## PM3 variants, the no-screen arm, arity 3 and the budget inputs (IGP-03)
+
+- **Variants.** `p1p5-w095`, `p1p5-w380` and `p1p5-w760` differ from `p1p5` only in `W`. At `W` = `DEDUCE.work` (760 M) the
+  prototype's `screened` is false: `rateScreen` is the canonical rating, `recordRating` gets `W` null, a capped probe is
+  journaled `capped` (not `scap0`) and reads as too few clues (P3 on a canonical cap), nothing is screen-capped or
+  re-rated. `compare.mjs` checks these journals (every `start` line has `W` 760,000,000; no `scap0`, `scap1`, `over`;
+  no `rescue` or `rerate` tuple) and exits 1 otherwise.
+- **Arity 3** (`p1p5-main-a3`, `IG.a3` and `ctx.igStage === 'set'`). Only the bisection of phase A changes: a round rates up
+  to three counts of the family (middle, lower, upper quarter point of the bracket, distinct and inside it), all of them,
+  journaled in phase `locate-a3`, then reads them in that order through `afterProfile` (a final result ends the call: the
+  probes not yet read stay rated, so they are wasted); the first in-band result in that order is the hit, else the bracket
+  takes the largest above-side and the smallest below-side count (crossing results keep the middle probe's side). The
+  `locate` summary of the `end` line gets `rounds`: `{ probes: [{ count, side, ms }], serialMs, criticalMs, consumed }`.
+  With `a3` false, or in another stage, the path is IGP-01's; `rerate` other than `end` still throws.
+- **Study mode of `compare.mjs`.** An arm may be `<task>/<arm>` (`IGP-01/before:w095`); pairs use matched seeds only and the
+  identity check against MP12b1 applies to the `log` arm only. The study sections are labelled two-seed indications:
+  per W (work per accepted puzzle with and without the set stage, profiles, capped probes, re-ratings, re-rated probes in
+  band, PM4's figures from `--pm4 <task>`), population (R32), the split (R33), the sets each request was served on and the
+  same-set clue shift, accepted puzzles and probes by clue offset beside PM4's cost by offset, 26x26 Master at 380 M (R07)
+  and the arity-3 table (R20: probes counted with the wasted ones, rounds, the idealised call-level T1 bound, a
+  Projection). No `W_screen` is recommended.
+- **`budgets.mjs`** reads the journals of the arms and writes P5's budget inputs for B = 1, 2, 4, 6, 8 and 12 G units per arm,
+  cell and stage (`ok beyond B`, `failed above B`, unfinished calls apart) with the median work rate to show B in seconds. It
+  changes no search: the budgets stay recorded, not enforced.
+- **Harness hash.** `compare.mjs`, `budgets.mjs` and `self-test.mjs` are driver scripts: the shards of an arm refuse to
+  continue once any of them changed, so they are final before the first shard starts.
 
 ## Re-running on the frozen source
 

@@ -36,7 +36,8 @@ decisions of this pack (§4), not open questions for the developer.
 | [x] | IGP-00 | [00](00-harness-foundation.md) | Harness foundation: copies, variants, bounded runners, lanes, records, identity | none | Large, about 1,300 lines | 9 min | harness fidelity (R00) | 1 |
 | [x] | IGP-01 | [01](01-p1p5-prototype-headline.md) | PM3 prototype of P1 to P5 and the headline before/after | IGP-00 | Large, about 950 lines | 62 min (high 78) | report §2 rows 14x14, 15x15b10, 12x12, 26x26 Nightmare, two Master cells, Hell 1 26x26; dead-end share; window profiles; batch waves; locate profiles (R01 to R08, R10 to R13, R18, R19, R29) | 2 |
 | [x] | IGP-02 | [02](02-pm4-screen-certificate.md) | PM4: the screen certificate and the `W_screen` economics | IGP-00 | Medium, about 450 lines | 25 min | IG-P-Q01's certificate; P2's saving; useful ratings lost at 95, 190 and 380 M (R14, R15, R17) | 3 |
-| [ ] | IGP-03 | [03](03-pm3-variants-and-budgets.md) | PM3 variants (W 95 and 380 M, no screen, arity 3) and the P5 budget inputs | IGP-01 | Medium, about 330 lines | 23 min (+5 optional) | IG-P-Q08, Q09, Q10; the screen's share of the gain and of the clue-count shift (IG-P-Q17); re-rating cost (R16, R18, R20, R21, R32, R33) | 4 |
+| [x] | IGP-03 | [03](03-pm3-variants-and-budgets.md) | PM3 variants (W 95 and 380 M, no screen, arity 3) and the P5 budget inputs | IGP-01 | Medium, about 330 lines | 23 min | IG-P-Q08, Q09, Q10; the screen's share of the gain and of the clue-count shift (IG-P-Q17); re-rating cost (R16, R18, R20, R21, R32, R33) | 4 |
+| [ ] | IGP-03h | [03](03-pm3-variants-and-budgets.md#follow-up-igp-03h-the-no-screen-arm-on-hell-1-26x26-optional) | Optional follow-up: the no-screen arm on Hell 1 26x26 | IGP-03, IGP-06 | none (no new code) | about 5 min | R33 on Hell 1 (IG-P-Q17) | 7a |
 | [ ] | IGP-04 | [04](04-first-phase-factor.md) | First-phase factor: P6, and eight workers as an unadmitted upper bound | IGP-01 | Medium, about 200 lines | 28 min | P6, P8's upper bound, the ÷1.9 assumption, memory (R22, R23, R25, R26) | 5 |
 | [ ] | IGP-05 | [05](05-pm1-tranche1-slice.md) | PM1 tranche 1, reduced first slice | IGP-00 | Medium, about 450 lines | 23 min | windows of Hell 1 on 215-484 cells, Hell 2, Hell 3; fine counts; failed Hell 1 sets (R27 to R29) | 6 |
 | [ ] | IGP-06 | [06](06-pm2-kernel-profile.md) | PM2 rating profile on 10x10 and 12x12 Nightmare | IGP-00 | Small, about 300 lines | 8 min | P7's sensitivity; IG-P-Q12 (R24, R30) | 7 |
@@ -65,12 +66,16 @@ certificate in full. The frozen round may follow the plan author's order instead
 | IGP-01 | `tools/ig-proto/`: `variants/p1p5.json`, `variants/p1p5-main.json`, `variants/files/p1p5/core/engine/ig-select-proto.js`, `fit-prior.mjs`, `data/prior-v1.json`, `verify.mjs`, `compare.mjs`, `plans/IGP-01.json`; additions to `lib/tree.mjs` (`paramFiles`), `ig-log.js` (the API the prototype calls), `self-test.mjs` (`--proto`) and `README.md`; the IGP-00 review fixes, first and only those: `run-task.ps1` (charging of failed invocations), `variants/instr.json` and `ig-log.js` (main-search and census R7 cuts apart), `lib/calls.mjs` (`r7CutCensus`; `recordedCall` refuses a `log`-chain tree), `lib/lanes.mjs` (`setHorizon` only lowers); evidence `IGP-01/` | as IGP-00; IGP-00's tested behaviour (an addition keeps the IGP-00 self-test passing) |
 | IGP-02 | `tools/ig-proto/pm4.mjs`, `plans/IGP-02.json`, `README.md` (one section); evidence `IGP-02/` | as IGP-00; `lib/` except a bug fix the review names |
 | IGP-03 | `tools/ig-proto/variants/p1p5-w095.json`, `p1p5-w380.json`, `p1p5-w760.json`, `p1p5-main-a3.json`, the arity-3 branch of `ig-select-proto.js`, `budgets.mjs`, additions to `compare.mjs` (task-qualified arms; per-`W`, split, shift, offset and arity-3 sections; the w760 journal check) and `self-test.mjs` (their cases), `plans/IGP-03.json`; evidence `IGP-03/` | as IGP-00; the default path of `ig-select-proto.js` (the IGP-01 numbers must stay reproducible); `pm4.mjs` (IGP-02's `run.json` pins its hash) |
-| IGP-04 | `tools/ig-proto/variants/p6.json`, `w8.json`, `log-p6.json`, `log-p6-w8.json`, `p1p5-main-p6-w8.json`, the P6 branch of `ig-log.js` (`withP6`) and its call in `ig-select-proto.js`, additions to `compare.mjs` (factors, identity across arms, memory) and `self-test.mjs` (`--p6`), `plans/IGP-04.json`; evidence `IGP-04/` | as IGP-00; the default paths of `ig-log.js` and `ig-select-proto.js` |
+| IGP-04 | `tools/ig-proto/variants/p6.json`, `w8.json`, `log-p6.json`, `log-p6-w8.json`, `p1p5-main-p6-w8.json`, the P6 branch of `ig-log.js` (`withP6`) and its call in `ig-select-proto.js`, additions to `compare.mjs` (factors, identity across arms, memory; first, the IGP-03 review's arity-3 note) and `self-test.mjs` (`--p6`), `plans/IGP-04.json`; evidence `IGP-04/` | as IGP-00; the default paths of `ig-log.js` and `ig-select-proto.js` |
 | IGP-05 | `tools/ig-proto/pm1.mjs`, `plans/IGP-05.json`, `README.md` (one section); evidence `IGP-05/` | as IGP-00 |
 | IGP-06 | `tools/ig-proto/pm2.mjs`, `pm2-worker.mjs`, `plans/IGP-06.json`, `README.md` (one section); evidence `IGP-06/` | as IGP-00 |
+| IGP-03h | `tools/ig-proto/plans/IGP-03h.json`; evidence `IGP-03h/` | as IGP-00; every tool and variant (no code change) |
 | IGP-07 | `tools/ig-proto/summary.mjs`, `plans/IGP-07.json`, `README.md` (the re-run index); evidence `docs/improve-generating/evidence/provisional/summary.json` and `summary.md` | as IGP-00; every earlier record (read only) |
 
-A record is written once. A correction is a new file with a suffix (`-r2`) and a line in the task's Markdown.
+A record is written once. A correction is a new file with a suffix (`-r2`) and a line in the task's Markdown. Before the
+task's reply, a report step that only reads published arms (`compare`, `budgets`) may be re-run through the runner
+after a report-only change of its tool; the reply names the re-run and both harness hashes. Arm rows, journals and
+states are never rewritten.
 
 ### Per-task protocol
 
@@ -265,7 +270,7 @@ shift of the accepted puzzles (R32) is reported beside every time verdict of the
 | R30 | Rating-time shares by phase and function on 10x10 and 12x12 Nightmare | unknown; P7 and P11 targets (IG-P-Q12) | | IGP-06 | |
 | R31 | After all phases (Projection): measured P1-P5 ÷ (measured P6 x eight-worker bound, with a stated transfer range) ÷ P7 assumption | the analysts' after-all values: 14x14 8.0 / 7.94 s, 15x15b10 6.3 / 7.22 s, 12x12 16 / 21.7 s, 26x26 7.0 / 8.84 s, Hell 1 26x26 15 / 25-30 s | | IGP-07 | |
 | R32 | Population of the accepted puzzles, before (and MP12b1's 20 reps) against after: clue share p10 / median / p90, U, score position in the band, central share, per cell | the same population (implicit in both analyses' factors) | | IGP-01 `compare-r2`; IGP-03 per `W` | |
-| R33 | The split of P1-P5's gain and of the clue-count shift between the search without the screen and the screen (before → no screen → 190 M on 14x14 and 12x12 Nightmare), with the shift's two parts: requests served on an earlier set than today's; the clue shift on the same set | none in the analyses (added after IGP-02); IG-P-Q17's addendum gives a rough split, an indication only: on today's call profiles the screen alone saves 2.0 times on 12x12 and 4.0 on 14x14 Nightmare | | IGP-03 `compare` | |
+| R33 | The split of P1-P5's gain and of the clue-count shift between the search without the screen and the screen (before → no screen → 190 M on 14x14 and 12x12 Nightmare), with the shift's two parts: requests served on an earlier set than today's; the clue shift on the same set | none in the analyses (added after IGP-02); IG-P-Q17's addendum gives a rough split, an indication only: on today's call profiles the screen alone saves 2.0 times on 12x12 and 4.0 on 14x14 Nightmare | | IGP-03 `compare`; IGP-03h on Hell 1 26x26 (optional) | |
 
 ## 6. Re-run on the frozen source
 
@@ -360,7 +365,8 @@ pack competes for the same quiet slots.
 | IGP-00 | 6 | 4.5 min | 4.5 min | 9 min |
 | IGP-01 | 30 | 40 min (high 55) | 22.5 min | 62 min (high 78) |
 | IGP-02 | 9 | 18 min | 7 min | 25 min |
-| IGP-03 | 19 (+2 optional) | 8.5 min (+3 optional) | 14 min (+1.5 optional) | 23 min (+5 optional; allocation 28) |
+| IGP-03 | 19 | 8.5 min | 14 min | 23 min (allocation 28) |
+| IGP-03h (optional, not in the total) | 3 | 3 min | 2 min | 5 min (allocation 6) |
 | IGP-04 | 16 | 16 min | 12 min | 28 min |
 | IGP-05 | 9 | 16 min | 7 min | 23 min |
 | IGP-06 | 3 | 5.5 min | 2.5 min | 8 min |
@@ -385,6 +391,13 @@ IGP-02 review. This replaces the rule above for IGP-03's optional step, now the 
 min): it runs only with the owner's approval of extra round minutes, or when at least 97 min (the projection, the step
 and 10 min of margin) are left when IGP-03 is dispatched; otherwise it is a later-round item.
 
+**Actual after IGP-03** (from the invocation logs): 6,212 s counted (103.5 min): the 5,216 s above, IGP-03 949.6 s
+(15.8 min against its 23; 13 locked invocations instead of 19, as fast rows shared an invocation where the horizon
+admitted them) and its debugging 46.2 s. Left in the round: 4,588 s (76.5 min) for IGP-04 to IGP-06, projected at
+about 59 min (28 + 23 + 8). IGP-03's optional step did not run; it becomes the follow-up IGP-03h (about 5 min, 03
+"Follow-up IGP-03h"), run after IGP-06 when at least 8 min are left in the round, before IGP-07; otherwise it is a
+frozen-round item.
+
 ## 8. Evidence and sign-off
 
 Each developer's reply gives: the files created; the run plan's steps with their exits, node seconds and lock waits;
@@ -403,7 +416,8 @@ has pushed `improve-generating`. The plan author then receives the summary for p
 | IGP-00 | accepted (R00 holds; self-test 9/9) | 2026-11-14 21:00 | 21:56 (accepted 22:10) | 407.9 s (+ 356 s reconstructed debug) | 496.5 s | `improve-generating IGP-00` |
 | IGP-01 | accepted (headline measured; population shift, IG-P-Q17) | 2026-11-14 22:07 | 2026-11-15 00:41 (accepted 00:50) | 3,152 s (+ 170.5 s dev) | 4,912 s | `improve-generating IGP-01` |
 | IGP-02 | accepted (certificate holds, 0 violations / 862; no W yet) | 2026-11-15 00:59 | 02:02 (accepted 02:10) | 1,018.5 s (+ 110.5 s dev) | about 1,468 s | `improve-generating IGP-02` |
-| IGP-03 | not started | | | | | |
+| IGP-03 | accepted (R33 split; no W yet) | 2026-11-15 02:28 | 03:06 (accepted 03:20) | 949.6 s (+ 46.2 s dev) | 648.3 s | `improve-generating IGP-03` |
+| IGP-03h | optional; not started | | | | | |
 | IGP-04 | not started | | | | | |
 | IGP-05 | not started | | | | | |
 | IGP-06 | not started | | | | | |

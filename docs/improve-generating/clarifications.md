@@ -691,4 +691,73 @@ blind play comparison of the two populations. (b) is the conservative fallback.
   `docs/improve-generating/evidence/provisional/IGP-01/before/*.runs.json` and `after/*.runs.json`
   (`details.setAttempt`, `details.igSetKey` and `details.puzzles[].clues` per request).
 
+**Addendum after IGP-03 (PM3 variants), 2026-11-15 (Opus).**
+
+- *What ran.* The prototype at `W_screen` 95, 190 (IGP-01's after arm) and 380 M, and without the screen (760 M, the
+  canonical limit; P1, P3 on canonical caps and P4 unchanged), on 14x14 and 12x12 Nightmare, seeds 0 and 1; and at
+  380 M on 26x26 Master, seeds 0 to 4. These are two-seed indications. Every arm reached ten puzzles on every request,
+  all 295 accepted ratings are canonical, and no call re-rated.
+
+| Arm | 14x14 Nightmare: T10 s | Median clue share | Same-set clue shift against no screen, per request | 12x12 Nightmare: T10 s | Median clue share | Same-set clue shift against today, per request | Against no screen |
+|---|---|---|---|---|---|---|---|
+| today (IGP-01 before) | none reached ten (response 170.8 s) | 0.170 | - (other sets) | 50.4 | 0.158 | - | - |
+| no screen (760 M) | 17.7 | 0.273 | - | 9.2 | 0.211 | 0, +1 | - |
+| 380 M | 11.2 | 0.273 | 0, 0 | 10.2 | 0.257 | 0, +2 | 0, +1 |
+| 190 M (IGP-01 after) | 7.2 | 0.318 | 0, 0 | 7.9 | 0.263 | +1, +2 | +1, +1 |
+| 95 M | 4.6 | 0.318 | 0, +0.5 | 6.1 | 0.263 | +1, +2 | +1, +1 |
+
+- *12x12 Nightmare: the gain comes without the shift, and the screen adds the shift.* Both requests used the same set
+  in every arm. Without the screen the search is 8.1 times faster than today on T10 (2.1 and 14.0 per seed). Its
+  median clue share, 0.211, equals MP12b1's 20-rep median (today's on these two requests: 0.158). Per request its count
+  is today's on one and one clue higher on the other, and today's lower tail is gone (1 of 20 accepted puzzles at
+  today's start count, against 12 of 20 today). The gain comes from where it rates: P4 starts at today's accepted
+  median, one clue above today's start count, while today's search makes 144 of its 170 ratings at the start count,
+  68 % of them capped (median 2.3 s); without the screen, 5 of 49 ratings are capped in all. The screen then adds one
+  clue on both requests, for 1.14 times at 190 M (1.66 at 95 M); at 380 M it is slower than no screen (0.94 times) and
+  still adds 0 and +1.
+- *14x14 Nightmare: the shift is the choice of set, not the screen.* Today served both requests on later sets
+  (attempts 1 and 3) and reached ten on neither. Every prototype arm, with or without the screen, served both on
+  attempt 0 and accepted two to four clues above today's start count: on those sets, 0 to 11 % of the prototype arms'
+  probes are in band at +1 and 30 to 71 % at +2 to +4 (on PM4's four sets of the cell: none below +3). Without the
+  screen the response is 9.5 times faster than today (0, then 2 of 2 reaching ten). The screen adds 2.6 times at 190 M
+  (1.6 at 380 M, 4.0 at 95 M) with no clue shift per request on the same set (half a clue on one request at 95 M). Only
+  the pooled median moves (6 to 7 clues): the accepted counts have two peaks, at +2 and +4, and two of 20 puzzles move
+  up.
+- *26x26 Master at 380 M.* The screen caps 4 of 519 probes (39 of 550 at 190 M), yet the paired T10 against today stays
+  mixed: 0.54 to 2.24 per seed, geometric mean 0.98. On the same sets the prototype accepts one clue fewer than today
+  at the median (-1 on three requests, -0.5 on one, 0 on one; median share 0.160 against 0.185), at 190 and 380 M
+  alike: its prior starts one clue below today's start count there. The shift is not always upward, and here it is
+  not the screen's.
+- *Correction of the first addendum.* Its rough split took PM4's screen saving on today's call profiles (2.0 times on
+  12x12 Nightmare at 190 M) and assigned the remaining 4.7 times to rating at the higher clue counts of the shift. On
+  the prototype's own probes the screen gives 1.14 times on 12x12, and a search close to (b) (no screen, P4 at today's
+  median) keeps 8.1 times at today's median clue count. The first addendum's reading of (b), that it would keep only
+  about the screen's 1.8 to 4 times on the slow cells, is therefore refuted on 12x12 (two seeds). (b) proper, with P4
+  at today's start count, was not measured.
+- *Consequences.* The shift has two sources, with different costs:
+  - The screen's same-set shift: +1 clue on 12x12 for 1.14 times, none on 14x14 for 2.6 times. A rule that the screen
+    may not move the accepted count on the same set, against the search without the screen, keeps `W_screen` where it
+    is free and drops it where it is not; IG-P-Q09's `W_screen` per level and area class can express it. Call this
+    (c5).
+  - The choice of set (14x14 here; 15x15b10 and Hell 1 in IGP-01): sets today's search gives up on are served at their
+    in-band counts, two to four clues above today's start count, with or without the screen. Keeping today's
+    distribution there means refusing those sets and keeping today's failures (14x14: today reached ten on neither
+    request). This is (a) for those sets, or (c4) to take each set's lowest in-band count.
+
+  Hell 1 26x26 is not split: no no-screen arm ran there. PM4 found that its screen at 380 M loses 8 of 14 useful window
+  ratings, so the screen may shift Hell 1 as it shifts 12x12.
+- *Recommendation, updated (Opus, the pack's author; Astra has not reviewed it).* Decide the two parts separately.
+  (1) For the screen, (c5): on these seeds it keeps 190 M on 14x14 and removes the screen on 12x12, at about 1.14 times
+  there; the frozen round's PM3 confirms it per cell with more seeds. (2) For the choice of set, (a) for the sets
+  today's search gives up on, if the owner explicitly accepts more given pieces at the same score on them (the first
+  recommendation's caveat stands), with (c4) as the refinement; otherwise (b) keeps today's failures there. Any
+  population criterion should be two-sided, since 26x26 Master moves down.
+- *What follows.* IGP-04 measures P6 and eight workers, which return the same puzzles (no population effect). The
+  no-screen arm on Hell 1 26x26 (about 5 minutes) runs at the end of this round if the budget allows, otherwise in the
+  frozen round.
+- *Evidence.* `docs/improve-generating/evidence/provisional/IGP-03/compare.md` (the study section: per `W`,
+  population, the split, the sets served, the clue offsets; "26x26 Master at 380 M against IGP-01"; the §5 rows R16,
+  R32, R33 and R07), `compare.json`, the arm folders `w095/`, `w380/`, `w760/` and `a3/` (`*.runs.json`,
+  `*.calls.jsonl`) and `verify-*.md`.
+
 Plan-author answer:

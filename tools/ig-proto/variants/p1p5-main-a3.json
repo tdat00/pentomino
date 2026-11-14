@@ -1,0 +1,8 @@
+{
+  "id": "p1p5-main-a3",
+  "extends": ["p1p5-main"],
+  "description": "The headline prototype with the arity-3 bisection of phase A in the set stage (IG-P-Q08, IGP-03).",
+  "edits": [],
+  "files": [],
+  "params": { "a3": true }
+}

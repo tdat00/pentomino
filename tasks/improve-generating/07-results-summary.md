@@ -58,7 +58,7 @@ The check-list §3. No lock is needed: nothing is rated or timed. No git.
 | R27, R28 | `IGP-05/pm1.json` | in-band and eligible ratings per cell; failure classes |
 | R29 | `IGP-01/compare.json` and `IGP-05/pm1.json` | start-count capped shares |
 | R32 | `IGP-01/compare-r2.json`, `IGP-03/compare.json` | the population of the accepted puzzles per cell and arm (clue share p10 / median / p90, U, score position, central share), per `W` |
-| R33 | `IGP-03/compare.json` | the split (the factors before → no screen → 190 M with their n; the median clue shares) and the shift's two parts |
+| R33 | `IGP-03/compare.json`; `IGP-03h/compare.json` when it ran | the split (the factors before → no screen → 190 M, or 380 M on Hell 1, with their n; the median clue shares) and the shift's two parts |
 | R09 | none | "later round" |
 | R31 | derived here | below |
 
@@ -81,7 +81,9 @@ by P7's assumption. The first-phase factor is measured on few cells (IGP-04: A:C
 largest measured P6 × eight-worker factor for all cells, and the cell's own factor where one was measured. P7 is 1.3
 (range 1.1 to 1.8, or IGP-06's sensitivity range when it is narrower). The result is a low, likely and high value
 labelled a Projection, shown beside the analysts' after-all values (Opus; Astra); it is never a measured or confirmed
-value. Eight workers stay an unadmitted upper bound.
+value. Eight workers stay an unadmitted upper bound. For 14x14 and 12x12 Nightmare the record adds the same Projection
+from IGP-03's no-screen arm (the T10 median of `IGP-03/w760`), labelled the population-keeping variant of IG-P-Q17's
+addendum after IGP-03, and on Hell 1 26x26 from `IGP-03h/w760` when that follow-up ran.
 
 ### `summary.mjs`
 

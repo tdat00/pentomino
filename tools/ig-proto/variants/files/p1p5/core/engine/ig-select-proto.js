@@ -8,6 +8,8 @@
 //   P3  a screen-capped profile reads as "too few clues";
 //   P4  the start count comes from a fitted table prior (IG.prior), else from K - U0;
 //   P5  a call whose canonical ratings show no window ends at once (`no-window`); budgets are recorded, not enforced.
+// IGP-03 adds IG.a3: in the set stage phase A bisects with three probes per round (variant p1p5-main-a3); with it off,
+// and in every other stage, the code path is IGP-01's.
 // Today's helpers are copied from clues.js with the line ranges named in their comments.
 import { activeCount } from './board.js';
 import { countRowLimit, makeUnique } from './clues.js';
@@ -144,8 +146,12 @@ function search(ctx, call, loc, W, prior, markNoWindow) {
   if (!isValidLayout(board, pieces, layout)) {
     throw new RangeError('layout is not a complete valid arrangement of the pieces');
   }
-  if (IG.a3 === true || IG.rerate !== 'end') {
-    throw new Error('ig-select-proto: the arity-3 and window re-rating variants belong to IGP-03');
+  if (IG.rerate !== 'end') {
+    throw new Error('ig-select-proto: the window re-rating variant is deferred (IG.rerate must be end)');
+  }
+  const useA3 = IG.a3 === true && ctx.igStage === 'set';
+  if (useA3) {
+    loc.rounds = [];
   }
   const limit = BUDGETS.clueSubsets;
   const rowLimit = countRowLimit(board);
@@ -528,7 +534,76 @@ function search(ctx, call, loc, W, prior, markNoWindow) {
       }
     }
   };
+  /**
+   * IG.a3, set stage only (IGP-03): arity-3 bisection. A round rates up to three counts of the family (middle, lower,
+   * upper quarter point), all of them, then reads them in that order; the probe tree depends only on the family order.
+   * A final result ends the call and leaves the unread probes rated (wasted); the round is journaled on the locate
+   * summary with its serial and critical (longest probe) times.
+   */
+  const bisectA3 = () => {
+    /** @type {any[]} */
+    const rounds = loc.rounds;
+    while (hit === null && !skipped && hiBelow !== null && loAbove !== null && hiBelow - loAbove > 1) {
+      const lo = loAbove;
+      const hi = hiBelow;
+      const g = hi - lo;
+      const counts = [...new Set([lo + Math.floor(g / 2), lo + Math.max(1, Math.floor(g / 4)), lo + Math.max(1, Math.floor((3 * g) / 4))])]
+        .filter((c) => c > lo && c < hi);
+      const round = counts.map((c) => {
+        const t0 = performance.now();
+        let p = probe(fam(c), 'locate-a3');
+        if (p === null) {
+          p = probe(sample(c), 'locate-a3');
+        }
+        const ms = Math.round((performance.now() - t0) * 1000) / 1000;
+        if (p !== null) {
+          loc.probes += 1;
+          byCount.set(c, p);
+        }
+        const s = p === null ? 'skip' : p.dir === 'in' ? (p.kind === 'ar1' ? 'in-refused' : 'in') : p.dir;
+        return { c, p, s, ms };
+      });
+      const entry = {
+        probes: round.map((r) => ({ count: r.c, side: r.s, ms: r.ms })),
+        serialMs: Math.round(round.reduce((t, r) => t + r.ms, 0) * 1000) / 1000,
+        criticalMs: Math.max(...round.map((r) => r.ms)),
+        consumed: 0,
+      };
+      rounds.push(entry);
+      for (const r of round) {
+        entry.consumed += 1;
+        const done = afterProfile(r.p !== null && r.p.kind === 'rated' ? r.p.cand : null);
+        if (done !== null) {
+          if (r.p !== null && r.p.dir === 'in') {
+            Object.assign(loc, { result: 'hit', hit: r.p.count, wc: r.p.count });
+          }
+          throw new Final(done);
+        }
+      }
+      const found = round.find((r) => isIn(r.s));
+      if (found !== undefined) {
+        hit = found.c;
+      } else {
+        let nextLo = Math.max(lo, ...round.filter((r) => r.s === 'above').map((r) => r.c));
+        let nextHi = Math.min(hi, ...round.filter((r) => r.s === 'below').map((r) => r.c));
+        if (nextLo >= nextHi) {
+          // The results cross: keep only the middle probe's side.
+          nextLo = round[0].s === 'above' ? round[0].c : lo;
+          nextHi = round[0].s === 'below' ? round[0].c : hi;
+        }
+        loAbove = nextLo;
+        hiBelow = nextHi;
+      }
+      if (round.some((r) => r.s === 'skip')) {
+        skipped = true;
+      }
+    }
+  };
   const bisect = () => {
+    if (useA3) {
+      bisectA3();
+      return;
+    }
     while (hit === null && !skipped && hiBelow !== null && loAbove !== null && hiBelow - loAbove > 1) {
       const mid = Math.floor((loAbove + hiBelow) / 2);
       const s = side(mid);

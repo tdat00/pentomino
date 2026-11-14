@@ -280,18 +280,49 @@ The `--proto` self-test with the new cases; the verify steps; the run plan.
   result with its label, the budget table, the counted machine time and the lock waits.
 - Handoff to IGP-07 and to the next report on IG-P-Q17: `compare.json`, `budgets.json`.
 
+## Follow-up IGP-03h: the no-screen arm on Hell 1 26x26 (optional)
+
+IGP-03's optional shard did not run: the round had 93.1 minutes left at its dispatch, under the rule's 97. It becomes
+a follow-up with its own task id, so that IGP-03's published records stay as they are. It runs after IGP-06 when at
+least 8 minutes are left in the round, before IGP-07; otherwise it is a frozen-round item (check-list §7). It needs no
+new code: the variant `p1p5-w760` and every tool exist. Its tree id differs from IGP-03's `p1p5-w760` if IGP-04 has
+changed `ig-select-proto.js` (the `withP6` call); the default path stays IGP-01's, and the record names the tree id.
+
+Purpose: R33 on Hell 1 26x26 (IG-P-Q17, the addendum after IGP-03): the split before → no screen → 380 M (IGP-01's
+after arm), the sets served and the same-set clue shift, and the clue offsets beside PM4's cost by offset, labelled a
+two-seed indication. No `W_screen` is recommended.
+
+The run plan `tools/ig-proto/plans/IGP-03h.json` (allocation 6 minutes):
+
+| Step | Locked | Node arguments | projectS | State |
+|---|---|---|---:|---|
+| firewall-snapshot | no | `tools/ig-proto/firewall.mjs snapshot --task IGP-03h` | | |
+| trees | no | `tools/ig-proto/lib/tree.mjs build base p1p5-w760` | | |
+| w760-hell1 | yes, until done | `tools/ig-proto/arm.mjs run --task IGP-03h --arm w760 --shard 26x26-hell-1 --variant p1p5-w760 --workers 4 --cases 26x26-hell-1:0-1 --row-limit-s 260` | 130 | `IGP-03h/w760/26x26-hell-1/state.json` |
+| verify | yes, until done | `tools/ig-proto/verify.mjs --task IGP-03h --arm w760` | 60 | `IGP-03h/verify/state.json` |
+| publish | no | `tools/ig-proto/arm.mjs publish --task IGP-03h --arm w760` | | |
+| compare | no | `tools/ig-proto/compare.mjs --task IGP-03h --pairs IGP-01/before:w760,IGP-01/after:w760 --reference mp12b1 --pm4 IGP-02` | | |
+| firewall-check | no | `tools/ig-proto/firewall.mjs check --task IGP-03h` | | |
+
+Projection: two rows of about 55 to 60 s (IGP-01's after arm on these seeds, 42.2 and 37.2 s, times 1.4 to 1.5, the
+pricing of the projection under Commands), each in its own invocation, and one verify invocation: three locked
+commands, about 3 minutes of node time and 2 of quiet periods, 5 minutes in all. Records under
+`docs/improve-generating/evidence/provisional/IGP-03h/` (the arm, `verify-w760.json|md`, `compare.json|md`).
+Acceptance: IGP-03-T02 and T03 for this arm, the w760 journal check of §3, and the Hell 1 split, sets served and
+offsets in `compare.md`.
+
 ## Execution log
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (pack author: IGP-03 ACCEPT, no fixes; the `compare.md` arity-3 wording is corrected in IGP-04's step 0) |
+| Start | 2026-11-15 02:28 (+07:00) |
+| End | 2026-11-15 03:06 developer (plan 02:47-03:04, exit 0); 03:20 author acceptance; orchestrator commit |
+| Duration | 38 min developer; 13 locked invocations (node 364.6 s, counted 949.6 s of the 28 min allocation); IGP-03-dev 1 run (46.2 s counted); priority waits 648.3 s; round counted 6,212 s of 10,800 s |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (pack author review, opus-ig); claude-opus-5.5 (orchestrator) |
+| Token usage | 100 model calls; 26,752,573 input tokens (26,342,722 cache reads); 157,115 output tokens |
+| AI credits | about 523 (developer) |
+| Verification | New variants `p1p5-w095`, `p1p5-w380`, `p1p5-w760`, `p1p5-main-a3`, `budgets.mjs`, `plans/IGP-03.json`; arity-3 branch in `ig-select-proto.js`; `compare.mjs` study sections and the no-screen journal check; self-test 15/15; 295/295 accepted ratings equal canonical; the w760 journals carry no screen outcome; the a3 arm reproduces IGP-01's after-arm puzzles on all four requests (`resultDigest`, `igPuzzleKeys`); `npm run check` passes; firewall 279 production files unchanged. Harness hashes: shards `a76d9d72…`, report-only `compare` re-run `1cc49822…`. Evidence: `docs/improve-generating/evidence/provisional/IGP-03/` |
+| Acceptance | B01-B04, T01-T03 met (developer; confirmed by the pack author) |
+| Issues & resolutions | (1) Two-seed indications, T10 / work per accepted puzzle: 14x14 Nightmare today 0 of 2 reach ten (response 170.8 s), 95 M 4.64 s, 190 M 7.21 s, 380 M 11.22 s, no screen 17.73 s; 12x12 Nightmare today 50.4 s, 95 M 6.12 s, 190 M 7.94 s, 380 M 10.15 s, no screen 9.15 s. No W recommended. (2) **R33 split:** 12x12 before -> no screen x8.06 at today's median clue share (0.211 = MP12b1), no screen -> 190 M x1.14 with one more clue; 14x14 every arm serves set 0 (today attempts 1 and 3) and accepts at +2 to +4 clues, the screen adds x2.6 with no same-set clue shift. Added to IG-P-Q17 as a second addendum by the pack author (new option (c5); the first addendum overstated the shift's share). (3) 26x26 Master at 380 M: screen caps 39 -> 4 of about 520 probes, the per-seed result stays mixed (0.54-2.24, geometric mean 0.98); the prototype accepts about one clue fewer than today. (4) Arity 3 (projection): no gain on identical results (Hell 1 T1 9.12 s against 8.55 s). (5) P5 inputs: no call failed; share of ok calls beyond 1 G 14-15 % (190 M), 37-40 % (no screen). (6) Deviations accepted: 13 invocations instead of 19 (two fast rows per invocation, no bound loosened); `compare.json` overwritten by a report-only re-run before the reply (rule clarified in the check-list; arm rows, journals and states never rewritten); tree ids changed by the arity-3 edit with default behaviour unchanged; per-case sections once per study arm; extra field `okOvershoot`. The optional Hell 1 no-screen step becomes IGP-03h |
+| Handoff | IGP-04 (amended): depends on IGP-03; pair arms by seed, never by tree id; arm E must reproduce IGP-01's after-arm digests on both seeds or the task stops; step 0 fixes the arity-3 wording in `compare.mjs`; about 23 min likely, allocation 28. IGP-03h (Hell 1 no screen, about 5 min) after IGP-06 if at least 8 min remain. IGP-07 projects R31 from the no-screen arm and covers R32/R33 |

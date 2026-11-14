@@ -515,11 +515,11 @@ async function k15Set() {
 /**
  * One call of the prototype on the K = 15 set with synthetic screen and canonical ratings and its journal.
  * @param {string} name
- * @param {{ prior: number | null, screen: (c: number) => any, canon?: (c: number) => any }} spec A function returns a
- *   rating or 'cap' (an IncompleteRatingError).
+ * @param {{ prior: number | null, screen: (c: number) => any, canon?: (c: number) => any, variant?: string, stage?: string }} spec
+ *   A function returns a rating or 'cap' (an IncompleteRatingError); `variant` and `stage` default to p1p5-main and set.
  */
-async function protoCall(name, { prior, screen, canon = screen }) {
-  const { e, ws } = await engine('p1p5-main');
+async function protoCall(name, { prior, screen, canon = screen, variant = 'p1p5-main', stage = 'set' }) {
+  const { e, ws } = await engine(variant);
   const { carved } = await k15Set();
   const make = (/** @type {(c: number) => any} */ fn) => (/** @type {any[]} */ clues) => {
     const r = fn(clues.length);
@@ -536,7 +536,7 @@ async function protoCall(name, { prior, screen, canon = screen }) {
     result = e.clues.selectClues({
       board: carved.board, pieces: carved.set.pieces, layout: carved.set.witness, target: BAND,
       rng: e.rng.createRng(e.rng.normalizeSeedText('ig-selftest/proto/p1'), `selftest/${name}`), uniqueness: 'any',
-      excludeClueKeys: new Set(), ws, igScreen: make(screen), igCanonical: make(canon), igPrior: prior, igStage: 'set',
+      excludeClueKeys: new Set(), ws, igScreen: make(screen), igCanonical: make(canon), igPrior: prior, igStage: stage,
     });
   } finally {
     delete process.env.IG_LOG_DIR;
@@ -725,6 +725,77 @@ const protoCases = [
         }
       }
       memo.protoNotes = { ...memo.protoNotes, nightmareOkResults: ok };
+    },
+  },
+  {
+    name: 'proto: IGP-03 variants (W values, a3 flag) and the no-screen journal',
+    async run() {
+      const { e } = await engine('p1p5-main');
+      const work = e.policy.DEDUCE.work;
+      const [w095, w380, w760, a3] = [await ensureTree('p1p5-w095'), await ensureTree('p1p5-w380'), await ensureTree('p1p5-w760'), await ensureTree('p1p5-main-a3')];
+      assert(w095.params.W.default === 95000000 && w380.params.W.default === 380000000, 'the W parameters of the 95 M and 380 M manifests');
+      assert(w760.params.W.default === work && w760.params.W['hell-1'] === undefined, `p1p5-w760 W is not the canonical limit ${work}`);
+      assert(a3.params.a3 === true && a3.params.W['hell-1'] === 380000000 && a3.chain.join('>') === 'base>instr>log>p1p5>p1p5-main>p1p5-main-a3', `p1p5-main-a3: ${JSON.stringify(a3.params.W)} ${a3.chain.join('>')}`);
+      assert([w095, w380, w760].every((t) => t.params.a3 === false && t.params.rerate === 'end'), 'a W variant changes a3 or rerate');
+      const down = (/** @type {number} */ c) => (c <= 2 ? 'cap' : synthetic(100 - 10 * c));
+      const r = await protoCall('w760', { variant: 'p1p5-w760', prior: null, screen: down });
+      const start = r.lines.find((/** @type {any} */ l) => l.t === 'start');
+      assert(start.W === work && start.variant === 'p1p5-w760', `w760 start line: ${JSON.stringify(start)}`);
+      assert(r.tuples.find((/** @type {any} */ t) => t[1] === 1)[2] === 'capped', 'w760: a capped probe is not journaled capped');
+      assert(r.tuples.every((/** @type {any} */ t) => !['scap0', 'scap1', 'over'].includes(t[2])) && r.end.rerates === 0 && r.end.result === 'ok', 'w760: a screen outcome, a re-rating or no result');
+    },
+  },
+  {
+    name: 'proto: arity-3 set stage (synthetic) and the window re-rating guard',
+    async run() {
+      const expect = (/** @type {any} */ got, /** @type {any} */ want, /** @type {string} */ what) => same(got, want, `${what}: got ${JSON.stringify(got)}`);
+      const a3 = { variant: 'p1p5-main-a3', prior: null };
+      const down = (/** @type {number} */ c) => (c <= 2 ? 'cap' : synthetic(100 - 10 * c));
+      const sides = (/** @type {any} */ round) => round.probes.map((/** @type {any} */ p) => `${p.count}:${p.side}`);
+
+      let r = await protoCall('a3-hit', { ...a3, screen: down });
+      expect(r.counts('locate'), [7, 1], 'a3: the gallop stays sequential');
+      expect(r.counts('locate-a3'), [4, 2, 5], 'a3: the first round (g = 6 between 1 and 7: middle, lower, upper)');
+      const loc = r.end.locate;
+      assert(r.end.result === 'ok' && r.end.clueCount === 4 && loc.hit === 4 && loc.result === 'hit' && loc.probes === 5, `a3: ${JSON.stringify(loc)}`);
+      expect(sides(loc.rounds[0]), ['4:in', '2:above', '5:below'], 'a3: the two other probes are journaled as rated');
+      assert(loc.rounds.length === 1 && loc.rounds[0].consumed === 1, 'a3: the hit at the middle probe consumes one probe of the round');
+      const ms = loc.rounds[0].probes.map((/** @type {any} */ p) => p.ms);
+      assert(Math.abs(loc.rounds[0].serialMs - ms.reduce((/** @type {number} */ s, /** @type {number} */ x) => s + x, 0)) < 0.01 && loc.rounds[0].criticalMs === Math.max(...ms), 'a3: serial and critical ms of the round');
+
+      r = await protoCall('a3-two', { ...a3, screen: (c) => (c <= 2 ? 'cap' : synthetic(120 - 10 * c)) });
+      expect(r.counts('locate-a3'), [4, 2, 5, 6], 'a3: no hit in round 1 (all above): the bracket moves to (5, 7) and round 2 probes 6');
+      assert(r.end.result === 'ok' && r.end.clueCount === 6 && r.end.locate.rounds.length === 2 && r.end.locate.rounds[0].consumed === 3, `a3 two rounds: ${JSON.stringify(r.end.locate.rounds)}`);
+
+      const curve = /** @type {Record<number, any>} */ ({ 7: synthetic(30), 1: 'cap', 4: synthetic(40), 2: 'cap', 5: synthetic(90), 3: synthetic(60) });
+      r = await protoCall('a3-cross', { ...a3, screen: (c) => curve[c] });
+      expect(r.counts('locate-a3'), [4, 2, 5, 2, 3], 'a3: crossing results keep the middle probe side (below 4): round 2 probes 2 (a repeat takes a sample) and 3');
+      expect(sides(r.end.locate.rounds[0]), ['4:below', '2:above', '5:above'], 'a3 crossing: the sides of round 1');
+      assert(r.end.result === 'ok' && r.end.clueCount === 3, `a3 crossing: ${r.end.result} ${r.end.clueCount}`);
+
+      r = await protoCall('a3-batch', { ...a3, stage: 'batch', screen: down });
+      expect(r.counts('locate'), [7, 1, 4], 'a3 on, stage batch: the path is IGP-01\'s');
+      assert(r.counts('locate-a3').length === 0 && r.end.locate.rounds === undefined && r.end.clueCount === 4, 'a3 on, stage batch: an arity-3 round ran');
+
+      const dest = join(SELFTEST_DIR, 'tree-rerate');
+      const manifests = { 'st-rerate': { id: 'st-rerate', extends: ['p1p5'], description: 'self-test: rerate other than end', edits: [], files: [], params: { rerate: 'window' } } };
+      const tree = await buildTree('st-rerate', { manifests, dest, sourceLabel: 'self-test' });
+      const e = await loadEngine(tree.root);
+      const ws = e.workspace.createWorkspace(e.workspace.MAIN_WORKSPACE_BYTES);
+      const entry = caseBoard('10x10-master');
+      const carved = /** @type {any} */ (firstCarvedSet(e, { boardRows: entry.boardRows, levelId: entry.levelId, seedText: (await k15Set()).seedText }));
+      assert(carved.ok, 'the carve of the guard set failed');
+      let message = '';
+      try {
+        e.clues.selectClues({
+          board: carved.board, pieces: carved.set.pieces, layout: carved.set.witness, target: BAND,
+          rng: e.rng.createRng(e.rng.normalizeSeedText('ig-selftest/proto/p1'), 'selftest/guard'), uniqueness: 'any',
+          excludeClueKeys: new Set(), ws, igStage: 'set',
+        });
+      } catch (err) {
+        message = err instanceof Error ? err.message : String(err);
+      }
+      assert(message.includes('window re-rating variant is deferred'), `rerate other than end did not throw: ${message}`);
     },
   },
 ];

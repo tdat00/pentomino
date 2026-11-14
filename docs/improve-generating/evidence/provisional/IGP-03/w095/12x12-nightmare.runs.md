@@ -1,0 +1,12 @@
+# IGP-03 arm w095, shard 12x12-nightmare: runs
+
+> **Provisional (pre-freeze).** Measured on rating-v3 runtime cd5d17f (worktree 0e1283e) (source digest 34cea386…, equal to MP12b1's source), not on the frozen post-MP17 source. Re-run: pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\IGP-03.json -Label frozen -SourceLabel <label> -LockHelper <path>.
+
+## 12x12-nightmare
+
+| Row key | Seed | T1 s | T10 s | Response s | Accepted | Partial reason | Censored at R |
+|---|---|---:|---:|---:|---:|---|---|
+| 12x12-nightmare~0 | landscape/12x12-nightmare/0 | 0.73 | 2.67 | 2.81 | 10 | - | no |
+| 12x12-nightmare~1 | landscape/12x12-nightmare/1 | 3.44 | 9.58 | 9.71 | 10 | - | no |
+
+The journal lines are in `12x12-nightmare.calls.jsonl`.

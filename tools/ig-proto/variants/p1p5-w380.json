@@ -1,0 +1,8 @@
+{
+  "id": "p1p5-w380",
+  "extends": ["p1p5"],
+  "description": "The prototype with W 380 M for every level: the upper value of IG-P-Q09 (IGP-03).",
+  "edits": [],
+  "files": [],
+  "params": { "W": { "default": 380000000 } }
+}

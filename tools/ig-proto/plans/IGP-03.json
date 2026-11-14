@@ -1,0 +1,173 @@
+{
+  "task": "IGP-03",
+  "allocationMinutes": 28,
+  "optionalMinutes": 6,
+  "steps": [
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "snapshot", "--task", "IGP-03"]
+    },
+    {
+      "id": "trees",
+      "locked": false,
+      "node": ["tools\\ig-proto\\lib\\tree.mjs", "build", "base", "p1p5-w095", "p1p5-w380", "p1p5-w760", "p1p5-main-a3"]
+    },
+    {
+      "id": "self-test-proto",
+      "locked": true,
+      "repeatUntilDone": false,
+      "projectS": 30,
+      "minHorizonS": 150,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\self-test.mjs", "--proto", "--task", "IGP-03"],
+      "state": "IGP-03\\self-test\\state.json"
+    },
+    {
+      "id": "w095-14x14",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 30,
+      "minHorizonS": 280,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03", "--arm", "w095", "--shard", "14x14-nightmare", "--variant", "p1p5-w095", "--workers", "4", "--cases", "14x14-nightmare:0-1", "--row-limit-s", "260"],
+      "state": "IGP-03\\w095\\14x14-nightmare\\state.json"
+    },
+    {
+      "id": "w095-12x12",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 20,
+      "minHorizonS": 280,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03", "--arm", "w095", "--shard", "12x12-nightmare", "--variant", "p1p5-w095", "--workers", "4", "--cases", "12x12-nightmare:0-1", "--row-limit-s", "260"],
+      "state": "IGP-03\\w095\\12x12-nightmare\\state.json"
+    },
+    {
+      "id": "w380-14x14",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 30,
+      "minHorizonS": 280,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03", "--arm", "w380", "--shard", "14x14-nightmare", "--variant", "p1p5-w380", "--workers", "4", "--cases", "14x14-nightmare:0-1", "--row-limit-s", "260"],
+      "state": "IGP-03\\w380\\14x14-nightmare\\state.json"
+    },
+    {
+      "id": "w380-12x12",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 20,
+      "minHorizonS": 280,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03", "--arm", "w380", "--shard", "12x12-nightmare", "--variant", "p1p5-w380", "--workers", "4", "--cases", "12x12-nightmare:0-1", "--row-limit-s", "260"],
+      "state": "IGP-03\\w380\\12x12-nightmare\\state.json"
+    },
+    {
+      "id": "w380-master",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 70,
+      "minHorizonS": 110,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03", "--arm", "w380", "--shard", "fast-master", "--variant", "p1p5-w380", "--workers", "4", "--cases", "26x26-master:0-4", "--row-limit-s", "90"],
+      "state": "IGP-03\\w380\\fast-master\\state.json"
+    },
+    {
+      "id": "a3-14x14",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 30,
+      "minHorizonS": 280,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03", "--arm", "a3", "--shard", "14x14-nightmare", "--variant", "p1p5-main-a3", "--workers", "4", "--cases", "14x14-nightmare:0-1", "--row-limit-s", "260"],
+      "state": "IGP-03\\a3\\14x14-nightmare\\state.json"
+    },
+    {
+      "id": "a3-hell1",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 90,
+      "minHorizonS": 280,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03", "--arm", "a3", "--shard", "26x26-hell-1", "--variant", "p1p5-main-a3", "--workers", "4", "--cases", "26x26-hell-1:0-1", "--row-limit-s", "260"],
+      "state": "IGP-03\\a3\\26x26-hell-1\\state.json"
+    },
+    {
+      "id": "w760-14x14",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 80,
+      "minHorizonS": 280,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03", "--arm", "w760", "--shard", "14x14-nightmare", "--variant", "p1p5-w760", "--workers", "4", "--cases", "14x14-nightmare:0-1", "--row-limit-s", "260"],
+      "state": "IGP-03\\w760\\14x14-nightmare\\state.json"
+    },
+    {
+      "id": "w760-12x12",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 50,
+      "minHorizonS": 280,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03", "--arm", "w760", "--shard", "12x12-nightmare", "--variant", "p1p5-w760", "--workers", "4", "--cases", "12x12-nightmare:0-1", "--row-limit-s", "260"],
+      "state": "IGP-03\\w760\\12x12-nightmare\\state.json"
+    },
+    {
+      "id": "w760-hell1",
+      "locked": true,
+      "optional": true,
+      "repeatUntilDone": true,
+      "projectS": 130,
+      "minHorizonS": 280,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03", "--arm", "w760", "--shard", "26x26-hell-1", "--variant", "p1p5-w760", "--workers", "4", "--cases", "26x26-hell-1:0-1", "--row-limit-s", "260"],
+      "state": "IGP-03\\w760\\26x26-hell-1\\state.json"
+    },
+    {
+      "id": "verify",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 100,
+      "minHorizonS": 60,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\verify.mjs", "--task", "IGP-03", "--arm", "w095,w380,w760,a3"],
+      "state": "IGP-03\\verify-w095+w380+w760+a3\\state.json"
+    },
+    {
+      "id": "publish-w095",
+      "locked": false,
+      "node": ["tools\\ig-proto\\arm.mjs", "publish", "--task", "IGP-03", "--arm", "w095"]
+    },
+    {
+      "id": "publish-w380",
+      "locked": false,
+      "node": ["tools\\ig-proto\\arm.mjs", "publish", "--task", "IGP-03", "--arm", "w380"]
+    },
+    {
+      "id": "publish-w760",
+      "locked": false,
+      "node": ["tools\\ig-proto\\arm.mjs", "publish", "--task", "IGP-03", "--arm", "w760"]
+    },
+    {
+      "id": "publish-a3",
+      "locked": false,
+      "node": ["tools\\ig-proto\\arm.mjs", "publish", "--task", "IGP-03", "--arm", "a3"]
+    },
+    {
+      "id": "budgets",
+      "locked": false,
+      "node": ["tools\\ig-proto\\budgets.mjs", "--arms", "IGP-01/after,IGP-03/w095,IGP-03/w380,IGP-03/w760,IGP-03/a3"]
+    },
+    {
+      "id": "compare",
+      "locked": false,
+      "node": ["tools\\ig-proto\\compare.mjs", "--task", "IGP-03", "--pairs", "IGP-01/before:w095,IGP-01/before:w380,IGP-01/before:w760,IGP-01/after:w095,IGP-01/after:w380,IGP-01/after:w760,IGP-01/after:a3", "--reference", "mp12b1", "--pm4", "IGP-02"]
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "check", "--task", "IGP-03"]
+    }
+  ]
+}
