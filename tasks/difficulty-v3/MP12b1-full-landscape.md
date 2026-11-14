@@ -329,14 +329,14 @@ if ($LASTEXITCODE -ne 0) { throw 'repository check failed' }
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted and committed (`difficulty-v3 MP12b1: Full landscape with v3 (gate GL-P3, full part)`) |
+| Start | 2026-11-13 21:15 (+07:00) |
+| End | 2026-11-14 10:08 developer; 10:32 orchestrator commit |
+| Duration | 12 h 52 min developer, almost all machine time: 229 launcher invocations, 38,022 s (10.56 h) of machine time under the lock (20,475 s for the 62 non-Hell cases, 8,920 s for the 25 Hell prescreens, 8,627 s for the three 20-request Hell runs); lock waits 4,132 s (longest 330.8 s) while the Sudoku repository ran its recovery steps; about 20 min review |
+| Model | claude-sonnet-5.5 (developer); orchestrator review claude-opus-5.5 |
+| Token usage | 288 model calls; 77,508,495 input tokens (77,089,312 cache reads); 194,448 output tokens |
+| AI credits | about 1,070 (developer) |
+| Verification | Developer: every shard through `launch.mjs` under `Invoke-Dv3Timed`, exits 0 or 3, none stopped at 590 s; 90 reports published once, no checkpoint left; source digest `34cea386…` in all 105 reports (18 slice reports reused by equal digest and version keys); `aggregate.mjs --self-test` 34/34; a dry run with three cases missing exited 2 and wrote nothing; quick set 1,340/1,340 (23.3 s) under the lock; `npm run check` OK; format checks of the folder. Orchestrator re-run: quick set exit 0 (23.4 s, lock wait 0 s); `npm run check` OK; `aggregate.mjs --self-test` 34/34; `git status` shows only the new folder besides the analysts' documents |
+| Acceptance | MP12b1-B01, B02 and T01..T05 met. 105 cases: 62 non-Hell measured with 20 requests, 18 reused from the slice, 25 Hell prescreens (3 requests); prescreens with a puzzle: 14x14 Hell 1 (1 puzzle), 24x24 Hell 1 (2), 26x26 Hell 1 (25), each run again with 20 requests: 5 puzzles and 0 % complete, 13 and 0 %, 134 and 45 % complete; the other 22 Hell cases reduced (P-OD9, no 20-request run). Lists: no puzzle 22 cells (the reduced Hell cases); never central 0; census estimates above 5 % in 31 cells, above 25 % in 20 (all 15 Nightmare cells, 24x24 and 26x26 Master, the three Hell 1 cells with puzzles). C3 holds (`provedZero` 0 in all 83 cells with v3 data); C4 is list 3; C1, C2, C5 remain MP12a's on the reused slice |
+| Issues & resolutions | Named items (shard table §5), for MP12b2: (1) seven non-Hell cells below 90 % request completion: 6x10 very-easy 65 %, 6x10 easy 85 %, Nightmare 12x12 85 %, 14x14 55 %, 15x15b10 55 %, 16x16 75 %, 15x20 75 %; (2) Hell 1 availability is not contiguous (puzzles on 14x14, 24x24 and 26x26, none on 15x15b10 to 22x22) and no Hell case reaches 90 % (best 45 %); (3) 70 of 1,726 requests exceeded `TIME.responseMs` 120 s (maximum 229 s), cause not investigated; (4) the tools' "Outcome: blocked" counts a reduced case's 3 requests against 20 and applies the old reference timing bounds (noted in the aggregate); (5) MS05b3 (Sudoku) ran short cells without the lock during 22 of these cases (112 windows, 351 s): no conclusion can move (SA1), recorded with a re-run safeguard in MP12b2's dispatch addendum. The aggregate was regenerated once before hand-off to correct its note on reduced cases |
+| Handoff | MP12b2 (after the owner's pause, P-OD11): the aggregate and the three lists (20 cells above 25 % census estimates are owner questions), the D39 data (Hell 1 meets the completion criterion nowhere), the named items above, and the overlap addendum. Owner decision P-OD11: Pentomino pauses after this part until the Sudoku repository reaches MS07e; PR-P2 asks the plan author for a time-complexity review |
