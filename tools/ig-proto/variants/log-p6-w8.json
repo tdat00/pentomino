@@ -1,0 +1,8 @@
+{
+  "id": "log-p6-w8",
+  "extends": ["log", "p6", "w8"],
+  "description": "Today's search with P6 and eight workers (IGP-04): P6 x the unadmitted eight-worker upper bound.",
+  "edits": [],
+  "files": [],
+  "params": {}
+}

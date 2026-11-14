@@ -8,9 +8,12 @@ import { threadId } from 'node:worker_threads';
 
 import { activeCount, boardToRows } from './board.js';
 import { igTake } from './deduce.js';
+import * as difficulty from './difficulty.js';
 import { IncompleteRatingError, rate, UnsatisfiableError } from './difficulty.js';
 import { IG } from './ig-params.js';
 import { bandEdge, initialClueCount } from './levels.js';
+import { SCORE } from './policy.js';
+import { buildModel, solveFirst } from './tiling.js';
 
 /**
  * @typedef {object} Call
@@ -22,6 +25,7 @@ import { bandEdge, initialClueCount } from './levels.js';
  * @property {number | null} W Screen limit of the call (the prototype; null: canonical).
  * @property {number | null} priorCount Prior start count of the call (the prototype; null without a prior).
  * @property {object} [locate] Summary of the prototype's locate phase, written on the `end` line.
+ * @property {number} [p6Ms] Cost of the diagnostic `withP6` recomputed for the result, written on the `end` line.
  * @property {number} t0
  * @property {boolean} logging
  * @property {any} ctx
@@ -224,12 +228,66 @@ export function endCall(call, res) {
   }
   write({
     t: 'end', call: call.id, result, score, clueCount, ms: round3(performance.now() - call.t0), work: call.work,
-    profiles: call.i, rerates: call.rerates, accepted, ...(call.locate === undefined ? {} : { locate: call.locate }), at: now(),
+    profiles: call.i, rerates: call.rerates, ...(call.p6Ms === undefined ? {} : { p6Ms: call.p6Ms }), accepted,
+    ...(call.locate === undefined ? {} : { locate: call.locate }), at: now(),
   });
 }
 
 /**
- * Today's search, journaled: `v3` is the unchanged search function of the copy.
+ * P6 (IG.p6, variant p6): runs `run` with the DLX diagnostic skipped in every rating of the search, then gives an ok
+ * result the diagnostic its rating would have had: one `solveFirst` on the returned clues, filled as `measureV3` does
+ * (difficulty.js, after the deduction). The switch is restored whatever `run` does, so other tasks of the worker, such
+ * as `rate`, keep the canonical diagnostic. Without IG.p6 it only calls `run`.
+ * @template T
+ * @param {any} ctx The SelectContext (board, pieces and workspace of the result's model).
+ * @param {() => T} run The search.
+ * @param {Call} [call] The call journaled, which receives `p6Ms`.
+ * @returns {T}
+ */
+export function withP6(ctx, run, call) {
+  if (IG.p6 !== true) {
+    return run();
+  }
+  const dlx = difficulty.igDlx;
+  if (dlx === undefined) {
+    throw new Error('ig-log: IG.p6 is set but difficulty.js has no igDlx: the variant p6 is not in the chain');
+  }
+  dlx.skip = true;
+  /** @type {any} */
+  let res;
+  try {
+    res = run();
+  } finally {
+    dlx.skip = false;
+  }
+  if (res?.ok !== true || res.rating.metrics.U === 0) {
+    return res;
+  }
+  const t0 = performance.now();
+  const model = buildModel(ctx.board, ctx.pieces, res.clues, ctx.ws);
+  const found = solveFirst(model, { rowTrialLimit: SCORE.caps.rows, branchTrialLimit: SCORE.caps.branch });
+  let dlxStop = 'solution';
+  if (found.layout === null) {
+    if (found.exhausted) {
+      throw new Error('internal: the DLX diagnostic found no solution where the deduction found one');
+    }
+    dlxStop = found.stop === 'row-limit' ? 'row-cap' : 'branch-cap';
+  }
+  if (call !== undefined) {
+    call.p6Ms = round3(performance.now() - t0);
+  }
+  const metrics = {
+    ...res.rating.metrics,
+    B: dlxStop === 'solution' ? Math.min(found.branchTrials, SCORE.caps.branch) : SCORE.caps.branch,
+    branchTrials: found.branchTrials,
+    rowTrials: found.rowTrials,
+    dlxStop,
+  };
+  return { ...res, rating: { ...res.rating, metrics } };
+}
+
+/**
+ * Today's search, journaled: `v3` is the unchanged search function of the copy (under P6, inside `withP6`).
  * @param {any} ctx
  * @param {(ctx: any) => any} v3
  * @returns {any}
@@ -241,7 +299,7 @@ export function igDispatch(ctx, v3) {
     call, call.phase, c.length, () => (ctx.rate ?? rate)(b, p, c, ws), null);
   let res;
   try {
-    res = v3({ ...ctx, rate: seam });
+    res = withP6(ctx, () => v3({ ...ctx, rate: seam }), call);
   } catch (e) {
     endCall(call, e);
     throw e;

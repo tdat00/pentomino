@@ -3,10 +3,10 @@
 | Header | Value |
 |---|---|
 | ID | IGP-05 |
-| Depends on | IGP-00 (accepted and committed) |
+| Depends on | IGP-00 (accepted and committed); IGP-02 (accepted): part 2's report reads its `pm4.json` |
 | Estimated size | Medium: about 450 new lines (`pm1.mjs`); about 1 to 2 hours of developer work; machine time about 23 minutes (projection: part 1 about 7 min of rating on four lanes, part 2 about 1 min, part 3 about 6 min, a dry run, nine quiet periods) |
 | Owner role | Measurement prototype |
-| Confirms or refutes | IG-P-Q16 and report §2/§3: whether Hell 1 on 215-484 cells, Hell 2 and Hell 3 show any in-band rating, score-in-band and AR1-eligible counted apart (R27); why Hell 1 sets fail on 14x14 and 24x24 (R28); the fine count curves and start-count capped shares of 14x14, 12x12 and 26x26 Nightmare (R29) |
+| Confirms or refutes | IG-P-Q16 and report §2/§3: whether Hell 1 on 215-484 cells, Hell 2 and Hell 3 show any in-band rating, score-in-band and AR1-eligible counted apart (R27); why Hell 1 sets fail on 14x14 and 24x24 (R28); the fine count curves and start-count capped shares of 14x14, 12x12 and 26x26 Nightmare (R29); where the in-band ratings lie against today's start count, and their main work against 95, 190 and 380 M (IG-P-Q17, Q09; added after the IGP-04 review) |
 | Design refs | plan §5 PM1; `clarifications.md` IG-P-Q04 (tranche 1, in this order; record work and nodes to the first solution, the count tail and the census apart; MP12b1's coarse curves not repeated), Q16 (Hell 2 and 3 route); check-list §4 D-IG10, D-IG12, D-IG13 |
 | Label | provisional (pre-freeze); frozen re-run by check-list §6 |
 | Implementation status | Not started |
@@ -108,6 +108,23 @@ failure is classified from its profiles: `dead-end` (no rated candidate: every p
 refused), `never-in-band` (rated, none in band), `in-band-refused` (in-band scores all refused by AR1), `limit` (64
 profiles without a final result), `censored` (cut at the deadline), `other`.
 
+### Additions after the IGP-01 to IGP-04 reviews (report only; no change to the parts' algorithms)
+
+- **Offsets from today's start count.** Every rating record also carries `startCount` (`lib/calls.mjs`
+  `startCountFor`, as PM4) and `offset` = its count − `startCount`. `pm1.md` gives, per cell of parts 1 and 2, the
+  in-band and eligible ratings by offset in PM4's buckets (`<0`, `0` to `4`, `>4`); part 2 sets them beside PM4's
+  useful share by offset of the same cell (`IGP-02/pm4.json` `cells.<case>.costByOffset`), and part 3 gives, for
+  each set whose call made no puzzle, the offsets of its families' in-band ratings. Purpose: IG-P-Q17's set-level shift
+  (sets today's search gives up on, served at their in-band counts) and IG-P-Q16.
+- **Main work of in-band ratings against `W`.** Per cell with in-band ratings, the share of in-band and of eligible
+  ratings whose main work (`work − censusWork`) exceeds 95, 190 and 380 M: what a screen at that `W` would lose, as
+  PM4's useful ratings lost. First `W` inputs for Hell 2, Hell 3 and Hell 1 on 215 to 484 cells (IG-P-Q09, and (c5)
+  of IG-P-Q17's addendum after IGP-03).
+- **Four lanes, not more.** On this machine (16 logical cores) each rating takes 9 to 28 % longer at eight workers than
+  at four (IGP-04's twin calls), so more lanes would inflate the ms per rating that PM1 reports.
+- **Not reached.** If the budget guard stops a part (check-list §7), the report lists its families not run as "not
+  reached (budget)", never as "none observed"; the plan author's order puts Hell 3 last.
+
 ### `pm1.mjs`
 
 ```text
@@ -174,10 +191,12 @@ the families of failed sets (about 80 s).
   offeredInSource }, order, probes: [ <rating record> ], result, boundary, cappedAt, maxScore, inBand, eligible }`.
 - `discoveries.jsonl`: `{ case, family, count, boardRows, pieces, clues, rating, eligible }`.
 - `pm1.json`: `{ meta, part1: { '<case>': { families, inBand: { ratings, families }, eligible: { ratings, families },
-  maxScore, gapToBand, boundaries, cheapSideCapped, msPerRating, msPerInBand } }, part2: { '<case>': { counts: { '<c>':
-  { n, scoreMedian, scoreMin, scoreMax, cappedShare, inBandShare, eligibleShare, workFirst, countTail } }, startCount,
-  startCountCappedShare, windowCounts } }, part3: { '<case>': { sets: [{ seed, callResult, failure, families }] } },
-  limitations: [...], laterRound: { scope, workerHours, wallHours } }`.
+  maxScore, gapToBand, boundaries, cheapSideCapped, msPerRating, msPerInBand, byOffset: { '<bucket>': { ratings,
+  inBand, eligible } }, mainWorkAbove: { '<W>': { inBand, eligible } } } }, part2: { '<case>': { counts: { '<c>':
+  { n, offset, scoreMedian, scoreMin, scoreMax, cappedShare, inBandShare, eligibleShare, workFirst, countTail } },
+  startCount, startCountCappedShare, windowCounts, byOffset, mainWorkAbove } }, part3: { '<case>': { sets: [{ seed,
+  callResult, failure, families, inBandOffsets }] } }, notReached: [...], limitations: [...], laterRound: { scope,
+  workerHours, wallHours } }`.
 - `pm1.md`: the banner; part 1 in the plan author's order with the verdict per cell; part 2's curves; part 3's failure
   classes; the limitations (reduced diagnostic, possible non-monotone windows, cheap-side caps); the later round's scope
   and cost.
@@ -190,6 +209,7 @@ the families of failed sets (about 80 s).
 | IGP-05-B02 | The three Nightmare cells have fine counts with nested orders; the start-count capped shares are set against MP12b1's | `pm1.md` part 2 |
 | IGP-05-B03 | The failing Hell 1 sets of 14x14 and 24x24 are classified by why they fail | `pm1.md` part 3 |
 | IGP-05-B04 | Every in-band discovery is reproducible from its saved inputs; the rest of tranche 1 is stated as a later round with its scope and cost | `discoveries.jsonl`; `pm1.md` |
+| IGP-05-B05 | Per cell, the in-band and eligible ratings by offset from today's start count (beside PM4's on part 2's cells) and the shares whose main work exceeds 95, 190 and 380 M are given; parts or cells stopped by the budget are named "not reached" | `pm1.md` |
 
 ## Acceptance criteria — Technical
 

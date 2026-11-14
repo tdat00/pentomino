@@ -2,9 +2,9 @@
 // Self-test of the harness (IGP-00 §10). Run under the lock wrapper by run-task.ps1; it carves and rates only small
 // cases (about 60 s). Each case prints `PASS <name>` or `FAIL <name>: <reason>`; the state file records the results
 // and the script exits 1 on any failure.
-//   node tools\ig-proto\self-test.mjs --label <L> --source-label <SL> --horizon-s <H> [--only 1,3] [--proto] [--task <T>]
+//   node tools\ig-proto\self-test.mjs --label <L> --source-label <SL> --horizon-s <H> [--only 1,3] [--proto] [--p6] [--task <T>]
 // `--proto` (IGP-01) adds the prototype's cases after IGP-00's nine; its state goes to <T>/self-test/state.json
-// (default IGP-01 with --proto, else IGP-00).
+// (default IGP-01 with --proto, else IGP-00). `--p6` (IGP-04) runs all of them and adds the P6 cases (default task IGP-04).
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -800,6 +800,153 @@ const protoCases = [
   },
 ];
 
+/**
+ * One `selectClues` call of a variant on the first carved set of a seed, with every rating the search saw.
+ * @param {string} variant
+ * @param {string} caseId
+ * @param {string} seedText
+ * @param {'any' | 'require'} uniqueness
+ * @param {Record<string, unknown>} [extra] More context fields (a rating seam).
+ */
+async function p6Call(variant, caseId, seedText, uniqueness, extra = {}) {
+  const x = await engine(variant);
+  const entry = caseBoard(caseId);
+  const carved = /** @type {any} */ (firstCarvedSet(x.e, { boardRows: entry.boardRows, levelId: entry.levelId, seedText }));
+  assert(carved.ok, `the carve of ${seedText} failed`);
+  /** @type {any[]} */
+  const seen = [];
+  /** @type {any} */
+  let result = null;
+  /** @type {any} */
+  let error = null;
+  try {
+    result = x.e.clues.selectClues({
+      board: carved.board, pieces: carved.set.pieces, layout: carved.set.witness, target: x.e.levels.level(entry.levelId), rng: carved.calRng,
+      uniqueness, excludeClueKeys: new Set(), ws: x.ws, onRate: (/** @type {any} */ _clues, /** @type {any} */ rating) => seen.push(rating), ...extra,
+    });
+  } catch (e) {
+    error = e;
+  }
+  return { result, error, seen, skipAfter: x.e.difficulty.igDlx?.skip };
+}
+
+const P6_CALLS = /** @type {[string, string, 'any' | 'require'][]} */ ([
+  ['10x10-easy', 'ig-selftest/sets/0', 'any'], ['10x10-easy', 'ig-selftest/sets/1', 'require'],
+  ['10x10-hard', 'ig-selftest/instr/0', 'any'], ['10x10-hard', 'ig-selftest/instr/1', 'require'],
+]);
+
+const p6Cases = [
+  {
+    name: 'p6: trees, the switch and the width edit',
+    async run() {
+      const [log, p6, p6w8, main, mainP6] = [await ensureTree('log'), await ensureTree('log-p6'), await ensureTree('log-p6-w8'), await ensureTree('p1p5-main'), await ensureTree('p1p5-main-p6-w8')];
+      assert(p6.chain.join('>') === 'base>instr>log>p6>log-p6' && p6.params.p6 === true && p6.params.logAccepted === true, `log-p6: ${p6.chain.join('>')} ${JSON.stringify(p6.params)}`);
+      assert(log.params.p6 === false && main.params.p6 === false, 'a tree without p6 in the chain has p6 on');
+      assert(p6w8.chain.join('>') === 'base>instr>log>p6>w8>log-p6-w8', `log-p6-w8: ${p6w8.chain.join('>')}`);
+      assert(mainP6.chain.join('>') === 'base>instr>log>p1p5>p1p5-main>p6>w8>p1p5-main-p6-w8' && mainP6.params.p6 === true && mainP6.params.W['hell-1'] === 380000000 && mainP6.params.a3 === false, `p1p5-main-p6-w8: ${mainP6.chain.join('>')}`);
+      const pool = (/** @type {any} */ tree) => readFileSync(join(tree.root, 'core', 'browser', 'worker-pool.js'), 'utf8');
+      assert(pool(p6w8).includes('export const MAX_POOL_SIZE = 8;') && pool(mainP6).includes('export const MAX_POOL_SIZE = 8;'), 'a w8 tree keeps MAX_POOL_SIZE 4');
+      assert(pool(p6).includes('export const MAX_POOL_SIZE = 4;') && pool(main).includes('export const MAX_POOL_SIZE = 4;'), 'a tree without w8 changes MAX_POOL_SIZE');
+      const difficulty = async (/** @type {string} */ v) => (await engine(v)).e.difficulty;
+      assert((await difficulty('base')).igDlx === undefined && (await difficulty('log')).igDlx === undefined && (await difficulty('p1p5-main')).igDlx === undefined, 'a tree without p6 has igDlx');
+      same((await difficulty('log-p6')).igDlx, { skip: false }, 'igDlx of log-p6 at rest');
+    },
+  },
+  {
+    name: 'p6: a log-p6 call equals the log call; the diagnostic is skipped inside and restored',
+    async run() {
+      let skipped = 0;
+      let calls = 0;
+      let ok = 0;
+      for (const [caseId, seedText, uniqueness] of P6_CALLS) {
+        /** @type {boolean[]} */
+        const during = [];
+        const e6 = (await engine('log-p6')).e;
+        const a = await p6Call('log', caseId, seedText, uniqueness);
+        const b = await p6Call('log-p6', caseId, seedText, uniqueness, { rate: (/** @type {any} */ ...args) => {
+          during.push(e6.difficulty.igDlx.skip);
+          return e6.difficulty.rate(...args);
+        } });
+        assert(a.error === null && b.error === null, `a call threw: ${a.error ?? b.error}`);
+        same(b.result, a.result, `the log-p6 call differs from the log call (${caseId} ${seedText}, ${uniqueness})`);
+        assert(a.seen.length > 0 && a.seen.length === b.seen.length, `the calls saw ${a.seen.length} and ${b.seen.length} ratings`);
+        assert(a.seen.every((r) => r.metrics.U === 0 || r.metrics.rowTrials > 0), 'a canonical rating without a diagnostic');
+        assert(b.seen.every((r) => r.metrics.U === 0 || (r.metrics.rowTrials === 0 && r.metrics.branchTrials === 0)), 'a rating of the log-p6 search carries the diagnostic');
+        assert(during.length > 0 && during.every((s) => s === true), 'the diagnostic was not skipped inside the search');
+        assert(b.skipAfter === false, 'igDlx.skip was not restored after the call');
+        skipped += b.seen.length;
+        calls += 1;
+        ok += b.result.ok ? 1 : 0;
+      }
+      assert(ok > 0, 'no call of the corpus returned a result: nothing was compared');
+      memo.p6Notes = { ...memo.p6Notes, logCalls: calls, ratingsWithoutDiagnostic: skipped, okResults: ok };
+
+      const e6 = (await engine('log-p6')).e;
+      let message = '';
+      const thrown = await p6Call('log-p6', '10x10-easy', 'ig-selftest/sets/0', 'any', { rate: () => {
+        throw new Error('st-p6-throw');
+      } });
+      message = thrown.error instanceof Error ? thrown.error.message : '';
+      assert(message === 'st-p6-throw' && thrown.skipAfter === false && e6.difficulty.igDlx.skip === false, `a search that throws left the switch on or hid the error: ${message}`);
+
+      const items = await corpus();
+      const item = items[0];
+      const base = (await engine('base')).e.difficulty.rate(item.board, item.pieces, item.clues, (await engine('base')).ws);
+      same(e6.difficulty.rate(item.board, item.pieces, item.clues, (await engine('log-p6')).ws), base, 'a rate task after a log-p6 call differs from the canonical rating');
+    },
+  },
+  {
+    name: 'p6: the journal of a log-p6 call and the prototype with P6',
+    async run() {
+      let journal = null;
+      for (const [n, [caseId, seedText]] of P6_CALLS.filter(([, , u]) => u === 'any').entries()) {
+        const dir = fresh(join(SELFTEST_DIR, 'logs', `p6-${n}`));
+        process.env.IG_LOG_DIR = dir;
+        process.env.IG_ROW = `selftest~p6-${n}`;
+        /** @type {any} */
+        let a;
+        /** @type {any} */
+        let b;
+        try {
+          a = await p6Call('log', caseId, seedText, 'any');
+          b = await p6Call('log-p6', caseId, seedText, 'any');
+        } finally {
+          delete process.env.IG_LOG_DIR;
+          delete process.env.IG_ROW;
+        }
+        if (a.result?.ok === true) {
+          journal = { a, b, lines: readJournal(dir) };
+          break;
+        }
+      }
+      assert(journal !== null, 'no call of the corpus returned a result: the journal was not checked');
+      const { a, b, lines } = journal;
+      const ends = lines.filter((l) => l.t === 'end');
+      assert(ends.length === 2 && ends.every((l) => l.result === 'ok'), `journal ends: ${ends.map((l) => l.result).join(',')}`);
+      const [endLog, endP6] = ends;
+      assert(endLog.p6Ms === undefined && typeof endP6.p6Ms === 'number' && endP6.p6Ms >= 0, `p6Ms on the end lines: ${endLog.p6Ms} and ${endP6.p6Ms}`);
+      same(endP6.accepted.rating, JSON.parse(JSON.stringify(b.result.rating)), 'the accepted block of the log-p6 call is not the completed rating');
+      same(b.result.rating, a.result.rating, 'the completed rating differs from the log call\'s');
+      const probes = (/** @type {any} */ end) => stable(lines.filter((l) => l.t === 'p' && l.call === end.call));
+      assert(probes(endLog).length > 0, 'the log call has no probe lines');
+      same(probes(endP6), probes(endLog), 'the probe lines of the two calls differ (only the times may)');
+
+      // The prototype with P6 returns the result of the prototype, with the diagnostic back.
+      let proto = 0;
+      for (const [caseId, seedText, uniqueness] of P6_CALLS) {
+        const p = await p6Call('p1p5-main', caseId, seedText, uniqueness);
+        const q = await p6Call('p1p5-main-p6-w8', caseId, seedText, uniqueness);
+        assert(p.error === null && q.error === null, `a prototype call threw: ${p.error ?? q.error}`);
+        same(q.result, p.result, `the prototype with P6 differs from the prototype (${caseId} ${seedText}, ${uniqueness})`);
+        assert(q.seen.length === p.seen.length && q.skipAfter === false, `prototype ratings ${p.seen.length} and ${q.seen.length}; switch ${q.skipAfter}`);
+        assert(q.seen.every((r) => r.metrics.U === 0 || r.metrics.rowTrials === 0), 'a rating of the prototype with P6 carries the diagnostic');
+        proto += q.result.ok ? 1 : 0;
+      }
+      memo.p6Notes = { ...memo.p6Notes, prototypeOkResults: proto, prototypeCalls: P6_CALLS.length };
+    },
+  },
+];
+
 /** @param {string} text @returns {string} The text without the worktree's absolute root (records refuse it). */
 function scrub(text) {
   const root = ROOT.replace(/[\\/]+$/, '');
@@ -808,15 +955,15 @@ function scrub(text) {
 
 /** @param {string[]} argv @returns {Promise<number>} */
 async function main(argv) {
-  const { args, on } = parseArgs(argv, { values: ['label', 'source-label', 'horizon-s', 'only', 'task'], switches: ['proto'] });
+  const { args, on } = parseArgs(argv, { values: ['label', 'source-label', 'horizon-s', 'only', 'task'], switches: ['proto', 'p6'] });
   const label = args.label ?? 'selftest';
-  const task = args.task ?? (on.has('proto') ? 'IGP-01' : 'IGP-00');
+  const task = args.task ?? (on.has('p6') ? 'IGP-04' : on.has('proto') ? 'IGP-01' : 'IGP-00');
   const only = args.only === undefined ? null : args.only.split(',').map(Number);
   horizonS = Number(args['horizon-s'] ?? 285);
   const startedAt = new Date(Date.now() - elapsedS() * 1000).toISOString();
   /** @type {{ name: string, pass: boolean, reason: string | null, ms: number }[]} */
   const results = [];
-  for (const [i, c] of [...cases, ...(on.has('proto') ? protoCases : [])].entries()) {
+  for (const [i, c] of [...cases, ...(on.has('proto') || on.has('p6') ? protoCases : []), ...(on.has('p6') ? p6Cases : [])].entries()) {
     if (only !== null && !only.includes(i + 1)) {
       continue;
     }
@@ -835,7 +982,7 @@ async function main(argv) {
   const seconds = Math.round(elapsedS() * 1000) / 1000;
   writeJson(join(artifactDir(label, task, 'self-test'), 'state.json'), {
     format: 'ig-proto-state', version: 1, task, step: 'self-test', label, done: failures === 0, results,
-    appendCostMs: memo.appendCostMs ?? null, protoNotes: memo.protoNotes ?? null,
+    appendCostMs: memo.appendCostMs ?? null, protoNotes: memo.protoNotes ?? null, p6Notes: memo.p6Notes ?? null,
     lastInvocation: {
       start: startedAt, end: new Date().toISOString(), seconds, horizonS, progress: { cases: results.length - failures },
     },

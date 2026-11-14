@@ -10,12 +10,13 @@
 //   P5  a call whose canonical ratings show no window ends at once (`no-window`); budgets are recorded, not enforced.
 // IGP-03 adds IG.a3: in the set stage phase A bisects with three probes per round (variant p1p5-main-a3); with it off,
 // and in every other stage, the code path is IGP-01's.
+// IGP-04 wraps the search in withP6 (ig-log.js): with IG.p6 off it only calls the search.
 // Today's helpers are copied from clues.js with the line ranges named in their comments.
 import { activeCount } from './board.js';
 import { countRowLimit, makeUnique } from './clues.js';
 import { IncompleteRatingError, inBand, measureV3, MODEL, rate, scoreV3 } from './difficulty.js';
 import { IG } from './ig-params.js';
-import { endCall, igPhase, recordRating, startCall } from './ig-log.js';
+import { endCall, igPhase, recordRating, startCall, withP6 } from './ig-log.js';
 import { clueKey } from './keys.js';
 import { bandEdge, levelForScore } from './levels.js';
 import { BUDGETS, DEDUCE, SCORE } from './policy.js';
@@ -114,15 +115,22 @@ export function igSelectProto(ctx) {
   /** @type {any} */
   let res;
   try {
-    res = search(ctx, call, loc, W, call.priorCount, (r) => {
-      logged = r;
-    });
+    // IGP-04: under IG.p6 the search skips the DLX diagnostic and withP6 completes the returned result.
+    res = withP6(ctx, () => {
+      try {
+        return search(ctx, call, loc, W, call.priorCount, (r) => {
+          logged = r;
+        });
+      } catch (e) {
+        if (e instanceof Final) {
+          return e.res;
+        }
+        throw e;
+      }
+    }, call);
   } catch (e) {
-    if (!(e instanceof Final)) {
-      endCall(call, e);
-      throw e;
-    }
-    res = e.res;
+    endCall(call, e);
+    throw e;
   }
   endCall(call, logged ?? res);
   return res;

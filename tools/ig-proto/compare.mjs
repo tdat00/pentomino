@@ -8,13 +8,17 @@
 // An arm is `<arm>` (of --task) or `<task>/<arm>`; only matched seeds are paired. With a task-qualified arm the
 // script runs as a study (IGP-03): it adds the per-W, population, split (R33), shift, offset, 26x26 Master and
 // arity-3 sections, reads IGP-02's PM4 record from --pm4, and checks the journals of the no-screen arm.
+// With an arm whose variant adds P6 or eight workers (IGP-04) the script runs as a factor study instead: the paired
+// factors of T10, T1, the batch and the response per pair and cell, the identity of each pair, P6's work saving from the
+// call journals, the first-phase Projection, both memory criteria and the reproduction of IGP-01's after arm.
+//   node tools\ig-proto\compare.mjs --task <T> --reproduce <arm>:IGP-01/after --label <L>   (exit 1 when the puzzles differ)
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { median, percentile, summarize } from '../bench/report.js';
 import { comparePair } from './identity.mjs';
-import { artifactDir, evidenceDir, MP12B1_DIGEST, mp12b1Report, parseArgs } from './lib/paths.mjs';
+import { artifactDir, evidenceDir, MP12B1_DIGEST, mp12b1Report, parseArgs, treeDir } from './lib/paths.mjs';
 import { banner, buildMeta, worktreeDigest, writeJson, writeText } from './lib/records.mjs';
 
 /** The analysts' P1 to P5 scenario rows at four workers (check-list §5; Projections), with today's report values. */
@@ -785,7 +789,16 @@ function buildStudy({ arms, task, pm4, failures }) {
     const t1Main = cell.arms.main.summary.t1;
     const t1A3 = cell.arms.a3.summary.t1;
     const boundMs = num(bounds.map((x) => x.boundMs));
-    cell.a3 = { setStage: { main: sa3, a3: sb3 }, perRequest: bounds, t1: { main: t1Main, a3: t1A3 }, idealisedT1Bound: summarize(boundMs), kind: 'Projection: three idle lanes for each round of the winning set-stage call' };
+    const digestOf = (/** @type {any} */ s, /** @type {string} */ seed) => s.reqs.find((/** @type {any} */ q) => q.seed === seed)?.row.run.details?.resultDigest ?? null;
+    const identical = cell.seeds.map((/** @type {string} */ seed) => {
+      const da = digestOf(a, seed);
+      const db = digestOf(b, seed);
+      return { seed, identical: da === null || db === null ? null : da === db };
+    });
+    const identityText = `The arms are paired by seed; their puzzles per seed, from \`resultDigest\`: ${identical.map((x) => `${x.seed.split('/').at(-1)} ${x.identical === null ? 'not established (no digest)' : x.identical ? 'identical' : 'differ'}`).join(', ')}.${identical.every((x) => x.identical === true)
+      ? ' The T1 comparison is between runs with the same results.'
+      : identical.some((x) => x.identical === false) ? ' Where the puzzles differ, the T1 comparison is between runs with different results.' : ''}`;
+    cell.a3 = { setStage: { main: sa3, a3: sb3 }, perRequest: bounds, puzzles: identical, t1: { main: t1Main, a3: t1A3 }, idealisedT1Bound: summarize(boundMs), kind: 'Projection: three idle lanes for each round of the winning set-stage call' };
     lines.push('', `### Arity-3 set stage on ${label(caseId)} (R20; a Projection, nothing is adopted)`, '',
       '| Set-stage figure | IGP-01 after (sequential bisection) | Arity 3 |', '|---|---:|---:|',
       `| Calls (finished, unfinished) | ${sa3.calls} (${sa3.finished}, ${sa3.unfinished}) | ${sb3.calls} (${sb3.finished}, ${sb3.unfinished}) |`,
@@ -800,7 +813,7 @@ function buildStudy({ arms, task, pm4, failures }) {
     for (const x of bounds) {
       lines.push(`| ${x.seed.split('/').at(-1)} | ${sec(x.t1)} | ${fix(x.winnerMs, 0)} | ${x.rounds} | ${fix(x.savingMs, 0)} | ${sec(x.boundMs)} | ${x.attemptsInFlight ?? '-'} |`);
     }
-    lines.push('', 'Assumption of the bound: for the call that produced the request\'s set (the lowest successful attempt), T1 minus the sum over its rounds of (serial − critical ms), as if three lanes were idle for each round; the real set stage already runs attempts in parallel on the pool and consumes them in order, so the figure is a lower bound on T1, not a measured gain. The arms are paired by seed but their puzzles differ (the arity-3 probe order changes the random stream).');
+    lines.push('', 'Assumption of the bound: for the call that produced the request\'s set (the lowest successful attempt), T1 minus the sum over its rounds of (serial − critical ms), as if three lanes were idle for each round; the real set stage already runs attempts in parallel on the pool and consumes them in order, so the figure is a lower bound on T1, not a measured gain. ' + identityText);
   }
 
   // The section values of the check-list.
@@ -821,6 +834,465 @@ function buildStudy({ arms, task, pm4, failures }) {
   return { json: { checks, cells }, lines, rows };
 }
 
+// The factor study (IGP-04): P6 on today's search, and eight workers as an unadmitted upper bound.
+
+const P7_ASSUMPTION = Object.freeze({ likely: 1.3, low: 1.1, high: 1.8 });
+const ASSUMED_FIRST_PHASE = 1.9;
+const UPPER_BOUND = 'unadmitted upper bound';
+const MIB = 1024 * 1024;
+/** IGP-01's after arm: the arm of `p1p5-main` in this study must reproduce its puzzles (`resultDigest`) on every seed. */
+const IGP01_AFTER = Object.freeze({ task: 'IGP-01', arm: 'after' });
+/** The arms of the study: P6 or not, eight workers or not, today's search or the prototype. */
+const FACTOR_OF_VARIANT = Object.freeze(/** @type {Record<string, { p6: boolean, w8: boolean, search: string }>} */ ({
+  log: { p6: false, w8: false, search: 'today\'s search' },
+  'log-p6': { p6: true, w8: false, search: 'today\'s search' },
+  'log-p6-w8': { p6: true, w8: true, search: 'today\'s search' },
+  'p1p5-main': { p6: false, w8: false, search: 'the prototype (P1 to P5)' },
+  'p1p5-main-p6-w8': { p6: true, w8: true, search: 'the prototype (P1 to P5)' },
+}));
+
+/**
+ * What a pair of variants isolates: only P6, only the width, or both (a combined factor).
+ * @param {string} beforeVariant
+ * @param {string} afterVariant
+ * @returns {{ kind: string, label: string }}
+ */
+function describePair(beforeVariant, afterVariant) {
+  const b = FACTOR_OF_VARIANT[beforeVariant];
+  const a = FACTOR_OF_VARIANT[afterVariant];
+  if (b === undefined || a === undefined) {
+    throw new Error(`no factor description for ${beforeVariant} against ${afterVariant}`);
+  }
+  const p6 = a.p6 !== b.p6;
+  const w8 = a.w8 !== b.w8;
+  if (p6 && w8) {
+    return { kind: 'p6-w8', label: `P6 x eight workers combined, on ${a.search}: an ${UPPER_BOUND}, not P6 alone` };
+  }
+  if (p6) {
+    return { kind: 'p6', label: `P6 alone, on ${a.search} at four workers: the isolated P6 factor` };
+  }
+  if (w8) {
+    return { kind: 'w8', label: `eight workers alone, on ${a.search}: an ${UPPER_BOUND}, not P8 as IG-P-Q05 admits it` };
+  }
+  throw new Error(`${beforeVariant} and ${afterVariant} differ in neither P6 nor the width`);
+}
+
+/** @param {string} caseId @returns {string} The level of a cell id. */
+const levelOf = (caseId) => (/-master$/.test(caseId) ? 'Master' : /-nightmare$/.test(caseId) ? 'Nightmare' : caseId);
+
+/**
+ * The paired factors of one cell: per matched seed the ratio of the first arm's time over the second's (above 1 is
+ * faster in the second), with the requests that reached ten counted beside.
+ * @param {any[]} xRows Rows of the first arm in the cell.
+ * @param {any[]} yRows Rows of the second arm in the cell.
+ */
+function factorCell(xRows, yRows) {
+  const seeds = xRows.filter((x) => yRows.some((y) => y.seed === x.seed)).map((x) => x.seed).sort();
+  /** @type {Record<string, number[]>} */
+  const ratios = { t10: [], t1: [], batch: [], response: [] };
+  const perSeed = seeds.map((seed) => {
+    const x = xRows.find((r) => r.seed === seed);
+    const y = yRows.find((r) => r.seed === seed);
+    const timed = !isCensored(x) && !isCensored(y);
+    const ten = reachedTen(x) && reachedTen(y);
+    const t1x = x.run.firstReadyMs ?? null;
+    const t1y = y.run.firstReadyMs ?? null;
+    if (ten) {
+      ratios.t10.push(x.run.tenthReadyMs / y.run.tenthReadyMs);
+    }
+    if (timed && t1x !== null && t1y !== null) {
+      ratios.t1.push(t1x / t1y);
+    }
+    if (ten && t1x !== null && t1y !== null && x.run.tenthReadyMs > t1x && y.run.tenthReadyMs > t1y) {
+      ratios.batch.push((x.run.tenthReadyMs - t1x) / (y.run.tenthReadyMs - t1y));
+    }
+    if (timed) {
+      ratios.response.push(x.run.responseMs / y.run.responseMs);
+    }
+    return {
+      seed, accepted: [x.run.acceptedCount, y.run.acceptedCount], reachedTen: [reachedTen(x), reachedTen(y)],
+      censored: [isCensored(x), isCensored(y)], t1Ms: [t1x, t1y], t10Ms: [x.run.tenthReadyMs ?? null, y.run.tenthReadyMs ?? null],
+      responseMs: [x.run.responseMs, y.run.responseMs],
+    };
+  });
+  const medianOf = (/** @type {any[]} */ rows, /** @type {string} */ key) => median(num(rows.filter((r) => seeds.includes(r.seed) && reachedTen(r)).map((r) => r.run[key])));
+  return {
+    seeds, ratios,
+    factors: { t10: ratioStat(ratios.t10), t1: ratioStat(ratios.t1), batch: ratioStat(ratios.batch), response: ratioStat(ratios.response) },
+    n: seeds.length,
+    completion: { before: xRows.filter((r) => seeds.includes(r.seed) && reachedTen(r)).length, after: yRows.filter((r) => seeds.includes(r.seed) && reachedTen(r)).length, of: seeds.length },
+    t10Median: { before: medianOf(xRows, 'tenthReadyMs'), after: medianOf(yRows, 'tenthReadyMs') },
+    perSeed,
+  };
+}
+
+/**
+ * Identity of two arms on the matched seeds of a cell: prefix identity is required (every arm here runs a keyed tree);
+ * a row cut at the child limit has no record to compare.
+ * @param {any[]} xRows
+ * @param {any[]} yRows
+ * @param {string} names
+ * @param {string[]} failures
+ */
+function pairIdentity(xRows, yRows, names, failures) {
+  return xRows.filter((x) => yRows.some((y) => y.seed === x.seed)).map((x) => {
+    const y = yRows.find((r) => r.seed === x.seed);
+    if (isCensored(x) || isCensored(y)) {
+      return { seed: x.seed, level: 'not compared (a row cut at the child limit has no record)', prefixIdentity: null };
+    }
+    const r = comparePair(x.run, y.run);
+    const prefixIdentity = r.setKeyEqual === true && r.keyPrefixEqual === true;
+    for (const problem of r.problems) {
+      failures.push(`${x.seed} ${names}: ${problem}`);
+    }
+    if (!prefixIdentity) {
+      failures.push(`${x.seed} ${names}: prefix identity is not established (set key equal ${r.setKeyEqual}, key prefix equal ${r.keyPrefixEqual})`);
+    }
+    return {
+      seed: x.seed, level: r.level, prefixIdentity, digestEqual: r.digestEqual, accepted: [r.acceptedA, r.acceptedB], note: r.note,
+    };
+  });
+}
+
+/**
+ * The key of a finished call without its times: two arms that made the same puzzles run the same calls with the same
+ * probes, so a call of one arm has its twin in the other.
+ * @param {any} c
+ * @returns {string}
+ */
+const callKey = (c) => JSON.stringify([
+  c.stage, c.start.attempt, c.start.level, c.start.K, c.start.A, c.start.startCount,
+  c.tuples.map((/** @type {any} */ t) => [t.phase, t.count, t.outcome, t.score, t.work, t.flags]), c.end.result, c.end.clueCount, c.end.profiles,
+]);
+
+/**
+ * P6's saving from the call journals: the rating ms of the twin calls without and with the diagnostic, the recomputed
+ * diagnostic of the P6 arm (`p6Ms` of its end lines) added back, and the whole call ms.
+ * @param {any} x The arm without P6.
+ * @param {any} y The arm with P6.
+ * @param {string} caseId
+ * @param {string[]} seeds
+ */
+function workSaving(x, y, caseId, seeds) {
+  let matched = 0;
+  let unmatchedBefore = 0;
+  let unmatchedAfter = 0;
+  let ratingBefore = 0;
+  let ratingAfter = 0;
+  let recompute = 0;
+  let callBefore = 0;
+  let callAfter = 0;
+  for (const seed of seeds) {
+    const rx = x.rows.find((/** @type {any} */ r) => r.caseId === caseId && r.seed === seed);
+    const ry = y.rows.find((/** @type {any} */ r) => r.caseId === caseId && r.seed === seed);
+    const finished = (/** @type {any} */ c) => c.start !== null && c.end !== null;
+    const before = (rx === undefined ? [] : x.byRow.get(rx.rowKey) ?? []).filter(finished);
+    const after = (ry === undefined ? [] : y.byRow.get(ry.rowKey) ?? []).filter(finished);
+    /** @type {Map<string, any[]>} */
+    const pool = new Map();
+    for (const c of after) {
+      const key = callKey(c);
+      pool.set(key, [...(pool.get(key) ?? []), c]);
+    }
+    for (const c of before) {
+      const twin = pool.get(callKey(c))?.shift();
+      if (twin === undefined) {
+        unmatchedBefore += 1;
+        continue;
+      }
+      matched += 1;
+      ratingBefore += sum(num(c.tuples.map((/** @type {any} */ t) => t.ms)));
+      ratingAfter += sum(num(twin.tuples.map((/** @type {any} */ t) => t.ms)));
+      recompute += twin.end.p6Ms ?? 0;
+      callBefore += c.end.ms;
+      callAfter += twin.end.ms;
+    }
+    unmatchedAfter += [...pool.values()].reduce((s, list) => s + list.length, 0);
+  }
+  const withRecompute = ratingAfter + recompute;
+  return {
+    matchedCalls: matched, unmatchedBefore, unmatchedAfter, ratingMs: { before: Math.round(ratingBefore), after: Math.round(ratingAfter), recompute: Math.round(recompute) },
+    ratingRatio: { gross: div(ratingBefore, ratingAfter), net: div(ratingBefore, withRecompute) },
+    savingShare: ratingBefore === 0 ? null : 1 - withRecompute / ratingBefore,
+    callMs: { before: Math.round(callBefore), after: Math.round(callAfter) }, callRatio: div(callBefore, callAfter),
+  };
+}
+
+/**
+ * Both bench memory criteria of an arm, with the constants of the arm's own tree: the accounted peak against workers x
+ * `WORKER_LIMIT_BYTES` + `MAIN_BUDGET_BYTES`, and the whole-process peak against the bench criterion.
+ * @param {any} arm
+ */
+async function memoryOf(arm) {
+  const root = treeDir(arm.variant);
+  const pool = await import(pathToFileURL(join(root, 'core', 'browser', 'worker-pool.js')).href);
+  const report = await import(pathToFileURL(join(root, 'tools', 'bench', 'report.js')).href);
+  const workers = Math.max(...arm.rows.map((/** @type {any} */ r) => r.run.workerCount));
+  const accountedLimit = workers * pool.WORKER_LIMIT_BYTES + pool.MAIN_BUDGET_BYTES;
+  const processLimit = report.CRITERIA.processBytes;
+  const peak = (/** @type {string} */ key) => arm.rows.filter((/** @type {any} */ r) => typeof r.run[key] === 'number')
+    .reduce((m, /** @type {any} */ r) => (m === null || r.run[key] > m.bytes ? { bytes: r.run[key], row: r.rowKey } : m), /** @type {{ bytes: number, row: string } | null} */ (null));
+  const accounted = peak('peakAccountedBytes');
+  const process = peak('peakProcessBytes');
+  /** @type {Record<string, { rows: number, maxAccounted: number | null, maxProcess: number | null }>} */
+  const perCell = {};
+  for (const r of arm.rows) {
+    const c = (perCell[r.caseId] ??= { rows: 0, maxAccounted: null, maxProcess: null });
+    c.rows += 1;
+    c.maxAccounted = Math.max(c.maxAccounted ?? 0, r.run.peakAccountedBytes ?? 0);
+    c.maxProcess = r.run.peakProcessBytes === null || r.run.peakProcessBytes === undefined ? c.maxProcess : Math.max(c.maxProcess ?? 0, r.run.peakProcessBytes);
+  }
+  const passAccounted = accounted === null ? null : accounted.bytes <= accountedLimit;
+  const passProcess = process === null ? null : process.bytes <= processLimit;
+  return {
+    variant: arm.variant, workers, rows: arm.rows.length, maxPoolSize: pool.MAX_POOL_SIZE, workerLimitBytes: pool.WORKER_LIMIT_BYTES, mainBudgetBytes: pool.MAIN_BUDGET_BYTES,
+    accountedLimit, maxAccounted: accounted?.bytes ?? null, maxAccountedRow: accounted?.row ?? null, passAccounted,
+    processLimit, maxProcess: process?.bytes ?? null, maxProcessRow: process?.row ?? null, passProcess,
+    pass: passAccounted === true && passProcess === true, worstCaseOverProcessLimit: accountedLimit > processLimit, perCell,
+  };
+}
+
+/**
+ * Arm E against IGP-01's after arm: the same puzzles on every seed (`resultDigest` equal at equal accepted counts; the
+ * keys and the set key equal as well). A difference is a stop.
+ * @param {any} e The arm (variant p1p5-main) of this study.
+ * @param {any} ref IGP-01's after arm.
+ */
+export function reproduction(e, ref) {
+  const seeds = e.rows.map((/** @type {any} */ r) => ({ caseId: r.caseId, seed: r.seed })).sort((a, b) => (a.seed < b.seed ? -1 : 1));
+  const perSeed = seeds.map(({ caseId, seed }) => {
+    const mine = e.rows.find((/** @type {any} */ r) => r.seed === seed);
+    const theirs = ref.rows.find((/** @type {any} */ r) => r.seed === seed);
+    if (theirs === undefined) {
+      return { caseId, seed, ok: false, note: `no row of this seed in ${IGP01_AFTER.task}/${IGP01_AFTER.arm}` };
+    }
+    const r = comparePair(theirs.run, mine.run);
+    const ok = r.countsEqual && r.digestEqual === true && r.setKeyEqual !== false && r.keyPrefixEqual !== false;
+    return {
+      caseId, seed, ok, accepted: { igp01: r.acceptedA, arm: r.acceptedB }, digestEqual: r.digestEqual, setKeyEqual: r.setKeyEqual,
+      keysEqual: r.keyPrefixEqual, resultDigest: mine.run.details?.resultDigest ?? null, note: r.note,
+    };
+  });
+  return { reference: `${IGP01_AFTER.task}/${IGP01_AFTER.arm}`, ok: perSeed.length > 0 && perSeed.every((s) => s.ok), perSeed };
+}
+
+/**
+ * The first-phase factor (R25): the T10 factor of the combined pair times the P7 assumption, a Projection, against ÷1.9.
+ * @param {any} pair A pair with both P6 and eight workers.
+ */
+function firstPhaseOf(pair) {
+  const project = (/** @type {number | null} */ f) => (f === null ? null : {
+    likely: f * P7_ASSUMPTION.likely, low: f * P7_ASSUMPTION.low, high: f * P7_ASSUMPTION.high,
+    p7NeededFor19: ASSUMED_FIRST_PHASE / f, aboveAssumptionLikely: f * P7_ASSUMPTION.likely >= ASSUMED_FIRST_PHASE,
+  });
+  return {
+    pair: pair.name, label: pair.label,
+    cells: Object.fromEntries(Object.entries(pair.cells).map(([id, c]) => [id, { n: c.factors.t10.n, t10: c.factors.t10, projection: project(c.factors.t10.median) }])),
+    levels: Object.fromEntries(Object.entries(pair.levels).map(([id, f]) => [id, { n: f.t10.n, t10: f.t10, projection: project(f.t10.median) }])),
+  };
+}
+
+/**
+ * @param {{ task: string, label: string, args: Record<string, string>, arms: Record<string, any>, pairNames: string[][],
+ *   failures: string[], meta: any, appendCostMs: number | null, out: (name: string) => string }} o
+ * @returns {Promise<number>}
+ */
+export async function factorMain({ task, label, arms, pairNames, failures, meta, appendCostMs, out }) {
+  /** @type {any[]} */
+  const pairs = [];
+  for (const [beforeToken, afterToken] of pairNames) {
+    const before = arms[beforeToken];
+    const after = arms[afterToken];
+    const { kind, label: pairLabel } = describePair(before.variant, after.variant);
+    const caseIds = [...new Set(before.rows.map((/** @type {any} */ r) => r.caseId))].filter((id) => after.rows.some((/** @type {any} */ r) => r.caseId === id))
+      .sort((a, b) => HEADLINE.findIndex((h) => h.id === a) - HEADLINE.findIndex((h) => h.id === b));
+    /** @type {Record<string, any>} */
+    const cells = {};
+    /** @type {Record<string, Record<string, number[]>>} */
+    const pooled = {};
+    for (const caseId of caseIds) {
+      const xRows = before.rows.filter((/** @type {any} */ r) => r.caseId === caseId);
+      const yRows = after.rows.filter((/** @type {any} */ r) => r.caseId === caseId);
+      const cell = factorCell(xRows, yRows);
+      const { ratios, ...rest } = cell;
+      cells[caseId] = {
+        ...rest, label: pairLabel, identity: pairIdentity(xRows, yRows, `${beforeToken}~${afterToken}`, failures),
+        ...(kind === 'p6' ? { workSaving: workSaving(before, after, caseId, cell.seeds) } : {}),
+      };
+      const level = (pooled[levelOf(caseId)] ??= { t10: [], t1: [], batch: [], response: [] });
+      for (const key of Object.keys(level)) {
+        level[key].push(...ratios[key]);
+      }
+    }
+    const levels = Object.fromEntries(Object.entries(pooled).map(([id, r]) => [id, {
+      t10: ratioStat(r.t10), t1: ratioStat(r.t1), batch: ratioStat(r.batch), response: ratioStat(r.response),
+    }]));
+    const workers = (/** @type {any} */ arm) => Math.max(...arm.rows.map((/** @type {any} */ r) => r.run.workerCount));
+    pairs.push({
+      name: `${beforeToken}:${afterToken}`, before: before.name, after: after.name, kind, label: pairLabel,
+      variants: { before: before.variant, after: after.variant }, workers: { before: workers(before), after: workers(after) },
+      journal: { before: before.source, after: after.source }, cells, levels,
+    });
+  }
+  const pairBy = (/** @type {string} */ b, /** @type {string} */ a) => pairs.find((p) => p.variants.before === b && p.variants.after === a);
+  const today = pairBy('log', 'log-p6-w8');
+  const prototype = pairBy('p1p5-main', 'p1p5-main-p6-w8');
+  const firstPhase = {
+    measured: { today: today === undefined ? null : firstPhaseOf(today), prototype: prototype === undefined ? null : firstPhaseOf(prototype) },
+    p7Assumption: P7_ASSUMPTION, projection: 'measured T10 factor of the combined pair x the P7 assumption (P7 is not prototyped: IGP-06 gives a sensitivity)',
+    against: ASSUMED_FIRST_PHASE, kind: `Projection; every eight-worker figure is an ${UPPER_BOUND}`,
+  };
+
+  /** @type {Record<string, any>} */
+  const memory = {};
+  for (const token of [...new Set(pairNames.flat())]) {
+    memory[arms[token].name] = await memoryOf(arms[token]);
+  }
+  const eToken = Object.keys(arms).find((t) => arms[t].variant === 'p1p5-main' && arms[t].task === task);
+  const reference = eToken === undefined ? null : loadArm(label, IGP01_AFTER.task, IGP01_AFTER.arm);
+  const reproduced = eToken === undefined || reference === null ? null : { arm: arms[eToken].name, ...reproduction(arms[eToken], reference) };
+  if (reproduced !== null && !reproduced.ok) {
+    failures.push(`arm ${reproduced.arm} does not reproduce ${reproduced.reference}: ${reproduced.perSeed.filter((s) => !s.ok).map((s) => `${s.seed} (${s.note})`).join('; ')}`);
+  }
+  /** @type {Record<string, any>} */
+  const mp12 = {};
+  for (const token of Object.keys(arms).filter((t) => arms[t].variant === 'log')) {
+    const arm = arms[token];
+    for (const caseId of [...new Set(arm.rows.map((/** @type {any} */ r) => r.caseId))]) {
+      const seeds = arm.rows.filter((/** @type {any} */ r) => r.caseId === caseId).map((/** @type {any} */ r) => r.seed);
+      const mp = mp12Cell(/** @type {string} */ (caseId), seeds);
+      mp12[arm.name] ??= {};
+      mp12[arm.name][caseId] = arm.rows.filter((/** @type {any} */ r) => r.caseId === caseId).map((/** @type {any} */ row) => {
+        const run = mp?.runs.find((/** @type {any} */ r) => r.seed === row.seed);
+        if (run === undefined || isCensored(row)) {
+          return { seed: row.seed, level: run === undefined ? 'no MP12b1 run' : 'not compared (a row cut at the child limit)' };
+        }
+        const result = comparePair(run, row.run);
+        for (const problem of result.problems) {
+          failures.push(`${row.seed} mp12b1~${arm.name}: ${problem}`);
+        }
+        return { seed: row.seed, level: result.level, countsEqual: result.countsEqual, note: result.note };
+      });
+    }
+  }
+
+  /** @type {Record<string, { value: any, kind: string, formula: string }>} */
+  const rows = {};
+  const slim = (/** @type {any} */ p, /** @type {string[]} */ keys) => p === undefined ? null : {
+    pair: p.name, label: p.label,
+    cells: Object.fromEntries(Object.entries(p.cells).map(([id, c]) => [id, { n: c.n, completion: c.completion, ...Object.fromEntries(keys.map((k) => [k, c.factors[k]])) }])),
+    levels: Object.fromEntries(Object.entries(p.levels).map(([id, f]) => [id, Object.fromEntries(keys.map((k) => [k, f[k]]))])),
+  };
+  const isolated = pairBy('log', 'log-p6');
+  rows.R22 = {
+    value: { ...slim(isolated, ['t10', 'response']), workSaving: isolated === undefined ? null : Object.fromEntries(Object.entries(isolated.cells).map(([id, c]) => [id, c.workSaving])) },
+    kind: 'Measured; ratios Derived', formula: 'median of the paired per-seed T10 ratios A / B (both reached ten) on matched seeds, per cell and per level; the work saving from the twin calls of the journals',
+  };
+  rows.R23 = {
+    value: { label: `eight workers: ${UPPER_BOUND}`, widthAlone: slim(pairBy('log-p6', 'log-p6-w8'), ['t10', 't1', 'batch']), p6AndWidth: slim(today, ['t10', 't1', 'batch']) },
+    kind: 'Measured; ratios Derived', formula: 'paired per-seed ratios B / C (the width alone) and A / C (P6 x the width): T10, T1 (the set stage) and T10 - T1 (the batch)',
+  };
+  rows.R25 = { value: firstPhase, kind: 'Projection (P7 assumed)', formula: 'the T10 factor of A:C and of E:F x the P7 assumption 1.3 (1.1 to 1.8), against ÷1.9' };
+  rows.R26 = {
+    value: Object.fromEntries(Object.entries(memory).map(([arm, m]) => [arm, {
+      workers: m.workers, accountedLimit: m.accountedLimit, maxAccounted: m.maxAccounted, processLimit: m.processLimit, maxProcess: m.maxProcess, pass: m.pass,
+    }])),
+    kind: 'Measured', formula: 'the largest peakAccountedBytes of the rows against workers x WORKER_LIMIT_BYTES + MAIN_BUDGET_BYTES, and the largest peakProcessBytes against 1.5 GiB',
+  };
+
+  writeJson(out('compare.json'), {
+    meta, pairs, firstPhase, memory, reproduction: reproduced, identityMp12b1: mp12, rows,
+    journal: { appendCostMs }, failures,
+  });
+
+  const ratioCells = (/** @type {any} */ f) => [ratioText(f.t10), ratioText(f.t1), ratioText(f.batch), ratioText(f.response)];
+  const verdict = failures.length === 0
+    ? 'every required identity holds (prefix identity between the arms of each pair on every seed; arm E equals IGP-01\'s after arm; arm A agrees with MP12b1)'
+    : `FAILURES: ${failures.length}`;
+  const lines = [`# ${task} comparison: the first-phase factor (P6 and eight workers)`, '', banner(meta), '',
+    'Provisional (pre-freeze) numbers. Times are *Measured*; every factor is *Derived*: the median of the per-seed ratios first arm / second arm on matched seeds only (above 1 is faster in the second arm), with n beside, and no factor estimate below n = 3; completion ("ten of n") is always beside a time. The first-phase factor is a *Projection*: P7 is assumed, not prototyped.', '',
+    '**Labels.** Only A:B isolates P6 (today\'s search, four workers, the fast cells). B:C is the width alone, A:C is P6 and the width together on today\'s search, and E:F is P6 and the width together on the prototype: neither is P6 alone. Every eight-worker figure is an **unadmitted upper bound**: it raises `MAX_POOL_SIZE` to 8 without IG-P-Q05\'s width rule (above four only with `deviceMemory` of at least 8) and without its admission rule (a task is admitted only when its workspace ceiling times the width plus the main budget fits both memory checks); it is not the accepted P8 policy.', '',
+    `Identity: ${verdict}.`, ''];
+  if (reproduced !== null) {
+    lines.push(`## Arm ${reproduced.arm} against ${reproduced.reference}`, '',
+      reproduced.ok ? 'The prototype\'s default path reproduces IGP-01\'s after arm: the puzzles are equal on every seed.' : '**The arm does not reproduce IGP-01\'s after arm: a stop.**', '',
+      '| Seed | Accepted (IGP-01 / this arm) | `resultDigest` equal | Set key equal | Puzzle keys equal | Result |', '|---|---|---|---|---|---|');
+    for (const s of reproduced.perSeed) {
+      lines.push(`| ${s.seed} | ${s.accepted === undefined ? '-' : `${s.accepted.igp01} / ${s.accepted.arm}`} | ${s.digestEqual ?? '-'} | ${s.setKeyEqual ?? '-'} | ${s.keysEqual ?? '-'} | ${s.ok ? 'equal' : `DIFFERS: ${s.note}`} |`);
+    }
+    lines.push('');
+  }
+  for (const p of pairs) {
+    lines.push(`## ${p.name}: ${p.label}`, '',
+      `First arm ${p.before} (${p.variants.before}, ${p.workers.before} workers), second arm ${p.after} (${p.variants.after}, ${p.workers.after} workers). Ratios are first / second.`, '',
+      '| Cell | Matched seeds | Ten of n (first / second) | T10 factor (median [min-max] n) | T1 factor (the set stage) | T10 - T1 factor (the batch) | Response factor | T10 median, s (first → second) | Identity |',
+      '|---|---:|---|---|---|---|---|---|---|');
+    for (const h of HEADLINE) {
+      const c = p.cells[h.id];
+      if (c === undefined) {
+        continue;
+      }
+      const prefix = c.identity.filter((/** @type {any} */ i) => i.prefixIdentity === true).length;
+      lines.push(`| ${h.label} | ${c.n} | ${c.completion.before} / ${c.completion.after} of ${c.completion.of} | ${ratioCells(c.factors).join(' | ')} | ${sec(c.t10Median.before)} → ${sec(c.t10Median.after)} | prefix identity ${prefix} of ${c.identity.length} |`);
+    }
+    lines.push('', 'By level (the per-seed ratios of its cells pooled): ' + Object.entries(p.levels).map(([id, f]) => `${id}: T10 ${ratioText(/** @type {any} */ (f).t10)}; T1 ${ratioText(/** @type {any} */ (f).t1)}; batch ${ratioText(/** @type {any} */ (f).batch)}`).join('; ') + '.', '');
+  }
+  const isolatedPair = isolated;
+  if (isolatedPair !== undefined) {
+    lines.push(`## P6's work saving, from the call journals of ${isolatedPair.before} and ${isolatedPair.after}`, '',
+      'Twin calls are finished calls with the same stage, attempt, start line and probe sequence (the arms made the same puzzles, so most calls have a twin; a call without a twin is a timing effect at the end of a request and is left out). Rating ms is the sum of the probes\' times; "with the recomputed diagnostic" adds the one `solveFirst` of each ok call that P6 puts back (`p6Ms`). The ratios are rating ms without P6 / with P6, a finer measure than the request ratio.', '',
+      '| Cell | Twin calls (unmatched first / second) | Rating ms without P6 | Rating ms with P6 (+ recomputed) | Rating ratio, probes only | Rating ratio, net of the recomputed diagnostic | Share of rating ms saved (net) | Whole-call ms ratio |', '|---|---:|---:|---:|---:|---:|---:|---:|');
+    for (const h of HEADLINE) {
+      const w = isolatedPair.cells[h.id]?.workSaving;
+      if (w !== undefined) {
+        lines.push(`| ${h.label} | ${w.matchedCalls} (${w.unmatchedBefore} / ${w.unmatchedAfter}) | ${w.ratingMs.before} | ${w.ratingMs.after} (+ ${w.ratingMs.recompute}) | ${fix(w.ratingRatio.gross, 3)} | ${fix(w.ratingRatio.net, 3)} | ${pct(w.savingShare, 1)} | ${fix(w.callRatio, 3)} |`);
+      }
+    }
+    lines.push('');
+  }
+  lines.push('## The first-phase factor (R25): a Projection', '',
+    `The report's "after first phase" column divides today's times by ${ASSUMED_FIRST_PHASE} (Opus's illustrative assumption: P6, P7 and P8 together). Here the measured T10 factor of the combined pair (P6 x eight workers, an **${UPPER_BOUND}**) is multiplied by the P7 assumption ${P7_ASSUMPTION.likely} (range ${P7_ASSUMPTION.low} to ${P7_ASSUMPTION.high}); P7 is not prototyped (IGP-06 gives a sensitivity). "P7 needed" is the P7 factor at which the measured factor reaches ÷${ASSUMED_FIRST_PHASE}.`, '',
+    '| Search | Cell or level | Measured T10 factor (median [min-max] n) | Projection with P7 1.3 (1.1-1.8) | P7 needed for ÷1.9 | Against ÷1.9 |', '|---|---|---|---|---:|---|');
+  for (const [search, fp] of [['today (A:C)', firstPhase.measured.today], ['prototype (E:F)', firstPhase.measured.prototype]]) {
+    if (fp === null) {
+      continue;
+    }
+    const entries = [...HEADLINE.filter((h) => fp.cells[h.id] !== undefined).map((h) => [h.label, fp.cells[h.id]]), ...Object.entries(fp.levels).map(([id, f]) => [`${id} (pooled)`, f])];
+    for (const [name, f] of entries) {
+      const q = f.projection;
+      lines.push(`| ${search} | ${name} | ${ratioText(f.t10)} | ${q === null ? '-' : `${fix(q.likely)} (${fix(q.low)}-${fix(q.high)})`} | ${q === null ? '-' : q.p7NeededFor19 <= 1 ? 'none needed' : fix(q.p7NeededFor19)} | ${q === null ? '-' : q.likely >= ASSUMED_FIRST_PHASE ? 'at or above ÷1.9' : 'below ÷1.9'} |`);
+    }
+  }
+  lines.push('', `Every figure of the eight-worker arms is an ${UPPER_BOUND}.`, '',
+    '## Memory at four and eight workers (R26)', '',
+    'Both bench criteria, per arm, on every row: the accounted peak against workers x `WORKER_LIMIT_BYTES` + `MAIN_BUDGET_BYTES` (the constants of the arm\'s own tree), and the whole-process peak against 1.5 GiB. The accounted limit is also the worst case that eight 224 MiB workspace ceilings and the main budget can reach.', '',
+    '| Arm | Variant | Workers | Rows | Accounted max / limit, MiB | Accounted | Process max / limit, MiB | Process | Both | Worst case (limit) above the process limit |', '|---|---|---:|---:|---|---|---|---|---|---|');
+  for (const [name, m] of Object.entries(memory)) {
+    const verdictOf = (/** @type {boolean | null} */ v) => (v === null ? 'not measured' : v ? 'pass' : 'FAIL');
+    lines.push(`| ${name} | ${m.variant} | ${m.workers} | ${m.rows} | ${m.maxAccounted === null ? '-' : (m.maxAccounted / MIB).toFixed(0)} / ${(m.accountedLimit / MIB).toFixed(0)} | ${verdictOf(m.passAccounted)} | ${m.maxProcess === null ? '-' : (m.maxProcess / MIB).toFixed(0)} / ${(m.processLimit / MIB).toFixed(0)} | ${verdictOf(m.passProcess)} | ${m.pass ? 'pass' : 'not both'} | ${m.worstCaseOverProcessLimit ? 'yes' : 'no'} |`);
+  }
+  lines.push('', 'Largest peaks by arm and cell, MiB (accounted / process): ' + Object.entries(memory).map(([name, m]) => `${name}: ${Object.entries(m.perCell).map(([id, c]) => `${id} ${c.maxAccounted === null ? '-' : (c.maxAccounted / MIB).toFixed(0)} / ${c.maxProcess === null ? '-' : (c.maxProcess / MIB).toFixed(0)}`).join(', ')}`).join('; ') + '.');
+  lines.push('', '## Agreement with MP12b1 (arm A)', '');
+  for (const [name, cellsOf] of Object.entries(mp12)) {
+    for (const [caseId, list] of Object.entries(/** @type {Record<string, any[]>} */ (cellsOf))) {
+      lines.push(`- ${name} ${caseId}: ${list.map((i) => `seed ${i.seed.split('/').at(-1)}: ${i.note ?? i.level}`).join('; ')}.`);
+    }
+  }
+  lines.push('', '## Values of the §5 rows', '', '| Row | Kind | Formula | Value |', '|---|---|---|---|');
+  for (const [id, r] of Object.entries(rows)) {
+    lines.push(`| ${id} | ${r.kind} | ${r.formula} | \`${JSON.stringify(r.value)}\` |`);
+  }
+  const names = [...new Set(pairNames.flat())].map((t) => arms[t]);
+  lines.push('', '## Journal', '',
+    `Journal lines (appends): ${names.map((a) => `${a.name} ${a.lines}`).join(', ')}. Measured cost of one append (self-test): ${appendCostMs === null ? 'not measured' : `${appendCostMs} ms`}. Journal sources: ${[...new Set(pairs.flatMap((p) => [...p.journal.before, ...p.journal.after]))].join('; ')}. The P6 arms (B, C, F) also journal the accepted ratings of their ok calls (\`logAccepted\`), which arm A does not.`);
+  if (failures.length > 0) {
+    lines.push('', '## Failures', '', ...failures.map((f) => `- ${f}`));
+  }
+  writeText(out('compare.md'), lines.join('\n'));
+  process.stdout.write(`compare: ${verdict}\n`);
+  return failures.length === 0 ? 0 : 1;
+}
+
 /**
  * @param {string} text
  * @param {string} task
@@ -832,15 +1304,37 @@ function parseArm(text, task) {
   return { name: t === task ? a : `${t}/${a}`, task: t, arm: a };
 }
 
+/**
+ * The check after arm E (IGP-04): its puzzles must equal IGP-01's after arm on every seed; exit 1 is a stop.
+ * @param {string} task
+ * @param {string} label
+ * @param {string} text `<arm>:<task>/<arm>`
+ * @returns {number}
+ */
+function reproduceCommand(task, label, text) {
+  const [mine, theirs] = text.split(':');
+  const a = parseArm(mine, task);
+  const r = parseArm(theirs, task);
+  const result = reproduction(loadArm(label, a.task, a.arm), loadArm(label, r.task, r.arm));
+  for (const s of result.perSeed) {
+    process.stdout.write(`compare: ${s.seed}: ${s.ok ? 'puzzles equal' : `DIFFERS (${s.note})`}\n`);
+  }
+  process.stdout.write(`compare: arm ${a.name} ${result.ok ? 'reproduces' : 'DOES NOT reproduce'} ${result.reference} on ${result.perSeed.length} seed(s)\n`);
+  return result.ok ? 0 : 1;
+}
+
 /** @param {string[]} argv @returns {Promise<number>} */
 async function main(argv) {
-  const { args } = parseArgs(argv, { values: ['task', 'pairs', 'label', 'reference', 'pm4', 'source-label', 'out-dir'] });
-  for (const name of ['task', 'pairs', 'label']) {
+  const { args } = parseArgs(argv, { values: ['task', 'pairs', 'label', 'reference', 'pm4', 'source-label', 'out-dir', 'reproduce'] });
+  for (const name of args.reproduce === undefined ? ['task', 'pairs', 'label'] : ['task', 'label']) {
     if (args[name] === undefined) {
       throw new Error(`--${name} is required`);
     }
   }
   const { task, label } = args;
+  if (args.reproduce !== undefined) {
+    return reproduceCommand(task, label, args.reproduce);
+  }
   const out = (/** @type {string} */ name) => (args['out-dir'] === undefined ? evidenceDir(label, task, name) : join(args['out-dir'], name));
   /** @type {string[]} */
   const failures = [];
@@ -859,6 +1353,11 @@ async function main(argv) {
   const meta = await buildMeta({ task, label, kind: 'compare', trees: [...new Set(armNames.map((a) => arms[a].variant))], sourceLabel: args['source-label'] });
   const stateFile = join(artifactDir(label, task, 'self-test'), 'state.json');
   const appendCostMs = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')).appendCostMs ?? null : null;
+
+  const factorVariants = pairNames.map(([, after]) => FACTOR_OF_VARIANT[arms[after].variant]);
+  if (!study && factorVariants.some((f) => f !== undefined && (f.p6 || f.w8))) {
+    return factorMain({ task, label, arms, pairNames, failures, meta, appendCostMs, out });
+  }
 
   const pairs = [];
   for (const [beforeToken, afterToken] of pairNames) {

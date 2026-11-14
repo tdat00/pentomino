@@ -28,6 +28,9 @@ are not gates).
 - `tools/ig-proto/README.md`: the re-run index (check-list §6), with every task's command and the anchor-maintenance
   step.
 - `plans/IGP-07.json` (one unlocked step).
+- `verify.mjs`: the wording of its record only (after the IGP-04 review): it names the task's own criterion instead of
+  "IGP-01-T02" and says "accepted ratings", not "accepted prototype ratings", for arms of today's search. Earlier
+  records stay as they are.
 
 ### Out of scope
 
@@ -53,7 +56,7 @@ The check-list §3. No lock is needed: nothing is rated or timed. No git.
 | R14, R15, R17 | `IGP-02/pm4.json` | violations, coverage and gaps; useful ratings lost per `W`; P2's saving on today's mix |
 | R16, R18, R20 | `IGP-03/compare.json` (and IGP-01's re-ratings) | work per accepted puzzle per `W`; re-ratings per call and their work share; the arity-3 probes and its idealised bound |
 | R21 | `IGP-03/budgets.json` | `okBeyond` and `failedAbove` per budget |
-| R22, R23, R25, R26 | `IGP-04/compare.json` | P6 factor; the eight-worker upper bound; the projected first-phase factor; memory |
+| R22, R23, R25, R26 | `IGP-04/compare.json`; for R23 also IGP-04's journals | P6 factor; the eight-worker upper bound, with the per-rating time ratio of twin calls B / C (one rating's slowdown at eight workers on this machine: 0.92, 0.80 and 0.78 in the IGP-04 review, computed as `compare.mjs` computes A / B) and the machine (cpu, logical cores); the projected first-phase factor; memory |
 | R24, R30 | `IGP-06/pm2.json` | kernel share and P7 sensitivity; phase and category shares |
 | R27, R28 | `IGP-05/pm1.json` | in-band and eligible ratings per cell; failure classes |
 | R29 | `IGP-01/compare.json` and `IGP-05/pm1.json` | start-count capped shares |
@@ -77,8 +80,11 @@ answer to IG-P-Q17 judges them. Every verdict cites its record and formula.
 
 Per headline cell: the after arm's T10 median of IGP-01 (P1 to P5, four workers) divided by a first-phase factor and
 by P7's assumption. The first-phase factor is measured on few cells (IGP-04: A:C on the fast cells and 12x12, E:F on
-14x14), so its transfer to every cell is an explicit assumption: the record uses the range from the smallest to the
-largest measured P6 × eight-worker factor for all cells, and the cell's own factor where one was measured. P7 is 1.3
+14x14), so its transfer to every cell is an explicit assumption. After the IGP-04 review, the prototype's times take
+the prototype's factor: the likely value for every cell is E:F's (1.01 on 14x14 Nightmare, n 2, the only factor
+measured on the prototype), and the range is the smallest to the largest measured P6 × eight-worker factor (0.93 to
+1.53, today's search included). A:C's per-cell factors are shown beside as references for today's search, not as the
+prototype's. The record names the machine (16 logical cores) and the per-rating slowdown at eight workers. P7 is 1.3
 (range 1.1 to 1.8, or IGP-06's sensitivity range when it is narrower). The result is a low, likely and high value
 labelled a Projection, shown beside the analysts' after-all values (Opus; Astra); it is never a measured or confirmed
 value. Eight workers stay an unadmitted upper bound. For 14x14 and 12x12 Nightmare the record adds the same Projection

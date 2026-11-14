@@ -220,14 +220,14 @@ The `--p6` self-test case; the IGP-00 self-test and `--proto` again (no regressi
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (pack author: IGP-04 ACCEPT, no fixes; the `verify.mjs` wording goes to IGP-07) |
+| Start | 2026-11-15 03:21 (+07:00) |
+| End | 2026-11-15 05:35 developer (plan 03:36-05:34, mostly priority waits); 05:55 author acceptance; orchestrator commit |
+| Duration | 2 h 14 min elapsed, mostly waiting behind difficulty-v3; 11 locked invocations (node 762 s, counted 1,257 s of the 28 min allocation); no dev runs; priority waits 5,636 s beyond the quiet period, not counted; round counted 7,469 s of 10,800 s |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (pack author review, opus-ig); claude-opus-5.5 (orchestrator) |
+| Token usage | 125 model calls; 34,387,340 input tokens (34,010,788 cache reads); 138,539 output tokens |
+| AI credits | about 573 (developer) |
+| Verification | Step 0: `compare.mjs` states the a3 puzzles from `resultDigest` per seed (identical / differ / not established). New variants `p6`, `w8`, `log-p6`, `log-p6-w8`, `p1p5-main-p6-w8`; `withP6` in `ig-log.js`, used by `ig-select-proto.js`; `compare.mjs` factor mode and `--reproduce`; self-test 18/18 (`igDlx.skip` restored in a `finally`). Arm E reproduces IGP-01's after arm on both seeds (digest, set key, puzzle keys). Prefix identity on every seed (A:B 12/12, B:C 12/12, A:C 14/14, E:F 2/2); arm A equals MP12b1 by digest on all 14 seeds; accepted ratings canonical (B 190, C 356, F 37). Memory: every arm passes the accounted and the 1.5 GiB process checks (arm C peak 450 / 914 MiB). `npm run check` passes; firewall 279 production files unchanged. Evidence: `docs/improve-generating/evidence/provisional/IGP-04/` |
+| Acceptance | B01-B03, T01-T03 met (developer; confirmed by the pack author) |
+| Issues & resolutions | (1) Factors (median per-seed T10): P6 alone (A:B) 1.32 on 26x26 Nightmare, 1.18 on 14x14 Master, 1.12 on 26x26 Master; width 8 alone (B:C) 1.13, 0.77, 0.97; combined A:C 12x12 Nightmare 0.99, 26x26 Nightmare 1.53, Masters 0.93 / 1.10; prototype E:F 1.01. P6 work saving 9.9-22.8 % of rating time on today's search. (2) **The /1.9 first-phase assumption is refuted as a general factor:** reached only on 26x26 Nightmare; on the prototype P6 plus eight workers add about nothing (P7 would need 1.87); IGP-07's R31 rule amended (likely factor 1.01, range 0.93-1.53). (3) Author finding: at eight workers each identical rating takes 9-28 % longer than at four on this 16-logical-core VM; R23 is machine-specific; IG-P-Q05's admission would refuse eight 224 MiB workers anyway (2,092 MiB worst case against 1,536 MiB). (4) Deviations accepted: E and its reproduction first, `--p6` runs all 18 cases, A does not journal accepted ratings (A:B slightly conservative), verify text "IGP-01-T02" (cosmetic, fixed in IGP-07's `verify.mjs`), 11 invocations instead of 12-16, one PowerShell string-replace edit (files verified) |
+| Handoff | IGP-05 (amended): clue offsets of every rating and in-band/eligible ratings by offset; the share of main work above 95 / 190 / 380 M; four lanes only; budget-stopped families reported as "not reached (budget)"; new row IGP-05-B05. Budget: 55.5 min left against 36 min projected (IGP-05 23, IGP-06 8, IGP-03h 5) |
