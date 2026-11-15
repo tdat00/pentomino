@@ -264,7 +264,23 @@ the no-screen arm, which must pass too, ships. In a screen class both arms run a
 that arm's verdict, not the cell's, and does not stop the required sampling. No price effect: both arms already run on
 the validation seeds.
 
-Plan-author answer:
+Plan-author answer: **As recommended. A class is admitted only if its screen arm also passes the gates its
+cells are judged by.**
+
+- *The gap is real.* Rule (c5) allowed the screen arm one completion fewer than the no-screen arm, and the
+  completion gate then judged the screen arm alone. A class could be admitted into a failure that shipping no
+  screen would have avoided.
+- *Admission, completed.* A class is "admitted" only if, on every validated cell, the screen arm passes that
+  cell's own gates: for a failing Nightmare cell at least 18 of 20 requests reach ten with no dead-end entry;
+  for a control the no-regression bound. The existing conditions (the clue tolerance, faster, at most one
+  completion fewer, the minimum of matched sets) stay. If the screen arm misses a cell gate the class is
+  "failed" and the no-screen arm ships.
+- *The no-screen arm must pass too.* It is judged by the same cell gates whenever it is the arm that ships. A
+  cell that fails on both arms fails the global gate.
+- *Stopping.* In a screen class both arms run all 20 seeds on every cell. The third request that fails to reach
+  ten settles that arm's completion verdict only; it does not end the sampling of either arm. Outside the
+  screen classes the stopping rule is unchanged.
+- *Price.* None.
 
 ### IG-P-Q33: Hell 1 candidate boards without a validation cell
 
@@ -280,7 +296,19 @@ candidate boards stay in phase 3's landscape through P4's table, for separately 
 deciding any offer; their presence implies no qualification and no offer. The alternative is to price validation cells
 for them in the manifest.
 
-Plan-author answer:
+Plan-author answer: **No, that was not intended. A validation result excludes only its own board; unvalidated
+is not failed.**
+
+- *My sentence in IG-P-Q30 was too broad.* "Built only for the boards that reached 18 of 20" is withdrawn.
+  `gen-v4`'s Hell 1 path is one code path; what differs per board is its entry in P4's table.
+- *Three states per candidate board.* Validated and reached 18 of 20: it enters phase 3's landscape. Validated
+  and fell short: it leaves the landscape for this feature, with its result recorded. Not validated (the other
+  boards of 196 to 676 cells with PM1 windows): it keeps its table entry and stays a candidate.
+- *What an unvalidated board gets.* Phase 3's landscape runs it as a separately priced diagnostic. Its presence
+  there implies no qualification and no offer: an offer still needs OD-P4's own evidence (D39 on the landscape
+  and the matching browser runs, 20 requests at 90 %) and OD-P6.
+- *Not chosen:* validation cells for those boards in the frozen round. That would add several hours for boards
+  whose offer is decided by phase 3's runs anyway.
 
 ### IG-P-Q34: Does the `gen-v4` build still replay `gen-v3` records?
 
@@ -301,7 +329,24 @@ version, the replay tests move to a `gen-v4` fixture, and `replay-case.json` sta
 explicitly, since the single `ALGO_ID` is implementation work, not an impossibility. Either way, P4's table version
 and the `W_screen` table version join `ProvenanceVersions` and the version comparison.
 
-Plan-author answer:
+Plan-author answer: **(b): a single running version. My sentence "`gen-v3` replay does not change" was wrong
+for a `gen-v4` build and is corrected.**
+
+- *Checked on `rating-v3` (`471583a`).* `version.js:4` holds the one constant `ALGO_ID = 'gen-v3'`;
+  `sameVersions` (`replay.js:174-177` there) compares a record's `algo`, `policy`, `rng`, `seedScheme` and
+  `ratingModel` with the running code's; a difference gives `unavailable` with the reason `set-versions`.
+- *The contract.* A `gen-v4` build replays `gen-v4` records. A `gen-v3` record is "unavailable" by version; it
+  is never reinterpreted and never run through `gen-v4`'s search. This is the outcome replay already defines
+  for a version change, and OD-P1 already accepts that seeds give other puzzles under `gen-v4`.
+- *What "does not change" should have said.* The `gen-v3` records and `tests/fixtures/replay-case.json` are
+  not rewritten. The fixture stays as the refusal case; the tests that expect `matched`
+  (`tests/replay.test.js:142`) move to a new `gen-v4` fixture.
+- *Why not (a).* Two replayable search paths in one build double what must stay equal for good. The legacy
+  selection stays in `gen-v4` only for Very easy to Master, as part of `gen-v4`, and the scope test compares
+  its puzzles with `gen-v3`'s directly, not through replay. If the product later wants old records replayable,
+  version-aware dispatch is implementation work that can be proposed then.
+- *Table versions.* P4's table version and the `W_screen` table version join `ProvenanceVersions` and
+  `sameVersions`. A record made under another table version is "unavailable" too.
 
 ### IG-P-Q35: Which requests form the matched population of rule (c5)?
 
@@ -318,4 +363,25 @@ is served but does not reach ten still gives a matched set if both arms accepted
 the minimum of 15 matched sets, the median tolerance and the one-in-five condition. Requests with no accepted puzzle
 count only in the completion and capped-time statistics, which keep every request.
 
-Plan-author answer:
+Plan-author answer: **As recommended. A matched set needs at least one accepted puzzle in each arm.**
+
+- *Definition.* A matched set is one where both arms served the same seed and `igSetKey` and each arm accepted
+  at least one puzzle. A request that is served but does not reach ten gives a matched set only under that
+  condition.
+- *One population.* The same matched sets serve the minimum of 15, the median clue tolerance and the
+  one-in-five condition.
+- *"Failed" in the clue statistic* meant a request with no accepted puzzle. Such a request, and a set only one
+  arm serves, count in the completion record and in the capped-time statistics, which keep every request.
+
+---
+
+## Plan version 4, revised (plan author, 2026-11-15)
+
+`plan.md` takes in the answers IG-P-Q32 to IG-P-Q35. It stays version 4; nothing else changed and nothing ran.
+
+- **Section 5.2:** the matched set's definition; admission of a class requires its screen arm to pass the cell
+  gates; both arms run all 20 seeds in a screen class.
+- **Sections 5.1 and 6:** a `gen-v4` build replays `gen-v4` records only; `gen-v3` records are "unavailable" by
+  version; the table versions join the version comparison.
+- **Section 5.2, Hell 1:** a validation result excludes only its own board.
+- **Format:** the overlong line 37 is wrapped.

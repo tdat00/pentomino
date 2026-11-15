@@ -4,7 +4,7 @@
 > `8d795f8`, version 2 with its section 9 addendum at `240398f`, version 1 at `555197b`. Version 4 keeps
 > version 3's scope and the owner decisions IG-P-D1 to IG-P-D7. It takes in corrections C1 to C18 of the joint
 > report on version 3 ([plan-v3-joint-report.md](plan-v3-joint-report.md)) and the plan-author answers IG-P-Q25
-> to IG-P-Q31 ([clarifications.md](clarifications.md); the full text of IG-P-Q01 to IG-P-Q28 is in that file at
+> to IG-P-Q35 ([clarifications.md](clarifications.md); the full text of IG-P-Q01 to IG-P-Q28 is in that file at
 > commit `1731c6b`). It refines the gates; no gate has been evaluated and none has passed.
 >
 > **Every measured number is provisional (pre-freeze):** the `rating-v3` runtime of MP12b1 (source digest
@@ -34,7 +34,8 @@ at least 90 % of requests with ten puzzles), in the browser:
 **Out of scope, by decision (OD-P9).** Hell 2 and Hell 3. On the boards the earlier policy offered for Hell 3
 (480 to 676 cells; `rating-v3` offers no Hell level) none of 201 ratings was in band; on the targeted Hell 2
 boards 8 of 404 were, all at the bottom edge of the band. Other board and piece-count families hold a few
-census-estimated Hell 2 and Hell 3 scores outside the policy areas. The closure is a scope and resource decision, not a proof that those levels are unreachable.
+census-estimated Hell 2 and Hell 3 scores outside the policy areas. The closure is a scope and resource
+decision, not a proof that those levels are unreachable.
 
 **Non-goals.** No change to the rating: `difficulty-v3`, the score tuple locked by MP12b2 (`SCORE_V3`, `DEDUCE`
 with work 760 M and census 80 M, `STALL_LIMIT`, `K60`, `SHARES`), the rule ladder and the caps stay as they are.
@@ -513,7 +514,12 @@ skip replay (RES-27), recorders (RES-28), a work meter `charge` (RES-29) and pro
   `replaySkips` and `charge`. Matching textual anchors are not evidence of this.
 - *Skip replay.* `gen-v4` has its own skip ordinals and exclusive bounds for the locate probes, the window
   samples and the repairs, and its own replay fixture. A skip list recorded under one version is refused under
-  the other by the stored version, before any skip is applied. `gen-v3` replay and its fixture do not change.
+  the other by the stored version, before any skip is applied.
+- *One running version (IG-P-Q34).* A `gen-v4` build replays `gen-v4` records only. A `gen-v3` record is
+  "unavailable" by version (`set-versions`); it is never reinterpreted. The `gen-v3` records and
+  `tests/fixtures/replay-case.json` are not rewritten: the fixture stays as the refusal case, and the tests
+  that expect `matched` move to a new `gen-v4` fixture. P4's table version and the `W_screen` table version
+  join `ProvenanceVersions` and the version comparison.
 - *Observers.* An observer that returns normally changes neither a result nor a loop's control flow. An
   exception thrown by `record` or `charge` propagates unchanged through the engine; replay's cancellation and
   work limits rely on that. Every rating attempt is charged once, before its event, the screen-capped and
@@ -556,7 +562,9 @@ the provisional reps 0 to 5 and MP12b1's reps 10 to 19, which filled P4's table.
 share per arm; the population two-sided.
 
 **Stopping.** A cell's gate verdict is settled at its third request that fails to reach ten; the remaining
-seeds still run if the cell's budget allows. Each task has a ceiling; a task that reaches it is reported as
+seeds still run if the cell's budget allows. In a screen class both arms run all 20 seeds on every cell: a
+third failure settles that arm's completion verdict only and ends the sampling of neither arm (IG-P-Q32).
+Each task has a ceiling; a task that reaches it is reported as
 incomplete and never extrapolated.
 
 **Budget.** Priced after stage 1 from an enumerated manifest (commands, populations, repetitions, limits,
@@ -574,8 +582,9 @@ Hell 3.
 The provisional seeds are fitting data: the first tolerance was chosen after 12x12 and 14x14 had been seen.
 These are first values; the owner or the analysts may change them before the validation seeds run, not after.
 
-- **Unit.** A matched set: the same seed and set key (`igSetKey`) served by both arms. Seeds are the independent
-  units; puzzles inside one request are not.
+- **Unit (IG-P-Q35).** A matched set: the same seed and set key (`igSetKey`) served by both arms, each arm
+  having accepted at least one puzzle. The same matched sets serve the minimum of 15, the clue tolerance and
+  the one-in-five condition. Seeds are the independent units; puzzles inside one request are not.
 - **Rule (c5), the clue tolerance.** Over the matched sets of a class, the median of the per-set paired
   difference (median accepted clue count with the screen less without it) is at most 0.5 clues, and at most one
   matched set in five moves by two clues or more. The pooled puzzle statistic is reported and not judged.
@@ -592,13 +601,17 @@ These are first values; the owner or the analysts may change them before the val
   mean below 1.0. The no-regression bound uses the same recipe per cell. The recipe is written into the
   manifest before the validation seeds run.
 - **Rule (c5) fails closed (IG-P-Q26).** A class needs, in every validated cell, at least 15 matched sets from
-  at least 15 independent seeds; a request that is served but does not reach ten still gives a matched set.
-  Below that the class is "inconclusive". The verdict of a class is "admitted", "failed" or "inconclusive",
-  with the condition that decided it; only "admitted" uses the screen. A class with an incomplete validation
+  at least 15 independent seeds; a request that is served but does not reach ten still gives a matched set if
+  both arms accepted a puzzle. Below that the class is "inconclusive". The verdict of a class is "admitted",
+  "failed" or "inconclusive", with the condition that decided it; only "admitted" uses the screen. A class with an incomplete validation
   (a ceiling, a stopped task, a missing arm) and a class outside the table use no screen.
 - **Completion, apart.** The screen arm may reach ten on at most one request in 20 fewer than the no-screen
-  arm. Sets that only one arm serves and failed requests stay in the completion record with their outcome;
-  they count in completion, not in the clue statistic.
+  arm. Sets that only one arm serves and requests with no accepted puzzle stay in the completion record with
+  their outcome; they count in completion and in the capped-time statistics, not in the clue statistic.
+- **Admission against the cell gates (IG-P-Q32).** A class is "admitted" only if its screen arm also passes,
+  on every validated cell, the gates that cell is judged by: the completion gate with no dead-end entry on a
+  failing Nightmare cell, the no-regression bound on a control. Otherwise the class is "failed" and the
+  no-screen arm ships; that arm must pass the same cell gates.
 - **Phase 0's completion gate.** At least 18 of 20 requests reach ten on each failing Nightmare cell (14x14,
   15x15b10, 12x12, 16x16, 15x20), with no dead-end entry. A nearest-rank p95 of 20 is the second-largest
   value; it is reported as a tail observation. The gate is global: one failing or incomplete cell stops
@@ -609,8 +622,10 @@ These are first values; the owner or the analysts may change them before the val
   requests is "incomplete", never a pass. Class boundaries are settled at the freeze from the pilots (16x16
   and 15x20 included) and are not changed after the validation seeds have run.
 - **Hell 1 is reported, not gated here (IG-P-Q30).** Its validation cells are measured against the same count,
-  18 of 20, as a candidate result. It does not stop phase 2. It decides whether a board enters phase 3's Hell 1
-  landscape and whether `gen-v4`'s Hell 1 part is built for that board; the offer stays behind OD-P4 and OD-P6.
+  18 of 20, as a candidate result. It does not stop phase 2. A result excludes only its own board (IG-P-Q33): a
+  validated board that fell short leaves phase 3's Hell 1 landscape; a candidate board without a validation
+  cell keeps its entry in P4's table and runs in that landscape as a separately priced diagnostic. Neither
+  state is a qualification or an offer; the offer stays behind OD-P4 and OD-P6.
 - **No regression.** Master and below: identity, the same puzzles on the same seeds. Completion-passing
   Nightmare cells under the new search: at least 18 of 20 reach ten, and the per-seed T10 ratio (today over
   after) has a one-sided 90 % lower bound of at least 0.9. A cell whose tail already exceeds the limit today
@@ -660,8 +675,8 @@ policy.
   the wall-clock backstop, which may change only the number of puzzles returned.
 - **Scope:** for Very easy to Master, `gen-v4` returns the puzzles of `gen-v3` for the same effective request.
 - **Replay** (P4): a stored request reproduces its puzzles from its stored prior, table version, target and
-  uniqueness mode. `gen-v4` has its own skip-replay fixture; a skip list of the other version is refused;
-  `tests/fixtures/replay-case.json` keeps pinning `gen-v3`.
+  uniqueness mode. `gen-v4` has its own replay fixture; a record of another `algo` or table version is
+  "unavailable"; `tests/fixtures/replay-case.json` keeps pinning `gen-v3` as the refusal case.
 - **Observers** (IG-P-Q31): the result is the same with no observer, with `charge` and with `record` and
   `charge`; a throwing observer's exception propagates unchanged.
 - **Memory limit** (P7): `model-too-large` is raised for the same models as today.
@@ -702,8 +717,9 @@ the least expected work per accepted puzzle), Q11 (offer gates), Q13 to Q15 (lat
 packs), Q17 and Q18 (population and the Hell windows), Q19 to Q24 (statistics, the round, Hell 1's range, the
 budget arm, the browser rule, the Hell scope), Q25 (today's arm and Master identity), Q26 (rule (c5) fails
 closed), Q27 (PM1 and the frozen prior), Q28 and Q31 (replay, provenance and observers), Q29 (the arm the gate
-judges), Q30 (Hell 1 reported, not gated in phase 0). The text of Q01 to Q28 is in `clarifications.md` at
-commit `1731c6b`.
+judges), Q30 (Hell 1 reported, not gated in phase 0), Q32 (admission against the cell gates), Q33 (unvalidated
+Hell 1 boards stay candidates), Q34 (one running version in replay), Q35 (the matched set). The text of Q01
+to Q28 is in `clarifications.md` at commit `1731c6b`.
 
 ## 8. Risks
 
