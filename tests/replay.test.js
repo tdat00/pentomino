@@ -2,22 +2,26 @@
 // Replay runs (MP15a1, design §6.12): `runReplay` on the replay fixture of tests/fixtures/replay-case.json (hard,
 // 10 x 6, `require`, the set seed replay-case-0: two batch packs of the same set, the first puzzle of pack 0 being
 // the set's reused calibration puzzle). The fixture has no skip of any kind, so the skip cases (17) are made by the
-// real engine and never written by hand.
+// real engine and never written by hand. MP15a2 adds `replayPuzzle` and its steps at the end of the file.
 
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { activeCount, boardFromRows } from '../core/engine/board.js';
-import { puzzleCandidate, setAttempt } from '../core/engine/generate.js';
+import { breakdownV3 } from '../core/engine/difficulty.js';
+import { provenanceVersions, puzzleCandidate, setAttempt } from '../core/engine/generate.js';
 import { poseCells } from '../core/engine/geometry.js';
+import { level } from '../core/engine/levels.js';
 import { parsePack, serializePack, validatePack } from '../core/engine/pack.js';
 import { BUDGETS, pieceCountRange, REPLAY } from '../core/engine/policy.js';
-import { ReplayCancelledError, runReplay, utf8Length } from '../core/engine/replay.js';
+import { finalStep, ReplayCancelledError, replayPuzzle, runReplay, utf8Length } from '../core/engine/replay.js';
+import { normalizeSeedText } from '../core/engine/rng.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
 
 /** @typedef {import('../core/engine/types.js').PieceSet} PieceSet */
 /** @typedef {import('../core/engine/types.js').Pose} Pose */
 /** @typedef {import('../core/engine/replay.js').ReplayRun} ReplayRun */
+/** @typedef {import('../core/engine/replay.js').ReplayResult} ReplayResult */
 /** @typedef {{ name: string, set: PieceSet, puzzle: any, generation: any }} ReplayInput */
 
 const FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case.json', import.meta.url), 'utf8'));
@@ -779,4 +783,869 @@ test('a recorded repair skip is replayed: the excluded finish ends with a repair
   assert.equal(without.status, 'mismatch');
   assert.ok(without.reason === 'clues' || without.reason === 'rating' || without.reason === 'solution', String(without.reason));
   assert.ok(!without.events.some((e) => e.kind === 'repair' && /** @type {any} */ (e).reason === 'excluded'));
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// MP15a2. `replayPuzzle`: the steps (design §6.12).
+
+/** @type {Map<string, ReplayResult>} */
+const RESULTS = new Map();
+/** @type {Map<string, ReplayRun>} */
+const RUNS = new Map();
+
+/**
+ * The run of an input with the default bounds (`fullRun` keys by puzzle id, which a skip input shares with its
+ * original).
+ * @param {ReplayInput} input
+ * @returns {ReplayRun}
+ */
+function runOf(input) {
+  if (INPUTS.includes(input)) {
+    return fullRun(input);
+  }
+  let run = RUNS.get(input.name);
+  if (run === undefined) {
+    run = runReplay(input, workspaces, REPLAY);
+    RUNS.set(input.name, run);
+  }
+  return run;
+}
+
+/**
+ * @param {ReplayInput} input
+ * @returns {ReplayResult} The steps of the input with the default bounds, made once per input.
+ */
+function resultOf(input) {
+  let result = RESULTS.get(input.name);
+  if (result === undefined) {
+    result = replayPuzzle(input, workspaces, REPLAY);
+    RESULTS.set(input.name, result);
+  }
+  return result;
+}
+
+const STEP_KEYS = ['stage', 'kind', 'board', 'rating', 'breakdown', 'detail', 'band', 'note', 'args'];
+
+/** @param {number[][]} cells */
+const regionKey = (cells) => cells.map(([x, y]) => `${x},${y}`).sort().join(';');
+
+/**
+ * The items of a board: id, cells and a copy of the pose.
+ * @param {PieceSet} set
+ * @param {Pose[]} poses
+ */
+function itemsOf(set, poses) {
+  return poses.map((pose) => ({
+    id: pose.piece,
+    cells: poseCells(/** @type {any} */ (set.pieces.find((p) => p.id === pose.piece)), pose),
+    pose: { piece: pose.piece, x: pose.x, y: pose.y, turn: pose.turn, mirrored: pose.mirrored },
+  }));
+}
+
+/** @param {any} rating */
+const termsOf = (rating) => (rating === null ? null : breakdownV3(rating.metrics));
+
+/** @param {any} claim */
+function bandOfClaim(claim) {
+  if (claim === null || claim === undefined) {
+    return null;
+  }
+  const { min, max } = level(claim.level);
+  return { min, max };
+}
+
+/**
+ * The index of the event whose detail measured the final puzzle of a matched run: the `rated` event of the selected
+ * subset, or the last `repair` event of the selected repair.
+ * @param {ReplayRun} run
+ * @returns {number}
+ */
+function measuringIndex(run) {
+  const events = /** @type {any[]} */ (run.events);
+  const selected = events[events.length - 1];
+  assert.equal(selected.kind, 'selected');
+  return selected.repairSequence === null
+    ? events.findIndex((e) => e.kind === 'rated' && e.source === selected.source && e.sequence === selected.sequence)
+    : events.findLastIndex((e) => e.kind === 'repair' && e.repairSequence === selected.repairSequence);
+}
+
+/**
+ * Every step of a matched run against its event, field by field, and the final step against the stored puzzle.
+ * @param {ReplayInput} input
+ * @param {ReplayRun} run
+ * @param {ReplayResult} res
+ */
+function assertStepTable(input, run, res) {
+  const name = input.name;
+  assert.equal(run.status, 'matched', name);
+  assert.deepEqual(Object.keys(res), ['status', 'reason', 'stages', 'compared', 'work', 'steps'], name);
+  assert.deepEqual({ status: res.status, reason: res.reason, stages: res.stages, compared: res.compared, work: res.work },
+    { status: run.status, reason: run.reason, stages: run.stages, compared: run.compared, work: run.work }, name);
+  assert.equal(res.steps.length, run.events.length + 1, `${name}: one step for each event, then the final step`);
+  const set = /** @type {PieceSet} */ (run.set);
+  const witness = itemsOf(set, /** @type {Pose[]} */ (set.witness));
+  const stored = input.puzzle.clues.map((/** @type {Pose} */ p) => p.piece).sort();
+  /** @type {any[]} */
+  let regions = [];
+  /** @type {any[]} */
+  let layout = [];
+  /** @type {Map<string, string[]>} */
+  const rated = new Map();
+  /** @type {Map<number, string[]>} */
+  const repaired = new Map();
+  run.events.forEach((event, i) => {
+    const e = /** @type {any} */ (event);
+    const step = res.steps[i];
+    const at = `${name} step ${i} ${e.stage}/${e.kind}`;
+    const base = { stage: 0, placed: [], lifted: [], clues: [], rating: null, breakdown: null, detail: null, band: null };
+    const drawn = e.source === 'calibration' ? witness : layout;
+    /** @type {typeof base & { args: Record<string, unknown> }} */
+    let want;
+    switch (e.kind) {
+      case 'count':
+        want = { ...base, stage: 1, args: { k: e.k, min: Math.min(...e.range), max: Math.max(...e.range) } };
+        break;
+      case 'carve':
+        want = { ...base, stage: 2, args: { mode: e.mode, parts: e.parts === null ? 0 : e.parts.length } };
+        break;
+      case 'piece': {
+        const owner = witness.find((w) => regionKey(w.cells) === regionKey(e.cells));
+        assert.ok(owner, `${at}: a piece of the replayed set covers the region`);
+        regions = [...regions, { id: owner.id, cells: e.cells, pose: owner.pose }];
+        want = { ...base, stage: 3, placed: regions, args: { n: regions.length } };
+        break;
+      }
+      case 'start':
+        layout = itemsOf(set, e.layout);
+        want = { ...base, stage: 4, placed: layout, args: { start: e.start } };
+        break;
+      case 'retile':
+        layout = itemsOf(set, e.layout);
+        want = {
+          ...base, stage: 4, placed: layout, lifted: e.liftedIds,
+          args: { step: e.step, lifted: e.liftedIds.length, changed: e.changed },
+        };
+        break;
+      case 'rated':
+        rated.set(`${e.source}|${e.sequence}`, e.clueIds);
+        want = {
+          ...base, stage: 5, placed: drawn, clues: e.clueIds, rating: e.rating, breakdown: termsOf(e.rating),
+          detail: e.detail, band: e.band, args: { sequence: e.sequence, phase: e.phase, source: e.source },
+        };
+        break;
+      case 'skip':
+        want = { ...base, stage: 5, placed: drawn, args: { sequence: e.sequence, source: e.source } };
+        break;
+      case 'unrateable':
+        want = {
+          ...base, stage: 5, placed: drawn, clues: e.clueIds, band: e.band,
+          args: { sequence: e.sequence, phase: e.phase, source: e.source, reason: e.reason },
+        };
+        break;
+      case 'rejected':
+        want = {
+          ...base, stage: 5, placed: drawn, clues: e.clueIds, rating: e.rating, breakdown: termsOf(e.rating),
+          detail: e.detail, band: e.band,
+          args: { sequence: e.sequence, phase: e.phase, source: e.source, reason: e.reason },
+        };
+        break;
+      case 'repair': {
+        const ids = e.clues.map((/** @type {Pose} */ p) => p.piece);
+        repaired.set(e.repairSequence, ids);
+        want = {
+          ...base, stage: 6, placed: drawn, clues: ids, rating: e.rating, breakdown: termsOf(e.rating), detail: e.detail,
+          args: { repairSequence: e.repairSequence, added: e.addedId, accepted: e.accepted, reason: e.reason ?? null },
+        };
+        break;
+      }
+      case 'selected': {
+        const clues = e.repairSequence === null ? rated.get(`${e.source}|${e.sequence}`) : repaired.get(e.repairSequence);
+        assert.ok(clues !== undefined, `${at}: the selected clues were seen`);
+        assert.deepEqual([...clues].sort(), stored, `${at}: the selected clues are the stored puzzle's`);
+        want = {
+          ...base, stage: 5, placed: drawn, clues,
+          args: { sequence: e.sequence, repairSequence: e.repairSequence, source: e.source },
+        };
+        break;
+      }
+      default:
+        assert.fail(`${at}: unknown kind`);
+    }
+    assert.deepEqual(Object.keys(step), STEP_KEYS, at);
+    assert.deepEqual(Object.keys(step.board), ['placed', 'lifted', 'clues'], at);
+    assert.equal(step.stage, want.stage, at);
+    assert.equal(step.kind, e.kind, at);
+    assert.equal(step.note, `replay.step.${e.kind}`, at);
+    assert.deepEqual(step.board, { placed: want.placed, lifted: want.lifted, clues: want.clues }, at);
+    assert.deepEqual([step.rating, step.breakdown, step.detail, step.band],
+      [want.rating, want.breakdown, want.detail, want.band], at);
+    assert.deepEqual(step.args, want.args, at);
+  });
+
+  const last = res.steps[res.steps.length - 1];
+  const claim = input.puzzle.rating ?? null;
+  assert.deepEqual(Object.keys(last), STEP_KEYS, name);
+  assert.equal(last.stage, 7, name);
+  assert.equal(last.kind, 'final', name);
+  assert.equal(last.note, 'replay.step.final', name);
+  assert.deepEqual(last.board.lifted, [], name);
+  assert.deepEqual(last.board.clues, input.puzzle.clues.map((/** @type {Pose} */ p) => p.piece), name);
+  assert.deepEqual(last.board.placed, itemsOf(input.set, input.puzzle.solution ?? input.puzzle.clues), name);
+  assert.deepEqual(last.rating, claim, name);
+  assert.deepEqual(last.breakdown, termsOf(claim), name);
+  assert.equal(last.detail, null, name);
+  assert.deepEqual(last.band, bandOfClaim(claim), name);
+  assert.deepEqual(last.args, { status: 'matched', detailStep: claim === null ? null : measuringIndex(run) }, name);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// 1. The step table.
+
+test('replayPuzzle: one step per event as the table says, then the final step, for every puzzle and the real skips', () => {
+  const inputs = [...INPUTS];
+  const { subset, repair } = skipInputs();
+  for (const found of [subset, repair]) {
+    if (found !== null) {
+      inputs.push(found.input);
+    }
+  }
+  assert.ok(inputs.length >= 9, 'the fixture and at least one real skip');
+  const kinds = new Set();
+  for (const input of inputs) {
+    const run = runOf(input);
+    const res = resultOf(input);
+    assertStepTable(input, run, res);
+    for (const step of res.steps) {
+      kinds.add(step.kind);
+    }
+    const first = res.steps[0];
+    assert.equal(first.kind, 'count', input.name);
+    assert.equal(res.steps[res.steps.length - 2].kind, 'selected', `${input.name}: the step before the final one`);
+    for (const step of res.steps) {
+      if (step.kind === 'rated' && step.rating !== null && 'metrics' in step.rating) {
+        assert.equal(step.breakdown?.score, step.rating.score, `${input.name}: a breakdown of the rating's score`);
+      }
+    }
+  }
+  for (const kind of ['count', 'carve', 'piece', 'start', 'retile', 'rated', 'rejected', 'repair', 'selected', 'final']) {
+    assert.ok(kinds.has(kind), `a ${kind} step is checked`);
+  }
+
+  // Real skips: a skip step at the index of its event, with the recorded ordinal.
+  if (subset !== null) {
+    const run = runOf(subset.input);
+    const res = resultOf(subset.input);
+    const at = run.events.flatMap((e, i) => (e.kind === 'skip' ? [i] : []));
+    assert.ok(at.length > 0);
+    assert.deepEqual(at.map((i) => /** @type {any} */ (res.steps[i]).args.sequence), subset.skips.subsets);
+    for (const i of at) {
+      const step = res.steps[i];
+      assert.equal(step.kind, 'skip');
+      assert.equal(step.stage, 5);
+      assert.equal(step.note, 'replay.step.skip');
+      assert.deepEqual(step.args, { sequence: /** @type {any} */ (run.events[i]).sequence, source: 'candidate' });
+      assert.deepEqual([step.rating, step.breakdown, step.detail, step.band], [null, null, null, null]);
+      assert.deepEqual(step.board.clues, []);
+      assert.ok(step.board.placed.length > 0, 'the candidate layout is drawn');
+    }
+  }
+  if (repair !== null) {
+    const res = resultOf(repair.input);
+    const finish = res.steps.filter((s) => s.kind === 'repair' && s.args.repairSequence === repair.skips.repairs[0]);
+    assert.ok(finish.length > 0);
+    assert.equal(finish[finish.length - 1].args.reason, 'excluded');
+    assert.equal(finish[finish.length - 1].args.accepted, false);
+  }
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// 2. Order.
+
+test('the steps keep the order of the events: 1-4 for a candidate, 1-3 for the calibration puzzle, then 5 and 6, then 7', (t) => {
+  /** @param {import('../core/engine/replay.js').Step} s */
+  const stageClass = (s) => (s.stage === 6 ? 5 : s.stage);
+  let interleaved = 0;
+  for (const input of INPUTS) {
+    const res = resultOf(input);
+    const run = runOf(input);
+    const classes = res.steps.map(stageClass);
+    assert.deepEqual(classes, [...classes].sort((a, b) => a - b), `${input.name}: the stages never decrease`);
+    const calibration = madeOf(input).kind === 'calibration';
+    assert.equal(classes.includes(4), !calibration, `${input.name}: stage 4 only for a candidate puzzle`);
+    assert.equal(classes[classes.length - 1], 7, input.name);
+    assert.equal(classes.filter((c) => c === 7).length, 1, input.name);
+    // Never sorted: the stage of step i is the stage of event i.
+    const eventStage = run.events.map((e) => ({ count: 1, carve: 2, piece: 3, start: 4, retile: 4, repair: 6 })[
+      /** @type {'count'} */ (e.kind)] ?? 5);
+    assert.deepEqual(res.steps.slice(0, -1).map((s) => s.stage), eventStage, input.name);
+    for (let i = 1; i < res.steps.length - 1; i += 1) {
+      if (res.steps[i - 1].stage === 6 && res.steps[i].stage === 5) {
+        interleaved += 1;
+        assert.equal(eventStage[i - 1], 6, `${input.name}: the same order as the events`);
+        assert.equal(eventStage[i], 5, input.name);
+      }
+    }
+  }
+  t.diagnostic(`a stage-6 step followed by a stage-5 step: ${interleaved} time(s) in the fixture (uniqueness require)`);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// 3. The final step.
+
+test('the final step shows the stored solution, or exactly the stored clues, and names the measuring step', (t) => {
+  const plain = [];
+  const repaired = [];
+  for (const input of INPUTS) {
+    const run = runOf(input);
+    const res = resultOf(input);
+    const last = res.steps[res.steps.length - 1];
+    assert.deepEqual(last.board.placed.map((p) => p.id), input.puzzle.solution.map((/** @type {Pose} */ p) => p.piece),
+      input.name);
+    assert.deepEqual(last.board.placed.map((p) => p.pose), input.puzzle.solution, `${input.name}: the poses`);
+    assert.equal(last.board.placed.length, input.set.pieces.length, `${input.name}: every piece of the solution`);
+    const index = /** @type {number} */ (last.args.detailStep);
+    assert.equal(index, measuringIndex(run), input.name);
+    const measuring = res.steps[index];
+    assert.ok(measuring.kind === 'rated' || measuring.kind === 'repair', `${input.name}: ${measuring.kind}`);
+    assert.notEqual(measuring.detail, null, input.name);
+    assert.deepEqual(measuring.rating, input.puzzle.rating, `${input.name}: the measurement is the claim`);
+    assert.ok(last.rating !== input.puzzle.rating, 'the claim is copied');
+    (measuring.kind === 'repair' ? repaired : plain).push(input.name);
+  }
+  t.diagnostic(`won without a repair: ${plain.join(', ')}`);
+  t.diagnostic(repaired.length > 0 ? `won with a repair: ${repaired.join(', ')}` : 'the fixture has no repaired winner');
+  assert.ok(plain.length > 0, 'a winner without a repair');
+
+  // A pack written without solutions: the stored clues and nothing else.
+  const read = parsePack(serializePack(/** @type {any} */ (validatePack(FIXTURE.packs[1]).value), { omitSolutions: true }));
+  assert.ok(read.ok);
+  const pack = /** @type {any} */ (read.value);
+  const bare = { name: 'pack 1 puzzle 0 (omitSolutions)', set: setOfPack(pack), puzzle: pack.puzzles[0], generation: pack.generation };
+  const omitted = replayPuzzle(bare, workspaces, REPLAY);
+  assert.equal(omitted.status, 'matched');
+  const last = omitted.steps[omitted.steps.length - 1];
+  assert.ok(bare.puzzle.solution === undefined || bare.puzzle.solution === null);
+  assert.equal(last.board.placed.length, bare.puzzle.clues.length, 'exactly one item per stored clue');
+  assert.deepEqual(last.board.placed, itemsOf(bare.set, bare.puzzle.clues));
+  assert.deepEqual(last.board.clues, bare.puzzle.clues.map((/** @type {Pose} */ p) => p.piece));
+  assert.notEqual(last.args.detailStep, null, 'a full claim still names its measurement');
+
+  // No measuring step unless the result is matched with a full claim.
+  const moved = replayPuzzle({ ...PLAIN, puzzle: { ...PLAIN.puzzle, rating: { ...PLAIN.puzzle.rating, score: 99 } } },
+    workspaces, REPLAY);
+  assert.equal(moved.status, 'mismatch');
+  assert.deepEqual(moved.steps[moved.steps.length - 1].args, { status: 'mismatch', detailStep: null });
+  assert.equal(moved.steps[moved.steps.length - 1].rating?.score, 99, 'the stored claim is still shown');
+  const { metrics: _metrics, ...summaryClaim } = PLAIN.puzzle.rating;
+  const summary = replayPuzzle({ ...PLAIN, puzzle: { ...PLAIN.puzzle, rating: summaryClaim } }, workspaces, REPLAY);
+  assert.equal(summary.status, 'matched', 'a summary claim is compared on model, score and level');
+  const summaryFinal = summary.steps[summary.steps.length - 1];
+  assert.deepEqual(summaryFinal.args, { status: 'matched', detailStep: null });
+  assert.equal(summaryFinal.breakdown, null);
+  assert.deepEqual(summaryFinal.rating, summaryClaim);
+  assert.deepEqual(summaryFinal.band, bandOfClaim(summaryClaim));
+  const incomplete = replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxSteps: 10 });
+  assert.deepEqual(incomplete.steps[incomplete.steps.length - 1].args, { status: 'incomplete', detailStep: null });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// 4. Breakdowns.
+
+/**
+ * The final step of a replay of PLAIN whose stored claim is replaced; the run is a mismatch of the rating.
+ * @param {any} rating
+ * @returns {import('../core/engine/replay.js').Step}
+ */
+function finalOfClaim(rating) {
+  const res = replayPuzzle({ ...PLAIN, puzzle: { ...PLAIN.puzzle, rating } }, workspaces, REPLAY);
+  assert.equal(res.status, 'mismatch');
+  assert.equal(res.reason, 'rating');
+  assert.deepEqual(JSON.parse(JSON.stringify(res)), res, 'plain JSON, no NaN and no Infinity');
+  assertPlain(res, 'result');
+  const last = res.steps[res.steps.length - 1];
+  assert.deepEqual(last.rating, rating, 'the claim is shown as it is stored');
+  assert.deepEqual(last.args, { status: 'mismatch', detailStep: null });
+  return last;
+}
+
+test('breakdowns: the v3 terms, valid v2 terms, and "not available" (null) for everything else', () => {
+  const v3 = PLAIN.puzzle.rating;
+  const v2 = (/** @type {any} */ metrics) => ({ model: 'difficulty-v2', score: 12, level: 'normal', saturated: false, metrics });
+  const normal = bandOfClaim({ level: 'normal' });
+
+  const own = finalOfClaim({ ...v3, score: v3.score + 1 });
+  assert.deepEqual(own.breakdown, breakdownV3(v3.metrics), 'the terms come from the metrics, not from the score');
+  assert.equal(own.breakdown?.score, v3.score);
+  assert.deepEqual(own.band, bandOfClaim(v3));
+
+  for (const metrics of [{ U: 5, B: 3 }, { U: 5, B: 3, extra: 1 }, { U: 0, B: 0 }]) {
+    const last = finalOfClaim(v2(metrics));
+    assert.deepEqual(last.breakdown, { model: 'difficulty-v2', u: 2 * metrics.U, b: 8 * Math.log10(1 + metrics.B), score: 12 },
+      JSON.stringify(metrics));
+    assert.deepEqual(last.band, normal);
+  }
+  assert.deepEqual(finalOfClaim(v2({ U: 5, B: 3 })).breakdown, { model: 'difficulty-v2', u: 10, b: 8 * Math.log10(4), score: 12 });
+
+  /** @type {[string, any][]} */
+  const unavailable = [
+    ['opaque v2 metrics', v2({ oldCounter: 7 })],
+    ['a text U', v2({ U: 'x', B: 3 })],
+    ['a numeric text U', v2({ U: '5', B: 3 })],
+    ['a numeric text B', v2({ U: 5, B: '3' })],
+    ['a negative B', v2({ U: 5, B: -2 })],
+    ['a negative B above -1', v2({ U: 5, B: -0.5 })],
+    ['a negative U', v2({ U: -1, B: 2 })],
+    ['a missing B', v2({ U: 5 })],
+    ['a U whose term overflows', v2({ U: Number.MAX_VALUE, B: 0 })],
+    ['v2 metrics that are not an object', v2(5)],
+    ['v2 metrics that are a list', v2([5, 3])],
+    ['v2 metrics that are null', v2(null)],
+    ['a v2 claim without metrics', { model: 'difficulty-v2', score: 12, level: 'normal', saturated: false }],
+    ['a v3 summary claim', { model: 'difficulty-v3', score: v3.score, level: v3.level, saturated: false, censored: true }],
+    ['a v1 claim', { model: 'difficulty-v1', score: 12, level: 'normal', metrics: { U: 5, B: 3 } }],
+    ['another model', { model: 'difficulty-v9', score: 12, level: 'normal', metrics: { U: 5, B: 3 } }],
+    ['v3 metrics the score rejects', { ...v3, metrics: { ...v3.metrics, U: 1.5 } }],
+    ['v3 metrics whose terms overflow', { ...v3, metrics: { ...v3.metrics, G: 1e308 } }],
+    ['v3 metrics that are a list', { ...v3, metrics: [] }],
+  ];
+  for (const [name, claim] of unavailable) {
+    const last = finalOfClaim(claim);
+    assert.equal(last.breakdown, null, name);
+  }
+  // Metrics that are an object but not a plain one (direct input only; JSON cannot make them) are not read either.
+  const exotic = replayPuzzle({ ...PLAIN, puzzle: { ...PLAIN.puzzle, rating: v2(Object.assign(Object.create({}), { U: 5, B: 3 })) } },
+    workspaces, REPLAY);
+  assert.equal(exotic.steps[exotic.steps.length - 1].breakdown, null);
+  assertPlain(exotic, 'exotic');
+  assert.ok(!Number.isFinite(breakdownV3({ ...v3.metrics, G: 1e308 }).unrounded), 'the overflow case overflows');
+
+  // A level the engine does not know has no band; the claim is still shown.
+  const unknown = finalOfClaim({ ...v3, level: 'unknown-level' });
+  assert.equal(unknown.band, null);
+  assert.deepEqual(unknown.breakdown, breakdownV3(v3.metrics));
+  // The last level whose lower edge is finite has no upper edge: `max` is null, never Infinity.
+  const top = finalOfClaim({ ...v3, level: 'hell-1899' });
+  assert.equal(level('hell-1899').max, Infinity);
+  assert.deepEqual(top.band, { min: level('hell-1899').min, max: null });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// 5. The byte bound.
+
+/**
+ * 2 plus the larger final form: the status `unavailable` with no measuring step, or with the largest index.
+ * @param {ReplayInput} input
+ * @param {number} maxSteps
+ * @returns {number}
+ */
+function reserveOf(input, maxSteps) {
+  return 2 + Math.max(
+    utf8Length(JSON.stringify(finalStep(input, 'unavailable', null))),
+    maxSteps >= 2 ? utf8Length(JSON.stringify(finalStep(input, 'unavailable', maxSteps - 2))) : 0,
+  );
+}
+
+/** @param {ReplayResult} res */
+const bytesOf = (res) => utf8Length(JSON.stringify(res.steps));
+
+test('the byte bound: the reserve is checked first, and the steps never exceed maxBytes', () => {
+  // maxSteps 1: only the final step.
+  const F = utf8Length(JSON.stringify(finalStep(PLAIN, 'unavailable', null)));
+  assert.equal(reserveOf(PLAIN, 1), F + 2);
+  const one = replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxSteps: 1, maxBytes: F + 2 });
+  assert.equal(one.steps.length, 1);
+  assert.equal(one.steps[0].kind, 'final');
+  assert.equal(one.status, 'incomplete');
+  assert.equal(one.reason, 'steps');
+  assert.ok(bytesOf(one) <= F + 2);
+  assert.throws(() => replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxSteps: 1, maxBytes: F + 1 }, neverCancelled),
+    (e) => e instanceof RangeError && /maxBytes cannot hold the final step/.test(e.message));
+
+  // An unavailable result: nothing runs, its single final step fits exactly.
+  const bare = edited(PLAIN, (g) => {
+    delete g.setOrigin;
+    delete g.made;
+  });
+  const exact = reserveOf(bare, REPLAY.maxSteps);
+  assert.equal(exact, 2 + F, 'the longest status and a four-byte detailStep either way');
+  const none = replayPuzzle(bare, workspaces, { ...REPLAY, maxBytes: exact }, neverCancelled);
+  assert.equal(none.status, 'unavailable');
+  assert.deepEqual(none.stages, { set: 'unavailable', candidate: 'unavailable', final: 'not-compared' });
+  assert.equal(none.steps.length, 1);
+  assert.equal(bytesOf(none), exact, 'an exact fit');
+  assert.throws(() => replayPuzzle(bare, workspaces, { ...REPLAY, maxBytes: exact - 1 }, neverCancelled), RangeError);
+
+  // A larger index has more digits: the larger of the two final forms is the reserve (the index 99,999 has five).
+  assert.ok(reserveOf(PLAIN, 100001) > reserveOf(PLAIN, 12));
+  assert.equal(reserveOf(PLAIN, 100002), reserveOf(PLAIN, 100001) + 1, 'the index 100,000 has six digits');
+  for (const maxSteps of [100001, 100002]) {
+    const wide = { ...REPLAY, maxSteps };
+    assert.throws(() => replayPuzzle(PLAIN, workspaces, { ...wide, maxBytes: reserveOf(PLAIN, maxSteps) - 1 }, neverCancelled),
+      RangeError, String(maxSteps));
+    assert.equal(replayPuzzle(PLAIN, workspaces, { ...wide, maxBytes: reserveOf(PLAIN, maxSteps) }).steps.length, 1, String(maxSteps));
+  }
+
+  // maxBytes 4,000: the steps that fit are the first ones, in order.
+  const small = replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxBytes: 4000 });
+  assert.equal(small.status, 'incomplete');
+  assert.equal(small.reason, 'bytes');
+  assert.ok(bytesOf(small) <= 4000);
+  assert.ok(small.steps.length >= 2, 'some steps and the final one');
+  assert.equal(small.steps[small.steps.length - 1].kind, 'final');
+  assert.equal(small.steps.filter((s) => s.kind === 'final').length, 1);
+  assert.deepEqual(small.steps.slice(0, -1).map((s) => s.kind), resultOf(PLAIN).steps.slice(0, small.steps.length - 1).map((s) => s.kind));
+  assert.deepEqual(small.compared, []);
+  assert.equal(small.stages.final, 'not-compared');
+
+  // The smallest accepted bound with the default maxSteps: the final step alone.
+  const reserve = reserveOf(PLAIN, REPLAY.maxSteps);
+  const least = replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxBytes: reserve }, () => false);
+  assert.equal(least.status, 'incomplete');
+  assert.equal(least.reason, 'bytes');
+  assert.equal(least.steps.length, 1);
+  assert.equal(least.steps[0].kind, 'final');
+  assert.ok(bytesOf(least) <= reserve);
+  assert.deepEqual(least.stages, { set: 'stopped', candidate: 'stopped', final: 'not-compared' });
+  const stopped = runReplay(PLAIN, workspaces, { ...REPLAY, maxBytes: reserve }, () => false, reserve);
+  assert.equal(stopped.status, 'incomplete');
+  assert.equal(stopped.reason, 'bytes');
+  assert.deepEqual(stopped.events, [], 'the run stops at its first event');
+  assert.throws(() => replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxBytes: reserve - 1 }, neverCancelled), RangeError);
+  // The run alone, with a limit it can hold, keeps its two-byte brackets out of the first event only.
+  assert.equal(utf8Length(JSON.stringify(stopped.events)), 2, 'the run counts the retained events, the text of [] is 2 bytes');
+});
+
+/**
+ * `need`: the bytes at which every step fits: the reserve, then each step and its comma.
+ * @param {ReplayInput} input
+ * @param {{ maxSteps: number, maxBytes: number, work: number }} limits
+ */
+function exactFit(input, limits) {
+  const full = replayPuzzle(input, workspaces, limits);
+  const reserve = reserveOf(input, limits.maxSteps);
+  const need = reserve + full.steps.slice(0, -1).reduce((sum, s) => sum + utf8Length(JSON.stringify(s)) + 1, 0);
+  // The run's own byte rule must not cut first: steps are larger than their events.
+  const run = runReplay(input, workspaces, limits, () => false, reserve);
+  assert.ok(utf8Length(JSON.stringify(run.events)) + reserve < need, 'the steps are larger than the events');
+  return { full, need };
+}
+
+test('the byte bound on a trace: an exact fit keeps every step, one byte less drops the last one and is incomplete', () => {
+  const { full, need } = exactFit(PLAIN, REPLAY);
+  assert.equal(full.status, 'matched');
+  const fits = replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxBytes: need });
+  assert.deepEqual(fits, full, 'every step and the status of the full result');
+  assert.ok(bytesOf(fits) <= need);
+
+  const less = replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxBytes: need - 1 });
+  assert.equal(less.status, 'incomplete');
+  assert.equal(less.reason, 'bytes');
+  assert.deepEqual(less.compared, []);
+  assert.deepEqual(less.stages, { set: 'replayed', candidate: 'replayed', final: 'not-compared' });
+  assert.equal(less.work, full.work);
+  assert.equal(less.steps.length, full.steps.length - 1, 'the last non-final step is dropped');
+  assert.deepEqual(less.steps.slice(0, -1), full.steps.slice(0, -2));
+  const lastLess = less.steps[less.steps.length - 1];
+  assert.equal(lastLess.kind, 'final');
+  assert.deepEqual(lastLess.args, { status: 'incomplete', detailStep: null }, 'a cut trace names no measurement');
+  assert.ok(bytesOf(less) <= need - 1);
+
+  // The first step that does not fit ends the list, even when a later, smaller step would fit.
+  const sizes = full.steps.slice(0, -1).map((s) => utf8Length(JSON.stringify(s)) + 1);
+  const k = sizes.findLastIndex((size, i) => sizes.slice(i + 1).some((later) => later < size - 1));
+  assert.ok(k > 0, 'a later step is smaller than an earlier one');
+  const room = reserveOf(PLAIN, REPLAY.maxSteps) + sizes.slice(0, k).reduce((sum, size) => sum + size, 0) + sizes[k] - 1;
+  assert.ok(utf8Length(JSON.stringify(runOf(PLAIN).events)) + reserveOf(PLAIN, REPLAY.maxSteps) < room);
+  const ended = replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxBytes: room });
+  assert.equal(ended.status, 'incomplete');
+  assert.deepEqual(ended.steps.slice(0, -1), full.steps.slice(0, k), `the first ${k} steps, none after step ${k}`);
+  assert.ok(bytesOf(ended) <= room);
+
+  // A mismatch is turned into incomplete as well, with nothing compared.
+  const off = { ...PLAIN, puzzle: { ...PLAIN.puzzle, rating: { ...PLAIN.puzzle.rating, score: PLAIN.puzzle.rating.score + 1 } } };
+  const mismatch = exactFit(off, REPLAY);
+  assert.equal(mismatch.full.status, 'mismatch');
+  assert.ok(mismatch.full.compared.length > 0);
+  const cut = replayPuzzle(off, workspaces, { ...REPLAY, maxBytes: mismatch.need - 1 });
+  assert.equal(cut.status, 'incomplete');
+  assert.equal(cut.reason, 'bytes');
+  assert.deepEqual(cut.compared, []);
+  assert.equal(cut.stages.final, 'not-compared');
+  assert.equal(cut.stages.set, 'replayed');
+  assert.deepEqual(replayPuzzle(off, workspaces, { ...REPLAY, maxBytes: mismatch.need }), mismatch.full);
+
+  // A run that is already incomplete keeps its reason.
+  const limits = { ...REPLAY, work: Math.floor(runOf(PLAIN).work / 2) };
+  const early = exactFit(PLAIN, limits);
+  assert.equal(early.full.status, 'incomplete');
+  assert.equal(early.full.reason, 'work');
+  const keep = replayPuzzle(PLAIN, workspaces, { ...limits, maxBytes: early.need - 1 });
+  assert.equal(keep.status, 'incomplete');
+  assert.equal(keep.reason, 'work', 'the first bound that stopped the replay');
+  assert.equal(keep.steps.length, early.full.steps.length - 1);
+  assert.deepEqual(replayPuzzle(PLAIN, workspaces, { ...limits, maxBytes: early.need }), early.full);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// 6. The step-count bound.
+
+test('the step bound: maxSteps counts the final step', () => {
+  const ten = replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxSteps: 10 });
+  assert.equal(ten.steps.length, 10);
+  assert.equal(ten.steps[9].kind, 'final');
+  assert.equal(ten.status, 'incomplete');
+  assert.equal(ten.reason, 'steps');
+  const head = resultOf(PLAIN).steps.slice(0, 9);
+  assert.deepEqual(ten.steps.slice(0, 9).map((s) => [s.stage, s.kind, s.args]), head.map((s) => [s.stage, s.kind, s.args]));
+  const one = replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxSteps: 1 });
+  assert.equal(one.steps.length, 1);
+  assert.equal(one.steps[0].kind, 'final');
+  assert.equal(one.status, 'incomplete');
+  assert.equal(one.reason, 'steps');
+  const full = resultOf(PLAIN);
+  const exact = replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxSteps: full.steps.length });
+  assert.deepEqual(exact, full, 'exactly as many steps as the trace has');
+  const under = replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxSteps: full.steps.length - 1 });
+  assert.equal(under.status, 'incomplete');
+  assert.equal(under.steps.length, full.steps.length - 1);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// The ids of the carved pieces.
+
+test('the carved pieces carry the id and pose of the replayed set, and null where the set is not known', () => {
+  const full = resultOf(PLAIN);
+  const pieces = full.steps.filter((s) => s.kind === 'piece');
+  assert.equal(pieces.length, PLAIN.set.pieces.length);
+  assert.deepEqual(pieces.map((s) => s.args.n), pieces.map((_, i) => i + 1));
+  assert.deepEqual(pieces.map((s) => s.board.placed.length), pieces.map((_, i) => i + 1), 'the regions so far');
+  const lastPlaced = pieces[pieces.length - 1].board.placed;
+  assert.deepEqual(lastPlaced.map((p) => p.id).sort(), PLAIN.set.pieces.map((p) => p.id).sort());
+  for (const item of lastPlaced) {
+    assert.equal(item.pose?.piece, item.id);
+    assert.equal(regionKey(item.cells), regionKey(poseCells(/** @type {any} */ (PLAIN.set.pieces.find((p) => p.id === item.id)), /** @type {any} */ (item.pose))));
+  }
+  // An earlier step keeps the region as it was.
+  assert.deepEqual(pieces[0].board.placed, lastPlaced.slice(0, 1));
+
+  // The set attempt of the record fails: the regions are drawn, no piece is known.
+  const failing = replayPuzzle(edited(PLAIN, (g) => { g.setOrigin.attempt = 12; }), workspaces, REPLAY);
+  assert.equal(failing.status, 'mismatch');
+  const carved = failing.steps.filter((s) => s.kind === 'piece');
+  assert.ok(carved.length > 0, 'the failed attempt carved pieces');
+  for (const step of carved) {
+    assert.ok(step.board.placed.every((p) => p.id === null && p.pose === null && p.cells.length > 0));
+  }
+
+  // Stopped inside the set stage: no replayed set yet.
+  const events = runOf(PLAIN).events;
+  const third = events.findIndex((e, i) => e.kind === 'piece' && events.slice(0, i).filter((x) => x.kind === 'piece').length === 2);
+  const inside = replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxSteps: third + 1 });
+  assert.deepEqual(inside.stages, { set: 'stopped', candidate: 'stopped', final: 'not-compared' });
+  const insidePieces = inside.steps.filter((s) => s.kind === 'piece');
+  assert.equal(insidePieces.length, 2);
+  assert.ok(insidePieces.every((s) => s.board.placed.every((p) => p.id === null && p.pose === null)));
+
+  // Stopped after the set stage: the ids are known.
+  const after = replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxSteps: 12 });
+  assert.deepEqual(after.stages, { set: 'replayed', candidate: 'stopped', final: 'not-compared' });
+  assert.deepEqual(after.steps.slice(0, 11), full.steps.slice(0, 11));
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// Inputs made by the engine for the cases the fixture does not have.
+
+/**
+ * A candidate of the fixture's set whose selected repair added several clues (found by a search over slots and
+ * attempts of the fixture's batch seed: `expert`, slot 1, attempt 10), made again by the engine and stored as a puzzle.
+ * @returns {ReplayInput}
+ */
+function multiAddInput() {
+  const made = madeOf(PLAIN);
+  const candidate = /** @type {any} */ (puzzleCandidate(candidateContext(PLAIN, { targetLevelId: 'expert' }), 1, 10));
+  assert.ok(!('fail' in candidate), 'the engine makes the candidate');
+  assert.deepEqual([candidate.made.slot, candidate.made.attempt, candidate.made.targetLevel], [1, 10, 'expert']);
+  assert.equal(candidate.made.batchSeed, made.batchSeed);
+  const puzzle = {
+    id: 'multi-add', clues: candidate.clues, solution: candidate.layout, rating: JSON.parse(JSON.stringify(candidate.rating)),
+  };
+  const generation = { setOrigin: PLAIN.generation.setOrigin, made: { [puzzle.id]: candidate.made } };
+  return { name: 'multi-add', set: PLAIN.set, puzzle, generation };
+}
+
+test('a repair that added several clues: only its last step carries the measurement, and the final step names it', () => {
+  const input = multiAddInput();
+  const run = runReplay(input, workspaces, REPLAY);
+  const res = replayPuzzle(input, workspaces, REPLAY);
+  assertStepTable(input, run, res);
+  const selected = /** @type {any} */ (run.events[run.events.length - 1]);
+  assert.equal(selected.kind, 'selected');
+  assert.notEqual(selected.repairSequence, null, 'the winner was repaired');
+  const own = res.steps.flatMap((s, i) => (s.kind === 'repair' && s.args.repairSequence === selected.repairSequence ? [i] : []));
+  assert.ok(own.length >= 2, `${own.length} repair events in the selected finish`);
+  const last = own[own.length - 1];
+  for (const i of own.slice(0, -1)) {
+    assert.deepEqual([res.steps[i].rating, res.steps[i].breakdown, res.steps[i].detail], [null, null, null], `step ${i}`);
+    assert.equal(res.steps[i].args.accepted, null, `step ${i}`);
+    assert.equal(typeof res.steps[i].args.added, 'string', `step ${i}: the clue it added`);
+  }
+  assert.equal(res.steps[last].args.accepted, true);
+  assert.notEqual(res.steps[last].detail, null);
+  assert.deepEqual(res.steps[last].rating, input.puzzle.rating);
+  assert.equal(res.steps[res.steps.length - 1].args.detailStep, last, 'the last repair step of the finish, not the first');
+  const clues = res.steps[res.steps.length - 2].board.clues;
+  assert.deepEqual(clues, res.steps[last].board.clues, 'the selected clues are the clues of the last repair step');
+  assert.deepEqual([...clues].sort(), input.puzzle.clues.map((/** @type {Pose} */ p) => p.piece).sort());
+});
+
+test('a set carved flat: its carve step counts no parts, and the calibration puzzle replays step by step', () => {
+  const seedText = 'steps-flat-0';
+  const request = { board: PLAIN.set.board, rotation: 0, levelId: 'hard', seedText, uniqueness: /** @type {const} */ ('any'), execution };
+  const attempt = setAttempt(request, 0);
+  assert.ok(attempt.ok);
+  assert.equal(attempt.set.carving, 'flat', 'this seed carves flat on the fixture board');
+  const { calibration } = attempt;
+  const input = {
+    name: 'flat calibration',
+    set: attempt.set,
+    puzzle: { id: calibration.id, clues: calibration.clues, solution: calibration.solution, rating: JSON.parse(JSON.stringify(calibration.rating)) },
+    generation: {
+      setOrigin: { schema: 1, seed: normalizeSeedText(seedText), level: 'hard', attempt: 0, uniqueness: 'any', versions: provenanceVersions() },
+      made: { [calibration.id]: { schema: 1, kind: 'calibration' } },
+    },
+  };
+  const run = runReplay(input, workspaces, REPLAY);
+  assert.equal(run.status, 'matched');
+  assert.equal(run.stages.candidate, 'calibration');
+  const res = replayPuzzle(input, workspaces, REPLAY);
+  assertStepTable(input, run, res);
+  const carves = res.steps.filter((s) => s.kind === 'carve');
+  assert.ok(carves.length >= 1);
+  for (const step of carves) {
+    assert.deepEqual(step.args, { mode: 'flat', parts: 0 });
+  }
+  assert.ok(res.steps.every((s) => s.stage !== 4), 'a calibration puzzle has no layout stage');
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// Limits, input and cancellation.
+
+test('replayPuzzle refuses malformed input and limits before anything runs, and propagates cancellation', () => {
+  const { set, puzzle, generation } = PLAIN;
+  assert.throws(() => replayPuzzle({ set, generation }, workspaces, REPLAY, neverCancelled), /invalid replay input/);
+  assert.throws(() => replayPuzzle({ set, puzzle, generation: [] }, workspaces, REPLAY, neverCancelled), /invalid replay input/);
+  assert.throws(() => replayPuzzle(null, workspaces, REPLAY, neverCancelled), /invalid replay input/);
+  for (const limits of [null, { maxSteps: 0, maxBytes: 100, work: 5 }, { maxSteps: 4, maxBytes: 1.5, work: 5 },
+    { maxSteps: 4, maxBytes: 100 }, { maxSteps: 4, maxBytes: 100, work: Infinity }]) {
+    assert.throws(() => replayPuzzle(PLAIN, workspaces, /** @type {any} */ (limits), neverCancelled), /invalid replay limits/);
+  }
+  assert.throws(() => replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxBytes: 100 }, neverCancelled),
+    /maxBytes cannot hold the final step/);
+  assert.deepEqual(replayPuzzle(PLAIN, workspaces), resultOf(PLAIN), 'the defaults are REPLAY and never cancelled');
+
+  let calls = 0;
+  assert.throws(() => replayPuzzle(PLAIN, workspaces, REPLAY, () => {
+    calls += 1;
+    return calls >= 5;
+  }), (e) => e instanceof ReplayCancelledError && e.code === 'cancelled');
+  assert.equal(calls, 5);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// 7-8. Plain JSON and determinism.
+
+test('the result is plain JSON, survives structuredClone, shares nothing with the input, and is deterministic', () => {
+  const touched = (/** @type {ReplayInput} */ i) => JSON.stringify([i.set, i.puzzle, i.generation]);
+  const before = touched(INPUTS[3]);
+  /** @type {[string, ReplayResult][]} */
+  const results = [
+    ...[INPUTS[0], INPUTS[3], INPUTS[6]].map((i) => /** @type {[string, ReplayResult]} */ ([i.name, resultOf(i)])),
+    ['cut by bytes', replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxBytes: 4000 })],
+    ['cut by steps', replayPuzzle(PLAIN, workspaces, { ...REPLAY, maxSteps: 12 })],
+    ['a mismatch', replayPuzzle(edited(PLAIN, (g) => { g.setOrigin.attempt = 12; }), workspaces, REPLAY)],
+    ['nothing runs', replayPuzzle(edited(PLAIN, (g) => { delete g.setOrigin; delete g.made; }), workspaces, REPLAY)],
+  ];
+  for (const [name, res] of results) {
+    assert.deepEqual(JSON.parse(JSON.stringify(res)), res, name);
+    assert.deepEqual(structuredClone(res), res, name);
+    assertPlain(res, name);
+    assert.ok(!('events' in res) && !('set' in res), `${name}: no events and no set`);
+    assert.equal(res.steps[res.steps.length - 1].stage, 7, name);
+  }
+  for (const input of [INPUTS[0], INPUTS[3], INPUTS[6]]) {
+    assert.deepEqual(replayPuzzle(input, workspaces, REPLAY), resultOf(input), `${input.name}: the same steps again`);
+  }
+  assert.equal(touched(INPUTS[3]), before, 'the input is not modified');
+  // A step does not alias the input: changing the result leaves the stored claim and poses alone.
+  const copy = replayPuzzle(PLAIN, workspaces, REPLAY);
+  const claim = JSON.stringify(PLAIN.puzzle.rating);
+  const poses = JSON.stringify(PLAIN.puzzle.solution);
+  const lastStep = copy.steps[copy.steps.length - 1];
+  /** @type {any} */ (lastStep.rating).score = -1;
+  /** @type {any} */ (lastStep.board.placed[0].pose).x = -1;
+  assert.equal(JSON.stringify(PLAIN.puzzle.rating), claim);
+  assert.equal(JSON.stringify(PLAIN.puzzle.solution), poses);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// A pose that cannot be placed.
+
+test('a stored pose that the set cannot place is shown without cells, and nothing throws', () => {
+  const solution = structuredClone(PLAIN.puzzle.solution);
+  solution[0] = { ...solution[0], piece: 'Z' };
+  solution[1] = { ...solution[1], turn: 9 };
+  const res = replayPuzzle({ ...PLAIN, puzzle: { ...PLAIN.puzzle, solution } }, workspaces, REPLAY);
+  assert.equal(res.status, 'mismatch');
+  assert.equal(res.reason, 'solution');
+  const placed = res.steps[res.steps.length - 1].board.placed;
+  assert.deepEqual(placed[0], { id: 'Z', cells: [], pose: solution[0] }, 'a piece the set does not have');
+  assert.deepEqual(placed[1], { id: solution[1].piece, cells: [], pose: solution[1] }, 'a turn that does not exist');
+  assert.ok(placed.slice(2).every((p) => p.cells.length > 0), 'the others are placed');
+  assert.deepEqual(JSON.parse(JSON.stringify(res)), res);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// 9. Measurements for the provisional bounds.
+
+test('measurements: the steps of every fixture puzzle against REPLAY (reported, not pinned)', (t) => {
+  const rows = INPUTS.map((input) => {
+    const res = resultOf(input);
+    return { name: input.name, steps: res.steps.length, bytes: bytesOf(res), work: res.work };
+  });
+  for (const r of rows) {
+    t.diagnostic(`${r.name}: ${r.steps} steps, ${r.bytes} bytes, ${r.work} work`);
+    assert.ok(r.steps <= REPLAY.maxSteps && r.bytes <= REPLAY.maxBytes && r.work <= REPLAY.work, r.name);
+  }
+  const max = (/** @type {'steps' | 'bytes' | 'work'} */ key) => Math.max(...rows.map((r) => r[key]));
+  const share = (/** @type {number} */ v, /** @type {number} */ of) => `${((100 * v) / of).toFixed(4)} %`;
+  t.diagnostic(`largest steps ${max('steps')} = ${share(max('steps'), REPLAY.maxSteps)} of ${REPLAY.maxSteps}`);
+  t.diagnostic(`largest bytes ${max('bytes')} = ${share(max('bytes'), REPLAY.maxBytes)} of ${REPLAY.maxBytes}`);
+  t.diagnostic(`largest work ${max('work')} = ${share(max('work'), REPLAY.work)} of ${REPLAY.work}`);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// 10. A puzzle without a rating claim.
+
+test('a puzzle without a rating claim: matched, and a final step without rating, breakdown, band or measuring step', () => {
+  const { rating: _rating, ...unrated } = PLAIN.puzzle;
+  for (const puzzle of [unrated, { ...unrated, rating: null }]) {
+    const input = { ...PLAIN, puzzle };
+    const res = replayPuzzle(input, workspaces, REPLAY);
+    assert.equal(res.status, 'matched');
+    assert.equal(res.reason, null);
+    assert.deepEqual(res.compared, ['board', 'pieces', 'witness', 'clues', 'solution']);
+    const last = res.steps[res.steps.length - 1];
+    assert.deepEqual(last.rating, null);
+    assert.equal(last.breakdown, null);
+    assert.equal(last.detail, null);
+    assert.equal(last.band, null);
+    assert.deepEqual(last.args, { status: 'matched', detailStep: null });
+    assert.deepEqual(last.board.placed, itemsOf(input.set, puzzle.solution));
+    assert.deepEqual(last.board.clues, puzzle.clues.map((/** @type {Pose} */ p) => p.piece));
+    assert.deepEqual(JSON.parse(JSON.stringify(res)), res);
+    assertPlain(res, 'unrated');
+    const run = runOf(PLAIN);
+    assert.equal(res.steps.length, run.events.length + 1);
+    assert.ok(res.steps.slice(0, -1).every((s, i) => s.kind === run.events[i].kind));
+  }
 });

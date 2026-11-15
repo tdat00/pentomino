@@ -324,14 +324,14 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (orchestrator check; outside the analyst review set) |
+| Start | 2026-11-15 20:06:47 (+07:00) |
+| End | 2026-11-15 21:02:04 developer; orchestrator re-check and commit |
+| Duration | 55 min developer; 18 locked invocations, 1,440.7 s machine time (mostly mutant batches) and 375.5 s lock wait |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (orchestrator) |
+| Token usage | 96 model calls; 23,251,140 input tokens (22,880,557 cache reads); 170,527 output tokens |
+| AI credits | about 492 (developer) |
+| Verification | `core/engine/replay.js` (+407 lines; `runReplay` unchanged): `replayPuzzle(input, { ws, scratch }, limits, isCancelled)` returns a plain-JSON `ReplayResult` `{ status, reason, stages, compared, work, steps }`; typedefs `Step`, `Placed`, `ReplayResult`, `BreakdownV2`; a private step maker (one step per event, per the §6.12 table); `finalStep` exported for tests; private `breakdownOf` (v3 `breakdownV3`, v2 valid terms, otherwise null) and `measuringStep`. Final step: the stored solution, or exactly the stored clues for an `omitSolutions` pack; `rating`, `breakdown`, `band` null without a claim (case 10, pack-author amendment). Byte bound: reserve 2 + the larger final form, checked before any work (`RangeError` below it); steps counted from the reserve; a cut gives `incomplete`/`bytes` with `compared` empty and `final: 'not-compared'`; §6.12 states the zero-initialized accounting (MP15R-01). **D35:** `replay.js` is imported by no module; `record-fixtures --check` and `--replay-case --check` OK after the last change. Tests: `replay.test.js` 32/32 (MP15a1's 17 unchanged + 15); targeted 101/101; quick set 1,439/1,439 (+15); `npm run check` OK; 67 hand-made mutants, 64 killed, 3 equivalent or unreachable (#50 start-layout assignment, #60 `unrateable` step, #66 default branch). Case 9 on the fixture: 29-89 steps (2.17 % of `maxSteps`), 38,828-181,843 bytes (4.34 % of `maxBytes`), 8.4-37.7 M work. Orchestrator: locked `replay`, `policy`, `replay-recorders` 92/92; `npm run check` OK |
+| Acceptance | MP15a2-B01 to B04 and T01 to T05 met (cases 1-10) |
+| Issues & resolutions | Two first-run test mistakes of the developer's own new tests, fixed. Readings the developer took as fixed by the task (checked by the orchestrator): the final step's `kind` is `final`; `placed` on `repair` and `selected` steps is the candidate layout; a `selected` step's clues come from its `rated` or last `repair` event; case 5's "unavailable result" is a puzzle without a record (`'no-record'`, task line 288). Named items for MP17: (1) no real instance of an `unrateable` step or a zero-add repair failure (`added: null`) on 180 fixture candidates; those builders are checked by reading only; (2) large-board byte pressure: about 1.7 KB per step at 9 pieces, so 4 MiB holds a few hundred to about a thousand steps at 20x18; MP17's GZ replay measurement should show whether `maxBytes` cuts typical large traces; (3) a stored pose the set cannot place gives an item with `cells: []` (unreachable for a validated pack); (4) a non-string claim `level` gives a null band; an overflowing upper edge gives `max: null`; (5) the v3 breakdown has no `model` key, the v2 one has (as specified; MP16a tells them apart by `rating.model`); (6) a cut inside the set stage leaves `piece` steps with `id` and `pose` null (as specified); (7) no `tsc` |
+| Handoff | To MP15b: `replayPuzzle(input, { ws, scratch }, REPLAY)` returns a structured-clone-safe `ReplayResult` with `work`; it throws `RangeError` for malformed input or limits or when `maxBytes` cannot hold the final step, and `ReplayCancelledError` on cancellation. To MP16a: the §6.12 step table, note keys `replay.step.<kind>`, `args.detailStep` on the final step, `added: null` for a zero-add failure, a null `breakdown` means "terms not available", and the statuses, reasons and stage states (including `stopped`) |
