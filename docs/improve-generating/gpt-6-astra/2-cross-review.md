@@ -2,7 +2,7 @@
 
 SA2, gpt-6-astra. 2026-11-14. Phase 2, against the supplied `cd5d17f` worktree.
 
-Reviewed `docs/improve-generating/claude-opus-5.5/1-analysis.md` and `1-speed-summary.md`, my phase-1
+Reviewed `docs/improve-generating/claude-opus-5.5/1-analysis.md` and `1-speed-summary.md` at `cfcc4dd`, my phase-1
 reports, relevant code and committed evidence. No engine, test, generation, benchmark or timing experiment
 was run; no timing lock or git operation was used. Arithmetic only reads existing JSON. Phase-1 files
 remain unchanged. This report updates my planning judgement, not the historical observations.

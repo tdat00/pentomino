@@ -2,10 +2,10 @@
 
 | Field | Value |
 |---|---|
-| Plan | [plan.md](plan.md), by Fable |
+| Plan | `plan.md` at `cfcc4dd` (version 1), by Fable |
 | Analysts | SA1 claude-opus-5.5 ("Opus", lead of this report) and SA2 gpt-6-astra ("Astra", reviewer of this report) |
 | Source | Worktree `improve-generating` at `cd5d17f`: MP12b1's full landscape (`gen-v3`, `mixed-v2`, `difficulty-v3`, 80 M census) |
-| Detail | Opus: [1-analysis](claude-opus-5.5/1-analysis.md), [1-speed-summary](claude-opus-5.5/1-speed-summary.md), [2-cross-review](claude-opus-5.5/2-cross-review.md). Astra: [1-analysis](gpt-6-astra/1-analysis.md), [1-speed-summary](gpt-6-astra/1-speed-summary.md), [2-cross-review](gpt-6-astra/2-cross-review.md) |
+| Detail | Opus: [1-analysis](claude-opus-5.5/1-analysis.md), `claude-opus-5.5/1-speed-summary.md` at `cfcc4dd`, [2-cross-review](claude-opus-5.5/2-cross-review.md). Astra: [1-analysis](gpt-6-astra/1-analysis.md), `gpt-6-astra/1-speed-summary.md` at `cfcc4dd`, [2-cross-review](gpt-6-astra/2-cross-review.md) |
 | Questions | [clarifications.md](clarifications.md): IG-P-Q01 to IG-P-Q16, blocking ones first |
 
 **Every number after "today" is an estimate. Nothing was run for this report or for the analyses behind it: no

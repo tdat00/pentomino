@@ -1489,3 +1489,102 @@ gate.
 - **Corrections:** the 22 items of the joint report's (e) are taken in.
 - **Still to come to the owner:** the frozen round's price after source preparation, and the phase-3 decisions
   (plan section 7).
+
+---
+
+## Questions and corrections after plan version 3 (analysts, 2026-11-15)
+
+Raised by the analysts' review of plan version 3 (`plan.md` at `8d795f8`): phase-1 analyses
+`claude-opus-5.5/5-plan-v3-analysis.md` and `gpt-6-astra/5-plan-v3-analysis.md`, cross-reviews `6-*`, and the
+joint report [plan-v3-joint-report.md](plan-v3-joint-report.md) (written by Opus, signed off by Astra). Both
+analysts agree on the four questions below; none needs a run to be answered. **No owner decision is needed.**
+
+- **Corrections for the next revision:** the joint report's section 3 gives C1 to C18 as exact replacement text
+  (among them P1's `locateCount` pseudocode from the measured prototype, `gamma` on the batch time only, P7's
+  memory-limit rule and the fail-fast wording after P-OD12), and section 4 the speed rows that change (Hell 1
+  26x26 16.7 to 17.4 s, 20x20 20.9 to 21.8 s; 20x20 no longer reaches 13.75 s even at its optimistic end).
+- **Findings:** JV3-P01 to JV3-P20 (9 Medium, 11 Low) in the joint report's section 2. JV3-P20 asks for a note in
+  this log: version 3 refines the gates and none has passed.
+- **Line numbers** in the joint report refer to `plan.md` at `8d795f8`, before the cleanup below; the quoted text
+  identifies each place.
+- **Cleanup at the owner's request** ("xóa bớt những phần thừa trong plan v1 và v2 nếu không cần thiết"),
+  executed by the orchestrator with only what both analysts support (joint report section 7):
+  - `plan.md`: section 0 "What version 3 changes" and four history clauses removed (623 to 597 lines); no
+    content that binds a phase, a gate or a decision was cut;
+  - deleted: `claude-opus-5.5/1-speed-summary.md` and `gpt-6-astra/1-speed-summary.md` (superseded; at
+    `cfcc4dd`), with the links to them pinned to that commit;
+  - kept: `report.md` (its plan link pinned to `cfcc4dd`, version 1 as reviewed), the analysts' 1-* to 4-*
+    files, `plan-v2-joint-report.md`, this log, `evidence/` and `tasks/improve-generating/`.
+### IG-P-Q25: Which today's-arm requests and production repeats belong in the priced manifest?
+
+- *Question.* 5.1's seed rule ("otherwise today's search runs in the same round on the same seeds") reads as
+  a today's arm on every headline cell. Only 5.2's no-regression rule, on the completion-passing controls,
+  needs one. Three points follow:
+  - Which cells run today's search on the 20 validation seeds?
+  - What population verifies the Master identity on the 16 cells?
+  - Is phase 2's repeat of the validation on the production code priced separately?
+- *Joint recommendation.*
+  - Run today's arm where a gate needs it, reusing compatible final difficulty-v3 records where identity and
+    the fitting exclusions allow.
+  - Price a smaller today's cohort on the failing headline cells only if a paired factor is wanted. On Hell 1
+    20x20 the three-request prescreen made no set, so a today's arm there needs a stated purpose.
+  - Verify the Master identity with the smallest population that does so.
+  - Price phase 2's repeat separately.
+- *Effect.* Price only. Today's arm on the five failing Nightmare cells and Hell 1 26x26 and 20x20 is about
+  4.2 h at 20 seeds. Stage 4 is about 4.2 to 4.9 h without it and 8.4 to 9.1 h with it. All of these are
+  Projections from MP12b1's request sums and the prototype medians.
+
+### IG-P-Q26: How does rule (c5) fail closed on insufficient, unmatched or censored data?
+
+- *Question.* For the admission of a screen class (5.2):
+  - What minimum of matched sets and independent seeds is admissible, and what result is reported below it?
+  - Which common endpoint does a request that does not reach ten enter with (the 115 s stop or the 120 s
+    response), so that a failed arm cannot gain against a completed control?
+  - What do classes outside P2's table (areas of 145 to 195 and 325 to 359 cells are reachable) and classes
+    with incomplete validation use?
+  - Which aggregation, class weighting and resampling recipe fixes the "faster" and "no regression" bounds?
+- *Joint recommendation.* No screen, or "inconclusive", unless every condition can be evaluated and passes.
+  Unlisted and unvalidated classes use no screen. Use one stated endpoint for both arms. Fix the recipe in
+  the manifest before the validation seeds run, and keep unmatched and failed outcomes in the completion
+  record.
+- *Effect.* Phase 0's `W_screen` admission. No change of price.
+
+### IG-P-Q27: Which PM1 results may feed the prior frozen for validation?
+
+- *Question.* Stage 5 runs the Hell 1 failing-set work "that feeds the per-set prior" after the freeze
+  (stage 3) and the validation (stage 4). Either that work precedes stage 3, or validation uses the existing
+  windows (part 1 and R28), and any later change of the prior goes back through a fit, a freeze and a
+  validation. Which?
+- *Joint recommendation.*
+  - Do the data-only inventory first.
+  - Move only the needed, separately priced Hell 1 work before stage 3, if its output is to fit the validated
+    prior.
+  - Otherwise freeze the existing inputs, and require a new fit, freeze and validation before adopting later
+    output.
+  - The Hell 2 work stays in stage 5.
+- *Effect.* The stage order. PM1 stays separately approved (IG-P-D5). A second validation is possible.
+
+### IG-P-Q28: What is the frozen prototype's replay, provenance and observer contract?
+
+- *Question.* At `6122dc9`, `selectClues` and the generator carry:
+  - skip replay (RES-27);
+  - recorders (RES-28);
+  - a work meter `charge` (RES-29);
+  - provenance (MP13a, MP13b).
+
+  `tests/fixtures/replay-case.json` pins `gen-v3`, and the prototype replaces `selectClues` wholesale.
+  - Do `gen-v4` and the frozen prototype adopt these contracts, with `gen-v4`'s own skip ordinals, bounds and
+    fixtures, and with `gen-v3` replay unchanged?
+  - Which observer modes are correctness checks, and which is the timed comparator?
+- *Joint recommendation.* Yes to both contracts.
+  - Rebase the prototype semantically on the frozen source: `clues.js`, `generate.js`, `difficulty.js` with
+    P6's edit, and the app, pack and CLI consumers.
+  - Check parity with observers absent and present, and time like against like.
+  - Textual anchors do not show semantic compatibility, even though all 16 still match at `6122dc9`.
+- *Effect.* The scope and cost of stage 1's preparation, and the comparability of every timed arm.
+
+### Settled between the analysts
+
+- The scope of `gamma` (Astra's proposed IG-P-Q29) is correction C2, not a question. P4 already defines
+  `gamma` on batch time, and the table prior is already inside `T_search`.
+- The global completion gate is neither a question nor a correction (section 2).

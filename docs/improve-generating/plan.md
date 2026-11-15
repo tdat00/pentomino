@@ -4,8 +4,7 @@
 > its section 9 addendum is this file at commit `240398f`; version 1 is at `555197b`. Version 3 folds in the
 > joint report on version 2 ([plan-v2-joint-report.md](plan-v2-joint-report.md): its answers, its 22 corrections
 > and its frozen-round scope), the plan-author answers IG-P-Q19 to IG-P-Q24 and the owner decisions IG-P-D1 to
-> IG-P-D7 ([clarifications.md](clarifications.md)). It is written as one current document: the layered
-> "version 2" notes and the addendum are merged into the sections they belong to.
+> IG-P-D7 ([clarifications.md](clarifications.md)).
 >
 > **Every measured number is provisional (pre-freeze):** the `rating-v3` runtime of MP12b1 (source digest
 > `34cea386…`), Node, four workers, two to six seeds per cell, no browser run. None is a gate result or an
@@ -21,30 +20,6 @@ Labels: **Measured** (a provisional record, cited as a row R<nn> of
 [evidence/provisional/summary.md](evidence/provisional/summary.md)), **Derived** (arithmetic on such records),
 **Projection** (rests on a stated assumption), **Fact** (read from the code). No browser figure in this file is
 a measurement.
-
-## 0. What version 3 changes
-
-1. **Forecasts are at four workers.** Version 2's "after all phases" range (R31) carried an eight-worker factor
-   that no decision admits. Section 4 replaces it by one sensitivity formula.
-2. **C2 is withdrawn** as a new mechanism, with its x1.3 to 1.6. `gen-v3` already dispatches ordered speculative
-   candidates (`core/engine/generate.js:554`). What remains is P5's per-call budget arm (IG-P-Q22).
-3. **The per-set prior is promoted** to a Hell 1 arm of the frozen round, ahead of the kernel spike: about half
-   of the Hell batch profile time lies before the first in-band hit.
-4. **Hell 2 and Hell 3 are closed for this feature as a scope and resource decision** (OD-P9). Version 2 said
-   that reaching Hell 3 "needs a change of the rating's cap or scale"; the records do not show that.
-5. **Hell 1's candidate range is 196 to 676 cells**: 14x14 and 24x24 join as candidate populations (IG-P-Q21).
-6. **The admission statistics are fixed before the frozen round** (section 5.2): rule (c5), "faster",
-   completion and "no regression" each have a stated statistic and threshold.
-7. **The frozen round is staged and uses 20 validation seeds** per headline cell, kept apart from every seed
-   that fitted something (section 5).
-8. **Seven owner decisions are in force** (section 7): one response deadline, progressive presentation, the
-   population rule, no screen up to 144 cells, the reduced PM1, the Hell scope and the frozen round's approval.
-9. **The browser column is a labelled sensitivity.** `5 s + 4 x median` is not D39's planning rule, which uses
-   the Node maximum (section 4).
-10. **The 22 corrections of the joint report's (e) are taken in.** Those that change a conclusion: the search
-    is shown on two cells of the 196 to 324 class, not three; the screen on Hell is "not shown to pay", not
-    "negative"; 10x10, 16x16, 15x20 and 18x18 to 24x24 Nightmare are unpriced, not projected; a call needs more
-    window profiles than version 2 said, and the search has no proven ceiling of "2 to 3 times".
 
 ## 1. Goal, non-goals and constraints
 
@@ -100,8 +75,7 @@ in which order and under which provisional budget**, and how the work is spread.
    - On 12x12, 14x14 and 15x15b10 Nightmare and Hell 1 26x26, 0 to 7 % of the profiles at the start count are
      useful and 33 to 67 % at the best offset, two to four clues higher (PM4).
    - The dead end takes 37 to 40 % of the batch profile time on 14x14 and 15x15b10, 19 % on 12x12, and 0 % on
-     26x26 Nightmare and Master (R10). That is inside the report's broad 30 to 60 % but below its per-cell
-     ranges, and above its 4 to 10 % for 12x12. It is profile time, not a critical path.
+     26x26 Nightmare and Master (R10). It is profile time, not a critical path.
 2. **Failure costs 30 to 60 times more than success.** A useful profile completes in tens or hundreds of
    milliseconds; a capped one costs 2.1 s at the median. Today 334 of 441 raw Nightmare attempts are capped
    (75.7 %), with 17.6 attempts per accepted puzzle and 52.8 on 14x14 (MP12b2's serial captures).
@@ -206,7 +180,7 @@ locateCount(layout, target, rng, prior):
   median is 2 probes.
 - **What a call costs after the locate.** Window profiles per call: mean 0.84 to 4.15, p90 3 to 13, maximum
   27. Successful Hell calls used 6.2 and 9.4 profiles. There is no proven ceiling on what the search side can
-  still give; version 2's "three to four ratings" and "at most 2 to 3 times" are withdrawn.
+  still give.
 - **Sequential only (IG-P-Q08).** The fixed arity-3 variant measured no gain (0.99 to 1.01) and wasted probes
   on Hell 1 (R20). The pool is used across slots and candidates, where the result does not depend on the width.
 
@@ -617,7 +591,7 @@ budget arm, the browser rule, the Hell scope).
   against the uncapped search before any budget is set.
 - **Two selection paths in `gen-v4`** (today's for Very easy to Master, the new one above): more code to keep
   equal. The scope test bounds it.
-- **The nested family may mislead on small sets**, where one piece changes the score by a level. The cohorts
-  version 2 named for this (3x29, 10x10) have K 17 to 19, so no measured cell shows it; the small Nightmare
+- **The nested family may mislead on small sets**, where one piece changes the score by a level. The measured
+  3x29 and 10x10 Nightmare cohorts have K 17 to 19, so no measured cell shows it; the small Nightmare
   boards stay in the frozen round's pilots.
 - **Fixtures and stored recipes** change with `gen-v4`; the puzzle code and packs keep their versions.

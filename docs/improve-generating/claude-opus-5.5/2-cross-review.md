@@ -1,7 +1,7 @@
 # Improve generating (Pentomino): cross-review of Astra's analysis (SA1, claude-opus-5.5)
 
 Phase 2, 2026-11-14. Worktree `improve-generating` at `cd5d17f`. Reviewed: `docs/improve-generating/gpt-6-astra/1-analysis.md`
-and `1-speed-summary.md` (SA2), against my `docs/improve-generating/claude-opus-5.5/1-analysis.md` and `1-speed-summary.md`
+and `1-speed-summary.md` at `cfcc4dd` (SA2), against my `docs/improve-generating/claude-opus-5.5/1-analysis.md` and `1-speed-summary.md` at `cfcc4dd`
 ("Opus §n" and "Astra §n" below). Read-only: no test, generation, benchmark, qualification or timing run, no git action.
 The two new Derived tables of §1.2 come from small read-only scripts over the committed MP12b1 reports
 (`docs/difficulty-v3/landscape-v3-full/*-2026-11-1[34].json`: `runs[].details.initialG`, `runs[].details.K`,
