@@ -638,14 +638,27 @@ English, CRLF, no BOM, relative links only. Sections:
     census confound (the fast large-board Nightmare cells carry more census estimates, not measured). Say for each
     whether a later accepted task changed it (MP12b3 built no fail-fast, P-OD12; MP13a to MP16b do not touch
     generation time), and that a faster generator is later work outside difficulty-v3
-    (`docs/improve-generating/plan.md`, not authorised). Two more named items (the pack author's rulings on MP15a1,
-    2026-11-15):
+    (`docs/improve-generating/plan.md`, not authorised). Five more named items from the Execution logs of later parts
+    (routed to this record on 2026-11-15 by the pack author's rulings on MP15a1 and by the orchestrator for MP14b),
+    each stated as it stands:
     - **The replay's wall time.** A replay is bounded by `REPLAY.work` (215,040,000,000 units, about 25 minutes of
       compute), not by a clock; an auxiliary request promises no latency; closing the dialog or starting a generation
       stops it. Give the replay measurement: the puzzle, its status, work, steps and bytes with their shares of
       `REPLAY`, seconds, units per second and the projected minutes at `REPLAY.work`.
     - **No type check.** The modules carry `// @ts-check` and JSDoc types, but the repository runs no `tsc`, so the
       types are not machine-checked (MP10a, MP14b and MP15a1 Execution logs).
+    - **The skip replay rests on built histories (MP14b case 7).** Case 7 builds its history from the first rated
+      subset of a free run plus its final key (MP13a's oracle approach, the task's fallback when its search of the
+      recipe, slots 1–3 and attempts 0–11, finds no subset skip), with a `require`-mode repair-skip case found by a
+      search. The replay fixture has no skip either (MP13b searched seeds 0–49), and MP15a1's case 17 makes its skips
+      by running the real engine again with the puzzle's own clue key excluded. So the skip replay is proven on
+      histories made this way, never on a skip that occurred in a generation.
+    - **The macro-then-flat carve order never occurred (MP14b).** A set attempt tries macro carving when `area / k >=
+      MACRO_MIN_MEAN` and carves flat only when that fails, so its `carve` events are then macro, then flat. In about
+      900 attempts scanned this never occurred: the order follows from the code only (the dialog's step texts are
+      tested on synthetic `carve` steps of both modes, MP16a).
+    - **MP14b's diff was larger than estimated** (tests +585 lines against the estimate of about 250): process
+      information, no effect on the product.
 11. **Release notes** (below).
 
 ### Release notes (C3 (a); RES-32, MP17 row)
@@ -768,7 +781,7 @@ MP17 no section of `docs/design-detail.md`). Must not edit: everything of "Out o
 | MP17-T04 | The 19 runs pass (the 16 pages in the main phase, the keys and narrow phases of `puzzle-code-acceptance`, the keys phase of `replay`; acceptance: the known blocked checks only) with no CSP violation and no uncaught error, each check under 1 minute; servers and browsers stopped by PID; the profile removed | record §4; the 19 `runs.json` |
 | MP17-T05 | Only the record and the listed justified corrections changed (`git --no-pager status --short`); no file under `core/`, `tools/`, `generator/`, `player/` or `tests/fixtures/` changed | `git status`; review |
 | MP17-T06 | `npm run test:quick` and `npm run check` pass; the record is CRLF without BOM, with a final newline and no absolute path | command output |
-| MP17-T07 | The replay measurement: one puzzle of this attempt, chosen by the rule (the first candidate puzzle of `t-nightmare`), replays `matched` through `replayPuzzle`; its work, steps, bytes, seconds, units per second and the projected minutes at `REPLAY.work` are in record §10 with the two named items (the replay's wall time, no `tsc`) | `replay-measure.json`; record §10 |
+| MP17-T07 | The replay measurement: one puzzle of this attempt, chosen by the rule (the first candidate puzzle of `t-nightmare`), replays `matched` through `replayPuzzle`; its work, steps, bytes, seconds, units per second and the projected minutes at `REPLAY.work` are in record §10, with the five named items of later parts (the replay's wall time, no `tsc`, MP14b's built skip histories, its macro-then-flat order and its diff size) | `replay-measure.json`; record §10 |
 
 ## Test plan
 
