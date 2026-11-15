@@ -261,8 +261,8 @@ since answered (text at `854a69d`). No owner decision is needed.**
 
 Opus (SA1) and Astra (SA2) checked the answers and `plan.md` at `854a69d` independently against the source at
 `e5bb721`. **All four answers are accepted, and the revised version 4 reflects them without a substantive
-inconsistency. Version 4 is ready as the planning basis, subject to the one Low follow-up IG-P-Q36 (resolved below). No owner decision is
-needed.**
+inconsistency. Version 4 is ready as the planning basis, subject to the one Low follow-up IG-P-Q36 (resolved
+below). No owner decision is needed.**
 
 - **Notes for the next edit (no answer needed).** Line 606 of `plan.md` is 136 characters long; break it after "uses
   the screen.". Line 625 states two of the three board states of IG-P-Q33; it may add "a validated board that
