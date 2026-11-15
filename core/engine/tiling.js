@@ -187,10 +187,10 @@ export function solveFirst(m, o) {
  * found plus `exhausted` proves uniqueness; two found proves multiple; zero
  * found plus `exhausted` proves unsatisfiable; anything else proves nothing.
  * `witnesses` are complete layouts of the first `witnessLimit` (default
- * `cap`) solutions found.
+ * `cap`) solutions found. `rowTrials` is the row trials the count used (the work meter of a replay reads it).
  * @param {Model} m
  * @param {{ cap: number, rowTrialLimit: number, witnessLimit?: number }} o
- * @returns {{ found: number, exhausted: boolean, witnesses: Pose[][] }}
+ * @returns {{ found: number, exhausted: boolean, witnesses: Pose[][], rowTrials: number }}
  */
 export function countSolutions(m, o) {
   assertLive(m);
@@ -202,7 +202,7 @@ export function countSolutions(m, o) {
   for (let i = 0; i < limit; i += 1) {
     witnesses.push(decode(m, r.solutions[i], order));
   }
-  return { found: r.found, exhausted: r.exhausted, witnesses };
+  return { found: r.found, exhausted: r.exhausted, witnesses, rowTrials: r.rowTrials };
 }
 
 /**

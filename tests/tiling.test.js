@@ -232,6 +232,7 @@ test('certificate evidence: cutoffs prove nothing, exhaustion does', () => {
   assert.equal(limited.stop, 'row-limit');
   assert.equal(limited.rowTrials, 3);
   assert.equal(countSolutions(cut, { cap: 5, rowTrialLimit: 3 }).found, 0);
+  assert.equal(countSolutions(cut, { cap: 5, rowTrialLimit: 3 }).rowTrials, 3);
 });
 
 test('a symmetric piece with several equivalent t values is one row per footprint', () => {

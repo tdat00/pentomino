@@ -67,7 +67,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP12b3 | [MP12b3](MP12b3-hell-availability-and-fail-fast.md) | Hell availability (D36 (i)), the fail-fast decision (none, P-OD12) and the end of the lock | MP12b2; the owner's answers P-OD12 and P-OD13 (§4.1) | Medium–Large + gates | Engine and Generator | M7 | 26 |
 | [x] | MP13a | [MP13a](MP13a-provenance-engine.md) | Provenance in the engine and in packs | MP12b3 (the lock complete) | Medium–Large | Engine | M8 provenance and recorders | 27 |
 | [x] | MP13b | [MP13b](MP13b-provenance-apps-and-fixture.md) | Provenance in the client, the Generator and the CLI; the replay fixture (GF-P4) | MP13a | Medium + gate | Apps and tools | M8 | 28 |
-| [ ] | MP14a | [MP14a](MP14a-detail-channel-and-clue-recorders.md) | Rating detail channel, clue-stage recorders and the replay of skips | MP13b | Medium–Large | Engine | M8 | 29 |
+| [x] | MP14a | [MP14a](MP14a-detail-channel-and-clue-recorders.md) | Rating detail channel, clue-stage recorders and the replay of skips | MP13b | Medium–Large | Engine | M8 | 29 |
 | [ ] | MP14b | [MP14b](MP14b-set-and-layout-recorders.md) | Set and layout recorders; recorder identity | MP14a | Medium | Engine | M8 | 30 |
 | [ ] | MP15a1 | [MP15a1](MP15a1-replay-runs.md) | Replay runs: preflight, the stage runs, the work meter, the bounds and the final comparison | MP14b | Large | Engine | M9 Generation Steps | 31 |
 | [ ] | MP15a2 | [MP15a2](MP15a2-replay-steps.md) | Replay steps: the step table, the score data, the final step and the byte bound | MP15a1 | Medium | Engine | M9 | 32 |
@@ -608,7 +608,7 @@ The orchestrator owns this record.
 | MP12b3 | Accepted (lock complete, policy `mixed-v3`: Hell 1-3 withdrawn, seven levels listed, no fail-fast built, fixtures re-recorded for the policy id only; SA2 fixes MPB3-01/02) | 41 min developer (incl. fix round; machine 3.1 min, lock waits 12.4 min) + 6 min SA2 review | about 953 | `difficulty-v3 MP12b3` |
 | MP13a | Accepted (provenance records in the engine and packs; D35 identity on 9 cases; quick set 1,366) | 22 min developer (machine 2.8 min) + 5 min check | about 432 | `difficulty-v3 MP13a` |
 | MP13b | Accepted (provenance in client, Generator, CLI; GF-P4 replay fixture recorded, npm test 1,394; D35 identity on 8 cases; fixture has no skip) | 22.5 min developer (machine 6.6 min) + 3 min check | about 447 | `difficulty-v3 MP13b` |
-| MP14a | | | | |
+| MP14a | Accepted (rating detail channel, clue-stage recorders and events, skip replay; D35 identity on 11 cases and 36 direct calls; quick set 1,396) | 25 min developer (machine 3.9 min) + 3 min check | about 523 | `difficulty-v3 MP14a` |
 | MP14b | | | | |
 | MP15a1 | | | | |
 | MP15a2 | | | | |

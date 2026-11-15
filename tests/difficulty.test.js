@@ -4,8 +4,8 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { boardFromRows } from '../core/engine/board.js';
 import {
-  breakdownV3, IncompleteRatingError, inBand, measureV2, measureV3, MODEL, rate, rateV2, scoreV2, scoreV3,
-  UnsatisfiableError,
+  breakdownV3, IncompleteRatingError, inBand, measureV2, measureV3, MODEL, rate, rateDetailed, rateV2, scoreV2,
+  scoreV3, UnsatisfiableError,
 } from '../core/engine/difficulty.js';
 import { level, levelForScore } from '../core/engine/levels.js';
 import { validatePack } from '../core/engine/pack.js';
@@ -391,6 +391,113 @@ test('rate marks an unfinished census as an estimate and never refuses it', () =
   const read = validatePack(pack);
   assert.ok(read.ok, read.ok ? '' : JSON.stringify(read.issues));
   assert.equal(JSON.stringify(read.value.puzzles[0].rating), JSON.stringify(r));
+});
+
+// The detail channel (RES-19): `rate`, `measureV3` and `rateDetailed` share one measurement (`measureV3Core`, with a
+// flag that asks for the copy), so the capped path, which a limits parameter would be needed to reach, is covered by
+// the `measureV3` case above; `rate` and `rateDetailed` take no limits.
+const DETAIL_KEYS = ['path', 'first', 'search', 'count', 'census'];
+const FIRST_KEYS = ['F', 'E', 'rules', 'deductionTier', 'G', 'Gproved', 'info', 'Cmax', 'Dmax', 'choices', 'rows', 'census'];
+
+test('rateDetailed returns the rating of rate and an owned, plain copy of the deduction result', () => {
+  const layout = witness60();
+  const wide = boardFromRows(Array(5).fill('#'.repeat(41)));
+  const strip = Array.from({ length: 41 }, (_, i) => ({ ...I5, id: `i${i}` }));
+  const stripWitness = /** @type {Pose[]} */ (solveFirst(buildModel(wide, strip, [], ws), { rowTrialLimit: 1e6 }).layout);
+  const inputs = /** @type {[string, any, any, any][]} */ ([
+    ['7 clues, no guess', board60, pieces, layout.slice(0, 7)],
+    ['3 clues, 4 guess nodes', board60, pieces, layout.slice(0, 3)],
+    ['1 clue, census unfinished', board60, pieces, layout.slice(0, 1)],
+    ['forced placement', rect(3, 2), [p5, mono], [forcedClue]],
+    ['long strip, census unfinished', wide, strip, stripWitness.slice(0, 4)],
+  ]);
+  let withGuess = 0;
+  let estimates = 0;
+  for (const [name, b, ps, clues] of inputs) {
+    const plain = rate(b, ps, clues, ws);
+    const { rating, detail } = rateDetailed(b, ps, clues, ws);
+    assert.deepEqual(rating, plain, name);
+    assert.equal(JSON.stringify(rating), JSON.stringify(plain), name);
+    assert.deepEqual(Object.keys(detail), DETAIL_KEYS, name);
+    assert.deepEqual(Object.keys(detail.first), FIRST_KEYS, name);
+    assert.deepEqual(Object.keys(detail.first.rules), RULE_KEYS, name);
+    assert.deepEqual(Object.keys(detail.search), ['Gt', 'nodes', 'work', 'stop'], name);
+    assert.deepEqual(Object.keys(detail.count), ['S', 'limit', 'exhausted', 'solutions'], name);
+    assert.deepEqual(Object.keys(detail.census), ['complete', 'undecided', 'nodes', 'work'], name);
+    const m = plain.metrics;
+    const { choices, rows, census, ...scalars } = detail.first;
+    assert.deepEqual(scalars, {
+      F: m.F, E: m.E, rules: m.rules, deductionTier: m.deductionTier, G: m.G, Gproved: m.Gproved, info: m.info,
+      Cmax: m.Cmax, Dmax: m.Dmax,
+    }, name);
+    assert.equal(choices.length, census.length, name);
+    assert.ok(Array.isArray(choices) && Array.isArray(rows), 'plain arrays, not typed-array views');
+    for (const node of census) {
+      assert.deepEqual(Object.keys(node), ['c', 'kLow', 'f', 'u'], name);
+      assert.equal(node.kLow + node.f + node.u, node.c, name);
+    }
+    assert.deepEqual(choices, census.map((n) => n.c), name);
+    assert.deepEqual(detail.search, { Gt: m.Gt, nodes: m.nodes, work: m.work, stop: m.searchStop }, name);
+    assert.equal(typeof detail.count.exhausted, 'boolean', name);
+    assert.deepEqual(detail.count, { S: m.S, limit: m.solutionLimit, exhausted: detail.count.exhausted,
+      solutions: m.solutions }, name);
+    assert.deepEqual(detail.census, { complete: m.censusComplete, undecided: m.censusUndecided, nodes: m.censusNodes,
+      work: m.censusWork }, name);
+    assert.equal(detail.path, 'complete', name);
+    assert.equal(detail.search.nodes, m.nodes, name);
+    assert.equal(detail.count.solutions, m.solutions, name);
+    assert.equal(census.length >= m.G, true, name);
+    withGuess += m.G >= 1 ? 1 : 0;
+    estimates += m.censusComplete ? 0 : 1;
+
+    // Plain JSON: nothing is lost by a structured clone or a JSON round trip.
+    const snapshot = JSON.stringify(detail);
+    assert.deepEqual(structuredClone(detail), detail, name);
+    assert.deepEqual(JSON.parse(snapshot), detail, name);
+    // Owned: later ratings on the same workspace leave the earlier detail as it was.
+    rate(board60, pieces, layout.slice(0, 2), ws);
+    rateDetailed(board60, pieces, layout.slice(0, 3), ws);
+    assert.equal(JSON.stringify(detail), snapshot, name);
+  }
+  assert.ok(withGuess >= 3, 'the cases include guess nodes with their census');
+  assert.ok(estimates >= 2, 'the cases include unfinished censuses (their rating is censored)');
+});
+
+test('rateDetailed of a complete layout is the zero detail; unsatisfiable clue sets throw from both functions', () => {
+  const layout = witness60();
+  const zero = {
+    path: 'complete',
+    first: {
+      F: 0, E: 0, rules: noRules(), deductionTier: 0, G: 0, Gproved: 0, info: 0, Cmax: 0, Dmax: 0, choices: [], rows: [],
+      census: [],
+    },
+    search: { Gt: 0, nodes: 0, work: 0, stop: 'exhausted' },
+    count: { S: 1, limit: DEDUCE.solutions, exhausted: true, solutions: 'unique' },
+    census: { complete: true, undecided: 0, nodes: 0, work: 0 },
+  };
+  const { rating, detail } = rateDetailed(board60, pieces, layout, ws);
+  assert.deepEqual(rating, rate(board60, pieces, layout, ws));
+  assert.deepEqual(detail, zero);
+  assert.equal(JSON.stringify(detail), JSON.stringify(zero));
+  const m = rating.metrics;
+  assert.deepEqual([detail.first.F, detail.first.G, detail.search.work, detail.count.S, detail.census.complete],
+    [m.F, m.G, m.work, m.S, m.censusComplete]);
+  const other = rateDetailed(board60, pieces, layout, ws).detail;
+  assert.notEqual(other, detail, 'a fresh detail each time');
+  assert.notEqual(other.first.rules, detail.first.rules);
+
+  const broken = [...layout.slice(1), { ...layout[1] }];
+  assert.throws(() => rateDetailed(board60, pieces, broken, ws), UnsatisfiableError);
+  assert.throws(() => rate(board60, pieces, broken, ws), UnsatisfiableError);
+  const twoPieces = [
+    { id: 'a', label: 'a', color: '#111111', cells: /** @type {[number, number][]} */ ([[0, 0], [0, 1], [0, 2]]) },
+    { id: 'b', label: 'b', color: '#222222', cells: /** @type {[number, number][]} */ ([[0, 0], [0, 1]]) },
+  ];
+  for (const call of [rate, rateDetailed]) {
+    assert.throws(() => call(rect(1, 4), twoPieces, [], ws), (e) => e instanceof UnsatisfiableError && /no solution/.test(e.message));
+    assert.throws(() => call(rect(2, 2), [p5, mono], [], ws),
+      (e) => e instanceof UnsatisfiableError && /no legal placement/.test(e.message));
+  }
 });
 
 test('the v2 rating keeps its results under its v2 names', () => {

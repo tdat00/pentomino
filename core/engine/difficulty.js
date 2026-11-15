@@ -17,7 +17,9 @@ import { DEDUCE, SCORE, SCORE_V3 } from './policy.js';
 /** @typedef {import('./types.js').Rating} Rating */
 /** @typedef {import('./types.js').RatingV2} RatingV2 */
 /** @typedef {import('./types.js').RatingV3} RatingV3 */
+/** @typedef {import('./types.js').RatingDetail} RatingDetail */
 /** @typedef {import('./deduce.js').DeductionLimits} DeductionLimits */
+/** @typedef {import('./deduce.js').DeductionResult} DeductionResult */
 /** @typedef {import('./levels.js').Level} Level */
 /** @typedef {import('./workspace.js').Workspace} Workspace */
 
@@ -212,6 +214,75 @@ export function measureV2(board, pieces, clues, ws, limits = SCORE.caps) {
  * @returns {{ metrics: MetricsV3, saturated: false }}
  */
 export function measureV3(board, pieces, clues, ws, limits = { deduce: DEDUCE, dlx: SCORE.caps }) {
+  const { metrics, saturated } = measureV3Core(board, pieces, clues, ws, limits, false);
+  return { metrics, saturated };
+}
+
+/**
+ * The detail of a measurement without a solver call (U = 0), as the zero metrics: every number 0, a unique
+ * solution and a complete census.
+ * @param {number} limit The count limit.
+ * @returns {RatingDetail}
+ */
+function zeroDetail(limit) {
+  return {
+    path: 'complete',
+    first: {
+      F: 0, E: 0, rules: { R1: 0, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0 }, deductionTier: 0,
+      G: 0, Gproved: 0, info: 0, Cmax: 0, Dmax: 0, choices: [], rows: [], census: [],
+    },
+    search: { Gt: 0, nodes: 0, work: 0, stop: 'exhausted' },
+    count: { S: 1, limit, exhausted: true, solutions: 'unique' },
+    census: { complete: true, undecided: 0, nodes: 0, work: 0 },
+  };
+}
+
+/**
+ * The owned copy of a complete deduction result (RES-19): plain values, no view into the workspace.
+ * @param {DeductionResult} d
+ * @returns {RatingDetail}
+ */
+function copyDetail(d) {
+  const first = /** @type {NonNullable<DeductionResult['first']>} */ (d.first);
+  const census = /** @type {NonNullable<DeductionResult['census']>} */ (d.census);
+  return {
+    path: 'complete',
+    first: {
+      F: first.F,
+      E: first.E,
+      rules: {
+        R1: first.rules.R1, R2: first.rules.R2, R3: first.rules.R3, R4: first.rules.R4, R5: first.rules.R5,
+        R6: first.rules.R6, R7: first.rules.R7, R8: first.rules.R8, R9: first.rules.R9,
+      },
+      deductionTier: first.deductionTier,
+      G: first.G,
+      Gproved: first.Gproved,
+      info: first.info,
+      Cmax: first.Cmax,
+      Dmax: first.Dmax,
+      choices: Array.from(first.choices),
+      rows: Array.from(first.rows),
+      census: first.census.map((n) => ({ c: n.c, kLow: n.kLow, f: n.f, u: n.u })),
+    },
+    search: { Gt: d.search.Gt, nodes: d.search.nodes, work: d.search.work, stop: d.search.stop },
+    count: { S: d.count.S, limit: d.count.limit, exhausted: d.count.exhausted, solutions: d.count.solutions },
+    census: { complete: census.complete, undecided: census.undecided, nodes: census.nodes, work: census.work },
+  };
+}
+
+/**
+ * The one measurement behind `measureV3`, `rate` and `rateDetailed`. With `keepDetail` the deduction result is
+ * copied right after `measureDeduction` returns, before the DLX diagnostic reuses the workspace; the second solve
+ * of the detail channel does not exist.
+ * @param {Board} board
+ * @param {Piece[]} pieces
+ * @param {Pose[]} clues
+ * @param {Workspace} ws
+ * @param {{ deduce: DeductionLimits, dlx: { branch: number, rows: number } }} limits
+ * @param {boolean} keepDetail
+ * @returns {{ metrics: MetricsV3, saturated: false, detail: RatingDetail | null }}
+ */
+function measureV3Core(board, pieces, clues, ws, limits, keepDetail) {
   const U = pieces.length - clues.length;
   if (U === 0) {
     if (!isValidLayout(board, pieces, clues)) {
@@ -226,6 +297,7 @@ export function measureV3(board, pieces, clues, ws, limits = { deduce: DEDUCE, d
         censusComplete: true, censusUndecided: 0, censusNodes: 0, censusWork: 0, Gproved: 0,
       },
       saturated: false,
+      detail: keepDetail ? zeroDetail(limits.deduce.solutions) : null,
     };
   }
   const model = buildModel(board, pieces, clues, ws);
@@ -249,6 +321,7 @@ export function measureV3(board, pieces, clues, ws, limits = { deduce: DEDUCE, d
     });
   }
   const first = /** @type {NonNullable<typeof d.first>} */ (d.first);
+  const detail = keepDetail ? copyDetail(d) : null;
   const census = /** @type {NonNullable<typeof d.census>} */ (d.census);
   const run = solveFirst(model, { rowTrialLimit: limits.dlx.rows, branchTrialLimit: limits.dlx.branch });
   /** @type {MetricsV3['dlxStop']} */
@@ -294,6 +367,7 @@ export function measureV3(board, pieces, clues, ws, limits = { deduce: DEDUCE, d
       Gproved: first.Gproved,
     },
     saturated: false,
+    detail,
   };
 }
 
@@ -323,7 +397,31 @@ export function rateV2(board, pieces, clues, ws) {
  * @returns {RatingV3}
  */
 export function rate(board, pieces, clues, ws) {
-  const { metrics } = measureV3(board, pieces, clues, ws);
+  const { metrics } = measureV3Core(board, pieces, clues, ws, { deduce: DEDUCE, dlx: SCORE.caps }, false);
+  return ratingOf(metrics);
+}
+
+/**
+ * The `difficulty-v3` rating of a clue subset with the detail channel (RES-19): `rating` equals what `rate` returns
+ * (the same errors) and `detail` is an owned copy of the deduction result of the same measurement, copied before
+ * the workspace is reused; there is no second solve. Only the recorders of clue selection call it: claims, packs and
+ * codes never hold a detail.
+ * @param {Board} board
+ * @param {Piece[]} pieces
+ * @param {Pose[]} clues
+ * @param {Workspace} ws
+ * @returns {{ rating: RatingV3, detail: RatingDetail }}
+ */
+export function rateDetailed(board, pieces, clues, ws) {
+  const { metrics, detail } = measureV3Core(board, pieces, clues, ws, { deduce: DEDUCE, dlx: SCORE.caps }, true);
+  return { rating: ratingOf(metrics), detail: /** @type {RatingDetail} */ (detail) };
+}
+
+/**
+ * @param {MetricsV3} metrics
+ * @returns {RatingV3}
+ */
+function ratingOf(metrics) {
   const value = scoreV3(metrics);
   return {
     model: MODEL,

@@ -409,14 +409,14 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (orchestrator check; outside the analyst review set) |
+| Start | 2026-11-15 17:02:40 (+07:00) |
+| End | 2026-11-15 17:27:43 developer; orchestrator re-check and commit |
+| Duration | 25 min developer; 5 locked runs, 236.4 s machine time, 0 s lock wait |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (orchestrator) |
+| Token usage | 121 model calls; 28,972,583 input tokens (28,595,168 cache reads); 142,852 output tokens |
+| AI credits | about 523 (developer) |
+| Verification | `difficulty.js`: `rateDetailed(board, pieces, clues, ws)` returns `{ rating, detail }` with `rating` equal to `rate`'s (same errors), `detail` an owned plain-JSON `RatingDetail` copied after `measureDeduction` and before `solveFirst` (no second solve; 60 calls 518 ms for `rate`, 510 ms for `rateDetailed`); `rate`, `measureV3` and `rateDetailed` share one measurement. `clues.js`: `SelectContext.record`, `recordSource`, `replaySkips`, `charge`; `Candidate.seq`; the six events (D31 repair steps buffered per finish), `selected` once and last on success; subset and repair skips replayed from recorded ordinals without consulting `excludeClueKeys`; `SkipReplayError` (`unreachable`, `unused`); `makeUnique` hooks `onAdd`/`onCount`; `charge` after each rating attempt and uniqueness count, before the event. `tiling.js`: `countSolutions` returns `rowTrials`. `types.js`: `RatingDetail`, `ClueBand`, `ClueEvent`. **D35:** HEAD engine vs working tree byte-identical on 11 set and batch cases in full JSON; 36 direct `selectClues` calls with `record` and `charge` set (free and with an excluded key) match HEAD in results, skips, ratings and RNG draws; 80 random subsets give equal `rate`/`rateDetailed().rating`; `record-fixtures --check` and `--replay-case --check` OK; reference logs of `req-0`, `req-2`, S6, S4 unchanged; six deliberate mutations of `clues.js` caught. Tests: targeted 116/116; quick set 1,396/1,396 (+21; new `tests/replay-recorders.test.js` 19 tests, `difficulty` +2, one `tiling` assertion); `npm run check` OK. Orchestrator: `npm run check` OK; locked `replay-recorders`, `difficulty`, `tiling` 63/63 (37.1 s); locked `record-fixtures --check` OK |
+| Acceptance | MP14a-B01 to B05 and T01 to T07 met (cases 1-16 and the D35 evidence) |
+| Issues & resolutions | Design §4.1, §4.2, §7.10 and three §13.2 rows also updated so the document matches the code. Lock deviation: one identity run was started without the helper and stopped after about 25 s, then rerun under the lock (203.4 s). Named items: (1) the zero-add failed event has no quick input (shares its builder with the covered failure after an add; rendering left to MP16a); (2) excluding req-3's result key also skips a subset, so case 10's recorded skips are `{ subsets: [43], repairs: [4] }`, both pinned |
+| Handoff | To MP14b: `SelectContext.record`, `recordSource`, `replaySkips`, `charge`; `rateDetailed`; the `makeUnique` hooks; `countSolutions().rowTrials`. To MP15a1: `SkipReplayError` (maps to `mismatch`), `RatingDetail`, the event shapes and the meter contract (charged before the event; refused, capped and zero-add finishes included) |

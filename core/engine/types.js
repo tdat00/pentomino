@@ -131,6 +131,19 @@
  */
 
 /**
+ * Owned copy of one rating's deduction data (RES-19): plain JSON, no typed arrays, never shared with the workspace.
+ * @typedef {object} RatingDetail
+ * @property {'complete'} path
+ * @property {{ F: number, E: number, rules: { R1: number, R2: number, R3: number, R4: number, R5: number, R6: number,
+ *   R7: number, R8: number, R9: number }, deductionTier: number, G: number, Gproved: number, info: number,
+ *   Cmax: number, Dmax: number, choices: number[], rows: number[],
+ *   census: { c: number, kLow: number, f: number, u: number }[] }} first
+ * @property {{ Gt: number, nodes: number, work: number, stop: string }} search
+ * @property {{ S: number, limit: number, exhausted: boolean, solutions: string }} count
+ * @property {{ complete: boolean, undecided: number, nodes: number, work: number }} census
+ */
+
+/**
  * @typedef {object} Certificate
  * @property {'unique' | 'multiple' | 'not-proved' | 'unsatisfiable'} status
  * @property {'dlx-v1'} model
@@ -291,6 +304,35 @@
  * @property {string[]} seenLayouts
  * @property {string[]} seenClues
  * @property {'layouts-not-found' | 'difficulty-not-found' | 'uniqueness-not-proved' | 'time-limit'} [reason]
+ */
+
+/**
+ * The band of a clue event: `max` is null for an unbounded band (RES-15).
+ * @typedef {{ min: number, max: number | null }} ClueBand
+ */
+
+/**
+ * A clue-stage event of `selectClues` and the uniqueness repair (RES-28): plain owned JSON, never mutated after
+ * delivery. `source` is the call's `recordSource`; `phase` is the search phase; `sequence` is the subset ordinal
+ * and `repairSequence` the repair ordinal of RES-27. A rated subset is an observation, not a selection; the winner
+ * is announced by `selected`. The last `repair` event of a finish carries its outcome (`accepted` true or false,
+ * `reason` when refused); earlier ones have `rating`, `detail` and `accepted` null.
+ * @typedef {{ stage: 'clues', kind: 'rated', source: 'calibration' | 'candidate',
+ *     phase: 'sample' | 'seed' | 'beam', sequence: number, clueIds: string[], rating: Rating,
+ *     detail: RatingDetail | null, band: ClueBand }
+ *   | { stage: 'clues', kind: 'skip', source: 'calibration' | 'candidate', sequence: number }
+ *   | { stage: 'clues', kind: 'unrateable', source: 'calibration' | 'candidate',
+ *     phase: 'sample' | 'seed' | 'beam', sequence: number, clueIds: string[], reason: 'path-capped',
+ *     band: ClueBand }
+ *   | { stage: 'clues', kind: 'rejected', source: 'calibration' | 'candidate',
+ *     phase: 'sample' | 'seed' | 'beam', sequence: number, clueIds: string[], rating: Rating,
+ *     detail: RatingDetail | null, band: ClueBand, reason: 'no-proved-guess' }
+ *   | { stage: 'unique', kind: 'repair', source: 'calibration' | 'candidate', repairSequence: number,
+ *     addedId: string | null, clues: Pose[], rating: Rating | null, detail: RatingDetail | null,
+ *     accepted: boolean | null,
+ *     reason?: 'not-proved' | 'path-capped' | 'no-proved-guess' | 'out-of-band' | 'excluded' }
+ *   | { stage: 'clues', kind: 'selected', source: 'calibration' | 'candidate', sequence: number,
+ *     repairSequence: number | null }} ClueEvent
  */
 
 export {};
