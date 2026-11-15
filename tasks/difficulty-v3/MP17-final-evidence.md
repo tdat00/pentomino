@@ -871,14 +871,14 @@ None new. A justified correction of a test keeps its assertion's strength; the r
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (orchestrator check; outside the analyst review set). Gate GZ passes after one justified correction ruled by the pack author (SA1, option A) |
+| Start | 2026-11-15 23:36:34 (+07:00) |
+| End | 2026-11-16 00:18:33 gate run and question; 00:20-00:27 SA1 ruling; 00:28-00:30:58 correction and re-run; orchestrator re-check and commit |
+| Duration | 45 min developer; 41 locked invocations, 547.7 s command time and 866.2 s lock wait (the sudoku repository's E and mutation runs shared the machine) |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (SA1 ruling; orchestrator) |
+| Token usage | 174 model calls; 47,944,139 input tokens (47,517,032 cache reads); 149,599 output tokens |
+| AI credits | about 732 (developer) |
+| Verification | Record `docs/difficulty-v3/final-2026-11-15.md` (590 lines). **Lock inspection:** lock commit `2f2035e` (MP12b3); 16 files changed since, all on the allowed list; `levels.js`, `version.js`, `deduce.js` unchanged; `policy.js` adds only `REPLAY`; `SCORE_V3`, `DEDUCE`, `K60`, `SHARES`, `STALL_LIMIT` 12, `MODEL` `difficulty-v3`, `POLICY_ID` `mixed-v3`, versions `gen-v3`/`mixed-v3`/`xoshiro128ss-v1`/`difficulty-v3`, Hell 1-3 areas `Infinity`; no scratch `*.test.js`. **GZ:** both fixture checks OK; `npm test` 1,501/1,501 (128 suites, incl. the slow AR1 test, 124.5 s); 10 generation runs exit 0 (Hell 1/2 on 20x18 not offered, as approved by P-OD9/D39), all 32 puzzles in band, every claim equal to a fresh `rate`, 23 at Hard or above with `Gproved` >= 1, disjoint increasing score ranges; `summarise.mjs` no FAIL; `rate-probe` 11 puzzles, no error, `v3.score` = stored; replay measurement (`t-nightmare` 20x18, 26 pieces) `matched`, 40 steps, 125,302 bytes (2.99 % of `maxBytes`), 1.71 s, projected 20.1 min at `REPLAY.work`; 19 browser runs pass after the correction (the five GB-P4 pages identical to their baselines; no CSP or uncaught error); quick set 1,482/1,482 after the edit; `npm run check` OK. Orchestrator: locked re-run of `player-controls` 28/28 (23.7 s, server and Edge stopped by PID, profile removed); `npm run check` OK |
+| Acceptance | MP17-B01 to B05 and T01 to T07 met (B04/T04 after the correction of record §9) |
+| Issues & resolutions | **`player-controls` (justified correction, SA1 ruling A):** the first run failed 2 of 28 checks because the page's own fixtures still held twin pieces, which MP09a1-B01 made invalid (MP09a1-T04 migrated only the Node tests and ran no page). Corrected in `tests/browser/player-controls.js` only, data and comments: check 1 uses a domino and an L-tetromino on the same 3x2 board (four tilings, no stored answer); `bigSet()` uses the 21 free polyominoes of 1-5 cells tiling a connected 89-cell board (9x10 without its top-left square), the tiling found once with the engine's solver and written as literal data, the monomino as P05 so `'Piece E, 1 cell'` is unchanged; no assertion changed; the page was run again once after the correction (evidence `browser/20`; the failing first run kept in `browser/05`), no run repeated without a change. Release notes say "nine kinds of deduction in three tiers of depth" (`deductionTier` 0-3), which SA1 confirmed; the pack's "four tiers" is corrected by SA1 after this commit. The developer took the brief as the gate announcement (record §1). Record §10 lists the findings for the owner: this correction's named item; R7; no fail-fast (P-OD12); `require` on 18x20 Hard; Hell availability; the census acceptance (P-OD13); the four PR-P2 findings (Nightmare completion below 90 % on 12x12, 14x14, 15x15b10, 16x16, 15x20; 43 Nightmare requests over 120 s; one selection call at 136.3 s; the census confound); the open MP12b2/MP12b3 items; and the MP13a-MP16b named items (replay wall time, byte bound, phones, card-list focus, synthetic-only paths, no `tsc`, built skip histories, macro-then-flat order, MP14b's diff size) |
+| Handoff | To the owner (check-list §9): read record §10 (findings) and §11 (release notes, for users and developers) for the release decision; GZ and the lock are in §1-§4, AR1 in §5 and §8, the full suite in §3, the documents in §9. Merging and pushing `rating-v3` are the owner's. Evidence: `tests/artifacts/MP17/gz-20261115-234513/` (git-ignored) |

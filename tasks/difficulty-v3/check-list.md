@@ -74,7 +74,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP15b | [MP15b](MP15b-replay-worker-task.md) | Replay worker task, protocol and client | MP15a2 | Medium | Browser integration | M9 | 33 |
 | [x] | MP16a | [MP16a](MP16a-replay-dialog.md) | Generation Steps dialog: model, dialog, board highlight and score table | MP15b | Large | Generator UI | M9 | 34 |
 | [x] | MP16b | [MP16b](MP16b-dialog-wiring-and-documents.md) | Generation Steps: card button, wiring, browser page (GB-P4) and documents | MP16a | Medium + gate | Generator UI | M9 | 35 |
-| [ ] | MP17 | [MP17](MP17-final-evidence.md) | Final compatibility and regression evidence, release notes (gate GZ) | MP16b | Medium + machine time | QA and release | M10 verified | 36 |
+| [x] | MP17 | [MP17](MP17-final-evidence.md) | Final compatibility and regression evidence, release notes (gate GZ) | MP16b | Medium + machine time | QA and release | M10 verified | 36 |
 
 Sizes: Small about 100–300 changed lines; Medium about 300–800; Large about 800–1,600 (tests and documents included,
 generated data excluded). "Machine time" marks a gate of up to several hours of shards (§7), which comes on top of the
@@ -615,7 +615,7 @@ The orchestrator owns this record.
 | MP15b | Accepted (replay worker task, protocol kind and client method; SA1 accepted the six readings; D35 holds; quick set 1,458; 57/59 mutants, 2 equivalent) | 39 min developer + 4 min rulings + 3 min check | about 577 | `difficulty-v3 MP15b` |
 | MP16a | Accepted (Generation Steps dialog: pure model, dialog, board highlight, score table, 102 locale keys; ten questions ruled by SA1 before writing; D35 holds; quick set 1,481; 120/121 mutants, 1 equivalent) | about 30 min developer work (49 min elapsed incl. rulings) + check | about 771 | `difficulty-v3 MP16a` |
 | MP16b | Accepted (card button, wiring, browser page; GB-P4 passes: replay 12/12, keys 1/1, rendering 18/18, generator-flow 21/21, acceptance 16 + 4 known blocked; seven questions ruled by SA1; accessible name fixed; D35 holds; quick set 1,482) | 27 min developer work (37 min elapsed incl. rulings) + check | about 808 | `difficulty-v3 MP16b` |
-| MP17 | | | | |
+| MP17 | Accepted (gate GZ: lock intact, npm test 1,501, 32 puzzles in band, replay measurement matched, 19 browser runs pass after one justified correction of player-controls' twin fixtures (SA1 ruling A); record and release notes inal-2026-11-15.md) | 45 min developer (machine 9.1 min, lock wait 14.4 min) + ruling + check | about 732 | `difficulty-v3 MP17` |
 | **Totals** | | | | |
 
 ### Known issues (orchestrator)
