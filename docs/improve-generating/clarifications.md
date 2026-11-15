@@ -926,3 +926,66 @@ the 115 s time limit; reported as an addendum here. IGP-07: the round's summary 
   `docs/difficulty-v3/landscape-v3-full/20x20-hell-1-s3-2026-11-14.json`.
 
 Plan-author answer:
+
+---
+
+## Phase-0 provisional round: closed (2026-11-15)
+
+*A status note from the phase-0 prototype pack (Opus, SA1, the pack's author). It raises no question and has no answer
+line; the open items are IG-P-Q17 and IG-P-Q18 above and the owner decision IG-P-Q02.*
+
+**Status.** The provisional (pre-freeze) round of the pack (`tasks/improve-generating/`) is closed: IGP-00 to IGP-07
+and the follow-up IGP-03h are accepted; the check-list holds the table in §5 and the sign-off in §8. The round counted
+9,771.5 s of its 10,800 s of machine time; the remaining 1,028.5 s is not carried over, and no timed run remains. The
+prototypes are harnesses under `tools/ig-proto/`: nothing in `core/`, `generator/` or any fingerprint changed.
+
+**Summary.** `docs/improve-generating/evidence/provisional/summary.md` (with `summary.json`; commit `8fb9664`) is the
+input of "Next actions" 4 above (plan version 2 with measured numbers). For each row R00 to R33 it gives the estimate,
+the measured value with its completion, kind, formula and record, and a descriptive verdict; R31 (after all phases) is
+a Projection with its assumptions. The rows that bear most on plan version 2 are R02 to R08 with R32 (P1 to P5 and the
+population), R14 (the screen certificate), R22 to R25 (the first phase), and R27 and R28 (Hell). The values are
+provisional: the current `rating-v3` runtime, two to six seeds per cell. The verdicts say where a value lies and
+validate nothing, and the population of the accepted puzzles (R32) stands beside every time verdict. The official
+phase-0 numbers come from the frozen round (owner decision "Phase 0").
+
+**Open questions and what they block.**
+
+- **IG-P-Q17** (two addenda and a note above; unanswered): P3 and P4 in `gen-v4`, the fit of `W_screen` (IG-P-Q09)
+  and how PM3's gains are read: whether the P1 to P5 times (R02 to R08) stand with the population shift beside them
+  (R32, R33), and which population rule of the options (a) to (c5) above `gen-v4` is built to. The later-round item
+  D-IG7 below waits for it.
+- **IG-P-Q18** (one addendum above; unanswered): the Hell 2 and Hell 3 route (IG-P-Q16, OD-P3), the cell list of
+  phase 3's Hell 1 landscape (OD-P4, IG-P-Q11), and P4's prior and `W_screen` for the Hell levels in `gen-v4`. The
+  later-round PM3 run for Hell 2 waits for its part 2.
+- **IG-P-Q02** (owner decision; the plan author's provisional answer is (b), a shared request deadline): P5's design
+  and the bench criterion. Its trigger, "after PM3", is met by the provisional PM3 (IGP-01 and IGP-03; the frozen
+  round repeats it), so the decision is due before P5 is designed. Rows R13, R20, R21, R23 and R02 to R08 bear on it.
+
+**Later-round items and what each needs.**
+
+- The rest of PM1 tranche 1 (D-IG10; about 9 worker-hours, 2.5 h on four lanes): the owner's approval.
+- A PM3 run for Hell 2 (the prototype without the screen, started near PM1's windows, on two or three boards): the
+  plan author's answer to IG-P-Q18, part 2 (a).
+- The window re-rating variant (D-IG7) and option (b) proper of IG-P-Q17 (P4 at today's start count): the plan
+  author's answer to IG-P-Q17.
+- 16x16 and 15x20 Nightmare after P1 to P5 (R09, D-IG9): the frozen round.
+- P7 itself, the per-set calibration prior, P5's enforced budgets and attempt limit, P8's width and admission rules,
+  PM1 tranche 2 (walked layouts and the held-out window audit), the error rate of estimated AR1 directions, and the
+  browser runs (D-IG9): a later design decision, or the frozen round.
+
+**Frozen-round preconditions** (check-list §6; `tools/ig-proto/README.md`, "Re-run index").
+
+1. difficulty-v3 frozen after MP17, and `improve-generating` brought onto that source by the orchestrator.
+2. The pack author's maintenance before any run. The anchored edits are re-checked with
+   `node tools\ig-proto\lib\tree.mjs check-edits --all` and re-derived where MP12b3, MP13a, MP14a and MP14b moved them
+   (`core/engine/clues.js`, `core/engine/generate.js`, `core/engine/policy.js`, `tools/calibrate.mjs`). `identity.mjs`
+   and `compare.mjs` are changed to report "different source" instead of failing, since MP12b1 is then another source
+   (`summary.mjs` already does so for R00).
+3. The round approved, with its sample sizes and its own machine budget: the plans carry the reps, a frozen plan may
+   widen them, and the plan author may change the sizes and the order (PM4, PM1, PM3, PM2). The lock protocol of
+   check-list §7 applies, difficulty-v3 first.
+4. Cells from the frozen catalogue `data/boards-v1.json`; a cell the frozen source no longer offers runs as a
+   diagnostic offer (D-IG13).
+
+Then one command per task and `node tools\ig-proto\summary.mjs --label frozen`; the records go to
+`docs/improve-generating/evidence/frozen/`, and nothing provisional is overwritten.
