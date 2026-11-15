@@ -719,7 +719,7 @@ texts from `player/locale.en.js` and `generator/locale.en.js` (for example the k
 correct a statement that does not hold and report it. The facts to state:
 
 - **Difficulty (`difficulty-v3`).** The score follows how a person solves the puzzle: forced placements and
-  deductions first (the rule ladder R1 to R9 in four tiers), then decisive guesses (choices whose wrong alternatives
+  deductions first (the rule ladder R1 to R9 in three tiers), then decisive guesses (choices whose wrong alternatives
   can be proved impossible). A puzzle that needs no guess scores below Hard. The level names and their score bands are
   unchanged; the score of a given puzzle differs from before. A puzzle is always rated in one canonical order, so it
   always gets the same score, though a different order of the same deductions can count a guess more or fewer (R7, a
