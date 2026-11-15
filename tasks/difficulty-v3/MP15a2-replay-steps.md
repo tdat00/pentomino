@@ -242,7 +242,12 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 1. Every fixture puzzle: the status and stages equal `runReplay`'s; `steps.length` is the number of run events plus
    one; step i has the kind of event i; the first step is `count`; the last step is the final (stage 7) with
    `board.clues` equal to the puzzle's clue ids and `rating` equal to its claim; the step before it is `selected`;
-   every `rated` step whose rating has metrics carries a breakdown whose `score` equals its rating's score.
+   every `rated` step whose rating has metrics carries a breakdown whose `score` equals its rating's score. The same
+   holds for the inputs of MP15a1's case 17, which carry skips (the fixture has none, MP13b's Execution log). In
+   addition, each `skip` step sits at the index of its `skip` event and has stage 5, `board.placed` = the candidate
+   layout, null `rating`, `breakdown`, `detail` and `band`, note `replay.step.skip` and args `{ sequence, source:
+   'candidate' }` with the recorded ordinal. In the repair-skip input (when MP15a1 built one), the last `repair` step
+   of the excluded finish has `args.reason === 'excluded'`.
 2. Order (cross-review SP13): mapping stages 5 and 6 to one class, the stages along the steps never decrease for a
    candidate puzzle (1, 2, 3, 4, then 5/6, then 7); the calibration puzzle has 1, 2, 3, then 5/6, then 7 and no stage
    4. In the fixture (uniqueness `require`), report whether a stage-6 step is followed by a stage-5 step; when one

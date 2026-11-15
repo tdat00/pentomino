@@ -338,11 +338,14 @@ once per file, plus small synthetic step lists.
    (summary claim).
 7. `stepText` returns an existing locale key (checked against `generator/locale.en.js`) with the documented
    placeholders for every kind and variant of the real result and of synthetic `carve` (macro, flat), `start`
-   (witness, restart), `retile` (changed, same) and the five repair reasons; the final step uses
-   `replay.step.final.generated` only for status `matched`. A synthetic `repair` step with `args: { repairSequence: 1,
-   added: null, accepted: false, reason: 'not-proved' }` (a uniqueness check that failed before adding a clue; SP14,
-   TP12) gives `replay.step.repair.failedBeforeClue` with no placeholder; its English and Vietnamese texts exist, the
-   sentence rendered in each language contains neither "null" nor "{piece}", and the step highlights no piece.
+   (witness, restart), `retile` (changed, same) and the five repair reasons, and for a synthetic step of every other
+   kind of MP15a2's table that the real result lacks. The fixture has no skip of any kind (MP13b's Execution log), so
+   this includes at least a `skip` step with `args: { sequence: 3, source: 'candidate' }`, which gives
+   `replay.step.skip`. The final step uses `replay.step.final.generated` only for status `matched`. A synthetic
+   `repair` step with `args: { repairSequence: 1, added: null, accepted: false, reason: 'not-proved' }` (a uniqueness
+   check that failed before adding a clue; SP14, TP12) gives `replay.step.repair.failedBeforeClue` with no
+   placeholder; its English and Vietnamese texts exist, the sentence rendered in each language contains neither
+   "null" nor "{piece}", and the step highlights no piece.
 8. Stage list and status text (SP14, TP12): (a) status `unavailable` (reason `completion`): every stage without steps
    is marked `replay.notAvailable` and the status text names `replay.reason.completion`; (b) `mismatch` (reason
    `rating`): the status text names `replay.field.rating`; (c) `incomplete` (reason `work`) with `stages.set ===

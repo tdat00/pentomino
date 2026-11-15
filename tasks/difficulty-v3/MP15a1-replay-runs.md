@@ -308,16 +308,16 @@ Exclusive ownership while this task runs: the files above.
 
 | ID | Criterion | Evidence |
 |---|---|---|
-| MP15a1-B01 | A freshly generated puzzle can be replayed from its record, from an ordinary multi-puzzle pack as well as from a one-puzzle payload, and the replay confirms it exactly | cases 1, 11 |
+| MP15a1-B01 | A freshly generated puzzle can be replayed from its record, from an ordinary multi-puzzle pack as well as from a one-puzzle payload, and the replay confirms it exactly | cases 1, 11, 17 |
 | MP15a1-B02 | When the record or the code versions do not allow a replay, the result says so ("steps not available") without running anything expensive; it never pretends | cases 3, 9, 10 |
-| MP15a1-B03 | A replay that disagrees with the stored puzzle is reported as a mismatch, naming what differs | cases 4, 5, 9 |
+| MP15a1-B03 | A replay that disagrees with the stored puzzle is reported as a mismatch, naming what differs | cases 4, 5, 9, 17 |
 | MP15a1-B04 | A replay cannot run away: its steps, bytes and total work (hidden work included) are bounded, it says it is incomplete, and it can be cancelled | cases 7, 8 |
 
 ## Acceptance criteria — Technical
 
 | ID | Criterion | Evidence |
 |---|---|---|
-| MP15a1-T01 | Limits and input are checked before any work; preflight before any stage run; statuses and reasons as specified; `matched` only for a full run with passing comparisons | cases 1, 3, 9, 10, 12, 14 |
+| MP15a1-T01 | Limits and input are checked before any work; preflight before any stage run; statuses and reasons as specified; `matched` only for a full run with passing comparisons | cases 1, 3, 9, 10, 12, 14, 17 |
 | MP15a1-T02 | Exact comparisons and `compared` as specified, including packs without solutions | cases 4–6 |
 | MP15a1-T03 | The meter counts every charge and every event, hidden calibration events included, and checks the bound at each; `incomplete` with reason `steps`, `bytes` or `work`, only public stage states (`stopped`), no comparison; cancellation throws `ReplayCancelledError` | cases 7, 8 |
 | MP15a1-T04 | The puzzle's own record is projected: the whole `generation` and the one-entry form give deep-equal runs; another puzzle's invalid record does not matter; a non-map `made` is `record-invalid` | case 11 |
@@ -351,7 +351,8 @@ pieces, witness and its `generation.carving` and `generation.macroRegion`, as th
 1. Every puzzle of both fixture packs, with the pack's whole `generation`: `matched` with `reason: null`,
    `stages.set === 'replayed'`, `stages.final === 'compared'`, `compared` = `['board', 'pieces', 'witness', 'clues',
    'rating', 'solution']`, `work > 0`, `set` not null; the reused calibration has `stages.candidate ===
-   'calibration'`, the others `'replayed'`.
+   'calibration'`, the others `'replayed'`. The fixture has no skip of any kind (MP13b's Execution log: no seed of 0-49
+   produced one), so these runs never replay a skip; case 17 does.
 2. Event order (cross-review SP13): the first event is `count`, then one or more `carve`, then exactly K `piece`
    events; a candidate puzzle continues with `start`, `BUDGETS.lnsSteps` `retile` events, then its clue and repair
    events (`stage` `'clues'` and `'unique'` may interleave: a `repair` event can be followed by more `rated`
@@ -407,6 +408,25 @@ pieces, witness and its `generation.carving` and `generation.macroRegion`, as th
 15. Determinism: two runs of the same puzzle give deep-equal results.
 16. Measurements for the provisional bounds (record in the reply, not asserted): for each fixture puzzle the number of
     events, their UTF-8 JSON bytes and `work`; the largest of each as a share of `REPLAY`.
+17. A real skip, end to end (the fixture has none: case 1). The record is made by the real engine with MP14b's case 7
+    construction, never written by hand:
+    - Subset skip: take the first candidate puzzle P of the fixture (pack order) whose `selected` event in its case 1
+      run has `repairSequence: null`. Call `puzzleCandidate` with the stage 4-6 context of the algorithm for P and no
+      observer: the candidate C equals P's clues and rating. Call it again with the same context but `seenClues: new
+      Set([C.clueKey])`: the result P' must be a candidate whose `made.skips` is not `'overflow'`, with a non-empty
+      `subsets`, an empty `repairs` and a `clueKey` other than P's; otherwise take the next such puzzle.
+    - The input: P's set, `setOrigin` and id, `puzzle` = P' (its clues, its rating, its layout as the solution) and
+      `made: { [id]: P'.made }`, built directly as in case 4. `runReplay` gives `matched` (`reason: null`,
+      `compared` as in case 1), and its events hold one `skip` event per recorded ordinal, in order, with `sequence`
+      equal to the ordinal. The same input with `skips: { subsets: [], repairs: [] }` gives `mismatch`, reason
+      `'clues'`: the recorded skip is what makes the replay match.
+    - Repair skip: the same steps for the first candidate puzzle whose `selected` event has a non-null
+      `repairSequence` (a repaired winner) give a record with a non-empty `repairs`. The replay is `matched`, and the
+      finish at `skips.repairs[0]` ends with a `repair` event with `reason: 'excluded'`; with the skips emptied, it is
+      a `mismatch`.
+    - When no fixture puzzle gives one of the two kinds, say so in the reply and keep the other; MP14a's cases 9 and
+      10 and MP14b's case 7 still cover the replay of skips below `runReplay`. Build the inputs in a helper of
+      `tests/replay.test.js` (for example `skipInputs()`): MP15a2's case 1 uses them.
 
 ## Definition of done & handoff
 
