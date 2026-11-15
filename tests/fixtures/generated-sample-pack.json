@@ -819,7 +819,7 @@
   "generation": {
     "app": "pentomino-generator/1.0.0",
     "algo": "gen-v3",
-    "policy": "mixed-v2",
+    "policy": "mixed-v3",
     "rng": "xoshiro128ss-v1",
     "seedScheme": "seed-sha256-v1",
     "setSeed": "fixture-set-0"

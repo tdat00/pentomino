@@ -9,7 +9,8 @@ import { canonicalJson, sha256Hex } from '../core/engine/hash.js';
 import { level, offeredLevels } from '../core/engine/levels.js';
 import {
   aggregateLandscape, boardId, buildLandscapeMatrix, checkLandscapeBoards, checkSetPolicy, deterministicBoard, initialG,
-  landscapeBoards, rectRows, REFERENCE_ROWS, referenceFor, referencePolicyAgreement, renderLandscapeMarkdown, sampleCounts,
+  landscapeBoards, rectRows, REFERENCE_ROWS, referenceFor, referencePolicyAgreement, renderLandscapeMarkdown,
+  RETIRED_REFERENCE_ROWS, sampleCounts,
 } from '../tools/bench/calibration-reference.js';
 import { newRunRecord, evaluateCell, returnedEveryArrangement, validateRunRecord } from '../tools/bench/report.js';
 import { releaseHost, runCase, validateMatrix } from '../tools/bench/runner.js';
@@ -20,17 +21,30 @@ const ARTIFACTS = fileURLToPath(new URL('./artifacts/t21-calibration/', import.m
 
 describe('reference table', () => {
   test('every row of the design table is present and inside its level\'s offered areas', () => {
-    assert.equal(REFERENCE_ROWS.length, 56);
+    assert.equal(REFERENCE_ROWS.length, 42);
     for (const r of REFERENCE_ROWS) {
       const [lo, hi] = level(r.level).areas;
       assert.ok(r.aMin >= lo && r.aMax <= Math.min(hi, 676), `${r.level} ${r.aMin}-${r.aMax}`);
       assert.ok(r.k[0] <= r.k[1] && r.sizes[0] <= r.sizes[1] && r.g0[0] <= r.g0[1]);
     }
-    const hell = /** @type {NonNullable<ReturnType<typeof referenceFor>>} */ (referenceFor('hell-1', 600));
-    assert.equal(hell.nodeS, 48.6);
-    assert.equal(hell.planKind, 'lazy-estimate');
-    assert.deepEqual(hell.boards, [{ cols: 26, rows: 26 }]);
-    assert.deepEqual(/** @type {any} */ (referenceFor('hell-3', 470)).boards, [{ cols: 22, rows: 22 }, { cols: 32, rows: 15 }]);
+    assert.equal(referenceFor('hell-1', 600), undefined);
+    assert.equal(referenceFor('hell-3', 470), undefined);
+    const hell = RETIRED_REFERENCE_ROWS.find((r) => r.level === 'hell-1' && r.aMin <= 600 && r.aMax >= 600);
+    assert.equal(hell?.nodeS, 48.6);
+    assert.equal(hell?.planKind, 'lazy-estimate');
+    assert.deepEqual(hell?.boards, [{ cols: 26, rows: 26 }]);
+    const hell3 = RETIRED_REFERENCE_ROWS.find((r) => r.level === 'hell-3' && r.aMin <= 470 && r.aMax >= 470);
+    assert.deepEqual(hell3?.boards, [{ cols: 22, rows: 22 }, { cols: 32, rows: 15 }]);
+  });
+
+  test('the 14 Hell rows measured before difficulty-v3 are retired: wholly outside their level\'s areas (P-OD9)', () => {
+    assert.equal(RETIRED_REFERENCE_ROWS.length, 14);
+    for (const r of RETIRED_REFERENCE_ROWS) {
+      assert.ok(/^hell-[123]$/.test(r.level), r.level);
+      const [lo, hi] = level(r.level).areas;
+      assert.ok(r.aMax < lo || r.aMin > hi, `${r.level} ${r.aMin}-${r.aMax}`);
+      assert.equal(referenceFor(r.level, r.aMin), undefined);
+    }
   });
 
   test('n/m rows are forecasts and the K28 row is not comparable', () => {
@@ -99,6 +113,16 @@ describe('landscape matrix', () => {
       assert.ok(!c.boardRows.some((r) => r.length > 32) && c.boardRows.length <= 32);
     }
     assert.equal(buildLandscapeMatrix({ seeds: 3 }).cases[0].repetitions, 3);
+  });
+
+  test('the landscape keeps the 16 boards of the Hell rows included and 80 cases, none at a Hell level (P-OD9)', () => {
+    assert.deepEqual(landscapeBoards().map((b) => b.id).sort(), [
+      '6x10', '3x29', '10x10', '12x12', '14x14', '15x15b10', '16x16', '15x20', '18x18', '18x20', '20x20', '20x21',
+      '32x15', '22x22', '24x24', '26x26',
+    ].sort());
+    const matrix = buildLandscapeMatrix();
+    assert.equal(matrix.cases.length, 80);
+    assert.ok(!matrix.cases.some((c) => c.levelId.startsWith('hell-')));
   });
 
   test('every reference row has at least one cell of its level inside its area band', () => {

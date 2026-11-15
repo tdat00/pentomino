@@ -11,6 +11,7 @@ import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
 import { PoolAbortError, WorkerTaskError, createPool } from '../core/browser/worker-pool.js';
 import { boardKey, boardToRows } from '../core/engine/board.js';
 import { progressFingerprint } from '../core/engine/keys.js';
+import { offeredLevels } from '../core/engine/levels.js';
 import { packBoard, parsePack } from '../core/engine/pack.js';
 import { decodePuzzleCode, encodePuzzleCode } from '../core/engine/puzzlecode.js';
 import { setLocale, t } from '../generator/i18n.js';
@@ -405,6 +406,34 @@ test('a v1 claim is rated again likewise; a derived estimate adds its note; a co
       second.destroy();
       quiet.destroy();
     }
+  }
+});
+
+test('a puzzle that claims a Hell level no longer offered on its board still opens: the claim is kept and it is rated again for display (P-OD9)', async () => {
+  const golden = JSON.parse(readFileSync(new URL('tests/fixtures/puzzlecode-v1.json', root), 'utf8')).large;
+  assert.deepEqual([golden.width, golden.height, golden.rating.model, golden.rating.level], [24, 24, 'difficulty-v2', 'hell-1']);
+  assert.ok(!offeredLevels(golden.width * golden.height).some((l) => l.id === golden.rating.level), 'Hell 1 is no longer offered at 576 cells');
+  const decoded = await decodePuzzleCode(golden.code);
+  const read = parsePack(JSON.stringify(decoded.pack));
+  assert.ok(read.ok, 'the pack reads');
+  assert.deepEqual(read.value.puzzles[0].rating, golden.rating, 'with its claim');
+  const store = createGeneratorStore(defaultGeneratorState());
+  const client = ratingClient();
+  const controller = controllerOn(store, client);
+  try {
+    const done = await controller.importPuzzleCode(golden.code);
+    assert.equal(/** @type {any} */ (done).value?.status, 'new-set');
+    await settled(store);
+    const state = store.getState();
+    const [puzzle] = state.puzzles;
+    assert.equal(/** @type {NonNullable<typeof state.set>} */ (state.set).carving, 'imported', 'an Imported set');
+    assert.deepEqual(puzzle.rating, golden.rating, 'the stored claim does not change');
+    assert.equal(client.calls.length, 1, 'one display-rating wish');
+    assert.equal(client.calls[0].kind, 'rate');
+    assert.deepEqual(Object.values(state.displayRatings).map((entry) => entry.status), ['rated']);
+  } finally {
+    controller.destroy();
+    store.destroy();
   }
 });
 

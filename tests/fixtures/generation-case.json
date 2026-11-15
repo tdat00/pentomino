@@ -17,7 +17,7 @@
   "uniqueness": "any",
   "versions": {
     "algo": "gen-v3",
-    "policy": "mixed-v2",
+    "policy": "mixed-v3",
     "rng": "xoshiro128ss-v1",
     "model": "difficulty-v3"
   },

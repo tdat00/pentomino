@@ -719,7 +719,8 @@ nothing, because every 18x20 cell made puzzles with `--uniqueness require` (Hard
 `difficulty-not-found`; Expert and Master 10 of 10; the record's section 6 and named item 7), so MP12b3 builds no
 `require` rule and states the measured limitation; every cell that is not Hell made puzzles (section 9), so P-OD9's
 (i) is applied to no other level and MP12b3 needs no addendum; and the Hell areas of check-list D39 come out
-`[Infinity, Infinity]` for Hell 1, 2 and 3 (section 9; P-OD9 applied, not a new decision), Hell 4 and beyond unchanged.
+`[Infinity, Infinity]` for Hell 1, 2 and 3 (section 9; P-OD9 applied, not a new decision). Hell 4 remains
+`[744, Infinity]`; Hell 5+ remain `[Infinity, Infinity]`.
 
 ## Part I: open questions during implementation
 

@@ -76,7 +76,7 @@ function row(levelId, aMin, aMax, k, sizes, g0, boards, nodeS, planS, extra = {}
 const FLAT = 'flat-carved LNS-heavy outlier (dagger in the design table); macro carving replaces this regime';
 const LAZY = { planKind: /** @type {const} */ ('lazy-estimate') };
 
-/** The §7.5 table, row for row. W x H is columns x rows. */
+/** The §7.5 table, row for row, of the offered bands (the retired Hell rows follow). W x H is columns x rows. */
 export const REFERENCE_ROWS = Object.freeze([
   row('very-easy', 30, 80, [5, 7], [3, 18], [3, 4], '6x10', 0.2, 6),
   row('very-easy', 81, 87, [7, 7], [6, 19], [4, 4], null, 0.3, 6),
@@ -123,6 +123,13 @@ export const REFERENCE_ROWS = Object.freeze([
   row('nightmare', 421, 484, [26, 30], [8, 27], [4, 4], null, 10, 45),
   row('nightmare', 485, 576, [27, 32], [9, 31], [4, 4], null, 10, 45),
   row('nightmare', 577, 676, [28, 33], [10, 35], [4, 5], null, 10, 45),
+]);
+
+/**
+ * Measured before difficulty-v3, no longer offered: D36 (i), P-OD9 (no Hell level is offered on any board). The
+ * evidence as measured; `referenceFor` and the calibration never read it, `landscapeBoards` keeps its boards.
+ */
+export const RETIRED_REFERENCE_ROWS = Object.freeze([
   row('hell-1', 164, 200, [30, 36], [3, 10], [3, 4], '14x14', 8.3, 38),
   row('hell-1', 201, 300, [32, 40], [3, 13], [3, 4], '16x16', 17.9, 77),
   row('hell-1', 301, 420, [35, 42], [4, 17], [4, 4], '18x18', 12.0, 53, { note: 'K = 41 replay: 7.6 s' }),
@@ -183,14 +190,14 @@ export const boardId = (b) => `${b.cols}x${b.rows}${b.blocked > 0 ? `b${b.blocke
  */
 
 /**
- * Every board of the reference table, deduplicated by exact rows: the explicit
+ * Every board of the reference table and of the retired rows, deduplicated by exact rows: the explicit
  * measured boards, else the deterministic board at the row's upper area.
  * @returns {LandscapeBoard[]}
  */
 export function landscapeBoards() {
   /** @type {Map<string, LandscapeBoard>} */
   const unique = new Map();
-  for (const r of REFERENCE_ROWS) {
+  for (const r of [...REFERENCE_ROWS, ...RETIRED_REFERENCE_ROWS]) {
     const shapes = r.boards === null ? [deterministicBoard(r.aMax)] : r.boards.map((b) => ({ ...b, blocked: 0 }));
     for (const shape of shapes) {
       const boardRows = rectRows(shape.cols, shape.rows, shape.blocked);

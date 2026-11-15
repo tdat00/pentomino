@@ -22,7 +22,7 @@
 
 | Ứng dụng | Trực tuyến | Mã nguồn | Làm gì |
 |---|---|---|---|
-| **Pentomino Generator** | [tdat00.github.io/pentomino/generator](https://tdat00.github.io/pentomino/generator/) | [generator/](generator/) | Vẽ bàn chơi, tạo các bộ mảnh được chứng minh là lấp kín bàn, tạo đề từ một bộ mảnh ở mười mức độ, in đề, nhập một đề từ liên kết hoặc mã của nó và mở đề trong trình chơi |
+| **Pentomino Generator** | [tdat00.github.io/pentomino/generator](https://tdat00.github.io/pentomino/generator/) | [generator/](generator/) | Vẽ bàn chơi, tạo các bộ mảnh được chứng minh là lấp kín bàn, tạo đề từ một bộ mảnh ở bảy mức độ, in đề, nhập một đề từ liên kết hoặc mã của nó và mở đề trong trình chơi |
 | **Pentomino Player** | [tdat00.github.io/pentomino/player](https://tdat00.github.io/pentomino/player/) | [player/](player/) | Chơi một đề từ liên kết của nó: kéo thả hoặc chạm để đặt mảnh, hoàn tác / làm lại, gợi ý đã được chứng minh, đồng hồ, lưu tiến độ, in đề, chia sẻ một đề hoặc cả danh sách bằng liên kết kèm mã QR |
 
 Địa chỉ `/pentomino/` chuyển thẳng tới trình tạo đề, giữ nguyên chuỗi truy vấn và phần `#hash`. Cả hai ứng dụng có tiếng
@@ -56,7 +56,7 @@ có một bộ mảnh đang hiển thị.
    (⟲ ⟳). `Ctrl`/`Cmd`+`Z` hoàn tác thay đổi gần nhất của bàn chơi; với bàn phím, các phím mũi tên di chuyển con trỏ và
    `Space` chuyển đổi trạng thái một ô. Dòng trạng thái đếm số ô chơi được và cho biết vì sao bàn chơi chưa thể tạo bộ
    mảnh.
-2. **Tạo bộ mảnh.** Một bảng liệt kê mọi mức độ từ Rất dễ đến Địa ngục 3, với số mảnh, cỡ mảnh và số mảnh đặt sẵn tương
+2. **Tạo bộ mảnh.** Một bảng liệt kê mọi mức độ từ Rất dễ đến Ác mộng, với số mảnh, cỡ mảnh và số mảnh đặt sẵn tương
    ứng trên bàn chơi này; nút **?** cạnh mỗi con số giải thích cách tính, và các mức bàn chơi không dùng được thì bị vô
    hiệu kèm lý do. Khung của bước có ô **Seed** (✕ để xóa, 🎲 để lấy seed ngẫu nhiên) và nút **Tạo bộ mảnh mới**. Dưới
    bảng là phần tóm tắt của bộ đang hiển thị, ví dụ `Khó | 13 mảnh | Cỡ mảnh 7–12 | Seed ABCD-EFGH-JKLM`, cùng các mảnh
@@ -132,7 +132,9 @@ nhập gì và có thông báo cho biết.
   lại chạy ngầm, không bao giờ làm chậm việc tạo đề, và cho tới khi xong chỉ hiện đánh giá đã lưu; nếu không có worker nào
   chấm lại được thì đánh giá đã lưu được giữ, kèm "Không chấm lại được". Đề do chính trình tạo đề tạo ra không bao giờ bị
   chấm lại, và khi chưa đếm xong các phương án đoán, đánh giá được đánh dấu "Ước lượng quyết định". Đánh giá đã lưu và
-  các bộ mảnh đã lưu không bao giờ thay đổi. Đề thông thường không chờ chứng
+  các bộ mảnh đã lưu không bao giờ thay đổi. Trình tạo đề không cung cấp mức Địa ngục nào trên bất kỳ bàn chơi nào: nó
+  chưa tạo được đề Địa ngục một cách đáng tin cậy, đó là giới hạn của cách tìm kiếm hiện tại chứ không phải của các mức
+  độ; đề Địa ngục trong các gói và liên kết tạo từ trước vẫn mở được. Đề thông thường không chờ chứng
   minh tính duy nhất: tình trạng lời giải được kiểm tra
   ngầm sau khi đề xuất hiện. Một đề bạn yêu cầu lời giải duy nhất vẫn có thể không chứng minh được; khi đó trình tạo đề
   nói rõ thay vì trả về một đề chưa được chứng minh.

@@ -1,7 +1,8 @@
 // @ts-check
-// Final generation policy `mixed-v2` (design §6.2, §6.4, §7.2–§7.5, §8.3): limits, piece counts,
+// Final generation policy `mixed-v3` (design §6.2, §6.4, §7.2–§7.5, §8.3): limits, piece counts,
 // piece-size histograms, score constants and deterministic budgets. Pure; the only randomness
-// is the Rng passed to planSizes.
+// is the Rng passed to planSizes. It differs from `mixed-v2` only in availability: the Hell areas of §7.5
+// (no Hell level is offered on any board up to 676 cells).
 import { level } from './levels.js';
 import { QUALIFICATION } from './qualification.js';
 
@@ -14,7 +15,7 @@ import { QUALIFICATION } from './qualification.js';
  * @property {number} [smallCap] Maximum number of 3–4-cell pieces.
  */
 
-export const POLICY_ID = 'mixed-v2';
+export const POLICY_ID = 'mixed-v3';
 
 /**
  * Shipped limits follow the qualification gates (§8.7): 576 only after BQ-1, phones 484 only after BQ-3.
@@ -54,8 +55,8 @@ export const SCORE = Object.freeze({
 /**
  * Knobs of the `difficulty-v3` score (design §7.10), fitted in docs/difficulty-v3/fit-2026-11-12.md (section 3) and
  * changed in the P3 slice, round 0 to 1 (rule[3] 2 to 3, penalty (0, 0) to (1, 2), P-OD3):
- * docs/difficulty-v3/calibration-slice-2026-11-13.md.
- * Defined but not yet the rating: `rate` stays `difficulty-v2` until the v3 activation.
+ * docs/difficulty-v3/calibration-slice-2026-11-13.md. These are the locked v3 knobs (the fit and the calibration
+ * slice).
  */
 export const SCORE_V3 = Object.freeze({
   model: 'difficulty-v3',

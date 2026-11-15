@@ -24,7 +24,7 @@ The Generator is a three-step wizard. The steps sit on the right, each in a fram
 
 4. **Browse piece sets.** The set's pieces and a summary ("Hard | 13 pieces | Piece sizes 7–12 | Seed …") appear under the table. ◀ Set n of total ▶ steps through the sets made for this board (up to 50); Remove and Remove all clean up; **Select this piece set** under the pieces moves on to step 3 with it. A set that repeats one in the list is not added again—the existing one is shown.
 
-5. **Create puzzles.** Choose the puzzle level (the set's level by default) and, optionally, **Require unique solution**—experimental for Hell puzzles above 200 squares, where it may find no result. Each **New puzzle** press adds one puzzle with its own random seed and a genuinely different arrangement; a puzzle equal to one already listed is never added. Some pieces are locked; at least two remain to play.
+5. **Create puzzles.** Choose the puzzle level (the set's level by default) and, optionally, **Require unique solution**—on large boards it may find fewer puzzles than asked. Each **New puzzle** press adds one puzzle with its own random seed and a genuinely different arrangement; a puzzle equal to one already listed is never added. Some pieces are locked; at least two remain to play.
 
 6. **Inspect and launch.** Cards on the left, newest first, show "Puzzle #n", the estimated level (bold) and score, the seed, the pieces to place and a preview. The solution status updates separately: Checking…, Unique solution ✓, Multiple solutions, At least 1 solution, No solution exists, or Uniqueness not checked. Clicking a card shows that puzzle in the main panel (otherwise the newest one) with its board and pieces to place; **Play** opens it in the Player in a new tab and need not wait, **Print** (right of Play) prepares it for paper (see "Print on paper" below), and **Show solution** (under the board, at its right) draws its solution on the board until pressed again. **Import puzzle** (the header button, left of the language switch; only its icon on a phone) re-creates a puzzle from a link copied from the Player: its board, piece set and puzzle appear as a new, *Imported* set (a puzzle of the set on show joins that set; a puzzle already listed is not added twice; New puzzle then works on the imported set, whose solution comes from the link or is found in the background), and a link that cannot be read is explained in the dialog without changing anything.
 
@@ -32,15 +32,15 @@ Board edits never delete work: the lists switch to the piece sets and puzzles of
 
 ## Levels and typical boards
 
-Very Easy/Easy gives many starting pieces; Normal/Hard offers more choices; Expert/Master gives less guidance; Nightmare/Hell starts with very few pieces. One shared scoring method supplies **estimates, not promised solving times**. The score follows how a person solves: forced placements, deductions of growing depth and real guesses. The Generator makes puzzles at Hard and above only when they need at least one real guess; imported puzzles are rated but not filtered, and a rating whose count of the guesses did not finish is marked as an estimate. Puzzles made before this version keep their stored score and are shown re-rated on today's scale, with the original in a note, in both apps (in the Generator: the puzzles it imports and those of sets saved before this version). A new puzzle aims at the middle of its level's score range, not just anywhere inside it.
+Very Easy/Easy gives many starting pieces; Normal/Hard offers more choices; Expert/Master gives less guidance; Nightmare/Hell starts with very few pieces. One shared scoring method supplies **estimates, not promised solving times**. The score follows how a person solves: forced placements, deductions of growing depth and real guesses. The Generator makes puzzles at Hard and above only when they need at least one real guess; imported puzzles are rated but not filtered, and a rating whose count of the guesses did not finish is marked as an estimate. Puzzles made before this version keep their stored score and are shown re-rated on today's scale, with the original in a note, in both apps (in the Generator: the puzzles it imports and those of sets saved before this version). A new puzzle aims at the middle of its level's score range, not just anywhere inside it. The current generator offers no Hell level on any board: it could not make Hell puzzles reliably, a limit of its present search rather than of the levels; Hell puzzles in packs and links made before still open.
 
 | Board | Playable squares | Available levels | Example total piece counts |
 |---|---:|---|---|
 | 6×10 rectangle | 60 | Very Easy–Master | Easy 7–8; Master 12–13 |
 | 10×10 rectangle | 100 | Easy–Nightmare | Easy 8–9; Nightmare 17–20 |
 | Default Heart: 10×10 grid | 75 | Very Easy–Master | Easy 7–9; Master 13–15 |
-| 18×20 rectangle | 360 | Hard–Hell-2 | Hard 16–18; Hell-1 37–42; Hell-2 50–56 |
-| 22×22 rectangle | 484 | Hard–Hell-3 | Hard 17–19; Hell-3 73–80 |
+| 18×20 rectangle | 360 | Hard–Nightmare | Hard 16–18; Nightmare 25–28 |
+| 22×22 rectangle | 484 | Hard–Nightmare | Hard 17–19; Nightmare 27–30 |
 
 Counts vary with the selected level and generated set. Blocking cells changes availability; turning the view does not. Device limits still apply.
 

@@ -110,8 +110,8 @@ export const DEFAULT_QUANTITY = 5;
 export const DEFAULT_LEVEL_ID = 'normal';
 /** Board presets of step 1, as the preset menu lists them. */
 export const PRESET_IDS = Object.freeze(['rectangle', 'heart', 'diamond', 'cross', 'ring']);
-/** Levels the generator can ever offer (areas up to 676): Very easy … Hell-3. */
-export const LISTED_LEVEL_IDS = Object.freeze(['very-easy', 'easy', 'normal', 'hard', 'expert', 'master', 'nightmare', 'hell-1', 'hell-2', 'hell-3']);
+/** Levels the generator can ever offer (areas up to 676): Very easy … Nightmare. */
+export const LISTED_LEVEL_IDS = Object.freeze(['very-easy', 'easy', 'normal', 'hard', 'expert', 'master', 'nightmare']);
 const FIRST_HELL_INDEX = 7;
 const UNIQUE_STANDARD_AREA = 200;
 const MAX_KEY_LENGTH = 8192;

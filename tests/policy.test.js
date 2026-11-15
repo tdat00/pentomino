@@ -189,7 +189,6 @@ describe('pieceCountRange', () => {
     ['very-easy', 60, 6, 7], ['easy', 60, 7, 8], ['normal', 60, 8, 9], ['hard', 60, 9, 11],
     ['expert', 60, 11, 12], ['master', 60, 12, 13],
     ['hard', 360, 16, 18], ['expert', 360, 18, 20], ['master', 360, 20, 23], ['nightmare', 360, 25, 28],
-    ['hell-1', 360, 37, 42], ['hell-2', 360, 50, 56], ['hell-3', 484, 73, 80], ['hell-3', 676, 80, 90],
   ];
 
   test('reproduces every anchor row as a gap-free range', () => {
@@ -204,6 +203,11 @@ describe('pieceCountRange', () => {
     assert.equal(pieceCountRange('nightmare', 60), null);
     assert.equal(pieceCountRange('very-easy', 88), null);
     assert.equal(pieceCountRange('hell-3', 449), null);
+    /** @type {Array<[string, number]>} */
+    const retired = [['hell-1', 360], ['hell-2', 360], ['hell-3', 484], ['hell-3', 676]];
+    for (const [id, area] of retired) {
+      assert.equal(pieceCountRange(id, area), null, `${id}@${area} is retired (P-OD9)`);
+    }
     assert.equal(pieceCountRange('hell-4', 676), null);
     assert.equal(pieceCountRange('hell-5', 676), null);
     assert.equal(pieceCountRange('hell-12', 100), null);
@@ -236,10 +240,8 @@ describe('pieceCountRange', () => {
     }
   });
 
-  test('Hell caps bound the count', () => {
-    assert.ok(Math.max(.../** @type {number[]} */ (pieceCountRange('hell-1', 676))) <= 42);
-    assert.ok(Math.max(.../** @type {number[]} */ (pieceCountRange('hell-2', 676))) <= 62);
-    assert.ok(Math.max(.../** @type {number[]} */ (pieceCountRange('hell-3', 676))) <= 92);
+  test('Hell 1, 2 and 3 are retired: no count at the largest area (P-OD9)', () => {
+    for (const id of ['hell-1', 'hell-2', 'hell-3']) assert.equal(pieceCountRange(id, 676), null, id);
   });
 });
 
@@ -340,7 +342,7 @@ describe('limits, qualification and budgets', () => {
   });
 
   test('default device limits stay at 484 / 360 and 676 is opt-in on desktop only', () => {
-    assert.equal(POLICY_ID, 'mixed-v2');
+    assert.equal(POLICY_ID, 'mixed-v3');
     assert.equal(LIMITS.releaseMaxActive, 484);
     assert.equal(LIMITS.phoneMaxActive, 360);
     assert.equal(LIMITS.designMaxActive, 576);

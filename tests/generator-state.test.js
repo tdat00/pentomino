@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { activeCount, boardFromRows, boardKey, boardToRows, preset, rectangle } from '../core/engine/board.js';
+import { offeredLevels } from '../core/engine/levels.js';
 import { packBoard, parsePack, validatePack } from '../core/engine/pack.js';
 import { LIMITS } from '../core/engine/policy.js';
 import { setLocale } from '../generator/i18n.js';
@@ -90,16 +91,23 @@ test('the default board is 10 columns by 6 rows with 60 playable squares', () =>
   assert.equal(description.valid, true);
 });
 
-test('a 60-cell board offers Very easy to Master and 360 offers Hard to Hell 2', () => {
+test('a 60-cell board offers Very easy to Master and 360 offers Hard to Nightmare; a retired Hell level has no row', () => {
   const offered = (/** @type {number} */ area) => describeLevels(area).filter((l) => l.offered).map((l) => l.id);
   assert.deepEqual(offered(60), ['very-easy', 'easy', 'normal', 'hard', 'expert', 'master']);
-  assert.deepEqual(offered(360), ['hard', 'expert', 'master', 'nightmare', 'hell-1', 'hell-2']);
+  assert.deepEqual(offered(360), ['hard', 'expert', 'master', 'nightmare']);
   const at60 = describeLevels(60);
   assert.equal(at60.find((l) => l.id === 'nightmare')?.reason, 'larger');
   const at360 = describeLevels(360);
   assert.equal(at360.find((l) => l.id === 'normal')?.reason, 'smaller');
-  assert.equal(at360.find((l) => l.id === 'hell-3')?.reason, 'larger');
+  assert.equal(at360.find((l) => l.id === 'hell-3'), undefined);
   assert.equal(describeLevels(676).length, LISTED_LEVEL_IDS.length);
+});
+
+test('the listed levels are exactly the levels offered on some board from 30 to 676 cells (P-OD9)', () => {
+  const offeredSomewhere = new Set();
+  for (let area = 30; area <= 676; area++) for (const lv of offeredLevels(area)) offeredSomewhere.add(lv.id);
+  assert.deepEqual([...LISTED_LEVEL_IDS], [...offeredSomewhere]);
+  assert.deepEqual([...LISTED_LEVEL_IDS], ['very-easy', 'easy', 'normal', 'hard', 'expert', 'master', 'nightmare']);
 });
 
 test('the piece-count line comes from the policy: 360 squares at Hard', () => {
@@ -176,11 +184,13 @@ test('device caps: 484 squares on desktop, 360 on phones; above 360 a desktop bo
   assert.equal(onDesktop.notices[0].text, 'Large board: generation can take up to 2 minutes.');
 });
 
-test('Require one solution warns only on large Hell boards', () => {
+test('Require one solution shows no Hell notice: a retired Hell level moves to Nightmare (P-OD9)', () => {
   const big = withBoard(defaultGeneratorState({ uniqueness: 'require', levelId: 'hell-1' }), rectangle(20, 12));
-  assert.deepEqual(describeBoard(big, DESKTOP).levelNotices.map((n) => n.code), ['N-UNIQUE-EXP']);
+  assert.equal(big.levelId, 'nightmare');
+  assert.deepEqual(describeBoard(big, DESKTOP).levelNotices, []);
   assert.deepEqual(describeBoard({ ...big, levelId: 'master' }, DESKTOP).levelNotices, []);
   const small = withBoard(defaultGeneratorState({ uniqueness: 'require', levelId: 'hell-1' }), rectangle(15, 13));
+  assert.equal(small.levelId, 'nightmare');
   assert.deepEqual(describeBoard(small, DESKTOP).levelNotices, []);
 });
 

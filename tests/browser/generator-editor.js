@@ -10,7 +10,7 @@ import { mountBoardEditor } from '../../generator/ui/board-editor.js';
 import { mountLevelPanel } from '../../generator/ui/level-panel.js';
 import { mountSetSummary } from '../../generator/ui/set-summary.js';
 import {
-  acceptSet, createGeneratorStore, describeBoard, loadGeneratorState, setCell, withBoard,
+  LISTED_LEVEL_IDS, acceptSet, createGeneratorStore, describeBoard, loadGeneratorState, setCell, withBoard,
 } from '../../generator/state.js';
 
 const results = /** @type {Array<{ name: string, ok: boolean, error?: string }>} */ ([]);
@@ -382,7 +382,7 @@ await check('keyboard: arrows follow the view rotation and Space toggles the cur
 
 await check('levels: a table compares every level; a 60-cell board offers Very easy to Master and explains the rest', () => withEditor({}, {}, (ctx) => {
   const radios = () => /** @type {HTMLInputElement[]} */ ([...q(ctx, '[data-field="level"]').querySelectorAll('input[type="radio"]')]);
-  equal(radios().length, 10, 'one row per listed level');
+  equal(radios().length, LISTED_LEVEL_IDS.length, 'one row per listed level');
   equal(radios().filter((r) => !r.disabled).map((r) => r.value), ['very-easy', 'easy', 'normal', 'hard', 'expert', 'master'], 'offered at 60');
   equal([...q(ctx, '[data-field="level"] thead tr').children].map((c) => c.textContent), ['Level', 'Pieces', 'Piece size', 'Pre-placed'], 'comparison columns');
   equal(q(ctx, '[data-level="nightmare"] .level-reason').textContent, 'needs a larger board', 'the reason is in the row');
@@ -396,12 +396,12 @@ await check('levels: a table compares every level; a 60-cell board offers Very e
   equal(ctx.store.getState().levelId, 'hard', 'an unavailable row cannot be chosen');
 }));
 
-await check('levels: 360 squares offer Hard to Hell 2 with policy-derived columns', () => withEditor({}, {}, (ctx) => {
+await check('levels: 360 squares offer Hard to Nightmare with policy-derived columns', () => withEditor({}, {}, (ctx) => {
   setField(ctx, '[data-field="columns"]', '20');
   setField(ctx, '[data-field="rows"]', '18');
   equal(area(ctx), 360, '20 x 18');
   const offered = [...q(ctx, '[data-field="level"]').querySelectorAll('input[type="radio"]')].filter((r) => !(/** @type {HTMLInputElement} */ (r)).disabled).map((r) => /** @type {HTMLInputElement} */ (r).value);
-  equal(offered, ['hard', 'expert', 'master', 'nightmare', 'hell-1', 'hell-2'], 'offered at 360');
+  equal(offered, ['hard', 'expert', 'master', 'nightmare'], 'offered at 360');
   equal(ctx.store.getState().levelId, 'hard', 'the unavailable Normal moved to the nearest offered level');
   equal([...q(ctx, '[data-level="hard"]').querySelectorAll('.level-value')].map((c) => c.textContent), ['16–18', '12–34', '6–7'], 'Hard row');
   equal(q(ctx, '[data-level="hard"]').querySelectorAll('.help-icon').length, 3, 'a help icon beside each number');
@@ -525,15 +525,16 @@ await check('with 50 piece sets Generate is disabled and a note explains why', (
   });
 });
 
-await check('The Require unique solution switch moved to step 3; its warning on large Hell boards stays; Large boards and Omit solutions are gone', () => withEditor({}, {}, (ctx) => {
+await check('The Require unique solution switch moved to step 3; no Hell level is listed at 360, so its Hell warning cannot appear (P-OD9); Large boards and Omit solutions are gone', () => withEditor({}, {}, (ctx) => {
   equal(['large-boards', 'omit-solutions', 'require-unique'].map((f) => ctx.wrap.querySelector(`[data-field="${f}"]`)), [null, null, null], 'removed options');
   setField(ctx, '[data-field="columns"]', '20');
   setField(ctx, '[data-field="rows"]', '18');
-  /** @type {HTMLInputElement} */ (q(ctx, '[data-field="level"] input[value="hell-1"]')).click();
-  equal(ctx.store.getState().levelId, 'hell-1', 'Hell 1 is offered at 360');
+  for (const id of ['hell-1', 'hell-2', 'hell-3']) {
+    equal(ctx.wrap.querySelector(`[data-field="level"] input[value="${id}"]`), null, `no row for ${id} at 360`);
+  }
   assert(!q(ctx, '[data-role="level-notices"]').textContent?.includes('experimental'), 'no warning while Require is off');
   ctx.store.update({ uniqueness: 'require' });
-  assert(q(ctx, '[data-role="level-notices"]').textContent?.includes('On large Hell puzzles, “Require unique solution” is experimental and usually fails.'), 'N-UNIQUE-EXP');
+  assert(!q(ctx, '[data-role="level-notices"]').textContent?.includes('experimental'), 'no N-UNIQUE-EXP with Require on');
   equal(ctx.store.getState().uniqueness, 'require', 'setting stored');
   equal(ctx.store.getState().board.width, 20, 'settings never change the board');
 }));

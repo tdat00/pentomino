@@ -22,7 +22,7 @@
 
 | App | Live | Source | What it does |
 |---|---|---|---|
-| **Pentomino Generator** | [tdat00.github.io/pentomino/generator](https://tdat00.github.io/pentomino/generator/) | [generator/](generator/) | Draws a board, generates piece sets that provably tile it, makes puzzles from a set at ten levels, prints them, imports a puzzle from its link or code and opens them in the Player |
+| **Pentomino Generator** | [tdat00.github.io/pentomino/generator](https://tdat00.github.io/pentomino/generator/) | [generator/](generator/) | Draws a board, generates piece sets that provably tile it, makes puzzles from a set at seven levels, prints them, imports a puzzle from its link or code and opens them in the Player |
 | **Pentomino Player** | [tdat00.github.io/pentomino/player](https://tdat00.github.io/pentomino/player/) | [player/](player/) | Plays a puzzle from its link: drag or tap to place pieces, undo / redo, proven hints, a timer, saved progress, printing, sharing a puzzle or the whole list as a link with a QR code |
 
 `/pentomino/` itself redirects to the Generator, carrying any query string and `#hash` across. Both apps are in English
@@ -58,7 +58,7 @@ a piece set (otherwise step 1 says why), and step 3 once a piece set is on show.
    zoom in and out, fit the board, switch on a move tool that drags the view, and turn the view by 45° (⟲ ⟳).
    `Ctrl`/`Cmd`+`Z` undoes the last board change; with the keyboard, the arrow keys move a cursor and `Space` toggles a
    square. The status line counts the playable squares and says why a board cannot get a piece set.
-2. **Create piece set.** A table lists every level from Very easy to Hell 3 with the number of pieces, the piece sizes
+2. **Create piece set.** A table lists every level from Very easy to Nightmare with the number of pieces, the piece sizes
    and the pre-placed pieces it means on this board; the **?** next to a number shows how it is worked out, and levels
    the board cannot use are disabled with the reason. The step frame holds the **Seed** field (✕ clears it, 🎲 draws a
    random seed) and **New piece set**. Under the table, the set on show has a summary such as
@@ -142,7 +142,9 @@ board already holds 50 sets, or the puzzle list is full, nothing is imported and
   difficulty-v2)"). The re-rating runs in the background, never slows down a generation, and until it has finished the
   stored rating shows alone; if no worker can do it, the stored rating stays, with "Could not be re-rated". Puzzles the
   Generator makes itself are never re-rated, and a count of the guess alternatives that did not finish is marked
-  "Decisive estimate". Stored ratings and saved sets never change. Ordinary puzzles
+  "Decisive estimate". Stored ratings and saved sets never change. The Generator offers no Hell level on any board: it
+  could not make Hell puzzles reliably, a limit of its present search rather than of the levels; Hell puzzles in packs
+  and links made before still open. Ordinary puzzles
   do not wait for a uniqueness proof: their solution status is
   checked in the background after they appear. A puzzle you require to be unique can still fail to be proven; the
   Generator then says so rather than returning an unproven puzzle.

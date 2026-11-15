@@ -92,8 +92,8 @@ Requirements come from the original product brief, including its addendum and th
 | R10 | More pieces at higher levels | K grows with level and area | 6.4, 7.5 |
 | R11 | "New puzzle": 1–10 different puzzles from the same set, changing only the arrangement | Macro carving + local re-tiling; a new layout key AND a new clue key; never clue-only variants; honest partial batches | 6.5, 6.7–6.9 |
 | R12 | Some pieces pre-placed at random; easy = many, nightmare = few | Initial share per level, then a score-guided clue search; 1 ≤ G ≤ K−2 | 6.10, 7.4 |
-| R13 | Addendum 1–2: the highest (and lowest) level depends on board size; large boards with Hell-2, Hell-3, … | Contiguous availability per level; open ladder | 7.4, 7.5 |
-| R14 | Addendum 3: piece count follows level AND board size; never too many small pieces (examples: 60 cells easy 7–8 / master 11–13; 360 cells hard 16–18 lowest / hell-1 40–42) | K(level, area) formula and final table: 60 → easy 7–8, master 12–13; 360 → hard 16–18 (lowest), hell-1 37–42 | 6.4, 7.5 |
+| R13 | Addendum 1–2: the highest (and lowest) level depends on board size; large boards with Hell-2, Hell-3, … | Contiguous availability per level; open ladder. Under `difficulty-v3` no Hell level is offered: the present generator made none at the required rate on any board (check-list D39), a limit of its search rather than a proof that their bands are unreachable (PR-P2), check-list D36 (i), owner decision P-OD9 | 7.4, 7.5 |
+| R14 | Addendum 3: piece count follows level AND board size; never too many small pieces (examples: 60 cells easy 7–8 / master 11–13; 360 cells hard 16–18 lowest / hell-1 40–42) | K(level, area) formula and final table: 60 → easy 7–8, master 12–13; 360 → hard 16–18 (lowest), hell-1 37–42 (the formula's count; hell-1 is not offered under `mixed-v3`) | 6.4, 7.5 |
 | R15 | Addendum 4: find the optimal maximum board size so that generation finishes within 2 min (target 1 min) on the web, with 4 workers and 2 GB | Design ceiling 576 cells, release 484 until qualified; 115 s dispatch stop, 120 s answer; compact memory; qualification tests | 6.2, 8, 8.7, A.10 |
 | P1 | The player imports generator output | Links (`#p=<code>;<code>…`); strict validator. No file import or export. | 9 |
 | P2 | The player rotates, flips and places pieces to complete the board | Drag, tap and keyboard; D4 algebra; win detection | 11 |
@@ -113,13 +113,13 @@ The main design decisions and why they were taken.
 | D5 | Arrow keys on rotated boards | Move along the grid axis closest to the arrow's on-screen direction. At odd multiples of 45°, use the mapping for θ − 45°. Axis hints are shown. | Arrows bound to logical rows/columns would move pieces in a different screen direction than pressed. |
 | D6 | Board margins | Keep the authored W×H. Analyze symmetry on a copy normalized to the active bounding box. The editor never trims margins. | Stored coordinates never change silently. |
 | D7 | Board connectivity | Generation requires one 4-connected active region. The player accepts any non-empty board. | Simpler carving; valid packs are not rejected. |
-| D8 | Game rules vs. generation policy | `rules: "free-polyomino-v1"` covers gameplay only. Size rules, distinct and hole-free shapes are generator policy `mixed-v2`, recorded in `generation.policy`. | The player must accept every rules-valid puzzle. |
+| D8 | Game rules vs. generation policy | `rules: "free-polyomino-v1"` covers gameplay only. Size rules, distinct and hole-free shapes are generator policy `mixed-v3`, recorded in `generation.policy`. | The player must accept every rules-valid puzzle. |
 | D9 | Piece count | K_mid = min(K60[L]·(A/60)^0.28, Kcap[L]); window ±max(0.75, 6 %); clamped to [⌈0.75·√A⌉, Kmax(A)]; integer counts filtered by histogram feasibility (§6.4). 360-cell hell-1 = 37–42. | Fits all four user examples; area-neutral at hell levels; monotone in A |
 | D10 | Difficulty formula | `difficulty-v3` (§7.10): score = base(U) + rule term (hardest deduction tier) + guess term (decisive guesses G and their information) − the few/many penalty, rounded once. `difficulty-v2` (D = round(2U + 8·log10(1 + B_eff)), B_eff = min(B, 5,000)) stays the legacy score of stored claims. | The score follows how people solve (plan §1.3, "make Hard really hard"): R and H stay stored diagnostics only. |
 | D11 | Search-effort estimator | The deduction solver of §7.9 under deterministic node, work and census caps; a capped path is unrateable. One canonical DLX traversal (5,000 branch trials or 50,000 row trials) stays as a stored diagnostic (B). | Deterministic, bounded cost; nothing is rated by a guess about a search that gave up |
 | D12 | Level bands | Geometric: e_L = round(10·1.45^(L−1.5)); Hell-n = level 6 + n, open-ended | Bands scale with the saturating score; ratio fitted to the user's examples |
 | D13 | Shown level | Always the level of the actual score, worded as an estimate. `difficulty-v3` scores are never saturated; an unfinished census is stored as `censored: true` and shown as an estimate; no "≥" display. | Honest labels |
-| D14 | Uniqueness | Default: any valid completion. "Require unique solution" needs an exhaustive raw-coordinate proof; standard for A ≤ 200 or below Hell, experimental otherwise. Certificates are lazy (§6.11). | The user did not require uniqueness; never claim an unproved fact. Certificates took ≈ 35 % of batch CPU at hell levels and were almost never conclusive above 200 cells. |
+| D14 | Uniqueness | Default: any valid completion. "Require unique solution" needs an exhaustive raw-coordinate proof; standard for A ≤ 200 or below Hell, experimental otherwise. Under `mixed-v3` every offered level is below Hell, so it is standard wherever a level is offered; its large-board limitation is in §6.11. Certificates are lazy (§6.11). | The user did not require uniqueness; never claim an unproved fact. Certificates took ≈ 35 % of batch CPU at hell levels and were almost never conclusive above 200 cells. |
 | D15 | Piece-set acceptance | A set is ready only once a target-band calibration puzzle exists. The generator page stores only the level and uniqueness the set was made for (`calibrationFor`), not the calibration puzzle. | The unclued score is not a ceiling (A.9). |
 | D16 | Distinct puzzles | Strict: each puzzle needs a new full-layout key AND a new clue key. Preferred distance clamp(⌈K/4⌉, 3, 10), relaxed to a floor of 2, with a best-distance fallback. No clue-only variants; fewer puzzles are returned with an explanation. | The requirement says the arrangement must change. |
 | D17 | Layout discovery | Local LNS: one macro region (broadened every 8th step) or a 6–13-piece cluster; random restarts only up to 150 cells | Global re-tiling fails on large boards; local re-tiling of macro regions found 10 layouts in < 1 s at 360 cells. |
@@ -140,7 +140,7 @@ The main design decisions and why they were taken.
 | D32 | Size balance | Sizes in [max(3, ⌊0.6μ⌋), ⌈1.5μ⌉]; ≤ ⌊0.4K⌋ pieces of 3–4 cells; μ ≥ 4.5; exact histogram feasibility. There is no spread or large-piece rule. | Scales with μ (360-cell hard needs 12–34-cell pieces); 40 % keeps the user's 13-piece 60-cell master set possible. |
 | D33 | Set construction | Macro carving when μ ≥ 6.5 (regions of 3–6 pieces; 2–3 when K ≤ 12) with global shape-key exclusion; flat carving otherwise or as a fallback; independent validation of every witness | Flat-carved big-piece sets usually have one arrangement; macro sets gave 10 distinct layouts in both reproductions. |
 | D34 | Initial pre-placed count | G0 = clamp(round(g_L·K), 1, K−2); g_L = 0.62 − 0.08·L up to nightmare, hell-1 0.10, hell-2 0.06, hell-3+ 0.04; then searched. Count and fraction are both shown. | Monotone "many → few"; centres hell-1 at D ≈ 100 |
-| D35 | Level availability | Each level is offered on one contiguous area interval, frozen from the formula (§7.5). It is a preset policy, not a score ceiling. | Removes gaps caused by rounding; one authoritative table |
+| D35 | Level availability | Each level is offered on one contiguous area interval, frozen from the formula (§7.5). It is a preset policy, not a score ceiling. Under `difficulty-v3` no Hell level is offered: the present generator made none at the required rate on any board (check-list D39), a limit of its search rather than a proof that their bands are unreachable (PR-P2), check-list D36 (i), owner decision P-OD9. | Removes gaps caused by rounding; one authoritative table |
 | D36 | Board limits | 30 ≤ A ≤ 576, sides ≤ 32. Release default 484 until BQ-1 passes; phones 360 until BQ-3 passes; 577–676 only through `tools/generate.mjs` (the generator page has no large-board option); 677+ never. | 576 meets the 2-minute limit under the conservative factor only with lazy certificates and compact memory; 676 does not (A.10). |
 | D37 | Time policy | One budget per action: target 60 s (a qualification criterion), stop dispatching at 115 s, answer by 120 s with all accepted results. No "Try longer" option. | Matches the addendum's 2-minute hard limit |
 | D38 | Memory engineering | Compact model storage (flat typed arrays, no per-row objects), one reusable workspace per worker plus a scratch workspace, worker recycling when the set changes, pre-flight guards (≤ 600,000 rows, ≤ 5,000,000 nodes) and byte accounting | Per-row JS objects, not DLX links, dominated memory (A.10). |
@@ -362,7 +362,7 @@ export function arrowToGrid(theta: number, key: 'ArrowLeft' | 'ArrowRight' | 'Ar
 **`policy.js`** (§6.4, §8.3): limits, counts, sizes, score constants and budgets (data plus pure functions).
 
 ```ts
-export const POLICY_ID = 'mixed-v2';
+export const POLICY_ID = 'mixed-v3';
 export const LIMITS: Readonly<{
   minActive: 30; maxSide: 32;
   designMaxActive: 576;        // standard ceiling, enabled when BQ-1 passes (§8.7)
@@ -396,7 +396,7 @@ export const DEDUCE: Readonly<{ lookaheadWidth: 4; nodes: 30000; solutions: 8; w
 ```ts
 export type Level = { id: string; label: string; index: number; min: number; max: number; // band [min, max)
                       share: number;                       // initial clue share g_L
-                      areas: [number, number] };           // contiguous offered area interval (max may be Infinity)
+                      areas: [number, number] };           // contiguous offered area interval (either end may be Infinity; both = never offered)
 export function level(id: string): Level;                  // 'hell-7' etc. are generated on demand
 export function levelForScore(score: number): Level;
 export function offeredLevels(area: number): Level[];      // §7.5; ascending
@@ -723,13 +723,13 @@ export function textColorFor(hex: string): '#000000' | '#ffffff';   // WCAG rela
 4. Clues are fixed; the player places all other pieces.
 5. Every complete placement satisfying 1–4 wins.
 
-**Generation policy `mixed-v2`** (generator only; recorded in `generation.policy`):
+**Generation policy `mixed-v3`** (generator only; recorded in `generation.policy`):
 - every piece has ≥ 3 cells;
 - canonical keys are pairwise distinct;
 - pieces are hole-free;
 - the piece count, size window and small-piece cap follow §6.4, and level availability follows §7.5.
 
-Example: a hand-authored, verified 60-cell fixture (a 10 × 6 board). Hand-authored packs need not follow the generation policy; this one has a 10-cell piece, outside the `mixed-v2` window for K = 10.
+Example: a hand-authored, verified 60-cell fixture (a 10 × 6 board). Hand-authored packs need not follow the generation policy; this one has a 10-cell piece, outside the `mixed-v3` window for K = 10.
 - It has 10 pieces of sizes 4, 7, 10, 3, 5, 8, 6, 6, 5, 6, all distinct.
 - Its solution is the ownership map below; every piece is in its reference orientation.
 
@@ -834,7 +834,7 @@ Copy only whitelisted fields into newly created objects; this prevents prototype
   - `rating.model` (`difficulty-v3`; packs carrying `difficulty-v2` and `difficulty-v1` ratings are accepted and shown as claims);
   - `certificate.model` (`dlx-v1`);
   - `generation.algo` (`gen-v3`: macro/flat carving, local LNS, strict batch fold, centre-seeking clue selection of §6.10; packs made before it carry `gen-v2`; seeds reproduce only within one algo id);
-  - `generation.policy` (`mixed-v2`: size window, small-piece cap, count formula and availability of §6.4 and §7.5);
+  - `generation.policy` (`mixed-v3`: size window, small-piece cap, count formula and availability of §6.4 and §7.5; packs made before it carry `mixed-v2`, which differs only in availability);
   - `generation.rng` and `generation.seedScheme`.
 - Any change to a weight, cap, band, share, count parameter, availability interval, budget that alters results, traversal order or pruning requires a new id.
 
@@ -842,7 +842,7 @@ Copy only whitelisted fields into newly created objects; this prevents prototype
 
 ```json
 {
-  "app": "pentomino-generator/1.0.0", "algo": "gen-v3", "policy": "mixed-v2",
+  "app": "pentomino-generator/1.0.0", "algo": "gen-v3", "policy": "mixed-v3",
   "rng": "xoshiro128ss-v1", "seedScheme": "seed-sha256-v1",
   "setSeed": "K7Q2-9MXA-3FWD", "setLevel": "hard", "setAttempt": 2,
   "carving": "macro", "macroRegion": [0, 0, 1, 1, 1, 2, 2, 3, 3, 3],
@@ -1030,7 +1030,7 @@ Primitives, in y-down screen coordinates:
   - Example in a 900 × 500 px area: 6 × 10 at 0° gives 64 px (clamped); at 45° it gives 40 px.
 - **Small screens.** Below 14 px the board container scrolls; zoom buttons cover 14–64 px.
 
-### 6.4 Piece count and size policy (`mixed-v2`)
+### 6.4 Piece count and size policy (`mixed-v3`)
 
 **Fixed rules:**
 - every generated piece has ≥ 3 cells, is edge-connected and hole-free, and has a unique canonical key;
@@ -1054,8 +1054,8 @@ pieceCountRange(L, A) = null if L is not offered at A (§7.5),
 ```
 
 - **Exponent 0.28.** Fitted to the measured score landscape (A.10): smaller pieces on smaller boards cause more search, so a level needs fewer pieces there.
-- **Kcap.** Beyond about 25 pieces to place, the score is ≈ 2U + 30 on any board (§7.2), so the count a Hell band needs no longer grows with area.
-- **Checks against the user's examples:** 60 cells → easy 7–8, master 12–13; 360 cells → hard 16–18 (the lowest level offered there), hell-1 37–42.
+- **Kcap.** Beyond about 25 pieces to place, the score is ≈ 2U + 30 on any board (§7.2), so the count a Hell band needs no longer grows with area. Under `mixed-v3` no Hell level is offered (§7.5), so `pieceCountRange` is null for it and no request reaches a Hell cap; the formula and the caps stay as the record of the ladder.
+- **Checks against the user's examples:** 60 cells → easy 7–8, master 12–13; 360 cells → hard 16–18 (the lowest level offered there), hell-1 37–42 (the formula's count; hell-1 is not offered under `mixed-v3`).
 - The histogram filter removed no value in the offered windows (checked over all areas 30–676).
 
 **(b) Size window and small pieces** — `sizeWindow`, `histogramFeasible`, `planSizes`.
@@ -1506,7 +1506,8 @@ optional: try removing the added clues one by one (random order), keeping unique
   - certificates never delay or change acceptance, and they are excluded from the action's time measurements ("first ten usable puzzles" and "certificates settled" are reported separately);
   - a new job or Cancel terminates pending certificate tasks (Play does not); their puzzles keep `certificate: null`, shown as "Uniqueness not checked".
 - **`require`** (the "Require unique solution" switch of step 3; it also applies to New piece set). Only puzzles proven `unique` by `makeUnique` are accepted. A repaired clue set whose clue key is already used (`excludeClueKeys`) is rejected and the next candidate is tried (§6.10). So is a repair whose rating is unrateable (`IncompleteRatingError`) or, for a Hard-or-above target, has `Gproved === 0`: it fails like an out-of-band repair.
-  - It is a standard option for A ≤ 200 or levels below Hell. Elsewhere step 2 shows N-UNIQUE-EXP ("experimental and usually fails"): above 200 cells, 639 of 670 Hell-level certificates were "not proved" (A.10).
+  - It is a standard option for A ≤ 200 or levels below Hell. Elsewhere step 2 shows N-UNIQUE-EXP ("experimental and usually fails"): above 200 cells, 639 of 670 Hell-level certificates were "not proved" (A.10). No Hell level is offered under `mixed-v3` (§7.5), so the notice cannot appear while that holds; it stays for a later policy.
+  - **Measured limitation under `difficulty-v3`.** With `require`, 18x20 Hard made 2 of 10 puzzles in its request (`partial`, `difficulty-not-found`: the repair of a Hard candidate almost always destroys its only decisive guess); Expert and Master made 10 of 10 (the calibration record `docs/difficulty-v3/calibration-2026-11-15.md` section 6 and section 13, item 7). The rule is unchanged: every cell made puzzles, so no owner question arose.
   - Macro-carved sets make multiple solutions common at some levels (e.g. 10 of 10 at 360-cell master, A.10), so `require` rejects more candidates there.
 - **Tie-break (MAY).** When several in-band candidates exist for one slot, prefer one already certified `unique`. Never spend extra search on this.
 - **Player.** Any valid complete placement wins, whatever the status. Certificates carried by a pack are shown with the generator's wording, without a "claimed" prefix; the Player does not recompute them.
@@ -1604,9 +1605,9 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
 
 | Level | very-easy | easy | normal | hard | expert | master | nightmare | hell-1 | hell-2 | hell-3 | hell-4 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| Offered for A in | 30–87 | 32–215 | 36–348 | 41+ | 50+ | 59+ | 81+ | 164+ | 266+ | 450+ | 744+ (never ≤ 676) |
+| Offered for A in | 30–87 | 32–215 | 36–348 | 41+ | 50+ | 59+ | 81+ | never | never | never | 744+ (never ≤ 676) |
 
-- Each interval runs from the first to the last area (scanned from A = 30, the minimum board) where Kmin(A) − 0.5 ≤ K_mid ≤ Kmax(A) and 2·(Kmax(A) − 1) + 30 ≥ e_L + 8 (the band is reachable with margin). Inside the interval, `pieceCountRange` always returns at least one K (§6.4).
+- Each interval runs from the first to the last area (scanned from A = 30, the minimum board) where Kmin(A) − 0.5 ≤ K_mid ≤ Kmax(A) and 2·(Kmax(A) − 1) + 30 ≥ e_L + 8 (the band is reachable with margin). Inside the interval, `pieceCountRange` always returns at least one K (§6.4). The formula gave hell-1 164+, hell-2 266+ and hell-3 450+; under `difficulty-v3` the three are withdrawn by the rule below (`levels.js: areas` is `[Infinity, Infinity]`, never offered).
 - Resulting range of levels:
 
   | Area | Lowest level | Highest level |
@@ -1615,16 +1616,14 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
   | 32–35 / 36–40 / 41–49 / 50–58 | very-easy | easy / normal / hard / expert |
   | 59–80 | very-easy | master |
   | 81–87 | very-easy | nightmare |
-  | 88–163 | easy | nightmare |
-  | 164–215 | easy | hell-1 |
-  | 216–265 | normal | hell-1 |
-  | 266–348 | normal | hell-2 |
-  | 349–449 | hard | hell-2 |
-  | 450–676 | hard | hell-3 |
+  | 88–215 | easy | nightmare |
+  | 216–348 | normal | nightmare |
+  | 349–676 | hard | nightmare |
 
 - Availability is a preset policy, not a score ceiling. For example, under `difficulty-v2` a 60-cell set with K = 13 and one clue can score 54 (nightmare) with a saturated B, but nightmare is not offered at 60 cells.
-- Levels outside a board's interval are shown disabled with the reason "needs a larger board" or "needs a smaller board".
-- **Reachability under `difficulty-v3` (D36; interim until the owner's decision at the calibration, MP12).** The reachability condition above is still the v2 bound `2·(Kmax − 1) + 30`. A capped rating gives no score (§7.3), so a set whose clue subsets are all unrateable ends `not-in-band` after 20 spent profiles. The measurements of `docs/difficulty-v3/d21-v3-2026-11-12.md` (seed `t18-big-a`) show where this happens. In three set attempts per cell, Hell 1 is made on its smallest board (164 cells: two attempts of three, calibration scores 93 and 103) but not on 20 × 20 (400 cells), and Hell 2 and Hell 3 are not made on their smallest boards (266 and 450 cells) or on the mid-size boards, where every subset that was rated lay above the band or was capped. Within the 2 to 14 attempts that fit in the capture limit, no set was made for 15 × 20 Hell 1 and Hell 2, 18 × 18 Hell 2, 22 × 22 Hell 1, 2 and 3, 32 × 15 and 24 × 24 Hell 3, while Nightmare completes 10 of 10 on 22 × 22 and 15 × 20. A request for a level that cannot be made ends with no puzzle (in the two-worker flow `N-NOSET` after the 115 s dispatch stop). The levels stay offered; the intervals are reviewed with the v3 calibration (§7.8).
+- Levels outside a board's interval are shown disabled with the reason "needs a larger board" or "needs a smaller board". A level that is offered on no board (hell-1 to hell-3 under `mixed-v3`) is not listed at all: the Generator lists Very easy to Nightmare.
+- **Hell availability under `difficulty-v3` (check-list D36 (i), owner decision P-OD9; rule D39).** A capped rating gives no score (§7.3), so a set whose clue subsets are all unrateable ends `not-in-band` after 20 spent profiles; the formula above is still the v2 reachability bound `2·(Kmax − 1) + 30`. A Hell level is therefore offered only where its 20-request run of the landscape completed ten in-band puzzles in at least 90 % of the requests, the criterion the other levels are held to (§7.8): the offered area runs from the smallest case that meets it to the end of the run of meeting cases, a case that does not meet it ends the offering there, and a Hell level that no case meets is offered nowhere (`[Infinity, Infinity]`). Hell 2 is offered only where Hell 1 is, and Hell 3 only where Hell 2 is (contiguity, D35). The measured result (`docs/difficulty-v3/calibration-2026-11-15.md` section 9 and `docs/difficulty-v3/availability-2026-11-15.md`): no case of Hell 1, Hell 2 or Hell 3 meets the criterion. Hell 1 made puzzles on three boards and completed 0 % of its 20 requests on 14×14 (196 cells), 0 % on 24×24 (576 cells) and 45.0 % on 26×26 (676 cells); its other nine cases and all thirteen cases of Hell 2 and Hell 3 made no puzzle in their three requests, every request ending at the 115 s set stage. So Hell 1, Hell 2 and Hell 3 are offered on no board up to 676 cells. Hell 4 remains `[744, Infinity]`; Hell 5+ remain `[Infinity, Infinity]`. This is a limit of the present clue search, which cannot rate the sets of these levels within its work cap, not a proof that their bands are unreachable under `difficulty-v3`; a later search is measured by the same rule. Packs and links made earlier that claim a Hell level still open, keep their claims and are re-rated for display (§7.7).
+- **No fail-fast (owner decision P-OD12).** No fail-fast is built (the calibration record section 10: every measured rule also stopped requests that would have succeeded). A calibration whose clue subsets are all unrateable still ends `not-in-band` after 20 spent profiles, and a set request whose attempts all end so runs to its time limit with no puzzle (in the two-worker flow `N-NOSET` after the 115 s dispatch stop).
 
 **Final parameter table.** One row per level and area band where the level is offered:
 - **K** is the union of `pieceCountRange` over the band;
@@ -1677,6 +1676,15 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
 | nightmare | 421–484 | 26–30 | 8–27 | 4 | n/m (≈ 10) | ≈ 45 |
 | nightmare | 485–576 | 27–32 | 9–31 | 4 | n/m (≈ 10) | ≈ 45 |
 | nightmare | 577–676 | 28–33 | 10–35 | 4–5 | n/m (≈ 10) | ≈ 45 |
+
+- **Evidence status.** The Node times were measured on prototypes with eager certificates and, for big-piece sets, flat carving with clue variants (A.10). The final pipeline (macro carving, strict layouts, lazy certificates, compact memory) MUST be re-measured by §8.7 before any [BQ] limit is raised. Where both exist, the final pipeline was faster: 360-cell hard 0.3 s and hell-1 3.6–4.6 s (strict macro, 4 workers).
+- † Flat-carved, LNS-heavy outliers (μ ≈ 7). Macro carving (μ ≥ 6.5) replaces this regime.
+- Piece sizes on large boards at low levels reach 40–51 cells; the player's tray and labels handle this (§11.9).
+
+**Measured before difficulty-v3, no longer offered (D36 (i), P-OD9).** Hell 1, Hell 2 and Hell 3 are offered on no board (the availability above), so these 14 rows are history: the design-phase measurements and forecasts, kept as `RETIRED_REFERENCE_ROWS` in `tools/bench/calibration-reference.js`. Hell-1 was the slowest level at ≥ 421 cells in them (‡), which is why 576 needs BQ-1 and 577–676 stays experimental; which level is the slowest at the largest areas under `mixed-v3`, and whether 576 cells still need BQ-1, is for a later qualification (§8.7).
+
+| Level | Areas (cells) | K | Piece sizes | G0 | Node set + 10, max (s) | Browser plan (s) |
+|---|---|---|---|---|---|---|
 | hell-1 | 164–200 | 30–36 | 3–10 | 3–4 | 8.3 (14×14) | 38 |
 | hell-1 | 201–300 | 32–40 | 3–13 | 3–4 | 17.9 (16×16) | 77 |
 | hell-1 | 301–420 | 35–42 | 4–17 | 4 | 12.0 (18×18); K = 41: 7.6 | 53 |
@@ -1692,10 +1700,7 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
 | hell-3 | 485–576 | 73–86 | 3–12 | 3 | 23.6 (24×24) | 99 |
 | hell-3 | 577–676 | 76–90 | 4–13 | 3–4 | 11.5 (26×26) | 51 |
 
-- **Evidence status.** The Node times were measured on prototypes with eager certificates and, for big-piece sets, flat carving with clue variants (A.10). The final pipeline (macro carving, strict layouts, lazy certificates, compact memory) MUST be re-measured by §8.7 before any [BQ] limit is raised. Where both exist, the final pipeline was faster: 360-cell hard 0.3 s and hell-1 3.6–4.6 s (strict macro, 4 workers).
-- † Flat-carved, LNS-heavy outliers (μ ≈ 7). Macro carving (μ ≥ 6.5) replaces this regime.
-- ‡ With lazy certificates (estimate: set time + batch time × (1 − certificate share of batch CPU)); with eager certificates 117, 159 and 199 s. Hell-1 is the slowest level at ≥ 421 cells, which is why 576 needs BQ-1 and 577–676 stays experimental.
-- Piece sizes on large boards at low levels reach 40–51 cells; the player's tray and labels handle this (§11.9).
+- ‡ With lazy certificates (estimate: set time + batch time × (1 − certificate share of batch CPU)); with eager certificates 117, 159 and 199 s.
 
 ### 7.6 How the score drives generation
 
@@ -1734,8 +1739,8 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
 
 - `difficulty-v2` was final for release 1 and is now the legacy model (stored claims keep it, §7.2). The v3 parameters come from the initial fit (`docs/difficulty-v3/fit-2026-11-12.md`), the calibration slice (`docs/difficulty-v3/calibration-slice-2026-11-13.md`) and the full landscape, and are measured and locked in `docs/difficulty-v3/calibration-2026-11-15.md`. The values are those of `core/engine/policy.js` and `core/engine/clues.js`: `SCORE_V3` is `base { max: 12, scale: 3 }`, `rule [0, 0, 2, 3]`, `weights { G: 5, info: 0.5 }` and `penalty { few: 1, many: 2 }` (the tuple `12 / 3 / [0, 0, 2, 3] / G 5 / info 0.5 / (1, 2)`; `rule[3]` 2 to 3 and the few/many penalty (0, 0) to (1, 2) in the slice); `DEDUCE` has `lookaheadWidth` 4, `nodes` 30,000, `solutions` 8, `work` 760,000,000, `census` 80,000,000 (10,000,000 to 80,000,000 by owner decision P-OD7) and `memoryBytes` 33,554,432; `K60` and `SHARES` (`core/engine/policy.js`, `core/engine/levels.js`) are unchanged and `STALL_LIMIT` is 12 (§6.10). The bands and the availability table below were fitted to the user's four examples and to 3,458 measured `difficulty-v2` ratings (A.10).
 - **Measured with `difficulty-v3` on 16 boards** (105 cases, the calibration record sections 3 and 4). On every board the levels are strictly ordered by the median score of their accepted puzzles, and Hard and Expert complete 100 % of their requests; every non-Hell cell completes at least 90 % of its requests except seven (6x10 very easy 65 % and easy 85 %, and Nightmare on 12x12 85 %, 14x14 55 %, 15x15b10 55 %, 16x16 75 % and 15x20 75 %). Every accepted Hard-or-above puzzle has a proved decisive guess (RES-35). Outside Hell and Nightmare the slowest request completed ten puzzles in 28.4 s. No Hell case reaches 90 % of its requests (the best, Hell 1 on 26x26, 45 %; 22 of the 25 Hell cases made no puzzle in three requests); the levels offered because of that are decided in §7.5.
-- **Census estimates.** 31 of the 83 measured cells have more than 5 % of their accepted puzzles with an unfinished census, the rating then being an estimate (`censored`, §7.10); 20 are above 25 % (all 15 Nightmare cells, Master on 24x24 and 26x26, and Hell 1 where it made puzzles). They are listed with their shares in the record (section 5) and their puzzles carry the estimate note (§7.7). A generated Hard-or-above puzzle always has a proved decisive guess (§7.6), so an estimate can overstate a score but cannot invent the level's defining property. 18x20 master (11.0 %) and 10x10 master (7.0 %) were accepted by the owner (P-OD7, P-OD8).
-- **The lock.** The `difficulty-v3` rating (`SCORE_V3`, `DEDUCE`), the clue search (`gen-v3`, `STALL_LIMIT`), `K60` and `SHARES` are locked at the commit of MP12b2 (`difficulty-v3 MP12b2`); MP12b3 completes the lock with the availability decided by the owner (the Hell `AREAS`, P-OD9; the policy id and, when the owner agreed, the fail-fast and the population-R outcome), and from its commit on no rating or generated puzzle changes. Any later change of a weight, a cap, a band, an availability interval, a rule of the deduction ladder, the census, a counter, the clue search, `SHARES` or `K60` needs a new model, algorithm or policy id and a new qualification (RES-01).
+- **Census estimates.** 31 of the 83 measured cells have more than 5 % of their accepted puzzles with an unfinished census, the rating then being an estimate (`censored`, §7.10); 20 are above 25 % (all 15 Nightmare cells, Master on 24x24 and 26x26, and Hell 1 where it made puzzles). They are listed with their shares in the record (section 5) and their puzzles carry the estimate note (§7.7). A generated Hard-or-above puzzle always has a proved decisive guess (§7.6), so an estimate can overstate a score but cannot invent the level's defining property. 18x20 master (11.0 %) and 10x10 master (7.0 %) were accepted by the owner (P-OD7, P-OD8). The 17 cells above 25 % that are not Hell (all 15 Nightmare cells, Master on 24x24 and 26x26) were accepted by the owner at the unchanged census budget of 80 million, with the estimate note and the `censored` flag (P-OD13); the three Hell 1 cells are historical, Hell 1 being offered nowhere (§7.5).
+- **The lock.** The `difficulty-v3` rating (`SCORE_V3`, `DEDUCE`), the clue search (`gen-v3`, `STALL_LIMIT`), `K60` and `SHARES` are locked at the commit of MP12b2 (`difficulty-v3 MP12b2`); MP12b3 completes the lock with the availability decided by the owner (the Hell `AREAS`, P-OD9; the policy id `mixed-v3`; no fail-fast, P-OD12; `require` unchanged), and from its commit on no rating or generated puzzle changes. MP12b3 completed the lock: the Hell availability of §7.5 (P-OD9: no Hell level is offered on any board up to 676 cells), the policy id `mixed-v3`, no fail-fast (P-OD12; the limitation in §7.5) and `require` unchanged (population R made puzzles; the limitation in §6.11); from the commit `difficulty-v3 MP12b3` on, no rating and no generated puzzle changes. Any later change of a weight, a cap, a band, an availability interval, a rule of the deduction ladder, the census, a counter, the clue search, `SHARES` or `K60` needs a new model, algorithm or policy id and a new qualification (RES-01).
 - **Known limitation: one search order (R7).** The deduction uses one canonical search order and no median over several orders (SA2-Q-P06 (a), confirmed by the plan author in PR-P1). Under another tie order the decisive guesses of a puzzle can differ by up to 2 and its score by up to 12 points at Hard (13 at Master) in the calibration slice (`docs/difficulty-v3/calibration-slice-2026-11-13.md` §6.4), so a puzzle near a band edge could be labelled one level apart under another order. A given puzzle always gets the same rating, and the Generator aims at the band centre; a median of three orders would triple the rating cost (the calibration record, `docs/difficulty-v3/calibration-2026-11-15.md` section 13, item 6).
 - `tools/calibrate.mjs` (Node, 4 worker threads) re-runs the score landscape and the table above on the real engine:
   - report score distributions by U and area, and per (board, level) the in-band hit rate, the saturated share, rating cost and certificate outcomes, next to the `difficulty-v3` measures of the accepted puzzles of the cell: the v3 score distribution, the decisive guesses G and their information, `Cmax`, the hardest deduction tier, the solution counts, the share of census estimates (`censored: true`) and the Hard-or-above puzzles without a proved guess (always 0 by RES-35); the diagnostic samples that cannot be rated (`rating-incomplete`) are counted; records written before v3 (clue count `G`, no v3 fields) stay readable;
@@ -2110,14 +2115,14 @@ The [BQ] limits ship disabled and are enabled by changing `LIMITS` in `policy.js
 
 **Tests and acceptance criteria.**
 
-| Test | Enables | Platforms | Matrix (≥ 20 seeds per cell; ≥ 60 for hell-1 at the largest area) |
+| Test | Enables | Platforms | Matrix (≥ 20 seeds per cell) |
 |---|---|---|---|
-| BQ-0 | Release 1 at the default limits (484 desktop, 360 phones). Must pass before release. | Desktop: Chromium, Firefox and Safari on the reference machines; phones: the BQ-3 phones for boards ≤ 360 cells | Desktop: 22×22, 32×15, Heart N = 24 at 45° (432 cells) and an irregular 450–484-cell mask with holes × every offered level from hard upward; 6×10 and 12×12 at every offered level. Phones: 18×20 × hard, nightmare, hell-1, hell-2 |
-| BQ-1 | `releaseMaxActive` = 576 | Desktop only (the BQ-0 desktop browsers) | 24×24, 32×18 and an irregular 540–576-cell mask × hard, master, nightmare, hell-1, hell-2, hell-3 |
-| BQ-2 | Removes the "experimental" label from the large-board switch (577–676 cells; still opt-in, desktop only) | Desktop only (the BQ-0 desktop browsers) | 26×26, 32×21 and an irregular 640–676-cell mask × hard, master, nightmare, hell-1, hell-2, hell-3 |
-| BQ-3 | `phoneMaxActive` = 484 | Mid-range Android phone (Chrome) and a 2–3-year-old iPhone (Safari) | Heart N = 22 at 45° (363 cells) × hard, nightmare, hell-1, hell-2; 22×22 and an irregular 450–484-cell mask × hard, nightmare, hell-1, hell-2, hell-3 |
+| BQ-0 | Release 1 at the default limits (484 desktop, 360 phones). Must pass before release. | Desktop: Chromium, Firefox and Safari on the reference machines; phones: the BQ-3 phones for boards ≤ 360 cells | Desktop: 22×22, 32×15, Heart N = 24 at 45° (432 cells) and an irregular 450–484-cell mask with holes × every offered level from hard upward; 6×10 and 12×12 at every offered level. Phones: 18×20 × hard, nightmare |
+| BQ-1 | `releaseMaxActive` = 576 | Desktop only (the BQ-0 desktop browsers) | 24×24, 32×18 and an irregular 540–576-cell mask × hard, master, nightmare |
+| BQ-2 | Removes the "experimental" label from the large-board switch (577–676 cells; still opt-in, desktop only) | Desktop only (the BQ-0 desktop browsers) | 26×26, 32×21 and an irregular 640–676-cell mask × hard, master, nightmare |
+| BQ-3 | `phoneMaxActive` = 484 | Mid-range Android phone (Chrome) and a 2–3-year-old iPhone (Safari) | Heart N = 22 at 45° (363 cells) × hard, nightmare; 22×22 and an irregular 450–484-cell mask × hard, nightmare |
 
-- **Matrix rules.** Every board has 30 to (the limit being enabled) active cells and sides ≤ 32, and is tested only at levels offered at its area (§7.5). For example, hell-3 needs ≥ 450 cells, so it is never requested at 360 or 363 cells; "every offered level from hard upward" means hard–hell-2 at 432 cells and hard–hell-3 at 450–484 cells. Boards ≤ 360 cells on phones are covered by BQ-0.
+- **Matrix rules.** Every board has 30 to (the limit being enabled) active cells and sides ≤ 32, and is tested only at levels offered at its area (§7.5). For example, nightmare needs ≥ 81 cells, so it is never requested at 60 cells; "every offered level from hard upward" means hard–nightmare at 432–484 cells, because no Hell level is offered under `mixed-v3`. Boards ≤ 360 cells on phones are covered by BQ-0. The earlier rule of at least 60 seeds for hell-1 at the largest area has no subject while no Hell level is offered; which level is the slowest at the largest areas, and whether 576 cells still need BQ-1, is for a later qualification.
 
 Pass criteria, for **every** cell of the matrix and every listed browser:
 1. T10 median ≤ 60 s and p95 ≤ 115 s; no run answers later than 120 s;
@@ -2327,11 +2332,11 @@ Breakpoints: from 1360 px the panels are three columns (Puzzles | Main | Steps).
 
 ### 10.3 Step 2: Create piece set — level and seed
 
-- **Level table (main panel).** One row per listed level, Very easy … Hell 3, with the columns Level, Pieces, Piece size and Pre-placed for the current area: `pieceCountRange`, the size window and the initial pre-placed count g_L (§6.4, §7.4), as ranges such as "16–18".
+- **Level table (main panel).** One row per listed level, Very easy … Nightmare (a level that is offered on no board, Hell 1 to Hell 3 under `mixed-v3`, is not listed, §7.5), with the columns Level, Pieces, Piece size and Pre-placed for the current area: `pieceCountRange`, the size window and the initial pre-placed count g_L (§6.4, §7.4), as ranges such as "16–18".
   - Each number has a **?** button whose tooltip (`level-help.js`) shows the worked calculation, for example the piece-count target K60·(A/60)^0.28, its cap, spread and feasibility limits.
   - Levels not offered at this area stay listed, disabled, with "needs a larger board" or "needs a smaller board" (§7.5).
   - Clicking anywhere on an offered row selects its level. The table is disabled while a job runs.
-  - Under the table: N-UNIQUE-EXP when uniqueness is required at a Hell level above 200 cells, and the reason when the board cannot get a set.
+  - Under the table: N-UNIQUE-EXP when uniqueness is required at a Hell level above 200 cells (not shown while no Hell level is listed), and the reason when the board cannot get a set.
 - **Settings (step frame).**
   - **Seed** text field (placeholder "Leave empty for a random seed") with ✕ to clear it and 🎲 to draw a random seed into it (§8.6). An invalid seed (more than 64 code points) shows "Enter a seed of 1–64 characters, or clear the field for a random seed."
   - **New piece set** starts the set job (§6.5, §8.2) with the board, the selected level, the uniqueness switch of step 3 and the seed. It is disabled while a job runs, while the board cannot get a set or the level is not offered, and when the board already has 50 sets (a warning then asks to remove a set first).
@@ -2410,7 +2415,7 @@ Texts live in `generator/locale.en.js` (every key) and `generator/locale.vi.js` 
 | N-LARGE | Step 1 status | "Large board: generation can take up to 2 minutes." |
 | N-SMALL | Step 1 status, step 3 | "A board needs at least 30 playable squares to generate puzzles." |
 | N-CAP | Step 1 status, step 3 | "This board has {area} playable squares; the limit on this device is {max}." |
-| N-UNIQUE-EXP | Step 2 | "On large Hell puzzles, “Require unique solution” is experimental and usually fails." |
+| N-UNIQUE-EXP | Step 2 | "On large Hell puzzles, “Require unique solution” is experimental and usually fails." (not shown while no Hell level is listed) |
 | N-NOSET | Outcome | "Couldn't create a {level} piece set for this board within the time limit. Try again, choose another level, or change the board." |
 | N-DUPSET | Outcome | "This piece set is the same as Set {n} in the list, so it was not added. Showing Set {n}." |
 | N-PARTIAL | Outcome (`time-limit`) | "Found {n} of {q} different {level} puzzles within the time limit. The piece set was not changed." |
@@ -2863,8 +2868,8 @@ jobs:
 | `workspace` | Buffers grow and are reused (no reallocation for a smaller model). `countModel` equals the built model's rows and nodes. The guards throw `model-too-large` above 600,000 rows or 5,000,000 nodes, before any large allocation. |
 | `dlx` | Knuth's small example. Limits unwind and restore (two solves give identical results). `branchTrials` excludes forced rows. Seeded solutions are valid covers. Results are identical with a fresh and a reused workspace. |
 | `tiling` | Golden pentomino counts: 3×20 → 8 (fast); 4×15, 5×12, 6×10 (slow). Blocked cells and clues. Certificate statuses, including a cutoff → `not-proved`. Symmetric pieces are not double-counted; mirrored raw solutions count as distinct. A small brute-force oracle agrees on random tiny instances. `lnsStep` returns a valid, different layout that changes only the cluster. |
-| `policy` | `kMin`/`kMax` and `minAreaForCount` tables (§6.4). `pieceCountRange` reproduces the anchor rows: 60 → very-easy 6–7, easy 7–8, normal 8–9, hard 9–11, expert 11–12, master 12–13; 360 → hard 16–18, expert 18–20, master 20–23, nightmare 25–28, hell-1 37–42, hell-2 50–56; 484 → hell-3 73–80; 676 → hell-3 80–90. Not-offered levels return null. `histogramFeasible` agrees with a brute-force DP on random (A, K). `planSizes` output always satisfies the window, availability and small cap, and sums to A. |
-| `levels` | Band edges 0, 8, 12, 17, 25, 37, 53, 77, 112, 162, 235, 341. `levelForScore` boundaries, including generated Hell-n. Availability intervals (§7.5) and their contiguity for A = 30..676; `pieceCountRange` is non-empty everywhere inside them. |
+| `policy` | `kMin`/`kMax` and `minAreaForCount` tables (§6.4). `pieceCountRange` reproduces the anchor rows: 60 → very-easy 6–7, easy 7–8, normal 8–9, hard 9–11, expert 11–12, master 12–13; 360 → hard 16–18, expert 18–20, master 20–23, nightmare 25–28. Not-offered levels return null, and so do hell-1 to hell-3 at every area up to 676 (retired, §7.5); `POLICY_ID` is `mixed-v3`. `histogramFeasible` agrees with a brute-force DP on random (A, K). `planSizes` output always satisfies the window, availability and small cap, and sums to A. |
+| `levels` | Band edges 0, 8, 12, 17, 25, 37, 53, 77, 112, 162, 235, 341. `levelForScore` boundaries, including generated Hell-n. Availability intervals (§7.5), where hell-1 to hell-3 are `[Infinity, Infinity]` (offered on no area from 30 to 676), and their contiguity for A = 30..676; `pieceCountRange` is non-empty everywhere inside them. |
 | `carve` | 50 seeds × (6×10, 8×10, Heart-75, Ring-60, 18×20 at hard): exact partition, distinct keys, sizes inside the window, connected, hole-free, small-piece cap respected. Macro carving at μ ≥ 6.5 on 6×10 (K = 8) and 18×20 (K = 18) yields sets with ≥ 2 layout keys in ≥ 90 % of seeds. After a macro partition fails, the next one starts with no pieces, no shape keys and the full small-piece budget ⌊0.4·K⌋. `validateSet` rejects each injected defect (overlap, hole, duplicate shape, size outside the window). The same seed gives the same set. |
 | `keys` | Layout keys are invariant under board symmetries, so reflected layouts are duplicates. A clue-only change is not a new layout. Distance values. `progressFingerprint` differs for reflected clues (A.9 counterexample). |
 | `difficulty` | Worked examples of §7.2 (`scoreV2`, `measureV2`, `rateV2`: the v2 names keep the v2 values as legacy). Saturation at 5,000 branch trials and at 50,000 row trials (effective B = 5,000, actual counters stored), through `measureV2`. Permuting ids, colors or piece order leaves the rating unchanged (`rate`). Forced-placement fixture: a puzzle solvable without branching scores 2U under v2 [PT]. `measureV3` (§7.10): the 28 metrics in the `MetricsV3` order with owned `rules`; the zero metrics and the refusal of an invalid full layout; a forced placement; two pieces of one shape (engine total); a capped path (`IncompleteRatingError`, `node-cap` and `work-cap`); an unfinished census on a 41-piece strip (an estimate, `censusComplete` false, never an error) and a census cut to 0; the DLX caps (the deduction fields and the score do not change, `B` stays 5,000); every claim made from these metrics accepted by the strict pack reader. `rate` (§7.10): the key order `model`, `score`, `level`, `saturated`, `metrics` with the metrics and score of `measureV3` and `scoreV3` (forced and seven-clue inputs); the zero rating (also as JSON text); the census estimate on the 41-piece strip (`censored: true`, key order with `censored`, `saturated: false`, `Gproved` 0, returned at Hard or above); unsatisfiable clue sets refused; the v2 worked examples are kept as legacy. |
@@ -2924,7 +2929,7 @@ Run on desktop Chromium, Firefox and Safari, on Android Chrome and on iOS Safari
 
 - Performance is qualified by the browser tests of §8.7 (BQ-0 before release; BQ-1 to BQ-3 to raise limits), not by CI.
 - `tools/calibrate.mjs` re-checks the score landscape and the §7.5 table on the real engine (§7.8).
-- A nightly or manual job MAY re-run a small Node benchmark subset (60, 360 and 484 cells at hard and hell-1) to catch regressions of more than 25 %.
+- A nightly or manual job MAY re-run a small Node benchmark subset (60 cells at Hard; 360 and 484 cells at Hard and Nightmare) to catch regressions of more than 25 %.
 
 ---
 
@@ -2963,7 +2968,7 @@ L = likelihood, I = impact.
 4. Tight boards with few distinct layouts: return a partial batch, with N-ARRANGEMENTS when the arrangements were counted to the end, else N-LAYOUTS-UNUSED, N-LAYOUTS-LEFT or N-FEWLAYOUTS. Never pad it with clue-only variants.
 5. Symmetric boards: duplicates under symmetry are rejected by key. Uniqueness counts raw coordinates.
 6. Symmetric pieces: their rows are deduplicated and `canonicalT` is stored.
-7. `require` at Hell levels on large boards usually fails: N-UNIQUE-EXP before, N-UNIQUE with the partial result after.
+7. `require` at Hell levels on large boards usually fails: N-UNIQUE-EXP before, N-UNIQUE with the partial result after. No Hell level is offered under `mixed-v3` (§7.5), so this cannot happen while that holds; below Hell, `require` on a large board can still end `partial`, as 18x20 Hard does (2 of 10 puzzles; §6.11).
 8. Editing the board after a set exists switches to the sets of the new board (§10.2); nothing is discarded. Choosing another puzzle level in step 3 keeps the set; if it cannot reach that level, the request ends as `difficulty-not-found` with N-SETLEVEL.
 9. Cancelling a batch keeps the accepted puzzles; pending certificates stay "not checked".
 10. Packs from links:

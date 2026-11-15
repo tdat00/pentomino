@@ -19,9 +19,9 @@ rule for another outcome (a finite Hell interval, F1 or F2, the option (R-a)), i
 - **Hell areas (check-list D39; MP12b2's record §9).** No Hell case meets the completion criterion: the three cases
   that made puzzles completed 0 %, 0 % and 45 % of their 20 requests (`14x14-hell-1`, `24x24-hell-1`,
   `26x26-hell-1`), and the other 22 Hell cases are `reduced (P-OD9)`. So `AREAS` becomes `[Infinity, Infinity]` for
-  Hell 1, 2 and 3: every Hell level is **retired** (offered on no board, not listed). Hell 4 and beyond keep
-  `[744, Infinity]` (D39), above every board an app accepts (676 cells at most). The Generator lists the seven named
-  levels, Very easy to Nightmare. Your derivation (A1) must give exactly this, or you stop.
+  Hell 1, 2 and 3: each of them is **retired** (offered on no board, not listed). Hell 4 remains `[744, Infinity]`
+  (above every board an app accepts, 676 cells at most); Hell 5+ remain `[Infinity, Infinity]` (D39). The Generator
+  lists the seven named levels, Very easy to Nightmare. Your derivation (A1) must give exactly this, or you stop.
 - **The fail-fast: none (owner decision P-OD12; check-list D40).** Part B builds nothing: no `unrateable` result, no
   `FAIL_FAST_PROFILES`, no notice, no change of `clues.js`, `generate.js`, `types.js`, the client, `generator/jobs.js`
   or the locales, and no fail-fast test (`tests/clues.test.js` changes only as A7 says). The limitation is written in
@@ -168,7 +168,7 @@ else:
   AREAS[L] = [lo, hi]
 contiguity (D35, levels offered contiguously): AREAS[hell-2] = AREAS[hell-2] ∩ AREAS[hell-1],
   then AREAS[hell-3] = AREAS[hell-3] ∩ AREAS[hell-2]; an empty intersection is [Infinity, Infinity]
-Hell 4 and beyond: unchanged ([744, Infinity] never meets an area of 676 or less)
+Hell 4 remains [744, Infinity] (it never meets an area of 676 or less); Hell 5+ remain [Infinity, Infinity]
 ```
 
 Write a scratch script `tests/artifacts/MP12b3/derive.mjs` that reads the aggregate and prints, per level, the table
@@ -179,8 +179,9 @@ substitute for a 20-request run. **Expected (MP12b2's record §9):** no case of 
 `14x14-hell-1` 0 %, `24x24-hell-1` 0 %, `26x26-hell-1` 45.0 %, nine cases reduced; Hell 2 and Hell 3: every case
 reduced), so all three intervals are `[Infinity, Infinity]` before and after the contiguity step.
 
-**A2. `core/engine/levels.js`.** Write the three intervals into `AREAS` (Hell 1, 2 and 3 `[Infinity, Infinity]`; Hell 4
-keeps `[744, Infinity]`); nothing else in the file changes.
+**A2. `core/engine/levels.js`.** Write the three intervals into `AREAS` (Hell 1, 2 and 3 `[Infinity, Infinity]`).
+Hell 4 remains `[744, Infinity]`; Hell 5+ remain `[Infinity, Infinity]` (`levelAt`, beyond the table). Nothing else in
+the file changes.
 
 **A3. The policy id and two stale comments** (`core/engine/policy.js`). `POLICY_ID` becomes `'mixed-v3'` (design §5.4:
 "Any change to … availability interval … requires a new id"; `mixed-v2` was released with the old intervals; RES-01,
@@ -192,12 +193,12 @@ stay (a pinned `pieceCountRange` of an offered level does not move; the Hell cap
 
 **A4. The Generator's level list** (`generator/state.js`). `LISTED_LEVEL_IDS` follows its own definition, "levels the
 generator can ever offer (areas up to 676)": the named levels and each Hell level whose new interval contains an area
-from 30 to 676, in level order (a Hell level with `[Infinity, Infinity]` is not listed, as Hell 4 is not today). With
-the areas of A1 that is the seven named levels, `very-easy` to `nightmare`, and the comment ends "Very easy …
-Nightmare.". Write the frozen array by hand from the new `AREAS`. A stored `levelId` or a saved set's
-`calibrationFor` that names a level no longer listed is handled as any unlisted id today (the default level;
-`calibrationFor: null`); add no migration. Keep every locale key (`level.name.hell-1` to `hell-3` still name the
-levels of imported puzzles).
+from 30 to 676, in level order (a Hell level with `[Infinity, Infinity]` is not listed, just as Hell 4 at
+`[744, Infinity]` and Hell 5+ at `[Infinity, Infinity]` are not today). With the areas of A1 that is the seven named
+levels, `very-easy` to `nightmare`, and the comment ends "Very easy … Nightmare.". Write the frozen array by hand from
+the new `AREAS`. A stored `levelId` or a saved set's `calibrationFor` that names a level no longer listed is handled
+as any unlisted id today (the default level; `calibrationFor: null`); add no migration. Keep every locale key
+(`level.name.hell-1` to `hell-3` still name the levels of imported puzzles).
 
 **A5. The reference table and the landscape** (`tools/bench/calibration-reference.js`). `REFERENCE_ROWS` stays "the
 §7.5 table, row for row", now of offered bands only. For each Hell row with band `[aMin, aMax]` and its level's new
@@ -291,8 +292,9 @@ packs) reads `ok`, keeps its claim, is imported by the Generator as an Imported 
 (`docs/difficulty-v3/calibration-2026-11-15.md`).
 
 - `docs/design-detail.md`:
-  - §7.5 — the "Offered for A in" row (Hell 1, 2 and 3: never, `[Infinity, Infinity]`; Hell 4 as it is); the table
-    "Resulting range of levels" (the highest level is Nightmare from 81 cells on); the paragraph "Reachability under
+  - §7.5 — the "Offered for A in" row (Hell 1, 2 and 3: never, `[Infinity, Infinity]`; Hell 4 remains
+    `[744, Infinity]`; Hell 5+ remain `[Infinity, Infinity]`); the table "Resulting range of levels" (the highest
+    level is Nightmare from 81 cells on); the paragraph "Reachability under
     `difficulty-v3` (D36; interim …)" replaced by the rule of D39 and the measured result (per Hell level: no case met
     90 % of its requests; Hell 1 reached 45 % on 26x26 and 0 % on 14x14 and 24x24, and the 22 other Hell cases made no
     puzzle in their three requests; links to the record §9 and this task's record; stated as a limit of the present
@@ -482,7 +484,7 @@ the page runner copies and evidence, the TAP files) and the Edge profile `tests\
 
 | ID | Criterion | Evidence |
 |---|---|---|
-| MP12b3-T01 | `AREAS` equals the intervals of D39 computed from the aggregate in force (Hell 1, 2 and 3 `[Infinity, Infinity]`; Hell 4 `[744, Infinity]` unchanged), and they equal MP12b2's record §9 | `derive.mjs` output; the record |
+| MP12b3-T01 | `AREAS` equals the intervals of D39 computed from the aggregate in force (Hell 1, 2 and 3 `[Infinity, Infinity]`; Hell 4 remains `[744, Infinity]`; Hell 5+ remain `[Infinity, Infinity]`), and they equal MP12b2's record §9 | `derive.mjs` output; the record |
 | MP12b3-T02 | `POLICY_ID` is `mixed-v3`; `SCORE_V3`, `DEDUCE`, `K60`, `SHARES`, `STALL_LIMIT`, `deduce.js`, `difficulty.js` and `version.js` are unchanged; the stale `SCORE_V3` comment is gone | `git --no-pager diff` |
 | MP12b3-T03 | `LISTED_LEVEL_IDS` equals the levels offered on some area from 30 to 676 (a test): the seven named levels; the landscape keeps the 16 boards of `cd5d17f` and its matrix the 80 cases that are not Hell (A5); every BQ case is offered and only the cases no longer offered (all Hell cases: 13, 9, 9 and 8) were removed | tests; the record |
 | MP12b3-T04 | Only the tests of A7 and A8 changed, each as its row says and listed in the reply; no test was weakened beyond the stated contract change | the diff; the reply |
@@ -562,14 +564,14 @@ The rows of A7 (as contract changes), A8, and:
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (SA2 cross-review under D38: accept with fixes MPB3-01 and MPB3-02, both documentation, applied); **the lock is complete** (policy `mixed-v3`) |
+| Start | 2026-11-15 15:12:38 (+07:00) |
+| End | 2026-11-15 15:48:49 developer; 15:52-15:58 SA2 review; 15:59-16:04 fix round; orchestrator commit |
+| Duration | 36 min developer + 5 min fix round; about 6 min SA2 review; 7 locked invocations, 185.8 s command time, 741.3 s lock wait (longest 285.5 s) |
+| Model | claude-sonnet-5.5 (developer); gpt-6-astra (SA2 review); claude-opus-5.5 (pack author for the pack wording; orchestrator) |
+| Token usage | 182 model calls; 55,697,727 input tokens (54,704,685 cache reads); 157,429 output tokens |
+| AI credits | about 953 (developer) |
+| Verification | Start: HEAD `5ee9269`, clean tree, digest `34cea386…77918`, `gen-v3`/`mixed-v2`. Part A: the derivation reproduces the calibration record §9 (25 Hell case rows); `AREAS` Hell 1/2/3 `[Infinity, Infinity]` (were `[164,∞]`, `[266,∞]`, `[450,∞]`), Hell 4 `[744, Infinity]` and Hell 5+ `[Infinity, Infinity]` unchanged; `POLICY_ID` `mixed-v3`; `LISTED_LEVEL_IDS` seven levels; 14 Hell reference rows moved unchanged to `RETIRED_REFERENCE_ROWS` (`REFERENCE_ROWS` 56 -> 42; landscape 16 boards, 80 cases); BQ matrices minus their Hell cases (39 removed). Parts B and C not built (P-OD12; no population-R question); limitations written in design §7.5, §6.11, §14.2 and the record. GF-P2: `--replace` then `--check` OK, exactly two lines changed (`mixed-v2` -> `mixed-v3` in `generation-case.json` and `generated-sample-pack.json`), no puzzle changed. Tests: targeted 202/202, fixture-dependent 318/318, quick set 1,345/1,345, GA-P2 1,364/1,364, browser page `generator-editor` 29/29. Locked tree digest `f74c1cad…49ba`, versions `gen-v3`, `mixed-v3`, `xoshiro128ss-v1`, `difficulty-v3`. SA2 verified digests, matrix pruning, preserved fixtures and saved gate results. Orchestrator: `npm run check` OK after the fix round |
+| Acceptance | MP12b3-B01 to B05 and T01 to T07 pass. Record `docs/difficulty-v3/availability-2026-11-15.md` |
+| Issues & resolutions | Deviations accepted by SA2: the A8 test uses the frozen 24x24 Hell 1 `difficulty-v2` golden of `puzzlecode-v1.json` (no 20x20 Hell 2 pack exists); `SIX`/`FOUR` names kept with a comment; four additional design sentences that would otherwise contradict the code. Fixes: MPB3-01 (`design-detail.md`: "60 cells at Hard; 360 and 484 cells at Hard and Nightmare"), MPB3-02 (Hell 4 `[744, Infinity]` and Hell 5+ `[Infinity, Infinity]` stated in design §7.5, the record §2/§3.1 and the derivation footer; the pack wording corrected by the pack author in this task, check-list D39 and `clarifications-resolved.md`) |
+| Handoff | From this commit MP13a to MP17 must not change any rating or generated puzzle (check-list D35). Named items for MP17: the 60-seed BQ rule has no subject now (576-cell BQ-1 for a later qualification); the fail-fast limitation with the Nightmare cells completing below 90 %; 18x20 Hard `require` 2 of 10; the `N-LEVELS` "above" notice shows on no board of 81 cells or more; `N-UNIQUE-EXP` cannot appear while no Hell level is listed; `tools/calibrate.mjs --cases` and `tools/rate-probe.mjs --landscape` find no Hell case id; the P-OD13 census acceptance goes to the release notes |

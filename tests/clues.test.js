@@ -561,11 +561,9 @@ test('slow: a 15 x 20 Nightmare calibration (K = 24) is in band under v3 (D36: r
   assert.equal(set.calibration.clues.length, 3);
 });
 
-test('slow: an unrateable calibration ends not-in-band with no puzzle (D36)', () => {
-  const execution = { main: createWorkspace(MAIN_WORKSPACE_BYTES), scratch: createWorkspace(SCRATCH_WORKSPACE_BYTES) };
-  const set = setAttempt({ board: boardFromRows(Array(22).fill('#'.repeat(22))), rotation: 0, levelId: 'hell-3',
-    seedText: 't18-big-a', uniqueness: 'any', execution }, 0);
-  assert.deepEqual(set, { ok: false, reason: 'not-in-band' });
+test('a retired Hell level is refused at once: 22 x 22 hell-3 is not offered for 484 cells (D36, P-OD9; the real case is retired)', () => {
+  assert.throws(() => setAttempt({ board: boardFromRows(Array(22).fill('#'.repeat(22))), rotation: 0, levelId: 'hell-3',
+    seedText: 't18-big-a', uniqueness: 'any' }, 0), { name: 'RangeError', message: 'level hell-3 is not offered for 484 cells' });
 });
 
 // Unrateable and unproved candidates (design §6.10, RES-04, RES-35 / AR1). The scripted v3 ratings carry `Gproved`;

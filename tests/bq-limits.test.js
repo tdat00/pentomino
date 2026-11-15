@@ -103,14 +103,15 @@ describe('gate outcomes and limits', () => {
 });
 
 describe('level availability is independent of caps and gates', () => {
-  test('Heart 363 is never offered Hell-3; 484 and larger boards are', () => {
+  test('Heart 363 is offered Hard to Nightmare and no board from 30 to 676 cells is offered Hell-3 (P-OD9)', () => {
     const heart = offeredLevels(363).map((l) => l.id);
-    assert.deepEqual(heart, ['hard', 'expert', 'master', 'nightmare', 'hell-1', 'hell-2']);
-    assert.ok(!heart.includes('hell-3'));
-    for (const area of [466, 484, 558, 576, 658, 672, 676]) {
-      assert.ok(offeredLevels(area).some((l) => l.id === 'hell-3'), String(area));
+    assert.deepEqual(heart, ['hard', 'expert', 'master', 'nightmare']);
+    for (const area of [449, 466, 484, 558, 576, 658, 672, 676]) {
+      assert.equal(offeredLevels(area).some((l) => l.id === 'hell-3'), false, String(area));
     }
-    assert.equal(offeredLevels(449).some((l) => l.id === 'hell-3'), false);
+    for (let area = 30; area <= 676; area++) {
+      assert.equal(offeredLevels(area).some((l) => l.id === 'hell-3'), false, String(area));
+    }
   });
 
   test('generation code never reads the gates, limits or qualification', () => {
