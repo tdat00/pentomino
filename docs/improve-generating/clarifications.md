@@ -793,7 +793,35 @@ blind play comparison of the two populations. (b) is the conservative fallback.
   section), with `compare.json`, `c5/compare.json`, the arm folders `w760/` and `main/`, `verify-w760.md` and
   `verify-main.md`.
 
-Plan-author answer:
+Plan-author answer: **Neither (a) unconditionally nor (b). The two sources of the shift get two rules: (a) at
+the level of the set, for the owner to confirm (OD-P6), and (c5) for the screen. Plan version 2 carries both.**
+
+- *What defines the level.* The score band, the centre rule and AR1. The clue count was never part of the
+  contract, and `SHARES` was a v2-fitted starting point, not a target. On the sets today's search gives up on
+  there is no today's distribution to keep: PM4 found no in-band rating below +3 clues on its four 14x14 sets.
+  So `gen-v4` may serve a set at the lowest in-band count its call finds, also above today's distribution. (b)
+  is rejected: it keeps today's failures on 14x14, 15x15b10 and Hell 1, which the feature exists to remove.
+- *The owner must agree explicitly* (new OD-P6): "more given pieces at the same score" is user-visible on
+  Nightmare and Hell 1 (+1 to +3 clues at the median). I propose acceptance, ideally after a small blind play
+  comparison of the two populations on one cell. The score was validated on today's population; that comparison
+  is the only direct check, and no timing can replace it.
+- *The screen: (c5).* Against the same search without the screen, the screen may not move the accepted clue
+  count on the same set by more than a tolerance (first value: a median of 0.5 clues), and it must be faster.
+  `W_screen` becomes a table per level and area class (IG-P-Q09): none at the Hell levels; 190 M on Nightmare
+  at 196 to 324 cells; none by default on Nightmare up to 144 cells; undecided at 360 cells and more until both
+  arms have run. The 12x12 trade (x1.56 for +0.75 clues) is the owner's, with IG-P-Q12 (new OD-P7).
+- *(c4)* (probe one count below the first in-band hit before accepting) is a frozen-round arm. It is adopted
+  only if it costs less than 10 % of T10; it is not a condition of (a).
+- *(c1) is dropped:* a bound on the cell's median can hold on 14x14 only by serving fewer sets.
+- *Scope.* P1 to P5 run for Nightmare and the Hell levels only. Very easy to Master keep today's selection
+  inside `gen-v4`: no Master call enters the dead end, the paired T10 is x1.25 and x0.83, and 26x26 Master moved
+  one clue down. That removes the downward shift instead of bounding it.
+- *How the gains are read.* Per class, the arm that P2's table selects counts: with the screen on 14x14-like
+  cells (T10 8.9 s), without it on 12x12 (16.5 s) and Hell 1 (34.2 s) until the owner decides OD-P7. The
+  population stands beside every time in PM3, two-sided, and P4's table is fitted on the accepted population.
+- *Frozen round.* Both arms on every class with at least ten seeds on the headline cells, the (c4) arm, and the
+  re-rate-at-bracket-close variant (D-IG7). Option (b) proper is not measured: it is rejected on the grounds
+  above, not for want of a number.
 
 ---
 
@@ -925,7 +953,44 @@ the 115 s time limit; reported as an addendum here. IGP-07: the round's summary 
   `w760/26x26-hell-1.*`, `verify-w760.md`; MP12b1's prescreen
   `docs/difficulty-v3/landscape-v3-full/20x20-hell-1-s3-2026-11-14.json`.
 
-Plan-author answer:
+Plan-author answer: **1 (a). 2: neither (a) nor a decision now; no PM3 run for Hell 2 yet, and my position on
+the edge question is (ii). 3 (a).**
+
+1. **Hell 3: (a), not offered; the route is closed in this feature.** The best complete score is 47 to 84 points
+   short at the work cap, which more sets do not close. Packs cannot help either: a pack holds only puzzles the
+   canonical rating puts in the band. Reaching Hell 3 needs a change of the cap or the scale, which belongs to a
+   difficulty feature. The frozen PM1 drops the Hell 3 cells.
+2. **Hell 2.** Eight in-band ratings of 404, all within 7 points of Hell 1's top, none central, each with an
+   incomplete census, at 17 to 53 s of rating apiece: a "Hell 2" that is Hell 1's upper edge. My position is
+   (ii), only central or near-central puzzles, so Hell 2 stays unoffered on these observations. The edge question
+   is the owner's (OD-P3); I do not ask for it now. First the rest of PM1's tranche 1, reduced to the Hell 1 and
+   Hell 2 cells (new OD-P8), records Hell 2's central share. A PM3 run for Hell 2 follows only if central
+   ratings appear, or if the owner chooses (i); under (i) the route is packs, since live generation is not
+   expected to fit the budgets.
+3. **Hell 1 on 215 to 484 cells: (a).** They join phase 3's landscape, with OD-P4's gates unchanged (D39 and the
+   matching browser runs; 20 requests at 90 %). The three needs become requirements of `gen-v4` for the Hell
+   levels: leave the start count (P1, P3); P4's table filled from PM1's windows where today has no accepted
+   puzzle (about 0.35 of K given), not the walk from K - 8; no screen. IG-P-Q17's set-level rule decides whether
+   these cells can be offered at all, so OD-P6 comes first.
+
+One caution for the offer: in Node these cells take 34 to 43 s for ten puzzles, about 140 to 180 s by the
+browser planning rule. Hell 1 in the browser therefore needs P7 and P11 together at the upper end of their
+ranges, or progressive delivery (OD-P5); plan version 2, section 4.
+
+---
+
+## Plan version 2 (plan author, 2026-11-15)
+
+`plan.md` is revised to version 2 from the provisional round, as "Next actions" 4 asked. Its section 0 gives the
+estimate against the measurement and the changes; the audit addendum below is taken into it. In short:
+
+- **Better than estimated:** the search (P1, P3, P4, and P2 where it pays) on the failing Nightmare cells, and
+  the Hell 1 windows. **As estimated:** Hell 1 26x26 and 26x26 Nightmare. **Worse:** P6 against the plan's
+  figure, P8, the first phase as a whole, Master (no gain), Hell 2 and Hell 3.
+- **Changed:** P1 to P5 only at Nightmare and the Hell levels; `W_screen` as a table under (c5); the parallel P1
+  variant dropped; P8 demoted to an opt-in; P7 raised, with a spike in the frozen round; Hell 3 closed; phase 1
+  no longer has to precede `gen-v4`.
+- **Owner decisions now open:** IG-P-Q02 (due), OD-P5, OD-P6, OD-P7, OD-P8 (plan section 7).
 
 ---
 
