@@ -1095,3 +1095,146 @@ browser run, and 10x10 never at request level; PM1 tranche 1 at about 0.8 of abo
 two to six seeds per cell, so no usable p95 (the printed one is the maximum), and completion on three requests against
 OD-P4's 20 at 90 %; non-regression thin: of the cells that pass today, only 26x26 Nightmare and two of 16 Master cells.
 Which P1 to P5 numbers count, the screen's with its shift or the search without the screen, is IG-P-Q17's decision.
+
+---
+
+## Questions after plan version 2 (analysts, 2026-11-15)
+
+Raised by the analysts' review of plan version 2 and its section 9 addendum (`plan.md` at `240398f`); the joint
+report is `docs/improve-generating/plan-v2-joint-report.md`. Both analysts agree on all six questions; the line
+"From" names who raised each, by phase-1 number. They are needed before version 3; none needs a run to be answered.
+
+### IG-P-Q19: The admission statistics: rule (c5), "faster" and phase 0's non-regression
+
+*Blocks: P2's `W_screen` table, phase 0's gate and the frozen round's analysis plan. From: Astra (Q19) and Opus
+(Q21), merged.*
+
+**Question.** Rule (c5) admits the screen on a class when it moves the accepted clue count on the same set by at
+most 0.5 clues and is faster; phase 0's gate asks for "no regression on the passing cells". Which statistic is the
+0.5-clue tolerance (the median of per-set paired differences, a pooled puzzle statistic, or another)? What counts
+as faster (wall or CPU; median, mean or a paired ratio)? How do unmatched sets, incomplete requests and a different
+completion rate enter? What number is "no regression"?
+
+**Why it matters.** The provisional pairs are two to six seeds per cell; a rule fitted on the same population that
+judges it cannot be a gate, and a slow or failed arm must not vanish by conditioning on completed pairs.
+
+**Options.** (a) Pre-register matched set and seed units, a paired population statistic, a wall and a CPU
+statistic, and a separate completion test, and judge on a held-out population; (b) fit the thresholds from the
+frozen round's data.
+
+**Recommendation (Opus and Astra).** (a), with unmatched outcomes reported and the table or ranker frozen before
+the validation population is run.
+
+Plan-author answer:
+
+---
+
+### IG-P-Q20: The frozen round's population, order and budget
+
+*Blocks: the frozen manifest and its approval (OD-P10). From: Opus (Q20), widened by Astra (controls, staging).*
+
+**Question.** Will the headline confirmation use at least 20 independent seeds per cell (OD-P4's Hell protocol
+uses 20 requests; ten give only a maximum as p95)? Which final difficulty-v3 records may serve as native controls
+without leakage between fitting and validation? Is the staged content right: the per-set prior first, journal
+linkage, a scoped C1/C5 spike, and later diagnostics only where justified? What machine envelope and stopping
+rules apply?
+
+**Why it matters.** Section 5 asks for "at least ten seeds"; the frozen round is the first evidence that can carry
+a gate, and its size is several times the provisional round's 2.7 h.
+
+**Options.** (a) 20 seeds on the headline cells, a manifest priced after source preparation, pilots kept apart
+from gate evidence; (b) ten seeds as section 5 states.
+
+**Recommendation (Opus and Astra).** (a). A median-based estimate (Opus: about 5 to 9 h) is an indication, not an
+allocation; the provisional round's unused time is not carried over.
+
+Plan-author answer:
+
+---
+
+### IG-P-Q21: Hell 1 on 196 and 576 cells
+
+*Blocks: P4's Hell 1 table, the frozen PM3's Hell arms and phase 3's landscape. From: Opus (Q19); Astra agrees.*
+
+**Question.** Section 6 names Hell 1 on 215 to 676 cells and the frozen PM3 names 26x26 and 20x20 only. R28 found
+eligible in-band windows on 4 of 4 failing 14x14 sets and 3 of 4 failing 24x24 sets. Should 14x14 (196 cells)
+join the stated range, and should 14x14 and 24x24 receive named no-screen, prior-guided request-level arms?
+
+**Why it matters.** 24x24 lies inside the range but has no request-level arm; 14x14 lies outside it although its
+sets have windows. Neither is an offer before OD-P4's gates.
+
+**Options.** (a) Name both as candidate populations with request-level frozen arms; (b) 24x24 only; (c) neither.
+
+**Recommendation (Opus and Astra).** (a) as candidate populations, not inferred offers; 14x14 needs the range
+change, 24x24 only the arm.
+
+Plan-author answer:
+
+---
+
+### IG-P-Q22: What is new in the C2 / P5 arm?
+
+*Blocks: section 9.3's C2 and P5's design. From: Astra (Q20) and Opus (Q23), merged.*
+
+**Question.** The current scheduler already dispatches ordered speculative candidates (`generate.js:554`
+`dispatchOrder`, 12 attempts per slot; `generation-client.js:1057-1085` refills the pool and consumes through the
+fold), and the Hell runs started 14 to 21 batch calls for nine slots. Is C2 meant to change only the per-call
+budget or the prefetch policy, or to define a different candidate universe or selection rule?
+
+**Why it matters.** The batch's time is set by a few long successful calls (2.3 to 5.2 times the median call);
+spares consumed in a fixed order cannot bypass them without a per-call budget, and a new selection rule changes
+the algorithm's identity.
+
+**Options.** (a) A per-call work-budget arm (P5) against existing scheduling, with the dispatch, consume and
+discard linkage recorded and lost completions counted; (b) a bounded-prefetch variant with unchanged fold
+semantics; (c) a new selection rule with its own serial reference and identity.
+
+**Recommendation (Opus and Astra).** Remove C2's gain claim; (a) once IG-P-Q02 is decided, (b) only as a named
+variant.
+
+Plan-author answer:
+
+---
+
+### IG-P-Q23: Browser calibration and progressive promises
+
+*Blocks: OD-P5, OD-P7 and any numeric reserve under IG-P-Q02. From: Opus (Q22), corrected by Astra (D39's maximum).*
+
+**Question.** Section 4 applies `5 s + 4 x median` to Node medians; D39's planning records use the Node maximum
+(today's 26x26 Nightmare: maximum 35.8 s, about 148 s). Which rule does version 3 use, and will it fund a bounded
+early browser calibration before committing a set reserve or a replacement OD-P5 or OD-P7 promise, or keep the
+current defaults until phase 3?
+
+**Why it matters.** The factor decides Hell 1, 10x10 and 12x12, and neither rule is a browser measurement.
+
+**Options.** (a) A bounded early calibration of today's generator in a browser on a few offered cells; (b) keep
+the defaults and the strict criteria until phase 3.
+
+**Recommendation (Opus and Astra).** Label the median transform as a sensitivity; progressive presentation may
+proceed in principle, while any relaxation of the criteria waits for measurements and an explicit owner decision.
+(a) if the owner wants OD-P5 or OD-P7 decided before phase 3.
+
+Plan-author answer:
+
+---
+
+### IG-P-Q24: Is the Hell 2 and Hell 3 closure a scope decision?
+
+*Blocks: version 3's wording of the goal, P10 and OD-P9. From: Astra (Q21); Opus agrees.*
+
+**Question.** The targeted Hell 3 population (480 to 676 cells) found no rating in band in 201, and Hell 2 only 8
+of 404 at the band's edge. Other PM1 families hold canonical, census-estimated Hell 3 scores (179 and 165 at two
+and three clues on a 215-cell board) and central Hell 2 scores (146; 129 on a 144-cell board), outside the policy
+areas. Does the feature deliberately exclude those alternate board and piece-count populations, and should the
+remaining PM1 work inventory them from the existing records?
+
+**Why it matters.** Version 2 states that reaching Hell 3 "needs a change of the rating's cap or scale"; the
+records show a scope and resource limit, not that impossibility.
+
+**Options.** (a) Keep the release scope closed and correct the wording; (b) a data-only inventory of the alternate
+populations; (c) open a new generation route (needs its own approval and verification).
+
+**Recommendation (Opus and Astra).** (a) and (b); no new generation, pack claim or offer follows from these few
+census-estimated witnesses.
+
+Plan-author answer:
