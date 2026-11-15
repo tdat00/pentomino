@@ -88,9 +88,13 @@ stages, resumable between any two units of work:
 Self time per sample (the profile's `samples` and `timeDeltas`), attributed along two dimensions:
 
 - **Phase**, from the sample's stack (its ancestors in the profile tree): `census` when an ancestor is `runProbes`,
-  `settleCensus`, `probe` or `replayLadder`; else `dlx` when an ancestor is `solveFirst`; else `model` when an ancestor
-  is `buildModel`; else `search` when an ancestor is `measureDeduction`; else `other` (scoring, the harness, GC).
-  Shared functions (the ladder rules, `select`, `undo`) are thus charged to the phase they ran in.
+  `settleCensus`, `probe` or `replayLadder`; else `dlx` when an ancestor is `solveFirst` or any function of the `dlx`
+  category; else `model` when an ancestor is `buildModel` or any function of the `model` category; else `search` when
+  an ancestor is `measureDeduction`, `search` or `branch`; else `other` (scoring, the harness, GC). Shared functions
+  (the ladder rules, `select`, `undo`) are thus charged to the phase they ran in. The marker set was widened in IGP-06
+  (accepted in its review): V8 inlines `measureDeduction` into `measureV3` once the latter is hot, and the CPU profiler
+  does not report inlined frames, so `measureDeduction` alone left 99.9 % of a capped rating in `other`. Time in a
+  `deduce.js` function that no marker places stays in `other` and is reported as "unplaced engine time".
 - **Function** (name and file), and the categories `ladder` (`forcedColumn` to `ladder` and `colour`, `liveRowOf`,
   `overWork`), `state` (`select`, `kill`, `mark`, `undo`), `control` (`fewestColumn`, `listRows`, `branch`, `search`,
   `snapshot`, `keepPath`, `measureDeduction`, `result`, the census drivers), `model`, `dlx`, `gc` (`(garbage
@@ -204,14 +208,14 @@ repeats both checks.
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (pack author: IGP-06 ACCEPT, no fixes; the widened phase-marker set confirmed and recorded in this file) |
+| Start | 2026-11-15 06:47 (+07:00) |
+| End | 2026-11-15 07:26 developer; 07:31 author acceptance; orchestrator commit |
+| Duration | 39 min developer; locked invocations counted 337.3 s (dry 90.1 s, main 247.2 s); IGP-06-dev 89.6 s; priority waits about 189 s beyond the quiet period plus 269 s for the dev run, not counted; round counted 8,912 s of 10,800 s |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (pack author review, opus-ig); claude-opus-5.5 (orchestrator) |
+| Token usage | 104 model calls; 27,153,824 input tokens (26,751,493 cache reads); 195,362 output tokens |
+| AI credits | about 563 (developer) |
+| Verification | `tools/ig-proto/pm2.mjs`, `pm2-worker.mjs`, `plans/IGP-06.json`; evidence `docs/improve-generating/evidence/provisional/IGP-06/` (`pm2.md`, `pm2.json`). Corpus 6 calls, 113 ratings profiled (55 on 10x10, 58 on 12x12), each equal to its corpus rating; profiling in one supervised worker after the corpus; phase, category, phase x category and function tables sum to the rating time; the host reduction equals the worker's on 10 of 10 raw profiles; profiler overhead 1.021 (median 1.037); 100.1 % attributed, 0.0 % unplaced; `npm run check` passes; firewall 279 production files unchanged |
+| Acceptance | B01-B03, T01-T03 met (developer; confirmed by the pack author) |
+| Issues & resolutions | (1) Kernel (search plus census) 89-98 % of rating time: 10x10 whole k 96.3 %, 12x12 whole 95.7 %, 12x12 window complete 89.4 %; capped ratings about 99.8 % search. (2) P7 sensitivity (hypothetical): the kernel must be about 1.93-1.99x faster for a rating-time factor 1.87-1.91 (12x12 window complete 2.09-2.14x); with P6 and eight workers at about 1.0, the prototype's /1.9 rests on P7 alone; the R31 range for P7 stays 1.1-1.8. (3) DLX 2.1-3.8 % of today's call profiles, 10.2 % on 12x12 window complete. (4) Deviation 1 confirmed: V8 inlines `measureDeduction`, so the literal phase rule cannot work; markers widened to `measureDeduction`/`search`/`branch` and the `model`/`dlx` functions. Phase shares are firm; category and function shares depend on inlining and are indicative (12x12 `control` 14.6 %). (5) Other deviations accepted: every 10th rating also unprofiled (overhead), up to six corpus lanes (timings unused), JSON additions, a report-only `summarize` re-run naming both harness hashes (`00f7f23b…`, `9aa81ce5…`), deletion of a synthetic unlocked scratch folder only (rule made explicit in the check-list) |
+| Handoff | IGP-03h (last timed task; optional parts run since at least 20 min remain): for Hell 1 20x20, ten of n, T1/T10 or response against MP12b1's prescreen, clue shares, offsets, score positions and central share beside PM1's windows, locate probes per call, the first in-band count, the censored share. IGP-07: phase shares firm, categories indicative; R31 P7 range 1.1-1.8; machine time per task and dev run; the open questions (IG-P-Q02, Q17, Q18) with their rows |

@@ -57,7 +57,7 @@ The check-list §3. No lock is needed: nothing is rated or timed. No git.
 | R16, R18, R20 | `IGP-03/compare.json` (and IGP-01's re-ratings) | work per accepted puzzle per `W`; re-ratings per call and their work share; the arity-3 probes and its idealised bound |
 | R21 | `IGP-03/budgets.json` | `okBeyond` and `failedAbove` per budget |
 | R22, R23, R25, R26 | `IGP-04/compare.json`; for R23 also IGP-04's journals | P6 factor; the eight-worker upper bound, with the per-rating time ratio of twin calls B / C (one rating's slowdown at eight workers on this machine: 0.92, 0.80 and 0.78 in the IGP-04 review, computed as `compare.mjs` computes A / B) and the machine (cpu, logical cores); the projected first-phase factor; memory |
-| R24, R30 | `IGP-06/pm2.json` | kernel share and P7 sensitivity; phase and category shares |
+| R24, R30 | `IGP-06/pm2.json` | kernel share and P7 sensitivity, per profile class; phase and category shares. The phase shares are the firm figures (stack ancestry with IGP-06's widened markers, 0.0 % unplaced); the category and function shares depend on V8's inlining (on 12x12 Nightmare 14.6 % sits in `control`, mostly `measureDeduction`'s own time with its inlined callees), so they are labelled indicative |
 | R27, R28 | `IGP-05/pm1.json`; `IGP-05/families-<part>.jsonl`; `IGP-03h/compare.json` when its part 2 ran | in-band and eligible ratings per cell, with the share of them whose census was censored (after the IGP-05 review: 37 of part 1's 55, all 8 of Hell 2), beside MP12b1's censored share of accepted puzzles on the same level (on Hell 1 26x26, 134 of 134); failure classes; the request-level indication on Hell 1 20x20 without the screen |
 | R29 | `IGP-01/compare.json` and `IGP-05/pm1.json` | start-count capped shares |
 | R32 | `IGP-01/compare-r2.json`, `IGP-03/compare.json` | the population of the accepted puzzles per cell and arm (clue share p10 / median / p90, U, score position, central share), per `W` |
@@ -85,7 +85,9 @@ the prototype's factor: the likely value for every cell is E:F's (1.01 on 14x14 
 measured on the prototype), and the range is the smallest to the largest measured P6 × eight-worker factor (0.93 to
 1.53, today's search included). A:C's per-cell factors are shown beside as references for today's search, not as the
 prototype's. The record names the machine (16 logical cores) and the per-rating slowdown at eight workers. P7 is 1.3
-(range 1.1 to 1.8, or IGP-06's sensitivity range when it is narrower). The result is a low, likely and high value
+(range 1.1 to 1.8). IGP-06 does not narrow that range: it maps a kernel speed-up to rating time, and with the kernel
+at 89 to 98 % of rating time P7 is about the kernel speed-up itself; ÷1.9 on the prototype needs the kernel about 1.9
+to 2.1 times faster (IGP-06's needed speed-up for the factors 1.87 and 1.91). The result is a low, likely and high value
 labelled a Projection, shown beside the analysts' after-all values (Opus; Astra); it is never a measured or confirmed
 value. Eight workers stay an unadmitted upper bound. For 14x14 and 12x12 Nightmare the record adds the same Projection
 from IGP-03's no-screen arm (the T10 median of `IGP-03/w760`), labelled the population-keeping variant of IG-P-Q17's
@@ -96,7 +98,9 @@ addendum after IGP-03, and on Hell 1 26x26 from `IGP-03h/w760` when that follow-
 `node tools\ig-proto\summary.mjs --label <L> [--root <evidence folder>]` writes `<root>/summary.json` (`{ meta, rows: {
 '<R>': { quantity, estimate, measured, completion, kind, formula, record, verdict } }, laterRound: [ ... ] }`) and
 `<root>/summary.md` (the banner, then the table in the column order of the check-list §5, then the later-round list with
-its cost from IGP-05 and the skipped optional steps). `--root` defaults to `docs/improve-generating/evidence/<L>/`.
+its cost from IGP-05 and the skipped optional steps, then the round's counted machine time per task and debugging run
+from the `invocations.jsonl` files, and the open plan-author questions IG-P-Q02, IG-P-Q17 and IG-P-Q18 with the rows
+that bear on each). `--root` defaults to `docs/improve-generating/evidence/<L>/`.
 Exits 1 when a required record is missing (it names the task).
 
 ## Files to create/modify

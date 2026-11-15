@@ -336,6 +336,12 @@ admits them, and `verify-main`: about 6 minutes. In all about 16 minutes (alloca
 Records under `docs/improve-generating/evidence/provisional/IGP-03h/` (the arms, `verify-<arm>.json|md`,
 `compare.json|md`, `c5/compare.json|md`). Acceptance: IGP-03-T02 and T03 for these arms, the w760 journal check of §3,
 part 3's identity check, and the content of parts 1 to 3 in the comparisons.
+
+IGP-03h is the round's last locked task (check-list §7). Its reply gives, for part 2, what IG-P-Q18's addendum needs:
+ten of n, T1 and T10 (or the response) against MP12b1's prescreen; the accepted puzzles' clue shares, offsets, score
+positions and central share beside PM1's windows on the same cell; the locate probes per call and the count of the
+first in-band hit; and the share of accepted puzzles whose census was censored (R27).
+
 ## Execution log
 
 | Field | Value |

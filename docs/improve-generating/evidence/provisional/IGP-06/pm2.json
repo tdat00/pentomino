@@ -1,0 +1,1850 @@
+{
+  "meta": {
+    "format": "ig-proto-pm2",
+    "version": 1,
+    "task": "IGP-06",
+    "label": "provisional",
+    "labelText": "provisional (pre-freeze)",
+    "createdAt": "2026-11-15T00:25:23.259Z",
+    "source": {
+      "label": "rating-v3 runtime cd5d17f (worktree 0e1283e)",
+      "sourceDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "equalsMp12b1Source": true,
+      "firewall": "c617f9eab21d8cd3fb556784ba851972be68e3859002122dea9bfdac222d672e"
+    },
+    "harness": {
+      "harnessHash": "9aa81ce5351ad12b066d05f5c21a1e8a896c1515565e3f2a66cf9acc4aeef3a5",
+      "files": {
+        "tools/ig-proto/lib/budget.mjs": "fd931d9f44d1fc5bc481db2e2d2c99ed46790150ade8c62e836b729e11410801",
+        "tools/ig-proto/lib/calls.mjs": "e0173ff8975335cb0f2103fd0b8f00cd1793f0de633d3b87f51c587d7d49d20c",
+        "tools/ig-proto/lib/engine.mjs": "316f4d2c3feadd18c971bfaa7baab6c5f8c6991d1f2140e3e30300b1b3a07540",
+        "tools/ig-proto/lib/lane-worker.mjs": "7a705736a276ee17e07095526ae467d4ac62a26ccb5becc0e53cfcebcd158e24",
+        "tools/ig-proto/lib/lanes.mjs": "628e3f217541435c9065599ba5053231ea217fdd3bfeb9aaad76ab8eb936b235",
+        "tools/ig-proto/lib/paths.mjs": "6db4a7adeedf3500390cb84875667f44478dd8e486d6d55919149c2af6bede62",
+        "tools/ig-proto/lib/records.mjs": "c9f3b021096bb57a93445c8156e4cbf77654ee32128343359690508a42d5bf2c",
+        "tools/ig-proto/lib/sets.mjs": "66fecf6372dc30badd94f018b171e4bc12555426e446768dc4f6c29c443d7a2d",
+        "tools/ig-proto/lib/tree.mjs": "ff7ea5d67ad0dd40f1dc105e1584181b59078d4ca6392b9eb7b3078293068f83",
+        "tools/ig-proto/arm.mjs": "5fe5854f1fb183d6827b7c18f55bd5fc16de6206db4d73c7e1b7543f0aec2165",
+        "tools/ig-proto/boards.mjs": "656194b446de6345c5c7ce4b5d136cab4e0acd09d61e062bd3eb0640a986f53b",
+        "tools/ig-proto/budgets.mjs": "39a33e74aebe4b33d419ef9a77abd47d5fe2a37cf6c89188fde60e333b4e7b4d",
+        "tools/ig-proto/compare-r2.mjs": "7e468994174d7fb581763e329e7f36981eadf8dcbc6474aa399c54f81ae58262",
+        "tools/ig-proto/compare.mjs": "243862cbd3f5997a7d3ccb0e43f4fb8a318c3349fa8b640679d8811d6dea123c",
+        "tools/ig-proto/firewall.mjs": "cd60483c07622c5137c4b297e6bd1fa8334adedadcf167f6d5ead61cc735ff83",
+        "tools/ig-proto/fit-prior.mjs": "941b6ac19dab01dea1851b3aa34d952c9adc52e72e249be00185729a9cd6e88a",
+        "tools/ig-proto/identity.mjs": "8b9123dcfc0f31ba4d2c06b134544a6e219358d009ae5f935b49d9ac6febe1fc",
+        "tools/ig-proto/pm1.mjs": "eb5448500ed81ab97ebb92aad040bbaec781d3224587ce60ec9248a59e644177",
+        "tools/ig-proto/pm2-worker.mjs": "4e126db9770ebc7a056643541ce8fed3b82030cccc30b226ef5c343508269215",
+        "tools/ig-proto/pm2.mjs": "4e308b6f85cc2f2d9b1de3c48c929b96c3781c16341e0e558e84b58be8495d92",
+        "tools/ig-proto/pm4.mjs": "6b3a58e53ea3b56fe8c151dc97948aef0a73abe685ec094cc7ecb52b764f9b53",
+        "tools/ig-proto/run-task.ps1": "5d5bc46ee095e16315522f8bc6a2a47c5d8cc891ec151236d31e2652708a86ac",
+        "tools/ig-proto/self-test.mjs": "94f8d06aae3d62b72820bcc679089f57bcf5411816eab2429612d06c903bf7ce",
+        "tools/ig-proto/verify.mjs": "1d013ed389fd0f65922c3bd6f7559a8f5a431dbcd8a7fc3c27fccef7d07431eb",
+        "tools/ig-proto/data/boards-v1.json": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+        "tools/ig-proto/data/prior-v1.json": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133"
+      }
+    },
+    "trees": {
+      "base": {
+        "treeId": "13528b906a29ec6746bb05e0e83adda4197e9c1290eb8e8f43b993a214a138ac",
+        "copyDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+        "edits": [
+          "meta-1"
+        ],
+        "params": {
+          "variant": "base"
+        }
+      }
+    },
+    "machine": {
+      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "platform": "win32 10.0.26300 x64"
+    },
+    "invocations": {
+      "count": 2,
+      "nodeSeconds": 247.299,
+      "countedSeconds": 337.299,
+      "lockWaitSeconds": 278.728
+    },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\IGP-06.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  },
+  "samplingIntervalUs": 1000,
+  "run": {
+    "runId": "main",
+    "task": "IGP-06",
+    "seeds": [
+      "ig-pm2/10x10-nightmare/0",
+      "ig-pm2/10x10-nightmare/1",
+      "ig-pm2/10x10-nightmare/2",
+      "ig-pm2/12x12-nightmare/0",
+      "ig-pm2/12x12-nightmare/1",
+      "ig-pm2/12x12-nightmare/2"
+    ],
+    "harnessNote": "harness hash at the run's start 00f7f23bc0166707b51b69a3139f91c6293a4b471eee9b7387fbf111bcc89060, at the summary 9aa81ce5351ad12b066d05f5c21a1e8a896c1515565e3f2a66cf9acc4aeef3a5 (a report-only change)"
+  },
+  "corpus": {
+    "calls": 6,
+    "censored": 0,
+    "profiles": {
+      "10x10-nightmare": {
+        "call": 19,
+        "window": 36,
+        "complete": 53,
+        "capped": 2
+      },
+      "12x12-nightmare": {
+        "call": 22,
+        "window": 36,
+        "complete": 37,
+        "capped": 21
+      }
+    }
+  },
+  "cells": {
+    "10x10-nightmare": {
+      "ratings": {
+        "complete": 53,
+        "capped": 2
+      },
+      "censusIncomplete": 33,
+      "ratingMs": 55676.628,
+      "unplaced": {
+        "ms": 3.173,
+        "share": 0.000057
+      },
+      "phases": {
+        "search": {
+          "ms": 43693.76,
+          "share": 0.784777
+        },
+        "census": {
+          "ms": 9929.545,
+          "share": 0.178343
+        },
+        "model": {
+          "ms": 91.162,
+          "share": 0.001637
+        },
+        "dlx": {
+          "ms": 1843.333,
+          "share": 0.033108
+        },
+        "other": {
+          "ms": 118.828,
+          "share": 0.002134
+        }
+      },
+      "categories": {
+        "ladder": {
+          "ms": 33789.611,
+          "share": 0.60689
+        },
+        "state": {
+          "ms": 19681.639,
+          "share": 0.353499
+        },
+        "control": {
+          "ms": 155.228,
+          "share": 0.002788
+        },
+        "model": {
+          "ms": 71.248,
+          "share": 0.00128
+        },
+        "dlx": {
+          "ms": 1843.333,
+          "share": 0.033108
+        },
+        "gc": {
+          "ms": 9.735,
+          "share": 0.000175
+        },
+        "other": {
+          "ms": 125.834,
+          "share": 0.00226
+        }
+      },
+      "phaseByCategory": {
+        "search": {
+          "ladder": {
+            "ms": 27425.177,
+            "share": 0.49258
+          },
+          "state": {
+            "ms": 16131.039,
+            "share": 0.289727
+          },
+          "control": {
+            "ms": 137.544,
+            "share": 0.00247
+          },
+          "model": {
+            "ms": 0,
+            "share": 0
+          },
+          "dlx": {
+            "ms": 0,
+            "share": 0
+          },
+          "gc": {
+            "ms": 0,
+            "share": 0
+          },
+          "other": {
+            "ms": 0,
+            "share": 0
+          }
+        },
+        "census": {
+          "ladder": {
+            "ms": 6361.261,
+            "share": 0.114254
+          },
+          "state": {
+            "ms": 3550.6,
+            "share": 0.063772
+          },
+          "control": {
+            "ms": 17.684,
+            "share": 0.000318
+          },
+          "model": {
+            "ms": 0,
+            "share": 0
+          },
+          "dlx": {
+            "ms": 0,
+            "share": 0
+          },
+          "gc": {
+            "ms": 0,
+            "share": 0
+          },
+          "other": {
+            "ms": 0,
+            "share": 0
+          }
+        },
+        "model": {
+          "ladder": {
+            "ms": 0,
+            "share": 0
+          },
+          "state": {
+            "ms": 0,
+            "share": 0
+          },
+          "control": {
+            "ms": 0,
+            "share": 0
+          },
+          "model": {
+            "ms": 71.248,
+            "share": 0.00128
+          },
+          "dlx": {
+            "ms": 0,
+            "share": 0
+          },
+          "gc": {
+            "ms": 0,
+            "share": 0
+          },
+          "other": {
+            "ms": 19.914,
+            "share": 0.000358
+          }
+        },
+        "dlx": {
+          "ladder": {
+            "ms": 0,
+            "share": 0
+          },
+          "state": {
+            "ms": 0,
+            "share": 0
+          },
+          "control": {
+            "ms": 0,
+            "share": 0
+          },
+          "model": {
+            "ms": 0,
+            "share": 0
+          },
+          "dlx": {
+            "ms": 1843.333,
+            "share": 0.033108
+          },
+          "gc": {
+            "ms": 0,
+            "share": 0
+          },
+          "other": {
+            "ms": 0,
+            "share": 0
+          }
+        },
+        "other": {
+          "ladder": {
+            "ms": 3.173,
+            "share": 0.000057
+          },
+          "state": {
+            "ms": 0,
+            "share": 0
+          },
+          "control": {
+            "ms": 0,
+            "share": 0
+          },
+          "model": {
+            "ms": 0,
+            "share": 0
+          },
+          "dlx": {
+            "ms": 0,
+            "share": 0
+          },
+          "gc": {
+            "ms": 9.735,
+            "share": 0.000175
+          },
+          "other": {
+            "ms": 105.92,
+            "share": 0.001902
+          }
+        }
+      },
+      "top": [
+        {
+          "function": "select",
+          "file": "core/engine/deduce.js",
+          "category": "state",
+          "ms": 11153.388,
+          "share": 0.200324,
+          "phases": {
+            "search": 9102.78,
+            "census": 2050.608
+          }
+        },
+        {
+          "function": "ruleR4",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 9268.103,
+          "share": 0.166463,
+          "phases": {
+            "search": 7508.232,
+            "census": 1759.871
+          }
+        },
+        {
+          "function": "neighbourCell",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 5857.555,
+          "share": 0.105207,
+          "phases": {
+            "search": 4716.431,
+            "census": 1137.951,
+            "other": 3.173
+          }
+        },
+        {
+          "function": "undo",
+          "file": "core/engine/deduce.js",
+          "category": "state",
+          "ms": 4388.428,
+          "share": 0.07882,
+          "phases": {
+            "search": 3606.847,
+            "census": 781.581
+          }
+        },
+        {
+          "function": "kill",
+          "file": "core/engine/deduce.js",
+          "category": "state",
+          "ms": 4131.739,
+          "share": 0.07421,
+          "phases": {
+            "search": 3413.328,
+            "census": 718.411
+          }
+        },
+        {
+          "function": "ruleR5",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 3786.109,
+          "share": 0.068002,
+          "phases": {
+            "search": 3111.345,
+            "census": 674.764
+          }
+        },
+        {
+          "function": "ruleR8",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 3144.703,
+          "share": 0.056482,
+          "phases": {
+            "search": 2539.613,
+            "census": 605.09
+          }
+        },
+        {
+          "function": "gather",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 2903.772,
+          "share": 0.052154,
+          "phases": {
+            "search": 2355.699,
+            "census": 548.073
+          }
+        },
+        {
+          "function": "reachable",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 2194.139,
+          "share": 0.039409,
+          "phases": {
+            "search": 1834.097,
+            "census": 360.042
+          }
+        },
+        {
+          "function": "ruleR9",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 1387.734,
+          "share": 0.024925,
+          "phases": {
+            "search": 1085.496,
+            "census": 302.238
+          }
+        },
+        {
+          "function": "fillSums",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 1098.836,
+          "share": 0.019736,
+          "phases": {
+            "search": 892.562,
+            "census": 206.274
+          }
+        },
+        {
+          "function": "ruleR3",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 931.3,
+          "share": 0.016727,
+          "phases": {
+            "search": 772.369,
+            "census": 158.931
+          }
+        },
+        {
+          "function": "cover",
+          "file": "core/engine/dlx.js",
+          "category": "dlx",
+          "ms": 820.849,
+          "share": 0.014743,
+          "phases": {
+            "dlx": 820.849
+          }
+        },
+        {
+          "function": "uncover",
+          "file": "core/engine/dlx.js",
+          "category": "dlx",
+          "ms": 781.388,
+          "share": 0.014034,
+          "phases": {
+            "dlx": 781.388
+          }
+        },
+        {
+          "function": "queueCell",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 653.494,
+          "share": 0.011737,
+          "phases": {
+            "search": 537.124,
+            "census": 116.37
+          }
+        },
+        {
+          "function": "forcedColumn",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 580.934,
+          "share": 0.010434,
+          "phases": {
+            "search": 484.485,
+            "census": 96.449
+          }
+        },
+        {
+          "function": "labelPockets",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 564.55,
+          "share": 0.01014,
+          "phases": {
+            "search": 447.127,
+            "census": 117.423
+          }
+        },
+        {
+          "function": "ruleR6",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 468.363,
+          "share": 0.008412,
+          "phases": {
+            "search": 386.521,
+            "census": 81.842
+          }
+        },
+        {
+          "function": "findNecks",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 296.13,
+          "share": 0.005319,
+          "phases": {
+            "search": 233.229,
+            "census": 62.901
+          }
+        },
+        {
+          "function": "colour",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 252.029,
+          "share": 0.004527,
+          "phases": {
+            "search": 208.534,
+            "census": 43.495
+          }
+        },
+        {
+          "function": "ruleR7",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 147.303,
+          "share": 0.002646,
+          "phases": {
+            "search": 108.844,
+            "census": 38.459
+          }
+        },
+        {
+          "function": "solveFirst",
+          "file": "core/engine/tiling.js",
+          "category": "dlx",
+          "ms": 123.331,
+          "share": 0.002215,
+          "phases": {
+            "dlx": 123.331
+          }
+        },
+        {
+          "function": "liveRowOf",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 106.45,
+          "share": 0.001912,
+          "phases": {
+            "search": 82.161,
+            "census": 24.289
+          }
+        },
+        {
+          "function": "ladder",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 77.191,
+          "share": 0.001386,
+          "phases": {
+            "search": 56.671,
+            "census": 20.52
+          }
+        },
+        {
+          "function": "post",
+          "file": "node:inspector",
+          "category": "other",
+          "ms": 76.896,
+          "share": 0.001381,
+          "phases": {
+            "other": 76.896
+          }
+        },
+        {
+          "function": "deselect",
+          "file": "core/engine/dlx.js",
+          "category": "dlx",
+          "ms": 49.552,
+          "share": 0.00089,
+          "phases": {
+            "dlx": 49.552
+          }
+        },
+        {
+          "function": "select",
+          "file": "core/engine/dlx.js",
+          "category": "dlx",
+          "ms": 49.509,
+          "share": 0.000889,
+          "phases": {
+            "dlx": 49.509
+          }
+        },
+        {
+          "function": "fewestColumn",
+          "file": "core/engine/deduce.js",
+          "category": "control",
+          "ms": 45.184,
+          "share": 0.000812,
+          "phases": {
+            "search": 38.738,
+            "census": 6.446
+          }
+        },
+        {
+          "function": "branch",
+          "file": "core/engine/deduce.js",
+          "category": "control",
+          "ms": 43.213,
+          "share": 0.000776,
+          "phases": {
+            "search": 43.213
+          }
+        },
+        {
+          "function": "walk",
+          "file": "core/engine/placements.js",
+          "category": "model",
+          "ms": 40.575,
+          "share": 0.000729,
+          "phases": {
+            "model": 40.575
+          }
+        }
+      ],
+      "kernelShare": 0.963121,
+      "maxFactor": 27.115,
+      "p7Sensitivity": {
+        "2": 1.929,
+        "3": 2.794,
+        "1.25": 1.239,
+        "1.5": 1.473
+      },
+      "neededKernelSpeedup": {
+        "1.1": 1.104,
+        "1.3": 1.315,
+        "1.8": 1.857,
+        "1.87": 1.934,
+        "1.91": 1.979
+      },
+      "dlxShare": 0.033108,
+      "byClass": {
+        "call": {
+          "all": {
+            "ratings": 19,
+            "ratingMs": 26845.603,
+            "phases": {
+              "search": {
+                "ms": 20939.181,
+                "share": 0.779985
+              },
+              "census": {
+                "ms": 4801.322,
+                "share": 0.178849
+              },
+              "model": {
+                "ms": 44.54,
+                "share": 0.001659
+              },
+              "dlx": {
+                "ms": 1008.246,
+                "share": 0.037557
+              },
+              "other": {
+                "ms": 52.314,
+                "share": 0.001949
+              }
+            },
+            "kernelShare": 0.958835,
+            "maxFactor": 24.292,
+            "p7Sensitivity": {
+              "2": 1.921,
+              "3": 2.772,
+              "1.25": 1.237,
+              "1.5": 1.47
+            },
+            "neededKernelSpeedup": {
+              "1.1": 1.105,
+              "1.3": 1.317,
+              "1.8": 1.864,
+              "1.87": 1.943,
+              "1.91": 1.988
+            },
+            "dlxShare": 0.037557,
+            "unplacedShare": 0.000118
+          },
+          "complete": {
+            "ratings": 19,
+            "ratingMs": 26845.603,
+            "phases": {
+              "search": {
+                "ms": 20939.181,
+                "share": 0.779985
+              },
+              "census": {
+                "ms": 4801.322,
+                "share": 0.178849
+              },
+              "model": {
+                "ms": 44.54,
+                "share": 0.001659
+              },
+              "dlx": {
+                "ms": 1008.246,
+                "share": 0.037557
+              },
+              "other": {
+                "ms": 52.314,
+                "share": 0.001949
+              }
+            },
+            "kernelShare": 0.958835,
+            "maxFactor": 24.292,
+            "p7Sensitivity": {
+              "2": 1.921,
+              "3": 2.772,
+              "1.25": 1.237,
+              "1.5": 1.47
+            },
+            "neededKernelSpeedup": {
+              "1.1": 1.105,
+              "1.3": 1.317,
+              "1.8": 1.864,
+              "1.87": 1.943,
+              "1.91": 1.988
+            },
+            "dlxShare": 0.037557,
+            "unplacedShare": 0.000118
+          },
+          "capped": {
+            "ratings": 0
+          }
+        },
+        "window": {
+          "all": {
+            "ratings": 36,
+            "ratingMs": 28831.025,
+            "phases": {
+              "search": {
+                "ms": 22754.579,
+                "share": 0.789239
+              },
+              "census": {
+                "ms": 5128.223,
+                "share": 0.177872
+              },
+              "model": {
+                "ms": 46.622,
+                "share": 0.001617
+              },
+              "dlx": {
+                "ms": 835.087,
+                "share": 0.028965
+              },
+              "other": {
+                "ms": 66.514,
+                "share": 0.002307
+              }
+            },
+            "kernelShare": 0.967111,
+            "maxFactor": 30.405,
+            "p7Sensitivity": {
+              "2": 1.936,
+              "3": 2.815,
+              "1.25": 1.24,
+              "1.5": 1.476
+            },
+            "neededKernelSpeedup": {
+              "1.1": 1.104,
+              "1.3": 1.313,
+              "1.8": 1.85,
+              "1.87": 1.927,
+              "1.91": 1.971
+            },
+            "dlxShare": 0.028965,
+            "unplacedShare": 0
+          },
+          "complete": {
+            "ratings": 34,
+            "ratingMs": 23365.231,
+            "phases": {
+              "search": {
+                "ms": 17295.308,
+                "share": 0.740216
+              },
+              "census": {
+                "ms": 5128.223,
+                "share": 0.219481
+              },
+              "model": {
+                "ms": 43.313,
+                "share": 0.001854
+              },
+              "dlx": {
+                "ms": 835.087,
+                "share": 0.035741
+              },
+              "other": {
+                "ms": 63.3,
+                "share": 0.002709
+              }
+            },
+            "kernelShare": 0.959697,
+            "maxFactor": 24.812,
+            "p7Sensitivity": {
+              "2": 1.923,
+              "3": 2.776,
+              "1.25": 1.238,
+              "1.5": 1.47
+            },
+            "neededKernelSpeedup": {
+              "1.1": 1.105,
+              "1.3": 1.317,
+              "1.8": 1.863,
+              "1.87": 1.941,
+              "1.91": 1.986
+            },
+            "dlxShare": 0.035741,
+            "unplacedShare": 0
+          },
+          "capped": {
+            "ratings": 2,
+            "ratingMs": 5465.794,
+            "phases": {
+              "search": {
+                "ms": 5459.271,
+                "share": 0.998807
+              },
+              "census": {
+                "ms": 0,
+                "share": 0
+              },
+              "model": {
+                "ms": 3.309,
+                "share": 0.000605
+              },
+              "dlx": {
+                "ms": 0,
+                "share": 0
+              },
+              "other": {
+                "ms": 3.214,
+                "share": 0.000588
+              }
+            },
+            "kernelShare": 0.998807,
+            "maxFactor": 837.926,
+            "p7Sensitivity": {
+              "2": 1.998,
+              "3": 2.993,
+              "1.25": 1.25,
+              "1.5": 1.499
+            },
+            "neededKernelSpeedup": {
+              "1.1": 1.1,
+              "1.3": 1.3,
+              "1.8": 1.802,
+              "1.87": 1.872,
+              "1.91": 1.912
+            },
+            "dlxShare": 0,
+            "unplacedShare": 0
+          }
+        }
+      },
+      "reductionCheck": {
+        "rawProfiles": 5,
+        "equal": true
+      },
+      "sumCheck": {
+        "phases": 0,
+        "categories": 0,
+        "phaseByCategory": 0,
+        "functions": 0
+      },
+      "wallMs": 55601.194,
+      "idleMs": 0,
+      "samples": 34857
+    },
+    "12x12-nightmare": {
+      "ratings": {
+        "complete": 37,
+        "capped": 21
+      },
+      "censusIncomplete": 14,
+      "ratingMs": 86869.242,
+      "unplaced": {
+        "ms": 9.558,
+        "share": 0.00011
+      },
+      "phases": {
+        "search": {
+          "ms": 79286.792,
+          "share": 0.912714
+        },
+        "census": {
+          "ms": 3855.115,
+          "share": 0.044378
+        },
+        "model": {
+          "ms": 124.445,
+          "share": 0.001433
+        },
+        "dlx": {
+          "ms": 3475.446,
+          "share": 0.040008
+        },
+        "other": {
+          "ms": 127.444,
+          "share": 0.001467
+        }
+      },
+      "categories": {
+        "ladder": {
+          "ms": 43350.254,
+          "share": 0.499029
+        },
+        "state": {
+          "ms": 27125.805,
+          "share": 0.31226
+        },
+        "control": {
+          "ms": 12675.406,
+          "share": 0.145914
+        },
+        "model": {
+          "ms": 114.67,
+          "share": 0.00132
+        },
+        "dlx": {
+          "ms": 3475.446,
+          "share": 0.040008
+        },
+        "gc": {
+          "ms": 14.54,
+          "share": 0.000167
+        },
+        "other": {
+          "ms": 113.121,
+          "share": 0.001302
+        }
+      },
+      "phaseByCategory": {
+        "search": {
+          "ladder": {
+            "ms": 41445.092,
+            "share": 0.477097
+          },
+          "state": {
+            "ms": 26129.447,
+            "share": 0.300791
+          },
+          "control": {
+            "ms": 11712.253,
+            "share": 0.134826
+          },
+          "model": {
+            "ms": 0,
+            "share": 0
+          },
+          "dlx": {
+            "ms": 0,
+            "share": 0
+          },
+          "gc": {
+            "ms": 0,
+            "share": 0
+          },
+          "other": {
+            "ms": 0,
+            "share": 0
+          }
+        },
+        "census": {
+          "ladder": {
+            "ms": 1895.604,
+            "share": 0.021821
+          },
+          "state": {
+            "ms": 996.358,
+            "share": 0.01147
+          },
+          "control": {
+            "ms": 963.153,
+            "share": 0.011087
+          },
+          "model": {
+            "ms": 0,
+            "share": 0
+          },
+          "dlx": {
+            "ms": 0,
+            "share": 0
+          },
+          "gc": {
+            "ms": 0,
+            "share": 0
+          },
+          "other": {
+            "ms": 0,
+            "share": 0
+          }
+        },
+        "model": {
+          "ladder": {
+            "ms": 0,
+            "share": 0
+          },
+          "state": {
+            "ms": 0,
+            "share": 0
+          },
+          "control": {
+            "ms": 0,
+            "share": 0
+          },
+          "model": {
+            "ms": 114.67,
+            "share": 0.00132
+          },
+          "dlx": {
+            "ms": 0,
+            "share": 0
+          },
+          "gc": {
+            "ms": 0,
+            "share": 0
+          },
+          "other": {
+            "ms": 9.775,
+            "share": 0.000113
+          }
+        },
+        "dlx": {
+          "ladder": {
+            "ms": 0,
+            "share": 0
+          },
+          "state": {
+            "ms": 0,
+            "share": 0
+          },
+          "control": {
+            "ms": 0,
+            "share": 0
+          },
+          "model": {
+            "ms": 0,
+            "share": 0
+          },
+          "dlx": {
+            "ms": 3475.446,
+            "share": 0.040008
+          },
+          "gc": {
+            "ms": 0,
+            "share": 0
+          },
+          "other": {
+            "ms": 0,
+            "share": 0
+          }
+        },
+        "other": {
+          "ladder": {
+            "ms": 9.558,
+            "share": 0.00011
+          },
+          "state": {
+            "ms": 0,
+            "share": 0
+          },
+          "control": {
+            "ms": 0,
+            "share": 0
+          },
+          "model": {
+            "ms": 0,
+            "share": 0
+          },
+          "dlx": {
+            "ms": 0,
+            "share": 0
+          },
+          "gc": {
+            "ms": 14.54,
+            "share": 0.000167
+          },
+          "other": {
+            "ms": 103.346,
+            "share": 0.00119
+          }
+        }
+      },
+      "top": [
+        {
+          "function": "select",
+          "file": "core/engine/deduce.js",
+          "category": "state",
+          "ms": 15216.383,
+          "share": 0.175164,
+          "phases": {
+            "search": 14630.372,
+            "census": 586.011
+          }
+        },
+        {
+          "function": "ruleR4",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 14364.523,
+          "share": 0.165358,
+          "phases": {
+            "search": 13734.456,
+            "census": 630.067
+          }
+        },
+        {
+          "function": "measureDeduction",
+          "file": "core/engine/deduce.js",
+          "category": "control",
+          "ms": 11572.056,
+          "share": 0.133212,
+          "phases": {
+            "search": 11572.056
+          }
+        },
+        {
+          "function": "neighbourCell",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 6892.182,
+          "share": 0.07934,
+          "phases": {
+            "search": 6585.054,
+            "census": 297.57,
+            "other": 9.558
+          }
+        },
+        {
+          "function": "undo",
+          "file": "core/engine/deduce.js",
+          "category": "state",
+          "ms": 6115.57,
+          "share": 0.0704,
+          "phases": {
+            "search": 5890.277,
+            "census": 225.293
+          }
+        },
+        {
+          "function": "kill",
+          "file": "core/engine/deduce.js",
+          "category": "state",
+          "ms": 5787.442,
+          "share": 0.066622,
+          "phases": {
+            "search": 5602.388,
+            "census": 185.054
+          }
+        },
+        {
+          "function": "ruleR5",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 5769.169,
+          "share": 0.066412,
+          "phases": {
+            "search": 5547.169,
+            "census": 222
+          }
+        },
+        {
+          "function": "gather",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 3910.946,
+          "share": 0.045021,
+          "phases": {
+            "search": 3744.18,
+            "census": 166.766
+          }
+        },
+        {
+          "function": "ruleR8",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 3486.273,
+          "share": 0.040132,
+          "phases": {
+            "search": 3341.431,
+            "census": 144.842
+          }
+        },
+        {
+          "function": "reachable",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 2454.894,
+          "share": 0.02826,
+          "phases": {
+            "search": 2299.536,
+            "census": 155.358
+          }
+        },
+        {
+          "function": "ruleR9",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 2200.487,
+          "share": 0.025331,
+          "phases": {
+            "search": 2126.515,
+            "census": 73.972
+          }
+        },
+        {
+          "function": "uncover",
+          "file": "core/engine/dlx.js",
+          "category": "dlx",
+          "ms": 1791.602,
+          "share": 0.020624,
+          "phases": {
+            "dlx": 1791.602
+          }
+        },
+        {
+          "function": "cover",
+          "file": "core/engine/dlx.js",
+          "category": "dlx",
+          "ms": 1654.842,
+          "share": 0.01905,
+          "phases": {
+            "dlx": 1654.842
+          }
+        },
+        {
+          "function": "fillSums",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 1009.841,
+          "share": 0.011625,
+          "phases": {
+            "search": 962.839,
+            "census": 47.002
+          }
+        },
+        {
+          "function": "runProbes",
+          "file": "core/engine/deduce.js",
+          "category": "control",
+          "ms": 935.713,
+          "share": 0.010772,
+          "phases": {
+            "census": 935.713
+          }
+        },
+        {
+          "function": "ruleR3",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 642.287,
+          "share": 0.007394,
+          "phases": {
+            "search": 614.916,
+            "census": 27.371
+          }
+        },
+        {
+          "function": "labelPockets",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 512.232,
+          "share": 0.005897,
+          "phases": {
+            "search": 499.306,
+            "census": 12.926
+          }
+        },
+        {
+          "function": "queueCell",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 478.92,
+          "share": 0.005513,
+          "phases": {
+            "search": 451.332,
+            "census": 27.588
+          }
+        },
+        {
+          "function": "forcedColumn",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 418.868,
+          "share": 0.004822,
+          "phases": {
+            "search": 402.686,
+            "census": 16.182
+          }
+        },
+        {
+          "function": "ruleR6",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 386.336,
+          "share": 0.004447,
+          "phases": {
+            "search": 370.243,
+            "census": 16.093
+          }
+        },
+        {
+          "function": "findNecks",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 246.045,
+          "share": 0.002832,
+          "phases": {
+            "search": 242.845,
+            "census": 3.2
+          }
+        },
+        {
+          "function": "colour",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 212.515,
+          "share": 0.002446,
+          "phases": {
+            "search": 199.582,
+            "census": 12.933
+          }
+        },
+        {
+          "function": "ruleR7",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 141.404,
+          "share": 0.001628,
+          "phases": {
+            "search": 136.609,
+            "census": 4.795
+          }
+        },
+        {
+          "function": "liveRowOf",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 95.46,
+          "share": 0.001099,
+          "phases": {
+            "search": 93.796,
+            "census": 1.664
+          }
+        },
+        {
+          "function": "post",
+          "file": "node:inspector",
+          "category": "other",
+          "ms": 87.969,
+          "share": 0.001013,
+          "phases": {
+            "other": 87.969
+          }
+        },
+        {
+          "function": "ladder",
+          "file": "core/engine/deduce.js",
+          "category": "ladder",
+          "ms": 71.6,
+          "share": 0.000824,
+          "phases": {
+            "search": 39.527,
+            "census": 32.073
+          }
+        },
+        {
+          "function": "walk",
+          "file": "core/engine/placements.js",
+          "category": "model",
+          "ms": 56.69,
+          "share": 0.000653,
+          "phases": {
+            "model": 56.69
+          }
+        },
+        {
+          "function": "listRows",
+          "file": "core/engine/deduce.js",
+          "category": "control",
+          "ms": 43.39,
+          "share": 0.000499,
+          "phases": {
+            "search": 40.165,
+            "census": 3.225
+          }
+        },
+        {
+          "function": "fewestColumn",
+          "file": "core/engine/deduce.js",
+          "category": "control",
+          "ms": 40.331,
+          "share": 0.000464,
+          "phases": {
+            "search": 37.143,
+            "census": 3.188
+          }
+        },
+        {
+          "function": "search",
+          "file": "core/engine/deduce.js",
+          "category": "control",
+          "ms": 32.308,
+          "share": 0.000372,
+          "phases": {
+            "search": 32.308
+          }
+        }
+      ],
+      "kernelShare": 0.957093,
+      "maxFactor": 23.306,
+      "p7Sensitivity": {
+        "2": 1.918,
+        "3": 2.763,
+        "1.25": 1.237,
+        "1.5": 1.468
+      },
+      "neededKernelSpeedup": {
+        "1.1": 1.105,
+        "1.3": 1.318,
+        "1.8": 1.867,
+        "1.87": 1.946,
+        "1.91": 1.991
+      },
+      "dlxShare": 0.040008,
+      "byClass": {
+        "call": {
+          "all": {
+            "ratings": 22,
+            "ratingMs": 50212.858,
+            "phases": {
+              "search": {
+                "ms": 47554.665,
+                "share": 0.947062
+              },
+              "census": {
+                "ms": 1484.671,
+                "share": 0.029568
+              },
+              "model": {
+                "ms": 60.759,
+                "share": 0.00121
+              },
+              "dlx": {
+                "ms": 1055.771,
+                "share": 0.021026
+              },
+              "other": {
+                "ms": 56.992,
+                "share": 0.001135
+              }
+            },
+            "kernelShare": 0.976629,
+            "maxFactor": 42.788,
+            "p7Sensitivity": {
+              "2": 1.954,
+              "3": 2.866,
+              "1.25": 1.243,
+              "1.5": 1.483
+            },
+            "neededKernelSpeedup": {
+              "1.1": 1.103,
+              "1.3": 1.309,
+              "1.8": 1.835,
+              "1.87": 1.91,
+              "1.91": 1.953
+            },
+            "dlxShare": 0.021026,
+            "unplacedShare": 0.000127
+          },
+          "complete": {
+            "ratings": 6,
+            "ratingMs": 13522.556,
+            "phases": {
+              "search": {
+                "ms": 10951.214,
+                "share": 0.809848
+              },
+              "census": {
+                "ms": 1484.671,
+                "share": 0.109792
+              },
+              "model": {
+                "ms": 16.278,
+                "share": 0.001204
+              },
+              "dlx": {
+                "ms": 1055.771,
+                "share": 0.078075
+              },
+              "other": {
+                "ms": 14.622,
+                "share": 0.001081
+              }
+            },
+            "kernelShare": 0.91964,
+            "maxFactor": 12.444,
+            "p7Sensitivity": {
+              "2": 1.851,
+              "3": 2.585,
+              "1.25": 1.225,
+              "1.5": 1.442
+            },
+            "neededKernelSpeedup": {
+              "1.1": 1.11,
+              "1.3": 1.335,
+              "1.8": 1.935,
+              "1.87": 2.024,
+              "1.91": 2.075
+            },
+            "dlxShare": 0.078075,
+            "unplacedShare": 0
+          },
+          "capped": {
+            "ratings": 16,
+            "ratingMs": 36690.302,
+            "phases": {
+              "search": {
+                "ms": 36603.451,
+                "share": 0.997633
+              },
+              "census": {
+                "ms": 0,
+                "share": 0
+              },
+              "model": {
+                "ms": 44.481,
+                "share": 0.001212
+              },
+              "dlx": {
+                "ms": 0,
+                "share": 0
+              },
+              "other": {
+                "ms": 42.37,
+                "share": 0.001155
+              }
+            },
+            "kernelShare": 0.997633,
+            "maxFactor": 422.451,
+            "p7Sensitivity": {
+              "2": 1.995,
+              "3": 2.986,
+              "1.25": 1.249,
+              "1.5": 1.498
+            },
+            "neededKernelSpeedup": {
+              "1.1": 1.1,
+              "1.3": 1.301,
+              "1.8": 1.803,
+              "1.87": 1.874,
+              "1.91": 1.914
+            },
+            "dlxShare": 0,
+            "unplacedShare": 0.000174
+          }
+        },
+        "window": {
+          "all": {
+            "ratings": 36,
+            "ratingMs": 36656.384,
+            "phases": {
+              "search": {
+                "ms": 31732.127,
+                "share": 0.865664
+              },
+              "census": {
+                "ms": 2370.444,
+                "share": 0.064667
+              },
+              "model": {
+                "ms": 63.686,
+                "share": 0.001737
+              },
+              "dlx": {
+                "ms": 2419.675,
+                "share": 0.06601
+              },
+              "other": {
+                "ms": 70.452,
+                "share": 0.001922
+              }
+            },
+            "kernelShare": 0.930331,
+            "maxFactor": 14.354,
+            "p7Sensitivity": {
+              "2": 1.87,
+              "3": 2.633,
+              "1.25": 1.229,
+              "1.5": 1.45
+            },
+            "neededKernelSpeedup": {
+              "1.1": 1.108,
+              "1.3": 1.33,
+              "1.8": 1.915,
+              "1.87": 2,
+              "1.91": 2.05
+            },
+            "dlxShare": 0.06601,
+            "unplacedShare": 0.000087
+          },
+          "complete": {
+            "ratings": 31,
+            "ratingMs": 23761.182,
+            "phases": {
+              "search": {
+                "ms": 18860.884,
+                "share": 0.793769
+              },
+              "census": {
+                "ms": 2370.444,
+                "share": 0.099761
+              },
+              "model": {
+                "ms": 50.688,
+                "share": 0.002133
+              },
+              "dlx": {
+                "ms": 2419.675,
+                "share": 0.101833
+              },
+              "other": {
+                "ms": 59.491,
+                "share": 0.002504
+              }
+            },
+            "kernelShare": 0.89353,
+            "maxFactor": 9.392,
+            "p7Sensitivity": {
+              "2": 1.808,
+              "3": 2.473,
+              "1.25": 1.218,
+              "1.5": 1.424
+            },
+            "neededKernelSpeedup": {
+              "1.1": 1.113,
+              "1.3": 1.348,
+              "1.8": 1.99,
+              "1.87": 2.086,
+              "1.91": 2.142
+            },
+            "dlxShare": 0.101833,
+            "unplacedShare": 0.000067
+          },
+          "capped": {
+            "ratings": 5,
+            "ratingMs": 12895.202,
+            "phases": {
+              "search": {
+                "ms": 12871.243,
+                "share": 0.998142
+              },
+              "census": {
+                "ms": 0,
+                "share": 0
+              },
+              "model": {
+                "ms": 12.998,
+                "share": 0.001008
+              },
+              "dlx": {
+                "ms": 0,
+                "share": 0
+              },
+              "other": {
+                "ms": 10.961,
+                "share": 0.00085
+              }
+            },
+            "kernelShare": 0.998142,
+            "maxFactor": 538.22,
+            "p7Sensitivity": {
+              "2": 1.996,
+              "3": 2.989,
+              "1.25": 1.249,
+              "1.5": 1.499
+            },
+            "neededKernelSpeedup": {
+              "1.1": 1.1,
+              "1.3": 1.301,
+              "1.8": 1.803,
+              "1.87": 1.873,
+              "1.91": 1.913
+            },
+            "dlxShare": 0,
+            "unplacedShare": 0.000123
+          }
+        }
+      },
+      "reductionCheck": {
+        "rawProfiles": 5,
+        "equal": true
+      },
+      "sumCheck": {
+        "phases": 0,
+        "categories": 0,
+        "phaseByCategory": 0,
+        "functions": 0
+      },
+      "wallMs": 86790.699,
+      "idleMs": 0,
+      "samples": 54136
+    }
+  },
+  "overhead": {
+    "pairs": 12,
+    "profiledMs": 15882.828,
+    "plainMs": 15554.985,
+    "ratio": 1.021,
+    "medianPairRatio": 1.037,
+    "pairsDetail": [
+      {
+        "cell": "10x10-nightmare",
+        "index": 0,
+        "profiledMs": 412.931,
+        "plainMs": 472.671
+      },
+      {
+        "cell": "10x10-nightmare",
+        "index": 10,
+        "profiledMs": 411.126,
+        "plainMs": 396.53
+      },
+      {
+        "cell": "10x10-nightmare",
+        "index": 20,
+        "profiledMs": 1398.59,
+        "plainMs": 1338.734
+      },
+      {
+        "cell": "10x10-nightmare",
+        "index": 30,
+        "profiledMs": 849.567,
+        "plainMs": 812.486
+      },
+      {
+        "cell": "10x10-nightmare",
+        "index": 40,
+        "profiledMs": 3079.166,
+        "plainMs": 3006.822
+      },
+      {
+        "cell": "10x10-nightmare",
+        "index": 50,
+        "profiledMs": 50.557,
+        "plainMs": 48.785
+      },
+      {
+        "cell": "12x12-nightmare",
+        "index": 0,
+        "profiledMs": 2085.492,
+        "plainMs": 2010.021
+      },
+      {
+        "cell": "12x12-nightmare",
+        "index": 10,
+        "profiledMs": 684.412,
+        "plainMs": 660.938
+      },
+      {
+        "cell": "12x12-nightmare",
+        "index": 20,
+        "profiledMs": 2418.614,
+        "plainMs": 2337.858
+      },
+      {
+        "cell": "12x12-nightmare",
+        "index": 30,
+        "profiledMs": 23.943,
+        "plainMs": 23.007
+      },
+      {
+        "cell": "12x12-nightmare",
+        "index": 40,
+        "profiledMs": 2269.212,
+        "plainMs": 2185.517
+      },
+      {
+        "cell": "12x12-nightmare",
+        "index": 50,
+        "profiledMs": 2199.218,
+        "plainMs": 2261.616
+      }
+    ],
+    "twinEvery": 10,
+    "coverage": 1.001081
+  },
+  "reductionCheck": {
+    "rawProfiles": 10,
+    "equal": true
+  },
+  "p6Reference": {
+    "today": [
+      {
+        "cell": "26x26 Nightmare",
+        "savedShare": 0.228
+      },
+      {
+        "cell": "14x14 Master",
+        "savedShare": 0.154
+      },
+      {
+        "cell": "26x26 Master",
+        "savedShare": 0.099
+      }
+    ],
+    "todayText": "10 to 23 %",
+    "prototypeText": "about 0 to 7 %",
+    "prototypeBasis": "Derived in the IGP-04 review: E:F's twin-call rating ratio 0.86 divided by the eight-worker slowdown of B:C's twin calls, 0.80 to 0.92"
+  },
+  "problems": []
+}

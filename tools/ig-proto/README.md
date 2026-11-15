@@ -41,6 +41,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `compare-r2.mjs` | corrected comparison record of IGP-01 (`compare-r2.json|md`): puzzle population per cell, like-with-like caveats, the n = 1 and mixed-cell readings; analysis of the published runs only, unlocked |
 | `pm4.mjs` | PM4 (IGP-02): `calls`, `screens` (locked) and `report` (unlocked): the screen certificate and the `W_screen` economics |
 | `pm1.mjs` | PM1 tranche 1, reduced first slice (IGP-05): `windows`, `scan`, `failed-sets` (locked) and `report` (unlocked) |
+| `pm2.mjs`, `pm2-worker.mjs` | PM2 (IGP-06): `run` (locked) and `summarize` (unlocked): where canonical rating time goes on 10x10 and 12x12 Nightmare, by phase, category and function, from a supervised profiled worker; the worker file also holds the classification and reduction the host reuses |
 | `firewall.mjs` | snapshot and check of the production files |
 | `boards.mjs` | writes or checks `data/boards-v1.json`, the frozen board catalogue |
 | `self-test.mjs` | self-tests, run under the lock |
@@ -309,6 +310,56 @@ node tools\ig-proto\pm1.mjs report      --label <L> [--run-id <id>] [--task <T>]
   useful share of the same cell, and the share of in-band and eligible ratings whose main work exceeds 95, 190 and 380 M.
 - **Developer runs.** `--task IGP-05-dev` (any `--run-id`) keeps every file under `tests/artifacts/ig-proto/<L>/IGP-05-dev/`;
   locked ones go through `run-task.ps1` with a scratch plan of task `IGP-05-dev`.
+
+## PM2 rating profile on 10x10 and 12x12 Nightmare (IGP-06)
+
+`pm2.mjs` and `pm2-worker.mjs` profile canonical ratings on the `base` tree (no instrumentation, no copy edit); they change
+no rating, they only observe.
+
+```powershell
+node tools\ig-proto\pm2.mjs run       --run-id <main|dry> --label <L> [--task <T>]   # locked
+node tools\ig-proto\pm2.mjs summarize --run-id <main|dry> --label <L> [--task <T>]   # unlocked
+```
+
+- **Runs.** The manifest is fixed in `pm2.mjs`: `main` = `10x10-nightmare` and `12x12-nightmare`, three sets each (seeds
+  `ig-pm2/<case>/<i>`); `dry` = `10x10-nightmare`, one set (seed `ig-pm2/dry/0`). The first `run` writes
+  `tests/artifacts/ig-proto/<L>/IGP-06/<run-id>/run.json` (manifest, `treeId`, harness hash); every later one checks it and
+  exits 1 on a difference. `--task IGP-06-dev` (run ids `dry` or `dev<n>`) keeps every file under
+  `tests/artifacts/ig-proto/<L>/IGP-06-dev/`.
+- **Stage 1, corpus** (`corpus.jsonl`). Today's set-stage call of each set, with its window subsets (offsets 1 to 4, three
+  subsets each), as `call` jobs on up to six lanes of the `base` tree, in waves of one call per lane. A call has a `started`
+  line before its dispatch and a `recorded` line after it (the set's `boardRows` and `pieces`, every profile's `clues` and
+  canonical outcome; a call cut at `H - 15` is `censored` with the profiles it streamed). A started call without its
+  recorded line stops the task (exit 1); nothing is rerun.
+- **Stage 2, profiles** (`<case>/ratings.jsonl`). Once the corpus is complete, one worker thread (`pm2-worker.mjs`) rates
+  every corpus profile in order, one canonical `rate()` each, under the V8 CPU profiler of its own inspector `Session`
+  (sampling interval 1000 µs, one profile per rating). The host admits a rating only when `e + 30 s <= H`, journals `started`
+  and `recorded`, and cuts a rating that runs longer than 30 s with `worker.terminate()` (a `cut` line, exit 1: a defect). The
+  worker reduces each profile to an attribution; the first five ratings of each cell keep their raw profile
+  (`<case>/raw-<index>.cpuprofile`, URLs reduced to file names inside the tree) so that `summarize` can reduce them again on
+  the host with a different traversal. Every tenth rating of a cell is also rated once without the profiler (alternately
+  before and after the profiled run): the profiling overhead. The profiled rating must equal its corpus rating (class,
+  score, main and census work), else exit 1.
+- **Attribution** (integer µs). A sample is charged the time to the next sample. Its *phase* is the first marker among the
+  frame and its ancestors: `census` (`runProbes`, `settleCensus`, `probe`, `replayLadder`), else `dlx` (`solveFirst`, and every
+  function of the `dlx` category), else `model` (`buildModel`, and every function of the `model` category), else `search`
+  (`measureDeduction`, `search`, `branch`), else `other` (scoring, the harness, `(program)`, GC). The profiler does not report
+  inlined frames and V8 inlines `measureDeduction` into `measureV3` once it is hot, which leaves the search's `search` frames
+  without their parent (a dev run put 99.9 % of a capped rating in `other` under the literal rule): the main search's own
+  recursion is therefore a `search` marker, and the model and DLX files are markers of their phases. Time in a `deduce.js`
+  function that no marker could place stays in `other` and is reported as `unplaced`. A sample's *category* comes from the
+  function and file (`ladder`, `state`, `control`, `model`, `dlx`, `gc`, `other`; the rules are `CATEGORY_RULES` in
+  `pm2-worker.mjs`). `(idle)` samples are not rating time. The denominator is the attributed rating time of the profiled
+  corpus.
+- **`summarize`** merges the `recorded` attributions per cell and per profile class (call profiles and window subsets, each
+  complete or capped) and writes `pm2.json` and `pm2.md` (to `docs/improve-generating/evidence/<L>/IGP-06/` for the `main` run
+  of task `IGP-06`, else to `<run-id>/report/` under the artifacts): phase, category and phase x category tables, the top 30
+  functions, the kernel share k (`search` and `census`), P7's hypothetical sensitivity 1 / (1 - k + k / s) for s = 1.25, 1.5, 2
+  and 3, the kernel speed-up needed for the factors 1.1, 1.3, 1.8, 1.87 and 1.91 (or "not reachable"), the `dlx` share beside
+  IGP-04's P6 figures, the profiling overhead and the checks (every table adds up to the rating time within 1 %; the host
+  reduction of each raw profile equals the worker's). It exits 1 on a failed check. A harness hash that differs from the run's
+  (a report-only change of `pm2.mjs`) is recorded in the summary, not a stop.
+- **Harness hash.** `pm2.mjs` and `pm2-worker.mjs` are driver scripts: `run` refuses to continue once either changed.
 
 ## Re-running on the frozen source
 

@@ -40,7 +40,7 @@ decisions of this pack (§4), not open questions for the developer.
 | [ ] | IGP-03h | [03](03-pm3-variants-and-budgets.md#follow-up-igp-03h-the-no-screen-arm-on-hell-1-and-more-12x12-seeds-optional) | Optional follow-up: the no-screen arm on Hell 1 26x26; optionally on Hell 1 20x20 and more 12x12 seeds | IGP-03, IGP-06 | none (a report-only addition allowed) | about 5 min (+11 optional) | R33 on Hell 1 and 12x12 (IG-P-Q17); a request-level indication for Hell 1 on 400 cells (IG-P-Q16, OD-P4) | 7a |
 | [x] | IGP-04 | [04](04-first-phase-factor.md) | First-phase factor: P6, and eight workers as an unadmitted upper bound | IGP-01 | Medium, about 200 lines | 28 min | P6, P8's upper bound, the ÷1.9 assumption, memory (R22, R23, R25, R26) | 5 |
 | [x] | IGP-05 | [05](05-pm1-tranche1-slice.md) | PM1 tranche 1, reduced first slice | IGP-00 | Medium, about 450 lines | 23 min | windows of Hell 1 on 215-484 cells, Hell 2, Hell 3; fine counts; failed Hell 1 sets (R27 to R29) | 6 |
-| [ ] | IGP-06 | [06](06-pm2-kernel-profile.md) | PM2 rating profile on 10x10 and 12x12 Nightmare | IGP-00 | Small, about 300 lines | 8 min | P7's sensitivity; IG-P-Q12 (R24, R30) | 7 |
+| [x] | IGP-06 | [06](06-pm2-kernel-profile.md) | PM2 rating profile on 10x10 and 12x12 Nightmare | IGP-00 | Small, about 300 lines | 8 min | P7's sensitivity; IG-P-Q12 (R24, R30) | 7 |
 | [ ] | IGP-07 | [07](07-results-summary.md) | Estimate-vs-measured summary and re-run index | IGP-01 to IGP-06 | Small, about 250 lines | none | the §5 table and R31 | 8 |
 |  |  |  | **Total** |  |  | **about 178 min (actual so far: §7)** |  |  |
 
@@ -346,8 +346,9 @@ pack competes for the same quiet slots.
 - **Debugging runs.** A developer's locked run outside the task's plan (debugging, a partial self-test) also goes
   through the runner, with a scratch plan whose task id is `<task>-dev` (for example `IGP-01-dev`), so that its
   invocations are logged and count in the round's total (not in the task's cap). Invocation records, journals and
-  states are never deleted; the reply lists the debugging invocations and their counted time. Debugging output stays
-  under `tests/artifacts/ig-proto/` (the `selftest` label or an artifacts output folder), never under
+  states are never deleted; the reply lists the debugging invocations and their counted time. Scratch output of an
+  unlocked synthetic test (no rating, no timing) may be removed, and the reply names it (IGP-06 review). Debugging
+  output stays under `tests/artifacts/ig-proto/` (the `selftest` label or an artifacts output folder), never under
   `docs/improve-generating/evidence/`. No git command at all, not even `git --version`.
 - **Budget guard (D-IG11).** Before each locked invocation the allowance left is `A = min(1.25 × the task's §1
   allocation − the task's counted total, 10,800 s − the round's counted total)`, each cap raised by an approval. When
@@ -409,6 +410,12 @@ IGP-03h (5 min, and 11 more for its optional parts: Hell 1 20x20 and four more 1
 review), about 24 min in all; at their 25 % caps 32.5 min, so it fits without an approval. Order: IGP-06; IGP-03h, its
 optional parts only when at least 20 min are left at its dispatch; then IGP-07.
 
+**Actual after IGP-06** (from the invocation logs): 8,912 s counted (148.5 min): the 8,485 s above, IGP-06 337.3 s
+(5.6 min against its 8) and its debugging 89.6 s. Left in the round: 1,888 s (31.5 min). IGP-03h is the round's last
+locked task: its required part (5 min) and, as at least 20 min are left, its optional parts (11 min); about 16 min,
+22.5 at its 25 % cap, so it fits without an approval and leaves about 9 min of the round unused at the cap. IGP-07
+locks nothing.
+
 ## 8. Evidence and sign-off
 
 Each developer's reply gives: the files created; the run plan's steps with their exits, node seconds and lock waits;
@@ -431,5 +438,5 @@ has pushed `improve-generating`. The plan author then receives the summary for p
 | IGP-03h | optional; not started | | | | | |
 | IGP-04 | accepted (/1.9 refuted as a general factor) | 2026-11-15 03:21 | 05:35 (accepted 05:42) | 1,257 s | 5,636 s | `improve-generating IGP-04` |
 | IGP-05 | accepted (Hell 1 windows on 215-484 cells; Hell 3 none observed) | 2026-11-15 05:45 | 06:31 (accepted 06:38) | 752 s (+ 264 s dev) | 837 s | `improve-generating IGP-05` |
-| IGP-06 | not started | | | | | |
+| IGP-06 | accepted (kernel 89-98 %; P7 needs about 2x kernel for /1.9) | 2026-11-15 06:47 | 07:26 (accepted 07:31) | 337.3 s (+ 89.6 s dev) | about 458 s | `improve-generating IGP-06` |
 | IGP-07 | not started | | | | | |
