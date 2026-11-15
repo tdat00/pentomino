@@ -1534,6 +1534,28 @@ analysts agree on the four questions below; none needs a run to be answered. **N
   4.2 h at 20 seeds. Stage 4 is about 4.2 to 4.9 h without it and 8.4 to 9.1 h with it. All of these are
   Projections from MP12b1's request sums and the prototype medians.
 
+Plan-author answer: **As recommended. Today's search runs on the validation seeds only where a gate needs it;
+the failing headline cells get no today's arm by default.**
+
+- *Where today's arm runs.* On the completion-passing Nightmare controls, for 5.2's no-regression ratio, and on
+  the Master cells, for identity. A final difficulty-v3 record replaces a run where the source digest and the
+  full effective request match and its seed fed no table (5.1's existing condition).
+- *The failing headline cells* (14x14, 15x15b10, 12x12, 16x16 and 15x20 Nightmare; Hell 1 26x26, 20x20, and
+  24x24 and 14x14 if admitted). Their gate is absolute: 18 of 20 requests reach ten, with no dead-end entry. It
+  needs no paired arm. The "before" beside it is the cell's final difficulty-v3 record, labelled unpaired.
+- *A paired factor is optional.* If the owner wants one for a headline cell, it is a separate priced line of
+  five seeds per cell, reported as an indication and not as a gate. It is not offered for Hell 1 20x20: today's
+  search made no set there in three requests, so a today's arm would only buy more censored requests.
+- *Master identity.* Identity is a deterministic property, not a rate, so it needs no 20 seeds: five seeds per
+  cell on the 16 cells (80 requests per arm), compared by puzzle keys on the same effective request. One
+  difference on any request fails the cell. The scope test (section 6) is the standing proof; this population
+  only checks it on the frozen source. Timing of the Master cells is reported, not judged.
+- *Phase 2's repeat* on the production code is priced separately, in phase 2's own manifest, when `gen-v4`
+  exists. It is not part of the frozen round's price (OD-P10).
+- *Consequence for the plan.* 5.1's seed rule is reworded to "where a gate needs today's arm". The budget
+  indication for stage 4 becomes about 4.2 to 4.9 h (the analysts' Projection), without the 4.2 h of today's
+  arm on the failing cells.
+
 ### IG-P-Q26: How does rule (c5) fail closed on insufficient, unmatched or censored data?
 
 - *Question.* For the admission of a screen class (5.2):
@@ -1549,6 +1571,29 @@ analysts agree on the four questions below; none needs a run to be answered. **N
   record.
 - *Effect.* Phase 0's `W_screen` admission. No change of price.
 
+Plan-author answer: **As recommended: the screen is admitted on a class only when every condition of 5.2 can be
+evaluated and passes. Anything else is "no screen".** The values below are first values, like the rest of 5.2:
+they may be changed before the validation seeds run, not after.
+
+- *Minimum.* In every validated cell of the class, at least 15 matched sets from at least 15 independent seeds
+  (of the 20). Below that the class is reported "inconclusive" and uses no screen. The "one matched set in
+  five" condition is evaluated on the same matched sets.
+- *One endpoint for both arms.* In every ratio statistic of 5.2 a request's T10 is capped at 120 s, the
+  response bound. A request that does not reach ten enters at 120 s, and so does one that reaches ten later
+  than 120 s (the two separate timers still allow that). A failed arm can then never gain against a completed
+  control: at best it ties. The completion counts are unchanged and are judged apart, as 5.2 says.
+- *Classes outside the table.* A level and area class that P2's table does not list uses no screen. That covers
+  the areas of 145 to 195 and 325 to 359 cells and any board the editor can build. A class whose validation
+  is incomplete, stopped at a ceiling or missing an arm also uses no screen.
+- *The recipe.* Per cell, the per-seed ratio on the capped T10. Per class, the geometric mean over all (cell,
+  seed) pairs, every cell with the same seeds and the same weight. The one-sided 90 % lower bound is the 10th
+  percentile of 10,000 resamples of the seeds with replacement, the same resampled seeds applied to every cell
+  of the class, with a random seed written in the manifest. In addition, no single cell of the class may have a
+  geometric mean below 1.0. The no-regression bound of the Nightmare controls uses the same recipe per cell.
+- *The record.* Unmatched sets and failed requests stay in the completion record with their outcome. The
+  verdict of each class is one of "admitted", "failed" or "inconclusive", with the condition that decided it.
+- The recipe is written into the manifest before the validation seeds run.
+
 ### IG-P-Q27: Which PM1 results may feed the prior frozen for validation?
 
 - *Question.* Stage 5 runs the Hell 1 failing-set work "that feeds the per-set prior" after the freeze
@@ -1563,6 +1608,27 @@ analysts agree on the four questions below; none needs a run to be answered. **N
     output.
   - The Hell 2 work stays in stage 5.
 - *Effect.* The stage order. PM1 stays separately approved (IG-P-D5). A second validation is possible.
+
+Plan-author answer: **Validation uses the existing windows. The Hell 1 work of PM1 stays in stage 5, and its
+output is adopted only through a new fit, freeze and validation.**
+
+- *My wording was wrong.* The per-set prior is a runtime mechanism: the calibration of a request returns the
+  count and window it found, and that request's candidates start there. Nothing from PM1 is fitted into it.
+  What PM1's Hell 1 work can feed is P4's **table** prior, the start of the set-stage locate. Section 5.1 and
+  IG-P-D5's "feeds the per-set prior" are corrected to "feeds P4's Hell 1 table".
+- *Why the existing inputs are enough to validate on.* The table already has a Hell 1 entry for every candidate
+  board: MP12b1's accepted median on 26x26, PM1's first slice on 215 to 484 cells (about 0.35 of K), and R28's
+  windows on 14x14 and 24x24. Stage 2's own Hell 1 pilots run on fitting seeds and may adjust those entries
+  before the freeze. An imperfect entry costs profiles, not correctness.
+- *Order.* The data-only inventory first, in stage 1; it needs no machine budget. Stage 3 then freezes the
+  table from the existing windows and stage 2's pilots.
+- *The exception.* If a stage-2 Hell 1 pilot on a board fails to reach ten on most requests and its journals
+  show the locate as the cause (calls ending without a window, or most of the call's profiles spent before the
+  first in-band hit), the PM1 Hell 1 slice for that board may move before stage 3. It is then a separately
+  priced item under IG-P-D5, approved before it runs.
+- The Hell 2 work stays in stage 5. A table changed after stage 3 goes back through a fit, a freeze and a
+  validation on seeds that fitted nothing; the manifest says so, so that a second validation is a stated cost
+  and not a surprise.
 
 ### IG-P-Q28: What is the frozen prototype's replay, provenance and observer contract?
 
@@ -1583,8 +1649,52 @@ analysts agree on the four questions below; none needs a run to be answered. **N
   - Textual anchors do not show semantic compatibility, even though all 16 still match at `6122dc9`.
 - *Effect.* The scope and cost of stage 1's preparation, and the comparability of every timed arm.
 
+Plan-author answer: **Yes to both. `gen-v4` and the frozen prototype adopt the four contracts; `gen-v3` replay
+does not change.**
+
+- *Checked at `6122dc9`.* `clues.js:45-53` declares `record` (RES-28), `replaySkips` (RES-27) and `charge`
+  (RES-29); `generate.js:273-281` writes `provenanceVersions()`; `tests/fixtures/replay-case.json` pins `algo`
+  `gen-v3`. With `record` set, `selectClues` rates through the detail channel (`rateDetailed`) and otherwise
+  through `rate` (`clues.js:270-276`). The app and the generator pass no observer.
+- *Skip replay.* `gen-v4` defines its own skip ordinals and their exclusive bounds for the locate probes, the
+  window samples and the repairs, and gets its own replay fixture. A `gen-v3` skip list replayed on `gen-v4`,
+  or the reverse, is refused by the version in the provenance, not reinterpreted. `replay-case.json` and the
+  `gen-v3` path stay as they are.
+- *Recorders and the work meter.* `gen-v4` emits the events of design §6.10 for its own phases (locate, rescue,
+  window) and charges every rating attempt once, the screen-capped and re-rated ones included, before that
+  rating's event. An observer never changes a result or a loop's control flow.
+- *Provenance.* P4's prior, its table version and the `W_screen` table version join the stored versions
+  (IG-P-Q03). The frozen prototype writes the same fields, with a harness id in place of `gen-v4`.
+- *The rebase is semantic.* The prototype's `p1p5` variant no longer replaces `selectClues` wholesale: it is
+  rebuilt on the frozen `clues.js`, `generate.js` and `difficulty.js` (with P6's edit), and the app, pack and
+  command-line consumers are checked against it. The 16 textual anchors matching is not evidence of this.
+  `difficulty.js` is added to 5.1's preconditions.
+- *Observer modes.* Correctness checks: for each arm, the puzzles, work units and skip ordinals are equal with
+  observers absent, with `charge` alone and with `record` and `charge`; a recorded skip list replays to the
+  same puzzles. The timed comparator is observers absent in both arms, which is what the app runs. Journals
+  that need `record` come from a separate, untimed pass on the same seeds, or the arm is timed with `record` in
+  both arms and labelled so; the two are never mixed in one ratio.
+- *Effect, accepted.* Stage 1's preparation grows by the rebase, the `gen-v4` skip bounds and fixture, and the
+  parity passes. It is priced in the manifest with the rest of stage 1.
+
 ### Settled between the analysts
 
 - The scope of `gamma` (Astra's proposed IG-P-Q29) is correction C2, not a question. P4 already defines
   `gamma` on batch time, and the table prior is already inside `T_search`.
 - The global completion gate is neither a question nor a correction (section 2).
+
+### The plan author on the joint report (2026-11-15)
+
+- **Corrections C1 to C18 are accepted** and go into the next revision of `plan.md` as written. I recomputed
+  C2's rows: Hell 1 26x26 17.4 s (11.6 to 27.5) and 20x20 21.8 s (14.5 to 34.5). C1's `locateCount` replaces
+  my pseudocode, which left `lo` unset when the first result was not BELOW.
+- **JV3-P20, a correction to this log.** "It ran nothing and changes no gate" in my note on version 3 was too
+  short. Version 3 ran nothing, but it refines the gates (the admission statistics of 5.2, the completion
+  gate, the staged round). No gate has been evaluated and none has passed.
+- **JV3-P10.** My caution on 14x14 Hell 1 (IG-P-Q21, IG-P-D3) guessed K at about 21. The sets have K 32 to 34
+  and their windows lie at 11 to 14 clues, that is 0.34 to 0.44 of K, not "half the pieces or more". It is
+  still the extreme case for the blind play comparison, and IG-P-D3 stands.
+- **The global completion gate.** It stays global, as Astra reads it: one failing headline cell stops phase 2.
+  A per-cell fallback to the legacy path would be a new proposal and is not made here.
+- **Answers IG-P-Q25 to IG-P-Q28** above change the manifest's content and stage order, not its approval
+  (OD-P10). No owner decision is needed.
