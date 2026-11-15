@@ -3,7 +3,7 @@
 | Header | Value |
 |---|---|
 | ID | MP17 (the report's MP17, dispatched whole) |
-| Depends on | MP16b (accepted and committed: the card button, `tests/browser/replay.html`, the GB-P4 record) and, through it, every earlier part; the lock, begun by MP12b2 and completed by MP12b3 (check-list D35; since owner decision P-OD9 the lock commit is always MP12b3's) |
+| Depends on | MP16b (accepted and committed as `3a2f14e`: the card button, `tests/browser/replay.html`, the GB-P4 record and its evidence) and, through it, every earlier part; the lock, begun by MP12b2 and completed by MP12b3 (check-list D35; since owner decision P-OD9 the lock commit is always MP12b3's) |
 | Estimated size | Medium: about 300–500 changed lines (the record about 250–400 lines with the release notes; justified corrections, if any); about 50–60 minutes of work plus about 70–100 minutes of machine time (gate GZ) |
 | Owner role | QA and release |
 | Milestone | M10 — verified |
@@ -150,7 +150,12 @@ lines: find them by the quoted text.
   10x6 and 20x18, turned by a quarter; seeds differ, so compare ranges and availability, not single puzzles).
 - The gate records in the Execution logs of MP09e (code pages), MP10b2 (display pages) and MP16b (replay, rendering,
   generator-flow, acceptance): the expected result of each page they ran. `tests/browser/acceptance.html` reported
-  "16 checks, 4 blocked" at the regenerate-puzzle release; the blocked checks need a physical device.
+  "16 checks, 4 blocked" at the regenerate-puzzle release; the blocked checks need a physical device. GB-P4's evidence
+  is in `tests/artifacts/MP16b/pages/1` to `5` (`replay` main 12 of 12, `replay` keys 1 of 1 with 15 trusted keys,
+  `rendering` 18 of 18, `generator-flow` 21 of 21, `acceptance` 16 passed and 4 blocked; `browser.json`, `page.png`
+  and `runs.json` in each), with its runner `pages.mjs` and helper `dv3-lock.ps1` in `tests/artifacts/MP16b/`. The
+  folder is git-ignored: it exists only on the machine that ran MP16b; when it is missing, the Execution log is the
+  baseline.
 - The slow test of MP11 in `tests/difficulty-v3.test.js`: "slow: v3 generation orders the levels on 10x6 and 12x12,
   and every Hard-or-above puzzle has a proved guess" (AR1 on generated puzzles; `npm test` runs it).
 
@@ -460,8 +465,8 @@ A skipped probe is listed in record §7 with the run's `MISS` line.
 The replay is bounded by its work, not by a clock. `REPLAY.work` is 256 × (`DEDUCE.work` + `DEDUCE.census`) =
 215,040,000,000 units: about 25 minutes of compute at the roughly 140 million units per second that MP15a1 measured.
 An auxiliary request promises no latency (design §8.1, "Auxiliary requests"); closing the dialog or starting a
-generation stops it (MP15b). This is a known limitation (record §10). One measurement on the largest generated
-puzzle of this attempt gives its real cost:
+generation stops it: the pool terminates the replay's worker, which restarts on demand (MP15b). This is a known
+limitation (record §10). One measurement on the largest generated puzzle of this attempt gives its real cost:
 
 - **The puzzle.** The first puzzle of `t-nightmare` (20 x 18 Nightmare: the largest board and the highest offered
   level of the runs) whose record `generation.made[id].kind` is `candidate`: its replay also meters the hidden
@@ -477,7 +482,8 @@ puzzle of this attempt gives its real cost:
     bytes, bytesShare, ms, unitsPerSecond, projectedMinutes }`. The shares are of `REPLAY`; `steps` is the length of
     the result's `steps` and `bytes = utf8Length(JSON.stringify(result.steps))`; `unitsPerSecond = work / (ms /
     1000)`; `projectedMinutes = REPLAY.work / unitsPerSecond / 60`.
-  - It exits 0 for `matched` and 1 for any other status or an error; the line is written in every case it can be.
+  - It exits 0 for `matched` or `incomplete` (the line says which) and 1 for `mismatch`, `unavailable` or an error;
+    the line is written in every case it can be.
 
 ```powershell
 . tests\artifacts\MP17\dv3-lock.ps1
@@ -487,9 +493,12 @@ if ($t.Exit -ne 0) { throw 'replay measurement failed' }
 ```
 
 Expected: `status` `matched`, within the minutes announced (the replay re-runs the puzzle's set attempt, with its
-calibration, and its one candidate attempt). Any other status is a correctness finding: report it to the orchestrator
-with the run, as for a defect. A stop at the helper's 590 s limit is itself the finding (the replay's wall time):
-record the elapsed time and do not rerun.
+calibration, and its one candidate attempt). `incomplete` is not a defect: it is a provisional `REPLAY` bound at
+work (check-list D33; `bytes` or `steps`, since `work` cannot be reached within the helper's limit), and MP15a2
+estimated about 1.7 KB per step at 9 pieces, so a 20 x 18 trace may meet `maxBytes`. Record it as the byte-bound
+named item with its numbers (record §10). `mismatch` or `unavailable` is a correctness finding: report it to the
+orchestrator with the run, as for a defect. A stop at the helper's 590 s limit is itself the finding (the replay's
+wall time): record the elapsed time and do not rerun.
 
 ### The lock inspection (step 1, before the announcement) and the fixture checks (the first gate commands)
 
@@ -609,6 +618,14 @@ an accepted task changed on purpose may be corrected under the rule above; any o
 run that times out (540 s) is a failure: the last `CHECK-START` lines in its `browser.json` (`lastLogs`) show the
 check that stalled.
 
+**Triage note (MP16b's Execution log).** Since MP16b, every page that mounts the Generator with a real client also
+creates the closed replay dialog on `body`. Among them are `generator-editor`, `watchdog` and
+`puzzle-code-acceptance`, which GB-P4 did not run. A failure on one of these three pages says whether the
+dialog is involved (its element `[data-role="replay-dialog"]`, its controls, the third card button). If the failure
+is an expectation that the dialog's presence changes on purpose (for example a count of the page's dialogs, buttons
+or inputs), it may be corrected under the rule above. Any other failure that involves the dialog is a defect report
+for MP16b's files.
+
 ### The record `docs/difficulty-v3/final-<date>.md`
 
 English, CRLF, no BOM, relative links only. Sections:
@@ -621,7 +638,9 @@ English, CRLF, no BOM, relative links only. Sections:
 3. **Full suite**: `npm test` counts (tests, pass, fail, skipped), duration; the AR1 slow test by name.
 4. **Browser runs**: a table (page, phase, result, summary, duration, keys pressed) of the 19 runs from the four
    `runs.json` files; the blocked checks of `acceptance.html`; the PIDs stopped and the profile removed; the statement
-   that no run was repeated (no re-run allowance).
+   that no run was repeated (no re-run allowance); for `generator-editor`, `watchdog` and `puzzle-code-acceptance`,
+   that they now carry the closed replay dialog, and for any failure there whether the dialog is involved (the triage
+   note above); the comparison with GB-P4's results for `replay`, `rendering`, `generator-flow` and `acceptance`.
 5. **The plan §6 probe, before and after**: the plan §1.1 table (before, v2) next to the rows of `p1`, `p2` and `p3`
    (after, v3: U, tier, G, `Gproved`, info, score, B and the DLX stop per puzzle), with the statement the plan author
    asked for (PR-P1): no Hard-or-above puzzle of these runs is without a proved decisive guess (or the counterexample,
@@ -645,15 +664,30 @@ English, CRLF, no BOM, relative links only. Sections:
     census confound (the fast large-board Nightmare cells carry more census estimates, not measured). Say for each
     whether a later accepted task changed it (MP12b3 built no fail-fast, P-OD12; MP13a to MP16b do not touch
     generation time), and that a faster generator is later work outside difficulty-v3
-    (`docs/improve-generating/plan.md`, not authorised). Five more named items from the Execution logs of later parts
-    (routed to this record on 2026-11-15 by the pack author's rulings on MP15a1 and by the orchestrator for MP14b),
-    each stated as it stands:
+    (`docs/improve-generating/plan.md`, not authorised). Then the named items of the Execution logs of MP13a to
+    MP16b (routed to this record on 2026-11-15 by the pack author's rulings and by the orchestrator), each stated as
+    it stands:
     - **The replay's wall time.** A replay is bounded by `REPLAY.work` (215,040,000,000 units, about 25 minutes of
       compute), not by a clock; an auxiliary request promises no latency; closing the dialog or starting a generation
-      stops it. Give the replay measurement: the puzzle, its status, work, steps and bytes with their shares of
-      `REPLAY`, seconds, units per second and the projected minutes at `REPLAY.work`.
+      stops it, by terminating the replay's worker (MP15b). Give the replay measurement: the puzzle, its status, work,
+      steps and bytes with their shares of `REPLAY`, seconds, units per second and the projected minutes at
+      `REPLAY.work`.
+    - **The byte bound on large boards (MP15a2).** About 1.7 KB per step at 9 pieces, so `REPLAY.maxBytes` (4 MiB)
+      holds a few hundred to about a thousand steps at 20 x 18. Say whether the measured trace was cut (its status and
+      its bytes share); `REPLAY` stays provisional (check-list D33).
+    - **Generation Steps on phones (MP16b; the pack author's ruling Q3).** The "How it was made" button is on the
+      puzzle card (RES-31), and below 768 px the Generator lists no cards, so the steps cannot be opened on a phone.
+      The guides and design §10.5 say so. A phone entry point would change RES-31's scope: later work.
+    - **The card list drops the keyboard focus (MP16b; pre-existing).** `renderCards` replaces the card list on every
+      store update, so a certificate that arrives or a language switch takes the focus from a focused card button
+      (select, replay, remove). The keys phase of `replay` waits for the certificates for this reason. The fix
+      (reorder the cards only when their order changed) is code: later work.
+    - **Paths tested only synthetically (MP14a, MP15a2).** No real `unrateable` step and no repair failure before a
+      clue (`added: null`) occurred on the 180 fixture candidates. Their step builders are checked on synthetic input
+      and by reading (MP15a2), the zero-add failed event has no quick input (MP14a), and the dialog's texts for both
+      are tested on synthetic steps (MP16a).
     - **No type check.** The modules carry `// @ts-check` and JSDoc types, but the repository runs no `tsc`, so the
-      types are not machine-checked (MP10a, MP14b, MP15a1, MP15b and MP16a Execution logs).
+      types are not machine-checked (MP10a, MP14b, MP15a1, MP15a2, MP15b and MP16a Execution logs).
     - **The skip replay rests on built histories (MP14b case 7).** Case 7 builds its history from the first rated
       subset of a free run plus its final key (MP13a's oracle approach, the task's fallback when its search of the
       recipe, slots 1–3 and attempts 0–11, finds no subset skip), with a `require`-mode repair-skip case found by a
@@ -666,6 +700,12 @@ English, CRLF, no BOM, relative links only. Sections:
       tested on synthetic `carve` steps of both modes, MP16a).
     - **MP14b's diff was larger than estimated** (tests +585 lines against the estimate of about 250): process
       information, no effect on the product.
+
+    The other notes of these logs are developer notes with no user effect and stay there: MP14a's pinned skips of
+    case 10; MP15a2's items 3 to 6 (as specified or unreachable for a validated pack); MP15b's `made: undefined`
+    (outside the typed contract, unreachable from `replaySourceOf`); MP16a's items, closed by MP16b's GB-P4 and this
+    task's scratch check; MP16b's hover colours, its never-disabled Previous button and its one-app-per-harness
+    constraint.
 11. **Release notes** (below).
 
 ### Release notes (C3 (a); RES-32, MP17 row)
@@ -714,12 +754,13 @@ correct a statement that does not hold and report it. The facts to state:
   puzzle code is opened and when the Generator imports it, with an error message (before, the pack reader only
   warned). A saved Generator set with two pieces of the same shape is removed when the Generator starts, with a
   one-time notice in English and Vietnamese.
-- **Generation Steps.** Each puzzle card in the Generator has a "How it was made" button that replays how the puzzle
-  was made, step by step (set, layout, clue search, final rating), with the score table. It is available for puzzles
-  made by this version; otherwise the dialog says that steps are not available. Packs written by this version carry a
-  small optional provenance record (`generation.setOrigin`, `generation.made`) for it. A replay can take a while on a
-  large board, and it has no time limit of its own: closing the dialog stops it, and starting a generation stops it
-  too (state the measured time of record §10 in plain words).
+- **Generation Steps.** Each puzzle card in the Generator's puzzle list (wide layout) has a "How it was made" button
+  that replays how the puzzle was made, step by step (set, layout, clue search, final rating), with the score table.
+  On a phone (below 768 px) the list of cards is not shown, so the steps cannot be opened there. It is available for
+  puzzles made by this version; otherwise the dialog says that steps are not available. Packs written by this version
+  carry a small optional provenance record (`generation.setOrigin`, `generation.made`) for it. A replay can take a
+  while on a large board, and it has no time limit of its own: closing the dialog stops it, and starting a generation
+  stops it too (state the measured time of record §10 in plain words).
 - **For developers.** The records of this change are in `docs/difficulty-v3/` (the report, the probe, the fit, the
   code sizes, the calibration with the lock, this record); the design is in `docs/design-detail.md` §6.12 and §7; the
   tools `tools/rate-probe.mjs` and `node tools/record-fixtures.mjs --replay-case` are described in the developer guide.
@@ -788,7 +829,7 @@ MP17 no section of `docs/design-detail.md`). Must not edit: everything of "Out o
 | MP17-T04 | The 19 runs pass (the 16 pages in the main phase, the keys and narrow phases of `puzzle-code-acceptance`, the keys phase of `replay`; acceptance: the known blocked checks only) with no CSP violation and no uncaught error, each check under 1 minute; servers and browsers stopped by PID; the profile removed | record §4; the 19 `runs.json` |
 | MP17-T05 | Only the record and the listed justified corrections changed (`git --no-pager status --short`); no file under `core/`, `tools/`, `generator/`, `player/` or `tests/fixtures/` changed | `git status`; review |
 | MP17-T06 | `npm run test:quick` and `npm run check` pass; the record is CRLF without BOM, with a final newline and no absolute path | command output |
-| MP17-T07 | The replay measurement: one puzzle of this attempt, chosen by the rule (the first candidate puzzle of `t-nightmare`), replays `matched` through `replayPuzzle`; its work, steps, bytes, seconds, units per second and the projected minutes at `REPLAY.work` are in record §10, with the five named items of later parts (the replay's wall time, no `tsc`, MP14b's built skip histories, its macro-then-flat order and its diff size) | `replay-measure.json`; record §10 |
+| MP17-T07 | The replay measurement: one puzzle of this attempt, chosen by the rule (the first candidate puzzle of `t-nightmare`), replays through `replayPuzzle` as `matched`, or as `incomplete` at a provisional `REPLAY` bound (a named item with its numbers, never `mismatch` or `unavailable`); its work, steps, bytes, seconds, units per second and the projected minutes at `REPLAY.work` are in record §10, with the named items of the Execution logs of MP13a to MP16b listed there | `replay-measure.json`; record §10 |
 
 ## Test plan
 
