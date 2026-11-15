@@ -89,9 +89,10 @@ Step = { stage (1-7), kind, board: { placed: { id, cells, pose }[], lifted: stri
   rating was computed during the replay; null otherwise. The final step's `detail` is always null; when the replay
   matched a full claim, `args.detailStep` is the index of the step whose `detail` measured the final puzzle (the
   winning `rated` step, or the accepted `repair` step), else null (cross-review SP11). The final step's `placed` holds
-  the stored solution, or only the stored clues when the puzzle was shared without its solution. `rating.metrics` has
-  `U`, `deductionTier`, `rules` (R1-R9), `G`, `Gproved`, `info`, `solutions`, `censusComplete`, `censusUndecided`;
-  `rating.censored === true` marks an estimate.
+  the stored solution, or only the stored clues when the puzzle was shared without its solution; its `rating`,
+  `breakdown` and `band` are null when the puzzle stores no rating claim (MP15a2), and it then has no score table.
+  `rating.metrics` has `U`, `deductionTier`, `rules` (R1-R9), `G`, `Gproved`, `info`, `solutions`, `censusComplete`,
+  `censusUndecided`; `rating.censored === true` marks an estimate.
 - Unavailable stages have no steps; the result's `reason` names why (`no-set-origin`, `set-versions`, `no-record`,
   `record-invalid`, `completion`, `overflow`, `record-versions`, `calibration-needs-set`); mismatch reasons: `set`,
   `skips`, `candidate-failed`, `board`, `pieces`, `witness`, `clues`, `rating`, `solution`; incomplete reasons:
@@ -287,7 +288,7 @@ Exclusive ownership while this task runs: the files above.
 | ID | Criterion | Evidence |
 |---|---|---|
 | MP16a-T01 | Compact filter exactly as specified (deterministic, ordered, no duplicates); every-step view is the identity | cases 1, 2 |
-| MP16a-T02 | Score-table rows as specified, including summary, v2, unrateable, refused and estimate cases, a null breakdown with metrics, and the final step's guess nodes through `args.detailStep`; unavailable never 0 | cases 3–6 |
+| MP16a-T02 | Score-table rows as specified, including summary, v2, unrateable, refused and estimate cases, a null breakdown with metrics, and the final step's guess nodes through `args.detailStep`; unavailable never 0; no table for a final step without a claim | cases 3–6 |
 | MP16a-T03 | Controller state machine: loading, ready, failure kinds, stale results ignored, playback, view switch, close aborts only its own signal | cases 9, 10 |
 | MP16a-T04 | `highlightedIds` is additive: no change without it | review; MP16b's rendering check |
 | MP16a-T05 | Locale parity and placeholders | `tests/generator-i18n.test.js` |
@@ -328,7 +329,9 @@ once per file, plus small synthetic step lists.
    penalty` equals `breakdown.unrounded`. The final step of the real result (SP11, TP12): its own `detail` is null,
    `args.detailStep` is the index i of the step that measured the final puzzle (`steps[i].detail` not null), and its
    Guess nodes rows equal those of `steps[i]` (same count, same c, kLow, f, u and counted marks); a synthetic copy of
-   the final step with `args.detailStep: null` shows the Guess nodes row as the "not available" key.
+   the final step with `args.detailStep: null` shows the Guess nodes row as the "not available" key; a synthetic copy
+   with `rating`, `breakdown` and `band` null (a puzzle stored without a claim, MP15a2) has its sentence and no score
+   table.
 4. A summary claim step (rating without metrics, breakdown null): only Total and Band have values; every other row is
    the "not available" key, never a 0. The same for a synthetic step whose rating has metrics but whose `breakdown` is
    null (as MP15a2 gives for opaque or overflowing legacy metrics, SP12, TP11): no row shows 0, `Infinity` or `NaN`.

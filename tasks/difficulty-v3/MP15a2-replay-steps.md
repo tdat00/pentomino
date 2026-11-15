@@ -3,7 +3,7 @@
 | Header | Value |
 |---|---|
 | ID | MP15a2 (second part of the report's MP15a, split after cross-review SP08-SP10; MP15b adds the worker task, the protocol and the client) |
-| Depends on | MP15a1 (accepted and committed: `runReplay`, `ReplayRun`, `utf8Length`, `REPLAY`) |
+| Depends on | MP15a1 (accepted and committed as `cb54ce5`: `runReplay`, `ReplayRun`, `utf8Length`, `REPLAY`; the pack author's rulings in its Execution log) |
 | Estimated size | Medium: about 450–600 changed lines (`replay.js` about 220, tests about 280, documents about 40); about 45–60 minutes |
 | Owner role | Engine |
 | Milestone | M9 — Generation Steps |
@@ -58,7 +58,10 @@ bound is never presented as verified.
 `runReplay(input, workspaces, limits, isCancelled, reserveBytes)` → `{ status, reason, stages, compared, work,
 events, set }` with the events in chronological order, the replayed set (or null), the limits and input checks
 (`RangeError`), `ReplayCancelledError`, `utf8Length(text)`; `stages.set` / `stages.candidate` are `'replayed'`,
-`'unavailable'`, `'mismatch'`, `'stopped'` (and `'calibration'` for the candidate).
+`'unavailable'`, `'mismatch'`, `'stopped'` (and `'calibration'` for the candidate). A puzzle without a rating claim
+(`rating` absent or null, as `PackPuzzle` allows) is compared on its other fields only: it can be `matched`, with
+`rating` missing from `compared` (the pack author's ruling 5(b) on MP15a1). The run counts its event bytes from zero
+(cross-review MP15R-01, below).
 
 ### Contract (RES-29; D33 adds `detail`)
 
@@ -112,6 +115,14 @@ TP10: the earlier reserve took the index `maxSteps - 1` with the status text onl
 202 bytes where the final step is 205 and the array 207). `steps.length` is at most `limits.maxSteps` (MP15a1 keeps
 one slot).
 
+**Zero-initialized accounting (cross-review MP15R-01).** `runReplay` counts the bytes of its events from zero and adds
+the array's two brackets with the first retained event. So a run stopped before its first event (for example
+`maxBytes: 1`) is `incomplete` `'bytes'` with `events: []`, whose JSON text is 2 bytes: the run's rule bounds the
+retained events, not the literal text of an empty array. `replayPuzzle` keeps its own check, and it is mandatory: the
+reserve (2 + the larger final form) is checked before running (`RangeError` when it does not fit), the step bytes are
+counted from that reserve, and the steps always end with the final step. So `utf8Length(JSON.stringify(steps)) <=
+limits.maxBytes` holds literally in every case, an empty run included. §6.12 states both rules and the difference.
+
 ### Steps
 
 `Step = { stage, kind, board: { placed, lifted, clues }, rating, breakdown, detail, band, note, args }`, plain JSON,
@@ -130,7 +141,7 @@ no text:
 | `rejected` | 5 | as `rated` | as `rated` | `replay.step.rejected` | `{ sequence, phase, source, reason }` |
 | `repair` | 6 | `clues` = the ids of the event's `clues` | as the event (null fields stay null) | `replay.step.repair` | `{ repairSequence, added, accepted, reason }` (`added` = `addedId`, null for a zero-add failure; `reason` null when absent) |
 | `selected` | 5 | `clues` = the ids of the selected clues | null | `replay.step.selected` | `{ sequence, repairSequence, source }` |
-| final | 7 | `placed` = the stored solution, or the stored clue placements when the puzzle has no stored solution; `clues` = the stored clue ids | the stored claim, its breakdown, `detail: null`, band of its level | `replay.step.final` | `{ status, detailStep }` |
+| final | 7 | `placed` = the stored solution, or the stored clue placements when the puzzle has no stored solution; `clues` = the stored clue ids | the stored claim, its breakdown, `detail: null`, band of its level; `rating`, `breakdown` and `band` null when the puzzle stores no claim | `replay.step.final` | `{ status, detailStep }` |
 
 - `board.placed` is a list of `{ id: string | null, cells: [x, y][], pose: Pose | null }` (the pose copied field by
   field; the dialog draws items with a pose through the board view); `lifted` and `clues` are lists of piece ids.
@@ -148,7 +159,7 @@ no text:
 
   ```text
   measuringStep(steps, puzzle):              // only for a matched result
-    if the claim has no metrics (a summary claim): return null
+    if the puzzle has no claim, or the claim has no metrics (a summary claim): return null
     sel = the last step with kind 'selected'
     i = sel.args.repairSequence === null
           ? the index of the 'rated' step with the same args.source and args.sequence === sel.args.sequence
@@ -170,8 +181,8 @@ no text:
     valid `U` and `B` do not matter;
   - any other model: null.
   A null breakdown means "terms not available": the dialog (MP16a) shows the total only, never zero terms.
-- `band`: `{ min, max | null }` from the event, or for the final step from `level(claim.level)` (null when the level
-  is unknown: catch the `RangeError` of `level`).
+- `band`: `{ min, max | null }` from the event, or for the final step from `level(claim.level)` (null when the puzzle
+  has no claim, or when the level is unknown: catch the `RangeError` of `level`).
 - The `replay.step.*` keys are exactly: `count`, `carve`, `piece`, `start`, `retile`, `rated`, `skip`, `unrateable`,
   `rejected`, `repair`, `selected`, `final`.
 - `note` is a locale key; the dialog (MP16a) owns the texts. `args` holds only numbers, strings, booleans and null.
@@ -189,9 +200,10 @@ Exclusive ownership while this task runs: the files above.
 ### Documentation slot
 
 - §6.12: append the steps: the step shape and the table in short (note keys, no text), the order rule, the final
-  step (placements, `detailStep`), the breakdown rule (v3, valid v2 terms, otherwise "not available"), and the byte
-  bound with the final step's reserve (a limit that cannot hold the final step is refused before running; a cut trace
-  is `incomplete` and not compared).
+  step (placements, `detailStep`; `rating`, `breakdown` and `band` null for a puzzle without a claim), the breakdown
+  rule (v3, valid v2 terms, otherwise "not available"), and the byte bound with the final step's reserve (a limit
+  that cannot hold the final step is refused before running; a cut trace is `incomplete` and not compared), with the
+  difference between the run's zero-initialized event accounting and the literal bound on the steps (MP15R-01).
 - §4.2: `replayPuzzle` and `ReplayResult` in the `replay.js` block.
 - §13.2: extend the `replay` row with the step cases.
 
@@ -206,7 +218,7 @@ Exclusive ownership while this task runs: the files above.
 | ID | Criterion | Evidence |
 |---|---|---|
 | MP15a2-B01 | Every replayed puzzle can be played step by step in the order it was made, ending with the stored puzzle | cases 1, 2 |
-| MP15a2-B02 | The final step always shows the stored puzzle's clues (also for a puzzle shared without its solution) and, when the replay confirmed it, its full score table from the same measurement | case 3 |
+| MP15a2-B02 | The final step always shows the stored puzzle's clues (also for a puzzle shared without its solution) and, when the replay confirmed it, its full score table from the same measurement | cases 3, 10 |
 | MP15a2-B03 | A score table is never fabricated: terms that cannot be computed for an old rating are shown as not available | case 4 |
 | MP15a2-B04 | The steps never exceed their size bound, and a cut trace is never presented as verified | cases 5, 6 |
 
@@ -215,7 +227,7 @@ Exclusive ownership while this task runs: the files above.
 | ID | Criterion | Evidence |
 |---|---|---|
 | MP15a2-T01 | Steps follow the table, in event order, with the stage-5/6 interleave allowed and the final step last | cases 1, 2 |
-| MP15a2-T02 | The final step: placements of the solution or exactly the stored clues; `args.detailStep` per `measuringStep` (null unless matched with a full claim) | case 3 |
+| MP15a2-T02 | The final step: placements of the solution or exactly the stored clues; `args.detailStep` per `measuringStep` (null unless matched with a full claim); `rating`, `breakdown` and `band` null without a claim | cases 3, 10 |
 | MP15a2-T03 | `breakdownOf` as specified for v3, valid and invalid v2 metrics (finite inputs whose terms overflow among them, TP11), summary claims and other models | case 4 |
 | MP15a2-T04 | The reserve (2 + the larger final form) is checked before running; `utf8Length(JSON.stringify(steps))` is at most `maxBytes`, with exact fits and one-byte-less cases for `maxSteps = 1`, an unavailable result and a multi-step trace (TP10); a cut sets `incomplete` `'bytes'`, `compared` empty and `final` `'not-compared'` unless already incomplete; `maxSteps` respected | cases 5, 6 |
 | MP15a2-T05 | Plain JSON (`structuredClone` and JSON round trip equal) and deterministic | cases 7, 8 |
@@ -283,7 +295,11 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
      and skip the two exact-fit checks). Then `maxBytes = need` keeps every step with the status of `full`;
      `maxBytes = need - 1` gives `incomplete` `'bytes'` with the last non-final step dropped, the final step last,
      `compared` empty and `stages.final === 'not-compared'` when `stages.set` is `'replayed'`;
-   - `maxBytes` = 4,000: `incomplete` `'bytes'` and the final step last.
+   - `maxBytes` = 4,000: `incomplete` `'bytes'` and the final step last;
+   - the smallest accepted bound with the default `maxSteps` (cross-review MP15R-01), on one fixture candidate puzzle:
+     with `maxBytes` = its reserve (2 + its larger final form), `replayPuzzle` runs (no `RangeError`) and returns
+     `incomplete` `'bytes'` with exactly one step, the final one, and `utf8Length(JSON.stringify(steps)) <= maxBytes`;
+     `runReplay` with the same limits and `reserveBytes` = that reserve stops at its first event (`events: []`).
 6. The step-count bound: `maxSteps` = 10 gives exactly 10 steps, the last the final; `maxSteps` = 1 gives only the
    final step with `incomplete` `'steps'`.
 7. Plain JSON: `structuredClone(result)` and `JSON.parse(JSON.stringify(result))` deep-equal `result`; no step
@@ -291,6 +307,10 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 8. Determinism: two replays of the same puzzle give deep-equal results.
 9. Measurements for the provisional bounds (record in the reply, not asserted): for each fixture puzzle the number of
    steps, the steps' UTF-8 JSON bytes and `work`; the largest of each as a share of `REPLAY`.
+10. A puzzle without a rating claim (a fixture candidate puzzle with `rating` removed, every other field unchanged;
+    MP15a1's ruling 5(b)): `matched`, with `compared` = `['board', 'pieces', 'witness', 'clues', 'solution']`. Its
+    final step has `rating: null`, `breakdown: null`, `detail: null`, `band: null` and `args.detailStep: null`
+    (`measuringStep` returns null without a claim), and a JSON round trip of the result deep-equals it.
 
 ## Definition of done & handoff
 

@@ -8,7 +8,7 @@
 | Owner role | QA and release |
 | Milestone | M10 — verified |
 | Design refs | `docs/difficulty-v3/report-detailed.md` §5.1 (MP17 row), §5.2 (the lock), §5.3 (GZ), RES-01 and RES-25 (what the lock means), RES-32 (MP17 row: the release notes), RES-35 (AR1); `docs/difficulty-v3/plan.md` §1.1, §6 and §7 (last item); clarifications C3 (a), AR1 (part G), PROC-P1 (a), and the plan author's answer to PR-P1 with owner decision P-OD9 (`docs/difficulty-v3/clarifications-resolved.md`: the plan §6 probe must show no Hard-or-above puzzle without a proved decisive guess; R7 a known limitation; the "no re-run allowance" of the code page); the plan author's answer to PR-P2 (Part I of the same file: the remaining parts unchanged; four findings carried to MP12b2's record and to this record as named items, §10 below); owner decisions P-OD12 (no fail-fast) and P-OD13 (the census estimates above 25 % accepted) in Part H of the same file; check-list §4.1, §4.2 D35, D38 to D41, §6, §7, §9 |
-| Gates owned | **GZ**: the two fixture checks; `npm test`; the plan §6 probe and the level runs on 10x6 and 20x18 (`tools/generate.mjs`, small counts, a fresh attempt directory); a small `tools/rate-probe.mjs` run; every page of `tests/browser/` in headless Edge in the main phase, plus the keys and narrow phases of `puzzle-code-acceptance` and the keys phase of `replay` (ports 8817 and 9317; MP16b's runner) |
+| Gates owned | **GZ**: the two fixture checks; `npm test`; the plan §6 probe and the level runs on 10x6 and 20x18 (`tools/generate.mjs`, small counts, a fresh attempt directory); a small `tools/rate-probe.mjs` run; one replay measurement (`replayPuzzle` on one generated puzzle); every page of `tests/browser/` in headless Edge in the main phase, plus the keys and narrow phases of `puzzle-code-acceptance` and the keys phase of `replay` (ports 8817 and 9317; MP16b's runner) |
 | Implementation status | Not started |
 
 ## Goal & business context
@@ -34,7 +34,8 @@ This is a regression run only (PROC-P1 (a)): no refit, no knob change, no algori
 
 - Before the gate: the lock inspection (git commands and the printed constants only; step 1). Gate GZ, in this
   order: the two fixture checks; `npm test`; the generation runs; the re-rating of their puzzles; the `rate-probe`
-  runs; the browser runs (cross-review SP18: the fixture checks regenerate puzzles, so they are part of the gate).
+  runs; the replay measurement (one puzzle); the browser runs (cross-review SP18: the fixture checks regenerate
+  puzzles, so they are part of the gate).
 - Scratch scripts under `tests/artifacts/MP17/` (given below; not committed).
 - The record `docs/difficulty-v3/final-<date>.md` (new; `<date>` is the date of the GZ runs, `YYYY-MM-DD`), with the
   section "Release notes".
@@ -67,21 +68,21 @@ no generated fixture changes. Anything else is a defect report. A failing test i
 - **Announce the gate to the orchestrator before starting it** (the Sudoku repository runs in parallel on the same
   machine): "GZ: the two fixture checks (about as long as in the GF-P2 record of MP09d2, or of the last task that
   re-recorded the fixtures, and the GF-P4 record of MP13b), `npm test` (a few minutes), 12 generation runs (about
-  15–30 minutes), the re-rating and up to 3 `rate-probe` runs (about 5–15 minutes), 19 browser runs, one per
-  invocation (16 pages in the main phase, the keys and narrow phases of `puzzle-code-acceptance`, the keys phase of
-  `replay`; about 20–30 minutes); about 70–100 minutes in total plus the lock waits, one run at a time". Start after
-  the orchestrator's go; every command of the gate then goes through the lock helper (Amendment L1), which interleaves
-  the gate with the Sudoku repository's runs. Only the lock inspection (step 1: git commands and `lock-values.mjs`,
-  which prints constants) runs before the announcement; a retry of any gate command, the fixture checks included,
-  waits for the orchestrator's go in the same way (cross-review SP18).
+  15–30 minutes), the re-rating and up to 3 `rate-probe` runs (about 5–15 minutes), one replay measurement (about 1–5
+  minutes), 19 browser runs, one per invocation (16 pages in the main phase, the keys and narrow phases of
+  `puzzle-code-acceptance`, the keys phase of `replay`; about 20–30 minutes); about 70–100 minutes in total plus the
+  lock waits, one run at a time". Start after the orchestrator's go; every command of the gate then goes through the
+  lock helper (Amendment L1), which interleaves the gate with the Sudoku repository's runs. Only the lock inspection
+  (step 1: git commands and `lock-values.mjs`, which prints constants) runs before the announcement; a retry of any
+  gate command, the fixture checks included, waits for the orchestrator's go in the same way (cross-review SP18).
 - **Amendment L1 (lock; orchestrator decision 2026-11-13).** Save the helper `Invoke-Dv3Timed` of check-list §7
   ("Shared-machine lock protocol") verbatim as `tests/artifacts/MP17/dv3-lock.ps1` and dot-source it in every call.
   Every gate command (the two fixture checks, `npm test`, the 12 generation runs, `summarise.mjs`, the `rate-probe`
-  runs and the 19 browser runs, one page and phase per runner invocation) and the final quick set go through it, as
-  written in this file: one bounded command per acquisition of the lock, at most 590 s, at least 15 s between
-  releasing the lock and taking it again (the helper waits), never a lock held across a series of commands. Only the
-  lock inspection (git commands and `lock-values.mjs`), the reads of the offered levels and of the knobs,
-  `npm run check` and the CRLF check run without it. A command that the helper stops at its limit has an error:
+  runs, the replay measurement and the 19 browser runs, one page and phase per runner invocation) and the final quick
+  set go through it, as written in this file: one bounded command per acquisition of the lock, at most 590 s, at least
+  15 s between releasing the lock and taking it again (the helper waits), never a lock held across a series of
+  commands. Only the lock inspection (git commands and `lock-values.mjs`), the reads of the offered levels and of the
+  knobs, `npm run check` and the CRLF check run without it. A command that the helper stops at its limit has an error:
   report it, never rerun it outside the helper (an `npm test` stopped there runs again as two commands, the quick set
   and `--test --test-name-pattern=slow tests/**/*.test.js`, both recorded). The record gives each invocation's label,
   exit, seconds and lock wait.
@@ -454,6 +455,42 @@ Per line: no `error`; `v3.score` equals `storedScore` (a difference is a defect:
 `orders.summary.G` (min, median, max), `orders.summary.B` and `timing.deduceMs`. Expected time: 1–5 minutes per pack.
 A skipped probe is listed in record §7 with the run's `MISS` line.
 
+### The replay measurement (Generation Steps; a named item of the MP15a1 rulings)
+
+The replay is bounded by its work, not by a clock. `REPLAY.work` is 256 × (`DEDUCE.work` + `DEDUCE.census`) =
+215,040,000,000 units: about 25 minutes of compute at the roughly 140 million units per second that MP15a1 measured.
+An auxiliary request promises no latency (design §8.1, "Auxiliary requests"); closing the dialog or starting a
+generation stops it (MP15b). This is a known limitation (record §10). One measurement on the largest generated
+puzzle of this attempt gives its real cost:
+
+- **The puzzle.** The first puzzle of `t-nightmare` (20 x 18 Nightmare: the largest board and the highest offered
+  level of the runs) whose record `generation.made[id].kind` is `candidate`: its replay also meters the hidden
+  calibration. When that pack has no candidate puzzle, take its calibration puzzle. When the run wrote no pack, make
+  the same choice in `t-master`, then in `p3`. The record says which puzzle was measured.
+- **The script** `tests/artifacts/MP17/replay-measure.mjs` (scratch).
+  - It reads the pack of this attempt with `validatePack` (its `value`) and builds the input as `tests/replay.test.js`
+    does (`setOfPack` and `fixtureInputs`, MP15a1): the set from `board.rows`, `pieces`, `witness`,
+    `generation.carving` and `generation.macroRegion`; the puzzle; the pack's whole `generation`; fresh workspaces
+    (`MAIN_WORKSPACE_BYTES`, `SCRATCH_WORKSPACE_BYTES`).
+  - It calls `replayPuzzle` with `REPLAY` and times the call with `performance.now()`.
+  - It prints and writes one JSON line: `{ pack, puzzleId, kind, status, reason, work, workShare, steps, stepsShare,
+    bytes, bytesShare, ms, unitsPerSecond, projectedMinutes }`. The shares are of `REPLAY`; `steps` is the length of
+    the result's `steps` and `bytes = utf8Length(JSON.stringify(result.steps))`; `unitsPerSecond = work / (ms /
+    1000)`; `projectedMinutes = REPLAY.work / unitsPerSecond / 60`.
+  - It exits 0 for `matched` and 1 for any other status or an error; the line is written in every case it can be.
+
+```powershell
+. tests\artifacts\MP17\dv3-lock.ps1
+$t = Invoke-Dv3Timed -Task 'MP17 replay measurement' -NodeArgs @('tests/artifacts/MP17/replay-measure.mjs', $gz,
+  '--output', "$gz\replay-measure.json")
+if ($t.Exit -ne 0) { throw 'replay measurement failed' }
+```
+
+Expected: `status` `matched`, within the minutes announced (the replay re-runs the puzzle's set attempt, with its
+calibration, and its one candidate attempt). Any other status is a correctness finding: report it to the orchestrator
+with the run, as for a defect. A stop at the helper's 590 s limit is itself the finding (the replay's wall time):
+record the elapsed time and do not rerun.
+
 ### The lock inspection (step 1, before the announcement) and the fixture checks (the first gate commands)
 
 Before the announcement, only git commands and the printing of constants (cross-review SP18):
@@ -601,7 +638,14 @@ English, CRLF, no BOM, relative links only. Sections:
     census confound (the fast large-board Nightmare cells carry more census estimates, not measured). Say for each
     whether a later accepted task changed it (MP12b3 built no fail-fast, P-OD12; MP13a to MP16b do not touch
     generation time), and that a faster generator is later work outside difficulty-v3
-    (`docs/improve-generating/plan.md`, not authorised).
+    (`docs/improve-generating/plan.md`, not authorised). Two more named items (the pack author's rulings on MP15a1,
+    2026-11-15):
+    - **The replay's wall time.** A replay is bounded by `REPLAY.work` (215,040,000,000 units, about 25 minutes of
+      compute), not by a clock; an auxiliary request promises no latency; closing the dialog or starting a generation
+      stops it. Give the replay measurement: the puzzle, its status, work, steps and bytes with their shares of
+      `REPLAY`, seconds, units per second and the projected minutes at `REPLAY.work`.
+    - **No type check.** The modules carry `// @ts-check` and JSDoc types, but the repository runs no `tsc`, so the
+      types are not machine-checked (MP10a, MP14b and MP15a1 Execution logs).
 11. **Release notes** (below).
 
 ### Release notes (C3 (a); RES-32, MP17 row)
@@ -653,11 +697,14 @@ correct a statement that does not hold and report it. The facts to state:
 - **Generation Steps.** Each puzzle card in the Generator has a "How it was made" button that replays how the puzzle
   was made, step by step (set, layout, clue search, final rating), with the score table. It is available for puzzles
   made by this version; otherwise the dialog says that steps are not available. Packs written by this version carry a
-  small optional provenance record (`generation.setOrigin`, `generation.made`) for it.
+  small optional provenance record (`generation.setOrigin`, `generation.made`) for it. A replay can take a while on a
+  large board, and it has no time limit of its own: closing the dialog stops it, and starting a generation stops it
+  too (state the measured time of record §10 in plain words).
 - **For developers.** The records of this change are in `docs/difficulty-v3/` (the report, the probe, the fit, the
   code sizes, the calibration with the lock, this record); the design is in `docs/design-detail.md` §6.12 and §7; the
   tools `tools/rate-probe.mjs` and `node tools/record-fixtures.mjs --replay-case` are described in the developer guide.
-  No `CHANGELOG.md` is added.
+  The modules are type-annotated (`// @ts-check`, JSDoc) but not type-checked by a tool (no `tsc`). No
+  `CHANGELOG.md` is added.
 
 ### The documents sweep (for the corrections)
 
@@ -695,9 +742,9 @@ MP17 no section of `docs/design-detail.md`). Must not edit: everything of "Out o
 2. Write `summarise.mjs` and copy MP16b's runner to `pages.mjs`; announce GZ with the plan of "Repository rules";
    wait for the go.
 3. The two fixture checks; `npm test` (record counts and duration); the 12 generation runs into a fresh attempt
-   directory; `summarise.mjs`; the knobs file and the `rate-probe` runs of the packs that exist; the 19 browser
-   invocations, one run each. Stop and report on a defect; do not continue to the next run family with an unexplained
-   failure.
+   directory; `summarise.mjs`; the knobs file and the `rate-probe` runs of the packs that exist; the replay
+   measurement; the 19 browser invocations, one run each. Stop and report on a defect; do not continue to the next run
+   family with an unexplained failure.
 4. The documents sweep and the corrections, if any.
 5. The record with the release notes; `npm run test:quick`; `npm run check`; the CRLF check of the record.
 
@@ -721,13 +768,15 @@ MP17 no section of `docs/design-detail.md`). Must not edit: everything of "Out o
 | MP17-T04 | The 19 runs pass (the 16 pages in the main phase, the keys and narrow phases of `puzzle-code-acceptance`, the keys phase of `replay`; acceptance: the known blocked checks only) with no CSP violation and no uncaught error, each check under 1 minute; servers and browsers stopped by PID; the profile removed | record §4; the 19 `runs.json` |
 | MP17-T05 | Only the record and the listed justified corrections changed (`git --no-pager status --short`); no file under `core/`, `tools/`, `generator/`, `player/` or `tests/fixtures/` changed | `git status`; review |
 | MP17-T06 | `npm run test:quick` and `npm run check` pass; the record is CRLF without BOM, with a final newline and no absolute path | command output |
+| MP17-T07 | The replay measurement: one puzzle of this attempt, chosen by the rule (the first candidate puzzle of `t-nightmare`), replays `matched` through `replayPuzzle`; its work, steps, bytes, seconds, units per second and the projected minutes at `REPLAY.work` are in record §10 with the two named items (the replay's wall time, no `tsc`) | `replay-measure.json`; record §10 |
 
 ## Test plan
 
 ### Exact commands
 
-The lock inspection, the fixture checks, the generation runs, `summarise.mjs`, the `rate-probe` runs and the browser
-runs as written above, each through the lock helper as written there (Amendment L1). Then:
+The lock inspection, the fixture checks, the generation runs, `summarise.mjs`, the `rate-probe` runs, the replay
+measurement and the browser runs as written above, each through the lock helper as written there (Amendment L1).
+Then:
 
 ```powershell
 # announced gate GZ (after the lock inspection): the two fixture checks (above), then the full suite
@@ -735,7 +784,7 @@ runs as written above, each through the lock helper as written there (Amendment 
 $t = Invoke-Dv3Timed -Task 'MP17 npm test' -NodeArgs @('--test', 'tests/**/*.test.js')
 if ($t.Exit -ne 0) { throw 'npm test failed' }
 
-# ... the generation runs, summarise.mjs, rate-probe, the 19 browser invocations (above) ...
+# ... the generation runs, summarise.mjs, rate-probe, the replay measurement, the 19 browser invocations (above) ...
 
 $t = Invoke-Dv3Timed -Task 'MP17 quick set' -NodeArgs @('--test', '--test-skip-pattern=slow', 'tests/**/*.test.js')
 if ($t.Exit -ne 0) { throw 'quick tests failed' }

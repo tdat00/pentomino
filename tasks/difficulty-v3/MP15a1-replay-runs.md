@@ -137,7 +137,7 @@ export const REPLAY = Object.freeze({
 ### Input, limits and the provenance projection
 
 - Input that is not a set, a puzzle and an object for `generation` throws `RangeError` (the worker maps it to
-  `invalid-payload` in MP15b).
+  `invalid-request` in MP15b).
 - Limits (cross-review SP10): `limits` is an object whose `maxSteps` and `maxBytes` are safe integers of at least 1
   and whose `work` is a safe integer of at least 0, and `reserveBytes` is a safe integer from 0 to `limits.maxBytes`;
   otherwise `RangeError('invalid replay limits')`. Both checks come before any other work (no stage runs, `isCancelled`
