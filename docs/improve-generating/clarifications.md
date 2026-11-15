@@ -989,3 +989,44 @@ phase-0 numbers come from the frozen round (owner decision "Phase 0").
 
 Then one command per task and `node tools\ig-proto\summary.mjs --label frozen`; the records go to
 `docs/improve-generating/evidence/frozen/`, and nothing provisional is overwritten.
+
+---
+
+## Audit addendum: report.md and plan.md against the provisional measurements (2026-11-15)
+
+*An independent read-only audit compared `plan.md` and `report.md` with the round's `summary.md`; Opus checked each item
+against the records. Rows are `summary.md`'s; every number is provisional (pre-freeze). No new question.*
+
+1. Master: `report.md:34, 53, 81-83` expect 2.1 to 2.4 times from P6 to P8 alone. P6 with eight workers measured x0.93
+   (14x14) and x1.10 (26x26), n 4 each, on this 16-logical-core machine (R25): at most x1.67 and x1.97 with P7 at 1.8.
+2. P2, "about nothing on 10x10 and 12x12" (`report.md:141`): it holds on 10x10 (x1.0 to 1.1, R17), not on 12x12: x2.0
+   at 190 M on today's call profiles, net of re-rating the lost useful ratings (R17), and x1.56 on the prototype over
+   six seeds, with +0.75 clues on the same set (R33).
+3. P1 and P4 "add little" where the start count is right (`report.md:28-29, 140, 143`: x1.0 to 1.15 and x1.05 to 1.15).
+   On 26x26 Nightmare P1 to P5 gave x2.01 per seed (n 6, 0.69 to 3.91; R06), with P2 at x1.1 (R17) and no dead end
+   today (R10: 0 %); it comes with +1 clue at the median (R32), and no arm isolates P1 or P4.
+4. P6: x1.03 to 1.2 at Nightmare (`report.md:145`) against x1.32 on 26x26 Nightmare (n 4; Master x1.148, R22). "Up to
+   1.67 times less time on completed ratings" (`plan.md:95`) against 9.9 to 22.8 % of rating time saved (R22; x1.41
+   gross, IGP-04 `compare.json`); DLX is 3.3 to 4.0 % of PM2's rating time (R30), at most 10.2 % in a class.
+5. P8: "up to 2 times on machines with 8 or more cores" (`plan.md:97`; batch x1.3 to 1.9, `report.md:147`) against
+   batch x1.26 (Nightmare) and x0.95 (Master), set stage x0.94 and x0.72 on this machine, where one rating runs 9 to
+   28 % slower at eight workers than at four (R23).
+6. Premises in this file: P1 to P5 give 10x10 and 12x12 only 1.1 to 1.8 times, and both probably stay too slow in the
+   browser (`:333, 349, 468`). 12x12 measured x9.3 with the shift (R05, R32) and x2.9 without the screen (R33); 10x10
+   has no request-level run, and nothing has run in a browser. "Hell 1 plausible only on 576 and 676 cells" (`:469`)
+   holds neither for windows (R27) nor for 20x20 in Node (R33: 2 of 2 reached ten, T10 42.9 s), as IG-P-Q18 notes.
+7. R10's "inside" uses the broad 30 to 60 %. Against the per-cell ranges of `report.md:242` (14x14 41 to 52 %, 15x15b10
+   44 to 56 %) both measured shares, 39.7 and 37.1 %, are below; for 12x12 the report gives 5 to 10 % (`:142`) and 4 to
+   5 % (`:243`), and the measured 18.7 % is above both.
+8. R29: the estimates 0.89, 0.53 and 0.10 come from `claude-opus-5.5/2-cross-review.md` §1.2 (lines 82, 81, 93), not
+   from "report §1" as `summary.md` and the check-list's §5 cite; the numbers stand, and `summary.md` is unchanged.
+9. Verdict words that read more than the data: R03's "inside" rests on 3 of 3 requests per cell (a one-sided 95 % lower
+   bound of 37 % on completion); R22's Master "outside" is 0.002 below the range (14x14 1.18 inside); R07's "between"
+   hides 26x26 Master's paired x0.83 (geometric mean 0.91, n 5, 0.38 to 2.13; IGP-03 `compare.json`), a possible
+   slowdown, with -1 clue at the median (R32).
+
+**Coverage gaps.** R09 (16x16, 15x20 Nightmare) not measured; P7 unmeasured, so R24, R25 and R31 are Projections; no
+browser run, and 10x10 never at request level; PM1 tranche 1 at about 0.8 of about 10 worker-hours; no Hell 2 PM3 run;
+two to six seeds per cell, so no usable p95 (the printed one is the maximum), and completion on three requests against
+OD-P4's 20 at 90 %; non-regression thin: of the cells that pass today, only 26x26 Nightmare and two of 16 Master cells.
+Which P1 to P5 numbers count, the screen's with its shift or the search without the screen, is IG-P-Q17's decision.
