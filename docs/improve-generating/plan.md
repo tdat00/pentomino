@@ -518,8 +518,13 @@ skip replay (RES-27), recorders (RES-28), a work meter `charge` (RES-29) and pro
 - *One running version (IG-P-Q34).* A `gen-v4` build replays `gen-v4` records only. A `gen-v3` record is
   "unavailable" by version (`set-versions`); it is never reinterpreted. The `gen-v3` records and
   `tests/fixtures/replay-case.json` are not rewritten: the fixture stays as the refusal case, and the tests
-  that expect `matched` move to a new `gen-v4` fixture. P4's table version and the `W_screen` table version
-  join `ProvenanceVersions` and the version comparison.
+  that expect `matched` move to a new `gen-v4` fixture.
+- *Provenance shape (IG-P-Q36).* The stored `versions` keys depend on the record's `algo`. A `gen-v4` record has
+  today's five keys plus P4's table version and the `W_screen` table version, and needs all seven; every other
+  record, `gen-v3` included, keeps exactly today's five keys. The reader checks the shape of the record's own
+  `algo`, copies those keys, and keeps a valid record of either shape through a load and a save; a record of
+  the wrong shape is dropped with a warning, as today. The version comparison includes the two table versions
+  when both sides are `gen-v4`.
 - *Observers.* An observer that returns normally changes neither a result nor a loop's control flow. An
   exception thrown by `record` or `charge` propagates unchanged through the engine; replay's cancellation and
   work limits rely on that. Every rating attempt is charged once, before its event, the screen-capped and
@@ -603,8 +608,9 @@ These are first values; the owner or the analysts may change them before the val
 - **Rule (c5) fails closed (IG-P-Q26).** A class needs, in every validated cell, at least 15 matched sets from
   at least 15 independent seeds; a request that is served but does not reach ten still gives a matched set if
   both arms accepted a puzzle. Below that the class is "inconclusive". The verdict of a class is "admitted",
-  "failed" or "inconclusive", with the condition that decided it; only "admitted" uses the screen. A class with an incomplete validation
-  (a ceiling, a stopped task, a missing arm) and a class outside the table use no screen.
+  "failed" or "inconclusive", with the condition that decided it; only "admitted" uses the screen. A class
+  with an incomplete validation (a ceiling, a stopped task, a missing arm) and a class outside the table use
+  no screen.
 - **Completion, apart.** The screen arm may reach ten on at most one request in 20 fewer than the no-screen
   arm. Sets that only one arm serves and requests with no accepted puzzle stay in the completion record with
   their outcome; they count in completion and in the capped-time statistics, not in the clue statistic.
@@ -623,9 +629,10 @@ These are first values; the owner or the analysts may change them before the val
   and 15x20 included) and are not changed after the validation seeds have run.
 - **Hell 1 is reported, not gated here (IG-P-Q30).** Its validation cells are measured against the same count,
   18 of 20, as a candidate result. It does not stop phase 2. A result excludes only its own board (IG-P-Q33): a
-  validated board that fell short leaves phase 3's Hell 1 landscape; a candidate board without a validation
-  cell keeps its entry in P4's table and runs in that landscape as a separately priced diagnostic. Neither
-  state is a qualification or an offer; the offer stays behind OD-P4 and OD-P6.
+  validated board that reached 18 of 20 enters phase 3's Hell 1 landscape and one that fell short leaves it; a
+  candidate board without a validation cell keeps its entry in P4's table and runs in that landscape as a
+  separately priced diagnostic. None of these is a qualification or an offer; the offer stays behind OD-P4 and
+  OD-P6.
 - **No regression.** Master and below: identity, the same puzzles on the same seeds. Completion-passing
   Nightmare cells under the new search: at least 18 of 20 reach ten, and the per-seed T10 ratio (today over
   after) has a one-sided 90 % lower bound of at least 0.9. A cell whose tail already exceeds the limit today
@@ -676,7 +683,10 @@ policy.
 - **Scope:** for Very easy to Master, `gen-v4` returns the puzzles of `gen-v3` for the same effective request.
 - **Replay** (P4): a stored request reproduces its puzzles from its stored prior, table version, target and
   uniqueness mode. `gen-v4` has its own replay fixture; a record of another `algo` or table version is
-  "unavailable"; `tests/fixtures/replay-case.json` keeps pinning `gen-v3` as the refusal case.
+  "unavailable"; `tests/fixtures/replay-case.json` keeps pinning `gen-v3` as the refusal case: it loads with no
+  provenance problem, keeps its provenance through a load and a save, and replays as "unavailable" with the
+  reason `set-versions` (IG-P-Q36). A `gen-v4` record without its table versions, and a `gen-v3` record with
+  them, are dropped with a warning.
 - **Observers** (IG-P-Q31): the result is the same with no observer, with `charge` and with `record` and
   `charge`; a throwing observer's exception propagates unchanged.
 - **Memory limit** (P7): `model-too-large` is raised for the same models as today.
@@ -718,8 +728,9 @@ packs), Q17 and Q18 (population and the Hell windows), Q19 to Q24 (statistics, t
 budget arm, the browser rule, the Hell scope), Q25 (today's arm and Master identity), Q26 (rule (c5) fails
 closed), Q27 (PM1 and the frozen prior), Q28 and Q31 (replay, provenance and observers), Q29 (the arm the gate
 judges), Q30 (Hell 1 reported, not gated in phase 0), Q32 (admission against the cell gates), Q33 (unvalidated
-Hell 1 boards stay candidates), Q34 (one running version in replay), Q35 (the matched set). The text of Q01
-to Q28 is in `clarifications.md` at commit `1731c6b`.
+Hell 1 boards stay candidates), Q34 (one running version in replay), Q35 (the matched set). IG-P-Q36 (the
+provenance shape) was resolved by the analysts on the owner's delegation. The text of Q01 to Q28 is in
+`clarifications.md` at commit `1731c6b`.
 
 ## 8. Risks
 

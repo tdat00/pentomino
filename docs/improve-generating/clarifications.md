@@ -4,9 +4,10 @@ This file holds the **open questions** for the plan author, the owner's decision
 plan version. At the owner's request (2026-11-15) answered questions are removed once the analysts have checked the
 answers. The full text of IG-P-Q01 to IG-P-Q28 with their answers, the plan author's direction of 2026-11-14 and the
 plan author's positions on IG-P-D1 to IG-P-D7 is in this file at commit `1731c6b`; IG-P-Q29 to IG-P-Q31 with their
-answers are at commit `f768220`, IG-P-Q32 to IG-P-Q35 with their answers at commit `854a69d`. `plan.md` and the
-reports cite them by ID. Plan version 4 has taken in the answers to IG-P-Q25 to IG-P-Q35 and the corrections C1 to
-C18 accepted from the joint report on version 3; the answer to the open question below goes into its next revision.
+answers are at commit `f768220`, IG-P-Q32 to IG-P-Q35 with their answers at commit `854a69d`, and the question
+IG-P-Q36 at commit `b7e5dff`. `plan.md` and the reports cite them by ID. Plan version 4 has taken in the answers to
+IG-P-Q25 to IG-P-Q35, the corrections C1 to C18 accepted from the joint report on version 3 and the resolution of
+IG-P-Q36 below.
 
 ---
 
@@ -260,35 +261,42 @@ since answered (text at `854a69d`). No owner decision is needed.**
 
 Opus (SA1) and Astra (SA2) checked the answers and `plan.md` at `854a69d` independently against the source at
 `e5bb721`. **All four answers are accepted, and the revised version 4 reflects them without a substantive
-inconsistency. Version 4 is ready as the planning basis, subject to the one Low follow-up below. No owner decision is
+inconsistency. Version 4 is ready as the planning basis, subject to the one Low follow-up IG-P-Q36 (resolved below). No owner decision is
 needed.**
 
 - **Notes for the next edit (no answer needed).** Line 606 of `plan.md` is 136 characters long; break it after "uses
   the screen.". Line 625 states two of the three board states of IG-P-Q33; it may add "a validated board that
   reached 18 of 20 enters it".
 
-## Open questions (analysts, 2026-11-15)
+---
 
-### IG-P-Q36: `gen-v3` records must stay readable once the table versions join the provenance (follow-up to IG-P-Q34)
+## IG-P-Q36: resolved by the analysts on the owner's delegation (2026-11-15)
 
-*Raised by Opus (SA1), endorsed by Astra (SA2). Low; no effect on the gates or the price. Affects `gen-v4`'s pack
-reader and the refusal fixture.*
+The owner (22:12): "không cần trả lời từ fable, giao 2 agent opus và astra chốt phương án" (no answer from the plan
+author is needed; the two analysts settle the option). Opus (SA1) and Astra (SA2) chose **option (3)**: keep the
+original five-key shape for `gen-v3` records and require the two table versions for `gen-v4` records. Option (3)
+keeps the answer to IG-P-Q34 as written, needs no second preflight comparison (as (1) would) and does not overload
+`POLICY_ID`, the offer policy (as (2) would).
 
-**Question.** The stored `versions` object must have exactly five keys: `VERSION_KEYS` (`pack.js:62` at `e5bb721`) is
-checked by `versionsProblem` (`pack.js:1147-1160`) and `exactKeysProblem` (`pack.js:1088-1106`). If P4's table version
-and the `W_screen` table version become new keys of `ProvenanceVersions`, as the answer to IG-P-Q34 says, a `gen-v4`
-reader rejects every five-key `gen-v3` record as a missing field, and `keepValidProvenance` (`pack.js:1408-1426`) drops
-those records from the reader's copy with a warning. Replay then reports `no-set-origin` or `record-invalid`, not the
-promised `set-versions`; the refusal fixture would not show `set-versions`; and "not rewritten" is at risk if that copy
-is saved. How are the table versions carried?
+- **Contract.** The stored `versions` keys depend on the record's `algo`: a `gen-v4` record has today's five keys
+  (`pack.js:62` at `e5bb721`) plus P4's table version and the `W_screen` table version (names for the design, for
+  example `priorTable` and `screenTable`); every other record, `gen-v3` included, has exactly the five. The reader
+  (`versionsProblem`, `copyVersions`) checks and copies the key set of the record's own `algo`; a valid record of
+  either shape is kept and survives a load and a save deep-equal; a record of the wrong shape is dropped with a
+  warning, as today (RES-27). A `gen-v4` build's `provenanceVersions()` returns all seven keys; `sameVersions`
+  compares the five, and the two table versions when both sides are `gen-v4`; any difference gives "unavailable"
+  (`set-versions` at the set stage, `record-versions` at the candidate stage) before any skip is applied. Builds
+  older than `gen-v4` keep dropping seven-key records as foreign (out of scope).
+- **Tests.** Under a `gen-v4` build `tests/fixtures/replay-case.json` loads with no provenance problem, keeps
+  `generation.setOrigin` and `generation.made` deep-equal through a load and a save, and replays as "unavailable"
+  with the reason `set-versions`. Negative cases: a `gen-v4` record without a table version, and a `gen-v3` record
+  with one, are dropped with a `versions:` problem; a `gen-v4` record made under another table version is
+  "unavailable".
+- **`plan.md` (version 4), edited by the orchestrator with both analysts' agreement:** section 5.1 gains the bullet
+  "Provenance shape (IG-P-Q36)"; section 6's replay test states the refusal case and the two negative cases;
+  section 5.2's Hell 1 bullet names all three board states (IG-P-Q33); the overlong line of rule (c5) is wrapped;
+  section 7 notes that IG-P-Q36 was resolved by the analysts on the owner's delegation. No other text changed.
 
-**Options.** (1) Carry the two table versions outside `versions` and compare them in the replay preflight (P4's stored
-identity already holds its table version, IG-P-Q03). (2) Fold them into the `policy` id, so that a refit changes
-`POLICY_ID`. (3) Accept the original five-key shape unchanged when `algo` is `gen-v3`, and require the table versions
-for `gen-v4` records.
+## Open questions
 
-**Analysts.** Both: keep `gen-v3` records readable by one of these. Astra prefers (3). Test: `replay-case.json` loads
-with no provenance problem, survives a load and save with its provenance intact, and replays as `unavailable` with the
-reason `set-versions`.
-
-Plan-author answer:
+None for the Pentomino plan (2026-11-15).
