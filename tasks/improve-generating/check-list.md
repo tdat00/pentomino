@@ -9,7 +9,7 @@ tranche 1 and PM2 on 10x10 and 12x12. Measurement only: nothing in `core/`, `gen
 changes (plan author's "Direction after the joint report"; owner instruction of 2026-11-14: "create prototype code to
 verify the estimates in the report; only prototype code that checks puzzle generation; do not change other functions
 of the generator source; give difficulty-v3 priority for resources").
-**Status:** written and cross-reviewed (gpt-6-astra, 18 findings applied); not started. Eight tasks, IGP-00 to IGP-07.
+**Status:** written and cross-reviewed (gpt-6-astra, 18 findings applied); provisional round complete (IGP-00 to IGP-07 and IGP-03h accepted, 2026-11-15). Eight tasks, IGP-00 to IGP-07.
 **Label:** every number of this round is **provisional (pre-freeze)**. It is measured on the `rating-v3` runtime of
 this worktree (runtime commit `cd5d17f`; the worktree head `0e1283e` adds documents only). Its source digest is MP12b1's
 (`34cea386…`, the `sourceDigest` of every MP12b1 report, whose `sourceCommit` is `917052a`), so the same seed gives
@@ -41,7 +41,7 @@ decisions of this pack (§4), not open questions for the developer.
 | [x] | IGP-04 | [04](04-first-phase-factor.md) | First-phase factor: P6, and eight workers as an unadmitted upper bound | IGP-01 | Medium, about 200 lines | 28 min | P6, P8's upper bound, the ÷1.9 assumption, memory (R22, R23, R25, R26) | 5 |
 | [x] | IGP-05 | [05](05-pm1-tranche1-slice.md) | PM1 tranche 1, reduced first slice | IGP-00 | Medium, about 450 lines | 23 min | windows of Hell 1 on 215-484 cells, Hell 2, Hell 3; fine counts; failed Hell 1 sets (R27 to R29) | 6 |
 | [x] | IGP-06 | [06](06-pm2-kernel-profile.md) | PM2 rating profile on 10x10 and 12x12 Nightmare | IGP-00 | Small, about 300 lines | 8 min | P7's sensitivity; IG-P-Q12 (R24, R30) | 7 |
-| [ ] | IGP-07 | [07](07-results-summary.md) | Estimate-vs-measured summary and re-run index | IGP-01 to IGP-06 | Small, about 250 lines | none | the §5 table and R31 | 8 |
+| [x] | IGP-07 | [07](07-results-summary.md) | Estimate-vs-measured summary and re-run index | IGP-01 to IGP-06 | Small, about 250 lines | none | the §5 table and R31 | 8 |
 |  |  |  | **Total** |  |  | **about 178 min (actual so far: §7)** |  |  |
 
 Sizes count new harness lines. Developer time comes on top: about 3 to 4 hours each for IGP-00 and IGP-01, 1 to 2
@@ -221,7 +221,7 @@ states are never rewritten.
 | D-IG12 | Bounded invocations: every locked command ends by its horizon (at most 285 s) by construction (§7): one-row calibrate runs with an admission check, supervised calls cut before the horizon and recorded as censored, supervised rating jobs admitted by a fixed bound, families checkpointed after each probe | the wrapper's 300 s kill must never act as the sharder |
 | D-IG13 | Frozen-round Hell cells: the board catalogue is frozen now (`data/boards-v1.json`, every landscape case of this source), and every tree except `base` bypasses the offer check of `pieceCountPlan` (copy only, `diagnosticOffers`), so that PM1, PM4 and the Hell headline can still examine Hell cells that the frozen source no longer offers. Such a run is labelled "diagnostic offer"; it never enables a production offer | the plan author's main phase-0 question (Hell 2 and 3 windows) must stay answerable on the frozen source |
 
-## 5. Estimate vs measured (to be filled)
+## 5. Estimate vs measured (filled by IGP-07, provisional)
 
 The estimates are the analysts' **P1 to P5 scenario rows at four workers** (Opus: `claude-opus-5.5/2-cross-review.md`
 §1.3-§1.4, reconciled factors applied to today's medians; Astra: `gpt-6-astra/2-cross-review.md` §6, "First search work
@@ -237,40 +237,40 @@ shift of the accepted puzzles (R32) is reported beside every time verdict of the
 
 | Row | Quantity | Estimate (kind; source) | Measured, provisional | Task, record | Verdict |
 |---|---|---|---|---|---|
-| R00 | Harness fidelity: `base` and `log` agree with MP12b1 (puzzle identity by digest where the accepted counts are equal; otherwise metric-prefix agreement, puzzle identity not established) | required agreement | | IGP-00 `identity` | |
-| R01 | 14x14 Nightmare today: T10 median / p95, ten of 20 | 112.98 / 151.64 s, 11 of 20 (Measured; MP12b1) | re-run on reps 0-2; drift | IGP-01 `compare` | |
-| R02 | 14x14 Nightmare after P1-P5, four workers: T10 median | Opus 17.7 s (112.98 / 6.4); Astra 16.0 s (tail 21.5-35.3) | | IGP-01 | |
-| R03 | Completion after P1-P5 on 12x12, 14x14 and 15x15b10 Nightmare | Opus about 19-20 of 20 after all phases; Astra unknown (report §3) | | IGP-01 | |
-| R04 | 15x15b10 Nightmare after P1-P5: T10 median | Opus 13.8 s (86.23 / 6.25); Astra 13.7 s | | IGP-01 | |
-| R05 | 12x12 Nightmare after P1-P5: T10 median | Opus about 39-48 s (P1 and P4 about 1.3 to 1.6); Astra 44.5 s | | IGP-01 | |
-| R06 | 26x26 Nightmare after P1-P5: T10 median | Opus 15.5 s (18.61 / 1.2); Astra 17.8 s | | IGP-01 | |
-| R07 | Master after P1-P5 (14x14 and 26x26) | unchanged (both); today 2.57 s and 8.36 s | | IGP-01; IGP-03 (26x26 at 380 M) | |
-| R08 | Hell 1 26x26 after P1-P5: T10 median; ten of n | Opus about 28 s; Astra 50-60 s; both only if a window holds | | IGP-01 | |
-| R09 | 16x16 and 15x20 Nightmare after P1-P5 | not measured in this round (D-IG9) | later round | | |
-| R10 | Dead-end share of today's batch profile time | a heuristic 30-60 % on 196-300 cells; 5-10 % on 12x12 and 18x18 (report §4) | | IGP-01 `before` arm | |
-| R11 | Dead-end entries per call after P1-P5 | expected none (a hypothesis, not a requirement) | | IGP-01 | |
-| R12 | Window profiles per successful call | about four (a scenario parameter, report §2) | | IGP-01 | |
-| R13 | Batch waves for nine slots at four workers (a proxy) | 2.25 (Opus) or 2.75 (Astra) | | IGP-01 | |
-| R14 | Screen certificate (IG-P-Q01 (b)): certified screens equal canonical | 0 violations required; otherwise fallback (c) | | IGP-02 | |
-| R15 | Useful ratings lost (in band, screen-capped) at 95 / 190 / 380 M | "95 M is low for Nightmare"; 190-380 M is about 0.6-1.2 s of main work (report §4, IG-P-Q09) | | IGP-02 | |
-| R16 | Work per accepted puzzle at 95 / 190 / 380 M and without the screen (14x14 and 12x12 Nightmare) | the minimiser picks W (IG-P-Q09); on 12x12, P2 gives "about nothing" | | IGP-03 | |
-| R17 | P2's saving on today's call profiles | the capped share at the start count (3-89 %) times the cap's cost less the screen's | | IGP-02 | |
-| R18 | Canonical re-ratings per call and their share of work | priced in PM4 and PM3 (no number) | | IGP-01, IGP-03 | |
-| R19 | Locate profiles per call with the table prior (P4) | "2 to 6 profiles per candidate instead of up to 64" (plan P4); P4 x 1.05-1.15 (report §4) | | IGP-01 | |
-| R20 | Arity-3 set stage: probes counted, idealised call-level T1 bound | adopted only with a clear gain (IG-P-Q08) | | IGP-03 | |
-| R21 | P5 budget inputs: share of ok calls whose work passes 1 to 12 G units | the 6 G figure is withdrawn (IG-P-Q10) | | IGP-03 | |
-| R22 | P6 factor on T10 | x 1.03-1.2 at Nightmare, x 1.15-1.6 at Master | | IGP-04 | |
-| R23 | Eight workers, unadmitted upper bound | batch x 1.3-1.9 (likely 1.6), set stage x 1.0-1.3 | | IGP-04 | |
-| R24 | P7 sensitivity | x 1.1-1.8 (likely 1.3); PM2 first | kernel share and sensitivity table | IGP-06 | |
-| R25 | First-phase factor P6 x P7 x P8 on T10 (Projection: P7 assumed) | ÷1.9 (Opus's illustrative assumption) | measured P6 x eight-worker bound x the P7 assumption | IGP-04, IGP-06 | |
-| R26 | Memory at eight workers: both bench criteria | can exceed 1.5 GiB in the worst case (2,092 MiB accounted) | | IGP-04 | |
-| R27 | In-band ratings on Hell 1 at 215-484 cells, Hell 2, Hell 3 (score-in-band and AR1-eligible apart) | unknown: no in-band rating ever observed (report §2, IG-P-Q16) | | IGP-05 | |
-| R28 | Why Hell 1 sets fail on 14x14 and 24x24 | unknown | | IGP-05 | |
-| R29 | Capped share at the start count; window counts (14x14, 12x12, 26x26 Nightmare) | 0.89, 0.53, 0.10 (report §1, from MP12b1's samples) | | IGP-01 `before`, IGP-05 | |
-| R30 | Rating-time shares by phase and function on 10x10 and 12x12 Nightmare | unknown; P7 and P11 targets (IG-P-Q12) | | IGP-06 | |
-| R31 | After all phases (Projection): measured P1-P5 ÷ (measured P6 x eight-worker bound, with a stated transfer range) ÷ P7 assumption | the analysts' after-all values: 14x14 8.0 / 7.94 s, 15x15b10 6.3 / 7.22 s, 12x12 16 / 21.7 s, 26x26 7.0 / 8.84 s, Hell 1 26x26 15 / 25-30 s | | IGP-07 | |
-| R32 | Population of the accepted puzzles, before (and MP12b1's 20 reps) against after: clue share p10 / median / p90, U, score position in the band, central share, per cell | the same population (implicit in both analyses' factors) | | IGP-01 `compare-r2`; IGP-03 per `W` | |
-| R33 | The split of P1-P5's gain and of the clue-count shift between the search without the screen and the screen (before → no screen → 190 M on 14x14 and 12x12 Nightmare), with the shift's two parts: requests served on an earlier set than today's; the clue shift on the same set | none in the analyses (added after IGP-02); IG-P-Q17's addendum gives a rough split, an indication only: on today's call profiles the screen alone saves 2.0 times on 12x12 and 4.0 on 14x14 Nightmare | | IGP-03 `compare`; IGP-03h on Hell 1 26x26 (optional) | |
+| R00 | Harness fidelity: `base` and `log` agree with MP12b1 (puzzle identity by digest where the accepted counts are equal; otherwise metric-prefix agreement, puzzle identity not established) | required agreement | identity on 4 / 28 / 14 seeds (IGP-00 / IGP-01 / IGP-04 A); arm E reproduces IGP-01's after arm | IGP-00 `identity` | holds |
+| R01 | 14x14 Nightmare today: T10 median / p95, ten of 20 | 112.98 / 151.64 s, 11 of 20 (Measured; MP12b1) | 46.54 s, n 1 of 3 reached ten; drift 1.009 | IGP-01 `compare` | inconclusive |
+| R02 | 14x14 Nightmare after P1-P5, four workers: T10 median | Opus 17.7 s (112.98 / 6.4); Astra 16.0 s (tail 21.5-35.3) | 8.94 s (n 3); response x20.3; clue share 0.190 -> 0.255; paired n 1, no factor estimate | IGP-01 | below both |
+| R03 | Completion after P1-P5 on 12x12, 14x14 and 15x15b10 Nightmare | Opus about 19-20 of 20 after all phases; Astra unknown (report §3) | after arm 3 of 3 on each of the three cells (n 3; cannot separate 19 from 20 of 20; a lower bound for after-all) | IGP-01 | inside |
+| R04 | 15x15b10 Nightmare after P1-P5: T10 median | Opus 13.8 s (86.23 / 6.25); Astra 13.7 s | 8.45 s (n 3); x8.22 (paired n 2, no factor estimate) | IGP-01 | below both |
+| R05 | 12x12 Nightmare after P1-P5: T10 median | Opus about 39-48 s (P1 and P4 about 1.3 to 1.6); Astra 44.5 s | 5.74 s (n 3); x9.26 | IGP-01 | below both |
+| R06 | 26x26 Nightmare after P1-P5: T10 median | Opus 15.5 s (18.61 / 1.2); Astra 17.8 s | 11.94 s (n 6; band 11.48-24.03); x2.01 | IGP-01 | between |
+| R07 | Master after P1-P5 (14x14 and 26x26) | unchanged (both); today 2.57 s and 8.36 s | against the matched before arm: 14x14 2.66 vs 3.17 s; 26x26 13.43 vs 12.26 s; 380 M 11.85 s; paired 1.25 / 0.83 / 0.79 (geometric mean 0.98, n 5); drift vs MP12b1 1.24x / 1.47x | IGP-01; IGP-03 (26x26 at 380 M) | between x3 |
+| R08 | Hell 1 26x26 after P1-P5: T10 median; ten of n | Opus about 28 s; Astra 50-60 s; both only if a window holds | 37.25 s (n 3); x5.03 (paired n 2, no factor estimate) | IGP-01 | between |
+| R09 | 16x16 and 15x20 Nightmare after P1-P5 | not measured in this round (D-IG9) | not measured | | later round |
+| R10 | Dead-end share of today's batch profile time | a heuristic 30-60 % on 196-300 cells; 5-10 % on 12x12 and 18x18 (report §4) | batch share 14x14 39.7 %, 15x15b10 37.1 %, 12x12 18.7 %; other cells no estimate | IGP-01 `before` arm | inside, inside, outside |
+| R11 | Dead-end entries per call after P1-P5 | expected none (a hypothesis, not a requirement) | 0 dead-end entries on 7 cells | IGP-01 | holds |
+| R12 | Window profiles per successful call | about four (a scenario parameter, report §2) | mean window profiles per ok call 0.84-2.45 on five cells; 26x26 Master 3.62; Hell 1 4.15 (band 2.96-5.40) | IGP-01 | below x5, inside x2 |
+| R13 | Batch waves for nine slots at four workers (a proxy) | 2.25 (Opus) or 2.75 (Astra) | 12x12 3.38; other cells 3.84-6.24 | IGP-01 | between (12x12); above both x6 |
+| R14 | Screen certificate (IG-P-Q01 (b)): certified screens equal canonical | 0 violations required; otherwise fallback (c) | 0 violations of 862, no coverage gaps | IGP-02 | holds |
+| R15 | Useful ratings lost (in band, screen-capped) at 95 / 190 / 380 M | "95 M is low for Nightmare"; 190-380 M is about 0.6-1.2 s of main work (report §4, IG-P-Q09) | useful ratings lost 19 / 13 / 9 of 47 at 95 / 190 / 380 M | IGP-02 | measured (no estimate) |
+| R16 | Work per accepted puzzle at 95 / 190 / 380 M and without the screen (14x14 and 12x12 Nightmare) | the minimiser picks W (IG-P-Q09); on 12x12, P2 gives "about nothing" | least work at 95 M on 14x14 and 12x12 (IGP-03, n 2); 12x12 six seeds: no screen / 190 M T10 x1.56 (geometric mean 1.65); c5 paired work 2,676.0 vs 1,182.4 M units | IGP-03 | measured (no estimate) |
+| R17 | P2's saving on today's call profiles | the capped share at the start count (3-89 %) times the cap's cost less the screen's | saving 4.0 / 2.7 / 1.7x | IGP-02 | measured (no estimate) |
+| R18 | Canonical re-ratings per call and their share of work | priced in PM4 and PM3 (no number) | no re-rating in 942 calls | IGP-01, IGP-03 | measured (no estimate) |
+| R19 | Locate profiles per call with the table prior (P4) | "2 to 6 profiles per candidate instead of up to 64" (plan P4); P4 x 1.05-1.15 (report §4) | median locate probes per call 2 (Hell 1 4; 14x14 Master 1: the prior hits at once); P4 factor not isolated, not measured | IGP-01 | inside x6, outside x1 |
+| R20 | Arity-3 set stage: probes counted, idealised call-level T1 bound | adopted only with a clear gain (IG-P-Q08) | arity-3 bound / main 1.01 and 0.99; no clear gain: nothing adopted | IGP-03 | measured (no estimate) |
+| R21 | P5 budget inputs: share of ok calls whose work passes 1 to 12 G units | the 6 G figure is withdrawn (IG-P-Q10) | beyond 6 G units: 0 % (main), 3 % (a3) | IGP-03 | measured (no estimate) |
+| R22 | P6 factor on T10 | x 1.03-1.2 at Nightmare, x 1.15-1.6 at Master | A:B level-pooled T10 factor: Nightmare 1.322 (n 4); Master 1.148 (n 8; cells 1.181 inside, 1.117 outside) | IGP-04 | outside (+0.122); outside (-0.002) |
+| R23 | Eight workers, unadmitted upper bound | batch x 1.3-1.9 (likely 1.6), set stage x 1.0-1.3 | B:C batch 1.257 / 0.946, set stage 0.939 / 0.724 (Nightmare / Master); A:C beside; twin-call slowdown 0.92 / 0.80 / 0.78; 16 logical cores | IGP-04 | outside x4 |
+| R24 | P7 sensitivity | x 1.1-1.8 (likely 1.3); PM2 first | kernel about 96 % of rating time (89.4-99.9 % by class); P7 needs about 1.9-2.1x kernel speed for /1.9 | IGP-06 | Projection |
+| R25 | First-phase factor P6 x P7 x P8 on T10 (Projection: P7 assumed) | ÷1.9 (Opus's illustrative assumption) | /1.9 inside the band (measured factor x P7 1.1-1.8) only for 26x26 Nightmare and Master; outside for 12x12, 14x14 Master and the prototype (P7 needed 1.87) | IGP-04, IGP-06 | Projection |
+| R26 | Memory at eight workers: both bench criteria | can exceed 1.5 GiB in the worst case (2,092 MiB accounted) | accounted peak 450 of 2,092 MiB; process peak 914 of 1,536 MiB (worst-case ceiling stands) | IGP-04 | holds |
+| R27 | In-band ratings on Hell 1 at 215-484 cells, Hell 2, Hell 3 (score-in-band and AR1-eligible apart) | unknown: no in-band rating ever observed (report §2, IG-P-Q16) | in band: Hell 1 47 / 389, Hell 2 8 / 404, Hell 3 0 / 201 ratings; Hell 1 20x20 no screen 7 of 20 censuses complete | IGP-05 | measured (no estimate) |
+| R28 | Why Hell 1 sets fail on 14x14 and 24x24 | unknown | 8 of 8 failing sets dead-end at the start count; 7 of 8 have eligible windows at +2 to +11 | IGP-05 | measured (no estimate) |
+| R29 | Capped share at the start count; window counts (14x14, 12x12, 26x26 Nightmare) | 0.89, 0.53, 0.10 (report §1, from MP12b1's samples) | 0.906 / 0.652 / 0.083 (IGP-01 before arm); PM1 part 2 counts in the summary | IGP-01 `before`, IGP-05 | measured (no estimate) |
+| R30 | Rating-time shares by phase and function on 10x10 and 12x12 Nightmare | unknown; P7 and P11 targets (IG-P-Q12) | 12x12: search 91.3 %, census 4.4 %, DLX 4.0 % (phases firm; categories indicative) | IGP-06 | measured (no estimate) |
+| R31 | After all phases (Projection): measured P1-P5 ÷ (measured P6 x eight-worker bound, with a stated transfer range) ÷ P7 assumption | the analysts' after-all values: 14x14 8.0 / 7.94 s, 15x15b10 6.3 / 7.22 s, 12x12 16 / 21.7 s, 26x26 7.0 / 8.84 s, Hell 1 26x26 15 / 25-30 s | likely after all 14x14 6.8, 15x15b10 6.4, 12x12 4.4, 26x26 9.1, Hell 1 28.3 s (fast / slow in the summary; likely factor 1.01, range 0.93-1.53; P7 1.3) | IGP-07 | Projection |
+| R32 | Population of the accepted puzzles, before (and MP12b1's 20 reps) against after: clue share p10 / median / p90, U, score position in the band, central share, per cell | the same population (implicit in both analyses' factors) | clue share +0.033 to +0.077 after vs before (per cell in the summary) | IGP-01 `compare-r2`; IGP-03 per `W` | no verdict |
+| R33 | The split of P1-P5's gain and of the clue-count shift between the search without the screen and the screen (before → no screen → 190 M on 14x14 and 12x12 Nightmare), with the shift's two parts: requests served on an earlier set than today's; the clue shift on the same set | none in the analyses (added after IGP-02); IG-P-Q17's addendum gives a rough split, an indication only: on today's call profiles the screen alone saves 2.0 times on 12x12 and 4.0 on 14x14 Nightmare | 12x12 six seeds: no screen x2.91 over today, 190 M x1.56 over no screen, shift +0.75 clues; Hell 1 0.88 | IGP-03 `compare`; IGP-03h on Hell 1 26x26 (optional) | no verdict |
 
 ## 6. Re-run on the frozen source
 
@@ -420,6 +420,8 @@ locks nothing.
 (14.3 min, all parts, against its 16; 11 locked invocations). The round's locked work is complete; 1,028 s (17.1 min)
 stay unused. IGP-07 locks nothing.
 
+**Actual after IGP-07:** unchanged, 9,771.5 s counted (IGP-07 0 s); 1,028.5 s unused and not carried over.
+
 ## 8. Evidence and sign-off
 
 Each developer's reply gives: the files created; the run plan's steps with their exits, node seconds and lock waits;
@@ -442,5 +444,5 @@ has pushed `improve-generating`. The plan author then receives the summary for p
 | IGP-03h | accepted (Hell 1 20x20 2/2 ten without screen; 12x12 six seeds) | 2026-11-15 07:32 | 08:13 (accepted 08:20) | 859.9 s | 1,201 s | `improve-generating IGP-03h` |
 | IGP-04 | accepted (/1.9 refuted as a general factor) | 2026-11-15 03:21 | 05:35 (accepted 05:42) | 1,257 s | 5,636 s | `improve-generating IGP-04` |
 | IGP-05 | accepted (Hell 1 windows on 215-484 cells; Hell 3 none observed) | 2026-11-15 05:45 | 06:31 (accepted 06:38) | 752 s (+ 264 s dev) | 837 s | `improve-generating IGP-05` |
-| IGP-06 | accepted (kernel 89-98 %; P7 needs about 2x kernel for /1.9) | 2026-11-15 06:47 | 07:26 (accepted 07:31) | 337.3 s (+ 89.6 s dev) | about 458 s | `improve-generating IGP-06` |
-| IGP-07 | not started | | | | | |
+| IGP-06 | accepted (kernel about 96 %, 89-100 % by class; P7 needs about 2x kernel for /1.9) | 2026-11-15 06:47 | 07:26 (accepted 07:31) | 337.3 s (+ 89.6 s dev) | about 458 s | `improve-generating IGP-06` |
+| IGP-07 | accepted with fixes (R00-R33 from the records; round closed) | 2026-11-15 08:21 | 09:26 (accepted 09:30) | 0 s (unlocked) | 0 s | `improve-generating IGP-07` |

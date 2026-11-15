@@ -35,13 +35,14 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `arm.mjs` | request-level arms: one-row calibrate runs of a tree (`run`, `publish`, `status`) |
 | `identity.mjs` | identity of the arms against MP12b1 (`identity.json` and `identity.md`) |
 | `fit-prior.mjs`, `data/prior-v1.json` | P4's table prior, fitted from MP12b1's reps 10-19 (IGP-01) |
-| `verify.mjs` | every accepted prototype rating against its canonical rating (IGP-01) |
-| `compare.mjs` | paired comparison on matched seeds (IGP-01); with task-qualified arms (`IGP-01/before:w095`) a study (IGP-03): per-W, population, split, shift, offset, 26x26 Master and arity-3 sections beside IGP-02's PM4 record, and the check of the no-screen journals; with arms of the P6 or eight-worker variants (IGP-04) a factor study: factors of T10, T1, the batch and the response per pair and cell, prefix identity per pair, P6's work saving from the call journals, the first-phase Projection, both memory criteria, and arm E against IGP-01's after arm |
+| `verify.mjs` | every accepted rating of an arm against its canonical rating (IGP-01); its record names the task's own criterion (`IGP-01-T02`, `IGP-03-T02` for IGP-03 and IGP-03h, `IGP-04-T01`) and says "accepted prototype ratings" for a prototype arm (`p1p5-*`) and "accepted ratings" for an arm of today's search (`log*`) |
+| `compare.mjs` | paired comparison on matched seeds (IGP-01); with task-qualified arms (`IGP-01/before:w095`) a study (IGP-03): per-W, population, split, shift, offset, 26x26 Master and arity-3 sections beside IGP-02's PM4 record, and the check of the no-screen journals; with arms of the P6 or eight-worker variants (IGP-04) a factor study: factors of T10, T1, the batch and the response per pair and cell, prefix identity per pair, P6's work saving from the call journals, the first-phase Projection, both memory criteria, and arm E against IGP-01's after arm; IGP-03h adds the arm-only section (`--pm1`), the by-seed screen against no screen across tasks and `--reproduce` with `--common-seeds` (see the re-run index) |
 | `budgets.mjs` | P5's budget inputs per arm, cell and stage from the journals: `budgets.json|md` (IGP-03; unlocked) |
 | `compare-r2.mjs` | corrected comparison record of IGP-01 (`compare-r2.json|md`): puzzle population per cell, like-with-like caveats, the n = 1 and mixed-cell readings; analysis of the published runs only, unlocked |
 | `pm4.mjs` | PM4 (IGP-02): `calls`, `screens` (locked) and `report` (unlocked): the screen certificate and the `W_screen` economics |
 | `pm1.mjs` | PM1 tranche 1, reduced first slice (IGP-05): `windows`, `scan`, `failed-sets` (locked) and `report` (unlocked) |
 | `pm2.mjs`, `pm2-worker.mjs` | PM2 (IGP-06): `run` (locked) and `summarize` (unlocked): where canonical rating time goes on 10x10 and 12x12 Nightmare, by phase, category and function, from a supervised profiled worker; the worker file also holds the classification and reduction the host reuses |
+| `summary.mjs` | the estimate-vs-measured summary (IGP-07): reads the records of IGP-00 to IGP-06 and IGP-03h and the invocation logs, writes `summary.json|md` (rows R00 to R33 with their descriptive verdicts, R31's Projection, the round's counted machine time, the later-round list and the open plan-author questions); unlocked, generates and times nothing |
 | `firewall.mjs` | snapshot and check of the production files |
 | `boards.mjs` | writes or checks `data/boards-v1.json`, the frozen board catalogue |
 | `self-test.mjs` | self-tests, run under the lock |
@@ -106,7 +107,11 @@ node tools\ig-proto\compare.mjs --task T --pairs before:after --reference mp12b1
 node tools\ig-proto\compare.mjs --task IGP-03 --pairs IGP-01/before:w095,IGP-01/after:a3 --reference mp12b1 --pm4 IGP-02 --label provisional   # study
 node tools\ig-proto\compare.mjs --task IGP-04 --pairs A:B,B:C,A:C,E:F --reference mp12b1 --label provisional      # factors (P6, eight workers), identity, memory
 node tools\ig-proto\compare.mjs --task IGP-04 --reproduce E:IGP-01/after --label provisional                      # exit 1 when E's puzzles differ from IGP-01's after arm
+node tools\ig-proto\compare.mjs --task IGP-03h --reproduce main:IGP-01/after --common-seeds --label provisional   # only the seeds both arms ran
+node tools\ig-proto\compare.mjs --task IGP-03h --pairs IGP-01/before:w760,IGP-01/after:w760 --reference mp12b1 --pm4 IGP-02 --pm1 IGP-05 --label provisional   # study with an arm-only cell
+node tools\ig-proto\compare-r2.mjs --task IGP-01 --label provisional                                               # unlocked
 node tools\ig-proto\budgets.mjs --arms IGP-01/after,IGP-03/w095 --label provisional [--task IGP-03]                # unlocked
+node tools\ig-proto\summary.mjs --label provisional [--root <evidence folder>]                                    # unlocked, writes summary.json|md
 ```
 
 `--only` (a subset of the self-test's cases), `limits` and `testKinds` of `createLanes`, and `setHorizon` are for the
@@ -361,9 +366,98 @@ node tools\ig-proto\pm2.mjs summarize --run-id <main|dry> --label <L> [--task <T
   (a report-only change of `pm2.mjs`) is recorded in the summary, not a stop.
 - **Harness hash.** `pm2.mjs` and `pm2-worker.mjs` are driver scripts: `run` refuses to continue once either changed.
 
-## Re-running on the frozen source
+## Estimate-vs-measured summary (IGP-07)
 
-`node tools\ig-proto\lib\tree.mjs check-edits --all` lists every anchored edit that no longer matches (the pack author
-re-derives them), then each task's plan runs with `-Label frozen` (check-list §6). The catalogue
-`data/boards-v1.json` is frozen and never rewritten silently (`boards.mjs write` refuses an existing file unless
-`--replace` is given on the pack author's instruction).
+`summary.mjs` reads the published records under `docs/improve-generating/evidence/<label>/` (or `--root`), the invocation
+logs of the label and `docs/improve-generating/clarifications.md`, and writes `summary.json` and `summary.md` into the same
+folder. It exits 1 when a required record is missing and names the task. It generates, rates and times nothing, so it runs
+unlocked (`plans/IGP-07.json`: the firewall snapshot, `summary.mjs`, the firewall check; the runner adds `--label` and
+`--source-label`).
+
+- **Rows.** One table with the estimate, the measured provisional value with its completion, its kind and formula, the record
+  and the descriptive verdict of every row R00 to R33 of the check-list §5. The estimates are the table of §5 copied into the
+  script; every measured value is read from a record. R09 is "later round".
+- **Verdicts.** The rules are one table, `RULES` in `summary.mjs`, and `summary.md` prints it in its section "Verdict rules" so
+  that the frozen round reproduces it. A time is **below both**, **between** (each analyst's value widened by 1.35) or **above
+  both**, and **inconclusive** with fewer than three after-arm requests that reached ten in the matched cohort (check-list §5;
+  a paired factor is printed with its n and is "no factor estimate" below n = 3). A stated range is **inside** or **outside**
+  (with the margin to the nearer edge); a point value widened by 1.35 is **below**, **inside** or **above**; the screen
+  certificate, the required agreement (R00), a hypothesis (R11) and the memory criteria (R26) **hold** or **fail**; a row that
+  uses the unmeasured P7 is a **Projection**; a row without an estimate is "measured (no estimate)". R32 and R33 carry no
+  verdict. The verdicts validate nothing: the report's midpoints are not gates.
+- **R31** is a Projection: the after arm's T10 median of IGP-01 divided by the first-phase factor (E:F's, 1.01 for every cell;
+  the smallest to the largest measured P6 x eight-worker factor is the range) and by P7's assumption (1.3; 1.1 to 1.8), with
+  A:C's factors of today's search as references, and, for 14x14 and 12x12 Nightmare and Hell 1 26x26, the same Projection from
+  the no-screen arm.
+- **R23** takes the per-rating slowdown at eight workers from the journals of IGP-04's arms B and C (identical calls matched by
+  key, as `compare.mjs` matches A and B), and names the machine from the record's `meta.machine`.
+- **Machine time.** The counted time per task and per `<task>-dev` run, from the `invocations.jsonl` files of the label, and the
+  unused remainder of the round (10,800 s less the counted total). Waits for difficulty-v3 beyond the 45 s quiet period are
+  never counted.
+
+## Re-run index (check-list §6)
+
+The frozen round (after MP17, `improve-generating` on the frozen source) repeats every task with one command and then the
+summary. Records go to `docs/improve-generating/evidence/frozen/`; nothing provisional is overwritten. `<label>` is the
+source label given to the runner (`-SourceLabel`) and `<lock helper>` the path of the low-priority helper the orchestrator
+names.
+
+1. **Anchors (no lock).** `node tools\ig-proto\lib\tree.mjs check-edits --all` lists every anchored edit that no longer
+   matches the source: the edits of `core/engine/clues.js`, `core/engine/generate.js`, `core/engine/policy.js` and
+   `tools/calibrate.mjs` are expected to need new anchors after MP12b3, MP13a, MP14a and MP14b. **Anchor maintenance** is a
+   maintenance change of `tools/ig-proto/variants/` made by the pack author (the manifest or the copy-only file edited, then
+   `tree.mjs build ...` and `check-edits --all` repeated until nothing is listed, and the change recorded in the task's
+   Execution log); a task's developer never does it. **Required before the frozen round** (the pack author's frozen-round
+   maintenance, check-list §6 step 1): `identity.mjs` and `compare.mjs` report "different source" instead of failing when the
+   source digest differs from MP12b1's. In the provisional round the source is MP12b1's, so a difference is a real failure and
+   stays one. The plans of IGP-00, IGP-01, IGP-03 and IGP-04 run their own self-test steps.
+2. **One command per task**, in the plan author's order (PM4, PM1, PM3, PM2):
+
+   ```powershell
+   pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\IGP-0N.json -Label frozen `
+     -SourceLabel <label> -LockHelper <lock helper> [-IncludeOptional]
+   ```
+
+   | Task | Plan | Reads (records and arms of other tasks) | Writes (under `evidence/frozen/`) | Notes |
+   |---|---|---|---|---|
+   | IGP-00 | `plans/IGP-00.json` | none | `IGP-00/identity.json|md`, the arms `base` and `log` | see the note on MP12b1 below |
+   | IGP-02 (PM4) | `plans/IGP-02.json` | none | `IGP-02/pm4.json|md`, `profiles-<case>.jsonl` | a certificate violation exits 1 |
+   | IGP-05 (PM1) | `plans/IGP-05.json` | none | `IGP-05/pm1.json|md`, `families-<part>.jsonl`, `discoveries.jsonl` | the rest of tranche 1 needs the owner's approval (D-IG10) |
+   | IGP-01 | `plans/IGP-01.json` | none (the plan builds its trees) | the arms `before` and `after`, `verify-after`, `compare.json|md` | then `node tools\ig-proto\compare-r2.mjs --task IGP-01 --label frozen` (the population record the summary reads) |
+   | IGP-03 | `plans/IGP-03.json` | IGP-01's arms (`IGP-01/before`, `IGP-01/after`), IGP-02's `pm4.json` | the arms `w095`, `w380`, `w760`, `a3`, `verify-<arm>`, `budgets.json|md`, `compare.json|md` | pairs are task-qualified (`IGP-01/before:w095`) |
+   | IGP-06 (PM2) | `plans/IGP-06.json` | none | `IGP-06/pm2.json|md` | |
+   | IGP-03h | `plans/IGP-03h.json` | IGP-01's arms, IGP-03's `w760` arm, IGP-02, IGP-05 | the arms `w760` and `main`, `verify-w760`, `verify-main`, `compare.json|md`, `c5/compare.json|md` | `-IncludeOptional` for the Hell 1 20x20 and the extra 12x12 seeds; the `main` arm must reproduce IGP-01's after arm on the seeds both ran |
+   | IGP-04 | `plans/IGP-04.json` | IGP-01's after arm (arm E must reproduce it) | the arms `A`, `B`, `C`, `E`, `F`, `verify-<arm>`, `compare.json|md` | a difference between E and IGP-01's after arm stops the task |
+   | IGP-07 | `plans/IGP-07.json` | every record above | `summary.json|md` | `node tools\ig-proto\summary.mjs --label frozen` does the same without the runner |
+
+   The plan author may change the order and the sample sizes of the frozen round (the plans carry the reps; a frozen plan may
+   widen them) with the round's own budget; the dependencies in the table are the only ones.
+3. **Summary.** `node tools\ig-proto\summary.mjs --label frozen` (or the IGP-07 plan through the runner).
+
+On the frozen source the "before" arms measure the frozen `gen-v3` and MP12b1 is a different source (check-list §6; the
+required step 1 above). `summary.mjs` already reports R00 as "different source" when `identity.json` says the source digest
+is not MP12b1's (`meta.source.equalsMp12b1Source`). Cells come from the frozen catalogue `data/boards-v1.json` (never
+rewritten silently: `boards.mjs write` refuses an existing file unless `--replace` is given on the pack author's
+instruction); a cell the frozen source no longer offers runs as a "diagnostic offer" (D-IG13) and is labelled so.
+
+### The `compare.mjs` options of IGP-03 and IGP-03h
+
+- `--pairs <before>:<after>[,...]` with `<arm>` of `--task` or `<task>/<arm>`. Arms of different tasks are paired by seed
+  (matched seeds only) and by role (the variant), never by tree id: `IGP-01/before:w760` pairs IGP-01's before arm with this
+  task's `w760`. A task-qualified arm makes the run a study (per-W, population, split (R33), shift, offset, 26x26 Master and
+  arity-3 sections); an arm of a P6 or eight-worker variant makes it a factor study (IGP-04).
+- `--pm4 <task>` and `--pm1 <task>` name the task whose `pm4.json` or `pm1.json` the study reads: PM4's cost by clue offset and
+  per-W figures, and PM1's windows beside an arm-only cell.
+- **Arm-only section.** A cell of the task's own arms that no pair covers (a cell without a before partner, Hell 1 20x20 in
+  IGP-03h): per request the outcome, T1, T10 or the response, the accepted puzzles' population and offsets, the locate probes
+  and the first in-band profile per call, MP12b1's outcome (a prescreen that made no set) and, with `--pm1`, PM1's windows on the
+  same cell.
+- **Screen against no screen by seed** (`screenBySeed`): over every arm of the roles `main` (190 M, 380 M on Hell) and `w760` (no
+  screen) of every pair, with the per-seed T10 ratio, the same-set clue shift and today's MP12b1 record. A seed that two arms of
+  one role both ran must give equal puzzles (`resultDigest`), else the run exits 1.
+- `--reproduce <arm>:<task>/<arm>` runs no pairs: the first arm's puzzles must equal the reference arm's on every seed
+  (`resultDigest`, set key, puzzle keys); it prints `puzzles equal` or `DIFFERS (<note>)` per seed and exits 1 when any differs
+  (IGP-04: arm E against `IGP-01/after`; IGP-03h: `main` against `IGP-01/after`).
+- `--common-seeds`, with `--reproduce`: only the seeds both arms ran are compared; the seeds the reference never ran are listed
+  as not compared and do not fail (IGP-03h's `main` runs reps 2 to 5, IGP-01's after arm reps 0 to 2).
+- `--out-dir <folder>` writes `compare.json|md` to that folder instead of the task's evidence folder (IGP-03h's `c5/`).

@@ -1,5 +1,5 @@
 // @ts-check
-// Verification of accepted prototype ratings (IGP-01 §3): every journal `end` line of an arm with an `accepted` block
+// Verification of accepted ratings (IGP-01 §3): every journal `end` line of an arm with an `accepted` block
 // is rated canonically on the `base` tree (four lanes, `rate` jobs admitted by the check-list §7 bound) and must
 // deep-equal the logged rating. A difference is a stop (a certificate failure). Resumable: a checkpoint per arm.
 //   node tools\ig-proto\verify.mjs --task <T> --arm <A>[,<A2>...] --label <L> --source-label <SL> --horizon-s <H>
@@ -15,6 +15,22 @@ import { banner, buildMeta, harnessInfo, writeJson, writeText } from './lib/reco
 import { ensureTree } from './lib/tree.mjs';
 
 const BATCH = 24;
+/** The criterion of each task that holds when every accepted rating of its arms equals its canonical rating. */
+const CRITERION = Object.freeze(/** @type {Record<string, string>} */ ({ 'IGP-01': 'IGP-01-T02', 'IGP-03': 'IGP-03-T02', 'IGP-03h': 'IGP-03-T02', 'IGP-04': 'IGP-04-T01' }));
+
+/**
+ * @param {string} label
+ * @param {string} task
+ * @param {string} arm
+ * @returns {string} What the arm's accepted ratings are called in the record: "prototype ratings" for an arm of the
+ *   prototype (`p1p5-*`), "ratings" for an arm of today's search (`log*`) or an arm whose variant is unknown.
+ */
+export function ratingsName(label, task, arm) {
+  const armDir = artifactDir(label, task, arm);
+  const shards = existsSync(armDir) ? readdirSync(armDir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort() : [];
+  const variants = shards.map((s) => join(armDir, s, 'shard.json')).filter((p) => existsSync(p)).map((p) => String(JSON.parse(readFileSync(p, 'utf8')).variant));
+  return variants.length > 0 && variants.every((v) => v.startsWith('p1p5')) ? 'accepted prototype ratings' : 'accepted ratings';
+}
 
 /**
  * @param {string} label
@@ -185,10 +201,12 @@ async function main(argv) {
       writeJson(evidenceDir(label, task, `verify-${arm}.json`), {
         meta, base: { treeId: base.treeId, copyDigest: base.copyDigest }, summary, cells, mismatches: bad,
       });
+      const criterion = CRITERION[task] ?? `${task} (accepted ratings equal their canonical rating)`;
+      const ratings = ratingsName(label, task, arm);
       const lines = [`# ${task} verification of the accepted ratings of arm ${arm}`, '', banner(meta), '',
         bad.length === 0 && complete
-          ? `IGP-01-T02 holds: all ${list.length} accepted prototype ratings equal their canonical rating on the base tree (0 mismatches).`
-          : `IGP-01-T02 FAILS or is incomplete: ${list.length} of ${jobs.length} checked, ${bad.length} mismatch(es).`,
+          ? `${criterion} holds: all ${list.length} ${ratings} equal their canonical rating on the base tree (0 mismatches).`
+          : `${criterion} FAILS or is incomplete: ${list.length} of ${jobs.length} checked, ${bad.length} mismatch(es).`,
         '', '| Cell | Stage | Checked | Equal |', '|---|---|---:|---:|'];
       for (const [caseId, cell] of Object.entries(cells).sort(([a], [b]) => (a < b ? -1 : 1))) {
         for (const [stage, s] of Object.entries(cell.stages).sort(([a], [b]) => (a < b ? -1 : 1))) {
