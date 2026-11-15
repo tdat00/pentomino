@@ -1128,6 +1128,272 @@ button.solution-toggle:disabled {
   color: var(--gen-warning);
 }
 
+/* Generation Steps ("How it was made"): the board with its controls on the left, the stages and the score table on the
+   right; on a phone they stack. The status line is coloured by how the replay ended. */
+.pm-replay-dialog {
+  width: min(64rem, 96vw);
+  max-height: calc(100dvh - 2rem);
+  padding: 1.25rem 1.5rem;
+  overflow: auto;
+  color: var(--pm-ink);
+  background: var(--pm-surface);
+  border: 1px solid var(--pm-border);
+  border-radius: 1rem;
+  box-shadow: 0 24px 64px rgb(10 14 28 / 38%);
+}
+
+.pm-replay-status {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--gen-color-surface-2);
+  border: 1px solid var(--gen-color-divider);
+  border-radius: var(--gen-radius-2);
+}
+
+.pm-replay-status:empty {
+  display: none;
+}
+
+.pm-replay-status p {
+  margin: 0;
+}
+
+.pm-replay-status p + p {
+  margin-top: 0.25rem;
+}
+
+.pm-replay-dialog[data-result="matched"] .pm-replay-status {
+  border-color: var(--gen-color-success);
+}
+
+.pm-replay-dialog[data-state="failed"] .pm-replay-status,
+.pm-replay-dialog[data-result="mismatch"] .pm-replay-status,
+.pm-replay-dialog[data-result="incomplete"] .pm-replay-status,
+.pm-replay-dialog[data-result="unavailable"] .pm-replay-status {
+  color: var(--gen-color-warning);
+  background: var(--gen-color-warning-bg);
+  border-color: var(--gen-color-warning);
+}
+
+.pm-replay-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .pm-replay-main {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.pm-replay-visual,
+.pm-replay-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.pm-replay-board {
+  max-height: min(60vh, 28rem);
+  padding: 0.5rem;
+  overflow: auto;
+  background: var(--gen-board-bg);
+  border: 1px solid var(--gen-color-divider);
+  border-radius: var(--gen-radius-2);
+}
+
+/* A big board scrolls inside the frame; a smaller one stays centered. */
+.pm-replay-board .pm-board {
+  width: max-content;
+  min-width: 100%;
+  height: auto;
+}
+
+.pm-replay-board .pm-board[data-mode="thumbnail"] .pm-scroll {
+  width: auto;
+  height: auto;
+  overflow: visible;
+}
+
+.pm-replay-sentence {
+  min-height: 3em;
+  margin: 0;
+  font-weight: 600;
+}
+
+.pm-replay-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.pm-replay-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pm-replay-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.pm-replay-play[aria-pressed="true"] {
+  color: var(--gen-color-accent-text);
+  background: var(--gen-color-accent);
+  border-color: var(--gen-color-accent);
+}
+
+.pm-replay-icon {
+  width: 1rem;
+  height: 1rem;
+  fill: currentcolor;
+}
+
+.pm-replay-slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pm-replay-slider-label {
+  color: var(--pm-muted);
+  font-size: 0.875rem;
+}
+
+.pm-replay-slider {
+  width: 100%;
+}
+
+.pm-replay-view {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.pm-replay-view legend {
+  padding: 0;
+  color: var(--pm-muted);
+  font-size: 0.875rem;
+}
+
+.pm-replay-view .pm-toggle {
+  margin-inline-end: 1rem;
+}
+
+.pm-replay-heading {
+  margin: 0 0 0.375rem;
+  font-size: 1rem;
+}
+
+.pm-replay-stage-list {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding-inline-start: 1.5rem;
+}
+
+.pm-replay-stage {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--gen-radius-1);
+  transition: background-color var(--gen-motion-fast);
+}
+
+.pm-replay-stage[aria-current="step"] {
+  background: var(--gen-color-accent-soft);
+  border-color: var(--gen-color-accent);
+}
+
+.pm-replay-stage-mark {
+  display: block;
+  color: var(--pm-muted);
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
+.pm-replay-stage[data-mark="stopped"] .pm-replay-stage-mark {
+  color: var(--gen-color-warning);
+}
+
+.pm-replay-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.pm-replay-table caption {
+  padding: 0 0 0.375rem;
+  font-weight: 600;
+  text-align: start;
+}
+
+.pm-replay-table th,
+.pm-replay-table td {
+  padding: 0.375rem 0.5rem;
+  vertical-align: top;
+  border-top: 1px solid var(--gen-color-divider);
+}
+
+.pm-replay-row-head {
+  font-weight: 400;
+  text-align: start;
+}
+
+.pm-replay-name {
+  display: block;
+  font-weight: 600;
+}
+
+.pm-replay-detail {
+  display: block;
+  color: var(--pm-muted);
+}
+
+.pm-replay-table tr[data-row="node"] .pm-replay-name {
+  padding-inline-start: 1rem;
+  font-weight: 400;
+}
+
+.pm-replay-table tr[data-row="total"] {
+  background: var(--gen-color-surface-2);
+}
+
+.pm-replay-value {
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  white-space: nowrap;
+}
+
+.pm-replay-noscore {
+  margin: 0;
+  color: var(--pm-muted);
+}
+
+.pm-replay-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 767.98px) {
+  .pm-replay-dialog {
+    padding: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pm-replay-dialog * {
+    transition: none;
+  }
+}
+
 /* Narrow screens, the rules that must follow the ones above: the navigator of the steps is small, with a border so that
    it is easy to see, and the piece set's navigator is small, with Remove and Remove all on a row of their own, at the
    right. */

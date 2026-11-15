@@ -72,7 +72,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP15a1 | [MP15a1](MP15a1-replay-runs.md) | Replay runs: preflight, the stage runs, the work meter, the bounds and the final comparison | MP14b | Large | Engine | M9 Generation Steps | 31 |
 | [x] | MP15a2 | [MP15a2](MP15a2-replay-steps.md) | Replay steps: the step table, the score data, the final step and the byte bound | MP15a1 | Medium | Engine | M9 | 32 |
 | [x] | MP15b | [MP15b](MP15b-replay-worker-task.md) | Replay worker task, protocol and client | MP15a2 | Medium | Browser integration | M9 | 33 |
-| [ ] | MP16a | [MP16a](MP16a-replay-dialog.md) | Generation Steps dialog: model, dialog, board highlight and score table | MP15b | Large | Generator UI | M9 | 34 |
+| [x] | MP16a | [MP16a](MP16a-replay-dialog.md) | Generation Steps dialog: model, dialog, board highlight and score table | MP15b | Large | Generator UI | M9 | 34 |
 | [ ] | MP16b | [MP16b](MP16b-dialog-wiring-and-documents.md) | Generation Steps: card button, wiring, browser page (GB-P4) and documents | MP16a | Medium + gate | Generator UI | M9 | 35 |
 | [ ] | MP17 | [MP17](MP17-final-evidence.md) | Final compatibility and regression evidence, release notes (gate GZ) | MP16b | Medium + machine time | QA and release | M10 verified | 36 |
 
@@ -613,7 +613,7 @@ The orchestrator owns this record.
 | MP15a1 | Accepted (SA2 cross-review accept; SA1 rulings, one fix: unoffered set-origin level is unavailable; genuine subset and repair skips replayed; D35 holds; quick set 1,424) | 48 min developer (30 + 18; machine 10.1 min) + review and checks | about 565 | `difficulty-v3 MP15a1` |
 | MP15a2 | Accepted (replay steps: step table, final step, breakdowns, byte bound; claim-less final step; D35 holds; quick set 1,439; 64/67 mutants, 3 equivalent) | 55 min developer (machine 24.0 min, mostly mutants) + 3 min check | about 492 | `difficulty-v3 MP15a2` |
 | MP15b | Accepted (replay worker task, protocol kind and client method; SA1 accepted the six readings; D35 holds; quick set 1,458; 57/59 mutants, 2 equivalent) | 39 min developer + 4 min rulings + 3 min check | about 577 | `difficulty-v3 MP15b` |
-| MP16a | | | | |
+| MP16a | Accepted (Generation Steps dialog: pure model, dialog, board highlight, score table, 102 locale keys; ten questions ruled by SA1 before writing; D35 holds; quick set 1,481; 120/121 mutants, 1 equivalent) | about 30 min developer work (49 min elapsed incl. rulings) + check | about 771 | `difficulty-v3 MP16a` |
 | MP16b | | | | |
 | MP17 | | | | |
 | **Totals** | | | | |

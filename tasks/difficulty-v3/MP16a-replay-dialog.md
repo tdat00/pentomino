@@ -380,14 +380,14 @@ once per file, plus small synthetic step lists.
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (orchestrator check; outside the analyst review set). The developer stopped early with ten questions; the pack author (SA1) ruled (seven defaults accepted, Q1 refined, Q8 and Q9 changed) and later confirmed the developer's two readings (live region, `visible()`) |
+| Start | 2026-11-15 21:54:54 (+07:00) |
+| End | 2026-11-15 22:03 question; 22:08-22:20 SA1 rulings; 22:22-22:43:26 implementation; SA1 confirmation 22:46-22:50; orchestrator re-check and commit |
+| Duration | 30 min developer before and after the rulings (about 49 min elapsed); locked invocations about 550 s machine time (mostly three mutant batches) and 10 s lock wait |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (SA1 rulings; orchestrator) |
+| Token usage | 129 model calls; 36,273,646 input tokens (35,566,744 cache reads); 238,248 output tokens |
+| AI credits | about 771 (developer) |
+| Verification | `generator/ui/replay-model.js` (new, pure): `compactSteps`, `compactIndices`, `visibleIndices`, `stepKeyOf`, `stepText`, `scoreTable`, `stageList`, `statusText`, `failureText`, `boardOf`, `renderDesc`, `descriptorKeys`, `createReplayController` (with the read-only `visible()` accessor); every function returns `{ key, params }` descriptors with raw numbers. `generator/ui/replay-dialog.js` (new): `createReplayDialog({ host, t, run, closeKey })` with `open`, `close`, `isOpen`, `refreshTexts`, `dispose`, built like the share dialog; numbers rendered with the Generator's `formatNumber` (`maximumFractionDigits: 6`). `core/browser/svg-board.js`: additive `highlightedIds` (`data-highlighted`, `pm-highlight`). Locales: 102 `replay.*` keys per pack, incl. the nine SA1 added (`replay.stage.none`, `replay.table.solutions.few/.many`, `replay.table.noScore`, `replay.table.name.base/.rules/.guess/.nodes/.penalty`). `generator/generator.css` `.pm-replay-*`; design §6.12 and §11.11. Rulings applied: stage marks incl. `replay.stage.none` and `stopped` for an incomplete result (cases 8(e)-(g)); two-sentence status; v2 claims without a Band row; ordinals +1; every descriptor key checked in both packs. **D35:** no engine, rating or generation file changed; `record-fixtures --check` and `--replay-case --check` OK after the last edit. Tests: `replay-model.test.js` 23; targeted 49/49; quick set 1,481/1,481 (+23); `npm run check` OK; 121 hand-made mutants (110 model, 11 dialog via a fake-DOM smoke script), 120 killed, 1 equivalent. Orchestrator: locked `replay-model`, `generator-i18n`, `render-model`, `generation-client` 98/98; `npm run check` OK |
+| Acceptance | MP16a-B01 to B04 and T01 to T05 met (cases 1-10 and 8(e)-(g); the browser rendering checks of B01 and T04 are MP16b's) |
+| Issues & resolutions | Ten questions asked before writing the model (stage marks, unavailable status, solutions wording, no-score text, row labels, controller semantics, ordinals, v2 Band, number format, extra keys); SA1 ruled. Two readings confirmed afterwards: the `role="status"` sentence is written only on manual steps, seeks, pause and the stop at the last step, while the visible `replay-now` (`aria-hidden`) follows every tick; `visible()` is an accessor beyond the listed methods. One incident: a first final quick-set run counted 1,504 tests because a scratch mutant copy under `tests/artifacts/MP16a/mut/` matched the `tests/**/*.test.js` glob; it was deleted, the mutant script now cleans up, and the clean run gave 1,481. Named items: the dialog is verified only against a fake DOM (MP16b's browser page checks layout, CSS, focus and ARIA); `replay.close` is used through MP16b's `closeKey`; the quick-set glob picks up any `*.test.js` under `tests/artifacts` (SA1 adds a scratch rule and an MP17 pre-gate check); no `tsc` |
+| Handoff | To MP16b: `createReplayDialog({ host, t, run: (source, signal) => client.replayPuzzle(source, { signal }), closeKey })`, then `open({ set, puzzle, setOrigin, made }, from)`; `refreshTexts()` on a language switch. Browser-check hooks: `data-role="replay-dialog"` (`data-state`, `data-result`), `replay-status`, `replay-stages` (`li` with `data-stage`, `data-mark`, `aria-current`), `replay-board` (`.pm-highlight`), `replay-now`, `replay-sentence`, `replay-score` (`data-kind`; rows `data-row`, `data-counted`); controls `data-action` `replay-prev`, `replay-play`, `replay-next`, `replay-close`, `replay-x`; fields `replay-slider`, `replay-view-compact`, `replay-view-all`. SA1 amends MP16b (checks 1-3 and 12, guides, scratch rule), MP17 and D34 |
