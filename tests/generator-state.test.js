@@ -15,7 +15,7 @@ import {
   boardsEqual, buildPack, capFor, createEditHistory, createGeneratorStore, createPersistence, defaultGeneratorState, describeBoard,
   describeCount, describeLevels, detectHardware, displayEntryOf, displayKeyOf, generationOf, gotoSet, importPuzzle, isPhone,
   loadGeneratorState, mergeSeenKeys, nextBatch, nearestOfferedLevel,
-  readSavedSet, readyLevelId, removeAllPuzzles, removeAllSets, removePuzzle, resizeBoard, restoreState, rollSeed,
+  readSavedSet, readyLevelId, removeAllPuzzles, removeAllSets, removePuzzle, replaySourceOf, resizeBoard, restoreState, rollSeed,
   saveRestoreCleanup, savedSetOf, serializeState,
   setCell, setNumber, setTimelineLength, setViewPosition, setsFull, typeSeed, validSeed, withBoard,
 } from '../generator/state.js';
@@ -545,6 +545,24 @@ test('a new set, an imported set and the removal of puzzles or sets clear the or
   assert.deepEqual([removeAllPuzzles(state).puzzleMade, removeAllPuzzles(state).setOrigin], [{}, ORIGIN]);
   const cleared = removeAllSets(state);
   assert.deepEqual([cleared.setOrigin, cleared.puzzleMade, cleared.set], [null, {}, null]);
+});
+
+test('replaySourceOf gives the set, the puzzle, the origin and the record of a listed puzzle, else null', () => {
+  const state = originState();
+  const [first, second, third] = samplePuzzles;
+  const source = replaySourceOf(state, second.id);
+  assert.deepEqual(source, { set: state.set, puzzle: second, setOrigin: ORIGIN, made: CANDIDATE_RECORD });
+  assert.equal(source?.set, state.set);
+  assert.equal(source?.puzzle, second);
+  assert.equal(replaySourceOf(state, first.id)?.made, CALIBRATION_RECORD);
+  assert.equal(replaySourceOf(state, third.id)?.made, null, 'a puzzle without a record');
+  assert.equal(replaySourceOf({ ...state, setOrigin: null }, second.id)?.setOrigin, null, 'a set without an origin');
+  const inherited = { ...state, puzzles: [{ ...third, id: 'toString' }] };
+  assert.equal(replaySourceOf(inherited, 'toString')?.made, null, 'a name that Object.prototype has is not a record');
+  assert.equal(replaySourceOf(state, 'gone'), null, 'a record of a puzzle that is not listed');
+  assert.equal(replaySourceOf(state, 'nobody'), null);
+  assert.equal(replaySourceOf({ ...state, set: null }, first.id), null, 'no set');
+  assert.equal(replaySourceOf(defaultGeneratorState(), first.id), null);
 });
 
 test('removing a puzzle takes its record out of the export and leaves the others', () => {

@@ -162,7 +162,7 @@ export function createReplayDialog(options) {
     el('div', { className: 'pm-replay-slider-row' }, sliderLabel, slider),
     viewSet);
   const visual = el('div', { className: 'pm-replay-visual' }, boardHost, now, live, controls);
-  const main = el('div', { className: 'pm-replay-main' }, visual, el('div', { className: 'pm-replay-side' }, stagesBox, score));
+  const main = el('div', { className: 'pm-replay-main', attrs: { hidden: '' } }, visual, el('div', { className: 'pm-replay-side' }, stagesBox, score));
   const closeButton = /** @type {HTMLButtonElement} */ (el('button', {
     className: 'pm-btn', attrs: { type: 'button' }, dataset: { action: 'replay-close' },
   }));

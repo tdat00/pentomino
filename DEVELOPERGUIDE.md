@@ -58,11 +58,12 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
 
 - **Browser test pages** (not deployed): run `npm run serve` and open `http://localhost:8080/pentomino/tests/browser/`
   followed by `player-controls.html`, `player-load.html`, `hints.html`, `print.html`, `rendering.html`,
-  `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`, `puzzle-code-entry.html`,
+  `generator-flow.html`, `generator-editor.html`, `replay.html`, `puzzle-code-worker.html`, `puzzle-code-entry.html`,
   `puzzle-code-print.html`, `puzzle-code-cli-parity.html`, `puzzle-code-acceptance.html`, `puzzle-qr.html`,
   `watchdog.html` or `acceptance.html`. Each writes a pass/fail list, and `data-summary` and `data-result` (`pass` or
   `fail`) on `<html>`. Use a window narrower than 1360 px:
-  some checks expect the one- or two-column layout.
+  some checks expect the one- or two-column layout. `replay.html?phase=keys` and `puzzle-code-acceptance.html?phase=keys`
+  wait for trusted key presses that only a runner over the DevTools protocol sends.
 - **Headless generation**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`. It accepts boards of up to **676** playable squares
   (the apps launch at 484 on desktop and 360 on a phone). The pack goes to stdout (or `--output`), messages to stderr. Exit codes: `0` complete (including a set whose
   arrangements were all found and proven to be all); `2` a valid partial or cancelled pack; `1` no usable result or
@@ -105,6 +106,16 @@ tools/          Node-only tools (.mjs): server, headless generation, calibration
 `core/engine/difficulty.js` computes the `difficulty-v3` rating from it (`measureV3`, `rate`) and keeps the v2
 functions (`scoreV2`, `measureV2`, `rateV2`) for stored claims, fixtures and the rating probe.
 `tools\rate-probe.mjs` measures it.
+
+`core/engine/replay.js` re-runs the generation of one puzzle from its record and compares the result with the stored
+puzzle (`runReplay`, `replayPuzzle`; [docs/design-detail.md](docs/design-detail.md) §6.12), and the worker runs it as the
+`replayPuzzle` task that the generation client sends on its auxiliary path. The Generator's Generation Steps dialog is
+`generator/ui/replay-model.js` (no DOM: the views, the sentences, the score table and the controller) and
+`generator/ui/replay-dialog.js` (the native dialog); the **How it was made** button of each puzzle card is in
+`generator/ui/puzzle-panel.js`, and `generator/app.js` opens the dialog with `replaySourceOf` of `generator/state.js`.
+`tests/browser/replay.html` tests all of it in a real browser. `node tools\record-fixtures.mjs --replay-case --check`
+(and `--search`, `--create`, `--replace`) checks the replay fixture `tests/fixtures/replay-case.json` the way `--check`
+checks the generation fixtures.
 
 Every module loaded by a page or worker uses `.js`; `.mjs` is reserved for Node-only tools. The interface text is in the
 flat packs `generator/locale.en.js` / `locale.vi.js` and `player/locale.en.js` / `locale.vi.js` (printing texts in

@@ -262,8 +262,8 @@ for (const recipe of recipes) {
     try {
       await runFlow(ctx, recipe);
       const puzzles = state(ctx).puzzles;
-      assert(qa(ctx, '.puzzle-card a').length === 0 && qa(ctx, '.puzzle-card button').length === 2 * puzzles.length
-        && qa(ctx, '.puzzle-card button').every((b) => b.dataset.action === 'remove' || b.dataset.action === 'select'), 'a card only has its select and remove buttons');
+      assert(qa(ctx, '.puzzle-card a').length === 0 && qa(ctx, '.puzzle-card button').length === 3 * puzzles.length
+        && qa(ctx, '.puzzle-card button').every((b) => ['select', 'replay', 'remove'].includes(b.dataset.action ?? '')), 'a card only has its select, How it was made and remove buttons');
       q(ctx, '[data-action="play-puzzle"]').click();
       await waitFor(() => opened.length === 1, 'the player to open');
       const { pack, index } = opened[0];

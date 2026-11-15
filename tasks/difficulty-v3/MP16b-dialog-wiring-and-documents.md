@@ -588,14 +588,14 @@ rendering check.
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (orchestrator check; outside the analyst review set). The developer stopped before any code with seven questions; the pack author (SA1) ruled (Q1, Q2, Q3, Q6 as proposed; Q4, Q5 for check 12 and Q7 changed) and accepted the one edit to MP16a's dialog |
+| Start | 2026-11-15 22:51:48 (+07:00) |
+| End | 2026-11-15 22:58:32 question; 23:00-23:05 SA1 rulings; 23:08-23:28:42 implementation and GB-P4; SA1 confirmation 23:31-23:35; orchestrator re-check and commit |
+| Duration | 27 min developer work (37 min elapsed incl. rulings); GB-P4 final five runs about 90 s machine; all locked invocations about 270 s machine, every lock wait 0 s |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (SA1 rulings; orchestrator) |
+| Token usage | 145 model calls; 46,571,730 input tokens (45,839,749 cache reads); 166,151 output tokens |
+| AI credits | about 808 (developer) |
+| Verification | `generator/ui/puzzle-panel.js`: a third card button `button.card-replay` (`data-action="replay"`, text `replay.button`, name `replay.button.aria`) with `onReplay(puzzleId, opener)`, never hidden or disabled. `generator/generator.css`: `.puzzle-card:has(> .card-replay) { flex-wrap: wrap; row-gap: .25rem }`, `button.card-replay { flex: 0 0 auto; ... }` with accent hover and focus colours. `generator/app.js`: the dialog is created only when `client.replayPuzzle` exists, `refreshTexts()` on a language switch, disposed in `destroy()`. `generator/state.js`: `replaySourceOf` (test N1). Locales: `replay.button.aria` = "How it was made: {title}" / "Cách tạo đề: {title}" (SA1 Q7, WCAG 2.5.3). `generator/ui/replay-dialog.js` (MP16a's file, accepted by SA1): `.pm-replay-main` is built `hidden`, as `draw()` already sets for the closed phase, so the closed dialog exposes no unlabelled control. New `tests/browser/replay.html` (with `theme.css`) and `replay.js` (12 main checks plus the keys phase); `rendering.js` gains the `highlightedIds` check; `generator-flow.js` and `acceptance.js` expect three card buttons under the real client. Documents in both languages: design §10.5, §11.7, §13.3 item 26; design brief; user guides ("How a puzzle was made", incl. the phone sentence); developer guides; README. **GB-P4 (final tree, `tests/artifacts/MP16b/pages/1`-`5`):** `replay` main 12/12, `replay:keys` 1/1 (15 trusted keys), `rendering` 18/18, `generator-flow` 21/21, `acceptance` 16 pass with the 4 known blocked; 0 CSP errors; every server and Edge stopped by PID. **D35:** no file under `core/` or `tools/` changed; `record-fixtures --check` and `--replay-case --check` OK. Tests: targeted 77/77; quick set 1,482/1,482 (+1); `npm run check` OK. Orchestrator: locked `replay-model`, `generator-state`, `generator-i18n`, `render-model` 94/94; `npm run check` OK; no `*.test.js` under `tests/artifacts` |
+| Acceptance | MP16b-B01 to B06 and T01 to T06 met (replay checks 1-12, case N1, the rendering check, the five final page runs, the quick set) |
+| Issues & resolutions | Seven questions before code (button placement, enabled state, phones, Tab traversal, the stage-4 highlight, `theme.css`, the accessible name); SA1 ruled. Earlier failing GB-P4 runs kept under `pages/earlier/`, each rerun naming the code change it answers (none repeated without a change): `replay` main run 1 (a second mounted app corrupted the first because `createGeneratorApp` finds its slots document-wide; the dialog's async close), `replay:keys` runs 1-2 (a lazy certificate redrew the card list and dropped the focus; the keys phase now waits for the certificates), `acceptance` run 1 (A3: the closed dialog built its controls un-hidden; fixed in `replay-dialog.js`). Items recorded here only (SA1): hover colours untested (no trusted mouse; focus colours tested); Previous is never disabled (MP16a's choice); one app per harness (`createGeneratorApp` slots are document-wide). Named items for MP17 (SA1 writes them): phones cannot open Generation Steps (below 768 px the card list is hidden); `renderCards` replaces the card list on every store update, dropping a focused card button's focus (pre-existing; later work); `generator-editor`, `watchdog` and `puzzle-code-acceptance` now carry a closed replay dialog (triage note) |
+| Handoff | To MP17: the GB-P4 evidence in `tests/artifacts/MP16b/pages/1`-`5`, the runner `pages.mjs` and helper `dv3-lock.ps1` in `tests/artifacts/MP16b/`; the feature documented in design §10.5, the guides and README; MP17 runs every page, records the phone limitation and the card-list focus item |

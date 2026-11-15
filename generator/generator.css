@@ -1128,6 +1128,25 @@ button.solution-toggle:disabled {
   color: var(--gen-warning);
 }
 
+/* The "How it was made" button of a puzzle card (Generation Steps): a row of its own under the details, in the accent
+   colour (the red of the other small buttons marks removal). Only a card that has the button wraps. */
+.puzzle-card:has(> .card-replay) {
+  flex-wrap: wrap;
+  row-gap: 0.25rem;
+}
+
+button.card-replay {
+  flex: 0 0 auto;
+  margin-inline-start: -0.5rem;
+  color: var(--gen-color-accent);
+}
+
+button.card-replay:hover:not(:disabled),
+button.card-replay:focus-visible {
+  color: var(--gen-color-accent-hover);
+  background: var(--gen-color-accent-soft);
+}
+
 /* Generation Steps ("How it was made"): the board with its controls on the left, the stages and the score table on the
    right; on a phone they stack. The status line is coloured by how the replay ended. */
 .pm-replay-dialog {

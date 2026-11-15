@@ -191,6 +191,21 @@ export function displayEntryOf(state, puzzle) {
 }
 
 /**
+ * What Generation Steps needs for one listed puzzle (RES-27, RES-29), or null without a set or that puzzle.
+ * @param {GeneratorState} state
+ * @param {string} puzzleId
+ * @returns {{ set: PieceSet, puzzle: Puzzle, setOrigin: SetOrigin | null, made: Made | null } | null}
+ */
+export function replaySourceOf(state, puzzleId) {
+  const puzzle = state.puzzles.find((p) => p.id === puzzleId);
+  if (state.set === null || puzzle === undefined) {
+    return null;
+  }
+  const made = Object.hasOwn(state.puzzleMade, puzzleId) ? state.puzzleMade[puzzleId] : null;
+  return { set: state.set, puzzle, setOrigin: state.setOrigin, made: made ?? null };
+}
+
+/**
  * @param {Record<string, unknown>} a
  * @param {Record<string, unknown>} b
  * @returns {boolean}

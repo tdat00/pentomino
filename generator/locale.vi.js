@@ -252,7 +252,7 @@ export default Object.freeze({
 
   // How it was made (the Generation Steps dialog)
   'replay.button': 'Cách tạo đề',
-  'replay.button.aria': 'Cách tạo {title}',
+  'replay.button.aria': 'Cách tạo đề: {title}',
   'replay.title': 'Cách tạo đề',
   'replay.close': 'Đóng',
   'replay.loading': 'Đang chạy lại quá trình tạo đề…',

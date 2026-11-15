@@ -247,7 +247,7 @@ async function runRecipe(recipe) {
     && /^\d+ pieces? to place$/.test(cardLines[2]) && /^(Unique solution ✓|Multiple solutions|Checking…|Uniqueness not checked|At least 1 solution|No solution exists)$/.test(cardLines[3]),
   `the card shows number, level and score, pieces to place and solutions: ${cardLines}`);
   assert(/^Seed: \d+$/.test(q(d, '.detail-seed').textContent ?? '') && q(d, '.detail-seed').parentElement === q(d, '.detail-title').parentElement, 'the seed is next to the name in the main panel');
-  assert(qa(d, '.puzzle-card a').length === 0 && qa(d, '.puzzle-card button').every((b) => b.dataset.action === 'remove' || b.dataset.action === 'select'), 'the card only has its select and remove buttons');
+  assert(qa(d, '.puzzle-card a').length === 0 && qa(d, '.puzzle-card button').every((b) => ['select', 'replay', 'remove'].includes(b.dataset.action ?? '')), 'the card only has its select, How it was made and remove buttons');
   assert(!(/** @type {HTMLButtonElement} */ (q(d, '[data-action="remove-all-puzzles"]'))).disabled && q(d, '[data-action="remove-all-puzzles"]').closest('.app-history') !== null,
     'Remove all sits in the left panel and is enabled once there is a puzzle');
   const toPlace = Number(/^(\d+)/.exec(cardLines[2])?.[1] ?? NaN);

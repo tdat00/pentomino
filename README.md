@@ -15,6 +15,7 @@ browser: no account, no backend, no remote solver, no upload, no build step and 
 - **[Pentomino Generator](generator/)**: draws a board (presets, blocked squares, 45° views), generates piece sets that
   provably tile it, makes puzzles from a set at seven levels (optionally with a proven unique solution), prints them and
   imports a puzzle from its link or code.
+- **Generation Steps** (in the Generator): replay how the generator made a puzzle, step by step, with its score table.
 - **[Pentomino Player](player/)**: plays a puzzle from its link: drag or tap to place pieces, undo / redo, proven hints,
   a timer, saved progress, printing, and sharing a puzzle or the whole list as a link with a QR code.
 - **Both**: English and Vietnamese, light, dark and high-contrast themes, mouse, touch and keyboard. A puzzle travels

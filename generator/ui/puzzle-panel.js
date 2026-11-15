@@ -40,6 +40,8 @@ const ZOOM_STEP = 1.25;
  * @property {HTMLElement | null} [cardsActionsHost] Remove all button; defaults to above the cards.
  * @property {() => import('../../core/browser/puzzle-code-client.js').PuzzleCodeClient} [createPuzzleCodeClient] Makes
  *   the puzzle-code client of the Print dialog on first use (default: one module worker).
+ * @property {(puzzleId: string, opener: HTMLElement) => void} [onReplay] Opens Generation Steps ("How it was made") for
+ *   a puzzle. Without it the cards have no third button; `opener` is the card's button, which gets the focus back.
  */
 
 let panelCounter = 0;
@@ -289,6 +291,7 @@ export function mountPuzzlePanel(host, options) {
    * @property {HTMLElement} toPlace
    * @property {HTMLElement} cert
    * @property {HTMLButtonElement} select
+   * @property {HTMLButtonElement | null} replay
    * @property {HTMLButtonElement} remove
    * @property {string} id
    */
@@ -323,13 +326,19 @@ export function mountPuzzlePanel(host, options) {
     const remove = /** @type {HTMLButtonElement} */ (el('button', { className: 'card-remove ghost-small', text: '✕', attrs: { type: 'button', 'data-action': 'remove' } }));
     const select = /** @type {HTMLButtonElement} */ (el('button', { className: 'card-select', attrs: { type: 'button', 'data-action': 'select', 'aria-pressed': 'false' } },
       el('div', { className: 'card-body' }, heading, rating, toPlace, cert), thumb));
-    const item = /** @type {HTMLLIElement} */ (el('li', { className: 'puzzle-card', dataset: { puzzleId: id } }, select, remove));
+    const onReplay = options.onReplay;
+    const replay = onReplay === undefined
+      ? null
+      : /** @type {HTMLButtonElement} */ (el('button', { className: 'card-replay ghost-small', attrs: { type: 'button', 'data-action': 'replay' } }));
+    const item = /** @type {HTMLLIElement} */ (el('li', { className: 'puzzle-card', dataset: { puzzleId: id } },
+      ...(replay === null ? [select, remove] : [select, replay, remove])));
     const view = mountBoard(thumb, { mode: 'thumbnail', cellPx, label: t('card.preview') });
     select.addEventListener('click', () => {
       selectedId = id;
       userChose = true;
       render(store.getState());
     });
+    replay?.addEventListener('click', () => onReplay?.(id, replay));
     remove.addEventListener('click', () => {
       const buttons = [...cardList.querySelectorAll('.card-remove')];
       const at = buttons.indexOf(remove);
@@ -338,7 +347,7 @@ export function mountPuzzlePanel(host, options) {
       const left = /** @type {HTMLButtonElement[]} */ ([...cardList.querySelectorAll('.card-remove')]);
       (left[Math.min(at, left.length - 1)] ?? newButton).focus();
     });
-    return { item, view, heading, rating, toPlace, cert, select, remove, id };
+    return { item, view, heading, rating, toPlace, cert, select, replay, remove, id };
   }
 
   /** @param {GeneratorState} state */
@@ -382,6 +391,10 @@ export function mountPuzzlePanel(host, options) {
       card.remove.setAttribute('aria-label', removeLabel);
       card.remove.title = removeLabel;
       card.remove.disabled = busy;
+      if (card.replay !== null) {
+        card.replay.textContent = t('replay.button');
+        card.replay.setAttribute('aria-label', t('replay.button.aria', { title: card.heading.textContent }));
+      }
       drawRating(card.rating, ratingDisplay(puzzle.rating, displayEntryOf(state, puzzle), { t, levelLabel }));
       card.toPlace.textContent = t('card.toPlace', { count: Math.max(0, current.pieces.length - puzzle.clues.length) });
       const certificate = describeCertificate(puzzle, { checking: checking.has(puzzle.id) || fresh });

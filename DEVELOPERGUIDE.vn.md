@@ -58,11 +58,13 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
 
 - **Trang kiểm thử trên trình duyệt** (không được xuất bản): chạy `npm run serve` rồi mở
   `http://localhost:8080/pentomino/tests/browser/` kèm `player-controls.html`, `player-load.html`, `hints.html`,
-  `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`,
+  `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html`, `replay.html`, `puzzle-code-worker.html`,
   `puzzle-code-entry.html`, `puzzle-code-print.html`, `puzzle-code-cli-parity.html`, `puzzle-code-acceptance.html`,
   `puzzle-qr.html`, `watchdog.html` hoặc `acceptance.html`. Mỗi trang ghi danh sách đạt/không đạt, cùng `data-summary`
   và `data-result` (`pass` hoặc `fail`) trên `<html>`. Hãy dùng cửa sổ hẹp hơn
-  1360 px: một số bài kiểm tra cần bố cục một hoặc hai cột.
+  1360 px: một số bài kiểm tra cần bố cục một hoặc hai cột. `replay.html?phase=keys` và
+  `puzzle-code-acceptance.html?phase=keys` chờ các lần nhấn phím đáng tin cậy mà chỉ một trình chạy qua giao thức
+  DevTools mới gửi được.
 - **Tạo đề không cần giao diện**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`.
   Công cụ nhận bàn tới **676** ô chơi được (các ứng dụng dùng tới 484 ô trên máy tính và 360 ô trên điện thoại).
   Gói đề in ra stdout (hoặc `--output`), thông báo ra stderr. Mã thoát: `0` hoàn tất (kể cả khi bộ mảnh đã được tìm đủ và
@@ -105,6 +107,15 @@ tools/          công cụ chỉ chạy bằng Node (.mjs): máy chủ, tạo đ
 `core/engine/difficulty.js` tính điểm `difficulty-v3` từ nó (`measureV3`, `rate`) và giữ các hàm v2 (`scoreV2`,
 `measureV2`, `rateV2`) cho các điểm đã lưu, dữ liệu mẫu và công cụ thăm dò chấm độ khó.
 `tools\rate-probe.mjs` dùng để đo nó.
+
+`core/engine/replay.js` chạy lại việc tạo một đề từ ghi chép của nó rồi so kết quả với đề đã lưu (`runReplay`,
+`replayPuzzle`; [docs/design-detail.md](docs/design-detail.md) §6.12), và worker chạy nó như tác vụ `replayPuzzle` mà
+client tạo đề gửi qua đường phụ. Cửa sổ Các bước tạo đề của trình tạo đề gồm `generator/ui/replay-model.js` (không có
+DOM: các cách xem, câu mô tả, bảng điểm và bộ điều khiển) và `generator/ui/replay-dialog.js` (hộp thoại gốc); nút
+**Cách tạo đề** trên mỗi thẻ đề nằm trong `generator/ui/puzzle-panel.js`, còn `generator/app.js` mở cửa sổ bằng
+`replaySourceOf` của `generator/state.js`. `tests/browser/replay.html` kiểm thử toàn bộ trên trình duyệt thật.
+`node tools\record-fixtures.mjs --replay-case --check` (và `--search`, `--create`, `--replace`) kiểm tra dữ liệu mẫu
+chạy lại `tests/fixtures/replay-case.json` giống cách `--check` kiểm tra các dữ liệu mẫu tạo đề.
 
 Mọi module được trang hoặc worker nạp đều dùng đuôi `.js`; `.mjs` dành riêng cho công cụ Node. Chữ trên giao diện nằm
 trong các gói phẳng `generator/locale.en.js` / `locale.vi.js` và `player/locale.en.js` / `locale.vi.js` (chữ khi in nằm

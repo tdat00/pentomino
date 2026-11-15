@@ -257,7 +257,7 @@ export default Object.freeze({
 
   // How it was made (the Generation Steps dialog)
   'replay.button': 'How it was made',
-  'replay.button.aria': 'How {title} was made',
+  'replay.button.aria': 'How it was made: {title}',
   'replay.title': 'How it was made',
   'replay.close': 'Close',
   'replay.loading': 'Replaying the generation…',
