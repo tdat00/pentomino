@@ -1455,3 +1455,20 @@ Plan-author answer: **(a).**
 The manifest is priced after source preparation and staged as IG-P-Q20 answers: preparation, pilots on fitting
 seeds, the freeze of the table and priors, validation on 20 seeds, then the separately approved diagnostics.
 The browser calibration is its optional first stage (IG-P-Q23). Nothing of the provisional round carries over.
+
+---
+
+## Owner decisions (2026-11-15, after the plan author's positions; through `ask_user` and email)
+
+The owner approved all seven decisions as the plan author and the analysts recommend, with the plan author's
+conditions as written in each answer above.
+
+| Id | Decision |
+|---|---|
+| IG-P-D1 (IG-P-Q02) | **(b)** one end-to-end request deadline (115 s generation stop inside a hard 120 s response bound) with a reserved batch share fitted as a frozen-round pilot parameter, deterministic work caps first and the wall clock as backstop, a cut response returning the puzzles accepted so far, lost completions counted against the uncapped search; the separate budgets stay until the pilot has run. |
+| IG-P-D2 (OD-P5) | **(a)** progressive presentation now, in fold order, with the history policy stated; a service level (b) only later, for named cells with measured browser first-puzzle times. |
+| IG-P-D3 (OD-P6) | **(a)** the level is the score band, the centre rule and AR1; two-sided population reporting beside every timing, (c4) measured, and a blind play comparison before any phase-3 offer (Hell 1 on 14x14 shown as the extreme case). |
+| IG-P-D4 (OD-P7) | **(a)** no screen by default on Nightmare up to 144 cells. |
+| IG-P-D5 (OD-P8) | **(a)** in stages after the frozen source receipt: the data-only inventory first, then the Hell 1 cells (14x14 and 24x24 included), then the Hell 2 cells for the central share; Hell 3 cells dropped. |
+| IG-P-D6 (OD-P9) | **(a) with (i) and (ii)**: Hell 2 and Hell 3 closed for this feature as a scope decision; 24x24 and 14x14 Hell 1 get request-level arms in the frozen round as candidate populations, not offers. |
+| IG-P-D7 (OD-P10) | **(a)** a separately priced, staged frozen-round manifest after source preparation, the browser calibration as its optional first stage; nothing of the provisional round carries over. |
