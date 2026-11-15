@@ -9,6 +9,7 @@ import {
   ENUMERATION,
   LIMITS,
   POLICY_ID,
+  REPLAY,
   SCORE,
   SCORE_V3,
   TIME,
@@ -397,6 +398,12 @@ describe('limits, qualification and budgets', () => {
       lookaheadWidth: 4, nodes: 30000, solutions: 8, work: 760000000, census: 80000000, memoryBytes: 33554432,
     });
     assert.ok(Object.isFrozen(DEDUCE));
+  });
+
+  test('a Generation Steps replay has its own frozen bounds, derived from DEDUCE (provisional, RES-29)', () => {
+    assert.deepEqual({ ...REPLAY }, { maxSteps: 4096, maxBytes: 4194304, work: 215040000000 });
+    assert.equal(REPLAY.work, 256 * (DEDUCE.work + DEDUCE.census));
+    assert.ok(Object.isFrozen(REPLAY));
   });
 
   test('difficulty-v3 knobs are the fitted values, frozen, within the invariants and the experimental ranges', () => {

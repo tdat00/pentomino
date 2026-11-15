@@ -122,6 +122,19 @@ export const DEDUCE = Object.freeze({
   memoryBytes: 32 * 1048576,
 });
 
+/**
+ * Bounds of one Generation Steps replay (RES-29, design §6.12): steps, serialized bytes of the steps, total work.
+ * Provisional test defaults (RES-01), measured on the replay fixture. They bound the replay only and change no
+ * rating or generated puzzle.
+ */
+export const REPLAY = Object.freeze({
+  maxSteps: 4096,
+  maxBytes: 4 * 1048576,
+  // At most what generation itself may spend on one puzzle: 64 profile and 64 repair ratings for the set calibration
+  // and as many again for the candidate, each within DEDUCE.work plus its census budget.
+  work: 256 * (DEDUCE.work + DEDUCE.census),
+});
+
 const K60 = [6, 7.5, 8.5, 10, 11.5, 13, 16, 24, 32, 43, 58, 78];
 const K_CAP_FROM_HELL_1 = [42, 62, 92, 140, 210];
 const HELL_1_INDEX = 7;

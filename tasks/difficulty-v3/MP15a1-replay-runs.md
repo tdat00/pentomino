@@ -439,14 +439,14 @@ pieces, witness and its `generation.carving` and `generation.macroRegion`, as th
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted: cross-review by SA2 (accept, no blocking finding; MP15R-01 informational) and the pack author's rulings on the developer's named items (SA1: five accepted as built, one changed in a fix round) |
+| Start | 2026-11-15 18:43:48 (+07:00) |
+| End | 2026-11-15 19:13:22 first round; fix round 19:35 to 19:52:51; orchestrator re-check and commit |
+| Duration | 48 min developer (30 + 18); locked invocations 391.0 s machine and 145.3 s lock wait (first round, 15 invocations), 213.0 s and 605.8 s (fix round, 6 invocations, mostly waiting on the sudoku repository) |
+| Model | claude-sonnet-5.5 (developer); gpt-6-astra (SA2, cross-review); claude-opus-5.5 (SA1 rulings; orchestrator) |
+| Token usage | Developer: 120 model calls; 27,534,675 input tokens (26,884,337 cache reads); 133,284 output tokens |
+| AI credits | about 565 (developer) |
+| Verification | `core/engine/replay.js` (new): `runReplay(input, workspaces, limits, isCancelled, reserveBytes)`, `ReplayCancelledError`, `utf8Length`, the `ReplayRun`/`StageState` typedefs: input and limit checks, projection of the puzzle's own record, preflight, the set and candidate stage runs, the work meter, the work/step/byte/cancellation bounds and the exact final comparison. `policy.js` gains only `REPLAY` (13 lines); `tools/bench/report.js` lists `replay.js` (D12). Case 17 with genuine skip records from the real engine: subset skip pack 1 puzzle 0 `{subsets:[22]}`, repair skip pack 0 puzzle 2 `{repairs:[4]}`; both `matched` with their `skip`/`repair` events and `mismatch` when the skips are emptied. **D35:** no engine path changed (`replay.js` is imported by no module); `record-fixtures --check` and `--replay-case --check` OK; the 8 fixture puzzles replay to their stored clues, ratings and solutions. Tests: `replay.test.js` 17/17 (cases 1-15, 17); targeted 86/86; quick set 1,424/1,424 (+18); `npm run check` OK; 23 hand-made mutants of `replay.js` all killed (one survivor in the first run, the byte count's commas, fixed by an exact-fit byte test). Orchestrator: locked `replay`, `policy`, `replay-recorders` 77/77 after the first round and `replay`, `policy` 48/48 after the fix; `npm run check` OK |
+| Acceptance | MP15a1-B01 to B04 and T01 to T06 met (cases 1-15 and 17; B02 extended by the fix round's case 10 additions) |
+| Issues & resolutions | The developer named six items; SA1 ruled. (1) **Changed:** a recorded `setOrigin.level` not offered for the stored board made `setAttempt` throw `RangeError` out of `runReplay`; the preflight now tests `pieceCountRange(origin.level, activeCount(set.board))` and gives `set` `unavailable` with reason `no-set-origin` (the candidate stage still runs; status never `matched`); case 10 covers `nightmare` and `hell-1` on 60 cells; a mutant removing the branch is killed. (2) The work bound allows about 25 minutes of compute at 140M units/s: accepted; named item for MP17 with one replay measurement on its largest puzzle. (3) Stage states stay `replayed` after a field mismatch: intended (the outcome is in `status`, `reason`, `compared`). (4) The `board` comparison is kept although it cannot differ today. (5) An array `generation` throws; a puzzle with no rating claim is not compared; `recordProblem` matches any `generation.made.*` path (ids over 40 characters are shortened in the path): all accepted. (6) No `tsc`: named item for MP17. The §3.1 file-tree edit outside the listed slots is accepted. SA2's MP15R-01 (informational): `maxBytes: 1` gives `incomplete`/`bytes` with `events: []`, whose JSON is two bytes; MP15a2 keeps its final-step reserve check and states the distinction. The task text's `invalid-payload` should read `invalid-request` (the worker's mapping) |
+| Handoff | To MP15a2: `runReplay(input, { ws, scratch }, limits, isCancelled, reserveBytes)` returns `{ status, reason, stages, compared, work, events, set }`; also `utf8Length`, `ReplayCancelledError`, `REPLAY`. `stages.set`/`stages.candidate` take `replayed`, `unavailable`, `mismatch` or `stopped` (candidate also `'calibration'`); `stages.final` is `compared` or `not-compared`. Events are chronological, with the calibration's clue events dropped for a candidate puzzle. `skipInputs()` in `tests/replay.test.js` returns `{ subset, repair }`. The fixture has no skip; 7 of its 8 puzzles are candidates. Pending amendments by SA1: MP15a2 (a claim-less puzzle's final step; MP15R-01), MP17 (replay wall time with one measurement; no `tsc`) |
