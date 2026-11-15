@@ -1238,3 +1238,78 @@ populations; (c) open a new generation route (needs its own approval and verific
 census-estimated witnesses.
 
 Plan-author answer:
+
+---
+
+## Pending owner decisions: the plan author's position requested (2026-11-15)
+
+The joint report (`plan-v2-joint-report.md`, section (f)) puts seven decisions to the owner. The owner asks the plan
+author for a position on each before deciding. The analysts' joint recommendation is given; the full option texts and
+evidence are in the joint report. Answer each with an option and any condition.
+
+### IG-P-D1 (IG-P-Q02): one response deadline, or separate budgets for the set and the batch
+
+Due now: PM3 has run. Options: (a) keep two separate 115 s action budgets and only report the response time; (b) one
+end-to-end request deadline (a 115 s generation stop inside a hard 120 s response bound), with a reserved share for
+the batch, deterministic work caps per call and a wall-clock backstop; (c) separate budgets plus progressive delivery
+under a new service level. Evidence: 70 of MP12b1's 1,726 responses exceeded 120 s (at most 229.1 s) under two
+separate 115 s timers; one selection call ran 136.3 s; after the new search the set stage takes 14 to 26 % of T10.
+Analysts: **(b)**, the reserve (for example a set-stage cap of about 40 %) fitted in the frozen round as a pilot
+parameter, with lost completions measured against the uncapped search.
+
+Plan-author answer:
+
+### IG-P-D2 (OD-P5): progressive delivery
+
+Options: (a) approve progressive presentation as a user-interface behaviour, keeping today's offer criteria; (b) also
+replace the ten-puzzle and response criteria for named cells (Hell 1; 10x10 and 12x12 Nightmare if their browser runs
+fail) by a first-puzzle and total-batch service level; (c) neither. Analysts: **(a) now; (b) only after measured
+browser first-puzzle times and an explicit service level** (first-puzzle median and p95, minimum delivered count,
+timeout, history policy) approved by the owner. (See also IG-P-Q23.)
+
+Plan-author answer:
+
+### IG-P-D3 (OD-P6): what defines a level for the new search
+
+Options: (a) the level is the score band, the centre rule and AR1, so the new search may serve a set at the lowest
+in-band clue count it finds (typically one to three clues above today's on Nightmare and Hell 1); (b) keep today's
+start counts, which keeps today's failures on 14x14, 15x15b10 and Hell 1; (c) (a) only after a blind play comparison.
+Analysts: **(a), conditionally**: clue, score-position, census-estimate and completion distributions per cell beside
+every timing in both directions; the "one count below" variant (c4) measured; a stated blind play comparison on one
+Nightmare and one Hell 1 cell before any phase-3 offer.
+
+Plan-author answer:
+
+### IG-P-D4 (OD-P7): the screen on Nightmare boards of up to 144 cells
+
+Options: (a) no screen by default; (b) the 190 M screen (12x12 1.56 times faster, +0.75 clue on the same set).
+Analysts: **(a)**; revisit only with matched frozen-round and browser evidence that 12x12 needs the trade; do not
+extrapolate to 10x10.
+
+Plan-author answer:
+
+### IG-P-D5 (OD-P8): the rest of PM1 tranche 1, reduced to the Hell 1 and Hell 2 cells
+
+Options: (a) approve; (b) stop after the first slice. Analysts: **(a), in stages, after the frozen source receipt**:
+include the failing-set work that feeds the per-set prior, do a data-only inventory of the existing records first,
+and price the retained parts then (the nine worker-hours are the old full-scope estimate, not an allocation).
+
+Plan-author answer:
+
+### IG-P-D6 (OD-P9, new): Hell scope for this feature
+
+Options: (a) keep Hell 2 and Hell 3 closed for this feature as a scope and resource decision (no Hell 3 rating in band
+and only edge-of-band Hell 2 ratings, 8 of 404, on the targeted boards; other families hold a few census-estimated
+Hell 2 and 3 scores outside the offer areas); (b) open an alternate-population investigation, data-only first. For
+Hell 1: (i) name 24x24 in the frozen round's request-level arms; (ii) bring 14x14 (196 cells) into scope only if
+IG-P-Q21's answer supports it. Analysts: **(a) with (i); (ii) after IG-P-Q21.** (See also IG-P-Q24.)
+
+Plan-author answer:
+
+### IG-P-D7 (OD-P10, new): the frozen round's approval
+
+Options: (a) approve a separately priced manifest after source preparation, in stages, with an optional bounded early
+browser calibration; (b) reuse the provisional round's remaining time or the old manifest. Analysts: **(a)**; the
+provisional round's unused 1,028.5 s is not carried over. (See also IG-P-Q20.)
+
+Plan-author answer:
