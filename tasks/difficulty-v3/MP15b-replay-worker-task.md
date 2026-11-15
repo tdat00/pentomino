@@ -186,8 +186,9 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 1. A payload built from the first puzzle of `tests/fixtures/replay-case.json` (`set` in wire form, `puzzle`,
    `generation` with `setOrigin` and a one-entry `made`) validates; the normalized copy is deep-equal in content and
    not the same objects.
-2. Missing `generation`, an unknown field in `puzzle`, a `made` with two keys, a `setOrigin` that is not a plain object,
-   and a `generation` nested deeper than 8 levels are each `invalid-value` or `invalid-type` issues at the right
+2. Missing `generation` (`missing-field`), an unknown field in `puzzle` (`unknown-field`), a `made` with two keys
+   (`invalid-value`), a `setOrigin` that is not a plain object (`invalid-type`), and a `setOrigin` or `made` nested
+   deeper than 8 levels (`invalid-type` at its deepest path) are each one issue with the reader's code at the right
    path.
 3. `parseTaskMessage` accepts `{ type: 'task', id, kind: 'replayPuzzle', payload }` and still rejects an unknown kind.
 

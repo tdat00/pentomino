@@ -64,7 +64,8 @@ MP16b puts the button on each puzzle card and verifies the dialog in a browser.
 
 ```text
 client.replayPuzzle({ set, puzzle, setOrigin, made }, { signal }) -> Promise<ReplayResult>
-  rejects: PoolAbortError('cancelled' | 'closed'), WorkerTaskError, PoolError ('worker-unavailable')
+  rejects: PoolAbortError('cancelled' | 'closed'), WorkerTaskError, PoolError ('worker-unavailable', or 'invalid-task'
+           for a payload the protocol refuses), TypeError (a malformed source: the method is async; MP15b)
 ReplayResult = { status: 'matched' | 'unavailable' | 'mismatch' | 'incomplete', reason,
                  stages: { set, candidate, final }, compared, work, steps }
   stages.set, stages.candidate: 'replayed' | 'unavailable' | 'mismatch' | 'stopped' (candidate also 'calibration')
@@ -359,8 +360,10 @@ once per file, plus small synthetic step lists.
    text names `replay.limit.steps`.
 9. Controller: `open` → `loading` → `ready`; `close` aborts the signal given to `run` and nothing else; a result that
    arrives after `close` or after a second `open` is ignored; a rejection `PoolError('worker-unavailable')` gives
-   `failure: 'worker-unavailable'`, a `WorkerTaskError` gives `failure: 'failed'`, a `PoolAbortError('cancelled')`
-   while open gives `failure: 'interrupted'` and after `close` changes nothing.
+   `failure: 'worker-unavailable'`, a `WorkerTaskError` gives `failure: 'failed'`, a `PoolError('invalid-task')` (a
+   payload the protocol refuses, MP15b) gives `failure: 'failed'`, not `'worker-unavailable'` (only that code shows
+   the worker message), a `PoolAbortError('cancelled')` while open gives `failure: 'interrupted'` and after `close`
+   changes nothing.
 10. Playback with an injected scheduler: `play` advances one visible step per tick and stops at the last;
     `pause`, `next`, `prev`, `seek` and `setView` stop playback; `setView('all')` then `setView('compact')` keeps the
     current step or moves to the nearest earlier visible step.
