@@ -335,4 +335,32 @@
  *     repairSequence: number | null }} ClueEvent
  */
 
+/**
+ * A set-stage event of the piece-set attempt (RES-28): plain owned JSON, never mutated after delivery; cells are
+ * `[x, y]` pairs in ascending cell-index order. `count`: `range` is a copy of the feasible piece counts, `k` the
+ * chosen one. `carve`: one per macro partition that reaches carving (`parts` are its parts as cell lists) and one per
+ * flat size plan that has sizes (`parts` null). `piece`: the regions of the successful carve, in region order; a
+ * discarded partition or a failed plan emits none.
+ * @typedef {{ stage: 'set', kind: 'count', range: number[], k: number }
+ *   | { stage: 'set', kind: 'carve', mode: 'macro', parts: XY[][] }
+ *   | { stage: 'set', kind: 'carve', mode: 'flat', parts: null }
+ *   | { stage: 'set', kind: 'piece', cells: XY[] }} SetEvent
+ */
+
+/**
+ * A layout-stage event of the candidate's walk (RES-28, D32): plain owned JSON, never mutated after delivery.
+ * `start`: the walk's starting layout (`start` is where it came from), emitted by `puzzleCandidate` before the walk.
+ * `retile`: one per walk step (`step` is the zero-based step, `liftedIds` the piece ids of the released cluster in
+ * cluster order, `changed` whether the step moved to another layout, `layout` a copy of the layout after the step).
+ * @typedef {{ stage: 'layout', kind: 'start', start: 'witness' | 'restart', layout: Pose[] }
+ *   | { stage: 'layout', kind: 'retile', step: number, liftedIds: string[], changed: boolean,
+ *     layout: Pose[] }} LayoutEvent
+ */
+
+/**
+ * Every event a recorder receives (RES-28): the set and layout stages of `setAttempt` and `puzzleCandidate`, then
+ * the clue stages of `selectClues`.
+ * @typedef {SetEvent | LayoutEvent | ClueEvent} RecordEvent
+ */
+
 export {};

@@ -68,7 +68,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP13a | [MP13a](MP13a-provenance-engine.md) | Provenance in the engine and in packs | MP12b3 (the lock complete) | Medium–Large | Engine | M8 provenance and recorders | 27 |
 | [x] | MP13b | [MP13b](MP13b-provenance-apps-and-fixture.md) | Provenance in the client, the Generator and the CLI; the replay fixture (GF-P4) | MP13a | Medium + gate | Apps and tools | M8 | 28 |
 | [x] | MP14a | [MP14a](MP14a-detail-channel-and-clue-recorders.md) | Rating detail channel, clue-stage recorders and the replay of skips | MP13b | Medium–Large | Engine | M8 | 29 |
-| [ ] | MP14b | [MP14b](MP14b-set-and-layout-recorders.md) | Set and layout recorders; recorder identity | MP14a | Medium | Engine | M8 | 30 |
+| [x] | MP14b | [MP14b](MP14b-set-and-layout-recorders.md) | Set and layout recorders; recorder identity | MP14a | Medium | Engine | M8 | 30 |
 | [ ] | MP15a1 | [MP15a1](MP15a1-replay-runs.md) | Replay runs: preflight, the stage runs, the work meter, the bounds and the final comparison | MP14b | Large | Engine | M9 Generation Steps | 31 |
 | [ ] | MP15a2 | [MP15a2](MP15a2-replay-steps.md) | Replay steps: the step table, the score data, the final step and the byte bound | MP15a1 | Medium | Engine | M9 | 32 |
 | [ ] | MP15b | [MP15b](MP15b-replay-worker-task.md) | Replay worker task, protocol and client | MP15a2 | Medium | Browser integration | M9 | 33 |
@@ -609,7 +609,7 @@ The orchestrator owns this record.
 | MP13a | Accepted (provenance records in the engine and packs; D35 identity on 9 cases; quick set 1,366) | 22 min developer (machine 2.8 min) + 5 min check | about 432 | `difficulty-v3 MP13a` |
 | MP13b | Accepted (provenance in client, Generator, CLI; GF-P4 replay fixture recorded, npm test 1,394; D35 identity on 8 cases; fixture has no skip) | 22.5 min developer (machine 6.6 min) + 3 min check | about 447 | `difficulty-v3 MP13b` |
 | MP14a | Accepted (rating detail channel, clue-stage recorders and events, skip replay; D35 identity on 11 cases and 36 direct calls; quick set 1,396) | 25 min developer (machine 3.9 min) + 3 min check | about 523 | `difficulty-v3 MP14a` |
-| MP14b | | | | |
+| MP14b | Accepted (set and layout recorders; D35 identity on 1,193 comparisons incl. RNG draw logs; quick set 1,406) | 71 min developer (machine 8.1 min final, 24.5 min development) + 3 min check | about 558 | `difficulty-v3 MP14b` |
 | MP15a1 | | | | |
 | MP15a2 | | | | |
 | MP15b | | | | |

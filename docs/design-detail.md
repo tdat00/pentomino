@@ -286,6 +286,14 @@ type RatingDetail = {                               // the detail channel (§7.9
   search: { Gt: number; nodes: number; work: number; stop: string };
   count: { S: number; limit: number; exhausted: boolean; solutions: string };
   census: { complete: boolean; undecided: number; nodes: number; work: number } };
+type SetEvent =                                     // recorder events of the set stage (§6.5): plain owned JSON, cells as XY pairs
+  | { stage: 'set'; kind: 'count'; range: number[]; k: number }
+  | { stage: 'set'; kind: 'carve'; mode: 'macro'; parts: XY[][] } | { stage: 'set'; kind: 'carve'; mode: 'flat'; parts: null }
+  | { stage: 'set'; kind: 'piece'; cells: XY[] };
+type LayoutEvent =                                  // of the candidate's walk (§6.7)
+  | { stage: 'layout'; kind: 'start'; start: 'witness' | 'restart'; layout: Pose[] }
+  | { stage: 'layout'; kind: 'retile'; step: number; liftedIds: string[]; changed: boolean; layout: Pose[] };
+type RecordEvent = SetEvent | LayoutEvent | ClueEvent;   // everything a recorder receives; ClueEvent is in §6.10
 type Certificate = { status: 'unique' | 'multiple' | 'not-proved' | 'unsatisfiable';
                      model: 'dlx-v1'; rowLimit: number; verified: boolean };  // verified = computed by this runtime
 type Puzzle = { id: string; title?: string; clues: Pose[]; solution: Pose[] | null;
@@ -458,7 +466,8 @@ export function randomTiling(b: Board, pieces: Piece[], rng: Rng, ws: Workspace,
                              o: { clues?: Pose[]; totalRowTrials: number; restartBase: number }): Pose[] | null;
 export function lnsStep(b: Board, pieces: Piece[], layout: Pose[], cluster: number[], rng: Rng, ws: Workspace,
                         o: { rowTrialLimit: number; maxSolutions: number }): Pose[] | null;
-export function lnsWalk(set: PieceSet, start: Pose[], rng: Rng, ws: Workspace, steps: number): Pose[];  // §6.7
+export function lnsWalk(set: PieceSet, start: Pose[], rng: Rng, ws: Workspace, steps: number,
+                        record?: (event: LayoutEvent) => void): Pose[];   // §6.7; the recorder only observes (RES-28)
 export function isValidLayout(b: Board, pieces: Piece[], layout: Pose[]): boolean;    // O(cells)
 ```
 
@@ -491,8 +500,11 @@ export function carveFlat(mask: Board, sizes: number[], rng: Rng,
   { regions: number[][] } | null;                          // disjoint cell-index sets covering the mask
 export function macroPartition(b: Board, mu: number, piecesPerPart: [lo: number, hi: number], rng: Rng):
   number[][] | null;                                       // compact connected parts of the active cells (§6.5)
-export function carveMacro(b: Board, k: number, rng: Rng, budgets: object):
-  { regions: number[][]; regionOf: number[] } | null;      // §6.5
+export function carveMacro(b: Board, k: number, rng: Rng, budgets?: object, hooks?: object,
+                           record?: (event: SetEvent) => void):
+  { regions: number[][]; regionOf: number[] } | null;      // §6.5; `hooks` are the control hooks of tests, `record` the observer (RES-28)
+export function carveFlatSet(board: Board, k: number, rng: Rng, budgets?: object, record?: (event: SetEvent) => void):
+  { regions: number[][] } | null;                          // up to `sizePlans` flat carves (§6.5)
 export function finalizeSet(b: Board, regions: number[][], regionOf: number[] | null): PieceSet;  // ids, labels, colors, witness
 export function validateSet(set: PieceSet): Issue[];       // independent of the carver: cover, shapes, policy (§6.5)
 ```
@@ -561,9 +573,12 @@ export function certify(board: Board, pieces: Piece[], clues: Pose[], ws: Worksp
 **`generate.js`** (§6.5, §6.9): pure task functions plus the deterministic fold.
 
 ```ts
-export function setAttempt(req: SetRequest, attempt: number): SetAttemptResult;
-export function puzzleCandidate(ctx: BatchContext, slot: number, attempt: number):
+export function setAttempt(req: SetRequest, attempt: number, observe?: Observe): SetAttemptResult;   // observers only observe (§6.5)
+export function puzzleCandidate(ctx: BatchContext, slot: number, attempt: number, observe?: Observe):
   PuzzleCandidate | { fail: 'layout' | 'not-in-band' | 'uniqueness-not-proved' };   // failure kind feeds the partial reason (§6.9)
+type Observe = { record?: (event: RecordEvent) => void;           // set, layout and clue events (§6.5, §6.7, §6.10)
+                 charge?: (units: number) => void;                // work meter of every selectClues call (§6.10)
+                 replaySkips?: { subsets: number[]; repairs: number[] } };   // puzzleCandidate only (§6.10)
 export function certifyTask(ctx: BatchContext, clues: Pose[]): Certificate;      // lazy certificate (§6.11)
 export function foldStart(ctx: BatchContext): FoldState;
 export function foldNext(s: FoldState): { slot: number; attempt: number } | null;  // next candidate needed
@@ -1149,28 +1164,31 @@ at most avail(s) pieces of size s (hole-free free polyominoes):
 Request: `{ board, rotation, levelId, seedText, uniqueness: 'any' | 'require' }`.
 
 ```text
-setAttempt(req, j):                                   // pure; runs in a worker; j = attempt index
+setAttempt(req, j, observe = {}):                      // pure; runs in a worker; j = attempt index
   rng ← createRng(req.seedText, 'set/' + j)
   ks ← pieceCountRange(level, A);  K ← ks[rng.int(ks.length)]          // §6.4
+  observe.record?.({ stage: 'set', kind: 'count', range: copy of ks, k: K })
   μ ← A / K
   if μ ≥ 6.5:
-    c ← carveMacro(board, K, rng.derive('macro'), BUDGETS)            // preferred for large pieces
+    c ← carveMacro(board, K, rng.derive('macro'), BUDGETS, undefined, observe.record)   // preferred for large pieces
     carving ← 'macro'
-    if c = null: c ← carveFlatSet(board, K, rng.derive('flat')); carving ← 'flat'   // bounded fallback
+    if c = null: c ← carveFlatSet(board, K, rng.derive('flat'), BUDGETS, observe.record); carving ← 'flat'   // bounded fallback
   else:
-    c ← carveFlatSet(board, K, rng.derive('flat')); carving ← 'flat'
+    c ← carveFlatSet(board, K, rng.derive('flat'), BUDGETS, observe.record); carving ← 'flat'
   if c = null → return fail('carve')
   set ← finalizeSet(board, c.regions, c.regionOf ?? null)             // ids, colors, witness poses
   if validateSet(set) has issues → return fail('internal')            // independent check, see below
-  cal ← selectClues({ layout: set.witness, target: level, rng: rng.derive('cal'), uniqueness, … })
+  cal ← selectClues({ layout: set.witness, target: level, rng: rng.derive('cal'), uniqueness, …,
+                      record: observe.record, recordSource: 'calibration', charge: observe.charge })
   if !cal.ok → return fail(cal.reason)
   return { set, carving, calibration: cal }
 
-carveFlatSet(board, K, rng):
+carveFlatSet(board, K, rng, budgets, record):
   repeat ≤ BUDGETS.sizePlans (6) times:
     sizes ← planSizes(A, K, rng);  if null → return null
+    record?.({ stage: 'set', kind: 'carve', mode: 'flat', parts: null })            // observer, §6.5 "Recorders"
     r ← carveFlat(board, sizes, rng, { stepBudget: BUDGETS.carveSteps, growthTries: BUDGETS.carveTries, used: ∅ })
-    if r → return r
+    if r → record?.(one piece event per region of r); return r
   return null
 ```
 
@@ -1197,13 +1215,14 @@ carveFlat(mask, sizes, rng, { stepBudget, growthTries, used }):
 **Macro carving** (`carveMacro`, D33). It builds sets that can be re-arranged: each macro region is a small sub-puzzle with several tilings.
 
 ```text
-carveMacro(board, K, rng, budgets):
+carveMacro(board, K, rng, budgets, hooks, record):
   μ ← A / K;  [pLo, pHi] ← K ≤ 12 ? [2, 3] : [3, 6]        // pieces per macro region
   [lo, hi] ← sizeWindow(A, K)
   repeat ≤ budgets.macroPartitions (30) times:
     smallLeft ← ⌊0.4·K⌋;  used ← ∅;  pieces ← [];  allOk ← true   // fresh global state for every partition
     P ← macroPartition(board, μ, pLo, pHi, rng);  if P = null: continue
     k_r ← allocate K over the parts by largest remainder of |part| / μ, each k_r ≥ 2; if impossible: continue
+    record?.({ stage: 'set', kind: 'carve', mode: 'macro', parts: P as cell lists })   // observer, §6.5 "Recorders"
     for each part r, in partition order:
       ok ← false
       repeat ≤ budgets.sizePlans (6) times:
@@ -1213,7 +1232,7 @@ carveMacro(board, K, rng, budgets):
                                                   growthTries: budgets.carveTries, used }): ok ← true; break
       if not ok: allOk ← false; break        // discard the whole partition; the next one starts from fresh state
       append part r's pieces to pieces;  smallLeft −= small pieces used in part r
-    if allOk: return { regions: pieces, regionOf: part index of each piece }
+    if allOk: record?.(one piece event per piece); return { regions: pieces, regionOf: part index of each piece }
   return null
 
 macroPartition(board, μ, pLo, pHi, rng):              // compact, connected parts of the active cells
@@ -1248,6 +1267,17 @@ macroPartition(board, μ, pLo, pHi, rng):              // compact, connected par
 **Calibration.**
 - It uses exactly the clue selection of New puzzle (§6.10).
 - The set is "ready for <level>" only when the calibration puzzle is in band, and proven unique when required. In the session that made the set, that puzzle is reused as the first puzzle of the first request when the level and uniqueness still match. It is not stored, so after a reload the first puzzle is generated afresh.
+
+**Recorders (RES-28, D32, D35).** `setAttempt(req, j, observe)` takes an optional `observe = { record, charge }` (`Observe`, §4.2; `replaySkips` is for `puzzleCandidate`), and `carveMacro` and `carveFlatSet` an optional last parameter `record`, beside the control hooks of `carveMacro` (`hooks`, which may fail a partition and belong to the tests). They are observers: they draw nothing from an rng, never touch a workspace and never change a loop's control flow, so with or without them the attempt makes the same set, calibration and rng draws (`tests/replay-recorders.test.js`). The events are plain owned JSON (`SetEvent`, §4.1; cells are `[x, y]` pairs in ascending cell-index order), never touched after delivery; a throwing `record` propagates. Fields in this order:
+
+```text
+{ stage: 'set', kind: 'count', range, k }                  // right after k is drawn; range = a copy of the feasible counts ks
+{ stage: 'set', kind: 'carve', mode: 'macro', parts }      // each partition attempt that reaches carving, after the quotas and before its parts are carved; parts = the partition's parts as cell lists
+{ stage: 'set', kind: 'carve', mode: 'flat', parts: null } // each flat size plan that has sizes
+{ stage: 'set', kind: 'piece', cells }                     // the regions of the carve that succeeded, in region order
+```
+
+A discarded partition (a failed part or a `beforePart` hook) and a failed flat plan have a `carve` event and no `piece` event, so the `piece` events are the accepted regions only; when the macro carve fails and the flat carve follows, the events of the macro attempts come first. `carveFlat` has no recorder: its callers report the accepted regions. The calibration's `selectClues` call gets `record` (with `recordSource: 'calibration'`), so its clue events (§6.10) follow the `piece` events, and `charge`, whether or not `record` is set, so a replay can meter the calibration's work (RES-29); carving is not charged.
 
 **Unclued benchmark (MAY).**
 - Rate the set with zero clues if budget remains.
@@ -1335,11 +1365,20 @@ lnsWalk(set, start, rng, ws, steps = BUDGETS.lnsSteps (8)):
     (cluster, rows) ← clusterFor(set, cur, s, stuck, rng)
     nxt ← lnsStep(board, pieces, cur, cluster, rng, ws, { rowTrialLimit: rows })
     if nxt: cur ← nxt; stuck ← 0  else: stuck += 1
+    record?.({ stage: 'layout', kind: 'retile', step: s, liftedIds, changed: nxt ≠ null, layout: copy of cur })    // observer
   return cur
 ```
 
 - A macro region's pieces always re-tile the cells they currently cover, so the union stays valid after broadened steps.
 - Each step uses the worker's **scratch** workspace, so the set's main model stays cached (§8.5).
+- **Recorder (RES-28, D32).** `lnsWalk` takes an optional last parameter `record`. After each step it delivers one `retile` event, and `puzzleCandidate` (§6.9) delivers the `start` event before the walk (`LayoutEvent`, §4.1; plain owned JSON, never touched after delivery, poses copied field by field):
+
+  ```text
+  { stage: 'layout', kind: 'start',  start, layout }                          // start = 'witness' | 'restart' (where the walk began); layout = a copy of the start poses
+  { stage: 'layout', kind: 'retile', step, liftedIds, changed, layout }       // step = s; liftedIds = the ids of the cluster's pieces in cluster order; changed = the step found another layout; layout = a copy of cur after the step
+  ```
+
+  There is one `retile` event per step, and the last `layout` is the walk's result. A candidate that fails the layout-key check (§6.9) has delivered only these events. The recorder draws nothing and changes no step; recorder calls sit outside the search.
 - **Random restarts** (Luby schedule; Luby et al. 1993, Gomes et al. 1998) are used only for boards of ≤ 150 cells:
 
   ```text
@@ -1376,13 +1415,15 @@ Let S = `symmetries(board)` (§6.2). Every key is computed in the normalized act
 - `seen`: the session history of accepted layout keys and clue keys for this set. It holds at most 1,000 keys; when full, the UI asks the user to reset the history (M-HISTORY-FULL).
 
 ```text
-puzzleCandidate(ctx, i, a):          // pure; slot i ∈ 1..q, attempt a ∈ 0..BUDGETS.slotAttempts − 1
+puzzleCandidate(ctx, i, a, observe = {}):   // pure; slot i ∈ 1..q, attempt a ∈ 0..BUDGETS.slotAttempts − 1
   rng ← createRng(ctx.batchSeed, 'slot/' + i + '/' + a)
   start ← ctx.witness
   if A ≤ 150 and a mod 3 = 2: start ← randomTiling(board, pieces, rng.derive('restart'), ws) ?? ctx.witness
-  layout ← lnsWalk(set, start, rng.derive('walk'), ws, BUDGETS.lnsSteps)          // §6.7
+  observe.record?.({ stage: 'layout', kind: 'start', start: 'witness' | 'restart', layout: copy of start })   // §6.7
+  layout ← lnsWalk(set, start, rng.derive('walk'), ws, BUDGETS.lnsSteps, observe.record)  // §6.7
   if layoutKey(layout) ∈ ctx.seenLayouts: return { fail: 'layout' }               // cheap early exit
-  sel ← selectClues({ layout, target, rng: rng.derive('clues'), uniqueness, excludeClueKeys: ctx.seenClues, ws })
+  sel ← selectClues({ layout, target, rng: rng.derive('clues'), uniqueness, excludeClueKeys: ctx.seenClues, ws,
+                      record: observe.record, recordSource: 'candidate', replaySkips: observe.replaySkips, charge: observe.charge })
   return sel.ok ? { layout, layoutKey, clueKey(sel.clues), sel.clues, sel.rating, sel.certificate }
                 : { fail: sel.reason }                                          // 'not-in-band' | 'uniqueness-not-proved'
 
@@ -2939,7 +2980,7 @@ jobs:
 | `keys` | Layout keys are invariant under board symmetries, so reflected layouts are duplicates. A clue-only change is not a new layout. Distance values. `progressFingerprint` differs for reflected clues (A.9 counterexample). |
 | `difficulty` | Worked examples of §7.2 (`scoreV2`, `measureV2`, `rateV2`: the v2 names keep the v2 values as legacy). Saturation at 5,000 branch trials and at 50,000 row trials (effective B = 5,000, actual counters stored), through `measureV2`. Permuting ids, colors or piece order leaves the rating unchanged (`rate`). Forced-placement fixture: a puzzle solvable without branching scores 2U under v2 [PT]. `measureV3` (§7.10): the 28 metrics in the `MetricsV3` order with owned `rules`; the zero metrics and the refusal of an invalid full layout; a forced placement; two pieces of one shape (engine total); a capped path (`IncompleteRatingError`, `node-cap` and `work-cap`); an unfinished census on a 41-piece strip (an estimate, `censusComplete` false, never an error) and a census cut to 0; the DLX caps (the deduction fields and the score do not change, `B` stays 5,000); every claim made from these metrics accepted by the strict pack reader. `rate` (§7.10): the key order `model`, `score`, `level`, `saturated`, `metrics` with the metrics and score of `measureV3` and `scoreV3` (forced and seven-clue inputs); the zero rating (also as JSON text); the census estimate on the 41-piece strip (`censored: true`, key order with `censored`, `saturated: false`, `Gproved` 0, returned at Hard or above); unsatisfiable clue sets refused; the v2 worked examples are kept as legacy. `rateDetailed` (§7.9): the rating of `rate` and an owned, plain-JSON copy of the deduction result (key order, `choices` aligned with `census`, the scalars, `search`, `count` and `census` equal to the metrics, unchanged by later ratings on the same workspace; also with guess nodes and an unfinished census); the zero detail of a complete layout; the same errors as `rate`. |
 | `clues` | Always 1 ≤ G ≤ K−2. Initial G follows g_L. `require` mode returns only exhaustively proven unique puzzles. No in-band subset → failure, never a mislabel. 'any' mode returns `certificate: null`. The search returns the first central candidate (central half of the band), else the nearest in-band final result at a stall (12 rated profiles in a row without a nearer in-band candidate while every rated candidate is on one side of the central half, raw ratings only), at profile 48 or at the end; `require` repairs are judged after the repair, memoised, and a repaired clue key in `excludeClueKeys` is rejected; unbounded bands return the first in-band candidate; unrateable and refused subsets (spent, neutral) and repairs (fail), scripted through the `rate` seam. |
-| `replay-recorders` | Clue-stage recorders, the replay of skips and the work meter of `selectClues` (§6.10), on the recipe board with scripted ratings (and real ones for the detail): `record` and `charge` change no result, `skips`, rating or rng draw; every event has exactly its fields in order and is plain JSON, `band.max` is null for an unbounded band, a rated event's detail is that of `rateDetailed` on the same clues and null with the `rate` seam, `recordSource` labels the events; RES-35 refusals are `rejected` instead of `rated`, a capped subset is `unrateable`; the repair steps of D31 (one event per added clue, only the last with `accepted` and `reason`, a failure after an added clue, the `excluded` repair skip, no event for a zero-add success), `makeUnique` hooks; `selected` once and last with the candidate's `sequence` and the finish's `repairSequence`, none on a failure; `replaySkips` reproduces a run with subset and repair skips without `excludeClueKeys` (events included), unused and unreachable entries throw `SkipReplayError`; no event is mutated after delivery; the work meter's logs for `req-0`, `req-2` and the refused and capped repairs of MP09c (a rating charged before its event, every uniqueness count charged, zero-add finishes included), and a throwing `charge` propagates. |
+| `replay-recorders` | Clue-stage recorders, the replay of skips and the work meter of `selectClues` (§6.10), on the recipe board with scripted ratings (and real ones for the detail): `record` and `charge` change no result, `skips`, rating or rng draw; every event has exactly its fields in order and is plain JSON, `band.max` is null for an unbounded band, a rated event's detail is that of `rateDetailed` on the same clues and null with the `rate` seam, `recordSource` labels the events; RES-35 refusals are `rejected` instead of `rated`, a capped subset is `unrateable`; the repair steps of D31 (one event per added clue, only the last with `accepted` and `reason`, a failure after an added clue, the `excluded` repair skip, no event for a zero-add success), `makeUnique` hooks; `selected` once and last with the candidate's `sequence` and the finish's `repairSequence`, none on a failure; `replaySkips` reproduces a run with subset and repair skips without `excludeClueKeys` (events included), unused and unreachable entries throw `SkipReplayError`; no event is mutated after delivery; the work meter's logs for `req-0`, `req-2` and the refused and capped repairs of MP09c (a rating charged before its event, every uniqueness count charged, zero-add finishes included), and a throwing `charge` propagates. The set and layout recorders (§6.5, §6.7) on the recipe of `tests/fixtures/generation-case.json` with the real engine: `setAttempt` reports `count`, the `carve` events, exactly K `piece` events (the cells of the witness poses, as a multiset) and then the calibration's clue events, in the macro and the flat mode; `carveMacro` and `carveFlatSet` emit `carve` events for discarded partitions and failed plans but `piece` events only for the carve that succeeds, in region order, inside the accepted partition's parts; `puzzleCandidate` reports `start` (witness or restart, equal to `made.start`), one valid `retile` per step (only the lifted pieces move, `changed` is true exactly when the layout does, the last layout is the candidate's) and then the clue events, and a candidate that repeats a layout only the walk; set attempts, candidates and a whole `runFold` with `record` and `charge` are deep-equal to those without, and the recipe is still reproduced; `replaySkips` through `puzzleCandidate` (subset skips in `any` mode, a repair skip in `require` mode) reproduces a candidate made with excluded keys, events included, and an unused entry throws `SkipReplayError`; the events are plain JSON, fresh copies and untouched after delivery; `charge` reaches the calibration with and without `record`, carving and the walk are not charged, and a throwing `charge` propagates. |
 | `generate` | Fold determinism: identical output for pool sizes 1 and 4 and shuffled completion orders (simulated). New layout AND clue keys; no clue-only variant is ever accepted. The best-distance fallback fills a slot whose candidates were all "too close" with the farthest valid one (`bestDistance`; ties keep the earliest attempt). Partial status, its reason and the prefix property. The calibration puzzle is reused as #1. Lazy `certifyTask` results do not change accepted puzzles. Speculation priority: with a simulated pool of 4 where every attempt 0 is accepted, q = 10 needs 3 dispatch rounds. Batch seeds follow `setSeed#batchIndex`; two consecutive batches on one set use different seeds and both return new layouts; a fresh session with the same seed reproduces batch 1. |
 | `palette` | `labelFor`: 0 → A, 25 → Z, 26 → AA, 701 → ZZ, 702 → AAA. `patternFor` is 'none' for K ≤ 20. Generated colors are valid `#rrggbb`. |
 | `pack` | The §5.2 fixture validates and round-trips. Rejects: wrong format; version 0, −1, 2 or "1"; unknown fields; bad rows; overlapping clues; an invalid solution; oversized input. Accepts the classic 12 pentominoes on 6×10, a piece with a hole (warnings only), `difficulty-v1` ratings (as claims) and a 90-piece pack. `omitSolutions` works. |

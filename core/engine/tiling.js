@@ -17,6 +17,7 @@ import { fillArena } from './workspace.js';
 /** @typedef {import('./types.js').Piece} Piece */
 /** @typedef {import('./types.js').Pose} Pose */
 /** @typedef {import('./types.js').PieceSet} PieceSet */
+/** @typedef {import('./types.js').LayoutEvent} LayoutEvent */
 /** @typedef {import('./rng.js').Rng} Rng */
 /** @typedef {import('./workspace.js').Workspace} Workspace */
 
@@ -488,14 +489,17 @@ export function clusterFor(set, layout, s, stuck, rng) {
  * Walk of `steps` local re-tilings from `start`, one scratch-workspace search
  * per step. A failed step widens flat clusters; a success resets that count.
  * Every intermediate layout is complete and valid, so the result is too.
+ * `record` (RES-28) observes each step with a `retile` event: the lifted piece ids, whether the step changed the
+ * layout, and a copy of the layout after it. It draws nothing and changes no step.
  * @param {PieceSet} set
  * @param {Pose[]} start Complete valid layout.
  * @param {Rng} rng
  * @param {Workspace} ws
  * @param {number} [steps]
+ * @param {(event: LayoutEvent) => void} [record]
  * @returns {Pose[]}
  */
-export function lnsWalk(set, start, rng, ws, steps = BUDGETS.lnsSteps) {
+export function lnsWalk(set, start, rng, ws, steps = BUDGETS.lnsSteps, record) {
   let current = start;
   let stuck = 0;
   for (let s = 0; s < steps; s += 1) {
@@ -507,6 +511,14 @@ export function lnsWalk(set, start, rng, ws, steps = BUDGETS.lnsSteps) {
       current = next;
       stuck = 0;
     }
+    record?.({
+      stage: 'layout',
+      kind: 'retile',
+      step: s,
+      liftedIds: cluster.map((i) => set.pieces[i].id),
+      changed: next !== null,
+      layout: current.map((p) => ({ piece: p.piece, x: p.x, y: p.y, turn: p.turn, mirrored: p.mirrored })),
+    });
   }
   return current;
 }

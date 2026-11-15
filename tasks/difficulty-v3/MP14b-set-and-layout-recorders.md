@@ -254,14 +254,14 @@ The existing real-engine client tests at pool widths 1 and 4 must pass unchanged
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (orchestrator check; outside the analyst review set) |
+| Start | 2026-11-15 17:30:23 (+07:00) |
+| End | 2026-11-15 18:41:19 developer; orchestrator re-check and commit |
+| Duration | 71 min developer; final locked runs 488.7 s machine time and 210.4 s lock wait; development runs 1,468.6 s and 481.2 s |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (orchestrator) |
+| Token usage | 141 model calls; 32,810,047 input tokens (32,461,195 cache reads); 145,924 output tokens |
+| AI credits | about 558 (developer) |
+| Verification | `carve.js`: `carveMacro(..., record)` and `carveFlatSet(..., record)` emit a `carve` event per partition that reaches carving and per flat size plan, and `piece` events only from the carve that succeeds, in region order. `tiling.js`: `lnsWalk(..., record)` emits one `retile` event per step. `generate.js`: `setAttempt(req, attempt, observe)` emits `count`; `puzzleCandidate(ctx, slot, attempt, observe)` emits `start`; `Observe = { record, charge, replaySkips }` passed to `selectClues` with `recordSource` `calibration`/`candidate`; `charge` reaches every `selectClues` call with or without `record`; carving and the walk are not charged. `types.js`: `SetEvent`, `LayoutEvent`, `RecordEvent`. **D35:** HEAD `66bbed9` vs working tree with `record` and `charge` set and an instrumented RNG logging every stream and draw: 1,193 comparisons identical in full JSON and draw log (800 `setAttempt`/`puzzleCandidate` on 10x6 all levels, 12x12, 20x18, heart-75, ring-60; 495 `carveMacro`/`carveFlatSet`/`lnsWalk` incl. failing hooks and budgets; 28 full `runFold` with and without recording and a second batch); inputs untouched; `record-fixtures --check` and `--replay-case --check` OK; 13 engine mutants and 5 identity mutants caught. Tests: targeted 126/126; quick set 1,406/1,406 (+10); `npm run check` OK. Orchestrator: `npm run check` OK; locked `replay-recorders` 29/29 |
+| Acceptance | MP14b-B01 to B03 and T01 to T06 met (cases 1-9 and the identity evidence); the real-engine client tests at pool widths 1 and 4 pass unchanged |
+| Issues & resolutions | Design §4.1, §4.2, §6.9 and §13.2 also updated to stay in step (as MP14a did). Two development identity runs stopped at their limits (590 s and 300 s, sizing errors); their partial output was discarded and the scripts split; the reruns pass. Named items for MP17: (1) case 7's history built from the first rated subset of a free run plus its final key (oracle approach), with a require-mode repair-skip case added from a search; (2) the macro-then-flat event order never occurred naturally (about 900 attempts scanned) and follows from the code only; (3) no `tsc` in the repository, so the JSDoc typedefs are not machine-checked; (4) diff larger than estimated (tests +585 lines) |
+| Handoff | To MP15a1: `setAttempt(req, attempt, { record, charge })` gives stages 1-3 (`count`, `carve`, `piece`, then the calibration's clue events with `source: 'calibration'`) and meters the calibration; `puzzleCandidate(ctx, slot, attempt, { record, replaySkips, charge })` gives stages 4-6 (`start`, `retile`, the clue and repair events, `selected`), with an empty `seenLayouts`; MP14a's `SkipReplayError` signals a skip mismatch; workers never receive a recorder |

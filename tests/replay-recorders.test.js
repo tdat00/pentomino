@@ -1,16 +1,25 @@
 // @ts-check
 // Clue-stage recorders, the replay of skips and the work meter of `selectClues` (MP14a; RES-27, RES-28, RES-29,
 // D30, D31). The doubles are those of tests/clues.test.js: a `rate` seam scores by the number of clues, and the work
-// doubles carry `metrics.work = 1000 + clues.length` (a capped rating throws counters with work 7).
+// doubles carry `metrics.work = 1000 + clues.length` (a capped rating throws counters with work 7). The last part
+// (MP14b; RES-28, D32, D35) is the set and layout recorders of `setAttempt`, `puzzleCandidate`, `carveMacro`,
+// `carveFlatSet` and `lnsWalk` on the recipe of tests/fixtures/generation-case.json, with the real engine.
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { boardFromRows } from '../core/engine/board.js';
+import { activeCount, boardFromRows, rectangle } from '../core/engine/board.js';
+import { carveFlatSet, carveMacro } from '../core/engine/carve.js';
 import { makeUnique, selectClues, SkipReplayError } from '../core/engine/clues.js';
 import { IncompleteRatingError, rateDetailed } from '../core/engine/difficulty.js';
+import { firstSetAttempt, puzzleCandidate, runFold, setAttempt } from '../core/engine/generate.js';
+import { poseCells } from '../core/engine/geometry.js';
 import { clueKey } from '../core/engine/keys.js';
 import { level, levelForScore } from '../core/engine/levels.js';
+import { BUDGETS, pieceCountRange } from '../core/engine/policy.js';
 import { createRng } from '../core/engine/rng.js';
-import { createWorkspace, MAIN_WORKSPACE_BYTES } from '../core/engine/workspace.js';
+import { isValidLayout, lnsWalk } from '../core/engine/tiling.js';
+import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
+import { expectedOf } from '../tools/record-fixtures.mjs';
 import { RECIPE_BOARD_ROWS, recipeWitness } from './fixtures/clue-recipes.js';
 import { CLASSIC_PENTOMINOES } from './fixtures/polyominoes.js';
 
@@ -18,6 +27,10 @@ import { CLASSIC_PENTOMINOES } from './fixtures/polyominoes.js';
 /** @typedef {import('../core/engine/types.js').Pose} Pose */
 /** @typedef {import('../core/engine/types.js').Rating} Rating */
 /** @typedef {import('../core/engine/types.js').ClueEvent} ClueEvent */
+/** @typedef {import('../core/engine/types.js').RecordEvent} RecordEvent */
+/** @typedef {import('../core/engine/types.js').BatchContext} BatchContext */
+/** @typedef {import('../core/engine/types.js').PieceSet} PieceSet */
+/** @typedef {import('../core/engine/types.js').XY} XY */
 /** @typedef {Parameters<typeof selectClues>[0]} Context */
 
 const ws = createWorkspace(MAIN_WORKSPACE_BYTES);
@@ -796,4 +809,570 @@ test('a throwing charge propagates unchanged, before the event of its rating or 
     record: (e) => early.push(e),
   }), (e) => e === stop);
   assert.deepEqual(early, []);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// MP14b: the set and layout recorders (RES-28, D32, D35) with the real engine, on the recipe of
+// tests/fixtures/generation-case.json (hard, 10 x 6, seed fixture-set-0; attempt 0 carves macro, attempts 1-5 flat).
+
+const GENERATION = JSON.parse(readFileSync(new URL('./fixtures/generation-case.json', import.meta.url), 'utf8'));
+const genBoard = boardFromRows(GENERATION.boardRows);
+const genExecution = { main: createWorkspace(MAIN_WORKSPACE_BYTES), scratch: createWorkspace(SCRATCH_WORKSPACE_BYTES) };
+const setRequest = {
+  board: genBoard,
+  rotation: 0,
+  levelId: GENERATION.levelId,
+  seedText: GENERATION.seedText,
+  uniqueness: /** @type {'any'} */ (GENERATION.uniqueness),
+  execution: genExecution,
+};
+const winner = firstSetAttempt(setRequest).result;
+assert.ok(winner !== null, 'the recipe has a piece set');
+const WINNING_ATTEMPT = winner.attempt;
+
+/**
+ * The batch context of the set of `attempt` (the recipe's batch seed, quantity and level).
+ * @param {number} [attempt]
+ * @param {Partial<BatchContext>} [over]
+ * @returns {BatchContext}
+ */
+function batchContext(attempt = WINNING_ATTEMPT, over = {}) {
+  const made = setAttempt(setRequest, attempt);
+  assert.ok(made.ok, `set attempt ${attempt}`);
+  return {
+    set: made.set,
+    targetLevelId: GENERATION.levelId,
+    quantity: GENERATION.quantity,
+    batchSeed: GENERATION.batchSeed,
+    uniqueness: GENERATION.uniqueness,
+    seenLayouts: new Set(),
+    seenClues: new Set(),
+    calibration: made.calibration,
+    execution: genExecution,
+    ...over,
+  };
+}
+
+/**
+ * An observer and a meter that log everything they see: the events, their JSON at delivery, and `stage/kind` or
+ * `charge` in call order.
+ * @returns {{ events: RecordEvent[], snapshots: string[], charges: number[], order: string[],
+ *   record: (event: RecordEvent) => void, charge: (units: number) => void }}
+ */
+function collector() {
+  /** @type {RecordEvent[]} */
+  const events = [];
+  /** @type {string[]} */
+  const snapshots = [];
+  /** @type {number[]} */
+  const charges = [];
+  /** @type {string[]} */
+  const order = [];
+  return {
+    events,
+    snapshots,
+    charges,
+    order,
+    record: (event) => {
+      events.push(event);
+      snapshots.push(JSON.stringify(event));
+      order.push(`${event.stage}/${event.kind}`);
+    },
+    charge: (units) => {
+      charges.push(units);
+      order.push('charge');
+    },
+  };
+}
+
+const GEN_KEYS = {
+  count: ['stage', 'kind', 'range', 'k'],
+  carve: ['stage', 'kind', 'mode', 'parts'],
+  piece: ['stage', 'kind', 'cells'],
+  start: ['stage', 'kind', 'start', 'layout'],
+  retile: ['stage', 'kind', 'step', 'liftedIds', 'changed', 'layout'],
+};
+/** @param {XY[]} cells @returns {number[]} Row-major indexes on the recipe board. */
+const indexesOf = (cells) => cells.map(([x, y]) => y * genBoard.width + x);
+/** @param {number[]} list */
+const isAscending = (list) => list.every((v, i) => i === 0 || list[i - 1] < v);
+/** @param {XY[]} cells */
+const cellsKey = (cells) => indexesOf(cells).sort((a, b) => a - b).join(',');
+const ACTIVE = [...genBoard.active].flatMap((on, i) => (on === 1 ? [i] : []));
+
+/**
+ * @param {XY[]} cells
+ * @param {string} name
+ */
+function assertCells(cells, name) {
+  assert.ok(Array.isArray(cells) && cells.length > 0, name);
+  for (const cell of cells) {
+    assert.ok(Array.isArray(cell) && cell.length === 2 && cell.every(Number.isInteger), `${name}: an [x, y] pair`);
+    assert.ok(cell[0] >= 0 && cell[0] < genBoard.width && cell[1] >= 0 && cell[1] < genBoard.height, name);
+    assert.equal(genBoard.active[cell[1] * genBoard.width + cell[0]], 1, `${name}: an active cell`);
+  }
+  assert.ok(isAscending(indexesOf(cells)), `${name}: ascending cell index`);
+}
+
+/**
+ * @param {Pose[]} layout
+ * @param {string} name
+ */
+function assertPoses(layout, name) {
+  assert.ok(Array.isArray(layout) && layout.length > 0, name);
+  for (const pose of layout) {
+    assert.deepEqual(Object.keys(pose), ['piece', 'x', 'y', 'turn', 'mirrored'], `${name}: pose fields`);
+    assert.ok(typeof pose.piece === 'string' && Number.isInteger(pose.x) && Number.isInteger(pose.y), name);
+    assert.ok([0, 1, 2, 3].includes(pose.turn) && typeof pose.mirrored === 'boolean', name);
+  }
+}
+
+/**
+ * A set or layout event has exactly the fields of its kind, in order, with plain JSON values.
+ * @param {RecordEvent} event
+ * @param {string} name
+ */
+function assertGenShape(event, name) {
+  const e = /** @type {any} */ (event);
+  assert.deepEqual(Object.keys(e), GEN_KEYS[/** @type {keyof typeof GEN_KEYS} */ (e.kind)], `${name}: keys of ${e.kind}`);
+  assert.equal(e.stage, e.kind === 'start' || e.kind === 'retile' ? 'layout' : 'set', name);
+  if (e.kind === 'count') {
+    assert.ok(Array.isArray(e.range) && e.range.length > 0 && e.range.every(Number.isInteger), name);
+    assert.ok(e.range.includes(e.k), `${name}: k is one of the feasible counts`);
+  } else if (e.kind === 'carve') {
+    assert.ok(e.mode === 'macro' || e.mode === 'flat', name);
+    if (e.mode === 'flat') {
+      assert.equal(e.parts, null, name);
+    } else {
+      e.parts.forEach((/** @type {XY[]} */ part, i) => assertCells(part, `${name} part ${i}`));
+      assert.deepEqual(e.parts.flatMap(indexesOf).sort((a, b) => a - b), ACTIVE, `${name}: the parts cover every cell once`);
+    }
+  } else if (e.kind === 'piece') {
+    assertCells(e.cells, name);
+  } else if (e.kind === 'start') {
+    assert.ok(e.start === 'witness' || e.start === 'restart', name);
+    assertPoses(e.layout, name);
+  } else {
+    assert.ok(Number.isInteger(e.step) && e.step >= 0, name);
+    assert.ok(Array.isArray(e.liftedIds) && e.liftedIds.length > 0 && e.liftedIds.every((/** @type {unknown} */ id) => typeof id === 'string'), name);
+    assert.equal(typeof e.changed, 'boolean', name);
+    assertPoses(e.layout, name);
+  }
+  assert.deepEqual(structuredClone(e), e, `${name}: structured clone`);
+  assert.deepEqual(JSON.parse(JSON.stringify(e)), e, `${name}: JSON round trip`);
+}
+
+/** @param {RecordEvent[]} events */
+const genEvents = (events) => events.filter((e) => e.stage === 'set' || e.stage === 'layout');
+/** @param {Pose[]} layout */
+const posesById = (layout) => Object.fromEntries(layout.map((p) => [p.piece, p]));
+
+// ---------------------------------------------------------------------------------------------------------------
+// MP14b case 1 (B01, T01): setAttempt.
+
+test('setAttempt reports the piece count, each carving attempt, the accepted pieces and then the calibration', () => {
+  /** @type {Set<string>} */
+  const modes = new Set();
+  for (const attempt of new Set([WINNING_ATTEMPT, 0, 1, 2, 3])) {
+    const name = `attempt ${attempt}`;
+    const rec = collector();
+    const r = setAttempt(setRequest, attempt, { record: rec.record });
+    assert.ok(r.ok, name);
+    const kinds = rec.order.slice();
+    const head = kinds.slice(0, kinds.findIndex((k) => !k.startsWith('set/')));
+    const k = r.set.pieces.length;
+    assert.match(head.join(' '), new RegExp(`^set/count (set/carve )+(set/piece ){${k - 1}}set/piece$`), name);
+    genEvents(rec.events).forEach((e, i) => assertGenShape(e, `${name} #${i}`));
+
+    const [count, ...rest] = /** @type {any[]} */ (rec.events);
+    assert.deepEqual(count.range, pieceCountRange('hard', 60), name);
+    assert.equal(count.k, k, name);
+    const carves = rest.filter((e) => e.kind === 'carve');
+    carves.forEach((e) => modes.add(e.mode));
+    // The attempt carves macro when the mean piece size allows it and flat otherwise (or after a failed macro).
+    assert.equal(carves.at(-1).mode, r.set.carving, `${name}: the last carving is the set's`);
+
+    const pieceEvents = rest.filter((e) => e.kind === 'piece');
+    const byId = new Map(r.set.pieces.map((p) => [p.id, p]));
+    const witness = /** @type {Pose[]} */ (r.set.witness);
+    assert.deepEqual(pieceEvents.map((e) => cellsKey(e.cells)).sort(),
+      witness.map((pose) => cellsKey(poseCells(/** @type {Piece} */ (byId.get(pose.piece)), pose))).sort(),
+      `${name}: the pieces are the cells of the witness poses`);
+
+    const clues = rec.events.slice(head.length);
+    assert.ok(clues.length > 0 && clues.every((e) => e.stage === 'clues' || e.stage === 'unique'), name);
+    assert.ok(clues.every((e) => 'source' in e && e.source === 'calibration'), `${name}: the calibration's events`);
+    assert.equal(clues.at(-1)?.kind, 'selected', `${name}: the calibration succeeded`);
+  }
+  assert.deepEqual([...modes].sort(), ['flat', 'macro'], 'both carving modes are covered');
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// MP14b case 2 (T01): carveMacro and carveFlatSet.
+
+test('carveMacro: a discarded partition has a carve event and no piece event; the pieces are the accepted partition\'s', () => {
+  const b = rectangle(10, 8);
+  const k = 9;
+  const run = (/** @type {((e: RecordEvent) => void) | undefined} */ record) => {
+    let partitions = 0;
+    const result = carveMacro(b, k, createRng('inject'), undefined, {
+      beforePart: (s) => {
+        partitions += s.part === 0 ? 1 : 0;
+        return !(s.attempt === 0 && s.part === 1);
+      },
+    }, /** @type {any} */ (record));
+    return { result, partitions };
+  };
+  const free = run(undefined);
+  const rec = collector();
+  const seen = run(rec.record);
+  assert.deepEqual(seen, free, 'the recorder changes nothing');
+  assert.ok(seen.result !== null && seen.partitions >= 2, 'the first partition was discarded, a later one accepted');
+
+  const events = /** @type {any[]} */ (rec.events);
+  events.forEach((e, i) => assertGenShapeOn(e, b, `event ${i}`));
+  assert.equal(events.filter((e) => e.kind === 'carve').length, seen.partitions, 'one carve event per partition');
+  assert.deepEqual(events.map((e) => e.kind), [...Array(seen.partitions).fill('carve'), ...Array(k).fill('piece')],
+    'all the carve events, then the pieces of the accepted partition only');
+  const { regions, regionOf } = seen.result;
+  const accepted = events.filter((e) => e.kind === 'carve').at(-1);
+  events.filter((e) => e.kind === 'piece').forEach((e, i) => {
+    assert.deepEqual(e.cells, regions[i].map((c) => [c % b.width, Math.floor(c / b.width)]), `piece ${i}: region ${i}, in order`);
+    const part = new Set(accepted.parts[regionOf[i]].map(([x, y]) => y * b.width + x));
+    assert.ok(regions[i].every((c) => part.has(c)), `piece ${i} lies in its part of the accepted partition`);
+  });
+
+  // Every partition discarded: carve events, no piece event, no result.
+  const none = collector();
+  let tried = 0;
+  const failed = carveMacro(rectangle(10, 6), 8, createRng('none'), { macroPartitions: 3 }, {
+    beforePart: (s) => {
+      tried += s.part === 0 ? 1 : 0;
+      return false;
+    },
+  }, none.record);
+  assert.equal(failed, null);
+  assert.ok(tried >= 1);
+  assert.deepEqual(none.order, Array(tried).fill('set/carve'));
+});
+
+test('carveFlatSet: a carve event per size plan, the pieces of the carve that succeeds, none for a failed plan', () => {
+  const b = rectangle(10, 8);
+  const k = 9;
+  const plain = carveFlatSet(b, k, createRng('flat-1'));
+  const rec = collector();
+  const seen = carveFlatSet(b, k, createRng('flat-1'), undefined, rec.record);
+  assert.deepEqual(seen, plain, 'the recorder changes nothing');
+  assert.ok(seen !== null);
+  const events = /** @type {any[]} */ (rec.events);
+  events.forEach((e, i) => assertGenShapeOn(e, b, `event ${i}`));
+  const plans = events.length - k;
+  assert.ok(plans >= 1);
+  assert.deepEqual(events.map((e) => e.kind), [...Array(plans).fill('carve'), ...Array(k).fill('piece')]);
+  assert.ok(events.filter((e) => e.kind === 'carve').every((e) => e.mode === 'flat' && e.parts === null));
+  events.filter((e) => e.kind === 'piece').forEach((e, i) => {
+    assert.deepEqual(e.cells, seen.regions[i].map((c) => [c % b.width, Math.floor(c / b.width)]), `piece ${i}`);
+  });
+
+  // A step budget of one call fails every plan: only carve events.
+  const failing = collector();
+  assert.equal(carveFlatSet(b, k, createRng('flat-2'), { sizePlans: 3, carveSteps: 1 }, failing.record), null);
+  assert.deepEqual(failing.order, ['set/carve', 'set/carve', 'set/carve']);
+});
+
+/**
+ * The shape check of `assertGenShape` for events of another board.
+ * @param {any} e
+ * @param {import('../core/engine/types.js').Board} b
+ * @param {string} name
+ */
+function assertGenShapeOn(e, b, name) {
+  assert.deepEqual(Object.keys(e), GEN_KEYS[/** @type {keyof typeof GEN_KEYS} */ (e.kind)], `${name}: keys of ${e.kind}`);
+  assert.equal(e.stage, 'set', name);
+  const cells = e.kind === 'piece' ? [e.cells] : e.mode === 'macro' ? e.parts : [];
+  const active = [...b.active].flatMap((on, i) => (on === 1 ? [i] : []));
+  for (const list of cells) {
+    const index = list.map(([x, y]) => y * b.width + x);
+    assert.ok(list.every((/** @type {XY} */ c) => Array.isArray(c) && c.length === 2), name);
+    assert.ok(isAscending(index) && index.every((i) => b.active[i] === 1), `${name}: ascending active cells`);
+  }
+  if (e.kind === 'carve' && e.mode === 'macro') {
+    assert.deepEqual(e.parts.flatMap((/** @type {XY[]} */ p) => p.map(([x, y]) => y * b.width + x)).sort((a, c) => a - c), active, name);
+  }
+  assert.deepEqual(JSON.parse(JSON.stringify(e)), e, name);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// MP14b cases 3 and 4 (B01, T02): puzzleCandidate and lnsWalk.
+
+/**
+ * The walk's events: one `retile` per step, valid complete layouts, only the lifted pieces moved, `changed` tells
+ * whether the layout is another one.
+ * @param {PieceSet} set
+ * @param {any} start The `start` event.
+ * @param {any[]} walk The `retile` events.
+ * @param {number} steps
+ * @param {string} name
+ */
+function assertWalk(set, start, walk, steps, name) {
+  assert.equal(walk.length, steps, `${name}: one retile event per step`);
+  const ids = new Set(set.pieces.map((p) => p.id));
+  let before = start.layout;
+  walk.forEach((e, i) => {
+    assert.equal(e.kind, 'retile', name);
+    assert.equal(e.step, i, `${name}: step ${i}`);
+    assert.ok(isValidLayout(set.board, set.pieces, e.layout), `${name} step ${i}: a complete valid layout`);
+    assert.ok(e.liftedIds.length > 0 && e.liftedIds.every((/** @type {string} */ id) => ids.has(id)), `${name} step ${i}: lifted ids`);
+    assert.equal(new Set(e.liftedIds).size, e.liftedIds.length, `${name} step ${i}: distinct ids`);
+    const was = posesById(before);
+    const now = posesById(e.layout);
+    for (const id of ids) {
+      if (!e.liftedIds.includes(id)) {
+        assert.deepEqual(now[id], was[id], `${name} step ${i}: piece ${id} was not lifted and has not moved`);
+      }
+    }
+    assert.equal(JSON.stringify(now) !== JSON.stringify(was), e.changed, `${name} step ${i}: changed`);
+    before = e.layout;
+  });
+}
+
+test('puzzleCandidate reports the start, one retile per walk step with its lifted pieces, and then the clue events', () => {
+  for (const attempt of [WINNING_ATTEMPT, 1]) {
+    const name = `set attempt ${attempt} (${attempt === WINNING_ATTEMPT ? 'macro' : 'flat'})`;
+    const ctx = batchContext(attempt);
+    const rec = collector();
+    const c = puzzleCandidate(ctx, 1, 0, { record: rec.record });
+    assert.ok(!('fail' in c), name);
+    const [start, ...rest] = /** @type {any[]} */ (rec.events);
+    assertGenShape(start, name);
+    assert.equal(start.kind, 'start');
+    assert.equal(start.start, 'witness', name);
+    assert.deepEqual(start.layout, ctx.set.witness, `${name}: the start is the witness`);
+    const walk = rest.slice(0, BUDGETS.lnsSteps);
+    walk.forEach((e, i) => assertGenShape(e, `${name} retile ${i}`));
+    assertWalk(ctx.set, start, walk, BUDGETS.lnsSteps, name);
+    assert.deepEqual(walk.at(-1).layout, c.layout, `${name}: the last layout is the candidate's`);
+
+    const clues = rest.slice(BUDGETS.lnsSteps);
+    assert.ok(clues.length > 0 && clues.every((e) => e.source === 'candidate'), `${name}: the candidate's clue events`);
+    assert.equal(clues.at(-1).kind, 'selected', name);
+
+    // The walk alone: the same events from lnsWalk, the same layout with and without a recorder, a given step count.
+    const walkRng = () => createRng(ctx.batchSeed, 'slot/1/0').derive('walk');
+    const witness = /** @type {Pose[]} */ (ctx.set.witness);
+    const plain = lnsWalk(ctx.set, witness, walkRng(), genExecution.scratch, BUDGETS.lnsSteps);
+    const alone = collector();
+    assert.deepEqual(lnsWalk(ctx.set, witness, walkRng(), genExecution.scratch, BUDGETS.lnsSteps, alone.record), plain, name);
+    assert.deepEqual(alone.events, walk, `${name}: lnsWalk reports what the candidate reports`);
+    const three = collector();
+    lnsWalk(ctx.set, witness, walkRng(), genExecution.scratch, 3, three.record);
+    assert.deepEqual(three.events, walk.slice(0, 3), `${name}: a shorter walk reports its steps`);
+    const none = collector();
+    assert.deepEqual(lnsWalk(ctx.set, witness, walkRng(), genExecution.scratch, 0, none.record), witness);
+    assert.deepEqual(none.events, []);
+  }
+});
+
+test('the start event names where the walk started; a candidate that repeats a layout reports only its walk', () => {
+  const ctx = batchContext();
+  for (const attempt of [0, 1, 2, 5]) {
+    const rec = collector();
+    const c = puzzleCandidate(ctx, 1, attempt, { record: rec.record });
+    assert.ok(!('fail' in c), `attempt ${attempt}`);
+    const start = /** @type {any} */ (rec.events[0]);
+    assert.equal(start.start, c.made.kind === 'candidate' ? c.made.start : null, `attempt ${attempt}`);
+    assert.equal(start.start, attempt % 3 === 2 ? 'restart' : 'witness', `attempt ${attempt}: restarts on attempts 2, 5, ...`);
+    assert.ok(isValidLayout(ctx.set.board, ctx.set.pieces, start.layout), `attempt ${attempt}: a complete valid start`);
+  }
+
+  const first = /** @type {import('../core/engine/types.js').PuzzleCandidate} */ (puzzleCandidate(ctx, 1, 0));
+  const rec = collector();
+  const repeated = puzzleCandidate({ ...ctx, seenLayouts: new Set([first.layoutKey]) }, 1, 0, { record: rec.record });
+  assert.deepEqual(repeated, { fail: 'layout' });
+  assert.deepEqual(rec.order, ['layout/start', ...Array(BUDGETS.lnsSteps).fill('layout/retile')],
+    'the layout-key check ends the candidate before any clue event');
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// MP14b cases 5 and 6 (B02, T03): recorders change nothing.
+
+test('recording changes no set, no candidate and no failure (D35)', () => {
+  for (const attempt of [0, 1, 2, 3]) {
+    const plain = setAttempt(setRequest, attempt);
+    const rec = collector();
+    const seen = setAttempt(setRequest, attempt, { record: rec.record, charge: rec.charge });
+    assert.deepEqual(seen, plain, `set attempt ${attempt}`);
+    assert.equal(JSON.stringify(seen), JSON.stringify(plain), `set attempt ${attempt}: bytes`);
+    assert.ok(rec.events.length > 0);
+  }
+  const ctx = batchContext();
+  for (const slot of [1, 2]) {
+    for (const attempt of [0, 2]) {
+      const plain = puzzleCandidate(ctx, slot, attempt);
+      const rec = collector();
+      const seen = puzzleCandidate(ctx, slot, attempt, { record: rec.record, charge: rec.charge });
+      assert.deepEqual(seen, plain, `candidate ${slot}/${attempt}`);
+      assert.equal(JSON.stringify(seen), JSON.stringify(plain), `candidate ${slot}/${attempt}: bytes`);
+      assert.equal(rec.events.filter((e) => e.stage === 'layout').length, 1 + BUDGETS.lnsSteps);
+    }
+  }
+});
+
+test('a fold that records every candidate accepts the same puzzles and reproduces the recipe', () => {
+  const ctx = batchContext();
+  const plain = runFold(ctx);
+  const rec = collector();
+  const seen = runFold(ctx, (c, slot, attempt) => puzzleCandidate(c, slot, attempt, { record: rec.record, charge: rec.charge }));
+  assert.equal(seen.status, 'complete');
+  assert.deepEqual(seen.accepted, plain.accepted);
+  assert.deepEqual(expectedOf(GENERATION, { set: ctx.set, setAttempt: WINNING_ATTEMPT, ctx, fold: seen }), GENERATION.expected,
+    'the recorded fixture is still reproduced');
+  assert.ok(rec.events.filter((e) => e.kind === 'start').length >= 9, 'every candidate reported its start');
+  assert.ok(rec.charges.length > 0);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// MP14b case 7 (B03, T04): skips replayed through puzzleCandidate.
+
+test('replaySkips through puzzleCandidate reproduces a candidate made with excluded keys, events included', () => {
+  const ctx = batchContext();
+  const { pieces: setPieces, board: setBoard } = ctx.set;
+  // The history of an earlier candidate: the clue key of the first subset a run rates and of the clues it returns.
+  for (const [slot, attempt] of [[1, 0], [3, 4]]) {
+    const name = `any ${slot}/${attempt}`;
+    const free = collector();
+    const first = /** @type {import('../core/engine/types.js').PuzzleCandidate} */ (
+      puzzleCandidate(ctx, slot, attempt, { record: free.record }));
+    const rated = /** @type {any} */ (free.events.find((e) => e.kind === 'rated' || e.kind === 'rejected'));
+    const rateKey = clueKey(setBoard, setPieces, first.layout.filter((p) => rated.clueIds.includes(p.piece)));
+    const seenClues = new Set([rateKey, first.clueKey]);
+
+    const made = collector();
+    const original = /** @type {import('../core/engine/types.js').PuzzleCandidate} */ (
+      puzzleCandidate({ ...ctx, seenClues }, slot, attempt, { record: made.record }));
+    assert.ok(!('fail' in original), name);
+    const skips = original.made.kind === 'candidate' ? original.made.skips : null;
+    assert.ok(skips !== null && skips !== 'overflow' && skips.subsets.length > 0, `${name}: the history acted: ${JSON.stringify(skips)}`);
+
+    const replay = collector();
+    const replayed = puzzleCandidate({ ...ctx, seenClues: new Set(), seenLayouts: new Set() }, slot, attempt,
+      { record: replay.record, replaySkips: skips });
+    assert.deepEqual(replayed, original, `${name}: the same candidate without the history`);
+    assert.deepEqual(replay.events, made.events, `${name}: the same events`);
+    assert.notDeepEqual(replayed, first, `${name}: and not the candidate of the free run`);
+
+    // A recorded skip the run never reaches is a mismatch (MP14a).
+    assert.throws(() => puzzleCandidate({ ...ctx, seenClues: new Set() }, slot, attempt,
+      { replaySkips: { subsets: [...skips.subsets, 2127], repairs: [] } }),
+    (e) => e instanceof SkipReplayError && e.reason === 'unused' && e.list === 'subsets' && e.ordinal === 2127);
+  }
+
+  // A repair skip: in require mode the history holds the clue key of a repaired result.
+  const strictFound = firstSetAttempt({ ...setRequest, uniqueness: 'require' }).result;
+  assert.ok(strictFound !== null);
+  const strict = batchContext(WINNING_ATTEMPT, {
+    set: strictFound.set, calibration: strictFound.calibration, uniqueness: 'require',
+  });
+  const first = /** @type {import('../core/engine/types.js').PuzzleCandidate} */ (puzzleCandidate(strict, 1, 1));
+  const original = /** @type {import('../core/engine/types.js').PuzzleCandidate} */ (
+    puzzleCandidate({ ...strict, seenClues: new Set([first.clueKey]) }, 1, 1));
+  const skips = original.made.kind === 'candidate' ? original.made.skips : null;
+  assert.ok(skips !== null && skips !== 'overflow' && skips.repairs.length > 0, `a repair was skipped: ${JSON.stringify(skips)}`);
+  const replayed = puzzleCandidate({ ...strict, seenClues: new Set(), seenLayouts: new Set() }, 1, 1, { replaySkips: skips });
+  assert.deepEqual(replayed, original, 'require mode: the same candidate without the history');
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// MP14b case 8 (T05): plain JSON, not touched after delivery.
+
+test('set and layout events are plain JSON, fresh, and not touched after delivery', () => {
+  const ctx = batchContext();
+  /** @type {[string, (observe: import('../core/engine/generate.js').Observe) => unknown][]} */
+  const calls = [
+    ['set attempt, macro', (observe) => setAttempt(setRequest, WINNING_ATTEMPT, observe)],
+    ['set attempt, flat', (observe) => setAttempt(setRequest, 1, observe)],
+    ['candidate from the witness', (observe) => puzzleCandidate(ctx, 1, 0, observe)],
+    ['candidate from a random tiling', (observe) => puzzleCandidate(ctx, 1, 2, observe)],
+  ];
+  for (const [name, call] of calls) {
+    const rec = collector();
+    const result = /** @type {any} */ (call({ record: rec.record }));
+    const gen = /** @type {any[]} */ (genEvents(rec.events));
+    assert.ok(gen.length > 0, name);
+    gen.forEach((e, i) => assertGenShape(e, `${name} #${i}`));
+    rec.events.forEach((e, i) => assert.equal(JSON.stringify(e), rec.snapshots[i], `${name} #${i} is as delivered`));
+    assert.equal(new Set(rec.events).size, rec.events.length, `${name}: every event is a fresh object`);
+    // The events share nothing with the engine's data: a pose of an event is a copy, and so is each step's layout.
+    const owned = new Set([...(result.set?.witness ?? []), ...(result.layout ?? []), ...(ctx.set.witness ?? [])]);
+    const poses = gen.flatMap((e) => e.layout ?? []);
+    assert.ok(poses.every((pose) => !owned.has(pose)), `${name}: poses are copies`);
+    assert.equal(new Set(poses).size, poses.length, `${name}: one copy per pose`);
+  }
+
+  // Mutating what was delivered cannot reach the engine, and the count's range is a copy.
+  const plain = setAttempt(setRequest, WINNING_ATTEMPT);
+  const rec = collector();
+  setAttempt(setRequest, WINNING_ATTEMPT, { record: rec.record });
+  for (const e of /** @type {any[]} */ (genEvents(rec.events))) {
+    e.range?.push(99);
+    e.parts?.forEach((/** @type {XY[]} */ part) => part.push([0, 0]));
+    e.cells?.push([0, 0]);
+  }
+  assert.deepEqual(setAttempt(setRequest, WINNING_ATTEMPT), plain);
+  assert.deepEqual(pieceCountRange('hard', 60), [9, 10, 11]);
+
+  // A throwing observer propagates from the attempt, the carvers and the walk.
+  const boom = new Error('observer');
+  const throwing = () => {
+    throw boom;
+  };
+  assert.throws(() => setAttempt(setRequest, WINNING_ATTEMPT, { record: throwing }), (e) => e === boom);
+  assert.throws(() => carveFlatSet(rectangle(10, 6), 10, createRng('x'), undefined, throwing), (e) => e === boom);
+  assert.throws(() => lnsWalk(ctx.set, /** @type {Pose[]} */ (ctx.set.witness), createRng('w'), genExecution.scratch, 2, throwing),
+    (e) => e === boom);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// MP14b case 9 (B02, T06): the work meter passes through.
+
+test('observe.charge reaches the calibration with and without a recorder; carving and the walk are not charged', () => {
+  const plain = setAttempt(setRequest, WINNING_ATTEMPT);
+  const both = collector();
+  const meterOnly = collector();
+  assert.deepEqual(setAttempt(setRequest, WINNING_ATTEMPT, { record: both.record, charge: both.charge }), plain);
+  assert.deepEqual(setAttempt(setRequest, WINNING_ATTEMPT, { charge: meterOnly.charge }), plain);
+
+  const ratings = both.events.filter((e) => e.kind === 'rated' || e.kind === 'rejected' || e.kind === 'unrateable').length;
+  assert.ok(ratings > 0);
+  assert.equal(meterOnly.charges.length, ratings, 'one charge per rating of the calibration, with no recorder');
+  assert.deepEqual(meterOnly.charges, both.charges);
+  const firstCharge = both.order.indexOf('charge');
+  const firstClue = both.order.findIndex((k) => k.startsWith('clues/'));
+  assert.ok(firstCharge > both.order.lastIndexOf('set/piece'), 'nothing was charged before the carving ended');
+  assert.ok(firstCharge < firstClue, 'the first charge comes before the first clue event');
+  assert.deepEqual(both.order.slice(0, firstCharge).filter((k) => k === 'charge'), []);
+
+  const ctx = batchContext();
+  const candidatePlain = puzzleCandidate(ctx, 1, 0);
+  const candidate = collector();
+  assert.deepEqual(puzzleCandidate(ctx, 1, 0, { record: candidate.record, charge: candidate.charge }), candidatePlain);
+  const candidateMeter = collector();
+  assert.deepEqual(puzzleCandidate(ctx, 1, 0, { charge: candidateMeter.charge }), candidatePlain);
+  assert.ok(candidateMeter.charges.length > 0);
+  assert.deepEqual(candidateMeter.charges, candidate.charges);
+  const lastWalk = candidate.order.lastIndexOf('layout/retile');
+  assert.ok(candidate.order.indexOf('charge') > lastWalk, 'the walk is not charged');
+  assert.ok(candidate.order.indexOf('charge') < candidate.order.findIndex((k) => k.startsWith('clues/')));
+
+  // A throwing meter propagates unchanged from the first call, in the attempt and in the candidate.
+  const boom = new Error('meter');
+  let calls = 0;
+  const throwing = () => {
+    calls += 1;
+    throw boom;
+  };
+  assert.throws(() => setAttempt(setRequest, WINNING_ATTEMPT, { charge: throwing }), (e) => e === boom);
+  assert.equal(calls, 1);
+  assert.throws(() => puzzleCandidate(ctx, 1, 0, { charge: throwing }), (e) => e === boom);
+  assert.equal(calls, 2);
 });
