@@ -61,7 +61,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP11 | [MP11](MP11-calibration-tooling.md) | Calibration tooling for v3 and the slow v3 test | MP10b2 | Medium | Tools | M7 calibrated and locked | 22 |
 | [x] | MP12a | [MP12a](MP12a-calibration-slice.md) | Calibration slice: the GV2 cases again with v3, and the knob changes | MP11 | Medium + machine time | Measurement | M7 | 23 |
 | [x] | MP12b1 | [MP12b1](MP12b1-full-landscape.md) | Full landscape with v3 (gate GL-P3, full part) | MP12a | Small–Medium + machine time | Measurement | M7 | 24 |
-| [ ] | MP12b2 | [MP12b2](MP12b2-search-evidence-and-lock.md) | Search evidence (gate GS-P3), the Hell report, the owner's questions and the lock of the tuple | MP12b1; the pause of P-OD11 (the Sudoku repository at MS07e) and the plan author's answer to PR-P2 (§4.1) | Medium + machine time | Measurement | M7 | 25 |
+| [x] | MP12b2 | [MP12b2](MP12b2-search-evidence-and-lock.md) | Search evidence (gate GS-P3), the Hell report, the owner's questions and the lock of the tuple | MP12b1; the pause of P-OD11 (the Sudoku repository at MS07e) and the plan author's answer to PR-P2 (§4.1) | Medium + machine time | Measurement | M7 | 25 |
 | [ ] | MP12b3 | [MP12b3](MP12b3-hell-availability-and-fail-fast.md) | Hell availability (D36 (i)), the fail-fast and the end of the lock | MP12b2 and the owner's answers to its questions | Large + gates | Engine and Generator | M7 | 26 |
 | [ ] | MP13a | [MP13a](MP13a-provenance-engine.md) | Provenance in the engine and in packs | MP12b3 (the lock complete) | Medium–Large | Engine | M8 provenance and recorders | 27 |
 | [ ] | MP13b | [MP13b](MP13b-provenance-apps-and-fixture.md) | Provenance in the client, the Generator and the CLI; the replay fixture (GF-P4) | MP13a | Medium + gate | Apps and tools | M8 | 28 |
@@ -598,7 +598,7 @@ The orchestrator owns this record.
 | MP11 | Accepted | 9 min developer + 3 min review | about 182 | `difficulty-v3 MP11` |
 | MP12a | Accepted (C4: two owner-accepted census exceptions, P-OD7 and P-OD8; closed by its addendum after the pause) | about 5 h 25 min developer in three rounds (machine about 1.5 h) + 8 min close + 10 min review | about 1,638 | `difficulty-v3 MP12a` |
 | MP12b1 | Accepted (Hell 1 complete nowhere at 90 %; 20 cells above 25 % census estimates; named items for MP12b2) | 12 h 52 min developer (machine 10.56 h, lock waits 1.15 h) + 20 min review | about 1,070 | `difficulty-v3 MP12b1` |
-| MP12b2 | | | | |
+| MP12b2 | Accepted (tuple locked; fail-fast none proposable, owner chose none; 17 census cells accepted; Hell 1/2/3 areas empty by D39; SA2 fixes PLK01-PLK05) | 2 h 57 min developer (machine 1.54 h, lock waits 0.88 h) + 25 min SA2 review | about 1,508 | `difficulty-v3 MP12b2` |
 | MP12b3 | | | | |
 | MP13a | | | | |
 | MP13b | | | | |

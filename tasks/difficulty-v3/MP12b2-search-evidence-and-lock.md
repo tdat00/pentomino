@@ -1473,14 +1473,14 @@ by the plan author and not authorised). MP17 carries the four findings to its fi
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (SA2 cross-review of the lock under D38: accept with fixes PLK01-PLK05, all applied); the tuple is locked at `difficulty-v3 MP12b2` (MP12b3 completes the lock) |
+| Start | 2026-11-15 10:30:55 (+07:00), after the P-OD11 pause (sudoku reached MS07e) |
+| End | 2026-11-15 14:01:47 developer (owner pause 12:18:51-12:59:49 for improve-generating, nothing interrupted); 14:05-14:30 SA2 lock review; 14:31-14:39 fix round PLK01-PLK05; 14:42 owner answers; orchestrator commit |
+| Duration | 3 h 30 min elapsed (2 h 49 min active) + 8 min fix round; about 25 min SA2 review; 42 locked invocations, 5,551.8 s command time, 3,153.8 s lock wait (longest 350.4 s, none over 20 min) |
+| Model | claude-sonnet-5.5 (developer); gpt-6-astra (SA2 lock review); claude-opus-5.5 (orchestrator) |
+| Token usage | 243 model calls; 89,523,875 input tokens (88,002,768 cache reads); 248,033 output tokens |
+| AI credits | about 1,508 (developer) |
+| Verification | Start: HEAD `cd5d17f`, clean tree, source digest `34cea386…77918` = MP12b1's (versions `gen-v3`, `mixed-v2`, `xoshiro128ss-v1`, `difficulty-v3`); identity rows equal before and after every block and after the lock commands. GS-P3: R 8 captures (18x20 Hard `require` 2 of 10 `partial: difficulty-not-found`, Expert and Master 10/10; no extra captures needed); A 12 captures, 60/60 (81 of 373 raw attempts AR1 refusals, all at Hard or above); H 5 captures, all stopped at the 300 s limit with no set; HL 14x14 and 24x24 Hell 1 stopped at 570 s with 2 puzzles each, 26x26 Hell 1 10 (set at attempt 7, 315 s); slot safeguard: no prescreen rerun; N 5 Nightmare captures, 5/5 each; availability probe again, 6 captures, counts equal MP09d2's. GS-P3 summary and failfast self-tests pass (failfast 5 cases incl. the PLK01 carve-prefix regression). D39 Hell areas: no Hell case meets 90 % (best 45 %), so Hell 1/2/3 `[Infinity, Infinity]`; Hell 4+ unchanged. Lock commands: `record-fixtures --check` OK, final `npm test` 1,360/1,360 (124.2 s), quick set 1,340/1,340, `npm run check` OK; nothing under `core/`, `tools/` or `tests/` changed. SA2 independently verified the digest, capture recipes and counts, false-stop totals, the 20 census percentages, D39's empty Hell intervals, the 70 requests over 120 s and the test totals. Orchestrator: `npm run check` OK after the fix round; format check of 51 files |
+| Acceptance | MP12b2-B01 to B05 and T01 to T13 pass (S skipped by the recorded D21 decision: the stall stop is not inert). Record `docs/difficulty-v3/calibration-2026-11-15.md`; search evidence `docs/difficulty-v3/search-2026-11-15/`; design §7.8 |
+| Issues & resolutions | **Fail-fast: none proposable** under the zero-observed-false-stop rule (F1 2 false stops in 7 triggers, 5 unknown; F2 17/67, 11/18 at Nightmare; F1+F2 5/21, 4/4 at Nightmare). SA2 fixes: PLK01 stop-time sums include carve failures (`h-32x15-hell-3` F1 43.0 -> 51.9 s, F1+F2 8.5 -> 17.4 s; counts unchanged), PLK02 availability `spent` counts (60/60/40 capped profiles), PLK03 profile counts (22 of 26 at 20; others 18, 21, 64, 13) and Hell 2 range 211-302, PLK04 matched census-cost comparison (median 45.1 -> 55.1 ms, p95 238.6 -> 337.3 ms; cohorts 11/14/16 %), PLK05 stray CR and `†` marks. **Owner answers (2026-11-15 14:42, ask_user and email):** D40 fail-fast **none**; the estimated ratings of the **17 non-Hell cells** above 25 % census estimates **accepted** at the unchanged 80 M budget with estimate notices (the three Hell 1 cells are historical, withdrawn under D39); population R: no question; no non-Hell cell without a puzzle. Named items in record §13.1 (slot exception, Hell availability, seven cells below 90 % completion, 70 requests over 120 s and one call past the 115 s stop, 31 cells above 5 % census estimates, R7, 18x20 Hard `require` 2 puzzles, the census confound, the MP12a items, the fail-fast finding) |
+| Handoff | MP12b3: no fail-fast build (record the limitation), Hell `AREAS` from D39 (`[Infinity, Infinity]` for Hell 1/2/3), census acceptance with notices, population R unchanged; the pack author records the owner decisions and updates MP12b3 before dispatch |
