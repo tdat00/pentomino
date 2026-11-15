@@ -908,5 +908,15 @@ describe('recorded generation fixture', () => {
     assert.equal(run('--replace').status, 2);
     assert.equal(run().status, 2);
     assert.equal(run('--check').status, 0, 'refused commands left the fixtures intact');
+    // The replay-case mode: only the first run generates; the others are refused or fail usage before any generation.
+    assert.equal(run('--replay-case', '--check').status, 0, 'the recorded replay case replays identically');
+    const again = run('--replay-case', '--create', '--seed', '0');
+    assert.equal(again.status, 1);
+    assert.match(again.stderr, /already exist/);
+    assert.equal(run('--replay-case', '--replace', '--seed', '0').status, 2, 'a replacement needs a reason');
+    assert.equal(run('--replay-case', '--create').status, 2, 'a recording needs a seed');
+    assert.equal(run('--replay-case', '--search', '--from', '50').status, 2, 'the seeds are 0 to 49');
+    assert.equal(run('--replay-case', '--check', '--seed', '0').status, 2);
+    assert.equal(run('--search').status, 2, 'the search belongs to the replay-case mode');
   });
 });

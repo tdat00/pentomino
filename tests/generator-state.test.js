@@ -3,18 +3,20 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { activeCount, boardFromRows, boardKey, boardToRows, preset, rectangle } from '../core/engine/board.js';
+import { provenanceVersions } from '../core/engine/generate.js';
 import { offeredLevels } from '../core/engine/levels.js';
-import { packBoard, parsePack, validatePack } from '../core/engine/pack.js';
+import { packBoard, parsePack, provenanceProblem, validatePack } from '../core/engine/pack.js';
 import { LIMITS } from '../core/engine/policy.js';
 import { setLocale } from '../generator/i18n.js';
 import { createJobController } from '../generator/jobs.js';
 import { formatNotice } from '../generator/strings.js';
 import {
   HISTORY_LIMIT, LISTED_LEVEL_IDS, MAX_SAVED_BOARDS, MAX_SAVED_SETS, MAX_SETS, acceptSet, beginSetRequest,
-  boardsEqual, capFor, createEditHistory, createGeneratorStore, createPersistence, defaultGeneratorState, describeBoard,
-  describeCount, describeLevels, detectHardware, displayEntryOf, displayKeyOf, gotoSet, isPhone, loadGeneratorState, mergeSeenKeys,
-  nextBatch, nearestOfferedLevel,
-  readSavedSet, readyLevelId, removeAllSets, resizeBoard, restoreState, rollSeed, saveRestoreCleanup, savedSetOf, serializeState,
+  boardsEqual, buildPack, capFor, createEditHistory, createGeneratorStore, createPersistence, defaultGeneratorState, describeBoard,
+  describeCount, describeLevels, detectHardware, displayEntryOf, displayKeyOf, generationOf, gotoSet, importPuzzle, isPhone,
+  loadGeneratorState, mergeSeenKeys, nextBatch, nearestOfferedLevel,
+  readSavedSet, readyLevelId, removeAllPuzzles, removeAllSets, removePuzzle, resizeBoard, restoreState, rollSeed,
+  saveRestoreCleanup, savedSetOf, serializeState,
   setCell, setNumber, setTimelineLength, setViewPosition, setsFull, typeSeed, validSeed, withBoard,
 } from '../generator/state.js';
 
@@ -439,6 +441,121 @@ test('puzzle seeds are stored in their puzzles, restored from them, and kept wit
   assert.deepEqual([savedNext.puzzles.map((/** @type {any} */ p) => p.seed), 'puzzleSeeds' in savedNext], [['demo#1', 'demo#2'], false]);
   const back = gotoSet(next, 1);
   assert.deepEqual(back?.puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' });
+});
+
+const ORIGIN = Object.freeze({ schema: 1, seed: 'demo', level: 'hard', attempt: 2, uniqueness: 'any', versions: provenanceVersions() });
+const CALIBRATION_RECORD = Object.freeze({ schema: 1, kind: 'calibration' });
+const CANDIDATE_RECORD = Object.freeze({
+  schema: 1, kind: 'candidate', batchSeed: 'demo#1', targetLevel: 'hard', uniqueness: 'any', slot: 2, attempt: 0, start: 'witness',
+  skips: { subsets: [3, 9], repairs: [] }, versions: provenanceVersions(),
+});
+assert.equal(provenanceProblem('setOrigin', ORIGIN), null);
+assert.equal(provenanceProblem('made', CANDIDATE_RECORD), null);
+
+/** A set with its origin, three listed puzzles and a record for two of them and for a puzzle that is not listed. */
+function originState() {
+  const [first, second] = samplePuzzles;
+  return {
+    ...acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: null, setSeed: 'demo', setOrigin: ORIGIN }),
+    batchIndex: 1,
+    puzzles: samplePuzzles,
+    puzzleMade: { [first.id]: CALIBRATION_RECORD, [second.id]: CANDIDATE_RECORD, gone: CANDIDATE_RECORD },
+  };
+}
+
+test('the set origin and the puzzle records are saved with the set, restored, and kept by saved sets', () => {
+  const state = originState();
+  const [first, second] = samplePuzzles;
+  const kept = { [first.id]: CALIBRATION_RECORD, [second.id]: CANDIDATE_RECORD };
+  const saved = /** @type {any} */ (savedSetOf(state));
+  assert.deepEqual([saved.setOrigin, saved.made], [ORIGIN, kept], 'only the records of the stored puzzles');
+  const read = /** @type {any} */ (readSavedSet(JSON.parse(JSON.stringify(saved))));
+  assert.deepEqual([read.setOrigin, read.puzzleMade], [ORIGIN, kept]);
+
+  const restored = restoreState(JSON.parse(JSON.stringify(serializeState(state))));
+  assert.deepEqual([restored.setOrigin, restored.puzzleMade], [ORIGIN, kept], 'the set on show');
+  const next = acceptSet(restored, { set: sampleSet, calibration: null, setSeed: 'other' });
+  assert.deepEqual([next.setOrigin, next.puzzleMade], [null, {}], 'a new set starts without either');
+  const back = /** @type {any} */ (gotoSet(next, 1));
+  assert.deepEqual([back.setOrigin, back.puzzleMade], [ORIGIN, kept], 'a saved set reached again');
+  const stored = restoreState(JSON.parse(JSON.stringify(serializeState(next))));
+  const reloaded = /** @type {any} */ (gotoSet(stored, 1));
+  assert.deepEqual([reloaded.setOrigin, reloaded.puzzleMade], [ORIGIN, kept], 'a saved set after a reload');
+  assert.deepEqual(Object.keys(serializeState(next)).includes('setOrigin'), false, 'a set without an origin stores none');
+});
+
+test('storage from an older version has no origin; a damaged stored record is dropped and the puzzles stay', () => {
+  const [first, second] = samplePuzzles;
+  const old = /** @type {any} */ (JSON.parse(JSON.stringify(serializeState({ ...originState(), setOrigin: null, puzzleMade: {} }))));
+  assert.equal('setOrigin' in old || 'made' in old, false);
+  const loaded = restoreState(old);
+  assert.deepEqual([loaded.setOrigin, loaded.puzzleMade, loaded.puzzles.length], [null, {}, 3]);
+
+  const dto = /** @type {any} */ (JSON.parse(JSON.stringify(serializeState(originState()))));
+  const badOrigin = restoreState({ ...dto, setOrigin: { ...ORIGIN, schema: 2 } });
+  assert.deepEqual([badOrigin.setOrigin, Object.keys(badOrigin.puzzleMade).length, badOrigin.puzzles.length], [null, 2, 3]);
+  const badMade = restoreState({
+    ...dto,
+    made: { [first.id]: CANDIDATE_RECORD, [second.id]: { ...CANDIDATE_RECORD, slot: 0 }, [samplePuzzles[2].id]: 'x' },
+  });
+  assert.deepEqual([badMade.puzzleMade, badMade.setOrigin, badMade.puzzles.length], [{ [first.id]: CANDIDATE_RECORD }, ORIGIN, 3]);
+  const stray = restoreState({ ...dto, puzzles: dto.puzzles.slice(0, 2), made: { [first.id]: CANDIDATE_RECORD, gone: CANDIDATE_RECORD } });
+  assert.deepEqual(Object.keys(stray.puzzleMade), [first.id], 'a record of a puzzle that is not stored is dropped');
+  const notObject = restoreState({ ...dto, made: [CANDIDATE_RECORD], setOrigin: 'demo' });
+  assert.deepEqual([notObject.puzzleMade, notObject.setOrigin, notObject.puzzles.length], [{}, null, 3]);
+  const inSaved = restoreState({ ...dto, setsByBoard: { x: [{ ...dto, setOrigin: { ...ORIGIN, attempt: -1 } }] } });
+  assert.equal(/** @type {any} */ (gotoSet(inSaved, 1)).setOrigin, null, 'also in a saved set');
+});
+
+test('an export writes the set origin as stored and the records of exactly the exported puzzles', () => {
+  const [first, second] = samplePuzzles;
+  const older = { ...ORIGIN, versions: { algo: 'gen-v1', policy: 'mixed-v2', rng: 'rng-0', seedScheme: 'seed-0', ratingModel: 'difficulty-v1' } };
+  assert.equal(provenanceProblem('setOrigin', older), null);
+  const state = { ...originState(), setOrigin: older };
+  const generation = generationOf(state, [first], '2026-01-01T00:00:00.000Z');
+  assert.deepEqual(generation.setOrigin, older, 'never stamped with the running versions');
+  assert.notEqual(generation.setOrigin, older);
+  assert.deepEqual(generation.made, { [first.id]: CALIBRATION_RECORD });
+  assert.deepEqual(Object.keys(generationOf(state, [second, first], 'now').made ?? {}), [second.id, first.id]);
+
+  const bare = generationOf({ ...state, setOrigin: null, puzzleMade: {} }, [first], '2026-01-01T00:00:00.000Z');
+  assert.equal('setOrigin' in bare || 'made' in bare, false);
+  const keys = Object.keys(generation);
+  assert.deepEqual(keys.slice(0, keys.indexOf('createdAt') + 1), Object.keys(bare), 'the existing keys keep their order');
+  assert.deepEqual(keys.slice(-2), ['setOrigin', 'made']);
+  const originOnly = generationOf({ ...state, puzzleMade: {} }, [first], 'now');
+  assert.deepEqual([originOnly.setOrigin, 'made' in originOnly], [older, false]);
+});
+
+test('a new set, an imported set and the removal of puzzles or sets clear the origin and the records', () => {
+  const state = originState();
+  assert.deepEqual([acceptSet(state, { set: sampleSet, calibration: null, setSeed: 'again' }).setOrigin], [null]);
+
+  const one = { ...samplePack, puzzles: [samplePack.puzzles[0]] };
+  const onShow = importPuzzle({ ...state, puzzles: [samplePuzzles[1]] }, one);
+  assert.deepEqual([onShow.status, onShow.state.setOrigin], ['added', ORIGIN], 'a puzzle added to the set on show keeps its origin');
+  assert.deepEqual(onShow.state.puzzleMade, state.puzzleMade, 'and gets no record');
+  const other = { ...state, set: { ...sampleSet, pieces: [...sampleSet.pieces].reverse() } };
+  const elsewhere = importPuzzle(other, one);
+  assert.equal(elsewhere.status, 'new-set');
+  assert.deepEqual([elsewhere.state.setOrigin, elsewhere.state.puzzleMade], [null, {}], 'an imported set has no origin');
+  assert.deepEqual(/** @type {any} */ (elsewhere.state.setsByBoard[boardKey(sampleSet.board)][0]).setOrigin, ORIGIN, 'the set it replaced keeps it');
+  assert.equal(importPuzzle(defaultGeneratorState(), one).state.setOrigin, null);
+
+  assert.deepEqual([removeAllPuzzles(state).puzzleMade, removeAllPuzzles(state).setOrigin], [{}, ORIGIN]);
+  const cleared = removeAllSets(state);
+  assert.deepEqual([cleared.setOrigin, cleared.puzzleMade, cleared.set], [null, {}, null]);
+});
+
+test('removing a puzzle takes its record out of the export and leaves the others', () => {
+  const state = originState();
+  const [first, second] = samplePuzzles;
+  const removed = removePuzzle(state, first.id);
+  const pack = /** @type {any} */ (buildPack(removed, removed.puzzles, '2026-01-01T00:00:00.000Z'));
+  assert.deepEqual(Object.keys(pack.generation.made), [second.id]);
+  assert.deepEqual(pack.generation.setOrigin, ORIGIN);
+  assert.equal(validatePack(pack).ok, true);
+  assert.deepEqual(Object.keys(/** @type {any} */ (savedSetOf(removed)).made), [second.id]);
 });
 
 test('restoring validates every part and falls back individually', () => {

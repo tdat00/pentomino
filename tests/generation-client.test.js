@@ -6,10 +6,10 @@ import { describe, test } from 'node:test';
 import { createGenerationClient, GenerationError } from '../core/browser/generation-client.js';
 import { createPool } from '../core/browser/worker-pool.js';
 import { boardFromRows } from '../core/engine/board.js';
-import { firstSetAttempt, puzzleCandidate } from '../core/engine/generate.js';
+import { firstSetAttempt, provenanceVersions, puzzleCandidate } from '../core/engine/generate.js';
 import { canonicalKey } from '../core/engine/geometry.js';
 import { layoutDistance } from '../core/engine/keys.js';
-import { validatePack } from '../core/engine/pack.js';
+import { provenanceProblem, validatePack } from '../core/engine/pack.js';
 import { createTaskHandler } from '../core/engine/tasks.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
 
@@ -225,6 +225,13 @@ describe('piece-set requests', () => {
     assert.deepEqual(result.value.pack.puzzles, []);
     assert.equal(result.value.pack.generation.setAttempt, 1);
     assert.equal(result.value.pack.generation.createdAt, CREATED_AT);
+    const origin = { schema: 1, seed: 'fixture-set-0', level: 'hard', attempt: 1, uniqueness: 'any', versions: provenanceVersions() };
+    assert.deepEqual(result.value.setOrigin, origin);
+    assert.deepEqual(result.value.pack.generation.setOrigin, origin);
+    assert.deepEqual(Object.keys(result.value.pack.generation), [
+      'app', 'algo', 'policy', 'rng', 'seedScheme', 'setSeed', 'setLevel', 'setAttempt', 'carving',
+      ...(fixture().set.carving === 'macro' ? ['macroRegion'] : []), 'uniqueness', 'createdAt', 'setOrigin',
+    ]);
     assert.equal(h.tasks.length, 4, 'nothing is dispatched after a success');
   });
 
@@ -368,6 +375,59 @@ describe('batch requests', () => {
     for (const t of h.tasks) {
       assert.equal(t.payload.seenLayouts.length, 3, 'every candidate sees the frozen request-start history');
       assert.equal(t.payload.batchSeed, 'fixture-set-0#2');
+    }
+  });
+
+  test('a batch writes the set origin it was given and one origin record for every accepted puzzle', async () => {
+    const setOrigin = { schema: 1, seed: 'fixture-set-0', level: 'hard', attempt: 2, uniqueness: 'any', versions: provenanceVersions() };
+    const h = harness({ handler: (t) => scripted(t) });
+    /** @type {{ id: string, made: unknown }[]} */
+    const events = [];
+    const result = await clientOf(h).generateBatch(
+      batchInput({ quantity: 3, calibration: fixture().calibration, setLevel: 'hard', setAttempt: 2, setOrigin }),
+      { onAccepted: (e) => events.push({ id: e.puzzle.id, made: e.made }) },
+    );
+    assert.equal(result.status, 'complete');
+    const { generation } = /** @type {any} */ (result.pack);
+    assert.deepEqual(generation.setOrigin, setOrigin);
+    assert.notEqual(generation.setOrigin, setOrigin, 'the pack holds a copy');
+    assert.deepEqual(Object.keys(generation).slice(-3), ['createdAt', 'setOrigin', 'made']);
+    const ids = result.accepted.map((p) => p.id);
+    assert.deepEqual(Object.keys(generation.made), ids);
+    assert.deepEqual(Object.keys(result.made), ids);
+    assert.deepEqual(result.made, generation.made);
+    for (const id of ids) {
+      assert.equal(provenanceProblem('made', generation.made[id]), null, id);
+    }
+    assert.equal(generation.made[ids[0]].kind, 'calibration');
+    assert.deepEqual(events.map((e) => e.id), ids);
+    assert.deepEqual(events.map((e) => e.made), ids.map((id) => result.made[id]));
+    const plain = await clientOf(harness({ handler: (t) => scripted(t) })).generateBatch(batchInput({ quantity: 1 }));
+    assert.equal(Object.hasOwn(/** @type {any} */ (plain.pack).generation, 'setOrigin'), false, 'no origin is invented');
+  });
+
+  test('a set origin that is not valid is an invalid request, with the history attached', async () => {
+    const origin = { schema: 1, seed: 'fixture-set-0', level: 'hard', attempt: 0, uniqueness: 'any', versions: provenanceVersions() };
+    const keys = ['k1', 'k2'];
+    for (const bad of [{ ...origin, schema: 2 }, null, 'origin', { ...origin, attempt: -1 }, { ...origin, versions: { algo: 'x' } }]) {
+      const h = harness();
+      const error = await clientOf(h).generateBatch(batchInput({ quantity: 2, seenLayouts: keys, setOrigin: /** @type {any} */ (bad) }))
+        .then(() => null, (e) => e);
+      assert.ok(error instanceof GenerationError, JSON.stringify(bad));
+      assert.deepEqual([error.code, error.message], ['invalid-input', 'setOrigin is not a valid set origin']);
+      assert.deepEqual(error.seenLayouts, keys);
+      assert.equal(h.workers.length, 0);
+    }
+  });
+
+  test('a worker candidate without a valid origin record fails the batch as internal', async () => {
+    const { chosen } = fixture();
+    const { made, ...withoutMade } = chosen[0];
+    for (const bad of [withoutMade, { ...chosen[0], made: { schema: 2, kind: 'completion' } }, { ...chosen[0], made: { schema: 1, kind: 'candidate' } }]) {
+      const h = harness({ handler: (t) => (t.payload.slot === 1 ? { value: bad } : scripted(t)) });
+      const error = await clientOf(h).generateBatch(batchInput({ quantity: 2 })).then(() => null, (e) => e);
+      assert.ok(error instanceof GenerationError);
+      assert.deepEqual([error.code, error.message], ['internal', 'The worker sent an invalid puzzle candidate']);
     }
   });
 
@@ -939,6 +999,7 @@ async function runRecipe(size, o = {}) {
       quantity: o.quantity ?? recipe.quantity,
       batchIndex,
       calibration: batchIndex === 1 ? set.calibration : undefined,
+      setOrigin: set.setOrigin,
       seenLayouts: o.history?.seenLayouts ?? [],
       seenClues: o.history?.seenClues ?? [],
     }));
@@ -996,6 +1057,29 @@ describe('real engine through the pool', () => {
       assert.ok(validatePack(batch.pack).ok);
     }
     assert.equal(one.batch.accepted[0].id, one.set.calibration.id, 'the calibration is puzzle #1');
+    const origin = { schema: 1, seed: recipe.seedText, level: recipe.levelId, attempt: one.set.attempt, uniqueness: recipe.uniqueness, versions: provenanceVersions() };
+    assert.deepEqual(one.set.setOrigin, origin);
+    assert.deepEqual(one.batch.pack.generation.setOrigin, origin, 'the batch pack carries the origin of its set unchanged');
+    const ids = one.batch.accepted.map((p) => p.id);
+    const records = one.batch.pack.generation.made;
+    assert.ok(Object.keys(records).length > 0);
+    assert.deepEqual(Object.keys(records), ids);
+    assert.deepEqual(records[ids[0]], { schema: 1, kind: 'calibration' });
+    ids.slice(1).forEach((id, i) => {
+      const { attempt, start, skips, ...fixed } = records[id];
+      assert.deepEqual(fixed, {
+        schema: 1,
+        kind: 'candidate',
+        batchSeed: recipe.batchSeed,
+        targetLevel: recipe.levelId,
+        uniqueness: recipe.uniqueness,
+        slot: i + 2,
+        versions: provenanceVersions(),
+      }, id);
+      assert.ok(Number.isInteger(attempt) && attempt >= 0, id);
+      assert.ok(['witness', 'restart'].includes(start), id);
+      assert.equal(provenanceProblem('made', records[id]), null, id);
+    });
     assert.deepEqual(semantic(one.batch.pack), semantic(four.batch.pack));
     assert.deepEqual(semantic(one.set.pack), semantic(four.set.pack));
     assert.equal(one.batch.pack.generation.batchSeed, recipe.batchSeed);

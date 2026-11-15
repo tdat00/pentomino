@@ -21,6 +21,7 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
 /** @typedef {import('./state.js').GeneratorState} GeneratorState */
 /** @typedef {import('./state.js').GeneratorStore} GeneratorStore */
 /** @typedef {import('./state.js').StatusNotice} StatusNotice */
+/** @typedef {import('../core/engine/types.js').Made} Made */
 /** @typedef {import('../core/engine/types.js').Pack} Pack */
 /** @typedef {import('../core/engine/types.js').Puzzle} Puzzle */
 /** @typedef {import('../core/browser/generation-client.js').GenerationClient} GenerationClient */
@@ -340,7 +341,9 @@ export function createJobController(options) {
         return;
       }
       finish(revision, (s) => ({
-        ...acceptSet(s, { set, calibration, setSeed: request.seed, calibrationFor: { levelId, uniqueness }, trusted: true }),
+        ...acceptSet(s, {
+          set, calibration, setSeed: request.seed, calibrationFor: { levelId, uniqueness }, trusted: true, setOrigin: result.setOrigin ?? null,
+        }),
         notice: null,
       }));
     } else if (result.status === 'cancelled') {
@@ -392,6 +395,8 @@ export function createJobController(options) {
     certRevision = revision;
     /** @param {Puzzle[]} list @returns {Record<string, string>} */
     const seedsFor = (list) => Object.fromEntries(list.map((p) => [p.id, begun.batchSeed]));
+    /** @type {Record<string, Made>} */
+    const records = {}; // origin records of the admitted puzzles (`made` above is the set's calibration level)
     /** @type {Puzzle[]} */
     const streamed = [];
     // Backstop for the engine's own history: a puzzle equal to one already listed is never added.
@@ -416,6 +421,7 @@ export function createJobController(options) {
         seenClues: [...state.seenClues],
         ...(reusable ? { calibration: /** @type {Puzzle} */ (state.calibration) } : {}),
         ...(made === null ? {} : { setLevel: made.levelId }),
+        ...(state.setOrigin === null ? {} : { setOrigin: state.setOrigin }),
         revision,
       }, {
         onAccepted: (event) => {
@@ -423,12 +429,16 @@ export function createJobController(options) {
             return;
           }
           streamed.push(event.puzzle);
+          if (event.made !== undefined) {
+            records[event.puzzle.id] = event.made;
+          }
           store.update((s) => {
             const seen = addSeenKeys(s, event.puzzle);
             return {
               ...seen,
               puzzles: [...before, ...streamed],
               puzzleSeeds: { ...seen.puzzleSeeds, ...seedsFor(streamed) },
+              puzzleMade: { ...seen.puzzleMade, ...records },
               job: s.job === null ? null : { ...s.job, accepted: streamed.length },
             };
           });
@@ -480,10 +490,20 @@ export function createJobController(options) {
       const pendingIds = result !== null && status !== 'cancelled' && reason !== 'time-limit'
         ? kept.filter((p) => p.certificate === null || p.certificate === undefined).map((p) => p.id)
         : [];
+      // The records of the puzzles kept, on top of those the set had before this request.
+      /** @type {Record<string, Made>} */
+      const keptMade = {};
+      for (const p of kept) {
+        const record = records[p.id] ?? result?.made?.[p.id];
+        if (record !== undefined) {
+          keptMade[p.id] = record;
+        }
+      }
       return {
         ...s,
         puzzles,
         puzzleSeeds: { ...s.puzzleSeeds, ...seedsFor(kept) },
+        puzzleMade: { ...state.puzzleMade, ...keptMade },
         seenLayouts: mergeSeenKeys(s.seenLayouts, seenLayouts),
         seenClues: mergeSeenKeys(s.seenClues, seenClues),
         checking: pendingIds.filter((id) => puzzles.some((p) => p.id === id)),

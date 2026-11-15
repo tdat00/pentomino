@@ -408,14 +408,14 @@ replays cleanly"):
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (orchestrator check; outside the analyst review set); gate GF-P4 passed |
+| Start | 2026-11-15 16:31:57 (+07:00) |
+| End | 2026-11-15 16:54:26 developer; orchestrator re-check and commit |
+| Duration | 22.5 min developer; 10 locked runs, 397 s machine time, 0 s lock wait |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (orchestrator) |
+| Token usage | 119 model calls; 26,261,653 input tokens (25,919,572 cache reads); 102,496 output tokens |
+| AI credits | about 447 (developer) |
+| Verification | Client: `generateSet` builds and returns `setOrigin`; `generateBatch` takes it (an invalid one is `invalid-input`), writes `made` for every accepted puzzle and checks it on each worker candidate (missing or invalid is `internal`); accepted events and batch results carry the records. CLI: `setOrigin: set.setOrigin`. Generator: `setOrigin` and `puzzleMade` in the state, the saved sets and the Play pack; jobs pass the origin and store each kept puzzle's record. Recorder: `--replay-case` mode (`--search`, `--create`, `--check`, `--replace`). **GF-P4:** search over seeds 0-49 (161.4 s; seeds 23 and 35 `layouts-not-found`); no seed has a subset skip, so the rule takes seed 0: `tests/fixtures/replay-case.json` (10x6 Hard `require`, two batch packs of 4 puzzles, versions `gen-v3`/`mixed-v3`/`xoshiro128ss-v1`/`difficulty-v3`); `--check` OK; `npm test` 1,394/1,394 (125.1 s). **D35:** existing fixtures untouched and their recorder `--check` passes; HEAD CLI vs working tree identical on 8 cases (Easy to Expert, 10x6 and 12x12, `any` and `require`, a second batch) once `setOrigin`, `made` and `createdAt` are ignored. Tests: targeted 164/164, quick set 1,375/1,375 (+9), `npm run check` OK. Orchestrator: `npm run check` OK; locked `--replay-case --check` OK |
+| Acceptance | MP13b-B01 to B05 and T01 to T07 met (developer's evidence table) |
+| Issues & resolutions | Design §10.6 (storage block) also edited so the document matches the new stored fields; the persistence fallback snapshot with no puzzles now also drops `made` |
+| Handoff | **The replay fixture has no skip of any kind** (no seed in 0-49 produced one), so MP14a and MP15a need synthetic skip cases for the skip replay (pack author informed). Records travel from client to Generator to packs; MP14a builds the rating detail channel and the clue-stage recorders on them |

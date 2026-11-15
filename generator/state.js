@@ -7,7 +7,7 @@ import {
 import { initialClueCount, level, offeredLevels } from '../core/engine/levels.js';
 import { canonicalKey } from '../core/engine/geometry.js';
 import { isValidLayout } from '../core/engine/tiling.js';
-import { createPack, packBoard, PackError, serializePack, validatePack } from '../core/engine/pack.js';
+import { createPack, packBoard, PackError, readProvenance, serializePack, validatePack } from '../core/engine/pack.js';
 import { BUDGETS, POLICY_ID, enabledMaxActive, pieceCountRange, sizeWindow } from '../core/engine/policy.js';
 import { batchSeedFor, normalizeSeedText, randomSeedText, RNG_ID, SEED_SCHEME } from '../core/engine/rng.js';
 import { clueKey, layoutKey, progressFingerprint } from '../core/engine/keys.js';
@@ -17,9 +17,11 @@ import { t } from './i18n.js';
 import { formatMessage, formatNotice, levelLabel } from './strings.js';
 
 /** @typedef {import('../core/engine/types.js').Board} Board */
+/** @typedef {import('../core/engine/types.js').Made} Made */
 /** @typedef {import('../core/engine/types.js').PieceSet} PieceSet */
 /** @typedef {import('../core/engine/types.js').Puzzle} Puzzle */
 /** @typedef {import('../core/engine/types.js').Pack} Pack */
+/** @typedef {import('../core/engine/types.js').SetOrigin} SetOrigin */
 /** @typedef {import('../core/engine/types.js').XY} XY */
 
 /**
@@ -33,6 +35,9 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {{ levelId: string, uniqueness: 'any' | 'require' } | null} [calibrationFor]
  * @property {Record<string, string>} [puzzleSeeds] Older storage only: batch seed of each puzzle, by puzzle id. Each
  *   puzzle now carries its own `seed`.
+ * @property {SetOrigin} [setOrigin] How the set was made (RES-27); absent for an imported set or a set saved by an
+ *   older version.
+ * @property {Record<string, Made>} [made] Origin records of the stored puzzles, by puzzle id.
  */
 
 /**
@@ -61,6 +66,9 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {StatusNotice | null} notice Outcome of the last action.
  * @property {readonly string[]} checking Puzzle ids whose lazy certificate is still pending.
  * @property {Readonly<Record<string, string>>} puzzleSeeds Batch seed each puzzle was generated with, by puzzle id.
+ * @property {SetOrigin | null} setOrigin How the set on show was made (RES-27); null for an imported set or a set saved
+ *   by an older version.
+ * @property {Readonly<Record<string, Made>>} puzzleMade Origin record of each puzzle, by puzzle id.
  * @property {boolean} calibrationTrusted The calibration was produced by this session's engine run.
  * @property {number} setPosition Where the set on show sits in the newest-first list of the sets of its own board.
  * @property {Readonly<Record<string, import('../core/browser/display-rating.js').DisplayEntry>>} displayRatings The derived
@@ -144,6 +152,8 @@ export function defaultGeneratorState(overrides = {}) {
     notice: null,
     checking: [],
     puzzleSeeds: {},
+    setOrigin: null,
+    puzzleMade: {},
     calibrationTrusted: false,
     setPosition: 0,
     displayRatings: {},
@@ -509,10 +519,10 @@ export function beginSetRequest(state, random = randomSeedText) {
 
 /**
  * The per-set data a new or restored set starts without.
- * @returns {Pick<GeneratorState, 'notice' | 'checking' | 'batchLevelId' | 'puzzleSeeds' | 'setPosition'>}
+ * @returns {Pick<GeneratorState, 'notice' | 'checking' | 'batchLevelId' | 'puzzleSeeds' | 'puzzleMade' | 'setPosition'>}
  */
 function freshSetExtras() {
-  return { notice: null, checking: [], batchLevelId: null, puzzleSeeds: {}, setPosition: 0 };
+  return { notice: null, checking: [], batchLevelId: null, puzzleSeeds: {}, puzzleMade: {}, setPosition: 0 };
 }
 
 /**
@@ -574,7 +584,8 @@ function savedFor(state, key) {
  * A newly accepted set starts at batch 0 with empty history, even when regenerated with the same seed.
  * @param {GeneratorState} state
  * @param {{ set: PieceSet, calibration: Puzzle | null, setSeed: string, calibrationFor?: GeneratorState['calibrationFor'],
- *   trusted?: boolean }} accepted `trusted` marks a calibration the engine produced in this session.
+ *   trusted?: boolean, setOrigin?: SetOrigin | null }} accepted `trusted` marks a calibration the engine produced in
+ *   this session; `setOrigin` is how the set was made (none for a set that did not come from the generation client).
  * @returns {GeneratorState}
  */
 export function acceptSet(state, accepted) {
@@ -592,6 +603,7 @@ export function acceptSet(state, accepted) {
     calibrationFor: accepted.calibration === null ? null : accepted.calibrationFor ?? { levelId: state.levelId, uniqueness: state.uniqueness },
     calibrationTrusted: accepted.calibration !== null && accepted.trusted === true,
     setSeed: accepted.setSeed,
+    setOrigin: accepted.setOrigin ?? null,
     batchIndex: 0,
     puzzles: [],
     seenLayouts: [],
@@ -896,6 +908,7 @@ export function savedSetOf(state) {
     // Null claims are left out; the pack reader restores a missing one as null.
     const stored = puzzles.length === 0 ? [] : packOf(state.set, state.rotation, puzzles).puzzles
       .map((p) => /** @type {Pack['puzzles'][number]} */ (Object.fromEntries(Object.entries(p).filter(([, value]) => value !== null))));
+    const made = madeOf(state.puzzleMade, state.puzzles);
     return {
       setPack: packOf(state.set, state.rotation, []),
       puzzles: stored,
@@ -903,6 +916,8 @@ export function savedSetOf(state) {
       batchIndex: state.batchIndex,
       history: { layouts: [...state.seenLayouts], clues: [...state.seenClues] },
       ...(state.calibrationFor === null ? {} : { calibrationFor: state.calibrationFor }),
+      ...(state.setOrigin === null ? {} : { setOrigin: state.setOrigin }),
+      ...(Object.keys(made).length === 0 ? {} : { made }),
     };
   } catch {
     return null;
@@ -913,7 +928,8 @@ export function savedSetOf(state) {
  * Engine objects for a stored set; null when its packs do not validate or do not belong together.
  * @param {unknown} saved
  * @returns {{ set: PieceSet, calibration: Puzzle | null, calibrationFor: GeneratorState['calibrationFor'], calibrationTrusted: boolean,
- *   puzzles: Puzzle[], puzzleSeeds: Record<string, string>, setSeed: string, batchIndex: number,
+ *   puzzles: Puzzle[], puzzleSeeds: Record<string, string>, setOrigin: SetOrigin | null, puzzleMade: Record<string, Made>,
+ *   setSeed: string, batchIndex: number,
  *   seenLayouts: string[], seenClues: string[] } | null}
  */
 export function readSavedSet(saved) {
@@ -945,6 +961,8 @@ export function readSavedSet(saved) {
     && LISTED_LEVEL_IDS.includes(made.levelId) && (made.uniqueness === 'any' || made.uniqueness === 'require')
     ? { levelId: /** @type {string} */ (made.levelId), uniqueness: /** @type {'any' | 'require'} */ (made.uniqueness) }
     : null;
+  // Storage is not a pack: a record that is not valid is dropped without a message.
+  const provenance = readProvenance({ setOrigin: dto.setOrigin, made: dto.made }, new Set(puzzles.map((p) => p.id)));
   return {
     set,
     calibration: null,
@@ -956,11 +974,30 @@ export function readSavedSet(saved) {
       ...seedsOfPuzzles(dto.puzzleSeeds, puzzles),
       ...seedsOfPuzzles(Object.fromEntries(puzzles.flatMap((p) => (p.seed === undefined ? [] : [[p.id, p.seed]]))), puzzles),
     },
+    setOrigin: provenance.setOrigin,
+    puzzleMade: provenance.made,
     setSeed,
     batchIndex,
     seenLayouts: readKeys(history.layouts),
     seenClues: readKeys(history.clues),
   };
+}
+
+/**
+ * The origin records that belong to these puzzles, in the order of the puzzles.
+ * @param {Readonly<Record<string, Made>>} records
+ * @param {readonly { id: string }[]} puzzles
+ * @returns {Record<string, Made>}
+ */
+function madeOf(records, puzzles) {
+  /** @type {Record<string, Made>} */
+  const made = {};
+  for (const puzzle of puzzles) {
+    if (Object.hasOwn(records, puzzle.id)) {
+      made[puzzle.id] = records[puzzle.id];
+    }
+  }
+  return made;
 }
 
 /**
@@ -1149,7 +1186,7 @@ export function loadGeneratorState(storage) {
 /** @type {ReadonlyArray<keyof GeneratorState>} */
 const PERSISTED_KEYS = Object.freeze([
   'board', 'rotation', 'presetId', 'levelId', 'seedText', 'keepSeed', 'uniqueness', 'setSeed', 'batchIndex',
-  'set', 'calibrationFor', 'puzzles', 'puzzleSeeds', 'seenLayouts', 'seenClues', 'setsByBoard',
+  'set', 'calibrationFor', 'puzzles', 'puzzleSeeds', 'seenLayouts', 'seenClues', 'setsByBoard', 'setOrigin', 'puzzleMade',
 ]);
 
 /**
@@ -1183,7 +1220,8 @@ export function createPersistence(store, storage, o = {}) {
       snapshots.push({ ...full, setsByBoard: Object.fromEntries(Object.entries(lists).map(([key, list]) => [key, list.slice(0, kept)])) });
     }
     const reduced = { ...full, setsByBoard: {} };
-    snapshots.push(reduced, { ...reduced, puzzles: [] });
+    const { made: _made, ...withoutMade } = reduced;
+    snapshots.push(reduced, { ...withoutMade, puzzles: [] });
     for (const snapshot of snapshots) {
       if (attempt(() => storage.setGeneratorState(snapshot))) {
         return;
@@ -1400,6 +1438,13 @@ export function generationOf(state, puzzles, createdAt) {
   }
   generation.uniqueness = state.calibrationFor?.uniqueness ?? state.uniqueness;
   generation.createdAt = createdAt;
+  if (state.setOrigin !== null) {
+    generation.setOrigin = structuredClone(state.setOrigin);
+  }
+  const made = madeOf(state.puzzleMade, puzzles);
+  if (Object.keys(made).length > 0) {
+    generation.made = structuredClone(made);
+  }
   return generation;
 }
 
@@ -1560,7 +1605,7 @@ export function removeAllPuzzles(state) {
   if (state.puzzles.length === 0) {
     return state;
   }
-  return { ...state, puzzles: [], checking: [], puzzleSeeds: {}, notice: null };
+  return { ...state, puzzles: [], checking: [], puzzleSeeds: {}, puzzleMade: {}, notice: null };
 }
 
 /**
@@ -1705,6 +1750,7 @@ function withoutSet(state, setsByBoard) {
     calibrationFor: null,
     calibrationTrusted: false,
     setSeed: null,
+    setOrigin: null,
     batchIndex: 0,
     puzzles: [],
     seenLayouts: [],

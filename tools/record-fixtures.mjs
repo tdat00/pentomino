@@ -10,10 +10,22 @@
 //
 // `--dir <path>` overrides the fixture directory. The set seed search is over
 // `fixture-set-0..49` and batches use that seed plus `#1`; nothing is random.
+//
+// A separate mode records the replay case (gate GF-P4): one 10 x 6 Hard `require` set and two batches of it, made
+// through the ordinary generation client, as tests/fixtures/replay-case.json (design §13).
+//
+//   node tools/record-fixtures.mjs --replay-case --search [--from <n>]   writes nothing; bounded and resumable
+//   node tools/record-fixtures.mjs --replay-case --create --seed <n>     refuses an existing file
+//   node tools/record-fixtures.mjs --replay-case --check                 regenerates the recorded seed, never writes
+//   node tools/record-fixtures.mjs --replay-case --replace --seed <n> --reason <text>
+//
+// The seeds are `replay-case-0..49`; `--seed` and `--from` take an integer from 0 to 49.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { createGenerationClient } from '../core/browser/generation-client.js';
+import { createPool } from '../core/browser/worker-pool.js';
 import { boardFromRows, boardToRows } from '../core/engine/board.js';
 import { selectClues } from '../core/engine/clues.js';
 import { IncompleteRatingError, MODEL, rate, rateV2 } from '../core/engine/difficulty.js';
@@ -26,6 +38,7 @@ import { createRng, RNG_ID, SEED_SCHEME } from '../core/engine/rng.js';
 import { isValidLayout } from '../core/engine/tiling.js';
 import { ALGO_ID, APP_VERSION } from '../core/engine/version.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
+import { nodeWorkerFactory } from './node-worker.mjs';
 
 /** @typedef {import('../core/engine/types.js').Pose} Pose */
 /** @typedef {import('../core/engine/types.js').Pack} Pack */
@@ -36,6 +49,10 @@ export const BOARD_ROWS = Object.freeze(Array(6).fill('#'.repeat(10)));
 export const SEED_COUNT = 50;
 export const SAMPLE_LEVELS = /** @type {const} */ (['easy', 'normal', 'hard']);
 const FIXTURE_FILES = /** @type {const} */ ({ recipe: 'generation-case.json', sample: 'generated-sample-pack.json' });
+const REPLAY_FILE = 'replay-case.json';
+// A search run stops between seeds once this much time has passed, so that one command fits the 590 s helper bound.
+const REPLAY_SEARCH_BOUND_MS = 540_000;
+const REPLAY_CREATED_AT = '2026-01-01T00:00:00.000Z';
 const DEFAULT_DIR = fileURLToPath(new URL('../tests/fixtures/', import.meta.url));
 
 /**
@@ -336,17 +353,280 @@ export function checkFixtures(dir) {
 }
 
 /**
- * @param {string[]} argv
- * @returns {number} Exit code.
+ * @typedef {object} ReplayRecipe
+ * @property {string[]} boardRows
+ * @property {0} rotation
+ * @property {'hard'} levelId
+ * @property {'require'} uniqueness
+ * @property {number} quantity
+ * @property {string} seedText
  */
-export function main(argv) {
+
+/**
+ * @typedef {object} ReplayFile
+ * @property {1} version
+ * @property {ReplayRecipe} recipe
+ * @property {Recipe['versions']} versions
+ * @property {Pack[]} packs Batch 1 (it reuses the set's calibration puzzle) and batch 2.
+ */
+
+/**
+ * @param {number} n
+ * @returns {ReplayRecipe}
+ */
+function replayRecipeOf(n) {
+  return {
+    boardRows: [...BOARD_ROWS], rotation: 0, levelId: 'hard', uniqueness: 'require', quantity: 4, seedText: `replay-case-${n}`,
+  };
+}
+
+/**
+ * @param {Record<string, import('../core/engine/types.js').Made>} made
+ * @returns {boolean} Whether a candidate record names at least one subset skip (an `overflow` record names none).
+ */
+function hasSubsetSkip(made) {
+  return Object.values(made).some((m) => m.kind === 'candidate' && m.skips !== 'overflow' && m.skips.subsets.length > 0);
+}
+
+/**
+ * One line per pack: the record kinds of its puzzles, with the skip counts of a candidate.
+ * @param {Record<string, import('../core/engine/types.js').Made>[]} records
+ * @returns {string[]}
+ */
+function describeRecords(records) {
+  return records.map((made, i) => {
+    const kinds = Object.values(made).map((m) => {
+      if (m.kind !== 'candidate') {
+        return m.kind;
+      }
+      return m.skips === 'overflow' ? 'candidate (skips overflow)' : `candidate (subsets ${m.skips.subsets.length}, repairs ${m.skips.repairs.length})`;
+    });
+    return `  pack ${i + 1}: ${kinds.join(', ')}`;
+  });
+}
+
+/**
+ * Generates replay seed `n` once through the ordinary client path: the set, batch 1 (which must reuse the calibration
+ * puzzle) and batch 2, all complete.
+ * @param {import('../core/browser/generation-client.js').GenerationClient} client
+ * @param {number} n
+ * @returns {Promise<{ file: ReplayFile, subsetSkip: boolean, records: Record<string, import('../core/engine/types.js').Made>[] } | { failed: string }>}
+ */
+async function generateReplaySeed(client, n) {
+  const recipe = replayRecipeOf(n);
+  const { boardRows, rotation, levelId, uniqueness, quantity, seedText } = recipe;
+  try {
+    const set = await client.generateSet({ boardRows, rotation, levelId, seedText, uniqueness, maxActive: 676 });
+    if (set.status !== 'complete' || set.set === undefined || set.calibration === undefined || set.setOrigin === undefined) {
+      return { failed: `the set is ${set.status}${set.reason === undefined ? '' : ` (${set.reason})`}` };
+    }
+    const input = {
+      set: set.set,
+      rotation,
+      targetLevelId: levelId,
+      quantity,
+      setSeed: seedText,
+      uniqueness,
+      setLevel: levelId,
+      setAttempt: set.attempt,
+      setOrigin: set.setOrigin,
+    };
+    const b1 = await client.generateBatch({ ...input, batchIndex: 1, seenLayouts: [], seenClues: [], calibration: set.calibration });
+    if (b1.status !== 'complete' || b1.pack === undefined) {
+      return { failed: `batch 1 is ${b1.status}${b1.reason === undefined ? '' : ` (${b1.reason})`}` };
+    }
+    if (b1.made[b1.accepted[0].id]?.kind !== 'calibration') {
+      return { failed: 'batch 1 does not start with the reused calibration puzzle' };
+    }
+    const b2 = await client.generateBatch({ ...input, batchIndex: 2, seenLayouts: b1.seenLayouts, seenClues: b1.seenClues });
+    if (b2.status !== 'complete' || b2.pack === undefined) {
+      return { failed: `batch 2 is ${b2.status}${b2.reason === undefined ? '' : ` (${b2.reason})`}` };
+    }
+    return {
+      file: { version: 1, recipe, versions: currentVersions(), packs: [b1.pack, b2.pack] },
+      subsetSkip: hasSubsetSkip(b1.made) || hasSubsetSkip(b2.made),
+      records: [b1.made, b2.made],
+    };
+  } catch (e) {
+    return { failed: e instanceof Error ? `${e.name}: ${e.message}`.replace(/\s+/g, ' ').slice(0, 200) : 'unknown error' };
+  }
+}
+
+/**
+ * Runs `fn` with a one-worker client whose metadata clock is fixed, and closes the pool afterwards.
+ * @template T
+ * @param {(client: import('../core/browser/generation-client.js').GenerationClient) => Promise<T>} fn
+ * @returns {Promise<T>}
+ */
+async function withReplayClient(fn) {
+  const pool = createPool({ size: 1, workerFactory: nodeWorkerFactory() });
+  try {
+    return await fn(createGenerationClient(pool, { createdAt: () => REPLAY_CREATED_AT }));
+  } finally {
+    pool.close();
+  }
+}
+
+/**
+ * The bounded, resumable search: prints one line per seed and writes nothing. Selection of the seed is the caller's.
+ * @param {number} from First seed.
+ * @returns {Promise<number>} Exit code: 0 after a seed qualifies or after seed 49, 1 at the time bound.
+ */
+async function searchReplayCase(from) {
+  const started = Date.now();
+  return withReplayClient(async (client) => {
+    for (let n = from; n < SEED_COUNT; n += 1) {
+      if (Date.now() - started >= REPLAY_SEARCH_BOUND_MS) {
+        console.log(`stopped at the ${REPLAY_SEARCH_BOUND_MS / 1000} s bound; continue with --from ${n}`);
+        return 1;
+      }
+      const seedStarted = Date.now();
+      const r = await generateReplaySeed(client, n);
+      const subsetSkip = 'file' in r && r.subsetSkip;
+      console.log(`replay-case-${n}: ${'file' in r ? 'ok' : `failed ${r.failed}`}, subset skip ${subsetSkip ? 'yes' : 'no'}, ${Date.now() - seedStarted} ms`);
+      if (subsetSkip) {
+        console.log(`selected replay-case-${n}`);
+        return 0;
+      }
+    }
+    console.log('no seed with a subset skip');
+    return 0;
+  });
+}
+
+/**
+ * Regenerates the recorded seed and compares the whole file text.
+ * @param {string} path
+ * @returns {Promise<string[]>} Differences; empty when the file replays identically.
+ */
+async function checkReplayCase(path) {
+  if (!existsSync(path)) {
+    return [`${REPLAY_FILE}: file missing (record it with --replay-case --search, then --create --seed <n>)`];
+  }
+  const text = readFileSync(path, 'utf8');
+  /** @type {any} */
+  let recorded;
+  try {
+    recorded = JSON.parse(text);
+  } catch {
+    return [`${REPLAY_FILE} is not valid JSON`];
+  }
+  const match = /^replay-case-(\d+)$/.exec(String(recorded?.recipe?.seedText));
+  const n = match === null ? NaN : Number(match[1]);
+  if (!Number.isInteger(n) || n >= SEED_COUNT) {
+    return [`${REPLAY_FILE}: recipe.seedText is not replay-case-0 ... replay-case-${SEED_COUNT - 1}`];
+  }
+  /** @type {string[]} */
+  const problems = [];
+  if (JSON.stringify(recorded.versions) !== JSON.stringify(currentVersions())) {
+    problems.push('recorded versions differ from the current algo/policy/rng/model ids (approved change needs --replace)');
+  }
+  const r = await withReplayClient((client) => generateReplaySeed(client, n));
+  if (!('file' in r)) {
+    return [...problems, `replay-case-${n} no longer meets the conditions: ${r.failed}`];
+  }
+  const rebuilt = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (r.file));
+  for (const key of ['recipe', 'versions']) {
+    if (JSON.stringify(rebuilt[key]) !== JSON.stringify(recorded[key])) {
+      problems.push(`replayed ${key} differs from the file`);
+    }
+  }
+  r.file.packs.forEach((pack, i) => {
+    if (JSON.stringify(pack) !== JSON.stringify(recorded.packs?.[i])) {
+      problems.push(`replayed pack ${i + 1} differs from the file`);
+    }
+  });
+  if (problems.length === 0 && toFileText(r.file) !== text) {
+    problems.push(`${REPLAY_FILE} text differs from the replay (formatting or line endings)`);
+  }
+  return problems;
+}
+
+/**
+ * @param {string[]} argv
+ * @param {string} name
+ * @returns {number | undefined | null} The option's integer 0 ... 49; undefined when absent; null when invalid.
+ */
+function seedOption(argv, name) {
+  const at = argv.indexOf(name);
+  if (at < 0) {
+    return undefined;
+  }
+  const text = argv[at + 1];
+  const value = text !== undefined && /^\d{1,2}$/.test(text) ? Number(text) : NaN;
+  return value < SEED_COUNT ? value : null;
+}
+
+/**
+ * The `--replay-case` modes (gate GF-P4).
+ * @param {string[]} argv
+ * @param {string} dir
+ * @returns {Promise<number>} Exit code: 0 success, 1 refused or differs, 2 usage.
+ */
+async function replayMain(argv, dir) {
+  const usage = 'usage: record-fixtures.mjs --replay-case --search [--from <n>] | --create --seed <n> | --check'
+    + ' | --replace --seed <n> --reason <text> [--dir <path>]   (n: 0 ... 49)';
+  const modes = ['--search', '--create', '--check', '--replace'].filter((m) => argv.includes(m));
+  const seed = seedOption(argv, '--seed');
+  const from = seedOption(argv, '--from');
+  const reasonAt = argv.indexOf('--reason');
+  const reason = reasonAt >= 0 ? argv[reasonAt + 1] : undefined;
+  const writes = modes[0] === '--create' || modes[0] === '--replace';
+  if (modes.length !== 1 || seed === null || from === null || (writes ? seed === undefined : seed !== undefined)
+    || (modes[0] !== '--search' && from !== undefined)) {
+    console.error(usage);
+    return 2;
+  }
+  if (modes[0] === '--replace' && (reason === undefined || reason.trim() === '')) {
+    console.error('record-fixtures: --replace needs --reason "<approved semantic/version change>"');
+    return 2;
+  }
+  const path = resolve(dir, REPLAY_FILE);
+  if (modes[0] === '--search') {
+    return searchReplayCase(from ?? 0);
+  }
+  if (modes[0] === '--check') {
+    const problems = await checkReplayCase(path);
+    if (problems.length > 0) {
+      console.error(problems.join('\n'));
+      return 1;
+    }
+    console.log('record-fixtures: replay case OK');
+    return 0;
+  }
+  if (modes[0] === '--create' && existsSync(path)) {
+    console.error(`record-fixtures: ${REPLAY_FILE} already exists; --create never overwrites (use --replace for an approved change)`);
+    return 1;
+  }
+  const n = /** @type {number} */ (seed);
+  const r = await withReplayClient((client) => generateReplaySeed(client, n));
+  if (!('file' in r)) {
+    console.error(`record-fixtures: replay-case-${n} does not meet the conditions: ${r.failed}`);
+    return 1;
+  }
+  writeFileSync(path, toFileText(r.file));
+  console.log(`record-fixtures: wrote replay-case-${n} (${path}); subset skip ${r.subsetSkip ? 'yes' : 'no'}`);
+  console.log(describeRecords(r.records).join('\n'));
+  return 0;
+}
+
+/**
+ * @param {string[]} argv
+ * @returns {Promise<number>} Exit code.
+ */
+export async function main(argv) {
   const dirAt = argv.indexOf('--dir');
   const dir = dirAt >= 0 && argv[dirAt + 1] !== undefined ? resolve(argv[dirAt + 1]) : DEFAULT_DIR;
   const reasonAt = argv.indexOf('--reason');
   const reason = reasonAt >= 0 ? argv[reasonAt + 1] : undefined;
+  if (argv.includes('--replay-case')) {
+    return replayMain(argv, dir);
+  }
   const modes = ['--create', '--check', '--replace'].filter((m) => argv.includes(m));
-  if (modes.length !== 1) {
-    console.error('usage: record-fixtures.mjs --create | --check | --replace --reason <text> [--dir <path>]');
+  if (modes.length !== 1 || ['--search', '--seed', '--from'].some((flag) => argv.includes(flag))) {
+    console.error('usage: record-fixtures.mjs --create | --check | --replace --reason <text> [--dir <path>]\n'
+      + '       record-fixtures.mjs --replay-case --search [--from <n>] | --create --seed <n> | --check'
+      + ' | --replace --seed <n> --reason <text> [--dir <path>]');
     return 2;
   }
   const paths = [FIXTURE_FILES.recipe, FIXTURE_FILES.sample].map((name) => resolve(dir, name));
@@ -375,5 +655,7 @@ export function main(argv) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  process.exitCode = main(process.argv.slice(2));
+  main(process.argv.slice(2)).then((code) => {
+    process.exitCode = code;
+  });
 }

@@ -66,7 +66,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP12b2 | [MP12b2](MP12b2-search-evidence-and-lock.md) | Search evidence (gate GS-P3), the Hell report, the owner's questions and the lock of the tuple | MP12b1; the pause of P-OD11 (the Sudoku repository at MS07e) and the plan author's answer to PR-P2 (§4.1) | Medium + machine time | Measurement | M7 | 25 |
 | [x] | MP12b3 | [MP12b3](MP12b3-hell-availability-and-fail-fast.md) | Hell availability (D36 (i)), the fail-fast decision (none, P-OD12) and the end of the lock | MP12b2; the owner's answers P-OD12 and P-OD13 (§4.1) | Medium–Large + gates | Engine and Generator | M7 | 26 |
 | [x] | MP13a | [MP13a](MP13a-provenance-engine.md) | Provenance in the engine and in packs | MP12b3 (the lock complete) | Medium–Large | Engine | M8 provenance and recorders | 27 |
-| [ ] | MP13b | [MP13b](MP13b-provenance-apps-and-fixture.md) | Provenance in the client, the Generator and the CLI; the replay fixture (GF-P4) | MP13a | Medium + gate | Apps and tools | M8 | 28 |
+| [x] | MP13b | [MP13b](MP13b-provenance-apps-and-fixture.md) | Provenance in the client, the Generator and the CLI; the replay fixture (GF-P4) | MP13a | Medium + gate | Apps and tools | M8 | 28 |
 | [ ] | MP14a | [MP14a](MP14a-detail-channel-and-clue-recorders.md) | Rating detail channel, clue-stage recorders and the replay of skips | MP13b | Medium–Large | Engine | M8 | 29 |
 | [ ] | MP14b | [MP14b](MP14b-set-and-layout-recorders.md) | Set and layout recorders; recorder identity | MP14a | Medium | Engine | M8 | 30 |
 | [ ] | MP15a1 | [MP15a1](MP15a1-replay-runs.md) | Replay runs: preflight, the stage runs, the work meter, the bounds and the final comparison | MP14b | Large | Engine | M9 Generation Steps | 31 |
@@ -607,7 +607,7 @@ The orchestrator owns this record.
 | MP12b2 | Accepted (tuple locked; fail-fast none proposable, owner chose none; 17 census cells accepted; Hell 1/2/3 areas empty by D39; SA2 fixes PLK01-PLK05) | 2 h 57 min developer (machine 1.54 h, lock waits 0.88 h) + 25 min SA2 review | about 1,508 | `difficulty-v3 MP12b2` |
 | MP12b3 | Accepted (lock complete, policy `mixed-v3`: Hell 1-3 withdrawn, seven levels listed, no fail-fast built, fixtures re-recorded for the policy id only; SA2 fixes MPB3-01/02) | 41 min developer (incl. fix round; machine 3.1 min, lock waits 12.4 min) + 6 min SA2 review | about 953 | `difficulty-v3 MP12b3` |
 | MP13a | Accepted (provenance records in the engine and packs; D35 identity on 9 cases; quick set 1,366) | 22 min developer (machine 2.8 min) + 5 min check | about 432 | `difficulty-v3 MP13a` |
-| MP13b | | | | |
+| MP13b | Accepted (provenance in client, Generator, CLI; GF-P4 replay fixture recorded, npm test 1,394; D35 identity on 8 cases; fixture has no skip) | 22.5 min developer (machine 6.6 min) + 3 min check | about 447 | `difficulty-v3 MP13b` |
 | MP14a | | | | |
 | MP14b | | | | |
 | MP15a1 | | | | |
