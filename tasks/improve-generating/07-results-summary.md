@@ -3,7 +3,7 @@
 | Header | Value |
 |---|---|
 | ID | IGP-07 |
-| Depends on | IGP-01 to IGP-06 (accepted and committed; a skipped optional step is reported as "later round") |
+| Depends on | IGP-01 to IGP-06 and IGP-03h (accepted and committed; a skipped optional step is reported as "later round") |
 | Estimated size | Small: about 250 new lines (`summary.mjs`, the README's re-run index, the plan); about 1 hour of developer work; no machine time (it reads records only) |
 | Owner role | Measurement prototype (reporting) |
 | Confirms or refutes | the check-list §5 table (R00 to R33), including R31, a Projection of the all-phases times from the measured factors |
@@ -26,7 +26,8 @@ are not gates).
 - `summary.mjs`: reads `docs/improve-generating/evidence/<label>/` (or `--root`) and writes `summary.json` and
   `summary.md` there.
 - `tools/ig-proto/README.md`: the re-run index (check-list §6), with every task's command and the anchor-maintenance
-  step.
+  step, and the `compare.mjs` options added in IGP-03h (`--pm1`, `--reproduce`, `--common-seeds`, cross-task pairs) that
+  its README section does not list yet.
 - `plans/IGP-07.json` (one unlocked step).
 - `verify.mjs`: the wording of its record only (after the IGP-04 review): it names the task's own criterion instead of
   "IGP-01-T02" and says "accepted ratings", not "accepted prototype ratings", for arms of today's search. Earlier
@@ -61,7 +62,7 @@ The check-list §3. No lock is needed: nothing is rated or timed. No git.
 | R27, R28 | `IGP-05/pm1.json`; `IGP-05/families-<part>.jsonl`; `IGP-03h/compare.json` when its part 2 ran | in-band and eligible ratings per cell, with the share of them whose census was censored (after the IGP-05 review: 37 of part 1's 55, all 8 of Hell 2), beside MP12b1's censored share of accepted puzzles on the same level (on Hell 1 26x26, 134 of 134); failure classes; the request-level indication on Hell 1 20x20 without the screen |
 | R29 | `IGP-01/compare.json` and `IGP-05/pm1.json` | start-count capped shares |
 | R32 | `IGP-01/compare-r2.json`, `IGP-03/compare.json` | the population of the accepted puzzles per cell and arm (clue share p10 / median / p90, U, score position, central share), per `W` |
-| R33 | `IGP-03/compare.json`; `IGP-03h/compare.json` and `IGP-03h/c5/compare.json` when they ran | the split (the factors before → no screen → 190 M, or 380 M on Hell 1, with their n; the median clue shares) and the shift's two parts; on 12x12 Nightmare, the screen's factor and same-set clue shift per seed over reps 0 to 5 |
+| R33 | `IGP-03/compare.json`; `IGP-03h/compare.json` and `IGP-03h/c5/compare.json` when they ran | the split (the factors before → no screen → 190 M, or 380 M on Hell 1, with their n; the median clue shares) and the shift's two parts; on 12x12 Nightmare, the screen's factor and same-set clue shift per seed over reps 0 to 5, from the six-seed `screenBySeed` of `IGP-03h/c5/compare.json` (it supersedes the two-seed reading of IGP-03) |
 | R09 | none | "later round" |
 | R31 | derived here | below |
 
@@ -90,8 +91,9 @@ at 89 to 98 % of rating time P7 is about the kernel speed-up itself; ÷1.9 on th
 to 2.1 times faster (IGP-06's needed speed-up for the factors 1.87 and 1.91). The result is a low, likely and high value
 labelled a Projection, shown beside the analysts' after-all values (Opus; Astra); it is never a measured or confirmed
 value. Eight workers stay an unadmitted upper bound. For 14x14 and 12x12 Nightmare the record adds the same Projection
-from IGP-03's no-screen arm (the T10 median of `IGP-03/w760`), labelled the population-keeping variant of IG-P-Q17's
-addendum after IGP-03, and on Hell 1 26x26 from `IGP-03h/w760` when that follow-up ran.
+from the no-screen arm (on 14x14 the T10 median of `IGP-03/w760`; on 12x12 the six-seed median of `IGP-03/w760` and
+`IGP-03h/w760`, reps 0 to 5), labelled the population-keeping variant of IG-P-Q17's addendum after IGP-03, and on Hell 1
+26x26 from `IGP-03h/w760`.
 
 ### `summary.mjs`
 
@@ -99,8 +101,9 @@ addendum after IGP-03, and on Hell 1 26x26 from `IGP-03h/w760` when that follow-
 '<R>': { quantity, estimate, measured, completion, kind, formula, record, verdict } }, laterRound: [ ... ] }`) and
 `<root>/summary.md` (the banner, then the table in the column order of the check-list §5, then the later-round list with
 its cost from IGP-05 and the skipped optional steps, then the round's counted machine time per task and debugging run
-from the `invocations.jsonl` files, and the open plan-author questions IG-P-Q02, IG-P-Q17 and IG-P-Q18 with the rows
-that bear on each). `--root` defaults to `docs/improve-generating/evidence/<L>/`.
+from the `invocations.jsonl` files with the unused remainder (1,028 s after IGP-03h), and the open plan-author questions
+IG-P-Q02, IG-P-Q17 and IG-P-Q18, their addenda and notes included, with the rows that bear on each). `--root` defaults
+to `docs/improve-generating/evidence/<L>/`.
 Exits 1 when a required record is missing (it names the task).
 
 ## Files to create/modify

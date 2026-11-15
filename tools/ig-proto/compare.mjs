@@ -1,24 +1,30 @@
 // @ts-check
 // Paired comparison of two arms on matched seeds (IGP-01 §4; check-list §3 "Statistics", §5 rows).
 //   node tools\ig-proto\compare.mjs --task <T> --pairs <before>:<after>[,...] --label <L> [--reference mp12b1]
-//        [--pm4 <task>] [--source-label <SL>] [--out-dir <scratch folder>]
+//        [--pm4 <task>] [--pm1 <task>] [--source-label <SL>] [--out-dir <scratch folder>]
 // It reads the published runs and call journals of the arms (arm.mjs publish) and MP12b1's reports. Every "after"
 // value is Measured and provisional; every ratio is Derived. `--out-dir` writes the records to a scratch folder
 // (tests of the script only).
 // An arm is `<arm>` (of --task) or `<task>/<arm>`; only matched seeds are paired. With a task-qualified arm the
 // script runs as a study (IGP-03): it adds the per-W, population, split (R33), shift, offset, 26x26 Master and
 // arity-3 sections, reads IGP-02's PM4 record from --pm4, and checks the journals of the no-screen arm.
+// IGP-03h adds two report-only sections to a study: an arm-only section for each cell of the task's own arms that no
+// headline cell covers (no before partner: request outcomes, accepted puzzles, locate probes and the first in-band
+// profile per call, MP12b1's outcome and, with --pm1 <task>, PM1's windows), and the screen against no screen by seed
+// over every arm of the roles w760 and main (arms of different tasks are paired by seed and role, never by tree id; a
+// seed that two arms of one role ran must give equal puzzles, else the run fails).
 // With an arm whose variant adds P6 or eight workers (IGP-04) the script runs as a factor study instead: the paired
 // factors of T10, T1, the batch and the response per pair and cell, the identity of each pair, P6's work saving from the
 // call journals, the first-phase Projection, both memory criteria and the reproduction of IGP-01's after arm.
-//   node tools\ig-proto\compare.mjs --task <T> --reproduce <arm>:IGP-01/after --label <L>   (exit 1 when the puzzles differ)
+//   node tools\ig-proto\compare.mjs --task <T> --reproduce <arm>:IGP-01/after --label <L> [--common-seeds]
+//   (exit 1 when the puzzles differ; --common-seeds compares only the seeds that both arms ran)
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { median, percentile, summarize } from '../bench/report.js';
 import { comparePair } from './identity.mjs';
-import { artifactDir, evidenceDir, MP12B1_DIGEST, mp12b1Report, parseArgs, treeDir } from './lib/paths.mjs';
+import { abs, artifactDir, evidenceDir, MP12B1_DIGEST, mp12b1Report, parseArgs, treeDir } from './lib/paths.mjs';
 import { banner, buildMeta, worktreeDigest, writeJson, writeText } from './lib/records.mjs';
 
 /** The analysts' P1 to P5 scenario rows at four workers (check-list §5; Projections), with today's report values. */
@@ -572,11 +578,283 @@ function checkJournals(arm, failures) {
   return { arm: arm.name, role, calls: calls.length, expectedW: want ?? null, startLinesWithOtherW: wrongW, screenOutcomes, reRatingTuples: rerates, a3CallsOutsideSetStage: a3InBatch, pass: wrongW === 0 && !screenOutcomes && !rerates && !a3InBatch };
 }
 
+// The arm-only and the screen-by-seed sections (IGP-03h; report only).
+
+/** The label of a cell that is not a headline cell. */
+const EXTRA_LABELS = Object.freeze(/** @type {Record<string, string>} */ ({ '20x20-hell-1': 'Hell 1 20x20' }));
+
+/** @param {string} seed @returns {number} The repetition of a landscape seed. */
+const repOf = (seed) => Number(seed.split('/').at(-1));
+
+/** @param {any} a @returns {string} An arm as `<task>/<arm>` (the `name` of a study arm drops the task of the study). */
+const armId = (a) => `${a.task}/${a.arm}`;
+
 /**
- * @param {{ arms: Record<string, any>, task: string, pm4: any, failures: string[] }} o
+ * MP12b1's prescreen of a cell that has no ordinary report (`<case>-s3-<date>.json`: no set was made).
+ * @param {string} caseId
+ * @returns {{ path: string, report: any } | null}
+ */
+function mp12b1Prescreen(caseId) {
+  const folder = 'docs/difficulty-v3/landscape-v3-full';
+  const dir = abs(folder);
+  const pattern = new RegExp(`^${caseId}-s3-\\d{4}-\\d{2}-\\d{2}\\.json$`);
+  const name = (existsSync(dir) ? readdirSync(dir).filter((n) => pattern.test(n)).sort() : []).at(-1);
+  return name === undefined ? null : { path: `${folder}/${name}`, report: JSON.parse(readFileSync(join(dir, name), 'utf8')) };
+}
+
+/** @param {any} c @returns {number} Locate probes of a call: the journaled count when it finished, else the tuples seen. */
+const locateProbes = (c) => c.end?.locate?.probes ?? c.tuples.filter((/** @type {any} */ t) => t.phase === 'locate' || t.phase === 'locate-a3').length;
+
+/**
+ * The first in-band rating of a call: its place among the call's profiles, its clue count, its offset from today's start
+ * count and its score.
+ * @param {any} c
+ */
+function firstInBand(c) {
+  const at = c.tuples.findIndex((/** @type {any} */ t) => IN_BAND.has(t.outcome));
+  if (at < 0) {
+    return null;
+  }
+  const t = c.tuples[at];
+  const start = c.start?.startCount ?? null;
+  return { ordinal: at + 1, phase: t.phase, count: t.count, offset: start === null ? null : t.count - start, score: t.score ?? null, outcome: t.outcome };
+}
+
+/**
+ * PM1's windows on a cell (IGP-05 `pm1.json`, part 1) as a population of its in-band ratings.
+ * @param {any} cell
+ */
+function pm1Windows(cell) {
+  const K = median(cell.sets.map((/** @type {any} */ s) => s.K));
+  const list = cell.inBandRatings.map((/** @type {any} */ r) => ({ clues: r.count, K, U: NaN, score: r.score }));
+  return {
+    band: cell.band, sets: cell.sets.length, K, startCount: median(cell.sets.map((/** @type {any} */ s) => s.startCount)), families: cell.families,
+    ratings: cell.ratings, capped: cell.capped, inBand: cell.inBand, eligible: cell.eligible, population: population(list, cell.band),
+    offsets: dist(cell.inBandRatings.map((/** @type {any} */ r) => r.offset)), mainWorkAbove: cell.mainWorkAbove, boundaries: cell.boundaries,
+    msPerInBand: cell.msPerInBand,
+  };
+}
+
+/**
+ * A cell of the task's own arm without a before partner (IGP-03h): the arm's request outcomes, accepted puzzles and calls
+ * beside MP12b1's outcome on the same seeds and PM1's windows.
+ * @param {any} arm
+ * @param {string} caseId
+ * @param {any} pm1Cell PM1's record of the cell, or null.
+ * @param {string} cellLabel
+ * @returns {{ json: any, lines: string[] }}
+ */
+function armOnly(arm, caseId, pm1Cell, cellLabel) {
+  const seeds = [...new Set(arm.rows.filter((/** @type {any} */ r) => r.caseId === caseId).map((/** @type {any} */ r) => r.seed))].sort();
+  const sa = studyArm(arm, caseId, seeds);
+  const found = mp12b1Report(caseId);
+  const reference = found ?? mp12b1Prescreen(caseId);
+  const refName = found === null ? 'MP12b1 prescreen' : 'MP12b1';
+  const refRuns = reference === null ? [] : reference.report.runs.filter((/** @type {any} */ r) => r.probeKind === 'generation');
+  const requests = sa.reqs.map((/** @type {any} */ q) => {
+    const run = q.row.run;
+    const ref = refRuns.find((/** @type {any} */ r) => r.seed === q.seed) ?? null;
+    return {
+      seed: q.seed, accepted: q.accepted, t1: run.firstReadyMs ?? null, t10: reachedTen(q.row) ? run.tenthReadyMs : null, response: run.responseMs,
+      partial: run.partialReason ?? null, childLimitCut: isCensored(q.row), K: q.K, startCount: q.startCount, setAttempt: q.setAttempt,
+      ratingCensored: run.ratingCensoredCount ?? 0,
+      today: ref === null ? null : { accepted: ref.acceptedCount, t1: ref.firstReadyMs ?? null, t10: ref.tenthReadyMs ?? null, response: ref.responseMs, partial: ref.partialReason ?? null },
+    };
+  });
+  const accepted = sum(requests.map((/** @type {any} */ r) => r.accepted));
+  const ratingCensored = sum(requests.map((/** @type {any} */ r) => r.ratingCensored));
+  const offsets = sa.reqs.flatMap((/** @type {any} */ q) => (q.startCount === null ? [] : q.clues.map((/** @type {number} */ c) => c - q.startCount)));
+  const pop = population(sa.puzzles, sa.band);
+  const windows = pm1Cell === null ? null : pm1Windows(pm1Cell);
+  const calls = sa.reqs.flatMap((/** @type {any} */ q) => q.calls.map((/** @type {any} */ c) => ({ seed: q.seed, c })));
+  const stages = STAGES.map((stage) => {
+    const list = calls.filter(({ c }) => c.stage === stage);
+    const finished = list.filter(({ c }) => c.end !== null);
+    const ok = finished.filter(({ c }) => c.end.result === 'ok');
+    const firsts = ok.map(({ c }) => firstInBand(c)).filter((x) => x !== null);
+    return {
+      stage, calls: list.length, finished: finished.length, ok: ok.length, noWindow: finished.filter(({ c }) => c.end.result === 'no-window').length,
+      unfinished: list.length - finished.length, locateProbes: stat(finished.map(({ c }) => locateProbes(c))), locateProbesOk: stat(ok.map(({ c }) => locateProbes(c))),
+      profiles: stat(finished.map(({ c }) => c.tuples.length)), okWithInBand: firsts.length,
+      firstInBand: { ordinal: stat(firsts.map((f) => f.ordinal)), count: stat(firsts.map((f) => f.count)), offset: stat(num(firsts.map((f) => f.offset))) },
+    };
+  }).filter((s) => s.calls > 0);
+  const perCall = calls.map(({ seed, c }) => ({
+    rep: repOf(seed), call: c.id, stage: c.stage, attempt: c.start?.attempt ?? null, K: c.start?.K ?? null, c0: c.end?.locate?.c0 ?? null,
+    result: c.end === null ? 'unfinished' : c.end.result, locateProbes: locateProbes(c), profiles: c.tuples.length, locateHit: c.end?.locate?.hit ?? null,
+    firstInBand: firstInBand(c), ms: c.end?.ms ?? null,
+    path: c.tuples.filter((/** @type {any} */ t) => t.phase === 'locate' || t.phase === 'locate-a3').map((/** @type {any} */ t) => `${t.count}:${t.outcome}`).join(' '),
+  }));
+  const share = accepted === 0 ? null : ratingCensored / accepted;
+  const cell = sa.cell;
+  const indication = `a ${['zero', 'one', 'two', 'three', 'four'][seeds.length] ?? seeds.length}-request indication`;
+  const json = {
+    arm: armId(arm), variant: arm.variant, seeds, band: sa.band, reference: reference === null ? null : { kind: refName, path: reference.path },
+    requests, reached: cell.reached, t1: cell.t1, t10: cell.t10, response: cell.response, accepted, ratingCensored, ratingCensoredShare: share,
+    population: pop, offsets: dist(offsets), acceptedOffsets: sa.acceptedOffsets, stages, perCall, pm1: windows,
+  };
+
+  /** @type {string[]} */
+  const lines = ['', `### ${cellLabel}: arm only, no before partner (${armId(arm)}, ${indication})`, '',
+    `IGP-01 has no before arm on this cell, so the arm is read by itself, beside ${refName} on the same seeds${reference === null ? ' (no report found)' : ` (\`${reference.path}\`)`} and, where given, PM1's windows (IGP-05). Offsets are clue counts less today's start count. "Rating-censored" counts accepted puzzles whose rating is an estimate (a census stopped at its relative budget, R27); "child-limit cut" is a request stopped at the row limit.`, '',
+    `| Seed | Accepted | T1 s | T10 s | Response s | Ended | Child-limit cut | Rating-censored | K | Start count | Set attempt | ${refName}: accepted / T1 s / T10 s / response s / ended |`, '|---|---:|---:|---:|---:|---|---|---:|---:|---:|---:|---|'];
+  for (const r of requests) {
+    const t = r.today;
+    lines.push(`| ${repOf(r.seed)} | ${r.accepted} | ${sec(r.t1)} | ${sec(r.t10)} | ${sec(r.response)} | ${r.partial ?? 'complete'} | ${r.childLimitCut ? 'yes' : 'no'} | ${r.ratingCensored} of ${r.accepted} | ${r.K ?? '-'} | ${r.startCount ?? '-'} | ${r.setAttempt ?? '-'} | ${t === null ? '-' : `${t.accepted} / ${sec(t.t1)} / ${sec(t.t10)} / ${sec(t.response)} / ${t.partial ?? 'complete'}`} |`);
+  }
+  const refSeeds = refRuns.filter((/** @type {any} */ r) => seeds.includes(r.seed));
+  lines.push('', `Ten of n: ${cell.reached} of ${cell.requests}${reference === null ? '' : `; ${refName}: ${refSeeds.filter((/** @type {any} */ r) => r.tenthReadyMs !== null && r.tenthReadyMs !== undefined).length} of ${refSeeds.length} on the same seeds (${refRuns.length} requests in the report)`}. T1 median ${sec(cell.t1.median)} s, T10 median ${sec(cell.t10.median)} s, response median ${sec(cell.response.median)} s. Accepted puzzles ${accepted}; rating-censored ${ratingCensored} of ${accepted} (${pct(share)}).`, '',
+    '| Source | Puzzles | Clue share p10 / median / p90 | Median clues (K) | Offset min / median / max | Score position median (0.5 is the centre) | Central share |', '|---|---:|---|---|---|---:|---:|');
+  const od = dist(offsets);
+  lines.push(`| ${armId(arm)}: accepted puzzles | ${pop.puzzles} | ${p10p90(pop.share)} | ${fix(pop.clues.median, 1)} (${fix(pop.K.median, 1)}) | ${od.n === 0 ? '-' : `${od.min} / ${fix(od.median, 1)} / ${od.max}`} | ${fix(pop.position.median, 2)} | ${pct(pop.centralShare)} |`);
+  if (windows !== null) {
+    const wp = windows.population;
+    const wo = windows.offsets;
+    lines.push(`| PM1 (IGP-05): in-band ratings of the cell | ${wp.puzzles} | ${p10p90(wp.share)} | ${fix(wp.clues.median, 1)} (${fix(windows.K, 1)}) | ${wo.n === 0 ? '-' : `${wo.min} / ${fix(wo.median, 1)} / ${wo.max}`} | ${fix(wp.position.median, 2)} | ${pct(wp.centralShare)} |`);
+    const above = (/** @type {string} */ w) => `${windows.mainWorkAbove?.[w]?.inBand?.n ?? '-'} of ${windows.mainWorkAbove?.[w]?.inBand?.of ?? '-'}`;
+    lines.push('', `PM1's windows on this cell (IGP-05, \`ig-pm1\` seeds, two sets of K ${windows.K}, today's start count ${windows.startCount}, band [${windows.band.min}, ${windows.band.max})): ${windows.inBand.ratings} in-band ratings (${windows.eligible.ratings} eligible) of ${windows.ratings} ratings, ${windows.capped} capped, in ${windows.inBand.families} of ${windows.families} families; main work above 95 / 190 / 380 M: ${above('95')} / ${above('190')} / ${above('380')} in-band ratings; ${fix(windows.msPerInBand === null ? null : windows.msPerInBand / 1000, 1)} s of rating per in-band rating.`);
+  }
+  lines.push('', 'Locate and calls, per stage (locate probes are the rated counts of phase A; the first in-band profile is the first rating of the call inside the band and not refused by AR1):', '',
+    '| Stage | Calls | Ok | No-window | Unfinished | Locate probes per finished call: median / p90 / max | Per ok call: median / max | Profiles per finished call: median / max | Ok calls with an in-band profile | First in-band: probe no. median [range] | Clue count median [range] | Offset median [range] |', '|---|---:|---:|---:|---:|---|---|---|---:|---|---|---|');
+  const rangeOf = (/** @type {number[]} */ v) => (v.length === 0 ? '-' : `${fix(median(v), 1)} [${Math.min(...v)}-${Math.max(...v)}]`);
+  for (const s of stages) {
+    const firsts = calls.filter(({ c }) => c.stage === s.stage && c.end?.result === 'ok').map(({ c }) => firstInBand(c)).filter((x) => x !== null);
+    lines.push(`| ${s.stage} | ${s.calls} | ${s.ok} | ${s.noWindow} | ${s.unfinished} | ${fix(s.locateProbes.median, 1)} / ${fix(s.locateProbes.p90, 1)} / ${fix(s.locateProbes.max, 0)} | ${fix(s.locateProbesOk.median, 1)} / ${fix(s.locateProbesOk.max, 0)} | ${fix(s.profiles.median, 1)} / ${fix(s.profiles.max, 0)} | ${s.okWithInBand} | ${rangeOf(firsts.map((f) => f.ordinal))} | ${rangeOf(firsts.map((f) => f.count))} | ${rangeOf(num(firsts.map((f) => f.offset)))} |`);
+  }
+  const shown = perCall.slice(0, 60);
+  lines.push('', 'Every call (rep, call, stage, set attempt, K, start of the locate, result, locate probes, profiles, journaled locate hit, first in-band profile as probe no. / count / offset / score, ms, locate path as count:outcome):', '',
+    '| Rep | Call | Stage | Attempt | K | c0 | Result | Locate probes | Profiles | Locate hit | First in-band | ms | Locate path |', '|---:|---|---|---:|---:|---:|---|---:|---:|---:|---|---:|---|');
+  for (const p of shown) {
+    const f = p.firstInBand;
+    lines.push(`| ${p.rep} | ${p.call} | ${p.stage} | ${p.attempt ?? '-'} | ${p.K ?? '-'} | ${p.c0 ?? '-'} | ${p.result} | ${p.locateProbes} | ${p.profiles} | ${p.locateHit ?? '-'} | ${f === null ? '-' : `${f.ordinal} / ${f.count} / ${f.offset === null ? '-' : (f.offset >= 0 ? '+' : '') + f.offset} / ${f.score ?? '-'}`} | ${fix(p.ms, 0)} | ${p.path} |`);
+  }
+  if (perCall.length > shown.length) {
+    lines.push('', `${perCall.length - shown.length} further calls are in \`compare.json\`.`);
+  }
+  return { json, lines };
+}
+
+/**
+ * The screen against the search without it, by seed, over every arm of the roles `w760` and `main` (IGP-03h part 3): arms
+ * of different tasks are paired by seed and by role (the variant), never by tree id. Today is MP12b1's record.
+ * @param {any[]} armList
+ * @param {string} caseId
+ * @param {string} cellLabel
+ * @param {string[]} failures
+ * @returns {{ json: any, lines: string[] } | null}
+ */
+function screenBySeed(armList, caseId, cellLabel, failures) {
+  const collect = (/** @type {string} */ role) => {
+    /** @type {Map<string, { arm: any, row: any, others: { arm: any, row: any }[] }>} */
+    const found = new Map();
+    for (const arm of armList.filter((a) => ROLE_OF_VARIANT[a.variant] === role)) {
+      for (const row of arm.rows.filter((/** @type {any} */ r) => r.caseId === caseId)) {
+        const at = found.get(row.seed);
+        if (at === undefined) {
+          found.set(row.seed, { arm, row, others: [] });
+        } else {
+          at.others.push({ arm, row });
+        }
+      }
+    }
+    return found;
+  };
+  const w = collect('w760');
+  const m = collect('main');
+  const seeds = [...w.keys()].filter((s) => m.has(s)).sort((a, b) => repOf(a) - repOf(b));
+  if (seeds.length === 0) {
+    return null;
+  }
+  const mp = mp12b1Report(caseId);
+  const mpRuns = mp === null ? [] : mp.report.runs.filter((/** @type {any} */ r) => r.probeKind === 'generation');
+  const medianOf = (/** @type {number[]} */ v) => (v.length === 0 ? null : median(v));
+  const side = (/** @type {Map<string, any>} */ found, /** @type {string} */ seed) => {
+    const f = found.get(seed);
+    const q = requestInfo(f.row, f.arm.byRow);
+    const clues = medianOf(q.clues);
+    for (const o of f.others) {
+      const r = comparePair(f.row.run, o.row.run);
+      if (!(r.countsEqual && r.digestEqual === true && r.setKeyEqual !== false && r.keyPrefixEqual !== false)) {
+        failures.push(`${seed}: ${armId(f.arm)} and ${armId(o.arm)} ran the same seed and differ (${r.note})`);
+      }
+    }
+    return {
+      source: armId(f.arm), also: f.others.map((/** @type {any} */ o) => armId(o.arm)), accepted: q.accepted, t1: f.row.run.firstReadyMs ?? null, t10: reachedTen(f.row) ? f.row.run.tenthReadyMs : null,
+      response: f.row.run.responseMs, childLimitCut: isCensored(f.row), clues, K: q.K, share: clues === null || q.K === null ? null : clues / q.K,
+      setAttempt: q.setAttempt, setKey: q.setKey, ratingCensored: f.row.run.ratingCensoredCount ?? 0, digest: f.row.run.details?.resultDigest ?? null,
+      duplicates: f.others.map((/** @type {any} */ o) => ({ source: armId(o.arm), digestEqual: (o.row.run.details?.resultDigest ?? null) === (f.row.run.details?.resultDigest ?? null) })),
+    };
+  };
+  const todayOf = (/** @type {string} */ seed) => {
+    const r = mpRuns.find((/** @type {any} */ x) => x.seed === seed);
+    if (r === undefined) {
+      return null;
+    }
+    const clues = medianOf((r.details?.puzzles ?? []).map((/** @type {any} */ p) => p.clues));
+    const K = r.details?.K ?? null;
+    return {
+      accepted: r.acceptedCount, t1: r.firstReadyMs ?? null, t10: r.tenthReadyMs ?? null, response: r.responseMs, clues, K, share: clues === null || K === null ? null : clues / K,
+      setAttempt: r.details?.setAttempt ?? null,
+    };
+  };
+  const ratioOf = (/** @type {number | null} */ a, /** @type {number | null} */ b) => (a === null || b === null || b === 0 ? null : a / b);
+  const rows = seeds.map((seed) => {
+    const a = side(w, seed);
+    const b = side(m, seed);
+    const today = todayOf(seed);
+    const sameSet = a.setKey === null || b.setKey === null ? null : a.setKey === b.setKey;
+    return {
+      seed, rep: repOf(seed), today, w760: a, main: b,
+      t10Ratio: ratioOf(a.t10, b.t10), responseRatio: a.childLimitCut || b.childLimitCut ? null : ratioOf(a.response, b.response),
+      todayOverW760: ratioOf(today?.t10 ?? null, a.t10), todayOverMain: ratioOf(today?.t10 ?? null, b.t10),
+      sameSet, shiftClues: sameSet === true && a.clues !== null && b.clues !== null ? b.clues - a.clues : null,
+      shiftShare: sameSet === true && a.share !== null && b.share !== null ? b.share - a.share : null,
+    };
+  });
+  const nums = (/** @type {(r: any) => number | null} */ f) => /** @type {number[]} */ (rows.map(f).filter((x) => x !== null));
+  const ratioSummary = (/** @type {number[]} */ v) => ({ ...ratioStat(v), geoMean: geoMean(v) });
+  const bandArm = armList.find((a) => ROLE_OF_VARIANT[a.variant] === 'w760');
+  const startLine = bandArm === undefined ? undefined : (bandArm.byRow.get(w.get(seeds[0])?.row.rowKey) ?? []).find((/** @type {any} */ c) => c.start !== null)?.start;
+  const band = startLine !== undefined && Number.isFinite(startLine.max) && startLine.max !== null ? { min: startLine.min, max: startLine.max } : null;
+  const popBand = (/** @type {any[]} */ runs) => population(puzzlesOfRuns(runs), band);
+  const populations = {
+    today: popBand(mpRuns.filter((/** @type {any} */ r) => seeds.includes(r.seed))), w760: popBand(seeds.map((s) => /** @type {any} */ (w.get(s)).row.run)),
+    main: popBand(seeds.map((s) => /** @type {any} */ (m.get(s)).row.run)), mp12b1All: popBand(mpRuns),
+  };
+  const reached = (/** @type {'w760' | 'main'} */ role) => rows.filter((r) => r[role].t10 !== null).length;
+  const summary = {
+    seeds: seeds.length, reached: { w760: reached('w760'), main: reached('main'), today: rows.filter((r) => r.today?.t10 !== null && r.today?.t10 !== undefined).length },
+    t10Ratio: ratioSummary(nums((r) => r.t10Ratio)), responseRatio: ratioSummary(nums((r) => r.responseRatio)),
+    todayOverW760: ratioSummary(nums((r) => r.todayOverW760)), todayOverMain: ratioSummary(nums((r) => r.todayOverMain)),
+    shiftClues: { n: nums((r) => r.shiftClues).length, median: medianOf(nums((r) => r.shiftClues)) },
+    shiftShare: { n: nums((r) => r.shiftShare).length, median: medianOf(nums((r) => r.shiftShare)) },
+    sameSet: rows.filter((r) => r.sameSet === true).length, populations,
+  };
+  const mainLabel = caseId.includes('hell') ? 'at 380 M' : 'at 190 M';
+  const sources = (/** @type {'w760' | 'main'} */ role) => [...new Set(rows.map((r) => r[role].source))].join(', ');
+  const cs = (/** @type {any} */ x) => (x === null ? '-' : `${x.accepted} / ${sec(x.t10)} / ${sec(x.response)}`);
+  /** @type {string[]} */
+  const lines = ['', `### ${cellLabel}: the screen against no screen, by seed, all seeds (R33; ${seeds.length} seed${seeds.length === 1 ? '' : 's'})`, '',
+    `Paired by seed and by variant role, never by tree id. No screen (\`p1p5-w760\`) from ${sources('w760')}; the screen ${mainLabel} (\`p1p5-main\`) from ${sources('main')}; today is MP12b1's record of the same seeds. Cells are accepted / T10 s / response s (T10 is blank where a request did not reach ten). Ratios above 1 mean the first named arm is slower. A set is "the same" when \`igSetKey\` is equal.`, '',
+    '| Rep | Today (MP12b1) | No screen | Screen | T10 no screen / screen | Response no screen / screen | T10 today / no screen | T10 today / screen | Set attempt: today / no screen / screen | Same set (no screen, screen) | Median clues: today / no screen / screen | Screen − no screen, same set: clues, share |',
+    '|---:|---|---|---|---:|---:|---:|---:|---|---|---|---|'];
+  for (const r of rows) {
+    lines.push(`| ${r.rep} | ${cs(r.today)} | ${cs(r.w760)} | ${cs(r.main)}${r.main.also.length > 0 ? ` (also ${r.main.also.join(', ')}: digest ${r.main.duplicates.every((/** @type {any} */ d) => d.digestEqual) ? 'equal' : 'DIFFERS'})` : ''} | ${fix(r.t10Ratio)} | ${fix(r.responseRatio)} | ${fix(r.todayOverW760)} | ${fix(r.todayOverMain)} | ${r.today?.setAttempt ?? '-'} / ${r.w760.setAttempt ?? '-'} / ${r.main.setAttempt ?? '-'} | ${r.sameSet === null ? 'unknown' : r.sameSet ? 'same' : 'different'} | ${fix(r.today?.clues, 1)} / ${fix(r.w760.clues, 1)} / ${fix(r.main.clues, 1)} | ${r.shiftClues === null ? '-' : `${r.shiftClues >= 0 ? '+' : ''}${fix(r.shiftClues, 1)}, ${r.shiftShare === null ? '-' : `${r.shiftShare >= 0 ? '+' : ''}${fix(r.shiftShare, 3)}`}`} |`);
+  }
+  const rs = (/** @type {any} */ s) => (s.n === 0 ? '-' : `median ${fix(s.median)} [${fix(s.min)}-${fix(s.max)}], geometric mean ${fix(s.geoMean)}, n ${s.n}`);
+  lines.push('', `Ten of n: today ${summary.reached.today} of ${seeds.length}, no screen ${summary.reached.w760}, screen ${summary.reached.main}. T10 ratio no screen / screen: ${rs(summary.t10Ratio)}; response ratio: ${rs(summary.responseRatio)}; today / no screen: ${rs(summary.todayOverW760)}; today / screen: ${rs(summary.todayOverMain)}. On the ${summary.sameSet} of ${seeds.length} seeds served on the same set by both arms, the screen's clue shift (screen − no screen) has median ${fix(summary.shiftClues.median, 1)} clues (n ${summary.shiftClues.n}) and ${fix(summary.shiftShare.median, 3)} of K.`, '',
+    '| Population of the accepted puzzles | Puzzles | Clue share p10 / median / p90 | Median clues (K) | Score position median | Central share |', '|---|---:|---|---|---:|---:|');
+  for (const [name, pop] of [['Today, MP12b1, these seeds', populations.today], ['No screen', populations.w760], ['Screen', populations.main], ['MP12b1, all reps', populations.mp12b1All]]) {
+    lines.push(`| ${name} | ${pop.puzzles} | ${p10p90(pop.share)} | ${fix(pop.clues.median, 1)} (${fix(pop.K.median, 1)}) | ${fix(pop.position.median, 2)} | ${pct(pop.centralShare)} |`);
+  }
+  return { json: { seeds, rows, summary }, lines };
+}
+
+/**
+ * @param {{ arms: Record<string, any>, task: string, pm4: any, pm1: any, failures: string[] }} o
  * @returns {{ json: any, lines: string[], rows: Record<string, any> }}
  */
-function buildStudy({ arms, task, pm4, failures }) {
+function buildStudy({ arms, task, pm4, pm1, failures }) {
   /** @type {Record<string, any>} */
   const byRole = {};
   for (const arm of Object.values(arms)) {
@@ -594,7 +872,7 @@ function buildStudy({ arms, task, pm4, failures }) {
   const cells = {};
   /** @type {Record<string, any>} */
   const rows = {};
-  const label = (/** @type {string} */ id) => HEADLINE.find((h) => h.id === id)?.label ?? id;
+  const label = (/** @type {string} */ id) => HEADLINE.find((h) => h.id === id)?.label ?? EXTRA_LABELS[id] ?? id;
 
   lines.push('', '## Study of the W variants, the no-screen arm and arity 3 (IGP-03)', '',
     'The per-W, split, shift and offset tables rest on the matched seeds of each cell (two seeds on 14x14 and 12x12 Nightmare and on Hell 1 26x26, five on 26x26 Master): **a two-seed indication** (five-seed on Master), not an estimate of a factor or a rate. PM4 (IGP-02) carries the per-W economics. No `W_screen` is recommended here: the least-work W is descriptive, and the choice waits for the answer to IG-P-Q17 and the frozen round.', '');
@@ -672,7 +950,7 @@ function buildStudy({ arms, task, pm4, failures }) {
         return { from, to, t10: paired.t10Ratio, response: paired.responseRatio, completion: paired.completion, shareShift: shareMedian(to) === null || shareMedian(from) === null ? null : shareMedian(to) - shareMedian(from) };
       });
       cell.split = { factors, clueShare: Object.fromEntries(roles.map((r) => [r, shareMedian(r)])) };
-      lines.push('', `#### The split (R33): before → no screen → 190 M (${indication})`, '',
+      lines.push('', `#### The split (R33): before → no screen → ${sa.main?.W ? sa.main.W / 1e6 : 190} M (${indication})`, '',
         '| Arm | Ten of n | T10 median s | Response median s | Median clue share |', '|---|---|---:|---:|---:|');
       for (const r of ['before', 'w760', 'w380', 'main', 'w095'].filter((x) => sa[x] !== undefined)) {
         const c = sa[r].cell;
@@ -741,6 +1019,28 @@ function buildStudy({ arms, task, pm4, failures }) {
       lines.push(`| ${b} | ${offRoles.map((r) => sa[r].acceptedOffsets[b]).join(' | ')} | ${offRoles.map(pr).join(' | ')} | ${pm === undefined || pm.n === 0 ? '0' : `${pm.n} (${pct(pm.cappedShare)}, ${pm.useful}, ${fix(pm.msMedian, 0)})`} |`);
     }
     lines.push('', `Offset = clue count − today's start count of the request's set (the \`startCount\` of the journal start lines). Probes are every rating attempt of the cohort's calls except re-ratings; capped = screen-capped (scap0, scap1, over) or canonically capped; in band = a rating inside the score band, not refused by AR1.${band === null ? ' The band is open above: score positions are not computed.' : ''}`);
+  }
+
+  // Cells without a before partner, and the screen against no screen on every seed (IGP-03h).
+  const armList = Object.values(arms);
+  const ownCases = [...new Set(owners.flatMap((a) => a.rows.map((/** @type {any} */ r) => r.caseId)))];
+  /** @type {Record<string, any>} */
+  const armOnlyCells = {};
+  for (const caseId of ownCases.filter((id) => !cellIds.includes(id)).sort()) {
+    for (const arm of owners.filter((a) => a.rows.some((/** @type {any} */ r) => r.caseId === caseId))) {
+      const result = armOnly(arm, caseId, pm1?.part1?.[caseId] ?? null, label(caseId));
+      armOnlyCells[caseId] = { ...armOnlyCells[caseId], [ROLE_OF_VARIANT[arm.variant] ?? arm.variant]: result.json };
+      lines.push(...result.lines);
+    }
+  }
+  /** @type {Record<string, any>} */
+  const bySeed = {};
+  for (const caseId of ownCases) {
+    const result = screenBySeed(armList, caseId, label(caseId), failures);
+    if (result !== null) {
+      bySeed[caseId] = result.json;
+      lines.push(...result.lines);
+    }
   }
 
   // 26x26 Master at 380 M (R07).
@@ -831,7 +1131,13 @@ function buildStudy({ arms, task, pm4, failures }) {
   if (master?.w380Table !== undefined) {
     rows.R07 = { '26x26-master': master.w380Table };
   }
-  return { json: { checks, cells }, lines, rows };
+  for (const [caseId, byRole2] of Object.entries(armOnlyCells)) {
+    rows.R27 = { ...rows.R27, [caseId]: Object.fromEntries(Object.entries(byRole2).map(([role, a]) => [role, { accepted: a.accepted, ratingCensored: a.ratingCensored, share: a.ratingCensoredShare }])) };
+  }
+  for (const [caseId, s] of Object.entries(bySeed)) {
+    rows.R33 = { ...rows.R33, [caseId]: { ...rows.R33?.[caseId], screenBySeed: s.summary } };
+  }
+  return { json: { checks, cells, armOnly: armOnlyCells, screenBySeed: bySeed }, lines, rows };
 }
 
 // The factor study (IGP-04): P6 on today's search, and eight workers as an unadmitted upper bound.
@@ -1054,12 +1360,16 @@ async function memoryOf(arm) {
 
 /**
  * Arm E against IGP-01's after arm: the same puzzles on every seed (`resultDigest` equal at equal accepted counts; the
- * keys and the set key equal as well). A difference is a stop.
+ * keys and the set key equal as well). A difference is a stop. With `commonOnly` (IGP-03h) the seeds that the reference arm
+ * never ran are left out and listed (an arm that ran more seeds than the reference).
  * @param {any} e The arm (variant p1p5-main) of this study.
  * @param {any} ref IGP-01's after arm.
+ * @param {boolean} [commonOnly]
  */
-export function reproduction(e, ref) {
-  const seeds = e.rows.map((/** @type {any} */ r) => ({ caseId: r.caseId, seed: r.seed })).sort((a, b) => (a.seed < b.seed ? -1 : 1));
+export function reproduction(e, ref, commonOnly = false) {
+  const all = e.rows.map((/** @type {any} */ r) => ({ caseId: r.caseId, seed: r.seed })).sort((/** @type {any} */ a, /** @type {any} */ b) => (a.seed < b.seed ? -1 : 1));
+  const seeds = commonOnly ? all.filter(({ seed }) => ref.rows.some((/** @type {any} */ r) => r.seed === seed)) : all;
+  const skipped = all.filter((s) => !seeds.includes(s)).map((s) => s.seed);
   const perSeed = seeds.map(({ caseId, seed }) => {
     const mine = e.rows.find((/** @type {any} */ r) => r.seed === seed);
     const theirs = ref.rows.find((/** @type {any} */ r) => r.seed === seed);
@@ -1073,7 +1383,7 @@ export function reproduction(e, ref) {
       keysEqual: r.keyPrefixEqual, resultDigest: mine.run.details?.resultDigest ?? null, note: r.note,
     };
   });
-  return { reference: `${IGP01_AFTER.task}/${IGP01_AFTER.arm}`, ok: perSeed.length > 0 && perSeed.every((s) => s.ok), perSeed };
+  return { reference: `${IGP01_AFTER.task}/${IGP01_AFTER.arm}`, ok: perSeed.length > 0 && perSeed.every((s) => s.ok), perSeed, skipped };
 }
 
 /**
@@ -1309,15 +1619,19 @@ function parseArm(text, task) {
  * @param {string} task
  * @param {string} label
  * @param {string} text `<arm>:<task>/<arm>`
+ * @param {boolean} commonOnly Compare only the seeds that both arms ran (IGP-03h).
  * @returns {number}
  */
-function reproduceCommand(task, label, text) {
+function reproduceCommand(task, label, text, commonOnly) {
   const [mine, theirs] = text.split(':');
   const a = parseArm(mine, task);
   const r = parseArm(theirs, task);
-  const result = reproduction(loadArm(label, a.task, a.arm), loadArm(label, r.task, r.arm));
+  const result = reproduction(loadArm(label, a.task, a.arm), loadArm(label, r.task, r.arm), commonOnly);
   for (const s of result.perSeed) {
     process.stdout.write(`compare: ${s.seed}: ${s.ok ? 'puzzles equal' : `DIFFERS (${s.note})`}\n`);
+  }
+  if (result.skipped.length > 0) {
+    process.stdout.write(`compare: not compared (${result.reference} never ran them): ${result.skipped.join(', ')}\n`);
   }
   process.stdout.write(`compare: arm ${a.name} ${result.ok ? 'reproduces' : 'DOES NOT reproduce'} ${result.reference} on ${result.perSeed.length} seed(s)\n`);
   return result.ok ? 0 : 1;
@@ -1325,7 +1639,7 @@ function reproduceCommand(task, label, text) {
 
 /** @param {string[]} argv @returns {Promise<number>} */
 async function main(argv) {
-  const { args } = parseArgs(argv, { values: ['task', 'pairs', 'label', 'reference', 'pm4', 'source-label', 'out-dir', 'reproduce'] });
+  const { args, on } = parseArgs(argv, { values: ['task', 'pairs', 'label', 'reference', 'pm4', 'pm1', 'source-label', 'out-dir', 'reproduce'], switches: ['common-seeds'] });
   for (const name of args.reproduce === undefined ? ['task', 'pairs', 'label'] : ['task', 'label']) {
     if (args[name] === undefined) {
       throw new Error(`--${name} is required`);
@@ -1333,7 +1647,7 @@ async function main(argv) {
   }
   const { task, label } = args;
   if (args.reproduce !== undefined) {
-    return reproduceCommand(task, label, args.reproduce);
+    return reproduceCommand(task, label, args.reproduce, on.has('common-seeds'));
   }
   const out = (/** @type {string} */ name) => (args['out-dir'] === undefined ? evidenceDir(label, task, name) : join(args['out-dir'], name));
   /** @type {string[]} */
@@ -1350,6 +1664,7 @@ async function main(argv) {
     return [a, { ...loadArm(label, parsed.task, parsed.arm), ...parsed }];
   }));
   const pm4 = args.pm4 === undefined ? null : JSON.parse(readFileSync(evidenceDir(label, args.pm4, 'pm4.json'), 'utf8'));
+  const pm1 = args.pm1 === undefined ? null : JSON.parse(readFileSync(evidenceDir(label, args.pm1, 'pm1.json'), 'utf8'));
   const meta = await buildMeta({ task, label, kind: 'compare', trees: [...new Set(armNames.map((a) => arms[a].variant))], sourceLabel: args['source-label'] });
   const stateFile = join(artifactDir(label, task, 'self-test'), 'state.json');
   const appendCostMs = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')).appendCostMs ?? null : null;
@@ -1427,16 +1742,17 @@ async function main(argv) {
     rows.R19 = { value: pick(Object.keys(first.cells), (c) => c.after.locate), kind: 'Measured', formula: 'locate probes per finished call (median, p90) and the locate results and no-window proofs' };
     rows.R29 = { value: pick(Object.keys(first.cells), (c) => c.before.startCountCapped), kind: 'Derived', formula: 'p1 tuples at the call start count that are capped / all p1 tuples at it (before arm, every stage)' };
   }
-  const studyResult = study ? buildStudy({ arms, task, pm4, failures }) : null;
+  const studyResult = study ? buildStudy({ arms, task, pm4, pm1, failures }) : null;
   if (studyResult !== null) {
-    const kinds = { R07: 'Measured; ratio Derived', R16: 'Measured; Derived', R18: 'Derived', R20: 'Measured; the T1 bound is a Projection', R32: 'Measured; Derived', R33: 'Measured; ratios Derived' };
+    const kinds = { R07: 'Measured; ratio Derived', R16: 'Measured; Derived', R18: 'Derived', R20: 'Measured; the T1 bound is a Projection', R27: 'Measured; Derived', R32: 'Measured; Derived', R33: 'Measured; ratios Derived' };
     const formulas = {
       R07: '26x26 Master reps 0-4: T10 before, IGP-01 after (190 M) and 380 M, per-seed ratios',
       R16: 'median work per accepted puzzle (batch and completion; with the set stage) per W and cell; the W with the least median is descriptive',
       R18: 're-ratings per call and their share of the work; re-rated probes in band per W and cell',
       R20: 'set-stage probes per call (wasted included), rounds, serial and critical ms, the idealised call-level T1 bound and the measured T1',
+      R27: 'accepted puzzles of an arm-only cell whose rating is an estimate (`ratingCensoredCount`) / accepted puzzles',
       R32: 'population of the accepted puzzles per W and cell (clue share p10 / median / p90, position, central share)',
-      R33: 'paired factors before -> no screen -> 190 M with their n, the two parts of the shift',
+      R33: 'paired factors before -> no screen -> 190 M with their n, the two parts of the shift; screenBySeed: no screen / screen by seed over every arm of the two roles',
     };
     for (const [id, value] of Object.entries(studyResult.rows)) {
       rows[id] = { value, kind: /** @type {any} */ (kinds)[id], formula: /** @type {any} */ (formulas)[id] };

@@ -760,6 +760,39 @@ blind play comparison of the two populations. (b) is the conservative fallback.
   R32, R33 and R07), `compare.json`, the arm folders `w095/`, `w380/`, `w760/` and `a3/` (`*.runs.json`,
   `*.calls.jsonl`) and `verify-*.md`.
 
+**Note after IGP-03h (six seeds on 12x12 Nightmare, and Hell 1 26x26 without the screen), 2026-11-15 (Opus).**
+
+- *12x12 Nightmare, reps 0 to 5* (no screen from IGP-03 and IGP-03h, 190 M from IGP-01 and IGP-03h, today from
+  MP12b1's records of the same seeds; every request of both arms on the same set as the other arm):
+
+| | Today (MP12b1) | No screen | 190 M |
+|---|---|---|---|
+| Ten of n | 5 of 6 | 6 of 6 | 6 of 6 |
+| T10 median, s | 57.7 (5 requests) | 16.5 | 9.0 |
+| Median clue share (pooled) | 0.200 | 0.211 | 0.286 |
+
+  Paired by seed: today over no screen 2.9 times (2.3 to 14.0, geometric mean 3.7, n 5); no screen over 190 M 1.56
+  times (1.11 to 3.65, geometric mean 1.65, n 6); the screen's same-set clue shift (190 M less no screen) is +0.75 clues
+  at the median (0 to +1.5; 0.038 of K).
+- *Hell 1 26x26, reps 0 and 1.* T10 without the screen 34.2 s, at 380 M 39.7 s, today 179.3 s (one of two requests
+  reached ten). The screen is slower (0.88 times paired: 0.67 and 1.08) and adds +0.75 clues on the same set (+1.0 and
+  +0.5). Both arms accept at a median clue share of 0.195 against today's 0.128: on Hell 1 the shift comes from the
+  search without the screen.
+- *Correction of the addendum after IGP-03.* On 12x12 its two seeds overstated the gain of the search without the
+  screen (8.1 times; 2.9 over six seeds) and understated the screen's (1.14 times; 1.56). (c5)'s price on 12x12 is
+  therefore about 1.6 times, paired by seed (the T10 medians are 9.0 s with the screen and 16.5 s without), for +0.75
+  clues on the same set. On Hell 1 26x26 it costs nothing, the screen being slower; on 14x14 Nightmare (IGP-03) the
+  screen's 2.6 times came with no same-set shift.
+- *Recommendation, updated (Opus, the pack's author; Astra has not reviewed it).* (c5) as the rule for the Hell levels,
+  where speed and population agree on no screen, and for 14x14-like cells, where they agree on keeping it. On
+  12x12-like cells it is a trade, +0.75 clues on the same set for 1.6 times, best decided together with IG-P-Q12 (10x10
+  and 12x12 Nightmare in the browser), where that factor may decide the offer. The frozen round's PM3 measures it per
+  cell with more seeds.
+- *Evidence.* `docs/improve-generating/evidence/provisional/IGP-03h/c5/compare.md` ("12x12 Nightmare: the screen
+  against no screen, by seed, all seeds": six seeds) and `compare.md` (Hell 1 26x26: the split and the by-seed
+  section), with `compare.json`, `c5/compare.json`, the arm folders `w760/` and `main/`, `verify-w760.md` and
+  `verify-main.md`.
+
 Plan-author answer:
 
 ---
@@ -862,5 +895,34 @@ the 115 s time limit; reported as an addendum here. IGP-07: the round's summary 
   `<case>-2026-11-1[34].json`: today's accepted puzzles and their `ratingCensoredCount`.
 - `tasks/improve-generating/05-pm1-tranche1-slice.md` (the reduced design and its limits) and
   `03-pm3-variants-and-budgets.md` ("Follow-up IGP-03h").
+
+**Addendum after IGP-03h (request level on Hell 1 20x20), 2026-11-15 (Opus).**
+
+- *What ran.* The prototype without the screen (`p1p5-w760`: P1 and P3 on canonical caps; no table prior exists for this
+  cell, so each call starts at K − 8) on Hell 1 20x20, seeds 0 and 1 (K 42 and 38, today's start count 4), four
+  workers. Every accepted rating of the arm is canonical (`verify-w760`: 117 of 117).
+- *Result.* Both requests reached ten: T1 6.0 and 8.3 s, T10 48.9 and 36.9 s (median 42.9 s). On the same seeds
+  MP12b1's prescreen made no puzzle; each request stopped at the 115 s time limit.
+- *The accepted puzzles (20).* Clue share p10 / median / p90 0.289 / 0.357 / 0.405 (PM1's windows on this cell: 0.296 /
+  0.370 / 0.444); 6 to 18 clues above today's start count, median 10.5 (PM1: 7 to 14, median 11); scores 77 to 103,
+  19 of 20 central (PM1's windows: 6 of 11). The census was incomplete for 7 of the 20 (Hell 1 26x26 without the
+  screen: 20 of 20; MP12b1: 134 of 134).
+- *How the search got there.* Each call walks down from K − 8 (30 to 34 clues): its first probes are refused by AR1 or
+  lie below the band, then a probe near 6 to 10 clues caps, and the bisection follows. The first in-band rating came at
+  the 6th to 7th probe (median), at 14 to 15 clues (+10 to +11), after one to three canonical caps of about 2 s each. A
+  start near PM1's windows (need 2 above) would skip most of that walk.
+- *Hell 1 26x26 without the screen* (IGP-03h, part 1): T10 34.2 s against 39.7 s at 380 M and 179.3 s today; the
+  screen does not pay on Hell 1 (0.88 times) and adds +0.75 clues on the same set; work per accepted puzzle 4,380 M
+  units against today's 26,843 M. Need 3 (no screen for Hell) costs nothing there.
+- *Reading.* This is the first request-level evidence on a Hell 1 board of 215 to 484 cells. A search with P1 and P3,
+  without the screen and without a prior, served Hell 1 20x20 in about 43 s in Node on both requests, where today's
+  search serves nothing in 115 s, and its puzzles lie in PM1's windows. It supports part 3 (a) of the recommendation.
+  It is no offer: OD-P4's gates stay (D39 on phase 3's landscape, 20 requests with 90 % completion, and the matching
+  browser runs).
+- *Evidence.* `docs/improve-generating/evidence/provisional/IGP-03h/compare.md` ("Hell 1 20x20: arm only, no before
+  partner": per request, the populations beside PM1, locate and calls per stage, every call's locate path; the Hell 1
+  26x26 study and by-seed sections), `compare.json`, `w760/20x20-hell-1.runs.json` and `.calls.jsonl`,
+  `w760/26x26-hell-1.*`, `verify-w760.md`; MP12b1's prescreen
+  `docs/difficulty-v3/landscape-v3-full/20x20-hell-1-s3-2026-11-14.json`.
 
 Plan-author answer:
