@@ -1472,3 +1472,20 @@ conditions as written in each answer above.
 | IG-P-D5 (OD-P8) | **(a)** in stages after the frozen source receipt: the data-only inventory first, then the Hell 1 cells (14x14 and 24x24 included), then the Hell 2 cells for the central share; Hell 3 cells dropped. |
 | IG-P-D6 (OD-P9) | **(a) with (i) and (ii)**: Hell 2 and Hell 3 closed for this feature as a scope decision; 24x24 and 14x14 Hell 1 get request-level arms in the frozen round as candidate populations, not offers. |
 | IG-P-D7 (OD-P10) | **(a)** a separately priced, staged frozen-round manifest after source preparation, the browser calibration as its optional first stage; nothing of the provisional round carries over. |
+
+---
+
+## Plan version 3 (plan author, 2026-11-15)
+
+`plan.md` is revised to version 3 from the joint report on version 2, the answers IG-P-Q19 to IG-P-Q24 and the
+owner decisions IG-P-D1 to IG-P-D7. It is one current document: the "version 2" notes and the section 9
+addendum are merged into their sections, and version 2 stays at commit `240398f`. It ran nothing and changes no
+gate.
+
+- **Changed:** forecasts at four workers from one sensitivity formula (section 4); C2 withdrawn; the per-set
+  prior promoted to a Hell 1 pilot arm; Hell 2 and Hell 3 closed as a scope decision; Hell 1's candidate range
+  196 to 676 cells; the admission statistics fixed before the validation seeds run (section 5.2); a staged
+  frozen round with 20 validation seeds (section 5.1); the browser column labelled as a sensitivity.
+- **Corrections:** the 22 items of the joint report's (e) are taken in.
+- **Still to come to the owner:** the frozen round's price after source preparation, and the phase-3 decisions
+  (plan section 7).
