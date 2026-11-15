@@ -69,9 +69,9 @@ and the apps start writing the records in MP13b.
 
 ## Inputs & context
 
-Anchors are at HEAD `55c0c61` (checked in the resume revision; MP12b3 may move lines of `clues.js`, `generate.js` and
-`types.js` when it builds the fail-fast of check-list D40). MP07 and MP09c rewrote parts of `selectClues`, MP09a1 and
-MP09b edited `pack.js`, MP08 and MP09a1 edited `types.js`: find a moved line by the quoted text.
+Anchors are at HEAD `55c0c61` (checked in the resume revision; MP12b3 builds no fail-fast, owner decision P-OD12, so
+it leaves `clues.js`, `generate.js` and `types.js` as they are). MP07 and MP09c rewrote parts of `selectClues`,
+MP09a1 and MP09b edited `pack.js`, MP08 and MP09a1 edited `types.js`: find a moved line by the quoted text.
 
 ### The record (RES-27; decided by the plan author)
 
@@ -172,9 +172,9 @@ history). The replay does not have that history, so the record names the points 
  */
 ```
 
-The failure union is the one MP12b3 left: when it built the fail-fast (check-list D40) it also has `'unrateable'`, and
-the call may return that failure early (F2, at its fourth profile); keep that reason and that `return` as they are (a
-failure result gets no `skips`). The bounds below do not change: F2 only shortens a call.
+The failure union is today's, which MP12b3 leaves as it is (it built no fail-fast, owner decision P-OD12; check-list
+D40): `'not-in-band' | 'uniqueness-not-proved'`, with no early failure return (a failure result gets no `skips`). The
+bounds below do not change.
 
 `skips` lists every skip of the whole call up to the return, in increasing order, uncapped (the bounds above cap it).
 Build it in the function's local state (`let subsetOrdinal = 0`, `let repairOrdinal = 0`, two arrays) and attach a

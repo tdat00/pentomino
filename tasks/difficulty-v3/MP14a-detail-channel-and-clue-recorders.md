@@ -171,9 +171,8 @@ Where they are emitted:
   (`finishOnce`) emit nothing and charge nothing.
 - `selected`: once, right before an `ok: true` result is returned: `sequence` = the chosen candidate's `seq`,
   `repairSequence` = the ordinal of its finish when that finish added clues, else null. A failure result emits no
-  `selected` event. When MP12b3 built the fail-fast (check-list D40), a call that F2 ends at its fourth profile has
-  emitted its four `unrateable` events and returns `{ ok: false, reason: 'unrateable' }`: no `selected` event, and no
-  other change (the recorders observe F2, they never move it).
+  `selected` event. MP12b3 built no fail-fast (owner decision P-OD12; check-list D40), so no call ends early: every
+  failure is today's `not-in-band` or `uniqueness-not-proved` at the end of the search.
 - Every event object is built fresh, contains only JSON values (strings, finite numbers, booleans, null, arrays,
   plain objects; `rating` is the rating object itself, which is plain JSON), and is never touched again after
   `record(event)`; a throwing `record` propagates (it is the caller's observer).
@@ -369,9 +368,8 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
    add, say so in a code comment, and leave its rendering to MP16a's synthetic test.
 8. `selected`: exactly one per `ok` result, last of all events; its `sequence` is the `seq` of the candidate whose
    clues (or, after a repair, whose raw subset) the result came from; `repairSequence` is the ordinal of the repair
-   that produced the result's clues, or null; no `selected` event on a failure. Only when MP12b3 built F2: a scripted
-   call whose first four subsets are capped emits exactly four `unrateable` events and no `selected` event, and
-   returns `{ ok: false, reason: 'unrateable' }`.
+   that produced the result's clues, or null; no `selected` event on a failure. (MP12b3 built no F2, owner decision
+   P-OD12: there is no early-failure case to test.)
 9. Replay of subset skips: record a call with an excluded key (case 3's third call) and take its `skips`; a second call
    with `replaySkips: skips` and an **empty** `excludeClueKeys` gives a deep-equal result and the same events.
 10. Replay of a repair skip: the same for MP13a's case 3 (`req-3`, excluded repaired key): the replayed result has

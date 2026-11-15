@@ -70,8 +70,8 @@ an older Generator keeps no origin rather than a wrong one. No rating, puzzle, h
 ## Inputs & context
 
 Anchors are at HEAD `55c0c61` (checked in the resume revision); MP12b3 edits `generator/state.js` (the level list)
-and, with the fail-fast, `core/browser/generation-client.js` and `generator/jobs.js`; MP13a edits the engine: find
-moved lines by the quoted text.
+and, since it builds no fail-fast (owner decision P-OD12), not `core/browser/generation-client.js` or
+`generator/jobs.js`; MP13a edits the engine: find moved lines by the quoted text.
 
 ### From MP13a
 
@@ -182,8 +182,8 @@ node tools/record-fixtures.mjs --replay-case --create --seed <n> | --check | --r
   `createPool` from `../core/browser/worker-pool.js`, `nodeWorkerFactory` from `./node-worker.mjs`); close the pool
   in a `finally`.
 - Recipe: board 10 x 6 (`BOARD_ROWS`), rotation 0, level `'hard'`, uniqueness `'require'`, quantity 4, set seeds
-  `replay-case-<n>` for n = 0 … 49 (offered after MP12b3: its Hell areas do not touch 60 cells, and a `require` rule of
-  check-list D41 starts far above them; if the owner's area A0 were 60 or less, ask the orchestrator for an addendum).
+  `replay-case-<n>` for n = 0 … 49 (offered after MP12b3: it changes only the Hell areas, which do not touch 60 cells,
+  and builds no `require` rule of check-list D41, since population R raised no question).
   For each n:
 
   ```text

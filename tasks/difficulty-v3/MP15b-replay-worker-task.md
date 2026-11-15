@@ -55,7 +55,8 @@ bounded payload reader, and a client method that submits it on the auxiliary pat
 ## Inputs & context
 
 Anchors are at HEAD `55c0c61` (resume revision); MP09c and MP10a edited `tasks.js` and `generation-client.js`
-(MP12b3 and MP13b edit the client again): find moved lines by the quoted text.
+(MP13b edits the client again; MP12b3 does not, since it builds no fail-fast, owner decision P-OD12): find moved lines
+by the quoted text.
 
 ### Protocol (`core/engine/protocol.js`)
 

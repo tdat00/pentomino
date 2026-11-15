@@ -63,9 +63,10 @@ plays.
 ### What earlier tasks provide
 
 - `setAttempt(req, attempt, { record, charge })` → `{ ok: true, set, calibration, attempt }` or `{ ok: false, reason
-  }` (`reason` includes `'unrateable'` when MP12b3 built the fail-fast, check-list D40; the replay re-runs only the
-  recorded attempt `origin.attempt`, so a failure there, whatever its reason, is the mismatch `set`); events `count`,
-  `carve`, `piece`, then the calibration's clue and repair events with `source: 'calibration'`;
+  }` (`reason` is one of `SetAttemptResult`'s today: MP12b3 built no fail-fast, owner decision P-OD12, check-list D40;
+  the replay re-runs only the recorded attempt `origin.attempt`, so a failure there, whatever its reason, is the
+  mismatch `set`); events `count`, `carve`, `piece`, then the calibration's clue and repair events with
+  `source: 'calibration'`;
   `charge` meters every rating and uniqueness count of the calibration (MP14a, MP14b).
 - `puzzleCandidate(ctx, slot, attempt, { record, replaySkips, charge })` → a `PuzzleCandidate` (`layout`,
   `layoutKey`, `clueKey`, `clues`, `rating`, `certificate`, `made`) or `{ fail }`; events `start`, `retile`, the clue

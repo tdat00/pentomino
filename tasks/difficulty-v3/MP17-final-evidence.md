@@ -7,7 +7,7 @@
 | Estimated size | Medium: about 300–500 changed lines (the record about 250–400 lines with the release notes; justified corrections, if any); about 50–60 minutes of work plus about 70–100 minutes of machine time (gate GZ) |
 | Owner role | QA and release |
 | Milestone | M10 — verified |
-| Design refs | `docs/difficulty-v3/report-detailed.md` §5.1 (MP17 row), §5.2 (the lock), §5.3 (GZ), RES-01 and RES-25 (what the lock means), RES-32 (MP17 row: the release notes), RES-35 (AR1); `docs/difficulty-v3/plan.md` §1.1, §6 and §7 (last item); clarifications C3 (a), AR1 (part G), PROC-P1 (a), and the plan author's answer to PR-P1 with owner decision P-OD9 (`docs/difficulty-v3/clarifications-resolved.md`: the plan §6 probe must show no Hard-or-above puzzle without a proved decisive guess; R7 a known limitation; the "no re-run allowance" of the code page); the plan author's answer to PR-P2 (Part I of the same file: the remaining parts unchanged; four findings carried to MP12b2's record and to this record as named items, §10 below); check-list §4.2 D35, D38 to D41, §6, §7, §9 |
+| Design refs | `docs/difficulty-v3/report-detailed.md` §5.1 (MP17 row), §5.2 (the lock), §5.3 (GZ), RES-01 and RES-25 (what the lock means), RES-32 (MP17 row: the release notes), RES-35 (AR1); `docs/difficulty-v3/plan.md` §1.1, §6 and §7 (last item); clarifications C3 (a), AR1 (part G), PROC-P1 (a), and the plan author's answer to PR-P1 with owner decision P-OD9 (`docs/difficulty-v3/clarifications-resolved.md`: the plan §6 probe must show no Hard-or-above puzzle without a proved decisive guess; R7 a known limitation; the "no re-run allowance" of the code page); the plan author's answer to PR-P2 (Part I of the same file: the remaining parts unchanged; four findings carried to MP12b2's record and to this record as named items, §10 below); owner decisions P-OD12 (no fail-fast) and P-OD13 (the census estimates above 25 % accepted) in Part H of the same file; check-list §4.1, §4.2 D35, D38 to D41, §6, §7, §9 |
 | Gates owned | **GZ**: the two fixture checks; `npm test`; the plan §6 probe and the level runs on 10x6 and 20x18 (`tools/generate.mjs`, small counts, a fresh attempt directory); a small `tools/rate-probe.mjs` run; every page of `tests/browser/` in headless Edge in the main phase, plus the keys and narrow phases of `puzzle-code-acceptance` and the keys phase of `replay` (ports 8817 and 9317; MP16b's runner) |
 | Implementation status | Not started |
 
@@ -117,8 +117,10 @@ lines: find them by the quoted text.
   (the tuple `12 / 3 / [0, 0, 2, 3] / G 5 / info 0.5 / (1, 2)` unless MP12b2 ran a change round), §3 the per-board
   and per-level results (with `provedZero`, which must be 0), §12 the lock statement (MP12b2's layout), and R7 (one
   canonical order, no median) as a known limitation. The **availability record** is MP12b3's
-  `docs/difficulty-v3/availability-<date>.md`: the Hell areas of `AREAS` (check-list D39), `POLICY_ID` `mixed-v3`,
-  the fail-fast (check-list D40) and the `require` rule (D41) as built or not, the BQ cases removed and its named items.
+  `docs/difficulty-v3/availability-<date>.md`: the Hell areas of `AREAS` (check-list D39: Hell 1, 2 and 3
+  `[Infinity, Infinity]`), `POLICY_ID` `mixed-v3`, the fail-fast (check-list D40) and the `require` rule (D41) "not
+  built" (owner decision P-OD12; population R raised no question) with their limitations, the census acceptance
+  (P-OD13), the BQ cases removed and its named items.
 - Allowed since the lock (MP13a to MP16b; they add observers and new modules, never a rating or a generated puzzle):
   `core/engine/policy.js` gains `REPLAY` (MP15a1) and nothing else; `core/engine/difficulty.js` gains `rateDetailed`
   (MP14a); `clues.js`, `generate.js`, `carve.js`, `tiling.js` gain skip ordinals and recorders (MP13a, MP14a, MP14b);
@@ -155,9 +157,11 @@ lines: find them by the quoted text.
 
 `offeredLevels(60)` is very-easy, easy, normal, hard, expert, master. At HEAD `55c0c61`, before MP12b3,
 `offeredLevels(360)` is hard, expert, master, nightmare, hell-1, hell-2; MP12b3 sets the Hell areas from the
-landscape (owner decision P-OD9, check-list D39), so after the lock Hell 1 and Hell 2 may no longer be offered on 360
-cells (its availability record gives the list). The runs below follow `offeredLevels` as it is after the lock; a level
-no longer offered is a `MISS` line whose approved exception is the availability record.
+landscape (owner decision P-OD9, check-list D39) and retires Hell 1, 2 and 3 (MP12b2's record §9: no Hell case
+completed 90 % of its requests), so after the lock `offeredLevels(360)` is hard, expert, master, nightmare (its
+availability record gives the list). The runs below follow `offeredLevels` as it is after the lock: `t-hell-1` and
+`t-hell-2` are recorded `skipped: 'not-offered'`, and a level no longer offered is a `MISS` line whose approved
+exception is the availability record.
 Band lower edges `bandEdge(0..8)`: 0, 8, 12, 17, 25, 37, 53, 77, 112. Hard is level index 3; "Hard or above" is
 index >= 3.
 
@@ -502,7 +506,8 @@ console.log(['hell-1', 'hell-2', 'hell-3'].map((id) => `${id} ${level(id).areas.
 Pass: the lock commit is MP12b3's; the diff of `levels.js`, `version.js` and `deduce.js` is empty; the diff of
 `policy.js` has no removed line and its added lines are the `REPLAY` constant with its comment; the printed
 `SCORE_V3`, `DEDUCE`, `K60` and `SHARES` equal the literals of the lock record, `POLICY_ID` is `mixed-v3` and the Hell
-areas equal the availability record's `AREAS`, `MODEL` is `difficulty-v3` and `versions.algo` is `gen-v3`. **Any
+areas equal the availability record's `AREAS` (`Infinity-Infinity` for all three), `MODEL` is `difficulty-v3` and
+`versions.algo` is `gen-v3`. **Any
 failure of the inspection: stop and report it to the orchestrator; do not announce the gate.** Then, inside the gate,
 both fixture checks exit 0; a failure stops the gate (report it; the rest of GZ does not start).
 
@@ -587,13 +592,14 @@ English, CRLF, no BOM, relative links only. Sections:
    the lock record's `provedZero` over the landscape.
 9. **Corrections made in this task**: each with the file, the reason and the accepted task it follows; or "none".
 10. **Findings for the owner**: or "none"; with the named items of MP12b2's and MP12b3's records that are still open
-    (performance and availability findings, P-OD9) and the known limitations (R7; the fail-fast or the `require` rule
-    when the owner chose not to build them). Among them, by name and with the numbers of MP12b2's record §13, the four
+    (performance and availability findings, P-OD9) and the known limitations (R7; no fail-fast, owner decision P-OD12;
+    the population-R limitation of `require`, 18x20 Hard 2 of 10; no later task changed them). Among them, by name
+    and with the numbers of MP12b2's record §13, the four
     findings the plan author carried in PR-P2 (named items, no stop): Nightmare request completion below 90 % on
     12x12, 14x14, 15x15b10, 16x16 and 15x20; the 43 Nightmare requests that answered after more than 120 s (each action
     within its own budget); one selection call can outlast the 115 s stop (about 150 s, its result discarded); and the
     census confound (the fast large-board Nightmare cells carry more census estimates, not measured). Say for each
-    whether MP12b3 (the fail-fast, when built) or a later accepted task changed it (MP13a to MP16b do not touch
+    whether a later accepted task changed it (MP12b3 built no fail-fast, P-OD12; MP13a to MP16b do not touch
     generation time), and that a faster generator is later work outside difficulty-v3
     (`docs/improve-generating/plan.md`, not authorised).
 11. **Release notes** (below).
@@ -614,26 +620,25 @@ correct a statement that does not hold and report it. The facts to state:
   unchanged; the score of a given puzzle differs from before. A puzzle is always rated in one canonical order, so it
   always gets the same score, though a different order of the same deductions can count a guess more or fewer (R7, a
   known limitation, design §7.8).
-- **Levels offered (owner decision P-OD9).** The Hell levels are offered only on the board sizes where the new rating
-  can make them: name, from MP12b3's availability record, each Hell level and the board sizes it is no longer offered
-  on (or that it is no longer offered at all), as users will no longer find them (cross-review SP17: a Hell level
-  offered on some board sizes stays visible, disabled, on the others; a Hell level offered nowhere leaves the
-  Generator's list); the other levels keep their board sizes. Packs and links made before still open, and their
-  puzzles are re-rated for display. When the owner accepted the population-R outcome (check-list D41), also: "Require
-  unique solution" at Hard and above is not offered from the owner's board size on, with the message the Generator
-  shows; when the owner kept it (R-b), the known limitation in plain words.
+- **Levels offered (owner decision P-OD9).** The Generator no longer offers the Hell levels: the new rating could not
+  make Hell puzzles reliably on any board size (MP12b3's availability record; a limit of the present search, not of
+  the levels, PR-P2), so Hell 1, 2 and 3 leave the Generator's list and it offers Very easy to Nightmare; the other
+  levels keep their board sizes. Packs and links made before still open, and their puzzles, Hell ones included, are
+  re-rated for display. "Require unique solution" is unchanged (population R raised no question, check-list D41); its
+  known limitation in plain words: on large boards a Hard request with it can end with fewer puzzles than asked
+  (18x20 Hard: 2 of 10 in the calibration).
 - **Generated puzzles.** The Generator aims at the middle of the requested level's band. Every generated Hard-or-above
   puzzle has at least one proved decisive guess. A candidate whose deduction exceeds the solver's limits is not rated
-  and is skipped; v3 ratings never show the "+" mark. When the fail-fast was built with F1 (check-list D40; alone or
-  with F2), a piece-set request whose ratings all reach their work limits ends early with its notice (quote
-  `notice.N-NOSET-UNRATEABLE` of `generator/locale.en.js`); with F2 only, each such attempt ends sooner but the request
-  still runs to its time limit, with no new notice; with none, the known limitation (such a request runs to the time
-  limit). The same seed makes different puzzles than earlier versions (algorithm `gen-v3`, policy `mixed-v3`, rating
-  `difficulty-v3`); a seed reproduces a puzzle only with the same versions.
+  and is skipped; v3 ratings never show the "+" mark. No fail-fast was built (owner decision P-OD12, check-list D40):
+  a piece-set request whose ratings all reach their work limits still runs to its time limit and ends without a piece
+  set (the known limitation, in plain words). The same seed makes different puzzles than earlier versions (algorithm
+  `gen-v3`, policy `mixed-v3`, rating `difficulty-v3`); a seed reproduces a puzzle only with the same versions.
 - **Estimates.** When the check of a guess's alternatives cannot finish within its budget, the score is an upper
   estimate: packs mark it with `censored: true` and the apps show the estimate note (with the number of undecided
   alternatives when the full rating is known, without it for a rating read from a puzzle code). Name the board sizes
-  and levels where MP12b2's record lists more than 5 % estimates (PR-P1: shipped with the note and the flag).
+  and levels where MP12b2's record lists more than 5 % estimates (PR-P1: shipped with the note and the flag), and say
+  that the owner accepted the 17 cells above 25 % (the 15 Nightmare cells of the landscape, and Master on 24x24 and
+  26x26) at the unchanged census budget (P-OD13).
 - **Puzzles from earlier versions.** A stored rating is never changed. Puzzles rated by earlier versions
   (`difficulty-v1`, `difficulty-v2`) are re-rated for display with the new model, with a note; when the re-rating is
   not possible the stored rating is shown with "could not be re-rated". Packs, links and puzzle codes made by earlier
