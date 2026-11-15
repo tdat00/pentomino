@@ -505,7 +505,14 @@ git --no-pager diff $lock HEAD -- core/engine/levels.js core/engine/version.js c
 git --no-pager diff $lock HEAD -- core/engine/policy.js
 node tests\artifacts\MP17\lock-values.mjs
 if ($LASTEXITCODE -ne 0) { throw 'lock values not printed' }
+$stray = @(git ls-files --others --ignored --exclude-standard -- ':(glob)tests/artifacts/**/*.test.js')
+if ($stray.Count -gt 0) { throw "scratch test files under tests/artifacts/: $($stray -join ', ')" }
 ```
+
+The last command is the scratch check (MP16a's Execution log): `npm test` and the quick set run `tests/**/*.test.js`,
+which reaches `tests/artifacts/`, a folder git ignores, so `git status` does not show what it holds. A file it lists
+would join the gate's test runs: stop and report it to the orchestrator before the announcement; do not move or
+delete it yourself. The scratch files of this task end in `.mjs` or `.ps1`, never in `.test.js`.
 
 After the orchestrator's go, the first commands of the gate (each regenerates puzzles: the first the generation
 fixtures recorded at the lock, the second MP13b's set and two batches):
@@ -646,7 +653,7 @@ English, CRLF, no BOM, relative links only. Sections:
       stops it. Give the replay measurement: the puzzle, its status, work, steps and bytes with their shares of
       `REPLAY`, seconds, units per second and the projected minutes at `REPLAY.work`.
     - **No type check.** The modules carry `// @ts-check` and JSDoc types, but the repository runs no `tsc`, so the
-      types are not machine-checked (MP10a, MP14b and MP15a1 Execution logs).
+      types are not machine-checked (MP10a, MP14b, MP15a1, MP15b and MP16a Execution logs).
     - **The skip replay rests on built histories (MP14b case 7).** Case 7 builds its history from the first rated
       subset of a free run plus its final key (MP13a's oracle approach, the task's fallback when its search of the
       recipe, slots 1–3 and attempts 0–11, finds no subset skip), with a `require`-mode repair-skip case found by a
@@ -750,8 +757,8 @@ MP17 no section of `docs/design-detail.md`). Must not edit: everything of "Out o
 ## Implementation steps
 
 1. Check the tree; find the lock commit (MP12b3's), the lock record and the availability record; write
-   `lock-values.mjs`; run the lock inspection (git commands and `lock-values.mjs` only). Stop and report on any
-   failure.
+   `lock-values.mjs`; run the lock inspection (git commands and `lock-values.mjs` only, the scratch check included).
+   Stop and report on any failure.
 2. Write `summarise.mjs` and copy MP16b's runner to `pages.mjs`; announce GZ with the plan of "Repository rules";
    wait for the go.
 3. The two fixture checks; `npm test` (record counts and duration); the 12 generation runs into a fresh attempt
@@ -775,7 +782,7 @@ MP17 no section of `docs/design-detail.md`). Must not edit: everything of "Out o
 
 | ID | Criterion | Evidence |
 |---|---|---|
-| MP17-T01 | The lock inspection passes before the announcement (empty diffs of `levels.js`, `version.js`, `deduce.js`; `policy.js` adds only `REPLAY`; the lock commit is MP12b3's; the values equal the lock record and the availability record), and both fixture checks exit 0 as the first gate commands | command output; record §2 |
+| MP17-T01 | The lock inspection passes before the announcement (empty diffs of `levels.js`, `version.js`, `deduce.js`; `policy.js` adds only `REPLAY`; the lock commit is MP12b3's; the values equal the lock record and the availability record; the scratch check lists no `*.test.js` under `tests/artifacts/`), and both fixture checks exit 0 as the first gate commands | command output; record §2 |
 | MP17-T02 | `npm test` passes, with counts and duration recorded | command output; record §3 |
 | MP17-T03 | The manifest of one fresh attempt directory has the 12 runs with consistent exit codes, packs and digests; every claim of its packs equals a fresh `rate` of its puzzle (`canonicalJson`), every puzzle is in its requested band, and `summarise.mjs` exits 0; every `rate-probe` line has no error and `v3.score` equal to `storedScore` | `summary.md`; `runs.json`; the `probe-*.jsonl` files; record §5–§7 |
 | MP17-T04 | The 19 runs pass (the 16 pages in the main phase, the keys and narrow phases of `puzzle-code-acceptance`, the keys phase of `replay`; acceptance: the known blocked checks only) with no CSP violation and no uncaught error, each check under 1 minute; servers and browsers stopped by PID; the profile removed | record §4; the 19 `runs.json` |

@@ -3,7 +3,7 @@
 | Header | Value |
 |---|---|
 | ID | MP16b (second part of the report's MP16) |
-| Depends on | MP16a (accepted and committed: `createReplayDialog`, `replay-model.js`, `highlightedIds`, the locale keys) |
+| Depends on | MP16a (accepted and committed as `27840d5`: `createReplayDialog`, `replay-model.js`, `highlightedIds`, the locale keys with the nine the pack author's rulings added, check-list D34; the rulings in its Execution log) |
 | Estimated size | Medium: about 500–700 changed lines (wiring about 60, the browser page about 300, rendering check about 30, documents about 120 in both languages); about 50–60 minutes plus the gate |
 | Owner role | Generator UI |
 | Milestone | M9 — Generation Steps |
@@ -55,6 +55,8 @@ provenance and replay work (MP13a to MP16b) for users and developers, in English
   lock wait.
 - Never stage, commit, stash, reset, push or switch branches; never edit `tasks/difficulty-v3/`, the reports or
   `docs/difficulty-v3/`.
+- Scratch files under `tests/artifacts/` never end in `.test.js`: `npm test` and the quick set run
+  `tests/**/*.test.js`, which reaches that git-ignored folder (MP16a's Execution log). Name scratch scripts `*.mjs`.
 - UTF-8 without BOM, CRLF, final newline, no trailing whitespace; no absolute path in a document.
 
 ## Inputs & context
@@ -129,14 +131,28 @@ that need a layout walk use a `candidate` card (cross-review SP13).
    New puzzle once more, a batch without the calibration, and take its first candidate; when there is still none,
    fail and print the kinds); click its `button.card-replay`; the dialog (`[data-role="replay-dialog"]`) is open, the
    focus is on its close control, the status line reaches `replay.status.matched` text within 60 s, the stage list
-   shows seven stages.
-2. "step": on that candidate, Next and Previous change the step sentence and the slider value; at stage 4 the board
+   shows seven stages. The ARIA wiring (MP16a verified the dialog against a fake DOM only): the dialog's
+   `aria-labelledby` names an element whose text is the `replay.title` text; the slider
+   (`[data-field="replay-slider"]`) has exactly one label (`slider.labels`), whose text is `replay.slider` for the
+   current position and count, and an `aria-valuetext` equal to the visible sentence `[data-role="replay-now"]`,
+   which has `aria-hidden="true"`; the status line `[data-role="replay-status"]` and the sentence region
+   `[data-role="replay-sentence"]` have `role="status"`, and the sentence region is visually hidden (`.sr-only`, a
+   1 x 1 px box) and holds the visible sentence's text. The desktop layout (the main phase's 1280 x 900 viewport):
+   the board column `.pm-replay-visual` and the stage-and-score column `.pm-replay-side` are side by side (the first's
+   right edge at or left of the second's left edge, their top edges less than 2 px apart), and the dialog has no
+   horizontal overflow (`scrollWidth <= clientWidth`).
+2. "step": on that candidate, Next and Previous change the step sentence (the visible `[data-role="replay-now"]` and
+   the live `[data-role="replay-sentence"]`, equal after each step) and the slider value; at stage 4 the board
    has a highlighted piece (`[data-highlighted="true"]`) for a `retile` step that lifted pieces (a candidate's layout
    differs from the set's, so its walk has one).
 3. "play": Play advances the slider at least three steps, the play button has `aria-pressed="true"` while playing;
-   Pause stops it; the live region text did not change during playback (compare before Play and before Pause).
+   Pause stops it. The live region `[data-role="replay-sentence"]` has the same text just before Play and just before
+   Pause (no playback tick is announced), while the visible sentence `[data-role="replay-now"]` changed during
+   playback (it follows every step); after Pause the live region holds the visible sentence's text (it is written on
+   a pause).
 4. "slider": setting the slider to the last value shows the final step (stage 7) and its score table with a Total
-   equal to the card's score.
+   equal to the card's score; the table (`[data-role="replay-score"] table`) has a `<caption>` with the
+   `replay.table.caption` text, and the first cell of every row is a `th` with `scope="row"`.
 5. "keyboard" (`?phase=keys` only; trusted keys, never synthetic `KeyboardEvent`s, which prove neither Tab traversal
    nor the dialog's native Escape): copy `press(key)` of `tests/browser/puzzle-code-acceptance.js:2046-2050` (the page
    sets `data-stage="key-<name>"` and waits up to 15 s for `key-<name>-done`; names `Tab`, `Shift+Tab`, `Enter`,
@@ -157,8 +173,9 @@ that need a layout walk use a `candidate` card (cross-review SP13).
    `generator/locale.vi.js`; switch back with `setLocale('en')`.
 12. "calibration" (numbered after Part B so that the other numbers stay): open the replay of the card whose kind is
     `'calibration'` (when the run has none, fail and print the kinds): the status reaches `replay.status.matched`;
-    stage 4 has no step and is marked with the `replay.notAvailable` text; no step highlights lifted pieces (the
-    calibration keeps the set's layout: no layout walk; cross-review SP13).
+    stage 4 has no step and is marked with the `replay.stage.none` text ("No steps were needed for this puzzle.";
+    `data-mark="none"`), not `replay.notAvailable` (the pack author's ruling Q1 on MP16a); no step highlights lifted
+    pieces (the calibration keeps the set's layout: no layout walk; cross-review SP13).
 
 Part B — the dialog alone (`createReplayDialog` on the page with a scripted `run`):
 
@@ -472,11 +489,14 @@ blocked or failed check is reported.
 
 - `docs/design-detail.md` §10.5 "Step 3: Create puzzles" (line 2354 at HEAD): the "How it was made" button on each
   card, the dialog (link §6.12 and §11.11), what "Steps not available for this puzzle" means (imported puzzles, sets or
-  puzzles made by an older version, completion-pass puzzles, an overflowing record).
+  puzzles made by an older version, completion-pass puzzles, an overflowing record), and the two other stage marks:
+  "No steps were needed for this puzzle." (a stage this puzzle's generation did not need: the layout stage of the
+  set's calibration puzzle, the uniqueness stage when no clue had to be added) and "Stopped at a limit.".
 - `docs/design-brief.md`: the Generator's feature list gains Generation Steps in one or two sentences.
 - `USERGUIDE.md` (Generator part, line 41 at HEAD) and `USERGUIDE.vn.md` (line 40): a short subsection "How a puzzle
-  was made": open it from a card, the two views (key steps, every step), Play and the slider, the score table, and when
-  steps are not available.
+  was made": open it from a card, the two views (key steps, every step), Play and the slider, the score table, when
+  steps are not available, and what "No steps were needed for this puzzle" means (that stage was not needed for the
+  puzzle).
 - `DEVELOPERGUIDE.md` and `DEVELOPERGUIDE.vn.md` "Code layout" (line 92 at HEAD): `core/engine/replay.js`,
   `generator/ui/replay-model.js`, `generator/ui/replay-dialog.js`, `tests/browser/replay.html`, and the
   `--replay-case` mode of `tools/record-fixtures.mjs` (MP13b).
@@ -514,7 +534,7 @@ Exclusive ownership while this task runs: the files above; scratch under `tests/
 | ID | Criterion | Evidence |
 |---|---|---|
 | MP16b-B01 | Every generated puzzle card has a "How it was made" button that opens Generation Steps for that puzzle, and the replay confirms the puzzle | page checks 1, 4 |
-| MP16b-B02 | The dialog can be used with the keyboard and a screen reader: focus, Tab order, Escape, focus return, labelled controls, no announcement of playback ticks | page checks 3, 5 (trusted keys, keys phase) |
+| MP16b-B02 | The dialog can be used with the keyboard and a screen reader: focus, Tab order, Escape, focus return, labelled controls, no announcement of playback ticks | page checks 1, 3, 5 (trusted keys, keys phase) |
 | MP16b-B03 | Puzzles without steps say so; incomplete and mismatching replays show their status and never pass for the generated puzzle | page checks 7, 9, 10 |
 | MP16b-B04 | Closing the dialog cancels only the replay | page check 11 |
 | MP16b-B05 | The cards keep their selection, removal and keyboard behaviour | page check 6; generator-flow |
