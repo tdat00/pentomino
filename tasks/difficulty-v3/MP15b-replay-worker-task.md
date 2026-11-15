@@ -224,14 +224,14 @@ if ($LASTEXITCODE -ne 0) { throw 'check failed' }
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (orchestrator check; outside the analyst review set). The developer's readings were ruled on by the pack author (SA1): all six accepted as built |
+| Start | 2026-11-15 21:04:37 (+07:00) |
+| End | 2026-11-15 21:43:51 developer; SA1 rulings 21:46-21:50; orchestrator re-check and commit |
+| Duration | 39 min developer; locked invocations about 280 s machine time and 190 s lock wait (targeted runs, quick set, fixture checks, mutant batches) |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (SA1 rulings; orchestrator) |
+| Token usage | 131 model calls; 34,734,213 input tokens (34,336,897 cache reads); 134,152 output tokens |
+| AI credits | about 577 (developer) |
+| Verification | `core/engine/protocol.js`: `replayPuzzle` in `TaskKind`, `TASK_KINDS` (last), `PAYLOAD_FIELDS` (`set`, `puzzle`, `generation`) and `PAYLOADS`, with two readers for the puzzle and the `generation` record (structure and size only; the engine judges the record). `core/engine/tasks.js`: one `replayPuzzle` case in `executeTask`, returning the engine's `ReplayResult` unchanged (main workspace for models, scratch for the layout walk); an engine `RangeError` maps to `invalid-request`. `core/browser/generation-client.js`: `kinds` `['rate','replayPuzzle']` and `async replayPuzzle(input, { signal })` through the auxiliary queue. Design §8.1 (kinds, the replay task block, auxiliary rule 8) plus §4.2, §4.3 and §13.2. **D35:** no rating, generation or engine file changed; `record-fixtures --check` and `--replay-case --check` OK before and after the last edit. Tests: protocol +6, tasks +6, client +7; targeted 125/125; quick set 1,458/1,458 (+19); `npm run check` OK; 59 hand-made mutants, 57 killed, #40 and #42 (`undefined` instead of `null` for `solution`/`rating`) equivalent because the pool posts the protocol reader's normalised copy. Orchestrator: locked `protocol`, `tasks`, `generation-client`, `replay` 141/141; `npm run check` OK |
+| Acceptance | MP15b-B01, B02, T01 to T03 met (protocol cases 1-3 and the payload tests; tasks cases 4-6; client cases 7-11) |
+| Issues & resolutions | Readings taken without asking, ruled by SA1 (all accepted): (1) protocol test 2 asserts `readObject`'s real codes `missing-field`/`unknown-field` at their paths (the task's "`invalid-value` or `invalid-type`" was imprecise); (2) `undefined` is absent and `null` for `setOrigin`/`made` is `invalid-type`; `made: undefined` gives `PoolError('invalid-task')`, outside the typed contract and unreachable from MP16b's `replaySourceOf`; (3) the client method is `async` (a malformed input rejects) and a client-side payload error rejects as `PoolError('invalid-task')` from the pool's reader; (4) a running replay is cancelled by terminating its worker, as for every task; `isCancelled` serves in-process callers; replays have no pool deadline; (5) no protocol-valid payload makes `replayPuzzle` throw `RangeError`, so the mapping is tested through the handler's `execute` seam; (6) docs beyond §8.1 (§4.2, §4.3, §13.2), as in MP14a-MP15a1. The first full mutant run's output was not read (the shell went to the background); the final batches are recorded. Named items for MP17: `made: undefined` -> `invalid-task`; replay cancellation by worker termination; no `tsc` |
+| Handoff | To MP16a/MP16b: `client.replayPuzzle({ set, puzzle, setOrigin, made }, { signal })` resolves with a `ReplayResult`; it rejects with `PoolAbortError('cancelled' / 'closed')`, `WorkerTaskError`, or `PoolError` (`invalid-task`, `worker-unavailable`). SA1 amends MP16a's rejection list and case 9 accordingly |

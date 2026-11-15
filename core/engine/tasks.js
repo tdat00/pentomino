@@ -13,6 +13,7 @@ import { packBoard, validatePack } from './pack.js';
 import { parseTaskMessage, validatePayload } from './protocol.js';
 import { BUDGETS, ENUMERATION } from './policy.js';
 import { decodePuzzleCode, encodePuzzleCode, PuzzleCodeError } from './puzzlecode.js';
+import { replayPuzzle } from './replay.js';
 import { buildModel, isValidLayout, ModelError, solveFirst } from './tiling.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from './workspace.js';
 
@@ -192,6 +193,9 @@ export function executeTask(kind, payload, execution) {
       return certify(boardFromRows(p.boardRows), p.pieces, p.clues, execution.main, p.rowLimit);
     case 'rate':
       return rate(boardFromRows(p.boardRows), p.pieces, p.clues, execution.main);
+    case 'replayPuzzle':
+      return replayPuzzle({ set: hydrateSet(p.set), puzzle: p.puzzle, generation: p.generation },
+        { ws: execution.main, scratch: execution.scratch });
     case 'verifyPack':
       return verifyPack(p.pack, execution);
     case 'solveFirst': {

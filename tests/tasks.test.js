@@ -9,8 +9,10 @@ import { IncompleteRatingError, rate } from '../core/engine/difficulty.js';
 import { completionCandidate, puzzleCandidate, setAttempt } from '../core/engine/generate.js';
 import { layoutKey, progressFingerprint } from '../core/engine/keys.js';
 import { createPack, packBoard, parsePack } from '../core/engine/pack.js';
+import { REPLAY } from '../core/engine/policy.js';
 import { parseWorkerMessage } from '../core/engine/protocol.js';
 import { PuzzleCodeError } from '../core/engine/puzzlecode-input.js';
+import { replayPuzzle } from '../core/engine/replay.js';
 import { createTaskHandler, errorReply, executeTask, TaskError } from '../core/engine/tasks.js';
 import { buildModel, isValidLayout, rowPose, solveFirst } from '../core/engine/tiling.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
@@ -608,3 +610,140 @@ describe('puzzle-code tasks', () => {
     assert.equal(replies[1].message, 'boom');
   });
 });
+
+describe('replayPuzzle task', () => {
+  const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('tests/fixtures/replay-case.json', root), 'utf8'));
+  /**
+   * The payload of one fixture puzzle as the Generator's client builds it (design §8.1).
+   * @param {number} [packIndex]
+   * @param {number} [puzzleIndex]
+   */
+  const payloadOf = (packIndex = 0, puzzleIndex = 0) => {
+    const pack = structuredClone(REPLAY_FIXTURE.packs[packIndex]);
+    const puzzle = pack.puzzles[puzzleIndex];
+    return {
+      set: {
+        boardRows: pack.board.rows, pieces: pack.pieces, witness: pack.witness, carving: pack.generation.carving,
+        macroRegion: pack.generation.macroRegion,
+      },
+      puzzle: { id: puzzle.id, clues: puzzle.clues, solution: puzzle.solution, rating: puzzle.rating },
+      generation: { setOrigin: pack.generation.setOrigin, made: { [puzzle.id]: pack.generation.made[puzzle.id] } },
+    };
+  };
+  /** The same input as the engine takes it. @param {ReturnType<typeof payloadOf>} p */
+  const inputOf = (p) => ({
+    set: { board: boardFromRows(p.set.boardRows), pieces: p.set.pieces, witness: p.set.witness, carving: p.set.carving, macroRegion: p.set.macroRegion },
+    puzzle: p.puzzle,
+    generation: p.generation,
+  });
+  const direct = (/** @type {ReturnType<typeof payloadOf>} */ p, /** @type {ReturnType<typeof execution>} */ exec = execution()) => (
+    replayPuzzle(inputOf(p), { ws: exec.main, scratch: exec.scratch }));
+  const run = (/** @type {ReturnType<typeof payloadOf>} */ p, /** @type {ReturnType<typeof execution>} */ exec = execution()) => (
+    /** @type {ReturnType<typeof replayPuzzle>} */ (executeTask('replayPuzzle', p, exec)));
+  const task = (/** @type {number} */ id, /** @type {object} */ payload) => ({ type: 'task', id, kind: 'replayPuzzle', payload });
+  const harness = (/** @type {object} */ options = {}) => {
+    /** @type {any[]} */
+    const replies = [];
+    return { replies, handler: createTaskHandler({ post: (r) => replies.push(r), ...options }) };
+  };
+  /** @type {ReturnType<typeof replayPuzzle> | undefined} */
+  let first;
+  const firstResult = () => (first ??= run(payloadOf()));
+
+  test('the first fixture puzzle replays to matched, equal to the engine call and plain data', () => {
+    const result = firstResult();
+    assert.equal(result.status, 'matched');
+    assert.equal(result.reason, null);
+    assert.equal(result.stages.final, 'compared');
+    assert.ok(result.compared.length > 0 && result.steps.length > 1);
+    assert.deepEqual(result, direct(payloadOf()));
+    assert.deepEqual(structuredClone(result), result);
+    const candidate = run(payloadOf(1, 0));
+    assert.equal(candidate.status, 'matched', 'a candidate puzzle of the second pack');
+    assert.deepEqual(candidate, direct(payloadOf(1, 0)));
+  });
+
+  test('the engine gets the worker\'s main workspace for its models and the scratch one for the layout walk', () => {
+    const viaTask = execution();
+    const viaEngine = execution();
+    // The calibration puzzle has no layout walk, a candidate puzzle has one.
+    assert.deepEqual(run(payloadOf(1, 0), viaTask), direct(payloadOf(1, 0), viaEngine));
+    assert.ok(viaTask.main.peakBytes() > 0 && viaTask.scratch.peakBytes() > 0);
+    assert.notEqual(viaTask.main.peakBytes(), viaTask.scratch.peakBytes());
+    assert.deepEqual(
+      [viaTask.main.peakBytes(), viaTask.main.allocationCount(), viaTask.scratch.peakBytes(), viaTask.scratch.allocationCount()],
+      [viaEngine.main.peakBytes(), viaEngine.main.allocationCount(), viaEngine.scratch.peakBytes(), viaEngine.scratch.allocationCount()],
+    );
+  });
+
+  test('what the replay finds in the record is a result, never an error', () => {
+    const id = payloadOf().puzzle.id;
+    /** @type {[string, (p: any) => void, string, string][]} */
+    const cases = [
+      ['a clue of an unknown piece', (p) => { p.puzzle.clues = [{ ...x0, piece: 'ZZ' }]; }, 'mismatch', 'clues'],
+      ['a rating that differs', (p) => { p.puzzle.rating = { ...p.puzzle.rating, score: p.puzzle.rating.score + 1 }; }, 'mismatch', 'rating'],
+      ['no origin', (p) => { p.generation = { made: p.generation.made }; }, 'unavailable', 'no-set-origin'],
+      ['no record', (p) => { p.generation.made = {}; }, 'unavailable', 'no-record'],
+      ['an invalid record', (p) => { p.generation.made = { [id]: { schema: 99 } }; }, 'unavailable', 'record-invalid'],
+    ];
+    for (const [name, edit, status, reason] of cases) {
+      const payload = payloadOf();
+      edit(payload);
+      const result = run(payload);
+      assert.deepEqual([result.status, result.reason], [status, reason], name);
+      assert.equal(result.steps.at(-1)?.kind, 'final', name);
+      assert.deepEqual(structuredClone(result), result, name);
+    }
+  });
+
+  test('the handler answers with one result equal to the direct call, and every reply is valid', () => {
+    const { replies, handler } = harness();
+    handler.handle(task(5, payloadOf()));
+    const results = replies.filter((r) => r.type === 'result');
+    assert.equal(results.length, 1);
+    assert.equal(results[0].id, 5);
+    assert.deepEqual(results[0].value, firstResult());
+    assert.ok(replies.every((r) => r.id === 5 && r.type !== 'error'));
+    for (const reply of replies) {
+      assert.ok(parseWorkerMessage(reply).ok, JSON.stringify(reply).slice(0, 100));
+      assert.deepEqual(structuredClone(reply), reply);
+    }
+    assert.equal(replies.at(-1).type, 'result', 'the result is the last reply');
+  });
+
+  test('a set without pieces is refused before engine code', () => {
+    const payload = payloadOf();
+    payload.set.pieces = [];
+    const spy = execution();
+    assert.throws(() => executeTask('replayPuzzle', payload, spy), (e) => {
+      assert.ok(e instanceof TaskError);
+      assert.equal(e.code, 'invalid-payload');
+      assert.deepEqual(e.issues.map((i) => [i.code, i.path]), [['invalid-value', 'payload.set.pieces']]);
+      return true;
+    });
+    assert.equal(spy.main.allocationCount(), 0);
+    assert.equal(spy.scratch.allocationCount(), 0);
+    const { replies, handler } = harness();
+    handler.handle(task(6, payload));
+    assert.deepEqual(replies.map((r) => [r.type, r.id, r.code]), [['error', 6, 'invalid-task']]);
+    assert.equal(replies[0].issues[0].path, 'payload.set.pieces');
+  });
+
+  test('a RangeError of the engine is an invalid-request reply, and other engine errors keep their codes', () => {
+    // No payload that passes the protocol reaches a RangeError of `replayPuzzle`, so the engine's own is raised through
+    // the handler's `execute` seam: the limits that cannot hold the final step.
+    const tooSmall = harness({
+      execute: (/** @type {string} */ _kind, /** @type {any} */ payload, /** @type {any} */ exec) => replayPuzzle(
+        inputOf(payload), { ws: exec.main, scratch: exec.scratch }, { ...REPLAY, maxBytes: 1 }),
+    });
+    tooSmall.handler.handle(task(7, payloadOf()));
+    assert.deepEqual(tooSmall.replies.map((r) => [r.type, r.id, r.code]), [['error', 7, 'invalid-request']]);
+    assert.equal(tooSmall.replies[0].message, 'maxBytes cannot hold the final step');
+    assert.deepEqual(errorReply(7, new RangeError('invalid replay input')), { type: 'error', id: 7, code: 'invalid-request', message: 'invalid replay input' });
+
+    const small = harness({ mainBytes: 4096, scratchBytes: 4096 });
+    small.handler.handle(task(8, payloadOf()));
+    assert.deepEqual(small.replies.filter((r) => r.type !== 'progress').map((r) => [r.type, r.id, r.code]), [['error', 8, 'model-too-large']]);
+  });
+});
+

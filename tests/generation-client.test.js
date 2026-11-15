@@ -4,12 +4,13 @@ import { readFileSync } from 'node:fs';
 import { describe, test } from 'node:test';
 
 import { createGenerationClient, GenerationError } from '../core/browser/generation-client.js';
-import { createPool } from '../core/browser/worker-pool.js';
+import { createPool, PoolAbortError } from '../core/browser/worker-pool.js';
 import { boardFromRows } from '../core/engine/board.js';
 import { firstSetAttempt, provenanceVersions, puzzleCandidate } from '../core/engine/generate.js';
 import { canonicalKey } from '../core/engine/geometry.js';
 import { layoutDistance } from '../core/engine/keys.js';
 import { provenanceProblem, validatePack } from '../core/engine/pack.js';
+import { replayPuzzle } from '../core/engine/replay.js';
 import { createTaskHandler } from '../core/engine/tasks.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
 
@@ -818,7 +819,7 @@ describe('auxiliary requests', () => {
   /** @param {ReturnType<typeof harness>} h @param {string} kind */
   const heldOf = (h, kind) => h.held.filter((t) => t.kind === kind);
 
-  test('a fresh client runs the request on a bootstrapped token; only rate is allowed', async () => {
+  test('a fresh client runs the request on a bootstrapped token; only rate and replayPuzzle are allowed', async () => {
     const h = harness({ handler: (t) => (t.kind === 'rate' ? { value: rated } : undefined) });
     const client = clientOf(h);
     assert.deepEqual(await client.submitAuxiliary('rate', ratePayload), rated);
@@ -952,6 +953,256 @@ describe('auxiliary requests', () => {
     h.answer(posted[2], { value: rated });
     await settle();
     assert.deepEqual([out.state, out.value], ['resolved', rated]);
+  });
+});
+
+const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case.json', import.meta.url), 'utf8'));
+/**
+ * The input of `replayPuzzle` for one fixture puzzle, as the Generator holds it: the set of its pack, the puzzle, the
+ * pack's set origin and the puzzle's own origin record.
+ * @param {number} [packIndex]
+ * @param {number} [puzzleIndex]
+ */
+const replayInput = (packIndex = 0, puzzleIndex = 0) => {
+  const pack = REPLAY_FIXTURE.packs[packIndex];
+  const puzzle = pack.puzzles[puzzleIndex];
+  return {
+    set: {
+      board: boardFromRows(pack.board.rows), pieces: pack.pieces, witness: pack.witness ?? null,
+      carving: pack.generation.carving, macroRegion: pack.generation.macroRegion,
+    },
+    puzzle,
+    setOrigin: pack.generation.setOrigin,
+    made: pack.generation.made[puzzle.id],
+  };
+};
+
+describe('replay requests', () => {
+  /** The payload the client must post, written out from the fixture. @param {number} [packIndex] @param {number} [puzzleIndex] */
+  const payloadOf = (packIndex = 0, puzzleIndex = 0) => {
+    const pack = REPLAY_FIXTURE.packs[packIndex];
+    const puzzle = pack.puzzles[puzzleIndex];
+    return {
+      set: {
+        boardRows: pack.board.rows, pieces: pack.pieces, witness: pack.witness, carving: pack.generation.carving,
+        macroRegion: pack.generation.macroRegion,
+      },
+      puzzle: { id: puzzle.id, clues: puzzle.clues, solution: puzzle.solution, rating: puzzle.rating },
+      generation: { setOrigin: pack.generation.setOrigin, made: { [puzzle.id]: pack.generation.made[puzzle.id] } },
+    };
+  };
+  const REPLAYED = { status: 'matched', reason: null, stages: { set: 'replayed', candidate: 'calibration', final: 'compared' }, compared: ['board'], work: 5, steps: [] };
+
+  /**
+   * The pool with its calls recorded: the requests it began and ended (in order), the idle tasks it was given and the
+   * number of `cancelAll`.
+   * @param {ReturnType<typeof harness>} h
+   */
+  function watched(h) {
+    /** @type {string[]} */
+    const order = [];
+    /** @type {any[]} */
+    const begun = [];
+    /** @type {[string, number][]} */
+    const idle = [];
+    const log = { order, begun, idle, cancelAll: 0 };
+    const pool = /** @type {any} */ ({
+      ...h.pool,
+      beginRequest: (/** @type {any} */ r) => {
+        order.push(`begin ${r.requestId}`);
+        begun.push(r);
+        h.pool.beginRequest(r);
+      },
+      endRequest: (/** @type {number} */ id) => {
+        order.push(`end ${id}`);
+        h.pool.endRequest(id);
+      },
+      runIdle: (/** @type {any} */ task) => {
+        idle.push([task.kind, task.requestId]);
+        return h.pool.runIdle(task);
+      },
+      cancelAll: () => {
+        log.cancelAll += 1;
+        h.pool.cancelAll();
+      },
+    });
+    return { pool, log, client: createGenerationClient(pool, { clock: h.clock, createdAt: () => CREATED_AT }) };
+  }
+
+  /**
+   * A scripted worker: replays and certificates are held until the test answers; candidates are held while `gate.on`.
+   * @param {{ on: boolean }} gate
+   * @param {Outcome} [replayOutcome]
+   */
+  const handlerOf = (gate, replayOutcome) => (/** @type {Task} */ t) => {
+    if (t.kind === 'replayPuzzle') {
+      return replayOutcome;
+    }
+    return t.kind === 'certify' || gate.on ? undefined : scripted(t);
+  };
+  /** @param {ReturnType<typeof harness>} h @param {string} kind */
+  const heldOf = (h, kind) => h.held.filter((t) => t.kind === kind);
+  /** @param {ReturnType<typeof harness>} h */
+  const answerCandidates = (h) => {
+    for (const t of heldOf(h, 'puzzleCandidate')) {
+      h.answer(t, scripted(t));
+    }
+  };
+  const twoPuzzles = (/** @type {object} */ over = {}) => batchInput({ quantity: 2, revision: 'r-replay', ...over });
+
+  test('during a batch it is not dispatched; afterwards it runs idle under the batch token and resolves with the worker value', async () => {
+    const gate = { on: true };
+    const h = harness({ handler: handlerOf(gate, { value: REPLAYED }) });
+    const { client, log } = watched(h);
+    const batch = track(client.generateBatch(twoPuzzles()));
+    const replay = track(client.replayPuzzle(replayInput()));
+    await settle();
+    assert.deepEqual([batch.state, replay.state], ['pending', 'pending']);
+    assert.equal(h.tasks.some((t) => t.kind === 'replayPuzzle'), false, 'it waits while the batch is active');
+    gate.on = false;
+    answerCandidates(h);
+    await settle();
+    assert.equal(batch.state, 'resolved');
+    assert.equal(batch.value.status, 'complete');
+    assert.deepEqual([replay.state, replay.value], ['resolved', REPLAYED]);
+    assert.deepEqual(log.begun.map((r) => r.requestId), [1], 'no request of its own: the batch\'s ended token is reused');
+    assert.deepEqual(log.idle.filter(([kind]) => kind === 'replayPuzzle'), [['replayPuzzle', 1]]);
+    assert.deepEqual(h.tasks.filter((t) => t.kind === 'replayPuzzle').map((t) => t.payload), [payloadOf()]);
+    assert.equal(log.cancelAll, 0);
+  });
+
+  test('a batch that starts while it waits or runs rejects it as cancelled and completes as it would have without it', async () => {
+    const batchBase = async () => {
+      const h = harness({ handler: handlerOf({ on: false }) });
+      const result = await clientOf(h).generateBatch(twoPuzzles({ revision: 'rb' }));
+      return { result, candidates: h.tasks.filter((t) => t.kind === 'puzzleCandidate').length };
+    };
+    const base = await batchBase();
+    assert.equal(base.result.status, 'complete');
+    for (const phase of ['waiting', 'running']) {
+      const gate = { on: true };
+      const h = harness({ handler: handlerOf(gate) });
+      const { client, log } = watched(h);
+      /** @type {ReturnType<typeof track> | undefined} */
+      let first;
+      if (phase === 'waiting') {
+        first = track(client.generateBatch(twoPuzzles({ revision: 'ra' })));
+        await settle();
+      }
+      const replay = track(client.replayPuzzle(replayInput()));
+      await settle();
+      assert.equal(replay.state, 'pending', phase);
+      assert.equal(heldOf(h, 'replayPuzzle').length, phase === 'running' ? 1 : 0, `${phase}: posted only when it can run`);
+      gate.on = false;
+      const before = h.tasks.length;
+      const result = await client.generateBatch(twoPuzzles({ revision: 'rb' }));
+      await settle();
+      assert.equal(replay.state, 'rejected', phase);
+      assert.ok(replay.error instanceof PoolAbortError, phase);
+      assert.equal(replay.error.reason, 'cancelled', phase);
+      if (first !== undefined) {
+        assert.equal(first.value.status, 'cancelled', 'the earlier batch is superseded as before');
+      }
+      assert.deepEqual(result, base.result, `${phase}: the batch is the same as without the replay`);
+      assert.equal(h.tasks.slice(before).filter((t) => t.kind === 'puzzleCandidate').length, base.candidates, `${phase}: its tasks are dispatched as usual`);
+      for (const t of heldOf(h, 'replayPuzzle')) {
+        h.answer(t, { value: REPLAYED });
+      }
+      await settle();
+      assert.equal(replay.state, 'rejected', `${phase}: a late reply changes nothing`);
+      assert.deepEqual(log.begun.map((r) => r.requestId).slice(-1), [2]);
+    }
+  });
+
+  test('aborting its own signal rejects it as cancelled and leaves a running batch untouched', async () => {
+    const gate = { on: true };
+    const h = harness({ handler: handlerOf(gate) });
+    const { client, log } = watched(h);
+    const batch = track(client.generateBatch(twoPuzzles()));
+    await settle();
+    const controller = new AbortController();
+    const replay = track(client.replayPuzzle(replayInput(), { signal: controller.signal }));
+    await settle();
+    assert.equal(replay.state, 'pending');
+    controller.abort();
+    await settle();
+    assert.equal(replay.state, 'rejected');
+    assert.ok(replay.error instanceof PoolAbortError);
+    assert.equal(replay.error.reason, 'cancelled');
+    assert.equal(batch.state, 'pending');
+    assert.equal(log.cancelAll, 0, 'no cancelAll');
+    assert.deepEqual(log.begun.map((r) => r.requestId), [1], 'no beginRequest but the batch\'s');
+    assert.ok(h.workers.every((w) => !w.terminated), 'no worker was stopped');
+    assert.equal(h.tasks.some((t) => t.kind === 'replayPuzzle'), false);
+    gate.on = false;
+    answerCandidates(h);
+    await settle();
+    assert.equal(batch.value.status, 'complete');
+    const plain = harness({ handler: handlerOf({ on: false }) });
+    assert.deepEqual(batch.value, await clientOf(plain).generateBatch(twoPuzzles()), 'the batch is the one without the replay');
+
+    const idle = harness({ handler: handlerOf({ on: false }) });
+    const own = watched(idle);
+    const running = new AbortController();
+    const out = track(own.client.replayPuzzle(replayInput(), { signal: running.signal }));
+    await settle();
+    assert.equal(heldOf(idle, 'replayPuzzle').length, 1, 'it runs on the bootstrapped token');
+    running.abort();
+    await settle();
+    assert.deepEqual([out.state, out.error?.reason], ['rejected', 'cancelled']);
+    assert.equal(own.log.cancelAll, 0);
+    assert.deepEqual(own.log.order, ['begin 1', 'end 1']);
+    const aborted = new AbortController();
+    aborted.abort();
+    await assert.rejects(own.client.replayPuzzle(replayInput(), { signal: aborted.signal }), (e) => e instanceof PoolAbortError && e.reason === 'cancelled');
+    assert.equal(heldOf(idle, 'replayPuzzle').length, 1, 'an aborted signal posts nothing');
+  });
+
+  test('on a fresh client it bootstraps a token, begin then end, and the next generation takes a larger request id', async () => {
+    const h = harness({ handler: handlerOf({ on: false }, { value: REPLAYED }) });
+    const { client, log } = watched(h);
+    assert.deepEqual(await client.replayPuzzle(replayInput(), { signal: new AbortController().signal }), REPLAYED);
+    assert.deepEqual(log.order, ['begin 1', 'end 1']);
+    assert.deepEqual(log.begun, [{ requestId: 1, revision: 'aux-1' }]);
+    assert.deepEqual(log.idle, [['replayPuzzle', 1]]);
+    const next = await client.generateBatch(batchInput({ quantity: 1, calibration: fixture().calibration }));
+    assert.equal(next.status, 'complete');
+    assert.deepEqual(log.begun.map((r) => r.requestId), [1, 2]);
+    assert.ok(log.begun[1].requestId > log.begun[0].requestId);
+  });
+
+  test('the payload is the one of the contract, whatever the puzzle stores; a missing record is left out', async () => {
+    const h = harness({ handler: handlerOf({ on: false }, { value: REPLAYED }) });
+    const { client } = watched(h);
+    const input = replayInput(1, 2);
+    assert.deepEqual(await client.replayPuzzle(input), REPLAYED);
+    assert.deepEqual(h.tasks[0].payload, payloadOf(1, 2));
+    const bare = { ...input, puzzle: { id: input.puzzle.id, clues: input.puzzle.clues }, setOrigin: null, made: null };
+    await client.replayPuzzle(/** @type {any} */ (bare));
+    // The pool posts the protocol's normalized copy, so the absent parts arrive as null and an absent record is left out.
+    assert.deepEqual(h.tasks[1].payload.puzzle, { id: input.puzzle.id, clues: input.puzzle.clues, solution: null, rating: null });
+    assert.deepEqual(h.tasks[1].payload.generation, {});
+    await client.replayPuzzle({ ...input, made: null });
+    assert.deepEqual(Object.keys(h.tasks[2].payload.generation), ['setOrigin']);
+    await client.replayPuzzle({ ...input, setOrigin: null });
+    assert.deepEqual(Object.keys(h.tasks[3].payload.generation), ['made']);
+    assert.deepEqual(Object.keys(h.tasks[3].payload.generation.made), [input.puzzle.id]);
+  });
+
+  test('it rejects as submitAuxiliary does: a worker error, a payload the protocol refuses, no worker, a malformed input', async () => {
+    const failing = harness({ handler: (t) => (t.kind === 'replayPuzzle' ? { error: 'invalid-request' } : undefined) });
+    await assert.rejects(clientOf(failing).replayPuzzle(replayInput()), (e) => e.name === 'WorkerTaskError' && e.code === 'invalid-request');
+    // The pool reads every task with the protocol's reader before it posts it.
+    const refused = harness();
+    const input = replayInput();
+    await assert.rejects(
+      clientOf(refused).replayPuzzle({ ...input, puzzle: { ...input.puzzle, id: 'p'.repeat(65) } }),
+      (e) => e.name === 'PoolError' && e.code === 'invalid-task' && e.issues[0].path === 'payload.puzzle.id',
+    );
+    assert.equal(refused.tasks.length, 0, 'nothing reached a worker');
+    const noWorker = createGenerationClient(/** @type {any} */ ({ beginRequest() {}, endRequest() {} }), { clock: createFakeClock(), createdAt: () => CREATED_AT });
+    await assert.rejects(noWorker.replayPuzzle(replayInput()), (e) => e.name === 'PoolError' && e.code === 'worker-unavailable');
+    await assert.rejects(clientOf(harness()).replayPuzzle(/** @type {any} */ ({})), TypeError);
   });
 });
 
@@ -1109,5 +1360,24 @@ describe('real engine through the pool', () => {
     assert.equal(second.batch.seenLayouts.length, history.seenLayouts.length + second.batch.accepted.length);
     const replay = await runRecipe(2, { quantity: 4 });
     assert.deepEqual(semantic(replay.batch.pack), semantic(first.batch.pack));
+  });
+
+  test('replayPuzzle on the real engine resolves with the engine\'s own matched result', async () => {
+    for (const [packIndex, puzzleIndex] of [[0, 0], [1, 1]]) {
+      const input = replayInput(packIndex, puzzleIndex);
+      const h = realHarness(1);
+      try {
+        const result = await realClient(h).replayPuzzle(input);
+        assert.equal(result.status, 'matched', `pack ${packIndex} puzzle ${puzzleIndex}`);
+        assert.equal(result.reason, null);
+        const { id } = input.puzzle;
+        const direct = replayPuzzle({ set: input.set, puzzle: input.puzzle, generation: { setOrigin: input.setOrigin, made: { [id]: input.made } } }, {
+          ws: createWorkspace(MAIN_WORKSPACE_BYTES), scratch: createWorkspace(SCRATCH_WORKSPACE_BYTES),
+        });
+        assert.deepEqual(result, direct);
+      } finally {
+        h.pool.close();
+      }
+    }
   });
 });

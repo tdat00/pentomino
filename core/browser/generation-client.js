@@ -30,6 +30,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
 /** @typedef {import('../engine/types.js').Pose} Pose */
 /** @typedef {import('../engine/types.js').Puzzle} Puzzle */
 /** @typedef {import('../engine/types.js').PuzzleCandidate} PuzzleCandidate */
+/** @typedef {import('../engine/replay.js').ReplayResult} ReplayResult */
 /** @typedef {import('../engine/types.js').SetOrigin} SetOrigin */
 /** @typedef {import('./worker-pool.js').Clock} Clock */
 /** @typedef {import('./worker-pool.js').Pool} Pool */
@@ -163,9 +164,16 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  *   One arrangement of a piece set that keeps the given clues (the solver's first solution within its row limit), or
  *   null when none was found, the search was cancelled or it ran out of time.
  * @property {(kind: string, payload: object, options?: { signal?: AbortSignal }) => Promise<unknown>} submitAuxiliary
- *   One background task (kind `rate`, payload `{ boardRows, pieces, clues }`) that waits while a request of this client
- *   is active, runs on the pool's idle queue and rejects with `PoolAbortError('cancelled')` when a new request begins
- *   or its `signal` aborts (design §8.1); it never cancels a request, a hint or a certificate.
+ *   One background task (kind `rate`, payload `{ boardRows, pieces, clues }`, or `replayPuzzle`) that waits while a
+ *   request of this client is active, runs on the pool's idle queue and rejects with `PoolAbortError('cancelled')`
+ *   when a new request begins or its `signal` aborts (design §8.1); it never cancels a request, a hint or a
+ *   certificate.
+ * @property {(input: { set: PieceSet, puzzle: Puzzle, setOrigin: SetOrigin | null, made: Made | null },
+ *   options?: { signal?: AbortSignal }) => Promise<ReplayResult>} replayPuzzle
+ *   Generation Steps (RES-29): replays one puzzle on the auxiliary path, so it waits while a generation is active,
+ *   never cancels one and is cancelled by `signal` or by a new generation. It rejects as `submitAuxiliary` does:
+ *   `PoolAbortError('cancelled' | 'closed')`, `WorkerTaskError` (for example `invalid-request`) or `PoolError`
+ *   (`invalid-task` for a payload the protocol refuses, `worker-unavailable`).
  * @property {() => void} cancel
  * @property {() => void} recycle
  */
@@ -455,7 +463,7 @@ export function createGenerationClient(pool, options = {}) {
       lastRequestId += 1;
       return lastRequestId;
     },
-    kinds: ['rate'],
+    kinds: ['rate', 'replayPuzzle'],
   });
 
   /** @param {string | undefined} revision @returns {Job} */
@@ -1251,6 +1259,26 @@ export function createGenerationClient(pool, options = {}) {
     }
   }
 
+  /**
+   * Generation Steps (RES-29): replays one puzzle on the auxiliary path. It waits while a generation is active, never
+   * cancels one, and is cancelled by `signal` or by a new generation.
+   * @param {{ set: PieceSet, puzzle: Puzzle, setOrigin: SetOrigin | null, made: Made | null }} input
+   * @param {{ signal?: AbortSignal }} [replayOptions]
+   * @returns {Promise<ReplayResult>}
+   */
+  async function replayPuzzle(input, replayOptions = {}) {
+    const { set, puzzle, setOrigin, made } = input;
+    const payload = {
+      set: wireSet(set),
+      puzzle: { id: puzzle.id, clues: puzzle.clues, solution: puzzle.solution ?? null, rating: puzzle.rating ?? null },
+      generation: {
+        ...(setOrigin === null ? {} : { setOrigin }),
+        ...(made === null ? {} : { made: { [puzzle.id]: made } }),
+      },
+    };
+    return /** @type {ReplayResult} */ (await aux.submit('replayPuzzle', payload, { signal: replayOptions.signal }));
+  }
+
   function cancel() {
     const job = latest;
     if (job !== null && job.running) {
@@ -1265,6 +1293,7 @@ export function createGenerationClient(pool, options = {}) {
     generateBatch,
     solveWitness,
     submitAuxiliary: (kind, payload, submitOptions) => aux.submit(kind, payload, submitOptions ?? {}),
+    replayPuzzle,
     cancel,
     recycle() {
       cancel();
