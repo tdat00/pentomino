@@ -7,6 +7,9 @@
 > changed and why. **Every measured number is provisional (pre-freeze):** the `rating-v3` runtime of MP12b1, Node,
 > four workers, two to six seeds per cell, no browser run. The frozen round (post-MP17) repeats them; nothing here
 > is a gate result or an offer.
+>
+> **Addendum, section 9 (2026-11-15):** the plan read against the `rating-v3` source (`13d61fd`), the estimate on
+> that source, and five further candidates (C1 to C5) with questions for the analysts.
 
 Plan author: claude-fable-5-2, 2026-11-14; version 2 on 2026-11-15. Written with the answer to **PR-P2**
 ([clarifications.md](../difficulty-v3/clarifications.md)). Status: **proposal; nothing implemented in `core/` or
@@ -377,8 +380,10 @@ Each is tested by equality of the complete `DeductionResult`, `work` and `nodes`
   (search 78.5 and 91.3 %, census 17.8 and 4.4 %); the model build is 0.1 to 0.2 %. A kernel s times faster
   therefore gives nearly s on a request: 1.5 gives x1.47, 2 gives x1.92.
 - Indicative function shares (they depend on V8's inlining): `select` 17.5 to 20.0 %, `ruleR4` 16.5 to 16.6 %,
-  `neighbourCell` 7.9 to 10.5 %, `undo` 7.9 %. These rank the candidates: the column choice and R4 first, then
-  the neighbourhood and undo paths. Model reuse is dropped as a speed item (the build is 0.2 % at most).
+  `neighbourCell` 7.9 to 10.5 %, `undo` 7.9 %. These rank the candidates: R4 first, then `select` and `undo`
+  (the row placement and its kill loops, `deduce.js:444`, not the column choice, whose share was not reported),
+  then the pocket labelling behind `neighbourCell`; section 9.3 develops them. Model reuse is dropped as a speed
+  item (the build is 0.2 % at most).
 - Phase 1 holds only the items whose equality of units, tie order and cap boundaries is proved; full-model reuse
   and the refutation memo are later items behind their own proofs (IG-P-Q13). The count of repeated exact states
   was not measured; the memo is not designed before it is.
@@ -595,3 +600,136 @@ Tests every phase keeps or adds:
   With the scope rule this now matters only for small Nightmare boards (3x29, 10x10), which PM3 must include.
 - **Fixtures and stored recipes** change with `gen-v4`; the puzzle code and packs keep their versions, as in the
   move to `gen-v3`.
+
+## 9. Addendum (2026-11-15): against the `rating-v3` source, and further candidates for analysis
+
+Written by the plan author after reading the `rating-v3` branch at `13d61fd` (MP12b2). Nothing was run for this
+section. 9.1 and 9.2 are a reading of committed records; 9.3 is a list of **hypotheses for the analysts (Opus,
+Astra) to examine**, not decisions: no item of 9.3 is in the phases of section 6 until an analysis and a
+measurement support it. Line numbers are those of `core/engine/deduce.js`, which is identical on `rating-v3` and
+on this branch.
+
+### 9.1 What `rating-v3` changes for this plan
+
+- **The runtime is the one the prototypes measured.** `13d61fd` changes no file of `core/`, `generator/` or
+  `tools/` against `cd5d17f`; the source digest is still `34cea386…`. Sections 0 and 4 therefore apply to the
+  current code without a transfer assumption. The frozen round is still needed, because MP12b3 and MP13 to MP17
+  come before the freeze.
+- **The tuple is locked** (`docs/difficulty-v3/calibration-2026-11-15.md` section 12): `SCORE_V3`, `DEDUCE`
+  (work 760 M, census 80 M), `gen-v3`, `STALL_LIMIT` 12, `K60` and `SHARES`. Any change of the clue search needs a
+  new `algo` id, which is what `gen-v4` is; any change of a cap or of what a work unit counts needs a new model.
+  This is the constraint on every item of 9.3.
+- **The fail-fast does not replace P1 and P3.** MP12b2's false-stop check: at Nightmare F2 fires 18 times and 11
+  are false stops; F1 + F2 4 of 4; over all populations F1 2 of 7, F2 17 of 67, F1 + F2 5 of 21. Only "none"
+  meets the zero-false-stop rule, and SA2 recommends none (owner question 1, open). So today's times stay as
+  measured, and the dead end is removed only by moving the count (P3), not by stopping earlier. 11 of the 25
+  successful Nightmare calls had four or more leading capped attempts, up to 18.
+- **Today's Nightmare cost, call by call** (five serial captures, section 6 of the record): 334 of 441 raw
+  attempts capped (75.7 %), 17.6 attempts per accepted puzzle (52.8 on 14x14), a capped attempt 2.1 s at the
+  median. The prototype's 0.8 to 4.2 window profiles per call (R12) are to be read against that.
+- **Hell is withdrawn by D39** (derived areas `[Infinity, Infinity]` for Hell 1, 2 and 3; best completion 45 %
+  on 26x26). The record states that this search does not reach the Hell bands, not that they are unreachable.
+  For Hell 1 this plan is the only route back; 9.2 gives the estimate. The availability probe agrees with PM1:
+  `20x20` Hell 1 is 60 capped profiles of 60 at the start count, and `13x13b5` Hell 1 found in-band puzzles at 7
+  and 8 clues.
+- **A call can outlast the 115 s stop**: 136.3 s observed (`h-18x18-hell-2`, 64 profiles) and up to 105.1 s on
+  14x14 Nightmare; 70 of 1,726 responses exceed 120 s. This is P5's reason and IG-P-Q02's subject.
+- **Census estimates.** All 15 Nightmare cells carry more than 25 % estimated ratings (34 to 97 %), the fast
+  large boards the most (84.5 % on 24x24, 97.0 % on 26x26): their speed may be the estimate reaching the band
+  early (the record's item 8). A population that moves to more clues (section 0.2) may change that share; PM3
+  should report it per arm.
+
+### 9.2 Estimate on the current source
+
+T10 median, Node, four workers. "After `gen-v4`" is Measured (provisional) where a count of seeds is given,
+otherwise a Projection. "After all" divides by P6 and by a P7 assumed at 1.3 (range 1.1 to 1.8): a Projection.
+
+| Cell | `rating-v3` today (requests with ten) | After `gen-v4` (P1 to P5) | After all (Projection) |
+|---|---|---|---|
+| 14x14 Nightmare | 113.0 s (55 %) | 8.9 s (n 3, 3 of 3) | about 7 s |
+| 15x15b10 Nightmare | 86.2 s (55 %) | 8.5 s (n 3, 3 of 3) | about 6.5 s |
+| 12x12 Nightmare | 62.1 s (85 %) | 9.0 s with the screen (n 6); 16.5 s without | about 7 s; 12.5 s |
+| 16x16, 15x20 Nightmare | 79.8 s, 40.1 s (75 %) | not measured; 8 to 12 s (Projection: the same dead-end regime, capped share 63 % and 27 % in the serial captures) | 6 to 9 s |
+| 18x18 to 24x24 Nightmare | 11.6 to 37.3 s | not measured; x1.5 to 2 (Projection from 26x26) | 6 to 15 s |
+| 26x26 Nightmare | 18.6 s | 11.9 s (n 6) | about 9 s |
+| 10x10 Nightmare | 24.0 s | about unchanged (no dead end; not measured) | about 18 s |
+| Very easy to Master | 1.2 to 9.0 s at Master | unchanged (scope rule) | x1.1 to 1.5 |
+| Hell 1 26x26 | 108.7 s (45 %); to be withdrawn | 34.2 s without the screen (n 2) | about 26 s |
+| Hell 1 20x20 | no set in 115 s | 42.9 s (n 2, 2 of 2) | about 33 s |
+
+### 9.3 Further candidates (hypotheses, unmeasured)
+
+Where the time is after `gen-v4`: an accepted puzzle costs about three to four ratings (two locate probes and
+0.8 to 4.2 window profiles, R12 and R19), and 96 % of a rating is the kernel (R24). The floor of the search
+side is one rating per accepted puzzle, so the search can still give at most about 2 to 3 times; everything
+beyond that is the kernel or the scheduling. The gains below are the plan author's guesses, to be replaced by
+the analysts' estimates.
+
+| Id | Candidate | Same puzzles? | Guess of the gain | First check |
+|---|---|---|---|---|
+| C1 | Incremental rule state in the ladder, with the scan's units charged exactly | yes, if the charges are proved equal | x1.2 from R4 alone; more if R3, R5 and R6 follow | equality of `DeductionResult` on the PM4 corpus; time per rating |
+| C2 | Over-provisioned batch candidates, consumed in the fixed slot order | new `algo` (which candidates exist changes) | x1.3 to 1.6 on the batch, for more CPU | PM3 arm with 12 and 14 candidates for nine slots |
+| C3 | A cheap predictor of the score from the DLX diagnostic, to choose the count and the subset before rating | new `algo` | up to x1.5 to 2, if the correlation holds | correlation on the existing records; no machine time |
+| C4 | A memo of failed states inside one rating, with a real recomputation when the cap falls inside | yes, if units, nodes and the cap boundary are reproduced | unknown | count of repeated exact states per rating (PM2 did not count it) |
+| C5 | A faster `select` and `undo` (the kill loops), then P11 | yes | x1.2 to 1.5 on the kernel | PM2 on a Hell 1 board and after C1 |
+
+**C1. Incremental rule state.** `ladder` (`deduce.js:1448`) restarts at R1 after every applied rule, and each rule
+rescans. `ruleR4` (`:709`) walks every uncovered piece and every row of its column, dead rows included, marks
+the cells of the live rows, tests the first live row and clears the marks: three passes per piece per call, for
+16.5 % of the rating time (R30, indicative). The quantity it computes, "the number of live rows of piece p that
+cover cell c", can be kept as a counter updated in `kill` (`:432`) and `undo` (`:482`), which already walk the
+row; `colCount[pc]` is already the piece's live-row count. The units the scan would have charged are a function
+of static column lengths and those counters, so they can be charged without scanning. Obligations: the exact
+charge up to the first piece with a kill, in ascending piece order; the same kills in the same order; `work` at
+every `overWork()` check; the memory inside `memoryBytes`. `fewestColumn` (`:1541`) charges C per node and can
+be served by buckets of live-row counts in the same way; its share was not reported by PM2 (it may be inlined
+into `branch`). Question for the analysts: which of R3, R5 and R6 admit the same treatment, and does the
+incremental upkeep cost more than the scans it saves on small boards?
+
+**C2. Over-provisioned candidates.** Nine batch slots take 3.4 to 6.2 four-worker waves against an ideal 2.25
+(R13): slots wait for a slow or failing candidate. Start more candidates than slots and consume the results in
+the fixed (slot, candidate) order, so the outcome does not depend on the width or on timing. It spends CPU on
+candidates that are discarded, and the history fold (`foldStart`, `foldAccept`) must see the same sequence as a
+serial run. Question: where do the extra waves come from in the journals (failed calls, long calls, duplicates,
+the fold), and how many spare candidates pay?
+
+**C3. A cheap predictor.** Every completed rating records the score and the DLX diagnostic (`B`, `branchTrials`,
+`rowTrials`), and the DLX run costs milliseconds. If the diagnostic, with U and the area, predicts the side of
+the band, the locate phase and the choice among subsets of one count can run on the predictor, and only the
+best candidate is rated canonically. Acceptance stays canonical, so a bad predictor costs time, not
+correctness. It interacts with P6, which removes the diagnostic from search profiles: the predictor would be a
+separate, cheaper call. Question: the rank correlation between the diagnostic and the v3 score per cell in
+MP12b1's records and the prototype journals, and the share of capped profiles it would have predicted.
+
+**C4. A memo of failed states.** Different placement orders can leave the same uncovered cells and the same
+free pieces. A failed sub-state met again could be charged its stored units and nodes and skipped. The cap is
+the difficulty: when the remaining allowance is smaller than the stored cost, the subtree must be searched for
+real so that the cap falls at the same node. With the fewest-rows column choice a repeat needs two different
+partial tilings of one region by the same pieces; whether that is common is the first thing to count. The
+census and the final-path statuses (`status[...]` in `branch`, `:1634`) must come out the same.
+
+**C5. `select`, `undo` and WebAssembly.** In PM2 `select` (`:444`: the placement of a row and the kills of the
+rows that conflict with it) is 17.5 to 20.0 % of the rating time and `undo` 7.9 %. They are already linear in
+what they touch, so the gain is constant-factor: tighter loops, no per-kill function call, then P11. Do it after
+C1, which changes the same loops.
+
+**Correction to P7's version 2 note.** That note ranked "the column choice and R4 first" from PM2's function
+shares. `select` in that profile is the row placement of `deduce.js:444`, not the column choice
+(`fewestColumn`), whose share PM2 did not report. The ranking from the evidence is: R4 (C1), then `select` and
+`undo` (C5), then the pocket labelling behind `neighbourCell` (7.9 to 10.5 %), which P7 already lists.
+
+**What Hell 1 needs in the browser.** The Node T10 must fall from 34 to 43 s to about 13.75 s (section 4). If
+C1, C2 and P11 delivered x1.3, x1.4 and x1.5, their product is x2.7: just enough on 26x26, not on 20x20. That
+is a product of guesses. Progressive delivery (OD-P5) stays the recommendation until measurements say otherwise.
+
+### 9.4 Questions for the analysts
+
+1. For C1: a proof sketch of the exact virtual charge for R4 and `fewestColumn`, and the list of rules it does
+   not extend to.
+2. For C2 and R13: the breakdown of the batch's waves from the existing journals (no new run).
+3. For C3: the correlation analysis on the existing records, per level and area class, with a verdict on
+   whether a predictor is worth a prototype arm.
+4. For C4: whether exact state repeats can be counted with the `instr` variant of the harness, and on which
+   cells.
+5. An independent estimate of what Hell 1 can reach in Node after C1 to C5, with its envelope, and whether any
+   item changes the frozen round's content (section 5).
