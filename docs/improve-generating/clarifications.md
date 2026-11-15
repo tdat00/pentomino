@@ -1125,7 +1125,33 @@ frozen round's data.
 **Recommendation (Opus and Astra).** (a), with unmatched outcomes reported and the table or ranker frozen before
 the validation population is run.
 
-Plan-author answer:
+Plan-author answer: **(a). The thresholds below are fixed now, before the frozen round, and are not refitted on
+the seeds that judge them.**
+
+- *Why not (b).* The first tolerance (0.5 clues) was chosen after I had seen 12x12 (+0.75) and 14x14 (0). The
+  provisional seeds are therefore fitting data only; they cannot also be the gate.
+- *Unit.* A matched set: the same seed and the same set key (`igSetKey`) served by both arms. Seeds are the
+  independent units; puzzles inside one request are not.
+- *The 0.5-clue tolerance.* The median, over the matched sets of a class, of the per-set paired difference
+  (median accepted clue count with the screen less without it) is at most 0.5 clues, and at most one matched set
+  in five moves by two clues or more. The pooled puzzle statistic is reported and not judged: on 14x14 the
+  pooled median moved with no shift on any set.
+- *Faster.* Wall time binds: the geometric mean of the per-seed T10 ratio (no screen over screen) is at least
+  1.15, and its one-sided 90 % lower bound, resampled by seed, is above 1.0. A request that does not reach ten
+  enters at the request limit, so a failed arm cannot vanish. Work units per accepted puzzle are reported beside
+  it and may not be worse with the screen.
+- *Completion, apart.* The screen arm may reach ten on at most one request in 20 fewer than the no-screen arm.
+  Sets that only one arm serves are listed with their outcome; they count in completion and not in the clue
+  statistic.
+- *"No regression" in phase 0's gate.* Master and below stay on today's selection, so the criterion is
+  identity: the same puzzles on the same seeds. For the completion-passing Nightmare cells under the new
+  search: at least 18 of 20 requests reach ten, and the per-seed T10 ratio (today over after) has a one-sided
+  90 % lower bound of at least 0.9. A cell whose tail already exceeds the limit today (18x18, p95 134.5 s) is
+  reported as completion-passing only, as the report's erratum 16 says.
+- *Order.* The `W_screen` table, the priors and any ranker are fitted on pilot seeds and frozen; the validation
+  seeds run afterwards (IG-P-Q20). A class that fails validation falls back to no screen. It is not refitted on
+  the validation seeds.
+- These are first values. The owner or the analysts may change them before the validation seeds run, not after.
 
 ---
 
@@ -1148,7 +1174,26 @@ from gate evidence; (b) ten seeds as section 5 states.
 **Recommendation (Opus and Astra).** (a). A median-based estimate (Opus: about 5 to 9 h) is an indication, not an
 allocation; the provisional round's unused time is not carried over.
 
-Plan-author answer:
+Plan-author answer: **(a). Section 5's "at least ten seeds" is withdrawn.**
+
+- *Seeds.* 20 independent seeds per headline cell, as the joint report's (g) lists them. They are disjoint from
+  every seed used to fit something: the provisional reps 0 to 5 and MP12b1's reps 10 to 19, which filled P4's
+  table. A nearest-rank p95 of 20 is still only the second-largest value; it is reported as a tail observation,
+  and completion is judged by count (18 of 20).
+- *Native controls.* A final difficulty-v3 record serves as today's arm only where the source digest and the
+  full effective request match and its seed fed no table. Otherwise today's search runs in the same round on
+  the same seeds. Master's 16 cells run on the legacy path with identity expected.
+- *Stages.* (1) Source preparation and the identity receipt; no gate number. (2) Pilots on fitting seeds: the
+  per-set prior on Hell 1 first, the journal linkage (dispatch, consume, discard), the `W_screen` arms, (c4),
+  D-IG7, then the scoped C1/C5 spike. (3) The table and the priors are frozen. (4) Validation on the 20 seeds.
+  (5) Diagnostics that need their own approval (C4 counting, C3's capped-input features, the reduced PM1, any
+  browser run). The per-set prior goes ahead of the kernel spike, as the report asks: about half of the Hell
+  batch profile time lies before the first in-band hit.
+- *Stopping.* A cell's gate verdict is settled at its third request that fails to reach ten (90 % of 20 is out
+  of reach); the remaining seeds still run if the cell's budget allows, for the population. Each task has its
+  own ceiling; a task that reaches it stops and is reported as incomplete, never extrapolated.
+- *Envelope.* Priced after stage 1, from an enumerated manifest. I accept 5 to 9 h as an indication and not as
+  an allocation; nothing of the provisional round carries over, and difficulty-v3 keeps machine priority.
 
 ---
 
@@ -1168,7 +1213,18 @@ sets have windows. Neither is an offer before OD-P4's gates.
 **Recommendation (Opus and Astra).** (a) as candidate populations, not inferred offers; 14x14 needs the range
 change, 24x24 only the arm.
 
-Plan-author answer:
+Plan-author answer: **(a): both as candidate populations with request-level arms. Neither is an offer.**
+
+- Section 6's range becomes "Hell 1 on the boards of 196 to 676 cells where PM1 found windows". My range began
+  at 215 only because the first slice's window boards did; R28's failing-set work on 14x14 was left out by
+  oversight.
+- Both get a no-screen arm with a prior from PM1's windows on that board: a pilot of five seeds first, then the
+  20 validation seeds only if the pilot reaches ten on most requests.
+- *Caution on 14x14.* Its windows lie 8 to 11 clues above today's start count, on 4 of 4 sets. If K there is
+  about 21, as on 14x14 Nightmare, that is half the pieces or more given. I have not checked K for those sets;
+  the arm reports the clue share. This is the strongest case of "more given pieces at the same score", so it
+  belongs in what the owner sees for OD-P6, and 14x14 is a natural Hell 1 cell for the blind play comparison.
+- Their main work exceeds 380 M on 6 of 7 (14x14) and 5 of 8 (24x24) ratings, which confirms no screen there.
 
 ---
 
@@ -1192,7 +1248,21 @@ semantics; (c) a new selection rule with its own serial reference and identity.
 **Recommendation (Opus and Astra).** Remove C2's gain claim; (a) once IG-P-Q02 is decided, (b) only as a named
 variant.
 
-Plan-author answer:
+Plan-author answer: **C2 is withdrawn as a new mechanism, with its x1.3 to 1.6. What remains is (a), after
+IG-P-D1; (b) only as a named variant; never (c).**
+
+- I checked `dispatchOrder` (`core/engine/generate.js:554`): it already offers attempt 0 of the later slots and
+  further attempts of the current slot, up to the pool width, and the fold consumes in (slot, attempt) order.
+  That is what I described as C2. The plan was wrong to present it as new.
+- C2 was never meant to define another candidate universe or selection rule, so (c) is out of this feature.
+- (a): P5's deterministic work budget per call, against the existing scheduling. It can only pay by cutting the
+  long successful calls (2.3 to 5.2 times the median call), and every cut is a completion at risk. So the arm
+  counts lost completions against the uncapped search, on unfinished and failed calls too.
+- First the journals get the dispatch, consume and discard linkage. (b), a bounded prefetch with the fold
+  unchanged, is tried only if that linkage shows idle workers behind an awaited call.
+- *Consequence.* Section 9.3's product for Hell 1 in the browser (C1, C2 and P11: x2.7) loses its C2 factor.
+  What is left of that guess, about x2, reaches the target on neither board. The joint sensitivity in the
+  report's (b) 5 replaces it.
 
 ---
 
@@ -1214,7 +1284,20 @@ the defaults and the strict criteria until phase 3.
 proceed in principle, while any relaxation of the criteria waits for measurements and an explicit owner decision.
 (a) if the owner wants OD-P5 or OD-P7 decided before phase 3.
 
-Plan-author answer:
+Plan-author answer: **D39's rule (the Node maximum) for everything that bears on an offer; the median
+transform stays only as a labelled sensitivity. (a), as the first stage of the frozen round.**
+
+- Section 4 called `5 s + 4 x median` "the planning rule". That was wrong: D39's records use the Node maximum,
+  and neither is a browser measurement. Version 3 relabels section 4's browser column and adds the D39 figure
+  beside it (today's 26x26 Nightmare: about 148 s, not the 53 s the median gives after `gen-v4`).
+- (a): the factor decides three open decisions (the reserve of IG-P-D1, OD-P5 (b) and OD-P7) and costs little:
+  today's generator in a browser on a few offered cells, for example 10x10, 12x12 and 26x26 Nightmare and
+  14x14 Master, with the matching Node runs on the same seeds.
+- *When.* By default as the first stage of the frozen round, with its own small budget and approval. Earlier
+  only if the owner wants OD-P5 (b) or OD-P7 decided before then; an early run is repeated on the frozen
+  source.
+- Until it has run: the strict criteria and the defaults stay, progressive presentation may proceed as
+  interface behaviour (IG-P-D2 (a)), and no reserve or service level is committed.
 
 ---
 
@@ -1237,7 +1320,19 @@ populations; (c) open a new generation route (needs its own approval and verific
 **Recommendation (Opus and Astra).** (a) and (b); no new generation, pack claim or offer follows from these few
 census-estimated witnesses.
 
-Plan-author answer:
+Plan-author answer: **(a) and (b). The closure is a scope and resource decision; the plan's wording was wrong.**
+
+- Withdrawn: "reaching Hell 3 needs a change of the rating's cap or scale" (`plan.md:101, 437`), and from my
+  answer to IG-P-Q18 "packs cannot help either". What the records support: on the boards the policy offers for
+  Hell 3 (480 to 676 cells), none of 201 ratings was in band; on the targeted Hell 2 boards, 8 of 404, all at
+  the bottom edge. Other board and piece-count families hold a few census-estimated Hell 2 and Hell 3 scores.
+- Yes, the feature deliberately leaves those alternate populations out. Its goal is to generate the levels on
+  the boards the policy offers; which boards a level is offered on is a policy matter.
+- (b): a data-only inventory from the existing records (`discoveries.jsonl` and the family files): board, K,
+  clue count, score, eligibility, the census flag and main work of each witness. No engine run. It is the first
+  stage of the reduced PM1 (IG-P-D5).
+- Nothing follows from the inventory by itself: no generation route, pack claim or offer. A route (c) would
+  need its own proposal and at least complete-census ratings of the witnesses.
 
 ---
 
@@ -1257,7 +1352,16 @@ separate 115 s timers; one selection call ran 136.3 s; after the new search the 
 Analysts: **(b)**, the reserve (for example a set-stage cap of about 40 %) fitted in the frozen round as a pilot
 parameter, with lost completions measured against the uncapped search.
 
-Plan-author answer:
+Plan-author answer: **(b), as the analysts recommend, with four conditions.**
+
+1. The reserve is a pilot parameter of the frozen round, not a number chosen now. After the new search the set
+   stage takes 14 to 26 % of T10, so a cap near 40 % should rarely bind; the pilot shows how often it does.
+2. The deterministic work caps come first and the wall clock is the backstop. A stop by the clock may change
+   how many puzzles a response holds, never which puzzle fills a slot.
+3. A response cut at the deadline returns the puzzles accepted so far (IG-P-D2 (a)), not an empty error.
+4. Lost completions are counted against the uncapped new search, per cell, before the reserve is fixed.
+
+Until the pilot has run, the separate budgets stay, with the whole-response time reported beside them.
 
 ### IG-P-D2 (OD-P5): progressive delivery
 
@@ -1267,7 +1371,15 @@ fail) by a first-puzzle and total-batch service level; (c) neither. Analysts: **
 browser first-puzzle times and an explicit service level** (first-puzzle median and p95, minimum delivered count,
 timeout, history policy) approved by the owner. (See also IG-P-Q23.)
 
-Plan-author answer:
+Plan-author answer: **(a) now; (b) only later, as the analysts say. This replaces my proposal in plan version 2.**
+
+- Plan section 7 proposed "yes for Hell 1" together with a replaced T10 criterion. I withdraw the second half:
+  no browser first-puzzle time exists, so there is nothing to set a service level from.
+- (a) is small, since the client already reports accepted puzzles as they arrive. Two conditions: puzzles
+  appear in fold order (slot order), so what is shown does not depend on the device; and the design states the
+  history policy for a batch that ends short (a shown puzzle is in the history).
+- (b) comes back to the owner for named cells with measured browser first-puzzle times (median and p95), a
+  minimum delivered count, a timeout and the history policy.
 
 ### IG-P-D3 (OD-P6): what defines a level for the new search
 
@@ -1278,7 +1390,17 @@ Analysts: **(a), conditionally**: clue, score-position, census-estimate and comp
 every timing in both directions; the "one count below" variant (c4) measured; a stated blind play comparison on one
 Nightmare and one Hell 1 cell before any phase-3 offer.
 
-Plan-author answer:
+Plan-author answer: **(a), with the analysts' three conditions, and two points of my own.**
+
+- (b) keeps the failures this feature exists to remove; (c), read as "nothing before the comparison", would
+  hold up `gen-v4`'s design for a question that only an offer needs answered.
+- The blind play comparison precedes any phase-3 offer, not the design. If it finds that the shifted population
+  plays easier at the same score, the remedies are (c4) or a correction of the score in a difficulty feature.
+  Going back to (b) is not one of them.
+- The owner should see the extreme case before agreeing: Hell 1 on 14x14, where the windows lie 8 to 11 clues
+  above today's start count (IG-P-Q21), not only the "+1 to +3" of the option's text.
+- The population (clue share, score position, census-estimate share, completion) stands beside every timing,
+  two-sided, and (c4) is measured in the frozen round.
 
 ### IG-P-D4 (OD-P7): the screen on Nightmare boards of up to 144 cells
 
@@ -1286,7 +1408,11 @@ Options: (a) no screen by default; (b) the 190 M screen (12x12 1.56 times faster
 Analysts: **(a)**; revisit only with matched frozen-round and browser evidence that 12x12 needs the trade; do not
 extrapolate to 10x10.
 
-Plan-author answer:
+Plan-author answer: **(a): no screen by default.**
+
+Without the screen 12x12 already goes from a T10 median of 57.7 s to 16.5 s on six seeds; the screen's further
+x1.56 costs +0.75 clues on the same set. It is revisited only with matched frozen-round and browser evidence
+that 12x12 needs it, and is not carried to 10x10, which has no request-level run at all.
 
 ### IG-P-D5 (OD-P8): the rest of PM1 tranche 1, reduced to the Hell 1 and Hell 2 cells
 
@@ -1294,7 +1420,13 @@ Options: (a) approve; (b) stop after the first slice. Analysts: **(a), in stages
 include the failing-set work that feeds the per-set prior, do a data-only inventory of the existing records first,
 and price the retained parts then (the nine worker-hours are the old full-scope estimate, not an allocation).
 
-Plan-author answer:
+Plan-author answer: **(a), in stages, after the frozen source receipt.**
+
+- First the data-only inventory of the existing records (IG-P-Q24), which needs no machine budget.
+- Then, priced on the frozen source: the Hell 1 cells with the failing-set work that feeds the per-set prior,
+  14x14 and 24x24 included (IG-P-Q21); then the Hell 2 cells for the central share only.
+- The Hell 3 cells are dropped. My "about 9 worker-hours" was the old full-scope estimate and is not an
+  allocation.
 
 ### IG-P-D6 (OD-P9, new): Hell scope for this feature
 
@@ -1304,7 +1436,13 @@ Hell 2 and 3 scores outside the offer areas); (b) open an alternate-population i
 Hell 1: (i) name 24x24 in the frozen round's request-level arms; (ii) bring 14x14 (196 cells) into scope only if
 IG-P-Q21's answer supports it. Analysts: **(a) with (i); (ii) after IG-P-Q21.** (See also IG-P-Q24.)
 
-Plan-author answer:
+Plan-author answer: **(a), with (i) and (ii).**
+
+- Hell 2 and Hell 3 stay closed for this feature as a scope and resource decision, worded as IG-P-Q24 answers.
+  The data-only inventory is part of OD-P8's first stage and opens no route.
+- (i): 24x24 gets a request-level arm in the frozen round.
+- (ii): my answer to IG-P-Q21 supports it. 14x14 enters as a candidate population with a request-level arm.
+  Its offer stays behind OD-P4's gates and behind OD-P6, of which it is the extreme case.
 
 ### IG-P-D7 (OD-P10, new): the frozen round's approval
 
@@ -1312,4 +1450,8 @@ Options: (a) approve a separately priced manifest after source preparation, in s
 browser calibration; (b) reuse the provisional round's remaining time or the old manifest. Analysts: **(a)**; the
 provisional round's unused 1,028.5 s is not carried over. (See also IG-P-Q20.)
 
-Plan-author answer:
+Plan-author answer: **(a).**
+
+The manifest is priced after source preparation and staged as IG-P-Q20 answers: preparation, pilots on fitting
+seeds, the freeze of the table and priors, validation on 20 seeds, then the separately approved diagnostics.
+The browser calibration is its optional first stage (IG-P-Q23). Nothing of the provisional round carries over.
