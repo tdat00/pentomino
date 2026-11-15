@@ -3,9 +3,10 @@
 This file holds the **open questions** for the plan author, the owner's decisions and the plan author's notes on each
 plan version. At the owner's request (2026-11-15) answered questions are removed once the analysts have checked the
 answers. The full text of IG-P-Q01 to IG-P-Q28 with their answers, the plan author's direction of 2026-11-14 and the
-plan author's positions on IG-P-D1 to IG-P-D7 is in this file at commit `1731c6b`; `plan.md` and the reports cite them
-by ID. The answers to IG-P-Q25 to IG-P-Q28 and the corrections C1 to C18 accepted from the joint report on version 3
-go into the next revision of `plan.md`, together with the answers to the open questions below.
+plan author's positions on IG-P-D1 to IG-P-D7 is in this file at commit `1731c6b`; IG-P-Q29 to IG-P-Q31 with their
+answers are at commit `f768220`. `plan.md` and the reports cite them by ID. Plan version 4 has taken in the answers to
+IG-P-Q25 to IG-P-Q31 and the corrections C1 to C18 accepted from the joint report on version 3; the answers to the
+open questions below go into its next revision.
 
 ---
 
@@ -196,7 +197,7 @@ gate.
 Opus (SA1) and Astra (SA2) checked the answers independently against the source at `e5bb721`, the owner decisions
 IG-P-D1 to IG-P-D7, the joint report and the plan, and endorsed each other's follow-ups. **IG-P-Q27 and the plan
 author's note on the joint report are accepted. IG-P-Q25, IG-P-Q26 and IG-P-Q28 are accepted with one follow-up each
-(IG-P-Q29 to IG-P-Q31 below). No owner decision is needed.**
+(IG-P-Q29 to IG-P-Q31, since answered; text at `f768220`). No owner decision is needed.**
 
 - **IG-P-Q26.** The minimum of 15 matched sets is reachable (both arms served the same set on 6 of 6 provisional
   12x12 requests and 2 of 2 Hell 1 26x26; a request that is served but does not reach ten still counts as a matched
@@ -206,99 +207,6 @@ author's note on the joint report are accepted. IG-P-Q25, IG-P-Q26 and IG-P-Q28 
   generator pass no observer.
 - **Note for the next revision (no answer needed).** With Master identity at five seeds, stage 4 is about 3.4 to
   4.2 h (Projection), not 4.2 to 4.9 h.
-
-## Open questions (analysts, 2026-11-15)
-
-Both analysts agree on the three questions below; none needs a run to be answered.
-
-### IG-P-Q29: Which arm does the completion gate judge? (follow-up to IG-P-Q26)
-
-*Raised by Opus (SA1), endorsed by Astra (SA2). Affects phase 0's gate and what ships per class.*
-
-**Question.** The screen classes run both arms on the 20 validation seeds, and a class is admitted only if every
-validated cell passes. A shortfall on 16x16, which has never run the new search, can make the 196 to 324-cell class
-"inconclusive", so 14x14 and 15x15b10 would ship without the screen. Section 5.2's completion gate (18 of 20 requests
-reach ten, no dead-end entry) does not say which arm it judges, so a cell could pass on the arm it will not ship.
-
-**Joint recommendation.** Judge each failing cell's completion gate, and the no-regression bound, on the arm its class
-ships after the (c5) verdict: the screen arm if the class is admitted, otherwise no screen. Missing evidence for that
-arm makes the cell incomplete, never a pass.
-
-Plan-author answer: **As recommended. The gate judges the arm the cell's class ships.**
-
-- *Order of the verdicts.* First rule (c5) per class, then the completion gate and the no-regression bound per
-  cell, on the arm that verdict selects: the screen arm if the class is "admitted", the no-screen arm if it is
-  "failed" or "inconclusive". The other arm's result is reported and not judged.
-- *Missing evidence.* A cell whose shipped arm lacks its 20 requests (a ceiling, a stopped task, a missing arm)
-  is "incomplete". An incomplete cell is not a pass, and under the global gate it stops phase 2 like a fail.
-- *The 16x16 case.* The class boundaries are part of the frozen table, so they are settled at stage 3 from the
-  stage-2 pilots, which include 16x16 and 15x20. If the pilots show 16x16 behaving unlike 196 and 215 cells,
-  the class is split before the freeze. It is not split after the validation seeds have run; a class that then
-  comes out "inconclusive" ships without the screen, and 14x14 and 15x15b10 are judged on their no-screen arm.
-- *Price.* None: both arms already run on the validation seeds of every screen class.
-
-### IG-P-Q30: Does the global completion gate now cover the Hell 1 headline cells? (follow-up to IG-P-Q25)
-
-*Raised by Astra (SA2), endorsed by Opus (SA1). Affects phase 0's gate.*
-
-**Question.** The answer to IG-P-Q25 lists the failing headline cells as the five Nightmare cells and "Hell 1 26x26,
-20x20, and 24x24 and 14x14 if admitted", with an absolute gate of 18 of 20 requests reaching ten. Read with section 5.2
-("one failing headline cell stops phase 2"), this extends the global completion gate to Hell 1. Version 3 limits that
-gate to the failing Nightmare cells (section 5.2 and phase 0's gate), and Hell 1's offer goes through OD-P4 (D39 plus
-the browser runs) in phase 3. Is the extension intended?
-
-**Joint recommendation.** Keep the global gate on the failing Nightmare cells. Report Hell 1's 18-of-20 result, but do
-not make it a new global blocker of phase 2 without an explicit gate change. Leaving out the 20x20 baseline is a budget
-choice, not a proof from three failed requests.
-
-Plan-author answer: **No, the extension was not intended. The global gate stays on the failing Nightmare
-cells.**
-
-- *My wording in IG-P-Q25 was loose.* "Their gate is absolute" applies to the five failing Nightmare cells
-  (14x14, 15x15b10, 12x12, 16x16, 15x20). They are the cells of section 5.2's completion gate and of phase 0's
-  gate, and one of them failing or incomplete stops phase 2.
-- *Hell 1.* The validation cells (26x26, 20x20, and 24x24 and 14x14 if their pilots admit them) are measured
-  against the same count, 18 of 20 reaching ten, and the result is reported as a candidate result. It is not a
-  gate of phase 2. It decides whether a board enters phase 3's Hell 1 landscape; the offer itself stays behind
-  OD-P4 (D39 and the matching browser runs) and OD-P6.
-- *If Hell 1 falls short.* `gen-v4` still goes ahead for Nightmare. The Hell 1 part of `gen-v4` is then built
-  only for the boards that reached 18 of 20, and the others stay unoffered as today.
-- *The 20x20 baseline.* Leaving out today's arm there is a budget choice. Three requests without a set do not
-  show that today's search never makes one, and I withdraw the phrase "would only buy more censored requests".
-  The optional five-seed paired line of IG-P-Q25 may include 20x20 if the owner wants it priced.
-
-### IG-P-Q31: Completing the observer contract (follow-up to IG-P-Q28)
-
-*Raised by Astra (SA2), with Opus's (SA1) addition; endorsed by both. Affects stage 1's preparation and `gen-v4`.*
-
-**Question.** The answer says "an observer never changes a result or a loop's control flow". A throwing `record` or
-`charge` propagates unchanged and so does change the control flow, which replay's cancellation and work limits rely
-on. The answer also does not name the repair-uniqueness charges (`onCount: charge`, `clues.js:461` at `e5bb721`) or
-the replay consumer. Should the contract be stated as below?
-
-**Joint recommendation.**
-
-- Invariance holds for observers that return normally; an exception thrown by an observer propagates unchanged through
-  the engine.
-- The repair-uniqueness charges are kept, and every rating attempt is charged once, before its event.
-- `core/engine/replay.js` joins the consumers to check: it is the only caller that passes `record`, `replaySkips` and
-  `charge` (`replay.js:419, 441` at `e5bb721`), and it is where a skip list recorded under one version (`gen-v3` or
-  `gen-v4`) must be refused when replayed under the other.
-
-Plan-author answer: **Yes, as stated. All three points are taken as the contract.**
-
-- *Checked on the fetched `rating-v3` tip (`471583a`; `e5bb721` is not in my clone).* `replay.js:413` passes
-  `record` and `charge`, `replay.js:435` passes `record`, `replaySkips` and `charge`, and `clues.js:461` passes
-  `onCount: charge` to the repair's uniqueness counts. `replay.js:175` already compares the stored `algo`.
-- *Invariance.* My sentence was too broad. The contract is: an observer that returns normally changes neither
-  a result nor a loop's control flow; an exception thrown by `record` or `charge` propagates unchanged through
-  the engine. Replay's cancellation and work limits rely on the second half, so `gen-v4` keeps it.
-- *Charges.* Every rating attempt is charged once, before its event, the screen-capped and re-rated attempts
-  of `gen-v4` included. The repair-uniqueness charges are kept as they are.
-- *The replay consumer.* `core/engine/replay.js` joins the consumers of 5.1's preconditions. A skip list
-  recorded under `gen-v3` is refused under `gen-v4` and the reverse, by the stored version, before any skip is
-  applied. The parity passes of IG-P-Q28 gain two cases: a throwing `charge` and a throwing `record` end the
-  call with that same exception in both arms.
 
 ---
 
@@ -318,3 +226,96 @@ and none has passed. No owner decision is needed.
   20x20 is 21.8 s (14.5 to 34.5); 20x20 does not reach 13.75 s inside its range.
 - **Changed in section 3:** P1's `locateCount` is the measured prototype's contract; P7 keeps the memory-limit
   outcome; no fail-fast exists (P-OD12).
+
+---
+
+## Analysts on the answers to IG-P-Q29 to IG-P-Q31 and plan version 4 (2026-11-15)
+
+Opus (SA1) and Astra (SA2) checked the answers and version 4 (`plan.md` at `f768220`) independently against the joint
+report on version 3, the answers, the analysts' notes and the source at `e5bb721`, and endorsed each other's
+follow-ups. **IG-P-Q29, IG-P-Q30 and IG-P-Q31 are accepted. Version 4 takes in C1 to C18, the section 4 rows, the
+answers IG-P-Q25 to IG-P-Q31 and the stage-4 note correctly. Its edits raise the four follow-ups below, to settle
+before section 5.2's statistics are fixed. No owner decision is needed.**
+
+- **Anchors.** `replay.js:413/435/175` are right at `471583a`, the fetched `rating-v3` tip; the same lines are
+  419/441/181 at `e5bb721`, its local descendant (MP15a2). `plan.md` cites no `replay.js` line, so nothing changes.
+- **Format (no answer needed).** Line 37 of `plan.md` is 160 characters long.
+
+## Open questions (analysts, 2026-11-15)
+
+Both analysts agree on the four questions below; none needs a run to be answered. IG-P-Q32 and IG-P-Q35 are best
+answered in one edit of section 5.2.
+
+### IG-P-Q32: Admission against the gate of the shipped arm
+
+*Raised by Opus (SA1), endorsed by Astra (SA2) with a clarification. Affects rule (c5) and phase 0's gate.*
+
+**Question.** Rule (c5) can admit a screen arm that reaches ten on one request fewer than the no-screen arm (section
+5.2, about line 599), while the completion gate judges the arm the class ships (about line 606). Example: 14x14 reaches
+ten on 18 of 20 requests without the screen and on 17 with it; the speed and clue conditions hold, the class is
+admitted, the screen ships, and 17 < 18 stops phase 2, although shipping no screen would have passed. A dead-end entry
+on the screen arm only, or a control's no-regression bound, can do the same. In addition, the stopping rule that settles
+a cell at its third failed request (about line 558) is not said to apply per arm in a screen class, so an early stop can
+leave the class "inconclusive" or the cell "incomplete".
+
+**Joint recommendation.** Admit a class only if its screen arm also passes, on every validated cell, the gates that cell
+is judged by (completion, no dead-end entry, the controls' no-regression bound); otherwise the class is "failed" and
+the no-screen arm, which must pass too, ships. In a screen class both arms run all 20 seeds; a third failure settles
+that arm's verdict, not the cell's, and does not stop the required sampling. No price effect: both arms already run on
+the validation seeds.
+
+Plan-author answer:
+
+### IG-P-Q33: Hell 1 candidate boards without a validation cell
+
+*Raised by Opus (SA1), endorsed by Astra (SA2). Affects phase 3's Hell 1 landscape and `gen-v4`'s Hell 1 scope.*
+
+**Question.** The frozen round validates Hell 1 on two to four boards (26x26, 20x20, and 24x24 and 14x14 if admitted),
+while section 1 lists 12 candidate boards: PM1 found windows on nine boards of 215 to 484 cells, plus 14x14, 24x24 and
+26x26. Read with the answer to IG-P-Q30 ("the Hell 1 part of `gen-v4` is then built only for the boards that reached 18
+of 20"), the eight to ten unvalidated boards are dropped without a result. Is that intended?
+
+**Joint recommendation.** No. A validation result excludes only its own board: unvalidated is not failed. Unvalidated
+candidate boards stay in phase 3's landscape through P4's table, for separately priced diagnostics, with OD-P4 and OD-P6
+deciding any offer; their presence implies no qualification and no offer. The alternative is to price validation cells
+for them in the manifest.
+
+Plan-author answer:
+
+### IG-P-Q34: Does the `gen-v4` build still replay `gen-v3` records?
+
+*Raised by Opus (SA1), amended by Astra (SA2). Affects `gen-v4`'s replay contract, its fixtures and section 5.1's
+preconditions.*
+
+**Question.** Version 4 says that "`gen-v3` replay and its fixture do not change" (about lines 516 and 664). At
+`e5bb721` replay runs one version only: `sameVersions` (`replay.js:180-183`) compares a record against
+`provenanceVersions()`, which uses the single constant `ALGO_ID` (`version.js:4`). In a `gen-v4` build the Hard fixture
+case that expects `'matched'` (`tests/replay.test.js:142`) would get `'unavailable'` (`set-versions`). P4's and
+`W_screen`'s table versions are not compared either. Which contract holds?
+
+**Options.** (a) Keep `gen-v3` replay by version-aware dispatch: the build carries both search paths and replays each
+record with the path its stored version names. (b) Single running version: `gen-v3` records become "unavailable" by
+version, the replay tests move to a `gen-v4` fixture, and `replay-case.json` stays as the refusal case.
+
+**Analysts.** Opus recommends (b), as the smaller and already-tested path; Astra asks that the choice be stated
+explicitly, since the single `ALGO_ID` is implementation work, not an impossibility. Either way, P4's table version
+and the `W_screen` table version join `ProvenanceVersions` and the version comparison.
+
+Plan-author answer:
+
+### IG-P-Q35: Which requests form the matched population of rule (c5)?
+
+*Raised by Astra (SA2), endorsed by Opus (SA1) with a precise definition. Affects rule (c5)'s minimum and statistics.*
+
+**Question.** Section 5.2 counts a request that is served but does not reach ten as a matched set (about line 595),
+while it excludes "failed requests" from the clue statistic (about lines 600-601). Does "failed" mean a request with no
+accepted puzzle, or any request short of ten? If one arm accepts no puzzle on a set, that set has no clue median and
+its paired difference is undefined, yet it counts toward the minimum of 15.
+
+**Joint recommendation.** Define the unit in section 5.2's "Unit" bullet (about line 577): a matched set is one where
+both arms served the same seed and `igSetKey` and each accepted at least one puzzle. Line 595 then reads "a request that
+is served but does not reach ten still gives a matched set if both arms accepted a puzzle". The same population serves
+the minimum of 15 matched sets, the median tolerance and the one-in-five condition. Requests with no accepted puzzle
+count only in the completion and capped-time statistics, which keep every request.
+
+Plan-author answer:
