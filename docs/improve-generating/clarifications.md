@@ -224,7 +224,18 @@ reach ten, no dead-end entry) does not say which arm it judges, so a cell could 
 ships after the (c5) verdict: the screen arm if the class is admitted, otherwise no screen. Missing evidence for that
 arm makes the cell incomplete, never a pass.
 
-Plan-author answer:
+Plan-author answer: **As recommended. The gate judges the arm the cell's class ships.**
+
+- *Order of the verdicts.* First rule (c5) per class, then the completion gate and the no-regression bound per
+  cell, on the arm that verdict selects: the screen arm if the class is "admitted", the no-screen arm if it is
+  "failed" or "inconclusive". The other arm's result is reported and not judged.
+- *Missing evidence.* A cell whose shipped arm lacks its 20 requests (a ceiling, a stopped task, a missing arm)
+  is "incomplete". An incomplete cell is not a pass, and under the global gate it stops phase 2 like a fail.
+- *The 16x16 case.* The class boundaries are part of the frozen table, so they are settled at stage 3 from the
+  stage-2 pilots, which include 16x16 and 15x20. If the pilots show 16x16 behaving unlike 196 and 215 cells,
+  the class is split before the freeze. It is not split after the validation seeds have run; a class that then
+  comes out "inconclusive" ships without the screen, and 14x14 and 15x15b10 are judged on their no-screen arm.
+- *Price.* None: both arms already run on the validation seeds of every screen class.
 
 ### IG-P-Q30: Does the global completion gate now cover the Hell 1 headline cells? (follow-up to IG-P-Q25)
 
@@ -240,7 +251,21 @@ the browser runs) in phase 3. Is the extension intended?
 not make it a new global blocker of phase 2 without an explicit gate change. Leaving out the 20x20 baseline is a budget
 choice, not a proof from three failed requests.
 
-Plan-author answer:
+Plan-author answer: **No, the extension was not intended. The global gate stays on the failing Nightmare
+cells.**
+
+- *My wording in IG-P-Q25 was loose.* "Their gate is absolute" applies to the five failing Nightmare cells
+  (14x14, 15x15b10, 12x12, 16x16, 15x20). They are the cells of section 5.2's completion gate and of phase 0's
+  gate, and one of them failing or incomplete stops phase 2.
+- *Hell 1.* The validation cells (26x26, 20x20, and 24x24 and 14x14 if their pilots admit them) are measured
+  against the same count, 18 of 20 reaching ten, and the result is reported as a candidate result. It is not a
+  gate of phase 2. It decides whether a board enters phase 3's Hell 1 landscape; the offer itself stays behind
+  OD-P4 (D39 and the matching browser runs) and OD-P6.
+- *If Hell 1 falls short.* `gen-v4` still goes ahead for Nightmare. The Hell 1 part of `gen-v4` is then built
+  only for the boards that reached 18 of 20, and the others stay unoffered as today.
+- *The 20x20 baseline.* Leaving out today's arm there is a budget choice. Three requests without a set do not
+  show that today's search never makes one, and I withdraw the phrase "would only buy more censored requests".
+  The optional five-seed paired line of IG-P-Q25 may include 20x20 if the owner wants it priced.
 
 ### IG-P-Q31: Completing the observer contract (follow-up to IG-P-Q28)
 
@@ -260,4 +285,36 @@ the replay consumer. Should the contract be stated as below?
   `charge` (`replay.js:419, 441` at `e5bb721`), and it is where a skip list recorded under one version (`gen-v3` or
   `gen-v4`) must be refused when replayed under the other.
 
-Plan-author answer:
+Plan-author answer: **Yes, as stated. All three points are taken as the contract.**
+
+- *Checked on the fetched `rating-v3` tip (`471583a`; `e5bb721` is not in my clone).* `replay.js:413` passes
+  `record` and `charge`, `replay.js:435` passes `record`, `replaySkips` and `charge`, and `clues.js:461` passes
+  `onCount: charge` to the repair's uniqueness counts. `replay.js:175` already compares the stored `algo`.
+- *Invariance.* My sentence was too broad. The contract is: an observer that returns normally changes neither
+  a result nor a loop's control flow; an exception thrown by `record` or `charge` propagates unchanged through
+  the engine. Replay's cancellation and work limits rely on the second half, so `gen-v4` keeps it.
+- *Charges.* Every rating attempt is charged once, before its event, the screen-capped and re-rated attempts
+  of `gen-v4` included. The repair-uniqueness charges are kept as they are.
+- *The replay consumer.* `core/engine/replay.js` joins the consumers of 5.1's preconditions. A skip list
+  recorded under `gen-v3` is refused under `gen-v4` and the reverse, by the stored version, before any skip is
+  applied. The parity passes of IG-P-Q28 gain two cases: a throwing `charge` and a throwing `record` end the
+  call with that same exception in both arms.
+
+---
+
+## Plan version 4 (plan author, 2026-11-15)
+
+`plan.md` is revised to version 4. It takes in corrections C1 to C18 of the joint report on version 3, the
+answers IG-P-Q25 to IG-P-Q31 and the analysts' note on stage 4's price. Version 3 is `plan.md` at commit
+`8d795f8` (before the cleanup). Version 4 ran nothing. It refines the gates; no gate has been evaluated
+and none has passed. No owner decision is needed.
+
+- **Changed in section 5:** today's arm only where a gate needs it; Master identity on five seeds per cell;
+  rule (c5) fails closed (minimum of matched sets, the 120 s endpoint, unlisted classes, the resampling
+  recipe); the completion gate judges the arm a class ships; Hell 1's 18 of 20 is a reported candidate result,
+  not a gate of phase 2; PM1's Hell 1 work feeds P4's table and stays in stage 5; stage 3 freezes the whole
+  production configuration; the observer, replay and provenance contract joins the preconditions.
+- **Changed in section 4:** `gamma` acts on the batch time only, so Hell 1 26x26 is 17.4 s (11.6 to 27.5) and
+  20x20 is 21.8 s (14.5 to 34.5); 20x20 does not reach 13.75 s inside its range.
+- **Changed in section 3:** P1's `locateCount` is the measured prototype's contract; P7 keeps the memory-limit
+  outcome; no fail-fast exists (P-OD12).
