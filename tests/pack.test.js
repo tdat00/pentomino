@@ -5,8 +5,8 @@ import { test } from 'node:test';
 import { boardFromRows } from '../core/engine/board.js';
 import { canonicalKey } from '../core/engine/geometry.js';
 import {
-  FORMAT, MAX_FILE_BYTES, MAX_ISSUES, MAX_META_BYTES, PackError, RULES, SUPPORTED_VERSIONS,
-  createPack, packBoard, parsePack, serializePack, validatePack, validatePackSliced,
+  FORMAT, MAX_FILE_BYTES, MAX_ISSUES, MAX_META_BYTES, PackError, PROVENANCE, RULES, SUPPORTED_VERSIONS,
+  createPack, packBoard, parsePack, provenanceProblem, readProvenance, serializePack, validatePack, validatePackSliced,
 } from '../core/engine/pack.js';
 import { colorFor } from '../core/engine/palette.js';
 import { CLASSIC_PENTOMINOES } from './fixtures/polyominoes.js';
@@ -1157,4 +1157,275 @@ test('validatePackSliced pauses between slices and returns what validatePack ret
   broken.puzzles[0].clues = [{ piece: 'nope', x: 0, y: 0, turn: 0, mirrored: false }];
   assert.deepEqual(await validatePackSliced(broken, pause), validatePack(broken));
   assert.deepEqual(await validatePackSliced(null, pause), validatePack(null));
+});
+
+// Provenance records of `generation` (RES-27).
+
+const VERSIONS = { algo: 'gen-v3', policy: 'mixed-v3', rng: 'xoshiro128ss-v1', seedScheme: 'seed-sha256-v1', ratingModel: 'difficulty-v3' };
+const SET_ORIGIN = { schema: 1, seed: 'fixture-set-0', level: 'hard', attempt: 1, uniqueness: 'require', versions: VERSIONS };
+const CANDIDATE = {
+  schema: 1, kind: 'candidate', batchSeed: 'fixture-set-0#1', targetLevel: 'hard', uniqueness: 'any', slot: 2, attempt: 3,
+  start: 'restart', skips: { subsets: [1, 9, 2127], repairs: [0, 63] }, versions: VERSIONS,
+};
+const PUZZLE_IDS = ['p-cal', 'p-cand', 'p-comp'];
+const MADE = {
+  'p-cal': { schema: 1, kind: 'calibration' },
+  'p-cand': CANDIDATE,
+  'p-comp': { schema: 1, kind: 'completion' },
+};
+/** @param {unknown} value */
+const copyOf = (value) => JSON.parse(JSON.stringify(value));
+
+/**
+ * The hand-authored fixture with one puzzle per id of `ids` and the given generation object.
+ * @param {object} generation
+ * @param {string[]} [ids]
+ * @returns {any}
+ */
+function packWith(generation, ids = PUZZLE_IDS) {
+  const f = fixture();
+  const [first] = f.puzzles;
+  f.puzzles = ids.map((id) => ({ ...copyOf(first), id }));
+  f.generation = generation;
+  return f;
+}
+
+/**
+ * @param {unknown} generation
+ * @param {string[]} [ids]
+ * @returns {{ pack: any, warnings: import('../core/engine/types.js').Issue[] }}
+ */
+function readBack(generation, ids = PUZZLE_IDS) {
+  const r = good(validatePack(packWith(/** @type {object} */ (generation), ids)));
+  return { pack: r.value, warnings: r.warnings };
+}
+
+/** @type {(value: unknown) => number} Every object, array and primitive value counts as one, as `copyJson` counts. */
+const countValues = (value) => (typeof value !== 'object' || value === null
+  ? 1
+  : 1 + Object.values(value).reduce((n, v) => n + countValues(v), 0));
+
+/**
+ * A pack of the three provenance puzzles, written by `createPack`.
+ * @param {object} generation
+ */
+function writtenPack(generation) {
+  const base = good(validatePack(packWith({}))).value;
+  return createPack({
+    board: packBoard(base), rotation: 0, pieces: base.pieces, witness: base.witness, puzzles: base.puzzles, generation,
+  });
+}
+
+test('provenance: both records round trip through the writer and the reader unchanged, without a warning', () => {
+  const generation = { app: 'test', setOrigin: SET_ORIGIN, made: MADE };
+  const pack = writtenPack(generation);
+  const again = good(parsePack(serializePack(pack)));
+  assert.deepEqual(again.warnings, []);
+  assert.deepEqual(again.value.generation, generation);
+  assert.deepEqual(Object.keys(again.value.generation.made), PUZZLE_IDS);
+  assert.deepEqual(Object.keys(again.value.generation.made['p-cand']), Object.keys(CANDIDATE));
+  assert.equal(serializePack(good(parsePack(serializePack(pack))).value), serializePack(pack), 'byte for byte');
+});
+
+test('provenanceProblem: valid records, and one invalid case for every rule of the table', () => {
+  assert.equal(provenanceProblem('setOrigin', SET_ORIGIN), null);
+  for (const made of Object.values(MADE)) {
+    assert.equal(provenanceProblem('made', made), null);
+  }
+  const candidate = (/** @type {object} */ patch) => ({ ...CANDIDATE, ...patch });
+  const edge = (/** @type {object} */ skips) => provenanceProblem('made', candidate({ skips }));
+  const upTo = (/** @type {number} */ n) => Array.from({ length: n }, (_, i) => i);
+  assert.equal(edge('overflow'), null);
+  assert.equal(edge({ subsets: upTo(PROVENANCE.subsetSkips), repairs: upTo(PROVENANCE.repairSkips) }), null);
+  assert.equal(edge({ subsets: [0, PROVENANCE.subsetOrdinals - 1], repairs: [PROVENANCE.repairOrdinals - 1] }), null);
+  assert.equal(edge({ subsets: [], repairs: [] }), null);
+  assert.equal(provenanceProblem('made', candidate({ slot: 1, attempt: 0, batchSeed: 'x'.repeat(256) })), null);
+  assert.equal(provenanceProblem('made', candidate({ slot: 10, attempt: 11, targetLevel: 'hell-3' })), null);
+
+  /** @type {[string, 'setOrigin' | 'made', unknown, RegExp][]} */
+  const rows = [
+    ['not an object', 'setOrigin', 'text', /object/],
+    ['an unknown key', 'setOrigin', { ...SET_ORIGIN, extra: 1 }, /unknown field "extra"/],
+    ['a missing key', 'setOrigin', without(SET_ORIGIN, 'attempt'), /missing field "attempt"/],
+    ['schema 2', 'setOrigin', { ...SET_ORIGIN, schema: 2 }, /schema/],
+    ['a seed with a leading space', 'setOrigin', { ...SET_ORIGIN, seed: ' fixture-set-0' }, /seed/],
+    ['an empty seed', 'setOrigin', { ...SET_ORIGIN, seed: '' }, /seed/],
+    ['a 65-character seed', 'setOrigin', { ...SET_ORIGIN, seed: 'x'.repeat(65) }, /seed/],
+    ['an unknown level', 'setOrigin', { ...SET_ORIGIN, level: 'impossible' }, /level/],
+    ['a negative attempt', 'setOrigin', { ...SET_ORIGIN, attempt: -1 }, /attempt/],
+    ['a fractional attempt', 'setOrigin', { ...SET_ORIGIN, attempt: 1.5 }, /attempt/],
+    ['an unknown uniqueness', 'setOrigin', { ...SET_ORIGIN, uniqueness: 'maybe' }, /uniqueness/],
+    ['a missing version key', 'setOrigin', { ...SET_ORIGIN, versions: without(VERSIONS, 'rng') }, /versions: missing field "rng"/],
+    ['an empty version string', 'setOrigin', { ...SET_ORIGIN, versions: { ...VERSIONS, algo: '' } }, /versions\.algo/],
+    ['a 65-unit version string', 'setOrigin', { ...SET_ORIGIN, versions: { ...VERSIONS, algo: 'v'.repeat(65) } }, /versions\.algo/],
+    ['an unknown made kind', 'made', { schema: 1, kind: 'other' }, /kind/],
+    ['a calibration with an extra key', 'made', { schema: 1, kind: 'calibration', slot: 1 }, /unknown field "slot"/],
+    ['a completion with schema 2', 'made', { schema: 2, kind: 'completion' }, /schema/],
+    ['a candidate with an unknown key', 'made', candidate({ extra: true }), /unknown field "extra"/],
+    ['a candidate without skips', 'made', Object.fromEntries(Object.entries(CANDIDATE).filter(([k]) => k !== 'skips')), /missing field "skips"/],
+    ['a 257-unit batch seed', 'made', candidate({ batchSeed: 'x'.repeat(257) }), /batchSeed/],
+    ['an untrimmed batch seed', 'made', candidate({ batchSeed: 'a#1 ' }), /batchSeed/],
+    ['an unknown target level', 'made', candidate({ targetLevel: 'Hard' }), /targetLevel/],
+    ['an unknown made uniqueness', 'made', candidate({ uniqueness: 'always' }), /uniqueness/],
+    ['slot 0', 'made', candidate({ slot: 0 }), /slot/],
+    ['slot 11', 'made', candidate({ slot: 11 }), /slot/],
+    ['a candidate attempt of 12', 'made', candidate({ attempt: 12 }), /attempt/],
+    ['an unknown start', 'made', candidate({ start: 'other' }), /start/],
+    ['skips that are not an object', 'made', candidate({ skips: 'many' }), /skips/],
+    ['skips with an extra key', 'made', candidate({ skips: { subsets: [], repairs: [], more: [] } }), /skips: unknown field "more"/],
+    ['unsorted subsets', 'made', candidate({ skips: { subsets: [3, 2], repairs: [] } }), /skips\.subsets must be strictly increasing/],
+    ['a duplicate repair', 'made', candidate({ skips: { subsets: [], repairs: [1, 1] } }), /skips\.repairs must be strictly increasing/],
+    ['a subset ordinal of 2128', 'made', candidate({ skips: { subsets: [2128], repairs: [] } }), /skips\.subsets\[0\]/],
+    ['a repair ordinal of 64', 'made', candidate({ skips: { subsets: [], repairs: [64] } }), /skips\.repairs\[0\]/],
+    ['a negative ordinal', 'made', candidate({ skips: { subsets: [-1], repairs: [] } }), /skips\.subsets\[0\]/],
+    ['a fractional ordinal', 'made', candidate({ skips: { subsets: [0.5], repairs: [] } }), /skips\.subsets\[0\]/],
+    ['65 subsets', 'made', candidate({ skips: { subsets: Array.from({ length: 65 }, (_, i) => i), repairs: [] } }), /more than 64/],
+    ['17 repairs', 'made', candidate({ skips: { subsets: [], repairs: Array.from({ length: 17 }, (_, i) => i) } }), /more than 16/],
+    ['subsets that are not an array', 'made', candidate({ skips: { subsets: 'x', repairs: [] } }), /skips\.subsets must be an array/],
+    ['a missing version key of a candidate', 'made', candidate({ versions: { algo: 'a', policy: 'b', rng: 'c', seedScheme: 'd' } }), /versions: missing field "ratingModel"/],
+    ['an empty version string of a candidate', 'made', candidate({ versions: { ...VERSIONS, ratingModel: '' } }), /versions\.ratingModel/],
+  ];
+  for (const [what, kind, value, pattern] of rows) {
+    const problem = provenanceProblem(kind, value);
+    assert.equal(typeof problem, 'string', what);
+    assert.match(/** @type {string} */ (problem), pattern, what);
+  }
+  assert.equal(typeof provenanceProblem('made', null), 'string');
+  assert.equal(typeof provenanceProblem('setOrigin', undefined), 'string');
+  const hostile = { schema: 1 };
+  Object.defineProperty(hostile, 'kind', { get() { throw new Error('getter'); }, enumerable: true });
+  assert.equal(typeof provenanceProblem('made', hostile), 'string', 'a getter is a problem, never a throw');
+});
+
+test('readProvenance returns fresh copies in the field order of RES-27 and never throws', () => {
+  const scrambled = (/** @type {Record<string, unknown>} */ o) => Object.fromEntries(Object.entries(o).reverse());
+  const generation = {
+    made: Object.fromEntries(Object.entries(MADE).map(([id, m]) => [id, scrambled(/** @type {any} */ (m))])),
+    setOrigin: { ...scrambled(SET_ORIGIN), versions: scrambled(VERSIONS) },
+  };
+  const before = copyOf(generation);
+  const found = readProvenance(generation, new Set(PUZZLE_IDS));
+  assert.deepEqual(found.problems, []);
+  assert.deepEqual(Object.keys(/** @type {object} */ (found.setOrigin)), Object.keys(SET_ORIGIN));
+  assert.deepEqual(Object.keys(/** @type {any} */ (found.setOrigin).versions), Object.keys(VERSIONS));
+  assert.deepEqual(Object.keys(found.made['p-cand']), Object.keys(CANDIDATE));
+  assert.deepEqual(found.setOrigin, SET_ORIGIN);
+  assert.deepEqual(found.made, MADE);
+  const candidate = /** @type {any} */ (found.made['p-cand']);
+  candidate.skips.subsets.push(99);
+  candidate.versions.algo = 'changed';
+  /** @type {any} */ (found.setOrigin).versions.rng = 'changed';
+  found.made['p-cal'] = /** @type {any} */ ({});
+  assert.deepEqual(generation, before, 'mutating the result never changes the input');
+
+  for (const odd of [null, undefined, 5, 'text', [], { setOrigin: 1 }]) {
+    const r = readProvenance(odd, new Set(PUZZLE_IDS));
+    assert.deepEqual(r.made, {});
+    assert.equal(r.setOrigin, null);
+  }
+  assert.deepEqual(readProvenance({ app: 'x' }, new Set()), { setOrigin: null, made: {}, problems: [] });
+});
+
+test('a damaged set origin is ignored with one warning; the rest of generation and the pack are unchanged', () => {
+  for (const bad of [{ ...SET_ORIGIN, schema: 2 }, 'text', null, [], { ...SET_ORIGIN, seed: 7 }]) {
+    const { pack, warnings } = readBack({ app: 'test', setOrigin: bad, made: MADE, note: 'kept' });
+    assert.deepEqual(Object.keys(pack.generation), ['app', 'made', 'note']);
+    assert.deepEqual(pack.generation.made, MADE);
+    assert.deepEqual(warnings.map((w) => [w.code, w.path]), [['provenance-ignored', 'generation.setOrigin']]);
+    assert.equal(typeof warnings[0].message, 'string');
+    assert.equal(pack.puzzles.length, 3);
+  }
+});
+
+test('a made entry of no puzzle or a malformed one is dropped with a warning at its id; none left drops the map', () => {
+  const { pack, warnings } = readBack({
+    app: 'test',
+    made: { ...MADE, 'p-comp': { schema: 1, kind: 'candidate' }, stray: { schema: 1, kind: 'completion' }, 'p-five': 5 },
+  }, [...PUZZLE_IDS, 'p-four', 'p-five']);
+  assert.deepEqual(pack.generation.made, { 'p-cal': MADE['p-cal'], 'p-cand': MADE['p-cand'] });
+  assert.deepEqual(warnings.map((w) => [w.code, w.path]).sort(), [
+    ['provenance-ignored', 'generation.made.p-comp'],
+    ['provenance-ignored', 'generation.made.p-five'],
+    ['provenance-ignored', 'generation.made.stray'],
+  ]);
+  const none = readBack({ app: 'test', made: { 'p-cal': { schema: 3, kind: 'calibration' }, 'p-cand': [] } });
+  assert.deepEqual(none.pack.generation, { app: 'test' });
+  assert.deepEqual(none.warnings.map((w) => w.path).sort(), ['generation.made.p-cal', 'generation.made.p-cand']);
+
+  const text = `{"app":"test","made":{"__proto__":{"schema":1,"kind":"completion"},"p-cal":{"schema":1,"kind":"calibration"}}}`;
+  const viaProto = readBack(JSON.parse(text), ['__proto__', 'p-cal']);
+  assert.deepEqual(viaProto.warnings, []);
+  assert.ok(Object.hasOwn(viaProto.pack.generation.made, '__proto__'));
+  assert.equal(Object.getPrototypeOf(viaProto.pack.generation.made), Object.prototype);
+  assert.deepEqual(Object.keys(viaProto.pack.generation.made), ['__proto__', 'p-cal']);
+});
+
+test('a made map with more keys than puzzles, or that is not an object, is dropped whole with one warning', () => {
+  const many = Object.fromEntries([...PUZZLE_IDS, 'p-extra'].map((id) => [id, { schema: 1, kind: 'completion' }]));
+  const tooMany = readBack({ app: 'test', setOrigin: SET_ORIGIN, made: many });
+  assert.deepEqual(tooMany.pack.generation, { app: 'test', setOrigin: SET_ORIGIN });
+  assert.deepEqual(tooMany.warnings.map((w) => [w.code, w.path]), [['provenance-ignored', 'generation.made']]);
+  for (const notAnObject of [[], 'text', 7, null, [MADE['p-cal']]]) {
+    const r = readBack({ app: 'test', made: notAnObject });
+    assert.deepEqual(r.pack.generation, { app: 'test' });
+    assert.deepEqual(r.warnings.map((w) => [w.code, w.path]), [['provenance-ignored', 'generation.made']]);
+  }
+  const untouched = readBack({ app: 'test', other: { made: 1 } });
+  assert.deepEqual(untouched.warnings, []);
+  assert.deepEqual(untouched.pack.generation, { app: 'test', other: { made: 1 } });
+});
+
+test('writer, bytes: a made map that alone brings the pack over 512 KiB is left out; setOrigin and the base stay', () => {
+  const bytes = (/** @type {string} */ text) => Buffer.byteLength(text);
+  const withKeys = (/** @type {string} */ note, /** @type {boolean} */ made) => writtenPack({
+    setOrigin: SET_ORIGIN, ...(made ? { made: MADE } : {}), note,
+  });
+  const empty = bytes(serializePack(withKeys('', false)));
+  const note = 'x'.repeat(MAX_FILE_BYTES - empty - 5);
+  const fits = serializePack(withKeys(note, false));
+  assert.equal(bytes(fits), MAX_FILE_BYTES - 5);
+  assert.ok(bytes(serializePack(withKeys('', true))) + note.length > MAX_FILE_BYTES, 'with the map it is over the limit');
+  const full = withKeys(note, true);
+  assert.ok(Object.hasOwn(full.generation ?? {}, 'made'), 'createPack keeps the map: the value count is fine');
+  const text = serializePack(full);
+  assert.equal(text, fits, 'the text is that of the pack without the map');
+  const again = good(parsePack(text));
+  assert.deepEqual(again.warnings, []);
+  assert.deepEqual(again.value.generation, { setOrigin: SET_ORIGIN, note });
+  assert.deepEqual(again.value.puzzles.map((/** @type {{ id: string }} */ p) => p.id), PUZZLE_IDS);
+  assert.ok(Object.hasOwn(full.generation ?? {}, 'made'), 'serializePack does not change its argument');
+});
+
+test('writer, JSON values: a made map that alone passes 100,000 values is left out by createPack', () => {
+  const origin = { setOrigin: SET_ORIGIN };
+  const series = Array(100000 - countValues({ ...origin, series: [] })).fill(0);
+  assert.equal(countValues({ ...origin, series }), 100000);
+  assert.ok(countValues({ ...origin, made: MADE, series }) > 100000);
+  const pack = writtenPack({ ...origin, made: MADE, series });
+  assert.deepEqual(pack.generation, { setOrigin: SET_ORIGIN, series });
+  const text = serializePack(pack);
+  assert.ok(Buffer.byteLength(text) < MAX_FILE_BYTES);
+  const again = good(parsePack(text));
+  assert.deepEqual(again.warnings, []);
+  assert.deepEqual(again.value.generation, { setOrigin: SET_ORIGIN, series });
+
+  const fitting = writtenPack({ ...origin, made: MADE, series: series.slice(0, 50000) });
+  assert.deepEqual(Object.keys(/** @type {object} */ (fitting.generation)), ['setOrigin', 'made', 'series']);
+
+  // A Pack handed to the writer whose generation is over the limit with the map is written without it as well.
+  const base = good(validatePack(packWith({}))).value;
+  const handMade = { ...base, generation: { ...origin, made: MADE, series } };
+  assert.deepEqual(good(parsePack(serializePack(handMade))).value.generation, { setOrigin: SET_ORIGIN, series });
+});
+
+test('writer: a base that is too large on its own keeps the existing failures', () => {
+  const empty = Buffer.byteLength(serializePack(writtenPack({ setOrigin: SET_ORIGIN, note: '' })));
+  const note = 'x'.repeat(MAX_FILE_BYTES - empty + 1);
+  assert.throws(() => serializePack(writtenPack({ setOrigin: SET_ORIGIN, made: MADE, note })), { name: 'PackError', code: 'pack-too-large' });
+  assert.throws(() => serializePack(writtenPack({ setOrigin: SET_ORIGIN, note })), { code: 'pack-too-large' });
+  const series = Array(100001).fill(0);
+  assert.throws(() => writtenPack({ setOrigin: SET_ORIGIN, made: MADE, series }), { name: 'PackError', code: 'invalid-json' });
+  assert.throws(() => writtenPack({ setOrigin: SET_ORIGIN, series }), { code: 'invalid-json' });
+  const base = good(validatePack(packWith({}))).value;
+  assert.throws(() => serializePack({ ...base, generation: { made: MADE, series } }), { code: 'invalid-json' });
 });

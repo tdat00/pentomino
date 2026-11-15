@@ -549,14 +549,14 @@ test in the reply. No other existing assertion changes.
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (orchestrator check; outside the analyst review set) |
+| Start | 2026-11-15 16:06:53 (+07:00) |
+| End | 2026-11-15 16:28:58 developer; orchestrator re-check and commit |
+| Duration | 22 min developer; 5 locked runs, 169.9 s machine time, 135.2 s lock wait |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (orchestrator) |
+| Token usage | 101 model calls; 22,390,744 input tokens (22,044,730 cache reads); 124,675 output tokens |
+| AI credits | about 432 (developer) |
+| Verification | `selectClues` records subset ordinals (every executed `tried.add`) and repair ordinals (every executed `finish` in `require` mode), skips recorded before rating for subsets and at the excluded-key check for repairs, a fresh `skips` copy on every `ok: true` result, failure results unchanged; `SKIP_BOUNDS` `{subsets: 2128, repairs: 64}`. Candidates carry `made` (kinds `candidate` with `start`, `skips`, `versions`; `completion`; `calibration`); exports `provenanceVersions()`, `capSkips()`; types `ProvenanceVersions`, `SetOrigin`, `Skips`, `Made`, `PuzzleCandidate.made`. Pack: `PROVENANCE`, `provenanceProblem`, `readProvenance` and the reader step (invalid records dropped with a `provenance-ignored` warning; the pack still opens); writer fallback `writableGeneration` drops only `generation.made` when it alone passes 100,000 JSON values or 512 KiB. **D35:** `RECIPE.expected` and the recorder `--check` test pass, fixtures untouched; an identity script ran the HEAD engine against the working tree on 9 set and batch cases (very easy to Nightmare, 10x6 and 12x12, `any` and `require`, a second batch with carried history): byte-identical once `made` is ignored. Tests: targeted 140/140 (+21), quick set 1,366/1,366 (+21), `npm run check` OK. Orchestrator: `npm run check` OK; locked re-run of `clues`, `generate` and `pack` tests 143/143 (56.9 s) |
+| Acceptance | MP13a-B01 to B04 and T01 to T08 pass (developer's evidence table) |
+| Issues & resolutions | One test changed by design (C1, `any, centre reconstruction`: now expects `skips: { subsets: [], repairs: [] }`). A first identity run used a very-easy case on 144 cells that is not offered; rerun with corrected cases. No named items |
+| Handoff | MP13b writes the records from the apps and the CLI and records the replay fixture (GF-P4) on these fields; design §5.2, §5.5, §6.10 describe them |

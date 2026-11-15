@@ -43,11 +43,16 @@ import { buildModel, countSolutions, isValidLayout } from './tiling.js';
  */
 
 /**
- * @typedef {{ ok: true, clues: Pose[], rating: Rating, certificate: Certificate | null }
+ * `skips` lists, in increasing order and for the whole call, the subset ordinals and the repair ordinals at
+ * which the exclusion of `excludeClueKeys` acted (RES-27).
+ * @typedef {{ ok: true, clues: Pose[], rating: Rating, certificate: Certificate | null,
+ *     skips: { subsets: number[], repairs: number[] } }
  *   | { ok: false, reason: 'not-in-band' | 'uniqueness-not-proved' }} SelectResult
  */
 
 /** @typedef {Extract<SelectResult, { ok: true }>} Selected */
+
+/** @typedef {Omit<Selected, 'skips'>} Finished A final result before the skips of the call are attached. */
 
 /**
  * @typedef {object} Candidate
@@ -66,6 +71,13 @@ const MOVES_PER_MEMBER = 8;
 const SMALL_AREA = 200;
 // The search for the band centre stops at profile BUDGETS.clueSubsets - CENTRE_RESERVE (48 of 64).
 const CENTRE_RESERVE = 16;
+
+/** Exclusive upper bounds of one call's skip ordinals (RES-27), from the loop limits of `selectClues`. */
+export const SKIP_BOUNDS = Object.freeze({
+  subsets: COUNT_CHANGES * SAMPLES_PER_COUNT + 4 * SAMPLES_PER_COUNT
+    + (BUDGETS.clueSubsets + 1) * BEAM_WIDTH * MOVES_PER_MEMBER,
+  repairs: BUDGETS.clueSubsets,
+});
 
 /**
  * Row limit of a raw uniqueness count: 10,000 up to 200 active cells, else 2,000.
@@ -229,10 +241,17 @@ export function selectClues(ctx) {
   const rated = [];
   /** @type {Candidate[]} In-band candidates in rating order. */
   const inBandList = [];
-  /** @type {Map<string, Selected | null>} Final result of each finished candidate by raw subset id; null: failed. */
+  /** @type {Map<string, Finished | null>} Final result of each finished candidate by raw subset id (null: failed). */
   const finals = new Map();
   let profiles = 0;
   let unproved = false;
+  // Skip ordinals (RES-27): the next ordinal of each kind and the ordinals at which the exclusion acted.
+  let subsetOrdinal = 0;
+  let repairOrdinal = 0;
+  /** @type {number[]} */
+  const subsetSkips = [];
+  /** @type {number[]} */
+  const repairSkips = [];
   // Stall stop state, from the raw subset ratings only (finite band): which sides of the central half have been
   // rated, the distance to the centre of the nearest in-band candidate, and how many candidates were rated when it
   // was. Spent profiles take no part in it (D21 counting rule).
@@ -253,9 +272,12 @@ export function selectClues(ctx) {
       return null;
     }
     tried.add(id);
+    const ordinal = subsetOrdinal;
+    subsetOrdinal += 1;
     const clues = idx.map((i) => layout[i]);
     const key = clueKey(board, pieces, clues);
     if (excludeClueKeys.has(key)) {
+      subsetSkips.push(ordinal);
       return null;
     }
     /** @type {Rating} */
@@ -284,12 +306,14 @@ export function selectClues(ctx) {
   /**
    * The final result of an in-band candidate: the raw subset for `any`, else the repaired and re-rated set.
    * @param {Candidate} c In-band candidate.
-   * @returns {Selected | null}
+   * @returns {Finished | null}
    */
   const finish = (c) => {
     if (uniqueness === 'any') {
       return { ok: true, clues: c.clues, rating: c.rating, certificate: null };
     }
+    const ordinal = repairOrdinal;
+    repairOrdinal += 1;
     const repaired = makeUnique(board, pieces, layout, c.clues, rng, ws, rowLimit);
     if (repaired === null) {
       unproved = true;
@@ -317,22 +341,30 @@ export function selectClues(ctx) {
       return null;
     }
     if (changed && excludeClueKeys.has(clueKey(board, pieces, clues))) {
+      repairSkips.push(ordinal);
       return null;
     }
     return { ok: true, clues, rating, certificate: { status: 'unique', model: 'dlx-v1', rowLimit, verified: true } };
   };
 
   /**
+   * A fresh copy of a final result with the skips of the whole call up to now.
+   * @param {Finished} r
+   * @returns {Selected}
+   */
+  const withSkips = (r) => ({ ...r, skips: { subsets: subsetSkips.slice(), repairs: repairSkips.slice() } });
+
+  /**
    * Finishes a candidate at most once, so that the repair draws from the rng at deterministic points.
    * @param {Candidate} c
-   * @returns {Selected | null}
+   * @returns {Finished | null}
    */
   const finishOnce = (c) => {
     const id = c.idx.join(',');
     if (!finals.has(id)) {
       finals.set(id, finish(c));
     }
-    return /** @type {Selected | null} */ (finals.get(id));
+    return /** @type {Finished | null} */ (finals.get(id));
   };
 
   /**
@@ -344,7 +376,7 @@ export function selectClues(ctx) {
   /**
    * Lazy best-first choice over the final results of the in-band candidates: the one whose final score (raw
    * score while unfinished) is nearest to the centre, finishing candidates until that one is a final result.
-   * @returns {Selected | null} null when no in-band candidate has a final result.
+   * @returns {Finished | null} null when no in-band candidate has a final result.
    */
   const chooseBest = () => {
     for (;;) {
@@ -382,7 +414,7 @@ export function selectClues(ctx) {
    * stall reads raw subset ratings only, in every uniqueness mode, and counts rated candidates: a spent profile
    * (`c` null) is on no side of the central half, is never nearer and neither advances nor resets the count.
    * @param {Candidate | null} c Null for a spent profile.
-   * @returns {SelectResult | null}
+   * @returns {Finished | null}
    */
   const afterProfile = (c) => {
     if (c !== null) {
@@ -440,7 +472,7 @@ export function selectClues(ctx) {
       }
       const done = afterProfile(c === 'spent' ? null : c);
       if (done !== null) {
-        return done;
+        return withSkips(done);
       }
       if (c === 'spent') {
         continue;
@@ -471,7 +503,7 @@ export function selectClues(ctx) {
     }
     const done = afterProfile(c === 'spent' ? null : c);
     if (done !== null) {
-      return done;
+      return withSkips(done);
     }
   }
 
@@ -530,7 +562,7 @@ export function selectClues(ctx) {
         }
         const done = afterProfile(c === 'spent' ? null : c);
         if (done !== null) {
-          return done;
+          return withSkips(done);
         }
         if (c === 'spent') {
           continue;
@@ -545,7 +577,7 @@ export function selectClues(ctx) {
   }
   const best = chooseBest();
   if (best !== null) {
-    return best;
+    return withSkips(best);
   }
   return { ok: false, reason: unproved ? 'uniqueness-not-proved' : 'not-in-band' };
 }

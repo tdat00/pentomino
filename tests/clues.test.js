@@ -2,11 +2,12 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { boardFromRows } from '../core/engine/board.js';
-import { certify, makeUnique, selectClues } from '../core/engine/clues.js';
+import { certify, makeUnique, selectClues, SKIP_BOUNDS } from '../core/engine/clues.js';
 import { IncompleteRatingError, inBand, rate, rateV2, UnsatisfiableError } from '../core/engine/difficulty.js';
 import { setAttempt } from '../core/engine/generate.js';
 import { clueKey } from '../core/engine/keys.js';
 import { level, levelForScore } from '../core/engine/levels.js';
+import { PROVENANCE } from '../core/engine/pack.js';
 import { createRng } from '../core/engine/rng.js';
 import { buildModel, isValidLayout, solveFirst } from '../core/engine/tiling.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
@@ -324,7 +325,10 @@ test('any, centre reconstruction', () => {
     const { result, rated } = traced({ target, seed, rate: rateV2 });
     const expected = expectedAny(target, rated);
     assert.ok(expected.pick !== null, seed);
-    assert.deepEqual(result, { ok: true, clues: expected.pick.clues, rating: expected.pick.rating, certificate: null }, seed);
+    assert.deepEqual(result, {
+      ok: true, clues: expected.pick.clues, rating: expected.pick.rating, certificate: null,
+      skips: { subsets: [], repairs: [] },
+    }, seed);
     assert.equal(rated.length, expected.stop, seed);
     stops.push(rated.length);
   }
@@ -428,6 +432,121 @@ test('require, excluded repaired key', () => {
   assert.equal(result.rating.score, 21);
   assert.equal(ids(result.clues), 'PFZ');
   assert.equal(excludeClueKeys.has(keyOf(result.clues)), false);
+});
+
+// Skip ordinals (RES-27). The oracle is an `excludeClueKeys` with nothing but `has` (any other method call throws)
+// over a real set, and records every call with its answer. In `any` mode each executed `tried.add` is followed by
+// exactly one `has` call, so the index of a `true` answer is the subset ordinal of a skip; in `require` mode the
+// `has` call at the excluded-key check of a repair comes besides, so every `true` answer is one recorded skip.
+
+/**
+ * @param {Iterable<string>} keys
+ * @returns {{ set: ReadonlySet<string>, calls: { key: string, answer: boolean }[] }}
+ */
+function oracle(keys) {
+  const inner = new Set(keys);
+  /** @type {{ key: string, answer: boolean }[]} */
+  const calls = [];
+  const has = (/** @type {string} */ key) => {
+    const answer = inner.has(key);
+    calls.push({ key, answer });
+    return answer;
+  };
+  return { set: /** @type {ReadonlySet<string>} */ (/** @type {unknown} */ ({ has })), calls };
+}
+
+/** @param {{ answer: boolean }[]} calls */
+const trueAnswers = (calls) => calls.flatMap((c, i) => (c.answer ? [i] : []));
+
+test('skip ordinals, any mode: the subsets whose clue key is excluded, against the oracle of has() calls', () => {
+  const options = { target: level('normal'), seed: 'centre-normal', rate: rateV2 };
+  const free = traced(options);
+  assert.ok(free.result.ok);
+  assert.deepEqual(free.result.skips, { subsets: [], repairs: [] });
+  assert.ok(free.rated.length >= 2);
+  const seen = oracle([keyOf(free.rated[1].clues)]);
+  const { result } = traced({ ...options, excludeClueKeys: seen.set });
+  assert.ok(result.ok);
+  const expected = trueAnswers(seen.calls);
+  assert.ok(expected.includes(1), 'the second subset, rated in the free run, is skipped before rating');
+  assert.deepEqual(result.skips, { subsets: expected, repairs: [] });
+});
+
+test('skip ordinals, two subsets with one clue key are each recorded (direct twin input, RES-27)', () => {
+  const rows = boardFromRows(['######', '######']);
+  const cells = [[0, 0], [1, 0], [2, 0]];
+  const twins = ['A', 'B', 'C', 'D'].map((id) => /** @type {Piece} */ ({ id, label: id, color: '#888888', cells }));
+  const at = (/** @type {string} */ piece, /** @type {number} */ x, /** @type {number} */ y) => (
+    /** @type {Pose} */ ({ piece, x, y, turn: 0, mirrored: false }));
+  const twinLayout = [at('A', 0, 0), at('C', 3, 0), at('D', 0, 1), at('B', 3, 1)];
+  assert.ok(isValidLayout(rows, twins, twinLayout));
+  const poses = (/** @type {string} */ names) => twinLayout.filter((p) => names.includes(p.piece));
+  const twinKey = (/** @type {string} */ names) => clueKey(rows, twins, poses(names));
+  assert.equal(twinKey('AC'), twinKey('BD'), 'the two rows have one clue key');
+  assert.equal(twinKey('AB'), twinKey('CD'));
+  assert.equal(twinKey('AD'), twinKey('BC'));
+  assert.notEqual(twinKey('AB'), twinKey('AC'));
+  // Rated by the sorted ids: the pairs {A, B} and {C, D} score 20, every other set 0.
+  /** @type {NonNullable<Context['rate']>} */
+  const byIds = (_b, p, clues) => {
+    const names = clues.map((c) => c.piece).sort().join('');
+    return fakeRating(names === 'AB' || names === 'CD' ? 20 : 0, p, clues);
+  };
+  const seen = oracle([twinKey('AC')]);
+  const result = selectClues({
+    board: rows,
+    pieces: twins,
+    layout: twinLayout,
+    target: { min: 17, max: 25, share: 0.5 },
+    rng: createRng('twin-17'),
+    uniqueness: 'any',
+    excludeClueKeys: seen.set,
+    ws,
+    rate: byIds,
+  });
+  assert.ok(result.ok);
+  assert.ok(['AB', 'CD'].includes(ids(result.clues).split('').sort().join('')));
+  const expected = trueAnswers(seen.calls);
+  assert.deepEqual(expected, [1, 6]);
+  assert.deepEqual(result.skips, { subsets: expected, repairs: [] });
+  assert.ok(seen.calls.filter((c) => c.answer).every((c) => c.key === twinKey('AC')));
+});
+
+test('skip ordinals, require mode: a repair skip is recorded after the repair rating at the excluded-key check', () => {
+  const first = traced({ rate: S, target: T, uniqueness: 'require', seed: 'req-3' }).result;
+  assert.ok(first.ok);
+  assert.deepEqual(first.skips, { subsets: [], repairs: [] });
+  const seen = oracle([keyOf(first.clues)]);
+  const { result } = traced({ rate: S, target: T, uniqueness: 'require', seed: 'req-3', excludeClueKeys: seen.set });
+  assert.ok(result.ok);
+  assert.equal(result.rating.score, 21);
+  assert.equal(ids(result.clues), 'PFZ');
+  assert.equal(result.skips.repairs.length, 1);
+  const [ordinal] = result.skips.repairs;
+  assert.ok(ordinal >= 0 && ordinal < SKIP_BOUNDS.repairs);
+  assert.equal(result.skips.subsets.length + result.skips.repairs.length, trueAnswers(seen.calls).length);
+});
+
+test('skip ordinals, require mode: two repairs that reach one excluded key are each recorded', () => {
+  const key = keyOf(layout.filter((p) => 'WZX'.includes(p.piece)));
+  const run3 = () => {
+    const seen = oracle([key]);
+    const { result } = traced({ rate: S, target: T, uniqueness: 'require', seed: 'req-3', excludeClueKeys: seen.set });
+    return { result, seen };
+  };
+  const { result, seen } = run3();
+  assert.ok(result.ok);
+  const { subsets, repairs: skippedRepairs } = result.skips;
+  assert.ok(skippedRepairs.length >= 1);
+  assert.ok(skippedRepairs.every((n, i) => n < SKIP_BOUNDS.repairs && (i === 0 || n > skippedRepairs[i - 1])));
+  assert.equal(subsets.length + skippedRepairs.length, trueAnswers(seen.calls).length);
+  assert.deepEqual(run3().result, result);
+});
+
+test('SKIP_BOUNDS follow the loop limits and the pack format', () => {
+  assert.deepEqual(SKIP_BOUNDS, { subsets: 2128, repairs: 64 });
+  assert.deepEqual(SKIP_BOUNDS, { subsets: PROVENANCE.subsetOrdinals, repairs: PROVENANCE.repairOrdinals });
+  assert.ok(Object.isFrozen(SKIP_BOUNDS));
 });
 
 test('require, budget exhausted', () => {

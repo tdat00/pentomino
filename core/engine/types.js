@@ -236,6 +236,42 @@
  */
 
 /**
+ * Version ids of the code that made a set or a puzzle (RES-27).
+ * @typedef {object} ProvenanceVersions
+ * @property {string} algo
+ * @property {string} policy
+ * @property {string} rng
+ * @property {string} seedScheme
+ * @property {string} ratingModel
+ */
+
+/**
+ * `generation.setOrigin` (RES-27): how the piece set was made. Written once, when the set is made; never
+ * re-stamped.
+ * @typedef {object} SetOrigin
+ * @property {1} schema
+ * @property {string} seed Normalized set seed.
+ * @property {string} level Level id the set was made for.
+ * @property {number} attempt Winning set attempt.
+ * @property {'any' | 'require'} uniqueness
+ * @property {ProvenanceVersions} versions
+ */
+
+/**
+ * Skip ordinals of one clue selection (RES-27), or 'overflow' above 64 subset or 16 repair ordinals.
+ * @typedef {{ subsets: number[], repairs: number[] } | 'overflow'} Skips
+ */
+
+/**
+ * One entry of `generation.made`, by puzzle id (RES-27).
+ * @typedef {{ schema: 1, kind: 'calibration' }
+ *   | { schema: 1, kind: 'candidate', batchSeed: string, targetLevel: string, uniqueness: 'any' | 'require',
+ *       slot: number, attempt: number, start: 'witness' | 'restart', skips: Skips,
+ *       versions: ProvenanceVersions }
+ *   | { schema: 1, kind: 'completion' }} Made
+ */
+
+/**
  * @typedef {object} PuzzleCandidate
  * @property {Pose[]} layout
  * @property {string} layoutKey
@@ -243,6 +279,8 @@
  * @property {Pose[]} clues
  * @property {Rating} rating
  * @property {Certificate | null} certificate
+ * @property {Made} made Origin of the candidate (RES-27); set by every engine candidate function and carried
+ *   unchanged by the fold.
  */
 
 /**

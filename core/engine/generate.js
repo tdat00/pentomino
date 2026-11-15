@@ -6,11 +6,14 @@
 import { activeCount } from './board.js';
 import { certify, countRowLimit, selectClues } from './clues.js';
 import { carveFlatSet, carveMacro, finalizeSet, validateSet } from './carve.js';
+import { MODEL } from './difficulty.js';
 import { clueKey, layoutKey, minLayoutDistance, puzzleId } from './keys.js';
 import { level } from './levels.js';
-import { BUDGETS, pieceCountRange } from './policy.js';
-import { createRng, normalizeSeedText } from './rng.js';
+import { PROVENANCE } from './pack.js';
+import { BUDGETS, pieceCountRange, POLICY_ID } from './policy.js';
+import { createRng, normalizeSeedText, RNG_ID, SEED_SCHEME } from './rng.js';
 import { lnsWalk, randomTiling } from './tiling.js';
+import { ALGO_ID } from './version.js';
 
 /** @typedef {import('./types.js').Pose} Pose */
 /** @typedef {import('./types.js').Puzzle} Puzzle */
@@ -176,11 +179,17 @@ export function puzzleCandidate(ctx, slot, attempt) {
   const rng = createRng(ctx.batchSeed, `slot/${slot}/${attempt}`);
   const small = activeCount(board) <= RESTART_MAX_AREA;
   let start = set.witness;
+  /** @type {'witness' | 'restart'} */
+  let startKind = 'witness';
   if (small && (attempt % 3 === 2 || start === null)) {
-    start = randomTiling(board, pieces, rng.derive('restart'), scratch, {
+    const restart = randomTiling(board, pieces, rng.derive('restart'), scratch, {
       totalRowTrials: BUDGETS.tilingTotal,
       restartBase: BUDGETS.restartBase,
-    }) ?? start;
+    });
+    if (restart !== null) {
+      start = restart;
+      startKind = 'restart';
+    }
   }
   if (start === null) {
     return { fail: 'layout' };
@@ -210,7 +219,38 @@ export function puzzleCandidate(ctx, slot, attempt) {
     clues: sel.clues,
     rating: sel.rating,
     certificate: sel.certificate,
+    made: {
+      schema: 1,
+      kind: 'candidate',
+      batchSeed: ctx.batchSeed,
+      targetLevel: ctx.targetLevelId,
+      uniqueness: ctx.uniqueness,
+      slot,
+      attempt,
+      start: startKind,
+      skips: capSkips(sel.skips),
+      versions: provenanceVersions(),
+    },
   };
+}
+
+/**
+ * @returns {import('./types.js').ProvenanceVersions} The running code's version ids (RES-27).
+ */
+export function provenanceVersions() {
+  return { algo: ALGO_ID, policy: POLICY_ID, rng: RNG_ID, seedScheme: SEED_SCHEME, ratingModel: MODEL };
+}
+
+/**
+ * The stored form of a call's skips: copies, or 'overflow' above 64 subset or 16 repair ordinals
+ * (AUTH-P1 (a)).
+ * @param {{ subsets: number[], repairs: number[] }} skips
+ * @returns {import('./types.js').Skips}
+ */
+export function capSkips(skips) {
+  return skips.subsets.length > PROVENANCE.subsetSkips || skips.repairs.length > PROVENANCE.repairSkips
+    ? 'overflow'
+    : { subsets: skips.subsets.slice(), repairs: skips.repairs.slice() };
 }
 
 /**
@@ -248,6 +288,7 @@ export function completionCandidate(ctx, layout) {
     clues: sel.clues,
     rating: sel.rating,
     certificate: sel.certificate,
+    made: { schema: 1, kind: 'completion' },
   };
 }
 
@@ -355,6 +396,7 @@ function calibrationCandidate(ctx) {
   if (layout === null) {
     return null;
   }
+  /** @type {PuzzleCandidate} */
   const candidate = {
     layout,
     layoutKey: layoutKey(board, pieces, layout),
@@ -362,6 +404,7 @@ function calibrationCandidate(ctx) {
     clues: cal.clues,
     rating: cal.rating,
     certificate: cal.certificate,
+    made: { schema: 1, kind: 'calibration' },
   };
   return ctx.seenLayouts.has(candidate.layoutKey) || ctx.seenClues.has(candidate.clueKey) ? null : candidate;
 }
