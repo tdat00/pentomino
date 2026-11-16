@@ -5,10 +5,13 @@ import { describe, test } from 'node:test';
 import { offeredLevels } from '../core/engine/levels.js';
 import {
   BUDGETS,
+  DEDUCE,
   ENUMERATION,
   LIMITS,
   POLICY_ID,
+  REPLAY,
   SCORE,
+  SCORE_V3,
   TIME,
   deriveLimits,
   enabledMaxActive,
@@ -187,7 +190,6 @@ describe('pieceCountRange', () => {
     ['very-easy', 60, 6, 7], ['easy', 60, 7, 8], ['normal', 60, 8, 9], ['hard', 60, 9, 11],
     ['expert', 60, 11, 12], ['master', 60, 12, 13],
     ['hard', 360, 16, 18], ['expert', 360, 18, 20], ['master', 360, 20, 23], ['nightmare', 360, 25, 28],
-    ['hell-1', 360, 37, 42], ['hell-2', 360, 50, 56], ['hell-3', 484, 73, 80], ['hell-3', 676, 80, 90],
   ];
 
   test('reproduces every anchor row as a gap-free range', () => {
@@ -202,6 +204,11 @@ describe('pieceCountRange', () => {
     assert.equal(pieceCountRange('nightmare', 60), null);
     assert.equal(pieceCountRange('very-easy', 88), null);
     assert.equal(pieceCountRange('hell-3', 449), null);
+    /** @type {Array<[string, number]>} */
+    const retired = [['hell-1', 360], ['hell-2', 360], ['hell-3', 484], ['hell-3', 676]];
+    for (const [id, area] of retired) {
+      assert.equal(pieceCountRange(id, area), null, `${id}@${area} is retired (P-OD9)`);
+    }
     assert.equal(pieceCountRange('hell-4', 676), null);
     assert.equal(pieceCountRange('hell-5', 676), null);
     assert.equal(pieceCountRange('hell-12', 100), null);
@@ -234,10 +241,8 @@ describe('pieceCountRange', () => {
     }
   });
 
-  test('Hell caps bound the count', () => {
-    assert.ok(Math.max(.../** @type {number[]} */ (pieceCountRange('hell-1', 676))) <= 42);
-    assert.ok(Math.max(.../** @type {number[]} */ (pieceCountRange('hell-2', 676))) <= 62);
-    assert.ok(Math.max(.../** @type {number[]} */ (pieceCountRange('hell-3', 676))) <= 92);
+  test('Hell 1, 2 and 3 are retired: no count at the largest area (P-OD9)', () => {
+    for (const id of ['hell-1', 'hell-2', 'hell-3']) assert.equal(pieceCountRange(id, 676), null, id);
   });
 });
 
@@ -338,7 +343,7 @@ describe('limits, qualification and budgets', () => {
   });
 
   test('default device limits stay at 484 / 360 and 676 is opt-in on desktop only', () => {
-    assert.equal(POLICY_ID, 'mixed-v2');
+    assert.equal(POLICY_ID, 'mixed-v3');
     assert.equal(LIMITS.releaseMaxActive, 484);
     assert.equal(LIMITS.phoneMaxActive, 360);
     assert.equal(LIMITS.designMaxActive, 576);
@@ -386,5 +391,45 @@ describe('limits, qualification and budgets', () => {
   test('the arrangement count has its own frozen limits; BUDGETS is pinned above (owner decision 2026-10-23)', () => {
     assert.deepEqual({ ...ENUMERATION }, { placements: 250000000, nodes: 2500000, collect: 32 });
     assert.ok(Object.isFrozen(ENUMERATION));
+  });
+
+  test('the deduction solver has its own frozen limits (difficulty-v3)', () => {
+    assert.deepEqual({ ...DEDUCE }, {
+      lookaheadWidth: 4, nodes: 30000, solutions: 8, work: 760000000, census: 80000000, memoryBytes: 33554432,
+    });
+    assert.ok(Object.isFrozen(DEDUCE));
+  });
+
+  test('a Generation Steps replay has its own frozen bounds, derived from DEDUCE (provisional, RES-29)', () => {
+    assert.deepEqual({ ...REPLAY }, { maxSteps: 4096, maxBytes: 4194304, work: 215040000000 });
+    assert.equal(REPLAY.work, 256 * (DEDUCE.work + DEDUCE.census));
+    assert.ok(Object.isFrozen(REPLAY));
+  });
+
+  test('difficulty-v3 knobs are the fitted values, frozen, within the invariants and the experimental ranges', () => {
+    // docs/difficulty-v3/fit-2026-11-12.md, section 3, with rule[3] 2 to 3 and the penalty (0, 0) to (1, 2) of the P3
+    // slice (P-OD3): docs/difficulty-v3/calibration-slice-2026-11-13.md
+    assert.deepEqual(JSON.parse(JSON.stringify(SCORE_V3)), {
+      model: 'difficulty-v3',
+      base: { max: 12, scale: 3 },
+      rule: [0, 0, 2, 3],
+      weights: { G: 5, info: 0.5 },
+      penalty: { few: 1, many: 2 },
+    });
+    /** @param {object} o @returns {boolean} */
+    const frozenDeep = (o) => Object.isFrozen(o)
+      && Object.values(o).every((v) => typeof v !== 'object' || v === null || frozenDeep(v));
+    assert.ok(frozenDeep(SCORE_V3));
+    const { base, rule, weights, penalty } = SCORE_V3;
+    assert.equal(rule.length, 4);
+    assert.ok(base.max + Math.max(...rule) <= 16);
+    assert.ok(rule[0] === 0 && rule[1] === 0 && rule[2] >= 0 && rule[2] <= rule[3]);
+    assert.ok(penalty.few >= 0 && penalty.few <= penalty.many);
+    assert.ok(weights.G >= 0 && weights.info >= 0 && base.scale > 0);
+    assert.ok(base.max >= 8 && base.max <= 12);
+    assert.ok(base.scale >= 3 && base.scale <= 12);
+    assert.ok(weights.G >= 0 && weights.G <= 8);
+    assert.ok(weights.info >= 0.5 && weights.info <= 6);
+    assert.ok(penalty.many <= 8);
   });
 });

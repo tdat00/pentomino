@@ -20,12 +20,14 @@ import { progressFingerprint } from '../../core/engine/keys.js';
 import { packBoard, parsePack, validatePack } from '../../core/engine/pack.js';
 import { catalogueStats } from '../../core/engine/puzzlecode-v1.js';
 import { puzzleCodesOf } from '../../core/browser/handoff.js';
+import { ratingDisplay } from '../../core/browser/display-rating.js';
 import { createPuzzleCodeClient } from '../../core/browser/puzzle-code-client.js';
 import { puzzleDisplayName } from '../../core/browser/puzzle-title.js';
 import { createStorage } from '../../core/browser/storage.js';
 import { createPool } from '../../core/browser/worker-pool.js';
 import { createGeneratorApp } from '../../generator/app.js';
 import * as generatorI18n from '../../generator/i18n.js';
+import { levelLabel } from '../../generator/strings.js';
 import { mountPlayer } from '../../player/app.js';
 import * as playerI18n from '../../player/i18n.js';
 
@@ -91,8 +93,9 @@ async function check(name, fn) {
   if (only !== null && !only.split('|').some((part) => name.includes(part))) {
     return;
   }
+  console.log(`CHECK-START ${name}`);
+  const started = performance.now();
   try {
-    console.log(`CHECK-START ${name}`);
     await fn();
     results.push({ name, ok: true });
   } catch (error) {
@@ -113,6 +116,8 @@ async function check(name, fn) {
   restoreClipboard();
   playerI18n.setLocale('en', document);
   generatorI18n.setLocale('en', document);
+  const seconds = Math.round((performance.now() - started) / 100) / 10;
+  console.log(`CHECK-END ${results[results.length - 1].ok ? 'PASS' : 'FAIL'} ${seconds} s ${name}`);
 }
 
 /**
@@ -148,6 +153,15 @@ async function waitFor(fn, msg, ms = 20000) {
     await pause(10);
   }
   throw new Error(`timed out: ${msg}`);
+}
+
+/**
+ * Whether a printed detail line is `full`: paper cuts a long line to the heading block and ends it with an ellipsis.
+ * @param {string} printed
+ * @param {string} full
+ */
+function printedAs(printed, full) {
+  return printed === full || (printed.endsWith('…') && printed.length > 1 && full.startsWith(printed.slice(0, -1).trimEnd()));
 }
 
 /** @template T */
@@ -288,7 +302,8 @@ function claimsOf(rating, certificate) {
     if (rating.censored !== undefined) {
       r.censored = rating.censored;
     }
-    if (rating.metrics !== undefined && rating.metrics !== null) {
+    // A code carries the summary of a difficulty-v3 claim (RES-22); its metrics stay in the pack.
+    if (rating.model !== 'difficulty-v3' && rating.metrics !== undefined && rating.metrics !== null) {
       const m = rating.metrics;
       r.metrics = rating.model === 'difficulty-v2' ? { U: m.U, B: m.B, branchTrials: m.branchTrials, rowTrials: m.rowTrials, stop: m.stop, R: m.R, H: m.H } : m;
     }
@@ -440,7 +455,8 @@ function clientSpy(wrap = /** @type {(inner: ReturnType<typeof createPuzzleCodeC
 }
 
 /**
- * @param {{ hash?: string, adapter?: ReturnType<typeof memoryAdapter>, factory?: () => any, width?: number, height?: number }} [o]
+ * @param {{ hash?: string, adapter?: ReturnType<typeof memoryAdapter>, factory?: () => any, width?: number, height?: number,
+ *   pool?: any }} [o] `pool`: the Player's engine pool (default: the stub that never answers).
  */
 async function mount(o = {}) {
   await useStyles('player');
@@ -454,7 +470,7 @@ async function mount(o = {}) {
   const adapter = o.adapter ?? memoryAdapter();
   const location = { hash: o.hash ?? '', pathname: '/player/', search: '' };
   const urls = /** @type {string[]} */ ([]);
-  const pool = stubPool();
+  const pool = o.pool ?? stubPool();
   const player = mountPlayer(root, {
     storage: createStorage(adapter, () => Date.now()),
     location,
@@ -1007,12 +1023,18 @@ const samplePieces = /** @type {any[]} */ (sample.pieces);
 
 await check('BA01 BA02 BA03 BA04 BA17 BA22 BA24 BA25: puzzle 2 of 3 — Print, read the code in order, rasterise the QR, Copy the link, open it in fresh Players', async () => {
   const spy = clientSpy();
-  const m = await mount({ hash: await packHash(sample, 1), factory: spy.factory });
+  // The sample's claims are on the old scale: with real workers this Player rates the puzzle again, and the sheet shows the
+  // rating of today's scale and a note with the original.
+  const pool = createPool({ size: 1 });
+  toDestroy.push({ destroy: () => pool.close() });
+  const m = await mount({ hash: await packHash(sample, 1), factory: spy.factory, pool });
   equal(m.root.dataset.screen, 'game', 'the source Player shows a puzzle');
   equal(/** @type {any} */ (m.player.store.getState().pack).puzzles.length, 3, 'its pack holds three puzzles');
   const expected = sourceView({ rows: sampleRows, pieces: samplePieces, puzzle: sample.puzzles[1], index: 1, rotation: 0 });
   equal(expected.heading, 'Normal #2', 'the heading of the selected puzzle');
   assertSameView(openedView(m), expected, 'the source Player');
+  await waitFor(() => Object.values(m.player.store.getState().displayRatings).filter((entry) => entry.status !== 'pending').length === 3,
+    'the three puzzles to be rated again', 45000);
   const out = await printCopyOpen('sample 2 of 3', { print: () => m.q('[data-action="print"]'), share: m }, expected, {
     expectedCode: G2.code, expectedHash: qrHash(G2.name), expectedVersion: 5,
   });
@@ -1020,8 +1042,11 @@ await check('BA01 BA02 BA03 BA04 BA17 BA22 BA24 BA25: puzzle 2 of 3 — Print, r
   assert(out.F.length < 60, `a code is a puzzle, not a pack (${out.F.length})`);
   assert(!out.F.includes(G1.code.slice(0, 20)) && !out.F.includes(G3.code.slice(0, 20)), 'neither neighbour is in the code');
   assert(spy.encodes >= 2, 'Print and Share each asked the worker');
-  equal(out.sheets.details.length, 1, 'one detail line: the rating (no set line)');
-  assert(/^Normal: score \d+/.test(out.sheets.details[0]), `the level and score stay (${out.sheets.details[0]})`);
+  const [rating, rerated, ...more] = out.sheets.details;
+  assert(/^.+: score \d+\+?$/.test(rating), `the level and score of today's scale (${rating})`);
+  assert(printedAs(rerated ?? '', `Re-rated with the current scale (original: Normal ${sample.puzzles[1].rating.score}, ${sample.puzzles[1].rating.model})`),
+    `the note with the original follows (${rerated})`);
+  assert(more.length <= 1 && more.every((line) => line.startsWith('Decisive')), `at most the estimate note after it (${more})`);
   await showSheet('player-sheet-source', out.pages[0]);
 });
 
@@ -1412,8 +1437,11 @@ await check('BA01 BA02 BA03 BA04 BA22 BA23 BA24: the real Generator — one puzz
   const sheets = await readSheets(done.pages);
   equal(sheets.heading, untitled(3), 'the printed heading is the name of the card of the selected puzzle');
   assert(sheets.heading !== expected.heading, 'not the title that the code carries');
-  equal(sheets.details.length, 1, 'the level and score only');
+  // An estimate shows its note under the rating; a puzzle whose census finished has the rating line alone (no set line).
+  const notes = /** @type {NonNullable<ReturnType<typeof ratingDisplay>>} */ (ratingDisplay(puzzle.rating, undefined, { t: generatorI18n.t, levelLabel })).notes;
+  equal(sheets.details.length, puzzle.rating.censored === true ? 2 : 1, 'the level and score, and the estimate note of a rating that is one');
   assert(/: score \d+/.test(sheets.details[0]), `the level and score stay (${sheets.details[0]})`);
+  assert(notes.length === sheets.details.length - 1 && notes.every((note, i) => printedAs(sheets.details[i + 1], note)), `the estimate note, if any (${sheets.details})`);
   assert(!sheets.pageText.includes(state.setSeed), 'the set seed is not printed');
   const seeds = state.puzzles.map((/** @type {any} */ p) => String(p.seed ?? '')).filter((/** @type {string} */ s) => s.length >= 4);
   assert(!seeds.some((/** @type {string} */ s) => sheets.pageText.includes(s)), 'no puzzle seed is printed');
@@ -1435,6 +1463,9 @@ await check('BA01 BA02 BA03 BA04 BA22 BA23 BA24: the real Generator — one puzz
   const out = await printCopyOpen('Generator puzzle 3 of 5', { print: () => g.q('[data-action="print-puzzle"]'), solutionOption: true }, expected);
   equal(out.F, F, 'the same code whether or not the solution sheet was chosen');
   const opened = await freshOpen('Generator puzzle 3 of 5, core only', out.C, { ...expected, solution: null });
+  const openedRating = /** @type {any} */ (opened.m.player.store.getState()).pack.puzzles[0].rating;
+  assert(puzzle.rating?.model === 'difficulty-v3' && puzzle.rating.metrics !== undefined, 'the generated puzzle has a full v3 claim');
+  equal(openedRating, { model: puzzle.rating.model, score: puzzle.rating.score, level: puzzle.rating.level, saturated: false, ...(puzzle.rating.censored === true ? { censored: true } : {}) }, 'the code carries the summary claim (RES-22)');
   const neighbours = state.puzzles.filter((/** @type {any} */ p) => p.id !== puzzle.id).map((/** @type {any} */ p) => sourceView({ rows: boardToRows(state.set.board), pieces: state.set.pieces, puzzle: p, index: 0, rotation: state.rotation }).clues);
   assert(!neighbours.some((clues) => JSON.stringify(clues) === JSON.stringify(openedView(opened.m).clues)), 'no neighbour has the opened clues');
 });
@@ -2144,6 +2175,37 @@ for (const lang of /** @type {const} */ (['en', 'vi'])) {
     assert(root.scrollWidth <= root.clientWidth, 'no sideways scrolling after the dialogs');
   });
 }
+
+// RES-34: an L pentomino and its mirror image on a 5 x 2 board (default identity: pieces A and B), written with the
+// frozen v1 grammar below the pack check; the decoder refuses it with `duplicate-shape` and params { piece: 'B', first: 'A' }.
+const TWIN_CODE = '1G2084V8248S341';
+await check('RES-34 duplicate shapes: a code whose two pieces have the same shape (a piece and its mirror image) is refused by the real Player, from the entry and from the address, in English and Vietnamese, and nothing opens', async () => {
+  const en = playerI18n.t('code.error.duplicateShape', { piece: 'B', first: 'A' });
+  assert(en.includes('B') && en.includes('A'), `the English text names both pieces (${en})`);
+  assert(en !== playerI18n.t('code.error.invalid'), 'and it is not the generic text');
+
+  const m = await mount();
+  await enterCode(m, TWIN_CODE);
+  assert(isOpen(m), 'the entry stays open');
+  const problem = problemOf(m);
+  assert(problem !== null, 'the entry shows a problem');
+  equal(problem.error, en, 'the entry names both pieces');
+  equal([problem.candidate, problem.useCorrection, problem.openCore], [null, false, false], 'no correction, no candidate and no core offered');
+  equal([m.root.dataset.screen, m.urls, m.adapter.map.size, fieldOf(m).value], ['start', [], 0, TWIN_CODE], 'nothing opened, no address written, nothing stored, the code stays in the field');
+
+  playerI18n.setLocale('vi', document);
+  const vi = playerI18n.t('code.error.duplicateShape', { piece: 'B', first: 'A' });
+  assert(vi !== en, 'the Vietnamese text differs from the English one');
+  await enterCode(m, TWIN_CODE);
+  equal(problemOf(m)?.error, vi, 'the entry names both pieces in Vietnamese');
+  playerI18n.setLocale('en', document);
+
+  const a = await mount({ hash: `#p=${TWIN_CODE}` });
+  await waitFor(() => isOpen(a) && problemOf(a) !== null, 'the entry to open with the address as its problem');
+  equal(problemOf(a)?.error, en, 'the address names both pieces');
+  assert(/** @type {any} */ (a.player.store.getState()).screen !== 'game', 'no game is open');
+  equal(a.adapter.map.size, 0, 'nothing was stored');
+});
 
 await check('every worker this page started has ended, the page built no catalogue, no CSP violation, no uncaught error, only local requests', async () => {
   assert(catalogueStats.sizesBuilt === 0, 'the page built the catalogue');

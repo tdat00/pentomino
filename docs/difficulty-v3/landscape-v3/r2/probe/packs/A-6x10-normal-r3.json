@@ -1,0 +1,1882 @@
+{
+  "format": "pentomino-pack",
+  "version": 1,
+  "kind": "puzzle-pack",
+  "rules": "free-polyomino-v1",
+  "board": {
+    "rows": [
+      "######",
+      "######",
+      "######",
+      "######",
+      "######",
+      "######",
+      "######",
+      "######",
+      "######",
+      "######"
+    ]
+  },
+  "presentation": {
+    "rotation": 0
+  },
+  "pieces": [
+    {
+      "id": "A",
+      "label": "A",
+      "color": "#e6194b",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "B",
+      "label": "B",
+      "color": "#3cb44b",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "C",
+      "label": "C",
+      "color": "#ffe119",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          3,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "D",
+      "label": "D",
+      "color": "#4363d8",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "E",
+      "label": "E",
+      "color": "#f58231",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "F",
+      "label": "F",
+      "color": "#911eb4",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "G",
+      "label": "G",
+      "color": "#42d4f4",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "H",
+      "label": "H",
+      "color": "#f032e6",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "I",
+      "label": "I",
+      "color": "#bfef45",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    }
+  ],
+  "witness": [
+    {
+      "piece": "A",
+      "x": 0,
+      "y": 0,
+      "turn": 0,
+      "mirrored": true
+    },
+    {
+      "piece": "B",
+      "x": 0,
+      "y": 1,
+      "turn": 3,
+      "mirrored": false
+    },
+    {
+      "piece": "C",
+      "x": 0,
+      "y": 5,
+      "turn": 2,
+      "mirrored": false
+    },
+    {
+      "piece": "D",
+      "x": 3,
+      "y": 4,
+      "turn": 1,
+      "mirrored": false
+    },
+    {
+      "piece": "E",
+      "x": 0,
+      "y": 7,
+      "turn": 3,
+      "mirrored": false
+    },
+    {
+      "piece": "F",
+      "x": 2,
+      "y": 7,
+      "turn": 0,
+      "mirrored": true
+    },
+    {
+      "piece": "G",
+      "x": 2,
+      "y": 2,
+      "turn": 2,
+      "mirrored": false
+    },
+    {
+      "piece": "H",
+      "x": 2,
+      "y": 8,
+      "turn": 2,
+      "mirrored": true
+    },
+    {
+      "piece": "I",
+      "x": 0,
+      "y": 4,
+      "turn": 0,
+      "mirrored": false
+    }
+  ],
+  "puzzles": [
+    {
+      "id": "p52629e108f12",
+      "title": "Normal #1",
+      "seed": "landscape/6x10-normal/3#1",
+      "clues": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 2,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 4,
+          "turn": 0,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 0,
+          "y": 1,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 3,
+          "y": 4,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 7,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 2,
+          "y": 7,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 2,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 2,
+          "y": 8,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 4,
+          "turn": 0,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 14,
+        "level": "normal",
+        "saturated": false,
+        "metrics": {
+          "U": 5,
+          "R": 34,
+          "H": 4.824038714440031,
+          "B": 2,
+          "branchTrials": 2,
+          "rowTrials": 6,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 4,
+          "E": 0,
+          "rules": {
+            "R1": 4,
+            "R2": 0,
+            "R3": 0,
+            "R4": 0,
+            "R5": 0,
+            "R6": 0,
+            "R7": 0,
+            "R8": 0,
+            "R9": 0
+          },
+          "deductionTier": 1,
+          "tier": 4,
+          "G": 1,
+          "info": 1.222392421336448,
+          "Cmax": 7,
+          "Dmax": 2,
+          "Gt": 2,
+          "nodes": 10,
+          "work": 46157,
+          "S": 4,
+          "solutionLimit": 8,
+          "solutions": "few",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 1
+        }
+      }
+    },
+    {
+      "id": "p88db20a248e2",
+      "title": "Normal #2",
+      "seed": "landscape/6x10-normal/3#1",
+      "clues": [
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 4,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 3,
+          "y": 4,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 7,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 1,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 4,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 3,
+          "y": 4,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 7,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 14,
+        "level": "normal",
+        "saturated": false,
+        "metrics": {
+          "U": 4,
+          "R": 28,
+          "H": 4.786088632403296,
+          "B": 1,
+          "branchTrials": 1,
+          "rowTrials": 4,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 3,
+          "E": 0,
+          "rules": {
+            "R1": 3,
+            "R2": 0,
+            "R3": 0,
+            "R4": 0,
+            "R5": 0,
+            "R6": 0,
+            "R7": 0,
+            "R8": 0,
+            "R9": 0
+          },
+          "deductionTier": 1,
+          "tier": 4,
+          "G": 1,
+          "info": 1.4594316186372973,
+          "Cmax": 11,
+          "Dmax": 1,
+          "Gt": 1,
+          "nodes": 12,
+          "work": 26843,
+          "S": 4,
+          "solutionLimit": 8,
+          "solutions": "few",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 1
+        }
+      }
+    },
+    {
+      "id": "p97e2c28a0b92",
+      "title": "Normal #3",
+      "seed": "landscape/6x10-normal/3#1",
+      "clues": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "C",
+          "x": 2,
+          "y": 5,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 0,
+          "y": 4,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 1,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 2,
+          "y": 5,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 0,
+          "y": 4,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 7,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 2,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 2,
+          "y": 7,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 3,
+          "y": 4,
+          "turn": 0,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 14,
+        "level": "normal",
+        "saturated": false,
+        "metrics": {
+          "U": 5,
+          "R": 31,
+          "H": 4.374276377344654,
+          "B": 2,
+          "branchTrials": 2,
+          "rowTrials": 6,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 4,
+          "E": 0,
+          "rules": {
+            "R1": 4,
+            "R2": 0,
+            "R3": 0,
+            "R4": 0,
+            "R5": 0,
+            "R6": 0,
+            "R7": 0,
+            "R8": 0,
+            "R9": 0
+          },
+          "deductionTier": 1,
+          "tier": 4,
+          "G": 1,
+          "info": 1.222392421336448,
+          "Cmax": 7,
+          "Dmax": 2,
+          "Gt": 2,
+          "nodes": 10,
+          "work": 33649,
+          "S": 4,
+          "solutionLimit": 8,
+          "solutions": "few",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 1
+        }
+      }
+    },
+    {
+      "id": "pddb0ea10a0ff",
+      "title": "Normal #4",
+      "seed": "landscape/6x10-normal/3#1",
+      "clues": [
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 3,
+          "y": 4,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 7,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 4,
+          "turn": 0,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 1,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 3,
+          "y": 4,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 8,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 7,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 4,
+          "turn": 0,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 14,
+        "level": "normal",
+        "saturated": false,
+        "metrics": {
+          "U": 5,
+          "R": 37,
+          "H": 4.977037537249661,
+          "B": 1,
+          "branchTrials": 1,
+          "rowTrials": 5,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 4,
+          "E": 0,
+          "rules": {
+            "R1": 4,
+            "R2": 0,
+            "R3": 0,
+            "R4": 0,
+            "R5": 0,
+            "R6": 0,
+            "R7": 0,
+            "R8": 0,
+            "R9": 0
+          },
+          "deductionTier": 1,
+          "tier": 4,
+          "G": 1,
+          "info": 1.4594316186372973,
+          "Cmax": 11,
+          "Dmax": 2,
+          "Gt": 1,
+          "nodes": 12,
+          "work": 33147,
+          "S": 4,
+          "solutionLimit": 8,
+          "solutions": "few",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 1
+        }
+      }
+    },
+    {
+      "id": "pbe9714f294a1",
+      "title": "Normal #5",
+      "seed": "landscape/6x10-normal/3#1",
+      "clues": [
+        {
+          "piece": "C",
+          "x": 4,
+          "y": 6,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 6,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 4,
+          "y": 2,
+          "turn": 1,
+          "mirrored": true
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 0,
+          "y": 1,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 4,
+          "y": 6,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 0,
+          "y": 4,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 6,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 4,
+          "y": 2,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 3,
+          "y": 5,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 2,
+          "y": 3,
+          "turn": 0,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 13,
+        "level": "normal",
+        "saturated": false,
+        "metrics": {
+          "U": 6,
+          "R": 40,
+          "H": 5.942508958647959,
+          "B": 7,
+          "branchTrials": 7,
+          "rowTrials": 12,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 6,
+          "E": 3,
+          "rules": {
+            "R1": 6,
+            "R2": 0,
+            "R3": 0,
+            "R4": 79,
+            "R5": 5,
+            "R6": 3,
+            "R7": 0,
+            "R8": 20,
+            "R9": 0
+          },
+          "deductionTier": 3,
+          "tier": 3,
+          "G": 0,
+          "info": 0,
+          "Cmax": 0,
+          "Dmax": 0,
+          "Gt": 0,
+          "nodes": 1,
+          "work": 54100,
+          "S": 1,
+          "solutionLimit": 8,
+          "solutions": "unique",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 0
+        }
+      }
+    },
+    {
+      "id": "pee215dba8ad2",
+      "title": "Normal #6",
+      "seed": "landscape/6x10-normal/3#1",
+      "clues": [
+        {
+          "piece": "C",
+          "x": 2,
+          "y": 4,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 0,
+          "y": 4,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 7,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 3,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 1,
+          "y": 1,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "C",
+          "x": 2,
+          "y": 4,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 0,
+          "y": 4,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 7,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 3,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 14,
+        "level": "normal",
+        "saturated": false,
+        "metrics": {
+          "U": 4,
+          "R": 31,
+          "H": 4.677063853701628,
+          "B": 1,
+          "branchTrials": 1,
+          "rowTrials": 4,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 3,
+          "E": 0,
+          "rules": {
+            "R1": 3,
+            "R2": 0,
+            "R3": 0,
+            "R4": 0,
+            "R5": 0,
+            "R6": 0,
+            "R7": 0,
+            "R8": 0,
+            "R9": 0
+          },
+          "deductionTier": 1,
+          "tier": 4,
+          "G": 1,
+          "info": 1.4594316186372973,
+          "Cmax": 11,
+          "Dmax": 1,
+          "Gt": 1,
+          "nodes": 12,
+          "work": 27474,
+          "S": 4,
+          "solutionLimit": 8,
+          "solutions": "few",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 1
+        }
+      }
+    },
+    {
+      "id": "pc031eda8ea13",
+      "title": "Normal #7",
+      "seed": "landscape/6x10-normal/3#1",
+      "clues": [
+        {
+          "piece": "B",
+          "x": 1,
+          "y": 1,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 7,
+          "turn": 0,
+          "mirrored": true
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 1,
+          "y": 1,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 3,
+          "y": 4,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 8,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 7,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 4,
+          "turn": 0,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 15,
+        "level": "normal",
+        "saturated": false,
+        "metrics": {
+          "U": 5,
+          "R": 34,
+          "H": 4.574823370888902,
+          "B": 3,
+          "branchTrials": 3,
+          "rowTrials": 6,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 4,
+          "E": 0,
+          "rules": {
+            "R1": 3,
+            "R2": 0,
+            "R3": 1,
+            "R4": 0,
+            "R5": 0,
+            "R6": 0,
+            "R7": 0,
+            "R8": 0,
+            "R9": 0
+          },
+          "deductionTier": 1,
+          "tier": 4,
+          "G": 1,
+          "info": 1.584962500721156,
+          "Cmax": 12,
+          "Dmax": 2,
+          "Gt": 1,
+          "nodes": 13,
+          "work": 29686,
+          "S": 4,
+          "solutionLimit": 8,
+          "solutions": "few",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 1
+        }
+      }
+    },
+    {
+      "id": "p6748e09fe4f3",
+      "title": "Normal #8",
+      "seed": "landscape/6x10-normal/3#1",
+      "clues": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 3,
+          "y": 4,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 2,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 0,
+          "y": 0,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 4,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 3,
+          "y": 4,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 8,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 2,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 7,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 14,
+        "level": "normal",
+        "saturated": false,
+        "metrics": {
+          "U": 5,
+          "R": 34,
+          "H": 4.344539830313966,
+          "B": 2,
+          "branchTrials": 2,
+          "rowTrials": 6,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 4,
+          "E": 0,
+          "rules": {
+            "R1": 4,
+            "R2": 0,
+            "R3": 0,
+            "R4": 0,
+            "R5": 0,
+            "R6": 0,
+            "R7": 0,
+            "R8": 0,
+            "R9": 0
+          },
+          "deductionTier": 1,
+          "tier": 4,
+          "G": 1,
+          "info": 1.222392421336448,
+          "Cmax": 7,
+          "Dmax": 2,
+          "Gt": 2,
+          "nodes": 10,
+          "work": 35469,
+          "S": 4,
+          "solutionLimit": 8,
+          "solutions": "few",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 1
+        }
+      }
+    },
+    {
+      "id": "p25961af6f628",
+      "title": "Normal #9",
+      "seed": "landscape/6x10-normal/3#1",
+      "clues": [
+        {
+          "piece": "D",
+          "x": 3,
+          "y": 3,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 1,
+          "y": 3,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 1,
+          "y": 1,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "C",
+          "x": 4,
+          "y": 6,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 3,
+          "y": 3,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 6,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 2,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 1,
+          "y": 3,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 3,
+          "y": 6,
+          "turn": 3,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 13,
+        "level": "normal",
+        "saturated": false,
+        "metrics": {
+          "U": 6,
+          "R": 43,
+          "H": 4.881595215491346,
+          "B": 11,
+          "branchTrials": 11,
+          "rowTrials": 16,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 6,
+          "E": 2,
+          "rules": {
+            "R1": 6,
+            "R2": 0,
+            "R3": 0,
+            "R4": 103,
+            "R5": 0,
+            "R6": 2,
+            "R7": 0,
+            "R8": 38,
+            "R9": 0
+          },
+          "deductionTier": 3,
+          "tier": 3,
+          "G": 0,
+          "info": 0,
+          "Cmax": 0,
+          "Dmax": 0,
+          "Gt": 0,
+          "nodes": 1,
+          "work": 51738,
+          "S": 1,
+          "solutionLimit": 8,
+          "solutions": "unique",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 0
+        }
+      }
+    },
+    {
+      "id": "pb6a5ee5abb9c",
+      "title": "Normal #10",
+      "seed": "landscape/6x10-normal/3#1",
+      "clues": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 0,
+          "y": 4,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 2,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 3,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 0,
+          "y": 1,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 2,
+          "y": 4,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 0,
+          "y": 4,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 7,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 2,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 2,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 2,
+          "y": 7,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 3,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 14,
+        "level": "normal",
+        "saturated": false,
+        "metrics": {
+          "U": 5,
+          "R": 34,
+          "H": 4.344539830313966,
+          "B": 2,
+          "branchTrials": 2,
+          "rowTrials": 6,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 4,
+          "E": 0,
+          "rules": {
+            "R1": 4,
+            "R2": 0,
+            "R3": 0,
+            "R4": 0,
+            "R5": 0,
+            "R6": 0,
+            "R7": 0,
+            "R8": 0,
+            "R9": 0
+          },
+          "deductionTier": 1,
+          "tier": 4,
+          "G": 1,
+          "info": 1.222392421336448,
+          "Cmax": 7,
+          "Dmax": 2,
+          "Gt": 2,
+          "nodes": 10,
+          "work": 35464,
+          "S": 4,
+          "solutionLimit": 8,
+          "solutions": "few",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 1
+        }
+      }
+    }
+  ],
+  "generation": {
+    "app": "pentomino-generator/1.0.0",
+    "algo": "gen-v3",
+    "policy": "mixed-v2",
+    "rng": "xoshiro128ss-v1",
+    "seedScheme": "seed-sha256-v1",
+    "setSeed": "landscape/6x10-normal/3",
+    "setLevel": "normal",
+    "setAttempt": 0,
+    "carving": "macro",
+    "macroRegion": [
+      0,
+      0,
+      1,
+      1,
+      2,
+      2,
+      0,
+      2,
+      1
+    ],
+    "batchSeed": "landscape/6x10-normal/3#1",
+    "batchLevel": "normal",
+    "batchIndex": 1,
+    "uniqueness": "any",
+    "createdAt": "2026-11-13T10:04:15.198Z"
+  }
+}

@@ -12,7 +12,8 @@ import { applyTo, choose, getLocale, normalize, onChange, setLocale, t } from '.
 import { LANGUAGE_KEY } from '../core/browser/i18n.js';
 import { THEME_KEY, applyTheme, effectiveTheme, normalizeTheme } from '../core/browser/theme.js';
 import {
-  MAX_SETS, createGeneratorStore, createPersistence, describeBoard, detectHardware, loadGeneratorState, setNumber,
+  MAX_SETS, createGeneratorStore, createPersistence, describeBoard, detectHardware, loadGeneratorState,
+  saveRestoreCleanup, setNumber, replaySourceOf,
 } from './state.js';
 import { createJobController } from './jobs.js';
 import { mountBoardEditor } from './ui/board-editor.js';
@@ -21,6 +22,7 @@ import { mountLevelPanel } from './ui/level-panel.js';
 import { mountPuzzlePanel } from './ui/puzzle-panel.js';
 import { mountSetPanel } from './ui/set-panel.js';
 import { mountSetSummary } from './ui/set-summary.js';
+import { createReplayCache } from './ui/replay-cache.js';
 import { mountWizard, reachableStep } from './ui/wizard.js';
 import { isPuzzleHash } from '../core/engine/sharecode.js';
 
@@ -106,6 +108,7 @@ export function createGeneratorApp(doc, options = {}) {
       }
     },
   });
+  saveRestoreCleanup(store, persistence);
 
   const editor = mountBoardEditor(slot(doc, 'board'), { store, hardware, controlsHost: optionalSlot(doc, 'board-controls') });
   const summaryHost = optionalSlot(doc, 'board-summary');
@@ -136,10 +139,30 @@ export function createGeneratorApp(doc, options = {}) {
   const setSummaryHost = optionalSlot(doc, 'set-summary');
   const setSummary = setSummaryHost === null ? null : mountSetSummary(setSummaryHost, { store });
   const puzzleControlsHost = optionalSlot(doc, 'puzzle-controls');
+  // A scripted client without replayPuzzle gets no Generation steps section.
+  /** @type {((source: import('./ui/replay-model.js').ReplaySource, signal: AbortSignal) => Promise<import('../core/engine/replay.js').ReplayResult>) | undefined} */
+  const runReplay = typeof client.replayPuzzle === 'function' ? (source, signal) => client.replayPuzzle(source, { signal }) : undefined;
+  const replayCache = createReplayCache(io, runReplay);
+  // The steps of every puzzle a generation adds are made in the background and saved, so that Generation steps has
+  // them at once (a puzzle that comes from the saved state, a saved set or an import is not replayed here).
+  const unsubscribeReplays = replayCache === undefined ? null : store.subscribe((state, previous) => {
+    if (previous.job === null || state.puzzles === previous.puzzles) {
+      return;
+    }
+    const known = new Set(previous.puzzles.map((puzzle) => puzzle.id));
+    for (const puzzle of state.puzzles) {
+      const source = known.has(puzzle.id) ? null : replaySourceOf(state, puzzle.id);
+      if (source !== null) {
+        replayCache.prefetch(source);
+      }
+    }
+  });
   const puzzlePanel = mountPuzzlePanel(regions.puzzles, {
     store, hardware, controller, onNewSet: () => void level.generate(), now: options.now,
     noticeHost: optionalSlot(doc, 'notice'), cardsHost: optionalSlot(doc, 'cards'),
     controlsHost: puzzleControlsHost, cardsActionsHost: optionalSlot(doc, 'cards-actions'),
+    replay: runReplay === undefined ? undefined : replayCache === undefined ? runReplay : (source, signal) => replayCache.run(source, signal),
+    replayCache,
   });
   const wizard = mountWizard(doc, { store, hardware });
 
@@ -419,6 +442,8 @@ export function createGeneratorApp(doc, options = {}) {
       setPanel.destroy();
       setSummary?.destroy();
       puzzlePanel.destroy();
+      unsubscribeReplays?.();
+      replayCache?.dispose();
       mainAction.removeEventListener('click', onActionClick);
       mainBack?.removeEventListener('click', onBackClick);
       win?.removeEventListener('pagehide', onHide);

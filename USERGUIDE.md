@@ -22,7 +22,7 @@
 
 | App | Live | Source | What it does |
 |---|---|---|---|
-| **Pentomino Generator** | [tdat00.github.io/pentomino/generator](https://tdat00.github.io/pentomino/generator/) | [generator/](generator/) | Draws a board, generates piece sets that provably tile it, makes puzzles from a set at ten levels, prints them, imports a puzzle from its link or code and opens them in the Player |
+| **Pentomino Generator** | [tdat00.github.io/pentomino/generator](https://tdat00.github.io/pentomino/generator/) | [generator/](generator/) | Draws a board, generates piece sets that provably tile it, makes puzzles from a set at seven levels, prints them, imports a puzzle from its link or code and opens them in the Player |
 | **Pentomino Player** | [tdat00.github.io/pentomino/player](https://tdat00.github.io/pentomino/player/) | [player/](player/) | Plays a puzzle from its link: drag or tap to place pieces, undo / redo, proven hints, a timer, saved progress, printing, sharing a puzzle or the whole list as a link with a QR code |
 
 `/pentomino/` itself redirects to the Generator, carrying any query string and `#hash` across. Both apps are in English
@@ -58,7 +58,7 @@ a piece set (otherwise step 1 says why), and step 3 once a piece set is on show.
    zoom in and out, fit the board, switch on a move tool that drags the view, and turn the view by 45° (⟲ ⟳).
    `Ctrl`/`Cmd`+`Z` undoes the last board change; with the keyboard, the arrow keys move a cursor and `Space` toggles a
    square. The status line counts the playable squares and says why a board cannot get a piece set.
-2. **Create piece set.** A table lists every level from Very easy to Hell 3 with the number of pieces, the piece sizes
+2. **Create piece set.** A table lists every level from Very easy to Nightmare with the number of pieces, the piece sizes
    and the pre-placed pieces it means on this board; the **?** next to a number shows how it is worked out, and levels
    the board cannot use are disabled with the reason. The step frame holds the **Seed** field (✕ clears it, 🎲 draws a
    random seed) and **New piece set**. Under the table, the set on show has a summary such as
@@ -68,7 +68,8 @@ a piece set (otherwise step 1 says why), and step 3 once a piece set is on show.
    that is the same as one already in the list is not added; that set is shown instead.
 3. **Create puzzles.** The step frame holds the puzzle level (the set's level by default), the
    **Require unique solution** switch and **New puzzle**, which adds one puzzle per press. The list on the left shows the
-   puzzles of the set on show, newest first: **Puzzle #n**, the level in bold with the score, the number of pieces to
+   puzzles of the set on show, newest first: **Puzzle #n**, the level in bold with the score (for a puzzle of an older
+   scale, re-rated, with its original rating in a note after it; see *Difficulty*), the number of pieces to
    place, the solution status (*Checking…*, *Unique solution ✓*, *Multiple solutions*, *At least 1 solution*,
    *No solution exists* or *Uniqueness not checked*) and a preview. ✕ removes one puzzle and **Remove all** in the list
    header removes them all. The main screen shows the selected puzzle (the newest one until you click a card) with its
@@ -93,7 +94,9 @@ link), the piece set and the puzzle, with its stored solution and rating when th
 board becomes the board of step 1 and the puzzle appears in step 3 in a new piece set (marked *Imported*, with a fresh
 seed). The set on show stays in the list of its board. A puzzle of the piece set that is already on show joins it, and
 a puzzle that is already in the list is not added twice. A link that cannot be read is explained in the dialog and
-changes nothing, as in the Player (a likely single typing mistake is offered as a correction). After an import, **New
+changes nothing, as in the Player (a likely single typing mistake is offered as a correction). A puzzle or piece set
+with two pieces of the same shape (mirror images included) cannot be opened, and the message names the two pieces.
+After an import, **New
 puzzle** works on the imported set: the set's solution comes from the link when it carries one, and is otherwise found in
 the background (if none is found, the button stays disabled with its reason). When the list of the
 board already holds 50 sets, or the puzzle list is full, nothing is imported and a message says so.
@@ -120,7 +123,9 @@ board already holds 50 sets, or the puzzle list is full, nothing is imported and
 - **Saved work.** The board, the settings and the piece sets with their puzzles are kept in this browser: up to **50**
   sets for each of the last **10** boards used. With 50 sets, **New piece set** is disabled until a set is removed. A
   list holds at most **100** puzzles, and no more than fit one 512 KiB pack, because **Play** opens the whole list as
-  one pack; when the list is full, **New puzzle** says so.
+  one pack; when the list is full, **New puzzle** says so. A saved piece set with two pieces of the same shape (mirror
+  images included) can no longer be used: it is removed when the Generator starts, with a one-time message that says
+  how many sets were removed.
 - **Address.** The address holds only the step (`?step=`; `?lang=` can pick the start language), so a reload returns to
   the step; the settings are in this
   browser's saved work. A `#p=` link (one code per puzzle, as **Play** makes it) in the address opens **Import puzzle**
@@ -129,9 +134,62 @@ board already holds 50 sets, or the puzzle list is full, nothing is imported and
   launch at up to **484** playable squares on desktop and **360** on a phone; larger design sizes are enabled only after
   they have been qualified. Each generation action
   has a **60 s** target and a **120 s** hard limit, after which it stops and reports what it has.
-- **Difficulty.** Scores are estimates. Ordinary puzzles do not wait for a uniqueness proof: their solution status is
+- **Difficulty.** Scores are estimates. A new puzzle aims at the middle of its level's score range. The score counts the
+  pieces to place, the hardest deduction needed and the real guesses (choices where an option fails); puzzles the
+  Generator makes at Hard and above always need at least one real guess. Puzzles made before this version keep their
+  stored score; the Generator shows the ones it imports, and those of piece sets saved before this version, re-rated on
+  today's scale, with the original rating in a note ("Re-rated with the current scale (original: Easy 8,
+  difficulty-v2)"). The re-rating runs in the background, never slows down a generation, and until it has finished the
+  stored rating shows alone; if no worker can do it, the stored rating stays, with "Could not be re-rated". Puzzles the
+  Generator makes itself are never re-rated, and a count of the guess alternatives that did not finish is marked
+  "Decisive estimate". Stored ratings and saved sets never change. The Generator offers no Hell level on any board: it
+  could not make Hell puzzles reliably, a limit of its present search rather than of the levels; Hell puzzles in packs
+  and links made before still open. Ordinary puzzles
+  do not wait for a uniqueness proof: their solution status is
   checked in the background after they appear. A puzzle you require to be unique can still fail to be proven; the
   Generator then says so rather than returning an unproven puzzle.
+
+### Generation steps
+
+Under **Pieces to place**, step 3 shows **Generation steps**: how the Generator made the puzzle on show, step by step.
+It is there on every screen size, phones included. The steps of every puzzle the Generator makes are prepared in the
+background right after it is generated and kept in this browser (the last 8 puzzles), so they appear at once, also after
+a reload. The section is hidden until you press **Show generation steps** (the button then reads **Hide generation
+steps**, which collapses it again); another puzzle is hidden again. A puzzle whose steps are not kept (for example one
+from an older save, an imported puzzle or one whose kept steps were dropped) makes them when you press the button.
+While a generation runs it waits ("The steps appear when
+the generation is done."), so it never slows a generation down. The table has a row for each step, in the order the steps happened, under the stages of the
+generation: the number of pieces, the carving of the board into pieces, the pieces, their layout, the clue sets the
+search rated, the repair that made the solution unique, and the finished puzzle.
+
+- **The columns.** **Step** (its number; press it to open the step), **What happened** (a sentence), **Pieces** (the
+  piece just carved, the pieces lifted by a layout step, the clues of a rated clue set, the clue a repair added, the
+  chosen clues and the clues of the finished puzzle, each with its colour and letter), **Techniques** (the deduction
+  rules the rating used, each with how many times, and the decisive guesses, for example "1 decisive guess (1 proved)")
+  and **Score** (the score, "in band" or "outside the band" of the level asked for, "Decisive estimate" for an
+  estimate, and "refused" or "unrateable" where so). "—" means that the step has none.
+- **The deduction rules**, from the simplest to the deepest: Forced cell, Forced piece, Pocket placement, Piece claims
+  cells, Cell claims a piece, Dead placement, Parity, Neck and Pair exclusion.
+- **Two views.** **Key steps** (the default) shows the first step of each stage, each clue set that scored better than
+  the ones before it, the repairs, the chosen clues and the finished puzzle; **Every step** shows all of them. A step
+  keeps its number in both views.
+- **Opening a step.** **Step n** opens the step and closes the one open before: a small board of the pieces at that
+  step, with a dashed outline around the pieces lifted by a layout step, the clue a repair added or the chosen clues,
+  and the score table beside it (under it on a phone): the base for the pieces to place, the hardest deduction, the real
+  guesses with each guess node, the penalty for a few or many solutions, and the total, with the band of the level. At
+  the last step the total is the score of the puzzle. The board above keeps showing the puzzle.
+- **Checked against the puzzle.** The Generator makes the steps again and compares them with the stored puzzle. The line
+  under the heading says "The replay matched the stored puzzle, so these are the steps that generated it", or why it
+  could not: when the replay differs from the puzzle, or was stopped at a limit, only a part of it is shown and the last
+  step says "This is the stored puzzle", never "the generated puzzle". When no background worker can replay it, or the
+  replay fails, the line says so and **Try again** runs it again.
+- **When there are no steps.** A puzzle you imported, a puzzle of a piece set made or saved by an older version and a
+  puzzle of the completion pass have nothing to replay: the section stays, its line says "The steps of this puzzle
+  cannot be replayed." and why, stages 1 to 6 say "Steps not available for this puzzle.", and its one row is the stored
+  puzzle with its score. "No steps were needed for this puzzle." means that this puzzle did not need that stage (for
+  example the layout stage of the sample puzzle that was made together with the piece set, which keeps the set's layout,
+  or the uniqueness stage when no clue had to be added). "Stopped at a limit." means that the replay reached one of its
+  limits there.
 
 [Back to top](#top)
 
@@ -151,7 +209,9 @@ buttons above the puzzle's name (and **Remove** and **Remove all** under them), 
 
 - **Opening a puzzle.** Follow a player link: the Generator's **Play**, or an address that was shared or bookmarked.
   Without a puzzle the page shows a start screen with **Try the sample** and a link to the Generator. A link with pieces
-  but no puzzle is explained, and a link that cannot be opened never replaces the puzzle you are playing. A puzzle
+  but no puzzle is explained, and a link that cannot be opened never replaces the puzzle you are playing. A puzzle or
+  piece set with two pieces of the same shape (mirror images included) cannot be opened, and the message names the two
+  pieces. A puzzle
   also opens from its code link, `…/player/#p=<code>`, and several puzzles from `…/player/#p=<code1>;<code2>;…`
   (optionally `&i=<n>`, the puzzle to open, counted from 0; they must share one board and piece set, and none may
   repeat): each code is decoded in a background worker, no Generator and no saved copy is needed, your saved progress is
@@ -185,7 +245,13 @@ buttons above the puzzle's name (and **Remove** and **Remove all** under them), 
   16,000 characters is not made. Different encoders can write different but equivalent code text for the same puzzle;
   the puzzle it opens is the same.
 - **Claims and checks.** Ratings and uniqueness carried by the pack are shown as the pack states them, with the level in
-  bold. A puzzle without a uniqueness result reads *At least 1 solution* once a solution is known. Solvability is
+  bold, except that a rating made on an older scale is shown again on today's scale. A puzzle made before the current
+  scale shows its level and score re-rated on today's scale, with the original rating in a note ("Re-rated with the
+  current scale (original: Easy 8, difficulty-v2)"). The re-rating runs in the background, after the solvability check,
+  so until it has finished the stored rating shows alone. An unfinished count of the guess alternatives is marked
+  "Decisive estimate". If the re-rating cannot find the first solution within the limits, or the browser has no worker,
+  the original rating stays, with "Could not be re-rated". The stored rating, the puzzle code and the address never
+  change. A puzzle without a uniqueness result reads *At least 1 solution* once a solution is known. Solvability is
   checked in the background; play is never blocked, and *Solvability not verified* never means *No solution exists*.
 - **Placing pieces.** Drag a piece onto the board (in the pieces panel a press anywhere in the piece's frame grabs it;
   the mouse wheel turns it while it is held), or select a piece, tap or click a cell to preview it and tap the same cell
@@ -227,7 +293,8 @@ buttons above the puzzle's name (and **Remove** and **Remove all** under them), 
 prints the puzzle on A4 paper, to solve it offline with cut-out pieces.
 
 - The first sheet has a **QR code** at the top left, captioned "Play online", and to its right the puzzle's name (the one
-  its card shows in the list: "Puzzle #n") with its level and score. Scan the
+  its card shows in the list: "Puzzle #n") with its level and score (the rating the app shows, with its notes
+  as lines under it: the original rating of a re-rated puzzle, "Decisive estimate"). Scan the
   QR code to play the same puzzle again in the Player, with no seed. The sheet prints no code text, address or seed. Then
   comes a small preview of the puzzle with the pieces to place (to read, not to cut).
 - **Several puzzles.** When the list has more than one puzzle, the dialog has two columns. The right one has **Puzzles

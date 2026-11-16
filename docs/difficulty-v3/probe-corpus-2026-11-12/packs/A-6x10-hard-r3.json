@@ -1,0 +1,1645 @@
+{
+  "format": "pentomino-pack",
+  "version": 1,
+  "kind": "puzzle-pack",
+  "rules": "free-polyomino-v1",
+  "board": {
+    "rows": [
+      "######",
+      "######",
+      "######",
+      "######",
+      "######",
+      "######",
+      "######",
+      "######",
+      "######",
+      "######"
+    ]
+  },
+  "presentation": {
+    "rotation": 0
+  },
+  "pieces": [
+    {
+      "id": "A",
+      "label": "A",
+      "color": "#e6194b",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    },
+    {
+      "id": "B",
+      "label": "B",
+      "color": "#3cb44b",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "C",
+      "label": "C",
+      "color": "#ffe119",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "D",
+      "label": "D",
+      "color": "#4363d8",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "E",
+      "label": "E",
+      "color": "#f58231",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "F",
+      "label": "F",
+      "color": "#911eb4",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "G",
+      "label": "G",
+      "color": "#42d4f4",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "H",
+      "label": "H",
+      "color": "#f032e6",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "I",
+      "label": "I",
+      "color": "#bfef45",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "J",
+      "label": "J",
+      "color": "#fabed4",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    }
+  ],
+  "witness": [
+    {
+      "piece": "A",
+      "x": 2,
+      "y": 3,
+      "turn": 1,
+      "mirrored": false
+    },
+    {
+      "piece": "B",
+      "x": 3,
+      "y": 0,
+      "turn": 1,
+      "mirrored": false
+    },
+    {
+      "piece": "C",
+      "x": 0,
+      "y": 0,
+      "turn": 0,
+      "mirrored": false
+    },
+    {
+      "piece": "D",
+      "x": 1,
+      "y": 7,
+      "turn": 2,
+      "mirrored": false
+    },
+    {
+      "piece": "E",
+      "x": 0,
+      "y": 3,
+      "turn": 0,
+      "mirrored": true
+    },
+    {
+      "piece": "F",
+      "x": 0,
+      "y": 6,
+      "turn": 0,
+      "mirrored": true
+    },
+    {
+      "piece": "G",
+      "x": 0,
+      "y": 2,
+      "turn": 3,
+      "mirrored": true
+    },
+    {
+      "piece": "H",
+      "x": 4,
+      "y": 6,
+      "turn": 1,
+      "mirrored": true
+    },
+    {
+      "piece": "I",
+      "x": 0,
+      "y": 7,
+      "turn": 1,
+      "mirrored": false
+    },
+    {
+      "piece": "J",
+      "x": 4,
+      "y": 8,
+      "turn": 3,
+      "mirrored": false
+    }
+  ],
+  "puzzles": [
+    {
+      "id": "pdd548ae32d15",
+      "title": "Hard #1",
+      "seed": "landscape/6x10-hard/3#1",
+      "clues": [
+        {
+          "piece": "A",
+          "x": 2,
+          "y": 3,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 2,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "J",
+          "x": 4,
+          "y": 8,
+          "turn": 3,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 2,
+          "y": 3,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 3,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 1,
+          "y": 7,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 3,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 6,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 2,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 4,
+          "y": 6,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 7,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 4,
+          "y": 8,
+          "turn": 3,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v2",
+        "score": 19,
+        "level": "hard",
+        "saturated": false,
+        "metrics": {
+          "U": 6,
+          "B": 7,
+          "branchTrials": 7,
+          "rowTrials": 9,
+          "stop": "solution",
+          "R": 35,
+          "H": 4.881346880553579
+        }
+      }
+    },
+    {
+      "id": "pade8d6a114a9",
+      "title": "Hard #2",
+      "seed": "landscape/6x10-hard/3#1",
+      "clues": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 4,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 2,
+          "y": 0,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 4,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 3,
+          "y": 3,
+          "turn": 0,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 4,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 0,
+          "y": 7,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 3,
+          "y": 5,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 2,
+          "y": 0,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 1,
+          "y": 2,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 4,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 3,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 3,
+          "y": 3,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 1,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 0,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v2",
+        "score": 21,
+        "level": "hard",
+        "saturated": false,
+        "metrics": {
+          "U": 6,
+          "B": 14,
+          "branchTrials": 14,
+          "rowTrials": 19,
+          "stop": "solution",
+          "R": 34,
+          "H": 4.952624398488012
+        }
+      }
+    },
+    {
+      "id": "pb207657549e7",
+      "title": "Hard #3",
+      "seed": "landscape/6x10-hard/3#1",
+      "clues": [
+        {
+          "piece": "B",
+          "x": 0,
+          "y": 4,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 3,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 2,
+          "y": 3,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 0,
+          "turn": 3,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 2,
+          "y": 6,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 0,
+          "y": 4,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 3,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 0,
+          "y": 7,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 2,
+          "y": 3,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 0,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 4,
+          "y": 3,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 1,
+          "y": 1,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 1,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 2,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v2",
+        "score": 18,
+        "level": "hard",
+        "saturated": false,
+        "metrics": {
+          "U": 6,
+          "B": 5,
+          "branchTrials": 5,
+          "rowTrials": 8,
+          "stop": "solution",
+          "R": 31,
+          "H": 4.386516091225546
+        }
+      }
+    },
+    {
+      "id": "p81626c8c9dc7",
+      "title": "Hard #4",
+      "seed": "landscape/6x10-hard/3#1",
+      "clues": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 6,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 2,
+          "y": 3,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 4,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "J",
+          "x": 0,
+          "y": 6,
+          "turn": 3,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 6,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 3,
+          "y": 4,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 2,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 2,
+          "y": 3,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 3,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 4,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 5,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 0,
+          "y": 6,
+          "turn": 3,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v2",
+        "score": 20,
+        "level": "hard",
+        "saturated": false,
+        "metrics": {
+          "U": 6,
+          "B": 8,
+          "branchTrials": 8,
+          "rowTrials": 13,
+          "stop": "solution",
+          "R": 38,
+          "H": 5.147137842205626
+        }
+      }
+    },
+    {
+      "id": "p717cac9fab08",
+      "title": "Hard #5",
+      "seed": "landscape/6x10-hard/3#1",
+      "clues": [
+        {
+          "piece": "D",
+          "x": 0,
+          "y": 0,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 3,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 4,
+          "y": 5,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 3,
+          "y": 8,
+          "turn": 2,
+          "mirrored": true
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 2,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 0,
+          "y": 7,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 3,
+          "y": 2,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 0,
+          "y": 0,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 3,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 4,
+          "y": 5,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 3,
+          "y": 8,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 2,
+          "y": 6,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 2,
+          "y": 2,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 0,
+          "y": 5,
+          "turn": 3,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v2",
+        "score": 20,
+        "level": "hard",
+        "saturated": false,
+        "metrics": {
+          "U": 6,
+          "B": 9,
+          "branchTrials": 9,
+          "rowTrials": 14,
+          "stop": "solution",
+          "R": 35,
+          "H": 4.921914064356198
+        }
+      }
+    },
+    {
+      "id": "p27d5fa42e20c",
+      "title": "Hard #6",
+      "seed": "landscape/6x10-hard/3#1",
+      "clues": [
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 4,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 3,
+          "y": 4,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 2,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 6,
+          "turn": 1,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 2,
+          "y": 6,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 0,
+          "y": 0,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 4,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 3,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 3,
+          "y": 4,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 2,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 3,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 0,
+          "y": 8,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 6,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 4,
+          "y": 4,
+          "turn": 1,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v2",
+        "score": 21,
+        "level": "hard",
+        "saturated": false,
+        "metrics": {
+          "U": 6,
+          "B": 11,
+          "branchTrials": 11,
+          "rowTrials": 12,
+          "stop": "solution",
+          "R": 36,
+          "H": 4.639832985154318
+        }
+      }
+    },
+    {
+      "id": "p224317b7687f",
+      "title": "Hard #7",
+      "seed": "landscape/6x10-hard/3#1",
+      "clues": [
+        {
+          "piece": "B",
+          "x": 0,
+          "y": 7,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 0,
+          "y": 0,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 4,
+          "y": 5,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "J",
+          "x": 4,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 2,
+          "y": 6,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 0,
+          "y": 7,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 1,
+          "y": 2,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 0,
+          "y": 0,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 1,
+          "y": 4,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 3,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 4,
+          "y": 5,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 2,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 5,
+          "y": 2,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 4,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v2",
+        "score": 22,
+        "level": "hard",
+        "saturated": false,
+        "metrics": {
+          "U": 6,
+          "B": 18,
+          "branchTrials": 18,
+          "rowTrials": 19,
+          "stop": "solution",
+          "R": 37,
+          "H": 5.615604109448085
+        }
+      }
+    },
+    {
+      "id": "p6725f9efc859",
+      "title": "Hard #8",
+      "seed": "landscape/6x10-hard/3#1",
+      "clues": [
+        {
+          "piece": "D",
+          "x": 1,
+          "y": 3,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 2,
+          "y": 5,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 3,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "J",
+          "x": 4,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 6,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 0,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 3,
+          "y": 1,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 1,
+          "y": 3,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 2,
+          "y": 5,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 2,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 3,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 4,
+          "y": 6,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 1,
+          "y": 9,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 4,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v2",
+        "score": 17,
+        "level": "hard",
+        "saturated": false,
+        "metrics": {
+          "U": 6,
+          "B": 3,
+          "branchTrials": 3,
+          "rowTrials": 7,
+          "stop": "solution",
+          "R": 38,
+          "H": 3.965462931217663
+        }
+      }
+    },
+    {
+      "id": "pa80539454610",
+      "title": "Hard #9",
+      "seed": "landscape/6x10-hard/3#1",
+      "clues": [
+        {
+          "piece": "B",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 1,
+          "y": 6,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 3,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 1,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 2,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 3,
+          "y": 2,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 0,
+          "y": 0,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 4,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 8,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 3,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 1,
+          "y": 6,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 3,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 1,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v2",
+        "score": 19,
+        "level": "hard",
+        "saturated": false,
+        "metrics": {
+          "U": 6,
+          "B": 6,
+          "branchTrials": 6,
+          "rowTrials": 10,
+          "stop": "solution",
+          "R": 42,
+          "H": 5.292074415827314
+        }
+      }
+    },
+    {
+      "id": "pc66dc5886dc9",
+      "title": "Hard #10",
+      "seed": "landscape/6x10-hard/3#1",
+      "clues": [
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 6,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 3,
+          "y": 9,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 1,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 2,
+          "y": 3,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 3,
+          "y": 0,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 3,
+          "y": 6,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 3,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 0,
+          "y": 6,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 2,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 1,
+          "y": 6,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 3,
+          "y": 9,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 1,
+          "y": 8,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v2",
+        "score": 24,
+        "level": "hard",
+        "saturated": false,
+        "metrics": {
+          "U": 6,
+          "B": 28,
+          "branchTrials": 28,
+          "rowTrials": 32,
+          "stop": "solution",
+          "R": 40,
+          "H": 5.977493099101721
+        }
+      }
+    }
+  ],
+  "generation": {
+    "app": "pentomino-generator/1.0.0",
+    "algo": "gen-v2",
+    "policy": "mixed-v2",
+    "rng": "xoshiro128ss-v1",
+    "seedScheme": "seed-sha256-v1",
+    "setSeed": "landscape/6x10-hard/3",
+    "setLevel": "hard",
+    "setAttempt": 0,
+    "carving": "flat",
+    "batchSeed": "landscape/6x10-hard/3#1",
+    "batchLevel": "hard",
+    "batchIndex": 1,
+    "uniqueness": "any",
+    "createdAt": "2026-11-12T08:12:12.322Z"
+  }
+}

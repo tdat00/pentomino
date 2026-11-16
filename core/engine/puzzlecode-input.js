@@ -23,6 +23,7 @@ const MESSAGES = Object.freeze({
   version: 'This puzzle code needs a newer version.',
   'no-deflate': 'This browser cannot open compressed puzzle codes.',
   invalid: 'This code does not describe a valid puzzle.',
+  'duplicate-shape': 'Two pieces of this puzzle have the same shape.',
   index: 'The puzzle number in the link does not name one of its puzzles; fix or remove it.',
 });
 
@@ -38,9 +39,10 @@ const MESSAGES = Object.freeze({
 
 /**
  * Typed failure of the puzzle-code family. `code` is one of `empty`, `bad-char`,
- * `dots`, `too-long`, `core-check`, `version`, `no-deflate`, `invalid` or
- * `index`; `params` holds message values such as `{ char }`; a `core-check`
- * failure may carry one unique `candidate` correction, which is never applied.
+ * `dots`, `too-long`, `core-check`, `version`, `no-deflate`, `invalid`,
+ * `duplicate-shape` or `index`; `params` holds message values such as `{ char }`
+ * or `{ piece, first }`; a `core-check` failure may carry one unique `candidate`
+ * correction, which is never applied.
  */
 export class PuzzleCodeError extends Error {
   /**

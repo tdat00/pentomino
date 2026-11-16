@@ -42,12 +42,17 @@
 
 export const NAMESPACE = 'pentomino:v1:';
 export const MAX_PROGRESS_ENTRIES = 300;
+// The Generator's replayed steps (Generation steps) are a cache: few, bounded, and the first thing a full storage drops.
+export const MAX_REPLAY_ENTRIES = 8;
+export const MAX_REPLAY_CHARS = 600 * 1024;
 export const SAVE_FAILED_MESSAGE = "Progress can't be saved in this browser";
 
 const KEY_GENERATOR = `${NAMESPACE}gen:state`;
 const KEY_PROGRESS_PREFIX = `${NAMESPACE}progress:`;
 // Private LRU bookkeeping; deliberately outside the `progress:` prefix.
 const KEY_PROGRESS_INDEX = `${NAMESPACE}progress-index`;
+const KEY_REPLAY_PREFIX = `${NAMESPACE}replay:`;
+const KEY_REPLAY_INDEX = `${NAMESPACE}replay-index`;
 // Keys that older versions wrote and nothing reads any more; `dropRetired` removes them.
 const RETIRED_KEYS = Object.freeze([`${NAMESPACE}prefs`]);
 
@@ -257,10 +262,12 @@ export function createStorage(adapter, now) {
 
   /**
    * LRU order is oldest first. A missing or damaged index is rebuilt from key names.
+   * @param {string} indexKey
+   * @param {string} prefix
    * @returns {{ fp: string, at: number }[]}
    */
-  function readProgressIndex() {
-    const raw = readJson(KEY_PROGRESS_INDEX);
+  function readIndex(indexKey, prefix) {
+    const raw = readJson(indexKey);
     /** @type {{ fp: string, at: number }[]} */
     const entries = [];
     if (Array.isArray(raw)) {
@@ -274,14 +281,16 @@ export function createStorage(adapter, now) {
       }
       return entries;
     }
-    for (const key of list(KEY_PROGRESS_PREFIX)) {
-      const fp = key.slice(KEY_PROGRESS_PREFIX.length);
+    for (const key of list(prefix)) {
+      const fp = key.slice(prefix.length);
       if (FINGERPRINT.test(fp)) {
         entries.push({ fp, at: 0 });
       }
     }
     return entries;
   }
+
+  const readProgressIndex = () => readIndex(KEY_PROGRESS_INDEX, KEY_PROGRESS_PREFIX);
 
   /**
    * @param {{ fp: string, at: number }[]} entries
@@ -291,12 +300,33 @@ export function createStorage(adapter, now) {
   }
 
   /**
-   * Drops least-recently-used progress records to make room: a quarter of them. Never touches preferences, generator
-   * state or the protected key.
+   * Forgets every cached replay (the first thing a full storage gives up).
+   * @returns {number} Entries removed.
+   */
+  function dropReplays() {
+    let removed = 0;
+    for (const key of list(KEY_REPLAY_PREFIX)) {
+      if (tryRemove(key)) {
+        removed += 1;
+      }
+    }
+    if (removed > 0) {
+      writeQuiet(KEY_REPLAY_INDEX, '[]');
+    }
+    return removed;
+  }
+
+  /**
+   * Drops the cached replays, else least-recently-used progress records to make room: a quarter of them. Never touches
+   * preferences, generator state or the protected key.
    * @param {string} protectedKey
    * @returns {number} Entries removed.
    */
   function evictLru(protectedKey) {
+    const replays = dropReplays();
+    if (replays > 0) {
+      return replays;
+    }
     const progress = readProgressIndex()
       .filter((e) => `${KEY_PROGRESS_PREFIX}${e.fp}` !== protectedKey)
       .sort((a, b) => a.at - b.at);
@@ -463,6 +493,98 @@ export function createStorage(adapter, now) {
     return removed;
   }
 
+  /**
+   * Keeps one replay result (the steps of Generation steps) for the next visit. It is only a cache: it never evicts
+   * progress, never raises a storage issue and is not kept in memory when the storage refuses it.
+   * @param {string} key
+   * @param {unknown} result
+   * @returns {StorageResult}
+   */
+  function saveReplay(key, result) {
+    if (typeof key !== 'string' || !FINGERPRINT.test(key)) {
+      return invalid('Not a replay key');
+    }
+    /** @type {string | undefined} */
+    let text;
+    try {
+      text = JSON.stringify({ v: 1, result });
+    } catch {
+      return invalid('The value cannot be saved as JSON');
+    }
+    if (typeof text !== 'string' || text.length > MAX_REPLAY_CHARS) {
+      return invalid('The replay is too large to keep');
+    }
+    const refused = /** @type {StorageFailure} */ ({ ok: false, code: 'storage-unavailable', message: 'The replay was not kept' });
+    if (!adapter) {
+      return refused;
+    }
+    const full = `${KEY_REPLAY_PREFIX}${key}`;
+    const put = () => {
+      try {
+        adapter.setItem(full, /** @type {string} */ (text));
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    if (!put() && (dropReplays() === 0 || !put())) {
+      return refused;
+    }
+    touchReplay(key);
+    return { ok: true };
+  }
+
+  /**
+   * Marks a replay as the newest and drops the oldest ones above the limit.
+   * @param {string} key
+   */
+  function touchReplay(key) {
+    const index = readIndex(KEY_REPLAY_INDEX, KEY_REPLAY_PREFIX).filter((e) => e.fp !== key);
+    index.push({ fp: key, at: now() });
+    index.sort((a, b) => a.at - b.at);
+    for (const old of index.splice(0, Math.max(0, index.length - MAX_REPLAY_ENTRIES))) {
+      tryRemove(`${KEY_REPLAY_PREFIX}${old.fp}`);
+    }
+    writeQuiet(KEY_REPLAY_INDEX, JSON.stringify(index));
+  }
+
+  /**
+   * @param {string} key
+   * @returns {unknown} The saved replay result, or null when there is none or it is damaged (then it is removed).
+   */
+  function loadReplay(key) {
+    if (typeof key !== 'string' || !FINGERPRINT.test(key)) {
+      return null;
+    }
+    const full = `${KEY_REPLAY_PREFIX}${key}`;
+    const text = readRaw(full);
+    if (text === null) {
+      return null;
+    }
+    /** @type {unknown} */
+    let saved = null;
+    try {
+      saved = JSON.parse(text);
+    } catch {
+      saved = null;
+    }
+    const result = isRecord(saved) && saved.v === 1 ? saved.result : null;
+    if (!isRecord(result) || typeof result.status !== 'string' || !Array.isArray(result.steps) || result.steps.length === 0) {
+      tryRemove(full);
+      return null;
+    }
+    touchReplay(key);
+    return result;
+  }
+
+  /**
+   * @param {string} key
+   * @returns {boolean} Whether a replay is saved under the key (it is not read or checked).
+   */
+  function hasReplay(key) {
+    return typeof key === 'string' && FINGERPRINT.test(key) && readRaw(`${KEY_REPLAY_PREFIX}${key}`) !== null;
+  }
+
   /** Removes the keys that older versions wrote and nothing reads any more. */
   function dropRetired() {
     for (const key of RETIRED_KEYS) {
@@ -484,6 +606,10 @@ export function createStorage(adapter, now) {
     saveProgress,
     loadProgress,
     removeProgress,
+    /** Cache of the Generator's replayed steps (Generation steps), by a content key; see `saveReplay`. */
+    saveReplay,
+    loadReplay,
+    hasReplay,
     dropRetired,
     getGeneratorState: () => readJson(KEY_GENERATOR),
     /** @param {unknown} snapshot */
@@ -534,6 +660,12 @@ const storage = {
   loadProgress: (fp) => browserStorage().loadProgress(fp),
   /** @type {Storage['removeProgress']} */
   removeProgress: (fp) => browserStorage().removeProgress(fp),
+  /** @type {Storage['saveReplay']} */
+  saveReplay: (key, result) => browserStorage().saveReplay(key, result),
+  /** @type {Storage['loadReplay']} */
+  loadReplay: (key) => browserStorage().loadReplay(key),
+  /** @type {Storage['hasReplay']} */
+  hasReplay: (key) => browserStorage().hasReplay(key),
   dropRetired: () => browserStorage().dropRetired(),
   getGeneratorState: () => browserStorage().getGeneratorState(),
   /** @type {Storage['setGeneratorState']} */
@@ -541,7 +673,8 @@ const storage = {
 };
 
 export const {
-  get, set, remove, list, lastStorageIssue, clearStorageIssue, saveProgress, loadProgress, removeProgress, dropRetired,
+  get, set, remove, list, lastStorageIssue, clearStorageIssue, saveProgress, loadProgress, removeProgress, saveReplay,
+  loadReplay, hasReplay, dropRetired,
   getGeneratorState,
   setGeneratorState,
 } = storage;

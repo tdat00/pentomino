@@ -573,6 +573,7 @@ export async function run(argv, overrides = {}) {
       calibration: config.batchIndex === 1 ? set.calibration : undefined,
       setLevel: config.levelId,
       setAttempt: set.attempt,
+      setOrigin: set.setOrigin,
     }, hooks);
     if (config.expected !== undefined) {
       const differences = compareExpected(config.expected, {

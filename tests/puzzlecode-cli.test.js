@@ -143,7 +143,11 @@ async function assertLine(line, snapshot) {
   assert.deepEqual(puzzle.clues.map((c) => c.piece), data.clues.map((c) => c.piece));
   assert.equal(progressFingerprint(board, decoded.pack.pieces, puzzle.clues), progressFingerprint(board, data.pieces, data.clues), 'clue cells');
   assert.deepEqual(byPiece(puzzle.solution), byPiece(data.solution));
-  assert.deepEqual(puzzle.rating ?? null, data.rating, 'rating claim');
+  const claim = data.rating;
+  const summary = claim?.model === 'difficulty-v3'
+    ? { model: claim.model, score: claim.score, level: claim.level, saturated: false, ...(claim.censored === true ? { censored: true } : {}) }
+    : claim;
+  assert.deepEqual(puzzle.rating ?? null, summary ?? null, 'rating claim');
   assert.deepEqual(puzzle.certificate ?? null, data.certificate, 'certificate claim');
   assert.equal(puzzle.title ?? null, data.title);
   assert.equal(puzzleDisplayName(puzzle.title, 0, english), snapshot.heading, 'the re-created puzzle shows the printed heading');

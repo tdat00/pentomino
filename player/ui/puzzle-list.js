@@ -10,7 +10,7 @@ import { cardHeading } from '../puzzle-title.js';
 import { effectiveRotation, knownSolvable } from '../state.js';
 import { LABELS, certificateLabel, certificateStatus, puzzleStatusLabel } from '../strings.js';
 import { loc, locAttrs } from './i18n-dom.js';
-import { setRating } from './rating-dom.js';
+import { displayRatingOf, setRating } from './rating-dom.js';
 
 /** @typedef {import('../state.js').PlayerState} PlayerState */
 
@@ -69,8 +69,9 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
   /** @type {Preview | null} */
   let preview = null;
   /**
-   * What the cards drew last; a store update that changes none of it (a timer tick) costs nothing.
-   * @type {{ pack: object | null, statuses: object, openKey: string, verification: object, index: number, screen: string, viewRotation: number | null, locale: string } | null}
+   * What the cards drew last; a store update that changes none of it (a timer tick) costs nothing. A reply of the
+   * display ratings alone redraws them.
+   * @type {{ pack: object | null, statuses: object, openKey: string, verification: object, displayRatings: object, index: number, screen: string, viewRotation: number | null, locale: string } | null}
    */
   let drawn = null;
   let drawnIndex = -1;
@@ -175,15 +176,15 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
     const locale = getLocale();
     const openKey = state.game === null ? '' : `${state.game.placed.size}/${state.game.solved}/${state.game.revealed}`;
     if (drawn !== null && drawn.pack === pack && drawn.statuses === state.statuses && drawn.openKey === openKey
-      && drawn.verification === state.verificationByPuzzle
+      && drawn.verification === state.verificationByPuzzle && drawn.displayRatings === state.displayRatings
       && drawn.index === state.index && drawn.screen === state.screen && drawn.viewRotation === state.viewRotation
       && drawn.locale === locale) {
       return;
     }
     const packChanged = drawn === null || drawn.pack !== pack;
     drawn = {
-      pack, statuses: state.statuses, openKey, verification: state.verificationByPuzzle, index: state.index,
-      screen: state.screen, viewRotation: state.viewRotation, locale,
+      pack, statuses: state.statuses, openKey, verification: state.verificationByPuzzle, displayRatings: state.displayRatings,
+      index: state.index, screen: state.screen, viewRotation: state.viewRotation, locale,
     };
     if (packChanged) {
       for (const card of cards) {
@@ -221,7 +222,8 @@ export function createPuzzleList(host, { onSelect, onRemove }) {
       const removeLabel = t('card.remove.aria', { title: card.heading.textContent });
       card.remove.setAttribute('aria-label', removeLabel);
       card.remove.title = removeLabel;
-      const rating = setRating(card.rating, puzzle.rating);
+      const shown = displayRatingOf(state, index);
+      const rating = setRating(card.rating, shown?.rating, '', shown?.notes);
       card.rating.hidden = !rating;
       card.toPlace.textContent = LABELS.toPlace(Math.max(0, pack.pieces.length - puzzle.clues.length));
       const solvable = knownSolvable(puzzle, state.verificationByPuzzle[index]);

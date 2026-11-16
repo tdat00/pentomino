@@ -6,7 +6,7 @@ import { dirname, resolve } from 'node:path';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { parsePack } from '../core/engine/pack.js';
+import { parsePack, provenanceProblem } from '../core/engine/pack.js';
 import { checkRecipe, compareExpected, DEFAULT_MAX_ACTIVE, parseArgs, run } from '../tools/generate.mjs';
 import { nodeWorkerFactory } from '../tools/node-worker.mjs';
 
@@ -108,7 +108,7 @@ describe('argument handling', () => {
     check({ batchSeed: 'fixture-set-0#2' });
     check({ batchIndex: 2 });
     check({ batchIndex: 0, batchSeed: 'fixture-set-0#0' });
-    check({ versions: { ...recipe.versions, algo: 'gen-v3' } });
+    check({ versions: { ...recipe.versions, algo: 'gen-v2' } });
     check({ versions: { ...recipe.versions, extra: 'x' } });
     check({ version: 2 });
     check({ quantity: 11 });
@@ -143,6 +143,13 @@ describe('runs', () => {
     assert.equal(first.puzzles.length, recipe.quantity);
     assert.deepEqual(semantic(first), semantic(packOf(four.stdout)));
     assert.equal(/** @type {any} */ (first.generation).batchSeed, recipe.batchSeed);
+    const generation = /** @type {any} */ (first.generation);
+    assert.equal(provenanceProblem('setOrigin', generation.setOrigin), null);
+    assert.deepEqual([generation.setOrigin.seed, generation.setOrigin.level], [recipe.seedText, recipe.levelId]);
+    assert.deepEqual(Object.keys(generation.made), first.puzzles.map((p) => p.id), 'one origin record for every puzzle');
+    for (const id of Object.keys(generation.made)) {
+      assert.equal(provenanceProblem('made', generation.made[id]), null, id);
+    }
     assert.ok(/\r\n$/.test(one.stdout) && !one.stdout.includes('\n\n'));
     assert.ok(one.stderr.includes('puzzle 10 of 10 accepted') && !one.stderr.includes('"format"'));
   });

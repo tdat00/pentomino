@@ -5,7 +5,7 @@
 
 import { boardFromRows } from './board.js';
 import { certify } from './clues.js';
-import { rate, UnsatisfiableError } from './difficulty.js';
+import { IncompleteRatingError, rate, UnsatisfiableError } from './difficulty.js';
 import { enumerateLayouts } from './enumerate.js';
 import { completionCandidate, GenerationError, puzzleCandidate, setAttempt } from './generate.js';
 import { progressFingerprint } from './keys.js';
@@ -13,6 +13,7 @@ import { packBoard, validatePack } from './pack.js';
 import { parseTaskMessage, validatePayload } from './protocol.js';
 import { BUDGETS, ENUMERATION } from './policy.js';
 import { decodePuzzleCode, encodePuzzleCode, PuzzleCodeError } from './puzzlecode.js';
+import { replayPuzzle } from './replay.js';
 import { buildModel, isValidLayout, ModelError, solveFirst } from './tiling.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from './workspace.js';
 
@@ -50,6 +51,7 @@ export const ERROR_CODES = Object.freeze({
   invalidRequest: 'invalid-request',
   modelTooLarge: 'model-too-large',
   unsatisfiable: 'unsatisfiable',
+  ratingIncomplete: 'rating-incomplete',
   historyFull: 'history-full',
   internal: 'internal',
 });
@@ -191,6 +193,9 @@ export function executeTask(kind, payload, execution) {
       return certify(boardFromRows(p.boardRows), p.pieces, p.clues, execution.main, p.rowLimit);
     case 'rate':
       return rate(boardFromRows(p.boardRows), p.pieces, p.clues, execution.main);
+    case 'replayPuzzle':
+      return replayPuzzle({ set: hydrateSet(p.set), puzzle: p.puzzle, generation: p.generation },
+        { ws: execution.main, scratch: execution.scratch });
     case 'verifyPack':
       return verifyPack(p.pack, execution);
     case 'solveFirst': {
@@ -238,6 +243,9 @@ export function errorReply(id, error) {
     ({ code, message } = error);
   } else if (error instanceof UnsatisfiableError) {
     code = ERROR_CODES.unsatisfiable;
+    message = error.message;
+  } else if (error instanceof IncompleteRatingError) {
+    code = ERROR_CODES.ratingIncomplete;
     message = error.message;
   } else if (error instanceof RangeError || error instanceof TypeError) {
     code = ERROR_CODES.invalidRequest;

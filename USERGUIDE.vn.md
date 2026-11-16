@@ -22,7 +22,7 @@
 
 | Ứng dụng | Trực tuyến | Mã nguồn | Làm gì |
 |---|---|---|---|
-| **Pentomino Generator** | [tdat00.github.io/pentomino/generator](https://tdat00.github.io/pentomino/generator/) | [generator/](generator/) | Vẽ bàn chơi, tạo các bộ mảnh được chứng minh là lấp kín bàn, tạo đề từ một bộ mảnh ở mười mức độ, in đề, nhập một đề từ liên kết hoặc mã của nó và mở đề trong trình chơi |
+| **Pentomino Generator** | [tdat00.github.io/pentomino/generator](https://tdat00.github.io/pentomino/generator/) | [generator/](generator/) | Vẽ bàn chơi, tạo các bộ mảnh được chứng minh là lấp kín bàn, tạo đề từ một bộ mảnh ở bảy mức độ, in đề, nhập một đề từ liên kết hoặc mã của nó và mở đề trong trình chơi |
 | **Pentomino Player** | [tdat00.github.io/pentomino/player](https://tdat00.github.io/pentomino/player/) | [player/](player/) | Chơi một đề từ liên kết của nó: kéo thả hoặc chạm để đặt mảnh, hoàn tác / làm lại, gợi ý đã được chứng minh, đồng hồ, lưu tiến độ, in đề, chia sẻ một đề hoặc cả danh sách bằng liên kết kèm mã QR |
 
 Địa chỉ `/pentomino/` chuyển thẳng tới trình tạo đề, giữ nguyên chuỗi truy vấn và phần `#hash`. Cả hai ứng dụng có tiếng
@@ -56,7 +56,7 @@ có một bộ mảnh đang hiển thị.
    (⟲ ⟳). `Ctrl`/`Cmd`+`Z` hoàn tác thay đổi gần nhất của bàn chơi; với bàn phím, các phím mũi tên di chuyển con trỏ và
    `Space` chuyển đổi trạng thái một ô. Dòng trạng thái đếm số ô chơi được và cho biết vì sao bàn chơi chưa thể tạo bộ
    mảnh.
-2. **Tạo bộ mảnh.** Một bảng liệt kê mọi mức độ từ Rất dễ đến Địa ngục 3, với số mảnh, cỡ mảnh và số mảnh đặt sẵn tương
+2. **Tạo bộ mảnh.** Một bảng liệt kê mọi mức độ từ Rất dễ đến Ác mộng, với số mảnh, cỡ mảnh và số mảnh đặt sẵn tương
    ứng trên bàn chơi này; nút **?** cạnh mỗi con số giải thích cách tính, và các mức bàn chơi không dùng được thì bị vô
    hiệu kèm lý do. Khung của bước có ô **Seed** (✕ để xóa, 🎲 để lấy seed ngẫu nhiên) và nút **Tạo bộ mảnh mới**. Dưới
    bảng là phần tóm tắt của bộ đang hiển thị, ví dụ `Khó | 13 mảnh | Cỡ mảnh 7–12 | Seed ABCD-EFGH-JKLM`, cùng các mảnh
@@ -65,7 +65,8 @@ có một bộ mảnh đang hiển thị.
    đó. Một bộ mới trùng với bộ đã có trong danh sách sẽ không được thêm; bộ đã có sẽ được hiển thị.
 3. **Tạo đề.** Khung của bước có mức độ của đề (mặc định là mức của bộ mảnh), công tắc **Yêu cầu lời giải duy nhất** và
    nút **Tạo đề mới**, mỗi lần nhấn thêm một đề. Danh sách bên trái hiện các đề của bộ đang hiển thị, mới nhất ở trên:
-   **Đề #n**, mức độ in đậm kèm điểm, số mảnh cần đặt, tình trạng lời giải (*Đang kiểm tra…*, *Lời giải duy nhất ✓*,
+   **Đề #n**, mức độ in đậm kèm điểm (với đề theo thang điểm cũ: đã chấm lại, kèm đánh giá gốc trong một ghi chú phía sau;
+   xem *Độ khó*), số mảnh cần đặt, tình trạng lời giải (*Đang kiểm tra…*, *Lời giải duy nhất ✓*,
    *Nhiều lời giải*, *Có ít nhất 1 lời giải*, *Không có lời giải* hoặc *Chưa kiểm tra tính duy nhất*) và hình xem trước.
    ✕ xóa một đề, **Xóa tất cả** ở đầu danh sách xóa hết. Màn hình chính hiện đề đang chọn (đề mới nhất cho tới khi bạn
    nhấn một thẻ) với seed, bàn chơi và các mảnh cần đặt; **Chơi** mở đề trong trình chơi ở thẻ mới, **In** (biểu tượng
@@ -88,7 +89,8 @@ kèm lời giải đã lưu và mức độ nếu mã có mang theo, được t�
 trong một bộ mảnh mới (ghi *Đã nhập*, với seed mới). Bộ mảnh đang hiện vẫn nằm trong danh sách của bàn chơi của nó. Đề
 của bộ mảnh đang hiện sẽ được thêm vào bộ đó, và đề đã có trong danh sách thì không được thêm lại. Liên kết không đọc
 được sẽ được giải thích ngay trong hộp thoại và không làm thay đổi gì, giống trình chơi (nếu nhiều khả năng chỉ do gõ sai
-một ký tự, hộp thoại đề xuất cách sửa). Sau khi nhập, **Tạo đề mới** dùng được trên bộ mảnh đã nhập: lời giải của bộ lấy từ
+một ký tự, hộp thoại đề xuất cách sửa). Một đề hay bộ mảnh có hai mảnh cùng hình dạng (kể cả hình lật đối xứng) không thể
+mở, và thông báo nêu hai mảnh đó. Sau khi nhập, **Tạo đề mới** dùng được trên bộ mảnh đã nhập: lời giải của bộ lấy từ
 liên kết nếu có, nếu không sẽ được tìm ngầm (nếu tìm không ra, nút vẫn bị tắt kèm lý do). Khi danh sách của bàn chơi đã có 50 bộ mảnh, hoặc danh sách đề đã đầy, sẽ không
 nhập gì và có thông báo cho biết.
 
@@ -112,7 +114,9 @@ nhập gì và có thông báo cho biết.
 - **Dữ liệu đã lưu.** Bàn chơi, các thiết lập và các bộ mảnh cùng đề của chúng được giữ trong trình duyệt này: tối đa
   **50** bộ cho mỗi bàn trong **10** bàn dùng gần nhất. Khi đã có 50 bộ, **Tạo bộ mảnh mới** bị vô hiệu cho tới khi bạn
   xóa một bộ. Một danh sách chứa tối đa **100** đề, và không quá lượng vừa một gói 512 KiB, vì **Chơi** mở cả danh sách
-  thành một gói; khi danh sách đầy, **Tạo đề mới** sẽ báo.
+  thành một gói; khi danh sách đầy, **Tạo đề mới** sẽ báo. Một bộ mảnh đã lưu có hai mảnh cùng hình dạng (kể cả hình lật
+  đối xứng) không còn dùng được nữa: bộ đó bị xóa khi trình tạo đề khởi động, kèm một thông báo chỉ hiện một lần cho biết
+  đã xóa bao nhiêu bộ.
 - **Địa chỉ.** Địa chỉ chỉ chứa bước đang mở (`?step=`; `?lang=` chọn ngôn ngữ khởi đầu), nên tải lại trang sẽ trở về đúng bước; các thiết lập nằm trong
   công việc đã lưu của trình duyệt này. Một liên kết `#p=` (mỗi đề một mã, như **Chơi** tạo ra) trên địa chỉ mở **Nhập đề**
   và nhập các đề của nó. Ngoài ra đề không nằm trên địa chỉ; hãy dùng **Chơi** và chia sẻ liên kết của trình chơi.
@@ -120,9 +124,61 @@ nhập gì và có thông báo cho biết.
   bàn chơi được dùng tới **484** ô trên máy tính và **360** ô trên điện thoại; các cỡ lớn hơn chỉ được bật sau khi qua
   kiểm định. Mỗi thao tác tạo nhắm tới **60 giây** và có
   giới hạn cứng **120 giây**; khi hết giờ nó dừng và báo những gì đã có.
-- **Độ khó.** Điểm chỉ là ước lượng. Đề thông thường không chờ chứng minh tính duy nhất: tình trạng lời giải được kiểm tra
+- **Độ khó.** Điểm chỉ là ước lượng. Đề mới nhắm vào khoảng giữa thang điểm của mức độ. Điểm tính theo số mảnh cần đặt,
+  bước suy luận khó nhất cần dùng và số lần phải đoán thật (lựa chọn có phương án sai); đề do trình tạo đề tạo ra từ mức
+  Khó trở lên luôn cần ít nhất một lần đoán thật. Các đề tạo trước phiên bản này giữ nguyên điểm đã lưu; trình tạo đề
+  hiển thị những đề nó nhập vào, và đề của các bộ mảnh đã lưu từ trước phiên bản này, đã chấm lại theo thang điểm hiện
+  tại, kèm đánh giá gốc trong một ghi chú ("Đã chấm lại theo thang điểm hiện tại (gốc: Dễ 8, difficulty-v2)"). Việc chấm
+  lại chạy ngầm, không bao giờ làm chậm việc tạo đề, và cho tới khi xong chỉ hiện đánh giá đã lưu; nếu không có worker nào
+  chấm lại được thì đánh giá đã lưu được giữ, kèm "Không chấm lại được". Đề do chính trình tạo đề tạo ra không bao giờ bị
+  chấm lại, và khi chưa đếm xong các phương án đoán, đánh giá được đánh dấu "Ước lượng quyết định". Đánh giá đã lưu và
+  các bộ mảnh đã lưu không bao giờ thay đổi. Trình tạo đề không cung cấp mức Địa ngục nào trên bất kỳ bàn chơi nào: nó
+  chưa tạo được đề Địa ngục một cách đáng tin cậy, đó là giới hạn của cách tìm kiếm hiện tại chứ không phải của các mức
+  độ; đề Địa ngục trong các gói và liên kết tạo từ trước vẫn mở được. Đề thông thường không chờ chứng
+  minh tính duy nhất: tình trạng lời giải được kiểm tra
   ngầm sau khi đề xuất hiện. Một đề bạn yêu cầu lời giải duy nhất vẫn có thể không chứng minh được; khi đó trình tạo đề
   nói rõ thay vì trả về một đề chưa được chứng minh.
+
+### Các bước tạo đề
+
+Dưới **Các mảnh cần đặt**, bước 3 hiện **Các bước tạo đề**: trình tạo đề đã tạo đề đang hiển thị như thế nào, từng bước
+một. Phần này có trên mọi kích thước màn hình, kể cả điện thoại. Các bước của mỗi đề mà trình tạo đề làm ra được chuẩn bị ngầm
+ngay sau khi đề được tạo và giữ trong trình duyệt này (8 đề gần nhất), nên chúng hiện ngay, kể cả sau khi tải lại trang.
+Phần này ẩn cho đến khi bạn nhấn **Hiện các bước tạo đề** (nút khi đó đổi thành **Ẩn các bước tạo đề**, nhấn để thu gọn lại);
+đề khác lại bị ẩn. Đề chưa có các bước được giữ (ví dụ đề từ bản lưu cũ, đề nhập vào hoặc đề
+đã bị xóa các bước đã giữ) sẽ tạo các bước khi bạn nhấn nút. Khi đang tạo đề, nó chờ ("Các bước sẽ
+hiện khi việc tạo đề xong."), nên không bao giờ làm chậm việc tạo đề. Bảng có một dòng cho mỗi bước, theo đúng thứ tự các bước đã diễn ra, dưới các giai đoạn của việc tạo đề:
+số mảnh, cách bàn được chia thành mảnh, các mảnh, cách xếp các mảnh, các nhóm mảnh đặt sẵn mà việc tìm kiếm đã chấm
+điểm, bước sửa để lời giải trở nên duy nhất và đề hoàn chỉnh.
+
+- **Các cột.** **Bước** (số thứ tự của bước; nhấn vào để mở bước), **Diễn biến** (một câu mô tả), **Mảnh** (mảnh vừa
+  được cắt ra, các mảnh bị nhấc ra ở một bước xếp, các mảnh đặt sẵn của một nhóm được chấm điểm, mảnh đặt sẵn mà một
+  bước sửa thêm vào, các mảnh đặt sẵn được chọn và các mảnh đặt sẵn của đề hoàn chỉnh, mỗi mảnh kèm màu và chữ cái của
+  nó), **Kỹ thuật** (các quy tắc suy luận mà việc chấm điểm đã dùng, mỗi quy tắc kèm số lần dùng, và các lần đoán quyết
+  định, ví dụ "1 lần đoán quyết định (1 được chứng minh)") và **Điểm** (điểm, "trong khoảng điểm" hoặc "ngoài khoảng
+  điểm" của mức độ đã chọn, "Ước lượng quyết định" khi điểm là ước lượng, và "bị từ chối" hoặc "không chấm được" khi
+  đúng như vậy). "—" nghĩa là bước đó không có.
+- **Các quy tắc suy luận**, từ đơn giản nhất tới sâu nhất: Ô bắt buộc, Mảnh bắt buộc, Đặt mảnh vào vùng kín, Mảnh chiếm
+  ô, Ô chỉ nhận một mảnh, Cách đặt dẫn tới mâu thuẫn, Chẵn lẻ màu ô, Chỗ thắt và Loại trừ cặp.
+- **Hai cách xem.** **Bước chính** (mặc định) hiện bước đầu của mỗi giai đoạn, mỗi nhóm mảnh đặt sẵn có điểm tốt hơn các
+  nhóm trước, các bước sửa, các mảnh đặt sẵn được chọn và đề hoàn chỉnh; **Mọi bước** hiện tất cả. Mỗi bước giữ nguyên
+  số thứ tự ở cả hai cách xem.
+- **Mở một bước.** **Bước n** mở bước đó và đóng bước đang mở trước đó: một bàn chơi nhỏ với các mảnh ở bước ấy, có viền
+  nét đứt quanh các mảnh bị nhấc ra ở một bước xếp, mảnh đặt sẵn mà một bước sửa thêm vào hoặc các mảnh đặt sẵn được
+  chọn, và bảng điểm bên cạnh (bên dưới trên điện thoại): điểm cơ bản theo số mảnh cần đặt, bước suy luận khó nhất, các
+  lần đoán thật cùng từng nút đoán, điểm trừ khi có một vài hoặc nhiều lời giải, và tổng điểm, kèm khoảng điểm của mức
+  độ. Ở bước cuối, tổng điểm là điểm của đề. Bàn chơi phía trên vẫn hiện đề.
+- **Đối chiếu với đề.** Trình tạo đề chạy lại các bước và so với đề đã lưu. Dòng dưới tiêu đề cho biết "Việc chạy lại
+  khớp với đề đã lưu, nên đây là các bước đã tạo ra đề", hoặc vì sao không được: khi việc chạy lại khác đề, hoặc dừng ở
+  một giới hạn, phần này chỉ hiện một phần các bước và bước cuối ghi "Đây là đề đã lưu", không bao giờ ghi "đề đã được
+  tạo". Khi không có tiến trình nền nào chạy lại được, hoặc việc chạy lại thất bại, dòng này cho biết và nút **Thử lại**
+  chạy lại lần nữa.
+- **Khi không có bước nào.** Đề bạn đã nhập, đề của một bộ mảnh được tạo hoặc lưu bởi phiên bản cũ hơn và đề của lượt bổ
+  sung không có gì để chạy lại: phần này vẫn hiện, dòng của nó ghi "Không thể chạy lại các bước của đề này." kèm lý do,
+  các giai đoạn 1 đến 6 ghi "Không có các bước cho đề này.", và dòng duy nhất của bảng là đề đã lưu cùng điểm của đề.
+  "Đề này không cần bước nào ở giai đoạn này." nghĩa là đề đó không cần giai đoạn ấy (ví dụ giai đoạn xếp của đề mẫu
+  được tạo cùng bộ mảnh, giữ nguyên cách xếp của bộ, hoặc giai đoạn làm cho lời giải duy nhất khi không phải thêm mảnh
+  đặt sẵn nào). "Đã dừng ở giới hạn." nghĩa là việc chạy lại đã chạm một giới hạn ở đó.
 
 [Lên đầu trang](#top)
 
@@ -143,6 +199,7 @@ sách thẻ.
 - **Mở một đề.** Mở một liên kết của trình chơi: nút **Chơi** của trình tạo đề, hoặc một địa chỉ được chia sẻ hay đã lưu
   dấu trang. Khi chưa có đề, trang hiện màn hình bắt đầu với **Thử đề mẫu** và liên kết tới trình tạo đề. Liên kết chỉ có
   mảnh mà không có đề sẽ được giải thích, và một liên kết không mở được không bao giờ thay thế đề bạn đang chơi. Một đề
+  hay bộ mảnh có hai mảnh cùng hình dạng (kể cả hình lật đối xứng) không thể mở, và thông báo nêu hai mảnh đó. Một đề
   cũng mở được từ liên kết mã đề của nó, `…/player/#p=<mã>`, và nhiều đề từ `…/player/#p=<mã1>;<mã2>;…` (có thể kèm
   `&i=<n>`, đề cần mở, đếm từ 0; các đề phải cùng một bàn chơi và một bộ mảnh, và không được lặp): mỗi mã được giải
   trong một worker chạy nền, không cần trình tạo đề hay bản sao đã lưu, giữ tiến độ đã lưu của bạn, và tải lại sẽ mở lại
@@ -171,7 +228,13 @@ sách thẻ.
   bỏ đi trước, rồi mã QR dùng mức sửa lỗi thấp hơn, và chỉ khi đó vẫn không được mới không có mã QR (mỗi bước đều có ghi
   chú); liên kết dài hơn 4.000 ký tự có cảnh báo, còn dài hơn 16.000 ký tự thì không được tạo. Các bộ mã hóa khác nhau có
   thể viết văn bản mã khác nhau nhưng tương đương cho cùng một đề; đề mà nó mở ra là như nhau.
-- **Thông tin và kiểm tra.** Mức độ và tính duy nhất do gói mang theo được hiển thị đúng như gói ghi, với mức độ in đậm.
+- **Thông tin và kiểm tra.** Mức độ và tính duy nhất do gói mang theo được hiển thị đúng như gói ghi, với mức độ in đậm,
+  trừ đánh giá theo thang cũ, vốn được chấm lại theo thang hiện tại. Đề tạo trước thang điểm hiện tại hiển thị mức độ và
+  điểm đã chấm lại theo thang hiện tại, kèm đánh giá gốc trong một ghi chú ("Đã chấm lại theo thang điểm hiện tại (gốc:
+  Dễ 8, difficulty-v2)"). Việc chấm lại chạy ngầm, sau khi kiểm tra khả năng giải, nên cho tới khi xong chỉ hiện đánh giá
+  đã lưu. Khi chưa đếm xong các phương án đoán, đánh giá được đánh dấu "Ước lượng quyết định". Nếu việc chấm lại không
+  tìm được lời giải đầu tiên trong giới hạn, hoặc trình duyệt không có worker, đánh giá gốc được giữ nguyên, kèm "Không
+  chấm lại được". Đánh giá đã lưu, mã đề và địa chỉ không bao giờ thay đổi.
   Đề chưa có kết quả về tính duy nhất sẽ ghi *Có ít nhất 1 lời giải* khi đã biết một lời giải. Khả năng giải được kiểm tra
   ngầm; việc chơi không bao giờ bị chặn, và *chưa xác minh khả năng giải* không bao giờ có nghĩa là *không có lời giải*.
 - **Đặt mảnh.** Kéo một mảnh lên bàn chơi (trong khung các mảnh, nhấn vào bất kỳ đâu trong khung của mảnh để cầm nó; con
@@ -213,7 +276,8 @@ Nút **In** (biểu tượng máy in: bên phải **Chơi** trong trình tạo �
 in đề ra giấy A4, để giải ngoại tuyến với các mảnh cắt rời.
 
 - Tờ đầu tiên có một **mã QR** ở góc trên bên trái, dưới chú thích "Chơi trực tuyến", và bên phải là tên đề (đúng tên
-  thẻ đề trong danh sách: "Đề #n") cùng mức độ và điểm của đề. Quét mã QR để
+  thẻ đề trong danh sách: "Đề #n") cùng mức độ và điểm của đề (là đánh giá mà ứng dụng đang hiện, kèm các ghi
+  chú của đánh giá ở những dòng bên dưới: đánh giá gốc của đề được chấm lại, "Ước lượng quyết định"). Quét mã QR để
   chơi lại đúng đề này trong trình chơi, không cần seed. Tờ giấy không in mã đề, địa chỉ hay seed. Sau đó là một hình xem
   trước nhỏ của đề với các mảnh cần đặt (để đọc, không để cắt).
 - **Nhiều đề.** Khi danh sách có nhiều hơn một đề, hộp thoại có hai cột. Cột bên phải có **Số đề mỗi trang** (1, 2 hoặc 4)

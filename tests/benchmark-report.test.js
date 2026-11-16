@@ -270,6 +270,22 @@ describe('report files', () => {
     assert.ok(validateRunRecord(null).length > 0);
   });
 
+  test('ratingCensoredCount is optional and numeric; the cell sums it and the certificate table shows it', () => {
+    const { ratingCensoredCount, ...old } = run();
+    assert.equal(ratingCensoredCount, 0, 'a new record starts at 0');
+    assert.deepEqual(validateRunRecord(old), [], 'a record written before difficulty-v3 has no such field');
+    assert.deepEqual(validateRunRecord(run({ ratingCensoredCount: 2 })), []);
+    assert.ok(validateRunRecord({ ...run(), ratingCensoredCount: '2' }).length > 0);
+    assert.ok(validateRunRecord({ ...run(), ratingCensoredCount: Infinity }).length > 0);
+    const rows = [run({ ratingCensoredCount: 2 }), run({ rep: 1, ratingCensoredCount: 3 }), /** @type {any} */ ({ ...old, rep: 2 })];
+    const cell = evaluateCell(rows);
+    assert.equal(cell.censoredAccepted, 5);
+    assert.equal(cell.acceptedTotal, 30);
+    const md = renderMarkdown(buildReport(reportMeta(), rows));
+    assert.ok(md.includes('| Case | unique | multiple | not proved | not checked | saturated ratings | census estimates |'));
+    assert.ok(md.includes('| cell | 9 | 21 | 0 | 0 | 0/30 | 5/30 |'));
+  });
+
   test('the source digest ignores line-ending style and covers every engine file', async () => {
     const lf = await computeSourceDigest((path) => `${path}\nbody\n`);
     const crlf = await computeSourceDigest((path) => `${path}\r\nbody\r\n`);

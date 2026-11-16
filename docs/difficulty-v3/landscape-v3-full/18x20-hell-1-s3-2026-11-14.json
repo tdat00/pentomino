@@ -1,0 +1,2485 @@
+{
+  "format": "pentomino-bench-report",
+  "version": 1,
+  "meta": {
+    "kind": "node",
+    "profile": "landscape",
+    "sourceCommit": "917052a946b19de7cc0ac8214dddb1995561d70d",
+    "sourceDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+    "versions": {
+      "algo": "gen-v3",
+      "policy": "mixed-v2",
+      "rng": "xoshiro128ss-v1",
+      "model": "difficulty-v3",
+      "app": "1.0.0"
+    },
+    "platform": "win32 10.0.26300 x64",
+    "browserOrNode": "node v26.13.0",
+    "hardware": {
+      "cpu": "AMD EPYC 7763 64-Core Processor                ",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "execArgv": [
+        "--max-old-space-size=2048"
+      ]
+    },
+    "workerCount": 4,
+    "lifecycle": "cold",
+    "matrixDigest": "323ac7bae66587af138dfaadae194ce4bb0e78e189f1f0656966f4f03f873cdc",
+    "startedAt": "2026-11-13T22:08:41.283Z",
+    "finishedAt": "2026-11-13T22:10:36.457Z",
+    "expectedRuns": 3,
+    "notes": [
+      "fresh process per row"
+    ]
+  },
+  "complete": true,
+  "runCount": 3,
+  "cells": [
+    {
+      "caseId": "18x20-hell-1",
+      "platform": "node",
+      "arrangements": {
+        "method": null,
+        "enumerated": 0,
+        "exhausted": 0,
+        "more": 0,
+        "unproven": 0,
+        "placements": {
+          "n": 0,
+          "min": null,
+          "median": null,
+          "p95": null,
+          "max": null
+        },
+        "ms": {
+          "n": 0,
+          "min": null,
+          "median": null,
+          "p95": null,
+          "max": null
+        },
+        "pass": {
+          "runs": 0,
+          "added": 0,
+          "filledToTen": 0,
+          "unusable": 0,
+          "ms": {
+            "n": 0,
+            "min": null,
+            "median": null,
+            "p95": null,
+            "max": null
+          }
+        }
+      },
+      "runs": {
+        "ordinary": 3,
+        "expected": 3,
+        "missing": 0,
+        "complete": 0,
+        "exhausted": 0,
+        "atLeastOne": 0,
+        "interrupted": 0,
+        "cancelProbes": 0,
+        "watchdogProbes": 0
+      },
+      "rates": {
+        "completeTen": 0,
+        "tenOrEveryArrangement": 0,
+        "atLeastOne": 0
+      },
+      "t1": {
+        "n": 0,
+        "min": null,
+        "median": null,
+        "p95": null,
+        "max": null
+      },
+      "t10": {
+        "conditional": true,
+        "basis": "runs that completed ten puzzles",
+        "n": 0,
+        "min": null,
+        "median": null,
+        "p95": null,
+        "max": null
+      },
+      "response": {
+        "n": 3,
+        "min": 115004.7383,
+        "median": 115011.3979,
+        "p95": 115015.76819999999,
+        "max": 115015.76819999999
+      },
+      "peak": {
+        "accountedMaxBytes": 89661061,
+        "processMaxBytes": 355774464
+      },
+      "saturatedAccepted": 0,
+      "censoredAccepted": 0,
+      "acceptedTotal": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "sampleSize": {
+        "n": 3,
+        "minimum": 20,
+        "sufficient": false
+      },
+      "checks": [
+        {
+          "id": "complete-ten-rate",
+          "label": "Runs with 10 of 10 puzzles or every proven-available arrangement (all ordinary runs; criterion 2, owner decision 2026-10-23)",
+          "status": "fail",
+          "value": 0,
+          "limit": ">= 0.9",
+          "note": "0 of 3: 0 with ten + 0 proven-exhausted"
+        },
+        {
+          "id": "at-least-one-rate",
+          "label": "Runs with at least 1 puzzle (all ordinary runs)",
+          "status": "fail",
+          "value": 0,
+          "limit": ">= 0.99",
+          "note": "0 of 3"
+        },
+        {
+          "id": "t10-median",
+          "label": "T10 median, conditional on complete runs",
+          "status": "not-measured",
+          "value": null,
+          "limit": "<= 60000 ms",
+          "note": "n = 0"
+        },
+        {
+          "id": "t10-p95",
+          "label": "T10 p95 (nearest rank), conditional on complete runs",
+          "status": "not-measured",
+          "value": null,
+          "limit": "<= 115000 ms",
+          "note": "n = 0"
+        },
+        {
+          "id": "response-time",
+          "label": "Longest response of any ordinary run",
+          "status": "pass",
+          "value": 115015.76819999999,
+          "limit": "<= 120000 ms",
+          "note": ""
+        },
+        {
+          "id": "peak-process-memory",
+          "label": "Real peak memory of the whole process (tab/process plus workers)",
+          "status": "pass",
+          "value": 355774464,
+          "limit": "<= 1610612736 bytes",
+          "note": ""
+        },
+        {
+          "id": "byte-accounting",
+          "label": "Accounted worker and main buffers within the design budgets",
+          "status": "pass",
+          "value": 89661061,
+          "limit": "<= 1254096896 bytes",
+          "note": ""
+        },
+        {
+          "id": "model-too-large",
+          "label": "No model-too-large error",
+          "status": "pass",
+          "value": 0,
+          "limit": "0",
+          "note": ""
+        },
+        {
+          "id": "main-thread-task",
+          "label": "No main-thread task over 50 ms",
+          "status": "not-applicable",
+          "value": null,
+          "limit": "<= 50 ms",
+          "note": "Node has no browser main thread"
+        },
+        {
+          "id": "cancel-latency",
+          "label": "Cancel settles quickly (separate probe, excluded from statistics)",
+          "status": "not-measured",
+          "value": null,
+          "limit": "< 200 ms",
+          "note": "0 probe(s)"
+        }
+      ],
+      "verdict": "fail"
+    }
+  ],
+  "planning": [
+    {
+      "caseId": "18x20-hell-1",
+      "nodeMaxT10Ms": null,
+      "browserPlanSeconds": null,
+      "label": "planning estimate (D39: 5 s + 4 x Node maximum); not a measurement; never enables a BQ flag"
+    }
+  ],
+  "statement": "Node screening evidence only. It never replaces browser measurements and enables no BQ limit.",
+  "runs": [
+    {
+      "caseId": "18x20-hell-1",
+      "seed": "landscape/18x20-hell-1/0",
+      "sourceCommit": "917052a946b19de7cc0ac8214dddb1995561d70d",
+      "sourceDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v26.13.0",
+      "workerCount": 4,
+      "startedAt": "2026-11-13T22:04:30.500Z",
+      "firstReadyMs": null,
+      "tenthReadyMs": null,
+      "responseMs": 115004.7383,
+      "acceptedCount": 0,
+      "partialReason": "set:time-limit",
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 89661061,
+      "peakProcessBytes": 282042368,
+      "ratingSaturatedCount": 0,
+      "ratingCensoredCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": null,
+      "maxModelNodes": null,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 0,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": null,
+      "samples": []
+    },
+    {
+      "caseId": "18x20-hell-1",
+      "seed": "landscape/18x20-hell-1/1",
+      "sourceCommit": "917052a946b19de7cc0ac8214dddb1995561d70d",
+      "sourceDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v26.13.0",
+      "workerCount": 4,
+      "startedAt": "2026-11-13T22:06:25.654Z",
+      "firstReadyMs": null,
+      "tenthReadyMs": null,
+      "responseMs": 115011.3979,
+      "acceptedCount": 0,
+      "partialReason": "set:time-limit",
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 87619200,
+      "peakProcessBytes": 355774464,
+      "ratingSaturatedCount": 0,
+      "ratingCensoredCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": null,
+      "maxModelNodes": null,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 1,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": null,
+      "samples": []
+    },
+    {
+      "caseId": "18x20-hell-1",
+      "seed": "landscape/18x20-hell-1/2",
+      "sourceCommit": "917052a946b19de7cc0ac8214dddb1995561d70d",
+      "sourceDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "platform": "win32 10.0.26300 x64",
+      "browserOrNode": "node v26.13.0",
+      "workerCount": 4,
+      "startedAt": "2026-11-13T22:08:41.414Z",
+      "firstReadyMs": null,
+      "tenthReadyMs": null,
+      "responseMs": 115015.76819999999,
+      "acceptedCount": 0,
+      "partialReason": "set:time-limit",
+      "layoutsExhausted": false,
+      "layoutTotal": null,
+      "layoutMethod": null,
+      "layoutStatus": null,
+      "layoutEnumPlacements": null,
+      "layoutEnumMs": null,
+      "layoutPassTried": null,
+      "layoutPassAdded": null,
+      "layoutUnusable": null,
+      "layoutPassMs": null,
+      "peakAccountedBytes": 85406859,
+      "peakProcessBytes": 277344256,
+      "ratingSaturatedCount": 0,
+      "ratingCensoredCount": 0,
+      "certificates": {
+        "unique": 0,
+        "multiple": 0,
+        "notProved": 0,
+        "notChecked": 0
+      },
+      "certificatesSettledMs": null,
+      "maxModelRows": null,
+      "maxModelNodes": null,
+      "mainTaskMethod": "not-applicable",
+      "maxMainTaskMs": null,
+      "longTasksOver50": null,
+      "cancelLatencyMs": null,
+      "probeKind": "generation",
+      "renderingEnabled": false,
+      "measurementValid": true,
+      "measurementNotes": [
+        "cold pool: worker start-up is included",
+        "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+      ],
+      "errors": [],
+      "rep": 2,
+      "lifecycle": "cold",
+      "interrupted": false,
+      "details": null,
+      "samples": []
+    }
+  ],
+  "calibration": {
+    "coverage": {
+      "cellsTotal": 105,
+      "cellsSelected": 1,
+      "cellsComplete": 0,
+      "incompleteCells": [
+        "18x20-hell-1",
+        "6x10-very-easy",
+        "6x10-easy",
+        "6x10-normal",
+        "6x10-hard",
+        "6x10-expert",
+        "6x10-master",
+        "3x29-very-easy",
+        "3x29-easy",
+        "3x29-normal",
+        "3x29-hard",
+        "3x29-expert",
+        "3x29-master",
+        "3x29-nightmare",
+        "10x10-easy",
+        "10x10-normal",
+        "10x10-hard",
+        "10x10-expert",
+        "10x10-master",
+        "10x10-nightmare",
+        "12x12-easy",
+        "12x12-normal",
+        "12x12-hard",
+        "12x12-expert",
+        "12x12-master",
+        "12x12-nightmare",
+        "14x14-easy",
+        "14x14-normal",
+        "14x14-hard",
+        "14x14-expert",
+        "14x14-master",
+        "14x14-nightmare",
+        "14x14-hell-1",
+        "15x15b10-easy",
+        "15x15b10-normal",
+        "15x15b10-hard",
+        "15x15b10-expert",
+        "15x15b10-master",
+        "15x15b10-nightmare",
+        "15x15b10-hell-1",
+        "16x16-normal",
+        "16x16-hard",
+        "16x16-expert",
+        "16x16-master",
+        "16x16-nightmare",
+        "16x16-hell-1",
+        "15x20-normal",
+        "15x20-hard",
+        "15x20-expert",
+        "15x20-master",
+        "15x20-nightmare",
+        "15x20-hell-1",
+        "15x20-hell-2",
+        "18x18-normal",
+        "18x18-hard",
+        "18x18-expert",
+        "18x18-master",
+        "18x18-nightmare",
+        "18x18-hell-1",
+        "18x18-hell-2",
+        "18x20-hard",
+        "18x20-expert",
+        "18x20-master",
+        "18x20-nightmare",
+        "18x20-hell-2",
+        "20x20-hard",
+        "20x20-expert",
+        "20x20-master",
+        "20x20-nightmare",
+        "20x20-hell-1",
+        "20x20-hell-2",
+        "20x21-hard",
+        "20x21-expert",
+        "20x21-master",
+        "20x21-nightmare",
+        "20x21-hell-1",
+        "20x21-hell-2",
+        "32x15-hard",
+        "32x15-expert",
+        "32x15-master",
+        "32x15-nightmare",
+        "32x15-hell-1",
+        "32x15-hell-2",
+        "32x15-hell-3",
+        "22x22-hard",
+        "22x22-expert",
+        "22x22-master",
+        "22x22-nightmare",
+        "22x22-hell-1",
+        "22x22-hell-2",
+        "22x22-hell-3",
+        "24x24-hard",
+        "24x24-expert",
+        "24x24-master",
+        "24x24-nightmare",
+        "24x24-hell-1",
+        "24x24-hell-2",
+        "24x24-hell-3",
+        "26x26-hard",
+        "26x26-expert",
+        "26x26-master",
+        "26x26-nightmare",
+        "26x26-hell-1",
+        "26x26-hell-2",
+        "26x26-hell-3"
+      ],
+      "notSelectedCells": [
+        "6x10-very-easy",
+        "6x10-easy",
+        "6x10-normal",
+        "6x10-hard",
+        "6x10-expert",
+        "6x10-master",
+        "3x29-very-easy",
+        "3x29-easy",
+        "3x29-normal",
+        "3x29-hard",
+        "3x29-expert",
+        "3x29-master",
+        "3x29-nightmare",
+        "10x10-easy",
+        "10x10-normal",
+        "10x10-hard",
+        "10x10-expert",
+        "10x10-master",
+        "10x10-nightmare",
+        "12x12-easy",
+        "12x12-normal",
+        "12x12-hard",
+        "12x12-expert",
+        "12x12-master",
+        "12x12-nightmare",
+        "14x14-easy",
+        "14x14-normal",
+        "14x14-hard",
+        "14x14-expert",
+        "14x14-master",
+        "14x14-nightmare",
+        "14x14-hell-1",
+        "15x15b10-easy",
+        "15x15b10-normal",
+        "15x15b10-hard",
+        "15x15b10-expert",
+        "15x15b10-master",
+        "15x15b10-nightmare",
+        "15x15b10-hell-1",
+        "16x16-normal",
+        "16x16-hard",
+        "16x16-expert",
+        "16x16-master",
+        "16x16-nightmare",
+        "16x16-hell-1",
+        "15x20-normal",
+        "15x20-hard",
+        "15x20-expert",
+        "15x20-master",
+        "15x20-nightmare",
+        "15x20-hell-1",
+        "15x20-hell-2",
+        "18x18-normal",
+        "18x18-hard",
+        "18x18-expert",
+        "18x18-master",
+        "18x18-nightmare",
+        "18x18-hell-1",
+        "18x18-hell-2",
+        "18x20-hard",
+        "18x20-expert",
+        "18x20-master",
+        "18x20-nightmare",
+        "18x20-hell-2",
+        "20x20-hard",
+        "20x20-expert",
+        "20x20-master",
+        "20x20-nightmare",
+        "20x20-hell-1",
+        "20x20-hell-2",
+        "20x21-hard",
+        "20x21-expert",
+        "20x21-master",
+        "20x21-nightmare",
+        "20x21-hell-1",
+        "20x21-hell-2",
+        "32x15-hard",
+        "32x15-expert",
+        "32x15-master",
+        "32x15-nightmare",
+        "32x15-hell-1",
+        "32x15-hell-2",
+        "32x15-hell-3",
+        "22x22-hard",
+        "22x22-expert",
+        "22x22-master",
+        "22x22-nightmare",
+        "22x22-hell-1",
+        "22x22-hell-2",
+        "22x22-hell-3",
+        "24x24-hard",
+        "24x24-expert",
+        "24x24-master",
+        "24x24-nightmare",
+        "24x24-hell-1",
+        "24x24-hell-2",
+        "24x24-hell-3",
+        "26x26-hard",
+        "26x26-expert",
+        "26x26-master",
+        "26x26-nightmare",
+        "26x26-hell-1",
+        "26x26-hell-2",
+        "26x26-hell-3"
+      ],
+      "boards": 1,
+      "runsRecorded": 3
+    },
+    "cells": [
+      {
+        "caseId": "18x20-hell-1",
+        "boardId": "18x20",
+        "area": 360,
+        "levelId": "hell-1",
+        "runs": {
+          "requested": 3,
+          "recorded": 3,
+          "interrupted": 0,
+          "completeTen": 0
+        },
+        "requestInBandRate": 0,
+        "criterion1": {
+          "status": "fail",
+          "rate": 0,
+          "threshold": 0.9,
+          "minimumSeeds": 20
+        },
+        "t10Conditional": {
+          "n": 0,
+          "min": null,
+          "median": null,
+          "p95": null,
+          "max": null,
+          "basis": "runs that completed ten puzzles",
+          "censoredRuns": 3
+        },
+        "maxT10Ms": 115015.76819999999,
+        "K": {
+          "observed": {},
+          "policyRange": [
+            37,
+            38,
+            39,
+            40,
+            41,
+            42
+          ],
+          "policyViolations": {},
+          "referenceRange": [
+            35,
+            42
+          ],
+          "withinReferenceTolerance": null
+        },
+        "pieceSizes": {
+          "min": null,
+          "max": null
+        },
+        "clues": {
+          "initial": {},
+          "accepted": {}
+        },
+        "v3": null,
+        "saturation": {
+          "acceptedShare": null,
+          "sampledShare": null
+        },
+        "sampledInBandRate": null,
+        "sampledUnrateable": 0,
+        "profileLatency": {
+          "kind": "RPC round trip of a canonical rating task (includes message transfer), not worker CPU time",
+          "n": 0,
+          "min": null,
+          "median": null,
+          "p95": null,
+          "max": null
+        },
+        "proofs": {
+          "unique": 0,
+          "multiple": 0,
+          "notProved": 0,
+          "notChecked": 0
+        },
+        "reference": {
+          "level": "hell-1",
+          "aMin": 301,
+          "aMax": 420,
+          "k": [
+            35,
+            42
+          ],
+          "sizes": [
+            4,
+            17
+          ],
+          "g0": [
+            4,
+            4
+          ],
+          "boards": [
+            {
+              "cols": 18,
+              "rows": 18
+            }
+          ],
+          "nodeS": 12,
+          "nodeKind": "measured",
+          "planS": 53,
+          "planKind": "derived",
+          "comparable": true,
+          "note": "K = 41 replay: 7.6 s"
+        }
+      }
+    ],
+    "referenceRows": [
+      {
+        "label": "very-easy 30-80",
+        "level": "very-easy",
+        "areas": [
+          30,
+          80
+        ],
+        "boards": [
+          {
+            "cols": 6,
+            "rows": 10
+          }
+        ],
+        "nodeS": 0.2,
+        "nodeKind": "measured",
+        "boundMs": 400,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            5,
+            7
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 6,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "very-easy 81-87",
+        "level": "very-easy",
+        "areas": [
+          81,
+          87
+        ],
+        "boards": null,
+        "nodeS": 0.3,
+        "nodeKind": "forecast",
+        "boundMs": null,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "forecast-only",
+        "note": "n/m forecast: not a timing acceptance bound",
+        "policyAgreement": {
+          "policyK": [
+            7,
+            7
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 6,
+          "kind": "estimate"
+        }
+      },
+      {
+        "label": "easy 32-80",
+        "level": "easy",
+        "areas": [
+          32,
+          80
+        ],
+        "boards": [
+          {
+            "cols": 6,
+            "rows": 10
+          }
+        ],
+        "nodeS": 0.1,
+        "nodeKind": "measured",
+        "boundMs": 200,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            6,
+            9
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 5,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "easy 81-130",
+        "level": "easy",
+        "areas": [
+          81,
+          130
+        ],
+        "boards": [
+          {
+            "cols": 10,
+            "rows": 10
+          }
+        ],
+        "nodeS": 0.3,
+        "nodeKind": "measured",
+        "boundMs": 600,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            7,
+            10
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 6,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "easy 131-200",
+        "level": "easy",
+        "areas": [
+          131,
+          200
+        ],
+        "boards": [
+          {
+            "cols": 12,
+            "rows": 12
+          }
+        ],
+        "nodeS": 0.3,
+        "nodeKind": "measured",
+        "boundMs": 600,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            9,
+            11
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 6,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "easy 201-215",
+        "level": "easy",
+        "areas": [
+          201,
+          215
+        ],
+        "boards": null,
+        "nodeS": 0.7,
+        "nodeKind": "forecast",
+        "boundMs": null,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "forecast-only",
+        "note": "n/m forecast: not a timing acceptance bound",
+        "policyAgreement": {
+          "policyK": [
+            11,
+            11
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 8,
+          "kind": "estimate"
+        }
+      },
+      {
+        "label": "normal 36-80",
+        "level": "normal",
+        "areas": [
+          36,
+          80
+        ],
+        "boards": [
+          {
+            "cols": 6,
+            "rows": 10
+          }
+        ],
+        "nodeS": 2.6,
+        "nodeKind": "measured",
+        "boundMs": 5200,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            7,
+            10
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 15,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "normal 81-130",
+        "level": "normal",
+        "areas": [
+          81,
+          130
+        ],
+        "boards": [
+          {
+            "cols": 10,
+            "rows": 10
+          }
+        ],
+        "nodeS": 0.8,
+        "nodeKind": "measured",
+        "boundMs": 1600,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            8,
+            11
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 8,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "normal 131-200",
+        "level": "normal",
+        "areas": [
+          131,
+          200
+        ],
+        "boards": [
+          {
+            "cols": 12,
+            "rows": 12
+          }
+        ],
+        "nodeS": 0.9,
+        "nodeKind": "measured",
+        "boundMs": 1800,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            10,
+            13
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 9,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "normal 201-300",
+        "level": "normal",
+        "areas": [
+          201,
+          300
+        ],
+        "boards": [
+          {
+            "cols": 16,
+            "rows": 16
+          }
+        ],
+        "nodeS": 0.7,
+        "nodeKind": "measured",
+        "boundMs": 1400,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            11,
+            14
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 8,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "normal 301-348",
+        "level": "normal",
+        "areas": [
+          301,
+          348
+        ],
+        "boards": [
+          {
+            "cols": 18,
+            "rows": 18
+          }
+        ],
+        "nodeS": 0.7,
+        "nodeKind": "measured",
+        "boundMs": 1400,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            14,
+            15
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 8,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hard 41-80",
+        "level": "hard",
+        "areas": [
+          41,
+          80
+        ],
+        "boards": [
+          {
+            "cols": 6,
+            "rows": 10
+          }
+        ],
+        "nodeS": 2.4,
+        "nodeKind": "measured",
+        "boundMs": 4800,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            8,
+            12
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 15,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hard 81-130",
+        "level": "hard",
+        "areas": [
+          81,
+          130
+        ],
+        "boards": [
+          {
+            "cols": 10,
+            "rows": 10
+          }
+        ],
+        "nodeS": 1,
+        "nodeKind": "measured",
+        "boundMs": 2000,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            10,
+            13
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 9,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hard 131-200",
+        "level": "hard",
+        "areas": [
+          131,
+          200
+        ],
+        "boards": [
+          {
+            "cols": 12,
+            "rows": 12
+          }
+        ],
+        "nodeS": 1.6,
+        "nodeKind": "measured",
+        "boundMs": 3200,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            12,
+            15
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 11,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hard 201-300",
+        "level": "hard",
+        "areas": [
+          201,
+          300
+        ],
+        "boards": null,
+        "nodeS": 0.7,
+        "nodeKind": "forecast",
+        "boundMs": null,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "forecast-only",
+        "note": "n/m forecast: not a timing acceptance bound",
+        "policyAgreement": {
+          "policyK": [
+            13,
+            17
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 8,
+          "kind": "estimate"
+        }
+      },
+      {
+        "label": "hard 301-420",
+        "level": "hard",
+        "areas": [
+          301,
+          420
+        ],
+        "boards": [
+          {
+            "cols": 18,
+            "rows": 20
+          }
+        ],
+        "nodeS": 1.8,
+        "nodeKind": "measured",
+        "boundMs": 3600,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            15,
+            18
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 12,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hard 421-484",
+        "level": "hard",
+        "areas": [
+          421,
+          484
+        ],
+        "boards": [
+          {
+            "cols": 22,
+            "rows": 22
+          }
+        ],
+        "nodeS": 1.2,
+        "nodeKind": "measured",
+        "boundMs": 2400,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            16,
+            19
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 10,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hard 485-576",
+        "level": "hard",
+        "areas": [
+          485,
+          576
+        ],
+        "boards": null,
+        "nodeS": 4.7,
+        "nodeKind": "forecast",
+        "boundMs": null,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "forecast-only",
+        "note": "n/m forecast: not a timing acceptance bound",
+        "policyAgreement": {
+          "policyK": [
+            17,
+            20
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 24,
+          "kind": "estimate"
+        }
+      },
+      {
+        "label": "hard 577-676",
+        "level": "hard",
+        "areas": [
+          577,
+          676
+        ],
+        "boards": [
+          {
+            "cols": 26,
+            "rows": 26
+          }
+        ],
+        "nodeS": 4.7,
+        "nodeKind": "measured",
+        "boundMs": 9400,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            19,
+            21
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 24,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "expert 50-80",
+        "level": "expert",
+        "areas": [
+          50,
+          80
+        ],
+        "boards": [
+          {
+            "cols": 6,
+            "rows": 10
+          }
+        ],
+        "nodeS": 1.1,
+        "nodeKind": "measured",
+        "boundMs": 2200,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            10,
+            13
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 9,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "expert 81-130",
+        "level": "expert",
+        "areas": [
+          81,
+          130
+        ],
+        "boards": [
+          {
+            "cols": 10,
+            "rows": 10
+          }
+        ],
+        "nodeS": 15.1,
+        "nodeKind": "measured",
+        "boundMs": 30200,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "flat-carved LNS-heavy outlier (dagger in the design table); macro carving replaces this regime",
+        "policyAgreement": {
+          "policyK": [
+            12,
+            15
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 65,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "expert 131-200",
+        "level": "expert",
+        "areas": [
+          131,
+          200
+        ],
+        "boards": [
+          {
+            "cols": 14,
+            "rows": 14
+          }
+        ],
+        "nodeS": 2.8,
+        "nodeKind": "measured",
+        "boundMs": 5600,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            13,
+            17
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 16,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "expert 201-300",
+        "level": "expert",
+        "areas": [
+          201,
+          300
+        ],
+        "boards": null,
+        "nodeS": 0.7,
+        "nodeKind": "forecast",
+        "boundMs": null,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "forecast-only",
+        "note": "n/m forecast: not a timing acceptance bound",
+        "policyAgreement": {
+          "policyK": [
+            15,
+            19
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 8,
+          "kind": "estimate"
+        }
+      },
+      {
+        "label": "expert 301-420",
+        "level": "expert",
+        "areas": [
+          301,
+          420
+        ],
+        "boards": null,
+        "nodeS": 1.8,
+        "nodeKind": "forecast",
+        "boundMs": null,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "forecast-only",
+        "note": "n/m forecast: not a timing acceptance bound",
+        "policyAgreement": {
+          "policyK": [
+            17,
+            21
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 12,
+          "kind": "estimate"
+        }
+      },
+      {
+        "label": "expert 421-484",
+        "level": "expert",
+        "areas": [
+          421,
+          484
+        ],
+        "boards": null,
+        "nodeS": 1.2,
+        "nodeKind": "forecast",
+        "boundMs": null,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "forecast-only",
+        "note": "n/m forecast: not a timing acceptance bound",
+        "policyAgreement": {
+          "policyK": [
+            19,
+            22
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 10,
+          "kind": "estimate"
+        }
+      },
+      {
+        "label": "expert 485-576",
+        "level": "expert",
+        "areas": [
+          485,
+          576
+        ],
+        "boards": null,
+        "nodeS": 4.7,
+        "nodeKind": "forecast",
+        "boundMs": null,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "forecast-only",
+        "note": "n/m forecast: not a timing acceptance bound",
+        "policyAgreement": {
+          "policyK": [
+            19,
+            23
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 24,
+          "kind": "estimate"
+        }
+      },
+      {
+        "label": "expert 577-676",
+        "level": "expert",
+        "areas": [
+          577,
+          676
+        ],
+        "boards": [
+          {
+            "cols": 26,
+            "rows": 26
+          }
+        ],
+        "nodeS": 1.2,
+        "nodeKind": "measured",
+        "boundMs": 2400,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "reference measured with K = 28, outside the current count policy (K 20-24); needs a reviewed new baseline",
+        "policyAgreement": {
+          "policyK": [
+            20,
+            24
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 10,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "master 59-80",
+        "level": "master",
+        "areas": [
+          59,
+          80
+        ],
+        "boards": [
+          {
+            "cols": 6,
+            "rows": 10
+          }
+        ],
+        "nodeS": 0.9,
+        "nodeKind": "measured",
+        "boundMs": 1800,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            12,
+            15
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 9,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "master 81-130",
+        "level": "master",
+        "areas": [
+          81,
+          130
+        ],
+        "boards": [
+          {
+            "cols": 10,
+            "rows": 10
+          }
+        ],
+        "nodeS": 4,
+        "nodeKind": "measured",
+        "boundMs": 8000,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            13,
+            17
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 21,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "master 131-200",
+        "level": "master",
+        "areas": [
+          131,
+          200
+        ],
+        "boards": [
+          {
+            "cols": 12,
+            "rows": 12
+          }
+        ],
+        "nodeS": 3.6,
+        "nodeKind": "measured",
+        "boundMs": 7200,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            15,
+            19
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 19,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "master 201-300",
+        "level": "master",
+        "areas": [
+          201,
+          300
+        ],
+        "boards": [
+          {
+            "cols": 16,
+            "rows": 16
+          }
+        ],
+        "nodeS": 4.7,
+        "nodeKind": "measured",
+        "boundMs": 9400,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            17,
+            22
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 24,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "master 301-420",
+        "level": "master",
+        "areas": [
+          301,
+          420
+        ],
+        "boards": [
+          {
+            "cols": 18,
+            "rows": 20
+          }
+        ],
+        "nodeS": 9.3,
+        "nodeKind": "measured",
+        "boundMs": 18600,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            19,
+            24
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 42,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "master 421-484",
+        "level": "master",
+        "areas": [
+          421,
+          484
+        ],
+        "boards": [
+          {
+            "cols": 22,
+            "rows": 22
+          }
+        ],
+        "nodeS": 1.4,
+        "nodeKind": "measured",
+        "boundMs": 2800,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            21,
+            25
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 11,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "master 485-576",
+        "level": "master",
+        "areas": [
+          485,
+          576
+        ],
+        "boards": null,
+        "nodeS": 3.1,
+        "nodeKind": "forecast",
+        "boundMs": null,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "forecast-only",
+        "note": "n/m forecast: not a timing acceptance bound",
+        "policyAgreement": {
+          "policyK": [
+            22,
+            26
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 17,
+          "kind": "estimate"
+        }
+      },
+      {
+        "label": "master 577-676",
+        "level": "master",
+        "areas": [
+          577,
+          676
+        ],
+        "boards": [
+          {
+            "cols": 26,
+            "rows": 26
+          }
+        ],
+        "nodeS": 3.1,
+        "nodeKind": "measured",
+        "boundMs": 6200,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            23,
+            27
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 17,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "nightmare 81-130",
+        "level": "nightmare",
+        "areas": [
+          81,
+          130
+        ],
+        "boards": [
+          {
+            "cols": 10,
+            "rows": 10
+          }
+        ],
+        "nodeS": 2.5,
+        "nodeKind": "measured",
+        "boundMs": 5000,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            16,
+            21
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 15,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "nightmare 131-200",
+        "level": "nightmare",
+        "areas": [
+          131,
+          200
+        ],
+        "boards": [
+          {
+            "cols": 12,
+            "rows": 12
+          }
+        ],
+        "nodeS": 29.8,
+        "nodeKind": "measured",
+        "boundMs": 59600,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "flat-carved LNS-heavy outlier (dagger in the design table); macro carving replaces this regime",
+        "policyAgreement": {
+          "policyK": [
+            19,
+            24
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 124,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "nightmare 201-300",
+        "level": "nightmare",
+        "areas": [
+          201,
+          300
+        ],
+        "boards": [
+          {
+            "cols": 16,
+            "rows": 16
+          }
+        ],
+        "nodeS": 11.2,
+        "nodeKind": "measured",
+        "boundMs": 22400,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            21,
+            27
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 50,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "nightmare 301-420",
+        "level": "nightmare",
+        "areas": [
+          301,
+          420
+        ],
+        "boards": [
+          {
+            "cols": 18,
+            "rows": 20
+          }
+        ],
+        "nodeS": 10.2,
+        "nodeKind": "measured",
+        "boundMs": 20400,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            24,
+            29
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 46,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "nightmare 421-484",
+        "level": "nightmare",
+        "areas": [
+          421,
+          484
+        ],
+        "boards": null,
+        "nodeS": 10,
+        "nodeKind": "forecast",
+        "boundMs": null,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "forecast-only",
+        "note": "n/m forecast: not a timing acceptance bound",
+        "policyAgreement": {
+          "policyK": [
+            26,
+            30
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 45,
+          "kind": "estimate"
+        }
+      },
+      {
+        "label": "nightmare 485-576",
+        "level": "nightmare",
+        "areas": [
+          485,
+          576
+        ],
+        "boards": null,
+        "nodeS": 10,
+        "nodeKind": "forecast",
+        "boundMs": null,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "forecast-only",
+        "note": "n/m forecast: not a timing acceptance bound",
+        "policyAgreement": {
+          "policyK": [
+            27,
+            32
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 45,
+          "kind": "estimate"
+        }
+      },
+      {
+        "label": "nightmare 577-676",
+        "level": "nightmare",
+        "areas": [
+          577,
+          676
+        ],
+        "boards": null,
+        "nodeS": 10,
+        "nodeKind": "forecast",
+        "boundMs": null,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "forecast-only",
+        "note": "n/m forecast: not a timing acceptance bound",
+        "policyAgreement": {
+          "policyK": [
+            28,
+            33
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 45,
+          "kind": "estimate"
+        }
+      },
+      {
+        "label": "hell-1 164-200",
+        "level": "hell-1",
+        "areas": [
+          164,
+          200
+        ],
+        "boards": [
+          {
+            "cols": 14,
+            "rows": 14
+          }
+        ],
+        "nodeS": 8.3,
+        "nodeKind": "measured",
+        "boundMs": 16600,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            30,
+            36
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 38,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hell-1 201-300",
+        "level": "hell-1",
+        "areas": [
+          201,
+          300
+        ],
+        "boards": [
+          {
+            "cols": 16,
+            "rows": 16
+          }
+        ],
+        "nodeS": 17.9,
+        "nodeKind": "measured",
+        "boundMs": 35800,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            32,
+            40
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 77,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hell-1 301-420",
+        "level": "hell-1",
+        "areas": [
+          301,
+          420
+        ],
+        "boards": [
+          {
+            "cols": 18,
+            "rows": 18
+          }
+        ],
+        "nodeS": 12,
+        "nodeKind": "measured",
+        "boundMs": 24000,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "K = 41 replay: 7.6 s",
+        "policyAgreement": {
+          "policyK": [
+            35,
+            42
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 53,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hell-1 421-484",
+        "level": "hell-1",
+        "areas": [
+          421,
+          484
+        ],
+        "boards": [
+          {
+            "cols": 22,
+            "rows": 22
+          }
+        ],
+        "nodeS": 28.1,
+        "nodeKind": "measured",
+        "boundMs": 56200,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "K = 41 replay: 18.9 s",
+        "policyAgreement": {
+          "policyK": [
+            39,
+            42
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 87,
+          "kind": "lazy-estimate"
+        }
+      },
+      {
+        "label": "hell-1 485-576",
+        "level": "hell-1",
+        "areas": [
+          485,
+          576
+        ],
+        "boards": [
+          {
+            "cols": 24,
+            "rows": 24
+          }
+        ],
+        "nodeS": 38.4,
+        "nodeKind": "measured",
+        "boundMs": 76800,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            39,
+            42
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 109,
+          "kind": "lazy-estimate"
+        }
+      },
+      {
+        "label": "hell-1 577-676",
+        "level": "hell-1",
+        "areas": [
+          577,
+          676
+        ],
+        "boards": [
+          {
+            "cols": 26,
+            "rows": 26
+          }
+        ],
+        "nodeS": 48.6,
+        "nodeKind": "measured",
+        "boundMs": 97200,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "historical maximum from one seed",
+        "policyAgreement": {
+          "policyK": [
+            39,
+            42
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 153,
+          "kind": "lazy-estimate"
+        }
+      },
+      {
+        "label": "hell-2 266-300",
+        "level": "hell-2",
+        "areas": [
+          266,
+          300
+        ],
+        "boards": null,
+        "nodeS": 11,
+        "nodeKind": "forecast",
+        "boundMs": null,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "forecast-only",
+        "note": "n/m forecast: not a timing acceptance bound",
+        "policyAgreement": {
+          "policyK": [
+            46,
+            53
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 49,
+          "kind": "estimate"
+        }
+      },
+      {
+        "label": "hell-2 301-420",
+        "level": "hell-2",
+        "areas": [
+          301,
+          420
+        ],
+        "boards": [
+          {
+            "cols": 20,
+            "rows": 20
+          }
+        ],
+        "nodeS": 13.7,
+        "nodeKind": "measured",
+        "boundMs": 27400,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            47,
+            58
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 60,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hell-2 421-484",
+        "level": "hell-2",
+        "areas": [
+          421,
+          484
+        ],
+        "boards": [
+          {
+            "cols": 22,
+            "rows": 22
+          }
+        ],
+        "nodeS": 8.3,
+        "nodeKind": "measured",
+        "boundMs": 16600,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            52,
+            61
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 38,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hell-2 485-576",
+        "level": "hell-2",
+        "areas": [
+          485,
+          576
+        ],
+        "boards": [
+          {
+            "cols": 24,
+            "rows": 24
+          }
+        ],
+        "nodeS": 15.2,
+        "nodeKind": "measured",
+        "boundMs": 30400,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            54,
+            62
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 66,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hell-2 577-676",
+        "level": "hell-2",
+        "areas": [
+          577,
+          676
+        ],
+        "boards": [
+          {
+            "cols": 26,
+            "rows": 26
+          }
+        ],
+        "nodeS": 25.6,
+        "nodeKind": "measured",
+        "boundMs": 51200,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            57,
+            62
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 107,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hell-3 450-484",
+        "level": "hell-3",
+        "areas": [
+          450,
+          484
+        ],
+        "boards": [
+          {
+            "cols": 22,
+            "rows": 22
+          },
+          {
+            "cols": 32,
+            "rows": 15
+          }
+        ],
+        "nodeS": 15.9,
+        "nodeKind": "measured",
+        "boundMs": 31800,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "the original also measured 40x12, excluded by the 32-cell side limit and not part of this matrix",
+        "policyAgreement": {
+          "policyK": [
+            71,
+            80
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 69,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hell-3 485-576",
+        "level": "hell-3",
+        "areas": [
+          485,
+          576
+        ],
+        "boards": [
+          {
+            "cols": 24,
+            "rows": 24
+          }
+        ],
+        "nodeS": 23.6,
+        "nodeKind": "measured",
+        "boundMs": 47200,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            73,
+            86
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 99,
+          "kind": "derived"
+        }
+      },
+      {
+        "label": "hell-3 577-676",
+        "level": "hell-3",
+        "areas": [
+          577,
+          676
+        ],
+        "boards": [
+          {
+            "cols": 26,
+            "rows": 26
+          }
+        ],
+        "nodeS": 11.5,
+        "nodeKind": "measured",
+        "boundMs": 23000,
+        "maxT10Ms": null,
+        "cells": [],
+        "status": "not-run",
+        "note": "",
+        "policyAgreement": {
+          "policyK": [
+            76,
+            90
+          ],
+          "agrees": true
+        },
+        "planning": {
+          "browserPlanSeconds": 51,
+          "kind": "derived"
+        }
+      }
+    ],
+    "scoreByU": [],
+    "scoreByArea": [],
+    "profileSamples": 0,
+    "blockers": [
+      "18x20-hell-1: 0 of 3 recorded requests completed ten in-band puzzles (0%); 90% of at least 20 cannot be reached"
+    ],
+    "outcome": "blocked",
+    "note": "Calibration evidence only: it changes no limit, level band or qualification gate. An unmet measured-row criterion is a blocker pending optimisation or an explicitly approved baseline correction."
+  }
+}

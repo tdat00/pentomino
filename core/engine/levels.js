@@ -27,9 +27,9 @@ const AREAS = [
   [50, Infinity],
   [59, Infinity],
   [81, Infinity],
-  [164, Infinity],
-  [266, Infinity],
-  [450, Infinity],
+  [Infinity, Infinity],
+  [Infinity, Infinity],
+  [Infinity, Infinity],
   [744, Infinity],
 ];
 const HELL_ID = /^hell-([1-9][0-9]*)$/;

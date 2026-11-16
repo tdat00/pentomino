@@ -90,17 +90,50 @@ function textNode(content, { x, y, size, bold = false, fill = '#111111', anchor 
 }
 
 /**
- * The heading of a sheet: the title lines (8 mm, bold), then each detail line with its bold parts.
+ * A detail line shortened with "…" to the width, as a title is: the last part loses code points (never half of a
+ * surrogate pair) until the line fits, with the parts before it kept as they are; a part that cannot fit even as "…" is
+ * dropped. A line that fits is returned as it is. Only paper shortens: the texts of the app stay whole.
+ * @param {PrintLine} line
+ * @param {number} width mm
+ * @param {TextMeasure} measure
+ * @returns {PrintLine}
+ */
+export function fitDetailLine(line, width, measure) {
+  /** @param {PrintLine} parts */
+  const fits = (parts) => parts.reduce((sum, part) => sum + measure(part.text, DETAIL_SIZE_MM, part.bold === true), 0) <= width + 1e-9;
+  if (fits(line)) {
+    return line;
+  }
+  const kept = [...line];
+  while (kept.length > 0) {
+    const last = /** @type {PrintLine[number]} */ (kept[kept.length - 1]);
+    const points = Array.from(last.text);
+    while (points.length > 0) {
+      points.pop();
+      const shortened = [...kept.slice(0, -1), { ...last, text: `${points.join('').trimEnd()}…` }];
+      if (fits(shortened)) {
+        return shortened;
+      }
+    }
+    kept.pop();
+  }
+  return [{ text: '…' }];
+}
+
+/**
+ * The heading of a sheet: the title lines (8 mm, bold), then each detail line with its bold parts, each shortened with
+ * "…" to the width of the block (`fitDetailLine`).
  * @param {import('./print-layout.js').TitleBlock} block
  * @param {PrintLine[]} details
+ * @param {TextMeasure} measure
  * @returns {SVGElement[]}
  */
-function headingNodes(block, details) {
+function headingNodes(block, details, measure) {
   return [
     ...block.lines.map((line, i) => textNode(line, { x: block.x, y: block.baselines[i], size: TITLE_SIZE_MM, bold: true, className: 'pm-print-sheet-title' })),
     ...details.map((line, i) => svgEl('text', {
       class: 'pm-print-detail', x: block.x, y: mm(block.detailBaselines[i]), 'font-size': DETAIL_SIZE_MM, 'font-family': FONT, fill: '#444444',
-    }, ...line.map((part) => svgEl('tspan', { 'font-weight': part.bold === true ? 700 : 400, ...(part.bold === true ? { fill: '#111111' } : {}) }, part.text)))),
+    }, ...fitDetailLine(line, block.width, measure).map((part) => svgEl('tspan', { 'font-weight': part.bold === true ? 700 : 400, ...(part.bold === true ? { fill: '#111111' } : {}) }, part.text)))),
   ];
 }
 
@@ -241,7 +274,7 @@ function puzzleNodes(plan, puzzle, heading, text, { id, defs }) {
   const { model, preview } = puzzle;
   /** @type {SVGElement[]} */
   const nodes = [
-    ...headingNodes(puzzle.band.head, heading.details),
+    ...headingNodes(puzzle.band.head, heading.details, plan.measure),
     ...codeBandNodes(plan, puzzle, text),
   ];
   const c = preview.cellMm;
@@ -432,7 +465,7 @@ function solutionPage(plan, sheet, headings, text) {
     const c = layout.cellMm;
     const clueIds = new Set(model.clues.map((p) => p.piece.id));
     appendFrame(svg, item, [
-      ...headingNodes(singleLineBlock(`${heading.title} · ${text('print.sheet.solution')}`, heading.details.length, plan.measure, plan.frame.width), heading.details),
+      ...headingNodes(singleLineBlock(`${heading.title} · ${text('print.sheet.solution')}`, heading.details.length, plan.measure, plan.frame.width), heading.details, plan.measure),
       boardCells(model.active, model.holes ?? [], layout.boardX, layout.boardY, c),
       svgEl('g', { class: 'pm-print-solution', transform: `translate(${mm(layout.boardX)} ${mm(layout.boardY)}) scale(${mm(c)})` },
         ...layout.placed.map((p) => pieceNode(p.piece, p.cells, {

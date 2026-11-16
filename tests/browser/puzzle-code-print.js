@@ -7,8 +7,9 @@
 // the asynchronous ones, has finished). Developer fixture, not deployed.
 
 import { createPrintDialog, puzzleDetails } from '../../core/browser/print-dialog.js';
+import { ratingDisplay } from '../../core/browser/display-rating.js';
 import { PREVIEW_BOTTOM, planPrint } from '../../core/browser/print-layout.js';
-import { buildPrintPages, createTextMeasure } from '../../core/browser/print-sheet.js';
+import { buildPrintPages, createTextMeasure, fitDetailLine } from '../../core/browser/print-sheet.js';
 import { createPuzzleCodeClient } from '../../core/browser/puzzle-code-client.js';
 import { PUBLIC_PLAYER_URL, preparePuzzleShare, puzzleSnapshot } from '../../core/browser/puzzle-snapshot.js';
 import { puzzleDisplayName } from '../../core/browser/puzzle-title.js';
@@ -20,6 +21,7 @@ import { puzzleCodeUrl } from '../../core/engine/sharecode.js';
 import { packHash } from './pack-link.js';
 import { mountPlayer } from '../../player/app.js';
 import { setLocale, t } from '../../player/i18n.js';
+import { levelLabel } from '../../player/strings.js';
 
 document.documentElement.dataset.result = 'running';
 
@@ -123,6 +125,8 @@ const codeOf = (C, T) => ({ C, T, F: T === null ? C : `${C}.${T}`, version: /** 
 const sample = JSON.parse(await (await fetch('../../player/samples/sample-pack.json')).text());
 const board = packBoard(sample);
 const untitled = (/** @type {number} */ n) => t('ui.puzzleNumber', { n });
+/** What a worker answers when it rates puzzle 1 of the sample again (scripted: the page tests the sheet, not the rating). */
+const derivedRating = { model: 'difficulty-v3', score: 14.4, level: 'normal', saturated: false, metrics: { censusComplete: true, censusUndecided: 0 } };
 
 /**
  * @param {number} [index]
@@ -422,7 +426,11 @@ async function checkFirstSheet(page, plan, share, label) {
 await check('the real dialog prepares the code in the worker before Print is ready, and prints the sheet of that code', async () => {
   const win = stubWindow();
   const snapshot = snapshotFor(0, 0);
-  const dialog = createPrintDialog({ host: document.body, t, win: win.stub, getJob: () => jobFor(snapshot) });
+  // A puzzle with a claim of the old scale once it is rated again: the rating of today's scale, then the note with the original.
+  const shown = /** @type {NonNullable<ReturnType<typeof ratingDisplay>>} */ (
+    ratingDisplay(sample.puzzles[0].rating, { status: 'rated', rating: derivedRating }, { t, levelLabel }));
+  const derivedDetails = puzzleDetails(t, { level: levelLabel(shown.rating.level), score: shown.rating.score, saturated: shown.rating.saturated, notes: shown.notes });
+  const dialog = createPrintDialog({ host: document.body, t, win: win.stub, getJob: () => jobFor(snapshot, { details: derivedDetails }) });
   toDestroy.push(dialog);
   dialog.open();
   const root = dialog.dialog;
@@ -462,8 +470,18 @@ await check('the real dialog prepares the code in the worker before Print is rea
   equal(first.querySelector('text.pm-print-qr-scan')?.textContent, 'Play online', 'the QR is labelled');
   equal(first.querySelector('text.pm-print-sheet-title')?.textContent, 'Easy #1', 'the heading is the snapshot\'s');
   assert(!/seed/i.test(first.textContent ?? ''), 'the puzzle seed is not printed');
-  const details = all(first, 'text.pm-print-detail').map((n) => n.textContent);
-  equal(details, ['Easy: score 8'], 'the rating remains, without a set line');
+  const details = all(first, 'text.pm-print-detail');
+  equal(details.length, 2, 'the rating and its note, without a set line');
+  // On paper a detail line is shortened with an ellipsis to the width of the heading block beside the QR.
+  const measure = createTextMeasure(document);
+  const headWidth = planPrint({ ...jobFor(snapshot, { details: derivedDetails }), share, measure },
+    { pieces: true, board: true, size: 'medium', duplex: false }).band.head.width;
+  equal(details.map((n) => n.textContent), derivedDetails.map((line) => fitDetailLine(line, headWidth, measure).map((part) => part.text).join('')),
+    'the lines of the sheet are those of the job, shortened to the heading block');
+  assert(/^[^:]+: score \d+$/.test(details[0].textContent ?? ''), `the rating of today's scale: ${details[0].textContent}`);
+  assert((details[1].textContent ?? '').startsWith('Re-rated with the current scale (original: Easy'), `the note: ${details[1].textContent}`);
+  assert(details.every((n) => rectOf(n).w <= headWidth + 0.35), 'and no wider than the heading block');
+  equal(derivedDetails[1].map((part) => part.text).join(''), 'Re-rated with the current scale (original: Easy 8, difficulty-v2)', 'the whole note, as the screen shows it');
   const qr = /** @type {Element} */ (first.querySelector('g.pm-print-qr'));
   equal(Number(qr.getAttribute('data-qr-version')), share.qr?.version, 'the QR is the prepared symbol');
   equal(await qrMismatches(qr, /** @type {any} */ (share.qr).rows), 0, 'its pixels are the matrix');

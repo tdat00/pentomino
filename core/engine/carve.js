@@ -14,6 +14,7 @@ import { isValidLayout } from './tiling.js';
 /** @typedef {import('./types.js').Pose} Pose */
 /** @typedef {import('./types.js').PieceSet} PieceSet */
 /** @typedef {import('./types.js').Issue} Issue */
+/** @typedef {import('./types.js').SetEvent} SetEvent */
 /** @typedef {import('./rng.js').Rng} Rng */
 
 /**
@@ -71,6 +72,28 @@ function resolveBudgets(budgets) {
 function cellOf(index, width) {
   const x = index % width;
   return [x, (index - x) / width];
+}
+
+/**
+ * Fresh `[x, y]` lists of cell-index lists, for the events of a recorder (RES-28).
+ * @param {number[][]} lists
+ * @param {number} width
+ * @returns {XY[][]}
+ */
+function cellLists(lists, width) {
+  return lists.map((list) => list.map((index) => cellOf(index, width)));
+}
+
+/**
+ * The `piece` events of an accepted carve, one per region in region order (RES-28).
+ * @param {(event: SetEvent) => void} record
+ * @param {number[][]} regions Cell-index lists, ascending.
+ * @param {number} width
+ */
+function recordPieces(record, regions, width) {
+  for (const cells of cellLists(regions, width)) {
+    record({ stage: 'set', kind: 'piece', cells });
+  }
 }
 
 /**
@@ -276,16 +299,22 @@ export function carveFlat(mask, sizes, rng, o) {
  * @param {number} k
  * @param {Rng} rng
  * @param {Budgets} [budgets]
+ * @param {(event: SetEvent) => void} [record] Observer (RES-28): a `carve` event per size plan, `piece` events for
+ *   the regions of the carve that succeeds.
  * @returns {FlatResult | null}
  */
-export function carveFlatSet(board, k, rng, budgets) {
+export function carveFlatSet(board, k, rng, budgets, record) {
   const b = resolveBudgets(budgets);
   const area = activeCount(board);
   for (let plan = 0; plan < b.sizePlans; plan++) {
     const sizes = planSizes(area, k, rng);
     if (sizes === null) return null;
+    record?.({ stage: 'set', kind: 'carve', mode: 'flat', parts: null });
     const result = carveFlat(board, sizes, rng, { stepBudget: b.carveSteps, growthTries: b.carveTries, used: new Set() });
-    if (result !== null) return result;
+    if (result !== null) {
+      if (record !== undefined) recordPieces(record, result.regions, board.width);
+      return result;
+    }
   }
   return null;
 }
@@ -488,10 +517,12 @@ export function allocateCounts(areas, k) {
  * @param {number} k
  * @param {Rng} rng
  * @param {Budgets} [budgets]
- * @param {MacroHooks} [hooks]
+ * @param {MacroHooks} [hooks] Control hooks of tests (they may fail a partition).
+ * @param {(event: SetEvent) => void} [record] Observer (RES-28), separate from the hooks: a `carve` event per
+ *   partition that reaches carving, `piece` events for the regions of the partition that succeeds.
  * @returns {{ regions: number[][], regionOf: number[] } | null}
  */
-export function carveMacro(b, k, rng, budgets, hooks) {
+export function carveMacro(b, k, rng, budgets, hooks, record) {
   const o = resolveBudgets(budgets);
   const area = activeCount(b);
   if (k < 2 || area < 1) return null;
@@ -517,6 +548,7 @@ export function carveMacro(b, k, rng, budgets, hooks) {
     if (parts === null || parts.length < 2) continue;
     const quotas = allocateCounts(parts.map((p) => p.length), k);
     if (quotas === null) continue;
+    record?.({ stage: 'set', kind: 'carve', mode: 'macro', parts: cellLists(parts, b.width) });
 
     let allOk = true;
     for (let r = 0; r < parts.length && allOk; r++) {
@@ -547,7 +579,10 @@ export function carveMacro(b, k, rng, budgets, hooks) {
         if (region.length <= SMALL_MAX) smallLeft--;
       }
     }
-    if (allOk) return { regions, regionOf };
+    if (allOk) {
+      if (record !== undefined) recordPieces(record, regions, b.width);
+      return { regions, regionOf };
+    }
   }
   return null;
 }
