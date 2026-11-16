@@ -46,6 +46,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `firewall.mjs` | snapshot and check of the production files |
 | `snapshot.mjs` | hash manifest of the frozen source snapshot: `record` (once) and `verify` (task pack v4, V4-T01a; see "Frozen source") |
 | `receipt.mjs` | the frozen source receipt (V4-T01b; `--label frozen` only): `receipt.json` and `receipt.md` in `evidence/frozen/V4-T01b/`; unlocked, see "Source-dependent imports (V4-T01b)" |
+| `pm1-inventory.mjs` | the data-only inventory of PM1's existing records (V4-T03; `--label frozen` only): `inventory.json` and `inventory.md` in `evidence/frozen/V4-T03/`; unlocked, see "PM1 inventory (V4-T03)" |
 | `boards.mjs` | writes or checks `data/boards-v1.json`, the frozen board catalogue |
 | `self-test.mjs` | self-tests, run under the lock |
 | `lib/paths.mjs` | roots, labels, constants, the source kind (`SOURCE_KIND`, `sourceRoot`), flag parser |
@@ -523,7 +524,7 @@ worktree, whenever it runs with `--label frozen`.
   node tools\ig-proto\snapshot.mjs verify
   node tools\ig-proto\lib\tree.mjs build base instr log --label frozen
   node tools\ig-proto\lib\tree.mjs check-edits --all --label frozen
-  node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T01b   # nine cases (T01a's six, T01b's three), unlocked
+  node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T03   # ten cases (T01a's six, T01b's three, T03's one), unlocked
   ```
 
   The worker-thread modules do not read the label: a worker receives its tree in `workerData.treeRoot`, and the
@@ -577,6 +578,18 @@ worker loads (`lib/lane-worker.mjs`, `lib/calls.mjs`, `lib/sets.mjs`, `lib/engin
   ```powershell
   Select-String -Path tools\ig-proto\*.mjs, tools\ig-proto\lib\*.mjs -Pattern "from '(\.\./)+(core|generator|player|bench|record-fixtures|check-conventions|calibrate|node-worker|serve)"
   ```
+
+### PM1 inventory (V4-T03)
+
+`node tools\ig-proto\pm1-inventory.mjs --label frozen --source-label "frozen 3fc65f4"` (unlocked; any other label exits 1)
+reads the provisional records `docs/improve-generating/evidence/provisional/IGP-05/families-failed-sets.jsonl`,
+`families-scan.jsonl` and `families-windows.jsonl`, never rewritten, and writes `inventory.json` (the `meta` block, the
+totals, the alternate rows, the populations, the four facts of IG-P-Q24 and the inputs with their SHA-256 over LF line
+ends) and `inventory.md` in `docs/improve-generating/evidence/frozen/V4-T03/`. An alternate row is a rated probe whose
+score `levelForScore` of the frozen `core/engine/levels.js` reads as a Hell level other than its family's, and
+`offeredAtFrozen` comes from that file's `offeredLevels`. It rates, generates, counts and replays nothing, so it runs
+without the lock, and it opens no route: Hell 2 and Hell 3 stay closed (IG-P-D6). It exits 1 when one of the four facts
+is not found.
 
 ## The `gen-v4` prototype on the frozen source (task pack v4)
 

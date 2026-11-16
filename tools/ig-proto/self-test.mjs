@@ -5,7 +5,7 @@
 //   node tools\ig-proto\self-test.mjs --label <L> --source-label <SL> --horizon-s <H> [--only 1,3] [--proto] [--p6] [--task <T>]
 // `--proto` (IGP-01) adds the prototype's cases after IGP-00's nine; its state goes to <T>/self-test/state.json
 // (default IGP-01 with --proto, else IGP-00). `--p6` (IGP-04) runs all of them and adds the P6 cases (default task IGP-04).
-// `--frozen` (V4-T01a, V4-T01b) runs only the frozen-source group (default task V4-T01a): carve-only checks and records, unlocked.
+// `--frozen` (V4-T01a, V4-T01b, V4-T03) runs only the frozen-source group (default task V4-T01a): carve-only checks and records, unlocked.
 // `--v4` (V4-T02a onwards) runs only the gen-v4 prototype group (default task V4-T02a); it runs through the lock helper.
 // Its fifteen cases: V4-T02a's three (tree, dispatch and bounds; locate, rescue and re-rating order; skips and window),
 // V4-T02b's five (observers parity, throwing observers, skip replay round trip, legacy dispatch, the rate seam),
@@ -25,11 +25,12 @@ import { decide, readInvocations } from './lib/budget.mjs';
 import { rateAttempt, recordedCall, screenRating, startCountFor, windowSubsets } from './lib/calls.mjs';
 import { loadEngine } from './lib/engine.mjs';
 import { createLanes } from './lib/lanes.mjs';
-import { artifactDir, elapsedS, FROZEN_DIGEST, IG_DIR, parseArgs, rel, ROOT, SOURCE_KIND } from './lib/paths.mjs';
+import { artifactDir, elapsedS, evidenceDir, FROZEN_DIGEST, IG_DIR, parseArgs, rel, ROOT, SOURCE_KIND, sourceRoot } from './lib/paths.mjs';
 import { sha256, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
 import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
 import { pairResult } from './identity.mjs';
+import { buildInventory, readFamilies } from './pm1-inventory.mjs';
 import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
 
 const SELFTEST_DIR = join(ROOT, 'tests', 'artifacts', 'ig-proto', 'selftest');
@@ -604,6 +605,31 @@ const frozenCases = [
           assert(!text.includes(needle), `lib/${name} contains ${needle}`);
         }
       }
+    },
+  },
+  {
+    name: 'frozen: PM1 inventory',
+    async run() {
+      assert(SOURCE_KIND === 'frozen', 'the group must run with --label frozen');
+      const levels = await import(pathToFileURL(join(sourceRoot(), 'core', 'engine', 'levels.js')).href);
+      const families = readFamilies(evidenceDir('provisional', 'IGP-05'));
+      same(families.map((f) => f.part), [...Array(16).fill('failed-sets'), ...Array(12).fill('scan'), ...Array(88).fill('windows')],
+        'the three files were not read in the order failed-sets, scan, windows');
+      const inventory = buildInventory(families, levels);
+      same(inventory.totals, { families: 116, probes: 1362, rated: 987 }, `the totals: ${JSON.stringify(inventory.totals)}`);
+      assert(inventory.alternate.length === 113, `${inventory.alternate.length} alternate rows, not 113`);
+      assert(inventory.q24.length === 4 && inventory.q24.every((f) => f.found === true), `the IG-P-Q24 facts: ${JSON.stringify(inventory.q24)}`);
+      assert(inventory.alternate.every((r) => r.offeredAtFrozen === false), 'an alternate row is offered at the frozen source');
+      const population = inventory.populations.find((p) => p.ratedLevel === 'hell-3' && p.case === '15x15b10-hell-1');
+      assert(population !== undefined && population.n === 2 && population.area === 215, `the hell-3 population of 15x15b10-hell-1: ${JSON.stringify(population)}`);
+      same(population.counts, [2, 3], `the counts of that population: ${JSON.stringify(population.counts)}`);
+      same(population.scores, [165, 179], `the scores of that population: ${JSON.stringify(population.scores)}`);
+      assert(inventory.populations.reduce((n, p) => n + p.n, 0) === 113
+        && inventory.populations.every((p) => p.solutions.unique + p.solutions.few + p.solutions.many + p.solutions.unknown === p.n),
+      'the populations do not account for every alternate row and every solutions class');
+      // The real levels offer no Hell level, so the flag above cannot tell a read value from a constant: offer them.
+      const offering = { ...levels, offeredLevels: () => [levels.level('hell-1'), levels.level('hell-2'), levels.level('hell-3')] };
+      assert(buildInventory(families, offering).alternate.every((r) => r.offeredAtFrozen === true), 'offeredAtFrozen does not come from the levels given');
     },
   },
 ];

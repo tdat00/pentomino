@@ -159,13 +159,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 06:37:22 +07:00 (dispatch, base `ca1b9d5`) to 06:47:24 +07:00 (acceptance): 10 min 2 s; the developer's own times 06:37:40-06:43:26 |
+| Waiting for rulings | about 4 min (06:43:26 report to 06:47 ruling); no developer wait (no fix round) |
+| Agent id, model | `f437fe6f-f69d-45b4-ba74-19c6cb549f3f`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 45 calls; 5,711,580 input, 45,172 output, 5,555,947 cache-read |
+| AI credits | 139.64 |
+| Questions and rulings | No `QUESTION:`. The developer's eight deviations (readings of points the task left open, among them `lf-text` input hashes and populations from the alternate rows) and four gaps were relayed to the pack author; all accepted (06:47); T03 step 1 states the readings; T11g now cites the inventory; pack amendment `f4bcfa8` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `pm1-inventory.mjs --label frozen`, run aside: reproduces the developer's `inventory.json` except `meta` (the developer's files restored byte-identical): 116 families, 1,362 probes, 987 rated, 113 alternate rows, 4 of 4 IG-P-Q24 facts; `--label provisional` refused (exit 1); `run-task.ps1 -Plan V4-T03.json -DryRun`: three unlocked steps, 0 s counted; `--frozen`: 10 passed; `check-edits`: 18 `ok`; firewall `check`: 289 production files unchanged; the guard `git status -- docs/improve-generating/evidence/provisional core generator`: no output; `npm run check`: OK |
+| Commit | this task's commit, `improve-generating T03: PM1 data-only inventory, IG-P-Q24` |
+| Issues and named items | None new; the inventory is cited by T11g's manifest and N-V4-04 |
