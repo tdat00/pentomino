@@ -758,21 +758,29 @@ Removed: `generator/ui/replay-dialog.js` (the file); in `puzzle-panel.js` `onRep
 `replay-model.js` `createReplayController`, `ReplayViewState`, `DEFAULT_INTERVAL_MS`, the playback and the
 `interrupted` failure; in `generator.css` the rules listed under "Styles"; the 10 keys listed under "Locale keys".
 
-The removal check (PowerShell, from the repository root; the three commands print nothing):
+The removal check (PowerShell, from the repository root; the three commands print nothing; all three are
+case-sensitive, as `git grep` is):
 
 ```powershell
 Get-ChildItem generator\*.js, generator\ui\*.js, generator\*.css, generator\*.html, tests\*.test.js |
   Where-Object Name -ne 'replay-model.test.js' |
-  Select-String -Pattern ('replay-dialog|createReplayDialog|createReplayController|card-replay|' +
+  Select-String -CaseSensitive -Pattern ('replay-dialog|createReplayDialog|createReplayController|card-replay|' +
   'pm-replay-dialog|onReplay|DEFAULT_INTERVAL_MS|How it was made|Cách tạo đề|' +
   'replay\.(button|close|prev|next|play|pause|slider|stages)\b|replay\.failed\.interrupted')
-Select-String -Path tests\replay-model.test.js -Pattern ("import\(.*replay-dialog|createReplayDialog|" +
+Select-String -CaseSensitive -Path tests\replay-model.test.js -Pattern ("import\(.*replay-dialog|createReplayDialog|" +
   "createReplayController|DEFAULT_INTERVAL_MS|'interrupted'")
 git --no-pager grep -l -I --untracked -E ("replay-dialog|createReplayDialog|createReplayController|card-replay|" +
   "pm-replay-dialog|DEFAULT_INTERVAL_MS|How it was made|Cách tạo đề|" +
   "replay\.(button|close|prev|next|play|pause|slider|stages)\b|replay\.failed\.interrupted") `
   -- . ':(exclude)tasks' ':(exclude)docs/difficulty-v3' ':(exclude)tests/replay-model.test.js' ':(exclude)tests/browser'
 ```
+
+`-CaseSensitive` matters (the MP18a developer's `QUESTION:`, ruled on 2026-11-16): the retired label is "How it was
+made" / "Cách tạo đề" with a capital letter, while three texts that stay use the words in lower case and are not
+leftovers: `replay.reason.no-record` (EN "This puzzle has no record of how it was made.") and
+`replay.reason.record-invalid` and `replay.reason.overflow` (VI "Ghi chép về cách tạo đề này …"). Without the switch
+`Select-String` ignores case and prints those three lines. With it, the first command lists at `0ed8800` the same
+seven files as below and nothing after this task.
 
 The third command checks the documents too (it exits 1 when nothing matches: the expected result). At `0ed8800` it
 lists 13 files: `DEVELOPERGUIDE.md`, `DEVELOPERGUIDE.vn.md`, `USERGUIDE.md`, `USERGUIDE.vn.md`,
