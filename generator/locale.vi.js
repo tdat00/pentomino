@@ -252,6 +252,8 @@ export default Object.freeze({
 
   // Generation steps (step 3, under Pieces to place)
   'replay.title': 'Các bước tạo đề',
+  'replay.reveal': 'Hiện các bước tạo đề',
+  'replay.hide': 'Ẩn các bước tạo đề',
   'replay.loading': 'Đang chạy lại quá trình tạo đề…',
   'replay.failed': 'Không thể hiển thị các bước tạo đề này.',
   'replay.failed.worker': 'Tiến trình nền không khả dụng nên không thể chạy lại các bước ở đây.',

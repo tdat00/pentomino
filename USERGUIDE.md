@@ -152,9 +152,13 @@ board already holds 50 sets, or the puzzle list is full, nothing is imported and
 ### Generation steps
 
 Under **Pieces to place**, step 3 shows **Generation steps**: how the Generator made the puzzle on show, step by step.
-It is there on every screen size, phones included, and fills in by itself when a puzzle is shown. While a generation
-runs it waits ("The steps appear when the generation is done."), so it never slows a generation down, and a puzzle shown
-before comes back at once. The table has a row for each step, in the order the steps happened, under the stages of the
+It is there on every screen size, phones included. The steps of every puzzle the Generator makes are prepared in the
+background right after it is generated and kept in this browser (the last 8 puzzles), so they appear at once, also after
+a reload. The section is hidden until you press **Show generation steps** (the button then reads **Hide generation
+steps**, which collapses it again); another puzzle is hidden again. A puzzle whose steps are not kept (for example one
+from an older save, an imported puzzle or one whose kept steps were dropped) makes them when you press the button.
+While a generation runs it waits ("The steps appear when
+the generation is done."), so it never slows a generation down. The table has a row for each step, in the order the steps happened, under the stages of the
 generation: the number of pieces, the carving of the board into pieces, the pieces, their layout, the clue sets the
 search rated, the repair that made the solution unique, and the finished puzzle.
 

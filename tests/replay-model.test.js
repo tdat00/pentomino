@@ -879,7 +879,8 @@ test('steps: the rules are named, never coded, in the techniques and the score t
 // 13. The controller of the section.
 
 /**
- * @param {Partial<{ run: (source: any, signal: AbortSignal) => Promise<ReplayResult> }>} [over]
+ * @param {Partial<{ run: (source: any, signal: AbortSignal) => Promise<ReplayResult>,
+ *   cache: { load(source: any): ReplayResult | null, save(source: any, result: ReplayResult): void } }>} [over]
  */
 function stepsHarness(over = {}) {
   /** @type {{ source: any, signal: AbortSignal, answer: ReturnType<typeof deferred<ReplayResult>> }[]} */
@@ -892,6 +893,7 @@ function stepsHarness(over = {}) {
       calls.push({ source, signal, answer });
       return answer.promise;
     }),
+    cache: over.cache,
     onChange: (state) => states.push(state),
   });
   return { controller, calls, states };
@@ -987,6 +989,34 @@ test('steps controller: one run per puzzle; another puzzle aborts its own run; a
   assert.equal(k.states.length, count + 1);
   k.controller.show(null);
   assert.equal(k.states.length, count + 1, 'nothing to change');
+});
+
+test('steps controller: a saved replay answers at once without a run; a finished replay is saved, a failed one is not', async () => {
+  /** @type {Map<string, ReplayResult>} */
+  const kept = new Map();
+  const cache = {
+    load: (/** @type {any} */ source) => kept.get(source.puzzle.id) ?? null,
+    save: (/** @type {any} */ source, /** @type {ReplayResult} */ result) => void kept.set(source.puzzle.id, result),
+  };
+  const first = stepsHarness({ cache });
+  first.controller.show(src('pS'));
+  assert.equal(first.calls.length, 1, 'nothing is saved yet, so the replay runs');
+  first.calls[0].answer.resolve(smallResult());
+  await flush();
+  assert.equal(kept.get('pS'), first.controller.getState().result, 'the finished replay is saved');
+
+  const later = stepsHarness({ cache });
+  later.controller.show(src('pS'));
+  assert.equal(later.calls.length, 0, 'a new session replays nothing');
+  assert.deepEqual(later.states.map((s) => s.phase), ['ready'], 'and never shows the loading phase');
+  assert.equal(later.controller.getState().result, kept.get('pS'));
+
+  const failing = stepsHarness({ cache });
+  failing.controller.show(src('pF'));
+  failing.calls[0].answer.reject(new PoolError('worker-unavailable', 'no worker'));
+  await flush();
+  assert.equal(failing.controller.getState().phase, 'failed');
+  assert.equal(kept.has('pF'), false, 'a failure is not saved');
 });
 
 test('steps controller: a new generation resubmits the replay; failures and Try again; an unavailable result shows its final step', async () => {
@@ -1253,4 +1283,91 @@ test('the Generation steps module loads and the dialog module is gone', async ()
   const steps = await import('../generator/ui/generation-steps.js');
   assert.equal(typeof steps.mountGenerationSteps, 'function');
   assert.equal(existsSync(new URL('../generator/ui/replay-dialog.js', import.meta.url)), false);
+});
+
+test('replay cache: the key follows what the replay reads and survives the saved state; a scripted storage has no cache', async () => {
+  const { createReplayCache, replayKeyOf } = await import('../generator/ui/replay-cache.js');
+  const source = src('pKey', SET, { schema: 1, kind: 'candidate' });
+  const key = replayKeyOf(source);
+  assert.match(key, /^r[a-z0-9]{1,60}$/);
+  const restored = JSON.parse(JSON.stringify({ ...source, puzzle: { ...source.puzzle, note: undefined, title: null } }));
+  assert.equal(replayKeyOf(restored), key, 'the same after a trip through JSON');
+  assert.equal(replayKeyOf({ ...source, puzzle: { ...source.puzzle, title: 'Mine', certificate: { kind: 'unique' }, seed: 'x#1' } }), key,
+    'a title, a certificate or a seed added later is not read by the replay');
+  assert.notEqual(replayKeyOf({ ...source, puzzle: { ...source.puzzle, id: 'pOther' } }), key, 'another puzzle');
+  assert.notEqual(replayKeyOf({ ...source, made: { schema: 1, kind: 'calibration' } }), key, 'another origin record');
+  assert.notEqual(replayKeyOf({ ...source, setOrigin: { schema: 1 } }), key, 'another set origin');
+  assert.notEqual(replayKeyOf({ ...source, set: { ...SET, carving: 'flat' } }), key, 'another set');
+
+  assert.equal(createReplayCache({}), undefined);
+  assert.equal(createReplayCache(null), undefined);
+  /** @type {Map<string, unknown>} */
+  const stored = new Map();
+  const cache = /** @type {NonNullable<ReturnType<typeof createReplayCache>>} */ (createReplayCache({
+    loadReplay: (name) => stored.get(name) ?? null,
+    saveReplay: (name, result) => void stored.set(name, result),
+  }));
+  assert.equal(cache.load(source), null);
+  cache.save(source, /** @type {any} */ (RESULT));
+  assert.equal(cache.load(source), RESULT);
+  const broken = createReplayCache({ loadReplay: () => { throw new Error('denied'); }, saveReplay: () => { throw new Error('denied'); } });
+  assert.equal(broken?.load(source), null, 'a storage that throws is a miss');
+  assert.doesNotThrow(() => broken?.save(source, /** @type {any} */ (RESULT)));
+});
+
+test('replay cache: a prefetch makes and saves a replay once; the section waits for it; a cancelled one is asked again', async () => {
+  const { createReplayCache } = await import('../generator/ui/replay-cache.js');
+  /** @type {Map<string, any>} */
+  const stored = new Map();
+  const storage = {
+    loadReplay: (/** @type {string} */ key) => stored.get(key) ?? null,
+    saveReplay: (/** @type {string} */ key, /** @type {any} */ result) => void stored.set(key, result),
+    hasReplay: (/** @type {string} */ key) => stored.has(key),
+  };
+  /** @type {{ source: any, signal: AbortSignal, answer: ReturnType<typeof deferred<ReplayResult>> }[]} */
+  const calls = [];
+  const cache = /** @type {NonNullable<ReturnType<typeof createReplayCache>>} */ (createReplayCache(storage, (source, signal) => {
+    const answer = /** @type {any} */ (deferred());
+    calls.push({ source, signal, answer });
+    return answer.promise;
+  }));
+  const A = src('pP1');
+  cache.prefetch(A);
+  await flush();
+  assert.equal(calls.length, 1);
+  assert.equal(cache.has(A), false);
+  cache.prefetch(A);
+  assert.equal(calls.length, 1, 'a replay being made is not asked for again');
+
+  const waiter = new AbortController();
+  const waited = cache.run(A, waiter.signal);
+  assert.equal(calls.length, 1, 'the section waits for the prefetch instead of running');
+
+  calls[0].answer.reject(new PoolAbortError('cancelled'));
+  await flush();
+  assert.equal(calls.length, 2, 'a new generation cancelled it, so it is asked again');
+  calls[1].answer.resolve(smallResult());
+  await flush();
+  assert.equal((await waited).steps.length, 2, 'the waiting section gets the result');
+  assert.deepEqual([cache.has(A), stored.size], [true, 1]);
+  cache.prefetch(src('pP1'));
+  assert.equal(calls.length, 2, 'a saved replay is not made again');
+
+  const B = src('pP2');
+  cache.prefetch(B);
+  await flush();
+  const leaving = new AbortController();
+  const gone = cache.run(B, leaving.signal);
+  leaving.abort();
+  await assert.rejects(gone, (error) => error instanceof PoolAbortError && error.reason === 'cancelled');
+  assert.equal(calls[2].signal.aborted, false, 'the section leaving does not stop the prefetch');
+  calls[2].answer.reject(new PoolError('failed', 'broken'));
+  await flush();
+  assert.deepEqual([cache.has(B), stored.size], [false, 1], 'a failed replay is not saved');
+  cache.prefetch(B);
+  assert.equal(calls.length, 3, 'and is not tried again by itself');
+
+  cache.dispose();
+  assert.equal(calls[3] === undefined || calls[3].signal.aborted, true, 'dispose aborts the replays being made');
+  assert.equal(createReplayCache(storage, undefined)?.prefetch(src('pP4')), undefined, 'without a runner nothing is prefetched');
 });

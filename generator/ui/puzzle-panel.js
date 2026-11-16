@@ -45,6 +45,9 @@ const ZOOM_STEP = 1.25;
  * @property {(source: import('./replay-model.js').ReplaySource, signal: AbortSignal) =>
  *   Promise<import('../../core/engine/replay.js').ReplayResult>} [replay] Runs the replay of a puzzle for Generation
  *   steps, the section under "Pieces to place". Without it step 3 has no such section.
+ * @property {Pick<import('./replay-cache.js').ReplayCache, 'load' | 'save'>} [replayCache] Keeps the replayed steps
+ *   between visits, so that showing the steps of a puzzle made before is instant; without it a puzzle is replayed again
+ *   after a reload.
  */
 
 let panelCounter = 0;
@@ -261,7 +264,9 @@ export function mountPuzzlePanel(host, options) {
     nav.element, detailHead, detailFrame, el('div', { className: 'detail-solution' }, solutionButton), detailTrayTitle, detailPieces);
   const steps = options.replay === undefined
     ? null
-    : mountGenerationSteps(detail, { t, run: options.replay, cellPxOf: (board) => thumbnailCellPx(board, STEPS_BOARD_PX) });
+    : mountGenerationSteps(detail, {
+      t, run: options.replay, cache: options.replayCache, cellPxOf: (board) => thumbnailCellPx(board, STEPS_BOARD_PX),
+    });
   const noticeBox = options.noticeHost ?? el('div', { className: 'result-notice', attrs: { role: 'status' }, dataset: { role: 'notice' } });
   const cardList = el('ol', { className: 'puzzle-cards', attrs: { ...locAttrs({ 'aria-label': 'puzzles.list' }), id: `${uid}-cards` }, dataset: { role: 'cards' } });
   const emptyText = el('p', { className: 'hint', dataset: { role: 'empty' } });

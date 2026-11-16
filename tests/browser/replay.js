@@ -182,6 +182,24 @@ function memoryStorage() {
   };
 }
 
+/** A memory storage that keeps replays too, as the real storage does. */
+function replayStorage() {
+  /** @type {Map<string, string>} */
+  const replays = new Map();
+  return Object.assign(memoryStorage(), {
+    replays,
+    loadReplay: (/** @type {string} */ key) => {
+      const text = replays.get(key);
+      return text === undefined ? null : JSON.parse(text).result;
+    },
+    saveReplay: (/** @type {string} */ key, /** @type {unknown} */ result) => {
+      replays.set(key, JSON.stringify({ v: 1, result }));
+      return { ok: true };
+    },
+    hasReplay: (/** @type {string} */ key) => replays.has(key),
+  });
+}
+
 let seedCounter = 0;
 
 /**
@@ -347,7 +365,17 @@ const linesOf = (cell) => (cell.querySelector('.steps-line') === null ? [cell.te
 /** @param {HTMLElement} section @param {'compact' | 'all'} view */
 const chooseView = (section, view) => /** @type {HTMLElement} */ (section.querySelector(`[data-field="steps-view-${view}"]`)).click();
 /** @param {HTMLElement} section */
+const revealButtonOf = (section) => /** @type {HTMLButtonElement} */ (section.querySelector('button[data-action="steps-reveal"]'));
+/** Presses "Show generation steps" when it is offered; the replay starts only then. @param {HTMLElement} section */
+const revealSteps = (section) => {
+  const button = revealButtonOf(section);
+  if (button.getAttribute('aria-expanded') === 'false') {
+    button.click();
+  }
+};
+/** @param {HTMLElement} section */
 async function waitSteps(section) {
+  revealSteps(section);
   await waitFor(() => section.dataset.phase === 'ready' || section.dataset.phase === 'failed', 'the replay', 50000);
   equal(section.dataset.phase, 'ready', `the replay answered (${statusLines(section).join(' ')})`);
 }
@@ -395,11 +423,12 @@ const scriptedResult = (status, reason) => ({
 /**
  * The section alone in a div of the sandbox, with a scripted run.
  * @param {(source: any, signal: AbortSignal) => Promise<any>} run
+ * @param {import('../../generator/ui/replay-cache.js').ReplayCache} [cache]
  */
-function mountAlone(run) {
+function mountAlone(run, cache) {
   const host = h('div');
   sandbox.append(host);
-  const steps = mountGenerationSteps(host, { t, run, cellPxOf: (board) => thumbnailCellPx(board, 240) });
+  const steps = mountGenerationSteps(host, { t, run, cache, cellPxOf: (board) => thumbnailCellPx(board, 240) });
   return {
     steps,
     section: steps.element,
@@ -508,7 +537,12 @@ if (!ready) {
   await check('1 section: under Pieces to place, the replay matches, every stage has a heading, cards have two buttons', async () => {
     selectCard(SHARED, CANDIDATE);
     const section = sectionOf(SHARED);
+    const offer = revealButtonOf(section);
+    assert(offer.getAttribute('aria-expanded') === 'false' && offer.textContent === t('replay.reveal'), 'Show generation steps is offered');
+    equal([section.dataset.phase, section.querySelector('table.steps-table')?.hasAttribute('hidden'), statusLines(section)], ['idle', true, []],
+      'nothing is replayed or shown before the button is pressed');
     await waitSteps(section);
+    assert(offer.getAttribute('aria-expanded') === 'true' && offer.textContent === t('replay.hide'), 'the button says Hide generation steps once the steps are shown');
     assert(section.previousElementSibling?.matches('ul.detail-pieces'), 'the section follows the list of pieces to place');
     assert(section.parentElement?.matches('section.puzzle-detail'), 'the section is in the puzzle detail');
     const heading = /** @type {HTMLElement} */ (section.querySelector('h4.steps-title'));
@@ -622,7 +656,7 @@ if (!ready) {
     toggleOf(other).click();
     equal(toggleOf(other).getAttribute('aria-expanded'), 'true', 'the extra step opens');
     chooseView(section, 'compact');
-    equal(section.querySelectorAll('button[aria-expanded="true"]').length, 0, 'no step stays open when it is not shown');
+    equal(section.querySelectorAll('button.steps-toggle[aria-expanded="true"]').length, 0, 'no step stays open when it is not shown');
     equal(section.querySelectorAll('tr.steps-detail').length, 0, 'and no detail row');
     equal(statusLines(section), lines, 'the status line is unchanged');
   });
@@ -638,6 +672,9 @@ if (!ready) {
     equal(/** @type {HTMLInputElement} */ (section.querySelector('[data-field="steps-view-all"]')).checked, true, 'Every step is still chosen for the other puzzle');
     const watch = watchStatus(section);
     selectCard(ctx, CANDIDATE);
+    await new Promise(requestAnimationFrame);
+    equal(section.dataset.phase, 'idle', 'the puzzle shown before asks for its button again');
+    revealSteps(section);
     await new Promise(requestAnimationFrame);
     watch.stop();
     equal(section.dataset.phase, 'ready', 'the puzzle shown before is ready at once');
@@ -753,6 +790,48 @@ if (!ready) {
     }
   });
 
+  await check('6b saved at generation: the steps of new puzzles are saved in the background; hidden until shown, then at once, also after a reload', async () => {
+    const storage = replayStorage();
+    const mount = () => mountApp({ quantity: 2, app: { storage, random: () => SET_SEED, randomNumber: () => String((batchNumber += 1)) } });
+    let ctx = mount();
+    try {
+      chooseLevel(ctx, 'hard');
+      setField(ctx, '[data-field="seed"]', SET_SEED);
+      q(ctx, '[data-action="generate-set"]').click();
+      await waitFor(() => state(ctx).set !== null && state(ctx).job === null, 'the piece set', 50000);
+      await pressNewPuzzle(ctx);
+      const ids = state(ctx).puzzles.map((p) => p.id);
+      assert(ids.length >= 2, `${ids.length} puzzles`);
+      await waitFor(() => storage.replays.size >= ids.length, `the replays to be saved (${storage.replays.size} of ${ids.length})`, 50000);
+      selectCard(ctx, ids[0]);
+      let section = sectionOf(ctx);
+      equal([section.dataset.phase, revealButtonOf(section).getAttribute('aria-expanded')], ['idle', 'false'], 'hidden by default, although the steps are saved');
+      revealButtonOf(section).click();
+      equal(section.dataset.phase, 'ready', 'pressing the button shows the saved steps at once');
+      equal(statusLines(section), [t('replay.status.matched')], 'the saved steps are the verified ones');
+      ctx.destroy();
+
+      ctx = mount();
+      section = sectionOf(ctx);
+      equal([section.dataset.phase, revealButtonOf(section).getAttribute('aria-expanded')], ['idle', 'false'], 'hidden after a reload too');
+      revealButtonOf(section).click();
+      equal(section.dataset.phase, 'ready', 'the saved steps appear at once after a reload');
+      assert(stepRows(section).length > 0, 'its rows are there');
+
+      ctx.destroy();
+      storage.replays.clear();
+      ctx = mount();
+      section = sectionOf(ctx);
+      equal(section.dataset.phase, 'idle', 'hidden by default');
+      revealButtonOf(section).click();
+      equal(section.dataset.phase, 'loading', 'a replay that is no longer saved is made again');
+      await waitSteps(section);
+      equal(storage.replays.size, 1, 'and saved again');
+    } finally {
+      ctx.destroy();
+    }
+  });
+
   await check('9 another puzzle: its own signal is aborted; a puzzle shown before is not run again', async () => {
     /** @type {Array<{ source: any, signal: AbortSignal }>} */
     const calls = [];
@@ -767,19 +846,27 @@ if (!ready) {
     try {
       const { steps, section } = alone;
       steps.show(A, CONTEXT);
+      equal(calls.length, 0, 'nothing is run before the button is pressed');
+      revealSteps(section);
       equal(calls.length, 1, 'the first puzzle is run');
       steps.show(B, CONTEXT);
-      equal(calls.length, 2, 'the second puzzle is run');
+      equal(calls.length, 1, 'the second puzzle is not run before its button is pressed');
       assert(calls[0].signal.aborted, 'the first run\'s own signal is aborted');
+      revealSteps(section);
+      equal(calls.length, 2, 'the second puzzle is run');
       assert(!calls[1].signal.aborted && calls[1].source === B, 'the second run is for the second puzzle and live');
       pending[1].resolve(scriptedResult('matched', null));
       await waitFor(() => section.dataset.phase === 'ready', 'the second puzzle\'s steps', 5000);
       equal(stepRows(section).length, 4, 'four step rows');
       steps.show(A, CONTEXT);
+      revealSteps(section);
       equal(calls.length, 3, 'an aborted run is not kept: the first puzzle is run again');
       pending[2].resolve(scriptedResult('matched', null));
       await waitFor(() => section.dataset.phase === 'ready' && calls.length === 3, 'the first puzzle\'s steps', 5000);
       steps.show(B, CONTEXT);
+      equal([calls.length, section.dataset.phase, section.querySelector('table.steps-table')?.hasAttribute('hidden')], [3, 'idle', true],
+        'the second puzzle asks for its button again');
+      revealSteps(section);
       equal([calls.length, section.dataset.phase], [3, 'ready'], 'the second puzzle comes back at once, without a run');
     } finally {
       alone.dispose();
@@ -798,6 +885,7 @@ if (!ready) {
     try {
       const watch = watchStatus(alone.section);
       alone.steps.show(A, CONTEXT);
+      revealSteps(alone.section);
       await waitFor(() => alone.section.dataset.phase === 'ready', 'the replay to be submitted again', 5000);
       await new Promise(requestAnimationFrame);
       watch.stop();
@@ -813,6 +901,7 @@ if (!ready) {
     });
     try {
       waiting.steps.show(A, { rotation: 0, busy: true });
+      revealSteps(waiting.section);
       equal(statusLines(waiting.section), [t('replay.waiting')], 'the waiting text while a generation runs');
       waiting.steps.show(A, { rotation: 0, busy: false });
       equal(statusLines(waiting.section), [t('replay.loading')], 'the loading text once it ended');
@@ -835,6 +924,7 @@ if (!ready) {
       const { steps, section } = alone;
       const retry = /** @type {HTMLButtonElement} */ (section.querySelector('button[data-action="steps-retry"]'));
       steps.show(A, CONTEXT);
+      revealSteps(section);
       await waitFor(() => section.dataset.phase === 'failed', 'the failure', 5000);
       equal(statusLines(section), [t('replay.failed.worker')], 'the worker message');
       assert(!retry.hidden && retry.textContent === t('replay.retry'), 'Try again is shown');
@@ -844,6 +934,55 @@ if (!ready) {
       assert(retry.hidden, 'Try again is hidden again');
     } finally {
       alone.dispose();
+    }
+  });
+
+  await check('11b saved steps: always hidden until Show generation steps; a saved replay then appears at once; Hide collapses', async () => {
+    /** @type {Map<string, any>} */
+    const kept = new Map();
+    const cache = {
+      load: (/** @type {any} */ source) => kept.get(source.puzzle.id) ?? null,
+      save: (/** @type {any} */ source, /** @type {any} */ result) => void kept.set(source.puzzle.id, result),
+    };
+    let calls = 0;
+    const first = mountAlone(async () => {
+      calls += 1;
+      return scriptedResult('matched', null);
+    }, cache);
+    try {
+      first.steps.show(A, CONTEXT);
+      assert(revealButtonOf(first.section).getAttribute('aria-expanded') === 'false' && first.section.dataset.phase === 'idle', 'hidden by default');
+      await waitSteps(first.section);
+      equal([calls, kept.has(A.puzzle.id)], [1, true], 'the first visit runs the replay and saves it');
+    } finally {
+      first.dispose();
+    }
+    const later = mountAlone(async () => {
+      calls += 1;
+      return scriptedResult('matched', null);
+    }, cache);
+    try {
+      const watch = watchStatus(later.section);
+      later.steps.show(A, CONTEXT);
+      const toggle = revealButtonOf(later.section);
+      equal([later.section.dataset.phase, toggle.textContent, toggle.getAttribute('aria-expanded')], ['idle', t('replay.reveal'), 'false'],
+        'a saved replay is hidden by default too');
+      toggle.click();
+      equal([later.section.dataset.phase, toggle.textContent, toggle.getAttribute('aria-expanded')], ['ready', t('replay.hide'), 'true'],
+        'pressing the button shows it at once and the button says Hide');
+      watch.stop();
+      equal(calls, 1, 'the next visit runs nothing');
+      assert(!watch.texts.includes(t('replay.loading')), 'and shows no loading text');
+      equal(stepRows(later.section).length, 4, 'its four step rows');
+      toggle.click();
+      equal([later.section.dataset.phase, toggle.textContent, toggle.getAttribute('aria-expanded'), later.section.querySelector('table.steps-table')?.hasAttribute('hidden')],
+        ['idle', t('replay.reveal'), 'false', true], 'Hide generation steps collapses the section and the button offers to show again');
+      toggle.click();
+      equal([later.section.dataset.phase, toggle.textContent, calls], ['ready', t('replay.hide'), 1], 'showing again is instant, without a run');
+      later.steps.show(B, CONTEXT);
+      assert(revealButtonOf(later.section).getAttribute('aria-expanded') === 'false' && later.section.dataset.phase === 'idle', 'another puzzle is hidden again');
+    } finally {
+      later.dispose();
     }
   });
 

@@ -142,9 +142,12 @@ nhập gì và có thông báo cho biết.
 ### Các bước tạo đề
 
 Dưới **Các mảnh cần đặt**, bước 3 hiện **Các bước tạo đề**: trình tạo đề đã tạo đề đang hiển thị như thế nào, từng bước
-một. Phần này có trên mọi kích thước màn hình, kể cả điện thoại, và tự điền khi một đề được hiển thị. Khi đang tạo đề,
-nó chờ ("Các bước sẽ hiện khi việc tạo đề xong."), nên không bao giờ làm chậm việc tạo đề, và một đề đã xem trước đó
-hiện lại ngay. Bảng có một dòng cho mỗi bước, theo đúng thứ tự các bước đã diễn ra, dưới các giai đoạn của việc tạo đề:
+một. Phần này có trên mọi kích thước màn hình, kể cả điện thoại. Các bước của mỗi đề mà trình tạo đề làm ra được chuẩn bị ngầm
+ngay sau khi đề được tạo và giữ trong trình duyệt này (8 đề gần nhất), nên chúng hiện ngay, kể cả sau khi tải lại trang.
+Phần này ẩn cho đến khi bạn nhấn **Hiện các bước tạo đề** (nút khi đó đổi thành **Ẩn các bước tạo đề**, nhấn để thu gọn lại);
+đề khác lại bị ẩn. Đề chưa có các bước được giữ (ví dụ đề từ bản lưu cũ, đề nhập vào hoặc đề
+đã bị xóa các bước đã giữ) sẽ tạo các bước khi bạn nhấn nút. Khi đang tạo đề, nó chờ ("Các bước sẽ
+hiện khi việc tạo đề xong."), nên không bao giờ làm chậm việc tạo đề. Bảng có một dòng cho mỗi bước, theo đúng thứ tự các bước đã diễn ra, dưới các giai đoạn của việc tạo đề:
 số mảnh, cách bàn được chia thành mảnh, các mảnh, cách xếp các mảnh, các nhóm mảnh đặt sẵn mà việc tìm kiếm đã chấm
 điểm, bước sửa để lời giải trở nên duy nhất và đề hoàn chỉnh.
 

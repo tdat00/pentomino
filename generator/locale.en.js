@@ -257,6 +257,8 @@ export default Object.freeze({
 
   // Generation steps (step 3, under Pieces to place)
   'replay.title': 'Generation steps',
+  'replay.reveal': 'Show generation steps',
+  'replay.hide': 'Hide generation steps',
   'replay.loading': 'Replaying the generation…',
   'replay.failed': 'The steps could not be shown for this puzzle.',
   'replay.failed.worker': 'The background worker is not available, so the steps cannot be replayed here.',

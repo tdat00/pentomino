@@ -1047,7 +1047,8 @@ button .spinner {
   margin: 0.25rem 0 0;
 }
 
-button.solution-toggle {
+button.solution-toggle,
+button.steps-reveal {
   padding: 0.25rem 0.5rem;
   border: 0;
   background: transparent;
@@ -1056,7 +1057,9 @@ button.solution-toggle {
 }
 
 button.solution-toggle:hover:not(:disabled),
-button.solution-toggle[aria-pressed="true"] {
+button.solution-toggle[aria-pressed="true"],
+button.steps-reveal:hover,
+button.steps-reveal[aria-expanded="true"] {
   background: var(--gen-color-accent-soft);
 }
 
@@ -1130,12 +1133,22 @@ button.solution-toggle:disabled {
 
 /* Generation steps (step 3, under "Pieces to place"; owner decision P-OD14): the replay of the puzzle on show as a
    table. Below 768 px every row stacks its cells; the table keeps its roles (set in generation-steps.js). */
+/* The heading sits as far below "Pieces to place" as that one sits below the puzzle's board: the Show solution row
+   (36 px and its 0.25rem margin) and the 1rem above the heading, less the 6 px of the heading inside its row. */
 .generation-steps {
-  margin-top: 1.25rem;
+  margin-top: 3.125rem;
+}
+
+.steps-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
 }
 
 .steps-title {
-  margin: 0 0 0.5rem;
+  margin: 0;
   font-size: 1rem;
 }
 

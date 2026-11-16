@@ -113,7 +113,11 @@ puzzle (`runReplay`, `replayPuzzle`; [docs/design-detail.md](docs/design-detail.
 `replayPuzzle` task that the generation client sends on its auxiliary path. The Generator's Generation steps, in step 3
 under **Pieces to place**, are `generator/ui/replay-model.js` (no DOM: the views, the sentences, the pieces, techniques
 and score of each step, the stage groups, the score table and the controller that runs, keeps and resubmits the replay)
-and `generator/ui/generation-steps.js` (the section and its table); `generator/ui/puzzle-panel.js` mounts the section
+and `generator/ui/generation-steps.js` (the section, its **Show generation steps** button and its table);
+`generator/ui/replay-cache.js` makes the replay of every puzzle a generation adds in the background (`prefetch`, on the
+auxiliary path) and keeps it in the browser's storage (`saveReplay`, `loadReplay` and `hasReplay` of
+`core/browser/storage.js`, 8 entries, dropped before any progress when storage is full, by a content key that a new
+generator version changes); the section stays hidden until its **Show generation steps** / **Hide generation steps** button is pressed, and a kept replay then appears at once; `generator/ui/puzzle-panel.js` mounts the section
 under the pieces to place and gives it `replaySourceOf` of `generator/state.js`, and `generator/app.js` passes it the
 client's `replayPuzzle`. `tests/browser/replay.html` tests all of it in a real browser.
 `node tools\record-fixtures.mjs --replay-case --check` (and `--search`, `--create`, `--replace`) checks the replay
@@ -131,7 +135,8 @@ has the same keys and `{placeholders}`, which the i18n tests check. A new visibl
 - Nothing is uploaded: a puzzle travels in the `#p=` part of its link (one code per puzzle, separated by `;`), which
   the browser never sends to the server.
 - Both apps use `localStorage` keys under `pentomino:v1:` only, and never touch other keys of the same origin:
-  - Generator: its work (board, settings, piece sets and puzzles) in `gen:state`;
+  - Generator: its work (board, settings, piece sets and puzzles) in `gen:state`, and the replays of Generation steps
+    (`replay:<key>`, up to 8, a cache that is dropped first when storage is full);
   - Player: the progress of each puzzle (`progress:<fingerprint>`, up to 300, save times in `progress-index`); no pack
     is stored, a pack lives in its link;
   - both: the language (`lang`) and the theme (`theme`).

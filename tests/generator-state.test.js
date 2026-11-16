@@ -484,6 +484,18 @@ test('the set origin and the puzzle records are saved with the set, restored, an
   assert.deepEqual(Object.keys(serializeState(next)).includes('setOrigin'), false, 'a set without an origin stores none');
 });
 
+test('the key of a saved replay is the same after the state was saved and restored', async () => {
+  const { replayKeyOf } = await import('../generator/ui/replay-cache.js');
+  const state = originState();
+  const reloaded = restoreState(JSON.parse(JSON.stringify(serializeState(state))));
+  for (const puzzle of samplePuzzles) {
+    const before = replaySourceOf(state, puzzle.id);
+    const after = replaySourceOf(reloaded, puzzle.id);
+    assert.ok(before !== null && after !== null, 'both states list the puzzle');
+    assert.equal(replayKeyOf(after), replayKeyOf(before), puzzle.id);
+  }
+});
+
 test('storage from an older version has no origin; a damaged stored record is dropped and the puzzles stay', () => {
   const [first, second] = samplePuzzles;
   const old = /** @type {any} */ (JSON.parse(JSON.stringify(serializeState({ ...originState(), setOrigin: null, puzzleMade: {} }))));

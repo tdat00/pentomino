@@ -803,7 +803,7 @@ function sameSource(a, b) {
  * @param {ReplayResult} result
  * @returns {ReplayResult | null} Null for an unavailable result whose last step is not the final one.
  */
-function presented(result) {
+export function presented(result) {
   if (result.status !== 'unavailable') {
     return result;
   }
@@ -816,12 +816,13 @@ function presented(result) {
  * request, so a generation is never delayed), keeps the results of the puzzles shown before, resubmits a replay that
  * a new generation interrupted, and cancels only its own run (never a generation, never the client).
  * @param {{ run: (source: ReplaySource, signal: AbortSignal) => Promise<ReplayResult>,
- *   onChange: (state: StepsState) => void }} o
+ *   onChange: (state: StepsState) => void,
+ *   cache?: { load(source: ReplaySource): ReplayResult | null, save(source: ReplaySource, result: ReplayResult): void } }} o
  * @returns {{ show(source: ReplaySource | null): void, retry(): void, setView(view: 'compact' | 'all'): void,
  *   toggle(index: number): void, visible(): number[], getState(): StepsState, dispose(): void }}
  */
 export function createStepsController(o) {
-  const { run, onChange } = o;
+  const { run, onChange, cache: saved } = o;
   /** @type {StepsState} */
   let state = { phase: 'idle', source: null, result: null, failure: null, view: 'compact', expanded: null };
   /** @type {AbortController | null} */
@@ -899,6 +900,7 @@ export function createStepsController(o) {
       return;
     }
     remember(source, result);
+    saved?.save(source, result);
     update({ phase: 'ready', result, failure: null, expanded: null });
   }
 
@@ -960,6 +962,13 @@ export function createStepsController(o) {
         cache.delete(id);
         cache.set(id, hit);
         update({ phase: 'ready', source, result: hit.result, failure: null, expanded: null });
+        return;
+      }
+      const kept = saved?.load(source) ?? null;
+      const keptResult = kept !== null && Array.isArray(kept.steps) && kept.steps.length > 0 ? presented(kept) : null;
+      if (keptResult !== null) {
+        remember(source, keptResult);
+        update({ phase: 'ready', source, result: keptResult, failure: null, expanded: null });
         return;
       }
       update({ phase: 'loading', source, result: null, failure: null, expanded: null });

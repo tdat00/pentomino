@@ -1181,6 +1181,9 @@ function upgradeSaved(item) {
  * @typedef {object} StorageLike
  * @property {() => unknown} getGeneratorState
  * @property {(snapshot: unknown) => { ok: boolean }} setGeneratorState
+ * @property {(key: string) => unknown} [loadReplay] Saved replay of Generation steps (a scripted storage has none).
+ * @property {(key: string, result: unknown) => unknown} [saveReplay]
+ * @property {(key: string) => boolean} [hasReplay]
  */
 
 /**

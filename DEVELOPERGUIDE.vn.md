@@ -114,7 +114,9 @@ tools/          công cụ chỉ chạy bằng Node (.mjs): máy chủ, tạo đ
 client tạo đề gửi qua đường phụ. Phần Các bước tạo đề của trình tạo đề, ở bước 3 dưới **Các mảnh cần đặt**, gồm
 `generator/ui/replay-model.js` (không có DOM: các cách xem, câu mô tả, các mảnh, kỹ thuật và điểm của từng bước, các
 nhóm giai đoạn, bảng điểm và bộ điều khiển chạy, giữ lại và gửi lại việc chạy lại) và `generator/ui/generation-steps.js`
-(phần này và bảng của nó); `generator/ui/puzzle-panel.js` gắn phần này dưới các mảnh cần đặt và đưa cho nó
+(phần này, nút **Hiện các bước tạo đề** và bảng của nó); `generator/ui/replay-cache.js` chuẩn bị ngầm các bước của mọi đề mà một lần tạo thêm vào (`prefetch`, trên đường phụ) và giữ
+chúng trong bộ nhớ của trình duyệt (`saveReplay`, `loadReplay` và `hasReplay` của `core/browser/storage.js`, 8 mục, bị bỏ
+trước mọi tiến độ chơi khi bộ nhớ đầy, theo một khóa tính từ nội dung mà phiên bản trình tạo mới sẽ làm đổi); phần này luôn ẩn cho đến khi nhấn nút **Hiện các bước tạo đề** / **Ẩn các bước tạo đề**, rồi các bước đã giữ hiện ngay; `generator/ui/puzzle-panel.js` gắn phần này dưới các mảnh cần đặt và đưa cho nó
 `replaySourceOf` của `generator/state.js`, còn `generator/app.js` đưa cho nó hàm `replayPuzzle` của client.
 `tests/browser/replay.html` kiểm thử toàn bộ trên trình duyệt thật.
 `node tools\record-fixtures.mjs --replay-case --check` (và `--search`, `--create`, `--replace`) kiểm tra dữ liệu mẫu
@@ -134,7 +136,8 @@ gói.
   duyệt không bao giờ gửi lên máy chủ.
 - Cả hai ứng dụng chỉ dùng các khóa `localStorage` có tiền tố `pentomino:v1:`, và không bao giờ đụng tới các khóa khác
   của cùng nguồn gốc:
-  - trình tạo đề: công việc của bạn (bàn chơi, thiết lập, bộ mảnh và đề) trong `gen:state`;
+  - trình tạo đề: công việc của bạn (bàn chơi, thiết lập, bộ mảnh và đề) trong `gen:state`, và các lần chạy lại của Các bước
+    tạo đề (`replay:<key>`, tối đa 8, là bộ nhớ đệm và bị xóa trước tiên khi bộ nhớ đầy);
   - trình chơi: tiến độ của từng đề (`progress:<fingerprint>`, tối đa 300, thời điểm lưu trong `progress-index`);
     không lưu gói nào, gói nằm trong liên kết của nó;
   - cả hai: ngôn ngữ (`lang`) và giao diện (`theme`).

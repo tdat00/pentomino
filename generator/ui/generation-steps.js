@@ -30,12 +30,13 @@ let sectionCount = 0;
  * @param {HTMLElement} host The puzzle detail; the section is appended as its last child.
  * @param {{ t: (key: string, params?: Record<string, unknown>) => string,
  *   run: (source: ReplaySource, signal: AbortSignal) => Promise<ReplayResult>,
+ *   cache?: Pick<import('./replay-cache.js').ReplayCache, 'load' | 'save'>,
  *   cellPxOf: (board: { width: number, height: number }) => number }} options
  * @returns {{ element: HTMLElement, show(source: ReplaySource | null, context: { rotation: number, busy: boolean }): void,
  *   refreshTexts(): void, dispose(): void }}
  */
 export function mountGenerationSteps(host, options) {
-  const { t, run, cellPxOf } = options;
+  const { t, run, cellPxOf, cache } = options;
   const doc = host.ownerDocument;
   sectionCount += 1;
   const uid = `generation-steps-${sectionCount}`;
@@ -64,6 +65,10 @@ export function mountGenerationSteps(host, options) {
   const retry = /** @type {HTMLButtonElement} */ (fixed(el('button', {
     className: 'steps-retry', attrs: { type: 'button', hidden: '' }, dataset: { action: 'steps-retry' },
   }), 'replay.retry'));
+  // Show generation steps / Hide generation steps, like Show solution; its text follows `expanded` (see `syncToggle`).
+  const reveal = /** @type {HTMLButtonElement} */ (el('button', {
+    className: 'steps-reveal', attrs: { type: 'button', hidden: '', 'aria-expanded': 'false' }, dataset: { action: 'steps-reveal' },
+  }));
   /**
    * @param {'compact' | 'all'} value
    * @param {string} key
@@ -90,13 +95,17 @@ export function mountGenerationSteps(host, options) {
     ...COLUMNS.map((key) => fixed(el('th', { attrs: { scope: 'col', role: 'columnheader' } }), key))))));
   const section = el('section', {
     className: 'generation-steps', dataset: { role: 'generation-steps', phase: 'idle', result: '' },
-  }, title, status, retry, viewSet, table);
+  }, el('div', { className: 'steps-head' }, title, reveal), status, retry, viewSet, table);
   host.append(section);
 
-  const controller = createStepsController({ run, onChange: (state) => draw(state) });
+  const controller = createStepsController({ run, cache, onChange: (state) => draw(state) });
   /** @type {StepsState} */
   let current = controller.getState();
   let context = { rotation: 0, busy: false };
+  // The steps are shown for the puzzle on show only after the player pressed the button; the player can hide them again.
+  /** @type {ReplaySource | null} */
+  let shownSource = null;
+  let expanded = false;
   let drawCount = 0;
   let statusKey = '';
   /** @type {ReplayResult | null} */
@@ -384,6 +393,33 @@ export function mountGenerationSteps(host, options) {
   }
 
   retry.addEventListener('click', () => controller.retry());
+  reveal.addEventListener('click', () => {
+    if (shownSource === null) {
+      return;
+    }
+    expanded = !expanded;
+    place(shownSource);
+  });
+
+  function syncToggle() {
+    reveal.textContent = t(expanded ? 'replay.hide' : 'replay.reveal');
+    reveal.setAttribute('aria-expanded', String(expanded));
+  }
+
+  /**
+   * The steps are hidden for every puzzle until the player shows them (a saved replay then appears at once).
+   * @param {ReplaySource | null} source
+   */
+  function place(source) {
+    const changed = source === null || shownSource === null || shownSource.set !== source.set || shownSource.puzzle.id !== source.puzzle.id;
+    if (changed) {
+      expanded = false;
+    }
+    shownSource = source;
+    reveal.hidden = source === null;
+    syncToggle();
+    controller.show(source !== null && expanded ? source : null);
+  }
 
   return {
     element: section,
@@ -396,7 +432,7 @@ export function mountGenerationSteps(host, options) {
       const rotationChanged = next.rotation !== context.rotation;
       context = { rotation: next.rotation, busy: next.busy };
       const before = drawCount;
-      controller.show(source);
+      place(source);
       if (drawCount === before && busyChanged && current.phase === 'loading') {
         drawStatus(statusLines(current));
       }
@@ -410,6 +446,7 @@ export function mountGenerationSteps(host, options) {
       for (const [node, key] of fixedTexts) {
         node.textContent = t(key);
       }
+      syncToggle();
       openBoard?.view.svg.setAttribute('aria-label', t('replay.board'));
       statusKey = '';
       drawnResult = null;
