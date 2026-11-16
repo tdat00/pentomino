@@ -14,12 +14,13 @@
 ## Goal & business context
 
 MP18a replaced the card button "How it was made" and its dialog by the section "Generation steps" in step 3, under
-"Pieces to place", on every screen size (owner decision P-OD14, with Q1 (a), a small board in an opened row, and Q2 (a),
-a puzzle without a record keeps the section). This task proves it in a real browser: the section and its rows, opening
-a step, the two views, the cache, the keyboard and a screen reader's view of the table, the phone layout, a puzzle
-without a record, the language switch, and that the replay never disturbs a generation. It runs gate GB-P5 over the
-pages the change touches, writes a short record with the amended release notes and the amendments of the description of
-pull request #10 (`rating-v3` → `main`, open), and closes MP17's named item about phones.
+"Pieces to place", on every screen size (owner decision P-OD14, with Q1 (a), a small board in an opened row, Q2 (a), a
+puzzle without a record keeps the section, and Q3 (a), a puzzle whose record is only partly there shows its stored
+puzzle only). This task proves it in a real browser: the section and its rows, opening a step, the two views, the
+cache, the keyboard and a screen reader's view of the table, the phone layout, a puzzle without a record, the language
+switch, and that the replay never disturbs a generation. It runs gate GB-P5 over the pages the change touches, writes a
+short record with the amended release notes and the amendments of the description of pull request #10 (`rating-v3` →
+`main`, open), and closes MP17's named item about phones.
 
 ## Scope
 
@@ -59,10 +60,10 @@ pull request #10 (`rating-v3` → `main`, open), and closes MP17's named item ab
   and `CHECK-END <PASS|FAIL> <seconds> s <name>` after it ("The check instrumentation"), and the setup of `replay.html`
   logs `SETUP-START <name>` and `SETUP-END <PASS|FAIL> <seconds> s <name>` ("The frame"). The runner's watchdog
   ("Running the pages") fails a run as soon as a check reaches 60 s or the setup 240 s, by the runner's clock or the
-  page's, or a check starts before the previous one ended, and stops that run's Edge by PID at once (the later checks
-  do not run, and nothing waits for the page bound); a check or the setup still open when the page ends, or a page that
-  ran no check, fails the run too. `browser.json` names the check (`watchdog`, `checks`). Each page stays within the
-  runner's 540 s bound.
+  page's, or a check starts before the previous one ended, or an end names another check, and stops that run's Edge by
+  PID at once (the later checks do not run, and nothing waits for the page bound); a check or the setup still open when
+  the page ends, or a page that ran no check, fails the run too. `browser.json` names the check (`watchdog`, `checks`).
+  Each page stays within the runner's 540 s bound.
 - **D35 guard.** `git --no-pager diff --stat 0ed8800 -- core tools player tests/fixtures` and
   `git --no-pager status --short -- core tools player tests/fixtures` print nothing, before the gate and before the
   reply.
@@ -124,8 +125,8 @@ button's `aria-controls`) right after its row, with `div.steps-board` (a thumbna
 (`table.pm-replay-table` with a caption, or `p.pm-replay-noscore`). `mountGenerationSteps(host, { t, run, cellPxOf })`
 → `{ element, show(source, { rotation, busy }), refreshTexts(), dispose() }` mounts it alone (Part B). The cards have
 the buttons `select` and `remove`; there is no dialog and no `button.card-replay`. The controller presents an
-`unavailable` result as its final step alone (MP18a, controller rule 4; P-OD14 Q2 (a)), so such a puzzle has one row
-and six "Steps not available for this puzzle." stages, also when the engine replayed some of its stages.
+`unavailable` result as its final step alone (MP18a, controller rule 4; P-OD14 Q2 (a) and Q3 (a)), so such a puzzle
+has one row and six "Steps not available for this puzzle." stages, also when the engine replayed some of its stages.
 
 ### The browser page (`tests/browser/replay.html`, `tests/browser/replay.js`)
 
@@ -382,10 +383,11 @@ const scriptedResult = (status, reason) => ({
     - `scriptedResult('mismatch', 'rating')`: `statusLines` `[t('replay.status.mismatch', { field:
       t('replay.field.rating') })]`, groups 4 to 6 `data-mark="notAvailable"`;
     - `scriptedResult('unavailable', 'no-record')` (stages 1 to 3 and the final step, as the engine replays a puzzle
-      without its record; P-OD14 Q2 (a)): `data-result="unavailable"`, `statusLines` `[t('replay.status.unavailable'),
-      t('replay.reason.no-record')]`, exactly one `tr.steps-row` (`data-index="0"`, `data-kind="final"`, `labelOf`
-      `t('replay.row', { n: 1 })`), and the stage rows of groups 1 to 6 have `data-mark="notAvailable"` and the mark
-      text `t('replay.notAvailable')`; after `chooseView(section, 'all')`, still that one row and those six marks.
+      without its record; P-OD14 Q2 (a) and Q3 (a)): `data-result="unavailable"`, `statusLines`
+      `[t('replay.status.unavailable'), t('replay.reason.no-record')]`, exactly one `tr.steps-row` (`data-index="0"`,
+      `data-kind="final"`, `labelOf` `t('replay.row', { n: 1 })`), and the stage rows of groups 1 to 6 have
+      `data-mark="notAvailable"` and the mark text `t('replay.notAvailable')`; after `chooseView(section, 'all')`, still
+      that one row and those six marks.
 
     In all three, the final row's `td.steps-what` reads `t('replay.step.final.stored')`.
 13. **"13 no CSP violations and no uncaught errors"**: the two lists are empty.
@@ -498,13 +500,16 @@ browser runner" of `tasks/difficulty-v3/MP16b-dialog-wiring-and-documents.md`, w
 a check of more than a minute could pass. The differences, and nothing else:
 
 - the header comment and `LIMIT_MS` (`CHECK` 60,000 ms, `SETUP` 240,000 ms);
-- `connect(endpoint, onLog)` gives every console line of the page to `onLog`;
+- `connect(endpoint, onLog)` gives every console line of the page, whole, to `onLog` (`logs`, and so `lastLogs`, keep
+  the first 300 characters of each line, as before);
 - `createWatchdog(stop)`, one per run: `CHECK-START <name>` and `SETUP-START <name>` start a timer of their limit,
   `CHECK-END <PASS|FAIL> <seconds> s <name>` and `SETUP-END …` stop it and record `{ kind, name, result, seconds,
   pageSeconds }` (the runner's seconds and the page's) in `checks`. The run fails, and `stop` stops its Edge by PID at
   once, when a timer fires (`result` `TIMEOUT`), when either duration reaches the limit (the page's own 60 s timeout of
-  `replay.js` included), when a start comes while another is open, or when an end has no start; it also fails, with
-  Edge left to the cleanup, when a check or the setup is still open as the page ends, or when the page ran no check;
+  `replay.js` included), when a start comes while another is open, or when an end does not match the open check (the
+  same kind, and after `s ` exactly the open check's name, or for a `FAIL` that name followed by ` :: ` and the error;
+  SA2's final review of 2026-11-16); it also fails, with Edge left to the cleanup, when a check or the setup is still
+  open as the page ends, or when the page ran no check;
 - `runPage(url, phase, out, watchdog)` races every CDP call of its loop against the watchdog (a late answer is
   dropped), stops polling at once when the watchdog fails, then skips the final screenshot and the viewport, and writes
   `browser.json` in every case that reaches its end, with `watchdog` (the reason, or null) and `checks`;
@@ -522,8 +527,11 @@ PID, removes the profile (also on failure), and writes one evidence directory pe
 stop someone else's process. The pack author built this block from MP16b's, checked it with `node --check` and checked
 `createWatchdog` on scripted console lines (a passing and a failing check, a check and a setup at their limits, a
 page-reported limit, a start while a check is open, an end without a start, a check open when the page ends, a page
-without checks); it was not run against Edge (the Sudoku gate held the machine). If it fails on this machine for a
-reason that is not a page's, stop with `QUESTION:` and its output; never change its limits.
+without checks; an end that names another check, which fails the run and stops Edge once, a longer name, a ` :: ` after
+a `PASS`, an end of the other kind; matching names, matching `FAIL` names followed by ` :: ` and the error, and a
+350-character name passed through `connect`, which `logs` keeps at 300 characters); it was not run against Edge (the
+Sudoku gate held the machine). If it fails on this machine for a reason that is not a page's, stop with `QUESTION:` and
+its output; never change its limits.
 
 ```js
 // @ts-check
@@ -533,9 +541,10 @@ reason that is not a page's, stop with `QUESTION:` and its output; never change 
 // (<html data-stage="key-<name>">, "Shift+" for a shifted key), saves the screenshots it asks for
 // (data-stage="shot-<name>"), and writes the evidence of each page and phase to its own directory. The watchdog reads
 // the page's console: "CHECK-START <name>" and "CHECK-END <PASS|FAIL> <seconds> s <name>" around each check (limit
-// 60 s), "SETUP-START <name>" and "SETUP-END <PASS|FAIL> <seconds> s <name>" around a setup (limit 240 s). A check or
-// a setup that reaches its limit, by this runner's clock or by the page's, or that starts while another is open, fails
-// the run and stops its Edge at once; one still open when the page ends, or a page that ran no check, fails the run.
+// 60 s), "SETUP-START <name>" and "SETUP-END <PASS|FAIL> <seconds> s <name>" around a setup (limit 240 s); an end
+// names the open check, and a FAIL may add " :: <error>". A check or a setup that reaches its limit, by this runner's
+// clock or by the page's, or that starts while another is open, and an end that does not name the open check, fail the
+// run and stop its Edge at once; one still open when the page ends, or a page that ran no check, fails the run.
 // Run it from the repository root:
 //   node tests/artifacts/<task>/pages.mjs --task <id> --http <port> --cdp <port> --evidence <dir> <page>[:<phase>] ...
 // phase: main (1280 x 900, the default), keys (1280 x 900, "?phase=keys"), narrow (390 x 844 touch, "?phase=narrow").
@@ -596,7 +605,10 @@ async function busy(/** @type {number} */ port) {
   }
 }
 
-/** One CDP connection: calls with a 30 s timeout, the page's errors and console lines (each also given to onLog). */
+/**
+ * One CDP connection: calls with a 30 s timeout, the page's errors and console lines (the first 300 characters of
+ * each); every console line also goes, whole, to onLog.
+ */
 async function connect(/** @type {string} */ endpoint, /** @type {(line: string) => void} */ onLog = () => {}) {
   const socket = new WebSocket(endpoint);
   let serial = 0;
@@ -614,8 +626,8 @@ async function connect(/** @type {string} */ endpoint, /** @type {(line: string)
       if (m.error) item.reject(new Error(JSON.stringify(m.error)));
       else item.resolve(m.result);
     } else if (m.method === 'Runtime.consoleAPICalled') {
-      const line = m.params.args.map((/** @type {any} */ a) => a.value ?? a.description ?? '').join(' ').slice(0, 300);
-      logs.push(line);
+      const line = m.params.args.map((/** @type {any} */ a) => a.value ?? a.description ?? '').join(' ');
+      logs.push(line.slice(0, 300));
       onLog(line);
     } else if (m.method === 'Runtime.exceptionThrown' || m.method === 'Network.loadingFailed'
       || (m.method === 'Log.entryAdded' && m.params.entry.level === 'error')
@@ -705,8 +717,11 @@ function createWatchdog(stop) {
         const kind = /** @type {'CHECK' | 'SETUP'} */ (start[1]);
         open = { kind, name: start[2], started: Date.now(), timer: setTimeout(() => close('TIMEOUT', null), LIMIT_MS[kind]) };
       } else if (end !== null) {
-        if (open === null || open.kind !== end[1]) {
-          fail(`an end without its start: ${line.slice(0, 160)}`, true);
+        const tail = line.slice(end[0].length);
+        const matchesName = open !== null && (tail === open.name
+          || (end[2] === 'FAIL' && tail.startsWith(`${open.name} :: `)));
+        if (open === null || open.kind !== end[1] || !matchesName) {
+          fail(`an end without its matching start: ${line.slice(0, 160)}`, true);
           return;
         }
         close(end[2], Number(end[3]));
@@ -965,11 +980,11 @@ English, CRLF, no BOM, relative links only. Sections:
    > decisive guesses it used, and its score, in key steps or every step; opening a step shows a small board of that step
    > and its full score table, and the main board keeps showing the puzzle. It is there on every screen size, phones
    > included; it fills in by itself when a puzzle is shown, waits while a generation runs and never delays one, and a
-   > puzzle shown before comes back at once. A puzzle without a record of how it was made (an imported puzzle, or one
-   > made by an earlier version) keeps the section, which says that its steps are not available and shows the stored
-   > puzzle with its score. Packs written by this version carry a small optional provenance record
-   > (`generation.setOrigin`, `generation.made`) for it. A replay is bounded by work, not by a clock; one measurement on
-   > a 20 x 18 Nightmare puzzle took 1.7 seconds.
+   > puzzle shown before comes back at once. A puzzle whose steps cannot all be replayed (an imported puzzle, one made
+   > by an earlier version, or one made on a piece set saved by an earlier version) keeps the section, which says that
+   > its steps are not available and shows the stored puzzle with its score. Packs written by this version carry a small
+   > optional provenance record (`generation.setOrigin`, `generation.made`) for it. A replay is bounded by work, not by
+   > a clock; one measurement on a 20 x 18 Nightmare puzzle took 1.7 seconds.
 
 8. **Amendments of the description of PR #10** (for the orchestrator, who applies them after accepting this task; each
    is "replace … with …", quoted exactly; `<…>` marks a value the orchestrator fills):
@@ -988,7 +1003,7 @@ English, CRLF, no BOM, relative links only. Sections:
       - **Where:** in step 3 of the Generator, under "Pieces to place", on every screen size, phones included.
       - **What it shows:** one row per step, under its stage (piece count, carving, pieces, layout, rating clue sets, uniqueness repair, the final puzzle), in key steps or every step: the step's sentence, its pieces, the deduction rules it used (by name, with counts) and its decisive guesses, and its score (in or outside the band of the requested level, an estimate, refused or unrateable).
       - **Opening a step:** a small board of that step and its full score table; the main board keeps showing the puzzle.
-      - **Puzzles without a record** (imported, or made by an earlier version): the section stays and says that the steps are not available, with one row for the stored puzzle and its score.
+      - **Puzzles whose steps cannot all be replayed** (imported, made by an earlier version, or made on a piece set saved by an earlier version): the section stays and says that the steps are not available, with one row for the stored puzzle and its score.
       - **Provenance:** packs written by this version carry a small optional provenance record (`generation.setOrigin`, `generation.made`) for it.
       - **Bounds:** a replay is bounded by work, not by a clock. It runs by itself when a puzzle is shown, waits while a generation runs and is kept for the puzzles shown before. One 20x18 Nightmare puzzle replayed in 1.7 s.
       ```
@@ -1062,7 +1077,7 @@ Exclusive ownership while this task runs: the files above; scratch under `tests/
 | MP18b-B01 | In a real browser, step 3 shows the section under "Pieces to place" with the steps of the puzzle on show, their pieces, techniques (named rules) and scores; opening a step shows its board and score table and leaves the main board as it was | checks 1–3, 8 |
 | MP18b-B02 | The steps can be read on a phone: the section is there at 390 px, its rows stack with their column names, nothing scrolls sideways, targets are 36 px | check N |
 | MP18b-B03 | The table works with the keyboard and keeps its table roles for a screen reader; opening keeps the focus; the status line does not change on opening or on a view switch | checks K, N, 3, 4 |
-| MP18b-B04 | A puzzle whose steps cannot be replayed keeps the section, says why its steps are not available and shows its stored puzzle and score in one row, also when the engine replayed some of its stages (Q2 (a)) | checks 6, 12 |
+| MP18b-B04 | A puzzle whose steps cannot be replayed keeps the section, says why its steps are not available and shows its stored puzzle and score in one row, also when the engine replayed some of its stages (Q2 (a), Q3 (a)) | checks 6, 12 |
 | MP18b-B05 | The replay never disturbs a generation: another puzzle cancels only the replay, a new generation submits it again, a failure offers Try again, a puzzle shown before is not replayed again | checks 5, 9–11 |
 | MP18b-B06 | The cards have their select button and ✕ only; the dialog is gone | check 1; `generator-flow`; `acceptance` |
 | MP18b-B07 | The texts follow the language, with the step kept open | check 7 |
