@@ -41,7 +41,8 @@ applied. Phase 2 (N-V4-07) ports this proven contract to production instead of d
 ## Scope
 
 - Change: `tools/ig-proto/variants/v4.json` (edits `pv-1` to `pv-17` appended to `edits`), `tools/ig-proto/self-test.mjs`
-  (helpers and four cases appended to `v4Cases`), `tools/ig-proto/README.md` (a subsection).
+  (helpers and four cases appended to `v4Cases`; two asserts in T02b's case `v4: throwing observers propagate`, step 3),
+  `tools/ig-proto/README.md` (a subsection).
 - Do not change: everything else. Guards: `node tools\ig-proto\firewall.mjs check --task V4-T02c --label frozen`,
   expected `files unchanged`; `git status --short -- tools/ig-proto/variants/files core generator tests`, expected no
   output.
@@ -115,11 +116,17 @@ applied. Phase 2 (N-V4-07) ports this proven contract to production instead of d
    - `v4Generation(generation, versions)`: a deep copy of `generation` whose `setOrigin.versions` is `versions` and whose
      `made` entries are `asV4(entry, versions)`.
    - `cancelTrap = () => { throw new Error('isCancelled was reached'); }`.
-3. **Cases** (after T02b's four), with the Tests table's inputs and expectations:
+3. **Cases** (after T02b's five), with the Tests table's inputs and expectations:
    1. `v4: provenance versions per arm`.
    2. `v4: provenance reader by the record's own algo`.
    3. `v4: old and new records load and save`.
    4. `v4: version and table refusal before any work`.
+
+   And in T02b's case `v4: throwing observers propagate` (ruling of 2026-11-17, T02b's report: a throw must end the
+   call at once), two asserts: right after `assert(rc.error === boomC, ...)`,
+   ``assert(charges === 3, `charge: ${charges} charges, expected 3 (the throw ends the call at once)`);``; right after
+   `assert(rr.error === boomR, ...)`,
+   ``assert(events === 2, `record: ${events} events, expected 2 (the throw ends the call at once)`);``.
 4. **README.md**: a subsection "### Provenance of the `gen-v4` prototype" in T02a's section: the algo id rule, the
    seven keys, `igPrior`, the per-algo bounds and key sets, the comparison, the rule that a receipted variant is never
    edited, and that the `base`, `instr`, `log` and `p1p5*` readers stay frozen (they drop a `gen-v4` record with a
@@ -137,6 +144,7 @@ kind `candidate`, in puzzle order, of the fixture's `packs[0].generation.made`; 
 | same | `v4: provenance reader by the record's own algo` | `P` of the `v4` tree on: (a) `m3`; (b) `m4`; (c) `m4` with `igPrior` 5, 0, 129 and `'5'`; (d) `m4` without `igPrior`; (e) `m4` with `versions` without `screenTable`; (f) `m3` with `igPrior: null` after `skips`; (g) `m3` with `versions.priorTable: 'prior-v1'`; (h) `m3` with `skips: { subsets: [2191], repairs: [] }`, `m4` with the same skips, `m4` with `subsets: [2192]`, `m4` with `repairs: [64]`; (i) `P('setOrigin', o)` for the fixture's `packs[0].generation.setOrigin` `o`, for `o` with `versions: V`, and for `o` with `versions: { ...L, algo: V.algo }`; (j) `P` of the `log` tree on `m4`; (k) `m3` with `versions.algo` `'gen-v40'`, and the same with `versions: { ...V, algo: 'gen-v40' }`; (l) `m4` with `versions.algo` `'gen-v4'`, and `m3` with `versions.algo` `'gen-v4'`; (m) `m4` with `versions.algo` `'gen-v4-proto:'` | (a) `null`; (b) `null`; (c) `null`, then three times `'igPrior must be null or an integer from 1 to 128'`; (d) `'missing field "igPrior"'`; (e) `'versions: missing field "screenTable"'`; (f) `'unknown field "igPrior"'`; (g) `'versions: unknown field "priorTable"'`; (h) `'skips.subsets[0] must be an integer from 0 to 2127'`, `null`, `'skips.subsets[0] must be an integer from 0 to 2191'`, `'skips.repairs[0] must be an integer from 0 to 63'`; (i) `null`, `null`, `'versions: missing field "priorTable"'`; (j) `'unknown field "igPrior"'`; (k) `null` (a foreign five-key record stays valid), then `'versions: unknown field "priorTable"'`; (l) `null` (the production id has the seven-key shape), then `'missing field "igPrior"'` (a `gen-v4` candidate needs the field); (m) `'unknown field "igPrior"'` (an empty experimental suffix is not the family) |
 | same | `v4: old and new records load and save` | with the `v4` tree's `validatePack`, `serializePack` and `parsePack`: (a) each fixture pack as it is; (b) pack 0 with `generation` replaced by `v4Generation(generation, V)`; (c) pack 0 with `igPrior: null` added after `skips` to the `m3` entry only; (d) the pack of (b) read by the `log` tree's `validatePack` | (a) and (b): `ok` true, no warning with code `provenance-ignored`, `value.generation.setOrigin` and `value.generation.made` deep-equal the input's; then `parsePack(serializePack(value))` is `ok` with no `provenance-ignored` warning and the same `setOrigin` and `made`; (c) `ok` true, exactly one `provenance-ignored` warning, its path starts with `generation.made`, and that entry is absent from `value.generation.made`; (d) `ok` true, one `provenance-ignored` warning for `generation.setOrigin` and one per candidate entry, and no `setOrigin` in the value |
 | same | `v4: version and table refusal before any work` | `R(tree, gen)` = `runReplay({ ...fixtureInput(tree, 1, 0), generation: gen }, { ws, scratch }, REPLAY, cancelTrap)` with the tree's `replay.js`, its `policy.REPLAY` and its workspaces; `g3` = the fixture's pack 1 `generation`; `g4 = v4Generation(g3, V)`; in the `v4` tree: (i) `R(v4, g4)`; (ii) `g4` with `priorTable: 'prior-v0'` in `setOrigin.versions` and in every candidate's `versions`; (iii) `g4` without `setOrigin` and with `screenTable: 'w095'` in the puzzle's `made` entry; (iv) `g4` without `setOrigin`; (v) `g3`; and (vi) `R(v4-w095, g4)` in the `v4-w095` tree | (i) throws an error with message `isCancelled was reached` (the record passes the preflight); (ii) returns `status: 'unavailable'`, `reason: 'set-versions'`, `stages` `{ set: 'unavailable', candidate: 'unavailable', final: 'not-compared' }`, `work: 0`; (iii) `status: 'unavailable'`, `reason: 'no-set-origin'`, `stages.candidate: 'unavailable'`, `work: 0`; (iv) throws `isCancelled was reached` (the control of iii: only the screen table differs); (v) `status: 'unavailable'`, `reason: 'set-versions'`, `work: 0`; (vi) `status: 'unavailable'`, `reason: 'set-versions'`, `work: 0` |
+| same | `v4: throwing observers propagate` (T02b's case with the two asserts of step 3) | as in T02b | as in T02b, and after the calls `charges` is 3 and `events` is 2 |
 
 The expected values follow from `core/engine/pack.js:1084-1110, 1147-1300` and `core/engine/replay.js:305-363, 531-555`
 with the edits of step 1. If a case fails, report the actual values with the input (`QUESTION:`); never change an
@@ -183,6 +191,7 @@ expected value.
 | T02c-T03 | Reader copies and the save keep both shapes | case 3 | self-test output |
 | T02c-T04 | The 17 edits apply exactly once on the `log` tree | `check-edits` | command output |
 | T02c-T05 | Nothing else changed; formats | guards; `npm run check` | command output |
+| T02c-T06 | A `charge` or `record` throw ends the call at once (T02b's case 2, ruling of 2026-11-17) | the two asserts of step 3 | self-test output |
 
 ## Checklist (the developer confirms every item in the final report)
 
