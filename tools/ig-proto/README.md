@@ -44,9 +44,10 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `pm2.mjs`, `pm2-worker.mjs` | PM2 (IGP-06): `run` (locked) and `summarize` (unlocked): where canonical rating time goes on 10x10 and 12x12 Nightmare, by phase, category and function, from a supervised profiled worker; the worker file also holds the classification and reduction the host reuses |
 | `summary.mjs` | the estimate-vs-measured summary (IGP-07): reads the records of IGP-00 to IGP-06 and IGP-03h and the invocation logs, writes `summary.json|md` (rows R00 to R33 with their descriptive verdicts, R31's Projection, the round's counted machine time, the later-round list and the open plan-author questions); unlocked, generates and times nothing |
 | `firewall.mjs` | snapshot and check of the production files |
+| `snapshot.mjs` | hash manifest of the frozen source snapshot: `record` (once) and `verify` (task pack v4, V4-T01a; see "Frozen source") |
 | `boards.mjs` | writes or checks `data/boards-v1.json`, the frozen board catalogue |
 | `self-test.mjs` | self-tests, run under the lock |
-| `lib/paths.mjs` | roots, labels, constants, flag parser |
+| `lib/paths.mjs` | roots, labels, constants, the source kind (`SOURCE_KIND`, `sourceRoot`), flag parser |
 | `lib/records.mjs` | CRLF writers, the `meta` block, the banner, hashes, the harness identity |
 | `lib/budget.mjs` | invocation totals and budget decisions |
 | `lib/tree.mjs` | tree builder (API and CLI) |
@@ -100,7 +101,7 @@ node tools\ig-proto\arm.mjs run --task T --arm A --shard S --variant V --workers
 node tools\ig-proto\arm.mjs publish --task T --arm A --label provisional --source-label <label>
 node tools\ig-proto\arm.mjs status --task T --arm A --shard S --label provisional [--check-rows]
 node tools\ig-proto\identity.mjs --task IGP-00 --arms base,log --label provisional
-node tools\ig-proto\self-test.mjs --label selftest [--only 1,3] [--proto] [--p6] [--task T]   # cases that generate or rate need the lock; --p6 runs every case
+node tools\ig-proto\self-test.mjs --label selftest [--only 1,3] [--proto] [--p6] [--frozen] [--task T]   # cases that generate or rate need the lock; --p6 runs every case; --frozen runs only the frozen-source group (unlocked)
 node tools\ig-proto\fit-prior.mjs [--replace]       # recomputes data\prior-v1.json; exit 1 when it differs (unlocked)
 node tools\ig-proto\verify.mjs --task T --arm A[,A2] --label provisional --source-label <label> --horizon-s 285   # locked
 node tools\ig-proto\compare.mjs --task T --pairs before:after --reference mp12b1 --label provisional                # unlocked
@@ -461,3 +462,72 @@ instruction); a cell the frozen source no longer offers runs as a "diagnostic of
 - `--common-seeds`, with `--reproduce`: only the seeds both arms ran are compared; the seeds the reference never ran are listed
   as not compared and do not fail (IGP-03h's `main` runs reps 2 to 5, IGP-01's after arm reps 0 to 2).
 - `--out-dir <folder>` writes `compare.json|md` to that folder instead of the task's evidence folder (IGP-03h's `c5/`).
+
+## Frozen source (task pack v4)
+
+The frozen round of `tasks/improve-generating-v4/` measures the difficulty-v3 merge `3fc65f4`, whatever later commits
+change in the working tree (D-V4-01). The harness reads that source from a verified snapshot folder, never from the
+worktree, whenever it runs with `--label frozen`.
+
+- **The snapshot** is `tests/artifacts/ig-proto/frozen-source/` (git-ignored): `core/`, `tools/` and `package.json` of
+  `3fc65f4`. The developer extracts it once with read-only git (D-V4-12; the harness runs no git) into the absent
+  folder, and records its hash manifest, the committed evidence
+  `docs/improve-generating/evidence/frozen/V4-T01a/snapshot-manifest.json` (hash rule `lf-text`: SHA-256 of every text
+  file with LF line ends, of a file with a NUL byte as it is, so the manifest does not depend on the line endings of the
+  extraction; entries sorted by path, and the digest of that list). From the repository root:
+
+  ```powershell
+  $dir = 'tests\artifacts\ig-proto\frozen-source'
+  $manifest = 'docs\improve-generating\evidence\frozen\V4-T01a\snapshot-manifest.json'
+  if ((Test-Path $dir) -and (Test-Path $manifest)) {
+    node tools\ig-proto\snapshot.mjs verify
+    if ($LASTEXITCODE -ne 0) { throw ('STOP: the snapshot differs from its manifest (exit ' + $LASTEXITCODE + '); report the output') }
+  } elseif (Test-Path $dir) {
+    throw 'STOP: an unverified snapshot folder exists without its manifest; report it; do not reuse, merge or delete it'
+  } elseif (Test-Path $manifest) {
+    throw 'STOP: the manifest exists without its folder; report it'
+  } else {
+    New-Item -ItemType Directory -Force -Path 'tests\artifacts\ig-proto' | Out-Null
+    git archive --format=zip -o 'tests\artifacts\ig-proto\frozen-source.zip' 3fc65f4 core tools package.json
+    if ($LASTEXITCODE -ne 0) { throw ('STOP: git archive exited ' + $LASTEXITCODE) }
+    Expand-Archive -Path 'tests\artifacts\ig-proto\frozen-source.zip' -DestinationPath $dir
+    Remove-Item 'tests\artifacts\ig-proto\frozen-source.zip'
+    node tools\ig-proto\snapshot.mjs record
+    if ($LASTEXITCODE -ne 0) { throw ('STOP: snapshot record exited ' + $LASTEXITCODE + '; the folder stays unverified') }
+    node tools\ig-proto\snapshot.mjs verify
+    if ($LASTEXITCODE -ne 0) { throw ('STOP: snapshot verify exited ' + $LASTEXITCODE) }
+  }
+  ```
+
+  The folder is created from an absent folder or verified against its manifest; an unverified folder stops the work and is
+  never merged into, overwritten or deleted without the pack author's ruling.
+- **`snapshot.mjs record | verify`** (no git). `record` hashes the folder into the manifest once and refuses
+  (`snapshot: the manifest exists`, exit 1) when the manifest exists. `verify` re-hashes the folder and prints
+  `snapshot: verified (<n> files)` (exit 0), or the first ten missing, extra or changed paths (exit 1); it refuses a
+  manifest whose `hashRule` is not `lf-text` (`snapshot: the manifest's hash rule is not lf-text`, exit 1). `--help` or no
+  argument prints the usage (exit 0); any other argument prints it and exits 2. The module loads without the folder and
+  without the manifest; `verifySnapshot()` and `compareSnapshot(entries, manifest)` are what the tree builder and the
+  self-test call.
+- **`--label frozen` is the only selector.** In a process started with it, `lib/paths.mjs` sets `SOURCE_KIND` to
+  `frozen` and `sourceRoot()` is the snapshot (it throws `frozen source missing: run the snapshot step of V4-T01a` when
+  the folder is absent). `sourceDigest()` and `sourceVersions()` (`lib/records.mjs`) then read the snapshot; the `meta`
+  block of every record gains `source.kind`, `source.frozenCommit` and `source.equalsFrozenSource`, its label text is
+  `frozen (3fc65f4)` and the Markdown banner starts **Frozen source** `3fc65f4`. `tree.mjs` verifies the snapshot against
+  its manifest before it collects a source (a differing folder stops it: `frozen source differs from its manifest`),
+  builds under `tests/artifacts/ig-proto/tree-frozen/<variant>/` and requires `base`'s `copyDigest` to be the benchmark
+  digest of `3fc65f4`, `e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b` (`FROZEN_DIGEST`):
+
+  ```powershell
+  node tools\ig-proto\snapshot.mjs verify
+  node tools\ig-proto\lib\tree.mjs build base instr log --label frozen
+  node tools\ig-proto\lib\tree.mjs check-edits --all --label frozen
+  node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T01a   # six cases, unlocked
+  ```
+
+  The worker-thread modules and `lib/sets.mjs` do not read the label yet (task T01b).
+- **The `frozen` label has a round cap of 0.** `budget.mjs decide` takes the round's cap from `roundLimitS(label)`: 0 s for
+  `frozen`, 10,800 s for `provisional`, each raised by an approval. Every locked frozen step therefore stops (exit 4)
+  unless the runner gets `-ApprovedRoundMinutes <n>` from the orchestrator (D-V4-02); the cap is cumulative over the
+  frozen round.
+- **Provisional commands behave as before.** With `--label provisional`, or no label, every tool reads the worktree,
+  writes its trees under `tests/artifacts/ig-proto/tree/<variant>/` and keeps the 10,800 s round cap.

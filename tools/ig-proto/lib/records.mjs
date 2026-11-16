@@ -5,13 +5,11 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { availableParallelism, cpus, release, totalmem } from 'node:os';
 import { dirname, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-import { APP_VERSION } from '../../../core/engine/version.js';
-import { computeSourceDigest } from '../../bench/report.js';
 import { checkText } from '../../check-conventions.mjs';
-import { currentVersions } from '../../record-fixtures.mjs';
 import { readInvocations, totals } from './budget.mjs';
-import { abs, argValue, IG_DIR, MP12B1_DIGEST, rel, ROOT, treeDir } from './paths.mjs';
+import { argValue, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, MP12B1_DIGEST, rel, ROOT, SOURCE_KIND, sourceRoot, treeDir } from './paths.mjs';
 
 /** @param {string | Uint8Array} data @returns {string} SHA-256 hex. */
 export const sha256 = (data) => createHash('sha256').update(data).digest('hex');
@@ -126,13 +124,26 @@ export function harnessInfo() {
   return { harnessHash: sha256(lines.join('\n')), files };
 }
 
-/** @returns {Promise<string>} Digest of the worktree's SOURCE_FILES (the sourceDigest of every MP12b1 report). */
-export function worktreeDigest() {
-  return computeSourceDigest((path) => readFileSync(abs(path), 'utf8'));
+/**
+ * @returns {Promise<string>} Digest of the active source's SOURCE_FILES (the sourceDigest of every MP12b1 report):
+ *   the worktree's, or the verified snapshot's under `--label frozen`. The benchmark module is loaded from there.
+ */
+export async function sourceDigest() {
+  const root = sourceRoot();
+  const { computeSourceDigest } = await import(pathToFileURL(join(root, 'tools', 'bench', 'report.js')).href);
+  return computeSourceDigest((/** @type {string} */ path) => readFileSync(join(root, ...path.split('/')), 'utf8'));
 }
 
-/** @returns {{ algo: string, policy: string, rng: string, model: string, app: string }} */
-export const worktreeVersions = () => ({ ...currentVersions(), app: APP_VERSION });
+/** The name the existing callers use; it reads the active source (the worktree unless `--label frozen`). */
+export const worktreeDigest = sourceDigest;
+
+/** @returns {Promise<{ algo: string, policy: string, rng: string, model: string, app: string }>} The active source's versions. */
+export async function sourceVersions() {
+  const root = sourceRoot();
+  const { currentVersions } = await import(pathToFileURL(join(root, 'tools', 'record-fixtures.mjs')).href);
+  const { APP_VERSION } = await import(pathToFileURL(join(root, 'core', 'engine', 'version.js')).href);
+  return { ...currentVersions(), app: APP_VERSION };
+}
 
 /**
  * @param {string} variant
@@ -169,13 +180,16 @@ export async function buildMeta({ task, label, kind, trees = [], sourceLabel }) 
     version: 1,
     task,
     label,
-    labelText: frozen ? 'frozen (post-MP17)' : 'provisional (pre-freeze)',
+    labelText: frozen ? 'frozen (3fc65f4)' : 'provisional (pre-freeze)',
     createdAt: new Date().toISOString(),
     source: {
       label: sourceLabel ?? argValue('source-label') ?? 'unlabelled',
       sourceDigest,
-      versions: worktreeVersions(),
+      versions: await sourceVersions(),
       equalsMp12b1Source: sourceDigest === MP12B1_DIGEST,
+      kind: SOURCE_KIND,
+      frozenCommit: SOURCE_KIND === 'frozen' ? FROZEN_COMMIT : null,
+      equalsFrozenSource: sourceDigest === FROZEN_DIGEST,
       firewall: manifest().hash,
     },
     harness,
@@ -200,7 +214,7 @@ export function banner(meta) {
   const eight = String(meta.source.sourceDigest).slice(0, 8);
   const equal = meta.source.equalsMp12b1Source ? ", equal to MP12b1's source" : '';
   if (meta.label === 'frozen') {
-    return `> **Frozen post-MP17 source.** Measured on ${meta.source.label} (source digest ${eight}…${equal}). Re-run: ${meta.rerun}.`;
+    return `> **Frozen source \`3fc65f4\`.** Measured on ${meta.source.label} (source digest ${eight}…${equal}). Re-run: ${meta.rerun}.`;
   }
   return `> **Provisional (pre-freeze).** Measured on ${meta.source.label} (source digest ${eight}…${equal}), not on the frozen post-MP17 source. Re-run: ${meta.rerun}.`;
 }

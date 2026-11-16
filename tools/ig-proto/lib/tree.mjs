@@ -1,6 +1,7 @@
 // @ts-check
 // Tree builder (check-list §3 "Copies, never edits"; IGP-00 §2): a variant is a copy of core/, tools/ (without
-// tools/ig-proto/) and package.json under tests/artifacts/ig-proto/tree/<variant>/, with anchored text edits and
+// tools/ig-proto/) and package.json under tests/artifacts/ig-proto/tree/<variant>/ (tree-frozen/<variant>/ with
+// `--label frozen`, whose sources are the verified snapshot of V4-T01a), with anchored text edits and
 // added files. A production file is never edited. No git.
 //   node tools\ig-proto\lib\tree.mjs build <id>...       (prints: <id> <treeId> <copyDigest> built|reused)
 //   node tools\ig-proto\lib\tree.mjs check-edits --all|<id>...
@@ -9,8 +10,9 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { dirname, join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { argValue, IG_DIR, parseArgs, ROOT, treeDir } from './paths.mjs';
-import { lf, sha256, worktreeDigest, worktreeVersions, writeJson } from './records.mjs';
+import { verifySnapshot } from '../snapshot.mjs';
+import { argValue, FROZEN_DIGEST, IG_DIR, parseArgs, SOURCE_KIND, sourceRoot, treeDir } from './paths.mjs';
+import { lf, sha256, sourceVersions, worktreeDigest, writeJson } from './records.mjs';
 
 /**
  * @typedef {{ id: string, file: string, find: string, replace: string }
@@ -144,14 +146,25 @@ function readTree(map, dir, root, skip) {
   }
 }
 
-/** @returns {Map<string, string | Buffer>} core/, tools/ (without tools/ig-proto/) and package.json, texts LF-normalised. */
+/**
+ * @returns {Map<string, string | Buffer>} core/, tools/ (without tools/ig-proto/) and package.json of the active
+ *   source, texts LF-normalised: the worktree's, or under `--label frozen` the snapshot's, verified against its
+ *   manifest first.
+ */
 export function collectSources() {
+  if (SOURCE_KIND === 'frozen') {
+    const snapshot = verifySnapshot();
+    if (!snapshot.ok) {
+      throw new Error(`frozen source differs from its manifest: ${snapshot.differences[0]}`);
+    }
+  }
+  const root = sourceRoot();
   /** @type {Map<string, string | Buffer>} */
   const map = new Map();
   for (const dir of ['core', 'tools']) {
-    readTree(map, join(ROOT, dir), ROOT, (label) => label === 'tools/ig-proto');
+    readTree(map, join(root, dir), root, (label) => label === 'tools/ig-proto');
   }
-  map.set('package.json', lf(readFileSync(join(ROOT, 'package.json'), 'utf8')));
+  map.set('package.json', lf(readFileSync(join(root, 'package.json'), 'utf8')));
   return map;
 }
 
@@ -297,13 +310,17 @@ export async function buildTree(id, opts = {}) {
     rmSync(dest, { recursive: true, force: true });
     throw new Error(`the base copy's digest ${copyDigest} differs from the worktree's ${sourceDigest}`);
   }
+  if (id === 'base' && SOURCE_KIND === 'frozen' && copyDigest !== FROZEN_DIGEST) {
+    rmSync(dest, { recursive: true, force: true });
+    throw new Error(`the frozen base copy's digest ${copyDigest} is not FROZEN_DIGEST`);
+  }
   const info = {
     format: 'ig-proto-tree',
     version: 1,
     variant: id,
     chain: plan.chain,
     treeId: plan.treeId,
-    worktree: { sourceLabel: opts.sourceLabel ?? argValue('source-label') ?? 'unlabelled', sourceDigest, versions: worktreeVersions() },
+    worktree: { sourceLabel: opts.sourceLabel ?? argValue('source-label') ?? 'unlabelled', sourceDigest, versions: await sourceVersions(), kind: SOURCE_KIND },
     copyDigest,
     edits: plan.edits,
     files: plan.added,

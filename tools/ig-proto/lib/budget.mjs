@@ -6,7 +6,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { artifactDir, parseArgs, ROUND_LIMIT_S } from './paths.mjs';
+import { artifactDir, parseArgs, roundLimitS } from './paths.mjs';
 
 const MAX_HORIZON_S = 285;
 const QUIET_S = 45;
@@ -70,8 +70,9 @@ const round3 = (x) => Math.round(x * 1000) / 1000;
 
 /**
  * The allowance left and the horizon of the next locked invocation. `A = min(1.25 x the task's allocation - its
- * counted total, 10,800 s - the round's counted total)`, each cap raised by an approval; `H = min(285, A - 45 -
- * 10)`. The decision is `stop` when `H` is below the step's smallest unit of work.
+ * counted total, the round's cap - the round's counted total)`; the round's cap is 10,800 s for `provisional` and 0 s
+ * for `frozen`, each raised by an approval; `H = min(285, A - 45 - 10)`. The decision is `stop` when `H` is below
+ * the step's smallest unit of work.
  * @param {{ task: string, label?: string, allocationS: number, minHorizonS: number,
  *   approvals?: { taskMinutes?: number, roundMinutes?: number }, forecastS?: number, invocations?: Invocation[] }} o
  * @returns {{ decision: 'go' | 'stop', horizonS: number, allowanceS: number, taskCountedS: number,
@@ -81,7 +82,7 @@ const round3 = (x) => Math.round(x * 1000) / 1000;
 export function decide({ task, label = 'provisional', allocationS, minHorizonS, approvals = {}, forecastS = 0, invocations }) {
   const t = totals(invocations ?? readInvocations(label), task);
   const taskCapS = 1.25 * allocationS + 60 * (approvals.taskMinutes ?? 0);
-  const roundCapS = ROUND_LIMIT_S + 60 * (approvals.roundMinutes ?? 0);
+  const roundCapS = roundLimitS(label) + 60 * (approvals.roundMinutes ?? 0);
   const taskCountedS = t.countedSeconds + forecastS;
   const roundCountedS = t.roundCountedS + forecastS;
   const allowanceS = Math.min(taskCapS - taskCountedS, roundCapS - roundCountedS);

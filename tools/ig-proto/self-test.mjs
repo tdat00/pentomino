@@ -5,9 +5,10 @@
 //   node tools\ig-proto\self-test.mjs --label <L> --source-label <SL> --horizon-s <H> [--only 1,3] [--proto] [--p6] [--task <T>]
 // `--proto` (IGP-01) adds the prototype's cases after IGP-00's nine; its state goes to <T>/self-test/state.json
 // (default IGP-01 with --proto, else IGP-00). `--p6` (IGP-04) runs all of them and adds the P6 cases (default task IGP-04).
+// `--frozen` (V4-T01a) runs only the frozen-source group (default task V4-T01a): carve-only checks and records, unlocked.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { Worker } from 'node:worker_threads';
@@ -18,10 +19,11 @@ import { decide, readInvocations } from './lib/budget.mjs';
 import { rateAttempt, recordedCall, screenRating, startCountFor, windowSubsets } from './lib/calls.mjs';
 import { loadEngine } from './lib/engine.mjs';
 import { createLanes } from './lib/lanes.mjs';
-import { artifactDir, elapsedS, IG_DIR, parseArgs, rel, ROOT } from './lib/paths.mjs';
-import { worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
+import { artifactDir, elapsedS, FROZEN_DIGEST, IG_DIR, parseArgs, rel, ROOT, SOURCE_KIND } from './lib/paths.mjs';
+import { sha256, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
-import { buildTree, ensureTree, listVariants, planTree } from './lib/tree.mjs';
+import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
+import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
 
 const SELFTEST_DIR = join(ROOT, 'tests', 'artifacts', 'ig-proto', 'selftest');
 const GIT_CALL = new RegExp('(?:execFileSync|execSync|spawnSync|spawn|execFile|exec|fork)\\(\\s*[\'"`]git\\b|^\\s*&?\\s*git(?:\\.exe)?\\s+(?:rev-parse|status|log|diff|show|add|commit|push|ls-files)\\b', 'm');
@@ -458,6 +460,96 @@ const cases = [
         rmSync(otherLog, { recursive: true, force: true });
         rmSync(logs, { recursive: true, force: true });
       }
+    },
+  },
+];
+
+/** The `--frozen` group (V4-T01a): carve-only checks and records on the verified frozen source; no lock. */
+const frozenCases = [
+  {
+    name: 'frozen: snapshot verified, digest and versions',
+    async run() {
+      assert(SOURCE_KIND === 'frozen', 'the group must run with --label frozen');
+      const snapshot = verifySnapshot();
+      assert(snapshot.ok, `the snapshot differs from its manifest: ${snapshot.differences.slice(0, 3).join('; ')}`);
+      const digest = await sourceDigest();
+      assert(digest === FROZEN_DIGEST, `the source digest ${digest} is not FROZEN_DIGEST`);
+      same(await sourceVersions(), { algo: 'gen-v3', policy: 'mixed-v3', rng: 'xoshiro128ss-v1', model: 'difficulty-v3', app: '1.0.0' },
+        'the frozen source reports other versions');
+    },
+  },
+  {
+    name: 'frozen: line endings do not change a snapshot hash',
+    run() {
+      const dir = fresh(artifactDir('selftest', 'snapshot-eol'));
+      try {
+        const hashed = () => Object.fromEntries(snapshotEntries(dir).map((e) => [e.path, e]));
+        writeFileSync(join(dir, 'a.txt'), 'x\r\ny\r\n');
+        writeFileSync(join(dir, 'b.bin'), Buffer.from([0, 13, 10]));
+        const crlf = hashed();
+        writeFileSync(join(dir, 'a.txt'), 'x\ny\n');
+        writeFileSync(join(dir, 'b.bin'), Buffer.from([0, 10]));
+        const lfOnly = hashed();
+        assert(crlf['a.txt'].sha256 === lfOnly['a.txt'].sha256 && crlf['a.txt'].bytes === 4 && lfOnly['a.txt'].bytes === 4
+          && crlf['a.txt'].text && lfOnly['a.txt'].text, `a text file's hash depends on its line ends: ${JSON.stringify([crlf['a.txt'], lfOnly['a.txt']])}`);
+        assert(crlf['b.bin'].sha256 !== lfOnly['b.bin'].sha256 && crlf['b.bin'].bytes === 3 && lfOnly['b.bin'].bytes === 2
+          && !crlf['b.bin'].text && !lfOnly['b.bin'].text, `a file with a NUL byte was not hashed raw: ${JSON.stringify([crlf['b.bin'], lfOnly['b.bin']])}`);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'frozen: a changed snapshot is refused',
+    run() {
+      const entry = (/** @type {string} */ path, /** @type {string} */ text) => ({ path, sha256: sha256(text), bytes: text.length, text: true });
+      const entries = [entry('core/a.js', 'a'), entry('core/b.js', 'bb'), entry('package.json', '{}')];
+      const manifest = { entries: structuredClone(entries) };
+      same(compareSnapshot(entries, manifest), { ok: true, files: 3, differences: [] }, 'an unchanged snapshot was not accepted');
+      const changed = { entries: structuredClone(entries) };
+      changed.entries[1].sha256 = sha256('other');
+      const result = compareSnapshot(entries, changed);
+      assert(!result.ok && result.differences.length === 1 && result.differences[0] === 'changed: core/b.js',
+        `a changed hash was not refused by its path: ${JSON.stringify(result)}`);
+      const missing = compareSnapshot(entries.slice(0, 2), manifest);
+      assert(!missing.ok && missing.differences.join() === 'missing: package.json', `a missing file: ${JSON.stringify(missing)}`);
+      const extra = compareSnapshot([...entries, entry('core/c.js', 'c')], manifest);
+      assert(!extra.ok && extra.differences.join() === 'extra: core/c.js', `an extra file: ${JSON.stringify(extra)}`);
+    },
+  },
+  {
+    name: 'frozen: trees and anchors',
+    async run() {
+      assert(SOURCE_KIND === 'frozen', 'the group must run with --label frozen');
+      const base = await ensureTree('base');
+      assert(base.root.split(sep).join('/').endsWith('tests/artifacts/ig-proto/tree-frozen/base'), `the base tree is in ${rel(base.root)}`);
+      assert(base.copyDigest === FROZEN_DIGEST, `the base copy's digest ${base.copyDigest} is not FROZEN_DIGEST`);
+      const sources = collectSources();
+      for (const id of listVariants()) {
+        /** @type {string[]} */
+        const errors = [];
+        planTree(id, { errors, sources });
+        assert(errors.length === 0, `edits of ${id} do not match the frozen source: ${errors.join('; ')}`);
+      }
+    },
+  },
+  {
+    name: 'frozen: round cap 0',
+    run() {
+      const none = decide({ task: 'x', label: 'frozen', allocationS: 600, minHorizonS: 60, invocations: [] });
+      assert(none.decision === 'stop' && none.roundCapS === 0, `the frozen label without an approval: ${JSON.stringify(none)}`);
+      const approved = decide({
+        task: 'x', label: 'frozen', allocationS: 600, minHorizonS: 60, approvals: { roundMinutes: 10 }, invocations: [],
+      });
+      assert(approved.decision === 'go' && approved.horizonS === 285 && approved.roundCapS === 600,
+        `the frozen label with 10 approved minutes: ${JSON.stringify(approved)}`);
+    },
+  },
+  {
+    name: 'frozen: provisional unchanged',
+    run() {
+      const result = decide({ task: 'x', label: 'provisional', allocationS: 600, minHorizonS: 60, invocations: [] });
+      assert(result.decision === 'go' && result.roundCapS === 10800, `the provisional label: ${JSON.stringify(result)}`);
     },
   },
 ];
@@ -955,15 +1047,17 @@ function scrub(text) {
 
 /** @param {string[]} argv @returns {Promise<number>} */
 async function main(argv) {
-  const { args, on } = parseArgs(argv, { values: ['label', 'source-label', 'horizon-s', 'only', 'task'], switches: ['proto', 'p6'] });
+  const { args, on } = parseArgs(argv, { values: ['label', 'source-label', 'horizon-s', 'only', 'task'], switches: ['proto', 'p6', 'frozen'] });
   const label = args.label ?? 'selftest';
-  const task = args.task ?? (on.has('p6') ? 'IGP-04' : on.has('proto') ? 'IGP-01' : 'IGP-00');
+  const task = args.task ?? (on.has('frozen') ? 'V4-T01a' : on.has('p6') ? 'IGP-04' : on.has('proto') ? 'IGP-01' : 'IGP-00');
   const only = args.only === undefined ? null : args.only.split(',').map(Number);
   horizonS = Number(args['horizon-s'] ?? 285);
   const startedAt = new Date(Date.now() - elapsedS() * 1000).toISOString();
   /** @type {{ name: string, pass: boolean, reason: string | null, ms: number }[]} */
   const results = [];
-  for (const [i, c] of [...cases, ...(on.has('proto') || on.has('p6') ? protoCases : []), ...(on.has('p6') ? p6Cases : [])].entries()) {
+  const selected = on.has('frozen') ? frozenCases
+    : [...cases, ...(on.has('proto') || on.has('p6') ? protoCases : []), ...(on.has('p6') ? p6Cases : [])];
+  for (const [i, c] of selected.entries()) {
     if (only !== null && !only.includes(i + 1)) {
       continue;
     }

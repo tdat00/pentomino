@@ -256,13 +256,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 04:30:41 +07:00 (dispatch, base `4ffca52`) to 04:46:36 +07:00 (acceptance): 15 min 55 s; the developer's own times 04:30:58-04:39:05 and, after the ruling, 04:44:21-04:45:54 |
+| Waiting for rulings | about 5 min (04:39:05 report to 04:44:00 relay of the ruling) |
+| Agent id, model | `b9027ff1-f7a9-4b66-960e-39e1f4273f33`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 82 calls; 13,547,098 input, 76,986 output, 13,121,180 cache-read |
+| AI credits | 314.67 |
+| Questions and rulings | No `QUESTION:`. The developer's honest gap (the snapshot manifest hashed CRLF bytes from `git archive` under `core.autocrlf=true`) was relayed to the pack author; ruling (b), 04:43: hash text files with LF line ends (`hashRule: 'lf-text'`), a one-time fix round (step 10), new case and row T01a-T05; pack amendment `85fbe2c` |
+| Fix rounds | 1 (the ruling's step 10) |
+| Gates re-run by the orchestrator | `snapshot.mjs verify`: `verified (88 files)`; `tree.mjs build base instr log --label frozen`: 3 lines, base `copyDigest` `e181df2c…` (reused); `check-edits --all --label frozen`: 14 `ok` lines, no error, identical to `check-edits --all`; `self-test --frozen`: 6 passed, 0 failed; firewall `check`: 289 production files unchanged; the `git status` guard: no output; `npm run check`: OK. Manifest: 88 entries, `hashRule` `lf-text`, digest `f4ed453d…` |
+| Commit | this task's commit, `improve-generating T01a: Verified frozen source snapshot and the frozen label in the harness` |
+| Issues and named items | None new. The developer's notes (`lib/sets.mjs` and the worker modules read the worktree; `median`, `percentile` and `summarize` come from the worktree's `tools/bench/report.js`) are T01b's scope by the pack author's ruling |

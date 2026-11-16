@@ -1,5 +1,6 @@
 // @ts-check
-// Roots, labels and constants of the ig-proto harness (check-list §3). No git: identity comes from content.
+// Roots, labels and constants of the ig-proto harness (check-list §3). No git: identity comes from content; the
+// frozen source is a folder extracted once and verified against its manifest (V4-T01a).
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,6 +14,16 @@ export const SELFTEST_LABEL = 'selftest';
 export const MP12B1_DIGEST = '34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918';
 export const MP12B1_COMMIT = '917052a946b19de7cc0ac8214dddb1995561d70d';
 export const ROUND_LIMIT_S = 10800;
+/** The frozen source of the frozen round (task pack v4, D-V4-01): the merge of difficulty-v3. */
+export const FROZEN_COMMIT = '3fc65f4681a53d3984d9218c15efbf696cc3a1a5';
+/** computeSourceDigest of FROZEN_COMMIT's SOURCE_FILES (40 files). */
+export const FROZEN_DIGEST = 'e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b';
+/** The extracted frozen source (git-ignored), written by V4-T01a's snapshot step. */
+export const FROZEN_SOURCE_DIR = join(ROOT, 'tests', 'artifacts', 'ig-proto', 'frozen-source');
+/** The hash manifest of FROZEN_SOURCE_DIR (committed evidence). */
+export const SNAPSHOT_MANIFEST = join(ROOT, 'docs', 'improve-generating', 'evidence', 'frozen', 'V4-T01a', 'snapshot-manifest.json');
+/** 'frozen' when this process runs with `--label frozen`, else 'worktree'. Worker threads do not read it (T01b). */
+export const SOURCE_KIND = argValue('label') === 'frozen' ? 'frozen' : 'worktree';
 
 const VARIANT_ID = /^[a-z0-9][a-z0-9-]*$/;
 const MP12B1_FOLDERS = Object.freeze(['docs/difficulty-v3/landscape-v3-full', 'docs/difficulty-v3/landscape-v3/r2']);
@@ -48,12 +59,40 @@ export function artifactDir(label, task, ...parts) {
   return task === undefined ? base : join(base, task, ...parts);
 }
 
-/** @param {string} variant @returns {string} tests/artifacts/ig-proto/tree/<variant>/ */
-export function treeDir(variant) {
+/**
+ * @param {'frozen' | 'worktree'} [kind] The source kind; default: the one of this process's `--label`.
+ * @returns {string} The folder every source, version and catalogue reference is read from: the verified snapshot
+ *   for `frozen` (it must exist; the snapshot step of V4-T01a writes it), else the repository root.
+ */
+export function sourceRoot(kind = SOURCE_KIND) {
+  if (kind !== 'frozen') {
+    return ROOT;
+  }
+  if (!existsSync(join(FROZEN_SOURCE_DIR, 'core', 'engine', 'clues.js'))) {
+    throw new Error('frozen source missing: run the snapshot step of V4-T01a');
+  }
+  return FROZEN_SOURCE_DIR;
+}
+
+/**
+ * @param {string} label
+ * @returns {number} The round's cap in seconds before any approval: 10,800 for `provisional`, 0 for `frozen`
+ *   (every locked frozen step needs `-ApprovedRoundMinutes`, D-V4-02).
+ */
+export function roundLimitS(label) {
+  return label === 'frozen' ? 0 : ROUND_LIMIT_S;
+}
+
+/**
+ * @param {string} variant
+ * @param {'frozen' | 'worktree'} [kind] The source kind; default: the one of this process's `--label`.
+ * @returns {string} tests/artifacts/ig-proto/tree/<variant>/, or tree-frozen/<variant>/ for `frozen`.
+ */
+export function treeDir(variant, kind = SOURCE_KIND) {
   if (!VARIANT_ID.test(variant)) {
     throw new RangeError(`bad variant id: ${variant}`);
   }
-  return join(ROOT, 'tests', 'artifacts', 'ig-proto', 'tree', variant);
+  return join(ROOT, 'tests', 'artifacts', 'ig-proto', kind === 'frozen' ? 'tree-frozen' : 'tree', variant);
 }
 
 /**
