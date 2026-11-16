@@ -23,7 +23,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 ## 1. Index (execution order)
 
 - [x] T01a Verified frozen source snapshot and the frozen label in the harness (depends on none)
-- [ ] T01b Source receipts: different-source identity, the frozen reference policy and the source receipt (depends on T01a)
+- [x] T01b Source receipts: different-source identity, the frozen reference policy and the source receipt (depends on T01a)
 - [ ] T02a `gen-v4` prototype on the frozen `selectClues`: the fork, the screen and the locate (depends on T01b)
 - [ ] T02b `gen-v4` prototype: observers, skip replay and legacy dispatch (depends on T02a)
 - [ ] T02c `gen-v4` prototype provenance: per-arm identity, the seven-key shape and old records (depends on T02b)
@@ -437,8 +437,8 @@ directory once both `$env:TEMP\dv3-sudoku.lock` and `$env:TEMP\dv3-timing.lock` 
 
 | ID | Start | End | Duration | AI credits | Commit |
 |---|---|---|---|---|---|
-| T01a | 2026-11-17 04:30 | 2026-11-17 04:46 | 16 min | 314.67 | this task's commit |
-| T01b | | | | | |
+| T01a | 2026-11-17 04:30 | 2026-11-17 04:46 | 16 min | 314.67 | `0ef440e` |
+| T01b | 2026-11-17 04:47 | 2026-11-17 05:02 | 15 min | 234.36 | this task's commit |
 | T02a | | | | | |
 | T02b | | | | | |
 | T02c | | | | | |

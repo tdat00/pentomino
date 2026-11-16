@@ -33,7 +33,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `run-task.ps1` | run-plan runner: lock wrapper, exit protocol, budget guard, accounting |
 | `plans/IGP-NN.json` | run plans (`allocationMinutes`, `optionalMinutes`, `steps`; a step has `id`, `locked`, `repeatUntilDone`, `optional`, `projectS`, `minHorizonS`, `invocations` (a dry-run forecast only), `node`, `state`) |
 | `arm.mjs` | request-level arms: one-row calibrate runs of a tree (`run`, `publish`, `status`) |
-| `identity.mjs` | identity of the arms against MP12b1 (`identity.json` and `identity.md`) |
+| `identity.mjs` | identity of the arms against MP12b1 (`identity.json` and `identity.md`); a pair with `mp12b1` on another source is `different-source` with `sameResult`, not a failure, and a seed MP12b1 did not run fails only under `provisional` (V4-T01b) |
 | `fit-prior.mjs`, `data/prior-v1.json` | P4's table prior, fitted from MP12b1's reps 10-19 (IGP-01) |
 | `verify.mjs` | every accepted rating of an arm against its canonical rating (IGP-01); its record names the task's own criterion (`IGP-01-T02`, `IGP-03-T02` for IGP-03 and IGP-03h, `IGP-04-T01`) and says "accepted prototype ratings" for a prototype arm (`p1p5-*`) and "accepted ratings" for an arm of today's search (`log*`) |
 | `compare.mjs` | paired comparison on matched seeds (IGP-01); with task-qualified arms (`IGP-01/before:w095`) a study (IGP-03): per-W, population, split, shift, offset, 26x26 Master and arity-3 sections beside IGP-02's PM4 record, and the check of the no-screen journals; with arms of the P6 or eight-worker variants (IGP-04) a factor study: factors of T10, T1, the batch and the response per pair and cell, prefix identity per pair, P6's work saving from the call journals, the first-phase Projection, both memory criteria, and arm E against IGP-01's after arm; IGP-03h adds the arm-only section (`--pm1`), the by-seed screen against no screen across tasks and `--reproduce` with `--common-seeds` (see the re-run index) |
@@ -45,6 +45,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `summary.mjs` | the estimate-vs-measured summary (IGP-07): reads the records of IGP-00 to IGP-06 and IGP-03h and the invocation logs, writes `summary.json|md` (rows R00 to R33 with their descriptive verdicts, R31's Projection, the round's counted machine time, the later-round list and the open plan-author questions); unlocked, generates and times nothing |
 | `firewall.mjs` | snapshot and check of the production files |
 | `snapshot.mjs` | hash manifest of the frozen source snapshot: `record` (once) and `verify` (task pack v4, V4-T01a; see "Frozen source") |
+| `receipt.mjs` | the frozen source receipt (V4-T01b; `--label frozen` only): `receipt.json` and `receipt.md` in `evidence/frozen/V4-T01b/`; unlocked, see "Source-dependent imports (V4-T01b)" |
 | `boards.mjs` | writes or checks `data/boards-v1.json`, the frozen board catalogue |
 | `self-test.mjs` | self-tests, run under the lock |
 | `lib/paths.mjs` | roots, labels, constants, the source kind (`SOURCE_KIND`, `sourceRoot`), flag parser |
@@ -52,7 +53,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `lib/budget.mjs` | invocation totals and budget decisions |
 | `lib/tree.mjs` | tree builder (API and CLI) |
 | `lib/engine.mjs` | loads a tree's modules |
-| `lib/sets.mjs` | catalogue boards and carve-only sets |
+| `lib/sets.mjs` | catalogue boards and carve-only sets; `offeredInSource` comes from the tree's own `levels.js` (V4-T01b) |
 | `lib/calls.mjs` | recorded calls, screened and canonical ratings, window subsets |
 | `lib/lanes.mjs`, `lib/lane-worker.mjs` | worker-thread lanes with admission and a supervisor |
 | `variants/<id>.json` | variant manifests; `variants/files/<name>/...` copy-only files |
@@ -96,6 +97,7 @@ pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\IGP
 
 node tools\ig-proto\firewall.mjs snapshot|check --task IGP-00 --label provisional
 node tools\ig-proto\boards.mjs write|check
+node tools\ig-proto\receipt.mjs --label frozen --source-label "frozen 3fc65f4"      # unlocked, writes receipt.json|md (V4-T01b)
 node tools\ig-proto\arm.mjs run --task T --arm A --shard S --variant V --workers 4 --cases 26x26-nightmare:0-1 `
   --row-limit-s 90 --label provisional --source-label <label> --horizon-s 285 [--max-rows n] [--dry-run]
 node tools\ig-proto\arm.mjs publish --task T --arm A --label provisional --source-label <label>
@@ -521,13 +523,57 @@ worktree, whenever it runs with `--label frozen`.
   node tools\ig-proto\snapshot.mjs verify
   node tools\ig-proto\lib\tree.mjs build base instr log --label frozen
   node tools\ig-proto\lib\tree.mjs check-edits --all --label frozen
-  node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T01a   # six cases, unlocked
+  node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T01b   # nine cases (T01a's six, T01b's three), unlocked
   ```
 
-  The worker-thread modules and `lib/sets.mjs` do not read the label yet (task T01b).
+  The worker-thread modules do not read the label: a worker receives its tree in `workerData.treeRoot`, and the
+  tree is built from the selected source. `lib/sets.mjs` takes the offer of a cell from that tree's engine (see
+  "Source-dependent imports (V4-T01b)").
 - **The `frozen` label has a round cap of 0.** `budget.mjs decide` takes the round's cap from `roundLimitS(label)`: 0 s for
   `frozen`, 10,800 s for `provisional`, each raised by an approval. Every locked frozen step therefore stops (exit 4)
   unless the runner gets `-ApprovedRoundMinutes <n>` from the orchestrator (D-V4-02); the cap is cumulative over the
   frozen round.
 - **Provisional commands behave as before.** With `--label provisional`, or no label, every tool reads the worktree,
   writes its trees under `tests/artifacts/ig-proto/tree/<variant>/` and keeps the 10,800 s round cap.
+
+### Source-dependent imports (V4-T01b)
+
+Under `--label frozen` every source-dependent value comes from the frozen source, also inside worker threads. A worker
+receives `treeRoot` in `workerData` and does not inherit `--label frozen` from the process arguments, so no module a
+worker loads (`lib/lane-worker.mjs`, `lib/calls.mjs`, `lib/sets.mjs`, `lib/engine.mjs`) may read `SOURCE_KIND`, call
+`sourceRoot(` or import from `../../../core/` (a self-test case checks their text).
+
+- **Offers.** `carveSet` (`lib/sets.mjs`) sets `offeredInSource` from the engine it carves with: `area` inside
+  `engine.levels.level(levelId).areas`, with a non-empty piece-count range. The engine is loaded from a tree and a tree
+  is built from the selected source, so the area interval is that source's `AREAS`. The tree's own policy still chooses
+  the piece counts, so the `instr` tree's diagnostic offers (D-IG13) carve a cell the source does not offer and report
+  `offeredInSource: false`; the `base` tree answers `not-offered` for it.
+- **Identity.** `identity.mjs` reports a pair with `mp12b1` on a source other than MP12b1's as level `different-source`
+  with `sameResult` (no problem found by the comparison), listed as `different source, same result` or `different source,
+  other result`. A seed MP12b1 did not run is a failure only under `provisional`; otherwise its runs start without
+  `mp12b1` and the arms are compared among themselves. `pairResult(nameA, runA, nameB, runB, sameSource)` is the pair
+  rule.
+- **Receipt.** `node tools\ig-proto\receipt.mjs --label frozen --source-label "frozen 3fc65f4"` (unlocked) writes
+  `docs/improve-generating/evidence/frozen/V4-T01b/receipt.json` and `receipt.md`: the verified snapshot with its manifest's
+  files and digest, the frozen commit, the computed and the expected source digest, the versions, the anchored edits of
+  every variant, the catalogue cells the frozen source no longer offers (`notOffered`, `added`, `differs`; the 25 Hell
+  cells at `3fc65f4`) and the audit below. It exits 0 when the snapshot is verified, the digest equals `FROZEN_DIGEST`
+  and no variant has an edit error; another label exits 1.
+- **Audit.** Every static import in `tools/ig-proto/**/*.mjs` from outside `tools/ig-proto/`:
+
+  | Module | Import | Class | Frozen-label handling |
+  |---|---|---|---|
+  | `lib/records.mjs` | `computeSourceDigest`, `currentVersions`, `APP_VERSION` | source-dependent | read from `sourceRoot()` (T01a) |
+  | `lib/sets.mjs` | `pieceCountRange` | source-dependent | removed; the engine's own `levels.js` (step 1) |
+  | `boards.mjs` | `buildLandscapeMatrix` | source-dependent | provisional tool; the frozen catalogue check is `receipt.mjs`'s, from `sourceRoot()` |
+  | `budgets.mjs`, `compare-r2.mjs`, `compare.mjs`, `fit-prior.mjs`, `identity.mjs`, `pm2.mjs`, `pm4.mjs`, `summary.mjs` | `median`, `percentile`, `summarize` | harness statistics | none needed: pure arithmetic, not part of a measured source |
+  | `self-test.mjs` | `SOURCE_FILES`, `checkText` | harness checks | none needed: a guard of the harness and the convention checker |
+  | `lib/records.mjs` | `checkText` | harness check | none needed |
+
+  The search that lists them, at any depth (`lib/*.mjs` reaches the root with `../../../`; a line the table does not
+  name is a question for the pack author). At V4-T01b it finds twelve lines, all in the table; dynamic imports are
+  tree- or `sourceRoot()`-based:
+
+  ```powershell
+  Select-String -Path tools\ig-proto\*.mjs, tools\ig-proto\lib\*.mjs -Pattern "from '(\.\./)+(core|generator|player|bench|record-fixtures|check-conventions|calibrate|node-worker|serve)"
+  ```

@@ -5,7 +5,7 @@
 //   node tools\ig-proto\self-test.mjs --label <L> --source-label <SL> --horizon-s <H> [--only 1,3] [--proto] [--p6] [--task <T>]
 // `--proto` (IGP-01) adds the prototype's cases after IGP-00's nine; its state goes to <T>/self-test/state.json
 // (default IGP-01 with --proto, else IGP-00). `--p6` (IGP-04) runs all of them and adds the P6 cases (default task IGP-04).
-// `--frozen` (V4-T01a) runs only the frozen-source group (default task V4-T01a): carve-only checks and records, unlocked.
+// `--frozen` (V4-T01a, V4-T01b) runs only the frozen-source group (default task V4-T01a): carve-only checks and records, unlocked.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, sep } from 'node:path';
@@ -23,6 +23,7 @@ import { artifactDir, elapsedS, FROZEN_DIGEST, IG_DIR, parseArgs, rel, ROOT, SOU
 import { sha256, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
 import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
+import { pairResult } from './identity.mjs';
 import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
 
 const SELFTEST_DIR = join(ROOT, 'tests', 'artifacts', 'ig-proto', 'selftest');
@@ -550,6 +551,53 @@ const frozenCases = [
     run() {
       const result = decide({ task: 'x', label: 'provisional', allocationS: 600, minHorizonS: 60, invocations: [] });
       assert(result.decision === 'go' && result.roundCapS === 10800, `the provisional label: ${JSON.stringify(result)}`);
+    },
+  },
+  {
+    name: 'frozen: identity of a different source',
+    run() {
+      const run = (/** @type {string} */ digest) => ({
+        acceptedCount: 2, details: { resultDigest: digest, area: 100, K: 5, sizes: [10, 10, 20, 30, 30], setAttempt: 0, puzzles: [] },
+      });
+      const other = pairResult('mp12b1', run('a'), 'base', run('b'), false);
+      assert(other.level === 'different-source' && other.sameResult === false && other.problems.length === 0,
+        `a different source with another result: ${JSON.stringify(other)}`);
+      const equal = pairResult('mp12b1', run('a'), 'base', run('a'), false);
+      assert(equal.level === 'different-source' && equal.sameResult === true && equal.problems.length === 0,
+        `a different source with the same result: ${JSON.stringify(equal)}`);
+      const sameSource = pairResult('mp12b1', run('a'), 'base', run('b'), true);
+      assert(sameSource.level !== 'different-source' && sameSource.problems.length === 1, `the same source keeps its problem: ${JSON.stringify(sameSource)}`);
+      const arms = pairResult('base', run('a'), 'log', run('b'), false);
+      assert(arms.level !== 'different-source' && arms.problems.length === 1, `two arms are compared among themselves: ${JSON.stringify(arms)}`);
+    },
+  },
+  {
+    name: `frozen: offers come from the tree's source`,
+    async run() {
+      assert(SOURCE_KIND === 'frozen', 'the group must run with --label frozen');
+      const base = (await engine('base')).e;
+      const instr = (await engine('instr')).e;
+      const carve = (/** @type {any} */ e, /** @type {string} */ caseId) => {
+        const entry = caseBoard(caseId);
+        return carveSet(e, { boardRows: entry.boardRows, levelId: entry.levelId, seedText: 'ig-v4/offer/0', attempt: 0 });
+      };
+      const nightmare = carve(base, '26x26-nightmare');
+      assert(nightmare.ok && nightmare.offeredInSource === true, `base on 26x26 Nightmare: ${JSON.stringify({ ok: nightmare.ok })}`);
+      same(carve(base, '26x26-hell-1'), { ok: false, reason: 'not-offered' }, 'base on 26x26 Hell 1 is not offered');
+      const diagnostic = carve(instr, '26x26-hell-1');
+      assert(diagnostic.ok && diagnostic.offeredInSource === false,
+        `instr on 26x26 Hell 1 is a diagnostic offer: ${JSON.stringify(diagnostic.ok ? { offeredInSource: diagnostic.offeredInSource } : diagnostic)}`);
+    },
+  },
+  {
+    name: 'frozen: worker modules do not read the label',
+    run() {
+      for (const name of ['lane-worker.mjs', 'calls.mjs', 'sets.mjs', 'engine.mjs']) {
+        const text = readFileSync(join(IG_DIR, 'lib', name), 'utf8');
+        for (const needle of ['SOURCE_KIND', 'sourceRoot(', '../../../core/']) {
+          assert(!text.includes(needle), `lib/${name} contains ${needle}`);
+        }
+      }
     },
   },
 ];

@@ -3,7 +3,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { pieceCountRange as worktreePieceCountRange } from '../../../core/engine/policy.js';
 import { IG_DIR } from './paths.mjs';
 
 /** The constant of core/engine/generate.js: a mean piece size from which the macro carve is tried first. */
@@ -34,6 +33,9 @@ export function caseBoard(caseId) {
 /**
  * The carve of `setAttempt` in the same order: board, area, stream `set/<attempt>`, the piece-count range of the
  * tree (with diagnostic offers), K, macro or flat carve, finalize, validate.
+ * `offeredInSource` is read from the engine itself: the area interval of its `levels.js`. The tree is built from the
+ * selected source (the frozen snapshot under `--label frozen`), so the offer is that source's, also in a worker
+ * thread, and the tree's diagnostic offers (`instr`) report `false` for a cell the source does not offer.
  * @param {import('./engine.mjs').Engine} engine
  * @param {{ boardRows: string[], levelId: string, seedText: string, attempt: number }} o
  * @returns {{ ok: true, board: any, set: any, area: number, K: number, attempt: number, calRng: any,
@@ -63,7 +65,8 @@ export function carveSet(engine, { boardRows, levelId, seedText, attempt }) {
   if (carve.validateSet(set).length > 0) {
     return { ok: false, reason: 'internal' };
   }
-  const offered = worktreePieceCountRange(levelId, area);
+  const lv = engine.levels.level(levelId);
+  const offeredInSource = area >= lv.areas[0] && area <= lv.areas[1] && ks !== null && ks.length > 0;
   return {
     ok: true,
     board,
@@ -72,7 +75,7 @@ export function carveSet(engine, { boardRows, levelId, seedText, attempt }) {
     K: set.pieces.length,
     attempt,
     calRng: stream.derive('cal'),
-    offeredInSource: offered !== null && offered.length > 0,
+    offeredInSource,
   };
 }
 

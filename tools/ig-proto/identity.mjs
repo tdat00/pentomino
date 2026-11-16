@@ -106,6 +106,26 @@ export function comparePair(a, b) {
 }
 
 /**
+ * The comparison of one pair of runs of a seed. A pair with `mp12b1` on a source other than MP12b1's keeps the
+ * comparison it made but is not a failure: its level is `different-source` and `sameResult` says whether the
+ * comparison found a problem.
+ * @param {string} nameA
+ * @param {any} runA
+ * @param {string} nameB
+ * @param {any} runB
+ * @param {boolean} sameSource Whether the arms' source is MP12b1's.
+ * @returns {Record<string, any> & { level: string, problems: string[] }} The result of `comparePair`, or its
+ *   `different-source` form with `sameResult`.
+ */
+export function pairResult(nameA, runA, nameB, runB, sameSource) {
+  const result = comparePair(runA, runB);
+  if ((nameA === 'mp12b1' || nameB === 'mp12b1') && !sameSource) {
+    return { ...result, level: 'different-source', sameResult: result.problems.length === 0, problems: /** @type {string[]} */ ([]) };
+  }
+  return result;
+}
+
+/**
  * @param {string} label
  * @param {string} task
  * @param {string} arm
@@ -213,15 +233,15 @@ async function main(argv) {
   for (const row of first) {
     const found = (mp12Cache[row.caseId] ??= mp12b1Report(row.caseId));
     const mp = found?.report.runs.find((/** @type {any} */ r) => r.seed === row.seed && r.probeKind === 'generation') ?? null;
-    if (mp === null) {
+    if (mp === null && label === 'provisional') {
       failures.push(`${row.seed}: MP12b1 has no run of this seed`);
       continue;
     }
-    if (found.report.meta.sourceDigest !== MP12B1_DIGEST) {
+    if (mp !== null && found.report.meta.sourceDigest !== MP12B1_DIGEST) {
       failures.push(`${row.seed}: the MP12b1 report ${found.path} has another source digest`);
     }
     /** @type {Record<string, any>} */
-    const runs = { mp12b1: mp };
+    const runs = mp === null ? {} : { mp12b1: mp };
     for (const arm of armNames) {
       const r = published[arm].rows.find((/** @type {any} */ x) => x.seed === row.seed);
       if (r === undefined) {
@@ -235,14 +255,10 @@ async function main(argv) {
     const pairs = {};
     for (let i = 0; i < names.length; i += 1) {
       for (let j = i + 1; j < names.length; j += 1) {
-        const result = comparePair(runs[names[i]], runs[names[j]]);
-        if (names[i] === 'mp12b1' && !sameSource) {
-          pairs[`${names[i]}~${names[j]}`] = { ...result, level: 'different-source', problems: [] };
-        } else {
-          pairs[`${names[i]}~${names[j]}`] = result;
-          for (const p of result.problems) {
-            failures.push(`${row.seed} ${names[i]}~${names[j]}: ${p}`);
-          }
+        const result = pairResult(names[i], runs[names[i]], names[j], runs[names[j]], sameSource);
+        pairs[`${names[i]}~${names[j]}`] = result;
+        for (const p of result.problems) {
+          failures.push(`${row.seed} ${names[i]}~${names[j]}: ${p}`);
         }
       }
     }
@@ -272,19 +288,29 @@ async function main(argv) {
 
   const levelOf = (/** @type {any} */ s, /** @type {string} */ pair) => s.pairs[pair]?.level;
   const puzzleIdentity = seeds.filter((s) => armNames.every((a) => levelOf(s, `mp12b1~${a}`) === 'puzzle-identity')).length;
+  const mpPairs = (/** @type {any} */ s) => armNames.map((a) => s.pairs[`mp12b1~${a}`]).filter((p) => p !== undefined);
+  const withoutMp12b1 = seeds.filter((s) => /** @type {any} */ (s).mp12b1 === undefined).length;
+  const differentSource = seeds.filter((s) => mpPairs(s).some((p) => p.level === 'different-source')).length;
+  const differentSourceSame = seeds.filter((s) => mpPairs(s).some((p) => p.level === 'different-source')
+    && mpPairs(s).every((p) => p.sameResult === true)).length;
   const num = (/** @type {(number | null)[]} */ list) => /** @type {number[]} */ (list.filter((x) => x !== null));
   const summary = {
     seeds: seeds.length,
     puzzleIdentity,
-    metricPrefixOnly: seeds.length - puzzleIdentity,
+    metricPrefixOnly: seeds.length - puzzleIdentity - differentSource - withoutMp12b1,
+    differentSource,
+    differentSourceSameResult: differentSourceSame,
+    withoutMp12b1,
     failures: failures.length,
     medianRatioBase: median(num(seeds.map((s) => s.ratioBase))),
     medianRatioLog: median(num(seeds.map((s) => s.ratioLog))),
     medianLogOverhead: median(num(seeds.map((s) => s.ratioLogBase))),
     appendCostMs,
   };
+  const otherSource = differentSource + withoutMp12b1 === 0 ? ''
+    : ` ${differentSource} on a source other than MP12b1's (${differentSourceSame} same result, ${differentSource - differentSourceSame} other result); ${withoutMp12b1} without an MP12b1 run.`;
   const verdict = failures.length === 0
-    ? `R00: holds. ${puzzleIdentity} of ${seeds.length} seeds reached puzzle identity by digest or key prefix; ${seeds.length - puzzleIdentity} only metric-prefix agreement (puzzle identity not established).`
+    ? `R00: holds. ${puzzleIdentity} of ${seeds.length} seeds reached puzzle identity by digest or key prefix; ${summary.metricPrefixOnly} only metric-prefix agreement (puzzle identity not established).${otherSource}`
     : `R00: FAILS (${failures.length} problem(s)).`;
 
   writeJson(evidenceDir(label, task, 'identity.json'), { meta, arms: armInfo, seeds, summary, failures, journal });
@@ -293,13 +319,17 @@ async function main(argv) {
   for (const s of seeds) {
     for (const name of ['mp12b1', ...armNames]) {
       const d = /** @type {any} */ (s)[name];
+      if (d === undefined) {
+        continue;
+      }
       lines.push(`| ${s.seed} | ${name} | ${d.accepted} | ${sec(d.t1)} | ${sec(d.t10)} | ${sec(d.response)} | K ${d.set?.K}, attempt ${d.set?.setAttempt} |`);
     }
   }
   lines.push('', '## Level reached per pair', '', '| Seed | Pair | Level | Accepted | Digest equal | Key prefix equal | Metric prefix | Note |', '|---|---|---|---|---|---|---:|---|');
   for (const s of seeds) {
     for (const [pair, p] of Object.entries(s.pairs)) {
-      lines.push(`| ${s.seed} | ${pair} | ${p.level} | ${p.acceptedA} / ${p.acceptedB} | ${p.digestEqual} | ${p.keyPrefixEqual} | ${p.metricPrefixLength} | ${p.note} |`);
+      const level = p.level === 'different-source' ? `different source, ${p.sameResult ? 'same' : 'other'} result` : p.level;
+      lines.push(`| ${s.seed} | ${pair} | ${level} | ${p.acceptedA} / ${p.acceptedB} | ${p.digestEqual} | ${p.keyPrefixEqual} | ${p.metricPrefixLength} | ${p.note} |`);
     }
   }
   lines.push('', '## Time ratios', '', '| Seed | base / MP12b1 | log / MP12b1 | log / base |', '|---|---:|---:|---:|');

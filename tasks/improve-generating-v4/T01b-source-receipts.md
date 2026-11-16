@@ -162,13 +162,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 04:47:19 +07:00 (dispatch, base `0ef440e`) to 05:02:03 +07:00 (acceptance): 14 min 44 s; the developer's own times 04:47:35-04:54:20 and, after the rulings, 05:01:35-05:01:48 |
+| Waiting for rulings | about 7 min (04:54:20 report to 05:01 relay of the rulings) |
+| Agent id, model | `399ff908-2088-47bd-84e8-8346d83a0f96`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 57 calls; 8,461,058 input, 56,149 output, 8,071,022 cache-read |
+| AI credits | 234.36 |
+| Questions and rulings | No `QUESTION:`. The developer's five deviations, two named items and two honest gaps were relayed to the pack author; all accepted (05:00); the README's import search changed to any depth (fix round); T04d's `identityVerdict` is `incomplete` while `withoutMp12b1 > 0` (new case 7) and T04e's identity gate requires 0; pack amendment `77505d8` |
+| Fix rounds | 1 (the README's search pattern) |
+| Gates re-run by the orchestrator | `receipt.mjs --label frozen`: reproduces the developer's `receipt.json` except `meta` (run aside, the developer's files restored byte-identical); snapshot verified (88 files), `digestEqual` true, 14 of 14 variants without error, 25 not offered (12 `hell-1`, 9 `hell-2`, 4 `hell-3`), 0 added, 0 differ; `self-test --frozen`: 9 passed, 0 failed; `check-edits --all --label frozen`: 14 `ok`; the any-depth import search: 12 lines, all in the audit table; firewall `check`: 289 production files unchanged; the guard `git status`: no output; `npm run check`: OK |
+| Commit | this task's commit, `improve-generating T01b: Source receipts: different-source identity, the frozen reference policy and the source receipt` |
+| Issues and named items | None new (the developer's named items were ruled "no change" and "accept as is") |
