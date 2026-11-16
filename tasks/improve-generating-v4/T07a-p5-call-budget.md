@@ -119,11 +119,11 @@ the same point; the arm that sets a budget is T07b's.
    of D-V4-06).
 5. **Seams** (JSDoc of `selectCluesV4`, with the other seams): `ctx.igBudget` (a number) replaces the table;
    `ctx.igChargeKinds` (an array) receives one kind per metered unit: `rate:<journal phase>` or `count`.
-6. **Self-test**: `v4Call(name, spec)` accepts `spec.uniqueness` (default `'any'`) and `spec.extra` (an object merged
-   last into the context) and returns `chargeLog` (the units given to a `charge` it installs when `spec.extra.charge`
-   is `true`, replaced by its own function) and `kinds` (`spec.extra.igChargeKinds`). A helper `prefix(L)` returns the
-   prefix sums `P[0] = 0, P[j] = L[0] + ... + L[j-1]`, and `m(P, B)` the least `j` with `P[j] >= B` (`L.length` when
-   none). Cases in the Tests table.
+6. **Self-test**: `v4Call(name, spec)` (`spec.uniqueness` and `spec.journal` are T02d's) accepts `spec.extra` (an
+   object merged last into the context) and returns `chargeLog` (the units given to a `charge` it installs when
+   `spec.extra.charge` is `true`, replaced by its own function) and `kinds` (`spec.extra.igChargeKinds`). A helper
+   `prefix(L)` returns the prefix sums `P[0] = 0, P[j] = L[0] + ... + L[j-1]`, and `m(P, B)` the least `j` with
+   `P[j] >= B` (`L.length` when none). Cases in the Tests table.
 7. **README.md**: a paragraph "P5 call budget (V4-T07a)": the units, the checks (every rating, before the first count
    of a repair, before every further count), the end rule (best finished final or `not-in-band`), the journal fields
    `locate.spent` and `locate.budgetStop` (the `count` lines and `locate.countWork` are T02a's), the two seams.

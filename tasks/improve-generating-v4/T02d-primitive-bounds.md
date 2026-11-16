@@ -7,7 +7,7 @@
 | Depends on | T02c |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (claude-sonnet-5.5) |
-| Estimate | developer 2.5 h, machine 0 min (small real ratings and counts on one set; verification through the lock helper) |
+| Estimate | developer 3 h, machine 0 min (small real ratings and counts on one set; verification through the lock helper) |
 
 ## Goal
 
@@ -69,7 +69,7 @@ its reported units and those units plus the bound of the one open primitive.
 ## Scope
 
 - Change: `tools/ig-proto/variants/files/v4/core/engine/ig-select-v4.js` (steps 1 to 3), `tools/ig-proto/self-test.mjs`
-  (three `--v4` cases), `tools/ig-proto/README.md` (a paragraph).
+  (`v4Call`'s `spec.uniqueness` and `spec.journal`, three `--v4` cases), `tools/ig-proto/README.md` (a paragraph).
 - Do not change: everything else (no variant manifest, no production file, no kernel file). Guards: `node
   tools\ig-proto\firewall.mjs check --task V4-T02d --label frozen`, expected `files unchanged`; `git status --short --
   core generator tests tools/bench tools/ig-proto/variants/*.json`, expected no output.
@@ -132,8 +132,12 @@ its reported units and those units plus the bound of the one open primitive.
    undefined) { steps.push({ addedId, clues: ownPoses(sortLike(layout, list)) }); } if (list.length <= K - 2) {
    igBeginLine(call.id, 'count', rowLimit); } }` (always defined: `makeUnique` counts again exactly when the list has
    at most `pieces.length - 2` clues, `clues.js:177-212`).
-4. **Self-test** cases (Tests table) in the `--v4` group; **README.md**: a paragraph "Begin lines and bounds
+4. **Self-test**: `v4Call(name, spec)` (T02a) accepts `spec.uniqueness` (default `'any'`), passed as the context's
+   `uniqueness`, and `spec.journal` (default `true`): with `false` it creates the fresh folder as before but deletes
+   `IG_LOG_DIR` and `IG_ROW` from `process.env` instead of setting them; it also returns `files: readdirSync(dir)` (the
+   journal files written). Cases (Tests table) in the `--v4` group. **README.md**: a paragraph "Begin lines and bounds
    (V4-T02d)": the line, its kinds, the two bounds and the derivation in short, and that the work ledger is T09c's.
+   (Ruling of 2026-11-17, T02a's report: `spec.uniqueness` moved here from T07a, whose cases come later.)
 
 ## Tests
 
@@ -141,9 +145,9 @@ All in `tools/ig-proto/self-test.mjs --v4` (locked: real counts and small real r
 
 | Case name | Input | Expected |
 |---|---|---|
-| `bound: every primitive is announced` | `v4Call('begin', { prior: null, screen: () => 'cap', canon: (c) => synthetic(c <= 3 ? 100 - 10 * c : 60), uniqueness: 'require' })` (screen-capped probes, re-ratings and a real repair with counts) | in the call's journal order, every `p` line is immediately preceded by a `begin` of kind `screen` or `rate` and every `count` line by a `begin` of kind `count` whose `bound` equals `countRowLimit(board)` of the tree's `clues.js`; every `bound` is a finite number from 0; no `begin` line follows the last completion line before `end` |
+| `bound: every primitive is announced` | (1) `v4Call('begin', { prior: null, screen: () => 'cap', canon: (c) => synthetic(c <= 3 ? 100 - 10 * c : 60), uniqueness: 'require' })` (screen-capped probes, re-ratings and a real repair with counts); (2) `v4Call('begin2', { prior: null, screen: (c) => synthetic(c === 4 ? 56 : 100 - 10 * c), canon: (c) => synthetic(c === 4 ? 56 : 100 - 10 * c), uniqueness: 'require' })` (T07a's `S2`: 56 is in the band 55 to 70 but not central, so the call goes on to the window and the beam) | for each call, in its journal order, every `p` line is immediately preceded by a `begin` of kind `screen` or `rate` and every `count` line by a `begin` of kind `count` whose `bound` equals `countRowLimit(board)` of the tree's `clues.js`; the sum of its `count` units equals `end.locate.countWork`; every `bound` is a finite number from 0; no `begin` line follows the last completion line before `end`. Call (1) has at least one `count` line (the real repair ran); call (2)'s `phases` include `window` and `beam` and `counts('beam')` is not empty (phase D's loop ran) |
 | `bound: no real rating exceeds its bound` | the `k15Set()` set and the clue subsets of its first 3, 6 and 9 layout poses; for each, `measureV3(board, pieces, clues, ws, { deduce: { ...DEDUCE, work: w, census: c }, dlx: SCORE.caps })` of the tree with `w` in 0, 1, 1,000 and 1,000,000 and `c` in 0 and 1,000 (an `IncompleteRatingError`'s `counters.work`, else `metrics.work`) | each of the 24 charges is at most `igRatingBound(board, pieces, clues, { work: w, census: c })`; the case prints the largest observed `charge - w - c` beside the smallest `bound - w - c`; the case is a sanity check of the implementation on real charges, not a proof of the inequality (the proof is the derivation of the Authority section) |
-| `bound: the journal changes no result` | the first case's call once with `IG_LOG_DIR` set and once with it deleted from `process.env` | the two `result`s deep-equal (clues, rating, certificate, `skips`, `igWindow`); no journal file is written by the second |
+| `bound: the journal changes no result` | call (1) of the first case once as it is and once with `journal: false` (step 4) | the two `result`s deep-equal (clues, rating, certificate, `skips`, `igWindow`); the second's `files` is empty |
 
 ## Documentation
 

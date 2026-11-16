@@ -78,7 +78,7 @@ Hell 2 and Hell 3 included, keeps the frozen search. The provenance of the proto
      import cycle).
    - `class Final { constructor(res) { this.res = res; } }` and `const clamp = (x, lo, hi) => Math.min(hi,
      Math.max(lo, x));`.
-   - Private copies of `bandDistance` (clues.js:222-229), `ranked` (234-240), `noProvedGuess` (245-249) and
+   - Private copies of `bandDistance` (clues.js:222-227), `ranked` (234-239), `noProvedGuess` (245-249) and
      `sortLike` (781-784).
    - `export function nearestFirst(list, wc)`: the text of `ig-select-proto.js:79-81`.
    - `function priorCount(ctx, K)`: the text of `ig-select-proto.js:89-95`.

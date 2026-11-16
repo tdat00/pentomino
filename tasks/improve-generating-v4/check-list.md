@@ -66,7 +66,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 | T02a | [T02a](T02a-v4-prototype-fork.md) | 3 | 0 | 0 / 1 |
 | T02b | [T02b](T02b-v4-prototype-observers-and-parity.md) | 3 | 0 | 0 / 1 |
 | T02c | [T02c](T02c-v4-prototype-provenance.md) | 3 | 0 | 0 / 1 |
-| T02d | [T02d](T02d-primitive-bounds.md) | 2.5 | 0 | 0 / 1 |
+| T02d | [T02d](T02d-primitive-bounds.md) | 3 | 0 | 0 / 1 |
 | T03 | [T03](T03-pm1-data-inventory.md) | 1.5 | 0 | 0 / 1 |
 | T04a | [T04a](T04a-bounded-items.md) | 2.5 | 0 | 0 / 1 |
 | T04b | [T04b](T04b-stage1-item-kinds.md) | 3 | 0 | 0 / 1 |
@@ -97,7 +97,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 | T11g | [T11g](T11g-frozen-round-manifest.md) | 3 | 0 | 0 / 1 (manifest) |
 | T12 | [T12](T12-p6-diagnostic-for-returned-ratings.md) | 3 | 0 | 1 |
 | T13 | [T13](T13-progressive-presentation-history.md) | 1.5 | 0 | 1 |
-| | **Total (36 tasks)** | **97.5** | **73** | |
+| | **Total (36 tasks)** | **98** | **73** | |
 
 The machine column is the benchmark allocation of each task's run plan (`allocationMinutes`); its counted time is node
 seconds plus at most 45 s of the quiet period per locked invocation (previous pack §7), and each task's runner stops
@@ -277,11 +277,17 @@ forecast is not a guarantee of completion.
   `V4-S2`) are records that an accepted binding hashes: no later run, verification or self-test uses their ids
   (`self-test.mjs` refuses the four stage-1 self-test ids once their state exists, T04f); a later task verifies under
   its own id (for example `V4-T04f-verify`).
+- **Cited lines.** A line number in a harness file (`tools/ig-proto/**`) is the line at the pack's commit `4ffca52`;
+  earlier tasks of this pack that edit the file move it, so the developer finds the cited code by the name or text the
+  task gives and reports the new lines in the final report (not a question). Lines in the frozen source (`core/**`,
+  `tests/**`, `tools/bench/**` at `3fc65f4`) do not move. A different text at the named place is a `QUESTION:`.
 - **Self-test groups**: default (IGP-00's cases; real ratings, locked), `--frozen` (T01a, T01b, T03; carve-only checks
   and records, unlocked), `--v4` (T02a onwards; locked: from T02b on its cases run real uniqueness counts and from T10a
   real deductions), `--items` (T04a onwards; synthetic, unlocked). A task that adds a
   case names `tools/ig-proto/self-test.mjs` in its scope; the number of cases a group prints is reported, never an
   acceptance oracle; `check-edits` must report no error and apply every declared edit once, its counts are reported.
+  A gate that re-runs an earlier group under an earlier task's id (for example `--frozen --task V4-T01b`) rewrites that
+  id's git-ignored `self-test/state.json`; nothing reads it, and only the historical namespaces above are protected.
 - **Production changes** (T12, T13 only) follow `AGENTS.md`: the living specification (`docs/design-brief.md`,
   `docs/design-detail.md`) describes the code after the change; user-visible texts exist in English and Vietnamese;
   `README.md` and the guides (`USERGUIDE.md`, `USERGUIDE.vn.md`, `DEVELOPERGUIDE.md`, `DEVELOPERGUIDE.vn.md`) stay
@@ -333,7 +339,7 @@ directory once both `$env:TEMP\dv3-sudoku.lock` and `$env:TEMP\dv3-timing.lock` 
 |---|---|---|---|
 | `npm run check` | end of every task | `check-conventions: OK`, `check-site: OK`, exit 0 | 2 min |
 | `node tools\ig-proto\lib\tree.mjs check-edits --all --label frozen` | harness tasks, after T01a | one `ok <variant>: <n> edits match` line per variant, no error | 2 min |
-| `node tools\ig-proto\firewall.mjs snapshot --task V4-<ID> --label frozen` at the start, `check` at the end | harness tasks | `check` prints `files unchanged`, exit 0 | 1 min |
+| `node tools\ig-proto\firewall.mjs snapshot --task V4-<ID> --label frozen` at the start, `check` at the end | harness tasks | `check` prints `firewall: OK, <n> production files unchanged since the snapshot of V4-<ID>` (the tasks' `files unchanged`), exit 0 | 1 min |
 | the verification and measurement commands above | as each task says | as each task says | 300 s per helper invocation; 285 s per runner invocation |
 
 ### 3.3 Process
@@ -413,6 +419,7 @@ directory once both `$env:TEMP\dv3-sudoku.lock` and `$env:TEMP\dv3-timing.lock` 
 | Review round 5, 2026-11-17 | The 14 earlier findings resolved; RV5-01 to RV5-03 fixed in the pack; no question to the supervisor or the owner | `review-5.md`, `review-5-response.md` |
 | Ruling of the pack author, 2026-11-17 (T01a's report) | The snapshot manifest hashes text files with LF line ends and files with a NUL byte raw (`hashRule` `lf-text`): on this machine `git archive` writes CRLF (`core.autocrlf=true`, `* text=auto`), so raw hashes would verify only where the extraction converts the same way; T01a's fix round re-records the uncommitted manifest from the same verified folder | T01a (Authority, step 2, step 10, the line-ending case, T01a-T05); D-V4-01 |
 | Ruling of the pack author, 2026-11-17 (T01b's report) | Five deviations accepted: the receipt's own `meta.rerun`; no receipt written when the snapshot is unverified; the identity summary's `differentSource`, `differentSourceSameResult` and `withoutMp12b1`, with `metricPrefixOnly` excluding them; the `different-source` rule on either name; the README's stale text. The audit search covers any depth (`(\.\./)+`). A stage-1 identity seed without an MP12b1 run makes the identity block `incomplete` (DR-O13 needs the MP12b1 run) | T01b (steps 2, 3 and 4); T04d (`identityVerdict`, case `proof: identity block`, T04d-B03); T04e (the identity gate) |
+| Ruling of the pack author, 2026-11-17 (T02a's report) | Five deviations accepted: case 1's extra checks (the dispatch edits' text, the legacy route at `min` 52 and 112); stale harness lines found by name (now a rule, §3.1 "Cited lines"); the off-by-one `clues.js` ends of `bandDistance` (222-227) and `ranked` (234-239); the firewall's full line; the `@typedef` lines. Phases B to E are the prototype's text with only step 4.8's changes (`docs/improve-generating/evidence/drift/claude-opus-5.5/t02a-port-check.mjs`: 14 changed lines, no undeclared name); the ported P1 case runs B, C and E (asserted) and D's phase line; D's loop and the `return conclude(best)` after it run first in T02d's case 1 (the added `S2` call), then in T07a and on real calls in T04e. The ordinal assertion is a guard of step 5's proof, untestable without a larger set. T02d's case 1 needed `v4Call`'s `spec.uniqueness`, which T07a added later: moved to T02d, with `spec.journal` for its case 3, a check that the count lines sum to `locate.countWork` and the `S2` call (T02d: 3 h, total 98 h) | T02a (step 2's line ranges); T02d (estimate, scope, step 4, cases 1 and 3); T07a (step 6); §1; §3.1, §3.2 |
 
 ## 6. Named items for later packs
 
