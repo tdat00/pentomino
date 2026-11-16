@@ -82,7 +82,7 @@ The `--v4` group runs through the lock helper (check-list §3.1 and §3.2): case
 | Command | Where | Expected | Time limit |
 |---|---|---|---|
 | `Invoke-IgNode -Repo pentomino -Task 'V4-T02b verify' -NodeArgs @('tools\ig-proto\self-test.mjs', '--label', 'frozen', '--source-label', 'frozen 3fc65f4', '--v4', '--task', 'V4-T02b')` (check-list §3.2) | root | eight cases pass (T02a's three and these five), exit 0 | 5 min (the helper's 300 s) |
-| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T01b` | root | the eight `--frozen` cases pass | 2 min |
+| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T01b` | root | the nine `--frozen` cases pass | 2 min |
 | `node tools\ig-proto\lib\tree.mjs check-edits --all --label frozen` | root | one `ok` line per declared variant, no error | 2 min |
 | `node tools\ig-proto\firewall.mjs check --task V4-T02b --label frozen` | root | `files unchanged` | 1 min |
 | `npm run check` | root | exit 0 | 2 min |

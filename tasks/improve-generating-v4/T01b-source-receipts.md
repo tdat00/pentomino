@@ -103,7 +103,7 @@ These cases carve one set each and rate nothing; they run unlocked (check-list Â
 | Command | Where | Expected | Time limit |
 |---|---|---|---|
 | `node tools\ig-proto\receipt.mjs --label frozen --source-label "frozen 3fc65f4"` | root | `receipt.json` and `receipt.md` written; snapshot verified; `digestEqual: true`; every variant without error; `notOffered` lists the 25 Hell cells (12 `hell-1`, 9 `hell-2`, 4 `hell-3`) | 2 min |
-| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T01b` | root | the eight `--frozen` cases pass, exit 0 | 2 min |
+| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T01b` | root | the nine `--frozen` cases pass (T01a's six and these three), exit 0 | 2 min |
 | `node tools\ig-proto\firewall.mjs check --task V4-T01b --label frozen` | root | `files unchanged` | 1 min |
 | `npm run check` | root | exit 0 | 2 min |
 

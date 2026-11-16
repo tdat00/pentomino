@@ -105,7 +105,7 @@ differs from this task (report it with `QUESTION:`).
 |---|---|---|---|
 | `pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\V4-T03.json -Label frozen -SourceLabel 'frozen 3fc65f4' -DryRun` | root | three `[dry run] ...: unlocked` lines | 1 min |
 | `node tools\ig-proto\pm1-inventory.mjs --label frozen --source-label "frozen 3fc65f4"` | root | `inventory.json` and `inventory.md` written; exit 0 | 1 min |
-| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T03` | root | nine `--frozen` cases pass (T01a's five, T01b's three, this one) | 2 min |
+| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T03` | root | ten `--frozen` cases pass (T01a's six, T01b's three, this one) | 2 min |
 | `node tools\ig-proto\firewall.mjs check --task V4-T03 --label frozen` | root | `files unchanged` | 1 min |
 | `npm run check` | root | exit 0 | 2 min |
 

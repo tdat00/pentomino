@@ -159,7 +159,7 @@ The `--items` cases run only test kinds (no rating, generation, uniqueness count
 | Command | Where | Expected | Time limit |
 |---|---|---|---|
 | `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04a` | root | six cases pass, exit 0 | 3 min |
-| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T04a` | root | the nine `--frozen` cases pass | 2 min |
+| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T04a` | root | the ten `--frozen` cases pass | 2 min |
 | `Invoke-IgNode -Repo pentomino -Task 'V4-T04a verify' -NodeArgs @('tools\ig-proto\self-test.mjs', '--label', 'frozen', '--source-label', 'frozen 3fc65f4', '--task', 'V4-T04a-lanes', '--only', '1,7')` (check-list §3.2; default cases 1 `paths and fingerprint guard` and 7 `lanes: order, supervisor, admission`, which runs real `rate` jobs) | root | two cases pass, exit 0 | 5 min (the helper's 300 s) |
 | `node tools\ig-proto\firewall.mjs check --task V4-T04a --label frozen` | root | `files unchanged` | 1 min |
 | `npm run check` | root | exit 0 | 2 min |

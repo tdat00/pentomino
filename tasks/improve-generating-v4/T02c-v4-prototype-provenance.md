@@ -153,7 +153,7 @@ expected value.
 | `node tools\ig-proto\lib\tree.mjs build v4 v4-w760 v4-w095 v4-w380 --label frozen` | root | four `built` lines (the tree ids change: `v4.json` changed) | 3 min |
 | `node tools\ig-proto\lib\tree.mjs check-edits --all --label frozen` | root | one `ok` line per declared variant, no error; `v4` reports 21 edits more than its parent `log` (`v4-1` to `v4-4`, `pv-1` to `pv-17`) | 2 min |
 | `Invoke-IgNode -Repo pentomino -Task 'V4-T02c verify' -NodeArgs @('tools\ig-proto\self-test.mjs', '--label', 'frozen', '--source-label', 'frozen 3fc65f4', '--v4', '--task', 'V4-T02c')` (check-list §3.2) | root | twelve cases pass (T02a's three, T02b's five, these four), exit 0 | 5 min (the helper's 300 s) |
-| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T01b` | root | the eight `--frozen` cases pass | 2 min |
+| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T01b` | root | the nine `--frozen` cases pass | 2 min |
 | `node tools\ig-proto\firewall.mjs check --task V4-T02c --label frozen` | root | `files unchanged` | 1 min |
 | `npm run check` | root | exit 0 | 2 min |
 

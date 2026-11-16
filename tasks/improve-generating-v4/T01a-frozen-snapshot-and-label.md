@@ -2,7 +2,7 @@
 
 | Item | Value |
 |---|---|
-| Feature, plan | improve-generating, `docs/improve-generating/plan.md` §5.1 (preconditions: the freeze, no fallback to the old runtime), §9 (freeze point `3fc65f4`); decisions D-V4-01, D-V4-02, D-V4-12; review RV1-24 |
+| Feature, plan | improve-generating, `docs/improve-generating/plan.md` §5.1 (preconditions: the freeze, no fallback to the old runtime), §9 (freeze point `3fc65f4`); decisions D-V4-01, D-V4-02, D-V4-12; review RV1-24; the pack author's ruling of 2026-11-17 on line endings |
 | Repository, branch, base | `Q:\git\pentomino`, `improve-generating`, `345d29d` |
 | Depends on | none |
 | Pack author / reviewer | SA-Opus / SA-Astra |
@@ -26,6 +26,12 @@ approval.
 - The snapshot folder is never merged into: it is created from an absent folder, or it is verified against the
   recorded manifest; an unverified folder stops the work.
 - No production file changes. The harness code runs no git; only the developer's snapshot command does.
+- Ruling of the pack author, 2026-11-17 (the developer's report on the first execution): `git archive` writes text
+  files with the line endings of the machine (here `core.autocrlf=true`, with `.gitattributes` `* text=auto`), so a
+  manifest of raw bytes verifies only where the extraction converts the same way. The manifest therefore hashes every
+  file by the rule of `sha256File` (`lib/records.mjs:30`): a file without a NUL byte as UTF-8 text with LF line ends,
+  a file with a NUL byte as its raw bytes; the same rule as `computeSourceDigest` and every evidence hash of the pack.
+  The extraction command of step 4 is unchanged: its line endings no longer matter.
 
 ## Scope
 
@@ -69,10 +75,22 @@ approval.
    once and verified against its manifest (V4-T01a)."
 2. **`snapshot.mjs`** (`// @ts-check`; no git): `record`, `verify` and `--help`.
    - `record`: refuses (exit 1, `snapshot: the manifest exists`) when `SNAPSHOT_MANIFEST` exists; else hashes every
-     file under `FROZEN_SOURCE_DIR` (SHA-256 of the raw bytes), sorts by the `/`-separated relative path, and writes
-     `{ format: 'ig-proto-snapshot', version: 1, frozenCommit: FROZEN_COMMIT, files: <count>, digest: <SHA-256 of
-     the concatenated "path\tsha256\n" lines>, entries: [{ path, sha256, bytes }] }` with `writeJson`.
-   - `verify`: re-hashes the folder and compares with the manifest: missing, extra and changed paths; prints
+     file under `FROZEN_SOURCE_DIR` by the line-ending rule of the Authority section, sorts by the `/`-separated
+     relative path, and writes `{ format: 'ig-proto-snapshot', version: 1, frozenCommit: FROZEN_COMMIT, hashRule:
+     'lf-text', files: <count>, digest: <SHA-256 of the concatenated "path\tsha256\n" lines>, entries: [{ path,
+     sha256, bytes, text }] }` with `writeJson`. Per file, in `snapshotEntries`:
+
+     ```js
+     const raw = readFileSync(join(folder, entry.name));
+     const text = !raw.includes(0);
+     // The rule of sha256File (lib/records.mjs:30): the manifest does not depend on the line endings of the extraction.
+     const hashed = text ? Buffer.from(lf(raw.toString('utf8')), 'utf8') : raw;
+     out.push({ path, sha256: sha256(hashed), bytes: hashed.length, text });
+     ```
+
+     (`lf` and `sha256` from `./lib/records.mjs`; `bytes` is the length of the hashed content.)
+   - `verify`: refuses a manifest whose `hashRule` is not `'lf-text'` (exit 1, `snapshot: the manifest's hash rule
+     is not lf-text`); else re-hashes the folder and compares with the manifest: missing, extra and changed paths; prints
      `snapshot: verified (<files> files)` and exits 0, or prints the first ten differences and exits 1.
    - Export `export function verifySnapshot()` returning `{ ok, files, differences }` for the tree builder.
    - `--help` (or no argument) prints `usage: node tools/ig-proto/snapshot.mjs record | verify` and exits 0; any other
@@ -143,13 +161,25 @@ approval.
    `frozenCases`; the default task with it is `V4-T01a`. Cases in the Tests table.
 9. **`README.md`**: a section "## Frozen source (task pack v4)" after "## Re-run index": the snapshot commands of
    step 4, `snapshot.mjs record|verify`, `--label frozen` (the only selector), the tree folder `tree-frozen/`, the
-   zero round cap and `-ApprovedRoundMinutes`, and that provisional commands behave as before.
+   zero round cap and `-ApprovedRoundMinutes`, that provisional commands behave as before, and the manifest's hash rule
+   (text with LF line ends, so the extraction's line endings do not matter).
+10. **Fix round of 2026-11-17 (once, by the pack author's ruling).** The first execution extracted the folder and
+    recorded a raw-byte manifest, not yet committed. In this order, at the root: (a) with the code as it is, `node
+    tools\ig-proto\snapshot.mjs verify` must print `snapshot: verified (88 files)` (the folder is still that
+    extraction), else stop with `QUESTION:`; (b) change `snapshotEntries`, `record` and `verify` as step 2 now says and
+    add the line-ending case; (c) delete only `docs/improve-generating/evidence/frozen/V4-T01a/snapshot-manifest.json`
+    (this ruling allows it once) and keep `tests/artifacts/ig-proto/frozen-source/` as it is: no new extraction, the
+    hash rule makes its line endings irrelevant; (d) `node tools\ig-proto\snapshot.mjs record`, then `node
+    tools\ig-proto\snapshot.mjs verify`, which prints `snapshot: verified (88 files)`; (e) re-run every gate of the
+    Commands table (step 4's script now takes its first branch, `verify`) and report the new manifest's `digest`, its
+    `hashRule` and the number of entries with `text: false`.
 
 ## Tests
 
 | Test file | Case name | Input | Expected |
 |---|---|---|---|
 | `tools/ig-proto/self-test.mjs --frozen` | `frozen: snapshot verified, digest and versions` | `verifySnapshot()`, `sourceDigest()` and `sourceVersions()` in a process started with `--label frozen` | `ok` true; the digest equals `FROZEN_DIGEST`; versions deep-equal `{ algo: 'gen-v3', policy: 'mixed-v3', rng: 'xoshiro128ss-v1', model: 'difficulty-v3', app: '1.0.0' }` |
+| same | `frozen: line endings do not change a snapshot hash` | `snapshotEntries(dir)` of a fresh folder `artifactDir('selftest', 'snapshot-eol')` holding `a.txt` written as `'x\r\ny\r\n'` and `b.bin` as the bytes `[0, 13, 10]`; then the same folder with `a.txt` rewritten as `'x\ny\n'` and `b.bin` as `[0, 10]` | `a.txt`: equal `sha256` and `bytes` (4) both times, `text` true; `b.bin`: different `sha256`, `bytes` 3 then 2, `text` false |
 | same | `frozen: a changed snapshot is refused` | a temporary copy of the manifest with one entry's `sha256` changed, given to the exported `compareSnapshot(entries, manifest)` | one difference naming that path; `ok` false |
 | same | `frozen: trees and anchors` | `ensureTree('base')`, then `planTree(id, { errors, sources: collectSources() })` for every `listVariants()` id | the base root ends with `tests/artifacts/ig-proto/tree-frozen/base` and its `copyDigest` equals `FROZEN_DIGEST`; every variant has `errors.length === 0` |
 | same | `frozen: round cap 0` | `decide({ task: 'x', label: 'frozen', allocationS: 600, minHorizonS: 60, invocations: [] })`, then with `approvals: { roundMinutes: 10 }` | first `decision: 'stop'`, `roundCapS: 0`; second `decision: 'go'`, `horizonS: 285`, `roundCapS: 600` |
@@ -174,7 +204,7 @@ The cases of this task do no generation, rating or replay, so they run unlocked 
 | `node tools\ig-proto\lib\tree.mjs build base instr log --label frozen` | root | three lines `<id> <treeId> <copyDigest> built`; base's copyDigest `e181df2c…` | 3 min |
 | `node tools\ig-proto\lib\tree.mjs check-edits --all --label frozen` | root | one `ok <variant>: <n> edits match` line per declared variant, no error, exit 0; report the printed counts | 2 min |
 | `node tools\ig-proto\lib\tree.mjs check-edits --all` | root | the same lines as with `--label frozen` (worktree; provisional behaviour) | 2 min |
-| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T01a` | root | the five cases pass, exit 0 | 2 min |
+| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T01a` | root | the six cases pass, exit 0 | 2 min |
 | `node tools\ig-proto\firewall.mjs check --task V4-T01a --label frozen` | root | `files unchanged` | 1 min |
 | `npm run check` | root | exit 0 | 2 min |
 
@@ -206,6 +236,7 @@ The cases of this task do no generation, rating or replay, so they run unlocked 
 | T01a-T02 | Every declared variant's edits apply to the frozen source | `check-edits --all --label frozen` | command output |
 | T01a-T03 | Provisional behaviour unchanged | `check-edits --all` (no label); `frozen: provisional unchanged` | command output |
 | T01a-T04 | No production file changed; formats | firewall `check`; the `git status` guard; `npm run check` | command output |
+| T01a-T05 | The manifest does not depend on the line endings of the extraction (ruling of 2026-11-17): text hashed with LF line ends, a file with a NUL byte raw; `hashRule` `lf-text` | the line-ending case; the manifest's `hashRule` and `text` fields | self-test output; `snapshot-manifest.json` |
 
 ## Checklist (the developer confirms every item in the final report)
 

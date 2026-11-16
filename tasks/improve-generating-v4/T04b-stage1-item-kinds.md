@@ -153,7 +153,7 @@ All in `tools/ig-proto/self-test.mjs --items`; they run no rating, generation or
 | Command | Where | Expected | Time limit |
 |---|---|---|---|
 | `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04b` | root | every `--items` case passes, exit 0 | 3 min |
-| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T04b` | root | the nine `--frozen` cases pass (T01b's audit covers `lib/lane-worker.mjs`) | 2 min |
+| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T04b` | root | the ten `--frozen` cases pass (T01b's audit covers `lib/lane-worker.mjs`) | 2 min |
 | `node tools\ig-proto\firewall.mjs check --task V4-T04b --label frozen` | root | `files unchanged` | 1 min |
 | `npm run check` | root | exit 0 | 2 min |
 
