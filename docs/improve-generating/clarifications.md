@@ -7,7 +7,8 @@ plan author's positions on IG-P-D1 to IG-P-D7 is in this file at commit `1731c6b
 answers are at commit `f768220`, IG-P-Q32 to IG-P-Q35 with their answers at commit `854a69d`, and the question
 IG-P-Q36 at commit `b7e5dff`. `plan.md` and the reports cite them by ID. Plan version 4 has taken in the answers to
 IG-P-Q25 to IG-P-Q35, the corrections C1 to C18 accepted from the joint report on version 3 and the resolution of
-IG-P-Q36 below.
+IG-P-Q36 below. IG-P-Q37 is the open work-accounting disagreement raised during task-pack review on 2026-11-16;
+only the affected work-condition rule awaits that answer.
 
 ---
 
@@ -299,4 +300,142 @@ keeps the answer to IG-P-Q34 as written, needs no second preflight comparison (a
 
 ## Open questions
 
-None for the Pentomino plan (2026-11-15).
+### IG-P-Q37: work acceptance when a speculative worker is terminated inside a primitive
+
+**Addressee:** the plan author (supervisor, SA-Fable).
+
+**Raised by:** SA-Astra (reviewer), against SA-Opus (pack author), during `break-tasks` review round 3,
+2026-11-16. This is the supervisor escalation of Q-RV3-01, not a new owner decision or an adopted change to the plan.
+
+**Decision needed:** which work-acceptance rule binds plan §5.2's "Work units per accepted puzzle are reported
+beside it and may not be worse with the screen" when the pool kills a worker inside a primitive?
+
+**Context and current state.**
+
+Plan §5.2, rule (c5), faster (`docs\improve-generating\plan.md:600-602`), says:
+
+> **Rule (c5), faster.** Wall time binds: the geometric mean of the per-seed T10 ratio (no screen over screen)
+> is at least 1.15, and its one-sided 90 % lower bound, resampled by seed, is above 1.0. Work units per
+> accepted puzzle are reported beside it and may not be worse with the screen.
+
+The same section makes an inconclusive screen class use no screen; that arm still has to pass its own cell gates.
+The question is the work quantity and the evidence needed for its non-worsening condition, not the wall-time,
+completion or clue-population thresholds.
+
+At `3fc65f4`, `core\browser\worker-pool.js:293-325` implements `abortEntry` by calling `discard` for a busy slot;
+`discard` calls that worker's `terminate()`. Outstanding speculative tasks are aborted on exit by the set,
+completion and batch controllers (`core\browser\generation-client.js:696-699,1080,1172-1175` at the same commit).
+The primitive's work is reported after it returns, including a reported work-cap outcome
+(`core\engine\clues.js:173-212,322-344` at `3fc65f4`). A kill inside the primitive can therefore leave consumed
+work without its terminal counter report. Both SAs accept this operational behaviour.
+
+All pack evidence below is the frozen copy under
+`docs\improve-generating\evidence\clarifications\IG-P-Q37\pack-at-review-3\`, not the live task pack.
+Task names and short paths inside the verbatim quotations refer to that reviewed copy or to the code at
+`3fc65f4`; the live pack may continue changing.
+
+D-V4-17's decision text, exactly as written in the frozen `check-list.md:322`, is:
+
+> The work of a request is the sum of the metered units of its completed primitives (each rating's main and census work, each uniqueness count's units), the units P5's budget meters; a call cut by a recorded worker termination (T06's `worker-end`) is closed with its completed primitives and counted in `terminatedCalls`; any unrecorded loss (an open call, a missing `caps` line, an unowned or invalid line, a failed reconciliation, a returned selection task without its call) makes the ledger incomplete and the work rule `unknown`
+
+In the reviewed pack, this governs T09b's `rowLedger`, `workRule` and class admission, using T02a's primitive
+ledger and T06's termination linkage; T09c reports and consumes the resulting class verdict. T07a's completed-
+operation budget meter is the comparison SA-Opus invokes, not a proposal here to change that budget or the
+generator's cancellation behaviour. If additional accounting is required, the relevant instrumentation, tests and
+T11b/T11d pricing may also need revision. The frozen task paths are indexed below.
+
+**Both positions, verbatim.**
+
+**SA-Opus (pack author):** the Reason cell of RV2-07 in the frozen `review-2-response.md:39`:
+
+> The frozen pool terminates the worker of every aborted task (`core/browser/worker-pool.js:293-325`, `abortEntry` then `discard`), and every request aborts its in-flight speculative work at its end (`generation-client.js:696-699` for the set stage, `:1080` for the completion pass, `:1172-1175` for the batch); terminated calls therefore occur in nearly every row of both arms, and the strict rule would make the work rule `unknown` for every class, turning plan §5.2's "may not be worse" into a condition that can never pass. D-V4-17 fixes the unit instead: the metered units of completed primitives, the units P5's budget meters (T07a); a call is closed only by its own `end` or by a termination that the pool itself records (`link-13` in `adaptNodeWorker`'s `terminate`); `terminatedCalls` is reported per arm beside the ratio; every unrecorded loss stays incomplete. The interrupted primitive's partial work is neither read as zero nor estimated: it is outside the unit in both arms. If SA-Astra keeps the strict rule, this is a disagreement between the two SAs and goes to the supervisor through `clarifications.md`
+
+**SA-Astra (reviewer):** the ruling in the frozen `review-3.md:98`:
+
+> **Keep the strict rule. This is an unresolved disagreement between the two SAs, not a decision for the supervisor.**
+
+RV3-01's problem and proposed replacement in the same frozen review (`:136`), verbatim:
+
+> A recorded kill closes a call without measuring its interrupted primitive, yet the resulting completed-prefix sum can satisfy the non-worsening work gate. The counterexample above demonstrates the missing implication. This is the explicitly raised SA disagreement.
+>
+> "D-V4-17 is proposed, pending Q-RV3-01. Until that ruling, keep completed-primitive units and termination counts as reported diagnostics; do not treat an interrupted call's unreported work as a complete observation for the plan's non-worsening condition. Unknown work makes that condition unknown. Update the plan/decision register and the task's metric/acceptance text consistently after the ruling."
+
+The review's counterexample is constructed arithmetic, not a benchmark observation: both arms accept ten puzzles;
+completed primitives report 900 units for screen and 1,000 for no screen, while interrupted primitives have already
+consumed 200 and 10 units. The reported completed-unit comparison passes at 90 versus 100 units per accepted
+puzzle; including those consumed units gives 110 versus 101 and fails. Equal termination counts do not measure
+the omitted amounts. SA-Astra accepts that kills are routine, but the code alone does not establish that every
+class must have unknown work; SA-Opus's frequency/feasibility argument above remains his stated position.
+
+**Options.** These are options (a), (b) and (c) of the frozen Q-RV3-01
+(`review-3.md:329-340`), with their consequences:
+
+- **(a) Keep the strict rule.** Unaccounted interrupted work makes the work condition unknown; report completed
+  units separately. This preserves the non-worsening assurance, but routine cancellation may leave screen classes
+  inconclusive, using the existing no-screen fallback.
+  - **Behaviour:** the work condition cannot admit a class on an incomplete work observation. An ended call whose
+    work is fully accounted is not made unknown merely because its idle worker is later terminated. No change to
+    generation, cancellation or P5's operation budget is implied.
+  - **Cost and risk:** no new metering mechanism is required to report unknown, but possible screen gains may not
+    qualify. Any extra observations sought to remove the uncertainty need their own price/approval; none are
+    authorized by this option.
+  - **Affected tasks:** T09b's completeness/work rule and its tests, T09c's reporting, D-V4-17 and the accounting
+    interpretation of T06's termination evidence.
+- **(b) Authorize D-V4-17.** Compare only reported completed-primitive units and report terminated calls. The current
+  hooks can supply this metric, but it does not prove that all consumed selection-work units per accepted puzzle
+  are non-worsening. State that intended acceptance quantity explicitly in the plan.
+  - **Behaviour:** a recorded termination may close a call with its reported completed primitives for this
+    acceptance metric; unrecorded loss still makes the metric unknown. This explicitly excludes the interrupted
+    primitive's unreported work rather than estimating it or claiming that it is zero.
+  - **Cost and risk:** uses the already proposed primitive logging and termination linkage, without a new
+    in-primitive counter mechanism. Omitted work can differ between arms, so the resulting admission carries the
+    narrower assurance illustrated by the counterexample; termination counts disclose frequency, not amount.
+  - **Affected tasks:** retain the intended D-V4-17/T09b metric, with T06's linkage, T09c's report and the plan's
+    wording consistent about what is measured. Independent bookkeeping fixes still proceed.
+- **(c) Preserve the assurance through additional accounting or proven bounds.** Admit only when the accounted
+  totals or conservative bounds establish non-worsening. That mechanism is not specified in this pack; it needs
+  concrete tasks and any revised measurement price before validation.
+  - **Behaviour:** account for interrupted work, or prove that the screen's conservative work bound per accepted
+    puzzle does not exceed the comparator's corresponding lower bound. If that cannot be established, the
+    condition remains unknown; a kill count alone is not such a bound.
+  - **Cost and risk:** additional instrumentation, proof of its bounds/overhead and observer-parity tests may be
+    needed. Their cost and effect on measurements are not established here; timed work must be repriced and
+    approved before running.
+  - **Affected tasks:** specify the mechanism in the relevant T02a/T06 instrumentation and T09b accounting/tests,
+    keep T07a's metering contract explicit, update T09c's report and the affected T11b/T11d price. No mechanism or
+    allowance is selected by this question.
+
+**The SAs' recommendations (not a decision).**
+
+- **SA-Astra:** option (a) under the current reading of plan §5.2. Option (c) is a possible way to establish the
+  assurance if it is specified and proved; it has not been selected. Do not treat option (b) as an equivalent proof
+  about all consumed selection-work units.
+- **SA-Opus:** D-V4-17, option (b), for the reasons quoted above.
+
+There is no joint recommendation. The supervisor resolves the disagreement; any change to a recorded owner
+decision still requires the owner's confirmation.
+
+**Evidence index (repository-relative; reviewed-pack paths are frozen).**
+
+| Evidence | Path |
+|---|---|
+| Work condition and no-screen fallback | `docs\improve-generating\plan.md:600-617` |
+| Pool abortion/termination | `core\browser\worker-pool.js:293-325` at `3fc65f4` |
+| Set, completion and batch cancellation | `core\browser\generation-client.js:696-699,1080,1172-1175` at `3fc65f4` |
+| Primitive work reports | `core\engine\clues.js:173-212,322-344` at `3fc65f4` |
+| D-V4-17 as reviewed | `docs\improve-generating\evidence\clarifications\IG-P-Q37\pack-at-review-3\check-list.md:322` |
+| SA-Opus's position | `docs\improve-generating\evidence\clarifications\IG-P-Q37\pack-at-review-3\review-2-response.md:39` |
+| SA-Astra's ruling, RV3-01 and original question | `docs\improve-generating\evidence\clarifications\IG-P-Q37\pack-at-review-3\review-3.md:96-125,136,317-340` |
+| Primitive ledger | `docs\improve-generating\evidence\clarifications\IG-P-Q37\pack-at-review-3\T02a-v4-prototype-fork.md` |
+| Termination linkage | `docs\improve-generating\evidence\clarifications\IG-P-Q37\pack-at-review-3\T06-journal-linkage.md` |
+| P5 operation budget | `docs\improve-generating\evidence\clarifications\IG-P-Q37\pack-at-review-3\T07a-p5-call-budget.md` |
+| Work ledger and class rule | `docs\improve-generating\evidence\clarifications\IG-P-Q37\pack-at-review-3\T09b-work-ledger-and-class-verdict.md:14-110` |
+| Verdict/report consumer | `docs\improve-generating\evidence\clarifications\IG-P-Q37\pack-at-review-3\T09c-global-verdicts-and-receipts.md` |
+| Pricing if new work is required | `docs\improve-generating\evidence\clarifications\IG-P-Q37\pack-at-review-3\T11b-frozen-round-pricing.md`; `docs\improve-generating\evidence\clarifications\IG-P-Q37\pack-at-review-3\T11d-frozen-round-manifest.md` |
+
+**What is blocked meanwhile.** Only the work-condition rule under RV3-01 / D-V4-17 in the affected tasks:
+the definition of accounted work, treatment of unreported interrupted work and the resulting admission condition.
+The rest of the pack continues, including SA-Opus's other review fixes and the independent linkage/bookkeeping
+corrections. This question does not freeze unrelated tasks, authorize measurements or adopt an option.
+
+**Answer (plan author, <date>):**
