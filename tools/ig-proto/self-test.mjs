@@ -7,10 +7,11 @@
 // (default IGP-01 with --proto, else IGP-00). `--p6` (IGP-04) runs all of them and adds the P6 cases (default task IGP-04).
 // `--frozen` (V4-T01a, V4-T01b) runs only the frozen-source group (default task V4-T01a): carve-only checks and records, unlocked.
 // `--v4` (V4-T02a onwards) runs only the gen-v4 prototype group (default task V4-T02a); it runs through the lock helper.
-// Its twelve cases: V4-T02a's three (tree, dispatch and bounds; locate, rescue and re-rating order; skips and window),
-// V4-T02b's five (observers parity, throwing observers, skip replay round trip, legacy dispatch, the rate seam) and
+// Its fifteen cases: V4-T02a's three (tree, dispatch and bounds; locate, rescue and re-rating order; skips and window),
+// V4-T02b's five (observers parity, throwing observers, skip replay round trip, legacy dispatch, the rate seam),
 // V4-T02c's four (provenance versions per arm, the reader by the record's own algo, old and new records load and save,
-// version and table refusal before any work).
+// version and table refusal before any work) and V4-T02d's three (every primitive is announced, no real rating
+// exceeds its bound, the journal changes no result).
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, sep } from 'node:path';
@@ -1096,10 +1097,17 @@ const p6Cases = [
  * One call of the gen-v4 prototype on the K = 15 set with synthetic screen and canonical ratings and its journal: a
  * copy of `protoCall` whose default variant is `v4` (the tree's `selectClues` sends BAND, min 55, to `selectCluesV4`).
  * @param {string} name
- * @param {{ prior: number | null, screen: (c: number) => any, canon?: (c: number) => any, variant?: string, stage?: string }} spec
- *   A function returns a rating or 'cap' (an IncompleteRatingError); `variant` and `stage` default to v4 and set.
+ * @param {{ prior: number | null, screen: (c: number) => any, canon?: (c: number) => any, variant?: string,
+ *   stage?: string, uniqueness?: 'any' | 'require', journal?: boolean }} spec
+ *   A function returns a rating or 'cap' (an IncompleteRatingError); `variant` and `stage` default to v4 and set;
+ *   `uniqueness` (default 'any') is the context's; with `journal: false` (default true) the fresh folder is made as
+ *   before but `IG_LOG_DIR` and `IG_ROW` are unset, so the call writes no journal.
+ * @returns {Promise<{ result: any, lines: any[], tuples: any[], counts: (phase: string) => number[], end: any,
+ *   phases: string[], files: string[] }>} `files` are the journal files written.
  */
-async function v4Call(name, { prior, screen, canon = screen, variant = 'v4', stage = 'set' }) {
+async function v4Call(name, {
+  prior, screen, canon = screen, variant = 'v4', stage = 'set', uniqueness = 'any', journal = true,
+}) {
   const { e, ws } = await engine(variant);
   const { carved } = await k15Set();
   const make = (/** @type {(c: number) => any} */ fn) => (/** @type {any[]} */ clues) => {
@@ -1110,13 +1118,18 @@ async function v4Call(name, { prior, screen, canon = screen, variant = 'v4', sta
     return r;
   };
   const dir = fresh(join(SELFTEST_DIR, 'logs', `v4-${name}`));
-  process.env.IG_LOG_DIR = dir;
-  process.env.IG_ROW = `selftest~v4-${name}`;
+  if (journal) {
+    process.env.IG_LOG_DIR = dir;
+    process.env.IG_ROW = `selftest~v4-${name}`;
+  } else {
+    delete process.env.IG_LOG_DIR;
+    delete process.env.IG_ROW;
+  }
   let result;
   try {
     result = e.clues.selectClues({
       board: carved.board, pieces: carved.set.pieces, layout: carved.set.witness, target: BAND,
-      rng: e.rng.createRng(e.rng.normalizeSeedText('ig-selftest/proto/p1'), `selftest/${name}`), uniqueness: 'any',
+      rng: e.rng.createRng(e.rng.normalizeSeedText('ig-selftest/proto/p1'), `selftest/${name}`), uniqueness,
       excludeClueKeys: new Set(), ws, igScreen: make(screen), igCanonical: make(canon), igPrior: prior, igStage: stage,
     });
   } finally {
@@ -1126,7 +1139,10 @@ async function v4Call(name, { prior, screen, canon = screen, variant = 'v4', sta
   const lines = readJournal(dir);
   const tuples = lines.filter((l) => l.t === 'p').map((l) => l.tuple);
   const counts = (/** @type {string} */ phase) => tuples.filter((t) => t[0] === phase).map((t) => t[1]);
-  return { result, lines, tuples, counts, end: lines.find((l) => l.t === 'end'), phases: lines.filter((l) => l.t === 'phase').map((l) => l.phase) };
+  return {
+    result, lines, tuples, counts, end: lines.find((l) => l.t === 'end'), phases: lines.filter((l) => l.t === 'phase').map((l) => l.phase),
+    files: readdirSync(dir),
+  };
 }
 
 /**
@@ -1245,6 +1261,26 @@ function synth(e, fn) {
 const REBRACKETED = { screen: () => 'cap', canon: (/** @type {number} */ c) => synthetic(100 - 10 * c) };
 /** Counts of up to two clues are capped, the others fall by 10 per clue: the locate hits at 4 clues. */
 const DOWN = (/** @type {number} */ c) => (c <= 2 ? 'cap' : synthetic(100 - 10 * c));
+
+/**
+ * V4-T02d's first call: screen-capped probes, re-ratings and a real repair with counts (the canonical rating of every
+ * count above 3 is central, so the rescue finishes the call on a repaired set).
+ * @type {{ prior: null, screen: () => string, canon: (c: number) => any, uniqueness: 'require' }}
+ */
+const BEGIN_CALL = {
+  prior: null, screen: () => 'cap', canon: (c) => synthetic(c <= 3 ? 100 - 10 * c : 60), uniqueness: 'require',
+};
+/**
+ * V4-T02d's second call (T07a's `S2`): the 4-clue rating 56 is in the band 55 to 70 but not central, so the call goes
+ * on to the window and the beam.
+ * @type {{ prior: null, screen: (c: number) => any, canon: (c: number) => any, uniqueness: 'require' }}
+ */
+const BEGIN_CALL_2 = {
+  prior: null,
+  screen: (c) => synthetic(c === 4 ? 56 : 100 - 10 * c),
+  canon: (c) => synthetic(c === 4 ? 56 : 100 - 10 * c),
+  uniqueness: 'require',
+};
 
 /**
  * Runs one call with a fresh journal folder, as `v4Call` does; a thrown error is returned, not thrown.
@@ -1737,6 +1773,113 @@ const v4Cases = [
       await passes('(iv) the control of (iii)', treeV4, withoutOrigin);
       await refused('(v) a gen-v3 record', treeV4, g3, 'set-versions', {});
       await refused('(vi) a record of another arm', treeW095, g4, 'set-versions', {});
+    },
+  },
+  {
+    name: 'bound: every primitive is announced',
+    async run() {
+      const { e } = await engine('v4');
+      const { carved } = await k15Set();
+      const rowLimit = e.clues.countRowLimit(carved.board);
+      for (const [name, spec] of /** @type {[string, typeof BEGIN_CALL][]} */ ([['begin', BEGIN_CALL], ['begin2', BEGIN_CALL_2]])) {
+        const r = await v4Call(name, spec);
+        const { lines } = r;
+        const start = lines.find((l) => l.t === 'start');
+        const last = lines.findLastIndex((l) => l.t === 'p' || l.t === 'count');
+        let countLines = 0;
+        let countUnits = 0;
+        lines.forEach((l, i) => {
+          const before = i > 0 ? lines[i - 1] : null;
+          const after = i + 1 < lines.length ? lines[i + 1] : null;
+          if (l.t === 'begin') {
+            assert(l.call === start.call && ['screen', 'rate', 'count'].includes(l.kind), `${name}: begin line ${JSON.stringify(l)}`);
+            assert(typeof l.bound === 'number' && Number.isFinite(l.bound) && l.bound >= 0, `${name}: the bound of ${JSON.stringify(l)} is not a finite number from 0`);
+            assert(i < last, `${name}: a begin line follows the last completion line (${JSON.stringify(l)})`);
+            assert(after !== null && after.t === (l.kind === 'count' ? 'count' : 'p'), `${name}: the ${l.kind} begin line is followed by ${JSON.stringify(after)}`);
+          }
+          if (l.t === 'p') {
+            assert(before !== null && before.t === 'begin' && (before.kind === 'screen' || before.kind === 'rate'),
+              `${name}: the ${l.tuple[0]} rating line (index ${l.i}) is preceded by ${JSON.stringify(before)}`);
+            const screened = ['locate', 'window', 'p2', 'beam'].includes(l.tuple[0]);
+            assert(before.kind === (screened ? 'screen' : 'rate'), `${name}: a ${l.tuple[0]} rating is announced as ${before.kind}`);
+          }
+          if (l.t === 'count') {
+            assert(before !== null && before.t === 'begin' && before.kind === 'count' && before.bound === rowLimit,
+              `${name}: the count line ${JSON.stringify(l)} is preceded by ${JSON.stringify(before)}, the row limit is ${rowLimit}`);
+            countLines += 1;
+            countUnits += l.units;
+          }
+        });
+        assert(r.end !== undefined && countUnits === r.end.locate.countWork, `${name}: the count lines sum to ${countUnits}, the end line says ${r.end?.locate?.countWork}`);
+        assert(lines.some((l) => l.t === 'begin' && l.kind !== 'count'), `${name}: no rating was announced`);
+        if (name === 'begin') {
+          assert(countLines >= 1 && r.result.ok === true, `${name}: ${countLines} count lines, ok ${r.result.ok}: the real repair did not run`);
+        } else {
+          assert(r.phases.includes('window') && r.phases.includes('beam') && r.counts('beam').length > 0,
+            `${name}: phases ${r.phases.join(',')}, beam probes ${r.counts('beam').length}: phase D's loop did not run`);
+        }
+      }
+    },
+  },
+  {
+    name: 'bound: no real rating exceeds its bound',
+    async run() {
+      const tree = await engine('v4');
+      const { e, ws } = tree;
+      const { igRatingBound } = await treeModule(tree, 'ig-select-v4');
+      const { carved } = await k15Set();
+      const { board } = carved;
+      const { pieces, witness } = carved.set;
+      let over = { value: -Infinity, text: '' };
+      let slack = { value: Infinity, text: '' };
+      let checked = 0;
+      for (const size of [3, 6, 9]) {
+        const clues = witness.slice(0, size);
+        for (const w of [0, 1, 1000, 1000000, 100000000]) {
+          for (const c of [0, 1000]) {
+            let charge;
+            /** @type {any} */
+            let metrics = null;
+            try {
+              metrics = e.difficulty.measureV3(board, pieces, clues, ws, {
+                deduce: { ...e.policy.DEDUCE, work: w, census: c }, dlx: e.policy.SCORE.caps,
+              }).metrics;
+              charge = metrics.work;
+            } catch (error) {
+              if (!(error instanceof e.difficulty.IncompleteRatingError)) {
+                throw error;
+              }
+              charge = error.counters.work;
+            }
+            const bound = igRatingBound(board, pieces, clues, { work: w, census: c });
+            const text = `${size} clues, work limit ${w}, census limit ${c}`;
+            assert(charge <= bound, `${text}: the rating charged ${charge}, above its bound ${bound}`);
+            if (size === 3 && w === 100000000 && c === 1000) {
+              assert(metrics !== null && metrics.censusComplete === false && metrics.censusWork >= 1000,
+                `${text}: the census overshoot was not exercised (${metrics === null ? 'capped' : `censusComplete ${metrics.censusComplete}, censusWork ${metrics.censusWork}`})`);
+            }
+            if (charge - w - c > over.value) {
+              over = { value: charge - w - c, text };
+            }
+            if (bound - w - c < slack.value) {
+              slack = { value: bound - w - c, text };
+            }
+            checked += 1;
+          }
+        }
+      }
+      assert(checked === 30, `${checked} ratings checked, expected 30`);
+      process.stdout.write(`NOTE bound: ${checked} real ratings; largest charge - w - c ${over.value} (${over.text}); smallest bound - w - c ${slack.value} (${slack.text})\n`);
+    },
+  },
+  {
+    name: 'bound: the journal changes no result',
+    async run() {
+      const journaledCall = await v4Call('begin', BEGIN_CALL);
+      const silent = await v4Call('begin', { ...BEGIN_CALL, journal: false });
+      assert(journaledCall.result.ok === true && journaledCall.files.length > 0, `the journaled call: ok ${journaledCall.result.ok}, ${journaledCall.files.length} journal files`);
+      same(silent.result, journaledCall.result, `the journal changed the result: ${JSON.stringify(silent.result)} against ${JSON.stringify(journaledCall.result)}`);
+      same(silent.files, [], `the call without a journal wrote ${JSON.stringify(silent.files)}`);
     },
   },
 ];

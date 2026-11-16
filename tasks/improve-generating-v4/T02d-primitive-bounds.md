@@ -213,13 +213,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 06:15:31 +07:00 (dispatch, base `f55db42`) to 06:37:03 +07:00 (acceptance): 21 min 32 s; the developer's own times 06:15:52-06:27:53 and, after the ruling, 06:34:29-06:35:50 |
+| Waiting for rulings | about 6 min (06:27:53 report to 06:34 relay of the ruling) |
+| Agent id, model | `9384ca76-79ba-4d6f-bdd1-645c3a3ec3b3`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 77 calls; 13,669,600 input, 74,678 output, 13,195,982 cache-read |
+| AI credits | 325.03 |
+| Questions and rulings | No `QUESTION:`. The developer's five deviations, three named items and four gaps were relayed to the pack author (06:33): deviations accepted; case 2 must also exercise the census overshoot (work limit 100,000,000, 30 charges, a census assert) and the README states that begin lines under a test seam prove nothing; `igRatingBound` stays computed without a journal (every measured `v4`-family row journals); pack amendment `1359873` |
+| Fix rounds | 1 (case 2's census input and the README's seam sentence) |
+| Gates re-run by the orchestrator | `tree.mjs build` of the four `v4` trees: reused; `check-edits --all --label frozen`: the `v4` family 40 edits, no error; the `--v4` group through the lock helper (`V4-T02d-verify`, after the fix round): 15 passed, 0 failed, `IG … exit=0 seconds=4.017`, `NOTE bound: 30 real ratings; largest charge - w - c 34914 …; smallest bound - w - c 7204746 …`; `--frozen`: 9 passed; firewall `check`: 289 production files unchanged; the guard `git status -- core generator tests tools/bench tools/ig-proto/variants/*.json`: no output; `npm run check`: OK |
+| Commit | this task's commit, `improve-generating T02d: Begin lines and proved bounds of every rating and count (IG-P-Q37)` |
+| Issues and named items | None new; T07a puts `checkBudget()` before the begin line and T09c reads these lines (already in those tasks). The developer ran locked scratch probes (the three new cases alone, 1.791 s; a probe, 0.876 s), removed |

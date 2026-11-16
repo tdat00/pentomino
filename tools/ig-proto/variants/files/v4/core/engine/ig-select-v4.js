@@ -174,6 +174,45 @@ export const igCountLine = (/** @type {string | null} */ callId, /** @type {numb
   t: 'count', call: callId, units,
 });
 
+/** The begin line of a primitive (IG-P-Q37): written before it starts, so it survives a kill. */
+export const igBeginLine = (
+  /** @type {string | null} */ callId, /** @type {string} */ kind, /** @type {number} */ bound,
+) => igLedgerLine({ t: 'begin', call: callId, kind, bound });
+
+/**
+ * A proved upper bound of the units one rating can charge (IG-P-Q37; derivation in task T02d, R9 as corrected in
+ * review 4): the setup, the work and census limits, and twice the largest stretch between two limit checks of
+ * deduce.js plus a full undo, from upper bounds of the model's sizes that need no enumeration.
+ * @param {{ width: number, height: number }} board
+ * @param {{ id: string, cells: unknown[] }[]} pieces
+ * @param {{ piece: string }[]} clues
+ * @param {{ work: number, census: number }} limits
+ * @returns {number}
+ */
+export function igRatingBound(board, pieces, clues, limits) {
+  const clued = new Set(clues.map((c) => c.piece));
+  const free = pieces.filter((p) => !clued.has(p.id)).map((p) => p.cells.length);
+  const cluedCells = pieces.filter((p) => clued.has(p.id)).reduce((s, p) => s + p.cells.length, 0);
+  const A = board.width * board.height;
+  const NC = activeCount(board) - cluedCells;
+  const NP = free.length;
+  const Tsz = free.reduce((s, n) => s + n, 0);
+  const L = Math.max(0, ...free) + 1;
+  const C = NC + NP;
+  const R = 8 * NP * NC;
+  const NZ = 8 * NC * (Tsz + NP);
+  const K = 8 * Math.max(Tsz, NC);
+  const sel = L + 2 * NZ;
+  const U = R + C + NZ;
+  const P = sel + U + (C + K + sel) + ((NC + 1) * (NP + 1) + NC) + (NZ + sel) + (R + 4 * NZ + NP * L + L * K)
+    + (3 * NZ + R + (L - 1) * (R + NZ)) + (3 * NZ + sel + U)
+    + (NC + 2 * NC * (R + NP) + 2 * R + NZ + 2 * NP + (NP + 1) * (NC + 1) * (2 * Tsz + 1))
+    + (9 * NC + NP + NZ * (2 + 2 * NC + L) + NP * NP + NP * (NC + 1) * (NP + 1) + NZ)
+    + (3 * NZ + (NC * NC) / 2 + 3 * ((NC * NC) / 2) * K * L) + (C + K);
+  const setup = 3 * NZ + R + C + A + 2 * NC + NP;
+  return Math.ceil(setup + limits.work + limits.census + 2 * (P + U));
+}
+
 /**
  * Selects a subset of the witness whose measured score lies in the target band (the contract of `selectClues`).
  * Test seams (self-test only): `ctx.igScreen(clues, W)` and `ctx.igCanonical(clues)` replace the screened and the
@@ -341,6 +380,8 @@ function searchV4(ctx, call, loc, W, prior, markNoWindow) {
    *   propagates.
    */
   const rateOnce = (clues, mode, phase) => {
+    igBeginLine(call.id, mode === 'screen' && screened ? 'screen' : 'rate',
+      igRatingBound(board, pieces, clues, mode === 'screen' && screened ? screenLimits.deduce : DEDUCE));
     /** @type {RatingDetail | null} */
     let detail = null;
     /** @type {any} */
@@ -491,9 +532,15 @@ function searchV4(ctx, call, loc, W, prior, markNoWindow) {
     repairOrdinal += 1;
     /** @type {{ addedId: string, clues: Pose[] }[]} */
     const steps = [];
+    igBeginLine(call.id, 'count', rowLimit);
     const repaired = makeUnique(board, pieces, layout, c.clues, rng, ws, rowLimit, {
-      onAdd: record === undefined ? undefined : (addedId, list) => {
-        steps.push({ addedId, clues: ownPoses(sortLike(layout, list)) });
+      onAdd: (addedId, list) => {
+        if (record !== undefined) {
+          steps.push({ addedId, clues: ownPoses(sortLike(layout, list)) });
+        }
+        if (list.length <= K - 2) {
+          igBeginLine(call.id, 'count', rowLimit);
+        }
       },
       onCount: (u) => {
         igCountLine(call.id, u);

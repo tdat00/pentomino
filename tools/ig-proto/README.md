@@ -677,3 +677,42 @@ edits of `version.js`, `generate.js`, `pack.js` and `replay.js` of the trees; no
   `v4: old and new records load and save` and `v4: version and table refusal before any work` run in the `--v4` group
   (through the lock helper, task id `V4-T02c`); the replay fixture `tests/fixtures/replay-case.json` is read, never
   written.
+
+### Begin lines and bounds (V4-T02d)
+
+IG-P-Q37 (D-V4-17): a worker killed inside a rating or a uniqueness count leaves that primitive's work unreported, so
+the work condition of rule (c5) is judged on bounds. Before every rating and every uniqueness count of a `gen-v4` call
+`ig-select-v4.js` journals one line, `{ "t": "begin", "call", "kind", "bound" }`, with `appendFileSync` (it survives the
+kill). The line is an observer: no result, charge, skip ordinal or control flow changes (the case `bound: the journal
+changes no result` runs a call with and without a journal).
+
+- **Kinds.** `screen` (a rating under the lowered limit `W`: the locate, window, seed and beam probes), `rate` (a
+  canonical rating: the re-ratings of the rescue and of phase E, the repairs' re-ratings, and every probe of an arm with
+  no screen) and `count` (a uniqueness count of a repair). The completion line (`p` or `count`) follows the begin line at
+  once; a begin line without one is the one open primitive of a killed call. A repair writes `count` before
+  `makeUnique` and again from its `onAdd` hook whenever another count follows (the list has at most `pieces.length - 2`
+  clues), so every `count` line has its begin line.
+- **A count's bound** is the `rowLimit` passed to `makeUnique` (`countRowLimit(board)`): the DLX solver tests
+  `rowTrials >= rowLimit` before each increment, so a count charges at most that many row trials.
+- **A rating's bound**, `igRatingBound(board, pieces, clues, limits)`, is `setup + limits.work + limits.census + 2 (P +
+  U)`: `measureDeduction` compares its work with the limit only at checks (every ladder and closure pass, R7 before each
+  `reachable`, the search before each alternative, the census probes), so a rating overshoots by at most one stretch `P`
+  between two checks (every rule of the ladder once: `select`, R1 to R9, `fewestColumn`, `listRows`) and one full unwind
+  `U`, after the search's last passing check and again after the census's. The terms come from upper bounds of the
+  model's sizes that need no enumeration: `NC` free cells (active cells less the clued pieces' cells), `NP` free pieces,
+  `Tsz` their total size, `L` the largest free piece's size plus 1, `C = NC + NP`, `R = 8 NP NC`, `NZ = 8 NC (Tsz + NP)`
+  and `K = 8 max(Tsz, NC)`. The limits are `screenLimits.deduce` (work `W`) for `screen` and the canonical `DEDUCE` for
+  `rate`. The formula and the derivation of each term are in the task V4-T02d, with the R9 term of review 4. A bound's
+  magnitude is not a claim of feasibility: with no clue it is about 1.13 G units on a carved 10x10 Nightmare set and
+  shrinks with every clue; its width is reported from the stage-2 journals (T09e).
+- **The work ledger** that reads these lines (`lo` and `hi` per call, the one open primitive of a terminated call) is
+  T09c's; this task only writes them.
+- **Test seams.** The bound describes the native rating path. Under a test seam (`ctx.rate`, `ctx.igScreen`,
+  `ctx.igCanonical`) a begin line keeps its kind and bound while the seam rates as it likes, so such lines prove
+  nothing; no measured row sets a seam, so only self-test journals carry them.
+- **Self-test.** `v4Call(name, spec)` accepts `spec.uniqueness` (default `any`) and `spec.journal` (default `true`;
+  `false` makes the folder but leaves `IG_LOG_DIR` and `IG_ROW` unset) and returns `files`, the journal files written. The
+  three cases `bound: every primitive is announced`, `bound: no real rating exceeds its bound` (30 real ratings of the
+  K = 15 set at small limits, one of them reaching the census overshoot: a sanity check on real charges, not a proof) and
+  `bound: the journal changes no result`
+  run in the `--v4` group (through the lock helper, task id `V4-T02d`).
