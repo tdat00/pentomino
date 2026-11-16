@@ -65,6 +65,12 @@ its reported units and those units plus the bound of the one open primitive.
     26x26 (`docs/improve-generating/evidence/drift/claude-opus-5.5/bound-cheap.mjs`, with the R9 term above); the R9
     and R8 terms dominate, and the bound shrinks with every clue. The width is reported from the stage-2 journals (T09e, N-V4-03).
 - The line is an observer: it changes no result, no control flow and no charge (plan §5.1 "Observers").
+- **Test seams** (ruling of 2026-11-17, T02d's report): the bound describes the native rating path. Under a test seam
+  (`ctx.rate`, `ctx.igScreen`, `ctx.igCanonical`) the begin line keeps its kind and bound while the seam rates as it
+  likes, so such lines prove nothing. No measured row sets a seam: production code never sets `ctx.rate`
+  (`core/engine/clues.js:272` only reads it), T04b's items build their contexts without one, and the harness's only
+  setter, `recordedCall` (`tools/ig-proto/lib/calls.mjs`), refuses every `log`-family tree. Only self-test journals
+  carry such lines, and no ledger reads them.
 
 ## Scope
 
@@ -136,7 +142,8 @@ its reported units and those units plus the bound of the one open primitive.
    `uniqueness`, and `spec.journal` (default `true`): with `false` it creates the fresh folder as before but deletes
    `IG_LOG_DIR` and `IG_ROW` from `process.env` instead of setting them; it also returns `files: readdirSync(dir)` (the
    journal files written). Cases (Tests table) in the `--v4` group. **README.md**: a paragraph "Begin lines and bounds
-   (V4-T02d)": the line, its kinds, the two bounds and the derivation in short, and that the work ledger is T09c's.
+   (V4-T02d)": the line, its kinds, the two bounds and the derivation in short, the test-seam limitation (Authority),
+   and that the work ledger is T09c's.
    (Ruling of 2026-11-17, T02a's report: `spec.uniqueness` moved here from T07a, whose cases come later.)
 
 ## Tests
@@ -146,7 +153,7 @@ All in `tools/ig-proto/self-test.mjs --v4` (locked: real counts and small real r
 | Case name | Input | Expected |
 |---|---|---|
 | `bound: every primitive is announced` | (1) `v4Call('begin', { prior: null, screen: () => 'cap', canon: (c) => synthetic(c <= 3 ? 100 - 10 * c : 60), uniqueness: 'require' })` (screen-capped probes, re-ratings and a real repair with counts); (2) `v4Call('begin2', { prior: null, screen: (c) => synthetic(c === 4 ? 56 : 100 - 10 * c), canon: (c) => synthetic(c === 4 ? 56 : 100 - 10 * c), uniqueness: 'require' })` (T07a's `S2`: 56 is in the band 55 to 70 but not central, so the call goes on to the window and the beam) | for each call, in its journal order, every `p` line is immediately preceded by a `begin` of kind `screen` or `rate` and every `count` line by a `begin` of kind `count` whose `bound` equals `countRowLimit(board)` of the tree's `clues.js`; the sum of its `count` units equals `end.locate.countWork`; every `bound` is a finite number from 0; no `begin` line follows the last completion line before `end`. Call (1) has at least one `count` line (the real repair ran); call (2)'s `phases` include `window` and `beam` and `counts('beam')` is not empty (phase D's loop ran) |
-| `bound: no real rating exceeds its bound` | the `k15Set()` set and the clue subsets of its first 3, 6 and 9 layout poses; for each, `measureV3(board, pieces, clues, ws, { deduce: { ...DEDUCE, work: w, census: c }, dlx: SCORE.caps })` of the tree with `w` in 0, 1, 1,000 and 1,000,000 and `c` in 0 and 1,000 (an `IncompleteRatingError`'s `counters.work`, else `metrics.work`) | each of the 24 charges is at most `igRatingBound(board, pieces, clues, { work: w, census: c })`; the case prints the largest observed `charge - w - c` beside the smallest `bound - w - c`; the case is a sanity check of the implementation on real charges, not a proof of the inequality (the proof is the derivation of the Authority section) |
+| `bound: no real rating exceeds its bound` | the `k15Set()` set and the clue subsets of its first 3, 6 and 9 layout poses; for each, `measureV3(board, pieces, clues, ws, { deduce: { ...DEDUCE, work: w, census: c }, dlx: SCORE.caps })` of the tree with `w` in 0, 1, 1,000, 1,000,000 and 100,000,000 and `c` in 0 and 1,000 (an `IncompleteRatingError`'s `counters.work`, else `metrics.work`) | each of the 30 charges is at most `igRatingBound(board, pieces, clues, { work: w, census: c })`; for 3 clues, `w` 100,000,000 and `c` 1,000 the rating completes with `metrics.censusComplete === false` and `metrics.censusWork >= 1000` (the census overshoot is exercised: at smaller `w` the 3-clue search caps before its census, and the 6- and 9-clue sets need none; ruling of 2026-11-17); the case prints the largest observed `charge - w - c` beside the smallest `bound - w - c`; the case is a sanity check of the implementation on real charges, not a proof of the inequality (the proof is the derivation of the Authority section) |
 | `bound: the journal changes no result` | call (1) of the first case once as it is and once with `journal: false` (step 4) | the two `result`s deep-equal (clues, rating, certificate, `skips`, `igWindow`); the second's `files` is empty |
 
 ## Documentation
@@ -185,7 +192,7 @@ All in `tools/ig-proto/self-test.mjs --v4` (locked: real counts and small real r
 | ID | Criterion | How it is verified | Evidence |
 |---|---|---|---|
 | T02d-T01 | A count's bound is its row limit; a rating's bound is the formula of step 1 with the limits of its kind | case 1; diff | self-test output; diff |
-| T02d-T02 | No real rating exceeds its bound at limits where the overshoot dominates (a sanity check) | case 2 | self-test output |
+| T02d-T02 | No real rating exceeds its bound at limits where the overshoot dominates, the census's included (a sanity check) | case 2 | self-test output |
 | T02d-T03 | Nothing else changed; formats | guards; `npm run check` | command output |
 
 ## Checklist (the developer confirms every item in the final report)
