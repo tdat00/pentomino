@@ -1,0 +1,40 @@
+{
+  "id": "v4",
+  "extends": ["log"],
+  "description": "gen-v4 prototype on the frozen selectClues (V4-T02a): Nightmare and Hell 1 targets use selectCluesV4, the others the frozen search. W 190 M.",
+  "edits": [
+    {
+      "id": "v4-1",
+      "file": "core/engine/clues.js",
+      "find": "import { igDispatch, igPhase } from './ig-log.js';\n",
+      "replace": "import { igDispatch, igPhase } from './ig-log.js';\nimport { igCapsLine, igCountLine, selectCluesV4, v4Target } from './ig-select-v4.js';\n"
+    },
+    {
+      "id": "v4-2",
+      "file": "core/engine/clues.js",
+      "find": "  return igDispatch(ctx, selectCluesV3);\n",
+      "replace": "  if (v4Target(ctx.target)) {\n    return selectCluesV4(ctx);\n  }\n  igCapsLine(null);\n  return ctx.record !== undefined ? selectCluesV3(ctx) : igDispatch(ctx, selectCluesV3);\n"
+    },
+    {
+      "id": "v4-3",
+      "file": "core/engine/difficulty.js",
+      "append": "\n// ig-proto, variant v4 (V4-T02a): the detail channel of a screened rating, from the same measurement.\n/**\n * @param {Board} board\n * @param {Piece[]} pieces\n * @param {Pose[]} clues\n * @param {Workspace} ws\n * @param {{ deduce: DeductionLimits, dlx: { branch: number, rows: number } }} limits\n * @returns {{ rating: RatingV3, detail: RatingDetail }}\n */\nexport function igRateDetailedWithLimits(board, pieces, clues, ws, limits) {\n  const { metrics, detail } = measureV3Core(board, pieces, clues, ws, limits, true);\n  return { rating: ratingOf(metrics), detail: /** @type {RatingDetail} */ (detail) };\n}\n"
+    },
+    {
+      "id": "v4-4",
+      "file": "core/engine/clues.js",
+      "find": "      onCount: charge,\n",
+      "replace": "      onCount: (u) => { igCountLine(null, u); charge?.(u); },\n"
+    }
+  ],
+  "files": ["v4"],
+  "paramFiles": { "prior": "data/prior-v1.json" },
+  "params": {
+    "logAccepted": true,
+    "U0": 8,
+    "rerateMax": 4,
+    "W": { "default": 190000000 },
+    "priorTable": "prior-v1",
+    "screenTable": "w190"
+  }
+}

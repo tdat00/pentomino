@@ -366,13 +366,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 05:02:27 +07:00 (dispatch, base `c7b9d47`) to 05:35:37 +07:00 (acceptance): 33 min 10 s; the developer's own times 05:02:46-05:23:25 (of which about 641 s waiting for the lock: difficulty-v3 of Sudoku held it 05:11:43-05:22:26) |
+| Waiting for rulings | about 11 min (05:23:25 report to 05:34 ruling); no developer wait (no fix round) |
+| Agent id, model | `307c436b-51e8-40a9-bcd7-9dbc45bdc816`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 69 calls; 11,505,920 input, 105,636 output, 11,277,268 cache-read |
+| AI credits | 275.56 |
+| Questions and rulings | No `QUESTION:`. The developer's five deviations, four named items and four honest gaps were relayed to the pack author; all accepted, no change to T02a's code (05:34). Coverage check found that T02d's case 1 relied on `v4Call` options added only by T07a; T02d and T07a amended, shared rules on cited lines and re-runs added, this task's frozen `clues.js` ranges corrected; pack amendment `e973bf7` (with the author's read-only `t02a-port-check.mjs`: 14 changed lines in phases B to E, all requested by step 4.8) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `tree.mjs build v4 v4-w760 v4-w095 v4-w380 --label frozen`: 4 lines (reused); `check-edits --all --label frozen`: 18 `ok`, each `v4` variant 23 edits, no error; the `--v4` group through the lock helper (`V4-T02a-verify`): 3 passed, 0 failed, `IG … exit=0 seconds=2.593` after a lock wait 05:24:25-05:30:17; `--frozen`: 9 passed; firewall `check`: 289 production files unchanged; the guard `git status`: no output; `npm run check`: OK |
+| Commit | this task's commit, `improve-generating T02a: gen-v4 prototype on the frozen selectClues: the fork, the screen and the locate` |
+| Issues and named items | None new: the developer's named items (real counts and observers, the detail path on real calls, `close`/`below` and (c4), provenance) are T02b, T02d, T04b, T04e, T08 and T02c by plan |

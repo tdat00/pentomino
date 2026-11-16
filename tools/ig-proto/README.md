@@ -577,3 +577,63 @@ worker loads (`lib/lane-worker.mjs`, `lib/calls.mjs`, `lib/sets.mjs`, `lib/engin
   ```powershell
   Select-String -Path tools\ig-proto\*.mjs, tools\ig-proto\lib\*.mjs -Pattern "from '(\.\./)+(core|generator|player|bench|record-fixtures|check-conventions|calibrate|node-worker|serve)"
   ```
+
+## The `gen-v4` prototype on the frozen source (task pack v4)
+
+`variants/v4.json` (chain `base>instr>log>v4`, with the copy-only file `variants/files/v4/core/engine/ig-select-v4.js`)
+rebuilds the prototype as a fork of the frozen `selectClues` (V4-T02a). The provisional `p1p5` prototype replaced
+`selectClues` wholesale and, on the frozen source, returned no `skips` at its first accepted candidate (drift DR-O08);
+the `p1p5*` variants, `ig-select-proto.js` and `ig-log.js` stay as they are.
+
+- **The fork.** `selectCluesV4` is the shell of the provisional `igSelectProto` (`startCall`, `withP6`, `endCall`);
+  `searchV4` keeps the frozen text of `clues.js:257-773` for the destructuring of the context, the two `RangeError`
+  checks, `rateWith` (the `ctx.rate` seam and the recorder's `rateDetailed`), the skip replay (`subsetSkipped`,
+  `repairSkipped`, `verifyConsumed`, `SkipReplayError`), `finish` (the repairs and their events), `conclude`,
+  `finishOnce`, `central`, `chooseBest`, `afterProfile`, `sample` and `neighbours`. It adds P1 (phase A: the locate on
+  one nested family with the rescue), P2 (the screen `W` and its certificate: a screened run whose main-phase work is at
+  most `W` is the canonical rating, a run above it is screen-capped, steers only and is never accepted), P3 (a
+  screen-capped profile reads as "too few clues") and P4 (the table prior; `step0` is 1 with a prior, `U0` without). The
+  result has the frozen `skips` and `igWindow` (`c0`, `wc`, `hit`, `hiBelow`, `loAbove`, `probes`, `result`, `proof`).
+  Every rating attempt goes through `rateOnce`: one `charge`, before any event; a repair's re-rating is a canonical
+  attempt journaled as phase `repair`.
+- **Dispatch (D-V4-03).** The copy's `selectClues` (edit `v4-2`) sends a target with `min` from `bandEdge(6)` to
+  `bandEdge(8)` (53 to 111: Nightmare and Hell 1, `v4Target`) to `selectCluesV4`. Every other target (below Nightmare,
+  Hell 2 from 112, Hell 3) keeps the frozen search: directly when a recorder (`ctx.record`) is set, so that the frozen
+  search keeps its native detailed path (the logging seam is never installed over it, RV1-04), through `igDispatch` (the
+  journal) otherwise. An explicit `ctx.rate` seam keeps its priority in both routes and on the screened path (RV2-19).
+- **Variants.** `v4` (`W` 190,000,000, `priorTable` `prior-v1` from `data/prior-v1.json`, `screenTable` `w190`, `U0` 8,
+  `rerateMax` 4), `v4-w760` (`W` 760,000,000, the canonical limit: no screen, `screenTable` `none`), `v4-w095` (`W`
+  95,000,000, `w095`) and `v4-w380` (`W` 380,000,000, `w380`). The last three differ from `v4` by parameters only and
+  have their own `treeId`; the chain of each is `base>instr>log>v4>...`.
+- **Journal phases** (the `ig-log.js` tuples and `phase` lines): `locate`, `rescue`, `window`, `p2` (the seed phase: the
+  journal keeps the prototype's name, which `compare.mjs` reads), `beam`, `rerate` and `repair`.
+- **Events (D-V4-06).** The frozen kinds only (`rated`, `unrateable`, `rejected`, `skip`, `repair`, `selected`). The event
+  `phase` is `locate`, `window`, `seed` (the frozen name of the journal's `p2`), `beam`, `rescue` or `rerate` (T08 adds
+  `close` and `below`). The `unrateable` reasons are `path-capped` (the canonical cap) and `screen-capped`. A re-rating
+  event carries the `sequence` of the probe it re-rates. A rated or rejected event has the detail of its own measurement
+  whenever a recorder is set and no synthetic seam (`ctx.rate`, `ctx.igScreen`, `ctx.igCanonical`) replaces the rating.
+- **Ordinals (D-V4-04).** One subset-ordinal sequence: every `rateSubset` call takes the next ordinal in call order; a
+  repeated subset and a re-rating take none. `SKIP_BOUNDS_V4` is `{ subsets: 2192, repairs: 64 }`, the frozen 2,128 and
+  64 more. For any set of at most 128 pieces phase A has at most 27 `side` calls of at most two ordinals each, plus at most
+  two for T08's (c4) probe (56 in all), and phases B, C and D use at most the frozen 2,128, so every ordinal is below
+  2,184; a larger input makes the assertion in `rateSubset` fail the call (`ig-select-v4: subset ordinal ... reaches the
+  bound`), never a silent overflow.
+- **Detail export.** Edit `v4-3` appends `igRateDetailedWithLimits(board, pieces, clues, ws, limits)` to the copy's
+  `difficulty.js`: the rating and its `detail` from the same measurement (`measureV3Core` with `keepDetail`, no second
+  solve). With a recorder the screened path uses it; a screened run that passes the certificate is the canonical
+  measurement, so its detail is the canonical detail, and a screen-capped run has no rating and no detail.
+- **Work ledger (review R2-14).** `ig-select-v4.js` journals count work itself, on the file and row naming of `ig-log.js`,
+  whether or not a caller has a `charge`: a `{ "t": "caps", "call", "count": true }` line right after the `start` line, and
+  one `{ "t": "count", "call", "units" }` line per uniqueness count of a repair (`units` is what `charge` receives, the row
+  trials). The `end` line's `locate.countWork` is the sum of the units of the call, and `locate.tables` is `{ prior,
+  screen }` of the variant's parameters (`priorTable`, `screenTable`; null when absent). The legacy route has the same
+  lines with `call: null` (edits `v4-2` and `v4-4`), and its ratings are journaled by `igDispatch` when no recorder is set.
+- **Self-test.** The `--v4` group (T02a onwards) runs only the cases of the gen-v4 prototype and runs through the lock
+  helper, as a later task's cases run real uniqueness counts and deductions:
+
+  ```powershell
+  node tools\ig-proto\lib\tree.mjs build v4 v4-w760 v4-w095 v4-w380 --label frozen
+  node tools\ig-proto\lib\tree.mjs check-edits --all --label frozen
+  . 'C:\Users\ledat\.copilot\session-state\c2f29688-8568-4f25-bace-e644d381e5f9\files\ig-lock.ps1'
+  Invoke-IgNode -Repo pentomino -Task 'V4-T02a verify' -NodeArgs @('tools\ig-proto\self-test.mjs', '--label', 'frozen', '--source-label', 'frozen 3fc65f4', '--v4', '--task', 'V4-T02a')
+  ```

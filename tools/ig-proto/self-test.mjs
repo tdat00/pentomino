@@ -6,6 +6,7 @@
 // `--proto` (IGP-01) adds the prototype's cases after IGP-00's nine; its state goes to <T>/self-test/state.json
 // (default IGP-01 with --proto, else IGP-00). `--p6` (IGP-04) runs all of them and adds the P6 cases (default task IGP-04).
 // `--frozen` (V4-T01a, V4-T01b) runs only the frozen-source group (default task V4-T01a): carve-only checks and records, unlocked.
+// `--v4` (V4-T02a onwards) runs only the gen-v4 prototype group (default task V4-T02a); it runs through the lock helper.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, sep } from 'node:path';
@@ -1087,6 +1088,186 @@ const p6Cases = [
   },
 ];
 
+/**
+ * One call of the gen-v4 prototype on the K = 15 set with synthetic screen and canonical ratings and its journal: a
+ * copy of `protoCall` whose default variant is `v4` (the tree's `selectClues` sends BAND, min 55, to `selectCluesV4`).
+ * @param {string} name
+ * @param {{ prior: number | null, screen: (c: number) => any, canon?: (c: number) => any, variant?: string, stage?: string }} spec
+ *   A function returns a rating or 'cap' (an IncompleteRatingError); `variant` and `stage` default to v4 and set.
+ */
+async function v4Call(name, { prior, screen, canon = screen, variant = 'v4', stage = 'set' }) {
+  const { e, ws } = await engine(variant);
+  const { carved } = await k15Set();
+  const make = (/** @type {(c: number) => any} */ fn) => (/** @type {any[]} */ clues) => {
+    const r = fn(clues.length);
+    if (r === 'cap') {
+      throw new e.difficulty.IncompleteRatingError('synthetic cap', { nodes: 1, work: e.policy.DEDUCE.work, stop: 'work-cap' });
+    }
+    return r;
+  };
+  const dir = fresh(join(SELFTEST_DIR, 'logs', `v4-${name}`));
+  process.env.IG_LOG_DIR = dir;
+  process.env.IG_ROW = `selftest~v4-${name}`;
+  let result;
+  try {
+    result = e.clues.selectClues({
+      board: carved.board, pieces: carved.set.pieces, layout: carved.set.witness, target: BAND,
+      rng: e.rng.createRng(e.rng.normalizeSeedText('ig-selftest/proto/p1'), `selftest/${name}`), uniqueness: 'any',
+      excludeClueKeys: new Set(), ws, igScreen: make(screen), igCanonical: make(canon), igPrior: prior, igStage: stage,
+    });
+  } finally {
+    delete process.env.IG_LOG_DIR;
+    delete process.env.IG_ROW;
+  }
+  const lines = readJournal(dir);
+  const tuples = lines.filter((l) => l.t === 'p').map((l) => l.tuple);
+  const counts = (/** @type {string} */ phase) => tuples.filter((t) => t[0] === phase).map((t) => t[1]);
+  return { result, lines, tuples, counts, end: lines.find((l) => l.t === 'end'), phases: lines.filter((l) => l.t === 'phase').map((l) => l.phase) };
+}
+
+const v4Cases = [
+  {
+    name: 'v4: tree, dispatch and bounds',
+    async run() {
+      const ids = ['v4', 'v4-w760', 'v4-w095', 'v4-w380'];
+      const wanted = { v4: 190000000, 'v4-w760': 760000000, 'v4-w095': 95000000, 'v4-w380': 380000000 };
+      /** @type {Record<string, any>} */
+      const trees = {};
+      for (const id of ids) {
+        trees[id] = await ensureTree(id);
+        assert(trees[id].params.W.default === /** @type {Record<string, number>} */ (wanted)[id], `${id}: W.default ${trees[id].params.W.default}`);
+      }
+      assert(trees.v4.chain.join('>') === 'base>instr>log>v4', `chain ${trees.v4.chain.join('>')}`);
+      const { root } = trees.v4;
+      const { e } = await engine('v4');
+      const v4 = await import(pathToFileURL(join(root, 'core', 'engine', 'ig-select-v4.js')).href);
+      assert(v4.SKIP_BOUNDS_V4.subsets === e.clues.SKIP_BOUNDS.subsets + 64, `subset bound ${v4.SKIP_BOUNDS_V4.subsets} against ${e.clues.SKIP_BOUNDS.subsets}`);
+      assert(v4.SKIP_BOUNDS_V4.repairs === e.clues.SKIP_BOUNDS.repairs, `repair bound ${v4.SKIP_BOUNDS_V4.repairs} against ${e.clues.SKIP_BOUNDS.repairs}`);
+      for (const [min, want] of [[52, false], [53, true], [55, true], [77, true], [111, true], [112, false], [162, false]]) {
+        assert(v4.v4Target({ min }) === want, `v4Target({ min: ${min} }) is ${!want}`);
+      }
+      assert(typeof e.difficulty.igRateDetailedWithLimits === 'function', 'the copy of difficulty.js has no igRateDetailedWithLimits');
+      const clues = readFileSync(join(root, 'core', 'engine', 'clues.js'), 'utf8');
+      for (const needle of [
+        "import { igCapsLine, igCountLine, selectCluesV4, v4Target } from './ig-select-v4.js';",
+        '  if (v4Target(ctx.target)) {\n    return selectCluesV4(ctx);\n  }\n  igCapsLine(null);\n',
+        'return ctx.record !== undefined ? selectCluesV3(ctx) : igDispatch(ctx, selectCluesV3);',
+        'onCount: (u) => { igCountLine(null, u); charge?.(u); },',
+      ]) {
+        assert(clues.includes(needle), `the copy of clues.js lacks ${JSON.stringify(needle)}`);
+      }
+      assert(readFileSync(join(root, 'tools', 'bench', 'report.js'), 'utf8').includes('core/engine/ig-select-v4.js'), "the copy's SOURCE_FILES does not list ig-select-v4.js");
+      // The targets outside Nightmare and Hell 1 keep the frozen search through the journal: no screen, one caps line of the legacy route.
+      const { ws } = await engine('v4');
+      const { carved } = await k15Set();
+      for (const [min, max, score] of [[52, 70, 60], [112, 150, 130]]) {
+        const dir = fresh(join(SELFTEST_DIR, 'logs', `v4-legacy-${min}`));
+        process.env.IG_LOG_DIR = dir;
+        process.env.IG_ROW = `selftest~v4-legacy-${min}`;
+        let result;
+        try {
+          result = e.clues.selectClues({
+            board: carved.board, pieces: carved.set.pieces, layout: carved.set.witness, target: { id: `st-${min}`, min, max, share: 0.3 },
+            rng: e.rng.createRng(e.rng.normalizeSeedText('ig-selftest/v4/legacy'), `selftest/legacy-${min}`), uniqueness: 'any',
+            excludeClueKeys: new Set(), ws, rate: () => synthetic(score), igStage: 'set',
+          });
+        } finally {
+          delete process.env.IG_LOG_DIR;
+          delete process.env.IG_ROW;
+        }
+        const lines = readJournal(dir);
+        assert(result.ok === true && result.igWindow === undefined, `the legacy call at min ${min}: ${JSON.stringify(result.ok)}`);
+        same(lines.filter((l) => l.t === 'caps'), [{ t: 'caps', call: null, count: true }], `the legacy call at min ${min} has another caps line`);
+        assert(lines.find((l) => l.t === 'start').W === null && lines.some((l) => l.t === 'p'), `the legacy call at min ${min} is not the journaled frozen search`);
+      }
+    },
+  },
+  {
+    name: 'v4: P1 locate, rescue and re-rating order (synthetic)',
+    async run() {
+      const { nearestFirst } = await import(pathToFileURL(join((await ensureTree('v4')).root, 'core', 'engine', 'ig-select-v4.js')).href);
+      same(
+        nearestFirst([{ count: 6, n: 1 }, { count: 8, n: 2 }, { count: 7, n: 3 }, { count: 8, n: 0 }, { count: 6, n: 0 }], 7).map((/** @type {any} */ p) => `${p.count}.${p.n}`),
+        ['7.3', '8.0', '8.2', '6.0', '6.1'], 'the re-rating order (distance to wc, higher count, probe order)',
+      );
+      const down = (/** @type {number} */ c) => (c <= 2 ? 'cap' : synthetic(100 - 10 * c));
+      const expect = (/** @type {any} */ got, /** @type {any} */ want, /** @type {string} */ what) => same(got, want, `${what}: got ${JSON.stringify(got)}`);
+
+      let r = await v4Call('noprior', { prior: null, screen: down });
+      expect(r.counts('locate'), [7, 1, 4], 'no prior: locate probes');
+      assert(r.end.locate.hit === 4 && r.end.locate.result === 'hit' && r.end.result === 'ok', `no prior: hit ${JSON.stringify(r.end.locate)}`);
+      assert(r.result.ok && r.result.clues.length === 4, 'no prior: the result is not the 4-clue hit');
+
+      r = await v4Call('prior6', { prior: 6, screen: down });
+      expect(r.counts('locate'), [6, 5, 3, 4], 'prior 6: locate probes');
+      assert(r.end.locate.hit === 4 && r.end.locate.prior === 6, 'prior 6: hit at 4');
+
+      r = await v4Call('overwork', { prior: null, screen: (c) => (c === 7 ? synthetic(30, { work: 190000001, stop: 'work-cap' }) : down(c)) });
+      assert(r.tuples[0][2] === 'scap1', `a rating above W is not scap1: ${r.tuples[0][2]}`);
+      expect(r.counts('locate').slice(0, 2), [7, 13], 'main work above W counts as above (the march goes up)');
+
+      r = await v4Call('ar1in', { prior: null, screen: (c) => (c === 4 ? synthetic(60, { Gproved: 0 }) : down(c)) });
+      expect(r.counts('locate'), [7, 1, 4], 'AR1-refused in band: locate probes');
+      assert(r.tuples.find((t) => t[1] === 4)[2] === 'ar1' && r.end.locate.result === 'hit' && r.end.locate.hit === 4, 'AR1-refused in band is a window hit');
+      assert(r.result.ok === false && r.end.accepted === null && r.end.result !== 'ok', 'an AR1-refused probe was accepted');
+
+      r = await v4Call('below1', { prior: null, screen: () => synthetic(30) });
+      expect(r.counts('locate'), [7, 1], 'all below: locate probes');
+      assert(r.end.result === 'no-window' && r.end.locate.result === 'below-to-one' && r.end.locate.noWindowProof === 'canonical', `all below: ${JSON.stringify(r.end.locate)}`);
+      assert(r.result.ok === false && r.result.reason === 'not-in-band' && !r.phases.includes('window'), 'all below: the call did not end at once');
+
+      const capAll = () => 'cap';
+      r = await v4Call('confirmed', { prior: null, screen: capAll, canon: () => synthetic(90) });
+      expect(r.counts('locate'), [7, 13], 'confirmed: locate probes');
+      expect(r.counts('rescue'), [13, 7], 'confirmed: rescue order');
+      assert(r.end.result === 'no-window' && r.end.locate.noWindowProof === 'confirmed' && r.end.rerates === 2, `confirmed: ${JSON.stringify(r.end.locate)}`);
+      expect(r.end.locate.rescue.map((/** @type {any} */ x) => `${x.count}:${x.side}`), ['13:above', '7:above'], 'confirmed: rescue sides');
+
+      r = await v4Call('heuristic', { prior: 2, screen: capAll, canon: () => synthetic(90) });
+      expect(r.counts('locate'), [2, 3, 5, 9, 13], 'heuristic: locate probes');
+      expect(r.counts('rescue'), [13, 9, 5, 3], 'heuristic: rescue order (rerateMax 4, count 2 stays)');
+      assert(r.end.result === 'no-window' && r.end.locate.noWindowProof === 'heuristic' && r.end.rerates === 4 && r.counts('rerate').length === 0, `heuristic: ${JSON.stringify(r.end.locate)}`);
+
+      r = await v4Call('rebracketed', { prior: null, screen: capAll, canon: (c) => synthetic(100 - 10 * c) });
+      expect(r.counts('locate'), [7, 13, 1, 4, 5, 6], 'rebracketed: locate probes');
+      expect(r.counts('rescue'), [13, 7], 'rebracketed: rescue order');
+      const loc = r.end.locate;
+      assert(loc.result === 'window' && loc.hiBelow === 7 && loc.loAbove === 6 && loc.wc === 7 && loc.noWindowProof === 'rebracketed', `rebracketed: ${JSON.stringify(loc)}`);
+      assert(r.phases.includes('window'), 'rebracketed: the call did not go on to phase B');
+      assert(r.counts('rescue').length + r.counts('rerate').length <= 4 && r.counts('rerate').length <= 2 && r.end.rerates <= 4, 'rebracketed: phase E exceeded the shared allowance');
+      assert(r.counts('rerate').length === 2, `rebracketed: phase E re-rated ${r.counts('rerate').length}, expected the two the allowance leaves`);
+
+      r = await v4Call('rescuedin', { prior: null, screen: capAll, canon: (c) => synthetic(c === 13 ? 60 : 90) });
+      expect(r.counts('rescue'), [13, 7], 'rescued in: the rescue re-rates 13 first, then 7, and the call finishes on the 13-clue candidate');
+      assert(r.end.locate.noWindowProof === 'rescued-in' && r.end.result === 'ok' && r.end.clueCount === 13 && r.end.rerates === 2, `rescued in: ${JSON.stringify(r.end.locate)} ${r.end.result}`);
+
+      r = await v4Call('rescuedrefused', { prior: null, screen: capAll, canon: (c) => (c === 13 ? synthetic(60, { Gproved: 0 }) : synthetic(90)) });
+      expect(r.counts('rescue'), [13, 7], 'rescued in, refused: rescue order');
+      assert(r.tuples.find((t) => t[0] === 'rescue')[2] === 'ar1', 'rescued in, refused: the re-rating is not an AR1 refusal');
+      assert(r.end.locate.noWindowProof === 'rescued-in' && r.end.locate.hit === 13 && r.end.locate.noWindowProof !== 'confirmed', 'rescued in, refused: not a window hit at 13');
+      assert(r.phases.includes('window') && r.phases.includes('p2'), 'rescued in, refused: no phase B or no dead end (a refusal is no candidate)');
+      assert(r.result.ok === false && r.end.accepted === null, 'rescued in, refused: a refused rating was accepted');
+      assert(r.counts('rescue').length + r.counts('rerate').length === r.end.rerates && r.end.rerates <= 4, 'rescued in, refused: the allowance is not shared');
+    },
+  },
+  {
+    name: 'v4: the result carries skips and the window',
+    async run() {
+      const down = (/** @type {number} */ c) => (c <= 2 ? 'cap' : synthetic(100 - 10 * c));
+      const r = await v4Call('window6', { prior: 6, screen: down });
+      assert(r.result.ok === true, `window6: the call found no puzzle: ${JSON.stringify(r.counts('locate'))}`);
+      same(r.result.skips, { subsets: [], repairs: [] }, 'window6: skips');
+      same(r.result.igWindow, { c0: 6, wc: 4, hit: 4, hiBelow: null, loAbove: null, probes: 4, result: 'hit', proof: null },
+        `window6: igWindow, locate probes ${JSON.stringify(r.counts('locate'))}`);
+      same(r.end.locate.tables, { prior: 'prior-v1', screen: 'w190' }, 'window6: the tables of the end line');
+      assert(r.end.locate.countWork === 0, `window6: countWork ${r.end.locate.countWork}`);
+      const start = r.lines.find((l) => l.t === 'start');
+      same(r.lines.filter((l) => l.t === 'caps'), [{ t: 'caps', call: start.call, count: true }], 'window6: the caps lines');
+      assert(r.lines.every((l) => l.t !== 'count'), 'window6: a count line with uniqueness any');
+    },
+  },
+];
+
 /** @param {string} text @returns {string} The text without the worktree's absolute root (records refuse it). */
 function scrub(text) {
   const root = ROOT.replace(/[\\/]+$/, '');
@@ -1095,15 +1276,15 @@ function scrub(text) {
 
 /** @param {string[]} argv @returns {Promise<number>} */
 async function main(argv) {
-  const { args, on } = parseArgs(argv, { values: ['label', 'source-label', 'horizon-s', 'only', 'task'], switches: ['proto', 'p6', 'frozen'] });
+  const { args, on } = parseArgs(argv, { values: ['label', 'source-label', 'horizon-s', 'only', 'task'], switches: ['proto', 'p6', 'frozen', 'v4'] });
   const label = args.label ?? 'selftest';
-  const task = args.task ?? (on.has('frozen') ? 'V4-T01a' : on.has('p6') ? 'IGP-04' : on.has('proto') ? 'IGP-01' : 'IGP-00');
+  const task = args.task ?? (on.has('v4') ? 'V4-T02a' : on.has('frozen') ? 'V4-T01a' : on.has('p6') ? 'IGP-04' : on.has('proto') ? 'IGP-01' : 'IGP-00');
   const only = args.only === undefined ? null : args.only.split(',').map(Number);
   horizonS = Number(args['horizon-s'] ?? 285);
   const startedAt = new Date(Date.now() - elapsedS() * 1000).toISOString();
   /** @type {{ name: string, pass: boolean, reason: string | null, ms: number }[]} */
   const results = [];
-  const selected = on.has('frozen') ? frozenCases
+  const selected = on.has('v4') ? v4Cases : on.has('frozen') ? frozenCases
     : [...cases, ...(on.has('proto') || on.has('p6') ? protoCases : []), ...(on.has('p6') ? p6Cases : [])];
   for (const [i, c] of selected.entries()) {
     if (only !== null && !only.includes(i + 1)) {
