@@ -12,7 +12,7 @@ import { applyTo, choose, getLocale, normalize, onChange, setLocale, t } from '.
 import { LANGUAGE_KEY } from '../core/browser/i18n.js';
 import { THEME_KEY, applyTheme, effectiveTheme, normalizeTheme } from '../core/browser/theme.js';
 import {
-  MAX_SETS, createGeneratorStore, createPersistence, describeBoard, detectHardware, loadGeneratorState, replaySourceOf,
+  MAX_SETS, createGeneratorStore, createPersistence, describeBoard, detectHardware, loadGeneratorState,
   saveRestoreCleanup, setNumber,
 } from './state.js';
 import { createJobController } from './jobs.js';
@@ -20,7 +20,6 @@ import { mountBoardEditor } from './ui/board-editor.js';
 import { mountBoardSummary } from './ui/board-summary.js';
 import { mountLevelPanel } from './ui/level-panel.js';
 import { mountPuzzlePanel } from './ui/puzzle-panel.js';
-import { createReplayDialog } from './ui/replay-dialog.js';
 import { mountSetPanel } from './ui/set-panel.js';
 import { mountSetSummary } from './ui/set-summary.js';
 import { mountWizard, reachableStep } from './ui/wizard.js';
@@ -121,15 +120,6 @@ export function createGeneratorApp(doc, options = {}) {
   const win = doc.defaultView;
   const pool = options.client === undefined ? options.pool ?? createPool(options.workerFactory === undefined ? {} : { workerFactory: options.workerFactory }) : null;
   const client = options.client ?? createGenerationClient(/** @type {import('../core/browser/worker-pool.js').Pool} */ (pool));
-  // A scripted client without `replayPuzzle` keeps the cards as they were: no dialog and no third button.
-  const replayDialog = typeof client.replayPuzzle === 'function'
-    ? createReplayDialog({
-      host: doc.body,
-      t,
-      closeKey: 'replay.close',
-      run: (source, signal) => client.replayPuzzle(source, { signal }),
-    })
-    : null;
   const handoffEnv = options.handoff ?? {};
   const controller = createJobController({
     store,
@@ -148,21 +138,12 @@ export function createGeneratorApp(doc, options = {}) {
   const setSummaryHost = optionalSlot(doc, 'set-summary');
   const setSummary = setSummaryHost === null ? null : mountSetSummary(setSummaryHost, { store });
   const puzzleControlsHost = optionalSlot(doc, 'puzzle-controls');
-  /**
-   * @param {string} puzzleId
-   * @param {HTMLElement} opener The card's button, which gets the focus back.
-   */
-  const onReplay = (puzzleId, opener) => {
-    const source = replaySourceOf(store.getState(), puzzleId);
-    if (source !== null) {
-      replayDialog?.open(source, opener);
-    }
-  };
   const puzzlePanel = mountPuzzlePanel(regions.puzzles, {
     store, hardware, controller, onNewSet: () => void level.generate(), now: options.now,
     noticeHost: optionalSlot(doc, 'notice'), cardsHost: optionalSlot(doc, 'cards'),
     controlsHost: puzzleControlsHost, cardsActionsHost: optionalSlot(doc, 'cards-actions'),
-    onReplay: replayDialog === null ? undefined : onReplay,
+    // A scripted client without replayPuzzle gets no Generation steps section.
+    replay: typeof client.replayPuzzle === 'function' ? (source, signal) => client.replayPuzzle(source, { signal }) : undefined,
   });
   const wizard = mountWizard(doc, { store, hardware });
 
@@ -331,7 +312,6 @@ export function createGeneratorApp(doc, options = {}) {
     setSummary?.refresh();
     puzzlePanel.refresh();
     importDialog?.refresh();
-    replayDialog?.refreshTexts();
     wizard?.refresh();
     syncActions();
     syncHistoryTitle();
@@ -439,7 +419,6 @@ export function createGeneratorApp(doc, options = {}) {
       settingsButton?.removeEventListener('click', onSettingsClick);
       settingsDialog?.dispose();
       importDialog?.dispose();
-      replayDialog?.dispose();
       controller.destroy();
       setPanel.destroy();
       setSummary?.destroy();

@@ -149,37 +149,43 @@ board already holds 50 sets, or the puzzle list is full, nothing is imported and
   checked in the background after they appear. A puzzle you require to be unique can still fail to be proven; the
   Generator then says so rather than returning an unproven puzzle.
 
-### How a puzzle was made
+### Generation steps
 
-Each puzzle card has a **How it was made** button, under the details of the card. It opens **Generation Steps**, a window
-that replays how the Generator made that puzzle, step by step, and draws the board at each step: the number of pieces,
-how the board was carved into them, the pieces, the layout of the pieces, the clue sets the search rated, the repair
-that made the solution unique, and the finished puzzle. The list of the seven stages names the one on show.
+Under **Pieces to place**, step 3 shows **Generation steps**: how the Generator made the puzzle on show, step by step.
+It is there on every screen size, phones included, and fills in by itself when a puzzle is shown. While a generation
+runs it waits ("The steps appear when the generation is done."), so it never slows a generation down, and a puzzle shown
+before comes back at once. The table has a row for each step, in the order the steps happened, under the stages of the
+generation: the number of pieces, the carving of the board into pieces, the pieces, their layout, the clue sets the
+search rated, the repair that made the solution unique, and the finished puzzle.
 
+- **The columns.** **Step** (its number; press it to open the step), **What happened** (a sentence), **Pieces** (the
+  piece just carved, the pieces lifted by a layout step, the clues of a rated clue set, the clue a repair added, the
+  chosen clues and the clues of the finished puzzle, each with its colour and letter), **Techniques** (the deduction
+  rules the rating used, each with how many times, and the decisive guesses, for example "1 decisive guess (1 proved)")
+  and **Score** (the score, "in band" or "outside the band" of the level asked for, "Decisive estimate" for an
+  estimate, and "refused" or "unrateable" where so). "—" means that the step has none.
+- **The deduction rules**, from the simplest to the deepest: Forced cell, Forced piece, Pocket placement, Piece claims
+  cells, Cell claims a piece, Dead placement, Parity, Neck and Pair exclusion.
 - **Two views.** **Key steps** (the default) shows the first step of each stage, each clue set that scored better than
-  the ones before it, the repairs, the chosen clues and the finished puzzle; **Every step** shows all of them.
-- **Playing it.** **Previous step** and **Next step** move by one step; **Play** moves on by itself, about one step a
-  second, until the last step or until **Pause**; the slider jumps to any step, and its arrow keys move it by one. A
-  screen reader is not told about each step of a playback: the sentence is read when you step by hand, jump or pause.
-  Pieces with a dashed outline are the ones lifted by a layout step, the clue a repair added, or the chosen clues.
-- **The score table.** Beside the board, the table gives the score of the step: the base for the pieces to place, the
-  hardest deduction, the real guesses with each guess node, the penalty for a few or many solutions, and the total, with
-  the band of the level. At the last step, the total is the score on the card.
+  the ones before it, the repairs, the chosen clues and the finished puzzle; **Every step** shows all of them. A step
+  keeps its number in both views.
+- **Opening a step.** **Step n** opens the step and closes the one open before: a small board of the pieces at that
+  step, with a dashed outline around the pieces lifted by a layout step, the clue a repair added or the chosen clues,
+  and the score table beside it (under it on a phone): the base for the pieces to place, the hardest deduction, the real
+  guesses with each guess node, the penalty for a few or many solutions, and the total, with the band of the level. At
+  the last step the total is the score of the puzzle. The board above keeps showing the puzzle.
 - **Checked against the puzzle.** The Generator makes the steps again and compares them with the stored puzzle. The line
-  above the board says "The replay matched the stored puzzle, so these are the steps that generated it", or why it
+  under the heading says "The replay matched the stored puzzle, so these are the steps that generated it", or why it
   could not: when the replay differs from the puzzle, or was stopped at a limit, only a part of it is shown and the last
-  step says "This is the stored puzzle", never "the generated puzzle".
+  step says "This is the stored puzzle", never "the generated puzzle". When no background worker can replay it, or the
+  replay fails, the line says so and **Try again** runs it again.
 - **When there are no steps.** A puzzle you imported, a puzzle of a piece set made or saved by an older version and a
-  puzzle of the completion pass have nothing to replay: stages 1 to 6 say "Steps not available for this puzzle." and
-  the last step shows the stored puzzle. "No steps were needed for this puzzle." means that this puzzle did not need
-  that stage (for example the layout stage of the sample puzzle that was made together with the piece set, which keeps the
-  set's layout, or the uniqueness stage when no clue had to be added). "Stopped at a limit." means that the replay
-  reached one of its limits there.
-- **Closing it.** **Close**, ✕ or `Esc` close the window and change nothing, neither the puzzle nor the cards. The button is
-  always there, also while a generation runs: the replay then waits for it to end, and a new generation interrupts a
-  replay (the window says so; close it and open it again).
-- **Phones.** The button is on the puzzle cards of the wide layout. A phone (below 768 px) does not list the cards, so
-  the steps cannot be opened there.
+  puzzle of the completion pass have nothing to replay: the section stays, its line says "The steps of this puzzle
+  cannot be replayed." and why, stages 1 to 6 say "Steps not available for this puzzle.", and its one row is the stored
+  puzzle with its score. "No steps were needed for this puzzle." means that this puzzle did not need that stage (for
+  example the layout stage of the sample puzzle that was made together with the piece set, which keeps the set's layout,
+  or the uniqueness stage when no clue had to be added). "Stopped at a limit." means that the replay reached one of its
+  limits there.
 
 [Back to top](#top)
 

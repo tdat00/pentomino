@@ -109,13 +109,14 @@ functions (`scoreV2`, `measureV2`, `rateV2`) for stored claims, fixtures and the
 
 `core/engine/replay.js` re-runs the generation of one puzzle from its record and compares the result with the stored
 puzzle (`runReplay`, `replayPuzzle`; [docs/design-detail.md](docs/design-detail.md) §6.12), and the worker runs it as the
-`replayPuzzle` task that the generation client sends on its auxiliary path. The Generator's Generation Steps dialog is
-`generator/ui/replay-model.js` (no DOM: the views, the sentences, the score table and the controller) and
-`generator/ui/replay-dialog.js` (the native dialog); the **How it was made** button of each puzzle card is in
-`generator/ui/puzzle-panel.js`, and `generator/app.js` opens the dialog with `replaySourceOf` of `generator/state.js`.
-`tests/browser/replay.html` tests all of it in a real browser. `node tools\record-fixtures.mjs --replay-case --check`
-(and `--search`, `--create`, `--replace`) checks the replay fixture `tests/fixtures/replay-case.json` the way `--check`
-checks the generation fixtures.
+`replayPuzzle` task that the generation client sends on its auxiliary path. The Generator's Generation steps, in step 3
+under **Pieces to place**, are `generator/ui/replay-model.js` (no DOM: the views, the sentences, the pieces, techniques
+and score of each step, the stage groups, the score table and the controller that runs, keeps and resubmits the replay)
+and `generator/ui/generation-steps.js` (the section and its table); `generator/ui/puzzle-panel.js` mounts the section
+under the pieces to place and gives it `replaySourceOf` of `generator/state.js`, and `generator/app.js` passes it the
+client's `replayPuzzle`. `tests/browser/replay.html` tests all of it in a real browser.
+`node tools\record-fixtures.mjs --replay-case --check` (and `--search`, `--create`, `--replace`) checks the replay
+fixture `tests/fixtures/replay-case.json` the way `--check` checks the generation fixtures.
 
 Every module loaded by a page or worker uses `.js`; `.mjs` is reserved for Node-only tools. The interface text is in the
 flat packs `generator/locale.en.js` / `locale.vi.js` and `player/locale.en.js` / `locale.vi.js` (printing texts in

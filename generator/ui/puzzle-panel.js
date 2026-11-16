@@ -11,15 +11,17 @@ import { ratingDisplay } from '../../core/browser/display-rating.js';
 import { normalizeAngle } from '../../core/engine/view.js';
 import { has, t } from '../i18n.js';
 import {
-  MAX_SETS, batchLevelOf, describeLevels, displayEntryOf, generationBlock, isBusy, readyLevelId, setsFull,
+  MAX_SETS, batchLevelOf, describeLevels, displayEntryOf, generationBlock, isBusy, readyLevelId, replaySourceOf, setsFull,
 } from '../state.js';
 import { levelLabel } from '../strings.js';
+import { mountGenerationSteps } from './generation-steps.js';
 import { loc, locAttrs } from './i18n-dom.js';
 import { mountElapsed } from './elapsed.js';
 
 const CARD_PREVIEW_PX = 116;
 const DETAIL_BOARD_PX = 560;
 const DETAIL_PIECE_SCALE = 0.6;
+const STEPS_BOARD_PX = 240;
 const ZOOM_STEP = 1.25;
 
 /** @typedef {import('../state.js').GeneratorStore} GeneratorStore */
@@ -40,8 +42,9 @@ const ZOOM_STEP = 1.25;
  * @property {HTMLElement | null} [cardsActionsHost] Remove all button; defaults to above the cards.
  * @property {() => import('../../core/browser/puzzle-code-client.js').PuzzleCodeClient} [createPuzzleCodeClient] Makes
  *   the puzzle-code client of the Print dialog on first use (default: one module worker).
- * @property {(puzzleId: string, opener: HTMLElement) => void} [onReplay] Opens Generation Steps ("How it was made") for
- *   a puzzle. Without it the cards have no third button; `opener` is the card's button, which gets the focus back.
+ * @property {(source: import('./replay-model.js').ReplaySource, signal: AbortSignal) =>
+ *   Promise<import('../../core/engine/replay.js').ReplayResult>} [replay] Runs the replay of a puzzle for Generation
+ *   steps, the section under "Pieces to place". Without it step 3 has no such section.
  */
 
 let panelCounter = 0;
@@ -256,6 +259,9 @@ export function mountPuzzlePanel(host, options) {
   });
   const detail = el('section', { className: 'puzzle-detail', attrs: { hidden: '' }, dataset: { role: 'puzzle-detail' } },
     nav.element, detailHead, detailFrame, el('div', { className: 'detail-solution' }, solutionButton), detailTrayTitle, detailPieces);
+  const steps = options.replay === undefined
+    ? null
+    : mountGenerationSteps(detail, { t, run: options.replay, cellPxOf: (board) => thumbnailCellPx(board, STEPS_BOARD_PX) });
   const noticeBox = options.noticeHost ?? el('div', { className: 'result-notice', attrs: { role: 'status' }, dataset: { role: 'notice' } });
   const cardList = el('ol', { className: 'puzzle-cards', attrs: { ...locAttrs({ 'aria-label': 'puzzles.list' }), id: `${uid}-cards` }, dataset: { role: 'cards' } });
   const emptyText = el('p', { className: 'hint', dataset: { role: 'empty' } });
@@ -291,7 +297,6 @@ export function mountPuzzlePanel(host, options) {
    * @property {HTMLElement} toPlace
    * @property {HTMLElement} cert
    * @property {HTMLButtonElement} select
-   * @property {HTMLButtonElement | null} replay
    * @property {HTMLButtonElement} remove
    * @property {string} id
    */
@@ -326,19 +331,13 @@ export function mountPuzzlePanel(host, options) {
     const remove = /** @type {HTMLButtonElement} */ (el('button', { className: 'card-remove ghost-small', text: '✕', attrs: { type: 'button', 'data-action': 'remove' } }));
     const select = /** @type {HTMLButtonElement} */ (el('button', { className: 'card-select', attrs: { type: 'button', 'data-action': 'select', 'aria-pressed': 'false' } },
       el('div', { className: 'card-body' }, heading, rating, toPlace, cert), thumb));
-    const onReplay = options.onReplay;
-    const replay = onReplay === undefined
-      ? null
-      : /** @type {HTMLButtonElement} */ (el('button', { className: 'card-replay ghost-small', attrs: { type: 'button', 'data-action': 'replay' } }));
-    const item = /** @type {HTMLLIElement} */ (el('li', { className: 'puzzle-card', dataset: { puzzleId: id } },
-      ...(replay === null ? [select, remove] : [select, replay, remove])));
+    const item = /** @type {HTMLLIElement} */ (el('li', { className: 'puzzle-card', dataset: { puzzleId: id } }, select, remove));
     const view = mountBoard(thumb, { mode: 'thumbnail', cellPx, label: t('card.preview') });
     select.addEventListener('click', () => {
       selectedId = id;
       userChose = true;
       render(store.getState());
     });
-    replay?.addEventListener('click', () => onReplay?.(id, replay));
     remove.addEventListener('click', () => {
       const buttons = [...cardList.querySelectorAll('.card-remove')];
       const at = buttons.indexOf(remove);
@@ -347,7 +346,7 @@ export function mountPuzzlePanel(host, options) {
       const left = /** @type {HTMLButtonElement[]} */ ([...cardList.querySelectorAll('.card-remove')]);
       (left[Math.min(at, left.length - 1)] ?? newButton).focus();
     });
-    return { item, view, heading, rating, toPlace, cert, select, replay, remove, id };
+    return { item, view, heading, rating, toPlace, cert, select, remove, id };
   }
 
   /** @param {GeneratorState} state */
@@ -391,10 +390,6 @@ export function mountPuzzlePanel(host, options) {
       card.remove.setAttribute('aria-label', removeLabel);
       card.remove.title = removeLabel;
       card.remove.disabled = busy;
-      if (card.replay !== null) {
-        card.replay.textContent = t('replay.button');
-        card.replay.setAttribute('aria-label', t('replay.button.aria', { title: card.heading.textContent }));
-      }
       drawRating(card.rating, ratingDisplay(puzzle.rating, displayEntryOf(state, puzzle), { t, levelLabel }));
       card.toPlace.textContent = t('card.toPlace', { count: Math.max(0, current.pieces.length - puzzle.clues.length) });
       const certificate = describeCertificate(puzzle, { checking: checking.has(puzzle.id) || fresh });
@@ -464,6 +459,7 @@ export function mountPuzzlePanel(host, options) {
       detailView = null;
       detailSet = null;
       clearDetailPieces();
+      steps?.show(null, { rotation: state.rotation, busy: isBusy(state) });
       return;
     }
     const puzzle = state.puzzles[at];
@@ -508,6 +504,7 @@ export function mountPuzzlePanel(host, options) {
       placements: solutionShown && solution !== null ? solution.filter((pose) => !clueIds.has(pose.piece)) : [],
       showLabels: true, showPatterns: true,
     });
+    steps?.show(replaySourceOf(state, puzzle.id), { rotation: state.rotation, busy: isBusy(state) });
     const signature = `${puzzle.id}|${state.rotation}`;
     if (signature === detailSignature) {
       return;
@@ -667,6 +664,7 @@ export function mountPuzzlePanel(host, options) {
     refresh: () => {
       elapsed.refresh();
       render(store.getState());
+      steps?.refreshTexts();
       // A language that changes the printed heading starts a new preparation of the open Print dialog.
       printDialog.refresh();
     },
@@ -683,6 +681,7 @@ export function mountPuzzlePanel(host, options) {
       listeners.length = 0;
       elapsed.destroy();
       printDialog.destroy();
+      steps?.dispose();
       for (const card of cards.values()) {
         card.view.destroy();
       }

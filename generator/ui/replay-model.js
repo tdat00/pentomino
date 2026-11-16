@@ -1,9 +1,10 @@
 // @ts-check
-// Generation Steps ("How it was made"), the part that has no DOM (design §6.12, §11.11; RES-29 to RES-31): the two
-// views of a replay, the sentence of a step, the score table, the stage list, the status text and the controller that
-// loads, steps, plays and closes. Texts are never built here: every function returns descriptors `{ key, params }`
-// of locale keys (a parameter may itself be a descriptor), which `renderDesc` turns into text with the app's `t`. No
-// timer of its own (the scheduler is injected) and no storage.
+// Generation steps (step 3, under "Pieces to place"), the part that has no DOM (design §6.12, §10.5, §11.11; RES-29 to
+// RES-31; owner decision P-OD14): the two views of a replay, the sentence of a step, its row (pieces, techniques and
+// score), the stage groups, the score table, the stage list, the status text and the controller that runs, keeps and
+// resubmits the replay of the puzzle on show, with no playback. Texts are never built here: every function returns
+// descriptors `{ key, params }` of locale keys (a parameter may itself be a descriptor or a list of them), which
+// `renderDesc` turns into text with the app's `t`. No timer and no storage.
 import { PoolAbortError, PoolError } from '../../core/browser/worker-pool.js';
 import { clueKey } from '../../core/engine/keys.js';
 
@@ -15,14 +16,20 @@ import { clueKey } from '../../core/engine/keys.js';
 /** @typedef {import('../../core/engine/types.js').RatingDetail} RatingDetail */
 
 /**
- * What the Generator gives the dialog: the set, the puzzle and its provenance (`client.replayPuzzle`'s input).
+ * What the Generator gives the section: the set, the puzzle and its provenance (`client.replayPuzzle`'s input).
  * @typedef {{ set: PieceSet, puzzle: Puzzle, setOrigin: unknown, made: unknown }} ReplaySource
  */
 
 /**
- * A text to be written: a locale key and its parameters. A parameter is a string, a raw number (the dialog formats it
- * for the language) or another descriptor (a translated noun phrase inside a sentence).
- * @typedef {{ key: string, params?: Record<string, string | number | Desc> }} Desc
+ * A text to be written: a locale key and its parameters. A parameter is a string, a raw number (the section formats it
+ * for the language), another descriptor (a translated noun phrase inside a sentence) or a list of descriptors (written
+ * one by one and joined with ", ").
+ * @typedef {{ key: string, params?: Record<string, string | number | Desc | Desc[]> }} Desc
+ */
+
+/**
+ * One line of a cell of a step's row: a raw number, a descriptor or a list of descriptors (joined with ", ").
+ * @typedef {number | Desc | Desc[]} Line
  */
 
 /**
@@ -45,18 +52,28 @@ import { clueKey } from '../../core/engine/keys.js';
  */
 
 /**
- * `index` is the index into `result.steps` (the step shown), whichever the view.
- * @typedef {object} ReplayViewState
- * @property {'closed' | 'loading' | 'ready' | 'failed'} phase
- * @property {ReplayResult | null} result
- * @property {'worker-unavailable' | 'interrupted' | 'failed' | null} failure
- * @property {'compact' | 'all'} view
- * @property {number} index
- * @property {boolean} playing
+ * One row group of the table: a run of consecutive visible steps of one stage, or a stage without steps.
+ * @typedef {object} StageGroup
+ * @property {1 | 2 | 3 | 4 | 5 | 6 | 7} stage
+ * @property {Desc} heading `{ key: 'replay.stage.heading', params: { n: stage, name: { key: 'replay.stage.<stage>' } } }`
+ * @property {'stopped' | 'none' | 'notAvailable' | null} mark The stage's mark of `stageList(result)`.
+ * @property {Desc | null} markText The stage's mark text of `stageList(result)`.
+ * @property {number[]} indices The visible steps of the group, in order; empty for a stage without steps.
+ */
+
+/**
+ * `expanded` is an index into `result.steps`, always a visible one.
+ * @typedef {object} StepsState
+ * @property {'idle' | 'loading' | 'ready' | 'failed'} phase
+ * @property {ReplaySource | null} source The puzzle on show (null when idle).
+ * @property {ReplayResult | null} result The presented result: an `unavailable` one holds its final step only.
+ * @property {'worker-unavailable' | 'failed' | null} failure
+ * @property {'compact' | 'all'} view Kept from one puzzle to the next.
+ * @property {number | null} expanded The open step, or null.
  */
 
 export const STAGE_COUNT = 7;
-export const DEFAULT_INTERVAL_MS = 900;
+export const STEPS_CACHE_SIZE = 16;
 const MODEL_V3 = 'difficulty-v3';
 const MODEL_V2 = 'difficulty-v2';
 const RULE_NAMES = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9'];
@@ -70,7 +87,7 @@ const REPAIR_REFUSALS = ['not-proved', 'path-capped', 'no-proved-guess', 'out-of
 
 /**
  * @param {string} key
- * @param {Record<string, string | number | Desc>} [params]
+ * @param {Record<string, string | number | Desc | Desc[]>} [params]
  * @returns {Desc}
  */
 function desc(key, params) {
@@ -110,7 +127,11 @@ function ordinal(v) {
 export function descriptorKeys(d) {
   const keys = [d.key];
   for (const value of Object.values(d.params ?? {})) {
-    if (typeof value === 'object') {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        keys.push(...descriptorKeys(item));
+      }
+    } else if (typeof value === 'object') {
       keys.push(...descriptorKeys(value));
     }
   }
@@ -119,7 +140,7 @@ export function descriptorKeys(d) {
 
 /**
  * Writes a descriptor. A numeric parameter goes through `format`, except `count`, which stays a number so that `t`
- * can choose the plural form.
+ * can choose the plural form; a list of descriptors is written one by one and joined with ", ".
  * @param {Desc} d
  * @param {(key: string, params?: Record<string, unknown>) => string} t
  * @param {(value: number) => string} [format]
@@ -131,9 +152,11 @@ export function renderDesc(d, t, format = String) {
   if (d.params !== undefined) {
     params = {};
     for (const [name, value] of Object.entries(d.params)) {
-      params[name] = typeof value === 'object'
-        ? renderDesc(value, t, format)
-        : typeof value === 'number' && name !== 'count' ? format(value) : value;
+      params[name] = Array.isArray(value)
+        ? value.map((item) => renderDesc(item, t, format)).join(', ')
+        : typeof value === 'object'
+          ? renderDesc(value, t, format)
+          : typeof value === 'number' && name !== 'count' ? format(value) : value;
     }
   }
   return t(d.key, params);
@@ -318,14 +341,17 @@ function isTermsV3(b) {
 
 /**
  * @param {unknown} rules
- * @returns {string | Desc} The nonzero rule counts ("R1 ×3, R3 ×2"), or "none".
+ * @returns {Desc[] | Desc} One descriptor per rule R1 to R9 that was used ("Forced cell ×3"), in rule order, or "none".
  */
 function countsText(rules) {
+  /** @type {Desc[]} */
   const list = RULE_NAMES.flatMap((name) => {
     const n = isObject(rules) ? rules[name] : undefined;
-    return typeof n === 'number' && Number.isFinite(n) && n > 0 ? [`${name} ×${n}`] : [];
+    return typeof n === 'number' && Number.isFinite(n) && n > 0
+      ? [desc('replay.uses', { rule: desc(`replay.rule.${name}`), n })]
+      : [];
   });
-  return list.length === 0 ? desc('replay.table.rules.none') : list.join(', ');
+  return list.length === 0 ? desc('replay.table.rules.none') : list;
 }
 
 /**
@@ -473,6 +499,108 @@ export function scoreTable(step, steps) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// The row of a step (owner decision P-OD14): its button label, pieces, techniques and score.
+
+/**
+ * @param {number} index The step's index in the result.
+ * @returns {Desc} "Step n", n counting from 1 in both views.
+ */
+export function rowLabel(index) {
+  return desc('replay.row', { n: index + 1 });
+}
+
+/**
+ * @param {Step} step
+ * @returns {string[]} The piece ids a step names, in the order the step gives them.
+ */
+function pieceIdsOf(step) {
+  const { board } = step;
+  switch (step.kind) {
+    case 'piece': {
+      const n = step.args.n;
+      const item = typeof n === 'number' && Number.isInteger(n) && n >= 1 ? board.placed[n - 1] : undefined;
+      return item !== undefined && typeof item.id === 'string' ? [item.id] : [];
+    }
+    case 'retile':
+      return board.lifted.slice();
+    case 'rated':
+    case 'rejected':
+    case 'unrateable':
+    case 'selected':
+    case 'final':
+      return board.clues.slice();
+    case 'repair':
+      return typeof step.args.added === 'string' ? [step.args.added] : [];
+    default:
+      return [];
+  }
+}
+
+/**
+ * The pieces of a step's row: the carved piece, the lifted pieces, the clues of a rated, refused, unrateable or
+ * selected clue set and of the final puzzle, the piece a repair added.
+ * @param {Step} step
+ * @param {Pick<PieceSet, 'pieces'>} set
+ * @returns {string[]} Piece ids: those the set holds in the set's order, then the others in the order given; each once.
+ */
+export function stepPieces(step, set) {
+  const unique = [...new Set(pieceIdsOf(step))];
+  const order = new Map(set.pieces.map((piece, index) => [piece.id, index]));
+  const known = unique.filter((id) => order.has(id)).sort((a, b) => (order.get(a) ?? 0) - (order.get(b) ?? 0));
+  return [...known, ...unique.filter((id) => !order.has(id))];
+}
+
+/**
+ * @param {Step} step
+ * @returns {Line[]} The deduction rules used with their counts and the decisive guesses of a `difficulty-v3` rating;
+ *   "not available" for another rating; nothing for a step without a rating.
+ */
+export function stepTechniques(step) {
+  const rating = step.rating;
+  if (!isObject(rating)) {
+    return [];
+  }
+  if (rating.model !== MODEL_V3 || !isObject(rating.metrics)) {
+    return [UNAVAILABLE];
+  }
+  const metrics = /** @type {Record<string, any>} */ (rating.metrics);
+  /** @type {Line[]} */
+  const lines = [countsText(metrics.rules)];
+  if (typeof metrics.G === 'number' && Number.isFinite(metrics.G) && metrics.G > 0) {
+    lines.push(desc('replay.guesses', { count: metrics.G, proved: numOr(metrics.Gproved) }));
+  }
+  return lines;
+}
+
+/**
+ * @param {Step} step
+ * @returns {Line[]} The score, in or outside the band, the estimate note and the refusal, where the step has them.
+ */
+export function stepScore(step) {
+  if (step.kind === 'unrateable') {
+    return [desc('replay.table.unrateable')];
+  }
+  const rating = step.rating;
+  if (!isObject(rating)) {
+    return [];
+  }
+  /** @type {Line[]} */
+  const lines = [numOr(rating.score)];
+  const score = rating.score;
+  if (rating.model === MODEL_V3 && Number.isFinite(score) && step.band !== null && step.band !== undefined) {
+    const { min, max } = step.band;
+    lines.push(desc(min <= score && (max === null || max === undefined || score < max) ? 'replay.score.inBand' : 'replay.score.outOfBand'));
+  }
+  if (rating.censored === true) {
+    lines.push(desc('rating.note.estimateShort'));
+  }
+  if (step.kind === 'rejected') {
+    lines.push(desc('replay.table.refused'));
+  }
+  return lines;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // The board, the stage list and the status (RES-29, RES-31).
 
 /**
@@ -552,6 +680,68 @@ export function stageList(result) {
 }
 
 /**
+ * The row groups of the table. A result the replay called `unavailable` (the controller presents it as its final step
+ * alone, owner decision P-OD14 Q2) has seven groups: stages 1 to 6 are "not available" without rows and stage 7 holds
+ * the stored puzzle. Any other result is cut into runs of consecutive visible steps of one stage (stages 5 and 6
+ * interleave, so a stage can come back), and a stage without steps gets a group of its own, with no rows, before the
+ * first run of a later stage.
+ * @param {ReplayResult} result
+ * @param {readonly number[]} visible Indices into `result.steps` of the steps the view shows, in order.
+ * @returns {StageGroup[]}
+ */
+export function stageGroups(result, visible) {
+  /** @param {1 | 2 | 3 | 4 | 5 | 6 | 7} stage @returns {Desc} */
+  const heading = (stage) => desc('replay.stage.heading', { n: stage, name: desc(`replay.stage.${stage}`) });
+  if (result.status === 'unavailable') {
+    const last = result.steps.length - 1;
+    return Array.from({ length: STAGE_COUNT }, (_, i) => {
+      const stage = /** @type {1 | 2 | 3 | 4 | 5 | 6 | 7} */ (i + 1);
+      return stage < STAGE_COUNT
+        ? { stage, heading: heading(stage), mark: /** @type {const} */ ('notAvailable'), markText: desc('replay.notAvailable'), indices: [] }
+        : { stage, heading: heading(stage), mark: null, markText: null, indices: visible.includes(last) ? [last] : [] };
+    });
+  }
+  const list = stageList(result);
+  /** @type {{ stage: number, indices: number[] }[]} */
+  const runs = [];
+  for (const index of visible) {
+    const stage = result.steps[index].stage;
+    const run = runs[runs.length - 1];
+    if (run !== undefined && run.stage === stage) {
+      run.indices.push(index);
+    } else {
+      runs.push({ stage, indices: [index] });
+    }
+  }
+  const empty = list.filter((entry) => entry.steps === 0).map((entry) => entry.stage);
+  /** @type {StageGroup[]} */
+  const groups = [];
+  /**
+   * @param {number} stage
+   * @param {number[]} indices
+   */
+  const add = (stage, indices) => {
+    const entry = list[stage - 1];
+    groups.push({
+      stage: /** @type {StageGroup['stage']} */ (stage), heading: heading(/** @type {StageGroup['stage']} */ (stage)),
+      mark: entry.mark, markText: entry.markText, indices,
+    });
+  };
+  let next = 0;
+  for (const run of runs) {
+    while (next < empty.length && empty[next] < run.stage) {
+      add(empty[next], []);
+      next += 1;
+    }
+    add(run.stage, run.indices);
+  }
+  for (; next < empty.length; next += 1) {
+    add(empty[next], []);
+  }
+  return groups;
+}
+
+/**
  * The status of a result, as whole sentences: the headline and, for an unavailable result, the reason. For a mismatch
  * the field and for an incomplete result the limit are noun phrases inside the sentence.
  * @param {ReplayResult} result
@@ -579,243 +769,229 @@ export function statusText(result) {
 }
 
 /**
- * @param {'worker-unavailable' | 'interrupted' | 'failed'} failure
+ * @param {'worker-unavailable' | 'failed'} failure
  * @returns {Desc}
  */
 export function failureText(failure) {
-  return desc(failure === 'worker-unavailable' ? 'replay.failed.worker' : failure === 'interrupted' ? 'replay.failed.interrupted' : 'replay.failed');
+  return desc(failure === 'worker-unavailable' ? 'replay.failed.worker' : 'replay.failed');
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// The controller (RES-29, RES-31).
+// The controller (RES-29, RES-31; owner decision P-OD14).
 
 /**
  * @param {unknown} error
- * @returns {'worker-unavailable' | 'interrupted' | 'failed'}
+ * @returns {'worker-unavailable' | 'failed'}
  */
 function failureOf(error) {
-  if (error instanceof PoolAbortError && error.reason === 'cancelled') {
-    return 'interrupted';
-  }
-  if (error instanceof PoolError && error.code === 'worker-unavailable') {
-    return 'worker-unavailable';
-  }
-  return 'failed';
+  return error instanceof PoolError && error.code === 'worker-unavailable' ? 'worker-unavailable' : 'failed';
 }
 
 /**
- * The state machine of the dialog: it runs the replay on `open`, keeps the step, the view and the playback, and on
- * `close` aborts only its own replay (never a generation, never the client).
- * @param {{ run: (source: ReplaySource, signal: AbortSignal) => Promise<ReplayResult>,
- *   schedule: (fn: () => void, ms: number) => unknown, unschedule: (handle: unknown) => void,
- *   onChange: (state: ReplayViewState) => void, intervalMs?: number }} o
+ * @param {ReplaySource} a
+ * @param {ReplaySource} b
+ * @returns {boolean} Whether both are the same puzzle of the same set, with the same provenance objects.
  */
-export function createReplayController(o) {
-  const { run, schedule, unschedule, onChange } = o;
-  const intervalMs = o.intervalMs ?? DEFAULT_INTERVAL_MS;
-  /** @type {ReplayViewState} */
-  let state = { phase: 'closed', result: null, failure: null, view: 'compact', index: 0, playing: false };
+function sameSource(a, b) {
+  return a.set === b.set && a.puzzle.id === b.puzzle.id && a.made === b.made && a.setOrigin === b.setOrigin;
+}
+
+/**
+ * What the section shows for a result. An `unavailable` one (an imported puzzle, no record or set origin, a completion
+ * pass, other versions) is shown as the stored puzzle alone, also when the engine replayed some of its stages (owner
+ * decision P-OD14, Q2 (a) and Q3 (a)); the engine's result is not changed.
+ * @param {ReplayResult} result
+ * @returns {ReplayResult | null} Null for an unavailable result whose last step is not the final one.
+ */
+function presented(result) {
+  if (result.status !== 'unavailable') {
+    return result;
+  }
+  const last = result.steps[result.steps.length - 1];
+  return last.kind === 'final' ? { ...result, steps: [last] } : null;
+}
+
+/**
+ * The state machine of the Generation steps section: `show` runs the replay of the puzzle on show (an auxiliary
+ * request, so a generation is never delayed), keeps the results of the puzzles shown before, resubmits a replay that
+ * a new generation interrupted, and cancels only its own run (never a generation, never the client).
+ * @param {{ run: (source: ReplaySource, signal: AbortSignal) => Promise<ReplayResult>,
+ *   onChange: (state: StepsState) => void }} o
+ * @returns {{ show(source: ReplaySource | null): void, retry(): void, setView(view: 'compact' | 'all'): void,
+ *   toggle(index: number): void, visible(): number[], getState(): StepsState, dispose(): void }}
+ */
+export function createStepsController(o) {
+  const { run, onChange } = o;
+  /** @type {StepsState} */
+  let state = { phase: 'idle', source: null, result: null, failure: null, view: 'compact', expanded: null };
   /** @type {AbortController | null} */
   let abort = null;
-  /** @type {unknown} */
-  let timer = null;
-  let ticking = false;
   let runId = 0;
   let disposed = false;
-  /** @type {((step: Step) => string) | null} */
-  let keyOf = null;
-  /** @type {number[] | null} */
+  /** @type {Map<string, { made: unknown, setOrigin: unknown, result: ReplayResult }>} */
+  const cache = new Map();
+  /** @type {object | null} */
+  let cacheSet = null;
+  /** @type {{ result: ReplayResult, lists: Map<string, number[]> } | null} */
   let visibleCache = null;
 
-  const emit = () => {
-    if (!disposed) {
+  /** @param {Partial<StepsState>} change */
+  function update(change) {
+    const next = { ...state, ...change };
+    const changed = Object.keys(next).some((name) => next[/** @type {keyof StepsState} */ (name)] !== state[/** @type {keyof StepsState} */ (name)]);
+    state = next;
+    if (changed && !disposed) {
       onChange({ ...state });
     }
-  };
+  }
 
-  const stopTimer = () => {
-    if (ticking) {
-      unschedule(timer);
-      ticking = false;
-      timer = null;
-    }
-  };
-
-  /** @returns {number[]} The indices of the steps the view shows, the first of which is always step 0. */
-  function visible() {
-    if (state.result === null) {
+  /**
+   * @param {'compact' | 'all'} view
+   * @returns {number[]} The indices of the steps the view shows, computed once per result and view.
+   */
+  function visibleFor(view) {
+    const { result, source } = state;
+    if (state.phase !== 'ready' || result === null || source === null) {
       return [];
     }
-    visibleCache ??= visibleIndices(state.result.steps, state.view, keyOf ?? (() => ''));
-    return visibleCache;
-  }
-
-  /**
-   * @param {number} index
-   * @returns {number} The nearest visible step at or before `index` (the first visible one when there is none).
-   */
-  function nearestEarlier(index) {
-    const list = visible();
-    let found = list[0] ?? 0;
-    for (const at of list) {
-      if (at <= index) {
-        found = at;
-      }
+    if (visibleCache === null || visibleCache.result !== result) {
+      visibleCache = { result, lists: new Map() };
     }
-    return found;
-  }
-
-  /**
-   * @param {Partial<ReplayViewState>} change
-   * @param {boolean} [force] Emit even when nothing changed.
-   */
-  function update(change, force = false) {
-    const next = { ...state, ...change };
-    const same = (/** @type {keyof ReplayViewState} */ k) => next[k] === state[k];
-    const changed = !(same('phase') && same('result') && same('failure') && same('view') && same('index') && same('playing'));
-    state = next;
-    if (changed || force) {
-      emit();
+    let list = visibleCache.lists.get(view);
+    if (list === undefined) {
+      list = visibleIndices(result.steps, view, stepKeyOf(source.set));
+      visibleCache.lists.set(view, list);
     }
+    return list;
   }
 
-  function endRun() {
+  function cancel() {
     runId += 1;
-    stopTimer();
     if (abort !== null) {
       abort.abort();
       abort = null;
     }
   }
 
-  function tick() {
-    ticking = false;
-    timer = null;
-    if (!state.playing || state.phase !== 'ready') {
-      return;
-    }
-    const list = visible();
-    const next = list.find((at) => at > state.index);
-    if (next === undefined) {
-      update({ playing: false });
-      return;
-    }
-    const last = list[list.length - 1] === next;
-    update({ index: next, playing: !last });
-    if (!last) {
-      timer = schedule(tick, intervalMs);
-      ticking = true;
+  /**
+   * @param {ReplaySource} source
+   * @param {ReplayResult} result
+   */
+  function remember(source, result) {
+    cache.delete(source.puzzle.id);
+    cache.set(source.puzzle.id, { made: source.made, setOrigin: source.setOrigin, result });
+    if (cache.size > STEPS_CACHE_SIZE) {
+      cache.delete(/** @type {string} */ (cache.keys().next().value));
     }
   }
 
+  /**
+   * @param {ReplaySource} source
+   * @param {unknown} value What the run resolved.
+   */
+  function finish(source, value) {
+    abort = null;
+    const result = isObject(value) && Array.isArray(value.steps) && value.steps.length > 0
+      ? presented(/** @type {ReplayResult} */ (value))
+      : null;
+    if (result === null) {
+      update({ phase: 'failed', failure: 'failed', result: null, expanded: null });
+      return;
+    }
+    remember(source, result);
+    update({ phase: 'ready', result, failure: null, expanded: null });
+  }
+
+  /** @param {ReplaySource} source */
+  function start(source) {
+    runId += 1;
+    const mine = runId;
+    const controller = new AbortController();
+    abort = controller;
+    /** @type {Promise<ReplayResult>} */
+    let promise;
+    try {
+      promise = Promise.resolve(run(source, controller.signal));
+    } catch (error) {
+      promise = Promise.reject(error);
+    }
+    promise.then((value) => {
+      if (!disposed && mine === runId) {
+        finish(source, value);
+      }
+    }, (error) => {
+      if (disposed || mine !== runId) {
+        return;
+      }
+      if (error instanceof PoolAbortError && error.reason === 'cancelled') {
+        // A new generation began (this run's own signal is not aborted): ask again, the request waits for it to end.
+        start(source);
+        return;
+      }
+      abort = null;
+      update({ phase: 'failed', failure: failureOf(error), result: null, expanded: null });
+    });
+  }
+
   return {
-    /** @param {ReplaySource} source */
-    open(source) {
+    /** @param {ReplaySource | null} source */
+    show(source) {
       if (disposed) {
         return;
       }
-      endRun();
-      keyOf = isObject(source?.set) ? stepKeyOf(source.set) : null;
-      visibleCache = null;
-      const mine = runId;
-      const controller = new AbortController();
-      abort = controller;
-      state = { phase: 'loading', result: null, failure: null, view: 'compact', index: 0, playing: false };
-      emit();
-      /** @type {Promise<ReplayResult>} */
-      let promise;
-      try {
-        promise = Promise.resolve(run(source, controller.signal));
-      } catch (error) {
-        promise = Promise.reject(error);
-      }
-      promise.then((result) => {
-        if (disposed || mine !== runId) {
-          return;
+      if (source === null || source === undefined) {
+        if (state.phase !== 'idle' || state.source !== null) {
+          cancel();
+          update({ phase: 'idle', source: null, result: null, failure: null, expanded: null });
         }
-        if (!isObject(result) || !Array.isArray(result.steps) || result.steps.length === 0) {
-          update({ phase: 'failed', failure: 'failed' });
-          return;
-        }
-        visibleCache = null;
-        update({ phase: 'ready', result, failure: null, index: 0 });
-      }, (error) => {
-        if (disposed || mine !== runId) {
-          return;
-        }
-        update({ phase: 'failed', failure: failureOf(error) });
-      });
-    },
-    close() {
-      if (disposed || state.phase === 'closed') {
         return;
       }
-      endRun();
-      visibleCache = null;
-      state = { phase: 'closed', result: null, failure: null, view: 'compact', index: 0, playing: false };
-      emit();
+      if (state.source !== null && sameSource(state.source, source)) {
+        return;
+      }
+      cancel();
+      if (cacheSet !== source.set) {
+        cache.clear();
+        cacheSet = source.set;
+      }
+      const id = source.puzzle.id;
+      const hit = cache.get(id);
+      if (hit !== undefined && hit.made === source.made && hit.setOrigin === source.setOrigin) {
+        cache.delete(id);
+        cache.set(id, hit);
+        update({ phase: 'ready', source, result: hit.result, failure: null, expanded: null });
+        return;
+      }
+      update({ phase: 'loading', source, result: null, failure: null, expanded: null });
+      start(source);
+    },
+    retry() {
+      if (disposed || state.phase !== 'failed' || state.source === null) {
+        return;
+      }
+      update({ phase: 'loading', failure: null });
+      start(state.source);
     },
     /** @param {'compact' | 'all'} view */
     setView(view) {
-      if (disposed || state.phase !== 'ready' || (view !== 'compact' && view !== 'all')) {
+      if (disposed || (view !== 'compact' && view !== 'all') || view === state.view) {
         return;
       }
-      stopTimer();
-      const changed = view !== state.view;
-      const keep = state.index;
-      visibleCache = null;
-      state = { ...state, view };
-      update({ index: nearestEarlier(keep), playing: false }, changed);
+      const open = state.expanded;
+      update({ view, expanded: open !== null && visibleFor(view).includes(open) ? open : null });
     },
-    prev() {
-      if (disposed || state.phase !== 'ready') {
+    /** @param {number} index An index into `result.steps`; a step the view hides does nothing. */
+    toggle(index) {
+      if (disposed || state.phase !== 'ready' || !visibleFor(state.view).includes(index)) {
         return;
       }
-      stopTimer();
-      const before = visible().filter((at) => at < state.index);
-      update({ index: before.length > 0 ? before[before.length - 1] : state.index, playing: false });
-    },
-    next() {
-      if (disposed || state.phase !== 'ready') {
-        return;
-      }
-      stopTimer();
-      const after = visible().find((at) => at > state.index);
-      update({ index: after === undefined ? state.index : after, playing: false });
-    },
-    /** @param {number} index An index into `result.steps`; a step the view hides (or one out of range) moves to the nearest earlier visible one. */
-    seek(index) {
-      if (disposed || state.phase !== 'ready' || !Number.isFinite(index)) {
-        return;
-      }
-      stopTimer();
-      update({ index: nearestEarlier(Math.trunc(index)), playing: false });
-    },
-    play() {
-      if (disposed || state.phase !== 'ready' || state.playing) {
-        return;
-      }
-      const list = visible();
-      const from = list[list.length - 1] === state.index ? list[0] : state.index;
-      if (!list.some((at) => at > from)) {
-        return;
-      }
-      update({ index: from, playing: true }, true);
-      timer = schedule(tick, intervalMs);
-      ticking = true;
-    },
-    pause() {
-      if (disposed || !state.playing) {
-        return;
-      }
-      stopTimer();
-      update({ playing: false });
+      update({ expanded: state.expanded === index ? null : index });
     },
     /** @returns {number[]} The indices of the steps the current view shows, in order. */
     visible() {
-      return visible().slice();
+      return visibleFor(state.view).slice();
     },
-    /** @returns {ReplayViewState} */
+    /** @returns {StepsState} */
     getState() {
       return { ...state };
     },
@@ -823,10 +999,11 @@ export function createReplayController(o) {
       if (disposed) {
         return;
       }
-      endRun();
+      cancel();
       disposed = true;
+      cache.clear();
+      cacheSet = null;
       visibleCache = null;
-      state = { phase: 'closed', result: null, failure: null, view: 'compact', index: 0, playing: false };
     },
   };
 }

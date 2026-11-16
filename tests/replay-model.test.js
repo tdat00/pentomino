@@ -1,10 +1,11 @@
 // @ts-check
-// Generation Steps model (MP16a, design §6.12 and §11.11): the two views and the compact filter, the step sentences,
-// the score table, the stage list and the status text, and the controller, on the real replay of the replay fixture
-// (tests/fixtures/replay-case.json, the first candidate puzzle) and on small synthetic step lists.
+// Generation steps model (MP16a, MP18a; design §6.12 and §11.11): the two views and the compact filter, the step
+// sentences, the score table, the stage list and the status text, the steps table (rows, stage groups and controller)
+// and the removed dialog, on the real replay of the replay fixture (tests/fixtures/replay-case.json, the first
+// candidate puzzle) and on small synthetic step lists.
 
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { afterEach, test } from 'node:test';
 import { PoolAbortError, PoolError, WorkerTaskError } from '../core/browser/worker-pool.js';
 import { boardFromRows } from '../core/engine/board.js';
@@ -16,8 +17,9 @@ import { finalStep, replayPuzzle } from '../core/engine/replay.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
 import { packOf, setLocale, t } from '../generator/i18n.js';
 import {
-  boardOf, compactIndices, compactSteps, createReplayController, descriptorKeys, failureText, renderDesc, scoreTable,
-  stageList, statusText, stepKeyOf, stepText, visibleIndices,
+  STEPS_CACHE_SIZE, boardOf, compactIndices, compactSteps, createStepsController, descriptorKeys, failureText, renderDesc,
+  rowLabel, scoreTable, stageGroups, stageList, statusText, stepKeyOf, stepPieces, stepScore, stepTechniques, stepText,
+  visibleIndices,
 } from '../generator/ui/replay-model.js';
 
 /** @typedef {import('../core/engine/replay.js').ReplayResult} ReplayResult */
@@ -231,8 +233,9 @@ test('the score table of a real rated step: the rows, the guess nodes, the sum a
   assert.deepEqual(base.detail, { key: 'replay.table.base', params: { u: metrics.U } });
   assert.equal(rules.detail?.key, 'replay.table.rules');
   assert.equal(rules.detail?.params?.tier, metrics.deductionTier);
-  const counts = Object.entries(metrics.rules).filter(([, n]) => /** @type {number} */ (n) > 0).map(([name, n]) => `${name} ×${n}`).join(', ');
-  assert.deepEqual(rules.detail?.params?.counts, counts === '' ? { key: 'replay.table.rules.none' } : counts);
+  const counts = Object.entries(metrics.rules).filter(([, n]) => /** @type {number} */ (n) > 0)
+    .map(([name, n]) => ({ key: 'replay.uses', params: { rule: { key: `replay.rule.${name}` }, n } }));
+  assert.deepEqual(rules.detail?.params?.counts, counts.length === 0 ? { key: 'replay.table.rules.none' } : counts);
   assert.deepEqual(guess.detail, { key: 'replay.table.guess', params: { g: metrics.G, gproved: metrics.Gproved, info: metrics.info } });
   const census = /** @type {any} */ (s.detail).first.census;
   const nodes = rowsOf(table, 'node');
@@ -587,7 +590,7 @@ test('every key that the model returns exists in both packs with the placeholder
     }
     all.push(...statusText(result), ...stageList(result).flatMap((entry) => [entry.name, ...(entry.markText === null ? [] : [entry.markText])]));
   }
-  all.push(...stageList(null).map((entry) => entry.name), failureText('failed'), failureText('worker-unavailable'), failureText('interrupted'));
+  all.push(...stageList(null).map((entry) => entry.name), failureText('failed'), failureText('worker-unavailable'));
   for (const reason of ['no-set-origin', 'set-versions', 'no-record', 'record-invalid', 'completion', 'overflow', 'record-versions', 'calibration-needs-set']) {
     all.push(...statusText({ ...RESULT, status: 'unavailable', reason }));
   }
@@ -637,7 +640,6 @@ test('the board of a step: clues, placements and what is highlighted', () => {
 test('a failure says what happened', () => {
   assert.deepEqual(failureText('failed'), { key: 'replay.failed' });
   assert.deepEqual(failureText('worker-unavailable'), { key: 'replay.failed.worker' });
-  assert.deepEqual(failureText('interrupted'), { key: 'replay.failed.interrupted' });
 });
 
 test('descriptors are written with the language, numbers formatted, count kept for the plural', () => {
@@ -669,151 +671,12 @@ function deferred() {
 
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
-function scheduler() {
-  let next = 1;
-  /** @type {Map<number, { fn: () => void, ms: number }>} */
-  const pending = new Map();
-  return {
-    schedule: (/** @type {() => void} */ fn, /** @type {number} */ ms) => {
-      pending.set(next, { fn, ms });
-      next += 1;
-      return next - 1;
-    },
-    unschedule: (/** @type {unknown} */ handle) => {
-      pending.delete(/** @type {number} */ (handle));
-    },
-    size: () => pending.size,
-    delays: () => [...pending.values()].map((e) => e.ms),
-    fire() {
-      const [handle, entry] = /** @type {[number, { fn: () => void }]} */ ([...pending][0]);
-      pending.delete(handle);
-      entry.fn();
-    },
-  };
-}
-
-/**
- * @param {Partial<{ run: (source: any, signal: AbortSignal) => Promise<ReplayResult>, intervalMs: number }>} [over]
- */
-function harness(over = {}) {
-  const timers = scheduler();
-  /** @type {import('../generator/ui/replay-model.js').ReplayViewState[]} */
-  const states = [];
-  /** @type {{ source: any, signal: AbortSignal }[]} */
-  const calls = [];
-  const controller = createReplayController({
-    run: over.run ?? ((source, signal) => {
-      calls.push({ source, signal });
-      return new Promise(() => {});
-    }),
-    schedule: timers.schedule,
-    unschedule: timers.unschedule,
-    onChange: (state) => states.push(state),
-    ...(over.intervalMs === undefined ? {} : { intervalMs: over.intervalMs }),
-  });
-  return { controller, timers, states, calls };
-}
-
 /** @returns {ReplayResult} */
 const smallResult = () => /** @type {ReplayResult} */ ({
   ...RESULT, steps: [step({ stage: 1, kind: 'count' }), REAL_FINAL],
 });
 
-test('controller: open, loading, ready; close aborts only its own signal; a stale answer is ignored', async () => {
-  /** @type {{ source: any, signal: AbortSignal }[]} */
-  const calls = [];
-  /** @type {ReturnType<typeof deferred<ReplayResult>>[]} */
-  const answers = [];
-  const { controller, timers, states } = harness({
-    run: (source, signal) => {
-      calls.push({ source, signal });
-      const d = deferred();
-      answers.push(/** @type {any} */ (d));
-      return /** @type {Promise<ReplayResult>} */ (d.promise);
-    },
-  });
-  assert.equal(controller.getState().phase, 'closed');
-  controller.open(SOURCE);
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].source, SOURCE);
-  assert.equal(calls[0].signal.aborted, false);
-  assert.deepEqual(controller.getState(), { phase: 'loading', result: null, failure: null, view: 'compact', index: 0, playing: false });
-  answers[0].resolve(RESULT);
-  await flush();
-  assert.equal(controller.getState().phase, 'ready');
-  assert.equal(controller.getState().result, RESULT);
-  assert.equal(controller.getState().index, 0);
-  assert.deepEqual(states.map((s) => s.phase), ['loading', 'ready']);
-  controller.close();
-  assert.equal(calls[0].signal.aborted, true, 'close aborts the signal given to run');
-  assert.equal(controller.getState().phase, 'closed');
-  assert.equal(controller.getState().result, null);
-  assert.equal(timers.size(), 0);
-  assert.equal(calls.length, 1, 'close calls nothing else');
-
-  // an answer that arrives after close
-  controller.open(SOURCE);
-  const closedCount = states.length;
-  controller.close();
-  answers[1].resolve(RESULT);
-  await flush();
-  assert.equal(controller.getState().phase, 'closed');
-  assert.equal(states.length, closedCount + 1, 'only the close was announced');
-
-  // after a second open the first answer is ignored and the first signal is aborted
-  controller.open(SOURCE);
-  controller.open(SOURCE);
-  assert.equal(calls[2].signal.aborted, true);
-  assert.equal(calls[3].signal.aborted, false);
-  answers[2].resolve(RESULT);
-  await flush();
-  assert.equal(controller.getState().phase, 'loading');
-  answers[3].resolve(smallResult());
-  await flush();
-  assert.equal(controller.getState().phase, 'ready');
-  assert.equal(controller.getState().result?.steps.length, 2);
-});
-
-test('controller: the failure kinds, and what a rejection does after close', async () => {
-  /** @param {unknown} error */
-  async function failureFor(error) {
-    const { controller } = harness({ run: () => Promise.reject(error) });
-    controller.open(SOURCE);
-    await flush();
-    const state = controller.getState();
-    assert.equal(state.phase, 'failed');
-    assert.equal(state.result, null);
-    return state.failure;
-  }
-  assert.equal(await failureFor(new PoolError('worker-unavailable', 'no worker')), 'worker-unavailable');
-  assert.equal(await failureFor(new PoolError('invalid-task', 'refused')), 'failed', 'only worker-unavailable shows the worker message');
-  assert.equal(await failureFor(new PoolError('worker-crashed', 'crash')), 'failed');
-  assert.equal(await failureFor(new WorkerTaskError('invalid-request', 'bad')), 'failed');
-  assert.equal(await failureFor(new TypeError('malformed source')), 'failed');
-  assert.equal(await failureFor(new PoolAbortError('cancelled')), 'interrupted');
-  assert.equal(await failureFor(new PoolAbortError('closed')), 'failed');
-  assert.equal(await failureFor(new Error('x')), 'failed');
-  const thrown = harness({ run: () => { throw new TypeError('malformed source'); } });
-  thrown.controller.open(SOURCE);
-  await flush();
-  assert.deepEqual([thrown.controller.getState().phase, thrown.controller.getState().failure], ['failed', 'failed']);
-  const noSteps = harness({ run: () => Promise.resolve(/** @type {any} */ ({ status: 'matched', steps: [] })) });
-  noSteps.controller.open(SOURCE);
-  await flush();
-  assert.equal(noSteps.controller.getState().failure, 'failed');
-
-  const late = deferred();
-  const { controller, states } = harness({ run: () => /** @type {Promise<ReplayResult>} */ (late.promise) });
-  controller.open(SOURCE);
-  controller.close();
-  const count = states.length;
-  late.reject(new PoolAbortError('cancelled'));
-  await flush();
-  assert.equal(controller.getState().phase, 'closed', 'the cancellation that close caused changes nothing');
-  assert.equal(states.length, count);
-});
-
-/** The steps of the playback cases: stages 1-4, six rated steps (10, 12, 11, 20, 13, 21), a repair, selected, final. */
+/** The steps of the controller cases: stages 1-4, six rated steps (10, 12, 11, 20, 13, 21), a repair, selected, final. */
 function playbackResult() {
   const scores = [10, 12, 11, 20, 13, 21];
   /** @type {Step[]} */
@@ -828,145 +691,566 @@ function playbackResult() {
 
 const COMPACT = [0, 1, 2, 4, 6, 7, 9, 11, 12, 13, 14];
 
-/** @param {Parameters<typeof harness>[0]} [over] */
-async function readyHarness(over) {
-  const answer = Promise.resolve(playbackResult());
-  const h = harness({ run: () => answer, ...over });
-  h.controller.open(SOURCE);
-  await flush();
-  assert.equal(h.controller.getState().phase, 'ready');
-  return h;
-}
+// ---------------------------------------------------------------------------------------------------------------
+// 11. The row of a step: pieces, techniques and score (MP18a).
 
-test('controller: playback advances one visible step per tick and stops at the last', async () => {
-  const { controller, timers, states } = await readyHarness();
-  assert.deepEqual(controller.visible(), COMPACT);
-  assert.deepEqual(timers.delays(), []);
-  controller.play();
-  assert.equal(controller.getState().playing, true);
-  assert.deepEqual(timers.delays(), [900], 'one tick at the default interval');
-  controller.play();
-  assert.equal(timers.size(), 1, 'a second play while playing starts no second timer');
-  /** @type {number[]} */
-  const seen = [];
-  while (timers.size() > 0) {
-    timers.fire();
-    seen.push(controller.getState().index);
+const uses = (/** @type {string} */ rule, /** @type {number} */ n) => ({ key: 'replay.uses', params: { rule: { key: `replay.rule.${rule}` }, n } });
+const guesses = (/** @type {number} */ count, /** @type {number} */ proved) => ({ key: 'replay.guesses', params: { count, proved } });
+const IN = { key: 'replay.score.inBand' };
+const OUT = { key: 'replay.score.outOfBand' };
+const NA = { key: 'replay.table.unavailable' };
+/** @param {import('../generator/ui/replay-model.js').Line} line */
+const lineText = (line) => (typeof line === 'number' ? String(line)
+  : Array.isArray(line) ? line.map((d) => renderDesc(d, t)).join(', ') : renderDesc(line, t));
+
+test('steps: the pieces, techniques and score of the real steps', () => {
+  const R = RESULT.steps;
+  /** @type {[number, string, string[], unknown[], unknown[]][]} */
+  const rows = [
+    [0, 'count', [], [], []],
+    [1, 'carve', [], [], []],
+    [2, 'piece', ['G'], [], []],
+    [10, 'piece', ['B'], [], []],
+    [11, 'start', [], [], []],
+    [12, 'retile', ['B', 'C', 'E'], [], []],
+    [19, 'retile', ['A', 'B', 'C', 'E'], [], []],
+    [20, 'rated', ['D', 'H', 'I'], [[uses('R1', 3)], guesses(3, 3)], [29, OUT]],
+    [21, 'rated', ['A', 'G', 'H'], [[uses('R1', 5)], guesses(1, 1)], [15, OUT]],
+    [22, 'rated', ['C', 'D', 'H'], [[uses('R1', 4), uses('R4', 27), uses('R6', 5), uses('R8', 12)], guesses(2, 2)], [24, IN]],
+    [23, 'rated', ['A', 'D', 'F'], [[uses('R1', 4), uses('R4', 18), uses('R6', 2), uses('R7', 146)], guesses(1, 1)], [17, IN]],
+    [26, 'repair', ['F'], [], []],
+    [27, 'repair', ['G'], [[uses('R1', 4)]], [9]],
+    [29, 'rejected', ['C', 'D', 'F', 'H'], [[uses('R1', 5), uses('R4', 10)]], [12, OUT, { key: 'replay.table.refused' }]],
+    [52, 'selected', ['D', 'E', 'H', 'I'], [], []],
+    [53, 'final', ['D', 'E', 'H', 'I'], [[uses('R1', 3), uses('R2', 1), uses('R8', 18)], guesses(1, 1)], [19, IN]],
+  ];
+  for (const [i, kind, pieces, techniques, score] of rows) {
+    assert.equal(R[i].kind, kind, `step ${i}`);
+    assert.deepEqual(stepPieces(R[i], SET), pieces, `pieces of step ${i}`);
+    assert.deepEqual(stepTechniques(R[i]), techniques, `techniques of step ${i}`);
+    assert.deepEqual(stepScore(R[i]), score, `score of step ${i}`);
   }
-  assert.deepEqual(seen, COMPACT.slice(1));
-  assert.equal(controller.getState().playing, false);
-  assert.equal(controller.getState().index, 14);
-  assert.ok(states.every((s) => s.index === 0 || COMPACT.includes(s.index)), 'only visible steps are shown');
-
-  // at the last step play starts again from the first
-  controller.play();
-  assert.deepEqual([controller.getState().index, controller.getState().playing], [0, true]);
-  timers.fire();
-  assert.equal(controller.getState().index, 1);
-  controller.pause();
-  assert.equal(controller.getState().playing, false);
-  assert.equal(timers.size(), 0);
-  controller.pause();
-  controller.play();
-  assert.equal(controller.getState().playing, true);
-
-  const custom = await readyHarness({ intervalMs: 250 });
-  custom.controller.play();
-  assert.deepEqual(custom.timers.delays(), [250]);
-  custom.timers.fire();
-  assert.deepEqual(custom.timers.delays(), [250], 'every tick is scheduled at the interval');
+  assert.deepEqual(stepTechniques(R[53]).map(lineText), ['Forced cell ×3, Forced piece ×1, Neck ×18', '1 decisive guess (1 proved)']);
+  assert.deepEqual(stepTechniques(R[20]).map(lineText), ['Forced cell ×3', '3 decisive guesses (3 proved)']);
+  assert.deepEqual(stepScore(R[53]).map(lineText), ['19', 'in band']);
+  assert.deepEqual(stepScore(R[29]).map(lineText), ['12', 'outside the band', 'refused: no proved guess']);
+  setLocale('vi', null);
+  assert.deepEqual(stepTechniques(R[53]).map(lineText), ['Ô bắt buộc ×3, Mảnh bắt buộc ×1, Chỗ thắt ×18', '1 lần đoán quyết định (1 được chứng minh)']);
+  assert.deepEqual(stepScore(R[53]).map(lineText), ['19', 'trong khoảng điểm']);
+  assert.deepEqual(rowLabel(0), { key: 'replay.row', params: { n: 1 } });
+  assert.deepEqual(rowLabel(53), { key: 'replay.row', params: { n: 54 } });
 });
 
-test('controller: the compact view of a real result uses the real clue keys; dispose aborts the run and stops the timer', async () => {
-  // A puzzle whose view the clue keys decide (not only the scores).
+test('steps: pieces, techniques and score of synthetic steps the real result lacks', () => {
+  /** @param {Step} s @param {string[]} pieces @param {unknown[]} techniques @param {unknown[]} score @param {string} where */
+  const expectRow = (s, pieces, techniques, score, where) => {
+    assert.deepEqual(stepPieces(s, SET), pieces, `${where}: pieces`);
+    assert.deepEqual(stepTechniques(s), techniques, `${where}: techniques`);
+    assert.deepEqual(stepScore(s), score, `${where}: score`);
+  };
+  expectRow(step({ kind: 'skip', args: { sequence: 2, source: 'candidate' } }), [], [], [], 'skip');
+  expectRow(step({
+    kind: 'unrateable', board: { placed: [], lifted: [], clues: ['C', 'A'] }, band: { min: 17, max: 25 },
+    args: { sequence: 3, phase: 'beam', source: 'candidate', reason: 'path-capped' },
+  }), ['A', 'C'], [], [{ key: 'replay.table.unrateable' }], 'unrateable');
+  expectRow(step({ stage: 6, kind: 'repair', args: { repairSequence: 1, added: null, accepted: false, reason: 'not-proved' } }), [], [], [], 'repair before a clue');
+  expectRow(step({
+    stage: 3, kind: 'piece', board: { placed: [{ id: null, cells: [[0, 0]], pose: null }], lifted: [], clues: [] }, args: { n: 1 },
+  }), [], [], [], 'piece without an id');
+  expectRow(step({
+    stage: 4, kind: 'retile', board: { placed: [], lifted: ['Z', 'C', 'A'], clues: [] }, args: { step: 0, lifted: 3, changed: true },
+  }), ['A', 'C', 'Z'], [], [], 'lifted piece the set does not know');
+  expectRow(finalStep({ ...FIRST, puzzle: { ...FIRST.puzzle, rating: null } }, 'matched', null), ['D', 'E', 'H', 'I'], [], [], 'final without a claim');
+  expectRow(finalStep({
+    ...FIRST, puzzle: { ...FIRST.puzzle, rating: { model: 'difficulty-v3', score: 19, level: 'hard', saturated: false, censored: true } },
+  }, 'matched', null), ['D', 'E', 'H', 'I'], [NA], [19, IN, { key: 'rating.note.estimateShort' }], 'summary claim');
+  expectRow(finalStep({
+    ...FIRST,
+    puzzle: {
+      ...FIRST.puzzle,
+      rating: {
+        model: 'difficulty-v2', score: 31, level: 'master', saturated: false,
+        metrics: { U: 8, B: 120, branchTrials: 3, rowTrials: 9, stop: 'solution', R: 1, H: 0.5 },
+      },
+    },
+  }, 'matched', null), ['D', 'E', 'H', 'I'], [NA], [31], 'v2 claim');
+  expectRow(rated(19), [], [NA], [19, IN], 'rated 19');
+  expectRow(rated(25), [], [NA], [25, OUT], 'rated 25');
+  expectRow(rated(17), [], [NA], [17, IN], 'rated 17');
+  expectRow(rated(80, { min: 53, max: null }), [], [NA], [80, IN], 'open band, above');
+  expectRow(rated(40, { min: 53, max: null }), [], [NA], [40, OUT], 'open band, below');
+  const censored = /** @type {Step} */ ({ ...RESULT.steps[22], rating: { ...RESULT.steps[22].rating, censored: true } });
+  assert.deepEqual(stepScore(censored), [24, IN, { key: 'rating.note.estimateShort' }]);
+  assert.deepEqual(stepTechniques(censored), stepTechniques(RESULT.steps[22]));
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// 12. The stage groups.
+
+/**
+ * @param {import('../generator/ui/replay-model.js').StageGroup[]} groups
+ * @param {number[]} stages
+ * @param {number[]} sizes
+ */
+function assertGroups(groups, stages, sizes) {
+  assert.deepEqual(groups.map((g) => g.stage), stages);
+  assert.deepEqual(groups.map((g) => g.indices.length), sizes);
+  for (const g of groups) {
+    assert.deepEqual(g.heading, { key: 'replay.stage.heading', params: { n: g.stage, name: { key: `replay.stage.${g.stage}` } } });
+  }
+}
+
+test('steps: stage groups follow the steps in order; a stage without steps keeps its heading and mark', () => {
+  const all = RESULT.steps.map((_, i) => i);
+  const groups = stageGroups(RESULT, all);
+  assertGroups(groups, [1, 2, 3, 4, 5, 6, 5, 6, 5, 7], [1, 1, 9, 9, 6, 2, 6, 1, 18, 1]);
+  assert.deepEqual(groups.flatMap((g) => g.indices), all);
+  assert.ok(groups.every((g) => g.mark === null && g.markText === null));
+
+  const key = stepKeyOf(SET);
+  assert.deepEqual(visibleIndices(RESULT.steps, 'compact', key), [0, 1, 2, 11, 20, 21, 22, 25, 26, 27, 34, 52, 53]);
+  assertGroups(stageGroups(RESULT, visibleIndices(RESULT.steps, 'compact', key)), [1, 2, 3, 4, 5, 6, 5, 7], [1, 1, 1, 1, 4, 3, 1, 1]);
+
+  const calibration = stageGroups(CALIBRATION_RESULT, CALIBRATION_RESULT.steps.map((_, i) => i));
+  assertGroups(calibration, [1, 2, 3, 4, 5, 6, 5, 7], [1, 1, 9, 0, 4, 2, 21, 1]);
+  assert.deepEqual(
+    [calibration[3].mark, calibration[3].markText, calibration[3].indices],
+    ['none', { key: 'replay.stage.none' }, []],
+  );
+  const calibrationKey = stepKeyOf(CALIBRATION.set);
+  const calibrationCompact = visibleIndices(CALIBRATION_RESULT.steps, 'compact', calibrationKey);
+  assert.deepEqual(calibrationCompact, [0, 1, 2, 11, 12, 14, 15, 16, 37, 38]);
+  assertGroups(stageGroups(CALIBRATION_RESULT, calibrationCompact), [1, 2, 3, 4, 5, 6, 5, 7], [1, 1, 1, 0, 3, 2, 1, 1]);
+
+  // Q2 (a): a puzzle without a record shows its stored puzzle only, whatever stage the engine replayed.
+  const stored = finalStep(FIRST, 'unavailable', null);
+  for (const [reason, stages] of /** @type {const} */ ([
+    ['no-set-origin', { set: 'unavailable', candidate: 'unavailable', final: 'not-compared' }],
+    ['no-record', { set: 'replayed', candidate: 'unavailable', final: 'compared' }],
+  ])) {
+    const unavailable = /** @type {ReplayResult} */ ({ ...RESULT, status: 'unavailable', reason, stages, compared: [], steps: [stored] });
+    const shown = stageGroups(unavailable, [0]);
+    assertGroups(shown, [1, 2, 3, 4, 5, 6, 7], [0, 0, 0, 0, 0, 0, 1]);
+    assert.deepEqual(shown.map((g) => g.mark), ['notAvailable', 'notAvailable', 'notAvailable', 'notAvailable', 'notAvailable', 'notAvailable', null], reason);
+    assert.deepEqual(shown.map((g) => g.markText), [...Array(6).fill({ key: 'replay.notAvailable' }), null], reason);
+    assert.deepEqual(shown.map((g) => g.indices), [[], [], [], [], [], [], [0]], reason);
+    assert.deepEqual(stepScore(stored), [19, IN]);
+    assert.equal(stepText(stored).key, 'replay.step.final.stored');
+  }
+
+  const early = replayPuzzle(FIRST, workspaces, { ...REPLAY, maxSteps: 1 });
+  const stopped = stageGroups(early, [0]);
+  assertGroups(stopped, [1, 2, 3, 4, 5, 6, 7], [0, 0, 0, 0, 0, 0, 1]);
+  assert.deepEqual(stopped.map((g) => g.mark), ['stopped', 'stopped', 'stopped', 'stopped', 'stopped', 'stopped', null]);
+});
+
+test('steps: the rules are named, never coded, in the techniques and the score table, in both languages', () => {
+  const rules = scoreTable(RESULT.steps[53], RESULT.steps).rows.find((r) => r.id === 'rules');
+  assert.deepEqual(rules?.detail?.params?.counts, [uses('R1', 3), uses('R2', 1), uses('R8', 18)]);
+  const row = /** @type {Desc} */ (rules?.detail);
+  assert.equal(renderDesc(row, t), 'Deduction tier 3; rule uses: Forced cell ×3, Forced piece ×1, Neck ×18');
+  assert.deepEqual(
+    descriptorKeys({ key: 'replay.table.rules', params: { tier: 3, counts: [uses('R1', 3), uses('R8', 18)] } }),
+    ['replay.table.rules', 'replay.uses', 'replay.rule.R1', 'replay.uses', 'replay.rule.R8'],
+  );
+  for (const code of ['en', 'vi']) {
+    setLocale(code, null);
+    if (code === 'vi') {
+      assert.equal(renderDesc(row, t), 'Bậc suy luận 3; số lần dùng quy tắc: Ô bắt buộc ×3, Mảnh bắt buộc ×1, Chỗ thắt ×18');
+    }
+    for (const result of [RESULT, CALIBRATION_RESULT]) {
+      for (const s of result.steps) {
+        const texts = [...stepTechniques(s).map(lineText), ...stepScore(s).map(lineText)];
+        for (const r of scoreTable(s, result.steps).rows) {
+          texts.push(renderDesc(r.head, t), ...(r.detail === null ? [] : [renderDesc(r.detail, t)]));
+          if (typeof r.value === 'object' && r.value !== null) {
+            texts.push(renderDesc(r.value, t));
+          }
+        }
+        for (const text of texts) {
+          assert.ok(!/\bR[1-9]\b/.test(text), `${code}: ${text}`);
+        }
+      }
+    }
+  }
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// 13. The controller of the section.
+
+/**
+ * @param {Partial<{ run: (source: any, signal: AbortSignal) => Promise<ReplayResult> }>} [over]
+ */
+function stepsHarness(over = {}) {
+  /** @type {{ source: any, signal: AbortSignal, answer: ReturnType<typeof deferred<ReplayResult>> }[]} */
+  const calls = [];
+  /** @type {import('../generator/ui/replay-model.js').StepsState[]} */
+  const states = [];
+  const controller = createStepsController({
+    run: over.run ?? ((source, signal) => {
+      const answer = /** @type {any} */ (deferred());
+      calls.push({ source, signal, answer });
+      return answer.promise;
+    }),
+    onChange: (state) => states.push(state),
+  });
+  return { controller, calls, states };
+}
+
+/** @param {string} id @param {any} [set] @param {any} [made] @param {any} [setOrigin] */
+const src = (id, set = SET, made = null, setOrigin = null) => /** @type {any} */ ({ set, puzzle: { ...FIRST.puzzle, id }, setOrigin, made });
+
+test('steps controller: one run per puzzle; another puzzle aborts its own run; a cache of 16 per set', async () => {
+  const h = stepsHarness();
+  assert.deepEqual(h.controller.getState(), { phase: 'idle', source: null, result: null, failure: null, view: 'compact', expanded: null });
+  assert.equal(h.states.length, 0);
+
+  const A = src('pA');
+  const B = src('pB');
+  h.controller.show(A);
+  assert.equal(h.calls.length, 1);
+  assert.equal(h.calls[0].source, A);
+  assert.equal(h.calls[0].signal.aborted, false);
+  assert.deepEqual(h.states.map((s) => s.phase), ['loading']);
+  h.controller.show({ ...A });
+  assert.equal(h.calls.length, 1);
+  assert.equal(h.states.length, 1, 'the same puzzle changes nothing');
+
+  h.controller.show(B);
+  assert.equal(h.calls[0].signal.aborted, true);
+  assert.equal(h.calls.length, 2);
+  h.calls[0].answer.resolve(RESULT);
+  await flush();
+  assert.equal(h.controller.getState().phase, 'loading', 'the late answer of A changes nothing');
+  h.calls[1].answer.resolve(smallResult());
+  await flush();
+  assert.equal(h.controller.getState().phase, 'ready');
+  assert.equal(h.controller.getState().result?.steps.length, 2);
+
+  h.controller.show(A);
+  assert.equal(h.calls.length, 3, 'an aborted run is not kept');
+  h.calls[2].answer.resolve(RESULT);
+  await flush();
+  assert.equal(h.controller.getState().phase, 'ready');
+  const before = h.calls.length;
+  h.controller.show(B);
+  assert.equal(h.calls.length, before);
+  assert.equal(h.controller.getState().phase, 'ready');
+  assert.equal(h.controller.getState().result?.steps.length, 2, 'the cached result at once');
+
+  const c = stepsHarness();
+  for (let i = 0; i <= STEPS_CACHE_SIZE; i += 1) {
+    c.controller.show(src(`c${i}`));
+    c.calls[i].answer.resolve(smallResult());
+    await flush();
+  }
+  assert.equal(c.calls.length, STEPS_CACHE_SIZE + 1);
+  c.controller.show(src(`c${STEPS_CACHE_SIZE}`));
+  c.controller.show(src('c1'));
+  assert.equal(c.calls.length, STEPS_CACHE_SIZE + 1);
+  c.controller.show(src('c0'));
+  assert.equal(c.calls.length, STEPS_CACHE_SIZE + 2, 'c0 was dropped first');
+  c.calls[STEPS_CACHE_SIZE + 1].answer.resolve(smallResult());
+  await flush();
+  c.controller.show(src('c1'));
+  assert.equal(c.calls.length, STEPS_CACHE_SIZE + 2);
+  c.controller.show(src('c2'));
+  assert.equal(c.calls.length, STEPS_CACHE_SIZE + 3, 'c1 was shown again, so c2 was the least recently shown');
+
+  const n = c.calls.length;
+  c.controller.show(src('c16', { ...SET }));
+  assert.equal(c.calls.length, n + 1, 'a new set object empties the cache');
+  c.controller.show(src('c16'));
+  assert.equal(c.calls.length, n + 2);
+
+  const m = stepsHarness();
+  const made = () => ({ schema: 1, kind: 'candidate' });
+  m.controller.show(src('pX', SET, made()));
+  m.calls[0].answer.resolve(smallResult());
+  await flush();
+  m.controller.show(src('pY'));
+  m.calls[1].answer.resolve(smallResult());
+  await flush();
+  m.controller.show(src('pX', SET, made()));
+  assert.equal(m.calls.length, 3, 'made is compared by identity');
+
+  const k = stepsHarness();
+  k.controller.setView('all');
+  k.controller.show(src('pK'));
+  const count = k.states.length;
+  k.controller.show(null);
+  assert.equal(k.calls[0].signal.aborted, true);
+  assert.deepEqual(
+    { ...k.controller.getState() },
+    { phase: 'idle', source: null, result: null, failure: null, view: 'all', expanded: null },
+  );
+  assert.equal(k.states.length, count + 1);
+  k.controller.show(null);
+  assert.equal(k.states.length, count + 1, 'nothing to change');
+});
+
+test('steps controller: a new generation resubmits the replay; failures and Try again; an unavailable result shows its final step', async () => {
+  const ABORTED = () => new PoolAbortError('cancelled');
+  /** @param {unknown[]} outcomes */
+  const scripted = (outcomes) => {
+    let at = 0;
+    return stepsHarness({
+      run: () => {
+        const outcome = outcomes[Math.min(at, outcomes.length - 1)];
+        at += 1;
+        return outcome instanceof Error ? Promise.reject(outcome) : Promise.resolve(/** @type {ReplayResult} */ (outcome));
+      },
+    });
+  };
+  const calls = (/** @type {ReturnType<typeof scripted>} */ h) => h.states.filter((s) => s.phase === 'loading').length;
+
+  const once = stepsHarness({
+    run: (() => {
+      let n = 0;
+      return () => {
+        n += 1;
+        return n === 1 ? Promise.reject(ABORTED()) : Promise.resolve(RESULT);
+      };
+    })(),
+  });
+  once.controller.show(SOURCE);
+  await flush();
+  assert.deepEqual(once.states.map((s) => s.phase), ['loading', 'ready']);
+
+  let runs = 0;
+  const twice = stepsHarness({
+    run: () => {
+      runs += 1;
+      return runs <= 2 ? Promise.reject(ABORTED()) : Promise.resolve(RESULT);
+    },
+  });
+  twice.controller.show(SOURCE);
+  await flush();
+  assert.equal(runs, 3);
+  assert.deepEqual(twice.states.map((s) => s.phase), ['loading', 'ready']);
+
+  /** @param {unknown} error */
+  async function failureFor(error) {
+    const h = stepsHarness({ run: () => Promise.reject(error) });
+    h.controller.show(SOURCE);
+    await flush();
+    assert.equal(h.controller.getState().phase, 'failed');
+    assert.equal(h.controller.getState().result, null);
+    return h.controller.getState().failure;
+  }
+  assert.equal(await failureFor(new PoolError('worker-unavailable', 'no worker')), 'worker-unavailable');
+  for (const error of [
+    new PoolError('invalid-task', 'refused'), new PoolError('worker-crashed', 'crash'), new WorkerTaskError('invalid-request', 'bad'),
+    new TypeError('malformed source'), new PoolAbortError('closed'), new Error('x'),
+  ]) {
+    assert.equal(await failureFor(error), 'failed', error.message);
+  }
+  const thrown = stepsHarness({ run: () => { throw new TypeError('malformed source'); } });
+  thrown.controller.show(SOURCE);
+  await flush();
+  assert.equal(thrown.controller.getState().failure, 'failed');
+  const empty = stepsHarness({ run: () => Promise.resolve(/** @type {any} */ ({ status: 'matched', steps: [] })) });
+  empty.controller.show(SOURCE);
+  await flush();
+  assert.equal(empty.controller.getState().failure, 'failed');
+
+  const retry = scripted([new PoolError('worker-unavailable', 'no worker'), RESULT]);
+  retry.controller.show(SOURCE);
+  await flush();
+  assert.equal(retry.controller.getState().failure, 'worker-unavailable');
+  retry.controller.retry();
+  assert.equal(retry.controller.getState().phase, 'loading');
+  assert.equal(retry.controller.getState().failure, null);
+  await flush();
+  assert.equal(retry.controller.getState().phase, 'ready');
+  const after = retry.states.length;
+  retry.controller.retry();
+  assert.equal(retry.states.length, after, 'retry in ready does nothing');
+  assert.equal(calls(retry), 2);
+
+  const kept = stepsHarness();
+  kept.controller.show(src('pK1'));
+  kept.calls[0].answer.reject(new Error('x'));
+  await flush();
+  kept.controller.show(src('pK2'));
+  kept.controller.show(src('pK1'));
+  assert.equal(kept.calls.length, 3, 'a failed run is not kept');
+
+  const input = (/** @type {(generation: any) => any} */ change) => ({ ...FIRST, generation: change(FIRST.generation) });
+  const cases = /** @type {[string, any, string, number][]} */ ([
+    ['without the puzzle record', input((g) => ({
+      ...g, made: Object.fromEntries(Object.entries(g.made).filter(([id]) => id !== FIRST.puzzle.id)),
+    })), 'no-record', 12],
+    ['without the set origin', input((g) => Object.fromEntries(Object.entries(g).filter(([name]) => name !== 'setOrigin'))), 'no-set-origin', 43],
+    ['with a completion record', input((g) => ({
+      ...g, made: { ...g.made, [FIRST.puzzle.id]: { schema: 1, kind: 'completion' } },
+    })), 'completion', 12],
+  ]);
+  for (const [name, replayInput, reason, count] of cases) {
+    const raw = /** @type {ReplayResult} */ (replayPuzzle(replayInput, workspaces, REPLAY));
+    assert.equal(raw.status, 'unavailable', name);
+    assert.equal(raw.reason, reason, name);
+    assert.equal(raw.steps.length, count, name);
+    const h = stepsHarness({ run: () => Promise.resolve(raw) });
+    h.controller.show(SOURCE);
+    await flush();
+    assert.equal(raw.status, 'unavailable', `${name}: the engine's result is not changed`);
+    assert.equal(raw.steps.length, count, name);
+    assert.deepEqual(h.states.map((s) => s.phase), ['loading', 'ready'], name);
+    const shown = /** @type {ReplayResult} */ (h.controller.getState().result);
+    assert.notEqual(shown, raw);
+    assert.deepEqual([shown.status, shown.reason, shown.stages, shown.compared, shown.work], [raw.status, raw.reason, raw.stages, raw.compared, raw.work], name);
+    assert.equal(shown.steps.length, 1, name);
+    assert.equal(shown.steps[0], raw.steps[raw.steps.length - 1], name);
+    assert.equal(shown.steps[0].kind, 'final');
+    assert.deepEqual(stepScore(shown.steps[0]), [19, IN], name);
+    assert.deepEqual(h.controller.visible(), [0], name);
+    h.controller.setView('all');
+    assert.deepEqual(h.controller.visible(), [0], name);
+    const groups = stageGroups(shown, [0]);
+    assertGroups(groups, [1, 2, 3, 4, 5, 6, 7], [0, 0, 0, 0, 0, 0, 1]);
+    assert.deepEqual(groups.map((g) => g.mark), ['notAvailable', 'notAvailable', 'notAvailable', 'notAvailable', 'notAvailable', 'notAvailable', null], name);
+    assert.deepEqual(groups.map((g) => g.indices), [[], [], [], [], [], [], [0]], name);
+  }
+
+  const odd = stepsHarness({
+    run: () => Promise.resolve(/** @type {ReplayResult} */ ({ ...RESULT, status: 'unavailable', reason: 'no-record', steps: RESULT.steps.slice(0, 3) })),
+  });
+  odd.controller.show(SOURCE);
+  await flush();
+  assert.equal(odd.controller.getState().phase, 'failed');
+  assert.equal(odd.controller.getState().failure, 'failed');
+});
+
+test('steps controller: toggle, view, the real clue keys and dispose', async () => {
+  const run = () => Promise.resolve(playbackResult());
+  const h = stepsHarness({ run });
+  const B = src('pB');
+  h.controller.show(SOURCE);
+  await flush();
+  assert.deepEqual(h.controller.visible(), COMPACT);
+  const opened = () => h.controller.getState().expanded;
+  h.controller.toggle(9);
+  assert.equal(opened(), 9);
+  h.controller.toggle(9);
+  assert.equal(opened(), null);
+  h.controller.toggle(9);
+  h.controller.toggle(12);
+  assert.equal(opened(), 12, 'one step at a time');
+  const count = h.states.length;
+  h.controller.toggle(8);
+  h.controller.toggle(99);
+  assert.equal(opened(), 12);
+  assert.equal(h.states.length, count, 'a hidden or unknown step does nothing');
+
+  h.controller.setView('all');
+  assert.equal(opened(), 12);
+  assert.equal(h.controller.visible().length, 15);
+  h.controller.toggle(8);
+  assert.equal(opened(), 8);
+  h.controller.setView('compact');
+  assert.equal(opened(), null, 'the view hides the open step');
+  const settled = h.states.length;
+  h.controller.setView('compact');
+  h.controller.setView(/** @type {any} */ ('bogus'));
+  assert.equal(h.states.length, settled);
+
+  h.controller.setView('all');
+  h.controller.toggle(3);
+  h.controller.show(B);
+  await flush();
+  assert.equal(h.controller.getState().view, 'all', 'the view is kept for another puzzle');
+  assert.equal(h.controller.getState().expanded, null);
+
   const decided = /** @type {any} */ (ALL.find(({ input, result }) => JSON.stringify(compactIndices(result.steps, stepKeyOf(input.set)))
     !== JSON.stringify(compactIndices(result.steps, () => ''))));
   assert.ok(decided !== undefined);
-  const { controller } = harness({ run: () => Promise.resolve(decided.result) });
-  controller.open({ ...SOURCE, set: decided.input.set });
+  const real = stepsHarness({ run: () => Promise.resolve(decided.result) });
+  real.controller.show({ ...SOURCE, set: decided.input.set });
   await flush();
-  assert.deepEqual(controller.visible(), compactIndices(decided.result.steps, stepKeyOf(decided.input.set)));
-  assert.equal(controller.visible().length < decided.result.steps.length, true);
+  assert.deepEqual(real.controller.visible(), compactIndices(decided.result.steps, stepKeyOf(decided.input.set)));
+  assert.ok(real.controller.visible().length < decided.result.steps.length);
 
-  /** @type {AbortSignal[]} */
-  const signals = [];
-  const h = harness({ run: (_source, signal) => { signals.push(signal); return Promise.resolve(playbackResult()); } });
-  h.controller.open(SOURCE);
+  const d = stepsHarness();
+  d.controller.show(SOURCE);
+  d.controller.dispose();
+  assert.equal(d.calls[0].signal.aborted, true);
+  const settledD = d.states.length;
+  d.calls[0].answer.resolve(RESULT);
   await flush();
-  h.controller.play();
-  assert.equal(h.timers.size(), 1);
-  h.controller.dispose();
-  assert.equal(signals[0].aborted, true);
-  assert.equal(h.timers.size(), 0);
-  const count = h.states.length;
-  h.controller.open(SOURCE);
-  assert.equal(h.states.length, count, 'a disposed controller announces nothing');
+  d.controller.show(src('pA'));
+  assert.equal(d.calls.length, 1, 'a disposed controller makes no call');
+  assert.equal(d.states.length, settledD, 'and announces nothing');
 });
 
-test('controller: pause, prev, next, seek and setView stop playback; the view keeps the step or the nearest earlier one', async () => {
-  const { controller, timers } = await readyHarness();
-  /** @type {[string, () => void][]} */
-  const actions = [
-    ['pause', () => controller.pause()], ['next', () => controller.next()], ['prev', () => controller.prev()],
-    ['seek', () => controller.seek(9)], ['setView', () => controller.setView('all')],
+// ---------------------------------------------------------------------------------------------------------------
+// 14. The texts of the section, and the removed dialog.
+
+test('steps: every key of the row model exists in both packs; the nine rule names; the removed keys are gone', () => {
+  const synthetic = [
+    step({ kind: 'skip', args: { sequence: 2 } }),
+    step({ kind: 'unrateable', board: { placed: [], lifted: [], clues: ['C'] }, band: { min: 17, max: 25 } }),
+    step({ stage: 6, kind: 'repair', args: { added: null } }),
+    rated(19), rated(25), rated(80, { min: 53, max: null }),
+    { ...RESULT.steps[22], rating: { ...RESULT.steps[22].rating, censored: true } },
+    finalStep({ ...FIRST, puzzle: { ...FIRST.puzzle, rating: null } }, 'matched', null),
   ];
-  for (const [name, act] of actions) {
-    controller.setView('compact');
-    controller.seek(2);
-    controller.play();
-    assert.equal(controller.getState().playing, true, name);
-    act();
-    assert.equal(controller.getState().playing, false, `${name} stops playback`);
-    assert.equal(timers.size(), 0, `${name} clears the timer`);
+  /** @type {Desc[]} */
+  const all = [];
+  /** @param {import('../generator/ui/replay-model.js').Line} line */
+  const addLine = (line) => {
+    if (typeof line !== 'number') {
+      all.push(...(Array.isArray(line) ? line : [line]));
+    }
+  };
+  for (const result of [RESULT, CALIBRATION_RESULT]) {
+    for (const view of /** @type {const} */ (['compact', 'all'])) {
+      const visible = visibleIndices(result.steps, view, stepKeyOf(result === RESULT ? SET : CALIBRATION.set));
+      for (const g of stageGroups(result, visible)) {
+        all.push(g.heading, ...(g.markText === null ? [] : [g.markText]));
+      }
+    }
+    result.steps.forEach((s, i) => {
+      all.push(rowLabel(i));
+      stepTechniques(s).forEach(addLine);
+      stepScore(s).forEach(addLine);
+    });
   }
-  controller.setView('compact');
-  controller.seek(9);
-  assert.equal(controller.getState().index, 9);
-  controller.setView('all');
-  assert.deepEqual([controller.getState().view, controller.getState().index], ['all', 9]);
-  assert.equal(controller.visible().length, 15);
-  controller.seek(8);
-  assert.equal(controller.getState().index, 8);
-  controller.setView('compact');
-  assert.equal(controller.getState().index, 7, 'step 8 is hidden: the nearest earlier visible step');
-  controller.setView('all');
-  controller.seek(10);
-  controller.setView('compact');
-  assert.equal(controller.getState().index, 9);
-  controller.seek(13);
-  assert.equal(controller.getState().index, 13);
-  controller.seek(8);
-  assert.equal(controller.getState().index, 7, 'a hidden step moves to the nearest earlier one');
-  controller.seek(1000);
-  assert.equal(controller.getState().index, 14);
-  controller.seek(-5);
-  assert.equal(controller.getState().index, 0);
-  controller.seek(Number.NaN);
-  assert.equal(controller.getState().index, 0);
-  controller.next();
-  controller.next();
-  assert.equal(controller.getState().index, 2);
-  controller.prev();
-  assert.equal(controller.getState().index, 1);
-  controller.prev();
-  controller.prev();
-  assert.equal(controller.getState().index, 0, 'prev stops at the first step');
-  controller.seek(14);
-  controller.next();
-  assert.equal(controller.getState().index, 14, 'next stops at the last step');
-  controller.setView('all');
-  controller.seek(5);
-  controller.next();
-  assert.equal(controller.getState().index, 6, 'the every-step view visits every step');
-  // a new open starts again in the compact view at the first step
-  controller.open(SOURCE);
-  assert.deepEqual([controller.getState().view, controller.getState().index, controller.getState().phase], ['compact', 0, 'loading']);
-  controller.dispose();
-  controller.next();
-  assert.equal(controller.getState().phase, 'closed');
+  for (const s of synthetic) {
+    stepTechniques(s).forEach(addLine);
+    stepScore(s).forEach(addLine);
+  }
+  for (const d of all) {
+    assertKnown(d, d.key);
+  }
+  const direct = [
+    'replay.title', 'replay.loading', 'replay.waiting', 'replay.retry', 'replay.view.label', 'replay.view.compact', 'replay.view.all',
+    'replay.col.step', 'replay.col.what', 'replay.col.pieces', 'replay.col.techniques', 'replay.col.score', 'replay.cell.none',
+    'replay.board', 'replay.table.caption',
+  ];
+  for (const key of direct) {
+    assert.ok(textOf(EN, key) !== undefined && textOf(VI, key) !== undefined, key);
+  }
+  assert.equal(EN['replay.title'], 'Generation steps');
+  assert.equal(VI['replay.title'], 'Các bước tạo đề');
+  const names = {
+    en: ['Forced cell', 'Forced piece', 'Pocket placement', 'Piece claims cells', 'Cell claims a piece', 'Dead placement', 'Parity', 'Neck', 'Pair exclusion'],
+    vi: ['Ô bắt buộc', 'Mảnh bắt buộc', 'Đặt mảnh vào vùng kín', 'Mảnh chiếm ô', 'Ô chỉ nhận một mảnh', 'Cách đặt dẫn tới mâu thuẫn', 'Chẵn lẻ màu ô', 'Chỗ thắt', 'Loại trừ cặp'],
+  };
+  for (const [pack, list] of /** @type {const} */ ([[EN, names.en], [VI, names.vi]])) {
+    assert.deepEqual([1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => pack[`replay.rule.R${n}`]), list);
+  }
+  for (const key of [
+    'replay.button', 'replay.button.aria', 'replay.close', 'replay.prev', 'replay.next', 'replay.play', 'replay.pause', 'replay.slider',
+    'replay.stages', 'replay.failed.interrupted',
+  ]) {
+    assert.equal(textOf(EN, key), undefined, `${key} is not in English`);
+    assert.equal(textOf(VI, key), undefined, `${key} is not in Vietnamese`);
+  }
 });
 
-test('the dialog module loads', async () => {
-  const dialog = await import('../generator/ui/replay-dialog.js');
-  assert.equal(typeof dialog.createReplayDialog, 'function');
+test('the Generation steps module loads and the dialog module is gone', async () => {
+  const steps = await import('../generator/ui/generation-steps.js');
+  assert.equal(typeof steps.mountGenerationSteps, 'function');
+  assert.equal(existsSync(new URL('../generator/ui/replay-dialog.js', import.meta.url)), false);
 });

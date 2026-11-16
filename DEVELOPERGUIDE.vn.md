@@ -110,10 +110,12 @@ tools/          công cụ chỉ chạy bằng Node (.mjs): máy chủ, tạo đ
 
 `core/engine/replay.js` chạy lại việc tạo một đề từ ghi chép của nó rồi so kết quả với đề đã lưu (`runReplay`,
 `replayPuzzle`; [docs/design-detail.md](docs/design-detail.md) §6.12), và worker chạy nó như tác vụ `replayPuzzle` mà
-client tạo đề gửi qua đường phụ. Cửa sổ Các bước tạo đề của trình tạo đề gồm `generator/ui/replay-model.js` (không có
-DOM: các cách xem, câu mô tả, bảng điểm và bộ điều khiển) và `generator/ui/replay-dialog.js` (hộp thoại gốc); nút
-**Cách tạo đề** trên mỗi thẻ đề nằm trong `generator/ui/puzzle-panel.js`, còn `generator/app.js` mở cửa sổ bằng
-`replaySourceOf` của `generator/state.js`. `tests/browser/replay.html` kiểm thử toàn bộ trên trình duyệt thật.
+client tạo đề gửi qua đường phụ. Phần Các bước tạo đề của trình tạo đề, ở bước 3 dưới **Các mảnh cần đặt**, gồm
+`generator/ui/replay-model.js` (không có DOM: các cách xem, câu mô tả, các mảnh, kỹ thuật và điểm của từng bước, các
+nhóm giai đoạn, bảng điểm và bộ điều khiển chạy, giữ lại và gửi lại việc chạy lại) và `generator/ui/generation-steps.js`
+(phần này và bảng của nó); `generator/ui/puzzle-panel.js` gắn phần này dưới các mảnh cần đặt và đưa cho nó
+`replaySourceOf` của `generator/state.js`, còn `generator/app.js` đưa cho nó hàm `replayPuzzle` của client.
+`tests/browser/replay.html` kiểm thử toàn bộ trên trình duyệt thật.
 `node tools\record-fixtures.mjs --replay-case --check` (và `--search`, `--create`, `--replace`) kiểm tra dữ liệu mẫu
 chạy lại `tests/fixtures/replay-case.json` giống cách `--check` kiểm tra các dữ liệu mẫu tạo đề.
 

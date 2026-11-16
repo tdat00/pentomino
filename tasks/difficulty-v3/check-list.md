@@ -82,7 +82,7 @@ plain text; its row is the planned scope of report §5.1 and is refined when its
 | [x] | MP16a | [MP16a](MP16a-replay-dialog.md) | Generation Steps dialog: model, dialog, board highlight and score table | MP15b | Large | Generator UI | M9 | 34 |
 | [x] | MP16b | [MP16b](MP16b-dialog-wiring-and-documents.md) | Generation Steps: card button, wiring, browser page (GB-P4) and documents | MP16a | Medium + gate | Generator UI | M9 | 35 |
 | [x] | MP17 | [MP17](MP17-final-evidence.md) | Final compatibility and regression evidence, release notes (gate GZ) | MP16b | Medium + machine time | QA and release | M10 verified | 36 |
-| [ ] | MP18a | [MP18a](MP18a-generation-steps-table.md) | Generation steps table: row model, section, wiring, removal of the dialog, documents | MP17; owner decision P-OD14 (§4.1) | Large | Generator UI | M11 Generation steps table | 37 |
+| [x] | MP18a | [MP18a](MP18a-generation-steps-table.md) | Generation steps table: row model, section, wiring, removal of the dialog, documents | MP17; owner decision P-OD14 (§4.1) | Large | Generator UI | M11 Generation steps table | 37 |
 | [ ] | MP18b | [MP18b](MP18b-steps-page-and-gate.md) | Generation steps table: browser page, gate GB-P5, release-notes amendment | MP18a | Medium + gate | Generator UI and QA | M11 | 38 |
 
 Sizes: Small about 100–300 changed lines; Medium about 300–800; Large about 800–1,600 (tests and documents included,
@@ -635,7 +635,7 @@ The orchestrator owns this record.
 | MP16a | Accepted (Generation Steps dialog: pure model, dialog, board highlight, score table, 102 locale keys; ten questions ruled by SA1 before writing; D35 holds; quick set 1,481; 120/121 mutants, 1 equivalent) | about 30 min developer work (49 min elapsed incl. rulings) + check | about 771 | `difficulty-v3 MP16a` |
 | MP16b | Accepted (card button, wiring, browser page; GB-P4 passes: replay 12/12, keys 1/1, rendering 18/18, generator-flow 21/21, acceptance 16 + 4 known blocked; seven questions ruled by SA1; accessible name fixed; D35 holds; quick set 1,482) | 27 min developer work (37 min elapsed incl. rulings) + check | about 808 | `difficulty-v3 MP16b` |
 | MP17 | Accepted (gate GZ: lock intact, npm test 1,501, 32 puzzles in band, replay measurement matched, 19 browser runs pass after one justified correction of player-controls' twin fixtures (SA1 ruling A); record and release notes final-2026-11-15.md) | 45 min developer (machine 9.1 min, lock wait 14.4 min) + ruling + check | about 732 | `difficulty-v3 MP17` |
-| MP18a | | | | |
+| MP18a | Accepted (Generation steps table under "Pieces to place": row model, controller, section, the card button and dialog removed, 24/23 locale keys, documents; quick set 1,485; removal checks case-sensitive per SA1 ruling A; D35 guard empty) | 24 min developer + 6 min ruling + check | about 651 | `difficulty-v3 MP18a` |
 | MP18b | | | | |
 | **Totals** | | | | |
 

@@ -139,36 +139,43 @@ nhập gì và có thông báo cho biết.
   ngầm sau khi đề xuất hiện. Một đề bạn yêu cầu lời giải duy nhất vẫn có thể không chứng minh được; khi đó trình tạo đề
   nói rõ thay vì trả về một đề chưa được chứng minh.
 
-### Cách tạo một đề
+### Các bước tạo đề
 
-Mỗi thẻ đề có nút **Cách tạo đề**, nằm dưới phần thông tin của thẻ. Nút mở **Các bước tạo đề**, một cửa sổ chạy lại cách
-trình tạo đề đã tạo đề đó, từng bước một, và vẽ bàn chơi ở mỗi bước: số mảnh, cách bàn được chia thành mảnh, các mảnh,
-cách xếp các mảnh, các nhóm mảnh đặt sẵn mà việc tìm kiếm đã chấm điểm, bước sửa để lời giải trở nên duy nhất và đề hoàn
-chỉnh. Danh sách bảy giai đoạn cho biết giai đoạn đang hiển thị.
+Dưới **Các mảnh cần đặt**, bước 3 hiện **Các bước tạo đề**: trình tạo đề đã tạo đề đang hiển thị như thế nào, từng bước
+một. Phần này có trên mọi kích thước màn hình, kể cả điện thoại, và tự điền khi một đề được hiển thị. Khi đang tạo đề,
+nó chờ ("Các bước sẽ hiện khi việc tạo đề xong."), nên không bao giờ làm chậm việc tạo đề, và một đề đã xem trước đó
+hiện lại ngay. Bảng có một dòng cho mỗi bước, theo đúng thứ tự các bước đã diễn ra, dưới các giai đoạn của việc tạo đề:
+số mảnh, cách bàn được chia thành mảnh, các mảnh, cách xếp các mảnh, các nhóm mảnh đặt sẵn mà việc tìm kiếm đã chấm
+điểm, bước sửa để lời giải trở nên duy nhất và đề hoàn chỉnh.
 
+- **Các cột.** **Bước** (số thứ tự của bước; nhấn vào để mở bước), **Diễn biến** (một câu mô tả), **Mảnh** (mảnh vừa
+  được cắt ra, các mảnh bị nhấc ra ở một bước xếp, các mảnh đặt sẵn của một nhóm được chấm điểm, mảnh đặt sẵn mà một
+  bước sửa thêm vào, các mảnh đặt sẵn được chọn và các mảnh đặt sẵn của đề hoàn chỉnh, mỗi mảnh kèm màu và chữ cái của
+  nó), **Kỹ thuật** (các quy tắc suy luận mà việc chấm điểm đã dùng, mỗi quy tắc kèm số lần dùng, và các lần đoán quyết
+  định, ví dụ "1 lần đoán quyết định (1 được chứng minh)") và **Điểm** (điểm, "trong khoảng điểm" hoặc "ngoài khoảng
+  điểm" của mức độ đã chọn, "Ước lượng quyết định" khi điểm là ước lượng, và "bị từ chối" hoặc "không chấm được" khi
+  đúng như vậy). "—" nghĩa là bước đó không có.
+- **Các quy tắc suy luận**, từ đơn giản nhất tới sâu nhất: Ô bắt buộc, Mảnh bắt buộc, Đặt mảnh vào vùng kín, Mảnh chiếm
+  ô, Ô chỉ nhận một mảnh, Cách đặt dẫn tới mâu thuẫn, Chẵn lẻ màu ô, Chỗ thắt và Loại trừ cặp.
 - **Hai cách xem.** **Bước chính** (mặc định) hiện bước đầu của mỗi giai đoạn, mỗi nhóm mảnh đặt sẵn có điểm tốt hơn các
-  nhóm trước, các bước sửa, các mảnh đặt sẵn được chọn và đề hoàn chỉnh; **Mọi bước** hiện tất cả.
-- **Phát lại.** **Bước trước** và **Bước tiếp** chuyển từng bước; **Phát** tự chuyển, khoảng một bước mỗi giây, cho tới bước
-  cuối hoặc cho tới khi nhấn **Tạm dừng**; thanh trượt nhảy tới bất kỳ bước nào, và các phím mũi tên di chuyển nó từng
-  bước. Trình đọc màn hình không đọc từng bước khi đang phát: câu mô tả được đọc khi bạn chuyển bước bằng tay, nhảy bước hoặc
-  tạm dừng. Mảnh có viền nét đứt là các mảnh bị nhấc ra ở một bước xếp, mảnh đặt sẵn mà một bước sửa thêm vào, hoặc các
-  mảnh đặt sẵn được chọn.
-- **Bảng điểm.** Bên cạnh bàn chơi, bảng cho biết điểm của bước đó: điểm cơ bản theo số mảnh cần đặt, bước suy luận khó
-  nhất, các lần đoán thật cùng từng nút đoán, điểm trừ khi có một vài hoặc nhiều lời giải, và tổng điểm, kèm khoảng điểm
-  của mức độ. Ở bước cuối, tổng điểm là điểm hiển thị trên thẻ.
-- **Đối chiếu với đề.** Trình tạo đề chạy lại các bước và so với đề đã lưu. Dòng phía trên bàn chơi cho biết "Việc chạy lại
-  khớp với đề đã lưu, nên đây là các bước đã tạo ra đề", hoặc vì sao không được: khi việc chạy lại khác đề, hoặc dừng ở một
-  giới hạn, cửa sổ chỉ hiện một phần các bước và bước cuối ghi "Đây là đề đã lưu", không bao giờ ghi "đề đã được tạo".
+  nhóm trước, các bước sửa, các mảnh đặt sẵn được chọn và đề hoàn chỉnh; **Mọi bước** hiện tất cả. Mỗi bước giữ nguyên
+  số thứ tự ở cả hai cách xem.
+- **Mở một bước.** **Bước n** mở bước đó và đóng bước đang mở trước đó: một bàn chơi nhỏ với các mảnh ở bước ấy, có viền
+  nét đứt quanh các mảnh bị nhấc ra ở một bước xếp, mảnh đặt sẵn mà một bước sửa thêm vào hoặc các mảnh đặt sẵn được
+  chọn, và bảng điểm bên cạnh (bên dưới trên điện thoại): điểm cơ bản theo số mảnh cần đặt, bước suy luận khó nhất, các
+  lần đoán thật cùng từng nút đoán, điểm trừ khi có một vài hoặc nhiều lời giải, và tổng điểm, kèm khoảng điểm của mức
+  độ. Ở bước cuối, tổng điểm là điểm của đề. Bàn chơi phía trên vẫn hiện đề.
+- **Đối chiếu với đề.** Trình tạo đề chạy lại các bước và so với đề đã lưu. Dòng dưới tiêu đề cho biết "Việc chạy lại
+  khớp với đề đã lưu, nên đây là các bước đã tạo ra đề", hoặc vì sao không được: khi việc chạy lại khác đề, hoặc dừng ở
+  một giới hạn, phần này chỉ hiện một phần các bước và bước cuối ghi "Đây là đề đã lưu", không bao giờ ghi "đề đã được
+  tạo". Khi không có tiến trình nền nào chạy lại được, hoặc việc chạy lại thất bại, dòng này cho biết và nút **Thử lại**
+  chạy lại lần nữa.
 - **Khi không có bước nào.** Đề bạn đã nhập, đề của một bộ mảnh được tạo hoặc lưu bởi phiên bản cũ hơn và đề của lượt bổ
-  sung không có gì để chạy lại: các giai đoạn 1 đến 6 ghi "Không có các bước cho đề này." và bước cuối hiện đề đã lưu.
-  "Đề này không cần bước nào ở giai đoạn này." nghĩa là đề đó không cần giai đoạn ấy (ví dụ giai đoạn xếp của đề mẫu được
-  tạo cùng bộ mảnh, giữ nguyên cách xếp của bộ, hoặc giai đoạn làm cho lời giải duy nhất khi không phải thêm mảnh đặt sẵn
-  nào). "Đã dừng ở giới hạn." nghĩa là việc chạy lại đã chạm một giới hạn ở đó.
-- **Đóng cửa sổ.** **Đóng**, ✕ hoặc `Esc` đóng cửa sổ và không thay đổi gì, cả đề lẫn các thẻ. Nút này luôn có, kể cả khi đang
-  tạo đề: việc chạy lại sẽ chờ quá trình tạo kết thúc, và một lần tạo đề mới làm gián đoạn việc chạy lại (cửa sổ cho biết;
-  hãy đóng rồi mở lại).
-- **Điện thoại.** Nút nằm trên các thẻ đề của bố cục rộng. Điện thoại (dưới 768 px) không liệt kê các thẻ, nên không thể mở
-  các bước ở đó.
+  sung không có gì để chạy lại: phần này vẫn hiện, dòng của nó ghi "Không thể chạy lại các bước của đề này." kèm lý do,
+  các giai đoạn 1 đến 6 ghi "Không có các bước cho đề này.", và dòng duy nhất của bảng là đề đã lưu cùng điểm của đề.
+  "Đề này không cần bước nào ở giai đoạn này." nghĩa là đề đó không cần giai đoạn ấy (ví dụ giai đoạn xếp của đề mẫu
+  được tạo cùng bộ mảnh, giữ nguyên cách xếp của bộ, hoặc giai đoạn làm cho lời giải duy nhất khi không phải thêm mảnh
+  đặt sẵn nào). "Đã dừng ở giới hạn." nghĩa là việc chạy lại đã chạm một giới hạn ở đó.
 
 [Lên đầu trang](#top)
 

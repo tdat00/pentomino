@@ -1264,14 +1264,14 @@ const lineText = (line) => (typeof line === 'number' ? String(line)
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (orchestrator check; outside the analyst review set). One question (removal check 1 matched three kept lowercase texts); SA1 ruled option A and made checks 1 and 2 case-sensitive (`cae9d4d`, task file only); no code change |
+| Start | 2026-11-16 11:32:11 (+07:00), base `4904241` (pack commits `c13aa23` and `cae9d4d` landed during the task) |
+| End | 11:54:35 implementation and gates, with the question; 11:58-12:03 SA1 ruling; 11:58:25 removal checks re-run case-sensitive (all empty); orchestrator re-check and commit at about 12:03 |
+| Duration | About 24 min developer; about 6 min ruling; quick set 33.9 s and 34.2 s through `Invoke-Dv3Timed`, lock wait 0 s (the sudoku repository ran MS11a on the same machine) |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (SA1 ruling; orchestrator) |
+| Token usage | 122 model calls; 35,724,424 input tokens (35,239,111 cache reads); 177,623 output tokens (developer) |
+| AI credits | about 651 (developer) |
+| Verification | New `generator/ui/generation-steps.js` (`mountGenerationSteps`); `generator/ui/replay-model.js` gains `STEPS_CACHE_SIZE`, `rowLabel`, `stepPieces`, `stepTechniques`, `stepScore`, `stageGroups` and `createStepsController` (the dialog's `createReplayController`, `DEFAULT_INTERVAL_MS` and `ReplayViewState` removed); `generator/ui/replay-dialog.js` deleted; `puzzle-panel.js` mounts the section under "Pieces to place" and drops the card button; `app.js`, `generator.css`; locales EN +24 / VI +23 keys (the nine rule names included), 10 dialog keys removed, `replay.title` changed. Documents: design-detail, design-brief, both guides in both languages (7 user-guide lines re-wrapped to at most 120 characters, whitespace only), README. Tests: `tests/replay-model.test.js` cases 1-9 (P-OD14 Q1-Q3 included); targeted 108/108; quick set **1,485/1,485** (was 1,482). Removal checks 1-3 empty (1 and 2 with `-CaseSensitive`, per SA1); D35 diff and status against `0ed8800` for `core/engine/`, `tools/`, the protocol and the client: empty; `npm run -s check` OK. T04 by a fake-DOM smoke run in scratch (busy, loading, ready; rows, chips, cells; expand and collapse with focus; view and language switch; cache; the no-record row; failure and retry; dispose); the real browser is MP18b's GB-P5. Orchestrator: locked quick set 1,485/1,485 (34 s), `npm run -s check` OK, D35 guard empty, `tasks/` untouched |
+| Acceptance | MP18a-B01 to B07 and T01 to T07 met (B01-B04 test cases 1-7; B05 removal checks; B06 case 8 and `generator-i18n`; B07 the ten document blocks verbatim; T04 by smoke, real browser at GB-P5) |
+| Issues & resolutions | Removal check 1 as first written was case-insensitive and matched the kept texts `replay.reason.no-record` (EN), `replay.reason.record-invalid` and `replay.reason.overflow` (VI); SA1 ruled the check case-sensitive (option A), option B (changing the texts) refused. Not done here, by design: the browser pages still naming the retired button and dialog (`tests/browser/replay.*`, `generator-flow.js` lines 265-266, `acceptance.js` line 250) and design §13.3 items 25-26 belong to MP18b. No type check (no `tsc`) |
+| Handoff | To MP18b: the section is in place (`mountGenerationSteps`, `createStepsController`); quick set 1,485; rewrite `tests/browser/replay.*`, update the two card-button expectations, run GB-P5 with the name-matching watchdog (`c13aa23`), and amend the release notes and PR #10 text |
