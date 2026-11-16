@@ -136,13 +136,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 05:36:03 +07:00 (dispatch, base `4f14450`) to 06:04:33 +07:00 (acceptance): 28 min 30 s; the developer's own times 05:36:23-05:59:51 (most of it lock waits: 322 s and 563 s on its two `--v4` runs) |
+| Waiting for rulings | about 5 min (05:59:51 report to 06:04 ruling); no developer wait (no fix round) |
+| Agent id, model | `77e8e3b8-517a-4c43-8f41-d6e524847d3c`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 57 calls; 7,758,095 input, 51,126 output, 7,594,263 cache-read |
+| AI credits | 168.02 |
+| Questions and rulings | No `QUESTION:`. The developer's four deviations (an added `parity-ok` pass, since the table's `REBRACKETED` input with `require` ends `not-in-band` and reaches no repair; `v4Ctx` async; the `journaled` helper; sanity asserts), two named items and three gaps were relayed to the pack author; all accepted (06:04); T02b's text names the added pass and helpers; the stronger case-2 checks moved to T02c (T02c-T06); pack amendment `508cf85` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `check-edits --all --label frozen`: 18 `ok`; `--frozen`: 9 passed; the `--v4` group through the lock helper (`V4-T02b-verify`): 8 passed, 0 failed, `IG … exit=0 seconds=3.34` (lock wait from 06:00:31); firewall `check`: 289 production files unchanged; the guard `git status -- tools/ig-proto/variants core generator tests/fixtures`: no output; `npm run check`: OK; only `tools/ig-proto/self-test.mjs` changed (+232 lines) |
+| Commit | this task's commit, `improve-generating T02b: gen-v4 prototype: observers, skip replay and legacy dispatch` |
+| Issues and named items | None new (case 2's exact stop is checked in T02c by the ruling). The developer ran two locked scratch probes (helper 1.055 s and 2.397 s), removed |

@@ -7,6 +7,8 @@
 // (default IGP-01 with --proto, else IGP-00). `--p6` (IGP-04) runs all of them and adds the P6 cases (default task IGP-04).
 // `--frozen` (V4-T01a, V4-T01b) runs only the frozen-source group (default task V4-T01a): carve-only checks and records, unlocked.
 // `--v4` (V4-T02a onwards) runs only the gen-v4 prototype group (default task V4-T02a); it runs through the lock helper.
+// Its eight cases: V4-T02a's three (tree, dispatch and bounds; locate, rescue and re-rating order; skips and window) and
+// V4-T02b's five (observers parity, throwing observers, skip replay round trip, legacy dispatch, the rate seam).
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, sep } from 'node:path';
@@ -1125,6 +1127,69 @@ async function v4Call(name, { prior, screen, canon = screen, variant = 'v4', sta
   return { result, lines, tuples, counts, end: lines.find((l) => l.t === 'end'), phases: lines.filter((l) => l.t === 'phase').map((l) => l.phase) };
 }
 
+/**
+ * The `SelectContext` of one call of the gen-v4 prototype on the K = 15 set (the context `v4Call` builds), with a
+ * fresh rng of the seed `ig-selftest/v4/<name>`; `extra` adds or replaces fields.
+ * @param {any} e
+ * @param {any} ws
+ * @param {string} name
+ * @param {Record<string, any>} [extra]
+ * @returns {Promise<any>}
+ */
+async function v4Ctx(e, ws, name, extra = {}) {
+  const { carved } = await k15Set();
+  return {
+    board: carved.board, pieces: carved.set.pieces, layout: carved.set.witness, target: BAND,
+    rng: e.rng.createRng(e.rng.normalizeSeedText(`ig-selftest/v4/${name}`), `selftest/${name}`), uniqueness: 'any',
+    excludeClueKeys: new Set(), ws, igStage: 'set', ...extra,
+  };
+}
+
+/**
+ * A synthetic rating seam (`igScreen`, `igCanonical`) from a count function that returns a rating or 'cap' (thrown as
+ * the tree's IncompleteRatingError).
+ * @param {any} e
+ * @param {(c: number) => any} fn
+ * @returns {(clues: any[]) => any}
+ */
+function synth(e, fn) {
+  return (clues) => {
+    const r = fn(clues.length);
+    if (r === 'cap') {
+      throw new e.difficulty.IncompleteRatingError('synthetic cap', { nodes: 1, work: e.policy.DEDUCE.work, stop: 'work-cap' });
+    }
+    return r;
+  };
+}
+
+/** Every screened probe is capped and the canonical rating falls with the count: the bracket closes after the rescue. */
+const REBRACKETED = { screen: () => 'cap', canon: (/** @type {number} */ c) => synthetic(100 - 10 * c) };
+/** Counts of up to two clues are capped, the others fall by 10 per clue: the locate hits at 4 clues. */
+const DOWN = (/** @type {number} */ c) => (c <= 2 ? 'cap' : synthetic(100 - 10 * c));
+
+/**
+ * Runs one call with a fresh journal folder, as `v4Call` does; a thrown error is returned, not thrown.
+ * @param {string} name
+ * @param {() => any} fn
+ * @returns {{ result: any, error: unknown, lines: any[] }}
+ */
+function journaled(name, fn) {
+  const dir = fresh(join(SELFTEST_DIR, 'logs', `v4-${name}`));
+  process.env.IG_LOG_DIR = dir;
+  process.env.IG_ROW = `selftest~v4-${name}`;
+  let result;
+  let error = null;
+  try {
+    result = fn();
+  } catch (caught) {
+    error = caught;
+  } finally {
+    delete process.env.IG_LOG_DIR;
+    delete process.env.IG_ROW;
+  }
+  return { result, error, lines: readJournal(dir) };
+}
+
 const v4Cases = [
   {
     name: 'v4: tree, dispatch and bounds',
@@ -1264,6 +1329,173 @@ const v4Cases = [
       const start = r.lines.find((l) => l.t === 'start');
       same(r.lines.filter((l) => l.t === 'caps'), [{ t: 'caps', call: start.call, count: true }], 'window6: the caps lines');
       assert(r.lines.every((l) => l.t !== 'count'), 'window6: a count line with uniqueness any');
+    },
+  },
+  {
+    name: 'v4: observers parity (synthetic, require)',
+    async run() {
+      const { e, ws } = await engine('v4');
+      const units = (/** @type {any[][]} */ log) => log.filter(([kind]) => kind === 'charge').map(([, u]) => u);
+      const kinds = ['rated', 'unrateable', 'rejected', 'skip', 'repair', 'selected'];
+      const phases = ['locate', 'window', 'seed', 'beam', 'rescue', 'rerate'];
+      // The input of T02b's table (REBRACKETED) ends the call without a puzzle: no repair, no count, no `selected` event.
+      // The second input (DOWN, a result with repairs and real counts) is an addition that exercises those paths.
+      for (const [name, screen, canon, mustBeOk] of /** @type {[string, (c: number) => any, (c: number) => any, boolean][]} */ ([
+        ['parity', REBRACKETED.screen, REBRACKETED.canon, false],
+        ['parity-ok', DOWN, DOWN, true],
+      ])) {
+        const extra = { uniqueness: 'require', igPrior: null, igScreen: synth(e, screen), igCanonical: synth(e, canon) };
+        const A = e.clues.selectClues(await v4Ctx(e, ws, name, extra));
+        /** @type {any[][]} */
+        const logB = [];
+        const B = e.clues.selectClues(await v4Ctx(e, ws, name, { ...extra, charge: (/** @type {number} */ u) => logB.push(['charge', u]) }));
+        /** @type {any[][]} */
+        const logC = [];
+        const C = e.clues.selectClues(await v4Ctx(e, ws, name, {
+          ...extra, charge: (/** @type {number} */ u) => logC.push(['charge', u]), record: (/** @type {any} */ ev) => logC.push(['event', ev]),
+        }));
+        same(B, A, `${name}: a charge observer changed the result: ${JSON.stringify(B)} against ${JSON.stringify(A)}`);
+        same(C, A, `${name}: the charge and record observers changed the result: ${JSON.stringify(C)} against ${JSON.stringify(A)}`);
+        assert(A.ok !== true || (A.skips !== undefined && A.igWindow !== undefined), `${name}: an ok result lacks skips or igWindow`);
+        assert(!mustBeOk || A.ok === true, `${name}: the call found no puzzle: ${JSON.stringify(A)}`);
+        assert(units(logB).length > 0, `${name}: no rating attempt was charged`);
+        same(units(logC), units(logB), `${name}: the charged units differ with a recorder`);
+        /** @type {any[]} */
+        const events = [];
+        logC.forEach(([kind, ev], i) => {
+          if (kind !== 'event') {
+            return;
+          }
+          events.push(ev);
+          assert(kinds.includes(ev.kind), `${name}: event kind ${ev.kind}`);
+          if (['rated', 'unrateable', 'rejected'].includes(ev.kind)) {
+            assert(i > 0 && logC[i - 1][0] === 'charge', `${name}: the ${ev.kind} event of sequence ${ev.sequence} does not come right after a charge`);
+          }
+          assert(ev.phase === undefined || phases.includes(ev.phase), `${name}: event phase ${ev.phase}`);
+          assert(ev.sequence === undefined || (Number.isInteger(ev.sequence) && ev.sequence >= 0 && ev.sequence <= 2191), `${name}: event sequence ${ev.sequence}`);
+        });
+        assert(events.length > 0, `${name}: the recorder saw no event`);
+        assert(events.filter((ev) => ev.kind === 'selected').length === (A.ok ? 1 : 0) && (!A.ok || events[events.length - 1].kind === 'selected'),
+          `${name}: selected events with ok ${A.ok}: ${events.map((ev) => ev.kind).join(',')}`);
+        assert(!mustBeOk || events.some((ev) => ev.kind === 'repair'), `${name}: the call recorded no repair event`);
+      }
+    },
+  },
+  {
+    name: 'v4: throwing observers propagate',
+    async run() {
+      const { e, ws } = await engine('v4');
+      const extra = { igPrior: null, igScreen: synth(e, REBRACKETED.screen), igCanonical: synth(e, REBRACKETED.canon) };
+      const boomC = new Error('charge-stop');
+      let charges = 0;
+      const ctxC = await v4Ctx(e, ws, 'throw', {
+        ...extra, charge: () => {
+          charges += 1;
+          if (charges === 3) {
+            throw boomC;
+          }
+        },
+      });
+      const rc = journaled('throw-charge', () => e.clues.selectClues(ctxC));
+      assert(rc.error === boomC, `charge: the call threw ${rc.error === null ? 'nothing' : String(rc.error)} after ${charges} charges`);
+      same(rc.lines.filter((l) => l.t === 'end').map((l) => l.result), ['error'], 'charge: the end line of the journal');
+      const boomR = new Error('record-stop');
+      let events = 0;
+      const ctxR = await v4Ctx(e, ws, 'throw', {
+        ...extra, record: () => {
+          events += 1;
+          if (events === 2) {
+            throw boomR;
+          }
+        },
+      });
+      const rr = journaled('throw-record', () => e.clues.selectClues(ctxR));
+      assert(rr.error === boomR, `record: the call threw ${rr.error === null ? 'nothing' : String(rr.error)} after ${events} events`);
+      same(rr.lines.filter((l) => l.t === 'end').map((l) => l.result), ['error'], 'record: the end line of the journal');
+    },
+  },
+  {
+    name: 'v4: skip replay round trip',
+    async run() {
+      const { e, ws } = await engine('v4');
+      const { carved } = await k15Set();
+      const extra = { igPrior: null, igScreen: synth(e, DOWN), igCanonical: synth(e, DOWN) };
+      /** @type {any[]} */
+      const events = [];
+      e.clues.selectClues(await v4Ctx(e, ws, 'skip', { ...extra, record: (/** @type {any} */ ev) => events.push(ev) }));
+      const K0 = [0, 1].map((sequence) => {
+        const ev = events.find((x) => x.sequence === sequence && Array.isArray(x.clueIds));
+        assert(ev !== undefined, `skip: no event of sequence ${sequence}: ${events.map((x) => `${x.kind}@${x.sequence}`).join(',')}`);
+        return e.keys.clueKey(carved.board, carved.set.pieces, carved.set.witness.filter((/** @type {any} */ p) => ev.clueIds.includes(p.piece)));
+      });
+      const R1 = e.clues.selectClues(await v4Ctx(e, ws, 'skip', { ...extra, excludeClueKeys: new Set(K0) }));
+      assert(R1.ok === true && R1.skips.subsets[0] === 0, `skip: the excluded run: ${JSON.stringify(R1)}`);
+      const R2 = e.clues.selectClues(await v4Ctx(e, ws, 'skip', { ...extra, excludeClueKeys: new Set(), replaySkips: R1.skips }));
+      same(R2, R1, `skip: the replay differs from the excluded run: ${JSON.stringify(R2)}`);
+      const ctx3 = await v4Ctx(e, ws, 'skip', { ...extra, replaySkips: { subsets: [...R1.skips.subsets, 2191], repairs: [] } });
+      /** @type {any} */
+      let thrown = null;
+      try {
+        e.clues.selectClues(ctx3);
+      } catch (caught) {
+        thrown = caught;
+      }
+      assert(thrown instanceof e.clues.SkipReplayError && thrown.reason === 'unused' && thrown.list === 'subsets' && thrown.ordinal === 2191,
+        `skip: the extra entry gave ${thrown === null ? 'no error' : `${thrown.name}: ${thrown.message}`}`);
+    },
+  },
+  {
+    name: 'v4: legacy dispatch equals the frozen search',
+    async run() {
+      const treeV4 = await engine('v4');
+      const treeBase = await engine('base');
+      const rate = (/** @type {any} */ b, /** @type {any} */ p, /** @type {any[]} */ c) => synthetic(c.length <= 2 ? 60 : Math.max(5, 75 - 5 * c.length));
+      const ctxOf = (/** @type {{ e: any, ws: any }} */ tree, /** @type {Record<string, any>} */ extra = {}) => v4Ctx(
+        tree.e, tree.ws, 'legacy', { target: tree.e.levels.level('master'), rate, ...extra });
+      const ctxJournaled = await ctxOf(treeV4);
+      const journal = journaled('legacy', () => treeV4.e.clues.selectClues(ctxJournaled));
+      assert(journal.error === null, `legacy: the v4 tree threw ${String(journal.error)}`);
+      const frozen = treeBase.e.clues.selectClues(await ctxOf(treeBase));
+      assert(frozen.ok === true, `legacy: the frozen search found no puzzle: ${JSON.stringify(frozen)}`);
+      same(journal.result, frozen, `legacy: the v4 tree's result differs from the frozen search: ${JSON.stringify(journal.result)} against ${JSON.stringify(frozen)}`);
+      const start = journal.lines.find((l) => l.t === 'start');
+      assert(start !== undefined && start.W === null && start.priorCount === null, `legacy: the start line ${JSON.stringify(start)}`);
+      const phases = journal.lines.filter((l) => l.t === 'phase').map((l) => l.phase);
+      assert(phases.includes('p1') && !phases.includes('locate'), `legacy: phases ${phases.join(',')}`);
+      /** @type {any[]} */
+      const listV4 = [];
+      /** @type {any[]} */
+      const listBase = [];
+      const recordedV4 = treeV4.e.clues.selectClues(await ctxOf(treeV4, { record: (/** @type {any} */ ev) => listV4.push(ev) }));
+      const recordedBase = treeBase.e.clues.selectClues(await ctxOf(treeBase, { record: (/** @type {any} */ ev) => listBase.push(ev) }));
+      same(recordedV4, recordedBase, `legacy: the recorded results differ: ${JSON.stringify(recordedV4)} against ${JSON.stringify(recordedBase)}`);
+      assert(listBase.length > 0, 'legacy: the frozen search recorded no event');
+      same(listV4, listBase, 'legacy: the recorded event lists differ');
+    },
+  },
+  {
+    name: 'v4: the rate seam keeps priority on the screened route',
+    async run() {
+      const { e, ws } = await engine('v4');
+      const boom = new Error('seam');
+      const ctxThrow = await v4Ctx(e, ws, 'seam', {
+        igPrior: null, rate: () => {
+          throw boom;
+        },
+      });
+      const thrown = journaled('seam-throw', () => e.clues.selectClues(ctxThrow));
+      assert(thrown.error === boom, `seam: the call threw ${thrown.error === null ? 'nothing' : String(thrown.error)}`);
+      let calls = 0;
+      const ctxCount = await v4Ctx(e, ws, 'seam', {
+        igPrior: null, rate: (/** @type {any} */ b, /** @type {any} */ p, /** @type {any[]} */ c) => {
+          calls += 1;
+          return synthetic(100 - 10 * c.length);
+        },
+      });
+      const counted = journaled('seam-count', () => e.clues.selectClues(ctxCount));
+      assert(counted.error === null, `seam: the counting call threw ${String(counted.error)}`);
+      const ratings = counted.lines.filter((l) => l.t === 'p').length;
+      assert(calls >= 1 && calls === ratings, `seam: ${calls} seam calls against ${ratings} rating lines of the journal`);
     },
   },
 ];
