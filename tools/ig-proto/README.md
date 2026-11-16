@@ -637,3 +637,43 @@ the `p1p5*` variants, `ig-select-proto.js` and `ig-log.js` stay as they are.
   . 'C:\Users\ledat\.copilot\session-state\c2f29688-8568-4f25-bace-e644d381e5f9\files\ig-lock.ps1'
   Invoke-IgNode -Repo pentomino -Task 'V4-T02a verify' -NodeArgs @('tools\ig-proto\self-test.mjs', '--label', 'frozen', '--source-label', 'frozen 3fc65f4', '--v4', '--task', 'V4-T02a')
   ```
+
+### Provenance of the `gen-v4` prototype
+
+The edits `pv-1` to `pv-17` of `variants/v4.json` (V4-T02c, inherited by every `v4`-family arm) give the prototype the
+provenance contract of plan 5.1 (IG-P-Q34, IG-P-Q36) that phase 2 ports to production (N-V4-07). They are copy-only
+edits of `version.js`, `generate.js`, `pack.js` and `replay.js` of the trees; no production file changes.
+
+- **Algo id (D-V4-05).** Each tree has its own experimental id, `gen-v4-proto:<variant id>` (`ALGO_ID` is built from
+  `IG.variant`): `gen-v4-proto:v4`, `gen-v4-proto:v4-w760`, `gen-v4-proto:v4-w095`, `gen-v4-proto:v4-w380`. A receipted
+  variant is never edited: a changed configuration is a new variant id, of at most 40 characters. The `log` tree and the
+  trees below it keep `gen-v3`.
+- **Seven keys.** `provenanceVersions()` of a `v4`-family arm has today's five keys (`algo`, `policy`, `rng`,
+  `seedScheme`, `ratingModel`) and `priorTable` and `screenTable`, the variant's `params.priorTable` and
+  `params.screenTable` (`'none'` when absent; `v4-w760` has `screenTable` `none`). Every other tree has exactly the five.
+- **The family.** A record is `gen-v4` exactly when its `versions.algo` is the production id `gen-v4` or matches
+  `gen-v4-proto:<variant id>` (1 to 40 characters from `a-z`, `0-9` and `-`, the first a letter or a digit). Every other
+  algo string, `gen-v40` and `gen-v4-proto:` included, keeps the five-key reader and the `gen-v3` bounds.
+- **`igPrior`.** A `gen-v4` candidate entry of `generation.made` has the field `igPrior` after `skips`: null (the
+  table prior of its `priorTable` is used) or an integer from 1 to 128 (the per-set prior of the request,
+  `BatchContext.igPrior`). T05 adds the transport that sets it; until then every `v4`-family record has `igPrior: null`.
+  Replay passes a recorded integer `igPrior` to the candidate's request. A `gen-v3` candidate has no `igPrior`; a
+  calibration or completion entry has none either.
+- **Per-algo shape and bounds.** The reader checks the shape of the record's own algo: a `gen-v4` `setOrigin` and
+  candidate have the seven version keys and a `gen-v4` candidate the eleven keys of its entry; a `gen-v3` record has the
+  five version keys and the ten keys of today. A `gen-v4` record's subset ordinals are below 2,192 and its repair
+  ordinals below 64 (D-V4-04); a `gen-v3` record keeps 2,128 and 64. The 64-entry subset list and the 16-entry repair
+  list limits stay for both.
+- **Load and save.** The reader copies the keys of the record's own shape, so a valid record of either shape survives a
+  `validatePack`, a `serializePack` and a `parsePack` unchanged; a record of the wrong shape (for example `igPrior` on a
+  `gen-v3` entry, or a `gen-v4` entry without it) is dropped with a `provenance-ignored` warning, as today.
+- **Comparison and replay.** The replay's version comparison includes `priorTable` and `screenTable` (both undefined on
+  a `gen-v3` pair, so that comparison is unchanged). A record of another arm, of another prior or screen table, or of
+  `gen-v3` is "unavailable" before any skip is applied and before any work (`set-versions` for the set record,
+  `record-versions` for the candidate record, `work` 0).
+- **Frozen readers.** The `base`, `instr`, `log` and `p1p5*` trees keep the five-key reader: they drop a `gen-v4`
+  record with a warning.
+- **Self-test.** The four cases `v4: provenance versions per arm`, `v4: provenance reader by the record's own algo`,
+  `v4: old and new records load and save` and `v4: version and table refusal before any work` run in the `--v4` group
+  (through the lock helper, task id `V4-T02c`); the replay fixture `tests/fixtures/replay-case.json` is read, never
+  written.

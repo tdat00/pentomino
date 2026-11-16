@@ -7,8 +7,10 @@
 // (default IGP-01 with --proto, else IGP-00). `--p6` (IGP-04) runs all of them and adds the P6 cases (default task IGP-04).
 // `--frozen` (V4-T01a, V4-T01b) runs only the frozen-source group (default task V4-T01a): carve-only checks and records, unlocked.
 // `--v4` (V4-T02a onwards) runs only the gen-v4 prototype group (default task V4-T02a); it runs through the lock helper.
-// Its eight cases: V4-T02a's three (tree, dispatch and bounds; locate, rescue and re-rating order; skips and window) and
-// V4-T02b's five (observers parity, throwing observers, skip replay round trip, legacy dispatch, the rate seam).
+// Its twelve cases: V4-T02a's three (tree, dispatch and bounds; locate, rescue and re-rating order; skips and window),
+// V4-T02b's five (observers parity, throwing observers, skip replay round trip, legacy dispatch, the rate seam) and
+// V4-T02c's four (provenance versions per arm, the reader by the record's own algo, old and new records load and save,
+// version and table refusal before any work).
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, sep } from 'node:path';
@@ -1146,6 +1148,83 @@ async function v4Ctx(e, ws, name, extra = {}) {
 }
 
 /**
+ * A module of a tree's `core/engine/` by file URL (module identity stays inside the tree).
+ * @param {{ e: any }} tree An entry of `engine()`.
+ * @param {string} name The file name without `.js`.
+ * @returns {Promise<any>}
+ */
+function treeModule(tree, name) {
+  return import(pathToFileURL(join(tree.e.root, 'core', 'engine', `${name}.js`)).href);
+}
+
+/** @returns {any} The replay fixture of `tests/fixtures/replay-case.json` (read, never written), parsed once. */
+function replayFixture() {
+  memo.replayFixture ??= JSON.parse(readFileSync(join(ROOT, 'tests', 'fixtures', 'replay-case.json'), 'utf8'));
+  return memo.replayFixture;
+}
+
+/**
+ * The input of `runReplay` for one puzzle of a fixture pack, as `fixtureInputs()` of `tests/replay.test.js` builds it
+ * (`setOfPack` included), with the pack reader and the board reader of the tree.
+ * @param {{ e: any, tree: any }} tree An entry of `engine()`.
+ * @param {number} packIndex
+ * @param {number} puzzleIndex
+ * @returns {Promise<{ set: any, puzzle: any, generation: any }>}
+ */
+async function fixtureInput(tree, packIndex, puzzleIndex) {
+  const { validatePack } = await treeModule(tree, 'pack');
+  const read = validatePack(replayFixture().packs[packIndex]);
+  assert(read.ok === true, `the fixture pack ${packIndex} is not valid for the ${tree.tree.variant} tree`);
+  const pack = read.value;
+  const set = {
+    board: tree.e.board.boardFromRows(pack.board.rows),
+    pieces: pack.pieces,
+    witness: pack.witness ?? null,
+    carving: pack.generation.carving,
+    macroRegion: pack.generation.macroRegion,
+  };
+  return { set, puzzle: pack.puzzles[puzzleIndex], generation: pack.generation };
+}
+
+/**
+ * A `made` entry in the shape of a gen-v4 record: for a candidate, a new object with the keys of the reader's
+ * `MADE_CANDIDATE_KEYS_V4`, `igPrior: null` after `skips` and `versions` replaced; other kinds are returned unchanged.
+ * @param {any} made
+ * @param {Record<string, string>} versions
+ * @returns {any}
+ */
+function asV4(made, versions) {
+  if (made.kind !== 'candidate') {
+    return made;
+  }
+  return {
+    schema: made.schema, kind: made.kind, batchSeed: made.batchSeed, targetLevel: made.targetLevel,
+    uniqueness: made.uniqueness, slot: made.slot, attempt: made.attempt, start: made.start,
+    skips: structuredClone(made.skips), igPrior: null, versions: { ...versions },
+  };
+}
+
+/**
+ * A deep copy of a `generation` object whose `setOrigin` and candidate entries carry `versions`.
+ * @param {any} generation
+ * @param {Record<string, string>} versions
+ * @returns {any}
+ */
+function v4Generation(generation, versions) {
+  const copy = structuredClone(generation);
+  copy.setOrigin.versions = { ...versions };
+  for (const id of Object.keys(copy.made)) {
+    copy.made[id] = asV4(copy.made[id], versions);
+  }
+  return copy;
+}
+
+/** An `isCancelled` that fails the test when the replay reaches its first metered unit. */
+const cancelTrap = () => {
+  throw new Error('isCancelled was reached');
+};
+
+/**
  * A synthetic rating seam (`igScreen`, `igCanonical`) from a count function that returns a rating or 'cap' (thrown as
  * the tree's IncompleteRatingError).
  * @param {any} e
@@ -1398,6 +1477,7 @@ const v4Cases = [
       });
       const rc = journaled('throw-charge', () => e.clues.selectClues(ctxC));
       assert(rc.error === boomC, `charge: the call threw ${rc.error === null ? 'nothing' : String(rc.error)} after ${charges} charges`);
+      assert(charges === 3, `charge: ${charges} charges, expected 3 (the throw ends the call at once)`);
       same(rc.lines.filter((l) => l.t === 'end').map((l) => l.result), ['error'], 'charge: the end line of the journal');
       const boomR = new Error('record-stop');
       let events = 0;
@@ -1411,6 +1491,7 @@ const v4Cases = [
       });
       const rr = journaled('throw-record', () => e.clues.selectClues(ctxR));
       assert(rr.error === boomR, `record: the call threw ${rr.error === null ? 'nothing' : String(rr.error)} after ${events} events`);
+      assert(events === 2, `record: ${events} events, expected 2 (the throw ends the call at once)`);
       same(rr.lines.filter((l) => l.t === 'end').map((l) => l.result), ['error'], 'record: the end line of the journal');
     },
   },
@@ -1496,6 +1577,166 @@ const v4Cases = [
       assert(counted.error === null, `seam: the counting call threw ${String(counted.error)}`);
       const ratings = counted.lines.filter((l) => l.t === 'p').length;
       assert(calls >= 1 && calls === ratings, `seam: ${calls} seam calls against ${ratings} rating lines of the journal`);
+    },
+  },
+  {
+    name: 'v4: provenance versions per arm',
+    async run() {
+      const keys = ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel', 'priorTable', 'screenTable'];
+      const L = (await engine('log')).e.generate.provenanceVersions();
+      same(Object.keys(L), keys.slice(0, 5), `the log tree's versions have the keys ${Object.keys(L).join(',')}`);
+      assert(L.algo === 'gen-v3', `the log tree's algo is ${L.algo}`);
+      const arms = /** @type {[string, string][]} */ ([['v4', 'w190'], ['v4-w760', 'none'], ['v4-w095', 'w095'], ['v4-w380', 'w380']]);
+      /** @type {Set<string>} */
+      const algos = new Set();
+      for (const [id, screenTable] of arms) {
+        const V = (await engine(id)).e.generate.provenanceVersions();
+        same(Object.keys(V), keys, `${id}: the versions have the keys ${Object.keys(V).join(',')}`);
+        assert(V.algo === `gen-v4-proto:${id}`, `${id}: algo ${V.algo}`);
+        assert(V.priorTable === 'prior-v1', `${id}: priorTable ${V.priorTable}`);
+        assert(V.screenTable === screenTable, `${id}: screenTable ${V.screenTable}, expected ${screenTable}`);
+        for (const key of ['policy', 'rng', 'seedScheme', 'ratingModel']) {
+          assert(V[key] === L[key], `${id}: ${key} ${V[key]} differs from the log tree's ${L[key]}`);
+        }
+        algos.add(V.algo);
+      }
+      assert(algos.size === arms.length, `the algo ids are not pairwise different: ${[...algos].join(', ')}`);
+    },
+  },
+  {
+    name: "v4: provenance reader by the record's own algo",
+    async run() {
+      const treeV4 = await engine('v4');
+      const P = (await treeModule(treeV4, 'pack')).provenanceProblem;
+      const PLog = (await treeModule(await engine('log'), 'pack')).provenanceProblem;
+      const V = treeV4.e.generate.provenanceVersions();
+      const L = (await engine('log')).e.generate.provenanceVersions();
+      const fixturePack = replayFixture().packs[0];
+      const m3 = structuredClone(fixturePack.generation.made[fixturePack.puzzles.map((/** @type {any} */ p) => p.id)
+        .find((/** @type {string} */ id) => fixturePack.generation.made[id].kind === 'candidate')]);
+      const m4 = asV4(m3, V);
+      const expect = (/** @type {string} */ what, /** @type {string | null} */ got, /** @type {string | null} */ want) => {
+        assert(got === want, `${what}: got ${JSON.stringify(got)}, expected ${JSON.stringify(want)}`);
+      };
+      const IG_PRIOR = 'igPrior must be null or an integer from 1 to 128';
+      expect('(a) m3', P('made', m3), null);
+      expect('(b) m4', P('made', m4), null);
+      expect('(c) igPrior 5', P('made', { ...m4, igPrior: 5 }), null);
+      for (const bad of [0, 129, '5']) {
+        expect(`(c) igPrior ${JSON.stringify(bad)}`, P('made', { ...m4, igPrior: bad }), IG_PRIOR);
+      }
+      const { igPrior: _dropped, ...withoutPrior } = m4;
+      expect('(d) m4 without igPrior', P('made', withoutPrior), 'missing field "igPrior"');
+      const { screenTable: _screen, ...withoutScreen } = V;
+      expect('(e) m4 without screenTable', P('made', { ...m4, versions: withoutScreen }), 'versions: missing field "screenTable"');
+      expect('(f) m3 with igPrior', P('made', asV4(m3, m3.versions)), 'unknown field "igPrior"');
+      expect('(g) m3 with priorTable', P('made', { ...m3, versions: { ...m3.versions, priorTable: 'prior-v1' } }), 'versions: unknown field "priorTable"');
+      expect('(h) m3 with 2191', P('made', { ...m3, skips: { subsets: [2191], repairs: [] } }), 'skips.subsets[0] must be an integer from 0 to 2127');
+      expect('(h) m4 with 2191', P('made', { ...m4, skips: { subsets: [2191], repairs: [] } }), null);
+      expect('(h) m4 with 2192', P('made', { ...m4, skips: { subsets: [2192], repairs: [] } }), 'skips.subsets[0] must be an integer from 0 to 2191');
+      expect('(h) m4 with repair 64', P('made', { ...m4, skips: { subsets: [], repairs: [64] } }), 'skips.repairs[0] must be an integer from 0 to 63');
+      const o = fixturePack.generation.setOrigin;
+      expect('(i) setOrigin of the fixture', P('setOrigin', o), null);
+      expect('(i) setOrigin with V', P('setOrigin', { ...o, versions: V }), null);
+      expect('(i) setOrigin with five keys and the arm algo', P('setOrigin', { ...o, versions: { ...L, algo: V.algo } }), 'versions: missing field "priorTable"');
+      expect('(j) the log tree on m4', PLog('made', m4), 'unknown field "igPrior"');
+      expect('(k) m3 with gen-v40', P('made', { ...m3, versions: { ...m3.versions, algo: 'gen-v40' } }), null);
+      expect('(k) m3 with V and gen-v40', P('made', { ...m3, versions: { ...V, algo: 'gen-v40' } }), 'versions: unknown field "priorTable"');
+      expect('(l) m4 with gen-v4', P('made', { ...m4, versions: { ...V, algo: 'gen-v4' } }), null);
+      expect('(l) m3 with gen-v4', P('made', { ...m3, versions: { ...m3.versions, algo: 'gen-v4' } }), 'missing field "igPrior"');
+      expect('(m) m4 with the empty experimental suffix', P('made', { ...m4, versions: { ...V, algo: 'gen-v4-proto:' } }), 'unknown field "igPrior"');
+    },
+  },
+  {
+    name: 'v4: old and new records load and save',
+    async run() {
+      const treeV4 = await engine('v4');
+      const treeLog = await engine('log');
+      const { validatePack, serializePack, parsePack } = await treeModule(treeV4, 'pack');
+      const logPack = await treeModule(treeLog, 'pack');
+      const V = treeV4.e.generate.provenanceVersions();
+      const fixture = replayFixture();
+      const ignored = (/** @type {any} */ read) => read.warnings.filter((/** @type {any} */ w) => w.code === 'provenance-ignored');
+      const kept = (/** @type {string} */ what, /** @type {any} */ read, /** @type {any} */ generation) => {
+        assert(read.ok === true, `${what}: the pack is not read: ${JSON.stringify(read.issues)}`);
+        assert(ignored(read).length === 0, `${what}: provenance-ignored warnings ${JSON.stringify(ignored(read))}`);
+        same(read.value.generation.setOrigin, generation.setOrigin, `${what}: the setOrigin changed`);
+        same(read.value.generation.made, generation.made, `${what}: the made map changed`);
+      };
+      const roundTrip = (/** @type {string} */ what, /** @type {any} */ read, /** @type {any} */ generation) => {
+        kept(`${what} after a save and a load`, parsePack(serializePack(read.value)), generation);
+      };
+      for (const [index, pack] of fixture.packs.entries()) {
+        const read = validatePack(structuredClone(pack));
+        kept(`(a) fixture pack ${index}`, read, pack.generation);
+        roundTrip(`(a) fixture pack ${index}`, read, pack.generation);
+      }
+      const pack0 = structuredClone(fixture.packs[0]);
+      const generation4 = v4Generation(pack0.generation, V);
+      const read4 = validatePack({ ...structuredClone(pack0), generation: structuredClone(generation4) });
+      kept('(b) pack 0 as gen-v4', read4, generation4);
+      roundTrip('(b) pack 0 as gen-v4', read4, generation4);
+      const candidates = pack0.puzzles.map((/** @type {any} */ p) => p.id).filter((/** @type {string} */ id) => pack0.generation.made[id]?.kind === 'candidate');
+      assert(candidates.length === 3, `the fixture's pack 0 has ${candidates.length} candidate entries, expected 3`);
+      const mixed = structuredClone(pack0);
+      mixed.generation.made[candidates[0]] = asV4(mixed.generation.made[candidates[0]], mixed.generation.made[candidates[0]].versions);
+      const readMixed = validatePack(mixed);
+      assert(readMixed.ok === true, `(c) the pack is not read: ${JSON.stringify(readMixed.issues)}`);
+      const droppedMixed = ignored(readMixed);
+      assert(droppedMixed.length === 1 && droppedMixed[0].path.startsWith('generation.made'), `(c) warnings ${JSON.stringify(droppedMixed)}`);
+      assert(!Object.hasOwn(readMixed.value.generation.made, candidates[0]), '(c) the malformed entry is still in made');
+      assert(candidates.slice(1).every((id) => Object.hasOwn(readMixed.value.generation.made, id)), '(c) a valid entry was dropped');
+      const readLog = logPack.validatePack({ ...structuredClone(pack0), generation: structuredClone(generation4) });
+      assert(readLog.ok === true, `(d) the pack is not read: ${JSON.stringify(readLog.issues)}`);
+      const droppedLog = ignored(readLog);
+      assert(droppedLog.filter((w) => w.path === 'generation.setOrigin').length === 1, `(d) setOrigin warnings ${JSON.stringify(droppedLog)}`);
+      assert(droppedLog.filter((w) => w.path.startsWith('generation.made')).length === candidates.length && droppedLog.length === candidates.length + 1,
+        `(d) warnings ${JSON.stringify(droppedLog)}`);
+      assert(!Object.hasOwn(readLog.value.generation, 'setOrigin'), '(d) the log tree kept a gen-v4 setOrigin');
+    },
+  },
+  {
+    name: 'v4: version and table refusal before any work',
+    async run() {
+      const treeV4 = await engine('v4');
+      const treeW095 = await engine('v4-w095');
+      const V = treeV4.e.generate.provenanceVersions();
+      const R = async (/** @type {any} */ tree, /** @type {any} */ generation) => {
+        const { runReplay } = await treeModule(tree, 'replay');
+        return runReplay({ ...(await fixtureInput(tree, 1, 0)), generation }, { ws: tree.ws, scratch: tree.scratch }, tree.e.policy.REPLAY, cancelTrap);
+      };
+      const refused = async (/** @type {string} */ what, /** @type {any} */ tree, /** @type {any} */ generation, /** @type {string} */ reason, /** @type {any} */ stages) => {
+        const run = await R(tree, generation);
+        assert(run.status === 'unavailable' && run.reason === reason && run.work === 0, `${what}: ${run.status}, ${run.reason}, work ${run.work}`);
+        for (const [stage, state] of Object.entries(stages)) {
+          assert(run.stages[stage] === state, `${what}: stage ${stage} is ${run.stages[stage]}, expected ${state}`);
+        }
+      };
+      const passes = async (/** @type {string} */ what, /** @type {any} */ tree, /** @type {any} */ generation) => {
+        /** @type {any} */
+        let thrown = null;
+        try {
+          await R(tree, generation);
+        } catch (caught) {
+          thrown = caught;
+        }
+        assert(thrown instanceof Error && thrown.message === 'isCancelled was reached', `${what}: the preflight refused the record: ${thrown === null ? 'no error' : String(thrown)}`);
+      };
+      const g3 = structuredClone(replayFixture().packs[1].generation);
+      const g4 = v4Generation(g3, V);
+      const puzzleId = (await fixtureInput(treeV4, 1, 0)).puzzle.id;
+      await passes('(i) a record of the running arm', treeV4, g4);
+      await refused('(ii) another prior table', treeV4, v4Generation(g3, { ...V, priorTable: 'prior-v0' }), 'set-versions',
+        { set: 'unavailable', candidate: 'unavailable', final: 'not-compared' });
+      const otherScreen = structuredClone(g4);
+      delete otherScreen.setOrigin;
+      otherScreen.made[puzzleId].versions.screenTable = 'w095';
+      await refused('(iii) another screen table', treeV4, otherScreen, 'no-set-origin', { candidate: 'unavailable' });
+      const withoutOrigin = structuredClone(g4);
+      delete withoutOrigin.setOrigin;
+      await passes('(iv) the control of (iii)', treeV4, withoutOrigin);
+      await refused('(v) a gen-v3 record', treeV4, g3, 'set-versions', {});
+      await refused('(vi) a record of another arm', treeW095, g4, 'set-versions', {});
     },
   },
 ];

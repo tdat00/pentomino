@@ -211,13 +211,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 06:05:14 +07:00 (dispatch, base `731338c`) to 06:15:14 +07:00 (acceptance): 10 min 0 s; the developer's own times 06:05:33-06:13:39 |
+| Waiting for rulings | none (no question, no deviation) |
+| Agent id, model | `fb9456d7-5863-4f7a-94cc-06158f2b7a33`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 57 calls; 6,449,535 input, 51,379 output, 6,297,451 cache-read |
+| AI credits | 152.37 |
+| Questions and rulings | None. No deviation from the task text. The developer's gap (no case replays a non-null `igPrior`; `pv-17` runs on its null path only) is covered by T05's `prior-replay` step, as T05 states |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `tree.mjs build v4 v4-w760 v4-w095 v4-w380 --label frozen`: 4 lines (reused); `check-edits --all --label frozen`: every variant `ok`, the `v4` family 40 edits each, no error; the `--v4` group through the lock helper (`V4-T02c-verify`): 12 passed, 0 failed, `IG … exit=0 seconds=3.951`; `--frozen`: 9 passed; firewall `check`: 289 production files unchanged; the guard `git status -- tools/ig-proto/variants/files core generator tests`: no output; `npm run check`: OK |
+| Commit | this task's commit, `improve-generating T02c: gen-v4 prototype provenance: per-arm identity, the seven-key shape and old records` |
+| Issues and named items | None new. Every `v4`-family record has `igPrior: null` until T05's transport; a `v4`-family tree's `provenanceVersions()` has seven keys |

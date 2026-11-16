@@ -25,6 +25,108 @@
       "file": "core/engine/clues.js",
       "find": "      onCount: charge,\n",
       "replace": "      onCount: (u) => { igCountLine(null, u); charge?.(u); },\n"
+    },
+    {
+      "id": "pv-1",
+      "file": "core/engine/version.js",
+      "find": "// @ts-check\n",
+      "replace": "// @ts-check\nimport { IG } from './ig-params.js';\n"
+    },
+    {
+      "id": "pv-2",
+      "file": "core/engine/version.js",
+      "find": "export const ALGO_ID = 'gen-v3';\n",
+      "replace": "// ig-proto, variant v4 (V4-T02c): one experimental algo id per arm, and the arm's table versions (D-V4-05).\nexport const ALGO_ID = `gen-v4-proto:${IG.variant}`;\nexport const PRIOR_TABLE_ID = typeof IG.priorTable === 'string' ? IG.priorTable : 'none';\nexport const SCREEN_TABLE_ID = typeof IG.screenTable === 'string' ? IG.screenTable : 'none';\n"
+    },
+    {
+      "id": "pv-3",
+      "file": "core/engine/generate.js",
+      "find": "import { ALGO_ID } from './version.js';\n",
+      "replace": "import { ALGO_ID, PRIOR_TABLE_ID, SCREEN_TABLE_ID } from './version.js';\n"
+    },
+    {
+      "id": "pv-4",
+      "file": "core/engine/generate.js",
+      "find": "  return { algo: ALGO_ID, policy: POLICY_ID, rng: RNG_ID, seedScheme: SEED_SCHEME, ratingModel: MODEL };\n",
+      "replace": "  return {\n    algo: ALGO_ID, policy: POLICY_ID, rng: RNG_ID, seedScheme: SEED_SCHEME, ratingModel: MODEL,\n    priorTable: PRIOR_TABLE_ID, screenTable: SCREEN_TABLE_ID,\n  };\n"
+    },
+    {
+      "id": "pv-5",
+      "file": "core/engine/generate.js",
+      "find": "    recordSource: 'candidate',\n    replaySkips,\n",
+      "replace": "    recordSource: 'candidate',\n    replaySkips,\n    ...(ctx.igPrior === undefined ? {} : { igPrior: ctx.igPrior }),\n"
+    },
+    {
+      "id": "pv-6",
+      "file": "core/engine/generate.js",
+      "find": "      skips: capSkips(sel.skips),\n      versions: provenanceVersions(),\n",
+      "replace": "      skips: capSkips(sel.skips),\n      igPrior: ctx.igPrior ?? null,\n      versions: provenanceVersions(),\n"
+    },
+    {
+      "id": "pv-7",
+      "file": "core/engine/pack.js",
+      "find": "const VERSION_KEYS = ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel'];\n",
+      "replace": "const VERSION_KEYS = ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel'];\n// ig-proto, variant v4 (V4-T02c): the provenance shape follows the record's own algo (plan 5.1, IG-P-Q36).\nconst VERSION_KEYS_V4 = [...VERSION_KEYS, 'priorTable', 'screenTable'];\nconst MADE_CANDIDATE_KEYS_V4 = [\n  'schema', 'kind', 'batchSeed', 'targetLevel', 'uniqueness', 'slot', 'attempt', 'start', 'skips', 'igPrior', 'versions',\n];\nconst SUBSET_ORDINALS_V4 = 2192;\n/**\n * Whether a raw `versions` value names the gen-v4 family: `gen-v4` or `gen-v4-proto:<variant id>` (D-V4-05).\n * @param {unknown} versions\n * @returns {boolean}\n */\nfunction isV4Versions(versions) {\n  const algo = isPlainObject(versions) ? ownValue(versions, 'algo') : undefined;\n  return typeof algo === 'string' && (algo === 'gen-v4' || /^gen-v4-proto:[a-z0-9][a-z0-9-]{0,39}$/.test(algo));\n}\n"
+    },
+    {
+      "id": "pv-8",
+      "file": "core/engine/pack.js",
+      "find": "function versionsProblem(v) {\n  const shape = exactKeysProblem(v, VERSION_KEYS);\n",
+      "replace": "function versionsProblem(v) {\n  const keys = isV4Versions(v) ? VERSION_KEYS_V4 : VERSION_KEYS;\n  const shape = exactKeysProblem(v, keys);\n"
+    },
+    {
+      "id": "pv-9",
+      "file": "core/engine/pack.js",
+      "find": "  const o = /** @type {Record<string, unknown>} */ (v);\n  for (const key of VERSION_KEYS) {\n",
+      "replace": "  const o = /** @type {Record<string, unknown>} */ (v);\n  for (const key of keys) {\n"
+    },
+    {
+      "id": "pv-10",
+      "file": "core/engine/pack.js",
+      "find": "function skipsProblem(v) {\n",
+      "replace": "function skipsProblem(v, subsetBound = PROVENANCE.subsetOrdinals) {\n"
+    },
+    {
+      "id": "pv-11",
+      "file": "core/engine/pack.js",
+      "find": "  return ordinalsProblem('subsets', o.subsets, PROVENANCE.subsetSkips, PROVENANCE.subsetOrdinals)\n",
+      "replace": "  return ordinalsProblem('subsets', o.subsets, PROVENANCE.subsetSkips, subsetBound)\n"
+    },
+    {
+      "id": "pv-12",
+      "file": "core/engine/pack.js",
+      "find": "  const shape = exactKeysProblem(v, kind === 'candidate' ? MADE_CANDIDATE_KEYS : MADE_PLAIN_KEYS);\n",
+      "replace": "  const v4 = kind === 'candidate' && isV4Versions(ownValue(v, 'versions'));\n  const shape = exactKeysProblem(v, kind !== 'candidate' ? MADE_PLAIN_KEYS : v4 ? MADE_CANDIDATE_KEYS_V4 : MADE_CANDIDATE_KEYS);\n"
+    },
+    {
+      "id": "pv-13",
+      "file": "core/engine/pack.js",
+      "find": "  return skipsProblem(o.skips) ?? versionsProblem(o.versions);\n",
+      "replace": "  if (v4 && o.igPrior !== null && !isIntIn(o.igPrior, 1, MAX_PIECES)) {\n    return `igPrior must be null or an integer from 1 to ${MAX_PIECES}`;\n  }\n  return skipsProblem(o.skips, v4 ? SUBSET_ORDINALS_V4 : PROVENANCE.subsetOrdinals) ?? versionsProblem(o.versions);\n"
+    },
+    {
+      "id": "pv-14",
+      "file": "core/engine/pack.js",
+      "find": "    ratingModel: /** @type {string} */ (v.ratingModel),\n  };\n}\n",
+      "replace": "    ratingModel: /** @type {string} */ (v.ratingModel),\n    ...(isV4Versions(v) ? { priorTable: v.priorTable, screenTable: v.screenTable } : {}),\n  };\n}\n"
+    },
+    {
+      "id": "pv-15",
+      "file": "core/engine/pack.js",
+      "find": "    skips: skips === 'overflow' ? skips : { subsets: skips.subsets.slice(), repairs: skips.repairs.slice() },\n",
+      "replace": "    skips: skips === 'overflow' ? skips : { subsets: skips.subsets.slice(), repairs: skips.repairs.slice() },\n    ...(isV4Versions(v.versions) ? { igPrior: v.igPrior } : {}),\n"
+    },
+    {
+      "id": "pv-16",
+      "file": "core/engine/replay.js",
+      "find": "    && a.ratingModel === b.ratingModel;\n",
+      "replace": "    && a.ratingModel === b.ratingModel && a.priorTable === b.priorTable && a.screenTable === b.screenTable;\n"
+    },
+    {
+      "id": "pv-17",
+      "file": "core/engine/replay.js",
+      "find": "          uniqueness: m.uniqueness,\n",
+      "replace": "          uniqueness: m.uniqueness,\n          ...(m.igPrior === null || m.igPrior === undefined ? {} : { igPrior: m.igPrior }),\n"
     }
   ],
   "files": ["v4"],

@@ -26,7 +26,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 - [x] T01b Source receipts: different-source identity, the frozen reference policy and the source receipt (depends on T01a)
 - [x] T02a `gen-v4` prototype on the frozen `selectClues`: the fork, the screen and the locate (depends on T01b)
 - [x] T02b `gen-v4` prototype: observers, skip replay and legacy dispatch (depends on T02a)
-- [ ] T02c `gen-v4` prototype provenance: per-arm identity, the seven-key shape and old records (depends on T02b)
+- [x] T02c `gen-v4` prototype provenance: per-arm identity, the seven-key shape and old records (depends on T02b)
 - [ ] T02d Begin lines and proved bounds of every rating and count (IG-P-Q37) (depends on T02c)
 - [ ] T03 PM1 data-only inventory, IG-P-Q24 (depends on T02d; serial order)
 - [ ] T04a Bounded, identity-checked measurement items: the runner (depends on T03)
@@ -448,8 +448,8 @@ directory once both `$env:TEMP\dv3-sudoku.lock` and `$env:TEMP\dv3-timing.lock` 
 | T01a | 2026-11-17 04:30 | 2026-11-17 04:46 | 16 min | 314.67 | `0ef440e` |
 | T01b | 2026-11-17 04:47 | 2026-11-17 05:02 | 15 min | 234.36 | `c7b9d47` |
 | T02a | 2026-11-17 05:02 | 2026-11-17 05:35 | 33 min | 275.56 | `4f14450` |
-| T02b | 2026-11-17 05:36 | 2026-11-17 06:04 | 28 min | 168.02 | this task's commit |
-| T02c | | | | | |
+| T02b | 2026-11-17 05:36 | 2026-11-17 06:04 | 28 min | 168.02 | `731338c` |
+| T02c | 2026-11-17 06:05 | 2026-11-17 06:15 | 10 min | 152.37 | this task's commit |
 | T02d | | | | | |
 | T03 | | | | | |
 | T04a | | | | | |
