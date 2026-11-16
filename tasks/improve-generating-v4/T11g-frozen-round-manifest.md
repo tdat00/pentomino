@@ -53,8 +53,10 @@ price it. It dry-runs the plans and stops so that the orchestrator can put the p
 
 0. `node tools\ig-proto\firewall.mjs snapshot --task V4-T11g --label frozen`.
 1. **`price --label frozen --source-label <SL>`** and its pure core `manifestOf({ plans, universe, s4x, stage5, browser,
-   spentS })`: reads `tools/ig-proto/plans/V4-S2.json`, `V4-LIVE.json`, `V4-S4.universe.json` and
-   `V4-S4X.template.json` (T11c) with T11b's `stepPrice` of each step, and:
+   spentS, inventory })`: reads `tools/ig-proto/plans/V4-S2.json`, `V4-LIVE.json`, `V4-S4.universe.json` and
+   `V4-S4X.template.json` (T11c) with T11b's `stepPrice` of each step, T03's
+   `docs/improve-generating/evidence/frozen/V4-T03/inventory.json` as `inventory = { families: totals.families,
+   alternate: alternate.length, populations: populations.length }` (`null` when the file is absent), and:
    - stage 5 (`stage5`), each item with an indication and `priced: false`, `pricedBy: 'N-V4-04'`, no ceiling and no
      approval request: S5-1 the PM1 Hell 1 cells with the failing-set work (the twelve Hell 1 cells, per cell 10 sets x
      3 layouts x 2 orders at `60 x` the mean probes per family of that cell in IGP-05's `families-*.jsonl` `x` its mean
@@ -75,7 +77,10 @@ price it. It dry-runs the plans and stops so that the orchestrator can put the p
    predicted completed and censored observations; `V4-S2` and `V4-LIVE`; the universe of stage 4 per collection
    (`initial` with its comparators; each conditional board apart; the optional S4-6 apart; `second` with its
    comparators), with "An indication, not an allocation (plan §5.1)" and "planning projection: 1.25 x factor x MP12b1
-   median; not a bound"; then stage 5 and the browser parts as "unpriced", each with the item that prices it; (2)
+   median; not a bound"; then the line "Data-only PM1 inventory, stage 1 (IG-P-Q24 (b); it opens no route):
+   docs/improve-generating/evidence/frozen/V4-T03/inventory.md, <families> families, <alternate> alternate rows in
+   <populations> populations." (`PM1 inventory: missing` when `inventory` is null or absent; the file is an input of
+   `manifest.json`); then stage 5 and the browser parts as "unpriced", each with the item that prices it; (2)
    what the owner approves now and later, in order: `V4-S2` now; `V4-LIVE` when N-V4-03 and N-V4-13 have unblocked
    it; `V4-S4` in two steps (R4-07): the owner decides the optional S4-6 and authorizes the data-only `activate`
    (T11e; the conditional boards follow their pilots), which writes the plan and its price, then `approval --plan

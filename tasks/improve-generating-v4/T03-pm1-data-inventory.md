@@ -55,7 +55,8 @@ and stage 5 (N-V4-04) can cite it. It opens no route (IG-P-D6).
                        and differs from its family's level */
          { part, case, familyLevel, area, K, count, offset, score, ratedLevel, censored, ar1, solutions,
            mainWorkM, censusWorkM, offeredAtFrozen } ],
-       populations: [ /* one row per (ratedLevel, case), sorted by ratedLevel descending, then case */
+       populations: [ /* one row per (ratedLevel, case) of the alternate rows, sorted by ratedLevel
+                         descending, then case */
          { ratedLevel, case, familyLevel, area, n, notRefused, censored, solutions: { unique, few, many, unknown },
            counts: [min, max], scores: [min, max], mainWorkM: { median, max }, offeredAtFrozen } ],
        q24: [ /* the four facts of the IG-P-Q24 question, each with found: true | false */ ],
@@ -73,6 +74,10 @@ and stage 5 (N-V4-04) can cite it. It opens no route (IG-P-D6).
      'pm1-inventory' })`, then the inventory and `inputs`: the three file paths with their SHA-256) and
      `inventory.md`; exits 1 with `pm1-inventory: an IG-P-Q24 fact is missing: <fact>` when a `q24` entry is not
      found.
+   - Ruling of 2026-11-17 (the first execution's readings, accepted): an input's SHA-256 is `sha256File`
+     (`lib/records.mjs:30`, the `lf-text` rule of T01a and of every other evidence hash of this pack), recorded with
+     `hashRule: 'lf-text'`; `meta.rerun` is the direct command (as T01b's receipt); a missing fact still writes both
+     files (`found: false`) before the exit 1; the populations are those of the `alternate` rows only.
 2. **`inventory.md`**: title "PM1 data-only inventory (V4-T03, IG-P-Q24)"; the banner; this paragraph verbatim:
    "Data-only inventory of the provisional PM1 records (IG-P-Q24 (b)). It rates nothing and opens no route: Hell 2
    and Hell 3 stay closed for this feature as a scope and resource decision (IG-P-D6); no generation, pack claim or
