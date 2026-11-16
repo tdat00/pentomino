@@ -12,10 +12,11 @@
 > offer. The frozen round (section 5) is the first evidence that can carry a gate.
 
 Plan author: claude-fable-5-2; version 1 on 2026-11-14, versions 2 to 4 on 2026-11-15. Analysts: Opus
-(claude-opus-5.5) and Astra (gpt-6-astra). Status: **proposal; nothing implemented in `core/` or `generator/`**;
-the prototypes are harnesses under `tools/ig-proto/`. This plan is the input of a later feature
-("improve-generating"), which starts after difficulty-v3 closes (MP17); architects turn it into a design and a
-task pack. Version 4 ran nothing: it reads committed records and the source.
+(claude-opus-5.5) and Astra (gpt-6-astra). Status: **Final for break-tasks (2026-11-16)**; nothing is implemented
+in `core/` or `generator/` yet; the prototypes are harnesses under `tools/ig-proto/`. This plan is the input of the
+feature "improve-generating", which starts after difficulty-v3 closes (MP17; it closed with MP18b and the merge
+`3fc65f4`, section 9); its task pack is `tasks/improve-generating-v4/`. Version 4 ran nothing: it reads committed
+records and the source.
 
 Labels: **Measured** (a provisional record, cited as a row R<nn> of
 [evidence/provisional/summary.md](evidence/provisional/summary.md)), **Derived** (arithmetic on such records),
@@ -73,7 +74,9 @@ as well.
 
 Lines are at `cd5d17f`. At `rating-v3` (`6122dc9`) the anchors of `clues.js`, `generate.js`, `policy.js`,
 `generation-client.js` and `difficulty.js` have moved (for example `generate.js:554` is now 638); they are
-re-derived at the freeze.
+re-derived at the freeze. At the frozen source `3fc65f4` (section 9) they are: `clues.js:653-685` and `650-685`,
+`levels.js:18`, `clues.js:420-425`, `deduce.js:1102, 1128` (unchanged), `generate.js:638`, `policy.js:88`,
+`generation-client.js:1106-1134`, and `generation-client.js:470, 598, 850`.
 
 ### 2.2 What is wrong (Analysis, confirmed where a row is cited)
 
@@ -276,8 +279,8 @@ Treat "unrateable" as `TOO_FEW` in the count logic of P1 and in phase 1: it give
 without entering the stall count or the candidates. The AR1 refusal stays "spent". It is guidance only: nothing
 is accepted on that basis.
 
-- The owner approved the amendment of D21 inside OD-P1. `tests/clues.test.js:701` keeps pinning `gen-v3`;
-  `gen-v4` gets its own test.
+- The owner approved the amendment of D21 inside OD-P1. `tests/clues.test.js:820` keeps pinning `gen-v3`;
+  `gen-v4` gets its own test. (Line at `3fc65f4`; `:701` at `cd5d17f` was the helper above it, section 9.)
 - P3 is what moves the population. With the canonical cap the move is towards counts where ratings complete;
   with a screen cap it can pass a count whose rating would have completed, which is why rule (c5) binds P2.
 
@@ -358,16 +361,16 @@ and still **charge the same units**; the rating, the caps and every stored numbe
 96 % of a rating in the kernel, P7 is the only item left that lowers the cost of a rating.
 
 **C1: incremental R4, then R5.** `ladder` (`deduce.js:1448`) restarts at R1 after every applied rule, and
-`ruleR4` (`:709-778`) rescans every uncovered piece and every row of its column: 16.5 % of the rating time
-(R30, indicative).
+`ruleR4` (`:709-773`; `778` was imprecise, section 9) rescans every uncovered piece and every row of its
+column: 16.5 % of the rating time (R30, indicative).
 
 - R4's exact charge per piece, from the joint report: `L_p + 2*n_p*s_p + (n_p > 0 ? s_p : 0)`, plus the sum of
   `L_c` over the common cells c, plus the sum of `(s_piece(r) + 1)` over the killed rows r. `L` is a static
   column length, `n_p` the piece's live rows and `s_p` its size (pieces have 5 to 13 cells on 14x14 Nightmare).
 - R1 to R5, R8 and R9 contain no cap check: equality is needed as a sum per call, with the same kills in the
   same order. R6 (`closure`, `:858`), R7's direct checks (`:1102`, `:1128`), the probes and the census need
-  equality as prefix sums at each check. R7's `reachable` (`:1013-1075`) is an area and colour-imbalance
-  dynamic programme and needs its own accounting.
+  equality as prefix sums at each check. R7's `reachable` (`:1013-1084`; `1075` was imprecise, section 9) is an
+  area and colour-imbalance dynamic programme and needs its own accounting.
 - Three representations are candidates: ordered live-row lists, a cache of each piece's common-cell set, and
   incremental counters updated in `kill` (`:432`) and `undo` (`:482`). The spike first records R4 invocations,
   static and live visits, dirty fractions and mutation counts, then compares them.
@@ -425,7 +428,8 @@ a device class only after a browser run shows a gain there. A probe in the froze
 - **C3, a predictor.** MP12b1's Landscape samples hold 18,956 completed v3 ratings with `branchTrials` and
   `rowTrials`. The Spearman correlation of the score with the diagnostic is 0.89 to 0.99 over whole curves but
   0.34 to 0.60 near the band on Nightmare, where U alone gives 0.82 on boards of up to 144 cells. Capped inputs
-  cannot be predicted from these records: `difficulty.js:240-253` throws before the DLX runs. Next step: a
+  cannot be predicted from these records: `difficulty.js:316-326` (`measureV3Core` at `3fc65f4`; `240-253` at
+  `cd5d17f`, section 9) throws before the DLX runs. Next step: a
   data-only prediction test, held out by set and seed, against U, K, the area and P4's prior. A narrow
   soft-ranking arm on 196 to 484-cell Nightmare follows only if that test separates the band's sides. No
   forecast credit.
@@ -595,7 +599,8 @@ These are first values; the owner or the analysts may change them before the val
   matched set in five moves by two clues or more. The pooled puzzle statistic is reported and not judged.
 - **Rule (c5), faster.** Wall time binds: the geometric mean of the per-seed T10 ratio (no screen over screen)
   is at least 1.15, and its one-sided 90 % lower bound, resampled by seed, is above 1.0. Work units per
-  accepted puzzle are reported beside it and may not be worse with the screen.
+  accepted puzzle are reported beside it and may not be worse with the screen. The work is the consumed selection
+  work, judged on bounds; a class whose bounds do not establish non-worsening is inconclusive (IG-P-Q37).
 - **One endpoint for both arms (IG-P-Q26).** In every ratio statistic a request's T10 is capped at 120 s, the
   response bound. A request that does not reach ten enters at 120 s. A failed arm can then at best tie with a
   completed control. Completion counts are judged apart.
@@ -691,7 +696,7 @@ policy.
   `charge`; a throwing observer's exception propagates unchanged.
 - **Memory limit** (P7): `model-too-large` is raised for the same models as today.
 - AR1 (`Gproved >= 1` at Hard and above), the centre rule and the uniqueness modes are unchanged and keep
-  their tests; `tests/clues.test.js:701` keeps pinning `gen-v3`.
+  their tests; `tests/clues.test.js:820` keeps pinning `gen-v3` (`:701` at `cd5d17f`, section 9).
 
 ## 7. Decisions
 
@@ -732,6 +737,12 @@ Hell 1 boards stay candidates), Q34 (one running version in replay), Q35 (the ma
 provenance shape) was resolved by the analysts on the owner's delegation. The text of Q01 to Q28 is in
 `clarifications.md` at commit `1731c6b`.
 
+**Plan-author decisions during break-tasks.**
+
+| Id | Decision | Date |
+|---|---|---|
+| IG-P-Q37 | The work condition of rule (c5) "faster" is judged on proved bounds, by interval accounting from the primitives' own limits (option (c)): a journal line with a proved bound before every rating and uniqueness count; a terminated call adds the bound of its one open primitive to its upper end; the screen passes when its upper bound per accepted puzzle is at most the no-screen arm's lower bound, fails when its lower bound is above the no-screen arm's upper bound, and is otherwise inconclusive (`work-unknown`, no screen); the completed-unit ratio and the terminated calls are reported, not judged. Decision by the plan author; question at `cfcb735`, answer at `288669b` (`clarifications.md`); no threshold or owner decision changes | 2026-11-16 |
+
 ## 8. Risks
 
 - **Small samples.** Every gain rests on two to six seeds per cell, one machine and a pre-freeze source. No
@@ -761,3 +772,50 @@ provenance shape) was resolved by the analysts on the owner's delegation. The te
   without the screen, so 14x14 and 15x15b10 may ship at the no-screen times (14x14: x2.6 slower in the
   provisional pair). The class boundaries fixed at the freeze are the only remedy.
 - **A second validation is possible** if PM1's Hell 1 output changes P4's table after the freeze.
+
+## 9. Code drift at `3fc65f4` (2026-11-16)
+
+Two independent read-only checks compared this plan with `origin/main` at `3fc65f4`, the merge of difficulty-v3
+(pull request #10): [`claude-opus-5.5/7-code-drift-at-3fc65f4.md`](claude-opus-5.5/7-code-drift-at-3fc65f4.md) and
+[`gpt-6-astra/7-code-drift-at-3fc65f4.md`](gpt-6-astra/7-code-drift-at-3fc65f4.md), with their cross-review (the
+addendum of the first file). **Joint result: no breaking change.** No number, cap, offer, gate or owner decision of
+this plan changed: the lock (760 M and 80 M, `K60`, `SHARES`, `STALL_LIMIT` 12), the withdrawal of Hell 1 to 3,
+MP12b1's baselines (the search of `3fc65f4` makes MP12b1's puzzles for Nightmare and Master) and every contract of
+section 5.1 hold. These corrections bind the task pack (`tasks/improve-generating-v4/`):
+
+- **Freeze point.** The frozen source is `3fc65f4`: difficulty-v3 ended with MP18a, MP18b and `07406cf`, not with
+  MP17. Its benchmark source digest is `e181df2c…` (40 files of `SOURCE_FILES`). The frozen round reads that commit,
+  not a later working tree, so that phase-1 changes cannot move it.
+- **Callers (section 5.1).** `core/engine/replay.js` is the only *direct* production caller that passes `record`,
+  `replaySkips` and `charge` (`replay.js:419, 441`); MP15b's worker task (`tasks.js:196`), its protocol kind and the
+  client's `replayPuzzle` reach it indirectly and must be adopted with it.
+- **Generation steps (P-OD14, `07406cf`).** Under one running version (IG-P-Q34), after the `gen-v4` release a set or
+  puzzle made by an earlier version shows no steps, and so does a new puzzle made on a set saved before the release.
+  The release notes of pull request #10 already say so ("one made by an earlier version, or one made on a piece set
+  saved by an earlier version"); the `gen-v4` release notes and both user guides state it for `gen-v4`. The new
+  events of `gen-v4` (locate probes, screen-capped profiles, rescue re-ratings, a budget end, a set attempt without
+  a window) map to step kinds, phases and reasons with sentences in English and Vietnamese; a screen-capped step
+  shows no score.
+- **Saved steps.** The key of the saved steps (`generator/ui/replay-cache.js`) holds `ALGO_ID` and `APP_VERSION`
+  (always `1.0.0`) but not the running table versions: under `gen-v4` it includes the running provenance tuple with
+  P4's and `W_screen`'s table versions, or the versions are checked before a saved result is shown (IG-P-Q36).
+- **Provenance beyond the version keys.** The reader checks `gen-v3`'s skip bounds (2,128 subset and 64 repair
+  ordinals) and an exact `made` key set on every record. IG-P-Q36's per-`algo` shape covers `gen-v4`'s own skip
+  bounds and whatever the per-set prior adds to `made`.
+- **P5's bounded set attempts** are a `gen-v4` mechanism, compatible with P-OD12, which decided the fail-fast of
+  `gen-v3`. Their false stops are counted against the uncapped search under IG-P-D1 and reported when the
+  bounded-attempt policy is frozen; the public statement "no early stop" (release notes, design §7.5) changes only
+  with that evidence.
+- **P6 and the replay steps.** P6 keeps the DLX diagnostic wherever a recorder or `onRate` observes the ratings, so
+  that the measuring step of a replay still equals the stored claim (design §6.12, `tests/replay.test.js:1111`).
+- **Replay prefetch.** The Generator replays every new puzzle in the background once a generation ends, and a new
+  request terminates those workers. Browser runs name their harness and keep the prefetch in the same state in both
+  arms. `REPLAY`'s bounds were derived from `gen-v3`; they are re-derived for `gen-v4`, whose replays are measured.
+- **Fixtures.** Five test files and `tools/record-fixtures.mjs --replay-case --check` read
+  `tests/fixtures/replay-case.json`; the `gen-v3` file stays as the refusal case and `gen-v4` gets its own case.
+- **The prototype.** Every anchored edit of the 14 variants still applies, but the `p1p5` trees fail at their first
+  accepted candidate on `3fc65f4` (the prototype returns no `skips`), which section 5.1's semantic rebuild covers.
+- **Phase 3.** A Hell 1 offer also changes the Generator's level list (`LISTED_LEVEL_IDS`), its notices, the page
+  metadata, the guides and BQ-1's Hell-1 seeds, and its new `POLICY_ID` makes earlier steps unavailable again.
+- **Moved references,** each noted where it stands: section 2.1's lines at `3fc65f4`; P3's and section 6's D21 test
+  at `tests/clues.test.js:820`; C3's capped throw at `difficulty.js:316-326`; P7's `ruleR4` and `reachable` ranges.
