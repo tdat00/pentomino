@@ -438,4 +438,56 @@ the definition of accounted work, treatment of unreported interrupted work and t
 The rest of the pack continues, including SA-Opus's other review fixes and the independent linkage/bookkeeping
 corrections. This question does not freeze unrelated tasks, authorize measurements or adopt an option.
 
-**Answer (plan author, <date>):**
+**Answer (plan author, 2026-11-16):** **option (c), in one named form: interval accounting from the primitives'
+own limits.** D-V4-17's completed-unit ratio stays as a reported diagnostic and is not the judged quantity; the
+strict rule's "any kill makes the work unknown" is not adopted either. I checked the cited code at `3fc65f4`, plan
+§5.2 and the frozen pack; both SAs' operational facts hold. Nothing ran.
+
+1. **What the sentence means.** "Work units per accepted puzzle ... may not be worse with the screen" is about the
+   selection work a request **consumed**, speculative and losing calls included. Its job is to stop a class being
+   admitted on a wall-time gain while the machine does more work. I wrote it (answer to IG-P-Q19) without the
+   killed worker in mind; SA-Astra's reading is the intended one. The sum of completed primitives is a lower bound
+   of that quantity, not the quantity, and the counterexample is valid arithmetic. So (b) is not authorized as the
+   acceptance quantity, and the plan's wording is not narrowed to fit the hooks.
+2. **Why not (a) as written.** A kill inside a primitive happens at nearly every stage exit (`finally` at
+   `generation-client.js:696-699`, `:1080`, `:1172-1175`), so (a) would return `work-unknown` for every screen
+   class before a seed runs. That decides against the screen by bookkeeping, and the two-arm validation of 5.1
+   would be paid for a verdict known in advance. SA-Opus is right on that point. But unknown is not unbounded:
+   a worker runs one primitive at a time, and every primitive starts with a finite limit (a rating's `work` and
+   `census` limits, `policy.js:120-121`, or `W_screen` for a screen run; a count's `rowTrialLimit`,
+   `clues.js:173-182`). The lost work of a terminated call lies between 0 and the limit of its one open primitive.
+3. **The rule.**
+   - *Instrumentation.* One journal line before every rating and every uniqueness count, repairs included, at
+     the seam where T07a already checks the budget: the call, the kind and `bound`, a proved upper bound of the
+     units that primitive can charge (its limits plus the overshoot of the limit check, which the pack author
+     derives from `deduce.js:836-846, 1102, 1128` and the count's loop). The journal writes with
+     `appendFileSync`, so the line survives the kill. No counter inside a primitive, no change to the kernel, to
+     cancellation or to P5's meter.
+   - *Per call.* `lo` is the sum of its reported units. An ended call has `hi = lo`. A call closed by a recorded
+     termination has `hi = lo + bound` of its open primitive (a begin line without its `p` or `count` line), and
+     `hi = lo` when none is open. More than one open primitive, a `bound` that is not a finite number from 0, or
+     a completed primitive whose reported units exceed its own `bound`, is a ledger problem (incomplete). Every
+     unrecorded loss stays incomplete, as D-V4-17 has it.
+   - *Per arm and class.* `lo` and `hi` are summed over the rows and divided by the accepted puzzles. **Pass:**
+     the screen's `hi` per accepted puzzle is at most the no-screen arm's `lo`. **Worse:** the screen's `lo` is
+     above the no-screen arm's `hi`: `failed`. **Otherwise, or with an incomplete ledger: `unknown`**, the class
+     is `inconclusive` (`work-unknown`) and uses no screen. A kill count is never a bound.
+   - *Reported, not judged:* both intervals, the completed-unit ratio and `terminatedCalls` per arm.
+4. **Feasibility is not claimed.** The interval may be too wide to pass: one open rating can hide up to 840 M
+   units (760 M + 80 M), against calls of which 85 % stay under 1 G (R21). The width is read from the stage-2
+   pilot journals, which run anyway, and reported before the stage-3 freeze. If no class can pass at that width,
+   that is reported then as a finding; the remedy (a tighter proved bound, or the owner changing the rule under
+   5.2's first paragraph) is a new proposal, not part of this answer. The threshold is not refitted on validation
+   seeds.
+5. **Tasks.** T02a/T07a: the begin line and its `bound`; T02b: it joins the observer-parity passes (puzzles, work
+   units and skip ordinals unchanged). T06: `link-13` unchanged. T09b: `rowLedger` returns `lo` and `hi`,
+   `workRule` applies the three verdicts above, with tests for the counterexample (900 + 200 against 1,000 + 10
+   must not pass), an open primitive, two open primitives, an exceeded bound and a kill between primitives. T09c:
+   reports the intervals. D-V4-17 is rewritten to this rule. T11b/T11d: I expect no new timed run, since the line
+   is in the journal pass and the timed comparator runs with observers absent (plan 5.1); the pack author
+   confirms that in the pricing, and any added machine time needs the usual approval.
+6. **Plan and owner.** `plan.md` §5.2, rule (c5) "faster", gains one sentence at the next edit: the work is the
+   consumed selection work, judged on bounds, and a class whose bounds do not establish non-worsening is
+   inconclusive. This fixes how an existing condition is measured before the validation seeds run; it changes no
+   threshold and no recorded owner decision, so no owner confirmation is needed. It would be needed for (b), which
+   weakens the condition, or for any later relaxation under point 4.
