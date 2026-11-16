@@ -93,8 +93,9 @@ async function check(name, fn) {
   if (only !== null && !only.split('|').some((part) => name.includes(part))) {
     return;
   }
+  console.log(`CHECK-START ${name}`);
+  const started = performance.now();
   try {
-    console.log(`CHECK-START ${name}`);
     await fn();
     results.push({ name, ok: true });
   } catch (error) {
@@ -115,6 +116,8 @@ async function check(name, fn) {
   restoreClipboard();
   playerI18n.setLocale('en', document);
   generatorI18n.setLocale('en', document);
+  const seconds = Math.round((performance.now() - started) / 100) / 10;
+  console.log(`CHECK-END ${results[results.length - 1].ok ? 'PASS' : 'FAIL'} ${seconds} s ${name}`);
 }
 
 /**

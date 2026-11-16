@@ -44,16 +44,21 @@ function listenerCount(target) {
 }
 
 /**
+ * Runs one check between a CHECK-START and a CHECK-END console line, which the runner's watchdog reads (GB-P5).
  * @param {string} name
  * @param {() => void | Promise<void>} fn
  */
 async function check(name, fn) {
+  console.log(`CHECK-START ${name}`);
+  const started = performance.now();
   try {
     await fn();
     results.push({ name, ok: true });
   } catch (error) {
     results.push({ name, ok: false, error: String(/** @type {Error} */ (error)?.stack ?? error) });
   }
+  const seconds = Math.round((performance.now() - started) / 100) / 10;
+  console.log(`CHECK-END ${results[results.length - 1].ok ? 'PASS' : 'FAIL'} ${seconds} s ${name}`);
 }
 
 /**

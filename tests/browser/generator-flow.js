@@ -19,16 +19,21 @@ const violations = /** @type {string[]} */ ([]);
 document.addEventListener('securitypolicyviolation', (e) => violations.push(`${e.violatedDirective} ${e.blockedURI}`));
 
 /**
+ * Runs one check between a CHECK-START and a CHECK-END console line, which the runner's watchdog reads (GB-P5).
  * @param {string} name
  * @param {() => void | Promise<void>} fn
  */
 async function check(name, fn) {
+  console.log(`CHECK-START ${name}`);
+  const started = performance.now();
   try {
     await fn();
     results.push({ name, ok: true });
   } catch (error) {
     results.push({ name, ok: false, error: String(/** @type {Error} */ (error)?.stack ?? error) });
   }
+  const seconds = Math.round((performance.now() - started) / 100) / 10;
+  console.log(`CHECK-END ${results[results.length - 1].ok ? 'PASS' : 'FAIL'} ${seconds} s ${name}`);
 }
 
 /**
@@ -262,8 +267,8 @@ for (const recipe of recipes) {
     try {
       await runFlow(ctx, recipe);
       const puzzles = state(ctx).puzzles;
-      assert(qa(ctx, '.puzzle-card a').length === 0 && qa(ctx, '.puzzle-card button').length === 3 * puzzles.length
-        && qa(ctx, '.puzzle-card button').every((b) => ['select', 'replay', 'remove'].includes(b.dataset.action ?? '')), 'a card only has its select, How it was made and remove buttons');
+      assert(qa(ctx, '.puzzle-card a').length === 0 && qa(ctx, '.puzzle-card button').length === 2 * puzzles.length
+        && qa(ctx, '.puzzle-card button').every((b) => ['select', 'remove'].includes(b.dataset.action ?? '')), 'a card only has its select and remove buttons');
       q(ctx, '[data-action="play-puzzle"]').click();
       await waitFor(() => opened.length === 1, 'the player to open');
       const { pack, index } = opened[0];

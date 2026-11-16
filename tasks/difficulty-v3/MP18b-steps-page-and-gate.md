@@ -1144,14 +1144,14 @@ test changes in this task.
 
 | Field | Value |
 |---|---|
-| Status | |
-| Start | |
-| End | |
-| Duration | |
-| Model | |
-| Token usage | |
-| AI credits | |
-| Verification | |
-| Acceptance | |
-| Issues & resolutions | |
-| Handoff | |
+| Status | Accepted (orchestrator check; outside the analyst review set). Gate GB-P5 passed at the first attempt on all nine runs; no question |
+| Start | 2026-11-16 12:01:05 (+07:00), base `3d36592` |
+| End | About 12:25 gate, record and checks; orchestrator re-check and commit at about 12:28 |
+| Duration | About 24 min developer; nine browser invocations (7.3-47.6 s each) and the quick set through `Invoke-Dv3Timed`, lock wait 5 s in the gate and 215.3 s for the quick set (the sudoku repository held the slot) |
+| Model | claude-sonnet-5.5 (developer); claude-opus-5.5 (orchestrator) |
+| Token usage | 91 model calls; 16,895,498 input tokens (16,627,017 cache reads); 107,044 output tokens (developer) |
+| AI credits | about 340 (developer) |
+| Verification | `tests/browser/replay.html` and `replay.js` rewritten for the inline section (checks 1-13, keys and 390 px narrow phases); `generator-flow.js` and `acceptance.js` changed only in the two card-button expectations; the `check` function of six pages instrumented with `CHECK-START`/`CHECK-END` only; design-detail §13.3 items 25-26 and both developer guides; record `docs/difficulty-v3/steps-table-2026-11-16.md` (release-notes amendment §7, PR #10 edits §8). **GB-P5:** `replay` main 13/13, keys 1/1 (8 trusted keys), narrow 1/1 (390 x 844, coarse pointer); `rendering` 18/18; `generator-flow` 21/21; `generator-editor` 29/29; `acceptance` 16 checks, 4 blocked (A1, B1, B2, B3); `watchdog` 5/5; `puzzle-code-acceptance` 24 checks, no worker error; watchdog `null` in all nine, no CSP violation or uncaught error, longest check 17.9 s, every server and Edge stopped by PID. Quick set 1,485/1,485; `npm run -s check` OK; D35 guard and removal check empty. Orchestrator: locked quick set 1,485/1,485 (34.7 s), `npm run -s check` OK, D35 guard empty, `tasks/` untouched; the two screenshots inspected |
+| Acceptance | MP18b-B01 to B08 and T01 to T05 met (developer's mapping to the checks of `replay.html` and the record §3-§8) |
+| Issues & resolutions | None blocking. Deviations: the gate's announcement was taken from the dispatch brief (no mid-run channel); `replay.html`'s `<h1>` reads "Generation steps harness"; the K and N check names were the developer's choice. The first quick-set run's helper line was lost and the run repeated for the record (both 1,485/1,485). MP17's named item "Generation Steps on phones" is closed (record §6) |
+| Handoff | Pentomino difficulty-v3 with the Generation steps table is complete. The orchestrator pushes `rating-v3` and applies the record's §8 edits, with the two screenshots, to PR #10's description; merging is the owner's |

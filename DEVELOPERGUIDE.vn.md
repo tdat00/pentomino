@@ -64,7 +64,8 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
   và `data-result` (`pass` hoặc `fail`) trên `<html>`. Hãy dùng cửa sổ hẹp hơn
   1360 px: một số bài kiểm tra cần bố cục một hoặc hai cột. `replay.html?phase=keys` và
   `puzzle-code-acceptance.html?phase=keys` chờ các lần nhấn phím đáng tin cậy mà chỉ một trình chạy qua giao thức
-  DevTools mới gửi được.
+  DevTools mới gửi được. `replay.html?phase=narrow` và `puzzle-code-acceptance.html?phase=narrow` cần khung nhìn
+  cảm ứng rộng 390 px do trình chạy đó thiết lập.
 - **Tạo đề không cần giao diện**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`.
   Công cụ nhận bàn tới **676** ô chơi được (các ứng dụng dùng tới 484 ô trên máy tính và 360 ô trên điện thoại).
   Gói đề in ra stdout (hoặc `--output`), thông báo ra stderr. Mã thoát: `0` hoàn tất (kể cả khi bộ mảnh đã được tìm đủ và

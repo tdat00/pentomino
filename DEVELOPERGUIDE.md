@@ -63,7 +63,8 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
   `watchdog.html` or `acceptance.html`. Each writes a pass/fail list, and `data-summary` and `data-result` (`pass` or
   `fail`) on `<html>`. Use a window narrower than 1360 px:
   some checks expect the one- or two-column layout. `replay.html?phase=keys` and `puzzle-code-acceptance.html?phase=keys`
-  wait for trusted key presses that only a runner over the DevTools protocol sends.
+  wait for trusted key presses that only a runner over the DevTools protocol sends. `replay.html?phase=narrow` and
+  `puzzle-code-acceptance.html?phase=narrow` expect the 390 px touch viewport that such a runner sets.
 - **Headless generation**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`. It accepts boards of up to **676** playable squares
   (the apps launch at 484 on desktop and 360 on a phone). The pack goes to stdout (or `--output`), messages to stderr. Exit codes: `0` complete (including a set whose
   arrangements were all found and proven to be all); `2` a valid partial or cancelled pack; `1` no usable result or
