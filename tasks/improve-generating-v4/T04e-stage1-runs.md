@@ -88,7 +88,7 @@ Diagnosis gates (each is a stop point when it fails or is incomplete):
 |---|---|---|
 | Source | snapshot verified, digest `FROZEN_DIGEST`, every variant's edits apply | stop; report the block |
 | PM4 certificate | `pm4-gate: pass` (0 violations, certified runs > 0, no coverage gap, every certified run equal to its canonical rating) | stop; report the block and `tests/artifacts/ig-proto/frozen/IGP-02/main/screens-<shard>-violations.json` when present |
-| Identity | R00 holds; every `mp12b1~base` pair `different-source` with `sameResult: true` (DR-O13); every `base~log` pair `puzzle-identity` | stop; report the seed, both runs' `describe` blocks and the first difference |
+| Identity | R00 holds; an MP12b1 run on every identity seed (`summary.withoutMp12b1` 0); every `mp12b1~base` pair `different-source` with `sameResult: true` (DR-O13); every `base~log` pair `puzzle-identity` | stop; report the seed, both runs' `describe` blocks and the first difference |
 | Self-test | the four groups `done` with every result passing | stop; report the failing case and reason |
 | Parity | `pass` (every arm, case and mode present; equal results and skips; complete and equal total work, rating and count work, and equal charge sequences; full detail on recorded ratings, rechecked against `rateDetailed`) | stop; report the group's rows |
 | Replay | `pass` (a full candidate replay per generation case, with a measuring step) | `fail`: stop with the rows; `incomplete`: stop with the reasons and the findings (`incomplete` replays with reason, work units and bytes are also evidence for `REPLAY`'s re-derivation, N-V4-07) |

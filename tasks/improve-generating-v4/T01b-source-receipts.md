@@ -52,6 +52,11 @@ import, and writes the source receipt that the manifest (T11g) cites.
      branch): a pair with `mp12b1` on a different source keeps the comparison it made: `{ ...result, level:
      'different-source', sameResult: result.problems.length === 0, problems: [] }`.
    - The Markdown lists, per seed, `different source, same result` or `different source, other result` for such pairs.
+   - Ruling of 2026-11-17 (the first execution's deviations, accepted): the `different-source` rule applies when either
+     name is `mp12b1`; the summary gains `differentSource` (seeds with a `different-source` pair),
+     `differentSourceSameResult` (those whose `mp12b1~` pairs all have `sameResult: true`) and `withoutMp12b1` (seeds
+     without an MP12b1 run), and `metricPrefixOnly` excludes them; the verdict line gains a clause only when
+     `differentSource` or `withoutMp12b1` is non-zero. T04d's `identityVerdict` reads `withoutMp12b1`.
 3. **Audit** (README section "### Source-dependent imports (V4-T01b)"): a table of every static import in
    `tools/ig-proto/**/*.mjs` from outside `tools/ig-proto/` with its class:
 
@@ -65,8 +70,11 @@ import, and writes the source receipt that the manifest (T11g) cites.
    | `lib/records.mjs` | `checkText` | harness check | none needed |
 
    The developer re-runs the search `Select-String -Path tools\ig-proto\*.mjs, tools\ig-proto\lib\*.mjs -Pattern
-   "^import .* from '\.\./(\.\./)?(core|bench|record-fixtures|check-conventions|calibrate|node-worker)"` and reports
-   any line the table does not list (`QUESTION:`).
+   "from '(\.\./)+(core|generator|player|bench|record-fixtures|check-conventions|calibrate|node-worker|serve)"` (any
+   depth: `lib/*.mjs` reaches the root with `../../../`; it also matches the `from` line of a multi-line import) and
+   reports any line the table does not list (`QUESTION:`). Ruling of 2026-11-17: the first execution's pattern
+   (`'\.\./(\.\./)?(...)`) missed three-level paths; the README gives this pattern and its result (twelve lines, all in
+   the table); dynamic imports are tree- or `sourceRoot()`-based.
 4. **`receipt.mjs`** (new; `node tools\ig-proto\receipt.mjs --label frozen --source-label <SL>`; another label: exit 1):
    writes `evidence/frozen/V4-T01b/receipt.json` (`meta` from `buildMeta({ task: 'V4-T01b', label: 'frozen', kind:
    'receipt' })`) holding:
@@ -82,6 +90,9 @@ import, and writes the source receipt that the manifest (T11g) cites.
    - `audit`: the rows of step 3.
    And `receipt.md` ("Frozen source receipt (V4-T01b)", the banner, one table per block). Exit 0 when the snapshot is
    verified, `digestEqual` is true and every variant has no error; else exit 1 with the reason.
+   Ruling of 2026-11-17 (the first execution's deviations, accepted): `meta.rerun` is the receipt's own command; when
+   the snapshot is not verified the tool writes nothing and exits 1 (its sources cannot be read); when only the digest
+   or an edit check fails it writes both files and exits 1.
 5. **Self-test** cases (Tests table) appended to `frozenCases`.
 
 ## Tests

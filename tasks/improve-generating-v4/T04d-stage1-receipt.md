@@ -110,9 +110,11 @@ allowance.
      coverage.equalCanonical.certified.of`; the reasons name each failed condition with its numbers.
    - `selfTestVerdict(state)`: `incomplete` when `state` is null; `pass` when `state.done === true`,
      `state.results.length > 0` and every result has `pass: true`; else `fail` with the failing names.
-   - `identityVerdict(identity, expectedSeeds)`: `incomplete` when null or when the seeds differ from `expectedSeeds`;
-     `fail` when `summary.failures > 0`, a `mp12b1~base` pair lacks `sameResult: true`, or a `base~log` pair's `level`
-     is not `puzzle-identity`.
+   - `identityVerdict(identity, expectedSeeds)`: `incomplete` when null, when the seeds differ from `expectedSeeds`, or
+     when `summary.withoutMp12b1 > 0` (T01b: under the frozen label a seed without an MP12b1 run is compared among the
+     arms only, which proves nothing for DR-O13), with a reason naming the condition (`withoutMp12b1 <n>`); else
+     `fail` when `summary.failures > 0`, a seed's `mp12b1~base` pair lacks `sameResult: true`, or a `base~log` pair's
+     `level` is not `puzzle-identity`, naming the seed; else `pass`.
    - `sourceVerdict(source)`: `pass` when `source.snapshotOk`, `source.digestEqual` and no variant has an error; else
      `fail`.
    - `stage1Verdict(blocks)`: `Stage 1: holds.` when every block passes; else `Stage 1: STOP (<block>: <reasons>;
@@ -214,6 +216,7 @@ expectation `{ kind: 'live-deadline', source: S, harnessHash: 'h', arms: [{ id: 
 | `proof: the early PM4 gate needs no stage-1 capture` | the record of case 3 (b) with `meta.trees.instr.treeId` `'t-instr'` and its `done` state; `pm4GateEvidence('t-instr', readFile)` with a `readFile` that returns the fixtures' JSON text for exactly the two paths of step 4, throws for any other path and records the paths it was called with; then `pm4GateEvidence('t-other', readFile)`; then the same with the state's `done: false` | `pass`, and the recorded paths are exactly the two; then `fail` with a reason naming the `instr` tree; then `incomplete`; nothing is written and no real PM4 run starts |
 | `proof: the stage-1 inputs are an explicit index` | `stage1Inputs('V4-T04', ['v4', 'base', 'instr'])` | 17 paths in the order of step 3, the copies last as `inputs/base.ig-tree.json`, `inputs/instr.ig-tree.json`, `inputs/v4.ig-tree.json`; none under `tests/artifacts/ig-proto/tree-frozen/`, `tools/ig-proto/variants/` or `tools/ig-proto/lib/` |
 | `proof: stage-1 line` | blocks all `pass`; one `incomplete`; one `fail` and one `incomplete` | `Stage 1: holds.`; `Stage 1: INCOMPLETE (...)`; `Stage 1: STOP (...)` |
+| `proof: identity block` | `I` = an identity record whose `seeds` are the four expected seeds of step 3, each with an `mp12b1` block, the pairs `mp12b1~base` and `mp12b1~log` = `{ level: 'different-source', sameResult: true, problems: [] }` and `base~log` = `{ level: 'puzzle-identity', problems: [] }`, and whose `summary` is `{ failures: 0, withoutMp12b1: 0 }`; `identityVerdict(<record>, <the four seeds>)` of: (a) null; (b) `I`; (c) `I` with one seed's `mp12b1` block and its two `mp12b1~` pairs removed and `summary.withoutMp12b1: 1`; (d) `I` with one seed's `mp12b1~base` `sameResult: false` | (a) `incomplete`; (b) `pass`; (c) `incomplete` with a reason naming `withoutMp12b1 1`; (d) `fail` naming that seed |
 
 ## Documentation
 
@@ -248,7 +251,7 @@ expectation `{ kind: 'live-deadline', source: S, harnessHash: 'h', arms: [{ id: 
 |---|---|---|---|
 | T04d-B01 | The stage-1 runs are fully specified and priced before any machine time is asked for | both dry-run forecasts | runner output |
 | T04d-B02 | A receipt passes only when typed, complete and bound to the expected source, producer, arms, coverage and evidence; a projection never passes as a live deadline | case 1 | self-test output |
-| T04d-B03 | Stage 1 can only hold when every mandatory block is complete and passes, on observations checked against their stored identities | cases 2, 3 and 6 | self-test output |
+| T04d-B03 | Stage 1 can only hold when every mandatory block is complete and passes, on observations checked against their stored identities | cases 2, 3, 6 and 7 | self-test output |
 | T04d-B04 | The stage-1 receipt rests only on immutable inputs: an explicit index with captured tree and harness metadata, no tree folder, variant file or harness file (R4-03) | case 5; the captured `inputs/` of T04e | self-test output; files |
 
 ### Technical
