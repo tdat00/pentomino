@@ -9,28 +9,32 @@
 // parity passes and of the isolated P-0, and the prerequisites gate; `compile` and `check-prerequisites` are its commands, unlocked,
 // and nothing here executes any plan), V4-T11e the stage-4 collections (below the prerequisites gate: the activation record of the
 // initial collection, the concrete plan `V4-S4` and the comparator template it yields, and the closure record; `activate` and `close`
-// are its commands, unlocked and write-once, run only on the owner's decision), V4-T11f the resolution of the comparators (it reads the
-// expansion) and V4-T11g the manifest for the owner.
+// are its commands, unlocked and write-once, run only on the owner's decision), V4-T11f the comparators and the verdict inputs (below
+// the collections: the expectation of a class-selection receipt, the resolution of the comparator template into the plan `V4-S4C`
+// from a final selection, and the selection and final verdict manifests; `resolve-comparators` and `verdict-input` are its commands,
+// unlocked) and V4-T11g the manifest for the owner.
 //   node tools\ig-proto\manifest.mjs compile --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\manifest.mjs check-prerequisites --plan V4-LIVE --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\manifest.mjs activate --collection initial [--approve-optional S4-6] --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\manifest.mjs close --collection initial --reason "<text>" --label frozen --source-label "frozen 3fc65f4"
+//   node tools\ig-proto\manifest.mjs resolve-comparators --selection <receipt> --activation <record> --out <plan> --label frozen --source-label "frozen 3fc65f4"
+//   node tools\ig-proto\manifest.mjs verdict-input --purpose <selection|final> --activation <record> [--selection <receipt>] --out <manifest> --label frozen --source-label "frozen 3fc65f4"
 //
 // The row-level readings (`runStatus`, `reachedTen`) are those of verdicts.mjs, which loads the frozen source when it is
 // imported: self-test.mjs therefore loads this module on first use, as it does verdicts.mjs.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 
 import { ITEM_LANES, readItemLog } from './lib/items.mjs';
 import { DEFAULT_LIMITS } from './lib/lanes.mjs';
-import { abs, artifactDir, evidenceDir, IG_DIR, mp12b1Report, parseArgs, rel } from './lib/paths.mjs';
-import { checkAccepted, LIVE_DEADLINE_FIELDS } from './lib/proof.mjs';
-import { sha256, sha256File, writeJson } from './lib/records.mjs';
+import { abs, artifactDir, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, mp12b1Report, parseArgs, rel } from './lib/paths.mjs';
+import { checkAccepted, LIVE_DEADLINE_FIELDS, proofCheck, readRepoFile } from './lib/proof.mjs';
+import { harnessInfo, sha256, sha256File, sha256Text, writeJson } from './lib/records.mjs';
 import { loadCatalogue } from './lib/sets.mjs';
 import { ensureTree, listVariants } from './lib/tree.mjs';
-import { rowKey } from './arm.mjs';
+import { parseCases, rowKey } from './arm.mjs';
 import { DEFAULT_CASES as PROFILE_CASES, SUBSETS_PER_CASE } from './kernel-probe.mjs';
 import { median, reachedTen, runStatus } from './verdicts.mjs';
 import { WIDTHS } from './width-probe.mjs';
@@ -854,7 +858,8 @@ const ITEM_MANIFEST_TASKS = Object.freeze(['V4-S2P', 'V4-S4P']);
  */
 /**
  * @typedef {{ type: 'variant', id: string } | { type: 'file', path: string }
- *   | { type: 'accepted', path: string, current: string[], kind?: string, fields?: 'LIVE_DEADLINE_FIELDS' }} Prerequisite
+ *   | { type: 'accepted', path: string, current: string[], kind?: string, fields?: 'LIVE_DEADLINE_FIELDS' }
+ *   | { type: 'selection', path: string, activation: string }} Prerequisite
  */
 /** @typedef {(input: Parameters<typeof stepPrice>[0], id?: string) => ReturnType<typeof stepPrice>} PriceOf `stepPrice`, or a wrapper that also gets the step's id. */
 
@@ -1112,7 +1117,7 @@ export function planOf({ task, generatedBy, runnable, blockedBy, prerequisites, 
 
 /** @param {string} plan @param {Prerequisite[]} prerequisites @returns {Step} The gate: a blocked plan stops here, at its first step. */
 const gateStep = (plan, prerequisites) => unlockedStep('prerequisites', [`${IG}manifest.mjs`, 'check-prerequisites', '--plan', plan], {
-  consumes: prerequisites.flatMap((p) => (p.type === 'file' || p.type === 'accepted' ? [p.path] : [])),
+  consumes: prerequisites.flatMap((p) => (p.type === 'file' || p.type === 'accepted' ? [p.path] : p.type === 'selection' ? [p.activation] : [])),
   expect: 'prerequisites: pass',
 });
 
@@ -1393,17 +1398,22 @@ function defaultRowSOf() {
 
 /**
  * The prerequisites gate (RV3-06, D-V4-19): a plan whose variants, files or bindings do not exist refuses at its first step.
- * @param {Prerequisite[]} list The `prerequisites` of a plan: `variant` (the id is in `variants`), `file` (`exists(path)`) and `accepted`
+ * @param {Prerequisite[]} list The `prerequisites` of a plan: `variant` (the id is in `variants`), `file` (`exists(path)`), `accepted`
  *   (`{ path, current, kind?, fields? }`: the binding exists, `checkAccepted` passes with today's tree of each `current` id, its
- *   `expected.kind` is `kind` and, for `fields: 'LIVE_DEADLINE_FIELDS'`, its `expected.fields` equal `LIVE_DEADLINE_FIELDS`).
+ *   `expected.kind` is `kind` and, for `fields: 'LIVE_DEADLINE_FIELDS'`, its `expected.fields` equal `LIVE_DEADLINE_FIELDS`) and
+ *   `selection` (V4-T11f, `{ path, activation }`: `proofCheck` passes for the class-selection receipt at `path` against the
+ *   expectation `selectionInputs` builds from the activation record at `activation`).
  * @param {{ variants: string[], exists: (path: string) => boolean, readJson: (path: string) => any,
- *   currentOf: (id: string) => Promise<{ id: string, treeId: string, paramsHash: string }> }} io
+ *   currentOf: (id: string) => Promise<{ id: string, treeId: string, paramsHash: string }>,
+ *   readFile?: (path: string) => string | null, list?: (folder: string) => string[], harnessHash?: string }} io `readFile`, `list` and
+ *   `harnessHash` serve the `selection` type only (the defaults read the repository and today's harness).
  * @returns {Promise<{ status: 'pass' | 'blocked', reasons: string[], line: string }>} `line` is what `check-prerequisites` prints.
  */
-export async function checkPrerequisites(list, { variants, exists, readJson, currentOf }) {
+export async function checkPrerequisites(list, io) {
   if (!Array.isArray(list)) {
     throw new TypeError('manifest: the prerequisites must be a list');
   }
+  const { variants, exists, readJson, currentOf } = io;
   /** @type {string[]} */
   const reasons = [];
   for (const entry of list) {
@@ -1418,6 +1428,8 @@ export async function checkPrerequisites(list, { variants, exists, readJson, cur
       }
     } else if (type === 'accepted') {
       reasons.push(...await acceptedProblems(entry, { exists, readJson, currentOf }));
+    } else if (type === 'selection') {
+      reasons.push(...selectionProblems(entry, io));
     } else {
       reasons.push(`unknown prerequisite ${String(type)}`);
     }
@@ -1936,7 +1948,8 @@ const refOf = (file) => ({ path: rel(file), sha256: sha256File(file) });
  * `activate --collection initial [--approve-optional <ids>] --label frozen --source-label <SL>` (V4-T11e): the data-only activation of
  * the initial collection. It reads the pilots of the conditional boards (`V4-S2/fr-base/*.runs.json`), hashes the data, the freeze file
  * and the universe, writes the activation record once, then `plans/V4-S4.json` and `plans/V4-S4C.template.json`, and prints what the
- * owner decides on. It runs nothing and measures nothing. Everything is built before any file is written.
+ * owner decides on. It runs nothing and measures nothing. Everything is built before any file is written, and the freeze file's classes
+ * must name exactly the record's comparator cells, each in one class (V4-T11f: `manifest: the freeze file's classes do not match ...`).
  * @param {string[]} argv
  * @param {ActivatePaths} [paths] The files (a case passes scratch ones).
  * @returns {Promise<number>} 0 once the three files are written; 1 for a refused command (nothing written).
@@ -1979,6 +1992,11 @@ export async function activateCommand(argv, paths = ACTIVATE_PATHS) {
     const options = { durations: durationsFromLogs(), rowSOf: defaultRowSOf(), activationPath: rel(paths.activation) };
     // The plan is built before anything is written, with a placeholder hash, so that an inadmissible step leaves no record.
     activationPlans(expansion, record, stepPrice, { ...options, activationSha256: '0'.repeat(64) });
+    // Every comparator cell needs a class, and a class cell that stage 4 does not measure would leave its class inconclusive (V4-T11f, R3-04).
+    const mismatch = freezeMismatch(readFreeze(record, () => readFileSync(paths.freeze, 'utf8')), record.comparatorCells.map((c) => c.cell));
+    if (mismatch.length > 0) {
+      return refuse(`the freeze file's classes do not match the comparator cells of the collection (${mismatch.join('; ')})`);
+    }
     writeJson(paths.activation, record);
     const { plan, template } = activationPlans(expansion, record, stepPrice, { ...options, activationSha256: sha256File(paths.activation) });
     writeJson(paths.plan, plan);
@@ -2055,17 +2073,651 @@ export async function closeCommand(argv, paths = CLOSE_PATHS) {
   }
 }
 
+// ---- Comparators and verdict inputs (V4-T11f) ----
+// The comparator of a cell is the uncapped twin of the arm its class ships, so it is chosen only from a final class selection of the same
+// collection (R2-11 steps 5 and 6, R3-03, R3-04, RV3-06). `selectionExpectation` is the expectation of that receipt, built apart from it
+// from the records the resolver reads itself; `resolveComparators` turns the comparator template of T11e into the plan `V4-S4C`;
+// `verdictInput` writes the selection manifest (its phase-0 line can never pass, T09d) and the final manifest (every expected P5 pair and
+// the selection it rests on) in the schema of T09a for the verdict tool of T09e. All of it reads records and writes data (unlocked):
+// nothing here runs a plan, a rating, a pool or a measurement.
+
+const RESOLVE_GENERATED_BY = 'manifest.mjs resolve-comparators';
+const COMPARATOR_TEMPLATE = `tools/ig-proto/plans/${TASKS.firstComparator}.template.json`;
+const FINAL_VERDICT_TASK = 'V4-S4F';
+const FINAL_VERDICT_MANIFEST = `tools/ig-proto/plans/verdicts/${FINAL_VERDICT_TASK}.verdict-manifest.json`;
+/** The uncapped comparator of each arm a class can ship (RV3-04): the twin with the same settings but no call budget, no bound and no live deadline. */
+const COMPARATOR_OF = Object.freeze({ 'fr-frozen': 'fr-frozen-uncapped', 'fr-frozen-none': 'fr-frozen-none-uncapped' });
+/** The cap of a request's T10 and the response bound (D-V4-16), both 120 s. */
+const RESPONSE_CAP_MS = 120000;
+/** The post-hoc projection of the deadline (D-V4-08): the two twins, the reserve shares and the 115-s generation stop. */
+const PROJECTED_ARMS = Object.freeze(['fr-frozen', 'fr-frozen-none']);
+const PROJECTION_RESERVES = Object.freeze([0.3, 0.4, 0.5]);
+const PROJECTION_DEADLINE_MS = 115000;
+
+/** @typedef {{ path: string, sha256: string }} FileRef */
+/** @typedef {{ id: string, cells: string[], screen: string, noScreen: string }} FreezeClass */
+/** @typedef {{ task: string, arm: string, variant: string }} ArmRuns */
+/** @typedef {(arm: ArmRuns) => { tree: any, files: FileRef[] } | null} PublishedRuns */
+
+/** @param {unknown} value @returns {value is string[]} */
+const isStrings = (value) => Array.isArray(value) && value.every((item) => typeof item === 'string');
+
+/** @param {string} path A path as a command received it. @returns {string} Repository-relative with `/` (a worktree path or a path with backslashes is converted). */
+const repoPath = (path) => (isAbsolute(path) ? rel(path) : path.replaceAll('\\', '/'));
+
+/** @param {string} folder Repository-relative. @returns {string[]} The names of the files in the folder, sorted; none when it does not exist. */
+function listRepoFolder(folder) {
+  const dir = abs(folder);
+  return existsSync(dir) ? readdirSync(dir, { withFileTypes: true }).filter((e) => e.isFile()).map((e) => e.name).sort() : [];
+}
+
+/** @param {{ node: string[] }} step @param {string} flag @returns {string | undefined} The word after the flag in the step's argv. */
+const argOf = (step, flag) => {
+  const at = step.node.indexOf(flag);
+  return at < 0 ? undefined : step.node[at + 1];
+};
+
+/** @param {unknown} e @returns {string} The message of a thrown value without the prefix of the module that threw it. */
+const messageOf = (e) => (e instanceof Error ? e.message : String(e)).replace(/^(manifest|resolve|resolve-comparators|verdict-input): /, '');
+
+/** @param {string} command @param {string} reason @returns {1} 1, after `<command>: <reason>` on stderr. */
+function refuseCommand(command, reason) {
+  process.stderr.write(`${command}: ${reason}\n`);
+  return 1;
+}
+
 /**
- * @param {string[]} argv `compile ...`, `check-prerequisites ...`, `activate ...` or `close ...`
+ * The closure record of a collection: `closure.json` beside the activation record (T11e's `close` writes it there; the plans name no
+ * closure argument). A closure is read only through its own activation (RV3-04).
+ * @param {string} activationPath Repository-relative path of the activation record.
+ * @param {string} activationSha256 `sha256File` of the activation record.
+ * @param {{ readFile?: (path: string) => string | null }} [io] The text of a repository-relative file, `null` when absent (default `readRepoFile`).
+ * @returns {{ ref: FileRef, record: { missing: string[], activation: { sha256: string } } & Record<string, any> } | null} `null` when there is
+ *   no `closure.json`. A text that is not an object with a list of strings `missing` throws `an unreadable closure exists: <path>`, and a
+ *   record whose `activation.sha256` is not `activationSha256` throws `the closure belongs to another activation: <path>`.
+ */
+export function closureOf(activationPath, activationSha256, { readFile = readRepoFile } = {}) {
+  const folder = repoPath(activationPath).split('/').slice(0, -1);
+  const path = [...folder, 'closure.json'].join('/');
+  const text = readFile(path);
+  if (text === null) {
+    return null;
+  }
+  /** @type {any} */
+  let record = null;
+  try {
+    record = JSON.parse(text);
+  } catch {
+    record = null;
+  }
+  if (typeof record !== 'object' || record === null || Array.isArray(record) || !isStrings(record.missing)) {
+    throw new Error(`an unreadable closure exists: ${path}`);
+  }
+  if (record.activation?.sha256 !== activationSha256) {
+    throw new Error(`the closure belongs to another activation: ${path}`);
+  }
+  return { ref: { path, sha256: sha256Text(text) }, record };
+}
+
+/**
+ * The published runs of one arm of a collection: every `*.runs.json` of `docs/improve-generating/evidence/frozen/<task>/<arm>/` with its
+ * SHA-256, and the tree the runs files carry (`meta.trees.<variant>`, which every file that has one must carry alike: two different
+ * values throw `<who>: two trees in the runs of <arm>`). A file that is not JSON or carries no tree is listed and gives no identity:
+ * the verdict tool judges its rows invalid (T09e `stale tree`, `unreadable evidence`).
+ * @param {ArmRuns} arm
+ * @param {{ readFile?: (path: string) => string | null, list?: (folder: string) => string[], who: string }} io `list` gives the names of the
+ *   files of a repository-relative folder (default: the repository's); `who` prefixes a thrown message.
+ * @returns {{ tree: any, files: FileRef[] } | null} `null` when the arm has no runs file or none carries its tree.
+ */
+export function publishedRuns({ task, arm, variant }, { readFile = readRepoFile, list = listRepoFolder, who }) {
+  const folder = `${EVIDENCE}/${task}/${arm}`;
+  /** @type {FileRef[]} */
+  const files = [];
+  /** @type {any} */
+  let tree = null;
+  for (const name of list(folder).filter((n) => n.endsWith('.runs.json'))) {
+    const path = `${folder}/${name}`;
+    const text = readFile(path);
+    if (text === null) {
+      throw new Error(`${who}: ${path} cannot be read`);
+    }
+    files.push({ path, sha256: sha256Text(text) });
+    /** @type {any} */
+    let found = null;
+    try {
+      found = JSON.parse(text)?.meta?.trees?.[variant] ?? null;
+    } catch {
+      found = null;
+    }
+    if (typeof found?.treeId !== 'string' || found.treeId === '') {
+      continue;
+    }
+    if (tree !== null && !isDeepStrictEqual(tree, found)) {
+      throw new Error(`${who}: two trees in the runs of ${arm}`);
+    }
+    tree ??= found;
+  }
+  return files.length === 0 || tree === null ? null : { tree, files };
+}
+
+/**
+ * @param {string} path @param {(path: string) => string | null} readFile
+ * @returns {{ activation: any, sha256: string }} The activation record at `path` and its SHA-256; a missing file or another format throws.
+ */
+function readActivation(path, readFile) {
+  const text = readFile(path);
+  if (text === null) {
+    throw new Error(`no activation record ${path}`);
+  }
+  /** @type {any} */
+  let record = null;
+  try {
+    record = JSON.parse(text);
+  } catch {
+    record = null;
+  }
+  if (record?.format !== ACTIVATION_FORMAT || !isStrings(record.declaredRows)) {
+    throw new Error(`${path} is not an activation record`);
+  }
+  return { activation: record, sha256: sha256Text(text) };
+}
+
+/** @param {any} activation @param {(path: string) => string | null} readFile @returns {{ classes: FreezeClass[] }} The freeze file `epoch.freeze` names. */
+function readFreeze(activation, readFile) {
+  const path = activation.epoch?.freeze?.path;
+  if (typeof path !== 'string' || path === '') {
+    throw new Error('the activation record names no freeze file (epoch.freeze)');
+  }
+  const text = readFile(path);
+  if (text === null) {
+    throw new Error(`no freeze file ${path}`);
+  }
+  /** @type {any} */
+  let freeze = null;
+  try {
+    freeze = JSON.parse(text);
+  } catch {
+    freeze = null;
+  }
+  if (!Array.isArray(freeze?.classes) || !freeze.classes.every((/** @type {any} */ c) => typeof c?.id === 'string' && isStrings(c.cells) && typeof c.screen === 'string' && typeof c.noScreen === 'string')) {
+    throw new Error(`${path} is not a freeze file: its classes must be [{ id, cells, screen, noScreen }]`);
+  }
+  return freeze;
+}
+
+/** @param {{ classes: FreezeClass[] }} freeze @returns {string[]} The distinct screen and no-screen arms of the classes, sorted. */
+const classArmsOf = (freeze) => [...new Set(freeze.classes.flatMap((c) => [c.screen, c.noScreen]))].sort();
+
+/**
+ * How the cells of the freeze file's classes differ from the comparator cells of a collection (V4-T11f step 5): every comparator cell is in
+ * exactly one class, and every class cell is a comparator cell. A cell listed twice, in one class or in two, is in more than one class
+ * (T09e refuses a manifest that lists a cell twice).
+ * @param {{ classes: FreezeClass[] }} freeze
+ * @param {string[]} comparatorCells The cells of the activation record's `comparatorCells`, in its order.
+ * @returns {string[]} The parts of the refusal, in this order and only when not empty: `not in a class <cells>` (comparator cells of no
+ *   class, in the record's order), `in more than one class <cells>` (comparator cells, in the record's order) and `not measured <cells>`
+ *   (class cells that are no comparator cell, sorted); each list is joined by `, `.
+ */
+function freezeMismatch(freeze, comparatorCells) {
+  /** @type {Map<string, number>} */
+  const count = new Map();
+  for (const { cells } of freeze.classes) {
+    for (const cell of cells) {
+      count.set(cell, (count.get(cell) ?? 0) + 1);
+    }
+  }
+  const none = comparatorCells.filter((cell) => !count.has(cell));
+  const several = comparatorCells.filter((cell) => (count.get(cell) ?? 0) > 1);
+  const unmeasured = [...count.keys()].filter((cell) => !comparatorCells.includes(cell)).sort();
+  return [
+    ...(none.length > 0 ? [`not in a class ${none.join(', ')}`] : []),
+    ...(several.length > 0 ? [`in more than one class ${several.join(', ')}`] : []),
+    ...(unmeasured.length > 0 ? [`not measured ${unmeasured.join(', ')}`] : []),
+  ];
+}
+
+/**
+ * The expectation of the class-selection receipt of a collection (RV3-06, D-V4-18), built apart from the receipt from the records the resolver
+ * reads itself: the frozen source, today's harness (the selection is written by `verdicts.mjs` in the same plan, T09e), the class arms of the
+ * freeze file with the tree id and the parameter hash of their published runs files, the declared rows less the closed ones, and the
+ * collection (the activation's and the closure's SHA-256 and the closed rows).
+ * @param {{ activation: { declaredRows: string[] }, activationSha256: string, closure?: { missing: string[] } | null, closureSha256?: string | null,
+ *   freeze: { classes: FreezeClass[] }, runsMeta: Record<string, any>, harnessHash: string }} input `runsMeta[id]` is `meta.trees.<variant>` of the
+ *   arm's published runs files, `{ treeId, params }`: one value (`publishedRuns` checks the files) or the list of the files' values, which must
+ *   be equal (two different values throw `resolve: two trees in the runs of <arm>`).
+ * @returns {import('./lib/proof.mjs').ProofExpectation}
+ */
+export function selectionExpectation({ activation, activationSha256, closure, closureSha256, freeze, runsMeta, harnessHash }) {
+  if (!isStrings(activation?.declaredRows) || !SHA_256.test(activationSha256) || !Array.isArray(freeze?.classes)) {
+    throw new TypeError('manifest: selectionExpectation needs the activation record, its SHA-256 and the freeze file');
+  }
+  if (closure != null && (!isStrings(closure.missing) || !SHA_256.test(String(closureSha256)))) {
+    throw new TypeError('manifest: a closure needs the list of its missing rows and its SHA-256');
+  }
+  const closed = closure?.missing ?? [];
+  const arms = classArmsOf(freeze).map((id) => {
+    // One tree, or the trees of every runs file of the arm: they must be the same.
+    const found = runsMeta?.[id];
+    const values = Array.isArray(found) ? found : [found];
+    const tree = values[0];
+    if (values.some((value) => !isDeepStrictEqual(value, tree))) {
+      throw new Error(`resolve: two trees in the runs of ${id}`);
+    }
+    if (typeof tree?.treeId !== 'string' || tree.treeId === '' || typeof tree.params !== 'object' || tree.params === null) {
+      throw new Error(`resolve: the runs of ${id} carry no tree identity`);
+    }
+    return { id, treeId: tree.treeId, paramsHash: sha256(JSON.stringify(tree.params)) };
+  });
+  return {
+    kind: 'class-selection',
+    source: { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST },
+    harnessHash,
+    arms,
+    coverage: { expected: activation.declaredRows.filter((row) => !closed.includes(row)) },
+    fields: { collection: { activationSha256, closureSha256: closureSha256 ?? null, missing: [...closed] } },
+  };
+}
+
+/**
+ * Reads the records of one activation and builds the expectation of its class selection (`selectionExpectation`).
+ * @param {string} activationPath Repository-relative path of the activation record.
+ * @param {{ readFile?: (path: string) => string | null, list?: (folder: string) => string[], harnessHash?: string }} [io] Default: the
+ *   repository and today's harness (`harnessInfo`).
+ * @returns {{ activation: any, activationSha256: string, closure: ReturnType<typeof closureOf>, freeze: { classes: FreezeClass[] },
+ *   expectation: import('./lib/proof.mjs').ProofExpectation }}
+ */
+export function selectionInputs(activationPath, { readFile = readRepoFile, list = listRepoFolder, harnessHash } = {}) {
+  const path = repoPath(activationPath);
+  const { activation, sha256: activationSha256 } = readActivation(path, readFile);
+  const closure = closureOf(path, activationSha256, { readFile });
+  const freeze = readFreeze(activation, readFile);
+  const data = matrixData();
+  /** @type {Record<string, any>} */
+  const runsMeta = {};
+  for (const id of classArmsOf(freeze)) {
+    const found = publishedRuns({ task: TASKS.first, arm: id, variant: data.arms[id]?.variant ?? id }, { readFile, list, who: 'resolve' });
+    if (found === null) {
+      throw new Error(`resolve: no published runs of ${id}`);
+    }
+    runsMeta[id] = found.tree;
+  }
+  const expectation = selectionExpectation({
+    activation, activationSha256, closure: closure?.record ?? null, closureSha256: closure?.ref.sha256 ?? null, freeze, runsMeta,
+    harnessHash: harnessHash ?? harnessInfo().harnessHash,
+  });
+  return { activation, activationSha256, closure, freeze, expectation };
+}
+
+/**
+ * The `selection` prerequisite of a plan (`checkPrerequisites`): the receipt at `path` passes `proofCheck` against the expectation of
+ * the activation record at `activation`. Every problem, a thrown one included, is a reason `selection: <reason>`.
+ * @param {{ path: string, activation: string }} entry
+ * @param {{ readFile?: (path: string) => string | null, list?: (folder: string) => string[], harnessHash?: string }} io
+ * @returns {string[]}
+ */
+function selectionProblems({ path, activation }, { readFile = readRepoFile, list = listRepoFolder, harnessHash }) {
+  try {
+    const text = readFile(path);
+    if (text === null) {
+      return [`selection: missing ${path}`];
+    }
+    /** @type {any} */
+    let receipt = null;
+    try {
+      receipt = JSON.parse(text);
+    } catch {
+      return [`selection: ${path} is not JSON`];
+    }
+    const { expectation } = selectionInputs(activation, { readFile, list, harnessHash });
+    const checked = proofCheck(receipt, expectation, readFile);
+    return checked.status === 'pass' ? [] : checked.reasons.map((reason) => `selection: ${reason}`);
+  } catch (e) {
+    return [`selection: ${messageOf(e)}`];
+  }
+}
+
+/**
+ * Resolves the comparator template of an activation into the concrete plan `V4-S4C` (R2-11 step 5, R3-04): per template cell the uncapped
+ * twin of the arm the selection ships there (`fr-frozen` gives `fr-frozen-uncapped`, `fr-frozen-none` gives `fr-frozen-none-uncapped`). It reads
+ * only a final selection of the same activation: an interim report is never a selection.
+ * @param {any} template `V4-S4C.template.json` (T11e).
+ * @param {any} selection The class-selection receipt (`class-selection.json`, T09e).
+ * @param {import('./lib/proof.mjs').ProofExpectation} expectation `selectionExpectation` of the records of the same activation.
+ * @param {{ readFile?: (path: string) => string | null, priceOf?: PriceOf, selectionPath?: string, activationPath?: string }} [io] `readFile`:
+ *   the evidence files of the receipt (default `readRepoFile`); `priceOf`: `stepPrice`; the paths are those the plan names in its steps and
+ *   prerequisites (default: the real ones).
+ * @returns {ReturnType<typeof planOf>} The plan. A template that is not `V4-S4C`'s (`not a V4-S4C template`), one of another activation
+ *   (`the template belongs to another activation`), a selection that does not pass `proofCheck` (`the selection is not final (<reasons>)`)
+ *   and a cell the selection does not ship an arm for (`no shipped arm for <cell>`) throw.
+ */
+export function resolveComparators(template, selection, expectation, { readFile = readRepoFile, priceOf = stepPrice, selectionPath = SELECTION_FILE, activationPath = ACTIVATION_FILE } = {}) {
+  const task = TASKS.firstComparator;
+  if (template?.task !== task || !Array.isArray(template.cells)) {
+    throw new Error(`not a ${task} template`);
+  }
+  if (template.activationSha256 !== expectation?.fields?.collection?.activationSha256) {
+    throw new Error('the template belongs to another activation');
+  }
+  const checked = proofCheck(selection, expectation, readFile);
+  if (checked.status !== 'pass') {
+    throw new Error(`the selection is not final (${checked.reasons.join('; ')})`);
+  }
+  const shipped = selection.selection?.cells;
+  /** @type {string[]} */
+  const resolved = template.cells.map((/** @type {{ cell: string }} */ { cell }) => {
+    const arm = typeof shipped === 'object' && shipped !== null && Object.hasOwn(shipped, cell) ? shipped[cell]?.shipped : undefined;
+    if (typeof arm !== 'string' || !Object.hasOwn(COMPARATOR_OF, arm)) {
+      throw new Error(`no shipped arm for ${cell}`);
+    }
+    return COMPARATOR_OF[/** @type {keyof typeof COMPARATOR_OF} */ (arm)];
+  });
+  const variants = [...new Set(resolved)];
+  const prerequisites = /** @type {Prerequisite[]} */ ([
+    ...variants.map((id) => ({ type: 'variant', id })),
+    { type: 'file', path: selectionPath },
+    { type: 'selection', path: selectionPath, activation: activationPath },
+  ]);
+  const rowLimitS = matrixData().rowLimitS.default;
+  const rows = template.cells.map((/** @type {any} */ c, /** @type {number} */ i) => rowStep(/** @type {any} */ ({
+    task, arm: resolved[i], variant: resolved[i], cell: c.cell, from: c.from, to: c.to, rows: c.rows, shard: c.shard, rowLimitS, optional: false,
+  }), priceOf, c.price?.rowS));
+  const publishes = variants.map((arm) => publishStep(task, arm, rows.filter((/** @type {Step} */ s) => argOf(s, '--arm') === arm)));
+  const manifestFile = FINAL_VERDICT_MANIFEST.replaceAll('/', '\\');
+  const verdictFile = `${EVIDENCE}/${FINAL_VERDICT_TASK}/verdicts.json`;
+  const steps = [
+    gateStep(task, prerequisites),
+    firewallSnapshotStep(task),
+    treesStep(variants),
+    ...rows,
+    ...publishes,
+    unlockedStep('verdict-input', [`${IG}manifest.mjs`, 'verdict-input', '--purpose', 'final', '--activation', activationPath, '--selection', selectionPath, '--out', manifestFile], {
+      dependsOn: publishes.map((s) => s.id),
+      consumes: [activationPath, selectionPath, ...publishes.flatMap((s) => s.produces)],
+      produces: [FINAL_VERDICT_MANIFEST],
+      expect: `the final verdict manifest ${FINAL_VERDICT_MANIFEST} is written`,
+    }),
+    unlockedStep('verdicts', [`${IG}verdicts.mjs`, '--manifest', manifestFile], {
+      dependsOn: ['verdict-input'], consumes: [FINAL_VERDICT_MANIFEST], produces: [verdictFile, `${EVIDENCE}/${FINAL_VERDICT_TASK}/verdicts.md`],
+      expect: `verdicts: wrote ${verdictFile} (the global verdict record)`,
+    }),
+    firewallCheckStep(task),
+  ];
+  const ids = steps.map((s) => s.id);
+  const again = ids.find((id, i) => ids.indexOf(id) !== i);
+  if (again !== undefined) {
+    throw new Error(`manifest: ${task} repeats the step ${again}`);
+  }
+  return planOf({ task, generatedBy: RESOLVE_GENERATED_BY, runnable: true, blockedBy: [], prerequisites, steps });
+}
+
+/**
+ * `resolve-comparators --selection <receipt> --activation <record> --out <plan> --label frozen --source-label <SL>` (V4-T11f): reads the
+ * records of the activation (the record, its closure beside it, the freeze file, the published runs of the class arms and today's harness),
+ * the comparator template and the receipt, and writes the plan `V4-S4C`. Every refusal is `resolve-comparators: <reason>` on stderr, exit 1,
+ * nothing written; an existing `--out` that is not a plan of this command (`generatedBy`) is never overwritten.
+ * @param {string[]} argv
+ * @param {{ readFile?: (path: string) => string | null, list?: (folder: string) => string[], harnessHash?: string, template?: string }} [io]
+ *   The files (a case passes its own; `template` is the repository path of the template).
+ * @returns {Promise<number>} 0 once the plan is written; 1 for a refused command.
+ */
+export async function resolveComparatorsCommand(argv, { readFile = readRepoFile, list = listRepoFolder, harnessHash, template = COMPARATOR_TEMPLATE } = {}) {
+  const command = 'resolve-comparators';
+  try {
+    const { args } = parseArgs(argv, { values: ['selection', 'activation', 'out', 'label', 'source-label'] });
+    if (args.label !== 'frozen') {
+      return refuseCommand(command, '--label frozen only');
+    }
+    for (const name of ['selection', 'activation', 'out']) {
+      if (args[name] === undefined) {
+        return refuseCommand(command, `needs --${name} <path>`);
+      }
+    }
+    const [selectionPath, activationPath, outPath] = [args.selection, args.activation, args.out].map(repoPath);
+    const selectionText = readFile(selectionPath);
+    if (selectionText === null) {
+      return refuseCommand(command, `no selection receipt ${selectionPath}`);
+    }
+    /** @type {any} */
+    let selection = null;
+    try {
+      selection = JSON.parse(selectionText);
+    } catch {
+      return refuseCommand(command, `${selectionPath} is not JSON`);
+    }
+    const templateText = readFile(template);
+    if (templateText === null) {
+      return refuseCommand(command, `no template ${template}`);
+    }
+    /** @type {any} */
+    let parsedTemplate = null;
+    try {
+      parsedTemplate = JSON.parse(templateText);
+    } catch {
+      return refuseCommand(command, `${template} is not JSON`);
+    }
+    const { expectation } = selectionInputs(activationPath, { readFile, list, harnessHash });
+    const plan = resolveComparators(parsedTemplate, selection, expectation, { readFile, selectionPath, activationPath });
+    const out = abs(outPath);
+    if (existsSync(out)) {
+      /** @type {any} */
+      let existing = null;
+      try {
+        existing = JSON.parse(readFileSync(out, 'utf8'));
+      } catch {
+        existing = null;
+      }
+      if (existing?.generatedBy !== RESOLVE_GENERATED_BY) {
+        return refuseCommand(command, `${outPath} exists and is not a plan of this command`);
+      }
+    }
+    writeJson(out, plan);
+    process.stdout.write(`wrote ${outPath}\n`);
+    process.stdout.write(`${command}: ${parsedTemplate.cells.length} cells, ${plan.prerequisites.filter((p) => p.type === 'variant').map((p) => /** @type {any} */ (p).id).join(', ')}; ${plan.task}: allocation ${plan.allocationMinutes} min\n`);
+    return 0;
+  } catch (e) {
+    return refuseCommand(command, messageOf(e));
+  }
+}
+
+/**
+ * The verdict manifest of a stage-4 collection in T09a's schema (`data/verdict-manifest.schema.md`): the `selection` manifest of task `V4-S4`
+ * (`p5` is `[]`: the comparators are not resolved yet, so T09d never passes its phase 0) or the `final` manifest of task `V4-S4F`, which
+ * names the selection receipt it rests on and declares every expected P5 pair, one per cell of the comparator plan with the reps of its row
+ * step. The arms are those of the activation's groups (and, for `final`, the resolved comparator arms), each with its published runs files.
+ * @param {'selection' | 'final'} purpose
+ * @param {{ activation: ActivationRecord, activationRef: FileRef, closureRef?: FileRef | null, selectionRef?: FileRef, freeze: { classes: FreezeClass[] },
+ *   expansion: ReturnType<typeof expandMatrix>, published: PublishedRuns, comparatorPlan?: ReturnType<typeof planOf>, data?: MatrixData }} input
+ *   `activationRef`, `closureRef` and `selectionRef` are `{ path, sha256 }` (`sha256File`); `published(arm)` gives the runs files of an arm and
+ *   their tree (`publishedRuns`), `null` when the arm has none (`verdict-input: not published <arm>`); `comparatorPlan` is the plan
+ *   `resolveComparators` wrote (`final` only); `data` is the matrix data (default: the file's).
+ * @returns {Record<string, any>}
+ */
+export function verdictInput(purpose, { activation, activationRef, closureRef = null, selectionRef, freeze, expansion, published, comparatorPlan, data = matrixData() }) {
+  if (purpose !== 'selection' && purpose !== 'final') {
+    throw new Error(`verdict-input: purpose must be selection or final, got ${String(purpose)}`);
+  }
+  if (activation?.format !== ACTIVATION_FORMAT || !Array.isArray(activation.groups) || !Array.isArray(activation.conditional)) {
+    throw new TypeError('manifest: verdictInput needs the activation record');
+  }
+  if (purpose === 'final' && (selectionRef === undefined || selectionRef === null)) {
+    throw new Error('verdict-input: a final purpose needs the selection receipt');
+  }
+  const byKey = new Map(expansion.groups.map((g) => [groupKey(g), g]));
+  const selected = activation.groups.map(({ key }) => {
+    const group = byKey.get(key);
+    if (group === undefined) {
+      throw new Error(`verdict-input: the activation names ${key}, which the matrix has no group for`);
+    }
+    return group;
+  });
+  /** @type {Map<string, ArmRuns & { id: string }>} */
+  const wanted = new Map();
+  for (const { task, arm } of selected) {
+    const variant = data.arms[arm]?.variant;
+    if (typeof variant !== 'string') {
+      throw new Error(`verdict-input: no variant for the arm ${arm}`);
+    }
+    if (!wanted.has(arm)) {
+      wanted.set(arm, { id: arm, task, arm, variant });
+    }
+  }
+  /** @type {{ cell: string, bounded: string, uncapped: string, reps: number[] }[]} */
+  const p5 = [];
+  if (purpose === 'final') {
+    if (comparatorPlan?.task !== TASKS.firstComparator || !Array.isArray(comparatorPlan.steps)) {
+      throw new Error(`verdict-input: not a ${TASKS.firstComparator} plan`);
+    }
+    for (const step of comparatorPlan.steps.filter((s) => s.node[0] === `${IG}arm.mjs` && s.node[1] === 'run')) {
+      const [task, arm, variant] = ['--task', '--arm', '--variant'].map((flag) => argOf(step, flag));
+      const cases = parseCases(String(argOf(step, '--cases')));
+      const cell = cases[0]?.caseId;
+      const bounded = typeof arm === 'string' ? data.arms[arm]?.comparatorOf : undefined;
+      if (typeof task !== 'string' || typeof arm !== 'string' || typeof variant !== 'string' || cell === undefined || cases.some((c) => c.caseId !== cell) || typeof bounded !== 'string') {
+        throw new Error(`verdict-input: the step ${step.id} of the comparator plan is not one comparator cell`);
+      }
+      p5.push({ cell, bounded, uncapped: arm, reps: cases.map((c) => c.rep) });
+      if (!wanted.has(arm)) {
+        wanted.set(arm, { id: arm, task, arm, variant });
+      }
+    }
+    if (p5.length === 0) {
+      throw new Error('verdict-input: the comparator plan has no row step');
+    }
+  }
+  const arms = [...wanted.values()].map((wantedArm) => {
+    const found = published(wantedArm);
+    if (found === null || found === undefined || !Array.isArray(found.files) || found.files.length === 0 || typeof found.tree?.treeId !== 'string') {
+      throw new Error(`verdict-input: not published ${wantedArm.id}`);
+    }
+    return { ...wantedArm, treeId: found.tree.treeId, files: found.files.map(({ path, sha256: hash }) => ({ path, sha256: hash })) };
+  });
+  const [validationFrom, validationTo] = repsOf(data, 'validation');
+  const [masterFrom, masterTo] = repsOf(data, 'master');
+  /** @param {number} from @param {number} to @returns {number[]} */
+  const range = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
+  /** @param {string} item @param {string} arm @returns {string[]} The distinct cells of the selected groups of the item and arm. */
+  const cellsOf = (item, arm) => [...new Set(selected.filter((g) => g.items.includes(item) && g.arm === arm).map((g) => g.cell))];
+  const today = 'log-link';
+  return {
+    task: purpose === 'final' ? FINAL_VERDICT_TASK : TASKS.first,
+    label: 'frozen',
+    purpose,
+    quantity: QUANTITY,
+    capMs: RESPONSE_CAP_MS,
+    responseBoundMs: RESPONSE_CAP_MS,
+    resampleSeed: data.resampleSeed,
+    resamples: data.resamples,
+    validationReps: range(validationFrom, validationTo),
+    masterReps: range(masterFrom, masterTo),
+    collection: { activation: { path: activationRef.path, sha256: activationRef.sha256 }, closure: closureRef === null ? null : { path: closureRef.path, sha256: closureRef.sha256 } },
+    ...(purpose === 'final' ? { selection: { path: /** @type {FileRef} */ (selectionRef).path, sha256: /** @type {FileRef} */ (selectionRef).sha256 } } : {}),
+    arms,
+    classes: freeze.classes.map(({ id, cells, screen, noScreen }) => ({ id, cells: [...cells], screen, noScreen })),
+    failingCells: [...data.cells.failingNightmare],
+    controls: cellsOf('S4-3', today).map((cell) => ({ cell, today })),
+    masters: cellsOf('S4-4', 'fr-frozen').map((cell) => ({ cell, today, after: 'fr-frozen' })),
+    hell1: [...data.cells.hell1Validated, ...activation.conditional.filter((c) => c.activated).map((c) => c.cell)],
+    p5,
+    deadlineProjection: { arms: [...PROJECTED_ARMS], reserves: [...PROJECTION_RESERVES], deadlineMs: PROJECTION_DEADLINE_MS },
+    prerequisites: {
+      stage1: { binding: STAGE1_BINDING, current: [] },
+      parity: [
+        ...STAGE4_ARMS.map((arm) => ({ binding: `${EVIDENCE}/${TASKS.first}P/parity-${arm}.accepted.json`, current: [arm] })),
+        { binding: P0_BINDING, current: ['v4'] },
+      ],
+      liveDeadline: { binding: LIVE_BINDING, current: [...PROJECTED_ARMS] },
+    },
+  };
+}
+
+/**
+ * `verdict-input --purpose <selection | final> --activation <record> [--selection <receipt>] --out <path> --label frozen --source-label <SL>`
+ * (V4-T11f): writes the verdict manifest of `verdictInput` from the records on disk (the activation record, its closure beside it, the freeze
+ * file, the published runs files of every arm and, for `final`, the receipt and the comparator plan `plans/V4-S4C.json`). Every refusal is
+ * `verdict-input: <reason>` on stderr, exit 1, nothing written.
+ * @param {string[]} argv
+ * @param {{ readFile?: (path: string) => string | null, list?: (folder: string) => string[], data?: MatrixData,
+ *   expansion?: ReturnType<typeof expandMatrix>, comparatorPlan?: string }} [io] The files (a case passes its own; `comparatorPlan` is the
+ *   repository path of the plan).
+ * @returns {Promise<number>} 0 once the manifest is written; 1 for a refused command.
+ */
+export async function verdictInputCommand(argv, io = {}) {
+  const command = 'verdict-input';
+  try {
+    const { args } = parseArgs(argv, { values: ['purpose', 'activation', 'selection', 'out', 'label', 'source-label'] });
+    if (args.label !== 'frozen') {
+      return refuseCommand(command, '--label frozen only');
+    }
+    if (args.purpose !== 'selection' && args.purpose !== 'final') {
+      return refuseCommand(command, 'needs --purpose selection or final');
+    }
+    for (const name of ['activation', 'out']) {
+      if (args[name] === undefined) {
+        return refuseCommand(command, `needs --${name} <path>`);
+      }
+    }
+    if (args.purpose === 'final' && args.selection === undefined) {
+      return refuseCommand(command, 'a final purpose needs --selection <receipt>');
+    }
+    if (args.purpose === 'selection' && args.selection !== undefined) {
+      return refuseCommand(command, '--selection belongs to the purpose final');
+    }
+    const readFile = io.readFile ?? readRepoFile;
+    const list = io.list ?? listRepoFolder;
+    const activationPath = repoPath(args.activation);
+    const { activation, sha256: activationSha256 } = readActivation(activationPath, readFile);
+    const closure = closureOf(activationPath, activationSha256, { readFile });
+    const freeze = readFreeze(activation, readFile);
+    /** @type {FileRef | undefined} */
+    let selectionRef;
+    /** @type {any} */
+    let comparatorPlan;
+    if (args.purpose === 'final') {
+      const selectionPath = repoPath(args.selection);
+      const selectionText = readFile(selectionPath);
+      if (selectionText === null) {
+        return refuseCommand(command, `no selection receipt ${selectionPath}`);
+      }
+      selectionRef = { path: selectionPath, sha256: sha256Text(selectionText) };
+      const planPath = io.comparatorPlan ?? COMPARATOR_PLAN;
+      const planText = readFile(planPath);
+      if (planText === null) {
+        return refuseCommand(command, `no comparator plan ${planPath}`);
+      }
+      try {
+        comparatorPlan = JSON.parse(planText);
+      } catch {
+        return refuseCommand(command, `${planPath} is not JSON`);
+      }
+    }
+    const data = io.data ?? matrixData();
+    const expansion = io.expansion ?? expandMatrix(data, { controls: controlsFrom(mp12b1Report, data.cells.failingNightmare) });
+    const manifest = verdictInput(args.purpose, {
+      activation, activationRef: { path: activationPath, sha256: activationSha256 }, closureRef: closure?.ref ?? null, selectionRef, freeze, expansion,
+      published: (arm) => publishedRuns(arm, { readFile, list, who: command }), comparatorPlan, data,
+    });
+    const outPath = repoPath(args.out);
+    writeJson(abs(outPath), manifest);
+    process.stdout.write(`wrote ${outPath}\n`);
+    process.stdout.write(`${command}: ${manifest.purpose} ${manifest.task}, ${manifest.arms.length} arms, ${manifest.arms.reduce((sum, a) => sum + a.files.length, 0)} runs files, ${manifest.p5.length} P5 pairs\n`);
+    return 0;
+  } catch (e) {
+    return refuseCommand(command, messageOf(e));
+  }
+}
+
+/**
+ * @param {string[]} argv `compile ...`, `check-prerequisites ...`, `activate ...`, `close ...`, `resolve-comparators ...` or `verdict-input ...`
  * @returns {Promise<number>} The command's exit code.
  */
 export async function main(argv) {
   const [command, ...rest] = argv;
   const commands = /** @type {Record<string, (argv: string[]) => Promise<number>>} */ ({
     compile: compileCommand, 'check-prerequisites': checkPrerequisitesCommand, activate: (a) => activateCommand(a), close: (a) => closeCommand(a),
+    'resolve-comparators': (a) => resolveComparatorsCommand(a), 'verdict-input': (a) => verdictInputCommand(a),
   });
   if (command === undefined || !Object.hasOwn(commands, command)) {
-    return refuse(`unknown command ${command ?? ''} (compile, check-prerequisites, activate, close)`);
+    return refuse(`unknown command ${command ?? ''} (compile, check-prerequisites, activate, close, resolve-comparators, verdict-input)`);
   }
   try {
     return await commands[command](rest);

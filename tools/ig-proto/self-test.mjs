@@ -1487,6 +1487,44 @@ async function pilotRuns(cell, tens, shorts) {
   return runs;
 }
 
+/**
+ * The world of the `activate:` cases that run the command (V4-T11e, V4-T11f) in the scratch folder `dir`: `rowsOf(cell, tens, shorts)` the
+ * published pilot rows of a board (`pilotRuns` as rows), `after(cell)` valid rows at the reps after the pilot's, `world(name, files, freeze)` the
+ * scratch paths of one activation (the pilots of stage 2, one `pilot-<cell>.runs.json` per entry of `files`, the real universe and data, and a
+ * freeze file: by default one class that names exactly the comparator cells of the activation those pilots make, `freeze` replaces its content),
+ * `go(paths, ...extra)` the command's output, `written(paths)` the files it wrote and `parse(file)` a JSON file.
+ * @param {string} dir
+ */
+async function activateWorld(dir) {
+  const { m, d, record } = await collectionKit();
+  const rowOf = (/** @type {string} */ c, /** @type {number} */ rep, /** @type {any} */ run) => ({ rowKey: `${c}~${rep}`, caseId: c, rep, seed: run.seed, localRep: 0, run });
+  const rowsOf = async (/** @type {string} */ c, /** @type {number} */ tens, /** @type {number} */ shorts) => (await pilotRuns(c, tens, shorts)).map((run, rep) => rowOf(c, rep, run));
+  // Valid requests that reach ten, at the reps after the pilot's 0 to 4: they are no pilot rows.
+  const after = async (/** @type {string} */ c) => Promise.all([5, 6, 7].map(async (rep) => rowOf(c, rep, await matrixRun(c, rep, 10))));
+  /** @param {string[]} cells @returns {{ classes: any[] }} One class that names the cells. */
+  const freezeOf = (cells) => ({ classes: [{ id: 'all', cells, screen: 'fr-frozen', noScreen: 'fr-frozen-none' }] });
+  /** @param {Record<string, any[]>} files @returns {string[]} The comparator cells of the activation the pilots of `files` make (the rows after rep 4 and of other cases are not read). */
+  const comparatorCellsOf = (files) => record(Object.fromEntries(d.cells.hell1Conditional.map((/** @type {string} */ c) => [c,
+    (files[c] ?? []).filter((/** @type {any} */ r) => r.rep >= 0 && r.rep <= 4).map((/** @type {any} */ r) => r.run)]))).comparatorCells.map((/** @type {any} */ c) => c.cell);
+  const world = async (/** @type {string} */ name, /** @type {Record<string, any[]>} */ files = {}, /** @type {any} */ freezeContent = freezeOf(comparatorCellsOf(files))) => {
+    const root = join(dir, name);
+    const freeze = join(root, 'freeze.json');
+    writeJson(freeze, freezeContent);
+    const pilots = join(root, 'pilots');
+    for (const [c, rows] of Object.entries(files)) {
+      writeJson(join(pilots, `pilot-${c}.runs.json`), { meta: {}, shard: `pilot-${c}`, rows });
+    }
+    return {
+      activation: join(root, 'activation.json'), plan: join(root, 'V4-S4.json'), template: join(root, 'V4-S4C.template.json'),
+      universe: join(IG_DIR, 'plans', 'V4-S4.universe.json'), freeze, data: join(IG_DIR, 'data', 'frozen-round-v1.json'), pilots,
+    };
+  };
+  const go = (/** @type {any} */ paths, /** @type {string[]} */ ...extra) => captureOutput(() => m.activateCommand(['--collection', 'initial', ...extra, '--label', 'frozen', '--source-label', 'x'], paths));
+  const written = (/** @type {any} */ paths) => [paths.activation, paths.plan, paths.template].filter((file) => existsSync(file));
+  const parse = (/** @type {string} */ file) => JSON.parse(readFileSync(file, 'utf8'));
+  return { rowsOf, after, freezeOf, comparatorCellsOf, world, go, written, parse };
+}
+
 /** @param {any} plan @returns {any[]} The request-row steps of a plan. */
 const rowStepsOf = (plan) => plan.steps.filter((/** @type {any} */ s) => s.id.startsWith('rows-'));
 
@@ -1498,6 +1536,111 @@ const requiredSeconds = (steps) => steps.filter((s) => s.locked && !s.optional).
 
 /** @param {unknown} text @returns {boolean} Whether the text is an ISO 8601 time as `toISOString` writes it. */
 const isoTime = (text) => typeof text === 'string' && !Number.isNaN(Date.parse(text)) && new Date(text).toISOString() === text;
+
+/** @param {(dir: string) => Promise<void>} body @returns {Promise<void>} Runs `body` on an empty scratch folder of the comparator cases (V4-T11f) and removes it afterwards. */
+async function onResolve(body) {
+  const dir = fresh(artifactDir('selftest', 'resolve'));
+  try {
+    await body(dir);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+/** The evidence folder of the frozen round, in the paths the readers of the comparator cases look for. */
+const FROZEN_EVIDENCE = 'docs/improve-generating/evidence/frozen';
+
+/**
+ * The records of the comparator cases (V4-T11f), made fresh in `dir`: `A` the activation of the default collection (no activated board, no
+ * approval) written as `activation.json`, a freeze file with two classes (`n` is admitted and ships `fr-frozen` on every comparator cell but
+ * `26x26-hell-1`, `h` fails and ships `fr-frozen-none` there), the comparator template of A built over the `sha256File` of its file, and the
+ * published runs of the arms in memory (`mem`, which `read` and `list` serve before the repository, so that nothing is written under the
+ * evidence folder): `receipt(over)` is T09e's `classSelection` over A's declared rows, `expectation(closure)` T11f's `selectionExpectation` of
+ * the same records, `closeRows(missing)` the closure T11e's `close` writes beside A for exactly those rows.
+ * @param {string} dir
+ */
+async function resolveWorld(dir) {
+  const { m, expansion, durations } = await compileKit();
+  const { v } = await verdictKit();
+  const ref = (/** @type {string} */ file) => ({ path: rel(file), sha256: sha256File(file) });
+  const comparatorCells = expansion.groups.filter((/** @type {any} */ g) => g.comparator && g.collection === 'initial').map((/** @type {any} */ g) => g.cell);
+  const freeze = {
+    classes: [
+      { id: 'n', cells: comparatorCells.filter((/** @type {string} */ c) => c !== '26x26-hell-1'), screen: 'fr-frozen', noScreen: 'fr-frozen-none' },
+      { id: 'h', cells: ['26x26-hell-1'], screen: 'fr-frozen', noScreen: 'fr-frozen-none' },
+    ],
+  };
+  const freezeFile = join(dir, 'freeze.json');
+  writeJson(freezeFile, freeze);
+  const freezeRef = ref(freezeFile);
+  const activation = m.activation(expansion, {
+    pilots: {}, approvedOptional: [],
+    epoch: { data: ref(join(IG_DIR, 'data', 'frozen-round-v1.json')), freeze: freezeRef, universe: ref(join(IG_DIR, 'plans', 'V4-S4.universe.json')) },
+  });
+  const activationFile = join(dir, 'activation.json');
+  writeJson(activationFile, activation);
+  const activationRef = ref(activationFile);
+  const { template } = m.activationPlans(expansion, activation, m.stepPrice, { activationSha256: activationRef.sha256, durations, rowSOf: () => 100, activationPath: activationRef.path });
+  const templateFile = join(dir, 'V4-S4C.template.json');
+  writeJson(templateFile, template);
+  /** One tree per arm, as `meta.trees.<variant>` of a runs file carries it (the variant of an arm is its id). */
+  const trees = Object.fromEntries(['fr-frozen', 'fr-frozen-none', 'log-link', 'fr-frozen-uncapped', 'fr-frozen-none-uncapped'].map((id) => [id, { treeId: `tree-${id}`, copyDigest: `copy-${id}`, edits: [], params: { id } }]));
+  /** @type {Map<string, string>} */
+  const mem = new Map();
+  const read = (/** @type {string} */ path) => (mem.has(path) ? /** @type {string} */ (mem.get(path)) : readRepoFile(path));
+  const list = (/** @type {string} */ folder) => [...mem.keys()].filter((k) => k.startsWith(`${folder}/`) && !k.slice(folder.length + 1).includes('/')).map((k) => k.slice(folder.length + 1)).sort();
+  /** Publishes the runs file `<name>` of an arm in memory; `over` replaces its fields. */
+  const publish = (/** @type {string} */ task, /** @type {string} */ arm, /** @type {string} */ name, /** @type {Record<string, any>} */ over = {}) => {
+    const path = `${FROZEN_EVIDENCE}/${task}/${arm}/${name}.runs.json`;
+    mem.set(path, JSON.stringify({ meta: { trees: { [arm]: trees[arm] } }, shard: name, rows: [], ...over }));
+    return path;
+  };
+  for (const arm of ['fr-frozen', 'fr-frozen-none', 'log-link']) {
+    publish('V4-S4', arm, 'val-14x14-nightmare');
+  }
+  publish('V4-S4', 'fr-frozen', 'val-26x26-hell-1');
+  const armOf = (/** @type {string} */ id) => ({ id, treeId: trees[id].treeId, paramsHash: sha256(JSON.stringify(trees[id].params)) });
+  /** @param {{ record: any, ref: any } | null} [closure] */
+  const expectation = (closure = null) => m.selectionExpectation({
+    activation, activationSha256: activationRef.sha256, closure: closure?.record ?? null, closureSha256: closure?.ref.sha256 ?? null, freeze,
+    runsMeta: { 'fr-frozen': trees['fr-frozen'], 'fr-frozen-none': trees['fr-frozen-none'] }, harnessHash: 'h-test',
+  });
+  /**
+   * @param {{ closure?: { record: any, ref: any } | null, omit?: string[], classes?: any[], arms?: any[], harnessHash?: string }} [over] `omit`: declared rows that are
+   *   not published; the rows of a closure are not published either.
+   */
+  const receipt = ({ closure = null, omit = [], classes = freeze.classes, arms, harnessHash = 'h-test' } = {}) => {
+    const closed = closure?.record.missing ?? [];
+    return v.classSelection({ classes }, classes.map((c) => ({ id: c.id, verdict: c.id === 'h' ? 'failed' : 'admitted', decidedBy: c.id === 'h' ? 'clue' : null })), {
+      files: [activationRef, freezeRef, ...(closure === null ? [] : [closure.ref])],
+      published: activation.declaredRows.filter((/** @type {string} */ row) => !omit.includes(row) && !closed.includes(row)), declared: activation.declaredRows,
+      activation: activationRef, closure: closure === null ? null : { ...closure.ref, missing: closure.record.missing }, freeze: freezeRef,
+      arms: arms ?? ['fr-frozen', 'fr-frozen-none'].map(armOf), harnessHash,
+    });
+  };
+  /** Runs T11e's `close` over published runs of every declared row but `missing`; its closure stands beside the activation record. */
+  const closeRows = async (/** @type {string[]} */ missing) => {
+    const runs = fresh(join(dir, 'runs'));
+    /** @type {Record<string, string[]>} */
+    const keys = {};
+    for (const row of activation.declaredRows.filter((/** @type {string} */ r) => !missing.includes(r))) {
+      const at = row.indexOf('/');
+      (keys[row.slice(0, at)] ??= []).push(row.slice(at + 1));
+    }
+    for (const [arm, rows] of Object.entries(keys)) {
+      writeJson(join(runs, arm, 'all.runs.json'), { meta: {}, shard: 'all', rows: rows.map((rowKey) => ({ rowKey })) });
+    }
+    const closureFile = join(dir, 'closure.json');
+    rmSync(closureFile, { force: true });
+    const out = await captureOutput(() => m.closeCommand(['--collection', 'initial', '--reason', 'the owner stops at the ceiling', '--label', 'frozen', '--source-label', 'x'], { activation: activationFile, closure: closureFile, runs }));
+    assert(out.code === 0 && out.out === `closure: ${missing.length} missing rows\n`, `the closure: exit ${out.code}, ${JSON.stringify(out.out)} ${JSON.stringify(out.err)}`);
+    return /** @type {{ record: any, ref: any }} */ (m.closureOf(activationRef.path, activationRef.sha256));
+  };
+  return {
+    m, v, expansion, activation, activationFile, activationRef, freeze, freezeFile, freezeRef, template, templateFile, trees, mem, read, list, publish, expectation, receipt, closeRows,
+    selectionFile: join(dir, 'class-selection.json'),
+  };
+}
 
 /** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
 const itemCases = [
@@ -6483,27 +6626,7 @@ const itemCases = [
       const cell = '24x24-hell-1';
       await onCollections(async (dir) => {
         const other = '14x14-hell-1';
-        const rowOf = (/** @type {string} */ c, /** @type {number} */ rep, /** @type {any} */ run) => ({ rowKey: `${c}~${rep}`, caseId: c, rep, seed: run.seed, localRep: 0, run });
-        const rowsOf = async (/** @type {string} */ c, /** @type {number} */ tens, /** @type {number} */ shorts) => (await pilotRuns(c, tens, shorts)).map((run, rep) => rowOf(c, rep, run));
-        // Valid requests that reach ten, at the reps after the pilot's 0 to 4: they are no pilot rows.
-        const after = async (/** @type {string} */ c) => Promise.all([5, 6, 7].map(async (rep) => rowOf(c, rep, await matrixRun(c, rep, 10))));
-        /** Scratch paths of one world: a freeze file, the pilots of stage 2 (one `pilot-<cell>.runs.json` per entry of `files`), the real universe and data. */
-        const world = async (/** @type {string} */ name, /** @type {Record<string, any[]>} */ files = {}) => {
-          const root = join(dir, name);
-          const freeze = join(root, 'freeze.json');
-          writeJson(freeze, { classes: [] });
-          const pilots = join(root, 'pilots');
-          for (const [c, rows] of Object.entries(files)) {
-            writeJson(join(pilots, `pilot-${c}.runs.json`), { meta: {}, shard: `pilot-${c}`, rows });
-          }
-          return {
-            activation: join(root, 'activation.json'), plan: join(root, 'V4-S4.json'), template: join(root, 'V4-S4C.template.json'),
-            universe: join(IG_DIR, 'plans', 'V4-S4.universe.json'), freeze, data: join(IG_DIR, 'data', 'frozen-round-v1.json'), pilots,
-          };
-        };
-        const go = (/** @type {any} */ paths, /** @type {string[]} */ ...extra) => captureOutput(() => m.activateCommand(['--collection', 'initial', ...extra, '--label', 'frozen', '--source-label', 'x'], paths));
-        const written = (/** @type {any} */ paths) => [paths.activation, paths.plan, paths.template].filter((file) => existsSync(file));
-        const parse = (/** @type {string} */ file) => JSON.parse(readFileSync(file, 'utf8'));
+        const { rowsOf, after, world, go, written, parse } = await activateWorld(dir);
 
         // The first activation: 24x24's pilot activates it (the rows after rep 4 are not read), 14x14's has two valid requests reaching ten, a
         // pilot of a board that is not conditional is not read; S4-6 is not approved.
@@ -6695,7 +6818,7 @@ const itemCases = [
       // The dispatcher: both commands are reachable, and each refusal below happens before any record is read or written.
       const refused = async (/** @type {string[]} */ argv) => captureOutput(() => m.main(argv));
       const unknown = await refused(['nope']);
-      same([unknown.code, unknown.err], [1, 'manifest: unknown command nope (compile, check-prerequisites, activate, close)\n'], 'an unknown command lists the four');
+      same([unknown.code, unknown.err], [1, 'manifest: unknown command nope (compile, check-prerequisites, activate, close, resolve-comparators, verdict-input)\n'], 'an unknown command lists the six');
       const wrongLabel = await refused(['activate', '--collection', 'initial', '--label', 'selftest']);
       same([wrongLabel.code, wrongLabel.err], [1, 'manifest: --label frozen only\n'], 'main dispatches activate');
       const wrongArgument = await refused(['activate', '--collection', 'initial', '--bogus', 'x', '--label', 'frozen']);
@@ -6780,6 +6903,587 @@ const itemCases = [
           const out = await close({ ...refused, activation: bad });
           assert(out.code === 1 && out.err.includes('is not an activation record') && !existsSync(refused.closure), `an activation record holding ${text}: exit ${out.code}, ${JSON.stringify(out.err)}`);
         }
+      });
+    },
+  },
+  {
+    name: 'resolve: comparators from a final selection',
+    async run() {
+      await onResolve(async (dir) => {
+        const w = await resolveWorld(dir);
+        const { m } = w;
+        const selection = w.receipt();
+        const expectation = w.expectation();
+        same([selection.verdict, selection.selection.cells['14x14-nightmare'], selection.selection.cells['26x26-hell-1']], ['pass', { class: 'n', shipped: 'fr-frozen' }, { class: 'h', shipped: 'fr-frozen-none' }],
+          'the selection is final: the screen arm on 14x14 Nightmare, the no-screen arm on 26x26 Hell 1');
+        same(proofCheck(selection, expectation), { status: 'pass', reasons: [] }, 'the receipt passes the expectation of the same records');
+        const plan = m.resolveComparators(w.template, selection, expectation);
+        const activationFile = 'docs/improve-generating/evidence/frozen/V4-S4/activation.json';
+        const selectionFile = 'docs/improve-generating/evidence/frozen/V4-S4/class-selection.json';
+        const rows = rowStepsOf(plan);
+        same(rows.length, w.template.cells.length, 'one row step per template cell');
+        for (const [cell, arm] of [['14x14-nightmare', 'fr-frozen-uncapped'], ['26x26-hell-1', 'fr-frozen-none-uncapped']]) {
+          const step = rows.filter((/** @type {any} */ s) => String(argAfter(s, '--cases')).startsWith(`${cell}:`));
+          same(step.length, 1, `one row step of ${cell}`);
+          same([argAfter(step[0], '--task'), argAfter(step[0], '--arm'), argAfter(step[0], '--variant'), argAfter(step[0], '--shard'), argAfter(step[0], '--cases'), argAfter(step[0], '--row-limit-s'), argAfter(step[0], '--workers'), step[0].state],
+            ['V4-S4C', arm, arm, `val-${cell}`, `${cell}:20-39`, '260', '4', `V4-S4C\\${arm}\\val-${cell}\\state.json`], `${cell} runs ${arm}, in its own state`);
+        }
+        same(['fr-frozen-uncapped', 'fr-frozen-none-uncapped'].map((arm) => rows.filter((/** @type {any} */ s) => argAfter(s, '--arm') === arm).length), [16, 1], 'every other cell ships the screen arm: 16 and 1');
+        assert(plan.steps.every((/** @type {any} */ s) => s.node.every((/** @type {string} */ word) => !word.includes('<') && !word.includes('shipped-uncapped'))), 'no node holds < or shipped-uncapped');
+        same([plan.task, plan.generatedBy, plan.runnable, plan.blockedBy, plan.optionalMinutes], ['V4-S4C', 'manifest.mjs resolve-comparators', true, [], 0], 'the plan\'s header');
+        same(plan.prerequisites, [
+          { type: 'variant', id: 'fr-frozen-uncapped' }, { type: 'variant', id: 'fr-frozen-none-uncapped' },
+          { type: 'file', path: selectionFile }, { type: 'selection', path: selectionFile, activation: activationFile },
+        ], 'the prerequisites: the resolved variants, the receipt and its check against the activation');
+        same(plan.steps.map((/** @type {any} */ s) => s.id), [
+          'prerequisites', 'firewall-snapshot', 'trees', ...rows.map((/** @type {any} */ s) => s.id), 'publish-fr-frozen-uncapped', 'publish-fr-frozen-none-uncapped', 'verdict-input', 'verdicts', 'firewall-check',
+        ], 'the steps, in order');
+        const step = (/** @type {string} */ id) => plan.steps.find((/** @type {any} */ s) => s.id === id);
+        const manifestFile = 'tools\\ig-proto\\plans\\verdicts\\V4-S4F.verdict-manifest.json';
+        same(step('trees').node, ['tools\\ig-proto\\lib\\tree.mjs', 'build', 'fr-frozen-uncapped', 'fr-frozen-none-uncapped'], 'trees builds the two resolved variants');
+        same(step('verdict-input').node, ['tools\\ig-proto\\manifest.mjs', 'verdict-input', '--purpose', 'final', '--activation', activationFile, '--selection', selectionFile, '--out', manifestFile], 'verdict-input');
+        same(step('verdicts').node, ['tools\\ig-proto\\verdicts.mjs', '--manifest', manifestFile], 'verdicts');
+        same(step('publish-fr-frozen-none-uncapped').node, ['tools\\ig-proto\\arm.mjs', 'publish', '--task', 'V4-S4C', '--arm', 'fr-frozen-none-uncapped'], 'a publish step');
+        same(step('verdict-input').dependsOn, ['publish-fr-frozen-uncapped', 'publish-fr-frozen-none-uncapped'], 'the final verdict input follows the publishes');
+        same(step('prerequisites').consumes, [selectionFile, activationFile], 'the gate names the receipt and the record it reads');
+        // The rules of every step (T11c): locked rows repeat until done with their state and horizon, and are priced as the template priced them.
+        const locked = plan.steps.filter((/** @type {any} */ s) => s.locked);
+        same(locked.length, rows.length, 'the row steps are the locked steps');
+        assert(locked.every((/** @type {any} */ s) => s.repeatUntilDone === true && s.minHorizonS === 272 && s.optional === false && isDeepStrictEqual(s.price, { type: 'rows', rows: 20, rowS: 100, rowLimitS: 260 })
+          && s.projectS === m.stepPrice(s.price).projectS && s.invocations === m.stepPrice(s.price).invocations), 'every row step: repeatUntilDone, minHorizonS 272, required, the template\'s price');
+        same(plan.allocationMinutes, Math.ceil(requiredSeconds(plan.steps) / 60), 'allocationMinutes is the ceiling of the required locked steps');
+        // The row limit is the matrix's, whatever the template says: the comparators are not cut at the live deadline's 130 s.
+        const cut = m.resolveComparators({ ...w.template, cells: w.template.cells.map((/** @type {any} */ c) => ({ ...c, rowLimitS: 130 })) }, selection, expectation);
+        same(new Set(rowStepsOf(cut).map((/** @type {any} */ s) => argAfter(s, '--row-limit-s'))), new Set(['260']), 'a template that says 130 s still runs at 260 s');
+        // Producers before consumers, and every script exists.
+        const declared = new Set([selectionFile, activationFile]);
+        /** @type {Set<string>} */
+        const produced = new Set();
+        /** @type {string[]} */
+        const ids = [];
+        for (const s of plan.steps) {
+          for (const path of s.consumes) {
+            assert(produced.has(path) || declared.has(path), `${s.id} consumes ${path}, which no earlier step produces and no prerequisite declares`);
+          }
+          for (const dep of s.dependsOn) {
+            assert(ids.includes(dep), `${s.id} depends on ${dep}, which is not an earlier step`);
+          }
+          assert(existsSync(abs(s.node[0].replaceAll('\\', '/'))), `${s.id}: the script ${s.node[0]} does not exist`);
+          s.produces.forEach((/** @type {string} */ p) => produced.add(p));
+          ids.push(s.id);
+        }
+      });
+    },
+  },
+  {
+    name: 'resolve: an interim selection is refused',
+    async run() {
+      await onResolve(async (dir) => {
+        const w = await resolveWorld(dir);
+        const { m } = w;
+        const last = w.activation.declaredRows.at(-1);
+        const refusal = (/** @type {any} */ selection, /** @type {any} */ expectation = w.expectation()) => thrownBy(() => m.resolveComparators(w.template, selection, expectation));
+        const armsWith = (/** @type {string} */ id, /** @type {Record<string, string>} */ over) => ['fr-frozen', 'fr-frozen-none'].map((arm) => ({ id: arm, treeId: w.trees[arm].treeId, paramsHash: sha256(JSON.stringify(w.trees[arm].params)), ...(arm === id ? over : {}) }));
+        // (a) one declared row is not published and nothing closes it: an interim report, never a selection.
+        const interim = w.receipt({ omit: [last] });
+        same([interim.verdict, interim.reasons], ['incomplete', [`missing ${last}`]], '(a) the input is an interim report');
+        assert(refusal(interim) === 'the selection is not final (verdict "incomplete")', `(a) ${refusal(interim)}`);
+        // A receipt that claims pass but does not observe the row: the declared coverage is the resolver's, built from the activation record.
+        const whole = w.receipt();
+        assert(refusal({ ...whole, coverage: { ...whole.coverage, observed: whole.coverage.observed.slice(0, -1) } }) === `the selection is not final (coverage gap ${last})`, 'a receipt that claims pass without the last row');
+        // (b) bound to another tree of fr-frozen than the runs files carry, to other parameters, to another producer, or to evidence that changed.
+        assert(refusal(w.receipt({ arms: armsWith('fr-frozen', { treeId: 'tree-other' }) })) === 'the selection is not final (stale arm fr-frozen)', '(b) another tree id');
+        assert(refusal(w.receipt({ arms: armsWith('fr-frozen-none', { paramsHash: 'f'.repeat(64) }) })) === 'the selection is not final (stale arm fr-frozen-none)', '(b) other parameters');
+        assert(refusal(w.receipt({ harnessHash: 'h-other' })) === 'the selection is not final (producer changed)', '(b) another producer');
+        const freezeText = readFileSync(w.freezeFile, 'utf8');
+        writeJson(w.freezeFile, { ...w.freeze, note: 'changed after the selection' });
+        assert(refusal(whole) === `the selection is not final (evidence changed ${w.freezeRef.path})`, '(b) the freeze file the receipt binds changed');
+        writeText(w.freezeFile, freezeText);
+        same(proofCheck(whole, w.expectation()), { status: 'pass', reasons: [] }, 'the freeze file restored: the receipt passes again');
+        assert(refusal({ ...whole, kind: 'stage1' }).startsWith('the selection is not final (not a class-selection receipt'), 'a receipt of another kind');
+        // (c) a cell the selection ships no arm for: absent from its cells, or shipped by an arm that is no twin.
+        const withoutHell = w.receipt({ classes: [w.freeze.classes[0]] });
+        same([withoutHell.verdict, Object.hasOwn(withoutHell.selection.cells, '26x26-hell-1')], ['pass', false], '(c) the input is final and lacks 26x26-hell-1');
+        assert(refusal(withoutHell) === 'no shipped arm for 26x26-hell-1', `(c) ${refusal(withoutHell)}`);
+        const other = w.receipt({ classes: [{ id: 'n', cells: w.freeze.classes[0].cells, screen: 'fr-ps', noScreen: 'fr-none' }, w.freeze.classes[1]] });
+        assert(refusal(other) === `no shipped arm for ${w.freeze.classes[0].cells[0]}`, `(c) an arm that is no twin: ${refusal(other)}`);
+      });
+    },
+  },
+  {
+    name: 'resolve: a closed collection resolves',
+    async run() {
+      await onResolve(async (dir) => {
+        const w = await resolveWorld(dir);
+        const { m } = w;
+        const last = w.activation.declaredRows.at(-1);
+        const paths = { selectionPath: rel(w.selectionFile), activationPath: w.activationRef.path };
+        same(w.expectation().coverage.expected.length, w.activation.declaredRows.length, 'without a closure the expectation holds every declared row');
+        const closure = await w.closeRows([last]);
+        same(closure.record.missing, [last], 'the closure lists the one row that is not published');
+        const selection = w.receipt({ closure });
+        same([selection.verdict, selection.collection, selection.coverage.missing], ['pass', { activationSha256: w.activationRef.sha256, closureSha256: closure.ref.sha256, missing: [last] }, []], 'the selection is final by the closure');
+        const expectation = w.expectation(closure);
+        same([expectation.coverage?.expected.length, expectation.coverage?.expected.includes(last), expectation.fields], [w.activation.declaredRows.length - 1, false, { collection: { activationSha256: w.activationRef.sha256, closureSha256: closure.ref.sha256, missing: [last] } }],
+          'the expectation lacks the closed row and lists it as missing');
+        const plan = m.resolveComparators(w.template, selection, expectation, paths);
+        same([plan.task, rowStepsOf(plan).length], ['V4-S4C', 17], 'the plan is written for the closed collection');
+        // The same receipt against the expectation of the collection without its closure, and a closure that lists another row, do not pass.
+        const open = thrownBy(() => m.resolveComparators(w.template, selection, w.expectation(), paths));
+        assert(open.startsWith('the selection is not final (') && open.includes(`coverage gap ${last}`), `no closure in the expectation: ${open}`);
+        // The collection the receipt names is checked too: the closure's SHA-256 of the expectation must be the receipt's.
+        const moved = thrownBy(() => m.resolveComparators(w.template, selection, w.expectation({ ...closure, ref: { ...closure.ref, sha256: 'e'.repeat(64) } }), paths));
+        assert(moved.startsWith('the selection is not final (collection is {') && moved.includes('"closureSha256":"' + closure.ref.sha256 + '"'), `another closure SHA-256 in the expectation: ${moved}`);
+        const wrong = w.receipt({ closure: { ...closure, record: { ...closure.record, missing: [w.activation.declaredRows[0]] } }, omit: [last] });
+        same([wrong.verdict, wrong.reasons[0]], ['incomplete', 'closure does not match'], 'a closure of another row leaves the receipt incomplete');
+        assert(thrownBy(() => m.resolveComparators(w.template, wrong, expectation, paths)).startsWith('the selection is not final ('), 'and the resolver refuses it');
+      });
+    },
+  },
+  {
+    name: 'resolve: the template belongs to its activation',
+    async run() {
+      await onResolve(async (dir) => {
+        const w = await resolveWorld(dir);
+        const { m } = w;
+        const selection = w.receipt();
+        const expectation = w.expectation();
+        const changed = { ...w.template, activationSha256: 'f'.repeat(64) };
+        same(thrownBy(() => m.resolveComparators(changed, selection, expectation)), 'the template belongs to another activation', 'a template of another activation record');
+        const second = JSON.parse(readFileSync(join(IG_DIR, 'plans', 'V4-S4X.template.json'), 'utf8'));
+        same([second.task, thrownBy(() => m.resolveComparators(second, selection, expectation))], ['V4-S4X', 'not a V4-S4C template'], 'the second validation\'s template is not a comparator template');
+        same(thrownBy(() => m.resolveComparators({ ...w.template, cells: 'x' }, selection, expectation)), 'not a V4-S4C template', 'a template without its cells');
+        // The template is judged before the selection: an interim report with a template of another activation is refused for the template.
+        same(thrownBy(() => m.resolveComparators(changed, w.receipt({ omit: [w.activation.declaredRows[0]] }), expectation)), 'the template belongs to another activation', 'the order of the refusals');
+        same(m.resolveComparators(w.template, selection, expectation).task, 'V4-S4C', 'the template of this activation resolves');
+      });
+    },
+  },
+  {
+    name: 'verdict input: selection and final',
+    async run() {
+      await onResolve(async (dir) => {
+        const w = await resolveWorld(dir);
+        const { m, v } = w;
+        const { controls } = await collectionKit();
+        const selection = w.receipt();
+        writeJson(w.selectionFile, selection);
+        const selectionRef = { path: rel(w.selectionFile), sha256: sha256File(w.selectionFile) };
+        const plan = m.resolveComparators(w.template, selection, w.expectation(), { selectionPath: selectionRef.path, activationPath: w.activationRef.path });
+        for (const step of rowStepsOf(plan)) {
+          w.publish('V4-S4C', argAfter(step, '--arm'), argAfter(step, '--shard'));
+        }
+        const published = (/** @type {any} */ arm) => m.publishedRuns(arm, { readFile: w.read, list: w.list, who: 'verdict-input' });
+        const input = { activation: w.activation, activationRef: w.activationRef, closureRef: null, freeze: w.freeze, expansion: w.expansion, published };
+        const first = m.verdictInput('selection', input);
+        const final = m.verdictInput('final', { ...input, selectionRef, comparatorPlan: plan });
+        const reps = Array.from({ length: 20 }, (_, i) => 20 + i);
+        for (const [what, manifest, task] of /** @type {[string, any, string][]} */ ([['selection', first, 'V4-S4'], ['final', final, 'V4-S4F']])) {
+          same([manifest.task, manifest.label, manifest.purpose, manifest.quantity, manifest.capMs, manifest.responseBoundMs, manifest.resampleSeed, manifest.resamples],
+            [task, 'frozen', what, 10, 120000, 120000, 20261116, 10000], `${what}: the recipe`);
+          same([manifest.validationReps, manifest.masterReps, manifest.collection], [reps, [20, 21, 22, 23, 24], { activation: w.activationRef, closure: null }], `${what}: the reps and the collection`);
+          same(manifest.classes, w.freeze.classes, `${what}: the classes are the freeze file's`);
+          same([manifest.failingCells, manifest.hell1], [['14x14-nightmare', '15x15b10-nightmare', '12x12-nightmare', '16x16-nightmare', '15x20-nightmare'], ['26x26-hell-1', '20x20-hell-1']], `${what}: the failing cells and the validated Hell 1 boards`);
+          same(manifest.controls, controls.map((/** @type {string} */ cell) => ({ cell, today: 'log-link' })), `${what}: a control per completion-passing cell, against today's arm`);
+          same([manifest.masters.length, manifest.masters[0], manifest.masters.at(-1).cell], [16, { cell: '6x10-master', today: 'log-link', after: 'fr-frozen' }, '26x26-master'], `${what}: a Master identity cell per Master cell`);
+          same(manifest.deadlineProjection, { arms: ['fr-frozen', 'fr-frozen-none'], reserves: [0.3, 0.4, 0.5], deadlineMs: 115000 }, `${what}: the projection`);
+          same(manifest.prerequisites, {
+            stage1: { binding: 'docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json', current: [] },
+            parity: [
+              ...['fr-frozen', 'fr-frozen-none', 'fr-frozen-uncapped', 'fr-frozen-none-uncapped'].map((arm) => ({ binding: `docs/improve-generating/evidence/frozen/V4-S4P/parity-${arm}.accepted.json`, current: [arm] })),
+              { binding: 'docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json', current: ['v4'] },
+            ],
+            liveDeadline: { binding: 'docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.accepted.json', current: ['fr-frozen', 'fr-frozen-none'] },
+          }, `${what}: the prerequisites go through their accepted bindings: stage 1 with no tree, the P-0 pass on v4`);
+          for (const arm of manifest.arms) {
+            same([arm.id === arm.arm, arm.variant, arm.treeId, arm.files.length > 0 && arm.files.every((/** @type {{ path: string, sha256: string }} */ f) => f.path.endsWith('.runs.json') && f.sha256 === sha256Text(/** @type {string} */ (w.mem.get(f.path))))],
+              [true, arm.arm, `tree-${arm.arm}`, true], `${what}: arm ${arm.id}: its own tree and the hashes of its runs files`);
+          }
+          const refused = thrownBy(() => v.verdictRecords(manifest, { readText: () => null, list: () => [], harnessHash: 'h', currentOf: () => ({ treeId: 't', paramsHash: 'p' }) }, { path: 'x/m.json', sha256: 'a'.repeat(64) }));
+          assert(refused.includes('the activation record') && refused.includes('is missing') && !refused.includes('manifest:'), `${what}: the verdict tool reads the manifest and goes on to its records: ${refused}`);
+        }
+        same(first.arms.map((/** @type {any} */ a) => [a.id, a.task]), [['fr-frozen', 'V4-S4'], ['fr-frozen-none', 'V4-S4'], ['log-link', 'V4-S4']], 'selection: the arms of the activation\'s groups');
+        same([first.p5, Object.hasOwn(first, 'selection')], [[], false], 'selection: no P5 pair and no selection field');
+        same(first.arms.find((/** @type {any} */ a) => a.id === 'fr-frozen').files.map((/** @type {any} */ f) => f.path.split('/').at(-1)), ['val-14x14-nightmare.runs.json', 'val-26x26-hell-1.runs.json'], 'every runs file of an arm is listed, in name order');
+        same(final.arms.map((/** @type {any} */ a) => [a.id, a.task]), [['fr-frozen', 'V4-S4'], ['fr-frozen-none', 'V4-S4'], ['log-link', 'V4-S4'], ['fr-frozen-uncapped', 'V4-S4C'], ['fr-frozen-none-uncapped', 'V4-S4C']], 'final: the resolved comparator arms follow');
+        same(final.selection, selectionRef, 'final: the selection it rests on, with the SHA-256 of the receipt');
+        same(final.p5.length, w.template.cells.length, 'final: one P5 pair per comparator cell');
+        same(final.p5[0], { cell: '14x14-nightmare', bounded: 'fr-frozen', uncapped: 'fr-frozen-uncapped', reps }, 'final: a pair of the screen arm');
+        same(final.p5.find((/** @type {any} */ p) => p.cell === '26x26-hell-1'), { cell: '26x26-hell-1', bounded: 'fr-frozen-none', uncapped: 'fr-frozen-none-uncapped', reps }, 'final: a pair of the no-screen arm');
+        same(final.p5.map((/** @type {any} */ p) => p.cell), w.template.cells.map((/** @type {any} */ c) => c.cell), 'final: the pairs follow the template');
+        assert(JSON.stringify(m.verdictInput('final', { ...input, selectionRef, comparatorPlan: plan })) === JSON.stringify(final), 'the same records give the same manifest, byte for byte');
+        // An activated conditional board adds its Hell 1 report and no arm; an approved S4-6 adds no control (its today's-arm groups are no control).
+        const kit = await collectionKit();
+        const board = '24x24-hell-1';
+        const wide = kit.record({ [board]: await pilotRuns(board, 3, 2) }, ['S4-6']);
+        same(wide.optional.approved, ['S4-6'], 'the wider activation approves S4-6');
+        const more = m.verdictInput('selection', { ...input, activation: wide });
+        same([more.hell1, more.controls, more.masters.length, more.arms.map((/** @type {any} */ a) => a.id)], [['26x26-hell-1', '20x20-hell-1', board], first.controls, 16, ['fr-frozen', 'fr-frozen-none', 'log-link']],
+          'the activated board is a Hell 1 cell; the controls, the Master cells and the arms are those of the default collection');
+      });
+    },
+  },
+  {
+    name: 'verdict input: not published',
+    async run() {
+      await onResolve(async (dir) => {
+        const w = await resolveWorld(dir);
+        const { m } = w;
+        const selection = w.receipt();
+        writeJson(w.selectionFile, selection);
+        const selectionRef = { path: rel(w.selectionFile), sha256: sha256File(w.selectionFile) };
+        const plan = m.resolveComparators(w.template, selection, w.expectation(), { selectionPath: selectionRef.path, activationPath: w.activationRef.path });
+        for (const step of rowStepsOf(plan)) {
+          w.publish('V4-S4C', argAfter(step, '--arm'), argAfter(step, '--shard'));
+        }
+        const published = (/** @type {any} */ arm) => m.publishedRuns(arm, { readFile: w.read, list: w.list, who: 'verdict-input' });
+        const input = { activation: w.activation, activationRef: w.activationRef, closureRef: null, freeze: w.freeze, expansion: w.expansion, published };
+        const final = () => m.verdictInput('final', { ...input, selectionRef, comparatorPlan: plan });
+        assert(final().arms.length === 5, 'the control: every arm is published');
+        // One comparator arm's runs file is absent.
+        const file = `${FROZEN_EVIDENCE}/V4-S4C/fr-frozen-none-uncapped/val-26x26-hell-1.runs.json`;
+        const text = /** @type {string} */ (w.mem.get(file));
+        w.mem.delete(file);
+        same(thrownBy(final), 'verdict-input: not published fr-frozen-none-uncapped', 'a comparator arm without its runs file');
+        // A runs file that carries no tree is listed but gives no identity: the arm is not published.
+        w.mem.set(file, JSON.stringify({ meta: {}, rows: [] }));
+        same(thrownBy(final), 'verdict-input: not published fr-frozen-none-uncapped', 'a runs file without its tree');
+        w.mem.set(file, text);
+        assert(final().arms.length === 5, 'the file restored: published again');
+        // An arm of the activation, with the selection purpose.
+        const armFile = `${FROZEN_EVIDENCE}/V4-S4/log-link/val-14x14-nightmare.runs.json`;
+        const armText = /** @type {string} */ (w.mem.get(armFile));
+        w.mem.delete(armFile);
+        same(thrownBy(() => m.verdictInput('selection', input)), 'verdict-input: not published log-link', 'an arm of the activation without its runs file');
+        w.mem.set(armFile, armText);
+        // Two trees in the runs of one arm.
+        w.publish('V4-S4', 'fr-frozen', 'val-20x20-hell-1', { meta: { trees: { 'fr-frozen': { ...w.trees['fr-frozen'], treeId: 'tree-other' } } } });
+        same(thrownBy(final), 'verdict-input: two trees in the runs of fr-frozen', 'two trees in the runs of an arm');
+        w.mem.delete(`${FROZEN_EVIDENCE}/V4-S4/fr-frozen/val-20x20-hell-1.runs.json`);
+        // The other refusals of the manifest's inputs.
+        same(thrownBy(() => m.verdictInput('final', { ...input, comparatorPlan: plan })), 'verdict-input: a final purpose needs the selection receipt', 'a final purpose without its selection');
+        same(thrownBy(() => m.verdictInput('final', { ...input, selectionRef })), 'verdict-input: not a V4-S4C plan', 'a final purpose without its comparator plan');
+        same(thrownBy(() => m.verdictInput('final', { ...input, selectionRef, comparatorPlan: { ...plan, task: 'V4-S4XC' } })), 'verdict-input: not a V4-S4C plan', 'the plan of another task');
+        same(thrownBy(() => m.verdictInput('both', input)), 'verdict-input: purpose must be selection or final, got both', 'a purpose that is neither');
+        assert(thrownBy(() => m.verdictInput('selection', { ...input, activation: { ...w.activation, groups: [{ key: 'V4-S4|fr-frozen|val-nowhere|20|39', origin: 'initial' }] } })).includes('which the matrix has no group for'), 'a group the matrix does not have');
+        assert(thrownBy(() => m.verdictInput('selection', { ...input, activation: { ...w.activation, format: 'other' } })).includes('needs the activation record'), 'a record that is no activation');
+      });
+    },
+  },
+  {
+    name: 'closure: beside its activation',
+    async run() {
+      await onResolve(async (dir) => {
+        const w = await resolveWorld(dir);
+        const { m } = w;
+        const closureFile = join(dir, 'closure.json');
+        const closureOf = () => m.closureOf(w.activationRef.path, w.activationRef.sha256);
+        same(closureOf(), null, '(a) no closure.json beside the record: null');
+        const missing = [w.activation.declaredRows[3], w.activation.declaredRows.at(-1)];
+        const closure = await w.closeRows(missing);
+        same([closure.ref, closure.record.missing, closure.record.activation, closure.record.format], [{ path: rel(closureFile), sha256: sha256File(closureFile) }, missing, w.activationRef, 'ig-v4-closure'], '(b) the closure T11e\'s close wrote: its path and SHA-256, its rows, its activation');
+        // The closure of another activation record, an unreadable one: refused, never read as no closure.
+        const original = JSON.parse(readFileSync(closureFile, 'utf8'));
+        writeJson(closureFile, { ...original, activation: { ...original.activation, sha256: 'f'.repeat(64) } });
+        same(thrownBy(closureOf), `the closure belongs to another activation: ${rel(closureFile)}`, '(c) a closure whose activation.sha256 is not the record\'s');
+        writeJson(closureFile, { ...original, activation: undefined });
+        same(thrownBy(closureOf), `the closure belongs to another activation: ${rel(closureFile)}`, '(c) a closure that names no activation');
+        for (const text of ['{', '[]', 'null', '"x"', '{"missing":"x"}', '{"missing":[1]}', '{"activation":{}}']) {
+          writeText(closureFile, text);
+          same(thrownBy(closureOf), `an unreadable closure exists: ${rel(closureFile)}`, `(d) a closure holding ${text}`);
+        }
+        // It is read beside its own activation record only, and through the reader it is given.
+        const elsewhere = join(dir, 'elsewhere');
+        writeJson(join(elsewhere, 'activation.json'), w.activation);
+        same(m.closureOf(rel(join(elsewhere, 'activation.json')), w.activationRef.sha256), null, 'a record in another folder has no closure');
+        same(m.closureOf(`${rel(dir).replaceAll('/', '\\')}\\activation.json`, w.activationRef.sha256, { readFile: (/** @type {string} */ p) => (p === rel(closureFile) ? JSON.stringify({ missing: [], activation: { sha256: w.activationRef.sha256 } }) : null) }).record.missing, [],
+          'the reader given is the one used, and a path with backslashes names the same folder');
+      });
+    },
+  },
+  {
+    name: 'resolve: the commands',
+    async run() {
+      await onResolve(async (dir) => {
+        const w = await resolveWorld(dir);
+        const { m } = w;
+        const selection = w.receipt();
+        writeJson(w.selectionFile, selection);
+        const out = join(dir, 'V4-S4C.json');
+        const io = { readFile: w.read, list: w.list, harnessHash: 'h-test', template: rel(w.templateFile) };
+        const argv = ['--selection', w.selectionFile, '--activation', w.activationFile, '--out', out, '--label', 'frozen', '--source-label', 'x'];
+        const resolve = (/** @type {string[]} */ args = argv, /** @type {any} */ over = io) => captureOutput(() => m.resolveComparatorsCommand(args, over));
+        const first = await resolve();
+        same([first.code, first.err], [0, ''], `the resolution: exit ${first.code}, ${JSON.stringify(first.err)}`);
+        const plan = JSON.parse(readFileSync(out, 'utf8'));
+        const expected = m.resolveComparators(w.template, selection, w.expectation(), { readFile: w.read, selectionPath: rel(w.selectionFile), activationPath: w.activationRef.path });
+        same(plan, JSON.parse(JSON.stringify(expected)), 'the plan is resolveComparators of the same records');
+        same(first.out.split('\n'), [`wrote ${rel(out)}`, `resolve-comparators: 17 cells, fr-frozen-uncapped, fr-frozen-none-uncapped; V4-S4C: allocation ${plan.allocationMinutes} min`, ''], 'the printout');
+        const bytes = rawHashes([out]);
+        same([(await resolve()).code, rawHashes([out])], [0, bytes], 'a second resolution replaces its own plan with the same bytes');
+        // Every refusal is `resolve-comparators: <reason>`, exit 1, and nothing is written.
+        const fresh2 = join(dir, 'other-plan.json');
+        const refused = async (/** @type {string} */ what, /** @type {string} */ text, /** @type {string[]} */ args = ['--selection', w.selectionFile, '--activation', w.activationFile, '--out', fresh2, '--label', 'frozen'], /** @type {any} */ over = io) => {
+          const result = await resolve(args, over);
+          assert(result.code === 1 && result.out === '' && result.err.startsWith('resolve-comparators: ') && result.err.includes(text) && !existsSync(fresh2), `${what}: exit ${result.code}, ${JSON.stringify(result.err)}`);
+        };
+        await refused('another label', '--label frozen only', ['--selection', 'x', '--activation', 'y', '--out', fresh2, '--label', 'selftest']);
+        await refused('no output', 'needs --out <path>', ['--selection', 'x', '--activation', 'y', '--label', 'frozen']);
+        await refused('no selection receipt', 'no selection receipt', ['--selection', rel(join(dir, 'none.json')), '--activation', w.activationFile, '--out', fresh2, '--label', 'frozen']);
+        await refused('no template', 'no template', undefined, { ...io, template: rel(join(dir, 'none.json')) });
+        await refused('no activation record', 'no activation record', ['--selection', w.selectionFile, '--activation', rel(join(dir, 'none.json')), '--out', fresh2, '--label', 'frozen']);
+        await refused('no runs of a class arm', 'no published runs of fr-frozen-none', undefined, { ...io, list: (/** @type {string} */ f) => (f.endsWith('/fr-frozen-none') ? [] : w.list(f)) });
+        w.publish('V4-S4', 'fr-frozen', 'val-other', { meta: { trees: { 'fr-frozen': { ...w.trees['fr-frozen'], treeId: 'tree-other' } } } });
+        await refused('two trees in the runs of a class arm', 'two trees in the runs of fr-frozen');
+        w.mem.delete(`${FROZEN_EVIDENCE}/V4-S4/fr-frozen/val-other.runs.json`);
+        await refused('a template of another activation', 'the template belongs to another activation', undefined, { ...io, readFile: (/** @type {string} */ p) => (p === io.template ? JSON.stringify({ ...w.template, activationSha256: 'f'.repeat(64) }) : w.read(p)) });
+        writeJson(w.selectionFile, w.receipt({ omit: [w.activation.declaredRows.at(-1)] }));
+        await refused('an interim selection', 'the selection is not final (');
+        writeJson(w.selectionFile, selection);
+        const closureFile = join(dir, 'closure.json');
+        writeJson(closureFile, { format: 'ig-v4-closure', missing: [], activation: { sha256: 'f'.repeat(64) } });
+        await refused('a closure of another activation', `the closure belongs to another activation: ${rel(closureFile)}`);
+        writeText(closureFile, '{');
+        await refused('an unreadable closure', `an unreadable closure exists: ${rel(closureFile)}`);
+        rmSync(closureFile);
+        // A file that is not a plan of this command is never overwritten.
+        writeJson(fresh2, { task: 'V4-S4C', generatedBy: 'by hand' });
+        const foreign = await resolve(['--selection', w.selectionFile, '--activation', w.activationFile, '--out', fresh2, '--label', 'frozen']);
+        same([foreign.code, foreign.out, foreign.err, JSON.parse(readFileSync(fresh2, 'utf8')).generatedBy], [1, '', `resolve-comparators: ${rel(fresh2)} exists and is not a plan of this command\n`, 'by hand'], 'a foreign file is refused and kept');
+        // The dispatcher reaches both commands.
+        const viaMain = await captureOutput(() => m.main(['resolve-comparators', '--label', 'selftest']));
+        same([viaMain.code, viaMain.err], [1, 'resolve-comparators: --label frozen only\n'], 'main dispatches resolve-comparators');
+        const viaMain2 = await captureOutput(() => m.main(['verdict-input', '--label', 'selftest']));
+        same([viaMain2.code, viaMain2.err], [1, 'verdict-input: --label frozen only\n'], 'main dispatches verdict-input');
+
+        // verdict-input: the manifests of the records on disk.
+        const manifestFile = join(dir, 'V4-S4.verdict-manifest.json');
+        const finalFile = join(dir, 'V4-S4F.verdict-manifest.json');
+        const planFile = join(dir, 'V4-S4C.plan.json');
+        writeJson(planFile, plan);
+        for (const step of rowStepsOf(plan)) {
+          w.publish('V4-S4C', argAfter(step, '--arm'), argAfter(step, '--shard'));
+        }
+        const vio = { readFile: w.read, list: w.list, comparatorPlan: rel(planFile) };
+        const input = (/** @type {string[]} */ ...extra) => ['--activation', w.activationFile, ...extra, '--label', 'frozen', '--source-label', 'x'];
+        const inputRefused = async (/** @type {string} */ what, /** @type {string} */ text, /** @type {string[]} */ args, /** @type {any} */ over = vio) => {
+          const target = args[args.indexOf('--out') + 1];
+          const result = await captureOutput(() => m.verdictInputCommand(args, over));
+          assert(result.code === 1 && result.out === '' && result.err.startsWith('verdict-input: ') && result.err.includes(text) && !existsSync(target), `${what}: exit ${result.code}, ${JSON.stringify(result.err)}`);
+        };
+        const ref = (/** @type {string} */ file) => ({ path: rel(file), sha256: sha256File(file) });
+        const published = (/** @type {any} */ arm) => m.publishedRuns(arm, { readFile: w.read, list: w.list, who: 'verdict-input' });
+        const common = { activation: w.activation, activationRef: w.activationRef, closureRef: null, freeze: w.freeze, expansion: w.expansion, published };
+        const sel = await captureOutput(() => m.verdictInputCommand(input('--purpose', 'selection', '--out', manifestFile), vio));
+        same([sel.code, sel.err], [0, ''], `the selection manifest: exit ${sel.code}, ${JSON.stringify(sel.err)}`);
+        same(JSON.parse(readFileSync(manifestFile, 'utf8')), JSON.parse(JSON.stringify(m.verdictInput('selection', common))), 'the manifest is verdictInput of the same records (today\'s controls)');
+        same(sel.out.split('\n'), [`wrote ${rel(manifestFile)}`, 'verdict-input: selection V4-S4, 3 arms, 4 runs files, 0 P5 pairs', ''], 'the printout');
+        const fin = await captureOutput(() => m.verdictInputCommand(input('--purpose', 'final', '--selection', w.selectionFile, '--out', finalFile), vio));
+        same([fin.code, fin.err], [0, ''], `the final manifest: exit ${fin.code}, ${JSON.stringify(fin.err)}`);
+        same(JSON.parse(readFileSync(finalFile, 'utf8')), JSON.parse(JSON.stringify(m.verdictInput('final', { ...common, selectionRef: ref(w.selectionFile), comparatorPlan: plan }))), 'the final manifest names the receipt\'s SHA-256 and every comparator pair');
+        same(fin.out.split('\n')[1], 'verdict-input: final V4-S4F, 5 arms, 21 runs files, 17 P5 pairs', 'the printout of the final manifest');
+        const never = join(dir, 'never.json');
+        await inputRefused('a final purpose without its selection', 'a final purpose needs --selection <receipt>', input('--purpose', 'final', '--out', never));
+        await inputRefused('a selection purpose with a receipt', '--selection belongs to the purpose final', input('--purpose', 'selection', '--selection', w.selectionFile, '--out', never));
+        await inputRefused('a purpose that is neither', 'needs --purpose selection or final', input('--purpose', 'both', '--out', never));
+        await inputRefused('no output', 'needs --out <path>', ['--activation', w.activationFile, '--purpose', 'selection', '--label', 'frozen']);
+        await inputRefused('another label', '--label frozen only', ['--purpose', 'selection', '--activation', w.activationFile, '--out', never, '--label', 'selftest']);
+        await inputRefused('no selection receipt', 'no selection receipt', input('--purpose', 'final', '--selection', rel(join(dir, 'none.json')), '--out', never));
+        await inputRefused('no comparator plan', 'no comparator plan', input('--purpose', 'final', '--selection', w.selectionFile, '--out', never), { ...vio, comparatorPlan: rel(join(dir, 'none.json')) });
+        await inputRefused('no activation record', 'no activation record', ['--purpose', 'selection', '--activation', rel(join(dir, 'none.json')), '--out', never, '--label', 'frozen']);
+        w.mem.delete(`${FROZEN_EVIDENCE}/V4-S4C/fr-frozen-none-uncapped/val-26x26-hell-1.runs.json`);
+        await inputRefused('a comparator arm that is not published', 'not published fr-frozen-none-uncapped', input('--purpose', 'final', '--selection', w.selectionFile, '--out', never));
+        // The closure beside the record is named in the manifest.
+        const closure = await w.closeRows([w.activation.declaredRows.at(-1)]);
+        const closed = await captureOutput(() => m.verdictInputCommand(input('--purpose', 'selection', '--out', manifestFile), vio));
+        same([closed.code, JSON.parse(readFileSync(manifestFile, 'utf8')).collection], [0, { activation: w.activationRef, closure: closure.ref }], 'the manifest names the closure beside the activation record');
+      });
+    },
+  },
+  {
+    name: 'resolve: the selection prerequisite',
+    async run() {
+      await onResolve(async (dir) => {
+        const w = await resolveWorld(dir);
+        const { m } = w;
+        const selection = w.receipt();
+        writeJson(w.selectionFile, selection);
+        const entry = { type: 'selection', path: rel(w.selectionFile), activation: w.activationRef.path };
+        const io = (/** @type {Record<string, any>} */ over = {}) => ({
+          variants: ['fr-frozen-uncapped', 'fr-frozen-none-uncapped'], exists: () => true, readJson: () => ({}),
+          currentOf: async (/** @type {string} */ id) => ({ id, treeId: 't', paramsHash: 'p' }), readFile: w.read, list: w.list, harnessHash: 'h-test', ...over,
+        });
+        const check = async (/** @type {Record<string, any>} */ over = {}, /** @type {any[]} */ list = [entry]) => (await m.checkPrerequisites(list, io(over)));
+        const pass = await check();
+        same([pass.status, pass.reasons, pass.line], ['pass', [], 'prerequisites: pass'], 'a final selection of the activation passes');
+        // The plan T11f resolves passes its own gate.
+        const plan = m.resolveComparators(w.template, selection, w.expectation(), { selectionPath: entry.path, activationPath: entry.activation });
+        same((await check({}, plan.prerequisites)).status, 'pass', 'the prerequisites of the resolved plan pass');
+        const blocked = async (/** @type {Record<string, any>} */ over, /** @type {string[]} */ reasons, /** @type {string} */ what) => {
+          const got = await check(over);
+          same([got.status, got.reasons, got.line], ['blocked', reasons, `prerequisites: blocked (${reasons.join('; ')})`], what);
+        };
+        await blocked({ harnessHash: 'h-other' }, ['selection: producer changed'], 'another producer');
+        await blocked({ readFile: (/** @type {string} */ p) => (p === entry.path ? null : w.read(p)) }, [`selection: missing ${entry.path}`], 'no receipt');
+        await blocked({ readFile: (/** @type {string} */ p) => (p === entry.path ? '{' : w.read(p)) }, [`selection: ${entry.path} is not JSON`], 'a receipt that is not JSON');
+        await blocked({ list: (/** @type {string} */ f) => (f.endsWith('/fr-frozen') ? [] : w.list(f)) }, ['selection: no published runs of fr-frozen'], 'no runs of a class arm');
+        await blocked({ readFile: (/** @type {string} */ p) => (p === w.activationRef.path ? null : w.read(p)) }, [`selection: no activation record ${w.activationRef.path}`], 'no activation record');
+        // An interim receipt, and the closure of another activation.
+        const last = w.activation.declaredRows.at(-1);
+        writeJson(w.selectionFile, w.receipt({ omit: [last] }));
+        await blocked({}, ['selection: verdict "incomplete"'], 'an interim report');
+        writeJson(w.selectionFile, selection);
+        const closureFile = join(dir, 'closure.json');
+        writeJson(closureFile, { format: 'ig-v4-closure', missing: [], activation: { sha256: 'f'.repeat(64) } });
+        await blocked({}, [`selection: the closure belongs to another activation: ${rel(closureFile)}`], 'a closure of another activation');
+        rmSync(closureFile);
+        // The other entries are judged as before, and each reason keeps its own prefix.
+        const mixed = await check({ variants: [], harnessHash: 'h-other' }, [{ type: 'variant', id: 'fr-frozen-uncapped' }, entry]);
+        same(mixed.reasons, ['variant fr-frozen-uncapped missing', 'selection: producer changed'], 'a variant and a selection in one list');
+        // A receipt of a closed collection passes with its closure beside the record.
+        const closure = await w.closeRows([last]);
+        writeJson(w.selectionFile, w.receipt({ closure }));
+        same((await check()).status, 'pass', 'a closed collection\'s selection passes');
+        same(m.resolveComparators(w.template, w.receipt({ closure }), w.expectation(closure), { selectionPath: entry.path, activationPath: entry.activation }).steps[0].consumes, [entry.path, entry.activation], 'the gate step names the receipt and the record');
+      });
+    },
+  },
+  {
+    name: 'resolve: the expectation is built apart from the receipt',
+    async run() {
+      await onResolve(async (dir) => {
+        const w = await resolveWorld(dir);
+        const { m } = w;
+        const x = w.expectation();
+        same([x.kind, x.source, x.harnessHash], ['class-selection', { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST }, 'h-test'], 'the kind, the frozen source and the harness it was given');
+        same(x.arms, ['fr-frozen', 'fr-frozen-none'].map((id) => ({ id, treeId: `tree-${id}`, paramsHash: sha256(JSON.stringify({ id })) })), 'the class arms of the freeze file, with the tree id and the hash of the parameters of their runs');
+        same([x.coverage, x.fields], [{ expected: w.activation.declaredRows }, { collection: { activationSha256: w.activationRef.sha256, closureSha256: null, missing: [] } }], 'every declared row, and the collection without a closure');
+        // The arms are sorted and distinct whatever the classes say; an arm no class names is not bound.
+        const reversed = { classes: [...w.freeze.classes].reverse().map((/** @type {any} */ c) => ({ ...c, screen: c.noScreen, noScreen: c.screen })) };
+        const build = (/** @type {Record<string, any>} */ over = {}) => m.selectionExpectation({
+          activation: w.activation, activationSha256: w.activationRef.sha256, closure: null, closureSha256: null, freeze: w.freeze,
+          runsMeta: { 'fr-frozen': w.trees['fr-frozen'], 'fr-frozen-none': w.trees['fr-frozen-none'] }, harnessHash: 'h-test', ...over,
+        });
+        same(build({ freeze: reversed }).arms, x.arms, 'sorted, whatever the order of the classes');
+        same(build({ freeze: { classes: [{ id: 'k', cells: ['c'], screen: 'fr-frozen', noScreen: 'fr-frozen' }] }, runsMeta: { 'fr-frozen': w.trees['fr-frozen'] } }).arms.map((/** @type {any} */ a) => a.id), ['fr-frozen'], 'a distinct arm once, and no other');
+        // The tree of an arm is one value or the equal values of every runs file; two different values, or none, are refused.
+        same(build({ runsMeta: { 'fr-frozen': [w.trees['fr-frozen'], w.trees['fr-frozen']], 'fr-frozen-none': w.trees['fr-frozen-none'] } }), x, 'the equal trees of two runs files');
+        same(thrownBy(() => build({ runsMeta: { 'fr-frozen': [w.trees['fr-frozen'], { ...w.trees['fr-frozen'], treeId: 'tree-other' }], 'fr-frozen-none': w.trees['fr-frozen-none'] } })), 'resolve: two trees in the runs of fr-frozen', 'two different trees');
+        for (const [what, runsMeta] of /** @type {[string, any][]} */ ([
+          ['no tree', { 'fr-frozen': w.trees['fr-frozen'] }], ['an empty list', { 'fr-frozen': [], 'fr-frozen-none': w.trees['fr-frozen-none'] }],
+          ['no parameters', { 'fr-frozen': { treeId: 't' }, 'fr-frozen-none': w.trees['fr-frozen-none'] }],
+        ])) {
+          assert(thrownBy(() => build({ runsMeta })).includes('carry no tree identity'), `${what} for a class arm`);
+        }
+        // `selectionInputs` reads those records itself: the record, the closure beside it, the freeze file and the runs of the class arms.
+        const io = { readFile: w.read, list: w.list, harnessHash: 'h-test' };
+        const inputs = m.selectionInputs(w.activationRef.path, io);
+        same([inputs.expectation, inputs.closure, inputs.activationSha256, inputs.freeze], [x, null, w.activationRef.sha256, w.freeze], 'selectionInputs gives the expectation of the same records');
+        // A closure moves the coverage and names the collection; the records it needs are checked.
+        const closure = await w.closeRows([w.activation.declaredRows[5]]);
+        const closed = w.expectation(closure);
+        same([closed.coverage?.expected.length, closed.fields], [w.activation.declaredRows.length - 1, { collection: { activationSha256: w.activationRef.sha256, closureSha256: closure.ref.sha256, missing: [w.activation.declaredRows[5]] } }], 'the closure: one row less, and named');
+        same(m.selectionInputs(w.activationRef.path, io).expectation, closed, 'and, with the closure beside the record, selectionInputs reads it');
+        assert(thrownBy(() => build({ activationSha256: 'short' })).includes('needs the activation record'), 'an activation hash that is no SHA-256');
+        assert(thrownBy(() => build({ activation: { declaredRows: 'x' } })).includes('needs the activation record'), 'declared rows that are no list');
+        assert(thrownBy(() => build({ freeze: {} })).includes('needs the activation record'), 'a freeze file without classes');
+        assert(thrownBy(() => build({ closure: { missing: ['a'] }, closureSha256: null })).includes('a closure needs'), 'a closure without its SHA-256');
+        assert(thrownBy(() => build({ closure: { missing: 'a' }, closureSha256: 'a'.repeat(64) })).includes('a closure needs'), 'a closure without its list of rows');
+        same(thrownBy(() => m.selectionInputs(w.activationRef.path, { ...io, readFile: (/** @type {string} */ p) => (p === w.freezeRef.path ? null : w.read(p)) })), `no freeze file ${w.freezeRef.path}`, 'a missing freeze file');
+        same(thrownBy(() => m.selectionInputs(rel(join(dir, 'none.json')), io)), `no activation record ${rel(join(dir, 'none.json'))}`, 'a missing activation record');
+        writeText(w.freezeFile, '{ "classes": [{ "id": 1 }] }');
+        assert(thrownBy(() => m.selectionInputs(w.activationRef.path, io)).includes('is not a freeze file'), 'a freeze file whose classes are malformed');
+      });
+    },
+  },
+  {
+    name: 'resolve: the expectation fits the receipt the verdict tool writes',
+    async run() {
+      const kit = await verdictKit();
+      const { v } = kit;
+      const m = (await matrixKit()).m;
+      // A collection of the class k (arms sa and na, cell c) whose records stand beside each other as T11e and T09e write them.
+      const declared = ['sa', 'na'].flatMap((id) => REPS20.map((rep) => `${id}/c~${rep}`));
+      const freeze = { classes: [{ id: 'k', cells: ['c'], screen: 'sa', noScreen: 'na' }] };
+      const freezeText = JSON.stringify(freeze);
+      const activation = { format: 'ig-v4-activation', declaredRows: declared, epoch: { freeze: { path: 'act/freeze.json', sha256: sha256Text(freezeText) } } };
+      const activationText = JSON.stringify(activation);
+      const activationSha256 = sha256Text(activationText);
+      const trees = { sa: { treeId: 'tree-sa', params: { id: 'sa' } }, na: { treeId: 'tree-na', params: { id: 'na' } } };
+      /** @param {string[]} missing @param {boolean} closed */
+      const world = (missing, closed) => {
+        const closureText = JSON.stringify({ format: 'ig-v4-closure', activation: { path: 'act/activation.json', sha256: activationSha256 }, missing });
+        const files = { 'act/freeze.json': freezeText, 'act/activation.json': activationText, ...(closed ? { 'act/closure.json': closureText } : {}) };
+        const refs = { activation: { path: 'act/activation.json', sha256: activationSha256 }, closure: closed ? { path: 'act/closure.json', sha256: sha256Text(closureText) } : null };
+        const w = toolWorld(kit, { rows: (id, rep) => (missing.includes(`${id}/c~${rep}`) ? null : undefined), files, manifest: { collection: refs } });
+        const { receipt } = v.verdictRecords(w.manifest, w.repo.io, w.ref);
+        const closure = closed ? m.closureOf('act/activation.json', activationSha256, { readFile: w.repo.readFile }) : null;
+        const expectation = m.selectionExpectation({
+          activation, activationSha256, closure: closure?.record ?? null, closureSha256: closure?.ref.sha256 ?? null, freeze, runsMeta: trees, harnessHash: 'h-test',
+        });
+        return { w, receipt, expectation, closure };
+      };
+      const whole = world([], false);
+      same([whole.receipt.verdict, proofCheck(whole.receipt, whole.expectation, whole.w.repo.readFile)], ['pass', { status: 'pass', reasons: [] }], 'every declared row published: the receipt passes its expectation');
+      const interim = world(['na/c~19'], false);
+      same([interim.receipt.verdict, proofCheck(interim.receipt, interim.expectation, interim.w.repo.readFile).status], ['incomplete', 'incomplete'], 'a declared row not published and no closure: not final');
+      const sealed = world(['na/c~19'], true);
+      same([sealed.receipt.verdict, sealed.receipt.collection.missing, proofCheck(sealed.receipt, sealed.expectation, sealed.w.repo.readFile)], ['pass', ['na/c~19'], { status: 'pass', reasons: [] }],
+        'a closure of exactly the missing row: the receipt passes the expectation built from the same records');
+      const unclosed = m.selectionExpectation({ activation, activationSha256, closure: null, closureSha256: null, freeze, runsMeta: trees, harnessHash: 'h-test' });
+      assert(proofCheck(sealed.receipt, unclosed, sealed.w.repo.readFile).reasons[0] === 'coverage gap na/c~19', 'the same receipt does not pass an expectation that ignores the closure');
+      same(proofCheck(sealed.receipt, { ...sealed.expectation, harnessHash: 'h-other' }, sealed.w.repo.readFile), { status: 'incomplete', reasons: ['producer changed'] }, 'nor one for another harness');
+      same(proofCheck(sealed.receipt, { ...sealed.expectation, arms: [{ id: 'sa', treeId: 'tree-sa', paramsHash: sha256(JSON.stringify({ id: 'other' })) }] }, sealed.w.repo.readFile),
+        { status: 'incomplete', reasons: ['stale arm sa'] }, 'nor one for other parameters of an arm');
+    },
+  },
+  {
+    name: 'activate: the freeze names exactly the comparator cells',
+    async run() {
+      const { d, controls } = await collectionKit();
+      const cell = '24x24-hell-1';
+      const other = '14x14-hell-1';
+      await onCollections(async (dir) => {
+        const { rowsOf, world, go, written, parse, freezeOf, comparatorCellsOf } = await activateWorld(dir);
+        // The pilot of 24x24 reaches ten on three valid requests: it is activated, and its comparator cell joins the 17 of the initial collection.
+        const files = { [cell]: await rowsOf(cell, 3, 2) };
+        const initial = [...d.cells.failingNightmare, ...d.cells.hell1Validated, ...controls];
+        const record = [...initial, cell];
+        same([initial.length, comparatorCellsOf(files)], [17, record], 'the activation has 18 comparator cells: the 17 of the initial collection, then 24x24 Hell 1');
+        const message = (/** @type {string} */ parts) => `manifest: the freeze file's classes do not match the comparator cells of the collection (${parts})\n`;
+        const refused = async (/** @type {string} */ name, /** @type {any} */ freeze, /** @type {string} */ expected) => {
+          const paths = await world(name, files, freeze);
+          const out = await go(paths);
+          same([out.code, out.out, out.err, written(paths)], [1, '', expected, []], `${name}: exit ${out.code}, ${JSON.stringify(out.err)}, ${written(paths).length} files written`);
+        };
+        // (a) to (c): the three differences, each alone.
+        await refused('a-missing', freezeOf(initial), message('not in a class 24x24-hell-1'));
+        await refused('b-unmeasured', freezeOf([...initial, cell, other]), message('not measured 14x14-hell-1'));
+        await refused('c-twice', { classes: [{ id: 'a', cells: record, screen: 'fr-frozen', noScreen: 'fr-frozen-none' }, { id: 'b', cells: ['14x14-nightmare'], screen: 'fr-frozen', noScreen: 'fr-frozen-none' }] },
+          message('in more than one class 14x14-nightmare'));
+        // The three together: each list in its own order (the record's, the record's, sorted) and the parts in this order, joined by `; `.
+        const [a, b, c, e, f] = d.cells.failingNightmare;
+        await refused('abc-together', {
+          classes: [
+            { id: 'a', cells: [...record.filter((x) => ![e, '20x20-hell-1', cell].includes(x)), 'zz-extra', other], screen: 'fr-frozen', noScreen: 'fr-frozen-none' },
+            { id: 'b', cells: [c, a], screen: 'fr-frozen', noScreen: 'fr-frozen-none' },
+          ],
+        }, message(`not in a class ${e}, 20x20-hell-1, ${cell}; in more than one class ${a}, ${c}; not measured ${other}, zz-extra`));
+        // A cell listed twice in one class is in more than one class, as T09e's manifest reads it; a class of no cell names nothing.
+        await refused('d-same-class', { classes: [{ id: 'a', cells: [...record, f], screen: 'fr-frozen', noScreen: 'fr-frozen-none' }] }, message(`in more than one class ${f}`));
+        await refused('e-no-classes', { classes: [] }, message(`not in a class ${record.join(', ')}`));
+        // A freeze file that is no freeze file is refused as such, before anything is written.
+        for (const [name, content] of /** @type {[string, string][]} */ ([['f-malformed', '{ "classes": [{ "id": 1 }] }'], ['g-no-classes', '{}'], ['h-not-json', '{']])) {
+          const paths = await world(name, files);
+          writeText(paths.freeze, content);
+          const out = await go(paths);
+          same([out.code, out.out, out.err, written(paths)], [1, '', `manifest: ${rel(paths.freeze)} is not a freeze file: its classes must be [{ id, cells, screen, noScreen }]\n`, []], `${name}: exit ${out.code}, ${JSON.stringify(out.err)}`);
+        }
+        // (d) the 18 once each, in two classes: the record, the plan and the template are written.
+        const paths = await world('d-exact', files, { classes: [{ id: 'a', cells: initial, screen: 'fr-frozen', noScreen: 'fr-frozen-none' }, { id: 'b', cells: [cell], screen: 'fr-frozen', noScreen: 'fr-frozen-none' }] });
+        const done = await go(paths);
+        same([done.code, written(paths).length, parse(paths.activation).comparatorCells.map((/** @type {any} */ x) => x.cell)], [0, 3, record], `the exact freeze: exit ${done.code}, ${JSON.stringify(done.err)}`);
+        same(parse(paths.activation).epoch.freeze, { path: rel(paths.freeze), sha256: sha256File(paths.freeze) }, 'the record binds the freeze file it checked');
       });
     },
   },

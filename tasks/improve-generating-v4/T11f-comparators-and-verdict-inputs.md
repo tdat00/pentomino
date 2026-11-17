@@ -197,13 +197,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-18 00:20:20 +07:00 (dispatch, base `28f13f5`) to 01:04:10 +07:00 (acceptance): 43 min 50 s; the developer's own times 00:20:13-00:45:36 and, in the fix round, 00:57:40-01:01:50 |
+| Waiting for rulings | about 13 min (SA-Opus's ruling 00:48-00:56 and confirmation 01:03) |
+| Agent id, model | `4bce3668-00e8-4dc1-a998-70361d2fbc3d`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 135 calls; 48,875,812 input, 222,102 output, 47,792,381 cache-read |
+| AI credits | 970.87 |
+| Questions and rulings | Q1 (non-blocking): `resolveComparators` refuses the whole resolution when a template cell has no shipped arm; ruled default (a) stays (skipping would silently drop its P5 pairs), so the freeze's classes must name exactly the comparator cells of the activated collection, each in one class (N-V4-03, go check (4) of §3.4); fix round: `activate` refuses a freeze file whose classes do not match, before the write-once record. Deviations (extra cases, the changed unknown-command assertion, `checkPrerequisites(list, io)`, the gate step consuming the activation path) and readings accepted; named items handled by the resume rule (§3.2: no re-run of a step a later record binds) and D-V4-20 (no harness edit from `V4-S4`'s verdicts step to `V4-S4C`'s final verdict). Fix-round deviations accepted (a same-class duplicate counts as `in more than one class`; `activateWorld` hoisted; extra sub-checks). Pack amendments `d7b7299`, `692aa36` |
+| Fix rounds | 1 (activate checks the freeze's classes against the comparator cells; one case; README) |
+| Gates re-run by the orchestrator | `--items`: 194 passed, 0 failed (33.723 s; cases 183-194); `--frozen`: 10 passed; `check-edits --all`: 34 `ok`, no other line; `compile` leaves the committed plans byte-identical; no `plans/V4-S4.json`; `check-prerequisites --plan V4-S2`: pass; firewall `check` (V4-T11f): 289 production files unchanged; guard (plans, lib, lock, docs, tasks included) empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. The developer's mutants (8 in the first round, the disabled freeze check in the fix round) were each caught. No locked command and no machine time |
+| Commit | this task's commit, `improve-generating T11f: Comparators and verdict inputs: resolution from a final selection, the selection and final manifests` |
+| Issues and named items | none new; the raw journals and runs files bound by the selection receipt must stay on disk until phase 0 is decided (§3.3) |

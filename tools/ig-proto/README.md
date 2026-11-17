@@ -2340,9 +2340,11 @@ this section executes any plan, rating, pool or measurement (unlocked). The matr
   `listVariants()` (else `variant <id> missing`), `{ type: 'file', path }` when the file exists (else `missing file <path>`), `{ type:
   'accepted', path, current, kind?, fields? }` when the binding exists (else `missing binding <path>`), `checkAccepted` passes with
   today's tree of each `current` id, its `expected.kind` is `kind` (else `<path> is not a <kind> binding`) and, for `fields:
-  'LIVE_DEADLINE_FIELDS'`, its `expected.fields` equal T04d's `LIVE_DEADLINE_FIELDS` (else `<path> lacks the live-deadline fields`);
-  another type is `unknown prerequisite <type>`. A receipt is a prerequisite only through its accepted binding (RV3-06). Today `V4-S2`
-  passes and `V4-LIVE` is blocked on `fr-frozen`, `freeze.json`, `live-deadline.mjs` and the P-0 binding, as it must be.
+  'LIVE_DEADLINE_FIELDS'`, its `expected.fields` equal T04d's `LIVE_DEADLINE_FIELDS` (else `<path> lacks the live-deadline fields`); `{ type:
+  'selection', path, activation }` (V4-T11f, below) when the class-selection receipt at `path` passes `proofCheck` against the expectation of the
+  activation record (else `selection: <reason>`); another type is `unknown prerequisite <type>`. A parity, P-0, stage-1 or live-deadline receipt is
+  a prerequisite only through its accepted binding (RV3-06); the class-selection receipt is checked against records the gate reads itself. Today
+  `V4-S2` passes and `V4-LIVE` is blocked on `fr-frozen`, `freeze.json`, `live-deadline.mjs` and the P-0 binding, as it must be.
 - **PowerShell readers.** A rows step's `price` holds `rows` and `rowS`, keys that differ only in case, which PowerShell 7's
   `ConvertFrom-Json` refuses. `run-task.ps1` therefore reads a plan with `ConvertFrom-Json -AsHashtable` (line 39; the state files and the
   budget decisions are read as before, and every earlier plan reads as before: the dry run of `plans/V4-T10c.json` is identical), and any
@@ -2405,7 +2407,15 @@ commands write records that are never rewritten. T11e itself runs neither comman
   Refusals, in this order, each exit 1 with nothing written: `activation exists: an activation is never rewritten`, a missing
   `--collection` or one other than `initial` (`only the initial collection is activated here; the second is N-V4-04's`), a missing freeze
   file (`evidence/frozen/V4-S3/freeze.json`) or universe, an existing `plans/V4-S4.json` or `plans/V4-S4C.template.json`, an id that cannot be
-  approved, a pilot row published twice, and a step that is not admissible. It reads the pilots (`evidence/frozen/V4-S2/fr-base/*.runs.json`: the
+  approved, a pilot row published twice, and a step that is not admissible; and, once the record and the plans are built and before anything is
+  written, **a freeze file whose classes do not name exactly the record's comparator cells** (V4-T11f). The freeze file is read with the shape
+  check of `resolve-comparators` (`<path> is not a freeze file: its classes must be [{ id, cells, screen, noScreen }]` refuses); then every
+  comparator cell must be in exactly one class and every class cell must be a comparator cell, else `manifest: the freeze file's classes do not
+  match the comparator cells of the collection (<parts>)`, `<parts>` joined by `; `, in this order and only when not empty: `not in a class
+  <cells>` (comparator cells of no class, in the record's order), `in more than one class <cells>` (in the record's order; a cell listed twice in
+  one class counts, as T09e refuses such a manifest) and `not measured <cells>` (class cells that are no comparator cell, sorted), each list
+  joined by `, `. The reason: `resolve-comparators` refuses a comparator cell that no class ships (`no shipped arm for <cell>`), and a class cell
+  that stage 4 does not measure would leave its class inconclusive (T09e), and the record is never rewritten. It reads the pilots (`evidence/frozen/V4-S2/fr-base/*.runs.json`: the
   `run` of every row of a conditional board with a pilot rep, `reps.pilot`, 0 to 4; rows of other reps or cases are not read; no folder, no
   runs), hashes the data file, the freeze file and the universe with `sha256File`, builds the record and the plans (the controls of
   today's reports, the measured durations of the item logs and the cell projections as `compile` takes them) before anything is written,
@@ -2431,4 +2441,84 @@ commands write records that are never rewritten. T11e itself runs neither comman
   scope is required` (the optional flag is reset, the rows the runner's default rule selects equal `declaredRows`, the allocation includes
   the added steps), `optional items only with approval`, `never rewritten` (`activateCommand` twice, the refusals, the pilot readings, the
   printout), `a complete producer chain` (every consumed path produced earlier or declared, only the five real variants, the proofs before
-  the rows, the gate understanding every prerequisite), `the inputs are checked` and `close: exactly the missing rows`.
+  the rows, the gate understanding every prerequisite), `the inputs are checked`, `close: exactly the missing rows` and `the freeze names
+  exactly the comparator cells` (V4-T11f: the cases that run `activate` write a freeze file whose classes name the comparator cells of the
+  activation they make; the refusals leave nothing written).
+
+### Comparators and verdict inputs (V4-T11f)
+
+The comparator of a cell is the uncapped twin of the arm its class ships, so it can only be chosen from a final class selection of the
+same collection (R2-11 steps 5 and 6, R3-03, R3-04, RV3-06). T11f resolves the comparator template of T11e into the concrete plan `V4-S4C`
+and writes the two verdict manifests (T09a's schema) that T09e's `verdicts.mjs` reads. All of it reads records and writes data (unlocked):
+nothing here runs a plan, a rating, a pool or a measurement, and nothing is written under `docs/improve-generating/evidence/frozen/` by a
+self-test.
+
+- **`closureOf(activationPath, activationSha256, { readFile })`** reads `closure.json` in the folder of the activation record (T11e's `close`
+  writes it there; no plan names a closure argument): `null` when the file is absent, else `{ ref: { path, sha256 }, record }` with `path`
+  repository-relative with `/` and `sha256` as `sha256File`. A text that is not an object with a list of strings `missing` throws `an
+  unreadable closure exists: <path>`, and a record whose `activation.sha256` is not the record's throws `the closure belongs to another
+  activation: <path>`; a closure is never read as no closure and never read for another activation. `resolve-comparators`, `verdict-input`
+  and the `selection` prerequisite read the closure only through it (a throw refuses the command, `<command>: <message>`, exit 1, nothing
+  written, or blocks the prerequisite).
+- **`publishedRuns({ task, arm, variant }, { readFile, list, who })`** lists every `*.runs.json` of
+  `evidence/frozen/<task>/<arm>/` with its SHA-256 and reads `meta.trees.<variant>`, which every file that carries it must carry alike (two
+  different values throw `<who>: two trees in the runs of <arm>`); a file that is not JSON or carries no tree is listed and gives no
+  identity (the verdict tool judges its rows invalid, T09e), and an arm with no file, or none with a tree, is `null`.
+- **`selectionExpectation({ activation, activationSha256, closure, closureSha256, freeze, runsMeta, harnessHash })`** is the expectation of the
+  class-selection receipt (T09e), built apart from it (RV3-06): the kind, the frozen source, today's harness (the selection is written by
+  `verdicts.mjs` in the same plan), the distinct screen and no-screen arms of the freeze file's classes in sorted order with the tree id and the
+  SHA-256 of `JSON.stringify(params)` of `runsMeta[<arm>]` (the arm's `meta.trees.<variant>`, one value or the list of its runs files' values,
+  which must be equal: `resolve: two trees in the runs of <arm>`), `coverage.expected` the declared rows less the
+  closure's `missing`, and `fields.collection` `{ activationSha256, closureSha256 (null without a closure), missing }`. **`selectionInputs(
+  activationPath, io)`** reads those records (the activation record, `closureOf`, the freeze file `epoch.freeze` names, `publishedRuns` of each
+  class arm under `V4-S4`, `harnessInfo()`) and returns the expectation; a missing record throws.
+- **`resolveComparators(template, selection, expectation, io)`** (pure) and **`resolve-comparators --selection <receipt> --activation <record>
+  --out <plan> --label frozen --source-label <SL>`**. The refusals, in this order, each `resolve-comparators: <reason>` on stderr, exit 1,
+  nothing written: a template whose `task` is not `V4-S4C` (`not a V4-S4C template`), one whose `activationSha256` is not the record's
+  (`the template belongs to another activation`), a receipt that does not pass `proofCheck` against the expectation (`the selection is not
+  final (<reasons>)`: an interim report, a stale tree or parameters, another producer, a declared row not observed, changed evidence, another
+  kind), a template cell the selection ships no arm for (`no shipped arm for <cell>`: the cell is not in `selection.cells`, or its shipped arm
+  is neither `fr-frozen` nor `fr-frozen-none`; `activate` makes the first case impossible for a freeze file it accepted, see above), a missing
+  receipt, template or record, a closure of another activation or an unreadable one,
+  a class arm with no published runs, and an `--out` that exists and lacks `"generatedBy": "manifest.mjs resolve-comparators"`. Otherwise
+  `fr-frozen` resolves to `fr-frozen-uncapped` and `fr-frozen-none` to `fr-frozen-none-uncapped`, and the plan `V4-S4C` (`runnable: true`) has the
+  steps `prerequisites`, `firewall-snapshot`, `trees` (`build` the resolved variants), a `rowStep` per template cell (`--task V4-S4C --arm
+  <resolved> --variant <resolved> --shard <the template's> --cases <cell>:<from>-<to> --row-limit-s 260`, state
+  `V4-S4C\<resolved>\<shard>\state.json`, required, the row limit the data's `rowLimitS.default` whatever the template says, priced at the
+  template's `rowS`), `publish-<resolved>` per resolved arm, `verdict-input`
+  (`--purpose final --activation <record> --selection <receipt> --out tools\ig-proto\plans\verdicts\V4-S4F.verdict-manifest.json`), `verdicts`
+  (producing `evidence/frozen/V4-S4F/verdicts.json` and `.md`) and `firewall-check`; its prerequisites are the resolved variants, the receipt
+  (`file`) and `{ type: 'selection', path, activation }`. The command prints `wrote <path>` and `resolve-comparators: <n> cells, <variants>;
+  V4-S4C: allocation <a> min`, and a second run replaces its own plan with the same bytes.
+- **The `selection` prerequisite** (`checkPrerequisites`, T11c): `{ type: 'selection', path, activation }` passes when `proofCheck` passes for
+  the receipt at `path` against `selectionInputs(activation)`; every reason, a thrown one (a closure of another activation, no published runs)
+  included, is `selection: <reason>` in `prerequisites: blocked (...)`. `readFile`, `list` and `harnessHash` of the gate's `io` serve this type
+  only (the defaults read the repository and today's harness), and the gate step of a plan consumes the activation record the entry names.
+- **`verdictInput(purpose, { activation, activationRef, closureRef, selectionRef, freeze, expansion, published, comparatorPlan, data })`** (pure,
+  `published(arm)` is `publishedRuns` or a stand-in) and **`verdict-input --purpose <selection | final> --activation <record> [--selection
+  <receipt>] --out <path> --label frozen --source-label <SL>`**: the manifest of T09a's schema, `task` `V4-S4` (`selection`) or `V4-S4F`
+  (`final`), `label` `frozen`, `quantity` 10, `capMs` and `responseBoundMs` 120,000, `resampleSeed` and `resamples` of the data file (20261116,
+  10,000), `validationReps` 20 to 39, `masterReps` 20 to 24, `collection` `{ activation, closure }` (`{ path, sha256 }`, the closure `null`
+  without one), `selection` (final only: the receipt's `{ path, sha256 }`), `arms` (the activation's arms `fr-frozen`, `fr-frozen-none`,
+  `log-link` and, for `final`, the resolved comparator arms read from the plan's row steps: `id` the arm's name, `task`, `arm`, `variant`,
+  `treeId` of its runs files and every `*.runs.json` with its SHA-256), `classes` of the freeze file, `failingCells` (the data's five),
+  `controls` (`{ cell, today: 'log-link' }` per cell of S4-3), `masters` (`{ cell, today: 'log-link', after: 'fr-frozen' }` per cell of S4-4),
+  `hell1` (the validated boards and the activated conditional boards), `p5` (`selection`: `[]`, so T09d never passes its phase 0; `final`: one
+  `{ cell, bounded, uncapped, reps }` per cell of the comparator plan, `bounded` the comparator's `comparatorOf` twin and `reps` those of its
+  `--cases`), `deadlineProjection` (`fr-frozen`, `fr-frozen-none`, reserves 0.3, 0.4, 0.5, 115,000 ms) and `prerequisites` (stage 1 with
+  `current: []`, the parity bindings of the four stage-4 arms under `V4-S4P` and the P-0 binding with `current: ['v4']`, the live-deadline
+  binding with `current: ['fr-frozen', 'fr-frozen-none']`). A declared arm without a published runs file throws `verdict-input: not
+  published <arm>`; refusals of the command, each `verdict-input: <reason>`, exit 1, nothing written: another label, a purpose that is neither,
+  a missing `--activation` or `--out`, `final` without `--selection` (and `selection` with one), a missing receipt, comparator plan
+  (`plans/V4-S4C.json`) or record, and the throws above. The manifest has no time stamp: the same records give the same bytes. The class
+  selection binds the manifest by its SHA-256 (T09e), so a manifest rewritten with other content after a decided selection makes that
+  selection `evidence changed`, which `resolve-comparators` refuses.
+- **Readers.** T09e's `verdicts.mjs` reads both manifests; the plans of T11e (`resolve-comparators`, `verdict-input` of `V4-S4`) and the plan
+  `V4-S4C` name the commands; T11g's `approval --plan V4-S4C` reads the plan this resolution writes (it exits 1 before it exists).
+- **Self-test** (`--items`, unlocked, synthetic: the default expansion, receipts built by T09e's `classSelection`, runs files in memory,
+  scratch records under `tests/artifacts/ig-proto/selftest/resolve`): `resolve: comparators from a final selection`, `an interim selection is
+  refused` (an incomplete receipt, a forged pass without a row, another tree, other parameters, another producer, changed evidence, another
+  kind, a cell with no shipped arm), `a closed collection resolves` (the closure `close` writes), `the template belongs to its activation`,
+  `verdict input: selection and final`, `verdict input: not published`, `closure: beside its activation`, `resolve: the commands` (both commands
+  and the dispatcher), `the selection prerequisite`, `the expectation is built apart from the receipt` and `the expectation fits the receipt
+  the verdict tool writes` (T09e's `verdictRecords` writes the receipt, with and without a closure).
