@@ -60,7 +60,8 @@ price it. It dry-runs the plans and stops so that the orchestrator can put the p
    - stage 5 (`stage5`), each item with an indication and `priced: false`, `pricedBy: 'N-V4-04'`, no ceiling and no
      approval request: S5-1 the PM1 Hell 1 cells with the failing-set work (the twelve Hell 1 cells, per cell 10 sets x
      3 layouts x 2 orders at `60 x` the mean probes per family of that cell in IGP-05's `families-*.jsonl` `x` its mean
-     probe `ms` `/ 1000 / 4`); S5-2 the nine Hell 2 cells of IGP-05 for the central share only, the same rule; S5-3
+     probe `ms` `/ 1000 / 4`; `26x26-hell-1` has no family in IGP-05's records and is listed without an indication:
+     ruling of 2026-11-17 on QUESTION 1); S5-2 the nine Hell 2 cells of IGP-05 for the central share only, the same rule; S5-3
      C4's counting, `1.25 x` the sum of `canonical.ms / 1000` of `evidence/frozen/IGP-02/profiles-*.jsonl`; S5-4 C3's
      capped-input features, data only, 0; S5-5 further browser runs, no indication;
    - the browser calibration (`browser`): B-1's Node part as `base` rows on `10x10-nightmare`, `12x12-nightmare`,
@@ -125,7 +126,9 @@ price it. It dry-runs the plans and stops so that the orchestrator can put the p
    roundCountedSBeforeApproval, requestedAdditionalGuardS, requestedCumulativeRoundMinutes }`, `spentS` re-read now
    from `readInvocations('frozen')` (`lib/budget.mjs`), the guards from the plans' prices (`--optional` adds the
    optional steps' guard). A plan file that does not exist (`V4-S4` before its activation, `V4-S4C` before its
-   resolution) exits 1 with `approval: <id> is priced at its <activation | resolution>; ask then`.
+   resolution) exits 1 with `approval: <id> is priced at its <activation | resolution>; ask then`. The owner is asked
+   for each cap on the round's account, which adds T10a's off-log 55.4 s (check-list §3.2; `manifest.json` gives
+   `requestedCumulativeRoundMinutesWithOffLog` beside the logs-only figure; ruling of 2026-11-17 on QUESTION 2).
 3. **Self-test** cases appended to `--items` (Tests table); **README.md**: T11a's section gains `price` and
    `approval`.
 4. **Dry runs**, in one PowerShell session at the root, after `price`:
