@@ -114,7 +114,7 @@ price it. It dry-runs the plans and stops so that the orchestrator can put the p
    2026-11-17 21:33 a group of 260-s rows admitted one row per invocation under the 300-s cap, so that each row paid a
    45-s quiet period: T11b's scratch price of the whole matrix was 3,604 counted minutes in 1,224 invocations, 918 of
    them quiet, stage 4 with `V4-LIVE` 3,091.6; under the 900-s cap rows share invocations: 2,874.7 counted minutes in 293
-   invocations, 220 of them quiet, stage 4 with `V4-LIVE` 2,452.4 and the universe alone 2,417.3), the conditional saving of N-V4-18 after the freeze, and the planning
+   invocations, 220 of them quiet, stage 4 with `V4-LIVE` 2,452.4 and the universe alone 2,417.2), the conditional saving of N-V4-18 after the freeze, and the planning
    projection from today's
    search times (`1.25 x factor x refS`: a twin whose projection exceeds its 130-s limit is priced at the limit and
    predicted censored, a projection from today's search, not the frozen arms' expected time).
