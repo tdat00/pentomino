@@ -60,7 +60,9 @@ receipt that the comparator resolution (T11f) consumes.
    paramsHash }`): first the live-deadline refusal of the Authority section (throws `Error('verdicts: the
    live-deadline prerequisite must be a live-deadline binding')`); then, for `stage1`, each `parity` entry and
    `liveDeadline`: `checkAccepted` of the binding with `current` built by `currentOf` for the entry's ids; a missing
-   binding file is `incomplete` (`missing binding <path>`). Returns `{ [name]: { status, reasons } }`.
+   binding file is `incomplete` (`missing binding <path>`). Returns `{ stage1, liveDeadline, ['parity:' + <binding
+   path>]: ... }`, one key per `parity` entry, each `{ status, reasons }` (T09d's `phase0Verdict` requires `stage1` and
+   `liveDeadline` and reads an absent one as `incomplete`; T09d's report).
 2. **`classSelection(manifest, results, inputs)`** (pure; `inputs = { files: [{ path, sha256 }], published:
    [<arm>/<rowKey>], declared: [<arm>/<rowKey>], activation: { path, sha256 }, closure: { path, sha256, missing } |
    null, freeze: { path, sha256 }, arms: [{ id, treeId, paramsHash }], harnessHash }`): `proofEnvelope({ kind:
@@ -79,7 +81,8 @@ receipt that the comparator resolution (T11f) consumes.
    `<rowKey>.row.jsonl` and `<rowKey>.link.jsonl`, through T09c's `parseLines` (its problems join the row's ledger),
    and the link lines of `<rowKey>.link.jsonl`; `rowLedger` (T09c) runs on the rows of the class arms only (the work
    rule's input): a legacy-route row (`log-link`) has no `caps` or `begin` lines and always reads as incomplete (T09c's
-   report), and no verdict reads its ledger (controls judge the time ratio, Master identity the keys). It computes the
+   report); no class of the frozen round has it as an arm (controls judge the time ratio, Master identity the keys),
+   so only the example's class (step 4) reads it, as `work-unknown`. It computes the
    class verdicts (T09c, each cell's `screenCellGate` from T09d's `cellGate` on the screen arm), the shipped arms, the
    cell gates, the controls, Master identity, Hell 1, P5's stops over the declared pairs, the projection, the
    population, the prerequisites and phase 0 (T09d), and writes under `evidence/<label>/<manifest.task>/`:
@@ -97,6 +100,22 @@ receipt that the comparator resolution (T11f) consumes.
    `collection.closure` (or `null`), and `arms` every arm of the manifest with the tree id and the parameter hash of
    its runs files' `meta.trees.<variant>`. A named record whose SHA-256 differs from the manifest's refuses the
    manifest. Exit 0 when the records are written; exit 1 on a refused manifest.
+3b. **The calls of `main`** (T09d's signatures; ruling of 2026-11-17, T09d's report), with `validationReps` as `reps`
+   unless stated, and an arm's rows its ingested rows of the cell: per class, `classVerdict` (T09c) over its cells,
+   each cell's `screenCellGate` the `verdict` of `cellGate` on the screen arm (`'failing'` for a `failingCells` cell,
+   `'control'` for a `controls` cell, with the options below; `'pass'` for any other cell, which no gate judges), and
+   `shippedArm(verdict, cls)`; per `failingCells` cell, `cellGate('failing', rows, { reps, quantity, capMs,
+   responseBoundMs, journals })` on the shipped arm of the class whose `cells` contain it; per `controls` entry,
+   `cellGate('control', rows, { reps, quantity, capMs, responseBoundMs, todayRows, resamples, resampleSeed })` on that
+   shipped arm, `todayRows` the rows of the entry's `today` arm; per `masters` entry,
+   `masterIdentity(todayRows, afterRows, masterReps)`; per `hell1`
+   cell, `hell1Report(rows, { reps, quantity })` on the shipped arm of the class whose `cells` contain it (on every arm
+   with rows of the cell when no class contains it); per `p5` entry, `p5Stops(boundedRows, uncappedRows, { quantity,
+   cell, reps: <the entry's reps> })`; per arm of `deadlineProjection.arms` and reserve of its `reserves`,
+   `deadlineProjection(rows, { reserve, deadlineMs, quantity })`; per arm, `population(rows, { quantity })` (two-sided,
+   plan P3); and `phase0Verdict({ purpose, classes: [{ id, verdict }], cells: [{ cell, verdict }], controls: [{ cell,
+   verdict }], masters: [{ cell, verdict }], p5: <the p5Stops results>, prerequisites: <step 1's output> })`, whose
+   `deciding` list gives the reasons of the phase-0 line.
 4. **`data/verdict-manifest.example.json`**: T09a's schema with `task: 'V4-T09-example'`, `purpose: 'selection'`, one
    class `{ id: 'example', cells: ['26x26-nightmare'], screen: 'v4-link', noScreen: 'log-link' }` over T06a's
    published arms (`arms` with `task: 'V4-T06'`, the tree ids of T06a's published records and their runs files with
