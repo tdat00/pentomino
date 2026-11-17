@@ -7,7 +7,7 @@
 | Depends on | T07a |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (claude-sonnet-5.5) |
-| Estimate | developer 3 h, machine 0 min (scripted pools; verification through the lock helper) |
+| Estimate | developer 3.5 h (3 h and a fix round of 0.5 h, ruling of 2026-11-17), machine 0 min (scripted pools; verification through the lock helper) |
 
 ## Goal
 
@@ -30,13 +30,19 @@ outcome is the same for 1, 2, 4 and 8 workers, whatever order the attempts finis
   2,000,000,000 units for every Nightmare and Hell 1 call (R21: 5 % of successful prototype calls passed 2 G, none
   6 G) and a bound of 4 set attempts (the four-worker pool's first wave).
 - D-V4-05: the side field is written only when `IG.setAttemptsBound` is set, so the existing `v4` arms are unchanged.
+- The budget end in `any` mode (ruling of 2026-11-17, T07b's report): plan §3 P5 says "When it is used up the call ends
+  with its best result or `not-in-band`", and review R10 says "Do not call the lazy `chooseBest` path if it can perform
+  new work after exhaustion". In `any` mode `finish` returns the raw subset (no rating, no count, no rng draw), so
+  `chooseBest` can do no work. T07a's text had dropped R10's condition, so every budget stop of an `any` call (the mode
+  the frozen round measures, `arm.mjs`, and the Generator's default, `generator/state.js:139`) returned `not-in-band`
+  while in-band candidates waited. Step 1b corrects it; `require` keeps T07a's end (a repair is new work).
 
 ## Scope
 
 - Create: `tools/ig-proto/variants/v4-p5.json` (step 2); `tools/ig-proto/variants/v4-p5-w8-test.json` and
   `tools/ig-proto/variants/v4-link-w8-test.json` (step 2b); `tools/ig-proto/lib/fake-pool.mjs` (step 3).
-- Change: `tools/ig-proto/variants/files/v4/core/engine/ig-select-v4.js` (step 1); `tools/ig-proto/self-test.mjs`
-  (cases); `tools/ig-proto/README.md` (a paragraph).
+- Change: `tools/ig-proto/variants/files/v4/core/engine/ig-select-v4.js` (steps 1 and 1b);
+  `tools/ig-proto/self-test.mjs` (cases); `tools/ig-proto/README.md` (a paragraph, and two passages of step 5).
 - Do not change: everything else. Guards: `node tools\ig-proto\firewall.mjs check --task V4-T07b --label frozen`,
   expected `files unchanged`; `git status --short -- core generator tests tools/bench tools/ig-proto/variants/v4.json tools/ig-proto/variants/link.json tools/ig-proto/variants/w8.json`,
   expected no output.
@@ -47,6 +53,37 @@ outcome is the same for 1, 2, 4 and 8 workers, whatever order the attempts finis
 1. **No-window side** in `ig-select-v4.js`: `failNoWindow` returns `{ ok: false, reason: 'not-in-band',
    ...(IG.setAttemptsBound === undefined ? {} : { igNoWindow: noWindow === 'below-to-one' ? 'below' : 'above' }) }`
    (the journaled result is unchanged).
+1b. **The budget end in `any` mode** (Authority, last bullet) in `ig-select-v4.js`: in the top-level `catch` of
+   `searchV4`, the `BudgetStop` branch reads
+
+   ```js
+       if (e instanceof BudgetStop) {
+         loc.budgetStop = { limit: budget, spent, overshoot: spent - budget };
+         // R10: no new work after the stop. In 'any' mode `finish` returns the raw subset (no rating, no count, no
+         // rng draw), so `chooseBest` does no work and returns the best waiting in-band candidate (plan P5).
+         const best = uniqueness === 'any' ? chooseBest() : bestFinished();
+         if (best !== null) {
+           return conclude(best);
+         }
+         verifyConsumed();
+         return { ok: false, reason: 'not-in-band' };
+       }
+   ```
+
+   (only the comment and the `const best` line change). In the file header, the line
+
+   ```js
+   //       every rating and every uniqueness count, it returns the best already finished result or `not-in-band`.
+   ```
+
+   becomes the two lines
+
+   ```js
+   //       every rating and every uniqueness count, it returns its best result or `not-in-band`: in `require` the best
+   //       already finished final, in `any` the best waiting in-band candidate (V4-T07b: finishing costs nothing there).
+   ```
+
+   The `v4`-family tree ids move again, as after T07a (the ruling of T07a's report); report the new ids.
 2. **`variants/v4-p5.json`**: `"id": "v4-p5"`, `"extends": ["v4-link"]`, `"description"`: "P5 pilot arm (V4-T07b): a
    2 G-unit budget per Nightmare and Hell 1 selection call and a bound of 4 set attempts on a no-window side.",
    `"files": []`, `"params": { "callBudget": { "default": 2000000000 }, "setAttemptsBound": 4 }`, and the edits (each
@@ -117,7 +154,24 @@ outcome is the same for 1, 2, 4 and 8 workers, whatever order the attempts finis
    records nothing; ruling of 2026-11-17, T07a's report).
 5. **README.md**: a paragraph "P5 bounded set attempts (V4-T07b)": the side reason, the bound and its place before the
    ordered scan, the arm `v4-p5` and its two values with the pack author's reason, that false stops are counted in T09d
-   against the uncapped arm, and that the legacy targets never report a side (P-OD12).
+   against the uncapped arm, and that the legacy targets never report a side (P-OD12). In the fix round (ruling of
+   2026-11-17): (a) in that paragraph, "Edit `p5-1` makes the set attempt (`firstSetAttempt`) report" becomes "Edit
+   `p5-1` makes the set attempt (`setAttempt` of `core/engine/generate.js`, which a worker runs for one attempt;
+   `firstSetAttempt`, its serial loop, sees the same reason) report", and its **Self-test** bullet names the case
+   `p5: budget end in any mode returns the best waiting candidate`; (b) the bullet **The end.** of "P5 call budget
+   (V4-T07a)" becomes:
+
+   ```markdown
+   - **The end.** The search catches the stop at its top level. With `uniqueness: 'require'` the result is the best
+     already finished final result of the finals cache (the existing centre and tie order, no new work: `chooseBest` is
+     not called, because it would repair). With `uniqueness: 'any'` the result is `chooseBest()`, which does no work in
+     that mode (`finish` returns the raw subset: no rating, no count, no rng draw), so the call ends with its best
+     waiting in-band candidate (plan P5: "the call ends with its best result"; review R10: "if it can perform new work";
+     V4-T07b). Without a result the call ends `{ ok: false, reason: 'not-in-band' }`. A repair interrupted by the stop is
+     never accepted (its candidate stays unfinished), no event records the budget end (the event kinds stay those of
+     D-V4-06; an `any` result is announced by its `selected` event, as every result is), and the skip verification and
+     the observers' exceptions are kept (`verifyConsumed()` runs before either result).
+   ```
 
 ## Tests
 
@@ -127,13 +181,14 @@ All in `tools/ig-proto/self-test.mjs --v4`; each scripted case runs at the width
 | Case name | Input | Expected |
 |---|---|---|
 | `p5: no-window side` | `v4Call('side-below', { prior: null, screen: () => synthetic(30), variant: 'v4-p5' })`; `v4Call('side-above', { prior: null, screen: () => 'cap', canon: () => synthetic(90), variant: 'v4-p5' })`; the second also in the `v4` tree | `v4-p5`: `result.igNoWindow` `'below'` and `'above'`; `v4`: no `igNoWindow` field |
-| `p5: bounded set attempts rule` | `igSetBound` imported from the `v4-p5` tree's `core/browser/generation-client.js` on maps of `j -> result`: (a) 0-3 `fail` `no-window-below`; (b) 0-2 `no-window-below`, 3 `no-window-above`; (c) 0-3 `no-window-above`; (d) 0 `ok`, 1-3 `no-window-below`; (e) 0-2 `no-window-below` only; (f) 0-3 `no-window-below` except 2 `carve` | (a) `'no-window-below'`; (b) `null`; (c) `'no-window-above'`; (d) `null`; (e) `null`; (f) `null` |
+| `p5: bounded set attempts rule` | `igSetBound` imported from the `v4-p5` tree's `core/browser/generation-client.js` on maps of `j -> result`: (a) 0-3 `fail` `no-window-below`; (b) 0-2 `no-window-below`, 3 `no-window-above`; (c) 0-3 `no-window-above`; (d) 0 `ok`, 1-3 `no-window-below`; (e) 0-2 `no-window-below` only; (f) 0-3 `no-window-below` except 2 `carve`; (g) 0-2 `no-window-below`, 3 `{ kind: 'fault', error: new Error('worker') }`; (h) 0-2 `no-window-below`, 3 `{ kind: 'skipped' }` ((g) and (h): ruling of 2026-11-17, T07b's report) | (a) `'no-window-below'`; (b) `null`; (c) `'no-window-above'`; (d) `null`; (e) `null`; (f) `null`; (g) `null`; (h) `null` |
 | `p5: a later success does not beat the bound` | `scriptedSet('v4-p5', w, s)` with `s[0..3] = { fail: 'no-window-below' }` (held) and `s[4] = { ok: true, now: true }` | at every width: `{ status: 'failed', reason: 'no-window-below' }` with `failures['no-window-below'] === 4` |
 | `p5: a success inside the bound wins` | `s[0], s[1], s[3] = { fail: 'no-window-below' }`, `s[2] = { ok: true }`, all held | at every width: `status: 'complete'`, `attempt: 2` |
 | `p5: mixed sides do not stop` | `s[0], s[1] = { fail: 'no-window-below' }`, `s[2], s[3] = { fail: 'no-window-above' }`, `s[4] = { fail: 'not-in-band' }`, `s[5] = { ok: true }`, all held | at every width: `status: 'complete'`, `attempt: 5` |
 | `p5: without the bound the later success wins` | the first scripted case in the `v4-link` tree (width 8: `v4-link-w8-test`) | at every width: `status: 'complete'`, `attempt: 4` |
 | `p5: the width-8 trees` | `MAX_POOL_SIZE` imported from the `worker-pool.js` of `v4-p5`, `v4-p5-w8-test` and `v4-link-w8-test` | 4, 8, 8 |
-| `p5: a budget-stopped call replays its skips` (T07a's report) | in the `v4` tree, with T02b's helpers, `x = { igPrior: null, igScreen: synth(e, DOWN), igCanonical: synth(e, DOWN) }`: R0 = `e.clues.selectClues(await v4Ctx(e, ws, 'p5-skip', { ...x, record }))`, `K0` the clue keys of its events of `sequence` 0 and 1 (as T02b's case 3); U = the same name and `x` with `excludeClueKeys: new Set(K0)` and `charge: (u) => L.push(u)`; `B` = the sum of the first `Math.ceil(L.length / 2)` entries of `L`; R1 = `journaled('p5-skip-r1', () => e.clues.selectClues(<U's context without charge, with igBudget: B>))`; R2 = the same context with `excludeClueKeys: new Set()` and `replaySkips: R1.result.skips`; R3 = R2's context with `replaySkips: { subsets: [...R1.result.skips.subsets, 2191], repairs: R1.result.skips.repairs }` | `L.length >= 2`; `R1.result.skips.subsets[0] === 0` and R1's `end` line has `locate.budgetStop`; R2 deep-equals `R1.result` (the replay meets the same units and stops at the same point, so every recorded skip lies before it); R3 throws the tree's `SkipReplayError` with `reason: 'unused'`, `list: 'subsets'`, `ordinal: 2191` |
+| `p5: a budget-stopped call replays its skips` (T07a's report) | in the `v4` tree, with T02b's helpers, `x = { igPrior: null, igScreen: synth(e, DOWN), igCanonical: synth(e, (c) => synthetic(c <= 4 ? 60 : 56)), uniqueness: 'require' }` (ruling of 2026-11-17, T07b's Q1: with `DOWN` for both seams and `any`, `L` is `[1, 760000000, 1]` and the budget stops before the first in-band candidate, so the stopped call has no skips; this input stops with a finished final, R1 `ok` with `skips.subsets` `[0, 2]`): R0 = `e.clues.selectClues(await v4Ctx(e, ws, 'p5-skip-g', { ...x, record }))`, `K0` the clue keys of its events of `sequence` 0 and 1 (as T02b's case 3); U = the same name and `x` with `excludeClueKeys: new Set(K0)` and `charge: (u) => L.push(u)`; `B` = the sum of the first `Math.ceil(L.length / 2)` entries of `L`; R1 = `journaled('p5-skip-r1', () => e.clues.selectClues(<U's context without charge, with igBudget: B>))`; R2 = the same context with `excludeClueKeys: new Set()` and `replaySkips: R1.result.skips`; R3 = R2's context with `replaySkips: { subsets: [...R1.result.skips.subsets, 2191], repairs: R1.result.skips.repairs }` | `L.length >= 2`; `R1.result.skips.subsets[0] === 0` and R1's `end` line has `locate.budgetStop`; R2 deep-equals `R1.result` (the replay meets the same units and stops at the same point, so every recorded skip lies before it); R3 throws the tree's `SkipReplayError` with `reason: 'unused'`, `list: 'subsets'`, `ordinal: 2191` |
+| `p5: budget end in any mode returns the best waiting candidate` (ruling of 2026-11-17, T07b's report) | `S2A = { ...BEGIN_CALL_2, uniqueness: 'any' }` (T07a's S2 in `any` mode: every in-band rating is 56, never central) and the one name `'endany'` for every call; U = `v4Call('endany', { ...S2A, extra: { charge: true, igChargeKinds: [] } })`, `L = U.chargeLog`, `n = L.length`, `P = prefix(L)`; for every `i` from 0 to `n - 1`: `E_i = []` and R_i = `v4Call('endany', { ...S2A, extra: { igBudget: P[i], charge: true, igChargeKinds: [], record: (ev) => E_i.push(ev) } })`, and `W_i` = the events of `E_i` of kind `rated` with `55 <= rating.score < 70` (the waiting candidates); `h` = the least `i` with `W_i.length >= 2`; A = `v4Call('endany', { ...S2A, extra: { igBudget: P[h] } })`; Bm = `v4Call('endany', { ...S2A, extra: { igBudget: P[h], charge: true, igChargeKinds: [] } })` | U: `result.ok === true`, `result.rating.score === 56`, `result.certificate === null`, no `budgetStop` in `end.locate`; for every `i`: `R_i.chargeLog` deep-equals `L.slice(0, m(P, P[i]))`, `R_i.end.locate.budgetStop` deep-equals `{ limit: P[i], spent: P[m(P, P[i])], overshoot: P[m(P, P[i])] - P[i] }`; when `W_i` is empty, `R_i.result` deep-equals `{ ok: false, reason: 'not-in-band' }` and `E_i` has no `selected` event; otherwise `R_i.result.ok === true`, `R_i.result.rating.score === 56`, `R_i.result.certificate === null`, and the last event of `E_i` is its only `selected` event, whose `sequence` is the `sequence` of an event of `W_i`; coverage: some `i` has `W_i` empty and `h` exists; A's and Bm's results deep-equal R_h's; Bm's charge log deep-equals `L.slice(0, m(P, P[h]))` |
 
 ## Documentation
 
@@ -152,7 +207,9 @@ All in `tools/ig-proto/self-test.mjs --v4`; each scripted case runs at the width
 
 - Stop and report before: changing a production file, the legacy dispatch or the pilot values of step 2.
 - `QUESTION:` when a scripted case gives different outcomes at two widths (report the per-width outcomes and the
-  answered order); when a case of T02a to T07a fails after this change.
+  answered order); when a case of T02a to T07a fails after this change; when the coverage assertion of `p5: budget end
+  in any mode returns the best waiting candidate` fails (report `n` and `W_i.length` for every `i`; the scenario is the
+  pack author's to change).
 - Send `QUESTION:` to the pack author (through the orchestrator) when: the task looks wrong or contradicts the code;
   an ambiguity changes behaviour or a contract; a gate fails for a reason not covered here; a change is needed outside
   the scope; a recorded decision would change. Never decide such a point yourself.
@@ -164,6 +221,7 @@ All in `tools/ig-proto/self-test.mjs --v4`; each scripted case runs at the width
 | ID | Criterion | How it is verified | Evidence |
 |---|---|---|---|
 | T07b-B01 | A set request ends with a notice naming the side when its first attempts all fail without a window on that side, at every pool width; the legacy path is unchanged (P-OD12) | cases 3 to 6 | self-test output |
+| T07b-B02 | A call stopped by its P5 budget in `any` mode (the mode the frozen round measures and the Generator's default) ends with its best waiting in-band candidate, and with `not-in-band` only when none waits; `require` keeps the best already finished final (plan P5, R10; ruling of 2026-11-17) | the case `p5: budget end in any mode returns the best waiting candidate`; T07a's three `p5:` cases still pass | self-test output |
 
 ### Technical
 
@@ -174,6 +232,7 @@ All in `tools/ig-proto/self-test.mjs --v4`; each scripted case runs at the width
 | T07b-T03 | The side field only in a tree with the bound | case 1 | self-test output |
 | T07b-T04 | Nothing else changed; formats | guards; `npm run check` | command output |
 | T07b-T05 | A call stopped by its P5 budget replays its recorded skips to the same result, and a repair the budget stopped records no event (T07a's report) | the case `p5: a budget-stopped call replays its skips`; T07a's case `p5: budget end with unfinished candidates, every observer mode` | self-test output |
+| T07b-T06 | The `any` budget end does no new work: a stopped call's charge log is the unbudgeted prefix, its result is the same at every observer mode, and its `selected` event names a waiting candidate; `igSetBound` never counts a `fault` or a `skipped` attempt | the case `p5: budget end in any mode returns the best waiting candidate`; case 2 (g) and (h) | self-test output |
 
 ## Checklist (the developer confirms every item in the final report)
 

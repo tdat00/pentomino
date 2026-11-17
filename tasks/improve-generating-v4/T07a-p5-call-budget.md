@@ -24,8 +24,9 @@ the same point; the arm that sets a budget is T07b's.
   each such operation, repairs included; the running operation finishes and is charged in full (the overshoot is
   recorded); after exhaustion no operation starts; the result is the best already finished final result of the
   finals cache, by the existing centre and tie order, or `not-in-band`; the lazy `chooseBest` is not called after
-  exhaustion; an unfinished repair is never accepted; skip verification and observer exceptions are kept; the budget
-  end is recorded apart from an unrateable rating.
+  exhaustion when it can perform new work (R10: "if it can perform new work after exhaustion"; in `any` mode it cannot,
+  so T07b step 1b calls it there: ruling of 2026-11-17, T07b's report); an unfinished repair is never accepted; skip
+  verification and observer exceptions are kept; the budget end is recorded apart from an unrateable rating.
 - D-V4-05 (check-list §4): the change is inert for every arm without `IG.callBudget` and without the `ctx.igBudget`
   seam (an infinite budget never stops; the added hooks only observe), so the `v4` arms keep their ids; the P-0 parity
   pass of T11c's plan `V4-S2` (manifest `V4-S2P.p0-v4.json`, receipt of T11d) re-checks `v4`'s stage-1 results (T04e)
@@ -116,7 +117,9 @@ the same point; the arm that sets a budget is T07b's.
    BudgetStop) { loc.budgetStop = { limit: budget, spent, overshoot: spent - budget }; const best = bestFinished();
    if (best !== null) { return conclude(best); } verifyConsumed(); return { ok: false, reason: 'not-in-band' }; }`.
    No event is recorded for the budget end (the journal's `locate.budgetStop` records it; the event kinds stay those
-   of D-V4-06).
+   of D-V4-06). Corrected by T07b step 1b (ruling of 2026-11-17, T07b's report): in `any` mode the branch calls
+   `chooseBest()` in place of `bestFinished()`, because `finish` returns the raw subset there and does no work, so the
+   call ends with its best waiting in-band candidate (plan P5: "its best result").
 5. **Seams** (JSDoc of `selectCluesV4`, with the other seams): `ctx.igBudget` (a number) replaces the table;
    `ctx.igChargeKinds` (an array) receives one kind per metered unit: `rate:<journal phase>` or `count`.
 6. **Self-test**: `v4Call(name, spec)` (`spec.uniqueness` and `spec.journal` are T02d's) accepts `spec.extra` (an
