@@ -879,6 +879,12 @@ async function verdictKit() {
   return memo.verdictKit;
 }
 
+/** @param {any} v The `verdicts.mjs` module. @param {any[]} rows Published rows. @returns {any[]} The rows ingested (quantity 10). */
+const ingested = (v, rows) => rows.map((r) => v.ingestRow(r, { quantity: 10 }));
+
+/** @param {number} x @param {number} y @returns {boolean} Whether two numbers differ by at most 1e-12 (a geometric mean is `exp` of a mean of logs). */
+const near = (x, y) => Math.abs(x - y) <= 1e-12;
+
 /** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
 const itemCases = [
   {
@@ -2250,6 +2256,246 @@ const itemCases = [
       same(evidence({ keys: [7, ...keys.slice(1)] }).keys, 'malformed puzzle key 0', 'a key that is not a string');
       same(evidence({ over: { details: { igPuzzleKeys: keys, K: 12 } } }), { keys: null, clues: 'missing clue counts' }, 'no puzzle list');
       same(evidence({ over: { acceptedCount: 1.5 } }), { keys: 'acceptedCount is not an integer from 0', clues: 'acceptedCount is not an integer from 0' }, 'a fractional count');
+    },
+  },
+  {
+    name: 'verdicts: basic statistics',
+    async run() {
+      const { v } = await verdictKit();
+      same([v.median([3, 1, 2]), v.median([1, 2, 3, 4]), v.median([5])], [2, 2.5, 5], 'median: 2, 2.5 and 5');
+      const draw = (/** @type {number} */ seed) => {
+        const next = v.mulberry32(seed);
+        return Array.from({ length: 5 }, () => next());
+      };
+      const first = draw(7);
+      same(draw(7), first, 'two generators of one seed give different sequences');
+      assert(first.every((/** @type {number} */ x) => x >= 0 && x < 1) && new Set(first).size === 5, `the first five values: ${JSON.stringify(first)}`);
+      assert(first[0] === 0.011704753153026104 && draw(8)[0] !== first[0], `the sequence of seed 7 changed, or does not depend on the seed: ${first[0]}`);
+      assert(near(v.geoMean([2, 8]), 4) && near(v.geoMean([1.5]), 1.5), 'geoMean of 2 and 8 is 4');
+      // Fail closed: no data and a ratio that is not a measurement are never a statistic.
+      assert(thrownBy(() => v.median([])).includes('median') && thrownBy(() => v.median([1, Number.NaN])).includes('median'), 'median of nothing or of a NaN did not throw');
+      assert([[], [2, 0], [2, null], [2, Number.POSITIVE_INFINITY]].every((x) => thrownBy(() => v.geoMean(x)).includes('geoMean')), 'geoMean of an empty list, a zero, a null or an infinity did not throw');
+    },
+  },
+  {
+    name: 'verdicts: pairing problems',
+    async run() {
+      const { v, row } = await verdictKit();
+      const spec = { accepted: 10, tenth: 40000 };
+      const wrong = { phase: 'validation', code: 'invalid-puzzle', message: 'x' };
+      const a = ingested(v, [row(0, 's0', spec), row(0, 's0', spec), row(1, 's1', spec), row(2, 's2', { ...spec, over: { errors: [wrong] } })]);
+      const b = ingested(v, [row(0, 's0', spec), row(2, 's2', spec)]);
+      const got = v.pairRows(a, b, [0, 1, 2]);
+      same(got.pairs, [], `pairs: ${JSON.stringify(got.pairs)}`);
+      assert(got.problems.length === 3, `the problems: ${JSON.stringify(got.problems)}`);
+      assert(got.problems[0].startsWith('duplicate rows') && got.problems[0].includes('side a rep 0'), `the duplicate: ${got.problems[0]}`);
+      assert(got.problems[1].startsWith('missing row') && got.problems[1].includes('side b rep 1'), `the missing row: ${got.problems[1]}`);
+      assert(got.problems[2].startsWith('status incorrect') && got.problems[2].includes('side a rep 2'), `the status: ${got.problems[2]}`);
+      same(got.incorrect, [{ side: 'a', rep: 2 }], `incorrect: ${JSON.stringify(got.incorrect)}`);
+      // Beyond the table: a clean cell pairs every rep in the order of the declared list; the same request is the same case,
+      // rep and seed; a censored row is a problem but not a correctness failure; a correctness failure hides behind nothing.
+      const reps = [2, 0, 1];
+      const clean = v.pairRows(ingested(v, [0, 1, 2].map((r) => row(r, `s${r}`, spec))), ingested(v, [0, 1, 2].map((r) => row(r, `s${r}`, spec))), reps);
+      assert(clean.problems.length === 0 && clean.incorrect.length === 0, `a clean cell: ${JSON.stringify(clean.problems)}`);
+      same(clean.pairs.map((/** @type {any} */ p) => [p.rep, p.seed, p.a.rep, p.b.seed]), [[2, 's2', 2, 's2'], [0, 's0', 0, 's0'], [1, 's1', 1, 's1']], 'the pairs are in the order of the declared reps');
+      const seeds = v.pairRows(ingested(v, [row(0, 's0', spec)]), ingested(v, [row(0, 'x0', spec)]), [0]);
+      assert(seeds.pairs.length === 0 && seeds.problems.length === 1 && seeds.problems[0].startsWith('seed differs at rep 0'), `a seed that differs: ${JSON.stringify(seeds)}`);
+      const other = row(0, 's0', spec);
+      other.caseId = 'd';
+      other.run.caseId = 'd';
+      const cases = v.pairRows(ingested(v, [row(0, 's0', spec)]), ingested(v, [other]), [0]);
+      assert(cases.pairs.length === 0 && cases.problems.length === 1 && cases.problems[0].startsWith('case differs at rep 0'), `a case that differs: ${JSON.stringify(cases)}`);
+      const outside = v.pairRows(ingested(v, [row(0, 's0', spec)]), ingested(v, [row(0, 's0', spec), row(7, 's7', spec)]), [0]);
+      assert(outside.pairs.length === 1 && outside.problems.length === 1 && outside.problems[0] === 'row outside the declared replicates: side b rep 7', `an undeclared row: ${JSON.stringify(outside.problems)}`);
+      const censored = row(1, 's1', { ...spec, over: { interrupted: true } });
+      const cut = v.pairRows(ingested(v, [row(0, 's0', spec), censored]), ingested(v, [row(0, 's0', spec), row(1, 's1', spec)]), [0, 1]);
+      assert(cut.pairs.length === 1 && cut.problems.length === 1 && cut.problems[0].startsWith('status censored') && cut.incorrect.length === 0, `a censored row: ${JSON.stringify(cut)}`);
+      const hidden = v.pairRows(ingested(v, [row(0, 's0', spec), row(0, 's0', { ...spec, over: { errors: [wrong] } })]), ingested(v, [row(0, 's0', spec)]), [0]);
+      assert(hidden.pairs.length === 0 && hidden.problems.length === 1 && hidden.incorrect.length === 1, `an incorrect row beside a duplicate: ${JSON.stringify(hidden)}`);
+      assert(thrownBy(() => v.pairRows([row(0, 's0', spec)], [], [0])).includes('ingested rows') && thrownBy(() => v.pairRows([], [], [0, 0])).includes('reps') && thrownBy(() => v.pairRows([], [], [])).includes('reps'),
+        'a row that was not ingested, a repeated rep or no rep did not throw');
+    },
+  },
+  {
+    name: 'verdicts: matched sets',
+    async run() {
+      const { v, row } = await verdictKit();
+      const spec = { accepted: 10, tenth: 40000 };
+      const a = ingested(v, [
+        row(0, 's0', { accepted: 2, tenth: null, setKey: 'k', clues: [10, 12] }),
+        row(1, 's1', { ...spec, setKey: 'k' }),
+        row(2, 's2', { ...spec, setKey: 'k' }),
+        row(3, 's3', spec),
+        row(4, 's4', { accepted: 3, tenth: null, setKey: 'k', clues: [9, 12, 10] }),
+        row(5, 's5', { accepted: 1, tenth: null, setKey: 'k', clues: [6] }),
+      ]);
+      const b = ingested(v, [
+        row(0, 's0', { accepted: 1, tenth: null, setKey: 'k', clues: [11] }),
+        row(1, 's1', { ...spec, setKey: 'm' }),
+        row(2, 's2', { accepted: 0, tenth: null, setKey: 'k' }),
+        row(3, 's3', spec),
+        row(4, 's4', { accepted: 1, tenth: null, setKey: 'k', clues: [7] }),
+        row(5, 's5', { accepted: 1, tenth: null, setKey: 'k', clues: [9] }),
+      ]);
+      const paired = v.pairRows(a, b, [0, 1, 2, 3, 4, 5]);
+      assert(paired.problems.length === 0 && paired.pairs.length === 6, `the pairing: ${JSON.stringify(paired.problems)}`);
+      // (a) at rep 0 matches with the median of an even list (11 for 10 and 12); (b) rep 1 has two set keys; (c) rep 2 has
+      // no puzzle on one arm; rep 3 has no set key at all (not a matched set, and not an evidence problem either); the
+      // medians of an odd list and a negative difference follow.
+      same(v.matchedSets(paired.pairs), {
+        matched: [
+          { rep: 0, seed: 's0', screen: 11, noScreen: 11, d: 0 },
+          { rep: 4, seed: 's4', screen: 10, noScreen: 7, d: 3 },
+          { rep: 5, seed: 's5', screen: 6, noScreen: 9, d: -3 },
+        ],
+        evidence: [],
+      }, 'the matched sets');
+      same(v.matchedSets([]), { matched: [], evidence: [] }, 'no pair, no matched set');
+    },
+  },
+  {
+    name: 'verdicts: incomplete clue populations are not zero differences',
+    async run() {
+      const { v, row } = await verdictKit();
+      const base = { accepted: 10, tenth: 40000, setKey: 'k' };
+      const nine = Array(9).fill(6);
+      const a = ingested(v, [
+        row(0, 's0', { ...base, clues: [] }),
+        row(1, 's1', base),
+        row(2, 's2', base),
+        row(3, 's3', { ...base, clues: [] }),
+        row(4, 's4', { ...base, K: 0 }),
+      ]);
+      const b = ingested(v, [
+        row(0, 's0', base),
+        row(1, 's1', { ...base, clues: nine }),
+        row(2, 's2', base),
+        row(3, 's3', { ...base, clues: nine }),
+        row(4, 's4', base),
+      ]);
+      const paired = v.pairRows(a, b, [0, 1, 2, 3, 4]);
+      assert(paired.problems.length === 0 && paired.pairs.length === 5, `the pairing: ${JSON.stringify(paired.problems)}`);
+      const out = v.matchedSets(paired.pairs);
+      same(out.matched, [{ rep: 2, seed: 's2', screen: 6, noScreen: 6, d: 0 }], 'only the complete pair (c) is matched, with d 0');
+      same(out.evidence, [
+        { rep: 0, side: 'a', problem: 'clues: 0 of 10' },
+        { rep: 1, side: 'b', problem: 'clues: 9 of 10' },
+        { rep: 3, side: 'a', problem: 'clues: 0 of 10' },
+        { rep: 3, side: 'b', problem: 'clues: 9 of 10' },
+        { rep: 4, side: 'a', problem: 'missing K' },
+      ], `the evidence problems: ${JSON.stringify(out.evidence)}`);
+      // Nothing incomplete is counted as a zero difference: the clue rule sees one set, not five.
+      assert(v.clueRule(out.matched).n === 1, 'an incomplete pair reached the clue rule');
+    },
+  },
+  {
+    name: 'verdicts: the clue rule is pooled',
+    async run() {
+      const { v, row } = await verdictKit();
+      // A cell of matched sets built from real rows: the screen arm's clue count is 6 plus the difference.
+      const cell = (/** @type {number[]} */ diffs) => {
+        const reps = diffs.map((_, i) => i);
+        const screen = ingested(v, diffs.map((d, i) => row(i, `s${i}`, { accepted: 10, tenth: 30000, setKey: `k${i}`, clue: 6 + d })));
+        const noScreen = ingested(v, diffs.map((_, i) => row(i, `s${i}`, { accepted: 10, tenth: 30000, setKey: `k${i}`, clue: 6 })));
+        const paired = v.pairRows(screen, noScreen, reps);
+        const sets = v.matchedSets(paired.pairs);
+        assert(paired.problems.length === 0 && sets.evidence.length === 0 && sets.matched.length === diffs.length, `the cell's sets: ${JSON.stringify(sets)}`);
+        return sets.matched;
+      };
+      const a = cell(Array(15).fill(1));
+      const b = cell(Array(15).fill(0));
+      same(v.clueRule(a), { n: 15, medianDiff: 1, moved2: 0, pass: false }, `cell a alone: ${JSON.stringify(v.clueRule(a))}`);
+      same(v.clueRule([...a, ...b]), { n: 30, medianDiff: 0.5, moved2: 0, pass: true }, 'pooled: a median of 0.5 passes although cell a alone has 1');
+      const moved = cell([...Array(8).fill(2), ...Array(7).fill(1)]);
+      same(v.clueRule([...moved, ...b]), { n: 30, medianDiff: 0.5, moved2: 8, pass: false }, 'eight sets in 30 move by two clues');
+      // The limits: one in five passes (6 of 30), one more fails (7); a drop of two clues moves a set as well; no set, no pass.
+      const limit = (/** @type {number[]} */ diffs) => v.clueRule([...cell(diffs), ...b]);
+      same([limit([...Array(6).fill(2), ...Array(9).fill(0)]).pass, limit([...Array(7).fill(2), ...Array(8).fill(0)]).pass], [true, false], 'one in five passes, one more fails');
+      same(limit([...Array(7).fill(-2), ...Array(8).fill(0)]).moved2, 7, 'a difference of -2 moves a set');
+      same(v.clueRule(cell(Array(15).fill(0).map((_, i) => (i < 8 ? 1 : 0)))).medianDiff, 1, 'eight of 15 above 0 put the median at 1');
+      same(v.clueRule([]), { n: 0, medianDiff: null, moved2: 0, pass: false }, 'no matched set is no pass');
+    },
+  },
+  {
+    name: 'verdicts: faster rule and its floor',
+    async run() {
+      const { v } = await verdictKit();
+      const o = { resamples: 1000, resampleSeed: 7 };
+      const reps = [0, 1, 2, 3];
+      const flat = v.fasterRule({ a: [2, 2, 2, 2], b: [2, 2, 2, 2] }, reps, o);
+      assert(near(flat.geoMean, 2) && near(flat.lower, 2) && flat.pass === true, `two cells at 2: ${JSON.stringify(flat)}`);
+      const low = v.fasterRule({ a: [2, 2, 2, 2], b: [0.5, 0.5, 0.5, 0.5] }, reps, o);
+      assert(near(low.geoMean, 1) && near(low.cellGeoMeans.b, 0.5) && near(low.cellGeoMeans.a, 2) && low.pass === false, `cell b at 0.5: ${JSON.stringify(low)}`);
+      // Each condition alone: the geometric mean threshold, the lower bound above 1.0 and the floor of every cell.
+      const slow = v.fasterRule({ a: [1.1, 1.1, 1.1, 1.1] }, reps, o);
+      assert(slow.lower > 1 && slow.pass === false, `a geometric mean of 1.1: ${JSON.stringify(slow)}`);
+      const fast = v.fasterRule({ a: [1.2, 1.2, 1.2, 1.2] }, reps, o);
+      assert(fast.pass === true, `a geometric mean of 1.2: ${JSON.stringify(fast)}`);
+      const wide = v.fasterRule({ a: [0.5, 4] }, [0, 1], o);
+      assert(wide.geoMean > 1.4 && near(wide.lower, 0.5) && wide.pass === false, `a mean of 1.41 with a lower bound at the low tail: ${JSON.stringify(wide)}`);
+      const edge = v.fasterRule({ a: [1, 4] }, [0, 1], o);
+      assert(near(edge.geoMean, 2) && edge.lower === 1 && edge.pass === false, `a lower bound of exactly 1.0 is not above 1.0: ${JSON.stringify(edge)}`);
+      const floor = v.fasterRule({ a: [4, 4, 4, 4], b: [0.9, 0.9, 0.9, 0.9] }, reps, o);
+      assert(floor.geoMean > 1.8 && floor.lower > 1 && floor.cellGeoMeans.b < 1 && floor.pass === false, `a cell at 0.9: ${JSON.stringify(floor)}`);
+      // The same drawn reps apply to every cell: opposite ratios cancel in every resample, so the lower bound is 1.
+      const shared = v.fasterRule({ a: [4, 2, 1, 0.5], b: [0.25, 0.5, 1, 2] }, reps, o);
+      assert(near(shared.geoMean, 1) && near(shared.lower, 1), `shared draws: ${JSON.stringify(shared)}`);
+      // The seed decides the resamples, and nothing else does.
+      const ratios = Array.from({ length: 20 }, (_, i) => 1 + (i % 7) / 5);
+      const twenty = Array.from({ length: 20 }, (_, i) => i);
+      const one = v.fasterRule({ a: ratios }, twenty, o);
+      same(v.fasterRule({ a: ratios }, twenty, o), one, 'the same input and seed gave another result');
+      assert(v.fasterRule({ a: ratios }, twenty, { ...o, resampleSeed: 8 }).lower !== one.lower, 'the seed did not change the resamples');
+      // Fail closed: a rep without a pair, a ratio of 0, a series of another length and missing options are never a statistic.
+      assert([[{ a: [2, null, 2, 2] }, reps, o], [{ a: [2, 0, 2, 2] }, reps, o], [{ a: [2, 2, 2] }, reps, o], [{}, reps, o], [{ a: [2, 2, 2, 2] }, [0, 1, 2], o],
+        [{ a: [2, 2, 2, 2] }, reps, { resamples: 0, resampleSeed: 7 }], [{ a: [2, 2, 2, 2] }, reps, { resamples: 1000 }]].every(([r, p, x]) => thrownBy(() => v.fasterRule(r, p, x)) !== ''), 'an incomplete input did not throw');
+    },
+  },
+  {
+    name: 'verdicts: failed requests at the common endpoint',
+    async run() {
+      const { v, row } = await verdictKit();
+      const reps = Array.from({ length: 20 }, (_, i) => i);
+      const o = { quantity: 10, capMs: 120000 };
+      const pairsOf = (/** @type {(r: number) => any} */ screen, /** @type {(r: number) => any} */ noScreen) => {
+        const paired = v.pairRows(ingested(v, reps.map((r) => row(r, `s${r}`, screen(r)))), ingested(v, reps.map((r) => row(r, `s${r}`, noScreen(r)))), reps);
+        assert(paired.problems.length === 0 && paired.pairs.length === 20, `the pairing: ${JSON.stringify(paired.problems)}`);
+        return paired.pairs;
+      };
+      const failed = pairsOf(() => ({ accepted: 9, tenth: null }), () => ({ accepted: 10, tenth: 60000 }));
+      const ratios = v.ratiosOf(failed, reps, o);
+      same(ratios, Array(20).fill(0.5), `the ratios of a failed screen arm: ${JSON.stringify(ratios)}`);
+      const rule = v.fasterRule({ c: ratios }, reps, { resamples: 1000, resampleSeed: 7 });
+      assert(rule.pass === false && near(rule.geoMean, 0.5), `a failed arm passed the faster rule: ${JSON.stringify(rule)}`);
+      // One endpoint for both arms: two failed arms tie, a late T10 enters at the cap, a quicker screen arm is above 1 and
+      // passes, and a rep without a pair is a null, never a ratio.
+      const tie = v.ratiosOf(pairsOf(() => ({ accepted: 9, tenth: null }), () => ({ accepted: 3, tenth: null })), reps, o);
+      const late = v.ratiosOf(pairsOf(() => ({ accepted: 10, tenth: 130000, response: 131000 }), () => ({ accepted: 10, tenth: 125000, response: 126000 })), reps, o);
+      const quick = v.ratiosOf(pairsOf(() => ({ accepted: 10, tenth: 30000 }), () => ({ accepted: 10, tenth: 45000 })), reps, o);
+      same([tie, late, quick], [Array(20).fill(1), Array(20).fill(1), Array(20).fill(1.5)], 'two failed arms tie at the cap, a T10 past the cap is capped, 45 s over 30 s is 1.5');
+      assert(v.fasterRule({ c: quick }, reps, { resamples: 1000, resampleSeed: 7 }).pass === true, 'a screen arm 1.5 times quicker did not pass');
+      const holed = v.ratiosOf(failed.filter((/** @type {any} */ p) => p.rep !== 3), reps, o);
+      assert(holed[3] === null && holed.filter((x) => x === 0.5).length === 19, `a rep without a pair: ${JSON.stringify(holed)}`);
+      assert(thrownBy(() => v.fasterRule({ c: holed }, reps, { resamples: 1000, resampleSeed: 7 })).includes('index 3') && thrownBy(() => v.ratiosOf(failed, reps, { quantity: 10 })).includes('capMs'),
+        'a null ratio or a missing capMs did not throw');
+    },
+  },
+  {
+    name: 'verdicts: no regression',
+    async run() {
+      const { v } = await verdictKit();
+      const reps = Array.from({ length: 20 }, (_, i) => i);
+      const o = { resamples: 1000, resampleSeed: 7 };
+      const same1 = v.noRegression(Array(20).fill(1), reps, o);
+      assert(same1.pass === true && near(same1.lower, 1) && near(same1.geoMean, 1), `20 ratios of 1.0: ${JSON.stringify(same1)}`);
+      const worse = v.noRegression(Array(20).fill(0.8), reps, o);
+      assert(worse.pass === false && near(worse.lower, 0.8), `20 ratios of 0.8: ${JSON.stringify(worse)}`);
+      assert(v.noRegression(Array(20).fill(0.95), reps, o).pass === true, '20 ratios of 0.95 failed');
+      // The lower bound decides, not the mean: a mean of 1.41 with a resampled 10th percentile of 0.5 fails.
+      const wide = v.noRegression([0.5, 4], [0, 1], o);
+      assert(wide.geoMean > 1.4 && near(wide.lower, 0.5) && wide.pass === false, `a wide pair: ${JSON.stringify(wide)}`);
+      assert(thrownBy(() => v.noRegression([1, null], [0, 1], o)).includes('index 1') && thrownBy(() => v.noRegression([1, 1], [0, 1, 2], o)).includes('3 ratios')
+        && thrownBy(() => v.noRegression([1, 1], [0, 1], { resamples: 1000 })).includes('resampleSeed'), 'a null ratio, a short series or a missing seed did not throw');
     },
   },
 ];

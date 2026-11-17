@@ -3,9 +3,9 @@
 // rows are valid measurements, completion and the capped T10 kept apart from the deadline (D-V4-16), and the
 // per-puzzle evidence (puzzle keys, clue counts) that every comparison needs before it may compare anything. Missing,
 // invalid, censored or erroneous data is incomplete evidence, never a pass; an invalid puzzle or pack is a
-// correctness failure. Pure functions of published rows. V4-T09b to V4-T09e add the pairing and the class
-// statistics, the work ledger and the class verdict, the global verdicts and the verdict tool to this file; the
-// manifest the tool reads is described in data/verdict-manifest.schema.md.
+// correctness failure. Pure functions of published rows. V4-T09b adds the pairing, the matched sets and the clue,
+// faster and no-regression rules; V4-T09c to V4-T09e add the work ledger and the class verdict, the global verdicts
+// and the verdict tool to this file; the manifest the tool reads is described in data/verdict-manifest.schema.md.
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -288,4 +288,314 @@ export function puzzleEvidence(run) {
     return { keys: null, clues: null };
   }
   return { keys: keysProblem(run.details, accepted), clues: cluesProblem(run.details, accepted) };
+}
+
+/** @typedef {{ rep: any, seed: any, a: IngestedRow, b: IngestedRow }} Pair */
+/** @typedef {{ rep: any, seed: any, screen: number, noScreen: number, d: number }} MatchedSet */
+
+/** The resampled lower bound is the 10th percentile of the resampled geometric means (plan section 5.2, the recipe). */
+const LOWER_QUANTILE = 0.1;
+
+/**
+ * The generator of the resampling (plan section 5.2: a random seed written in the manifest): the same seed gives the
+ * same sequence on every machine.
+ * @param {number} seed
+ * @returns {() => number} A function that returns the next value, from 0 up to but not including 1.
+ */
+export function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * @param {number[]} values A non-empty list of finite numbers.
+ * @returns {number} The median; of an even list the mean of its two middle values. Throws on an empty list: no data
+ *   has no median.
+ */
+export function median(values) {
+  if (!Array.isArray(values) || values.length === 0 || !values.every(isNum)) {
+    throw new RangeError('verdicts: median needs a non-empty list of finite numbers');
+  }
+  const sorted = values.slice().sort((x, y) => x - y);
+  const mid = sorted.length >> 1;
+  return sorted.length % 2 === 1 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+/**
+ * @param {number[]} values A non-empty list of finite numbers above 0 (a ratio of two capped times).
+ * @returns {number} `Math.exp` of the mean of `Math.log`. Throws on any other input: a zero, a negative or a
+ *   non-finite ratio is not a measurement and must not turn a gate into a vacuous pass.
+ */
+export function geoMean(values) {
+  if (!Array.isArray(values) || values.length === 0 || !values.every((x) => isNum(x) && x > 0)) {
+    throw new RangeError('verdicts: geoMean needs a non-empty list of finite numbers above 0');
+  }
+  return Math.exp(values.reduce((sum, x) => sum + Math.log(x), 0) / values.length);
+}
+
+/**
+ * @param {unknown} reps
+ * @returns {void} Throws unless the declared replicates are a non-empty list of distinct integers: a missing or repeated
+ *   replicate would change every pairing and every resample.
+ */
+function needReps(reps) {
+  if (!Array.isArray(reps) || reps.length === 0 || !reps.every(Number.isInteger) || new Set(reps).size !== reps.length) {
+    throw new RangeError('verdicts: reps must be a non-empty list of distinct integers');
+  }
+}
+
+/**
+ * @param {{ resamples?: unknown, resampleSeed?: unknown }} options
+ * @returns {void} Throws unless the options of the recipe are a positive integer and an integer.
+ */
+function needResampling({ resamples, resampleSeed }) {
+  needPositive('resamples', resamples, true);
+  if (!Number.isInteger(resampleSeed)) {
+    throw new RangeError(`verdicts: resampleSeed must be an integer, got ${String(resampleSeed)}`);
+  }
+}
+
+/**
+ * @param {string} name
+ * @param {unknown} series
+ * @param {number} length
+ * @returns {void} Throws unless the series is a list of `length` ratios, each a finite number above 0. A `null`
+ *   (a rep without a pair, `ratiosOf`) is not a ratio: it is incomplete evidence, which the caller judges before it asks
+ *   for a statistic.
+ */
+function needSeries(name, series, length) {
+  if (!Array.isArray(series) || series.length !== length) {
+    throw new RangeError(`verdicts: ${name} needs ${length} ratios, one per declared rep`);
+  }
+  const bad = series.findIndex((x) => !(isNum(x) && x > 0));
+  if (bad >= 0) {
+    throw new RangeError(`verdicts: ${name} has no ratio above 0 at index ${bad} (${String(series[bad])})`);
+  }
+}
+
+/**
+ * The geometric means of `resamples` resamples of the declared replicates, drawn with replacement; the drawn indices
+ * are shared by every series (every cell of the class), and a resample's value is the geometric mean over every
+ * (series, drawn index) pair.
+ * @param {number[][]} series Each as long as `length`.
+ * @param {number} length
+ * @param {{ resamples: number, resampleSeed: number }} options
+ * @returns {number} The value at index `Math.ceil(0.1 * resamples) - 1` of the ascending resampled means.
+ */
+function resampledLower(series, length, { resamples, resampleSeed }) {
+  const rand = mulberry32(resampleSeed);
+  const means = [];
+  for (let r = 0; r < resamples; r += 1) {
+    const drawn = Array.from({ length }, () => Math.floor(rand() * length));
+    means.push(geoMean(series.flatMap((s) => drawn.map((i) => s[i]))));
+  }
+  means.sort((x, y) => x - y);
+  return means[Math.ceil(LOWER_QUANTILE * resamples) - 1];
+}
+
+/** @param {IngestedRow} row @returns {string} The first problem of a row and how many more it has. */
+function firstProblem(row) {
+  const more = row.problems.length - 1;
+  return row.problems.length === 0 ? '' : ` (${row.problems[0]}${more > 0 ? `, +${more} more` : ''})`;
+}
+
+/**
+ * Pairs the ingested rows of one cell by request identity (R12): two rows are the same request when `caseId`, `rep`
+ * and `seed` are equal, and the manifest declares the replicates. A pair exists only where both arms have exactly one
+ * row at the rep, both rows are valid and their case and seed agree; every other case is a pairing problem, the
+ * statistic that needs the pair is incomplete, and nothing is dropped silently. An `incorrect` row is also a
+ * correctness failure, wherever it stands: a duplicate or an undeclared row does not hide it.
+ * @param {IngestedRow[]} rowsA The first arm's rows (class use: the screen arm; no-regression use: after).
+ * @param {IngestedRow[]} rowsB The second arm's rows (class use: no screen; no-regression use: today's).
+ * @param {number[]} reps The declared replicates of the cell.
+ * @returns {{ pairs: Pair[], problems: string[], incorrect: { side: 'a' | 'b', rep: any }[] }} `pairs` in the order of `reps`.
+ */
+export function pairRows(rowsA, rowsB, reps) {
+  needReps(reps);
+  /** @type {['a' | 'b', IngestedRow[]][]} */
+  const sides = [['a', rowsA], ['b', rowsB]];
+  for (const [side, rows] of sides) {
+    if (!Array.isArray(rows) || rows.some((r) => !STATUSES.includes(/** @type {any} */ (r)?.status))) {
+      throw new TypeError(`verdicts: the rows of side ${side} are not a list of ingested rows`);
+    }
+  }
+  const declared = new Set(reps);
+  /** @type {Pair[]} */
+  const pairs = [];
+  /** @type {string[]} */
+  const problems = [];
+  /** @type {{ side: 'a' | 'b', rep: any }[]} */
+  const incorrect = [];
+  for (const [side, rows] of sides) {
+    for (const r of rows) {
+      if (r.status === 'incorrect') {
+        incorrect.push({ side, rep: r.rep });
+      }
+    }
+  }
+  for (const rep of reps) {
+    const [a, b] = sides.map(([, rows]) => rows.filter((r) => r.rep === rep));
+    for (const [side, found] of /** @type {['a' | 'b', IngestedRow[]][]} */ ([['a', a], ['b', b]])) {
+      if (found.length === 0) {
+        problems.push(`missing row: side ${side} rep ${rep}`);
+      } else if (found.length > 1) {
+        problems.push(`duplicate rows: side ${side} rep ${rep} has ${found.length}`);
+      } else if (found[0].status !== 'valid') {
+        problems.push(`status ${found[0].status}: side ${side} rep ${rep}${firstProblem(found[0])}`);
+      }
+    }
+    if (a.length !== 1 || b.length !== 1) {
+      continue;
+    }
+    const agree = [['case', a[0].caseId, b[0].caseId], ['seed', a[0].seed, b[0].seed]].filter(([, x, y]) => x !== y);
+    for (const [what, x, y] of agree) {
+      problems.push(`${what} differs at rep ${rep}: side a ${JSON.stringify(x)}, side b ${JSON.stringify(y)}`);
+    }
+    if (agree.length === 0 && a[0].status === 'valid' && b[0].status === 'valid') {
+      pairs.push({ rep, seed: a[0].seed, a: a[0], b: b[0] });
+    }
+  }
+  for (const [side, rows] of sides) {
+    for (const r of rows) {
+      if (!declared.has(r.rep)) {
+        problems.push(`row outside the declared replicates: side ${side} rep ${String(r.rep)}`);
+      }
+    }
+  }
+  return { pairs, problems, incorrect };
+}
+
+/**
+ * The matched sets of the pairs (IG-P-Q35, RV3-08): a pair whose `run.details.igSetKey` are strings and equal and
+ * whose arms each accepted at least one puzzle, with complete clue evidence on both sides (`puzzleEvidence(run).clues`
+ * is null). A pair that meets the first conditions but lacks the clue evidence is not a matched set and is listed in
+ * `evidence`, one entry per side, never read as a zero difference; the class is then inconclusive (T09c). Any other
+ * pair is simply not a matched set (the completion record keeps its outcome).
+ * @param {Pair[]} pairs From `pairRows`: valid rows of both arms.
+ * @returns {{ matched: MatchedSet[], evidence: { rep: any, side: 'a' | 'b', problem: string }[] }} `screen` and
+ *   `noScreen` are the per-set clue values (the median of `run.details.puzzles[].clues`) of the first and the second
+ *   arm and `d = screen - noScreen`.
+ */
+export function matchedSets(pairs) {
+  /** @type {MatchedSet[]} */
+  const matched = [];
+  /** @type {{ rep: any, side: 'a' | 'b', problem: string }[]} */
+  const evidence = [];
+  for (const { rep, seed, a, b } of pairs) {
+    const keyA = a.run?.details?.igSetKey;
+    const keyB = b.run?.details?.igSetKey;
+    if (typeof keyA !== 'string' || keyA !== keyB) {
+      continue;
+    }
+    if (!(isCount(a.run.acceptedCount) && a.run.acceptedCount >= 1 && isCount(b.run.acceptedCount) && b.run.acceptedCount >= 1)) {
+      continue;
+    }
+    const problemA = puzzleEvidence(a.run).clues;
+    const problemB = puzzleEvidence(b.run).clues;
+    if (problemA !== null || problemB !== null) {
+      if (problemA !== null) {
+        evidence.push({ rep, side: 'a', problem: problemA });
+      }
+      if (problemB !== null) {
+        evidence.push({ rep, side: 'b', problem: problemB });
+      }
+      continue;
+    }
+    const screen = median(a.run.details.puzzles.map((/** @type {{ clues: number }} */ p) => p.clues));
+    const noScreen = median(b.run.details.puzzles.map((/** @type {{ clues: number }} */ p) => p.clues));
+    matched.push({ rep, seed, screen, noScreen, d: screen - noScreen });
+  }
+  return { matched, evidence };
+}
+
+/**
+ * Rule (c5), the clue tolerance, pooled over the matched sets of the whole class (plan section 5.2): the median of the
+ * per-set difference is at most 0.5 clues and at most one matched set in five moves by two clues or more. No matched
+ * set is no evidence: `pass` is false and `medianDiff` null.
+ * @param {MatchedSet[]} matched The matched sets of every cell of the class.
+ * @returns {{ n: number, medianDiff: number | null, moved2: number, pass: boolean }}
+ */
+export function clueRule(matched) {
+  const n = matched.length;
+  const moved2 = matched.filter((m) => Math.abs(m.d) >= 2).length;
+  const medianDiff = n > 0 ? median(matched.map((m) => m.d)) : null;
+  return { n, medianDiff, moved2, pass: medianDiff !== null && medianDiff <= 0.5 && 5 * moved2 <= n };
+}
+
+/**
+ * The per-rep ratio of the capped T10s (D-V4-16, one endpoint): `cappedT10(b) / cappedT10(a)` of the pair at each
+ * declared rep (class use: no screen over screen, so above 1 favours the screen; no-regression use: today over
+ * after). A request that did not reach ten enters at `capMs`.
+ * @param {Pair[]} pairs From `pairRows`.
+ * @param {number[]} reps The declared replicates of the cell.
+ * @param {{ quantity: number, capMs: number }} options
+ * @returns {(number | null)[]} In the order of `reps`; `null` for a rep without a pair (incomplete, never a ratio).
+ */
+export function ratiosOf(pairs, reps, { quantity, capMs }) {
+  needReps(reps);
+  needPositive('quantity', quantity, true);
+  needPositive('capMs', capMs, false);
+  /** @type {Map<any, Pair>} */
+  const byRep = new Map();
+  for (const p of pairs) {
+    if (byRep.has(p.rep)) {
+      throw new RangeError(`verdicts: two pairs at rep ${String(p.rep)}`);
+    }
+    byRep.set(p.rep, p);
+  }
+  return reps.map((rep) => {
+    const p = byRep.get(rep);
+    return p === undefined ? null : cappedT10(p.b.run, { quantity, capMs }) / cappedT10(p.a.run, { quantity, capMs });
+  });
+}
+
+/**
+ * Rule (c5), faster (plan section 5.2, the recipe): the geometric mean of the per-rep ratios over all (cell, rep)
+ * pairs, every cell with the same reps and the same weight; its lower bound is the 10th percentile of `resamples`
+ * resamples of the reps with replacement, the same drawn reps applied to every cell; and no cell's own geometric mean
+ * may be below 1.0. Passes at a geometric mean of at least 1.15, a lower bound above 1.0 and every cell at least 1.0.
+ * Throws on a series that is not complete (a `null` from `ratiosOf`): the caller judges missing evidence first.
+ * @param {Record<string, (number | null)[]>} ratiosByCell From a cell to its `ratiosOf`, each as long as `reps`.
+ * @param {number[]} reps The declared replicates, the same for every cell.
+ * @param {{ resamples: number, resampleSeed: number }} options
+ * @returns {{ geoMean: number, lower: number, cellGeoMeans: Record<string, number>, pass: boolean }}
+ */
+export function fasterRule(ratiosByCell, reps, { resamples, resampleSeed }) {
+  needReps(reps);
+  needResampling({ resamples, resampleSeed });
+  const cells = Object.keys(ratiosByCell);
+  if (cells.length === 0) {
+    throw new RangeError('verdicts: fasterRule needs at least one cell');
+  }
+  for (const cell of cells) {
+    needSeries(`cell ${cell}`, ratiosByCell[cell], reps.length);
+  }
+  const series = /** @type {number[][]} */ (cells.map((cell) => ratiosByCell[cell]));
+  const cellGeoMeans = Object.fromEntries(cells.map((cell, i) => [cell, geoMean(series[i])]));
+  const overall = geoMean(series.flat());
+  const lower = resampledLower(series, reps.length, { resamples, resampleSeed });
+  return { geoMean: overall, lower, cellGeoMeans, pass: overall >= 1.15 && lower > 1.0 && cells.every((cell) => cellGeoMeans[cell] >= 1.0) };
+}
+
+/**
+ * The no-regression bound of a control (plan section 5.2): the same recipe for one cell, with the per-rep ratio today
+ * over after; passes when the resampled lower bound is at least 0.9.
+ * @param {(number | null)[]} ratios `ratiosOf` of the pairs (A after, B today), as long as `reps`.
+ * @param {number[]} reps The declared replicates.
+ * @param {{ resamples: number, resampleSeed: number }} options
+ * @returns {{ geoMean: number, lower: number, pass: boolean }}
+ */
+export function noRegression(ratios, reps, { resamples, resampleSeed }) {
+  needReps(reps);
+  needResampling({ resamples, resampleSeed });
+  needSeries('noRegression', ratios, reps.length);
+  const series = /** @type {number[]} */ (ratios);
+  const lower = resampledLower([series], reps.length, { resamples, resampleSeed });
+  return { geoMean: geoMean(series), lower, pass: lower >= 0.9 };
 }

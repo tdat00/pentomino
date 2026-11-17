@@ -153,13 +153,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 14:36:50 +07:00 (dispatch, base `a27cb29`) to 14:51:53 +07:00 (acceptance): 15 min 3 s; the developer's own times 14:36:57-14:46:20 |
+| Waiting for rulings | about 4 min (SA-Opus's review of the deviations, readings and named items, 14:47-14:51; no QUESTION) |
+| Agent id, model | `ae521bd3-755b-43f6-b9fe-0cfe7143724f`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 49 calls; 6,728,169 input, 74,424 output, 6,524,416 cache-read |
+| AI credits | 190.60 |
+| Questions and rulings | none from the developer. SA-Opus ruled "accept T09b": the deviations, the nine readings and the stronger test inputs accepted (the table's constant ratios never exercise the resampling; the developer's added inputs and 15 caught single-line mutations prove it). The T09d control gate is `incomplete` on any `pairRows` problem before `noRegression` (new case and T09d-T03); the T09a `quantity` guard goes to T09c step 2b (`reachedTen` guards `quantity`; case and T09c-T05); pack amendment `a00c4d5` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--items`: 56 passed, 0 failed (12.591 s; the eight new `verdicts:` cases 49-56); `--frozen`: 10 passed; `check-edits --all`: 33 `ok`, no other line; firewall `check` (V4-T09b): 289 production files unchanged; `git status --short -- core generator tests tools/bench tools/ig-proto/variants`: empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. No locked command and no machine time (round 2,724 s); `ig-select-v4.js` unchanged |
+| Commit | this task's commit, `improve-generating T09b: Admission statistics: pairing, matched sets and the class rules of rule (c5)` |
+| Issues and named items | none new; the T09d control-gate order and the T09a `quantity` guard were routed to T09d and T09c by the pack amendment `a00c4d5` |

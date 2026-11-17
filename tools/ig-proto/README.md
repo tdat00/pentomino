@@ -68,7 +68,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `variants/link.json`, `variants/log-link.json`, `variants/v4-link.json`, `variants/v4-ps-link.json`, `variants/files/link/`, `linkage.mjs`, `plans/V4-T06.json` | the batch linkage journal and its report (V4-T06): the variant `link` and its three compositions, `ig-link.js`, `linkage.mjs report` and the plan of its run; see "Batch linkage (V4-T06)" |
 | `variants/v4-p5.json`, `variants/v4-p5-w8-test.json`, `variants/v4-link-w8-test.json` | the P5 pilot arm `v4-p5` (the call budget and the bounded set attempts) and the two test-only width-8 trees (V4-T07b); see "P5 bounded set attempts (V4-T07b)" |
 | `variants/fr-base.json`, `fr-screen.json`, `fr-none.json`, `fr-close.json`, `fr-c4.json`, `fr-ps.json`, `fr-p5.json` | the seven frozen-round arms of stage 2 (V4-T08); see "Frozen-round arms (V4-T08)" |
-| `verdicts.mjs`, `data/verdict-manifest.schema.md` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence) and the manifest those statistics read; pure; see "Admission statistics (V4-T09a)" |
+| `verdicts.mjs`, `data/verdict-manifest.schema.md` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules) and the manifest those statistics read; pure; see "Admission statistics (V4-T09a)" |
 
 ## Trees (variants)
 
@@ -1396,7 +1396,55 @@ never a pass; an invalid puzzle or pack is a correctness failure. The module loa
   incomplete. The functions are fail-closed beyond the table: a missing option (`quantity`, `capMs`,
   `responseBoundMs`) throws, `cappedT10` throws on a request with ten puzzles and no T10 (not a valid row), and a run
   whose `acceptedCount` is not an integer from 0 has incomplete evidence.
+- **Pairing** (V4-T09b; `pairRows(rowsA, rowsB, reps)` over the ingested rows of one cell; class use: A the screen arm,
+  B the no-screen arm; no-regression use: A after, B today's). Two rows are the same request when `caseId`, `rep` and
+  `seed` are equal, and the manifest declares each cell's replicates (`reps`, a non-empty list of distinct integers).
+  A **pair** exists at a declared rep only where each arm has exactly one row, both are `valid` and their case and seed
+  agree; it is `{ rep, seed, a, b }` (the ingested rows), in the order of `reps`. Every other state is a pairing
+  problem, a string in `problems`, and the statistic that needs the pair is incomplete: `missing row: side <a|b> rep
+  <r>` (a declared replicate without a row), `duplicate rows: side <a|b> rep <r> has <n>` (two rows of one arm at one
+  rep, whatever their seeds), `status <status>: side <a|b> rep <r> (<first problem>)` (a row that is not `valid`),
+  `seed differs at rep <r>: ...` and `case differs at rep <r>: ...` (the arms disagree at one rep; a rep has one seed)
+  and `row outside the declared replicates: side <a|b> rep <r>`. An `incorrect` row is also a correctness failure,
+  listed in `incorrect` as `{ side: 'a' | 'b', rep }` wherever it stands (a duplicate or an undeclared row does not hide
+  it). Rows that were not ingested (`ingestRow`), or repeated or missing reps, throw.
+- **Matched sets** (IG-P-Q35, RV3-08; `matchedSets(pairs)`). The per-set clue value is the median of
+  `run.details.puzzles[].clues` (`median`: of an even list the mean of its two middle values). A pair is a **matched set**
+  when the arms' `run.details.igSetKey` (written by the `instr` variant) are strings and equal, both arms accepted at
+  least one puzzle and both have complete clue evidence (`puzzleEvidence(run).clues` is `null`); it is
+  `{ rep, seed, screen, noScreen, d }` with `d = screen - noScreen`. A pair that meets the first two conditions but not
+  the clue evidence is an **evidence problem**: it is not a matched set and is listed in `evidence` as `{ rep, side,
+  problem }`, one entry per side (the problem is `puzzleEvidence`'s text, for example `clues: 0 of 10`), and T09c makes
+  the class inconclusive by it; its completion outcome stays in the completion record. Any other pair (no set key, two
+  set keys, a request without puzzles on one arm) is simply not a matched set. Incomplete clue evidence is never read as
+  a zero difference.
+- **The clue rule** (`clueRule(matched)`, pooled over the matched sets of every cell of the class): `{ n, medianDiff,
+  moved2, pass }` with `moved2` the number of sets with `Math.abs(d) >= 2` and `pass = n > 0 && medianDiff <= 0.5 && 5 *
+  moved2 <= n`; with no matched set `medianDiff` is `null` and `pass` false.
+- **Resampling** (`mulberry32(seed)`; `fasterRule` and `noRegression`). `resamples` resamples of the declared
+  replicate indices with replacement, each drawing `reps.length` indices `Math.floor(rand() * reps.length)` from one
+  `mulberry32(resampleSeed)` stream; the same drawn indices apply to every cell of the class and a resample's value is the
+  geometric mean (`geoMean`: `Math.exp` of the mean of `Math.log`) over every (cell, drawn index) pair. The lower bound is
+  the value at index `Math.ceil(0.1 * resamples) - 1` of the ascending list (the 10th percentile; the plan uses 10,000
+  resamples and writes the seed in the manifest).
+- **Ratios and the faster rule** (`ratiosOf(pairs, reps, { quantity, capMs })`, `fasterRule(ratiosByCell, reps, {
+  resamples, resampleSeed })`). A rep's ratio is `cappedT10(b.run) / cappedT10(a.run)`, no screen over screen in class
+  use, so a request that did not reach ten enters at `capMs` (one endpoint for both arms: a failed arm can at best tie).
+  `ratiosOf` returns the ratios in the order of `reps` and `null` for a rep without a pair. `fasterRule` returns `{
+  geoMean, lower, cellGeoMeans, pass }`: the geometric mean over all (cell, rep) pairs, the resampled lower bound, each
+  cell's own geometric mean, and `pass = geoMean >= 1.15 && lower > 1.0 &&` every cell's geometric mean `>= 1.0`.
+- **No regression** (`noRegression(ratios, reps, { resamples, resampleSeed })`): the same recipe for one cell, with the
+  ratio today over after (A after, B today's); `{ geoMean, lower, pass }`, `pass = lower >= 0.9`.
+- **Fail closed beyond the table.** `median` of nothing and `geoMean` of nothing, of a zero or of a non-finite number
+  throw; `fasterRule` and `noRegression` throw on a series that is not one ratio above 0 per declared rep (a `null` from
+  `ratiosOf` is incomplete evidence, which the caller judges first, as the class procedure of V4-T09c does at its
+  rule 2), on a cell-less input, and on `resamples` that is not a positive integer or a `resampleSeed` that is not an
+  integer; `ratiosOf` throws on a missing `quantity` or `capMs` and on two pairs at one rep.
 - **Self-test.** Four cases appended to the `--items` group (`verdicts: basic rows`, `verdicts: completion and the
   deadline apart`, `verdicts: run status`, `verdicts: per-puzzle evidence`), on synthetic rows built from the frozen
   `newRunRecord` (the helper `verdictKit()` of `self-test.mjs` loads `verdicts.mjs` and the frozen record builders on
-  first use, so the other groups do not need the snapshot).
+  first use, so the other groups do not need the snapshot). V4-T09b appends eight more (`verdicts: basic statistics`,
+  `pairing problems`, `matched sets`, `incomplete clue populations are not zero differences`, `the clue rule is pooled`,
+  `faster rule and its floor`, `failed requests at the common endpoint`, `no regression`): the pairing problems, the
+  matched sets, the pooled clue rule, the shared resampling, the per-cell floor, the common endpoint and the no-regression
+  bound, on the same synthetic rows.
