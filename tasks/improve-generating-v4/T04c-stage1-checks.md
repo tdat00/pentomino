@@ -36,7 +36,8 @@ rules; T04d writes the receipt around them.
 
 - Create: `tools/ig-proto/v4-check.mjs` (steps 1 to 3); `tools/ig-proto/plans/V4-T04.parity.json` and
   `tools/ig-proto/plans/V4-T04.replay.json` (step 4).
-- Change: `tools/ig-proto/self-test.mjs` (cases appended to `--items`), `tools/ig-proto/README.md` (a section).
+- Change: `tools/ig-proto/self-test.mjs` (cases appended to `--items`; two modules added to the `--frozen` case of
+  step 7), `tools/ig-proto/README.md` (a section; the worker-module list of step 7).
 - Do not change: everything else. Guards: `node tools\ig-proto\firewall.mjs check --task V4-T04c --label frozen`,
   expected `files unchanged`; `git status --short -- core generator tests tools/ig-proto/variants tools/ig-proto/lib`,
   expected no output.
@@ -84,11 +85,13 @@ rules; T04d writes the receipt around them.
      `fail`. Then, by the group's route:
      - `new` (all three modes): every mode's `ledger.complete` (else `incomplete`, `no complete work evidence`); the
        `digest` of every mode equal; `ledger.totalWork` equal in every mode; in `charge` and `record`: `units ===
-       ledger.totalWork` and `chargeUnits` deep-equal between the two; `maxSequence` below 2,192.
+       ledger.totalWork` and `chargeUnits` deep-equal between the two; the `record` row's `maxSequence` below 2,192
+       (`absent` and `charge` record no event: their `maxSequence`, `events`, `eventKinds` and `eventPhases` are `null`
+       and are not read; T04b's report).
      - `legacy` (modes `absent`, `charge`; `legacy-recorded` for `record`): `absent` and `charge` ledgers complete
        (else `incomplete`); the `digest` of every mode equal; the two ledgers' `totalWork` equal; `charge`'s `units ===
        ledger.totalWork`; `record`'s `units === charge.units` and its `chargeUnits` deep-equal to `charge`'s;
-       `maxSequence` below 2,128.
+       the `record` row's `maxSequence` below 2,128.
      - every `record` row: `events > 0`; `detail.scored === detail.rated + detail.rejected`; `detail.missing === 0`
        (else `fail`); `detail.scored === 0`: `incomplete` (`no completed scored event`); else
        `detail.rechecked.length === Math.min(2, detail.scored)` and every `equal` true (else `fail`).
@@ -113,6 +116,10 @@ rules; T04d writes the receipt around them.
 5. **Self-test** cases appended to `--items` (Tests table).
 6. **README.md**: a section "## Stage 1 checks (task pack v4)": the manifests, `v4-check run`, the routes and the
    verdict rules of step 3.
+7. **Worker-module audit** (ruling of 2026-11-17, T04b's report): the `--frozen` case `frozen: worker modules do not
+   read the label` checks also `ledger.mjs` and `packs.mjs` (its list becomes `['lane-worker.mjs', 'calls.mjs',
+   'sets.mjs', 'engine.mjs', 'ledger.mjs', 'packs.mjs']`: T04b's lane worker loads both), and the README's list of
+   the modules a worker loads (section "### Source-dependent imports (V4-T01b)") gains them.
 
 ## Tests
 
@@ -125,7 +132,7 @@ group with `digest: 'd'`, a complete ledger of `ratingWork` 7, `countWork` 5, `t
 |---|---|---|
 | `checks: manifest expansion` | `expandManifest` of the two plan manifests, then of a manifest with a mode `twice` and of one with a row repeated | 23 and 9 items in manifest order, the routes `legacy` / `legacy` / `legacy-recorded` on `v4 14x14-master`, `new` on the Nightmare and Hell 1 cases, `base` on `base`; the replay items' `packPath` equal to their generation item's; the last two throw (`unknown mode`, `duplicate item id`) |
 | `checks: manifest addressing` | a manifest written by the case to `<artifactDir('selftest', 'checks-addressing')>/m.json` with `task` `V4-T04c-selftest`, `step` `a` and one `v4-select` row; `main(['run', '--task', 'V4-T04c-selftest', '--step', 'b', '--manifest', <its path>, '--label', 'frozen', '--source-label', 'x'])` | returns 1; stderr names `V4-T04c-selftest/a`; `artifactDir('frozen', 'V4-T04c-selftest')` does not exist |
-| `checks: parity on the new route` | the three `ok` rows of `v4` on `12x12-nightmare` (route `new`) | `pass` |
+| `checks: parity on the new route` | the three `ok` rows of `v4` on `12x12-nightmare` (route `new`); then the same with the `record` row's `maxSequence` 2,192 | `pass`; then `fail` (naming the sequence) |
 | `checks: equal rating work, unequal count work` | the same with the `absent` ledger's `countWork` 6 and `totalWork` 13 | `fail` (total work differs) |
 | `checks: equal charged modes, unequal absent total` | the same with only the `absent` ledger's `ratingWork` 6 and `totalWork` 11 (charge and record unchanged) | `fail` |
 | `checks: incomplete ledger` | the same with the `absent` ledger `complete: false` | `incomplete` (`no complete work evidence`) |
@@ -142,6 +149,7 @@ group with `digest: 'd'`, a complete ledger of `ratingWork` 7, `countWork` 5, `t
 | Command | Where | Expected | Time limit |
 |---|---|---|---|
 | `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04c` | root | every `--items` case passes, exit 0 | 3 min |
+| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T04c` | root | the ten `--frozen` cases pass (step 7) | 2 min |
 | `node tools\ig-proto\firewall.mjs check --task V4-T04c --label frozen` | root | `files unchanged` | 1 min |
 | `npm run check` | root | exit 0 | 2 min |
 
@@ -167,6 +175,7 @@ group with `digest: 'd'`, a complete ledger of `ratingWork` 7, `countWork` 5, `t
 | T04c-T01 | Manifest expansion and routes; a manifest runs only under its own task and step | cases 1 and 2 | self-test output |
 | T04c-T02 | The verdict rules of step 3 | cases 3 to 9 | self-test output |
 | T04c-T03 | Nothing else changed; formats | guards; `npm run check` | command output |
+| T04c-T04 | No module a lane worker loads reads the label, T04b's `ledger.mjs` and `packs.mjs` included (step 7) | the `--frozen` case | self-test output |
 
 ## Checklist (the developer confirms every item in the final report)
 

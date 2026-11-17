@@ -93,7 +93,8 @@ on T09b's statistics.
      6. Primitives (RV4-02): the problems of `pairPrimitives(<the call's lines in order>, call)` of
         `tools/ig-proto/lib/ledger.mjs` (T04b, imported unchanged): at most one pending primitive per call; `invalid
         begin`, `invalid bound`, `overlapping begin` (at once, never removed by a later completion), `unpaired <t>
-        line`, `unquantified <outcome>` (a `p` line of outcome `unsat` or `error`) and `bound exceeded`, each with the
+        line`, `unquantified <outcome>` (a paired `p` line of outcome `unsat` or `error`; an unpaired one gives
+        `unpaired p line` only) and `bound exceeded`, each with the
         call and the primitive's index among the call's `begin` lines; its `open` is the call's open primitive and
         its `lo` the call's `lo`.
      7. Closure: a call with two `end` lines: `duplicate end <call>`; a call without `end` is closed only by a

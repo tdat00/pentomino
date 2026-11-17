@@ -29,7 +29,7 @@ only after a successful batch into a prepared folder.
 - Review RV2-02 (accepted): a generation item prepares its folders before its pool starts, refuses an existing pack
   for an unstarted item and writes and hashes the pack only after a successful batch.
 - `tools/node-worker.mjs` wires the engine task handler to `parentPort` when it is loaded in any worker thread
-  (`tools/node-worker.mjs:49-53`), so a lane worker never imports it; it starts it as a nested worker by path.
+  (`tools/node-worker.mjs:47-51`), so a lane worker never imports it; it starts it as a nested worker by path.
 - T01b's audit stays true for `lib/lane-worker.mjs` and the new `lib/ledger.mjs` and `lib/packs.mjs` (no label read, no
   import from `../../../core/`).
 
@@ -78,6 +78,13 @@ only after a successful batch into a prepared folder.
      (`call: null`) are summed; their total is cross-checked through the charged mode (T04c).
    - `legacy-recorded`: `ratingWork` is unknown (`null`, problem `ratings not journaled on the recorded route`); the
      count lines are summed. This route's work evidence is its charged total (T04c).
+   - Ruling of 2026-11-17 (the first execution's readings, accepted): the texts of the unspecified problems are
+     `expected one start line, found <n>`, `no end line <call>`, `duplicate end <call>`, `invalid work <call>` (once)
+     and `foreign <t> line <call>` (on `new` also a `begin` of another call; on the legacy routes a `count` line whose
+     `call` is not null); `calls` is the number of `start` lines; a work that cannot be known is `null` (not exactly one
+     `start` off the recorded route, no count capability, an invalid value, the recorded route's rating work), while
+     known partial sums stay beside `complete: false`; `pairPrimitives` reports `unquantified` only for a `p` line that
+     closes a pending primitive (an unpaired one gives `unpaired p line` only).
 2. **`lib/packs.mjs`** (`// @ts-check`): `export function preparePackPath(packPath)`: throws
    `Error('unexpected existing pack <path>')` when the file exists, else creates `dirname(packPath)` recursively;
    `export function writePackFile(packPath, pack)`: writes `text = JSON.stringify(pack)`, reads the file back,
@@ -112,7 +119,7 @@ only after a successful batch into a prepared folder.
    set as in step 3 before the pool is created (nested workers copy the environment) and deleted in the `finally` that
    also calls `pool.close()`; the pool `createPool({ size: 1, workerFactory: () => adaptWorker(new Worker(join(
    workerData.treeRoot, 'tools', 'node-worker.mjs'))) })` where `adaptWorker` is a private copy of `adaptNodeWorker`
-   (`tools/node-worker.mjs:19-37`); `client = createGenerationClient(pool, { createdAt: () =>
+   (`tools/node-worker.mjs:19-36`); `client = createGenerationClient(pool, { createdAt: () =>
    '2026-01-01T00:00:00.000Z' })`. `set = await client.generateSet({ boardRows, rotation, levelId, seedText,
    uniqueness, maxActive })`; `set.status !== 'complete'`: return `{ outcome: 'no-set', setStatus: set.status,
    reason: set.reason ?? null }`. Batch 1 exactly as `generateReplaySeed` builds it (`tools/record-fixtures.mjs:
