@@ -162,13 +162,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 18:22:50 +07:00 (dispatch, base `2712614`) to 18:57:09 +07:00 (acceptance): 34 min 19 s; the developer's own times 18:22:48-18:42:39 (my locked `--v4` re-run waited about 12 min behind Sudoku) |
+| Waiting for rulings | about 2 min (SA-Opus's review, 18:44-18:46; no QUESTION) |
+| Agent id, model | `7e66cfe6-a675-4fb8-ad92-5f243a32facb`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 95 calls; 24,021,229 input, 135,879 output, 23,646,765 cache-read |
+| AI credits | 465.95 |
+| Questions and rulings | none from the developer. SA-Opus ruled "accept T10c": the refactor of `runProcessItems`' shared start (`beginRun`, `refusal`, `checkOutDir`) keeps behaviour, proved by T10b's cases; the extra locked `--v4` case with real workers is allowed locked verification; settling by `cutAtS` + 5 s is the dispatch's job and a hung dispatch resumes `censored`, never a pass; one round with a cold first rating is enough to price stage 2's three-round run (T11c), where P8 is decided (N-V4-02); ruling row with the results, pack amendment `1512922` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--v4` through the lock helper (`V4-T10c verify`): 33 passed, 0 failed, `IG … exit=0 seconds=54.658` (`width: the real worker and the dispatch`); `--items`: 124 passed; `--frozen`: 10 passed; `check-edits --all`: 34 `ok`, no other line; firewall `check` (V4-T10c): 289 production files unchanged; `git status --short -- core generator tests tools/bench tools/ig-proto/variants tools/ig-proto/lib/lanes.mjs tools/ig-proto/lib/lane-worker.mjs`: empty; V4-T10a and V4-T10b evidence unchanged; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. The plan (the developer's run, `-ApprovedRoundMinutes 92`): dry run `go`; `width: complete` on 26x26-nightmare, one round, expected = observed 6, 12, 24, 48; medians 557.4, 587.1, 654.6 and 853.5 ms (slowdown 1, 1.0532, 1.1744, 1.5312); wall 62.81 s, node 16.059 s, lock wait 46.751 s, counted 61.059 s; round 2,852.851 s before, 2,913.910 s after (2,969.31 s with the 55.4 s register row), of 5,520 s |
+| Commit | this task's commit, `improve-generating T10c: Pool probe: one rating's time at 1, 2, 4 and 8 concurrent workers` |
+| Issues and named items | none new; width 8 is 1.30 times width 4 (R23 had 1.09 to 1.28); P8 is decided in stage 2's three-round run (N-V4-02) |

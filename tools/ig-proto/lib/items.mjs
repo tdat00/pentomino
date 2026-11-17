@@ -7,7 +7,8 @@
 // that has ended is never run again; a started item without an end, an identity that changed or a malformed log
 // stops the step (exit 3) and needs a ruling. The line helpers below are the only way any runner writes an item log.
 // `runItems` runs lane-worker kinds; `runProcessItems` (V4-T10b, RV2-04) runs one child process per item, which the
-// parent bounds, cuts at `horizonS - 15`, awaits and always cleans up.
+// parent bounds, cuts at `horizonS - 15`, awaits and always cleans up; `runCustomItems` (V4-T10c) has the same rules
+// for a dispatch the caller gives (the pool probe's worker threads).
 import { spawn } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -288,18 +289,28 @@ const STDERR_TAIL = 2000;
 
 /**
  * @param {Item} item
+ * @param {string} what `process` or `custom`, for the message.
+ * @returns {string} The item's `outDir`; a value that is not a relative path with `/` inside the repository throws.
+ */
+function checkOutDir(item, what) {
+  const { outDir } = item.payload;
+  const parts = typeof outDir === 'string' ? outDir.split('/') : [];
+  if (typeof outDir !== 'string' || /^([a-zA-Z]:|\/)/.test(outDir) || outDir.includes('\\') || parts.some((p) => p === '' || p === '.' || p === '..')) {
+    throw new RangeError(`${what} item ${item.id}: outDir must be a relative path with / separators inside the repository`);
+  }
+  return outDir;
+}
+
+/**
+ * @param {Item} item
  * @returns {{ argv: string[], outDir: string }} The payload of a process item; a payload of another shape throws.
  */
 function processPayload(item) {
-  const { argv, outDir } = item.payload;
+  const { argv } = item.payload;
   if (!Array.isArray(argv) || !argv.every((a) => typeof a === 'string')) {
     throw new RangeError(`process item ${item.id}: argv must be an array of strings`);
   }
-  const parts = typeof outDir === 'string' ? outDir.split('/') : [];
-  if (typeof outDir !== 'string' || /^([a-zA-Z]:|\/)/.test(outDir) || outDir.includes('\\') || parts.some((p) => p === '' || p === '.' || p === '..')) {
-    throw new RangeError(`process item ${item.id}: outDir must be a relative path with / separators inside the repository`);
-  }
-  return { argv, outDir };
+  return { argv, outDir: checkOutDir(item, 'process') };
 }
 
 /** @param {string} text @returns {unknown} The last non-empty line parsed as JSON; null without one or when it is not JSON. */
@@ -310,6 +321,57 @@ function lastJsonLine(text) {
   } catch {
     return null;
   }
+}
+
+/** @param {string} reason @returns {{ exitCode: 3, done: false, progress: 0, refused: string }} A refused step: nothing is written. */
+function refusal(reason) {
+  process.stderr.write(`items: STOP: ${reason}\n`);
+  return { exitCode: 3, done: false, progress: 0, refused: reason };
+}
+
+/**
+ * The start of a run of process or custom items, in this order: the identity and `resumePlan` of `runItems` (the log is
+ * read and validated before any output folder is touched), then the output folders: every pending item that names one
+ * (an item without any log line; a started item was refused) must find it absent or an empty folder, else the step
+ * refuses, and then each is created. A folder of a completed or interrupted item is never emptied or written.
+ * @param {{ task: string, step: string, label: string, items: Item[], identity?: Identity }} o
+ * @param {Map<string, string>} outDirs The `outDir` of each item that has one.
+ * @returns {Promise<{ refused: string } | { logPath: string, statePath: string, startedAt: string, identity: Identity,
+ *   hash: string, plan: { pending: Item[], ended: number } }>}
+ */
+async function beginRun({ task, step, label, items, identity: given }, outDirs) {
+  const dir = artifactDir(label, task, step);
+  const logPath = join(dir, 'items.jsonl');
+  const statePath = join(dir, 'state.json');
+  const startedAt = new Date(Date.now() - elapsedS() * 1000).toISOString();
+
+  const identity = given ?? await itemIdentity(items);
+  const hash = identityHash(identity);
+  const earlier = existsSync(statePath) ? (JSON.parse(readFileSync(statePath, 'utf8')).identity ?? {}) : null;
+  const plan = resumePlan(items, readItemLog(logPath), identity, earlier);
+  if ('refuse' in plan) {
+    return { refused: plan.refuse };
+  }
+  // A folder is only looked at for an item that has no log line; a started item's folder is never touched.
+  for (const item of plan.pending) {
+    const outDir = outDirs.get(item.id);
+    if (outDir === undefined) {
+      continue;
+    }
+    const path = abs(outDir);
+    if (existsSync(path) && (!statSync(path).isDirectory() || readdirSync(path).length > 0)) {
+      return { refused: `unexpected output in ${outDir} for unstarted item ${item.id}` };
+    }
+  }
+
+  mkdirSync(dir, { recursive: true });
+  for (const item of plan.pending) {
+    const outDir = outDirs.get(item.id);
+    if (outDir !== undefined) {
+      mkdirSync(abs(outDir), { recursive: true });
+    }
+  }
+  return { logPath, statePath, startedAt, identity, hash, plan };
 }
 
 /**
@@ -332,36 +394,11 @@ export async function runProcessItems(o) {
   if (new Set(outDirs).size !== outDirs.length) {
     throw new RangeError('process items must have distinct outDir values');
   }
-  const dir = artifactDir(label, task, step);
-  const logPath = join(dir, 'items.jsonl');
-  const statePath = join(dir, 'state.json');
-  const startedAt = new Date(Date.now() - elapsedS() * 1000).toISOString();
-
-  const identity = o.identity ?? await itemIdentity(items);
-  const hash = identityHash(identity);
-  const earlier = existsSync(statePath) ? (JSON.parse(readFileSync(statePath, 'utf8')).identity ?? {}) : null;
-  const plan = resumePlan(items, readItemLog(logPath), identity, earlier);
-  /** @param {string} reason */
-  const refuse = (reason) => {
-    process.stderr.write(`items: STOP: ${reason}\n`);
-    return { exitCode: 3, done: false, progress: 0, refused: reason };
-  };
-  if ('refuse' in plan) {
-    return refuse(plan.refuse);
+  const begin = await beginRun(o, new Map([...payloads].map(([id, p]) => [id, p.outDir])));
+  if ('refused' in begin) {
+    return refusal(begin.refused);
   }
-  // A folder is only looked at for an item that has no log line; a started item's folder is never touched.
-  for (const item of plan.pending) {
-    const { outDir } = /** @type {{ outDir: string }} */ (payloads.get(item.id));
-    const path = abs(outDir);
-    if (existsSync(path) && (!statSync(path).isDirectory() || readdirSync(path).length > 0)) {
-      return refuse(`unexpected output in ${outDir} for unstarted item ${item.id}`);
-    }
-  }
-
-  mkdirSync(dir, { recursive: true });
-  for (const item of plan.pending) {
-    mkdirSync(abs(/** @type {{ outDir: string }} */ (payloads.get(item.id)).outDir), { recursive: true });
-  }
+  const { logPath, statePath, startedAt, identity, hash, plan } = begin;
 
   /** @typedef {{ child: import('node:child_process').ChildProcess | null, closed: Promise<void> }} Running */
   /** @type {Set<Running>} */
@@ -456,6 +493,76 @@ export async function runProcessItems(o) {
       child?.kill('SIGKILL');
     }
     await Promise.all(left.map(({ closed }) => closed));
+  }
+
+  const ended = plan.ended + written;
+  const done = ended === items.length;
+  const verified = plan.pending.length === 0 ? 1 : 0;
+  writeStepState({ statePath, task, step, label, identity, done, ended, total: items.length, startedAt, horizonS, written, verified });
+  return { exitCode: 0, done, progress: written + verified, refused: null };
+}
+
+/**
+ * @typedef {{ status: 'completed' | 'censored' | 'error', result: unknown }} Dispatched What a custom dispatch settles with.
+ */
+
+/**
+ * Runs the pending items of a list through a dispatch the caller gives (V4-T10c), one at a time in order, with
+ * `runProcessItems`' rules: the identity, `resumePlan` and refusals of `runItems` (exit 3 and nothing written), the output
+ * folder rule for an item whose payload has an `outDir` (an item without one skips it), an item admitted while
+ * `elapsedS() + reserveS <= horizonS - 15`, the run stopped after a `censored` item, and never a rerun of a started item.
+ * The item's `item-start` line is written before `dispatch(item, { cutAtS })` is called (RV2-04); the dispatch returns
+ * a promise of `{ status, result }` that must settle by `cutAtS` (seconds since the process start, `horizonS - 15`) plus
+ * 5 s, and owns whatever it started (it terminates and awaits it before it settles). The runner writes exactly one
+ * `item-end` per item: the dispatch's, or `error` with the message when the call throws or its promise rejects or
+ * settles with something else. Every line goes through the line helpers with the run's `identityHash` (RV2-01).
+ * `reserveS`, `horizonS` and the cut are the execution envelope, never part of an item or of the identity (R2-03).
+ * @param {{ task: string, step: string, label: string, horizonS: number, items: Item[], reserveS: number,
+ *   identity?: Identity }} o `identity` is for the self-test.
+ * @param {(item: Item, context: { cutAtS: number }) => Promise<Dispatched>} dispatch
+ * @returns {Promise<{ exitCode: number, done: boolean, progress: number, refused: string | null }>}
+ */
+export async function runCustomItems(o, dispatch) {
+  const { task, step, label, horizonS, items, reserveS } = o;
+  /** @type {Map<string, string>} */
+  const outDirs = new Map();
+  for (const item of items) {
+    if (item.payload.outDir !== undefined) {
+      outDirs.set(item.id, checkOutDir(item, 'custom'));
+    }
+  }
+  if (new Set(outDirs.values()).size !== outDirs.size) {
+    throw new RangeError('custom items must have distinct outDir values');
+  }
+  const begin = await beginRun(o, outDirs);
+  if ('refused' in begin) {
+    return refusal(begin.refused);
+  }
+  const { logPath, statePath, startedAt, identity, hash, plan } = begin;
+  const cutAtS = horizonS - CUT_MARGIN_S;
+
+  let written = 0;
+  for (const item of plan.pending) {
+    if (!(elapsedS() + reserveS <= cutAtS)) {
+      break;
+    }
+    const t0 = performance.now();
+    logStart(logPath, hash, item);
+    /** @type {Dispatched} */
+    let outcome;
+    try {
+      const settled = await dispatch(item, { cutAtS });
+      outcome = ['completed', 'censored', 'error'].includes(settled?.status)
+        ? settled
+        : { status: 'error', result: { outcome: 'error', message: 'the dispatch settled with no status completed, censored or error' } };
+    } catch (e) {
+      outcome = { status: 'error', result: { outcome: 'error', message: e instanceof Error ? e.message : String(e) } };
+    }
+    logEnd(logPath, hash, item.id, outcome.status, outcome.result, Math.round(performance.now() - t0));
+    written += 1;
+    if (outcome.status === 'censored') {
+      break;
+    }
   }
 
   const ended = plan.ended + written;

@@ -7,7 +7,7 @@
 // `fewestColumn`: one child process per case, started with `--cpu-prof --no-turbo-inlining`, rates the case's six
 // subsets in the `instr` tree (diagnostic only; the rating code does not change); `rebuildProfiles` derives
 // `profile.jsonl` from the completed items. `report` rebuilds `kernel.json` and `kernel.md` from the completed items of
-// the steps whose folder exists.
+// the steps whose folder exists. `kernelCorpus` (V4-T10c) is the same corpus as plain data, for the pool probe.
 //   node tools\ig-proto\kernel-probe.mjs counters --task V4-T10a --label frozen --source-label "frozen 3fc65f4"
 //     [--cases <ids>] [--horizon-s <H>]
 //   node tools\ig-proto\kernel-probe.mjs profile --task V4-T10b --label frozen --source-label "frozen 3fc65f4"
@@ -56,7 +56,7 @@ export const PROFILE_NOTE = 'reduced-inlining profile, diagnostic only (plan P7)
 const DEFAULT_HORIZON_S = 285;
 const SEED_PREFIX = 'ig-v4/kernel/';
 /** The folders of the historical observations (check-list 3.1): no run of this tool writes under them. */
-const HISTORICAL_TASKS = Object.freeze(['IGP-02', 'V4-T04', 'V4-T04v4', 'V4-T04f', 'V4-T04i', 'V4-S2P']);
+export const HISTORICAL_TASKS = Object.freeze(['IGP-02', 'V4-T04', 'V4-T04v4', 'V4-T04f', 'V4-T04i', 'V4-S2P']);
 
 /** @param {string} reason @returns {1} */
 function refuse(reason) {
@@ -150,6 +150,34 @@ export async function kernelItems(caseIds) {
     }
   }
   return items;
+}
+
+/**
+ * T10a's corpus as plain data (V4-T10c's pool probe posts it to its workers): for each case, in order, the six window
+ * subsets of its first carved set, as `{ caseId, boardRows, pieces, clues, idx }` (`pieces` and `clues` are the carved
+ * set's own plain objects). The `v4-kernel` items keep computing their own subset, as T10a wrote them.
+ * @param {import('./lib/engine.mjs').Engine} engine
+ * @param {string[]} caseIds Catalogue ids; one that does not carve throws.
+ * @returns {{ caseId: string, boardRows: string[], pieces: any[], clues: any[], idx: number[] }[]}
+ */
+export function kernelCorpus(engine, caseIds) {
+  /** @type {{ caseId: string, boardRows: string[], pieces: any[], clues: any[], idx: number[] }[]} */
+  const corpus = [];
+  for (const caseId of caseIds) {
+    const entry = caseBoard(caseId);
+    const seedText = `${SEED_PREFIX}${caseId}`;
+    const carved = firstCarvedSet(engine, { boardRows: entry.boardRows, levelId: entry.levelId, seedText });
+    if (!carved.ok) {
+      throw new Error(`no set for ${caseId}: ${carved.reason}`);
+    }
+    const subsets = windowSubsets(engine, {
+      set: carved.set, seedText, offsets: [1, 2, 3], perCount: 2, startCount: startCountFor(engine, entry.levelId, carved.K),
+    });
+    for (const subset of subsets) {
+      corpus.push({ caseId, boardRows: entry.boardRows, pieces: carved.set.pieces, clues: subset.clues, idx: subset.idx });
+    }
+  }
+  return corpus;
 }
 
 /** @param {unknown} r4 @returns {r4 is R4} Nine non-negative integers. */

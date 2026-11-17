@@ -30,7 +30,7 @@ import { decide, readInvocations } from './lib/budget.mjs';
 import { rateAttempt, recordedCall, screenRating, startCountFor, windowSubsets } from './lib/calls.mjs';
 import { loadEngine } from './lib/engine.mjs';
 import { harness, settle, track } from './lib/fake-pool.mjs';
-import { identityHash, itemIdentity, logEnd, logSpawn, logStart, manifestHash, readItemLog, resumePlan, runItems, runProcessItems } from './lib/items.mjs';
+import { identityHash, itemIdentity, logEnd, logSpawn, logStart, manifestHash, readItemLog, resumePlan, runCustomItems, runItems, runProcessItems } from './lib/items.mjs';
 import { admits, createLanes, DEFAULT_LIMITS } from './lib/lanes.mjs';
 import { itemLedger, pairPrimitives } from './lib/ledger.mjs';
 import { preparePackPath, writePackFile } from './lib/packs.mjs';
@@ -41,9 +41,10 @@ import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
 import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
 import { pairResult } from './identity.mjs';
 import {
-  caseSums, counterVerdict, epochDirty, kernelItems, kernelRows, loggedCases, loggedProfileCases, parseCases, PROFILE_NOTE, profileItems, profileRows,
+  caseSums, counterVerdict, epochDirty, kernelCorpus, kernelItems, kernelRows, loggedCases, loggedProfileCases, parseCases, PROFILE_NOTE, profileItems, profileRows,
   profileOutDir, profileTimes, profileVerdict, R4_FIELDS, rebuildProfiles, renderKernel, SUBSETS_PER_CASE,
 } from './kernel-probe.mjs';
+import { buildWidthReport, CONTEXT, loggedWidth, machineInfo, widthDispatch, widthItems, widthRows, widthStats, widthVerdict } from './width-probe.mjs';
 import { linkSummary, timelineProblem } from './linkage.mjs';
 import { buildInventory, readFamilies } from './pm1-inventory.mjs';
 import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
@@ -709,6 +710,60 @@ const MARK = "require('fs').appendFileSync(process.argv[1], process.argv[2] + '\
 
 /** @param {string} task @param {string} caseId @returns {string} A profile item's output folder under the label `selftest`. */
 const profileOutDirOf = (task, caseId) => profileOutDir(task, caseId, 'selftest');
+
+/** The scripted worker file of the `width:` cases (V4-T10c): the width protocol without an engine, so without a rating. */
+const WIDTH_TEST_WORKER = join(IG_DIR, 'lib', 'width-worker-test.mjs');
+
+/** @param {number} ms @returns {Promise<void>} */
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** @param {number | string} n @returns {{ task: string, root: string, log: string, state: string }} The emptied folders of the case `width-<n>`. */
+function widthFolder(n) {
+  const task = `width-${n}`;
+  const root = fresh(artifactDir('selftest', task));
+  const dir = artifactDir('selftest', task, 'run');
+  return { task, root, log: join(dir, 'items.jsonl'), state: join(dir, 'state.json') };
+}
+
+/** @param {string} id @param {number} width @param {number} [rounds] @returns {any} A width item of a scripted case. */
+const widthItem = (id, width, rounds = 2) => ({ id, kind: 'width', variant: 'base', payload: { caseId: 'c', width, rounds } });
+
+/**
+ * Runs width items through `runCustomItems` and `widthDispatch` on the scripted worker, in the scratch task `width-<n>`; each
+ * item gets its own shared counters (the layout is in lib/width-worker-test.mjs), which the case reads after the call.
+ * @param {number | string} n
+ * @param {any[]} items
+ * @param {(item: any) => string | string[]} scriptOf The script of an item's workers.
+ * @param {Record<string, any>} [extra] Options of `runCustomItems` that replace the defaults.
+ * @returns {Promise<{ out: Awaited<ReturnType<typeof runCustomItems>>, shared: Map<string, Int32Array>, log: string }>}
+ */
+async function widthRun(n, items, scriptOf, extra = {}) {
+  /** @type {Map<string, Int32Array>} */
+  const shared = new Map();
+  const out = await runCustomItems({ task: `width-${n}`, step: 'run', label: 'selftest', horizonS: 285, items, reserveS: 1, identity: itemId(items), ...extra },
+    (item, { cutAtS }) => {
+      const counters = new Int32Array(new SharedArrayBuffer(4 * 64));
+      shared.set(item.id, counters);
+      const { caseId, width, rounds } = item.payload;
+      return widthDispatch({
+        workerFile: WIDTH_TEST_WORKER, width, cutAtS,
+        workerData: { treeRoot: 'unused', items: [{ caseId }, { caseId }, { caseId }], rounds, script: scriptOf(item), shared: counters },
+      });
+    });
+  return { out, shared, log: join(artifactDir('selftest', `width-${n}`, 'run'), 'items.jsonl') };
+}
+
+/**
+ * @param {Int32Array} shared The counters of a scripted dispatch that has returned.
+ * @returns {Promise<number[]>} The heartbeats of its workers (the entries 2 to 17). A worker that was not terminated keeps
+ *   beating, so they must not move after the call.
+ */
+async function stoppedBeats(shared) {
+  const first = [...shared.slice(2, 18)];
+  await sleep(200);
+  same([...shared.slice(2, 18)], first, 'a worker is still alive after the call: its heartbeat moved');
+  return first;
+}
 
 /** @param {() => Promise<unknown>} fn @returns {Promise<string>} The message `fn` rejects with; empty when it does not. */
 async function rejectedBy(fn) {
@@ -4340,6 +4395,268 @@ const itemCases = [
       assert(!renderKernel('T', { meta, counters, profile: null }).includes('profile'), 'the counters-only record names no profile');
     },
   },
+  {
+    name: 'width: barrier and result',
+    async run() {
+      widthFolder(1);
+      const items = [widthItem('w4', 4)];
+      const { out, shared, log } = await widthRun(1, items, () => 'result');
+      same(out, { exitCode: 0, done: true, progress: 1, refused: null }, `the run: ${JSON.stringify(out)}`);
+      const lines = readItemLog(log);
+      same(lines.map((l) => [l.type, l.item]), [['item-start', 'w4'], ['item-end', 'w4']], 'one start line before the dispatch, one end line, no spawn line');
+      assert(lines.every((l) => l.identityHash === identityHash(itemId(items))), 'a log line does not carry the run\'s identityHash');
+      const { status, result } = lines[1];
+      assert(status === 'completed', `the end line: ${JSON.stringify(lines[1]).slice(0, 300)}`);
+      // The scripted worker n posts the times 100 (n + 1) + k for k from 0 to 5 (three items, two rounds): four blocks of six.
+      const times = [0, 1, 2, 3].flatMap((n) => [0, 1, 2, 3, 4, 5].map((k) => 100 * (n + 1) + k));
+      same([...result.ms].sort((/** @type {number} */ a, /** @type {number} */ b) => a - b), times, 'the times of the four workers');
+      same({ ...result, ms: null }, { caseId: 'c', width: 4, rounds: 2, expected: 24, observed: 24, medianMs: 252.5, p90Ms: 403, ms: null },
+        `the completed result: ${JSON.stringify({ ...result, ms: null })}`);
+      const s = /** @type {Int32Array} */ (shared.get('w4'));
+      same([s[0], s[1]], [4, 4], 'four workers started and said ready');
+      same([0, 1, 2, 3].map((n) => s[18 + n]), [4, 4, 4, 4], 'a worker got its go before every worker had said ready');
+      same([0, 1, 2, 3].map((n) => s[34 + n]), [1, 1, 1, 1], 'a worker did not get exactly one go');
+      assert((await stoppedBeats(s)).slice(0, 4).every((beat) => beat > 0), 'a worker never beat: the check of the termination is vacuous');
+    },
+  },
+  {
+    name: 'width: error and early exit',
+    async run() {
+      widthFolder(2);
+      const items = [widthItem('e1', 2), widthItem('e2', 2), widthItem('e3', 2)];
+      /** @type {Record<string, string | string[]>} */
+      const scripts = { e1: ['error', 'result'], e2: ['exit', 'result'], e3: 'malformed' };
+      const { out, shared, log } = await widthRun(2, items, (item) => scripts[item.id]);
+      same(out, { exitCode: 0, done: true, progress: 3, refused: null }, `the run: ${JSON.stringify(out)}`);
+      const ends = readItemLog(log).filter((l) => l.type === 'item-end');
+      same(ends.map((l) => [l.item, l.status]), [['e1', 'error'], ['e2', 'error'], ['e3', 'error']], `the end lines: ${JSON.stringify(ends).slice(0, 400)}`);
+      assert(ends.every((l) => l.result.outcome === 'error' && l.result.width === 2 && l.result.caseId === 'c'), 'an error result');
+      assert(ends[0].result.message.includes('scripted error'), `a worker's error message: ${ends[0].result.message}`);
+      assert(ends[1].result.message.includes('exited with code 3 before its result'), `an exit before the result: ${ends[1].result.message}`);
+      assert(ends[2].result.message.includes('not a list of numbers'), `a malformed result: ${ends[2].result.message}`);
+      for (const item of items) {
+        await stoppedBeats(/** @type {Int32Array} */ (shared.get(item.id)));
+      }
+      assert([0, 1].every((n) => /** @type {Int32Array} */ (shared.get('e1'))[2 + n] > 0), 'a worker never beat: the check of the termination is vacuous');
+    },
+  },
+  {
+    name: 'width: cut',
+    async run() {
+      widthFolder(3);
+      const items = [widthItem('c1', 2), widthItem('c2', 2)];
+      const t0 = performance.now();
+      const { out, shared, log } = await widthRun(3, items, () => 'nothing', { reserveS: 0, horizonS: elapsedS() + 17 });
+      assert(performance.now() - t0 < 10000, `the call took ${Math.round(performance.now() - t0)} ms, not under 10 s`);
+      same(out, { exitCode: 0, done: false, progress: 1, refused: null }, `the run stops after a censored item: ${JSON.stringify(out)}`);
+      const lines = readItemLog(log);
+      same(lines.map((l) => [l.type, l.item]), [['item-start', 'c1'], ['item-end', 'c1']], 'the second item was not started');
+      const { status, result } = lines[1];
+      assert(status === 'censored' && result.outcome === 'censored' && result.width === 2 && result.ready === 2 && result.results === 0 && typeof result.cutAtS === 'number',
+        `the end line: ${JSON.stringify(lines[1])}`);
+      assert((await stoppedBeats(/** @type {Int32Array} */ (shared.get('c1')))).slice(0, 2).every((beat) => beat > 0), 'a worker never beat: the check of the termination is vacuous');
+    },
+  },
+  {
+    name: 'width: items, statistics and the corpus',
+    async run() {
+      const two = ['26x26-nightmare', '14x14-nightmare'];
+      const items = widthItems(two, 3);
+      same(items.map((i) => i.id), two.flatMap((c) => [1, 2, 4, 8].map((w) => `run:base:${c}:${w}:3`)), 'the item ids');
+      assert(items.every((i) => i.kind === 'width' && i.variant === 'base'), 'the kind and the variant');
+      same(items.map((i) => i.payload), two.flatMap((caseId) => [1, 2, 4, 8].map((width) => ({ caseId, width, rounds: 3 }))), 'the payloads hold the experiment only');
+      const first = manifestHash(items);
+      await sleep(30);
+      assert(manifestHash(widthItems(two, 3)) === first, 'the manifest hash depends on the time');
+      assert(first !== manifestHash(widthItems(two, 1)) && first !== manifestHash(widthItems([...two].reverse(), 3)), 'the rounds and the case order are not part of the manifest hash');
+      same(Object.keys((await itemIdentity(items)).treeIds), ['base'], 'the identity names the base tree');
+      same(loggedWidth([{ item: 'run:base:26x26-nightmare:1:3' }, { item: 'run:base:14x14-nightmare:8:3' }, { item: 'run:base:26x26-nightmare:2:3' },
+        { item: 'run:base:x:3:3' }, { item: 'counters:r4c:14x14-nightmare:ig-v4/kernel/14x14-nightmare:0' }, {}, null]), { caseIds: two, rounds: [3] },
+      'the cases and the rounds a log names');
+      // The statistics: the median (the mean of the two middle values for an even count) and the value at index ceil(0.9 n) - 1.
+      same(widthStats([5, 1, 3]), { medianMs: 3, p90Ms: 5 }, 'three values');
+      same(widthStats([4, 1, 3, 2]), { medianMs: 2.5, p90Ms: 4 }, 'four values');
+      same(widthStats(Array.from({ length: 10 }, (_, i) => 10 - i)), { medianMs: 5.5, p90Ms: 9 }, 'ten values: index 8 of the ascending list');
+      same(widthStats([7]), { medianMs: 7, p90Ms: 7 }, 'one value');
+      assert(thrownBy(() => widthStats([])).includes('non-empty') && thrownBy(() => widthStats([1, Number.NaN])).includes('finite'), 'an empty list and a time that is not finite');
+      // The corpus: T10a's six subsets of the first carved set as plain data, in order.
+      const { e } = await engine('base');
+      const corpus = kernelCorpus(e, ['12x12-nightmare']);
+      assert(corpus.length === SUBSETS_PER_CASE, `${corpus.length} corpus items`);
+      assert(corpus.every((c) => isDeepStrictEqual(Object.keys(c), ['caseId', 'boardRows', 'pieces', 'clues', 'idx']) && c.caseId === '12x12-nightmare'), 'the fields of a corpus item');
+      same(structuredClone(corpus), corpus, 'the corpus does not survive a structured clone: it cannot be posted to a worker');
+      const entry = caseBoard('12x12-nightmare');
+      const seedText = 'ig-v4/kernel/12x12-nightmare';
+      const carved = /** @type {any} */ (firstCarvedSet(e, { boardRows: entry.boardRows, levelId: entry.levelId, seedText }));
+      assert(carved.ok, `the carve failed: ${carved.reason}`);
+      const subsets = windowSubsets(e, { set: carved.set, seedText, offsets: [1, 2, 3], perCount: 2, startCount: startCountFor(e, entry.levelId, carved.K) });
+      same(corpus.map((c) => c.idx), subsets.map((s) => s.idx), 'the subsets are not T10a\'s, in T10a\'s order');
+      same(corpus.map((c) => c.clues), subsets.map((s) => s.clues), 'the clues of the subsets');
+      assert(corpus.every((c) => isDeepStrictEqual(c.pieces, carved.set.pieces) && isDeepStrictEqual(c.boardRows, entry.boardRows) && c.idx.length === c.clues.length), 'the pieces, the board or a clue list');
+      same(kernelCorpus(e, ['10x10-nightmare', '12x12-nightmare']).map((c) => c.caseId), [...Array(6).fill('10x10-nightmare'), ...Array(6).fill('12x12-nightmare')], 'the cases in the order given');
+      assert(thrownBy(() => kernelCorpus(e, ['nope'])) === 'unknown case id nope', 'an unknown case');
+    },
+  },
+  {
+    name: 'custom items: the runner rules',
+    async run() {
+      /** @param {string} id @param {Record<string, unknown>} [payload] @returns {any} */
+      const ci = (id, payload = {}) => ({ id, kind: 'custom', variant: 'base', payload });
+      /** @param {string} text @returns {any[]} */
+      const parsed = (text) => text.split('\n').filter((l) => l !== '').map((l) => JSON.parse(l));
+      const run = (/** @type {string} */ task, /** @type {any[]} */ items, /** @type {any} */ dispatch, /** @type {Record<string, any>} */ extra = {}) => runCustomItems({
+        task, step: 'run', label: 'selftest', horizonS: 285, items, reserveS: 1, identity: itemId(items), ...extra,
+      }, dispatch);
+      // The start line is on disk before the dispatch is called; the runner writes one end line whatever the dispatch does.
+      const f = widthFolder('c1');
+      const items = [ci('a1'), ci('a2'), ci('a3'), ci('a4')];
+      /** @type {[string, number, any[]][]} */
+      const calls = [];
+      /** @type {(item: any, context: { cutAtS: number }) => Promise<any>} */
+      const dispatch = (item, context) => {
+        calls.push([item.id, context.cutAtS, existsSync(f.log) ? parsed(readFileSync(f.log, 'utf8')) : []]);
+        if (item.id === 'a2') {
+          throw new Error('thrown at once');
+        }
+        if (item.id === 'a3') {
+          return Promise.reject(new Error('rejected later'));
+        }
+        return Promise.resolve(item.id === 'a4' ? { status: 'bogus', result: null } : { status: 'completed', result: { ok: 1 } });
+      };
+      same(await run(f.task, items, dispatch), { exitCode: 0, done: true, progress: 4, refused: null }, 'the first run');
+      same(calls.map(([id, cutAtS]) => [id, cutAtS]), items.map((i) => [i.id, 270]), 'every dispatch got cutAtS = horizonS - 15');
+      for (const [id, , seen] of calls) {
+        same(seen.filter((l) => l.item === id).map((l) => l.type), ['item-start'], `the log when ${id} was dispatched`);
+      }
+      const lines = readItemLog(f.log);
+      same(lines.map((l) => [l.type, l.item]), items.flatMap((i) => [['item-start', i.id], ['item-end', i.id]]), 'one start line and one end line per item, no spawn line');
+      same(lines.filter((l) => l.type === 'item-end').map((l) => [l.status, l.result.message ?? l.result]),
+        [['completed', { ok: 1 }], ['error', 'thrown at once'], ['error', 'rejected later'], ['error', 'the dispatch settled with no status completed, censored or error']], 'the end lines');
+      assert(lines.every((l) => l.identityHash === identityHash(itemId(items))), 'a line does not carry the identityHash');
+      // A finished step resumes as a verification: no dispatch, the log untouched.
+      const bytes = readFileSync(f.log);
+      same(await run(f.task, items, dispatch), { exitCode: 0, done: true, progress: 1, refused: null }, 'the second run');
+      assert(calls.length === 4 && readFileSync(f.log).equals(bytes), 'the second run dispatched an item or changed the log');
+      // An item that does not fit before the cut is not started.
+      const g = widthFolder('c2');
+      same(await run(g.task, [ci('b1')], dispatch, { reserveS: 100, horizonS: elapsedS() + 40 }), { exitCode: 0, done: false, progress: 0, refused: null }, 'the late run');
+      same(readItemLog(g.log), [], 'an item was started with less than its reserve left');
+      assert(calls.length === 4, 'a late item was dispatched');
+      // A started item without an end is never run again.
+      const h = widthFolder('c3');
+      const lone = [ci('d1')];
+      mkdirSync(artifactDir('selftest', h.task, 'run'), { recursive: true });
+      logStart(h.log, identityHash(itemId(lone)), lone[0]);
+      const before = readFileSync(h.log);
+      same(await run(h.task, lone, dispatch), { exitCode: 3, done: false, progress: 0, refused: 'interrupted item d1 needs a ruling' }, 'an interrupted item');
+      assert(readFileSync(h.log).equals(before) && !existsSync(h.state) && calls.length === 4, 'a refused run wrote the log or a state, or dispatched an item');
+      // The output-folder rule applies to an item that names an outDir, not to one that does not.
+      const k = widthFolder('c4');
+      const outDir = rel(join(artifactDir('selftest', k.task), 'out', 'o1'));
+      const named = [ci('o1', { outDir }), ci('o2')];
+      mkdirSync(abs(outDir), { recursive: true });
+      writeFileSync(join(abs(outDir), 'old.txt'), 'old');
+      same(await run(k.task, named, dispatch), { exitCode: 3, done: false, progress: 0, refused: `unexpected output in ${outDir} for unstarted item o1` }, 'an unstarted item with output');
+      assert(readFileSync(join(abs(outDir), 'old.txt'), 'utf8') === 'old' && !existsSync(k.log) && !existsSync(k.state) && calls.length === 4, 'a refused run wrote something or dispatched an item');
+      rmSync(join(abs(outDir), 'old.txt'));
+      same(await run(k.task, named, dispatch), { exitCode: 0, done: true, progress: 2, refused: null }, 'the run with an empty folder');
+      assert(calls.length === 6, `${calls.length} dispatches`);
+      assert((await rejectedBy(() => run('width-c5', [ci('x1', { outDir: '../x' })], dispatch))).includes('custom item x1: outDir must be a relative path'), 'an outDir outside the repository was accepted');
+      assert((await rejectedBy(() => run('width-c5', [ci('x1', { outDir: 'a/b' }), ci('x2', { outDir: 'a/b' })], dispatch))).includes('distinct outDir'), 'one outDir for two items was accepted');
+      assert(!existsSync(artifactDir('selftest', 'width-c5')), 'a rejected payload wrote the step folder');
+    },
+  },
+  {
+    name: 'width: report verdicts and blocks',
+    async run() {
+      // A run of the real items (the real identity, so that nothing is stale) with synthetic end lines, in the scratch label.
+      /** @param {string} name @param {string[]} caseIds @param {number} rounds @param {(items: any[], hash: string, log: string) => void} write */
+      const scene = async (name, caseIds, rounds, write) => {
+        fresh(artifactDir('selftest', name));
+        const items = widthItems(caseIds, rounds);
+        const identity = await itemIdentity(items);
+        const dir = artifactDir('selftest', name, 'run');
+        mkdirSync(dir, { recursive: true });
+        writeJson(join(dir, 'state.json'), { identity });
+        write(items, identityHash(identity), join(dir, 'items.jsonl'));
+        return items;
+      };
+      const result = (/** @type {any} */ item, /** @type {number} */ median, /** @type {Record<string, unknown>} */ over = {}) => {
+        const { caseId, width, rounds } = item.payload;
+        const n = SUBSETS_PER_CASE * rounds * width;
+        return { caseId, width, rounds, expected: n, observed: n, medianMs: median, p90Ms: median + 1, ms: Array(n).fill(median), ...over };
+      };
+      /** @param {string} hash @param {string} log @param {any} item @param {string} status @param {unknown} outcome */
+      const ended = (hash, log, item, status, outcome) => {
+        logStart(log, hash, item);
+        logEnd(log, hash, item.id, status, outcome, 7);
+      };
+      const label = { task: '', label: 'selftest', sourceLabel: 'frozen 3fc65f4' };
+      const caseId = '12x12-nightmare';
+      const id = (/** @type {number} */ w) => `run:base:${caseId}:${w}:1`;
+      // Complete: the slowdown of each width over width 1, `expected` 6, 12, 24 and 48, and the record's blocks.
+      await scene('width-repa', [caseId], 1, (items, hash, log) => items.forEach((item, i) => ended(hash, log, item, 'completed', result(item, [100, 110, 120, 150][i]))));
+      const a = await buildWidthReport({ ...label, task: 'width-repa' });
+      assert(!('problems' in a), `the report: ${JSON.stringify('problems' in a ? a.problems : null)}`);
+      if ('problems' in a) {
+        return;
+      }
+      same(a.record.rows.map((/** @type {any} */ r) => [r.width, r.expected, r.observed, r.medianMs, r.p90Ms, r.slowdown, r.complete]),
+        [[1, 6, 6, 100, 101, 1, true], [2, 12, 12, 110, 111, 1.1, true], [4, 24, 24, 120, 121, 1.2, true], [8, 48, 48, 150, 151, 1.5, true]], 'the rows');
+      same([a.record.verdict, a.record.line, a.record.items, a.record.cases, a.record.rounds, a.record.machine], ['complete', 'width: complete', [], [caseId], 1, machineInfo()], 'the verdict and the machine');
+      assert(a.record.rows.every((/** @type {any} */ r) => r.ms.length === r.observed), 'the raw times are not in the record');
+      const context = 'Context: R23 measured one rating 9 to 28 % longer at eight workers than at four. The probe decides whether P8 is worth more work (plan P8); every gate stays at four workers.';
+      assert(CONTEXT === context, 'the context line is not the task\'s');
+      assert(a.markdown.includes('\nwidth: complete\n') && a.markdown.includes(`\n${context}\n`) && a.markdown.includes(`${machineInfo().cpus} logical CPUs`), 'the context, the verdict or the machine is missing');
+      assert(a.markdown.includes(`| ${caseId} | 8 | 1 | completed | 48 | 48 | 150 | 151 | 1.5 |`) && a.markdown.includes(`| ${caseId} | 1 | 1 | completed | 6 | 6 | 100 | 101 | 1 |`), 'the table rows');
+      // Incomplete: a censored width and a width without lines; the others keep their slowdown.
+      await scene('width-repb', [caseId], 1, (items, hash, log) => {
+        ended(hash, log, items[0], 'completed', result(items[0], 100));
+        ended(hash, log, items[1], 'completed', result(items[1], 110));
+        ended(hash, log, items[2], 'censored', { outcome: 'censored', cutAtS: 270 });
+      });
+      const b = await buildWidthReport({ ...label, task: 'width-repb' });
+      assert(!('problems' in b), 'the incomplete report');
+      if (!('problems' in b)) {
+        same([b.record.line, b.record.items], [`width: incomplete (${id(4)}, ${id(8)})`, [id(4), id(8)]], 'a censored width and a missing one');
+        same(b.record.rows.map((/** @type {any} */ r) => [r.status, r.slowdown]), [['completed', 1], ['completed', 1.1], ['censored', null], ['missing', null]], 'the statuses and the slowdowns');
+      }
+      // A width that timed fewer ratings than expected, or whose result is another item's, is not complete (and has no slowdown).
+      await scene('width-repc', [caseId], 1, (items, hash, log) => {
+        ended(hash, log, items[0], 'completed', result(items[0], 100, { observed: 5, ms: Array(5).fill(100) }));
+        ended(hash, log, items[1], 'completed', result(items[1], 110, { width: 4 }));
+        ended(hash, log, items[2], 'completed', result(items[2], 120));
+        ended(hash, log, items[3], 'error', { outcome: 'error', message: 'x' });
+      });
+      const c = await buildWidthReport({ ...label, task: 'width-repc' });
+      assert(!('problems' in c), 'the third report');
+      if (!('problems' in c)) {
+        same(c.record.items, [id(1), id(2), id(8)], 'a short width, another item\'s result and an error item');
+        same(c.record.rows.map((/** @type {any} */ r) => r.slowdown), [null, null, null, null], 'no slowdown without a complete width 1');
+      }
+      // No line at all: the default case and the rounds of the state (here 3) are found from the manifest hash.
+      await scene('width-repd', ['26x26-nightmare'], 3, () => {});
+      const d = await buildWidthReport({ ...label, task: 'width-repd' });
+      assert(!('problems' in d), 'the report of a run with no line');
+      if (!('problems' in d)) {
+        same([d.record.cases, d.record.rounds, d.record.verdict, d.record.items.length], [['26x26-nightmare'], 3, 'incomplete', 4], 'the cases and the rounds of a run with no line');
+      }
+      // Refusals: no state, a line of another identity, a state of other items.
+      const none = await buildWidthReport({ ...label, task: 'width-none' });
+      assert('problems' in none && none.problems[0].includes('no state'), 'a task without a run');
+      await scene('width-repe', [caseId], 1, (items, hash, log) => {
+        ended(hash, log, items[0], 'completed', result(items[0], 100));
+        ended('other', log, items[1], 'completed', result(items[1], 110));
+      });
+      const e1 = await buildWidthReport({ ...label, task: 'width-repe' });
+      assert('problems' in e1 && e1.problems.some((p) => p.includes('another identityHash')), 'a line with another identityHash');
+      await scene('width-repf', [caseId], 1, (_items, hash, log) => logStart(log, hash, widthItems(['10x10-nightmare'], 1)[0]));
+      const f1 = await buildWidthReport({ ...label, task: 'width-repf' });
+      assert('problems' in f1 && f1.problems.some((p) => p.includes('manifest hash')), 'a state whose items are not the log\'s');
+      assert(thrownBy(() => widthVerdict([])).includes('at least one item'), 'an empty list is no verdict');
+      same(widthRows(widthItems([caseId], 1), []).map((r) => [r.status, r.complete]), [['missing', false], ['missing', false], ['missing', false], ['missing', false]], 'rows without lines');
+    },
+  },
 ];
 
 /** @type {number} */
@@ -6314,6 +6631,30 @@ const v4Cases = [
       assert(record.totalMs > 0 && record.deduceMs > 0 && record.totalMs >= record.deduceMs && record.fewestColumnMs <= record.deduceMs, `the times: ${JSON.stringify(record)}`);
       assert(record.share === null || (record.share >= 0 && record.share <= 1), `the share: ${record.share}`);
       process.stdout.write(`NOTE profile 10x10-nightmare: ${JSON.stringify({ ratings: end.result.stdout.ratings, ms: end.result.stdout.ms, itemMs: end.ms, ...record, file: undefined, item: undefined, sha256: undefined })}\n`);
+    },
+  },
+  {
+    name: 'width: the real worker and the dispatch',
+    async run() {
+      // The real path of the pool probe (locked: it rates): the width dispatch with lib/width-worker.mjs on T10a's corpus of one
+      // small case, two workers, one round, in the base tree; the times are measurements, only their number and shape are checked.
+      assert(SOURCE_KIND === 'frozen', 'the case must run with --label frozen');
+      const base = await engine('base');
+      const corpus = kernelCorpus(base.e, ['10x10-nightmare']);
+      assert(corpus.length === SUBSETS_PER_CASE, `${corpus.length} corpus items`);
+      const workerFile = join(IG_DIR, 'lib', 'width-worker.mjs');
+      const done = await widthDispatch({ workerFile, workerData: { treeRoot: base.tree.root, items: corpus, rounds: 1 }, width: 2, cutAtS: elapsedS() + 100 });
+      assert(done.status === 'completed', `the dispatch: ${JSON.stringify(done).slice(0, 400)}`);
+      const result = /** @type {any} */ (done.result);
+      same([result.caseId, result.width, result.rounds, result.expected, result.observed, result.ms.length], ['10x10-nightmare', 2, 1, 2 * SUBSETS_PER_CASE, 2 * SUBSETS_PER_CASE, 2 * SUBSETS_PER_CASE],
+        `the result: ${JSON.stringify({ ...result, ms: result.ms.length })}`);
+      assert(result.ms.every((/** @type {number} */ x) => x > 0), `a rating took no time: ${JSON.stringify(result.ms)}`);
+      same({ medianMs: result.medianMs, p90Ms: result.p90Ms }, widthStats(result.ms), 'the median and the 90th percentile of the times');
+      // An exception of a rating is the worker's `error` message: a clue that names no piece cannot be rated.
+      const broken = corpus.map((c, i) => (i === 0 ? { ...c, clues: [{ piece: 'no-such-piece', x: 0, y: 0, turn: 0, mirrored: false }] } : c));
+      const failed = await widthDispatch({ workerFile, workerData: { treeRoot: base.tree.root, items: broken, rounds: 1 }, width: 2, cutAtS: elapsedS() + 100 });
+      assert(failed.status === 'error' && /** @type {any} */ (failed.result).message.startsWith('worker '), `the broken corpus: ${JSON.stringify(failed).slice(0, 400)}`);
+      process.stdout.write(`NOTE width 10x10-nightmare, two workers, one round: median ${result.medianMs} ms, p90 ${result.p90Ms} ms; error path: ${/** @type {any} */ (failed.result).message}\n`);
     },
   },
 ];

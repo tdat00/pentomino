@@ -58,7 +58,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `lib/sets.mjs` | catalogue boards and carve-only sets; `offeredInSource` comes from the tree's own `levels.js` (V4-T01b) |
 | `lib/calls.mjs` | recorded calls, screened and canonical ratings, window subsets |
 | `lib/lanes.mjs`, `lib/lane-worker.mjs` | worker-thread lanes with admission and a supervisor; the lane worker also runs the three stage-1 item kinds (V4-T04b) and the kernel-probe kind `v4-kernel` (V4-T10a) |
-| `lib/items.mjs` | the runner of bounded, identity-checked measurement items and the item-log line helpers (V4-T04a; see "Bounded measurement items"), and `runProcessItems`, its process-item runner (V4-T10b; see "Kernel probe (V4-T10a)") |
+| `lib/items.mjs` | the runner of bounded, identity-checked measurement items and the item-log line helpers (V4-T04a; see "Bounded measurement items"), and `runProcessItems`, its process-item runner (V4-T10b; see "Kernel probe (V4-T10a)"), and `runCustomItems`, the same rules with a dispatch the caller gives (V4-T10c; see "Pool probe (V4-T10c)") |
 | `lib/ledger.mjs` | the work ledger of an item from its journal lines, and `pairPrimitives` (V4-T04b; see "Stage-1 item kinds"); pure |
 | `lib/packs.mjs` | the pack file of a generation item: `preparePackPath` and `writePackFile` (V4-T04b) |
 | `lib/proof.mjs` | the typed proof receipt of the frozen round: `proofEnvelope`, `proofCheck`, `LIVE_DEADLINE_FIELDS` and `STAGE1_COVERAGE_EXTRA` (V4-T04d), and its accepted binding: `acceptedBinding`, `checkAccepted` and `ACCEPTED_FORMAT` (V4-T04f; see "Stage 1 checks (task pack v4)"); pure apart from the evidence reads of `readRepoFile` |
@@ -70,6 +70,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `variants/fr-base.json`, `fr-screen.json`, `fr-none.json`, `fr-close.json`, `fr-c4.json`, `fr-ps.json`, `fr-p5.json` | the seven frozen-round arms of stage 2 (V4-T08); see "Frozen-round arms (V4-T08)" |
 | `verdicts.mjs`, `data/verdict-manifest.schema.md`, `data/verdict-manifest.example.json` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules), the work ledger of a request, the work rule and the class verdict (V4-T09c), the global verdicts (V4-T09d: the cell gates on the shipped arm, Master identity, the Hell 1 report, P5's stops, the post-hoc projection, the population and phase 0's verdict), and the verdict tool (V4-T09e: the bound prerequisites, the class-selection receipt, the work report and the records it writes) with the manifest those statistics read and its example; the statistics are pure, the tool reads the records the manifest names; see "Admission statistics (V4-T09a)" |
 | `kernel-probe.mjs`, `variants/r4c.json`, `plans/V4-T10a.json`, `plans/V4-T10b.json` | the kernel probe (V4-T10a, V4-T10b): R4 visit and mutation counters in the `r4c` tree, the `v4-kernel` items that compare its complete deduction with the `instr` tree's, the `fewestColumn` profile of child processes under reduced inlining, the `counters` and `profile` (locked) and `report` (unlocked) commands and the plans of the runs; see "Kernel probe (V4-T10a)" |
+| `width-probe.mjs`, `lib/width-worker.mjs`, `lib/width-worker-test.mjs`, `plans/V4-T10c.json` | the pool probe (V4-T10c): one rating's time at 1, 2, 4 and 8 concurrent workers on the frozen source, the width dispatch, its worker and the scripted worker of its self-test, the `run` (locked) and `report` (unlocked) commands and the plan of the run; see "Pool probe (V4-T10c)" |
 
 ## Trees (variants)
 
@@ -843,8 +844,9 @@ the bound.
 `lib/items.mjs` (V4-T04a; reviews R05 and RV2-01; D-V4-14) is the runner every later measurement of the frozen round
 shares: a list of items, each run in a supervised lane worker (`lib/lanes.mjs`), journaled before it starts and when it
 ends, and never rerun once it has ended. It measures nothing itself; the three stage-1 item kinds (V4-T04b) are
-described in "Stage-1 item kinds" below, and `runProcessItems`, which runs an item as a child process instead of a lane
-job (V4-T10b), in "The `fewestColumn` profile (V4-T10b)".
+described in "Stage-1 item kinds" below, `runProcessItems`, which runs an item as a child process instead of a lane
+job (V4-T10b), in "The `fewestColumn` profile (V4-T10b)", and `runCustomItems`, which runs an item through a dispatch the
+caller gives (V4-T10c), in "Pool probe (V4-T10c)".
 
 - **An item** is `{ id, kind, variant, payload }`: a stable id (unique in the list), the lane job kind, the variant
   whose tree runs it and the job's own fields (the item's `kind` wins over a payload key `kind`). Consecutive pending
@@ -1869,3 +1871,74 @@ The profile is a CPU profile of the canonical ratings of T10a's corpus, taken in
   `--v4` (locked) adds `profile: the child process and its profile file`: the real child of `10x10-nightmare` under
   `--cpu-prof --no-turbo-inlining`, run by `runProcessItems` into the scratch label, with its one profile file and the
   record `rebuildProfiles` derives from it (a path that no `--items` case can reach: those children rate nothing).
+
+### Pool probe (V4-T10c)
+
+Plan P8 (a wider pool) is parked because one rating took 9 to 28 % longer at eight workers than at four (R23). The probe
+measures that contention directly: the same ratings of the frozen source at 1, 2, 4 and 8 concurrent workers. It decides
+whether P8 is worth more work (plan P8) and judges nothing: the default width stays four and every gate is read at four.
+
+- **The items** (`widthItems(caseIds, rounds)`): for each case, in order, the widths 1, 2, 4 and 8, id
+  `run:base:<caseId>:<width>:<rounds>`, kind `width`, variant `base` (the frozen source unchanged), payload `{ caseId, width,
+  rounds }`. No payload field depends on the invocation (the cut is the execution envelope, R2-03), so a resume keeps the
+  identity. The corpus of a case is T10a's: `kernelCorpus(engine, caseIds)` of `kernel-probe.mjs` returns the six window
+  subsets of the case's first carved set as plain data `{ caseId, boardRows, pieces, clues, idx }`, which survives a
+  structured clone and is posted to the workers (the `v4-kernel` items keep computing their own subset).
+- **Custom items** (`runCustomItems(o, dispatch)` of `lib/items.mjs`): `runProcessItems`' rules with a dispatch the caller
+  gives. The identity, `resumePlan` and refusals are `runItems`' (exit 3 and nothing written); an item whose payload names an
+  `outDir` follows T10b's output-folder rule, one that does not skips it; an item is admitted while `elapsedS() + reserveS <=
+  horizonS - 15`; the `item-start` line is written before `dispatch(item, { cutAtS })` is called, with `cutAtS = horizonS - 15`
+  (seconds since the process start); the dispatch returns a promise of `{ status: 'completed' | 'censored' | 'error', result }`
+  that must settle by `cutAtS` plus 5 s and owns what it started; the runner writes exactly one `item-end` per item (a throw, a
+  rejected promise or any other settlement ends it `error` with `{ outcome: 'error', message }`), stops after a `censored` item
+  and never reruns a started one. Every line goes through the line helpers with the run's `identityHash` (RV2-01). The state and
+  the return value are those of `runProcessItems`.
+- **The width dispatch** (`widthDispatch({ workerFile, workerData, width, cutAtS })` of `width-probe.mjs`; `run` passes
+  `lib/width-worker.mjs`, the self-test its scripted file). It starts `width` worker threads with `workerData { treeRoot, items,
+  rounds }`, waits for every `{ type: 'ready' }`, sends `{ type: 'go' }` to all (the barrier: the workers rate together), and
+  collects every `{ type: 'result', ms }`. An `{ type: 'error', message }` message, an error or an exit of a worker before its
+  result, or a result whose `ms` is not a list of numbers ends the item `error`; the cut (`cutAtS`) ends it `censored` (a
+  partial width is never a pass); in every case a `finally` terminates and awaits every worker. The completed result is
+  `{ caseId, width, rounds, expected, observed, medianMs, p90Ms, ms }`: `expected = rounds x items x width`, `observed` the
+  ratings timed, `ms` their times in ms worker by worker, `medianMs` the median (the mean of the two middle values for an even
+  count, to four decimals) and `p90Ms` the value at index `ceil(0.9 n) - 1` of the ascending list. An error result is `{ outcome:
+  'error', message, caseId, width }`, a censored one `{ outcome: 'censored', cutAtS, caseId, width, ready, results }`.
+- **The worker** (`lib/width-worker.mjs`): loads the tree's engine with `loadEngine(treeRoot)`, creates its own main workspace,
+  posts `ready`, and on `go` rates every item `rounds` times in order (`boardFromRows` once per item; `rate()`, an
+  `IncompleteRatingError` counts as a rating), timing each rating with `performance.now()`; it posts its one terminal message
+  (`result`, or `error` on an exception) and closes its port.
+- **Commands.**
+
+  ```
+  node tools\ig-proto\width-probe.mjs run --task <T> --label frozen --source-label "frozen 3fc65f4" [--cases <ids>] [--rounds <1 to 3>] [--horizon-s <H>]
+  node tools\ig-proto\width-probe.mjs report --task <T> --label frozen --source-label "frozen 3fc65f4"
+  ```
+
+  `run` (locked) takes the cases as `parseCases` does, with the default `26x26-nightmare`, and the rounds from 1 to 3 (default
+  3; `--rounds` above 3 exits 1 with `width-probe: --rounds above 3 needs a new reserve`); it runs the items with
+  `runCustomItems` (step `run`, reserve 120 s, `items.jsonl` and `state.json` under `tests/artifacts/ig-proto/frozen/<T>/run/`).
+  A historical namespace of check-list 3.1 is refused as `--task`. `report` (unlocked) takes neither cases nor rounds: it takes
+  the default case with the rounds the item log names, or the cases the log names (in order of first appearance), or, with no
+  line, the default case with rounds 1 to 3, the first whose items reproduce the state's `identity.manifestHash`; none refuses
+  (exit 1), as does a line of another `identityHash`, a state that is not of the frozen source or a stale `base` tree. It writes
+  `evidence/frozen/<T>/width.json` and `width.md`: per case and width the median, the p90, `expected`, `observed` and `slowdown`
+  (`medianMs(w) / medianMs(1)` to four decimals, 1 for width 1; none without a complete width 1), the machine
+  (`os.cpus().length`, the first CPU's `model`, `os.totalmem()`), the context line "R23 measured one rating 9 to 28 % longer at
+  eight workers than at four. The probe decides whether P8 is worth more work (plan P8); every gate stays at four workers.",
+  and one verdict line: `width: complete` (every item completed with every expected rating timed) or `width: incomplete
+  (<items>)` (an item is missing, censored, an error, or its result is not the item's or timed fewer ratings than expected).
+  `width.json` also keeps each item's raw times. The exit is 0 once the record is written, whatever the verdict; no value of
+  `slowdown` is a failure.
+- **Plan** `plans/V4-T10c.json`: 4 minutes allocated; `run` is locked (120 s projected, 1 invocation, forecast 165 s with the
+  quiet period, rounds 1 so that one round prices stage 2's run of three rounds and two cases); the snapshot, the `base` tree,
+  the report and the firewall steps are unlocked. T11c's plan `V4-S2` prices its `width` step from the `item-end` lines of
+  `V4-T10c/run` and runs the same commands with `--rounds 3`.
+- **Self-test** (`--items`, unlocked: the workers are `lib/width-worker-test.mjs`, a scripted file that answers `ready`, then on
+  `go` posts `result`, `error` or nothing, as `workerData.script` says, and keeps a heartbeat in shared memory so that a worker
+  that was not terminated shows): `width: barrier and result` (every worker ready before the one `go`, the times, the
+  statistics, every worker stopped after the call), `width: error and early exit` (a worker's error, an exit before `ready`, a
+  malformed result), `width: cut` (the item ends `censored` within 10 s and the run stops), `width: items, statistics and the
+  corpus` (the items, the identity, the median and the percentile, the plain-data corpus against T10a's subsets),
+  `custom items: the runner rules` and `width: report verdicts and blocks`. `--v4` (locked) adds `width: the real worker and the
+  dispatch`: two real workers on `10x10-nightmare`, one round, and the error path of the real worker (a path that no `--items`
+  case can reach: those workers rate nothing).
