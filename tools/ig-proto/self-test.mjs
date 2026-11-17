@@ -985,6 +985,51 @@ const ingested = (v, rows) => rows.map((r) => v.ingestRow(r, { quantity: 10 }));
 const near = (x, y) => Math.abs(x - y) <= 1e-12;
 
 /**
+ * The frozen-round matrix of the `matrix:` cases (V4-T11a), loaded on first use because `manifest.mjs` imports `verdicts.mjs`
+ * (and so the frozen source): `m` is `manifest.mjs`; `data()` a fresh parsed copy of `data/frozen-round-v1.json`, which a case
+ * may edit; `expand(inputs, edit)` the expansion of such a copy (default inputs: no control); `pick(groups, where)` the groups
+ * whose fields equal `where`; `one(groups, where)` the only such group.
+ * @returns {Promise<{ m: any, data: () => any, expand: (inputs?: any, edit?: (data: any) => void) => any,
+ *   pick: (groups: any[], where: Record<string, unknown>) => any[], one: (groups: any[], where: Record<string, unknown>) => any }>}
+ */
+async function matrixKit() {
+  if (memo.matrixKit === undefined) {
+    const m = await import('./manifest.mjs');
+    const data = () => JSON.parse(readFileSync(join(IG_DIR, 'data', 'frozen-round-v1.json'), 'utf8'));
+    const pick = (/** @type {any[]} */ groups, /** @type {Record<string, unknown>} */ where) => groups.filter((g) => Object.entries(where).every(([k, v]) => isDeepStrictEqual(g[k], v)));
+    memo.matrixKit = {
+      m,
+      data,
+      pick,
+      expand: (/** @type {any} */ inputs = { controls: [] }, /** @type {(data: any) => void} */ edit = () => {}) => {
+        const d = data();
+        edit(d);
+        return m.expandMatrix(d, inputs);
+      },
+      one: (/** @type {any[]} */ groups, /** @type {Record<string, unknown>} */ where) => {
+        const found = pick(groups, where);
+        assert(found.length === 1, `${found.length} groups for ${JSON.stringify(where)}`);
+        return found[0];
+      },
+    };
+  }
+  return memo.matrixKit;
+}
+
+/**
+ * @param {string} caseId @param {number} rep @param {number} [accepted] Puzzles accepted: ten reach ten at 30 s, fewer end at 115 s.
+ * @param {Record<string, any>} [over] Fields of the run record that replace these.
+ * @returns {Promise<any>} A valid run record of `caseId` (T09a's `newRunRecord`).
+ */
+async function matrixRun(caseId, rep, accepted = 10, over = {}) {
+  const { rec } = await verdictKit();
+  return rec({
+    caseId, seed: `landscape/${caseId}/${rep}`, rep, acceptedCount: accepted, tenthReadyMs: accepted >= 10 ? 30000 : null,
+    responseMs: accepted >= 10 ? 31000 : 115000, ...over,
+  });
+}
+
+/**
  * The literal lines of the work-ledger cases (V4-T09c): `S` a call's start, `C` its capability line, `B` a begin line (a
  * rating with the bound 1,000 unless said otherwise), `P` a completed rating (main and census units), `N` a completed
  * uniqueness count, `E` an end line and `W` a worker line of the link file (process 1).
@@ -4655,6 +4700,366 @@ const itemCases = [
       assert('problems' in f1 && f1.problems.some((p) => p.includes('manifest hash')), 'a state whose items are not the log\'s');
       assert(thrownBy(() => widthVerdict([])).includes('at least one item'), 'an empty list is no verdict');
       same(widthRows(widthItems([caseId], 1), []).map((r) => [r.status, r.complete]), [['missing', false], ['missing', false], ['missing', false], ['missing', false]], 'rows without lines');
+    },
+  },
+  {
+    name: 'matrix: a screen class with a headline and a control',
+    async run() {
+      const { expand, pick } = await matrixKit();
+      const { groups } = expand({ controls: ['18x18-nightmare'] });
+      /** @param {string} cell @returns {string[]} The task, arm, reps and items of the cell's groups of the initial collection. */
+      const initial = (cell) => pick(groups, { cell, collection: 'initial' }).map((g) => `${g.task}|${g.arm}|${g.from}-${g.to}|${g.items.join('+')}`).sort();
+      same(initial('14x14-nightmare'), ['V4-S4|fr-frozen|20-39|S4-1', 'V4-S4|fr-frozen-none|20-39|S4-1', 'V4-S4C|shipped-uncapped|20-39|S4-C'].sort(),
+        'the initial groups of the headline cell 14x14-nightmare');
+      same(initial('18x18-nightmare'), [
+        'V4-S4|fr-frozen|20-39|S4-3', 'V4-S4|fr-frozen-none|20-39|S4-3', 'V4-S4|log-link|20-39|S4-3', 'V4-S4C|shipped-uncapped|20-39|S4-C',
+      ].sort(), 'the initial groups of the control 18x18-nightmare');
+      // A failing headline cell gets no today's arm: its only log-link group is the optional paired factor (S4-6).
+      same(pick(groups, { cell: '14x14-nightmare', arm: 'log-link' }).map((g) => [g.collection, g.items, g.from, g.to]), [['optional', ['S4-6'], 20, 24]],
+        'the log-link groups of a failing cell');
+      same(pick(expand({ controls: [] }).groups, { cell: '18x18-nightmare' }), [], 'a cell that is no control has no group');
+    },
+  },
+  {
+    name: 'matrix: every validated cell has its fallback',
+    async run() {
+      const { data, expand, pick, one } = await matrixKit();
+      const d = data();
+      const control = '18x18-nightmare';
+      const { groups } = expand({ controls: [control] });
+      const cells = [...d.cells.failingNightmare, ...d.cells.hell1Validated, control, ...d.cells.hell1Conditional];
+      same(cells.length, 10, 'the cells of S4-1, S4-2, S4-3 and S4-5');
+      for (const cell of cells) {
+        for (const arm of ['fr-frozen', 'fr-frozen-none']) {
+          const g = one(groups, { cell, arm, task: 'V4-S4', cohort: 'val' });
+          same([g.from, g.to, g.rows], [20, 39, 20], `${arm} on ${cell}`);
+        }
+        const c = one(groups, { cell, arm: 'shipped-uncapped', cohort: 'val' });
+        same([c.task, c.rows, c.comparator], ['V4-S4C', 20, true], `the comparator on ${cell}`);
+      }
+      /** @param {string} arm @returns {string[]} */
+      const covered = (arm) => pick(groups, { arm, task: 'V4-S4', cohort: 'val' }).map((g) => `${g.cell}:${g.from}-${g.to}`).sort();
+      same(covered('fr-frozen'), covered('fr-frozen-none'), 'the twins cover the same cells and reps');
+      same(covered('fr-frozen').length, cells.length, 'one group of each twin per validated cell');
+    },
+  },
+  {
+    name: 'matrix: the comparator keeps the frozen prior',
+    async run() {
+      const { m, data, expand } = await matrixKit();
+      const inputs = { controls: [] };
+      expand(inputs);
+      // The data's uncapped arms differ from their twins only in the three keys of `comparatorDifferences`, and are uncapped.
+      const d = data();
+      same(d.comparatorDifferences, ['callBudget', 'setAttemptsBound', 'liveDeadline'], 'the declared differences');
+      for (const arm of ['fr-frozen-uncapped', 'fr-frozen-none-uncapped']) {
+        const { callBudget, setAttemptsBound, liveDeadline } = d.arms[arm].settings;
+        same([callBudget, setAttemptsBound, liveDeadline], [null, null, false], `${arm} is uncapped`);
+      }
+      same([d.arms['fr-frozen-uncapped'].comparatorOf, d.arms['fr-frozen-none-uncapped'].comparatorOf], ['fr-frozen', 'fr-frozen-none'], 'the twins');
+      /** @param {(data: any) => void} edit @returns {string} The message the expansion throws after `edit`. */
+      const after = (edit) => thrownBy(() => expand(inputs, edit));
+      same(after((x) => { x.arms['fr-frozen-uncapped'].settings.prior = 'other'; }), 'manifest: comparator fr-frozen-uncapped differs from fr-frozen in prior', 'another prior');
+      same(after((x) => { x.arms['fr-frozen-none-uncapped'].settings.screen = 'frozen'; }), 'manifest: comparator fr-frozen-none-uncapped differs from fr-frozen-none in screen',
+        'the screen of the no-screen comparator');
+      same(after((x) => { x.arms['fr-frozen-uncapped'].settings.extra = 1; }), 'manifest: comparator fr-frozen-uncapped differs from fr-frozen in extra', 'a setting only the comparator has');
+      // The three declared keys may differ, and only they: without the list the first of them is a difference.
+      same(after((x) => { x.arms['fr-frozen-uncapped'].settings.callBudget = 'frozen'; }), '', 'a declared difference is allowed');
+      same(after((x) => { x.comparatorDifferences = []; }), 'manifest: comparator fr-frozen-uncapped differs from fr-frozen in callBudget', 'no declared difference');
+      same(after((x) => { x.comparatorDifferences = ['callBudget', 'setAttemptsBound']; }), 'manifest: comparator fr-frozen-uncapped differs from fr-frozen in liveDeadline', 'liveDeadline is undeclared');
+      same(after((x) => { x.arms['fr-frozen-uncapped'].comparatorOf = 'nope'; }), 'manifest: comparator fr-frozen-uncapped names the unknown twin nope', 'an unknown twin');
+      same(after((x) => { delete x.arms['fr-frozen-none-uncapped']; }), 'manifest: fr-frozen-none has no uncapped comparator arm', 'a twin without a comparator');
+      assert(typeof m.expandMatrix === 'function', 'expandMatrix is exported');
+    },
+  },
+  {
+    name: 'matrix: a later prior change on 14x14 and 24x24',
+    async run() {
+      const { expand, pick } = await matrixKit();
+      const boards = ['14x14-hell-1', '24x24-hell-1'];
+      const { groups, items } = expand({ controls: [], secondValidationBoards: boards });
+      /** @param {any[]} list @returns {string[]} */
+      const shape = (list) => list.map((g) => `${g.task}|${g.arm}|${g.shard}|${g.from}-${g.to}|${g.items.join('+')}`).sort();
+      const expected = boards.flatMap((b) => [
+        `V4-S4X|fr-frozen|second-${b}|40-59|S4-7`, `V4-S4X|fr-frozen-none|second-${b}|40-59|S4-7`, `V4-S4XC|shipped-uncapped|second-${b}|40-59|S4-7`,
+      ]).sort();
+      same(shape(pick(groups, { collection: 'second' })), expected, 'the second validation of 14x14 and 24x24');
+      same(pick(groups, { collection: 'second' }).filter((g) => g.cell === '26x26-hell-1' || g.cell === '20x20-hell-1'), [], 'no second validation on 26x26 or 20x20');
+      assert(groups.filter((g) => g.items.includes('S4-7')).length === 6 && groups.every((g) => !g.items.includes('S4-7') || g.collection === 'second'), 'S4-7 lists only its own groups');
+      // The default is every Hell 1 board of the matrix, the conservative price; no board is a valid input too.
+      const every = expand({ controls: [] }).groups;
+      same(pick(every, { collection: 'second' }).map((g) => g.cell).filter((c, i, all) => all.indexOf(c) === i), ['26x26-hell-1', '20x20-hell-1', '24x24-hell-1', '14x14-hell-1'], 'the default boards');
+      same(pick(every, { collection: 'second' }).length, 12, 'three groups on each of four boards');
+      const none = expand({ controls: [], secondValidationBoards: [] });
+      same([pick(none.groups, { collection: 'second' }).length, none.items.find((/** @type {any} */ i) => i.id === 'S4-7').groups], [0, []], 'an adoption that changes no board');
+      assert(items.some((/** @type {any} */ i) => i.id === 'S4-7' && i.collection === 'second' && i.optional === false), 'the item S4-7');
+    },
+  },
+  {
+    name: 'matrix: dedupe',
+    async run() {
+      const { m, data, expand, pick } = await matrixKit();
+      const { groups, counts } = expand({ controls: ['18x18-nightmare'] });
+      const keys = groups.map((g) => m.groupKey(g));
+      same(new Set(keys).size, keys.length, 'two groups share a key');
+      same(keys[0], 'V4-S2|fr-base|pilot-26x26-hell-1|0|4', 'the key of the first group is task|arm|shard|from|to');
+      /** @param {string} arm @param {string} cell @returns {string[]} */
+      const itemsOf = (arm, cell) => {
+        const found = pick(groups, { arm, cell, task: 'V4-S2' });
+        assert(found.length === 1 && found[0].from === 0 && found[0].to === 4, `${found.length} groups of ${arm} on ${cell}`);
+        return found[0].items;
+      };
+      same(itemsOf('fr-base', '14x14-nightmare'), ['S2-3', 'S2-4', 'S2-6'], 'fr-base on 14x14-nightmare is listed by three items and exists once');
+      same(itemsOf('fr-base', '26x26-hell-1'), ['S2-1', 'S2-4', 'S2-6'], 'fr-base on 26x26-hell-1');
+      same(itemsOf('fr-base', '20x20-hell-1'), ['S2-1', 'S2-6'], 'fr-base on 20x20-hell-1');
+      same(itemsOf('fr-base', '26x26-nightmare'), ['S2-3'], 'fr-base on 26x26-nightmare is listed once');
+      same(itemsOf('fr-p5', '14x14-nightmare'), ['S2-6'], 'fr-p5 on 14x14-nightmare');
+      // The same item listing a group twice adds its id once and no group.
+      const again = expand({ controls: ['18x18-nightmare'] }, (d) => d.stage2[0].groups.push({ arm: 'fr-base', cells: ['26x26-hell-1'] }));
+      same(again.groups.map((g) => g.id), groups.map((g) => g.id), 'a group listed twice by one item');
+      same(pick(again.groups, { arm: 'fr-base', cell: '26x26-hell-1', task: 'V4-S2' })[0].items, ['S2-1', 'S2-4', 'S2-6'], 'its id is added once');
+      same(again.counts, counts, 'the counts do not change');
+      assert(data().stage2.length === 6, 'six stage-2 items');
+    },
+  },
+  {
+    name: 'matrix: controls from the reports',
+    async run() {
+      const { m, data } = await matrixKit();
+      const failing = data().cells.failingNightmare;
+      /** @param {string} caseId @param {number} reaching @param {number} [short] Valid requests that do not reach ten. @param {(i: number) => Record<string, any>} [over] */
+      const report = async (caseId, reaching, short = 0, over = () => ({})) => ({
+        runs: [
+          ...(await Promise.all(Array.from({ length: reaching }, (_, i) => matrixRun(caseId, i, 10, over(i))))),
+          ...(await Promise.all(Array.from({ length: short }, (_, i) => matrixRun(caseId, reaching + i, 6)))),
+        ],
+      });
+      const reports = {
+        '10x10-nightmare': { path: 'x/10x10.json', report: await report('10x10-nightmare', 18, 2) },
+        '3x29-nightmare': { path: 'x/3x29.json', report: await report('3x29-nightmare', 17, 3) },
+        '18x18-nightmare': { path: 'x/18x18.json', report: await report('18x18-nightmare', 18, 0, (i) => (i < 2 ? { measurementValid: false } : {})) },
+        '14x14-nightmare': { path: 'x/14x14.json', report: await report('14x14-nightmare', 20) },
+      };
+      same(m.controlsFrom((/** @type {string} */ id) => (/** @type {Record<string, any>} */ (reports))[id] ?? null, failing), ['10x10-nightmare'],
+        'only the cell with 18 valid runs reaching ten (17 reach, two of 18 are not valid measurements, a failing cell is excluded)');
+      same(m.controlsFrom(reports, failing), ['10x10-nightmare'], 'a map of the reports gives the same cells');
+      // The report may be given without its path, a cell without a report is no control, and the time of the runs does not matter (D-V4-16).
+      const slow = await report('20x20-nightmare', 18, 0, () => ({ tenthReadyMs: 130000, responseMs: 131000 }));
+      const bare = { ...reports, '20x20-nightmare': slow, '24x24-nightmare': null };
+      same(m.controlsFrom(bare, failing), ['10x10-nightmare', '20x20-nightmare'], 'a request that reaches ten after 120 s is a completion; the order is the catalogue\'s');
+      // A good report on every cell: Nightmare cells only, the failing ones left out, in catalogue order.
+      const good = await report('x', 20);
+      same(m.controlsFrom(() => ({ report: good }), failing), [
+        '3x29-nightmare', '10x10-nightmare', '18x18-nightmare', '18x20-nightmare', '20x20-nightmare', '20x21-nightmare', '32x15-nightmare', '22x22-nightmare',
+        '24x24-nightmare', '26x26-nightmare',
+      ], 'the Nightmare cells of the catalogue other than the failing ones');
+      same(m.controlsFrom(() => ({ report: good }), []).length, 15, 'every Nightmare cell without a failing list');
+      assert(thrownBy(() => m.controlsFrom(reports, 'x')).includes('failing must be a list'), 'a failing list is required');
+      // The landscape's diagnostic `sampling` entries say nothing about the request (ruling of 2026-11-17, QUESTION 1): a cell whose 20 runs
+      // reach ten and each carry one is a control; one whose three runs also carry a `batch` error has 17 valid runs and is not.
+      const { v } = await verdictKit();
+      const sampling = { phase: 'sampling', code: 'rating-incomplete', message: 'x' };
+      const batch = { phase: 'batch', code: 'worker-crashed', message: 'x' };
+      const sampled = await report('22x22-nightmare', 20, 0, () => ({ errors: [sampling] }));
+      const crashed = await report('24x24-nightmare', 20, 0, (i) => ({ errors: i < 3 ? [sampling, batch] : [sampling] }));
+      const before = JSON.stringify([sampled, crashed]);
+      same([v.runStatus(sampled.runs[0], { quantity: 10 }).status, v.runStatus(crashed.runs[0], { quantity: 10 }).status], ['error', 'error'],
+        'read as they are, both kinds of run are errors (the input reaches the path)');
+      same([v.runStatus(m.withoutSampling(sampled.runs[0]), { quantity: 10 }).status, v.runStatus(m.withoutSampling(crashed.runs[0]), { quantity: 10 }).status,
+        v.runStatus(m.withoutSampling(crashed.runs[3]), { quantity: 10 }).status], ['valid', 'error', 'valid'], 'the sampling entries are set aside, a batch error stays');
+      same(m.controlsFrom({ '22x22-nightmare': sampled, '24x24-nightmare': crashed }, failing), ['22x22-nightmare'], 'the sampling cell is a control, the cell with three batch errors (17 valid runs) is not');
+      same(m.controlsFrom({ ...reports, '22x22-nightmare': sampled, '24x24-nightmare': crashed }, failing), ['10x10-nightmare', '22x22-nightmare'], 'beside the cells above, in catalogue order');
+      same(JSON.stringify([sampled, crashed]), before, 'every input run keeps its errors');
+      // `withoutSampling`: a copy without the entries of phase `sampling`, the run unchanged; a value that is no record with a list of errors as it is.
+      const run = { acceptedCount: 1, errors: [sampling, 'x', null, batch, { phase: 'set', code: 'c', message: 'm' }] };
+      const copy = m.withoutSampling(run);
+      same(copy, { acceptedCount: 1, errors: ['x', null, batch, { phase: 'set', code: 'c', message: 'm' }] }, 'a copy without the sampling entry');
+      assert(copy !== run && run.errors.length === 5 && run.errors[0] === sampling && copy.errors !== run.errors, 'the run and its errors list are unchanged');
+      const noErrors = { acceptedCount: 1 };
+      assert([null, undefined, 'x', 3, noErrors, { errors: 'x' }].every((value) => m.withoutSampling(value) === value), 'a value that is no record with a list of errors is returned as it is');
+    },
+  },
+  {
+    name: 'matrix: row limits by group',
+    async run() {
+      const { expand, pick, one } = await matrixKit();
+      const { groups } = expand({ controls: ['18x18-nightmare'] });
+      same(one(groups, { cell: '14x14-nightmare', arm: 'fr-frozen', cohort: 'val' }).rowLimitS, 130, 'S4-1 fr-frozen on 14x14-nightmare');
+      same(one(groups, { cell: '14x14-nightmare', arm: 'fr-frozen-none', cohort: 'val' }).rowLimitS, 130, 'S4-1 fr-frozen-none on 14x14-nightmare');
+      same(one(groups, { cell: '18x18-nightmare', arm: 'log-link', cohort: 'val' }).rowLimitS, 260, 'S4-3 log-link on 18x18-nightmare');
+      const uncapped = pick(groups, { arm: 'shipped-uncapped' });
+      // 14 comparator groups: S4-C on 5 failing cells, 2 Hell 1 boards and the control; S4-5 on 2 boards; S4-7 on 4 boards.
+      assert(uncapped.length === 8 + 2 + 4 && uncapped.every((g) => g.rowLimitS === 260), `the comparators: ${uncapped.map((g) => g.rowLimitS)}`);
+      const live = pick(groups, { collection: 'live' });
+      same(live.map((g) => [g.arm, g.cell, g.rowLimitS]), [['fr-frozen', '14x14-nightmare', 260], ['fr-frozen', '26x26-hell-1', 260]], 'the live receipt runs under 260 s although its arm has the live deadline');
+      const stage2 = pick(groups, { stage: 2 });
+      assert(stage2.length === 33 && stage2.every((g) => g.rowLimitS === 260), 'every stage-2 group has 260 s');
+      // 130 s belongs to exactly the stage-4 groups of the two twins: 10 of S4-1, 4 of S4-2, 2 of S4-3, 16 Master groups of fr-frozen,
+      // 4 of S4-5 and 8 of S4-7; today's arm, the comparators and the receipt keep 260 s.
+      const short = pick(groups, { rowLimitS: 130 });
+      same(short.length, 10 + 4 + 2 + 16 + 4 + 8, 'the groups at 130 s');
+      assert(short.every((g) => g.stage === 4 && g.collection !== 'live' && (g.arm === 'fr-frozen' || g.arm === 'fr-frozen-none')), 'only stage-4 twins have 130 s');
+      assert(groups.every((g) => g.rowLimitS === 130 || g.rowLimitS === 260), 'every group has 130 or 260 s');
+      same(pick(groups, { arm: 'log-link' }).filter((g) => g.rowLimitS !== 260), [], 'today\'s arm has 260 s everywhere');
+      same(pick(groups, { cohort: 'master', arm: 'fr-frozen' }).every((g) => g.rowLimitS === 130), true, 'the Master groups of fr-frozen');
+    },
+  },
+  {
+    name: 'matrix: disjoint state paths',
+    async run() {
+      const { expand, pick, one } = await matrixKit();
+      const { groups } = expand({ controls: ['18x18-nightmare'] });
+      const first = one(groups, { cell: '26x26-hell-1', arm: 'fr-frozen', items: ['S4-2'] });
+      same([first.task, first.shard], ['V4-S4', 'val-26x26-hell-1'], 'the S4-2 group');
+      const second = one(groups, { cell: '26x26-hell-1', arm: 'fr-frozen', items: ['S4-7'] });
+      same([second.task, second.shard], ['V4-S4X', 'second-26x26-hell-1'], 'the S4-7 group');
+      const comparator = one(groups, { cell: '26x26-hell-1', arm: 'shipped-uncapped', items: ['S4-7'] });
+      same([comparator.task, comparator.shard], ['V4-S4XC', 'second-26x26-hell-1'], 'the S4-7 comparator');
+      const live = one(groups, { cell: '26x26-hell-1', arm: 'fr-frozen', collection: 'live' });
+      same([live.task, live.shard], ['V4-LIVE', 'live-26x26-hell-1'], 'the live group');
+      // The pilot, validation, Master, paired-factor, live and second cohorts of one arm and cell never share a folder.
+      const triples = groups.map((g) => `${g.task}|${g.arm}|${g.shard}`);
+      same(new Set(triples).size, triples.length, 'two groups share task, arm and shard');
+      const paths = groups.map((g) => `${g.task}\\${g.arm}\\${g.shard}\\state.json`.toLowerCase());
+      same(new Set(paths).size, paths.length, 'two groups share a state file (the file system ignores case)');
+      same(pick(groups, { arm: 'log-link' }).map((g) => g.shard).filter((s) => s.startsWith('master-')).length, 16, 'one Master shard of today\'s arm per Master cell');
+      assert(groups.every((g) => g.id === `${g.task}/${g.arm}/${g.shard}` && g.shard === `${g.cohort}-${g.cell}`), 'the id and the shard follow the rules');
+    },
+  },
+  {
+    name: 'matrix: collections',
+    async run() {
+      const { expand, pick } = await matrixKit();
+      const { groups } = expand({ controls: ['18x18-nightmare'] });
+      const comparators = pick(groups, { arm: 'shipped-uncapped' });
+      assert(comparators.length > 0 && comparators.every((g) => g.comparator === true && (g.task === 'V4-S4C' || g.task === 'V4-S4XC')), 'every shipped-uncapped group is a comparator of a comparator task');
+      assert(groups.every((g) => (g.arm === 'shipped-uncapped') === g.comparator), 'only shipped-uncapped groups are comparators');
+      same(groups.filter((g) => (g.task === 'V4-S4' || g.task === 'V4-S4X') && g.arm === 'shipped-uncapped'), [], 'no comparator in a validation task');
+      /** @param {string} item @returns {any[]} */
+      const of = (item) => groups.filter((g) => g.items.includes(item));
+      for (const [item, collection, optional] of [['S4-1', 'initial', false], ['S4-2', 'initial', false], ['S4-3', 'initial', false], ['S4-C', 'initial', false], ['S4-4', 'initial', false],
+        ['S4-5', 'conditional', true], ['S4-6', 'optional', true], ['S4-7', 'second', false], ['live', 'live', false]]) {
+        const list = of(String(item));
+        assert(list.length > 0 && list.every((g) => g.collection === collection && g.optional === optional), `the groups of ${item}: collection ${collection}, optional ${optional}`);
+      }
+      assert(pick(groups, { stage: 2 }).every((g) => g.collection === 'stage2' && g.optional === false && g.task === 'V4-S2' && g.cohort === 'pilot'), 'the stage-2 groups');
+      same(of('S4-5').map((g) => `${g.task}|${g.arm}`).sort(), ['V4-S4C|shipped-uncapped', 'V4-S4C|shipped-uncapped', 'V4-S4|fr-frozen', 'V4-S4|fr-frozen', 'V4-S4|fr-frozen-none', 'V4-S4|fr-frozen-none'].sort(),
+        'S4-5: the twins under V4-S4 and the comparator under V4-S4C, on two boards');
+      same(of('S4-6').map((g) => `${g.task}|${g.arm}|${g.shard}|${g.from}-${g.to}`).sort(), [
+        '14x14-nightmare', '15x15b10-nightmare', '12x12-nightmare', '16x16-nightmare', '15x20-nightmare',
+      ].map((c) => `V4-S4|log-link|factor-${c}|20-24`).sort(), 'S4-6: today\'s arm on the five failing cells, reps 20 to 24');
+      same(of('S4-4').map((g) => g.arm).filter((a, i, all) => all.indexOf(a) === i), ['fr-frozen', 'log-link'], 'S4-4: the frozen arm and today\'s arm');
+      same(of('S4-4').length, 32, 'S4-4: two groups on each of the 16 Master cells');
+      same(new Set(groups.map((g) => g.collection)), new Set(['stage2', 'live', 'initial', 'conditional', 'optional', 'second']), 'the collections');
+      same(of('S4-7').map((g) => g.task).filter((t, i, all) => all.indexOf(t) === i).sort(), ['V4-S4X', 'V4-S4XC'], 'the second validation has its own namespaces');
+    },
+  },
+  {
+    name: 'matrix: conditional activation',
+    async run() {
+      const { m } = await matrixKit();
+      const cell = '24x24-hell-1';
+      const ten = (/** @type {number} */ i, /** @type {Record<string, any>} */ over = {}) => matrixRun(cell, i, 10, over);
+      const short = (/** @type {number} */ i) => matrixRun(cell, i, 6);
+      same(m.conditionalActivated([await ten(0), await ten(1), await ten(2), await short(3), await short(4)]), { activated: true, valid: 5, reachingTen: 3 },
+        'three valid requests reach ten, two are valid and short');
+      same(m.conditionalActivated([await ten(0), await ten(1), await ten(2, { measurementValid: false }), await short(3), await short(4)]), { activated: false, valid: 4, reachingTen: 2 },
+        'a request that is not a valid measurement is never a completion');
+      same(m.conditionalActivated([await ten(0), await ten(1), await ten(2)]), { activated: true, valid: 3, reachingTen: 3 }, 'three valid requests and no other run');
+      // The time of the completion does not matter, a missing or invalid run counts nowhere, and nothing is a vacuous activation.
+      const late = { tenthReadyMs: 125000, responseMs: 126000 };
+      same(m.conditionalActivated([await ten(0, late), await ten(1, late), await ten(2, late)]), { activated: true, valid: 3, reachingTen: 3 }, 'completion apart from the deadline');
+      same(m.conditionalActivated([await ten(0), await ten(1), await ten(2, { tenthReadyMs: null }), null, {}]), { activated: false, valid: 2, reachingTen: 2 },
+        'a request with ten puzzles and no T10, a null and an empty record are invalid');
+      for (const none of [[], null, undefined]) {
+        same(m.conditionalActivated(none), { activated: false, valid: 0, reachingTen: 0 }, 'no pilot run');
+      }
+      assert(thrownBy(() => m.conditionalActivated(/** @type {any} */ ('x'))).includes('must be a list'), 'a pilot that is not a list throws');
+    },
+  },
+  {
+    name: 'matrix: counts',
+    async run() {
+      const { expand } = await matrixKit();
+      const { groups, items, counts } = expand({ controls: ['18x18-nightmare'] });
+      // Worked by hand from the data and the rules: 38 stage-2 listings of which five repeat a group, 5 rows each (pilot reps 0 to 4).
+      same(counts.total, { groups: 115, rows: 1220 }, 'the whole expansion');
+      same(counts.stages, { 2: { groups: 33, rows: 165 }, 4: { groups: 82, rows: 1055 } }, 'per stage');
+      same(counts.items, {
+        'S2-1': { groups: 4, rows: 20 }, 'S2-2': { groups: 16, rows: 80 }, 'S2-3': { groups: 4, rows: 20 }, 'S2-4': { groups: 6, rows: 30 },
+        'S2-5': { groups: 2, rows: 10 }, 'S2-6': { groups: 6, rows: 30 }, 'S4-1': { groups: 10, rows: 200 }, 'S4-2': { groups: 4, rows: 80 },
+        'S4-3': { groups: 3, rows: 60 }, 'S4-C': { groups: 8, rows: 160 }, 'S4-4': { groups: 32, rows: 160 }, 'S4-5': { groups: 6, rows: 120 },
+        'S4-6': { groups: 5, rows: 25 }, 'S4-7': { groups: 12, rows: 240 }, live: { groups: 2, rows: 10 },
+      }, 'per item');
+      same(items.map((/** @type {any} */ i) => i.id), ['S2-1', 'S2-2', 'S2-3', 'S2-4', 'S2-5', 'S2-6', 'S4-1', 'S4-2', 'S4-3', 'S4-C', 'S4-4', 'S4-5', 'S4-6', 'S4-7', 'live'], 'the items in order');
+      same([groups.reduce((n, g) => n + g.rows, 0), groups.every((g) => g.rows === g.to - g.from + 1)], [1220, true], 'rows are to - from + 1');
+      same(items.map((/** @type {any} */ i) => [i.id, i.rows]), Object.entries(counts.items).map(([id, c]) => [id, /** @type {any} */ (c).rows]), 'the items carry their rows');
+      same(expand({ controls: [] }).counts.total, { groups: 111, rows: 1140 }, 'without a control: S4-3 (3 groups) and its comparator in S4-C (1 group) are gone, 80 rows');
+    },
+  },
+  {
+    name: 'matrix: the data file',
+    async run() {
+      const { data, expand, pick } = await matrixKit();
+      const d = data();
+      same([d.version, d.resampleSeed, d.resamples, d.workers], [1, 20261116, 10000, 4], 'the recipe and the workers');
+      same(d.reps, { pilot: [0, 4], validation: [20, 39], master: [20, 24], secondValidation: [40, 59], liveDeadline: [0, 4] }, 'the reps');
+      same(d.rowLimitS, { default: 260, liveDeadline: 130 }, 'the row limits');
+      // The fitting seeds are the provisional reps 0 to 5 and MP12b1's reps 10 to 19: validation, Master and the second validation start above them,
+      // and the second cohort is fresh.
+      const fitted = 19;
+      for (const name of ['validation', 'master', 'secondValidation']) {
+        assert(d.reps[name][0] > fitted, `${name} reps ${d.reps[name]} overlap a fitting seed`);
+      }
+      assert(d.reps.secondValidation[0] > d.reps.validation[1], 'the second validation cohort overlaps the first validation');
+      const { groups } = expand({ controls: ['18x18-nightmare'] });
+      for (const g of groups) {
+        if (['val', 'master', 'factor', 'second'].includes(g.cohort)) {
+          assert(g.from > fitted, `${g.id} reps ${g.from} to ${g.to} overlap a fitting seed`);
+        }
+      }
+      same(pick(groups, { cohort: 'second' }).every((g) => g.from >= 40 && g.to <= 59), true, 'second-validation groups are in 40 to 59');
+      same(pick(groups, { cohort: 'factor' }).every((g) => g.from >= d.reps.validation[0] && g.to <= d.reps.validation[1]), true, 'the paired factor uses validation seeds');
+      // The cells exist in the catalogue; the Master cells are its 16 Master cases in catalogue order.
+      const cases = JSON.parse(readFileSync(join(IG_DIR, 'data', 'boards-v1.json'), 'utf8')).cases;
+      const cells = [
+        ...d.cells.failingNightmare, ...d.cells.hell1Validated, ...d.cells.hell1Conditional, ...d.cells.master,
+        ...d.stage2.flatMap((/** @type {any} */ i) => i.groups.flatMap((/** @type {any} */ g) => g.cells)),
+      ];
+      same(cells.filter((c) => cases[c] === undefined), [], 'a cell of the matrix is not in the catalogue');
+      same(d.cells.master, Object.keys(cases).filter((id) => cases[id].levelId === 'master'), 'the Master cells');
+      same(d.cells.master.length, 16, 'sixteen Master cells');
+      same(d.cells.failingNightmare, ['14x14-nightmare', '15x15b10-nightmare', '12x12-nightmare', '16x16-nightmare', '15x20-nightmare'], 'the failing headline cells');
+      same([d.cells.hell1Validated, d.cells.hell1Conditional], [['26x26-hell-1', '20x20-hell-1'], ['24x24-hell-1', '14x14-hell-1']], 'the Hell 1 boards');
+      // Every arm is its own variant; the eight arms that exist today have a manifest (the four stage-4 arms are made at the freeze, N-V4-03).
+      for (const [id, arm] of Object.entries(d.arms)) {
+        same(/** @type {any} */ (arm).variant, id, `the variant of ${id}`);
+      }
+      const existing = listVariants();
+      same(['log-link', 'fr-base', 'fr-screen', 'fr-none', 'fr-close', 'fr-c4', 'fr-ps', 'fr-p5'].filter((id) => !existing.includes(id)), [], 'a stage-2 arm has no variant');
+      same(Object.entries(d.arms).filter(([, a]) => /** @type {any} */ (a).stage === 2).map(([id]) => id), ['fr-base', 'fr-screen', 'fr-none', 'fr-close', 'fr-c4', 'fr-ps', 'fr-p5'], 'the stage-2 arms');
+      same(d.stage2.map((/** @type {any} */ i) => i.id), ['S2-1', 'S2-2', 'S2-3', 'S2-4', 'S2-5', 'S2-6'], 'the stage-2 items');
+      same(d.stage2.flatMap((/** @type {any} */ i) => i.groups.map((/** @type {any} */ g) => g.arm)).filter((/** @type {string} */ a) => d.arms[a]?.stage !== 2), [], 'a stage-2 item names an arm that is not a stage-2 arm');
+    },
+  },
+  {
+    name: 'matrix: the inputs and the data are checked',
+    async run() {
+      const { m, data, expand } = await matrixKit();
+      /** @param {any} inputs @param {(data: any) => void} [edit] @returns {string} */
+      const failure = (inputs, edit) => thrownBy(() => expand(inputs, edit));
+      assert(failure(null).includes('inputs.controls must be a list of distinct cells'), 'inputs are required');
+      assert(failure({}).includes('inputs.controls must be a list'), 'controls are required');
+      same(failure({ controls: ['14x14-nightmare'] }), 'manifest: control 14x14-nightmare is a failing cell', 'a failing cell is no control');
+      assert(failure({ controls: ['18x18-nightmare', '18x18-nightmare'] }).includes('distinct'), 'a control listed twice');
+      assert(failure({ controls: [], secondValidationBoards: '24x24-hell-1' }).includes('inputs.secondValidationBoards must be a list'), 'the boards are a list');
+      same(failure({ controls: [] }, (d) => { d.reps.validation = [39, 20]; }), 'manifest: reps validation must be [from, to] with 0 <= from <= to', 'a reversed range');
+      same(failure({ controls: [] }, (d) => { delete d.reps.master; }), 'manifest: reps master must be [from, to] with 0 <= from <= to', 'a missing range');
+      same(failure({ controls: [] }, (d) => { d.rowLimitS.default = 0; }), 'manifest: rowLimitS default must be a positive integer', 'a zero row limit');
+      same(failure({ controls: [] }, (d) => { d.stage2[0].groups[0].arm = 'fr-nope'; }), 'manifest: item S2-1 names the unknown arm fr-nope', 'an unknown arm');
+      same(failure({ controls: [] }, (d) => { delete d.arms['log-link']; }), 'manifest: item S4-4 names the unknown arm log-link', 'a missing today\'s arm');
+      assert(failure({ controls: [] }, (d) => { d.cells.master = ['a', 'a']; }).includes('cells.master'), 'a repeated Master cell');
+      assert(data().arms['fr-frozen'] !== undefined && m.groupKey({ task: 't', arm: 'a', shard: 's', from: 1, to: 2 }) === 't|a|s|1|2', 'the group key');
     },
   },
 ];

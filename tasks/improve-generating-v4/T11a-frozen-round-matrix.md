@@ -213,13 +213,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 18:58:20 +07:00 (dispatch, base `2ed2901`) to 19:27:04 +07:00 (acceptance): 28 min 44 s; the developer's own times 18:58:01-19:17 and, after the ruling, 19:23:47-19:26:04 |
+| Waiting for rulings | about 6 min (QUESTION 1 at 19:17, ruling 19:23) |
+| Agent id, model | `bbb3015f-6c5c-453c-990b-b4f73cb1e85a`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 108 calls; 27,695,615 input, 157,079 output, 26,970,338 cache-read |
+| AI credits | 608.09 |
+| Questions and rulings | Q1: `controlsFrom` returned no cell on today's MP12b1 reports, because every run carries `sampling`/`rating-incomplete` entries from the landscape's diagnostic pass after the timed interval. SA-Opus accepted the default (b): `controlsFrom` judges `runStatus(withoutSampling(run))` (new export), `verdicts.mjs` unchanged; 10 controls (`3x29`, `10x10`, `18x18`, `18x20`, `20x20`, `20x21`, `32x15`, `22x22`, `24x24`, `26x26` Nightmare); T11b's `refS` and T11c's `rowStep` and `compile` amended; read-only check script `docs/improve-generating/evidence/drift/claude-opus-5.5/t11a-controls-check.mjs`; pack amendment `526aebe`. Deviations and readings accepted |
+| Fix rounds | 0 (the ruling was applied in the developer's second round) |
+| Gates re-run by the orchestrator | `--items`: 137 passed, 0 failed (22.192 s; `matrix:` cases 125-137); `--frozen`: 10 passed; `check-edits --all`: 34 `ok`, no other line; firewall `check` (V4-T11a): 289 production files unchanged; `git status --short -- core generator tests tools/bench tools/ig-proto/variants tools/ig-proto/lib`: empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK; the SA's check script prints the same 10 controls. Real matrix (developer, read-only): 151 groups and 1,940 rows; stage 2 33 groups and 165 rows; stage 4 118 groups and 1,775 rows (S4-3 30 groups and 600 rows, S4-C 17 groups and 340 rows). No locked command and no machine time |
+| Commit | this task's commit, `improve-generating T11a: Frozen-round matrix: the enumerated requests of stages 2 to 5 and their collections` |
+| Issues and named items | The 10 controls raise stage 4 to 118 groups and 1,775 rows; T11g prices them against the plan's 3.4 to 4.2 h stage-4 projection before the owner approves (OD-P10) |

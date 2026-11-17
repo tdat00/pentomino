@@ -71,6 +71,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `verdicts.mjs`, `data/verdict-manifest.schema.md`, `data/verdict-manifest.example.json` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules), the work ledger of a request, the work rule and the class verdict (V4-T09c), the global verdicts (V4-T09d: the cell gates on the shipped arm, Master identity, the Hell 1 report, P5's stops, the post-hoc projection, the population and phase 0's verdict), and the verdict tool (V4-T09e: the bound prerequisites, the class-selection receipt, the work report and the records it writes) with the manifest those statistics read and its example; the statistics are pure, the tool reads the records the manifest names; see "Admission statistics (V4-T09a)" |
 | `kernel-probe.mjs`, `variants/r4c.json`, `plans/V4-T10a.json`, `plans/V4-T10b.json` | the kernel probe (V4-T10a, V4-T10b): R4 visit and mutation counters in the `r4c` tree, the `v4-kernel` items that compare its complete deduction with the `instr` tree's, the `fewestColumn` profile of child processes under reduced inlining, the `counters` and `profile` (locked) and `report` (unlocked) commands and the plans of the runs; see "Kernel probe (V4-T10a)" |
 | `width-probe.mjs`, `lib/width-worker.mjs`, `lib/width-worker-test.mjs`, `plans/V4-T10c.json` | the pool probe (V4-T10c): one rating's time at 1, 2, 4 and 8 concurrent workers on the frozen source, the width dispatch, its worker and the scripted worker of its self-test, the `run` (locked) and `report` (unlocked) commands and the plan of the run; see "Pool probe (V4-T10c)" |
+| `manifest.mjs`, `data/frozen-round-v1.json` | the frozen-round matrix (V4-T11a onwards): the requests of stages 2 to 5 as data and the pure rules that expand them into groups of request rows with their row limits, state paths and collections, `controlsFrom` and `conditionalActivated`; later tasks of the pack add the pricing, the plan compiler, the collections' activation, the comparators and the manifest to `manifest.mjs`; unlocked, nothing in it runs; see "Frozen-round matrix (V4-T11a)" |
 
 ## Trees (variants)
 
@@ -1942,3 +1943,97 @@ whether P8 is worth more work (plan P8) and judges nothing: the default width st
   `custom items: the runner rules` and `width: report verdicts and blocks`. `--v4` (locked) adds `width: the real worker and the
   dispatch`: two real workers on `10x10-nightmare`, one round, and the error path of the real worker (a path that no `--items`
   case can reach: those workers rate nothing).
+
+## Frozen-round matrix (V4-T11a)
+
+The owner approves the frozen round as an enumerated manifest (OD-P10). `data/frozen-round-v1.json` writes the requests of stages 2 to
+5 as data and `manifest.mjs` holds the pure rules that expand them into groups of request rows: the conservative stage-4 matrix of
+review R14 (every validated Nightmare and Hell 1 cell measured with both twins of the frozen arm, because the class table is unknown
+before stage 3; today's arm only where a gate needs it; the uncapped comparator of the arm each cell ships; the conditional Hell 1
+boards; a fresh cohort for a second validation). The matrix is the priced universe, not a measurement plan: nothing in it runs, rates,
+generates or reads a measured row of the round (unlocked). `self-test.mjs` loads `manifest.mjs` on first use, because it imports
+`verdicts.mjs` (and so the frozen source) for `runStatus` and `reachedTen`.
+
+- **The data** (`version` 1): `resampleSeed` 20261116, `resamples` 10,000 and `workers` 4 (four workers per request row); `reps`
+  (`[from, to]`): `pilot` 0 to 4, `validation` 20 to 39, `master` 20 to 24, `secondValidation` 40 to 59, `liveDeadline` 0 to 4;
+  `rowLimitS`: `default` 260, `liveDeadline` 130; `arms`, `comparatorDifferences`, `cells` and `stage2` below. The fitting seeds are
+  the provisional reps 0 to 5 and MP12b1's reps 10 to 19: the pilots and the live receipt use fitting seeds by design (stage 2 is
+  "on fitting seeds"), the validation, Master and second-validation reps start above 19 and the second cohort does not overlap the
+  first. The optional paired factor (S4-6) uses reps 20 to 24, a constant of `manifest.mjs`: five of the validation seeds, as the
+  plan's "five seeds per cell" (the data has no key for it); the live receipt's cells (`14x14-nightmare`, `26x26-hell-1`) are a
+  constant too.
+- **The arms.** `log-link` (stage 4: today's search with the linkage journal) and the seven stage-2 arms `fr-base`, `fr-screen`,
+  `fr-none`, `fr-close`, `fr-c4`, `fr-ps`, `fr-p5` (T08) exist as variants; each is `{ variant: <its id>, stage }`, so a group's
+  arm is its variant (a group carries no `variant` field; `shipped-uncapped` has none). The four stage-4 arms are created at the
+  freeze (N-V4-03), named here with their `settings` (`prior`, `screen`, `c4`, `rerate`, `callBudget`, `setAttemptsBound`,
+  `liveDeadline`): `fr-frozen` (screen `frozen`, budget and bound `frozen`, deadline true), `fr-frozen-none` (screen `none`, otherwise
+  as `fr-frozen`), and their uncapped comparators `fr-frozen-uncapped` and `fr-frozen-none-uncapped` (`comparatorOf` the twin;
+  `callBudget` and `setAttemptsBound` null, `liveDeadline` false). A comparator differs from its twin only in the keys of
+  `comparatorDifferences` (`callBudget`, `setAttemptsBound`, `liveDeadline`): `expandMatrix` checks it first and throws
+  `manifest: comparator <arm> differs from <twin> in <key>` (also for an unknown twin, and for a twin with no comparator arm).
+- **The cells.** `failingNightmare` (`14x14`, `15x15b10`, `12x12`, `16x16`, `15x20`), `hell1Validated` (`26x26`, `20x20`),
+  `hell1Conditional` (`24x24`, `14x14`) and `master` (the 16 `*-master` cases of the catalogue in catalogue order).
+- **Stage 2** (`stage2`, each item `{ id, text, groups: [{ arm, cells }] }`, pilot reps): S2-1 `fr-base`, `fr-ps` on `26x26-hell-1`
+  and `20x20-hell-1`; S2-2 `fr-screen`, `fr-none` on the Nightmare cells `10x10`, `12x12`, `14x14`, `15x15b10`, `16x16`, `15x20`,
+  `26x26` and on `26x26-hell-1`; S2-3 `fr-c4`, `fr-base` on `14x14-nightmare` and `26x26-nightmare`; S2-4 `fr-close`, `fr-base` on
+  `12x12-nightmare`, `14x14-nightmare` and `26x26-hell-1`; S2-5 `fr-base` on `24x24-hell-1` and `14x14-hell-1`; S2-6 `fr-p5`,
+  `fr-base` on `14x14-nightmare`, `26x26-hell-1` and `20x20-hell-1`. The probes and the parity passes are steps of T11c's plans,
+  not request rows.
+- **`expandMatrix(data, inputs)`** with `inputs = { controls, secondValidationBoards }` returns `{ groups, items, counts }`.
+  `controls` (required: the completion-passing Nightmare cells, never a failing cell) and `secondValidationBoards` (default: every
+  `hell1Validated` and `hell1Conditional` board, the conservative price; an empty list is allowed) are lists of distinct cells; a
+  malformed range of `reps`, a missing row limit, an unknown arm or a repeated cell throws `manifest: ...`. The items, in this
+  order: S2-1 to S2-6; S4-1 headline (both twins on each failing cell); S4-2 Hell 1 (both twins on each validated board); S4-3
+  controls (both twins and `log-link` on each control); S4-C comparator (one group of arm `shipped-uncapped`, task `V4-S4C`, on every
+  cell of S4-1, S4-2 and S4-3, resolved after the class verdicts by T11f to `fr-frozen-uncapped` or `fr-frozen-none-uncapped`);
+  S4-4 Master identity (`fr-frozen` and `log-link` on each Master cell, master reps); S4-5 conditional Hell 1 (the twins and
+  `shipped-uncapped` on each `hell1Conditional` cell); S4-6 optional paired factor (`log-link` on each failing cell, reps 20 to
+  24); S4-7 conditional second validation (the twins and `shipped-uncapped` on each second-validation board, reps 40 to 59); `live`
+  (`fr-frozen` on the two live cells, the live-deadline reps; the receipt of N-V4-13).
+- **A group** is `{ id, task, arm, cell, from, to, rows, stage, cohort, shard, rowLimitS, optional, items, collection, comparator }`:
+  `rows = to - from + 1`; `id` is `<task>/<arm>/<shard>`; its **key** (`groupKey(group)`) is `task|arm|shard|from|to`; `items` are the
+  ids of the items that list it. **Dedupe:** two items that need the same key (the same task, arm, shard and reps) share one group
+  and only add their id to its `items` (for example `fr-base` on `14x14-nightmare`, reps 0 to 4, lists `S2-3`, `S2-4`, `S2-6`).
+  `stage` is 2 for the stage-2 items and 4 for every other item, the live receipt included (its arm is a stage-4 arm; its
+  `collection` keeps it apart). `optional` is true for S4-5 and S4-6.
+- **State paths** (RV2-11): the task by stage (`V4-S2` for stage 2, `V4-LIVE`, `V4-S4` for the first validation's twins, controls,
+  Master rows and paired factor, `V4-S4C` for its comparators, `V4-S4X` for the second validation, `V4-S4XC` for its comparators)
+  and the shard `<cohort>-<cell>`, the cohort being that of the reps (`pilot`, `live`, `val`, `master`, `factor`, `second`); the state
+  is `<task>\<arm>\<shard>\state.json`, so a pilot, a validation and a second validation of one arm and cell never share a folder.
+- **Row limits** (RV2-10): 130 s only for a stage-4 group of an arm whose settings have `liveDeadline: true` (`fr-frozen`,
+  `fr-frozen-none`), which runs only after an accepted live-deadline binding; 260 s for every other group: today's `log-link`, the
+  `shipped-uncapped` comparators (no live deadline; separate set and batch timers), the stage-2 arms and the `live` rows themselves
+  (a violation must be observed, not cut by the wrapper). A wrapper-censored control is unknown evidence (`p5Stops`, T09d), never
+  a proof that the bounded arm lost nothing.
+- **Collections** (RV3-04, D-V4-20): `stage2`; `live`; `initial` (S4-1 to S4-4 and the comparators of S4-1 to S4-3); `conditional`
+  (S4-5, run only when T11e activates the board by `conditionalActivated`); `optional` (S4-6, run only with the owner's approval);
+  `second` (S4-7, a template until N-V4-04). A comparator group (`comparator: true`, arm `shipped-uncapped`) is never part of a
+  validation plan: it belongs to its collection's comparator task (`V4-S4C` for `initial` and `conditional`, `V4-S4XC` for `second`)
+  and is resolved only from that collection's final selection (T11f).
+- **`counts`**: `{ total, stages, items }`, each `{ groups, rows }` (an item counts the groups it lists, so the items do not sum to
+  the total). With one control, the matrix has 115 groups and 1,220 rows: stage 2 33 groups and 165 rows, the other items as
+  `matrix: counts` lists them. With the ten controls of today's reports (below) it has 151 groups and 1,940 rows (stage 4: 118
+  groups and 1,775 rows).
+- **`controlsFrom(reports, failing)`** returns the Nightmare cells of the catalogue, other than `failing`, in catalogue order,
+  whose MP12b1 report has at least 18 runs with `runStatus(withoutSampling(run), { quantity: 10 }).status === 'valid'` that reach
+  ten puzzles (`reachedTen`, whatever their time, D-V4-16). `reports` is `mp12b1Report` or a map from case id to what it
+  returns (`{ path, report }` or the report); a cell without a report is no control. **`withoutSampling(run)`** returns a copy of
+  the run whose `errors` omit every entry of `phase` `sampling`, the run itself unchanged: the landscape profile's diagnostic
+  sampling runs after the timed interval and records up to three failures of its own sampled ratings (`tools/bench/runner.js:467-474`,
+  `:852-858`), so its `sampling/rating-incomplete` entries say nothing about the request, and the frozen-round arms never run it
+  (`verdicts.mjs` and `runStatus` are unchanged); any other error entry, a `batch` one for example, still makes a run an error. On
+  today's reports the controls are the ten Nightmare cells `3x29`, `10x10`, `18x18`, `18x20`, `20x20`, `20x21`, `32x15`, `22x22`,
+  `24x24` and `26x26` (the five failing cells have 11 to 17 such runs).
+- **`conditionalActivated(runs)`** takes the published run records of one conditional board's S2-5 pilot (`fr-base`, reps 0 to 4;
+  none is `[]`) and returns `{ activated, valid, reachingTen }`: `valid` counts the runs whose `runStatus` is `valid`,
+  `reachingTen` those of them that reach ten, `activated` is `reachingTen >= 3`; a missing or invalid run is never a completion.
+- **Readers.** T11c compiles the plans from the groups (and takes `controls` from `controlsFrom`), T11e activates the initial
+  collection from them (and reads `conditionalActivated`) and T11f resolves the comparators and writes the verdict inputs from the
+  expansion; T11b reads the same reports for `refS` through `withoutSampling`; T11b, T11g and the other tasks of the group extend
+  this section.
+- **Self-test** (`--items`, unlocked, synthetic: the data file and copies of it, T09a's `newRunRecord` rows): `matrix: a screen class
+  with a headline and a control`, `every validated cell has its fallback`, `the comparator keeps the frozen prior`, `a later prior
+  change on 14x14 and 24x24`, `dedupe`, `controls from the reports` (with a cell whose runs carry sampling entries only, a cell
+  whose runs also carry a `batch` error, and `withoutSampling` itself), `row limits by group`, `disjoint state paths`,
+  `collections`, `conditional activation`, `counts` (worked by hand), `the data file` (the recipe, the reps against the fitting
+  seeds, the catalogue, the variants) and `the inputs and the data are checked`.
