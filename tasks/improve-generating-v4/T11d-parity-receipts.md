@@ -7,7 +7,7 @@
 | Depends on | T11c (the plans name these commands; T11h runs between the two, serial order); T04c (`expandManifest`, `parityVerdict`, `replayVerdict`), T04d (`stepEvidence`, `proofEnvelope`), T04f (`accept`, `acceptedBinding`, `checkAccepted`) |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (claude-sonnet-5.5) |
-| Estimate | developer 3 h, machine 0 min (synthetic step folders; nothing locked runs here) |
+| Estimate | developer 3.5 h (3 h, then a fix round of 0.5 h after its report: ruling of 2026-11-17), machine 0 min (synthetic step folders; nothing locked runs here) |
 
 ## Goal
 
@@ -72,7 +72,11 @@ bindings of both kinds, so that later gates check them without trusting the rece
    [--require-pass] --label frozen --source-label <SL>`**: a missing option, another kind, or `p0-identity` without
    `--baseline`: stderr and exit 1, nothing written. Else:
    - `ev = stepEvidence(T, S, M, isV4)`; its problems make the receipt `incomplete` with them as reasons.
-   - Blocks: `parity = parityVerdict(ev.rows)`; kind `parity`: `replay = replayVerdict(ev.rows)`; kind `p0-identity`:
+   - Blocks: `parity = parityVerdict(ev.rows.filter((row) => row.mode !== null))` (the selection rows: a P-1 manifest also
+     holds its generation item and its replays, which carry no mode and no route and which `parityVerdict` would put
+     in a failing group of unknown routes; stage 1's parity step held selection rows only; ruling of 2026-11-17,
+     T11d's QUESTION 1); kind `parity`: `replay = replayVerdict(ev.rows)` (it reads the generation and replay rows
+     only); kind `p0-identity`:
      `binding = JSON.parse(readRepoFile(<baseline>))` and `bcheck = checkAccepted(binding, { current: [] })`; when
      `bcheck` is not `pass`, `baseline` is `{ verdict: 'incomplete', reasons: ['baseline binding: ' + <its reasons>],
      rows: [] }`; else `base = stepEvidence('V4-T04', 'parity', 'tools/ig-proto/plans/V4-T04.parity.json', isV4, {
@@ -94,9 +98,19 @@ bindings of both kinds, so that later gates check them without trusting the rece
      then `'<block>: <reason>'` for each reason of a block that is not `pass`; `[]` on `pass`: `proofCheck` reports
      them for a failing receipt, T04d> } })` (repository-relative
      paths, `sha256File`), and prints `receipt: <kind> <verdict> -> <path>`.
+   - `--arm` must name one of the observed variants, else the receipt is `incomplete` with the reason `arm <A> is not
+     among the observed variants (<ids>)` (ruling of 2026-11-17, T11d's QUESTION 2).
+   - A passing receipt is written once (ruling of 2026-11-17, T11d's QUESTION 3; check-list §3.3, as T09e's decided
+     records and T04f's bindings): before it builds anything or captures an input, the command reads the receipt path
+     `evidence/frozen/<T>/<S>.receipt.json`; an existing file that does not parse as a JSON object with a string
+     `verdict` is refused (`v4-check: an unreadable receipt exists: <path>`, exit 1) and one whose `verdict` is `pass`
+     is refused (`v4-check: receipt <path> exists (a passing receipt is never rewritten)`, exit 1), `<path>`
+     repository-relative; a refusal writes nothing, so the receipt, its captured inputs and an accepted binding that
+     hashes them stay as they were. A receipt of another verdict is replaced (case 4); a resumed plan names no receipt
+     step that has passed (check-list §3.2).
    - Exit: 0 when written; with `--require-pass`, 2 when the verdict is not `pass` (the receipt is written first).
 4. **`accept`** gains the kinds `parity` and `p0-identity` (T04f's dispatch on the receipt's `kind`; `--step` and
-   `--manifest` required for them, else exit 1): `stepExpectation(T, S, M)` returns `{ harnessHash, arms, params,
+   `--manifest` required for them, else exit 1): `stepExpectation(T, S, M, kind)` returns `{ harnessHash, arms, params,
    coverage, fields }` from `stepEvidence(T, S, M, isV4, { historical: true })` (RV5-03: no current-tree comparison;
    every manifest, log and source check stays; its problems: `accept: <problem>`, exit 1): `harnessHash` the
    stored `identity.harnessHash`; `arms` and `params` from the captured copies of step 1 by T04f's rule (each copy's
@@ -105,7 +119,8 @@ bindings of both kinds, so that later gates check them without trusting the rece
    blocks: { parity: 'pass', baseline: 'pass' } }` for `p0-identity`. Another kind: `v4-check: accept knows the kinds
    stage1, parity, p0-identity` (exit 1; N-V4-13 adds `live-deadline`).
 5. **Self-test** cases appended to `--items` (Tests table); **README.md**: T04c's section gains the two receipt
-   kinds, the semantic join, `--require-pass` and the bindings of both kinds.
+   kinds, the semantic join, `--require-pass`, the write-once rule of a passing receipt (step 3) and the bindings of
+   both kinds.
 
 ## Tests
 
@@ -123,9 +138,10 @@ ensureTree('base')).treeId`, `harnessHash: harnessInfo().harnessHash`, and an `i
 | `receipt: storage ids do not matter` | the same rows, every digest equal, the baseline item ids `parity:...` and the new ids `p0-v4:...` | `pass`; four rows with `equal: true` |
 | `receipt: a missing baseline fails closed` | (a) one new absent row without a baseline row; (b) a new row whose `result.digest` is `undefined`; (c) `params` with `baseline: null` for `v4` | (a) `fail`, `no baseline for <key>`; (b) `incomplete`, `no result digest for <key> (now)`; (c) `fail`, `no baseline parameters for v4` |
 | `receipt: a required pass stops the plan` | `main(['receipt', '--kind', 'parity', '--task', 'V4-T11d-selftest', '--step', 'p', '--manifest', <its manifest>, '--arm', 'v4', '--label', 'frozen', '--source-label', 'x', '--require-pass'])` on a step whose parity block fails; then the same without `--require-pass` | returns 2 and the receipt exists with `verdict: 'fail'`; then returns 0 |
-| `receipt: each kind has its blocks` | kind `parity` on rows whose parity passes and whose generation case has no matched candidate replay; kind `p0-identity` on rows whose parity and baseline pass and that have no replay item | `parity`: `incomplete` (`no matched candidate replay ...`); `p0-identity`: `pass`, the envelope root's `blocks` with `parity` and `baseline` only |
+| `receipt: each kind has its blocks` | kind `parity` on the rows of a P-1 manifest (selection, generation and replay items) whose selection rows pass parity and whose generation case has no matched candidate replay; kind `p0-identity` on rows whose parity and baseline pass and that have no replay item | `parity`: `incomplete` (`no matched candidate replay ...`); `p0-identity`: `pass`, the envelope root's `blocks` with `parity` and `baseline` only |
 | `receipt: the stage-1 files keep their hashes` | a `p0-identity` receipt over a synthetic baseline step and binding | `sha256File` of the baseline `items.jsonl`, `state.json` and receipt are equal before and after |
-| `accept: a parity binding from the stored identity` | `accept` of a passing synthetic `parity` receipt; then of a receipt whose `coverage.expected` and `observed` lack one manifest id | the binding's `expected.coverage.expected` is the manifest's ids and its `fields` the two passing blocks; the second is refused with `accept: incomplete (coverage gap <id>)` (exit 1) |
+| `accept: a parity binding from the stored identity` | `accept` of a passing synthetic `parity` receipt over the rows of a P-1 manifest (selection, generation and replay items); then of a receipt whose `coverage.expected` and `observed` lack one manifest id | the binding's `expected.coverage.expected` is the manifest's ids and its `fields` the two passing blocks; the second is refused with `accept: incomplete (coverage gap <id>)` (exit 1) |
+| `receipt: a passing receipt is written once` | (a) `main(['receipt', '--kind', 'parity', ...])` on a synthetic step whose blocks pass, returning 0; the text `marker` written over `inputs/<step>/harness.json`; the same command again; (b) the receipt file's text replaced by `{`, the same command again (a `fail` receipt is replaced: case 4) | (a) returns 1, stderr `v4-check: receipt <path> exists (a passing receipt is never rewritten)`, the receipt's `sha256File` equal before and after and `harness.json` still `marker`; (b) returns 1, stderr `v4-check: an unreadable receipt exists: <path>`, the file still `{` |
 
 ## Documentation
 
@@ -162,6 +178,7 @@ ensureTree('base')).treeId`, `harnessHash: harnessInfo().harnessHash`, and an `i
 | T11d-T01 | Each receipt kind requires exactly its blocks | case 5 | self-test output |
 | T11d-T02 | Bindings of both kinds come from the stored identity and the manifest | case 7 | self-test output |
 | T11d-T03 | Nothing else changed; formats | guards; `npm run check` | command output |
+| T11d-T04 | A passing receipt is written once; an unreadable one is refused; a refusal writes nothing | case 8 | self-test output |
 
 ## Checklist (the developer confirms every item in the final report)
 

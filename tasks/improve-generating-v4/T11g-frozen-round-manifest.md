@@ -93,6 +93,8 @@ price it. It dry-runs the plans and stops so that the orchestrator can put the p
    machine, under the lock helper, of at most 900 s; timed requests sequential at four workers; a quiet period of 15 s
    under the owner's idle declaration, else 45 s; Sudoku's difficulty-v3 keeps priority": the owner's lock rules of
    2026-11-17 21:33, check-list §3.2), the stopping rule of plan §5.1 verbatim,
+   the resume rule of check-list §3.2 ("a stopped plan resumes only after a ruling, with `-Only` from the stopped step
+   on; a done step, a passing receipt and an existing binding are never run again"; ruling of 2026-11-17 on T11d),
    the verdict recipe (plan §5.2, `verdicts.mjs`, resample seed 20261116, 10,000 resamples), completion apart from the
    deadline (D-V4-16), the work rule of IG-P-Q37 (judged on the intervals, reported with the completed-unit ratio; no
    timed run added) and P5's false stops counted against the uncapped comparator over the declared pairs (P-OD12,
