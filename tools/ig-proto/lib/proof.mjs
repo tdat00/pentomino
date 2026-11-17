@@ -6,7 +6,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { isDeepStrictEqual } from 'node:util';
 
-import { abs } from './paths.mjs';
+import { abs, FROZEN_COMMIT, FROZEN_DIGEST } from './paths.mjs';
 import { sha256Text } from './records.mjs';
 
 /**
@@ -168,6 +168,67 @@ export function proofCheck(receipt, expected, readFile = readRepoFile) {
   const wrong = Object.entries(expected.fields ?? {}).filter(([name, value]) => !isDeepStrictEqual(receipt[name], value));
   if (wrong.length > 0) {
     return incomplete(...wrong.map(([name]) => `${name} is ${JSON.stringify(receipt[name])}`));
+  }
+  return { status: 'pass', reasons: [] };
+}
+
+export const ACCEPTED_FORMAT = 'ig-v4-accepted';
+
+/**
+ * The accepted binding of a passing receipt (RV3-06): built from an expectation declared apart from the receipt.
+ * @param {{ receiptPath: string, harnessHash: string, arms: { id: string, treeId: string, paramsHash: string }[],
+ *   params: Record<string, unknown>, coverage: string[], fields: Record<string, unknown>, by: string }} o
+ * @param {(path: string) => string | null} [readFile]
+ */
+export function acceptedBinding(o, readFile = readRepoFile) {
+  const text = readFile(o.receiptPath);
+  if (text === null) {
+    throw new Error(`accept: missing receipt ${o.receiptPath}`);
+  }
+  const receipt = JSON.parse(text);
+  const expected = {
+    kind: receipt.kind, source: { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST },
+    harnessHash: o.harnessHash, arms: o.arms, coverage: { expected: o.coverage }, fields: o.fields,
+  };
+  const check = proofCheck(receipt, expected, readFile);
+  if (check.status !== 'pass') {
+    throw new Error(`accept: ${check.status} (${check.reasons.join('; ')})`);
+  }
+  return {
+    format: ACCEPTED_FORMAT, version: 1, receipt: { path: o.receiptPath, sha256: sha256Text(text) }, expected,
+    params: o.params, acceptedAt: new Date().toISOString(), acceptedBy: o.by,
+  };
+}
+
+/**
+ * Checks a prerequisite through its accepted binding; `current` lists today's identities of the arms to compare.
+ * @param {any} binding
+ * @param {{ readFile?: (path: string) => string | null, current: { id: string, treeId: string, paramsHash: string }[] }} o
+ * @returns {{ status: 'pass' | 'fail' | 'incomplete', reasons: string[] }}
+ */
+export function checkAccepted(binding, { readFile = readRepoFile, current }) {
+  if (binding?.format !== ACCEPTED_FORMAT || binding.version !== 1) {
+    return { status: 'incomplete', reasons: ['not an accepted binding'] };
+  }
+  const text = readFile(binding.receipt.path);
+  if (text === null) {
+    return { status: 'incomplete', reasons: [`missing receipt ${binding.receipt.path}`] };
+  }
+  if (sha256Text(text) !== binding.receipt.sha256) {
+    return { status: 'incomplete', reasons: [`receipt changed ${binding.receipt.path}`] };
+  }
+  const check = proofCheck(JSON.parse(text), binding.expected, readFile);
+  if (check.status !== 'pass') {
+    return check;
+  }
+  for (const c of current) {
+    const arm = binding.expected.arms.find((/** @type {{ id: string }} */ a) => a.id === c.id);
+    if (arm === undefined) {
+      return { status: 'incomplete', reasons: [`unbound arm ${c.id}`] };
+    }
+    if (arm.treeId !== c.treeId || arm.paramsHash !== c.paramsHash) {
+      return { status: 'incomplete', reasons: [`stale arm ${c.id}`] };
+    }
   }
   return { status: 'pass', reasons: [] };
 }

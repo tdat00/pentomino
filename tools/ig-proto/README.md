@@ -60,8 +60,8 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `lib/items.mjs` | the runner of bounded, identity-checked measurement items and the item-log line helpers (V4-T04a; see "Bounded measurement items") |
 | `lib/ledger.mjs` | the work ledger of an item from its journal lines, and `pairPrimitives` (V4-T04b; see "Stage-1 item kinds"); pure |
 | `lib/packs.mjs` | the pack file of a generation item: `preparePackPath` and `writePackFile` (V4-T04b) |
-| `lib/proof.mjs` | the typed proof receipt of the frozen round: `proofEnvelope`, `proofCheck`, `LIVE_DEADLINE_FIELDS` and `STAGE1_COVERAGE_EXTRA` (V4-T04d; see "Stage 1 checks (task pack v4)"); pure apart from the evidence reads of `readRepoFile` |
-| `v4-check.mjs`, `plans/V4-T04.parity.json`, `plans/V4-T04.replay.json`, `plans/V4-T04.json` | the stage-1 checks (V4-T04c, V4-T04d): `run` expands an item manifest and runs its items; the parity and replay verdicts; `summary` writes the stage-1 receipt; `pm4-gate` is the early PM4 check; the plan of the stage-1 runs; see "Stage 1 checks (task pack v4)" |
+| `lib/proof.mjs` | the typed proof receipt of the frozen round: `proofEnvelope`, `proofCheck`, `LIVE_DEADLINE_FIELDS` and `STAGE1_COVERAGE_EXTRA` (V4-T04d), and its accepted binding: `acceptedBinding`, `checkAccepted` and `ACCEPTED_FORMAT` (V4-T04f; see "Stage 1 checks (task pack v4)"); pure apart from the evidence reads of `readRepoFile` |
+| `v4-check.mjs`, `plans/V4-T04.parity.json`, `plans/V4-T04.replay.json`, `plans/V4-T04.json` | the stage-1 checks (V4-T04c, V4-T04d, V4-T04f): `run` expands an item manifest and runs its items; the parity and replay verdicts; `summary` writes the stage-1 receipt; `pm4-gate` is the early PM4 check; `evidence-check`, `accept` and `check-binding` are the accepted binding's commands; the plan of the stage-1 runs; see "Stage 1 checks (task pack v4)" |
 | `variants/<id>.json` | variant manifests; `variants/files/<name>/...` copy-only files |
 
 ## Trees (variants)
@@ -802,11 +802,11 @@ described in "Stage-1 item kinds" below.
   | `v4-replay` | `e + 120 <= H - 15` | at `H - 15`, `censored` | 2 |
 
 - **Self-test.** `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04a`
-  runs twenty-six cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay),
+  runs thirty-seven cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay),
   one that computes the run identity (`itemIdentity`) of the frozen trees and runs nothing, V4-T04b's two (the pack
   files, on the file system only, and the item ledger, on synthetic journal lines; see below), V4-T04c's nine (the
-  `checks:` cases, on synthetic rows; see "Stage 1 checks") and V4-T04d's eight (the `proof:` cases; see "Stage 1
-  checks"). Each running case uses
+  `checks:` cases, on synthetic rows; see "Stage 1 checks"), V4-T04d's eight (the `proof:` cases) and V4-T04f's eleven (the
+  `accept:` cases; see "The accepted binding (V4-T04f)"). Each running case uses
   the scratch task `items-<n>` of the label `selftest`. The test kinds exist only with `testKinds`: `test-ok` returns
   `{ outcome: 'ok', echo }`, `test-throw` throws, `test-hold` blocks the worker for good and is a call kind of the lanes
   (the existing rule admits and cuts it), and `test-item` blocks the same way but is not a call kind, so only the item
@@ -884,9 +884,10 @@ T04e; the self-test runs none of them.
 
 ## Stage 1 checks (task pack v4)
 
-`v4-check.mjs` (V4-T04c and V4-T04d; reviews R06, R2-14, RV3-02, R4-03 and RV5-01; D-V4-14 and D-V4-18) holds the tool that
+`v4-check.mjs` (V4-T04c, V4-T04d and V4-T04f; reviews R06, R2-14, RV3-02, R4-03 and RV5-01; D-V4-14 and D-V4-18) holds the tool that
 runs the stage-1 item manifests, the two verdicts that judge them and the stage-1 receipt. Its subcommands are `run`
-(T04c), `summary` and `pm4-gate` (T04d; see "The stage-1 receipt"); T04f adds `accept`. The verdicts are pure exports.
+(T04c), `summary` and `pm4-gate` (T04d; see "The stage-1 receipt") and `evidence-check`, `accept` and `check-binding` (T04f;
+see "The accepted binding (V4-T04f)"). The verdicts are pure exports.
 
 - **Manifests.** `plans/V4-T04.parity.json` (step `parity`, 23 `v4-select` items) and `plans/V4-T04.replay.json` (step
   `replay`, 9 items) have the format `{ "format": "ig-proto-items", "version": 1, "task", "step", "rows": [...] }`.
@@ -973,12 +974,13 @@ RV3-06 and R4-03; D-V4-18). `lib/proof.mjs` holds the format and the check; `v4-
   evidence file that `readFile` does not find or whose text hash differs: `incomplete` (`evidence changed <path>`); a
   field of `expected.fields` that is not deep-equal to the receipt's: `incomplete` (`<field> is <value>`); else `pass`.
   A failure of substance (`fail`) is kept apart from missing or stale evidence (`incomplete`).
-- **Stored identities.** `stepEvidence(task, step, manifestPath, isV4)` reads `state.json` and `items.jsonl` of
+- **Stored identities.** `stepEvidence(task, step, manifestPath, isV4, { historical })` reads `state.json` and `items.jsonl` of
   `tests/artifacts/ig-proto/frozen/<task>/<step>/` and returns `{ identity, rows, problems }`. The identity is the one
   stored in the state, never a fresh one, and an observation is never relabelled. Problems: no state; a `manifestHash`
   that differs from the declared manifest's; a log line whose `identityHash` differs from the state's; another
   `frozenCommit` or `sourceDigest` than the frozen ones; a stored tree id that is not the current tree's (`stale tree
-  <variant> (<stored> vs <current>)`). `rows` are the joined rows of the two verdicts, one per item of each manifest
+  <variant> (<stored> vs <current>)`; with `historical: true` (T04f) the stored tree ids are not compared with today's
+  trees, every other check stays). `rows` are the joined rows of the two verdicts, one per item of each manifest
   row, in order.
 - **Order of the plans** (T04e). `plans/IGP-02.json` under `-Label frozen` first (its records go to
   `evidence/frozen/IGP-02/`, the certificate re-proved on R14's cases), then a passing `pm4-gate`, then
@@ -1023,7 +1025,8 @@ RV3-06 and R4-03; D-V4-18). `lib/proof.mjs` holds the format and the check; `v4-
   `completed`, an identity seed has its `mp12b1~base` and `base~log` pairs, the `pm4` block is not incomplete or a
   self-test state is `done`; its `evidence` is `stage1Inputs(task, variants)`: the two manifests, the states and logs of the
   two steps, the identity, PM4 and self-test records and the captured copies, never a tree folder, a variant file or a
-  harness file (a path that does not exist is left out). T04f accepts the receipt into an immutable binding.
+  harness file (a path that does not exist is left out). T04f accepts the receipt into an immutable binding (see "The
+  accepted binding (V4-T04f)").
 - **`pm4-gate`.** `node tools\ig-proto\v4-check.mjs pm4-gate --label frozen --source-label <SL>` is the early, read-only
   PM4 check that T04e runs between its two plans (RV5-01). It reads only the two IGP-02 records, through
   `pm4GateEvidence(instrTreeId, readFile)`, takes the expected `instr` tree id from `planTree('instr')` on the frozen
@@ -1034,3 +1037,64 @@ RV3-06 and R4-03; D-V4-18). `lib/proof.mjs` holds the format and the check; `v4-
   the order of `proofCheck`'s checks), the stored identities (a synthetic step folder of the scratch task
   `V4-T04d-selftest`, removed afterwards), the PM4 block, the early PM4 gate, the explicit input index, the stage-1 line,
   the identity block and the assembly of the stage-1 receipt (`judgeStage1`, on synthetic data).
+
+### The accepted binding (V4-T04f)
+
+A later consumer trusts a receipt only through its accepted binding (reviews RV3-06 and R4-03; D-V4-18), never through
+the receipt's own coverage, a tree folder, a variant file or today's harness. `lib/proof.mjs` holds the format and the
+two functions; `v4-check.mjs` writes and checks the stage-1 binding.
+
+- **The format.** `{ format: 'ig-v4-accepted', version: 1, receipt: { path, sha256 }, expected: { kind, source: {
+  frozenCommit, sourceDigest }, harnessHash, arms: [{ id, treeId, paramsHash }], coverage: { expected }, fields },
+  params: { <variant>: <the captured params> }, acceptedAt, acceptedBy }`. `receipt.sha256` is the text hash with LF line
+  ends (`sha256Text`) of the receipt file; `expected` is the `proofCheck` expectation, declared apart from the receipt;
+  `harnessHash` is the producer of the observations, kept after unrelated harness work.
+- **`acceptedBinding(o, readFile = readRepoFile)`** reads the receipt at `o.receiptPath`, builds the expectation from `o`
+  (`harnessHash`, `arms`, `coverage` as a list of ids, `fields`) and the frozen source, runs `proofCheck` and throws
+  `accept: <status> (<reasons>)` unless it passes; a missing receipt throws `accept: missing receipt <path>`. It
+  returns the binding; it writes nothing.
+- **`checkAccepted(binding, { readFile = readRepoFile, current })`** returns `{ status, reasons }`; every refusal is
+  `incomplete`. The order: the format and version (`not an accepted binding`); the receipt exists (`missing receipt
+  <path>`); the receipt's hash (`receipt changed <path>`); `proofCheck` of the receipt against the stored expectation,
+  which hashes every evidence file (`evidence changed <path>`, `producer changed`, a coverage gap, ...); then the arms
+  of `current` (today's `{ id, treeId, paramsHash }`, only the arms a consumer names): `unbound arm <id>` when the
+  binding does not name it, `stale arm <id>` when its tree or parameters differ. Without `current` no tree is read.
+- **`stage1Expectation(task)`** (`accept` uses it) builds the stage-1 expectation from the stored identities of the two
+  steps (`stepEvidence` with `historical: true`; a problem is `accept: <step>: <problem>`; two producers:
+  `accept: two producers`), the captured tree copies `evidence/frozen/<task>/inputs/<variant>.ig-tree.json` (T04d; one
+  arm per variant of the identities, in sorted order, with the stored tree id and the hash of the copy's `params`; no
+  copy: `accept: no captured tree metadata for <variant>`; a copy whose tree id differs from the stored one: `accept:
+  captured tree <variant> differs from the observation (<stored> vs <copy>)`; two stored ids: `accept: two trees for
+  <variant>`) and the two manifests (the coverage is their item ids, then `STAGE1_COVERAGE_EXTRA`), with the field `line`
+  `Stage 1: holds.`.
+- **Commands** (unlocked; `--label frozen` only, any other label: `v4-check: --label frozen only`, exit 1; paths are
+  relative to the repository root):
+  - `evidence-check --receipt <path> --label frozen --source-label <SL>` hashes each evidence file of the receipt:
+    `evidence: unchanged (<n> files)`, exit 0, or `evidence: changed <paths joined by ', '>`, exit 2 (an absent file is
+    changed).
+  - `accept --task <T> --receipt <path> --binding <path> --by <text> --label frozen --source-label <SL>` writes the
+    binding of a receipt of the kind `stage1` and prints `accepted: <receipt> sha256 <hash> -> <binding>` (exit 0).
+    **A binding is written once and never rewritten**: an existing `--binding` file exits 1 (`v4-check: binding <path>
+    exists (an accepted binding is never rewritten)`); another kind exits 1 (`v4-check: accept knows the kinds stage1`);
+    a receipt that does not bind exits 1 with the reason of `stage1Expectation` or `acceptedBinding`.
+  - `check-binding --binding <path> [--current <ids>] --label frozen --source-label <SL>` prints `binding: pass` (exit 0)
+    or `binding: <status> (<reasons joined by '; '>)` (exit 2); `--current` builds each comma-separated variant's tree
+    (`ensureTree`) and compares its `treeId` and the hash of its `params`; a missing binding is `incomplete` (`missing
+    binding <path>`).
+- **The stage-1 binding** is `docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json`, accepted from
+  `stage1.json` (not from `stage1-a1.json`, the archived first observation). The receipt and its inputs are never
+  edited: a correction is a new file with a suffix.
+- **Historical namespaces** (check-list §3.1, D-V4-18). The task folders `IGP-02`, `V4-T04`, `V4-T04v4`, `V4-T04f` and
+  `V4-T04i` (stage 1) and `V4-S2P` (the parity passes and P-0 of `V4-S2`) are records that a binding hashes: no later run,
+  verification or self-test uses their ids. `self-test.mjs` refuses the four stage-1 self-test ids under `--label frozen`
+  once their `self-test/state.json` exists (`HISTORICAL_SELFTEST`, `reservedTaskProblem(label, task, stateExists,
+  historical = HISTORICAL_SELFTEST)`: `self-test: <task> is a historical stage-1 record; use another --task`, exit 3,
+  nothing written); `main(argv, { historical })` takes the reserved ids as an option so that a case proves the wiring on a
+  scratch id, never on a real stage-1 id; a later task verifies
+  under its own id (for example `V4-T04f-verify`). `summary --task V4-T04` and the `V4-T04` plans are never run again.
+- **Self-test.** Eleven `accept:` cases appended to `--items` (temporary files under `tests/artifacts/ig-proto/selftest/accept/`):
+  a passing receipt is bound; the receipt's own coverage does not define the requirement; another producer is refused;
+  a binding survives later work (no tree folder, variant file or harness file is read); changes and stale arms; the
+  expectation comes from the captured inputs (and `historical`); a binding is never rewritten; the historical namespaces
+  are reserved; `evidence-check`; `check-binding`; `main` refuses a reserved id before any write (the scratch id
+  `V4-reserved-selftest`, with a control run that does write).

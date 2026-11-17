@@ -267,13 +267,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 11:19:18 +07:00 (dispatch, base `2f7a0ed`) to 11:34:43 +07:00 (acceptance): 15 min 25 s; the developer's own times 11:19:42-11:29:02 and, after the ruling, 11:33:14-11:34:04 |
+| Waiting for rulings | about 4 min (11:29:02 report to 11:33 relay of the ruling) |
+| Agent id, model | `a1e7ba0f-748b-4641-afd3-460dec485ded`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 68 calls; 11,210,095 input, 77,856 output, 10,983,109 cache-read |
+| AI credits | 244.43 |
+| Questions and rulings | No `QUESTION:`. The developer's six deviations, four named items and five gaps were relayed to the pack author (11:33): all accepted; one fix round: `reservedTaskProblem` and `main` take an injectable historical list and case 37 proves `main` refuses a reserved id before any write; `stage1Expectation`'s `V4-T04` ids are final; pack amendment `8c5a769` |
+| Fix rounds | 1 (the reserved-id test) |
+| Gates re-run by the orchestrator | `--items`: 37 passed, 0 failed; `--frozen`: 10 passed; `evidence-check` on `stage1.json`: `evidence: unchanged (20 files)`; `check-binding` on `accepted-binding.json`: `binding: pass` (the binding file unchanged by the verification); `check-edits`: 18 `ok`; firewall `check` (V4-T04f-verify): 289 production files unchanged; the scratch id `V4-reserved-selftest` absent afterwards; `npm run check`: OK |
+| Commit | this task's commit, `improve-generating T04f: The accepted stage-1 binding` |
+| Issues and named items | None new; `summary --task V4-T04` and the `V4-T04` plan must never run again (the README states it) |

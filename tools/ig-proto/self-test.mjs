@@ -13,6 +13,8 @@
 // V4-T02c's four (provenance versions per arm, the reader by the record's own algo, old and new records load and save,
 // version and table refusal before any work) and V4-T02d's three (every primitive is announced, no real rating
 // exceeds its bound, the journal changes no result).
+// Under `--label frozen` the four stage-1 task ids (`V4-T04`, `V4-T04v4`, `V4-T04f`, `V4-T04i`) are historical records that
+// the stage-1 receipt hashes (V4-T04f, D-V4-18): once their state exists a run with such a `--task` exits 3, writing nothing.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join, sep } from 'node:path';
@@ -30,14 +32,14 @@ import { createLanes } from './lib/lanes.mjs';
 import { itemLedger, pairPrimitives } from './lib/ledger.mjs';
 import { preparePackPath, writePackFile } from './lib/packs.mjs';
 import { artifactDir, elapsedS, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, parseArgs, rel, ROOT, SOURCE_KIND, sourceRoot } from './lib/paths.mjs';
-import { LIVE_DEADLINE_FIELDS, proofCheck, proofEnvelope, STAGE1_COVERAGE_EXTRA } from './lib/proof.mjs';
-import { harnessInfo, sha256, sha256File, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
+import { ACCEPTED_FORMAT, acceptedBinding, checkAccepted, LIVE_DEADLINE_FIELDS, proofCheck, proofEnvelope, readRepoFile, STAGE1_COVERAGE_EXTRA } from './lib/proof.mjs';
+import { harnessInfo, sha256, sha256File, sha256Text, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
 import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
 import { pairResult } from './identity.mjs';
 import { buildInventory, readFamilies } from './pm1-inventory.mjs';
 import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
-import { expandManifest, IDENTITY_SEEDS, identityVerdict, judgeStage1, main as checkMain, parityVerdict, pm4GateEvidence, pm4Verdict, replayVerdict, stage1Inputs, stage1Verdict, stepEvidence } from './v4-check.mjs';
+import { expandManifest, IDENTITY_SEEDS, identityVerdict, judgeStage1, main as checkMain, parityVerdict, pm4GateEvidence, pm4Verdict, replayVerdict, stage1Expectation, stage1Inputs, stage1Verdict, stepEvidence } from './v4-check.mjs';
 
 const SELFTEST_DIR = join(ROOT, 'tests', 'artifacts', 'ig-proto', 'selftest');
 const GIT_CALL = new RegExp('(?:execFileSync|execSync|spawnSync|spawn|execFile|exec|fork)\\(\\s*[\'"`]git\\b|^\\s*&?\\s*git(?:\\.exe)?\\s+(?:rev-parse|status|log|diff|show|add|commit|push|ls-files)\\b', 'm');
@@ -771,6 +773,65 @@ function identityRecord(edit = () => {}) {
   };
   edit(record);
   return record;
+}
+
+/**
+ * The world of the `accept:` cases (V4-T04f): a stage-1 receipt `R` over one temporary input file, in the scratch folder
+ * `artifactDir('selftest', 'accept')` (emptied), and the options `O` of `acceptedBinding` that declare what it must hold.
+ * @returns {{ dir: string, input: string, receiptFile: string, options: Parameters<typeof acceptedBinding>[0],
+ *   write: (over?: { kind?: string, observed?: string[] }) => void }}
+ */
+function acceptWorld() {
+  const dir = fresh(artifactDir('selftest', 'accept'));
+  const input = join(dir, 'input.json');
+  const receiptFile = join(dir, 'receipt.json');
+  const arms = [{ id: 'v4', treeId: 't1', paramsHash: 'p1' }];
+  writeJson(input, { input: 1 });
+  const write = (/** @type {{ kind?: string, observed?: string[] }} */ { kind = 'stage1', observed = ['a', 'b'] } = {}) => writeJson(receiptFile, proofEnvelope({
+    kind,
+    verdict: 'pass',
+    source: { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST },
+    harnessHash: 'h',
+    arms,
+    coverage: { expected: observed, observed, missing: [], censored: [] },
+    evidence: [{ path: rel(input), sha256: sha256File(input) }],
+    fields: { line: 'Stage 1: holds.' },
+  }));
+  write();
+  return {
+    dir, input, receiptFile, write,
+    options: { receiptPath: rel(receiptFile), harnessHash: 'h', arms, params: { v4: { W: 1 } }, coverage: ['a', 'b'], fields: { line: 'Stage 1: holds.' }, by: 'selftest' },
+  };
+}
+
+/** @param {() => unknown} fn @returns {string} The message `fn` throws; empty when it does not throw. */
+function thrownBy(fn) {
+  try {
+    fn();
+  } catch (e) {
+    return e instanceof Error ? e.message : String(e);
+  }
+  return '';
+}
+
+/** @param {string[]} args @returns {Promise<{ code: number, out: string, err: string }>} `v4-check`'s `main` with its output captured. */
+async function runCheck(args) {
+  const { stdout, stderr } = process;
+  const writes = [stdout.write, stderr.write];
+  const text = { out: '', err: '' };
+  stdout.write = /** @type {any} */ ((/** @type {unknown} */ chunk) => {
+    text.out += String(chunk);
+    return true;
+  });
+  stderr.write = /** @type {any} */ ((/** @type {unknown} */ chunk) => {
+    text.err += String(chunk);
+    return true;
+  });
+  try {
+    return { code: await checkMain(args), ...text };
+  } finally {
+    [stdout.write, stderr.write] = writes;
+  }
 }
 
 /** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
@@ -1612,6 +1673,219 @@ const itemCases = [
       assert(producer.receipt.verdict === 'incomplete' && hasReason(producer.blocks.inputs.reasons, 'producer changed'), `another producer: ${producer.line}`);
       const noMp12b1 = judgeStage1({ ...world(), identityRecord: identityRecord((r) => { delete r.seeds[0].mp12b1; r.summary.withoutMp12b1 = 1; }) });
       assert(noMp12b1.receipt.verdict === 'incomplete' && hasReason(noMp12b1.blocks.identity.reasons, 'withoutMp12b1 1'), `a seed without an MP12b1 run: ${noMp12b1.line}`);
+    },
+  },
+  {
+    name: 'accept: a passing receipt is bound',
+    run() {
+      const w = acceptWorld();
+      const binding = acceptedBinding(w.options);
+      same([binding.format, binding.version, binding.receipt.path, binding.acceptedBy], [ACCEPTED_FORMAT, 1, rel(w.receiptFile), 'selftest'], 'the binding\'s header');
+      assert(binding.receipt.sha256 === sha256Text(readFileSync(w.receiptFile, 'utf8')), 'the binding does not hold the hash of the receipt\'s text');
+      same(binding.expected.coverage.expected, ['a', 'b'], 'the binding\'s declared coverage');
+      same([binding.expected.harnessHash, binding.expected.arms, binding.expected.source], [w.options.harnessHash, w.options.arms, { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST }], 'the binding\'s producer, arms and source');
+      assert(binding.params.v4.W === 1 && !Number.isNaN(Date.parse(binding.acceptedAt)), 'the captured parameters or the acceptance time');
+      same(checkAccepted(binding, { current: [] }), { status: 'pass', reasons: [] }, 'the binding does not pass its own check');
+      same(checkAccepted(binding, { current: [{ id: 'v4', treeId: 't1', paramsHash: 'p1' }] }), { status: 'pass', reasons: [] }, 'a current arm equal to the bound one');
+    },
+  },
+  {
+    name: 'accept: the receipt\'s own coverage does not define the requirement',
+    run() {
+      const w = acceptWorld();
+      w.write({ observed: ['a'] });
+      assert(thrownBy(() => acceptedBinding(w.options)) === 'accept: incomplete (coverage gap b)', `a receipt that declares less: ${thrownBy(() => acceptedBinding(w.options))}`);
+      assert(thrownBy(() => acceptedBinding({ ...w.options, receiptPath: rel(join(w.dir, 'absent.json')) })).startsWith('accept: missing receipt '), 'a receipt that does not exist');
+    },
+  },
+  {
+    name: 'accept: another producer is refused',
+    run() {
+      const w = acceptWorld();
+      const message = thrownBy(() => acceptedBinding({ ...w.options, harnessHash: 'h2' }));
+      assert(message === 'accept: incomplete (producer changed)', `another producer: ${message}`);
+    },
+  },
+  {
+    name: 'accept: a historical binding survives later work',
+    run() {
+      const w = acceptWorld();
+      const binding = acceptedBinding(w.options);
+      const today = harnessInfo().harnessHash;
+      assert(today !== binding.expected.harnessHash, 'today\'s harness hash equals the bound producer');
+      const forbidden = ['tests/artifacts/ig-proto/tree-frozen/', 'tools/ig-proto/variants/', 'tools/ig-proto/lib/'];
+      /** @type {string[]} */
+      const read = [];
+      const readFile = (/** @type {string} */ path) => {
+        if (forbidden.some((prefix) => path.startsWith(prefix))) {
+          throw new Error(`the check read ${path}`);
+        }
+        read.push(path);
+        return readRepoFile(path);
+      };
+      same(checkAccepted(binding, { current: [], readFile }), { status: 'pass', reasons: [] }, 'the binding does not pass after the harness changed');
+      same(read, [rel(w.receiptFile), rel(w.input)], 'the paths the check read: the receipt, then its evidence');
+    },
+  },
+  {
+    name: 'accept: changes and stale arms',
+    run() {
+      const w = acceptWorld();
+      const binding = acceptedBinding(w.options);
+      const is = (/** @type {any} */ b, /** @type {string} */ reason, /** @type {string} */ label, /** @type {any[]} */ current = []) => {
+        same(checkAccepted(b, { current }), { status: 'incomplete', reasons: [reason] }, label);
+      };
+      appendFileSync(w.input, 'x');
+      is(binding, `evidence changed ${rel(w.input)}`, '(a) the input file changed by one byte');
+      writeJson(w.input, { input: 1 });
+      same(checkAccepted(binding, { current: [] }).status, 'pass', 'the input restored');
+      appendFileSync(w.receiptFile, ' ');
+      is(binding, `receipt changed ${rel(w.receiptFile)}`, '(b) the receipt changed by one byte');
+      w.write();
+      is(binding, 'stale arm v4', '(c) another tree', [{ id: 'v4', treeId: 't9', paramsHash: 'p1' }]);
+      is(binding, 'stale arm v4', 'another parameter hash', [{ id: 'v4', treeId: 't1', paramsHash: 'p9' }]);
+      is(binding, 'unbound arm x', '(d) an arm the binding does not name', [{ id: 'x', treeId: 't1', paramsHash: 'p1' }]);
+      is({ ...binding, format: 'other' }, 'not an accepted binding', '(e) another format');
+      is({ ...binding, version: 2 }, 'not an accepted binding', 'another version');
+      is(null, 'not an accepted binding', 'no binding');
+      rmSync(w.receiptFile);
+      is(binding, `missing receipt ${rel(w.receiptFile)}`, 'a receipt that is gone');
+    },
+  },
+  {
+    name: 'accept: the expectation comes from the captured inputs',
+    async run() {
+      /** @type {any[]} */
+      const calls = [];
+      const identity = (/** @type {string} */ harnessHash, /** @type {string} */ treeId) => ({ harnessHash, treeIds: { v4: treeId } });
+      const evidenceOf = (/** @type {string} */ task, /** @type {string} */ step, /** @type {string} */ manifestPath, /** @type {unknown} */ _isV4, /** @type {any} */ options) => {
+        calls.push([task, step, rel(manifestPath), options]);
+        return { identity: identity('h', 'x'), rows: [], problems: /** @type {string[]} */ ([]) };
+      };
+      const copy = (/** @type {any} */ value) => () => value;
+      assert(thrownBy(() => stage1Expectation('V4-T04', evidenceOf, copy({ treeId: 'y', params: {} }))) === 'accept: captured tree v4 differs from the observation (x vs y)', 'a captured tree that differs from the observation');
+      calls.length = 0;
+      const expectation = stage1Expectation('V4-T04', evidenceOf, copy({ treeId: 'x', params: { W: 2 } }));
+      same(calls, [
+        ['V4-T04', 'parity', 'tools/ig-proto/plans/V4-T04.parity.json', { historical: true }],
+        ['V4-T04', 'replay', 'tools/ig-proto/plans/V4-T04.replay.json', { historical: true }],
+      ], 'the steps are read as historical observations, from the declared manifests');
+      same([expectation.harnessHash, expectation.arms, expectation.params, expectation.fields],
+        ['h', [{ id: 'v4', treeId: 'x', paramsHash: sha256('{"W":2}') }], { v4: { W: 2 } }, { line: 'Stage 1: holds.' }], 'the expectation');
+      const ids = ['parity', 'replay'].flatMap((step) => expandManifest(JSON.parse(readFileSync(join(IG_DIR, 'plans', `V4-T04.${step}.json`), 'utf8')), artifactDir('frozen', 'V4-T04', step), (v) => v !== 'base').map((i) => i.id));
+      assert(ids.length === 32 && STAGE1_COVERAGE_EXTRA.length === 9, `${ids.length} item ids and ${STAGE1_COVERAGE_EXTRA.length} extra ids, not 32 and 9`);
+      same(expectation.coverage, [...ids, ...STAGE1_COVERAGE_EXTRA], 'the coverage: the ids of the two manifests, then the extra ids');
+      assert(thrownBy(() => stage1Expectation('V4-T04', evidenceOf, copy(null))) === 'accept: no captured tree metadata for v4', 'no captured tree metadata');
+      const withStep = (/** @type {(step: string) => any} */ of) => (/** @type {string} */ _task, /** @type {string} */ step) => ({ rows: [], problems: [], ...of(step) });
+      assert(thrownBy(() => stage1Expectation('V4-T04', withStep((step) => (step === 'replay' ? { identity: identity('other', 'x') } : { identity: identity('h', 'x') })), copy({ treeId: 'x', params: {} }))) === 'accept: two producers', 'two producers');
+      assert(thrownBy(() => stage1Expectation('V4-T04', withStep((step) => ({ identity: identity('h', step === 'replay' ? 'z' : 'x') })), copy({ treeId: 'x', params: {} }))) === 'accept: two trees for v4', 'two trees for one variant');
+      assert(thrownBy(() => stage1Expectation('V4-T04', withStep((step) => ({ identity: identity('h', 'x'), problems: step === 'parity' ? ['no state p'] : [] })), copy({ treeId: 'x', params: {} }))) === 'accept: parity: no state p', 'a problem of a step');
+      // `historical` leaves out the comparison with today's trees: a stored id that is not the current tree's is no problem
+      const task = 'V4-accept-selftest';
+      const root = fresh(artifactDir('selftest', 'accept'));
+      const manifestPath = join(root, 'm.json');
+      const manifest = { format: 'ig-proto-items', version: 1, task, step: 'parity', rows: [{ kind: 'v4-select', variant: 'v4', caseId: '12x12-nightmare', seedText: 'ig-v4/selftest', modes: ['absent'] }] };
+      writeJson(manifestPath, manifest);
+      const raw = artifactDir('frozen', task);
+      rmSync(raw, { recursive: true, force: true });
+      try {
+        const dir = join(raw, 'parity');
+        mkdirSync(dir, { recursive: true });
+        const items = expandManifest(manifest, dir, () => true);
+        const stored = { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST, treeIds: { v4: 'old' }, harnessHash: 'h', manifestHash: manifestHash(items) };
+        writeJson(join(dir, 'state.json'), { format: 'ig-proto-state', version: 1, task, step: 'parity', label: 'frozen', identity: stored, done: false });
+        const hash = identityHash(stored);
+        logStart(join(dir, 'items.jsonl'), hash, items[0]);
+        logEnd(join(dir, 'items.jsonl'), hash, items[0].id, 'completed', { outcome: 'ok' }, 5);
+        const current = stepEvidence(task, 'parity', manifestPath, () => true);
+        assert(current.problems.length === 1 && current.problems[0].startsWith('stale tree v4 (old vs '), `the current trees are compared: ${JSON.stringify(current.problems)}`);
+        const historical = stepEvidence(task, 'parity', manifestPath, () => true, { historical: true });
+        same([historical.problems, historical.identity.treeIds, historical.rows.map((r) => r.status)], [[], { v4: 'old' }, ['completed']], 'a historical observation is read without the current trees');
+      } finally {
+        rmSync(raw, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'accept: a binding is never rewritten',
+    async run() {
+      const w = acceptWorld();
+      const existing = join(w.dir, 'binding.json');
+      writeJson(existing, { keep: true });
+      const before = readFileSync(existing);
+      const common = ['--by', 'x', '--label', 'frozen', '--source-label', 'x'];
+      const refused = await runCheck(['accept', '--task', 'V4-T04', '--receipt', rel(w.receiptFile), '--binding', rel(existing), ...common]);
+      assert(refused.code === 1 && refused.err === `v4-check: binding ${rel(existing)} exists (an accepted binding is never rewritten)\n`, `an existing binding: exit ${refused.code}, ${JSON.stringify(refused.err)}`);
+      assert(before.equals(readFileSync(existing)), 'the existing binding changed');
+      w.write({ kind: 'live-deadline' });
+      const unwritten = join(w.dir, 'new-binding.json');
+      const kind = await runCheck(['accept', '--task', 'V4-T04', '--receipt', rel(w.receiptFile), '--binding', rel(unwritten), ...common]);
+      assert(kind.code === 1 && kind.err === 'v4-check: accept knows the kinds stage1\n' && !existsSync(unwritten), `another kind: exit ${kind.code}, ${JSON.stringify(kind.err)}`);
+      const label = await runCheck(['accept', '--task', 'V4-T04', '--receipt', rel(w.receiptFile), '--binding', rel(unwritten), '--by', 'x', '--label', 'selftest', '--source-label', 'x']);
+      assert(label.code === 1 && label.err === 'v4-check: --label frozen only\n' && !existsSync(unwritten), `another label: exit ${label.code}, ${JSON.stringify(label.err)}`);
+    },
+  },
+  {
+    name: 'accept: the historical namespaces are reserved',
+    run() {
+      assert(reservedTaskProblem('frozen', 'V4-T04f', true) === 'self-test: V4-T04f is a historical stage-1 record; use another --task', `the state of V4-T04f exists: ${reservedTaskProblem('frozen', 'V4-T04f', true)}`);
+      same([reservedTaskProblem('frozen', 'V4-T04f', false), reservedTaskProblem('frozen', 'V4-T04f-verify', true), reservedTaskProblem('provisional', 'V4-T04', true)], [null, null, null],
+        'a task without a state, another task and another label');
+      same([...HISTORICAL_SELFTEST], stage1Inputs('V4-T04', []).filter((path) => path.endsWith('self-test/state.json')).map((path) => path.split('/').at(-3)), 'the reserved ids are the self-test ids of the stage-1 evidence');
+    },
+  },
+  {
+    name: 'accept: evidence-check',
+    async run() {
+      const w = acceptWorld();
+      const check = () => runCheck(['evidence-check', '--receipt', rel(w.receiptFile), '--label', 'frozen', '--source-label', 'x']);
+      const same1 = await check();
+      assert(same1.code === 0 && same1.out === 'evidence: unchanged (1 files)\n', `an unchanged input: exit ${same1.code}, ${JSON.stringify(same1.out)}`);
+      appendFileSync(w.input, 'x');
+      const changed = await check();
+      assert(changed.code === 2 && changed.out === `evidence: changed ${rel(w.input)}\n`, `a changed input: exit ${changed.code}, ${JSON.stringify(changed.out)}`);
+      rmSync(w.input);
+      const gone = await check();
+      assert(gone.code === 2 && gone.out === `evidence: changed ${rel(w.input)}\n`, `an absent input: exit ${gone.code}, ${JSON.stringify(gone.out)}`);
+      const label = await runCheck(['evidence-check', '--receipt', rel(w.receiptFile), '--label', 'selftest', '--source-label', 'x']);
+      assert(label.code === 1 && label.err === 'v4-check: --label frozen only\n', `another label: exit ${label.code}`);
+    },
+  },
+  {
+    name: 'accept: check-binding',
+    async run() {
+      const w = acceptWorld();
+      const file = join(w.dir, 'binding.json');
+      writeJson(file, acceptedBinding(w.options));
+      const check = () => runCheck(['check-binding', '--binding', rel(file), '--label', 'frozen', '--source-label', 'x']);
+      const good = await check();
+      assert(good.code === 0 && good.out === 'binding: pass\n', `a bound receipt: exit ${good.code}, ${JSON.stringify(good.out)}`);
+      appendFileSync(w.input, 'x');
+      const changed = await check();
+      assert(changed.code === 2 && changed.out === `binding: incomplete (evidence changed ${rel(w.input)})\n`, `a changed input: exit ${changed.code}, ${JSON.stringify(changed.out)}`);
+      rmSync(file);
+      const gone = await check();
+      assert(gone.code === 2 && gone.out === `binding: incomplete (missing binding ${rel(file)})\n`, `no binding: exit ${gone.code}, ${JSON.stringify(gone.out)}`);
+    },
+  },
+  {
+    name: 'accept: main refuses a reserved id before any write',
+    async run() {
+      const task = 'V4-reserved-selftest';
+      const dir = artifactDir('frozen', task);
+      rmSync(dir, { recursive: true, force: true });
+      const state = join(artifactDir('frozen', task, 'self-test'), 'state.json');
+      try {
+        writeJson(state, { format: 'ig-proto-state', marker: 'before' });
+        const before = readFileSync(state);
+        const argv = ['--label', 'frozen', '--frozen', '--task', task, '--only', '999', '--horizon-s', String(horizonS)];
+        const refused = await main(argv, { historical: [task] });
+        assert(refused === 3 && readFileSync(state).equals(before), `a reserved id: exit ${refused}, state ${readFileSync(state).equals(before) ? 'kept' : 'rewritten'}`);
+        const control = await main(argv, { historical: [] });
+        assert(control === 0 && !readFileSync(state).equals(before), `the control: exit ${control}; it must write the state`);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
     },
   },
 ];
@@ -2898,12 +3172,36 @@ function scrub(text) {
   return text.split(root).join('.').split(root.replaceAll('\\', '/')).join('.').split(root.replaceAll('\\', '\\\\')).join('.');
 }
 
-/** @param {string[]} argv @returns {Promise<number>} */
-async function main(argv) {
+/** The self-test task ids of stage 1 (V4-T04e): their `self-test/state.json` is evidence of the stage-1 receipt (D-V4-18). */
+export const HISTORICAL_SELFTEST = Object.freeze(['V4-T04', 'V4-T04v4', 'V4-T04f', 'V4-T04i']);
+
+/**
+ * @param {string} label
+ * @param {string} task
+ * @param {boolean} stateExists Whether `self-test/state.json` of the task exists under the label.
+ * @param {readonly string[]} [historical] The reserved task ids (a case passes a scratch id to prove `main`'s wiring).
+ * @returns {string | null} Why the run must not start (a historical record of stage 1 would be overwritten); else null.
+ */
+export function reservedTaskProblem(label, task, stateExists, historical = HISTORICAL_SELFTEST) {
+  return label === 'frozen' && historical.includes(task) && stateExists
+    ? `self-test: ${task} is a historical stage-1 record; use another --task` : null;
+}
+
+/**
+ * @param {string[]} argv
+ * @param {{ historical?: readonly string[] }} [options] `historical` replaces the reserved ids (a case proves the guard on a scratch id).
+ * @returns {Promise<number>}
+ */
+async function main(argv, { historical = HISTORICAL_SELFTEST } = {}) {
   const { args, on } = parseArgs(argv, { values: ['label', 'source-label', 'horizon-s', 'only', 'task'], switches: ['proto', 'p6', 'frozen', 'v4', 'items'] });
   const label = args.label ?? 'selftest';
   const task = args.task ?? (on.has('items') ? 'V4-T04a' : on.has('v4') ? 'V4-T02a' : on.has('frozen') ? 'V4-T01a' : on.has('p6') ? 'IGP-04' : on.has('proto') ? 'IGP-01' : 'IGP-00');
   const only = args.only === undefined ? null : args.only.split(',').map(Number);
+  const reserved = reservedTaskProblem(label, task, label === 'frozen' && existsSync(artifactDir(label, task, 'self-test', 'state.json')), historical);
+  if (reserved !== null) {
+    process.stderr.write(`${reserved}\n`);
+    return 3;
+  }
   horizonS = Number(args['horizon-s'] ?? 285);
   const startedAt = new Date(Date.now() - elapsedS() * 1000).toISOString();
   /** @type {{ name: string, pass: boolean, reason: string | null, ms: number }[]} */

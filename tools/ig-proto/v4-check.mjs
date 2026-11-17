@@ -9,14 +9,19 @@
 //     --label frozen --source-label "frozen 3fc65f4" [--horizon-s 285]
 //   node tools\ig-proto\v4-check.mjs summary --task V4-T04 --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\v4-check.mjs pm4-gate --label frozen --source-label "frozen 3fc65f4"
+// T04f adds the accepted binding (D-V4-18): `evidence-check` (the receipt's evidence is unchanged), `accept` (writes the
+// binding once) and `check-binding` (a prerequisite through its binding):
+//   node tools\ig-proto\v4-check.mjs evidence-check --receipt <path> --label frozen --source-label "frozen 3fc65f4"
+//   node tools\ig-proto\v4-check.mjs accept --task V4-T04 --receipt <path> --binding <path> --by <text> --label frozen --source-label "frozen 3fc65f4"
+//   node tools\ig-proto\v4-check.mjs check-binding --binding <path> [--current <ids>] --label frozen --source-label "frozen 3fc65f4"
 import { existsSync, readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { isAbsolute, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 
 import { identityHash, manifestHash, readItemLog, runItems } from './lib/items.mjs';
 import { abs, artifactDir, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, parseArgs, rel, ROOT } from './lib/paths.mjs';
-import { proofEnvelope, readRepoFile, STAGE1_COVERAGE_EXTRA } from './lib/proof.mjs';
+import { acceptedBinding, checkAccepted, proofEnvelope, readRepoFile, STAGE1_COVERAGE_EXTRA } from './lib/proof.mjs';
 import { banner, buildMeta, harnessInfo, readTreeInfo, sha256, sha256File, sourceDigest, writeJson, writeText } from './lib/records.mjs';
 import { caseBoard } from './lib/sets.mjs';
 import { collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
@@ -658,11 +663,13 @@ function currentTree(variant) {
  * @param {string} step
  * @param {string} manifestPath The declared manifest.
  * @param {(variant: string) => boolean} isV4 True when the variant's tree chain contains `v4`.
+ * @param {{ historical?: boolean }} [options] `historical` does not compare the stored tree ids with today's trees
+ *   (T04f: the accepted binding of an observation must not depend on a tree folder); every other check stays.
  * @returns {{ identity: any, rows: Row[], problems: string[] }} `rows` are the manifest's items in order, each joined
  *   with its `item-end` line; `problems` name every way the stored identity or log does not match the manifest, the
  *   frozen source or the current trees.
  */
-export function stepEvidence(task, step, manifestPath, isV4) {
+export function stepEvidence(task, step, manifestPath, isV4, { historical = false } = {}) {
   const dir = artifactDir('frozen', task, step);
   const statePath = join(dir, 'state.json');
   const manifestName = rel(resolve(manifestPath));
@@ -715,7 +722,7 @@ export function stepEvidence(task, step, manifestPath, isV4) {
         problems.push(`log line ${index + 1} carries another identityHash than the state's`);
       }
     }
-    for (const [variant, treeId] of Object.entries(identity.treeIds ?? {})) {
+    for (const [variant, treeId] of Object.entries(historical ? {} : identity.treeIds ?? {})) {
       const current = currentTree(variant)?.treeId;
       if (current !== treeId) {
         problems.push(`stale tree ${variant} (${treeId} vs ${current ?? 'missing'})`);
@@ -791,6 +798,74 @@ function readJson(path) {
   } catch {
     throw problem(`unreadable ${path}`);
   }
+}
+
+/**
+ * @param {string} task
+ * @param {string} variant
+ * @returns {any | null} The `ig-tree.json` captured under `inputs/` by `summary` (T04d); null when absent.
+ */
+export function readInputCopy(task, variant) {
+  return readJson(rel(evidenceDir('frozen', task, 'inputs', `${variant}.ig-tree.json`)));
+}
+
+/**
+ * The expectation of the accepted stage-1 binding (T04f, RV3-06, R4-03), built from the stored identities, the captured
+ * tree copies and the manifests, never from a tree folder, a variant file or the receipt's own coverage.
+ * @param {string} task
+ * @param {typeof stepEvidence} [evidenceOf]
+ * @param {typeof readInputCopy} [inputsOf]
+ * @returns {{ harnessHash: string, arms: { id: string, treeId: string, paramsHash: string }[],
+ *   params: Record<string, unknown>, coverage: string[], fields: Record<string, unknown> }}
+ */
+export function stage1Expectation(task, evidenceOf = stepEvidence, inputsOf = readInputCopy) {
+  const isV4 = (/** @type {string} */ variant) => variant !== 'base';
+  const manifests = STEPS.map((step) => `tools/ig-proto/plans/${task}.${step}.json`);
+  const observed = STEPS.map((step, i) => {
+    const evidence = evidenceOf(task, step, abs(manifests[i]), isV4, { historical: true });
+    if (evidence.problems.length > 0) {
+      throw new Error(`accept: ${step}: ${evidence.problems.join('; ')}`);
+    }
+    return evidence;
+  });
+  const [harnessHash, other] = observed.map((evidence) => evidence.identity?.harnessHash);
+  if (typeof harnessHash !== 'string') {
+    throw new Error('accept: no producer in the stored identity');
+  }
+  if (other !== harnessHash) {
+    throw new Error('accept: two producers');
+  }
+  /** @type {Map<string, Set<string>>} */
+  const stored = new Map();
+  for (const evidence of observed) {
+    for (const [variant, treeId] of Object.entries(evidence.identity.treeIds ?? {})) {
+      stored.set(variant, new Set([...(stored.get(variant) ?? []), String(treeId)]));
+    }
+  }
+  /** @type {{ id: string, treeId: string, paramsHash: string }[]} */
+  const arms = [];
+  /** @type {Record<string, unknown>} */
+  const params = {};
+  for (const variant of [...stored.keys()].sort()) {
+    const ids = [...(stored.get(variant) ?? [])];
+    if (ids.length > 1) {
+      throw new Error(`accept: two trees for ${variant}`);
+    }
+    const copy = inputsOf(task, variant);
+    if (copy === null) {
+      throw new Error(`accept: no captured tree metadata for ${variant}`);
+    }
+    if (copy.treeId !== ids[0]) {
+      throw new Error(`accept: captured tree ${variant} differs from the observation (${ids[0]} vs ${copy.treeId})`);
+    }
+    arms.push({ id: variant, treeId: ids[0], paramsHash: sha256(JSON.stringify(copy.params)) });
+    params[variant] = copy.params;
+  }
+  const coverage = [
+    ...manifests.flatMap((path, i) => expandManifest(JSON.parse(readFileSync(abs(path), 'utf8')), artifactDir('frozen', task, STEPS[i]), isV4).map((item) => item.id)),
+    ...STAGE1_COVERAGE_EXTRA,
+  ];
+  return { harnessHash, arms, params, coverage, fields: { line: 'Stage 1: holds.' } };
 }
 
 /**
@@ -1106,6 +1181,128 @@ function refuse(reason) {
   return 1;
 }
 
+/** @param {string} path @returns {string} The path relative to the repository root, with `/`. */
+const repoPath = (path) => (isAbsolute(path) ? rel(path) : path.replaceAll('\\', '/').replace(/^\.\//, ''));
+
+/**
+ * `evidence-check --receipt <path> --label frozen --source-label <SL>` (T04f): every evidence file of the receipt still
+ * has the hash the receipt holds.
+ * @param {string[]} argv The arguments after `evidence-check`.
+ * @returns {Promise<number>} 0 when nothing changed; 2 when a file is absent or changed; 1 for a refused command.
+ */
+async function evidenceCheck(argv) {
+  const { args } = parseArgs(argv, { values: ['receipt', 'label', 'source-label'] });
+  if (args.label !== 'frozen') {
+    return refuse('--label frozen only');
+  }
+  if (args.receipt === undefined) {
+    return refuse('evidence-check needs --receipt');
+  }
+  const path = repoPath(args.receipt);
+  const text = readRepoFile(path);
+  if (text === null) {
+    return refuse(`cannot read receipt ${path}`);
+  }
+  /** @type {any} */
+  let receipt;
+  try {
+    receipt = JSON.parse(text);
+  } catch {
+    return refuse(`unreadable receipt ${path}`);
+  }
+  if (!Array.isArray(receipt?.evidence)) {
+    return refuse(`receipt ${path} has no evidence`);
+  }
+  const changed = receipt.evidence
+    .filter((/** @type {{ path: string, sha256: string }} */ e) => !existsSync(abs(e.path)) || sha256File(abs(e.path)) !== e.sha256)
+    .map((/** @type {{ path: string }} */ e) => e.path);
+  if (changed.length > 0) {
+    process.stdout.write(`evidence: changed ${changed.join(', ')}\n`);
+    return 2;
+  }
+  process.stdout.write(`evidence: unchanged (${receipt.evidence.length} files)\n`);
+  return 0;
+}
+
+/**
+ * `accept --task <T> --receipt <path> --binding <path> --by <text> --label frozen --source-label <SL>` (T04f): writes the
+ * accepted binding of a passing stage-1 receipt, once.
+ * @param {string[]} argv The arguments after `accept`.
+ * @returns {Promise<number>} 0 once the binding is written; 1 for a refused command or a receipt that does not bind.
+ */
+async function accept(argv) {
+  const { args } = parseArgs(argv, { values: ['task', 'receipt', 'binding', 'by', 'label', 'source-label'] });
+  if (args.label !== 'frozen') {
+    return refuse('--label frozen only');
+  }
+  if (args.task === undefined || args.receipt === undefined || args.binding === undefined || args.by === undefined) {
+    return refuse('accept needs --task, --receipt, --binding and --by');
+  }
+  const receiptPath = repoPath(args.receipt);
+  const bindingPath = repoPath(args.binding);
+  if (existsSync(abs(bindingPath))) {
+    return refuse(`binding ${bindingPath} exists (an accepted binding is never rewritten)`);
+  }
+  const text = readRepoFile(receiptPath);
+  if (text === null) {
+    return refuse(`cannot read receipt ${receiptPath}`);
+  }
+  /** @type {any} */
+  let receipt;
+  try {
+    receipt = JSON.parse(text);
+  } catch {
+    return refuse(`unreadable receipt ${receiptPath}`);
+  }
+  if (receipt?.kind !== 'stage1') {
+    return refuse('accept knows the kinds stage1');
+  }
+  const binding = acceptedBinding({ receiptPath, ...stage1Expectation(args.task), by: args.by });
+  writeJson(abs(bindingPath), binding);
+  process.stdout.write(`accepted: ${receiptPath} sha256 ${binding.receipt.sha256} -> ${bindingPath}\n`);
+  return 0;
+}
+
+/**
+ * `check-binding --binding <path> [--current <ids>] --label frozen --source-label <SL>` (T04f): a prerequisite through
+ * its accepted binding; `--current` lists the variants whose trees today are compared.
+ * @param {string[]} argv The arguments after `check-binding`.
+ * @returns {Promise<number>} 0 only on `pass`; 2 otherwise; 1 for a refused command.
+ */
+async function checkBinding(argv) {
+  const { args } = parseArgs(argv, { values: ['binding', 'current', 'label', 'source-label'] });
+  if (args.label !== 'frozen') {
+    return refuse('--label frozen only');
+  }
+  if (args.binding === undefined) {
+    return refuse('check-binding needs --binding');
+  }
+  const path = repoPath(args.binding);
+  const text = readRepoFile(path);
+  /** @type {{ status: 'pass' | 'fail' | 'incomplete', reasons: string[] }} */
+  let result;
+  if (text === null) {
+    result = { status: 'incomplete', reasons: [`missing binding ${path}`] };
+  } else {
+    /** @type {any} */
+    let binding = null;
+    try {
+      binding = JSON.parse(text);
+    } catch {
+      binding = null;
+    }
+    /** @type {{ id: string, treeId: string, paramsHash: string }[]} */
+    const current = [];
+    for (const id of (args.current ?? '').split(',').filter((name) => name !== '')) {
+      const tree = await ensureTree(id);
+      current.push({ id, treeId: tree.treeId, paramsHash: sha256(JSON.stringify(tree.params)) });
+    }
+    result = checkAccepted(binding, { current });
+  }
+  process.stdout.write(result.status === 'pass' ? 'binding: pass\n' : `binding: ${result.status} (${result.reasons.join('; ')})\n`);
+  return result.status === 'pass' ? 0 : 2;
+}
+
 /**
  * @param {string[]} argv The arguments after `run`.
  * @returns {Promise<number | Parameters<typeof runItems>[0]>} An exit code after its message, or the options of the run.
@@ -1146,21 +1343,27 @@ async function prepareRun(argv) {
 
 /**
  * @param {string[]} argv `run --task <T> --step <S> --manifest <path> --label frozen --source-label <SL> [--horizon-s <H>]`,
- *   `summary --task <T> --label frozen --source-label <SL>` or `pm4-gate --label frozen --source-label <SL>`
+ *   `summary --task <T> --label frozen --source-label <SL>`, `pm4-gate --label frozen --source-label <SL>`,
+ *   `evidence-check --receipt <path> ...`, `accept --task <T> --receipt <path> --binding <path> --by <text> ...` or
+ *   `check-binding --binding <path> [--current <ids>] ...`
  * @returns {Promise<number>} The exit code: 1 for a refused command or manifest, else the command's (`run`: the runner's, 0, or
- *   3 for a refused resume; `summary`: 0 once the record is written; `pm4-gate`: 0 only on `pass`, else 2).
+ *   3 for a refused resume; `summary`: 0 once the record is written; `pm4-gate` and `check-binding`: 0 only on `pass`, else 2;
+ *   `evidence-check`: 0 when nothing changed, else 2; `accept`: 0 once the binding is written).
  */
 export async function main(argv) {
   const [command, ...rest] = argv;
-  if (command === 'summary' || command === 'pm4-gate') {
+  const subcommands = /** @type {Record<string, (argv: string[]) => Promise<number>>} */ ({
+    summary, 'pm4-gate': pm4Gate, 'evidence-check': evidenceCheck, accept, 'check-binding': checkBinding,
+  });
+  if (command !== undefined && Object.hasOwn(subcommands, command)) {
     try {
-      return await (command === 'summary' ? summary(rest) : pm4Gate(rest));
+      return await subcommands[command](rest);
     } catch (e) {
       return refuse(cleanMessage(e).replace(/^v4-check: /, ''));
     }
   }
   if (command !== 'run') {
-    return refuse(`unknown command ${command ?? ''} (run, summary, pm4-gate)`);
+    return refuse(`unknown command ${command ?? ''} (run, summary, pm4-gate, evidence-check, accept, check-binding)`);
   }
   /** @type {Awaited<ReturnType<typeof prepareRun>>} */
   let prepared;
