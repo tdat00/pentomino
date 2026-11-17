@@ -95,10 +95,17 @@ price it. It dry-runs the plans and stops so that the orchestrator can put the p
    deadline (D-V4-16), the work rule of IG-P-Q37 (judged on the intervals, reported with the completed-unit ratio; no
    timed run added) and P5's false stops counted against the uncapped comparator over the declared pairs (P-OD12,
    DR-O11, T09d); (5) the browser calibration and its labels; (6) the risks of plan §8 that bear on the price, quoted
-   with their section numbers; (7) T11b's pricing rules, its ceilings from enforced bounds and the overhead
-   assumptions; (8) the difference from the plan's indication (stage 4 about 3.4 to 4.2 h): the universe's counted
-   minutes and their causes (both twins on every validated cell, the comparator, the 260-s limit of today's and the
-   comparator groups, one or two rows per invocation).
+   with their section numbers; (7) T11b's pricing rules (its export `PRICING`), its ceilings from enforced bounds and the overhead
+   assumptions (a horizon of 285 s for every invocation, although the runner's `decide` lowers it near the approved
+   cap, which the price does not model; `factor()` 1 when the identity file is absent; a cell without an MP12b1 report,
+   `20x20-hell-1` today, priced at its row limit); (8) the difference from the plan's indication (stage 4 about 3.4 to
+   4.2 h): the universe's counted minutes and their causes, each with its minutes: both twins on every validated cell,
+   the comparator, the ten controls (T11a's ruling of 2026-11-17), the 260-s limit of today's, the comparator and
+   every stage-2 group, which admits one row per invocation (a 285-s horizon under the helper's 300-s limit), so that
+   each such row also pays a 45-s quiet period (T11b's scratch price of the whole matrix on 2026-11-17: 3,604 counted
+   minutes in 1,224 invocations, 918 of them quiet periods; stage 4 3,091.6), and the planning projection from today's
+   search times (`1.25 x factor x refS`: a twin whose projection exceeds its 130-s limit is priced at the limit and
+   predicted censored, a projection from today's search, not the frozen arms' expected time).
 2. **`approval --plan <id> [--after <ids>] [--optional] --label frozen --source-label <SL>`** and its pure core
    `approvalFor({ spentS, earlierGuardS, guardS })`: prints one JSON line `{ plan, spentS, assumedEarlierGuardS,
    roundCountedSBeforeApproval, requestedAdditionalGuardS, requestedCumulativeRoundMinutes }`, `spentS` re-read now
