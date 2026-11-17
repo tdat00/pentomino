@@ -86,7 +86,9 @@ bindings of both kinds, so that later gates check them without trusting the rece
      state.json>, <M>, <every captured copy and harness.json>, and for p0-identity <the baseline binding> and <the
      stage-1 parity items.jsonl>], fields: {
      blocks: { parity: <verdict>, <replay or baseline>: <verdict> }, details: { parity, <replay or baseline> },
-     identities: { now: ev.identity, baseline: <base.identity for p0-identity, else null> } } })` (repository-relative
+     identities: { now: ev.identity, baseline: <base.identity for p0-identity, else null> }, reasons: <ev's problems,
+     then `'<block>: <reason>'` for each reason of a block that is not `pass`; `[]` on `pass`: `proofCheck` reports
+     them for a failing receipt, T04d> } })` (repository-relative
      paths, `sha256File`), and prints `receipt: <kind> <verdict> -> <path>`.
    - Exit: 0 when written; with `--require-pass`, 2 when the verdict is not `pass` (the receipt is written first).
 4. **`accept`** gains the kinds `parity` and `p0-identity` (T04f's dispatch on the receipt's `kind`; `--step` and

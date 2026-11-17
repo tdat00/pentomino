@@ -69,7 +69,8 @@ allowance.
      'incomplete', reasons }`; `expected = { kind, source, harnessHash, arms, coverage, fields }`. In this order: a
      missing envelope field, a `format` or
      `version` other than `ig-v4-proof` 1, or a `kind` other than `expected.kind`: `incomplete` (`not a <kind>
-     receipt`); `verdict: 'fail'`: `fail` (the receipt's own reasons); `verdict` other than `pass`: `incomplete`;
+     receipt`); `verdict: 'fail'`: `fail` (the receipt's own reasons: its root `reasons` when a non-empty string
+     array, else `[line]` when `line` is a string, else `['the receipt''s verdict is fail']`; ruling of 2026-11-17); `verdict` other than `pass`: `incomplete`;
      `source` not equal to `expected.source`: `incomplete` (`stale source`); `expected.harnessHash` absent or not a
      string: `incomplete` (`no producer binding`); `receipt.harnessHash !== expected.harnessHash`: `incomplete`
      (`producer changed`); an expected arm absent, or its `treeId` or
@@ -141,13 +142,20 @@ allowance.
      `docs/improve-generating/evidence/frozen/<task>/inputs/<variant>.ig-tree.json` for each of `variants` in sorted
      order. A path that does not exist is left out of `evidence` and makes the receipt `incomplete` (`missing input
      <path>`).
+   - Ruling of 2026-11-17 (the first execution's defaults, accepted): the capture reasons and the `missing input
+     <path>` reasons form a seventh block `inputs` (`incomplete` with them, else `pass`), so the verdict line and the
+     receipt's verdict always agree; the replay step's stored `harnessHash` differing from the parity step's makes
+     `inputs` `incomplete` too; `stage1Verdict` shows at most three reasons per block, then `+<n> more`;
+     `pm4Verdict` is `incomplete` for a record that lacks a field it reads; `proofEnvelope` refuses a `fields` key
+     named like an envelope field.
    It writes `evidence/frozen/<task>/stage1.json` = `proofEnvelope({ kind: 'stage1', verdict: <pass when holds, fail
    on STOP, incomplete on INCOMPLETE>, source: { frozenCommit: FROZEN_COMMIT, sourceDigest: <the parity step's stored
    `identity.sourceDigest`> }, harnessHash: <the parity step's stored `identity.harnessHash`>, arms: <every variant of
    the two steps with its stored tree id (`identity.treeIds[<variant>]`) and `paramsHash` `sha256(JSON.stringify(<its
    captured copy's params>))`>, coverage: <expected = every item id of the two expanded manifests, then
    `STAGE1_COVERAGE_EXTRA`; observed: the item ids with an `item-end` of status `completed`, an identity id when its
-   seed's pair is in `identity.json`, `pm4` when the PM4 block is not `incomplete`, a self-test id when its state is
+   seed has both its `mp12b1~base` and its `base~log` pairs in `identity.json` (the seeds in the record's form
+   `landscape/<case>/<rep>`), `pm4` when the PM4 block is not `incomplete`, a self-test id when its state is
    `done`; missing: expected less observed; censored: the item ids ended `censored`>, evidence: <`stage1Inputs(task,
    <the variants of the two steps and instr>)`, each with its `sha256File`>, fields: { meta: buildMeta({ task, label: 'frozen', kind: 'stage1' }),
    blocks, line } })` and `stage1.md` ("Stage 1 receipt (V4-T04)", the banner, the verdict line, one table per block,
