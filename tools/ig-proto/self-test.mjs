@@ -34,7 +34,7 @@ import { identityHash, itemIdentity, logEnd, logSpawn, logStart, manifestHash, r
 import { admits, createLanes, DEFAULT_LIMITS } from './lib/lanes.mjs';
 import { itemLedger, pairPrimitives } from './lib/ledger.mjs';
 import { preparePackPath, writePackFile } from './lib/packs.mjs';
-import { abs, artifactDir, elapsedS, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, parseArgs, rel, ROOT, SOURCE_KIND, sourceRoot } from './lib/paths.mjs';
+import { abs, artifactDir, elapsedS, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, mp12b1Report, parseArgs, rel, ROOT, SOURCE_KIND, sourceRoot } from './lib/paths.mjs';
 import { ACCEPTED_FORMAT, acceptedBinding, checkAccepted, LIVE_DEADLINE_FIELDS, proofCheck, proofEnvelope, readRepoFile, STAGE1_COVERAGE_EXTRA } from './lib/proof.mjs';
 import { harnessInfo, sha256, sha256File, sha256Text, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
@@ -5060,6 +5060,267 @@ const itemCases = [
       same(failure({ controls: [] }, (d) => { delete d.arms['log-link']; }), 'manifest: item S4-4 names the unknown arm log-link', 'a missing today\'s arm');
       assert(failure({ controls: [] }, (d) => { d.cells.master = ['a', 'a']; }).includes('cells.master'), 'a repeated Master cell');
       assert(data().arms['fr-frozen'] !== undefined && m.groupKey({ task: 't', arm: 'a', shard: 's', from: 1, to: 2 }) === 't|a|s|1|2', 'the group key');
+    },
+  },
+  {
+    name: 'price: rows, one per invocation at 260 s',
+    async run() {
+      const { m } = await matrixKit();
+      const priced = m.stepPrice({ type: 'rows', rows: 20, rowS: 55, rowLimitS: 260 });
+      assert(priced.admissible === true, 'the step is admissible');
+      same(priced.schedule, Array.from({ length: 20 }, () => ({ rows: 1, nodeS: 57 })), 'twenty invocations of one row each, 2 + 55 s');
+      same([priced.projectS, priced.invocations, priced.quietS, priced.countedS, priced.guardS, priced.completed, priced.censored, priced.ceilingInvocations, priced.ceilingS],
+        [1140, 20, 900, 2040, 2550, 20, 0, 20, 6900], 'projectS, invocations, quietS, countedS, guardS, completed, censored, ceilingInvocations, ceilingS');
+      assert(priced.ceilingS >= priced.countedS, 'the ceiling is at least the projection');
+      same(m.price([{ type: 'rows', rows: 20, rowS: 55, rowLimitS: 260 }]).countedS, 2040, 'price of one step is that step');
+      // A row past its limit is cut by the runner and counted censored; it takes the limit plus the 10-s margin (an assumption), not its own time.
+      const cut = m.simulateRows({ rows: 2, rowS: 300, rowLimitS: 260 });
+      assert(cut.admissible === true, 'a cut row is admissible');
+      same([cut.invocations, cut.nodeS, cut.quietS, cut.countedS, cut.completed, cut.censored], [[{ rows: 1, nodeS: 272 }, { rows: 1, nodeS: 272 }], 544, 90, 634, 0, 2],
+        'two rows of 300 s at a limit of 260 s: two invocations of 2 + 270 s, both censored');
+      // The limit itself completes, just past it is censored and takes its own time (up to limit + 10).
+      same(['260', '265'].map((s) => { const r = m.simulateRows({ rows: 1, rowS: Number(s), rowLimitS: 260 }); return r.admissible ? [r.nodeS, r.completed, r.censored] : null; }),
+        [[262, 1, 0], [267, 0, 1]], 'a row of exactly the limit completes; one of 265 s is censored after 265 s');
+    },
+  },
+  {
+    name: 'price: rows at 130 s',
+    async run() {
+      const { m } = await matrixKit();
+      /** @param {number} rows @param {number} rowS @param {number} [rowLimitS] */
+      const rowsAt = (rows, rowS, rowLimitS = 130) => m.simulateRows({ rows, rowS, rowLimitS });
+      const a = rowsAt(4, 40);
+      assert(a.admissible === true, 'a is admissible');
+      same([a.invocations, a.nodeS, a.quietS], [[{ rows: 4, nodeS: 162 }], 162, 45], '(a) four rows of 40 s start at 2, 42, 82 and 122: one invocation, 162 s');
+      const a5 = rowsAt(5, 40);
+      assert(a5.admissible === true, 'five rows are admissible');
+      same(a5.invocations, [{ rows: 4, nodeS: 162 }, { rows: 1, nodeS: 42 }], 'a fifth row of 40 s would start at 162 > 285 - 140: the second invocation');
+      const b = rowsAt(2, 130);
+      assert(b.admissible === true, 'b is admissible');
+      same([b.invocations, b.nodeS, b.completed, b.censored], [[{ rows: 2, nodeS: 262 }], 262, 2, 0], '(b) two rows of 130 s: one invocation, 262 s, both complete');
+      const c = rowsAt(3, 130);
+      assert(c.admissible === true, 'c is admissible');
+      same([c.invocations, c.nodeS, c.quietS], [[{ rows: 2, nodeS: 262 }, { rows: 1, nodeS: 132 }], 394, 90], '(c) three rows of 130 s: two invocations');
+      same(rowsAt(1, 100, 280), { admissible: false, reason: 'a row of 280 s does not fit a horizon of 285 s' }, 'a row that fits no invocation is inadmissible with its reason');
+      same(m.stepPrice({ type: 'rows', rows: 1, rowS: 100, rowLimitS: 280 }), { admissible: false, reason: 'a row of 280 s does not fit a horizon of 285 s' }, 'the step is not priced');
+    },
+  },
+  {
+    name: 'price: two sequential 120-s process items fit one invocation',
+    async run() {
+      const { m } = await matrixKit();
+      const sim = m.simulateProcess({ durationsS: [120, 120], reserveS: 120 });
+      assert(sim.admissible === true, 'the simulation is admissible');
+      same([sim.invocations, sim.nodeS, sim.completed, sim.censored], [[{ items: 2, nodeS: 242 }], 242, 2, 0], 'starts at 2 and 122: one invocation of 242 s, two completed');
+      const priced = m.stepPrice({ type: 'process', durationsS: [120, 120], reserveS: 120 });
+      assert(priced.admissible === true, 'the step is admissible');
+      same([priced.projectS, priced.invocations, priced.quietS, priced.countedS, priced.guardS, priced.ceilingInvocations, priced.ceilingS, priced.completed, priced.censored],
+        [242, 1, 45, 287, 358.75, 2, 690, 2, 0], 'the step price; the ceiling is 2 x 345');
+      // A third item would start at 242: 242 + 120 > 270, so it takes a second invocation.
+      const three = m.simulateProcess({ durationsS: [120, 120, 120], reserveS: 120 });
+      assert(three.admissible === true, 'three items are admissible');
+      same(three.invocations, [{ items: 2, nodeS: 242 }, { items: 1, nodeS: 122 }], 'the third item is not admitted at 242 s');
+    },
+  },
+  {
+    name: 'price: a 200-s process item with a 120-s reserve',
+    async run() {
+      const { m } = await matrixKit();
+      const priced = m.stepPrice({ type: 'process', durationsS: [200], reserveS: 120, cases: ['ignored'] });
+      assert(priced.admissible === true, 'the step is admissible');
+      same([priced.projectS, priced.countedS, priced.ceilingS, priced.invocations, priced.completed, priced.censored], [202, 247, 345, 1, 1, 0],
+        'the item takes its 200 s (not its reserve): projectS 202, countedS 247, ceilingS 345');
+      assert(priced.ceilingS >= priced.projectS && priced.ceilingS !== 167, 'the ceiling is at least the projection; never the reserve-based 167');
+    },
+  },
+  {
+    name: 'price: an item past the cut is censored',
+    async run() {
+      const { m } = await matrixKit();
+      const sim = m.simulateProcess({ durationsS: [120, 200], reserveS: 120 });
+      assert(sim.admissible === true, 'the simulation is admissible');
+      same([sim.invocations, sim.nodeS, sim.completed, sim.censored, sim.countedS], [[{ items: 2, nodeS: 270 }], 270, 1, 1, 315],
+        'the second item, admitted at 122, is stopped at the cut 270: censored, never run again');
+      // The censored item ends the invocation and is not placed again; the item after it takes the next invocation.
+      const after = m.simulateProcess({ durationsS: [120, 200, 50], reserveS: 120 });
+      assert(after.admissible === true, 'the third item is admissible');
+      same([after.invocations, after.completed, after.censored], [[{ items: 2, nodeS: 270 }, { items: 1, nodeS: 52 }], 2, 1], 'a censored item is counted once');
+      // An item that ends exactly at the cut completes; one second more is stopped at the cut.
+      const ends = (/** @type {number} */ s) => { const r = m.simulateProcess({ durationsS: [s], reserveS: 120 }); return r.admissible ? [r.nodeS, r.completed, r.censored] : null; };
+      same([ends(268), ends(269)], [[270, 1, 0], [270, 0, 1]], 'the cut is at 270 s for a horizon of 285 s');
+    },
+  },
+  {
+    name: 'price: two lanes differ from one',
+    async run() {
+      const { m } = await matrixKit();
+      /** @param {number} lanes @param {number[]} durationsS */
+      const group = (lanes, durationsS) => ({ kind: 'v4-select', variant: 'v4', lanes, reserveS: 120, durationsS });
+      const two = m.simulateItems({ groups: [group(2, [60, 60, 60, 60])] });
+      assert(two.admissible === true, 'two lanes are admissible');
+      same([two.invocations, two.nodeS, two.quietS, two.completed], [[{ items: 4, nodeS: 125 }], 125, 45, 4], 'two lanes: one invocation, 5 to 65 and 65 to 125');
+      const one = m.simulateItems({ groups: [group(1, [60, 60, 60, 60])] });
+      assert(one.admissible === true, 'one lane is admissible');
+      same([one.invocations, one.nodeS, one.quietS, one.countedS], [[{ items: 3, nodeS: 185 }, { items: 1, nodeS: 65 }], 250, 90, 340],
+        'one lane: the fourth item starts at 185 and 185 + 120 > 270: two invocations of 185 and 65 s');
+      // The earliest free lane takes the next item (round-robin would put the third item behind the 100-s one and end at 135).
+      const uneven = m.simulateItems({ groups: [group(2, [100, 30, 30, 30])] });
+      assert(uneven.admissible === true, 'unequal items are admissible');
+      same(uneven.invocations, [{ items: 4, nodeS: 105 }], 'the three 30-s items run in turn on the second lane; the drain is the 100-s item at 105');
+      for (const lanes of [1, 2]) {
+        const priced = m.stepPrice({ type: 'items', groups: [group(lanes, [60, 60, 60, 60])] });
+        assert(priced.admissible === true, 'the step is admissible');
+        same([priced.invocations, priced.ceilingInvocations, priced.ceilingS], [lanes === 2 ? 1 : 2, 4, 1380], `the step at ${lanes} lanes: the ceiling counts items, not lanes`);
+      }
+    },
+  },
+  {
+    name: 'price: two separately emitted steps',
+    async run() {
+      const { m } = await matrixKit();
+      const step = { type: 'process', durationsS: [60], reserveS: 120 };
+      const separate = m.price([step, { ...step }]);
+      same([separate.admissible, separate.invocations, separate.quietS, separate.projectS, separate.countedS, separate.guardS, separate.ceilingS, separate.ceilingInvocations, separate.completed, separate.censored],
+        [true, 2, 90, 124, 214, 267.5, 690, 2, 2, 0], 'two steps: two invocations, 2 + 60 s each, two quiet periods');
+      same([separate.steps.length, separate.inadmissible], [2, []], 'each step is listed and none is inadmissible');
+      // The same two items in one step share an invocation and a quiet period; the price differs.
+      const shared = m.stepPrice({ type: 'process', durationsS: [60, 60], reserveS: 120 });
+      assert(shared.admissible === true, 'the shared step is admissible');
+      same([shared.invocations, shared.quietS, shared.projectS], [1, 45, 122], 'one step of two items: one invocation, one quiet period, one start-up');
+      // An inadmissible step is listed apart and the plan is not priceable; the totals cover the priced steps only.
+      const bad = { type: 'items', horizonS: 250, groups: [{ kind: 'v4-generate', variant: 'v4', lanes: 1, reserveS: 245, durationsS: [100] }] };
+      const mixed = m.price([step, bad]);
+      same([mixed.admissible, mixed.invocations, mixed.inadmissible], [false, 1, [{ index: 1, reason: 'v4-generate needs 245 s; the horizon 250 s admits none' }]],
+        'a plan with an inadmissible step is not priceable and names it');
+    },
+  },
+  {
+    name: 'price: an inadmissible group',
+    async run() {
+      const { m } = await matrixKit();
+      const generate = { kind: 'v4-generate', variant: 'v4', lanes: 1, reserveS: 245, durationsS: [100] };
+      same(m.simulateItems({ groups: [generate], horizonS: 250 }), { admissible: false, reason: 'v4-generate needs 245 s; the horizon 250 s admits none' },
+        'the group does not start: 2 + 245 > 250 - 15; no item is forced');
+      same(m.stepPrice({ type: 'items', groups: [generate], horizonS: 250 }), { admissible: false, reason: 'v4-generate needs 245 s; the horizon 250 s admits none' },
+        'the step price has no invocation, no projection and no ceiling');
+      // The group start passes (2 + 231 <= 235) but its first item does not (5 + 231 > 235): still no invocation.
+      same(m.simulateItems({ groups: [{ ...generate, reserveS: 231 }], horizonS: 250 }), { admissible: false, reason: 'v4-generate needs 231 s; the horizon 250 s admits none' },
+        'the item is not admitted after the group start overhead');
+      // A group that fits an invocation is priced there, but one that never fits makes the step inadmissible, never a forced item.
+      const select = { kind: 'v4-select', variant: 'v4', lanes: 2, reserveS: 120, durationsS: [60] };
+      same(m.simulateItems({ groups: [select, generate], horizonS: 250 }), { admissible: false, reason: 'v4-generate needs 245 s; the horizon 250 s admits none' },
+        'the second group never fits');
+      assert(m.simulateItems({ groups: [generate], horizonS: 285 }).admissible === true, 'the same group at the full horizon is admissible');
+    },
+  },
+  {
+    name: 'price: groups run in order and drain',
+    async run() {
+      const { m } = await matrixKit();
+      const select = { kind: 'v4-select', variant: 'v4', lanes: 2, reserveS: 120, durationsS: [60, 60] };
+      const generate = { kind: 'v4-generate', variant: 'v4', lanes: 1, reserveS: 245, durationsS: [100] };
+      const replay = { kind: 'v4-replay', variant: 'v4', lanes: 2, reserveS: 120, durationsS: [30] };
+      // After the first group drains at 65, the v4-generate group needs 65 + 245 > 270: it starts the next invocation.
+      const a = m.simulateItems({ groups: [select, generate] });
+      assert(a.admissible === true, 'a is admissible');
+      same([a.invocations, a.nodeS, a.quietS, a.completed], [[{ items: 2, nodeS: 65 }, { items: 1, nodeS: 105 }], 170, 90, 3], 'a group that is not admitted after the drain ends the invocation');
+      // A finished group passes on in the same invocation when the next group fits: it pays its own 3-s start.
+      const b = m.simulateItems({ groups: [select, replay] });
+      assert(b.admissible === true, 'b is admissible');
+      same([b.invocations, b.completed], [[{ items: 3, nodeS: 98 }], 3], 'the replay group starts at 65, is ready at 68 and ends at 98');
+    },
+  },
+  {
+    name: 'price: approval fields',
+    async run() {
+      const { m } = await matrixKit();
+      same(m.approvalFields({ roundCountedSBeforeApproval: 600, requestedAdditionalGuardS: 1200 }),
+        { roundCountedSBeforeApproval: 600, requestedAdditionalGuardS: 1200, requestedCumulativeRoundMinutes: 30 },
+        'the cap covers the time already spent and the additional guard: 30 minutes, not the 20 of the guard alone');
+      same(m.approvalFields({ roundCountedSBeforeApproval: 600, requestedAdditionalGuardS: 1230 }).requestedCumulativeRoundMinutes, 31, 'a part of a minute is rounded up');
+      same(m.approvalFields({ roundCountedSBeforeApproval: 0, requestedAdditionalGuardS: 0 }).requestedCumulativeRoundMinutes, 0, 'nothing spent, nothing asked');
+    },
+  },
+  {
+    name: 'price: projection label and fallback',
+    async run() {
+      const { m } = await matrixKit();
+      const projected = m.projectedRowS({ refS: 40, factor: 1.1, rowLimitS: 260 });
+      assert(Math.abs(projected - 55) <= 1e-9, `1.25 x 1.1 x 40 is ${projected}, not 55`);
+      same(m.projectedRowS({ refS: null, factor: 1, rowLimitS: 130 }), 130, 'without a reference time the projection is the row limit');
+      assert(Math.abs(m.projectedRowS({ refS: 300, factor: 1, rowLimitS: 260 }) - 375) <= 1e-9, 'the projection is not clamped to the limit: the simulation cuts the row');
+      // The factor is the stage-1 identity's summary.medianRatioBase, 1 when the record is absent.
+      const file = evidenceDir('frozen', 'V4-T04', 'identity.json');
+      const recorded = JSON.parse(readFileSync(file, 'utf8')).summary.medianRatioBase;
+      assert(typeof recorded === 'number' && recorded > 0, 'the record has a medianRatioBase');
+      same(m.factor(), recorded, 'the factor is the record\'s medianRatioBase');
+      const dir = fresh(join(SELFTEST_DIR, 'price-factor'));
+      same(m.factor(join(dir, 'absent.json')), 1, 'an absent record gives 1');
+      writeFileSync(join(dir, 'present.json'), JSON.stringify({ summary: { medianRatioBase: 1.5 } }));
+      same(m.factor(join(dir, 'present.json')), 1.5, 'a present record gives its value');
+      writeFileSync(join(dir, 'broken.json'), JSON.stringify({ summary: {} }));
+      assert(thrownBy(() => m.factor(join(dir, 'broken.json'))).includes('no positive summary.medianRatioBase'), 'a present record without the value is not read as 1');
+    },
+  },
+  {
+    name: 'price: refS reads the timed runs',
+    async run() {
+      const { m } = await matrixKit();
+      const { v } = await verdictKit();
+      // The real MP12b1 report of 18x18 Nightmare: its 20 runs carry `sampling` entries only (the landscape's diagnostic pass after the timed interval).
+      const found = mp12b1Report('18x18-nightmare');
+      assert(found !== null && found.report.runs.length === 20, 'the report of 18x18-nightmare has 20 runs');
+      const runs = /** @type {any[]} */ (found?.report.runs);
+      assert(runs.every((r) => r.probeKind === 'generation' && r.errors.length > 0 && r.errors.every((/** @type {any} */ e) => e.phase === 'sampling')), 'every run is a generation probe with sampling entries only');
+      assert(runs.every((r) => v.runStatus(r, { quantity: 10 }).status === 'error' && v.runStatus(m.withoutSampling(r), { quantity: 10 }).status === 'valid'),
+        'read as they are the runs are errors; without the sampling entries they are valid (the input reaches the path)');
+      const times = runs.map((r) => r.responseMs / 1000).sort((x, y) => x - y);
+      const expected = (times[9] + times[10]) / 2;
+      const got = m.refS('18x18-nightmare');
+      assert(got !== null && Math.abs(got - expected) <= 1e-9 && got > 0, `refS is ${got}, the median of the 20 responseMs / 1000 is ${expected}`);
+      // Without a report and without a valid run: null. Only valid runs count (a valid request that stops short does), whatever their number of puzzles.
+      same(m.refS('no-such-case-nightmare'), null, 'no report');
+      same(m.refS('x', () => null), null, 'a lookup without a report');
+      same(m.refS('x', () => ({ path: 'p', report: { runs: [] } })), null, 'a report without a run');
+      const sampling = { phase: 'sampling', code: 'rating-incomplete', message: 'm' };
+      const batch = { phase: 'batch', code: 'worker-crashed', message: 'm' };
+      const run = (/** @type {number} */ rep, /** @type {number} */ accepted, /** @type {Record<string, any>} */ over) => matrixRun('x', rep, accepted, over);
+      const none = [await run(0, 10, { responseMs: 1000000, errors: [batch] }), await run(1, 10, { responseMs: 50000, measurementValid: false })];
+      same(none.map((r) => v.runStatus(r, { quantity: 10 }).status), ['error', 'censored'], 'the two runs are judged, not valid');
+      same(m.refS('x', () => ({ report: { runs: none } })), null, 'a batch error and a measurement that is not valid: no valid run');
+      const mixed = {
+        runs: [await run(0, 10, { responseMs: 10000, tenthReadyMs: 9000, errors: [sampling] }), await run(1, 6, { responseMs: 115000 }),
+          await run(2, 10, { responseMs: 30000, tenthReadyMs: 29000 }), await run(3, 10, { responseMs: 999000, errors: [batch] })],
+      };
+      same(mixed.runs.map((r) => v.runStatus(m.withoutSampling(r), { quantity: 10 }).status), ['valid', 'valid', 'valid', 'error'], 'three valid runs (one short of ten, one with a sampling entry) and a batch error');
+      same(m.refS('x', () => mixed), 30, 'the median of 10, 30 and 115 s (the short valid request counts, the batch error does not)');
+      same(m.refS('x', () => ({ report: mixed })), 30, 'the lookup may return the report itself or { path, report }');
+    },
+  },
+  {
+    name: 'price: the inputs are checked',
+    async run() {
+      const { m } = await matrixKit();
+      const proc = { type: 'process', durationsS: [60], reserveS: 120 };
+      /** @param {() => unknown} fn @param {string} text @param {string} what */
+      const refuses = (fn, text, what) => assert(thrownBy(fn).includes(text), `${what}: ${thrownBy(fn) || 'did not throw'}`);
+      refuses(() => m.stepPrice({ type: 'rows', rows: 0, rowS: 55, rowLimitS: 260 }), 'rows must be a positive integer', 'a step of no rows is never priced');
+      refuses(() => m.stepPrice({ type: 'rows', rows: 1.5, rowS: 55, rowLimitS: 260 }), 'rows must be a positive integer', 'a fraction of a row');
+      refuses(() => m.stepPrice({ type: 'rows', rows: 1, rowS: Number.NaN, rowLimitS: 260 }), 'rowS must be a positive number', 'a row time that is not a number');
+      refuses(() => m.stepPrice({ type: 'blocks' }), 'unknown step type "blocks"', 'an unknown type');
+      refuses(() => m.stepPrice(/** @type {any} */ (null)), 'unknown step type', 'no step');
+      refuses(() => m.stepPrice({ ...proc, horizonS: 300 }), 'horizonS must be at most 285', 'a horizon the runner never uses');
+      refuses(() => m.stepPrice({ ...proc, durationsS: [] }), 'needs at least one duration', 'a step of no items');
+      refuses(() => m.stepPrice({ ...proc, durationsS: [60, 0] }), 'durationsS[1] must be a positive number', 'an item of no time');
+      refuses(() => m.stepPrice({ ...proc, reserveS: 0 }), 'reserveS must be a positive number', 'a reserve of 0 admits everything');
+      refuses(() => m.simulateItems({ groups: [] }), 'groups must be a non-empty list', 'no group');
+      refuses(() => m.simulateItems({ groups: [{ kind: 'v4-select', variant: 'v4', lanes: 0, reserveS: 120, durationsS: [1] }] }), 'lanes must be a positive integer', 'no lane');
+      refuses(() => m.price(/** @type {any} */ ('x')), 'price needs a list of steps', 'steps that are no list');
+      refuses(() => m.projectedRowS(/** @type {any} */ ({ refS: undefined, factor: 1, rowLimitS: 260 })), 'refS must be a positive number', 'a missing reference time is not null');
+      refuses(() => m.projectedRowS({ refS: 40, factor: 0, rowLimitS: 260 }), 'factor must be a positive number', 'a factor of 0');
+      refuses(() => m.approvalFields({ roundCountedSBeforeApproval: -1, requestedAdditionalGuardS: 10 }), 'roundCountedSBeforeApproval must be a number from 0', 'a negative time already spent');
+      refuses(() => m.approvalFields(/** @type {any} */ ({ roundCountedSBeforeApproval: 600 })), 'requestedAdditionalGuardS must be a number from 0', 'a missing guard');
+      same(m.price([]).admissible, true, 'an empty list is priced at zero');
     },
   },
 ];

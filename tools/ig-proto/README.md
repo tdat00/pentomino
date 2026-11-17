@@ -2029,11 +2029,89 @@ generates or reads a measured row of the round (unlocked). `self-test.mjs` loads
   `reachingTen` those of them that reach ten, `activated` is `reachingTen >= 3`; a missing or invalid run is never a completion.
 - **Readers.** T11c compiles the plans from the groups (and takes `controls` from `controlsFrom`), T11e activates the initial
   collection from them (and reads `conditionalActivated`) and T11f resolves the comparators and writes the verdict inputs from the
-  expansion; T11b reads the same reports for `refS` through `withoutSampling`; T11b, T11g and the other tasks of the group extend
-  this section.
+  expansion; T11b's pricing (the subsection below) reads the same reports for `refS` through `withoutSampling`; T11g and the other
+  tasks of the group extend this section.
 - **Self-test** (`--items`, unlocked, synthetic: the data file and copies of it, T09a's `newRunRecord` rows): `matrix: a screen class
   with a headline and a control`, `every validated cell has its fallback`, `the comparator keeps the frozen prior`, `a later prior
   change on 14x14 and 24x24`, `dedupe`, `controls from the reports` (with a cell whose runs carry sampling entries only, a cell
   whose runs also carry a `batch` error, and `withoutSampling` itself), `row limits by group`, `disjoint state paths`,
   `collections`, `conditional activation`, `counts` (worked by hand), `the data file` (the recipe, the reps against the fitting
   seeds, the catalogue, the variants) and `the inputs and the data are checked`.
+
+### Pricing (V4-T11b)
+
+The owner approves the frozen round by its price (OD-P10), so the price is the schedule that will execute: one emitted step at a time
+(a separately emitted locked step never shares an invocation or a quiet period, R15, R2-12), under the admission rules, lanes, cut and
+quiet periods of the runners, with the observations it predicts completed and censored, a hard ceiling from the bounds the code enforces
+beside the projection, and the fields with which the orchestrator asks the owner for a cumulative cap. Everything is a pure export of
+`manifest.mjs` (unlocked): nothing in it executes any part of the round, and a number is never adjusted to look smaller.
+
+- **The rules simulated.** *Request rows* (`arm.mjs`, the row loop): a row starts while `e + rowLimitS + 10 <= H`. *Bounded items*
+  (T04a `runItems` and `lanes.mjs`): consecutive items of one kind and variant form a group run on `ITEM_LANES[kind]` lanes (1 for any
+  other kind); a group starts only when its first item is admitted at the current time (`e + reserveS <= H - 15`); each item starts on
+  the earliest free lane while `t + reserveS <= H - 15`; an item that is not admitted ends the invocation after the group has drained;
+  a completed group drains before the next starts; an item still running at the cut `H - 15` is stopped there and ends `censored` (never
+  re-run: T04a's `resumePlan` treats an ended item as done); the margin of 15 s covers the kill and the close. *Process and custom
+  items* (T10b, T10c): one at a time, admitted while `e + reserveS <= H - 15`, cut at `H - 15`. The horizon of an invocation is `H` = 285 s
+  (`lib/budget.mjs`: `MAX_HORIZON_S`, which `decide` lowers only when the allowance is short) and one quiet period of 45 s per invocation
+  (`QUIET_S`; `run-task.ps1` counts `node + min(lock wait, 45)` and its dry-run forecast adds `projectS + 45 x invocations` per locked
+  step).
+- **The overhead assumptions** (the pack author's, D-V4-13; a manifest prints them): 2 s of start-up per invocation (`startupS`) and
+  3 s per item group for its lanes and trees (`groupStartS`). A request row takes `projectedRowS` (R15's planning projection, not a bound);
+  an item takes the mean measured seconds of its kind and variant (T11c reads them from the item logs), else its reserve. The row margin
+  of 10 s and the time a row takes after its limit are assumptions too: no code enforces them as a deadline (RV4-05). `PRICING` holds
+  these values and the bounds below as data (the simulations read them; no task names the export yet).
+- **A reserve is never a duration or a ceiling** (RV3-05, RV4-05): it controls admission only. The hard ceiling of a step comes from the
+  bounds the code enforces: the lock helper kills an invocation at 300 node seconds and `run-task.ps1` counts at most 45 quiet seconds per
+  invocation; an invocation that records no progress stops the plan (`run-task.ps1`), so every invocation that does not stop it ends at
+  least one unit (a row, or an item: its first admitted item completes or is censored at the cut, and an ended item never runs again).
+  A step of `units` rows or items has therefore at most `units` invocations: `ceilingInvocations = units` and `ceilingS = units x 345`.
+  A request row has no enforced end inside an invocation (`arm.mjs` only admits it; `calibrate.mjs` cuts the request, then the parent
+  reads, validates and publishes without a bound), so no tighter row ceiling is claimed. A step of zero units is never emitted (T11c) and
+  is refused here. The step's guard, `1.25 x countedS` (the runner's 1.25 x allocation), is a budget, not a promise that every
+  observation completes.
+- **The begin line adds no timed run** (IG-P-Q37, point 5): it is one `appendFileSync` after O(board area + pieces) arithmetic before each
+  rating and count (T02d), inside the durations the pricing reads (T04e's items ran with it); the work-interval rule adds none either.
+- **Projection inputs.** `refS(caseId)` is the median of `responseMs / 1000` over the valid `generation` runs of the cell's MP12b1 report
+  (`mp12b1Report`): `runStatus` of `withoutSampling(run)`, the landscape's sampling entries being set aside (ruling of 2026-11-17,
+  T11a's QUESTION 1; a valid request that stops short counts, whatever its puzzles); `null` without a report or without a valid run. An
+  optional second argument, a lookup function like `mp12b1Report`, is the self-test's seam. `factor()` is `summary.medianRatioBase` of
+  `evidence/frozen/V4-T04/identity.json` (read only; 1.0236 today), 1 when the file is absent (the manifest says so), and a present file
+  without a positive value throws. `projectedRowS({ refS, factor, rowLimitS })` is `1.25 x factor x refS`, or `rowLimitS` when `refS` is
+  `null`; it is not clamped (the simulation cuts the row).
+- **`simulateRows({ rows, rowS, rowLimitS, horizonS = 285, startupS = 2 })`**: invocations until every row ran; in each, `e = startupS`, and
+  while rows remain and `e + rowLimitS + 10 <= horizonS`: `e += min(rowS, rowLimitS + 10)` (a row with `rowS > rowLimitS` is cut by the
+  runner and counted `censored`, else `completed`); the invocation's `nodeS` is its final `e`. An invocation that admits no row returns
+  `{ admissible: false, reason: 'a row of <rowLimitS> s does not fit a horizon of <horizonS> s' }`; else `{ admissible: true,
+  invocations: [{ rows, nodeS }], nodeS, quietS: 45 x invocations, countedS: nodeS + quietS, guardS: 1.25 x countedS, completed, censored }`.
+- **`simulateItems({ groups, horizonS = 285, startupS = 2, groupStartS = 3, cutMarginS = 15 })`**: `groups` in order, each `{ kind, variant,
+  lanes, reserveS, durationsS }`. Per invocation `e = startupS`; for each group with items left: if `e + reserveS > horizonS - cutMarginS`
+  the invocation ends; else `e += groupStartS`, every lane is free at `e`, and the items left are placed in order, each on the lane that
+  is free first at time `t` while `t + reserveS <= horizonS - cutMarginS`; it runs to `t + durationsS[i]`, and when that is past the cut
+  it ends at the cut, `censored` (else `completed`); at the first item not admitted the group stops placing; `e` becomes the latest lane
+  end (the drain); a group with items left ends the invocation, a finished group passes on to the next. `nodeS` of an invocation is its
+  final `e`; its entry is `{ items, nodeS }`. An invocation that places no item returns `{ admissible: false, reason: '<kind> needs
+  <reserveS> s; the horizon <horizonS> s admits none' }`: never a forced item, and the whole step is then not priced.
+  `simulateProcess({ durationsS, reserveS, horizonS, startupS })` is `simulateItems` with one group of one lane (kind `process`) and
+  `groupStartS` 0.
+- **`stepPrice(step)`** for an emitted step `{ type: 'rows' | 'items' | 'process', ... }` (the simulation's input as its fields; any other
+  field, T11c's `cases`, is ignored) returns `{ admissible, projectS: nodeS, invocations, quietS, countedS, guardS, ceilingS,
+  ceilingInvocations, completed, censored, schedule }`: `invocations` is the **count** of locked invocations (the `45 x invocations` of
+  `run-task.ps1`'s forecast and of T11c's `allocationMinutes`), `schedule` the simulation's per-invocation list, `ceilingS = units x 345`
+  with `units` the rows, the items of all groups or the durations. An inadmissible step is `{ admissible: false, reason }`: no invocation
+  is priced. **`price(steps)`** is the sum of the step prices over the same fields, `steps` listing each step price and `inadmissible`
+  (`[{ index, reason }]`) the steps that are not priced; with any such step `admissible` is false, the plan is not priceable and its totals
+  cover the priced steps only (never the plan's price). **`approvalFields({ roundCountedSBeforeApproval, requestedAdditionalGuardS })`**
+  echoes both inputs and adds `requestedCumulativeRoundMinutes = ceil((roundCountedSBeforeApproval + requestedAdditionalGuardS) / 60)`
+  (RV2-13, D-V4-02: the round has one cumulative cap, `roundLimitS('frozen')` is 0 and each approval adds minutes; prior invocation records
+  are never deleted or reset).
+- **Inputs are checked** (fail closed, `manifest: <name> must be ...`): a count of rows or a lane count that is not a positive integer, a
+  time, reserve or duration that is not a positive number, a horizon above 285 (the ceiling rests on the runner's bounds), an empty list of
+  groups or durations, an unknown step type, a negative or missing approval input and a `refS` that is neither `null` nor a positive number.
+- **Readers.** T11c emits each step's `price` input and takes `projectS` and `invocations` from `stepPrice` (and `rowS` from
+  `projectedRowS`); T11g prices each step of the plans and the universe with `stepPrice` and asks each approval with `approvalFields`.
+- **Self-test** (`--items`, unlocked, pure): `price: rows, one per invocation at 260 s`, `rows at 130 s`, `two sequential 120-s process items
+  fit one invocation`, `a 200-s process item with a 120-s reserve`, `an item past the cut is censored`, `two lanes differ from one` (with
+  unequal durations, so that the earliest free lane is told from round-robin), `two separately emitted steps`, `an inadmissible group`,
+  `groups run in order and drain`, `approval fields`, `projection label and fallback` (with `factor()`), `refS reads the timed runs` (on
+  18x18 Nightmare's real MP12b1 report, whose 20 runs carry sampling entries only, and on synthetic reports) and `the inputs are checked`.

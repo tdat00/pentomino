@@ -172,13 +172,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 19:28:10 +07:00 (dispatch, base `2838991`) to 19:47:17 +07:00 (acceptance): 19 min 7 s; the developer's own times 19:27:54-19:42:17 |
+| Waiting for rulings | about 2 min (SA-Opus's review, 19:44-19:46; no QUESTION) |
+| Agent id, model | `40566a55-0a27-47a2-9847-91e9e7a09518`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 81 calls; 15,842,284 input, 100,870 output, 15,560,128 cache-read |
+| AI credits | 327.00 |
+| Questions and rulings | none from the developer. SA-Opus ruled "accept T11b": the real-matrix price (3,604 counted minutes) is real and conservative for the matrix and harness as built (one 260-s row per invocation under the 300-s helper, 1,224 quiet periods of 45 s = 918 min; rows at 1.25 x factor x today's median); no owner or supervisor question now, because plan §5.1 makes the price an indication that the owner approves at T11g's stop (OD-P10), in stages; the 320 predicted censored twins are capped at their 130-s limit and change nothing. T11g sections 7 and 8 now state the price's assumptions and causes; deviations, readings and named items accepted; pack amendment `b612c32` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--items`: 150 passed, 0 failed (22.38 s; `price:` cases 138-150); `--frozen`: 10 passed; `check-edits --all`: 34 `ok`, no other line; firewall `check` (V4-T11b): 289 production files unchanged; `git status --short -- core generator tests tools/bench tools/ig-proto/variants tools/ig-proto/lib tools/ig-proto/data tasks`: empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. Real-matrix price (developer, read-only): 1,224 invocations, counted 216,240.5 s = 3,604 min (stage 2 512.5, stage 4 3,091.6; required set 2,440.5), guard 4,505 min, ceiling 11,155 min. No locked command and no machine time |
+| Commit | this task's commit, `improve-generating T11b: Frozen-round pricing: the simulated schedule and the approval fields` |
+| Issues and named items | The frozen-round price is about 60 counted hours against the plan's 3.4 to 4.2 h stage-4 indication; the owner was told at 19:44 (no question) and decides at T11g's stop. Not modelled: the runner lowers the horizon near the cap (the price assumes 285 s) |

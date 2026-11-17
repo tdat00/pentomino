@@ -50,7 +50,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 - [x] T10b Kernel probe: the `fewestColumn` attribution under a reduced-inlining profile (depends on T10a)
 - [x] T10c Pool probe: one rating's time at 1, 2, 4 and 8 concurrent workers (depends on T10b)
 - [x] T11a Frozen-round matrix: the enumerated requests of stages 2 to 5 and their collections (depends on T10c)
-- [ ] T11b Frozen-round pricing: the simulated schedule and the approval fields (depends on T11a)
+- [x] T11b Frozen-round pricing: the simulated schedule and the approval fields (depends on T11a)
 - [ ] T11c Frozen-round plans: the compiler, the isolated P-0 manifest and the prerequisites gate (depends on T11b)
 - [ ] T11d Parity and P-0 receipts with required passes, and their accepted bindings (depends on T11c)
 - [ ] T11e Stage-4 collections: the activation, the concrete validation plan and the closure record (depends on T11d)
@@ -511,8 +511,8 @@ directory once both `$env:TEMP\dv3-sudoku.lock` and `$env:TEMP\dv3-timing.lock` 
 | T10a | 2026-11-17 16:21 | 2026-11-17 17:52 | 1 h 31 min | 691.24 (409.16 for the failed session + 282.08) | `3c3e006` |
 | T10b | 2026-11-17 17:54 | 2026-11-17 18:22 | 28 min | 517.63 | `2712614` |
 | T10c | 2026-11-17 18:22 | 2026-11-17 18:57 | 34 min | 465.95 | `2ed2901` |
-| T11a | 2026-11-17 18:58 | 2026-11-17 19:27 | 29 min | 608.09 | this task's commit |
-| T11b | | | | | |
+| T11a | 2026-11-17 18:58 | 2026-11-17 19:27 | 29 min | 608.09 | `2838991` |
+| T11b | 2026-11-17 19:28 | 2026-11-17 19:47 | 19 min | 327.00 | this task's commit |
 | T11c | | | | | |
 | T11d | | | | | |
 | T11e | | | | | |
