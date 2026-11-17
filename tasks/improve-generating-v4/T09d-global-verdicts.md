@@ -27,9 +27,12 @@ pass only on a final collection.
   the shipped arm: `fail`; three or more valid rows that do not reach ten: `fail` (plan §5.1 "Stopping": the verdict is
   settled at the third failure); a failing Nightmare cell with a dead-end entry in a valid row (a journal `phase` line
   `p2`, the frozen phase-2 entry, which the prototype journals under the same name): `fail`; a declared rep without a
-  valid row, or (failing cell) a valid row without its journal: `incomplete`; a control: `noRegression` (today over
-  after, T09b) on the declared reps fails: `fail`, and today's arm lacks a valid row: `incomplete`; else `pass` (at
-  least 18 of 20 reach ten). Deadline violations and the p95 are reported beside the gate.
+  valid row, or (failing cell) a valid row without its journal: `incomplete`; a control: a problem of `pairRows(rows,
+  todayRows, reps)` (T09b; A the shipped arm, B today's), today's arm lacking a valid row at a declared rep among them:
+  `incomplete`, before any statistic (`noRegression` throws on a rep without a pair; ruling of 2026-11-17, T09b's
+  report); else `noRegression(ratiosOf(pairs, reps, { quantity, capMs }), reps, { resamples, resampleSeed })` (today
+  over after) with `pass` false: `fail`; else `pass` (at least 18 of 20 reach ten). Deadline violations and the p95
+  are reported beside the gate.
 - Master identity (RV2-08, RV3-08), per declared rep: a missing or non-valid row on either side is `incomplete` (an
   `incorrect` row `fail`); a side whose `puzzleEvidence(run).keys` (T09a) is not `null` is `incomplete` (`puzzle keys
   <side> rep <r>: <problem>`): equal empty or short key lists are never equality; then `acceptedCount` equal and the
@@ -110,6 +113,7 @@ All in `tools/ig-proto/self-test.mjs --items`, pure.
 | `verdicts: a selection is not a final admission` | otherwise green inputs with `purpose: 'selection'` and `p5` with no declared pair; then the same with one failing cell | `incomplete`, first deciding reason `uncapped comparator collection pending`; then `fail` |
 | `verdicts: final admission needs the whole comparison` | purpose `final`, everything else passing: (a) `p5` declares 20 reps of one cell and one is unknown; (b) all 20 known with 1 lost completion | (a) `incomplete`; (b) `pass` (the loss is reported, not a threshold) |
 | `verdicts: dead ends` | journal lines with `phase` lines `p1`, `p2` (call `x`), `p2` (call `x`), `p2` (call `y`) | `deadEnds` 2 |
+| `verdicts: the control gate` (ruling of 2026-11-17, T09b's report) | `cellGate('control', rows, { reps: [0, ..., 19], quantity: 10, capMs: 120000, responseBoundMs: 120000, todayRows, journals: {}, resamples: 1000, resampleSeed: 7 })` with `rows` the ingested `row(r, 's' + r, { accepted: 10, tenth: 40000 })` for reps 0 to 19 and `todayRows` the same with (a) `tenth: 40000`; (b) `tenth: 30000`; (c) (a) without rep 7 | (a) `pass`, `noRegression.lower` 1 (within 1e-12); (b) `fail`, `noRegression.lower` 0.75 (within 1e-12); (c) `incomplete` with the reason `missing row: side b rep 7`, no exception, `noRegression` `null` |
 
 ## Documentation
 
@@ -146,6 +150,7 @@ All in `tools/ig-proto/self-test.mjs --items`, pure.
 |---|---|---|---|
 | T09d-T01 | Hell 1 reported, dead ends counted, the projection labelled and typed | cases 4, 5, 9 | self-test output |
 | T09d-T02 | Nothing else changed; formats | guards; `npm run check` | command output |
+| T09d-T03 | A control gate judges no regression only on complete pairs: a missing today's row is `incomplete`, never an exception or a pass | case `verdicts: the control gate` | self-test output |
 
 ## Checklist (the developer confirms every item in the final report)
 

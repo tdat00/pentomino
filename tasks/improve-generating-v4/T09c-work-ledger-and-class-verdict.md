@@ -65,7 +65,7 @@ on T09b's statistics.
 
 ## Scope
 
-- Change: `tools/ig-proto/verdicts.mjs` (steps 1 and 2), `tools/ig-proto/self-test.mjs` (cases appended to
+- Change: `tools/ig-proto/verdicts.mjs` (steps 1, 2 and 2b), `tools/ig-proto/self-test.mjs` (cases appended to
   `--items`), `tools/ig-proto/README.md` (T09a's section).
 - Do not change: everything else. Guards: `node tools\ig-proto\firewall.mjs check --task V4-T09c --label frozen`,
   expected `files unchanged`; `git status --short -- core generator tests tools/bench tools/ig-proto/variants`,
@@ -147,6 +147,10 @@ on T09b's statistics.
    else `admitted`. Returns `{ verdict: 'admitted' | 'failed' | 'inconclusive', decidedBy, clue, faster, work,
    evidence, completion: { [cell]: { screen, noScreen } }, problems }` (`decidedBy` `null` for `admitted`; `screen`
    and `noScreen` are the two counts of rule 8).
+2b. **A guard in T09a's `reachedTen`** (ruling of 2026-11-17, T09b's report: without it a missing `quantity` reads
+   every row as "never reached ten"): its first statement becomes `needPositive('quantity', quantity, true);`, so that
+   `reachedTen` and `cappedT10` (which calls it) throw on a missing or invalid `quantity`, as `runStatus`, `completion`
+   and `ratiosOf` already do; the README's "Fail closed beyond the table" bullet says so.
 3. **Self-test** cases appended to `--items` (Tests table; through `const { v, row } = await verdictKit()`, as in
    T09b).
 4. **README.md**: T09a's section gains the ledger's rules (the interval of IG-P-Q37, the ten rules), the work rule
@@ -195,6 +199,7 @@ helper (`const { v, row } = await verdictKit()`) builds rows; `synthClass(spec)`
 | `class: the faster rule` | every screen row with `tenth: 45000` | `failed`, `faster` |
 | `class: the work rule` | every screen ledger `lo: 110, hi: 110`; then every screen ledger `lo: 90, hi: 120` | `failed`, `work`; then `inconclusive`, `work-unknown` |
 | `class: a faster screen arm failing a cell gate` | `screenCellGate` `'fail'` on cell `b`; then `'incomplete'` | `failed`, `cell-gate`; then `inconclusive`, `cell-gate` |
+| `class: a missing quantity throws` (ruling of 2026-11-17, T09b's report) | `r = row(0, 's0', { accepted: 10, tenth: 30000 })`: `v.reachedTen(r.run, {})`, `v.cappedT10(r.run, { capMs: 120000 })`, then `v.reachedTen(r.run, { quantity: 10 })` | the first two throw a `RangeError` whose message names `quantity`; the third is `true` |
 
 ## Documentation
 
@@ -235,6 +240,7 @@ helper (`const { v, row } = await verdictKit()`) builds rows; `synthClass(spec)`
 | T09c-T02 | Tasks match their calls by identity | cases 3 and 15 | self-test output |
 | T09c-T03 | The deciding conditions in their order | the class cases | self-test output |
 | T09c-T04 | Nothing else changed; formats | guards; `npm run check` | command output |
+| T09c-T05 | `reachedTen` and `cappedT10` refuse a missing `quantity` instead of reading every row as "never reached ten" | case `class: a missing quantity throws` | self-test output |
 
 ## Checklist (the developer confirms every item in the final report)
 
