@@ -92,10 +92,10 @@ worker termination, confirmed only when the termination has completed.
    selection reason, or a pre-selection reason such as `carve` or `layout`); `link-13` records every termination;
    `link-15` and `link-16` give each completion task and its call the same identity. `layout` and `entry` in
    `link-12` are the constants of the dispatch loop the callback closes over (`generation-client.js:1047-1048`).
-3. **`linkage.mjs`**: `linkSummary(lines, pool)` also returns `setCompletes`, `completionDispatches`,
-   `completionCompletes`, `workerEndRequests`, `workerEnds`, `workerEndFailures` (the counts of those lines) and
-   `completionKeyMismatches` (the `completion-complete` lines whose string `valueKey` differs from `key`); the report's
-   verdict is `linkage: fail` also when a row has a key mismatch.
+3. **`linkage.mjs`**: `linkSummary(lines, pool)` (T06a: the totals at the top level, `batches` per batch) also returns,
+   at the top level, `setCompletes`, `completionDispatches`, `completionCompletes`, `workerEndRequests`, `workerEnds`,
+   `workerEndFailures` (the counts of those lines) and `completionKeyMismatches` (the `completion-complete` lines whose
+   string `valueKey` differs from `key`); the report's verdict is `linkage: fail` also when a row has a key mismatch.
 4. **Self-test** cases appended to `--items` (Tests table); **README.md**: T06a's section gains the closure lines,
    the confirmed termination and the completion identity.
 

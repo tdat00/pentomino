@@ -131,7 +131,9 @@ this task keep the name `V4-T06`.
    --source-label <SL>`): for each arm, every `*.link.jsonl` under `artifactDir(label, task, arm)/<shard>/logs/`, and
    the arm's published rows (`evidence/<label>/<task>/<arm>/*.runs.json`). Export `export function linkSummary(lines,
    pool)` returning, per batch, `{ dispatched, completed, consumed: { accepted, rejected, fail: { <reason>: n } },
-   discarded: { done, inflight }, awaits, awaitMs, idleWorkerMs, problems: [] }`. An await period runs from an
+   discarded: { done, inflight }, awaits, awaitMs, idleWorkerMs, problems: [] }` (ruling of 2026-11-17: one object
+   whose fields are the totals over the lines' batches, equal to the batch's for a single batch, with `batches`, the
+   same object for each batch apart). An await period runs from an
    `await` line to the first of the `consume` line of the same slot and attempt and the batch's `end` line (a
    discard or an abort does not end it; the wait counts up to the end); `awaitMs` is the total of the periods;
    `idleWorkerMs` is the sum over the periods of `(pool - inflight) x dt`, `inflight` stepping at every `dispatch` and
