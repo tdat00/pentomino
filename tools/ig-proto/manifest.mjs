@@ -12,13 +12,16 @@
 // are its commands, unlocked and write-once, run only on the owner's decision), V4-T11f the comparators and the verdict inputs (below
 // the collections: the expectation of a class-selection receipt, the resolution of the comparator template into the plan `V4-S4C`
 // from a final selection, and the selection and final verdict manifests; `resolve-comparators` and `verdict-input` are its commands,
-// unlocked) and V4-T11g the manifest for the owner.
+// unlocked) and V4-T11g the manifest for the owner (below the comparators: `manifestOf` and its Markdown, the pure `approvalFor`, and the
+// commands `price` and `approval`, unlocked; nothing here runs a plan).
 //   node tools\ig-proto\manifest.mjs compile --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\manifest.mjs check-prerequisites --plan V4-LIVE --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\manifest.mjs activate --collection initial [--approve-optional S4-6] --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\manifest.mjs close --collection initial --reason "<text>" --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\manifest.mjs resolve-comparators --selection <receipt> --activation <record> --out <plan> --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\manifest.mjs verdict-input --purpose <selection|final> --activation <record> [--selection <receipt>] --out <manifest> --label frozen --source-label "frozen 3fc65f4"
+//   node tools\ig-proto\manifest.mjs price --label frozen --source-label "frozen 3fc65f4"
+//   node tools\ig-proto\manifest.mjs approval --plan <id> [--after <ids>] [--optional] --label frozen --source-label "frozen 3fc65f4"
 //
 // The row-level readings (`runStatus`, `reachedTen`) are those of verdicts.mjs, which loads the frozen source when it is
 // imported: self-test.mjs therefore loads this module on first use, as it does verdicts.mjs.
@@ -27,11 +30,12 @@ import { isAbsolute, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 
+import { readInvocations, totals } from './lib/budget.mjs';
 import { ITEM_LANES, readItemLog } from './lib/items.mjs';
 import { DEFAULT_LIMITS } from './lib/lanes.mjs';
 import { abs, artifactDir, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, mp12b1Report, parseArgs, rel } from './lib/paths.mjs';
 import { checkAccepted, LIVE_DEADLINE_FIELDS, proofCheck, readRepoFile } from './lib/proof.mjs';
-import { harnessInfo, sha256, sha256File, sha256Text, writeJson } from './lib/records.mjs';
+import { banner, buildMeta, harnessInfo, lf, sha256, sha256File, sha256Text, writeJson, writeText } from './lib/records.mjs';
 import { loadCatalogue } from './lib/sets.mjs';
 import { ensureTree, listVariants } from './lib/tree.mjs';
 import { parseCases, rowKey } from './arm.mjs';
@@ -2706,18 +2710,1045 @@ export async function verdictInputCommand(argv, io = {}) {
   }
 }
 
+// ---- The manifest for the owner (V4-T11g) ----
+// The owner approves the frozen round only as a separately priced, staged manifest made after source preparation (OD-P10, plan 5.1
+// "Budget"). `manifestOf` is its pure core: it prices nothing itself (it applies T11b's `stepPrice` to the price input of every step and
+// group that T11c compiled), keeps the unbounded items (stage 5, the browser parts) unpriced with the item that prices them (RV3-05) and
+// asks each approval with RV2-13's three fields (`approvalFor`). `price` reads the records and writes `manifest.json` and `manifest.md`;
+// `approval` re-reads the counted time spent and prints one request. Unlocked: nothing here runs a plan, a rating, a pool or a measurement.
+
+/** The evidence task of the manifest (`evidence/frozen/V4-T11/`). */
+const MANIFEST_TASK = 'V4-T11';
+/** The item that prices stage 5 and the one that prices the browser parts (RV3-05; N-V4-04, N-V4-01). */
+const STAGE5_PRICED_BY = 'N-V4-04';
+const BROWSER_PRICED_BY = 'N-V4-01';
+/** The horizon of the pre-T11h rules (the shared helper's 300-s limit less 15 s), used only to show what the same rows cost under them. */
+const BEFORE_HORIZON_S = 285;
+/** The plan's own indication of stage 4 (plan 5.1 "Budget"; `planQuotes` checks the text), in hours. */
+const PLAN_STAGE4_H = Object.freeze([3.4, 4.2]);
+/** The round's counted seconds that are in no invocation log: T10a's deleted scratch run (register, ruling of 2026-11-17 on T10a's report: 10.4 s of node and 45 s of quiet). */
+const OFF_LOG_ROUND_S = 55.4;
+/** The words that every cumulative request after the first carries (RV2-13). */
+const ASSUMES = 'assumes each earlier approval is spent to its guard; re-read when asked';
+/** The browser parts' planning factor, projected only (T11g step 1): the calibration measures the real one (N-V4-01). */
+const BROWSER_FACTOR = 4.5;
+/** B-1's Node part (the frozen `base` tree) and B-2's Generator-page cells; 26x26 exceeds the Generator's 484-cell limit (DR-O16). */
+const BROWSER_NODE_CELLS = Object.freeze(['10x10-nightmare', '12x12-nightmare', '26x26-nightmare', '14x14-master']);
+const GENERATOR_CELLS = Object.freeze(['10x10-nightmare', '12x12-nightmare', '14x14-master']);
+const BROWSER_REPS = Object.freeze([0, 4]);
+const BROWSER_ROW_LIMIT_S = 260;
+const BROWSER_SERVER = 'node tools\\serve.mjs --root tests\\artifacts\\ig-proto\\frozen-source --port 8091 --prefix /pentomino/';
+const BROWSER_URL = 'http://127.0.0.1:8091/pentomino/tools/bench/index.html';
+/** Stage 5's PM1 indication: 10 sets x 3 layouts x 2 orders of families per cell at four lanes, and C4's factor over the canonical times of PM4. */
+const PM1_FAMILIES_PER_CELL = 10 * 3 * 2;
+const PM1_LANES = 4;
+const C4_FACTOR = 1.25;
+/** The when-priced text of each plan that has no file yet, for `approval` (V4-S4 and V4-S4X at their activation, V4-S4C and V4-S4XC at their resolution). */
+const PRICED_LATER = Object.freeze({ 'V4-S4': 'activation', 'V4-S4C': 'resolution', 'V4-S4X': 'activation', 'V4-S4XC': 'resolution' });
+/** The risks of plan section 8 that bear on the price, by the bold words that open them. */
+const PRICE_RISKS = Object.freeze([
+  'Small samples.', 'Browser against Node.', 'A per-call budget can lose completions.', 'A screen class can come out inconclusive.', 'A second validation is possible',
+]);
+/** The named items that unblock the plans (check-list 6), as the manifest says them. */
+const NAMED_ITEMS = Object.freeze({
+  'N-V4-03': 'stage 3, the freeze: the four stage-4 variants and `docs/improve-generating/evidence/frozen/V4-S3/freeze.json`',
+  'N-V4-13': 'the live request deadline in the prototype and the live-deadline receipt (`tools/ig-proto/live-deadline.mjs`, its accepted binding)',
+  'N-V4-04': 'stage 5 (separately approved) and the second validation: its bounded schedule, its price and its adoption record',
+  'N-V4-01': 'the browser calibration: the runner of its browser parts, enumerated and priced',
+});
+
+/** @param {number} n @param {number} [digits] @returns {string} The number with thousands separators and fixed decimals (en-US). */
+const fmtN = (n, digits = 1) => n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+/** @param {number} s @returns {string} Seconds as minutes with one decimal. */
+const minOf = (s) => fmtN(s / 60);
+/** @param {number} s @returns {string} Seconds as hours with one decimal. */
+const hoursOf = (s) => fmtN(s / 3600);
+
 /**
- * @param {string[]} argv `compile ...`, `check-prerequisites ...`, `activate ...`, `close ...`, `resolve-comparators ...` or `verdict-input ...`
+ * RV2-13's approval request (D-V4-02): the round has one cumulative cap, so a request states the counted seconds already spent, the guards
+ * of the earlier approvals it assumes spent, the additional guard it asks for and the cumulative cap in minutes that covers all of them.
+ * @param {{ spentS: number, earlierGuardS: number[], guardS: number }} o
+ * @returns {{ spentS: number, assumedEarlierGuardS: number, roundCountedSBeforeApproval: number, requestedAdditionalGuardS: number,
+ *   requestedCumulativeRoundMinutes: number }}
+ */
+export function approvalFor({ spentS, earlierGuardS, guardS }) {
+  fromZero('spentS', spentS);
+  if (!Array.isArray(earlierGuardS)) {
+    throw new TypeError('manifest: earlierGuardS must be a list of guards');
+  }
+  const assumedEarlierGuardS = earlierGuardS.reduce((sum, guard, i) => sum + fromZero(`earlierGuardS[${i}]`, guard), 0);
+  return { spentS, assumedEarlierGuardS, ...approvalFields({ roundCountedSBeforeApproval: spentS + assumedEarlierGuardS, requestedAdditionalGuardS: guardS }) };
+}
+
+/**
+ * @param {{ task?: string, steps: { locked?: boolean, optional?: boolean, price?: any }[] }} plan A compiled plan.
+ * @param {{ optional?: boolean }} [options] `optional`: the optional steps' guard is added.
+ * @returns {number} The guard in seconds of the plan's locked steps (`1.25 x countedS` of each step's price); a step that is not
+ *   priceable throws.
+ */
+export function planGuardS(plan, { optional = false } = {}) {
+  if (!Array.isArray(plan?.steps)) {
+    throw new TypeError('manifest: a plan needs a list of steps');
+  }
+  const steps = plan.steps.filter((step) => step.locked === true && (optional || step.optional !== true));
+  const priced = price(steps.map((step) => step.price));
+  if (!priced.admissible) {
+    throw new Error(`manifest: ${plan.task ?? 'the plan'} has a step that is not priceable (${priced.inadmissible.map((i) => i.reason).join('; ')})`);
+  }
+  return priced.guardS;
+}
+
+/** @param {string} text @returns {string} The text as a regular expression source. */
+const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * The passages of the plan the manifest quotes (plan 5.1 "Stopping" and "Budget", the risks of section 8 that bear on the price and the
+ * replay-prefetch bullet of section 9), word for word with the wrapping lines joined by one space. A passage that is not found throws:
+ * a manifest never quotes from memory.
+ * @param {string} text The text of `docs/improve-generating/plan.md`.
+ * @returns {{ stopping: string, budget: string, risks: { title: string, text: string }[], prefetch: string }}
+ */
+export function planQuotes(text) {
+  const lines = lf(text).split('\n');
+  /** @param {RegExp} start @param {(line: string) => boolean} more @param {string} what @param {string[]} within @returns {string} */
+  const take = (start, more, what, within) => {
+    const at = within.findIndex((line) => start.test(line));
+    if (at < 0) {
+      throw new Error(`manifest: plan.md has no ${what}`);
+    }
+    const parts = [within[at].trim()];
+    for (let i = at + 1; i < within.length && more(within[i]); i += 1) {
+      parts.push(within[i].trim());
+    }
+    return parts.join(' ');
+  };
+  const paragraph = (/** @type {RegExp} */ start, /** @type {string} */ what) => take(start, (line) => line.trim() !== '', what, lines);
+  const bullet = (/** @type {RegExp} */ start, /** @type {string} */ what, /** @type {string[]} */ within) => take(start, (line) => /^ {2}\S/.test(line), what, within).replace(/^- /, '');
+  const from = lines.findIndex((line) => /^## 8\. Risks/.test(line));
+  const to = lines.findIndex((line, i) => i > from && /^## 9\. /.test(line));
+  if (from < 0 || to < 0) {
+    throw new Error('manifest: plan.md has no sections 8 and 9');
+  }
+  const risks = lines.slice(from, to);
+  const budget = paragraph(/^\*\*Budget\.\*\*/, 'Budget paragraph');
+  if (!budget.includes(`about ${PLAN_STAGE4_H[0]} to ${PLAN_STAGE4_H[1]} h`)) {
+    throw new Error(`manifest: plan.md's Budget paragraph no longer gives stage 4 as about ${PLAN_STAGE4_H[0]} to ${PLAN_STAGE4_H[1]} h`);
+  }
+  return {
+    stopping: paragraph(/^\*\*Stopping\.\*\*/, 'Stopping paragraph'),
+    budget,
+    risks: PRICE_RISKS.map((title) => ({ title, text: bullet(new RegExp(`^- \\*\\*${escapeRegExp(title)}`), `risk "${title}"`, risks) })),
+    prefetch: bullet(/^- \*\*Replay prefetch\.\*\*/, 'Replay prefetch bullet', lines.slice(to)),
+  };
+}
+
+/**
+ * Stage 5's indications (plan 5.1 stage 5, T11g step 1): each an indication, never a price. S5-1 and S5-2 are, per cell,
+ * `60 x` the mean probes per family of the cell in IGP-05's families `x` its mean probe `ms`, `/ 1000 / 4` (10 sets x 3 layouts x 2 orders at
+ * four lanes), over the Hell 1 and the Hell 2 cells of the catalogue; a cell with no family in the records has no indication (never an
+ * estimate). S5-3 is `1.25 x` the sum of `canonical.ms / 1000` of PM4's profiles; S5-4 is data only (0); S5-5 has none.
+ * @param {{ families: { case: string, probes: { ms?: number }[] }[], profiles: { canonical?: { ms?: number } }[], hell1: string[], hell2: string[] }} input
+ * @returns {{ id: string, text: string, basis: string, indicationS: number | null, cells?: { cell: string, families: number, probes: number,
+ *   meanProbesPerFamily: number | null, meanProbeMs: number | null, indicationS: number | null }[], unindicated: string[], lines?: number }[]}
+ */
+export function stage5Items({ families, profiles, hell1, hell2 }) {
+  if (!Array.isArray(families) || !Array.isArray(profiles) || !Array.isArray(hell1) || !Array.isArray(hell2)) {
+    throw new TypeError('manifest: stage 5 needs the families, the profiles and the two lists of cells');
+  }
+  /** @type {Map<string, { families: number, probes: number, msSum: number, msCount: number }>} */
+  const stats = new Map();
+  for (const family of families) {
+    const entry = stats.get(family.case) ?? { families: 0, probes: 0, msSum: 0, msCount: 0 };
+    entry.families += 1;
+    for (const probe of family.probes) {
+      entry.probes += 1;
+      if (typeof probe.ms === 'number' && Number.isFinite(probe.ms)) {
+        entry.msSum += probe.ms;
+        entry.msCount += 1;
+      }
+    }
+    stats.set(family.case, entry);
+  }
+  /** @param {string[]} cells */
+  const perCell = (cells) => cells.map((cell) => {
+    const s = stats.get(cell);
+    if (s === undefined || s.families === 0 || s.msCount === 0) {
+      return { cell, families: 0, probes: 0, meanProbesPerFamily: null, meanProbeMs: null, indicationS: null };
+    }
+    const meanProbesPerFamily = s.probes / s.families;
+    const meanProbeMs = s.msSum / s.msCount;
+    return { cell, families: s.families, probes: s.probes, meanProbesPerFamily, meanProbeMs, indicationS: PM1_FAMILIES_PER_CELL * meanProbesPerFamily * meanProbeMs / 1000 / PM1_LANES };
+  });
+  /** @param {{ indicationS: number | null }[]} cells */
+  const total = (cells) => cells.reduce((sum, c) => sum + (c.indicationS ?? 0), 0);
+  const basis = `${PM1_FAMILIES_PER_CELL} x the cell's mean probes per family x its mean probe ms / 1000 / ${PM1_LANES} (10 sets x 3 layouts x 2 orders, four lanes), over IGP-05's families`;
+  const one = perCell(hell1);
+  const two = perCell(hell2);
+  const timed = profiles.filter((p) => typeof p?.canonical?.ms === 'number' && Number.isFinite(p.canonical.ms));
+  const canonicalMs = timed.reduce((sum, p) => sum + /** @type {number} */ (p.canonical?.ms), 0);
+  return [
+    { id: 'S5-1', text: 'the PM1 Hell 1 cells with the failing-set work', basis, indicationS: total(one), cells: one, unindicated: one.filter((c) => c.indicationS === null).map((c) => c.cell) },
+    { id: 'S5-2', text: 'the Hell 2 cells of IGP-05, for the central share only', basis, indicationS: total(two), cells: two, unindicated: two.filter((c) => c.indicationS === null).map((c) => c.cell) },
+    {
+      id: 'S5-3', text: 'C4\'s counting', basis: `${C4_FACTOR} x the sum of canonical.ms / 1000 of the ${timed.length} profiles of PM4 (IGP-02)`, indicationS: C4_FACTOR * canonicalMs / 1000,
+      unindicated: [], lines: timed.length,
+    },
+    { id: 'S5-4', text: 'C3\'s capped-input features', basis: 'data only: no run', indicationS: 0, unindicated: [] },
+    { id: 'S5-5', text: 'further browser runs', basis: 'no indication: nothing of them is enumerated', indicationS: null, unindicated: [] },
+  ];
+}
+
+/**
+ * The browser calibration's Node part (RV1-21, T11g step 1): the frozen `base` tree on four cells, reps 0 to 4, a row limit of 260 s, each row at
+ * the planning projection of its cell; and the Generator-page cells of B-2.
+ * @param {{ factor: number, refSOf: (cell: string) => number | null }} o `factor` the identity factor; `refSOf` the MP12b1 median of a cell.
+ * @returns {{ factor: number, node: { cell: string, rows: number, rowS: number, rowLimitS: number, refS: number | null }[], generator: string[] }}
+ */
+export function browserInput({ factor: ratio, refSOf }) {
+  const rows = BROWSER_REPS[1] - BROWSER_REPS[0] + 1;
+  return {
+    factor: BROWSER_FACTOR,
+    node: BROWSER_NODE_CELLS.map((cell) => {
+      const reference = refSOf(cell);
+      return { cell, rows, rowS: projectedRowS({ refS: reference, factor: ratio, rowLimitS: BROWSER_ROW_LIMIT_S }), rowLimitS: BROWSER_ROW_LIMIT_S, refS: reference };
+    }),
+    generator: [...GENERATOR_CELLS],
+  };
+}
+
+/** @typedef {{ units: number, projectS: number, invocations: number, quietS: number, countedS: number, guardS: number, ceilingS: number, completed: number, censored: number }} PriceFields */
+/** @typedef {PriceFields & { count: number, countedMin: number, guardMin: number, ceilingMin: number }} PriceBlock */
+
+/**
+ * @param {PriceFields[]} list Step, group or block prices.
+ * @returns {PriceBlock} The sums; `ceilingMin` is the ceiling over 60, rounded up.
+ */
+function blockOf(list) {
+  /** @param {keyof PriceFields} key @returns {number} */
+  const sum = (key) => list.reduce((total, p) => total + p[key], 0);
+  const countedS = sum('countedS');
+  const guardS = sum('guardS');
+  const ceilingS = sum('ceilingS');
+  return {
+    count: list.length, units: sum('units'), projectS: sum('projectS'), invocations: sum('invocations'), quietS: sum('quietS'), countedS, guardS, ceilingS,
+    completed: sum('completed'), censored: sum('censored'), countedMin: countedS / 60, guardMin: guardS / 60, ceilingMin: Math.ceil(ceilingS / 60),
+  };
+}
+
+/** @param {any} p An admissible `stepPrice`. @returns {PriceFields} */
+const fieldsOf = (p) => ({
+  units: p.ceilingInvocations, projectS: p.projectS, invocations: p.invocations, quietS: p.quietS, countedS: p.countedS, guardS: p.guardS, ceilingS: p.ceilingS,
+  completed: p.completed, censored: p.censored,
+});
+
+/** @param {Step} step @returns {string} The step as the runner runs it (the labels, and for a locked step the horizon, are appended by `run-task.ps1`). */
+const commandOf = (step) => ['node', ...step.node].join(' ');
+
+/** @param {Step} step @returns {string} What the step is, for the totals by kind. */
+const stepKind = (step) => (step.price?.type === 'rows' ? 'request rows' : step.id === 'p0-v4' ? 'P-0 pass' : step.id.startsWith('parity-') ? 'P-1 passes' : 'probes');
+
+/** @param {any} input A step's price input. @returns {string} Where the seconds of its items come from. */
+function durationSourceOf(input) {
+  if (input?.type === 'rows') {
+    return 'planning projection';
+  }
+  if (input?.type === 'process') {
+    return input.durationSource ?? 'item logs';
+  }
+  return [...new Set((input?.groups ?? []).map((/** @type {any} */ g) => g.durationSource ?? 'item logs'))].join(' + ');
+}
+
+/**
+ * @param {any} plan A compiled plan (`planOf`'s shape).
+ * @returns {any} Every step with its command and, for a locked step, its price under T11b's rules; the plan's totals (required steps, optional
+ *   steps, all) and the totals by kind of step. A locked step that is not priceable throws.
+ */
+function planBlock(plan) {
+  if (typeof plan?.task !== 'string' || !Array.isArray(plan.steps)) {
+    throw new TypeError('manifest: a plan needs a task and a list of steps');
+  }
+  const steps = plan.steps.map((/** @type {Step} */ step) => {
+    const base = { id: step.id, locked: step.locked === true, optional: step.optional === true, command: commandOf(step), dependsOn: step.dependsOn ?? [], expect: step.expect };
+    if (step.locked !== true) {
+      return base;
+    }
+    const priced = pricedOf(stepPrice, /** @type {any} */ (step.price), `${plan.task}/${step.id}`);
+    return {
+      ...base, kind: stepKind(step), unit: step.price?.type === 'rows' ? 'rows' : 'items', state: step.state, minHorizonS: step.minHorizonS, ...fieldsOf(priced),
+      durationSource: durationSourceOf(step.price),
+    };
+  });
+  const locked = steps.filter((/** @type {any} */ s) => s.locked);
+  const kinds = [...new Set(locked.map((/** @type {any} */ s) => s.kind))];
+  return {
+    task: plan.task, runnable: plan.runnable === true, blockedBy: plan.blockedBy ?? [], prerequisites: plan.prerequisites ?? [], allocationMinutes: plan.allocationMinutes ?? null,
+    optionalMinutes: plan.optionalMinutes ?? null, steps,
+    required: blockOf(locked.filter((/** @type {any} */ s) => !s.optional)),
+    optional: blockOf(locked.filter((/** @type {any} */ s) => s.optional)),
+    all: blockOf(locked),
+    byKind: Object.fromEntries(kinds.map((kind) => [kind, blockOf(locked.filter((/** @type {any} */ s) => s.kind === kind))])),
+  };
+}
+
+/**
+ * @param {Group & { price: any }} group A group of the universe (T11c's `priced`).
+ * @returns {any} The group with its price under T11b's rules.
+ */
+function groupBlock(group) {
+  const priced = pricedOf(stepPrice, group.price, group.id);
+  return {
+    id: group.id, task: group.task, arm: group.arm, cell: group.cell, cohort: group.cohort, from: group.from, to: group.to, rows: group.rows, rowLimitS: group.rowLimitS,
+    rowS: group.price.rowS, items: group.items ?? [], comparator: group.comparator === true, ...fieldsOf(priced),
+  };
+}
+
+/**
+ * @param {any[]} groups Group blocks.
+ * @returns {any[]} One block per item that lists a group, in the order the items first appear; a group listed by two items is counted in each.
+ */
+function itemBlocks(groups) {
+  const ids = [...new Set(groups.flatMap((g) => g.items))];
+  return ids.map((id) => {
+    const own = groups.filter((g) => g.items.includes(id));
+    return { id, text: /** @type {Record<string, string>} */ (ITEM_TEXT)[id] ?? id, groups: own.length, rows: own.reduce((sum, g) => sum + g.rows, 0), ...blockOf(own) };
+  });
+}
+
+/**
+ * The stage-4 universe of one collection, priced group by group (the groups T11c wrote with their price input).
+ * @param {any} collection `{ groups, comparators }` of the universe; absent is empty.
+ * @returns {any}
+ */
+function collectionBlock(collection) {
+  const groups = (collection?.groups ?? []).map(groupBlock);
+  const comparators = (collection?.comparators ?? []).map(groupBlock);
+  return {
+    groups, comparators, groupsTotal: blockOf(groups), comparatorsTotal: blockOf(comparators), total: blockOf([...groups, ...comparators]),
+    rows: [...groups, ...comparators].reduce((sum, g) => sum + g.rows, 0), items: itemBlocks([...groups, ...comparators]),
+  };
+}
+
+/**
+ * Request rows priced again at another horizon (a row's schedule depends on it).
+ * @param {{ type: 'rows', rows: number, rowS: number, rowLimitS: number }[]} inputs @param {number} horizonS
+ * @returns {{ countedS: number, invocations: number, quietS: number }}
+ */
+function atHorizon(inputs, horizonS) {
+  const priced = inputs.map((input) => pricedOf(stepPrice, { ...input, horizonS }, 'the comparison'));
+  return { countedS: priced.reduce((s, p) => s + p.countedS, 0), invocations: priced.reduce((s, p) => s + p.invocations, 0), quietS: priced.reduce((s, p) => s + p.quietS, 0) };
+}
+
+/**
+ * @param {Record<string, number> | undefined} durations The measured seconds by `<kind>/<variant>` (`durationsFromLogs`).
+ * @returns {Record<string, number> | null} The seconds of the `v4` tree's items, kind by kind; `null` unless the three kinds have a measure.
+ */
+function v4Measures(durations) {
+  /** @type {Record<string, number>} */
+  const measures = {};
+  for (const kind of ['v4-select', 'v4-generate', 'v4-replay']) {
+    const seconds = durations?.[`${kind}/v4`];
+    if (!(typeof seconds === 'number' && seconds > 0)) {
+      return null;
+    }
+    measures[kind] = seconds;
+  }
+  return measures;
+}
+
+/**
+ * @param {any} browser `browserInput`'s result.
+ * @returns {any} B-1's Node part priced like any request rows (projection and ceiling), B-1's browser part and B-2 projected only
+ *   (the factor times the node seconds of the matching Node rows), their ceilings unpriced until N-V4-01.
+ */
+function browserBlock(browser) {
+  if (!Array.isArray(browser?.node) || !Array.isArray(browser.generator)) {
+    throw new TypeError('manifest: the browser input needs its Node cells and its Generator-page cells');
+  }
+  const ratio = positive('browser factor', browser.factor);
+  const node = browser.node.map((/** @type {any} */ { cell, rows, rowS, rowLimitS, refS: reference }) => ({
+    cell, rows, rowS, rowLimitS, refS: reference ?? null, ...fieldsOf(pricedOf(stepPrice, { type: 'rows', rows, rowS, rowLimitS }, `browser/${cell}`)),
+  }));
+  const generator = browser.generator.map((/** @type {string} */ cell) => {
+    const found = node.find((/** @type {any} */ n) => n.cell === cell);
+    if (found === undefined) {
+      throw new Error(`manifest: the Generator-page cell ${cell} has no Node row to project from`);
+    }
+    return found;
+  });
+  const nodeTotal = blockOf(node);
+  const generatorNodeS = generator.reduce((sum, /** @type {any} */ n) => sum + n.projectS, 0);
+  return {
+    factor: ratio,
+    b1: {
+      node: { cells: node, ...nodeTotal },
+      browser: {
+        label: 'bench-page factor', projectedS: ratio * nodeTotal.projectS, priced: false, pricedBy: BROWSER_PRICED_BY, server: BROWSER_SERVER, url: BROWSER_URL,
+      },
+    },
+    b2: {
+      label: 'the Generator page with its Generation steps prefetch', cells: generator.map((/** @type {any} */ n) => n.cell), nodeS: generatorNodeS, projectedS: ratio * generatorNodeS,
+      priced: false, pricedBy: BROWSER_PRICED_BY,
+    },
+  };
+}
+
+/**
+ * The manifest of the frozen round for the owner (V4-T11g, OD-P10): for each plan and collection the projection, guard, ceiling from the
+ * enforced bounds and the predicted completed and censored observations; the stage-4 universe with every unactivated option priced apart;
+ * what each approval covers, in order, with RV2-13's three fields; and what is not priced here (stage 5, the browser parts), each with the
+ * item that prices it. Pure: the records are read by the caller.
+ * @param {{ plans: any[] | Record<string, any>, universe: any, s4x?: any, stage5?: ReturnType<typeof stage5Items>, browser?: any,
+ *   spentS: number, inventory?: { families: number, alternate: number, populations: number } | null, context?: {
+ *     data?: any, catalogue?: Record<string, { area: number, levelId: string }>, noReference?: string[], stage4Passes?: any[], quotes?: ReturnType<typeof planQuotes>,
+ *     durations?: Record<string, number>, factor?: { value: number, found: boolean } } }} input
+ *   `plans` the compiled `V4-S2` and `V4-LIVE`; `universe` T11c's `V4-S4.universe.json`; `s4x` the second validation's template; `stage5` and
+ *   `browser` the results of `stage5Items` and `browserInput`; `spentS` the counted seconds of the round now (the invocation logs); `inventory`
+ *   T03's totals or `null`; `context` what the sections quote or compare (every key optional): `stage4Passes` the four P-1 passes of `V4-S4`
+ *   (locked steps with their price input), `durations` the measured seconds by `<kind>/<variant>` (`durationsFromLogs`).
+ * @returns {any}
+ */
+export function manifestOf({ plans, universe, s4x = null, stage5 = [], browser = null, spentS, inventory = null, context = {} }) {
+  fromZero('spentS', spentS);
+  const planList = Array.isArray(plans) ? plans : Object.values(plans ?? {});
+  const planBlocks = planList.map(planBlock);
+  /** @param {string} task @returns {any} */
+  const planNamed = (task) => planBlocks.find((p) => p.task === task);
+  /** @param {string} task @returns {any[]} The compiled locked steps of a plan, with their price input. */
+  const lockedOf = (task) => (planList.find((p) => p.task === task)?.steps ?? []).filter((/** @type {Step} */ s) => s.locked === true);
+  const collections = {
+    initial: collectionBlock(universe?.collections?.initial),
+    conditional: collectionBlock(universe?.collections?.conditional),
+    optional: collectionBlock(universe?.collections?.optional),
+    second: collectionBlock(universe?.collections?.second),
+  };
+  const everyGroup = Object.values(collections).flatMap((c) => [...c.groups, ...c.comparators]);
+  const boardCells = [...new Set([...collections.conditional.groups, ...collections.conditional.comparators].map((/** @type {any} */ g) => g.cell))];
+  const boards = boardCells.map((cell) => {
+    const groups = collections.conditional.groups.filter((/** @type {any} */ g) => g.cell === cell);
+    const comparators = collections.conditional.comparators.filter((/** @type {any} */ g) => g.cell === cell);
+    return { cell, groups: blockOf(groups), comparators: blockOf(comparators), total: blockOf([...groups, ...comparators]) };
+  });
+  const secondTemplate = s4x === null ? null : collectionBlock({ groups: s4x.groups, comparators: s4x.comparators });
+  const second = secondTemplate ?? collections.second;
+  const passes = Array.isArray(context.stage4Passes)
+    ? blockOf(context.stage4Passes.map((step) => fieldsOf(pricedOf(stepPrice, step.price, `stage-4 pass ${step.id}`)))) : null;
+  const s2 = planNamed('V4-S2');
+  const live = planNamed('V4-LIVE');
+
+  // The approvals, in order, each assuming every earlier one spent to its guard (RV2-13).
+  /** @type {any[]} */
+  const approvals = [];
+  /** @type {number[]} */
+  const assumedSpent = [];
+  /** @param {Record<string, unknown>} entry @param {number} guardS */
+  const ask = (entry, guardS) => {
+    const fields = approvalFor({ spentS, earlierGuardS: assumedSpent, guardS });
+    approvals.push({
+      ...entry, guardS, ...fields, requestedCumulativeRoundMinutesWithOffLog: Math.ceil((fields.roundCountedSBeforeApproval + OFF_LOG_ROUND_S + guardS) / 60),
+      assumes: assumedSpent.length === 0 ? null : ASSUMES,
+    });
+    assumedSpent.push(guardS);
+  };
+  if (s2 !== undefined) {
+    ask({
+      id: 'V4-S2', when: 'now', status: 'priced', basis: 'the compiled plan V4-S2: the sum of its required locked steps',
+      covers: 'stage 2: the isolated P-0 pass, the seven P-1 passes, the pilots\' request rows, the publishes and the probes',
+    }, s2.required.guardS);
+  }
+  if (live !== undefined) {
+    ask({
+      id: 'V4-LIVE', when: 'when N-V4-03 and N-V4-13 have unblocked it', status: 'priced', basis: 'the compiled plan V4-LIVE: the sum of its required locked steps',
+      covers: 'the live-deadline receipt: the request rows of fr-frozen on the two live cells, then the receipt and its binding', blockedBy: live.blockedBy,
+    }, live.required.guardS);
+  }
+  if (collections.initial.groups.length > 0) {
+    ask({
+      id: 'V4-S4', when: 'after its data-only activation: the optional scope first, then the timed allowance', status: 'indication',
+      basis: 'the universe\'s initial collection (the declared groups, comparators apart) and the four P-1 passes at their reserves; the plan and its price are written at the activation, and `approval --plan V4-S4` asks then',
+      covers: 'exactly the activated declared rows: the initial collection, any activated conditional board and the approved optional S4-6, and the four P-1 passes of the stage-4 arms',
+    }, collections.initial.groupsTotal.guardS + (passes?.guardS ?? 0));
+  }
+  if (collections.initial.comparators.length > 0) {
+    ask({
+      id: 'V4-S4C', when: 'at the resolution of the comparators (T11f), from the final class selection', status: 'indication',
+      basis: 'the universe\'s initial comparators; the plan is written at the resolution, and `approval --plan V4-S4C` asks then', covers: 'the uncapped comparator of the arm each cell ships',
+    }, collections.initial.comparatorsTotal.guardS);
+  }
+  if (second.groups.length > 0) {
+    ask({
+      id: 'V4-S4X', when: 'with N-V4-04: its own activation, selection, comparators and verdict', status: 'indication', basis: 'the second-validation template; N-V4-04 compiles its plan',
+      covers: 'the conditional second validation: both twins on a fresh cohort',
+    }, second.groupsTotal.guardS);
+  }
+  if (second.comparators.length > 0) {
+    ask({
+      id: 'V4-S4XC', when: 'with N-V4-04, at the resolution of the second comparators', status: 'indication', basis: 'the second-validation template',
+      covers: 'the uncapped comparators of the second validation',
+    }, second.comparatorsTotal.guardS);
+  }
+  const unpriced = [
+    ...stage5.map((item) => ({ id: item.id, when: `with ${STAGE5_PRICED_BY}'s manifest`, status: 'unpriced', pricedBy: STAGE5_PRICED_BY, covers: item.text })),
+    ...(browser === null ? [] : [{
+      id: 'browser calibration', when: `with ${BROWSER_PRICED_BY}'s manifest`, status: 'unpriced', pricedBy: BROWSER_PRICED_BY,
+      covers: 'B-1 and B-2: the browser parts have no runner with enforced bounds in this pack',
+    }]),
+  ];
+
+  // The options that raise a later cap when chosen, each priced apart.
+  const options = [
+    ...(collections.optional.groups.length === 0 ? [] : [{ id: 'S4-6', adds: 'V4-S4', text: ITEM_TEXT['S4-6'], ...collections.optional.total }]),
+    ...boards.map((board) => ({
+      id: `conditional board ${board.cell}`, adds: 'V4-S4 (the twins) and V4-S4C (the comparator)', text: ITEM_TEXT['S4-5'], twins: board.groups, comparator: board.comparators, ...board.total,
+    })),
+  ];
+
+  // The required set of the first approvals and what the idle quiet would change (the quiet is counted at 45 s per invocation in every price).
+  const requiredSet = blockOf([s2?.required, live?.required, collections.initial.total, passes].filter((part) => part !== undefined && part !== null));
+  const requiredIdleS = requiredSet.countedS - (QUIET_S - 15) * requiredSet.invocations;
+
+  // The P-1 passes of V4-S2 at the `v4` measures of the item logs, beside their reserves.
+  const measures = v4Measures(context.durations);
+  const atMeasures = measures === null || s2 === undefined ? null : (() => {
+    const passInputs = lockedOf('V4-S2').filter((/** @type {Step} */ s) => s.id.startsWith('parity-'));
+    const reserve = blockOf(s2.steps.filter((/** @type {any} */ s) => s.kind === 'P-1 passes'));
+    const measured = blockOf(passInputs.map((/** @type {Step} */ s) => fieldsOf(pricedOf(stepPrice, {
+      .../** @type {any} */ (s.price),
+      groups: /** @type {any} */ (s.price).groups.map((/** @type {any} */ g) => (g.durationSource === 'reserve' ? { ...g, durationsS: g.durationsS.map(() => measures[g.kind]) } : g)),
+    }, `${s.id} at the v4 measures`))));
+    return { measures, passes: passInputs.length, reserve, measured, planCountedS: s2.all.countedS - reserve.countedS + measured.countedS };
+  })();
+
+  // The comparison with the plan's indication (section 8): the same request rows under the owner's lock rules and under the earlier ones.
+  /** @param {{ rows: number, rowS: number, rowLimitS: number }} g @returns {{ type: 'rows', rows: number, rowS: number, rowLimitS: number }} */
+  const rowsOf = (g) => ({ type: 'rows', rows: g.rows, rowS: g.rowS, rowLimitS: g.rowLimitS });
+  const planRows = (/** @type {string} */ task) => lockedOf(task).filter((/** @type {Step} */ s) => s.price?.type === 'rows').map((/** @type {any} */ s) => s.price);
+  const liveRows = planRows('V4-LIVE');
+  const universeRows = everyGroup.map(rowsOf);
+  const rules = (/** @type {number} */ horizonS) => ({
+    horizonS, matrix: atHorizon([...planRows('V4-S2'), ...liveRows, ...universeRows], horizonS), stage4WithLive: atHorizon([...liveRows, ...universeRows], horizonS),
+    universe: atHorizon(universeRows, horizonS), initial: atHorizon([...collections.initial.groups, ...collections.initial.comparators].map(rowsOf), horizonS),
+  });
+  const initialGroups = [...collections.initial.groups, ...collections.initial.comparators];
+  const controls = initialGroups.filter((g) => g.items.includes('S4-3'));
+  const controlCells = [...new Set(controls.map((g) => g.cell))];
+  const catalogue = context.catalogue ?? null;
+  /** The cells whose provisional class has no screen (plan P2: Hell 1 and Nightmare up to 144 cells) and those whose class is unknown until the pilots (Nightmare from 360 cells). */
+  const noScreen = (/** @type {string} */ cell) => cell.endsWith('-hell-1') || (catalogue?.[cell]?.levelId === 'nightmare' && (catalogue?.[cell]?.area ?? Infinity) <= 144);
+  const unknownClass = (/** @type {string} */ cell) => catalogue?.[cell]?.levelId === 'nightmare' && (catalogue?.[cell]?.area ?? 0) >= 360;
+  /** @param {any[]} groups @param {(cell: string) => boolean} pick @returns {number} Minutes of the `fr-frozen` twins of the picked cells. */
+  const twinMinutes = (groups, pick) => groups.filter((g) => g.arm === 'fr-frozen' && pick(g.cell)).reduce((sum, g) => sum + g.countedS, 0) / 60;
+  const comparison = {
+    planIndicationH: PLAN_STAGE4_H,
+    stage4: { initial: collections.initial.total, universe: blockOf(everyGroup), withLive: blockOf([...(live === undefined ? [] : [live.all]), blockOf(everyGroup)]) },
+    causes: {
+      byItem: collections.initial.items,
+      firstTwin: blockOf(initialGroups.filter((g) => g.arm === 'fr-frozen')),
+      secondTwin: blockOf(initialGroups.filter((g) => g.arm === 'fr-frozen-none')),
+      todaysArm: blockOf(initialGroups.filter((g) => g.arm === 'log-link' && g.items.includes('S4-3'))),
+      controls: blockOf(controls),
+      controlCells,
+      comparators: collections.initial.comparatorsTotal,
+      comparatorsOfControls: blockOf(collections.initial.comparators.filter((/** @type {any} */ g) => controlCells.includes(g.cell))),
+      atTheLimit: blockOf(initialGroups.filter((g) => g.censored > 0)),
+      quietS: collections.initial.total.quietS,
+    },
+    now: rules(HORIZON_S),
+    before: rules(BEFORE_HORIZON_S),
+    saving: catalogue === null ? null : {
+      initial: twinMinutes(initialGroups, noScreen), initialMore: twinMinutes(initialGroups, unknownClass),
+      conditional: twinMinutes(collections.conditional.groups, noScreen), second: twinMinutes(second.groups, noScreen),
+    },
+  };
+
+  const factorInfo = context.factor ?? null;
+  return {
+    format: 'ig-v4-manifest', version: 1,
+    assumptions: {
+      ...PRICING, browserFactor: BROWSER_FACTOR, beforeHorizonS: BEFORE_HORIZON_S, planStage4H: PLAN_STAGE4_H, ...(factorInfo === null ? {} : { factor: factorInfo.value, factorFound: factorInfo.found }),
+    },
+    round: { spentS, spentMin: spentS / 60, offLogS: OFF_LOG_ROUND_S, accountS: spentS + OFF_LOG_ROUND_S },
+    plans: planBlocks,
+    universe: { collections: { ...collections, second }, boards, stage4: blockOf(everyGroup), secondMatchesUniverse: secondTemplate === null ? null : isDeepStrictEqual(secondTemplate.total, collections.second.total) },
+    stage4Passes: passes, options, requiredSet: { ...requiredSet, countedAtIdleS: requiredIdleS, hours: requiredSet.countedS / 3600, hoursAtIdle: requiredIdleS / 3600 },
+    atMeasures, comparison,
+    inventory: inventory === null ? null : { path: `${EVIDENCE}/V4-T03/inventory.md`, families: inventory.families, alternate: inventory.alternate, populations: inventory.populations },
+    stage5: stage5.map((item) => ({
+      id: item.id, text: item.text, basis: item.basis, indicationS: item.indicationS, ...(item.cells === undefined ? {} : { cells: item.cells }), unindicated: item.unindicated,
+      priced: false, pricedBy: STAGE5_PRICED_BY,
+    })),
+    browser: browser === null ? null : browserBlock(browser),
+    approvals, unpriced, noReference: context.noReference ?? [], reservePriced: reservePriced(Object.fromEntries(planList.map((p) => [p.task, p]))),
+    data: context.data === undefined ? null : {
+      reps: context.data.reps, rowLimitS: context.data.rowLimitS, workers: context.data.workers, resampleSeed: context.data.resampleSeed, resamples: context.data.resamples,
+    },
+    quotes: context.quotes ?? null,
+  };
+}
+
+/** @param {string} text @returns {string} The text as a table cell (a pipe would end the cell). */
+const cellOf = (text) => String(text).replaceAll('|', '\\|');
+
+/** @param {string[]} headers @param {(string | number)[][]} rows @param {number[]} [right] The columns aligned to the right. @returns {string[]} A Markdown table. */
+function mdTable(headers, rows, right = []) {
+  return [
+    `| ${headers.join(' | ')} |`,
+    `|${headers.map((_, i) => (right.includes(i) ? '---:' : '---')).join('|')}|`,
+    ...rows.map((row) => `| ${row.map(cellOf).join(' | ')} |`),
+  ];
+}
+
+/** @param {string} label @param {PriceBlock} b @returns {string[]} The cells of a price row: the items, the units, the invocations, the minutes of the projection, the guard and the ceiling, the observations. */
+const priceRow = (label, b) => [label, fmtN(b.count, 0), fmtN(b.units, 0), fmtN(b.invocations, 0), minOf(b.countedS), minOf(b.guardS), fmtN(b.ceilingMin, 0), fmtN(b.completed, 0), fmtN(b.censored, 0)];
+
+/** The header of a price table (`priceRow`). */
+const PRICE_HEADER = ['Item', 'Steps or groups', 'Units', 'Invocations', 'Projected (min)', 'Guard (min)', 'Ceiling (min)', 'Completed', 'Censored'];
+const PRICE_RIGHT = [1, 2, 3, 4, 5, 6, 7, 8];
+
+/**
+ * @param {string[]} list `<kind>/<variant>` of the items priced at their reserve (`reservePriced`).
+ * @returns {string} `: <kinds> on <variants>` when every kind runs on the same variants, else the list; empty for none.
+ */
+function reserveText(list) {
+  if (list.length === 0) {
+    return '';
+  }
+  /** @type {Map<string, string[]>} */
+  const byKind = new Map();
+  for (const entry of list) {
+    const [kind, ...rest] = entry.split('/');
+    byKind.set(kind, [...(byKind.get(kind) ?? []), rest.join('/')]);
+  }
+  const sets = [...byKind.values()].map((variants) => variants.join(', '));
+  return sets.every((s) => s === sets[0]) && byKind.size > 1
+    ? `: ${[...byKind.keys()].map((k) => `\`${k}\``).join(', ')} on ${sets[0].split(', ').map((v) => `\`${v}\``).join(', ')}`
+    : `: ${list.join(', ')}`;
+}
+
+/** @param {any} entry A prerequisite of a plan. @returns {string} */
+function prerequisiteText(entry) {
+  switch (entry.type) {
+    case 'variant':
+      return `the variant \`${entry.id}\` exists`;
+    case 'file':
+      return `the file \`${entry.path}\` exists`;
+    case 'accepted':
+      return `the accepted binding \`${entry.path}\` (today's trees compared for ${entry.current.length === 0 ? 'no arm' : entry.current.map((/** @type {string} */ a) => `\`${a}\``).join(', ')}${entry.kind === undefined ? '' : `; kind \`${entry.kind}\``})`;
+    case 'selection':
+      return `a final class-selection receipt \`${entry.path}\` of the activation \`${entry.activation}\``;
+    default:
+      return JSON.stringify(entry);
+  }
+}
+
+/**
+ * The Markdown of the manifest (V4-T11g): the eight sections of the task, each number from `manifestOf`'s record.
+ * @param {any} m The record (`manifestOf`'s result, with `meta` and `inputs` when written).
+ * @returns {string}
+ */
+export function manifestMarkdown(m) {
+  /** @type {string[]} */
+  const L = [];
+  const initial = m.universe.collections.initial;
+  const shown = ['V4-S2', 'V4-LIVE'].map((task) => m.plans.find((/** @type {any} */ p) => p.task === task)).filter((plan) => plan !== undefined);
+  const s2 = m.plans.find((/** @type {any} */ p) => p.task === 'V4-S2');
+  const spentS = m.round.spentS;
+  const idleNote = 'the quiet is counted at 45 s per invocation in every price, although the owner\'s idle declaration shortens it to 15 s';
+  const cmp = m.comparison;
+
+  L.push(
+    '# Frozen-round manifest for the owner (V4-T11g, OD-P10)', '',
+    m.meta === undefined ? '> Frozen source `3fc65f4`.' : banner(m.meta), '',
+    'This is the priced, staged manifest of the frozen round (plan 5.1 "Budget", IG-P-D7, OD-P10). It was made by reading records: the compiled plans, the universe of stage 4, T03\'s inventory, the invocation logs and the plan\'s own text. **Nothing ran for it.** Nothing of stages 2 to 5, the parity passes, the probes, the live-deadline receipt or the browser calibration runs before the owner approves the price of that plan, and each approval is asked again with `node tools\\ig-proto\\manifest.mjs approval --plan <id> ...` when it is needed, never from this quote.', '',
+    '**Reading the numbers.** A time is counted machine time (check-list 1): the node seconds of a locked invocation plus at most 45 quiet seconds. *Projected* is the schedule that T11b simulates for each emitted step under the runners\' own rules; *guard* is 1.25 times it, the runner\'s budget guard; *ceiling* is `units x 945` seconds from the bounds the code enforces (at most one invocation per row or item, each of at most 900 node seconds and 45 quiet seconds), rounded up to minutes; *completed* and *censored* are the observations (request rows or bounded items) that the simulation predicts to finish and to be cut. A guard is a budget, not a promise that every observation completes.', '',
+    '## 1. The price per plan, collection and item', '',
+    '### 1.1 The plans compiled now', '',
+    ...mdTable(PRICE_HEADER, shown.map((plan) => priceRow(
+      `${plan.task} (allocation ${plan.allocationMinutes} min${plan.blockedBy.length === 0 ? '' : `; blocked by ${plan.blockedBy.join(', ')}`})`, plan.required)), PRICE_RIGHT), '',
+    `The dry run of a plan prints a forecast equal to its projected counted seconds: ${shown.map((plan) => `${plan.task} ${fmtN(plan.required.countedS, 0)} s`).join(', ')}.`, '',
+  );
+  for (const plan of shown) {
+    L.push(`${plan.task} by kind of step:`, '', ...mdTable(PRICE_HEADER, Object.entries(plan.byKind).map(([kind, b]) => priceRow(kind, /** @type {PriceBlock} */ (b))), PRICE_RIGHT), '');
+  }
+
+  const col = m.universe.collections;
+  /** @type {(string | number)[][]} */
+  const universeRows = [
+    priceRow('initial collection: the declared groups (S4-1 to S4-4)', initial.groupsTotal),
+    priceRow('initial collection: the comparators (S4-C)', initial.comparatorsTotal),
+    priceRow('**initial collection, total**', initial.total),
+    ...m.universe.boards.flatMap((/** @type {any} */ b) => [priceRow(`conditional board ${b.cell}: the twins (S4-5)`, b.groups), priceRow(`conditional board ${b.cell}: the comparator`, b.comparators)]),
+    ...(col.optional.groups.length === 0 ? [] : [priceRow('optional S4-6: today\'s arm on the failing Nightmare cells', col.optional.total)]),
+    priceRow('second validation: the groups (S4-7)', col.second.groupsTotal),
+    priceRow('second validation: the comparators', col.second.comparatorsTotal),
+    priceRow('**second validation, total**', col.second.total),
+    priceRow('**the whole universe of stage 4**', m.universe.stage4),
+  ];
+  L.push(
+    '### 1.2 The universe of stage 4, per collection', '',
+    'An indication, not an allocation (plan §5.1). The universe is the priced matrix, not a plan: `V4-S4` and its price are written at the data-only activation (T11e), `V4-S4C` at the resolution of the comparators (T11f), and the second validation with N-V4-04. Every option that is not activated is priced apart and is **not** in the initial total.', '',
+    ...mdTable(PRICE_HEADER, universeRows, PRICE_RIGHT), '',
+    'The initial collection by item (a group listed by two items would be counted in each; the items sum to the collection):', '',
+    ...mdTable(['Item', 'What', 'Groups', 'Rows', 'Projected (min)', 'Guard (min)', 'Ceiling (min)', 'Completed', 'Censored'], initial.items.map((/** @type {any} */ i) => [
+      i.id, i.text, fmtN(i.groups, 0), fmtN(i.rows, 0), minOf(i.countedS), minOf(i.guardS), fmtN(i.ceilingMin, 0), fmtN(i.completed, 0), fmtN(i.censored, 0)]), [2, 3, 4, 5, 6, 7, 8]), '',
+    `planning projection: 1.25 x factor x MP12b1 median; not a bound. The factor is ${m.assumptions.factor === undefined ? 'not given' : fmtN(m.assumptions.factor, 4)} (\`summary.medianRatioBase\` of the stage-1 identity record${m.assumptions.factorFound === false ? '; the record is absent, so 1' : ''}). A twin whose projection exceeds its 130-s row limit is priced at the limit and predicted censored (${fmtN(initial.total.censored, 0)} rows of the initial collection, ${fmtN(m.universe.stage4.censored, 0)} of the universe): a projection from today's search, not the frozen arms' expected time.`
+    + `${m.noReference.length === 0 ? '' : ` No MP12b1 report gives a median for ${m.noReference.join(', ')}: those cells are priced at their row limit.`}`, '',
+    '### 1.3 The PM1 inventory', '',
+    m.inventory === null ? 'PM1 inventory: missing' : `Data-only PM1 inventory, stage 1 (IG-P-Q24 (b); it opens no route): ${m.inventory.path}, ${m.inventory.families} families, ${m.inventory.alternate} alternate rows in ${m.inventory.populations} populations.`, '',
+    '### 1.4 Unpriced', '',
+    'Stage 5 and the browser parts have no runner with enforced bounds in this pack (R3-05, RV3-05). They are listed with an indication only: **unpriced**, with no ceiling and no approval request, each with the item that prices it.', '',
+    ...mdTable(['Item', 'What', 'Indication', 'Basis', 'Priced by'], [
+      ...m.stage5.map((/** @type {any} */ i) => [
+        `${i.id} (unpriced)`, i.text, i.indicationS === null ? 'none' : i.indicationS === 0 ? '0 (data only)' : `${minOf(i.indicationS)} min of work, not counted time`, i.basis, i.pricedBy]),
+      ...(m.browser === null ? [] : [
+        ['B-1 browser part (unpriced)', 'the bench page served from the frozen snapshot, on the Node part\'s requests', `${minOf(m.browser.b1.browser.projectedS)} min projected (${m.browser.factor} x the Node part's node seconds)`, 'a projection; no runner with enforced bounds', BROWSER_PRICED_BY],
+        ['B-2 (unpriced)', m.browser.b2.label, `${minOf(m.browser.b2.projectedS)} min projected (${m.browser.factor} x the node seconds of its Node rows)`, 'a projection; no runner with enforced bounds', BROWSER_PRICED_BY],
+      ]),
+    ]), '',
+  );
+  for (const item of m.stage5.filter((/** @type {any} */ i) => Array.isArray(i.cells))) {
+    L.push(
+      `${item.id} by cell (seconds of work at four lanes, an indication): ${item.cells.filter((/** @type {any} */ c) => c.indicationS !== null).map((/** @type {any} */ c) => `${c.cell} ${fmtN(c.indicationS)}`).join(', ')}.`
+      + `${item.unindicated.length === 0 ? '' : ` No indication, no family in IGP-05's records: ${item.unindicated.join(', ')}.`}`, '',
+    );
+  }
+  if (m.browser !== null) {
+    L.push(`B-1's Node part is priced like any request rows (section 5): ${minOf(m.browser.b1.node.countedS)} projected minutes, ${fmtN(m.browser.b1.node.ceilingMin, 0)} minutes of ceiling; its browser part and B-2 are not.`, '');
+  }
+
+  // 2. What the owner approves.
+  const asks = m.approvals;
+  L.push(
+    '## 2. What the owner approves, now and later', '',
+    'The round has one cumulative cap (D-V4-02). Each approval is a cap in minutes that covers the counted time already spent, the guards of the earlier approvals (assumed spent to their guard) and the guard it asks for: RV2-13\'s three fields are `roundCountedSBeforeApproval`, `requestedAdditionalGuardS` and `requestedCumulativeRoundMinutes`. A lower approved cap gives an honest stop; prior invocation records are never deleted or reset.', '',
+    ...mdTable(['#', 'Approval', 'When', 'Price', 'Covers', 'roundCountedSBeforeApproval (s)', 'requestedAdditionalGuardS (s)', 'requestedCumulativeRoundMinutes'], asks.map((/** @type {any} */ a, /** @type {number} */ i) => [
+      i + 1, `\`${a.id}\``, a.when, a.status === 'priced' ? 'priced (compiled plan)' : 'indication', a.covers, fmtN(a.roundCountedSBeforeApproval, 3), fmtN(a.requestedAdditionalGuardS, 3), fmtN(a.requestedCumulativeRoundMinutes, 0)]), [0, 5, 6, 7]), '',
+    `\`roundCountedSBeforeApproval\` of each entry is the counted seconds now plus the guards of the entries above it (what \`approval --after\` computes for plans that have a file), and every entry after the first ${ASSUMES}. The first two requests are exact (they read the compiled plans); the stage-4 entries are indications from the universe's template, asked again from their own plan at the activation or the resolution; the second validation is priced with N-V4-04.`, '',
+    'The basis of each entry:', '',
+    ...asks.map((/** @type {any} */ a) => `- \`${a.id}\`: ${a.basis}.`), '',
+    `Not asked here (unpriced, no approval request): ${m.stage5.map((/** @type {any} */ i) => i.id).join(', ')} are approved with ${STAGE5_PRICED_BY}'s manifest${m.browser === null ? '' : `, the browser calibration with ${BROWSER_PRICED_BY}'s`}.`, '',
+    '`V4-S4` is approved in two steps (R4-07): first the owner decides the optional S4-6 (the paired factor on the failing Nightmare cells) and authorizes the data-only `activate` (T11e; the conditional Hell 1 boards follow their pilots, not a decision), which writes the plan and its price; then `approval --plan V4-S4` asks its timed allowance, covering exactly the activated declared rows.', '',
+    '**Time already spent.** ' + `The frozen round has counted ${fmtN(spentS, 3)} s (${minOf(spentS)} min) in its invocation logs (\`readInvocations('frozen')\`), re-read when this manifest was made. The owner has granted 92 minutes cumulative so far (2026-11-17 08:12, the stage-1 allowance, option A). The register also counts ${fmtN(m.round.offLogS)} s that are in no log (T10a's deleted scratch run), so the round's account is ${fmtN(m.round.accountS, 3)} s; the budget guard and the requests above read the logs only, and with those seconds each cumulative cap would be at most one minute higher (\`requestedCumulativeRoundMinutesWithOffLog\` in \`manifest.json\`).`, '',
+  );
+  if (m.options.length > 0) {
+    L.push(
+      'Options priced apart: each raises the caps of the later entries by its guard when it is chosen or activated (the chain above assumes none of them).', '',
+      ...mdTable(['Option', 'Adds to', 'Groups', 'Projected (min)', 'Guard (min)', 'Ceiling (min)', 'Completed', 'Censored'], m.options.map((/** @type {any} */ o) => [
+        o.id, o.adds, fmtN(o.count, 0), minOf(o.countedS), minOf(o.guardS), fmtN(o.ceilingMin, 0), fmtN(o.completed, 0), fmtN(o.censored, 0)]), [2, 3, 4, 5, 6, 7]), '',
+    );
+  }
+
+  // 3. The plans.
+  L.push('## 3. The plans, their steps, commands and prerequisites', '', 'Every command is run by `run-task.ps1`, which appends `--label frozen --source-label <SL>` and, for a locked step, `--horizon-s <H>` under the lock helper `tools\\ig-proto\\lock\\ig-lock.ps1`.', '');
+  for (const plan of shown) {
+    L.push(
+      `### ${plan.task}${plan.runnable ? ' (runnable now)' : ` (blocked by ${plan.blockedBy.join(', ')})`}`, '',
+      'Prerequisites (the first step, `prerequisites`, refuses the plan until they hold):', '', ...plan.prerequisites.map((/** @type {any} */ p) => `- ${prerequisiteText(p)}`), '',
+      ...mdTable(['Step', 'Kind', 'Command', 'Units', 'Invocations', 'Projected (min)', 'Guard (min)'], plan.steps.map((/** @type {any} */ s) => [
+        `\`${s.id}\``, s.locked ? `locked, ${s.kind}` : 'unlocked', `\`${s.command}\``, s.locked ? fmtN(s.units, 0) : '', s.locked ? fmtN(s.invocations, 0) : '', s.locked ? minOf(s.countedS) : '', s.locked ? minOf(s.guardS) : '']), [3, 4, 5, 6]), '',
+    );
+  }
+  L.push(
+    '### Plans written later', '',
+    '- `V4-S4`: `manifest.mjs activate` (T11e) writes the activation record, `plans\\V4-S4.json` and `plans\\V4-S4C.template.json` once, on the owner\'s authorization; then `approval --plan V4-S4`. Its prerequisites are N-V4-03\'s variants and freeze file, the accepted stage-1, P-0 and live-deadline bindings.',
+    '- `V4-S4C`: `manifest.mjs resolve-comparators` (T11f) writes it from the final class selection; then `approval --plan V4-S4C`.',
+    '- `V4-S4X` and `V4-S4XC`: the template `plans\\V4-S4X.template.json`; N-V4-04 gives them their own activation, selection, comparators and verdict.', '',
+    '### The named items that unblock them', '',
+    ...mdTable(['Item', 'Provides', 'Unblocks'], [
+      ['N-V4-03', NAMED_ITEMS['N-V4-03'], '`V4-LIVE`, `V4-S4`'],
+      ['N-V4-13', NAMED_ITEMS['N-V4-13'], '`V4-LIVE`, `V4-S4`'],
+      ['N-V4-04', NAMED_ITEMS['N-V4-04'], 'stage 5, `V4-S4X`, `V4-S4XC`'],
+      ['N-V4-01', NAMED_ITEMS['N-V4-01'], 'the browser calibration'],
+    ]), '',
+  );
+
+  // 4. Seeds, limits, concurrency.
+  const d = m.data;
+  const reps = (/** @type {string} */ name) => (d === null ? 'n/a' : `${d.reps[name][0]} to ${d.reps[name][1]}`);
+  L.push(
+    '## 4. Seeds, limits, concurrency and rules', '',
+    d === null ? '- Seeds and row limits: not read.' : `- Seeds (the matrix data file): pilots reps ${reps('pilot')} (fitting seeds, by design), the live receipt reps ${reps('liveDeadline')}, validation reps ${reps('validation')}, Master identity reps ${reps('master')}, the paired factor reps ${FACTOR_REPS[0]} to ${FACTOR_REPS[1]}, the second validation reps ${reps('secondValidation')}. Row limits: ${d.rowLimitS.default} s by default, ${d.rowLimitS.liveDeadline} s only for the stage-4 groups of the arms with the live deadline; ${d.workers} workers per request row.`,
+    '- Concurrency: one locked invocation at a time on this machine, under the lock helper, of at most 900 s; timed requests sequential at four workers; a quiet period of 15 s under the owner\'s idle declaration, else 45 s; Sudoku\'s difficulty-v3 keeps priority (the owner\'s lock rules of 2026-11-17 21:33, check-list §3.2).',
+    m.quotes === null ? '- Stopping: not read.' : `- Stopping (plan §5.1, verbatim): ${m.quotes.stopping}`,
+    '- Resume: a stopped plan resumes only after a ruling, with `-Only` from the stopped step on; a done step, a passing receipt and an existing binding are never run again (check-list §3.2; ruling of 2026-11-17 on T11d).',
+    `- The verdict recipe (plan §5.2): \`verdicts.mjs\`${d === null ? '' : `, resample seed ${d.resampleSeed}, ${fmtN(d.resamples, 0)} resamples`}.`,
+    '- Completion apart from the deadline (D-V4-16): a valid request completes when it holds ten puzzles, whatever its time; a response after 120 s is a deadline violation, reported apart and enforced by the live-deadline receipt (N-V4-13).',
+    '- The work rule (IG-P-Q37, D-V4-17): judged on the proved intervals and reported with the completed-unit ratio; it adds no timed run.',
+    '- P5\'s false stops are counted against the uncapped comparator over the declared pairs (P-OD12, DR-O11, T09d).', '',
+  );
+
+  // 5. The browser calibration.
+  L.push('## 5. The browser calibration (optional)', '');
+  if (m.browser === null) {
+    L.push('Not priced here.', '');
+  } else {
+    const b = m.browser;
+    L.push(
+      'A separate option with its own approval (N-V4-01), never part of the frozen round\'s plans. B-1 compares today\'s generator in Node and in a browser with matching source and matching observers; its result is labelled a **bench-page factor**, not a measured Generator-page response with prefetch.', '',
+      `- **B-1, Node part (priced).** The frozen \`base\` tree, rows of the arm \`base\` on ${b.b1.node.cells.map((/** @type {any} */ c) => `\`${c.cell}\``).join(', ')}, reps ${BROWSER_REPS[0]} to ${BROWSER_REPS[1]}, row limit ${BROWSER_ROW_LIMIT_S} s, four workers, no observers, journal or Generation steps prefetch, each row at the planning projection of its cell, priced by \`stepPrice\`:`, '',
+      ...mdTable(['Cell', 'Rows', 'Row (s)', 'Invocations', 'Projected (min)', 'Guard (min)', 'Ceiling (min)'], b.b1.node.cells.map((/** @type {any} */ c) => [
+        c.cell, fmtN(c.rows, 0), fmtN(c.rowS), fmtN(c.invocations, 0), minOf(c.countedS), minOf(c.guardS), fmtN(Math.ceil(c.ceilingS / 60), 0)]), [1, 2, 3, 4, 5, 6]),
+      `| **Node part** | ${fmtN(b.b1.node.units, 0)} | | ${fmtN(b.b1.node.invocations, 0)} | ${minOf(b.b1.node.countedS)} | ${minOf(b.b1.node.guardS)} | ${fmtN(b.b1.node.ceilingMin, 0)} |`, '',
+      `- **B-1, browser part (unpriced).** The bench page served from the frozen snapshot, on the same requests, seeds, quantities and four workers: \`${b.b1.browser.server}\`, then \`${b.b1.browser.url}\`. Projected ${b.factor} x the Node part's node seconds (${fmtN(b.b1.node.projectS)} s), that is ${fmtN(b.b1.browser.projectedS)} s (${minOf(b.b1.browser.projectedS)} min): a projection with the planning factor ${b.factor}, not a measurement. **Ceiling unpriced** until ${BROWSER_PRICED_BY} enumerates that runner.`,
+      `- **B-2 (unpriced).** ${b.b2.label} on ${b.b2.cells.map((/** @type {any} */ c) => `\`${c}\``).join(', ')} (26x26 exceeds the Generator's 484-cell limit, DR-O16), projected like B-1's browser part from the node seconds of its Node rows (${fmtN(b.b2.nodeS)} s): ${fmtN(b.b2.projectedS)} s (${minOf(b.b2.projectedS)} min). **Ceiling unpriced** until ${BROWSER_PRICED_BY}. A separate option: its prefetch state is named, never mixed with B-1's.`, '',
+    );
+  }
+
+  // 6. Risks.
+  const risksBear = [
+    'the sample is the reps of section 4 and no more: a cell that fails its third request still runs its remaining seeds, so a failure does not shrink the price; more seeds are another price.',
+    'the calibration (section 5) is the only way to settle the factor, and its browser parts are the unpriced items.',
+    'the uncapped comparator (`V4-S4C`) is priced for exactly this: lost completions are counted against it, over the declared pairs.',
+    'both twins run on every validated cell because the class table is unknown before stage 3 (section 8 gives the second twin\'s minutes).',
+    'the second validation is priced as an indication (`V4-S4X`, `V4-S4XC`) and approved with N-V4-04.',
+  ];
+  L.push('## 6. The risks of plan §8 that bear on the price', '');
+  if (m.quotes === null) {
+    L.push('Not read.', '');
+  } else {
+    m.quotes.risks.forEach((/** @type {any} */ r, /** @type {number} */ i) => L.push(`- Plan §8: ${r.text}`, `  - Bears on the price: ${risksBear[i]}`));
+    L.push(`- Plan §9: ${m.quotes.prefetch}`, '  - Bears on the price: the calibration\'s bench page runs without prefetch in both arms and B-2 keeps it, so each browser run names its harness (section 5).', '');
+  }
+
+  // 7. The pricing rules.
+  const a = m.assumptions;
+  const am = m.atMeasures;
+  L.push(
+    '## 7. T11b\'s pricing rules, its ceilings and the overhead assumptions', '',
+    `- The rules (\`PRICING\`): a horizon of ${a.horizonS} s for every invocation under the owner's ${a.killS}-s cap, ${a.quietS} quiet seconds per invocation, a cut margin of ${a.cutMarginS} s for items, a row margin of ${a.rowMarginS} s, ${a.startupS} s of start-up per invocation and ${a.groupStartS} s per item group (the pack author's assumptions, D-V4-13), a projection and a guard factor of ${a.projectionFactor} and ${a.guardFactor}.`,
+    `- The ceilings come from enforced bounds (RV4-05): \`units x ${a.ceilingPerUnitS}\` (${a.killS} node seconds and ${a.quietS} quiet seconds at most per invocation, at most one invocation per row or item), which grew with the cap (it was \`units x 345\` under the 300-s limit); the binding limit of a run stays its plan's guard, checked before every invocation. A reserve controls admission only and is never a duration or a ceiling.`,
+    `- ${a.horizonS} s is assumed for every invocation although the runner's \`decide\` lowers the horizon near the approved cap, which the price does not model; ${idleNote}, so the quiet-period component can be lower. Runtime and total cost remain projections (fail-closed): with 15 s throughout, the first approvals' ${hoursOf(m.requiredSet.countedS)} h would be ${hoursOf(m.requiredSet.countedAtIdleS)} h.`,
+    `- The first approvals' set: \`V4-S2\`, \`V4-LIVE\`, the initial collection and the four P-1 passes of \`V4-S4\`: ${minOf(m.requiredSet.countedS)} counted minutes in ${fmtN(m.requiredSet.invocations, 0)} invocations.`,
+    `- \`factor()\` is 1 when the identity file is absent (${a.factorFound === false ? 'it is absent' : 'it is present'}); a cell without an MP12b1 report is priced at its row limit (${m.noReference.length === 0 ? 'none' : m.noReference.join(', ')} today).`,
+    `- The P-1 passes are priced at their reserves for want of a measured \`fr-*\` item (T11c's \`durationSource\` \`reserve\`${reserveText(m.reservePriced)}): ${am === null ? 'no `v4` measure is given here' : `the ${am.passes} of \`V4-S2\` ${minOf(am.reserve.countedS)} counted minutes, about ${minOf(am.measured.countedS)} at the \`v4\` measures of ${fmtN(am.measures['v4-select'])}, ${fmtN(am.measures['v4-generate'])} and ${fmtN(am.measures['v4-replay'])} s per select, generate and replay item (one invocation a pass), so that \`V4-S2\` would be about ${minOf(am.planCountedS)} minutes instead of ${minOf(s2.all.countedS)}`}; the four of \`V4-S4\`, priced at its activation, ${m.stage4Passes === null ? 'are not priced here' : `about ${minOf(m.stage4Passes.countedS)} minutes at their reserves`} (rulings of 2026-11-17: T11c's QUESTION 2 and the owner's lock rules).`, '',
+  );
+
+  // 8. The difference from the plan's indication.
+  const c = cmp.causes;
+  /** @param {{ countedS: number }} b @returns {string} */
+  const cm = (b) => minOf(b.countedS);
+  L.push(
+    '## 8. The difference from the plan\'s indication', '',
+    `The plan's indication for stage 4 is about ${cmp.planIndicationH[0]} to ${cmp.planIndicationH[1]} hours (${fmtN(cmp.planIndicationH[0] * 60, 0)} to ${fmtN(cmp.planIndicationH[1] * 60, 0)} minutes; plan §5.1 "Budget": an indication, not an allocation), the analysts' projection with today's arm only where a gate needs it and Master identity on five seeds. This manifest enumerates the matrix and prices it at today's search times:`, '',
+    ...mdTable(['What', 'Counted minutes', 'Hours'], [
+      ['the initial collection (the validation rows and the comparators)', cm(cmp.stage4.initial), hoursOf(cmp.stage4.initial.countedS)],
+      ['the whole universe of stage 4 (the initial collection, the conditional boards, S4-6, the second validation)', cm(cmp.stage4.universe), hoursOf(cmp.stage4.universe.countedS)],
+      ['stage 4 with `V4-LIVE`', cm(cmp.stage4.withLive), hoursOf(cmp.stage4.withLive.countedS)],
+    ], [1, 2]), '',
+    `The causes, each with its minutes (the initial collection, ${cm(cmp.stage4.initial)} minutes; the items add up to it):`, '',
+    ...mdTable(['Cause', 'Counted minutes'], [
+      ...c.byItem.map((/** @type {any} */ i) => [`${i.id}: ${i.text}`, cm(i)]),
+    ], [1]), '',
+    'Cuts across those items:', '',
+    ...mdTable(['Cause', 'Counted minutes'], [
+      ['both twins on every validated cell: `fr-frozen`', cm(c.firstTwin)],
+      ['both twins on every validated cell: the second twin `fr-frozen-none`', cm(c.secondTwin)],
+      [`the comparator (S4-C), of which on the ten controls ${cm(c.comparatorsOfControls)}`, cm(c.comparators)],
+      [`the ten controls (T11a's ruling of 2026-11-17; ${c.controlCells.length} cells: both twins and today's arm; their comparators are in the line above)`, cm(c.controls)],
+      ['today\'s arm on the controls (the no-regression ratio)', cm(c.todaysArm)],
+      [`the quiet periods (${fmtN(c.quietS / a.quietS, 0)} invocations x ${a.quietS} s)`, minOf(c.quietS)],
+      [`the rows priced at their limit and predicted censored (${fmtN(initial.total.censored, 0)} rows)`, cm(c.atTheLimit)],
+    ], [1]), '',
+    `Before the owner's lock rules of 2026-11-17 21:33 a group of 260-s rows admitted one row per invocation under the 300-s cap (a horizon of ${cmp.before.horizonS} s), so that each row paid a 45-s quiet period: the same request rows of the whole matrix priced ${minOf(cmp.before.matrix.countedS)} counted minutes in ${fmtN(cmp.before.matrix.invocations, 0)} invocations, ${minOf(cmp.before.matrix.quietS)} of them quiet, stage 4 with \`V4-LIVE\` ${minOf(cmp.before.stage4WithLive.countedS)}. Under the 900-s cap (a horizon of ${cmp.now.horizonS} s) rows share invocations: ${minOf(cmp.now.matrix.countedS)} counted minutes in ${fmtN(cmp.now.matrix.invocations, 0)} invocations, ${minOf(cmp.now.matrix.quietS)} of them quiet, stage 4 with \`V4-LIVE\` ${minOf(cmp.now.stage4WithLive.countedS)} and the universe alone ${minOf(cmp.now.universe.countedS)}.`, '',
+  );
+  if (cmp.saving !== null) {
+    L.push(
+      `The conditional saving of N-V4-18, after the freeze and only if that later task is accepted and its activation approved: omitting the duplicate \`fr-frozen\` request rows of the cells whose provisional class has no screen (plan P2: Hell 1 and Nightmare up to 144 cells) saves ${fmtN(cmp.saving.initial)} minutes of the initial collection (${fmtN(cmp.saving.initialMore)} more if the class of 360 cells and more stays without a screen), ${fmtN(cmp.saving.conditional)} of the conditional boards and ${fmtN(cmp.saving.second)} of the second validation. This manifest prices both twins until then.`, '',
+    );
+  }
+  L.push(
+    `The planning projection from today's search times (\`1.25 x factor x refS\`) is the other cause: a twin whose projection exceeds its 130-s limit is priced at the limit and predicted censored, ${fmtN(initial.total.censored, 0)} rows of the initial collection. The figures are a projection from today's search, not the frozen arms' expected time; if the frozen arms were that slow, those requests would fail the completion gate, which is a measurement and not a pricing fault.`, '',
+  );
+  return L.join('\n');
+}
+
+/** The files `price` reads and writes (absolute); a case passes scratch ones. */
+export const PRICE_PATHS = Object.freeze({
+  plans: join(IG_DIR, 'plans'),
+  data: join(IG_DIR, 'data', 'frozen-round-v1.json'),
+  identity: evidenceDir('frozen', 'V4-T04', 'identity.json'),
+  inventory: evidenceDir('frozen', 'V4-T03', 'inventory.json'),
+  families: evidenceDir('provisional', 'IGP-05'),
+  profiles: evidenceDir('frozen', 'IGP-02'),
+  plan: abs('docs/improve-generating/plan.md'),
+  out: evidenceDir('frozen', MANIFEST_TASK),
+});
+
+/** @param {string} file @returns {any[]} The records of a JSON-lines file. */
+const readLines = (file) => readFileSync(file, 'utf8').split(/\r?\n/).filter((line) => line.trim() !== '').map((line) => JSON.parse(line));
+
+/**
+ * `price --label frozen --source-label <SL>` (V4-T11g): reads the compiled plans `V4-S2` and `V4-LIVE`, the universe of stage 4 and the
+ * second-validation template (T11c), T03's inventory, the invocation logs, PM1's and PM4's records for stage 5, the MP12b1 medians and the plan's
+ * text, and writes `manifest.json` (the `meta` block, every input with its SHA-256, every plan, step, group and item with its numbers and commands,
+ * the approval requests) and `manifest.md` under `docs/improve-generating/evidence/frozen/V4-T11/`. Unlocked; it runs nothing and a file it
+ * writes again replaces the same two files of its own.
+ * @param {string[]} argv
+ * @param {typeof PRICE_PATHS} [paths] The files (a case passes scratch ones).
+ * @returns {Promise<number>} 0 once both files are written; 1 for a refused command or a record that cannot be read (nothing written).
+ */
+export async function priceCommand(argv, paths = PRICE_PATHS) {
+  try {
+    const { args } = parseArgs(argv, { values: ['label', 'source-label'] });
+    if (args.label !== 'frozen') {
+      return refuseCommand('price', '--label frozen only');
+    }
+    /** @type {{ role: string, path: string, sha256: string, hashRule: 'lf-text' }[]} */
+    const inputs = [];
+    /** @param {string} file @param {string} role @returns {string} The file, once its SHA-256 is recorded as an input. */
+    const note = (file, role) => {
+      if (!inputs.some((i) => i.path === rel(file))) {
+        inputs.push({ role, path: rel(file), sha256: sha256File(file), hashRule: 'lf-text' });
+      }
+      return file;
+    };
+    const read = (/** @type {string} */ file) => JSON.parse(readFileSync(file, 'utf8'));
+    const planFile = (/** @type {string} */ name, /** @type {string} */ role = 'compiled plan') => {
+      const file = join(paths.plans, name);
+      if (!existsSync(file)) {
+        throw new Error(`no ${rel(file)}: run compile first`);
+      }
+      return note(file, role);
+    };
+    const s2 = read(planFile('V4-S2.json'));
+    const live = read(planFile('V4-LIVE.json'));
+    const universe = read(planFile('V4-S4.universe.json', 'universe of stage 4'));
+    const s4x = read(planFile('V4-S4X.template.json', 'second-validation template'));
+    const data = matrixData(note(paths.data, 'matrix data'));
+
+    const logs = readInvocations('frozen');
+    const spentS = totals(logs, '').roundCountedS;
+    const logRoot = artifactDir('frozen');
+    for (const name of existsSync(logRoot) ? readdirSync(logRoot).sort() : []) {
+      const file = join(logRoot, name, 'invocations.jsonl');
+      if (existsSync(file)) {
+        note(file, 'invocation log');
+      }
+    }
+
+    const identityFound = existsSync(paths.identity);
+    const factorValue = factor(paths.identity);
+    if (identityFound) {
+      note(paths.identity, 'identity factor');
+    }
+    const inventoryFile = join(paths.inventory);
+    /** @type {{ families: number, alternate: number, populations: number } | null} */
+    let inventory = null;
+    if (existsSync(inventoryFile)) {
+      const record = read(note(inventoryFile, 'PM1 inventory'));
+      inventory = { families: record.totals.families, alternate: record.alternate.length, populations: record.populations.length };
+    }
+
+    const { cases } = loadCatalogue();
+    const ids = Object.keys(cases);
+    const hell = (/** @type {string} */ level) => ids.filter((id) => cases[id].levelId === level);
+    const families = ['failed-sets', 'scan', 'windows'].flatMap((part) => readLines(note(join(paths.families, `families-${part}.jsonl`), 'PM1 families (IGP-05)')));
+    const profileFiles = readdirSync(paths.profiles).filter((name) => /^profiles-.*\.jsonl$/.test(name)).sort();
+    const profiles = profileFiles.flatMap((name) => readLines(note(join(paths.profiles, name), 'PM4 profiles (IGP-02)')));
+    const stage5 = stage5Items({ families, profiles, hell1: hell('hell-1'), hell2: hell('hell-2') });
+
+    const reference = (/** @type {string} */ cell) => {
+      const found = mp12b1Report(cell);
+      if (found !== null) {
+        note(abs(found.path), 'MP12b1 report');
+      }
+      return refS(cell);
+    };
+    const rowCells = [
+      ...[s2, live].flatMap((plan) => plan.steps.filter((/** @type {Step} */ s) => s.locked && s.price?.type === 'rows').map((/** @type {Step} */ s) => String(argOf(s, '--cases')).split(':')[0])),
+      ...Object.values(universe.collections).flatMap((/** @type {any} */ c) => [...c.groups, ...c.comparators].map((g) => g.cell)),
+      ...BROWSER_NODE_CELLS,
+    ];
+    const cells = [...new Set(rowCells)].sort();
+    const noReference = cells.filter((cell) => reference(cell) === null);
+    const browser = browserInput({ factor: factorValue, refSOf: reference });
+
+    const durations = durationsFromLogs();
+    for (const [task, step] of DURATION_LOGS) {
+      const file = join(artifactDir('frozen', task, step), 'items.jsonl');
+      if (existsSync(file)) {
+        note(file, 'item log (durations)');
+      }
+    }
+    const stage4Passes = STAGE4_ARMS.flatMap((arm) => parityPass(`${TASKS.first}P`, arm, stepPrice, durations)).filter((step) => step.locked);
+    const quotes = planQuotes(readFileSync(note(paths.plan, 'plan text'), 'utf8'));
+
+    const manifest = manifestOf({
+      plans: [s2, live], universe, s4x, stage5, browser, spentS, inventory,
+      context: {
+        data, catalogue: Object.fromEntries(ids.map((id) => [id, { area: cases[id].area, levelId: cases[id].levelId }])), noReference, stage4Passes, quotes, durations,
+        factor: { value: factorValue, found: identityFound },
+      },
+    });
+    const meta = await buildMeta({ task: MANIFEST_TASK, label: 'frozen', kind: 'manifest', sourceLabel: args['source-label'] });
+    meta.rerun = `node tools\\ig-proto\\manifest.mjs price --label frozen --source-label "${meta.source.label}"`;
+    const record = { meta, ...manifest, inputs: inputs.sort((a, b) => (a.path < b.path ? -1 : 1)) };
+    const jsonFile = join(paths.out, 'manifest.json');
+    const mdFile = join(paths.out, 'manifest.md');
+    writeJson(jsonFile, record);
+    writeText(mdFile, manifestMarkdown(record));
+    process.stdout.write(`wrote ${rel(jsonFile)}\nwrote ${rel(mdFile)}\n`);
+    const row = (/** @type {any} */ plan) => `${plan.task} ${minOf(plan.required.countedS)} min projected, guard ${minOf(plan.required.guardS)}, ceiling ${fmtN(plan.required.ceilingMin, 0)}`;
+    process.stdout.write(`price: ${manifest.plans.map(row).join('; ')}; spent ${fmtN(spentS, 3)} s; ${manifest.approvals.length} approvals, ${manifest.unpriced.length} unpriced items\n`);
+    return 0;
+  } catch (e) {
+    return refuseCommand('price', messageOf(e));
+  }
+}
+
+/**
+ * `approval --plan <id> [--after <ids>] [--optional] --label frozen --source-label <SL>` (V4-T11g, RV2-13): prints one JSON line
+ * `{ plan, spentS, assumedEarlierGuardS, roundCountedSBeforeApproval, requestedAdditionalGuardS, requestedCumulativeRoundMinutes }` for the plan
+ * file `plans/<id>.json`: `spentS` is re-read now from the invocation logs, the guards come from the plans' prices (`--optional` adds the
+ * optional steps' guard of the asked plan), and `--after` names the plans (comma-separated, each an existing plan file) whose guards are assumed
+ * spent. A plan that has no file yet is priced later: `approval: <id> is priced at its <activation | resolution>; ask then`, exit 1.
+ * @param {string[]} argv
+ * @param {{ plansDir?: string, spentS?: () => number }} [io] The folder of the plans and the reader of the time spent (a case passes its own).
+ * @returns {Promise<number>} 0 and the line; 1 for a refused command, nothing printed.
+ */
+export async function approvalCommand(argv, { plansDir = join(IG_DIR, 'plans'), spentS = () => totals(readInvocations('frozen'), '').roundCountedS } = {}) {
+  try {
+    const { args, on } = parseArgs(argv, { values: ['plan', 'after', 'label', 'source-label'], switches: ['optional'] });
+    if (args.label !== 'frozen') {
+      return refuseCommand('approval', '--label frozen only');
+    }
+    const named = (/** @type {string | undefined} */ id) => typeof id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(id);
+    if (!named(args.plan)) {
+      return refuseCommand('approval', 'needs --plan <id>');
+    }
+    const planFile = (/** @type {string} */ id) => join(plansDir, `${id}.json`);
+    const planOfId = (/** @type {string} */ id) => JSON.parse(readFileSync(planFile(id), 'utf8'));
+    if (!existsSync(planFile(args.plan))) {
+      const later = Object.hasOwn(PRICED_LATER, args.plan) ? PRICED_LATER[/** @type {keyof typeof PRICED_LATER} */ (args.plan)] : null;
+      return refuseCommand('approval', later === null ? `no plan ${rel(planFile(args.plan))}` : `${args.plan} is priced at its ${later}; ask then`);
+    }
+    const afterIds = (args.after ?? '').split(',').map((id) => id.trim()).filter((id) => id !== '');
+    for (const id of afterIds) {
+      if (!named(id) || !existsSync(planFile(id))) {
+        return refuseCommand('approval', `--after ${id}: no plan ${rel(planFile(named(id) ? id : 'none'))}`);
+      }
+    }
+    const request = approvalFor({
+      spentS: spentS(), earlierGuardS: afterIds.map((id) => planGuardS(planOfId(id))), guardS: planGuardS(planOfId(args.plan), { optional: on.has('optional') }),
+    });
+    process.stdout.write(`${JSON.stringify({ plan: args.plan, ...request })}\n`);
+    return 0;
+  } catch (e) {
+    return refuseCommand('approval', messageOf(e));
+  }
+}
+
+/**
+ * @param {string[]} argv `compile ...`, `check-prerequisites ...`, `activate ...`, `close ...`, `resolve-comparators ...`, `verdict-input ...`, `price ...` or `approval ...`
  * @returns {Promise<number>} The command's exit code.
  */
 export async function main(argv) {
   const [command, ...rest] = argv;
   const commands = /** @type {Record<string, (argv: string[]) => Promise<number>>} */ ({
     compile: compileCommand, 'check-prerequisites': checkPrerequisitesCommand, activate: (a) => activateCommand(a), close: (a) => closeCommand(a),
-    'resolve-comparators': (a) => resolveComparatorsCommand(a), 'verdict-input': (a) => verdictInputCommand(a),
+    'resolve-comparators': (a) => resolveComparatorsCommand(a), 'verdict-input': (a) => verdictInputCommand(a), price: (a) => priceCommand(a), approval: (a) => approvalCommand(a),
   });
   if (command === undefined || !Object.hasOwn(commands, command)) {
-    return refuse(`unknown command ${command ?? ''} (compile, check-prerequisites, activate, close, resolve-comparators, verdict-input)`);
+    return refuse(`unknown command ${command ?? ''} (compile, check-prerequisites, activate, close, resolve-comparators, verdict-input, price, approval)`);
   }
   try {
     return await commands[command](rest);

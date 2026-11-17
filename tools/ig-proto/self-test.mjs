@@ -26,7 +26,7 @@ import { Worker } from 'node:worker_threads';
 
 import { SOURCE_FILES } from '../bench/report.js';
 import { checkText } from '../check-conventions.mjs';
-import { decide, readInvocations } from './lib/budget.mjs';
+import { decide, readInvocations, totals } from './lib/budget.mjs';
 import { rateAttempt, recordedCall, screenRating, startCountFor, windowSubsets } from './lib/calls.mjs';
 import { loadEngine } from './lib/engine.mjs';
 import { harness, settle, track } from './lib/fake-pool.mjs';
@@ -6818,7 +6818,7 @@ const itemCases = [
       // The dispatcher: both commands are reachable, and each refusal below happens before any record is read or written.
       const refused = async (/** @type {string[]} */ argv) => captureOutput(() => m.main(argv));
       const unknown = await refused(['nope']);
-      same([unknown.code, unknown.err], [1, 'manifest: unknown command nope (compile, check-prerequisites, activate, close, resolve-comparators, verdict-input)\n'], 'an unknown command lists the six');
+      same([unknown.code, unknown.err], [1, 'manifest: unknown command nope (compile, check-prerequisites, activate, close, resolve-comparators, verdict-input, price, approval)\n'], 'an unknown command lists the eight');
       const wrongLabel = await refused(['activate', '--collection', 'initial', '--label', 'selftest']);
       same([wrongLabel.code, wrongLabel.err], [1, 'manifest: --label frozen only\n'], 'main dispatches activate');
       const wrongArgument = await refused(['activate', '--collection', 'initial', '--bogus', 'x', '--label', 'frozen']);
@@ -7487,7 +7487,259 @@ const itemCases = [
       });
     },
   },
+  {
+    name: 'approval: re-read and cumulative',
+    async run() {
+      const { m } = await matrixKit();
+      same(m.approvalFor({ spentS: 600, earlierGuardS: [], guardS: 1200 }),
+        { spentS: 600, assumedEarlierGuardS: 0, roundCountedSBeforeApproval: 600, requestedAdditionalGuardS: 1200, requestedCumulativeRoundMinutes: 30 },
+        'no earlier approval: 600 s spent and a guard of 1,200 s are 30 minutes');
+      same(m.approvalFor({ spentS: 600, earlierGuardS: [300], guardS: 1200 }),
+        { spentS: 600, assumedEarlierGuardS: 300, roundCountedSBeforeApproval: 900, requestedAdditionalGuardS: 1200, requestedCumulativeRoundMinutes: 35 },
+        'an earlier guard of 300 s is assumed spent: 900 s before the approval, 35 minutes');
+      same(m.approvalFor({ spentS: 600, earlierGuardS: [300, 61], guardS: 1200 }).requestedCumulativeRoundMinutes, 37, 'the earlier guards add and a part of a minute rounds up (2,161 s)');
+      assert(thrownBy(() => m.approvalFor({ spentS: -1, earlierGuardS: [], guardS: 0 })).includes('spentS must be a number from 0'), 'a negative time spent');
+      assert(thrownBy(() => m.approvalFor({ spentS: 0, earlierGuardS: 300, guardS: 0 })).includes('earlierGuardS must be a list'), 'earlier guards that are no list');
+      assert(thrownBy(() => m.approvalFor({ spentS: 0, earlierGuardS: [-1], guardS: 0 })).includes('earlierGuardS[0]'), 'a negative earlier guard');
+      assert(thrownBy(() => m.approvalFor({ spentS: 0, earlierGuardS: [], guardS: Number.NaN })).includes('requestedAdditionalGuardS'), 'a guard that is no number');
+
+      // The command re-reads the time spent every time and takes each guard from the plans' prices (A: one required rows step of 4 rows of 100 s,
+      // counted 447 s, guard 558.75 s, and one optional process step, guard 183.75 s; B: 2 rows of 50 s, counted 147 s, guard 183.75 s).
+      const dir = fresh(join(SELFTEST_DIR, 'approval'));
+      try {
+        const plan = (/** @type {string} */ task, /** @type {any[]} */ steps) => ({ task, generatedBy: 'by hand', runnable: true, blockedBy: [], prerequisites: [], allocationMinutes: 1, optionalMinutes: 0, steps });
+        const A = plan('A', [ownerRowsStep('rows-a', 4, 100), ownerProcessStep('probe', [100], true)]);
+        const B = plan('B', [ownerRowsStep('rows-b', 2, 50)]);
+        writeJson(join(dir, 'A.json'), A);
+        writeJson(join(dir, 'B.json'), B);
+        same([m.planGuardS(A), m.planGuardS(A, { optional: true }), m.planGuardS(B)], [558.75, 742.5, 183.75], 'the guards of the plans: required steps, with the optional step, and B');
+        let spent = 600;
+        const ask = (/** @type {string[]} */ ...words) => captureOutput(() => m.approvalCommand([...words, '--label', 'frozen', '--source-label', 'x'], { plansDir: dir, spentS: () => spent }));
+        const line = (/** @type {{ code: number, out: string, err: string }} */ r) => {
+          same([r.code, r.err], [0, ''], `exit ${r.code}, ${JSON.stringify(r.err)}`);
+          assert(r.out.endsWith('\n') && r.out.split('\n').length === 2, 'one JSON line');
+          return JSON.parse(r.out);
+        };
+        same(line(await ask('--plan', 'B')), { plan: 'B', ...m.approvalFor({ spentS: 600, earlierGuardS: [], guardS: 183.75 }) }, 'B alone');
+        same(line(await ask('--plan', 'B')).requestedCumulativeRoundMinutes, 14, 'B alone: 783.75 s is 14 minutes');
+        const after = line(await ask('--plan', 'B', '--after', 'A'));
+        same([after.assumedEarlierGuardS, after.roundCountedSBeforeApproval, after.requestedAdditionalGuardS, after.requestedCumulativeRoundMinutes], [558.75, 1158.75, 183.75, 23],
+          'B after A: the guard of A is assumed spent, 1,342.5 s is 23 minutes');
+        same([line(await ask('--plan', 'A')).requestedCumulativeRoundMinutes, line(await ask('--plan', 'A', '--optional')).requestedCumulativeRoundMinutes], [20, 23],
+          'A: 1,158.75 s is 20 minutes, with the optional step 1,342.5 s is 23');
+        spent = 1800;
+        same(line(await ask('--plan', 'B')).spentS, 1800, 'the time spent is read again every time');
+        // A plan that has no file yet is priced later; nothing is printed.
+        for (const [id, when] of /** @type {[string, string][]} */ ([['V4-S4', 'activation'], ['V4-S4C', 'resolution'], ['V4-S4X', 'activation'], ['V4-S4XC', 'resolution']])) {
+          const r = await ask('--plan', id);
+          same([r.code, r.out, r.err], [1, '', `approval: ${id} is priced at its ${when}; ask then\n`], `${id} before its file`);
+        }
+        const unknown = await ask('--plan', 'Z');
+        same([unknown.code, unknown.out, unknown.err], [1, '', `approval: no plan ${rel(join(dir, 'Z.json'))}\n`], 'a plan that is none of them');
+        writeJson(join(dir, 'V4-S4.json'), plan('V4-S4', [ownerRowsStep('rows-c', 2, 50)]));
+        same(line(await ask('--plan', 'V4-S4')).plan, 'V4-S4', 'once its plan is written, V4-S4 is asked like any plan');
+        const refused = async (/** @type {string} */ what, /** @type {string[]} */ args, /** @type {string} */ expected) => {
+          const r = await captureOutput(() => m.approvalCommand(args, { plansDir: dir, spentS: () => spent }));
+          same([r.code, r.out, r.err], [1, '', expected], `${what}: exit ${r.code}, ${JSON.stringify(r.err)}`);
+        };
+        await refused('another label', ['--plan', 'A', '--label', 'selftest'], 'approval: --label frozen only\n');
+        await refused('no plan', ['--label', 'frozen'], 'approval: needs --plan <id>\n');
+        await refused('an earlier plan with no file', ['--plan', 'B', '--after', 'A,Z', '--label', 'frozen'], `approval: --after Z: no plan ${rel(join(dir, 'Z.json'))}\n`);
+        await refused('an unknown argument', ['--plan', 'A', '--bogus', 'x', '--label', 'frozen'], 'approval: unknown argument: --bogus\n');
+        const viaMain = await captureOutput(() => m.main(['approval', '--label', 'selftest', '--plan', 'A']));
+        same([viaMain.code, viaMain.err], [1, 'approval: --label frozen only\n'], 'main dispatches approval');
+        // The real plans: the same numbers as the library, with the time spent read from the invocation logs.
+        const real = await captureOutput(() => m.approvalCommand(['--plan', 'V4-S2', '--label', 'frozen', '--source-label', 'x']));
+        const got = line(real);
+        const realPlan = JSON.parse(readFileSync(join(IG_DIR, 'plans', 'V4-S2.json'), 'utf8'));
+        same(got, { plan: 'V4-S2', ...m.approvalFor({ spentS: totals(readInvocations('frozen'), '').roundCountedS, earlierGuardS: [], guardS: m.planGuardS(realPlan) }) }, 'V4-S2 from the compiled plan and the invocation logs');
+        assert(got.spentS > 0 && got.requestedCumulativeRoundMinutes * 60 >= got.spentS + got.requestedAdditionalGuardS, 'the cap covers what was spent and the guard');
+        const second = line(await captureOutput(() => m.approvalCommand(['--plan', 'V4-LIVE', '--after', 'V4-S2', '--label', 'frozen', '--source-label', 'x'])));
+        same([second.assumedEarlierGuardS, second.roundCountedSBeforeApproval], [got.requestedAdditionalGuardS, got.spentS + got.requestedAdditionalGuardS], 'V4-LIVE after V4-S2 assumes its guard spent');
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'price: stage 5 is not priced here',
+    async run() {
+      const { m } = await matrixKit();
+      // Two families of one Hell 1 cell with 3 and 5 probes of 100/200/300 and 100..500 ms: 4 probes a family, 262.5 ms a probe, 60 x 4 x 262.5 / 1000 / 4 = 15.75 s.
+      const probes = (/** @type {number[]} */ ...ms) => ms.map((x) => ({ ms: x }));
+      const families = [
+        { case: 'a-hell-1', probes: probes(100, 200, 300) }, { case: 'a-hell-1', probes: probes(100, 200, 300, 400, 500) },
+        { case: 'c-hell-2', probes: probes(1000, 1000) }, { case: 'other-nightmare', probes: probes(5000) },
+      ];
+      const profiles = [{ canonical: { ms: 1000 } }, { canonical: { ms: 3000 } }, { canonical: { ms: null } }, {}];
+      const stage5 = m.stage5Items({ families, profiles, hell1: ['a-hell-1', 'b-hell-1'], hell2: ['c-hell-2'] });
+      same(stage5.map((i) => i.id), ['S5-1', 'S5-2', 'S5-3', 'S5-4', 'S5-5'], 'the five items');
+      const [one, two, c4, c3, browser] = stage5;
+      same([one.indicationS, one.unindicated, one.cells?.map((c) => c.families)], [15.75, ['b-hell-1'], [2, 0]], 'S5-1: the cell with families is indicated, the one without is listed, never estimated');
+      same([two.indicationS, c4.indicationS, c3.indicationS, browser.indicationS], [30, 5, 0, null], 'S5-2 (60 x 2 x 1000 / 1000 / 4), S5-3 (1.25 x 4 s of the two timed profiles), S5-4 (data only) and S5-5 (none)');
+      assert(thrownBy(() => m.stage5Items({ families: [], profiles: [], hell1: 'x', hell2: [] })).includes('needs the families'), 'the inputs are checked');
+      // manifestOf over a minimal input keeps every one of them unpriced, with no ceiling and no approval request, even for an input that carries them.
+      const dirty = stage5.map((i) => ({ ...i, ceilingS: 1, guardS: 1, requestedCumulativeRoundMinutes: 1 }));
+      const record = m.manifestOf({ plans: [], universe: { collections: {} }, stage5: /** @type {any} */ (dirty), spentS: 100, inventory: null });
+      for (const item of record.stage5) {
+        same([item.priced, item.pricedBy, 'ceilingS' in item, 'guardS' in item, 'requestedCumulativeRoundMinutes' in item], [false, 'N-V4-04', false, false, false], `${item.id}: unpriced, priced by N-V4-04, no ceiling and no request`);
+      }
+      same(record.approvals, [], 'no approval request among the approvals');
+      same(record.unpriced.map((/** @type {any} */ u) => [u.id, u.status, u.pricedBy]), ['S5-1', 'S5-2', 'S5-3', 'S5-4', 'S5-5'].map((id) => [id, 'unpriced', 'N-V4-04']), 'they are listed as unpriced, each with the item that prices it');
+      const md = m.manifestMarkdown(record);
+      const section = md.slice(md.indexOf('## 1. '), md.indexOf('## 2. '));
+      for (const id of ['S5-1', 'S5-2', 'S5-3', 'S5-4', 'S5-5']) {
+        assert(section.includes(`${id} (unpriced)`), `section 1 lists ${id} as unpriced`);
+      }
+      assert(section.includes('### 1.4 Unpriced') && section.includes('no ceiling and no approval request'), 'section 1 says why');
+      assert(section.includes('PM1 inventory: missing'), 'a missing inventory is said so');
+      assert(m.manifestMarkdown(m.manifestOf({ plans: [], universe: { collections: {} }, spentS: 0, inventory: { families: 116, alternate: 113, populations: 24 } }))
+        .includes('Data-only PM1 inventory, stage 1 (IG-P-Q24 (b); it opens no route): docs/improve-generating/evidence/frozen/V4-T03/inventory.md, 116 families, 113 alternate rows in 24 populations.'), 'the inventory line');
+    },
+  },
+  {
+    name: 'price: the universe keeps its options apart',
+    async run() {
+      const { m } = await matrixKit();
+      // The initial collection: 20 rows of 200 s under a 130-s limit (predicted censored: 4 invocations of 6, 6, 6 and 2 rows, 2,808 s of node) and a comparator.
+      const initial = { groups: [ownerGroup('V4-S4', 'fr-frozen', 'x-nightmare', ['S4-1'], 20, 200, 130)], comparators: [ownerGroup('V4-S4C', 'shipped-uncapped', 'x-nightmare', ['S4-C'], 4, 100, 260, true)] };
+      const board = (/** @type {string} */ arm) => ownerGroup('V4-S4', arm, 'h-hell-1', ['S4-5'], 5, 100, 130);
+      const conditional = { groups: [board('fr-frozen'), board('fr-frozen-none')], comparators: [ownerGroup('V4-S4C', 'shipped-uncapped', 'h-hell-1', ['S4-C'], 5, 100, 260, true)] };
+      const optional = { groups: [ownerGroup('V4-S4', 'log-link', 'x-nightmare', ['S4-6'], 5, 100, 260)], comparators: [] };
+      const record = m.manifestOf({ plans: [], universe: { collections: { initial, conditional, optional, second: { groups: [], comparators: [] } } }, spentS: 600, inventory: null });
+      const first = record.universe.collections.initial;
+      same([first.groupsTotal.projectS, first.groupsTotal.invocations, first.groupsTotal.countedS, first.groupsTotal.guardS, first.groupsTotal.ceilingS, first.groupsTotal.completed, first.groupsTotal.censored],
+        [2808, 4, 2988, 3735, 18900, 0, 20], 'the headline group by hand: 2,808 s of node, four invocations, 180 s of quiet, guard 1.25 x 2,988, ceiling 20 x 945, all 20 rows predicted censored');
+      const price = (/** @type {any} */ g) => m.stepPrice(g.price);
+      same(first.total.countedS, price(initial.groups[0]).countedS + price(initial.comparators[0]).countedS, 'the initial total is its groups and its comparator and nothing else');
+      assert(first.total.countedS < record.universe.stage4.countedS, 'the options are not in it');
+      const boardBlock = record.universe.boards[0];
+      same([record.universe.boards.length, boardBlock.cell, boardBlock.groups.count, boardBlock.comparators.count], [1, 'h-hell-1', 2, 1], 'the conditional board is apart');
+      same([boardBlock.total.countedS, Math.ceil(boardBlock.total.ceilingS / 60)], [2 * price(conditional.groups[0]).countedS + price(conditional.comparators[0]).countedS, Math.ceil((2 * 5 + 5) * 945 / 60)],
+        'the board has its own projected and ceiling minutes');
+      assert(near(boardBlock.total.guardS, 1.25 * boardBlock.total.countedS) && boardBlock.total.ceilingMin === 237, 'and its guard: 1.25 x its projection; the ceiling 15 x 945 s is 237 minutes');
+      same(record.options.map((/** @type {any} */ o) => [o.id, o.adds, o.countedS]), [
+        ['S4-6', 'V4-S4', price(optional.groups[0]).countedS],
+        ['conditional board h-hell-1', 'V4-S4 (the twins) and V4-S4C (the comparator)', boardBlock.total.countedS],
+      ], 'S4-6 and the board are options with their own prices');
+      assert(Math.abs(record.universe.stage4.countedS - (first.total.countedS + boardBlock.total.countedS + price(optional.groups[0]).countedS)) < 1e-9, 'the whole universe is the initial collection, the board and S4-6');
+      const names = record.approvals.map((/** @type {any} */ a) => a.id);
+      same(names, ['V4-S4', 'V4-S4C'], 'the approvals name the stage-4 entries (no plan was given)');
+      const ask = record.approvals[0];
+      same([ask.when, ask.status], ['after its data-only activation: the optional scope first, then the timed allowance', 'indication'], 'V4-S4 is asked after its data-only activation');
+      same([ask.requestedAdditionalGuardS, ask.roundCountedSBeforeApproval, ask.requestedCumulativeRoundMinutes], [first.groupsTotal.guardS, 600, Math.ceil((600 + first.groupsTotal.guardS) / 60)], 'its three fields: the options are not in its guard');
+      same([record.approvals[1].assumedEarlierGuardS, record.approvals[1].roundCountedSBeforeApproval, record.approvals[1].assumes], [ask.guardS, 600 + ask.guardS, 'assumes each earlier approval is spent to its guard; re-read when asked'], 'V4-S4C assumes V4-S4 spent to its guard');
+      const md = m.manifestMarkdown(record);
+      for (const text of ['conditional board h-hell-1: the twins (S4-5)', 'conditional board h-hell-1: the comparator', 'optional S4-6', '**initial collection, total**', 'An indication, not an allocation (plan §5.1)', 'planning projection: 1.25 x factor x MP12b1 median; not a bound',
+        'after its data-only activation: the optional scope first, then the timed allowance']) {
+        assert(md.includes(text), `the Markdown says "${text}"`);
+      }
+      assert(md.includes(`| **initial collection, total** | 2 | 24 | 5 | ${(first.total.countedS / 60).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} |`), 'the initial total row');
+    },
+  },
+  {
+    name: 'price: ceilings beside projections',
+    async run() {
+      const { m } = await matrixKit();
+      const rows = ownerRowsStep('rows-a', 2, 50);
+      const probe = ownerProcessStep('probe', [100]);
+      const plan = { task: 'V4-S2', runnable: true, blockedBy: [], prerequisites: [], allocationMinutes: 1, optionalMinutes: 0, steps: [{ id: 'prerequisites', locked: false, node: ['x'], optional: false, dependsOn: [], expect: 'x' }, rows, probe] };
+      const record = m.manifestOf({ plans: [plan], universe: { collections: {} }, spentS: 0, inventory: null });
+      const block = record.plans[0];
+      const locked = block.steps.filter((/** @type {any} */ s) => s.locked);
+      same(locked.map((/** @type {any} */ s) => s.id), ['rows-a', 'probe'], 'the two locked steps, the unlocked one is only listed');
+      for (const [step, input] of [[locked[0], rows.price], [locked[1], probe.price]]) {
+        const priced = m.stepPrice(input);
+        same([step.ceilingS, step.countedS, step.guardS, step.completed, step.censored], [priced.ceilingS, priced.countedS, priced.guardS, priced.completed, priced.censored], `${step.id}: T11b's numbers`);
+        assert(step.ceilingS >= step.countedS, `${step.id}: the ceiling is at least its projection`);
+      }
+      same([locked[0].ceilingS, locked[1].ceilingS, locked[0].countedS, locked[1].countedS], [1890, 945, 147, 147], 'by hand: 2 x 945 and 1 x 945; 102 s of node and 45 s of quiet each');
+      same([block.required.ceilingS, block.required.ceilingMin, block.required.countedMin, block.required.guardMin], [2835, 48, 294 / 60, 1.25 * 294 / 60], 'the plan: the ceilings sum to 2,835 s, 47.25 minutes rounded up to 48');
+      same([block.required.completed, block.required.censored, block.optional.count], [3, 0, 0], 'three observations predicted to complete, none cut, no optional step');
+      // A plan with a step that is not priceable is refused, never priced short.
+      const bad = { ...plan, steps: [ownerRowsStep('rows-bad', 1, 100, 880)] };
+      assert(thrownBy(() => m.manifestOf({ plans: [bad], universe: { collections: {} }, spentS: 0 })).includes('is not admissible'), 'an inadmissible step is refused');
+    },
+  },
+  {
+    name: 'price: the text quotes the plan and the manifest is written',
+    async run() {
+      const { m } = await matrixKit();
+      const planText = readFileSync(join(ROOT, 'docs', 'improve-generating', 'plan.md'), 'utf8');
+      const quotes = m.planQuotes(planText);
+      assert(quotes.stopping.startsWith('**Stopping.** A cell\'s gate verdict is settled at its third request that fails to reach ten;') && quotes.stopping.endsWith('never extrapolated.'), 'the stopping rule, joined on one line');
+      assert(quotes.budget.includes('about 3.4 to 4.2 h'), 'the budget paragraph');
+      same(quotes.risks.map((r) => r.title), ['Small samples.', 'Browser against Node.', 'A per-call budget can lose completions.', 'A screen class can come out inconclusive.', 'A second validation is possible'], 'the five risks that bear on the price');
+      assert(quotes.risks.every((r) => r.text.startsWith('**') && !r.text.startsWith('- ')), 'each begins with its bold title');
+      assert(quotes.prefetch.startsWith('**Replay prefetch.**'), 'the replay-prefetch bullet of section 9');
+      assert(thrownBy(() => m.planQuotes(planText.replace('**Stopping.**', '**Halting.**'))).includes('plan.md has no Stopping paragraph'), 'a quote that is not found throws');
+      assert(thrownBy(() => m.planQuotes(planText.replace('about 3.4 to 4.2 h', 'about 4 h'))).includes('no longer gives stage 4'), 'a budget that changed throws');
+      // `price` on the real records, into a scratch folder: the numbers are the compiled plans' own.
+      const dir = fresh(join(SELFTEST_DIR, 'price'));
+      try {
+        const { PRICE_PATHS } = m;
+        const out = await captureOutput(() => m.priceCommand(['--label', 'frozen', '--source-label', 'frozen 3fc65f4'], { ...PRICE_PATHS, out: dir }));
+        same([out.code, out.err], [0, ''], `price: exit ${out.code}, ${JSON.stringify(out.err)}`);
+        same(out.out.split('\n').slice(0, 2), [`wrote ${rel(join(dir, 'manifest.json'))}`, `wrote ${rel(join(dir, 'manifest.md'))}`], 'the two files it wrote');
+        const record = JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8'));
+        const md = readFileSync(join(dir, 'manifest.md'), 'utf8');
+        for (const task of ['V4-S2', 'V4-LIVE']) {
+          const plan = JSON.parse(readFileSync(join(IG_DIR, 'plans', `${task}.json`), 'utf8'));
+          const forecast = plan.steps.filter((/** @type {any} */ s) => s.locked && !s.optional).reduce((sum, /** @type {any} */ s) => sum + s.projectS + 45 * s.invocations, 0);
+          const block = record.plans.find((/** @type {any} */ p) => p.task === task);
+          assert(Math.abs(block.required.countedS - forecast) < 1e-6, `${task}: the projected counted seconds are the runner's dry-run forecast`);
+          same([block.allocationMinutes, Math.ceil(block.required.countedS / 60)], [plan.allocationMinutes, plan.allocationMinutes], `${task}: the allocation is the counted minutes rounded up`);
+        }
+        const spent = totals(readInvocations('frozen'), '').roundCountedS;
+        same([record.round.spentS, record.approvals[0].id, record.approvals[0].roundCountedSBeforeApproval, record.approvals[1].id], [spent, 'V4-S2', spent, 'V4-LIVE'], 'the time spent is the invocation logs\' and the first request starts from it');
+        same(record.approvals.map((/** @type {any} */ a) => a.id), ['V4-S2', 'V4-LIVE', 'V4-S4', 'V4-S4C', 'V4-S4X', 'V4-S4XC'], 'the approvals in order');
+        same(record.unpriced.map((/** @type {any} */ u) => u.id), ['S5-1', 'S5-2', 'S5-3', 'S5-4', 'S5-5', 'browser calibration'], 'stage 5 and the browser calibration are unpriced');
+        same(record.stage5[0].unindicated, ['26x26-hell-1'], 'IGP-05 has no family of the twelfth Hell 1 cell: no indication for it');
+        same(record.noReference, ['20x20-hell-1'], 'the one cell without an MP12b1 median');
+        assert(record.inputs.every((/** @type {any} */ i) => /^[0-9a-f]{64}$/.test(i.sha256) && !i.path.includes('\\') && !/^[A-Za-z]:/.test(i.path)), 'every input has a repository path and a SHA-256');
+        const planInput = record.inputs.find((/** @type {any} */ i) => i.path === 'tools/ig-proto/plans/V4-S2.json');
+        same(planInput?.sha256, sha256File(join(IG_DIR, 'plans', 'V4-S2.json')), 'the plan input is hashed as the plan file');
+        const at = ['## 1. ', '## 2. ', '## 3. ', '## 4. ', '## 5. ', '## 6. ', '## 7. ', '## 8. '].map((h) => md.indexOf(h));
+        assert(at.every((x, i) => x > 0 && (i === 0 || x > at[i - 1])), 'the eight sections in order');
+        assert(md.includes('Data-only PM1 inventory, stage 1 (IG-P-Q24 (b); it opens no route): docs/improve-generating/evidence/frozen/V4-T03/inventory.md, '), 'the inventory line');
+        assert(/bench-page factor/.test(md) && md.includes('Ceiling unpriced'), 'the browser parts are labelled and unpriced');
+        assert(md.includes('(it was `units x 345` under the 300-s limit)') && md.includes('with 15 s throughout, the first approvals\''), 'section 7 states the rules');
+        const refused = await captureOutput(() => m.priceCommand(['--label', 'selftest'], { ...PRICE_PATHS, out: dir }));
+        same([refused.code, refused.out, refused.err], [1, '', 'price: --label frozen only\n'], 'another label is refused');
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    },
+  },
 ];
+
+/**
+ * @param {string} id @param {number} rows @param {number} rowS @param {number} [rowLimitS] @param {boolean} [optional]
+ * @returns {any} A compiled locked step of request rows (V4-T11g's cases): `rows` rows of `rowS` seconds.
+ */
+function ownerRowsStep(id, rows, rowS, rowLimitS = 260, optional = false) {
+  return {
+    id, locked: true, node: ['tools\\ig-proto\\arm.mjs', 'run', '--task', 'X', '--arm', 'a', '--cases', `c:0-${rows - 1}`, '--row-limit-s', String(rowLimitS)], state: `X\\a\\${id}\\state.json`,
+    repeatUntilDone: true, minHorizonS: rowLimitS + 12, optional, price: { type: 'rows', rows, rowS, rowLimitS }, dependsOn: [], consumes: [], produces: [], expect: 'x', exitOn: 'y',
+  };
+}
+
+/** @param {string} id @param {number[]} durationsS @param {boolean} [optional] @returns {any} A compiled locked step of one process item per duration (reserve 120 s). */
+function ownerProcessStep(id, durationsS, optional = false) {
+  return {
+    id, locked: true, node: ['tools\\ig-proto\\kernel-probe.mjs', 'counters', '--task', 'X'], state: `X\\${id}\\state.json`, repeatUntilDone: true, minHorizonS: 150, optional,
+    price: { type: 'process', durationsS, reserveS: 120 }, dependsOn: [], consumes: [], produces: [], expect: 'x', exitOn: 'y',
+  };
+}
+
+/** @returns {any} A group of the stage-4 universe (V4-T11g's cases): `rows` rows of `rowS` seconds under `rowLimitS`, as T11c's `priced` writes it. */
+function ownerGroup(/** @type {string} */ task, /** @type {string} */ arm, /** @type {string} */ cell, /** @type {string[]} */ items, /** @type {number} */ rows, /** @type {number} */ rowS,
+  /** @type {number} */ rowLimitS, /** @type {boolean} */ comparator = false) {
+  return {
+    id: `${task}/${arm}/val-${cell}`, task, arm, cell, from: 20, to: 19 + rows, rows, stage: 4, cohort: 'val', shard: `val-${cell}`, rowLimitS, optional: false, items, collection: 'initial',
+    comparator, price: { type: 'rows', rows, rowS, rowLimitS },
+  };
+}
 
 /** @type {number} */
 let horizonS = 285;

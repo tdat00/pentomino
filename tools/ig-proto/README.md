@@ -73,7 +73,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `verdicts.mjs`, `data/verdict-manifest.schema.md`, `data/verdict-manifest.example.json` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules), the work ledger of a request, the work rule and the class verdict (V4-T09c), the global verdicts (V4-T09d: the cell gates on the shipped arm, Master identity, the Hell 1 report, P5's stops, the post-hoc projection, the population and phase 0's verdict), and the verdict tool (V4-T09e: the bound prerequisites, the class-selection receipt, the work report and the records it writes) with the manifest those statistics read and its example; the statistics are pure, the tool reads the records the manifest names; see "Admission statistics (V4-T09a)" |
 | `kernel-probe.mjs`, `variants/r4c.json`, `plans/V4-T10a.json`, `plans/V4-T10b.json` | the kernel probe (V4-T10a, V4-T10b): R4 visit and mutation counters in the `r4c` tree, the `v4-kernel` items that compare its complete deduction with the `instr` tree's, the `fewestColumn` profile of child processes under reduced inlining, the `counters` and `profile` (locked) and `report` (unlocked) commands and the plans of the runs; see "Kernel probe (V4-T10a)" |
 | `width-probe.mjs`, `lib/width-worker.mjs`, `lib/width-worker-test.mjs`, `plans/V4-T10c.json` | the pool probe (V4-T10c): one rating's time at 1, 2, 4 and 8 concurrent workers on the frozen source, the width dispatch, its worker and the scripted worker of its self-test, the `run` (locked) and `report` (unlocked) commands and the plan of the run; see "Pool probe (V4-T10c)" |
-| `manifest.mjs`, `data/frozen-round-v1.json`, `plans/V4-S2.json`, `plans/V4-LIVE.json`, `plans/V4-S4.universe.json`, `plans/V4-S4X.template.json`, `plans/items/` | the frozen-round matrix (V4-T11a onwards): the requests of stages 2 to 5 as data and the pure rules that expand them into groups of request rows with their row limits, state paths and collections, `controlsFrom` and `conditionalActivated`; the pricing (V4-T11b); the plan compiler (V4-T11c: `compile` writes the plans `V4-S2` and `V4-LIVE`, the priced universe of stage 4, the template of the second validation and the item manifests of the parity passes and of the isolated P-0) and the prerequisites gate (`check-prerequisites`); the stage-4 collections (V4-T11e: `activate` writes the activation record, `plans/V4-S4.json` and `plans/V4-S4C.template.json` once, `close` the closure record); later tasks of the pack add the comparators and the manifest to `manifest.mjs`; unlocked, nothing in it runs; see "Frozen-round matrix (V4-T11a)" |
+| `manifest.mjs`, `data/frozen-round-v1.json`, `plans/V4-S2.json`, `plans/V4-LIVE.json`, `plans/V4-S4.universe.json`, `plans/V4-S4X.template.json`, `plans/items/` | the frozen-round matrix (V4-T11a onwards): the requests of stages 2 to 5 as data and the pure rules that expand them into groups of request rows with their row limits, state paths and collections, `controlsFrom` and `conditionalActivated`; the pricing (V4-T11b); the plan compiler (V4-T11c: `compile` writes the plans `V4-S2` and `V4-LIVE`, the priced universe of stage 4, the template of the second validation and the item manifests of the parity passes and of the isolated P-0) and the prerequisites gate (`check-prerequisites`); the stage-4 collections (V4-T11e: `activate` writes the activation record, `plans/V4-S4.json` and `plans/V4-S4C.template.json` once, `close` the closure record); the comparators and the verdict inputs (V4-T11f: `resolve-comparators`, `verdict-input`); the manifest for the owner (V4-T11g: `price` writes `evidence/frozen/V4-T11/manifest.json|md`, `approval` prints one approval request); unlocked, nothing in it runs; see "Frozen-round matrix (V4-T11a)" |
 
 ## Trees (variants)
 
@@ -152,6 +152,8 @@ node tools\ig-proto\manifest.mjs compile --label frozen --source-label <label>  
 node tools\ig-proto\manifest.mjs check-prerequisites --plan V4-LIVE --label frozen --source-label <label>         # unlocked (V4-T11c), the gate of a plan: exit 1 and the reasons when it is blocked
 node tools\ig-proto\manifest.mjs activate --collection initial [--approve-optional S4-6] --label frozen --source-label <label>   # unlocked (V4-T11e), once, on the owner's authorization: writes the activation record, plans\V4-S4.json and plans\V4-S4C.template.json
 node tools\ig-proto\manifest.mjs close --collection initial --reason <text> --label frozen --source-label <label> # unlocked (V4-T11e), once, on the owner's instruction: writes the closure record listing the declared rows not published
+node tools\ig-proto\manifest.mjs price --label frozen --source-label <label>                                      # unlocked (V4-T11g), writes evidence\frozen\V4-T11\manifest.json|md: the priced, staged manifest for the owner
+node tools\ig-proto\manifest.mjs approval --plan V4-S2 [--after <ids>] [--optional] --label frozen --source-label <label>   # unlocked (V4-T11g), one JSON line: the approval request re-read now; exit 1 for a plan priced later
 ```
 
 `--only` (a subset of the self-test's cases), `limits` and `testKinds` of `createLanes`, and `setHorizon` are for the
@@ -2185,8 +2187,8 @@ generates or reads a measured row of the round (unlocked). `self-test.mjs` loads
   `reachingTen` those of them that reach ten, `activated` is `reachingTen >= 3`; a missing or invalid run is never a completion.
 - **Readers.** T11c compiles the plans from the groups (and takes `controls` from `controlsFrom`), T11e activates the initial
   collection from them (and reads `conditionalActivated`) and T11f resolves the comparators and writes the verdict inputs from the
-  expansion; T11b's pricing (the subsection below) reads the same reports for `refS` through `withoutSampling`; T11g and the other
-  tasks of the group extend this section.
+  expansion; T11b's pricing (the subsection below) reads the same reports for `refS` through `withoutSampling`; T11g's manifest (the last
+  subsection) prices the plans and the universe built from them.
 - **Self-test** (`--items`, unlocked, synthetic: the data file and copies of it, T09a's `newRunRecord` rows): `matrix: a screen class
   with a headline and a control`, `every validated cell has its fallback`, `the comparator keeps the frozen prior`, `a later prior
   change on 14x14 and 24x24`, `dedupe`, `controls from the reports` (with a cell whose runs carry sampling entries only, a cell
@@ -2266,7 +2268,7 @@ beside the projection, and the fields with which the orchestrator asks the owner
   time, reserve or duration that is not a positive number, a horizon above 885 (the ceiling rests on the runner's bounds), an empty list of
   groups or durations, an unknown step type, a negative or missing approval input and a `refS` that is neither `null` nor a positive number.
 - **Readers.** T11c emits each step's `price` input and takes `projectS` and `invocations` from `stepPrice` (and `rowS` from
-  `projectedRowS`); T11g prices each step of the plans and the universe with `stepPrice` and asks each approval with `approvalFields`.
+  `projectedRowS`); T11g (the last subsection below) prices each step of the plans and the universe with `stepPrice` and asks each approval with `approvalFields`.
 - **Self-test** (`--items`, unlocked, pure): `price: rows, one per invocation at 260 s`, `rows at 130 s`, `two sequential 120-s process items
   fit one invocation`, `a 200-s process item with a 120-s reserve`, `an item past the cut is censored`, `two lanes differ from one` (with
   unequal durations, so that the earliest free lane is told from round-robin), `two separately emitted steps`, `an inadmissible group`,
@@ -2522,3 +2524,59 @@ self-test.
   `verdict input: selection and final`, `verdict input: not published`, `closure: beside its activation`, `resolve: the commands` (both commands
   and the dispatcher), `the selection prerequisite`, `the expectation is built apart from the receipt` and `the expectation fits the receipt
   the verdict tool writes` (T09e's `verdictRecords` writes the receipt, with and without a closure).
+
+### The manifest for the owner (V4-T11g)
+
+The owner approves the frozen round only as a separately priced, staged manifest made after source preparation (OD-P10, plan 5.1 "Budget").
+`price` writes it and `approval` asks each approval; both are unlocked, read records and run nothing. The task ends at the owner: nothing
+of stages 2 to 5, the parity passes, the probes, the live-deadline receipt or the browser calibration runs before the owner approves that plan's
+price, and each approval is asked again with `approval --plan <id>` when it is needed (never from the quote).
+
+- **`price --label frozen --source-label <SL>`** reads the compiled plans `V4-S2` and `V4-LIVE`, the universe `V4-S4.universe.json` and the
+  second-validation template `V4-S4X.template.json` (T11c), the matrix data, the identity record (the factor, 1 when it is absent), T03's
+  `inventory.json` (the line `PM1 inventory: missing` when it is absent), every `invocations.jsonl` of the label (the counted time spent), IGP-05's
+  `families-*.jsonl` and IGP-02's `profiles-*.jsonl` (stage 5), the MP12b1 reports (the cells without a median), the item logs of the earlier tasks
+  (the measured seconds) and `docs/improve-generating/plan.md` (the passages it quotes), and writes `docs/improve-generating/evidence/frozen/V4-T11/manifest.json`
+  (the `meta` block, every input with its path and SHA-256, every plan, step, group and item with its numbers and commands, the approval requests)
+  and `manifest.md`. It prints `wrote <path>` twice and a one-line summary; a second run replaces its own two files (the `createdAt` moves).
+- **`manifestOf({ plans, universe, s4x, stage5, browser, spentS, inventory, context })`** (pure) applies T11b's `stepPrice` to the price input of
+  every locked step and every group, and gives for each plan (required steps, optional steps, all, and by kind of step), each collection of the
+  universe (the groups, the comparators, the total, each item, each conditional board apart, S4-6 apart) the projected counted seconds, the guard
+  (`1.25 x`), the ceiling (T11b's `units x 945`, in minutes the sum over 60 rounded up) and the predicted completed and censored observations.
+  The initial total excludes the conditional boards and S4-6, which are `options` with their own prices. A step or group that is not priceable
+  throws. `context` carries what the sections quote or compare (every key optional): the matrix data, the catalogue (for N-V4-18's saving), the
+  cells without an MP12b1 median, the four P-1 passes of `V4-S4` (priced at their reserves, as T11e prices them), the plan's quotes, the measured
+  seconds and the factor. The record also holds the comparison of section 8: the same request rows at the horizon 885 s and at the pre-T11h
+  horizon 285 s, the causes of the initial collection by item and across items, and N-V4-18's conditional saving.
+- **Not priced here** (R3-05, RV3-05). `stage5Items` gives each stage-5 item an indication, never a price: S5-1 and S5-2 are, per cell of the
+  catalogue's Hell 1 and Hell 2 levels, `60 x` the mean probes per family of the cell in IGP-05's families `x` its mean probe `ms / 1000 / 4` (10 sets x 3
+  layouts x 2 orders at four lanes), so a cell with no family in IGP-05's records (`26x26-hell-1`) is listed without an indication and never
+  estimated; S5-3 is `1.25 x` the sum of `canonical.ms / 1000` of PM4's profiles; S5-4 is data only (0); S5-5 has none. `manifestOf` keeps every one
+  `priced: false`, `pricedBy: 'N-V4-04'`, with no ceiling and no approval request. `browserInput` gives B-1's Node part (the frozen `base` tree on
+  `10x10-nightmare`, `12x12-nightmare`, `26x26-nightmare` and `14x14-master`, reps 0 to 4, row limit 260 s, each row at the planning projection),
+  which is priced like any request rows; B-1's browser part and B-2 (the Generator page on `10x10`, `12x12` Nightmare and `14x14` Master) are projected as
+  `4.5 x` the node seconds of the matching Node rows, labelled a bench-page factor for B-1, and their ceilings are unpriced until N-V4-01.
+- **`approvalFor({ spentS, earlierGuardS, guardS })`** (pure) returns `{ spentS, assumedEarlierGuardS, roundCountedSBeforeApproval,
+  requestedAdditionalGuardS, requestedCumulativeRoundMinutes }` (RV2-13): the counted seconds already spent plus the guards of the earlier
+  approvals (assumed spent to their guard) plus the guard asked for, over 60, rounded up. **`planGuardS(plan, { optional })`** is the sum of the
+  guards of a plan's locked steps (`--optional` adds the optional ones). The manifest's approval list is the chain `V4-S2` (exact), `V4-LIVE`
+  (exact), `V4-S4` (an indication: the initial groups and the four P-1 passes, asked after its data-only activation), `V4-S4C`, `V4-S4X` and
+  `V4-S4XC` (indications), each entry assuming the guards above it spent; the options raise the later caps when chosen.
+- **`approval --plan <id> [--after <ids>] [--optional] --label frozen --source-label <SL>`** prints one JSON line `{ plan, spentS,
+  assumedEarlierGuardS, roundCountedSBeforeApproval, requestedAdditionalGuardS, requestedCumulativeRoundMinutes }` for the plan file
+  `plans/<id>.json`: `spentS` is re-read now from the invocation logs (`readInvocations('frozen')`), the guards come from the plans' prices, `--after`
+  names the plan files (comma-separated) whose guards are assumed spent. A plan that has no file yet exits 1 with `approval: <id> is priced at its
+  <activation | resolution>; ask then` (`V4-S4` and `V4-S4X` at their activation, `V4-S4C` and `V4-S4XC` at their resolution); another unknown plan,
+  an `--after` with no file and another label are refused (`approval: <reason>`, exit 1, nothing printed). The seconds that are in no log (T10a's
+  deleted scratch run, the register's 55.4 s) are not in `spentS`, which is the budget guard's own reading; the manifest says so and gives the cap
+  with them (`requestedCumulativeRoundMinutesWithOffLog` in `manifest.json`).
+- **`manifest.md`** has eight sections: (1) the price per plan, collection and item, with the unpriced items; (2) what the owner approves, now and later;
+  (3) the plans, their steps, commands and prerequisites, and the named items that unblock them; (4) seeds, limits, concurrency and the rules quoted
+  from the plan; (5) the browser calibration and its labels; (6) the risks of plan section 8 (and section 9's replay prefetch) that bear on the price,
+  quoted by `planQuotes` and failing if a passage moved; (7) T11b's pricing rules and the overhead assumptions; (8) the difference from the plan's
+  indication of stage 4 (3.4 to 4.2 h), each cause with its minutes.
+- **Self-test** (`--items`, unlocked): `approval: re-read and cumulative` (the pure core, the command on synthetic plans and on the real ones),
+  `price: stage 5 is not priced here`, `price: the universe keeps its options apart`, `price: ceilings beside projections` and `price: the text quotes
+  the plan and the manifest is written` (`planQuotes`, and `price` on the real records into a scratch folder). The dry runs of the plans are the
+  gate of the task: `approval` then `run-task.ps1 -DryRun` with the requested cumulative cap (a dry run without `-LockHelper`, the only run that may
+  pass a cap above the granted one), and a last dry run with the counted minutes already spent, rounded down, which stops honestly.

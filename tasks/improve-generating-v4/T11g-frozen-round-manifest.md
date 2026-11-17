@@ -225,13 +225,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-18 01:05:00 +07:00 (dispatch, base `b5eb3d9`) to 01:41:57 +07:00 (acceptance): 36 min 57 s; the developer's own times 01:04:56-01:33:21 |
+| Waiting for rulings | about 6 min (SA-Opus's ruling, 01:36-01:41; no blocking QUESTION) |
+| Agent id, model | `91c3f4fd-138e-4f17-87d4-3e3b87fae3ee`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 118 calls; 37,732,225 input, 225,788 output, 37,204,796 cache-read |
+| AI credits | 729.68 |
+| Questions and rulings | Q1 (non-blocking): `26x26-hell-1` has no IGP-05 family; default (a) stands (listed with no indication; N-V4-04 decides). Q2 changed by the ruling: the owner is asked for caps that include the 55.4 s off-log row (749 for `V4-S2`, 748 from the logs; `requestedCumulativeRoundMinutesWithOffLog` already in `manifest.json`); from the next grant on a run passes the granted cap less one minute (§3.2). Deviations (the `context` key, extra exports, case 199, the eight-command assertion, temporary PowerShell rewrites for mutation checks restored byte-identical) and readings accepted. Pack amendment `da0aa26` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--items`: 199 passed, 0 failed (34.265 s; cases 195-199); `--frozen`: 10 passed; `price`: exit 0, `V4-S2 559.2 min projected, guard 699.0, ceiling 4,914; V4-LIVE 35.1 min projected, guard 43.9, ceiling 158; spent 2,913.910 s; 6 approvals, 6 unpriced items` (a re-run differs only in `meta.createdAt`; `manifest.md` byte-identical; the original kept); step 4: `approval --plan V4-S2` cap 748, dry run 44 `go`, `[dry run] forecast of the plan: 33,551 s counted (allocation 33,600 s, guard 42,000 s)`; `approval --plan V4-LIVE --after V4-S2` cap 792, dry run 2 `go`, `2,107 s counted (allocation 2,160 s, guard 2,700 s)`; `approval --plan V4-S4`: exit 1, `approval: V4-S4 is priced at its activation; ask then`; the last dry run at 48: `p0-v4: stop, horizon -89 s, allowance -34 s`; firewall `check` (V4-T11g): 289 production files unchanged; guard empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. No locked command and no machine time (logs still 2,913.910 s) |
+| Commit | this task's commit, `improve-generating T11g: Frozen-round manifest for the owner: the price, the approval requests and the dry runs` |
+| Issues and named items | Owner stop (OD-P10) after this commit: the owner is asked for `V4-S2` only, a cumulative cap of 749 counted minutes (49.5 spent + 699.0 guard on a 559.2-min projection); the rest is information. N-V4-01 prices the browser parts; N-V4-04 prices stage 5 and decides `26x26-hell-1`'s families |
