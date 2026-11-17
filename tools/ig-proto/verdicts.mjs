@@ -5,8 +5,10 @@
 // invalid, censored or erroneous data is incomplete evidence, never a pass; an invalid puzzle or pack is a
 // correctness failure. Pure functions of published rows. V4-T09b adds the pairing, the matched sets and the clue,
 // faster and no-regression rules; V4-T09c adds the work ledger of a request (IG-P-Q37: an interval of consumed units
-// from the journal and linkage lines), the work rule and the class verdict; V4-T09d and V4-T09e add the global verdicts
-// and the verdict tool to this file; the manifest the tool reads is described in data/verdict-manifest.schema.md.
+// from the journal and linkage lines), the work rule and the class verdict; V4-T09d adds the global verdicts (the cell
+// gates on the arm a class ships, Master identity, the Hell 1 report, P5's stops, the post-hoc projection, the
+// population and phase 0's verdict) and V4-T09e the verdict tool; the manifest the tool reads is described in
+// data/verdict-manifest.schema.md.
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -15,6 +17,8 @@ import { sourceRoot } from './lib/paths.mjs';
 
 // The record schema of the frozen source (V4-T01a), never the worktree's.
 const { validateRunRecord } = await import(pathToFileURL(join(sourceRoot('frozen'), 'tools', 'bench', 'report.js')).href);
+// The level ladder of the frozen source: the band of a puzzle's level, for the population's score position.
+const { level: levelOf } = await import(pathToFileURL(join(sourceRoot('frozen'), 'core', 'engine', 'levels.js')).href);
 
 /** @typedef {'valid' | 'invalid' | 'incorrect' | 'censored' | 'error'} RowStatus */
 /** @typedef {{ status: RowStatus, problems: string[] }} RunStatus */
@@ -1034,4 +1038,563 @@ export function classVerdict(input) {
     return decide('inconclusive', 'cell-gate');
   }
   return decide('admitted', null);
+}
+
+/** A cell's gate is settled at its third valid request that does not reach ten (plan section 5.1, "Stopping"). */
+const STOP_FAILURES = 3;
+/** Plan section 5.2: 18 of the 20 requests of a cell reach ten (the completion gate; Hell 1's candidate count). */
+const REACHING_TEN = 18;
+/** The hard end of the generation stop (plan section 3, P5; D-V4-08): the default of the post-hoc projection. */
+const DEADLINE_MS = 115000;
+const CLASS_VERDICTS = Object.freeze(['admitted', 'failed', 'inconclusive']);
+/** The label every row of the post-hoc projection carries beside `postHoc: true` (R01, D-V4-08). */
+const PROJECTION_LABEL = 'post-hoc projection; not a live deadline gate';
+/** The first reason of a selection's phase-0 line: a selection is never a final admission (RV3-03). */
+const SELECTION_PENDING = 'uncapped comparator collection pending';
+/** The prerequisites a phase-0 verdict cannot do without (the names of the verdict manifest's `prerequisites`). */
+const REQUIRED_PREREQUISITES = Object.freeze(['stage1', 'liveDeadline']);
+
+/**
+ * @param {string} name
+ * @param {unknown} rows
+ * @returns {void} Throws unless the rows are a list of ingested rows (T09a's `ingestRow`): a raw published row has no
+ *   status and would pass every check.
+ */
+function needIngested(name, rows) {
+  if (!Array.isArray(rows) || rows.some((r) => !STATUSES.includes(/** @type {any} */ (r)?.status))) {
+    throw new TypeError(`verdicts: ${name} is not a list of ingested rows`);
+  }
+}
+
+/**
+ * @param {IngestedRow[]} rows One arm's rows of one cell.
+ * @param {number[]} reps The declared replicates.
+ * @returns {string[]} The declared replicates without exactly one valid row, and the rows outside the declared ones, as
+ *   the pairing problems of `pairRows` say them for one arm.
+ */
+function repProblems(rows, reps) {
+  const declared = new Set(reps);
+  /** @type {string[]} */
+  const problems = [];
+  for (const rep of reps) {
+    const found = rows.filter((r) => r.rep === rep);
+    if (found.length === 0) {
+      problems.push(`missing row: rep ${rep}`);
+    } else if (found.length > 1) {
+      problems.push(`duplicate rows: rep ${rep} has ${found.length}`);
+    } else if (found[0].status !== 'valid') {
+      problems.push(`status ${found[0].status}: rep ${rep}${firstProblem(found[0])}`);
+    }
+  }
+  for (const r of rows) {
+    if (!declared.has(r.rep)) {
+      problems.push(`row outside the declared replicates: rep ${String(r.rep)}`);
+    }
+  }
+  return problems;
+}
+
+/**
+ * The dead-end entries of a row's journal (plan section 5.2: "no dead-end entry" on a failing Nightmare cell): the
+ * distinct calls with a `phase` line of phase `p2`, the frozen phase-2 entry, which the prototype journals under the
+ * same name. A `p2` line without a call id is one more entry (it cannot be told apart, and counting it is the safe side).
+ * @param {Record<string, any>[]} lines The parsed lines of the row's journals (`parseLines`).
+ * @returns {number}
+ */
+export function deadEnds(lines) {
+  if (!Array.isArray(lines) || !lines.every(isObject)) {
+    throw new TypeError('verdicts: deadEnds needs the parsed journal lines');
+  }
+  /** @type {Set<string>} */
+  const calls = new Set();
+  let unowned = 0;
+  for (const line of lines) {
+    if (line.t === 'phase' && line.phase === 'p2') {
+      if (typeof line.call === 'string') {
+        calls.add(line.call);
+      } else {
+        unowned += 1;
+      }
+    }
+  }
+  return calls.size + unowned;
+}
+
+/**
+ * @typedef {object} CellGate The gate of one cell on the arm it ships (plan section 5.2, IG-P-Q29, D-V4-16).
+ * @property {'pass' | 'fail' | 'incomplete'} verdict
+ * @property {string[]} reasons The conditions of the verdict (empty for `pass`).
+ * @property {number} reachedTen The valid requests at declared replicates that hold ten puzzles.
+ * @property {number | null} deadEnds The dead-end entries over the valid rows' journals; `null` for a control.
+ * @property {number} deadlineViolations Reported beside the gate, never judged here (D-V4-16).
+ * @property {number | null} p95Ms The tail observation of T09a's `completion`, reported.
+ * @property {{ geoMean: number, lower: number, pass: boolean } | null} noRegression A control's bound, `null` while its
+ *   pairing is incomplete or the cell is a failing one.
+ */
+
+/**
+ * The gate of a failing Nightmare cell or a control on its shipped arm (T09d; plan section 5.2, R12, RV3-08, RV4-08).
+ * The first condition that matches decides: an `incorrect` row of the arm: `fail`; three or more valid requests that do not
+ * reach ten (the verdict is settled at the third failure, so 18 of 20 must reach ten): `fail`; a failing cell with a
+ * dead-end entry (`deadEnds`) in a valid row: `fail`; then `incomplete` for a failing cell with a declared replicate
+ * without exactly one valid row (a duplicate, a row outside the declared replicates and a status other than `valid`
+ * included) or a valid row without its journal, and for a control with any problem of `pairRows(rows, todayRows, reps)`
+ * (A the shipped arm, B today's: a missing, duplicate, undeclared, not valid or disagreeing row on either side), before
+ * any statistic; else a control's `noRegression` over today-over-after ratios (a lower bound below 0.9: `fail`); else
+ * `pass`. Deadline violations and the p95 are reported beside the gate. Throws on a missing option.
+ * @param {'failing' | 'control'} kind
+ * @param {IngestedRow[]} rows The shipped arm's ingested rows.
+ * @param {{ reps: number[], quantity: number, capMs?: number, responseBoundMs: number, todayRows?: IngestedRow[],
+ *   journals?: Record<string, Record<string, any>[] | null>, resamples?: number, resampleSeed?: number }} options
+ *   `todayRows` and the resampling options and `capMs` are a control's; `journals` goes from a `rowKey` to the lines of
+ *   its journal (`null` when absent) and is a failing cell's.
+ * @returns {CellGate}
+ */
+export function cellGate(kind, rows, options) {
+  if (kind !== 'failing' && kind !== 'control') {
+    throw new RangeError(`verdicts: cellGate kind must be failing or control, got ${String(kind)}`);
+  }
+  if (!isObject(options)) {
+    throw new TypeError('verdicts: cellGate needs its options');
+  }
+  const { reps, quantity, capMs, responseBoundMs, todayRows, journals, resamples, resampleSeed } = options;
+  needReps(reps);
+  needPositive('quantity', quantity, true);
+  needPositive('responseBoundMs', responseBoundMs, false);
+  needIngested('rows', rows);
+  if (kind === 'control') {
+    needPositive('capMs', capMs, false);
+    needResampling({ resamples, resampleSeed });
+    needIngested('todayRows', todayRows);
+  } else if (!isObject(journals)) {
+    throw new TypeError('verdicts: the gate of a failing cell needs the journals of its rows (a rowKey to its lines)');
+  }
+  const declared = new Set(reps);
+  const scoped = rows.filter((r) => declared.has(r.rep));
+  const valid = scoped.filter((r) => r.status === 'valid');
+  const stats = completion(scoped, { quantity, responseBoundMs });
+  const short = valid.filter((r) => !reachedTen(r.run, { quantity }));
+  const dead = kind === 'failing'
+    ? valid.map((row) => {
+      const lines = typeof row.rowKey === 'string' && Object.hasOwn(/** @type {object} */ (journals), row.rowKey) ? /** @type {any} */ (journals)[row.rowKey] : null;
+      return { row, n: lines === null || lines === undefined ? null : deadEnds(lines) };
+    })
+    : [];
+  const paired = kind === 'control' ? pairRows(rows, /** @type {IngestedRow[]} */ (todayRows), reps) : null;
+  /** @type {string | null} */
+  let ratioProblem = null;
+  /** @type {CellGate['noRegression']} */
+  let regression = null;
+  if (paired !== null && paired.problems.length === 0) {
+    const ratios = ratiosOf(paired.pairs, reps, { quantity, capMs: /** @type {number} */ (capMs) });
+    const bad = ratios.findIndex((x) => !(isNum(x) && x > 0));
+    if (bad >= 0) {
+      ratioProblem = `no ratio above 0 at rep ${reps[bad]}`;
+    } else {
+      regression = noRegression(ratios, reps, { resamples: /** @type {number} */ (resamples), resampleSeed: /** @type {number} */ (resampleSeed) });
+    }
+  }
+  /** @param {CellGate['verdict']} verdict @param {string[]} reasons @returns {CellGate} */
+  const decide = (verdict, reasons) => ({
+    verdict, reasons, reachedTen: stats.reachedTen, deadEnds: kind === 'failing' ? dead.reduce((sum, d) => sum + (d.n ?? 0), 0) : null,
+    deadlineViolations: stats.deadlineViolations, p95Ms: stats.p95Ms, noRegression: regression,
+  });
+  const incorrect = rows.filter((r) => r.status === 'incorrect');
+  if (incorrect.length > 0) {
+    return decide('fail', incorrect.map((r) => `incorrect row: rep ${String(r.rep)}${firstProblem(r)}`));
+  }
+  if (short.length >= STOP_FAILURES) {
+    return decide('fail', [`${short.length} valid requests did not reach ten (reps ${short.map((r) => r.rep).join(', ')})`]);
+  }
+  const stopped = dead.filter((d) => d.n !== null && d.n > 0);
+  if (stopped.length > 0) {
+    return decide('fail', stopped.map((d) => `dead-end entry: row ${String(d.row.rowKey)} has ${d.n} call(s) in phase p2`));
+  }
+  const missing = paired === null
+    ? [...repProblems(rows, reps), ...dead.filter((d) => d.n === null).map((d) => `no journal: row ${String(d.row.rowKey)}`)]
+    : [...paired.problems, ...(ratioProblem === null ? [] : [ratioProblem])];
+  if (missing.length > 0) {
+    return decide('incomplete', missing);
+  }
+  if (regression !== null && !regression.pass) {
+    return decide('fail', [`no regression: the lower bound ${regression.lower} is below 0.9`]);
+  }
+  return decide('pass', []);
+}
+
+/**
+ * The arm a class ships (plan section 5.2, IG-P-Q29): the screen arm when the class is admitted, else the no-screen
+ * arm (a failed or an inconclusive class, and one outside the table, use no screen).
+ * @param {{ verdict: 'admitted' | 'failed' | 'inconclusive' }} verdict `classVerdict`'s result.
+ * @param {{ screen: any, noScreen: any }} cls The class's two arms (their ids, or whatever the caller keeps).
+ * @returns {any} `cls.screen` or `cls.noScreen`.
+ */
+export function shippedArm(verdict, cls) {
+  if (!isObject(verdict) || !CLASS_VERDICTS.includes(/** @type {any} */ (verdict.verdict))) {
+    throw new RangeError(`verdicts: shippedArm needs a class verdict, got ${JSON.stringify(isObject(verdict) ? verdict.verdict : verdict)}`);
+  }
+  if (!isObject(cls) || cls.screen === undefined || cls.noScreen === undefined) {
+    throw new TypeError('verdicts: shippedArm needs the screen and the no-screen arm of the class');
+  }
+  return verdict.verdict === 'admitted' ? cls.screen : cls.noScreen;
+}
+
+/**
+ * Master identity (plan section 5.2; RV2-08, RV3-08, RV4-08): per declared replicate, today's and the after arm's
+ * request serve the same puzzles in the same order. The pairing is `pairRows(afterRows, todayRows, reps)` (side a is the
+ * after arm, side b today's), so a missing, duplicate, undeclared, not valid or disagreeing row on either side is a
+ * problem (`incomplete`) and an `incorrect` row is a `fail`. On a pair, a side whose `puzzleEvidence(run).keys` is not
+ * `null` is `incomplete` (`puzzle keys <today|after> rep <r>: <problem>`: empty or short key lists are never equality);
+ * else the accepted counts must be equal and the ordered key lists deep-equal, one difference per replicate
+ * (`acceptedCount`, or `igPuzzleKeys[<first differing index>]`). A request with no accepted puzzle has the key list `[]`
+ * and its `details` are not read. A difference or an `incorrect` row fails the cell whatever else is missing.
+ * @param {IngestedRow[]} todayRows
+ * @param {IngestedRow[]} afterRows
+ * @param {number[]} reps The declared replicates (`masterReps`).
+ * @returns {{ verdict: 'pass' | 'fail' | 'incomplete', differences: { rep: any, seed: any, field: string }[], problems: string[] }}
+ */
+export function masterIdentity(todayRows, afterRows, reps) {
+  needReps(reps);
+  const paired = pairRows(afterRows, todayRows, reps);
+  const problems = [...paired.problems];
+  /** @type {{ rep: any, seed: any, field: string }[]} */
+  const differences = [];
+  for (const { rep, seed, a: after, b: today } of paired.pairs) {
+    const sides = /** @type {[string, IngestedRow][]} */ ([['today', today], ['after', after]]);
+    const unproved = sides.map(([side, r]) => [side, puzzleEvidence(r.run).keys]).filter(([, problem]) => problem !== null);
+    for (const [side, problem] of unproved) {
+      problems.push(`puzzle keys ${side} rep ${rep}: ${problem}`);
+    }
+    if (unproved.length > 0) {
+      continue;
+    }
+    if (today.run.acceptedCount !== after.run.acceptedCount) {
+      differences.push({ rep, seed, field: 'acceptedCount' });
+      continue;
+    }
+    const [keysToday, keysAfter] = [today, after].map((r) => (r.run.acceptedCount === 0 ? [] : r.run.details.igPuzzleKeys));
+    const at = keysToday.findIndex((/** @type {string} */ key, /** @type {number} */ i) => key !== keysAfter[i]);
+    if (at >= 0) {
+      differences.push({ rep, seed, field: `igPuzzleKeys[${at}]` });
+    }
+  }
+  const verdict = differences.length > 0 || paired.incorrect.length > 0 ? 'fail' : problems.length > 0 ? 'incomplete' : 'pass';
+  return { verdict, differences, problems };
+}
+
+/**
+ * The Hell 1 report of a cell (plan section 5.2, IG-P-Q30): a request count, never a gate and never a veto. `candidate`
+ * is whether at least 18 of the cell's requests hold ten puzzles (D-V4-16's completion over the valid rows at the
+ * declared replicates); a request that is missing or not valid cannot reach ten.
+ * @param {IngestedRow[]} rows
+ * @param {{ reps: number[], quantity: number }} options
+ * @returns {{ requests: number, valid: number, reachedTen: number, candidate: boolean }}
+ */
+export function hell1Report(rows, { reps, quantity }) {
+  needReps(reps);
+  needPositive('quantity', quantity, true);
+  needIngested('rows', rows);
+  const declared = new Set(reps);
+  const scoped = rows.filter((r) => declared.has(r.rep));
+  const valid = scoped.filter((r) => r.status === 'valid');
+  const reached = valid.filter((r) => reachedTen(r.run, { quantity })).length;
+  return { requests: scoped.length, valid: valid.length, reachedTen: reached, candidate: reached >= REACHING_TEN };
+}
+
+/**
+ * The post-hoc deadline projection (R01, D-V4-08): what a recorded run would have served had the set stage been cut at
+ * `(1 - reserve) * deadlineMs` and the response ended at `deadlineMs`. It estimates accepted prefixes and proves neither
+ * the cancellation of dispatched work nor the response assembly nor the hard 120-s bound: it carries no verdict, every
+ * row has `postHoc: true`, and nothing reads it as a prerequisite. Per valid row: `setCut` (the set arrived after the
+ * cut; a request without a set is not cut), `served` (0 when cut, else the accept times up to the deadline),
+ * `completed` (`served >= quantity`) and `lost` (the run reached ten and the projection did not). A row without the
+ * linkage fields is `not-linked` and one whose timeline is not numbers `invalid-timeline`: neither has numbers.
+ * @param {IngestedRow[]} rows
+ * @param {{ reserve: number, deadlineMs?: number, quantity: number }} options
+ * @returns {{ kind: 'deadline-projection', label: string, rows: { rep: any, seed: any, postHoc: true,
+ *   status: 'projected' | 'not-linked' | 'invalid-timeline', setCut: boolean | null, served: number | null,
+ *   completed: boolean | null, lost: boolean | null }[], skipped: number }} `skipped` counts the rows that are not valid.
+ */
+export function deadlineProjection(rows, { reserve, deadlineMs = DEADLINE_MS, quantity }) {
+  if (!isNum(reserve) || reserve < 0 || reserve > 1) {
+    throw new RangeError(`verdicts: reserve must be a share from 0 to 1, got ${String(reserve)}`);
+  }
+  needPositive('deadlineMs', deadlineMs, false);
+  needPositive('quantity', quantity, true);
+  needIngested('rows', rows);
+  let skipped = 0;
+  /** @type {ReturnType<typeof deadlineProjection>['rows']} */
+  const out = [];
+  for (const r of rows) {
+    if (r.status !== 'valid') {
+      skipped += 1;
+      continue;
+    }
+    const { igSetMs, igAcceptedMs } = r.run;
+    const base = { rep: r.rep, seed: r.seed, postHoc: /** @type {const} */ (true) };
+    const none = { setCut: null, served: null, completed: null, lost: null };
+    if (igSetMs === undefined || igAcceptedMs === undefined) {
+      out.push({ ...base, status: 'not-linked', ...none });
+    } else if (!(igSetMs === null || isUnits(igSetMs)) || !Array.isArray(igAcceptedMs) || !igAcceptedMs.every(isUnits)) {
+      out.push({ ...base, status: 'invalid-timeline', ...none });
+    } else {
+      const setCut = igSetMs !== null && igSetMs > (1 - reserve) * deadlineMs;
+      const served = setCut ? 0 : igAcceptedMs.filter((/** @type {number} */ t) => t <= deadlineMs).length;
+      const completed = served >= quantity;
+      out.push({ ...base, status: 'projected', setCut, served, completed, lost: reachedTen(r.run, { quantity }) && !completed });
+    }
+  }
+  return { kind: 'deadline-projection', label: PROJECTION_LABEL, rows: out, skipped };
+}
+
+/**
+ * P5's false stops and lost completions over the declared pairs (RV1-13, RV2-18, RV3-03; IG-P-D1 condition 4, P-OD12).
+ * The declared pair of a replicate is the bounded and the uncapped row of the cell at that replicate, seed
+ * `landscape/<cell>/<rep>`. A pair is `unknown` (with its reason) when either row is missing, duplicated, of another
+ * seed, not `valid` or not linked (no `igSetMs` field), and a pair with no row on either side is `unknown` with the
+ * reason `missing`, never an empty success. On a known pair a false stop is a bounded row whose `partialReason` starts
+ * with `set:no-window-` while the uncapped row's `igSetMs` is a finite number (whatever its count), and a lost
+ * completion is an uncapped row that reached ten while the bounded row did not. A row of either arm that is not of the
+ * cell or not at a declared replicate is `unexpected` and not counted. The counts are a report, not a threshold.
+ * @param {IngestedRow[]} boundedRows The P5 arm's rows.
+ * @param {IngestedRow[]} uncappedRows The uncapped comparator's rows.
+ * @param {{ quantity: number, cell: string, reps: number[] }} options
+ * @returns {{ cell: string, declared: number, pairs: number, falseStops: number, lostCompletions: number, unknown: number,
+ *   falseStopReps: number[], lostReps: number[], unknownReps: { rep: number, reason: string }[],
+ *   unexpected: { side: 'bounded' | 'uncapped', rowKey: any, caseId: any, rep: any }[] }}
+ */
+export function p5Stops(boundedRows, uncappedRows, { quantity, cell, reps }) {
+  needReps(reps);
+  needPositive('quantity', quantity, true);
+  if (typeof cell !== 'string' || cell === '') {
+    throw new RangeError('verdicts: p5Stops needs the cell of its declared pairs');
+  }
+  needIngested('boundedRows', boundedRows);
+  needIngested('uncappedRows', uncappedRows);
+  const declared = new Set(reps);
+  /** @type {['bounded' | 'uncapped', IngestedRow[]][]} */
+  const arms = [['bounded', boundedRows], ['uncapped', uncappedRows]];
+  const ours = (/** @type {IngestedRow} */ r) => r.caseId === cell && declared.has(r.rep);
+  const unexpected = arms.flatMap(([side, rows]) => rows.filter((r) => !ours(r)).map((r) => ({ side, rowKey: r.rowKey, caseId: r.caseId, rep: r.rep })));
+  /** @type {number[]} */
+  const falseStopReps = [];
+  /** @type {number[]} */
+  const lostReps = [];
+  /** @type {{ rep: number, reason: string }[]} */
+  const unknownReps = [];
+  let known = 0;
+  for (const rep of reps) {
+    const expected = `landscape/${cell}/${rep}`;
+    const found = arms.map(([side, rows]) => ({ side, rows: rows.filter((r) => ours(r) && r.rep === rep) }));
+    if (found.every((f) => f.rows.length === 0)) {
+      unknownReps.push({ rep, reason: 'missing' });
+      continue;
+    }
+    /** @type {string[]} */
+    const reasons = [];
+    for (const { side, rows } of found) {
+      if (rows.length === 0) {
+        reasons.push(`missing ${side} row`);
+      } else if (rows.length > 1) {
+        reasons.push(`duplicate ${side} rows (${rows.length})`);
+      } else {
+        const [r] = rows;
+        if (r.seed !== expected) {
+          reasons.push(`${side} row has the seed ${JSON.stringify(r.seed)}, expected ${expected}`);
+        }
+        if (r.status !== 'valid') {
+          reasons.push(`${side} row is ${r.status}${firstProblem(r)}`);
+        } else if (r.run.igSetMs === undefined) {
+          reasons.push(`${side} row is not linked (no igSetMs)`);
+        }
+      }
+    }
+    if (reasons.length > 0) {
+      unknownReps.push({ rep, reason: reasons.join('; ') });
+      continue;
+    }
+    known += 1;
+    const [bounded, uncapped] = found.map((f) => f.rows[0].run);
+    if (typeof bounded.partialReason === 'string' && bounded.partialReason.startsWith('set:no-window-') && isNum(uncapped.igSetMs)) {
+      falseStopReps.push(rep);
+    }
+    if (reachedTen(uncapped, { quantity }) && !reachedTen(bounded, { quantity })) {
+      lostReps.push(rep);
+    }
+  }
+  return {
+    cell, declared: reps.length, pairs: known, falseStops: falseStopReps.length, lostCompletions: lostReps.length,
+    unknown: unknownReps.length, falseStopReps, lostReps, unknownReps, unexpected,
+  };
+}
+
+/**
+ * @param {number[]} values
+ * @returns {{ median: number, min: number, max: number } | null} `null` for no value.
+ */
+const spread = (values) => (values.length === 0 ? null : { median: median(values), min: Math.min(...values), max: Math.max(...values) });
+
+/**
+ * The score position of a puzzle in its level's band, `(score - min) / (max - min)` (plan section 3, P3), and its problem.
+ * @param {any} puzzle
+ * @returns {{ position: number } | { problem: string }}
+ */
+function positionOf(puzzle) {
+  if (!isNum(puzzle?.score) || typeof puzzle.level !== 'string') {
+    return { problem: 'score or level missing' };
+  }
+  /** @type {{ min: number, max: number }} */
+  let band;
+  try {
+    band = levelOf(puzzle.level);
+  } catch {
+    return { problem: `unknown level ${puzzle.level}` };
+  }
+  return Number.isFinite(band.max) ? { position: (puzzle.score - band.min) / (band.max - band.min) } : { problem: `the band of ${puzzle.level} is open above` };
+}
+
+/**
+ * The population of the accepted puzzles, per cell (plan section 3, P3: the clue share, the score position, the
+ * census-estimate share and completion stand beside every timing, two-sided; V4-T09d): a report that judges nothing. A
+ * cell is a `caseId`. The statistics read the valid rows with complete per-puzzle evidence (T09a's `puzzleEvidence`: a
+ * row with no accepted puzzle contributes nothing and its `details` are not read; the clue counts and `K` must be
+ * complete and every puzzle must carry a finite `score` and a known `level` for its band); the other valid rows are
+ * listed apart as `evidenceProblems` and read nowhere. Completion is over every row of the cell. `clueShare` is
+ * `clues / K` and `scorePosition` the score's place in the puzzle's level band, each `{ median, min, max }` over the
+ * pooled puzzles (`null` without a puzzle); `censusEstimateShare` is `ratingCensoredCount` summed over those rows over
+ * their `acceptedCount` summed (`null` without an accepted puzzle).
+ * @param {IngestedRow[]} rows
+ * @param {{ quantity: number }} options
+ * @returns {Record<string, { completion: { requests: number, valid: number, reachedTen: number },
+ *   rows: number, puzzles: number, clueShare: ReturnType<typeof spread>, scorePosition: ReturnType<typeof spread>,
+ *   censusEstimateShare: number | null, evidenceProblems: { rowKey: any, rep: any, problem: string }[] }>}
+ */
+export function population(rows, { quantity }) {
+  needPositive('quantity', quantity, true);
+  needIngested('rows', rows);
+  /** @type {Map<string, IngestedRow[]>} */
+  const byCell = new Map();
+  for (const r of rows) {
+    const cell = String(r.caseId);
+    byCell.set(cell, [...(byCell.get(cell) ?? []), r]);
+  }
+  return Object.fromEntries([...byCell].map(([cell, cellRows]) => {
+    const valid = cellRows.filter((r) => r.status === 'valid');
+    /** @type {{ rowKey: any, rep: any, problem: string }[]} */
+    const evidenceProblems = [];
+    /** @type {number[]} */
+    const shares = [];
+    /** @type {number[]} */
+    const positions = [];
+    let used = 0;
+    let accepted = 0;
+    let censored = 0;
+    for (const r of valid) {
+      const problem = puzzleEvidence(r.run).clues;
+      const puzzles = problem === null && r.run.acceptedCount > 0 ? r.run.details.puzzles : [];
+      const placed = puzzles.map(positionOf);
+      const unplaced = placed.findIndex((p) => 'problem' in p);
+      const censusOk = r.run.ratingCensoredCount === undefined || isCount(r.run.ratingCensoredCount);
+      const reason = problem ?? (unplaced >= 0 ? `score position: puzzle ${unplaced}: ${/** @type {{ problem: string }} */ (placed[unplaced]).problem}` : censusOk ? null : 'ratingCensoredCount is not an integer from 0');
+      if (reason !== null) {
+        evidenceProblems.push({ rowKey: r.rowKey, rep: r.rep, problem: reason });
+        continue;
+      }
+      used += 1;
+      accepted += r.run.acceptedCount;
+      censored += r.run.ratingCensoredCount ?? 0;
+      shares.push(...puzzles.map((/** @type {{ clues: number }} */ p) => p.clues / r.run.details.K));
+      positions.push(...placed.map((p) => /** @type {{ position: number }} */ (p).position));
+    }
+    return [cell, {
+      completion: { requests: cellRows.length, valid: valid.length, reachedTen: valid.filter((r) => reachedTen(r.run, { quantity })).length },
+      rows: used, puzzles: shares.length, clueShare: spread(shares), scorePosition: spread(positions),
+      censusEstimateShare: accepted > 0 ? censored / accepted : null, evidenceProblems,
+    }];
+  }));
+}
+
+/**
+ * Phase 0's verdict (plan section 6's gate row; RV2-08, RV3-03; IG-P-D1 condition 4). `fail` when an item fails: a
+ * failing Nightmare cell, a control or a Master cell on its shipped arm, or a prerequisite. Else, with `purpose:
+ * 'selection'`, `incomplete` with the first reason `uncapped comparator collection pending`: a selection is never a
+ * final admission. Else, with `purpose: 'final'`, `pass` only when every class has a verdict, every failing cell,
+ * control and Master cell passes, P5's stops cover every declared pair with no `unknown` pair (and at least one pair is
+ * declared: lost completions are counted, never assumed) and every prerequisite passes, `stage1` and `liveDeadline`
+ * included (a projection is no prerequisite: it is not an input); else `incomplete`. Hell 1 and the Hell 1 report are not
+ * inputs: they never veto. A failed or inconclusive class does not fail phase 0 by itself: its cells are judged on its
+ * no-screen arm.
+ * @param {{ purpose: 'selection' | 'final', classes: { id: string, verdict: 'admitted' | 'failed' | 'inconclusive' | null }[],
+ *   cells: { cell: string, verdict: string }[], controls: { cell: string, verdict: string }[],
+ *   masters: { cell: string, verdict: string }[], p5: { cell: string, declared: number, pairs: number, unknown: number }[],
+ *   prerequisites: Record<string, { status: string, reasons?: string[] }> }} input `cells`, `controls` and `masters`
+ *   are `cellGate`'s and `masterIdentity`'s results with their cell (`verdict` `pass`, `fail` or `incomplete`); `p5` the
+ *   `p5Stops` results (empty for a selection); `prerequisites` T09e's `{ [name]: { status, reasons } }`.
+ * @returns {{ verdict: 'pass' | 'fail' | 'incomplete', deciding: string[] }} `deciding` names the items that decide, each
+ *   `<item>: <status>` (all the items for a `pass`), the selection reason first.
+ */
+export function phase0Verdict(input) {
+  if (!isObject(input)) {
+    throw new TypeError('verdicts: phase0Verdict needs its input');
+  }
+  const { purpose, classes, cells, controls, masters, p5, prerequisites } = input;
+  if (purpose !== 'selection' && purpose !== 'final') {
+    throw new RangeError(`verdicts: purpose must be selection or final, got ${String(purpose)}`);
+  }
+  for (const [name, list] of Object.entries({ classes, cells, controls, masters, p5 })) {
+    if (!Array.isArray(list)) {
+      throw new TypeError(`verdicts: phase0Verdict needs ${name} as a list`);
+    }
+  }
+  if (!isObject(prerequisites)) {
+    throw new TypeError('verdicts: phase0Verdict needs the prerequisites as an object');
+  }
+  /** @type {{ name: string, status: 'pass' | 'fail' | 'incomplete' }[]} */
+  const items = [];
+  /** @param {string} name @param {unknown} status */
+  const add = (name, status) => {
+    if (status !== 'pass' && status !== 'fail' && status !== 'incomplete') {
+      throw new RangeError(`verdicts: ${name} needs a status of pass, fail or incomplete, got ${JSON.stringify(status)}`);
+    }
+    items.push({ name, status });
+  };
+  for (const c of classes) {
+    const given = isObject(c) && c.verdict !== null && c.verdict !== undefined;
+    if (!isObject(c) || typeof c.id !== 'string' || (given && !CLASS_VERDICTS.includes(c.verdict))) {
+      throw new RangeError(`verdicts: a class needs an id and a verdict of admitted, failed, inconclusive or none, got ${JSON.stringify(c)}`);
+    }
+    add(`class ${c.id} (${given ? c.verdict : 'no verdict'})`, given ? 'pass' : 'incomplete');
+  }
+  for (const [label, list] of [['failing cell', cells], ['control', controls], ['master', masters]]) {
+    for (const c of /** @type {any[]} */ (list)) {
+      add(`${label} ${String(c?.cell)}`, c?.verdict);
+    }
+  }
+  for (const p of p5) {
+    if (!isObject(p) || typeof p.cell !== 'string' || !isCount(p.declared) || !isCount(p.pairs) || !isCount(p.unknown)) {
+      throw new TypeError('verdicts: a P5 entry needs the result of p5Stops (cell, declared, pairs, unknown)');
+    }
+    add(`p5 ${p.cell}`, p.declared > 0 && p.unknown === 0 && p.pairs === p.declared ? 'pass' : 'incomplete');
+  }
+  if (purpose === 'final' && p5.length === 0) {
+    add('p5 (no declared pair)', 'incomplete');
+  }
+  for (const [name, p] of Object.entries(prerequisites)) {
+    add(`prerequisite ${name}`, isObject(p) ? p.status : undefined);
+  }
+  for (const name of REQUIRED_PREREQUISITES) {
+    if (!Object.hasOwn(prerequisites, name)) {
+      add(`prerequisite ${name} (missing)`, 'incomplete');
+    }
+  }
+  const named = (/** @type {typeof items} */ list) => list.map((i) => `${i.name}: ${i.status}`);
+  const failed = items.filter((i) => i.status === 'fail');
+  if (failed.length > 0) {
+    return { verdict: 'fail', deciding: named(failed) };
+  }
+  const open = items.filter((i) => i.status === 'incomplete');
+  if (purpose === 'selection') {
+    return { verdict: 'incomplete', deciding: [SELECTION_PENDING, ...named(open)] };
+  }
+  return open.length > 0 ? { verdict: 'incomplete', deciding: named(open) } : { verdict: 'pass', deciding: named(items) };
 }

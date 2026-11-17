@@ -68,7 +68,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `variants/link.json`, `variants/log-link.json`, `variants/v4-link.json`, `variants/v4-ps-link.json`, `variants/files/link/`, `linkage.mjs`, `plans/V4-T06.json` | the batch linkage journal and its report (V4-T06): the variant `link` and its three compositions, `ig-link.js`, `linkage.mjs report` and the plan of its run; see "Batch linkage (V4-T06)" |
 | `variants/v4-p5.json`, `variants/v4-p5-w8-test.json`, `variants/v4-link-w8-test.json` | the P5 pilot arm `v4-p5` (the call budget and the bounded set attempts) and the two test-only width-8 trees (V4-T07b); see "P5 bounded set attempts (V4-T07b)" |
 | `variants/fr-base.json`, `fr-screen.json`, `fr-none.json`, `fr-close.json`, `fr-c4.json`, `fr-ps.json`, `fr-p5.json` | the seven frozen-round arms of stage 2 (V4-T08); see "Frozen-round arms (V4-T08)" |
-| `verdicts.mjs`, `data/verdict-manifest.schema.md` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules), the work ledger of a request, the work rule and the class verdict (V4-T09c) and the manifest those statistics read; pure; see "Admission statistics (V4-T09a)" |
+| `verdicts.mjs`, `data/verdict-manifest.schema.md` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules), the work ledger of a request, the work rule and the class verdict (V4-T09c), the global verdicts (V4-T09d: the cell gates on the shipped arm, Master identity, the Hell 1 report, P5's stops, the post-hoc projection, the population and phase 0's verdict) and the manifest those statistics read; pure; see "Admission statistics (V4-T09a)" |
 
 ## Trees (variants)
 
@@ -1519,6 +1519,94 @@ never a pass; an invalid puzzle or pack is a correctness failure. The module loa
   their `cell`, `problems` the pairing problems, the evidence entries and the problems of every incomplete ledger, each
   prefixed with its cell. Every statistic that can be computed is returned whichever condition decides (`faster` is
   `null` while a pairing problem leaves a rep without a ratio); the options are validated before any condition.
+- **The global procedure** (V4-T09d; plan section 5.2, IG-P-Q29, Q30, Q32, Q33; section 3, P5; section 6's gate row). With
+  the class verdicts, phase 0 needs the arm each cell ships, the gates judged on that arm, Master identity, the Hell 1
+  report, P5's false stops and lost completions over the declared pairs, and the prerequisites. All of it is pure and
+  fail-closed: a missing or malformed option throws, and missing evidence is `incomplete`, never a pass. The arm of a
+  class is `shippedArm(verdict, cls)`: `cls.screen` when the class verdict is `admitted`, else `cls.noScreen` (a failed,
+  an inconclusive and an unlisted class use no screen); each failing Nightmare cell and each control is judged on its
+  shipped arm, and a failed or inconclusive class does not fail phase 0 when its no-screen arm passes the cell gates.
+- **Dead ends** (`deadEnds(lines)`, the parsed lines of a row's journals): the number of distinct `call` ids with a `phase`
+  line whose `phase` is `p2`, the frozen phase-2 entry, which the prototype journals under the same name (a `p2` line
+  without a call id is one more entry: the safe side).
+- **Cell gates** (`cellGate(kind, rows, { reps, quantity, capMs, responseBoundMs, todayRows, journals, resamples,
+  resampleSeed })`; `kind` `failing` (a failing Nightmare cell: `journals` is needed) or `control` (`todayRows`, `capMs`
+  and the resampling options are needed); `rows` the shipped arm's ingested rows). Returns `{ verdict, reasons,
+  reachedTen, deadEnds, deadlineViolations, p95Ms, noRegression }`; the first condition that matches decides:
+  1. an `incorrect` row of the shipped arm, wherever it stands: `fail`;
+  2. three or more valid requests that do not reach ten (plan section 5.1, "Stopping": the verdict is settled at the
+     third failure, so 18 of 20 must reach ten): `fail`;
+  3. a failing cell with a dead-end entry (`deadEnds`) in a valid row's journal: `fail` (a row that is not valid is not
+     read);
+  4. `incomplete`: a failing cell with a declared rep without exactly one valid row (`missing row: rep <r>`, `duplicate
+     rows: rep <r> has <n>`, `status <status>: rep <r>`, `row outside the declared replicates: rep <r>`) or a valid row
+     without its journal (`journals[rowKey]` absent or `null`: `no journal: row <rowKey>`); a control with any problem of
+     `pairRows(rows, todayRows, reps)` (A the shipped arm, B today's: the texts of `missing row: side b rep 7` and the
+     others), before any statistic, so `noRegression` is never called on a rep without a pair (ruling of 2026-11-17,
+     T09b's report); a ratio that is not above 0 is incomplete too;
+  5. a control: `noRegression(ratiosOf(pairs, reps, { quantity, capMs }), reps, { resamples, resampleSeed })` over the
+     ratio today over after; a lower bound below 0.9: `fail`;
+  6. else `pass`.
+  `reachedTen` counts the valid requests at declared reps that hold ten puzzles; `deadEnds` is the sum over the valid
+  rows' journals (`null` for a control); `noRegression` is `{ geoMean, lower, pass }` whenever the control's pairing is
+  complete (`null` otherwise). The deadline violations and the p95 (T09a's `completion`, over the declared reps) are
+  reported beside the gate and judge nothing.
+- **Master identity** (`masterIdentity(todayRows, afterRows, reps)`; RV2-08, RV3-08, RV4-08) returns `{ verdict,
+  differences: [{ rep, seed, field }], problems }`. The pairing is `pairRows(afterRows, todayRows, reps)`, so in its
+  problem texts side a is the after arm and side b today's; an `incorrect` row is a `fail`; any other pairing problem is
+  `incomplete`. On a pair, a side whose `puzzleEvidence(run).keys` is not `null` is `incomplete` (`puzzle keys <today|after>
+  rep <r>: <problem>`; equal empty or short key lists are never equality); else the accepted counts must be equal
+  (`field` `acceptedCount`) and the ordered key lists deep-equal (`field` `igPuzzleKeys[<first differing index>]`), one
+  difference per rep. A valid row with no accepted puzzle has the key list `[]` and its `details` are not read. A
+  difference fails the cell whatever else is missing (a settled failure beats a missing row); the text orders the
+  evidence before the counts, so a count difference on a side whose keys are incomplete stays `incomplete`. Every
+  declared Master cell's result enters phase 0.
+- **Hell 1** (`hell1Report(rows, { reps, quantity })`): `{ requests, valid, reachedTen, candidate }` over the rows at the
+  declared reps, `candidate` being `reachedTen >= 18`; a report only, never a gate and never a veto (IG-P-Q30); it is not
+  an input of `phase0Verdict`.
+- **P5's stops** (`p5Stops(boundedRows, uncappedRows, { quantity, cell, reps })`; RV1-13, RV2-18, RV3-03, P-OD12). The
+  manifest's `p5` entry `{ cell, bounded, uncapped, reps }` declares one pair per rep, the bounded and the uncapped row
+  of the cell at that rep with the seed `landscape/<cell>/<rep>`. A pair is `unknown` (its reason in `unknownReps`) when
+  either side's row is missing (`missing <side> row`), duplicated (`duplicate <side> rows (<n>)`), of another seed, not
+  `valid` (`<side> row is <status> (...)`) or not linked (no `igSetMs` field: `<side> row is not linked (no igSetMs)`);
+  a pair with no row on either side is `unknown` with the reason `missing`, never an empty success. On a known pair a
+  **false stop** is a bounded row whose `partialReason` starts with `set:no-window-` while the uncapped row's `igSetMs` is
+  a finite number (whatever its count), and a **lost completion** is an uncapped row that reached ten while the bounded
+  row did not. A row that is not of the cell or not at a declared rep is listed in `unexpected` (`{ side, rowKey,
+  caseId, rep }`) and not counted. It returns `{ cell, declared, pairs, falseStops, lostCompletions, unknown,
+  falseStopReps, lostReps, unknownReps, unexpected }` (`declared` the number of reps, `pairs` the known pairs, so
+  `declared = pairs + unknown`). The loss count is a report, not a threshold (IG-P-D1 condition 4: counted, not assumed).
+- **The post-hoc projection** (`deadlineProjection(rows, { reserve, deadlineMs = 115000, quantity })`; R01, D-V4-08). Per
+  valid row `{ rep, seed, postHoc: true, status, setCut, served, completed, lost }` with `setCut = igSetMs > (1 - reserve)
+  * deadlineMs` (a request without a set is not cut), `served = 0` when cut, else the `igAcceptedMs` not after
+  `deadlineMs`, `completed = served >= quantity` and `lost = acceptedCount >= quantity && !completed`; a row without the
+  linkage fields is `not-linked` and one with a timeline that is not numbers `invalid-timeline` (both with `null`
+  numbers). The result is `{ kind: 'deadline-projection', label: 'post-hoc projection; not a live deadline gate', rows,
+  skipped }` (`skipped`: the rows that are not valid). It estimates accepted prefixes of recorded runs and proves neither
+  the cancellation of dispatched work, nor the response assembly, nor the 120-s bound: it has no verdict, it is not an
+  input of `phase0Verdict` and it is never a prerequisite.
+- **Population** (`population(rows, { quantity })`; plan section 3, P3: two-sided beside every timing). Per cell (the
+  rows' `caseId`): `{ completion: { requests, valid, reachedTen }, rows, puzzles, clueShare, scorePosition,
+  censusEstimateShare, evidenceProblems }`. The statistics read the valid rows with complete per-puzzle evidence
+  (`puzzleEvidence(run).clues` is `null`, every puzzle has a finite `score` and a `level` whose band is finite, and
+  `ratingCensoredCount` is a count when present); the other valid rows are listed apart in `evidenceProblems` (`{ rowKey,
+  rep, problem }`) and read nowhere; a row with no accepted puzzle contributes nothing and its `details` are not read.
+  `clueShare` is `clues / K` and `scorePosition` is `(score - min) / (max - min)` with the band of the puzzle's `level`
+  (the frozen `core/engine/levels.js`), each `{ median, min, max }` over the pooled puzzles (`null` without one);
+  `censusEstimateShare` is `ratingCensoredCount` summed over the rows used over their `acceptedCount` summed (`null`
+  without an accepted puzzle). Completion counts every row of the cell. A report that judges nothing.
+- **Phase 0** (`phase0Verdict({ purpose, classes, cells, controls, masters, p5, prerequisites })`; plan section 6's gate
+  row; RV2-08, RV3-03; IG-P-D1 condition 4). `classes` `[{ id, verdict }]` (`admitted`, `failed`, `inconclusive` or `null`:
+  no verdict), `cells`, `controls` and `masters` `[{ cell, verdict }]` (`verdict` `pass`, `fail` or `incomplete`: the
+  results of `cellGate` and `masterIdentity` with their cell), `p5` the `p5Stops` results, `prerequisites` T09e's `{
+  [name]: { status, reasons } }`. `fail` when an item fails (a failing cell, control or Master cell on its shipped arm,
+  or a prerequisite); else, with `purpose: 'selection'`, `incomplete` whose first `deciding` entry is `uncapped comparator
+  collection pending`: a selection is never a final admission (the other open items follow it); else, with `purpose:
+  'final'`, `pass` only when every class has a verdict, every failing cell, control and Master cell passes, every
+  declared P5 pair is known (`p5Stops`' `unknown` is 0; at least one pair is declared) and every prerequisite passes,
+  `stage1` and `liveDeadline` included (a prerequisite that is absent is `incomplete`); else `incomplete`. It returns
+  `{ verdict, deciding }`: `deciding` lists the items that decide, each `<item>: <status>` (the failing ones for a `fail`,
+  the open ones for an `incomplete`, every item for a `pass`). The Hell 1 report and the projection are not inputs.
 - **Self-test.** Four cases appended to the `--items` group (`verdicts: basic rows`, `verdicts: completion and the
   deadline apart`, `verdicts: run status`, `verdicts: per-puzzle evidence`), on synthetic rows built from the frozen
   `newRunRecord` (the helper `verdictKit()` of `self-test.mjs` loads `verdicts.mjs` and the frozen record builders on
@@ -1532,4 +1620,11 @@ never a pass; an invalid puzzle or pack is a correctness failure. The module loa
   ratings, an unfinished primitive, a work-cap rating, exceeded and invalid bounds, the confirmed termination, the
   reconciliation, tasks matched by identity, unowned lines, no linkage and `parseLines`), the `work:` cases (the
   counterexample of IG-P-Q37, pass and worse, nothing missing read as no work) and the `class:` cases (each condition
-  of the procedure, their order, and the missing `quantity` of `reachedTen` and `cappedT10`).
+  of the procedure, their order, and the missing `quantity` of `reachedTen` and `cappedT10`). V4-T09d appends 11 (the
+  rows of an arm by `armRows`, its journals by `journalsOf`, the Master and P5 sides by `masterSide` and `p5Side` and a
+  phase-0 input in which every item passes by `greenPhase0`): `verdicts: fallback arm` (the shipped arm and the failing
+  cell's gate: the stop at the third failure, the dead end, the journal, the order of the conditions), `one failing global
+  Nightmare cell`, `Master identity on complete keys`, `Hell 1 is reported, not a veto`, `the projection is never a
+  deadline gate`, `P5 stops over the declared pairs`, `a selection is not a final admission`, `final admission needs the
+  whole comparison`, `dead ends`, `the control gate` (a control judges no regression only on complete pairs) and
+  `population per cell`.

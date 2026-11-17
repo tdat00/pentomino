@@ -170,13 +170,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 15:15:45 +07:00 (dispatch, base `8207d30`) to 15:43:27 +07:00 (acceptance): 27 min 42 s; the developer's own times 15:15:48-15:36:52 |
+| Waiting for rulings | about 5 min (SA-Opus's review of the deviations and readings, 15:38-15:42; no QUESTION) |
+| Agent id, model | `827dcde7-e4ac-41ab-852f-c5ee8aaf0b5d`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 93 calls; 21,876,453 input, 139,947 output, 21,550,351 cache-read |
+| AI credits | 436.97 |
+| Questions and rulings | none from the developer. SA-Opus ruled "accept T09d" and confirmed the readings as the pack's own: `population(rows, { quantity })`; the band from each puzzle's own `level`; `stage1` and `liveDeadline` required (absent is `incomplete`); a `final` input with no declared P5 pair is `incomplete`; Master pairs (after, today) and a proved difference beats a missing row. T09e now names `prerequisites` keys (`stage1`, `liveDeadline`, `parity:<binding path>`) and every call of `main` with its arguments (new step 3b); T09c's `log-link` sentence corrected; pack amendment `29e932c` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--items`: 97 passed, 0 failed (12.962 s; 11 new cases 87-97); `--frozen`: 10 passed; `check-edits --all`: 33 `ok`, no other line; firewall `check` (V4-T09d): 289 production files unchanged; `git status --short -- core generator tests tools/bench tools/ig-proto/variants tools/ig-proto/lib`: empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. No locked command and no machine time (round 2,724 s); `ig-select-v4.js` unchanged |
+| Commit | this task's commit, `improve-generating T09d: Global verdicts: cell gates, Master identity, Hell 1, P5's stops and phase 0` |
+| Issues and named items | none new; T09e's calls and prerequisite names were fixed in the pack (`29e932c`). First real rows in stage 2 (N-V4-02, N-V4-16, N-V4-17) |

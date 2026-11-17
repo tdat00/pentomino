@@ -951,6 +951,78 @@ function synthClass({ v, row }, spec) {
   return { cells, reps, resamples: 1000, resampleSeed: 7, quantity: 10, capMs: 120000 };
 }
 
+/** The 20 declared reps of the global-verdict cases (V4-T09d). */
+const REPS20 = Array.from({ length: 20 }, (_, i) => i);
+
+/** The options of `cellGate` (V4-T09d): a control also needs `todayRows`, a failing cell `journals`. */
+const gateOptions = { reps: REPS20, quantity: 10, capMs: 120000, responseBoundMs: 120000, resamples: 1000, resampleSeed: 7 };
+
+/** The fields the linkage adds to a run (T06a): a set at 20 s and ten acceptances. */
+const linkedFields = () => ({ igSetMs: 20000, igAcceptedMs: Array.from({ length: 10 }, (_, i) => 30000 + i) });
+
+/**
+ * One arm's ingested rows of a cell (V4-T09d): reps 0 to 19, each with ten puzzles and a T10 of 40 s. `rows(rep)` returns
+ * `undefined` (the default), `null` (no row) or `{ row, seed }`: overrides of the row's spec and of its seed (`s<rep>`).
+ * @param {{ v: any, row: (rep: number, seed: string, spec: any) => any }} kit
+ * @param {(rep: number) => any} [rows]
+ * @returns {any[]}
+ */
+function armRows({ v, row }, rows) {
+  return REPS20.flatMap((rep) => {
+    const over = rows?.(rep);
+    return over === null ? [] : [v.ingestRow(row(rep, over?.seed ?? `s${rep}`, { accepted: 10, tenth: 40000, ...over?.row }), { quantity: 10 })];
+  });
+}
+
+/** @param {any[]} rows @param {any[]} [lines] @returns {Record<string, any>} The journal of every row: no dead end by default. */
+const journalsOf = (rows, lines = [{ t: 'phase', call: 'x', phase: 'p1' }, { t: 'phase', call: 'x', phase: 'p3' }]) => Object.fromEntries(rows.map((r) => [r.rowKey, lines]));
+
+/** @param {{ v: any, row: any }} kit @param {(rep: number) => any} [rows] @returns {any[]} Five Master requests (reps 0 to 4) of one side. */
+const masterSide = ({ v, row }, rows) => [0, 1, 2, 3, 4].flatMap((rep) => {
+  const over = rows?.(rep);
+  return over === null ? [] : [v.ingestRow(row(rep, `s${rep}`, { accepted: 10, tenth: 30000, ...over }), { quantity: 10 })];
+});
+
+/**
+ * One arm's rows of the P5 cell `c` (V4-T09d): reps 0 to 19 at the seed `landscape/c/<rep>`, ten puzzles, linked.
+ * `rows(rep)` returns `undefined`, `null` (no row), or `{ row, seed }` as `armRows` does.
+ * @param {{ v: any, row: any }} kit
+ * @param {(rep: number) => any} [rows]
+ * @returns {any[]}
+ */
+const p5Side = ({ v, row }, rows) => REPS20.flatMap((rep) => {
+  const over = rows?.(rep);
+  const seed = over?.seed ?? `landscape/c/${rep}`;
+  return over === null ? [] : [v.ingestRow(row(rep, seed, { accepted: 10, tenth: 40000, ...over?.row, over: { ...linkedFields(), ...over?.row?.over } }), { quantity: 10 })];
+});
+
+/**
+ * The final-purpose input of `phase0Verdict` in which every item passes (V4-T09d), built from the results of the
+ * functions it judges: five failing cells and a control on their shipped arms, one Master cell, one declared P5 cell of
+ * 20 pairs, a class that failed (its cells ran on the no-screen arm) and both required prerequisites. `over` replaces
+ * any key.
+ * @param {{ v: any, row: any }} kit
+ * @param {Record<string, any>} [over]
+ * @returns {any}
+ */
+function greenPhase0(kit, over = {}) {
+  const { v } = kit;
+  const pass = () => {
+    const rows = armRows(kit);
+    return v.cellGate('failing', rows, { ...gateOptions, journals: journalsOf(rows) });
+  };
+  return {
+    purpose: 'final',
+    classes: [{ id: 'a', verdict: 'failed' }],
+    cells: ['14x14', '15x15b10', '12x12', '16x16', '15x20'].map((cell) => ({ cell, ...pass() })),
+    controls: [{ cell: '18x18', ...v.cellGate('control', armRows(kit), { ...gateOptions, todayRows: armRows(kit), journals: {} }) }],
+    masters: [{ cell: 'm', ...v.masterIdentity(masterSide(kit), masterSide(kit), [0, 1, 2, 3, 4]) }],
+    p5: [v.p5Stops(p5Side(kit), p5Side(kit), { quantity: 10, cell: 'c', reps: REPS20 })],
+    prerequisites: { stage1: { status: 'pass', reasons: [] }, liveDeadline: { status: 'pass', reasons: [] } },
+    ...over,
+  };
+}
+
 /** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
 const itemCases = [
   {
@@ -3013,6 +3085,344 @@ const itemCases = [
         assert(e instanceof RangeError && e.message.includes('quantity'), `a missing quantity: ${String(e)}`);
       }
       assert(v.reachedTen(r.run, { quantity: 10 }) === true, 'a row with ten puzzles did not reach ten');
+    },
+  },
+  {
+    name: 'verdicts: fallback arm',
+    async run() {
+      const kit = await verdictKit();
+      const { v } = kit;
+      // A class whose faster rule fails is `failed`: its cells are judged on the no-screen arm.
+      const failedClass = v.classVerdict(synthClass(kit, { cells: ['a'], rows: (arm) => (arm === 'screen' ? { row: { tenth: 45000 } } : undefined) }));
+      assert(failedClass.verdict === 'failed', `the class: ${failedClass.verdict}`);
+      const cls = { screen: 'screen arm', noScreen: 'no-screen arm' };
+      assert(v.shippedArm(failedClass, cls) === 'no-screen arm', 'a failed class did not ship its no-screen arm');
+      assert(v.shippedArm({ verdict: 'inconclusive' }, cls) === 'no-screen arm' && v.shippedArm({ verdict: 'admitted' }, cls) === 'screen arm', 'the other class verdicts');
+      assert(thrownBy(() => v.shippedArm({ verdict: 'pass' }, cls)).includes('class verdict') && thrownBy(() => v.shippedArm(failedClass, { screen: 'a' })).includes('no-screen'), 'a bad verdict or a one-armed class did not throw');
+      const short = (/** @type {number[]} */ ...which) => (/** @type {number} */ rep) => (which.includes(rep) ? { row: { accepted: 9, tenth: null } } : undefined);
+      const gate = (/** @type {any[]} */ rows, /** @type {any} */ journals = journalsOf(rows)) => v.cellGate('failing', rows, { ...gateOptions, journals });
+      const a = gate(armRows(kit, short(3)));
+      same([a.verdict, a.reasons, a.reachedTen, a.deadEnds], ['pass', [], 19, 0], `(a) 19 of 20 reach ten: ${JSON.stringify(a)}`);
+      const b = gate(armRows(kit, short(3, 4, 5)));
+      same([b.verdict, b.reachedTen], ['fail', 17], `(b) 17 of 20 reach ten: ${JSON.stringify(b)}`);
+      assert(b.reasons[0].includes('3 valid requests did not reach ten') && b.reasons[0].includes('3, 4, 5'), `(b) the reason: ${b.reasons[0]}`);
+      const c = gate(armRows(kit, (rep) => (rep >= 17 ? null : undefined)));
+      same([c.verdict, c.reasons], ['incomplete', ['missing row: rep 17', 'missing row: rep 18', 'missing row: rep 19']], `(c) three declared rows missing: ${JSON.stringify(c)}`);
+      const wrong = { phase: 'validation', code: 'invalid-pack', message: 'x' };
+      const d = gate(armRows(kit, (rep) => (rep === 6 ? { row: { over: { errors: [wrong] } } } : undefined)));
+      assert(d.verdict === 'fail' && d.reasons[0].startsWith('incorrect row: rep 6'), `(d) an incorrect row: ${JSON.stringify(d)}`);
+      // The order of the conditions: a dead end fails before anything is missing; the third failure settles the cell.
+      const rows = armRows(kit);
+      const deadJournals = { ...journalsOf(rows), 'c~4': [{ t: 'phase', call: 'y', phase: 'p2' }, { t: 'phase', call: 'y', phase: 'p2' }] };
+      const dead = gate(rows, deadJournals);
+      assert(dead.verdict === 'fail' && dead.deadEnds === 1 && dead.reasons[0].includes('dead-end entry') && dead.reasons[0].includes('c~4'), `a dead end: ${JSON.stringify(dead)}`);
+      const gap = armRows(kit, (rep) => (rep === 19 ? null : undefined));
+      assert(gate(gap, deadJournals).verdict === 'fail', 'a missing row hid a dead end');
+      assert(gate(armRows(kit, (rep) => (rep === 19 ? null : short(3, 4, 5)(rep)))).verdict === 'fail', 'the third failure did not settle the cell beside a missing row');
+      const two = gate(armRows(kit, (rep) => (rep === 19 ? null : short(3, 4)(rep))));
+      same([two.verdict, two.reasons], ['incomplete', ['missing row: rep 19']], `two failures and a missing row: ${JSON.stringify(two)}`);
+      // A journal that is absent makes a valid row incomplete, never clean; a dead end in a row that is not valid is not read.
+      const noJournal = gate(rows, { ...journalsOf(rows), 'c~5': null });
+      same([noJournal.verdict, noJournal.reasons], ['incomplete', ['no journal: row c~5']], `a row without its journal: ${JSON.stringify(noJournal)}`);
+      assert(gate(rows, Object.fromEntries(Object.entries(journalsOf(rows)).filter(([k]) => k !== 'c~5'))).reasons[0] === 'no journal: row c~5', 'an absent key is not an absent journal');
+      const cut = armRows(kit, (rep) => (rep === 2 ? { row: { over: { measurementValid: false } } } : undefined));
+      const cutGate = gate(cut, { ...journalsOf(cut), 'c~2': [{ t: 'phase', call: 'y', phase: 'p2' }] });
+      assert(cutGate.verdict === 'incomplete' && cutGate.deadEnds === 0 && cutGate.reasons[0].startsWith('status censored: rep 2'), `a censored row: ${JSON.stringify(cutGate)}`);
+      const twice = gate([...rows, rows[7]], journalsOf(rows));
+      same([twice.verdict, twice.reasons], ['incomplete', ['duplicate rows: rep 7 has 2']], `a duplicate row: ${JSON.stringify(twice)}`);
+      const extra = [...rows, v.ingestRow(kit.row(20, 's20', { accepted: 10, tenth: 40000 }), { quantity: 10 })];
+      same(gate(extra, journalsOf(extra)).reasons, ['row outside the declared replicates: rep 20'], 'a row outside the declared replicates');
+      // The deadline violations and the tail are reported beside the gate.
+      const tail = armRows(kit, (rep) => (rep === 1 ? { row: { tenth: 50000 } } : rep === 2 ? { row: { tenth: 60000 } } : rep === 7 ? { row: { response: 125000 } } : undefined));
+      const reported = gate(tail);
+      same([reported.verdict, reported.deadlineViolations, reported.p95Ms, reported.noRegression], ['pass', 1, 50000, null], `the report: ${JSON.stringify(reported)}`);
+      // A missing option is never an unused one.
+      assert(thrownBy(() => v.cellGate('failing', rows, { ...gateOptions })).includes('journals') && thrownBy(() => v.cellGate('failing', rows, { ...gateOptions, journals: {}, quantity: undefined })).includes('quantity'), 'a missing journals or quantity did not throw');
+      assert(thrownBy(() => v.cellGate('cell', rows, gateOptions)).includes('kind') && thrownBy(() => v.cellGate('control', rows, gateOptions)).includes('todayRows'), 'a bad kind or a control without today\'s rows did not throw');
+      assert(thrownBy(() => v.cellGate('failing', rows.map((r) => r.run), { ...gateOptions, journals: {} })).includes('ingested'), 'raw rows did not throw');
+    },
+  },
+  {
+    name: 'verdicts: one failing global Nightmare cell',
+    async run() {
+      const kit = await verdictKit();
+      const { v } = kit;
+      const green = greenPhase0(kit);
+      const pass = v.phase0Verdict(green);
+      assert(pass.verdict === 'pass' && pass.deciding.length === 11 && pass.deciding.every((d) => d.endsWith(': pass')), `the green input: ${JSON.stringify(pass)}`);
+      // Five failing cells pass and one fails on its shipped arm: phase 0 fails and names that cell.
+      const rows = armRows(kit, (rep) => (rep >= 17 ? { row: { accepted: 9, tenth: null } } : undefined));
+      const bad = v.cellGate('failing', rows, { ...gateOptions, journals: journalsOf(rows) });
+      assert(bad.verdict === 'fail', `the failing cell: ${JSON.stringify(bad)}`);
+      const one = v.phase0Verdict({ ...green, cells: [...green.cells, { cell: '9x9-nightmare', ...bad }] });
+      same(one, { verdict: 'fail', deciding: ['failing cell 9x9-nightmare: fail'] }, `one failing cell: ${JSON.stringify(one)}`);
+      // An incomplete cell does not fail phase 0, and a failing one wins over it.
+      const open = { cell: '9x9-nightmare', verdict: 'incomplete', reasons: ['missing row: rep 3'] };
+      same(v.phase0Verdict({ ...green, cells: [...green.cells, open] }), { verdict: 'incomplete', deciding: ['failing cell 9x9-nightmare: incomplete'] }, 'an incomplete cell');
+      assert(v.phase0Verdict({ ...green, cells: [open, { cell: 'z', ...bad }] }).verdict === 'fail', 'an incomplete cell hid a failing one');
+      // A failed or inconclusive class fails nothing by itself; a class without a verdict is incomplete.
+      same(v.phase0Verdict({ ...green, classes: [{ id: 'a', verdict: 'inconclusive' }, { id: 'b', verdict: 'admitted' }] }).verdict, 'pass', 'classes with a verdict');
+      same(v.phase0Verdict({ ...green, classes: [{ id: 'a', verdict: null }] }), { verdict: 'incomplete', deciding: ['class a (no verdict): incomplete'] }, 'a class without a verdict');
+      // A control, a Master cell and a prerequisite fail phase 0 as well.
+      const failing = { verdict: 'fail', reasons: ['x'] };
+      same(v.phase0Verdict({ ...green, controls: [{ cell: '18x18', ...failing }] }).deciding, ['control 18x18: fail'], 'a failing control');
+      same(v.phase0Verdict({ ...green, masters: [{ cell: 'm', ...failing }] }).deciding, ['master m: fail'], 'a failing Master cell');
+      same(v.phase0Verdict({ ...green, prerequisites: { ...green.prerequisites, stage1: { status: 'fail', reasons: ['x'] } } }).deciding, ['prerequisite stage1: fail'], 'a failing prerequisite');
+      assert(thrownBy(() => v.phase0Verdict({ ...green, cells: [{ cell: 'z', verdict: 'ok' }] })).includes('status') && thrownBy(() => v.phase0Verdict({ ...green, cells: undefined })).includes('cells'), 'a verdict that is none of the three, or a missing list, did not throw');
+    },
+  },
+  {
+    name: 'verdicts: Master identity on complete keys',
+    async run() {
+      const kit = await verdictKit();
+      const { v, keysOf } = kit;
+      const reps = [0, 1, 2, 3, 4];
+      const identity = (/** @type {any} */ today, /** @type {any} */ after) => v.masterIdentity(masterSide(kit, today), masterSide(kit, after), reps);
+      same(identity(undefined, undefined), { verdict: 'pass', differences: [], problems: [] }, '(a) equal default keys');
+      const b = identity(undefined, (/** @type {number} */ rep) => (rep === 3 ? { keys: [sha256('other'), ...keysOf('s3', 10).slice(1)] } : undefined));
+      same([b.verdict, b.differences], ['fail', [{ rep: 3, seed: 's3', field: 'igPuzzleKeys[0]' }]], `(b) a key differs: ${JSON.stringify(b)}`);
+      const c = identity(undefined, (/** @type {number} */ rep) => (rep === 4 ? null : undefined));
+      same([c.verdict, c.differences, c.problems], ['incomplete', [], ['missing row: side a rep 4']], `(c) a missing after row: ${JSON.stringify(c)}`);
+      // Equal empty key lists of ten accepted puzzles are never equality.
+      const d = identity(() => ({ keys: [] }), () => ({ keys: [] }));
+      assert(d.verdict === 'incomplete' && d.differences.length === 0 && d.problems.length === 10 && d.problems[0] === 'puzzle keys today rep 0: puzzle keys: 0 of 10', `(d) empty keys: ${JSON.stringify(d.problems.slice(0, 2))}`);
+      const e = identity(undefined, (/** @type {number} */ rep) => (rep === 2 ? { keys: keysOf('s2', 9) } : undefined));
+      same([e.verdict, e.problems], ['incomplete', ['puzzle keys after rep 2: puzzle keys: 9 of 10']], `(e) nine keys of ten: ${JSON.stringify(e)}`);
+      // Zero accepted puzzles are an empty list whatever `details` hold; they are read nowhere.
+      const none = (/** @type {number} */ rep) => (rep === 1 ? { accepted: 0, tenth: null, over: { details: null } } : undefined);
+      same(identity(none, none), { verdict: 'pass', differences: [], problems: [] }, '(f) zero accepted puzzles on both sides');
+      // `details` of a request with no accepted puzzle are never read: stale keys that differ between the sides change nothing.
+      const stale = (/** @type {string} */ key) => (/** @type {number} */ rep) => (rep === 1 ? { accepted: 0, tenth: null, over: { details: { igPuzzleKeys: [key] } } } : undefined);
+      same(identity(stale('today'), stale('after')), { verdict: 'pass', differences: [], problems: [] }, '(f) stale keys of zero accepted puzzles');
+      // More: another count, a difference beside a missing row, an incorrect row, another seed.
+      const nine = identity(none, (/** @type {number} */ rep) => (rep === 1 ? { accepted: 9, keys: keysOf('s1', 9) } : undefined));
+      same(nine.differences, [{ rep: 1, seed: 's1', field: 'acceptedCount' }], 'another accepted count');
+      const zero = identity(none, undefined);
+      same([zero.verdict, zero.differences], ['fail', [{ rep: 1, seed: 's1', field: 'acceptedCount' }]], 'zero against ten accepted');
+      const both = identity(undefined, (/** @type {number} */ rep) => (rep === 4 ? null : rep === 3 ? { keys: [...keysOf('s3', 9), sha256('last')] } : undefined));
+      same([both.verdict, both.differences.length, both.problems], ['fail', 1, ['missing row: side a rep 4']], `a difference beside a missing row: ${JSON.stringify(both)}`);
+      const wrong = identity(undefined, (/** @type {number} */ rep) => (rep === 0 ? { over: { errors: [{ phase: 'validation', code: 'invalid-pack', message: 'x' }] } } : undefined));
+      assert(wrong.verdict === 'fail' && wrong.problems[0].startsWith('status incorrect: side a rep 0'), `an incorrect row: ${JSON.stringify(wrong)}`);
+      const after = masterSide(kit);
+      after[2] = v.ingestRow(kit.row(2, 'other', { accepted: 10, tenth: 30000 }), { quantity: 10 });
+      const seeds = v.masterIdentity(masterSide(kit), after, reps);
+      assert(seeds.verdict === 'incomplete' && seeds.problems.includes('seed differs at rep 2: side a "other", side b "s2"'), `another seed: ${JSON.stringify(seeds)}`);
+      // Phase 0 reads the cell: a difference fails it, a missing row leaves it incomplete.
+      const green = greenPhase0(kit);
+      same(v.phase0Verdict({ ...green, masters: [{ cell: 'm', ...b }] }), { verdict: 'fail', deciding: ['master m: fail'] }, 'phase 0 with (b)');
+      same(v.phase0Verdict({ ...green, masters: [{ cell: 'm', ...c }] }), { verdict: 'incomplete', deciding: ['master m: incomplete'] }, 'phase 0 with (c)');
+      same(v.phase0Verdict({ ...green, masters: [{ cell: 'm', ...d }] }).verdict, 'incomplete', 'phase 0 with (d)');
+    },
+  },
+  {
+    name: 'verdicts: Hell 1 is reported, not a veto',
+    async run() {
+      const kit = await verdictKit();
+      const { v } = kit;
+      const hell = (/** @type {number} */ reaching) => armRows(kit, (rep) => (rep >= reaching ? { row: { accepted: 6, tenth: null } } : undefined));
+      const twelve = v.hell1Report(hell(12), { reps: REPS20, quantity: 10 });
+      same(twelve, { requests: 20, valid: 20, reachedTen: 12, candidate: false }, `12 of 20: ${JSON.stringify(twelve)}`);
+      assert(v.hell1Report(hell(18), { reps: REPS20, quantity: 10 }).candidate === true && v.hell1Report(hell(17), { reps: REPS20, quantity: 10 }).candidate === false, '18 of 20 is a candidate, 17 is not');
+      // A request that is missing or not valid cannot reach ten.
+      const gap = v.hell1Report(armRows(kit, (rep) => (rep >= 17 ? null : rep === 0 ? { row: { over: { measurementValid: false } } } : undefined)), { reps: REPS20, quantity: 10 });
+      same(gap, { requests: 17, valid: 16, reachedTen: 16, candidate: false }, `a missing and a censored request: ${JSON.stringify(gap)}`);
+      assert(thrownBy(() => v.hell1Report(hell(12), { reps: REPS20 })).includes('quantity'), 'a missing quantity did not throw');
+      // Never a veto: the report is not an input of phase 0, and every other item passes.
+      const green = greenPhase0(kit);
+      same(v.phase0Verdict({ ...green, hell1: twelve }).verdict, 'pass', 'phase 0 with Hell 1 at 12 of 20');
+    },
+  },
+  {
+    name: 'verdicts: the projection is never a deadline gate',
+    async run() {
+      const kit = await verdictKit();
+      const { v, row } = kit;
+      const times = [60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000, 100000, 110000];
+      const ingest = (/** @type {any} */ spec) => v.ingestRow(row(0, 's0', spec), { quantity: 10 });
+      const r = ingest({ accepted: 10, tenth: 110000, response: 115000, over: { igSetMs: 50000, igAcceptedMs: times } });
+      const half = v.deadlineProjection([r], { reserve: 0.5, quantity: 10 });
+      same(half.rows, [{ rep: 0, seed: 's0', postHoc: true, status: 'projected', setCut: false, served: 10, completed: true, lost: false }], `reserve 0.5: ${JSON.stringify(half.rows)}`);
+      same([half.kind, half.label, 'verdict' in half], ['deadline-projection', 'post-hoc projection; not a live deadline gate', false], 'the kind and the label, and no verdict');
+      const six = v.deadlineProjection([r], { reserve: 0.6, quantity: 10 });
+      same(six.rows, [{ rep: 0, seed: 's0', postHoc: true, status: 'projected', setCut: true, served: 0, completed: false, lost: true }], `reserve 0.6: ${JSON.stringify(six.rows)}`);
+      // The deadline cuts the accepted prefix; a request without a set is not cut; linkage that is absent has no numbers.
+      const late = ingest({ accepted: 10, tenth: 116000, response: 120000, over: { igSetMs: 50000, igAcceptedMs: [...times.slice(0, 9), 116000] } });
+      same(v.deadlineProjection([late], { reserve: 0.5, quantity: 10 }).rows[0], { rep: 0, seed: 's0', postHoc: true, status: 'projected', setCut: false, served: 9, completed: false, lost: true }, 'the tenth puzzle after 115 s');
+      const noSet = ingest({ accepted: 0, over: { igSetMs: null, igAcceptedMs: [] } });
+      same(v.deadlineProjection([noSet], { reserve: 0.5, quantity: 10 }).rows[0], { rep: 0, seed: 's0', postHoc: true, status: 'projected', setCut: false, served: 0, completed: false, lost: false }, 'a request without a set');
+      const unlinked = v.deadlineProjection([ingest({ accepted: 10, tenth: 30000 }), ingest({ accepted: 10, tenth: 30000, over: { measurementValid: false } })], { reserve: 0.5, quantity: 10 });
+      same([unlinked.rows, unlinked.skipped], [[{ rep: 0, seed: 's0', postHoc: true, status: 'not-linked', setCut: null, served: null, completed: null, lost: null }], 1], `a row without linkage: ${JSON.stringify(unlinked)}`);
+      assert(v.deadlineProjection([ingest({ accepted: 0, over: { igSetMs: 'x', igAcceptedMs: [] } })], { reserve: 0.5, quantity: 10 }).rows[0].status === 'invalid-timeline', 'a timeline that is not numbers');
+      assert(thrownBy(() => v.deadlineProjection([r], { reserve: 1.5, quantity: 10 })).includes('reserve'), 'a reserve above 1 did not throw');
+      // Phase 0 never reads the projection; the live-deadline prerequisite alone decides, and it is required.
+      const green = greenPhase0(kit);
+      const live = { stage1: { status: 'pass', reasons: [] }, liveDeadline: { status: 'incomplete', reasons: ['missing binding x'] } };
+      same(v.phase0Verdict({ ...green, prerequisites: live, deadlineProjection: half }), { verdict: 'incomplete', deciding: ['prerequisite liveDeadline: incomplete'] }, 'phase 0 with the live-deadline prerequisite incomplete');
+      same(v.phase0Verdict({ ...green, prerequisites: { stage1: live.stage1 } }), { verdict: 'incomplete', deciding: ['prerequisite liveDeadline (missing): incomplete'] }, 'a live-deadline prerequisite that is absent');
+    },
+  },
+  {
+    name: 'verdicts: P5 stops over the declared pairs',
+    async run() {
+      const { v, row } = await verdictKit();
+      const linked = { igSetMs: 30000, igAcceptedMs: [35000] };
+      const mk = (/** @type {number} */ rep, /** @type {any} */ spec) => v.ingestRow(row(rep, `landscape/c/${rep}`, { tenth: null, ...spec }), { quantity: 10 });
+      const stop = { partialReason: 'set:no-window-below', igSetMs: null, igAcceptedMs: [] };
+      const bounded = [0, 1, 2, 3, 4, 6].map((rep) => mk(rep, { accepted: 0, over: stop }));
+      bounded.push(mk(5, { accepted: 0, over: { ...stop, responseMs: 'x' } }));
+      const uncapped = [
+        mk(0, { accepted: 10, tenth: 40000, over: linked }),
+        mk(1, { accepted: 1, over: linked }),
+        mk(2, { accepted: 0, over: { igSetMs: null, igAcceptedMs: [], partialReason: 'set:time-limit' } }),
+        mk(4, { accepted: 10, tenth: 40000, over: { ...linked, measurementValid: false, errors: [{ phase: 'host', code: 'child-timeout', message: 'x' }] } }),
+        mk(5, { accepted: 10, tenth: 40000, over: linked }),
+        mk(6, { accepted: 10, tenth: 40000 }),
+      ];
+      const reps = [0, 1, 2, 3, 4, 5, 6, 7];
+      const got = v.p5Stops(bounded, uncapped, { quantity: 10, cell: 'c', reps });
+      same([got.declared, got.pairs, got.falseStops, got.lostCompletions, got.unknown], [8, 3, 2, 1, 5], `the counts: ${JSON.stringify(got)}`);
+      same([got.falseStopReps, got.lostReps, got.unknownReps.map((u) => u.rep), got.unexpected], [[0, 1], [0], [3, 4, 5, 6, 7], []], 'the reps');
+      const reason = (/** @type {number} */ rep) => /** @type {string} */ (got.unknownReps.find((u) => u.rep === rep)?.reason);
+      assert(reason(7) === 'missing' && reason(3) === 'missing uncapped row' && reason(4).startsWith('uncapped row is censored') && reason(5).startsWith('bounded row is invalid')
+        && reason(6) === 'uncapped row is not linked (no igSetMs)', `the reasons: ${JSON.stringify(got.unknownReps)}`);
+      // A false stop needs a finite igSetMs on the uncapped row (rep 2: none), whatever its count (rep 1: one puzzle).
+      assert(!got.falseStopReps.includes(2) && got.falseStopReps.includes(1), 'rep 2 or rep 1 was read wrongly');
+      // Rows outside the declared pairs are listed and not counted; a duplicate or another seed is unknown.
+      const other = row(0, 'landscape/other/0', { accepted: 10, tenth: 40000, over: linked });
+      other.caseId = 'other';
+      other.run.caseId = 'other';
+      const outside = v.p5Stops([...bounded, mk(99, { accepted: 0, over: stop })], [...uncapped, v.ingestRow(other, { quantity: 10 })], { quantity: 10, cell: 'c', reps });
+      same([outside.falseStops, outside.lostCompletions, outside.unknown, outside.unexpected.map((u) => [u.side, u.caseId, u.rep])], [2, 1, 5, [['bounded', 'c', 99], ['uncapped', 'other', 0]]], `unexpected rows: ${JSON.stringify(outside.unexpected)}`);
+      const twice = v.p5Stops(bounded, [...uncapped, uncapped[0]], { quantity: 10, cell: 'c', reps });
+      assert(twice.unknownReps.find((u) => u.rep === 0)?.reason === 'duplicate uncapped rows (2)' && twice.falseStops === 1, `a duplicate row: ${JSON.stringify(twice.unknownReps)}`);
+      const seeded = v.p5Stops(bounded, [v.ingestRow(row(0, 'landscape/c/1', { accepted: 10, tenth: 40000, over: linked }), { quantity: 10 }), ...uncapped.slice(1)], { quantity: 10, cell: 'c', reps });
+      assert(seeded.unknownReps.find((u) => u.rep === 0)?.reason.includes('expected landscape/c/0') === true, `another seed: ${JSON.stringify(seeded.unknownReps)}`);
+      // A lost completion needs both: the bounded arm reaching ten too is not one.
+      const both = v.p5Stops([mk(0, { accepted: 10, tenth: 40000, over: linked })], [uncapped[0]], { quantity: 10, cell: 'c', reps: [0] });
+      same([both.pairs, both.falseStops, both.lostCompletions], [1, 0, 0], 'both arms reach ten');
+      assert(thrownBy(() => v.p5Stops(bounded, uncapped, { quantity: 10, cell: '', reps })).includes('cell') && thrownBy(() => v.p5Stops(bounded, uncapped, { quantity: 10, cell: 'c', reps: [] })).includes('reps'), 'a missing cell or reps did not throw');
+    },
+  },
+  {
+    name: 'verdicts: a selection is not a final admission',
+    async run() {
+      const kit = await verdictKit();
+      const { v } = kit;
+      const selection = greenPhase0(kit, { purpose: 'selection', p5: [] });
+      same(v.phase0Verdict(selection), { verdict: 'incomplete', deciding: ['uncapped comparator collection pending'] }, 'a green selection');
+      // The same input as a final purpose with no declared P5 pair is not a pass either (lost completions are counted, not assumed).
+      same(v.phase0Verdict({ ...selection, purpose: 'final' }), { verdict: 'incomplete', deciding: ['p5 (no declared pair): incomplete'] }, 'a final input with no declared pair');
+      const rows = armRows(kit, (rep) => (rep >= 17 ? { row: { accepted: 9, tenth: null } } : undefined));
+      const bad = v.cellGate('failing', rows, { ...gateOptions, journals: journalsOf(rows) });
+      same(v.phase0Verdict({ ...selection, cells: [...selection.cells, { cell: 'z', ...bad }] }), { verdict: 'fail', deciding: ['failing cell z: fail'] }, 'a selection with a failing cell');
+      // Another item that is open comes after the reason.
+      const open = v.phase0Verdict({ ...selection, prerequisites: { stage1: { status: 'pass', reasons: [] } } });
+      same(open.deciding, ['uncapped comparator collection pending', 'prerequisite liveDeadline (missing): incomplete'], 'the reason first');
+      assert(thrownBy(() => v.phase0Verdict({ ...selection, purpose: 'draft' })).includes('purpose'), 'another purpose did not throw');
+    },
+  },
+  {
+    name: 'verdicts: final admission needs the whole comparison',
+    async run() {
+      const kit = await verdictKit();
+      const { v } = kit;
+      const green = greenPhase0(kit);
+      const stops = (/** @type {(rep: number) => any} */ uncapped, /** @type {(rep: number) => any} */ bounded) => v.p5Stops(p5Side(kit, bounded), p5Side(kit, uncapped), { quantity: 10, cell: 'c', reps: REPS20 });
+      // (a) one of the 20 declared pairs is unknown.
+      const unknown = stops((rep) => (rep === 7 ? null : undefined), () => undefined);
+      same([unknown.declared, unknown.unknown], [20, 1], 'one pair is unknown');
+      same(v.phase0Verdict({ ...green, p5: [unknown] }), { verdict: 'incomplete', deciding: ['p5 c: incomplete'] }, '(a) one unknown pair');
+      // (b) all 20 are known with one lost completion: counted, not a threshold.
+      const lost = stops(() => undefined, (rep) => (rep === 3 ? { row: { accepted: 9, tenth: null } } : undefined));
+      same([lost.pairs, lost.lostCompletions, lost.unknown], [20, 1, 0], 'one lost completion');
+      same(v.phase0Verdict({ ...green, p5: [lost] }).verdict, 'pass', '(b) one lost completion');
+      // A pair that is missing on both sides is unknown, never an empty success.
+      const empty = v.p5Stops([], [], { quantity: 10, cell: 'c', reps: REPS20 });
+      same([empty.declared, empty.pairs, empty.unknown], [20, 0, 20], 'no row at all');
+      same(v.phase0Verdict({ ...green, p5: [empty] }).verdict, 'incomplete', 'no row at all is not a pass');
+      assert(thrownBy(() => v.phase0Verdict({ ...green, p5: [{ cell: 'c' }] })).includes('p5Stops'), 'a P5 entry that is not a result did not throw');
+    },
+  },
+  {
+    name: 'verdicts: dead ends',
+    async run() {
+      const { v } = await verdictKit();
+      const lines = [{ t: 'phase', call: 'x', phase: 'p1' }, { t: 'phase', call: 'x', phase: 'p2' }, { t: 'phase', call: 'x', phase: 'p2' }, { t: 'phase', call: 'y', phase: 'p2' }];
+      assert(v.deadEnds(lines) === 2, `dead ends: ${v.deadEnds(lines)}`);
+      assert(v.deadEnds([...lines, { t: 'end', call: 'z', phase: 'p2' }, { t: 'phase', call: 'w', phase: 'p3' }]) === 2, 'another line type or phase counted');
+      assert(v.deadEnds([...lines, { t: 'phase', phase: 'p2' }]) === 3 && v.deadEnds([]) === 0, 'a p2 line without a call id, or no line');
+      assert(thrownBy(() => v.deadEnds('x')).includes('journal') && thrownBy(() => v.deadEnds([1])).includes('journal'), 'lines that are not objects did not throw');
+    },
+  },
+  {
+    name: 'verdicts: the control gate',
+    async run() {
+      const { v, row } = await verdictKit();
+      const rowsOf = (/** @type {number} */ tenth, /** @type {(rep: number) => any} */ spec = () => undefined) => REPS20.flatMap((rep) => {
+        const over = spec(rep);
+        const { seed = `s${rep}`, ...rest } = over ?? {};
+        return over === null ? [] : [v.ingestRow(row(rep, seed, { accepted: 10, tenth, ...rest }), { quantity: 10 })];
+      });
+      const control = (/** @type {any[]} */ today, /** @type {any[]} */ shipped = rowsOf(40000)) => v.cellGate('control', shipped, { ...gateOptions, todayRows: today, journals: {} });
+      const a = control(rowsOf(40000));
+      assert(a.verdict === 'pass' && a.noRegression !== null && near(a.noRegression.lower, 1) && a.reachedTen === 20 && a.deadEnds === null, `(a) the same time: ${JSON.stringify(a)}`);
+      const b = control(rowsOf(30000));
+      assert(b.verdict === 'fail' && b.noRegression !== null && near(b.noRegression.lower, 0.75) && b.reasons[0].startsWith('no regression'), `(b) today is faster: ${JSON.stringify(b)}`);
+      // (c) today's arm lacks rep 7: incomplete before any statistic, no exception.
+      const c = control(rowsOf(40000, (rep) => (rep === 7 ? null : undefined)));
+      same([c.verdict, c.reasons, c.noRegression], ['incomplete', ['missing row: side b rep 7'], null], `(c) a missing today's row: ${JSON.stringify(c)}`);
+      assert(control(rowsOf(40000), rowsOf(40000, (rep) => (rep === 2 ? null : undefined))).reasons[0] === 'missing row: side a rep 2', 'the shipped arm lacking a row');
+      // Duplicates, a row that is not valid and a seed that differs are pairing problems of either side.
+      const today = rowsOf(40000);
+      assert(control([...today, today[3]]).reasons[0] === 'duplicate rows: side b rep 3 has 2', 'a duplicate today\'s row');
+      assert(control(rowsOf(40000, (rep) => (rep === 3 ? { over: { measurementValid: false } } : undefined))).reasons[0].startsWith('status censored: side b rep 3'), 'a censored today\'s row');
+      const wrong = { phase: 'validation', code: 'invalid-pack', message: 'x' };
+      const todayWrong = control(rowsOf(40000, (rep) => (rep === 5 ? { over: { errors: [wrong] } } : undefined)));
+      assert(todayWrong.verdict === 'incomplete' && todayWrong.reasons[0].startsWith('status incorrect: side b rep 5'), `an incorrect today's row is the comparator's problem: ${JSON.stringify(todayWrong)}`);
+      assert(control(today, rowsOf(40000, (rep) => (rep === 4 ? { seed: 'other' } : undefined))).reasons[0].startsWith('seed differs at rep 4'), 'a seed that differs');
+      // The shipped arm's own failures decide first, whatever today's arm holds.
+      const incorrect = control(today, rowsOf(40000, (rep) => (rep === 6 ? { over: { errors: [wrong] } } : undefined)));
+      assert(incorrect.verdict === 'fail' && incorrect.reasons[0].startsWith('incorrect row: rep 6') && incorrect.noRegression === null, `an incorrect shipped row: ${JSON.stringify(incorrect)}`);
+      const shortRows = (/** @type {number[]} */ ...which) => rowsOf(40000, (rep) => (which.includes(rep) ? { accepted: 9, tenth: null } : undefined));
+      const three = control(shortRows(3, 4, 5), shortRows(3, 4, 5));
+      assert(three.verdict === 'fail' && three.reasons[0].includes('3 valid requests did not reach ten') && three.noRegression !== null && three.reachedTen === 17, `3 requests that do not reach ten: ${JSON.stringify(three)}`);
+      const two = control(shortRows(3, 4), shortRows(3, 4));
+      assert(two.verdict === 'pass' && two.reachedTen === 18, `2 requests that do not reach ten, as today: ${JSON.stringify(two)}`);
+      // A shipped arm 5 % faster or 15 % slower than today is judged by the lower bound of 0.9.
+      assert(control(rowsOf(38000)).verdict === 'pass' && control(rowsOf(34000)).verdict === 'fail', 'a ratio of 0.95 passes, 0.85 fails');
+      assert(thrownBy(() => v.cellGate('control', rowsOf(40000), { ...gateOptions, todayRows: today, resamples: undefined })).includes('resamples') && thrownBy(() => v.cellGate('control', rowsOf(40000), { ...gateOptions, todayRows: today, capMs: undefined })).includes('capMs'), 'a missing resampling option or cap did not throw');
+    },
+  },
+  {
+    name: 'verdicts: population per cell',
+    async run() {
+      const { v, row } = await verdictKit();
+      const level = (/** @type {number[]} */ clues, /** @type {number[]} */ scores, /** @type {string} */ id = 'nightmare') => ({ K: 20, puzzles: clues.map((c, i) => ({ clues: c, score: scores[i], level: id })) });
+      const mk = (/** @type {number} */ rep, /** @type {any} */ spec, /** @type {string} */ cell = 'c') => {
+        const r = row(rep, `s${rep}`, spec);
+        r.caseId = cell;
+        r.run.caseId = cell;
+        return v.ingestRow(r, { quantity: 10 });
+      };
+      const rows = [
+        mk(0, { accepted: 3, over: { ratingCensoredCount: 1, details: level([6, 8, 10], [59, 65, 71]) } }),
+        mk(1, { accepted: 1, over: { ratingCensoredCount: 0, details: level([8], [53]) } }),
+        mk(2, { accepted: 0, over: { details: null } }),
+        mk(3, { accepted: 2, over: { details: { K: 20, puzzles: [{ clues: 7, score: 60, level: 'nightmare' }, { clues: 7 }] } } }),
+        mk(4, { accepted: 3, over: { measurementValid: false, details: level([6, 8, 10], [59, 65, 71]) } }),
+        mk(5, { accepted: 1, over: { details: level([5], [80], 'hell-1') } }, 'd'),
+      ];
+      const got = v.population(rows, { quantity: 10 });
+      same(Object.keys(got), ['c', 'd'], 'one entry per cell');
+      const c = got.c;
+      same([c.completion, c.rows, c.puzzles, c.clueShare.min, c.clueShare.max, c.scorePosition.min, c.scorePosition.max], [{ requests: 5, valid: 4, reachedTen: 0 }, 3, 4, 0.3, 0.5, 0, 0.75], `cell c: ${JSON.stringify(c)}`);
+      assert(near(c.clueShare.median, 0.4) && near(c.scorePosition.median, 0.375) && near(c.censusEstimateShare, 0.25), `the medians and the census share: ${JSON.stringify(c)}`);
+      same(c.evidenceProblems, [{ rowKey: 'c~3', rep: 3, problem: 'score position: puzzle 1: score or level missing' }], 'the row without a score is listed apart and read nowhere');
+      assert(near(got.d.scorePosition.median, 3 / 35) && got.d.censusEstimateShare === 0 && got.d.evidenceProblems.length === 0, `cell d (Hell 1 band): ${JSON.stringify(got.d)}`);
+      // No accepted puzzle: no statistic, never a zero.
+      const none = v.population([mk(0, { accepted: 0, over: { details: null } })], { quantity: 10 }).c;
+      same([none.clueShare, none.scorePosition, none.censusEstimateShare, none.rows], [null, null, null, 1], 'a cell without a puzzle');
+      assert(thrownBy(() => v.population(rows, {})).includes('quantity'), 'a missing quantity did not throw');
     },
   },
 ];
