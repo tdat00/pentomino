@@ -68,7 +68,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `variants/link.json`, `variants/log-link.json`, `variants/v4-link.json`, `variants/v4-ps-link.json`, `variants/files/link/`, `linkage.mjs`, `plans/V4-T06.json` | the batch linkage journal and its report (V4-T06): the variant `link` and its three compositions, `ig-link.js`, `linkage.mjs report` and the plan of its run; see "Batch linkage (V4-T06)" |
 | `variants/v4-p5.json`, `variants/v4-p5-w8-test.json`, `variants/v4-link-w8-test.json` | the P5 pilot arm `v4-p5` (the call budget and the bounded set attempts) and the two test-only width-8 trees (V4-T07b); see "P5 bounded set attempts (V4-T07b)" |
 | `variants/fr-base.json`, `fr-screen.json`, `fr-none.json`, `fr-close.json`, `fr-c4.json`, `fr-ps.json`, `fr-p5.json` | the seven frozen-round arms of stage 2 (V4-T08); see "Frozen-round arms (V4-T08)" |
-| `verdicts.mjs`, `data/verdict-manifest.schema.md` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules) and the manifest those statistics read; pure; see "Admission statistics (V4-T09a)" |
+| `verdicts.mjs`, `data/verdict-manifest.schema.md` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules), the work ledger of a request, the work rule and the class verdict (V4-T09c) and the manifest those statistics read; pure; see "Admission statistics (V4-T09a)" |
 
 ## Trees (variants)
 
@@ -1439,7 +1439,86 @@ never a pass; an invalid puzzle or pack is a correctness failure. The module loa
   throw; `fasterRule` and `noRegression` throw on a series that is not one ratio above 0 per declared rep (a `null` from
   `ratiosOf` is incomplete evidence, which the caller judges first, as the class procedure of V4-T09c does at its
   rule 2), on a cell-less input, and on `resamples` that is not a positive integer or a `resampleSeed` that is not an
-  integer; `ratiosOf` throws on a missing `quantity` or `capMs` and on two pairs at one rep.
+  integer; `ratiosOf` throws on a missing `quantity` or `capMs` and on two pairs at one rep. `reachedTen` and
+  `cappedT10` (which calls it) throw on a missing or invalid `quantity`, as `runStatus`, `completion` and `ratiosOf` do
+  (V4-T09c): without it every row would read as "never reached ten".
+- **The work ledger of a request** (V4-T09c; IG-P-Q37, D-V4-17; RV3-07, RV4-02). A worker killed inside a rating or a
+  uniqueness count leaves that primitive's units unreported, but never unbounded: the primitive started with the proved
+  bound of its `begin` line (V4-T02d). `parseLines(text, file)` returns `{ lines, problems }` for one journal file: an
+  empty last line is ignored and every other line that is not a JSON object (a line cut by a kill, an empty line, a
+  value that is not an object) is the problem `unparseable line <n> of <file>`, `n` from 1; the caller (T09e) joins
+  these problems to its row's ledger. `rowLedger(lines, linkLines)` (`lines`: every line of the row's worker journals,
+  each file's lines in file order; `linkLines`: the lines of `<rowKey>.link.jsonl`, `null` when the file is absent)
+  returns `{ complete, problems, calls, ended, terminated, open, lo, hi, ratingWork, countWork }`, `complete` being
+  true only without a problem. **The interval:** per call, `lo` is the sum of its completed primitives' reported units
+  (every completed rating's `tuple[4] + tuple[5]`, every completed count's `units`); an ended call has `hi = lo`; a call
+  closed by a confirmed termination has `hi = lo +` the `bound` of its one open primitive, and `hi = lo` when none is
+  open (a kill between primitives). The row's `lo`, `hi`, `ratingWork` and `countWork` sum over the closed calls (an
+  unclosed call adds nothing and is a problem); `calls` is the number of `start` lines, `ended` and `terminated` count
+  the two kinds of closed call and `open` the open primitives whose bound `hi` adds; a bound that is not a finite number
+  from 0 makes `hi` infinite. The numbers of an incomplete ledger are the best the lines allow, never evidence: nothing
+  missing is read as zero work. **The ten rules**, each problem a string in `problems` (a repeated problem is listed
+  once):
+  1. `no linkage`: `linkLines` is `null`.
+  2. `duplicate start <call>`: a call is one `start` line (a call id is `<row>:<pid>:<threadId>:<sequence>`).
+  3. `unowned <t> line <call>`: a `p`, `phase`, `caps`, `begin`, `count` or `end` line whose `call` has no `start` line
+     (a `call` of `null` included: the legacy route's `caps` and `count` lines are unowned).
+  4. `invalid work <call>`: a `p` tuple whose `tuple[4]` or `tuple[5]`, or a `count` whose `units`, is not a finite
+     number from 0.
+  5. `missing caps <call>`: a call with an `end`, `p`, `begin` or `count` line and not exactly one `caps` line with
+     `count: true` (a call with a `start` line and no other work line has no such problem).
+  6. The problems of `pairPrimitives` (`lib/ledger.mjs`, imported unchanged): at most one primitive pending per call;
+     `invalid begin <call> <index>`, `invalid bound <call>`, `overlapping begin <call> <index>` (at once, never removed
+     by a later completion), `unpaired <t> line <call>`, `unquantified <outcome> <call> <index>` (a paired `p` line of
+     outcome `unsat` or `error`: zero placeholders, not measured work; `capped` ratings are quantified) and `bound
+     exceeded <call> <index>`, the index being the primitive's position among the call's `begin` lines.
+  7. `duplicate end <call>`; and `open call <call>`: a call without an `end` line is closed only by a `worker-end` link
+     line (`ev` exactly `worker-end`: never `worker-end-request` or `worker-end-failed`) whose `threadId` equals the
+     call id's second field from the end, whose `pid` equals its third field from the end and whose `at` is at least the
+     call's `start` `at`. A worker that died before its termination was requested has `threadId` -1: it closes no call,
+     so its calls stay open (incomplete, never zero work).
+  8. `reconcile <call>: <field> <sum> != <end value>` for an ended call: `work` (the sum of its `p` lines' units),
+     `profiles` (their number) and `countWork` (the sum of its `count` units, an explicit 0 without one, against the
+     `end` line's `locate.countWork`, which must be a finite number from 0); and `unfinished primitive <call>`: an ended
+     call, whatever its result, with an open primitive (only a confirmed termination carries a bound).
+  9. `unattributed call <call>`: a call whose stage is not `set`, `batch` or `completion` (`other`: no `igStage`).
+  10. Every returned task matches its own ended call by identity, never by count: a `set-complete` link line with a
+      selection outcome (not `carve` or `internal`) needs exactly one ended call of stage `set` whose `attempt` equals
+      its `attempt` (`unmatched set attempt <j>`); a `complete` line with `ok: true` and an outcome other than `layout`
+      one of stage `batch` whose `attempt` is `<slot>/<attempt>` (`unmatched batch candidate <slot>/<attempt>`); a
+      `completion-complete` line with an outcome other than `layout` one of stage `completion` whose `attempt` is its
+      `key` (`unmatched completion task <key>`), and a string `valueKey` must equal `key` (`completion key mismatch
+      <index>`). A call answers at most one task; a completed call that answers none (speculative) counts in the sums
+      but never stands in for another task's missing call.
+- **The work rule** (`workRule(screenRows, noScreenRows)`, rows `{ ingested, ledger }`: T09a's `ingestRow` and
+  `rowLedger`'s result). Per arm `{ lo, hi, accepted, loRatio, hiRatio, completedRatio, complete, rows, terminatedCalls }`:
+  `lo`, `hi` and `terminatedCalls` summed over the rows, `accepted` the accepted puzzles of the valid rows, the ratios
+  per accepted puzzle (`null` with none; `completedRatio` is `loRatio`, D-V4-17's former quantity), `complete` when every
+  row is valid and every ledger complete. The verdict (IG-P-Q37): `unknown` when an arm is not complete or has no
+  accepted puzzle; else `pass` when `screen.hiRatio <= noScreen.loRatio`; else `worse` when `screen.loRatio >
+  noScreen.hiRatio`; else `unknown` (the intervals overlap: the class is inconclusive and uses no screen). Both
+  intervals, the completed-unit ratio and `terminatedCalls` are reported, not judged; a kill count is never a bound.
+- **The class verdict** (`classVerdict(input)`, `input = { cells: [{ cell, screenRows, noScreenRows, screenLedgers,
+  noScreenLedgers, screenCellGate }], reps, resamples, resampleSeed, quantity, capMs }`; the rows are T09a's ingested
+  rows, a ledger map goes from a `rowKey` to `rowLedger`'s result and a row without one has `ledger: { complete: false,
+  problems: ['no journal'], lo: 0, hi: 0 }`; `screenCellGate` is T09d's, computed on the screen arm). It returns the
+  first condition that decides, in this order (`decidedBy` in parentheses; `null` for `admitted`):
+  1. (`correctness`) a pairing has an `incorrect` row: `failed`;
+  2. (`incomplete-validation`) a pairing has a problem: `inconclusive`;
+  3. (`evidence`) `matchedSets` of a cell has an `evidence` entry: `inconclusive`;
+  4. (`matched-sets`) a cell has fewer than 15 matched sets with distinct seeds: `inconclusive`;
+  5. (`clue`) the clue rule over the matched sets of every cell fails: `failed`;
+  6. (`faster`) the faster rule over the ratios of every cell fails: `failed`;
+  7. (`work`) `workRule` over every row of the class: `worse` is `failed`, `unknown` is `inconclusive` with `decidedBy`
+     `work-unknown`;
+  8. (`completion`) on a cell, the screen arm's valid rows reaching ten (`reachedTen`) are fewer than the no-screen
+     arm's less 1: `failed`;
+  9. (`cell-gate`) a cell's `screenCellGate` is `fail`: `failed`; else `incomplete`: `inconclusive`;
+  else `admitted`. It returns `{ verdict, decidedBy, clue, faster, work, evidence, completion, problems }`:
+  `completion` is `{ [cell]: { screen, noScreen } }` (the two counts of rule 8), `evidence` the entries of rule 3 with
+  their `cell`, `problems` the pairing problems, the evidence entries and the problems of every incomplete ledger, each
+  prefixed with its cell. Every statistic that can be computed is returned whichever condition decides (`faster` is
+  `null` while a pairing problem leaves a rep without a ratio); the options are validated before any condition.
 - **Self-test.** Four cases appended to the `--items` group (`verdicts: basic rows`, `verdicts: completion and the
   deadline apart`, `verdicts: run status`, `verdicts: per-puzzle evidence`), on synthetic rows built from the frozen
   `newRunRecord` (the helper `verdictKit()` of `self-test.mjs` loads `verdicts.mjs` and the frozen record builders on
@@ -1447,4 +1526,10 @@ never a pass; an invalid puzzle or pack is a correctness failure. The module loa
   `pairing problems`, `matched sets`, `incomplete clue populations are not zero differences`, `the clue rule is pooled`,
   `faster rule and its floor`, `failed requests at the common endpoint`, `no regression`): the pairing problems, the
   matched sets, the pooled clue rule, the shared resampling, the per-cell floor, the common endpoint and the no-regression
-  bound, on the same synthetic rows.
+  bound, on the same synthetic rows. V4-T09c appends 30 (through the same `verdictKit()`; the literal journal lines of its
+  ledger cases are built by `ledgerLines()`, the class inputs by `synthClass`): the `ledger:` cases (open and killed
+  calls, the count capability, the omitted losing attempt, overlapping begins that no completion repairs, unquantified
+  ratings, an unfinished primitive, a work-cap rating, exceeded and invalid bounds, the confirmed termination, the
+  reconciliation, tasks matched by identity, unowned lines, no linkage and `parseLines`), the `work:` cases (the
+  counterexample of IG-P-Q37, pass and worse, nothing missing read as no work) and the `class:` cases (each condition
+  of the procedure, their order, and the missing `quantity` of `reachedTen` and `cappedT10`).

@@ -885,6 +885,72 @@ const ingested = (v, rows) => rows.map((r) => v.ingestRow(r, { quantity: 10 }));
 /** @param {number} x @param {number} y @returns {boolean} Whether two numbers differ by at most 1e-12 (a geometric mean is `exp` of a mean of logs). */
 const near = (x, y) => Math.abs(x - y) <= 1e-12;
 
+/**
+ * The literal lines of the work-ledger cases (V4-T09c): `S` a call's start, `C` its capability line, `B` a begin line (a
+ * rating with the bound 1,000 unless said otherwise), `P` a completed rating (main and census units), `N` a completed
+ * uniqueness count, `E` an end line and `W` a worker line of the link file (process 1).
+ */
+const ledgerLines = () => ({
+  S: (/** @type {string} */ call, /** @type {string} */ stage, /** @type {any} */ attempt, /** @type {number} */ at) => ({ t: 'start', call, stage, attempt, at }),
+  C: (/** @type {string} */ call) => ({ t: 'caps', call, count: true }),
+  B: (/** @type {string} */ call, kind = 'rate', bound = 1000) => ({ t: 'begin', call, kind, bound }),
+  P: (/** @type {string} */ call, /** @type {number} */ i, /** @type {number} */ main, /** @type {number} */ census) => ({ t: 'p', call, i, tuple: ['locate', 6, 'in', 60, main, census] }),
+  N: (/** @type {string} */ call, /** @type {number} */ units) => ({ t: 'count', call, units }),
+  E: (/** @type {string} */ call, /** @type {number} */ work, /** @type {number} */ profiles, /** @type {number} */ countWork, result = 'ok') => ({ t: 'end', call, result, work, profiles, locate: { countWork } }),
+  W: (/** @type {string} */ ev, /** @type {number} */ threadId, /** @type {number} */ at) => ({ t: 'link', ev, pid: 1, threadId, at }),
+});
+
+/**
+ * @param {any} v The `verdicts.mjs` module. @param {(rep: number, seed: string, spec: any) => any} row The `verdictKit` row builder.
+ * @param {number} lo @param {number} hi @param {number} accepted @param {number} [terminated]
+ * @returns {{ ingested: any, ledger: any }[]} One valid row with `accepted` puzzles whose complete ledger is `[lo, hi]`.
+ */
+const workArm = (v, row, lo, hi, accepted, terminated = 0) => [{
+  ingested: v.ingestRow(row(0, 's0', { accepted, tenth: accepted >= 10 ? 30000 : null }), { quantity: 10 }),
+  ledger: { complete: true, problems: [], lo, hi, terminated },
+}];
+
+/**
+ * A `classVerdict` input over `spec.cells` and the reps 0 to 19 (V4-T09c): by default each row has ten puzzles, the set key
+ * `k<rep>` on both arms, 12 clues of `K` 30 and a complete ledger of 100 units; the screen arm's T10 is 30 s and the
+ * no-screen arm's 45 s; every cell gate passes. `spec.rows(arm, cell, rep)` returns `undefined` (the default), `null` (no
+ * row) or `{ row, ledger, seed }`: overrides of the row's spec, of its ledger (`ledger: null`: no journal) and of its seed
+ * (default `s<rep>`); `spec.gates` maps a cell to its gate.
+ * @param {{ v: any, row: (rep: number, seed: string, spec: any) => any }} kit
+ * @param {{ cells: string[], rows?: (arm: 'screen' | 'noScreen', cell: string, rep: number) => any, gates?: Record<string, string> }} spec
+ * @returns {any}
+ */
+function synthClass({ v, row }, spec) {
+  const reps = Array.from({ length: 20 }, (_, i) => i);
+  const cells = spec.cells.map((cell) => {
+    const side = (/** @type {'screen' | 'noScreen'} */ arm) => {
+      /** @type {any[]} */
+      const rows = [];
+      /** @type {Record<string, any>} */
+      const ledgers = {};
+      for (const rep of reps) {
+        const over = spec.rows?.(arm, cell, rep);
+        if (over === null) {
+          continue;
+        }
+        const published = row(rep, over?.seed ?? `s${rep}`, { accepted: 10, tenth: arm === 'screen' ? 30000 : 45000, setKey: `k${rep}`, clue: 12, K: 30, ...over?.row });
+        rows.push(v.ingestRow(published, { quantity: 10 }));
+        if (over?.ledger !== null) {
+          ledgers[published.rowKey] = { complete: true, problems: [], lo: 100, hi: 100, terminated: 0, ...over?.ledger };
+        }
+      }
+      return { rows, ledgers };
+    };
+    const screen = side('screen');
+    const noScreen = side('noScreen');
+    return {
+      cell, screenRows: screen.rows, noScreenRows: noScreen.rows, screenLedgers: screen.ledgers, noScreenLedgers: noScreen.ledgers,
+      screenCellGate: spec.gates?.[cell] ?? 'pass',
+    };
+  });
+  return { cells, reps, resamples: 1000, resampleSeed: 7, quantity: 10, capMs: 120000 };
+}
+
 /** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
 const itemCases = [
   {
@@ -2496,6 +2562,457 @@ const itemCases = [
       assert(wide.geoMean > 1.4 && near(wide.lower, 0.5) && wide.pass === false, `a wide pair: ${JSON.stringify(wide)}`);
       assert(thrownBy(() => v.noRegression([1, null], [0, 1], o)).includes('index 1') && thrownBy(() => v.noRegression([1, 1], [0, 1, 2], o)).includes('3 ratios')
         && thrownBy(() => v.noRegression([1, 1], [0, 1], { resamples: 1000 })).includes('resampleSeed'), 'a null ratio, a short series or a missing seed did not throw');
+    },
+  },
+  {
+    name: 'ledger: an open call is incomplete',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, P } = ledgerLines();
+      const c = 'r:1:2:1';
+      const got = v.rowLedger([S(c, 'batch', '1/0', 10), C(c), B(c), P(c, 0, 100, 0)], []);
+      assert(got.complete === false && got.problems.includes('open call r:1:2:1'), `an open call: ${JSON.stringify(got)}`);
+      // The interval sums the closed calls only: the work of an open call is neither counted nor read as zero.
+      same([got.calls, got.ended, got.terminated, got.open, got.lo, got.hi], [1, 0, 0, 0, 0, 0], `the counts of an open call: ${JSON.stringify(got)}`);
+    },
+  },
+  {
+    name: 'ledger: a missing count capability',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, P, E } = ledgerLines();
+      const c = 'r:1:2:1';
+      const call = [S(c, 'set', 0, 10), B(c), P(c, 0, 100, 0), B(c), P(c, 1, 50, 10), E(c, 160, 2, 0)];
+      const got = v.rowLedger(call, [{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' }]);
+      same(got.problems, ['missing caps r:1:2:1'], `no caps line: ${JSON.stringify(got)}`);
+      assert(got.complete === false, 'a call without its capability line was complete');
+      // Exactly one capability line: two of them are as wrong as none.
+      assert(v.rowLedger([call[0], C(c), C(c), ...call.slice(1)], [{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' }]).problems.includes('missing caps r:1:2:1'), 'two caps lines');
+      // A call cut before its caps line, with no other line, has no work and no missing-caps problem; a caps line that
+      // says no count is no capability.
+      same(v.rowLedger([S(c, 'set', 0, 10)], []).problems, ['open call r:1:2:1'], 'a call with only its start line has a problem besides being open');
+      const no = v.rowLedger([call[0], { t: 'caps', call: c, count: false }, ...call.slice(1)], [{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' }]);
+      assert(no.problems.includes('missing caps r:1:2:1'), `a caps line with count false: ${JSON.stringify(no.problems)}`);
+    },
+  },
+  {
+    name: 'ledger: an omitted losing attempt',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, P, E } = ledgerLines();
+      const c = 'r:1:2:1';
+      const call = [S(c, 'set', 0, 10), C(c), B(c), P(c, 0, 100, 0), B(c), P(c, 1, 50, 10), E(c, 160, 2, 0)];
+      const got = v.rowLedger(call, [{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' }, { t: 'link', ev: 'set-complete', attempt: 1, outcome: 'not-in-band' }]);
+      assert(got.complete === false && got.problems.includes('unmatched set attempt 1'), `attempt 1 has no call: ${JSON.stringify(got)}`);
+      // Pre-selection outcomes ran no selection call; a call that was never returned (speculative) is counted, not matched.
+      const pre = v.rowLedger(call, [{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' }, { t: 'link', ev: 'set-complete', attempt: 1, outcome: 'carve' }, { t: 'link', ev: 'set-complete', attempt: 2, outcome: 'internal' }]);
+      assert(pre.complete === true, `carve and internal need no call: ${JSON.stringify(pre.problems)}`);
+      const speculative = v.rowLedger(call, []);
+      assert(speculative.complete === true && speculative.lo === 160, `a speculative call counts in the sums: ${JSON.stringify(speculative)}`);
+    },
+  },
+  {
+    name: 'ledger: an ended call with an explicit zero count',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, P, E } = ledgerLines();
+      const c = 'r:1:2:1';
+      const got = v.rowLedger([S(c, 'set', 0, 10), C(c), B(c), P(c, 0, 100, 0), B(c), P(c, 1, 50, 10), E(c, 160, 2, 0)], [{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' }]);
+      same(got, { complete: true, problems: [], calls: 1, ended: 1, terminated: 0, open: 0, lo: 160, hi: 160, ratingWork: 160, countWork: 0 }, `the ledger: ${JSON.stringify(got)}`);
+    },
+  },
+  {
+    name: 'ledger: an open primitive at a confirmed termination',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, P, N, W } = ledgerLines();
+      const c = 'r:1:3:1';
+      const call = [S(c, 'batch', '1/1', 10), C(c), B(c, 'rate', 1000), P(c, 0, 70, 0), B(c, 'count', 500), N(c, 30), B(c, 'rate', 840)];
+      const got = v.rowLedger(call, [W('worker-end', 3, 20)]);
+      same(got, { complete: true, problems: [], calls: 1, ended: 0, terminated: 1, open: 1, lo: 100, hi: 940, ratingWork: 70, countWork: 30 }, `the interval: ${JSON.stringify(got)}`);
+    },
+  },
+  {
+    name: 'ledger: a kill between primitives',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, P, N, W } = ledgerLines();
+      const c = 'r:1:3:1';
+      const got = v.rowLedger([S(c, 'batch', '1/1', 10), C(c), B(c, 'rate', 1000), P(c, 0, 70, 0), B(c, 'count', 500), N(c, 30)], [W('worker-end', 3, 20)]);
+      assert(got.complete === true && got.terminated === 1 && got.open === 0 && got.lo === 100 && got.hi === 100, `a kill between primitives adds no bound: ${JSON.stringify(got)}`);
+    },
+  },
+  {
+    name: 'ledger: an overlapping begin',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, P, N, W } = ledgerLines();
+      const c = 'r:1:3:1';
+      const got = v.rowLedger([S(c, 'batch', '1/1', 10), C(c), B(c, 'rate', 1000), P(c, 0, 70, 0), B(c, 'count', 500), N(c, 30), B(c, 'rate', 840), B(c, 'screen', 300)], [W('worker-end', 3, 20)]);
+      assert(got.complete === false && got.problems.includes('overlapping begin r:1:3:1 3'), `two open primitives: ${JSON.stringify(got.problems)}`);
+    },
+  },
+  {
+    name: 'ledger: an overlap is never erased',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, P, W } = ledgerLines();
+      const c = 'r:1:4:1';
+      const got = v.rowLedger([S(c, 'batch', '2/0', 10), C(c), B(c, 'rate', 100), B(c, 'rate', 10), P(c, 0, 5, 0)], [W('worker-end', 4, 20)]);
+      assert(got.complete === false && got.problems.includes('overlapping begin r:1:4:1 1'), `the completion of 5 units repaired an overlap: ${JSON.stringify(got)}`);
+    },
+  },
+  {
+    name: 'ledger: unquantified ratings',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, E } = ledgerLines();
+      const c = 'r:1:5:1';
+      for (const outcome of ['error', 'unsat']) {
+        const got = v.rowLedger([S(c, 'batch', '2/1', 10), C(c), B(c, 'rate', 100), { t: 'p', call: c, i: 0, tuple: ['locate', 6, outcome, null, 0, 0] }, E(c, 0, 1, 0, 'error')], []);
+        same(got.problems, [`unquantified ${outcome} r:1:5:1 0`], `the zero placeholders of a ${outcome} rating are not measured work: ${JSON.stringify(got)}`);
+        assert(got.complete === false, `a ${outcome} rating gave a complete ledger`);
+      }
+    },
+  },
+  {
+    name: 'ledger: an ended error with an open primitive',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, E } = ledgerLines();
+      const c = 'r:1:6:1';
+      const got = v.rowLedger([S(c, 'batch', '2/2', 10), C(c), B(c, 'rate', 100), E(c, 0, 0, 0, 'error')], []);
+      same(got.problems, ['unfinished primitive r:1:6:1'], `an ended call with an open primitive: ${JSON.stringify(got)}`);
+      assert(got.hi === got.lo, 'an ended call has hi equal to lo: only a confirmed termination carries a bound');
+    },
+  },
+  {
+    name: 'ledger: a work-cap rating is quantified',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, E } = ledgerLines();
+      const c = 'r:1:7:1';
+      const got = v.rowLedger([S(c, 'batch', '3/0', 10), C(c), B(c, 'rate', 1000), { t: 'p', call: c, i: 0, tuple: ['locate', 6, 'capped', null, 760, 0] }, E(c, 760, 1, 0)],
+        [{ t: 'link', ev: 'complete', slot: 3, attempt: 0, ok: true, outcome: 'not-in-band' }]);
+      assert(got.complete === true && got.lo === 760 && got.hi === 760, `a work-cap rating reports its measured units: ${JSON.stringify(got)}`);
+    },
+  },
+  {
+    name: 'ledger: an exceeded bound and an invalid bound',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, P, N, W } = ledgerLines();
+      const c = 'r:1:3:1';
+      const link = [W('worker-end', 3, 20)];
+      const exceeded = v.rowLedger([S(c, 'batch', '1/1', 10), C(c), B(c, 'rate', 50), P(c, 0, 70, 0), B(c, 'count', 500), N(c, 30)], link);
+      assert(exceeded.complete === false && exceeded.problems.includes('bound exceeded r:1:3:1 0'), `70 units against a bound of 50: ${JSON.stringify(exceeded.problems)}`);
+      const invalid = v.rowLedger([S(c, 'batch', '1/1', 10), C(c), B(c, 'rate', 1000), P(c, 0, 70, 0), B(c, 'count', -1), N(c, 30)], link);
+      assert(invalid.complete === false && invalid.problems.includes('invalid bound r:1:3:1'), `a bound of -1: ${JSON.stringify(invalid.problems)}`);
+      // An open primitive whose bound is not a number leaves hi unbounded, never tight.
+      const open = v.rowLedger([S(c, 'batch', '1/1', 10), C(c), B(c, 'rate', Number.NaN)], link);
+      assert(open.complete === false && open.problems.includes('invalid bound r:1:3:1') && open.hi === Infinity, `an open primitive with no bound: ${JSON.stringify(open)}`);
+    },
+  },
+  {
+    name: 'ledger: a termination request is not an end',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, P, N, W } = ledgerLines();
+      const c = 'r:1:3:1';
+      const call = [S(c, 'batch', '1/1', 10), C(c), B(c, 'rate', 1000), P(c, 0, 70, 0), B(c, 'count', 500), N(c, 30), B(c, 'rate', 840)];
+      const verdict = (/** @type {any[]} */ link) => v.rowLedger(call, link);
+      for (const [link, why] of /** @type {[any[], string][]} */ ([
+        [[W('worker-end-request', 3, 12)], 'a termination request'],
+        [[W('worker-end', 3, 5)], 'a termination before the call started'],
+        [[W('worker-end', -1, 20)], 'the thread id -1 of a worker that died before its termination was requested'],
+        [[W('worker-end-failed', 3, 20)], 'a failed termination'],
+        [[{ ...W('worker-end', 3, 20), pid: 2 }], 'another process'],
+        [[W('worker-end', 4, 20)], 'another thread'],
+      ])) {
+        const got = verdict(link);
+        assert(got.complete === false && got.problems.includes('open call r:1:3:1') && got.terminated === 0, `${why} closed the call: ${JSON.stringify(got)}`);
+      }
+      const closed = verdict([W('worker-end-request', 3, 12), W('worker-end', 3, 20)]);
+      assert(closed.complete === true && closed.terminated === 1 && closed.hi === 940, `a confirmed termination: ${JSON.stringify(closed)}`);
+    },
+  },
+  {
+    name: 'ledger: reconciliation and values',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, P, N, E } = ledgerLines();
+      const c = 'r:1:2:1';
+      const link = [{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' }];
+      const body = [S(c, 'set', 0, 10), C(c), B(c), P(c, 0, 100, 0), B(c), P(c, 1, 50, 10)];
+      const work = v.rowLedger([...body, E(c, 150, 2, 0)], link);
+      assert(work.complete === false && work.problems.includes('reconcile r:1:2:1: work 160 != 150'), `end.work: ${JSON.stringify(work.problems)}`);
+      assert(v.rowLedger([...body, E(c, 160, 3, 0)], link).problems.includes('reconcile r:1:2:1: profiles 2 != 3'), 'end.profiles');
+      assert(v.rowLedger([...body, E(c, 160, 2, 7)], link).problems.includes('reconcile r:1:2:1: countWork 0 != 7'), 'end.locate.countWork');
+      const noCount = v.rowLedger([...body, { t: 'end', call: c, result: 'ok', work: 160, profiles: 2 }], link);
+      assert(noCount.problems.includes('reconcile r:1:2:1: countWork 0 != undefined'), `a v4 end line without locate.countWork: ${JSON.stringify(noCount.problems)}`);
+      const bad = v.rowLedger([...body, B(c, 'count', 500), N(c, -1), E(c, 160, 2, 0)], link);
+      assert(bad.complete === false && bad.problems.includes('invalid work r:1:2:1'), `a negative count: ${JSON.stringify(bad.problems)}`);
+      const nan = v.rowLedger([S(c, 'set', 0, 10), C(c), B(c), { t: 'p', call: c, i: 0, tuple: ['locate', 6, 'in', 60, '9', 0] }, E(c, 0, 1, 0)], link);
+      assert(nan.complete === false && nan.problems.includes('invalid work r:1:2:1'), `a main work that is not a number: ${JSON.stringify(nan.problems)}`);
+    },
+  },
+  {
+    name: 'ledger: completion tasks match by key',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, E } = ledgerLines();
+      const calls = [S('r:1:8:1', 'completion', 'c/k1', 10), C('r:1:8:1'), E('r:1:8:1', 0, 0, 0), S('r:1:8:2', 'completion', 'c/k3', 11), C('r:1:8:2'), E('r:1:8:2', 0, 0, 0)];
+      const done = (/** @type {number} */ index, /** @type {any} */ key, /** @type {any} */ valueKey = key) => ({ t: 'link', ev: 'completion-complete', index, key, valueKey, outcome: 'not-in-band' });
+      const link = [done(0, 'c/k1'), done(1, 'c/k2'), { t: 'link', ev: 'complete', slot: 2, attempt: 0, ok: true, outcome: 'layout' }];
+      const got = v.rowLedger(calls, link);
+      same(got.problems, ['unmatched completion task c/k2'], `two tasks and two ended calls, one identity apart: ${JSON.stringify(got)}`);
+      assert(got.complete === false && got.ended === 2, `the speculative call stays counted: ${JSON.stringify(got)}`);
+      // A returned value that names another layout, a task with no key and a call that already answered a task.
+      assert(v.rowLedger(calls, [done(0, 'c/k1', 'c/zz'), done(1, 'c/k3')]).problems.join() === 'completion key mismatch 0', 'a valueKey that differs from the key');
+      assert(v.rowLedger(calls, [done(0, null, null)]).problems.includes('unmatched completion task null'), 'a task without a key matched a call');
+      assert(v.rowLedger(calls, [done(0, 'c/k1'), done(1, 'c/k1')]).problems.join() === 'unmatched completion task c/k1', 'one call answered two tasks');
+      // A task with no key matches no call, even a call that has no attempt; two ended calls of one identity answer no task.
+      const keyless = [S('r:1:8:3', 'completion', null, 12), C('r:1:8:3'), E('r:1:8:3', 0, 0, 0)];
+      assert(v.rowLedger(keyless, [done(0, null, null)]).problems.join() === 'unmatched completion task null', 'a keyless task matched a call without an attempt');
+      const twins = [S('r:1:8:4', 'batch', '1/0', 10), C('r:1:8:4'), E('r:1:8:4', 0, 0, 0), S('r:1:8:5', 'batch', '1/0', 11), C('r:1:8:5'), E('r:1:8:5', 0, 0, 0)];
+      assert(v.rowLedger(twins, [{ t: 'link', ev: 'complete', slot: 1, attempt: 0, ok: true, outcome: 'not-in-band' }]).problems.join() === 'unmatched batch candidate 1/0', 'two calls of one identity answered the task');
+      // Tasks that ran no selection call need none: a layout outcome, a failed candidate.
+      const none = v.rowLedger([], [{ t: 'link', ev: 'completion-complete', index: 0, key: 'c/k9', valueKey: null, outcome: 'layout' }, { t: 'link', ev: 'complete', slot: 5, attempt: 1, ok: false, outcome: 'error' }]);
+      assert(none.complete === true, `tasks without a selection call: ${JSON.stringify(none.problems)}`);
+    },
+  },
+  {
+    name: 'ledger: an unowned line and no linkage',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, P, E } = ledgerLines();
+      assert(v.rowLedger([P('r:1:9:9', 0, 5, 0)], []).problems.includes('unowned p line r:1:9:9'), 'a p line without a start line');
+      assert(v.rowLedger([{ t: 'caps', call: null, count: true }], []).problems.includes('unowned caps line null'), 'a line of a null call');
+      const c = 'r:1:2:1';
+      const got = v.rowLedger([S(c, 'set', 0, 10), C(c), B(c), P(c, 0, 100, 0), E(c, 100, 1, 0)], null);
+      same(got.problems, ['no linkage'], `a complete call without its link file: ${JSON.stringify(got)}`);
+      assert(got.complete === false, 'a row without linkage was complete');
+    },
+  },
+  {
+    name: 'ledger: lines, duplicates and the stage',
+    async run() {
+      const { v } = await verdictKit();
+      const { S, C, B, P, E } = ledgerLines();
+      const parsed = v.parseLines('{"t":"start"}\n{bad\n[1]\n\n{"t":"end"}\n', 'a.jsonl');
+      same(parsed, { lines: [{ t: 'start' }, { t: 'end' }], problems: ['unparseable line 2 of a.jsonl', 'unparseable line 3 of a.jsonl', 'unparseable line 4 of a.jsonl'] }, `parseLines: ${JSON.stringify(parsed)}`);
+      same([v.parseLines('', 'e'), v.parseLines('{"t":"p"}', 'e').lines.length], [{ lines: [], problems: [] }, 1], 'an empty text and a last line without a newline');
+      const c = 'r:1:2:1';
+      const call = [S(c, 'set', 0, 10), C(c), B(c), P(c, 0, 100, 0), E(c, 100, 1, 0)];
+      const link = [{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' }];
+      assert(v.rowLedger([...call, S(c, 'set', 0, 10)], link).problems.includes(`duplicate start ${c}`), 'a second start line');
+      assert(v.rowLedger([...call, E(c, 100, 1, 0)], link).problems.includes(`duplicate end ${c}`), 'a second end line');
+      assert(v.rowLedger([{ ...call[0], stage: 'other' }, ...call.slice(1)], []).problems.includes(`unattributed call ${c}`), 'a call of stage other');
+      assert(thrownBy(() => v.rowLedger([null], [])).includes('rowLedger') && thrownBy(() => v.parseLines(5, 'f')).includes('parseLines'), 'a line that is not an object, or a text that is not a string, did not throw');
+    },
+  },
+  {
+    name: 'work: the counterexample of IG-P-Q37 does not pass',
+    async run() {
+      const { v, row } = await verdictKit();
+      const got = v.workRule(workArm(v, row, 900, 1100, 10, 1), workArm(v, row, 1000, 1010, 10));
+      assert(got.verdict === 'unknown', `the counterexample: ${JSON.stringify(got)}`);
+      same([got.screen.hiRatio, got.noScreen.loRatio, got.screen.loRatio, got.noScreen.hiRatio], [110, 100, 90, 101], 'the four ratios');
+      same([got.screen.completedRatio, got.noScreen.completedRatio, got.screen.terminatedCalls, got.noScreen.terminatedCalls], [90, 100, 1, 0], 'the completed-unit ratios and the terminated calls are reported');
+    },
+  },
+  {
+    name: 'work: pass and worse',
+    async run() {
+      const { v, row } = await verdictKit();
+      assert(v.workRule(workArm(v, row, 800, 800, 10), workArm(v, row, 1000, 1000, 10)).verdict === 'pass', 'a screen arm with 80 units per puzzle against 100 did not pass');
+      assert(v.workRule(workArm(v, row, 1200, 1200, 10), workArm(v, row, 1000, 1010, 10)).verdict === 'worse', 'a screen arm with 120 units per puzzle against at most 101 was not worse');
+      // The boundary of each rule, per accepted puzzle, and the arms' rows summed.
+      assert(v.workRule(workArm(v, row, 1000, 1000, 10), workArm(v, row, 2000, 2000, 20)).verdict === 'pass', 'hi 100 per puzzle against lo 100 per puzzle did not pass');
+      assert(v.workRule(workArm(v, row, 1000, 1100, 10), workArm(v, row, 900, 1000, 10)).verdict === 'unknown', 'overlapping intervals were decided');
+      const two = [...workArm(v, row, 400, 400, 10), ...workArm(v, row, 400, 400, 10)];
+      const sums = v.workRule(two, workArm(v, row, 2000, 2000, 20));
+      same([sums.screen.lo, sums.screen.hi, sums.screen.accepted, sums.screen.rows, sums.verdict], [800, 800, 20, 2, 'pass'], `two rows: ${JSON.stringify(sums.screen)}`);
+    },
+  },
+  {
+    name: 'work: nothing missing is read as no work',
+    async run() {
+      const { v, row } = await verdictKit();
+      const ok = workArm(v, row, 1000, 1000, 10);
+      const incomplete = [{ ...ok[0], ledger: { complete: false, problems: ['open call x'], lo: 0, hi: 0 } }];
+      assert(v.workRule(incomplete, ok).verdict === 'unknown' && v.workRule(ok, incomplete).verdict === 'unknown', 'an incomplete ledger of either arm passed');
+      const none = workArm(v, row, 0, 0, 0);
+      const empty = v.workRule(none, ok);
+      assert(empty.verdict === 'unknown' && empty.screen.loRatio === null && empty.screen.hiRatio === null, `an arm with no accepted puzzle: ${JSON.stringify(empty.screen)}`);
+      const censored = [{ ingested: v.ingestRow(row(0, 's0', { accepted: 10, tenth: 30000, over: { interrupted: true } }), { quantity: 10 }), ledger: ok[0].ledger }];
+      assert(v.workRule(censored, ok).verdict === 'unknown', 'a row that is not valid passed');
+      assert(v.workRule([...ok, ...censored], ok).verdict === 'unknown', 'an arm with a valid row beside a censored one was decided');
+      const open = [{ ...ok[0], ledger: { ...ok[0].ledger, lo: 800, hi: Infinity } }];
+      assert(v.workRule(open, ok).verdict === 'unknown' && v.workRule(open, ok).screen.hiRatio === Infinity, 'an unbounded interval was decided');
+      assert(thrownBy(() => v.workRule([{ ingested: ok[0].ingested }], ok)).includes('ledger') && thrownBy(() => v.workRule(null, ok)).includes('workRule'), 'a row without a ledger, or a missing arm, did not throw');
+    },
+  },
+  {
+    name: 'class: the defaults admit',
+    async run() {
+      const kit = await verdictKit();
+      const got = kit.v.classVerdict(synthClass(kit, { cells: ['a', 'b'] }));
+      assert(got.verdict === 'admitted' && got.decidedBy === null, `the defaults: ${JSON.stringify(got)}`);
+      assert(near(got.faster.geoMean, 1.5) && got.faster.pass === true, `the faster rule: ${JSON.stringify(got.faster)}`);
+      same(got.clue, { n: 40, medianDiff: 0, moved2: 0, pass: true }, 'the clue rule');
+      same(got.completion, { a: { screen: 20, noScreen: 20 }, b: { screen: 20, noScreen: 20 } }, 'the completion counts');
+      assert(got.work.verdict === 'pass' && got.work.screen.loRatio === 10 && got.work.noScreen.accepted === 400, `the work: ${JSON.stringify(got.work)}`);
+      same([got.evidence, got.problems], [[], []], 'no evidence problem, no problem');
+    },
+  },
+  {
+    name: 'class: 14 versus 15 matched sets',
+    async run() {
+      const kit = await verdictKit();
+      const zero = { row: { accepted: 0, tenth: null }, ledger: { lo: 0, hi: 0 } };
+      const few = (/** @type {number} */ n) => kit.v.classVerdict(synthClass(kit, { cells: ['a', 'b'], rows: (arm, cell, rep) => (arm === 'screen' && cell === 'b' && rep < n ? zero : undefined) }));
+      const fourteen = few(6);
+      assert(fourteen.verdict === 'inconclusive' && fourteen.decidedBy === 'matched-sets', `14 matched sets: ${JSON.stringify(fourteen.decidedBy)}`);
+      const fifteen = few(5);
+      assert(fifteen.verdict === 'failed' && fifteen.decidedBy === 'completion', `15 matched sets: ${JSON.stringify([fifteen.verdict, fifteen.decidedBy])}`);
+      same(fifteen.completion.b, { screen: 15, noScreen: 20 }, '15 against 20 reach ten');
+      // Every condition before the completion passes: the verdict is the completion rule's alone.
+      assert(fifteen.clue.pass === true && fifteen.faster.pass === true && fifteen.work.verdict === 'pass', `the earlier conditions: ${JSON.stringify([fifteen.clue, fifteen.faster.pass, fifteen.work.verdict])}`);
+      // 19 against 20 reach ten (not fewer than the no-screen arm's less 1) still pass the completion rule.
+      const nineteen = kit.v.classVerdict(synthClass(kit, { cells: ['a', 'b'], rows: (arm, cell, rep) => (arm === 'screen' && cell === 'b' && rep === 0 ? { row: { accepted: 9, tenth: null }, ledger: { lo: 90, hi: 90 } } : undefined) }));
+      assert(nineteen.verdict === 'admitted' && nineteen.completion.b.screen === 19, `19 against 20: ${JSON.stringify([nineteen.verdict, nineteen.decidedBy])}`);
+      // The matched sets of a cell need distinct seeds: 20 matched sets over 15 seeds pass, over 14 do not.
+      const shared = (/** @type {number} */ n) => kit.v.classVerdict(synthClass(kit, { cells: ['a', 'b'], rows: (arm, cell, rep) => (cell === 'b' && rep < n ? { seed: 's0' } : undefined) }));
+      assert(shared(6).verdict === 'admitted' && shared(6).clue.n === 40, `20 matched sets over 15 seeds: ${JSON.stringify(shared(6).decidedBy)}`);
+      const seeds14 = shared(7);
+      assert(seeds14.verdict === 'inconclusive' && seeds14.decidedBy === 'matched-sets' && seeds14.clue.n === 40, `20 matched sets over 14 seeds: ${JSON.stringify([seeds14.verdict, seeds14.decidedBy])}`);
+    },
+  },
+  {
+    name: 'class: correctness before missing rows',
+    async run() {
+      const kit = await verdictKit();
+      const wrong = { phase: 'validation', code: 'invalid-pack', message: 'x' };
+      const gap = (/** @type {string} */ arm, /** @type {string} */ cell, /** @type {number} */ rep) => (arm === 'noScreen' && cell === 'a' && rep === 3 ? null : undefined);
+      const missing = kit.v.classVerdict(synthClass(kit, { cells: ['a', 'b'], rows: gap }));
+      assert(missing.verdict === 'inconclusive' && missing.decidedBy === 'incomplete-validation' && missing.problems.includes('a: missing row: side b rep 3'), `a missing row: ${JSON.stringify(missing)}`);
+      assert(missing.faster === null, 'a rep without a pair gave a faster verdict');
+      const wrongRow = kit.v.classVerdict(synthClass(kit, { cells: ['a', 'b'], rows: (arm, cell, rep) => (arm === 'screen' && cell === 'a' && rep === 2 ? { row: { over: { errors: [wrong] } } } : gap(arm, cell, rep)) }));
+      assert(wrongRow.verdict === 'failed' && wrongRow.decidedBy === 'correctness', `a correctness failure beside a missing row: ${JSON.stringify([wrongRow.verdict, wrongRow.decidedBy])}`);
+      // A censored row is missing evidence, not a correctness failure; it reaches no statistic, the completion count included.
+      const cut = kit.v.classVerdict(synthClass(kit, { cells: ['a', 'b'], rows: (arm, cell, rep) => (arm === 'screen' && cell === 'a' && rep === 2 ? { row: { over: { interrupted: true } } } : undefined) }));
+      assert(cut.verdict === 'inconclusive' && cut.decidedBy === 'incomplete-validation' && cut.completion.a.screen === 19, `a censored row: ${JSON.stringify([cut.verdict, cut.decidedBy, cut.completion.a])}`);
+    },
+  },
+  {
+    name: 'class: an evidence problem',
+    async run() {
+      const kit = await verdictKit();
+      const got = kit.v.classVerdict(synthClass(kit, { cells: ['a', 'b'], rows: (arm, cell, rep) => (arm === 'screen' && cell === 'a' && rep === 0 ? { row: { clues: [] } } : undefined) }));
+      assert(got.verdict === 'inconclusive' && got.decidedBy === 'evidence', `an evidence problem: ${JSON.stringify([got.verdict, got.decidedBy])}`);
+      same(got.evidence, [{ cell: 'a', rep: 0, side: 'a', problem: 'clues: 0 of 10' }], 'the evidence entry');
+    },
+  },
+  {
+    name: 'class: the clue rule',
+    async run() {
+      const kit = await verdictKit();
+      const input = synthClass(kit, { cells: ['a', 'b'], rows: (arm, cell, rep) => (arm === 'screen' && cell === 'a' && rep < 9 ? { row: { clue: 14 } } : undefined) });
+      // RV4-06: the evidence of those nine rows is complete (`K` 30), so the failure is the clue rule's, never missing evidence.
+      assert(input.cells[0].screenRows.slice(0, 9).every((/** @type {any} */ r) => kit.v.puzzleEvidence(r.run).clues === null), 'a clue evidence problem in the nine rows');
+      const got = kit.v.classVerdict(input);
+      assert(got.verdict === 'failed' && got.decidedBy === 'clue', `the clue rule: ${JSON.stringify([got.verdict, got.decidedBy])}`);
+      same(got.clue, { n: 40, medianDiff: 0, moved2: 9, pass: false }, 'moved2 is 9 of 40');
+    },
+  },
+  {
+    name: 'class: the faster rule',
+    async run() {
+      const kit = await verdictKit();
+      const got = kit.v.classVerdict(synthClass(kit, { cells: ['a', 'b'], rows: (arm) => (arm === 'screen' ? { row: { tenth: 45000 } } : undefined) }));
+      assert(got.verdict === 'failed' && got.decidedBy === 'faster' && near(got.faster.geoMean, 1), `equal times: ${JSON.stringify([got.verdict, got.decidedBy, got.faster])}`);
+      // The floor of every cell: a cell at 0.45 fails the class although the other one is at 1.5.
+      const floor = kit.v.classVerdict(synthClass(kit, { cells: ['a', 'b'], rows: (arm, cell) => (arm === 'screen' && cell === 'b' ? { row: { tenth: 100000, response: 110000 } } : undefined) }));
+      assert(floor.verdict === 'failed' && floor.decidedBy === 'faster' && near(floor.faster.cellGeoMeans.b, 0.45) && near(floor.faster.cellGeoMeans.a, 1.5), `a slow cell: ${JSON.stringify(floor.faster)}`);
+    },
+  },
+  {
+    name: 'class: the work rule',
+    async run() {
+      const kit = await verdictKit();
+      const ledgers = (/** @type {any} */ ledger) => synthClass(kit, { cells: ['a', 'b'], rows: (arm) => (arm === 'screen' ? { ledger } : undefined) });
+      const worse = kit.v.classVerdict(ledgers({ lo: 110, hi: 110 }));
+      assert(worse.verdict === 'failed' && worse.decidedBy === 'work' && worse.work.verdict === 'worse', `110 against 100 units per row: ${JSON.stringify([worse.verdict, worse.decidedBy])}`);
+      const unknown = kit.v.classVerdict(ledgers({ lo: 90, hi: 120 }));
+      assert(unknown.verdict === 'inconclusive' && unknown.decidedBy === 'work-unknown', `an interval across the other arm's: ${JSON.stringify([unknown.verdict, unknown.decidedBy])}`);
+      same([unknown.work.screen.loRatio, unknown.work.screen.hiRatio, unknown.work.noScreen.loRatio], [9, 12, 10], 'the intervals are reported');
+      // A row without a ledger has no journal: the class is inconclusive, never admitted.
+      const bare = kit.v.classVerdict(synthClass(kit, { cells: ['a', 'b'], rows: (arm, cell, rep) => (arm === 'screen' && cell === 'a' && rep === 4 ? { ledger: null } : undefined) }));
+      assert(bare.verdict === 'inconclusive' && bare.decidedBy === 'work-unknown' && bare.problems.includes('a: screen c~4: no journal'), `no journal: ${JSON.stringify([bare.verdict, bare.decidedBy, bare.problems])}`);
+      const incomplete = kit.v.classVerdict(ledgers({ complete: false, problems: ['open call x'] }));
+      assert(incomplete.decidedBy === 'work-unknown' && incomplete.problems.includes('a: screen c~0: open call x'), `an incomplete ledger: ${JSON.stringify(incomplete.problems.slice(0, 2))}`);
+    },
+  },
+  {
+    name: 'class: a faster screen arm failing a cell gate',
+    async run() {
+      const kit = await verdictKit();
+      const gate = (/** @type {Record<string, string>} */ gates) => kit.v.classVerdict(synthClass(kit, { cells: ['a', 'b'], gates }));
+      const failed = gate({ b: 'fail' });
+      assert(failed.verdict === 'failed' && failed.decidedBy === 'cell-gate', `a failing gate: ${JSON.stringify([failed.verdict, failed.decidedBy])}`);
+      const incomplete = gate({ b: 'incomplete' });
+      assert(incomplete.verdict === 'inconclusive' && incomplete.decidedBy === 'cell-gate', `an incomplete gate: ${JSON.stringify([incomplete.verdict, incomplete.decidedBy])}`);
+      assert(gate({ a: 'incomplete', b: 'fail' }).verdict === 'failed', 'a failing cell was hidden by an incomplete one');
+    },
+  },
+  {
+    name: 'class: the order of the conditions',
+    async run() {
+      const kit = await verdictKit();
+      const zero = { row: { accepted: 0, tenth: null }, ledger: { lo: 0, hi: 0 } };
+      const decided = (/** @type {any} */ spec) => {
+        const got = kit.v.classVerdict(synthClass(kit, { cells: ['a', 'b'], ...spec }));
+        return `${got.verdict}/${got.decidedBy}`;
+      };
+      const clue14 = (/** @type {string} */ arm, /** @type {string} */ cell, /** @type {number} */ rep) => (arm === 'screen' && cell === 'a' && rep < 9 ? { row: { clue: 14 } } : undefined);
+      const slow = { row: { tenth: 45000 } };
+      const merge = (/** @type {any} */ x, /** @type {any} */ y) => (x === undefined ? y : y === undefined ? x : { row: { ...x.row, ...y.row }, ledger: { ...x.ledger, ...y.ledger } });
+      same([
+        decided({ rows: (/** @type {any} */ arm, /** @type {any} */ cell, /** @type {any} */ rep) => merge(clue14(arm, cell, rep), arm === 'screen' ? slow : undefined) }),
+        decided({ rows: (/** @type {any} */ arm) => (arm === 'screen' ? { ...slow, ledger: { lo: 110, hi: 110 } } : undefined) }),
+        decided({ rows: (/** @type {any} */ arm, /** @type {any} */ cell, /** @type {any} */ rep) => (arm === 'screen' ? (cell === 'b' && rep < 5 ? { ...zero, ledger: { lo: 130, hi: 130 } } : { ledger: { lo: 130, hi: 130 } }) : undefined) }),
+        decided({ rows: (/** @type {any} */ arm, /** @type {any} */ cell, /** @type {any} */ rep) => (arm === 'screen' && cell === 'b' && rep < 5 ? zero : undefined), gates: { b: 'fail' } }),
+        decided({ rows: (/** @type {any} */ arm, /** @type {any} */ cell, /** @type {any} */ rep) => merge(clue14(arm, cell, rep), arm === 'screen' && cell === 'b' && rep < 6 ? zero : undefined) }),
+        decided({ rows: (/** @type {any} */ arm, /** @type {any} */ cell, /** @type {any} */ rep) => (arm === 'screen' && cell === 'a' && rep === 0 ? { row: { clues: [] } } : arm === 'screen' && cell === 'b' && rep < 6 ? zero : undefined) }),
+        decided({ rows: (/** @type {any} */ arm, /** @type {any} */ cell, /** @type {any} */ rep) => (arm === 'screen' && cell === 'a' && rep === 0 ? { row: { clues: [] } } : arm === 'noScreen' && cell === 'a' && rep === 3 ? null : undefined) }),
+      ], ['failed/clue', 'failed/faster', 'failed/work', 'failed/completion', 'inconclusive/matched-sets', 'inconclusive/evidence', 'inconclusive/incomplete-validation'], 'two failing conditions give the earlier one');
+      // The options are checked before any condition: a missing one is never an unused one (here the faster rule is never reached).
+      const base = synthClass(kit, { cells: ['a'] });
+      const wrong = synthClass(kit, { cells: ['a'], rows: (arm, cell, rep) => (arm === 'screen' && rep === 0 ? { row: { over: { errors: [{ phase: 'validation', code: 'invalid-pack', message: 'x' }] } } } : undefined) });
+      assert(kit.v.classVerdict(wrong).decidedBy === 'correctness' && ['resampleSeed', 'resamples'].every((k) => thrownBy(() => kit.v.classVerdict({ ...wrong, [k]: undefined })).includes(k)), 'a missing resampling option did not throw before the verdict');
+      assert(['capMs', 'quantity', 'resampleSeed', 'resamples', 'reps'].every((k) => thrownBy(() => kit.v.classVerdict({ ...base, [k]: undefined })).includes(k)), 'a missing option did not throw');
+      assert(thrownBy(() => kit.v.classVerdict({ ...base, cells: [] })).includes('cell') && thrownBy(() => kit.v.classVerdict({ ...base, cells: [{ ...base.cells[0], screenCellGate: 'ok' }] })).includes('screenCellGate'), 'no cell, or a gate that is none of the three, did not throw');
+    },
+  },
+  {
+    name: 'class: a missing quantity throws',
+    async run() {
+      const { v, row } = await verdictKit();
+      const r = row(0, 's0', { accepted: 10, tenth: 30000 });
+      /** @param {() => unknown} fn @returns {unknown} */
+      const thrown = (fn) => {
+        try {
+          fn();
+        } catch (e) {
+          return e;
+        }
+        return null;
+      };
+      for (const e of [thrown(() => v.reachedTen(r.run, {})), thrown(() => v.cappedT10(r.run, { capMs: 120000 }))]) {
+        assert(e instanceof RangeError && e.message.includes('quantity'), `a missing quantity: ${String(e)}`);
+      }
+      assert(v.reachedTen(r.run, { quantity: 10 }) === true, 'a row with ten puzzles did not reach ten');
     },
   },
 ];

@@ -260,13 +260,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 14:52:30 +07:00 (dispatch, base `296d15e`) to 15:15:06 +07:00 (acceptance): 22 min 36 s; the developer's own times 14:52:34-15:10:17 |
+| Waiting for rulings | about 4 min (SA-Opus's review of the readings and named items, 15:11-15:14; no QUESTION) |
+| Agent id, model | `f7be000c-882f-439c-92d8-df30be2afb46`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 72 calls; 13,850,435 input, 139,178 output, 13,552,340 cache-read |
+| AI credits | 349.22 |
+| Questions and rulings | none from the developer. SA-Opus ruled "accept T09c": the eight readings accepted (unparseable non-object lines; `open` counts the open primitives of terminated calls only, IG-P-Q37; unclosed calls add nothing; one call answers at most one task, RV3-07; `classVerdict` reports every statistic it can compute and keeps the fixed order). A `log-link` ledger is always incomplete and no verdict reads it; T09e now runs `rowLedger` on class-arm rows only and names the sources of its work table (width `hiRatio - loRatio`, open primitives the sum of `ledger.open`); two batches in one row cannot happen with the frozen runner; pack amendment `10228d9` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--items`: 86 passed, 0 failed (12.859 s; 30 new cases); `--frozen`: 10 passed; `check-edits --all`: 33 `ok`, no other line; firewall `check` (V4-T09c): 289 production files unchanged; `git status --short -- core generator tests tools/bench tools/ig-proto/variants`: empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. No locked command and no machine time (round 2,724 s); `ig-select-v4.js` unchanged |
+| Commit | this task's commit, `improve-generating T09c: Admission statistics: the work ledger of a request, its bounds and the class verdict` |
+| Issues and named items | none new; the T09e work-table sources and the class-arm-only ledger were fixed in the pack (`10228d9`). Closure lines are proved on synthetic lines only until stage 2 (N-V4-02) |

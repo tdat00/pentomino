@@ -4,11 +4,13 @@
 // per-puzzle evidence (puzzle keys, clue counts) that every comparison needs before it may compare anything. Missing,
 // invalid, censored or erroneous data is incomplete evidence, never a pass; an invalid puzzle or pack is a
 // correctness failure. Pure functions of published rows. V4-T09b adds the pairing, the matched sets and the clue,
-// faster and no-regression rules; V4-T09c to V4-T09e add the work ledger and the class verdict, the global verdicts
+// faster and no-regression rules; V4-T09c adds the work ledger of a request (IG-P-Q37: an interval of consumed units
+// from the journal and linkage lines), the work rule and the class verdict; V4-T09d and V4-T09e add the global verdicts
 // and the verdict tool to this file; the manifest the tool reads is described in data/verdict-manifest.schema.md.
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+import { pairPrimitives } from './lib/ledger.mjs';
 import { sourceRoot } from './lib/paths.mjs';
 
 // The record schema of the frozen source (V4-T01a), never the worktree's.
@@ -149,9 +151,11 @@ export function ingestRow(row, { quantity }) {
 /**
  * @param {any} run A valid row's run.
  * @param {{ quantity: number }} options
- * @returns {boolean} Whether the request holds ten puzzles, whatever its time (D-V4-16).
+ * @returns {boolean} Whether the request holds ten puzzles, whatever its time (D-V4-16). Throws on a missing or invalid
+ *   `quantity`: it would otherwise read every row as "never reached ten".
  */
 export function reachedTen(run, { quantity }) {
+  needPositive('quantity', quantity, true);
   return run.acceptedCount >= quantity;
 }
 
@@ -598,4 +602,436 @@ export function noRegression(ratios, reps, { resamples, resampleSeed }) {
   const series = /** @type {number[]} */ (ratios);
   const lower = resampledLower([series], reps.length, { resamples, resampleSeed });
   return { geoMean: geoMean(series), lower, pass: lower >= 0.9 };
+}
+
+/** @param {unknown} v @returns {v is number} A finite number from 0: units of work or a proved bound. */
+const isUnits = (v) => isNum(v) && v >= 0;
+
+/**
+ * Parses the text of one journal file (V4-T09c): one JSON object per line. An empty last line (the final newline) is
+ * ignored; every other line that is not a JSON object (a line cut by a kill, an empty line, a value that is not an
+ * object) is the problem `unparseable line <n> of <file>`, with `n` counted from 1. A caller joins these problems to
+ * its row's ledger: a lost line is a lost measurement, never zero work.
+ * @param {string} text
+ * @param {string} file The name the problems cite.
+ * @returns {{ lines: Record<string, any>[], problems: string[] }}
+ */
+export function parseLines(text, file) {
+  if (typeof text !== 'string' || typeof file !== 'string') {
+    throw new TypeError('verdicts: parseLines needs the text and the name of a file');
+  }
+  const pieces = text.split('\n');
+  if (pieces[pieces.length - 1] === '') {
+    pieces.pop();
+  }
+  /** @type {Record<string, any>[]} */
+  const lines = [];
+  /** @type {string[]} */
+  const problems = [];
+  pieces.forEach((piece, index) => {
+    /** @type {unknown} */
+    let parsed;
+    try {
+      parsed = JSON.parse(piece);
+    } catch {
+      parsed = undefined;
+    }
+    if (isObject(parsed)) {
+      lines.push(parsed);
+    } else {
+      problems.push(`unparseable line ${index + 1} of ${file}`);
+    }
+  });
+  return { lines, problems };
+}
+
+/**
+ * @typedef {object} RowLedger The work ledger of one request row (IG-P-Q37, D-V4-17).
+ * @property {boolean} complete No problem: the bookkeeping of the row is whole. Only a complete ledger is evidence;
+ *   the numbers of an incomplete one are the best the lines allow, never zero work.
+ * @property {string[]} problems
+ * @property {number} calls The `start` lines.
+ * @property {number} ended Calls closed by their own `end` line.
+ * @property {number} terminated Calls closed by a confirmed `worker-end` line.
+ * @property {number} open The primitives left open by the terminated calls, whose bounds `hi` adds.
+ * @property {number} lo The units of the completed primitives of the closed calls.
+ * @property {number} hi `lo` plus the bound of every open primitive (infinite when such a bound is not a number).
+ * @property {number} ratingWork `lo`'s share of ratings (the sum of the `p` lines' main and census units).
+ * @property {number} countWork `lo`'s share of uniqueness counts.
+ */
+
+/** The journal line types that belong to a call. */
+const CALL_LINES = Object.freeze(['p', 'phase', 'caps', 'begin', 'count', 'end']);
+/** The stages a selection call can have; `other` (no `igStage`) is attributed to no task. */
+const CALL_STAGES = Object.freeze(['set', 'batch', 'completion']);
+/** The returned outcomes of a task for which no selection call ran (`core/engine/generate.js:131-136`, `:226-237`, `:309`). */
+const PRE_SELECTION = Object.freeze({ set: ['carve', 'internal'], layout: ['layout'] });
+
+/** @param {any} line @returns {number | null} The units of a `p` line (`tuple[4] + tuple[5]`), `null` when either is not valid. */
+const unitsOfP = (line) => (Array.isArray(line.tuple) && isUnits(line.tuple[4]) && isUnits(line.tuple[5]) ? line.tuple[4] + line.tuple[5] : null);
+
+/**
+ * The work ledger of one request row as an interval `[lo, hi]` of consumed units (V4-T09c; IG-P-Q37, RV3-07, RV4-02).
+ * A worker killed inside a primitive leaves that primitive's units unreported but bounded: a call closed by a
+ * confirmed worker termination adds the proved bound of its one open primitive to `hi`. Every other loss is a problem
+ * and makes the ledger incomplete: nothing missing is read as zero work. The rules, in order: no linkage; one call per
+ * `start` line; ownership of every line; valid work values; the count capability; primitive pairing
+ * (`pairPrimitives` of `lib/ledger.mjs`); closure (an `end`, or a `worker-end` line of the call's own process and
+ * thread not before its start); reconciliation of an ended call with its `end` line; the stage; every returned task
+ * matched to its own ended call by identity.
+ * @param {Record<string, any>[]} lines Every line of the row's worker journals, each file's lines in file order.
+ * @param {Record<string, any>[] | null} linkLines The lines of `<rowKey>.link.jsonl`, `null` when the file is absent.
+ * @returns {RowLedger}
+ */
+export function rowLedger(lines, linkLines) {
+  const objects = (/** @type {unknown} */ list) => Array.isArray(list) && list.every(isObject);
+  if (!objects(lines) || (linkLines !== null && !objects(linkLines))) {
+    throw new TypeError('verdicts: rowLedger needs the parsed journal lines and the link lines (or null)');
+  }
+  /** @type {string[]} */
+  const problems = [];
+  const add = (/** @type {string} */ problem) => {
+    if (!problems.includes(problem)) {
+      problems.push(problem);
+    }
+  };
+  if (linkLines === null) {
+    add('no linkage');
+  }
+  /** @type {Map<string, { id: string, start: Record<string, any>, lines: Record<string, any>[] }>} */
+  const calls = new Map();
+  let starts = 0;
+  lines.forEach((line, index) => {
+    if (line.t !== 'start') {
+      return;
+    }
+    if (typeof line.call !== 'string' || line.call === '') {
+      add(`invalid start line ${index}`);
+      return;
+    }
+    starts += 1;
+    if (calls.has(line.call)) {
+      add(`duplicate start ${line.call}`);
+    } else {
+      calls.set(line.call, { id: line.call, start: line, lines: [] });
+    }
+  });
+  for (const line of lines) {
+    if (!CALL_LINES.includes(line.t)) {
+      continue;
+    }
+    const owner = typeof line.call === 'string' ? calls.get(line.call) : undefined;
+    if (owner === undefined) {
+      add(`unowned ${line.t} line ${line.call}`);
+    } else {
+      owner.lines.push(line);
+    }
+  }
+  const terminations = (linkLines ?? []).filter((l) => l.ev === 'worker-end');
+  // A call id is `<row>:<pid>:<threadId>:<sequence>`, and the row may hold colons: the fields count from the end.
+  const closedBy = (/** @type {{ id: string, start: Record<string, any> }} */ call) => {
+    const fields = call.id.split(':');
+    return fields.length >= 3 && terminations.some((w) => String(w.threadId) === fields[fields.length - 2]
+      && String(w.pid) === fields[fields.length - 3] && isNum(w.at) && isNum(call.start.at) && w.at >= call.start.at);
+  };
+  let ended = 0;
+  let terminated = 0;
+  let open = 0;
+  let lo = 0;
+  let hi = 0;
+  let ratingWork = 0;
+  let countWork = 0;
+  /** @type {{ id: string, start: Record<string, any> }[]} */
+  const endedCalls = [];
+  for (const call of calls.values()) {
+    const { id, start } = call;
+    const ofType = (/** @type {string} */ t) => call.lines.filter((l) => l.t === t);
+    const ends = ofType('end');
+    const ratings = ofType('p').map(unitsOfP);
+    const counts = ofType('count');
+    const ratingSum = ratings.reduce((/** @type {number} */ sum, u) => sum + (u ?? 0), 0);
+    const countSum = counts.reduce((sum, l) => sum + (isUnits(l.units) ? l.units : 0), 0);
+    const invalidRatings = ratings.includes(null);
+    const invalidCounts = counts.some((l) => !isUnits(l.units));
+    if (invalidRatings || invalidCounts) {
+      add(`invalid work ${id}`);
+    }
+    if (ends.length + ratings.length + counts.length + ofType('begin').length > 0
+      && ofType('caps').filter((l) => l.count === true).length !== 1) {
+      add(`missing caps ${id}`);
+    }
+    const paired = pairPrimitives(call.lines, id);
+    for (const problem of paired.problems) {
+      add(problem);
+    }
+    if (!CALL_STAGES.includes(start.stage)) {
+      add(`unattributed call ${id}`);
+    }
+    if (ends.length > 1) {
+      add(`duplicate end ${id}`);
+    }
+    if (ends.length > 0) {
+      ended += 1;
+      endedCalls.push(call);
+      const end = ends[0];
+      if (!invalidRatings && ratingSum !== end.work) {
+        add(`reconcile ${id}: work ${ratingSum} != ${end.work}`);
+      }
+      if (ratings.length !== end.profiles) {
+        add(`reconcile ${id}: profiles ${ratings.length} != ${end.profiles}`);
+      }
+      const total = isObject(end.locate) ? end.locate.countWork : undefined;
+      if (!invalidCounts && !(isUnits(total) && total === countSum)) {
+        add(`reconcile ${id}: countWork ${countSum} != ${total}`);
+      }
+      if (paired.open !== null) {
+        add(`unfinished primitive ${id}`);
+      }
+      lo += paired.lo;
+      hi += paired.lo;
+    } else if (closedBy(call)) {
+      terminated += 1;
+      let bound = 0;
+      if (paired.open !== null) {
+        open += 1;
+        bound = isUnits(paired.open.bound) ? paired.open.bound : Infinity;
+      }
+      lo += paired.lo;
+      hi += paired.lo + bound;
+    } else {
+      add(`open call ${id}`);
+      continue;
+    }
+    ratingWork += ratingSum;
+    countWork += countSum;
+  }
+  if (linkLines !== null) {
+    // One task, one call: a call that answers a task never answers another (a speculative call is counted, not matched).
+    /** @type {Set<{ id: string }>} */
+    const claimed = new Set();
+    const matched = (/** @type {string} */ stage, /** @type {unknown} */ attempt) => {
+      if (attempt === null || attempt === undefined) {
+        return false;
+      }
+      const found = endedCalls.filter((c) => c.start.stage === stage && c.start.attempt === attempt);
+      if (found.length !== 1 || claimed.has(found[0])) {
+        return false;
+      }
+      claimed.add(found[0]);
+      return true;
+    };
+    for (const l of linkLines) {
+      if (l.ev === 'set-complete') {
+        if (!PRE_SELECTION.set.includes(l.outcome) && !matched('set', l.attempt)) {
+          add(`unmatched set attempt ${l.attempt}`);
+        }
+      } else if (l.ev === 'complete') {
+        if (l.ok === true && !PRE_SELECTION.layout.includes(l.outcome) && !matched('batch', `${l.slot}/${l.attempt}`)) {
+          add(`unmatched batch candidate ${l.slot}/${l.attempt}`);
+        }
+      } else if (l.ev === 'completion-complete') {
+        if (typeof l.valueKey === 'string' && l.valueKey !== l.key) {
+          add(`completion key mismatch ${l.index}`);
+        }
+        if (!PRE_SELECTION.layout.includes(l.outcome) && !matched('completion', l.key)) {
+          add(`unmatched completion task ${l.key}`);
+        }
+      }
+    }
+  }
+  return { complete: problems.length === 0, problems, calls: starts, ended, terminated, open, lo, hi, ratingWork, countWork };
+}
+
+/**
+ * @typedef {object} ArmWork The work of one arm over its rows (IG-P-Q37).
+ * @property {number} lo
+ * @property {number} hi
+ * @property {number} accepted The accepted puzzles of the arm's valid rows.
+ * @property {number | null} loRatio `lo` per accepted puzzle, `null` with none.
+ * @property {number | null} hiRatio `hi` per accepted puzzle, `null` with none.
+ * @property {number | null} completedRatio The completed-unit ratio (D-V4-17's former quantity): reported, not judged.
+ * @property {boolean} complete Every row valid and every ledger complete.
+ * @property {number} rows
+ * @property {number} terminatedCalls Reported, not judged: a kill count is never a bound.
+ */
+
+/**
+ * @param {string} name
+ * @param {{ ingested: IngestedRow, ledger: Record<string, any> }[]} rows
+ * @returns {ArmWork}
+ */
+function armWork(name, rows) {
+  if (!Array.isArray(rows)) {
+    throw new TypeError(`verdicts: workRule needs the rows of the ${name} arm as a list`);
+  }
+  let lo = 0;
+  let hi = 0;
+  let accepted = 0;
+  let terminatedCalls = 0;
+  let complete = true;
+  for (const row of rows) {
+    const { ingested, ledger } = isObject(row) ? row : /** @type {any} */ ({});
+    if (!isObject(ingested) || !STATUSES.includes(ingested.status) || !isObject(ledger) || !isUnits(ledger.lo)
+      || typeof ledger.hi !== 'number' || Number.isNaN(ledger.hi) || ledger.hi < ledger.lo) {
+      throw new TypeError(`verdicts: a row of the ${name} arm is not an ingested row with its ledger`);
+    }
+    lo += ledger.lo;
+    hi += ledger.hi;
+    terminatedCalls += isCount(ledger.terminated) ? ledger.terminated : 0;
+    if (ingested.status === 'valid') {
+      accepted += ingested.run.acceptedCount;
+    } else {
+      complete = false;
+    }
+    if (ledger.complete !== true) {
+      complete = false;
+    }
+  }
+  const per = (/** @type {number} */ units) => (accepted > 0 ? units / accepted : null);
+  return { lo, hi, accepted, loRatio: per(lo), hiRatio: per(hi), completedRatio: per(lo), complete, rows: rows.length, terminatedCalls };
+}
+
+/**
+ * The work condition of rule (c5) on intervals (IG-P-Q37, D-V4-17): the screen arm's upper bound per accepted puzzle at
+ * most the no-screen arm's lower bound is a `pass`; the screen arm's lower bound above the no-screen arm's upper bound
+ * is `worse`; anything else, an arm with an incomplete ledger or an invalid row, or an arm with no accepted puzzle, is
+ * `unknown` (the class is then inconclusive and uses no screen).
+ * @param {{ ingested: IngestedRow, ledger: Record<string, any> }[]} screenRows `ingested` is T09a's `ingestRow`, `ledger`
+ *   `rowLedger`'s result.
+ * @param {{ ingested: IngestedRow, ledger: Record<string, any> }[]} noScreenRows
+ * @returns {{ screen: ArmWork, noScreen: ArmWork, verdict: 'pass' | 'worse' | 'unknown' }}
+ */
+export function workRule(screenRows, noScreenRows) {
+  const screen = armWork('screen', screenRows);
+  const noScreen = armWork('noScreen', noScreenRows);
+  /** @type {'pass' | 'worse' | 'unknown'} */
+  let verdict = 'unknown';
+  if (screen.complete && noScreen.complete && screen.accepted > 0 && noScreen.accepted > 0) {
+    if (/** @type {number} */ (screen.hiRatio) <= /** @type {number} */ (noScreen.loRatio)) {
+      verdict = 'pass';
+    } else if (/** @type {number} */ (screen.loRatio) > /** @type {number} */ (noScreen.hiRatio)) {
+      verdict = 'worse';
+    }
+  }
+  return { screen, noScreen, verdict };
+}
+
+/** Rule (c5) needs at least this many matched sets with distinct seeds in every cell (plan section 5.2). */
+const MIN_MATCHED_SETS = 15;
+const CELL_GATES = Object.freeze(['pass', 'fail', 'incomplete']);
+/** The ledger of a row that has no journal: incomplete, never zero work. */
+const NO_JOURNAL = Object.freeze({ complete: false, problems: Object.freeze(['no journal']), lo: 0, hi: 0 });
+
+/**
+ * The class verdict of rule (c5) for a screen arm against its no-screen arm (plan section 5.2, R12, RV3-08, RV4-02): the
+ * first condition that decides, in this fixed order: `correctness` (an `incorrect` row: failed); `incomplete-validation`
+ * (a pairing problem: inconclusive); `evidence` (a matched pair without clue evidence: inconclusive); `matched-sets`
+ * (a cell with fewer than 15 matched sets of distinct seeds: inconclusive); `clue` (the pooled clue rule: failed);
+ * `faster` (the faster rule: failed); `work` (the work rule: `worse` is failed, `unknown` is inconclusive with
+ * `decidedBy` `work-unknown`); `completion` (a cell whose screen arm has fewer valid rows reaching ten than the
+ * no-screen arm's less 1: failed); `cell-gate` (a failing `screenCellGate`: failed, an `incomplete` one: inconclusive);
+ * else `admitted`. Every statistic that can be computed is returned beside the verdict, whichever condition decides:
+ * `faster` is `null` while a pairing problem leaves a rep without a ratio.
+ * @param {{ cells: { cell: string, screenRows: IngestedRow[], noScreenRows: IngestedRow[], screenLedgers: Record<string, any>,
+ *   noScreenLedgers: Record<string, any>, screenCellGate: 'pass' | 'fail' | 'incomplete' }[], reps: number[],
+ *   resamples: number, resampleSeed: number, quantity: number, capMs: number }} input `screenRows` and `noScreenRows`
+ *   are T09a's ingested rows; the ledgers map a `rowKey` to `rowLedger`'s result (a row without one has no journal);
+ *   `screenCellGate` is T09d's, computed on the screen arm.
+ * @returns {{ verdict: 'admitted' | 'failed' | 'inconclusive', decidedBy: string | null,
+ *   clue: ReturnType<typeof clueRule>, faster: ReturnType<typeof fasterRule> | null, work: ReturnType<typeof workRule>,
+ *   evidence: { cell: string, rep: any, side: 'a' | 'b', problem: string }[],
+ *   completion: Record<string, { screen: number, noScreen: number }>, problems: string[] }}
+ */
+export function classVerdict(input) {
+  if (!isObject(input) || !Array.isArray(input.cells) || input.cells.length === 0) {
+    throw new RangeError('verdicts: classVerdict needs at least one cell');
+  }
+  const { reps, resamples, resampleSeed, quantity, capMs } = input;
+  needReps(reps);
+  needResampling({ resamples, resampleSeed });
+  needPositive('quantity', quantity, true);
+  needPositive('capMs', capMs, false);
+  const names = input.cells.map((c) => c?.cell);
+  if (names.some((n) => typeof n !== 'string' || n === '') || new Set(names).size !== names.length) {
+    throw new RangeError('verdicts: the cells of a class need distinct names');
+  }
+  for (const c of input.cells) {
+    if (!CELL_GATES.includes(c.screenCellGate)) {
+      throw new RangeError(`verdicts: screenCellGate of ${c.cell} must be pass, fail or incomplete, got ${String(c.screenCellGate)}`);
+    }
+    if (!isObject(c.screenLedgers) || !isObject(c.noScreenLedgers)) {
+      throw new TypeError(`verdicts: the ledgers of ${c.cell} are not objects from a rowKey to its ledger`);
+    }
+  }
+  /** @param {IngestedRow[]} rows @param {Record<string, any>} ledgers */
+  const withLedgers = (rows, ledgers) => rows.map((ingested) => ({
+    ingested, ledger: typeof ingested.rowKey === 'string' && Object.hasOwn(ledgers, ingested.rowKey) ? ledgers[ingested.rowKey] : NO_JOURNAL,
+  }));
+  const options = { quantity, capMs };
+  const cells = input.cells.map((c) => {
+    const paired = pairRows(c.screenRows, c.noScreenRows, reps);
+    const reached = (/** @type {IngestedRow[]} */ rows) => rows.filter((r) => r.status === 'valid' && reachedTen(r.run, options)).length;
+    return {
+      cell: c.cell,
+      gate: c.screenCellGate,
+      paired,
+      sets: matchedSets(paired.pairs),
+      ratios: ratiosOf(paired.pairs, reps, options),
+      completion: { screen: reached(c.screenRows), noScreen: reached(c.noScreenRows) },
+      screen: withLedgers(c.screenRows, c.screenLedgers),
+      noScreen: withLedgers(c.noScreenRows, c.noScreenLedgers),
+    };
+  });
+  const clue = clueRule(cells.flatMap((c) => c.sets.matched));
+  const ratioless = cells.some((c) => c.ratios.includes(null));
+  const faster = ratioless ? null : fasterRule(Object.fromEntries(cells.map((c) => [c.cell, c.ratios])), reps, { resamples, resampleSeed });
+  const work = workRule(cells.flatMap((c) => c.screen), cells.flatMap((c) => c.noScreen));
+  const evidence = cells.flatMap((c) => c.sets.evidence.map((e) => ({ cell: c.cell, ...e })));
+  const completion = Object.fromEntries(cells.map((c) => [c.cell, c.completion]));
+  const pairing = cells.flatMap((c) => c.paired.problems.map((p) => `${c.cell}: ${p}`));
+  const problems = [
+    ...pairing,
+    ...evidence.map((e) => `${e.cell}: evidence at rep ${e.rep}, side ${e.side}: ${e.problem}`),
+    ...cells.flatMap((c) => [['screen', c.screen], ['noScreen', c.noScreen]].flatMap(([side, rows]) => /** @type {any[]} */ (rows)
+      .filter((r) => r.ledger.complete !== true).flatMap((r) => r.ledger.problems.map((p) => `${c.cell}: ${side} ${r.ingested.rowKey}: ${p}`)))),
+  ];
+  /** @param {'admitted' | 'failed' | 'inconclusive'} verdict @param {string | null} decidedBy */
+  const decide = (verdict, decidedBy) => ({ verdict, decidedBy, clue, faster, work, evidence, completion, problems });
+  if (cells.some((c) => c.paired.incorrect.length > 0)) {
+    return decide('failed', 'correctness');
+  }
+  if (pairing.length > 0) {
+    return decide('inconclusive', 'incomplete-validation');
+  }
+  if (evidence.length > 0) {
+    return decide('inconclusive', 'evidence');
+  }
+  if (cells.some((c) => new Set(c.sets.matched.map((m) => m.seed)).size < MIN_MATCHED_SETS)) {
+    return decide('inconclusive', 'matched-sets');
+  }
+  if (!clue.pass) {
+    return decide('failed', 'clue');
+  }
+  if (faster === null) {
+    throw new Error('verdicts: a rep has no ratio although no pairing problem was found');
+  }
+  if (!faster.pass) {
+    return decide('failed', 'faster');
+  }
+  if (work.verdict === 'worse') {
+    return decide('failed', 'work');
+  }
+  if (work.verdict === 'unknown') {
+    return decide('inconclusive', 'work-unknown');
+  }
+  if (cells.some((c) => c.completion.screen < c.completion.noScreen - 1)) {
+    return decide('failed', 'completion');
+  }
+  if (cells.some((c) => c.gate === 'fail')) {
+    return decide('failed', 'cell-gate');
+  }
+  if (cells.some((c) => c.gate === 'incomplete')) {
+    return decide('inconclusive', 'cell-gate');
+  }
+  return decide('admitted', null);
 }
