@@ -122,8 +122,15 @@ owner.
    `comparatorDifferences`; a difference throws `Error('manifest: comparator <arm> differs from <twin> in <key>')`.
    `counts`: groups and rows per stage and per item, and the total.
    `export function controlsFrom(reports, failing)`: the Nightmare cells of the catalogue, other than `failing`, whose
-   MP12b1 report (`mp12b1Report(caseId)` of `lib/paths.mjs`) has at least 18 runs with `runStatus(run, { quantity: 10
-   }).status === 'valid'` and `reachedTen(run, { quantity: 10 })` (T09a's `verdicts.mjs`), in catalogue order.
+   MP12b1 report (`mp12b1Report(caseId)` of `lib/paths.mjs`) has at least 18 runs with
+   `runStatus(withoutSampling(run), { quantity: 10 }).status === 'valid'` and `reachedTen(run, { quantity: 10 })`
+   (T09a's `verdicts.mjs`), in catalogue order. `export function withoutSampling(run)`: a copy of the run whose
+   `errors` omit every entry of `phase` `sampling`, the run itself unchanged (ruling of 2026-11-17, T11a's QUESTION 1:
+   the landscape's diagnostic profile sampling runs after the timed interval, `tools/bench/runner.js:852-858`, and
+   records up to three failures of its sampled ratings, `:467-474`, so it says nothing about the request; frozen-round
+   rows never run it, so `verdicts.mjs` is unchanged). On today's reports the controls are the ten completion-passing
+   cells `3x29`, `10x10`, `18x18`, `18x20`, `20x20`, `20x21`, `32x15`, `22x22`, `24x24` and `26x26` Nightmare (the
+   five failing cells have 11 to 17 such runs).
    `export function conditionalActivated(runs)` (RV3-04): `runs` are the published run records of one conditional
    board's S2-5 pilot (`fr-base`, reps 0 to 4); `valid` counts the runs with `runStatus(run, { quantity: 10 }).status
    === 'valid'`, `reachingTen` those of them with `reachedTen(run, { quantity: 10 })`; returns `{ activated:
@@ -143,7 +150,7 @@ All in `tools/ig-proto/self-test.mjs --items`, on the data file and on synthetic
 | `matrix: the comparator keeps the frozen prior` | a copy whose `fr-frozen-uncapped.settings.prior` is `"other"` | `expandMatrix` throws `manifest: comparator fr-frozen-uncapped differs from fr-frozen in prior` |
 | `matrix: a later prior change on 14x14 and 24x24` | `secondValidationBoards: ['14x14-hell-1', '24x24-hell-1']` | S4-7 has the twins and `shipped-uncapped` on those two boards with reps 40 to 59, and no group on `26x26-hell-1` or `20x20-hell-1` |
 | `matrix: dedupe` | the default expansion | the group of arm `fr-base` on `14x14-nightmare` with reps 0 to 4 exists once with `items` `['S2-3', 'S2-4', 'S2-6']`; no two groups share a key |
-| `matrix: controls from the reports` | `controlsFrom` on synthetic reports (T09a's `newRunRecord` rows): a cell with 18 valid runs reaching ten, one with 17, one with 18 of which 2 have `measurementValid: false`, a failing cell with 20 | only the first cell |
+| `matrix: controls from the reports` | `controlsFrom` on synthetic reports (T09a's `newRunRecord` rows): a cell with 18 valid runs reaching ten, one with 17, one with 18 of which 2 have `measurementValid: false`, a failing cell with 20; then (ruling of 2026-11-17, T11a's QUESTION 1) a cell whose 20 runs reach ten and each carry `errors: [{ phase: 'sampling', code: 'rating-incomplete', message: 'x' }]`, and a cell like it whose three runs also carry `{ phase: 'batch', code: 'worker-crashed', message: 'x' }` | only the first cell; then the sampling cell is a control and the other is not (17 valid runs), and every input run keeps its `errors` |
 | `matrix: row limits by group` | the default expansion with `controls: ['18x18-nightmare']` | 130 for the S4-1 `fr-frozen` and `fr-frozen-none` groups on `14x14-nightmare`; 260 for the S4-3 `log-link` group on `18x18-nightmare`, every `shipped-uncapped` group, both `live` groups and every stage-2 group |
 | `matrix: disjoint state paths` | the default expansion | the S4-2 `fr-frozen` group on `26x26-hell-1` has task `V4-S4`, shard `val-26x26-hell-1`; its S4-7 group has task `V4-S4X`, shard `second-26x26-hell-1`; the S4-7 comparator on that board has task `V4-S4XC`; no two groups share `task`, `arm` and `shard` |
 | `matrix: collections` | the default expansion | every group of arm `shipped-uncapped` has `comparator: true` and task `V4-S4C` or `V4-S4XC`; no group of task `V4-S4` or `V4-S4X` has arm `shipped-uncapped`; the S4-5 groups have collection `conditional`, the S4-6 groups `optional`, the S4-7 groups `second` (their comparators task `V4-S4XC`), the `live` groups `live`, the stage-2 groups `stage2` |
@@ -185,7 +192,7 @@ All in `tools/ig-proto/self-test.mjs --items`, on the data file and on synthetic
 | T11a-T01 | The expansion rules and the dedupe | cases 1 to 5 | self-test output |
 | T11a-T02 | Row limits per group and disjoint state paths (RV2-10, RV2-11) | cases 7 and 8 | self-test output |
 | T11a-T05 | Collections, comparator tasks and the conditional activation rule (RV3-04) | cases 9 and 10 | self-test output |
-| T11a-T03 | Controls from MP12b1's reports, valid runs only | case 6 | self-test output |
+| T11a-T03 | Controls from MP12b1's reports, valid runs only, the landscape's sampling entries set aside | case 6 | self-test output |
 | T11a-T04 | Nothing else changed; formats | guards; `npm run check` | command output |
 
 ## Checklist (the developer confirms every item in the final report)

@@ -82,7 +82,8 @@ collection; T11f resolves its comparators.
    - `rowStep(group, priceOf, rowS)`: a group with `rows < 1` throws `Error('manifest: a row step needs at least one
      row (<group key>)')` (RV4-05); else id `rows-<arm>-<shard>`, locked, `node` `tools\ig-proto\arm.mjs run --task
      <task> --arm <arm> --shard <shard> --variant <variant> --workers 4 --cases <cell>:<from>-<to> --row-limit-s
-     <rowLimitS>`, `state` `<task>\<arm>\<shard>\state.json`, `repeatUntilDone` true, `minHorizonS` `rowLimitS + 12`,
+     <rowLimitS>` (`<variant>` is the data file's `arms[<arm>].variant`, the arm's own id: T11a's groups carry no
+     `variant`), `state` `<task>\<arm>\<shard>\state.json`, `repeatUntilDone` true, `minHorizonS` `rowLimitS + 12`,
      `price` of `{ type: 'rows', rows, rowS, rowLimitS }`, `optional` the group's `optional` (T11e overrides it).
    - `parityPass(task, arm, priceOf, durations)`: three steps. `parity-<arm>` (locked; `node`
      `tools\ig-proto\v4-check.mjs run --task <task> --step parity-<arm> --manifest
@@ -152,8 +153,8 @@ collection; T11f resolves its comparators.
      rows unchanged; `V4-S2P.parity-<a>.json` for the seven stage-2 arms and `V4-S4P.parity-<a>.json` for `fr-frozen`,
      `fr-frozen-none`, `fr-frozen-uncapped` and `fr-frozen-none-uncapped` (the P-1 manifest of the Authority section,
      `task` the file's task, `step` `parity-<a>`).
-3. **`manifest.mjs compile --label frozen --source-label <SL>`**: `expandMatrix` (T11a, `controls` from `controlsFrom`,
-   `secondValidationBoards` the default), the durations (the mean `ms / 1000` per `kind/variant` over the `item-end`
+3. **`manifest.mjs compile --label frozen --source-label <SL>`**: `expandMatrix` (T11a, `controls` from
+   `controlsFrom(mp12b1Report, data.cells.failingNightmare)`, `secondValidationBoards` the default), the durations (the mean `ms / 1000` per `kind/variant` over the `item-end`
    lines of the frozen steps `V4-T04/parity`, `V4-T04/replay`, `V4-T10a/counters`, `V4-T10b/profile` and
    `V4-T10c/run`; a `width` item takes three times T10c's one-round mean; a kind or variant without a measure takes its
    reserve and the plan says so), `compilePlans`, then writes the files and prints one line `wrote <path>` per file

@@ -67,9 +67,10 @@ orchestrator asks the owner for a cumulative round cap.
 
 0. `node tools\ig-proto\firewall.mjs snapshot --task V4-T11b --label frozen`.
 1. **Projection inputs** (exports of `manifest.mjs`): `refS(caseId)`: the median of `responseMs / 1000` over the
-   valid `generation` runs (T09a's `runStatus`) of the cell's MP12b1 report (`mp12b1Report(caseId)`), `null` without
-   a report; `factor()`: `summary.medianRatioBase` of `evidence/frozen/V4-T04/identity.json`, 1 when absent (the
-   manifest says so); `projectedRowS({ refS, factor, rowLimitS })`: `1.25 * factor * refS`, or `rowLimitS` when `refS`
+   valid `generation` runs (T09a's `runStatus` of T11a's `withoutSampling(run)`: the landscape's sampling entries,
+   written after the timed interval, are set aside; ruling of 2026-11-17, T11a's QUESTION 1) of the cell's MP12b1
+   report (`mp12b1Report(caseId)`), `null` without a report or without a valid run; `factor()`:
+   `summary.medianRatioBase` of `evidence/frozen/V4-T04/identity.json`, 1 when absent (the manifest says so); `projectedRowS({ refS, factor, rowLimitS })`: `1.25 * factor * refS`, or `rowLimitS` when `refS`
    is `null`.
 2. **`simulateRows({ rows, rowS, rowLimitS, horizonS = 285, startupS = 2 })`**: invocations until every row ran; in
    each, `e = startupS`, and while rows remain and `e + rowLimitS + 10 <= horizonS`: `e += Math.min(rowS, rowLimitS +
@@ -116,6 +117,7 @@ All in `tools/ig-proto/self-test.mjs --items`, pure.
 | `price: an inadmissible group` | `simulateItems({ groups: [{ kind: 'v4-generate', variant: 'v4', lanes: 1, reserveS: 245, durationsS: [100] }], horizonS: 250 })` | `admissible` false with the reason; no invocation priced |
 | `price: approval fields` | `approvalFields({ roundCountedSBeforeApproval: 600, requestedAdditionalGuardS: 1200 })` | `requestedCumulativeRoundMinutes` 30 (not 20), the two inputs echoed |
 | `price: projection label and fallback` | `projectedRowS({ refS: 40, factor: 1.1, rowLimitS: 260 })`, `projectedRowS({ refS: null, factor: 1, rowLimitS: 130 })` | 55 (within 1e-9); 130 |
+| `price: refS reads the timed runs` (ruling of 2026-11-17, T11a's QUESTION 1) | `refS('18x18-nightmare')` on the real MP12b1 report, whose 20 runs carry `sampling` entries only | the median of `responseMs / 1000` over its 20 `generation` runs (all valid once `withoutSampling` sets those entries aside), not `null` |
 
 ## Documentation
 
