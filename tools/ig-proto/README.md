@@ -58,7 +58,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `lib/sets.mjs` | catalogue boards and carve-only sets; `offeredInSource` comes from the tree's own `levels.js` (V4-T01b) |
 | `lib/calls.mjs` | recorded calls, screened and canonical ratings, window subsets |
 | `lib/lanes.mjs`, `lib/lane-worker.mjs` | worker-thread lanes with admission and a supervisor; the lane worker also runs the three stage-1 item kinds (V4-T04b) and the kernel-probe kind `v4-kernel` (V4-T10a) |
-| `lib/items.mjs` | the runner of bounded, identity-checked measurement items and the item-log line helpers (V4-T04a; see "Bounded measurement items") |
+| `lib/items.mjs` | the runner of bounded, identity-checked measurement items and the item-log line helpers (V4-T04a; see "Bounded measurement items"), and `runProcessItems`, its process-item runner (V4-T10b; see "Kernel probe (V4-T10a)") |
 | `lib/ledger.mjs` | the work ledger of an item from its journal lines, and `pairPrimitives` (V4-T04b; see "Stage-1 item kinds"); pure |
 | `lib/packs.mjs` | the pack file of a generation item: `preparePackPath` and `writePackFile` (V4-T04b) |
 | `lib/proof.mjs` | the typed proof receipt of the frozen round: `proofEnvelope`, `proofCheck`, `LIVE_DEADLINE_FIELDS` and `STAGE1_COVERAGE_EXTRA` (V4-T04d), and its accepted binding: `acceptedBinding`, `checkAccepted` and `ACCEPTED_FORMAT` (V4-T04f; see "Stage 1 checks (task pack v4)"); pure apart from the evidence reads of `readRepoFile` |
@@ -69,7 +69,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `variants/v4-p5.json`, `variants/v4-p5-w8-test.json`, `variants/v4-link-w8-test.json` | the P5 pilot arm `v4-p5` (the call budget and the bounded set attempts) and the two test-only width-8 trees (V4-T07b); see "P5 bounded set attempts (V4-T07b)" |
 | `variants/fr-base.json`, `fr-screen.json`, `fr-none.json`, `fr-close.json`, `fr-c4.json`, `fr-ps.json`, `fr-p5.json` | the seven frozen-round arms of stage 2 (V4-T08); see "Frozen-round arms (V4-T08)" |
 | `verdicts.mjs`, `data/verdict-manifest.schema.md`, `data/verdict-manifest.example.json` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules), the work ledger of a request, the work rule and the class verdict (V4-T09c), the global verdicts (V4-T09d: the cell gates on the shipped arm, Master identity, the Hell 1 report, P5's stops, the post-hoc projection, the population and phase 0's verdict), and the verdict tool (V4-T09e: the bound prerequisites, the class-selection receipt, the work report and the records it writes) with the manifest those statistics read and its example; the statistics are pure, the tool reads the records the manifest names; see "Admission statistics (V4-T09a)" |
-| `kernel-probe.mjs`, `variants/r4c.json`, `plans/V4-T10a.json` | the kernel probe (V4-T10a): R4 visit and mutation counters in the `r4c` tree, the `v4-kernel` items that compare its complete deduction with the `instr` tree's, the `counters` (locked) and `report` (unlocked) commands and the plan of the run; see "Kernel probe (V4-T10a)" |
+| `kernel-probe.mjs`, `variants/r4c.json`, `plans/V4-T10a.json`, `plans/V4-T10b.json` | the kernel probe (V4-T10a, V4-T10b): R4 visit and mutation counters in the `r4c` tree, the `v4-kernel` items that compare its complete deduction with the `instr` tree's, the `fewestColumn` profile of child processes under reduced inlining, the `counters` and `profile` (locked) and `report` (unlocked) commands and the plans of the runs; see "Kernel probe (V4-T10a)" |
 
 ## Trees (variants)
 
@@ -139,7 +139,8 @@ node tools\ig-proto\budgets.mjs --arms IGP-01/after,IGP-03/w095 --label provisio
 node tools\ig-proto\summary.mjs --label provisional [--root <evidence folder>]                                    # unlocked, writes summary.json|md
 node tools\ig-proto\verdicts.mjs --manifest <verdict manifest> --label frozen --source-label <label>              # unlocked (V4-T09e), writes verdicts.json|md and, for a selection, class-selection.json
 node tools\ig-proto\kernel-probe.mjs counters --task T --label frozen --source-label <label> [--cases <ids>]      # locked (V4-T10a), run by its plan
-node tools\ig-proto\kernel-probe.mjs report --task T --label frozen --source-label <label> [--cases <ids>]        # unlocked (V4-T10a), writes kernel.json|md
+node tools\ig-proto\kernel-probe.mjs profile --task T --label frozen --source-label <label> [--cases <ids>]       # locked (V4-T10b), run by its plan; profile-child is its child process
+node tools\ig-proto\kernel-probe.mjs report --task T --label frozen --source-label <label> [--cases <ids>]        # unlocked (V4-T10a, V4-T10b), writes kernel.json|md
 ```
 
 `--only` (a subset of the self-test's cases), `limits` and `testKinds` of `createLanes`, and `setHorizon` are for the
@@ -842,7 +843,8 @@ the bound.
 `lib/items.mjs` (V4-T04a; reviews R05 and RV2-01; D-V4-14) is the runner every later measurement of the frozen round
 shares: a list of items, each run in a supervised lane worker (`lib/lanes.mjs`), journaled before it starts and when it
 ends, and never rerun once it has ended. It measures nothing itself; the three stage-1 item kinds (V4-T04b) are
-described in "Stage-1 item kinds" below.
+described in "Stage-1 item kinds" below, and `runProcessItems`, which runs an item as a child process instead of a lane
+job (V4-T10b), in "The `fewestColumn` profile (V4-T10b)".
 
 - **An item** is `{ id, kind, variant, payload }`: a stable id (unique in the list), the lane job kind, the variant
   whose tree runs it and the job's own fields (the item's `kind` wins over a payload key `kind`). Consecutive pending
@@ -1783,7 +1785,9 @@ change in production.
   another one: without `--cases` it takes the default list or, when the state's manifest hash is of another list, the
   cases the item log names (`loggedCases`, in order of first appearance), and refuses a state that is none of these
   or whose identity or trees are not the experiment's. A historical namespace of check-list 3.1 is refused as `--task`.
-  `report` (unlocked) writes `evidence/frozen/<T>/kernel.json` and `kernel.md` from the item log: the item table, per case
+  `report` (unlocked) writes `evidence/frozen/<T>/kernel.json` and `kernel.md` from the item logs, one block per step
+  folder that exists under `tests/artifacts/ig-proto/frozen/<T>/` (`counters` for V4-T10a, `profile` for V4-T10b, both for
+  a task that ran both; no folder of either is a refusal). The counters block is the item table, per case
   the sums of the counters with `dirtyPieces / pieces` and `countChanged / pieces`, and one verdict line:
   `counters: equal` (every item `completed` with `same: true`), `counters: incomplete (<items>)` (an item is missing or
   censored: the probe did not finish; this wins over a difference) or `counters: DIFFER (<items>)` (a completed item
@@ -1795,5 +1799,73 @@ change in production.
   kind) and `kernel: report verdicts` (the verdict function, the rows and the sums, and the cases of a log, on synthetic
   lines). `--v4` (locked):
   `kernel: r4c counters and the complete deduction` (the corpus's first two subsets through both trees, the deep equality
-  over the whole corpus, and the lane worker's item against a direct measurement). T10b adds the `fewestColumn` profile
-  to this section and to the report.
+  over the whole corpus, and the lane worker's item against a direct measurement).
+
+### The `fewestColumn` profile (V4-T10b)
+
+`fewestColumn` must be attributed before anyone works on it (plan P7: diagnostic only; the rating code does not change).
+The profile is a CPU profile of the canonical ratings of T10a's corpus, taken in child processes started with
+`--cpu-prof --no-turbo-inlining` (reduced inlining, so that a function inlined into its caller still has its own node).
+
+- **Process items** (`runProcessItems` of `lib/items.mjs`, RV2-04). An item's payload is `{ argv, outDir }` (`outDir` a path
+  relative to the repository root with `/`); `runProcessItems({ task, step, label, horizonS, items, reserveS })` runs the
+  pending items one at a time in order, each admitted while `e + reserveS <= H - 15`; `reserveS`, `horizonS` and the cut
+  are the execution envelope, never part of an item or of the identity (R2-03). The identity, `resumePlan` and refusals
+  are `runItems`' (exit 3 and nothing written). Per item: the `item-start` line is written **before** the child is
+  spawned (durable intent), the `item-spawn` line with its PID when the child has started, and the item ends exactly
+  once: an error before the child started (`code` null and the message) at once; else at the child's `close` (every
+  stdio stream ended): `censored` when the parent cut it, `completed` for exit code 0 with `result: { stdout }` (the
+  last non-empty stdout line parsed as JSON, or null), `error` with `{ code, stderr }` (the last 2,000 characters)
+  otherwise; an `error` event after the start is kept as `result.error`. The parent cuts a running child at `H - 15`
+  (`child.kill()`, awaited), stops the run after a cut item, and a `finally` kills and awaits every child still running,
+  so that no child outlives its locked invocation. A crash of the parent leaves a start line without an end, which the
+  next invocation refuses (`interrupted item <id> needs a ruling`): a started item is never rerun.
+- **The output-folder rule.** For every pending item (one without any log line) `abs(outDir)` must be absent or an empty
+  folder, else the step refuses with `unexpected output in <outDir> for unstarted item <id>` (exit 3, nothing written, the
+  folder kept); the folders are then created. A completed or interrupted item's folder is never emptied or written. A
+  payload of another shape (an argument that is not a string, an `outDir` that is absolute, has `..` or `\`, or is
+  shared by two items) throws before anything is written.
+- **The items** (`profileItems(caseIds, { task, sourceLabel })`): one per case, id
+  `profile:instr:<caseId>:ig-v4/kernel/<caseId>`, kind `process`, variant `instr`, payload `{ outDir, argv }` with
+  `outDir` `tests/artifacts/ig-proto/frozen/<T>/profile/out/<caseId>` and `argv` `--cpu-prof --cpu-prof-dir <outDir>
+  --no-turbo-inlining tools/ig-proto/kernel-probe.mjs profile-child --case <caseId> --task <T> --label frozen
+  --source-label <SL>`; no argument depends on the invocation (no horizon), so a resume keeps the identity.
+- **Commands.**
+
+  ```
+  node tools\ig-proto\kernel-probe.mjs profile --task <T> --label frozen --source-label "frozen 3fc65f4" [--cases <ids>] [--horizon-s <H>]
+  node tools\ig-proto\kernel-probe.mjs profile-child --case <id> --task <T> --label frozen --source-label "frozen 3fc65f4"
+  ```
+
+  `profile` (locked) takes the cases as `counters` does (default `14x14-nightmare,26x26-nightmare`), runs the items with
+  `runProcessItems` (step `profile`, reserve 120 s, `items.jsonl` and `state.json` under
+  `tests/artifacts/ig-proto/frozen/<T>/profile/`) and then `rebuildProfiles(<T>)`. `profile-child` (`--case` required, an
+  unknown id exits 1) loads the `instr` tree, rates the six window subsets of the case's first carved set (T10a's corpus)
+  with `rate()` (an `IncompleteRatingError` counts as a rating) and prints one JSON line `{ caseId, ratings, ms }`; Node
+  writes its `.cpuprofile` into the item's `outDir` when the child exits.
+- **The derived records.** `rebuildProfiles(task)` reads the item log of step `profile` and writes `profile/profile.jsonl`
+  whole, never appending (a second call writes the same bytes, LF line ends): for each completed item in order, exactly one
+  `*.cpuprofile` file in its `outDir` gives `{ item, caseId, file, sha256, totalMs, deduceMs, fewestColumnMs, share }`; a
+  node's self time is the sum of the `timeDeltas` (µs) of the samples that name it, over 1,000, `totalMs` sums every node,
+  `deduceMs` the nodes whose file ends `core/engine/deduce.js`, `fewestColumnMs` the nodes named `fewestColumn` and
+  `share` is `fewestColumnMs / deduceMs`. No file or several give `{ item, caseId, error: 'profile files: <n>' }`, a file
+  that is no profile `{ item, caseId, error: 'profile unreadable: <message>' }`. A censored, errored or unstarted item
+  gives no record.
+- **The report's profile block.** Per case the item's status, the child's `ratings` and `ms`, the record and the note
+  "reduced-inlining profile, diagnostic only (plan P7)", and one verdict line: `profile: complete` (every item completed
+  with a record) or `profile: incomplete (<cases>)` (an item is missing, censored, an error or an evidence error). Each
+  block finds its cases from its own state: the default list, else the cases its item log names (`loggedCases` for
+  `counters`, `loggedProfileCases` for `profile`), the first whose items reproduce that state's `identity.manifestHash`;
+  none refuses (exit 1). `--cases` applies to the counters block only; the profile block needs `--source-label`, because
+  the label is an argument of its items. `kernel.json` keeps the counters fields at the top level as before and holds the
+  profile block under `profile`; a report of a task with one block writes that block only.
+- **Plan** `plans/V4-T10b.json`: 4 minutes allocated; `profile` is locked (150 s projected, 1 invocation, forecast 195 s
+  with the quiet period); the snapshot, the `instr` tree, the report and the firewall steps are unlocked.
+- **Self-test** (`--items`, unlocked: the children are `node -e` programs that rate nothing, under
+  `tests/artifacts/ig-proto/selftest/`): `process items: completion and error`, `log before spawn, spawn error without exit`
+  (including a spawn that throws at once and a child that reads its own start line), `trailing stdout after exit`,
+  `cut and cleanup`, `a started item is never rerun`, `an unstarted item with output is refused`, `resume and
+  verification`, and `profile: identity without the horizon`, `the derived records are rebuilt`, `report verdict and blocks`.
+  `--v4` (locked) adds `profile: the child process and its profile file`: the real child of `10x10-nightmare` under
+  `--cpu-prof --no-turbo-inlining`, run by `runProcessItems` into the scratch label, with its one profile file and the
+  record `rebuildProfiles` derives from it (a path that no `--items` case can reach: those children rate nothing).

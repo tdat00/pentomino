@@ -6,11 +6,14 @@
 // PID, for the runners that spawn one) and one terminal `item-end` line (`completed`, `censored` or `error`). An item
 // that has ended is never run again; a started item without an end, an identity that changed or a malformed log
 // stops the step (exit 3) and needs a ruling. The line helpers below are the only way any runner writes an item log.
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
+// `runItems` runs lane-worker kinds; `runProcessItems` (V4-T10b, RV2-04) runs one child process per item, which the
+// parent bounds, cuts at `horizonS - 15`, awaits and always cleans up.
+import { spawn } from 'node:child_process';
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { admits, createLanes, DEFAULT_LIMITS } from './lanes.mjs';
-import { artifactDir, elapsedS, FROZEN_COMMIT } from './paths.mjs';
+import { abs, artifactDir, elapsedS, FROZEN_COMMIT, ROOT } from './paths.mjs';
 import { harnessInfo, sha256, sourceDigest, writeJson } from './records.mjs';
 import { ensureTree } from './tree.mjs';
 
@@ -250,6 +253,15 @@ export async function runItems(o) {
   const ended = plan.ended + written;
   const done = ended === items.length;
   const verified = plan.pending.length === 0 ? 1 : 0;
+  writeStepState({ statePath, task, step, label, identity, done, ended, total: items.length, startedAt, horizonS, written, verified });
+  return { exitCode: 0, done, progress: written + verified, refused: null };
+}
+
+/**
+ * @param {{ statePath: string, task: string, step: string, label: string, identity: Identity, done: boolean,
+ *   ended: number, total: number, startedAt: string, horizonS: number, written: number, verified: number }} s
+ */
+function writeStepState({ statePath, task, step, label, identity, done, ended, total, startedAt, horizonS, written, verified }) {
   writeJson(statePath, {
     format: 'ig-proto-state',
     version: 1,
@@ -258,7 +270,7 @@ export async function runItems(o) {
     label,
     identity,
     done,
-    items: { done: ended, total: items.length },
+    items: { done: ended, total },
     lastInvocation: {
       start: startedAt,
       end: new Date().toISOString(),
@@ -267,5 +279,188 @@ export async function runItems(o) {
       progress: { items: written, verified },
     },
   });
+}
+
+/** The parent cuts an item this many seconds before the horizon (the lock helper's limit is the horizon's reference). */
+const CUT_MARGIN_S = 15;
+/** The longest stderr tail an `error` end line keeps, in characters. */
+const STDERR_TAIL = 2000;
+
+/**
+ * @param {Item} item
+ * @returns {{ argv: string[], outDir: string }} The payload of a process item; a payload of another shape throws.
+ */
+function processPayload(item) {
+  const { argv, outDir } = item.payload;
+  if (!Array.isArray(argv) || !argv.every((a) => typeof a === 'string')) {
+    throw new RangeError(`process item ${item.id}: argv must be an array of strings`);
+  }
+  const parts = typeof outDir === 'string' ? outDir.split('/') : [];
+  if (typeof outDir !== 'string' || /^([a-zA-Z]:|\/)/.test(outDir) || outDir.includes('\\') || parts.some((p) => p === '' || p === '.' || p === '..')) {
+    throw new RangeError(`process item ${item.id}: outDir must be a relative path with / separators inside the repository`);
+  }
+  return { argv, outDir };
+}
+
+/** @param {string} text @returns {unknown} The last non-empty line parsed as JSON; null without one or when it is not JSON. */
+function lastJsonLine(text) {
+  const last = text.split('\n').map((l) => l.trim()).filter((l) => l !== '').at(-1);
+  try {
+    return last === undefined ? null : JSON.parse(last);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Runs the pending items of a list as child processes, one at a time in order (RV2-04). Each item's start line is
+ * written before its child is spawned, the child's PID in a separate `item-spawn` line, and the item ends exactly once.
+ * The parent cuts a running child at `horizonS - 15`, awaits it and ends the item `censored`; a `finally` kills and
+ * awaits every child still running, so no child outlives the invocation. A crash of the parent leaves a start line
+ * without an end, which the next invocation refuses. `reserveS`, `horizonS` and the cut are the execution envelope,
+ * never part of an item or of the identity (R2-03). Items have the payload `{ argv, outDir }`: `outDir` is a path
+ * relative to the repository root with `/`, absent or an empty folder when its item has no log line (a folder of a
+ * started item is never emptied or written by this function). Exit code 3 and nothing written when the step refuses.
+ * @param {{ task: string, step: string, label: string, horizonS: number, items: Item[], reserveS: number,
+ *   identity?: Identity, command?: string }} o `identity` and `command` (the program; default this Node) are for the self-test.
+ * @returns {Promise<{ exitCode: number, done: boolean, progress: number, refused: string | null }>}
+ */
+export async function runProcessItems(o) {
+  const { task, step, label, horizonS, items, reserveS } = o;
+  const payloads = new Map(items.map((item) => [item.id, processPayload(item)]));
+  const outDirs = [...payloads.values()].map((p) => p.outDir);
+  if (new Set(outDirs).size !== outDirs.length) {
+    throw new RangeError('process items must have distinct outDir values');
+  }
+  const dir = artifactDir(label, task, step);
+  const logPath = join(dir, 'items.jsonl');
+  const statePath = join(dir, 'state.json');
+  const startedAt = new Date(Date.now() - elapsedS() * 1000).toISOString();
+
+  const identity = o.identity ?? await itemIdentity(items);
+  const hash = identityHash(identity);
+  const earlier = existsSync(statePath) ? (JSON.parse(readFileSync(statePath, 'utf8')).identity ?? {}) : null;
+  const plan = resumePlan(items, readItemLog(logPath), identity, earlier);
+  /** @param {string} reason */
+  const refuse = (reason) => {
+    process.stderr.write(`items: STOP: ${reason}\n`);
+    return { exitCode: 3, done: false, progress: 0, refused: reason };
+  };
+  if ('refuse' in plan) {
+    return refuse(plan.refuse);
+  }
+  // A folder is only looked at for an item that has no log line; a started item's folder is never touched.
+  for (const item of plan.pending) {
+    const { outDir } = /** @type {{ outDir: string }} */ (payloads.get(item.id));
+    const path = abs(outDir);
+    if (existsSync(path) && (!statSync(path).isDirectory() || readdirSync(path).length > 0)) {
+      return refuse(`unexpected output in ${outDir} for unstarted item ${item.id}`);
+    }
+  }
+
+  mkdirSync(dir, { recursive: true });
+  for (const item of plan.pending) {
+    mkdirSync(abs(/** @type {{ outDir: string }} */ (payloads.get(item.id)).outDir), { recursive: true });
+  }
+
+  /** @typedef {{ child: import('node:child_process').ChildProcess | null, closed: Promise<void> }} Running */
+  /** @type {Set<Running>} */
+  const running = new Set();
+  /** @param {Item} item @returns {Promise<'completed' | 'censored' | 'error'>} The status the item ended with. */
+  const runOne = (item) => new Promise((resolve) => {
+    const { argv } = /** @type {{ argv: string[] }} */ (payloads.get(item.id));
+    const t0 = performance.now();
+    /** @type {Buffer[]} */
+    const out = [];
+    /** @type {Buffer[]} */
+    const err = [];
+    let ended = false;
+    let spawned = false;
+    let cut = false;
+    let cutAtS = 0;
+    /** @type {string | null} */
+    let lateError = null;
+    /** @type {() => void} */
+    let markClosed = () => {};
+    /** @type {Running} */
+    const entry = { child: null, closed: new Promise((r) => { markClosed = () => r(undefined); }) };
+    /** @type {NodeJS.Timeout | undefined} */
+    let timer;
+    /** @param {'completed' | 'censored' | 'error'} status @param {Record<string, unknown>} result The one end line of the item. */
+    const finish = (status, result) => {
+      if (ended) {
+        return;
+      }
+      ended = true;
+      clearTimeout(timer);
+      running.delete(entry);
+      logEnd(logPath, hash, item.id, status, lateError === null ? result : { ...result, error: lateError }, Math.round(performance.now() - t0));
+      resolve(status);
+    };
+    logStart(logPath, hash, item);
+    /** @type {import('node:child_process').ChildProcess} */
+    let child;
+    try {
+      child = spawn(o.command ?? process.execPath, argv, { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
+    } catch (e) {
+      finish('error', { code: null, error: e instanceof Error ? e.message : String(e) });
+      return;
+    }
+    entry.child = child;
+    running.add(entry);
+    timer = setTimeout(() => {
+      cut = true;
+      cutAtS = Math.round(elapsedS() * 1000) / 1000;
+      child.kill();
+    }, Math.max(0, (horizonS - CUT_MARGIN_S - elapsedS()) * 1000));
+    child.on('spawn', () => {
+      spawned = true;
+      logSpawn(logPath, hash, item.id, /** @type {number} */ (child.pid));
+    });
+    child.on('error', (e) => {
+      if (spawned) {
+        lateError = e.message;
+      } else {
+        finish('error', { code: null, error: e.message });
+      }
+    });
+    child.stdout?.on('data', (/** @type {Buffer} */ chunk) => out.push(chunk));
+    child.stderr?.on('data', (/** @type {Buffer} */ chunk) => err.push(chunk));
+    child.on('close', (code) => {
+      markClosed();
+      if (cut) {
+        finish('censored', { outcome: 'censored', cutAtS });
+      } else if (code === 0) {
+        finish('completed', { stdout: lastJsonLine(Buffer.concat(out).toString('utf8')) });
+      } else {
+        finish('error', { code, stderr: Buffer.concat(err).toString('utf8').slice(-STDERR_TAIL) });
+      }
+    });
+  });
+
+  let written = 0;
+  try {
+    for (const item of plan.pending) {
+      if (!(elapsedS() + reserveS <= horizonS - CUT_MARGIN_S)) {
+        break;
+      }
+      const status = await runOne(item);
+      written += 1;
+      if (status === 'censored') {
+        break;
+      }
+    }
+  } finally {
+    const left = [...running];
+    for (const { child } of left) {
+      child?.kill('SIGKILL');
+    }
+    await Promise.all(left.map(({ closed }) => closed));
+  }
+
+  const ended = plan.ended + written;
+  const done = ended === items.length;
+  const verified = plan.pending.length === 0 ? 1 : 0;
+  writeStepState({ statePath, task, step, label, identity, done, ended, total: items.length, startedAt, horizonS, written, verified });
   return { exitCode: 0, done, progress: written + verified, refused: null };
 }

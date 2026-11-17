@@ -181,13 +181,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 17:54:00 +07:00 (dispatch, base `3c3e006`) to 18:22:03 +07:00 (acceptance): 28 min 3 s; the developer's own times 17:53:44-18:15:45 |
+| Waiting for rulings | about 4 min (SA-Opus's review, 18:17-18:21; no QUESTION) |
+| Agent id, model | `adf20b2a-3b09-49d6-a3b0-10b50cb7c6c4`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 107 calls; 27,186,958 input, 155,115 output, 26,809,234 cache-read |
+| AI credits | 517.63 |
+| Questions and rulings | none from the developer. SA-Opus ruled "accept T10b": the developer's concern that `--maglev-inlining` stays on was checked on the run's own profiles with a read-only script (`docs/improve-generating/evidence/drift/claude-opus-5.5/t10b-inlining-check.mjs`): 3 of 6,190 deduction ticks on `fewestColumn`'s body for 14x14, none for 26x26, and no caller carries its lines, so inlining hid nothing; the shares (0.05 % and 0) stand and match PM2, and `fewestColumn` buckets are not pursued (N-V4-05). The added `--v4` case (a real 10x10 child, about 6 s) and deviations 1-3 and all readings accepted; pack amendment `f2f3bf2` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--v4` through the lock helper (`V4-T10b verify`): 32 passed, 0 failed, `IG … exit=0 seconds=49.405` (`profile: the child process and its profile file`, 10x10 share 0.0009); `--items`: 118 passed; `--frozen`: 10 passed; `check-edits --all`: 34 `ok`, no other line; firewall `check` (V4-T10b): 289 production files unchanged; `git status --short -- core generator tests tools/bench tools/ig-proto/variants tools/ig-proto/lib/lanes.mjs tools/ig-proto/lib/lane-worker.mjs`: empty; V4-T10a evidence unchanged; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. The plan (the developer's run, `-ApprovedRoundMinutes 92`): dry run `go`; `profile: complete`, 2 records (14x14 `fewestColumn` 4.934 of 10,210 ms deduce, share 0.0005; 26x26 0 of 2,374 ms); wall 60.3 s, node 15.087 s, lock wait 45.242 s, counted 60.087 s; round 2,792.764 s before, 2,852.851 s after (plus the 55.4 s register row of T10a's scratch run), of 5,520 s |
+| Commit | this task's commit, `improve-generating T10b: Kernel probe: the fewestColumn attribution under a reduced-inlining profile` |
+| Issues and named items | N-V4-05 updated (the `fewestColumn` share and T10a's counters for the spike pack). Hot self-time sits in `reachable`, `ruleR4`, `select` and `gather`, and in `dlx.js` `cover` and `uncover` on 26x26 |

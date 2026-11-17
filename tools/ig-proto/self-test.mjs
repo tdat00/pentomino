@@ -30,17 +30,20 @@ import { decide, readInvocations } from './lib/budget.mjs';
 import { rateAttempt, recordedCall, screenRating, startCountFor, windowSubsets } from './lib/calls.mjs';
 import { loadEngine } from './lib/engine.mjs';
 import { harness, settle, track } from './lib/fake-pool.mjs';
-import { identityHash, itemIdentity, logEnd, logSpawn, logStart, manifestHash, readItemLog, resumePlan, runItems } from './lib/items.mjs';
+import { identityHash, itemIdentity, logEnd, logSpawn, logStart, manifestHash, readItemLog, resumePlan, runItems, runProcessItems } from './lib/items.mjs';
 import { admits, createLanes, DEFAULT_LIMITS } from './lib/lanes.mjs';
 import { itemLedger, pairPrimitives } from './lib/ledger.mjs';
 import { preparePackPath, writePackFile } from './lib/packs.mjs';
-import { artifactDir, elapsedS, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, parseArgs, rel, ROOT, SOURCE_KIND, sourceRoot } from './lib/paths.mjs';
+import { abs, artifactDir, elapsedS, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, parseArgs, rel, ROOT, SOURCE_KIND, sourceRoot } from './lib/paths.mjs';
 import { ACCEPTED_FORMAT, acceptedBinding, checkAccepted, LIVE_DEADLINE_FIELDS, proofCheck, proofEnvelope, readRepoFile, STAGE1_COVERAGE_EXTRA } from './lib/proof.mjs';
 import { harnessInfo, sha256, sha256File, sha256Text, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
 import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
 import { pairResult } from './identity.mjs';
-import { caseSums, counterVerdict, epochDirty, kernelItems, kernelRows, loggedCases, parseCases, R4_FIELDS, SUBSETS_PER_CASE } from './kernel-probe.mjs';
+import {
+  caseSums, counterVerdict, epochDirty, kernelItems, kernelRows, loggedCases, loggedProfileCases, parseCases, PROFILE_NOTE, profileItems, profileRows,
+  profileOutDir, profileTimes, profileVerdict, R4_FIELDS, rebuildProfiles, renderKernel, SUBSETS_PER_CASE,
+} from './kernel-probe.mjs';
 import { linkSummary, timelineProblem } from './linkage.mjs';
 import { buildInventory, readFamilies } from './pm1-inventory.mjs';
 import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
@@ -676,6 +679,46 @@ function itemFolder(n, step = 'items') {
 const itemRun = (n, items, extra = {}) => runItems({
   task: `items-${n}`, step: 'items', label: 'selftest', horizonS: 285, items, testKinds: true, identity: itemId(items), ...extra,
 });
+
+/**
+ * The `process items:` cases (V4-T10b): a fresh task `proc-<n>` of the label `selftest`, children that are `node -e` programs
+ * (no rating), output folders under the task's `out/`.
+ * @param {number | string} n
+ * @param {string} [step]
+ * @returns {{ task: string, root: string, dir: string, log: string, state: string }}
+ */
+function procFolder(n, step = 'items') {
+  const task = `proc-${n}`;
+  const root = fresh(artifactDir('selftest', task));
+  const dir = artifactDir('selftest', task, step);
+  return { task, root, dir, log: join(dir, 'items.jsonl'), state: join(dir, 'state.json') };
+}
+
+/** @param {number | string} n @param {string} id @param {string[]} argv @returns {any} A process item of the task `proc-<n>`. */
+const procItem = (n, id, argv) => ({
+  id, kind: 'process', variant: 'base', payload: { outDir: rel(join(artifactDir('selftest', `proc-${n}`), 'out', id)), argv },
+});
+
+/** @param {number | string} n @param {any[]} items @param {Record<string, any>} [extra] @returns {ReturnType<typeof runProcessItems>} */
+const procRun = (n, items, extra = {}) => runProcessItems({
+  task: `proc-${n}`, step: 'items', label: 'selftest', horizonS: 285, items, reserveS: 1, identity: itemId(items), ...extra,
+});
+
+/** The program of a child that appends its id (argument 2) to a marker file (argument 1): proves that a child ran. */
+const MARK = "require('fs').appendFileSync(process.argv[1], process.argv[2] + '\\n')";
+
+/** @param {string} task @param {string} caseId @returns {string} A profile item's output folder under the label `selftest`. */
+const profileOutDirOf = (task, caseId) => profileOutDir(task, caseId, 'selftest');
+
+/** @param {() => Promise<unknown>} fn @returns {Promise<string>} The message `fn` rejects with; empty when it does not. */
+async function rejectedBy(fn) {
+  try {
+    await fn();
+  } catch (e) {
+    return e instanceof Error ? e.message : String(e);
+  }
+  return '';
+}
 
 const CHECK_MODES = Object.freeze(['absent', 'charge', 'record']);
 
@@ -3985,6 +4028,318 @@ const itemCases = [
       same(loggedCases([]), [], 'an empty log');
     },
   },
+  {
+    name: 'process items: completion and error',
+    async run() {
+      const f = procFolder(1);
+      const items = [
+        procItem(1, 'p1', ['-e', 'process.stdout.write(JSON.stringify({ ok: 1 }))']),
+        procItem(1, 'p2', ['-e', 'process.exit(3)']),
+      ];
+      const ID = itemId(items);
+      const out = await procRun(1, items);
+      same(out, { exitCode: 0, done: true, progress: 2, refused: null }, `the run: ${JSON.stringify(out)}`);
+      const lines = readItemLog(f.log);
+      same(lines.map((l) => [l.type, l.item]), [
+        ['item-start', 'p1'], ['item-spawn', 'p1'], ['item-end', 'p1'], ['item-start', 'p2'], ['item-spawn', 'p2'], ['item-end', 'p2'],
+      ], `the log lines: ${JSON.stringify(lines.map((l) => [l.type, l.item]))}`);
+      assert(lines.every((l) => l.identityHash === identityHash(ID)), 'a log line does not carry the run\'s identityHash');
+      assert(lines.filter((l) => l.type === 'item-spawn').every((l) => Number.isInteger(l.pid) && l.pid > 0), 'an item-spawn line has no numeric pid');
+      same([lines[2].status, lines[2].result], ['completed', { stdout: { ok: 1 } }], `p1's end line: ${JSON.stringify(lines[2])}`);
+      same([lines[5].status, lines[5].result.code, typeof lines[5].result.stderr], ['error', 3, 'string'], `p2's end line: ${JSON.stringify(lines[5])}`);
+      assert(items.every((i) => existsSync(abs(i.payload.outDir)) && readdirSync(abs(i.payload.outDir)).length === 0), 'an output folder was not created empty');
+      const state = JSON.parse(readFileSync(f.state, 'utf8'));
+      same([state.task, state.step, state.label, state.done, state.items, state.identity, state.lastInvocation.progress],
+        ['proc-1', 'items', 'selftest', true, { done: 2, total: 2 }, ID, { items: 2, verified: 0 }], `the state: ${JSON.stringify(state)}`);
+      same(resumePlan(items, lines, ID, ID), { pending: [], ended: 2 }, 'resumePlan on the finished log');
+      // The payload is checked before anything is written.
+      const bad = [procItem(1, 'b1', ['-e', '0'])];
+      bad[0].payload.outDir = '../outside';
+      assert((await rejectedBy(() => procRun(1, bad, { step: 'bad' }))).includes('outDir must be a relative path'), 'an outDir outside the repository was accepted');
+      bad[0].payload = { outDir: 'tests/artifacts/ig-proto/selftest/proc-1/out/b1', argv: ['-e', 1] };
+      assert((await rejectedBy(() => procRun(1, bad, { step: 'bad' }))).includes('argv must be an array of strings'), 'a non-string argument was accepted');
+      assert(!existsSync(artifactDir('selftest', 'proc-1', 'bad')), 'a rejected payload wrote the step folder');
+    },
+  },
+  {
+    name: 'process items: log before spawn, spawn error without exit',
+    async run() {
+      const f = procFolder(2);
+      const items = [procItem(2, 'p1', ['-e', '0'])];
+      const out = await procRun(2, items, { command: join(artifactDir('selftest', 'proc-2'), 'no-such-node.exe') });
+      same(out, { exitCode: 0, done: true, progress: 1, refused: null }, `the run: ${JSON.stringify(out)}`);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const lines = readItemLog(f.log);
+      same(lines.map((l) => [l.type, l.item]), [['item-start', 'p1'], ['item-end', 'p1']], `no spawn line and one end line: ${JSON.stringify(lines.map((l) => [l.type, l.item]))}`);
+      const { status, result } = lines[1];
+      assert(status === 'error' && result.code === null && typeof result.error === 'string' && result.error.includes('ENOENT'), `the end line: ${JSON.stringify(lines[1])}`);
+      assert(lines.every((l) => l.identityHash === identityHash(itemId(items))), 'a line does not carry the identityHash');
+      // The start line is on disk while the child runs: the child reads the log itself.
+      const log = join(artifactDir('selftest', 'proc-2', 'seen'), 'items.jsonl');
+      const seen = [procItem(2, 's1', ['-e', "const t = require('fs').readFileSync(process.argv[1], 'utf8'); process.stdout.write(JSON.stringify({ start: t.includes('item-start'), end: t.includes('item-end') }))", log])];
+      const again = await procRun(2, seen, { step: 'seen' });
+      assert(again.exitCode === 0 && again.done, `the second run: ${JSON.stringify(again)}`);
+      same(readItemLog(log)[2].result.stdout, { start: true, end: false }, 'the start line was not written before the child ran');
+      // A spawn that throws at once (a NUL in an argument) still has its start line first: one start, one end, no spawn.
+      const thrown = [procItem(2, 't1', ['-e', 'a\u0000b'])];
+      const threw = await procRun(2, thrown, { step: 'thrown' });
+      assert(threw.exitCode === 0 && threw.done, `the thrown run: ${JSON.stringify(threw)}`);
+      const thrownLines = readItemLog(join(artifactDir('selftest', 'proc-2', 'thrown'), 'items.jsonl'));
+      same(thrownLines.map((l) => [l.type, l.item]), [['item-start', 't1'], ['item-end', 't1']], 'a spawn that throws is logged after its start line');
+      assert(thrownLines[1].status === 'error' && thrownLines[1].result.code === null && typeof thrownLines[1].result.error === 'string', `the end line: ${JSON.stringify(thrownLines[1])}`);
+    },
+  },
+  {
+    name: 'process items: trailing stdout after exit',
+    async run() {
+      const f = procFolder(3);
+      const items = [procItem(3, 'p1', ['-e', "process.stdout.write('x'.repeat(1 << 20) + '\\n' + JSON.stringify({ ok: 2 }))"])];
+      const out = await procRun(3, items);
+      assert(out.exitCode === 0 && out.done, `the run: ${JSON.stringify(out)}`);
+      const lines = readItemLog(f.log);
+      same([lines[2].status, lines[2].result], ['completed', { stdout: { ok: 2 } }], `the end line: ${JSON.stringify(lines[2]).slice(0, 200)}`);
+      const silent = [procItem(3, 'q1', ['-e', "process.stdout.write('not json\\n')"]), procItem(3, 'q2', ['-e', '0'])];
+      const rest = await procRun(3, silent, { step: 'silent' });
+      assert(rest.exitCode === 0 && rest.done, `the second run: ${JSON.stringify(rest)}`);
+      same(readItemLog(join(artifactDir('selftest', 'proc-3', 'silent'), 'items.jsonl')).filter((l) => l.type === 'item-end').map((l) => l.result.stdout), [null, null],
+        'a last line that is not JSON, and no output, give null');
+    },
+  },
+  {
+    name: 'process items: cut and cleanup',
+    async run() {
+      const f = procFolder(4);
+      const items = [procItem(4, 'p1', ['-e', 'setTimeout(() => {}, 600000)'])];
+      const t0 = performance.now();
+      const out = await procRun(4, items, { reserveS: 0, horizonS: elapsedS() + 17 });
+      assert(performance.now() - t0 < 10000, `the call took ${Math.round(performance.now() - t0)} ms, not under 10 s`);
+      assert(out.exitCode === 0 && out.progress === 1, `the run: ${JSON.stringify(out)}`);
+      const lines = readItemLog(f.log);
+      same(lines.map((l) => [l.type, l.item]), [['item-start', 'p1'], ['item-spawn', 'p1'], ['item-end', 'p1']], 'one start, one spawn, one end');
+      assert(lines[2].status === 'censored' && lines[2].result.outcome === 'censored', `the end line: ${JSON.stringify(lines[2])}`);
+      assert(thrownBy(() => process.kill(lines[1].pid, 0)) !== '', 'the child is still running after the call');
+      // An item that does not fit before the cut is not started, and its folder stays empty.
+      const late = [procItem(4, 'l1', ['-e', '0'])];
+      const idle = await procRun(4, late, { step: 'late', reserveS: 100, horizonS: elapsedS() + 40 });
+      assert(idle.exitCode === 0 && !idle.done && idle.progress === 0, `the late run: ${JSON.stringify(idle)}`);
+      same(readItemLog(join(artifactDir('selftest', 'proc-4', 'late'), 'items.jsonl')), [], 'an item was started with less than its reserve left');
+    },
+  },
+  {
+    name: 'process items: a started item is never rerun',
+    async run() {
+      const f = procFolder(5);
+      const marker = join(f.root, 'ran.txt');
+      const items = [procItem(5, 'p1', ['-e', MARK, marker, 'p1']), procItem(5, 'p2', ['-e', MARK, marker, 'p2'])];
+      mkdirSync(f.dir, { recursive: true });
+      logStart(f.log, identityHash(itemId(items)), items[0]);
+      const before = readFileSync(f.log);
+      const out = await procRun(5, items);
+      same(out, { exitCode: 3, done: false, progress: 0, refused: 'interrupted item p1 needs a ruling' }, `the run: ${JSON.stringify(out)}`);
+      assert(readFileSync(f.log).equals(before) && !existsSync(f.state), 'a refused run wrote the log or a state');
+      assert(!existsSync(marker) && !existsSync(abs(items[1].payload.outDir)), 'a child was started or a folder was created');
+    },
+  },
+  {
+    name: 'process items: an unstarted item with output is refused',
+    async run() {
+      const f = procFolder(6);
+      const marker = join(f.root, 'ran.txt');
+      const items = [procItem(6, 'p1', ['-e', MARK, marker, 'p1']), procItem(6, 'p2', ['-e', MARK, marker, 'p2'])];
+      const hash = identityHash(itemId(items));
+      mkdirSync(f.dir, { recursive: true });
+      logStart(f.log, hash, items[0]);
+      logSpawn(f.log, hash, 'p1', 4242);
+      logEnd(f.log, hash, 'p1', 'completed', { stdout: null }, 5);
+      mkdirSync(abs(items[0].payload.outDir), { recursive: true });
+      writeFileSync(join(abs(items[0].payload.outDir), 'kept.txt'), 'kept');
+      mkdirSync(abs(items[1].payload.outDir), { recursive: true });
+      writeFileSync(join(abs(items[1].payload.outDir), 'old.txt'), 'old');
+      const before = readFileSync(f.log);
+      const out = await procRun(6, items);
+      same(out, { exitCode: 3, done: false, progress: 0, refused: `unexpected output in ${items[1].payload.outDir} for unstarted item p2` }, `the run: ${JSON.stringify(out)}`);
+      assert(readFileSync(join(abs(items[1].payload.outDir), 'old.txt'), 'utf8') === 'old', 'old.txt was changed or removed');
+      assert(readFileSync(f.log).equals(before) && !existsSync(f.state) && !existsSync(marker), 'a refused run wrote the log or a state, or started a child');
+      // The folder of a completed item may hold output; an unstarted item's empty folder is fine, a file in its place is not.
+      rmSync(join(abs(items[1].payload.outDir), 'old.txt'));
+      const ok = await procRun(6, items);
+      same(ok, { exitCode: 0, done: true, progress: 1, refused: null }, `the run with an empty folder: ${JSON.stringify(ok)}`);
+      assert(readFileSync(marker, 'utf8') === 'p2\n' && readFileSync(join(abs(items[0].payload.outDir), 'kept.txt'), 'utf8') === 'kept', 'only p2 should have run, and p1\'s folder must stay');
+      const g = procFolder('6b');
+      const one = [procItem('6b', 'p1', ['-e', MARK, join(g.root, 'ran.txt'), 'p1'])];
+      mkdirSync(join(g.root, 'out'), { recursive: true });
+      writeFileSync(abs(one[0].payload.outDir), 'a file');
+      const file = await procRun('6b', one);
+      same(file.refused, `unexpected output in ${one[0].payload.outDir} for unstarted item p1`, 'a file in place of the output folder');
+      assert(!existsSync(join(g.root, 'ran.txt')), 'a child was started');
+    },
+  },
+  {
+    name: 'process items: resume and verification',
+    async run() {
+      const f = procFolder(7);
+      const marker = join(f.root, 'ran.txt');
+      const items = [procItem(7, 'p1', ['-e', MARK, marker, 'p1']), procItem(7, 'p2', ['-e', MARK, marker, 'p2'])];
+      const hash = identityHash(itemId(items));
+      mkdirSync(f.dir, { recursive: true });
+      logStart(f.log, hash, items[0]);
+      logSpawn(f.log, hash, 'p1', 4242);
+      logEnd(f.log, hash, 'p1', 'completed', { stdout: null }, 5);
+      const first = await procRun(7, items);
+      same(first, { exitCode: 0, done: true, progress: 1, refused: null }, `the first run: ${JSON.stringify(first)}`);
+      const lines = readItemLog(f.log);
+      same(lines.map((l) => [l.type, l.item]), [
+        ['item-start', 'p1'], ['item-spawn', 'p1'], ['item-end', 'p1'], ['item-start', 'p2'], ['item-spawn', 'p2'], ['item-end', 'p2'],
+      ], 'only p2 has new start, spawn and end lines');
+      assert(readFileSync(marker, 'utf8') === 'p2\n', 'p1 ran again');
+      const state = JSON.parse(readFileSync(f.state, 'utf8'));
+      same([state.done, state.items, state.lastInvocation.progress], [true, { done: 2, total: 2 }, { items: 1, verified: 0 }], `the state: ${JSON.stringify(state)}`);
+      const bytes = readFileSync(f.log);
+      const second = await procRun(7, items);
+      same(second, { exitCode: 0, done: true, progress: 1, refused: null }, `the second run: ${JSON.stringify(second)}`);
+      assert(readFileSync(f.log).equals(bytes) && readFileSync(marker, 'utf8') === 'p2\n', 'the second run changed the log or started a child');
+      same(JSON.parse(readFileSync(f.state, 'utf8')).lastInvocation.progress, { items: 0, verified: 1 }, 'the second state records a verification');
+    },
+  },
+  {
+    name: 'profile: identity without the horizon',
+    async run() {
+      const make = () => profileItems(['14x14-nightmare'], { task: 'V4-T10b', sourceLabel: 'frozen 3fc65f4' });
+      const first = manifestHash(make());
+      const t0 = elapsedS();
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      assert(elapsedS() > t0, 'elapsedS did not advance');
+      assert(manifestHash(make()) === first, 'the manifest hash depends on the time');
+      const [item] = make();
+      assert(item.id === 'profile:instr:14x14-nightmare:ig-v4/kernel/14x14-nightmare' && item.kind === 'process' && item.variant === 'instr', `the item: ${item.id}`);
+      same(Object.keys(item.payload), ['outDir', 'argv'], 'the payload fields');
+      const outDir = 'tests/artifacts/ig-proto/frozen/V4-T10b/profile/out/14x14-nightmare';
+      same(item.payload, {
+        outDir,
+        argv: ['--cpu-prof', '--cpu-prof-dir', outDir, '--no-turbo-inlining', 'tools/ig-proto/kernel-probe.mjs', 'profile-child', '--case', '14x14-nightmare',
+          '--task', 'V4-T10b', '--label', 'frozen', '--source-label', 'frozen 3fc65f4'],
+      }, 'the payload');
+      assert(!item.payload.argv.some((a) => a.includes('horizon')), 'an argument names the horizon');
+      assert(manifestHash(profileItems(['14x14-nightmare', '26x26-nightmare'], { task: 'V4-T10b', sourceLabel: 'frozen 3fc65f4' })) !== first, 'the case list is not part of the manifest hash');
+      same(Object.keys((await itemIdentity(make())).treeIds), ['instr'], 'the identity names the instr tree');
+    },
+  },
+  {
+    name: 'profile: the derived records are rebuilt',
+    async run() {
+      const task = 'prof-1';
+      fresh(artifactDir('selftest', task));
+      const cases = ['10x10-nightmare', '12x12-nightmare', '14x14-nightmare'];
+      const items = profileItems(cases, { task, sourceLabel: 'frozen 3fc65f4' });
+      const hash = identityHash(itemId(items));
+      const dir = artifactDir('selftest', task, 'profile');
+      mkdirSync(dir, { recursive: true });
+      const profile = { nodes: [{ id: 1, callFrame: { functionName: 'fewestColumn', url: 'file:///x/core/engine/deduce.js' } }], samples: [1, 1], timeDeltas: [1000, 3000] };
+      const put = (/** @type {string} */ caseId, /** @type {string} */ name, /** @type {unknown} */ value) => {
+        const folder = abs(profileOutDirOf(task, caseId));
+        mkdirSync(folder, { recursive: true });
+        writeFileSync(join(folder, name), typeof value === 'string' ? value : JSON.stringify(value));
+      };
+      for (const item of items) {
+        logStart(join(dir, 'items.jsonl'), hash, item);
+        logEnd(join(dir, 'items.jsonl'), hash, item.id, 'completed', { stdout: { ratings: 6 } }, 5);
+      }
+      put(cases[0], 'CPU.a.cpuprofile', profile);
+      put(cases[1], 'CPU.b.cpuprofile', profile);
+      put(cases[2], 'CPU.c.cpuprofile', profile);
+      put(cases[2], 'CPU.d.cpuprofile', profile);
+      put(cases[2], 'notes.txt', 'ignored: not a profile file');
+      const first = rebuildProfiles(task, 'selftest');
+      const bytes = readFileSync(join(dir, 'profile.jsonl'));
+      const second = rebuildProfiles(task, 'selftest');
+      assert(readFileSync(join(dir, 'profile.jsonl')).equals(bytes), 'a second call wrote other bytes');
+      same(second, first, 'a second call returned other records');
+      const text = bytes.toString('utf8');
+      assert(text.endsWith('\n') && !text.includes('\r') && text.split('\n').length === 4, `profile.jsonl has ${text.split('\n').length - 1} lines`);
+      same(text.split('\n').filter((l) => l !== '').map((l) => JSON.parse(l)), first, 'the file does not hold the returned records');
+      const file = (/** @type {string} */ caseId, /** @type {string} */ name) => `${profileOutDirOf(task, caseId)}/${name}`;
+      const expected = (/** @type {number} */ i, /** @type {string} */ name) => ({
+        item: items[i].id, caseId: cases[i], file: file(cases[i], name), sha256: sha256(readFileSync(abs(file(cases[i], name)))),
+        totalMs: 4, deduceMs: 4, fewestColumnMs: 4, share: 1,
+      });
+      same(first[0], expected(0, 'CPU.a.cpuprofile'), `the record of ${cases[0]}: ${JSON.stringify(first[0])}`);
+      same(first[1], expected(1, 'CPU.b.cpuprofile'), `the record of ${cases[1]}: ${JSON.stringify(first[1])}`);
+      same(first[2], { item: items[2].id, caseId: cases[2], error: 'profile files: 2' }, 'two profile files in one folder');
+      // Only completed items give a record; a missing folder and a file that is no profile are evidence errors.
+      const other = 'prof-2';
+      fresh(artifactDir('selftest', other));
+      const odd = profileItems(['10x10-nightmare', '12x12-nightmare', '14x14-nightmare', '26x26-nightmare'], { task: other, sourceLabel: 'x' });
+      const oddDir = artifactDir('selftest', other, 'profile');
+      mkdirSync(oddDir, { recursive: true });
+      const oddHash = identityHash(itemId(odd));
+      logStart(join(oddDir, 'items.jsonl'), oddHash, odd[0]);
+      logEnd(join(oddDir, 'items.jsonl'), oddHash, odd[0].id, 'censored', { outcome: 'censored' }, 5);
+      logStart(join(oddDir, 'items.jsonl'), oddHash, odd[1]);
+      logEnd(join(oddDir, 'items.jsonl'), oddHash, odd[1].id, 'completed', { stdout: null }, 5);
+      logStart(join(oddDir, 'items.jsonl'), oddHash, odd[2]);
+      logEnd(join(oddDir, 'items.jsonl'), oddHash, odd[2].id, 'completed', { stdout: null }, 5);
+      logStart(join(oddDir, 'items.jsonl'), oddHash, odd[3]);
+      mkdirSync(abs(profileOutDirOf(other, '10x10-nightmare')), { recursive: true });
+      writeFileSync(join(abs(profileOutDirOf(other, '10x10-nightmare')), 'CPU.x.cpuprofile'), JSON.stringify(profile));
+      mkdirSync(abs(profileOutDirOf(other, '14x14-nightmare')), { recursive: true });
+      writeFileSync(join(abs(profileOutDirOf(other, '14x14-nightmare')), 'CPU.y.cpuprofile'), '{ not json');
+      const records = rebuildProfiles(other, 'selftest');
+      same(records.map((r) => [r.caseId, 'error' in r ? r.error.replace(/:.*/, '') : 'record']), [['12x12-nightmare', 'profile files'], ['14x14-nightmare', 'profile unreadable']],
+        `a censored item and a started one give no record: ${JSON.stringify(records)}`);
+      same(records[0], { item: odd[1].id, caseId: '12x12-nightmare', error: 'profile files: 0' }, 'a completed item without a folder');
+      assert(thrownBy(() => rebuildProfiles('prof-none', 'selftest')).includes('no profile step'), 'a task without a profile step');
+      // A node's self time is the sum of the deltas of the samples that name it.
+      same(profileTimes({
+        nodes: [
+          { id: 1, callFrame: { functionName: 'fewestColumn', url: 'file:///t/core/engine/deduce.js' } },
+          { id: 2, callFrame: { functionName: 'ruleR4', url: 'file:///t/core/engine/deduce.js' } },
+          { id: 3, callFrame: { functionName: 'main', url: 'file:///t/other.js' } },
+          { id: 4, callFrame: { functionName: 'fewestColumn', url: 'file:///t/elsewhere.js' } },
+          { id: 5, callFrame: { functionName: 'idle', url: '' } },
+        ],
+        samples: [1, 2, 3, 1, 2, 2, 4, 9], timeDeltas: [1000, 2000, 4000, 500, 250, 250, 100, 7000],
+      }), { totalMs: 8.1, deduceMs: 4, fewestColumnMs: 1.6 }, 'the self times: a sample of an unknown node is not counted, a node without samples has none');
+      assert(thrownBy(() => profileTimes({ nodes: [], samples: [1], timeDeltas: [] })).includes('not a cpuprofile'), 'samples and deltas of different lengths');
+    },
+  },
+  {
+    name: 'profile: report verdict and blocks',
+    async run() {
+      const cases = ['14x14-nightmare', '26x26-nightmare'];
+      const items = profileItems(cases, { task: 'T', sourceLabel: 'L' });
+      const start = (/** @type {string} */ id) => ({ type: 'item-start', identityHash: 'h', item: id, kind: 'process', variant: 'instr', at: 'x' });
+      const end = (/** @type {string} */ id, /** @type {string} */ status, /** @type {any} */ result) => ({ type: 'item-end', identityHash: 'h', item: id, status, result, ms: 7, at: 'x' });
+      const record = (/** @type {number} */ i) => ({
+        item: items[i].id, caseId: cases[i], file: `p/${cases[i]}.cpuprofile`, sha256: 'ab'.repeat(32), totalMs: 10, deduceMs: 8, fewestColumnMs: 2, share: 0.25,
+      });
+      const lines = [...items.flatMap((i, k) => [start(i.id), end(i.id, 'completed', { stdout: { caseId: cases[k], ratings: 6, ms: 5.5 } })])];
+      same(loggedProfileCases([{ type: 'item-end', item: 'unrelated' }, ...lines, {}, null]), cases, 'the cases of a profile log');
+      same(loggedProfileCases([start('profile:instr:10x10-nightmare:ig-v4/kernel/12x12-nightmare'), start('counters:r4c:14x14-nightmare:ig-v4/kernel/14x14-nightmare:0')]), [], 'ids of another case or step');
+      const rows = profileRows(cases, lines, [record(0), record(1)]);
+      same(rows.map((r) => [r.caseId, r.status, r.ratings, r.ms, r.itemMs, r.record === null]), cases.map((c) => [c, 'completed', 6, 5.5, 7, false]), 'the rows');
+      same(profileVerdict(rows), { verdict: 'complete', cases: [], line: 'profile: complete' }, 'every item completed with a record');
+      const missing = profileRows(cases, lines.slice(0, 2), [record(0)]);
+      same(profileVerdict(missing), { verdict: 'incomplete', cases: [cases[1]], line: `profile: incomplete (${cases[1]})` }, 'a missing item');
+      const censored = profileRows(cases, [...lines.slice(0, 2), start(items[1].id), end(items[1].id, 'censored', { outcome: 'censored' })], [record(0)]);
+      same(profileVerdict(censored).cases, [cases[1]], 'a censored item');
+      const failed = profileRows(cases, [...lines.slice(0, 2), start(items[1].id), end(items[1].id, 'error', { code: 1, stderr: 'x' })], [record(0)]);
+      same(profileVerdict(failed).cases, [cases[1]], 'an error item');
+      const evidence = profileRows(cases, lines, [{ item: items[0].id, caseId: cases[0], error: 'profile files: 2' }, record(1)]);
+      same(profileVerdict(evidence), { verdict: 'incomplete', cases: [cases[0]], line: `profile: incomplete (${cases[0]})` }, 'an evidence error');
+      same(profileVerdict(profileRows(cases, lines, [])).cases, cases, 'completed items without any record');
+      assert(thrownBy(() => profileVerdict([])).includes('at least one item'), 'an empty list is no verdict');
+      // The blocks of kernel.md: only the blocks given are written.
+      const meta = { label: 'frozen', rerun: 'run it', source: { label: 'L', sourceDigest: 'abcdef0123456789', equalsMp12b1Source: false } };
+      const view = { verdict: profileVerdict(rows), rows };
+      const only = renderKernel('T', { meta, counters: null, profile: view });
+      assert(only.includes('\nprofile: complete\n') && only.includes(`\n${PROFILE_NOTE}\n`) && !only.includes('counters:') && !only.includes('## Items'), 'the profile-only record');
+      assert(only.includes(`| ${cases[0]} | completed | 6 | 5.5 | 7 | p/${cases[0]}.cpuprofile | ${'ab'.repeat(8)} | 10 | 8 | 2 | 0.25 |`), 'the profile table row');
+      const counters = { verdict: { line: 'counters: equal' }, rows: [], perCase: [], withoutCounters: [] };
+      const both = renderKernel('T', { meta, counters, profile: view });
+      assert(both.indexOf('counters: equal') < both.indexOf('profile: complete') && both.indexOf('profile: complete') < both.indexOf('## Items'), 'both blocks: the verdict lines first');
+      assert(!renderKernel('T', { meta, counters, profile: null }).includes('profile'), 'the counters-only record names no profile');
+    },
+  },
 ];
 
 /** @type {number} */
@@ -5932,6 +6287,33 @@ const v4Cases = [
       } finally {
         await lanes.close();
       }
+    },
+  },
+  {
+    name: 'profile: the child process and its profile file',
+    async run() {
+      // The real path of `profile`: the child of one case (10x10-nightmare) under `--cpu-prof --no-turbo-inlining`, one profile
+      // file, the derived record. The output goes to the scratch label; the numbers are measurements, not oracles.
+      assert(SOURCE_KIND === 'frozen', 'the case must run with --label frozen');
+      const task = 'prof-real';
+      fresh(artifactDir('selftest', task));
+      const [real] = profileItems(['10x10-nightmare'], { task, sourceLabel: 'frozen 3fc65f4' });
+      const outDir = profileOutDirOf(task, '10x10-nightmare');
+      const item = { ...real, payload: { outDir, argv: real.payload.argv.map((/** @type {string} */ a) => (a === real.payload.outDir ? outDir : a)) } };
+      assert(item.payload.argv.includes(outDir) && !item.payload.argv.includes(real.payload.outDir), 'the output folder of the argv was not moved to the scratch label');
+      const out = await runProcessItems({ task, step: 'profile', label: 'selftest', horizonS: elapsedS() + 100, items: [item], reserveS: 1 });
+      same(out, { exitCode: 0, done: true, progress: 1, refused: null }, `the run: ${JSON.stringify(out)}`);
+      const lines = readItemLog(join(artifactDir('selftest', task, 'profile'), 'items.jsonl'));
+      same(lines.map((l) => [l.type, l.item]), [['item-start', item.id], ['item-spawn', item.id], ['item-end', item.id]], 'one start, one spawn, one end');
+      const end = lines[2];
+      assert(end.status === 'completed' && end.result.stdout?.caseId === '10x10-nightmare' && end.result.stdout.ratings === SUBSETS_PER_CASE,
+        `the end line: ${JSON.stringify(end).slice(0, 400)}`);
+      const [record] = rebuildProfiles(task, 'selftest');
+      assert(!('error' in record), `the record: ${JSON.stringify(record)}`);
+      assert(record.item === item.id && record.file.startsWith(`${outDir}/`) && record.file.endsWith('.cpuprofile') && /^[0-9a-f]{64}$/.test(record.sha256), `the record: ${JSON.stringify(record)}`);
+      assert(record.totalMs > 0 && record.deduceMs > 0 && record.totalMs >= record.deduceMs && record.fewestColumnMs <= record.deduceMs, `the times: ${JSON.stringify(record)}`);
+      assert(record.share === null || (record.share >= 0 && record.share <= 1), `the share: ${record.share}`);
+      process.stdout.write(`NOTE profile 10x10-nightmare: ${JSON.stringify({ ratings: end.result.stdout.ratings, ms: end.result.stdout.ms, itemMs: end.ms, ...record, file: undefined, item: undefined, sha256: undefined })}\n`);
     },
   },
 ];
