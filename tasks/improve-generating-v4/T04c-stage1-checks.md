@@ -105,6 +105,14 @@ rules; T04d writes the receipt around them.
      bytes; not a proof); `mismatch` or `unavailable`: `fail`. Each generation case needs at least one `candidate`
      replay with a full proof, else `incomplete` (`no matched candidate replay for <case>`). `pass` needs no `fail`
      and every case proven.
+   - Ruling of 2026-11-17 (the first execution's readings, accepted): a group of mixed or unknown routes, a `record`
+     row whose `maxSequence` is not a number, an unexpected replay status or outcome: `fail`; only complete ledgers are
+     compared; a replay item `censored` or `missing`, or one without its generation row (looked up by variant, case and
+     `seedText`; with `packStep` the caller passes both steps' rows, as T05 does): `incomplete`, an `error` one `fail`;
+     the findings are `reasons` lines `finding <item>: incomplete (reason, work, bytes)`, also on `pass`; generation and
+     replay rows are told apart by the id suffix (`:gen`, `:puzzle-<i>`); a matched calibration replay needs its
+     integer `detailStep` too (the frozen `measuringStep`, `core/engine/replay.js:743-756`, names one for every matched
+     puzzle with a full claim, the calibration puzzle included: `tests/replay.test.js:1095-1117`).
 4. **Manifests.**
    - `plans/V4-T04.parity.json` (`task` `V4-T04`, `step` `parity`), rows in this order (`seedText`
      `ig-v4/parity/<caseId>`; modes `["absent", "charge", "record"]` unless stated): `v4` on `14x14-master`,

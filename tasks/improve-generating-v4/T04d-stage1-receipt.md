@@ -91,7 +91,12 @@ allowance.
    different from `manifestHash(expandManifest(<the declared manifest file>, ..., isV4))`; a log line whose
    `identityHash` differs from `identityHash(identity)`; `identity.frozenCommit` or `identity.sourceDigest` different
    from `FROZEN_COMMIT` or `FROZEN_DIGEST`; a stored tree id different from the current tree's (`stale tree <variant>`:
-   the receipt reports both ids and fails the arm binding; observations are never relabelled).
+   the receipt reports both ids and fails the arm binding; observations are never relabelled). `rows` are T04c's
+   joined rows (ruling of 2026-11-17, T04c's report): for each row of the declared manifest, in order, the items of
+   `expandManifest({ ...manifest, rows: [row] }, artifactDir('frozen', task, step), isV4)`, each as `{ item: <its id>,
+   variant: row.variant, caseId: row.caseId, seedText: row.seedText, mode: item.payload.mode ?? null, route:
+   item.payload.route ?? null, status: <the status of its item-end line, 'missing' when none>, result: <that line's
+   result, null when none> }` (an item carries its case only inside its id, and a replay item has no `seedText`).
 3. **`summary`** (`node tools\ig-proto\v4-check.mjs summary --task <T> --label frozen --source-label <SL>`, unlocked;
    reads only): builds the blocks `source` (`verifySnapshot().ok`, `await sourceDigest() === FROZEN_DIGEST`, and
    `planTree(id, { errors, sources: collectSources() })` errors for every `listVariants()` id), `identity`
@@ -146,7 +151,8 @@ allowance.
    `done`; missing: expected less observed; censored: the item ids ended `censored`>, evidence: <`stage1Inputs(task,
    <the variants of the two steps and instr>)`, each with its `sha256File`>, fields: { meta: buildMeta({ task, label: 'frozen', kind: 'stage1' }),
    blocks, line } })` and `stage1.md` ("Stage 1 receipt (V4-T04)", the banner, the verdict line, one table per block,
-   then the replay findings). Exit 0 when the record was written, whatever the verdict.
+   then the replay findings: the `finding <item>: incomplete (...)` lines of `replayVerdict`'s `reasons`, which a
+   passing block may carry; only a block's `verdict` decides). Exit 0 when the record was written, whatever the verdict.
 4. **`pm4-gate`** (`node tools\ig-proto\v4-check.mjs pm4-gate --label frozen --source-label <SL>`) is the early,
    read-only PM4 check that T04e runs between its two plans (RV5-01); it needs neither the V4-T04 observations nor the
    captured inputs. The export `pm4GateEvidence(instrTreeId, readFile = readRepoFile)` reads and JSON-parses, through
