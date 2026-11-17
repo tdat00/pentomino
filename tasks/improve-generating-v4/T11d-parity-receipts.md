@@ -26,6 +26,10 @@ bindings of both kinds, so that later gates check them without trusting the rece
   baseline-result comparison, not a new generation/replay block that its manifest does not contain. Its arm bindings
   cover all variants actually observed. Ordinary P-1 receipts continue to require both parity and replay." "Add a
   `--require-pass` receipt/gate mode that writes the evidence first and exits nonzero for `fail` or `incomplete`."
+- After stage 1 the harness work of T05 to T10 moves the `v4`-family tree ids (T07a: `v4` `006431d6...` to
+  `61729ef5...`) while the parameters stay (D-V4-05); `check-binding --current v4` against the stage-1 binding is then
+  `stale arm v4` by design. The stage-1 binding is declared with `current: []` by every consumer; `p0-identity`
+  compares results and parameter hashes, never tree ids, and the P-0 binding names today's final trees.
 - The baseline is read only through the stage-1 accepted binding (T04f): `checkAccepted` re-hashes the stage-1
   receipt and every evidence file it lists (the stage-1 parity step's `state.json` and `items.jsonl` among them), so
   the historical rows are read without comparing their trees with today's (`historical: true` below). `v4.json` and

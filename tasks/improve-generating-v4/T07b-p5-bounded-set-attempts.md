@@ -112,7 +112,9 @@ outcome is the same for 1, 2, 4 and 8 workers, whatever order the attempts finis
    not terminated and that has not been answered. A script entry is `{ fail: <reason> }` (the value `{ ok: false,
    reason }`) or `{ ok: true }` (the value `{ ok: true, set, calibration, attempt }` from the tree's
    `generate.firstSetAttempt` on the recipe, built once per tree as `fixture()` of the test file does); attempts
-   without an entry fail with `not-in-band`. Cases in the Tests table.
+   without an entry fail with `not-in-band`. Cases in the Tests table. T07a's case `p5: budget end with unfinished
+   candidates, every observer mode` gains, for (C), "and no event of kind `repair`" (a repair stopped by the budget
+   records nothing; ruling of 2026-11-17, T07a's report).
 5. **README.md**: a paragraph "P5 bounded set attempts (V4-T07b)": the side reason, the bound and its place before the
    ordered scan, the arm `v4-p5` and its two values with the pack author's reason, that false stops are counted in T09d
    against the uncapped arm, and that the legacy targets never report a side (P-OD12).
@@ -131,6 +133,7 @@ All in `tools/ig-proto/self-test.mjs --v4`; each scripted case runs at the width
 | `p5: mixed sides do not stop` | `s[0], s[1] = { fail: 'no-window-below' }`, `s[2], s[3] = { fail: 'no-window-above' }`, `s[4] = { fail: 'not-in-band' }`, `s[5] = { ok: true }`, all held | at every width: `status: 'complete'`, `attempt: 5` |
 | `p5: without the bound the later success wins` | the first scripted case in the `v4-link` tree (width 8: `v4-link-w8-test`) | at every width: `status: 'complete'`, `attempt: 4` |
 | `p5: the width-8 trees` | `MAX_POOL_SIZE` imported from the `worker-pool.js` of `v4-p5`, `v4-p5-w8-test` and `v4-link-w8-test` | 4, 8, 8 |
+| `p5: a budget-stopped call replays its skips` (T07a's report) | in the `v4` tree, with T02b's helpers, `x = { igPrior: null, igScreen: synth(e, DOWN), igCanonical: synth(e, DOWN) }`: R0 = `e.clues.selectClues(await v4Ctx(e, ws, 'p5-skip', { ...x, record }))`, `K0` the clue keys of its events of `sequence` 0 and 1 (as T02b's case 3); U = the same name and `x` with `excludeClueKeys: new Set(K0)` and `charge: (u) => L.push(u)`; `B` = the sum of the first `Math.ceil(L.length / 2)` entries of `L`; R1 = `journaled('p5-skip-r1', () => e.clues.selectClues(<U's context without charge, with igBudget: B>))`; R2 = the same context with `excludeClueKeys: new Set()` and `replaySkips: R1.result.skips`; R3 = R2's context with `replaySkips: { subsets: [...R1.result.skips.subsets, 2191], repairs: R1.result.skips.repairs }` | `L.length >= 2`; `R1.result.skips.subsets[0] === 0` and R1's `end` line has `locate.budgetStop`; R2 deep-equals `R1.result` (the replay meets the same units and stops at the same point, so every recorded skip lies before it); R3 throws the tree's `SkipReplayError` with `reason: 'unused'`, `list: 'subsets'`, `ordinal: 2191` |
 
 ## Documentation
 
@@ -170,6 +173,7 @@ All in `tools/ig-proto/self-test.mjs --v4`; each scripted case runs at the width
 | T07b-T02 | Pool invariance at 1, 2, 4 and 8 workers for the four scripts; the width 8 really runs (an eight-worker pool in the `-w8-test` trees only) | cases 3 to 7 | self-test output |
 | T07b-T03 | The side field only in a tree with the bound | case 1 | self-test output |
 | T07b-T04 | Nothing else changed; formats | guards; `npm run check` | command output |
+| T07b-T05 | A call stopped by its P5 budget replays its recorded skips to the same result, and a repair the budget stopped records no event (T07a's report) | the case `p5: a budget-stopped call replays its skips`; T07a's case `p5: budget end with unfinished candidates, every observer mode` | self-test output |
 
 ## Checklist (the developer confirms every item in the final report)
 
