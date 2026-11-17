@@ -7,7 +7,7 @@
 | Depends on | T03 (serial order; it uses T01a's frozen label) |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (claude-sonnet-5.5) |
-| Estimate | developer 2.5 h, machine 0 min (synthetic worker cases only; they run unlocked) |
+| Estimate | developer 3 h, machine 0 min (synthetic worker cases only; they run unlocked) |
 
 ## Goal
 
@@ -51,8 +51,9 @@ started but never ended. The stage-1 item kinds are T04b's. Nothing is measured 
 
 0. `node tools\ig-proto\firewall.mjs snapshot --task V4-T04a --label frozen`.
 1. **`lib/items.mjs`** (`// @ts-check`; header comment naming this task and reviews R05 and RV2-01). Imports:
-   `appendFileSync`, `existsSync`, `mkdirSync`, `readFileSync` from `node:fs`; `join` from `node:path`; `createLanes`
-   from `./lanes.mjs`; `artifactDir`, `elapsedS`, `FROZEN_COMMIT` from `./paths.mjs`; `harnessInfo`, `sha256`,
+   `appendFileSync`, `existsSync`, `mkdirSync`, `readFileSync` from `node:fs`; `join` from `node:path`; `admits`,
+   `createLanes` and `DEFAULT_LIMITS` from `./lanes.mjs` (ruling of 2026-11-17: one admission rule for the group check
+   and `runAll`); `artifactDir`, `elapsedS`, `FROZEN_COMMIT` from `./paths.mjs`; `harnessInfo`, `sha256`,
    `sourceDigest`, `writeJson` from `./records.mjs`; `ensureTree` from `./tree.mjs`. Exports:
    - `export const ITEM_LANES = Object.freeze({ 'v4-select': 2, 'v4-generate': 1, 'v4-replay': 2 });` (lanes per
      group; any other kind, the test kinds included, 1).
@@ -98,8 +99,9 @@ started but never ended. The stage-1 item kinds are T04b's. Nothing is measured 
      3. Groups: the pending items cut into runs of consecutive items with the same `variant` and `kind`. For each group
         in order: if its first item would not be admitted now (the admission rule of step 2 for its kind), stop;
         else `lanes = await createLanes({ variant, size: ITEM_LANES[kind] ?? 1, horizonS, limits, testKinds })`,
-        `await lanes.runAll(jobs, { onStart, onEnd })` with `jobs = group.map((i) => ({ kind: i.kind, ...i.payload
-        }))`, then `await lanes.close()`; stop after a group in which a job was not admitted or an item ended
+        `await lanes.runAll(jobs, { onStart, onEnd })` with `jobs = group.map((i) => ({ ...i.payload, kind: i.kind
+        }))` (the item's kind wins over a payload's `kind` key; ruling of 2026-11-17), then `await lanes.close()`;
+        stop after a group in which a job was not admitted or an item ended
         `censored` (the horizon is reached). `onStart(j)` calls `logStart(logPath, hash, item)`; `onEnd(j, result)`
         calls `logEnd(logPath, hash, item.id, status, result, ms)` with `status` `censored` for the outcome
         `censored`, `error` for `error` and `defect`, else `completed`, and `ms` from the job's start.
@@ -119,16 +121,22 @@ started but never ended. The stage-1 item kinds are T04b's. Nothing is measured 
    - `runAll(jobs, hooks = {})`: `hooks.onStart?.(next)` right before `postMessage`; `hooks.onEnd?.(index, value)`
      right after `results[index] = value` in `settle`. Without hooks the behaviour is today's.
    - `limits.itemReserveS` given by a caller replaces the whole table (the self-test passes small values).
+   - `export function admits(kind, e, horizon, lim)` returns the admission of the rule above for `kind` (`rate`, an
+     item kind of `lim.itemReserveS`, a call kind, else `true`); `runAll` and `runItems`'s group check both use it
+     (ruling of 2026-11-17).
 3. **`lib/lane-worker.mjs`**: test kinds, only with `workerData.testKinds === true`: `test-ok` returns `{ outcome:
-   'ok', echo: p.echo }`; `test-throw` throws `Error('test-throw')`; `test-hold` is unchanged.
+   'ok', echo: p.echo }`; `test-throw` throws `Error('test-throw')`; `test-hold` is unchanged; `test-item` holds
+   exactly as `test-hold` (the same branch: `kind === 'test-hold' || kind === 'test-item'`) but is not a call kind,
+   so only the item rules admit and cut it (ruling of 2026-11-17).
 4. **Self-test** group `--items` (switch added to `parseArgs`; with it only `itemCases` runs; default task
    `V4-T04a`). The cases call `runItems` with `label: 'selftest'`, `task: 'items-<case number>'`, items of the variant
    `base`, `testKinds: true`, `identity: ID` (`ID = { frozenCommit: 'c', sourceDigest: 'd', treeIds: { base: 't' },
-   harnessHash: 'h', manifestHash: manifestHash(items) }`) and delete their artifact folder first. Cases in the
-   Tests table.
+   harnessHash: 'h', manifestHash: manifestHash(items) }`) and delete their artifact folder first; case 7 calls
+   `itemIdentity` itself and runs nothing. Cases in the Tests table.
 5. **README.md**: a section "## Bounded measurement items (task pack v4)": the item fields, the three log line
    shapes, the state, the resume rules (step 1, in order), the reserve and cut table below, the exit code 3 and that a
-   refused or interrupted step needs a ruling (never a rerun).
+   refused or interrupted step needs a ruling (never a rerun), and the self-test's kinds (`test-ok`, `test-throw`,
+   `test-hold` a call kind, `test-item` held like it but an item kind only).
 
    | Kind | Admitted when (e: elapsed s, H: horizon) | Cut | Lanes |
    |---|---|---|---|
@@ -142,10 +150,11 @@ started but never ended. The stage-1 item kinds are T04b's. Nothing is measured 
 |---|---|---|---|
 | `tools/ig-proto/self-test.mjs --items` | `items: completion and verification resume` | items `t1`, `t2` of kind `test-ok` (payload `{ echo: 1 }`, `{ echo: 2 }`), `horizonS` 285; run twice | first run: `exitCode` 0, `done` true, `progress` 2; the log lines are, in order, start `t1`, end `t1`, start `t2`, end `t2`, every line with `identityHash` equal to `identityHash(ID)`, both ends `completed` with `result.echo` 1 and 2; `resumePlan` on that log gives `{ pending: [], ended: 2 }`; the second run: `exitCode` 0, `done` true, `progress` 1 (`verified` 1), the log byte-equal to after the first run (no redispatch) |
 | same | `items: worker error` | item `t1` of kind `test-throw` | `exitCode` 0, `done` true; the end line has `status: 'error'`, the run's `identityHash` and `result.message` containing `test-throw` |
-| same | `items: parent cut` | items `h1` (`test-hold`, payload `{ profiles: 0 }`) and `t2` (`test-ok`), `horizonS = elapsedS() + 3`, `limits: { callMinRemainS: 0, callCutMarginS: 1 }` | the call returns within 10 s; `h1` ends `censored`; `t2` has no line; `done` false; `progress` 1 |
+| same | `items: parent cut` | (i) items `h1` (`test-hold`, payload `{ profiles: 0 }`) and `t2` (`test-ok`), `horizonS = elapsedS() + 6`, `limits: { callMinRemainS: 0, callCutMarginS: 1 }`; (ii) item `h1` of kind `test-item` (payload `{ profiles: 0 }`) in the step `item-kind`, `horizonS = elapsedS() + 6`, `limits: { itemReserveS: { 'test-item': 1 }, callCutMarginS: 1 }`; (iii) the same item in the step `item-reserve`, `horizonS = elapsedS() + 3`, `limits: { itemReserveS: { 'test-item': 100 }, callCutMarginS: 1 }` | (i) the call returns within 10 s; `h1` ends `censored`; `t2` has no line; `done` false; `progress` 1; (ii) the call returns within 10 s, `done` true, `progress` 1, the log is start `h1` then end `h1` with `status: 'censored'` (a kind that is not a call kind, admitted by its reserve and cut at `H - 1` by the item rule alone); (iii) `done` false, `progress` 0, no log line (the reserve refuses before any lane starts) |
 | same | `items: identity mismatch` | case 1's items run once in this case's folder, then again with `ID.harnessHash` changed to `'h2'` | the second run: `exitCode` 3, `refused` `identity mismatch (harnessHash)`; the log and the state files are byte-equal to after the first run |
 | same | `items: interrupted start refused` | a log written with `logStart` only for `t1` | `exitCode` 3, `refused` `interrupted item t1 needs a ruling`; the log is unchanged |
 | same | `items: resume rules (pure)` | `resumePlan` on: duplicate item ids; an end line without `identityHash`; a line of an unknown item; two `item-end` lines of one item; an end without a start; a spawn after the end; a log with start, spawn and end of `t1` and nothing of `t2` | the reasons of rules 1, 3, 4, 5, 6 and 6 in that order; `{ pending: [t2], ended: 1 }` |
+| same | `items: the run identity` | `items` = `[{ id: 'a', kind: 'test-ok', variant: 'log', payload: {} }, { id: 'b', kind: 'test-ok', variant: 'base', payload: {} }]`; `I1` and `I2` = two calls of `await itemIdentity(items)`; `I3 = await itemIdentity([items[1], items[0]])` (the group runs with `--label frozen`) | `Object.keys(I1)` equals `['frozenCommit', 'sourceDigest', 'treeIds', 'harnessHash', 'manifestHash']`; `I1.frozenCommit === FROZEN_COMMIT`; `I1.sourceDigest === FROZEN_DIGEST`; `Object.keys(I1.treeIds)` equals `['base', 'log']` with the values `(await ensureTree('base')).treeId` and `(await ensureTree('log')).treeId`; `I1.harnessHash === harnessInfo().harnessHash`; `I1.manifestHash === manifestHash(items)`; `identityHash(I2) === identityHash(I1)`; `I3` deep-equals `I1` except `manifestHash`, which differs |
 
 ## Documentation
 
@@ -158,7 +167,7 @@ The `--items` cases run only test kinds (no rating, generation, uniqueness count
 
 | Command | Where | Expected | Time limit |
 |---|---|---|---|
-| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04a` | root | six cases pass, exit 0 | 3 min |
+| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04a` | root | seven cases pass, exit 0 | 3 min |
 | `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T04a` | root | the ten `--frozen` cases pass | 2 min |
 | `Invoke-IgNode -Repo pentomino -Task 'V4-T04a verify' -NodeArgs @('tools\ig-proto\self-test.mjs', '--label', 'frozen', '--source-label', 'frozen 3fc65f4', '--task', 'V4-T04a-lanes', '--only', '1,7')` (check-list §3.2; default cases 1 `paths and fingerprint guard` and 7 `lanes: order, supervisor, admission`, which runs real `rate` jobs) | root | two cases pass, exit 0 | 5 min (the helper's 300 s) |
 | `node tools\ig-proto\firewall.mjs check --task V4-T04a --label frozen` | root | `files unchanged` | 1 min |
@@ -178,18 +187,19 @@ The `--items` cases run only test kinds (no rating, generation, uniqueness count
 
 | ID | Criterion | How it is verified | Evidence |
 |---|---|---|---|
-| T04a-B01 | No stage-1 or later measurement can be rerun silently, mixed across sources or trees, or outlive the lock helper's limit, and a finished step resumes as a pure verification | cases 1 to 6 | self-test output |
+| T04a-B01 | No stage-1 or later measurement can be rerun silently, mixed across sources or trees, or outlive the lock helper's limit, and a finished step resumes as a pure verification | cases 1 to 7 | self-test output |
 
 ### Technical
 
 | ID | Criterion | How it is verified | Evidence |
 |---|---|---|---|
 | T04a-T01 | Start before dispatch, one terminal end, every line bound to the run's identity, never rerun; the state's fields as step 1.4 | cases 1, 2 | self-test output |
-| T04a-T02 | The parent cuts at `H - 15` and records `censored` | case 3 | self-test output |
+| T04a-T02 | The parent cuts at `H - 15` and records `censored`, a call kind and an item kind alike; an item kind is admitted only with its reserve left | case 3 | self-test output |
 | T04a-T03 | Identity mismatch and interrupted starts refuse without writing | cases 4, 5 | self-test output |
 | T04a-T04 | The resume rules in their order, `item-spawn` included | case 6 | self-test output |
 | T04a-T05 | Existing lane kinds unchanged | the lane cases of the default group | helper output |
 | T04a-T06 | Nothing else changed; formats | guards; `npm run check` | command output |
+| T04a-T07 | The run identity binds the frozen commit, the source digest, the sorted tree ids, the harness hash and the manifest hash, and is stable | case 7 | self-test output |
 
 ## Checklist (the developer confirms every item in the final report)
 

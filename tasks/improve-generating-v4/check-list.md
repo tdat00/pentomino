@@ -68,7 +68,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 | T02c | [T02c](T02c-v4-prototype-provenance.md) | 3 | 0 | 0 / 1 |
 | T02d | [T02d](T02d-primitive-bounds.md) | 3 | 0 | 0 / 1 |
 | T03 | [T03](T03-pm1-data-inventory.md) | 1.5 | 0 | 0 / 1 |
-| T04a | [T04a](T04a-bounded-items.md) | 2.5 | 0 | 0 / 1 |
+| T04a | [T04a](T04a-bounded-items.md) | 3 | 0 | 0 / 1 |
 | T04b | [T04b](T04b-stage1-item-kinds.md) | 3 | 0 | 0 / 1 |
 | T04c | [T04c](T04c-stage1-checks.md) | 3 | 0 | 0 / 1 |
 | T04d | [T04d](T04d-stage1-receipt.md) | 3 | 0 | 0 / 1 |
@@ -97,7 +97,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 | T11g | [T11g](T11g-frozen-round-manifest.md) | 3 | 0 | 0 / 1 (manifest) |
 | T12 | [T12](T12-p6-diagnostic-for-returned-ratings.md) | 3 | 0 | 1 |
 | T13 | [T13](T13-progressive-presentation-history.md) | 1.5 | 0 | 1 |
-| | **Total (36 tasks)** | **98** | **73** | |
+| | **Total (36 tasks)** | **98.5** | **73** | |
 
 The machine column is the benchmark allocation of each task's run plan (`allocationMinutes`); its counted time is node
 seconds plus at most 45 s of the quiet period per locked invocation (previous pack §7), and each task's runner stops
@@ -423,6 +423,7 @@ directory once both `$env:TEMP\dv3-sudoku.lock` and `$env:TEMP\dv3-timing.lock` 
 | Ruling of the pack author, 2026-11-17 (T02b's report) | Four deviations accepted: case 1's second pass `parity-ok` (`DOWN` for both seams, `require`: `ok`, at least one `repair` event), because the table's `REBRACKETED` input ends `not-in-band` and never reaches the repair, its counts or the `selected` event (no later task relies on that input); `v4Ctx` is `async`; the `journaled(name, fn)` helper; the extra asserts of cases 3 to 5. Case 2 proves the throw came from the third call (`boomC` is thrown nowhere else); that the throw ends the call at once (no fourth `charge`, no third event) is two asserts added by T02c | T02b (step 1, cases 1 and 2, T02b-T01); T02c (scope, step 3, the Tests row, T02c-T06; "after T02b's five") |
 | Ruling of the pack author, 2026-11-17 (T02d's report) | Five deviations accepted: case 1's extra asserts (begin then its completion line, `screen` with the screened phases, the call id); case 3's non-vacuity asserts and its shared name (the rng stream); the shared specs and the layout; the `NOTE` line. Case 2 gains `w` 100,000,000 so that the census overshoot is exercised (3 clues, `c` 1,000: `censusComplete` false, `censusWork >= 1000`); a fix round of T02d. A test seam's begin lines describe the native path; no measured row sets a seam, so no ledger sees them (documented, no code change). The bound's O(area + pieces) cost stays: every measured `v4`-family row journals, so the bound is needed exactly where time is measured, and it is small beside a rating's own setup work | T02d (Authority "Test seams", step 4, case 2, T02d-T02) |
 | Ruling of the pack author, 2026-11-17 (T03's report) | Eight readings accepted: the direct `meta.rerun`; the inputs hashed by `sha256File` (`lf-text`, T01a's rule and every other evidence hash of this pack); the Totals row and the Inputs table; the extra asserts (the stub `levels` proves `offeredAtFrozen` is computed, T03-T02); the README and header additions; files written before the exit 1 of a missing fact; the populations built over the `alternate` rows only (the Goal's alternate populations; `hell-3`, `hell-2`, `hell-1` order equals the ids' descending order; no later task reads them otherwise: T11g's stage-5 indications read IGP-05's families directly). The snapshot is identified by `meta.source.equalsFrozenSource` (the source digest covers `core/engine/levels.js`). T11g now cites the inventory, as T03's Goal says | T03 (step 1); T11g (step 1, section 1); N-V4-04 |
+| Ruling of the pack author, 2026-11-17 (T04a's report) | Accepted: `admits` exported from `lanes.mjs` and shared by `runAll` and the group check (one rule, no copy); case 3's added parts; the extra asserts; the readings (lines from 1, a non-object line malformed, a state without `identity` refused, whole milliseconds, `step: 'items'`, lanes closed in a `finally`). A fix round of T04a, unlocked: the test kind `test-item` (held like `test-hold`, not a call kind) so that case 3 proves the item admission and the item cut alone; case 3's horizons `+ 6` s (lane creation inside the admission margin); case 7 `items: the run identity` (T04b to T04f rest on it); jobs built as `{ ...payload, kind }` so that a payload key never overrides the kind. A malformed last line after a crash stops the step for a ruling, as designed; two invocations on one log are serialised by the lock helper and the runner | T04a (estimate 3 h, steps 1 to 5, cases 3 and 7, gate, T04a-B01, T04a-T02, T04a-T07); §1 (total 98.5 h) |
 
 ## 6. Named items for later packs
 
