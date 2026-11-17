@@ -77,13 +77,17 @@ receipt that the comparator resolution (T11f) consumes.
    of the Authority section); the journal of a row: every file `<rowKey>.*.jsonl` of
    `tests/artifacts/ig-proto/<label>/<arm.task>/<arm.arm>/<shard>/logs/` (every shard folder of the arm) other than
    `<rowKey>.row.jsonl` and `<rowKey>.link.jsonl`, through T09c's `parseLines` (its problems join the row's ledger),
-   and the link lines of `<rowKey>.link.jsonl`. It computes the class verdicts (T09c, each cell's `screenCellGate`
-   from T09d's `cellGate` on the screen arm), the shipped arms, the cell gates, the controls, Master identity, Hell 1,
-   P5's stops over the declared pairs, the projection, the population, the prerequisites and phase 0 (T09d), and
-   writes under `evidence/<label>/<manifest.task>/`: `verdicts.json` (meta block, the manifest and its SHA-256, every
-   number, the work intervals) and `verdicts.md`: one section per class (verdict, deciding condition, the clue, faster
-   and completion numbers, and the work table: per arm `loRatio`, `hiRatio`, width, `completedRatio`,
-   `terminatedCalls`, open primitives), the shipped arm per cell and its gate, controls, Master identity per cell,
+   and the link lines of `<rowKey>.link.jsonl`; `rowLedger` (T09c) runs on the rows of the class arms only (the work
+   rule's input): a legacy-route row (`log-link`) has no `caps` or `begin` lines and always reads as incomplete (T09c's
+   report), and no verdict reads its ledger (controls judge the time ratio, Master identity the keys). It computes the
+   class verdicts (T09c, each cell's `screenCellGate` from T09d's `cellGate` on the screen arm), the shipped arms, the
+   cell gates, the controls, Master identity, Hell 1, P5's stops over the declared pairs, the projection, the
+   population, the prerequisites and phase 0 (T09d), and writes under `evidence/<label>/<manifest.task>/`:
+   `verdicts.json` (meta block, the manifest and its SHA-256, every number, the work intervals) and `verdicts.md`: one
+   section per class (verdict, deciding condition, the clue, faster and completion numbers, and the work table: per
+   arm `loRatio`, `hiRatio`, the width `hiRatio - loRatio`, `completedRatio` (each `null` when the arm accepted no
+   puzzle), `terminatedCalls`, and the open primitives, the sum of `ledger.open` over the arm's rows, which T09c's
+   `workRule` does not carry), the shipped arm per cell and its gate, controls, Master identity per cell,
    Hell 1 as a report, P5's stops, the prerequisites with their reasons, the phase-0 line (`Phase 0: pass.`, `Phase
    0: INCOMPLETE (...)` or `Phase 0: FAIL (...)`), then, under the heading "Post-hoc projection; not a live deadline
    gate", the projection per reserve. With `purpose: 'selection'` it also writes `class-selection.json` (step 2), its
