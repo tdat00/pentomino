@@ -215,13 +215,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 13:50:57 +07:00 (dispatch, base `9caa70f`) to 14:19:26 +07:00 (acceptance): 28 min 29 s; the developer's own times 13:51:20-14:10:32 |
+| Waiting for rulings | about 7 min (SA-Opus's review of the deviations and named items, 14:12-14:19; no QUESTION) |
+| Agent id, model | `51546c94-392a-436a-9d54-30c6ddc652b0`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 80 calls; 13,052,595 input, 82,822 output, 12,823,242 cache-read |
+| AI credits | 268.38 |
+| Questions and rulings | none from the developer. SA-Opus ruled "accept T08": deviations 1-7 accepted; the `rerates < rerateMax` guard stays (always true there); (c4) on an AR1-refused hit follows the task text; `fr-ps` against `v4-ps-link` differs only in `ig-params.js`, `ig-tree.json` and the order of two hoisted blocks of `generation-client.js`; the developer's claim that T09 and T11 read `locate.close`, `locate.c4` and the phases `close` and `below` is wrong, so N-V4-17 routes their firing counts to the stage-2 report; pack amendment `cb8f4e7` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--v4` through the lock helper (`V4-T08 verify`): 30 passed, 0 failed, `IG … exit=0 seconds=27.314` (`fr close`: 5 profiles against 65 for `fr-base`; `fr c4`: skips [], [1], [1,2]); `check-edits --all`: 33 `ok`, no other line (`fr-base`, `fr-c4`, `fr-close`, `fr-none`, `fr-screen` 57, `fr-ps` 64, `fr-p5` 60); `--items`: 44 passed; `--frozen`: 10 passed; firewall `check` (V4-T08): 289 production files unchanged; `git status --short -- core generator tests tools/bench`: empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. No machine time counted (round 2,724 s) |
+| Commit | this task's commit, `improve-generating T08: Frozen-round variants: the W_screen class table, bracket-close re-rating (D-IG7) and the (c4) probe` |
+| Issues and named items | N-V4-17 (stage 2 reports how often bracket-close and (c4) fired by arm and cell, and each start line's W against its class value). The `v4`-family tree ids moved (v4 `138aac46…` after this task); new arms `fr-base` `aedb2bdb…`, `fr-screen` `a3c42360…`, `fr-none` `82d28a7c…`, `fr-close` `f4f7e51e…`, `fr-c4` `0b2f68f2…`, `fr-ps` `2533bf7f…`, `fr-p5` `fdb43f13…` |

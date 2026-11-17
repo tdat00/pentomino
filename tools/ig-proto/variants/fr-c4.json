@@ -1,0 +1,8 @@
+{
+  "id": "fr-c4",
+  "extends": ["fr-base"],
+  "description": "Frozen-round arm (V4-T08): fr-base with the (c4) probe, one subset one clue below the first in-band locate hit.",
+  "edits": [],
+  "files": [],
+  "params": { "c4": true }
+}

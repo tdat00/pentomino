@@ -3838,6 +3838,154 @@ const v4Cases = [
       process.stdout.write(`NOTE p5 any: ${n} operations, ${n} budgets; the first with no waiting candidate is index ${emptyAt}, the first with two is index ${h}\n`);
     },
   },
+  {
+    name: 'fr: class table',
+    async run() {
+      const ids = ['fr-base', 'fr-screen', 'fr-none', 'fr-close', 'fr-c4', 'fr-ps', 'fr-p5'];
+      /** @type {Record<string, any>} */
+      const trees = {};
+      for (const id of ids) {
+        trees[id] = await ensureTree(id);
+      }
+      assert(new Set(ids.map((id) => trees[id].treeId)).size === ids.length, 'the seven arms do not have seven different tree ids');
+      const { screenClass, classW } = await import(pathToFileURL(join(trees['fr-base'].root, 'core', 'engine', 'ig-select-v4.js')).href);
+      for (const [level, area, want] of /** @type {[string, number, string | null][]} */ ([
+        ['nightmare', 100, 'n-small'], ['nightmare', 144, 'n-small'], ['nightmare', 145, null], ['nightmare', 196, 'n-mid'],
+        ['nightmare', 324, 'n-mid'], ['nightmare', 325, null], ['nightmare', 359, null], ['nightmare', 360, 'n-large'],
+        ['nightmare', 676, 'n-large'], ['hell-1', 196, 'hell-1'], ['master', 196, null],
+      ])) {
+        assert(screenClass(level, area) === want, `screenClass(${level}, ${area}) is ${screenClass(level, area)}, expected ${want}`);
+      }
+      const NONE = 760000000;
+      const table = trees['fr-base'].params.screenClasses;
+      for (const [level, area, want] of /** @type {[string, number, number][]} */ ([
+        ['nightmare', 196, 190000000], ['nightmare', 324, 190000000], ['nightmare', 144, NONE], ['nightmare', 145, NONE],
+        ['nightmare', 325, NONE], ['nightmare', 360, NONE], ['hell-1', 196, NONE], ['master', 196, NONE],
+      ])) {
+        assert(classW(table, level, area) === want, `fr-base: classW(${level}, ${area}) is ${classW(table, level, area)}, expected ${want}`);
+      }
+      assert(classW(undefined, 'nightmare', 196) === undefined && classW(null, 'nightmare', 196) === undefined, 'classW without a table is not undefined');
+      // The screen-everywhere and no-screen tables fail closed on the unlisted classes too.
+      const all = trees['fr-screen'].params.screenClasses;
+      for (const [level, area, want] of /** @type {[string, number, number][]} */ ([
+        ['hell-1', 196, 380000000], ['nightmare', 100, 190000000], ['nightmare', 400, 190000000], ['nightmare', 145, NONE],
+        ['nightmare', 359, NONE], ['master', 196, NONE],
+      ])) {
+        assert(classW(all, level, area) === want, `fr-screen: classW(${level}, ${area}) is ${classW(all, level, area)}, expected ${want}`);
+      }
+      const none = trees['fr-none'].params.screenClasses;
+      for (const [level, area] of /** @type {[string, number][]} */ ([['hell-1', 196], ['nightmare', 100], ['nightmare', 196], ['nightmare', 400]])) {
+        assert(classW(none, level, area) === NONE, `fr-none: classW(${level}, ${area}) is ${classW(none, level, area)}`);
+      }
+      // An entry that is missing, not a number, not positive or not below the canonical limit is no screen.
+      for (const entry of [{}, { 'n-mid': 0 }, { 'n-mid': -1 }, { 'n-mid': NONE }, { 'n-mid': NONE + 1 }, { 'n-mid': '190' }, { 'n-mid': null }]) {
+        assert(classW(entry, 'nightmare', 196) === NONE, `classW(${JSON.stringify(entry)}) is ${classW(entry, 'nightmare', 196)}, expected no screen`);
+      }
+      assert(classW({ 'n-mid': 1 }, 'nightmare', 196) === 1, 'a positive entry below the canonical limit is not kept');
+      same(trees['fr-base'].params.screenClasses, { 'hell-1': null, 'n-small': null, 'n-mid': 190000000, 'n-large': null }, 'fr-base: screenClasses');
+      same(all, { 'hell-1': 380000000, 'n-small': 190000000, 'n-mid': 190000000, 'n-large': 190000000 }, 'fr-screen: screenClasses');
+      same(none, { 'hell-1': null, 'n-small': null, 'n-mid': null, 'n-large': null }, 'fr-none: screenClasses');
+      same(ids.map((id) => trees[id].params.screenTable),
+        ['tab-default', 'tab-screen', 'tab-none', 'tab-default', 'tab-default', 'tab-default', 'tab-default'], 'the screenTable of each arm');
+      same(ids.map((id) => [trees[id].params.rerate, trees[id].params.c4]),
+        [[undefined, undefined], [undefined, undefined], [undefined, undefined], ['close', undefined], [undefined, true],
+          [undefined, undefined], [undefined, undefined]], 'the rerate and c4 parameters of each arm');
+      assert(trees['fr-ps'].params.perSetPrior === true && trees['fr-ps'].params.screenTable === 'tab-default', `fr-ps params ${JSON.stringify(trees['fr-ps'].params)}`);
+      assert(trees['fr-p5'].params.callBudget.default === 2000000000 && trees['fr-p5'].params.setAttemptsBound === 4, `fr-p5 params ${JSON.stringify(trees['fr-p5'].params)}`);
+      assert(ids.every((id) => trees[id].chain.includes('v4-link') && trees[id].params.W.default === 190000000 && trees[id].params.link === true), 'an arm is not on the v4-link base');
+      assert(trees['fr-ps'].chain.includes('v4-ps') && trees['fr-p5'].chain.includes('v4-p5'), 'fr-ps or fr-p5 lacks its parent in the chain');
+      const V = (await engine('fr-base')).e.generate.provenanceVersions();
+      assert(V.algo === 'gen-v4-proto:fr-base' && V.priorTable === 'prior-v1' && V.screenTable === 'tab-default', `fr-base versions ${JSON.stringify(V)}`);
+      // The table reaches the call: the screen limit of the start line follows the class of the target and the area of the board.
+      const { carved } = await k15Set();
+      const area = (await engine('fr-base')).e.board.activeCount(carved.board);
+      assert(area <= 144, `the K = 15 set's board has ${area} active cells`);
+      const wOf = async (/** @type {string} */ variant, /** @type {string} */ levelId, /** @type {Record<string, any>} */ extra = {}) => {
+        const { e, ws } = await engine(variant);
+        const target = { id: levelId, min: 55, max: 70, share: 0.3 };
+        const ctx = await v4Ctx(e, ws, 'frw', { target, igPrior: null, igScreen: synth(e, DOWN), igCanonical: synth(e, DOWN), ...extra });
+        return journaled(`frw-${variant}-${levelId}`, () => e.clues.selectClues(ctx)).lines.find((l) => l.t === 'start').W;
+      };
+      same([
+        await wOf('fr-base', 'nightmare'), await wOf('fr-screen', 'nightmare'), await wOf('fr-none', 'nightmare'),
+        await wOf('fr-base', 'hell-1'), await wOf('fr-screen', 'hell-1'), await wOf('fr-base', 'nightmare', { igW: 123 }), await wOf('v4', 'nightmare'),
+      ], [NONE, 190000000, NONE, NONE, 380000000, 123, 190000000], 'the screen limit of the start line (fr-base, fr-screen, fr-none, fr-base on Hell 1, fr-screen on Hell 1, the seam, v4)');
+    },
+  },
+  {
+    name: 'fr: bracket-close re-rating (synthetic)',
+    async run() {
+      const screen = (/** @type {number} */ c) => (c <= 4 ? 'cap' : synthetic(100 - 10 * c));
+      const canon = (/** @type {number} */ c) => (c <= 2 ? 'cap' : synthetic(100 - 10 * c));
+      const spec = { prior: null, screen, canon, extra: { igW: 190000000 } };
+      const close = await v4Call('frclose', { ...spec, variant: 'fr-close' });
+      same(close.counts('locate'), [7, 1, 4, 5], `fr-close: locate probes ${JSON.stringify(close.counts('locate'))}`);
+      same(close.counts('close'), [4], `fr-close: close probes ${JSON.stringify(close.counts('close'))}`);
+      assert(close.end.locate.noWindowProof === 'closed-in', `fr-close: noWindowProof ${close.end.locate.noWindowProof}`);
+      assert(close.result.ok === true && close.result.clues.length === 4, `fr-close: result ${JSON.stringify(close.result.ok)}`);
+      same(close.end.locate.close, { count: 4, side: 'in', kind: 'rated' }, 'fr-close: the close block');
+      assert(close.end.locate.result === 'hit' && close.end.locate.hit === 4 && close.end.locate.wc === 4 && close.end.rerates === 1, `fr-close: ${JSON.stringify(close.end.locate)}`);
+      assert(!close.phases.includes('window'), 'fr-close: the call went on to the window');
+      same(close.result.igWindow.proof, 'closed-in', 'fr-close: the result carries the proof');
+      const base = await v4Call('frclose', { ...spec, variant: 'fr-base' });
+      same(base.counts('close'), [], 'fr-base: a close probe');
+      assert(base.result.ok === true && base.result.clues.length === 4, `fr-base: result ${JSON.stringify(base.result.ok)}`);
+      assert(base.end.locate.close === undefined && base.end.profiles > close.end.profiles, `fr-base: ${base.end.profiles} profiles against ${close.end.profiles}, close ${JSON.stringify(base.end.locate.close)}`);
+      process.stdout.write(`NOTE fr close: fr-close ${close.end.profiles} profiles and ${close.end.rerates} re-rating; fr-base ${base.end.profiles} profiles and ${base.end.rerates} re-ratings, result ${base.result.clues.length} clues\n`);
+      // A closed bracket whose lower end is no screen cap is not re-rated.
+      const sure = await v4Call('frclose-sure', { prior: null, screen: (c) => synthetic(c <= 4 ? 80 : 30), extra: { igW: 190000000 }, variant: 'fr-close' });
+      same(sure.counts('locate'), [7, 1, 4, 5], `fr-close, no cap: locate probes ${JSON.stringify(sure.counts('locate'))}`);
+      assert(sure.counts('close').length === 0 && sure.end.locate.close === undefined, 'fr-close: an uncapped lower end was re-rated');
+      // A canonical result that is not in band is recorded and the call goes on without a hit.
+      const below = await v4Call('frclose-below', { ...spec, canon: (c) => (c <= 2 ? 'cap' : synthetic(c <= 4 ? 50 : 100 - 10 * c)), variant: 'fr-close' });
+      same(below.counts('close'), [4], `fr-close, canonical below: close probes ${JSON.stringify(below.counts('close'))}`);
+      same(below.end.locate.close, { count: 4, side: 'below', kind: 'rated' }, 'fr-close, canonical below: the close block');
+      assert(below.end.locate.noWindowProof !== 'closed-in' && below.end.locate.hit === null && below.phases.includes('window'), `fr-close, canonical below: ${JSON.stringify(below.end.locate)}`);
+    },
+  },
+  {
+    name: 'fr: (c4) probe (synthetic)',
+    async run() {
+      const f = (/** @type {number} */ c) => (c <= 1 ? 'cap' : c === 2 ? synthetic(64) : c === 3 ? synthetic(61) : synthetic(100 - 10 * c));
+      /** @type {any[]} */
+      const events = [];
+      const spec = { prior: 3, screen: f, canon: f };
+      const c4 = await v4Call('frc4', { ...spec, variant: 'fr-c4', extra: { igW: 190000000, record: (/** @type {any} */ ev) => events.push(ev) } });
+      same(c4.counts('locate'), [3], `fr-c4: locate probes ${JSON.stringify(c4.counts('locate'))}`);
+      same(c4.counts('below'), [2], `fr-c4: below probes ${JSON.stringify(c4.counts('below'))}`);
+      assert(c4.result.ok === true && c4.result.clues.length === 2, `fr-c4: result ${JSON.stringify(c4.result.ok)}`);
+      same(c4.end.locate.c4, { count: 2, side: 'in', kind: 'rated' }, 'fr-c4: the c4 block');
+      assert(c4.end.locate.result === 'hit' && c4.end.locate.hit === 2 && c4.end.locate.probes === 1, `fr-c4: ${JSON.stringify(c4.end.locate)}`);
+      same(events.filter((ev) => ev.kind === 'rated').map((ev) => [ev.phase, ev.sequence]), [['locate', 0], ['below', 1]], 'fr-c4: the rated events (phase, ordinal)');
+      same(c4.phases, ['locate', 'below'], 'fr-c4: the phases');
+      const base = await v4Call('frc4', { ...spec, variant: 'fr-base', extra: { igW: 190000000 } });
+      assert(base.result.ok === true && base.result.clues.length === 3, `fr-base: result ${JSON.stringify(base.result.ok)}`);
+      assert(base.tuples.every((t) => t[0] !== 'below') && base.end.locate.c4 === undefined, 'fr-base: a below probe');
+      // The probe takes the family subset first, then a sample: an excluded family subset costs a second ordinal.
+      const { e } = await engine('fr-c4');
+      const { carved } = await k15Set();
+      const keyOf = (/** @type {any} */ ev) => e.keys.clueKey(carved.board, carved.set.pieces, carved.set.witness.filter((/** @type {any} */ p) => ev.clueIds.includes(p.piece)));
+      const exclude = new Set([keyOf(events.find((ev) => ev.phase === 'below'))]);
+      /** @type {any[]} */
+      const events2 = [];
+      const second = await v4Call('frc4', { ...spec, variant: 'fr-c4', extra: { igW: 190000000, excludeClueKeys: exclude, record: (/** @type {any} */ ev) => events2.push(ev) } });
+      same(events2.filter((ev) => ev.kind === 'skip' || ev.kind === 'rated').map((ev) => [ev.kind, ev.phase ?? null, ev.sequence]),
+        [['rated', 'locate', 0], ['skip', null, 1], ['rated', 'below', 2]], 'fr-c4, family subset excluded: the events (kind, phase, ordinal)');
+      same(second.end.locate.c4, { count: 2, side: 'in', kind: 'rated' }, 'fr-c4, family subset excluded: the c4 block');
+      assert(second.result.ok === true && second.result.clues.length === 2, 'fr-c4, family subset excluded: the sample was not offered');
+      same(second.result.skips, { subsets: [1], repairs: [] }, 'fr-c4, family subset excluded: skips');
+      // Both subsets excluded: the probe ends as a skip after two ordinals and the hit stands.
+      exclude.add(keyOf(events2.find((ev) => ev.phase === 'below')));
+      /** @type {any[]} */
+      const events3 = [];
+      const third = await v4Call('frc4', { ...spec, variant: 'fr-c4', extra: { igW: 190000000, excludeClueKeys: exclude, record: (/** @type {any} */ ev) => events3.push(ev) } });
+      same(third.end.locate.c4, { count: 2, side: 'skip', kind: null }, 'fr-c4, both excluded: the c4 block');
+      same(events3.filter((ev) => ev.kind === 'skip' || ev.kind === 'rated').map((ev) => [ev.kind, ev.sequence]),
+        [['rated', 0], ['skip', 1], ['skip', 2]], 'fr-c4, both excluded: the events (kind, ordinal)');
+      assert(third.result.ok === true && third.result.clues.length === 3 && third.end.locate.hit === 3, `fr-c4, both excluded: ${JSON.stringify(third.end.locate)}`);
+      process.stdout.write(`NOTE fr c4: subset skips ${JSON.stringify(c4.result.skips.subsets)}, ${JSON.stringify(second.result.skips.subsets)} and ${JSON.stringify(third.result.skips.subsets)} (nothing excluded, the family subset excluded, both excluded); profiles ${c4.end.profiles}, ${second.end.profiles} and ${third.end.profiles}; fr-base ${base.end.profiles}\n`);
+    },
+  },
 ];
 
 /** @param {string} text @returns {string} The text without the worktree's absolute root (records refuse it). */

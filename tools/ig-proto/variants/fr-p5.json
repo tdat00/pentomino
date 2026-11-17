@@ -1,0 +1,8 @@
+{
+  "id": "fr-p5",
+  "extends": ["fr-base", "v4-p5"],
+  "description": "Frozen-round arm (V4-T08): fr-base with P5's call budget and bounded set attempts of v4-p5.",
+  "edits": [],
+  "files": [],
+  "params": {}
+}

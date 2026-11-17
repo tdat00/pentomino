@@ -67,6 +67,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `variants/v4-ps.json`, `plans/V4-T05.json`, `plans/V4-T05.prior-gen.json`, `plans/V4-T05.prior-replay.json` | the per-set prior arm `v4-ps` and the plan and manifests of its run (V4-T05); the verdict is `v4-check.mjs prior-verdict`; see "The per-set prior (V4-T05)" |
 | `variants/link.json`, `variants/log-link.json`, `variants/v4-link.json`, `variants/v4-ps-link.json`, `variants/files/link/`, `linkage.mjs`, `plans/V4-T06.json` | the batch linkage journal and its report (V4-T06): the variant `link` and its three compositions, `ig-link.js`, `linkage.mjs report` and the plan of its run; see "Batch linkage (V4-T06)" |
 | `variants/v4-p5.json`, `variants/v4-p5-w8-test.json`, `variants/v4-link-w8-test.json` | the P5 pilot arm `v4-p5` (the call budget and the bounded set attempts) and the two test-only width-8 trees (V4-T07b); see "P5 bounded set attempts (V4-T07b)" |
+| `variants/fr-base.json`, `fr-screen.json`, `fr-none.json`, `fr-close.json`, `fr-c4.json`, `fr-ps.json`, `fr-p5.json` | the seven frozen-round arms of stage 2 (V4-T08); see "Frozen-round arms (V4-T08)" |
 
 ## Trees (variants)
 
@@ -87,6 +88,10 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `log-link`, `v4-link`, `v4-ps-link` | `log` and `link`; `v4` and `link`; `v4-ps` and `link` | today's search, the `gen-v4` prototype and the `gen-v4` prototype with the per-set prior, each with the linkage journal and the accept timeline (V4-T06); no edit of their own |
 | `v4-p5` | `v4-link` | P5's pilot arm (V4-T07b): `callBudget` 2,000,000,000 units for every Nightmare and Hell 1 call and `setAttemptsBound` 4, with three edits (`p5-1` to `p5-3`); see "P5 bounded set attempts (V4-T07b)" |
 | `v4-p5-w8-test`, `v4-link-w8-test` | `v4-p5` and `w8`; `v4-link` and `w8` | test only (V4-T07b): the same trees with `MAX_POOL_SIZE` 8 (`w8-1`) for the width-8 scripted cases; never an arm or a plan step |
+| `fr-base` | `v4-link` | the frozen-round base arm (V4-T08): the plan's default `W_screen` table by class (`screenClasses`, `screenTable` `tab-default`); no edit |
+| `fr-screen`, `fr-none` | `fr-base` | the screen in every class (`tab-screen`) and no screen in any class (`tab-none`) (V4-T08) |
+| `fr-close`, `fr-c4` | `fr-base` | bracket-close re-rating (`rerate: 'close'`, D-IG7) and the (c4) probe (`c4: true`) (V4-T08) |
+| `fr-ps`, `fr-p5` | `fr-base` and `v4-ps`; `fr-base` and `v4-p5` | the per-set prior and P5's budget and bounded set attempts on the `fr-base` table (V4-T08) |
 
 Every variant except `base` gets `core/engine/ig-params.js` (`IG`, the merged params) and lists its added engine files
 in the copy's `SOURCE_FILES` (`meta-2`), so that the copy's own source digest tells variants apart. `treeId` is the
@@ -1283,3 +1288,60 @@ has no published row; else `linkage: fail <reasons>` (exit 1). The report is wri
 The self-test cases `link: summary of a synthetic batch`, `link: an awaited task discarded at the end` and `link:
 timelines by outcome` are appended to `--items`, and with the closure lines (V4-T06b) `link: a confirmed worker
 termination`, `link: closure lines counted` and `link: the completion key helper`.
+
+## Frozen-round arms (V4-T08)
+
+Stage 2 compares a fixed set of arms on fitting seeds (plan section 5.1). This task adds the last three mechanisms to the
+`gen-v4` prototype, `selectCluesV4` of `variants/files/v4/core/engine/ig-select-v4.js`, each behind a parameter, and names
+the arms. A mechanism acts only with its parameter, so every earlier arm keeps its behaviour and its id (D-V4-05), and
+only Nightmare and Hell 1 targets reach them (D-V4-03). The `v4`-family tree ids moved with the edit of the shared file,
+as with every earlier edit of it: the variant ids and parameters did not change, and the P-0 pass of the stage-2 plan
+re-checks the stage-1 results on the final trees.
+
+- **The `W_screen` class table** (`IG.screenClasses`). `screenClass(levelId, area)` gives the class of a target, with
+  `area` the active cells of the board: `hell-1` (Hell 1, every board), `n-small` (Nightmare, up to 144 cells), `n-mid`
+  (Nightmare, 196 to 324 cells) and `n-large` (Nightmare, 360 cells and more); every other target and area is `null`
+  (Nightmare 145 to 195 and 325 to 359 cells, and every other level). `classW(table, levelId, area)` gives the call's
+  screen limit: the class's number when it is positive and below the canonical limit `DEDUCE.work` (760 M), else
+  `DEDUCE.work`, that is, no screen. A `null` class, a class the table does not list and a `null`, zero, negative,
+  non-number or too large entry all fail closed to no screen; without a table (`IG.screenClasses` absent) it returns
+  `undefined` and the call keeps `IG.W` as before. The limit of a call is `ctx.igW`, else `classW(...)`, else
+  `IG.W[<level id>]`, else `IG.W.default`. `screenTable` names the table in the record's `versions.screenTable` and in the
+  journal's `locate.tables.screen`.
+- **Bracket close** (`IG.rerate: 'close'`, D-IG7's other reading). When the first phase-A bisection ends with a closed
+  bracket (`loAbove`, the highest count rated above the band, and `hiBelow`, the next count, rated below it) and the
+  probe at `loAbove` was screen-capped and not yet re-rated, that probe is re-rated canonically, once, from the shared
+  allowance `rerateMax` (the journal phase `close`, the event phase `close`, no ordinal). An in-band result is the hit
+  (`noWindowProof` `closed-in`): its candidate is offered to the centre rule at once and may end the call; any other
+  result replaces the probe's result at that count and the call goes on as without the parameter. The `end` line's
+  `locate.close` is `{ count, side, kind }` (`side`: `in`, `below` or `above`; `kind`: `rated`, `ar1` or `too-few`),
+  absent when no re-rating was made.
+- **The (c4) probe** (`IG.c4: true`). Before the first in-band locate result of a call is accepted (a count above one),
+  one subset one clue below it is rated: the family subset first, then a sample when the family subset is skipped (the
+  journal phase `below`, the event phase `below`; at most two subset ordinals). When both counts are in band, the lower
+  one is offered to the centre rule first, and a central result ends the call at the lower count (`locate.hit` and `wc`
+  are that count; `locate.probes` counts only the locate probes). The `end` line's `locate.c4` is `{ count, side, kind }`
+  (`side` also `skip` when both subsets were skipped, then `kind` is `null`). The probe is made once per call.
+- **Journal.** The phases `close` and `below` join the frozen `rated` and `unrateable` events and the journal's `phase`
+  lines; a re-rating or probe tuple has the phase name in its first field, as the other phases. The `compare.mjs` family
+  (provisional) does not read them.
+- **The seven arms** (`variants/fr-*.json`, each with no edit and no file of its own; `fr-base` extends `v4-link`, the
+  instrumented `gen-v4` prototype with the linkage journal; each has its own algo id `gen-v4-proto:<arm id>`):
+
+  | Arm | Extends | Parameters |
+  |---|---|---|
+  | `fr-base` | `v4-link` | `screenClasses` `{ hell-1: null, n-small: null, n-mid: 190 M, n-large: null }`, `screenTable` `tab-default`: the plan's default table (OD-P7: no screen up to 144 cells; 360 cells and more: none until both arms have run) |
+  | `fr-screen` | `fr-base` | the screen in every class: `hell-1` 380 M, the three Nightmare classes 190 M, `screenTable` `tab-screen` (an unlisted area still has none) |
+  | `fr-none` | `fr-base` | no screen in any class, `screenTable` `tab-none` |
+  | `fr-close` | `fr-base` | `rerate: 'close'` |
+  | `fr-c4` | `fr-base` | `c4: true` |
+  | `fr-ps` | `fr-base`, `v4-ps` | the per-set prior (`perSetPrior` true; the `ps-*` edits) on the `fr-base` table |
+  | `fr-p5` | `fr-base`, `v4-p5` | P5's 2 G call budget and the bound of 4 set attempts (the `p5-*` edits) on the `fr-base` table |
+
+  The legacy arm of stage 2 is `log-link` (today's search with the linkage journal, V4-T06). The class table, the
+  re-rating at bracket close, the (c4) probe, the arm names and their algo ids are contracts of the stage-2 plans
+  (T11a to T11g) and of the freeze (N-V4-03).
+- **Self-test.** Three cases of the `--v4` group (through the lock helper, task id `V4-T08`): `fr: class table` (the
+  classes and limits at every boundary, the fail-closed entries, the parameters of the seven trees, the screen limit of
+  a real call's `start` line per arm and level), `fr: bracket-close re-rating (synthetic)` and `fr: (c4) probe
+  (synthetic)` (the ordinals of the family subset and of the sample, with the skip and the double skip).

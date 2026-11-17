@@ -1,0 +1,11 @@
+{
+  "id": "fr-screen",
+  "extends": ["fr-base"],
+  "description": "Frozen-round arm (V4-T08): the screen in every class (Hell 1 380 M, every Nightmare class 190 M).",
+  "edits": [],
+  "files": [],
+  "params": {
+    "screenClasses": { "hell-1": 380000000, "n-small": 190000000, "n-mid": 190000000, "n-large": 190000000 },
+    "screenTable": "tab-screen"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "fr-base",
+  "extends": ["v4-link"],
+  "description": "Frozen-round base arm (V4-T08): v4-link with the plan's W_screen table by class (Hell 1 none, Nightmare up to 144 cells none, 196 to 324 cells 190 M, 360 and more none, every unlisted class none).",
+  "edits": [],
+  "files": [],
+  "params": {
+    "screenClasses": { "hell-1": null, "n-small": null, "n-mid": 190000000, "n-large": null },
+    "screenTable": "tab-default"
+  }
+}

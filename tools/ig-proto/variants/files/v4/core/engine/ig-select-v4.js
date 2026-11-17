@@ -13,6 +13,9 @@
 //   P5  (V4-T07a) the call ends when its work budget (IG.callBudget, or the seam ctx.igBudget) is spent: checked before
 //       every rating and every uniqueness count, it returns its best result or `not-in-band`: in `require` the best
 //       already finished final, in `any` the best waiting in-band candidate (V4-T07b: finishing costs nothing there).
+//   T08 (V4-T08) three mechanisms of the frozen-round arms, each only with its parameter: the class table of the
+//       screen limit (IG.screenClasses), the canonical re-rating when the locate bracket closes (IG.rerate 'close',
+//       D-IG7) and the (c4) probe one clue below the first in-band locate hit (IG.c4).
 // Kept from the frozen search: `SelectContext` and `SelectResult`, the `record` events with their `detail` from the
 // same measurement, one `charge` per rating attempt and per repair count (before the event), `replaySkips` and
 // `SkipReplayError`, `conclude`, the repairs and the centre rule. The copy's `selectClues` sends only Nightmare and
@@ -82,6 +85,47 @@ export function callBudgetOf(table, target) {
   }
   const v = table[/** @type {string} */ (target.id)] ?? table.default;
   return typeof v === 'number' && v > 0 ? v : Infinity;
+}
+
+/**
+ * The `W_screen` class of a target (plan P2): Hell 1 on every board; Nightmare by area, up to 144 cells, 196 to 324 and
+ * 360 and more; every other target and area is unlisted.
+ * @param {string | undefined} levelId
+ * @param {number} area
+ * @returns {string | null}
+ */
+export function screenClass(levelId, area) {
+  if (levelId === 'hell-1') {
+    return 'hell-1';
+  }
+  if (levelId !== 'nightmare') {
+    return null;
+  }
+  if (area <= 144) {
+    return 'n-small';
+  }
+  if (area >= 196 && area <= 324) {
+    return 'n-mid';
+  }
+  return area >= 360 ? 'n-large' : null;
+}
+
+/**
+ * The screen limit of a call from a class table (`IG.screenClasses`): the class's number when it is a positive number
+ * below the canonical limit, else `DEDUCE.work` (no screen); a null class, an unlisted class and a null entry fail
+ * closed to no screen.
+ * @param {any} table `{ 'hell-1', 'n-small', 'n-mid', 'n-large' }`, each a number of units or null.
+ * @param {string | undefined} levelId
+ * @param {number} area
+ * @returns {number | undefined} undefined without a table.
+ */
+export function classW(table, levelId, area) {
+  if (table === undefined || table === null) {
+    return undefined;
+  }
+  const cls = screenClass(levelId, area);
+  const w = cls === null ? null : table[cls] ?? null;
+  return typeof w === 'number' && w > 0 && w < DEDUCE.work ? w : DEDUCE.work;
 }
 
 /** @param {number} x @param {number} lo @param {number} hi @returns {number} */
@@ -245,7 +289,8 @@ export function igRatingBound(board, pieces, clues, limits) {
  */
 export function selectCluesV4(ctx) {
   const K = ctx.pieces.length;
-  const W = ctx.igW ?? IG.W[ctx.target.id] ?? IG.W.default;
+  const W = ctx.igW ?? classW(IG.screenClasses, ctx.target.id, activeCount(ctx.board)) ?? IG.W[ctx.target.id]
+    ?? IG.W.default;
   const call = startCall(ctx, { W, priorCount: K < 3 ? null : priorCount(ctx, K) });
   igCapsLine(call.id);
   const loc = {
@@ -815,6 +860,24 @@ function searchV4(ctx, call, loc, W, prior, markNoWindow) {
     if (phase === 'locate') {
       loc.probes += 1;
     }
+    if (IG.c4 === true && phase === 'locate' && p.dir === 'in' && p.count > 1 && loc.c4 === undefined) {
+      // (c4): one subset one clue below the first in-band hit is rated first, so that the centre rule is offered the
+      // lower count before the hit.
+      igPhase('below');
+      let q = rateSubset(fam(p.count - 1), 'below');
+      if (q === null) {
+        q = rateSubset(sample(p.count - 1), 'below');
+      }
+      loc.c4 = { count: p.count - 1, side: q === null ? 'skip' : q.dir, kind: q === null ? null : q.kind };
+      if (q !== null) {
+        const doneBelow = afterProfile(q.kind === 'rated' ? q.cand : null);
+        if (doneBelow !== null) {
+          Object.assign(loc, { result: 'hit', hit: q.count, wc: q.count });
+          throw new Final(doneBelow);
+        }
+      }
+      igPhase('locate');
+    }
     const done = afterProfile(p.kind === 'rated' ? p.cand : null);
     if (done !== null) {
       if (phase === 'locate' && p.dir === 'in') {
@@ -1033,6 +1096,28 @@ function searchV4(ctx, call, loc, W, prior, markNoWindow) {
 
     /** @type {string | null} */
     let proof = null;
+    // D-IG7 (IG.rerate 'close'): when the bracket closes on a screen-capped lower end, that end is re-rated canonically
+    // from the shared allowance, and an in-band result is the hit.
+    if (IG.rerate === 'close' && hit === null && !skipped && hiBelow !== null && loAbove !== null
+      && hiBelow - loAbove === 1 && byCount.get(loAbove)?.screenCapped === true
+      && byCount.get(loAbove)?.rerated !== true && call.rerates < rerateMax) {
+      igPhase('close');
+      const r = rerate(byCount.get(loAbove), 'close');
+      byCount.set(loAbove, r);
+      loc.close = { count: loAbove, side: r.dir, kind: r.kind };
+      if (r.dir === 'in') {
+        hit = loAbove;
+        proof = 'closed-in';
+        try {
+          adopt(r);
+        } catch (e) {
+          if (e instanceof Final) {
+            Object.assign(loc, { result: 'hit', hit, wc: hit, noWindowProof: proof });
+          }
+          throw e;
+        }
+      }
+    }
     if (noWindow === 'below-to-one') {
       return failNoWindow('canonical');
     }
