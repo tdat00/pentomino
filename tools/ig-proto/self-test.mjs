@@ -6,6 +6,7 @@
 // `--proto` (IGP-01) adds the prototype's cases after IGP-00's nine; its state goes to <T>/self-test/state.json
 // (default IGP-01 with --proto, else IGP-00). `--p6` (IGP-04) runs all of them and adds the P6 cases (default task IGP-04).
 // `--frozen` (V4-T01a, V4-T01b, V4-T03) runs only the frozen-source group (default task V4-T01a): carve-only checks and records, unlocked.
+// `--items` (V4-T04a onwards) runs only the measurement-items group (default task V4-T04a): synthetic worker kinds, unlocked.
 // `--v4` (V4-T02a onwards) runs only the gen-v4 prototype group (default task V4-T02a); it runs through the lock helper.
 // Its fifteen cases: V4-T02a's three (tree, dispatch and bounds; locate, rescue and re-rating order; skips and window),
 // V4-T02b's five (observers parity, throwing observers, skip replay round trip, legacy dispatch, the rate seam),
@@ -24,9 +25,10 @@ import { checkText } from '../check-conventions.mjs';
 import { decide, readInvocations } from './lib/budget.mjs';
 import { rateAttempt, recordedCall, screenRating, startCountFor, windowSubsets } from './lib/calls.mjs';
 import { loadEngine } from './lib/engine.mjs';
+import { identityHash, itemIdentity, logEnd, logSpawn, logStart, manifestHash, readItemLog, resumePlan, runItems } from './lib/items.mjs';
 import { createLanes } from './lib/lanes.mjs';
-import { artifactDir, elapsedS, evidenceDir, FROZEN_DIGEST, IG_DIR, parseArgs, rel, ROOT, SOURCE_KIND, sourceRoot } from './lib/paths.mjs';
-import { sha256, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
+import { artifactDir, elapsedS, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, parseArgs, rel, ROOT, SOURCE_KIND, sourceRoot } from './lib/paths.mjs';
+import { harnessInfo, sha256, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
 import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
 import { pairResult } from './identity.mjs';
@@ -630,6 +632,208 @@ const frozenCases = [
       // The real levels offer no Hell level, so the flag above cannot tell a read value from a constant: offer them.
       const offering = { ...levels, offeredLevels: () => [levels.level('hell-1'), levels.level('hell-2'), levels.level('hell-3')] };
       assert(buildInventory(families, offering).alternate.every((r) => r.offeredAtFrozen === true), 'offeredAtFrozen does not come from the levels given');
+    },
+  },
+];
+
+const ITEM_PAIR = Object.freeze([
+  { id: 't1', kind: 'test-ok', variant: 'base', payload: { echo: 1 } },
+  { id: 't2', kind: 'test-ok', variant: 'base', payload: { echo: 2 } },
+]);
+
+/**
+ * @param {any[]} items
+ * @param {Record<string, unknown>} [over] Fields that replace the synthetic ones.
+ * @returns {any} The synthetic identity of the `--items` cases.
+ */
+const itemId = (items, over = {}) => ({
+  frozenCommit: 'c', sourceDigest: 'd', treeIds: { base: 't' }, harnessHash: 'h', manifestHash: manifestHash(items), ...over,
+});
+
+/**
+ * @param {number} n The case number: its task is `items-<n>`, its folder is emptied.
+ * @param {string} [step]
+ * @returns {{ dir: string, log: string, state: string }}
+ */
+function itemFolder(n, step = 'items') {
+  fresh(artifactDir('selftest', `items-${n}`));
+  const dir = artifactDir('selftest', `items-${n}`, step);
+  return { dir, log: join(dir, 'items.jsonl'), state: join(dir, 'state.json') };
+}
+
+/** @param {number} n @param {any[]} items @param {Record<string, any>} [extra] @returns {ReturnType<typeof runItems>} */
+const itemRun = (n, items, extra = {}) => runItems({
+  task: `items-${n}`, step: 'items', label: 'selftest', horizonS: 285, items, testKinds: true, identity: itemId(items), ...extra,
+});
+
+/** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
+const itemCases = [
+  {
+    name: 'items: completion and verification resume',
+    async run() {
+      const { log, state } = itemFolder(1);
+      const ID = itemId(ITEM_PAIR);
+      const first = await itemRun(1, [...ITEM_PAIR]);
+      same(first, { exitCode: 0, done: true, progress: 2, refused: null }, `the first run: ${JSON.stringify(first)}`);
+      const lines = readItemLog(log);
+      same(lines.map((l) => [l.type, l.item]), [['item-start', 't1'], ['item-end', 't1'], ['item-start', 't2'], ['item-end', 't2']],
+        `the log lines: ${JSON.stringify(lines.map((l) => [l.type, l.item]))}`);
+      assert(lines.every((l) => l.identityHash === identityHash(ID)), 'a log line does not carry the run\'s identityHash');
+      same([lines[1], lines[3]].map((l) => [l.status, l.result.echo]), [['completed', 1], ['completed', 2]], 'the end lines: status and echo');
+      assert(lines.every((l) => typeof l.at === 'string' && !Number.isNaN(Date.parse(l.at))) && lines[1].ms >= 0, 'the lines have no ISO time or no ms');
+      same(resumePlan(ITEM_PAIR.slice(), lines, ID, ID), { pending: [], ended: 2 }, 'resumePlan on the finished log');
+      const afterFirst = JSON.parse(readFileSync(state, 'utf8'));
+      same([afterFirst.format, afterFirst.version, afterFirst.task, afterFirst.step, afterFirst.label, afterFirst.done, afterFirst.items],
+        ['ig-proto-state', 1, 'items-1', 'items', 'selftest', true, { done: 2, total: 2 }], `the state: ${JSON.stringify(afterFirst)}`);
+      same(afterFirst.identity, ID, 'the state does not hold the identity');
+      same([afterFirst.lastInvocation.horizonS, afterFirst.lastInvocation.progress], [285, { items: 2, verified: 0 }], 'the first invocation\'s progress');
+      assert(afterFirst.lastInvocation.start < afterFirst.lastInvocation.end && typeof afterFirst.lastInvocation.seconds === 'number', 'the invocation times');
+      const bytes = readFileSync(log);
+      const second = await itemRun(1, [...ITEM_PAIR]);
+      same(second, { exitCode: 0, done: true, progress: 1, refused: null }, `the second run: ${JSON.stringify(second)}`);
+      assert(readFileSync(log).equals(bytes), 'the second run changed the log (an item was dispatched again)');
+      const afterSecond = JSON.parse(readFileSync(state, 'utf8'));
+      same([afterSecond.done, afterSecond.items, afterSecond.lastInvocation.progress], [true, { done: 2, total: 2 }, { items: 0, verified: 1 }],
+        `the second state: ${JSON.stringify(afterSecond)}`);
+    },
+  },
+  {
+    name: 'items: worker error',
+    async run() {
+      const { log } = itemFolder(2);
+      const items = [{ id: 't1', kind: 'test-throw', variant: 'base', payload: {} }];
+      const out = await itemRun(2, items);
+      assert(out.exitCode === 0 && out.done === true, `the run: ${JSON.stringify(out)}`);
+      const lines = readItemLog(log);
+      same(lines.map((l) => [l.type, l.item]), [['item-start', 't1'], ['item-end', 't1']], 'the log lines');
+      const end = lines[1];
+      assert(end.status === 'error' && end.identityHash === identityHash(itemId(items)) && end.result.outcome === 'error'
+        && String(end.result.message).includes('test-throw'), `the end line: ${JSON.stringify(end)}`);
+    },
+  },
+  {
+    name: 'items: parent cut',
+    async run() {
+      const { log } = itemFolder(3);
+      const items = [
+        { id: 'h1', kind: 'test-hold', variant: 'base', payload: { profiles: 0 } },
+        { id: 't2', kind: 'test-ok', variant: 'base', payload: { echo: 2 } },
+      ];
+      const t0 = performance.now();
+      const out = await itemRun(3, items, { horizonS: elapsedS() + 6, limits: { callMinRemainS: 0, callCutMarginS: 1 } });
+      assert(performance.now() - t0 < 10000, `the call took ${Math.round(performance.now() - t0)} ms, not under 10 s`);
+      assert(out.exitCode === 0 && out.done === false && out.progress === 1, `the run: ${JSON.stringify(out)}`);
+      const lines = readItemLog(log);
+      same(lines.map((l) => [l.type, l.item]), [['item-start', 'h1'], ['item-end', 'h1']], 'h1 started and ended, t2 has no line');
+      assert(lines[1].status === 'censored' && lines[1].result.outcome === 'censored' && lines[1].identityHash === identityHash(itemId(items)),
+        `the end line: ${JSON.stringify(lines[1])}`);
+      // `test-hold` is a call kind, so the run above proves the cut of the lanes' call rule. `test-item` holds the same
+      // way but is an item kind only (the reserve table names it), so its admission and its cut come from the item rule alone.
+      const held = [{ id: 'h1', kind: 'test-item', variant: 'base', payload: { profiles: 0 } }];
+      const asItem = { itemReserveS: { 'test-item': 1 }, callCutMarginS: 1 };
+      const t1 = performance.now();
+      const cut = await itemRun(3, held, { step: 'item-kind', horizonS: elapsedS() + 6, limits: asItem });
+      assert(performance.now() - t1 < 10000, `the item-kind call took ${Math.round(performance.now() - t1)} ms, not under 10 s`);
+      assert(cut.exitCode === 0 && cut.done === true && cut.progress === 1, `the item-kind run: ${JSON.stringify(cut)}`);
+      const cutLines = readItemLog(join(artifactDir('selftest', 'items-3', 'item-kind'), 'items.jsonl'));
+      same(cutLines.map((l) => [l.type, l.item, l.status]), [['item-start', 'h1', undefined], ['item-end', 'h1', 'censored']],
+        'an item kind was not admitted by its reserve and cut at H - margin');
+      const late = await itemRun(3, held, { step: 'item-reserve', horizonS: elapsedS() + 3, limits: { itemReserveS: { 'test-item': 100 }, callCutMarginS: 1 } });
+      assert(late.exitCode === 0 && late.done === false && late.progress === 0, `the reserve run: ${JSON.stringify(late)}`);
+      same(readItemLog(join(artifactDir('selftest', 'items-3', 'item-reserve'), 'items.jsonl')), [], 'an item was started with less than its reserve left');
+    },
+  },
+  {
+    name: 'items: identity mismatch',
+    async run() {
+      const { log, state } = itemFolder(4);
+      const first = await itemRun(4, [...ITEM_PAIR]);
+      assert(first.exitCode === 0 && first.done, `the first run: ${JSON.stringify(first)}`);
+      const [logBytes, stateBytes] = [readFileSync(log), readFileSync(state)];
+      const second = await itemRun(4, [...ITEM_PAIR], { identity: itemId(ITEM_PAIR, { harnessHash: 'h2' }) });
+      same(second, { exitCode: 3, done: false, progress: 0, refused: 'identity mismatch (harnessHash)' }, `the second run: ${JSON.stringify(second)}`);
+      assert(readFileSync(log).equals(logBytes) && readFileSync(state).equals(stateBytes), 'a refused run wrote the log or the state');
+    },
+  },
+  {
+    name: 'items: interrupted start refused',
+    async run() {
+      const { dir, log, state } = itemFolder(5);
+      mkdirSync(dir, { recursive: true });
+      logStart(log, identityHash(itemId(ITEM_PAIR)), ITEM_PAIR[0]);
+      const before = readFileSync(log);
+      const out = await itemRun(5, [...ITEM_PAIR]);
+      same(out, { exitCode: 3, done: false, progress: 0, refused: 'interrupted item t1 needs a ruling' }, `the run: ${JSON.stringify(out)}`);
+      assert(readFileSync(log).equals(before) && !existsSync(state), 'a refused run wrote the log or a state');
+    },
+  },
+  {
+    name: 'items: resume rules (pure)',
+    run() {
+      const items = [...ITEM_PAIR];
+      const ID = itemId(items);
+      const hash = identityHash(ID);
+      const start = (/** @type {string} */ item) => ({ type: 'item-start', identityHash: hash, item, kind: 'test-ok', variant: 'base', at: 'x' });
+      const spawn = (/** @type {string} */ item) => ({ type: 'item-spawn', identityHash: hash, item, pid: 1, at: 'x' });
+      const end = (/** @type {string} */ item) => ({ type: 'item-end', identityHash: hash, item, status: 'completed', result: {}, ms: 1, at: 'x' });
+      const refuse = (/** @type {any[]} */ list, /** @type {any[]} */ lines, /** @type {any} */ state = null) => resumePlan(list, lines, ID, state);
+      same(refuse([items[0], { ...items[1], id: 't1' }], []), { refuse: 'duplicate item id t1' }, 'rule 1');
+      const { identityHash: dropped, ...unbound } = end('t1');
+      assert(dropped === hash, 'the helper line has no identityHash to drop');
+      same(refuse(items, [start('t1'), unbound]), { refuse: 'identity mismatch (log line 2)' }, 'rule 3, an end line without identityHash');
+      same(refuse(items, [{ ...start('t1'), identityHash: 'other' }]), { refuse: 'identity mismatch (log line 1)' }, 'rule 3, another identityHash');
+      same(refuse(items, [start('zz')]), { refuse: 'unknown item zz' }, 'rule 4, an unknown item');
+      same(refuse(items, [{ ...start('t1'), type: 'item-restart' }]), { refuse: 'unknown log line 1' }, 'rule 4, an unknown line type');
+      same(refuse(items, [start('t1'), end('t1'), end('t1')]), { refuse: 'duplicate log entry for t1' }, 'rule 5');
+      same(refuse(items, [end('t1')]), { refuse: 'out-of-order log entry for t1' }, 'rule 6, an end without a start');
+      same(refuse(items, [start('t1'), end('t1'), spawn('t1')]), { refuse: 'out-of-order log entry for t1' }, 'rule 6, a spawn after the end');
+      same(refuse(items, [start('t2'), start('t1'), spawn('t1')]), { refuse: 'interrupted item t1 needs a ruling' }, 'rule 7, a spawn without an end');
+      same(refuse(items, [{ ...start('zz'), identityHash: 'other' }]), { refuse: 'identity mismatch (log line 1)' }, 'rule 3 comes before rule 4');
+      same(refuse(items, [], { ...ID, treeIds: { base: 'other' }, manifestHash: 'other' }), { refuse: 'identity mismatch (treeIds)' }, 'rule 2, the first differing field');
+      same(refuse(items, [], {}), { refuse: 'identity mismatch (frozenCommit)' }, 'rule 2, a state without an identity');
+      const { dir, log } = itemFolder(6);
+      mkdirSync(dir, { recursive: true });
+      logStart(log, hash, items[0]);
+      logSpawn(log, hash, 't1', 4242);
+      logEnd(log, hash, 't1', 'completed', { outcome: 'ok' }, 7);
+      const lines = readItemLog(log);
+      same(lines.map((l) => Object.keys(l)), [
+        ['type', 'identityHash', 'item', 'kind', 'variant', 'at'], ['type', 'identityHash', 'item', 'pid', 'at'],
+        ['type', 'identityHash', 'item', 'status', 'result', 'ms', 'at'],
+      ], 'the key order of the line helpers');
+      same(refuse(items, lines, ID), { pending: [items[1]], ended: 1 }, 'start, spawn and end of t1, nothing of t2');
+      appendFileSync(log, 'not json\n');
+      let message = '';
+      try {
+        readItemLog(log);
+      } catch (e) {
+        message = e instanceof Error ? e.message : String(e);
+      }
+      assert(message === 'items: malformed log line 4', `a malformed line: ${message}`);
+    },
+  },
+  {
+    name: 'items: the run identity',
+    async run() {
+      assert(SOURCE_KIND === 'frozen', 'the case must run with --label frozen');
+      const items = [
+        { id: 'a', kind: 'test-ok', variant: 'log', payload: {} },
+        { id: 'b', kind: 'test-ok', variant: 'base', payload: {} },
+      ];
+      const I1 = await itemIdentity(items);
+      const I2 = await itemIdentity(items);
+      const I3 = await itemIdentity([items[1], items[0]]);
+      same(Object.keys(I1), ['frozenCommit', 'sourceDigest', 'treeIds', 'harnessHash', 'manifestHash'], 'the identity keys');
+      assert(I1.frozenCommit === FROZEN_COMMIT, `frozenCommit ${I1.frozenCommit}`);
+      assert(I1.sourceDigest === FROZEN_DIGEST, `sourceDigest ${I1.sourceDigest}`);
+      same(Object.keys(I1.treeIds), ['base', 'log'], 'the tree ids are not keyed by the sorted variants');
+      same(I1.treeIds, { base: (await ensureTree('base')).treeId, log: (await ensureTree('log')).treeId }, 'the tree ids are not the trees\'');
+      assert(I1.harnessHash === harnessInfo().harnessHash, 'harnessHash is not the harness\'s');
+      assert(I1.manifestHash === manifestHash(items), 'manifestHash is not the item list\'s');
+      assert(identityHash(I2) === identityHash(I1), 'two identities of one list differ');
+      same(Object.keys(I3.treeIds), ['base', 'log'], 'the tree ids of the reordered list are not in sorted order');
+      same({ ...I3, manifestHash: I1.manifestHash }, I1, 'the reordered list changed a field other than manifestHash');
+      assert(I3.manifestHash !== I1.manifestHash, 'the manifest hash ignores the item order');
     },
   },
 ];
@@ -1918,15 +2122,15 @@ function scrub(text) {
 
 /** @param {string[]} argv @returns {Promise<number>} */
 async function main(argv) {
-  const { args, on } = parseArgs(argv, { values: ['label', 'source-label', 'horizon-s', 'only', 'task'], switches: ['proto', 'p6', 'frozen', 'v4'] });
+  const { args, on } = parseArgs(argv, { values: ['label', 'source-label', 'horizon-s', 'only', 'task'], switches: ['proto', 'p6', 'frozen', 'v4', 'items'] });
   const label = args.label ?? 'selftest';
-  const task = args.task ?? (on.has('v4') ? 'V4-T02a' : on.has('frozen') ? 'V4-T01a' : on.has('p6') ? 'IGP-04' : on.has('proto') ? 'IGP-01' : 'IGP-00');
+  const task = args.task ?? (on.has('items') ? 'V4-T04a' : on.has('v4') ? 'V4-T02a' : on.has('frozen') ? 'V4-T01a' : on.has('p6') ? 'IGP-04' : on.has('proto') ? 'IGP-01' : 'IGP-00');
   const only = args.only === undefined ? null : args.only.split(',').map(Number);
   horizonS = Number(args['horizon-s'] ?? 285);
   const startedAt = new Date(Date.now() - elapsedS() * 1000).toISOString();
   /** @type {{ name: string, pass: boolean, reason: string | null, ms: number }[]} */
   const results = [];
-  const selected = on.has('v4') ? v4Cases : on.has('frozen') ? frozenCases
+  const selected = on.has('items') ? itemCases : on.has('v4') ? v4Cases : on.has('frozen') ? frozenCases
     : [...cases, ...(on.has('proto') || on.has('p6') ? protoCases : []), ...(on.has('p6') ? p6Cases : [])];
   for (const [i, c] of selected.entries()) {
     if (only !== null && !only.includes(i + 1)) {

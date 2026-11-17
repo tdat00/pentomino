@@ -57,6 +57,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `lib/sets.mjs` | catalogue boards and carve-only sets; `offeredInSource` comes from the tree's own `levels.js` (V4-T01b) |
 | `lib/calls.mjs` | recorded calls, screened and canonical ratings, window subsets |
 | `lib/lanes.mjs`, `lib/lane-worker.mjs` | worker-thread lanes with admission and a supervisor |
+| `lib/items.mjs` | the runner of bounded, identity-checked measurement items and the item-log line helpers (V4-T04a; see "Bounded measurement items") |
 | `variants/<id>.json` | variant manifests; `variants/files/<name>/...` copy-only files |
 
 ## Trees (variants)
@@ -104,7 +105,7 @@ node tools\ig-proto\arm.mjs run --task T --arm A --shard S --variant V --workers
 node tools\ig-proto\arm.mjs publish --task T --arm A --label provisional --source-label <label>
 node tools\ig-proto\arm.mjs status --task T --arm A --shard S --label provisional [--check-rows]
 node tools\ig-proto\identity.mjs --task IGP-00 --arms base,log --label provisional
-node tools\ig-proto\self-test.mjs --label selftest [--only 1,3] [--proto] [--p6] [--frozen] [--task T]   # cases that generate or rate need the lock; --p6 runs every case; --frozen runs only the frozen-source group (unlocked)
+node tools\ig-proto\self-test.mjs --label selftest [--only 1,3] [--proto] [--p6] [--frozen] [--items] [--task T]   # cases that generate or rate need the lock; --p6 runs every case; --frozen runs only the frozen-source group and --items only the measurement-items group (both unlocked)
 node tools\ig-proto\fit-prior.mjs [--replace]       # recomputes data\prior-v1.json; exit 1 when it differs (unlocked)
 node tools\ig-proto\verify.mjs --task T --arm A[,A2] --label provisional --source-label <label> --horizon-s 285   # locked
 node tools\ig-proto\compare.mjs --task T --pairs before:after --reference mp12b1 --label provisional                # unlocked
@@ -149,7 +150,8 @@ wait for difficulty-v3 is not charged, only the 45 s grace of the quiet period.
 With `e` the seconds since the node process started: an arm row starts only when `e + R + 10 <= H` (calibrate's child
 limit `R`); a lane `rate` job only when `e + 30 <= H` and is a defect when it runs longer than 30 s; a lane `call` job
 only when `e + 120 <= H - 15`, and it is cut at `H - 15`, recorded `censored` with every profile it had streamed, its
-lane taking no further job.
+lane taking no further job. The three item kinds of `lib/items.mjs` have their own reserves (see "Bounded measurement
+items").
 
 ## Records
 
@@ -729,3 +731,74 @@ changes no result` runs a call with and without a journal).
   K = 15 set at small limits, one of them reaching the census overshoot: a sanity check on real charges, not a proof) and
   `bound: the journal changes no result`
   run in the `--v4` group (through the lock helper, task id `V4-T02d`).
+
+## Bounded measurement items (task pack v4)
+
+`lib/items.mjs` (V4-T04a; reviews R05 and RV2-01; D-V4-14) is the runner every later measurement of the frozen round
+shares: a list of items, each run in a supervised lane worker (`lib/lanes.mjs`), journaled before it starts and when it
+ends, and never rerun once it has ended. It measures nothing itself; the stage-1 item kinds are T04b's.
+
+- **An item** is `{ id, kind, variant, payload }`: a stable id (unique in the list), the lane job kind, the variant
+  whose tree runs it and the job's own fields (the item's `kind` wins over a payload key `kind`). Consecutive pending
+  items of one variant and kind form a group that
+  shares one set of lanes (`v4-select` and `v4-replay` 2 lanes, `v4-generate` 1 because its pool has 1 worker, every
+  other kind, the test kinds included, 1). `runItems({ task, step, label, horizonS, items })` writes
+  `tests/artifacts/ig-proto/<label>/<task>/<step>/items.jsonl` and `state.json`.
+- **The identity** is `{ frozenCommit, sourceDigest, treeIds, harnessHash, manifestHash }` (`itemIdentity`): the frozen
+  commit, the source digest, the tree id of every variant of the list (keys in sorted order), the harness hash and the
+  hash of the item list (`manifestHash`: id, kind, variant and payload of every item). It holds only the experiment's
+  inputs, never an invocation's remaining time. `identityHash` is the SHA-256 of its JSON text.
+- **The item log** has three line shapes, every one with the run's `identityHash`, ISO text in `at`, one append each,
+  written only by `logStart`, `logSpawn` and `logEnd` (the item-log writers of T10b and T10c use the same helpers):
+
+  ```json
+  { "type": "item-start", "identityHash": "...", "item": "<id>", "kind": "...", "variant": "...", "at": "..." }
+  { "type": "item-spawn", "identityHash": "...", "item": "<id>", "pid": 1234, "at": "..." }
+  { "type": "item-end", "identityHash": "...", "item": "<id>", "status": "completed|censored|error", "result": {}, "ms": 0, "at": "..." }
+  ```
+
+  `item-start` is written before dispatch (before a child process is spawned), `item-spawn` at most once, for a runner
+  that spawns a child (lane workers write none), and `item-end` once. The status is `censored` for the outcome
+  `censored` (the parent cut the item at `H - 15`), `error` for `error` and `defect`, else `completed`. A reader
+  accepts no line without the run's `identityHash`, terminal lines included.
+- **The state** (`state.json`, rewritten at the end of every invocation that did not refuse): `format`, `version`,
+  `task`, `step`, `label`, the `identity`, `done` (every item has an `item-end`), `items: { done, total }` and
+  `lastInvocation: { start, end, seconds, horizonS, progress: { items, verified } }`: `items` counts the `item-end`
+  lines this invocation wrote, `verified` is 1 when no item was pending (a finished step resumes as a pure
+  verification). `run-task.ps1` reads `done`, `lastInvocation.start`, `lastInvocation.seconds` and the sum of the
+  `progress` values.
+- **Resume rules** (`resumePlan`, pure; in this order, the first that fails refuses; log lines count from 1):
+  1. two items with one id: `duplicate item id <id>`;
+  2. the earlier state's identity differs from today's in a field (order `frozenCommit`, `sourceDigest`, `treeIds`,
+     `harnessHash`, `manifestHash`): `identity mismatch (<field>)`;
+  3. a line without the run's `identityHash`, or with another: `identity mismatch (log line <n>)`;
+  4. a line of another type: `unknown log line <n>`; a line of an item that is not in the list: `unknown item <id>`;
+  5. a second `item-start`, `item-spawn` or `item-end` of one item: `duplicate log entry for <id>`;
+  6. an `item-spawn` or `item-end` without an earlier `item-start`, or an `item-spawn` after the `item-end`:
+     `out-of-order log entry for <id>`;
+  7. an `item-start` without an `item-end`: `interrupted item <id> needs a ruling`.
+
+  Otherwise the pending items are those without an `item-end` and the ended ones are never dispatched again.
+- **A refusal exits 3.** The step prints `items: STOP: <reason>` on stderr and writes nothing, so the lock helper throws
+  and the plan stops. A refused or interrupted step needs a ruling, never a rerun. A malformed log line
+  (`items: malformed log line <n>`, a partly written last line included) is thrown as an error, which stops the step too.
+- **Reserve and cut.** The three item kinds are admitted by a reserve and cut by the parent at `H - 15` (with `e` the
+  seconds since the node process started and `H` the invocation's horizon); the reserves are
+  `DEFAULT_LIMITS.itemReserveS` of `lib/lanes.mjs`, which `runItems` also checks before it starts the lanes of a group.
+  The existing kinds keep their rules (`rate`: `e + 30 <= H`, a defect after 30 s; `call`: `e + 120 <= H - 15`, cut at
+  `H - 15`). After a group in which a job was not admitted or an item ended `censored`, the invocation starts no
+  further group; the next invocation continues with the items that have no `item-end`.
+
+  | Kind | Admitted when | Cut | Lanes |
+  |---|---|---|---|
+  | `v4-select` | `e + 120 <= H - 15` | at `H - 15`, `censored` | 2 |
+  | `v4-generate` | `e + 245 <= H - 15` | at `H - 15`, `censored` | 1 (its pool has 1 worker) |
+  | `v4-replay` | `e + 120 <= H - 15` | at `H - 15`, `censored` | 2 |
+
+- **Self-test.** `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04a`
+  runs seven cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay)
+  and one that computes the run identity (`itemIdentity`) of the frozen trees and runs nothing. Each running case uses
+  the scratch task `items-<n>` of the label `selftest`. The test kinds exist only with `testKinds`: `test-ok` returns
+  `{ outcome: 'ok', echo }`, `test-throw` throws, `test-hold` blocks the worker for good and is a call kind of the lanes
+  (the existing rule admits and cuts it), and `test-item` blocks the same way but is not a call kind, so only the item
+  rules (a reserve table that names it, passed as `limits.itemReserveS`) admit and cut it.

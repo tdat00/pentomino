@@ -219,13 +219,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 06:47:41 +07:00 (dispatch, base `4ba6f70`) to 07:09:55 +07:00 (acceptance): 22 min 14 s; the developer's own times 06:48:01-06:56:49 and, after the ruling, 07:03:25-07:08:16 |
+| Waiting for rulings | about 7 min (06:56:49 report to 07:03 relay of the ruling) |
+| Agent id, model | `332ec08a-9228-40c3-821f-12f7f196fbba`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 57 calls; 9,551,161 input, 81,572 output, 9,146,119 cache-read |
+| AI credits | 274.29 |
+| Questions and rulings | No `QUESTION:`. The developer's four deviations (the shared `admits` export in `lanes.mjs`; case 3 strengthened; extra asserts; readings), three named items and six gaps were relayed to the pack author (07:03): accepted, with a fix round: a `test-item` kind proves the item cut alone, wider horizons in case 3, case 7 for `itemIdentity`, jobs built `{ ...payload, kind }`, the README's test kinds; T04a 3 h; pack amendment `3260dde` |
+| Fix rounds | 1 (the `test-item` kind, case 3's horizons, case 7, the job shape, the README) |
+| Gates re-run by the orchestrator | `--items`: 7 passed, 0 failed (case 3 10.1 s); `--frozen`: 10 passed; the lane gate through the lock helper (default cases 1 and 7, `V4-T04a-lanes-verify`): 2 passed, `IG … exit=0 seconds=12.727`; firewall `check`: 289 production files unchanged; the guard `git status -- core generator tests tools/ig-proto/variants tools/ig-proto/plans tools/ig-proto/run-task.ps1`: no output; `npm run check`: OK. The developer's mutation check: without `\|\| isItem(entry.kind)` in the cut clause, case 3 part (ii) never returns |
+| Commit | this task's commit, `improve-generating T04a: Bounded, identity-checked measurement items: the runner` |
+| Issues and named items | None new; `logSpawn` with real PIDs is exercised by T10b and T10c; start-before-dispatch rests on the code order; concurrent invocations are serialised by the lock helper |

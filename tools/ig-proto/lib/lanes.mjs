@@ -3,7 +3,9 @@
 // `horizonS` is the invocation's horizon H, measured from the process start. With e the elapsed time:
 //   - a `rate` job starts only when e + 30 s <= H; a job running longer than 30 s is a defect (cut and recorded);
 //   - a `call` job starts only when e + 120 s <= H - 15 s; it is cut at H - 15 s, recorded `censored` with every
-//     profile it had streamed, and its lane starts no further job in this invocation.
+//     profile it had streamed, and its lane starts no further job in this invocation;
+//   - a v4 item kind starts only when e + reserve(kind) <= H - 15 s and is cut at H - 15 s, recorded `censored`
+//     (reserves: v4-select 120 s, v4-generate 245 s, v4-replay 120 s; lib/items.mjs, V4-T04a).
 import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
 
@@ -12,7 +14,34 @@ import { ensureTree } from './tree.mjs';
 
 const WORKER_FILE = fileURLToPath(new URL('./lane-worker.mjs', import.meta.url));
 
-export const DEFAULT_LIMITS = Object.freeze({ rateStartS: 30, rateCutS: 30, callMinRemainS: 120, callCutMarginS: 15 });
+export const DEFAULT_LIMITS = Object.freeze({
+  rateStartS: 30,
+  rateCutS: 30,
+  callMinRemainS: 120,
+  callCutMarginS: 15,
+  itemReserveS: /** @type {Record<string, number>} */ (Object.freeze({ 'v4-select': 120, 'v4-generate': 245, 'v4-replay': 120 })),
+});
+
+/**
+ * The admission rule of a job kind, shared by `runAll` and by lib/items.mjs (which checks it before it starts lanes).
+ * @param {string} kind
+ * @param {number} e Elapsed seconds.
+ * @param {number} horizon The horizon H.
+ * @param {typeof DEFAULT_LIMITS} lim
+ * @returns {boolean}
+ */
+export function admits(kind, e, horizon, lim) {
+  if (kind === 'rate') {
+    return e + lim.rateStartS <= horizon;
+  }
+  if (Object.hasOwn(lim.itemReserveS, kind)) {
+    return e + lim.itemReserveS[kind] <= horizon - lim.callCutMarginS;
+  }
+  if (kind === 'call' || kind === 'test-hold') {
+    return e + lim.callMinRemainS <= horizon - lim.callCutMarginS;
+  }
+  return true;
+}
 
 /**
  * @typedef {object} Lane
@@ -66,9 +95,11 @@ export async function createLanes({ variant, size = 4, horizonS, limits = {}, te
   /**
    * Runs the jobs on the lanes in job order. A job that is not admitted, and every later one, stays `undefined`.
    * @param {({ kind: string } & Record<string, any>)[]} jobs
+   * @param {{ onStart?: (index: number) => void, onEnd?: (index: number, value: any) => void }} [hooks]
+   *   `onStart` runs right before a job is posted to its lane, `onEnd` right after its result is stored.
    * @returns {Promise<{ results: any[], done: boolean, defect: any }>}
    */
-  function runAll(jobs) {
+  function runAll(jobs, hooks = {}) {
     const results = /** @type {any[]} */ (new Array(jobs.length).fill(undefined));
     let next = 0;
     let stop = false;
@@ -79,6 +110,7 @@ export async function createLanes({ variant, size = 4, horizonS, limits = {}, te
       /** @type {ReturnType<typeof setInterval> | undefined} */
       let timer;
       const isCall = (/** @type {string} */ kind) => kind === 'call' || kind === 'test-hold';
+      const isItem = (/** @type {string} */ kind) => Object.hasOwn(lim.itemReserveS, kind);
       const finish = () => {
         clearInterval(timer);
         for (const lane of lanes) {
@@ -88,7 +120,9 @@ export async function createLanes({ variant, size = 4, horizonS, limits = {}, te
         resolve({ results, done: results.every((r) => r !== undefined), defect });
       };
       const settle = (/** @type {Lane} */ lane, /** @type {any} */ value) => {
-        results[lane.entry.index] = value;
+        const index = lane.entry.index;
+        results[index] = value;
+        hooks.onEnd?.(index, value);
         lane.entry = null;
         running -= 1;
       };
@@ -102,15 +136,14 @@ export async function createLanes({ variant, size = 4, horizonS, limits = {}, te
           }
           const job = jobs[next];
           const e = elapsedS();
-          const admitted = job.kind === 'rate' ? e + lim.rateStartS <= horizon
-            : isCall(job.kind) ? e + lim.callMinRemainS <= horizon - lim.callCutMarginS : true;
-          if (!admitted) {
+          if (!admits(job.kind, e, horizon, lim)) {
             stop = true;
             break;
           }
           lane.entry = { index: next, job, kind: job.kind, startedS: e, profiles: [], windows: [], set: null };
           running += 1;
           const { kind, ...payload } = job;
+          hooks.onStart?.(next);
           lane.worker.postMessage({ type: 'job', id: next, kind, payload });
           next += 1;
         }
@@ -156,7 +189,7 @@ export async function createLanes({ variant, size = 4, horizonS, limits = {}, te
             lane.dead = true;
             lane.worker.terminate();
             settle(lane, { outcome: 'defect', ...defect });
-          } else if (isCall(entry.kind) && e >= horizon - lim.callCutMarginS) {
+          } else if ((isCall(entry.kind) || isItem(entry.kind)) && e >= horizon - lim.callCutMarginS) {
             lane.dead = true;
             lane.worker.terminate();
             settle(lane, { outcome: 'censored', cutAtS: Math.round(e * 1000) / 1000, set: entry.set, profiles: entry.profiles, windows: entry.windows });

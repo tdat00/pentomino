@@ -54,7 +54,13 @@ async function handle(kind, p, post, postSet) {
     }
     return { outcome: 'ok', set: info, result: call.result };
   }
-  if (workerData.testKinds === true && kind === 'test-hold') {
+  if (workerData.testKinds === true && kind === 'test-ok') {
+    return { outcome: 'ok', echo: p.echo };
+  }
+  if (workerData.testKinds === true && kind === 'test-throw') {
+    throw new Error('test-throw');
+  }
+  if (workerData.testKinds === true && (kind === 'test-hold' || kind === 'test-item')) {
     for (let i = 0; i < p.profiles; i += 1) {
       post('call', { synthetic: true, i });
     }
