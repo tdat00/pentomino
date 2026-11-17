@@ -71,7 +71,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `verdicts.mjs`, `data/verdict-manifest.schema.md`, `data/verdict-manifest.example.json` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules), the work ledger of a request, the work rule and the class verdict (V4-T09c), the global verdicts (V4-T09d: the cell gates on the shipped arm, Master identity, the Hell 1 report, P5's stops, the post-hoc projection, the population and phase 0's verdict), and the verdict tool (V4-T09e: the bound prerequisites, the class-selection receipt, the work report and the records it writes) with the manifest those statistics read and its example; the statistics are pure, the tool reads the records the manifest names; see "Admission statistics (V4-T09a)" |
 | `kernel-probe.mjs`, `variants/r4c.json`, `plans/V4-T10a.json`, `plans/V4-T10b.json` | the kernel probe (V4-T10a, V4-T10b): R4 visit and mutation counters in the `r4c` tree, the `v4-kernel` items that compare its complete deduction with the `instr` tree's, the `fewestColumn` profile of child processes under reduced inlining, the `counters` and `profile` (locked) and `report` (unlocked) commands and the plans of the runs; see "Kernel probe (V4-T10a)" |
 | `width-probe.mjs`, `lib/width-worker.mjs`, `lib/width-worker-test.mjs`, `plans/V4-T10c.json` | the pool probe (V4-T10c): one rating's time at 1, 2, 4 and 8 concurrent workers on the frozen source, the width dispatch, its worker and the scripted worker of its self-test, the `run` (locked) and `report` (unlocked) commands and the plan of the run; see "Pool probe (V4-T10c)" |
-| `manifest.mjs`, `data/frozen-round-v1.json` | the frozen-round matrix (V4-T11a onwards): the requests of stages 2 to 5 as data and the pure rules that expand them into groups of request rows with their row limits, state paths and collections, `controlsFrom` and `conditionalActivated`; later tasks of the pack add the pricing, the plan compiler, the collections' activation, the comparators and the manifest to `manifest.mjs`; unlocked, nothing in it runs; see "Frozen-round matrix (V4-T11a)" |
+| `manifest.mjs`, `data/frozen-round-v1.json`, `plans/V4-S2.json`, `plans/V4-LIVE.json`, `plans/V4-S4.universe.json`, `plans/V4-S4X.template.json`, `plans/items/` | the frozen-round matrix (V4-T11a onwards): the requests of stages 2 to 5 as data and the pure rules that expand them into groups of request rows with their row limits, state paths and collections, `controlsFrom` and `conditionalActivated`; the pricing (V4-T11b); the plan compiler (V4-T11c: `compile` writes the plans `V4-S2` and `V4-LIVE`, the priced universe of stage 4, the template of the second validation and the item manifests of the parity passes and of the isolated P-0) and the prerequisites gate (`check-prerequisites`); later tasks of the pack add the collections' activation, the comparators and the manifest to `manifest.mjs`; unlocked, nothing in it runs; see "Frozen-round matrix (V4-T11a)" |
 
 ## Trees (variants)
 
@@ -143,6 +143,8 @@ node tools\ig-proto\verdicts.mjs --manifest <verdict manifest> --label frozen --
 node tools\ig-proto\kernel-probe.mjs counters --task T --label frozen --source-label <label> [--cases <ids>]      # locked (V4-T10a), run by its plan
 node tools\ig-proto\kernel-probe.mjs profile --task T --label frozen --source-label <label> [--cases <ids>]       # locked (V4-T10b), run by its plan; profile-child is its child process
 node tools\ig-proto\kernel-probe.mjs report --task T --label frozen --source-label <label> [--cases <ids>]        # unlocked (V4-T10a, V4-T10b), writes kernel.json|md
+node tools\ig-proto\manifest.mjs compile --label frozen --source-label <label>                                    # unlocked (V4-T11c), writes the plans, the templates and the item manifests under plans\
+node tools\ig-proto\manifest.mjs check-prerequisites --plan V4-LIVE --label frozen --source-label <label>         # unlocked (V4-T11c), the gate of a plan: exit 1 and the reasons when it is blocked
 ```
 
 `--only` (a subset of the self-test's cases), `limits` and `testKinds` of `createLanes`, and `setHorizon` are for the
@@ -2115,3 +2117,78 @@ beside the projection, and the fields with which the orchestrator asks the owner
   unequal durations, so that the earliest free lane is told from round-robin), `two separately emitted steps`, `an inadmissible group`,
   `groups run in order and drain`, `approval fields`, `projection label and fallback` (with `factor()`), `refS reads the timed runs` (on
   18x18 Nightmare's real MP12b1 report, whose 20 runs carry sampling entries only, and on synthetic reports) and `the inputs are checked`.
+
+### Plans, the isolated P-0 and the prerequisites gate (V4-T11c)
+
+The frozen round is a sequence of plans in the order of R2-11 (as amended by review 3). `manifest.mjs compile` writes the plans that can
+be fixed now, the priced universe of stage 4, the template of the second validation and the item manifests the plans name; nothing in
+this section executes any plan, rating, pool or measurement (unlocked). The matrix of the previous sections gives the groups, T11b's
+`stepPrice` the price of every locked step, and the measured seconds come from the item logs of earlier tasks.
+
+- **Files.** `compile --label frozen --source-label <SL>` writes 16 files and prints one `wrote <path>` line per file, then `compile: 16
+  files` (the notes, each plan's allocation and the items priced at their reserve, go to stderr): `plans/V4-S2.json`,
+  `plans/V4-LIVE.json`; `plans/V4-S4.universe.json` and `plans/V4-S4X.template.json`; `plans/items/V4-S2P.p0-v4.json`,
+  `plans/items/V4-S2P.parity-<arm>.json` (the seven stage-2 arms) and `plans/items/V4-S4P.parity-<arm>.json` (`fr-frozen`,
+  `fr-frozen-none`, `fr-frozen-uncapped`, `fr-frozen-none-uncapped`). A plan or template carries `"generatedBy": "manifest.mjs compile"`;
+  the command refuses (exit 1, nothing written) when an existing target lacks it (an item manifest: `"format": "ig-proto-items"` and a
+  `task` of `V4-S2P` or `V4-S4P`) or when a step is not admissible (`manifest: <n> step(s) not admissible: <plan>/<step>: <reason>`), and
+  otherwise replaces its own files, so a second run prints the same 16 lines. `compilePlans(expansion, priceOf, { durations })` returns
+  `{ plans, templates, itemManifests }`, each keyed by file name (`options.rowSOf`, `options.stage1Parity` are seams; the defaults are
+  `projectedRowS` of the cell's MP12b1 median and `plans/V4-T04.parity.json`).
+- **A plan** is `{ task, generatedBy, runnable, blockedBy, prerequisites, allocationMinutes, optionalMinutes, steps }` (`planOf`:
+  `allocationMinutes` is the ceiling in minutes of the required locked steps' `projectS + 45 x invocations`, `optionalMinutes` the same for
+  the optional ones). A **step** is `{ id, locked, node, state, repeatUntilDone, projectS, minHorizonS, invocations, optional, price,
+  dependsOn, consumes, produces, expect, exitOn }` (`state`, `repeatUntilDone`, `projectS`, `minHorizonS`, `invocations` and `price` for
+  locked steps only): `node` is the argv of `run-task.ps1` (the script path with backslashes first, then one word per element; the runner
+  appends `--label`, `--source-label` and, for a locked step, `--horizon-s`); `price` is the simulation's input (the plan's `projectS` and
+  `invocations` are `stepPrice` of it); `consumes` and `produces` are paths relative to the root with `/`; `exitOn` is `a nonzero exit
+  stops the plan (run-task.ps1)`. Every locked step has `repeatUntilDone: true`, its full `state` path and `minHorizonS`: `rowLimitS + 12`
+  for a row step, 270 for a P-1 parity step, 150 for the P-0, the counters, the profile and the width run.
+- **Builders** (pure exports, reused by T11e and T11f): `rowStep(group, priceOf, rowS)` (`arm.mjs run` with the group's arguments, the
+  variant of `arms[<arm>].variant` in the data file or the group's own `variant`, `--workers` from the data; a group of no rows throws
+  `manifest: a row step needs at least one row (<key>)`), `parityManifest(task, arm)`, `itemGroups(manifest, durations)`,
+  `parityPass(task, arm, priceOf, durations)` (`parity-<arm>`, `receipt-<arm>` with `--require-pass`, `accept-<arm>` `--by` the plan of
+  the stage) and `planOf`. `priceOf` is `stepPrice` (a wrapper gets the step id as a second argument).
+- **`V4-S2`** (`runnable: true`; prerequisite: the stage-1 accepted binding with `current: []`), in order: `prerequisites` (the gate),
+  `firewall-snapshot`, `trees`, a `rowStep` of each of the 33 stage-2 groups, `publish-<arm>`, the P-1 pass of each of `fr-base`,
+  `fr-screen`, `fr-none`, `fr-close`, `fr-c4`, `fr-ps` and `fr-p5` under `V4-S2P` (nine `v4-select` items, one `v4-generate` and its two
+  `v4-replay` items: 12 items), the isolated P-0 (`p0-v4`, `receipt-p0` with `--kind p0-identity --require-pass --baseline` the stage-1
+  binding, `accept-p0`), the probes (`kernel-counters` 30 items, `kernel-profile` 2, `kernel-report`, `width` 8 items of three rounds,
+  `width-report`) and `firewall-check`. **`V4-LIVE`** (`runnable: false`, `blockedBy: ['N-V4-03', 'N-V4-13']`) has the same shape for
+  the two `live` groups on `fr-frozen` with `live-receipt` and `accept-live`; its prerequisites are the variant `fr-frozen`, the files
+  `evidence/frozen/V4-S3/freeze.json` and `tools/ig-proto/live-deadline.mjs`, and the accepted P-0 binding with `current: ['v4']`.
+- **The isolated P-0** (RV3-02, D-V4-19): `plans/items/V4-S2P.p0-v4.json` is `plans/V4-T04.parity.json` (its 8 rows, 23 items) under the
+  task `V4-S2P` and the step `p0-v4`, with the state `V4-S2P\p0-v4\state.json`: it reads the stage-1 manifest and the stage-1 raw
+  files, never writes under `V4-T04`. Its `p0-identity` receipt (T11d) is a required pass and its accepted binding a prerequisite of
+  `V4-LIVE` and of every stage-4 plan; the existence of the stage-1 receipt is never a substitute.
+- **The universe and the template** (`runnable: false`, `template: true`, no `node`): `V4-S4.universe.json` has `collections` `initial`,
+  `conditional`, `optional` and `second`, each `{ groups, comparators }`, every group with its row step's `price` (the input, `rowS` from
+  the cell's projection), `projectS` and `invocations`; its comparators keep the arm `shipped-uncapped` (T11f resolves it);
+  `V4-S4X.template.json` holds the S4-7 twins and comparators (task `V4-S4XC`) and `blockedBy: ['N-V4-04']`. No executable stage-4 plan is
+  compiled here: `V4-S4` is written at the activation (T11e).
+- **Prices.** Each step is priced alone as it runs. The seconds of an item are the mean `ms / 1000` per `<kind>/<variant>` over the
+  `item-end` lines of `V4-T04/parity`, `V4-T04/replay`, `V4-T10a/counters`, `V4-T10b/profile` and `V4-T10c/run` (`durationsFromLogs`; the
+  kind and variant are those of the item's `item-start` line, every status counts, a width item takes three times the one-round mean); a
+  kind or variant without a measure takes its reserve, and the group says so (`durationSource` `reserve`; `reservePriced(plans)` lists
+  them): today every P-1 pass of the seven stage-2 arms, which no earlier task ran. The probes' populations are those of their commands
+  (T10a's six subsets of each of five cases, T10b's two cases, T10c's four widths of two cases) and each probe step's `price` input
+  records its `cases`, equal to the `--cases` of its `node`.
+- **The prerequisites gate.** `check-prerequisites --plan <id> --label frozen --source-label <SL>` checks the `prerequisites` of
+  `plans/<id>.json` and prints `prerequisites: pass` (exit 0) or `prerequisites: blocked (<reason>; ...)` (exit 1); every plan's first
+  step runs it, and the runner stops the plan at a nonzero unlocked step. `checkPrerequisites(list, { variants, exists, readJson,
+  currentOf })` (async, pure core) returns `{ status, reasons, line }`: `{ type: 'variant', id }` passes when the id is in
+  `listVariants()` (else `variant <id> missing`), `{ type: 'file', path }` when the file exists (else `missing file <path>`), `{ type:
+  'accepted', path, current, kind?, fields? }` when the binding exists (else `missing binding <path>`), `checkAccepted` passes with
+  today's tree of each `current` id, its `expected.kind` is `kind` (else `<path> is not a <kind> binding`) and, for `fields:
+  'LIVE_DEADLINE_FIELDS'`, its `expected.fields` equal T04d's `LIVE_DEADLINE_FIELDS` (else `<path> lacks the live-deadline fields`);
+  another type is `unknown prerequisite <type>`. A receipt is a prerequisite only through its accepted binding (RV3-06). Today `V4-S2`
+  passes and `V4-LIVE` is blocked on `fr-frozen`, `freeze.json`, `live-deadline.mjs` and the P-0 binding, as it must be.
+- **Open (T11c's QUESTION 1).** `run-task.ps1` reads a plan with `ConvertFrom-Json` (line 39), which PowerShell 7 refuses for an object
+  whose keys differ only in case: a rows step's `price` input has `rows` and `rowS`, so the runner cannot read `V4-S2.json` or
+  `V4-LIVE.json` yet, even under `-DryRun` (a read with `-AsHashtable` does). The ruling on the question decides the fix; the same holds
+  for the plans of T11e and T11f, which use the same step builder.
+- **Self-test** (`--items`, unlocked, pure): the `compile:` cases `no unresolved argument`, `producers before consumers`, `P-0 is isolated
+  and required` (and every P-1 pass), `no executable stage-4 plan`, `disjoint state paths`, `each step priced as it runs`, `bounded steps
+  resume`, `populations as priced` (the probes' items built by their own modules, the row steps' `--cases` parsed by `arm.mjs`),
+  `blocked plans refuse` (bindings built by `acceptedBinding` over temporary receipts), `the measured seconds and the reserve` and `only
+  its own files are written`.

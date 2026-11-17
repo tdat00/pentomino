@@ -1,0 +1,279 @@
+{
+  "task": "V4-LIVE",
+  "generatedBy": "manifest.mjs compile",
+  "runnable": false,
+  "blockedBy": [
+    "N-V4-03",
+    "N-V4-13"
+  ],
+  "prerequisites": [
+    {
+      "type": "variant",
+      "id": "fr-frozen"
+    },
+    {
+      "type": "file",
+      "path": "docs/improve-generating/evidence/frozen/V4-S3/freeze.json"
+    },
+    {
+      "type": "file",
+      "path": "tools/ig-proto/live-deadline.mjs"
+    },
+    {
+      "type": "accepted",
+      "path": "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json",
+      "current": [
+        "v4"
+      ]
+    }
+  ],
+  "allocationMinutes": 40,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "prerequisites",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\manifest.mjs",
+        "check-prerequisites",
+        "--plan",
+        "V4-LIVE"
+      ],
+      "optional": false,
+      "dependsOn": [],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S3/freeze.json",
+        "tools/ig-proto/live-deadline.mjs",
+        "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json"
+      ],
+      "produces": [],
+      "expect": "prerequisites: pass",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\firewall.mjs",
+        "snapshot",
+        "--task",
+        "V4-LIVE"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "prerequisites"
+      ],
+      "consumes": [],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-LIVE/firewall-before.json"
+      ],
+      "expect": "firewall: snapshot of V4-LIVE",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "trees",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\lib\\tree.mjs",
+        "build",
+        "fr-frozen"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "prerequisites"
+      ],
+      "consumes": [],
+      "produces": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen/ig-tree.json"
+      ],
+      "expect": "<variant> <treeId> <copyDigest> built|reused, one line per variant",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-frozen-live-14x14-nightmare",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-LIVE",
+        "--arm",
+        "fr-frozen",
+        "--shard",
+        "live-14x14-nightmare",
+        "--variant",
+        "fr-frozen",
+        "--workers",
+        "4",
+        "--cases",
+        "14x14-nightmare:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-LIVE\\fr-frozen\\live-14x14-nightmare\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 921.8266198521586,
+      "minHorizonS": 272,
+      "invocations": 5,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 182.36532397043172,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-LIVE/fr-frozen/live-14x14-nightmare/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-frozen-live-26x26-hell-1",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-LIVE",
+        "--arm",
+        "fr-frozen",
+        "--shard",
+        "live-26x26-hell-1",
+        "--variant",
+        "fr-frozen",
+        "--workers",
+        "4",
+        "--cases",
+        "26x26-hell-1:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-LIVE\\fr-frozen\\live-26x26-hell-1\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 1017.6375781847969,
+      "minHorizonS": 272,
+      "invocations": 5,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 201.52751563695938,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-LIVE/fr-frozen/live-26x26-hell-1/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "publish-fr-frozen",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "publish",
+        "--task",
+        "V4-LIVE",
+        "--arm",
+        "fr-frozen"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "rows-fr-frozen-live-14x14-nightmare",
+        "rows-fr-frozen-live-26x26-hell-1"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-LIVE/fr-frozen/live-14x14-nightmare/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-LIVE/fr-frozen/live-26x26-hell-1/state.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-LIVE/fr-frozen/"
+      ],
+      "expect": "arm: published fr-frozen/<shard>: <n> rows, <m> journal lines (one line per shard)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "live-receipt",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\live-deadline.mjs",
+        "receipt",
+        "--task",
+        "V4-LIVE"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "publish-fr-frozen"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-LIVE/fr-frozen/"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.json"
+      ],
+      "expect": "the receipt docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.json is written (kind live-deadline; the line is N-V4-13's tool's)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "accept-live",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "accept",
+        "--task",
+        "V4-LIVE",
+        "--receipt",
+        "docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.json",
+        "--binding",
+        "docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.accepted.json",
+        "--by",
+        "V4-LIVE"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "live-receipt"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.accepted.json"
+      ],
+      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.accepted.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\firewall.mjs",
+        "check",
+        "--task",
+        "V4-LIVE"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "firewall-snapshot"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-LIVE/firewall-before.json"
+      ],
+      "produces": [],
+      "expect": "firewall: OK, <n> production files unchanged since the snapshot of V4-LIVE",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    }
+  ]
+}

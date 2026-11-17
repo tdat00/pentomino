@@ -1,0 +1,337 @@
+{
+  "task": "V4-S4X",
+  "generatedBy": "manifest.mjs compile",
+  "template": true,
+  "runnable": false,
+  "blockedBy": [
+    "N-V4-04"
+  ],
+  "groups": [
+    {
+      "id": "V4-S4X/fr-frozen/second-26x26-hell-1",
+      "task": "V4-S4X",
+      "arm": "fr-frozen",
+      "cell": "26x26-hell-1",
+      "from": 40,
+      "to": 59,
+      "rows": 20,
+      "stage": 4,
+      "cohort": "second",
+      "shard": "second-26x26-hell-1",
+      "rowLimitS": 130,
+      "optional": false,
+      "items": [
+        "S4-7"
+      ],
+      "collection": "second",
+      "comparator": false,
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 201.52751563695938,
+        "rowLimitS": 130
+      },
+      "projectS": 2820,
+      "invocations": 10
+    },
+    {
+      "id": "V4-S4X/fr-frozen-none/second-26x26-hell-1",
+      "task": "V4-S4X",
+      "arm": "fr-frozen-none",
+      "cell": "26x26-hell-1",
+      "from": 40,
+      "to": 59,
+      "rows": 20,
+      "stage": 4,
+      "cohort": "second",
+      "shard": "second-26x26-hell-1",
+      "rowLimitS": 130,
+      "optional": false,
+      "items": [
+        "S4-7"
+      ],
+      "collection": "second",
+      "comparator": false,
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 201.52751563695938,
+        "rowLimitS": 130
+      },
+      "projectS": 2820,
+      "invocations": 10
+    },
+    {
+      "id": "V4-S4X/fr-frozen/second-20x20-hell-1",
+      "task": "V4-S4X",
+      "arm": "fr-frozen",
+      "cell": "20x20-hell-1",
+      "from": 40,
+      "to": 59,
+      "rows": 20,
+      "stage": 4,
+      "cohort": "second",
+      "shard": "second-20x20-hell-1",
+      "rowLimitS": 130,
+      "optional": false,
+      "items": [
+        "S4-7"
+      ],
+      "collection": "second",
+      "comparator": false,
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 130,
+        "rowLimitS": 130
+      },
+      "projectS": 2620,
+      "invocations": 10
+    },
+    {
+      "id": "V4-S4X/fr-frozen-none/second-20x20-hell-1",
+      "task": "V4-S4X",
+      "arm": "fr-frozen-none",
+      "cell": "20x20-hell-1",
+      "from": 40,
+      "to": 59,
+      "rows": 20,
+      "stage": 4,
+      "cohort": "second",
+      "shard": "second-20x20-hell-1",
+      "rowLimitS": 130,
+      "optional": false,
+      "items": [
+        "S4-7"
+      ],
+      "collection": "second",
+      "comparator": false,
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 130,
+        "rowLimitS": 130
+      },
+      "projectS": 2620,
+      "invocations": 10
+    },
+    {
+      "id": "V4-S4X/fr-frozen/second-24x24-hell-1",
+      "task": "V4-S4X",
+      "arm": "fr-frozen",
+      "cell": "24x24-hell-1",
+      "from": 40,
+      "to": 59,
+      "rows": 20,
+      "stage": 4,
+      "cohort": "second",
+      "shard": "second-24x24-hell-1",
+      "rowLimitS": 130,
+      "optional": false,
+      "items": [
+        "S4-7"
+      ],
+      "collection": "second",
+      "comparator": false,
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 147.16591209457522,
+        "rowLimitS": 130
+      },
+      "projectS": 2820,
+      "invocations": 10
+    },
+    {
+      "id": "V4-S4X/fr-frozen-none/second-24x24-hell-1",
+      "task": "V4-S4X",
+      "arm": "fr-frozen-none",
+      "cell": "24x24-hell-1",
+      "from": 40,
+      "to": 59,
+      "rows": 20,
+      "stage": 4,
+      "cohort": "second",
+      "shard": "second-24x24-hell-1",
+      "rowLimitS": 130,
+      "optional": false,
+      "items": [
+        "S4-7"
+      ],
+      "collection": "second",
+      "comparator": false,
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 147.16591209457522,
+        "rowLimitS": 130
+      },
+      "projectS": 2820,
+      "invocations": 10
+    },
+    {
+      "id": "V4-S4X/fr-frozen/second-14x14-hell-1",
+      "task": "V4-S4X",
+      "arm": "fr-frozen",
+      "cell": "14x14-hell-1",
+      "from": 40,
+      "to": 59,
+      "rows": 20,
+      "stage": 4,
+      "cohort": "second",
+      "shard": "second-14x14-hell-1",
+      "rowLimitS": 130,
+      "optional": false,
+      "items": [
+        "S4-7"
+      ],
+      "collection": "second",
+      "comparator": false,
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 147.16206887894964,
+        "rowLimitS": 130
+      },
+      "projectS": 2820,
+      "invocations": 10
+    },
+    {
+      "id": "V4-S4X/fr-frozen-none/second-14x14-hell-1",
+      "task": "V4-S4X",
+      "arm": "fr-frozen-none",
+      "cell": "14x14-hell-1",
+      "from": 40,
+      "to": 59,
+      "rows": 20,
+      "stage": 4,
+      "cohort": "second",
+      "shard": "second-14x14-hell-1",
+      "rowLimitS": 130,
+      "optional": false,
+      "items": [
+        "S4-7"
+      ],
+      "collection": "second",
+      "comparator": false,
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 147.16206887894964,
+        "rowLimitS": 130
+      },
+      "projectS": 2820,
+      "invocations": 10
+    }
+  ],
+  "comparators": [
+    {
+      "id": "V4-S4XC/shipped-uncapped/second-26x26-hell-1",
+      "task": "V4-S4XC",
+      "arm": "shipped-uncapped",
+      "cell": "26x26-hell-1",
+      "from": 40,
+      "to": 59,
+      "rows": 20,
+      "stage": 4,
+      "cohort": "second",
+      "shard": "second-26x26-hell-1",
+      "rowLimitS": 260,
+      "optional": false,
+      "items": [
+        "S4-7"
+      ],
+      "collection": "second",
+      "comparator": true,
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 201.52751563695938,
+        "rowLimitS": 260
+      },
+      "projectS": 4070.5503127391876,
+      "invocations": 20
+    },
+    {
+      "id": "V4-S4XC/shipped-uncapped/second-20x20-hell-1",
+      "task": "V4-S4XC",
+      "arm": "shipped-uncapped",
+      "cell": "20x20-hell-1",
+      "from": 40,
+      "to": 59,
+      "rows": 20,
+      "stage": 4,
+      "cohort": "second",
+      "shard": "second-20x20-hell-1",
+      "rowLimitS": 260,
+      "optional": false,
+      "items": [
+        "S4-7"
+      ],
+      "collection": "second",
+      "comparator": true,
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 260,
+        "rowLimitS": 260
+      },
+      "projectS": 5240,
+      "invocations": 20
+    },
+    {
+      "id": "V4-S4XC/shipped-uncapped/second-24x24-hell-1",
+      "task": "V4-S4XC",
+      "arm": "shipped-uncapped",
+      "cell": "24x24-hell-1",
+      "from": 40,
+      "to": 59,
+      "rows": 20,
+      "stage": 4,
+      "cohort": "second",
+      "shard": "second-24x24-hell-1",
+      "rowLimitS": 260,
+      "optional": false,
+      "items": [
+        "S4-7"
+      ],
+      "collection": "second",
+      "comparator": true,
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 147.16591209457522,
+        "rowLimitS": 260
+      },
+      "projectS": 2983.318241891503,
+      "invocations": 20
+    },
+    {
+      "id": "V4-S4XC/shipped-uncapped/second-14x14-hell-1",
+      "task": "V4-S4XC",
+      "arm": "shipped-uncapped",
+      "cell": "14x14-hell-1",
+      "from": 40,
+      "to": 59,
+      "rows": 20,
+      "stage": 4,
+      "cohort": "second",
+      "shard": "second-14x14-hell-1",
+      "rowLimitS": 260,
+      "optional": false,
+      "items": [
+        "S4-7"
+      ],
+      "collection": "second",
+      "comparator": true,
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 147.16206887894964,
+        "rowLimitS": 260
+      },
+      "projectS": 2983.2413775789937,
+      "invocations": 20
+    }
+  ]
+}

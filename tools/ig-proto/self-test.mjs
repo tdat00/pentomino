@@ -39,6 +39,7 @@ import { ACCEPTED_FORMAT, acceptedBinding, checkAccepted, LIVE_DEADLINE_FIELDS, 
 import { harnessInfo, sha256, sha256File, sha256Text, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
 import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
+import { parseCases as armCases } from './arm.mjs';
 import { pairResult } from './identity.mjs';
 import {
   caseSums, counterVerdict, epochDirty, kernelCorpus, kernelItems, kernelRows, loggedCases, loggedProfileCases, parseCases, PROFILE_NOTE, profileItems, profileRows,
@@ -1028,6 +1029,34 @@ async function matrixRun(caseId, rep, accepted = 10, over = {}) {
     responseMs: accepted >= 10 ? 31000 : 115000, ...over,
   });
 }
+
+/**
+ * The compilation of the `compile:` cases (V4-T11c), made once: the real matrix with today's controls, the synthetic seconds of the
+ * Tests table (`v4-select/*` and `v4-replay/*` 30 s, `v4-generate/*` 120 s: no other kind has a measure, so the probes take their
+ * reserves) and `compilePlans`' own projected rows. `m` is `manifest.mjs`; no case changes what it returns.
+ * @returns {Promise<{ m: any, expansion: any, durations: Record<string, number>, compiled: any, s2: any, live: any,
+ *   steps: any[], locked: any[] }>}
+ */
+async function compileKit() {
+  if (memo.compileKit === undefined) {
+    const { m, data } = await matrixKit();
+    const d = data();
+    const expansion = m.expandMatrix(d, { controls: m.controlsFrom(mp12b1Report, d.cells.failingNightmare) });
+    const durations = { 'v4-select/*': 30, 'v4-generate/*': 120, 'v4-replay/*': 30 };
+    const compiled = m.compilePlans(expansion, m.stepPrice, { durations });
+    const s2 = compiled.plans['V4-S2.json'];
+    const live = compiled.plans['V4-LIVE.json'];
+    const steps = [...s2.steps, ...live.steps];
+    memo.compileKit = { m, expansion, durations, compiled, s2, live, steps, locked: steps.filter((/** @type {any} */ s) => s.locked) };
+  }
+  return memo.compileKit;
+}
+
+/** @param {any} step @param {string} flag @returns {string | undefined} The word after the flag in the step's argv; undefined without the flag. */
+const argAfter = (step, flag) => {
+  const at = step.node.indexOf(flag);
+  return at < 0 ? undefined : step.node[at + 1];
+};
 
 /**
  * The literal lines of the work-ledger cases (V4-T09c): `S` a call's start, `C` its capability line, `B` a begin line (a
@@ -5321,6 +5350,394 @@ const itemCases = [
       refuses(() => m.approvalFields({ roundCountedSBeforeApproval: -1, requestedAdditionalGuardS: 10 }), 'roundCountedSBeforeApproval must be a number from 0', 'a negative time already spent');
       refuses(() => m.approvalFields(/** @type {any} */ ({ roundCountedSBeforeApproval: 600 })), 'requestedAdditionalGuardS must be a number from 0', 'a missing guard');
       same(m.price([]).admissible, true, 'an empty list is priced at zero');
+    },
+  },
+  {
+    name: 'compile: no unresolved argument',
+    async run() {
+      const { compiled, steps, live } = await compileKit();
+      const missing = new Set();
+      for (const step of steps) {
+        assert(Array.isArray(step.node) && step.node.every((/** @type {unknown} */ w) => typeof w === 'string' && w !== ''), `${step.id}: node is an array of non-empty strings`);
+        for (const word of step.node) {
+          assert(!/[<>]/.test(word) && !word.includes('resolved after') && !word.includes('shipped-uncapped'), `${step.id}: the word ${word} is not resolved`);
+        }
+        const [script, ...rest] = step.node;
+        if (!existsSync(abs(script.replaceAll('\\', '/')))) {
+          missing.add(script);
+        }
+        rest.forEach((/** @type {string} */ word, /** @type {number} */ i) => {
+          if (word.startsWith('--') && word !== '--require-pass') {
+            assert(rest[i + 1] !== undefined && !rest[i + 1].startsWith('--'), `${step.id}: ${word} has no value`);
+          }
+        });
+        const manifest = argAfter(step, '--manifest');
+        assert(manifest === undefined || Object.hasOwn(compiled.itemManifests, manifest.split('\\').at(-1) ?? ''), `${step.id}: ${manifest} is not one of the compiled item manifests`);
+      }
+      same([...missing], ['tools\\ig-proto\\live-deadline.mjs'], 'every script exists, but the live-deadline tool of N-V4-13');
+      assert(live.prerequisites.some((/** @type {any} */ p) => p.type === 'file' && p.path === 'tools/ig-proto/live-deadline.mjs'), 'the tool is a file prerequisite of V4-LIVE');
+      same(steps.find((/** @type {any} */ s) => s.id === 'accept-p0').node[0], 'tools\\ig-proto\\v4-check.mjs', 'accept-p0 runs v4-check');
+      for (const [name, template] of Object.entries(compiled.templates)) {
+        assert(!JSON.stringify(template).includes('"node"'), `the template ${name} has a node`);
+      }
+    },
+  },
+  {
+    name: 'compile: producers before consumers',
+    async run() {
+      const { s2, live } = await compileKit();
+      /** @type {Set<string>} */
+      const produced = new Set();
+      let consumed = 0;
+      for (const plan of [s2, live]) {
+        const declared = new Set(plan.prerequisites.filter((/** @type {any} */ p) => p.type === 'file' || p.type === 'accepted').map((/** @type {any} */ p) => p.path));
+        /** @type {Set<string>} */
+        const here = new Set();
+        /** @type {string[]} */
+        const ids = [];
+        for (const step of plan.steps) {
+          for (const path of step.consumes) {
+            assert(here.has(path) || produced.has(path) || declared.has(path), `${plan.task}/${step.id} consumes ${path}, which no earlier step or plan produces and no prerequisite declares`);
+            consumed += 1;
+          }
+          for (const dep of step.dependsOn) {
+            assert(ids.includes(dep), `${plan.task}/${step.id} depends on ${dep}, which is not an earlier step`);
+          }
+          step.produces.forEach((/** @type {string} */ p) => here.add(p));
+          ids.push(step.id);
+        }
+        here.forEach((p) => produced.add(p));
+        if (plan === s2) {
+          assert(produced.has('docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json'), 'V4-S2 produces the P-0 binding that V4-LIVE requires');
+        }
+      }
+      assert(consumed > 100, `${consumed} consumed paths checked`);
+      same(s2.steps.find((/** @type {any} */ s) => s.id === 'trees').node.slice(2), ['base', 'instr', 'r4c', 'v4', 'v4-w760', 'v4-w095', 'v4-w380', 'log-link', 'fr-base', 'fr-screen', 'fr-none', 'fr-close', 'fr-c4', 'fr-ps', 'fr-p5'],
+        'V4-S2 builds the variants the task names, the probes\' instr and r4c included');
+      same(live.steps.find((/** @type {any} */ s) => s.id === 'trees').node.slice(2), ['fr-frozen'], 'V4-LIVE builds fr-frozen');
+      same([s2.steps[1].id, live.steps[1].id], ['firewall-snapshot', 'firewall-snapshot'], 'each plan takes its firewall snapshot right after its gate, since its last step checks it');
+      assert(live.steps.some((/** @type {any} */ s) => s.consumes.includes('docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json')), 'V4-LIVE consumes the binding of the earlier plan');
+    },
+  },
+  {
+    name: 'compile: P-0 is isolated and required',
+    async run() {
+      const { compiled, s2, live } = await compileKit();
+      const stage1 = JSON.parse(readFileSync(join(IG_DIR, 'plans', 'V4-T04.parity.json'), 'utf8'));
+      const p0 = compiled.itemManifests['V4-S2P.p0-v4.json'];
+      same([p0.format, p0.version, p0.task, p0.step], [stage1.format, stage1.version, 'V4-S2P', 'p0-v4'], 'the P-0 manifest is under its own task and step');
+      same(p0.rows.length, 8, 'eight rows');
+      same(p0.rows, stage1.rows, 'its rows are the stage-1 corpus, unchanged');
+      const isV4 = (/** @type {string} */ v) => v !== 'base';
+      /** @param {any} manifest @returns {string[]} The (variant, case, seed, mode) of each item, without the storage step of its id. */
+      const keys = (manifest) => expandManifest(manifest, artifactDir('frozen', manifest.task, manifest.step), isV4).map((i) => i.id.slice(manifest.step.length + 1));
+      const before = keys(stage1);
+      same([before.length, new Set(before).size], [23, 23], 'the stage-1 corpus has 23 distinct items');
+      same(keys(p0), before, 'the same 23 items, under another step id');
+      assert(expandManifest(p0, artifactDir('frozen', 'V4-S2P', 'p0-v4'), isV4).every((i) => String(i.payload.logDir).includes('V4-S2P') && !String(i.payload.logDir).includes('V4-T04')),
+        'a P-0 item logs under V4-S2P and never under V4-T04');
+      const at = s2.steps.findIndex((/** @type {any} */ s) => s.id === 'p0-v4');
+      const [run, receipt, accept] = s2.steps.slice(at, at + 3);
+      same([argAfter(run, '--task'), argAfter(run, '--step'), run.state, run.locked], ['V4-S2P', 'p0-v4', 'V4-S2P\\p0-v4\\state.json', true], 'the P-0 step runs under V4-S2P and its own state');
+      same([receipt.id, argAfter(receipt, '--kind'), receipt.node.includes('--require-pass'), argAfter(receipt, '--baseline')],
+        ['receipt-p0', 'p0-identity', true, 'docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json'], 'the receipt follows the run: p0-identity, a required pass, the stage-1 binding as baseline');
+      same([accept.id, argAfter(accept, '--receipt'), argAfter(accept, '--binding')], ['accept-p0', receipt.produces[0], 'docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json'], 'the acceptance follows the receipt');
+      assert(live.prerequisites.some((/** @type {any} */ p) => isDeepStrictEqual(p, { type: 'accepted', path: 'docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json', current: ['v4'] })),
+        'V4-LIVE requires the accepted P-0 binding on today\'s v4 tree');
+      // Every P-1 pass is a required proof as well: its receipt exits nonzero on a failed or incomplete pass and its acceptance follows it.
+      for (const arm of ['fr-base', 'fr-screen', 'fr-none', 'fr-close', 'fr-c4', 'fr-ps', 'fr-p5']) {
+        const i = s2.steps.findIndex((/** @type {any} */ s) => s.id === `parity-${arm}`);
+        const [pass, rec, acc] = s2.steps.slice(i, i + 3);
+        same([argAfter(pass, '--task'), argAfter(pass, '--step'), argAfter(pass, '--manifest')], ['V4-S2P', `parity-${arm}`, `tools\\ig-proto\\plans\\items\\V4-S2P.parity-${arm}.json`], `${arm}: the pass runs its own manifest`);
+        same([rec.id, argAfter(rec, '--kind'), argAfter(rec, '--arm'), rec.node.includes('--require-pass'), acc.id, argAfter(acc, '--by'), argAfter(acc, '--binding')],
+          [`receipt-${arm}`, 'parity', arm, true, `accept-${arm}`, 'V4-S2', `docs/improve-generating/evidence/frozen/V4-S2P/parity-${arm}.accepted.json`], `${arm}: a required receipt, then its acceptance`);
+        const manifest = compiled.itemManifests[`V4-S2P.parity-${arm}.json`];
+        same([manifest.format, manifest.task, manifest.step, manifest.rows.length, [...new Set(manifest.rows.map((/** @type {any} */ r) => r.variant))]], ['ig-proto-items', 'V4-S2P', `parity-${arm}`, 5, [arm]], `${arm}: its manifest`);
+      }
+      for (const arm of ['fr-frozen', 'fr-frozen-none', 'fr-frozen-uncapped', 'fr-frozen-none-uncapped']) {
+        const manifest = compiled.itemManifests[`V4-S4P.parity-${arm}.json`];
+        same([manifest.format, manifest.task, manifest.step, expandManifest(manifest, artifactDir('frozen', manifest.task, manifest.step), isV4).length], ['ig-proto-items', 'V4-S4P', `parity-${arm}`, 12], `${arm}: a stage-4 manifest of 12 items`);
+      }
+      same(Object.keys(compiled.itemManifests).length, 12, 'the P-0 manifest, seven stage-2 and four stage-4 P-1 manifests');
+    },
+  },
+  {
+    name: 'compile: no executable stage-4 plan',
+    async run() {
+      const { compiled, expansion, steps } = await compileKit();
+      same(Object.values(compiled.plans).map((/** @type {any} */ p) => p.task), ['V4-S2', 'V4-LIVE'], 'only V4-S2 and V4-LIVE are plans');
+      same(Object.keys(compiled.templates), ['V4-S4.universe.json', 'V4-S4X.template.json'], 'the universe and the second validation are templates');
+      const tasks = new Set(steps.flatMap((/** @type {any} */ s) => (s.node.includes('--task') ? [argAfter(s, '--task')] : [])));
+      same([...tasks].sort(), ['V4-LIVE', 'V4-S2', 'V4-S2K', 'V4-S2P', 'V4-S2W'], 'no step runs under a stage-4 task');
+      const { 'V4-S4.universe.json': universe, 'V4-S4X.template.json': second } = compiled.templates;
+      for (const template of [universe, second]) {
+        assert(template.runnable === false && template.template === true && !JSON.stringify(template).includes('"node"'), `${template.task} is a template without a node`);
+      }
+      same(second.blockedBy, ['N-V4-04'], 'the second validation waits for the adoption');
+      /** @param {string} collection @param {boolean} comparator @returns {string[]} */
+      const ids = (collection, comparator) => expansion.groups.filter((/** @type {any} */ g) => g.collection === collection && g.comparator === comparator).map((/** @type {any} */ g) => g.id);
+      const initial = ids('initial', true);
+      assert(initial.length > 0, 'the initial collection has comparators');
+      same(universe.collections.initial.comparators.map((/** @type {any} */ g) => g.id), initial, 'the universe\'s initial comparators are every comparator group of that collection');
+      same(universe.collections.initial.groups.map((/** @type {any} */ g) => g.id), ids('initial', false), 'and its groups the others');
+      const s47 = expansion.groups.filter((/** @type {any} */ g) => g.items.includes('S4-7')).map((/** @type {any} */ g) => g.id).sort();
+      assert(s47.length > 0, 'S4-7 has groups');
+      same([...universe.collections.second.groups, ...universe.collections.second.comparators].map((/** @type {any} */ g) => g.id).sort(), s47, 'the second collection holds every S4-7 group');
+      same([...second.groups, ...second.comparators].map((/** @type {any} */ g) => g.id).sort(), s47, 'and so does the template');
+      assert(second.comparators.every((/** @type {any} */ g) => g.task === 'V4-S4XC'), 'the comparators of the second validation are V4-S4XC');
+      for (const group of [...Object.values(universe.collections).flatMap((/** @type {any} */ c) => [...c.groups, ...c.comparators])]) {
+        same([group.price.type, group.price.rows], ['rows', group.rows], `${group.id} is priced on its rows`);
+      }
+    },
+  },
+  {
+    name: 'compile: disjoint state paths',
+    async run() {
+      const { locked } = await compileKit();
+      const states = locked.map((/** @type {any} */ s) => s.state);
+      same(new Set(states).size, states.length, 'two locked steps share a state path');
+      assert(states.includes('V4-S2\\fr-base\\pilot-14x14-nightmare\\state.json'), 'the pilot of fr-base on 14x14-nightmare has its state');
+      assert(states.includes('V4-S2P\\p0-v4\\state.json'), 'the isolated P-0 has its state');
+      for (const id of ['IGP-02', 'V4-T04', 'V4-T04v4', 'V4-T04f', 'V4-T04i']) {
+        assert(states.every((/** @type {string} */ s) => !s.startsWith(`${id}\\`)), `a state under ${id}, a historical record`);
+      }
+      assert(locked.every((/** @type {any} */ s) => s.state.startsWith(`${argAfter(s, '--task')}\\`)), 'a state is under the task of its argv');
+      assert(locked.every((/** @type {any} */ s) => s.produces.includes(`tests/artifacts/ig-proto/frozen/${s.state.replaceAll('\\', '/')}`)), 'a step produces the state file it runs under');
+      same(states.filter((/** @type {string} */ s) => s.startsWith('V4-S2P\\')).length, 8, 'the seven P-1 passes and the P-0 each have a folder under V4-S2P');
+    },
+  },
+  {
+    name: 'compile: each step priced as it runs',
+    async run() {
+      const { m, s2, live, locked, expansion } = await compileKit();
+      for (const step of locked) {
+        const priced = m.stepPrice(step.price);
+        assert(priced.admissible === true, `${step.id} is not admissible`);
+        same([step.projectS, step.invocations], [priced.projectS, priced.invocations], `${step.id}: the step carries the price of its own input`);
+      }
+      /** @param {any[]} steps @param {boolean} optional @returns {number} */
+      const minutes = (steps, optional) => Math.ceil(steps.filter((s) => s.locked && s.optional === optional).reduce((sum, s) => sum + s.projectS + 45 * s.invocations, 0) / 60);
+      for (const plan of [s2, live]) {
+        same([plan.allocationMinutes, plan.optionalMinutes], [minutes(plan.steps, false), minutes(plan.steps, true)], `${plan.task}: allocation and optional minutes`);
+        assert(plan.allocationMinutes > 0, `${plan.task} has an allocation`);
+      }
+      // An optional step is priced apart: the stage-4 optional item S4-6 beside a required stage-4 row step.
+      const optionalGroup = expansion.groups.find((/** @type {any} */ g) => g.collection === 'optional');
+      const requiredGroup = expansion.groups.find((/** @type {any} */ g) => g.collection === 'initial' && !g.comparator);
+      const required = m.rowStep(requiredGroup, m.stepPrice, 100);
+      const optional = m.rowStep(optionalGroup, m.stepPrice, 100);
+      same([required.optional, optional.optional], [false, true], 'the optional flag is the group\'s');
+      const mixed = m.planOf({ task: 'T', generatedBy: 'x', runnable: true, blockedBy: [], prerequisites: [], steps: [required, optional] });
+      same([mixed.allocationMinutes, mixed.optionalMinutes], [minutes([required], false), minutes([optional], true)], 'required and optional steps are summed apart');
+      assert(mixed.allocationMinutes > 0 && mixed.optionalMinutes > 0, 'both sums are above zero');
+    },
+  },
+  {
+    name: 'compile: bounded steps resume',
+    async run() {
+      const { m, s2, locked } = await compileKit();
+      for (const step of locked) {
+        assert(step.repeatUntilDone === true, `${step.id} does not repeat until done`);
+        assert(typeof step.state === 'string' && step.state.endsWith('\\state.json'), `${step.id} has no state path`);
+        const expected = step.price.type === 'rows' ? step.price.rowLimitS + 12 : step.id.startsWith('parity-') ? 270 : 150;
+        same(step.minHorizonS, expected, `${step.id}: minHorizonS`);
+      }
+      same(locked.filter((/** @type {any} */ s) => s.price.type !== 'rows' && !s.id.startsWith('parity-')).map((/** @type {any} */ s) => s.id),
+        ['p0-v4', 'kernel-counters', 'kernel-profile', 'width'], 'the steps that are neither rows nor a P-1 pass');
+      const p0 = s2.steps.find((/** @type {any} */ s) => s.id === 'p0-v4');
+      const slow = m.stepPrice({ ...p0.price, groups: p0.price.groups.map((/** @type {any} */ g) => ({ ...g, durationsS: g.durationsS.map(() => 120) })) });
+      assert(slow.admissible === true && slow.invocations >= 2, `23 items of 120 s need ${slow.invocations} invocations`);
+      const row = s2.steps.find((/** @type {any} */ s) => s.id.startsWith('rows-'));
+      same([row.invocations, row.price.rows], [5, 5], 'a 260-s row step runs one row per invocation, so it needs repeatUntilDone');
+    },
+  },
+  {
+    name: 'compile: populations as priced',
+    async run() {
+      const { m, s2, live, expansion, durations, compiled } = await compileKit();
+      const step = (/** @type {string} */ id) => s2.steps.find((/** @type {any} */ s) => s.id === id);
+      const counters = step('kernel-counters');
+      same(argAfter(counters, '--cases'), '10x10-nightmare,12x12-nightmare,14x14-nightmare,26x26-nightmare,26x26-hell-1', 'the counters run five cases');
+      const kernel = await kernelItems(String(argAfter(counters, '--cases')).split(','));
+      same(counters.price.groups.map((/** @type {any} */ g) => [g.kind, g.variant, g.lanes, g.reserveS, g.durationsS.length]), [[kernel[0].kind, kernel[0].variant, 1, 90, 30]], 'one group of 30 items on one lane');
+      same(kernel.length, 30, 'the counters build 30 items: six subsets of each case');
+      const profile = step('kernel-profile');
+      same(argAfter(profile, '--cases'), '14x14-nightmare,26x26-nightmare', 'the profile runs T10b\'s two cases, written out');
+      const profiled = profileItems(String(argAfter(profile, '--cases')).split(','), { task: 'V4-S2K', sourceLabel: 'x' });
+      same([profile.price.type, profile.price.durationsS.length, profile.price.reserveS, profiled.length, profiled[0].kind, profiled[0].variant], ['process', 2, 120, 2, 'process', 'instr'], 'two process items of 120 s reserve');
+      const width = step('width');
+      same([argAfter(width, '--cases'), argAfter(width, '--rounds')], ['26x26-nightmare,14x14-nightmare', '3'], 'the width run: two cases, three rounds');
+      const widths = widthItems(String(argAfter(width, '--cases')).split(','), Number(argAfter(width, '--rounds')));
+      same([width.price.type, width.price.durationsS.length, widths.length, widths[0].kind, widths[0].variant], ['process', 8, 8, 'width', 'base'], 'eight width items');
+      for (const probe of [counters, profile, width]) {
+        same(probe.price.cases, argAfter(probe, '--cases'), `${probe.id}: the price input records the cases of its node`);
+      }
+      // The P-1 passes and the P-0 are priced on the items their manifests expand to, grouped as `runItems` groups them.
+      const isV4 = (/** @type {string} */ v) => v !== 'base';
+      /** @param {any} manifest @returns {string[][]} Consecutive items of one kind and variant, as [kind, variant, count]. */
+      const grouped = (manifest) => {
+        /** @type {any[]} */
+        const groups = [];
+        for (const item of expandManifest(manifest, artifactDir('frozen', manifest.task, manifest.step), isV4)) {
+          const last = groups.at(-1);
+          if (last !== undefined && last[0] === item.kind && last[1] === item.variant) {
+            last[2] += 1;
+          } else {
+            groups.push([item.kind, item.variant, 1]);
+          }
+        }
+        return groups;
+      };
+      const priced = (/** @type {any} */ s) => s.price.groups.map((/** @type {any} */ g) => [g.kind, g.variant, g.durationsS.length]);
+      const p1 = step('parity-fr-screen');
+      same(priced(p1), grouped(m.parityManifest('V4-S2P', 'fr-screen')), 'a P-1 pass is priced on its manifest\'s items');
+      same(priced(p1), [['v4-select', 'fr-screen', 9], ['v4-generate', 'fr-screen', 1], ['v4-replay', 'fr-screen', 2]], '9 selections, 1 generation and 2 replays');
+      same(p1.price.groups.map((/** @type {any} */ g) => [g.lanes, g.reserveS]), [[2, 120], [1, 245], [2, 120]], 'on 2, 1 and 2 lanes with the reserves 120, 245 and 120');
+      same(priced(step('p0-v4')), grouped(compiled.itemManifests['V4-S2P.p0-v4.json']), 'the P-0 is priced on the 23 items of its manifest');
+      same(priced(step('p0-v4')).reduce((/** @type {number} */ sum, /** @type {any[]} */ g) => sum + g[2], 0), 23, 'which are 23');
+      assert(durations['v4-select/*'] === 30, 'the synthetic seconds are those of the Tests table');
+      // With measures, the probes and the P-0 take them: a width item three rounds of T10c's one-round mean, a P-0 group its variant's mean.
+      const measured = m.compilePlans(expansion, m.stepPrice, {
+        durations: { 'v4-kernel/r4c': 2, 'process/instr': 7, 'width/base': 4, 'v4-select/v4': 40, 'v4-select/base': 10, 'v4-select/v4-w760': 20, 'v4-select/v4-w095': 9, 'v4-select/v4-w380': 27 },
+      }).plans['V4-S2.json'];
+      const at = (/** @type {string} */ id) => measured.steps.find((/** @type {any} */ s) => s.id === id).price;
+      same([at('kernel-counters').groups[0].durationsS, at('kernel-profile').durationsS, at('width').durationsS],
+        [Array(30).fill(2), [7, 7], Array(8).fill(12)], 'the counters, the profile and the width run take their measured seconds, the width item three times');
+      same(at('p0-v4').groups.map((/** @type {any} */ g) => [g.variant, [...new Set(g.durationsS)], g.durationSource]),
+        [['v4', [40], 'item logs'], ['base', [10], 'item logs'], ['v4-w760', [20], 'item logs'], ['v4-w095', [9], 'item logs'], ['v4-w380', [27], 'item logs']], 'each P-0 group takes its variant\'s seconds');
+      same(at('parity-fr-base').groups.map((/** @type {any} */ g) => g.durationSource), ['reserve', 'reserve', 'reserve'], 'a P-1 pass of a variant without a measure takes its reserves');
+      // Every row step runs the rows of its group: its --cases expands to exactly those reps of that cell.
+      const groups = [...expansion.groups.filter((/** @type {any} */ g) => g.collection === 'stage2'), ...expansion.groups.filter((/** @type {any} */ g) => g.collection === 'live')];
+      const rowSteps = [...s2.steps, ...live.steps].filter((/** @type {any} */ s) => s.price?.type === 'rows');
+      same(rowSteps.length, groups.length, 'one row step per group');
+      groups.forEach((/** @type {any} */ g, /** @type {number} */ i) => {
+        const s = rowSteps[i];
+        same([s.id, argAfter(s, '--task'), argAfter(s, '--arm'), argAfter(s, '--variant'), s.price.rows, s.price.rowLimitS],
+          [`rows-${g.arm}-${g.shard}`, g.task, g.arm, g.arm, g.rows, g.rowLimitS], `the row step of ${g.id}`);
+        same(armCases(String(argAfter(s, '--cases'))).map((/** @type {any} */ r) => [r.caseId, r.rep]), Array.from({ length: g.rows }, (_, k) => [g.cell, g.from + k]), `${s.id} runs the reps of its group`);
+      });
+      const empty = { ...groups[0], rows: 0 };
+      assert(thrownBy(() => m.rowStep(empty, m.stepPrice, 100)).startsWith('manifest: a row step needs at least one row'), 'a group of no rows is no step');
+      same(argAfter(m.rowStep({ ...groups[0], arm: 'shipped-uncapped', variant: 'fr-frozen-uncapped' }, m.stepPrice, 100), '--variant'), 'fr-frozen-uncapped', 'a resolved comparator brings its own variant');
+      assert(thrownBy(() => m.rowStep({ ...groups[0], arm: 'shipped-uncapped' }, m.stepPrice, 100)).startsWith('manifest: no variant for the arm shipped-uncapped'), 'an arm without a variant is no step');
+    },
+  },
+  {
+    name: 'compile: blocked plans refuse',
+    async run() {
+      const { m, live } = await compileKit();
+      const dir = fresh(artifactDir('selftest', 'compile-gate'));
+      const arm = { id: 'v4', treeId: 'tree-v4', paramsHash: 'params-v4' };
+      const source = { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST };
+      /**
+       * A passing receipt of the kind, written to the scratch folder, and the binding `acceptedBinding` builds over it.
+       * @param {string} kind @param {Record<string, unknown>} fields @returns {{ file: string, path: string, binding: any }}
+       */
+      const bound = (kind, fields) => {
+        const file = join(dir, `${kind}.receipt.json`);
+        writeJson(file, proofEnvelope({ kind, verdict: 'pass', source, harnessHash: 'h', arms: [arm], coverage: { expected: ['a'], observed: ['a'], missing: [], censored: [] }, evidence: [], fields }));
+        return { file, path: rel(file), binding: acceptedBinding({ receiptPath: rel(file), harnessHash: 'h', arms: [arm], params: { v4: {} }, coverage: ['a'], fields, by: 'selftest' }) };
+      };
+      const p0 = bound('p0-identity', { blocks: { parity: 'pass', baseline: 'pass' } });
+      const p0Entry = live.prerequisites.find((/** @type {any} */ p) => p.type === 'accepted');
+      const bindings = /** @type {Record<string, any>} */ ({ [p0Entry.path]: p0.binding });
+      const io = (/** @type {Record<string, unknown>} */ over = {}) => ({
+        variants: ['v4', 'fr-frozen'], exists: () => true, readJson: (/** @type {string} */ path) => bindings[path],
+        currentOf: async (/** @type {string} */ id) => ({ id, treeId: arm.treeId, paramsHash: arm.paramsHash }), ...over,
+      });
+      const lines = async (/** @type {any[]} */ list, /** @type {Record<string, unknown>} */ over) => (await m.checkPrerequisites(list, io(over))).line;
+      // (a) a variant that does not exist: the line starts with its reason; the other entries are judged too
+      same(await lines(live.prerequisites, { variants: ['v4'] }), 'prerequisites: blocked (variant fr-frozen missing)', '(a) fr-frozen missing');
+      same(await lines(live.prerequisites, { variants: ['v4'], exists: (/** @type {string} */ p) => p !== p0Entry.path && !p.endsWith('freeze.json') }),
+        `prerequisites: blocked (variant fr-frozen missing; missing file docs/improve-generating/evidence/frozen/V4-S3/freeze.json; missing binding ${p0Entry.path})`, '(a) and the other reasons, in order');
+      // (c) everything present and bound
+      same(await lines(live.prerequisites), 'prerequisites: pass', '(c) everything present and bound');
+      // today's tree must be the bound one
+      same(await lines(live.prerequisites, { currentOf: async (/** @type {string} */ id) => ({ id, treeId: 'moved', paramsHash: arm.paramsHash }) }), 'prerequisites: blocked (stale arm v4)', 'the tree moved since the binding');
+      // (b) the receipt changed after acceptance
+      writeJson(p0.file, { changed: true });
+      same(await lines(live.prerequisites), `prerequisites: blocked (receipt changed ${p0.path})`, '(b) the receipt changed after acceptance');
+      // (d) a binding of another kind
+      const projection = bound('deadline-projection', { postHoc: true });
+      bindings['x/live.accepted.json'] = projection.binding;
+      same(await lines([{ type: 'accepted', path: 'x/live.accepted.json', current: [], kind: 'live-deadline' }]), 'prerequisites: blocked (x/live.accepted.json is not a live-deadline binding)', '(d) the kind of the binding');
+      const liveBound = bound('live-deadline', { ...LIVE_DEADLINE_FIELDS });
+      bindings['x/live.accepted.json'] = liveBound.binding;
+      same(await lines([{ type: 'accepted', path: 'x/live.accepted.json', current: [], kind: 'live-deadline', fields: 'LIVE_DEADLINE_FIELDS' }]), 'prerequisites: pass', 'the live-deadline fields are those of T04d');
+      bindings['x/live.accepted.json'] = bound('live-deadline', { live: true }).binding;
+      same(await lines([{ type: 'accepted', path: 'x/live.accepted.json', current: [], kind: 'live-deadline', fields: 'LIVE_DEADLINE_FIELDS' }]), 'prerequisites: blocked (x/live.accepted.json lacks the live-deadline fields)', 'a live-deadline binding without the fields');
+      same(await lines([{ type: 'nope' }]), 'prerequisites: blocked (unknown prerequisite nope)', 'an unknown type is not a pass');
+      same(await lines([]), 'prerequisites: pass', 'no prerequisite is a pass');
+    },
+  },
+  {
+    name: 'compile: the measured seconds and the reserve',
+    async run() {
+      const { m } = await matrixKit();
+      /** @param {string} item @param {string} kind @param {string} variant */
+      const start = (item, kind, variant) => ({ type: 'item-start', identityHash: 'h', item, kind, variant, at: 'x' });
+      /** @param {string} item @param {number} ms @param {string} [status] */
+      const end = (item, ms, status = 'completed') => ({ type: 'item-end', identityHash: 'h', item, status, result: {}, ms, at: 'x' });
+      const log = [start('a', 'v4-select', 'v4'), end('a', 2000), start('b', 'v4-select', 'v4'), end('b', 4000), start('c', 'v4-replay', 'v4'), end('c', 500, 'censored'),
+        end('orphan', 9000), start('d', 'v4-select', 'v4'), end('d', 0), start('e', 'width', 'base'), end('e', Number.NaN)];
+      same(m.measuredDurations([log]), { 'v4-replay/v4': 0.5, 'v4-select/v4': 3 }, 'the mean of ms / 1000 per kind and variant: a line without a start, a zero and a NaN are no measure, a censored end is');
+      same(m.measuredDurations([log, [start('a', 'v4-select', 'v4'), end('a', 6000)]])['v4-select/v4'], 4, 'two logs are pooled, each with its own starts');
+      const seen = /** @type {string[]} */ ([]);
+      same(m.durationsFromLogs((/** @type {string} */ path) => { seen.push(rel(path)); return []; }), {}, 'no log, no measure');
+      same(seen, ['V4-T04/parity', 'V4-T04/replay', 'V4-T10a/counters', 'V4-T10b/profile', 'V4-T10c/run'].map((s) => `tests/artifacts/ig-proto/frozen/${s}/items.jsonl`), 'the five logs of the earlier tasks');
+      const real = m.durationsFromLogs();
+      for (const key of ['v4-select/v4', 'v4-generate/v4', 'v4-replay/v4', 'v4-kernel/r4c', 'process/instr', 'width/base']) {
+        assert(typeof real[key] === 'number' && real[key] > 0, `${key} has a measure in the item logs`);
+      }
+      const manifest = m.parityManifest('V4-S2P', 'fr-base');
+      /** @param {Record<string, number>} durations @returns {unknown[][]} */
+      const groupsAt = (durations) => m.itemGroups(manifest, durations).map((/** @type {any} */ g) => [g.kind, g.variant, g.lanes, g.reserveS, g.durationsS.length, [...new Set(g.durationsS)], g.durationSource]);
+      const reserve = [['v4-select', 'fr-base', 2, 120, 9, [120], 'reserve'], ['v4-generate', 'fr-base', 1, 245, 1, [245], 'reserve'], ['v4-replay', 'fr-base', 2, 120, 2, [120], 'reserve']];
+      same(groupsAt({}), reserve, 'a variant without a measure takes its reserve and says so');
+      same(groupsAt({ 'v4-select/v4': 30, 'v4-generate/v4': 20, 'v4-replay/v4': 10 }), reserve, 'another variant\'s measure is not this variant\'s');
+      same(groupsAt({ 'v4-select/fr-base': 30, 'v4-generate/fr-base': 20, 'v4-replay/fr-base': 10 }),
+        [['v4-select', 'fr-base', 2, 120, 9, [30], 'item logs'], ['v4-generate', 'fr-base', 1, 245, 1, [20], 'item logs'], ['v4-replay', 'fr-base', 2, 120, 2, [10], 'item logs']], 'a measured variant takes it');
+      same(groupsAt({ 'v4-select/*': 30 })[0], ['v4-select', 'fr-base', 2, 120, 9, [30], 'item logs'], 'a kind-wide value serves every variant of the kind');
+      assert(thrownBy(() => m.itemGroups(manifest, { 'v4-select/fr-base': 0 })).includes('must be a positive number'), 'a measure of 0 is refused');
+      assert(thrownBy(() => m.itemGroups({ rows: [{ kind: 'v4-kernel', variant: 'r4c' }] }, {})).includes('names no items'), 'a row that names no items is refused');
+      // The compiler says which items it priced at their reserve: with the synthetic seconds only the probes; with today's logs the P-1 passes of the seven arms.
+      const { expansion, compiled } = await compileKit();
+      same(m.reservePriced(compiled.plans), ['kernel-profile', 'v4-kernel/r4c', 'width'], 'the probes have no synthetic seconds');
+      same(m.reservePriced(m.compilePlans(expansion, m.stepPrice, { durations: real }).plans),
+        ['fr-base', 'fr-c4', 'fr-close', 'fr-none', 'fr-p5', 'fr-ps', 'fr-screen'].flatMap((arm) => ['v4-generate', 'v4-replay', 'v4-select'].map((kind) => `${kind}/${arm}`)).sort(),
+        'with the measures of the earlier tasks, only the seven arms of stage 2, which no earlier task ran, take reserves');
+    },
+  },
+  {
+    name: 'compile: only its own files are written',
+    async run() {
+      const { m, expansion, compiled } = await compileKit();
+      const files = m.compiledFiles(compiled);
+      same([files.length, files.filter((/** @type {any} */ f) => f.path.startsWith('tools/ig-proto/plans/items/')).length], [16, 12], 'two plans, two templates and twelve item manifests');
+      same(files.slice(0, 4).map((/** @type {any} */ f) => f.path), ['V4-S2.json', 'V4-LIVE.json', 'V4-S4.universe.json', 'V4-S4X.template.json'].map((n) => `tools/ig-proto/plans/${n}`), 'in this order');
+      const dir = fresh(artifactDir('selftest', 'compile-files'));
+      const resolve = (/** @type {string} */ path) => join(dir, ...path.split('/'));
+      const first = m.writeCompiled(files, { resolve });
+      same([first.written.length, first.refused], [16, []], 'a first write puts the 16 files');
+      const own = resolve('tools/ig-proto/plans/V4-S2.json');
+      assert(JSON.parse(readFileSync(own, 'utf8')).generatedBy === 'manifest.mjs compile', 'a written plan carries its marker');
+      same(m.writeCompiled(files, { resolve }).written.length, 16, 'a second write replaces the files it owns');
+      // A plan without the marker and an item manifest of another task are not the compiler's: nothing is written at all.
+      writeFileSync(resolve('tools/ig-proto/plans/V4-LIVE.json'), '{"task":"V4-LIVE"}\n');
+      writeFileSync(resolve('tools/ig-proto/plans/items/V4-S4P.parity-fr-frozen.json'), '{"format":"ig-proto-items","version":1,"task":"V4-T04","step":"parity","rows":[]}\n');
+      const before = readFileSync(own, 'utf8');
+      writeFileSync(own, `${before.trimEnd()} \n`);
+      const damaged = readFileSync(own, 'utf8');
+      const refused = m.writeCompiled(files, { resolve });
+      same([refused.written, refused.refused], [[], ['tools/ig-proto/plans/V4-LIVE.json exists and is not a file of this compiler', 'tools/ig-proto/plans/items/V4-S4P.parity-fr-frozen.json exists and is not a file of this compiler']],
+        'both foreign files are named and nothing is written');
+      same(readFileSync(own, 'utf8'), damaged, 'a file of its own was left as it was');
+      writeFileSync(resolve('tools/ig-proto/plans/V4-LIVE.json'), 'not json');
+      assert(m.writeCompiled(files, { resolve }).refused[0].includes('V4-LIVE.json'), 'a file that is not JSON is no file of the compiler');
+      // A step that is not admissible refuses the whole compilation and names each such step.
+      const refusing = (/** @type {any} */ input, /** @type {string} */ id) => (input.type === 'items' && id === 'kernel-counters' ? { admissible: false, reason: 'no room' } : m.stepPrice(input));
+      const message = thrownBy(() => m.compilePlans(expansion, refusing, { durations: {} }));
+      assert(message.startsWith('manifest: 1 step(s) not admissible: V4-S2/kernel-counters: no room'), message);
     },
   },
 ];
