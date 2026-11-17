@@ -33,10 +33,12 @@ stage-1 receipt that the manifest (T11g) prices on.
   `tests/artifacts/ig-proto/frozen/` (git-ignored; the namespaces `IGP-02`, `V4-T04`, `V4-T04v4`, `V4-T04f` and
   `V4-T04i` become historical records that no later run reuses, check-list §3.1).
 - Change: nothing else, except `tools/ig-proto/plans/V4-T04.replay.json` in the second replay observation (section
-  "Ruling of 2026-11-17"); no harness file (`tools/ig-proto/lib/`, the top-level `.mjs` and `.ps1` files, `data/`).
+  "Ruling of 2026-11-17"); no harness file (`tools/ig-proto/lib/`, the top-level `.mjs` and `.ps1` files, `data/`)
+  until `stage1.json` passes; after it, only step 10's two edits (`tools/ig-proto/self-test.mjs`,
+  `tools/ig-proto/README.md`).
 - Do not change: any file outside the two evidence folders and that manifest. Guards: `git status --short` lists only
   files under `docs/improve-generating/evidence/frozen/IGP-02/` and `docs/improve-generating/evidence/frozen/V4-T04/`
-  and `tools/ig-proto/plans/V4-T04.replay.json`;
+  and `tools/ig-proto/plans/V4-T04.replay.json`, `tools/ig-proto/self-test.mjs` and `tools/ig-proto/README.md`;
   `node tools\ig-proto\firewall.mjs check --task V4-T04 --label frozen` (the plan's last step) prints `files
   unchanged`.
 
@@ -162,6 +164,31 @@ binding of T04d holds. No budget is raised.
    different hash is a stop with `QUESTION:` (generation would not be deterministic).
 9. Stop points of the ruling: the `14x14-nightmare` generation ends `no-set` or `no-pack`, or any gate of the table
    fails or is incomplete: stop and report; never a third observation without a ruling.
+10. Fix round after the passing receipt (ruling of 2026-11-17, the orchestrator's verification: `--items` case 10
+    `checks: manifest expansion` still names the old third case). `stage1.json` is final: its producer is the stored
+    `harnessHash` (`136d4c6c...`), which T04f binds (D-V4-18); `self-test.mjs` and `README.md` are not among its
+    evidence files, so these two edits leave the receipt valid. Never run `v4-check.mjs summary --task V4-T04` or a
+    `V4-T04` plan again (after any harness edit the summary reports `producer changed since the observation` and
+    would overwrite the passing `stage1.json`), and never run a self-test group under the historical ids `V4-T04`,
+    `V4-T04v4`, `V4-T04f` or `V4-T04i`.
+    - `tools/ig-proto/self-test.mjs`, case `checks: manifest expansion`: the line
+      `const cases = ['14x14-master', '12x12-nightmare', '26x26-nightmare'];` becomes
+      `const cases = ['14x14-master', '12x12-nightmare', '14x14-nightmare'];` (the case's other expectations derive
+      from it: ids, `caseBoard(caseId).maxActive`, pack paths).
+    - `tools/ig-proto/README.md`, section "Stage 1 checks", the **Manifests** bullet: "for `14x14-master`,
+      `12x12-nightmare` and `26x26-nightmare` one `v4-generate` row" becomes "for `14x14-master`, `12x12-nightmare` and
+      `14x14-nightmare` one `v4-generate` row", and the bullet ends with the sentence "The third case was
+      `26x26-nightmare` until the ruling of 2026-11-17 (no set under `require` with one pool worker within the
+      115-second request deadline); that first observation is archived in `V4-T04/replay-a1/` and `stage1-a1.json`."
+    - Gates (unlocked), at the root:
+
+      ```powershell
+      node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04e-verify
+      node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T04e-verify
+      ```
+
+      26 and 10 cases pass; T04f's step-0 one-liner on `stage1.json` prints `same` on every line; `npm run check`
+      exits 0.
 
 ## Acceptance criteria
 
