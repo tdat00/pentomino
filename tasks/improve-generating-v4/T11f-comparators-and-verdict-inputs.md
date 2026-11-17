@@ -7,7 +7,7 @@
 | Depends on | T11e; T09a (the verdict-manifest schema), T09e (`classSelection`'s envelope), T04d (`proofCheck`), T11c (`rowStep`, `planOf`, `checkPrerequisites`) |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (claude-sonnet-5.5) |
-| Estimate | developer 3 h, machine 0 min (pure functions and readers; synthetic cases, unlocked) |
+| Estimate | developer 3.5 h (3 h, and 0.5 h for `closureOf`: ruling of 2026-11-17 on T11e's named item), machine 0 min (pure functions and readers; synthetic cases, unlocked) |
 
 ## Goal
 
@@ -53,6 +53,17 @@ can never pass, and the final manifest, which declares every expected P5 pair an
    activation.declaredRows less closure?.missing }, fields: { collection: { activationSha256, closureSha256:
    closureSha256 ?? null, missing: closure?.missing ?? [] } } }`; `runsMeta[id]` is `meta.trees.<variant>` of the arm's
    published runs files (all equal; two different values throw `Error('resolve: two trees in the runs of <arm>')`).
+   **`closureOf(activationPath, activationSha256, { readFile })`** (pure export, `readFile` by default `readRepoFile`;
+   ruling of 2026-11-17 on T11e's named item: T11e's `close` writes the closure record beside the activation record,
+   `docs/improve-generating/evidence/frozen/V4-S4/closure.json`, and the plans name no closure argument): it reads
+   `closure.json` in the folder of `activationPath` and returns `null` when that file is absent, else `{ ref: { path,
+   sha256 }, record }` (`path` repository-relative with `/`, `sha256` as `sha256File`); a text that does not parse as an
+   object whose `missing` is a list of strings throws `Error('an unreadable closure exists: <path>')`, and a record
+   whose `activation.sha256` is not `activationSha256` throws `Error('the closure belongs to another activation:
+   <path>')`. The closure of this step's expectation (`closure`, `closureSha256`), the `selection` prerequisite (step 2)
+   and `verdict-input`'s `closureRef` (step 3) are read through it, with `activationSha256` the `sha256File` of the
+   activation record; a throw refuses the command (`<command>: <message>`, exit 1, nothing written) or blocks the
+   prerequisite (`blocked (selection: <message>)`).
 2. **`resolveComparators(template, selection, expectation, { readFile })`** (pure export) and **`manifest.mjs
    resolve-comparators --selection <receipt> --activation <record> --out <plan> --label frozen --source-label <SL>`**:
    - the template's `task` other than `V4-S4C`: `not a V4-S4C template`; its `activationSha256` other than the
@@ -106,7 +117,8 @@ All in `tools/ig-proto/self-test.mjs --items`, pure, with temporary files under 
 'resolve')`. `A` = a T11e activation over the default expansion with no conditional board and no optional item; `S`
 = a class-selection receipt built with T09e's `classSelection` over synthetic published rows of every declared row,
 shipping `fr-frozen` on `14x14-nightmare` and `fr-frozen-none` on `26x26-hell-1`; `X` = `selectionExpectation` from
-the same records.
+the same records; A's template = `activationPlans(<the expansion>, A, stepPrice, { activationSha256 }).template`
+(T11e) with `activationSha256` the `sha256File` of A written to a temporary file.
 
 | Case name | Input | Expected |
 |---|---|---|
@@ -116,6 +128,7 @@ the same records.
 | `resolve: the template belongs to its activation` | A's template with `activationSha256` changed; T11c's `V4-S4X.template.json` | `the template belongs to another activation`; `not a V4-S4C template` |
 | `verdict input: selection and final` | `verdictInput('selection', ...)` and `verdictInput('final', ...)` over A, S and the plan of case 1 | selection: `purpose` `selection`, `p5` `[]`, no `selection` field; final: `selection.sha256` S's, `p5` `[{ cell: '14x14-nightmare', bounded: 'fr-frozen', uncapped: 'fr-frozen-uncapped', reps: [20, ..., 39] }, ...]` with one entry per comparator cell; both: `prerequisites.stage1.current` `[]`, the P-0 parity entry with `current: ['v4']`, `arms[].id` equal to `arms[].arm`, `arms[].files[].sha256` equal to the files' |
 | `verdict input: not published` | the final input with one comparator arm's runs file absent | throws `verdict-input: not published <arm>` |
+| `closure: beside its activation` | `closureOf` on a temporary folder holding A: (a) no `closure.json`; (b) the closure that T11e's `closeCommand` writes there for A; (c) that closure with `activation.sha256` changed; (d) the text `{` | (a) `null`; (b) `ref.sha256` the file's `sha256File` and `record.missing` its rows; (c) throws `the closure belongs to another activation`; (d) throws `an unreadable closure exists` |
 
 ## Documentation
 
@@ -151,6 +164,7 @@ the same records.
 |---|---|---|---|
 | T11f-T01 | The verdict manifests read only real, hashed records | cases 5 and 6 | self-test output |
 | T11f-T02 | Nothing else changed; formats | guards; `npm run check` | command output |
+| T11f-T03 | A collection's closure is read only beside its own activation record, and a closure of another activation or an unreadable one refuses | case 7 | self-test output |
 
 ## Checklist (the developer confirms every item in the final report)
 
