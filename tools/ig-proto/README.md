@@ -2149,14 +2149,17 @@ this section executes any plan, rating, pool or measurement (unlocked). The matr
   `manifest: a row step needs at least one row (<key>)`), `parityManifest(task, arm)`, `itemGroups(manifest, durations)`,
   `parityPass(task, arm, priceOf, durations)` (`parity-<arm>`, `receipt-<arm>` with `--require-pass`, `accept-<arm>` `--by` the plan of
   the stage) and `planOf`. `priceOf` is `stepPrice` (a wrapper gets the step id as a second argument).
-- **`V4-S2`** (`runnable: true`; prerequisite: the stage-1 accepted binding with `current: []`), in order: `prerequisites` (the gate),
-  `firewall-snapshot`, `trees`, a `rowStep` of each of the 33 stage-2 groups, `publish-<arm>`, the P-1 pass of each of `fr-base`,
-  `fr-screen`, `fr-none`, `fr-close`, `fr-c4`, `fr-ps` and `fr-p5` under `V4-S2P` (nine `v4-select` items, one `v4-generate` and its two
-  `v4-replay` items: 12 items), the isolated P-0 (`p0-v4`, `receipt-p0` with `--kind p0-identity --require-pass --baseline` the stage-1
-  binding, `accept-p0`), the probes (`kernel-counters` 30 items, `kernel-profile` 2, `kernel-report`, `width` 8 items of three rounds,
-  `width-report`) and `firewall-check`. **`V4-LIVE`** (`runnable: false`, `blockedBy: ['N-V4-03', 'N-V4-13']`) has the same shape for
-  the two `live` groups on `fr-frozen` with `live-receipt` and `accept-live`; its prerequisites are the variant `fr-frozen`, the files
-  `evidence/frozen/V4-S3/freeze.json` and `tools/ig-proto/live-deadline.mjs`, and the accepted P-0 binding with `current: ['v4']`.
+- **`V4-S2`** (`runnable: true`; prerequisite: the stage-1 accepted binding with `current: []`), in order, the proofs first so that a
+  failed or incomplete proof stops the plan before any request row runs: `prerequisites` (the gate), `firewall-snapshot`, `trees`, the
+  isolated P-0 (`p0-v4`, `receipt-p0` with `--kind p0-identity --require-pass --baseline` the stage-1 binding, `accept-p0`), the P-1
+  pass of each of `fr-base`, `fr-screen`, `fr-none`, `fr-close`, `fr-c4`, `fr-ps` and `fr-p5` under `V4-S2P` (`parity-<arm>`,
+  `receipt-<arm>`, `accept-<arm>`: nine `v4-select` items, one `v4-generate` and its two `v4-replay` items, 12 items), a `rowStep` of
+  each of the 33 stage-2 groups, `publish-<arm>`, the probes (`kernel-counters` 30 items, `kernel-profile` 2, `kernel-report`, `width` 8
+  items of three rounds, `width-report`) and `firewall-check`. **`V4-LIVE`** (`runnable: false`, `blockedBy: ['N-V4-03', 'N-V4-13']`)
+  has the same shape for the two `live` groups on `fr-frozen`, with the snapshot its `firewall-check` needs, `live-receipt` (`live-deadline.mjs
+  receipt --task V4-LIVE --require-pass`, a mandatory proof like the others) and `accept-live`; its prerequisites are the variant
+  `fr-frozen`, the files `evidence/frozen/V4-S3/freeze.json` and `tools/ig-proto/live-deadline.mjs`, and the accepted P-0 binding with
+  `current: ['v4']`.
 - **The isolated P-0** (RV3-02, D-V4-19): `plans/items/V4-S2P.p0-v4.json` is `plans/V4-T04.parity.json` (its 8 rows, 23 items) under the
   task `V4-S2P` and the step `p0-v4`, with the state `V4-S2P\p0-v4\state.json`: it reads the stage-1 manifest and the stage-1 raw
   files, never writes under `V4-T04`. Its `p0-identity` receipt (T11d) is a required pass and its accepted binding a prerequisite of
@@ -2183,12 +2186,12 @@ this section executes any plan, rating, pool or measurement (unlocked). The matr
   'LIVE_DEADLINE_FIELDS'`, its `expected.fields` equal T04d's `LIVE_DEADLINE_FIELDS` (else `<path> lacks the live-deadline fields`);
   another type is `unknown prerequisite <type>`. A receipt is a prerequisite only through its accepted binding (RV3-06). Today `V4-S2`
   passes and `V4-LIVE` is blocked on `fr-frozen`, `freeze.json`, `live-deadline.mjs` and the P-0 binding, as it must be.
-- **Open (T11c's QUESTION 1).** `run-task.ps1` reads a plan with `ConvertFrom-Json` (line 39), which PowerShell 7 refuses for an object
-  whose keys differ only in case: a rows step's `price` input has `rows` and `rowS`, so the runner cannot read `V4-S2.json` or
-  `V4-LIVE.json` yet, even under `-DryRun` (a read with `-AsHashtable` does). The ruling on the question decides the fix; the same holds
-  for the plans of T11e and T11f, which use the same step builder.
+- **PowerShell readers.** A rows step's `price` holds `rows` and `rowS`, keys that differ only in case, which PowerShell 7's
+  `ConvertFrom-Json` refuses. `run-task.ps1` therefore reads a plan with `ConvertFrom-Json -AsHashtable` (line 39; the state files and the
+  budget decisions are read as before, and every earlier plan reads as before: the dry run of `plans/V4-T10c.json` is identical), and any
+  PowerShell reader of a compiled plan, template or manifest must do the same. The plans of T11e and T11f use the same step builder.
 - **Self-test** (`--items`, unlocked, pure): the `compile:` cases `no unresolved argument`, `producers before consumers`, `P-0 is isolated
-  and required` (and every P-1 pass), `no executable stage-4 plan`, `disjoint state paths`, `each step priced as it runs`, `bounded steps
+  and required` (and every P-1 pass, the proofs-first order of `V4-S2` and the required live receipt), `no executable stage-4 plan`, `disjoint state paths`, `each step priced as it runs`, `bounded steps
   resume`, `populations as priced` (the probes' items built by their own modules, the row steps' `--cases` parsed by `arm.mjs`),
   `blocked plans refuse` (bindings built by `acceptedBinding` over temporary receipts), `the measured seconds and the reserve` and `only
   its own files are written`.

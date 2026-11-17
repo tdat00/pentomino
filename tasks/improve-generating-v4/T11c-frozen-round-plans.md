@@ -266,13 +266,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 19:48:30 +07:00 (dispatch, base `5b67b4a`) to 21:49:45 +07:00 (acceptance): 2 h 1 min 15 s, of which 35 min were the owner's pause (20:19-20:54); the developer's own times 19:48:13-about 20:15 and, in the fix round, 21:28:41-21:31:52 |
+| Waiting for rulings | about 1 h 13 min for the ruling (questions at about 20:15; the pause 20:19-20:54 stopped the previous SA-Opus; a new SA-Opus ruled at 21:27) |
+| Agent id, model | `cdc21a79-c1cb-4d82-ba26-cd199bcf7f27`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 136 calls; 45,036,175 input, 234,085 output, 44,024,588 cache-read |
+| AI credits | 927.21 |
+| Questions and rulings | Q1 (blocking): `run-task.ps1` could not parse the compiled plans (PowerShell `ConvertFrom-Json` refuses the keys `rows` and `rowS` of a rows `price`); ruled option (a): line 39 reads plans with `-AsHashtable`, no earlier plan changes (`t11c-checks.mjs`). Q2: P-1 passes priced at reserves (141.8 min), default kept, T11g section 7 states both numbers. Q3: the `firewall-snapshot` step of `V4-LIVE` accepted. Fix round: `live-receipt` with `--require-pass`, `V4-S2` emitted proofs first (P-0, then the 21 P-1 steps, then the rows), two asserts. Deviations, readings and named items accepted. Pack amendment `c2d58ba` (T11c 3.5 h); the owner's lock rules of 21:33 went to the new task T11h (`8b51362`), which recompiles these plans under the new rules |
+| Fix rounds | 1 (run-task.ps1 line 39, proofs first, live receipt required, two asserts, README) |
+| Gates re-run by the orchestrator | `--items`: 161 passed, 0 failed (23.058 s; `compile:` cases 151-161); `--frozen`: 10 passed; `check-edits --all`: 34 `ok`, no other line; `manifest.mjs compile --label frozen --source-label 'frozen 3fc65f4'`: 16 files, byte-identical on a second run; `check-prerequisites --plan V4-S2`: `prerequisites: pass`; `--plan V4-LIVE`: blocked (fr-frozen, V4-S3/freeze.json, live-deadline.mjs, the P-0 binding), as expected; dry runs with `-ApprovedRoundMinutes 92`: `V4-S2` exit 0, `[dry run] forecast of the plan: 40,085 s counted (allocation 40,140 s, guard 50,175 s)`; `V4-LIVE` `2,389 s counted (allocation 2,400 s, guard 3,000 s)`; `V4-T10c` `165 s counted (allocation 240 s, guard 300 s)`, identical before and after the runner edit (developer); firewall `check` (V4-T11c): 289 production files unchanged; guard empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. No locked command and no machine time |
+| Commit | this task's commit, `improve-generating T11c: Frozen-round plans: the compiler, the isolated P-0 manifest and the prerequisites gate` (the first part of its files travelled in the pause commit `bbc1a8c`) |
+| Issues and named items | Compiled prices: `V4-S2` allocation 669 min, `V4-LIVE` 40 min, stage-4 universe 3,051.7 min (old lock rules; T11h recompiles them under the owner's 900-s cap). Named items routed by the pack author: D-V4-11 (no frozen plan while a production change is in progress), N-V4-02 (no recompile once `V4-S2` has started), N-V4-13 (receipt line, exit 2) |

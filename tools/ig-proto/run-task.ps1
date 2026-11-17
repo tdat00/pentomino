@@ -36,7 +36,7 @@ Set-Location (Join-Path $PSScriptRoot '..\..')
 if ($lockPath) { . $lockPath }
 
 $Only = @($Only | ForEach-Object { $_ -split ',' } | Where-Object { $_ })
-$planObj = Get-Content -LiteralPath $planPath -Raw | ConvertFrom-Json
+$planObj = Get-Content -LiteralPath $planPath -Raw | ConvertFrom-Json -AsHashtable
 $task = $planObj.task
 $invariant = [cultureinfo]::InvariantCulture
 $allocation = [double]$planObj.allocationMinutes

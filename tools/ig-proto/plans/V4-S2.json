@@ -99,6 +99,1162 @@
       "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
     },
     {
+      "id": "p0-v4",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "run",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "p0-v4",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.p0-v4.json"
+      ],
+      "state": "V4-S2P\\p0-v4\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 385.57500000000005,
+      "minHorizonS": 150,
+      "invocations": 3,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "v4-select",
+            "variant": "v4",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              34.57975,
+              34.57975,
+              34.57975,
+              34.57975,
+              34.57975,
+              34.57975,
+              34.57975,
+              34.57975,
+              34.57975,
+              34.57975,
+              34.57975,
+              34.57975
+            ],
+            "durationSource": "item logs"
+          },
+          {
+            "kind": "v4-select",
+            "variant": "base",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              5.5165,
+              5.5165
+            ],
+            "durationSource": "item logs"
+          },
+          {
+            "kind": "v4-select",
+            "variant": "v4-w760",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              36.764,
+              36.764,
+              36.764
+            ],
+            "durationSource": "item logs"
+          },
+          {
+            "kind": "v4-select",
+            "variant": "v4-w095",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              9.044,
+              9.044,
+              9.044
+            ],
+            "durationSource": "item logs"
+          },
+          {
+            "kind": "v4-select",
+            "variant": "v4-w380",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              26.982,
+              26.982,
+              26.982
+            ],
+            "durationSource": "item logs"
+          }
+        ]
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/v4/ig-tree.json",
+        "tests/artifacts/ig-proto/tree-frozen/base/ig-tree.json",
+        "tests/artifacts/ig-proto/tree-frozen/v4-w760/ig-tree.json",
+        "tests/artifacts/ig-proto/tree-frozen/v4-w095/ig-tree.json",
+        "tests/artifacts/ig-proto/tree-frozen/v4-w380/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/p0-v4/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/p0-v4/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item of the stage-1 parity corpus has ended under V4-S2P)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "receipt-p0",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "receipt",
+        "--kind",
+        "p0-identity",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "p0-v4",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.p0-v4.json",
+        "--arm",
+        "v4",
+        "--baseline",
+        "docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json",
+        "--require-pass"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "p0-v4"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/p0-v4/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/p0-v4/items.jsonl",
+        "docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.receipt.json"
+      ],
+      "expect": "receipt: p0-identity pass -> docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.receipt.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "accept-p0",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "accept",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "p0-v4",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.p0-v4.json",
+        "--receipt",
+        "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.receipt.json",
+        "--binding",
+        "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json",
+        "--by",
+        "V4-S2"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "receipt-p0"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.receipt.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json"
+      ],
+      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "parity-fr-base",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "run",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-base",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-base.json"
+      ],
+      "state": "V4-S2P\\parity-fr-base\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 990,
+      "minHorizonS": 270,
+      "invocations": 5,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "v4-select",
+            "variant": "fr-base",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-generate",
+            "variant": "fr-base",
+            "lanes": 1,
+            "reserveS": 245,
+            "durationsS": [
+              245
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-replay",
+            "variant": "fr-base",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          }
+        ]
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-base/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-base/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-base/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item of the manifest has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "receipt-fr-base",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "receipt",
+        "--kind",
+        "parity",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-base",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-base.json",
+        "--arm",
+        "fr-base",
+        "--require-pass"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "parity-fr-base"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-base/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-base/items.jsonl"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.receipt.json"
+      ],
+      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.receipt.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "accept-fr-base",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "accept",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-base",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-base.json",
+        "--receipt",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.receipt.json",
+        "--binding",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.accepted.json",
+        "--by",
+        "V4-S2"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "receipt-fr-base"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.receipt.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.accepted.json"
+      ],
+      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.accepted.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "parity-fr-screen",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "run",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-screen",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-screen.json"
+      ],
+      "state": "V4-S2P\\parity-fr-screen\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 990,
+      "minHorizonS": 270,
+      "invocations": 5,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "v4-select",
+            "variant": "fr-screen",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-generate",
+            "variant": "fr-screen",
+            "lanes": 1,
+            "reserveS": 245,
+            "durationsS": [
+              245
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-replay",
+            "variant": "fr-screen",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          }
+        ]
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-screen/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-screen/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-screen/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item of the manifest has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "receipt-fr-screen",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "receipt",
+        "--kind",
+        "parity",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-screen",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-screen.json",
+        "--arm",
+        "fr-screen",
+        "--require-pass"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "parity-fr-screen"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-screen/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-screen/items.jsonl"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.receipt.json"
+      ],
+      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.receipt.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "accept-fr-screen",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "accept",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-screen",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-screen.json",
+        "--receipt",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.receipt.json",
+        "--binding",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.accepted.json",
+        "--by",
+        "V4-S2"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "receipt-fr-screen"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.receipt.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.accepted.json"
+      ],
+      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.accepted.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "parity-fr-none",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "run",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-none",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-none.json"
+      ],
+      "state": "V4-S2P\\parity-fr-none\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 990,
+      "minHorizonS": 270,
+      "invocations": 5,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "v4-select",
+            "variant": "fr-none",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-generate",
+            "variant": "fr-none",
+            "lanes": 1,
+            "reserveS": 245,
+            "durationsS": [
+              245
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-replay",
+            "variant": "fr-none",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          }
+        ]
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-none/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-none/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-none/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item of the manifest has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "receipt-fr-none",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "receipt",
+        "--kind",
+        "parity",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-none",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-none.json",
+        "--arm",
+        "fr-none",
+        "--require-pass"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "parity-fr-none"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-none/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-none/items.jsonl"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.receipt.json"
+      ],
+      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.receipt.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "accept-fr-none",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "accept",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-none",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-none.json",
+        "--receipt",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.receipt.json",
+        "--binding",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.accepted.json",
+        "--by",
+        "V4-S2"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "receipt-fr-none"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.receipt.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.accepted.json"
+      ],
+      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.accepted.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "parity-fr-close",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "run",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-close",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-close.json"
+      ],
+      "state": "V4-S2P\\parity-fr-close\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 990,
+      "minHorizonS": 270,
+      "invocations": 5,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "v4-select",
+            "variant": "fr-close",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-generate",
+            "variant": "fr-close",
+            "lanes": 1,
+            "reserveS": 245,
+            "durationsS": [
+              245
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-replay",
+            "variant": "fr-close",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          }
+        ]
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-close/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-close/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-close/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item of the manifest has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "receipt-fr-close",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "receipt",
+        "--kind",
+        "parity",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-close",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-close.json",
+        "--arm",
+        "fr-close",
+        "--require-pass"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "parity-fr-close"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-close/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-close/items.jsonl"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.receipt.json"
+      ],
+      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.receipt.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "accept-fr-close",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "accept",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-close",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-close.json",
+        "--receipt",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.receipt.json",
+        "--binding",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.accepted.json",
+        "--by",
+        "V4-S2"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "receipt-fr-close"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.receipt.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.accepted.json"
+      ],
+      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.accepted.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "parity-fr-c4",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "run",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-c4",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-c4.json"
+      ],
+      "state": "V4-S2P\\parity-fr-c4\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 990,
+      "minHorizonS": 270,
+      "invocations": 5,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "v4-select",
+            "variant": "fr-c4",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-generate",
+            "variant": "fr-c4",
+            "lanes": 1,
+            "reserveS": 245,
+            "durationsS": [
+              245
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-replay",
+            "variant": "fr-c4",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          }
+        ]
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-c4/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-c4/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-c4/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item of the manifest has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "receipt-fr-c4",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "receipt",
+        "--kind",
+        "parity",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-c4",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-c4.json",
+        "--arm",
+        "fr-c4",
+        "--require-pass"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "parity-fr-c4"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-c4/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-c4/items.jsonl"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.receipt.json"
+      ],
+      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.receipt.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "accept-fr-c4",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "accept",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-c4",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-c4.json",
+        "--receipt",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.receipt.json",
+        "--binding",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.accepted.json",
+        "--by",
+        "V4-S2"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "receipt-fr-c4"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.receipt.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.accepted.json"
+      ],
+      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.accepted.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "parity-fr-ps",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "run",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-ps",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-ps.json"
+      ],
+      "state": "V4-S2P\\parity-fr-ps\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 990,
+      "minHorizonS": 270,
+      "invocations": 5,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "v4-select",
+            "variant": "fr-ps",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-generate",
+            "variant": "fr-ps",
+            "lanes": 1,
+            "reserveS": 245,
+            "durationsS": [
+              245
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-replay",
+            "variant": "fr-ps",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          }
+        ]
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-ps/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-ps/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-ps/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item of the manifest has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "receipt-fr-ps",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "receipt",
+        "--kind",
+        "parity",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-ps",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-ps.json",
+        "--arm",
+        "fr-ps",
+        "--require-pass"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "parity-fr-ps"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-ps/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-ps/items.jsonl"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.receipt.json"
+      ],
+      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.receipt.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "accept-fr-ps",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "accept",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-ps",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-ps.json",
+        "--receipt",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.receipt.json",
+        "--binding",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.accepted.json",
+        "--by",
+        "V4-S2"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "receipt-fr-ps"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.receipt.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.accepted.json"
+      ],
+      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.accepted.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "parity-fr-p5",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "run",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-p5",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-p5.json"
+      ],
+      "state": "V4-S2P\\parity-fr-p5\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 990,
+      "minHorizonS": 270,
+      "invocations": 5,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "v4-select",
+            "variant": "fr-p5",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-generate",
+            "variant": "fr-p5",
+            "lanes": 1,
+            "reserveS": 245,
+            "durationsS": [
+              245
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-replay",
+            "variant": "fr-p5",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          }
+        ]
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-p5/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-p5/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-p5/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item of the manifest has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "receipt-fr-p5",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "receipt",
+        "--kind",
+        "parity",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-p5",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-p5.json",
+        "--arm",
+        "fr-p5",
+        "--require-pass"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "parity-fr-p5"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-p5/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-p5/items.jsonl"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.receipt.json"
+      ],
+      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.receipt.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "accept-fr-p5",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "accept",
+        "--task",
+        "V4-S2P",
+        "--step",
+        "parity-fr-p5",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-p5.json",
+        "--receipt",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.receipt.json",
+        "--binding",
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.accepted.json",
+        "--by",
+        "V4-S2"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "receipt-fr-p5"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.receipt.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.accepted.json"
+      ],
+      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.accepted.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
       "id": "rows-fr-base-pilot-26x26-hell-1",
       "locked": true,
       "node": [
@@ -1801,1162 +2957,6 @@
         "docs/improve-generating/evidence/frozen/V4-S2/fr-p5/"
       ],
       "expect": "arm: published fr-p5/<shard>: <n> rows, <m> journal lines (one line per shard)",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "parity-fr-base",
-      "locked": true,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "run",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-base",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-base.json"
-      ],
-      "state": "V4-S2P\\parity-fr-base\\state.json",
-      "repeatUntilDone": true,
-      "projectS": 990,
-      "minHorizonS": 270,
-      "invocations": 5,
-      "optional": false,
-      "price": {
-        "type": "items",
-        "groups": [
-          {
-            "kind": "v4-select",
-            "variant": "fr-base",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-generate",
-            "variant": "fr-base",
-            "lanes": 1,
-            "reserveS": 245,
-            "durationsS": [
-              245
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-replay",
-            "variant": "fr-base",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          }
-        ]
-      },
-      "dependsOn": [
-        "trees"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/tree-frozen/fr-base/ig-tree.json"
-      ],
-      "produces": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-base/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-base/items.jsonl"
-      ],
-      "expect": "the state has done: true (every item of the manifest has ended)",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "receipt-fr-base",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "receipt",
-        "--kind",
-        "parity",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-base",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-base.json",
-        "--arm",
-        "fr-base",
-        "--require-pass"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "parity-fr-base"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-base/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-base/items.jsonl"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.receipt.json"
-      ],
-      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.receipt.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "accept-fr-base",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "accept",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-base",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-base.json",
-        "--receipt",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.receipt.json",
-        "--binding",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.accepted.json",
-        "--by",
-        "V4-S2"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "receipt-fr-base"
-      ],
-      "consumes": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.receipt.json"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.accepted.json"
-      ],
-      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-base.accepted.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "parity-fr-screen",
-      "locked": true,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "run",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-screen",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-screen.json"
-      ],
-      "state": "V4-S2P\\parity-fr-screen\\state.json",
-      "repeatUntilDone": true,
-      "projectS": 990,
-      "minHorizonS": 270,
-      "invocations": 5,
-      "optional": false,
-      "price": {
-        "type": "items",
-        "groups": [
-          {
-            "kind": "v4-select",
-            "variant": "fr-screen",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-generate",
-            "variant": "fr-screen",
-            "lanes": 1,
-            "reserveS": 245,
-            "durationsS": [
-              245
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-replay",
-            "variant": "fr-screen",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          }
-        ]
-      },
-      "dependsOn": [
-        "trees"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/tree-frozen/fr-screen/ig-tree.json"
-      ],
-      "produces": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-screen/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-screen/items.jsonl"
-      ],
-      "expect": "the state has done: true (every item of the manifest has ended)",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "receipt-fr-screen",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "receipt",
-        "--kind",
-        "parity",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-screen",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-screen.json",
-        "--arm",
-        "fr-screen",
-        "--require-pass"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "parity-fr-screen"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-screen/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-screen/items.jsonl"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.receipt.json"
-      ],
-      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.receipt.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "accept-fr-screen",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "accept",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-screen",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-screen.json",
-        "--receipt",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.receipt.json",
-        "--binding",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.accepted.json",
-        "--by",
-        "V4-S2"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "receipt-fr-screen"
-      ],
-      "consumes": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.receipt.json"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.accepted.json"
-      ],
-      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-screen.accepted.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "parity-fr-none",
-      "locked": true,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "run",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-none",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-none.json"
-      ],
-      "state": "V4-S2P\\parity-fr-none\\state.json",
-      "repeatUntilDone": true,
-      "projectS": 990,
-      "minHorizonS": 270,
-      "invocations": 5,
-      "optional": false,
-      "price": {
-        "type": "items",
-        "groups": [
-          {
-            "kind": "v4-select",
-            "variant": "fr-none",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-generate",
-            "variant": "fr-none",
-            "lanes": 1,
-            "reserveS": 245,
-            "durationsS": [
-              245
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-replay",
-            "variant": "fr-none",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          }
-        ]
-      },
-      "dependsOn": [
-        "trees"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/tree-frozen/fr-none/ig-tree.json"
-      ],
-      "produces": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-none/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-none/items.jsonl"
-      ],
-      "expect": "the state has done: true (every item of the manifest has ended)",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "receipt-fr-none",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "receipt",
-        "--kind",
-        "parity",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-none",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-none.json",
-        "--arm",
-        "fr-none",
-        "--require-pass"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "parity-fr-none"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-none/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-none/items.jsonl"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.receipt.json"
-      ],
-      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.receipt.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "accept-fr-none",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "accept",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-none",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-none.json",
-        "--receipt",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.receipt.json",
-        "--binding",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.accepted.json",
-        "--by",
-        "V4-S2"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "receipt-fr-none"
-      ],
-      "consumes": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.receipt.json"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.accepted.json"
-      ],
-      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.accepted.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "parity-fr-close",
-      "locked": true,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "run",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-close",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-close.json"
-      ],
-      "state": "V4-S2P\\parity-fr-close\\state.json",
-      "repeatUntilDone": true,
-      "projectS": 990,
-      "minHorizonS": 270,
-      "invocations": 5,
-      "optional": false,
-      "price": {
-        "type": "items",
-        "groups": [
-          {
-            "kind": "v4-select",
-            "variant": "fr-close",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-generate",
-            "variant": "fr-close",
-            "lanes": 1,
-            "reserveS": 245,
-            "durationsS": [
-              245
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-replay",
-            "variant": "fr-close",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          }
-        ]
-      },
-      "dependsOn": [
-        "trees"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/tree-frozen/fr-close/ig-tree.json"
-      ],
-      "produces": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-close/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-close/items.jsonl"
-      ],
-      "expect": "the state has done: true (every item of the manifest has ended)",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "receipt-fr-close",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "receipt",
-        "--kind",
-        "parity",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-close",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-close.json",
-        "--arm",
-        "fr-close",
-        "--require-pass"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "parity-fr-close"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-close/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-close/items.jsonl"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.receipt.json"
-      ],
-      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.receipt.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "accept-fr-close",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "accept",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-close",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-close.json",
-        "--receipt",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.receipt.json",
-        "--binding",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.accepted.json",
-        "--by",
-        "V4-S2"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "receipt-fr-close"
-      ],
-      "consumes": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.receipt.json"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.accepted.json"
-      ],
-      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-close.accepted.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "parity-fr-c4",
-      "locked": true,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "run",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-c4",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-c4.json"
-      ],
-      "state": "V4-S2P\\parity-fr-c4\\state.json",
-      "repeatUntilDone": true,
-      "projectS": 990,
-      "minHorizonS": 270,
-      "invocations": 5,
-      "optional": false,
-      "price": {
-        "type": "items",
-        "groups": [
-          {
-            "kind": "v4-select",
-            "variant": "fr-c4",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-generate",
-            "variant": "fr-c4",
-            "lanes": 1,
-            "reserveS": 245,
-            "durationsS": [
-              245
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-replay",
-            "variant": "fr-c4",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          }
-        ]
-      },
-      "dependsOn": [
-        "trees"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/tree-frozen/fr-c4/ig-tree.json"
-      ],
-      "produces": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-c4/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-c4/items.jsonl"
-      ],
-      "expect": "the state has done: true (every item of the manifest has ended)",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "receipt-fr-c4",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "receipt",
-        "--kind",
-        "parity",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-c4",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-c4.json",
-        "--arm",
-        "fr-c4",
-        "--require-pass"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "parity-fr-c4"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-c4/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-c4/items.jsonl"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.receipt.json"
-      ],
-      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.receipt.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "accept-fr-c4",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "accept",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-c4",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-c4.json",
-        "--receipt",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.receipt.json",
-        "--binding",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.accepted.json",
-        "--by",
-        "V4-S2"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "receipt-fr-c4"
-      ],
-      "consumes": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.receipt.json"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.accepted.json"
-      ],
-      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-c4.accepted.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "parity-fr-ps",
-      "locked": true,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "run",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-ps",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-ps.json"
-      ],
-      "state": "V4-S2P\\parity-fr-ps\\state.json",
-      "repeatUntilDone": true,
-      "projectS": 990,
-      "minHorizonS": 270,
-      "invocations": 5,
-      "optional": false,
-      "price": {
-        "type": "items",
-        "groups": [
-          {
-            "kind": "v4-select",
-            "variant": "fr-ps",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-generate",
-            "variant": "fr-ps",
-            "lanes": 1,
-            "reserveS": 245,
-            "durationsS": [
-              245
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-replay",
-            "variant": "fr-ps",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          }
-        ]
-      },
-      "dependsOn": [
-        "trees"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/tree-frozen/fr-ps/ig-tree.json"
-      ],
-      "produces": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-ps/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-ps/items.jsonl"
-      ],
-      "expect": "the state has done: true (every item of the manifest has ended)",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "receipt-fr-ps",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "receipt",
-        "--kind",
-        "parity",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-ps",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-ps.json",
-        "--arm",
-        "fr-ps",
-        "--require-pass"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "parity-fr-ps"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-ps/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-ps/items.jsonl"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.receipt.json"
-      ],
-      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.receipt.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "accept-fr-ps",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "accept",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-ps",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-ps.json",
-        "--receipt",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.receipt.json",
-        "--binding",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.accepted.json",
-        "--by",
-        "V4-S2"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "receipt-fr-ps"
-      ],
-      "consumes": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.receipt.json"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.accepted.json"
-      ],
-      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-ps.accepted.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "parity-fr-p5",
-      "locked": true,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "run",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-p5",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-p5.json"
-      ],
-      "state": "V4-S2P\\parity-fr-p5\\state.json",
-      "repeatUntilDone": true,
-      "projectS": 990,
-      "minHorizonS": 270,
-      "invocations": 5,
-      "optional": false,
-      "price": {
-        "type": "items",
-        "groups": [
-          {
-            "kind": "v4-select",
-            "variant": "fr-p5",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-generate",
-            "variant": "fr-p5",
-            "lanes": 1,
-            "reserveS": 245,
-            "durationsS": [
-              245
-            ],
-            "durationSource": "reserve"
-          },
-          {
-            "kind": "v4-replay",
-            "variant": "fr-p5",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              120,
-              120
-            ],
-            "durationSource": "reserve"
-          }
-        ]
-      },
-      "dependsOn": [
-        "trees"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/tree-frozen/fr-p5/ig-tree.json"
-      ],
-      "produces": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-p5/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-p5/items.jsonl"
-      ],
-      "expect": "the state has done: true (every item of the manifest has ended)",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "receipt-fr-p5",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "receipt",
-        "--kind",
-        "parity",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-p5",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-p5.json",
-        "--arm",
-        "fr-p5",
-        "--require-pass"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "parity-fr-p5"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-p5/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-p5/items.jsonl"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.receipt.json"
-      ],
-      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.receipt.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "accept-fr-p5",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "accept",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "parity-fr-p5",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.parity-fr-p5.json",
-        "--receipt",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.receipt.json",
-        "--binding",
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.accepted.json",
-        "--by",
-        "V4-S2"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "receipt-fr-p5"
-      ],
-      "consumes": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.receipt.json"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.accepted.json"
-      ],
-      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-p5.accepted.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "p0-v4",
-      "locked": true,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "run",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "p0-v4",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.p0-v4.json"
-      ],
-      "state": "V4-S2P\\p0-v4\\state.json",
-      "repeatUntilDone": true,
-      "projectS": 385.57500000000005,
-      "minHorizonS": 150,
-      "invocations": 3,
-      "optional": false,
-      "price": {
-        "type": "items",
-        "groups": [
-          {
-            "kind": "v4-select",
-            "variant": "v4",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              34.57975,
-              34.57975,
-              34.57975,
-              34.57975,
-              34.57975,
-              34.57975,
-              34.57975,
-              34.57975,
-              34.57975,
-              34.57975,
-              34.57975,
-              34.57975
-            ],
-            "durationSource": "item logs"
-          },
-          {
-            "kind": "v4-select",
-            "variant": "base",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              5.5165,
-              5.5165
-            ],
-            "durationSource": "item logs"
-          },
-          {
-            "kind": "v4-select",
-            "variant": "v4-w760",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              36.764,
-              36.764,
-              36.764
-            ],
-            "durationSource": "item logs"
-          },
-          {
-            "kind": "v4-select",
-            "variant": "v4-w095",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              9.044,
-              9.044,
-              9.044
-            ],
-            "durationSource": "item logs"
-          },
-          {
-            "kind": "v4-select",
-            "variant": "v4-w380",
-            "lanes": 2,
-            "reserveS": 120,
-            "durationsS": [
-              26.982,
-              26.982,
-              26.982
-            ],
-            "durationSource": "item logs"
-          }
-        ]
-      },
-      "dependsOn": [
-        "trees"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/tree-frozen/v4/ig-tree.json",
-        "tests/artifacts/ig-proto/tree-frozen/base/ig-tree.json",
-        "tests/artifacts/ig-proto/tree-frozen/v4-w760/ig-tree.json",
-        "tests/artifacts/ig-proto/tree-frozen/v4-w095/ig-tree.json",
-        "tests/artifacts/ig-proto/tree-frozen/v4-w380/ig-tree.json"
-      ],
-      "produces": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/p0-v4/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/p0-v4/items.jsonl"
-      ],
-      "expect": "the state has done: true (every item of the stage-1 parity corpus has ended under V4-S2P)",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "receipt-p0",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "receipt",
-        "--kind",
-        "p0-identity",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "p0-v4",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.p0-v4.json",
-        "--arm",
-        "v4",
-        "--baseline",
-        "docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json",
-        "--require-pass"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "p0-v4"
-      ],
-      "consumes": [
-        "tests/artifacts/ig-proto/frozen/V4-S2P/p0-v4/state.json",
-        "tests/artifacts/ig-proto/frozen/V4-S2P/p0-v4/items.jsonl",
-        "docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.receipt.json"
-      ],
-      "expect": "receipt: p0-identity pass -> docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.receipt.json",
-      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
-    },
-    {
-      "id": "accept-p0",
-      "locked": false,
-      "node": [
-        "tools\\ig-proto\\v4-check.mjs",
-        "accept",
-        "--task",
-        "V4-S2P",
-        "--step",
-        "p0-v4",
-        "--manifest",
-        "tools\\ig-proto\\plans\\items\\V4-S2P.p0-v4.json",
-        "--receipt",
-        "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.receipt.json",
-        "--binding",
-        "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json",
-        "--by",
-        "V4-S2"
-      ],
-      "optional": false,
-      "dependsOn": [
-        "receipt-p0"
-      ],
-      "consumes": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.receipt.json"
-      ],
-      "produces": [
-        "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json"
-      ],
-      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json",
       "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
     },
     {

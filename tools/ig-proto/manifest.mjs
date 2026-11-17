@@ -1205,8 +1205,8 @@ function probeSteps(priceOf, durations) {
 }
 
 /**
- * Compiles the plans that can be fixed now (T11c): `V4-S2` (stage 2: the request rows, the P-1 pass of every stage-2 arm, the isolated
- * P-0 pass of `v4` and the probes) and `V4-LIVE` (blocked until the freeze and the live deadline exist), the priced universe of stage 4
+ * Compiles the plans that can be fixed now (T11c): `V4-S2` (stage 2: the isolated P-0 pass of `v4` and the P-1 pass of every stage-2 arm
+ * first, so that a failed proof stops the plan before any request row, then the request rows and the probes) and `V4-LIVE` (blocked until the freeze and the live deadline exist), the priced universe of stage 4
  * and the template of the second validation (`runnable: false`, no `node`: no stage-4 measurement plan is compiled before its collection
  * is activated, D-V4-20), and the item manifests the plans name. Every step is priced alone as it will run (T11b); a step that is not
  * admissible makes the whole compilation throw, naming each. Nothing is read from a measured row of the round.
@@ -1259,32 +1259,36 @@ export function compilePlans(expansion, priceOf, { durations = {}, rowSOf, stage
   const p0File = `${IG}plans\\items\\V4-S2P.p0-v4.json`;
   const p0Receipt = `${EVIDENCE}/V4-S2P/p0-v4.receipt.json`;
   const p0Raw = `${RAW}/V4-S2P/p0-v4`;
+  // The proofs come first (ruling of 2026-11-17): a failed or incomplete proof stops the plan before any request row runs.
+  const p0Steps = [
+    lockedStep({
+      id: 'p0-v4',
+      node: [`${IG}v4-check.mjs`, 'run', '--task', 'V4-S2P', '--step', 'p0-v4', '--manifest', p0File],
+      state: 'V4-S2P\\p0-v4\\state.json',
+      minHorizonS: PROBE_MIN_HORIZON_S,
+      price: { type: 'items', groups: itemGroups(p0Manifest, durations) },
+      dependsOn: ['trees'], consumes: p0Variants.map(treeFile), produces: [`${p0Raw}/state.json`, `${p0Raw}/items.jsonl`],
+      expect: 'the state has done: true (every item of the stage-1 parity corpus has ended under V4-S2P)',
+    }, s2),
+    unlockedStep('receipt-p0', [`${IG}v4-check.mjs`, 'receipt', '--kind', 'p0-identity', '--task', 'V4-S2P', '--step', 'p0-v4', '--manifest', p0File, '--arm', 'v4',
+      '--baseline', STAGE1_BINDING, '--require-pass'], {
+      dependsOn: ['p0-v4'], consumes: [`${p0Raw}/state.json`, `${p0Raw}/items.jsonl`, STAGE1_BINDING], produces: [p0Receipt],
+      expect: `receipt: p0-identity pass -> ${p0Receipt}`,
+    }),
+    unlockedStep('accept-p0', [`${IG}v4-check.mjs`, 'accept', '--task', 'V4-S2P', '--step', 'p0-v4', '--manifest', p0File, '--receipt', p0Receipt, '--binding', P0_BINDING, '--by', 'V4-S2'], {
+      dependsOn: ['receipt-p0'], consumes: [p0Receipt], produces: [P0_BINDING], expect: `accepted: ${p0Receipt} sha256 <hash> -> ${P0_BINDING}`,
+    }),
+  ];
   const planS2 = planOf({
     task: 'V4-S2', generatedBy: GENERATED_BY, runnable: true, blockedBy: [], prerequisites: s2Prerequisites,
     steps: distinct([
       gateStep('V4-S2', s2Prerequisites),
       firewallSnapshotStep('V4-S2'),
       treesStep(STAGE2_TREES),
+      ...p0Steps,
+      ...STAGE2_ARMS.flatMap((arm) => parityPass('V4-S2P', arm, s2, durations)),
       ...rows2,
       ...STAGE2_ARMS.map((arm) => publishStep('V4-S2', arm, rows2.filter((s) => s.node[s.node.indexOf('--arm') + 1] === arm))),
-      ...STAGE2_ARMS.flatMap((arm) => parityPass('V4-S2P', arm, s2, durations)),
-      lockedStep({
-        id: 'p0-v4',
-        node: [`${IG}v4-check.mjs`, 'run', '--task', 'V4-S2P', '--step', 'p0-v4', '--manifest', p0File],
-        state: 'V4-S2P\\p0-v4\\state.json',
-        minHorizonS: PROBE_MIN_HORIZON_S,
-        price: { type: 'items', groups: itemGroups(p0Manifest, durations) },
-        dependsOn: ['trees'], consumes: p0Variants.map(treeFile), produces: [`${p0Raw}/state.json`, `${p0Raw}/items.jsonl`],
-        expect: 'the state has done: true (every item of the stage-1 parity corpus has ended under V4-S2P)',
-      }, s2),
-      unlockedStep('receipt-p0', [`${IG}v4-check.mjs`, 'receipt', '--kind', 'p0-identity', '--task', 'V4-S2P', '--step', 'p0-v4', '--manifest', p0File, '--arm', 'v4',
-        '--baseline', STAGE1_BINDING, '--require-pass'], {
-        dependsOn: ['p0-v4'], consumes: [`${p0Raw}/state.json`, `${p0Raw}/items.jsonl`, STAGE1_BINDING], produces: [p0Receipt],
-        expect: `receipt: p0-identity pass -> ${p0Receipt}`,
-      }),
-      unlockedStep('accept-p0', [`${IG}v4-check.mjs`, 'accept', '--task', 'V4-S2P', '--step', 'p0-v4', '--manifest', p0File, '--receipt', p0Receipt, '--binding', P0_BINDING, '--by', 'V4-S2'], {
-        dependsOn: ['receipt-p0'], consumes: [p0Receipt], produces: [P0_BINDING], expect: `accepted: ${p0Receipt} sha256 <hash> -> ${P0_BINDING}`,
-      }),
       ...probeSteps(s2, durations),
       firewallCheckStep('V4-S2'),
     ], 'V4-S2'),
@@ -1315,9 +1319,9 @@ export function compilePlans(expansion, priceOf, { durations = {}, rowSOf, stage
       treesStep(liveArms),
       ...liveRows,
       ...liveArms.map((arm) => publishStep('V4-LIVE', arm, liveRows.filter((s) => s.node[s.node.indexOf('--arm') + 1] === arm))),
-      unlockedStep('live-receipt', [`${IG}live-deadline.mjs`, 'receipt', '--task', 'V4-LIVE'], {
+      unlockedStep('live-receipt', [`${IG}live-deadline.mjs`, 'receipt', '--task', 'V4-LIVE', '--require-pass'], {
         dependsOn: liveArms.map((a) => `publish-${a}`), consumes: liveArms.map((a) => `${liveRoot}/${a}/`), produces: [liveReceipt],
-        expect: `the receipt ${liveReceipt} is written (kind live-deadline; the line is N-V4-13's tool's)`,
+        expect: `receipt: live-deadline pass -> ${liveReceipt}`,
       }),
       unlockedStep('accept-live', [`${IG}v4-check.mjs`, 'accept', '--task', 'V4-LIVE', '--receipt', liveReceipt, '--binding', liveBinding, '--by', 'V4-LIVE'], {
         dependsOn: ['live-receipt'], consumes: [liveReceipt], produces: [liveBinding], expect: `accepted: ${liveReceipt} sha256 <hash> -> ${liveBinding}`,

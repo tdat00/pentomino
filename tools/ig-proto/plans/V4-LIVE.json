@@ -212,7 +212,8 @@
         "tools\\ig-proto\\live-deadline.mjs",
         "receipt",
         "--task",
-        "V4-LIVE"
+        "V4-LIVE",
+        "--require-pass"
       ],
       "optional": false,
       "dependsOn": [
@@ -224,7 +225,7 @@
       "produces": [
         "docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.json"
       ],
-      "expect": "the receipt docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.json is written (kind live-deadline; the line is N-V4-13's tool's)",
+      "expect": "receipt: live-deadline pass -> docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.json",
       "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
     },
     {

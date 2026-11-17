@@ -5459,6 +5459,19 @@ const itemCases = [
         same([manifest.format, manifest.task, manifest.step, expandManifest(manifest, artifactDir('frozen', manifest.task, manifest.step), isV4).length], ['ig-proto-items', 'V4-S4P', `parity-${arm}`, 12], `${arm}: a stage-4 manifest of 12 items`);
       }
       same(Object.keys(compiled.itemManifests).length, 12, 'the P-0 manifest, seven stage-2 and four stage-4 P-1 manifests');
+      // The proofs come first: the 24 steps after `trees` are the three P-0 steps and the 21 P-1 steps, all before the first request row,
+      // so that a failed or incomplete proof stops the plan before any row runs (ruling of 2026-11-17).
+      const afterTrees = s2.steps.findIndex((/** @type {any} */ s) => s.id === 'trees') + 1;
+      same(s2.steps.slice(afterTrees, afterTrees + 24).map((/** @type {any} */ s) => s.id),
+        ['p0-v4', 'receipt-p0', 'accept-p0', ...['fr-base', 'fr-screen', 'fr-none', 'fr-close', 'fr-c4', 'fr-ps', 'fr-p5'].flatMap((arm) => [`parity-${arm}`, `receipt-${arm}`, `accept-${arm}`])],
+        'the P-0 steps, then the P-1 pass of each arm in order');
+      same(s2.steps.findIndex((/** @type {any} */ s) => s.id.startsWith('rows-')), afterTrees + 24, 'the first request row follows the 24 proof steps');
+      same(s2.steps.slice(0, afterTrees).map((/** @type {any} */ s) => s.id), ['prerequisites', 'firewall-snapshot', 'trees'], 'after the gate, the snapshot and the trees');
+      same(s2.steps.slice(-6).map((/** @type {any} */ s) => s.id), ['kernel-counters', 'kernel-profile', 'kernel-report', 'width', 'width-report', 'firewall-check'], 'the probes and the firewall check come last');
+      // The live receipt is a mandatory proof (D-V4-19): it exits nonzero unless it passes.
+      const liveReceipt = live.steps.find((/** @type {any} */ s) => s.id === 'live-receipt');
+      same([liveReceipt.node, liveReceipt.expect], [['tools\\ig-proto\\live-deadline.mjs', 'receipt', '--task', 'V4-LIVE', '--require-pass'],
+        'receipt: live-deadline pass -> docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.json'], 'V4-LIVE\'s live-receipt requires a pass');
     },
   },
   {
