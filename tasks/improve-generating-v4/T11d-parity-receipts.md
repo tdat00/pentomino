@@ -3,8 +3,8 @@
 | Item | Value |
 |---|---|
 | Feature, plan | improve-generating, `docs/improve-generating/plan.md` §5.1 ("Parity passes": "the puzzles, work units and skip ordinals are equal with observers absent, with `charge` alone and with `record` and `charge`"; the P-0 re-check on the final trees), §6 ("Observers"); decisions D-V4-14, D-V4-18, D-V4-19; review RV1-06 (R06), RV1-17, RV2-09, RV2-11, RV3-02 (R3-02), RV3-06, RV4-03 (R4-03), RV4-08, RV5-03 |
-| Repository, branch, base | `Q:\git\pentomino`, `improve-generating`, the commit of T11c |
-| Depends on | T11c (the plans name these commands); T04c (`expandManifest`, `parityVerdict`, `replayVerdict`), T04d (`stepEvidence`, `proofEnvelope`), T04f (`accept`, `acceptedBinding`, `checkAccepted`) |
+| Repository, branch, base | `Q:\git\pentomino`, `improve-generating`, the commit of T11h |
+| Depends on | T11c (the plans name these commands; T11h runs between the two, serial order); T04c (`expandManifest`, `parityVerdict`, `replayVerdict`), T04d (`stepEvidence`, `proofEnvelope`), T04f (`accept`, `acceptedBinding`, `checkAccepted`) |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (claude-sonnet-5.5) |
 | Estimate | developer 3 h, machine 0 min (synthetic step folders; nothing locked runs here) |

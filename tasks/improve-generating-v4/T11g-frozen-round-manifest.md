@@ -90,24 +90,32 @@ price it. It dry-runs the plans and stops so that the orchestrator can put the p
    now plus the guards of the earlier entries, marked "assumes each earlier approval is spent to its guard; re-read
    when asked"); (3) the plans, their steps, commands and prerequisites, and the named items that unblock them
    (N-V4-03, N-V4-13, N-V4-04, N-V4-01); (4) seeds, limits, concurrency ("one locked invocation at a time on this
-   machine, under the lock helper; Sudoku's difficulty-v3 keeps priority"), the stopping rule of plan §5.1 verbatim,
+   machine, under the lock helper, of at most 900 s; timed requests sequential at four workers; a quiet period of 15 s
+   under the owner's idle declaration, else 45 s; Sudoku's difficulty-v3 keeps priority": the owner's lock rules of
+   2026-11-17 21:33, check-list §3.2), the stopping rule of plan §5.1 verbatim,
    the verdict recipe (plan §5.2, `verdicts.mjs`, resample seed 20261116, 10,000 resamples), completion apart from the
    deadline (D-V4-16), the work rule of IG-P-Q37 (judged on the intervals, reported with the completed-unit ratio; no
    timed run added) and P5's false stops counted against the uncapped comparator over the declared pairs (P-OD12,
    DR-O11, T09d); (5) the browser calibration and its labels; (6) the risks of plan §8 that bear on the price, quoted
    with their section numbers; (7) T11b's pricing rules (its export `PRICING`), its ceilings from enforced bounds and the overhead
-   assumptions (a horizon of 285 s for every invocation, although the runner's `decide` lowers it near the approved
-   cap, which the price does not model; `factor()` 1 when the identity file is absent; a cell without an MP12b1 report,
-   `20x20-hell-1` today, priced at its row limit; the P-1 passes priced at their reserves for want of a measured `fr-*`
-   item, T11c's `durationSource` `reserve`: the seven of `V4-S2` 141.8 counted minutes, about 37 at the `v4` measures of
-   34.6, 23.6 and 16.3 s per select, generate and replay item, so that `V4-S2` would be about 564 minutes instead of
-   669, and the four of `V4-S4`, priced at its activation, about 81 minutes at their reserves: ruling of 2026-11-17,
-   T11c's QUESTION 2); (8) the difference from the plan's indication (stage 4 about 3.4 to
+   assumptions (a horizon of 885 s for every invocation under the owner's 900-s cap, although the runner's `decide`
+   lowers it near the approved cap, which the price does not model; 45 quiet seconds counted per invocation even where
+   the owner's idle quiet of 15 s applies, so that the spend can only be lower (fail-closed; with 15 s throughout, the
+   first approvals' 34.4 h would be 32.4 h); the ceiling `units x 945`, which grew with the cap while the binding limit
+   of a run stays its plan's guard, checked before every invocation; `factor()` 1 when the identity file is absent; a
+   cell without an MP12b1 report, `20x20-hell-1` today, priced at its row limit; the P-1 passes priced at their reserves
+   for want of a measured `fr-*` item, T11c's `durationSource` `reserve`: the seven of `V4-S2` 124.6 counted minutes,
+   about 31 at the `v4` measures of 34.6, 23.6 and 16.3 s per select, generate and replay item (one invocation a pass),
+   so that `V4-S2` would be about 466 minutes instead of 560, and the four of `V4-S4`, priced at its activation, about
+   71 minutes at their reserves: rulings of 2026-11-17, T11c's QUESTION 2 and the owner's lock rules); (8) the
+   difference from the plan's indication (stage 4 about 3.4 to
    4.2 h): the universe's counted minutes and their causes, each with its minutes: both twins on every validated cell,
-   the comparator, the ten controls (T11a's ruling of 2026-11-17), the 260-s limit of today's, the comparator and
-   every stage-2 group, which admits one row per invocation (a 285-s horizon under the helper's 300-s limit), so that
-   each such row also pays a 45-s quiet period (T11b's scratch price of the whole matrix on 2026-11-17: 3,604 counted
-   minutes in 1,224 invocations, 918 of them quiet periods; stage 4 3,091.6), and the planning projection from today's
+   the comparator, the ten controls (T11a's ruling of 2026-11-17), the quiet periods (before the owner's lock rules of
+   2026-11-17 21:33 a group of 260-s rows admitted one row per invocation under the 300-s cap, so that each row paid a
+   45-s quiet period: T11b's scratch price of the whole matrix was 3,604 counted minutes in 1,224 invocations, 918 of
+   them quiet, stage 4 3,091.6; under the 900-s cap rows share invocations: 2,874.7 counted minutes in 293
+   invocations, 220 of them quiet, stage 4 2,452.4), the possible saving of N-V4-18 after the freeze, and the planning
+   projection from today's
    search times (`1.25 x factor x refS`: a twin whose projection exceeds its 130-s limit is priced at the limit and
    predicted censored, a projection from today's search, not the frozen arms' expected time).
 2. **`approval --plan <id> [--after <ids>] [--optional] --label frozen --source-label <SL>`** and its pure core

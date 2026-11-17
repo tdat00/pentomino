@@ -54,6 +54,11 @@ orchestrator asks the owner for a cumulative round cap.
   minutes, `budget.mjs:84`); a request states the counted seconds already spent, the additional guard and the
   cumulative cap that covers both, `requestedCumulativeRoundMinutes = Math.ceil((roundCountedSBeforeApproval +
   requestedAdditionalGuardS) / 60)`; prior invocation records are never deleted or reset.
+- **Changed by T11h** (the owner's lock rules of 2026-11-17 21:33, check-list §5): the horizon `H = 885` s (`budget.mjs`
+  `MAX_HORIZON_S`), the kill 900 s and so `ceilingS = units x 945`; the counted quiet stays at most 45 s per invocation
+  and the price counts 45 s (fail-closed: the owner's idle quiet of 15 s lowers the spend, never the price); the cases
+  below that test the 285-s schedule pass `horizonS: 285` explicitly from T11h on (T11h step 6). The rest of this task
+  describes the rules T11b implemented.
 
 ## Scope
 
