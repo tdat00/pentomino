@@ -190,13 +190,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 14:20:10 +07:00 (dispatch, base `c8d2724`) to 14:36:17 +07:00 (acceptance): 16 min 7 s; the developer's own times 14:20:15-14:29:20 |
+| Waiting for rulings | about 6 min (SA-Opus's review of the deviations, readings and named items, 14:30-14:35; no QUESTION) |
+| Agent id, model | `70a3f277-143a-4c91-9bf2-95bb2c0a6ad8`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 63 calls; 10,170,498 input, 70,778 output, 9,946,156 cache-read |
+| AI credits | 226.32 |
+| Questions and rulings | none from the developer. SA-Opus ruled "accept T09a": deviations 1-4 and the five readings accepted (`tenth` defaults to `null`; the lazy `verdictKit()`; fail-closed guards; first match wins; `p95Ms` only with 20 valid rows; any `validation` or `certificates` error is `incorrect`). The four contract mismatches the developer found were fixed in the later tasks: T11f writes each arm's `id`; T09c rule 8 counts with `reachedTen`; T09b-T09e name `const { v, row } = await verdictKit()`; `rowLedger` is T09c's own; pack amendment `ce048da` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--items`: 48 passed, 0 failed (12.524 s; the four new `verdicts:` cases 45-48); `--frozen`: 10 passed; `check-edits --all`: 33 `ok`, no other line; firewall `check` (V4-T09a): 289 production files unchanged; `git status --short -- core generator tests tools/bench tools/ig-proto/variants`: empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. No locked command and no machine time (round 2,724 s); `ig-select-v4.js` unchanged |
+| Commit | this task's commit, `improve-generating T09a: Admission statistics of plan §5.2: valid rows, completion apart from the deadline, per-puzzle evidence` |
+| Issues and named items | none new; the developer's four contract mismatches were fixed in the pack (`ce048da`). The schema examples are first read by T09e; real rows come from the frozen round |

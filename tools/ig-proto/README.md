@@ -68,6 +68,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `variants/link.json`, `variants/log-link.json`, `variants/v4-link.json`, `variants/v4-ps-link.json`, `variants/files/link/`, `linkage.mjs`, `plans/V4-T06.json` | the batch linkage journal and its report (V4-T06): the variant `link` and its three compositions, `ig-link.js`, `linkage.mjs report` and the plan of its run; see "Batch linkage (V4-T06)" |
 | `variants/v4-p5.json`, `variants/v4-p5-w8-test.json`, `variants/v4-link-w8-test.json` | the P5 pilot arm `v4-p5` (the call budget and the bounded set attempts) and the two test-only width-8 trees (V4-T07b); see "P5 bounded set attempts (V4-T07b)" |
 | `variants/fr-base.json`, `fr-screen.json`, `fr-none.json`, `fr-close.json`, `fr-c4.json`, `fr-ps.json`, `fr-p5.json` | the seven frozen-round arms of stage 2 (V4-T08); see "Frozen-round arms (V4-T08)" |
+| `verdicts.mjs`, `data/verdict-manifest.schema.md` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence) and the manifest those statistics read; pure; see "Admission statistics (V4-T09a)" |
 
 ## Trees (variants)
 
@@ -1345,3 +1346,57 @@ re-checks the stage-1 results on the final trees.
   classes and limits at every boundary, the fail-closed entries, the parameters of the seven trees, the screen limit of
   a real call's `start` line per arm and level), `fr: bracket-close re-rating (synthetic)` and `fr: (c4) probe
   (synthetic)` (the ordinals of the family subset and of the sample, with the skip and the double skip).
+
+## Admission statistics (V4-T09a)
+
+The statistics of plan section 5.2 are fixed in code before any validation seed runs (the provisional seeds are
+fitting data). `verdicts.mjs` holds their row level; V4-T09b adds the pairing and the class statistics, V4-T09c the work
+ledger and the class verdict, V4-T09d the global verdicts and V4-T09e the verdict tool, which reads a verdict manifest
+(`data/verdict-manifest.schema.md`: the purpose, the collection, the hashed runs files and tree ids, the expected P5
+pairs and the accepted prerequisite bindings). Missing, invalid, censored or erroneous data is incomplete evidence and
+never a pass; an invalid puzzle or pack is a correctness failure. The module loads the record schema
+(`validateRunRecord`) from the frozen source (`sourceRoot('frozen')`), so it needs the snapshot of V4-T01a.
+
+- **Run status** (`runStatus(run, { quantity })`, one run record of `tools/bench/report.js`; the first match wins, and
+  `problems` names the conditions of the winning status).
+  1. `invalid`: `validateRunRecord` returns a problem; `probeKind` is not `generation`; `acceptedCount` is not an integer
+     from 0; `responseMs` is not a finite number from 0; or `acceptedCount >= quantity` and `tenthReadyMs` is not a
+     finite number from 0 to `responseMs`.
+  2. `incorrect` (a correctness failure, apart from missing evidence): an `errors` entry of phase `validation` (codes
+     `invalid-puzzle`, `invalid-pack`) or `certificates` (`unexpected-unsatisfiable`), or `partialReason`
+     `invalid-accepted`.
+  3. `censored` (no measurement exists, never a measured failure): `measurementValid` false, `interrupted` true, or an
+     `errors` entry of phase `host` (a `child-timeout` or another child failure, the runner's host error).
+  4. `error`: any other `errors` entry (a typed generation fault of phase `set` or `batch`, a `sampling` error).
+  5. `valid`: none of these. A normal measured failure is valid: `partialReason` `set:<reason>` (`set:not-in-band`,
+     `set:no-window-below`, `set:time-limit`) or a batch reason (`time-limit`, `partial`) with fewer than ten puzzles.
+- **Published rows** (`{ rowKey, caseId, rep, seed, localRep, run }`, `arm.mjs publish`). `ingestRow(row, { quantity })`
+  returns `{ rowKey, caseId, rep, seed, run, status, problems }`: `invalid` also when `run.caseId` or `run.seed` is not
+  the row's, else the status of its run. Only `valid` rows enter a statistic.
+- **Completion and the capped time, apart from the deadline** (D-V4-16; plan section 5.2, one endpoint). A valid row
+  reaches ten (`reachedTen`) when `acceptedCount >= quantity`, whatever its time. Its capped T10 (`cappedT10`) is
+  `Math.min(tenthReadyMs, capMs)` when it reaches ten, else `capMs` (120,000 ms). A deadline violation
+  (`deadlineViolation`) is `responseMs > responseBoundMs` (120,000 ms), reported apart and enforced by the live-deadline
+  receipt (N-V4-13), never by the completion count: a request with ten puzzles at 125 s completes, enters the ratio
+  statistics at 120 s and is one deadline violation. `completion(rows, { quantity, capMs, responseBoundMs })` over
+  ingested rows returns `{ requests, statuses, reachedTen, deadlineViolations, p95Ms }`; the two counts are over valid
+  rows only, `statuses` counts every row by status.
+- **The p95 tail observation.** Over exactly 20 valid rows, the second-largest uncapped T10 (a nearest-rank p95 of 20),
+  a row that did not reach ten being larger than every number; `null` when that second-largest is such a row or when the
+  cell does not have exactly 20 valid rows. It is reported, never gated.
+- **Per-puzzle evidence** (`puzzleEvidence(run)` returns `{ keys, clues }`, each `null` when complete or the reason it
+  is not). The `instr` variant writes `run.details.igPuzzleKeys` (one SHA-256 hex key per accepted puzzle, in order) and
+  the runner `run.details.K` and `run.details.puzzles[].clues`. A valid row with `acceptedCount` 0 has complete evidence
+  (an empty list) whatever `details` holds. Otherwise the keys must be an array (`missing puzzle keys`) of exactly
+  `acceptedCount` entries (`puzzle keys: <length> of <acceptedCount>`), each 64 lower-case hex digits (`malformed puzzle
+  key <index>`) and all distinct (`duplicate puzzle key <index>`, the later one); and `K` an integer from 1 (`missing
+  K`) with a `puzzles` array (`missing clue counts`) of exactly `acceptedCount` entries (`clues: <length> of
+  <acceptedCount>`), each `clues` an integer from 0 to `K` (`clue out of range at <index>`). Missing per-puzzle evidence
+  is never equality and never a zero difference: the consumers (V4-T09b to V4-T09d) make the affected statistic or gate
+  incomplete. The functions are fail-closed beyond the table: a missing option (`quantity`, `capMs`,
+  `responseBoundMs`) throws, `cappedT10` throws on a request with ten puzzles and no T10 (not a valid row), and a run
+  whose `acceptedCount` is not an integer from 0 has incomplete evidence.
+- **Self-test.** Four cases appended to the `--items` group (`verdicts: basic rows`, `verdicts: completion and the
+  deadline apart`, `verdicts: run status`, `verdicts: per-puzzle evidence`), on synthetic rows built from the frozen
+  `newRunRecord` (the helper `verdictKit()` of `self-test.mjs` loads `verdicts.mjs` and the frozen record builders on
+  first use, so the other groups do not need the snapshot).

@@ -844,6 +844,41 @@ const NO_CLOSURE_LINES = Object.freeze({
   completionKeyMismatches: 0,
 });
 
+/**
+ * The row level of the admission statistics (V4-T09a) and the synthetic rows of its cases, loaded on first use so that
+ * the other groups do not need the frozen source: `v` is `verdicts.mjs`, `rec(over)` a run record of the frozen
+ * `newRunRecord` (case `c`, seed `s`), `keysOf(seed, n)` the default puzzle keys and `row(rep, seed, spec)` a published
+ * row of case `c`; by default every row with positive `accepted` has complete per-puzzle evidence (`clues` or `n`
+ * times `clue`, `K`, `keys`), and `over` replaces any field of the run record.
+ * @returns {Promise<{ v: any, rec: (over?: Record<string, any>) => any, keysOf: (seed: string, n: number) => string[],
+ *   row: (rep: number, seed: string, spec: { accepted: number, tenth?: number | null, response?: number, setKey?: string | null,
+ *   clue?: number, clues?: number[], K?: number, keys?: any, over?: Record<string, any> }) => any }>}
+ */
+async function verdictKit() {
+  if (memo.verdictKit === undefined) {
+    const v = await import('./verdicts.mjs');
+    const { newRunRecord } = await import(pathToFileURL(join(sourceRoot('frozen'), 'tools', 'bench', 'report.js')).href);
+    const rec = (/** @type {Record<string, any>} */ over = {}) => newRunRecord({ caseId: 'c', seed: 's', ...over });
+    const keysOf = (/** @type {string} */ seed, /** @type {number} */ n) => Array.from({ length: n }, (_, i) => sha256(`${seed}/${i}`));
+    const row = (/** @type {number} */ rep, /** @type {string} */ seed, /** @type {any} */ spec) => {
+      const { accepted, tenth = null, response = 60000, setKey = null, clue = 6, clues, K = 12, keys, over = {} } = spec;
+      return {
+        rowKey: `c~${rep}`, caseId: 'c', rep, seed, localRep: 0,
+        run: rec({
+          seed, rep, acceptedCount: accepted, tenthReadyMs: tenth, responseMs: response,
+          details: {
+            igSetKey: setKey, igPuzzleKeys: keys ?? keysOf(seed, accepted), K,
+            puzzles: (clues ?? Array(accepted).fill(clue)).map((/** @type {number} */ n) => ({ clues: n })),
+          },
+          ...over,
+        }),
+      };
+    };
+    memo.verdictKit = { v, rec, keysOf, row };
+  }
+  return memo.verdictKit;
+}
+
 /** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
 const itemCases = [
   {
@@ -2101,6 +2136,120 @@ const itemCases = [
       assert(typeof key === 'string' && key === `c/${e.keys.layoutKey(carved.board, carved.set.pieces, carved.set.witness)}` && key.length > 2,
         `the key of a real layout: ${key}`);
       assert(igCompletionKey({}, []) === null && igCompletionKey(null, null) === null, 'the helper threw or returned a key for an invalid input');
+    },
+  },
+  {
+    name: 'verdicts: basic rows',
+    async run() {
+      const { v, row } = await verdictKit();
+      const o = { quantity: 10, capMs: 120000 };
+      const fast = row(0, 's0', { accepted: 10, tenth: 5000 }).run;
+      const nine = row(1, 's1', { accepted: 9, tenth: null }).run;
+      const slow = row(2, 's2', { accepted: 10, tenth: 130000, response: 131000 }).run;
+      same([fast, nine, slow].map((run) => v.cappedT10(run, o)), [5000, 120000, 120000], 'cappedT10: 5,000, the cap for nine, the cap above it');
+      same([fast, nine, slow].map((run) => v.reachedTen(run, o)), [true, false, true], 'reachedTen of the three rows');
+      let thrown = '';
+      try {
+        v.cappedT10(row(3, 's3', { accepted: 10, tenth: null, response: 70000 }).run, o);
+      } catch (e) {
+        thrown = e instanceof Error ? e.message : String(e);
+      }
+      assert(thrown.includes('not a valid row'), `a request with ten puzzles and no T10 gave a number: ${thrown}`);
+    },
+  },
+  {
+    name: 'verdicts: completion and the deadline apart',
+    async run() {
+      const { v, row } = await verdictKit();
+      const o = { quantity: 10, capMs: 120000, responseBoundMs: 120000 };
+      const a = row(0, 's0', { accepted: 10, tenth: 125000, response: 125000 });
+      const b = row(1, 's1', { accepted: 9, tenth: null, response: 120500 });
+      same([v.reachedTen(a.run, o), v.cappedT10(a.run, o), v.deadlineViolation(a.run, o)], [true, 120000, true], 'row (a): ten puzzles at 125 s');
+      same([v.reachedTen(b.run, o), v.cappedT10(b.run, o), v.deadlineViolation(b.run, o)], [false, 120000, true], 'row (b): nine puzzles, response 120.5 s');
+      const filler = Array.from({ length: 17 }, (_, i) => row(2 + i, `s${2 + i}`, { accepted: 10, tenth: 30000 }));
+      const ingest = (/** @type {any[]} */ list) => list.map((r) => v.ingestRow(r, o));
+      const twenty = [...filler, a, row(19, 's19', { accepted: 10, tenth: 50000 }), b];
+      same(v.completion(ingest(twenty), o), {
+        requests: 20, statuses: { valid: 20, invalid: 0, incorrect: 0, censored: 0, error: 0 }, reachedTen: 19, deadlineViolations: 2, p95Ms: 125000,
+      }, 'completion of 20 valid rows');
+      // A censored row is counted by status and enters no statistic; 19 valid rows have no tail observation.
+      const cut = row(0, 's0', { accepted: 10, tenth: 125000, response: 125000, over: { measurementValid: false } });
+      same(v.completion(ingest([...filler, cut, ...twenty.slice(-2)]), o), {
+        requests: 20, statuses: { valid: 19, invalid: 0, incorrect: 0, censored: 1, error: 0 }, reachedTen: 18, deadlineViolations: 1, p95Ms: null,
+      }, 'completion with one censored row');
+      // The second-largest is a request that did not reach ten: no tail value.
+      const two = [...filler.slice(1), a, b, row(19, 's19', { accepted: 3, tenth: null }), row(20, 's20', { accepted: 10, tenth: 50000 })];
+      assert(v.completion(ingest(two), o).p95Ms === null, 'the second-largest was a request without ten puzzles but the tail has a value');
+    },
+  },
+  {
+    name: 'verdicts: run status',
+    async run() {
+      const { v, row } = await verdictKit();
+      const o = { quantity: 10 };
+      const status = (/** @type {number} */ r, /** @type {any} */ spec) => v.ingestRow(row(r, `s${r}`, { accepted: 10, tenth: 40000, ...spec }), o);
+      const host = { phase: 'host', code: 'child-timeout', message: 'x' };
+      const invalidPuzzle = { phase: 'validation', code: 'invalid-puzzle', message: 'x' };
+      const g = row(6, 's9', { accepted: 10, tenth: 40000 });
+      g.run.seed = 's8';
+      const got = [
+        status(0, { over: { measurementValid: false } }),
+        status(1, { over: { interrupted: true } }),
+        status(2, { over: { errors: [{ phase: 'batch', code: 'worker-crashed', message: 'x' }] } }),
+        status(3, { over: { measurementValid: false, errors: [host] } }),
+        status(4, { over: { errors: [invalidPuzzle] } }),
+        status(5, { over: { responseMs: 'x' } }),
+        v.ingestRow(g, o),
+        v.ingestRow(row(7, 's7', { accepted: 3, tenth: null, over: { partialReason: 'time-limit' } }), o),
+        v.ingestRow(row(8, 's8', { accepted: 0, tenth: null, over: { partialReason: 'set:not-in-band', details: null } }), o),
+      ];
+      same(got.map((r) => r.status), ['censored', 'censored', 'error', 'censored', 'incorrect', 'invalid', 'invalid', 'valid', 'valid'], `the statuses: ${JSON.stringify(got.map((r) => r.status))}`);
+      assert(got.every((r) => (r.status === 'valid') === (r.problems.length === 0)), 'a row has no problem text or a valid row has one');
+      assert(got[6].problems.some((/** @type {string} */ p) => p.includes('run.seed')), `the mismatched seed is not named: ${JSON.stringify(got[6].problems)}`);
+      // The first status that matches wins; each reading of the Authority section, once.
+      same([
+        status(0, { over: { measurementValid: false, errors: [invalidPuzzle] } }).status,
+        status(1, { over: { partialReason: 'invalid-accepted' } }).status,
+        status(2, { over: { errors: [{ phase: 'certificates', code: 'unexpected-unsatisfiable', message: 'x' }] } }).status,
+        status(3, { over: { errors: [host] } }).status,
+        status(4, { over: { errors: [{ phase: 'sampling', code: 'x', message: 'x' }] } }).status,
+        status(5, { tenth: null }).status,
+        status(6, { tenth: 70000 }).status,
+        status(7, { over: { probeKind: 'cancel' } }).status,
+        status(8, { over: { acceptedCount: 1.5 } }).status,
+        v.ingestRow({ ...row(9, 's9', { accepted: 10, tenth: 40000 }), caseId: 'd' }, o).status,
+        v.ingestRow(null, o).status,
+      ], ['incorrect', 'incorrect', 'incorrect', 'censored', 'error', 'invalid', 'invalid', 'invalid', 'invalid', 'invalid', 'invalid'], 'the first matching status wins');
+    },
+  },
+  {
+    name: 'verdicts: per-puzzle evidence',
+    async run() {
+      const { v, row, keysOf } = await verdictKit();
+      const evidence = (/** @type {any} */ spec) => v.puzzleEvidence(row(0, 's', { accepted: 10, tenth: 40000, ...spec }).run);
+      const keys = keysOf('s', 10);
+      const dup = keys.slice();
+      dup[3] = dup[1];
+      const bad = keys.slice();
+      bad[0] = 'ABC';
+      const six = Array.from({ length: 10 }, () => ({ clues: 6 }));
+      const ok = { keys: null, clues: null };
+      same(evidence({}), ok, '(a) the defaults');
+      same(evidence({ keys: [] }), { keys: 'puzzle keys: 0 of 10', clues: null }, '(b) no keys');
+      same(evidence({ over: { details: { igSetKey: null, K: 12, puzzles: six } } }), { keys: 'missing puzzle keys', clues: null }, '(c) no key array');
+      same(evidence({ keys: dup }), { keys: 'duplicate puzzle key 3', clues: null }, '(d) a duplicate key');
+      same(evidence({ keys: bad }), { keys: 'malformed puzzle key 0', clues: null }, '(e) a malformed key');
+      same(evidence({ clues: [] }), { keys: null, clues: 'clues: 0 of 10' }, '(f) no clue counts');
+      same(evidence({ clues: Array(9).fill(6) }), { keys: null, clues: 'clues: 9 of 10' }, '(g) nine clue counts');
+      same(evidence({ clues: [6, 6, 6, 6, 13, 6, 6, 6, 6, 6] }), { keys: null, clues: 'clue out of range at 4' }, '(h) a clue count above K');
+      same(evidence({ K: 0 }), { keys: null, clues: 'missing K' }, '(i) K 0');
+      same(v.puzzleEvidence(row(0, 's', { accepted: 0, tenth: null, over: { details: null } }).run), ok, '(j) an empty request is complete evidence');
+      // Beyond the table: the detail of a request without puzzles is never read; a key that is not a string, a missing
+      // puzzle list and a count that is not a count fail closed.
+      same(v.puzzleEvidence(row(0, 's', { accepted: 0, tenth: null, over: { details: { igPuzzleKeys: 'x', puzzles: 5 } } }).run), ok, 'details of an empty request are not read');
+      same(evidence({ keys: [7, ...keys.slice(1)] }).keys, 'malformed puzzle key 0', 'a key that is not a string');
+      same(evidence({ over: { details: { igPuzzleKeys: keys, K: 12 } } }), { keys: null, clues: 'missing clue counts' }, 'no puzzle list');
+      same(evidence({ over: { acceptedCount: 1.5 } }), { keys: 'acceptedCount is not an integer from 0', clues: 'acceptedCount is not an integer from 0' }, 'a fractional count');
     },
   },
 ];
