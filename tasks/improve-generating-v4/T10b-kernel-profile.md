@@ -86,7 +86,12 @@ the lock helper's limit, and runs it once so that stage 2 can price its full run
    - `report` gains the profile block: per case the record, the note "reduced-inlining profile, diagnostic only (plan
      P7)", and `profile: complete`, or `profile: incomplete (<cases>)` when an item is missing, censored, an error or
      an evidence error. `report --task <T>` writes only the blocks whose step folder exists under
-     `artifactDir('frozen', T)` (`counters` for V4-T10a, `profile` for V4-T10b).
+     `artifactDir('frozen', T)` (`counters` for V4-T10a, `profile` for V4-T10b; both for T11c's `V4-S2K`), so a missing
+     `counters` state is no longer a refusal. Each block finds its cases from its own state, as T10a's `report` does
+     for `counters` (ruling of 2026-11-17, T10a's report): the default list, else the cases its item log names (the
+     profile item ids `profile:instr:<caseId>:ig-v4/kernel/<caseId>`), the first whose items reproduce that step's
+     `identity.manifestHash`; none refuses the command (exit 1). `report`'s `--cases` (T10a) applies to the
+     `counters` block only; the plans run `report` without it.
 3. **Plan** `plans/V4-T10b.json`: `"allocationMinutes": 4`, `"optionalMinutes": 0`; steps `firewall-snapshot`
    (unlocked), `trees` (`tools\ig-proto\lib\tree.mjs build instr`, unlocked), `profile` (locked, `repeatUntilDone`
    true, `projectS` 150, `minHorizonS` 150, `invocations` 1, node `tools\ig-proto\kernel-probe.mjs profile --task

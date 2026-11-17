@@ -90,7 +90,11 @@ the probe once so that stage 2 can price its full run. The `fewestColumn` profil
    - `report` (unlocked): `evidence/frozen/<task>/kernel.json` and `kernel.md` (meta block; the item table; per case
      the sums of the counters, `dirtyPieces / pieces` and `countChanged / pieces`; and `counters: equal` when every
      completed item has `same: true` and no item is missing, censored or an error, `counters: incomplete (<items>)`
-     when items are missing or censored, else `counters: DIFFER (<items>)`). T10b adds the profile block.
+     when items are missing or censored, else `counters: DIFFER (<items>)`). T10b adds the profile block. Its cases
+     (ruling of 2026-11-17, T10a's report: T11c's `V4-S2K` runs `report` without `--cases` after a five-case
+     `counters`): `report` takes `[--cases <ids>]`; the cases are `--cases`, else the default list, else the cases the
+     item log names (`loggedCases`), the first whose items reproduce the state's `identity.manifestHash`; none
+     refuses (exit 1), so a run cut before a case started can never read as complete.
 4. **Plan** `plans/V4-T10a.json`: `"allocationMinutes": 5`, `"optionalMinutes": 0`; steps `firewall-snapshot`
    (unlocked), `trees` (`tools\ig-proto\lib\tree.mjs build instr r4c`, unlocked), `counters` (locked,
    `repeatUntilDone` true, `projectS` 150, `minHorizonS` 150, `invocations` 2, node `tools\ig-proto\kernel-probe.mjs
