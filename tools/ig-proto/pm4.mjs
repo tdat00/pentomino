@@ -1293,7 +1293,9 @@ async function reportCommand(argv) {
       'Cost ratio = sum of screen ms / sum of canonical ms over the profiles; net ratio = (sum of screen ms + sum of canonical ms of the lost useful ratings, each re-rated once) / sum of canonical ms; P2 saving = 1 / net ratio. Per useful rating: the same sums over the number of useful ratings (work = main + census work). Times come from the calls and screens invocations (four concurrent lanes), so ratios of sums carry timing noise.',
       'Where the losses lie: clue share = clues / K of the useful ratings lost against all useful ratings; the offset is the clue count less the set\'s start count (the share of K of `initialClueCount`).',
       'A boundary limit coinciding with another limit keeps both kinds and is rated once; a boundary limit at or above the canonical limit is dropped.',
-      'Provisional: measured on the rating-v3 runtime of this worktree, not on the frozen post-MP17 source; the plan\'s `W` list (95, 190, 380 M) is fixed before the first measurement.',
+      run.label === 'frozen'
+        ? 'Frozen: measured on the frozen source `3fc65f4` (task pack v4, V4-T04): the certificate re-proved on the cases of R14; the plan\'s `W` list (95, 190, 380 M) is unchanged.'
+        : 'Provisional: measured on the rating-v3 runtime of this worktree, not on the frozen post-MP17 source; the plan\'s `W` list (95, 190, 380 M) is fixed before the first measurement.',
     ],
   };
   const publish = run.task === TASK && run.runId === 'main';

@@ -296,13 +296,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 07:51:54 +07:00 (dispatch, base `107957c`) to 08:16:02 +07:00 (acceptance): 24 min 8 s; the developer's own times 07:52:22-08:11:23 |
+| Waiting for rulings | about 5 min (08:11:23 report to 08:16 ruling); no developer wait (no fix round). The owner's stop: asked 08:12 through Discord, answered 08:12:57 (option A, 92 minutes) |
+| Agent id, model | `6dcf1211-ac52-4163-8388-a0a0d32ff86b`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 81 calls; 18,039,587 input, 157,571 output, 17,691,871 cache-read |
+| AI credits | 421.41 |
+| Questions and rulings | Three points the developer marked "QUESTION (default applied)" (a failing receipt's reasons; a seventh `inputs` block; identity coverage needs both pairs), a reading, seven deviations, three named items and three gaps were relayed to the pack author; all accepted (08:16); T04d's text records them and T11d's receipts carry `reasons`; pack amendment `20dadb5`. Owner stop (§3.4): the stage-1 allowance granted, 92 minutes (recorded in §1 and the register, `20dadb5`) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--items`: 26 passed, 0 failed (8 new `proof:` cases); `--frozen`: 10 passed; `run-task -Plan IGP-02.json -DryRun -ApprovedRoundMinutes 92`: every locked step `go`, 1,520 s counted (allocation 1,500 s, guard 1,875 s); `run-task -Plan V4-T04.json -DryRun -ApprovedRoundMinutes 92`: 11 steps listed, every locked step `go`, 1,500 s counted (allocation 1,500 s, guard 1,875 s); the historical namespaces `IGP-02`, `V4-T04`, `V4-T04v4`, `V4-T04f`, `V4-T04i`, `V4-S2P` absent (evidence and artifacts); firewall `check`: 289 production files unchanged; `npm run check`: OK |
+| Commit | this task's commit, `improve-generating T04d: Stage-1 receipt: typed proof receipts, the summary, the PM4 gate and the stage-1 plan` |
+| Issues and named items | None new. `summary.mjs` (IGP-07) would throw on the new manifests if run again; by the ruling it is never re-run in this pack |

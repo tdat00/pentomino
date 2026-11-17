@@ -1,0 +1,112 @@
+{
+  "task": "V4-T04",
+  "allocationMinutes": 25,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "snapshot", "--task", "V4-T04"]
+    },
+    {
+      "id": "trees",
+      "locked": false,
+      "node": ["tools\\ig-proto\\lib\\tree.mjs", "build", "base", "instr", "log", "v4", "v4-w760", "v4-w095", "v4-w380"]
+    },
+    {
+      "id": "self-test-frozen",
+      "locked": false,
+      "node": ["tools\\ig-proto\\self-test.mjs", "--frozen", "--task", "V4-T04f"]
+    },
+    {
+      "id": "self-test-items",
+      "locked": false,
+      "node": ["tools\\ig-proto\\self-test.mjs", "--items", "--task", "V4-T04i"]
+    },
+    {
+      "id": "self-test",
+      "locked": true,
+      "repeatUntilDone": false,
+      "projectS": 75,
+      "minHorizonS": 90,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\self-test.mjs", "--task", "V4-T04"],
+      "state": "V4-T04\\self-test\\state.json"
+    },
+    {
+      "id": "self-test-v4",
+      "locked": true,
+      "repeatUntilDone": false,
+      "projectS": 120,
+      "minHorizonS": 135,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\self-test.mjs", "--v4", "--task", "V4-T04v4"],
+      "state": "V4-T04v4\\self-test\\state.json"
+    },
+    {
+      "id": "identity-base",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 120,
+      "minHorizonS": 110,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "V4-T04", "--arm", "base", "--shard", "s1", "--variant", "base", "--workers", "4", "--cases", "26x26-nightmare:0-1,14x14-master:0-1", "--row-limit-s", "90"],
+      "state": "V4-T04\\base\\s1\\state.json"
+    },
+    {
+      "id": "identity-log",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 120,
+      "minHorizonS": 110,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "V4-T04", "--arm", "log", "--shard", "s1", "--variant", "log", "--workers", "4", "--cases", "26x26-nightmare:0-1,14x14-master:0-1", "--row-limit-s", "90"],
+      "state": "V4-T04\\log\\s1\\state.json"
+    },
+    {
+      "id": "publish-base",
+      "locked": false,
+      "node": ["tools\\ig-proto\\arm.mjs", "publish", "--task", "V4-T04", "--arm", "base"]
+    },
+    {
+      "id": "publish-log",
+      "locked": false,
+      "node": ["tools\\ig-proto\\arm.mjs", "publish", "--task", "V4-T04", "--arm", "log"]
+    },
+    {
+      "id": "identity",
+      "locked": false,
+      "node": ["tools\\ig-proto\\identity.mjs", "--task", "V4-T04", "--arms", "base,log"]
+    },
+    {
+      "id": "parity",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 360,
+      "minHorizonS": 150,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\v4-check.mjs", "run", "--task", "V4-T04", "--step", "parity", "--manifest", "tools\\ig-proto\\plans\\V4-T04.parity.json"],
+      "state": "V4-T04\\parity\\state.json"
+    },
+    {
+      "id": "replay",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 300,
+      "minHorizonS": 270,
+      "invocations": 3,
+      "node": ["tools\\ig-proto\\v4-check.mjs", "run", "--task", "V4-T04", "--step", "replay", "--manifest", "tools\\ig-proto\\plans\\V4-T04.replay.json"],
+      "state": "V4-T04\\replay\\state.json"
+    },
+    {
+      "id": "summary",
+      "locked": false,
+      "node": ["tools\\ig-proto\\v4-check.mjs", "summary", "--task", "V4-T04"]
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "check", "--task", "V4-T04"]
+    }
+  ]
+}

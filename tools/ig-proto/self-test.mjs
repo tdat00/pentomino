@@ -30,13 +30,14 @@ import { createLanes } from './lib/lanes.mjs';
 import { itemLedger, pairPrimitives } from './lib/ledger.mjs';
 import { preparePackPath, writePackFile } from './lib/packs.mjs';
 import { artifactDir, elapsedS, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, parseArgs, rel, ROOT, SOURCE_KIND, sourceRoot } from './lib/paths.mjs';
-import { harnessInfo, sha256, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
+import { LIVE_DEADLINE_FIELDS, proofCheck, proofEnvelope, STAGE1_COVERAGE_EXTRA } from './lib/proof.mjs';
+import { harnessInfo, sha256, sha256File, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
 import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
 import { pairResult } from './identity.mjs';
 import { buildInventory, readFamilies } from './pm1-inventory.mjs';
 import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
-import { expandManifest, main as checkMain, parityVerdict, replayVerdict } from './v4-check.mjs';
+import { expandManifest, IDENTITY_SEEDS, identityVerdict, judgeStage1, main as checkMain, parityVerdict, pm4GateEvidence, pm4Verdict, replayVerdict, stage1Inputs, stage1Verdict, stepEvidence } from './v4-check.mjs';
 
 const SELFTEST_DIR = join(ROOT, 'tests', 'artifacts', 'ig-proto', 'selftest');
 const GIT_CALL = new RegExp('(?:execFileSync|execSync|spawnSync|spawn|execFile|exec|fork)\\(\\s*[\'"`]git\\b|^\\s*&?\\s*git(?:\\.exe)?\\s+(?:rev-parse|status|log|diff|show|add|commit|push|ls-files)\\b', 'm');
@@ -730,6 +731,48 @@ const replayed = (i, kind, status, over = {}) => replayRow(`puzzle-${i}`, 'compl
   outcome: 'ok', kind, status, reason: null, work: 5, steps: 4, bytes: 100, detailStep: 3, packSha256: 'h', ...over,
 });
 
+/**
+ * @param {(record: any) => void} [edit] Changes the record after it is built.
+ * @returns {any} A PM4 record as the certificate re-proof publishes it under `-Label frozen`: the frozen commit and
+ *   digest, the `main` run, the `instr` tree `t-instr`, no violation, 40 certified runs, all equal to their canonical
+ *   rating and no coverage gap.
+ */
+function pm4Record(edit = () => {}) {
+  const record = {
+    meta: { source: { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST }, trees: { instr: { treeId: 't-instr' } } },
+    run: 'main',
+    certificate: { violations: [], certifiedRuns: 40, coverage: { gaps: [], equalCanonical: { certified: { equal: 40, of: 40 } } } },
+  };
+  edit(record);
+  return record;
+}
+
+/**
+ * @param {(record: any) => void} [edit] Changes the record after it is built.
+ * @returns {any} An identity record of the four expected seeds, each with an MP12b1 run, the pairs `mp12b1~base` and
+ *   `mp12b1~log` of the `different-source` form with an equal result, a `base~log` puzzle identity and no failure.
+ */
+function identityRecord(edit = () => {}) {
+  const record = {
+    seeds: IDENTITY_SEEDS.map((seed) => ({
+      case: seed.split('/')[1],
+      seed,
+      rep: Number(seed.split('/')[2]),
+      mp12b1: { accepted: 1 },
+      base: { accepted: 1 },
+      log: { accepted: 1 },
+      pairs: {
+        'mp12b1~base': { level: 'different-source', sameResult: true, problems: [] },
+        'mp12b1~log': { level: 'different-source', sameResult: true, problems: [] },
+        'base~log': { level: 'puzzle-identity', problems: [] },
+      },
+    })),
+    summary: { failures: 0, withoutMp12b1: 0 },
+  };
+  edit(record);
+  return record;
+}
+
 /** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
 const itemCases = [
   {
@@ -1250,6 +1293,325 @@ const itemCases = [
         replayRow('puzzle-0', 'completed', { outcome: 'ok', kind: 'candidate', status: 'matched', detailStep: 3, packSha256: 'h' }, { step: 'prior-replay' }),
       ]);
       assert(across.verdict === 'pass', `a replay row of another step than its generation row: ${across.verdict} ${JSON.stringify(across.reasons)}`);
+    },
+  },
+  {
+    name: 'proof: receipts are typed and bound',
+    run() {
+      const dir = fresh(artifactDir('selftest', 'proof-1'));
+      const file = join(dir, 'evidence.json');
+      writeJson(file, { rows: 1 });
+      const S = { frozenCommit: 'c', sourceDigest: 'd' };
+      const arms = [{ id: 'fr-frozen', treeId: 't1', paramsHash: 'p1' }];
+      const E = proofEnvelope({
+        kind: 'live-deadline',
+        verdict: 'pass',
+        source: S,
+        harnessHash: 'h',
+        arms,
+        coverage: { expected: ['14x14-nightmare~0'], observed: ['14x14-nightmare~0'], missing: [], censored: [] },
+        evidence: [{ path: rel(file), sha256: sha256File(file) }],
+        fields: LIVE_DEADLINE_FIELDS,
+      });
+      /** @type {any} */
+      const X = { kind: 'live-deadline', source: S, harnessHash: 'h', arms, coverage: { expected: ['14x14-nightmare~0'] }, fields: LIVE_DEADLINE_FIELDS };
+      const is = (/** @type {any} */ receipt, /** @type {string} */ status, /** @type {string | null} */ text, /** @type {string} */ label, /** @type {any} */ expected = X) => {
+        const result = proofCheck(receipt, expected);
+        assert(result.status === status && (text === null || hasReason(result.reasons, text)), `${label}: ${result.status} ${JSON.stringify(result.reasons)}`);
+      };
+      same(Object.keys(E).slice(0, 9), ['format', 'version', 'kind', 'verdict', 'source', 'harnessHash', 'arms', 'coverage', 'evidence'], 'the envelope fields');
+      same([E.format, E.version, E.live, E.postHoc, E.workCutoffMs, E.responseBoundMs, E.reserveChecked], ['ig-v4-proof', 1, true, false, 115000, 120000, true],
+        'the live-deadline fields are not spread into the root');
+      is({ verdict: 'pass' }, 'incomplete', 'not a live-deadline receipt', '(a) a bare verdict');
+      const noPostHoc = { ...E, kind: 'deadline-projection' };
+      delete noPostHoc.postHoc;
+      is(noPostHoc, 'incomplete', 'not a live-deadline receipt', '(b) a projection');
+      is({ ...E, arms: [{ ...arms[0], treeId: 't2' }] }, 'incomplete', 'stale arm fr-frozen', '(c) another tree');
+      is({ ...E, reserveChecked: false }, 'incomplete', 'reserveChecked is false', '(d) a field of the kind');
+      is(E, 'pass', null, '(f) the complete receipt');
+      is({ ...E, verdict: 'fail' }, 'fail', null, '(g) a failing verdict');
+      is({ ...E, harnessHash: 'h2' }, 'incomplete', 'producer changed', '(h) another producer');
+      const unbound = { ...X };
+      delete unbound.harnessHash;
+      is(E, 'incomplete', 'no producer binding', '(i) no producer binding', unbound);
+      const failing = proofCheck({ ...E, verdict: 'fail', source: { frozenCommit: 'c', sourceDigest: 'x' }, reasons: ['why'] }, X);
+      same([failing.status, failing.reasons], ['fail', ['why']], 'a failing receipt reports its own reasons before any binding');
+      is({ ...E, verdict: 'incomplete' }, 'incomplete', 'verdict', 'a receipt that is not a pass');
+      is({ ...E, source: { frozenCommit: 'c', sourceDigest: 'x' }, harnessHash: 'h2' }, 'incomplete', 'stale source', 'the source before the producer');
+      is({ ...E, version: 2 }, 'incomplete', 'not a live-deadline receipt', 'another version');
+      is({ ...E, format: 'other' }, 'incomplete', 'not a live-deadline receipt', 'another format');
+      const noArms = { ...E };
+      delete noArms.arms;
+      is(noArms, 'incomplete', 'not a live-deadline receipt', 'a missing envelope field');
+      is(E, 'incomplete', 'stale arm fr-frozen', 'another paramsHash', { ...X, arms: [{ ...arms[0], paramsHash: 'p2' }] });
+      is(E, 'incomplete', 'stale arm other', 'an arm the receipt lacks', { ...X, arms: [...arms, { id: 'other', treeId: 't', paramsHash: 'p' }] });
+      is(E, 'incomplete', 'coverage gap 15x15~1', 'an expected id that was not observed', { ...X, coverage: { expected: ['14x14-nightmare~0', '15x15~1'] } });
+      is({ ...E, coverage: { ...E.coverage, censored: ['14x14-nightmare~0'] } }, 'incomplete', 'coverage gap 14x14-nightmare~0', 'a censored id');
+      is({ ...E, coverage: { ...E.coverage, missing: ['m'] } }, 'incomplete', 'coverage gap m', 'a missing id');
+      is({ ...E, evidence: [{ path: rel(join(dir, 'absent.json')), sha256: 'x' }] }, 'incomplete', 'evidence changed', 'an evidence file that is absent');
+      assert(proofCheck(E, X, () => null).status === 'incomplete', 'a readFile that finds nothing');
+      let message = '';
+      try {
+        proofEnvelope({ kind: 'k', verdict: 'pass', source: S, harnessHash: 'h', arms: [], coverage: E.coverage, evidence: [], fields: { verdict: 'fail' } });
+      } catch (e) {
+        message = e instanceof Error ? e.message : String(e);
+      }
+      assert(message.includes('envelope field (verdict)'), `a field named like an envelope field: ${message}`);
+      writeJson(file, { rows: 2 });
+      is(E, 'incomplete', `evidence changed ${rel(file)}`, '(e) the file changed after hashing');
+    },
+  },
+  {
+    name: 'proof: stored identities',
+    async run() {
+      assert(SOURCE_KIND === 'frozen', 'the case must run with --label frozen');
+      const task = 'V4-T04d-selftest';
+      const root = fresh(artifactDir('selftest', 'proof-2'));
+      const manifestPath = join(root, 'm.json');
+      const manifest = {
+        format: 'ig-proto-items', version: 1, task, step: 'parity',
+        rows: [{ kind: 'v4-select', variant: 'v4', caseId: '12x12-nightmare', seedText: 'ig-v4/selftest', modes: ['absent', 'charge'] }],
+      };
+      writeJson(manifestPath, manifest);
+      const raw = artifactDir('frozen', task);
+      rmSync(raw, { recursive: true, force: true });
+      try {
+        const dir = join(raw, 'parity');
+        mkdirSync(dir, { recursive: true });
+        const isV4 = () => true;
+        const items = expandManifest(manifest, dir, isV4);
+        const treeId = (await ensureTree('v4')).treeId;
+        /** @type {any} */
+        const identity = { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST, treeIds: { v4: treeId }, harnessHash: 'h', manifestHash: manifestHash(items) };
+        const state = join(dir, 'state.json');
+        const log = join(dir, 'items.jsonl');
+        const result = { outcome: 'ok', digest: 'd' };
+        const lay = (/** @type {any} */ stored, /** @type {string} */ hash = identityHash(stored), lines = 2) => {
+          rmSync(log, { force: true });
+          writeJson(state, { format: 'ig-proto-state', version: 1, task, step: 'parity', label: 'frozen', identity: stored, done: false });
+          logStart(log, hash, items[0]);
+          logEnd(log, hash, items[0].id, 'completed', result, 5);
+          if (lines === 3) {
+            logStart(log, 'another', items[1]);
+          }
+        };
+        const read = () => stepEvidence(task, 'parity', manifestPath, isV4);
+        lay(identity);
+        const good = read();
+        same(good.problems, [], `the matching folder: ${JSON.stringify(good.problems)}`);
+        same(good.identity, identity, 'the identity is not the stored one');
+        same(good.rows.map((r) => [r.item, r.variant, r.caseId, r.seedText, r.mode, r.route, r.status, r.result]), [
+          [items[0].id, 'v4', '12x12-nightmare', 'ig-v4/selftest', 'absent', 'new', 'completed', result],
+          [items[1].id, 'v4', '12x12-nightmare', 'ig-v4/selftest', 'charge', 'new', 'missing', null],
+        ], 'the joined rows of the manifest, in order');
+        lay({ ...identity, manifestHash: 'x' });
+        const manifestProblem = read().problems[0];
+        assert(manifestProblem.includes('manifest hash') && manifestProblem.includes(rel(manifestPath)), `a manifest hash that differs: ${manifestProblem}`);
+        lay(identity, identityHash(identity), 3);
+        const foreign = read().problems;
+        assert(foreign.length === 1 && foreign[0].includes('log line 3') && foreign[0].includes('identityHash'), `a log line of another identity: ${JSON.stringify(foreign)}`);
+        lay({ ...identity, treeIds: { v4: 'old' } });
+        const stale = read();
+        same(stale.problems, [`stale tree v4 (old vs ${treeId})`], 'a stored tree id that is not the current tree\'s');
+        same(stale.identity.treeIds, { v4: 'old' }, 'the stored tree id was relabelled');
+        lay({ ...identity, frozenCommit: 'x', sourceDigest: 'y' });
+        const source = read().problems;
+        assert(source.length === 2 && source[0].includes('frozen commit') && source[1].includes('source digest'), `another frozen source: ${JSON.stringify(source)}`);
+        rmSync(state);
+        rmSync(log);
+        const noState = read();
+        assert(noState.identity === null && noState.problems[0].startsWith('no state ') && noState.rows.every((r) => r.status === 'missing'), `no state: ${JSON.stringify(noState.problems)}`);
+      } finally {
+        rmSync(raw, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'proof: PM4 block',
+    run() {
+      const done = { done: true };
+      const is = (/** @type {any} */ v, /** @type {string} */ verdict, /** @type {string | null} */ text, /** @type {string} */ label) => {
+        assert(v.verdict === verdict && (text === null || hasReason(v.reasons, text)), `${label}: ${v.verdict} ${JSON.stringify(v.reasons)}`);
+      };
+      const judged = (/** @type {(record: any) => void} */ edit, /** @type {any} */ state = done, instr = 't-instr') => pm4Verdict(pm4Record(edit), state, instr);
+      is(pm4Verdict(null, done, 't-instr'), 'incomplete', 'not run', '(a) no record');
+      is(judged(() => {}), 'pass', null, '(b) the complete record');
+      is(judged((r) => { r.certificate.coverage.gaps = ['no scap0 run observed']; }), 'fail', 'no scap0 run observed', '(c) a coverage gap');
+      is(judged(() => {}, { done: false }), 'incomplete', 'not done', '(d) the screens step is not done');
+      is(pm4Verdict(pm4Record(), null, 't-instr'), 'incomplete', null, 'no screens state');
+      is(judged((r) => { r.certificate.violations = [{ cell: 'x' }]; }), 'fail', '1 certificate violations', 'a violation');
+      is(judged((r) => { r.certificate.certifiedRuns = 0; }), 'fail', '0 certified runs', 'no certified run');
+      is(judged((r) => { r.certificate.coverage.equalCanonical.certified.equal = 39; }), 'fail', '39 of 40', 'a certified run that differs from its canonical rating');
+      is(judged((r) => { r.meta.source.frozenCommit = 'x'; }), 'fail', 'frozen commit x', 'another frozen commit');
+      is(judged((r) => { r.meta.source.sourceDigest = 'y'; }), 'fail', 'source digest y', 'another source digest');
+      is(judged((r) => { r.run = 'dry'; }), 'fail', 'run dry is not main', 'another run');
+      is(judged(() => {}, done, 't-other'), 'fail', 'instr tree t-instr is not the expected t-other', 'another instr tree');
+      is(judged((r) => { delete r.certificate; }), 'incomplete', 'certificate.violations', 'a record without its certificate');
+      const several = judged((r) => { r.certificate.violations = [1, 2]; r.certificate.certifiedRuns = 0; });
+      assert(several.verdict === 'fail' && several.reasons.length === 2, `two failed conditions: ${JSON.stringify(several.reasons)}`);
+    },
+  },
+  {
+    name: 'proof: the early PM4 gate needs no stage-1 capture',
+    run() {
+      const pm4Path = 'docs/improve-generating/evidence/frozen/IGP-02/pm4.json';
+      const screensPath = 'tests/artifacts/ig-proto/frozen/IGP-02/main/screens-all-state.json';
+      const gate = (/** @type {string} */ instr, /** @type {any} */ state = { done: true }) => {
+        /** @type {Record<string, string>} */
+        const texts = { [pm4Path]: JSON.stringify(pm4Record()), [screensPath]: JSON.stringify(state) };
+        /** @type {string[]} */
+        const paths = [];
+        const readFile = (/** @type {string} */ path) => {
+          paths.push(path);
+          if (!Object.hasOwn(texts, path)) {
+            throw new Error(`unexpected read of ${path}`);
+          }
+          return texts[path];
+        };
+        return { verdict: pm4GateEvidence(instr, readFile), paths };
+      };
+      const ok = gate('t-instr');
+      assert(ok.verdict.verdict === 'pass', `the early gate: ${JSON.stringify(ok.verdict.reasons)}`);
+      same(ok.paths, [pm4Path, screensPath], 'the paths the gate read');
+      const other = gate('t-other');
+      assert(other.verdict.verdict === 'fail' && hasReason(other.verdict.reasons, 'instr tree'), `an expected instr tree the record does not name: ${JSON.stringify(other.verdict.reasons)}`);
+      same(other.paths, [pm4Path, screensPath], 'the paths of the failing gate');
+      assert(gate('t-instr', { done: false }).verdict.verdict === 'incomplete', 'a screens state that is not done');
+      const none = pm4GateEvidence('t-instr', () => null);
+      assert(none.verdict === 'incomplete' && hasReason(none.reasons, 'not run'), `no record: ${JSON.stringify(none.reasons)}`);
+      const broken = pm4GateEvidence('t-instr', () => '{');
+      assert(broken.verdict === 'incomplete' && hasReason(broken.reasons, 'unreadable'), `an unreadable record: ${JSON.stringify(broken.reasons)}`);
+    },
+  },
+  {
+    name: 'proof: the stage-1 inputs are an explicit index',
+    run() {
+      const inputs = stage1Inputs('V4-T04', ['v4', 'base', 'instr']);
+      same(inputs, [
+        'tools/ig-proto/plans/V4-T04.parity.json',
+        'tools/ig-proto/plans/V4-T04.replay.json',
+        'tests/artifacts/ig-proto/frozen/V4-T04/parity/state.json',
+        'tests/artifacts/ig-proto/frozen/V4-T04/parity/items.jsonl',
+        'tests/artifacts/ig-proto/frozen/V4-T04/replay/state.json',
+        'tests/artifacts/ig-proto/frozen/V4-T04/replay/items.jsonl',
+        'docs/improve-generating/evidence/frozen/V4-T04/identity.json',
+        'docs/improve-generating/evidence/frozen/IGP-02/pm4.json',
+        'tests/artifacts/ig-proto/frozen/IGP-02/main/screens-all-state.json',
+        'tests/artifacts/ig-proto/frozen/V4-T04/self-test/state.json',
+        'tests/artifacts/ig-proto/frozen/V4-T04v4/self-test/state.json',
+        'tests/artifacts/ig-proto/frozen/V4-T04f/self-test/state.json',
+        'tests/artifacts/ig-proto/frozen/V4-T04i/self-test/state.json',
+        'docs/improve-generating/evidence/frozen/V4-T04/inputs/harness.json',
+        'docs/improve-generating/evidence/frozen/V4-T04/inputs/base.ig-tree.json',
+        'docs/improve-generating/evidence/frozen/V4-T04/inputs/instr.ig-tree.json',
+        'docs/improve-generating/evidence/frozen/V4-T04/inputs/v4.ig-tree.json',
+      ], 'the stage-1 inputs');
+      assert(inputs.length === 17, `${inputs.length} inputs, not 17`);
+      const mutable = ['tests/artifacts/ig-proto/tree-frozen/', 'tools/ig-proto/variants/', 'tools/ig-proto/lib/'];
+      assert(!inputs.some((path) => mutable.some((prefix) => path.startsWith(prefix))), 'an input under a tree folder, the variants or the harness library');
+      same(stage1Inputs('V4-T04', ['v4', 'v4']).slice(-2), ['docs/improve-generating/evidence/frozen/V4-T04/inputs/harness.json', 'docs/improve-generating/evidence/frozen/V4-T04/inputs/v4.ig-tree.json'], 'a repeated variant');
+    },
+  },
+  {
+    name: 'proof: stage-1 line',
+    run() {
+      /** @param {Record<string, [string, string[]]>} [over] */
+      const blocks = (over = {}) => Object.fromEntries(Object.entries({
+        source: ['pass', []], identity: ['pass', []], pm4: ['pass', []], 'self-test': ['pass', []], parity: ['pass', []], replay: ['pass', []], ...over,
+      }).map(([name, [verdict, reasons]]) => [name, { verdict, reasons, rows: [] }]));
+      assert(stage1Verdict(blocks()) === 'Stage 1: holds.', 'every block passes');
+      assert(stage1Verdict(blocks({ identity: ['incomplete', ['not run']] })) === 'Stage 1: INCOMPLETE (identity: not run)', 'one incomplete block');
+      assert(stage1Verdict(blocks({ identity: ['incomplete', ['not run']], parity: ['incomplete', ['no state', 'a', 'b', 'c']] }))
+        === 'Stage 1: INCOMPLETE (identity: not run; parity: no state, a, b, +1 more)', 'two incomplete blocks');
+      assert(stage1Verdict(blocks({ pm4: ['fail', ['2 certificate violations']], replay: ['incomplete', ['no state']] })) === 'Stage 1: STOP (pm4: 2 certificate violations)',
+        'a failed block beside an incomplete one');
+      assert(stage1Verdict({}).startsWith('Stage 1: INCOMPLETE'), 'no block holds nothing');
+    },
+  },
+  {
+    name: 'proof: identity block',
+    run() {
+      const seeds = [...IDENTITY_SEEDS];
+      const is = (/** @type {any} */ v, /** @type {string} */ verdict, /** @type {string | null} */ text, /** @type {string} */ label) => {
+        assert(v.verdict === verdict && (text === null || hasReason(v.reasons, text)), `${label}: ${v.verdict} ${JSON.stringify(v.reasons)}`);
+      };
+      is(identityVerdict(null, seeds), 'incomplete', 'not run', '(a) no record');
+      is(identityVerdict(identityRecord(), seeds), 'pass', null, '(b) the complete record');
+      is(identityVerdict(identityRecord((r) => {
+        delete r.seeds[1].mp12b1;
+        delete r.seeds[1].pairs['mp12b1~base'];
+        delete r.seeds[1].pairs['mp12b1~log'];
+        r.summary.withoutMp12b1 = 1;
+      }), seeds), 'incomplete', 'withoutMp12b1 1', '(c) a seed without an MP12b1 run');
+      is(identityVerdict(identityRecord((r) => { r.seeds[2].pairs['mp12b1~base'].sameResult = false; }), seeds), 'fail', seeds[2], '(d) another result than MP12b1\'s');
+      is(identityVerdict(identityRecord((r) => { r.seeds[3].pairs['base~log'].level = 'metric-prefix'; }), seeds), 'fail', seeds[3], 'a base~log pair below puzzle identity');
+      is(identityVerdict(identityRecord((r) => { r.summary.failures = 2; }), seeds), 'fail', '2 failures', 'a failure of the record');
+      is(identityVerdict(identityRecord((r) => { r.seeds.pop(); }), seeds), 'incomplete', 'differ', 'a seed less');
+      is(identityVerdict(identityRecord((r) => { r.seeds.reverse(); }), seeds), 'pass', null, 'the seeds in another order');
+      is(identityVerdict(identityRecord((r) => { delete r.seeds[0].mp12b1; }), seeds), 'incomplete', 'withoutMp12b1 1', 'a seed without an MP12b1 run that the summary does not count');
+    },
+  },
+  {
+    name: 'proof: the stage-1 receipt is assembled from stored identities',
+    run() {
+      const dir = fresh(artifactDir('selftest', 'proof-8'));
+      const file = join(dir, 'input.json');
+      writeJson(file, { input: 1 });
+      const task = 'V4-T04';
+      const parityRows = CHECK_MODES.map((mode) => checkRow(mode));
+      const replayRows = [generated(), replayed(0, 'calibration', 'matched'), replayed(1, 'candidate', 'matched')];
+      const itemIds = [...parityRows, ...replayRows].map((row) => row.item);
+      const identity = { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST, treeIds: { v4: 't-v4' }, harnessHash: 'h', manifestHash: 'm' };
+      const world = () => ({
+        task,
+        parity: { identity, rows: parityRows, problems: /** @type {string[]} */ ([]) },
+        replay: { identity, rows: replayRows, problems: /** @type {string[]} */ ([]) },
+        itemIds,
+        identityRecord: identityRecord(),
+        pm4: pm4Record(),
+        screens: { done: true },
+        selfTests: Object.fromEntries(['V4-T04', 'V4-T04v4', 'V4-T04f', 'V4-T04i'].map((id) => [id, { done: true, results: [{ name: 'x', pass: true }] }])),
+        source: { snapshotOk: true, digestEqual: true, variants: { v4: /** @type {string[]} */ ([]) } },
+        captured: {
+          trees: { v4: { treeId: 't-v4', paramsHash: 'p-v4' }, instr: { treeId: 't-instr', paramsHash: 'p-instr' } },
+          reasons: { pm4: /** @type {string[]} */ ([]), inputs: /** @type {string[]} */ ([]) },
+        },
+        evidence: [{ path: rel(file), sha256: sha256File(file) }],
+        missingInputs: /** @type {string[]} */ ([]),
+        meta: {},
+      });
+      /** @type {any} */
+      const expectation = {
+        kind: 'stage1',
+        source: { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST },
+        harnessHash: 'h',
+        arms: [{ id: 'v4', treeId: 't-v4', paramsHash: 'p-v4' }],
+        coverage: { expected: [...itemIds, ...STAGE1_COVERAGE_EXTRA] },
+      };
+      const whole = judgeStage1(world());
+      same([whole.line, whole.receipt.verdict], ['Stage 1: holds.', 'pass'], `the complete world: ${whole.line}`);
+      same(Object.keys(whole.blocks), ['source', 'identity', 'pm4', 'self-test', 'parity', 'replay', 'inputs'], 'the blocks');
+      same([whole.receipt.coverage.missing, whole.receipt.coverage.censored], [[], []], 'the coverage of the complete world');
+      same(whole.receipt.arms, [{ id: 'v4', treeId: 't-v4', paramsHash: 'p-v4' }], 'the arms come from the stored identity and the captured copy');
+      same(proofCheck(whole.receipt, expectation).status, 'pass', 'the receipt does not pass proofCheck against an expectation built apart');
+      const ended = (/** @type {number} */ i, /** @type {string} */ status) => parityRows.map((row, at) => (at === i ? { ...row, status, result: { outcome: status } } : row));
+      const censored = judgeStage1({ ...world(), parity: { identity, rows: ended(0, 'censored'), problems: [] } });
+      same([censored.receipt.verdict, censored.receipt.coverage.censored, censored.receipt.coverage.missing.includes(parityRows[0].item)], ['incomplete', [parityRows[0].item], true], 'a censored item');
+      assert(proofCheck(censored.receipt, expectation).status === 'incomplete', 'a censored item passed proofCheck');
+      const stopped = judgeStage1({ ...world(), pm4: pm4Record((r) => { r.certificate.violations = [1]; }) });
+      assert(stopped.receipt.verdict === 'fail' && stopped.line.startsWith('Stage 1: STOP (pm4: 1 certificate violations'), `a violation: ${stopped.line}`);
+      same(proofCheck(stopped.receipt, expectation), { status: 'fail', reasons: [stopped.line] }, 'a failing stage-1 receipt reports its line');
+      const stale = judgeStage1({ ...world(), parity: { identity, rows: parityRows, problems: ['stale tree v4 (t-v4 vs t-new)'] } });
+      assert(stale.receipt.verdict === 'incomplete' && hasReason(stale.blocks.parity.reasons, 'stale tree v4'), `a stale tree: ${stale.line}`);
+      const noCopy = judgeStage1({ ...world(), captured: { ...world().captured, trees: { instr: world().captured.trees.instr, v4: null } } });
+      same(noCopy.receipt.arms, [{ id: 'v4', treeId: 't-v4', paramsHash: null }], 'an arm without its captured copy has no parameter hash');
+      assert(proofCheck(noCopy.receipt, expectation).status === 'incomplete', 'an arm without a parameter hash passed proofCheck');
+      const missing = judgeStage1({ ...world(), missingInputs: ['tools/ig-proto/plans/x.json'] });
+      assert(missing.receipt.verdict === 'incomplete' && hasReason(missing.blocks.inputs.reasons, 'missing input tools/ig-proto/plans/x.json'), `a missing input: ${missing.line}`);
+      const producer = judgeStage1({ ...world(), captured: { ...world().captured, reasons: { pm4: [], inputs: ['producer changed since the observation'] } } });
+      assert(producer.receipt.verdict === 'incomplete' && hasReason(producer.blocks.inputs.reasons, 'producer changed'), `another producer: ${producer.line}`);
+      const noMp12b1 = judgeStage1({ ...world(), identityRecord: identityRecord((r) => { delete r.seeds[0].mp12b1; r.summary.withoutMp12b1 = 1; }) });
+      assert(noMp12b1.receipt.verdict === 'incomplete' && hasReason(noMp12b1.blocks.identity.reasons, 'withoutMp12b1 1'), `a seed without an MP12b1 run: ${noMp12b1.line}`);
     },
   },
 ];

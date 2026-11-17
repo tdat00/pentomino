@@ -60,7 +60,8 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `lib/items.mjs` | the runner of bounded, identity-checked measurement items and the item-log line helpers (V4-T04a; see "Bounded measurement items") |
 | `lib/ledger.mjs` | the work ledger of an item from its journal lines, and `pairPrimitives` (V4-T04b; see "Stage-1 item kinds"); pure |
 | `lib/packs.mjs` | the pack file of a generation item: `preparePackPath` and `writePackFile` (V4-T04b) |
-| `v4-check.mjs`, `plans/V4-T04.parity.json`, `plans/V4-T04.replay.json` | the stage-1 checks (V4-T04c): `run` expands an item manifest and runs its items; the parity and replay verdicts; see "Stage 1 checks (task pack v4)" |
+| `lib/proof.mjs` | the typed proof receipt of the frozen round: `proofEnvelope`, `proofCheck`, `LIVE_DEADLINE_FIELDS` and `STAGE1_COVERAGE_EXTRA` (V4-T04d; see "Stage 1 checks (task pack v4)"); pure apart from the evidence reads of `readRepoFile` |
+| `v4-check.mjs`, `plans/V4-T04.parity.json`, `plans/V4-T04.replay.json`, `plans/V4-T04.json` | the stage-1 checks (V4-T04c, V4-T04d): `run` expands an item manifest and runs its items; the parity and replay verdicts; `summary` writes the stage-1 receipt; `pm4-gate` is the early PM4 check; the plan of the stage-1 runs; see "Stage 1 checks (task pack v4)" |
 | `variants/<id>.json` | variant manifests; `variants/files/<name>/...` copy-only files |
 
 ## Trees (variants)
@@ -801,10 +802,11 @@ described in "Stage-1 item kinds" below.
   | `v4-replay` | `e + 120 <= H - 15` | at `H - 15`, `censored` | 2 |
 
 - **Self-test.** `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04a`
-  runs eighteen cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay),
+  runs twenty-six cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay),
   one that computes the run identity (`itemIdentity`) of the frozen trees and runs nothing, V4-T04b's two (the pack
-  files, on the file system only, and the item ledger, on synthetic journal lines; see below) and V4-T04c's nine (the
-  `checks:` cases, on synthetic rows; see "Stage 1 checks"). Each running case uses
+  files, on the file system only, and the item ledger, on synthetic journal lines; see below), V4-T04c's nine (the
+  `checks:` cases, on synthetic rows; see "Stage 1 checks") and V4-T04d's eight (the `proof:` cases; see "Stage 1
+  checks"). Each running case uses
   the scratch task `items-<n>` of the label `selftest`. The test kinds exist only with `testKinds`: `test-ok` returns
   `{ outcome: 'ok', echo }`, `test-throw` throws, `test-hold` blocks the worker for good and is a call kind of the lanes
   (the existing rule admits and cuts it), and `test-item` blocks the same way but is not a call kind, so only the item
@@ -882,9 +884,9 @@ T04e; the self-test runs none of them.
 
 ## Stage 1 checks (task pack v4)
 
-`v4-check.mjs` (V4-T04c; reviews R06, R2-14 and RV3-02; D-V4-14) holds the tool that runs the stage-1 item manifests
-and the two verdicts that judge them. `run` is the only subcommand so far (T04d adds `summary` and `pm4-gate`, T04f
-`accept`); the verdicts are pure exports that T04d's receipt calls.
+`v4-check.mjs` (V4-T04c and V4-T04d; reviews R06, R2-14, RV3-02, R4-03 and RV5-01; D-V4-14 and D-V4-18) holds the tool that
+runs the stage-1 item manifests, the two verdicts that judge them and the stage-1 receipt. Its subcommands are `run`
+(T04c), `summary` and `pm4-gate` (T04d; see "The stage-1 receipt"); T04f adds `accept`. The verdicts are pure exports.
 
 - **Manifests.** `plans/V4-T04.parity.json` (step `parity`, 23 `v4-select` items) and `plans/V4-T04.replay.json` (step
   `replay`, 9 items) have the format `{ "format": "ig-proto-items", "version": 1, "task", "step", "rows": [...] }`.
@@ -944,3 +946,89 @@ and the two verdicts that judge them. `run` is the only subcommand so far (T04d 
   (23 and 9 items, routes, packs), the manifest addressing, the parity cases (the new route and its sequence bound, equal
   rating work with unequal count work, the unequal absent total, the incomplete ledger, the detail counts, the legacy
   route with `base`) and the replay proofs.
+
+### The stage-1 receipt (V4-T04d)
+
+Every prerequisite of a gate is one typed receipt, checked against an expectation built apart from it (reviews R2-09,
+RV3-06 and R4-03; D-V4-18). `lib/proof.mjs` holds the format and the check; `v4-check.mjs` writes the first receipt.
+
+- **The envelope.** `proofEnvelope({ kind, verdict, source, harnessHash, arms, coverage, evidence, fields })` returns
+  `{ format: 'ig-v4-proof', version: 1, kind, verdict, source: { frozenCommit, sourceDigest }, harnessHash, arms: [{ id,
+  treeId, paramsHash }], coverage: { expected, observed, missing, censored }, evidence: [{ path, sha256 }], ...fields }`.
+  `verdict` is `pass`, `fail` or `incomplete`; `paramsHash` is the SHA-256 of `JSON.stringify(params)` of the arm's
+  `ig-tree.json`; an evidence `sha256` is the text hash with LF line ends (`sha256File`) at write time and its `path` is
+  relative to the repository root with `/`; `fields` are the kind's own fields, spread into the root (a field named like
+  an envelope field is refused). `LIVE_DEADLINE_FIELDS` (`live`, `postHoc`, `workCutoffMs`, `responseBoundMs`,
+  `reserveChecked`) are the fields of the kind `live-deadline`; a `deadline-projection` receipt never passes as one.
+- **`proofCheck(receipt, expected, readFile = readRepoFile)`** returns `{ status, reasons }`, with `expected = { kind,
+  source, harnessHash, arms, coverage: { expected }, fields }` built apart from the receipt. The checks run in this
+  order and the first that finds a reason decides: a missing or malformed envelope field, another `format`, `version` or
+  `kind`: `incomplete` (`not a <kind> receipt`); `verdict: 'fail'`: `fail`, with the receipt's own `reasons` (else its
+  `line`); another `verdict` than `pass`: `incomplete`; `source` not equal: `incomplete` (`stale source`); no
+  `expected.harnessHash`: `incomplete` (`no producer binding`); another `harnessHash`: `incomplete` (`producer
+  changed`); an expected arm absent or with another `treeId` or `paramsHash`: `incomplete` (`stale arm <id>`); an
+  expected coverage id that is not observed, or any `missing` or `censored` id: `incomplete` (`coverage gap <ids>`); an
+  evidence file that `readFile` does not find or whose text hash differs: `incomplete` (`evidence changed <path>`); a
+  field of `expected.fields` that is not deep-equal to the receipt's: `incomplete` (`<field> is <value>`); else `pass`.
+  A failure of substance (`fail`) is kept apart from missing or stale evidence (`incomplete`).
+- **Stored identities.** `stepEvidence(task, step, manifestPath, isV4)` reads `state.json` and `items.jsonl` of
+  `tests/artifacts/ig-proto/frozen/<task>/<step>/` and returns `{ identity, rows, problems }`. The identity is the one
+  stored in the state, never a fresh one, and an observation is never relabelled. Problems: no state; a `manifestHash`
+  that differs from the declared manifest's; a log line whose `identityHash` differs from the state's; another
+  `frozenCommit` or `sourceDigest` than the frozen ones; a stored tree id that is not the current tree's (`stale tree
+  <variant> (<stored> vs <current>)`). `rows` are the joined rows of the two verdicts, one per item of each manifest
+  row, in order.
+- **Order of the plans** (T04e). `plans/IGP-02.json` under `-Label frozen` first (its records go to
+  `evidence/frozen/IGP-02/`, the certificate re-proved on R14's cases), then a passing `pm4-gate`, then
+  `plans/V4-T04.json`. Both plans are dry-run first with `-ApprovedRoundMinutes`. V4-T04's forecast is 1,095 s of node
+  time plus 45 s of quiet period per locked invocation (nine, 405 s), 1,500 s, which is its allocation (25 min), with a
+  guard of 1,875 s. Its steps: the firewall snapshot, the trees, the `--frozen` and `--items` self-tests (unlocked), the
+  default and `--v4` self-tests, the two identity arms (`base`, `log`), their publishing and `identity.mjs`, the parity
+  and replay steps (`v4-check run`, locked, `repeatUntilDone`), `summary` and the firewall check.
+- **`summary`.** `node tools\ig-proto\v4-check.mjs summary --task <T> --label frozen --source-label <SL>` (unlocked; any
+  other label exits 1) captures the inputs, judges the blocks and writes `evidence/frozen/<T>/stage1.json` (the receipt,
+  kind `stage1`, with `meta`, `blocks` and `line`) and `stage1.md`; it exits 0 whenever the record was written.
+  Captured inputs (R4-03), written under `evidence/frozen/<T>/inputs/` before the blocks are judged:
+  `<variant>.ig-tree.json` for every variant of the two steps' stored identities and for `instr` is the tree's
+  `ig-tree.json` as built, only when its tree id equals the stored one (else no copy, and the stale tree makes the
+  step's block, or the `pm4` block for `instr`, incomplete); `harness.json` is `harnessInfo()`, only when its hash is the
+  parity step's stored `harnessHash` (else `producer changed since the observation` in the `inputs` block). The blocks,
+  each `{ verdict, reasons, rows }`:
+  - `source`: the snapshot verified, the digest the frozen one and every variant's edits planned on the frozen sources;
+    `pass` or `fail` (`sourceVerdict`).
+  - `identity`: `evidence/frozen/<T>/identity.json` against the seeds `landscape/26x26-nightmare/0` and `/1`,
+    `landscape/14x14-master/0` and `/1`. `incomplete` without the record, with other seeds or while a seed has no MP12b1
+    run (`withoutMp12b1 <n>`: under the frozen label such a seed is compared among the arms only, which proves nothing for
+    DR-O13); `fail` on a failure of the record, a seed whose `mp12b1~base` pair has no `sameResult: true` or whose
+    `base~log` level is not `puzzle-identity`; else `pass` (`identityVerdict`).
+  - `pm4`: `evidence/frozen/IGP-02/pm4.json` and the `screens-all-state.json` of its `main` run, against the frozen commit
+    and digest, the `main` run and the captured `instr` tree id. `incomplete` without them or before the screens step is
+    `done`; `fail` on a violation, no certified run, a coverage gap, a certified run that differs from its canonical
+    rating, or another source, run or tree (`pm4Verdict`).
+  - `self-test`: the states of `<T>`, `<T>v4`, `<T>f` and `<T>i`; `pass` when each is `done` and every result passed
+    (`selfTestVerdict`).
+  - `parity` and `replay`: `stepEvidence`, then `parityVerdict` and `replayVerdict`; a problem of `stepEvidence` makes the
+    block `incomplete`; the findings of a passing replay stay in its `reasons` and are listed in `stage1.md`.
+  - `inputs`: `incomplete` for a capture reason or a `missing input <path>` of the evidence index.
+
+  `stage1Verdict(blocks)` is `Stage 1: holds.` when every block passes, `Stage 1: STOP (<block>: <reasons>; ...)` when a
+  block fails and else `Stage 1: INCOMPLETE (...)`. **`INCOMPLETE` is not a failure**: evidence is missing, stale or not
+  yet produced (nothing run, a censored item, a stale tree, another producer); `STOP` is a failure of substance. The
+  receipt's verdict is `pass`, `fail` or `incomplete` accordingly. Its `source.sourceDigest` and `harnessHash` are the
+  parity step's stored ones; its `arms` are the variants of the two steps with their stored tree id and the `paramsHash`
+  of the captured copy (`null` without one); its coverage is every item id of the two manifests, then
+  `STAGE1_COVERAGE_EXTRA` (the four identity seeds, `pm4` and the four self-test ids), observed when an item ended
+  `completed`, an identity seed has its `mp12b1~base` and `base~log` pairs, the `pm4` block is not incomplete or a
+  self-test state is `done`; its `evidence` is `stage1Inputs(task, variants)`: the two manifests, the states and logs of the
+  two steps, the identity, PM4 and self-test records and the captured copies, never a tree folder, a variant file or a
+  harness file (a path that does not exist is left out). T04f accepts the receipt into an immutable binding.
+- **`pm4-gate`.** `node tools\ig-proto\v4-check.mjs pm4-gate --label frozen --source-label <SL>` is the early, read-only
+  PM4 check that T04e runs between its two plans (RV5-01). It reads only the two IGP-02 records, through
+  `pm4GateEvidence(instrTreeId, readFile)`, takes the expected `instr` tree id from `planTree('instr')` on the frozen
+  sources (never from the record) and neither reads nor writes `inputs/` or the stage-1 receipt. A snapshot, digest or
+  plan error prints `pm4-gate: incomplete (<reason>)` and exits 2; otherwise it prints `pm4-gate: pass` (exit 0) or
+  `pm4-gate: <verdict> (<reasons>)` (exit 2).
+- **Self-test.** Eight `proof:` cases appended to `--items`: the typed and bound receipt (the pack's cases (a) to (i) and
+  the order of `proofCheck`'s checks), the stored identities (a synthetic step folder of the scratch task
+  `V4-T04d-selftest`, removed afterwards), the PM4 block, the early PM4 gate, the explicit input index, the stage-1 line,
+  the identity block and the assembly of the stage-1 receipt (`judgeStage1`, on synthetic data).
