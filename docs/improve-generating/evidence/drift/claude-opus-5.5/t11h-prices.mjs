@@ -162,3 +162,14 @@ for (const plan of [s2, live]) {
   const allocation = Math.ceil(forecastS / 60);
   console.log(`dry run ${plan.task}: forecast ${forecastS.toFixed(1)} s counted (allocation ${allocation * 60} s, guard ${1.25 * allocation * 60} s); allocation ${allocation} min`);
 }
+
+// SA-Astra's review of 2026-11-17 (finding 4a): what wider lanes for the `v4-select` and `v4-replay` items would save on the
+// stage-2 P-1 passes and the P-0 pass, at the new rules, under the reserve durations (as priced) and under the `v4` proxy.
+const p0 = s2.steps.find((x) => x.id === 'p0-v4').price;
+const widen = (price, lanes) => ({ ...price, groups: price.groups.map((g) => (g.kind === 'v4-generate' ? g : { ...g, lanes })) });
+const proxy = (price) => ({ ...price, groups: price.groups.map((g) => ({ ...g, durationsS: g.durationsS.map((d) => (g.durationSource === 'reserve' ? v4[g.kind] : d)) })) });
+for (const [label, f] of [['reserve durations', (x) => x], ['v4 proxy', proxy]]) {
+  const cost = (lanes) => 7 * priced(widen(f(pass), lanes), rules.now).countedS + priced(widen(f(p0), lanes), rules.now).countedS;
+  const base = cost(2);
+  console.log(`lanes, ${label}: 2 lanes ${m(base)} min; 4 lanes saves ${m(base - cost(4))} min; 8 lanes saves ${m(base - cost(8))} min`);
+}

@@ -100,7 +100,7 @@ price it. It dry-runs the plans and stops so that the orchestrator can put the p
    with their section numbers; (7) T11b's pricing rules (its export `PRICING`), its ceilings from enforced bounds and the overhead
    assumptions (a horizon of 885 s for every invocation under the owner's 900-s cap, although the runner's `decide`
    lowers it near the approved cap, which the price does not model; 45 quiet seconds counted per invocation even where
-   the owner's idle quiet of 15 s applies, so that the spend can only be lower (fail-closed; with 15 s throughout, the
+   the owner's idle quiet of 15 s applies, so that the quiet-period component can be lower; runtime and total cost remain projections (fail-closed; with 15 s throughout, the
    first approvals' 34.4 h would be 32.4 h); the ceiling `units x 945`, which grew with the cap while the binding limit
    of a run stays its plan's guard, checked before every invocation; `factor()` 1 when the identity file is absent; a
    cell without an MP12b1 report, `20x20-hell-1` today, priced at its row limit; the P-1 passes priced at their reserves
@@ -113,8 +113,8 @@ price it. It dry-runs the plans and stops so that the orchestrator can put the p
    the comparator, the ten controls (T11a's ruling of 2026-11-17), the quiet periods (before the owner's lock rules of
    2026-11-17 21:33 a group of 260-s rows admitted one row per invocation under the 300-s cap, so that each row paid a
    45-s quiet period: T11b's scratch price of the whole matrix was 3,604 counted minutes in 1,224 invocations, 918 of
-   them quiet, stage 4 3,091.6; under the 900-s cap rows share invocations: 2,874.7 counted minutes in 293
-   invocations, 220 of them quiet, stage 4 2,452.4), the possible saving of N-V4-18 after the freeze, and the planning
+   them quiet, stage 4 with `V4-LIVE` 3,091.6; under the 900-s cap rows share invocations: 2,874.7 counted minutes in 293
+   invocations, 220 of them quiet, stage 4 with `V4-LIVE` 2,452.4 and the universe alone 2,417.3), the conditional saving of N-V4-18 after the freeze, and the planning
    projection from today's
    search times (`1.25 x factor x refS`: a twin whose projection exceeds its 130-s limit is priced at the limit and
    predicted censored, a projection from today's search, not the frozen arms' expected time).

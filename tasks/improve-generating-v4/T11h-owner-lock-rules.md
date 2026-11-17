@@ -7,7 +7,7 @@
 | Depends on | T11c (the compiled plans; its edit of `run-task.ps1` line 39); T11b (the pricing whose constants change) |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (claude-sonnet-5.5) |
-| Estimate | developer 2.5 h, machine 0 min (a helper copy checked in a scratch `TEMP` with `node -e`, constants, a recompile and dry runs; nothing locked) |
+| Estimate | developer 3 h (2.5 h, and 0.5 h for SA-Astra's review of 2026-11-17: the rechecks and cases (k) to (m)), machine 0 min (a helper copy checked in a scratch `TEMP` with `node -e`, constants, a recompile and dry runs; nothing locked) |
 
 ## Goal
 
@@ -32,12 +32,12 @@ decision and the price, recompiles T11c's plans, and leaves the shared helper, a
   `$env:TEMP\dv3-idle.json` on his statement and deletes it when he says difficulty-v3 is scheduled again. The helper
   uses the short quiet only while the declaration is valid and no Sudoku lock has been seen since it was set; in every
   other case 45 s (fail-closed).
-- Counting and pricing: the runner keeps counting `node + min(lockWait, 45)` per invocation, so a 15-s quiet is counted
-  as the time waited; a budget decision keeps reserving 45 s (`QUIET_S`), and the price counts 45 s per invocation
-  (fail-closed: whether difficulty-v3 will be idle is not known when a plan is approved; the idle quiet lowers the
-  spend, never the price). The horizon becomes `min(885, A - 45 - 10)` and a unit's ceiling `900 + 45 = 945` s
-  (D-V4-19). Unchanged: the item cut at `horizonS - 15` and the reserves (D-V4-14), the row admission (`arm.mjs:175`),
-  the row limits (T11a), four workers per row and one locked invocation at a time.
+- Counting and pricing: the runner keeps charging `node + min(lockWait, 45)` per invocation, so a 15-s quiet is charged
+  as the time waited; a budget decision keeps reserving 45 s (`QUIET_S`), and the price reserves 45 s per invocation
+  (fail-closed: whether difficulty-v3 will be idle is not known when a plan is approved; the idle quiet can lower the
+  quiet-period component of the spend, never the price). The horizon becomes `min(885, A - 45 - 10)` and a unit's
+  ceiling `900 + 45 = 945` s (D-V4-19). Unchanged: the item cut at `horizonS - 15` and the reserves (D-V4-14), the row
+  admission (`arm.mjs:175`), the row limits (T11a), four workers per row and one locked invocation at a time.
 
 ## Scope
 
@@ -74,15 +74,27 @@ decision and the price, recompiles T11c's plans, and leaves the shared helper, a
       (`ConvertFrom-Json -AsHashtable -DateKind String`) with `format` `dv3-idle` and `version` 1, its `setAt` and
       `idleUntil` parse as ISO 8601 times (`[DateTimeOffset]::Parse(<text>, [cultureinfo]::InvariantCulture)`) with
       `setAt <= now < idleUntil` and `idleUntil - setAt <= 24 h`, and `$env:TEMP\dv3-sudoku-seen.txt` is absent or
-      holds a time before `setAt`; any other value and any exception return `$false`;
-   e. the quiet wait: on each pass of `while (-not $lock)`, `$quiet` is `$IdleQuietSeconds` when it is above 0 and
-      `Test-IgIdle` holds, else `$QuietSeconds`; the inner loop waits `$quiet` seconds; when it sees `$sudokuLock` it
-      writes `[DateTime]::UtcNow.ToString('o')` to `$env:TEMP\dv3-sudoku-seen.txt`, sets `$quiet = $QuietSeconds` and
-      restarts the quiet; when it sees `$pentominoLock` alone it restarts the quiet as before;
+      holds a time before `setAt`; any other value and any exception return `$false`. Require a top-level object,
+      numeric `version: 1`, and string timestamps. Before parsing each timestamp, require the case-sensitive pattern
+      `\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:Z|[+-]\d{2}:\d{2})\z`; then use the stated invariant-culture
+      parser. This applies to the declaration and any seen timestamp. A shape, type, pattern or parse failure returns
+      false (SA-Astra's review of 2026-11-17: the parser alone accepts `11/17/2026 21:00:00`);
+   e. At invocation entry initialise `$forceFullQuiet = $false`. At the start of each acquisition attempt, choose
+      `$IdleQuietSeconds` only when it is positive, `$forceFullQuiet` is false and `Test-IgIdle` succeeds; otherwise
+      choose `$QuietSeconds`. Recheck `Test-IgIdle` on every wait-loop iteration and immediately before acquiring the
+      lock. If the short quiet becomes invalid, set `$forceFullQuiet = $true` and `$quiet = $QuietSeconds`; do not
+      shorten it again during this invocation. Before acquiring, require both locks to have remained absent
+      continuously for the resulting quiet period. Observing either lock restarts that period. Every observation of
+      `dv3-sudoku.lock`, including the existing post-acquisition collision check, writes the UTC observation time
+      (`[DateTime]::UtcNow.ToString('o')`) to `dv3-sudoku-seen.txt` and forces the full quiet. After acquiring, recheck a
+      short-quiet declaration immediately before starting Node; if invalid, release the acquired lock and resume
+      acquisition with the full quiet. Preserve the existing exclusive creation, collision check, timeout and cleanup
+      (SA-Astra's review of 2026-11-17: a declaration deleted or expired during a wait, or a Sudoku lock seen at the
+      collision check, must not leave a short quiet in force);
    f. the printed line ends with ` quiet=$quiet`: `IG <task> exit=<code> seconds=<s> quiet=<q>` (the runner's pattern
       `exit=-?\d+ seconds=(?<s>[0-9.]+)` still matches).
    Report `git diff --no-index` of the shared helper against the copy: these edits and nothing else.
-2. **`tools/ig-proto/lock/lock-check.ps1`** (unlocked, about two minutes): each case dot-sources the copy in a child
+2. **`tools/ig-proto/lock/lock-check.ps1`** (unlocked, about three minutes): each case dot-sources the copy in a child
    `pwsh -NoProfile` whose `$env:TEMP` is a fresh folder `tests\artifacts\ig-proto\selftest\lock\<case>` (removed at
    the end; the real `$env:TEMP` is never read or written), calls `Invoke-IgNode` with `-QuietSeconds 6
    -IdleQuietSeconds 2` (the logic of 45 and 15 s at about a seventh of the time) and `-NodeArgs @('-e', '0')` unless the case
@@ -96,7 +108,10 @@ decision and the price, recompiles T11c's plans, and leaves the shared helper, a
    901` throws `a locked invocation is limited to 900 s`, `-Repo sudoku -LimitSeconds 301` throws `improve-generating
    runs are limited to 300 s` and `-Repo sudoku -IdleQuietSeconds 2` throws; (j) `-Repo pentomino -LimitSeconds 3`
    with `-NodeArgs @('-e', 'setTimeout(() => {}, 10000)')` throws `3-second limit reached`, no node process it started
-   is left and its lock file is removed.
+   is left and its lock file is removed; (k) a declaration valid initially but expiring one second into the wait; (l) a
+   valid declaration deleted by a thread job one second into the wait; (m) otherwise-valid dates expressed as
+   `MM/dd/yyyy HH:mm:ss` rather than ISO timestamps. Each must print `quiet=6` and wait at least six seconds. Cases (k)
+   and (l) start with a valid short-quiet declaration.
 3. **`run-task.ps1`**: the `Invoke-IgNode` call of a locked step (line 120) adds `-LimitSeconds 900 -IdleQuietSeconds
    15`; a killed invocation counts 900 node seconds instead of 300 (line 137 and the comment above it); the invocation
    row adds `quietS`, the `quiet=(?<q>\d+)` of the helper's printed line (`$null` when absent); the counted seconds stay
@@ -106,7 +121,7 @@ decision and the price, recompiles T11c's plans, and leaves the shared helper, a
    (`H = min(885, A - 45 - 10)`); `QUIET_S` stays 45.
 5. **`manifest.mjs`**, T11b's pricing: `HORIZON_S = 885`, `KILL_S = 900` (`CEILING_PER_UNIT_S` 945), their comments,
    `horizonOf`'s message (`horizonS must be at most 885`) and the ceiling's JSDoc (`units x 945`); `QUIET_S` stays 45
-   and its comment says that the price counts 45 s per invocation even where the idle quiet is 15 s. Nothing else.
+   and its comment says that the price reserves 45 s per invocation even where the idle quiet is 15 s. Nothing else.
 6. **Self-test**: every case whose numbers rest on the 285-s horizon or the 300-s kill keeps testing the schedule it
    tests. T11b's `price:` cases pass `horizonS: 285` explicitly where they rely on the default horizon (among them the
    20 rows of 55 s, the third row of 130 s, the two rows of 300 s at a limit of 260 s, the fifth row of 40 s, the row of
@@ -117,13 +132,22 @@ decision and the price, recompiles T11c's plans, and leaves the shared helper, a
    2026-11-17)`: `stepPrice({ type: 'rows', rows: 20, rowS: 55, rowLimitS: 260 })` at the default horizon gives two
    invocations of 12 and 8 rows, `nodeS` 662 and 442, `projectS` 1,104, `quietS` 90, `countedS` 1,194 and `ceilingS`
    18,900; `simulateProcess({ durationsS: [120, 200], reserveS: 120 })` gives one invocation, `nodeS` 322, `completed`
-   2 and `censored` 0. T11c's `compile:` cases pass unchanged (they compare each step with `stepPrice`). Report every
-   changed assert.
+   2 and `censored` 0. In `compile: bounded steps resume`, replace the final assertion with:
+
+   ```javascript
+   same([row.invocations, row.price.rows], [2, 5],
+     'the five 260-s-limit rows need two invocations at horizon 885: four rows, then one');
+   ```
+
+   The other `compile:` cases remain unchanged. Preserve their `repeatUntilDone`, state and minimum-horizon checks.
+   Report every changed assertion (SA-Astra's review of 2026-11-17: the first row step, `rows-fr-base-pilot-26x26-hell-1`
+   at 201.5 s a row, runs four rows and then one at horizon 885).
 7. **README**: the Commands section (`-LockHelper tools\ig-proto\lock\ig-lock.ps1`), the budget guard (`H = min(885,
    A - 45 - 10)`), the bounds of a locked invocation (900 s), T11b's pricing rules (a horizon of 885 s, the ceiling
-   `units x 945`, 45 s counted and priced per invocation), a section "The owner's lock rules (2026-11-17)" (the copy and
-   why the shared helper stays untouched, `-IdleQuietSeconds`, the idle declaration and its fail-closed rules as
-   check-list §3.2 states them, `lock-check.ps1`), and every number the README gives for the compiled plans (step 8).
+   `units x 945`, 45 s reserved/priced per invocation; actual charging remains `node + min(lockWait, 45)`), a section
+   "The owner's lock rules (2026-11-17)" (the copy and why the shared helper stays untouched, `-IdleQuietSeconds`, the
+   idle declaration and its fail-closed rules as check-list §3.2 states them, `lock-check.ps1`), and every number the
+   README gives for the compiled plans (step 8).
 8. **Recompile**: `node tools\ig-proto\manifest.mjs compile --label frozen --source-label "frozen 3fc65f4"`: 16 `wrote`
    lines and `compile: 16 files`; on stderr `compile: V4-S2 allocation 560 min, optional 0 min (73 steps)` and
    `compile: V4-LIVE allocation 36 min, optional 0 min (9 steps)`; the twelve item manifests byte-identical to T11c's;
@@ -135,7 +159,7 @@ decision and the price, recompiles T11c's plans, and leaves the shared helper, a
 |---|---|---|---|
 | `self-test.mjs --items` | `price: the 900-s cap (owner, 2026-11-17)` | step 6 | step 6 |
 | `self-test.mjs --items` and `--frozen` | the changed asserts of step 6 | their inputs, with `horizonS: 285` where step 6 says so | their earlier numbers; the ceilings `units x 945`; `horizonS` 545 |
-| `tools/ig-proto/lock/lock-check.ps1` | (a) to (j) | step 2 | step 2 |
+| `tools/ig-proto/lock/lock-check.ps1` | (a) to (m) | step 2 | step 2 |
 
 ## Documentation
 
@@ -148,7 +172,7 @@ decision and the price, recompiles T11c's plans, and leaves the shared helper, a
 | `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T11h` | root | every case passes, exit 0 | 3 min |
 | `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T11h-frozen` | root | 10 passed | 2 min |
 | `node tools\ig-proto\lib\tree.mjs check-edits --all --label frozen` | root | 34 `ok` lines, no other line | 2 min |
-| `pwsh -NoProfile -File tools\ig-proto\lock\lock-check.ps1` | root | `lock-check: 10 cases ok`, exit 0 | 5 min |
+| `pwsh -NoProfile -File tools\ig-proto\lock\lock-check.ps1` | root | `lock-check: 13 cases ok`, exit 0 | 5 min |
 | `node tools\ig-proto\manifest.mjs compile --label frozen --source-label "frozen 3fc65f4"`, twice | root | step 8 | 2 min |
 | `node tools\ig-proto\manifest.mjs check-prerequisites --plan V4-S2 --label frozen --source-label "frozen 3fc65f4"`, then `--plan V4-LIVE` | root | `prerequisites: pass`; then `prerequisites: blocked (variant fr-frozen missing; ...)`, exit 1 | 1 min |
 | `pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\V4-S2.json -Label frozen -SourceLabel 'frozen 3fc65f4' -ApprovedRoundMinutes 800 -DryRun` (800 is no approval: a dry run runs and spends nothing, and the value only lets `decide` answer) | root | exit 0; every locked step `go` with `horizon 885 s`; the last line `[dry run] forecast of the plan: 33,550 s counted (allocation 33,600 s, guard 42,000 s)` (the sum of `projectS + 45 x invocations` of the 44 locked steps is 33,550.5 s, so 33,551 is the same) | 2 min |
@@ -173,9 +197,9 @@ decision and the price, recompiles T11c's plans, and leaves the shared helper, a
 
 | ID | Criterion | How it is verified | Evidence |
 |---|---|---|---|
-| T11h-B01 | The owner's rules hold for pentomino's plan runs: invocations of up to 900 s, the 15-s quiet only under a valid declaration of the owner and 45 s otherwise (fail-closed), timed requests unchanged (one at a time, four workers per row) | `lock-check.ps1` (a) to (j); the runner's call; the dry runs | command output |
+| T11h-B01 | The owner's rules hold for pentomino's plan runs: invocations of up to 900 s, the 15-s quiet only under a valid declaration of the owner and 45 s otherwise (fail-closed), timed requests unchanged (one at a time, four workers per row) | `lock-check.ps1` (a) to (m); the runner's call; the dry runs | command output |
 | T11h-B02 | The Sudoku side is unchanged: the shared helper's hash is the same before and after, and the copy refuses more than 300 s and the short quiet for `-Repo sudoku` | step 0 and the end; case (i) | command output |
-| T11h-B03 | The prices follow the rules and stay fail-closed: `V4-S2` 560 min, `V4-LIVE` 36 min, 45 s counted per invocation, ceilings `units x 945` | the compile; the dry runs; the new case | command output; self-test output |
+| T11h-B03 | The prices follow the rules and stay fail-closed: `V4-S2` 560 min, `V4-LIVE` 36 min, 45 s reserved/priced per invocation; actual charging remains `node + min(lockWait, 45)`; ceilings `units x 945` | the compile; the dry runs; the new case | command output; self-test output |
 
 ### Technical
 
