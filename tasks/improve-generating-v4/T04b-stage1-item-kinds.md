@@ -207,13 +207,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 07:10:13 +07:00 (dispatch, base `5158729`) to 07:32:29 +07:00 (acceptance): 22 min 16 s; the developer's own times 07:10:34-07:25:37 |
+| Waiting for rulings | about 7 min (07:25:37 report to 07:32 ruling); no developer wait (no fix round) |
+| Agent id, model | `4868875b-b9ce-4f2b-9760-8b7af9e4fdb3`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 57 calls; 9,786,442 input, 91,360 output, 9,550,128 cache-read |
+| AI credits | 245.93 |
+| Questions and rulings | No `QUESTION:`. The developer's eight readings (problem texts, unknown work `null`, extra `foreign` strictness, `unquantified` only for paired `p` lines, worker details, case inputs, cited lines), three named items and three gaps were relayed to the pack author; all accepted (07:32); the `maxSequence` check (record row only) and the worker-module audit of `ledger.mjs` and `packs.mjs` moved to T04c; T09c rule 6 names the unpaired case; pack amendment `c0195e8` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--items`: 9 passed, 0 failed; `--frozen`: 10 passed; `check-edits`: 18 `ok`; firewall `check`: 289 production files unchanged; the guard `git status -- core generator tests tools/ig-proto/variants tools/ig-proto/plans tools/ig-proto/lib/items.mjs tools/ig-proto/lib/lanes.mjs`: no output; `npm run check`: OK. The developer also ran three small locked smokes (legacy 6x10 hard; new route 10x10 Nightmare, node 43 s; generate then replay): equal digests across modes, complete ledgers, `charge.units` equal to the ledger's total work, replays `matched` |
+| Commit | this task's commit, `improve-generating T04b: Stage-1 item kinds: selection, generation and replay items, with their work ledger` |
+| Issues and named items | None new. For T04e: a parity call took 43 s on the 10x10 Nightmare smoke, under the 120 s `v4-select` reserve; a censored parity item would make stage 1 incomplete and stop for a ruling, by design |

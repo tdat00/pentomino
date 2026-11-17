@@ -56,8 +56,10 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `lib/engine.mjs` | loads a tree's modules |
 | `lib/sets.mjs` | catalogue boards and carve-only sets; `offeredInSource` comes from the tree's own `levels.js` (V4-T01b) |
 | `lib/calls.mjs` | recorded calls, screened and canonical ratings, window subsets |
-| `lib/lanes.mjs`, `lib/lane-worker.mjs` | worker-thread lanes with admission and a supervisor |
+| `lib/lanes.mjs`, `lib/lane-worker.mjs` | worker-thread lanes with admission and a supervisor; the lane worker also runs the three stage-1 item kinds (V4-T04b) |
 | `lib/items.mjs` | the runner of bounded, identity-checked measurement items and the item-log line helpers (V4-T04a; see "Bounded measurement items") |
+| `lib/ledger.mjs` | the work ledger of an item from its journal lines, and `pairPrimitives` (V4-T04b; see "Stage-1 item kinds"); pure |
+| `lib/packs.mjs` | the pack file of a generation item: `preparePackPath` and `writePackFile` (V4-T04b) |
 | `variants/<id>.json` | variant manifests; `variants/files/<name>/...` copy-only files |
 
 ## Trees (variants)
@@ -736,7 +738,8 @@ changes no result` runs a call with and without a journal).
 
 `lib/items.mjs` (V4-T04a; reviews R05 and RV2-01; D-V4-14) is the runner every later measurement of the frozen round
 shares: a list of items, each run in a supervised lane worker (`lib/lanes.mjs`), journaled before it starts and when it
-ends, and never rerun once it has ended. It measures nothing itself; the stage-1 item kinds are T04b's.
+ends, and never rerun once it has ended. It measures nothing itself; the three stage-1 item kinds (V4-T04b) are
+described in "Stage-1 item kinds" below.
 
 - **An item** is `{ id, kind, variant, payload }`: a stable id (unique in the list), the lane job kind, the variant
   whose tree runs it and the job's own fields (the item's `kind` wins over a payload key `kind`). Consecutive pending
@@ -796,9 +799,80 @@ ends, and never rerun once it has ended. It measures nothing itself; the stage-1
   | `v4-replay` | `e + 120 <= H - 15` | at `H - 15`, `censored` | 2 |
 
 - **Self-test.** `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04a`
-  runs seven cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay)
-  and one that computes the run identity (`itemIdentity`) of the frozen trees and runs nothing. Each running case uses
+  runs nine cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay),
+  one that computes the run identity (`itemIdentity`) of the frozen trees and runs nothing, and V4-T04b's two (the pack
+  files, on the file system only, and the item ledger, on synthetic journal lines; see below). Each running case uses
   the scratch task `items-<n>` of the label `selftest`. The test kinds exist only with `testKinds`: `test-ok` returns
   `{ outcome: 'ok', echo }`, `test-throw` throws, `test-hold` blocks the worker for good and is a call kind of the lanes
   (the existing rule admits and cuts it), and `test-item` blocks the same way but is not a call kind, so only the item
   rules (a reserve table that names it, passed as `limits.itemReserveS`) admit and cut it.
+
+### Stage-1 item kinds (V4-T04b)
+
+The three kinds run in the lane worker (`lib/lane-worker.mjs`), on the tree of the item's variant. They are the
+evidence of the stage-1 receipt: results, skips, total work and recorded detail compared across observer modes, and
+the prototype's own records replayed. The worker never reads the label and never imports the tree's
+`tools/node-worker.mjs` (loaded in any worker thread it wires the engine task handler to `parentPort`); a generation
+item starts it as a nested worker by path, through a private copy of `adaptNodeWorker`. The kinds run for real in
+T04e; the self-test runs none of them.
+
+- **`v4-select`**, payload `{ boardRows, levelId, seedText, mode, logDir, row, route }`: `selectClues` of the tree on the
+  first carved set of the case (`uniqueness` `require`, the rng stream `select`), with the journal of this thread
+  pointed at `logDir` and `row` (`IG_LOG_DIR` and `IG_ROW`, removed afterwards). `mode`: `absent` installs no caller
+  hook, `charge` a charge meter that collects the units it receives, `record` the charge meter and an event recorder.
+  `route` (set by the manifest, T04c) is `new` (a Nightmare or Hell 1 target in a `v4`-family tree), `legacy` (another
+  target through the journaled route), `legacy-recorded` (another target with a recorder) or `base` (no ledger). A set
+  that does not carve returns `{ outcome: 'no-set', reason }`; a mode or route outside the lists above is an error.
+  Result (`outcome: 'ok'`): `ok`, `reason`, `clues`, `score`, `skips`, `igWindow`, `digest` (SHA-256 of the result's
+  JSON), `route`, `ledger` (below; `null` for `base`), `chargeUnits`, `charges` and `units` (the charge sequence, its
+  length and its sum; `null` in `absent`), and for `record` only (else `null`) `events`, `eventsDigest`, `eventKinds`,
+  `eventPhases`, `maxSequence` and `detail`: `{ rated, rejected, scored, missing, rechecked }`, `scored = rated +
+  rejected`, `missing` the scored events with no detail, `rechecked` the first `min(2, scored)` scored events, each
+  re-rated by `rateDetailed` and compared (`{ sequence, kind, equal }`); then `ms`, the time of `selectClues`.
+- **`v4-generate`**, payload `{ boardRows, rotation, levelId, seedText, uniqueness, maxActive, quantity, packPath,
+  logDir, row }`: the set and batch 1 of a case through the tree's generation client with a one-worker pool and a fixed
+  metadata clock, as `tools/record-fixtures.mjs` `generateReplaySeed` builds them (batch 1 with the set's calibration,
+  `quantity` from the payload). The log folder and the pack folder are prepared before the pool starts (an existing
+  pack makes the item an `error`), the journal variables are set before the pool is created (the nested worker copies
+  the environment) and removed with the pool's `close()`. Results: `{ outcome: 'no-set', setStatus, reason }`,
+  `{ outcome: 'no-pack', batchStatus, reason }` (the batch returned no pack: nothing is written) or `{ outcome: 'ok',
+  batchStatus, reason, puzzles, made, packSha256 }`, `made` the record kind of each accepted puzzle.
+- **`v4-replay`**, payload `{ packPath, puzzleIndex }`: `replayPuzzle` of one puzzle of a written pack (the tree's own
+  `pack.js` and `replay.js`, one scratch workspace made at the first replay, the tree's `REPLAY` limits). No pack file:
+  `{ outcome: 'no-record', reason: 'no pack' }`; a pack that does not validate throws; no puzzle at the index:
+  `{ outcome: 'no-record', reason: 'no puzzle', packSha256 }`; else `{ outcome: 'ok', kind, status, reason, stages,
+  work, steps, bytes, detailStep, packSha256, ms }` (`packSha256` is the SHA-256 of the file's text, to be compared with
+  the generation item's).
+- **The pack rule** (`lib/packs.mjs`, RV2-02). `preparePackPath(path)` throws `unexpected existing pack <path>` when the
+  file exists, else creates its folder; `writePackFile(path, pack)` writes `JSON.stringify(pack)` (never over an
+  existing file), reads it back and returns its SHA-256, or throws `pack write mismatch` when the file differs. A pack
+  is written only after a batch that returned one.
+- **The ledger** (`lib/ledger.mjs`, reviews R2-14 and R2-07; D-V4-17). `itemLedger(lines, route)` reads the parsed
+  lines of the item's `logDir` (every `.jsonl` file, in file-name order, then line order) and returns `{ complete,
+  ratingWork, countWork, totalWork, calls, problems }`: `ratingWork` and `countWork` are the sums of the journal's
+  rating units (`tuple[4] + tuple[5]` of the `p` lines) and count units (`units` of the `count` lines), `totalWork =
+  ratingWork + countWork`, `calls` the number of `start` lines, `complete` true only without a problem. A work that
+  cannot be known is `null`, never zero: a journal without exactly one `start` line (route `new` or `legacy`), a value
+  that is not a finite number from 0, a journal that does not declare the count capability (no `caps` line of its call
+  with `count: true`) and, on the recorded route, the ratings. Problems by route:
+  - `new`: not exactly one `start` line; no `end` line of the call (or two); no `caps` line of the call; a `p`, `begin`
+    or `count` line of another call; `invalid work <call>`; `sum of p work <a> differs from end.work <b>`; `sum of
+    counts <a> differs from end.locate.countWork <b>` (`absent count total` when the end line has none); the problems of
+    `pairPrimitives`; `unfinished primitive <call>` when a primitive is still pending at the `end` line, whatever the
+    end's `result` (a stage-1 item is never killed).
+  - `legacy`: the same, except that the call's `caps` and `count` lines have `call: null`, there are no begin lines and no
+    count total on the end line, and a rating whose outcome is `unsat` or `error` is `unquantified <outcome> <call>
+    <index>` (the `p` line's position among the call's `p` lines).
+  - `legacy-recorded`: the frozen search runs without the journal, so `ratingWork` is `null` (problem `ratings not
+    journaled on the recorded route`) and the `count` lines (`call: null`) are summed; its work evidence is its charged
+    total.
+- **`pairPrimitives(callLines, call)`** (pure; T09c's request ledger imports it unchanged) pairs the `begin` lines of one
+  call with their completion lines, at most one primitive pending, and returns `{ problems, lo, open }`: `lo` the sum
+  of the completed, quantified primitives' finite units, `open` `{ kind, bound, index }` of the primitive still pending
+  after the last line, else `null`. Its problems, with `<index>` the primitive's position among the call's `begin`
+  lines from 0: `invalid begin <call> <index>` (a kind other than `rate`, `screen` or `count`), `invalid bound <call>`
+  (not a finite number from 0), `overlapping begin <call> <index>` (a `begin` while one is pending; no later line
+  removes it, and the new `begin` is the pending one), `unpaired <t> line <call>` (a `p` line closes a pending `rate` or
+  `screen`, a `count` line a pending `count`), `unquantified <outcome> <call> <index>` (a `p` line whose outcome is
+  `unsat` or `error` carries zero placeholders, not measured units) and `bound exceeded <call> <index>` (units above the
+  primitive's `bound`).

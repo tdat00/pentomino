@@ -14,7 +14,7 @@
 // version and table refusal before any work) and V4-T02d's three (every primitive is announced, no real rating
 // exceeds its bound, the journal changes no result).
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
@@ -27,6 +27,8 @@ import { rateAttempt, recordedCall, screenRating, startCountFor, windowSubsets }
 import { loadEngine } from './lib/engine.mjs';
 import { identityHash, itemIdentity, logEnd, logSpawn, logStart, manifestHash, readItemLog, resumePlan, runItems } from './lib/items.mjs';
 import { createLanes } from './lib/lanes.mjs';
+import { itemLedger, pairPrimitives } from './lib/ledger.mjs';
+import { preparePackPath, writePackFile } from './lib/packs.mjs';
 import { artifactDir, elapsedS, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, parseArgs, rel, ROOT, SOURCE_KIND, sourceRoot } from './lib/paths.mjs';
 import { harnessInfo, sha256, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
@@ -834,6 +836,107 @@ const itemCases = [
       same(Object.keys(I3.treeIds), ['base', 'log'], 'the tree ids of the reordered list are not in sorted order');
       same({ ...I3, manifestHash: I1.manifestHash }, I1, 'the reordered list changed a field other than manifestHash');
       assert(I3.manifestHash !== I1.manifestHash, 'the manifest hash ignores the item order');
+    },
+  },
+  {
+    name: 'items: pack files (filesystem only)',
+    run() {
+      const root = fresh(artifactDir('selftest', 'items-packs'));
+      const folder = join(root, 'raw', 'packs');
+      const path = join(folder, 'p.pack.json');
+      const pack = JSON.parse(readFileSync(join(ROOT, 'tests', 'fixtures', 'replay-case.json'), 'utf8')).packs[0];
+      assert(!existsSync(join(root, 'raw')), 'the fresh folder already has a raw folder');
+      preparePackPath(path);
+      assert(statSync(folder).isDirectory() && !existsSync(path), 'the nested packs folder was not created, or the pack file was');
+      const hash = writePackFile(path, pack);
+      assert(hash === sha256(JSON.stringify(pack)), 'the returned hash is not the SHA-256 of the pack text');
+      assert(sha256(readFileSync(path)) === hash, 'the file on disk is not the hashed text');
+      same(JSON.parse(readFileSync(path, 'utf8')), pack, 'the file does not hold the pack');
+      const message = (/** @type {() => void} */ fn) => {
+        try {
+          fn();
+        } catch (e) {
+          return e instanceof Error ? e.message : String(e);
+        }
+        return '';
+      };
+      assert(message(() => preparePackPath(path)) === `unexpected existing pack ${path}`, 'a second preparePackPath did not refuse the existing pack');
+      assert(message(() => writePackFile(path, { other: true })) !== '' && sha256(readFileSync(path)) === hash, 'a second write replaced the pack');
+    },
+  },
+  {
+    name: 'items: item ledger',
+    run() {
+      const start = { t: 'start', call: 'c', v: 1 };
+      const caps = (/** @type {string | null} */ call) => ({ t: 'caps', call, count: true });
+      const begin = (/** @type {string} */ kind, /** @type {unknown} */ bound) => ({ t: 'begin', call: 'c', kind, bound });
+      const p = (/** @type {number} */ work, outcome = 'below', call = 'c') => ({
+        t: 'p', call, i: 0, tuple: ['p1', 1, outcome, 50, work, 0, null, null, 1, 0, null, null, 1, ''],
+      });
+      const count = (/** @type {number} */ units, call = 'c') => ({ t: 'count', call, units });
+      const end = (/** @type {number} */ work, /** @type {number | undefined} */ countWork, over = {}) => ({
+        t: 'end', call: 'c', result: 'ok', work, ...(countWork === undefined ? {} : { locate: { countWork } }), ...over,
+      });
+      const a = () => [start, caps('c'), begin('rate', 10), p(3), begin('screen', 10), p(4), begin('count', 10), count(5), begin('count', 10), count(0), end(7, 5)];
+      /** @param {string} name @param {any[]} lines @param {string} route @param {boolean} complete @param {string[] | null} problems @param {any[]} [work] */
+      const check = (name, lines, route, complete, problems, work = []) => {
+        const ledger = itemLedger(lines, /** @type {any} */ (route));
+        assert(ledger.complete === complete && ledger.complete === (ledger.problems.length === 0), `${name}: complete ${ledger.complete}, ${JSON.stringify(ledger.problems)}`);
+        if (problems !== null) {
+          same(ledger.problems, problems, `${name}: problems ${JSON.stringify(ledger.problems)}`);
+        }
+        if (work.length > 0) {
+          same([ledger.ratingWork, ledger.countWork, ledger.totalWork], work, `${name}: works ${JSON.stringify([ledger.ratingWork, ledger.countWork, ledger.totalWork])}`);
+        }
+        return ledger;
+      };
+      /** @param {any[]} list @param {number} at @param {any} line */
+      const inserted = (list, at, line) => [...list.slice(0, at), line, ...list.slice(at)];
+      /** @param {any[]} list @param {number} at @param {any} line */
+      const replaced = (list, at, line) => [...list.slice(0, at), line, ...list.slice(at + 1)];
+      const full = check('a', a(), 'new', true, [], [7, 5, 12]);
+      assert(full.calls === 1, `a: ${full.calls} calls`);
+      check('b', a().slice(0, -1), 'new', false, ['no end line c']);
+      const noCaps = check('c', a().filter((l) => l.t !== 'caps'), 'new', false, ['absent count capability']);
+      assert(noCaps.countWork === null && noCaps.totalWork === null, 'c: the count work of a journal without the capability is not unknown');
+      const negative = check('d', replaced(a(), 7, count(-1)), 'new', false, ['invalid work c']);
+      assert(negative.countWork === null && negative.totalWork === null, 'd: an invalid count was summed');
+      check('e', replaced(a(), 10, end(8, 5)), 'new', false, ['sum of p work 7 differs from end.work 8'], [7, 5, 12]);
+      check('f', [start, caps('c'), begin('rate', 10), p(3), begin('screen', 10), p(4), end(7, 0)], 'new', true, [], [7, 0, 7]);
+      check('g', [caps(null), start, p(2), count(6, null), end(2, undefined)], 'legacy', true, [], [2, 6, 8]);
+      check('h', [caps(null), count(6, null)], 'legacy-recorded', false, ['ratings not journaled on the recorded route'], [null, 6, null]);
+      check('i', replaced(a(), 2, begin('rate', 2)), 'new', false, ['bound exceeded c 0']);
+      check('j', a().filter((l, i) => i !== 2), 'new', false, ['unpaired p line c']);
+      check('k', inserted(a(), 10, begin('rate', 10)), 'new', false, ['unfinished primitive c']);
+      check('l', replaced(a(), 2, begin('rate', null)), 'new', false, ['invalid bound c']);
+      check('m', inserted(a(), 3, begin('rate', 10)), 'new', false, ['overlapping begin c 1']);
+      const errored = check('n', replaced(a(), 3, p(0, 'error')), 'new', false, null);
+      assert(errored.problems.includes('unquantified error c 0'), `n: ${JSON.stringify(errored.problems)}`);
+      check('o', inserted(replaced(a(), 10, end(7, 5, { result: 'error' })), 10, begin('count', 10)), 'new', false, ['unfinished primitive c']);
+      const unsat = check('p', [caps(null), start, p(2, 'unsat'), count(6, null), end(2, undefined)], 'legacy', false, null);
+      assert(unsat.problems.length === 1 && unsat.problems[0].startsWith('unquantified unsat'), `p: ${JSON.stringify(unsat.problems)}`);
+      // Unknown work is never zero, and the ledger names what else is wrong with a journal.
+      const empty = check('empty', [], 'new', false, null);
+      assert(empty.ratingWork === null && empty.countWork === null && empty.totalWork === null && empty.calls === 0, 'empty: a journal without a call has known work');
+      check('two starts', [start, ...a()], 'new', false, null);
+      check('no count total', replaced(a(), 10, { t: 'end', call: 'c', result: 'ok', work: 7 }), 'new', false, ['absent count total']);
+      check('total differs', replaced(a(), 10, end(7, 4)), 'new', false, ['sum of counts 5 differs from end.locate.countWork 4']);
+      check('foreign line', inserted(a(), 3, p(1, 'below', 'x')), 'new', false, ['foreign p line x']);
+      check('duplicate end', [...a(), end(7, 5)], 'new', false, ['duplicate end c']);
+      const pending = pairPrimitives(inserted(a(), 10, begin('rate', 10)), 'c');
+      same([pending.problems, pending.lo, pending.open], [[], 12, { kind: 'rate', bound: 10, index: 4 }], 'pairPrimitives: the open primitive and lo of (k)');
+      same(pairPrimitives(a(), 'c'), { problems: [], lo: 12, open: null }, 'pairPrimitives: the paired lines of (a)');
+      const overlapped = pairPrimitives([begin('rate', 10), begin('screen', 5), p(5)], 'c');
+      same([overlapped.problems, overlapped.lo, overlapped.open], [['overlapping begin c 1'], 5, null], 'pairPrimitives: the overlap stays after the completion');
+      same(pairPrimitives([begin('rate', 10), count(1)], 'c').problems, ['unpaired count line c'], 'pairPrimitives: a count line does not close a rating');
+      same(pairPrimitives([begin('fast', 10)], 'c').problems, ['invalid begin c 0'], 'pairPrimitives: an invalid kind');
+      let message = '';
+      try {
+        itemLedger([], /** @type {any} */ ('base'));
+      } catch (e) {
+        message = e instanceof Error ? e.message : String(e);
+      }
+      assert(message === 'unknown route base', `the route base has no ledger: ${message}`);
     },
   },
 ];

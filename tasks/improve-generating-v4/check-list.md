@@ -30,7 +30,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 - [x] T02d Begin lines and proved bounds of every rating and count (IG-P-Q37) (depends on T02c)
 - [x] T03 PM1 data-only inventory, IG-P-Q24 (depends on T02d; serial order)
 - [x] T04a Bounded, identity-checked measurement items: the runner (depends on T03)
-- [ ] T04b Stage-1 item kinds: selection, generation and replay items, with their work ledger (depends on T04a)
+- [x] T04b Stage-1 item kinds: selection, generation and replay items, with their work ledger (depends on T04a)
 - [ ] T04c Stage-1 checks: `v4-check run`, the item manifests and the parity and replay verdicts (depends on T04b)
 - [ ] T04d Stage-1 receipt: typed proof receipts, the summary, the PM4 gate and the stage-1 plan (depends on T04c; **ends with the dry-run forecasts: the orchestrator asks the owner for the stage-1 allowance**)
 - [ ] T04e Stage-1 runs: source and identity receipt, certificate re-proof, parity and replay on real calls (depends on T04d and **the stage-1 allowance**)
@@ -456,8 +456,8 @@ directory once both `$env:TEMP\dv3-sudoku.lock` and `$env:TEMP\dv3-timing.lock` 
 | T02c | 2026-11-17 06:05 | 2026-11-17 06:15 | 10 min | 152.37 | `f55db42` |
 | T02d | 2026-11-17 06:15 | 2026-11-17 06:37 | 22 min | 325.03 | `ca1b9d5` |
 | T03 | 2026-11-17 06:37 | 2026-11-17 06:47 | 10 min | 139.64 | `4ba6f70` |
-| T04a | 2026-11-17 06:47 | 2026-11-17 07:09 | 22 min | 274.29 | this task's commit |
-| T04b | | | | | |
+| T04a | 2026-11-17 06:47 | 2026-11-17 07:09 | 22 min | 274.29 | `5158729` |
+| T04b | 2026-11-17 07:10 | 2026-11-17 07:32 | 22 min | 245.93 | this task's commit |
 | T04c | | | | | |
 | T04d | | | | | |
 | T04e | | | | | |
