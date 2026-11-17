@@ -4,14 +4,15 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { boardFromRows } from '../core/engine/board.js';
 import {
-  breakdownV3, IncompleteRatingError, inBand, measureV2, measureV3, MODEL, rate, rateDetailed, rateV2, scoreV2,
-  scoreV3, UnsatisfiableError,
+  breakdownV3, completeDiagnostic, IncompleteRatingError, inBand, measureV2, measureV3, MODEL, rate, rateDetailed,
+  rateLean, rateV2, scoreV2, scoreV3, UnsatisfiableError,
 } from '../core/engine/difficulty.js';
 import { level, levelForScore } from '../core/engine/levels.js';
 import { validatePack } from '../core/engine/pack.js';
 import { DEDUCE, SCORE } from '../core/engine/policy.js';
 import { buildModel, solveFirst } from '../core/engine/tiling.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES } from '../core/engine/workspace.js';
+import { CLUE_RECIPES, RECIPE_BOARD_ROWS, recipeWitness } from './fixtures/clue-recipes.js';
 import { CLASSIC_PENTOMINOES } from './fixtures/polyominoes.js';
 
 /** @typedef {import('../core/engine/types.js').Piece} Piece */
@@ -498,6 +499,73 @@ test('rateDetailed of a complete layout is the zero detail; unsatisfiable clue s
     assert.throws(() => call(rect(2, 2), [p5, mono], [], ws),
       (e) => e instanceof UnsatisfiableError && /no legal placement/.test(e.message));
   }
+});
+
+// P6: the search rates with `rateLean` (no DLX diagnostic) and `selectClues` completes the returned rating.
+const DLX_KEYS = ['B', 'branchTrials', 'rowTrials', 'dlxStop'];
+const withoutDlx = (/** @type {Record<string, unknown>} */ metrics) => Object.fromEntries(
+  Object.entries(metrics).filter(([key]) => !DLX_KEYS.includes(key)));
+
+test('rateLean skips only the DLX diagnostic and completeDiagnostic restores rate()', () => {
+  const recipeBoard = boardFromRows([...RECIPE_BOARD_ROWS]);
+  const witness = recipeWitness();
+  const wide = boardFromRows(Array(5).fill('#'.repeat(41)));
+  const strip = Array.from({ length: 41 }, (_, i) => ({ ...I5, id: `i${i}` }));
+  const stripWitness = /** @type {Pose[]} */ (solveFirst(buildModel(wide, strip, [], ws), { rowTrialLimit: 1e6 }).layout);
+  const inputs = /** @type {[string, any, any, Pose[]][]} */ ([
+    ...Object.entries(CLUE_RECIPES).map(([id, recipe]) => /** @type {[string, any, any, Pose[]]} */ (
+      [id, recipeBoard, pieces, witness.filter((p) => recipe.pieces.includes(p.piece))])),
+    ['complete witness', recipeBoard, pieces, witness],
+    ['unfinished census (censored)', wide, strip, stripWitness.slice(0, 4)],
+  ]);
+  let traversed = 0;
+  let censored = 0;
+  const stops = new Set();
+  for (const [name, b, ps, clues] of inputs) {
+    const full = rate(b, ps, clues, ws);
+    const lean = rateLean(b, ps, clues, ws);
+    if (clues.length === ps.length) {
+      assert.deepEqual(lean, full, name);
+      assert.equal(JSON.stringify(lean), JSON.stringify(full), name);
+      assert.equal(completeDiagnostic(b, ps, clues, lean, ws), lean, name);
+      continue;
+    }
+    assert.deepEqual(Object.keys(lean), Object.keys(full), name);
+    assert.deepEqual(Object.keys(lean.metrics), METRICS_V3_KEYS, name);
+    assert.deepEqual([lean.score, lean.level, lean.saturated, lean.censored],
+      [full.score, full.level, full.saturated, full.censored], name);
+    assert.deepEqual(DLX_KEYS.map((key) => /** @type {Record<string, unknown>} */ (lean.metrics)[key]),
+      [0, 0, 0, 'skipped'], name);
+    assert.deepEqual(withoutDlx(lean.metrics), withoutDlx(full.metrics), name);
+
+    const leanText = JSON.stringify(lean);
+    const done = completeDiagnostic(b, ps, clues, lean, ws);
+    assert.equal(JSON.stringify(done), JSON.stringify(full), name);
+    assert.equal(JSON.stringify(lean), leanText, `${name}: the lean rating is not changed`);
+    assert.notEqual(done, lean, name);
+    assert.equal(completeDiagnostic(b, ps, clues, full, ws), full, `${name}: a full rating is returned as it is`);
+    traversed += full.metrics.rowTrials > 0 ? 1 : 0;
+    censored += full.censored === true ? 1 : 0;
+    stops.add(full.metrics.dlxStop);
+  }
+  assert.ok(traversed >= 4, 'the diagnostic has real values to restore');
+  assert.equal(censored, 1, 'the key order with censored is covered');
+  assert.ok(stops.has('solution'), 'a traversal that found a solution');
+
+  const layout = witness60();
+  assert.throws(() => rateLean(board60, pieces, [...layout.slice(1), { ...layout[1] }], ws), UnsatisfiableError);
+  assert.throws(() => rateLean(rect(2, 2), [p5, mono], [], ws),
+    (e) => e instanceof UnsatisfiableError && /no legal placement/.test(e.message));
+});
+
+test('a lean rating is refused as a stored claim', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/generated-sample-pack.json', import.meta.url), 'utf8'));
+  assert.ok(validatePack(structuredClone(pack)).ok, 'the sample pack is valid as it is');
+  pack.puzzles[0].rating.metrics.dlxStop = 'skipped';
+  const read = validatePack(pack);
+  assert.equal(read.ok, false);
+  assert.ok(!read.ok && read.issues.some((i) => i.message.includes('dlxStop must be solution, branch-cap or row-cap')),
+    read.ok ? '' : JSON.stringify(read.issues));
 });
 
 test('the v2 rating keeps its results under its v2 names', () => {

@@ -10,7 +10,7 @@
 // for nothing else.
 
 import { activeCount } from './board.js';
-import { IncompleteRatingError, inBand, rate, rateDetailed } from './difficulty.js';
+import { completeDiagnostic, IncompleteRatingError, inBand, rate, rateDetailed, rateLean } from './difficulty.js';
 import { poseCells } from './geometry.js';
 import { clueKey } from './keys.js';
 import { bandEdge, initialClueCount } from './levels.js';
@@ -21,6 +21,7 @@ import { buildModel, countSolutions, isValidLayout } from './tiling.js';
 /** @typedef {import('./types.js').Piece} Piece */
 /** @typedef {import('./types.js').Pose} Pose */
 /** @typedef {import('./types.js').Rating} Rating */
+/** @typedef {import('./types.js').RatingV3} RatingV3 */
 /** @typedef {import('./types.js').RatingDetail} RatingDetail */
 /** @typedef {import('./types.js').ClueEvent} ClueEvent */
 /** @typedef {import('./types.js').Certificate} Certificate */
@@ -268,12 +269,15 @@ export function selectClues(ctx) {
   const limit = BUDGETS.clueSubsets;
   const rowLimit = countRowLimit(board);
   // Every rating of this call goes through rateWith: the subsets and the repaired sets. The `rate` seam keeps
-  // priority; a recorder asks for the detail channel (RES-28); without either the call path is `rate` itself.
+  // priority; a recorder asks for the detail channel (RES-28); without a seam, a recorder or `onRate` the search
+  // rates without the DLX diagnostic (P6) and `conclude` completes the returned rating.
   const seam = ctx.rate;
   /** @type {(b: Board, p: Piece[], c: Pose[], w: Workspace) => { rating: Rating, detail: RatingDetail | null }} */
   const rateWith = seam !== undefined
     ? (b, p, c, w) => ({ rating: seam(b, p, c, w), detail: null })
-    : record !== undefined ? rateDetailed : (b, p, c, w) => ({ rating: rate(b, p, c, w), detail: null });
+    : record !== undefined
+      ? rateDetailed
+      : (b, p, c, w) => ({ rating: (onRate === undefined ? rateLean : rate)(b, p, c, w), detail: null });
   // A generated Hard-or-above candidate needs a proved decisive guess (RES-35, AR1).
   const refuseUnproved = target.min >= bandEdge(3);
   const finite = Number.isFinite(target.max);
@@ -540,7 +544,11 @@ export function selectClues(ctx) {
     record?.({
       stage: 'clues', kind: 'selected', source, sequence: origin.sequence, repairSequence: origin.repairSequence,
     });
-    return { ...r, skips: { subsets: subsetSkips.slice(), repairs: repairSkips.slice() } };
+    return {
+      ...r,
+      rating: completeDiagnostic(board, pieces, r.clues, /** @type {RatingV3} */ (r.rating), ws),
+      skips: { subsets: subsetSkips.slice(), repairs: repairSkips.slice() },
+    };
   };
 
   /**

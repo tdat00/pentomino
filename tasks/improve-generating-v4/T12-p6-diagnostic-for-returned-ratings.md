@@ -156,13 +156,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-18 01:43:30 +07:00 (dispatch, base `c802fae`) to 06:32:24 +07:00 (acceptance): 4 h 48 min 54 s, of which the developer worked 01:43:04-02:28:02 (most of it waiting for the lock behind Sudoku's difficulty-v3) and the rest was the owner's night (his price reply came at 05:59) and the orchestrator's locked re-run (06:23-06:32) |
+| Waiting for rulings | about 4 min (SA-Opus's review, 06:23-06:27; no QUESTION) |
+| Agent id, model | `6d40d8f5-7c75-45ba-a3dd-9d32d374fef7`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 99 calls; 18,130,162 input, 58,684 output, 17,867,829 cache-read |
+| AI credits | 302.94 |
+| Questions and rulings | none from the developer. SA-Opus ruled "accept T12" after reading the production diff (one shared `dlxDiagnostic`, so `B`, `dlxStop` and the internal error are derived as before; the lean branch only with no seam, no recorder and no `onRate`; `conclude` completes the returned rating; a recorder never sees a lean rating). Deviations accepted: the stale §6.10 clause corrected so the spec matches the code; the strengthened `rateLean` and P6 cases (counted `reserve` calls prove the lean path ran and was completed once); the placement and wrapping; the internal error now surfacing only at completion (unreachable there). The missing mutation run accepted by reading. T12's fourth test row corrected (`clues.test.js:820` rates through a scripted seam). Pack amendment `eb29e07`, which also records the owner's grant of 2026-11-18 (cap 749, runs pass 748) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | Through the repository's lock helper (`tools\ig-proto\lock\ig-lock.ps1`): `T12 quick verify` 1,493 tests, 1,493 pass, 0 fail, 0 skipped, `IG … exit=0 seconds=35.928 quiet=45`; `T12 fixtures verify` `record-fixtures: OK` (0.79 s); `T12 replay case verify` `record-fixtures: replay case OK` (1.381 s); `T12 full verify` 1,512 tests, 1,512 pass, 0 fail, `seconds=124.978`; total wall 536 s. `git status --short`: exactly the six files of the Scope; `npm run check`: OK. No benchmark or timing run |
+| Commit | this task's commit, `improve-generating T12: P6: the DLX diagnostic only for returned ratings` |
+| Issues and named items | N-V4-12 stays open (production timing at four workers and both memory checks are read with the next bench run). No guide changed (no sentence in README, the design brief or the four guides describes the search's diagnostic) |

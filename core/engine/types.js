@@ -79,7 +79,8 @@
  * @property {number} B DLX diagnostic, v2 meaning (the capped value); never enters the v3 score.
  * @property {number} branchTrials DLX diagnostic, v2 meaning.
  * @property {number} rowTrials DLX diagnostic, v2 meaning.
- * @property {'solution' | 'branch-cap' | 'row-cap'} dlxStop The v2 `stop`, renamed.
+ * @property {'solution' | 'branch-cap' | 'row-cap' | 'skipped'} dlxStop The v2 `stop`, renamed; 'skipped' only in the
+ *   search ratings of selectClues (P6), never stored.
  * @property {'exhausted' | 'solution-limit' | 'node-cap' | 'work-cap'} searchStop How the deduction search ended.
  * @property {number} F Final-path placements by R1, R2 and R3.
  * @property {number} E Final-path rows killed by R6.
