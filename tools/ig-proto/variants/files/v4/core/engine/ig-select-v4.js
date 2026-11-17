@@ -11,7 +11,8 @@
 //   P3  a screen-capped profile reads as "too few clues", a sided result;
 //   P4  the start count comes from the table prior (IG.prior), else from K - U0 (`step0` is 1 with a prior, U0 without);
 //   P5  (V4-T07a) the call ends when its work budget (IG.callBudget, or the seam ctx.igBudget) is spent: checked before
-//       every rating and every uniqueness count, it returns the best already finished result or `not-in-band`.
+//       every rating and every uniqueness count, it returns its best result or `not-in-band`: in `require` the best
+//       already finished final, in `any` the best waiting in-band candidate (V4-T07b: finishing costs nothing there).
 // Kept from the frozen search: `SelectContext` and `SelectResult`, the `record` events with their `detail` from the
 // same measurement, one `charge` per rating attempt and per repair count (before the event), `replaySkips` and
 // `SkipReplayError`, `conclude`, the repairs and the centre rule. The copy's `selectClues` sends only Nightmare and
@@ -1008,7 +1009,12 @@ function searchV4(ctx, call, loc, W, prior, markNoWindow) {
       verifyConsumed();
       Object.assign(loc, { result: noWindow, hiBelow, loAbove, wc: windowCount(), noWindowProof: proof });
       markNoWindow({ ok: false, result: 'no-window' });
-      return { ok: false, reason: 'not-in-band' };
+      // The side is written only when IG.setAttemptsBound is set (V4-T07b); the journaled result is unchanged.
+      return {
+        ok: false,
+        reason: 'not-in-band',
+        ...(IG.setAttemptsBound === undefined ? {} : { igNoWindow: noWindow === 'below-to-one' ? 'below' : 'above' }),
+      };
     };
 
     const first = side(c0);
@@ -1212,7 +1218,9 @@ function searchV4(ctx, call, loc, W, prior, markNoWindow) {
   } catch (e) {
     if (e instanceof BudgetStop) {
       loc.budgetStop = { limit: budget, spent, overshoot: spent - budget };
-      const best = bestFinished();
+      // R10: no new work after the stop. In 'any' mode `finish` returns the raw subset (no rating, no count, no
+      // rng draw), so `chooseBest` does no work and returns the best waiting in-band candidate (plan P5).
+      const best = uniqueness === 'any' ? chooseBest() : bestFinished();
       if (best !== null) {
         return conclude(best);
       }

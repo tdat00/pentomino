@@ -54,6 +54,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `lib/budget.mjs` | invocation totals and budget decisions |
 | `lib/tree.mjs` | tree builder (API and CLI) |
 | `lib/engine.mjs` | loads a tree's modules |
+| `lib/fake-pool.mjs` | the scripted worker pool of `tests/generation-client.test.js` ported with the tree's `createPool` as a parameter: `settle`, `createFakeClock`, `FakeWorker`, `harness`, `track` (V4-T07b; see "P5 bounded set attempts (V4-T07b)") |
 | `lib/sets.mjs` | catalogue boards and carve-only sets; `offeredInSource` comes from the tree's own `levels.js` (V4-T01b) |
 | `lib/calls.mjs` | recorded calls, screened and canonical ratings, window subsets |
 | `lib/lanes.mjs`, `lib/lane-worker.mjs` | worker-thread lanes with admission and a supervisor; the lane worker also runs the three stage-1 item kinds (V4-T04b) |
@@ -65,6 +66,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `variants/<id>.json` | variant manifests; `variants/files/<name>/...` copy-only files |
 | `variants/v4-ps.json`, `plans/V4-T05.json`, `plans/V4-T05.prior-gen.json`, `plans/V4-T05.prior-replay.json` | the per-set prior arm `v4-ps` and the plan and manifests of its run (V4-T05); the verdict is `v4-check.mjs prior-verdict`; see "The per-set prior (V4-T05)" |
 | `variants/link.json`, `variants/log-link.json`, `variants/v4-link.json`, `variants/v4-ps-link.json`, `variants/files/link/`, `linkage.mjs`, `plans/V4-T06.json` | the batch linkage journal and its report (V4-T06): the variant `link` and its three compositions, `ig-link.js`, `linkage.mjs report` and the plan of its run; see "Batch linkage (V4-T06)" |
+| `variants/v4-p5.json`, `variants/v4-p5-w8-test.json`, `variants/v4-link-w8-test.json` | the P5 pilot arm `v4-p5` (the call budget and the bounded set attempts) and the two test-only width-8 trees (V4-T07b); see "P5 bounded set attempts (V4-T07b)" |
 
 ## Trees (variants)
 
@@ -83,6 +85,8 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `log-p6`, `log-p6-w8`, `p1p5-main-p6-w8` | `log`; `log`; `p1p5-main`, each with `p6` (and `w8`) | today's search with P6, with P6 and eight workers, and the headline prototype with P6 and eight workers (IGP-04) |
 | `link` | `log` | the batch linkage journal (V4-T06, V4-T06b; see "Batch linkage (V4-T06)"): `core/browser/ig-link.js` and seventeen edits (`link-1` to `link-17`); composed after `log`, it changes no result |
 | `log-link`, `v4-link`, `v4-ps-link` | `log` and `link`; `v4` and `link`; `v4-ps` and `link` | today's search, the `gen-v4` prototype and the `gen-v4` prototype with the per-set prior, each with the linkage journal and the accept timeline (V4-T06); no edit of their own |
+| `v4-p5` | `v4-link` | P5's pilot arm (V4-T07b): `callBudget` 2,000,000,000 units for every Nightmare and Hell 1 call and `setAttemptsBound` 4, with three edits (`p5-1` to `p5-3`); see "P5 bounded set attempts (V4-T07b)" |
+| `v4-p5-w8-test`, `v4-link-w8-test` | `v4-p5` and `w8`; `v4-link` and `w8` | test only (V4-T07b): the same trees with `MAX_POOL_SIZE` 8 (`w8-1`) for the width-8 scripted cases; never an arm or a plan step |
 
 Every variant except `base` gets `core/engine/ig-params.js` (`IG`, the merged params) and lists its added engine files
 in the copy's `SOURCE_FILES` (`meta-2`), so that the copy's own source digest tells variants apart. `treeId` is the
@@ -754,11 +758,15 @@ without `IG.callBudget` (every arm of this pack until T07b's `v4-p5`) behaves as
   `onAdd` hook of `makeUnique`, before its begin line). A stopped primitive writes no begin line (IG-P-Q37), so a
   journal has as many `begin` lines as `p` and `count` lines. The check is `spent >= budget`: the running primitive
   finishes and is charged in full (the overshoot is recorded), and after exhaustion no operation starts.
-- **The end.** The search catches the stop at its top level: the result is the best already finished final result of
-  the finals cache (the existing centre and tie order, no new work: `chooseBest` is not called), else `{ ok: false,
-  reason: 'not-in-band' }`. A repair interrupted by the stop is never accepted (its candidate stays unfinished), no
-  event records the budget end (the event kinds stay those of D-V4-06), and the skip verification and the observers'
-  exceptions are kept (`verifyConsumed()` runs before either result).
+- **The end.** The search catches the stop at its top level. With `uniqueness: 'require'` the result is the best
+  already finished final result of the finals cache (the existing centre and tie order, no new work: `chooseBest` is
+  not called, because it would repair). With `uniqueness: 'any'` the result is `chooseBest()`, which does no work in
+  that mode (`finish` returns the raw subset: no rating, no count, no rng draw), so the call ends with its best
+  waiting in-band candidate (plan P5: "the call ends with its best result"; review R10: "if it can perform new work";
+  V4-T07b). Without a result the call ends `{ ok: false, reason: 'not-in-band' }`. A repair interrupted by the stop is
+  never accepted (its candidate stays unfinished), no event records the budget end (the event kinds stay those of
+  D-V4-06; an `any` result is announced by its `selected` event, as every result is), and the skip verification and
+  the observers' exceptions are kept (`verifyConsumed()` runs before either result).
 - **Journal.** The `end` line's `locate` block has `spent` (the units metered, always) and, only when the budget ended
   the call, `budgetStop: { limit, spent, overshoot }` (`overshoot = spent - limit`). The `count` lines and
   `locate.countWork` are T02a's and T02d's and keep their meaning.
@@ -770,6 +778,53 @@ without `IG.callBudget` (every arm of this pack until T07b's `v4-p5`) behaves as
   `p5: call budget stops deterministically`, `p5: budget sweep (S1, S2)` (budgets at the prefix sums of the unbudgeted
   charge log: the charge log and the kinds of each run are the unbudgeted prefix) and `p5: budget end with unfinished
   candidates, every observer mode` run in the `--v4` group (through the lock helper, task id `V4-T07a`).
+
+### P5 bounded set attempts (V4-T07b)
+
+A set request whose first attempts all end without a window on the same side stops with a notice that names the side,
+instead of running to the clock (plan P5, review RV1-09). The mechanism exists only in the pilot arm `v4-p5`
+(`variants/v4-p5.json`, an extension of `v4-link`); today's search and every other arm keep P-OD12 ("no fail-fast in
+`gen-v3`"): only `selectCluesV4`, that is, Nightmare and Hell 1 targets, reports a side, so a legacy target never meets
+the bound.
+
+- **The side.** When `IG.setAttemptsBound` is set, `failNoWindow` of `ig-select-v4.js` returns `{ ok: false, reason:
+  'not-in-band', igNoWindow: 'below' | 'above' }` (`'below'` for a bracket that marched down to one clue, `'above'`
+  otherwise); without the parameter the result is the T02a one and the field is absent (D-V4-05: the existing `v4` arms
+  are unchanged, and the journaled result is unchanged in both). Edit `p5-1` makes the set attempt (`setAttempt` of
+  `core/engine/generate.js`, which a worker runs for one attempt; `firstSetAttempt`, its serial loop, sees the same
+  reason) report `no-window-below` or `no-window-above` instead of `not-in-band` when it meets the field; every other
+  reason is untouched, so a failure of any other kind, or of a legacy target, never counts.
+- **The bound.** `igSetBound(results)` (edit `p5-3`, an export of the copy's `core/browser/generation-client.js`) returns
+  the common `no-window-<side>` reason when the attempts 0 to `IG.setAttemptsBound - 1` have all resolved as `fail` with
+  that same reason, else `null`. Edit `p5-2` calls it in `generateSet` after the cancel and deadline checks and before
+  the ordered winner scan, so that the outcome cannot depend on the order the attempts finish in: an attempt beyond the
+  bound that finishes early cannot win at one pool width and lose at another. When it fires the request ends `{ status:
+  'failed', reason: 'no-window-<side>', failures }`; a success or any other failure among the first attempts, or two
+  different sides, leaves the request as today.
+- **The pilot values** are the pack author's (D-V4-13); stage 2 fits the table and stage 3 freezes it (N-V4-03): a call
+  budget of 2,000,000,000 units for every Nightmare and Hell 1 call (R21: 5 % of successful prototype calls passed 2 G,
+  none 6 G) and a bound of 4 set attempts (the four-worker pool's first wave).
+- **False stops** (a request the bound ends although a later attempt would have produced a set) are counted by T09d
+  against the uncapped arm (IG-P-D1, plan section 9); this task only builds the mechanism.
+- **Test-only trees.** The frozen `core/browser/worker-pool.js` has `MAX_POOL_SIZE = 4` and `createPool` rejects a larger
+  size, so the width-8 cases run in `v4-p5-w8-test` and `v4-link-w8-test` (`extends` the tree and `w8`, one added edit
+  `w8-1`); they are never an arm or a plan step, and no production limit or default changes.
+- **Self-test.** `lib/fake-pool.mjs` ports the scripted pool of `tests/generation-client.test.js` (`harness(createPool,
+  options)` takes the tree's `createPool`). `scriptedSet(variant, width, script)` runs one set request on the pool and
+  client of one tree, loaded by file URL (the `-w8-test` tree for width 8): a `setAttempt` task is answered at once when
+  `script[attempt].now` is true and held otherwise, then the held task with the lowest attempt is answered until the
+  request resolves; `atEveryWidth` runs a script at the widths 1, 2, 4 and 8, checks the expected outcome and that the
+  first wave dispatched `width` attempts, and that the outcomes are equal. The nine cases of the `--v4` group
+  (`p5: no-window side` to `p5: budget end in any mode returns the best waiting candidate`) run through the lock
+  helper, task id `V4-T07b`; `p5: a budget-stopped call replays its skips` proves that a call ended by its budget with
+  a finished final result replays its recorded skips to the same result and still refuses an unused skip ordinal. That
+  final exists because the 4-clue hit is central, so its repair is finished at once (`uniqueness: 'require'`), and the
+  repaired rating (56) is in the band but not central, so the call goes on until the budget ends it in the middle of a
+  later repair. `p5: budget end in any mode returns the best waiting candidate` cuts T07a's S2 call in `any` mode at
+  every point of its unbudgeted run: the charge log is the unbudgeted prefix, the result is the best waiting in-band
+  candidate (or `not-in-band` when none waits), and its `selected` event names a waiting candidate. T07a's case `p5:
+  budget end with unfinished candidates, every observer mode` also asserts, in the record mode, that no event of kind
+  `repair` was recorded (a repair the budget stopped records nothing).
 
 ## Bounded measurement items (task pack v4)
 

@@ -12,7 +12,9 @@
 // V4-T02b's five (observers parity, throwing observers, skip replay round trip, legacy dispatch, the rate seam),
 // V4-T02c's four (provenance versions per arm, the reader by the record's own algo, old and new records load and save,
 // version and table refusal before any work) and V4-T02d's three (every primitive is announced, no real rating
-// exceeds its bound, the journal changes no result).
+// exceeds its bound, the journal changes no result); V4-T07a added three (the call budget) and V4-T07b eight (the side
+// of a no-window result, the bounded set attempts rule, four scripted set requests at the pool widths 1, 2, 4 and 8,
+// the width-8 trees, the replay of a budget-stopped call).
 // Under `--label frozen` the four stage-1 task ids (`V4-T04`, `V4-T04v4`, `V4-T04f`, `V4-T04i`) are historical records that
 // the stage-1 receipt hashes (V4-T04f, D-V4-18): once their state exists a run with such a `--task` exits 3, writing nothing.
 import { spawnSync } from 'node:child_process';
@@ -27,6 +29,7 @@ import { checkText } from '../check-conventions.mjs';
 import { decide, readInvocations } from './lib/budget.mjs';
 import { rateAttempt, recordedCall, screenRating, startCountFor, windowSubsets } from './lib/calls.mjs';
 import { loadEngine } from './lib/engine.mjs';
+import { harness, settle, track } from './lib/fake-pool.mjs';
 import { identityHash, itemIdentity, logEnd, logSpawn, logStart, manifestHash, readItemLog, resumePlan, runItems } from './lib/items.mjs';
 import { createLanes } from './lib/lanes.mjs';
 import { itemLedger, pairPrimitives } from './lib/ledger.mjs';
@@ -2820,6 +2823,128 @@ function m(P, B) {
   return j === -1 ? P.length - 1 : j;
 }
 
+/**
+ * A module of a tree's `core/browser/` by file URL (module identity stays inside the tree).
+ * @param {{ e: any }} tree An entry of `engine()`.
+ * @param {string} name The file name without `.js`.
+ * @returns {Promise<any>}
+ */
+function browserModule(tree, name) {
+  return import(pathToFileURL(join(tree.e.root, 'core', 'browser', `${name}.js`)).href);
+}
+
+/**
+ * The real piece set and its calibration for `tests/fixtures/generation-case.json` in one tree, as `fixture()` of
+ * `tests/generation-client.test.js` builds them (the first set attempt, the tree's own engine); built once per tree.
+ * @param {string} variant
+ * @returns {Promise<{ recipe: any, set: any, calibration: any }>}
+ */
+async function setFixture(variant) {
+  memo.setFixture ??= {};
+  if (memo.setFixture[variant] === undefined) {
+    const { e, ws, scratch } = await engine(variant);
+    const recipe = JSON.parse(readFileSync(join(ROOT, 'tests', 'fixtures', 'generation-case.json'), 'utf8'));
+    const found = e.generate.firstSetAttempt({
+      board: e.board.boardFromRows(recipe.boardRows), rotation: 0, levelId: recipe.levelId, seedText: recipe.seedText,
+      uniqueness: recipe.uniqueness, execution: { main: ws, scratch },
+    });
+    assert(found.result !== null, `the ${variant} tree found no set for the generation fixture`);
+    memo.setFixture[variant] = { recipe, set: found.result.set, calibration: found.result.calibration };
+  }
+  return memo.setFixture[variant];
+}
+
+/**
+ * One set request on a scripted pool of the tree `variant` (the tree `<variant>-w8-test` for width 8): the pool and
+ * the client are that tree's `core/browser/worker-pool.js` and `generation-client.js`. A `setAttempt` task is answered
+ * at once when `script[attempt].now` is true, else held; then, at most 64 times, the held task with the lowest attempt
+ * whose worker is not terminated is answered, until the request has resolved (V4-T07b).
+ * @param {string} variant
+ * @param {number} width The pool size: 1, 2, 4 or 8.
+ * @param {Record<number, { fail?: string, ok?: true, now?: boolean }>} script A `{ fail: reason }` entry is the value
+ *   `{ ok: false, reason }`, `{ ok: true }` the value `{ ok: true, set, calibration, attempt }`; an attempt without an
+ *   entry fails with `not-in-band`.
+ * @returns {Promise<{ outcome: any, answered: number[], dispatched: number[] }>} `outcome` holds the request's `status`,
+ *   `reason`, `failures` and `attempt` (the keys it has); `answered` is the order of the held answers, `dispatched`
+ *   the attempts in the order the pool received them.
+ */
+async function scriptedSet(variant, width, script) {
+  const treeId = width === 8 ? `${variant}-w8-test` : variant;
+  const tree = await engine(treeId);
+  const { createPool } = await browserModule(tree, 'worker-pool');
+  const { createGenerationClient } = await browserModule(tree, 'generation-client');
+  const { recipe, set, calibration } = await setFixture(treeId);
+  const valueOf = (/** @type {number} */ attempt) => {
+    const entry = script[attempt];
+    if (entry === undefined) {
+      return { ok: false, reason: 'not-in-band' };
+    }
+    return entry.ok === true ? { ok: true, set, calibration, attempt } : { ok: false, reason: entry.fail };
+  };
+  const h = harness(createPool, {
+    size: width,
+    handler: (task) => (task.kind === 'setAttempt' && script[task.payload.attempt]?.now === true
+      ? { value: valueOf(task.payload.attempt) } : undefined),
+  });
+  const client = createGenerationClient(h.pool, { clock: h.clock, createdAt: () => '2026-01-01T00:00:00.000Z' });
+  const request = track(client.generateSet({
+    boardRows: recipe.boardRows, rotation: 0, levelId: 'hard', seedText: 'fixture-set-0', uniqueness: 'any', maxActive: 676,
+  }));
+  /** @type {Set<any>} */
+  const done = new Set();
+  /** @type {number[]} */
+  const answered = [];
+  for (let i = 0; i < 64; i += 1) {
+    await settle();
+    if (request.state !== 'pending') {
+      break;
+    }
+    const next = h.held
+      .filter((t) => t.kind === 'setAttempt' && !done.has(t) && !t.worker.terminated)
+      .sort((a, b) => a.payload.attempt - b.payload.attempt)[0];
+    if (next !== undefined) {
+      done.add(next);
+      answered.push(next.payload.attempt);
+      h.answer(next, { value: valueOf(next.payload.attempt) });
+    }
+  }
+  assert(request.state === 'resolved', `${treeId}, width ${width}: the request is ${request.state} after 64 rounds (answered ${answered.join(',')})`);
+  const { status, reason, failures, attempt } = request.value;
+  return {
+    outcome: { status, ...(reason === undefined ? {} : { reason }), ...(failures === undefined ? {} : { failures }), ...(attempt === undefined ? {} : { attempt }) },
+    answered,
+    dispatched: h.tasks.filter((t) => t.kind === 'setAttempt').map((t) => t.payload.attempt),
+  };
+}
+
+/**
+ * Runs a script at the pool widths 1, 2, 4 and 8 and checks the outcome (T07b: pool invariance).
+ * @param {string} what
+ * @param {string} variant
+ * @param {Record<number, { fail?: string, ok?: true, now?: boolean }>} script
+ * @param {(outcome: any) => boolean} accept Whether an outcome is the expected one.
+ * @param {string} expected The expected outcome, for the message.
+ * @returns {Promise<Record<number, any>>} The outcome per width.
+ */
+async function atEveryWidth(what, variant, script, accept, expected) {
+  /** @type {Record<number, any>} */
+  const outcomes = {};
+  /** @type {string[]} */
+  const orders = [];
+  for (const width of [1, 2, 4, 8]) {
+    const { outcome, answered, dispatched } = await scriptedSet(variant, width, script);
+    outcomes[width] = outcome;
+    orders.push(`w${width} answered ${answered.join(',')} of ${dispatched.length} dispatched`);
+    assert(accept(outcome), `${what}: ${variant} at width ${width} gave ${JSON.stringify(outcome)}, expected ${expected} (answered ${answered.join(',')}; dispatched ${dispatched.join(',')})`);
+    same(dispatched.slice(0, width), [...Array(width).keys()], `${what}: ${variant} at width ${width} dispatched ${dispatched.join(',')} first: the pool did not run ${width} workers`);
+  }
+  same(outcomes[1], outcomes[2], `${what}: the outcomes at width 1 and 2 differ`);
+  same(outcomes[1], outcomes[4], `${what}: the outcomes at width 1 and 4 differ`);
+  same(outcomes[1], outcomes[8], `${what}: the outcomes at width 1 and 8 differ`);
+  process.stdout.write(`NOTE p5 ${what} (${variant}): ${JSON.stringify(outcomes[1])} at every width; ${orders.join('; ')}\n`);
+  return outcomes;
+}
+
 const v4Cases = [
   {
     name: 'v4: tree, dispatch and bounds',
@@ -3520,6 +3645,197 @@ const v4Cases = [
       const inBandRated = events.filter((ev) => ev.kind === 'rated' && ev.rating.score >= 55 && ev.rating.score < 70);
       assert(inBandRated.length >= 2, `${inBandRated.length} in-band rated events: two or more in-band candidates were not waiting`);
       assert(!events.some((ev) => ev.kind === 'selected'), 'a selected event was recorded after the budget end');
+      assert(!events.some((ev) => ev.kind === 'repair'), 'a repair event was recorded after the budget end');
+    },
+  },
+  {
+    name: 'p5: no-window side',
+    async run() {
+      const specBelow = { prior: null, screen: () => synthetic(30) };
+      const specAbove = { prior: null, screen: () => 'cap', canon: () => synthetic(90) };
+      const below = await v4Call('side-below', { ...specBelow, variant: 'v4-p5' });
+      const above = await v4Call('side-above', { ...specAbove, variant: 'v4-p5' });
+      const plain = await v4Call('side-above', { ...specAbove, variant: 'v4' });
+      same(below.result, { ok: false, reason: 'not-in-band', igNoWindow: 'below' }, `v4-p5, every probe below: ${JSON.stringify(below.result)}`);
+      same(above.result, { ok: false, reason: 'not-in-band', igNoWindow: 'above' }, `v4-p5, every probe above: ${JSON.stringify(above.result)}`);
+      same(plain.result, { ok: false, reason: 'not-in-band' }, `v4, every probe above: ${JSON.stringify(plain.result)}`);
+      assert(!('igNoWindow' in plain.result), 'the v4 tree writes the side');
+      for (const [what, r] of /** @type {[string, any][]} */ ([['below', below], ['above', above], ['v4 above', plain]])) {
+        assert(r.end !== undefined && r.end.locate.result === (what === 'below' ? 'below-to-one' : 'above-to-max') && !JSON.stringify(r.lines).includes('igNoWindow'),
+          `${what}: the journal ends ${JSON.stringify(r.end?.locate)} or names the side`);
+      }
+    },
+  },
+  {
+    name: 'p5: bounded set attempts rule',
+    async run() {
+      const { igSetBound } = await browserModule(await engine('v4-p5'), 'generation-client');
+      const fail = (/** @type {string} */ reason) => ({ kind: 'fail', reason });
+      const mapOf = (/** @type {Record<number, any>} */ entries) => new Map(Object.entries(entries).map(([j, r]) => [Number(j), r]));
+      const below = fail('no-window-below');
+      const above = fail('no-window-above');
+      const rule = [
+        ['(a) 0-3 no-window-below', { 0: below, 1: below, 2: below, 3: below }, 'no-window-below'],
+        ['(b) 0-2 below, 3 above', { 0: below, 1: below, 2: below, 3: above }, null],
+        ['(c) 0-3 no-window-above', { 0: above, 1: above, 2: above, 3: above }, 'no-window-above'],
+        ['(d) 0 ok, 1-3 below', { 0: { kind: 'ok', value: {} }, 1: below, 2: below, 3: below }, null],
+        ['(e) 0-2 below only', { 0: below, 1: below, 2: below }, null],
+        ['(f) 0-3 below except 2 carve', { 0: below, 1: below, 2: fail('carve'), 3: below }, null],
+        ['(g) 0-2 below, 3 fault', { 0: below, 1: below, 2: below, 3: { kind: 'fault', error: new Error('worker') } }, null],
+        ['(h) 0-2 below, 3 skipped', { 0: below, 1: below, 2: below, 3: { kind: 'skipped' } }, null],
+      ];
+      for (const [what, entries, expected] of /** @type {[string, Record<number, any>, string | null][]} */ (rule)) {
+        const got = igSetBound(mapOf(entries));
+        assert(got === expected, `${what}: igSetBound gave ${JSON.stringify(got)}, expected ${JSON.stringify(expected)}`);
+      }
+    },
+  },
+  {
+    name: 'p5: a later success does not beat the bound',
+    async run() {
+      const script = {
+        0: { fail: 'no-window-below' }, 1: { fail: 'no-window-below' }, 2: { fail: 'no-window-below' }, 3: { fail: 'no-window-below' },
+        4: { ok: /** @type {const} */ (true), now: true },
+      };
+      await atEveryWidth('a later success', 'v4-p5', script,
+        (o) => o.status === 'failed' && o.reason === 'no-window-below' && o.failures?.['no-window-below'] === 4,
+        "{ status: 'failed', reason: 'no-window-below' } with 4 failures of that reason");
+    },
+  },
+  {
+    name: 'p5: a success inside the bound wins',
+    async run() {
+      const script = {
+        0: { fail: 'no-window-below' }, 1: { fail: 'no-window-below' }, 2: { ok: /** @type {const} */ (true) }, 3: { fail: 'no-window-below' },
+      };
+      await atEveryWidth('a success inside the bound', 'v4-p5', script, (o) => o.status === 'complete' && o.attempt === 2, "status 'complete', attempt 2");
+    },
+  },
+  {
+    name: 'p5: mixed sides do not stop',
+    async run() {
+      const script = {
+        0: { fail: 'no-window-below' }, 1: { fail: 'no-window-below' }, 2: { fail: 'no-window-above' }, 3: { fail: 'no-window-above' },
+        4: { fail: 'not-in-band' }, 5: { ok: /** @type {const} */ (true) },
+      };
+      await atEveryWidth('mixed sides', 'v4-p5', script, (o) => o.status === 'complete' && o.attempt === 5, "status 'complete', attempt 5");
+    },
+  },
+  {
+    name: 'p5: without the bound the later success wins',
+    async run() {
+      const script = {
+        0: { fail: 'no-window-below' }, 1: { fail: 'no-window-below' }, 2: { fail: 'no-window-below' }, 3: { fail: 'no-window-below' },
+        4: { ok: /** @type {const} */ (true), now: true },
+      };
+      await atEveryWidth('without the bound', 'v4-link', script, (o) => o.status === 'complete' && o.attempt === 4, "status 'complete', attempt 4");
+    },
+  },
+  {
+    name: 'p5: the width-8 trees',
+    async run() {
+      const sizes = [];
+      for (const id of ['v4-p5', 'v4-p5-w8-test', 'v4-link-w8-test']) {
+        sizes.push((await browserModule(await engine(id), 'worker-pool')).MAX_POOL_SIZE);
+      }
+      same(sizes, [4, 8, 8], `MAX_POOL_SIZE of v4-p5, v4-p5-w8-test and v4-link-w8-test: ${JSON.stringify(sizes)}`);
+    },
+  },
+  {
+    name: 'p5: a budget-stopped call replays its skips',
+    async run() {
+      const { e, ws } = await engine('v4');
+      const { carved } = await k15Set();
+      // The 4-clue hit is central, so its repair is finished at once, and the repaired rating is in the band but not
+      // central: the call goes on with a final result in hand until the budget ends it in the middle of a later repair.
+      const x = { igPrior: null, igScreen: synth(e, DOWN), igCanonical: synth(e, (c) => synthetic(c <= 4 ? 60 : 56)), uniqueness: 'require' };
+      const name = 'p5-skip-g';
+      /** @type {any[]} */
+      const events = [];
+      e.clues.selectClues(await v4Ctx(e, ws, name, { ...x, record: (/** @type {any} */ ev) => events.push(ev) }));
+      const K0 = [0, 1].map((sequence) => {
+        const ev = events.find((y) => y.sequence === sequence && Array.isArray(y.clueIds));
+        assert(ev !== undefined, `p5 skip: no event of sequence ${sequence}: ${events.map((y) => `${y.kind}@${y.sequence}`).join(',')}`);
+        return e.keys.clueKey(carved.board, carved.set.pieces, carved.set.witness.filter((/** @type {any} */ p) => ev.clueIds.includes(p.piece)));
+      });
+      /** @type {number[]} */
+      const L = [];
+      e.clues.selectClues(await v4Ctx(e, ws, name, { ...x, excludeClueKeys: new Set(K0), charge: (/** @type {number} */ u) => L.push(u) }));
+      assert(L.length >= 2, `p5 skip: ${L.length} charges in the excluded run`);
+      const B = L.slice(0, Math.ceil(L.length / 2)).reduce((sum, u) => sum + u, 0);
+      const ctx1 = await v4Ctx(e, ws, name, { ...x, excludeClueKeys: new Set(K0), igBudget: B });
+      const R1 = journaled('p5-skip-r1', () => e.clues.selectClues(ctx1));
+      assert(R1.error === null, `p5 skip: the budgeted run threw ${String(R1.error)}`);
+      assert(R1.result.ok === true && R1.result.skips.subsets[0] === 0, `p5 skip: the budgeted run: ${JSON.stringify(R1.result)}`);
+      const end = R1.lines.find((l) => l.t === 'end');
+      assert(end !== undefined && end.locate.budgetStop !== undefined, `p5 skip: no budgetStop in the end line ${JSON.stringify(end?.locate)}`);
+      const R2 = e.clues.selectClues(await v4Ctx(e, ws, name, { ...x, igBudget: B, excludeClueKeys: new Set(), replaySkips: R1.result.skips }));
+      same(R2, R1.result, `p5 skip: the replay differs from the budgeted run: ${JSON.stringify(R2)} against ${JSON.stringify(R1.result)}`);
+      const ctx3 = await v4Ctx(e, ws, name, {
+        ...x, igBudget: B, excludeClueKeys: new Set(),
+        replaySkips: { subsets: [...R1.result.skips.subsets, 2191], repairs: R1.result.skips.repairs },
+      });
+      /** @type {any} */
+      let thrown = null;
+      try {
+        e.clues.selectClues(ctx3);
+      } catch (caught) {
+        thrown = caught;
+      }
+      assert(thrown instanceof e.clues.SkipReplayError && thrown.reason === 'unused' && thrown.list === 'subsets' && thrown.ordinal === 2191,
+        `p5 skip: the extra entry gave ${thrown === null ? 'no error' : `${thrown.name}: ${thrown.message}`}`);
+    },
+  },
+  {
+    name: 'p5: budget end in any mode returns the best waiting candidate',
+    async run() {
+      const name = 'endany';
+      const S2A = { ...BEGIN_CALL_2, uniqueness: /** @type {const} */ ('any') };
+      const U = await v4Call(name, { ...S2A, extra: { charge: true, igChargeKinds: [] } });
+      assert(U.result.ok === true && U.result.rating.score === 56 && U.result.certificate === null,
+        `any, unbudgeted: ${JSON.stringify(U.result)}`);
+      assert(U.end.locate.budgetStop === undefined, 'any, unbudgeted: the end line has a budgetStop');
+      const L = U.chargeLog;
+      const n = L.length;
+      assert(n > 0, 'any, unbudgeted: no charge');
+      const P = prefix(L);
+      /** @type {any[]} */
+      const runs = [];
+      let h = -1;
+      let emptyAt = -1;
+      for (let i = 0; i < n; i += 1) {
+        /** @type {any[]} */
+        const E = [];
+        const R = await v4Call(name, {
+          ...S2A, extra: { igBudget: P[i], charge: true, igChargeKinds: [], record: (/** @type {any} */ ev) => E.push(ev) },
+        });
+        const W = E.filter((ev) => ev.kind === 'rated' && ev.rating.score >= 55 && ev.rating.score < 70);
+        const j = m(P, P[i]);
+        const text = `any, budget ${P[i]} (index ${i}, ${W.length} waiting)`;
+        same(R.chargeLog, L.slice(0, j), `${text}: the charge log is not the first ${j} charges of the unbudgeted run`);
+        same(R.end.locate.budgetStop, { limit: P[i], spent: P[j], overshoot: P[j] - P[i] }, `${text}: budgetStop ${JSON.stringify(R.end.locate.budgetStop)}`);
+        const selected = E.filter((ev) => ev.kind === 'selected');
+        if (W.length === 0) {
+          same(R.result, { ok: false, reason: 'not-in-band' }, `${text}: result ${JSON.stringify(R.result)}`);
+          assert(selected.length === 0, `${text}: a selected event although no candidate waits`);
+          emptyAt = emptyAt < 0 ? i : emptyAt;
+        } else {
+          assert(R.result.ok === true && R.result.rating.score === 56 && R.result.certificate === null, `${text}: result ${JSON.stringify(R.result)}`);
+          assert(selected.length === 1 && E[E.length - 1] === selected[0], `${text}: ${selected.length} selected events, the last event is ${E[E.length - 1]?.kind}`);
+          assert(W.some((ev) => ev.sequence === selected[0].sequence), `${text}: the selected sequence ${selected[0].sequence} is no waiting candidate`);
+        }
+        if (h < 0 && W.length >= 2) {
+          h = i;
+        }
+        runs.push(R);
+      }
+      assert(emptyAt >= 0 && h >= 0, `any: coverage: first index with no waiting candidate ${emptyAt}, first with two ${h} (n ${n})`);
+      const A = await v4Call(name, { ...S2A, extra: { igBudget: P[h] } });
+      const Bm = await v4Call(name, { ...S2A, extra: { igBudget: P[h], charge: true, igChargeKinds: [] } });
+      same(A.result, runs[h].result, `any, no observer: ${JSON.stringify(A.result)}`);
+      same(Bm.result, runs[h].result, `any, charge only: ${JSON.stringify(Bm.result)}`);
+      same(Bm.chargeLog, L.slice(0, m(P, P[h])), 'any, charge only: the charge log is not the units before the stop');
+      process.stdout.write(`NOTE p5 any: ${n} operations, ${n} budgets; the first with no waiting candidate is index ${emptyAt}, the first with two is index ${h}\n`);
     },
   },
 ];

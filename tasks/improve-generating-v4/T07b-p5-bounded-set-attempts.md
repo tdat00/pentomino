@@ -252,13 +252,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 13:01:32 +07:00 (dispatch, base `e2745bd`) to 13:50:36 +07:00 (acceptance): 49 min 4 s; the developer's own times 13:01:57-13:24:02 and, after the ruling, 13:42:28-13:48:15 |
+| Waiting for rulings | about 18 min (13:24:02 report to 13:42 relay of the ruling) |
+| Agent id, model | `6b6fa586-8b67-42b8-ae30-d2cb4fb3c61e`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 114 calls; 23,474,492 input, 116,477 output, 22,856,796 cache-read |
+| AI credits | 499.46 |
+| Questions and rulings | Q1 (non-blocking, default taken): the replay case's specified input (`DOWN`, `any`) cannot leave skips behind a stop; the `require` input with `p5-skip-g` accepted. The named item "under `any` a budget-stopped call returns no puzzle" was ruled a mistake in T07a's text (plan P5: "ends with its best result"; `chooseBest` does no new work in `any` mode): fix round with step 1b, a new case, `igSetBound` inputs (g) and (h), README text (T07b-B02, T07b-T06); N-V4-16 routes the untested `p5-1` glue to stage 2; pack amendment `7c3d851` |
+| Fix rounds | 1 (step 1b, the any-mode budget-end case, two rule inputs, the README) |
+| Gates re-run by the orchestrator | `--v4` through the lock helper (`V4-T07b-verify`): 27 passed, 0 failed, `IG … exit=0 seconds=26.825` (outcomes equal at widths 1, 2, 4 and 8; the any-mode case 48 operations and 48 budgets); `--items`: 44 passed; `--frozen`: 10 passed; `check-edits`: 26 `ok` (`v4-p5` 60, `v4-p5-w8-test` 61, `v4-link-w8-test` 58), no error; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; firewall `check` (V4-T07b): 289 production files unchanged; `npm run check`: OK. The developer's mutation check: the old `bestFinished()` rule fails the new case at budget index 3. No machine time counted (round 2,724 s) |
+| Commit | this task's commit, `improve-generating T07b: P5 in the prototype: bounded set attempts, the arm v4-p5, pool invariance` |
+| Issues and named items | N-V4-16 (the `p5-1` glue and the worker's pass-through of `reason` first run end to end in stage 2). The `v4`-family tree ids moved (v4 `5dcbd71e…` after this task) |
