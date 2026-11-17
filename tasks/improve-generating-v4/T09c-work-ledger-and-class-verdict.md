@@ -100,7 +100,9 @@ on T09b's statistics.
      7. Closure: a call with two `end` lines: `duplicate end <call>`; a call without `end` is closed only by a
         `worker-end` line (`ev` exactly `'worker-end'`) whose `threadId` equals the call id's second field from the
         end, whose `pid` equals its third field from the end and whose `at` is at least the `start` line's `at`;
-        else `open call <call>`. `ended` and `terminated` count the two kinds of closed calls.
+        else `open call <call>`. `ended` and `terminated` count the two kinds of closed calls. A worker that died
+        before its termination was requested has `threadId` -1 in its `worker-end` line (Node's value once the
+        thread is gone, T06b's report): it matches no call, so its calls stay open (incomplete, never zero work).
      8. Reconciliation of an ended call: the sum of its `p` lines' `tuple[4] + tuple[5]` equals `end.work`, their
         number equals `end.profiles`, and the sum of its `count` units equals `end.locate.countWork` (a finite number
         from 0); else `reconcile <call>: <field> <sum> != <end value>`. With no `count` line the sum is an explicit 0.
@@ -174,7 +176,7 @@ helper builds rows; `synthClass(spec)` builds a `classVerdict` input over `spec.
 | `ledger: an ended error with an open primitive` | `S('r:1:6:1', 'batch', '2/2', 10)`, `C`, `B(.., 'rate', 100)`, `E(.., 0, 0, 0, 'error')`, link `[]` | `complete` false; `unfinished primitive r:1:6:1` |
 | `ledger: a work-cap rating is quantified` | `S('r:1:7:1', 'batch', '3/0', 10)`, `C`, `B(.., 'rate', 1000)`, `{ t: 'p', call: 'r:1:7:1', i: 0, tuple: ['locate', 6, 'capped', null, 760, 0] }`, `E(.., 760, 1, 0)`, link `[{ t: 'link', ev: 'complete', slot: 3, attempt: 0, ok: true, outcome: 'not-in-band' }]` | `complete` true; `lo` 760; `hi` 760 |
 | `ledger: an exceeded bound and an invalid bound` | the case-6 call with its first `B` bound 50 (the `P` reports 70); then the case-6 call with its second `B` bound `-1` | first: `bound exceeded r:1:3:1 0`; second: `invalid bound r:1:3:1`; both incomplete |
-| `ledger: a termination request is not an end` | the case-5 call with link `[W('worker-end-request', 3, 12)]`; then `[W('worker-end', 3, 5)]` (before the start); then `[W('worker-end-request', 3, 12), W('worker-end', 3, 20)]` | first and second: `open call r:1:3:1`; third: closed, as in case 5 |
+| `ledger: a termination request is not an end` | the case-5 call with link `[W('worker-end-request', 3, 12)]`; then `[W('worker-end', 3, 5)]` (before the start); then `[W('worker-end-request', 3, 12), W('worker-end', 3, 20)]`; then `[W('worker-end', -1, 20)]` (Node's `threadId` of a worker that died before its termination was requested, T06b) | first, second and fourth: `open call r:1:3:1`; third: closed, as in case 5 |
 | `ledger: reconciliation and values` | the case-4 call with `E(.., 150, 2, 0)`; then with an added `B` and `N(.., -1)` | first: `reconcile r:1:2:1: work 160 != 150`; second: the problems include `invalid work r:1:2:1`; both incomplete |
 | `ledger: completion tasks match by key` | ended completion calls (each with `C` and `E(.., 0, 0, 0)`) with `attempt` `'c/k1'` and `'c/k3'`; link `completion-complete` for `key` `'c/k1'` and `'c/k2'` (outcome `not-in-band`), and `complete` slot 2 attempt 0 outcome `layout` | `complete` false; the only problem is `unmatched completion task c/k2` (two returned tasks and two ended calls: equal counts do not match) |
 | `ledger: an unowned line and no linkage` | a `P` line of call `r:1:9:9` without `start`; then a complete call with `linkLines` `null` | `unowned p line r:1:9:9`; `no linkage` |
