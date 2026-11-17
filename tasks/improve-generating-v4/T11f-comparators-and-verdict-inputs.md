@@ -118,7 +118,7 @@ can never pass, and the final manifest, which declares every expected P5 pair an
    refuses (stderr `manifest: the freeze file's classes do not match the comparator cells of the collection (<parts>)`,
    exit 1, nothing written) with `<parts>` joined by `; `, in this order and only when not empty: `not in a class
    <cells>` (comparator cells of no class, in the record's order), `in more than one class <cells>` (in the record's
-   order), `not measured <cells>` (class cells that are no comparator cell, sorted), each list joined by `, `. T11e's
+   order; a cell listed twice in one class counts too, as T09e refuses such a manifest), `not measured <cells>` (class cells that are no comparator cell, sorted), each list joined by `, `. T11e's
    cases write a freeze file whose classes name the comparator cells of the activation each case makes; the README's
    activation section gains the rule.
 
