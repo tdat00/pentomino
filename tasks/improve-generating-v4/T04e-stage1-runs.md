@@ -32,9 +32,11 @@ stage-1 receipt that the manifest (T11g) prices on.
   `stage1.json|md` and `inputs/`, the captured tree and harness metadata of T04d's summary); raw files under
   `tests/artifacts/ig-proto/frozen/` (git-ignored; the namespaces `IGP-02`, `V4-T04`, `V4-T04v4`, `V4-T04f` and
   `V4-T04i` become historical records that no later run reuses, check-list §3.1).
-- Change: nothing else.
-- Do not change: any file outside the two evidence folders. Guards: `git status --short` lists only files under
-  `docs/improve-generating/evidence/frozen/IGP-02/` and `docs/improve-generating/evidence/frozen/V4-T04/`;
+- Change: nothing else, except `tools/ig-proto/plans/V4-T04.replay.json` in the second replay observation (section
+  "Ruling of 2026-11-17"); no harness file (`tools/ig-proto/lib/`, the top-level `.mjs` and `.ps1` files, `data/`).
+- Do not change: any file outside the two evidence folders and that manifest. Guards: `git status --short` lists only
+  files under `docs/improve-generating/evidence/frozen/IGP-02/` and `docs/improve-generating/evidence/frozen/V4-T04/`
+  and `tools/ig-proto/plans/V4-T04.replay.json`;
   `node tools\ig-proto\firewall.mjs check --task V4-T04 --label frozen` (the plan's last step) prints `files
   unchanged`.
 
@@ -102,6 +104,64 @@ Diagnosis gates (each is a stop point when it fails or is incomplete):
 - Send `QUESTION:` to the pack author (through the orchestrator) when: the task looks wrong or contradicts the code;
   an ambiguity changes behaviour or a contract; a gate fails for a reason not covered here; a change is needed outside
   the scope; a recorded decision would change. Never decide such a point yourself.
+
+## Ruling of 2026-11-17: the second replay observation
+
+The first run stopped with `Stage 1: INCOMPLETE (replay: no record obtained for 26x26-nightmare (v4) (no-set))`; every
+other block passed. The pack author's diagnosis (read-only): the `26x26-nightmare` generation item ran its set stage
+with `uniqueness: 'require'` on one pool worker; attempt 0 (K 31) ended `not-in-band` after 63.7 s (101 ratings,
+13.9 G units: 16 central candidates at 4 or 5 clues, every unique repair to 7 to 9 clues refused by AR1 (24) or
+below the band (9)); attempt 1 was still in its beam when the client's request deadline (`TIME.dispatchStopMs`,
+115,000 ms) ended the set. Each rating took about 0.6 s, as 26x26 ratings do; the frozen search shows the same
+failure mode under `require` (the `14x14-master` item's attempt 0, `not-in-band` after 97 ratings). It is a
+measurement of that configuration, not a defect of the prototype or of the harness. The provisional 26x26 figures
+and the identity runs use `uniqueness: 'any'` with four workers (`arm.mjs`), so they do not compare; 26x26 is never
+generated with `require` in the product (the Generator's 484-cell limit, DR-O16) nor in the frozen round (`any`).
+The stage-1 replay therefore uses `14x14-nightmare`, a headline validation cell, as its third case. The first
+observation is kept, unchanged, as an archive; the replay step runs again with the same harness, so the producer
+binding of T04d holds. No budget is raised.
+
+4. Before any change, at the root: `git status --short -- tools/ig-proto` prints nothing, and
+
+   ```powershell
+   node --input-type=module -e "import { readFileSync } from 'node:fs'; import { harnessInfo } from './tools/ig-proto/lib/records.mjs'; const s = JSON.parse(readFileSync('tests/artifacts/ig-proto/frozen/V4-T04/parity/state.json', 'utf8')); console.log(harnessInfo().harnessHash === s.identity.harnessHash ? 'same harness' : 'HARNESS CHANGED');"
+   ```
+
+   prints `same harness`. Anything else: stop with `QUESTION:`.
+5. Archive the first replay observation and receipt (moves; no content changes):
+
+   ```powershell
+   Move-Item tests\artifacts\ig-proto\frozen\V4-T04\replay tests\artifacts\ig-proto\frozen\V4-T04\replay-a1
+   Move-Item docs\improve-generating\evidence\frozen\V4-T04\stage1.json docs\improve-generating\evidence\frozen\V4-T04\stage1-a1.json
+   Move-Item docs\improve-generating\evidence\frozen\V4-T04\stage1.md docs\improve-generating\evidence\frozen\V4-T04\stage1-a1.md
+   Copy-Item tools\ig-proto\plans\V4-T04.replay.json docs\improve-generating\evidence\frozen\V4-T04\replay-a1.manifest.json
+   ```
+
+   `stage1-a1.json` names the paths of the first observation: its raw files are now under `.../V4-T04/replay-a1/`
+   (`invocations.jsonl` stays where it is, so the round's counted time keeps them).
+6. In `tools/ig-proto/plans/V4-T04.replay.json`, replace the two `26x26-nightmare` rows by these two (every other
+   line unchanged, so the manifest still expands to 9 items):
+
+   ```json
+   { "kind": "v4-generate", "variant": "v4", "caseId": "14x14-nightmare", "seedText": "ig-v4/replay/14x14-nightmare", "quantity": 2 },
+   { "kind": "v4-replay", "variant": "v4", "caseId": "14x14-nightmare", "seedText": "ig-v4/replay/14x14-nightmare", "puzzles": 2 }
+   ```
+
+7. Dry run, then the run, in one PowerShell session (`$lock` as in step 2; `<approved>` stays 92):
+
+   ```powershell
+   pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\V4-T04.json -Label frozen -SourceLabel 'frozen 3fc65f4' -ApprovedRoundMinutes 92 -Only replay,summary,firewall-check -DryRun
+   pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\V4-T04.json -Label frozen -SourceLabel 'frozen 3fc65f4' -LockHelper $lock -ApprovedRoundMinutes 92 -Only replay,summary,firewall-check
+   if ($LASTEXITCODE -ne 0) { throw ('STOP: V4-T04 replay run-task exited ' + $LASTEXITCODE) }
+   ```
+
+   The dry run must show `replay: go`; the run takes about two invocations (about 250 s counted, the task's cap
+   1,875 s against 1,131 s counted so far).
+8. Report as step 3, plus: the `packSha256` of the `14x14-master` and `12x12-nightmare` generation items, which must
+   equal the first observation's (`c155ed73...` and `740ea23e...`, same seeds, one worker, fixed `createdAt`); a
+   different hash is a stop with `QUESTION:` (generation would not be deterministic).
+9. Stop points of the ruling: the `14x14-nightmare` generation ends `no-set` or `no-pack`, or any gate of the table
+   fails or is incomplete: stop and report; never a third observation without a ruling.
 
 ## Acceptance criteria
 

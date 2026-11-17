@@ -120,7 +120,10 @@ rules; T04d writes the receipt around them.
      `v4-w760`, `v4-w095` and `v4-w380` on `12x12-nightmare`. 23 items.
    - `plans/V4-T04.replay.json` (`task` `V4-T04`, `step` `replay`; `seedText` `ig-v4/replay/<caseId>`): for each of
      `14x14-master`, `12x12-nightmare`, `26x26-nightmare` in that order, a `v4-generate` row of `v4` with `quantity: 2`,
-     then a `v4-replay` row with `puzzles: 2`. 9 items.
+     then a `v4-replay` row with `puzzles: 2`. 9 items. Ruling of 2026-11-17 (T04e's first run): the third case is
+     `14x14-nightmare` (seed `ig-v4/replay/14x14-nightmare`); `26x26-nightmare` under `require` with one pool worker
+     found no set within the request's 115-s deadline, and 26x26 is generated only with `any` (the frozen round, the
+     bench) and never by the Generator (484 cells, DR-O16). The first observation is archived (T04e).
 5. **Self-test** cases appended to `--items` (Tests table).
 6. **README.md**: a section "## Stage 1 checks (task pack v4)": the manifests, `v4-check run`, the routes and the
    verdict rules of step 3.
