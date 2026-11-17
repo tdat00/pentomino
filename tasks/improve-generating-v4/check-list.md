@@ -46,7 +46,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 - [x] T09c Admission statistics: the work ledger of a request, its bounds and the class verdict (depends on T09b)
 - [x] T09d Global verdicts: cell gates, Master identity, Hell 1, P5's stops and phase 0 (depends on T09c)
 - [x] T09e The verdict tool: bound prerequisites, the class-selection receipt and the verdict record (depends on T09d)
-- [ ] T10a Kernel probe: R4 visit and mutation counters, with the complete deduction compared (depends on T09e)
+- [x] T10a Kernel probe: R4 visit and mutation counters, with the complete deduction compared (depends on T09e)
 - [ ] T10b Kernel probe: the `fewestColumn` attribution under a reduced-inlining profile (depends on T10a)
 - [ ] T10c Pool probe: one rating's time at 1, 2, 4 and 8 concurrent workers (depends on T10b)
 - [ ] T11a Frozen-round matrix: the enumerated requests of stages 2 to 5 and their collections (depends on T10c)
@@ -503,8 +503,8 @@ directory once both `$env:TEMP\dv3-sudoku.lock` and `$env:TEMP\dv3-timing.lock` 
 | T09b | 2026-11-17 14:36 | 2026-11-17 14:51 | 15 min | 190.60 | `296d15e` |
 | T09c | 2026-11-17 14:52 | 2026-11-17 15:15 | 23 min | 349.22 | `8207d30` |
 | T09d | 2026-11-17 15:15 | 2026-11-17 15:43 | 28 min | 436.97 | `3fcf97d` |
-| T09e | 2026-11-17 15:44 | 2026-11-17 16:20 | 36 min | 843.46 | this task's commit |
-| T10a | | | | | |
+| T09e | 2026-11-17 15:44 | 2026-11-17 16:20 | 36 min | 843.46 | `61fa9ee` |
+| T10a | 2026-11-17 16:21 | 2026-11-17 17:52 | 1 h 31 min | 691.24 (409.16 for the failed session + 282.08) | this task's commit |
 | T10b | | | | | |
 | T10c | | | | | |
 | T11a | | | | | |

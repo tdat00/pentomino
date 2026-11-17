@@ -180,13 +180,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 16:21:40 +07:00 (dispatch, base `61fa9ee`) to 17:52:46 +07:00 (acceptance): 1 h 31 min 6 s. The first developer worked 16:21-about 16:50 and died on a network timeout (ETIMEDOUT) before step 7; the second developer took over 17:11:48-17:46:46 (21 min lost between the failure and the re-dispatch) |
+| Waiting for rulings | about 4 min (SA-Opus's review, 17:48-17:51; no QUESTION) |
+| Agent id, model | first `f7770ee9-254a-4253-9c3a-0ecf7c30b55d` (failed), second `12209a02-f572-4f98-a9be-1763a7aefd06`, both claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 196 calls (106 + 90); 39,571,174 input, 162,166 output, 39,015,396 cache-read |
+| AI credits | 691.24 (409.16 for the failed session + 282.08) |
+| Questions and rulings | none from the developers. SA-Opus ruled "accept T10a": the second developer's fix of `report` (it takes `--cases`, else the default, else the cases the item log names, accepted only if the items reproduce the state's `manifestHash`) is right because T11c's `V4-S2K` runs `report` without `--cases` over two blocks; T10a step 3 and T10b step 2 now say so (pack amendment `fc6d69c`). `error`, `no-set` and `no-subset` items read `DIFFER`; both trees throwing is `same: true`, listed apart. The counted 69.0 s follows check-list §1 (24.0 s node + 45 s quiet period), not IG-P-Q37. The first developer's scratch run is recorded in the register |
+| Fix rounds | 0 (one re-dispatch after the network failure) |
+| Gates re-run by the orchestrator | `--v4` through the lock helper (`V4-T10a verify`): 31 passed, 0 failed, `IG … exit=0 seconds=43.296` (`kernel: r4c counters and the complete deduction`, 18 corpus items compared); `--items`: 108 passed (`kernel:` cases 106-108); `--frozen`: 10 passed; `check-edits --all`: 34 `ok` (`ok r4c: 20 edits match`), no other line; firewall `check` (V4-T10a): 289 production files unchanged; `git status --short -- core generator tests tools/bench tools/ig-proto/variants/files tasks`: empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. Step 7 (the developer's run, `-ApprovedRoundMinutes 92`): dry run `go`; `counters: equal`, 12 of 12 items completed, all `same: true`; wall 1,415.9 s, node 24.0 s, lock wait 1,391.9 s, counted 69.0 s; round 2,723.729 s before, 2,792.764 s after, of 5,520 s |
+| Commit | this task's commit, `improve-generating T10a: Kernel probe: R4 visit and mutation counters, with the complete deduction compared` |
+| Issues and named items | The first developer ran a scratch `counters` run outside the plan (`V4-T10a-scratch`, 10x10-nightmare, 6 items, 10.4 s, started 16:49:12); its data is deleted. No log shows how it was launched; its start, 46 s after the locked `--v4` self-test ended (state written 16:48:26), matches the lock helper's 45 s quiet period, so it most likely ran through `Invoke-IgNode`. Measured: 14x14-nightmare dirty/pieces 0.8542, countChanged/pieces 0.7504; 26x26-nightmare 0.9411 and 0.8706. r4c tree `f23f8ade…` |

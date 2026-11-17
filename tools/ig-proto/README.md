@@ -57,7 +57,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `lib/fake-pool.mjs` | the scripted worker pool of `tests/generation-client.test.js` ported with the tree's `createPool` as a parameter: `settle`, `createFakeClock`, `FakeWorker`, `harness`, `track` (V4-T07b; see "P5 bounded set attempts (V4-T07b)") |
 | `lib/sets.mjs` | catalogue boards and carve-only sets; `offeredInSource` comes from the tree's own `levels.js` (V4-T01b) |
 | `lib/calls.mjs` | recorded calls, screened and canonical ratings, window subsets |
-| `lib/lanes.mjs`, `lib/lane-worker.mjs` | worker-thread lanes with admission and a supervisor; the lane worker also runs the three stage-1 item kinds (V4-T04b) |
+| `lib/lanes.mjs`, `lib/lane-worker.mjs` | worker-thread lanes with admission and a supervisor; the lane worker also runs the three stage-1 item kinds (V4-T04b) and the kernel-probe kind `v4-kernel` (V4-T10a) |
 | `lib/items.mjs` | the runner of bounded, identity-checked measurement items and the item-log line helpers (V4-T04a; see "Bounded measurement items") |
 | `lib/ledger.mjs` | the work ledger of an item from its journal lines, and `pairPrimitives` (V4-T04b; see "Stage-1 item kinds"); pure |
 | `lib/packs.mjs` | the pack file of a generation item: `preparePackPath` and `writePackFile` (V4-T04b) |
@@ -69,6 +69,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `variants/v4-p5.json`, `variants/v4-p5-w8-test.json`, `variants/v4-link-w8-test.json` | the P5 pilot arm `v4-p5` (the call budget and the bounded set attempts) and the two test-only width-8 trees (V4-T07b); see "P5 bounded set attempts (V4-T07b)" |
 | `variants/fr-base.json`, `fr-screen.json`, `fr-none.json`, `fr-close.json`, `fr-c4.json`, `fr-ps.json`, `fr-p5.json` | the seven frozen-round arms of stage 2 (V4-T08); see "Frozen-round arms (V4-T08)" |
 | `verdicts.mjs`, `data/verdict-manifest.schema.md`, `data/verdict-manifest.example.json` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules), the work ledger of a request, the work rule and the class verdict (V4-T09c), the global verdicts (V4-T09d: the cell gates on the shipped arm, Master identity, the Hell 1 report, P5's stops, the post-hoc projection, the population and phase 0's verdict), and the verdict tool (V4-T09e: the bound prerequisites, the class-selection receipt, the work report and the records it writes) with the manifest those statistics read and its example; the statistics are pure, the tool reads the records the manifest names; see "Admission statistics (V4-T09a)" |
+| `kernel-probe.mjs`, `variants/r4c.json`, `plans/V4-T10a.json` | the kernel probe (V4-T10a): R4 visit and mutation counters in the `r4c` tree, the `v4-kernel` items that compare its complete deduction with the `instr` tree's, the `counters` (locked) and `report` (unlocked) commands and the plan of the run; see "Kernel probe (V4-T10a)" |
 
 ## Trees (variants)
 
@@ -93,6 +94,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `fr-screen`, `fr-none` | `fr-base` | the screen in every class (`tab-screen`) and no screen in any class (`tab-none`) (V4-T08) |
 | `fr-close`, `fr-c4` | `fr-base` | bracket-close re-rating (`rerate: 'close'`, D-IG7) and the (c4) probe (`c4: true`) (V4-T08) |
 | `fr-ps`, `fr-p5` | `fr-base` and `v4-ps`; `fr-base` and `v4-p5` | the per-set prior and P5's budget and bounded set attempts on the `fr-base` table (V4-T08) |
+| `r4c` | `instr` | test-side R4 visit and mutation counters in the record of `igTake()` (V4-T10a; nine edits `r4c-1` to `r4c-9`; see "Kernel probe (V4-T10a)"): the deduction result is unchanged |
 
 Every variant except `base` gets `core/engine/ig-params.js` (`IG`, the merged params) and lists its added engine files
 in the copy's `SOURCE_FILES` (`meta-2`), so that the copy's own source digest tells variants apart. `treeId` is the
@@ -136,6 +138,8 @@ node tools\ig-proto\compare-r2.mjs --task IGP-01 --label provisional            
 node tools\ig-proto\budgets.mjs --arms IGP-01/after,IGP-03/w095 --label provisional [--task IGP-03]                # unlocked
 node tools\ig-proto\summary.mjs --label provisional [--root <evidence folder>]                                    # unlocked, writes summary.json|md
 node tools\ig-proto\verdicts.mjs --manifest <verdict manifest> --label frozen --source-label <label>              # unlocked (V4-T09e), writes verdicts.json|md and, for a selection, class-selection.json
+node tools\ig-proto\kernel-probe.mjs counters --task T --label frozen --source-label <label> [--cases <ids>]      # locked (V4-T10a), run by its plan
+node tools\ig-proto\kernel-probe.mjs report --task T --label frozen --source-label <label> [--cases <ids>]        # unlocked (V4-T10a), writes kernel.json|md
 ```
 
 `--only` (a subset of the self-test's cases), `limits` and `testKinds` of `createLanes`, and `setHorizon` are for the
@@ -884,9 +888,9 @@ described in "Stage-1 item kinds" below.
 - **A refusal exits 3.** The step prints `items: STOP: <reason>` on stderr and writes nothing, so the lock helper throws
   and the plan stops. A refused or interrupted step needs a ruling, never a rerun. A malformed log line
   (`items: malformed log line <n>`, a partly written last line included) is thrown as an error, which stops the step too.
-- **Reserve and cut.** The three item kinds are admitted by a reserve and cut by the parent at `H - 15` (with `e` the
-  seconds since the node process started and `H` the invocation's horizon); the reserves are
-  `DEFAULT_LIMITS.itemReserveS` of `lib/lanes.mjs`, which `runItems` also checks before it starts the lanes of a group.
+- **Reserve and cut.** The item kinds (the three of stage 1 and `v4-kernel`) are admitted by a reserve and cut by the
+  parent at `H - 15` (with `e` the seconds since the node process started and `H` the invocation's horizon); the reserves
+  are `DEFAULT_LIMITS.itemReserveS` of `lib/lanes.mjs`, which `runItems` also checks before it starts the lanes of a group.
   The existing kinds keep their rules (`rate`: `e + 30 <= H`, a defect after 30 s; `call`: `e + 120 <= H - 15`, cut at
   `H - 15`). After a group in which a job was not admitted or an item ended `censored`, the invocation starts no
   further group; the next invocation continues with the items that have no `item-end`.
@@ -896,6 +900,7 @@ described in "Stage-1 item kinds" below.
   | `v4-select` | `e + 120 <= H - 15` | at `H - 15`, `censored` | 2 |
   | `v4-generate` | `e + 245 <= H - 15` | at `H - 15`, `censored` | 1 (its pool has 1 worker) |
   | `v4-replay` | `e + 120 <= H - 15` | at `H - 15`, `censored` | 2 |
+  | `v4-kernel` (V4-T10a) | `e + 90 <= H - 15` | at `H - 15`, `censored` | 1 |
 
 - **Self-test.** `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04a`
   runs forty-one cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay),
@@ -1731,3 +1736,64 @@ never a pass; an invalid puzzle or pack is a correctness failure. The module loa
   declares` (changed, undeclared, stale and missing runs files, a named record that differs, an unknown arm) and `each cell
   is judged on the arm its class ships` (a dead end in the screen arm; a control, a Master cell, P5's pairs, Hell 1 and the
   projection through the declared arms).
+
+## Kernel probe (V4-T10a)
+
+Plan P7's C1 (an incremental R4) must start from measured R4 behaviour. `kernel-probe.mjs` measures it on a test-side
+tree and proves on every probed input that measuring changes nothing in the complete deduction. `deduce.js` does not
+change in production.
+
+- **The `r4c` tree** (`variants/r4c.json`, extends `instr`; nine edits `r4c-1` to `r4c-9` of `core/engine/deduce.js`, no
+  file and no parameter). The record of `igTake()` gains `r4`, nine integers of one measurement: `calls` (R4
+  invocations), `pieces` (piece visits: every piece not yet covered at an invocation, whether or not it kills),
+  `staticRows` (the sum of the visited pieces' column lengths), `liveRows` (the sum of their live rows), `dirtyPieces`,
+  `countChanged`, `r4Kills` (rows R4 killed), `kills` (every `kill(r)`, whatever the rule) and `undoEntries` (trail entries
+  undone). The `instr` fields keep their names, so every caller of `instr-1` to `instr-6` works; the `instr` tree's record
+  has no `r4`.
+- **The epoch rule** (RV1-18). A piece is dirty at an R4 visit when its live rows changed since its previous visit in the
+  same measurement; its first visit is dirty. A per-piece epoch (`igEpoch[rowPiece[r]]`) is incremented by every
+  live-row removal (`kill`) and every restoration (the `x >= 0` branch of `undo`), and a visit compares it with the epoch
+  it saw last. The number of live rows is a separate statistic, `countChanged`: a removal and a restoration between two
+  visits leave the number as it was and the piece dirty, which a count alone would miss. So `countChanged <= dirtyPieces <=
+  pieces`. `epochDirty(trace)` (exported) is the rule on a synthetic trace of `['visit', p]`, `['kill', p]` and
+  `['restore', p]` steps (the count of a piece starts at 0) and returns `{ dirty, countChanged }`.
+- **The complete deduction compared** (RV1-19; plan P7: no rating changes). A `v4-kernel` item measures one window subset
+  in the `r4c` tree and in the `instr` tree on the same model input: `firstCarvedSet` of the case in the `r4c` engine,
+  `windowSubsets` with the offsets 1, 2 and 3 and two subsets each (six subsets, index 0 to 5), then in each tree
+  `igTake()`, `buildModel`, `measureDeduction(model, DEDUCE)` in the tree's own main workspace and `igTake()`; a thrown
+  error becomes `{ error, message }`. The two complete `DeductionResult`s, not a public rating, are compared with
+  `isDeepStrictEqual` right after the second returns. The result is `{ outcome: 'ok', g, idx, same, r4, ms }` (`r4` is
+  `null` when the measurement threw), `{ outcome: 'no-set', reason }` when the case does not carve or `{ outcome:
+  'no-subset' }` when the index has no subset.
+- **The kind** `v4-kernel`, payload `{ boardRows, levelId, seedText, subsetIndex, otherRoot }` (`otherRoot` is the `instr`
+  tree's root, loaded in the worker once per root with its own workspace): one lane, reserve 90 s (admitted while `e + 90
+  <= H - 15`, cut at `H - 15`, `censored`). The case list is part of the item manifest and so of the state identity;
+  `--horizon-s` is the execution envelope, so a resume keeps the identity.
+- **Commands.**
+
+  ```
+  node tools\ig-proto\kernel-probe.mjs counters --task <T> --label frozen --source-label "frozen 3fc65f4" [--cases <ids>] [--horizon-s <H>]
+  node tools\ig-proto\kernel-probe.mjs report --task <T> --label frozen --source-label "frozen 3fc65f4" [--cases <ids>]
+  ```
+
+  `counters` (locked) runs the items `counters:r4c:<caseId>:ig-v4/kernel/<caseId>:<i>` (`i` from 0 to 5) with `runItems`
+  (step `counters`: `items.jsonl` and `state.json` under `tests/artifacts/ig-proto/frozen/<T>/counters/`). `--cases` is a
+  comma-separated list of catalogue ids, default `14x14-nightmare,26x26-nightmare` (`parseCases`: an unknown id, an empty
+  entry or a repeated id is refused, exit 1, `kernel-probe: unknown case id <id>`); `report` needs no list for a run of
+  another one: without `--cases` it takes the default list or, when the state's manifest hash is of another list, the
+  cases the item log names (`loggedCases`, in order of first appearance), and refuses a state that is none of these
+  or whose identity or trees are not the experiment's. A historical namespace of check-list 3.1 is refused as `--task`.
+  `report` (unlocked) writes `evidence/frozen/<T>/kernel.json` and `kernel.md` from the item log: the item table, per case
+  the sums of the counters with `dirtyPieces / pieces` and `countChanged / pieces`, and one verdict line:
+  `counters: equal` (every item `completed` with `same: true`), `counters: incomplete (<items>)` (an item is missing or
+  censored: the probe did not finish; this wins over a difference) or `counters: DIFFER (<items>)` (a completed item
+  whose two results differ, an `error` item, or one that measured nothing: `no-set`, `no-subset`). `counterVerdict(ids,
+  lines)` is that function on the item-log lines. The exit is 0 once the record is written, whatever the verdict.
+- **Plan** `plans/V4-T10a.json`: 5 minutes allocated; `counters` is locked (150 s projected, 2 invocations, forecast 240 s
+  with the quiet periods); the trees, the report and the firewall steps are unlocked.
+- **Self-test.** `--items`: `kernel: the epoch rule`, `kernel: case list` (the items, the identity and the reserve of the
+  kind) and `kernel: report verdicts` (the verdict function, the rows and the sums, and the cases of a log, on synthetic
+  lines). `--v4` (locked):
+  `kernel: r4c counters and the complete deduction` (the corpus's first two subsets through both trees, the deep equality
+  over the whole corpus, and the lane worker's item against a direct measurement). T10b adds the `fewestColumn` profile
+  to this section and to the report.

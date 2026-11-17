@@ -294,6 +294,65 @@ async function replayItem(p) {
   };
 }
 
+/** @type {Map<string, Promise<{ other: any, wsOther: any }>>} */
+const otherKits = new Map();
+
+/**
+ * @param {string} root A tree root other than this thread's.
+ * @returns {Promise<{ other: any, wsOther: any }>} That tree's engine and its own main workspace, made once per root.
+ */
+function otherKit(root) {
+  let kit = otherKits.get(root);
+  if (kit === undefined) {
+    kit = (async () => {
+      const other = await loadEngine(root);
+      return { other, wsOther: other.workspace.createWorkspace(other.workspace.MAIN_WORKSPACE_BYTES) };
+    })();
+    otherKits.set(root, kit);
+  }
+  return kit;
+}
+
+/**
+ * A kernel-probe item (V4-T10a): the complete deduction of one window subset of a case's first carved set, in this
+ * thread's tree (`r4c`, with the R4 counters) and in the tree at `otherRoot` (`instr`), on the same model input, and
+ * whether the two `DeductionResult`s are deeply equal. A thrown error is the result (its name and message).
+ * @param {any} p `{ boardRows, levelId, seedText, subsetIndex, otherRoot }`
+ * @returns {Promise<any>}
+ */
+async function kernelItem(p) {
+  const { boardRows, levelId, seedText, subsetIndex, otherRoot } = p;
+  const { other, wsOther } = await otherKit(otherRoot);
+  const carved = firstCarvedSet(engine, { boardRows, levelId, seedText });
+  if (!carved.ok) {
+    return { outcome: 'no-set', reason: carved.reason };
+  }
+  const subsets = windowSubsets(engine, {
+    set: carved.set, seedText, offsets: [1, 2, 3], perCount: 2, startCount: startCountFor(engine, levelId, carved.K),
+  });
+  const subset = subsets[subsetIndex];
+  if (subset === undefined) {
+    return { outcome: 'no-subset' };
+  }
+  const t0 = performance.now();
+  const measure = (/** @type {any} */ t, /** @type {any} */ w) => {
+    t.deduce.igTake();
+    /** @type {any} */
+    let res;
+    try {
+      const model = t.tiling.buildModel(carved.board, carved.set.pieces, subset.clues, w);
+      res = t.deduce.measureDeduction(model, t.policy.DEDUCE);
+    } catch (e) {
+      res = { error: e instanceof Error ? e.name : typeof e, message: e instanceof Error ? e.message : String(e) };
+    }
+    return { res, ins: t.deduce.igTake() };
+  };
+  const mine = measure(engine, ws);
+  const theirs = measure(other, wsOther);
+  const same = isDeepStrictEqual(mine.res, theirs.res);
+  return { outcome: 'ok', g: subset.g, idx: subset.idx, same, r4: mine.ins?.r4 ?? null, ms: round3(performance.now() - t0) };
+}
+
 /**
  * @param {string} kind
  * @param {any} p
@@ -336,6 +395,9 @@ async function handle(kind, p, post, postSet) {
   }
   if (kind === 'v4-replay') {
     return replayItem(p);
+  }
+  if (kind === 'v4-kernel') {
+    return kernelItem(p);
   }
   if (workerData.testKinds === true && kind === 'test-ok') {
     return { outcome: 'ok', echo: p.echo };

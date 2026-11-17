@@ -5,7 +5,7 @@
 //   - a `call` job starts only when e + 120 s <= H - 15 s; it is cut at H - 15 s, recorded `censored` with every
 //     profile it had streamed, and its lane starts no further job in this invocation;
 //   - a v4 item kind starts only when e + reserve(kind) <= H - 15 s and is cut at H - 15 s, recorded `censored`
-//     (reserves: v4-select 120 s, v4-generate 245 s, v4-replay 120 s; lib/items.mjs, V4-T04a).
+//     (reserves: v4-select 120 s, v4-generate 245 s, v4-replay 120 s, v4-kernel 90 s; lib/items.mjs, V4-T04a, V4-T10a).
 import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
 
@@ -19,7 +19,7 @@ export const DEFAULT_LIMITS = Object.freeze({
   rateCutS: 30,
   callMinRemainS: 120,
   callCutMarginS: 15,
-  itemReserveS: /** @type {Record<string, number>} */ (Object.freeze({ 'v4-select': 120, 'v4-generate': 245, 'v4-replay': 120 })),
+  itemReserveS: /** @type {Record<string, number>} */ (Object.freeze({ 'v4-select': 120, 'v4-generate': 245, 'v4-replay': 120, 'v4-kernel': 90 })),
 });
 
 /**

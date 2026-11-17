@@ -31,7 +31,7 @@ import { rateAttempt, recordedCall, screenRating, startCountFor, windowSubsets }
 import { loadEngine } from './lib/engine.mjs';
 import { harness, settle, track } from './lib/fake-pool.mjs';
 import { identityHash, itemIdentity, logEnd, logSpawn, logStart, manifestHash, readItemLog, resumePlan, runItems } from './lib/items.mjs';
-import { createLanes } from './lib/lanes.mjs';
+import { admits, createLanes, DEFAULT_LIMITS } from './lib/lanes.mjs';
 import { itemLedger, pairPrimitives } from './lib/ledger.mjs';
 import { preparePackPath, writePackFile } from './lib/packs.mjs';
 import { artifactDir, elapsedS, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, parseArgs, rel, ROOT, SOURCE_KIND, sourceRoot } from './lib/paths.mjs';
@@ -40,6 +40,7 @@ import { harnessInfo, sha256, sha256File, sha256Text, sourceDigest, sourceVersio
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
 import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
 import { pairResult } from './identity.mjs';
+import { caseSums, counterVerdict, epochDirty, kernelItems, kernelRows, loggedCases, parseCases, R4_FIELDS, SUBSETS_PER_CASE } from './kernel-probe.mjs';
 import { linkSummary, timelineProblem } from './linkage.mjs';
 import { buildInventory, readFamilies } from './pm1-inventory.mjs';
 import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
@@ -3897,6 +3898,93 @@ const itemCases = [
       assert(Object.keys(b.population).join() === 'sa,na,td,un' && b.population.sa.c.completion.reachedTen === 20, 'the population per arm and cell');
     },
   },
+  {
+    name: 'kernel: the epoch rule',
+    async run() {
+      same(epochDirty([['visit', 0], ['kill', 0], ['restore', 0], ['visit', 0]]), { dirty: 2, countChanged: 1 },
+        'a removal and a restoration between two visits: the second visit is dirty and its count is unchanged');
+      same(epochDirty([['visit', 0], ['visit', 0]]), { dirty: 1, countChanged: 1 }, 'nothing changed between two visits');
+      same(epochDirty([['visit', 0], ['kill', 0], ['visit', 0]]), { dirty: 2, countChanged: 2 }, 'a removal between two visits');
+      same(epochDirty([['visit', 0], ['kill', 0], ['kill', 0], ['restore', 0], ['restore', 0], ['visit', 0]]), { dirty: 2, countChanged: 1 },
+        'two removals and two restorations: the count is back, the epoch is not');
+      same(epochDirty([['visit', 0], ['visit', 1], ['kill', 1], ['visit', 0], ['visit', 1]]), { dirty: 3, countChanged: 3 },
+        'a change of piece 1 leaves piece 0 clean');
+      same(epochDirty([]), { dirty: 0, countChanged: 0 }, 'an empty trace');
+      assert(thrownBy(() => epochDirty(/** @type {any} */ ([['jump', 0]]))).includes('unknown trace step'), 'an unknown trace step');
+    },
+  },
+  {
+    name: 'kernel: case list',
+    async run() {
+      same(parseCases(undefined), ['14x14-nightmare', '26x26-nightmare'], 'the default cases');
+      same(parseCases('12x12-nightmare,26x26-nightmare'), ['12x12-nightmare', '26x26-nightmare'], 'two given cases');
+      same(parseCases('26x26-hell-1,10x10-nightmare'), ['26x26-hell-1', '10x10-nightmare'], 'the order given is kept');
+      assert(thrownBy(() => parseCases('nope')) === 'unknown case id nope', `an unknown id: ${thrownBy(() => parseCases('nope'))}`);
+      assert(thrownBy(() => parseCases('constructor')) === 'unknown case id constructor', 'a name of Object.prototype is no case');
+      for (const text of ['12x12-nightmare,', '', ',12x12-nightmare', '12x12-nightmare,,26x26-nightmare']) {
+        assert(thrownBy(() => parseCases(text)).includes('empty entry'), `an empty entry in "${text}": ${thrownBy(() => parseCases(text))}`);
+      }
+      assert(thrownBy(() => parseCases('12x12-nightmare,12x12-nightmare')) === 'repeated case id 12x12-nightmare', 'a repeated id');
+      parseCases(undefined).push('x');
+      same(parseCases(undefined), ['14x14-nightmare', '26x26-nightmare'], 'the default list is not shared');
+      // The items: six per case, one lane, the experiment only in the payload, the case list in the identity.
+      const two = ['12x12-nightmare', '10x10-nightmare'];
+      const items = await kernelItems(two);
+      same(items.map((i) => i.id), two.flatMap((c) => [0, 1, 2, 3, 4, 5].map((i) => `counters:r4c:${c}:ig-v4/kernel/${c}:${i}`)), 'the item ids');
+      assert(items.every((i) => i.kind === 'v4-kernel' && i.variant === 'r4c'), 'the kind and the variant');
+      same(Object.keys(items[0].payload), ['boardRows', 'levelId', 'seedText', 'subsetIndex', 'otherRoot'], 'the payload fields');
+      same(items.map((i) => i.payload.subsetIndex), [0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5], 'the subset indexes');
+      const otherRoot = (await ensureTree('instr')).root;
+      assert(items.every((i) => i.payload.otherRoot === otherRoot), 'the other tree is not instr');
+      assert(manifestHash(items) === manifestHash(await kernelItems(two)), 'the item list depends on something that is not the experiment');
+      assert(manifestHash(items) !== manifestHash(await kernelItems([...two].reverse())) && manifestHash(items) !== manifestHash(await kernelItems(['12x12-nightmare'])),
+        'the case list is not part of the manifest hash');
+      same(Object.keys((await itemIdentity(items)).treeIds), ['r4c'], 'the identity names the variant of the items');
+      // The kind has its own reserve: admitted while e + 90 <= H - 15.
+      assert(admits('v4-kernel', 0, 105, DEFAULT_LIMITS) && !admits('v4-kernel', 0.5, 105, DEFAULT_LIMITS), 'the reserve of the v4-kernel kind');
+    },
+  },
+  {
+    name: 'kernel: report verdicts',
+    async run() {
+      const items = await kernelItems(['12x12-nightmare']);
+      const ids = items.map((i) => i.id);
+      const r4 = (/** @type {number} */ n) => ({ calls: 2 * n, pieces: 10 * n, staticRows: 100 * n, liveRows: 50 * n, dirtyPieces: 4 * n, countChanged: 2 * n, r4Kills: n, kills: 3 * n, undoEntries: 5 * n });
+      const end = (/** @type {string} */ id, /** @type {string} */ status, /** @type {any} */ result) => ({ type: 'item-end', identityHash: 'h', item: id, status, result, ms: 5, at: 'x' });
+      const ok = (/** @type {number} */ i, /** @type {Record<string, any>} */ over = {}) => end(ids[i], 'completed', { outcome: 'ok', g: 4, idx: [0, 1, 2, 3], same: true, r4: r4(i + 1), ms: 3, ...over });
+      const green = ids.map((_, i) => ok(i));
+      const start = (/** @type {string} */ id) => ({ type: 'item-start', identityHash: 'h', item: id, kind: 'v4-kernel', variant: 'r4c', at: 'x' });
+      const swap = (/** @type {number} */ i, /** @type {any} */ line) => green.map((l, k) => (k === i ? line : l));
+      same(counterVerdict(ids, green), { verdict: 'equal', items: [], line: 'counters: equal' }, 'every item has same true');
+      same(counterVerdict(ids, [...ids.map(start), { type: 'item-spawn', item: ids[0], pid: 1 }, ...green]).verdict, 'equal', 'start and spawn lines do not matter');
+      same(counterVerdict(ids, swap(2, ok(2, { same: false }))), { verdict: 'DIFFER', items: [ids[2]], line: `counters: DIFFER (${ids[2]})` }, 'one item differs');
+      same(counterVerdict(ids, swap(4, end(ids[4], 'censored', { outcome: 'censored', cutAtS: 270 }))), { verdict: 'incomplete', items: [ids[4]], line: `counters: incomplete (${ids[4]})` }, 'one item censored');
+      same(counterVerdict(ids, [...green.slice(0, 5), start(ids[5])]), { verdict: 'incomplete', items: [ids[5]], line: `counters: incomplete (${ids[5]})` }, 'a started item without an end is missing');
+      same(counterVerdict(ids, []).items, ids, 'no line: every item is missing');
+      same(counterVerdict(ids, swap(1, end(ids[1], 'error', { outcome: 'error', message: 'x' }))).verdict, 'DIFFER', 'an error item');
+      same(counterVerdict(ids, swap(3, end(ids[3], 'completed', { outcome: 'no-subset' }))).verdict, 'DIFFER', 'a completed item that measured nothing');
+      const mixed = swap(0, ok(0, { same: false })).map((l, k) => (k === 5 ? end(ids[5], 'censored', { outcome: 'censored' }) : l));
+      same(counterVerdict(ids, mixed), { verdict: 'incomplete', items: [ids[5]], line: `counters: incomplete (${ids[5]})` }, 'an unfinished item is reported before a difference');
+      same(counterVerdict(ids, swap(5, ok(5, { same: false })).map((l, k) => (k === 0 ? ok(0, { same: 'yes' }) : l))).items, [ids[0], ids[5]], 'the items in the order of the list');
+      assert(thrownBy(() => counterVerdict([], [])).includes('at least one item'), 'an empty item list is no verdict');
+      // The rows and the sums of the report.
+      const rows = kernelRows(items, green);
+      same(rows.map((r) => [r.status, r.same, r.g, r.subsetIndex, r.caseId]), ids.map((_, i) => ['completed', true, 4, i, '12x12-nightmare']), 'the rows');
+      same(caseSums(rows), [{
+        caseId: '12x12-nightmare', items: 6, measured: 6, sums: r4(21), dirtyShare: 0.4, countChangedShare: 0.2,
+      }], 'the sums of one case');
+      const part = kernelRows(items, [...swap(0, ok(0, { r4: null })).slice(0, 2), ok(2, { r4: { ...r4(3), calls: -1 } })]);
+      same(part.map((r) => [r.status, r.r4 === null]), [['completed', true], ['completed', false], ['completed', true], ['missing', true], ['missing', true], ['missing', true]],
+        'an item without counters, one with an invalid counter and the missing ones');
+      same(caseSums(part)[0].measured, 1, 'only the items that have counters are summed');
+      // A run of another case list is found again from its log (`report` without --cases), in order of first appearance.
+      const other = await kernelItems(['26x26-hell-1', '10x10-nightmare']);
+      same(loggedCases([{ type: 'item-end', item: 'unrelated' }, ...other.map((i) => start(i.id)), ...other.map((i) => end(i.id, 'completed', { outcome: 'ok' }))]),
+        ['26x26-hell-1', '10x10-nightmare'], 'the cases of a log');
+      same(loggedCases([start('counters:r4c:10x10-nightmare:ig-v4/kernel/12x12-nightmare:0'), { type: 'item-end' }, {}, null]), [], 'an id of another case, no id, an empty line and no line');
+      same(loggedCases([]), [], 'an empty log');
+    },
+  },
 ];
 
 /** @type {number} */
@@ -5778,6 +5866,72 @@ const v4Cases = [
         [['rated', 0], ['skip', 1], ['skip', 2]], 'fr-c4, both excluded: the events (kind, ordinal)');
       assert(third.result.ok === true && third.result.clues.length === 3 && third.end.locate.hit === 3, `fr-c4, both excluded: ${JSON.stringify(third.end.locate)}`);
       process.stdout.write(`NOTE fr c4: subset skips ${JSON.stringify(c4.result.skips.subsets)}, ${JSON.stringify(second.result.skips.subsets)} and ${JSON.stringify(third.result.skips.subsets)} (nothing excluded, the family subset excluded, both excluded); profiles ${c4.end.profiles}, ${second.end.profiles} and ${third.end.profiles}; fr-base ${base.end.profiles}\n`);
+    },
+  },
+  {
+    name: 'kernel: r4c counters and the complete deduction',
+    async run() {
+      const r4c = await engine('r4c');
+      const instr = await engine('instr');
+      const measure = (/** @type {any} */ { e, ws }, /** @type {any} */ item) => {
+        e.deduce.igTake();
+        const model = e.tiling.buildModel(item.board, item.pieces, item.clues, ws);
+        const result = e.deduce.measureDeduction(model, e.policy.DEDUCE);
+        return { result, ins: e.deduce.igTake() };
+      };
+      const items = await corpus();
+      assert(items.length >= 2, `the corpus has ${items.length} items`);
+      const checkR4 = (/** @type {any} */ r4, /** @type {string} */ name) => {
+        same(Object.keys(r4), [...R4_FIELDS], `${name}: the keys of r4`);
+        assert(R4_FIELDS.every((k) => Number.isInteger(r4[k]) && r4[k] >= 0), `${name}: r4 ${JSON.stringify(r4)} is not nine non-negative integers`);
+        assert(r4.calls >= 1, `${name}: no R4 call (${JSON.stringify(r4)})`);
+        assert(r4.countChanged <= r4.dirtyPieces && r4.dirtyPieces <= r4.pieces, `${name}: countChanged <= dirtyPieces <= pieces fails (${JSON.stringify(r4)})`);
+        assert(r4.liveRows <= r4.staticRows && r4.r4Kills <= r4.kills, `${name}: liveRows <= staticRows or r4Kills <= kills fails (${JSON.stringify(r4)})`);
+      };
+      /** @type {any[]} */
+      const records = [];
+      /** @type {any[]} */
+      const results = [];
+      for (const [i, item] of items.entries()) {
+        const mine = measure(r4c, item);
+        const base = measure(instr, item);
+        assert(isDeepStrictEqual(mine.result, base.result), `corpus item ${i}: the DeductionResult of r4c differs from instr's`);
+        assert(base.ins !== null && !('r4' in base.ins), `corpus item ${i}: the instr record has r4`);
+        assert(mine.ins !== null && mine.ins.workFirst === base.ins.workFirst, `corpus item ${i}: the instr fields of the r4c record differ`);
+        if (i < 2) {
+          checkR4(mine.ins.r4, `corpus item ${i}`);
+        }
+        assert(mine.result.search.work > 0 && mine.result.search.nodes > 0, `corpus item ${i}: the result holds no search (${JSON.stringify(mine.result.search)})`);
+        records.push(mine.ins.r4);
+        results.push([mine.result.path, mine.result.search.work, mine.result.search.nodes]);
+      }
+      process.stdout.write(`NOTE kernel r4: ${JSON.stringify(records.slice(0, 2))}; ${records.length} corpus items compared (path, work, nodes of the first two: ${JSON.stringify(results.slice(0, 2))})\n`);
+      // The specified input reaches every path the counters are for: removals and restorations, R4 kills, and a membership change
+      // that the live-row count does not show (dirtyPieces above countChanged).
+      assert(records.slice(0, 2).every((r4) => r4.kills > 0 && r4.undoEntries > 0), `the first two items have no removal or restoration: ${JSON.stringify(records.slice(0, 2))}`);
+      assert(records.slice(0, 2).some((r4) => r4.r4Kills > 0), 'no R4 kill in the first two items');
+      assert(records.slice(0, 2).some((r4) => r4.dirtyPieces > r4.countChanged), 'no visit in the first two items is dirty with an unchanged count');
+      // The lane worker's v4-kernel item makes the same measurement in a thread; a missing subset and a set that does not carve are outcomes.
+      const entry = caseBoard('10x10-nightmare');
+      const seedText = 'ig-selftest/kernel/10x10-nightmare';
+      const carved = /** @type {any} */ (firstCarvedSet(r4c.e, { boardRows: entry.boardRows, levelId: entry.levelId, seedText }));
+      assert(carved.ok, `the carve of 10x10-nightmare failed: ${carved.reason}`);
+      const subsets = windowSubsets(r4c.e, { set: carved.set, seedText, offsets: [1, 2, 3], perCount: 2, startCount: startCountFor(r4c.e, entry.levelId, carved.K) });
+      assert(subsets.length === SUBSETS_PER_CASE, `${subsets.length} subsets of 10x10-nightmare`);
+      const direct = measure(r4c, { board: carved.board, pieces: carved.set.pieces, clues: subsets[0].clues });
+      const lanes = await createLanes({ variant: 'r4c', size: 1, horizonS: elapsedS() + 200 });
+      try {
+        const payload = { kind: 'v4-kernel', boardRows: entry.boardRows, levelId: entry.levelId, seedText, subsetIndex: 0, otherRoot: instr.tree.root };
+        const out = await lanes.runAll([payload, { ...payload, subsetIndex: SUBSETS_PER_CASE }, { ...payload, boardRows: ['##', '##'] }]);
+        assert(out.done, 'the lane worker did not finish its jobs');
+        const { ms, ...first } = out.results[0];
+        assert(typeof ms === 'number' && ms >= 0, `the item's ms ${ms}`);
+        same(first, { outcome: 'ok', g: subsets[0].g, idx: subsets[0].idx, same: true, r4: direct.ins.r4 }, `the worker item: ${JSON.stringify(first)}`);
+        same(out.results[1], { outcome: 'no-subset' }, 'a subset index beyond the sixth');
+        same(out.results[2], { outcome: 'no-set', reason: 'no-carve' }, 'a board that does not carve');
+      } finally {
+        await lanes.close();
+      }
     },
   },
 ];
