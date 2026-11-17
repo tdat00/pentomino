@@ -24,7 +24,12 @@ adds only the value and its transport.
   table and the set."); check-list D-V4-05 (the arm has its own algo id `gen-v4-proto:v4-ps`) and D-V4-09.
 - The match rule is the one by which the batch reuses the calibration puzzle (`calibrationCandidate`,
   `core/engine/generate.js:427-433`): the calibration's `rating.level` is the target level, and in `require` mode
-  its certificate is `unique`. Without a match the candidate uses the table prior (T02a's `priorCount`).
+  its certificate is `unique`. Without a match the candidate uses the table prior (T02a's `priorCount`). The rule
+  does not ask for unseen keys (`generate.js:435` on): that condition decides whether the calibration puzzle itself
+  can be served again, while the prior uses only the window the calibration found on the same set at the target
+  level (ruling of 2026-11-17, T05's report). The records keep `priorTable` `prior-v1`: the table still starts the
+  calibration, every candidate without a match and the completion pass, and `made.igPrior` records where the
+  per-set prior replaced it, so replay and the version comparison need both.
 - T02c's edits `pv-5` (the candidate passes `ctx.igPrior` to `selectClues`), `pv-6` (`made.igPrior: ctx.igPrior ??
   null`) and `pv-17` (the replay passes `m.igPrior` back) stay as they are; `v4.json` does not change.
 - Edits are copy-only anchored edits of the variant; production files do not change.
