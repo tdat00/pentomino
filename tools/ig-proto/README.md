@@ -60,6 +60,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `lib/items.mjs` | the runner of bounded, identity-checked measurement items and the item-log line helpers (V4-T04a; see "Bounded measurement items") |
 | `lib/ledger.mjs` | the work ledger of an item from its journal lines, and `pairPrimitives` (V4-T04b; see "Stage-1 item kinds"); pure |
 | `lib/packs.mjs` | the pack file of a generation item: `preparePackPath` and `writePackFile` (V4-T04b) |
+| `v4-check.mjs`, `plans/V4-T04.parity.json`, `plans/V4-T04.replay.json` | the stage-1 checks (V4-T04c): `run` expands an item manifest and runs its items; the parity and replay verdicts; see "Stage 1 checks (task pack v4)" |
 | `variants/<id>.json` | variant manifests; `variants/files/<name>/...` copy-only files |
 
 ## Trees (variants)
@@ -545,7 +546,8 @@ worktree, whenever it runs with `--label frozen`.
 
 Under `--label frozen` every source-dependent value comes from the frozen source, also inside worker threads. A worker
 receives `treeRoot` in `workerData` and does not inherit `--label frozen` from the process arguments, so no module a
-worker loads (`lib/lane-worker.mjs`, `lib/calls.mjs`, `lib/sets.mjs`, `lib/engine.mjs`) may read `SOURCE_KIND`, call
+worker loads (`lib/lane-worker.mjs`, `lib/calls.mjs`, `lib/sets.mjs`, `lib/engine.mjs`, and the two modules the lane worker
+loads for the stage-1 item kinds, `lib/ledger.mjs` and `lib/packs.mjs`; V4-T04c) may read `SOURCE_KIND`, call
 `sourceRoot(` or import from `../../../core/` (a self-test case checks their text).
 
 - **Offers.** `carveSet` (`lib/sets.mjs`) sets `offeredInSource` from the engine it carves with: `area` inside
@@ -799,9 +801,10 @@ described in "Stage-1 item kinds" below.
   | `v4-replay` | `e + 120 <= H - 15` | at `H - 15`, `censored` | 2 |
 
 - **Self-test.** `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04a`
-  runs nine cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay),
-  one that computes the run identity (`itemIdentity`) of the frozen trees and runs nothing, and V4-T04b's two (the pack
-  files, on the file system only, and the item ledger, on synthetic journal lines; see below). Each running case uses
+  runs eighteen cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay),
+  one that computes the run identity (`itemIdentity`) of the frozen trees and runs nothing, V4-T04b's two (the pack
+  files, on the file system only, and the item ledger, on synthetic journal lines; see below) and V4-T04c's nine (the
+  `checks:` cases, on synthetic rows; see "Stage 1 checks"). Each running case uses
   the scratch task `items-<n>` of the label `selftest`. The test kinds exist only with `testKinds`: `test-ok` returns
   `{ outcome: 'ok', echo }`, `test-throw` throws, `test-hold` blocks the worker for good and is a call kind of the lanes
   (the existing rule admits and cuts it), and `test-item` blocks the same way but is not a call kind, so only the item
@@ -876,3 +879,68 @@ T04e; the self-test runs none of them.
   `screen`, a `count` line a pending `count`), `unquantified <outcome> <call> <index>` (a `p` line whose outcome is
   `unsat` or `error` carries zero placeholders, not measured units) and `bound exceeded <call> <index>` (units above the
   primitive's `bound`).
+
+## Stage 1 checks (task pack v4)
+
+`v4-check.mjs` (V4-T04c; reviews R06, R2-14 and RV3-02; D-V4-14) holds the tool that runs the stage-1 item manifests
+and the two verdicts that judge them. `run` is the only subcommand so far (T04d adds `summary` and `pm4-gate`, T04f
+`accept`); the verdicts are pure exports that T04d's receipt calls.
+
+- **Manifests.** `plans/V4-T04.parity.json` (step `parity`, 23 `v4-select` items) and `plans/V4-T04.replay.json` (step
+  `replay`, 9 items) have the format `{ "format": "ig-proto-items", "version": 1, "task", "step", "rows": [...] }`.
+  Parity rows (`seedText` `ig-v4/parity/<caseId>`): `v4` on `14x14-master`, `12x12-nightmare`, `26x26-nightmare` and
+  `26x26-hell-1` with the modes `absent`, `charge`, `record`; `base` on `14x14-master` with `absent` and `record`;
+  `v4-w760`, `v4-w095` and `v4-w380` on `12x12-nightmare`. Replay rows (`seedText` `ig-v4/replay/<caseId>`): for
+  `14x14-master`, `12x12-nightmare` and `26x26-nightmare` one `v4-generate` row of `v4` (`quantity` 2) and one
+  `v4-replay` row (`puzzles` 2).
+- **`run`.** `node tools\ig-proto\v4-check.mjs run --task <T> --step <S> --manifest <path> --label frozen --source-label
+  <SL> [--horizon-s <H>]` (any other label: `v4-check: --label frozen only`, exit 1). The raw folders derive from the
+  manifest (`tests/artifacts/ig-proto/frozen/<task>/<step>/logs/` and `packs/`), so a manifest runs only under its own
+  task and step: a mismatch writes `v4-check: manifest <path> is <task>/<step>, not <T>/<S>` and exits 1 before any
+  write. Otherwise `run` builds the trees of the manifest's variants (`ensureTree`, as the item identity would), calls
+  `expandManifest(manifest, rawDir, isV4)` and gives the items to `runItems` (`lib/items.mjs`) with `horizonS` (default
+  285), and exits with its exit code (0, or 3 for a refused resume). A manifest that does not expand (a row of another
+  kind, a mode outside `absent`, `charge`, `record`, a repeated item id) exits 1 with `v4-check: <reason>`.
+- **Expansion** (`expandManifest`, pure apart from the catalogue read of `caseBoard`). A `v4-select` row gives one item
+  per mode, `<step>:<variant>:<caseId>:<seedText>:<mode>`, with a `route`: `base` when the variant's tree chain does not
+  contain `v4`; `new` when the level is `nightmare` or `hell-1`; `legacy-recorded` for the mode `record`; else `legacy`.
+  A `v4-generate` row gives `<step>:<variant>:<caseId>:<seedText>:gen` (the set and batch 1, `uniqueness` `require`, the
+  pack at `packs/<safe id>.pack.json`). A `v4-replay` row gives `...:puzzle-<i>` items for `i` below `puzzles`, whose
+  `packPath` is the pack of the generation item `<packStep ?? step>:<variant>:<caseId>:<seedText>:gen` in that step's raw
+  folder. `<safe id>` is the id with every character outside `[A-Za-z0-9._-]` replaced by `_`.
+- **Rows.** A verdict reads the items joined with their `item-end` lines: `{ item, variant, caseId, seedText, mode,
+  route, status, result }` (`status` `completed`, `censored`, `error`, or `missing` without an end line; `seedText` from
+  the manifest row; `result` the end line's). A verdict returns `{ verdict, reasons, rows }`, `verdict` one of `pass`,
+  `fail`, `incomplete`; `fail` wins over `incomplete`. Generation and replay rows are told apart by their item id
+  (`...:gen`, `...:puzzle-<i>`), a replay row is matched to its generation row by variant, case and `seedText`.
+- **`parityVerdict(rows)`**, per (variant, case) group. The required modes are `absent`, `charge`, `record` (`absent`
+  and `record` for `base`) and must be in the rows (else `incomplete`); a `missing` or `censored` row is `incomplete`; an
+  `error` row or an outcome other than `ok` is `fail`. Then, by the group's route:
+  - `new` (all three modes): every ledger complete (else `incomplete`, `no complete work evidence`); the `digest` of
+    every mode equal; `ledger.totalWork` equal in every mode; in `charge` and `record` `units === ledger.totalWork` and
+    `chargeUnits` deep-equal between the two; the `record` row's `maxSequence` below 2,192.
+  - `legacy` (`absent` and `charge` on `legacy`, `record` on `legacy-recorded`, whose ledger is not read): the `absent`
+    and `charge` ledgers complete; the `digest` of every mode equal; the two ledgers' `totalWork` equal; `charge`'s
+    `units === ledger.totalWork`; `record`'s `units === charge.units` and its `chargeUnits` deep-equal to `charge`'s; the
+    `record` row's `maxSequence` below 2,128.
+  - every `record` row: `events > 0`; `detail.scored === detail.rated + detail.rejected`; `detail.missing === 0` (else
+    `fail`); `detail.scored === 0` is `incomplete` (`no completed scored event`); else `detail.rechecked.length ===
+    Math.min(2, detail.scored)` and every `equal` true (else `fail`).
+  - `base` (the legacy identity case): its `absent` digest equals `v4`'s on the same case, its `record` `eventsDigest`
+    and `units` equal `v4`'s (a difference in the recorded total is `base recorded total <n> differs from v4's <m>`);
+    its `record` row has the detail rules above.
+
+  Only complete ledgers are read as work evidence: the sums of an incomplete ledger are never compared. The `absent` and
+  `charge` rows record no event, so their `maxSequence`, `events`, `eventKinds` and `eventPhases` are `null` and are not read.
+- **`replayVerdict(rows)`.** A generation row `ok` with `puzzles >= 1` has records; `no-set`, `no-pack` or no puzzle is
+  `incomplete` (`no record obtained for <case>`); `censored` or `missing` is `incomplete`; `error` is `fail`. A replay
+  row: outcome `no-record` is not a proof; a `packSha256` different from its generation row's is `fail`; status `matched`
+  is a full proof when `detailStep` is an integer (else `fail`); `incomplete` is a finding (listed in `reasons` as
+  `finding <item>: incomplete (reason <r>, work <w>, bytes <b>)`, not a proof); `mismatch` or `unavailable` is `fail`; a
+  `censored` or `missing` replay item is `incomplete`, an `error` one `fail`. Each generation case needs one `candidate`
+  replay with a full proof, else `incomplete` (`no matched candidate replay for <case>`); `pass` needs no `fail` and
+  every case proven; no rows is `incomplete`.
+- **Self-test.** Nine `checks:` cases appended to `--items` (synthetic rows, no run, unlocked): the manifest expansion
+  (23 and 9 items, routes, packs), the manifest addressing, the parity cases (the new route and its sequence bound, equal
+  rating work with unequal count work, the unequal absent total, the incomplete ledger, the detail counts, the legacy
+  route with `base`) and the replay proofs.

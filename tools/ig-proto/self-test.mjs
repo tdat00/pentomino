@@ -36,6 +36,7 @@ import { buildTree, collectSources, ensureTree, listVariants, planTree } from '.
 import { pairResult } from './identity.mjs';
 import { buildInventory, readFamilies } from './pm1-inventory.mjs';
 import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
+import { expandManifest, main as checkMain, parityVerdict, replayVerdict } from './v4-check.mjs';
 
 const SELFTEST_DIR = join(ROOT, 'tests', 'artifacts', 'ig-proto', 'selftest');
 const GIT_CALL = new RegExp('(?:execFileSync|execSync|spawnSync|spawn|execFile|exec|fork)\\(\\s*[\'"`]git\\b|^\\s*&?\\s*git(?:\\.exe)?\\s+(?:rev-parse|status|log|diff|show|add|commit|push|ls-files)\\b', 'm');
@@ -603,7 +604,7 @@ const frozenCases = [
   {
     name: 'frozen: worker modules do not read the label',
     run() {
-      for (const name of ['lane-worker.mjs', 'calls.mjs', 'sets.mjs', 'engine.mjs']) {
+      for (const name of ['lane-worker.mjs', 'calls.mjs', 'sets.mjs', 'engine.mjs', 'ledger.mjs', 'packs.mjs']) {
         const text = readFileSync(join(IG_DIR, 'lib', name), 'utf8');
         for (const needle of ['SOURCE_KIND', 'sourceRoot(', '../../../core/']) {
           assert(!text.includes(needle), `lib/${name} contains ${needle}`);
@@ -666,6 +667,67 @@ function itemFolder(n, step = 'items') {
 /** @param {number} n @param {any[]} items @param {Record<string, any>} [extra] @returns {ReturnType<typeof runItems>} */
 const itemRun = (n, items, extra = {}) => runItems({
   task: `items-${n}`, step: 'items', label: 'selftest', horizonS: 285, items, testKinds: true, identity: itemId(items), ...extra,
+});
+
+const CHECK_MODES = Object.freeze(['absent', 'charge', 'record']);
+
+/**
+ * A joined row of the `checks:` cases (V4-T04c): an `ok` selection item of one group and mode, with a complete ledger
+ * (rating work 7, count work 5), `digest` 'd', and for `charge` and `record` the charge sequence [3, 4, 5].
+ * @param {string} mode
+ * @param {Record<string, any>} [over] Fields of the result that replace the synthetic ones.
+ * @param {{ variant?: string, caseId?: string, route?: string, status?: string }} [row] The row's own fields.
+ * @returns {any}
+ */
+function checkRow(mode, over = {}, { variant = 'v4', caseId = '12x12-nightmare', route = 'new', status = 'completed' } = {}) {
+  const charged = mode !== 'absent';
+  const recorded = mode === 'record';
+  const seedText = `ig-v4/parity/${caseId}`;
+  return {
+    item: `parity:${variant}:${caseId}:${seedText}:${mode}`,
+    variant,
+    caseId,
+    seedText,
+    mode,
+    route,
+    status,
+    result: {
+      outcome: 'ok',
+      digest: 'd',
+      route,
+      ledger: { complete: true, ratingWork: 7, countWork: 5, totalWork: 12 },
+      chargeUnits: charged ? [3, 4, 5] : null,
+      charges: charged ? 3 : null,
+      units: charged ? 12 : null,
+      events: recorded ? 9 : null,
+      eventsDigest: recorded ? 'e' : null,
+      maxSequence: recorded ? 40 : null,
+      detail: recorded ? { rated: 1, rejected: 2, scored: 3, missing: 0, rechecked: [{ equal: true }, { equal: true }] } : null,
+      ...over,
+    },
+  };
+}
+
+/** @param {any[]} rows @param {string} text @returns {boolean} A verdict reason of `rows` names the text. */
+const hasReason = (rows, text) => rows.some((r) => r.includes(text));
+
+/**
+ * @param {string} part `gen` or `puzzle-<i>`
+ * @param {string} status The end line's status.
+ * @param {any} result
+ * @param {{ step?: string }} [o] The step in the item id.
+ * @returns {any} A joined row of the replay cases, in the case `14x14-master` of the variant `v4`.
+ */
+function replayRow(part, status, result, { step = 'replay' } = {}) {
+  const seedText = 'ig-v4/replay/14x14-master';
+  return { item: `${step}:v4:14x14-master:${seedText}:${part}`, variant: 'v4', caseId: '14x14-master', seedText, mode: null, route: null, status, result };
+}
+
+const generated = () => replayRow('gen', 'completed', { outcome: 'ok', batchStatus: 'complete', reason: null, puzzles: 2, made: ['calibration', 'candidate'], packSha256: 'h' });
+
+/** @param {number} i @param {string} kind @param {string} status @param {Record<string, any>} [over] */
+const replayed = (i, kind, status, over = {}) => replayRow(`puzzle-${i}`, 'completed', {
+  outcome: 'ok', kind, status, reason: null, work: 5, steps: 4, bytes: 100, detailStep: 3, packSha256: 'h', ...over,
 });
 
 /** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
@@ -937,6 +999,257 @@ const itemCases = [
         message = e instanceof Error ? e.message : String(e);
       }
       assert(message === 'unknown route base', `the route base has no ledger: ${message}`);
+    },
+  },
+  {
+    name: 'checks: manifest expansion',
+    run() {
+      const [parity, replay] = ['parity', 'replay'].map((step) => JSON.parse(readFileSync(join(IG_DIR, 'plans', `V4-T04.${step}.json`), 'utf8')));
+      same([parity.format, parity.version, parity.task, parity.step, replay.task, replay.step], ['ig-proto-items', 1, 'V4-T04', 'parity', 'V4-T04', 'replay'], 'the manifest headers');
+      const isV4 = (/** @type {string} */ v) => v !== 'base';
+      const rawDir = (/** @type {any} */ m) => artifactDir('frozen', m.task, m.step);
+      const safe = (/** @type {string} */ id) => id.replace(/[^A-Za-z0-9._-]/g, '_');
+      const selects = /** @type {[string, string, string[]][]} */ ([
+        ['v4', '14x14-master', ['legacy', 'legacy', 'legacy-recorded']],
+        ['v4', '12x12-nightmare', ['new', 'new', 'new']],
+        ['v4', '26x26-nightmare', ['new', 'new', 'new']],
+        ['v4', '26x26-hell-1', ['new', 'new', 'new']],
+        ['base', '14x14-master', ['base', 'base']],
+        ['v4-w760', '12x12-nightmare', ['new', 'new', 'new']],
+        ['v4-w095', '12x12-nightmare', ['new', 'new', 'new']],
+        ['v4-w380', '12x12-nightmare', ['new', 'new', 'new']],
+      ]);
+      const wanted = selects.flatMap(([variant, caseId, routes]) => routes.map((route, i) => {
+        const mode = variant === 'base' ? ['absent', 'record'][i] : CHECK_MODES[i];
+        return [`parity:${variant}:${caseId}:ig-v4/parity/${caseId}:${mode}`, variant, route];
+      }));
+      const p = expandManifest(parity, rawDir(parity), isV4);
+      assert(p.length === 23, `${p.length} parity items, not 23`);
+      same(p.map((i) => [i.id, i.variant, i.payload.route]), wanted, 'the parity items, their variants and routes, in manifest order');
+      const first = p[0];
+      same(Object.keys(first.payload), ['boardRows', 'levelId', 'seedText', 'mode', 'logDir', 'row', 'route'], 'the payload keys of a selection item');
+      assert(p.every((i) => i.kind === 'v4-select' && i.payload.row === safe(i.id) && i.payload.logDir === join(rawDir(parity), 'logs', safe(i.id))),
+        'a selection item has another kind, row or log folder');
+      same([first.payload.boardRows, first.payload.levelId, first.payload.seedText, first.payload.mode],
+        [caseBoard('14x14-master').boardRows, 'master', 'ig-v4/parity/14x14-master', 'absent'], 'the payload values of the first item');
+      const r = expandManifest(replay, rawDir(replay), isV4);
+      assert(r.length === 9, `${r.length} replay items, not 9`);
+      const cases = ['14x14-master', '12x12-nightmare', '26x26-nightmare'];
+      same(r.map((i) => [i.id, i.kind]), cases.flatMap((caseId) => [
+        [`replay:v4:${caseId}:ig-v4/replay/${caseId}:gen`, 'v4-generate'],
+        [`replay:v4:${caseId}:ig-v4/replay/${caseId}:puzzle-0`, 'v4-replay'],
+        [`replay:v4:${caseId}:ig-v4/replay/${caseId}:puzzle-1`, 'v4-replay'],
+      ]), 'the replay items and their kinds, in manifest order');
+      for (const [index, caseId] of cases.entries()) {
+        const [gen, ...puzzles] = r.slice(index * 3, index * 3 + 3);
+        const packPath = join(rawDir(replay), 'packs', `${safe(gen.id)}.pack.json`);
+        same([gen.payload.packPath, gen.payload.logDir, gen.payload.row, gen.payload.quantity, gen.payload.uniqueness, gen.payload.maxActive],
+          [packPath, join(rawDir(replay), 'logs', safe(gen.id)), safe(gen.id), 2, 'require', caseBoard(caseId).maxActive], `the payload of the generation item of ${caseId}`);
+        same(puzzles.map((i) => i.payload), [{ packPath, puzzleIndex: 0 }, { packPath, puzzleIndex: 1 }], `the replay payloads of ${caseId} do not name their generation item's pack`);
+      }
+      const other = expandManifest({
+        task: 'V4-T05', step: 'prior-replay', rows: [{ kind: 'v4-replay', variant: 'v4', caseId: '14x14-master', seedText: 's', puzzles: 1, packStep: 'prior-gen' }],
+      }, 'unused', isV4);
+      same(other[0].payload.packPath, join(artifactDir('frozen', 'V4-T05', 'prior-gen'), 'packs', 'prior-gen_v4_14x14-master_s_gen.pack.json'), 'a replay row of another step names that step\'s pack');
+      const row = { kind: 'v4-select', variant: 'v4', caseId: '12x12-nightmare', seedText: 's', modes: ['absent'] };
+      const message = (/** @type {any[]} */ rows) => {
+        try {
+          expandManifest({ ...parity, rows }, rawDir(parity), isV4);
+        } catch (e) {
+          return e instanceof Error ? e.message : String(e);
+        }
+        return '';
+      };
+      assert(message([{ ...row, modes: ['absent', 'twice'] }]) === 'v4-check: unknown mode twice', `a mode twice: ${message([{ ...row, modes: ['absent', 'twice'] }])}`);
+      assert(message([row, row]) === 'v4-check: duplicate item id parity:v4:12x12-nightmare:s:absent', `a repeated row: ${message([row, row])}`);
+      assert(message([{ ...row, kind: 'v4-kernel' }]) === 'v4-check: unknown row kind v4-kernel', `another kind: ${message([{ ...row, kind: 'v4-kernel' }])}`);
+    },
+  },
+  {
+    name: 'checks: manifest addressing',
+    async run() {
+      const dir = fresh(artifactDir('selftest', 'checks-addressing'));
+      const path = join(dir, 'm.json');
+      writeJson(path, {
+        format: 'ig-proto-items', version: 1, task: 'V4-T04c-selftest', step: 'a',
+        rows: [{ kind: 'v4-select', variant: 'v4', caseId: '12x12-nightmare', seedText: 'ig-v4/selftest', modes: ['absent'] }],
+      });
+      const raw = artifactDir('frozen', 'V4-T04c-selftest');
+      assert(!existsSync(raw), 'the frozen folder of the case exists before the case');
+      const run = async (/** @type {string[]} */ args) => {
+        const write = process.stderr.write;
+        let text = '';
+        process.stderr.write = /** @type {any} */ ((/** @type {unknown} */ chunk) => {
+          text += String(chunk);
+          return true;
+        });
+        try {
+          return { code: await checkMain(args), text };
+        } finally {
+          process.stderr.write = write;
+        }
+      };
+      const wrong = await run(['run', '--task', 'V4-T04c-selftest', '--step', 'b', '--manifest', path, '--label', 'frozen', '--source-label', 'x']);
+      assert(wrong.code === 1, `a manifest of another step: exit ${wrong.code}`);
+      assert(wrong.text === `v4-check: manifest ${path} is V4-T04c-selftest/a, not V4-T04c-selftest/b\n`, `the message: ${JSON.stringify(wrong.text)}`);
+      const task = await run(['run', '--task', 'V4-T04', '--step', 'a', '--manifest', path, '--label', 'frozen', '--source-label', 'x']);
+      assert(task.code === 1 && task.text.includes('V4-T04c-selftest/a, not V4-T04/a'), `a manifest of another task: exit ${task.code}, ${JSON.stringify(task.text)}`);
+      const label = await run(['run', '--task', 'V4-T04c-selftest', '--step', 'a', '--manifest', path, '--label', 'selftest', '--source-label', 'x']);
+      assert(label.code === 1 && label.text === 'v4-check: --label frozen only\n', `another label: exit ${label.code}, ${JSON.stringify(label.text)}`);
+      assert(!existsSync(raw), 'a refused command wrote the frozen folder of its task');
+    },
+  },
+  {
+    name: 'checks: parity on the new route',
+    run() {
+      const trio = (/** @type {Record<string, any>} */ record) => CHECK_MODES.map((m) => checkRow(m, m === 'record' ? record : {}));
+      const pass = parityVerdict(trio({}));
+      assert(pass.verdict === 'pass' && pass.reasons.length === 0 && pass.rows.length === 3, `the three equal modes: ${JSON.stringify(pass.reasons)}`);
+      assert(parityVerdict(trio({ maxSequence: 2191 })).verdict === 'pass', 'the sequence 2,191 is below the bound');
+      const edge = parityVerdict(trio({ maxSequence: 2192 }));
+      assert(edge.verdict === 'fail' && hasReason(edge.reasons, 'maxSequence 2192 is not below 2192'), `the sequence 2,192: ${edge.verdict} ${JSON.stringify(edge.reasons)}`);
+      const none = parityVerdict(trio({ maxSequence: null }));
+      assert(none.verdict === 'fail' && hasReason(none.reasons, 'maxSequence null'), `no sequence on the record row: ${none.verdict} ${JSON.stringify(none.reasons)}`);
+      const other = parityVerdict(CHECK_MODES.map((m) => checkRow(m, m === 'absent' ? { digest: 'x' } : {})));
+      assert(other.verdict === 'fail' && hasReason(other.reasons, 'result digests differ'), `unequal digests: ${other.verdict} ${JSON.stringify(other.reasons)}`);
+      const units = parityVerdict(CHECK_MODES.map((m) => checkRow(m, m === 'charge' ? { units: 11 } : {})));
+      assert(units.verdict === 'fail' && hasReason(units.reasons, 'charged units 11 differ from total work 12'), `units not equal to the work: ${JSON.stringify(units.reasons)}`);
+      const sequence = parityVerdict(trio({ chargeUnits: [3, 4, 4] }));
+      assert(sequence.verdict === 'fail' && hasReason(sequence.reasons, 'charge sequences'), `unequal charge sequences: ${JSON.stringify(sequence.reasons)}`);
+    },
+  },
+  {
+    name: 'checks: equal rating work, unequal count work',
+    run() {
+      const rows = CHECK_MODES.map((m) => checkRow(m, m === 'absent' ? { ledger: { complete: true, ratingWork: 7, countWork: 6, totalWork: 13 } } : {}));
+      const v = parityVerdict(rows);
+      assert(v.verdict === 'fail' && hasReason(v.reasons, 'total work differs between modes (absent 13, charge 12, record 12)'), `${v.verdict} ${JSON.stringify(v.reasons)}`);
+    },
+  },
+  {
+    name: 'checks: equal charged modes, unequal absent total',
+    run() {
+      const rows = CHECK_MODES.map((m) => checkRow(m, m === 'absent' ? { ledger: { complete: true, ratingWork: 6, countWork: 5, totalWork: 11 } } : {}));
+      const v = parityVerdict(rows);
+      assert(v.verdict === 'fail' && hasReason(v.reasons, 'total work differs between modes (absent 11, charge 12, record 12)'), `${v.verdict} ${JSON.stringify(v.reasons)}`);
+    },
+  },
+  {
+    name: 'checks: incomplete ledger',
+    run() {
+      const trio = (/** @type {Record<string, any>} */ absent, /** @type {any[]} */ rest = []) => [checkRow('absent', absent), checkRow('charge'), checkRow('record'), ...rest];
+      const open = parityVerdict(trio({ ledger: { complete: false, ratingWork: 7, countWork: 5, totalWork: 12 } }));
+      assert(open.verdict === 'incomplete' && hasReason(open.reasons, 'no complete work evidence'), `${open.verdict} ${JSON.stringify(open.reasons)}`);
+      const unequal = parityVerdict(trio({ ledger: { complete: false, ratingWork: 7, countWork: 5, totalWork: 99 } }));
+      assert(unequal.verdict === 'incomplete', 'the sums of an incomplete ledger were compared');
+      const failing = parityVerdict(trio({ ledger: { complete: false, ratingWork: 7, countWork: 5, totalWork: 12 }, digest: 'x' }));
+      assert(failing.verdict === 'fail' && failing.reasons.length === 2, `a failure and a gap: ${failing.verdict} ${JSON.stringify(failing.reasons)}`);
+      const censored = parityVerdict([checkRow('absent', {}, { status: 'censored' }), checkRow('charge'), checkRow('record')]);
+      assert(censored.verdict === 'incomplete' && hasReason(censored.reasons, 'censored'), `a censored row: ${censored.verdict}`);
+      const missing = parityVerdict([{ ...checkRow('absent'), status: 'missing', result: null }, checkRow('charge'), checkRow('record')]);
+      assert(missing.verdict === 'incomplete' && hasReason(missing.reasons, 'no item-end line'), `a missing row: ${missing.verdict}`);
+      const absent = parityVerdict([checkRow('absent'), checkRow('record')]);
+      assert(absent.verdict === 'incomplete' && hasReason(absent.reasons, 'the charge item is absent'), `a required mode that is not in the rows: ${absent.verdict}`);
+      const errored = parityVerdict([checkRow('absent', { outcome: 'error', message: 'x' }, { status: 'error' }), checkRow('charge'), checkRow('record')]);
+      assert(errored.verdict === 'fail' && hasReason(errored.reasons, ': error (x)'), `an error row: ${errored.verdict}`);
+      const noSet = parityVerdict(trio({ outcome: 'no-set' }));
+      assert(noSet.verdict === 'fail' && hasReason(noSet.reasons, 'outcome no-set'), `an outcome other than ok: ${noSet.verdict}`);
+      assert(parityVerdict([]).verdict === 'incomplete', 'no rows');
+    },
+  },
+  {
+    name: 'checks: detail counts',
+    run() {
+      const same2 = [{ equal: true }, { equal: true }];
+      const record = (/** @type {Record<string, any>} */ over) => parityVerdict(CHECK_MODES.map((m) => checkRow(m, m === 'record' ? over : {})));
+      const pass = record({ detail: { rated: 1, rejected: 3, scored: 4, missing: 0, rechecked: same2 } });
+      assert(pass.verdict === 'pass', `four scored events: ${JSON.stringify(pass.reasons)}`);
+      const none = record({ detail: { rated: 0, rejected: 0, scored: 0, missing: 0, rechecked: [] } });
+      assert(none.verdict === 'incomplete' && hasReason(none.reasons, 'no completed scored event'), `no scored event: ${none.verdict} ${JSON.stringify(none.reasons)}`);
+      const missing = record({ detail: { rated: 1, rejected: 2, scored: 3, missing: 1, rechecked: same2 } });
+      assert(missing.verdict === 'fail' && hasReason(missing.reasons, '1 scored events without detail'), `a missing detail: ${missing.verdict}`);
+      assert(record({ detail: { rated: 1, rejected: 0, scored: 1, missing: 0, rechecked: [{ equal: true }] } }).verdict === 'pass', 'one scored event, one recheck');
+      assert(record({ detail: { rated: 1, rejected: 2, scored: 4, missing: 0, rechecked: same2 } }).verdict === 'fail', 'scored is not rated + rejected');
+      assert(record({ detail: { rated: 1, rejected: 2, scored: 3, missing: 0, rechecked: [{ equal: true }] } }).verdict === 'fail', 'one recheck of three scored events');
+      assert(record({ detail: { rated: 1, rejected: 2, scored: 3, missing: 0, rechecked: [{ equal: true }, { equal: false }] } }).verdict === 'fail', 'an unequal recheck');
+      assert(record({ detail: null }).verdict === 'fail' && record({ events: 0 }).verdict === 'fail', 'a record row without detail, or without an event');
+    },
+  },
+  {
+    name: 'checks: legacy route and base',
+    run() {
+      const legacy = { caseId: '14x14-master', route: 'legacy' };
+      const v4 = () => [
+        checkRow('absent', {}, legacy),
+        checkRow('charge', {}, legacy),
+        checkRow('record', { ledger: { complete: false, ratingWork: null, countWork: 5, totalWork: null } }, { ...legacy, route: 'legacy-recorded' }),
+      ];
+      const baseRow = (/** @type {string} */ mode, /** @type {Record<string, any>} */ over = {}) => checkRow(mode, { ledger: null, ...over }, { variant: 'base', caseId: '14x14-master', route: 'base' });
+      const base = (/** @type {Record<string, any>} */ record = {}, /** @type {Record<string, any>} */ absent = {}) => [baseRow('absent', absent), baseRow('record', record)];
+      const pass = parityVerdict([...v4(), ...base()]);
+      assert(pass.verdict === 'pass' && pass.rows.length === 5, `v4 and base: ${pass.verdict} ${JSON.stringify(pass.reasons)}`);
+      const total = parityVerdict([...v4(), ...base({ units: 13 })]);
+      assert(total.verdict === 'fail' && hasReason(total.reasons, 'base recorded total 13 differs from v4\'s 12'), `base recorded units 13: ${total.verdict} ${JSON.stringify(total.reasons)}`);
+      const events = parityVerdict([...v4(), ...base({ eventsDigest: 'f' })]);
+      assert(events.verdict === 'fail' && hasReason(events.reasons, 'events digest'), `another events digest: ${events.verdict}`);
+      const digest = parityVerdict([...v4(), ...base({}, { digest: 'x' })]);
+      assert(digest.verdict === 'fail' && hasReason(digest.reasons, 'absent result digest'), `another absent digest: ${digest.verdict}`);
+      assert(parityVerdict(v4()).verdict === 'pass', 'the v4 group alone, without a base group');
+      const alone = parityVerdict(base());
+      assert(alone.verdict === 'incomplete' && hasReason(alone.reasons, 'no v4 rows of 14x14-master'), `base without v4: ${alone.verdict}`);
+      const records = v4();
+      records[2].result.maxSequence = 2128;
+      const high = parityVerdict(records);
+      assert(high.verdict === 'fail' && hasReason(high.reasons, 'maxSequence 2128 is not below 2128'), `the legacy bound: ${high.verdict} ${JSON.stringify(high.reasons)}`);
+      assert(parityVerdict(v4().map((r) => (r.mode === 'record' ? { ...r, result: { ...r.result, maxSequence: 2127 } } : r))).verdict === 'pass', 'the sequence 2,127 is below the legacy bound');
+      const units = parityVerdict(v4().map((r) => (r.mode === 'record' ? { ...r, result: { ...r.result, units: 13 } } : r)));
+      assert(units.verdict === 'fail' && hasReason(units.reasons, 'recorded charged units 13'), `recorded units against the charged mode: ${units.verdict}`);
+      const charge = parityVerdict(v4().map((r) => (r.mode === 'charge' ? { ...r, result: { ...r.result, units: 13 } } : r)));
+      assert(charge.verdict === 'fail' && hasReason(charge.reasons, 'charged units 13 differ from total work 12'), `charged units against the ledger: ${charge.verdict}`);
+      const worked = parityVerdict(v4().map((r) => (r.mode === 'charge' ? { ...r, result: { ...r.result, ledger: { complete: true, ratingWork: 8, countWork: 5, totalWork: 13 } } } : r)));
+      assert(worked.verdict === 'fail' && hasReason(worked.reasons, 'total work differs between modes (absent 12, charge 13)'), `the two ledgers' total work: ${worked.verdict}`);
+      const open = parityVerdict(v4().map((r) => (r.mode === 'absent' ? { ...r, result: { ...r.result, ledger: { complete: false, ratingWork: 7, countWork: 5, totalWork: 12 } } } : r)));
+      assert(open.verdict === 'incomplete' && hasReason(open.reasons, 'no complete work evidence'), `an incomplete absent ledger: ${open.verdict}`);
+    },
+  },
+  {
+    name: 'checks: replay proofs',
+    run() {
+      const none = replayVerdict([]);
+      assert(none.verdict === 'incomplete', `no rows: ${none.verdict}`);
+      const early = replayVerdict([generated(), replayed(0, 'calibration', 'incomplete', { reason: 'work', work: 9, bytes: 50 }), replayed(1, 'candidate', 'incomplete', { reason: 'work' })]);
+      const findings = early.reasons.filter((r) => r.startsWith('finding '));
+      assert(early.verdict === 'incomplete' && findings.length === 2 && findings[0].includes('reason work, work 9, bytes 50')
+        && hasReason(early.reasons, 'no matched candidate replay for 14x14-master'), `two incomplete replays: ${early.verdict} ${JSON.stringify(early.reasons)}`);
+      const proven = replayVerdict([generated(), replayed(0, 'calibration', 'matched'), replayed(1, 'candidate', 'matched')]);
+      assert(proven.verdict === 'pass' && proven.reasons.length === 0 && proven.rows.length === 3, `both replays matched: ${proven.verdict} ${JSON.stringify(proven.reasons)}`);
+      const mismatch = replayVerdict([generated(), replayed(0, 'calibration', 'matched'), replayed(1, 'candidate', 'mismatch', { reason: 'stage' })]);
+      assert(mismatch.verdict === 'fail' && hasReason(mismatch.reasons, 'replay mismatch (stage)'), `a mismatch: ${mismatch.verdict} ${JSON.stringify(mismatch.reasons)}`);
+      const noPack = replayVerdict([replayRow('gen', 'completed', { outcome: 'no-pack', batchStatus: 'failed', reason: null }), replayRow('puzzle-0', 'completed', { outcome: 'no-record', reason: 'no pack' })]);
+      assert(noPack.verdict === 'incomplete' && hasReason(noPack.reasons, 'no record obtained for 14x14-master') && noPack.reasons.length === 1, `no pack: ${noPack.verdict} ${JSON.stringify(noPack.reasons)}`);
+      const noSet = replayVerdict([replayRow('gen', 'completed', { outcome: 'no-set', setStatus: 'failed', reason: null })]);
+      assert(noSet.verdict === 'incomplete' && hasReason(noSet.reasons, 'no record obtained'), `no set: ${noSet.verdict}`);
+      assert(replayVerdict([replayRow('gen', 'censored', { outcome: 'censored' })]).verdict === 'incomplete', 'a censored generation item');
+      assert(replayVerdict([replayRow('gen', 'error', { outcome: 'error', message: 'boom' })]).verdict === 'fail', 'a generation item that ended in error');
+      const noStep = replayVerdict([generated(), replayed(0, 'calibration', 'matched'), replayed(1, 'candidate', 'matched', { detailStep: null })]);
+      assert(noStep.verdict === 'fail' && hasReason(noStep.reasons, 'matched without a measuring step'), `a matched replay without detailStep: ${noStep.verdict}`);
+      const calibrationOnly = replayVerdict([generated(), replayed(0, 'calibration', 'matched')]);
+      assert(calibrationOnly.verdict === 'incomplete' && hasReason(calibrationOnly.reasons, 'no matched candidate replay'), `a calibration replay is not a candidate proof: ${calibrationOnly.verdict}`);
+      const sha = replayVerdict([generated(), replayed(0, 'calibration', 'matched'), replayed(1, 'candidate', 'matched', { packSha256: 'g' })]);
+      assert(sha.verdict === 'fail' && hasReason(sha.reasons, 'SHA-256 differs'), `another pack: ${sha.verdict}`);
+      const unavailable = replayVerdict([generated(), replayed(0, 'candidate', 'matched'), replayed(1, 'calibration', 'unavailable')]);
+      assert(unavailable.verdict === 'fail', `an unavailable replay: ${unavailable.verdict}`);
+      const finding = replayVerdict([generated(), replayed(0, 'calibration', 'incomplete', { reason: 'bytes' }), replayed(1, 'candidate', 'matched')]);
+      assert(finding.verdict === 'pass' && finding.reasons.length === 1 && finding.reasons[0].startsWith('finding '), `a finding beside a proof: ${finding.verdict} ${JSON.stringify(finding.reasons)}`);
+      const censored = replayVerdict([generated(), replayed(0, 'calibration', 'matched'), { ...replayed(1, 'candidate', 'matched'), status: 'censored', result: { outcome: 'censored' } }]);
+      assert(censored.verdict === 'incomplete', `a censored replay item: ${censored.verdict} ${JSON.stringify(censored.reasons)}`);
+      const second = replayVerdict([generated(), replayed(0, 'calibration', 'matched'), replayed(1, 'candidate', 'matched'), replayRow('gen', 'completed', { outcome: 'ok', puzzles: 2 }, { step: 'again' })]);
+      assert(second.verdict === 'fail' && hasReason(second.reasons, 'a second generation item'), `two generation items of one case: ${second.verdict}`);
+      const across = replayVerdict([
+        replayRow('gen', 'completed', { outcome: 'ok', puzzles: 2, packSha256: 'h' }, { step: 'prior-gen' }),
+        replayRow('puzzle-0', 'completed', { outcome: 'ok', kind: 'candidate', status: 'matched', detailStep: 3, packSha256: 'h' }, { step: 'prior-replay' }),
+      ]);
+      assert(across.verdict === 'pass', `a replay row of another step than its generation row: ${across.verdict} ${JSON.stringify(across.reasons)}`);
     },
   },
 ];

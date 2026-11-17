@@ -1,0 +1,16 @@
+{
+  "format": "ig-proto-items",
+  "version": 1,
+  "task": "V4-T04",
+  "step": "parity",
+  "rows": [
+    { "kind": "v4-select", "variant": "v4", "caseId": "14x14-master", "seedText": "ig-v4/parity/14x14-master", "modes": ["absent", "charge", "record"] },
+    { "kind": "v4-select", "variant": "v4", "caseId": "12x12-nightmare", "seedText": "ig-v4/parity/12x12-nightmare", "modes": ["absent", "charge", "record"] },
+    { "kind": "v4-select", "variant": "v4", "caseId": "26x26-nightmare", "seedText": "ig-v4/parity/26x26-nightmare", "modes": ["absent", "charge", "record"] },
+    { "kind": "v4-select", "variant": "v4", "caseId": "26x26-hell-1", "seedText": "ig-v4/parity/26x26-hell-1", "modes": ["absent", "charge", "record"] },
+    { "kind": "v4-select", "variant": "base", "caseId": "14x14-master", "seedText": "ig-v4/parity/14x14-master", "modes": ["absent", "record"] },
+    { "kind": "v4-select", "variant": "v4-w760", "caseId": "12x12-nightmare", "seedText": "ig-v4/parity/12x12-nightmare", "modes": ["absent", "charge", "record"] },
+    { "kind": "v4-select", "variant": "v4-w095", "caseId": "12x12-nightmare", "seedText": "ig-v4/parity/12x12-nightmare", "modes": ["absent", "charge", "record"] },
+    { "kind": "v4-select", "variant": "v4-w380", "caseId": "12x12-nightmare", "seedText": "ig-v4/parity/12x12-nightmare", "modes": ["absent", "charge", "record"] }
+  ]
+}

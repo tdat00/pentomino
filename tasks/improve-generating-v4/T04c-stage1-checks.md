@@ -203,13 +203,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 07:32:48 +07:00 (dispatch, base `4622c22`) to 07:51:36 +07:00 (acceptance): 18 min 48 s; the developer's own times 07:33:10-07:46:17 |
+| Waiting for rulings | about 5 min (07:46:17 report to 07:51 ruling); no developer wait (no fix round) |
+| Agent id, model | `492b3283-f628-4111-9f58-cdfd33f50312`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 59 calls; 10,609,450 input, 107,225 output, 10,352,833 cache-read |
+| AI credits | 274.90 |
+| Questions and rulings | No `QUESTION:`. The developer's twelve readings of silent points, three named items and three gaps were relayed to the pack author; all accepted (07:51). The pack author confirmed from the frozen code that a matched calibration replay always carries an integer `detailStep` (`core/engine/replay.js:743-756`, `tests/replay.test.js:1095-1117`); T04d's `stepEvidence` row join and the replay findings in `stage1.md` amended; pack amendment `6194e6e` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--items`: 18 passed, 0 failed; `--frozen`: 10 passed (case 9 audits six modules); the manifests: `V4-T04.parity.json` 8 rows (23 items), `V4-T04.replay.json` 6 rows (9 items); firewall `check`: 289 production files unchanged; the guard `git status -- core generator tests tools/ig-proto/variants tools/ig-proto/lib`: no output; the historical namespace `frozen/V4-T04` absent; `npm run check`: OK. The developer's five mutations were each caught by a case |
+| Commit | this task's commit, `improve-generating T04c: Stage-1 checks: v4-check run, the item manifests and the parity and replay verdicts` |
+| Issues and named items | None new; real runs, ledgers and replays are T04e's |
