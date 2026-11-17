@@ -37,6 +37,7 @@ import { harnessInfo, sha256, sha256File, sha256Text, sourceDigest, sourceVersio
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
 import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
 import { pairResult } from './identity.mjs';
+import { linkSummary, timelineProblem } from './linkage.mjs';
 import { buildInventory, readFamilies } from './pm1-inventory.mjs';
 import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
 import { expandManifest, IDENTITY_SEEDS, identityVerdict, judgeStage1, main as checkMain, parityVerdict, pm4GateEvidence, pm4Verdict, priorVerdict, replayVerdict, stage1Expectation, stage1Inputs, stage1Verdict, stepEvidence } from './v4-check.mjs';
@@ -1929,6 +1930,81 @@ const itemCases = [
       const censored = priorVerdict([{ ...gen(), status: 'censored', result: { outcome: 'censored' } },
         ...replays().map((row) => ({ ...row, result: { outcome: 'no-record', reason: 'no pack' } }))], []);
       assert(censored.verdict === 'incomplete' && hasReason(censored.reasons, 'censored'), `a censored generation item: ${censored.verdict} ${JSON.stringify(censored.reasons)}`);
+    },
+  },
+  {
+    name: 'link: summary of a synthetic batch',
+    run() {
+      const line = (/** @type {string} */ ev, /** @type {number} */ at, /** @type {Record<string, unknown>} */ extra = {}) => ({ t: 'link', ev, batch: 1, at, ...extra });
+      const done = (/** @type {number} */ attempt, /** @type {number} */ at, /** @type {number} */ inflight) => line('complete', at, { slot: 1, attempt, ok: true, inflight, outcome: 'candidate' });
+      const lines = () => [
+        line('start', 0, { batchSeed: 'b', quantity: 10 }),
+        line('dispatch', 0, { slot: 1, attempt: 0, inflight: 1 }),
+        line('dispatch', 0, { slot: 1, attempt: 1, inflight: 2 }),
+        line('await', 1, { slot: 1, attempt: 0 }),
+        done(1, 10, 1),
+        done(0, 30, 0),
+        line('consume', 31, { slot: 1, attempt: 0, result: 'accepted', accepted: 1 }),
+        line('discard', 32, { slot: 1, attempt: 1, done: true }),
+        line('end', 32, { status: 'complete', reason: null, accepted: 1 }),
+      ];
+      const s = linkSummary(lines(), 4);
+      same({ ...s, batches: undefined }, {
+        dispatched: 2, completed: 2, consumed: { accepted: 1, rejected: 0, fail: {} }, discarded: { done: 1, inflight: 0 }, awaits: 1,
+        awaitMs: 30, idleWorkerMs: 2 * 9 + 3 * 20 + 4 * 1, problems: [], batches: undefined,
+      }, `the synthetic batch: ${JSON.stringify({ ...s, batches: undefined })}`);
+      assert(s.idleWorkerMs === 82 && s.batches.length === 1 && s.batches[0].batch === 1 && s.batches[0].idleWorkerMs === 82, `per batch: ${JSON.stringify(s.batches)}`);
+      const results = linkSummary([line('consume', 5, { slot: 1, attempt: 0, result: 'not-in-band' }), line('consume', 6, { slot: 1, attempt: 1, result: 'rejected' }), line('consume', 7, { slot: 1, attempt: 2, result: 'not-in-band' })], 4);
+      same([results.consumed.rejected, results.consumed.fail], [1, { 'not-in-band': 2 }], `the consumption results: ${JSON.stringify(results.consumed)}`);
+      const two = linkSummary([...lines(), ...lines().map((l) => ({ ...l, batch: 2 }))], 4);
+      assert(two.batches.length === 2 && two.dispatched === 4 && two.awaitMs === 60 && two.problems.length === 0, `two batches: ${JSON.stringify({ ...two, batches: two.batches.length })}`);
+      const noEnd = linkSummary(lines().slice(0, -1), 4);
+      assert(noEnd.problems.some((p) => p.includes('no end line')), `a batch without end: ${JSON.stringify(noEnd.problems)}`);
+      const neither = linkSummary(lines().filter((l) => !(l.slot === 1 && l.attempt === 1 && (l.ev === 'complete' || l.ev === 'discard'))), 4);
+      assert(neither.problems.some((p) => p.includes('task 1/1 was dispatched and neither completed nor discarded')), `a task with neither: ${JSON.stringify(neither.problems)}`);
+      const unknown = linkSummary([...lines().slice(0, 6), line('consume', 31, { slot: 2, attempt: 0, result: 'accepted' }), line('end', 32)], 4);
+      assert(unknown.problems.some((p) => p.includes('consumed task 2/0 was never dispatched')) && unknown.problems.some((p) => p.includes('consumed task 2/0 never completed')), `a consumed task never dispatched: ${JSON.stringify(unknown.problems)}`);
+    },
+  },
+  {
+    name: 'link: an awaited task discarded at the end',
+    run() {
+      const line = (/** @type {string} */ ev, /** @type {number} */ at, /** @type {Record<string, unknown>} */ extra = {}) => ({ t: 'link', ev, batch: 1, at, ...extra });
+      const s = linkSummary([
+        line('start', 0), line('dispatch', 0, { slot: 1, attempt: 0, inflight: 1 }), line('await', 1, { slot: 1, attempt: 0 }),
+        line('discard', 31, { slot: 1, attempt: 0, done: false }), line('end', 31, { status: 'cancelled', reason: null, accepted: 0 }),
+        line('complete', 40, { slot: 1, attempt: 0, ok: false, inflight: 0, outcome: 'error' }),
+      ], 4);
+      same({ ...s, batches: undefined }, {
+        dispatched: 1, completed: 1, consumed: { accepted: 0, rejected: 0, fail: {} }, discarded: { done: 0, inflight: 1 }, awaits: 1,
+        awaitMs: 30, idleWorkerMs: 3 * 30, problems: [], batches: undefined,
+      }, `the discarded await: ${JSON.stringify({ ...s, batches: undefined })}`);
+    },
+  },
+  {
+    name: 'link: timelines by outcome',
+    run() {
+      const set = { igSetMs: 20000, igAcceptedMs: [30000, 35000], acceptedCount: 2, responseMs: 40000 };
+      const start = [{ t: 'link', ev: 'start', batch: 1 }];
+      const problem = (/** @type {string} */ name, /** @type {any} */ run, /** @type {any[]} */ linkLines, /** @type {(p: string | null) => boolean} */ ok) => {
+        const p = timelineProblem(run, linkLines);
+        assert(ok(p), `${name}: ${JSON.stringify(p)}`);
+      };
+      const reason = (/** @type {string | null} */ p) => typeof p === 'string' && p !== 'incomplete';
+      problem('(a) no set', { igSetMs: null, igAcceptedMs: [], acceptedCount: 0, responseMs: 40000 }, [], (p) => p === null);
+      problem('(a2) no set, a batch', { igSetMs: null, igAcceptedMs: [], acceptedCount: 0, responseMs: 40000 }, start, reason);
+      problem('(b) a set, no acceptance', { igSetMs: 20000, igAcceptedMs: [], acceptedCount: 0, responseMs: 120000 }, [], (p) => p === null);
+      problem('(c) an ordinary row', set, [], (p) => p === null);
+      problem('(d) no igSetMs', { igAcceptedMs: set.igAcceptedMs, acceptedCount: 2, responseMs: 40000 }, [], (p) => p === 'incomplete');
+      problem('(e) the set after the first acceptance', { ...set, igSetMs: 31000 }, [], reason);
+      problem('(f) three accepted, two times', { ...set, acceptedCount: 3 }, [], reason);
+      problem('(g) no igAcceptedMs', { igSetMs: 20000, acceptedCount: 2, responseMs: 40000 }, [], (p) => p === 'incomplete');
+      problem('(h) responseMs not a number', { ...set, responseMs: null }, [], (p) => p === 'incomplete');
+      problem('(i) a decreasing list', { ...set, igAcceptedMs: [35000, 30000] }, [], reason);
+      problem('(j) an acceptance after the response', { ...set, responseMs: 34000 }, [], reason);
+      problem('(k) no set, yet accepted', { igSetMs: null, igAcceptedMs: [30000], acceptedCount: 1, responseMs: 40000 }, [], reason);
+      problem('(l) a set, a time without a count', { igSetMs: 20000, igAcceptedMs: [30000], acceptedCount: 0, responseMs: 40000 }, [], reason);
+      problem('(m) a negative set time', { ...set, igSetMs: -1 }, [], reason);
     },
   },
 ];

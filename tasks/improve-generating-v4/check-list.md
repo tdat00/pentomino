@@ -36,7 +36,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 - [x] T04e Stage-1 runs: source and identity receipt, certificate re-proof, parity and replay on real calls (depends on T04d and **the stage-1 allowance**)
 - [x] T04f The accepted stage-1 binding (depends on T04e)
 - [x] T05 Per-set prior (P4 part 2) in the prototype: value and transport (depends on T04f)
-- [ ] T06a Journal linkage of the batch and accept timelines (depends on T05)
+- [x] T06a Journal linkage of the batch and accept timelines (depends on T05)
 - [ ] T06b Journal closures for the work ledger: task identities and confirmed worker terminations (depends on T06a)
 - [ ] T07a P5 in the prototype: the per-call work budget (depends on T06b)
 - [ ] T07b P5 in the prototype: bounded set attempts, the arm `v4-p5`, pool invariance (depends on T07a)
@@ -477,8 +477,8 @@ directory once both `$env:TEMP\dv3-sudoku.lock` and `$env:TEMP\dv3-timing.lock` 
 | T04d | 2026-11-17 07:51 | 2026-11-17 08:16 | 24 min | 421.41 | `a082333` |
 | T04e | 2026-11-17 08:16 | 2026-11-17 11:18 | 3 h 2 min | 230.85 | `2f7a0ed` |
 | T04f | 2026-11-17 11:19 | 2026-11-17 11:34 | 15 min | 244.43 | `991520a` |
-| T05 | 2026-11-17 11:35 | 2026-11-17 12:07 | 33 min | 318.38 | this task's commit |
-| T06a | | | | | |
+| T05 | 2026-11-17 11:35 | 2026-11-17 12:07 | 33 min | 318.38 | `cc9f571` |
+| T06a | 2026-11-17 12:07 | 2026-11-17 12:28 | 21 min | 318.18 | this task's commit |
 | T06b | | | | | |
 | T07a | | | | | |
 | T07b | | | | | |

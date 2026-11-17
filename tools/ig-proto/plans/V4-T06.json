@@ -1,0 +1,57 @@
+{
+  "task": "V4-T06",
+  "allocationMinutes": 4,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "snapshot", "--task", "V4-T06"]
+    },
+    {
+      "id": "trees",
+      "locked": false,
+      "node": ["tools\\ig-proto\\lib\\tree.mjs", "build", "log-link", "v4-link", "v4-ps-link"]
+    },
+    {
+      "id": "arm-log-link",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 60,
+      "minHorizonS": 110,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "V4-T06", "--arm", "log-link", "--shard", "s1", "--variant", "log-link", "--workers", "4", "--cases", "26x26-nightmare:0-1", "--row-limit-s", "90"],
+      "state": "V4-T06\\log-link\\s1\\state.json"
+    },
+    {
+      "id": "arm-v4-link",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 40,
+      "minHorizonS": 110,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "V4-T06", "--arm", "v4-link", "--shard", "s1", "--variant", "v4-link", "--workers", "4", "--cases", "26x26-nightmare:0-1", "--row-limit-s", "90"],
+      "state": "V4-T06\\v4-link\\s1\\state.json"
+    },
+    {
+      "id": "publish-log-link",
+      "locked": false,
+      "node": ["tools\\ig-proto\\arm.mjs", "publish", "--task", "V4-T06", "--arm", "log-link"]
+    },
+    {
+      "id": "publish-v4-link",
+      "locked": false,
+      "node": ["tools\\ig-proto\\arm.mjs", "publish", "--task", "V4-T06", "--arm", "v4-link"]
+    },
+    {
+      "id": "report",
+      "locked": false,
+      "node": ["tools\\ig-proto\\linkage.mjs", "report", "--task", "V4-T06", "--arms", "log-link,v4-link", "--pool", "4"]
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "check", "--task", "V4-T06"]
+    }
+  ]
+}

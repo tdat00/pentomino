@@ -1,0 +1,8 @@
+{
+  "id": "v4-link",
+  "extends": ["v4", "link"],
+  "description": "gen-v4 prototype with the batch linkage journal (V4-T06): the same puzzles as v4, plus the linkage lines and the accept timeline.",
+  "edits": [],
+  "files": [],
+  "params": {}
+}

@@ -64,6 +64,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `v4-check.mjs`, `plans/V4-T04.parity.json`, `plans/V4-T04.replay.json`, `plans/V4-T04.json` | the stage-1 checks (V4-T04c, V4-T04d, V4-T04f): `run` expands an item manifest and runs its items; the parity and replay verdicts; `summary` writes the stage-1 receipt; `pm4-gate` is the early PM4 check; `evidence-check`, `accept` and `check-binding` are the accepted binding's commands; the plan of the stage-1 runs; see "Stage 1 checks (task pack v4)" |
 | `variants/<id>.json` | variant manifests; `variants/files/<name>/...` copy-only files |
 | `variants/v4-ps.json`, `plans/V4-T05.json`, `plans/V4-T05.prior-gen.json`, `plans/V4-T05.prior-replay.json` | the per-set prior arm `v4-ps` and the plan and manifests of its run (V4-T05); the verdict is `v4-check.mjs prior-verdict`; see "The per-set prior (V4-T05)" |
+| `variants/link.json`, `variants/log-link.json`, `variants/v4-link.json`, `variants/v4-ps-link.json`, `variants/files/link/`, `linkage.mjs`, `plans/V4-T06.json` | the batch linkage journal and its report (V4-T06): the variant `link` and its three compositions, `ig-link.js`, `linkage.mjs report` and the plan of its run; see "Batch linkage (V4-T06)" |
 
 ## Trees (variants)
 
@@ -80,6 +81,8 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `p6` | none | edits only, composed after `log`, never alone: P6 (OD-P2), `measureV3` skips the DLX diagnostic while `igDlx.skip` is on, and `withP6` (`ig-log.js`) turns it on around the search and recomputes the diagnostic once for the returned result, so the rating equals the canonical one (IGP-04) |
 | `w8` | none | edits only: `MAX_POOL_SIZE` 8, without P8's width and admission rules: an unadmitted throughput upper bound (IGP-04) |
 | `log-p6`, `log-p6-w8`, `p1p5-main-p6-w8` | `log`; `log`; `p1p5-main`, each with `p6` (and `w8`) | today's search with P6, with P6 and eight workers, and the headline prototype with P6 and eight workers (IGP-04) |
+| `link` | `log` | the batch linkage journal (V4-T06; see "Batch linkage (V4-T06)"): `core/browser/ig-link.js` and ten edits (`link-1` to `link-10`); composed after `log`, it changes no result |
+| `log-link`, `v4-link`, `v4-ps-link` | `log` and `link`; `v4` and `link`; `v4-ps` and `link` | today's search, the `gen-v4` prototype and the `gen-v4` prototype with the per-set prior, each with the linkage journal and the accept timeline (V4-T06); no edit of their own |
 
 Every variant except `base` gets `core/engine/ig-params.js` (`IG`, the merged params) and lists its added engine files
 in the copy's `SOURCE_FILES` (`meta-2`), so that the copy's own source digest tells variants apart. `treeId` is the
@@ -803,12 +806,13 @@ described in "Stage-1 item kinds" below.
   | `v4-replay` | `e + 120 <= H - 15` | at `H - 15`, `censored` | 2 |
 
 - **Self-test.** `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04a`
-  runs thirty-eight cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay),
+  runs forty-one cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay),
   one that computes the run identity (`itemIdentity`) of the frozen trees and runs nothing, V4-T04b's two (the pack
   files, on the file system only, and the item ledger, on synthetic journal lines; see below), V4-T04c's nine (the
   `checks:` cases, on synthetic rows; see "Stage 1 checks"), V4-T04d's eight (the `proof:` cases), V4-T04f's eleven (the
-  `accept:` cases; see "The accepted binding (V4-T04f)") and V4-T05's one (`items: per-set prior verdict`, on synthetic
-  rows; see "The per-set prior (V4-T05)"). Each running case uses
+  `accept:` cases; see "The accepted binding (V4-T04f)"), V4-T05's one (`items: per-set prior verdict`, on synthetic
+  rows; see "The per-set prior (V4-T05)") and V4-T06's three (the `link:` cases, on synthetic journal lines and run
+  records; see "Batch linkage (V4-T06)"). Each running case uses
   the scratch task `items-<n>` of the label `selftest`. The test kinds exist only with `testKinds`: `test-ok` returns
   `{ outcome: 'ok', echo }`, `test-throw` throws, `test-hold` blocks the worker for good and is a call kind of the lanes
   (the existing rule admits and cuts it), and `test-item` blocks the same way but is not a call kind, so only the item
@@ -1124,3 +1128,52 @@ batch start line, and `replayVerdict` passes; `incomplete` when no candidate was
 or no batch start line was journaled; else `fail`. The command prints `prior: <verdict>` (with the reasons when not
 `pass`) and exits 0 once the record is written. `plans/V4-T05.json` (6 minutes allocated) runs the two locked steps and
 the verdict through the runner; the self-test case `items: per-set prior verdict` is appended to `--items`.
+
+## Batch linkage (V4-T06)
+
+The variant `link` (`variants/link.json`, extends `log`, `params.link` true; copy-only file
+`variants/files/link/core/browser/ig-link.js`) journals every candidate task of a batch from dispatch to consumption or
+discard, on today's search and on the `gen-v4` prototype. It observes only: it changes no dispatch, fold or result. Ten
+edits carry it: `link-1` gives the batch call's journal `start` line the attempt string `"<slot>/<attempt>"` (`attempt`
+was `null` for batch calls; the set stage keeps its number); `link-2` to `link-9` call `ig-link.js` from the batch job
+of `core/browser/generation-client.js`; `link-10` adds `igSetMs` (the set's end, `null` without a complete set) and
+`igAcceptedMs` (the accept time of every valid puzzle, in order) to every run record of `tools/bench/runner.js`,
+measured from the start of the request like `responseMs`, with or without a set. A run record without the two fields is
+uninstrumented (an older arm), never a measured failure.
+
+With `IG_LOG_DIR` set (and `IG_ROW`) the batch writes `<IG_LOG_DIR>/<IG_ROW>.link.jsonl`, one line at a time, each with
+`t: 'link'`, `ev`, `batch` (1 in a row's process) and `at` (ms since the epoch): `start` (`batchSeed`, `quantity`);
+`calibration` (the calibration puzzle was accepted); `dispatch` (`slot`, `attempt`, `inflight` after the launch);
+`await` (the task the fold waits for, once per task; `slot` and `attempt` are `null` when it waits for nothing);
+`complete` (`ok`, `inflight` after the return, `outcome`: `candidate`, a candidate failure such as `not-in-band` or
+`layout`, or `error`); `consume` (the fold took the task: `result` is `accepted`, `rejected` or the candidate failure;
+`accepted` is the count so far); `discard` (a task the fold never consumed, with `done`: whether it had returned) and
+`end` (`status`, `reason`, `accepted`). The completion pass after a `layouts-not-found` stop is not linked. Without
+`IG_LOG_DIR` nothing is written. `log-link`, `v4-link` and `v4-ps-link` are the compositions with `log`, `v4` and
+`v4-ps` (no edit of their own).
+
+`node tools\ig-proto\linkage.mjs report --task <T> --arms <a,b> --pool <n> --label frozen --source-label <SL>`
+(unlocked) reads, per arm, the published rows (`evidence/frozen/<T>/<arm>/*.runs.json`) and, from
+`tests/artifacts/ig-proto/frozen/<T>/<arm>/<shard>/logs/`, each row's `<row>.link.jsonl` and worker journals, and writes
+`evidence/frozen/<T>/linkage.json|md`: per run the summary, `igSetMs`, `igAcceptedMs`, `attemptsMatched` (every worker
+journal `start` line of stage `batch` names an attempt that was dispatched) and the problems found. `linkSummary(lines,
+pool)` (exported) returns `dispatched`, `completed`, `consumed` (`accepted`, `rejected`, `fail` by reason), `discarded`
+(`done`, `inflight`), `awaits`, `awaitMs`, `idleWorkerMs` and `problems`, as totals over the batches of the lines and
+per batch in `batches`. An await period runs from an `await` line to the first later `consume` of the same task or the
+batch's `end` line (a discard or an abort does not end it); `idleWorkerMs` sums `(pool - inflight) x dt` over the
+periods, `inflight` stepping at every `dispatch` and `complete` line up to the period's end (a `complete` after `end` is
+ignored there). A problem is a consumed task that was never dispatched or never completed, a dispatched task with
+neither `complete` nor `discard`, a batch without `end`, or a line without a valid time. `timelineProblem(run,
+linkLines)` (exported) returns `null`, `'incomplete'` (a missing `igSetMs` or `igAcceptedMs`, or a `responseMs` that is
+not a finite number from 0) or a reason, by outcome: no set (`igSetMs` null) is valid with no accepted puzzle and no
+batch `start` line; a set with no acceptance is valid with an empty list; otherwise the list has one non-decreasing time
+per accepted puzzle, the first not before the set and the last not after the response.
+
+The verdict is `linkage: pass` when no batch has a problem, every run's timeline is valid, `attemptsMatched` holds for
+every row, a complete set has a batch `start` line, no link file lacks a published row, and each `log-link` row has the
+`resultDigest` of the same seed in T04e's `log` arm (`evidence/frozen/V4-T04/log/`, read only; the report lists one line
+per seed with `equal` or `differs`); `linkage: incomplete <rows>` (exit 2) when a run lacks a timeline field or an arm
+has no published row; else `linkage: fail <reasons>` (exit 1). The report is written in every case. `plans/V4-T06.json`
+(4 minutes allocated) runs `log-link` and `v4-link` on `26x26-nightmare:0-1` with four workers and then the report.
+The self-test cases `link: summary of a synthetic batch`, `link: an awaited task discarded at the end` and `link:
+timelines by outcome` are appended to `--items`.

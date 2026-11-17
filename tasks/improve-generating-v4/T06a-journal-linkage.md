@@ -244,13 +244,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 12:07:52 +07:00 (dispatch, base `cc9f571`) to 12:28:55 +07:00 (acceptance): 21 min 3 s; the developer's own times 12:08:14-12:24:24 (the plan 12:18:27-12:21:15) |
+| Waiting for rulings | about 5 min (12:24:24 report to 12:28 ruling); no developer wait (no fix round) |
+| Agent id, model | `e5a81423-516c-4239-8d84-5e5aed578c46`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 85 calls; 16,505,043 input, 89,162 output, 16,238,472 cache-read |
+| AI credits | 318.18 |
+| Questions and rulings | No `QUESTION:`. The developer's four readings (the `linkSummary` shape, a stricter report, verdict precedence, extra asserts), three named items and three gaps were relayed to the pack author; all accepted (12:28); the `t: 'link'` lines stay in the published calls files; T06a step 4 and T06b step 3 record the shape; pack amendment `dfbb5fb` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | Not re-run (the plan writes the evidence once): `linkage.md`: `linkage: pass`; `invocations.jsonl`: 2 invocations, 163.5 s counted (guard 300 s), round 2,724 s of 5,520 s. Unlocked gates re-run: `--items` 41 passed, 0 failed; `--frozen` 10 passed; `check-edits`: `link` 29, `log-link` 29, `v4-link` 50, `v4-ps-link` 57, no error; `v4` tree id `006431d6…` unchanged; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; firewall `check` (V4-T06): 289 production files unchanged; the guard `git status -- core generator tests tools/bench`: no output; evidence line endings consistent; `npm run check`: OK |
+| Commit | this task's commit, `improve-generating T06a: Journal linkage of the batch and accept timelines` |
+| Issues and named items | None new; `v4-ps-link` and the `rejected` and `fail` consumption paths get their first real runs in stage 2 (N-V4-02) |
