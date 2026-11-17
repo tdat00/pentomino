@@ -835,6 +835,12 @@ async function runCheck(args) {
   }
 }
 
+/** What `linkSummary` reports for a journal without closure lines (V4-T06b). */
+const NO_CLOSURE_LINES = Object.freeze({
+  setCompletes: 0, completionDispatches: 0, completionCompletes: 0, workerEndRequests: 0, workerEnds: 0, workerEndFailures: 0,
+  completionKeyMismatches: 0,
+});
+
 /** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
 const itemCases = [
   {
@@ -1951,7 +1957,7 @@ const itemCases = [
       const s = linkSummary(lines(), 4);
       same({ ...s, batches: undefined }, {
         dispatched: 2, completed: 2, consumed: { accepted: 1, rejected: 0, fail: {} }, discarded: { done: 1, inflight: 0 }, awaits: 1,
-        awaitMs: 30, idleWorkerMs: 2 * 9 + 3 * 20 + 4 * 1, problems: [], batches: undefined,
+        awaitMs: 30, idleWorkerMs: 2 * 9 + 3 * 20 + 4 * 1, problems: [], batches: undefined, ...NO_CLOSURE_LINES,
       }, `the synthetic batch: ${JSON.stringify({ ...s, batches: undefined })}`);
       assert(s.idleWorkerMs === 82 && s.batches.length === 1 && s.batches[0].batch === 1 && s.batches[0].idleWorkerMs === 82, `per batch: ${JSON.stringify(s.batches)}`);
       const results = linkSummary([line('consume', 5, { slot: 1, attempt: 0, result: 'not-in-band' }), line('consume', 6, { slot: 1, attempt: 1, result: 'rejected' }), line('consume', 7, { slot: 1, attempt: 2, result: 'not-in-band' })], 4);
@@ -1977,7 +1983,7 @@ const itemCases = [
       ], 4);
       same({ ...s, batches: undefined }, {
         dispatched: 1, completed: 1, consumed: { accepted: 0, rejected: 0, fail: {} }, discarded: { done: 0, inflight: 1 }, awaits: 1,
-        awaitMs: 30, idleWorkerMs: 3 * 30, problems: [], batches: undefined,
+        awaitMs: 30, idleWorkerMs: 3 * 30, problems: [], batches: undefined, ...NO_CLOSURE_LINES,
       }, `the discarded await: ${JSON.stringify({ ...s, batches: undefined })}`);
     },
   },
@@ -2005,6 +2011,93 @@ const itemCases = [
       problem('(k) no set, yet accepted', { igSetMs: null, igAcceptedMs: [30000], acceptedCount: 1, responseMs: 40000 }, [], reason);
       problem('(l) a set, a time without a count', { igSetMs: 20000, igAcceptedMs: [30000], acceptedCount: 0, responseMs: 40000 }, [], reason);
       problem('(m) a negative set time', { ...set, igSetMs: -1 }, [], reason);
+    },
+  },
+  {
+    name: 'link: a confirmed worker termination',
+    async run() {
+      const dir = fresh(join(SELFTEST_DIR, 'logs', 'link-worker-end'));
+      const tree = await ensureTree('log-link');
+      const { adaptNodeWorker } = await import(pathToFileURL(join(tree.root, 'tools', 'node-worker.mjs')).href);
+      writeFileSync(join(dir, 'idle.mjs'), 'import { parentPort } from \'node:worker_threads\'; parentPort.on(\'message\', () => {});\n');
+      const file = join(dir, 'w.link.jsonl');
+      /** @type {any[]} */
+      let lines = [];
+      let id = -1;
+      process.env.IG_LOG_DIR = dir;
+      process.env.IG_ROW = 'w';
+      try {
+        const w = new Worker(pathToFileURL(join(dir, 'idle.mjs')));
+        id = w.threadId;
+        adaptNodeWorker(w).terminate();
+        // The destination is gone before the termination completes: the closing line uses the one captured with the request.
+        delete process.env.IG_LOG_DIR;
+        delete process.env.IG_ROW;
+        const deadline = Date.now() + 2000;
+        while (Date.now() < deadline) {
+          lines = existsSync(file) ? readFileSync(file, 'utf8').split('\n').filter((l) => l !== '').map((l) => JSON.parse(l)) : [];
+          if (lines.length >= 2) {
+            break;
+          }
+          await new Promise((r) => setTimeout(r, 50));
+        }
+      } finally {
+        delete process.env.IG_LOG_DIR;
+        delete process.env.IG_ROW;
+      }
+      assert(Number.isInteger(id) && id > 0, `the worker's thread id ${id}`);
+      same(lines.map((l) => l.ev), ['worker-end-request', 'worker-end'], `the closing lines: ${JSON.stringify(lines)}`);
+      assert(lines.every((l) => l.t === 'link' && l.pid === process.pid && l.threadId === id), `pid and thread id: ${JSON.stringify(lines)}`);
+      assert(Number.isFinite(lines[0].at) && lines[1].at >= lines[0].at, `the end comes at or after the request: ${JSON.stringify(lines)}`);
+      assert(!lines.some((l) => l.ev === 'worker-end-failed'), `a failed termination: ${JSON.stringify(lines)}`);
+      const { igLinkWorker } = await import(pathToFileURL(join(tree.root, 'core', 'browser', 'ig-link.js')).href);
+      igLinkWorker('worker-end-failed', { pid: 7, threadId: 3, dir, row: 'f' }, new Error('boom'));
+      igLinkWorker('worker-end', { pid: 7, threadId: 3, dir: undefined, row: 'none' });
+      const failed = readFileSync(join(dir, 'f.link.jsonl'), 'utf8').split('\n').filter((l) => l !== '').map((l) => JSON.parse(l));
+      same(failed.map((l) => [l.ev, l.pid, l.threadId, l.error]), [['worker-end-failed', 7, 3, 'boom']], `a rejected termination: ${JSON.stringify(failed)}`);
+      assert(!existsSync(join(dir, 'none.link.jsonl')), 'a line was written without a log folder');
+    },
+  },
+  {
+    name: 'link: closure lines counted',
+    run() {
+      const line = (/** @type {string} */ ev, /** @type {Record<string, unknown>} */ extra = {}) => ({ t: 'link', ev, at: 1, ...extra });
+      const lines = [
+        line('set-complete', { attempt: 0, outcome: 'carve' }), line('set-complete', { attempt: 1, outcome: 'ok' }),
+        line('completion-dispatch', { batch: 1, index: 0, key: 'c/a' }),
+        line('completion-complete', { batch: 1, index: 0, key: 'c/a', valueKey: 'c/a', outcome: 'candidate' }),
+        line('completion-complete', { batch: 1, index: 1, key: 'c/b', valueKey: 'c/other', outcome: 'candidate' }),
+        line('worker-end-request', { pid: 1, threadId: 1 }), line('worker-end-request', { pid: 1, threadId: 2 }),
+        line('worker-end-request', { pid: 1, threadId: 3 }),
+        line('worker-end', { pid: 1, threadId: 1 }), line('worker-end', { pid: 1, threadId: 2 }),
+        line('worker-end-failed', { pid: 1, threadId: 3, error: 'boom' }),
+      ];
+      const s = linkSummary(lines, 4);
+      same([s.setCompletes, s.completionDispatches, s.completionCompletes, s.workerEndRequests, s.workerEnds, s.workerEndFailures, s.completionKeyMismatches],
+        [2, 1, 2, 3, 2, 1, 1], `the closure counts: ${JSON.stringify({ ...s, batches: undefined })}`);
+      assert(s.batches.length === 0 && s.problems.length === 0 && s.dispatched === 0, `the closure lines belong to no batch: ${JSON.stringify(s)}`);
+      const none = linkSummary([line('completion-complete', { index: 0, key: 'c/a', valueKey: null, outcome: 'not-in-band' })], 4);
+      assert(none.completionCompletes === 1 && none.completionKeyMismatches === 0, `a value without a key is no mismatch: ${JSON.stringify({ ...none, batches: undefined })}`);
+      const batch = [line('start', { batch: 1 }), line('end', { batch: 1, status: 'complete', reason: null, accepted: 0 })];
+      const mixed = linkSummary([...lines, ...batch], 4);
+      assert(mixed.batches.length === 1 && mixed.problems.length === 0 && mixed.workerEnds === 2, `closure lines beside a batch: ${JSON.stringify(mixed)}`);
+    },
+  },
+  {
+    name: 'link: the completion key helper',
+    async run() {
+      const tree = await ensureTree('log-link');
+      const { igCompletionKey } = await import(pathToFileURL(join(tree.root, 'core', 'browser', 'ig-link.js')).href);
+      const e = await loadEngine(tree.root);
+      const entry = caseBoard('10x10-hard');
+      const carved = firstCarvedSet(e, { boardRows: entry.boardRows, levelId: entry.levelId, seedText: 'ig-selftest/link/key' });
+      if (!carved.ok) {
+        throw new Error(`no carved set for the key: ${carved.reason}`);
+      }
+      const key = igCompletionKey(carved.set, carved.set.witness);
+      assert(typeof key === 'string' && key === `c/${e.keys.layoutKey(carved.board, carved.set.pieces, carved.set.witness)}` && key.length > 2,
+        `the key of a real layout: ${key}`);
+      assert(igCompletionKey({}, []) === null && igCompletionKey(null, null) === null, 'the helper threw or returned a key for an invalid input');
     },
   },
 ];

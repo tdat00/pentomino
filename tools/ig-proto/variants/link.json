@@ -1,7 +1,7 @@
 {
   "id": "link",
   "extends": ["log"],
-  "description": "Batch linkage journal (V4-T06, plan P5 IG-P-Q22): dispatch, await, completion, consumption and discard of every candidate task, and the accept timeline in the run records. Composed after log; it changes no result.",
+  "description": "Batch linkage journal (V4-T06, plan P5 IG-P-Q22): dispatch, await, completion, consumption and discard of every candidate task, and the accept timeline in the run records. Composed after log; it changes no result; closures for the work ledger (V4-T06b).",
   "edits": [
     {
       "id": "link-1",
@@ -61,6 +61,46 @@
       "file": "tools/bench/runner.js",
       "find": "  run.responseMs = s.tDone - s.t0;\n",
       "replace": "  run.responseMs = s.tDone - s.t0;\n  run.igSetMs = s.set?.status === 'complete' ? s.tSet - s.t0 : null;\n  run.igAcceptedMs = kept.map((v) => s.acceptedAt[v.index] - s.t0);\n"
+    },
+    {
+      "id": "link-11",
+      "file": "core/browser/generation-client.js",
+      "find": "        emit(hooks.onProgress, {\n          revision: job.revision, job: /** @type {const} */ ('set'), stage: 'carving', attempt: j, elapsedMs: clock.now() - job.startedAt,\n",
+      "replace": "        igLink('set-complete', { attempt: j, outcome: isObject(value) && value.ok === true ? 'ok' : isObject(value) ? String(value.reason) : 'invalid' });\n        emit(hooks.onProgress, {\n          revision: job.revision, job: /** @type {const} */ ('set'), stage: 'carving', attempt: j, elapsedMs: clock.now() - job.startedAt,\n"
+    },
+    {
+      "id": "link-12",
+      "file": "core/browser/generation-client.js",
+      "find": "              Object.assign(entry, { done: true, ok: true, value });\n              job.wake?.();\n",
+      "replace": "              Object.assign(entry, { done: true, ok: true, value });\n              igLink('completion-complete', { index: entries.indexOf(entry), key: igCompletionKey(set, layout), valueKey: isObject(value) && typeof value.layoutKey === 'string' ? 'c/' + value.layoutKey : null, outcome: isObject(value) && typeof value.fail === 'string' ? value.fail : 'candidate' });\n              job.wake?.();\n"
+    },
+    {
+      "id": "link-13",
+      "file": "tools/node-worker.mjs",
+      "find": "    terminate: () => {\n      worker.terminate().catch(() => {});\n    },\n",
+      "replace": "    terminate: () => {\n      const igId = igWorkerId(worker);\n      igLinkWorker('worker-end-request', igId);\n      worker.terminate().then(() => igLinkWorker('worker-end', igId), (e) => igLinkWorker('worker-end-failed', igId, e));\n    },\n"
+    },
+    {
+      "id": "link-14",
+      "file": "tools/node-worker.mjs",
+      "append": "\n// ig-proto, variant link (V4-T06b): confirmed worker terminations for the work ledger.\nimport { igLinkWorker, igWorkerId } from '../core/browser/ig-link.js';\n"
+    },
+    {
+      "id": "link-15",
+      "file": "core/browser/generation-client.js",
+      "find": "            const layout = unused[launched];\n            launched += 1;\n",
+      "replace": "            const layout = unused[launched];\n            launched += 1;\n            igLink('completion-dispatch', { index: launched - 1, key: igCompletionKey(set, layout) });\n"
+    },
+    {
+      "id": "link-16",
+      "file": "core/engine/generate.js",
+      "find": "    igStage: 'completion',\n",
+      "replace": "    igStage: 'completion',\n    igAttempt: 'c/' + key,\n"
+    },
+    {
+      "id": "link-17",
+      "file": "core/browser/generation-client.js",
+      "append": "\n// ig-proto, variant link (V4-T06b): completion keys.\nimport { igCompletionKey } from './ig-link.js';\n"
     }
   ],
   "files": ["link"],

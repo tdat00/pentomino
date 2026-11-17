@@ -1,8 +1,9 @@
 // @ts-check
 // Batch linkage report (task pack v4, V4-T06): reads the `<row>.link.jsonl` journals that the variant `link` writes
-// (dispatch, await, completion, consumption and discard of every candidate task of a batch), the arms' published
-// rows and the worker journals, and writes `evidence/<label>/<task>/linkage.json|md` with the verdict
-// `linkage: pass | incomplete | fail`. Unlocked: it measures nothing.
+// (dispatch, await, completion, consumption and discard of every candidate task of a batch, and the closure lines of
+// the work ledger, V4-T06b), the arms' published rows and the worker journals, and writes
+// `evidence/<label>/<task>/linkage.json|md` with the verdict `linkage: pass | incomplete | fail`. Unlocked: it measures
+// nothing.
 //   node tools\ig-proto\linkage.mjs report --task <T> --arms <a,b> --pool <n> --label frozen --source-label <SL>
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -135,18 +136,53 @@ function batchSummary(batch, lines, pool) {
 }
 
 /**
+ * @typedef {Omit<BatchSummary, 'batch'> & {
+ *   batches: BatchSummary[], setCompletes: number, completionDispatches: number, completionCompletes: number,
+ *   workerEndRequests: number, workerEnds: number, workerEndFailures: number, completionKeyMismatches: number,
+ * }} LinkSummary
+ */
+
+/**
+ * The closure lines of the work ledger (V4-T06b) and the counter each one adds to. They are counted over the whole
+ * row and are not part of a batch's timeline: a `set-complete` line comes before any batch and a worker line names
+ * no batch, so grouping them would make a batch without an `end` line.
+ */
+const CLOSURE_LINES = Object.freeze({
+  'set-complete': 'setCompletes',
+  'completion-dispatch': 'completionDispatches',
+  'completion-complete': 'completionCompletes',
+  'worker-end-request': 'workerEndRequests',
+  'worker-end': 'workerEnds',
+  'worker-end-failed': 'workerEndFailures',
+});
+
+/**
  * The linkage of a row's journal: per batch, how many candidate tasks were dispatched, completed, consumed (and with
  * what result) and discarded, the await periods of the fold and the worker time idle behind them. The fields of the
- * result are the totals over the batches of `lines` (a run has one batch); `batches` holds each batch apart.
+ * result are the totals over the batches of `lines` (a run has one batch); `batches` holds each batch apart. The
+ * closure lines are counted at the top level: set attempts and completion tasks that returned, completion tasks
+ * dispatched, worker terminations requested, confirmed and failed, and the completion tasks whose own key differs
+ * from the key of the candidate they returned.
  * @param {any[]} lines The link lines (`t: 'link'`) of one row, in file order; other lines are ignored.
  * @param {number} pool The width of the worker pool.
- * @returns {Omit<BatchSummary, 'batch'> & { batches: BatchSummary[] }}
+ * @returns {LinkSummary}
  */
 export function linkSummary(lines, pool) {
   /** @type {Map<number | undefined, any[]>} */
   const groups = new Map();
+  const closures = {
+    setCompletes: 0, completionDispatches: 0, completionCompletes: 0, workerEndRequests: 0, workerEnds: 0, workerEndFailures: 0,
+    completionKeyMismatches: 0,
+  };
   for (const line of lines) {
     if (line?.t !== 'link') {
+      continue;
+    }
+    if (Object.hasOwn(CLOSURE_LINES, line.ev)) {
+      closures[CLOSURE_LINES[/** @type {keyof typeof CLOSURE_LINES} */ (line.ev)]] += 1;
+      if (line.ev === 'completion-complete' && typeof line.valueKey === 'string' && line.valueKey !== line.key) {
+        closures.completionKeyMismatches += 1;
+      }
       continue;
     }
     const group = groups.get(line.batch) ?? [];
@@ -154,10 +190,10 @@ export function linkSummary(lines, pool) {
     groups.set(line.batch, group);
   }
   const batches = [...groups].map(([batch, group]) => batchSummary(batch, group, pool));
-  /** @type {Omit<BatchSummary, 'batch'> & { batches: BatchSummary[] }} */
+  /** @type {LinkSummary} */
   const total = {
     dispatched: 0, completed: 0, consumed: { accepted: 0, rejected: 0, fail: {} }, discarded: { done: 0, inflight: 0 },
-    awaits: 0, awaitMs: 0, idleWorkerMs: 0, problems: [], batches,
+    awaits: 0, awaitMs: 0, idleWorkerMs: 0, problems: [], batches, ...closures,
   };
   for (const b of batches) {
     total.dispatched += b.dispatched;
@@ -329,6 +365,9 @@ async function reportCommand(argv) {
         const summary = linkSummary(linkLines, pool);
         /** @type {string[]} */
         const problems = [...link.problems, ...summary.problems];
+        if (summary.completionKeyMismatches > 0) {
+          problems.push(`${summary.completionKeyMismatches} completion task(s) returned a candidate of another layout key than their own`);
+        }
         const timeline = timelineProblem(run, linkLines);
         if (timeline === 'incomplete') {
           incomplete.push(id);

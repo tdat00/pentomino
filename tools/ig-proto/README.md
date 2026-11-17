@@ -81,7 +81,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `p6` | none | edits only, composed after `log`, never alone: P6 (OD-P2), `measureV3` skips the DLX diagnostic while `igDlx.skip` is on, and `withP6` (`ig-log.js`) turns it on around the search and recomputes the diagnostic once for the returned result, so the rating equals the canonical one (IGP-04) |
 | `w8` | none | edits only: `MAX_POOL_SIZE` 8, without P8's width and admission rules: an unadmitted throughput upper bound (IGP-04) |
 | `log-p6`, `log-p6-w8`, `p1p5-main-p6-w8` | `log`; `log`; `p1p5-main`, each with `p6` (and `w8`) | today's search with P6, with P6 and eight workers, and the headline prototype with P6 and eight workers (IGP-04) |
-| `link` | `log` | the batch linkage journal (V4-T06; see "Batch linkage (V4-T06)"): `core/browser/ig-link.js` and ten edits (`link-1` to `link-10`); composed after `log`, it changes no result |
+| `link` | `log` | the batch linkage journal (V4-T06, V4-T06b; see "Batch linkage (V4-T06)"): `core/browser/ig-link.js` and seventeen edits (`link-1` to `link-17`); composed after `log`, it changes no result |
 | `log-link`, `v4-link`, `v4-ps-link` | `log` and `link`; `v4` and `link`; `v4-ps` and `link` | today's search, the `gen-v4` prototype and the `gen-v4` prototype with the per-set prior, each with the linkage journal and the accept timeline (V4-T06); no edit of their own |
 
 Every variant except `base` gets `core/engine/ig-params.js` (`IG`, the merged params) and lists its added engine files
@@ -1139,7 +1139,11 @@ was `null` for batch calls; the set stage keeps its number); `link-2` to `link-9
 of `core/browser/generation-client.js`; `link-10` adds `igSetMs` (the set's end, `null` without a complete set) and
 `igAcceptedMs` (the accept time of every valid puzzle, in order) to every run record of `tools/bench/runner.js`,
 measured from the start of the request like `responseMs`, with or without a set. A run record without the two fields is
-uninstrumented (an older arm), never a measured failure.
+uninstrumented (an older arm), never a measured failure. Seven more edits (V4-T06b) record what the work ledger needs
+to close every selection call of a request: `link-11` and `link-12` the outcome of every set attempt and completion
+task that returned, `link-13` and `link-14` every worker termination of `tools/node-worker.mjs`, `link-15` the dispatch
+of every completion task, `link-16` the identity of a completion call in the worker journal and `link-17` the import
+of the key helper in the client.
 
 With `IG_LOG_DIR` set (and `IG_ROW`) the batch writes `<IG_LOG_DIR>/<IG_ROW>.link.jsonl`, one line at a time, each with
 `t: 'link'`, `ev`, `batch` (1 in a row's process) and `at` (ms since the epoch): `start` (`batchSeed`, `quantity`);
@@ -1148,9 +1152,21 @@ With `IG_LOG_DIR` set (and `IG_ROW`) the batch writes `<IG_LOG_DIR>/<IG_ROW>.lin
 `complete` (`ok`, `inflight` after the return, `outcome`: `candidate`, a candidate failure such as `not-in-band` or
 `layout`, or `error`); `consume` (the fold took the task: `result` is `accepted`, `rejected` or the candidate failure;
 `accepted` is the count so far); `discard` (a task the fold never consumed, with `done`: whether it had returned) and
-`end` (`status`, `reason`, `accepted`). The completion pass after a `layouts-not-found` stop is not linked. Without
-`IG_LOG_DIR` nothing is written. `log-link`, `v4-link` and `v4-ps-link` are the compositions with `log`, `v4` and
-`v4-ps` (no edit of their own).
+`end` (`status`, `reason`, `accepted`). Without `IG_LOG_DIR` nothing is written. `log-link`, `v4-link` and `v4-ps-link`
+are the compositions with `log`, `v4` and `v4-ps` (no edit of their own).
+
+The closure lines (V4-T06b) go to the same file and are not part of a batch's timeline: `set-complete` (`attempt`,
+`outcome`: `ok`, a selection reason, a pre-selection reason such as `carve` or `layout`, or `invalid`) for every set
+attempt that returned; `completion-dispatch` (`index`, `key`) and `completion-complete` (`index`, `key`, `valueKey`,
+`outcome`: `candidate` or the failure) for every task of the completion pass after a `layouts-not-found` stop; and
+`worker-end-request`, `worker-end` and `worker-end-failed` (`pid`, `threadId`, and `error` for the last) for every
+worker termination. A completion task's identity is `key`, `"c/"` and the layout key that the client computes with
+`layoutKey` from the request's set and the layout it sends (`null`, never an exception, when it cannot); the worker
+journal's `start` line of that call carries the same string as `attempt` (`link-16`), and `valueKey` is `"c/"` and the
+layout key of the candidate that came back (`null` without one). A termination request closes nothing: `worker-end` is
+written only when the promise of `worker.terminate()` has fulfilled, with the `pid` and `threadId` of the worker and
+the folder and row captured before the request, and a rejection is written as `worker-end-failed`. A task that never
+returned writes no outcome line, and a termination that has not completed writes no `worker-end`.
 
 `node tools\ig-proto\linkage.mjs report --task <T> --arms <a,b> --pool <n> --label frozen --source-label <SL>`
 (unlocked) reads, per arm, the published rows (`evidence/frozen/<T>/<arm>/*.runs.json`) and, from
@@ -1159,7 +1175,10 @@ With `IG_LOG_DIR` set (and `IG_ROW`) the batch writes `<IG_LOG_DIR>/<IG_ROW>.lin
 journal `start` line of stage `batch` names an attempt that was dispatched) and the problems found. `linkSummary(lines,
 pool)` (exported) returns `dispatched`, `completed`, `consumed` (`accepted`, `rejected`, `fail` by reason), `discarded`
 (`done`, `inflight`), `awaits`, `awaitMs`, `idleWorkerMs` and `problems`, as totals over the batches of the lines and
-per batch in `batches`. An await period runs from an `await` line to the first later `consume` of the same task or the
+per batch in `batches`; at the top level only it also counts the closure lines of the whole row: `setCompletes`,
+`completionDispatches`, `completionCompletes`, `workerEndRequests`, `workerEnds` and `workerEndFailures`, and
+`completionKeyMismatches`, the `completion-complete` lines whose string `valueKey` differs from `key`. An await period
+runs from an `await` line to the first later `consume` of the same task or the
 batch's `end` line (a discard or an abort does not end it); `idleWorkerMs` sums `(pool - inflight) x dt` over the
 periods, `inflight` stepping at every `dispatch` and `complete` line up to the period's end (a `complete` after `end` is
 ignored there). A problem is a consumed task that was never dispatched or never completed, a dispatched task with
@@ -1170,10 +1189,12 @@ batch `start` line; a set with no acceptance is valid with an empty list; otherw
 per accepted puzzle, the first not before the set and the last not after the response.
 
 The verdict is `linkage: pass` when no batch has a problem, every run's timeline is valid, `attemptsMatched` holds for
-every row, a complete set has a batch `start` line, no link file lacks a published row, and each `log-link` row has the
+every row, a complete set has a batch `start` line, no link file lacks a published row, no completion task returned a
+candidate of another layout key than its own, and each `log-link` row has the
 `resultDigest` of the same seed in T04e's `log` arm (`evidence/frozen/V4-T04/log/`, read only; the report lists one line
 per seed with `equal` or `differs`); `linkage: incomplete <rows>` (exit 2) when a run lacks a timeline field or an arm
 has no published row; else `linkage: fail <reasons>` (exit 1). The report is written in every case. `plans/V4-T06.json`
 (4 minutes allocated) runs `log-link` and `v4-link` on `26x26-nightmare:0-1` with four workers and then the report.
 The self-test cases `link: summary of a synthetic batch`, `link: an awaited task discarded at the end` and `link:
-timelines by outcome` are appended to `--items`.
+timelines by outcome` are appended to `--items`, and with the closure lines (V4-T06b) `link: a confirmed worker
+termination`, `link: closure lines counted` and `link: the completion key helper`.

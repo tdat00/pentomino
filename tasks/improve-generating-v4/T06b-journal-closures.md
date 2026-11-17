@@ -162,13 +162,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 12:29:14 +07:00 (dispatch, base `100bb05`) to 12:41:31 +07:00 (acceptance): 12 min 17 s; the developer's own times 12:29:37-12:37:41 |
+| Waiting for rulings | about 4 min (12:37:41 report to 12:41 ruling); no developer wait (no fix round) |
+| Agent id, model | `2e9190cb-9670-4297-b000-a15d4a643b3f`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 67 calls; 9,644,440 input, 57,796 output, 9,457,951 cache-read |
+| AI credits | 198.99 |
+| Questions and rulings | No `QUESTION:`. The developer's four deviations (T06a's whole-object cases gain the zero counts; closure lines counted per row; extra checks and a third case; the README), three named items and two gaps were relayed to the pack author; all accepted (12:41); T09c rule 7 now states that a worker that died before its termination logs `threadId` -1 and matches no call (new test input); pack amendment `32a6b2f` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--items`: 44 passed, 0 failed; `--frozen`: 10 passed; `check-edits`: `link` 36, `log-link` 36, `v4-link` 57, `v4-ps-link` 64, no error; `v4` tree id `006431d6…` unchanged; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; firewall `check` (V4-T06b): 289 production files unchanged; the guard `git status -- core generator tests tools/bench tools/node-worker.mjs docs/improve-generating/evidence`: no output; `npm run check`: OK. No machine time counted (round still 2,724 s of 5,520 s) |
+| Commit | this task's commit, `improve-generating T06b: Journal closures for the work ledger: task identities and confirmed worker terminations` |
+| Issues and named items | None new; the first real closure lines are in stage 2 (N-V4-02) |
