@@ -98,7 +98,11 @@ price it. It dry-runs the plans and stops so that the orchestrator can put the p
    with their section numbers; (7) T11b's pricing rules (its export `PRICING`), its ceilings from enforced bounds and the overhead
    assumptions (a horizon of 285 s for every invocation, although the runner's `decide` lowers it near the approved
    cap, which the price does not model; `factor()` 1 when the identity file is absent; a cell without an MP12b1 report,
-   `20x20-hell-1` today, priced at its row limit); (8) the difference from the plan's indication (stage 4 about 3.4 to
+   `20x20-hell-1` today, priced at its row limit; the P-1 passes priced at their reserves for want of a measured `fr-*`
+   item, T11c's `durationSource` `reserve`: the seven of `V4-S2` 141.8 counted minutes, about 37 at the `v4` measures of
+   34.6, 23.6 and 16.3 s per select, generate and replay item, so that `V4-S2` would be about 564 minutes instead of
+   669, and the four of `V4-S4`, priced at its activation, about 81 minutes at their reserves: ruling of 2026-11-17,
+   T11c's QUESTION 2); (8) the difference from the plan's indication (stage 4 about 3.4 to
    4.2 h): the universe's counted minutes and their causes, each with its minutes: both twins on every validated cell,
    the comparator, the ten controls (T11a's ruling of 2026-11-17), the 260-s limit of today's, the comparator and
    every stage-2 group, which admits one row per invocation (a 285-s horizon under the helper's 300-s limit), so that

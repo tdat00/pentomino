@@ -7,7 +7,7 @@
 | Depends on | T11b; T04c, T04d and T04f (`v4-check.mjs`, `lib/proof.mjs`: `checkAccepted`, `LIVE_DEADLINE_FIELDS`); T09e (`verdicts.mjs`) |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (claude-sonnet-5.5) |
-| Estimate | developer 3 h, machine 0 min (data and pure functions; synthetic cases, unlocked) |
+| Estimate | developer 3.5 h (3 h, then a fix round of 0.5 h after its report: ruling of 2026-11-17), machine 0 min (data and pure functions; synthetic cases and dry runs, unlocked) |
 
 ## Goal
 
@@ -55,7 +55,7 @@ collection; T11f resolves its comparators.
 ## Scope
 
 - Change: `tools/ig-proto/manifest.mjs` (steps 1 to 3), `tools/ig-proto/self-test.mjs` (cases appended to `--items`),
-  `tools/ig-proto/README.md` (T11a's section).
+  `tools/ig-proto/README.md` (T11a's section), `tools/ig-proto/run-task.ps1` (line 39 only, step 6).
 - Create (by the `compile` command of step 2, kept): `tools/ig-proto/plans/V4-S2.json`, `V4-LIVE.json`,
   `V4-S4.universe.json`, `V4-S4X.template.json`, and the item manifests `tools/ig-proto/plans/items/V4-S2P.p0-v4.json`,
   `V4-S2P.parity-<arm>.json` (the seven stage-2 arms) and `V4-S4P.parity-<arm>.json` (the four stage-4 arms).
@@ -131,14 +131,19 @@ collection; T11f resolves its comparators.
      --rounds 3`, state `V4-S2W\run\state.json`, `price` of `{ type: 'process', durationsS: <8 entries: widths 1, 2, 4
      and 8 of each case, T10c>, reserveS: 120 }`), unlocked `width-report` (`tools\ig-proto\width-probe.mjs report
      --task V4-S2W`); `firewall-check`. Each probe step's `price` input records its `cases`, equal to the `--cases`
-     of its `node`.
+     of its `node`. The proofs come first (ruling of 2026-11-17, T11c's report: a failed or incomplete proof then stops the
+     plan before any request row runs): the steps are emitted in the order `prerequisites`, `firewall-snapshot`, `trees`,
+     the P-0 steps, the P-1 passes (in the order of the arms above), the row steps, the `publish-<arm>` steps, the probes
+     and `firewall-check`.
    - **`V4-LIVE`** (`runnable: false`, `blockedBy: ['N-V4-03', 'N-V4-13']`, `prerequisites`: `{ type: 'variant', id:
      'fr-frozen' }`, `{ type: 'file', path: 'docs/improve-generating/evidence/frozen/V4-S3/freeze.json' }`, `{ type:
      'file', path: 'tools/ig-proto/live-deadline.mjs' }`, `{ type: 'accepted', path:
      'docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json', current: ['v4'] }`): `prerequisites`;
-     `trees` (`build fr-frozen`); the `live` groups as `rowStep`s (task `V4-LIVE`, row limit 260);
-     `publish-fr-frozen`; `live-receipt` (unlocked, `tools\ig-proto\live-deadline.mjs receipt --task V4-LIVE`,
-     `produces` `docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.json`); `accept-live` (unlocked,
+     `firewall-snapshot` (its `firewall-check` needs it: ruling of 2026-11-17, T11c's QUESTION 3); `trees` (`build
+     fr-frozen`); the `live` groups as `rowStep`s (task `V4-LIVE`, row limit 260); `publish-fr-frozen`; `live-receipt`
+     (unlocked, `tools\ig-proto\live-deadline.mjs receipt --task V4-LIVE --require-pass`, a mandatory proof, D-V4-19;
+     `produces` `docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.json`; `expect` `receipt: live-deadline
+     pass -> docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.json`, N-V4-13); `accept-live` (unlocked,
      `tools\ig-proto\v4-check.mjs accept --task V4-LIVE --receipt
      docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.json --binding
      docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.accepted.json --by V4-LIVE`); `firewall-check`.
@@ -175,6 +180,13 @@ collection; T11f resolves its comparators.
    stops at its first step (`run-task.ps1`: a nonzero unlocked step stops the plan).
 5. **Self-test** cases appended to `--items` (Tests table); **README.md**: T11a's section gains the plans, their order,
    the isolated P-0, the universe and the templates, and the prerequisites gate.
+6. **The runner reads the plans** (ruling of 2026-11-17, T11c's QUESTION 1, option (a)). A rows step's `price` holds `rows`
+   and `rowS`, keys that differ only in case, which PowerShell 7's `ConvertFrom-Json` refuses. `tools/ig-proto/run-task.ps1`
+   line 39 becomes `$planObj = Get-Content -LiteralPath $planPath -Raw | ConvertFrom-Json -AsHashtable` (case-sensitive
+   keys); nothing else in the runner changes (the state files and the budget decisions are read as before). Every plan
+   under `tools/ig-proto/plans/` uses exactly the key names the runner reads and has no two keys that differ only in case
+   outside these price inputs (checked by the pack author), so the earlier plans read as before. The README replaces the
+   open point with the rule: a PowerShell reader of a compiled plan, template or manifest uses `-AsHashtable`.
 
 ## Tests
 
@@ -185,7 +197,7 @@ durations (`{ 'v4-select/*': 30, 'v4-generate/*': 120, 'v4-replay/*': 30 }`).
 |---|---|---|
 | `compile: no unresolved argument` | every `node` of every plan | an array of strings; none contains `<`, `>`, `resolved after` or `shipped-uncapped`; its first element is a script that exists (`existsSync`) or `tools\ig-proto\live-deadline.mjs` (string values), a `file` prerequisite of `V4-LIVE`; `accept-p0`'s first element is `tools\ig-proto\v4-check.mjs`; the two templates have no `node` |
 | `compile: producers before consumers` | the plans `V4-S2` and `V4-LIVE` in that order | every path a step consumes is produced by an earlier step of its plan, by an earlier plan, or is a `file` or `accepted` prerequisite of its plan |
-| `compile: P-0 is isolated and required` | the P-0 manifest and steps | the manifest has `task` `V4-S2P`, `step` `p0-v4` and the 8 rows of `V4-T04.parity.json` with equal `(kind, variant, caseId, seedText, modes)`, which expand to the same 23 `(variant, caseId, seedText, mode)` items; `p0-v4`'s `node` has `--task V4-S2P --step p0-v4` and `state` `V4-S2P\p0-v4\state.json`; `receipt-p0` follows it with `--kind p0-identity` and `--require-pass`; `accept-p0` follows the receipt; `V4-LIVE`'s prerequisites contain `{ type: 'accepted', path: 'docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json', current: ['v4'] }` |
+| `compile: P-0 is isolated and required` | the P-0 manifest and steps | the manifest has `task` `V4-S2P`, `step` `p0-v4` and the 8 rows of `V4-T04.parity.json` with equal `(kind, variant, caseId, seedText, modes)`, which expand to the same 23 `(variant, caseId, seedText, mode)` items; `p0-v4`'s `node` has `--task V4-S2P --step p0-v4` and `state` `V4-S2P\p0-v4\state.json`; `receipt-p0` follows it with `--kind p0-identity` and `--require-pass`; `accept-p0` follows the receipt; `V4-LIVE`'s prerequisites contain `{ type: 'accepted', path: 'docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json', current: ['v4'] }`; in `V4-S2` the steps after `trees` are `p0-v4`, `receipt-p0`, `accept-p0`, then `parity-<arm>`, `receipt-<arm>` and `accept-<arm>` of the seven arms in order, all before the first `rows-` step; `V4-LIVE`'s `live-receipt` has `--require-pass` (ruling of 2026-11-17) |
 | `compile: no executable stage-4 plan` | `plans` and `templates` | `plans` holds only `V4-S2` and `V4-LIVE`; the universe and the S4X template have `runnable: false` and no `node`; the universe's `initial.comparators` are every comparator group of collection `initial`, and its `second` collection holds every S4-7 group |
 | `compile: disjoint state paths` | every locked step of the two plans | no two share `state`; `V4-S2\fr-base\pilot-14x14-nightmare\state.json` and `V4-S2P\p0-v4\state.json` exist; no state is under `V4-T04\` |
 | `compile: each step priced as it runs` | every locked step | `projectS` and `invocations` equal `stepPrice(step.price)`'s; `allocationMinutes` the ceiling of the required steps' `projectS + 45 x invocations` over 60, `optionalMinutes` the same for the optional ones |
@@ -204,6 +216,9 @@ durations (`{ 'v4-select/*': 30, 'v4-generate/*': 120, 'v4-replay/*': 30 }`).
 | `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T11c` | root | every `--items` case passes, exit 0 | 3 min |
 | `node tools\ig-proto\manifest.mjs compile --label frozen --source-label "frozen 3fc65f4"` | root | one `wrote <path>` line per file of the Scope's list, then `compile: 16 files`; exit 0 | 2 min |
 | `node tools\ig-proto\manifest.mjs check-prerequisites --plan V4-LIVE --label frozen --source-label "frozen 3fc65f4"` | root | `prerequisites: blocked (variant fr-frozen missing; ...)`, exit 1 (expected: the stage-4 arms are later work) | 1 min |
+| `pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\V4-S2.json -Label frozen -SourceLabel 'frozen 3fc65f4' -DryRun` (step 6) | root | exit 0; one `[dry run]` line per step, the last `[dry run] forecast of the plan: 40,085 s counted (allocation 40,140 s, guard 50,175 s)`; with no approval given every locked step says `stop` with its budget reason, and nothing runs | 2 min |
+| the same dry run of `tools\ig-proto\plans\V4-LIVE.json` | root | exit 0; the last line `[dry run] forecast of the plan: 2,389 s counted (allocation 2,400 s, guard 3,000 s)` | 1 min |
+| the same dry run of `tools\ig-proto\plans\V4-T10c.json`, captured before the edit of step 6 and after it | root | the two outputs are identical (the runner reads an earlier plan as before) | 1 min |
 | `node tools\ig-proto\firewall.mjs check --task V4-T11c --label frozen` | root | `files unchanged` | 1 min |
 | `npm run check` | root | exit 0 | 2 min |
 
@@ -231,6 +246,7 @@ durations (`{ 'v4-select/*': 30, 'v4-generate/*': 120, 'v4-replay/*': 30 }`).
 | T11c-T01 | Disjoint state paths and prices of the emitted steps; every bounded step can resume and runs the population it is priced on (RV4-04) | cases 5 to 8 | self-test output |
 | T11c-T02 | The compiler writes only its own files and reports the files it wrote | the `compile` command; the diff | command output; diff |
 | T11c-T03 | Nothing else changed; formats | guards; `npm run check` | command output |
+| T11c-T04 | The runner reads the compiled plans (each dry-run forecast is the plan's price) and every earlier plan as before (ruling of 2026-11-17) | the three dry runs | command output |
 
 ## Checklist (the developer confirms every item in the final report)
 

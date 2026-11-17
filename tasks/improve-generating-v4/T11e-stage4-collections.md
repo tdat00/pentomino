@@ -79,9 +79,9 @@ report is never taken for a final one.
      prerequisites the variants `fr-frozen`, `fr-frozen-none`, `fr-frozen-uncapped`, `fr-frozen-none-uncapped`, the
      files freeze and activation, and the three accepted bindings of the Authority section; steps `prerequisites`,
      `firewall-snapshot`, `trees` (`build log-link fr-frozen fr-frozen-none fr-frozen-uncapped
-     fr-frozen-none-uncapped`), the `rowStep` of every activated group with `optional: false` whatever its origin (none
-     of arm `shipped-uncapped`), the
-     `publish-<arm>` steps, `parityPass('V4-S4P', a, ...)` for the four stage-4 arms, `verdict-input` (unlocked,
+     fr-frozen-none-uncapped`), `parityPass('V4-S4P', a, ...)` for the four stage-4 arms (the proofs before the rows, as
+     in `V4-S2`: ruling of 2026-11-17, T11c's report), the `rowStep` of every activated group with `optional: false`
+     whatever its origin (none of arm `shipped-uncapped`), the `publish-<arm>` steps, `verdict-input` (unlocked,
      `tools\ig-proto\manifest.mjs verdict-input --purpose selection --activation
      docs/improve-generating/evidence/frozen/V4-S4/activation.json --out
      tools\ig-proto\plans\verdicts\V4-S4.verdict-manifest.json`, `dependsOn` every publish and accept step),
@@ -121,7 +121,7 @@ synthetic pilots (T09a's `newRunRecord` rows); the commands on temporary records
 | `activate: the selected scope is required` | the pilot of `24x24-hell-1` activating it and `approvedOptional: ['S4-6']` | every row step of the plan has `optional: false`; `optionalMinutes` 0; the union of `<arm>/<cell>~<rep>` over the row steps that `run-task.ps1`'s default rule selects (no `optional`) equals `declaredRows`; `allocationMinutes` includes the `24x24-hell-1` and `factor-` steps; `groups` records their origins `conditional` and `optional` |
 | `activate: optional items only with approval` | `approvedOptional: ['S4-6']`; then `[]` | with: the `log-link` groups of shard `factor-<cell>` reps 20 to 24, `optional.approved` `['S4-6']`; without: none, `optional.notApproved` `['S4-6']` |
 | `activate: never rewritten` | `activateCommand` twice on the same paths | the second returns 1 with `activation exists`; the record, plan and template are byte-equal to after the first |
-| `activate: a complete producer chain` | the plan of the first case | every path a step consumes is produced by an earlier step or is a prerequisite; every `node` names only the variants `log-link`, `fr-frozen`, `fr-frozen-none`, `fr-frozen-uncapped`, `fr-frozen-none-uncapped` |
+| `activate: a complete producer chain` | the plan of the first case | every path a step consumes is produced by an earlier step or is a prerequisite; every `node` names only the variants `log-link`, `fr-frozen`, `fr-frozen-none`, `fr-frozen-uncapped`, `fr-frozen-none-uncapped`; every `parity-`, `receipt-` and `accept-` step precedes the first `rows-` step |
 | `close: exactly the missing rows` | an activation of four declared rows and runs files publishing three; then four | `closure.missing` is the fourth row and `closure.activation.sha256` the record's; then returns 1 with `nothing to close` |
 
 ## Documentation
