@@ -163,10 +163,13 @@ the receipt hashed. Every later consumer (T09e, T11c, T11d) checks that binding.
      option is absent); prints `binding: <status>` and, when not `pass`, ` (<reasons joined by '; '>)`; exit 0 only
      on `pass`, else 2.
 3. **Reserved namespaces** in `self-test.mjs`: `export const HISTORICAL_SELFTEST = Object.freeze(['V4-T04', 'V4-T04v4',
-   'V4-T04f', 'V4-T04i'])` and `export function reservedTaskProblem(label, task, stateExists)`: `label === 'frozen'
-   && HISTORICAL_SELFTEST.includes(task) && stateExists` gives `self-test: <task> is a historical stage-1 record; use
-   another --task`, else `null`. `main` calls it with `existsSync(artifactDir(label, task, 'self-test',
-   'state.json'))` before any case runs; a problem goes to stderr with exit 3, nothing written.
+   'V4-T04f', 'V4-T04i'])` and `export function reservedTaskProblem(label, task, stateExists, historical =
+   HISTORICAL_SELFTEST)`: `label === 'frozen' && historical.includes(task) && stateExists` gives `self-test: <task> is
+   a historical stage-1 record; use another --task`, else `null`. `async function main(argv, { historical =
+   HISTORICAL_SELFTEST } = {})` calls it with `existsSync(artifactDir(label, task, 'self-test', 'state.json'))` and
+   `historical` before any case runs; a problem goes to stderr with exit 3, nothing written. (Ruling of 2026-11-17,
+   T04f's report: the `historical` option lets a case prove this wiring on a scratch id, never on a real stage-1
+   record.)
 4. **Self-test** cases appended to `--items` (Tests table); **README.md**: T04c's section gains the accepted binding,
    its file, the rule that it is never rewritten, the historical namespaces, `evidence-check`, `check-binding` and
    `checkAccepted`'s order. Then run the gates of the table, then `evidence-check` (the guard).
@@ -203,6 +206,7 @@ params: { v4: { W: 1 } }, coverage: ['a', 'b'], fields: { line: 'Stage 1: holds.
 | `accept: a binding is never rewritten` | `main(['accept', '--task', 'V4-T04', '--receipt', <R's path>, '--binding', <an existing file>, '--by', 'x', '--label', 'frozen', '--source-label', 'x'])` | returns 1; the existing file is byte-equal |
 | `accept: the historical namespaces are reserved` | `reservedTaskProblem('frozen', 'V4-T04f', true)`, `('frozen', 'V4-T04f', false)`, `('frozen', 'V4-T04f-verify', true)`, `('provisional', 'V4-T04', true)` | the first gives `self-test: V4-T04f is a historical stage-1 record; use another --task`; the other three `null` |
 | `accept: evidence-check` | `main(['evidence-check', '--receipt', <R's path>, '--label', 'frozen', '--source-label', 'x'])`; then the same after R's input file changed | returns 0 and prints `evidence: unchanged (1 files)`; then returns 2 and prints `evidence: changed <path>` |
+| `accept: main refuses a reserved id before any write` | the scratch id `V4-reserved-selftest` (its folder `artifactDir('frozen', 'V4-reserved-selftest')` removed first and again in a `finally`); `S` = its `self-test/state.json`, written with `writeJson(S, { format: 'ig-proto-state', marker: 'before' })`; `argv = ['--label', 'frozen', '--frozen', '--task', 'V4-reserved-selftest', '--only', '999', '--horizon-s', String(horizonS)]` (`--only 999` selects no case); the self-test's own `main(argv, { historical: ['V4-reserved-selftest'] })`; then `main(argv, { historical: [] })` | the first returns 3 and `S` is byte-equal to before; the second (the control) returns 0 and rewrites `S`; no real stage-1 path is touched |
 
 ## Documentation
 
@@ -234,7 +238,7 @@ params: { v4: { W: 1 } }, coverage: ['a', 'b'], fields: { line: 'Stage 1: holds.
 | ID | Criterion | How it is verified | Evidence |
 |---|---|---|---|
 | T04f-B01 | Stage 1 is bound once, to its producer, its captured arms and a coverage that the receipt cannot shorten; the binding stays valid after later harness, variant and tree changes | cases 1 to 4; step 5 | self-test output; `accepted-binding.json` |
-| T04f-B02 | No later verification can overwrite a stage-1 input: the historical namespaces are reserved and the inputs are checked before acceptance | cases 8 and 9; `evidence-check` | self-test output; command output |
+| T04f-B02 | No later verification can overwrite a stage-1 input: the historical namespaces are reserved, `main` refuses them before any write, and the inputs are checked before acceptance | cases 8 and 9; `accept: main refuses a reserved id before any write`; `evidence-check` | self-test output; command output |
 
 ### Technical
 
