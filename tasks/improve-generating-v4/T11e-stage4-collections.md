@@ -69,7 +69,8 @@ report is never taken for a final one.
    - Refuses (exit 1, nothing written) when `docs/improve-generating/evidence/frozen/V4-S4/activation.json` exists
      (`activation exists: an activation is never rewritten`), when `--collection` is not `initial` (`only the initial
      collection is activated here; the second is N-V4-04's`), or when the freeze file or `tools/ig-proto/plans/V4-S4.universe.json`
-     is missing.
+     is missing (T11f's fix round adds: a freeze file whose classes do not name exactly the record's comparator cells,
+     each in one class; ruling of 2026-11-17 on T11f's QUESTION 1).
    - `pilots`: for each conditional board, the `run` of every row with that `caseId` and `rep` from 0 to 4 in the
      files `docs/improve-generating/evidence/frozen/V4-S2/fr-base/*.runs.json` (`{ meta, shard, rows }`, rows `{
      rowKey, caseId, rep, seed, localRep, run }`, `arm.mjs:263-267`); `epoch` the SHA-256 (`sha256File`) of

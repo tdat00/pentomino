@@ -7,7 +7,7 @@
 | Depends on | T11e; T09a (the verdict-manifest schema), T09e (`classSelection`'s envelope), T04d (`proofCheck`), T11c (`rowStep`, `planOf`, `checkPrerequisites`) |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (claude-sonnet-5.5) |
-| Estimate | developer 3.5 h (3 h, and 0.5 h for `closureOf`: ruling of 2026-11-17 on T11e's named item), machine 0 min (pure functions and readers; synthetic cases, unlocked) |
+| Estimate | developer 4 h (3 h, 0.5 h for `closureOf`: ruling of 2026-11-17 on T11e's named item, and a fix round of 0.5 h after its report for step 5: ruling of 2026-11-17 on its QUESTION 1), machine 0 min (pure functions and readers; synthetic cases, unlocked) |
 
 ## Goal
 
@@ -110,6 +110,17 @@ can never pass, and the final manifest, which declares every expected P5 pair an
    published <arm>`; `final` without `--selection` exits 1; nothing is written then.
 4. **Self-test** cases appended to `--items` (Tests table); **README.md**: T11a's section gains the resolution, its
    refusals and the two manifests.
+5. **`activate` checks the freeze file's classes** (fix round after the report; ruling of 2026-11-17 on QUESTION 1:
+   its default (a) stands, so every comparator cell needs a class, and a class cell that stage 4 does not measure would
+   leave its class inconclusive, T09e): in `activateCommand` (T11e), once the record and the plans are built and before
+   anything is written, the freeze file at `paths.freeze` is parsed with `readFreeze`'s shape check (`<path> is not a
+   freeze file: ...` refuses) and its class cells are compared with the cells of the record's `comparatorCells`. It
+   refuses (stderr `manifest: the freeze file's classes do not match the comparator cells of the collection (<parts>)`,
+   exit 1, nothing written) with `<parts>` joined by `; `, in this order and only when not empty: `not in a class
+   <cells>` (comparator cells of no class, in the record's order), `in more than one class <cells>` (in the record's
+   order), `not measured <cells>` (class cells that are no comparator cell, sorted), each list joined by `, `. T11e's
+   cases write a freeze file whose classes name the comparator cells of the activation each case makes; the README's
+   activation section gains the rule.
 
 ## Tests
 
@@ -129,6 +140,7 @@ the same records; A's template = `activationPlans(<the expansion>, A, stepPrice,
 | `verdict input: selection and final` | `verdictInput('selection', ...)` and `verdictInput('final', ...)` over A, S and the plan of case 1 | selection: `purpose` `selection`, `p5` `[]`, no `selection` field; final: `selection.sha256` S's, `p5` `[{ cell: '14x14-nightmare', bounded: 'fr-frozen', uncapped: 'fr-frozen-uncapped', reps: [20, ..., 39] }, ...]` with one entry per comparator cell; both: `prerequisites.stage1.current` `[]`, the P-0 parity entry with `current: ['v4']`, `arms[].id` equal to `arms[].arm`, `arms[].files[].sha256` equal to the files' |
 | `verdict input: not published` | the final input with one comparator arm's runs file absent | throws `verdict-input: not published <arm>` |
 | `closure: beside its activation` | `closureOf` on a temporary folder holding A: (a) no `closure.json`; (b) the closure that T11e's `closeCommand` writes there for A; (c) that closure with `activation.sha256` changed; (d) the text `{` | (a) `null`; (b) `ref.sha256` the file's `sha256File` and `record.missing` its rows; (c) throws `the closure belongs to another activation`; (d) throws `an unreadable closure exists` |
+| `activate: the freeze names exactly the comparator cells` | T11e's world, the pilot of `24x24-hell-1` activating it: (a) a freeze file whose classes name the 17 comparator cells of the initial collection only; (b) one naming those, `24x24-hell-1` and `14x14-hell-1`; (c) one naming the record's 18 comparator cells with `14x14-nightmare` in two classes; (d) one naming the 18 once each | (a) to (c) return 1, stderr `manifest: the freeze file's classes do not match the comparator cells of the collection (not in a class 24x24-hell-1)`, `(not measured 14x14-hell-1)` and `(in more than one class 14x14-nightmare)`, nothing written; (d) returns 0 and writes the record, the plan and the template |
 
 ## Documentation
 
@@ -165,6 +177,7 @@ the same records; A's template = `activationPlans(<the expansion>, A, stepPrice,
 | T11f-T01 | The verdict manifests read only real, hashed records | cases 5 and 6 | self-test output |
 | T11f-T02 | Nothing else changed; formats | guards; `npm run check` | command output |
 | T11f-T03 | A collection's closure is read only beside its own activation record, and a closure of another activation or an unreadable one refuses | case 7 | self-test output |
+| T11f-T04 | An activation is written only over a freeze file whose classes name exactly its comparator cells, each in one class | case 8 | self-test output |
 
 ## Checklist (the developer confirms every item in the final report)
 
