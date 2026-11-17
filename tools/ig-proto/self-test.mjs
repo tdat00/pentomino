@@ -49,7 +49,7 @@ import { buildWidthReport, CONTEXT, loggedWidth, machineInfo, widthDispatch, wid
 import { linkSummary, timelineProblem } from './linkage.mjs';
 import { buildInventory, readFamilies } from './pm1-inventory.mjs';
 import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
-import { expandManifest, IDENTITY_SEEDS, identityVerdict, judgeStage1, main as checkMain, parityVerdict, pm4GateEvidence, pm4Verdict, priorVerdict, replayVerdict, stage1Expectation, stage1Inputs, stage1Verdict, stepEvidence } from './v4-check.mjs';
+import { baselineVerdict, buildStepReceipt, captureStepInputs, expandManifest, IDENTITY_SEEDS, identityVerdict, judgeStage1, main as checkMain, parityVerdict, pm4GateEvidence, pm4Verdict, priorVerdict, replayVerdict, stage1Expectation, stage1Inputs, stage1Verdict, stepEvidence, stepExpectation } from './v4-check.mjs';
 
 const SELFTEST_DIR = join(ROOT, 'tests', 'artifacts', 'ig-proto', 'selftest');
 const GIT_CALL = new RegExp('(?:execFileSync|execSync|spawnSync|spawn|execFile|exec|fork)\\(\\s*[\'"`]git\\b|^\\s*&?\\s*git(?:\\.exe)?\\s+(?:rev-parse|status|log|diff|show|add|commit|push|ls-files)\\b', 'm');
@@ -1298,6 +1298,131 @@ function toolWorld({ row }, { ids = ['sa', 'na'], rows, journal, files = {}, man
   return { repo, manifest, manifestText, ref: { path: 'verdicts/manifest.json', sha256: sha256Text(manifestText) } };
 }
 
+/** The scratch task of the receipt cases (V4-T11d): its raw folder and its evidence folder are removed after each case. */
+const RECEIPT_TASK = 'V4-T11d-selftest';
+
+/** @param {() => Promise<void>} body @returns {Promise<void>} Runs `body` on an empty scratch task and removes both of its folders afterwards. */
+async function onReceiptTask(body) {
+  const drop = () => {
+    rmSync(artifactDir('frozen', RECEIPT_TASK), { recursive: true, force: true });
+    rmSync(evidenceDir('frozen', RECEIPT_TASK), { recursive: true, force: true });
+  };
+  drop();
+  try {
+    await body();
+  } finally {
+    drop();
+  }
+}
+
+/**
+ * A completed absent-mode row of the receipt cases: its `result` has `digest` and `eventsDigest: null`.
+ * @param {string} variant @param {string} caseId @param {string} seedText @param {string} mode @param {string | undefined} digest
+ * @param {string} [item] The storage item id (the comparison never reads it).
+ * @returns {any}
+ */
+const rowOf = (variant, caseId, seedText, mode, digest, item = `x:${variant}:${caseId}:${seedText}:${mode}`) => ({
+  item, variant, caseId, seedText, mode, route: 'new', status: 'completed', result: { digest, eventsDigest: null },
+});
+
+const RECEIPT_CASE = '12x12-nightmare';
+const RECEIPT_SEED = `ig-v4/parity/${RECEIPT_CASE}`;
+/** The manifest rows of the receipt cases: `v4` in the three modes and `base` in two, on one case (a passing parity block). */
+const PARITY_ROWS = [
+  { kind: 'v4-select', variant: 'v4', caseId: RECEIPT_CASE, seedText: RECEIPT_SEED, modes: ['absent', 'charge', 'record'] },
+  { kind: 'v4-select', variant: 'base', caseId: RECEIPT_CASE, seedText: RECEIPT_SEED, modes: ['absent', 'record'] },
+];
+/** Rows that add one generation item and two replays of `v4` (a P-1 pass has them, a P-0 pass has none). */
+const REPLAY_ROWS = [
+  { kind: 'v4-generate', variant: 'v4', caseId: RECEIPT_CASE, seedText: `ig-v4/replay/${RECEIPT_CASE}`, quantity: 2 },
+  { kind: 'v4-replay', variant: 'v4', caseId: RECEIPT_CASE, seedText: `ig-v4/replay/${RECEIPT_CASE}`, puzzles: 2 },
+];
+
+/**
+ * The results of the synthetic steps: passing parity rows (`over(item)` replaces fields of a selection result), a
+ * generation that obtained two puzzles and the replays of kinds `replays`, each matched with a measuring step.
+ * @param {{ over?: (item: any) => Record<string, any>, replays?: string[] }} [o]
+ * @returns {(item: any) => any}
+ */
+const goodResults = ({ over = () => ({}), replays = ['calibration', 'candidate'] } = {}) => (item) => {
+  if (item.kind === 'v4-select') {
+    return item.variant === 'base'
+      ? checkRow(item.payload.mode, { ledger: null, ...over(item) }, { variant: 'base', route: 'base' }).result
+      : checkRow(item.payload.mode, over(item)).result;
+  }
+  if (item.kind === 'v4-generate') {
+    return { outcome: 'ok', puzzles: 2, packSha256: 'h' };
+  }
+  return { outcome: 'ok', kind: replays[item.payload.puzzleIndex], status: 'matched', detailStep: 3, packSha256: 'h' };
+};
+
+/**
+ * A synthetic step folder of the scratch task (V4-T11d): the manifest in the raw folder, a `state.json` whose identity
+ * carries the manifest's hash, the frozen commit and digest, the tree ids and the harness hash, and an `items.jsonl` with
+ * an `item-start` and an `item-end` (completed, with the result) per item.
+ * @param {string} step
+ * @param {any[]} rows The manifest rows.
+ * @param {(item: any) => any} resultOf The result of an item; `undefined` leaves the item without an end line.
+ * @param {{ treeIds?: Record<string, string>, harnessHash?: string, statusOf?: (item: any) => 'completed' | 'censored' | 'error' }} [identity]
+ *   Replace the stored tree ids (default: `base` and `v4` as built now) and the stored harness hash (default: today's); `statusOf`
+ *   gives the status of an item's end line (default `completed`).
+ * @returns {Promise<{ dir: string, path: string, manifest: string, items: any[], identity: any }>} `manifest` is the repository-relative path.
+ */
+async function receiptStep(step, rows, resultOf, { treeIds, harnessHash, statusOf = () => 'completed' } = {}) {
+  const dir = fresh(artifactDir('frozen', RECEIPT_TASK, step));
+  const path = join(dir, 'manifest.json');
+  writeJson(path, { format: 'ig-proto-items', version: 1, task: RECEIPT_TASK, step, rows });
+  const items = expandManifest(JSON.parse(readFileSync(path, 'utf8')), dir, (variant) => variant !== 'base');
+  const identity = {
+    frozenCommit: FROZEN_COMMIT,
+    sourceDigest: FROZEN_DIGEST,
+    treeIds: treeIds ?? { base: (await ensureTree('base')).treeId, v4: (await ensureTree('v4')).treeId },
+    harnessHash: harnessHash ?? harnessInfo().harnessHash,
+    manifestHash: manifestHash(items),
+  };
+  writeJson(join(dir, 'state.json'), { format: 'ig-proto-state', version: 1, task: RECEIPT_TASK, step, label: 'frozen', identity, done: true });
+  const hash = identityHash(identity);
+  for (const item of items) {
+    logStart(join(dir, 'items.jsonl'), hash, item);
+    const result = resultOf(item);
+    if (result !== undefined) {
+      logEnd(join(dir, 'items.jsonl'), hash, item.id, statusOf(item), result, 5);
+    }
+  }
+  return { dir, path, manifest: rel(path), items, identity };
+}
+
+/**
+ * A synthetic stage-1 baseline (V4-T11d): a parity step of the scratch task whose stored identity names other tree ids
+ * and another harness than today's, and an accepted binding over a receipt that lists its `state.json` and `items.jsonl`,
+ * holding the parameters of `base` and `v4` as built now (`params` replaces them).
+ * @param {{ name?: string, rows?: any[], resultOf?: (item: any) => any, params?: Record<string, unknown> }} [o] `name` is the baseline's step.
+ */
+async function baselineWorld({ name = 'baseline', rows = PARITY_ROWS, resultOf = goodResults(), params } = {}) {
+  const step = await receiptStep(name, rows, resultOf, { treeIds: { base: 'old-base', v4: 'old-v4' }, harnessHash: 'old-harness' });
+  const files = ['items.jsonl', 'state.json'].map((file) => join(step.dir, file));
+  const receiptFile = join(step.dir, 'stage1.receipt.json');
+  writeJson(receiptFile, proofEnvelope({
+    kind: 'stage1',
+    verdict: 'pass',
+    source: { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST },
+    harnessHash: 'old-harness',
+    arms: [],
+    coverage: { expected: ['a'], observed: ['a'], missing: [], censored: [] },
+    evidence: files.map((file) => ({ path: rel(file), sha256: sha256File(file) })),
+    fields: { line: 'Stage 1: holds.' },
+  }));
+  const bound = params ?? { base: (await ensureTree('base')).params, v4: (await ensureTree('v4')).params };
+  const bindingFile = join(step.dir, 'accepted-binding.json');
+  writeJson(bindingFile, acceptedBinding({
+    receiptPath: rel(receiptFile), harnessHash: 'old-harness', arms: [], params: bound, coverage: ['a'], fields: { line: 'Stage 1: holds.' }, by: 'selftest',
+  }));
+  return { step, files, receiptFile, bindingFile, binding: rel(bindingFile), baselineStep: { task: RECEIPT_TASK, step: name, manifest: step.manifest } };
+}
+
+/** @param {string[]} paths @returns {string[]} The raw SHA-256 of each file. */
+const rawHashes = (paths) => paths.map((path) => sha256File(path, { raw: true }));
+
 /** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
 const itemCases = [
   {
@@ -2284,7 +2409,7 @@ const itemCases = [
       w.write({ kind: 'live-deadline' });
       const unwritten = join(w.dir, 'new-binding.json');
       const kind = await runCheck(['accept', '--task', 'V4-T04', '--receipt', rel(w.receiptFile), '--binding', rel(unwritten), ...common]);
-      assert(kind.code === 1 && kind.err === 'v4-check: accept knows the kinds stage1\n' && !existsSync(unwritten), `another kind: exit ${kind.code}, ${JSON.stringify(kind.err)}`);
+      assert(kind.code === 1 && kind.err === 'v4-check: accept knows the kinds stage1, parity, p0-identity\n' && !existsSync(unwritten), `another kind: exit ${kind.code}, ${JSON.stringify(kind.err)}`);
       const label = await runCheck(['accept', '--task', 'V4-T04', '--receipt', rel(w.receiptFile), '--binding', rel(unwritten), '--by', 'x', '--label', 'selftest', '--source-label', 'x']);
       assert(label.code === 1 && label.err === 'v4-check: --label frozen only\n' && !existsSync(unwritten), `another label: exit ${label.code}, ${JSON.stringify(label.err)}`);
     },
@@ -5769,6 +5894,383 @@ const itemCases = [
       const refusing = (/** @type {any} */ input, /** @type {string} */ id) => (input.type === 'items' && id === 'kernel-counters' ? { admissible: false, reason: 'no room' } : m.stepPrice(input));
       const message = thrownBy(() => m.compilePlans(expansion, refusing, { durations: {} }));
       assert(message.startsWith('manifest: 1 step(s) not admissible: V4-S2/kernel-counters: no room'), message);
+    },
+  },
+  {
+    name: 'receipt: absent digests decide, not event digests',
+    run() {
+      const variants = ['v4', 'v4-w760', 'v4-w095', 'v4-w380'];
+      const key = (/** @type {string} */ variant) => `${variant}|${RECEIPT_CASE}|${RECEIPT_SEED}|absent`;
+      const side = (/** @type {string} */ prefix, /** @type {(variant: string) => string} */ digest) => variants
+        .map((variant) => rowOf(variant, RECEIPT_CASE, RECEIPT_SEED, 'absent', digest(variant), `${prefix}:${variant}:${RECEIPT_CASE}:${RECEIPT_SEED}:absent`));
+      const params = variants.map((variant) => ({ variant, now: 'p', baseline: 'p' }));
+      const changed = baselineVerdict(side('p0-v4', (variant) => (variant === 'v4' ? 'd2' : 'd1')), side('parity', () => 'd1'), params);
+      same([changed.verdict, changed.reasons], ['fail', [`result changed ${key('v4')}`]], `one result digest differs: ${JSON.stringify(changed)}`);
+      same(changed.rows.map((r) => r.equal), [false, true, true, true], 'only the first of the four keys differs');
+      same(changed.rows[0], { key: key('v4'), now: 'd2', baseline: 'd1', equal: false }, 'the row of the changed key');
+      // The events digests are not read: equal result digests pass whatever the events digests say.
+      const withEvents = (/** @type {any[]} */ rows, /** @type {string} */ digest) => rows.map((r) => ({ ...r, result: { ...r.result, eventsDigest: digest } }));
+      const events = baselineVerdict(withEvents(side('p0-v4', () => 'd1'), 'e-now'), withEvents(side('parity', () => 'd1'), 'e-before'), params);
+      same([events.verdict, events.reasons], ['pass', []], 'equal result digests with other events digests');
+      // Only the absent mode is compared: a charge or record row of the new step needs no baseline row.
+      const modes = [...side('p0-v4', () => 'd1'), rowOf('v4', RECEIPT_CASE, RECEIPT_SEED, 'charge', 'x'), rowOf('v4', RECEIPT_CASE, RECEIPT_SEED, 'record', 'y')];
+      const only = baselineVerdict(modes, side('parity', () => 'd1'), params);
+      same([only.verdict, only.rows.length], ['pass', 4], 'the modes charge and record are not compared');
+    },
+  },
+  {
+    name: 'receipt: storage ids do not matter',
+    run() {
+      const variants = ['v4', 'v4-w760', 'v4-w095', 'v4-w380'];
+      const side = (/** @type {string} */ prefix) => variants
+        .map((variant) => rowOf(variant, RECEIPT_CASE, RECEIPT_SEED, 'absent', `d-${variant}`, `${prefix}:${variant}:${RECEIPT_CASE}:${RECEIPT_SEED}:absent`));
+      const params = variants.map((variant) => ({ variant, now: 'p', baseline: 'p' }));
+      const [now, before] = [side('p0-v4'), side('parity')];
+      assert(now.every((r, i) => r.item.startsWith('p0-v4:') && before[i].item.startsWith('parity:')), 'the two sides have other storage ids');
+      const verdict = baselineVerdict(now, before, params);
+      same([verdict.verdict, verdict.reasons, verdict.rows.map((r) => r.equal)], ['pass', [], [true, true, true, true]], `the same results under other ids: ${JSON.stringify(verdict)}`);
+      same(baselineVerdict(now, [...before].reverse(), params).verdict, 'pass', 'the order of the baseline rows does not matter');
+    },
+  },
+  {
+    name: 'receipt: a missing baseline fails closed',
+    run() {
+      const key = `v4|${RECEIPT_CASE}|${RECEIPT_SEED}|absent`;
+      const row = (/** @type {string | undefined} */ digest, /** @type {Record<string, any>} */ over = {}) => ({ ...rowOf('v4', RECEIPT_CASE, RECEIPT_SEED, 'absent', digest), ...over });
+      const params = [{ variant: 'v4', now: 'p', baseline: 'p' }];
+      const lacking = baselineVerdict([row('d')], [], params);
+      same([lacking.verdict, lacking.reasons, lacking.rows], ['fail', [`no baseline for ${key}`], [{ key, now: 'd', baseline: null, equal: false }]], `(a) no baseline row: ${JSON.stringify(lacking)}`);
+      const noDigest = baselineVerdict([row(undefined)], [row('d')], params);
+      same([noDigest.verdict, noDigest.reasons], ['incomplete', [`no result digest for ${key} (now)`]], '(b) a new row without a result digest');
+      const noBase = baselineVerdict([row('d')], [row(undefined)], params);
+      same([noBase.verdict, noBase.reasons], ['incomplete', [`no result digest for ${key} (baseline)`]], '(b) a baseline row without a result digest');
+      const censored = baselineVerdict([row('d', { status: 'censored' })], [row('d')], params);
+      same([censored.verdict, censored.reasons], ['incomplete', [`no result digest for ${key} (now)`]], '(b) a row that did not complete is not read');
+      const noParams = baselineVerdict([row('d')], [row('d')], [{ variant: 'v4', now: 'p', baseline: null }]);
+      same([noParams.verdict, noParams.reasons], ['fail', ['no baseline parameters for v4']], '(c) the binding lacks the variant\'s parameters');
+      const moved = baselineVerdict([row('d')], [row('d')], [{ variant: 'v4', now: 'p2', baseline: 'p' }]);
+      same([moved.verdict, moved.reasons], ['fail', ['parameters changed v4']], 'other parameters now');
+      const noCopy = baselineVerdict([row('d')], [row('d')], [{ variant: 'v4', now: null, baseline: 'p' }]);
+      same([noCopy.verdict, noCopy.reasons], ['fail', ['parameters changed v4']], 'a variant without a tree copy now');
+      const both = baselineVerdict([row(undefined)], [row('d')], [{ variant: 'v4', now: 'p', baseline: null }]);
+      same([both.verdict, both.reasons], ['fail', ['no baseline parameters for v4', `no result digest for ${key} (now)`]], 'fail wins over incomplete, and its reasons come first');
+      const empty = baselineVerdict([rowOf('v4', RECEIPT_CASE, RECEIPT_SEED, 'charge', 'd')], [row('d')], params);
+      same([empty.verdict, empty.reasons, empty.rows], ['incomplete', ['no absent rows to compare'], []], 'no absent row is no vacuous pass');
+    },
+  },
+  {
+    name: 'receipt: a required pass stops the plan',
+    async run() {
+      await onReceiptTask(async () => {
+        const failing = await receiptStep('p', PARITY_ROWS, goodResults({ over: (item) => (item.payload.mode === 'charge' ? { digest: 'x' } : {}) }));
+        const common = ['receipt', '--kind', 'parity', '--task', RECEIPT_TASK, '--step', 'p', '--manifest', failing.path, '--arm', 'v4', '--label', 'frozen', '--source-label', 'x'];
+        const receiptFile = evidenceDir('frozen', RECEIPT_TASK, 'p.receipt.json');
+        const line = `receipt: parity fail -> ${rel(receiptFile)}\n`;
+        const stopped = await runCheck([...common, '--require-pass']);
+        assert(stopped.code === 2 && stopped.out === line, `a failed parity block with --require-pass: exit ${stopped.code}, ${JSON.stringify(stopped.out)}`);
+        assert(existsSync(receiptFile), 'the receipt was not written before the exit');
+        const written = JSON.parse(readFileSync(receiptFile, 'utf8'));
+        same([written.kind, written.verdict, written.blocks.parity], ['parity', 'fail', 'fail'], 'the written receipt');
+        assert(written.reasons.some((/** @type {string} */ r) => r.startsWith('parity: ') && r.includes('result digests differ between modes')), `its reasons: ${JSON.stringify(written.reasons)}`);
+        assert(stopped.err.startsWith('v4-check: the parity receipt is fail ('), `the message: ${JSON.stringify(stopped.err)}`);
+        const plain = await runCheck(common);
+        assert(plain.code === 0 && plain.out === line, `the same without --require-pass: exit ${plain.code}, ${JSON.stringify(plain.out)}`);
+        same(JSON.parse(readFileSync(receiptFile, 'utf8')).verdict, 'fail', 'the receipt of the plain run');
+        // An incomplete proof stops the plan as well: one item has no end line.
+        const open = await receiptStep('q', PARITY_ROWS, (item) => (item.id.endsWith(':v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:record') ? undefined : goodResults()(item)));
+        const incomplete = await runCheck(['receipt', '--kind', 'parity', '--task', RECEIPT_TASK, '--step', 'q', '--manifest', open.path, '--arm', 'v4', '--label', 'frozen', '--source-label', 'x', '--require-pass']);
+        const partial = JSON.parse(readFileSync(evidenceDir('frozen', RECEIPT_TASK, 'q.receipt.json'), 'utf8'));
+        assert(incomplete.code === 2 && partial.verdict === 'incomplete', `an incomplete proof: exit ${incomplete.code}, ${partial.verdict}`);
+        same(partial.coverage.missing, [open.items.find((i) => i.id.endsWith(':v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:record'))?.id], 'the item without an end line is missing');
+        // A message that names the worktree's absolute path is written without it (a record refuses the path): the receipt still exists.
+        const crashed = await receiptStep('e', PARITY_ROWS, (item) => (item.payload.mode === 'charge' && item.variant === 'v4' ? { outcome: 'error', message: `boom in ${ROOT}tests` } : goodResults()(item)),
+          { statusOf: (item) => (item.payload.mode === 'charge' && item.variant === 'v4' ? 'error' : 'completed') });
+        const errored = await runCheck(['receipt', '--kind', 'parity', '--task', RECEIPT_TASK, '--step', 'e', '--manifest', crashed.path, '--arm', 'v4', '--label', 'frozen', '--source-label', 'x', '--require-pass']);
+        const errorText = readFileSync(evidenceDir('frozen', RECEIPT_TASK, 'e.receipt.json'), 'utf8');
+        assert(errored.code === 2 && errorText.includes('error (boom in .') && !errorText.toLowerCase().includes(ROOT.replace(/[\\/]+$/, '').toLowerCase().replaceAll('\\', '/')), `an error message with the worktree path: exit ${errored.code}`);
+        // A refused command writes nothing: no receipt and no captured input.
+        const refusals = /** @type {[string[], string][]} */ ([
+          [common.filter((_, i) => i < 9 || i > 10), 'v4-check: receipt needs --arm\n'],
+          [common.map((a, i) => (i === 2 ? 'live-deadline' : a)), 'v4-check: receipt knows the kinds parity, p0-identity\n'],
+          [common.map((a, i) => (i === 2 ? 'p0-identity' : a)), 'v4-check: a p0-identity receipt needs --baseline\n'],
+          [common.map((a) => (a === 'frozen' ? 'selftest' : a)), 'v4-check: --label frozen only\n'],
+          [common.filter((a) => a !== '--source-label' && a !== 'x'), 'v4-check: receipt needs --source-label\n'],
+        ]);
+        for (const [argv, message] of refusals) {
+          const refused = await runCheck(argv.map((a) => (a === 'p' ? 'refused' : a)));
+          assert(refused.code === 1 && refused.err === message && refused.out === '', `a refused command: exit ${refused.code}, ${JSON.stringify(refused.err)}`);
+        }
+        assert(!existsSync(evidenceDir('frozen', RECEIPT_TASK, 'refused.receipt.json')) && !existsSync(evidenceDir('frozen', RECEIPT_TASK, 'inputs', 'refused')), 'a refused command wrote a receipt or a captured input');
+      });
+    },
+  },
+  {
+    name: 'receipt: each kind has its blocks',
+    async run() {
+      await onReceiptTask(async () => {
+        // kind parity: the parity block passes, the generation case has no matched candidate replay
+        const par = await receiptStep('par', [...PARITY_ROWS, ...REPLAY_ROWS], goodResults({ replays: ['calibration', 'calibration'] }));
+        const run = await runCheck(['receipt', '--kind', 'parity', '--task', RECEIPT_TASK, '--step', 'par', '--manifest', par.path, '--arm', 'v4', '--label', 'frozen', '--source-label', 'x']);
+        const file = evidenceDir('frozen', RECEIPT_TASK, 'par.receipt.json');
+        assert(run.code === 0 && run.out === `receipt: parity incomplete -> ${rel(file)}\n`, `kind parity: exit ${run.code}, ${JSON.stringify(run.out)}`);
+        const parity = JSON.parse(readFileSync(file, 'utf8'));
+        same([parity.verdict, parity.blocks], ['incomplete', { parity: 'pass', replay: 'incomplete' }], 'the blocks of a parity receipt');
+        same(Object.keys(parity.details), ['parity', 'replay'], 'the details of a parity receipt');
+        assert(parity.reasons.length === 1 && parity.reasons[0] === 'replay: no matched candidate replay for 12x12-nightmare (v4)', `its reasons: ${JSON.stringify(parity.reasons)}`);
+        // kind p0-identity: the parity block and the baseline block, no replay block and no replay item needed
+        const world = await baselineWorld();
+        const p0 = await receiptStep('p0', PARITY_ROWS, goodResults());
+        const { receipt, path } = buildStepReceipt({ kind: 'p0-identity', task: RECEIPT_TASK, step: 'p0', manifest: p0.manifest, arm: 'v4', baseline: world.binding, baselineStep: world.baselineStep });
+        same([receipt.kind, receipt.verdict, receipt.blocks, path], ['p0-identity', 'pass', { parity: 'pass', baseline: 'pass' }, rel(evidenceDir('frozen', RECEIPT_TASK, 'p0.receipt.json'))], 'a P-0 receipt');
+        same([Object.keys(receipt.blocks), Object.keys(receipt.details), receipt.reasons], [['parity', 'baseline'], ['parity', 'baseline'], []], 'the blocks and the details of a P-0 receipt');
+        same(receipt.details.baseline.rows.map((r) => [r.key, r.equal]), [[`v4|${RECEIPT_CASE}|${RECEIPT_SEED}|absent`, true], [`base|${RECEIPT_CASE}|${RECEIPT_SEED}|absent`, true]], 'the absent rows of the baseline block');
+        same([receipt.identities.now.harnessHash, receipt.identities.baseline.harnessHash, receipt.harnessHash], [harnessInfo().harnessHash, 'old-harness', harnessInfo().harnessHash], 'the identities: the step\'s and the baseline\'s, each as stored');
+        same(receipt.arms.map((a) => a.id), ['base', 'v4'], 'every observed variant is an arm');
+        const tree = await ensureTree('v4');
+        same(receipt.arms[1], { id: 'v4', treeId: tree.treeId, paramsHash: sha256(JSON.stringify(tree.params)) }, 'the arm v4: the stored tree id and the hash of the captured parameters');
+        same([receipt.coverage.expected.length, receipt.coverage.observed.length, receipt.coverage.missing, receipt.coverage.censored], [5, 5, [], []], 'the coverage: the five items of the manifest');
+        assert([world.binding, rel(join(world.step.dir, 'items.jsonl')), p0.manifest, rel(join(p0.dir, 'items.jsonl')), rel(join(p0.dir, 'state.json'))].every((p) => receipt.evidence.some((/** @type {any} */ e) => e.path === p)),
+          `the evidence index: ${JSON.stringify(receipt.evidence.map((/** @type {any} */ e) => e.path))}`);
+        for (const entry of receipt.evidence) {
+          assert(entry.sha256 === sha256File(abs(entry.path)), `the hash of ${entry.path}`);
+        }
+        // a receipt of the kind parity on the rows of a P-0 pass has no replay evidence: that block is incomplete, never a pass
+        const noReplay = buildStepReceipt({ kind: 'parity', task: RECEIPT_TASK, step: 'p0', manifest: p0.manifest, arm: 'v4' }).receipt;
+        same([noReplay.verdict, noReplay.blocks], ['incomplete', { parity: 'pass', replay: 'incomplete' }], 'kind parity without a generation item');
+      });
+    },
+  },
+  {
+    name: 'receipt: the stage-1 files keep their hashes',
+    async run() {
+      await onReceiptTask(async () => {
+        const world = await baselineWorld();
+        const guarded = [...world.files, world.receiptFile, world.bindingFile];
+        const before = rawHashes(guarded);
+        const p0 = await receiptStep('p0', PARITY_ROWS, goodResults());
+        const { receipt } = buildStepReceipt({ kind: 'p0-identity', task: RECEIPT_TASK, step: 'p0', manifest: p0.manifest, arm: 'v4', baseline: world.binding, baselineStep: world.baselineStep });
+        assert(receipt.verdict === 'pass', `the receipt: ${receipt.verdict} ${JSON.stringify(receipt.reasons)}`);
+        same(rawHashes(guarded), before, 'the baseline step\'s items and state, its receipt and its binding are byte-identical afterwards');
+        assert(!existsSync(evidenceDir('frozen', RECEIPT_TASK, 'inputs', 'baseline')) && !existsSync(evidenceDir('frozen', RECEIPT_TASK, 'baseline.receipt.json')), 'the receipt wrote into the baseline\'s namespace');
+        same(readFileSync(world.files[0], 'utf8').split('\n').filter((l) => l !== '').length, 10, 'the baseline log has its ten lines (five items, a start and an end each)');
+      });
+    },
+  },
+  {
+    name: 'accept: a parity binding from the stored identity',
+    async run() {
+      await onReceiptTask(async () => {
+        const par = await receiptStep('par', [...PARITY_ROWS, ...REPLAY_ROWS], goodResults());
+        const asArgs = (/** @type {string[]} */ ...more) => ['--task', RECEIPT_TASK, ...more, '--label', 'frozen', '--source-label', 'x'];
+        const receiptFile = evidenceDir('frozen', RECEIPT_TASK, 'par.receipt.json');
+        const made = await runCheck(['receipt', '--kind', 'parity', ...asArgs('--step', 'par', '--manifest', par.path, '--arm', 'v4', '--require-pass')]);
+        assert(made.code === 0 && made.out === `receipt: parity pass -> ${rel(receiptFile)}\n`, `a passing parity receipt with --require-pass: exit ${made.code}, ${JSON.stringify(made.out)} ${made.err}`);
+        const bindingFile = join(par.dir, 'par.accepted.json');
+        const accepted = await runCheck(['accept', ...asArgs('--step', 'par', '--manifest', par.path, '--receipt', rel(receiptFile), '--binding', rel(bindingFile), '--by', 'selftest')]);
+        assert(accepted.code === 0 && accepted.out.startsWith(`accepted: ${rel(receiptFile)} sha256 `) && accepted.out.endsWith(` -> ${rel(bindingFile)}\n`), `accept: exit ${accepted.code}, ${JSON.stringify(accepted.out)} ${accepted.err}`);
+        const binding = JSON.parse(readFileSync(bindingFile, 'utf8'));
+        same(binding.expected.coverage.expected, par.items.map((i) => i.id), 'the declared coverage is the manifest\'s ids');
+        same(binding.expected.fields, { blocks: { parity: 'pass', replay: 'pass' } }, 'the fields are the two passing blocks');
+        same([binding.expected.harnessHash, binding.expected.kind], [par.identity.harnessHash, 'parity'], 'the producer is the stored one');
+        const v4 = await ensureTree('v4');
+        same(binding.expected.arms.find((/** @type {any} */ a) => a.id === 'v4'), { id: 'v4', treeId: par.identity.treeIds.v4, paramsHash: sha256(JSON.stringify(v4.params)) }, 'the arm from the stored tree id and the captured copy');
+        same(binding.params.v4, v4.params, 'the captured parameters');
+        same(checkAccepted(binding, { current: [] }), { status: 'pass', reasons: [] }, 'the binding passes without a current tree');
+        same(checkAccepted(binding, { current: [{ id: 'v4', treeId: v4.treeId, paramsHash: sha256(JSON.stringify(v4.params)) }] }), { status: 'pass', reasons: [] }, 'the binding passes against today\'s v4');
+        same(checkAccepted(binding, { current: [{ id: 'v4', treeId: 'moved', paramsHash: sha256(JSON.stringify(v4.params)) }] }), { status: 'incomplete', reasons: ['stale arm v4'] }, 'a moved tree is stale');
+        const again = await runCheck(['accept', ...asArgs('--step', 'par', '--manifest', par.path, '--receipt', rel(receiptFile), '--binding', rel(bindingFile), '--by', 'selftest')]);
+        assert(again.code === 1 && again.err.includes('exists (an accepted binding is never rewritten)'), `a second acceptance: exit ${again.code}, ${JSON.stringify(again.err)}`);
+        // The expectation does not come from the receipt: a receipt whose coverage lacks one manifest id, or one that names another producer, is refused.
+        const original = JSON.parse(readFileSync(receiptFile, 'utf8'));
+        const last = par.items.at(-1)?.id ?? '';
+        const forged = (/** @type {string} */ name, /** @type {any} */ receipt) => {
+          writeJson(join(par.dir, `${name}.receipt.json`), receipt);
+          return runCheck(['accept', ...asArgs('--step', 'par', '--manifest', par.path, '--receipt', rel(join(par.dir, `${name}.receipt.json`)), '--binding', rel(join(par.dir, `${name}.accepted.json`)), '--by', 'selftest')]);
+        };
+        const gap = await forged('gap', { ...original, coverage: { ...original.coverage, expected: original.coverage.expected.slice(0, -1), observed: original.coverage.observed.slice(0, -1) } });
+        assert(gap.code === 1 && gap.err === `v4-check: accept: incomplete (coverage gap ${last})\n` && !existsSync(join(par.dir, 'gap.accepted.json')), `a receipt without one manifest id: exit ${gap.code}, ${JSON.stringify(gap.err)}`);
+        const producer = await forged('producer', { ...original, harnessHash: 'someone-else' });
+        assert(producer.code === 1 && producer.err === 'v4-check: accept: incomplete (producer changed)\n', `another producer: exit ${producer.code}, ${JSON.stringify(producer.err)}`);
+        const blocks = await forged('blocks', { ...original, blocks: { parity: 'pass', baseline: 'pass' } });
+        assert(blocks.code === 1 && blocks.err.startsWith('v4-check: accept: incomplete (blocks is '), `the blocks of another kind: exit ${blocks.code}, ${JSON.stringify(blocks.err)}`);
+        const failed = await forged('failed', { ...original, verdict: 'fail', reasons: ['parity: boom'] });
+        assert(failed.code === 1 && failed.err === 'v4-check: accept: fail (parity: boom)\n', `a failing receipt: exit ${failed.code}, ${JSON.stringify(failed.err)}`);
+        const noStep = await runCheck(['accept', ...asArgs('--receipt', rel(receiptFile), '--binding', rel(join(par.dir, 'x.accepted.json')), '--by', 'selftest')]);
+        assert(noStep.code === 1 && noStep.err === 'v4-check: accept needs --step and --manifest for a parity receipt\n', `a parity receipt without --step and --manifest: exit ${noStep.code}, ${JSON.stringify(noStep.err)}`);
+        // The expectation reads the step as a historical observation, through the manifest's own isV4 rule.
+        /** @type {any[]} */
+        const calls = [];
+        const expectation = stepExpectation(RECEIPT_TASK, 'par', par.manifest, 'parity', (task, step, manifestPath, isV4, options) => {
+          calls.push([task, step, rel(manifestPath), isV4('base'), isV4('v4-w760'), options]);
+          return stepEvidence(task, step, manifestPath, isV4, options);
+        });
+        same(calls, [[RECEIPT_TASK, 'par', par.manifest, false, true, { historical: true }]], 'the step is read historically, with every variant but base in the v4 chain');
+        same([expectation.harnessHash, expectation.coverage, expectation.fields], [par.identity.harnessHash, par.items.map((i) => i.id), { blocks: { parity: 'pass', replay: 'pass' } }], 'the expectation of a parity receipt');
+        same(stepExpectation(RECEIPT_TASK, 'par', par.manifest, 'p0-identity').fields, { blocks: { parity: 'pass', baseline: 'pass' } }, 'the blocks of a P-0 receipt');
+        // The expectation reads the captured copies: a copy of another tree is refused.
+        const copy = join(evidenceDir('frozen', RECEIPT_TASK, 'inputs', 'par'), 'v4.ig-tree.json');
+        writeJson(copy, { ...v4, treeId: 'other', root: undefined, built: undefined });
+        assert(thrownBy(() => stepExpectation(RECEIPT_TASK, 'par', par.manifest, 'parity')) === `accept: captured tree v4 differs from the observation (${par.identity.treeIds.v4} vs other)`, 'a captured copy of another tree');
+        rmSync(copy);
+        assert(thrownBy(() => stepExpectation(RECEIPT_TASK, 'par', par.manifest, 'parity')) === 'accept: no captured tree metadata for v4', 'no captured copy');
+        const none = await receiptStep('none', PARITY_ROWS, goodResults(), { harnessHash: 'x' });
+        assert(thrownBy(() => stepExpectation(RECEIPT_TASK, 'none', none.manifest, 'parity', (task, step, manifestPath, isV4, options) => ({ ...stepEvidence(task, step, manifestPath, isV4, options), problems: ['no state p'] }))) === 'accept: no state p', 'a problem of the step');
+      });
+    },
+  },
+  {
+    name: 'accept: a P-0 binding names the baseline block',
+    async run() {
+      await onReceiptTask(async () => {
+        const world = await baselineWorld();
+        const p0 = await receiptStep('p0', PARITY_ROWS, goodResults());
+        const { receipt, path } = buildStepReceipt({ kind: 'p0-identity', task: RECEIPT_TASK, step: 'p0', manifest: p0.manifest, arm: 'v4', baseline: world.binding, baselineStep: world.baselineStep });
+        writeJson(abs(path), receipt);
+        const bindingFile = join(p0.dir, 'p0.accepted.json');
+        const args = ['accept', '--task', RECEIPT_TASK, '--step', 'p0', '--manifest', p0.manifest, '--receipt', path, '--binding', rel(bindingFile), '--by', 'selftest', '--label', 'frozen', '--source-label', 'x'];
+        const accepted = await runCheck(args);
+        assert(accepted.code === 0, `accept: exit ${accepted.code}, ${JSON.stringify(accepted.err)}`);
+        const binding = JSON.parse(readFileSync(bindingFile, 'utf8'));
+        same([binding.expected.kind, binding.expected.fields, binding.expected.arms.map((/** @type {any} */ a) => a.id)], ['p0-identity', { blocks: { parity: 'pass', baseline: 'pass' } }, ['base', 'v4']], 'the P-0 binding');
+        same(checkAccepted(binding, { current: [{ id: 'v4', treeId: p0.identity.treeIds.v4, paramsHash: sha256(JSON.stringify((await ensureTree('v4')).params)) }] }), { status: 'pass', reasons: [] }, 'the binding of the final trees passes for v4');
+        // A receipt of the other kind does not pass a binding of this one: the kind is part of the expectation.
+        writeJson(join(p0.dir, 'as-parity.receipt.json'), { ...receipt, kind: 'parity' });
+        const wrong = await runCheck(['accept', '--task', RECEIPT_TASK, '--step', 'p0', '--manifest', p0.manifest, '--receipt', rel(join(p0.dir, 'as-parity.receipt.json')), '--binding', rel(join(p0.dir, 'wrong.accepted.json')), '--by', 'selftest', '--label', 'frozen', '--source-label', 'x']);
+        assert(wrong.code === 1 && wrong.err.startsWith('v4-check: accept: incomplete (blocks is '), `a P-0 receipt named parity: exit ${wrong.code}, ${JSON.stringify(wrong.err)}`);
+      });
+    },
+  },
+  {
+    name: 'receipt: the baseline binding and the results decide the baseline block',
+    async run() {
+      await onReceiptTask(async () => {
+        const base = await ensureTree('base');
+        const v4 = await ensureTree('v4');
+        const make = async (/** @type {string} */ step, /** @type {Awaited<ReturnType<typeof baselineWorld>>} */ world, /** @type {Record<string, any>} */ over = {}, /** @type {(item: any) => any} */ resultOf = goodResults()) => {
+          const created = await receiptStep(step, PARITY_ROWS, resultOf);
+          return buildStepReceipt({ kind: 'p0-identity', task: RECEIPT_TASK, step, manifest: created.manifest, arm: 'v4', baseline: world.binding, baselineStep: world.baselineStep, ...over }).receipt;
+        };
+        // (1) another result everywhere (the parity block still holds), (2) other parameters in the binding, (3) a variant the binding lacks
+        const moved = await make('moved', await baselineWorld({ name: 'b1' }), {}, goodResults({ over: () => ({ digest: 'd2' }) }));
+        same([moved.verdict, moved.blocks], ['fail', { parity: 'pass', baseline: 'fail' }], '(1) the results changed');
+        same(moved.reasons, [`baseline: result changed v4|${RECEIPT_CASE}|${RECEIPT_SEED}|absent`, `baseline: result changed base|${RECEIPT_CASE}|${RECEIPT_SEED}|absent`], '(1) both absent rows are named');
+        const params = await make('params', await baselineWorld({ name: 'b2', params: { base: base.params, v4: { ...v4.params, U0: 99 } } }));
+        same([params.verdict, params.blocks.baseline, params.reasons], ['fail', 'fail', ['baseline: parameters changed v4']], '(2) other parameters of v4 in the binding');
+        const lacking = await make('lacking', await baselineWorld({ name: 'b3', params: { v4: v4.params } }));
+        same([lacking.verdict, lacking.reasons], ['fail', ['baseline: no baseline parameters for base']], '(3) a variant the binding lacks');
+        // (4) a baseline row that does not exist, (5) a binding whose evidence changed, (6) a binding that does not exist, (7) another arm than the observed ones
+        const fewer = await make('fewer', await baselineWorld({ name: 'b4', rows: [PARITY_ROWS[0]] }));
+        same([fewer.verdict, fewer.reasons], ['fail', [`baseline: no baseline for base|${RECEIPT_CASE}|${RECEIPT_SEED}|absent`]], '(4) no baseline row');
+        const tampered = await baselineWorld({ name: 'b5' });
+        appendFileSync(tampered.files[0], ' ');
+        const stale = await make('stale', tampered);
+        same([stale.verdict, stale.blocks.baseline, stale.details.baseline.rows], ['incomplete', 'incomplete', []], '(5) a baseline whose evidence changed');
+        assert(stale.reasons.some((/** @type {string} */ r) => r.startsWith('baseline: baseline binding: evidence changed ')), `(5) its reason: ${JSON.stringify(stale.reasons)}`);
+        const gone = await make('gone', await baselineWorld({ name: 'b6' }), { baseline: 'tests/artifacts/ig-proto/selftest/no-such-binding.json' });
+        same([gone.verdict, gone.reasons], ['incomplete', ['baseline: baseline binding: missing binding tests/artifacts/ig-proto/selftest/no-such-binding.json', 'missing input tests/artifacts/ig-proto/selftest/no-such-binding.json']], '(6) no binding');
+        const ghost = await make('ghost', await baselineWorld({ name: 'b7' }), { arm: 'ghost' });
+        same([ghost.verdict, ghost.blocks, ghost.reasons], ['incomplete', { parity: 'pass', baseline: 'pass' }, ['arm ghost is not among the observed variants (base, v4)']], '(7) an arm that was not observed');
+      });
+    },
+  },
+  {
+    name: 'receipt: the inputs are captured only when they are what the observation stored',
+    async run() {
+      await onReceiptTask(async () => {
+        const v4 = await ensureTree('v4');
+        const dir = (/** @type {string} */ step) => evidenceDir('frozen', RECEIPT_TASK, 'inputs', step);
+        const identity = { treeIds: { v4: v4.treeId }, harnessHash: harnessInfo().harnessHash };
+        const whole = captureStepInputs(RECEIPT_TASK, 's1', identity);
+        same([Object.keys(whole.copies), whole.reasons, whole.copies.v4.treeId], [['v4'], [], v4.treeId], 'the stored tree id and harness: both copied');
+        same(JSON.parse(readFileSync(join(dir('s1'), 'v4.ig-tree.json'), 'utf8')).params, v4.params, 'the copy holds the tree\'s parameters');
+        same(JSON.parse(readFileSync(join(dir('s1'), 'harness.json'), 'utf8')), harnessInfo(), 'the copy of the harness metadata');
+        assert(!existsSync(join(evidenceDir('frozen', RECEIPT_TASK, 'inputs'), 'v4.ig-tree.json')), 'a copy was written beside stage 1\'s flat folder');
+        const stale = captureStepInputs(RECEIPT_TASK, 's2', { treeIds: { v4: 'old' }, harnessHash: 'other-harness' });
+        same([stale.copies, stale.reasons], [{}, [`stale tree v4 (old vs ${v4.treeId})`, 'producer changed since the observation']], 'a stale tree and another producer: reasons, no copy');
+        assert(!existsSync(join(dir('s2'), 'v4.ig-tree.json')) && !existsSync(join(dir('s2'), 'harness.json')), 'a copy was written although it is not what the observation stored');
+        same(captureStepInputs(RECEIPT_TASK, 's3', { treeIds: { 'no-such-variant': 'x' }, harnessHash: 7 }).reasons, ['stale tree no-such-variant (x vs missing)', 'no producer in the stored identity'], 'a tree that is not built and no producer');
+        same(captureStepInputs(RECEIPT_TASK, 's4', null), { copies: {}, reasons: [] }, 'no identity: nothing to capture');
+        // through the command: a step observed by another harness is incomplete, its arm has no parameter hash
+        const other = await receiptStep('other', PARITY_ROWS, goodResults(), { harnessHash: 'other-harness', treeIds: { base: 'old', v4: 'old' } });
+        const receipt = buildStepReceipt({ kind: 'parity', task: RECEIPT_TASK, step: 'other', manifest: other.manifest, arm: 'v4' }).receipt;
+        same([receipt.verdict, receipt.arms, receipt.harnessHash], ['incomplete', [{ id: 'base', treeId: 'old', paramsHash: null }, { id: 'v4', treeId: 'old', paramsHash: null }], 'other-harness'], 'a step of another producer and other trees');
+        assert(receipt.reasons.filter((/** @type {string} */ r) => r.startsWith('stale tree v4')).length === 1 && receipt.reasons.includes('producer changed since the observation'), `its reasons: ${JSON.stringify(receipt.reasons)}`);
+        assert(receipt.evidence.every((/** @type {any} */ e) => !e.path.includes('/inputs/')), `no captured copy is listed: ${JSON.stringify(receipt.evidence.map((/** @type {any} */ e) => e.path))}`);
+      });
+    },
+  },
+  {
+    name: 'receipt: P-0 over a copy of the stage-1 results',
+    async run() {
+      // The real stage-1 observation and binding are only read: a synthetic step under the scratch task carries a copy of its
+      // results, and the P-0 receipt, its binding and the plain `check-binding` run on the real baseline.
+      const stage1 = ['parity', 'replay'].flatMap((step) => ['state.json', 'items.jsonl'].map((name) => artifactDir('frozen', 'V4-T04', step, name)));
+      const guarded = [...stage1, evidenceDir('frozen', 'V4-T04', 'stage1.json'), evidenceDir('frozen', 'V4-T04', 'accepted-binding.json')];
+      const before = rawHashes(guarded);
+      const bindingPath = rel(evidenceDir('frozen', 'V4-T04', 'accepted-binding.json'));
+      await onReceiptTask(async () => {
+        const manifestFile = join(IG_DIR, 'plans', 'V4-T04.parity.json');
+        const manifest = JSON.parse(readFileSync(manifestFile, 'utf8'));
+        const real = stepEvidence('V4-T04', 'parity', manifestFile, (variant) => variant !== 'base', { historical: true });
+        same([real.problems, real.rows.length], [[], 23], 'the stage-1 parity observation is read historically');
+        const results = new Map(real.rows.map((row) => [row.item, row.result]));
+        /** @type {Record<string, string>} */
+        const treeIds = {};
+        for (const variant of [...new Set(/** @type {string[]} */ (manifest.rows.map((/** @type {any} */ row) => row.variant)))].sort()) {
+          treeIds[variant] = (await ensureTree(variant)).treeId;
+        }
+        const copy = await receiptStep('real', manifest.rows, (item) => results.get(item.id.replace(/^real:/, 'parity:')), { treeIds });
+        const receiptFile = evidenceDir('frozen', RECEIPT_TASK, 'real.receipt.json');
+        const made = await runCheck(['receipt', '--kind', 'p0-identity', '--task', RECEIPT_TASK, '--step', 'real', '--manifest', copy.path, '--arm', 'v4', '--baseline', bindingPath, '--require-pass', '--label', 'frozen', '--source-label', 'x']);
+        assert(made.code === 0 && made.out === `receipt: p0-identity pass -> ${rel(receiptFile)}\n`, `the P-0 receipt on the stage-1 results: exit ${made.code}, ${JSON.stringify(made.out)} ${made.err}`);
+        const receipt = JSON.parse(readFileSync(receiptFile, 'utf8'));
+        same([receipt.blocks, receipt.details.baseline.rows.length, receipt.details.baseline.rows.every((/** @type {any} */ r) => r.equal), receipt.arms.map((/** @type {any} */ a) => a.id)],
+          [{ parity: 'pass', baseline: 'pass' }, 8, true, ['base', 'v4', 'v4-w095', 'v4-w380', 'v4-w760']], 'eight absent results equal, five arms');
+        const stageArms = JSON.parse(readFileSync(abs(bindingPath), 'utf8')).expected.arms;
+        assert(stageArms.every((/** @type {any} */ a) => receipt.arms.find((/** @type {any} */ b) => b.id === a.id)?.paramsHash === a.paramsHash), 'every parameter hash equals the stage-1 binding\'s');
+        assert(stageArms.some((/** @type {any} */ a) => receipt.arms.find((/** @type {any} */ b) => b.id === a.id)?.treeId !== a.treeId), 'the tree ids moved since stage 1 (the parameters did not)');
+        const bound = join(copy.dir, 'real.accepted.json');
+        const accepted = await runCheck(['accept', '--task', RECEIPT_TASK, '--step', 'real', '--manifest', copy.path, '--receipt', rel(receiptFile), '--binding', rel(bound), '--by', 'selftest', '--label', 'frozen', '--source-label', 'x']);
+        assert(accepted.code === 0, `accept: exit ${accepted.code}, ${JSON.stringify(accepted.err)}`);
+        const current = await runCheck(['check-binding', '--binding', rel(bound), '--current', 'v4,base', '--label', 'frozen', '--source-label', 'x']);
+        assert(current.code === 0 && current.out === 'binding: pass\n', `the binding of the final trees for v4 and base: exit ${current.code}, ${JSON.stringify(current.out)}`);
+        const plain = await runCheck(['check-binding', '--binding', bindingPath, '--label', 'frozen', '--source-label', 'x']);
+        assert(plain.code === 0 && plain.out === 'binding: pass\n', `the plain stage-1 binding: exit ${plain.code}, ${JSON.stringify(plain.out)}`);
+      });
+      same(rawHashes(guarded), before, 'the stage-1 states, logs, receipt and binding are byte-identical afterwards');
+    },
+  },
+  {
+    name: 'receipt: a passing receipt is written once',
+    async run() {
+      await onReceiptTask(async () => {
+        const par = await receiptStep('par', [...PARITY_ROWS, ...REPLAY_ROWS], goodResults());
+        const argv = ['receipt', '--kind', 'parity', '--task', RECEIPT_TASK, '--step', 'par', '--manifest', par.path, '--arm', 'v4', '--label', 'frozen', '--source-label', 'x'];
+        const file = evidenceDir('frozen', RECEIPT_TASK, 'par.receipt.json');
+        const inputs = evidenceDir('frozen', RECEIPT_TASK, 'inputs', 'par');
+        const first = await runCheck(argv);
+        assert(first.code === 0 && first.out === `receipt: parity pass -> ${rel(file)}\n`, `a passing receipt: exit ${first.code}, ${JSON.stringify(first.out)} ${first.err}`);
+        // a captured input that a second run would rewrite is marked, and every captured file is hashed
+        writeFileSync(join(inputs, 'harness.json'), 'marker');
+        const captured = () => readdirSync(inputs).sort().map((name) => [name, sha256File(join(inputs, name), { raw: true })]);
+        const [receiptHash, capturedBefore] = [sha256File(file, { raw: true }), captured()];
+        const again = await runCheck(argv);
+        assert(again.code === 1 && again.out === '' && again.err === `v4-check: receipt ${rel(file)} exists (a passing receipt is never rewritten)\n`, `a second run: exit ${again.code}, ${JSON.stringify(again.err)}`);
+        const required = await runCheck([...argv, '--require-pass']);
+        assert(required.code === 1 && required.err === again.err, `a second run with --require-pass: exit ${required.code}, ${JSON.stringify(required.err)}`);
+        same([sha256File(file, { raw: true }), captured(), readFileSync(join(inputs, 'harness.json'), 'utf8')], [receiptHash, capturedBefore, 'marker'], 'a refusal wrote nothing: the receipt and every captured input are as they were');
+        // a receipt that does not parse as an object with a string verdict is refused as unreadable, whatever it holds
+        for (const text of ['{', '[]', 'null', '{"verdict":1}', '{"kind":"parity"}']) {
+          writeFileSync(file, text);
+          const refused = await runCheck(argv);
+          assert(refused.code === 1 && refused.out === '' && refused.err === `v4-check: an unreadable receipt exists: ${rel(file)}\n`, `a receipt holding ${text}: exit ${refused.code}, ${JSON.stringify(refused.err)}`);
+          same([readFileSync(file, 'utf8'), captured()], [text, capturedBefore], `a refusal over ${text} wrote nothing`);
+        }
+        // a receipt of another verdict is replaced (case 4 shows a fail receipt replaced; here an incomplete one)
+        writeJson(file, { verdict: 'incomplete' });
+        const replaced = await runCheck(argv);
+        assert(replaced.code === 0 && JSON.parse(readFileSync(file, 'utf8')).verdict === 'pass', `an incomplete receipt is replaced: exit ${replaced.code}, ${JSON.stringify(replaced.err)}`);
+      });
     },
   },
 ];

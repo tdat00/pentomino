@@ -1063,10 +1063,11 @@ T04e; the self-test runs none of them.
 
 ## Stage 1 checks (task pack v4)
 
-`v4-check.mjs` (V4-T04c, V4-T04d and V4-T04f; reviews R06, R2-14, RV3-02, R4-03 and RV5-01; D-V4-14 and D-V4-18) holds the tool that
-runs the stage-1 item manifests, the two verdicts that judge them and the stage-1 receipt. Its subcommands are `run`
-(T04c), `summary` and `pm4-gate` (T04d; see "The stage-1 receipt") and `evidence-check`, `accept` and `check-binding` (T04f;
-see "The accepted binding (V4-T04f)"). The verdicts are pure exports.
+`v4-check.mjs` (V4-T04c, V4-T04d, V4-T04f and V4-T11d; reviews R06, R2-14, RV3-02, R3-02, R4-03, RV5-01 and RV5-03; D-V4-14 and D-V4-18) holds the tool that
+runs the stage-1 item manifests, the two verdicts that judge them, the stage-1 receipt and the receipts of the parity and P-0
+passes. Its subcommands are `run`
+(T04c), `summary` and `pm4-gate` (T04d; see "The stage-1 receipt"), `evidence-check`, `accept` and `check-binding` (T04f;
+see "The accepted binding (V4-T04f)") and `receipt` (T11d; see "Parity and P-0 receipts (V4-T11d)"). The verdicts are pure exports.
 
 - **Manifests.** `plans/V4-T04.parity.json` (step `parity`, 23 `v4-select` items) and `plans/V4-T04.replay.json` (step
   `replay`, 9 items) have the format `{ "format": "ig-proto-items", "version": 1, "task", "step", "rows": [...] }`.
@@ -1252,10 +1253,13 @@ two functions; `v4-check.mjs` writes and checks the stage-1 binding.
     `evidence: unchanged (<n> files)`, exit 0, or `evidence: changed <paths joined by ', '>`, exit 2 (an absent file is
     changed).
   - `accept --task <T> --receipt <path> --binding <path> --by <text> --label frozen --source-label <SL>` writes the
-    binding of a receipt of the kind `stage1` and prints `accepted: <receipt> sha256 <hash> -> <binding>` (exit 0).
+    binding of a receipt of the kind `stage1` and prints `accepted: <receipt> sha256 <hash> -> <binding>` (exit 0); T11d
+    adds the kinds `parity` and `p0-identity`, which also need `--step <S> --manifest <path>` (see "Parity and P-0
+    receipts (V4-T11d)").
     **A binding is written once and never rewritten**: an existing `--binding` file exits 1 (`v4-check: binding <path>
-    exists (an accepted binding is never rewritten)`); another kind exits 1 (`v4-check: accept knows the kinds stage1`);
-    a receipt that does not bind exits 1 with the reason of `stage1Expectation` or `acceptedBinding`.
+    exists (an accepted binding is never rewritten)`); another kind exits 1 (`v4-check: accept knows the kinds stage1,
+    parity, p0-identity`; N-V4-13 adds `live-deadline`); a receipt that does not bind exits 1 with the reason of
+    `stage1Expectation`, `stepExpectation` or `acceptedBinding`.
   - `check-binding --binding <path> [--current <ids>] --label frozen --source-label <SL>` prints `binding: pass` (exit 0)
     or `binding: <status> (<reasons joined by '; '>)` (exit 2); `--current` builds each comma-separated variant's tree
     (`ensureTree`) and compares its `treeId` and the hash of its `params`; a missing binding is `incomplete` (`missing
@@ -1277,6 +1281,85 @@ two functions; `v4-check.mjs` writes and checks the stage-1 binding.
   expectation comes from the captured inputs (and `historical`); a binding is never rewritten; the historical namespaces
   are reserved; `evidence-check`; `check-binding`; `main` refuses a reserved id before any write (the scratch id
   `V4-reserved-selftest`, with a control run that does write).
+
+### Parity and P-0 receipts (V4-T11d)
+
+Every arm used later needs a typed parity receipt (P-1), and `v4` needs a proof that its stage-1 results still hold on the
+final trees (P-0). Both are receipts of a finished step under `tests/artifacts/ig-proto/frozen/<T>/<S>/` and of its manifest
+(reviews R3-02, RV3-02 and RV5-03; D-V4-18 and D-V4-19); the compiled plan `V4-S2` (and, from T11e, `V4-S4`) calls them
+(`receipt-<arm>`, `accept-<arm>`, `receipt-p0`, `accept-p0`).
+
+- **`receipt --kind <parity | p0-identity> --task <T> --step <S> --manifest <path> --arm <A> [--baseline <binding>]
+  [--require-pass] --label frozen --source-label <SL>`** (unlocked). A missing option, another kind or `p0-identity`
+  without `--baseline` writes the reason on stderr and exits 1, with nothing written. Otherwise it captures the step's inputs,
+  writes `evidence/frozen/<T>/<S>.receipt.json` (a passing receipt is written once: an existing passing receipt, or one that does
+  not parse, is refused with exit 1 and nothing is written; a `fail` or `incomplete` receipt is written again, from the same
+  observations; a stopped plan resumes as check-list §3.2 says) and prints `receipt:
+  <kind> <verdict> -> <path>`; a receipt that is not `pass` also gets one stderr line with its first reasons. It exits 0 once
+  the receipt is written; **with `--require-pass` it exits 2 when the verdict is `fail` or `incomplete`, after the receipt
+  is written** (the evidence first), which stops the plan (`run-task.ps1` stops on any non-zero unlocked step).
+  `--arm` names the arm the receipt is for (the plans' `current` ids name it): it must be one of the step's observed
+  variants, else the receipt is `incomplete` (`arm <A> is not among the observed variants (...)`).
+- **Captured inputs** (`captureStepInputs(task, step, identity)`, R4-03, as T04d's for stage 1), before the receipt, under
+  `evidence/frozen/<T>/inputs/<S>/`: `<variant>.ig-tree.json` for every variant of the stored `identity.treeIds`, only when
+  the tree as built now has the stored id (else no copy and the reason `stale tree <variant> (<stored> vs <current>)`), and
+  `harness.json`, only when `harnessInfo().harnessHash` is the stored `harnessHash` (else `producer changed since the
+  observation`). It returns `{ copies, reasons }`; a reason makes the receipt `incomplete`. No tree folder, variant file or
+  harness file is listed as evidence.
+- **The blocks.** `isV4` is `(variant) => variant !== 'base'` (every other variant of a parity manifest has `v4` in its chain),
+  so the routes and the manifest hash equal the run's without reading a tree folder. `stepEvidence(T, S, M, isV4)` reads the
+  step (its problems make the receipt `incomplete`). The `parity` block is T04c's `parityVerdict`, unchanged, over the
+  selection rows (the rows that have a mode: a P-1 step also holds a generation item and its replays, whose rows have no
+  route and would put their (variant, case) group in `parityVerdict`'s failing mixed-route case). Kind `parity` adds the
+  `replay` block, T04c's `replayVerdict` over the whole step; kind `p0-identity` adds the `baseline` block and needs no
+  generation or replay item. The verdict is `fail` when a block fails, else `incomplete` when a block, the step or an input
+  is incomplete, else `pass`.
+- **`baselineVerdict(rows, baseRows, params)`** (pure). Rows are joined by `variant|caseId|seedText|mode`, never by the
+  storage item id (the historical ids are `parity:...`, the P-0 ones `p0-v4:...`). Per `absent` row of the step: no baseline
+  row is `fail` (`no baseline for <key>`); a row that is not `completed` or lacks a string `result.digest` on either side is
+  `incomplete` (`no result digest for <key> (now|baseline)`); other `result.digest`s are `fail` (`result changed <key>`).
+  `eventsDigest` is `null` in absent mode and is never read; the modes `charge` and `record` are not compared (their
+  equality is the parity block's). `params` is `[{ variant, now, baseline }]`, the hashes of each variant's parameters now
+  (the captured copy) and in the stage-1 binding: a `null` baseline is `fail` (`no baseline parameters for <variant>`), a
+  different hash `fail` (`parameters changed <variant>`; a variant without a copy has `now` `null`). `fail` wins over
+  `incomplete`; no `absent` row at all is `incomplete` (`no absent rows to compare`), never a vacuous pass. It returns
+  `{ verdict, reasons, rows: [{ key, now, baseline, equal }] }`.
+- **The baseline** is read only through the stage-1 accepted binding (`--baseline
+  docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json`): `checkAccepted(binding, { current: [] })` (a
+  binding that is not `pass`, or missing, makes the block `incomplete`, `baseline binding: <reasons>`; stage 1 holds and
+  `current: []` is declared because the harness work of T05 to T10 moved the `v4`-family tree ids while the parameters
+  stayed, D-V4-05), then the stage-1 parity step is read as a historical observation (`stepEvidence('V4-T04', 'parity',
+  'tools/ig-proto/plans/V4-T04.parity.json', isV4, { historical: true })`: its stored tree ids are not compared with today's).
+  Nothing under the stage-1 namespaces is written. The receipt's evidence lists the binding and the stage-1 parity `items.jsonl`.
+- **The receipt** is `proofEnvelope({ kind, verdict, source, harnessHash, arms, coverage, evidence, fields })` with `source` the
+  frozen commit and the step's stored `sourceDigest`, `harnessHash` the stored producer, `arms` every variant of the stored
+  `treeIds` (`{ id, treeId: stored, paramsHash }` of the captured copy, `null` without one), `coverage` the manifest's item
+  ids (`observed` those that ended `completed`, `censored` those that ended so), `evidence` (repository-relative paths and
+  `sha256File`) the step's `items.jsonl` and `state.json`, the manifest, every captured copy and `harness.json` and, for
+  P-0, the baseline binding and the stage-1 `items.jsonl` (a file that does not exist is `missing input <path>`, which makes the
+  receipt `incomplete`), and the fields `blocks` (`{ parity, replay }` or `{ parity, baseline }`, the verdicts), `details`
+  (each block as `{ verdict, reasons, rows }`; step rows as `{ item, status, detail }`, as stage 1's), `identities` (`{ now:
+  <the stored identity>, baseline: <the stage-1 stored identity, or null> }`) and `reasons` (the step's problems, then `<block>:
+  <reason>` of every block that is not `pass`, then the input reasons, each once; empty on `pass`). Reasons are written without
+  the worktree's absolute path.
+- **`accept`** gains the kinds `parity` and `p0-identity` (the dispatch is on the receipt's `kind`; `--step` and `--manifest`
+  are required for them, else exit 1). `stepExpectation(T, S, M, kind)` builds the expectation from the step's stored identity
+  read as a historical observation (every manifest, log and source check stays, no comparison with today's trees; a problem
+  is `accept: <problem>`), the producer from the stored `harnessHash`, the arms and the captured parameters from the copies under
+  `inputs/<S>/` by T04f's rule (`accept: no captured tree metadata for <variant>`; `accept: captured tree <variant> differs from
+  the observation (<stored> vs <copy>)`), the coverage from the manifest's item ids and the fields from the kind: `{ blocks: {
+  parity: 'pass', replay: 'pass' } }` or `{ blocks: { parity: 'pass', baseline: 'pass' } }`. A consumer checks a parity binding
+  with `current: [<arm>]`; the P-0 binding (`V4-S2P/p0-v4.accepted.json`) with `current: ['v4']` against the final trees, while the
+  stage-1 binding stays `current: []` (`check-binding --current v4` against it reports `stale arm v4` by design).
+- **Self-test.** Twelve cases appended to `--items`, on synthetic step folders under the scratch task `V4-T11d-selftest` (raw
+  folder and evidence folder removed after each case): the absent digests decide, not the events digests; storage ids do not
+  matter; a missing baseline fails closed; a required pass stops the plan; each kind has its blocks; the stage-1 files keep their
+  hashes; a parity binding from the stored identity; a P-0 binding names the baseline block; the baseline binding and the results
+  decide the baseline block (changed results, other or missing parameters, a missing baseline row, changed or missing binding,
+  another arm); the inputs are captured only when they are what the observation stored; a P-0 receipt over a synthetic
+  copy of the real stage-1 results, run against the real stage-1 binding (read only: its hashes are compared before and after);
+  and a passing receipt is written once (a second run, also with `--require-pass`, and a receipt that does not parse are refused
+  with exit 1, the receipt and every captured input byte-identical; an `incomplete` receipt is replaced).
 
 ### The per-set prior (V4-T05)
 

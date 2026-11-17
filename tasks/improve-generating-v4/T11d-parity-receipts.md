@@ -198,13 +198,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 23:04:40 +07:00 (dispatch, base `e3044a9`) to 23:44:41 +07:00 (acceptance): 40 min 1 s; the developer's own times 23:04:37-23:27:16 and, in the fix round, 23:40:52-about 23:43 |
+| Waiting for rulings | about 13 min (SA-Opus's ruling, 23:27-23:40) |
+| Agent id, model | `1d3a8acd-d856-4df2-846c-e5ecf67f2178`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 110 calls; 31,092,671 input, 182,889 output, 30,248,902 cache-read |
+| AI credits | 696.31 |
+| Questions and rulings | Q1: step 3's `parityVerdict(ev.rows)` fails every P-1 manifest that mixes select and generation rows (`rows of mixed or unknown routes`), so every `receipt-<arm>` would fail; ruled default (a): the parity block reads the selection rows only, T04c unchanged. Q2: `--arm` must be an observed variant, else `incomplete` (default (b)). Q3 changed by the ruling: a passing receipt is written once (an existing passing or unreadable receipt is refused with exit 1, nothing written). Named item 1: check-list §3.2 gains a resume rule (a stopped plan resumes only after a ruling, with `-Only`; a done locked step is never re-run). Deviations, readings, named item 2 and gaps accepted. Pack amendment `330a9d6` (T11d 3.5 h, pack 104 h) |
+| Fix rounds | 1 (a passing receipt is written once; one case; README) |
+| Gates re-run by the orchestrator | `--items`: 174 passed, 0 failed (31.013 s; the twelve receipt cases, last `receipt: a passing receipt is written once`); `--frozen`: 10 passed; `check-edits --all`: 34 `ok`, no other line; firewall `check` (V4-T11d): 289 production files unchanged; guard on `core generator tests tools/bench tools/ig-proto/variants data plans lib lock docs tasks`: empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. The developer's mutants (no mode filter, a non-historical read, no `checkAccepted`, copies without the tree-id check, no path scrubbing, then the two new refusals) were each caught. No locked command and no machine time |
+| Commit | this task's commit, `improve-generating T11d: Parity and P-0 receipts with required passes, and their accepted bindings` |
+| Issues and named items | The first real parity and P-0 receipts come in stage 2 (N-V4-02); real `legacy` groups such as `14x14-master` on the `fr-*` arms are judged only by those runs. The real-data case reads the git-ignored stage-1 raw logs |
