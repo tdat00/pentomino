@@ -213,13 +213,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 15:44:10 +07:00 (dispatch, base `3fcf97d`) to 16:20:32 +07:00 (acceptance): 36 min 22 s; the developer's own times 15:44:11-16:08:24 and, in the fix round, 16:15:28-16:18:52 |
+| Waiting for rulings | about 7 min (SA-Opus's review 16:10-16:14 and the fix-round ruling 16:19-16:20; no QUESTION) |
+| Agent id, model | `654a7522-5c74-49e8-aa00-33c6168ba9d9`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 118 calls; 38,813,463 input, 225,085 output, 37,854,076 cache-read |
+| AI credits | 843.46 |
+| Questions and rulings | none from the developer. SA-Opus required one fix round on reading 10 (a re-run replaced every record, against the written-once rule of check-list §3.3): step 3c, `decidedRecord`, `main` refuses to overwrite a final selection or a decided phase 0, `verdictRecords` refuses a closure of another activation and a final manifest over a non-final selection, case `verdicts: decided records are written once`, T09e-T04, and the rule that raw journals are kept until phase 0 is decided (pack amendment `6dd9d95`, T09e 3.5 h, pack 99.5 h). Readings 1-9, the in-memory tests, the six extra exports and `attachLedgers` accepted; the fix round's refusal of an unreadable existing record and `named` rejecting a non-object accepted (ruling row `188d5af`) |
+| Fix rounds | 1 (decided records written once, two `verdictRecords` refusals, a case and the README) |
+| Gates re-run by the orchestrator | `--items`: 105 passed, 0 failed (12.829 s; cases 98-105 new); `--frozen`: 10 passed; `check-edits --all`: 33 `ok`, no other line; example `verdicts.mjs --manifest … example.json`: exit 0, three records under `V4-T09-example/`, `Phase 0: INCOMPLETE (uncapped comparator collection pending; prerequisite liveDeadline: incomplete (missing binding …/V4-LIVE/live-deadline.accepted.json))`; a second run exits 1 `verdicts: a final selection exists: …/class-selection.json` with the file hash unchanged; folder deleted; firewall `check` (V4-T09e): 289 production files unchanged; `git status --short -- core generator tests tools/bench tools/ig-proto/variants tools/ig-proto/lib docs`: empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. No locked command and no machine time (round 2,724 s); `ig-select-v4.js` unchanged |
+| Commit | this task's commit, `improve-generating T09e: The verdict tool: bound prerequisites, the class-selection receipt and the verdict record` |
+| Issues and named items | none new. Activation, closure and freeze paths are covered in memory only until T11e (N-V4-03); the raw journals bound by receipts must be kept until phase 0 is decided (check-list §3.3) |

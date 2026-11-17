@@ -1,0 +1,61 @@
+{
+  "task": "V4-T09-example",
+  "label": "frozen",
+  "purpose": "selection",
+  "quantity": 10,
+  "capMs": 120000,
+  "responseBoundMs": 120000,
+  "resampleSeed": 20261116,
+  "resamples": 10000,
+  "validationReps": [0, 1],
+  "masterReps": [],
+  "collection": {
+    "activation": null,
+    "closure": null
+  },
+  "arms": [
+    {
+      "id": "v4-link",
+      "task": "V4-T06",
+      "arm": "v4-link",
+      "variant": "v4-link",
+      "treeId": "820c827e4b44e8c78ff9cfe7c54303a2b57fafe6b14f2dbc04f414e0db43c4df",
+      "files": [
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-T06/v4-link/s1.runs.json",
+          "sha256": "7c6ff3490173f315cfcd111577d642e90973b42f9ec6d5b1f0f73f43b29bf644"
+        }
+      ]
+    },
+    {
+      "id": "log-link",
+      "task": "V4-T06",
+      "arm": "log-link",
+      "variant": "log-link",
+      "treeId": "d65e1a510b3803b191b168090e44658c33eef548563800c6540bd33e7ada340f",
+      "files": [
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-T06/log-link/s1.runs.json",
+          "sha256": "602987ee26198b7cc554c111910dd63e69d08ea663dea0508ba093ab30ded81f"
+        }
+      ]
+    }
+  ],
+  "classes": [
+    { "id": "example", "cells": ["26x26-nightmare"], "screen": "v4-link", "noScreen": "log-link" }
+  ],
+  "failingCells": [],
+  "controls": [],
+  "masters": [],
+  "hell1": [],
+  "p5": [],
+  "deadlineProjection": { "arms": ["v4-link", "log-link"], "reserves": [0.3, 0.4, 0.5], "deadlineMs": 115000 },
+  "prerequisites": {
+    "stage1": { "binding": "docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json", "current": [] },
+    "parity": [],
+    "liveDeadline": {
+      "binding": "docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.accepted.json",
+      "current": ["fr-frozen"]
+    }
+  }
+}

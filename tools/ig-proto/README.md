@@ -68,7 +68,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `variants/link.json`, `variants/log-link.json`, `variants/v4-link.json`, `variants/v4-ps-link.json`, `variants/files/link/`, `linkage.mjs`, `plans/V4-T06.json` | the batch linkage journal and its report (V4-T06): the variant `link` and its three compositions, `ig-link.js`, `linkage.mjs report` and the plan of its run; see "Batch linkage (V4-T06)" |
 | `variants/v4-p5.json`, `variants/v4-p5-w8-test.json`, `variants/v4-link-w8-test.json` | the P5 pilot arm `v4-p5` (the call budget and the bounded set attempts) and the two test-only width-8 trees (V4-T07b); see "P5 bounded set attempts (V4-T07b)" |
 | `variants/fr-base.json`, `fr-screen.json`, `fr-none.json`, `fr-close.json`, `fr-c4.json`, `fr-ps.json`, `fr-p5.json` | the seven frozen-round arms of stage 2 (V4-T08); see "Frozen-round arms (V4-T08)" |
-| `verdicts.mjs`, `data/verdict-manifest.schema.md` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules), the work ledger of a request, the work rule and the class verdict (V4-T09c), the global verdicts (V4-T09d: the cell gates on the shipped arm, Master identity, the Hell 1 report, P5's stops, the post-hoc projection, the population and phase 0's verdict) and the manifest those statistics read; pure; see "Admission statistics (V4-T09a)" |
+| `verdicts.mjs`, `data/verdict-manifest.schema.md`, `data/verdict-manifest.example.json` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules), the work ledger of a request, the work rule and the class verdict (V4-T09c), the global verdicts (V4-T09d: the cell gates on the shipped arm, Master identity, the Hell 1 report, P5's stops, the post-hoc projection, the population and phase 0's verdict), and the verdict tool (V4-T09e: the bound prerequisites, the class-selection receipt, the work report and the records it writes) with the manifest those statistics read and its example; the statistics are pure, the tool reads the records the manifest names; see "Admission statistics (V4-T09a)" |
 
 ## Trees (variants)
 
@@ -135,6 +135,7 @@ node tools\ig-proto\compare.mjs --task IGP-03h --pairs IGP-01/before:w760,IGP-01
 node tools\ig-proto\compare-r2.mjs --task IGP-01 --label provisional                                               # unlocked
 node tools\ig-proto\budgets.mjs --arms IGP-01/after,IGP-03/w095 --label provisional [--task IGP-03]                # unlocked
 node tools\ig-proto\summary.mjs --label provisional [--root <evidence folder>]                                    # unlocked, writes summary.json|md
+node tools\ig-proto\verdicts.mjs --manifest <verdict manifest> --label frozen --source-label <label>              # unlocked (V4-T09e), writes verdicts.json|md and, for a selection, class-selection.json
 ```
 
 `--only` (a subset of the self-test's cases), `limits` and `testKinds` of `createLanes`, and `setHorizon` are for the
@@ -1607,6 +1608,97 @@ never a pass; an invalid puzzle or pack is a correctness failure. The module loa
   `stage1` and `liveDeadline` included (a prerequisite that is absent is `incomplete`); else `incomplete`. It returns
   `{ verdict, deciding }`: `deciding` lists the items that decide, each `<item>: <status>` (the failing ones for a `fail`,
   the open ones for an `incomplete`, every item for a `pass`). The Hell 1 report and the projection are not inputs.
+- **The verdict tool** (V4-T09e; `node tools\ig-proto\verdicts.mjs --manifest <path> --label frozen --source-label <SL>`,
+  unlocked). It reads the verdict manifest (`data/verdict-manifest.schema.md`; `data/verdict-manifest.example.json` is a
+  working one over T06a's published records) and the records it names, and writes under
+  `docs/improve-generating/evidence/frozen/<manifest.task>/`: `verdicts.json` (the meta block, the manifest with its
+  SHA-256, the files read and their problems per arm, every class verdict with its statistics and work block, the cells,
+  controls, Master cells, Hell 1, P5's stops, the prerequisites, the selection, the phase-0 line, the projection and the
+  population), `verdicts.md` (one section per class with its work table, the cells on the arm each ships, the controls,
+  Master identity, Hell 1, P5's stops, the prerequisites with their reasons, the phase-0 line and, under its own heading
+  "Post-hoc projection; not a live deadline gate", the projection per arm and reserve) and, for the purpose `selection`,
+  `class-selection.json`. Exit 0 when the records are written, whatever the verdicts; exit 1 for a refused manifest or
+  command (an unreadable or malformed manifest; a `task` that is a historical observation namespace; an arm that a class,
+  control, Master cell, P5 entry or the projection names but the manifest does not declare; a named record (the
+  activation, closure, freeze or selection receipt) that is missing, is not a JSON object or whose SHA-256 differs from the
+  manifest's; a live-deadline prerequisite that is not a live-deadline binding). The code is `verdictRecords(manifest, io,
+  manifestRef)` (pure over the reader `io = { readText, list, harnessHash, currentOf }`; the self-test feeds it a
+  repository in memory) and `main`.
+  - **Decided records are written once** (check-list section 3.3; `decidedRecord(purpose, { selection, verdicts })`). An
+    interim record of the task is replaced: a selection that is `incomplete` is superseded once the collection is closed,
+    a phase 0 that is `incomplete` once a prerequisite is accepted. A decided one is never overwritten, and a correction
+    is a new manifest `task`. Four refusals, each exit 1 with nothing written: `main` prints `verdicts: a final selection
+    exists: <path>` when the purpose is `selection` and the task's `class-selection.json` has `verdict` `pass`, and
+    `verdicts: a decided phase 0 exists: <path>` when the purpose is `final` and its `verdicts.json` has `phase0.verdict`
+    `pass` or `fail` (an existing record that is not JSON is refused too: `an unreadable record exists`);
+    `verdictRecords` throws `the closure belongs to another activation` when the closure record's `activation.sha256` is
+    not the SHA-256 of the manifest's `collection.activation` (a closure that names no activation included), and, for a
+    `final` manifest, `the selection is not final` when its selection receipt's `verdict` is not `pass`. The raw journals
+    under `tests/artifacts/ig-proto/frozen/` are git-ignored but the receipts bind them by hash: keep them until phase 0
+    is decided; a deleted one makes the result `incomplete` (`evidence changed`), never a pass.
+  - **Rows.** Per arm, every `*.runs.json` of `docs/improve-generating/evidence/<label>/<arm.task>/<arm.arm>/` and every
+    file `arm.files` declares, each row through `ingestRow`. A file whose SHA-256 differs from the manifest's (`changed
+    evidence`), that `arm.files` does not declare (`undeclared evidence`), that is missing (`missing evidence`), that is not
+    JSON or has no rows, or whose `meta.trees.<arm.variant>.treeId` is not `arm.treeId` (`stale tree`) makes each of its
+    rows `invalid` (`<problem> <path>` first in its problems) and the rows are not counted as published. `rowLedger`
+    runs on the rows of the class arms only: per row, every file `<rowKey>.*.jsonl` in the `logs` folder of every shard
+    folder of the arm (`tests/artifacts/ig-proto/<label>/<arm.task>/<arm.arm>/<shard>/logs/`) other than
+    `<rowKey>.row.jsonl` and `<rowKey>.link.jsonl` through `parseLines`, and the link lines of `<rowKey>.link.jsonl`; the
+    unparseable lines of either join the row's ledger. A row with neither has no journal (no ledger: `no journal`); a
+    legacy-route row (`log-link`) has no `caps` or `begin` lines and always reads as incomplete (`work-unknown`).
+  - **Calls.** Per class: `classVerdict` over its cells, each cell's `screenCellGate` the verdict of `cellGate` on the
+    screen arm (`failing` for a `failingCells` cell, with the screen arm's journals; `control` for a `controls` cell, with
+    the rows of the entry's `today` arm; `pass` for any other cell), and `shippedArm`. Each `failingCells` cell and each
+    `controls` entry is judged on the shipped arm of the class whose `cells` contain it (a cell no class contains is
+    `incomplete`, `no class ships <cell>`); each `masters` entry by `masterIdentity(todayRows, afterRows, masterReps)`;
+    each `hell1` cell by `hell1Report` on that shipped arm (on every arm with rows of the cell when no class contains it);
+    each `p5` entry by `p5Stops` over the rows of its cell and its declared reps; each arm of `deadlineProjection.arms` and
+    reserve by `deadlineProjection`; each arm by `population`; and `phase0Verdict` over the results. An arm's rows are
+    its ingested rows of the cell. `quantity`, `capMs`, `responseBoundMs`, `resamples`, `resampleSeed` and the reps are the
+    manifest's.
+  - **Bound prerequisites** (`prerequisites(declared, { readJson, readFile, currentOf })`; R2-09, RV3-06, D-V4-18). Each
+    declared `{ binding, current }` is `checkAccepted(binding, { readFile, current })`, `current` holding, for each arm id
+    it names, today's `{ id, treeId, paramsHash }` from `currentOf` (the tree id of `ensureTree(id)` and the SHA-256 of
+    `JSON.stringify` of its `ig-tree.json` `params`); the historical stage-1 binding is declared with `current: []`, so
+    unrelated harness work does not change it (its producer is the stored one). The live-deadline binding is refused
+    first, by throwing `verdicts: the live-deadline prerequisite must be a live-deadline binding`, unless its
+    `expected.kind` is `live-deadline` and its `expected.fields` deep-equal `LIVE_DEADLINE_FIELDS`: a projection can never
+    satisfy it. A binding file that is absent is `incomplete` (`missing binding <path>`, and no tree is asked for), one
+    that is not JSON `incomplete` (`unreadable binding <path>`) and one whose current tree cannot be read `incomplete`
+    (`current tree unreadable: ...`). It returns `{ stage1, liveDeadline, 'parity:<binding path>': ... }`, each `{ status,
+    reasons }` and a key only when declared (`phase0Verdict` reads an absent one as `incomplete`).
+  - **The class-selection receipt** (`classSelection(manifest, results, inputs)`; RV3-04, RV3-06, D-V4-20): one `ig-v4-proof`
+    envelope of the kind `class-selection` for the purpose `selection`. `selection.classes` is `[{ id, verdict, decidedBy,
+    shipped }]` and `selection.cells` `{ <cell>: { class, shipped } }` (at the envelope's root; `shipped` the arm id, the
+    screen arm for an admitted class, else the no-screen arm), `collection` is `{ activationSha256, closureSha256, missing
+    }` and `reasons` explains an incomplete one. `evidence` holds every file read with its SHA-256: the verdict manifest,
+    the activation, closure and freeze records (the freeze is the activation's `epoch.freeze`; the example has neither),
+    every runs file, every journal and every link file; `arms` every arm of the manifest with the tree id and the SHA-256 of
+    `JSON.stringify(meta.trees.<variant>.params)` of its runs files (`null` for an arm with no readable file or with two
+    trees); `harnessHash` is today's. `declared` is the activation's `declaredRows` (every `<arm>/<cell>~<rep>` of the
+    classes' arms, cells and `validationReps` when there is no activation, the example only) and `published` the
+    `<arm>/<rowKey>` of the rows of the files that passed the checks above. **The closure rule:** `verdict` is `pass` (a
+    final selection) when no declared row is missing, or when a closure is given whose `missing` is exactly the declared
+    rows that are not published (in any order); then, with a closure, `coverage.expected` is the declared rows less the
+    closed ones, `coverage.missing` is empty and `collection.missing` lists the closed rows, so that `proofCheck` against
+    the expectation built from the same records passes. Otherwise it is `incomplete` (`closure does not match` first when
+    a closure is given, then `missing <row>` per row): an interim report is never a selection. Changing the manifest, a
+    runs file, a journal or a link file after the receipt is written makes `proofCheck` `incomplete`
+    (`evidence changed <path>`).
+  - **A final verdict keeps its selection** (RV3-03). With `purpose: 'final'` the manifest names the selection receipt
+    (`selection: { path, sha256 }`); `selectionChanges(receipt.selection, recomputed)` lists the cells whose class or
+    shipped arm, recomputed from the records, differs from `selection.cells` (or that only one side names), and
+    `finalPhase0` then makes the phase-0 verdict `fail` with `selection changed <cell>` for each, before any other failing
+    item. The line is `phase0Line(phase0, prerequisites)`: `Phase 0: pass.`, `Phase 0: INCOMPLETE (...)` or `Phase 0:
+    FAIL (...)`, the `deciding` items joined by `; `, a prerequisite followed by its reasons. The tool does not re-verify
+    the receipt's own proof (T11f's `resolve-comparators` does); the record keeps the receipt's `verdict`.
+  - **The work report** (`workReport(work, rows)`; IG-P-Q37, D-V4-17). T09c's `workRule` result with, per arm, `width`
+    (`hiRatio - loRatio`, `null` when the arm accepted no puzzle), `open` (the open primitives: the sum of `ledger.open`
+    over the arm's rows, which `workRule` does not carry) and `unbounded` (an invalid bound made `hi` infinite; the report
+    prints `unbounded`). The work table of each class in `verdicts.md` lists per arm the rows, the accepted puzzles,
+    `loRatio`, `hiRatio`, the width, `completedRatio`, `terminatedCalls`, the open primitives and whether the arm is
+    complete; the intervals are reported, the verdict is the work rule's. The stage-2 journals' width per class is the
+    reading of N-V4-14.
 - **Self-test.** Four cases appended to the `--items` group (`verdicts: basic rows`, `verdicts: completion and the
   deadline apart`, `verdicts: run status`, `verdicts: per-puzzle evidence`), on synthetic rows built from the frozen
   `newRunRecord` (the helper `verdictKit()` of `self-test.mjs` loads `verdicts.mjs` and the frozen record builders on
@@ -1627,4 +1719,15 @@ never a pass; an invalid puzzle or pack is a correctness failure. The module loa
   Nightmare cell`, `Master identity on complete keys`, `Hell 1 is reported, not a veto`, `the projection is never a
   deadline gate`, `P5 stops over the declared pairs`, `a selection is not a final admission`, `final admission needs the
   whole comparison`, `dead ends`, `the control gate` (a control judges no regression only on complete pairs) and
-  `population per cell`.
+  `population per cell`. V4-T09e appends 8 (the in-memory repository by `memoryRepo`, accepted bindings by `boundReceipt`
+  and a synthetic collection by `toolWorld`: one class of one cell, two arms of 20 requests with their runs files,
+  journals and link files): `verdicts: bound prerequisites` (a receipt changed after its acceptance, a projection as the
+  live-deadline binding, a stale arm, a wrong producer, a complete live binding and a historical one after the harness
+  changed, an absent binding), `class selection` (published rows, a missing row, a closure of exactly that row and of
+  another), `the selection binds its inputs` (the evidence of the receipt, one byte of a journal and of the manifest, the
+  activation, closure and freeze records), `a final verdict keeps its selection`, `decided records are written once` (the
+  rule on each record, a closure of another activation, a selection receipt that is not final), `the work report` (the intervals, the
+  open primitives, the report's table and the journals of `c~1` against `c~10`), `records that are not what the manifest
+  declares` (changed, undeclared, stale and missing runs files, a named record that differs, an unknown arm) and `each cell
+  is judged on the arm its class ships` (a dead end in the screen arm; a control, a Master cell, P5's pairs, Hell 1 and the
+  projection through the declared arms).

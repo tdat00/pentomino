@@ -1023,6 +1023,108 @@ function greenPhase0(kit, over = {}) {
   };
 }
 
+/**
+ * An in-memory repository for the cases of the verdict tool (V4-T09e): a path-to-text map and the readers
+ * `prerequisites` and `verdictRecords` take (no machine file is read or written).
+ * @returns {{ files: Map<string, string>, readFile: (path: string) => string | null, readJson: (path: string) => any, io: any }}
+ */
+function memoryRepo() {
+  /** @type {Map<string, string>} */
+  const files = new Map();
+  const readText = (/** @type {string} */ path) => files.get(path) ?? null;
+  return {
+    files,
+    readFile: readText,
+    readJson: (path) => (files.has(path) ? JSON.parse(/** @type {string} */ (files.get(path))) : null),
+    io: {
+      readText,
+      list: (/** @type {string} */ folder) => [...files.keys()].filter((p) => p.startsWith(`${folder}/`)).sort(),
+      harnessHash: 'h-test',
+      currentOf: (/** @type {string} */ id) => {
+        throw new Error(`no current tree of ${id}`);
+      },
+    },
+  };
+}
+
+/**
+ * A receipt of the kind in the in-memory repository, accepted into `b/<name>.accepted.json` by `acceptedBinding` as T04f does
+ * (producer `harnessHash`, the arm `fr-frozen` at the tree `t1` and the parameters `p1`, one evidence file).
+ * @param {ReturnType<typeof memoryRepo>} repo
+ * @param {string} name
+ * @param {{ kind?: string, fields?: Record<string, unknown>, harnessHash?: string }} [o] By default a live-deadline receipt.
+ * @returns {string} The path of the binding.
+ */
+function boundReceipt(repo, name, { kind = 'live-deadline', fields = { ...LIVE_DEADLINE_FIELDS }, harnessHash = 'h' } = {}) {
+  const arms = [{ id: 'fr-frozen', treeId: 't1', paramsHash: 'p1' }];
+  repo.files.set('in/a.txt', 'a');
+  const receiptPath = `r/${name}.receipt.json`;
+  repo.files.set(receiptPath, JSON.stringify(proofEnvelope({
+    kind,
+    verdict: 'pass',
+    source: { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST },
+    harnessHash,
+    arms,
+    coverage: { expected: ['a'], observed: ['a'], missing: [], censored: [] },
+    evidence: [{ path: 'in/a.txt', sha256: sha256Text('a') }],
+    fields,
+  })));
+  const binding = acceptedBinding({ receiptPath, harnessHash, arms, params: {}, coverage: ['a'], fields, by: 'selftest' }, repo.readFile);
+  const path = `b/${name}.accepted.json`;
+  repo.files.set(path, JSON.stringify(binding));
+  return path;
+}
+
+/**
+ * A synthetic collection in memory for `verdictRecords` (V4-T09e): the cell `c` of the class `k` (screen arm `sa`, no-screen
+ * arm `na`) and any further arm of `ids`, reps 0 to 19 at the seeds `landscape/c/<rep>`; each row has ten puzzles, 12 clues of
+ * `K` 30, the set key `k<rep>`, a linked timeline and a T10 of 30 s on `sa` and 45 s on every other arm. Each arm has a runs
+ * file under its evidence folder and, per row, a worker journal, a link file and a `.row.jsonl` line (which no ledger
+ * reads). `rows(arm, rep)` is `undefined`, `null` (no row) or the row's spec; `journal(arm, rep)` is `undefined` (an empty,
+ * complete ledger: no call), `null` (no journal files) or `{ worker, link }` (the lines of its two files); `files` are
+ * further files of the repository; `manifest` replaces any key of the manifest.
+ * @param {{ row: any }} kit
+ * @param {{ ids?: string[], rows?: (arm: string, rep: number) => any, journal?: (arm: string, rep: number) => any,
+ *   files?: Record<string, string>, manifest?: Record<string, any> }} [spec]
+ */
+function toolWorld({ row }, { ids = ['sa', 'na'], rows, journal, files = {}, manifest: over = {} } = {}) {
+  const repo = memoryRepo();
+  const text = (/** @type {any[]} */ lines) => `${lines.map((l) => JSON.stringify(l)).join('\n')}\n`;
+  for (const [path, content] of Object.entries(files)) {
+    repo.files.set(path, content);
+  }
+  const arms = ids.map((id) => {
+    const published = REPS20.flatMap((rep) => {
+      const spec = rows?.(id, rep);
+      return spec === null ? [] : [row(rep, `landscape/c/${rep}`, {
+        accepted: 10, tenth: id === 'sa' ? 30000 : 45000, setKey: `k${rep}`, clue: 12, K: 30, ...spec, over: { ...linkedFields(), ...spec?.over },
+      })];
+    });
+    const path = `docs/improve-generating/evidence/frozen/TW/${id}/s1.runs.json`;
+    const doc = JSON.stringify({ meta: { trees: { [id]: { treeId: `tree-${id}`, params: { id } } } }, shard: 's1', rows: published }, null, 2);
+    repo.files.set(path, doc);
+    for (const { rowKey, rep } of published) {
+      const lines = journal?.(id, rep);
+      if (lines !== null) {
+        const base = `tests/artifacts/ig-proto/frozen/TW/${id}/s1/logs/${rowKey}`;
+        repo.files.set(`${base}.1.1.jsonl`, text(lines?.worker ?? [{ t: 'row', row: rowKey }]));
+        repo.files.set(`${base}.link.jsonl`, text(lines?.link ?? [{ t: 'link', ev: 'batch-start' }]));
+        repo.files.set(`${base}.row.jsonl`, text([{ t: 'row', row: rowKey }]));
+      }
+    }
+    return { id, task: 'TW', arm: id, variant: id, treeId: `tree-${id}`, files: [{ path, sha256: sha256Text(doc) }] };
+  });
+  const manifest = {
+    task: 'TW', label: 'frozen', purpose: 'selection', quantity: 10, capMs: 120000, responseBoundMs: 120000, resampleSeed: 7, resamples: 1000,
+    validationReps: REPS20, masterReps: [], collection: { activation: null, closure: null }, arms,
+    classes: [{ id: 'k', cells: ['c'], screen: 'sa', noScreen: 'na' }], failingCells: [], controls: [], masters: [], hell1: [], p5: [],
+    deadlineProjection: { arms: ['sa'], reserves: [0.3, 0.5], deadlineMs: 115000 }, prerequisites: {}, ...over,
+  };
+  const manifestText = JSON.stringify(manifest, null, 2);
+  repo.files.set('verdicts/manifest.json', manifestText);
+  return { repo, manifest, manifestText, ref: { path: 'verdicts/manifest.json', sha256: sha256Text(manifestText) } };
+}
+
 /** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
 const itemCases = [
   {
@@ -3423,6 +3525,376 @@ const itemCases = [
       const none = v.population([mk(0, { accepted: 0, over: { details: null } })], { quantity: 10 }).c;
       same([none.clueShare, none.scorePosition, none.censusEstimateShare, none.rows], [null, null, null, 1], 'a cell without a puzzle');
       assert(thrownBy(() => v.population(rows, {})).includes('quantity'), 'a missing quantity did not throw');
+    },
+  },
+  {
+    name: 'verdicts: bound prerequisites',
+    async run() {
+      const { v } = await verdictKit();
+      /** @type {string[]} */
+      const asked = [];
+      const currentOf = (/** @type {string} */ id) => {
+        asked.push(id);
+        return { treeId: 't1', paramsHash: 'p1' };
+      };
+      const check = (/** @type {ReturnType<typeof memoryRepo>} */ repo, /** @type {any} */ declared, /** @type {any} */ current = currentOf) => v.prerequisites(declared, { readJson: repo.readJson, readFile: repo.readFile, currentOf: current });
+      const stage1 = { kind: 'stage1', fields: { line: 'Stage 1: holds.' } };
+      // (a) the receipt file changed after its acceptance.
+      const a = memoryRepo();
+      const bindingA = boundReceipt(a, 'stage1', stage1);
+      same(check(a, { stage1: { binding: bindingA, current: [] } }).stage1, { status: 'pass', reasons: [] }, 'the intact stage-1 binding');
+      a.files.set('r/stage1.receipt.json', `${a.files.get('r/stage1.receipt.json')} `);
+      same(check(a, { stage1: { binding: bindingA, current: [] } }).stage1, { status: 'incomplete', reasons: ['receipt changed r/stage1.receipt.json'] }, '(a) a receipt that changed after its acceptance');
+      // (b) a live prerequisite that is not a live-deadline binding is refused, whatever its receipt holds.
+      const refusal = 'verdicts: the live-deadline prerequisite must be a live-deadline binding';
+      const b = memoryRepo();
+      const projection = boundReceipt(b, 'projection', { kind: 'deadline-projection' });
+      same(thrownBy(() => check(b, { liveDeadline: { binding: projection, current: [] } })), refusal, '(b) a deadline-projection binding');
+      const postHoc = boundReceipt(b, 'posthoc', { fields: { ...LIVE_DEADLINE_FIELDS, postHoc: true } });
+      same(thrownBy(() => check(b, { liveDeadline: { binding: postHoc, current: [] } })), refusal, '(b) a live-deadline binding whose fields are a post-hoc projection');
+      // (c) a live binding whose tree changed since its acceptance.
+      const c = memoryRepo();
+      const bindingC = boundReceipt(c, 'live');
+      const liveOn = (/** @type {any} */ current) => check(c, { liveDeadline: { binding: bindingC, current: ['fr-frozen'] } }, current).liveDeadline;
+      same(liveOn(() => ({ treeId: 't2', paramsHash: 'p1' })), { status: 'incomplete', reasons: ['stale arm fr-frozen'] }, '(c) another tree id');
+      same(liveOn(() => ({ treeId: 't1', paramsHash: 'p2' })).reasons, ['stale arm fr-frozen'], '(c) another parameter hash');
+      // (d) a receipt of another producer than the binding expects.
+      const d = memoryRepo();
+      const bindingD = boundReceipt(d, 'live', { harnessHash: 'h2' });
+      const forged = JSON.parse(/** @type {string} */ (d.files.get(bindingD)));
+      forged.expected.harnessHash = 'h';
+      d.files.set(bindingD, JSON.stringify(forged));
+      same(check(d, { liveDeadline: { binding: bindingD, current: [] } }).liveDeadline, { status: 'incomplete', reasons: ['producer changed'] }, '(d) a wrong producer');
+      // (e) a complete, correctly bound live binding: only the arms it names are asked.
+      asked.length = 0;
+      same(liveOn(currentOf), { status: 'pass', reasons: [] }, '(e) a complete live binding');
+      same(asked, ['fr-frozen'], 'the arms asked');
+      // (f) the historical binding stays valid after unrelated harness work: its producer is the stored one, and no tree is asked.
+      assert(harnessInfo().harnessHash !== 'h', 'the harness hash of today is the stored producer');
+      const f = memoryRepo();
+      const bindingF = boundReceipt(f, 'stage1', stage1);
+      same(check(f, { stage1: { binding: bindingF, current: [] } }, () => {
+        throw new Error('a tree was asked for a historical binding');
+      }).stage1, { status: 'pass', reasons: [] }, '(f) a historical binding');
+      // An absent binding is incomplete and no tree is asked; a parity entry has its own key; an undeclared one has none.
+      asked.length = 0;
+      const none = check(c, { liveDeadline: { binding: 'b/none.json', current: ['fr-frozen'] }, parity: [{ binding: bindingC, current: [] }] });
+      same(none.liveDeadline, { status: 'incomplete', reasons: ['missing binding b/none.json'] }, 'an absent binding');
+      same([asked, Object.keys(none), none[`parity:${bindingC}`].status], [[], ['liveDeadline', `parity:${bindingC}`], 'pass'], 'no tree for an absent binding; one key per parity entry, none for the undeclared stage 1');
+      c.files.set('b/bad.json', '{');
+      same(check(c, { stage1: { binding: 'b/bad.json', current: [] } }).stage1, { status: 'incomplete', reasons: ['unreadable binding b/bad.json'] }, 'a binding that is not JSON');
+      same(liveOn(() => {
+        throw new Error('tree missing');
+      }), { status: 'incomplete', reasons: ['current tree unreadable: tree missing'] }, 'a tree that cannot be read');
+      assert(thrownBy(() => check(c, { stage1: { binding: '', current: [] } })).includes('binding')
+        && thrownBy(() => check(c, { parity: [{ binding: bindingC, current: [] }, { binding: bindingC, current: [] }] })).includes('twice'), 'a malformed or a repeated declaration did not throw');
+    },
+  },
+  {
+    name: 'verdicts: class selection',
+    async run() {
+      const { v } = await verdictKit();
+      const manifest = { classes: [{ id: 'k', cells: ['12x12-nightmare'], screen: 'sa', noScreen: 'na' }] };
+      const admitted = [{ id: 'k', verdict: 'admitted', decidedBy: null }];
+      const declared = ['sa/12x12-nightmare~0', 'sa/12x12-nightmare~1', 'na/12x12-nightmare~0', 'na/12x12-nightmare~1'];
+      const closureFile = { path: 'c/closure.json', sha256: sha256Text('closure') };
+      const arms = [{ id: 'sa', treeId: 't', paramsHash: 'p' }, { id: 'na', treeId: 't2', paramsHash: 'p2' }];
+      const inputs = (/** @type {Record<string, any>} */ over = {}) => ({
+        files: [{ path: 'in/m.json', sha256: sha256Text('m') }, closureFile], published: declared, declared, activation: null, closure: null, freeze: null, arms, harnessHash: 'h', ...over,
+      });
+      const a = v.classSelection(manifest, admitted, inputs());
+      same([a.format, a.version, a.kind, a.verdict, a.harnessHash, a.source], ['ig-v4-proof', 1, 'class-selection', 'pass', 'h', { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST }], '(a) the envelope');
+      same(a.selection, { classes: [{ id: 'k', verdict: 'admitted', decidedBy: null, shipped: 'sa' }], cells: { '12x12-nightmare': { class: 'k', shipped: 'sa' } } }, '(a) the shipped arm of the cell');
+      same([a.collection, a.coverage, a.reasons, a.arms], [{ activationSha256: null, closureSha256: null, missing: [] }, { expected: declared, observed: declared, missing: [], censored: [] }, [], arms], '(a) the collection and the coverage');
+      for (const verdict of ['failed', 'inconclusive']) {
+        same(v.classSelection(manifest, [{ id: 'k', verdict, decidedBy: 'clue' }], inputs()).selection.cells['12x12-nightmare'], { class: 'k', shipped: 'na' }, `a ${verdict} class ships the no-screen arm`);
+      }
+      // (b) a declared row that is not published, and no closure: an interim report, never a selection.
+      const gap = declared.slice(0, 3);
+      const b = v.classSelection(manifest, admitted, inputs({ published: gap }));
+      same([b.verdict, b.coverage.missing, b.reasons], ['incomplete', [declared[3]], [`missing ${declared[3]}`]], '(b) one row missing');
+      // (c) a closure that lists exactly that row makes the selection final: the row leaves the expectation.
+      const c = v.classSelection(manifest, admitted, inputs({ published: gap, closure: { ...closureFile, missing: [declared[3]] } }));
+      same([c.verdict, c.collection, c.coverage.expected, c.coverage.missing], ['pass', { activationSha256: null, closureSha256: closureFile.sha256, missing: [declared[3]] }, gap, []], '(c) the closed row');
+      // (d) a closure that lists another row, or more rows, does not match.
+      const d = v.classSelection(manifest, admitted, inputs({ published: gap, closure: { ...closureFile, missing: [declared[0]] } }));
+      same([d.verdict, d.reasons, d.coverage.expected], ['incomplete', ['closure does not match', `missing ${declared[3]}`], declared], '(d) a closure of another row');
+      assert(v.classSelection(manifest, admitted, inputs({ published: gap, closure: { ...closureFile, missing: [declared[3], declared[0]] } })).reasons[0] === 'closure does not match', 'a closure that lists more than is missing');
+      // The order of the closed rows does not matter.
+      const two = v.classSelection(manifest, admitted, inputs({ published: declared.slice(0, 2), closure: { ...closureFile, missing: [declared[3], declared[2]] } }));
+      same([two.verdict, two.coverage.expected], ['pass', declared.slice(0, 2)], 'two closed rows in any order');
+      // The receipt binds every record it names, and every class needs its verdict.
+      assert(thrownBy(() => v.classSelection(manifest, admitted, inputs({ closure: { path: 'c/other.json', sha256: closureFile.sha256, missing: [] } }))).includes('does not bind the closure'), 'a closure the evidence does not hold');
+      assert(thrownBy(() => v.classSelection(manifest, [], inputs())).includes('class k has no verdict')
+        && thrownBy(() => v.classSelection({ classes: [...manifest.classes, { id: 'k2', cells: ['12x12-nightmare'], screen: 'sa', noScreen: 'na' }] }, [...admitted, { id: 'k2', verdict: 'failed', decidedBy: 'clue' }], inputs())).includes('in two classes'), 'a class without a verdict, or a cell in two classes');
+    },
+  },
+  {
+    name: 'verdicts: the selection binds its inputs',
+    async run() {
+      const kit = await verdictKit();
+      const { v } = kit;
+      const w = toolWorld(kit);
+      const { receipt } = v.verdictRecords(w.manifest, w.repo.io, w.ref);
+      assert(receipt.verdict === 'pass' && receipt.kind === 'class-selection', `the receipt: ${receipt.verdict} ${JSON.stringify(receipt.reasons)}`);
+      const paths = receipt.evidence.map((/** @type {{ path: string }} */ e) => e.path);
+      same([paths.filter((/** @type {string} */ p) => p.endsWith('.runs.json')).length, paths.filter((/** @type {string} */ p) => p.endsWith('.1.1.jsonl')).length,
+        paths.filter((/** @type {string} */ p) => p.endsWith('.link.jsonl')).length, paths.includes(w.ref.path), paths.some((/** @type {string} */ p) => p.endsWith('.row.jsonl'))],
+      [2, 40, 40, true, false], 'the receipt binds the manifest, the runs files, the journals and the link files, and no row file');
+      const own = (/** @type {any} */ r, /** @type {Record<string, any>} */ over = {}) => ({
+        kind: 'class-selection', source: { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST }, harnessHash: r.harnessHash, arms: r.arms, coverage: { expected: r.coverage.expected }, ...over,
+      });
+      same(proofCheck(receipt, own(receipt), w.repo.readFile), { status: 'pass', reasons: [] }, 'the receipt against its own binding');
+      same(receipt.arms, [{ id: 'sa', treeId: 'tree-sa', paramsHash: sha256(JSON.stringify({ id: 'sa' })) }, { id: 'na', treeId: 'tree-na', paramsHash: sha256(JSON.stringify({ id: 'na' })) }], 'the arms carry the tree id and the parameter hash of the runs files');
+      // One byte of a journal, then of the verdict manifest, invalidates the selection.
+      const journal = 'tests/artifacts/ig-proto/frozen/TW/sa/s1/logs/c~3.1.1.jsonl';
+      const original = /** @type {string} */ (w.repo.files.get(journal));
+      w.repo.files.set(journal, `${original} `);
+      same(proofCheck(receipt, own(receipt), w.repo.readFile), { status: 'incomplete', reasons: [`evidence changed ${journal}`] }, 'a journal changed by one byte');
+      w.repo.files.set(journal, original);
+      w.repo.files.set(w.ref.path, `${w.manifestText} `);
+      same(proofCheck(receipt, own(receipt), w.repo.readFile), { status: 'incomplete', reasons: [`evidence changed ${w.ref.path}`] }, 'the verdict manifest changed');
+      // The collection: an activation that declares the rows and names the freeze, and a closure of the one row that is not published.
+      const declared = ['sa', 'na'].flatMap((id) => REPS20.map((rep) => `${id}/c~${rep}`));
+      const freeze = JSON.stringify({ classes: [] });
+      const activation = JSON.stringify({ declaredRows: declared, epoch: { freeze: { path: 'act/freeze.json', sha256: sha256Text(freeze) } } });
+      const collection = (/** @type {string[] | null} */ missing) => {
+        const closure = missing === null ? null : JSON.stringify({ activation: { path: 'act/activation.json', sha256: sha256Text(activation) }, missing });
+        return {
+          closure,
+          files: { 'act/freeze.json': freeze, 'act/activation.json': activation, ...(closure === null ? {} : { 'act/closure.json': closure }) },
+          refs: { activation: { path: 'act/activation.json', sha256: sha256Text(activation) }, closure: closure === null ? null : { path: 'act/closure.json', sha256: sha256Text(closure) } },
+        };
+      };
+      const run = (/** @type {string[] | null} */ missing) => {
+        const col = collection(missing);
+        const world = toolWorld(kit, { rows: (id, rep) => (id === 'na' && rep === 19 ? null : undefined), files: col.files, manifest: { collection: col.refs } });
+        return { col, world, ...v.verdictRecords(world.manifest, world.repo.io, world.ref) };
+      };
+      const open = run(null);
+      same([open.receipt.verdict, open.receipt.reasons, open.receipt.coverage.missing], ['incomplete', ['missing na/c~19'], ['na/c~19']], 'an activation with a row that is not published and no closure');
+      assert(open.receipt.evidence.some((/** @type {{ path: string }} */ e) => e.path === 'act/freeze.json') && open.receipt.collection.activationSha256 === sha256Text(activation), 'the activation and the freeze are bound');
+      const closed = run(['na/c~19']);
+      const sealed = closed.receipt;
+      same([sealed.verdict, sealed.collection, sealed.coverage.missing, sealed.coverage.expected.length, sealed.coverage.observed.length],
+        ['pass', { activationSha256: sha256Text(activation), closureSha256: sha256Text(/** @type {string} */ closed.col.closure), missing: ['na/c~19'] }, [], 39, 39], 'a closure of exactly the missing row');
+      const expectation = own(sealed, {
+        coverage: { expected: declared.filter((row) => row !== 'na/c~19') },
+        fields: { collection: { activationSha256: sha256Text(activation), closureSha256: sealed.collection.closureSha256, missing: ['na/c~19'] } },
+      });
+      same(proofCheck(sealed, { ...expectation, harnessHash: 'h-test' }, closed.world.repo.readFile), { status: 'pass', reasons: [] }, 'the sealed selection against the expectation of the same records');
+      const wrong = run(['na/c~18']);
+      same([wrong.receipt.verdict, wrong.receipt.reasons[0]], ['incomplete', 'closure does not match'], 'a closure of another row');
+      assert(wrong.record.selection.verdict === 'incomplete' && wrong.record.selection.missing === 1, 'the record reports the interim selection');
+    },
+  },
+  {
+    name: 'verdicts: a final verdict keeps its selection',
+    async run() {
+      const kit = await verdictKit();
+      const { v } = kit;
+      // The records admit the class (every ledger is empty and complete, and the screen arm is faster): it ships the screen arm.
+      const interim = toolWorld(kit);
+      const { record, receipt } = v.verdictRecords(interim.manifest, interim.repo.io, interim.ref);
+      same([record.classes[0].verdict, receipt.selection.cells.c], ['admitted', { class: 'k', shipped: 'sa' }], 'the selection ships the screen arm');
+      const final = (/** @type {any} */ doc, /** @type {string | undefined} */ sha = undefined) => {
+        const text = JSON.stringify(doc);
+        const w = toolWorld(kit, { files: { 'sel/class-selection.json': text }, manifest: { purpose: 'final', selection: { path: 'sel/class-selection.json', sha256: sha ?? sha256Text(text) } } });
+        return v.verdictRecords(w.manifest, w.repo.io, w.ref);
+      };
+      const kept = final(receipt);
+      assert(kept.receipt === null && kept.record.selection.changed.length === 0 && !kept.record.phase0.line.includes('selection changed'), `an unchanged selection: ${kept.record.phase0.line}`);
+      const moved = final({ ...receipt, selection: { ...receipt.selection, cells: { c: { class: 'k', shipped: 'na' } } } });
+      same([moved.record.phase0.verdict, moved.record.phase0.line, moved.record.selection.changed], ['fail', 'Phase 0: FAIL (selection changed c)', ['c']], 'a shipped arm that differs from the selection');
+      // The comparison is per cell and both ways; a final verdict that fails by itself keeps its reasons after the change.
+      same(v.selectionChanges({ cells: { a: { class: 'k', shipped: 'sa' }, b: { class: 'k', shipped: 'na' } } }, { a: { class: 'k', shipped: 'sa' }, b: { class: 'k', shipped: 'sa' }, d: { class: 'j', shipped: 'na' } }), ['b', 'd'], 'a cell that differs and a cell only the recomputation has');
+      same(v.selectionChanges({ cells: { a: { class: 'k', shipped: 'sa' } } }, { a: { class: 'j', shipped: 'sa' } }), ['a'], 'another class');
+      same(v.selectionChanges({ cells: { a: { class: 'k', shipped: 'sa' }, z: { class: 'k', shipped: 'sa' } } }, { a: { class: 'k', shipped: 'sa' } }), ['z'], 'a cell only the selection has');
+      const failed = { verdict: 'fail', deciding: ['failing cell x: fail'] };
+      same(v.finalPhase0(failed, ['c']), { verdict: 'fail', deciding: ['selection changed c', 'failing cell x: fail'] }, 'the reasons that failed anyway follow');
+      assert(v.finalPhase0(failed, []) === failed, 'nothing changed: the verdict as it was');
+      same([v.phase0Line({ verdict: 'pass', deciding: [] }), v.phase0Line({ verdict: 'incomplete', deciding: ['a', 'b'] })], ['Phase 0: pass.', 'Phase 0: INCOMPLETE (a; b)'], 'the phase-0 line');
+      // The records the final verdict rests on are the manifest's: a selection receipt that is not the declared file refuses the manifest.
+      assert(thrownBy(() => final(receipt, sha256Text('other'))).includes('differs from the SHA-256'), 'a selection receipt that differs from the manifest\'s hash');
+      const bare = toolWorld(kit, { manifest: { purpose: 'final' } });
+      assert(thrownBy(() => v.verdictRecords(bare.manifest, bare.repo.io, bare.ref)).includes('selection'), 'a final purpose without its selection');
+    },
+  },
+  {
+    name: 'verdicts: decided records are written once',
+    async run() {
+      const kit = await verdictKit();
+      const { v } = kit;
+      // (a) to (e): the rule over the parsed records the run would overwrite.
+      same([
+        v.decidedRecord('selection', { selection: { verdict: 'pass' }, verdicts: null }),
+        v.decidedRecord('selection', { selection: { verdict: 'incomplete' }, verdicts: null }),
+        v.decidedRecord('final', { selection: null, verdicts: { phase0: { verdict: 'fail' } } }),
+        v.decidedRecord('final', { selection: null, verdicts: { phase0: { verdict: 'incomplete' } } }),
+        v.decidedRecord('selection', { selection: null, verdicts: null }),
+      ], ['a final selection exists', null, 'a decided phase 0 exists', null, null], '(a) to (e) the decided records');
+      // A phase 0 of pass is decided too; each purpose looks only at its own record; another purpose throws.
+      same([
+        v.decidedRecord('final', { selection: null, verdicts: { phase0: { verdict: 'pass' } } }),
+        v.decidedRecord('selection', { selection: null, verdicts: { phase0: { verdict: 'fail' } } }),
+        v.decidedRecord('final', { selection: { verdict: 'pass' }, verdicts: null }),
+        v.decidedRecord('final', { selection: null, verdicts: {} }),
+      ], ['a decided phase 0 exists', null, null, null], 'a passing phase 0; the other purpose\'s record; a record without a phase 0');
+      assert(thrownBy(() => v.decidedRecord('draft', { selection: null, verdicts: null })).includes('purpose'), 'another purpose did not throw');
+      // (f) a closure of another activation refuses the manifest; the closure of the same one does not.
+      const declared = ['sa', 'na'].flatMap((id) => REPS20.map((rep) => `${id}/c~${rep}`));
+      const freeze = JSON.stringify({ classes: [] });
+      const activation = JSON.stringify({ declaredRows: declared, epoch: { freeze: { path: 'act/freeze.json', sha256: sha256Text(freeze) } } });
+      const activationSha = sha256Text(activation);
+      const closing = (/** @type {Record<string, any>} */ record) => {
+        const closure = JSON.stringify({ missing: ['na/c~19'], ...record });
+        const w = toolWorld(kit, {
+          rows: (id, rep) => (id === 'na' && rep === 19 ? null : undefined),
+          files: { 'act/freeze.json': freeze, 'act/activation.json': activation, 'act/closure.json': closure },
+          manifest: { collection: { activation: { path: 'act/activation.json', sha256: activationSha }, closure: { path: 'act/closure.json', sha256: sha256Text(closure) } } },
+        });
+        return thrownBy(() => v.verdictRecords(w.manifest, w.repo.io, w.ref));
+      };
+      assert(closing({ activation: { path: 'act/activation.json', sha256: activationSha } }) === '', 'a closure of this activation was refused');
+      assert(closing({ activation: { path: 'act/activation.json', sha256: sha256Text('another file') } }).includes('the closure belongs to another activation'), '(f) a closure whose activation is another file\'s');
+      assert(closing({}).includes('the closure belongs to another activation'), 'a closure that names no activation');
+      // (g) a final manifest whose selection receipt is not final.
+      const interim = toolWorld(kit);
+      const { receipt } = v.verdictRecords(interim.manifest, interim.repo.io, interim.ref);
+      const finalOf = (/** @type {any} */ doc) => {
+        const text = JSON.stringify(doc);
+        const w = toolWorld(kit, { files: { 'sel/class-selection.json': text }, manifest: { purpose: 'final', selection: { path: 'sel/class-selection.json', sha256: sha256Text(text) } } });
+        return thrownBy(() => v.verdictRecords(w.manifest, w.repo.io, w.ref));
+      };
+      assert(finalOf({ ...receipt, verdict: 'incomplete' }).includes('the selection is not final'), '(g) a selection receipt that is incomplete');
+      assert(finalOf({ ...receipt, verdict: undefined }).includes('the selection is not final') && finalOf(receipt) === '', 'a selection receipt without a verdict is not final; a final one is accepted');
+    },
+  },
+  {
+    name: 'verdicts: the work report',
+    async run() {
+      const kit = await verdictKit();
+      const { v, row } = kit;
+      const screen = workArm(v, row, 800, 1100, 10, 2);
+      const noScreen = workArm(v, row, 1000, 1000, 10, 0);
+      const work = v.workReport(v.workRule(screen, noScreen), { screen, noScreen });
+      same([work.verdict, work.screen.loRatio, work.screen.hiRatio, work.screen.width, work.screen.completedRatio, work.screen.terminatedCalls, work.noScreen.width],
+        ['unknown', 80, 110, 30, 80, 2, 0], 'the work block of the class');
+      // An arm that accepted no puzzle has no ratio and no width, and an infinite bound is flagged.
+      const empty = [{ ingested: v.ingestRow(row(0, 's0', { accepted: 0 }), { quantity: 10 }), ledger: { complete: true, problems: [], lo: 0, hi: 0, terminated: 0, open: 3 } }];
+      const none = v.workReport(v.workRule(empty, noScreen), { screen: empty, noScreen });
+      same([none.verdict, none.screen.width, none.screen.loRatio, none.screen.completedRatio, none.screen.open], ['unknown', null, null, null, 3], 'an arm with no accepted puzzle');
+      const wide = workArm(v, row, 800, Infinity, 10);
+      const open = v.workReport(v.workRule(wide, noScreen), { screen: wide, noScreen });
+      same([open.screen.unbounded, open.noScreen.unbounded], [true, false], 'an unbounded interval');
+      // The tool over journals: the screen arm's calls are killed in a primitive (bound 300), the no-screen arm's end (1,000 each).
+      const { S, C, B, P, E, W } = ledgerLines();
+      const journal = (/** @type {string} */ arm, /** @type {number} */ rep) => {
+        const c = `c~${rep}:1:1:1`;
+        return arm === 'sa'
+          ? { worker: [S(c, 'set', 0, 10), C(c), B(c, 'rate', 1000), P(c, 0, 800, 0), B(c, 'rate', 300)], link: [W('worker-end', 1, 20)] }
+          : { worker: [S(c, 'set', 0, 10), C(c), B(c, 'rate', 1000), P(c, 0, 1000, 0), E(c, 1000, 1, 0)], link: [{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'selected' }] };
+      };
+      const w = toolWorld(kit, { journal });
+      const { record } = v.verdictRecords(w.manifest, w.repo.io, w.ref);
+      const [cls] = record.classes;
+      same([cls.verdict, cls.decidedBy, cls.shipped, cls.work.verdict], ['inconclusive', 'work-unknown', 'na', 'unknown'], 'intervals that overlap leave the class inconclusive');
+      same(cls.work.screen, { lo: 16000, hi: 22000, accepted: 200, loRatio: 80, hiRatio: 110, completedRatio: 80, complete: true, rows: 20, terminatedCalls: 20, width: 30, open: 20, unbounded: false }, 'the screen arm\'s interval');
+      same(cls.work.noScreen, { lo: 20000, hi: 20000, accepted: 200, loRatio: 100, hiRatio: 100, completedRatio: 100, complete: true, rows: 20, terminatedCalls: 0, width: 0, open: 0, unbounded: false }, 'the no-screen arm\'s interval');
+      const md = v.renderVerdicts(record, '> banner');
+      assert(md.includes('| screen sa | 20 | 200 | 80 | 110 | 30 | 80 | 20 | 20 | true |') && md.includes('| no screen na | 20 | 200 | 100 | 100 | 0 | 100 | 0 | 0 | true |'), 'the work table of the report');
+      assert(md.includes('## Post-hoc projection; not a live deadline gate') && md.includes(record.phase0.line) && md.split('\n').every((line) => line === line.trimEnd()), 'the report names the projection apart, holds the phase-0 line and has no trailing space');
+      // A row's journal files are its own: `c~1` does not read the files of `c~10`.
+      const open10 = toolWorld(kit, { journal: (arm, rep) => (arm === 'sa' && rep === 10 ? { worker: [S('c~10:1:1:1', 'set', 0, 10)], link: [{ t: 'link', ev: 'batch-start' }] } : undefined) });
+      const problems = v.verdictRecords(open10.manifest, open10.repo.io, open10.ref).record.classes[0].problems;
+      assert(problems.includes('c: screen c~10: open call c~10:1:1:1') && !problems.some((/** @type {string} */ p) => p.startsWith('c: screen c~1: ')), `the journals of c~10 are not c~1's: ${JSON.stringify(problems)}`);
+    },
+  },
+  {
+    name: 'verdicts: records that are not what the manifest declares',
+    async run() {
+      const kit = await verdictKit();
+      const { v } = kit;
+      const saRuns = 'docs/improve-generating/evidence/frozen/TW/sa/s1.runs.json';
+      const world = (/** @type {(w: ReturnType<typeof toolWorld>) => void} */ mutate) => {
+        const w = toolWorld(kit);
+        mutate(w);
+        return v.verdictRecords(w.manifest, w.repo.io, w.ref);
+      };
+      // A runs file whose hash is not the manifest's: every row of it is invalid and not published.
+      const changed = world((w) => w.repo.files.set(saRuns, `${w.repo.files.get(saRuns)}\n`));
+      same([changed.record.arms.sa.statuses.invalid, changed.record.arms.sa.files[0].problems, changed.receipt.verdict, changed.receipt.coverage.missing.length, changed.record.classes[0].decidedBy],
+        [20, ['changed evidence'], 'incomplete', 20, 'incomplete-validation'], 'a runs file that changed');
+      // A runs file the manifest does not declare: its rows are invalid, are not published, and duplicate the declared ones.
+      const undeclared = world((w) => {
+        const doc = JSON.parse(/** @type {string} */ (w.repo.files.get(saRuns)));
+        w.repo.files.set(saRuns.replace('s1.', 's2.'), JSON.stringify({ ...doc, rows: [doc.rows[0]] }));
+      });
+      const extra = undeclared.record.arms.sa.files.find((/** @type {{ path: string }} */ f) => f.path.endsWith('s2.runs.json'));
+      same([extra.problems, undeclared.record.arms.sa.statuses.invalid, undeclared.receipt.verdict, undeclared.record.classes[0].decidedBy], [['undeclared evidence'], 1, 'pass', 'incomplete-validation'], 'a runs file that is not declared');
+      // A file of another tree than the arm's, and a declared file that is missing.
+      const stale = world((w) => {
+        w.manifest.arms[0].treeId = 'other';
+      });
+      same([stale.record.arms.sa.files[0].problems, stale.record.arms.sa.statuses.invalid, stale.receipt.verdict, stale.receipt.arms[0].treeId], [['stale tree'], 20, 'incomplete', 'tree-sa'], 'a file of another tree');
+      const missing = world((w) => w.repo.files.delete('docs/improve-generating/evidence/frozen/TW/na/s1.runs.json'));
+      same([missing.record.arms.na.files[0].problems, missing.record.arms.na.rows, missing.receipt.verdict, missing.receipt.arms[1].treeId], [['missing evidence'], 0, 'incomplete', null], 'a declared file that is missing');
+      // The manifest is refused when a record it names differs, is missing or lacks what the tool reads, or when a name is unknown.
+      const named = (/** @type {Record<string, any>} */ files, /** @type {any} */ activation, /** @type {Record<string, any>} */ over = {}) => {
+        const w = toolWorld(kit, { files, manifest: { collection: { activation, closure: null }, ...over } });
+        return thrownBy(() => v.verdictRecords(w.manifest, w.repo.io, w.ref));
+      };
+      const ref = (/** @type {string} */ path, /** @type {string} */ text) => ({ path, sha256: sha256Text(text) });
+      assert(named({ 'act/activation.json': 'x' }, ref('act/activation.json', 'y')).includes('differs from the SHA-256'), 'an activation record that differs');
+      assert(named({}, ref('act/activation.json', 'y')).includes('is missing'), 'an activation record that is missing');
+      assert(named({ 'act/activation.json': '{ "declaredRows": [] }' }, ref('act/activation.json', '{ "declaredRows": [] }')).includes('names no freeze record'), 'an activation record without its freeze');
+      assert(named({}, null, { classes: [{ id: 'k', cells: ['c'], screen: 'sa', noScreen: 'zz' }] }).includes('unknown arm zz'), 'a class that names an unknown arm');
+      assert(named({}, null, { label: 'provisional' }).includes('label must be frozen') && named({}, null, { validationReps: [] }).includes('reps'), 'a manifest of another label or without reps');
+      assert(['V4-T04', 'V4-S2P', 'IGP-02'].every((task) => named({}, null, { task }).includes('historical observation namespace')), 'a verdict written into a historical namespace');
+      // A live-deadline prerequisite that is a projection refuses the manifest.
+      const live = toolWorld(kit);
+      live.manifest.prerequisites = { liveDeadline: { binding: boundReceipt(live.repo, 'projection', { kind: 'deadline-projection' }), current: [] } };
+      assert(thrownBy(() => v.verdictRecords(live.manifest, live.repo.io, live.ref)) === 'verdicts: the live-deadline prerequisite must be a live-deadline binding', 'a projection as the live-deadline prerequisite');
+    },
+  },
+  {
+    name: 'verdicts: each cell is judged on the arm its class ships',
+    async run() {
+      const kit = await verdictKit();
+      const { v } = kit;
+      const { S, C, E } = ledgerLines();
+      // The screen arm has a dead-end entry (a p2 phase) in one request: its cell gate fails, so the class fails and the cell is judged on the no-screen arm.
+      const dead = toolWorld(kit, {
+        ids: ['sa', 'na'],
+        journal: (arm, rep) => {
+          const c = `c~${rep}:1:1:1`;
+          return arm === 'sa' && rep === 3
+            ? { worker: [S(c, 'set', 0, 10), C(c), { t: 'phase', call: c, phase: 'p2' }, E(c, 0, 0, 0)], link: [{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'selected' }] }
+            : undefined;
+        },
+        manifest: { failingCells: ['c', 'x'], hell1: ['c', 'd'] },
+      });
+      const a = v.verdictRecords(dead.manifest, dead.repo.io, dead.ref).record;
+      same([a.classes[0].verdict, a.classes[0].decidedBy, a.classes[0].screenCellGates, a.classes[0].shipped], ['failed', 'cell-gate', { c: 'fail' }, 'na'], 'a screen arm with a dead end fails the class');
+      same([a.failingCells[0].shipped, a.failingCells[0].gate.verdict, a.failingCells[0].gate.reachedTen], ['na', 'pass', 20], 'the failing cell is judged on the arm the class ships');
+      same([a.failingCells[1].class, a.failingCells[1].gate.verdict, a.failingCells[1].gate.reasons], [null, 'incomplete', ['no class ships x']], 'a failing cell that no class ships is incomplete');
+      same([a.hell1.map((/** @type {any} */ h) => [h.cell, h.arm, h.report.requests, h.report.candidate])], [[['c', 'na', 20, true], ['d', null, 0, false]]], 'Hell 1 is reported on the shipped arm, and on no arm for a cell without rows');
+      same(a.phase0.deciding.slice(0, 2), ['uncapped comparator collection pending', 'failing cell x: incomplete'], 'phase 0 names the cell without a shipped arm after the pending reason');
+      // A control, a Master cell and P5's pairs, read through the declared arms: the screen arm is faster than today's, so the class is admitted.
+      const wide = toolWorld(kit, {
+        ids: ['sa', 'na', 'td', 'un'],
+        manifest: {
+          controls: [{ cell: 'c', today: 'td' }], masters: [{ cell: 'c', today: 'td', after: 'sa' }], masterReps: REPS20,
+          p5: [{ cell: 'c', bounded: 'sa', uncapped: 'un', reps: REPS20 }],
+        },
+      });
+      const b = v.verdictRecords(wide.manifest, wide.repo.io, wide.ref).record;
+      same([b.classes[0].verdict, b.classes[0].screenCellGates, b.classes[0].shipped], ['admitted', { c: 'pass' }, 'sa'], 'a screen arm that passes the control is admitted');
+      same([b.controls[0].shipped, b.controls[0].today, b.controls[0].gate.verdict, b.controls[0].gate.noRegression.pass], ['sa', 'td', 'pass', true], 'the control on the arm the class ships');
+      const read = [b.masters[0].result.verdict, b.masters[0].result.differences, b.p5[0].declared, b.p5[0].pairs, b.p5[0].unknown, b.p5[0].falseStops, b.p5[0].lostCompletions];
+      same(read, ['pass', [], 20, 20, 0, 0, 0], `Master identity and P5's pairs over the declared reps: ${JSON.stringify([read, b.masters[0].result.problems.slice(0, 2), b.p5[0].unknownReps.slice(0, 2)])}`);
+      same(b.projection.results.map((/** @type {any} */ p) => [p.arm, p.reserve, p.rows.length]), [['sa', 0.3, 20], ['sa', 0.5, 20]], 'the projection per arm and reserve');
+      assert(Object.keys(b.population).join() === 'sa,na,td,un' && b.population.sa.c.completion.reachedTen === 20, 'the population per arm and cell');
     },
   },
 ];

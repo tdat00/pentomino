@@ -7,13 +7,19 @@
 // faster and no-regression rules; V4-T09c adds the work ledger of a request (IG-P-Q37: an interval of consumed units
 // from the journal and linkage lines), the work rule and the class verdict; V4-T09d adds the global verdicts (the cell
 // gates on the arm a class ships, Master identity, the Hell 1 report, P5's stops, the post-hoc projection, the
-// population and phase 0's verdict) and V4-T09e the verdict tool; the manifest the tool reads is described in
-// data/verdict-manifest.schema.md.
-import { join } from 'node:path';
+// population and phase 0's verdict) and V4-T09e the verdict tool (bound prerequisites, the class-selection receipt, the
+// work report and the records it writes: `node tools\ig-proto\verdicts.mjs --manifest <path> --label frozen
+// --source-label <SL>`); the manifest the tool reads is described in data/verdict-manifest.schema.md.
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 
 import { pairPrimitives } from './lib/ledger.mjs';
-import { sourceRoot } from './lib/paths.mjs';
+import { abs, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, parseArgs, rel, ROOT, sourceRoot } from './lib/paths.mjs';
+import { ACCEPTED_FORMAT, checkAccepted, LIVE_DEADLINE_FIELDS, proofEnvelope } from './lib/proof.mjs';
+import { banner, buildMeta, harnessInfo, sha256, sha256Text, writeJson, writeText } from './lib/records.mjs';
+import { ensureTree } from './lib/tree.mjs';
 
 // The record schema of the frozen source (V4-T01a), never the worktree's.
 const { validateRunRecord } = await import(pathToFileURL(join(sourceRoot('frozen'), 'tools', 'bench', 'report.js')).href);
@@ -927,6 +933,18 @@ const CELL_GATES = Object.freeze(['pass', 'fail', 'incomplete']);
 const NO_JOURNAL = Object.freeze({ complete: false, problems: Object.freeze(['no journal']), lo: 0, hi: 0 });
 
 /**
+ * @param {IngestedRow[]} rows
+ * @param {Record<string, any>} ledgers From a `rowKey` to `rowLedger`'s result.
+ * @returns {{ ingested: IngestedRow, ledger: Record<string, any> }[]} Each row with its ledger; a row without one has
+ *   no journal (incomplete, never zero work).
+ */
+function attachLedgers(rows, ledgers) {
+  return rows.map((ingested) => ({
+    ingested, ledger: typeof ingested.rowKey === 'string' && Object.hasOwn(ledgers, ingested.rowKey) ? ledgers[ingested.rowKey] : NO_JOURNAL,
+  }));
+}
+
+/**
  * The class verdict of rule (c5) for a screen arm against its no-screen arm (plan section 5.2, R12, RV3-08, RV4-02): the
  * first condition that decides, in this fixed order: `correctness` (an `incorrect` row: failed); `incomplete-validation`
  * (a pairing problem: inconclusive); `evidence` (a matched pair without clue evidence: inconclusive); `matched-sets`
@@ -967,10 +985,6 @@ export function classVerdict(input) {
       throw new TypeError(`verdicts: the ledgers of ${c.cell} are not objects from a rowKey to its ledger`);
     }
   }
-  /** @param {IngestedRow[]} rows @param {Record<string, any>} ledgers */
-  const withLedgers = (rows, ledgers) => rows.map((ingested) => ({
-    ingested, ledger: typeof ingested.rowKey === 'string' && Object.hasOwn(ledgers, ingested.rowKey) ? ledgers[ingested.rowKey] : NO_JOURNAL,
-  }));
   const options = { quantity, capMs };
   const cells = input.cells.map((c) => {
     const paired = pairRows(c.screenRows, c.noScreenRows, reps);
@@ -982,8 +996,8 @@ export function classVerdict(input) {
       sets: matchedSets(paired.pairs),
       ratios: ratiosOf(paired.pairs, reps, options),
       completion: { screen: reached(c.screenRows), noScreen: reached(c.noScreenRows) },
-      screen: withLedgers(c.screenRows, c.screenLedgers),
-      noScreen: withLedgers(c.noScreenRows, c.noScreenLedgers),
+      screen: attachLedgers(c.screenRows, c.screenLedgers),
+      noScreen: attachLedgers(c.noScreenRows, c.noScreenLedgers),
     };
   });
   const clue = clueRule(cells.flatMap((c) => c.sets.matched));
@@ -1597,4 +1611,1038 @@ export function phase0Verdict(input) {
     return { verdict: 'incomplete', deciding: [SELECTION_PENDING, ...named(open)] };
   }
   return open.length > 0 ? { verdict: 'incomplete', deciding: named(open) } : { verdict: 'pass', deciding: named(items) };
+}
+
+/** The refusal of a live-deadline prerequisite that is not a live-deadline binding (R01, D-V4-08). */
+const LIVE_REFUSAL = 'verdicts: the live-deadline prerequisite must be a live-deadline binding';
+
+/** @typedef {{ status: 'pass' | 'fail' | 'incomplete', reasons: string[] }} Prerequisite */
+
+/**
+ * The prerequisites of a verdict through their accepted bindings (V4-T09e; R2-09, RV3-06, D-V4-18): each declared
+ * `{ binding, current }` is `checkAccepted` of the binding file with the arms it names compared to today's trees
+ * (`currentOf`); the historical stage-1 binding is declared with `current: []` and stays valid after unrelated harness
+ * work. A live-deadline binding whose `expected.kind` is not `live-deadline` or whose `expected.fields` are not
+ * T04d's `LIVE_DEADLINE_FIELDS` is refused (it throws): a projection can never satisfy it. A binding file that is
+ * absent is `incomplete` (`missing binding <path>`), and so is one that is not JSON or whose current tree cannot be
+ * read. `stage1` and `liveDeadline` are keys only when declared (`phase0Verdict` reads an absent one as `incomplete`).
+ * @param {{ stage1?: { binding: string, current: string[] }, parity?: { binding: string, current: string[] }[],
+ *   liveDeadline?: { binding: string, current: string[] } }} declared The manifest's `prerequisites`.
+ * @param {{ readJson: (path: string) => any, readFile: (path: string) => string | null,
+ *   currentOf: (id: string) => { treeId: string, paramsHash: string } }} io `readJson` returns `null` for an absent file
+ *   and throws for one that is not JSON; `currentOf(id)` is today's tree id and the SHA-256 of `JSON.stringify(params)`
+ *   of that tree's `ig-tree.json`, and is only asked for the arms of a binding that exists.
+ * @returns {Record<string, Prerequisite>} `stage1`, `liveDeadline` and one `parity:<binding path>` per parity entry.
+ */
+export function prerequisites(declared, { readJson, readFile, currentOf }) {
+  if (!isObject(declared)) {
+    throw new TypeError('verdicts: prerequisites needs the declared prerequisites');
+  }
+  /** @param {unknown} ref @returns {{ binding: string, current: string[] }} */
+  const needRef = (ref) => {
+    const r = /** @type {any} */ (ref);
+    if (!isObject(r) || typeof r.binding !== 'string' || r.binding === '' || !Array.isArray(r.current) || !r.current.every((/** @type {unknown} */ id) => typeof id === 'string')) {
+      throw new TypeError('verdicts: a prerequisite needs the path of its binding and the list of arm ids to compare');
+    }
+    return r;
+  };
+  if (declared.parity !== undefined && !Array.isArray(declared.parity)) {
+    throw new TypeError('verdicts: the parity prerequisites must be a list');
+  }
+  const stage1 = declared.stage1 === undefined ? undefined : needRef(declared.stage1);
+  const live = declared.liveDeadline === undefined ? undefined : needRef(declared.liveDeadline);
+  const parity = (declared.parity ?? []).map(needRef);
+  const names = parity.map((p) => `parity:${p.binding}`);
+  if (new Set(names).size !== names.length) {
+    throw new RangeError('verdicts: a parity binding is declared twice');
+  }
+  /** @param {string} path @returns {any} The binding, `null` when absent, `undefined` when it is not JSON. */
+  const load = (path) => {
+    try {
+      return readJson(path);
+    } catch {
+      return undefined;
+    }
+  };
+  if (live !== undefined) {
+    const binding = load(live.binding);
+    if (isObject(binding) && binding.format === ACCEPTED_FORMAT
+      && (binding.expected?.kind !== 'live-deadline' || !isDeepStrictEqual(binding.expected?.fields, LIVE_DEADLINE_FIELDS))) {
+      throw new Error(LIVE_REFUSAL);
+    }
+  }
+  /** @param {{ binding: string, current: string[] }} ref @returns {Prerequisite} */
+  const check = (ref) => {
+    const binding = load(ref.binding);
+    if (binding === null) {
+      return { status: 'incomplete', reasons: [`missing binding ${ref.binding}`] };
+    }
+    if (binding === undefined) {
+      return { status: 'incomplete', reasons: [`unreadable binding ${ref.binding}`] };
+    }
+    /** @type {{ id: string, treeId: string, paramsHash: string }[]} */
+    let current;
+    try {
+      current = ref.current.map((id) => ({ id, ...currentOf(id) }));
+    } catch (e) {
+      return { status: 'incomplete', reasons: [`current tree unreadable: ${e instanceof Error ? e.message : String(e)}`] };
+    }
+    return checkAccepted(binding, { readFile, current });
+  };
+  /** @type {Record<string, Prerequisite>} */
+  const out = {};
+  if (stage1 !== undefined) {
+    out.stage1 = check(stage1);
+  }
+  if (live !== undefined) {
+    out.liveDeadline = check(live);
+  }
+  parity.forEach((ref, i) => {
+    out[names[i]] = check(ref);
+  });
+  return out;
+}
+
+/**
+ * The class-selection receipt (V4-T09e; RV3-04, RV3-06; D-V4-18, D-V4-20): the shipped arm of every class cell from the
+ * class verdicts, in one `ig-v4-proof` envelope of the kind `class-selection` that binds every input of the decision
+ * (`evidence`: the verdict manifest, the activation, closure and freeze records, every runs, journal and link file read,
+ * each with its SHA-256; `arms`: the tree id and the parameter hash of the published runs files). Its `verdict` is `pass`
+ * (a final selection) when no declared row is missing, or when a closure is given whose `missing` is exactly the declared
+ * rows that are not published (in any order); else `incomplete`, and an interim report is never a selection. With a
+ * closure, `coverage.expected` is the declared rows less the closed ones, `coverage.missing` is empty and
+ * `collection.missing` lists the closed rows, so that `proofCheck` against T11f's expectation of the same records passes.
+ * The envelope carries `reasons` for an incomplete one.
+ * @param {{ classes: { id: string, cells: string[], screen: string, noScreen: string }[] }} manifest
+ * @param {{ id: string, verdict: 'admitted' | 'failed' | 'inconclusive', decidedBy: string | null }[]} results One per class.
+ * @param {{ files: { path: string, sha256: string }[], published: string[], declared: string[],
+ *   activation: { path: string, sha256: string } | null, closure: { path: string, sha256: string, missing: string[] } | null,
+ *   freeze: { path: string, sha256: string } | null, arms: { id: string, treeId: string | null, paramsHash: string | null }[],
+ *   harnessHash: string }} inputs `published` and `declared` are `<arm>/<rowKey>`; every non-null `activation`, `closure`
+ *   and `freeze` must be one of `files` (the receipt binds it).
+ * @returns {Record<string, any>} The envelope; `selection` and `collection` stand at its root.
+ */
+export function classSelection(manifest, results, inputs) {
+  if (!isObject(manifest) || !Array.isArray(manifest.classes) || !Array.isArray(results) || !isObject(inputs)) {
+    throw new TypeError('verdicts: classSelection needs the manifest, the class results and the inputs');
+  }
+  const { files, published, declared, activation, closure, freeze, arms, harnessHash } = inputs;
+  for (const [name, list] of Object.entries({ files, published, declared, arms })) {
+    if (!Array.isArray(list)) {
+      throw new TypeError(`verdicts: classSelection needs ${name} as a list`);
+    }
+  }
+  for (const [name, ref] of Object.entries({ activation, closure, freeze })) {
+    if (ref !== null && !files.some((f) => f.path === ref?.path && f.sha256 === ref?.sha256)) {
+      throw new RangeError(`verdicts: the receipt does not bind the ${name} record`);
+    }
+  }
+  if (closure !== null && !(Array.isArray(closure.missing) && closure.missing.every((r) => typeof r === 'string'))) {
+    throw new TypeError('verdicts: a closure needs the list of its missing rows');
+  }
+  /** @type {{ id: string, verdict: string, decidedBy: string | null, shipped: string }[]} */
+  const classes = [];
+  /** @type {Record<string, { class: string, shipped: string }>} */
+  const cells = {};
+  for (const cls of manifest.classes) {
+    const result = results.find((r) => r?.id === cls.id);
+    if (result === undefined) {
+      throw new RangeError(`verdicts: class ${cls.id} has no verdict`);
+    }
+    const shipped = shippedArm(result, { screen: cls.screen, noScreen: cls.noScreen });
+    classes.push({ id: cls.id, verdict: result.verdict, decidedBy: result.decidedBy ?? null, shipped });
+    for (const cell of cls.cells) {
+      if (Object.hasOwn(cells, cell)) {
+        throw new RangeError(`verdicts: cell ${cell} is in two classes`);
+      }
+      cells[cell] = { class: cls.id, shipped };
+    }
+  }
+  const have = new Set(published);
+  const missing = declared.filter((row) => !have.has(row));
+  const closed = closure === null ? [] : closure.missing;
+  const matches = closure !== null && missing.length === closed.length && missing.every((row) => closed.includes(row));
+  const final = missing.length === 0 || matches;
+  /** @type {string[]} */
+  const reasons = final ? [] : [...(closure === null ? [] : ['closure does not match']), ...missing.map((row) => `missing ${row}`)];
+  const closedSet = new Set(closed);
+  return proofEnvelope({
+    kind: 'class-selection',
+    verdict: final ? 'pass' : 'incomplete',
+    source: { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST },
+    harnessHash,
+    arms,
+    coverage: {
+      expected: closure !== null && final ? declared.filter((row) => !closedSet.has(row)) : declared,
+      observed: published,
+      missing: closure !== null && final ? [] : missing,
+      censored: [],
+    },
+    evidence: files,
+    fields: {
+      selection: { classes, cells },
+      collection: { activationSha256: activation?.sha256 ?? null, closureSha256: closure?.sha256 ?? null, missing: [...closed] },
+      reasons,
+    },
+  });
+}
+
+/**
+ * The work report of a class (IG-P-Q37, D-V4-17; V4-T09e): T09c's `workRule` result with, per arm, the width of the
+ * interval per accepted puzzle (`hiRatio - loRatio`, `null` when the arm accepted no puzzle), the open primitives (the sum
+ * of `ledger.open` over the arm's rows, which `workRule` does not carry) and `unbounded` (an invalid bound made `hi`
+ * infinite: a JSON number cannot say it). Reported, never judged here: the verdict is T09c's.
+ * @param {ReturnType<typeof workRule>} work
+ * @param {{ screen: { ingested: IngestedRow, ledger: Record<string, any> }[], noScreen: { ingested: IngestedRow, ledger: Record<string, any> }[] }} rows
+ *   The rows given to `workRule`.
+ * @returns {{ verdict: 'pass' | 'worse' | 'unknown', screen: ArmWork & { width: number | null, open: number, unbounded: boolean },
+ *   noScreen: ArmWork & { width: number | null, open: number, unbounded: boolean } }}
+ */
+export function workReport(work, rows) {
+  /** @param {ArmWork} arm @param {{ ledger: Record<string, any> }[]} list */
+  const report = (arm, list) => ({
+    ...arm,
+    width: arm.loRatio === null || arm.hiRatio === null ? null : arm.hiRatio - arm.loRatio,
+    open: list.reduce((sum, r) => sum + (isCount(r.ledger.open) ? r.ledger.open : 0), 0),
+    unbounded: !Number.isFinite(arm.hi),
+  });
+  return { verdict: work.verdict, screen: report(work.screen, rows.screen), noScreen: report(work.noScreen, rows.noScreen) };
+}
+
+/**
+ * The cells whose shipped arm a final verdict recomputes differently from the selection it rests on (RV3-03): a cell is
+ * changed when its class or shipped arm differs, or when only one side names it.
+ * @param {{ cells: Record<string, { class: string, shipped: string }> }} selected The receipt's `selection`.
+ * @param {Record<string, { class: string, shipped: string }>} recomputed
+ * @returns {string[]} The receipt's cells in its order, then the cells only the recomputation has.
+ */
+export function selectionChanges(selected, recomputed) {
+  if (!isObject(selected) || !isObject(selected.cells) || !isObject(recomputed)) {
+    throw new TypeError('verdicts: selectionChanges needs the selection cells and the recomputed cells');
+  }
+  const same = (/** @type {any} */ a, /** @type {any} */ b) => isObject(a) && isObject(b) && a.class === b.class && a.shipped === b.shipped;
+  return [...new Set([...Object.keys(selected.cells), ...Object.keys(recomputed)])]
+    .filter((cell) => !same(selected.cells[cell], recomputed[cell]));
+}
+
+/**
+ * A final verdict never changes the selection it rests on (RV3-03): a recomputed shipped arm that differs from the
+ * selection's fails phase 0 whatever else is open.
+ * @param {{ verdict: 'pass' | 'fail' | 'incomplete', deciding: string[] }} phase0 `phase0Verdict`'s result.
+ * @param {string[]} changed `selectionChanges`' result.
+ * @returns {{ verdict: 'pass' | 'fail' | 'incomplete', deciding: string[] }} `phase0` itself when nothing changed, else
+ *   `fail` naming each `selection changed <cell>`, then the items that failed anyway.
+ */
+export function finalPhase0(phase0, changed) {
+  if (changed.length === 0) {
+    return phase0;
+  }
+  return { verdict: 'fail', deciding: [...changed.map((cell) => `selection changed ${cell}`), ...(phase0.verdict === 'fail' ? phase0.deciding : [])] };
+}
+
+/**
+ * @param {{ verdict: 'pass' | 'fail' | 'incomplete', deciding: string[] }} phase0
+ * @param {Record<string, Prerequisite>} [prerequisites] When given, a deciding prerequisite is followed by its reasons.
+ * @returns {string} The phase-0 line: `Phase 0: pass.`, `Phase 0: INCOMPLETE (...)` or `Phase 0: FAIL (...)`, the reasons
+ *   of `deciding` joined by `; `.
+ */
+export function phase0Line({ verdict, deciding }, prerequisites = {}) {
+  const reasoned = deciding.map((item) => {
+    const name = /^prerequisite (.+?)(?: \(missing\))?: (?:pass|fail|incomplete)$/.exec(item)?.[1];
+    const reasons = name !== undefined && Object.hasOwn(prerequisites, name) ? prerequisites[name].reasons : [];
+    return reasons.length > 0 ? `${item} (${reasons.join(', ')})` : item;
+  });
+  return verdict === 'pass' ? 'Phase 0: pass.' : `Phase 0: ${verdict === 'fail' ? 'FAIL' : 'INCOMPLETE'} (${reasoned.join('; ')})`;
+}
+
+const NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+
+/** The observation namespaces an accepted binding hashes (check-list section 3.1, D-V4-18): no verdict is written into them. */
+const HISTORICAL_TASKS = Object.freeze(['IGP-02', 'V4-T04', 'V4-T04v4', 'V4-T04f', 'V4-T04i', 'V4-S2P']);
+
+/** @param {unknown} v @returns {boolean} A name that is safe as a file or folder name. */
+const isNamed = (v) => typeof v === 'string' && NAME.test(v);
+
+/** @param {unknown} p @returns {boolean} A repository-relative path with `/`, with no `..` and no drive. */
+const isRepoPath = (p) => typeof p === 'string' && p !== '' && !p.includes('\\') && !p.startsWith('/') && !/^[A-Za-z]:/.test(p) && !p.split('/').includes('..');
+
+/**
+ * @param {any} m The verdict manifest (`data/verdict-manifest.schema.md`).
+ * @returns {void} Throws `verdicts: ...` unless it has the shape the tool reads: a missing or malformed field is a refused
+ *   manifest, never a default that could turn a gate into a vacuous one.
+ */
+function needManifest(m) {
+  /** @param {string} problem @returns {never} */
+  const bad = (problem) => {
+    throw new RangeError(`verdicts: manifest: ${problem}`);
+  };
+  /** @param {string} what @param {unknown} list */
+  const names = (what, list) => {
+    if (!Array.isArray(list) || !list.every(isNamed)) {
+      bad(`${what} must be a list of names`);
+    }
+  };
+  /** @param {string} what @param {any} value @param {boolean} nullable */
+  const refOf = (what, value, nullable) => {
+    if (!(nullable && value === null) && !(isObject(value) && isRepoPath(value.path) && typeof value.sha256 === 'string' && KEY.test(value.sha256))) {
+      bad(`${what} must be { path, sha256 }${nullable ? ' or null' : ''}`);
+    }
+  };
+  if (!isObject(m)) {
+    bad('it is not an object');
+  }
+  if (!isNamed(m.task)) {
+    bad('task must be a name');
+  }
+  if (HISTORICAL_TASKS.includes(m.task)) {
+    bad(`task ${m.task} is a historical observation namespace`);
+  }
+  if (m.label !== 'frozen') {
+    bad('label must be frozen');
+  }
+  if (m.purpose !== 'selection' && m.purpose !== 'final') {
+    bad(`purpose must be selection or final, got ${JSON.stringify(m.purpose)}`);
+  }
+  needPositive('quantity', m.quantity, true);
+  needPositive('capMs', m.capMs, false);
+  needPositive('responseBoundMs', m.responseBoundMs, false);
+  needResampling(m);
+  needReps(m.validationReps);
+  if (!Array.isArray(m.masterReps) || !m.masterReps.every(Number.isInteger)) {
+    bad('masterReps must be a list of integers');
+  }
+  if (!isObject(m.collection)) {
+    bad('collection must be an object');
+  }
+  refOf('collection.activation', m.collection.activation, true);
+  refOf('collection.closure', m.collection.closure, true);
+  if (m.purpose === 'final') {
+    refOf('selection', m.selection, false);
+  } else if (m.selection !== undefined) {
+    bad('selection belongs to a final purpose');
+  }
+  if (!Array.isArray(m.arms) || m.arms.length === 0) {
+    bad('arms must be a non-empty list');
+  }
+  /** @type {Set<string>} */
+  const ids = new Set();
+  for (const a of m.arms) {
+    if (!isObject(a) || !['id', 'task', 'arm', 'variant'].every((k) => isNamed(a[k])) || typeof a.treeId !== 'string' || a.treeId === ''
+      || !Array.isArray(a.files) || !a.files.every((/** @type {any} */ f) => isObject(f) && isRepoPath(f.path) && typeof f.sha256 === 'string' && KEY.test(f.sha256))) {
+      bad(`arm ${JSON.stringify(isObject(a) ? a.id : a)} needs id, task, arm, variant, treeId and files [{ path, sha256 }]`);
+    }
+    if (ids.has(a.id)) {
+      bad(`arm ${a.id} is declared twice`);
+    }
+    ids.add(a.id);
+  }
+  /** @param {string} what @param {unknown} id */
+  const known = (what, id) => {
+    if (typeof id !== 'string' || !ids.has(id)) {
+      bad(`${what} names the unknown arm ${String(id)}`);
+    }
+  };
+  if (!Array.isArray(m.classes)) {
+    bad('classes must be a list');
+  }
+  /** @type {Set<string>} */
+  const classIds = new Set();
+  /** @type {Set<string>} */
+  const classCells = new Set();
+  for (const c of m.classes) {
+    if (!isObject(c) || !isNamed(c.id) || !Array.isArray(c.cells) || c.cells.length === 0 || !c.cells.every(isNamed)) {
+      bad(`a class needs an id and a non-empty list of cells, got ${JSON.stringify(c)}`);
+    }
+    if (classIds.has(c.id)) {
+      bad(`class ${c.id} is declared twice`);
+    }
+    classIds.add(c.id);
+    known(`class ${c.id}`, c.screen);
+    known(`class ${c.id}`, c.noScreen);
+    for (const cell of c.cells) {
+      if (classCells.has(cell)) {
+        bad(`cell ${cell} is in two classes`);
+      }
+      classCells.add(cell);
+    }
+  }
+  names('failingCells', m.failingCells);
+  names('hell1', m.hell1);
+  if (!Array.isArray(m.controls) || !m.controls.every((/** @type {any} */ c) => isObject(c) && isNamed(c.cell))) {
+    bad('controls must be a list of { cell, today }');
+  }
+  for (const c of m.controls) {
+    known(`control ${c.cell}`, c.today);
+  }
+  if (!Array.isArray(m.masters) || !m.masters.every((/** @type {any} */ c) => isObject(c) && isNamed(c.cell))) {
+    bad('masters must be a list of { cell, today, after }');
+  }
+  for (const c of m.masters) {
+    known(`master ${c.cell}`, c.today);
+    known(`master ${c.cell}`, c.after);
+  }
+  if (m.masters.length > 0) {
+    needReps(m.masterReps);
+  }
+  if (!Array.isArray(m.p5) || !m.p5.every((/** @type {any} */ p) => isObject(p) && isNamed(p.cell))) {
+    bad('p5 must be a list of { cell, bounded, uncapped, reps }');
+  }
+  for (const p of m.p5) {
+    known(`p5 ${p.cell}`, p.bounded);
+    known(`p5 ${p.cell}`, p.uncapped);
+    needReps(p.reps);
+  }
+  const projection = m.deadlineProjection;
+  if (!isObject(projection) || !Array.isArray(projection.arms) || !Array.isArray(projection.reserves)
+    || !projection.reserves.every((/** @type {unknown} */ r) => isNum(r) && r >= 0 && r <= 1)) {
+    bad('deadlineProjection must be { arms, reserves, deadlineMs }');
+  }
+  needPositive('deadlineMs', projection.deadlineMs, false);
+  for (const id of projection.arms) {
+    known('deadlineProjection', id);
+  }
+  if (!isObject(m.prerequisites)) {
+    bad('prerequisites must be an object');
+  }
+}
+
+/**
+ * @typedef {object} VerdictIo What the tool reads from the machine; the self-test supplies it from memory.
+ * @property {(path: string) => string | null} readText The text of a repository-relative file; `null` when absent.
+ * @property {(folder: string) => string[]} list The files below a repository-relative folder, any depth, as
+ *   repository-relative paths in name order; empty when the folder is absent.
+ * @property {string} harnessHash Today's `harnessInfo().harnessHash`, the producer of a selection.
+ * @property {(id: string) => { treeId: string, paramsHash: string }} currentOf Today's tree of an arm id, for the
+ *   prerequisites; it throws for a tree that cannot be read.
+ */
+
+/** @param {string} path @returns {string} The file name of a repository-relative path. */
+const baseName = (path) => path.slice(path.lastIndexOf('/') + 1);
+
+/** @param {string[]} paths @returns {string[]} */
+const sorted = (paths) => [...paths].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+
+/**
+ * The published rows of one arm (V4-T09e, Authority "Reading the records"): every runs file of the arm's evidence folder
+ * and every file its `files` declares, each row through `ingestRow`. A file whose SHA-256 differs from the manifest's
+ * (`changed evidence`), that `files` does not declare (`undeclared evidence`), that is missing, that is not JSON or
+ * whose `meta.trees.<variant>.treeId` is not the arm's `treeId` (`stale tree`) makes each of its rows `invalid`, and its
+ * rows are not counted as published.
+ * @param {any} manifest
+ * @param {any} arm
+ * @param {VerdictIo} io
+ */
+function readArm(manifest, arm, io) {
+  const folder = `docs/improve-generating/evidence/${manifest.label}/${arm.task}/${arm.arm}`;
+  const onDisk = io.list(folder).filter((p) => p.startsWith(`${folder}/`) && p.endsWith('.runs.json') && !p.slice(folder.length + 1).includes('/'));
+  /** @type {Map<string, string>} */
+  const declared = new Map(arm.files.map((/** @type {{ path: string, sha256: string }} */ f) => [f.path, f.sha256]));
+  /** @type {IngestedRow[]} */
+  const rows = [];
+  /** @type {{ path: string, sha256: string | null, declared: string | null, rows: number, problems: string[] }[]} */
+  const files = [];
+  /** @type {{ path: string, sha256: string }[]} */
+  const evidence = [];
+  /** @type {string[]} */
+  const published = [];
+  /** @type {{ treeId: string, paramsHash: string | null }[]} */
+  const seen = [];
+  for (const path of sorted([...new Set([...declared.keys(), ...onDisk])])) {
+    /** @type {string[]} */
+    const problems = [];
+    const info = { path, sha256: /** @type {string | null} */ (null), declared: declared.get(path) ?? null, rows: 0, problems };
+    files.push(info);
+    const text = io.readText(path);
+    if (text === null) {
+      problems.push('missing evidence');
+      continue;
+    }
+    info.sha256 = sha256Text(text);
+    evidence.push({ path, sha256: info.sha256 });
+    if (info.declared === null) {
+      problems.push('undeclared evidence');
+    } else if (info.declared !== info.sha256) {
+      problems.push('changed evidence');
+    }
+    /** @type {any} */
+    let doc;
+    try {
+      doc = JSON.parse(text);
+    } catch {
+      problems.push('unreadable evidence');
+      continue;
+    }
+    const tree = doc?.meta?.trees?.[arm.variant];
+    if (tree?.treeId !== arm.treeId) {
+      problems.push('stale tree');
+    }
+    if (isObject(tree) && typeof tree.treeId === 'string') {
+      const identity = { treeId: tree.treeId, paramsHash: isObject(tree.params) ? sha256(JSON.stringify(tree.params)) : null };
+      if (!seen.some((s) => s.treeId === identity.treeId && s.paramsHash === identity.paramsHash)) {
+        seen.push(identity);
+      }
+    }
+    if (!Array.isArray(doc?.rows)) {
+      problems.push('no rows');
+      continue;
+    }
+    info.rows = doc.rows.length;
+    for (const row of doc.rows) {
+      const got = ingestRow(row, { quantity: manifest.quantity });
+      if (problems.length === 0) {
+        rows.push(got);
+        if (typeof got.rowKey === 'string') {
+          published.push(`${arm.id}/${got.rowKey}`);
+        }
+      } else {
+        rows.push({ ...got, status: 'invalid', problems: [...problems.map((p) => `${p} ${path}`), ...got.problems] });
+      }
+    }
+  }
+  return { rows, files, evidence, published, tree: seen.length === 1 ? seen[0] : { treeId: null, paramsHash: null } };
+}
+
+/**
+ * The journals of the rows of one arm (V4-T09e step 3): per row every file `<rowKey>.*.jsonl` of the logs folder of every
+ * shard of the arm other than `<rowKey>.row.jsonl` and `<rowKey>.link.jsonl`, through `parseLines` (its problems, and
+ * those of the link file, join the row's ledger), and the link lines of `<rowKey>.link.jsonl`.
+ * @param {any} manifest
+ * @param {any} arm
+ * @param {IngestedRow[]} rows
+ * @param {VerdictIo} io
+ * @returns {{ ledgers: Record<string, Record<string, any>>, journals: Record<string, Record<string, any>[] | null>,
+ *   evidence: { path: string, sha256: string }[] }} A row with no journal and no link file has neither a ledger nor a
+ *   journal; `journals[rowKey]` is `null` also when its lines had a problem and show no dead end (a lost line could hide one).
+ */
+function readJournals(manifest, arm, rows, io) {
+  const raw = `tests/artifacts/ig-proto/${manifest.label}/${arm.task}/${arm.arm}`;
+  const logs = io.list(raw).filter((p) => {
+    const parts = p.startsWith(`${raw}/`) ? p.slice(raw.length + 1).split('/') : [];
+    return parts.length === 3 && parts[1] === 'logs' && parts[2].endsWith('.jsonl');
+  });
+  /** @type {Record<string, Record<string, any>>} */
+  const ledgers = {};
+  /** @type {Record<string, Record<string, any>[] | null>} */
+  const journals = {};
+  /** @type {{ path: string, sha256: string }[]} */
+  const evidence = [];
+  for (const { rowKey } of rows) {
+    if (typeof rowKey !== 'string' || Object.hasOwn(journals, rowKey)) {
+      continue;
+    }
+    const mine = logs.filter((p) => baseName(p).startsWith(`${rowKey}.`));
+    const links = mine.filter((p) => baseName(p) === `${rowKey}.link.jsonl`);
+    const workers = mine.filter((p) => baseName(p) !== `${rowKey}.row.jsonl` && baseName(p) !== `${rowKey}.link.jsonl`);
+    if (workers.length === 0 && links.length === 0) {
+      journals[rowKey] = null;
+      continue;
+    }
+    /** @type {string[]} */
+    const problems = [];
+    let workerProblems = 0;
+    /** @param {string} path @returns {Record<string, any>[]} */
+    const read = (path) => {
+      const text = io.readText(path);
+      if (text === null) {
+        problems.push(`missing journal file ${path}`);
+        return [];
+      }
+      evidence.push({ path, sha256: sha256Text(text) });
+      const parsed = parseLines(text, baseName(path));
+      problems.push(...parsed.problems);
+      return parsed.lines;
+    };
+    const lines = workers.flatMap((p) => {
+      const before = problems.length;
+      const got = read(p);
+      workerProblems += problems.length - before;
+      return got;
+    });
+    const linkLines = links.length === 0 ? null : links.flatMap(read);
+    const ledger = rowLedger(lines, linkLines);
+    ledgers[rowKey] = problems.length === 0 ? ledger : { ...ledger, complete: false, problems: [...ledger.problems, ...problems] };
+    journals[rowKey] = workers.length === 0 || (workerProblems > 0 && deadEnds(lines) === 0) ? null : lines;
+  }
+  return { ledgers, journals, evidence };
+}
+
+/** The gate of a cell that no class ships: there is no arm to judge (plan section 5.2, IG-P-Q29). */
+const noShippedArm = (/** @type {string} */ cell) => ({
+  verdict: /** @type {const} */ ('incomplete'), reasons: [`no class ships ${cell}`], reachedTen: null, deadEnds: null,
+  deadlineViolations: null, p95Ms: null, noRegression: null,
+});
+
+/** @param {unknown} list @param {string} what @returns {string[]} */
+function needRows(list, what) {
+  if (!Array.isArray(list) || !list.every((r) => typeof r === 'string')) {
+    throw new Error(`verdicts: ${what} must be a list of <arm>/<rowKey>`);
+  }
+  return list;
+}
+
+/**
+ * Decided records are written once (check-list section 3.3; V4-T09e step 3c): the reason a verdict run must not write the
+ * records of its task, else `null`. An interim record (a selection that is `incomplete`, a phase 0 that is `incomplete`) is
+ * superseded when the collection is closed or a prerequisite is accepted; a decided one is not, and correcting it needs a
+ * new manifest `task`.
+ * @param {'selection' | 'final'} purpose
+ * @param {{ selection: any, verdicts: any }} existing The task's parsed `class-selection.json` and `verdicts.json`, each
+ *   `null` when absent.
+ * @returns {string | null} `a final selection exists` (the purpose `selection` and a selection receipt with `verdict` `pass`),
+ *   `a decided phase 0 exists` (the purpose `final` and a phase 0 of `pass` or `fail`), else `null`.
+ */
+export function decidedRecord(purpose, { selection, verdicts }) {
+  if (purpose !== 'selection' && purpose !== 'final') {
+    throw new RangeError(`verdicts: purpose must be selection or final, got ${String(purpose)}`);
+  }
+  if (purpose === 'selection' && isObject(selection) && selection.verdict === 'pass') {
+    return 'a final selection exists';
+  }
+  const phase0 = isObject(verdicts) ? verdicts.phase0?.verdict : undefined;
+  if (purpose === 'final' && (phase0 === 'pass' || phase0 === 'fail')) {
+    return 'a decided phase 0 exists';
+  }
+  return null;
+}
+
+/**
+ * Computes the verdict records of a manifest from the records it names (V4-T09e, steps 1 to 3b): the rows of every arm,
+ * the journals of the class arms, the class verdicts, the cells on the arms they ship, the controls, Master identity,
+ * Hell 1, P5's stops, the projection, the population, the prerequisites and phase 0 and, for a selection, the
+ * class-selection receipt. It throws (a refused manifest) when the manifest is malformed, a named record is missing or
+ * differs from its SHA-256, or the live-deadline prerequisite is not a live-deadline binding.
+ * @param {any} manifest
+ * @param {VerdictIo} io
+ * @param {{ path: string, sha256: string }} manifestRef The manifest file as read.
+ * @returns {{ record: Record<string, any>, receipt: Record<string, any> | null }} `receipt` only for the purpose `selection`.
+ */
+export function verdictRecords(manifest, io, manifestRef) {
+  needManifest(manifest);
+  const { purpose, quantity, capMs, responseBoundMs, resamples, resampleSeed, validationReps: reps, masterReps } = manifest;
+  /** @type {Map<string, string>} */
+  const evidence = new Map([[manifestRef.path, manifestRef.sha256]]);
+  /** @param {string} what @param {{ path: string, sha256: string }} ref @returns {any} The record, as JSON. */
+  const named = (what, ref) => {
+    const text = io.readText(ref.path);
+    if (text === null) {
+      throw new Error(`verdicts: ${what} ${ref.path} is missing`);
+    }
+    if (sha256Text(text) !== ref.sha256) {
+      throw new Error(`verdicts: ${what} ${ref.path} differs from the SHA-256 of the manifest`);
+    }
+    evidence.set(ref.path, ref.sha256);
+    /** @type {unknown} */
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      throw new Error(`verdicts: ${what} ${ref.path} is not JSON`);
+    }
+    if (!isObject(parsed)) {
+      throw new Error(`verdicts: ${what} ${ref.path} is not a JSON object`);
+    }
+    return parsed;
+  };
+  const { activation, closure: closureRef } = manifest.collection;
+  const activationRecord = activation === null ? null : named('the activation record', activation);
+  const closureRecord = closureRef === null ? null : named('the closure record', closureRef);
+  if (closureRecord !== null && closureRecord.activation?.sha256 !== activation?.sha256) {
+    throw new Error(`verdicts: the closure belongs to another activation: ${closureRef.path}`);
+  }
+  const selectionReceipt = purpose === 'final' ? named('the selection receipt', manifest.selection) : null;
+  if (selectionReceipt !== null && selectionReceipt.verdict !== 'pass') {
+    throw new Error(`verdicts: the selection is not final: ${manifest.selection.path}`);
+  }
+  /** @type {{ path: string, sha256: string } | null} */
+  let freeze = null;
+  if (activationRecord !== null) {
+    const f = activationRecord.epoch?.freeze;
+    if (!isObject(f) || !isRepoPath(f.path) || typeof f.sha256 !== 'string' || !KEY.test(f.sha256)) {
+      throw new Error('verdicts: the activation record names no freeze record (epoch.freeze)');
+    }
+    named('the freeze record', f);
+    freeze = { path: f.path, sha256: f.sha256 };
+  }
+  const declared = activationRecord !== null
+    ? needRows(activationRecord.declaredRows, 'declaredRows of the activation record')
+    : [...new Set(manifest.classes.flatMap((/** @type {any} */ c) => [c.screen, c.noScreen].flatMap((arm) => c.cells.flatMap((/** @type {string} */ cell) => reps.map((/** @type {number} */ rep) => `${arm}/${cell}~${rep}`)))))];
+  const closure = closureRecord === null ? null : { ...closureRef, missing: needRows(closureRecord.missing, 'missing of the closure record') };
+
+  /** @type {Record<string, IngestedRow[]>} */
+  const armRows = {};
+  /** @type {Record<string, ReturnType<typeof readArm>>} */
+  const read = {};
+  /** @type {string[]} */
+  const published = [];
+  for (const arm of manifest.arms) {
+    const got = readArm(manifest, arm, io);
+    read[arm.id] = got;
+    armRows[arm.id] = got.rows;
+    published.push(...got.published);
+    for (const e of got.evidence) {
+      evidence.set(e.path, e.sha256);
+    }
+  }
+  const classArms = [...new Set(manifest.classes.flatMap((/** @type {any} */ c) => [c.screen, c.noScreen]))];
+  /** @type {Record<string, Record<string, any>>} */
+  const ledgers = {};
+  /** @type {Record<string, Record<string, Record<string, any>[] | null>>} */
+  const journals = {};
+  for (const id of /** @type {string[]} */ (classArms)) {
+    const got = readJournals(manifest, manifest.arms.find((/** @type {any} */ a) => a.id === id), armRows[id], io);
+    ledgers[id] = got.ledgers;
+    journals[id] = got.journals;
+    for (const e of got.evidence) {
+      evidence.set(e.path, e.sha256);
+    }
+  }
+
+  /** @param {string} id @param {string} cell @returns {IngestedRow[]} */
+  const rowsOf = (id, cell) => armRows[id].filter((r) => r.caseId === cell);
+  const failing = new Set(manifest.failingCells);
+  /** @type {Map<string, any>} */
+  const controlOf = new Map(manifest.controls.map((/** @type {any} */ c) => [c.cell, c]));
+  const gateOptions = { reps, quantity, capMs, responseBoundMs };
+  /** @param {'failing' | 'control'} kind @param {string} armId @param {string} cell */
+  const gateOn = (kind, armId, cell) => (kind === 'failing'
+    ? cellGate('failing', rowsOf(armId, cell), { ...gateOptions, journals: journals[armId] ?? {} })
+    : cellGate('control', rowsOf(armId, cell), { ...gateOptions, todayRows: rowsOf(controlOf.get(cell).today, cell), resamples, resampleSeed }));
+
+  /** @type {Map<string, { class: string, shipped: string }>} */
+  const shipOf = new Map();
+  const classResults = manifest.classes.map((/** @type {any} */ cls) => {
+    const cells = cls.cells.map((/** @type {string} */ cell) => {
+      const kind = failing.has(cell) ? 'failing' : controlOf.has(cell) ? 'control' : null;
+      return {
+        cell, screenRows: rowsOf(cls.screen, cell), noScreenRows: rowsOf(cls.noScreen, cell),
+        screenLedgers: ledgers[cls.screen], noScreenLedgers: ledgers[cls.noScreen],
+        screenCellGate: kind === null ? 'pass' : gateOn(kind, cls.screen, cell).verdict,
+      };
+    });
+    const result = classVerdict({ cells, reps, resamples, resampleSeed, quantity, capMs });
+    const shipped = shippedArm(result, { screen: cls.screen, noScreen: cls.noScreen });
+    for (const cell of cls.cells) {
+      shipOf.set(cell, { class: cls.id, shipped });
+    }
+    const rowsWithLedgers = {
+      screen: cells.flatMap((/** @type {any} */ c) => attachLedgers(c.screenRows, c.screenLedgers)),
+      noScreen: cells.flatMap((/** @type {any} */ c) => attachLedgers(c.noScreenRows, c.noScreenLedgers)),
+    };
+    return {
+      id: cls.id, cells: cls.cells, screen: cls.screen, noScreen: cls.noScreen, shipped,
+      screenCellGates: Object.fromEntries(cells.map((/** @type {any} */ c) => [c.cell, c.screenCellGate])),
+      ...result, work: workReport(result.work, rowsWithLedgers),
+    };
+  });
+
+  const failingResults = manifest.failingCells.map((/** @type {string} */ cell) => {
+    const ship = shipOf.get(cell);
+    return { cell, class: ship?.class ?? null, shipped: ship?.shipped ?? null, gate: ship === undefined ? noShippedArm(cell) : gateOn('failing', ship.shipped, cell) };
+  });
+  const controlResults = manifest.controls.map((/** @type {any} */ c) => {
+    const ship = shipOf.get(c.cell);
+    return { cell: c.cell, class: ship?.class ?? null, shipped: ship?.shipped ?? null, today: c.today, gate: ship === undefined ? noShippedArm(c.cell) : gateOn('control', ship.shipped, c.cell) };
+  });
+  const masterResults = manifest.masters.map((/** @type {any} */ m) => ({
+    cell: m.cell, today: m.today, after: m.after, result: masterIdentity(rowsOf(m.today, m.cell), rowsOf(m.after, m.cell), masterReps),
+  }));
+  const hell1Results = manifest.hell1.flatMap((/** @type {string} */ cell) => {
+    const ship = shipOf.get(cell);
+    const arms = ship !== undefined ? [ship.shipped] : manifest.arms.map((/** @type {any} */ a) => a.id).filter((/** @type {string} */ id) => rowsOf(id, cell).length > 0);
+    return (arms.length === 0 ? [null] : arms).map((arm) => ({
+      cell, class: ship?.class ?? null, arm, report: hell1Report(arm === null ? [] : rowsOf(arm, cell), { reps, quantity }),
+    }));
+  });
+  const p5Results = manifest.p5.map((/** @type {any} */ p) => p5Stops(rowsOf(p.bounded, p.cell), rowsOf(p.uncapped, p.cell), { quantity, cell: p.cell, reps: p.reps }));
+  const { arms: projectedArms, reserves, deadlineMs } = manifest.deadlineProjection;
+  const projection = projectedArms.flatMap((/** @type {string} */ arm) => reserves.map((/** @type {number} */ reserve) => ({
+    arm, reserve, ...deadlineProjection(armRows[arm], { reserve, deadlineMs, quantity }),
+  })));
+  const populations = Object.fromEntries(manifest.arms.map((/** @type {any} */ a) => [a.id, population(armRows[a.id], { quantity })]));
+
+  const readJson = (/** @type {string} */ path) => {
+    const text = io.readText(path);
+    return text === null ? null : JSON.parse(text);
+  };
+  const prereq = prerequisites(manifest.prerequisites, { readJson, readFile: io.readText, currentOf: io.currentOf });
+  let phase0 = phase0Verdict({
+    purpose,
+    classes: classResults.map(({ id, verdict }) => ({ id, verdict })),
+    cells: failingResults.map(({ cell, gate }) => ({ cell, verdict: gate.verdict })),
+    controls: controlResults.map(({ cell, gate }) => ({ cell, verdict: gate.verdict })),
+    masters: masterResults.map(({ cell, result }) => ({ cell, verdict: result.verdict })),
+    p5: p5Results,
+    prerequisites: prereq,
+  });
+
+  const missing = declared.filter((row) => !new Set(published).has(row));
+  /** @type {Record<string, any> | null} */
+  let selection = null;
+  /** @type {Record<string, any> | null} */
+  let receipt = null;
+  if (selectionReceipt !== null) {
+    const sel = selectionReceipt.selection;
+    if (!isObject(sel) || !isObject(sel.cells)) {
+      throw new Error('verdicts: the selection receipt has no selection.cells');
+    }
+    const changed = selectionChanges(sel, Object.fromEntries(shipOf));
+    phase0 = finalPhase0(phase0, changed);
+    selection = { ...manifest.selection, verdict: selectionReceipt.verdict ?? null, changed };
+  } else {
+    receipt = classSelection(manifest, classResults, {
+      files: sorted([...evidence.keys()]).map((path) => ({ path, sha256: /** @type {string} */ (evidence.get(path)) })),
+      published, declared, activation, closure, freeze,
+      arms: manifest.arms.map((/** @type {any} */ a) => ({ id: a.id, ...read[a.id].tree })),
+      harnessHash: io.harnessHash,
+    });
+    selection = { verdict: receipt.verdict, reasons: receipt.reasons, declared: declared.length, published: published.length, missing: receipt.coverage.missing.length };
+  }
+  const statuses = (/** @type {IngestedRow[]} */ rows) => Object.fromEntries(STATUSES.map((s) => [s, rows.filter((r) => r.status === s).length]));
+  const record = {
+    task: manifest.task,
+    purpose,
+    manifest: { ...manifestRef, value: manifest },
+    arms: Object.fromEntries(manifest.arms.map((/** @type {any} */ a) => [a.id, {
+      task: a.task, arm: a.arm, variant: a.variant, treeId: a.treeId, tree: read[a.id].tree, files: read[a.id].files,
+      rows: armRows[a.id].length, statuses: statuses(armRows[a.id]),
+    }])),
+    collection: { declared: declared.length, published: published.length, missing, closure },
+    classes: classResults,
+    failingCells: failingResults,
+    controls: controlResults,
+    masters: masterResults,
+    hell1: hell1Results,
+    p5: p5Results,
+    prerequisites: prereq,
+    selection,
+    phase0: { ...phase0, line: phase0Line(phase0, prereq) },
+    projection: { label: PROJECTION_LABEL, results: projection },
+    population: populations,
+  };
+  return { record, receipt };
+}
+
+/** @param {unknown} v @returns {string} A table cell: no pipe, no line break. */
+const cellText = (v) => (v === null || v === undefined || v === '' ? '-' : String(v).replaceAll('|', '\\|').replace(/\s+/g, ' '));
+
+/** @param {unknown} v @returns {string} A number as the reports show it; a missing one is `-`, an infinite one `unbounded`. */
+const numText = (v) => (v === null || v === undefined ? '-' : typeof v !== 'number' ? cellText(v) : Number.isFinite(v) ? String(Math.round(v * 10000) / 10000) : 'unbounded');
+
+/** @param {string[]} head @param {unknown[][]} body @returns {string[]} A Markdown table. */
+const table = (head, body) => [`| ${head.join(' | ')} |`, `|${head.map(() => '---').join('|')}|`, ...body.map((r) => `| ${r.map(cellText).join(' | ')} |`), ''];
+
+/** The most problems of a class the report lists; the record holds all of them. */
+const LISTED_PROBLEMS = 12;
+
+/**
+ * The report `verdicts.md` of a verdict record (V4-T09e step 3): one section per class (the verdict and its deciding
+ * condition, the clue and faster numbers, the completion, the cell gates and the work table of IG-P-Q37), then the cells on
+ * their shipped arm, the controls, Master identity, Hell 1 (a report), P5's stops, the prerequisites with their reasons,
+ * the phase-0 line, and under its own heading the post-hoc projection.
+ * @param {Record<string, any>} record `verdictRecords`' record (with its `meta`, for the banner).
+ * @param {string} bannerText The banner of the record's meta block.
+ * @returns {string}
+ */
+export function renderVerdicts(record, bannerText) {
+  const lines = [
+    `# Verdicts ${record.task} (V4-T09e)`, '', bannerText, '',
+    `Purpose \`${record.purpose}\`. Manifest \`${record.manifest.path}\` (sha256 ${record.manifest.sha256}). `
+    + `Declared rows ${record.collection.declared}, published ${record.collection.published}, missing ${record.collection.missing.length}.`, '',
+  ];
+  lines.push('## Records read', '', ...table(['Arm', 'File', 'Rows', 'Problems'], Object.entries(record.arms).flatMap(([id, arm]) => (arm.files.length === 0
+    ? [[id, '(no runs file)', 0, '-']]
+    : arm.files.map((/** @type {any} */ f) => [id, f.path, f.rows, f.problems.length === 0 ? '-' : f.problems.join(', ')])))));
+  for (const cls of record.classes) {
+    lines.push(`## Class ${cls.id}`, '',
+      `Verdict **${cls.verdict}**, decided by ${cls.decidedBy ?? 'none'}. Cells ${cls.cells.join(', ')}. Screen arm \`${cls.screen}\`, no-screen arm \`${cls.noScreen}\`; the class ships \`${cls.shipped}\`.`, '',
+      `- Clue rule: ${cls.clue.n} matched sets, median difference ${numText(cls.clue.medianDiff)}, ${cls.clue.moved2} moved by two clues or more: ${cls.clue.pass ? 'pass' : 'fail'}.`,
+      cls.faster === null
+        ? '- Faster rule: not computed, a pairing problem leaves a rep without a ratio.'
+        : `- Faster rule: geometric mean ${numText(cls.faster.geoMean)}, lower bound ${numText(cls.faster.lower)}: ${cls.faster.pass ? 'pass' : 'fail'}.`,
+      ...Object.entries(cls.completion).map(([cell, c]) => `- Completion of ${cell} (valid requests that reach ten): screen ${/** @type {any} */ (c).screen}, no screen ${/** @type {any} */ (c).noScreen}.`),
+      ...Object.entries(cls.screenCellGates).map(([cell, gate]) => `- Cell gate of ${cell} on the screen arm: ${gate}.`),
+      '', `Work (IG-P-Q37; the intervals are reported, the work rule judges them): **${cls.work.verdict}**.`, '',
+      ...table(['Arm', 'Rows', 'Accepted', 'loRatio', 'hiRatio', 'Width', 'completedRatio', 'Terminated calls', 'Open primitives', 'Complete'],
+        [['screen', cls.screen, cls.work.screen], ['no screen', cls.noScreen, cls.work.noScreen]].map(([label, id, w]) => [
+          `${label} ${id}`, w.rows, w.accepted, numText(w.loRatio), numText(w.hiRatio), numText(w.width), numText(w.completedRatio), w.terminatedCalls, w.open, w.complete,
+        ])));
+    if (cls.problems.length > 0) {
+      lines.push(`Problems (${Math.min(LISTED_PROBLEMS, cls.problems.length)} of ${cls.problems.length}):`, '',
+        ...cls.problems.slice(0, LISTED_PROBLEMS).map((/** @type {string} */ p) => `- ${p}`), '');
+    }
+  }
+  const gateRow = (/** @type {any} */ g) => [g.verdict, numText(g.reachedTen), numText(g.deadEnds), numText(g.deadlineViolations), numText(g.p95Ms), g.reasons.join('; ')];
+  lines.push('## Failing Nightmare cells on the arm each ships', '',
+    ...table(['Cell', 'Class', 'Shipped arm', 'Gate', 'Reached ten', 'Dead ends', 'Deadline violations', 'p95 ms', 'Reasons'],
+      record.failingCells.map((/** @type {any} */ c) => [c.cell, c.class, c.shipped, ...gateRow(c.gate)])));
+  lines.push('## Controls', '',
+    ...table(['Cell', 'Class', 'Shipped arm', 'Today\'s arm', 'Gate', 'Reached ten', 'Dead ends', 'Deadline violations', 'p95 ms', 'Geometric mean', 'Lower bound', 'Reasons'],
+      record.controls.map((/** @type {any} */ c) => [c.cell, c.class, c.shipped, c.today, ...gateRow(c.gate).slice(0, 5), numText(c.gate.noRegression?.geoMean), numText(c.gate.noRegression?.lower), c.gate.reasons.join('; ')])));
+  lines.push('## Master identity', '',
+    ...table(['Cell', 'Today\'s arm', 'After arm', 'Verdict', 'Differences', 'Problems'],
+      record.masters.map((/** @type {any} */ m) => [m.cell, m.today, m.after, m.result.verdict, m.result.differences.map((/** @type {any} */ d) => `rep ${d.rep}: ${d.field}`).join('; '), m.result.problems.join('; ')])));
+  lines.push('## Hell 1 (a report, never a gate)', '',
+    ...table(['Cell', 'Class', 'Arm', 'Requests', 'Valid', 'Reached ten', 'Candidate (18 of 20)'],
+      record.hell1.map((/** @type {any} */ h) => [h.cell, h.class, h.arm, h.report.requests, h.report.valid, h.report.reachedTen, h.report.candidate])));
+  lines.push('## P5\'s stops over the declared pairs', '',
+    ...table(['Cell', 'Declared', 'Pairs', 'False stops', 'Lost completions', 'Unknown', 'Unexpected rows'],
+      record.p5.map((/** @type {any} */ p) => [p.cell, p.declared, p.pairs, p.falseStops, p.lostCompletions, p.unknown, p.unexpected.length])));
+  lines.push('## Prerequisites', '',
+    ...table(['Prerequisite', 'Status', 'Reasons'], Object.entries(record.prerequisites).map(([name, p]) => [name, /** @type {any} */ (p).status, /** @type {any} */ (p).reasons.join('; ')])));
+  lines.push('## Selection', '',
+    record.purpose === 'selection'
+      ? `Class-selection receipt: ${record.selection.verdict}${record.selection.reasons.length > 0 ? ` (${record.selection.reasons.slice(0, LISTED_PROBLEMS).join('; ')})` : ''}.`
+      : `Selection receipt \`${record.selection.path}\` (sha256 ${record.selection.sha256}, verdict ${record.selection.verdict}); cells changed since: ${record.selection.changed.length === 0 ? 'none' : record.selection.changed.join(', ')}.`,
+    '', '## Phase 0', '', record.phase0.line, '',
+    `## ${record.projection.label.charAt(0).toUpperCase()}${record.projection.label.slice(1)}`, '',
+    'An estimate of the accepted prefixes of recorded runs; it proves neither the cancellation of dispatched work, nor the response assembly, nor the 120-s bound, and no gate reads it (D-V4-08).', '',
+    ...table(['Arm', 'Reserve', 'Projected', 'Not linked', 'Invalid timeline', 'Set cut', 'Completed', 'Lost', 'Skipped (not valid)'],
+      record.projection.results.map((/** @type {any} */ p) => {
+        const count = (/** @type {(r: any) => boolean} */ keep) => p.rows.filter(keep).length;
+        return [p.arm, p.reserve, count((r) => r.status === 'projected'), count((r) => r.status === 'not-linked'), count((r) => r.status === 'invalid-timeline'),
+          count((r) => r.setCut === true), count((r) => r.completed === true), count((r) => r.lost === true), p.skipped];
+      })));
+  return lines.join('\n');
+}
+
+/** @param {string} message @returns {number} 1, after the message on stderr. */
+function refuse(message) {
+  process.stderr.write(`verdicts: ${message}\n`);
+  return 1;
+}
+
+/**
+ * @param {string} folder Repository-relative.
+ * @returns {string[]} The files below it at any depth, repository-relative with `/`, in name order; none when absent.
+ */
+function walkRepo(folder) {
+  /** @type {string[]} */
+  const out = [];
+  /** @param {string} dir */
+  const visit = (dir) => {
+    for (const entry of readdirSync(abs(dir), { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        visit(`${dir}/${entry.name}`);
+      } else if (entry.isFile()) {
+        out.push(`${dir}/${entry.name}`);
+      }
+    }
+  };
+  if (existsSync(abs(folder))) {
+    visit(folder);
+  }
+  return sorted(out);
+}
+
+/**
+ * Today's tree of every arm a prerequisite compares, for the bindings that exist (an absent binding is `incomplete`
+ * before any tree is asked for).
+ * @param {any} declared The manifest's `prerequisites`.
+ * @param {string | undefined} sourceLabel
+ * @returns {Promise<(id: string) => { treeId: string, paramsHash: string }>}
+ */
+async function currentTrees(declared, sourceLabel) {
+  const refs = [declared.stage1, declared.liveDeadline, ...(Array.isArray(declared.parity) ? declared.parity : [])];
+  /** @type {Map<string, { treeId: string, paramsHash: string } | Error>} */
+  const table = new Map();
+  for (const ref of refs) {
+    if (!isObject(ref) || typeof ref.binding !== 'string' || !Array.isArray(ref.current) || !existsSync(abs(ref.binding))) {
+      continue;
+    }
+    for (const id of ref.current) {
+      if (typeof id === 'string' && !table.has(id)) {
+        try {
+          const tree = await ensureTree(id, { sourceLabel });
+          table.set(id, { treeId: tree.treeId, paramsHash: sha256(JSON.stringify(tree.params)) });
+        } catch (e) {
+          table.set(id, e instanceof Error ? e : new Error(String(e)));
+        }
+      }
+    }
+  }
+  return (id) => {
+    const found = table.get(id);
+    if (found === undefined || found instanceof Error) {
+      throw new Error(found === undefined ? `no current tree of ${id}` : `${id}: ${found.message}`);
+    }
+    return found;
+  };
+}
+
+/**
+ * `node tools\ig-proto\verdicts.mjs --manifest <path> --label frozen --source-label <SL>` (V4-T09e): reads the verdict
+ * manifest and the records it names, and writes `verdicts.json` and `verdicts.md` under `evidence/frozen/<task>/` and,
+ * for the purpose `selection`, `class-selection.json`. An interim record of the task is replaced (a selection that is
+ * `incomplete` is superseded once the collection is closed, a phase 0 that is `incomplete` once a prerequisite is
+ * accepted); a decided one is never overwritten (`decidedRecord`: the run is refused, exit 1, nothing written).
+ * @param {string[]} argv
+ * @returns {Promise<number>} 0 when the records are written (whatever the verdicts); 1 for a refused manifest or command.
+ */
+export async function main(argv) {
+  const { args } = parseArgs(argv, { values: ['manifest', 'label', 'source-label'] });
+  if (args.label !== 'frozen') {
+    return refuse('--label frozen only');
+  }
+  if (args.manifest === undefined) {
+    return refuse('--manifest is required');
+  }
+  const file = resolve(ROOT, args.manifest);
+  if (!existsSync(file)) {
+    return refuse(`no manifest ${args.manifest}`);
+  }
+  const text = readFileSync(file, 'utf8');
+  /** @type {any} */
+  let manifest;
+  try {
+    manifest = JSON.parse(text);
+  } catch {
+    return refuse(`${args.manifest} is not JSON`);
+  }
+  try {
+    needManifest(manifest);
+    const out = (/** @type {string} */ name) => evidenceDir('frozen', manifest.task, name);
+    // Only the record the purpose could overwrite is read; one that is not JSON is refused, never replaced.
+    const guarded = out(manifest.purpose === 'selection' ? 'class-selection.json' : 'verdicts.json');
+    /** @type {any} */
+    let existing = null;
+    if (existsSync(guarded)) {
+      try {
+        existing = JSON.parse(readFileSync(guarded, 'utf8'));
+      } catch {
+        return refuse(`an unreadable record exists: ${rel(guarded)}`);
+      }
+    }
+    const decided = decidedRecord(manifest.purpose, manifest.purpose === 'selection' ? { selection: existing, verdicts: null } : { selection: null, verdicts: existing });
+    if (decided !== null) {
+      return refuse(`${decided}: ${rel(guarded)}`);
+    }
+    const currentOf = await currentTrees(manifest.prerequisites, args['source-label']);
+    const { record, receipt } = verdictRecords(manifest, {
+      readText: (path) => (existsSync(abs(path)) ? readFileSync(abs(path), 'utf8') : null),
+      list: walkRepo,
+      harnessHash: harnessInfo().harnessHash,
+      currentOf,
+    }, { path: rel(file), sha256: sha256Text(text) });
+    const meta = await buildMeta({ task: manifest.task, label: 'frozen', kind: 'verdicts', trees: [], sourceLabel: args['source-label'] });
+    const full = { meta, ...record };
+    writeJson(out('verdicts.json'), full);
+    writeText(out('verdicts.md'), renderVerdicts(full, banner(meta)));
+    if (receipt !== null) {
+      writeJson(out('class-selection.json'), receipt);
+    }
+    for (const cls of record.classes) {
+      process.stdout.write(`class ${cls.id}: ${cls.verdict} (${cls.decidedBy ?? 'none'}), ships ${cls.shipped}\n`);
+    }
+    process.stdout.write(`${record.phase0.line}\n`);
+    for (const name of ['verdicts.json', 'verdicts.md', ...(receipt === null ? [] : ['class-selection.json'])]) {
+      process.stdout.write(`verdicts: wrote ${rel(out(name))}\n`);
+    }
+    return 0;
+  } catch (e) {
+    return refuse(e instanceof Error ? e.message.replace(/^verdicts: /, '') : String(e));
+  }
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  process.exitCode = await main(process.argv.slice(2));
 }
