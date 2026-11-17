@@ -7,14 +7,18 @@
 // approval fields; pure, nothing here executes any part of the round), V4-T11c the compiler of the plans (below the pricing: the
 // step builders, the plans `V4-S2` and `V4-LIVE`, the priced universe of stage 4 and the templates, the item manifests of the
 // parity passes and of the isolated P-0, and the prerequisites gate; `compile` and `check-prerequisites` are its commands, unlocked,
-// and nothing here executes any plan), V4-T11e the activation of one collection (it reads the groups and `conditionalActivated`),
-// V4-T11f the resolution of the comparators (it reads the expansion) and V4-T11g the manifest for the owner.
+// and nothing here executes any plan), V4-T11e the stage-4 collections (below the prerequisites gate: the activation record of the
+// initial collection, the concrete plan `V4-S4` and the comparator template it yields, and the closure record; `activate` and `close`
+// are its commands, unlocked and write-once, run only on the owner's decision), V4-T11f the resolution of the comparators (it reads the
+// expansion) and V4-T11g the manifest for the owner.
 //   node tools\ig-proto\manifest.mjs compile --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\manifest.mjs check-prerequisites --plan V4-LIVE --label frozen --source-label "frozen 3fc65f4"
+//   node tools\ig-proto\manifest.mjs activate --collection initial [--approve-optional S4-6] --label frozen --source-label "frozen 3fc65f4"
+//   node tools\ig-proto\manifest.mjs close --collection initial --reason "<text>" --label frozen --source-label "frozen 3fc65f4"
 //
 // The row-level readings (`runStatus`, `reachedTen`) are those of verdicts.mjs, which loads the frozen source when it is
 // imported: self-test.mjs therefore loads this module on first use, as it does verdicts.mjs.
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
@@ -23,9 +27,10 @@ import { ITEM_LANES, readItemLog } from './lib/items.mjs';
 import { DEFAULT_LIMITS } from './lib/lanes.mjs';
 import { abs, artifactDir, evidenceDir, IG_DIR, mp12b1Report, parseArgs, rel } from './lib/paths.mjs';
 import { checkAccepted, LIVE_DEADLINE_FIELDS } from './lib/proof.mjs';
-import { sha256, writeJson } from './lib/records.mjs';
+import { sha256, sha256File, writeJson } from './lib/records.mjs';
 import { loadCatalogue } from './lib/sets.mjs';
 import { ensureTree, listVariants } from './lib/tree.mjs';
+import { rowKey } from './arm.mjs';
 import { DEFAULT_CASES as PROFILE_CASES, SUBSETS_PER_CASE } from './kernel-probe.mjs';
 import { median, reachedTen, runStatus } from './verdicts.mjs';
 import { WIDTHS } from './width-probe.mjs';
@@ -1607,15 +1612,460 @@ async function checkPrerequisitesCommand(argv) {
   return result.status === 'pass' ? 0 : 1;
 }
 
+// ---- Stage-4 collections (V4-T11e) ----
+// The stage-4 validation measures one declared collection, fixed before it runs (R3-04, RV4-07, D-V4-20). `activation` is the pure record of
+// the initial collection: its epoch hashes, the groups of its required cells (each with the collection it comes from), the conditional
+// boards whose five-seed pilots reached ten on at least three valid requests, the optional items the owner approved, the declared rows and
+// the comparator cells; `activationPlans` builds from it the concrete validation plan `V4-S4` (every selected group required, no comparator
+// row) and the comparator template of exactly that collection; `activate` and `close` are the two write-once commands. All of it is data
+// and pure functions (unlocked): nothing here runs a plan, a rating, a pool or a measurement.
+
+const ACTIVATION_FORMAT = 'ig-v4-activation';
+const CLOSURE_FORMAT = 'ig-v4-closure';
+const ACTIVATE_GENERATED_BY = 'manifest.mjs activate';
+const SHA_256 = /^[0-9a-f]{64}$/;
+const FIRST_ROOT = `${EVIDENCE}/${TASKS.first}`;
+const ACTIVATION_FILE = `${FIRST_ROOT}/activation.json`;
+const SELECTION_FILE = `${FIRST_ROOT}/class-selection.json`;
+const LIVE_BINDING = `${EVIDENCE}/V4-LIVE/live-deadline.accepted.json`;
+const VERDICT_MANIFEST = 'tools/ig-proto/plans/verdicts/V4-S4.verdict-manifest.json';
+const COMPARATOR_PLAN = `tools/ig-proto/plans/${TASKS.firstComparator}.json`;
+/** The uncapped twins a comparator cell may resolve to (T11f picks one from the cell's shipped arm). */
+const COMPARATOR_CANDIDATES = Object.freeze(['fr-frozen-uncapped', 'fr-frozen-none-uncapped']);
+/** The variants `V4-S4` builds: today's arm and the four stage-4 arms. */
+const STAGE4_TREES = Object.freeze(['log-link', ...STAGE4_ARMS]);
+
 /**
- * @param {string[]} argv `compile ...` or `check-prerequisites ...`
+ * @typedef {object} ActivationRecord The record of the initial collection (V4-T11e); `activate` adds `createdAt`.
+ * @property {'ig-v4-activation'} format
+ * @property {1} version
+ * @property {'initial'} collection
+ * @property {Record<'data' | 'freeze' | 'universe', { path: string, sha256: string }>} epoch
+ * @property {{ cell: string, activated: boolean, valid: number, reachingTen: number, pilotRuns: number }[]} conditional
+ * @property {{ approved: string[], notApproved: string[] }} optional
+ * @property {{ key: string, origin: 'initial' | 'conditional' | 'optional' }[]} groups
+ * @property {string[]} declaredRows `<arm>/<rowKey>` of every rep of the groups.
+ * @property {{ cell: string, from: number, to: number, rows: number, shard: string }[]} comparatorCells
+ */
+
+/**
+ * The activation record of the initial collection (R3-04): the groups it measures are every non-comparator group of collection `initial`,
+ * those of collection `conditional` on a board whose pilot `conditionalActivated` and those of collection `optional` whose item is
+ * approved; its comparator cells are the comparator groups of `initial` and of the activated boards. A missing or invalid pilot row is
+ * never a completion. Pure: the epoch hashes and the pilots are read by the caller.
+ * @param {ReturnType<typeof expandMatrix>} expansion The default expansion (`expandMatrix` with today's controls).
+ * @param {{ pilots: Record<string, unknown[] | null | undefined>, approvedOptional: string[],
+ *   epoch: Record<'data' | 'freeze' | 'universe', { path: string, sha256: string }> }} input `pilots` maps each conditional board
+ *   to the run records of its S2-5 pilot (a board without a key, or with `[]`, has none; a key that is no conditional board
+ *   throws); `approvedOptional` lists the optional items the owner approved (`S4-6`); `epoch` the data file, the freeze file and the
+ *   universe, each `{ path, sha256 }`.
+ * @returns {ActivationRecord}
+ */
+export function activation(expansion, { pilots, approvedOptional, epoch }) {
+  if (!Array.isArray(expansion?.groups) || !Array.isArray(expansion.items)) {
+    throw new TypeError('manifest: activation needs the expansion of the matrix');
+  }
+  if (typeof pilots !== 'object' || pilots === null || Array.isArray(pilots)) {
+    throw new TypeError('manifest: pilots must map each conditional board to the runs of its pilot');
+  }
+  const { groups } = expansion;
+  const boards = [...new Set(groups.filter((g) => g.collection === 'conditional').map((g) => g.cell))];
+  for (const cell of Object.keys(pilots)) {
+    if (!boards.includes(cell)) {
+      throw new Error(`manifest: ${cell} is not a conditional board (${boards.join(', ')})`);
+    }
+  }
+  const conditional = boards.map((cell) => {
+    const runs = pilots[cell] ?? [];
+    return { cell, ...conditionalActivated(runs), pilotRuns: runs.length };
+  });
+  const activated = new Set(conditional.filter((c) => c.activated).map((c) => c.cell));
+
+  const optionalItems = expansion.items.filter((i) => i.collection === 'optional').map((i) => i.id);
+  if (!Array.isArray(approvedOptional) || approvedOptional.some((id) => !optionalItems.includes(id))) {
+    throw new Error(`manifest: approvedOptional must be a list of optional items (${optionalItems.join(', ')})`);
+  }
+  if (new Set(approvedOptional).size !== approvedOptional.length) {
+    throw new Error('manifest: an optional item is approved twice');
+  }
+  const approved = optionalItems.filter((id) => approvedOptional.includes(id));
+  const notApproved = optionalItems.filter((id) => !approvedOptional.includes(id));
+
+  /** @param {Group} group @returns {'initial' | 'conditional' | 'optional' | null} Where a group comes from, null when the collection does not measure it. */
+  const originOf = (group) => {
+    if (group.comparator) {
+      return null;
+    }
+    switch (group.collection) {
+      case 'initial':
+        return 'initial';
+      case 'conditional':
+        return activated.has(group.cell) ? 'conditional' : null;
+      case 'optional':
+        return group.items.some((id) => approved.includes(id)) ? 'optional' : null;
+      default:
+        return null;
+    }
+  };
+  const selected = groups.flatMap((group) => {
+    const origin = originOf(group);
+    return origin === null ? [] : [{ group, origin }];
+  });
+  const declaredRows = selected.flatMap(({ group }) => Array.from({ length: group.to - group.from + 1 }, (_, i) => `${group.arm}/${rowKey(group.cell, group.from + i)}`));
+  const repeated = declaredRows.find((row, i) => declaredRows.indexOf(row) !== i);
+  if (repeated !== undefined) {
+    throw new Error(`manifest: the declared row ${repeated} is listed twice`);
+  }
+  for (const name of /** @type {const} */ (['data', 'freeze', 'universe'])) {
+    const ref = epoch?.[name];
+    if (typeof ref?.path !== 'string' || ref.path === '' || !SHA_256.test(ref.sha256)) {
+      throw new TypeError(`manifest: epoch.${name} needs a path and a SHA-256`);
+    }
+  }
+  return {
+    format: ACTIVATION_FORMAT, version: 1, collection: 'initial',
+    epoch: {
+      data: { path: epoch.data.path, sha256: epoch.data.sha256 },
+      freeze: { path: epoch.freeze.path, sha256: epoch.freeze.sha256 },
+      universe: { path: epoch.universe.path, sha256: epoch.universe.sha256 },
+    },
+    conditional,
+    optional: { approved, notApproved },
+    groups: selected.map(({ group, origin }) => ({ key: groupKey(group), origin })),
+    declaredRows,
+    comparatorCells: groups
+      .filter((g) => g.comparator && (g.collection === 'initial' || (g.collection === 'conditional' && activated.has(g.cell))))
+      .map((g) => ({ cell: g.cell, from: g.from, to: g.to, rows: g.rows, shard: g.shard })),
+  };
+}
+
+/**
+ * The concrete validation plan `V4-S4` of an activation and the comparator template of exactly its collection (R3-04, RV4-07). The plan
+ * holds the activated groups only, each required (`optional: false` whatever its origin: a default run and a default approval cover
+ * exactly the declared rows), no comparator row and no `shipped-uncapped` word; its proofs (the four P-1 parity passes) come before its
+ * rows, as in `V4-S2`; its last unlocked steps feed T11f's verdict input, the verdicts and the comparator resolution. The template
+ * `V4-S4C.template.json` lists the record's comparator cells, never a cell of an unactivated option or of the second validation.
+ * @param {ReturnType<typeof expandMatrix>} expansion The expansion the record was made over.
+ * @param {ActivationRecord} record
+ * @param {PriceOf} priceOf `stepPrice`.
+ * @param {{ activationSha256: string, durations?: Record<string, number>, rowSOf?: (group: Group) => number, activationPath?: string }} options
+ *   `activationSha256`: `sha256File` of the written record (the template carries it); `durations`: `durationsFromLogs`; `rowSOf`: the
+ *   projected seconds of a row (default: `projectedRowS` of the cell's MP12b1 median and the identity factor, as `compile`);
+ *   `activationPath`: the record's repository path (default: the real one).
+ * @returns {{ plan: ReturnType<typeof planOf>, template: { task: string, generatedBy: string, template: true, runnable: false,
+ *   activationSha256: string, cells: Record<string, any>[] } }}
+ */
+export function activationPlans(expansion, record, priceOf, { activationSha256, durations = {}, rowSOf, activationPath = ACTIVATION_FILE }) {
+  if (record?.format !== ACTIVATION_FORMAT || !Array.isArray(record.groups) || !Array.isArray(record.comparatorCells)) {
+    throw new TypeError('manifest: not an activation record');
+  }
+  if (typeof activationSha256 !== 'string' || !SHA_256.test(activationSha256)) {
+    throw new TypeError('manifest: the template needs the SHA-256 of the activation record');
+  }
+  const rowSFor = rowSOf ?? defaultRowSOf();
+  const byKey = new Map(expansion.groups.map((g) => [groupKey(g), g]));
+  /** @param {string} key @returns {Group} */
+  const groupOf = (key) => {
+    const found = byKey.get(key);
+    if (found === undefined) {
+      throw new Error(`manifest: the activation names ${key}, which the matrix has no group for`);
+    }
+    return found;
+  };
+  const selected = record.groups.map(({ key, origin }) => {
+    const group = groupOf(key);
+    if (group.comparator || group.collection !== origin) {
+      throw new Error(`manifest: the activation lists ${key} as ${origin}, the matrix has it in ${group.comparator ? 'a comparator group' : group.collection}`);
+    }
+    return group;
+  });
+  if (selected.length === 0) {
+    throw new Error('manifest: an activation without a group has no plan');
+  }
+  const plan = TASKS.first;
+  const parityTask = `${plan}P`;
+  const prerequisites = /** @type {Prerequisite[]} */ ([
+    ...STAGE4_ARMS.map((id) => ({ type: 'variant', id })),
+    { type: 'file', path: record.epoch.freeze.path },
+    { type: 'file', path: activationPath },
+    { type: 'accepted', path: STAGE1_BINDING, current: [] },
+    { type: 'accepted', path: P0_BINDING, current: ['v4'] },
+    { type: 'accepted', path: LIVE_BINDING, current: ['fr-frozen', 'fr-frozen-none'], kind: 'live-deadline', fields: 'LIVE_DEADLINE_FIELDS' },
+  ]);
+  const parity = STAGE4_ARMS.flatMap((arm) => parityPass(parityTask, arm, priceOf, durations));
+  const rows = selected.map((group) => rowStep({ ...group, optional: false }, priceOf, rowSFor(group)));
+  const arms = [...new Set(selected.map((g) => g.arm))];
+  const publishes = arms.map((arm) => publishStep(plan, arm, rows.filter((s) => s.node[s.node.indexOf('--arm') + 1] === arm)));
+  const verdictInput = unlockedStep('verdict-input', [`${IG}manifest.mjs`, 'verdict-input', '--purpose', 'selection', '--activation', activationPath,
+    '--out', VERDICT_MANIFEST.replaceAll('/', '\\')], {
+    dependsOn: [...publishes.map((s) => s.id), ...STAGE4_ARMS.map((arm) => `accept-${arm}`)],
+    consumes: [activationPath, record.epoch.freeze.path, STAGE1_BINDING, P0_BINDING, LIVE_BINDING,
+      ...STAGE4_ARMS.map((arm) => `${EVIDENCE}/${parityTask}/parity-${arm}.accepted.json`), ...publishes.flatMap((s) => s.produces)],
+    produces: [VERDICT_MANIFEST],
+    expect: `the selection verdict manifest ${VERDICT_MANIFEST} is written (T11f)`,
+  });
+  const verdicts = unlockedStep('verdicts', [`${IG}verdicts.mjs`, '--manifest', VERDICT_MANIFEST.replaceAll('/', '\\')], {
+    dependsOn: ['verdict-input'], consumes: [VERDICT_MANIFEST], produces: [SELECTION_FILE],
+    expect: `verdicts: wrote ${SELECTION_FILE} (the class-selection receipt)`,
+  });
+  const resolve = unlockedStep('resolve-comparators', [`${IG}manifest.mjs`, 'resolve-comparators', '--selection', SELECTION_FILE, '--activation', activationPath,
+    '--out', COMPARATOR_PLAN.replaceAll('/', '\\')], {
+    dependsOn: ['verdicts'], consumes: [SELECTION_FILE, activationPath], produces: [COMPARATOR_PLAN],
+    expect: `the plan ${COMPARATOR_PLAN} is written from a final selection (T11f)`,
+  });
+  const steps = [
+    gateStep(plan, prerequisites), firewallSnapshotStep(plan), treesStep(STAGE4_TREES), ...parity, ...rows, ...publishes, verdictInput, verdicts, resolve,
+    firewallCheckStep(plan),
+  ];
+  const ids = steps.map((s) => s.id);
+  const again = ids.find((id, i) => ids.indexOf(id) !== i);
+  if (again !== undefined) {
+    throw new Error(`manifest: ${plan} repeats the step ${again}`);
+  }
+
+  const cells = record.comparatorCells.map(({ cell, from, to, rows: count, shard }) => {
+    const group = groupOf(groupKey({ task: TASKS.firstComparator, arm: COMPARATOR_ARM, shard, from, to }));
+    if (!group.comparator || group.cell !== cell || group.rows !== count) {
+      throw new Error(`manifest: the comparator cell ${cell} (${shard}) is not a comparator group of the matrix`);
+    }
+    const price = { type: /** @type {const} */ ('rows'), rows: group.rows, rowS: rowSFor(group), rowLimitS: group.rowLimitS };
+    pricedOf(priceOf, price, group.id);
+    return { cell, from, to, rows: count, rowLimitS: group.rowLimitS, shard, candidates: [...COMPARATOR_CANDIDATES], price };
+  });
+  return {
+    plan: planOf({ task: plan, generatedBy: ACTIVATE_GENERATED_BY, runnable: true, blockedBy: [], prerequisites, steps }),
+    template: { task: TASKS.firstComparator, generatedBy: ACTIVATE_GENERATED_BY, template: true, runnable: false, activationSha256, cells },
+  };
+}
+
+/**
+ * @param {string} dir The published pilot runs of stage 2, `<dir>/*.runs.json` (`{ meta, shard, rows }`).
+ * @param {MatrixData} data
+ * @returns {Record<string, unknown[]>} For each conditional board, the `run` of every row of that case with a pilot rep (`reps.pilot`);
+ *   none when the folder does not exist. A row published twice throws: three valid requests are three distinct reps.
+ */
+function readPilots(dir, data) {
+  const [from, to] = repsOf(data, 'pilot');
+  /** @type {Record<string, unknown[]>} */
+  const pilots = Object.fromEntries(cellList(data.cells.hell1Conditional, 'cells.hell1Conditional').map((cell) => [cell, []]));
+  if (!existsSync(dir)) {
+    return pilots;
+  }
+  /** @type {Set<string>} */
+  const seen = new Set();
+  for (const name of readdirSync(dir).filter((n) => n.endsWith('.runs.json')).sort()) {
+    const doc = JSON.parse(readFileSync(join(dir, name), 'utf8'));
+    if (!Array.isArray(doc?.rows)) {
+      throw new Error(`manifest: ${name} has no list of rows`);
+    }
+    for (const row of doc.rows) {
+      if (!Object.hasOwn(pilots, row?.caseId) || !Number.isInteger(row.rep) || row.rep < from || row.rep > to) {
+        continue;
+      }
+      const key = rowKey(row.caseId, row.rep);
+      if (seen.has(key)) {
+        throw new Error(`manifest: the pilot row ${key} is published twice`);
+      }
+      seen.add(key);
+      pilots[row.caseId].push(row.run);
+    }
+  }
+  return pilots;
+}
+
+/**
+ * @param {string} dir The evidence folder of the validation, `<dir>/<arm>/*.runs.json`.
+ * @param {(note: string) => void} note Told of a file whose rows are not counted.
+ * @returns {string[]} `<arm>/<rowKey>` of every row of every runs file (the arm is the folder). A file that is not JSON or holds no list
+ *   of rows counts nothing, as the verdict tool reads it (T09e: such a file is no publication); no folder, no row.
+ */
+function publishedRows(dir, note) {
+  /** @type {string[]} */
+  const published = [];
+  if (!existsSync(dir)) {
+    return published;
+  }
+  for (const entry of readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory()).sort((a, b) => (a.name < b.name ? -1 : 1))) {
+    for (const name of readdirSync(join(dir, entry.name)).filter((n) => n.endsWith('.runs.json')).sort()) {
+      const file = join(dir, entry.name, name);
+      /** @type {any} */
+      let doc = null;
+      try {
+        doc = JSON.parse(readFileSync(file, 'utf8'));
+      } catch {
+        doc = null;
+      }
+      if (!Array.isArray(doc?.rows)) {
+        note(`${rel(file)} is not a runs file: its rows are not published`);
+        continue;
+      }
+      for (const row of doc.rows) {
+        if (typeof row?.rowKey === 'string') {
+          published.push(`${entry.name}/${row.rowKey}`);
+        }
+      }
+    }
+  }
+  return published;
+}
+
+/** @typedef {{ activation: string, plan: string, template: string, universe: string, freeze: string, data: string, pilots: string }} ActivatePaths */
+/** @typedef {{ activation: string, closure: string, runs: string }} ClosePaths */
+
+/** The real files of `activate` (absolute): the record, the plan and the template it writes; the universe, the freeze file and the matrix data it hashes; the pilots it reads. */
+const ACTIVATE_PATHS = Object.freeze({
+  activation: evidenceDir('frozen', TASKS.first, 'activation.json'),
+  plan: join(IG_DIR, 'plans', `${TASKS.first}.json`),
+  template: join(IG_DIR, 'plans', `${TASKS.firstComparator}.template.json`),
+  universe: join(IG_DIR, 'plans', `${TASKS.first}.universe.json`),
+  freeze: evidenceDir('frozen', 'V4-S3', 'freeze.json'),
+  data: join(IG_DIR, 'data', 'frozen-round-v1.json'),
+  pilots: evidenceDir('frozen', TASKS.stage2, 'fr-base'),
+});
+/** The real files of `close` (absolute): the activation record, the closure it writes and the folder of the published runs. */
+const CLOSE_PATHS = Object.freeze({
+  activation: evidenceDir('frozen', TASKS.first, 'activation.json'),
+  closure: evidenceDir('frozen', TASKS.first, 'closure.json'),
+  runs: evidenceDir('frozen', TASKS.first),
+});
+
+/** @param {string} file @returns {{ path: string, sha256: string }} The repository path of a file and its SHA-256 (`sha256File`, LF-normalised text). */
+const refOf = (file) => ({ path: rel(file), sha256: sha256File(file) });
+
+/**
+ * `activate --collection initial [--approve-optional <ids>] --label frozen --source-label <SL>` (V4-T11e): the data-only activation of
+ * the initial collection. It reads the pilots of the conditional boards (`V4-S2/fr-base/*.runs.json`), hashes the data, the freeze file
+ * and the universe, writes the activation record once, then `plans/V4-S4.json` and `plans/V4-S4C.template.json`, and prints what the
+ * owner decides on. It runs nothing and measures nothing. Everything is built before any file is written.
+ * @param {string[]} argv
+ * @param {ActivatePaths} [paths] The files (a case passes scratch ones).
+ * @returns {Promise<number>} 0 once the three files are written; 1 for a refused command (nothing written).
+ */
+export async function activateCommand(argv, paths = ACTIVATE_PATHS) {
+  try {
+    const { args } = parseArgs(argv, { values: ['collection', 'approve-optional', 'label', 'source-label'] });
+    if (args.label !== 'frozen') {
+      return refuse('--label frozen only');
+    }
+    if (existsSync(paths.activation)) {
+      return refuse('activation exists: an activation is never rewritten');
+    }
+    if (args.collection === undefined) {
+      return refuse('activate needs --collection initial');
+    }
+    if (args.collection !== 'initial') {
+      return refuse('only the initial collection is activated here; the second is N-V4-04\'s');
+    }
+    for (const [what, file] of [['freeze file', paths.freeze], ['universe', paths.universe]]) {
+      if (!existsSync(file)) {
+        return refuse(`no ${what} ${rel(file)}`);
+      }
+    }
+    for (const file of [paths.plan, paths.template]) {
+      if (existsSync(file)) {
+        return refuse(`${rel(file)} exists: a plan is never rewritten`);
+      }
+    }
+    const data = matrixData(paths.data);
+    const expansion = expandMatrix(data, { controls: controlsFrom(mp12b1Report, data.cells.failingNightmare) });
+    const approvedOptional = (args['approve-optional'] ?? '').split(',').map((id) => id.trim()).filter((id) => id !== '');
+    const record = {
+      ...activation(expansion, {
+        pilots: readPilots(paths.pilots, data), approvedOptional,
+        epoch: { data: refOf(paths.data), freeze: refOf(paths.freeze), universe: refOf(paths.universe) },
+      }),
+      createdAt: new Date().toISOString(),
+    };
+    const options = { durations: durationsFromLogs(), rowSOf: defaultRowSOf(), activationPath: rel(paths.activation) };
+    // The plan is built before anything is written, with a placeholder hash, so that an inadmissible step leaves no record.
+    activationPlans(expansion, record, stepPrice, { ...options, activationSha256: '0'.repeat(64) });
+    writeJson(paths.activation, record);
+    const { plan, template } = activationPlans(expansion, record, stepPrice, { ...options, activationSha256: sha256File(paths.activation) });
+    writeJson(paths.plan, plan);
+    writeJson(paths.template, template);
+    for (const file of [paths.activation, paths.plan, paths.template]) {
+      process.stderr.write(`activate: wrote ${rel(file)}\n`);
+    }
+    for (const board of record.conditional.filter((c) => c.pilotRuns === 0)) {
+      process.stderr.write(`activate: note: no pilot run of ${board.cell} is published under ${rel(paths.pilots)}; the board is not activated\n`);
+    }
+    process.stdout.write(`${[
+      `activation: ${record.groups.length} groups, ${record.declaredRows.length} declared rows, ${record.comparatorCells.length} comparator cells`,
+      ...record.conditional.map((c) => `conditional ${c.cell}: ${c.activated} (${c.reachingTen} of ${c.valid} valid)`),
+      `optional approved ${record.optional.approved.join(', ') || 'none'}`,
+    ].join('; ')}\n`);
+    process.stdout.write(`${plan.task}: allocation ${plan.allocationMinutes} min, optional ${plan.optionalMinutes} min; ask the owner with approval --plan ${plan.task} before any run\n`);
+    return 0;
+  } catch (e) {
+    return refuse((e instanceof Error ? e.message : String(e)).replace(/^manifest: /, ''));
+  }
+}
+
+/**
+ * `close --collection initial --reason <text> --label frozen --source-label <SL>` (V4-T11e): declares the initial collection closed at its
+ * recorded ceiling, on the owner's instruction (check-list 3.4). `published` is `<arm>/<rowKey>` of every row of
+ * `V4-S4/<arm>/*.runs.json`; `missing` the declared rows of the activation record not in it, in their order; the closure is written once.
+ * @param {string[]} argv
+ * @param {ClosePaths} [paths] The files (a case passes scratch ones).
+ * @returns {Promise<number>} 0 once the closure is written; 1 for a refused command (nothing written), `nothing to close` included.
+ */
+export async function closeCommand(argv, paths = CLOSE_PATHS) {
+  try {
+    const { args } = parseArgs(argv, { values: ['collection', 'reason', 'label', 'source-label'] });
+    if (args.label !== 'frozen') {
+      return refuse('--label frozen only');
+    }
+    if (args.collection === undefined) {
+      return refuse('close needs --collection initial');
+    }
+    if (args.collection !== 'initial') {
+      return refuse('only the initial collection is closed here; the second is N-V4-04\'s');
+    }
+    if (typeof args.reason !== 'string' || args.reason.trim() === '') {
+      return refuse('close needs --reason <text>');
+    }
+    if (existsSync(paths.closure)) {
+      return refuse('closure exists: a closure is never rewritten');
+    }
+    if (!existsSync(paths.activation)) {
+      return refuse(`no activation record ${rel(paths.activation)}`);
+    }
+    /** @type {any} */
+    let record = null;
+    try {
+      record = JSON.parse(readFileSync(paths.activation, 'utf8'));
+    } catch {
+      record = null;
+    }
+    if (record?.format !== ACTIVATION_FORMAT || !Array.isArray(record.declaredRows) || record.declaredRows.some((/** @type {unknown} */ r) => typeof r !== 'string')) {
+      return refuse(`${rel(paths.activation)} is not an activation record`);
+    }
+    const published = new Set(publishedRows(paths.runs, (note) => process.stderr.write(`close: ${note}\n`)));
+    const missing = record.declaredRows.filter((/** @type {string} */ row) => !published.has(row));
+    if (missing.length === 0) {
+      return refuse('nothing to close');
+    }
+    writeJson(paths.closure, {
+      format: CLOSURE_FORMAT, version: 1, collection: 'initial', activation: refOf(paths.activation), missing, reason: args.reason, createdAt: new Date().toISOString(),
+    });
+    process.stdout.write(`closure: ${missing.length} missing rows\n`);
+    return 0;
+  } catch (e) {
+    return refuse((e instanceof Error ? e.message : String(e)).replace(/^manifest: /, ''));
+  }
+}
+
+/**
+ * @param {string[]} argv `compile ...`, `check-prerequisites ...`, `activate ...` or `close ...`
  * @returns {Promise<number>} The command's exit code.
  */
 export async function main(argv) {
   const [command, ...rest] = argv;
-  const commands = /** @type {Record<string, (argv: string[]) => Promise<number>>} */ ({ compile: compileCommand, 'check-prerequisites': checkPrerequisitesCommand });
+  const commands = /** @type {Record<string, (argv: string[]) => Promise<number>>} */ ({
+    compile: compileCommand, 'check-prerequisites': checkPrerequisitesCommand, activate: (a) => activateCommand(a), close: (a) => closeCommand(a),
+  });
   if (command === undefined || !Object.hasOwn(commands, command)) {
-    return refuse(`unknown command ${command ?? ''} (compile, check-prerequisites)`);
+    return refuse(`unknown command ${command ?? ''} (compile, check-prerequisites, activate, close)`);
   }
   try {
     return await commands[command](rest);

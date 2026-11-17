@@ -1423,6 +1423,82 @@ async function baselineWorld({ name = 'baseline', rows = PARITY_ROWS, resultOf =
 /** @param {string[]} paths @returns {string[]} The raw SHA-256 of each file. */
 const rawHashes = (paths) => paths.map((path) => sha256File(path, { raw: true }));
 
+/**
+ * @param {() => Promise<number>} run
+ * @returns {Promise<{ code: number, out: string, err: string }>} The exit code a command returns, with what it wrote to stdout and stderr.
+ */
+async function captureOutput(run) {
+  const { stdout, stderr } = process;
+  const writes = [stdout.write, stderr.write];
+  const text = { out: '', err: '' };
+  stdout.write = /** @type {any} */ ((/** @type {unknown} */ chunk) => {
+    text.out += String(chunk);
+    return true;
+  });
+  stderr.write = /** @type {any} */ ((/** @type {unknown} */ chunk) => {
+    text.err += String(chunk);
+    return true;
+  });
+  try {
+    return { code: await run(), ...text };
+  } finally {
+    [stdout.write, stderr.write] = writes;
+  }
+}
+
+/** @param {(dir: string) => Promise<void>} body @returns {Promise<void>} Runs `body` on an empty scratch folder of the collection cases (V4-T11e) and removes it afterwards. */
+async function onCollections(body) {
+  const dir = fresh(artifactDir('selftest', 'collections'));
+  try {
+    await body(dir);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+/**
+ * The activation of the collection cases (V4-T11e), on the default expansion (today's controls; the synthetic seconds of `compileKit`):
+ * `d` a parsed copy of the matrix data, `record(pilots, approvedOptional)` the pure activation record under made-up epoch hashes and
+ * `build(record)` the plan and template it yields, with a row of 100 s for every group.
+ * @returns {Promise<{ m: any, expansion: any, d: any, controls: string[], record: (pilots?: Record<string, any[]>, approvedOptional?: string[]) => any,
+ *   build: (record: any) => { plan: any, template: any } }>}
+ */
+async function collectionKit() {
+  if (memo.collectionKit === undefined) {
+    const { m, expansion, durations } = await compileKit();
+    const { data } = await matrixKit();
+    const d = data();
+    const epoch = Object.fromEntries(['data', 'freeze', 'universe'].map((name, i) => [name, { path: `scratch/${name}.json`, sha256: String(i + 1).repeat(64) }]));
+    memo.collectionKit = {
+      m, expansion, d, controls: m.controlsFrom(mp12b1Report, d.cells.failingNightmare),
+      record: (/** @type {Record<string, any[]>} */ pilots = {}, /** @type {string[]} */ approvedOptional = []) => m.activation(expansion, { pilots, approvedOptional, epoch }),
+      build: (/** @type {any} */ record) => m.activationPlans(expansion, record, m.stepPrice, { activationSha256: 'c'.repeat(64), durations, rowSOf: () => 100 }),
+    };
+  }
+  return memo.collectionKit;
+}
+
+/** @param {string} cell @param {number} tens Valid requests that reach ten (reps 0 on). @param {number} shorts Valid requests that stop short (the reps after). @returns {Promise<any[]>} The pilot runs. */
+async function pilotRuns(cell, tens, shorts) {
+  const runs = [];
+  for (let rep = 0; rep < tens + shorts; rep += 1) {
+    runs.push(await matrixRun(cell, rep, rep < tens ? 10 : 6));
+  }
+  return runs;
+}
+
+/** @param {any} plan @returns {any[]} The request-row steps of a plan. */
+const rowStepsOf = (plan) => plan.steps.filter((/** @type {any} */ s) => s.id.startsWith('rows-'));
+
+/** @param {any[]} steps @returns {string[]} `<arm>/<cell>~<rep>` of every row the row steps run (their `--arm` and `--cases`). */
+const rowsOfSteps = (steps) => steps.flatMap((s) => armCases(String(argAfter(s, '--cases'))).map(({ caseId, rep }) => `${argAfter(s, '--arm')}/${caseId}~${rep}`));
+
+/** @param {any[]} steps @returns {number} The seconds the runner's forecast and `planOf` add for the required locked steps: `projectS + 45 x invocations`. */
+const requiredSeconds = (steps) => steps.filter((s) => s.locked && !s.optional).reduce((sum, s) => sum + s.projectS + 45 * s.invocations, 0);
+
+/** @param {unknown} text @returns {boolean} Whether the text is an ISO 8601 time as `toISOString` writes it. */
+const isoTime = (text) => typeof text === 'string' && !Number.isNaN(Date.parse(text)) && new Date(text).toISOString() === text;
+
 /** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
 const itemCases = [
   {
@@ -6270,6 +6346,440 @@ const itemCases = [
         writeJson(file, { verdict: 'incomplete' });
         const replaced = await runCheck(argv);
         assert(replaced.code === 0 && JSON.parse(readFileSync(file, 'utf8')).verdict === 'pass', `an incomplete receipt is replaced: exit ${replaced.code}, ${JSON.stringify(replaced.err)}`);
+      });
+    },
+  },
+  {
+    name: 'activate: the default initial collection',
+    async run() {
+      const { m, expansion, d, controls, record, build } = await collectionKit();
+      const cell = '24x24-hell-1';
+      // Two valid requests reach ten, a third is no valid measurement and two more valid ones stop short: three valid requests are not there.
+      const pilots = { [cell]: [await matrixRun(cell, 0), await matrixRun(cell, 1), await matrixRun(cell, 2, 10, { measurementValid: false }), await matrixRun(cell, 3, 6), await matrixRun(cell, 4, 6)] };
+      const rec = record(pilots, []);
+      same([rec.format, rec.version, rec.collection], ['ig-v4-activation', 1, 'initial'], 'the record\'s identity');
+      same(rec.conditional, [
+        { cell: '24x24-hell-1', activated: false, valid: 4, reachingTen: 2, pilotRuns: 5 },
+        { cell: '14x14-hell-1', activated: false, valid: 0, reachingTen: 0, pilotRuns: 0 },
+      ], 'two valid requests reach ten: no conditional board is activated, the board without a pilot has no runs');
+      same(rec.optional, { approved: [], notApproved: ['S4-6'] }, 'without approval the optional item is not approved');
+      const initial = expansion.groups.filter((/** @type {any} */ g) => g.collection === 'initial' && !g.comparator);
+      same(rec.groups, initial.map((/** @type {any} */ g) => ({ key: m.groupKey(g), origin: 'initial' })), 'the groups are every non-comparator group of collection initial, in the matrix\'s order');
+      assert(rec.groups.every(({ key }) => !/\|(factor|second)-|24x24-hell-1|14x14-hell-1/.test(key)), 'no group of a conditional board or of S4-6');
+      // Counted from the data's cell lists, not from the groups: both twins on the headline and Hell 1 cells, the twins and today's arm on the controls, two arms on the Master cells.
+      const expected = (d.cells.failingNightmare.length + d.cells.hell1Validated.length) * 2 * 20 + controls.length * 3 * 20 + d.cells.master.length * 2 * 5;
+      same([rec.declaredRows.length, new Set(rec.declaredRows).size], [expected, expected], `${expected} distinct declared rows`);
+      const repOf = (/** @type {string} */ row) => Number(row.slice(row.lastIndexOf('~') + 1));
+      assert(rec.declaredRows.every((row) => repOf(row) >= 20 && repOf(row) <= 39), 'every declared rep is from the validation cohort: none from 40 to 59, no pilot rep');
+      assert(rec.declaredRows.every((row) => !row.startsWith('shipped-uncapped/')) && rec.declaredRows.includes('fr-frozen/14x14-nightmare~20') && rec.declaredRows.includes('log-link/3x29-master~24'), 'rows are <arm>/<cell>~<rep>');
+      same(rec.comparatorCells, [...d.cells.failingNightmare, ...d.cells.hell1Validated, ...controls].map((c) => ({ cell: c, from: 20, to: 39, rows: 20, shard: `val-${c}` })),
+        'the comparator cells are exactly the cells of S4-1, S4-2 and S4-3 with reps 20 to 39');
+      const { plan, template } = build(rec);
+      assert(plan.steps.every((/** @type {any} */ s) => s.node.every((/** @type {string} */ w) => !w.includes('shipped-uncapped'))), 'no node of the plan names shipped-uncapped');
+      const shards = rowStepsOf(plan).map((/** @type {any} */ s) => argAfter(s, '--shard'));
+      same(shards.length, initial.length, 'one row step per group');
+      assert(shards.every((s) => !s.startsWith('factor-') && !s.startsWith('second-')), 'no shard factor- or second-');
+      assert(!plan.steps.some((/** @type {any} */ s) => s.node.some((/** @type {string} */ w) => /^(24x24|14x14)-hell-1:/.test(w) || /^V4-S4XC?$/.test(w))), 'no conditional board and no second-validation task in the plan');
+      same(template.cells.map((/** @type {any} */ c) => ({ cell: c.cell, from: c.from, to: c.to, rows: c.rows, shard: c.shard })), rec.comparatorCells, 'the template lists exactly the comparator cells');
+      assert(template.cells.every((/** @type {any} */ c) => c.rowLimitS === 260 && isDeepStrictEqual(c.candidates, ['fr-frozen-uncapped', 'fr-frozen-none-uncapped']) && c.price.type === 'rows' && c.price.rows === 20 && c.price.rowLimitS === 260 && c.price.rowS > 0),
+        'each template cell: the row limit 260, the two uncapped candidates and the price of its rows');
+      same([template.task, template.generatedBy, template.template, template.runnable, template.activationSha256], ['V4-S4C', 'manifest.mjs activate', true, false, 'c'.repeat(64)], 'the template\'s header');
+      same([plan.task, plan.generatedBy, plan.runnable, plan.blockedBy, plan.optionalMinutes], ['V4-S4', 'manifest.mjs activate', true, [], 0], 'the plan\'s header');
+    },
+  },
+  {
+    name: 'activate: an activated conditional board',
+    async run() {
+      const { m, expansion, record, build } = await collectionKit();
+      const cell = '24x24-hell-1';
+      const base = record();
+      const rec = record({ [cell]: await pilotRuns(cell, 3, 2), '14x14-hell-1': [] });
+      same(rec.conditional, [
+        { cell: '24x24-hell-1', activated: true, valid: 5, reachingTen: 3, pilotRuns: 5 },
+        { cell: '14x14-hell-1', activated: false, valid: 0, reachingTen: 0, pilotRuns: 0 },
+      ], 'three valid requests reach ten and two are valid and short: 24x24 is activated, 14x14 is not; both are listed with their counts');
+      const twins = expansion.groups.filter((/** @type {any} */ g) => g.collection === 'conditional' && g.cell === cell && !g.comparator);
+      same(twins.map((/** @type {any} */ g) => [g.task, g.arm, g.shard]), [['V4-S4', 'fr-frozen', `val-${cell}`], ['V4-S4', 'fr-frozen-none', `val-${cell}`]], 'the matrix has its twins');
+      same(rec.groups.filter((g) => g.origin === 'conditional'), twins.map((/** @type {any} */ g) => ({ key: m.groupKey(g), origin: 'conditional' })), 'the record lists its twins with their origin');
+      same(rec.declaredRows.slice(base.declaredRows.length), ['fr-frozen', 'fr-frozen-none'].flatMap((arm) => Array.from({ length: 20 }, (_, i) => `${arm}/${cell}~${20 + i}`)), 'its 40 rows follow those of the initial collection');
+      same(rec.comparatorCells.slice(base.comparatorCells.length), [{ cell, from: 20, to: 39, rows: 20, shard: `val-${cell}` }], 'its comparator cell follows the initial ones');
+      const { plan, template } = build(rec);
+      const mine = rowStepsOf(plan).filter((/** @type {any} */ s) => String(argAfter(s, '--cases')).startsWith(`${cell}:`));
+      same(mine.map((/** @type {any} */ s) => [argAfter(s, '--task'), argAfter(s, '--arm'), argAfter(s, '--shard'), argAfter(s, '--cases'), argAfter(s, '--row-limit-s'), s.state]), [
+        ['V4-S4', 'fr-frozen', `val-${cell}`, `${cell}:20-39`, '130', `V4-S4\\fr-frozen\\val-${cell}\\state.json`],
+        ['V4-S4', 'fr-frozen-none', `val-${cell}`, `${cell}:20-39`, '130', `V4-S4\\fr-frozen-none\\val-${cell}\\state.json`],
+      ], 'its twins are in the plan under V4-S4, with the live-deadline row limit');
+      same(template.cells.at(-1).cell, cell, 'its comparator cell is in the template');
+      same(template.cells.length, base.comparatorCells.length + 1, 'and only that one is added');
+      // The other board stays out of every part of the activation.
+      const other = '14x14-hell-1';
+      assert(!rec.groups.some(({ key }) => key.includes(other)) && !rec.declaredRows.some((row) => row.includes(other)) && !rec.comparatorCells.some((c) => c.cell === other)
+        && !template.cells.some((/** @type {any} */ c) => c.cell === other) && !plan.steps.some((/** @type {any} */ s) => s.node.some((/** @type {string} */ w) => w.startsWith(`${other}:`))), '14x14-hell-1 is absent');
+      assert(thrownBy(() => record({ '12x12-nightmare': [] })).includes('12x12-nightmare is not a conditional board'), 'a pilot of a board that is not conditional is refused');
+      assert(thrownBy(() => record({ [cell]: /** @type {any} */ ('x') })).includes('must be a list of run records'), 'pilot runs that are not a list are refused');
+    },
+  },
+  {
+    name: 'activate: the selected scope is required',
+    async run() {
+      const { m, expansion, record, build } = await collectionKit();
+      const cell = '24x24-hell-1';
+      const rec = record({ [cell]: await pilotRuns(cell, 3, 2) }, ['S4-6']);
+      const asked = expansion.groups.filter((/** @type {any} */ g) => !g.comparator && ((g.collection === 'conditional' && g.cell === cell) || g.collection === 'optional'));
+      assert(asked.length === 7 && asked.every((/** @type {any} */ g) => g.optional === true), 'the matrix marks the two twins of 24x24 and the five factor groups optional: a default run would skip them');
+      const { plan } = build(rec);
+      const rows = rowStepsOf(plan);
+      assert(rows.length === rec.groups.length && rows.every((/** @type {any} */ s) => s.optional === false), 'every row step of the plan is required');
+      same(plan.optionalMinutes, 0, 'no optional minutes');
+      // run-task.ps1 selects `-not $_.optional`: exactly these steps run by default and are priced by the allocation.
+      const selected = plan.steps.filter((/** @type {any} */ s) => !s.optional);
+      same(selected.length, plan.steps.length, 'a default run selects every step of the plan');
+      const keys = rowsOfSteps(rows);
+      same([keys.length, new Set(keys).size], [rec.declaredRows.length, rec.declaredRows.length], 'one row per declared row');
+      same([...keys].sort(), [...rec.declaredRows].sort(), 'the rows the default rule selects are exactly declaredRows');
+      const extra = rows.filter((/** @type {any} */ s) => /^(fr-frozen|fr-frozen-none)-val-24x24-hell-1$/.test(s.id.slice(5)) || argAfter(s, '--shard').startsWith('factor-'));
+      same(extra.map((/** @type {any} */ s) => s.id).sort(), [
+        'rows-fr-frozen-none-val-24x24-hell-1', 'rows-fr-frozen-val-24x24-hell-1',
+        ...['14x14', '15x15b10', '12x12', '16x16', '15x20'].map((c) => `rows-log-link-factor-${c}-nightmare`),
+      ].sort(), 'the steps of the 24x24 twins and of the five factor groups');
+      assert(extra.every((/** @type {any} */ s) => s.locked && s.projectS > 0 && s.invocations > 0), 'they are priced locked steps');
+      const without = build(record());
+      assert(Math.abs(requiredSeconds(plan.steps) - requiredSeconds(without.plan.steps) - requiredSeconds(extra)) < 1e-6, 'the allocation includes exactly those steps');
+      same(plan.allocationMinutes, Math.ceil(requiredSeconds(plan.steps) / 60), 'allocationMinutes is the ceiling of the required locked steps');
+      assert(plan.allocationMinutes > without.plan.allocationMinutes, 'and it is larger than the default collection\'s');
+      same(rec.groups.filter((g) => g.origin === 'conditional').length, 2, 'the record keeps the origin conditional');
+      same(rec.groups.filter((g) => g.origin === 'optional').map((g) => g.key), expansion.groups.filter((/** @type {any} */ g) => g.collection === 'optional').map((/** @type {any} */ g) => m.groupKey(g)), 'and the origin optional');
+      same(rec.groups.filter((g) => g.origin === 'initial').length, 76, 'and the origin initial');
+    },
+  },
+  {
+    name: 'activate: optional items only with approval',
+    async run() {
+      const { m, expansion, d, record, build } = await collectionKit();
+      const factor = expansion.groups.filter((/** @type {any} */ g) => g.collection === 'optional');
+      same(factor.map((/** @type {any} */ g) => [g.arm, g.shard, g.from, g.to]), d.cells.failingNightmare.map((/** @type {string} */ c) => ['log-link', `factor-${c}`, 20, 24]), 'S4-6: today\'s arm on the five failing cells, reps 20 to 24');
+      const withIt = record({}, ['S4-6']);
+      same(withIt.optional, { approved: ['S4-6'], notApproved: [] }, 'approved: S4-6');
+      same(withIt.groups.filter((g) => g.origin === 'optional').map((g) => g.key), factor.map((/** @type {any} */ g) => m.groupKey(g)), 'its groups are in the record');
+      const planWith = build(withIt).plan;
+      same(rowStepsOf(planWith).filter((/** @type {any} */ s) => String(argAfter(s, '--shard')).startsWith('factor-')).map((/** @type {any} */ s) => [argAfter(s, '--arm'), argAfter(s, '--shard'), argAfter(s, '--cases'), argAfter(s, '--variant')]),
+        d.cells.failingNightmare.map((/** @type {string} */ c) => ['log-link', `factor-${c}`, `${c}:20-24`, 'log-link']), 'the plan runs the log-link groups of shard factor-<cell>, reps 20 to 24');
+      same(withIt.declaredRows.filter((row) => row.startsWith('log-link/') && d.cells.failingNightmare.some((/** @type {string} */ c) => row.startsWith(`log-link/${c}~`))).length, 25, 'and the record declares their 25 rows');
+      const without = record({}, []);
+      same(without.optional, { approved: [], notApproved: ['S4-6'] }, 'not approved without approval');
+      assert(!without.groups.some((g) => g.origin === 'optional' || g.key.includes('|factor-')) && !without.declaredRows.some((row) => d.cells.failingNightmare.some((/** @type {string} */ c) => row.startsWith(`log-link/${c}~`))), 'no factor group and no factor row');
+      assert(!rowStepsOf(build(without).plan).some((/** @type {any} */ s) => String(argAfter(s, '--shard')).startsWith('factor-')), 'and no factor step in the plan');
+      // Only S4-6 can be approved: the conditional boards follow their pilots, the second validation is not activated here.
+      for (const id of ['S4-5', 'S4-7', 'S4-1', 'nope']) {
+        assert(thrownBy(() => record({}, [id])).includes('must be a list of optional items (S4-6)'), `${id} cannot be approved`);
+      }
+      assert(thrownBy(() => record({}, ['S4-6', 'S4-6'])).includes('approved twice'), 'an item cannot be approved twice');
+    },
+  },
+  {
+    name: 'activate: never rewritten',
+    async run() {
+      const { m, d, controls } = await collectionKit();
+      const cell = '24x24-hell-1';
+      await onCollections(async (dir) => {
+        const other = '14x14-hell-1';
+        const rowOf = (/** @type {string} */ c, /** @type {number} */ rep, /** @type {any} */ run) => ({ rowKey: `${c}~${rep}`, caseId: c, rep, seed: run.seed, localRep: 0, run });
+        const rowsOf = async (/** @type {string} */ c, /** @type {number} */ tens, /** @type {number} */ shorts) => (await pilotRuns(c, tens, shorts)).map((run, rep) => rowOf(c, rep, run));
+        // Valid requests that reach ten, at the reps after the pilot's 0 to 4: they are no pilot rows.
+        const after = async (/** @type {string} */ c) => Promise.all([5, 6, 7].map(async (rep) => rowOf(c, rep, await matrixRun(c, rep, 10))));
+        /** Scratch paths of one world: a freeze file, the pilots of stage 2 (one `pilot-<cell>.runs.json` per entry of `files`), the real universe and data. */
+        const world = async (/** @type {string} */ name, /** @type {Record<string, any[]>} */ files = {}) => {
+          const root = join(dir, name);
+          const freeze = join(root, 'freeze.json');
+          writeJson(freeze, { classes: [] });
+          const pilots = join(root, 'pilots');
+          for (const [c, rows] of Object.entries(files)) {
+            writeJson(join(pilots, `pilot-${c}.runs.json`), { meta: {}, shard: `pilot-${c}`, rows });
+          }
+          return {
+            activation: join(root, 'activation.json'), plan: join(root, 'V4-S4.json'), template: join(root, 'V4-S4C.template.json'),
+            universe: join(IG_DIR, 'plans', 'V4-S4.universe.json'), freeze, data: join(IG_DIR, 'data', 'frozen-round-v1.json'), pilots,
+          };
+        };
+        const go = (/** @type {any} */ paths, /** @type {string[]} */ ...extra) => captureOutput(() => m.activateCommand(['--collection', 'initial', ...extra, '--label', 'frozen', '--source-label', 'x'], paths));
+        const written = (/** @type {any} */ paths) => [paths.activation, paths.plan, paths.template].filter((file) => existsSync(file));
+        const parse = (/** @type {string} */ file) => JSON.parse(readFileSync(file, 'utf8'));
+
+        // The first activation: 24x24's pilot activates it (the rows after rep 4 are not read), 14x14's has two valid requests reaching ten, a
+        // pilot of a board that is not conditional is not read; S4-6 is not approved.
+        const paths = await world('first', {
+          [cell]: [...await rowsOf(cell, 3, 2), ...await after(cell)], [other]: await rowsOf(other, 2, 1), '26x26-hell-1': await rowsOf('26x26-hell-1', 5, 0),
+        });
+        const first = await go(paths);
+        const groups = (d.cells.failingNightmare.length + d.cells.hell1Validated.length) * 2 + controls.length * 3 + d.cells.master.length * 2 + 2;
+        const rows = (d.cells.failingNightmare.length + d.cells.hell1Validated.length) * 2 * 20 + controls.length * 3 * 20 + d.cells.master.length * 2 * 5 + 2 * 20;
+        const comparators = d.cells.failingNightmare.length + d.cells.hell1Validated.length + controls.length + 1;
+        const record = parse(paths.activation);
+        const plan = parse(paths.plan);
+        const template = parse(paths.template);
+        same([first.code, first.err.split('\n').filter((l) => !l.startsWith('activate: wrote ')).join('')], [0, ''], `the first activation: exit ${first.code}, ${first.err}`);
+        same(first.out.split('\n'), [
+          `activation: ${groups} groups, ${rows} declared rows, ${comparators} comparator cells; conditional ${cell}: true (3 of 5 valid); conditional ${other}: false (2 of 3 valid); optional approved none`,
+          `V4-S4: allocation ${plan.allocationMinutes} min, optional 0 min; ask the owner with approval --plan V4-S4 before any run`, '',
+        ], 'the printout: the counts, the conditional boards, the optional items, the allocation and the approval line');
+        same(first.err.split('\n').filter((l) => l !== ''), [paths.activation, paths.plan, paths.template].map((f) => `activate: wrote ${rel(f)}`), 'the files written are noted on stderr');
+        // The record is the pure activation over the same expansion, with the epoch hashes of the files and a time.
+        const { expansion } = await collectionKit();
+        const { createdAt, ...rest } = record;
+        assert(isoTime(createdAt), `createdAt ${createdAt}`);
+        same(rest, m.activation(expansion, { pilots: { [cell]: (await rowsOf(cell, 3, 2)).map((r) => r.run), [other]: (await rowsOf(other, 2, 1)).map((r) => r.run) }, approvedOptional: [], epoch: rest.epoch }), 'the record is `activation` of the pilots it read');
+        same(rest.epoch, {
+          data: { path: 'tools/ig-proto/data/frozen-round-v1.json', sha256: sha256File(paths.data) },
+          freeze: { path: rel(paths.freeze), sha256: sha256File(paths.freeze) },
+          universe: { path: 'tools/ig-proto/plans/V4-S4.universe.json', sha256: sha256File(paths.universe) },
+        }, 'the epoch: the SHA-256 of the data, the freeze file and the universe');
+        same([plan.task, plan.generatedBy, plan.runnable, plan.steps.length], ['V4-S4', 'manifest.mjs activate', true, 3 + 12 + groups + 3 + 4], 'the plan');
+        same([template.task, template.generatedBy, template.activationSha256, template.cells.length], ['V4-S4C', 'manifest.mjs activate', sha256File(paths.activation), comparators], 'the template carries the SHA-256 of the record');
+        same(plan.prerequisites.find((/** @type {any} */ p) => p.type === 'file' && p.path.endsWith('activation.json')).path, rel(paths.activation), 'the plan requires the record it was written for');
+        // A second activation on the same paths is refused and rewrites nothing.
+        const before = rawHashes([paths.activation, paths.plan, paths.template]);
+        const second = await go(paths);
+        same([second.code, second.out, second.err], [1, '', 'manifest: activation exists: an activation is never rewritten\n'], `a second activation: exit ${second.code}, ${JSON.stringify(second.err)}`);
+        same(rawHashes([paths.activation, paths.plan, paths.template]), before, 'the record, the plan and the template are byte-equal to after the first');
+        const withOther = await go(paths, '--approve-optional', 'S4-6');
+        same([withOther.code, rawHashes([paths.activation, paths.plan, paths.template])], [1, before], 'even with other options');
+
+        // The refusals write nothing.
+        const second2 = await world('second');
+        const wrongCollection = await captureOutput(() => m.activateCommand(['--collection', 'second', '--label', 'frozen', '--source-label', 'x'], second2));
+        same([wrongCollection.code, wrongCollection.out, wrongCollection.err, written(second2)], [1, '', 'manifest: only the initial collection is activated here; the second is N-V4-04\'s\n', []], 'the second collection is not activated here');
+        const noCollection = await captureOutput(() => m.activateCommand(['--label', 'frozen', '--source-label', 'x'], second2));
+        same([noCollection.code, written(second2)], [1, []], 'a collection is required');
+        const wrongLabel = await captureOutput(() => m.activateCommand(['--collection', 'initial', '--label', 'selftest', '--source-label', 'x'], second2));
+        same([wrongLabel.code, wrongLabel.err, written(second2)], [1, 'manifest: --label frozen only\n', []], 'the frozen label is required');
+        const noFreeze = await go({ ...second2, freeze: join(dir, 'second', 'none.json') });
+        assert(noFreeze.code === 1 && noFreeze.err.startsWith('manifest: no freeze file ') && written(second2).length === 0, `a missing freeze file: ${noFreeze.code} ${noFreeze.err}`);
+        const noUniverse = await go({ ...second2, universe: join(dir, 'second', 'none.json') });
+        assert(noUniverse.code === 1 && noUniverse.err.startsWith('manifest: no universe ') && written(second2).length === 0, `a missing universe: ${noUniverse.code} ${noUniverse.err}`);
+        writeJson(second2.plan, { task: 'V4-S4', generatedBy: 'by hand' });
+        const planExists = await go(second2);
+        assert(planExists.code === 1 && planExists.err.includes('exists: a plan is never rewritten') && !existsSync(second2.activation) && !existsSync(second2.template), `an existing plan: ${planExists.code} ${planExists.err}`);
+        rmSync(second2.plan);
+        const unknownItem = await go(second2, '--approve-optional', 'S4-5');
+        assert(unknownItem.code === 1 && unknownItem.err.includes('must be a list of optional items (S4-6)') && written(second2).length === 0, `an item that cannot be approved: ${unknownItem.code} ${unknownItem.err}`);
+        const duplicate = await world('duplicate', { [cell]: [...await rowsOf(cell, 3, 2), ...await rowsOf(cell, 3, 2)] });
+        const twice = await go(duplicate);
+        assert(twice.code === 1 && twice.err.includes(`the pilot row ${cell}~0 is published twice`) && written(duplicate).length === 0, `a pilot row published twice: ${twice.code} ${twice.err}`);
+
+        // With the owner's approval of S4-6, no pilot: nothing is activated, and the plan runs the five factor groups.
+        const approved = await world('approved');
+        const done = await go(approved, '--approve-optional', 'S4-6');
+        const approvedPlan = parse(approved.plan);
+        same([done.code, done.out.split('\n')[0].endsWith('; conditional 24x24-hell-1: false (0 of 0 valid); conditional 14x14-hell-1: false (0 of 0 valid); optional approved S4-6')], [0, true], `an activation with S4-6: exit ${done.code}, ${done.err}`);
+        same(done.err.split('\n').filter((l) => l.startsWith('activate: note: ')), [cell, other].map((c) => `activate: note: no pilot run of ${c} is published under ${rel(approved.pilots)}; the board is not activated`),
+          'a board without a published pilot run is noted on stderr, never silently');
+        same(rowStepsOf(approvedPlan).filter((/** @type {any} */ s) => s.id.includes('-factor-')).length, 5, 'the plan has the five factor row steps, required');
+        assert(rowStepsOf(approvedPlan).every((/** @type {any} */ s) => s.optional === false) && approvedPlan.optionalMinutes === 0, 'all required');
+      });
+    },
+  },
+  {
+    name: 'activate: a complete producer chain',
+    async run() {
+      const { m, record, build } = await collectionKit();
+      const rec = record();
+      const { plan } = build(rec);
+      const declared = new Set(plan.prerequisites.filter((/** @type {any} */ p) => p.type === 'file' || p.type === 'accepted').map((/** @type {any} */ p) => p.path));
+      /** @type {Set<string>} */
+      const produced = new Set();
+      /** @type {string[]} */
+      const ids = [];
+      let consumed = 0;
+      for (const step of plan.steps) {
+        for (const path of step.consumes) {
+          assert(produced.has(path) || declared.has(path), `${step.id} consumes ${path}, which no earlier step produces and no prerequisite declares`);
+          consumed += 1;
+        }
+        for (const dep of step.dependsOn) {
+          assert(ids.includes(dep), `${step.id} depends on ${dep}, which is not an earlier step`);
+        }
+        step.produces.forEach((/** @type {string} */ p) => produced.add(p));
+        ids.push(step.id);
+      }
+      assert(consumed > 100, `${consumed} consumed paths checked`);
+      same(new Set(ids).size, ids.length, 'every step id is distinct');
+      // Only real variants: today's arm and the four stage-4 arms, in the argv of every step.
+      const allowed = ['log-link', 'fr-frozen', 'fr-frozen-none', 'fr-frozen-uncapped', 'fr-frozen-none-uncapped'];
+      const named = plan.steps.flatMap((/** @type {any} */ s) => [argAfter(s, '--variant'), argAfter(s, '--arm'), ...(s.node[0].endsWith('tree.mjs') ? s.node.slice(2) : [])].filter((v) => v !== undefined));
+      assert(named.length > 100 && named.every((/** @type {string} */ v) => allowed.includes(v)), `variants named: ${[...new Set(named)].join(', ')}`);
+      same(plan.steps.find((/** @type {any} */ s) => s.id === 'trees').node, ['tools\\ig-proto\\lib\\tree.mjs', 'build', ...allowed], 'trees builds exactly those');
+      same(new Set(named.filter((/** @type {string} */ v) => v.endsWith('-uncapped'))).size, 2, 'the uncapped arms are named only by their parity passes');
+      const firstRows = ids.findIndex((id) => id.startsWith('rows-'));
+      const proofs = ids.flatMap((id, i) => (/^(parity|receipt|accept)-/.test(id) ? [i] : []));
+      same([proofs.length, proofs.every((i) => i < firstRows)], [12, true], 'the 12 parity, receipt and accept steps precede the first rows step');
+      same(ids.slice(0, 3), ['prerequisites', 'firewall-snapshot', 'trees'], 'the gate, the snapshot and the trees come first');
+      same(ids.slice(3, 15), allowed.slice(1).flatMap((a) => [`parity-${a}`, `receipt-${a}`, `accept-${a}`]), 'the proofs of the four stage-4 arms follow, in order');
+      same(ids.slice(-7), ['publish-fr-frozen', 'publish-fr-frozen-none', 'publish-log-link', 'verdict-input', 'verdicts', 'resolve-comparators', 'firewall-check'], 'the publishes, the verdict steps and the firewall check come last');
+      for (const id of allowed.slice(1)) {
+        const receipt = plan.steps.find((/** @type {any} */ s) => s.id === `receipt-${id}`);
+        const accept = plan.steps.find((/** @type {any} */ s) => s.id === `accept-${id}`);
+        same([receipt.node.includes('--require-pass'), argAfter(receipt, '--task'), argAfter(receipt, '--arm'), argAfter(accept, '--by'), argAfter(accept, '--binding')],
+          [true, 'V4-S4P', id, 'V4-S4', `docs/improve-generating/evidence/frozen/V4-S4P/parity-${id}.accepted.json`], `${id}: a required receipt, then its acceptance under V4-S4P`);
+      }
+      const states = plan.steps.filter((/** @type {any} */ s) => s.locked).map((/** @type {any} */ s) => s.state);
+      same(new Set(states).size, states.length, 'no two locked steps share a state path');
+      assert(plan.steps.filter((/** @type {any} */ s) => s.locked).every((/** @type {any} */ s) => s.repeatUntilDone === true && typeof s.minHorizonS === 'number'
+        && s.minHorizonS === (s.price.type === 'rows' ? s.price.rowLimitS + 12 : 270) && /^V4-S4P?\\/.test(s.state) && s.produces.includes(`tests/artifacts/ig-proto/frozen/${s.state.replaceAll('\\', '/')}`)),
+      'every locked step repeats until done, has its state, its minimum horizon and produces its state file');
+      for (const s of plan.steps.filter((/** @type {any} */ x) => x.locked)) {
+        same([s.projectS, s.invocations], [m.stepPrice(s.price).projectS, m.stepPrice(s.price).invocations], `${s.id}: the price of its own input`);
+      }
+      for (const step of plan.steps) {
+        assert(step.node.every((/** @type {string} */ w) => typeof w === 'string' && w !== '' && !/[<>]/.test(w) && !w.includes('shipped-uncapped')), `${step.id}: an unresolved word`);
+        assert(existsSync(abs(step.node[0].replaceAll('\\', '/'))), `${step.id}: the script ${step.node[0]} does not exist`);
+      }
+      // The three steps after the rows (T11f runs the first and the last of them): complete argv, as T11f and T09e read them.
+      const step = (/** @type {string} */ id) => plan.steps.find((/** @type {any} */ s) => s.id === id);
+      const manifestFile = 'tools\\ig-proto\\plans\\verdicts\\V4-S4.verdict-manifest.json';
+      const activationFile = 'docs/improve-generating/evidence/frozen/V4-S4/activation.json';
+      const selection = 'docs/improve-generating/evidence/frozen/V4-S4/class-selection.json';
+      same(step('verdict-input').node, ['tools\\ig-proto\\manifest.mjs', 'verdict-input', '--purpose', 'selection', '--activation', activationFile, '--out', manifestFile], 'verdict-input');
+      same(step('verdicts').node, ['tools\\ig-proto\\verdicts.mjs', '--manifest', manifestFile], 'verdicts');
+      same([step('verdicts').produces, step('verdicts').dependsOn], [[selection], ['verdict-input']], 'verdicts produces the class-selection receipt');
+      same(step('resolve-comparators').node, ['tools\\ig-proto\\manifest.mjs', 'resolve-comparators', '--selection', selection, '--activation', activationFile, '--out', 'tools\\ig-proto\\plans\\V4-S4C.json'], 'resolve-comparators');
+      same(step('resolve-comparators').dependsOn, ['verdicts'], 'it follows the verdicts');
+      same([...step('verdict-input').dependsOn].sort(), [...plan.steps.filter((/** @type {any} */ s) => s.id.startsWith('publish-') || s.id.startsWith('accept-')).map((/** @type {any} */ s) => s.id)].sort(), 'verdict-input follows every publish and accept step');
+      same(plan.steps.filter((/** @type {any} */ s) => !s.locked).every((/** @type {any} */ s) => s.exitOn === 'a nonzero exit stops the plan (run-task.ps1)'), true, 'unlocked steps stop the plan on a nonzero exit');
+      // The prerequisites: the four variants, the freeze file and the record, and the three accepted bindings; the gate reads every entry.
+      same(plan.prerequisites, [
+        ...allowed.slice(1).map((id) => ({ type: 'variant', id })),
+        { type: 'file', path: rec.epoch.freeze.path },
+        { type: 'file', path: activationFile },
+        { type: 'accepted', path: 'docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json', current: [] },
+        { type: 'accepted', path: 'docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json', current: ['v4'] },
+        { type: 'accepted', path: 'docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.accepted.json', current: ['fr-frozen', 'fr-frozen-none'], kind: 'live-deadline', fields: 'LIVE_DEADLINE_FIELDS' },
+      ], 'the prerequisites');
+      const blocked = await m.checkPrerequisites(plan.prerequisites, {
+        variants: ['log-link'], exists: () => false, readJson: () => ({}), currentOf: async (/** @type {string} */ id) => ({ id, treeId: 't', paramsHash: 'p' }),
+      });
+      same([blocked.status, blocked.reasons], ['blocked', [
+        'variant fr-frozen missing', 'variant fr-frozen-none missing', 'variant fr-frozen-uncapped missing', 'variant fr-frozen-none-uncapped missing',
+        `missing file ${rec.epoch.freeze.path}`, `missing file ${activationFile}`,
+        'missing binding docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json', 'missing binding docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json',
+        'missing binding docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.accepted.json',
+      ]], 'the gate understands every prerequisite and blocks the plan until each exists');
+    },
+  },
+  {
+    name: 'activate: the inputs are checked',
+    async run() {
+      const { m, expansion, record, build } = await collectionKit();
+      const ref = { path: 'x', sha256: 'a'.repeat(64) };
+      const epoch = { data: ref, freeze: ref, universe: ref };
+      assert(thrownBy(() => m.activation({ groups: [] }, { pilots: {}, approvedOptional: [], epoch })).includes('needs the expansion'), 'an expansion without items');
+      assert(thrownBy(() => m.activation(expansion, { pilots: [], approvedOptional: [], epoch })).includes('pilots must map'), 'pilots as a list');
+      assert(thrownBy(() => m.activation(expansion, { pilots: {}, approvedOptional: 'S4-6', epoch })).includes('approvedOptional must be a list'), 'approvals as text');
+      for (const name of ['data', 'freeze', 'universe']) {
+        for (const bad of [{ path: 'x', sha256: 'short' }, { path: '', sha256: 'a'.repeat(64) }, undefined]) {
+          assert(thrownBy(() => m.activation(expansion, { pilots: {}, approvedOptional: [], epoch: { ...epoch, [name]: bad } })).includes(`epoch.${name} needs a path and a SHA-256`), `epoch.${name} ${JSON.stringify(bad)}`);
+        }
+      }
+      const rec = record();
+      const options = { activationSha256: 'c'.repeat(64), rowSOf: () => 100 };
+      const plans = (/** @type {any} */ over, /** @type {any} */ extra = {}) => m.activationPlans(expansion, { ...rec, ...over }, m.stepPrice, { ...options, ...extra });
+      assert(thrownBy(() => plans({ format: 'other' })).includes('not an activation record'), 'a record of another format');
+      assert(thrownBy(() => plans({}, { activationSha256: 'abc' })).includes('needs the SHA-256'), 'a template hash that is no SHA-256');
+      assert(thrownBy(() => plans({ groups: [] })).includes('without a group'), 'an activation without a group');
+      assert(thrownBy(() => plans({ groups: [{ key: 'V4-S4|fr-frozen|val-nowhere|20|39', origin: 'initial' }] })).includes('has no group for'), 'a group the matrix does not have');
+      assert(thrownBy(() => plans({ groups: [{ ...rec.groups[0], origin: 'conditional' }] })).includes('lists'), 'an origin that is not the group\'s collection');
+      const comparator = expansion.groups.find((/** @type {any} */ g) => g.comparator && g.collection === 'initial');
+      assert(thrownBy(() => plans({ groups: [{ key: m.groupKey(comparator), origin: 'initial' }] })).includes('a comparator group'), 'a comparator group is never part of the plan');
+      assert(thrownBy(() => plans({ comparatorCells: [{ ...rec.comparatorCells[0], cell: '12x12-nightmare' }] })).includes('is not a comparator group'), 'a comparator cell that does not match its group');
+      assert(thrownBy(() => plans({ comparatorCells: [{ cell: 'x', from: 20, to: 39, rows: 20, shard: 'val-x' }] })).includes('has no group for'), 'a comparator cell the matrix does not have');
+      assert(build(rec).plan.steps.length > 0, 'the checks left the kit usable');
+      // The dispatcher: both commands are reachable, and each refusal below happens before any record is read or written.
+      const refused = async (/** @type {string[]} */ argv) => captureOutput(() => m.main(argv));
+      const unknown = await refused(['nope']);
+      same([unknown.code, unknown.err], [1, 'manifest: unknown command nope (compile, check-prerequisites, activate, close)\n'], 'an unknown command lists the four');
+      const wrongLabel = await refused(['activate', '--collection', 'initial', '--label', 'selftest']);
+      same([wrongLabel.code, wrongLabel.err], [1, 'manifest: --label frozen only\n'], 'main dispatches activate');
+      const wrongArgument = await refused(['activate', '--collection', 'initial', '--bogus', 'x', '--label', 'frozen']);
+      same([wrongArgument.code, wrongArgument.err], [1, 'manifest: unknown argument: --bogus\n'], 'an unknown argument is refused');
+      const wrongClose = await refused(['close', '--collection', 'second', '--reason', 'x', '--label', 'frozen', '--source-label', 'x']);
+      same([wrongClose.code, wrongClose.err], [1, 'manifest: only the initial collection is closed here; the second is N-V4-04\'s\n'], 'main dispatches close');
+    },
+  },
+  {
+    name: 'close: exactly the missing rows',
+    async run() {
+      const { m } = await collectionKit();
+      await onCollections(async (dir) => {
+        const declared = ['fr-frozen/c~20', 'fr-frozen/c~21', 'fr-frozen-none/c~20', 'fr-frozen-none/c~21'];
+        const activationFile = join(dir, 'activation.json');
+        writeJson(activationFile, { format: 'ig-v4-activation', version: 1, collection: 'initial', declaredRows: declared });
+        const publish = (/** @type {string} */ runs, /** @type {string} */ arm, /** @type {string[]} */ keys, shard = 'val-c') => writeJson(join(runs, arm, `${shard}.runs.json`), { meta: {}, shard, rows: keys.map((rowKey) => ({ rowKey })) });
+        const argv = ['--collection', 'initial', '--reason', 'the owner stops at the ceiling', '--label', 'frozen', '--source-label', 'x'];
+        const close = (/** @type {any} */ paths, /** @type {string[]} */ args = argv) => captureOutput(() => m.closeCommand(args, paths));
+
+        // Three of the four declared rows are published; another arm's row of the same key is not the fourth.
+        const runs = join(dir, 'runs');
+        publish(runs, 'fr-frozen', ['c~20', 'c~21']);
+        publish(runs, 'fr-frozen-none', ['c~20']);
+        publish(runs, 'log-link', ['c~21', 'c~99']);
+        const paths = { activation: activationFile, closure: join(dir, 'closure.json'), runs };
+        const first = await close(paths);
+        same([first.code, first.out, first.err], [0, 'closure: 1 missing rows\n', ''], `the closure: exit ${first.code}, ${JSON.stringify(first.err)}`);
+        const closure = JSON.parse(readFileSync(paths.closure, 'utf8'));
+        const { createdAt, ...rest } = closure;
+        assert(isoTime(createdAt), `createdAt ${createdAt}`);
+        same(rest, {
+          format: 'ig-v4-closure', version: 1, collection: 'initial', activation: { path: rel(activationFile), sha256: sha256File(activationFile) }, missing: ['fr-frozen-none/c~21'],
+          reason: 'the owner stops at the ceiling',
+        }, 'the closure lists the fourth row and the record\'s SHA-256');
+        // A closure is written once.
+        const before = rawHashes([paths.closure]);
+        const again = await close(paths);
+        same([again.code, again.out, again.err, rawHashes([paths.closure])], [1, '', 'manifest: closure exists: a closure is never rewritten\n', before], 'a second closure is refused and rewrites nothing');
+
+        // Every declared row is published: there is nothing to close.
+        publish(runs, 'fr-frozen-none', ['c~21'], 'val-d');
+        const complete = { ...paths, closure: join(dir, 'closure-complete.json') };
+        const nothing = await close(complete);
+        same([nothing.code, nothing.out, nothing.err, existsSync(complete.closure)], [1, '', 'manifest: nothing to close\n', false], `four of four published: exit ${nothing.code}, ${JSON.stringify(nothing.err)}`);
+
+        // The missing rows keep the declared order whatever the folders' order; a file that is no runs file publishes nothing and is told.
+        const other = join(dir, 'other-runs');
+        publish(other, 'fr-frozen-none', ['c~21']);
+        publish(other, 'fr-frozen', ['c~20']);
+        writeText(join(other, 'fr-frozen', 'broken.runs.json'), '{ not json');
+        writeJson(join(other, 'fr-frozen', 'no-rows.runs.json'), { meta: {} });
+        writeText(join(other, 'fr-frozen', 'notes.txt'), 'ignored');
+        const ordered = { ...paths, closure: join(dir, 'closure-ordered.json'), runs: other };
+        const mixed = await close(ordered);
+        same([mixed.code, mixed.out, JSON.parse(readFileSync(ordered.closure, 'utf8')).missing], [0, 'closure: 2 missing rows\n', ['fr-frozen/c~21', 'fr-frozen-none/c~20']], 'two rows are missing, in their declared order');
+        same(mixed.err.split('\n').filter((l) => l !== '').sort(), [
+          `close: ${rel(join(other, 'fr-frozen', 'broken.runs.json'))} is not a runs file: its rows are not published`,
+          `close: ${rel(join(other, 'fr-frozen', 'no-rows.runs.json'))} is not a runs file: its rows are not published`,
+        ], 'the two files that are no runs files are told');
+        const none = { ...paths, closure: join(dir, 'closure-none.json'), runs: join(dir, 'no-runs') };
+        const nothingPublished = await close(none);
+        same([nothingPublished.code, nothingPublished.out, JSON.parse(readFileSync(none.closure, 'utf8')).missing], [0, 'closure: 4 missing rows\n', declared], 'no published row: all four are missing');
+
+        // The refusals write nothing.
+        const refused = { ...paths, closure: join(dir, 'closure-refused.json') };
+        const cases = /** @type {[string, any, string[], string][]} */ ([
+          ['the second collection', refused, ['--collection', 'second', '--reason', 'x', '--label', 'frozen', '--source-label', 'x'], 'only the initial collection is closed here; the second is N-V4-04\'s'],
+          ['no collection', refused, ['--reason', 'x', '--label', 'frozen', '--source-label', 'x'], 'close needs --collection initial'],
+          ['no reason', refused, ['--collection', 'initial', '--label', 'frozen', '--source-label', 'x'], 'close needs --reason <text>'],
+          ['a blank reason', refused, ['--collection', 'initial', '--reason', '  ', '--label', 'frozen', '--source-label', 'x'], 'close needs --reason <text>'],
+          ['another label', refused, ['--collection', 'initial', '--reason', 'x', '--label', 'selftest', '--source-label', 'x'], '--label frozen only'],
+          ['no activation record', { ...refused, activation: join(dir, 'none.json') }, argv, 'no activation record'],
+        ]);
+        for (const [what, over, args, text] of cases) {
+          const out = await close(over, args);
+          assert(out.code === 1 && out.out === '' && out.err.includes(text) && !existsSync(refused.closure), `${what}: exit ${out.code}, ${JSON.stringify(out.err)}`);
+        }
+        for (const text of ['{', '[]', JSON.stringify({ format: 'other', declaredRows: declared }), JSON.stringify({ format: 'ig-v4-activation', declaredRows: 'x' }), JSON.stringify({ format: 'ig-v4-activation', declaredRows: [1] })]) {
+          const bad = join(dir, 'bad-activation.json');
+          writeText(bad, text);
+          const out = await close({ ...refused, activation: bad });
+          assert(out.code === 1 && out.err.includes('is not an activation record') && !existsSync(refused.closure), `an activation record holding ${text}: exit ${out.code}, ${JSON.stringify(out.err)}`);
+        }
       });
     },
   },

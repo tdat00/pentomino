@@ -183,13 +183,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 23:45:30 +07:00 (dispatch, base `91c968e`) to 2026-11-18 00:19:25 +07:00 (acceptance): 33 min 55 s; the developer's own times 23:45:34-00:07:55 |
+| Waiting for rulings | about 10 min (SA-Opus's review, about 00:10-00:19; no QUESTION) |
+| Agent id, model | `2d5c0f49-5164-4bc1-957e-1a08979af577`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 108 calls; 29,372,444 input, 163,418 output, 28,969,295 cache-read |
+| AI credits | 553.89 |
+| Questions and rulings | none from the developer. SA-Opus ruled "accept T11e": deviations and readings accepted (the `verdicts` step's `produces` names only `class-selection.json`, the file a later step reads); scratch prices match T11c's universe (default 76 groups and 1,040 rows 915.1 min + four P-1 passes 71.2 = allocation 987 min; with S4-6 1,045; comparator cells 481.2 priced again at `V4-S4C`). T11f amended: a pure export `closureOf` reads `closure.json` beside the activation record (case 7, T11f-T03, 3.5 h, pack 104.5 h). The go of `activate`: the orchestrator checks and reports three things first (pilots of 24x24 and 14x14 Hell 1 published 5 of 5; freeze, N-V4-03's variants and the live-deadline binding exist; data file and universe unchanged since T11g's price), check-list §3.4. New N-V4-19 (`arm.mjs publish` throws at the first unfinished shard) and a resume rule after a closure (§3.2). Pack amendment `cd18a71` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--items`: 182 passed, 0 failed (30.744 s; cases 175-182); `--frozen`: 10 passed; `check-edits --all`: 34 `ok`, no other line; `manifest.mjs activate --collection second`: exit 1, `manifest: only the initial collection is activated here; the second is N-V4-04's`, nothing written; `compile` leaves the committed plans byte-identical (V4-S2 560 min, V4-LIVE 36 min); no `plans/V4-S4.json` and no `evidence/frozen/V4-S4/`; firewall `check` (V4-T11e): 289 production files unchanged; guard (plans, lib, lock, docs, tasks included) empty; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. The developer's scratch activation (removed): `V4-S4` 98 steps, allocation 987 min, dry run `59,177 s counted (allocation 59,220 s, guard 74,025 s)`. No locked command and no machine time |
+| Commit | this task's commit, `improve-generating T11e: Stage-4 collections: the activation, the concrete validation plan and the closure record` |
+| Issues and named items | N-V4-19 (publish after a stopped plan). The real `activate` and `close` run only after the owner's go and the three checks of §3.4 |

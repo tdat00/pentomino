@@ -73,7 +73,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `verdicts.mjs`, `data/verdict-manifest.schema.md`, `data/verdict-manifest.example.json` | the admission statistics of plan section 5.2 (V4-T09a onwards): the row level (valid rows, completion apart from the deadline, per-puzzle evidence), the pairing and the class statistics of rule (c5) (V4-T09b: matched sets, the clue, faster and no-regression rules), the work ledger of a request, the work rule and the class verdict (V4-T09c), the global verdicts (V4-T09d: the cell gates on the shipped arm, Master identity, the Hell 1 report, P5's stops, the post-hoc projection, the population and phase 0's verdict), and the verdict tool (V4-T09e: the bound prerequisites, the class-selection receipt, the work report and the records it writes) with the manifest those statistics read and its example; the statistics are pure, the tool reads the records the manifest names; see "Admission statistics (V4-T09a)" |
 | `kernel-probe.mjs`, `variants/r4c.json`, `plans/V4-T10a.json`, `plans/V4-T10b.json` | the kernel probe (V4-T10a, V4-T10b): R4 visit and mutation counters in the `r4c` tree, the `v4-kernel` items that compare its complete deduction with the `instr` tree's, the `fewestColumn` profile of child processes under reduced inlining, the `counters` and `profile` (locked) and `report` (unlocked) commands and the plans of the runs; see "Kernel probe (V4-T10a)" |
 | `width-probe.mjs`, `lib/width-worker.mjs`, `lib/width-worker-test.mjs`, `plans/V4-T10c.json` | the pool probe (V4-T10c): one rating's time at 1, 2, 4 and 8 concurrent workers on the frozen source, the width dispatch, its worker and the scripted worker of its self-test, the `run` (locked) and `report` (unlocked) commands and the plan of the run; see "Pool probe (V4-T10c)" |
-| `manifest.mjs`, `data/frozen-round-v1.json`, `plans/V4-S2.json`, `plans/V4-LIVE.json`, `plans/V4-S4.universe.json`, `plans/V4-S4X.template.json`, `plans/items/` | the frozen-round matrix (V4-T11a onwards): the requests of stages 2 to 5 as data and the pure rules that expand them into groups of request rows with their row limits, state paths and collections, `controlsFrom` and `conditionalActivated`; the pricing (V4-T11b); the plan compiler (V4-T11c: `compile` writes the plans `V4-S2` and `V4-LIVE`, the priced universe of stage 4, the template of the second validation and the item manifests of the parity passes and of the isolated P-0) and the prerequisites gate (`check-prerequisites`); later tasks of the pack add the collections' activation, the comparators and the manifest to `manifest.mjs`; unlocked, nothing in it runs; see "Frozen-round matrix (V4-T11a)" |
+| `manifest.mjs`, `data/frozen-round-v1.json`, `plans/V4-S2.json`, `plans/V4-LIVE.json`, `plans/V4-S4.universe.json`, `plans/V4-S4X.template.json`, `plans/items/` | the frozen-round matrix (V4-T11a onwards): the requests of stages 2 to 5 as data and the pure rules that expand them into groups of request rows with their row limits, state paths and collections, `controlsFrom` and `conditionalActivated`; the pricing (V4-T11b); the plan compiler (V4-T11c: `compile` writes the plans `V4-S2` and `V4-LIVE`, the priced universe of stage 4, the template of the second validation and the item manifests of the parity passes and of the isolated P-0) and the prerequisites gate (`check-prerequisites`); the stage-4 collections (V4-T11e: `activate` writes the activation record, `plans/V4-S4.json` and `plans/V4-S4C.template.json` once, `close` the closure record); later tasks of the pack add the comparators and the manifest to `manifest.mjs`; unlocked, nothing in it runs; see "Frozen-round matrix (V4-T11a)" |
 
 ## Trees (variants)
 
@@ -150,6 +150,8 @@ node tools\ig-proto\kernel-probe.mjs profile --task T --label frozen --source-la
 node tools\ig-proto\kernel-probe.mjs report --task T --label frozen --source-label <label> [--cases <ids>]        # unlocked (V4-T10a, V4-T10b), writes kernel.json|md
 node tools\ig-proto\manifest.mjs compile --label frozen --source-label <label>                                    # unlocked (V4-T11c), writes the plans, the templates and the item manifests under plans\
 node tools\ig-proto\manifest.mjs check-prerequisites --plan V4-LIVE --label frozen --source-label <label>         # unlocked (V4-T11c), the gate of a plan: exit 1 and the reasons when it is blocked
+node tools\ig-proto\manifest.mjs activate --collection initial [--approve-optional S4-6] --label frozen --source-label <label>   # unlocked (V4-T11e), once, on the owner's authorization: writes the activation record, plans\V4-S4.json and plans\V4-S4C.template.json
+node tools\ig-proto\manifest.mjs close --collection initial --reason <text> --label frozen --source-label <label> # unlocked (V4-T11e), once, on the owner's instruction: writes the closure record listing the declared rows not published
 ```
 
 `--only` (a subset of the self-test's cases), `limits` and `testKinds` of `createLanes`, and `setHorizon` are for the
@@ -2351,3 +2353,82 @@ this section executes any plan, rating, pool or measurement (unlocked). The matr
   `populations as priced` (the probes' items built by their own modules, the row steps' `--cases` parsed by `arm.mjs`),
   `blocked plans refuse` (bindings built by `acceptedBinding` over temporary receipts), `the measured seconds and the reserve` and `only
   its own files are written`.
+
+### Stage-4 collections: the activation and the closure (V4-T11e)
+
+The stage-4 validation measures one declared collection, fixed before it runs (R3-04, RV4-07, D-V4-20): its required cells, the
+conditional boards whose five-seed pilots qualified and the optional items the owner approved. The priced universe
+(`plans/V4-S4.universe.json`, T11c) stays as it is, with the conservative price of every option apart; the activation writes the collection
+that is measured. Everything here is data and pure functions (unlocked): nothing runs a plan, a rating, a pool or a measurement, and the
+commands write records that are never rewritten. T11e itself runs neither command on the repository's records.
+
+- **The order is data first, then time** (RV4-07, check-list 3.4). The owner decides the optional item S4-6 and authorizes the data-only
+  `activate`, which writes the activation record, the plan `V4-S4` and its price; only then does the orchestrator ask the owner for the
+  timed allowance with `approval --plan V4-S4` (T11g), and no locked step runs before that approval. `activate` runs after stage 2, the
+  freeze and the live-deadline binding exist, on the orchestrator's go; `close` runs only on the owner's instruction.
+- **`activation(expansion, { pilots, approvedOptional, epoch })`** (pure) returns `{ format: 'ig-v4-activation', version: 1, collection:
+  'initial', epoch, conditional, optional, groups, declaredRows, comparatorCells }` (`activate` adds `createdAt`). `pilots` maps each
+  `hell1Conditional` board to the run records of its S2-5 pilot (a board without a key, or with `[]`, has none; a key that is no conditional
+  board throws), `approvedOptional` lists the optional items approved (a subset of `['S4-6']`: any other id throws, and so does a repeated
+  one), `epoch` is `{ data, freeze, universe }`, each `{ path, sha256 }`.
+  - `conditional`: per board `{ cell, activated, valid, reachingTen, pilotRuns }`, `conditionalActivated` of its runs (at least three valid
+    requests reaching ten; a missing or invalid run is never a completion) and `pilotRuns` the number of run records read.
+  - `optional`: `{ approved, notApproved }`, the optional items of the matrix split by the approval.
+  - `groups`: `[{ key, origin }]` with `key` = `groupKey(group)` and `origin` the group's collection: every non-comparator group of
+    collection `initial`, those of collection `conditional` on an activated board and those of collection `optional` whose item is approved,
+    in the matrix's order. `declaredRows`: `<arm>/<rowKey>` (`rowKey` = `<cell>~<rep>`, `arm.mjs`) for every rep of those groups (a row
+    listed twice throws). `comparatorCells`: `[{ cell, from, to, rows, shard }]`, the comparator groups of `initial` and of the activated
+    boards. On today's controls (ten) with no activated board and no approval it has 76 groups, 1,040 declared rows (reps 20 to 39) and 17
+    comparator cells, the cells of S4-1, S4-2 and S4-3; no rep from 40 to 59, no `factor-` or `second-` shard and no conditional board.
+- **`activationPlans(expansion, record, priceOf, { activationSha256, durations, rowSOf, activationPath })`** (pure) returns `{ plan,
+  template }` built from the record's groups. The plan `V4-S4` (`generatedBy` `manifest.mjs activate`, `runnable: true`) has the steps, in
+  order: `prerequisites` (the gate), `firewall-snapshot`, `trees` (`build log-link fr-frozen fr-frozen-none fr-frozen-uncapped
+  fr-frozen-none-uncapped`), the P-1 pass of the four stage-4 arms under `V4-S4P` (`parity-<arm>`, `receipt-<arm>`, `accept-<arm>`: the
+  proofs before the rows, as in `V4-S2`, so that a failed proof stops the plan after minutes), a `rowStep` of every selected group, the
+  `publish-<arm>` steps, `verdict-input` (T11f: `manifest.mjs verdict-input --purpose selection`, after every publish and accept step),
+  `verdicts` (`verdicts.mjs --manifest tools\ig-proto\plans\verdicts\V4-S4.verdict-manifest.json`, producing
+  `evidence/frozen/V4-S4/class-selection.json`), `resolve-comparators` (T11f: `manifest.mjs resolve-comparators`, writing
+  `plans/V4-S4C.json`) and `firewall-check`. **Every selected group is required**: its row step has `optional: false` whatever its origin
+  (the matrix marks the conditional and optional groups optional; `run-task.ps1` selects the steps without `optional`), so it enters
+  `allocationMinutes` (`optionalMinutes` is 0) and a default run and a default approval cover exactly `declaredRows`. No row is a comparator
+  row: no `node` has `shipped-uncapped` and no shard is `factor-` or `second-` unless approved or activated. The prerequisites are the four
+  variants, the freeze file and the activation record, and three accepted bindings: stage 1 (`current: []`), P-0 (`current: ['v4']`) and
+  the live deadline (`kind: 'live-deadline'`, `fields: 'LIVE_DEADLINE_FIELDS'`, `current: ['fr-frozen', 'fr-frozen-none']`); the parity
+  bindings are produced by the plan itself. Every step follows T11c's rules (an argv array, every locked step `repeatUntilDone` with its
+  `state` and `minHorizonS`; `rowStep`, `parityPass` and `planOf`). The template `plans/V4-S4C.template.json` is `{ task: 'V4-S4C',
+  generatedBy: 'manifest.mjs activate', template: true, runnable: false, activationSha256, cells }`: one `{ cell, from, to, rows,
+  rowLimitS: 260, shard, candidates: ['fr-frozen-uncapped', 'fr-frozen-none-uncapped'], price }` per comparator cell of the record, `price`
+  being the simulation input of its row step at the cell's projection (`{ type: 'rows', rows, rowS, rowLimitS }`), and nothing else: no cell
+  of an unactivated option and none of the second validation (it stays T11c's template until N-V4-04). T11f resolves the template from a
+  final selection of the same activation.
+- **`activate --collection initial [--approve-optional <ids>] --label frozen --source-label <SL>`** (`activateCommand(argv, paths)`).
+  Refusals, in this order, each exit 1 with nothing written: `activation exists: an activation is never rewritten`, a missing
+  `--collection` or one other than `initial` (`only the initial collection is activated here; the second is N-V4-04's`), a missing freeze
+  file (`evidence/frozen/V4-S3/freeze.json`) or universe, an existing `plans/V4-S4.json` or `plans/V4-S4C.template.json`, an id that cannot be
+  approved, a pilot row published twice, and a step that is not admissible. It reads the pilots (`evidence/frozen/V4-S2/fr-base/*.runs.json`: the
+  `run` of every row of a conditional board with a pilot rep, `reps.pilot`, 0 to 4; rows of other reps or cases are not read; no folder, no
+  runs), hashes the data file, the freeze file and the universe with `sha256File`, builds the record and the plans (the controls of
+  today's reports, the measured durations of the item logs and the cell projections as `compile` takes them) before anything is written,
+  then writes the record, the plan and the template, in that order. It prints `activation: <n> groups, <m> declared rows, <k> comparator
+  cells; conditional <cell>: <activated> (<reachingTen> of <valid> valid); ...; optional approved <ids>` and `V4-S4: allocation <a> min,
+  optional 0 min; ask the owner with approval --plan V4-S4 before any run` (the files written, and a note for each board that has no published
+  pilot run, go to stderr: that board is then not activated, and the record is never rewritten, so the orchestrator gives its go after
+  stage 2 has published the pilots). The record is the owner's
+  decision on the optional scope fixed in a file; the template carries the SHA-256 of that file (`sha256File`).
+- **`close --collection initial --reason <text> --label frozen --source-label <SL>`** (`closeCommand(argv, paths)`) on the owner's
+  instruction: `published` is `<arm>/<rowKey>` of every row of `evidence/frozen/V4-S4/<arm>/*.runs.json` (the arm is the folder; a file that
+  is not JSON or has no list of rows publishes nothing, as the verdict tool reads it, and is told on stderr), `missing` the declared rows of
+  the activation record that are not published, in their order. It refuses (exit 1, nothing written) a closure that exists (`closure
+  exists: a closure is never rewritten`), another collection or a missing reason, a record that is not an activation, and an empty `missing`
+  (`nothing to close`); else it writes `closure.json` = `{ format: 'ig-v4-closure', version: 1, collection: 'initial', activation: {
+  path, sha256 }, missing, reason, createdAt }` and prints `closure: <n> missing rows`. A selection is final only by complete publication or
+  by this record, and the comparators are resolved only from that collection's final selection (T11f, T09e).
+- **Readers.** T09e reads `activation.epoch.freeze`, `declaredRows` and the closure's `activation.sha256` and `missing`; T11f resolves
+  the template, builds `verdict-input` from the record and the plan and checks the selection against them; T11g prices the plan with
+  `approval --plan V4-S4` once it exists.
+- **Self-test** (`--items`, unlocked, synthetic: the default expansion with T09a's run records, scratch records under
+  `tests/artifacts/ig-proto/selftest/collections`): `activate: the default initial collection`, `an activated conditional board`, `the selected
+  scope is required` (the optional flag is reset, the rows the runner's default rule selects equal `declaredRows`, the allocation includes
+  the added steps), `optional items only with approval`, `never rewritten` (`activateCommand` twice, the refusals, the pilot readings, the
+  printout), `a complete producer chain` (every consumed path produced earlier or declared, only the five real variants, the proofs before
+  the rows, the gate understanding every prerequisite), `the inputs are checked` and `close: exactly the missing rows`.

@@ -54,7 +54,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 - [x] T11c Frozen-round plans: the compiler, the isolated P-0 manifest and the prerequisites gate (depends on T11b)
 - [x] T11h The owner's lock rules: the 900-s cap and the idle quiet period in the helper, the runner, the budget and the price (depends on T11c; the owner's decision of 2026-11-17 21:33)
 - [x] T11d Parity and P-0 receipts with required passes, and their accepted bindings (depends on T11h)
-- [ ] T11e Stage-4 collections: the activation, the concrete validation plan and the closure record (depends on T11d)
+- [x] T11e Stage-4 collections: the activation, the concrete validation plan and the closure record (depends on T11d)
 - [ ] T11f Comparators and verdict inputs: resolution from a final selection, the selection and final manifests (depends on T11e)
 - [ ] T11g Frozen-round manifest for the owner: the price, the approval requests and the dry runs (depends on T11f; **stop at the end: the owner approves the price, OD-P10**)
 - [ ] T12 P6: the DLX diagnostic only for returned ratings (phase 1, production; no content dependency, D-V4-11; runs after T11g)
@@ -605,8 +605,8 @@ node -e "const fs=require('fs'),p=require('path');const d='docs/improve-generati
 | T11b | 2026-11-17 19:28 | 2026-11-17 19:47 | 19 min | 327.00 | `5b67b4a` |
 | T11c | 2026-11-17 19:48 | 2026-11-17 21:49 | 2 h 1 min (35 min paused) | 927.21 | `9ca06c7` |
 | T11h | 2026-11-17 22:09 | 2026-11-17 23:03 | 54 min | 729.54 | `e3044a9` |
-| T11d | 2026-11-17 23:04 | 2026-11-17 23:44 | 40 min | 696.31 | this task's commit |
-| T11e | | | | | |
+| T11d | 2026-11-17 23:04 | 2026-11-17 23:44 | 40 min | 696.31 | `91c968e` |
+| T11e | 2026-11-17 23:45 | 2026-11-18 00:19 | 34 min | 553.89 | this task's commit |
 | T11f | | | | | |
 | T11g | | | | | |
 | T12 | | | | | |
