@@ -221,6 +221,8 @@ async function generateItem(p) {
       reason: b1.reason ?? null,
       puzzles: b1.accepted.length,
       made: b1.accepted.map((/** @type {{ id: string }} */ puzzle) => b1.made[puzzle.id]?.kind ?? null),
+      calibrationWindow: set.calibration?.igWindow ?? null,
+      madeRecords: b1.accepted.map((/** @type {{ id: string }} */ puzzle) => b1.made[puzzle.id] ?? null),
       packSha256,
     };
   } finally {

@@ -14,7 +14,10 @@
 //   node tools\ig-proto\v4-check.mjs evidence-check --receipt <path> --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\v4-check.mjs accept --task V4-T04 --receipt <path> --binding <path> --by <text> --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\v4-check.mjs check-binding --binding <path> [--current <ids>] --label frozen --source-label "frozen 3fc65f4"
-import { existsSync, readFileSync } from 'node:fs';
+// T05 adds `prior-verdict` (the per-set prior of the `v4-ps` arm, plan P4 item 2; D-V4-09), which judges the steps
+// `prior-gen` and `prior-replay` and writes `evidence/frozen/<task>/prior.json|md`:
+//   node tools\ig-proto\v4-check.mjs prior-verdict --task V4-T05 --label frozen --source-label "frozen 3fc65f4"
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { isAbsolute, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
@@ -435,6 +438,75 @@ export function replayVerdict(rows) {
     }
   }
   return verdictOf(fails, gaps, findings, rows);
+}
+
+/** The algo id of the `v4-ps` arm (D-V4-05): the experimental family's id with the variant id. */
+const PRIOR_ALGO = 'gen-v4-proto:v4-ps';
+
+/**
+ * The verdict of the per-set prior (V4-T05; D-V4-09, plan P4 item 2): the batch of the `v4-ps` arm gave every
+ * candidate the window count `w` of its calibration (`made.igPrior`, and the batch's `priorCount` of the call), and the
+ * replay of the written pack matched.
+ * @param {Row[]} rows The joined rows of the steps `prior-gen` and `prior-replay`.
+ * @param {any[]} starts The journal `start` lines with `stage: 'batch'` of the generation item's `logDir`.
+ * @returns {Verdict} `incomplete` when no candidate was obtained, a row is missing or censored, or no batch call is
+ *   journaled; `fail` for any other broken condition.
+ */
+export function priorVerdict(rows, starts) {
+  /** @type {string[]} */
+  const fails = [];
+  /** @type {string[]} */
+  const gaps = [];
+  const generated = rows.filter((row) => row.item.endsWith(':gen'));
+  const replayed = replayVerdict(rows);
+  if (replayed.verdict === 'fail') {
+    fails.push(...replayed.reasons.map((reason) => `replay: ${reason}`));
+  } else if (replayed.verdict === 'incomplete') {
+    gaps.push(...replayed.reasons.map((reason) => `replay: ${reason}`));
+  }
+  const [gen] = generated;
+  if (gen === undefined) {
+    gaps.push('no generation item');
+  } else if (generated.length > 1) {
+    fails.push(`${generated.length} generation items`);
+  } else if (gen.status === 'missing') {
+    gaps.push(`${gen.item}: no item-end line`);
+  } else if (gen.status === 'censored') {
+    gaps.push(`${gen.item}: censored`);
+  } else if (gen.status === 'error') {
+    fails.push(`${gen.item}: error${messageOf(gen)}`);
+  } else if (gen.result?.outcome !== 'ok') {
+    (['no-set', 'no-pack'].includes(gen.result?.outcome) ? gaps : fails).push(`${gen.item}: outcome ${gen.result?.outcome}`);
+  } else {
+    const w = gen.result.calibrationWindow?.wc;
+    const records = Array.isArray(gen.result.madeRecords) ? gen.result.madeRecords : [];
+    const candidates = records.filter((/** @type {any} */ made) => made?.kind === 'candidate');
+    if (!Number.isInteger(w)) {
+      fails.push(`${gen.item}: the calibration's window count is ${w ?? 'absent'}, not an integer`);
+    }
+    if (candidates.length === 0) {
+      gaps.push(`${gen.item}: no candidate record`);
+    }
+    for (const [i, made] of candidates.entries()) {
+      if (Number.isInteger(w) && made.igPrior !== w) {
+        fails.push(`candidate ${i}: igPrior ${made.igPrior} differs from the calibration's window count ${w}`);
+      }
+      if (made.versions?.algo !== PRIOR_ALGO) {
+        fails.push(`candidate ${i}: algo ${made.versions?.algo ?? 'absent'}, not ${PRIOR_ALGO}`);
+      }
+    }
+    if (candidates.length > 0 && starts.length === 0) {
+      gaps.push(`${gen.item}: no batch start line in the journal`);
+    }
+    for (const [i, line] of starts.entries()) {
+      if (!Number.isInteger(line?.K)) {
+        fails.push(`start line ${i}: K ${line?.K} is not an integer`);
+      } else if (Number.isInteger(w) && line.priorCount !== Math.min(line.K - 2, Math.max(1, w))) {
+        fails.push(`start line ${i}: priorCount ${line.priorCount}, expected ${Math.min(line.K - 2, Math.max(1, w))} (K ${line.K}, window count ${w})`);
+      }
+    }
+  }
+  return verdictOf(fails, gaps, replayed.verdict === 'pass' ? replayed.reasons : [], rows);
 }
 
 /** The seeds of the identity receipt in the record's `seed` form (`plans/IGP-00.json`: `26x26-nightmare:0-1,14x14-master:0-1`). */
@@ -1303,6 +1375,101 @@ async function checkBinding(argv) {
   return result.status === 'pass' ? 0 : 2;
 }
 
+/** The two steps of the per-set prior check (V4-T05): the batch of the `v4-ps` arm and the replay of its pack. */
+const PRIOR_STEPS = Object.freeze(['prior-gen', 'prior-replay']);
+
+/**
+ * @param {string} dir A generation item's journal folder.
+ * @returns {any[]} Its `start` lines of the `batch` stage, files in name order, lines in order; none without the folder.
+ */
+function batchStarts(dir) {
+  if (!existsSync(dir)) {
+    return [];
+  }
+  return readdirSync(dir).filter((name) => name.endsWith('.jsonl')).sort().flatMap((name) => readFileSync(join(dir, name), 'utf8')
+    .split('\n').filter((line) => line.trim() !== '').map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        throw problem(`unreadable journal line in ${rel(join(dir, name))}`);
+      }
+    })).filter((line) => line.t === 'start' && line.stage === 'batch');
+}
+
+/**
+ * @param {string} task
+ * @param {Record<string, any>} record The `prior.json` record.
+ * @returns {string} The Markdown record `prior.md`.
+ */
+function renderPrior(task, record) {
+  const { meta, verdict, reasons, windowCount, rows, starts } = record;
+  const w = Number.isInteger(windowCount) ? windowCount : null;
+  const lines = [
+    `# Per-set prior (${task})`, '', banner(meta), '', `prior: ${verdict}`, '',
+    `Calibration window count ${w ?? '-'}; ${starts.length} batch start lines.`, '',
+    '## Rows', '', '| item | status | detail |', '|---|---|---|',
+    ...rows.map((/** @type {Row} */ row) => `| ${cell(row.item)} | ${cell(row.status)} | ${cell(rowDetail(row))} |`), '',
+  ];
+  const candidates = (rows.find((/** @type {Row} */ row) => row.item.endsWith(':gen'))?.result?.madeRecords ?? [])
+    .filter((/** @type {any} */ made) => made?.kind === 'candidate');
+  lines.push('## Candidate records', '', '| igPrior | algo |', '|---|---|',
+    ...candidates.map((/** @type {any} */ made) => `| ${cell(made.igPrior)} | ${cell(made.versions?.algo)} |`), '',
+    '## Batch start lines', '', '| K | priorCount | expected |', '|---|---|---|',
+    ...starts.map((/** @type {any} */ line) => `| ${cell(line.K)} | ${cell(line.priorCount)} | ${cell(w !== null && Number.isInteger(line.K) ? Math.min(line.K - 2, Math.max(1, w)) : null)} |`), '');
+  if (reasons.length > 0) {
+    lines.push('## Reasons', '', ...reasons.map((/** @type {string} */ r) => `- ${r}`));
+  }
+  return lines.join('\n');
+}
+
+/**
+ * `prior-verdict --task <T> --label frozen --source-label <SL>` (V4-T05): judges the steps `prior-gen` and
+ * `prior-replay` from their stored observations and the generation item's journal, and writes `prior.json` and
+ * `prior.md` under `evidence/frozen/<task>/`.
+ * @param {string[]} argv The arguments after `prior-verdict`.
+ * @returns {Promise<number>} 0 when the record was written, whatever its verdict; 1 for a refused command.
+ */
+async function priorCommand(argv) {
+  const { args } = parseArgs(argv, { values: ['task', 'label', 'source-label'] });
+  if (args.label !== 'frozen') {
+    return refuse('--label frozen only');
+  }
+  const { task } = args;
+  if (task === undefined) {
+    return refuse('prior-verdict needs --task');
+  }
+  const isV4 = (/** @type {string} */ variant) => {
+    const info = currentTree(variant);
+    if (info === null) {
+      throw problem(`tree ${variant} is not built`);
+    }
+    return info.chain.includes('v4');
+  };
+  const manifests = PRIOR_STEPS.map((step) => abs(`tools/ig-proto/plans/${task}.${step}.json`));
+  const [gen, replay] = PRIOR_STEPS.map((step, i) => stepEvidence(task, step, manifests[i], isV4));
+  const rows = [...gen.rows, ...replay.rows];
+  const genItem = expandManifest(JSON.parse(readFileSync(manifests[0], 'utf8')), artifactDir('frozen', task, PRIOR_STEPS[0]), isV4)
+    .find((item) => item.kind === 'v4-generate');
+  const starts = genItem === undefined ? [] : batchStarts(/** @type {string} */ (genItem.payload.logDir));
+  const problems = [...gen.problems, ...replay.problems];
+  const { verdict, reasons } = problems.length > 0 ? { verdict: 'incomplete', reasons: problems } : priorVerdict(rows, starts);
+  const windowCount = rows.find((row) => row.item.endsWith(':gen'))?.result?.calibrationWindow?.wc ?? null;
+  const record = {
+    meta: await buildMeta({ task, label: 'frozen', kind: 'prior', trees: ['v4-ps'], sourceLabel: args['source-label'] }),
+    task,
+    verdict,
+    reasons,
+    windowCount,
+    rows,
+    starts,
+  };
+  writeJson(evidenceDir('frozen', task, 'prior.json'), record);
+  writeText(evidenceDir('frozen', task, 'prior.md'), renderPrior(task, record));
+  process.stdout.write(`${verdict === 'pass' ? 'prior: pass' : `prior: ${verdict} (${reasons.join('; ')})`}\n`
+    + `v4-check: wrote ${rel(evidenceDir('frozen', task, 'prior.json'))}\n`);
+  return 0;
+}
+
 /**
  * @param {string[]} argv The arguments after `run`.
  * @returns {Promise<number | Parameters<typeof runItems>[0]>} An exit code after its message, or the options of the run.
@@ -1344,16 +1511,16 @@ async function prepareRun(argv) {
 /**
  * @param {string[]} argv `run --task <T> --step <S> --manifest <path> --label frozen --source-label <SL> [--horizon-s <H>]`,
  *   `summary --task <T> --label frozen --source-label <SL>`, `pm4-gate --label frozen --source-label <SL>`,
- *   `evidence-check --receipt <path> ...`, `accept --task <T> --receipt <path> --binding <path> --by <text> ...` or
- *   `check-binding --binding <path> [--current <ids>] ...`
+ *   `evidence-check --receipt <path> ...`, `accept --task <T> --receipt <path> --binding <path> --by <text> ...`,
+ *   `check-binding --binding <path> [--current <ids>] ...` or `prior-verdict --task <T> --label frozen --source-label <SL>`
  * @returns {Promise<number>} The exit code: 1 for a refused command or manifest, else the command's (`run`: the runner's, 0, or
- *   3 for a refused resume; `summary`: 0 once the record is written; `pm4-gate` and `check-binding`: 0 only on `pass`, else 2;
- *   `evidence-check`: 0 when nothing changed, else 2; `accept`: 0 once the binding is written).
+ *   3 for a refused resume; `summary` and `prior-verdict`: 0 once the record is written; `pm4-gate` and `check-binding`: 0 only on
+ *   `pass`, else 2; `evidence-check`: 0 when nothing changed, else 2; `accept`: 0 once the binding is written).
  */
 export async function main(argv) {
   const [command, ...rest] = argv;
   const subcommands = /** @type {Record<string, (argv: string[]) => Promise<number>>} */ ({
-    summary, 'pm4-gate': pm4Gate, 'evidence-check': evidenceCheck, accept, 'check-binding': checkBinding,
+    summary, 'pm4-gate': pm4Gate, 'evidence-check': evidenceCheck, accept, 'check-binding': checkBinding, 'prior-verdict': priorCommand,
   });
   if (command !== undefined && Object.hasOwn(subcommands, command)) {
     try {
@@ -1363,7 +1530,7 @@ export async function main(argv) {
     }
   }
   if (command !== 'run') {
-    return refuse(`unknown command ${command ?? ''} (run, summary, pm4-gate, evidence-check, accept, check-binding)`);
+    return refuse(`unknown command ${command ?? ''} (run, summary, pm4-gate, evidence-check, accept, check-binding, prior-verdict)`);
   }
   /** @type {Awaited<ReturnType<typeof prepareRun>>} */
   let prepared;

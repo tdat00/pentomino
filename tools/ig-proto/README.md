@@ -63,6 +63,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `lib/proof.mjs` | the typed proof receipt of the frozen round: `proofEnvelope`, `proofCheck`, `LIVE_DEADLINE_FIELDS` and `STAGE1_COVERAGE_EXTRA` (V4-T04d), and its accepted binding: `acceptedBinding`, `checkAccepted` and `ACCEPTED_FORMAT` (V4-T04f; see "Stage 1 checks (task pack v4)"); pure apart from the evidence reads of `readRepoFile` |
 | `v4-check.mjs`, `plans/V4-T04.parity.json`, `plans/V4-T04.replay.json`, `plans/V4-T04.json` | the stage-1 checks (V4-T04c, V4-T04d, V4-T04f): `run` expands an item manifest and runs its items; the parity and replay verdicts; `summary` writes the stage-1 receipt; `pm4-gate` is the early PM4 check; `evidence-check`, `accept` and `check-binding` are the accepted binding's commands; the plan of the stage-1 runs; see "Stage 1 checks (task pack v4)" |
 | `variants/<id>.json` | variant manifests; `variants/files/<name>/...` copy-only files |
+| `variants/v4-ps.json`, `plans/V4-T05.json`, `plans/V4-T05.prior-gen.json`, `plans/V4-T05.prior-replay.json` | the per-set prior arm `v4-ps` and the plan and manifests of its run (V4-T05); the verdict is `v4-check.mjs prior-verdict`; see "The per-set prior (V4-T05)" |
 
 ## Trees (variants)
 
@@ -665,9 +666,9 @@ provenance contract of plan 5.1 (IG-P-Q34, IG-P-Q36) that phase 2 ports to produ
 edits of `version.js`, `generate.js`, `pack.js` and `replay.js` of the trees; no production file changes.
 
 - **Algo id (D-V4-05).** Each tree has its own experimental id, `gen-v4-proto:<variant id>` (`ALGO_ID` is built from
-  `IG.variant`): `gen-v4-proto:v4`, `gen-v4-proto:v4-w760`, `gen-v4-proto:v4-w095`, `gen-v4-proto:v4-w380`. A receipted
-  variant is never edited: a changed configuration is a new variant id, of at most 40 characters. The `log` tree and the
-  trees below it keep `gen-v3`.
+  `IG.variant`): `gen-v4-proto:v4`, `gen-v4-proto:v4-w760`, `gen-v4-proto:v4-w095`, `gen-v4-proto:v4-w380` and, from
+  V4-T05, `gen-v4-proto:v4-ps`. A receipted variant is never edited: a changed configuration is a new variant id, of at
+  most 40 characters. The `log` tree and the trees below it keep `gen-v3`.
 - **Seven keys.** `provenanceVersions()` of a `v4`-family arm has today's five keys (`algo`, `policy`, `rng`,
   `seedScheme`, `ratingModel`) and `priorTable` and `screenTable`, the variant's `params.priorTable` and
   `params.screenTable` (`'none'` when absent; `v4-w760` has `screenTable` `none`). Every other tree has exactly the five.
@@ -676,9 +677,9 @@ edits of `version.js`, `generate.js`, `pack.js` and `replay.js` of the trees; no
   algo string, `gen-v40` and `gen-v4-proto:` included, keeps the five-key reader and the `gen-v3` bounds.
 - **`igPrior`.** A `gen-v4` candidate entry of `generation.made` has the field `igPrior` after `skips`: null (the
   table prior of its `priorTable` is used) or an integer from 1 to 128 (the per-set prior of the request,
-  `BatchContext.igPrior`). T05 adds the transport that sets it; until then every `v4`-family record has `igPrior: null`.
-  Replay passes a recorded integer `igPrior` to the candidate's request. A `gen-v3` candidate has no `igPrior`; a
-  calibration or completion entry has none either.
+  `BatchContext.igPrior`). The arm `v4-ps` (V4-T05; see "The per-set prior (V4-T05)") adds the transport that sets it;
+  every other `v4`-family arm has `igPrior: null`. Replay passes a recorded integer `igPrior` to the candidate's request.
+  A `gen-v3` candidate has no `igPrior`; a calibration or completion entry has none either.
 - **Per-algo shape and bounds.** The reader checks the shape of the record's own algo: a `gen-v4` `setOrigin` and
   candidate have the seven version keys and a `gen-v4` candidate the eleven keys of its entry; a `gen-v3` record has the
   five version keys and the ten keys of today. A `gen-v4` record's subset ordinals are below 2,192 and its repair
@@ -802,11 +803,12 @@ described in "Stage-1 item kinds" below.
   | `v4-replay` | `e + 120 <= H - 15` | at `H - 15`, `censored` | 2 |
 
 - **Self-test.** `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04a`
-  runs thirty-seven cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay),
+  runs thirty-eight cases without the lock: six on synthetic worker kinds (no rating, generation, uniqueness count or replay),
   one that computes the run identity (`itemIdentity`) of the frozen trees and runs nothing, V4-T04b's two (the pack
   files, on the file system only, and the item ledger, on synthetic journal lines; see below), V4-T04c's nine (the
-  `checks:` cases, on synthetic rows; see "Stage 1 checks"), V4-T04d's eight (the `proof:` cases) and V4-T04f's eleven (the
-  `accept:` cases; see "The accepted binding (V4-T04f)"). Each running case uses
+  `checks:` cases, on synthetic rows; see "Stage 1 checks"), V4-T04d's eight (the `proof:` cases), V4-T04f's eleven (the
+  `accept:` cases; see "The accepted binding (V4-T04f)") and V4-T05's one (`items: per-set prior verdict`, on synthetic
+  rows; see "The per-set prior (V4-T05)"). Each running case uses
   the scratch task `items-<n>` of the label `selftest`. The test kinds exist only with `testKinds`: `test-ok` returns
   `{ outcome: 'ok', echo }`, `test-throw` throws, `test-hold` blocks the worker for good and is a call kind of the lanes
   (the existing rule admits and cuts it), and `test-item` blocks the same way but is not a call kind, so only the item
@@ -1098,3 +1100,27 @@ two functions; `v4-check.mjs` writes and checks the stage-1 binding.
   expectation comes from the captured inputs (and `historical`); a binding is never rewritten; the historical namespaces
   are reserved; `evidence-check`; `check-binding`; `main` refuses a reserved id before any write (the scratch id
   `V4-reserved-selftest`, with a control run that does write).
+
+### The per-set prior (V4-T05)
+
+`variants/v4-ps.json` (chain `base>instr>log>v4>v4-ps`, `params.perSetPrior` true, algo id `gen-v4-proto:v4-ps`) is the
+per-set prior of plan P4 item 2 (D-V4-09): the calibration's window count `wc` starts the locate of every candidate of
+the batch. Seven copy-only edits carry it. `setAttempt` returns the calibration's `igWindow` (`ps-1`); the client's
+`igPriorOf(calibration, levelId, uniqueness)` (`ps-5` to `ps-7`) adds `igPrior: <wc>` to every `puzzleCandidate` payload
+under the match rule of `calibrationCandidate`: the calibration's `rating.level` is the target level, in `require` mode
+its certificate is `unique`, and `wc` is an integer of at least 1. Without a match no field is sent, the candidate uses
+the table prior (`priorCount` of `ig-select-v4.js`), and the completion payload never carries one. The protocol accepts
+the optional field (an integer from 1 to 128; `ps-2`, `ps-3`) and `tasks.js` passes it to `puzzleCandidate` (`ps-4`);
+T02c's edits record it as `made.igPrior` and pass a recorded one back at replay, so a replay starts at the same count.
+The `v4-generate` item result gains `calibrationWindow` (the calibration's `igWindow`) and `madeRecords` (the `made`
+record of every accepted puzzle). `node tools\ig-proto\v4-check.mjs prior-verdict --task V4-T05 --label frozen
+--source-label <SL>` (unlocked) joins the rows of the steps `prior-gen` (one `v4-generate` row, `14x14-nightmare`,
+`seedText` `ig-v4/prior/14x14-nightmare`, `quantity` 3) and `prior-replay` (`v4-replay` of its three puzzles, `packStep`
+`prior-gen`), reads the `start` lines of stage `batch` of the generation item's journal and writes
+`evidence/frozen/V4-T05/prior.json|md`. `priorVerdict(rows, starts)` is `pass` when the generation item completed with
+`w = calibrationWindow.wc` an integer, every `candidate` of `madeRecords` has `igPrior` equal to `w` and `versions.algo`
+`gen-v4-proto:v4-ps`, every start line has `priorCount` `min(K - 2, max(1, w))`, there is at least one candidate and one
+batch start line, and `replayVerdict` passes; `incomplete` when no candidate was obtained, a row is missing or censored
+or no batch start line was journaled; else `fail`. The command prints `prior: <verdict>` (with the reasons when not
+`pass`) and exits 0 once the record is written. `plans/V4-T05.json` (6 minutes allocated) runs the two locked steps and
+the verdict through the runner; the self-test case `items: per-set prior verdict` is appended to `--items`.

@@ -39,7 +39,7 @@ import { buildTree, collectSources, ensureTree, listVariants, planTree } from '.
 import { pairResult } from './identity.mjs';
 import { buildInventory, readFamilies } from './pm1-inventory.mjs';
 import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
-import { expandManifest, IDENTITY_SEEDS, identityVerdict, judgeStage1, main as checkMain, parityVerdict, pm4GateEvidence, pm4Verdict, replayVerdict, stage1Expectation, stage1Inputs, stage1Verdict, stepEvidence } from './v4-check.mjs';
+import { expandManifest, IDENTITY_SEEDS, identityVerdict, judgeStage1, main as checkMain, parityVerdict, pm4GateEvidence, pm4Verdict, priorVerdict, replayVerdict, stage1Expectation, stage1Inputs, stage1Verdict, stepEvidence } from './v4-check.mjs';
 
 const SELFTEST_DIR = join(ROOT, 'tests', 'artifacts', 'ig-proto', 'selftest');
 const GIT_CALL = new RegExp('(?:execFileSync|execSync|spawnSync|spawn|execFile|exec|fork)\\(\\s*[\'"`]git\\b|^\\s*&?\\s*git(?:\\.exe)?\\s+(?:rev-parse|status|log|diff|show|add|commit|push|ls-files)\\b', 'm');
@@ -1886,6 +1886,49 @@ const itemCases = [
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }
+    },
+  },
+  {
+    name: 'items: per-set prior verdict',
+    run() {
+      const candidate = (/** @type {number | null} */ igPrior, algo = 'gen-v4-proto:v4-ps') => ({ schema: 1, kind: 'candidate', igPrior, versions: { algo } });
+      const gen = (/** @type {Record<string, any>} */ over = {}) => replayRow('gen', 'completed', {
+        outcome: 'ok', batchStatus: 'complete', reason: null, puzzles: 3, made: ['calibration', 'candidate', 'candidate'],
+        calibrationWindow: { wc: 6 }, madeRecords: [{ schema: 1, kind: 'calibration' }, candidate(6), candidate(6)], packSha256: 'h', ...over,
+      }, { step: 'prior-gen' });
+      const replays = () => [[0, 'calibration'], [1, 'candidate'], [2, 'candidate']].map(([i, kind]) => {
+        const row = replayed(/** @type {number} */ (i), /** @type {string} */ (kind), 'matched');
+        return { ...row, item: row.item.replace('replay:', 'prior-replay:') };
+      });
+      const start = (/** @type {number} */ priorCount, K = 30) => ({ t: 'start', stage: 'batch', K, priorCount });
+      const starts = () => [start(6), start(6)];
+      const pass = priorVerdict([gen(), ...replays()], starts());
+      assert(pass.verdict === 'pass' && pass.reasons.length === 0 && pass.rows.length === 4, `the prior reached every candidate: ${pass.verdict} ${JSON.stringify(pass.reasons)}`);
+      const other = priorVerdict([gen({ madeRecords: [{ schema: 1, kind: 'calibration' }, candidate(6), candidate(5)] }), ...replays()], starts());
+      assert(other.verdict === 'fail' && hasReason(other.reasons, 'candidate 1: igPrior 5 differs from the calibration\'s window count 6'), `a candidate with another prior: ${other.verdict} ${JSON.stringify(other.reasons)}`);
+      const started = priorVerdict([gen(), ...replays()], [start(6), start(4)]);
+      assert(started.verdict === 'fail' && hasReason(started.reasons, 'start line 1: priorCount 4, expected 6'), `a call that started elsewhere: ${started.verdict} ${JSON.stringify(started.reasons)}`);
+      const noPack = priorVerdict([gen({ outcome: 'no-pack', batchStatus: 'partial', calibrationWindow: undefined, madeRecords: undefined, packSha256: undefined }),
+        ...replays().map((row) => ({ ...row, result: { outcome: 'no-record', reason: 'no pack' } }))], []);
+      assert(noPack.verdict === 'incomplete' && hasReason(noPack.reasons, 'outcome no-pack'), `no pack: ${noPack.verdict} ${JSON.stringify(noPack.reasons)}`);
+      const clamped = priorVerdict([gen({ calibrationWindow: { wc: 40 }, madeRecords: [{ schema: 1, kind: 'calibration' }, candidate(40), candidate(40)] }), ...replays()], [start(28), start(28)]);
+      assert(clamped.verdict === 'pass', `a window count above K - 2 starts at K - 2: ${clamped.verdict} ${JSON.stringify(clamped.reasons)}`);
+      const unclamped = priorVerdict([gen({ calibrationWindow: { wc: 40 }, madeRecords: [{ schema: 1, kind: 'calibration' }, candidate(40), candidate(40)] }), ...replays()], [start(40), start(28)]);
+      assert(unclamped.verdict === 'fail' && hasReason(unclamped.reasons, 'start line 0: priorCount 40, expected 28'), `a start above K - 2: ${unclamped.verdict} ${JSON.stringify(unclamped.reasons)}`);
+      const algo = priorVerdict([gen({ madeRecords: [{ schema: 1, kind: 'calibration' }, candidate(6), candidate(6, 'gen-v4-proto:v4')] }), ...replays()], starts());
+      assert(algo.verdict === 'fail' && hasReason(algo.reasons, 'candidate 1: algo gen-v4-proto:v4, not gen-v4-proto:v4-ps'), `another arm's algo: ${algo.verdict} ${JSON.stringify(algo.reasons)}`);
+      const noWindow = priorVerdict([gen({ calibrationWindow: null }), ...replays()], starts());
+      assert(noWindow.verdict === 'fail' && hasReason(noWindow.reasons, 'window count is absent'), `no window count: ${noWindow.verdict} ${JSON.stringify(noWindow.reasons)}`);
+      const unjournaled = priorVerdict([gen(), ...replays()], []);
+      assert(unjournaled.verdict === 'incomplete' && hasReason(unjournaled.reasons, 'no batch start line'), `no batch start line: ${unjournaled.verdict} ${JSON.stringify(unjournaled.reasons)}`);
+      const noCandidate = priorVerdict([gen({ made: ['calibration'], puzzles: 1, madeRecords: [{ schema: 1, kind: 'calibration' }] }), replays()[0]], starts());
+      assert(noCandidate.verdict === 'incomplete' && hasReason(noCandidate.reasons, 'no candidate record'), `no candidate: ${noCandidate.verdict} ${JSON.stringify(noCandidate.reasons)}`);
+      const [calibration, first, second] = replays();
+      const mismatch = priorVerdict([gen(), calibration, { ...first, result: { ...first.result, status: 'mismatch', reason: 'stage' } }, second], starts());
+      assert(mismatch.verdict === 'fail' && hasReason(mismatch.reasons, 'replay: ') && hasReason(mismatch.reasons, 'replay mismatch (stage)'), `a replay that mismatched: ${mismatch.verdict} ${JSON.stringify(mismatch.reasons)}`);
+      const censored = priorVerdict([{ ...gen(), status: 'censored', result: { outcome: 'censored' } },
+        ...replays().map((row) => ({ ...row, result: { outcome: 'no-record', reason: 'no pack' } }))], []);
+      assert(censored.verdict === 'incomplete' && hasReason(censored.reasons, 'censored'), `a censored generation item: ${censored.verdict} ${JSON.stringify(censored.reasons)}`);
     },
   },
 ];

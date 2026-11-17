@@ -1,0 +1,9 @@
+{
+  "format": "ig-proto-items",
+  "version": 1,
+  "task": "V4-T05",
+  "step": "prior-gen",
+  "rows": [
+    { "kind": "v4-generate", "variant": "v4-ps", "caseId": "14x14-nightmare", "seedText": "ig-v4/prior/14x14-nightmare", "quantity": 3 }
+  ]
+}

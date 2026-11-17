@@ -1,0 +1,50 @@
+{
+  "id": "v4-ps",
+  "extends": ["v4"],
+  "description": "gen-v4 prototype with the per-set prior (V4-T05, plan P4 item 2): the calibration's window count starts every candidate's locate.",
+  "edits": [
+    {
+      "id": "ps-1",
+      "file": "core/engine/generate.js",
+      "find": "      certificate: cal.certificate,\n    },\n    attempt,\n",
+      "replace": "      certificate: cal.certificate,\n      igWindow: cal.igWindow ?? null,\n    },\n    attempt,\n"
+    },
+    {
+      "id": "ps-2",
+      "file": "core/engine/protocol.js",
+      "find": "'seenLayouts', 'seenClues', 'slot', 'attempt'],\n  },\n",
+      "replace": "'seenLayouts', 'seenClues', 'slot', 'attempt'],\n    optional: ['igPrior'],\n  },\n"
+    },
+    {
+      "id": "ps-3",
+      "file": "core/engine/protocol.js",
+      "find": "    return [set, targetLevelId, quantity, batchSeed, uniqueness, seenLayouts, seenClues, slot, attempt].includes(undefined)\n      ? undefined\n      : { set, targetLevelId, quantity, batchSeed, uniqueness, seenLayouts, seenClues, slot, attempt };\n",
+      "replace": "    const igPrior = o.igPrior === undefined ? null : readInt(ctx, o.igPrior, 'payload.igPrior', 1, 128);\n    return [set, targetLevelId, quantity, batchSeed, uniqueness, seenLayouts, seenClues, slot, attempt, igPrior].includes(undefined)\n      ? undefined\n      : { set, targetLevelId, quantity, batchSeed, uniqueness, seenLayouts, seenClues, slot, attempt, ...(igPrior === null ? {} : { igPrior }) };\n"
+    },
+    {
+      "id": "ps-4",
+      "file": "core/engine/tasks.js",
+      "find": "        seenClues: new Set(p.seenClues),\n        execution,\n      }, p.slot, p.attempt);\n",
+      "replace": "        seenClues: new Set(p.seenClues),\n        ...(p.igPrior === undefined ? {} : { igPrior: p.igPrior }),\n        execution,\n      }, p.slot, p.attempt);\n"
+    },
+    {
+      "id": "ps-5",
+      "file": "core/browser/generation-client.js",
+      "find": "      seenClues: [...frozen.seenClues],\n    };\n",
+      "replace": "      seenClues: [...frozen.seenClues],\n    };\n    const igPrior = igPriorOf(request.calibration, levelId, uniqueness);\n"
+    },
+    {
+      "id": "ps-6",
+      "file": "core/browser/generation-client.js",
+      "find": "'puzzleCandidate', { ...base, slot, attempt }",
+      "replace": "'puzzleCandidate', { ...base, ...igPrior, slot, attempt }"
+    },
+    {
+      "id": "ps-7",
+      "file": "core/browser/generation-client.js",
+      "append": "\n// ig-proto, variant v4-ps (V4-T05): the per-set prior of plan P4 item 2, under the match rule of\n// calibrationCandidate (generate.js): the calibration shows the target level, and `require` needs a unique\n// certificate. The completion pass gets no prior (its payload has no such field).\n/**\n * @param {any} cal The batch's usable calibration puzzle, or undefined.\n * @param {string} levelId\n * @param {'any' | 'require'} uniqueness\n * @returns {{ igPrior?: number }}\n */\nfunction igPriorOf(cal, levelId, uniqueness) {\n  if (cal === undefined || cal === null || cal.rating === null || cal.rating.level !== levelId) {\n    return {};\n  }\n  if (uniqueness === 'require' && cal.certificate?.status !== 'unique') {\n    return {};\n  }\n  const wc = cal.igWindow?.wc;\n  return Number.isInteger(wc) && wc >= 1 ? { igPrior: wc } : {};\n}\n"
+    }
+  ],
+  "files": [],
+  "params": { "perSetPrior": true }
+}

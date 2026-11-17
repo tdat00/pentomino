@@ -190,13 +190,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 11:35:01 +07:00 (dispatch, base `991520a`) to 12:07:32 +07:00 (acceptance): 32 min 31 s; the developer's own times 11:35:25-12:04:23 (about 18 min of it the plan run, mostly lock waits) |
+| Waiting for rulings | about 3 min (12:04:23 report to 12:07 ruling); no developer wait (no fix round). Lock waits for Sudoku's difficulty-v3: 1,002.5 s, counted at most 45 s per invocation |
+| Agent id, model | `20ddf77a-e861-4963-b1ac-933e980e5735`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 100 calls; 18,443,788 input, 74,058 output, 18,194,223 cache-read |
+| AI credits | 318.38 |
+| Questions and rulings | No `QUESTION:`. The developer's five deviations, two named items and four gaps were relayed to the pack author; all accepted (12:07): the match rule needs no unseen calibration keys (that condition is a duplicate check), and `v4-ps` records keep `priorTable` `prior-v1` (the table still starts the calibration, unmatched candidates and the completion pass); recorded in T05's Authority; pack amendment `382249e` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | Not re-run (the plan writes the evidence once): `prior.md` shows `prior: pass`; `invocations.jsonl`: 2 invocations, 186.1 s counted (task guard 450 s), round 2,560 s of 5,520 s. Unlocked gates re-run: `--items` 38 passed, 0 failed; `--frozen` 10 passed; `check-edits`: `v4` family 40 edits, `v4-ps` 47, no error; `tree.mjs build v4 v4-ps`: `v4` tree id `006431d6…` unchanged; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; firewall `check` (V4-T05): 289 production files unchanged; the guard `git status -- core generator tests tools/ig-proto/variants/files tools/ig-proto/variants/v4.json`: no output; `npm run check`: OK |
+| Commit | this task's commit, `improve-generating T05: Per-set prior (P4 part 2) in the prototype: value and transport` |
+| Issues and named items | None new; the arm's speed is stage 2's pilot (N-V4-02) |
