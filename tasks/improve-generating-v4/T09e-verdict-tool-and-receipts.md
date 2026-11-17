@@ -7,7 +7,7 @@
 | Depends on | T09d; T04d (`lib/proof.mjs`: `proofEnvelope`, `proofCheck`, `LIVE_DEADLINE_FIELDS`); T04f (`checkAccepted`) |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (claude-sonnet-5.5) |
-| Estimate | developer 3 h, machine 0 min (a reader and pure functions; synthetic cases, unlocked) |
+| Estimate | developer 3.5 h (3 h and a fix round of 0.5 h, ruling of 2026-11-17), machine 0 min (a reader and pure functions; synthetic cases, unlocked) |
 
 ## Goal
 
@@ -116,6 +116,19 @@ receipt that the comparator resolution (T11f) consumes.
    plan P3); and `phase0Verdict({ purpose, classes: [{ id, verdict }], cells: [{ cell, verdict }], controls: [{ cell,
    verdict }], masters: [{ cell, verdict }], p5: <the p5Stops results>, prerequisites: <step 1's output> })`, whose
    `deciding` list gives the reasons of the phase-0 line.
+3c. **Decided records are written once** (check-list §3.3 "A record is written once"; ruling of 2026-11-17, T09e's
+   report). Before it writes, `main` reads the task's existing records and refuses (stderr `verdicts: <reason>:
+   <path>`, exit 1, nothing written) when (a) the purpose is `selection` and
+   `docs/improve-generating/evidence/frozen/<task>/class-selection.json` exists with `verdict` `pass` (reason `a final
+   selection exists`), or (b) the purpose is `final` and `docs/improve-generating/evidence/frozen/<task>/verdicts.json`
+   exists with `phase0.verdict` `pass` or `fail` (reason `a decided phase 0 exists`). Otherwise the three records are
+   replaced: an interim (`incomplete`) selection or phase 0 is superseded once the collection is closed or a
+   prerequisite is accepted; a correction of a decided record is a new manifest `task`. The rule is the pure export
+   `decidedRecord(purpose, { selection, verdicts })` (the parsed existing files, each `null` when absent), which
+   returns the reason or `null`. `verdictRecords` also refuses the manifest (it throws, so `main` exits 1): (c) a
+   closure record whose `activation.sha256` is not the SHA-256 of the manifest's `collection.activation` (`the closure
+   belongs to another activation`); (d) with purpose `final`, a selection receipt whose `verdict` is not `pass` (`the
+   selection is not final`). The README's T09a section states the four refusals.
 4. **`data/verdict-manifest.example.json`**: T09a's schema with `task: 'V4-T09-example'`, `purpose: 'selection'`, one
    class `{ id: 'example', cells: ['26x26-nightmare'], screen: 'v4-link', noScreen: 'log-link' }` over T06a's
    published arms (`arms` with `task: 'V4-T06'`, the tree ids of T06a's published records and their runs files with
@@ -139,6 +152,7 @@ All in `tools/ig-proto/self-test.mjs --items`, on synthetic records with tempora
 | `verdicts: the selection binds its inputs` | the receipt of (a), then one journal file of `files` changed by one byte; then, instead, the verdict manifest changed | `proofCheck` against the receipt's own binding (`kind`, `source`, `harnessHash`, `arms`, `coverage.expected`): `pass`; then `incomplete`, `evidence changed <journal path>`; then `incomplete`, `evidence changed <manifest path>` |
 | `verdicts: a final verdict keeps its selection` | a final-purpose input whose recomputed shipped arm of one cell differs from the selection receipt's `selection.cells` | `Phase 0: FAIL (selection changed <cell>)` |
 | `verdicts: the work report` | a class whose screen arm has `lo` 800, `hi` 1,100 and the no-screen arm `lo` = `hi` = 1,000 over 10 accepted puzzles each, with 2 and 0 terminated calls | the class's `work` block: screen `loRatio` 80, `hiRatio` 110, width 30, `completedRatio` 80, `terminatedCalls` 2; no-screen width 0; `verdict` `unknown` (T09c) |
+| `verdicts: decided records are written once` (ruling of 2026-11-17, T09e's report) | `decidedRecord` with (a) `'selection'` and `{ selection: { verdict: 'pass' }, verdicts: null }`; (b) `'selection'` and `{ selection: { verdict: 'incomplete' }, verdicts: null }`; (c) `'final'` and `{ selection: null, verdicts: { phase0: { verdict: 'fail' } } }`; (d) `'final'` and `{ selection: null, verdicts: { phase0: { verdict: 'incomplete' } } }`; (e) both `null`; then `verdictRecords` with (f) the in-memory repository of `verdicts: the selection binds its inputs` and a closure whose `activation.sha256` is another file's; (g) the final-purpose input of `verdicts: a final verdict keeps its selection` with its selection receipt's `verdict` set to `incomplete` | (a) `a final selection exists`; (b) `null`; (c) `a decided phase 0 exists`; (d) `null`; (e) `null`; (f) throws `the closure belongs to another activation`; (g) throws `the selection is not final` |
 
 ## Documentation
 
@@ -179,6 +193,7 @@ All in `tools/ig-proto/self-test.mjs --items`, on synthetic records with tempora
 | T09e-T01 | A final verdict cannot change the selection it is based on | case 4 | self-test output |
 | T09e-T02 | The reader writes the records from real published rows | the example run | command output |
 | T09e-T03 | Nothing else changed; formats | guards; `npm run check` | command output |
+| T09e-T04 | A decided selection or phase 0 is never overwritten; a closure of another activation and an interim selection under a final manifest are refused | case `verdicts: decided records are written once` | self-test output |
 
 ## Checklist (the developer confirms every item in the final report)
 
