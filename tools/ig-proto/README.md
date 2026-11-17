@@ -741,6 +741,36 @@ changes no result` runs a call with and without a journal).
   `bound: the journal changes no result`
   run in the `--v4` group (through the lock helper, task id `V4-T02d`).
 
+### P5 call budget (V4-T07a)
+
+P5 makes a `gen-v4` call end by its work, not by the clock: `ig-select-v4.js` meters every unit `charge` receives (the
+main plus census work of every rating, the row trials of every uniqueness count) and stops the call when the budget is
+spent. The budget is `ctx.igBudget` when set, else `callBudgetOf(IG.callBudget, target)`: the table's value for the
+target's level id, else its `default`, and infinite (never stops) without a table or a positive number, so every arm
+without `IG.callBudget` (every arm of this pack until T07b's `v4-p5`) behaves as before and the metering only observes.
+
+- **Checks.** Before every rating (search, re-rating and repair ratings, as the first statement of `rateOnce`, before
+  its begin line), before the first count of a repair (before its begin line) and before every further count (in the
+  `onAdd` hook of `makeUnique`, before its begin line). A stopped primitive writes no begin line (IG-P-Q37), so a
+  journal has as many `begin` lines as `p` and `count` lines. The check is `spent >= budget`: the running primitive
+  finishes and is charged in full (the overshoot is recorded), and after exhaustion no operation starts.
+- **The end.** The search catches the stop at its top level: the result is the best already finished final result of
+  the finals cache (the existing centre and tie order, no new work: `chooseBest` is not called), else `{ ok: false,
+  reason: 'not-in-band' }`. A repair interrupted by the stop is never accepted (its candidate stays unfinished), no
+  event records the budget end (the event kinds stay those of D-V4-06), and the skip verification and the observers'
+  exceptions are kept (`verifyConsumed()` runs before either result).
+- **Journal.** The `end` line's `locate` block has `spent` (the units metered, always) and, only when the budget ended
+  the call, `budgetStop: { limit, spent, overshoot }` (`overshoot = spent - limit`). The `count` lines and
+  `locate.countWork` are T02a's and T02d's and keep their meaning.
+- **Seams** (self-test only): `ctx.igBudget` (a number) replaces the table; `ctx.igChargeKinds` (an array) receives one
+  kind per metered unit, `rate:<journal phase>` (`rate:locate`, `rate:window`, `rate:p2`, `rate:beam`, `rate:rescue`,
+  `rate:rerate`, `rate:repair`) or `count`.
+- **Self-test.** `v4Call(name, spec)` also accepts `spec.extra` (merged last into the context; `extra.charge: true`
+  installs a `charge` that logs its units) and returns `chargeLog` and `kinds` (`extra.igChargeKinds`). The three cases
+  `p5: call budget stops deterministically`, `p5: budget sweep (S1, S2)` (budgets at the prefix sums of the unbudgeted
+  charge log: the charge log and the kinds of each run are the unbudgeted prefix) and `p5: budget end with unfinished
+  candidates, every observer mode` run in the `--v4` group (through the lock helper, task id `V4-T07a`).
+
 ## Bounded measurement items (task pack v4)
 
 `lib/items.mjs` (V4-T04a; reviews R05 and RV2-01; D-V4-14) is the runner every later measurement of the frozen round

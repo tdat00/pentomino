@@ -206,13 +206,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 12:41:48 +07:00 (dispatch, base `9f5fb57`) to 13:01:13 +07:00 (acceptance): 19 min 25 s; the developer's own times 12:42:12-12:55:16 |
+| Waiting for rulings | about 6 min (12:55:16 report to 13:01 ruling); no developer wait (no fix round) |
+| Agent id, model | `b77c2308-5b1d-4cc1-993d-1731188dda8b`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 77 calls; 12,605,525 input, 67,661 output, 12,400,900 cache-read |
+| AI credits | 242.82 |
+| Questions and rulings | No `QUESTION:`. The moved `v4`-family tree ids (`check-binding --current v4` stale), three deviations, four named items and three gaps were relayed to the pack author; all accepted (13:01): the move is intended (no parameters changed; consumers of the stage-1 binding declare `current: []`; P-0 re-checks the final trees; the register lists the ids); case 16's text corrected; T07b gains a budget-stopped replay case (T07b-T05) and a no-repair-event assert; T11d's Authority notes the move; pack amendment `69e7473` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `--v4` through the lock helper (`V4-T07a-verify`): 18 passed, 0 failed, `IG … exit=0 seconds=7.786` (P5 sweeps S1 5 operations / 5 budgets, S2 55 / 10); `--items`: 44 passed; `--frozen`: 10 passed; `check-edits`: `v4` 40 edits, no error; stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass (`--current v4`: stale, exit 2, intended); firewall `check` (V4-T07a): 289 production files unchanged; `npm run check`: OK. No machine time counted (round 2,724 s of 5,520 s) |
+| Commit | this task's commit, `improve-generating T07a: P5 in the prototype: the per-call work budget` |
+| Issues and named items | The `v4`-family tree ids moved (v4 `006431d6…` to `61729ef5…` and six others; check-list register); none new |

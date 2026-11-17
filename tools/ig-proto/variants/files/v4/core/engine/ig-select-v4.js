@@ -9,7 +9,9 @@
 //   P2  every probe is rated under a lowered main-work limit W (the screen); a run whose main-phase work is at most W
 //       is the canonical rating, a run above it is screen-capped, steers only and is never accepted;
 //   P3  a screen-capped profile reads as "too few clues", a sided result;
-//   P4  the start count comes from the table prior (IG.prior), else from K - U0 (`step0` is 1 with a prior, U0 without).
+//   P4  the start count comes from the table prior (IG.prior), else from K - U0 (`step0` is 1 with a prior, U0 without);
+//   P5  (V4-T07a) the call ends when its work budget (IG.callBudget, or the seam ctx.igBudget) is spent: checked before
+//       every rating and every uniqueness count, it returns the best already finished result or `not-in-band`.
 // Kept from the frozen search: `SelectContext` and `SelectResult`, the `record` events with their `detail` from the
 // same measurement, one `charge` per rating attempt and per repair count (before the event), `replaySkips` and
 // `SkipReplayError`, `conclude`, the repairs and the centre rule. The copy's `selectClues` sends only Nightmare and
@@ -61,6 +63,24 @@ class Final {
   constructor(res) {
     this.res = res;
   }
+}
+
+/** The end of a call whose work budget is spent (P5, R10): it unwinds to `searchV4`, which ends the call. */
+class BudgetStop {}
+
+/**
+ * The work budget of a selection call in units (P5): the table's value for the target's level, else its `default`;
+ * infinite (never stops) without a table or a positive number.
+ * @param {any} table `IG.callBudget`: `{ <level id>: units, default: units }`.
+ * @param {{ id?: string }} target
+ * @returns {number}
+ */
+export function callBudgetOf(table, target) {
+  if (table === undefined || table === null) {
+    return Infinity;
+  }
+  const v = table[/** @type {string} */ (target.id)] ?? table.default;
+  return typeof v === 'number' && v > 0 ? v : Infinity;
 }
 
 /** @param {number} x @param {number} lo @param {number} hi @returns {number} */
@@ -216,7 +236,9 @@ export function igRatingBound(board, pieces, clues, limits) {
 /**
  * Selects a subset of the witness whose measured score lies in the target band (the contract of `selectClues`).
  * Test seams (self-test only): `ctx.igScreen(clues, W)` and `ctx.igCanonical(clues)` replace the screened and the
- * canonical rating, `ctx.igPrior` the table prior, `ctx.igW` the screen limit of the call.
+ * canonical rating, `ctx.igPrior` the table prior, `ctx.igW` the screen limit of the call, `ctx.igBudget` (a number
+ * of units) the call budget of `IG.callBudget` (P5), and `ctx.igChargeKinds` (an array) receives one kind per metered
+ * unit: `rate:<journal phase>` or `count`.
  * @param {any} ctx
  * @returns {any}
  */
@@ -333,6 +355,30 @@ function searchV4(ctx, call, loc, W, prior, markNoWindow) {
   /** @type {(count: number) => number[]} The nested family of phase A, assigned there. */
   let fam;
 
+  const budget = ctx.igBudget ?? callBudgetOf(IG.callBudget, target);
+  let spent = 0;
+  loc.spent = 0;
+  // Every metered unit (P5, R10): charged to the observer and the budget, with its kind for the test seam.
+  /** @param {number} u @param {string} kind */
+  const meter = (u, kind) => {
+    spent += u;
+    loc.spent = spent;
+    ctx.igChargeKinds?.push(kind);
+    charge?.(u);
+  };
+  // The count hook, metered (the journal line and `loc.countWork` stay as they were).
+  /** @param {number} u */
+  const meterCount = (u) => {
+    igCountLine(call.id, u);
+    loc.countWork += u;
+    meter(u, 'count');
+  };
+  const checkBudget = () => {
+    if (spent >= budget) {
+      throw new BudgetStop();
+    }
+  };
+
   /**
    * @param {Pose[]} clues
    * @returns {{ rating: Rating, detail: RatingDetail | null }} The canonical rating of a subset or a repaired set.
@@ -380,6 +426,7 @@ function searchV4(ctx, call, loc, W, prior, markNoWindow) {
    *   propagates.
    */
   const rateOnce = (clues, mode, phase) => {
+    checkBudget();
     igBeginLine(call.id, mode === 'screen' && screened ? 'screen' : 'rate',
       igRatingBound(board, pieces, clues, mode === 'screen' && screened ? screenLimits.deduce : DEDUCE));
     /** @type {RatingDetail | null} */
@@ -396,11 +443,11 @@ function searchV4(ctx, call, loc, W, prior, markNoWindow) {
       if (!(error instanceof IncompleteRatingError)) {
         throw error;
       }
-      charge?.(error.counters.work);
+      meter(error.counters.work, `rate:${phase}`);
       return { capped: true, screenCapped: mode === 'screen' && screened };
     }
     const m = rating.metrics;
-    charge?.(typeof m?.work === 'number' && Number.isFinite(m.work) ? m.work : 0);
+    meter(typeof m?.work === 'number' && Number.isFinite(m.work) ? m.work : 0, `rate:${phase}`);
     if (mode === 'screen' && screened && m.work - m.censusWork > W) {
       return { capped: true, screenCapped: true };
     }
@@ -528,6 +575,7 @@ function searchV4(ctx, call, loc, W, prior, markNoWindow) {
       origins.set(final, { sequence: c.seq, repairSequence: null });
       return final;
     }
+    checkBudget();
     const ordinal = repairOrdinal;
     repairOrdinal += 1;
     /** @type {{ addedId: string, clues: Pose[] }[]} */
@@ -539,14 +587,11 @@ function searchV4(ctx, call, loc, W, prior, markNoWindow) {
           steps.push({ addedId, clues: ownPoses(sortLike(layout, list)) });
         }
         if (list.length <= K - 2) {
+          checkBudget();
           igBeginLine(call.id, 'count', rowLimit);
         }
       },
-      onCount: (u) => {
-        igCountLine(call.id, u);
-        loc.countWork += u;
-        charge?.(u);
-      },
+      onCount: meterCount,
     });
     /** @typedef {NonNullable<Extract<ClueEvent, { kind: 'repair' }>['reason']>} RepairReason */
     /**
@@ -690,6 +735,24 @@ function searchV4(ctx, call, loc, W, prior, markNoWindow) {
       }
       finishOnce(pick);
     }
+  };
+
+  // The best final result already finished (R10): the existing centre and tie order, no new work.
+  const bestFinished = () => {
+    let pick = null;
+    let pickDistance = Infinity;
+    for (const c of (finite ? ranked(target, inBandList) : inBandList)) {
+      const final = finals.get(c.idx.join(','));
+      if (final === undefined || final === null) {
+        continue;
+      }
+      const distance = finite ? Math.abs(final.rating.score - centre) : 0;
+      if (pick === null || distance < pickDistance) {
+        pick = final;
+        pickDistance = distance;
+      }
+    }
+    return pick;
   };
 
   /**
@@ -1147,6 +1210,15 @@ function searchV4(ctx, call, loc, W, prior, markNoWindow) {
     verifyConsumed();
     return { ok: false, reason: unproved ? 'uniqueness-not-proved' : 'not-in-band' };
   } catch (e) {
+    if (e instanceof BudgetStop) {
+      loc.budgetStop = { limit: budget, spent, overshoot: spent - budget };
+      const best = bestFinished();
+      if (best !== null) {
+        return conclude(best);
+      }
+      verifyConsumed();
+      return { ok: false, reason: 'not-in-band' };
+    }
     if (e instanceof Final) {
       return conclude(e.res);
     }

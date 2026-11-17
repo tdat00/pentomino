@@ -38,7 +38,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 - [x] T05 Per-set prior (P4 part 2) in the prototype: value and transport (depends on T04f)
 - [x] T06a Journal linkage of the batch and accept timelines (depends on T05)
 - [x] T06b Journal closures for the work ledger: task identities and confirmed worker terminations (depends on T06a)
-- [ ] T07a P5 in the prototype: the per-call work budget (depends on T06b)
+- [x] T07a P5 in the prototype: the per-call work budget (depends on T06b)
 - [ ] T07b P5 in the prototype: bounded set attempts, the arm `v4-p5`, pool invariance (depends on T07a)
 - [ ] T08 Frozen-round variants: the `W_screen` class table, bracket-close re-rating (D-IG7) and the (c4) probe (depends on T07b)
 - [ ] T09a Admission statistics of plan §5.2: valid rows, completion apart from the deadline, per-puzzle evidence (depends on T08)
@@ -481,8 +481,8 @@ directory once both `$env:TEMP\dv3-sudoku.lock` and `$env:TEMP\dv3-timing.lock` 
 | T04f | 2026-11-17 11:19 | 2026-11-17 11:34 | 15 min | 244.43 | `991520a` |
 | T05 | 2026-11-17 11:35 | 2026-11-17 12:07 | 33 min | 318.38 | `cc9f571` |
 | T06a | 2026-11-17 12:07 | 2026-11-17 12:28 | 21 min | 318.18 | `100bb05` |
-| T06b | 2026-11-17 12:29 | 2026-11-17 12:41 | 12 min | 198.99 | this task's commit |
-| T07a | | | | | |
+| T06b | 2026-11-17 12:29 | 2026-11-17 12:41 | 12 min | 198.99 | `9f5fb57` |
+| T07a | 2026-11-17 12:41 | 2026-11-17 13:01 | 19 min | 242.82 | this task's commit |
 | T07b | | | | | |
 | T08 | | | | | |
 | T09a | | | | | |

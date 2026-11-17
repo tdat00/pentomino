@@ -2592,15 +2592,17 @@ const p6Cases = [
  * copy of `protoCall` whose default variant is `v4` (the tree's `selectClues` sends BAND, min 55, to `selectCluesV4`).
  * @param {string} name
  * @param {{ prior: number | null, screen: (c: number) => any, canon?: (c: number) => any, variant?: string,
- *   stage?: string, uniqueness?: 'any' | 'require', journal?: boolean }} spec
+ *   stage?: string, uniqueness?: 'any' | 'require', journal?: boolean, extra?: Record<string, any> }} spec
  *   A function returns a rating or 'cap' (an IncompleteRatingError); `variant` and `stage` default to v4 and set;
  *   `uniqueness` (default 'any') is the context's; with `journal: false` (default true) the fresh folder is made as
- *   before but `IG_LOG_DIR` and `IG_ROW` are unset, so the call writes no journal.
+ *   before but `IG_LOG_DIR` and `IG_ROW` are unset, so the call writes no journal; `extra` is merged last into the
+ *   context, and its `charge: true` installs a `charge` that logs its units in `chargeLog` (T07a).
  * @returns {Promise<{ result: any, lines: any[], tuples: any[], counts: (phase: string) => number[], end: any,
- *   phases: string[], files: string[] }>} `files` are the journal files written.
+ *   phases: string[], files: string[], chargeLog: number[], kinds: string[] | undefined }>} `files` are the journal
+ *   files written; `kinds` is `extra.igChargeKinds`.
  */
 async function v4Call(name, {
-  prior, screen, canon = screen, variant = 'v4', stage = 'set', uniqueness = 'any', journal = true,
+  prior, screen, canon = screen, variant = 'v4', stage = 'set', uniqueness = 'any', journal = true, extra = {},
 }) {
   const { e, ws } = await engine(variant);
   const { carved } = await k15Set();
@@ -2611,6 +2613,8 @@ async function v4Call(name, {
     }
     return r;
   };
+  /** @type {number[]} */
+  const chargeLog = [];
   const dir = fresh(join(SELFTEST_DIR, 'logs', `v4-${name}`));
   if (journal) {
     process.env.IG_LOG_DIR = dir;
@@ -2625,6 +2629,8 @@ async function v4Call(name, {
       board: carved.board, pieces: carved.set.pieces, layout: carved.set.witness, target: BAND,
       rng: e.rng.createRng(e.rng.normalizeSeedText('ig-selftest/proto/p1'), `selftest/${name}`), uniqueness,
       excludeClueKeys: new Set(), ws, igScreen: make(screen), igCanonical: make(canon), igPrior: prior, igStage: stage,
+      ...extra,
+      ...(extra.charge === true ? { charge: (/** @type {number} */ u) => chargeLog.push(u) } : {}),
     });
   } finally {
     delete process.env.IG_LOG_DIR;
@@ -2635,7 +2641,7 @@ async function v4Call(name, {
   const counts = (/** @type {string} */ phase) => tuples.filter((t) => t[0] === phase).map((t) => t[1]);
   return {
     result, lines, tuples, counts, end: lines.find((l) => l.t === 'end'), phases: lines.filter((l) => l.t === 'phase').map((l) => l.phase),
-    files: readdirSync(dir),
+    files: readdirSync(dir), chargeLog, kinds: extra.igChargeKinds,
   };
 }
 
@@ -2797,6 +2803,21 @@ function journaled(name, fn) {
     delete process.env.IG_ROW;
   }
   return { result, error, lines: readJournal(dir) };
+}
+
+/** @param {number[]} L The units of the metered operations in order. @returns {number[]} P[0] = 0, P[j] = L[0] + ... + L[j - 1]. */
+function prefix(L) {
+  const P = [0];
+  for (const u of L) {
+    P.push(P[P.length - 1] + u);
+  }
+  return P;
+}
+
+/** @param {number[]} P @param {number} B @returns {number} The least j with P[j] >= B: the operations a budget B lets run (L.length when none). */
+function m(P, B) {
+  const j = P.findIndex((x) => x >= B);
+  return j === -1 ? P.length - 1 : j;
 }
 
 const v4Cases = [
@@ -3374,6 +3395,131 @@ const v4Cases = [
       assert(journaledCall.result.ok === true && journaledCall.files.length > 0, `the journaled call: ok ${journaledCall.result.ok}, ${journaledCall.files.length} journal files`);
       same(silent.result, journaledCall.result, `the journal changed the result: ${JSON.stringify(silent.result)} against ${JSON.stringify(journaledCall.result)}`);
       same(silent.files, [], `the call without a journal wrote ${JSON.stringify(silent.files)}`);
+    },
+  },
+  {
+    name: 'p5: call budget stops deterministically',
+    async run() {
+      const spec = { prior: null, screen: () => 'cap', canon: (/** @type {number} */ c) => synthetic(100 - 10 * c) };
+      const limit = 1520000000;
+      // One name for every run: the rng stream and the journal row come from it, so the runs are the same input.
+      const a = await v4Call('budget', { ...spec, extra: { igBudget: limit } });
+      const b = await v4Call('budget', { ...spec, extra: { igBudget: limit } });
+      for (const [what, r] of /** @type {[string, any][]} */ ([['first', a], ['second', b]])) {
+        same(r.counts('locate'), [7, 13], `${what} run: locate counts ${JSON.stringify(r.counts('locate'))}`);
+        same(r.counts('rescue'), [], `${what} run: rescue counts ${JSON.stringify(r.counts('rescue'))}`);
+        same(r.end.locate.budgetStop, { limit, spent: limit, overshoot: 0 }, `${what} run: budgetStop ${JSON.stringify(r.end.locate.budgetStop)}`);
+        same(r.result, { ok: false, reason: 'not-in-band' }, `${what} run: result ${JSON.stringify(r.result)}`);
+      }
+      same(a.result, b.result, 'the results of the two budgeted runs differ');
+      same(stable(a.lines), stable(b.lines), 'the journals of the two budgeted runs differ');
+      const free = await v4Call('budget', spec);
+      same(free.counts('rescue'), [13, 7], `without a budget: rescue counts ${JSON.stringify(free.counts('rescue'))}`);
+      assert(free.end.locate.budgetStop === undefined, 'a call without a budget journals a budgetStop');
+    },
+  },
+  {
+    name: 'p5: budget sweep (S1, S2)',
+    async run() {
+      const { e } = await engine('v4');
+      const CATEGORIES = ['search', 're-rating', 'first count', 'count after count', 'repair rating'];
+      const categoryOf = (/** @type {string[]} */ K, /** @type {number} */ j) => {
+        const kind = K[j];
+        if (kind === 'count') {
+          return j > 0 && K[j - 1] === 'count' ? 'count after count' : 'first count';
+        }
+        if (['rate:locate', 'rate:window', 'rate:p2', 'rate:beam'].includes(kind)) {
+          return 'search';
+        }
+        if (kind === 'rate:rescue' || kind === 'rate:rerate') {
+          return 're-rating';
+        }
+        assert(kind === 'rate:repair', `unknown charge kind ${kind} at index ${j}`);
+        return 'repair rating';
+      };
+      const begins = (/** @type {string} */ what, /** @type {any[]} */ lines) => {
+        const begin = lines.filter((l) => l.t === 'begin').length;
+        const done = lines.filter((l) => l.t === 'p' || l.t === 'count').length;
+        assert(begin === done, `${what}: ${begin} begin lines against ${done} rating and count lines`);
+      };
+      /** @type {Set<string>} */
+      const covered = new Set();
+      /** @type {Record<string, string[]>} */
+      const logs = {};
+      for (const [label, spec] of /** @type {[string, typeof BEGIN_CALL][]} */ ([['S1', BEGIN_CALL], ['S2', BEGIN_CALL_2]])) {
+        const name = `sweep-${label}`;
+        const U = await v4Call(name, { ...spec, extra: { charge: true, igChargeKinds: [] } });
+        const L = U.chargeLog;
+        const K = /** @type {string[]} */ (U.kinds);
+        const n = L.length;
+        logs[label] = K;
+        assert(n > 0 && L.length === K.length, `${label}: ${L.length} charges against ${K.length} kinds`);
+        begins(`${label} unbudgeted`, U.lines);
+        const P = prefix(L);
+        /** @type {Map<string, number[]>} */
+        const byCategory = new Map();
+        K.forEach((_, j) => {
+          const c = categoryOf(K, j);
+          byCategory.set(c, [...(byCategory.get(c) ?? []), j]);
+        });
+        const sweep = new Set([0, n - 1]);
+        for (const [c, list] of byCategory) {
+          covered.add(c);
+          list.slice(0, 3).forEach((j) => sweep.add(j));
+        }
+        process.stdout.write(`NOTE p5 sweep ${label}: ${n} operations, ${sweep.size} budgets; ${[...byCategory].map(([c, list]) => `${c} ${list.length}`).join(', ')}\n`);
+        for (const i of [...sweep].sort((x, y) => x - y)) {
+          const B = P[i];
+          const text = `${label}, budget ${B} (index ${i}, kind ${K[i]})`;
+          const run = await v4Call(name, { ...spec, extra: { charge: true, igChargeKinds: [], igBudget: B } });
+          const j = m(P, B);
+          same(run.chargeLog, L.slice(0, j), `${text}: the charge log is not the first ${j} charges of the unbudgeted run`);
+          same(run.kinds, K.slice(0, j), `${text}: the kinds are not the first ${j} of the unbudgeted run`);
+          const r = run.result;
+          if (r.ok === true) {
+            assert(e.difficulty.inBand(r.rating, BAND) && r.certificate?.status === 'unique', `${text}: an ok result that is out of the band or not unique: ${JSON.stringify(r)}`);
+          } else {
+            assert(r.ok === false && ['not-in-band', 'uniqueness-not-proved'].includes(r.reason), `${text}: result ${JSON.stringify(r)}`);
+          }
+          const stop = run.end.locate.budgetStop;
+          if (j < n) {
+            same(stop, { limit: B, spent: P[j], overshoot: P[j] - B }, `${text}: budgetStop ${JSON.stringify(stop)}`);
+          } else {
+            assert(stop === undefined, `${text}: a budgetStop ${JSON.stringify(stop)} although every operation ran`);
+          }
+          assert(run.end.locate.spent === P[j], `${text}: locate.spent ${run.end.locate.spent}, expected ${P[j]}`);
+          begins(text, run.lines);
+        }
+      }
+      for (const c of CATEGORIES) {
+        assert(covered.has(c), `no index of the category "${c}" in S1 or S2; the kind logs: ${JSON.stringify(logs)}`);
+      }
+    },
+  },
+  {
+    name: 'p5: budget end with unfinished candidates, every observer mode',
+    async run() {
+      const name = 'endmodes';
+      const U = await v4Call(name, { ...BEGIN_CALL_2, extra: { charge: true, igChargeKinds: [] } });
+      const L = U.chargeLog;
+      const f = /** @type {string[]} */ (U.kinds).indexOf('count');
+      assert(f > 0, `S2's first count is at index ${f}`);
+      const B = prefix(L)[f];
+      /** @type {any[]} */
+      const events = [];
+      const A = await v4Call(name, { ...BEGIN_CALL_2, extra: { igBudget: B } });
+      const Bm = await v4Call(name, { ...BEGIN_CALL_2, extra: { igBudget: B, charge: true, igChargeKinds: [] } });
+      const C = await v4Call(name, {
+        ...BEGIN_CALL_2, extra: { igBudget: B, charge: true, igChargeKinds: [], record: (/** @type {any} */ ev) => events.push(ev) },
+      });
+      same(A.result, { ok: false, reason: 'not-in-band' }, `no observer: ${JSON.stringify(A.result)}`);
+      same(Bm.result, A.result, `charge only: ${JSON.stringify(Bm.result)}`);
+      same(C.result, A.result, `charge and record: ${JSON.stringify(C.result)}`);
+      same(Bm.chargeLog, L.slice(0, f), 'charge only: the charge log is not the units before the first count');
+      same(C.chargeLog, L.slice(0, f), 'charge and record: the charge log is not the units before the first count');
+      const inBandRated = events.filter((ev) => ev.kind === 'rated' && ev.rating.score >= 55 && ev.rating.score < 70);
+      assert(inBandRated.length >= 2, `${inBandRated.length} in-band rated events: two or more in-band candidates were not waiting`);
+      assert(!events.some((ev) => ev.kind === 'selected'), 'a selected event was recorded after the budget end');
     },
   },
 ];
