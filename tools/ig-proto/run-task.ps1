@@ -117,7 +117,7 @@ foreach ($step in $selected) {
     $helperInfo = $null
     $global:LASTEXITCODE = 0
     try {
-      Invoke-IgNode -Repo pentomino -Task "$task $($step.id)" -NodeArgs (@('--max-old-space-size=2048') + $nodeArgs + @('--horizon-s', "$horizon")) -InformationVariable helperInfo
+      Invoke-IgNode -Repo pentomino -Task "$task $($step.id)" -NodeArgs (@('--max-old-space-size=2048') + $nodeArgs + @('--horizon-s', "$horizon")) -LimitSeconds 900 -IdleQuietSeconds 15 -InformationVariable helperInfo
     } catch {
       $failed = $true
       $problem = $_.Exception.Message
@@ -128,19 +128,21 @@ foreach ($step in $selected) {
     $wall = ($end - $start).TotalSeconds
     $state = Read-State $step
     $fresh = ($null -ne $state) -and ($state.lastInvocation.start -ne $beforeStart)
-    # Node seconds: 300 when killed, else the step's state file, else what the lock helper printed ("IG <task>
-    # exit=<n> seconds=<s>"), else 0 (node never started). Never the wall time: the priority wait is not charged.
+    # Node seconds: 900 when killed, else the step's state file, else what the lock helper printed ("IG <task>
+    # exit=<n> seconds=<s> quiet=<q>"), else 0 (node never started). Never the wall time: the priority wait is not charged.
     $printed = $null
+    $quietS = $null
     foreach ($record in @($helperInfo)) {
       if ("$record" -match 'exit=-?\d+ seconds=(?<s>[0-9.]+)') { $printed = [double]::Parse($Matches['s'], $invariant) }
+      if ("$record" -match 'quiet=(?<q>\d+)') { $quietS = [int]$Matches['q'] }
     }
-    $node = if ($killed) { 300.0 } elseif ($fresh) { [double]$state.lastInvocation.seconds } elseif ($null -ne $printed) { $printed } else { 0.0 }
+    $node = if ($killed) { 900.0 } elseif ($fresh) { [double]$state.lastInvocation.seconds } elseif ($null -ne $printed) { $printed } else { 0.0 }
     $lockWait = [math]::Max(0.0, $wall - $node)
     $counted = $node + [math]::Min($lockWait, 45.0)
     $row = [ordered]@{
       task = $task; step = $step.id; start = $start.ToUniversalTime().ToString('o'); end = $end.ToUniversalTime().ToString('o')
       wallSeconds = [math]::Round($wall, 3); nodeSeconds = [math]::Round($node, 3); lockWaitSeconds = [math]::Round($lockWait, 3)
-      countedSeconds = [math]::Round($counted, 3); horizonS = $horizon; killed = $killed; exit = $exitCode
+      quietS = $quietS; countedSeconds = [math]::Round($counted, 3); horizonS = $horizon; killed = $killed; exit = $exitCode
       done = if ($fresh) { [bool]$state.done } else { $false }; budget = $decision
     }
     New-Item -ItemType Directory -Force -Path (Split-Path $invocationLog) | Out-Null

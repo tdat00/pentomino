@@ -419,12 +419,16 @@ export function conditionalActivated(runs) {
 // periods of the runners (R15, R2-12). A reserve controls admission only: it is never a duration or a ceiling (RV3-05, RV4-05).
 // The ceiling comes from the bounds the code enforces. Everything here is a pure function; nothing executes any part of the round.
 
-/** The horizon of an invocation (`lib/budget.mjs` `MAX_HORIZON_S`; the runner lowers it only when the allowance is short). */
-const HORIZON_S = 285;
-/** The quiet period counted per locked invocation at most (`lib/budget.mjs` `QUIET_S`; `run-task.ps1` counts `Math.Min($lockWait, 45)`). */
+/** The horizon of an invocation (`lib/budget.mjs` `MAX_HORIZON_S`: the owner's 900-s limit less 15 s; the runner lowers it only when the allowance is short). */
+const HORIZON_S = 885;
+/**
+ * The quiet period counted per locked invocation at most (`lib/budget.mjs` `QUIET_S`; `run-task.ps1` counts `Math.Min($lockWait, 45)`).
+ * The price reserves 45 s per invocation even where the idle quiet is 15 s: whether difficulty-v3 will be idle is not known when a plan
+ * is approved (fail-closed; the idle quiet can lower the quiet-period part of the spend, never the price).
+ */
 const QUIET_S = 45;
-/** The lock helper kills an invocation at this many node seconds (check-list 3.2). */
-const KILL_S = 300;
+/** The lock helper kills an invocation at this many node seconds (check-list 3.2: the owner's 900-s limit of 2026-11-17). */
+const KILL_S = 900;
 /** The parent cuts a running item at `horizonS - 15` (`lib/items.mjs`, `lib/lanes.mjs`). */
 const CUT_MARGIN_S = 15;
 /** A request row starts while `elapsed + rowLimitS + 10 <= horizonS` (`arm.mjs`). An assumption of the projection, not a deadline. */
@@ -435,7 +439,7 @@ const GROUP_START_S = 3;
 /** R15's planning projection of a request row, `1.25 x factor x refS` (a projection, not a bound) and the runner's guard (`1.25 x`). */
 const PROJECTION_FACTOR = 1.25;
 const GUARD_FACTOR = 1.25;
-/** The ceiling of one unit (a row or an item): at most one invocation per unit, each of at most 300 node seconds and 45 quiet seconds. */
+/** The ceiling of one unit (a row or an item): at most one invocation per unit, each of at most 900 node seconds and 45 quiet seconds. */
 const CEILING_PER_UNIT_S = KILL_S + QUIET_S;
 
 /** The assumptions and bounds of the pricing, for the manifest to print (V4-T11g); the simulations read these values. */
@@ -460,7 +464,7 @@ function fromZero(name, value) {
   return value;
 }
 
-/** @param {unknown} value @returns {number} The horizon; one above the runner's 285 s is no schedule the runner executes (the ceiling rests on it). */
+/** @param {unknown} value @returns {number} The horizon; one above the runner's 885 s is no schedule the runner executes (the ceiling rests on it). */
 function horizonOf(value) {
   if (positive('horizonS', value) > HORIZON_S) {
     throw new RangeError(`manifest: horizonS must be at most ${HORIZON_S}, got ${String(value)}`);
@@ -688,7 +692,7 @@ export function simulateProcess({ durationsS, reserveS, horizonS = HORIZON_S, st
  * @property {number} quietS
  * @property {number} countedS
  * @property {number} guardS
- * @property {number} ceilingS The hard ceiling from the enforced bounds: `units x 345` (the lock helper's 300 node seconds and 45 quiet
+ * @property {number} ceilingS The hard ceiling from the enforced bounds: `units x 945` (the lock helper's 900 node seconds and 45 quiet
  *   seconds per invocation; an invocation that records no progress stops the plan, so every invocation that does not ends at least
  *   one unit and a step has at most `units` invocations). A request row has no enforced end inside an invocation: no tighter row ceiling is claimed.
  * @property {number} ceilingInvocations `units`, the rows or the items of the step.

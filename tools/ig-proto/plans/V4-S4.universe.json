@@ -30,8 +30,8 @@
             "rowS": 182.36532397043172,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4/fr-frozen-none/val-14x14-nightmare",
@@ -57,8 +57,8 @@
             "rowS": 182.36532397043172,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4/fr-frozen/val-15x15b10-nightmare",
@@ -84,8 +84,8 @@
             "rowS": 159.20788804542886,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4/fr-frozen-none/val-15x15b10-nightmare",
@@ -111,8 +111,8 @@
             "rowS": 159.20788804542886,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4/fr-frozen/val-12x12-nightmare",
@@ -138,8 +138,8 @@
             "rowS": 83.51265067325666,
             "rowLimitS": 130
           },
-          "projectS": 1690.253013465133,
-          "invocations": 10
+          "projectS": 1676.253013465133,
+          "invocations": 3
         },
         {
           "id": "V4-S4/fr-frozen-none/val-12x12-nightmare",
@@ -165,8 +165,8 @@
             "rowS": 83.51265067325666,
             "rowLimitS": 130
           },
-          "projectS": 1690.253013465133,
-          "invocations": 10
+          "projectS": 1676.253013465133,
+          "invocations": 3
         },
         {
           "id": "V4-S4/fr-frozen/val-16x16-nightmare",
@@ -192,8 +192,8 @@
             "rowS": 123.3058770850932,
             "rowLimitS": 130
           },
-          "projectS": 2486.1175417018644,
-          "invocations": 10
+          "projectS": 2472.117541701864,
+          "invocations": 3
         },
         {
           "id": "V4-S4/fr-frozen-none/val-16x16-nightmare",
@@ -219,8 +219,8 @@
             "rowS": 123.3058770850932,
             "rowLimitS": 130
           },
-          "projectS": 2486.1175417018644,
-          "invocations": 10
+          "projectS": 2472.117541701864,
+          "invocations": 3
         },
         {
           "id": "V4-S4/fr-frozen/val-15x20-nightmare",
@@ -246,8 +246,8 @@
             "rowS": 81.51445096127387,
             "rowLimitS": 130
           },
-          "projectS": 1650.289019225477,
-          "invocations": 10
+          "projectS": 1634.289019225477,
+          "invocations": 2
         },
         {
           "id": "V4-S4/fr-frozen-none/val-15x20-nightmare",
@@ -273,8 +273,8 @@
             "rowS": 81.51445096127387,
             "rowLimitS": 130
           },
-          "projectS": 1650.289019225477,
-          "invocations": 10
+          "projectS": 1634.289019225477,
+          "invocations": 2
         },
         {
           "id": "V4-S4/fr-frozen/val-26x26-hell-1",
@@ -300,8 +300,8 @@
             "rowS": 201.52751563695938,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4/fr-frozen-none/val-26x26-hell-1",
@@ -327,8 +327,8 @@
             "rowS": 201.52751563695938,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4/fr-frozen/val-20x20-hell-1",
@@ -354,8 +354,8 @@
             "rowS": 130,
             "rowLimitS": 130
           },
-          "projectS": 2620,
-          "invocations": 10
+          "projectS": 2608,
+          "invocations": 4
         },
         {
           "id": "V4-S4/fr-frozen-none/val-20x20-hell-1",
@@ -381,8 +381,8 @@
             "rowS": 130,
             "rowLimitS": 130
           },
-          "projectS": 2620,
-          "invocations": 10
+          "projectS": 2608,
+          "invocations": 4
         },
         {
           "id": "V4-S4/fr-frozen/val-3x29-nightmare",
@@ -462,8 +462,8 @@
             "rowS": 6.972338730636936,
             "rowLimitS": 260
           },
-          "projectS": 159.44677461273872,
-          "invocations": 10
+          "projectS": 141.44677461273872,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/val-10x10-nightmare",
@@ -489,8 +489,8 @@
             "rowS": 31.277429523023265,
             "rowLimitS": 130
           },
-          "projectS": 633.5485904604653,
-          "invocations": 4
+          "projectS": 627.5485904604652,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen-none/val-10x10-nightmare",
@@ -516,8 +516,8 @@
             "rowS": 31.277429523023265,
             "rowLimitS": 130
           },
-          "projectS": 633.5485904604653,
-          "invocations": 4
+          "projectS": 627.5485904604652,
+          "invocations": 1
         },
         {
           "id": "V4-S4/log-link/val-10x10-nightmare",
@@ -543,8 +543,8 @@
             "rowS": 31.277429523023265,
             "rowLimitS": 260
           },
-          "projectS": 665.5485904604651,
-          "invocations": 20
+          "projectS": 627.5485904604652,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/val-18x18-nightmare",
@@ -570,8 +570,8 @@
             "rowS": 47.87882127231746,
             "rowLimitS": 130
           },
-          "projectS": 971.5764254463493,
-          "invocations": 7
+          "projectS": 961.5764254463494,
+          "invocations": 2
         },
         {
           "id": "V4-S4/fr-frozen-none/val-18x18-nightmare",
@@ -597,8 +597,8 @@
             "rowS": 47.87882127231746,
             "rowLimitS": 130
           },
-          "projectS": 971.5764254463493,
-          "invocations": 7
+          "projectS": 961.5764254463494,
+          "invocations": 2
         },
         {
           "id": "V4-S4/log-link/val-18x18-nightmare",
@@ -624,8 +624,8 @@
             "rowS": 47.87882127231746,
             "rowLimitS": 260
           },
-          "projectS": 997.5764254463496,
-          "invocations": 20
+          "projectS": 961.5764254463493,
+          "invocations": 2
         },
         {
           "id": "V4-S4/fr-frozen/val-18x20-nightmare",
@@ -651,8 +651,8 @@
             "rowS": 21.6901913071086,
             "rowLimitS": 130
           },
-          "projectS": 439.80382614217194,
-          "invocations": 3
+          "projectS": 435.8038261421719,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen-none/val-18x20-nightmare",
@@ -678,8 +678,8 @@
             "rowS": 21.6901913071086,
             "rowLimitS": 130
           },
-          "projectS": 439.80382614217194,
-          "invocations": 3
+          "projectS": 435.8038261421719,
+          "invocations": 1
         },
         {
           "id": "V4-S4/log-link/val-18x20-nightmare",
@@ -705,8 +705,8 @@
             "rowS": 21.6901913071086,
             "rowLimitS": 260
           },
-          "projectS": 473.8038261421719,
-          "invocations": 20
+          "projectS": 435.8038261421719,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/val-20x20-nightmare",
@@ -732,8 +732,8 @@
             "rowS": 26.886183197770496,
             "rowLimitS": 130
           },
-          "projectS": 545.72366395541,
-          "invocations": 4
+          "projectS": 539.72366395541,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen-none/val-20x20-nightmare",
@@ -759,8 +759,8 @@
             "rowS": 26.886183197770496,
             "rowLimitS": 130
           },
-          "projectS": 545.72366395541,
-          "invocations": 4
+          "projectS": 539.72366395541,
+          "invocations": 1
         },
         {
           "id": "V4-S4/log-link/val-20x20-nightmare",
@@ -786,8 +786,8 @@
             "rowS": 26.886183197770496,
             "rowLimitS": 260
           },
-          "projectS": 577.72366395541,
-          "invocations": 20
+          "projectS": 539.72366395541,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/val-20x21-nightmare",
@@ -813,8 +813,8 @@
             "rowS": 31.126033684846057,
             "rowLimitS": 130
           },
-          "projectS": 630.5206736969211,
-          "invocations": 4
+          "projectS": 624.5206736969212,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen-none/val-20x21-nightmare",
@@ -840,8 +840,8 @@
             "rowS": 31.126033684846057,
             "rowLimitS": 130
           },
-          "projectS": 630.5206736969211,
-          "invocations": 4
+          "projectS": 624.5206736969212,
+          "invocations": 1
         },
         {
           "id": "V4-S4/log-link/val-20x21-nightmare",
@@ -867,8 +867,8 @@
             "rowS": 31.126033684846057,
             "rowLimitS": 260
           },
-          "projectS": 662.5206736969213,
-          "invocations": 20
+          "projectS": 624.5206736969212,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/val-32x15-nightmare",
@@ -894,8 +894,8 @@
             "rowS": 15.012559501883842,
             "rowLimitS": 130
           },
-          "projectS": 304.2511900376769,
-          "invocations": 2
+          "projectS": 302.251190037677,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen-none/val-32x15-nightmare",
@@ -921,8 +921,8 @@
             "rowS": 15.012559501883842,
             "rowLimitS": 130
           },
-          "projectS": 304.2511900376769,
-          "invocations": 2
+          "projectS": 302.251190037677,
+          "invocations": 1
         },
         {
           "id": "V4-S4/log-link/val-32x15-nightmare",
@@ -948,8 +948,8 @@
             "rowS": 15.012559501883842,
             "rowLimitS": 260
           },
-          "projectS": 340.251190037677,
-          "invocations": 20
+          "projectS": 302.251190037677,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/val-22x22-nightmare",
@@ -975,8 +975,8 @@
             "rowS": 22.33553036855768,
             "rowLimitS": 130
           },
-          "projectS": 452.71060737115357,
-          "invocations": 3
+          "projectS": 448.71060737115346,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen-none/val-22x22-nightmare",
@@ -1002,8 +1002,8 @@
             "rowS": 22.33553036855768,
             "rowLimitS": 130
           },
-          "projectS": 452.71060737115357,
-          "invocations": 3
+          "projectS": 448.71060737115346,
+          "invocations": 1
         },
         {
           "id": "V4-S4/log-link/val-22x22-nightmare",
@@ -1029,8 +1029,8 @@
             "rowS": 22.33553036855768,
             "rowLimitS": 260
           },
-          "projectS": 486.71060737115346,
-          "invocations": 20
+          "projectS": 448.71060737115346,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/val-24x24-nightmare",
@@ -1056,8 +1056,8 @@
             "rowS": 24.038188449537216,
             "rowLimitS": 130
           },
-          "projectS": 488.7637689907443,
-          "invocations": 4
+          "projectS": 482.7637689907441,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen-none/val-24x24-nightmare",
@@ -1083,8 +1083,8 @@
             "rowS": 24.038188449537216,
             "rowLimitS": 130
           },
-          "projectS": 488.7637689907443,
-          "invocations": 4
+          "projectS": 482.7637689907441,
+          "invocations": 1
         },
         {
           "id": "V4-S4/log-link/val-24x24-nightmare",
@@ -1110,8 +1110,8 @@
             "rowS": 24.038188449537216,
             "rowLimitS": 260
           },
-          "projectS": 520.7637689907441,
-          "invocations": 20
+          "projectS": 482.7637689907441,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/val-26x26-nightmare",
@@ -1137,8 +1137,8 @@
             "rowS": 24.022347404654724,
             "rowLimitS": 130
           },
-          "projectS": 488.44694809309453,
-          "invocations": 4
+          "projectS": 482.44694809309465,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen-none/val-26x26-nightmare",
@@ -1164,8 +1164,8 @@
             "rowS": 24.022347404654724,
             "rowLimitS": 130
           },
-          "projectS": 488.44694809309453,
-          "invocations": 4
+          "projectS": 482.44694809309465,
+          "invocations": 1
         },
         {
           "id": "V4-S4/log-link/val-26x26-nightmare",
@@ -1191,8 +1191,8 @@
             "rowS": 24.022347404654724,
             "rowLimitS": 260
           },
-          "projectS": 520.4469480930946,
-          "invocations": 20
+          "projectS": 482.44694809309465,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-6x10-master",
@@ -1353,8 +1353,8 @@
             "rowS": 11.693453450508143,
             "rowLimitS": 260
           },
-          "projectS": 64.46726725254071,
-          "invocations": 3
+          "projectS": 60.467267252540715,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-12x12-master",
@@ -1407,8 +1407,8 @@
             "rowS": 7.810101006285909,
             "rowLimitS": 260
           },
-          "projectS": 45.05050503142954,
-          "invocations": 3
+          "projectS": 41.050505031429545,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-14x14-master",
@@ -1461,8 +1461,8 @@
             "rowS": 3.461495872380016,
             "rowLimitS": 260
           },
-          "projectS": 21.307479361900082,
-          "invocations": 2
+          "projectS": 19.307479361900082,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-15x15b10-master",
@@ -1515,8 +1515,8 @@
             "rowS": 6.775529265549978,
             "rowLimitS": 260
           },
-          "projectS": 39.877646327749886,
-          "invocations": 3
+          "projectS": 35.877646327749886,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-16x16-master",
@@ -1569,8 +1569,8 @@
             "rowS": 6.049735768270366,
             "rowLimitS": 260
           },
-          "projectS": 34.24867884135183,
-          "invocations": 2
+          "projectS": 32.24867884135183,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-15x20-master",
@@ -1623,8 +1623,8 @@
             "rowS": 5.269589162802551,
             "rowLimitS": 260
           },
-          "projectS": 30.347945814012753,
-          "invocations": 2
+          "projectS": 28.347945814012753,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-18x18-master",
@@ -1677,8 +1677,8 @@
             "rowS": 4.712630945492827,
             "rowLimitS": 260
           },
-          "projectS": 27.563154727464138,
-          "invocations": 2
+          "projectS": 25.563154727464134,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-18x20-master",
@@ -1731,8 +1731,8 @@
             "rowS": 4.529704322733649,
             "rowLimitS": 260
           },
-          "projectS": 26.648521613668244,
-          "invocations": 2
+          "projectS": 24.648521613668247,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-20x20-master",
@@ -1785,8 +1785,8 @@
             "rowS": 5.974191297588307,
             "rowLimitS": 260
           },
-          "projectS": 33.87095648794154,
-          "invocations": 2
+          "projectS": 31.870956487941534,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-20x21-master",
@@ -1839,8 +1839,8 @@
             "rowS": 5.344415493662448,
             "rowLimitS": 260
           },
-          "projectS": 30.722077468312243,
-          "invocations": 2
+          "projectS": 28.722077468312243,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-32x15-master",
@@ -1893,8 +1893,8 @@
             "rowS": 6.094808462697954,
             "rowLimitS": 260
           },
-          "projectS": 34.474042313489775,
-          "invocations": 2
+          "projectS": 32.474042313489775,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-22x22-master",
@@ -1947,8 +1947,8 @@
             "rowS": 7.9204794488245955,
             "rowLimitS": 260
           },
-          "projectS": 45.602397244122976,
-          "invocations": 3
+          "projectS": 41.602397244122976,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-24x24-master",
@@ -2001,8 +2001,8 @@
             "rowS": 7.7548487678473155,
             "rowLimitS": 260
           },
-          "projectS": 44.774243839236576,
-          "invocations": 3
+          "projectS": 40.774243839236576,
+          "invocations": 1
         },
         {
           "id": "V4-S4/fr-frozen/master-26x26-master",
@@ -2055,8 +2055,8 @@
             "rowS": 10.910637028299252,
             "rowLimitS": 260
           },
-          "projectS": 60.55318514149626,
-          "invocations": 3
+          "projectS": 56.55318514149626,
+          "invocations": 1
         }
       ],
       "comparators": [
@@ -2084,8 +2084,8 @@
             "rowS": 182.36532397043172,
             "rowLimitS": 260
           },
-          "projectS": 3687.3064794086345,
-          "invocations": 20
+          "projectS": 3657.3064794086345,
+          "invocations": 5
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-15x15b10-nightmare",
@@ -2111,8 +2111,8 @@
             "rowS": 159.20788804542886,
             "rowLimitS": 260
           },
-          "projectS": 3224.1577609085766,
-          "invocations": 20
+          "projectS": 3194.157760908577,
+          "invocations": 5
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-12x12-nightmare",
@@ -2138,8 +2138,8 @@
             "rowS": 83.51265067325666,
             "rowLimitS": 260
           },
-          "projectS": 1710.253013465134,
-          "invocations": 20
+          "projectS": 1676.253013465133,
+          "invocations": 3
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-16x16-nightmare",
@@ -2165,8 +2165,8 @@
             "rowS": 123.3058770850932,
             "rowLimitS": 260
           },
-          "projectS": 2506.117541701864,
-          "invocations": 20
+          "projectS": 2474.117541701864,
+          "invocations": 4
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-15x20-nightmare",
@@ -2192,8 +2192,8 @@
             "rowS": 81.51445096127387,
             "rowLimitS": 260
           },
-          "projectS": 1670.2890192254777,
-          "invocations": 20
+          "projectS": 1636.2890192254772,
+          "invocations": 3
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-26x26-hell-1",
@@ -2219,8 +2219,8 @@
             "rowS": 201.52751563695938,
             "rowLimitS": 260
           },
-          "projectS": 4070.5503127391876,
-          "invocations": 20
+          "projectS": 4040.5503127391876,
+          "invocations": 5
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-20x20-hell-1",
@@ -2246,8 +2246,8 @@
             "rowS": 260,
             "rowLimitS": 260
           },
-          "projectS": 5240,
-          "invocations": 20
+          "projectS": 5214,
+          "invocations": 7
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-3x29-nightmare",
@@ -2273,8 +2273,8 @@
             "rowS": 6.972338730636936,
             "rowLimitS": 260
           },
-          "projectS": 159.44677461273872,
-          "invocations": 10
+          "projectS": 141.44677461273872,
+          "invocations": 1
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-10x10-nightmare",
@@ -2300,8 +2300,8 @@
             "rowS": 31.277429523023265,
             "rowLimitS": 260
           },
-          "projectS": 665.5485904604651,
-          "invocations": 20
+          "projectS": 627.5485904604652,
+          "invocations": 1
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-18x18-nightmare",
@@ -2327,8 +2327,8 @@
             "rowS": 47.87882127231746,
             "rowLimitS": 260
           },
-          "projectS": 997.5764254463496,
-          "invocations": 20
+          "projectS": 961.5764254463493,
+          "invocations": 2
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-18x20-nightmare",
@@ -2354,8 +2354,8 @@
             "rowS": 21.6901913071086,
             "rowLimitS": 260
           },
-          "projectS": 473.8038261421719,
-          "invocations": 20
+          "projectS": 435.8038261421719,
+          "invocations": 1
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-20x20-nightmare",
@@ -2381,8 +2381,8 @@
             "rowS": 26.886183197770496,
             "rowLimitS": 260
           },
-          "projectS": 577.72366395541,
-          "invocations": 20
+          "projectS": 539.72366395541,
+          "invocations": 1
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-20x21-nightmare",
@@ -2408,8 +2408,8 @@
             "rowS": 31.126033684846057,
             "rowLimitS": 260
           },
-          "projectS": 662.5206736969213,
-          "invocations": 20
+          "projectS": 624.5206736969212,
+          "invocations": 1
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-32x15-nightmare",
@@ -2435,8 +2435,8 @@
             "rowS": 15.012559501883842,
             "rowLimitS": 260
           },
-          "projectS": 340.251190037677,
-          "invocations": 20
+          "projectS": 302.251190037677,
+          "invocations": 1
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-22x22-nightmare",
@@ -2462,8 +2462,8 @@
             "rowS": 22.33553036855768,
             "rowLimitS": 260
           },
-          "projectS": 486.71060737115346,
-          "invocations": 20
+          "projectS": 448.71060737115346,
+          "invocations": 1
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-24x24-nightmare",
@@ -2489,8 +2489,8 @@
             "rowS": 24.038188449537216,
             "rowLimitS": 260
           },
-          "projectS": 520.7637689907441,
-          "invocations": 20
+          "projectS": 482.7637689907441,
+          "invocations": 1
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-26x26-nightmare",
@@ -2516,8 +2516,8 @@
             "rowS": 24.022347404654724,
             "rowLimitS": 260
           },
-          "projectS": 520.4469480930946,
-          "invocations": 20
+          "projectS": 482.44694809309465,
+          "invocations": 1
         }
       ]
     },
@@ -2547,8 +2547,8 @@
             "rowS": 147.16591209457522,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4/fr-frozen-none/val-24x24-hell-1",
@@ -2574,8 +2574,8 @@
             "rowS": 147.16591209457522,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4/fr-frozen/val-14x14-hell-1",
@@ -2601,8 +2601,8 @@
             "rowS": 147.16206887894964,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4/fr-frozen-none/val-14x14-hell-1",
@@ -2628,8 +2628,8 @@
             "rowS": 147.16206887894964,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         }
       ],
       "comparators": [
@@ -2657,8 +2657,8 @@
             "rowS": 147.16591209457522,
             "rowLimitS": 260
           },
-          "projectS": 2983.318241891503,
-          "invocations": 20
+          "projectS": 2951.3182418915044,
+          "invocations": 4
         },
         {
           "id": "V4-S4C/shipped-uncapped/val-14x14-hell-1",
@@ -2684,8 +2684,8 @@
             "rowS": 147.16206887894964,
             "rowLimitS": 260
           },
-          "projectS": 2983.2413775789937,
-          "invocations": 20
+          "projectS": 2951.241377578993,
+          "invocations": 4
         }
       ]
     },
@@ -2715,8 +2715,8 @@
             "rowS": 182.36532397043172,
             "rowLimitS": 260
           },
-          "projectS": 921.8266198521586,
-          "invocations": 5
+          "projectS": 915.8266198521586,
+          "invocations": 2
         },
         {
           "id": "V4-S4/log-link/factor-15x15b10-nightmare",
@@ -2742,8 +2742,8 @@
             "rowS": 159.20788804542886,
             "rowLimitS": 260
           },
-          "projectS": 806.0394402271443,
-          "invocations": 5
+          "projectS": 800.0394402271443,
+          "invocations": 2
         },
         {
           "id": "V4-S4/log-link/factor-12x12-nightmare",
@@ -2769,8 +2769,8 @@
             "rowS": 83.51265067325666,
             "rowLimitS": 260
           },
-          "projectS": 427.5632533662833,
-          "invocations": 5
+          "projectS": 419.5632533662833,
+          "invocations": 1
         },
         {
           "id": "V4-S4/log-link/factor-16x16-nightmare",
@@ -2796,8 +2796,8 @@
             "rowS": 123.3058770850932,
             "rowLimitS": 260
           },
-          "projectS": 626.529385425466,
-          "invocations": 5
+          "projectS": 618.529385425466,
+          "invocations": 1
         },
         {
           "id": "V4-S4/log-link/factor-15x20-nightmare",
@@ -2823,8 +2823,8 @@
             "rowS": 81.51445096127387,
             "rowLimitS": 260
           },
-          "projectS": 417.5722548063693,
-          "invocations": 5
+          "projectS": 409.5722548063693,
+          "invocations": 1
         }
       ],
       "comparators": []
@@ -2855,8 +2855,8 @@
             "rowS": 201.52751563695938,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4X/fr-frozen-none/second-26x26-hell-1",
@@ -2882,8 +2882,8 @@
             "rowS": 201.52751563695938,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4X/fr-frozen/second-20x20-hell-1",
@@ -2909,8 +2909,8 @@
             "rowS": 130,
             "rowLimitS": 130
           },
-          "projectS": 2620,
-          "invocations": 10
+          "projectS": 2608,
+          "invocations": 4
         },
         {
           "id": "V4-S4X/fr-frozen-none/second-20x20-hell-1",
@@ -2936,8 +2936,8 @@
             "rowS": 130,
             "rowLimitS": 130
           },
-          "projectS": 2620,
-          "invocations": 10
+          "projectS": 2608,
+          "invocations": 4
         },
         {
           "id": "V4-S4X/fr-frozen/second-24x24-hell-1",
@@ -2963,8 +2963,8 @@
             "rowS": 147.16591209457522,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4X/fr-frozen-none/second-24x24-hell-1",
@@ -2990,8 +2990,8 @@
             "rowS": 147.16591209457522,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4X/fr-frozen/second-14x14-hell-1",
@@ -3017,8 +3017,8 @@
             "rowS": 147.16206887894964,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         },
         {
           "id": "V4-S4X/fr-frozen-none/second-14x14-hell-1",
@@ -3044,8 +3044,8 @@
             "rowS": 147.16206887894964,
             "rowLimitS": 130
           },
-          "projectS": 2820,
-          "invocations": 10
+          "projectS": 2808,
+          "invocations": 4
         }
       ],
       "comparators": [
@@ -3073,8 +3073,8 @@
             "rowS": 201.52751563695938,
             "rowLimitS": 260
           },
-          "projectS": 4070.5503127391876,
-          "invocations": 20
+          "projectS": 4040.5503127391876,
+          "invocations": 5
         },
         {
           "id": "V4-S4XC/shipped-uncapped/second-20x20-hell-1",
@@ -3100,8 +3100,8 @@
             "rowS": 260,
             "rowLimitS": 260
           },
-          "projectS": 5240,
-          "invocations": 20
+          "projectS": 5214,
+          "invocations": 7
         },
         {
           "id": "V4-S4XC/shipped-uncapped/second-24x24-hell-1",
@@ -3127,8 +3127,8 @@
             "rowS": 147.16591209457522,
             "rowLimitS": 260
           },
-          "projectS": 2983.318241891503,
-          "invocations": 20
+          "projectS": 2951.3182418915044,
+          "invocations": 4
         },
         {
           "id": "V4-S4XC/shipped-uncapped/second-14x14-hell-1",
@@ -3154,8 +3154,8 @@
             "rowS": 147.16206887894964,
             "rowLimitS": 260
           },
-          "projectS": 2983.2413775789937,
-          "invocations": 20
+          "projectS": 2951.241377578993,
+          "invocations": 4
         }
       ]
     }

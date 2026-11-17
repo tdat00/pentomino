@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url';
 
 import { artifactDir, parseArgs, roundLimitS } from './paths.mjs';
 
-const MAX_HORIZON_S = 285;
+const MAX_HORIZON_S = 885;
 const QUIET_S = 45;
 const SLACK_S = 10;
 
@@ -71,8 +71,9 @@ const round3 = (x) => Math.round(x * 1000) / 1000;
 /**
  * The allowance left and the horizon of the next locked invocation. `A = min(1.25 x the task's allocation - its
  * counted total, the round's cap - the round's counted total)`; the round's cap is 10,800 s for `provisional` and 0 s
- * for `frozen`, each raised by an approval; `H = min(285, A - 45 - 10)`. The decision is `stop` when `H` is below
- * the step's smallest unit of work.
+ * for `frozen`, each raised by an approval; `H = min(885, A - 45 - 10)` (the owner's 900-s limit less 15 s; 45 s is the full quiet
+ * period, which an idle declaration shortens to 15 s, and 10 s is slack). The decision is `stop` when `H` is below the step's
+ * smallest unit of work.
  * @param {{ task: string, label?: string, allocationS: number, minHorizonS: number,
  *   approvals?: { taskMinutes?: number, roundMinutes?: number }, forecastS?: number, invocations?: Invocation[] }} o
  * @returns {{ decision: 'go' | 'stop', horizonS: number, allowanceS: number, taskCountedS: number,

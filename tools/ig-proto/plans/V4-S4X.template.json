@@ -31,8 +31,8 @@
         "rowS": 201.52751563695938,
         "rowLimitS": 130
       },
-      "projectS": 2820,
-      "invocations": 10
+      "projectS": 2808,
+      "invocations": 4
     },
     {
       "id": "V4-S4X/fr-frozen-none/second-26x26-hell-1",
@@ -58,8 +58,8 @@
         "rowS": 201.52751563695938,
         "rowLimitS": 130
       },
-      "projectS": 2820,
-      "invocations": 10
+      "projectS": 2808,
+      "invocations": 4
     },
     {
       "id": "V4-S4X/fr-frozen/second-20x20-hell-1",
@@ -85,8 +85,8 @@
         "rowS": 130,
         "rowLimitS": 130
       },
-      "projectS": 2620,
-      "invocations": 10
+      "projectS": 2608,
+      "invocations": 4
     },
     {
       "id": "V4-S4X/fr-frozen-none/second-20x20-hell-1",
@@ -112,8 +112,8 @@
         "rowS": 130,
         "rowLimitS": 130
       },
-      "projectS": 2620,
-      "invocations": 10
+      "projectS": 2608,
+      "invocations": 4
     },
     {
       "id": "V4-S4X/fr-frozen/second-24x24-hell-1",
@@ -139,8 +139,8 @@
         "rowS": 147.16591209457522,
         "rowLimitS": 130
       },
-      "projectS": 2820,
-      "invocations": 10
+      "projectS": 2808,
+      "invocations": 4
     },
     {
       "id": "V4-S4X/fr-frozen-none/second-24x24-hell-1",
@@ -166,8 +166,8 @@
         "rowS": 147.16591209457522,
         "rowLimitS": 130
       },
-      "projectS": 2820,
-      "invocations": 10
+      "projectS": 2808,
+      "invocations": 4
     },
     {
       "id": "V4-S4X/fr-frozen/second-14x14-hell-1",
@@ -193,8 +193,8 @@
         "rowS": 147.16206887894964,
         "rowLimitS": 130
       },
-      "projectS": 2820,
-      "invocations": 10
+      "projectS": 2808,
+      "invocations": 4
     },
     {
       "id": "V4-S4X/fr-frozen-none/second-14x14-hell-1",
@@ -220,8 +220,8 @@
         "rowS": 147.16206887894964,
         "rowLimitS": 130
       },
-      "projectS": 2820,
-      "invocations": 10
+      "projectS": 2808,
+      "invocations": 4
     }
   ],
   "comparators": [
@@ -249,8 +249,8 @@
         "rowS": 201.52751563695938,
         "rowLimitS": 260
       },
-      "projectS": 4070.5503127391876,
-      "invocations": 20
+      "projectS": 4040.5503127391876,
+      "invocations": 5
     },
     {
       "id": "V4-S4XC/shipped-uncapped/second-20x20-hell-1",
@@ -276,8 +276,8 @@
         "rowS": 260,
         "rowLimitS": 260
       },
-      "projectS": 5240,
-      "invocations": 20
+      "projectS": 5214,
+      "invocations": 7
     },
     {
       "id": "V4-S4XC/shipped-uncapped/second-24x24-hell-1",
@@ -303,8 +303,8 @@
         "rowS": 147.16591209457522,
         "rowLimitS": 260
       },
-      "projectS": 2983.318241891503,
-      "invocations": 20
+      "projectS": 2951.3182418915044,
+      "invocations": 4
     },
     {
       "id": "V4-S4XC/shipped-uncapped/second-14x14-hell-1",
@@ -330,8 +330,8 @@
         "rowS": 147.16206887894964,
         "rowLimitS": 260
       },
-      "projectS": 2983.2413775789937,
-      "invocations": 20
+      "projectS": 2951.241377578993,
+      "invocations": 4
     }
   ]
 }

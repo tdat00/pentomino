@@ -27,7 +27,7 @@
       ]
     }
   ],
-  "allocationMinutes": 40,
+  "allocationMinutes": 36,
   "optionalMinutes": 0,
   "steps": [
     {
@@ -112,9 +112,9 @@
       ],
       "state": "V4-LIVE\\fr-frozen\\live-14x14-nightmare\\state.json",
       "repeatUntilDone": true,
-      "projectS": 921.8266198521586,
+      "projectS": 915.8266198521586,
       "minHorizonS": 272,
-      "invocations": 5,
+      "invocations": 2,
       "optional": false,
       "price": {
         "type": "rows",
@@ -157,9 +157,9 @@
       ],
       "state": "V4-LIVE\\fr-frozen\\live-26x26-hell-1\\state.json",
       "repeatUntilDone": true,
-      "projectS": 1017.6375781847969,
+      "projectS": 1011.6375781847969,
       "minHorizonS": 272,
-      "invocations": 5,
+      "invocations": 2,
       "optional": false,
       "price": {
         "type": "rows",

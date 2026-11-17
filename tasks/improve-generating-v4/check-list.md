@@ -52,7 +52,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 - [x] T11a Frozen-round matrix: the enumerated requests of stages 2 to 5 and their collections (depends on T10c)
 - [x] T11b Frozen-round pricing: the simulated schedule and the approval fields (depends on T11a)
 - [x] T11c Frozen-round plans: the compiler, the isolated P-0 manifest and the prerequisites gate (depends on T11b)
-- [ ] T11h The owner's lock rules: the 900-s cap and the idle quiet period in the helper, the runner, the budget and the price (depends on T11c; the owner's decision of 2026-11-17 21:33)
+- [x] T11h The owner's lock rules: the 900-s cap and the idle quiet period in the helper, the runner, the budget and the price (depends on T11c; the owner's decision of 2026-11-17 21:33)
 - [ ] T11d Parity and P-0 receipts with required passes, and their accepted bindings (depends on T11h)
 - [ ] T11e Stage-4 collections: the activation, the concrete validation plan and the closure record (depends on T11d)
 - [ ] T11f Comparators and verdict inputs: resolution from a final selection, the selection and final manifests (depends on T11e)
@@ -563,8 +563,8 @@ difficulty-v3 run all fail closed to 45 s, which only costs time. The runner cou
 | T10c | 2026-11-17 18:22 | 2026-11-17 18:57 | 34 min | 465.95 | `2ed2901` |
 | T11a | 2026-11-17 18:58 | 2026-11-17 19:27 | 29 min | 608.09 | `2838991` |
 | T11b | 2026-11-17 19:28 | 2026-11-17 19:47 | 19 min | 327.00 | `5b67b4a` |
-| T11c | 2026-11-17 19:48 | 2026-11-17 21:49 | 2 h 1 min (35 min paused) | 927.21 | this task's commit |
-| T11h | | | | | |
+| T11c | 2026-11-17 19:48 | 2026-11-17 21:49 | 2 h 1 min (35 min paused) | 927.21 | `9ca06c7` |
+| T11h | 2026-11-17 22:09 | 2026-11-17 23:03 | 54 min | 729.54 | this task's commit |
 | T11d | | | | | |
 | T11e | | | | | |
 | T11f | | | | | |

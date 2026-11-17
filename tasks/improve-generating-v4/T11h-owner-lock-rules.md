@@ -239,13 +239,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 22:09:30 +07:00 (dispatch, base `d107c56`) to 23:03:26 +07:00 (acceptance): 53 min 56 s; the developer's own times 22:09:23-22:38:22 and, in the fix round, 22:51:32-23:00:20 |
+| Waiting for rulings | about 12 min (SA-Opus's review and the lock-check ruling, 22:39-22:50) |
+| Agent id, model | `e31dfbb1-63a6-4dee-bf06-f6910f7e2e9e`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 115 calls; 32,489,098 input, 210,387 output, 31,679,621 cache-read |
+| AI credits | 729.54 |
+| Questions and rulings | none from the developer. SA-Opus ruled (`fee8ff8`): the deviations (case (h) strengthened into h1-h4, extra direct checks, a new price case, README rows, dry runs at the granted 92 minutes plus a read-only `decide` replay at 800), the readings and the named items accepted. After the orchestrator's first `lock-check` run failed (`FAIL f-25-hours: the child did not finish within 150 s` while other gates ran in parallel; a run alone passed), one fix round limited to `lock-check.ps1` and the README (`0e36e62`): a scratch root per run, `LimitSeconds = 30`, progress markers, diagnostics on a timeout or a nonzero exit, `-HarnessCheck`, and the rule that it runs alone after the other gates (T11h 3.5 h, pack 103.5 h). The pack amendments `8b51362` and `d107c56` (the owner's decision of 21:33, reviewed by SA-Astra) preceded the dispatch |
+| Fix rounds | 1 (lock-check.ps1 made robust and diagnosable, run alone) |
+| Gates re-run by the orchestrator | Shared helper SHA-256 `28F36DF6…07AE` unchanged before and after, no `dv3-*` file in the real `$env:TEMP`; `--items`: 162 passed, 0 failed (23.551 s); `--frozen`: 10 passed; `check-edits --all`: 34 `ok`, no other line; `compile`: 16 files, byte-identical twice, `V4-S2 allocation 560 min`, `V4-LIVE allocation 36 min`; `check-prerequisites --plan V4-S2`: pass; dry runs with `-ApprovedRoundMinutes 92`: `V4-S2` `33,551 s counted (allocation 33,600 s, guard 42,000 s)`, `V4-LIVE` `2,107 s counted (allocation 2,160 s, guard 2,700 s)`, `V4-T10c` unchanged `165 s (240, 300)`; firewall `check` (V4-T11h): 289 production files unchanged; guard empty (lib: only `budget.mjs`); stage-1 `evidence-check`: unchanged (20 files); `check-binding`: pass; `npm run check`: OK. `lock-check.ps1`: first run under parallel load FAIL at case (f) (150-s timeout, before the fix); after the fix, alone and last: `lock-check: 13 cases ok`, exit 0, 124 s; `-HarnessCheck`: the FAIL line with its diagnostics, no process left, exit 1, 8 s. No locked command and no machine time |
+| Commit | this task's commit, `improve-generating T11h: The owner's lock rules: the 900-s cap and the idle quiet period in the helper, the runner, the budget and the price` |
+| Issues and named items | The root cause of the first `lock-check` stall was not observed; the fixed check can no longer cause it and now prints which stage stalled. Named items: `ConvertFrom-Json -DateKind` needs pwsh 7.5 or later (older pwsh falls back to 45 s); direct-run `--horizon-s` defaults of 285 in the probes are never reached by the runner; older `invocations.jsonl` rows have no `quietS`. The 15-s quiet waits for the owner's statement about difficulty-v3 |

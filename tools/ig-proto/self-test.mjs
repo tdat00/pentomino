@@ -567,7 +567,7 @@ const frozenCases = [
       const approved = decide({
         task: 'x', label: 'frozen', allocationS: 600, minHorizonS: 60, approvals: { roundMinutes: 10 }, invocations: [],
       });
-      assert(approved.decision === 'go' && approved.horizonS === 285 && approved.roundCapS === 600,
+      assert(approved.decision === 'go' && approved.horizonS === 545 && approved.roundCapS === 600,
         `the frozen label with 10 approved minutes: ${JSON.stringify(approved)}`);
     },
   },
@@ -5095,15 +5095,15 @@ const itemCases = [
     name: 'price: rows, one per invocation at 260 s',
     async run() {
       const { m } = await matrixKit();
-      const priced = m.stepPrice({ type: 'rows', rows: 20, rowS: 55, rowLimitS: 260 });
+      const priced = m.stepPrice({ type: 'rows', rows: 20, rowS: 55, rowLimitS: 260, horizonS: 285 });
       assert(priced.admissible === true, 'the step is admissible');
       same(priced.schedule, Array.from({ length: 20 }, () => ({ rows: 1, nodeS: 57 })), 'twenty invocations of one row each, 2 + 55 s');
       same([priced.projectS, priced.invocations, priced.quietS, priced.countedS, priced.guardS, priced.completed, priced.censored, priced.ceilingInvocations, priced.ceilingS],
-        [1140, 20, 900, 2040, 2550, 20, 0, 20, 6900], 'projectS, invocations, quietS, countedS, guardS, completed, censored, ceilingInvocations, ceilingS');
+        [1140, 20, 900, 2040, 2550, 20, 0, 20, 18900], 'projectS, invocations, quietS, countedS, guardS, completed, censored, ceilingInvocations, ceilingS');
       assert(priced.ceilingS >= priced.countedS, 'the ceiling is at least the projection');
-      same(m.price([{ type: 'rows', rows: 20, rowS: 55, rowLimitS: 260 }]).countedS, 2040, 'price of one step is that step');
+      same(m.price([{ type: 'rows', rows: 20, rowS: 55, rowLimitS: 260, horizonS: 285 }]).countedS, 2040, 'price of one step is that step');
       // A row past its limit is cut by the runner and counted censored; it takes the limit plus the 10-s margin (an assumption), not its own time.
-      const cut = m.simulateRows({ rows: 2, rowS: 300, rowLimitS: 260 });
+      const cut = m.simulateRows({ rows: 2, rowS: 300, rowLimitS: 260, horizonS: 285 });
       assert(cut.admissible === true, 'a cut row is admissible');
       same([cut.invocations, cut.nodeS, cut.quietS, cut.countedS, cut.completed, cut.censored], [[{ rows: 1, nodeS: 272 }, { rows: 1, nodeS: 272 }], 544, 90, 634, 0, 2],
         'two rows of 300 s at a limit of 260 s: two invocations of 2 + 270 s, both censored');
@@ -5113,11 +5113,28 @@ const itemCases = [
     },
   },
   {
+    name: 'price: the 900-s cap (owner, 2026-11-17)',
+    async run() {
+      const { m } = await matrixKit();
+      const priced = m.stepPrice({ type: 'rows', rows: 20, rowS: 55, rowLimitS: 260 });
+      assert(priced.admissible === true, 'the step is admissible');
+      same(priced.schedule, [{ rows: 12, nodeS: 662 }, { rows: 8, nodeS: 442 }], 'at the default horizon 885 the twenty rows share two invocations: twelve rows, then eight');
+      same([priced.projectS, priced.invocations, priced.quietS, priced.countedS, priced.ceilingS], [1104, 2, 90, 1194, 18900],
+        'projectS, invocations, quietS (45 s priced per invocation), countedS and the ceiling 20 x 945');
+      const sim = m.simulateProcess({ durationsS: [120, 200], reserveS: 120 });
+      assert(sim.admissible === true, 'the simulation is admissible');
+      same([sim.invocations, sim.nodeS, sim.completed, sim.censored], [[{ items: 2, nodeS: 322 }], 322, 2, 0], 'the 200-s item is no longer cut at 270 s: one invocation of 322 s');
+      // The runner's budget guard caps the horizon at the same 885 s.
+      const wide = decide({ task: 'x', label: 'frozen', allocationS: 3600, minHorizonS: 60, approvals: { roundMinutes: 60 }, invocations: [] });
+      same([wide.decision, wide.horizonS], ['go', 885], 'a large allowance gives the horizon 885');
+    },
+  },
+  {
     name: 'price: rows at 130 s',
     async run() {
       const { m } = await matrixKit();
       /** @param {number} rows @param {number} rowS @param {number} [rowLimitS] */
-      const rowsAt = (rows, rowS, rowLimitS = 130) => m.simulateRows({ rows, rowS, rowLimitS });
+      const rowsAt = (rows, rowS, rowLimitS = 130) => m.simulateRows({ rows, rowS, rowLimitS, horizonS: 285 });
       const a = rowsAt(4, 40);
       assert(a.admissible === true, 'a is admissible');
       same([a.invocations, a.nodeS, a.quietS], [[{ rows: 4, nodeS: 162 }], 162, 45], '(a) four rows of 40 s start at 2, 42, 82 and 122: one invocation, 162 s');
@@ -5131,7 +5148,7 @@ const itemCases = [
       assert(c.admissible === true, 'c is admissible');
       same([c.invocations, c.nodeS, c.quietS], [[{ rows: 2, nodeS: 262 }, { rows: 1, nodeS: 132 }], 394, 90], '(c) three rows of 130 s: two invocations');
       same(rowsAt(1, 100, 280), { admissible: false, reason: 'a row of 280 s does not fit a horizon of 285 s' }, 'a row that fits no invocation is inadmissible with its reason');
-      same(m.stepPrice({ type: 'rows', rows: 1, rowS: 100, rowLimitS: 280 }), { admissible: false, reason: 'a row of 280 s does not fit a horizon of 285 s' }, 'the step is not priced');
+      same(m.stepPrice({ type: 'rows', rows: 1, rowS: 100, rowLimitS: 280, horizonS: 285 }), { admissible: false, reason: 'a row of 280 s does not fit a horizon of 285 s' }, 'the step is not priced');
     },
   },
   {
@@ -5144,9 +5161,9 @@ const itemCases = [
       const priced = m.stepPrice({ type: 'process', durationsS: [120, 120], reserveS: 120 });
       assert(priced.admissible === true, 'the step is admissible');
       same([priced.projectS, priced.invocations, priced.quietS, priced.countedS, priced.guardS, priced.ceilingInvocations, priced.ceilingS, priced.completed, priced.censored],
-        [242, 1, 45, 287, 358.75, 2, 690, 2, 0], 'the step price; the ceiling is 2 x 345');
+        [242, 1, 45, 287, 358.75, 2, 1890, 2, 0], 'the step price; the ceiling is 2 x 945');
       // A third item would start at 242: 242 + 120 > 270, so it takes a second invocation.
-      const three = m.simulateProcess({ durationsS: [120, 120, 120], reserveS: 120 });
+      const three = m.simulateProcess({ durationsS: [120, 120, 120], reserveS: 120, horizonS: 285 });
       assert(three.admissible === true, 'three items are admissible');
       same(three.invocations, [{ items: 2, nodeS: 242 }, { items: 1, nodeS: 122 }], 'the third item is not admitted at 242 s');
     },
@@ -5157,8 +5174,8 @@ const itemCases = [
       const { m } = await matrixKit();
       const priced = m.stepPrice({ type: 'process', durationsS: [200], reserveS: 120, cases: ['ignored'] });
       assert(priced.admissible === true, 'the step is admissible');
-      same([priced.projectS, priced.countedS, priced.ceilingS, priced.invocations, priced.completed, priced.censored], [202, 247, 345, 1, 1, 0],
-        'the item takes its 200 s (not its reserve): projectS 202, countedS 247, ceilingS 345');
+      same([priced.projectS, priced.countedS, priced.ceilingS, priced.invocations, priced.completed, priced.censored], [202, 247, 945, 1, 1, 0],
+        'the item takes its 200 s (not its reserve): projectS 202, countedS 247, ceilingS 945');
       assert(priced.ceilingS >= priced.projectS && priced.ceilingS !== 167, 'the ceiling is at least the projection; never the reserve-based 167');
     },
   },
@@ -5166,16 +5183,16 @@ const itemCases = [
     name: 'price: an item past the cut is censored',
     async run() {
       const { m } = await matrixKit();
-      const sim = m.simulateProcess({ durationsS: [120, 200], reserveS: 120 });
+      const sim = m.simulateProcess({ durationsS: [120, 200], reserveS: 120, horizonS: 285 });
       assert(sim.admissible === true, 'the simulation is admissible');
       same([sim.invocations, sim.nodeS, sim.completed, sim.censored, sim.countedS], [[{ items: 2, nodeS: 270 }], 270, 1, 1, 315],
         'the second item, admitted at 122, is stopped at the cut 270: censored, never run again');
       // The censored item ends the invocation and is not placed again; the item after it takes the next invocation.
-      const after = m.simulateProcess({ durationsS: [120, 200, 50], reserveS: 120 });
+      const after = m.simulateProcess({ durationsS: [120, 200, 50], reserveS: 120, horizonS: 285 });
       assert(after.admissible === true, 'the third item is admissible');
       same([after.invocations, after.completed, after.censored], [[{ items: 2, nodeS: 270 }, { items: 1, nodeS: 52 }], 2, 1], 'a censored item is counted once');
       // An item that ends exactly at the cut completes; one second more is stopped at the cut.
-      const ends = (/** @type {number} */ s) => { const r = m.simulateProcess({ durationsS: [s], reserveS: 120 }); return r.admissible ? [r.nodeS, r.completed, r.censored] : null; };
+      const ends = (/** @type {number} */ s) => { const r = m.simulateProcess({ durationsS: [s], reserveS: 120, horizonS: 285 }); return r.admissible ? [r.nodeS, r.completed, r.censored] : null; };
       same([ends(268), ends(269)], [[270, 1, 0], [270, 0, 1]], 'the cut is at 270 s for a horizon of 285 s');
     },
   },
@@ -5188,7 +5205,7 @@ const itemCases = [
       const two = m.simulateItems({ groups: [group(2, [60, 60, 60, 60])] });
       assert(two.admissible === true, 'two lanes are admissible');
       same([two.invocations, two.nodeS, two.quietS, two.completed], [[{ items: 4, nodeS: 125 }], 125, 45, 4], 'two lanes: one invocation, 5 to 65 and 65 to 125');
-      const one = m.simulateItems({ groups: [group(1, [60, 60, 60, 60])] });
+      const one = m.simulateItems({ groups: [group(1, [60, 60, 60, 60])], horizonS: 285 });
       assert(one.admissible === true, 'one lane is admissible');
       same([one.invocations, one.nodeS, one.quietS, one.countedS], [[{ items: 3, nodeS: 185 }, { items: 1, nodeS: 65 }], 250, 90, 340],
         'one lane: the fourth item starts at 185 and 185 + 120 > 270: two invocations of 185 and 65 s');
@@ -5197,9 +5214,9 @@ const itemCases = [
       assert(uneven.admissible === true, 'unequal items are admissible');
       same(uneven.invocations, [{ items: 4, nodeS: 105 }], 'the three 30-s items run in turn on the second lane; the drain is the 100-s item at 105');
       for (const lanes of [1, 2]) {
-        const priced = m.stepPrice({ type: 'items', groups: [group(lanes, [60, 60, 60, 60])] });
+        const priced = m.stepPrice({ type: 'items', groups: [group(lanes, [60, 60, 60, 60])], horizonS: 285 });
         assert(priced.admissible === true, 'the step is admissible');
-        same([priced.invocations, priced.ceilingInvocations, priced.ceilingS], [lanes === 2 ? 1 : 2, 4, 1380], `the step at ${lanes} lanes: the ceiling counts items, not lanes`);
+        same([priced.invocations, priced.ceilingInvocations, priced.ceilingS], [lanes === 2 ? 1 : 2, 4, 3780], `the step at ${lanes} lanes: the ceiling counts items, not lanes`);
       }
     },
   },
@@ -5210,7 +5227,7 @@ const itemCases = [
       const step = { type: 'process', durationsS: [60], reserveS: 120 };
       const separate = m.price([step, { ...step }]);
       same([separate.admissible, separate.invocations, separate.quietS, separate.projectS, separate.countedS, separate.guardS, separate.ceilingS, separate.ceilingInvocations, separate.completed, separate.censored],
-        [true, 2, 90, 124, 214, 267.5, 690, 2, 2, 0], 'two steps: two invocations, 2 + 60 s each, two quiet periods');
+        [true, 2, 90, 124, 214, 267.5, 1890, 2, 2, 0], 'two steps: two invocations, 2 + 60 s each, two quiet periods');
       same([separate.steps.length, separate.inadmissible], [2, []], 'each step is listed and none is inadmissible');
       // The same two items in one step share an invocation and a quiet period; the price differs.
       const shared = m.stepPrice({ type: 'process', durationsS: [60, 60], reserveS: 120 });
@@ -5250,7 +5267,7 @@ const itemCases = [
       const generate = { kind: 'v4-generate', variant: 'v4', lanes: 1, reserveS: 245, durationsS: [100] };
       const replay = { kind: 'v4-replay', variant: 'v4', lanes: 2, reserveS: 120, durationsS: [30] };
       // After the first group drains at 65, the v4-generate group needs 65 + 245 > 270: it starts the next invocation.
-      const a = m.simulateItems({ groups: [select, generate] });
+      const a = m.simulateItems({ groups: [select, generate], horizonS: 285 });
       assert(a.admissible === true, 'a is admissible');
       same([a.invocations, a.nodeS, a.quietS, a.completed], [[{ items: 2, nodeS: 65 }, { items: 1, nodeS: 105 }], 170, 90, 3], 'a group that is not admitted after the drain ends the invocation');
       // A finished group passes on in the same invocation when the next group fits: it pays its own 3-s start.
@@ -5338,7 +5355,7 @@ const itemCases = [
       refuses(() => m.stepPrice({ type: 'rows', rows: 1, rowS: Number.NaN, rowLimitS: 260 }), 'rowS must be a positive number', 'a row time that is not a number');
       refuses(() => m.stepPrice({ type: 'blocks' }), 'unknown step type "blocks"', 'an unknown type');
       refuses(() => m.stepPrice(/** @type {any} */ (null)), 'unknown step type', 'no step');
-      refuses(() => m.stepPrice({ ...proc, horizonS: 300 }), 'horizonS must be at most 285', 'a horizon the runner never uses');
+      refuses(() => m.stepPrice({ ...proc, horizonS: 900 }), 'horizonS must be at most 885', 'a horizon the runner never uses');
       refuses(() => m.stepPrice({ ...proc, durationsS: [] }), 'needs at least one duration', 'a step of no items');
       refuses(() => m.stepPrice({ ...proc, durationsS: [60, 0] }), 'durationsS[1] must be a positive number', 'an item of no time');
       refuses(() => m.stepPrice({ ...proc, reserveS: 0 }), 'reserveS must be a positive number', 'a reserve of 0 admits everything');
@@ -5561,7 +5578,8 @@ const itemCases = [
       const slow = m.stepPrice({ ...p0.price, groups: p0.price.groups.map((/** @type {any} */ g) => ({ ...g, durationsS: g.durationsS.map(() => 120) })) });
       assert(slow.admissible === true && slow.invocations >= 2, `23 items of 120 s need ${slow.invocations} invocations`);
       const row = s2.steps.find((/** @type {any} */ s) => s.id.startsWith('rows-'));
-      same([row.invocations, row.price.rows], [5, 5], 'a 260-s row step runs one row per invocation, so it needs repeatUntilDone');
+      same([row.invocations, row.price.rows], [2, 5],
+        'the five 260-s-limit rows need two invocations at horizon 885: four rows, then one');
     },
   },
   {

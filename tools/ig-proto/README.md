@@ -21,8 +21,9 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 - **Every long command goes through the lock wrapper.** `run-task.ps1` calls `Invoke-IgNode` of the low-priority
   helper; difficulty-v3 has priority on the machine. Commands that take seconds and rate nothing (building a tree, the
   firewall, publishing, the identity report) run directly. Never run timing or generation outside the wrapper.
-- **Bounded invocations.** A locked invocation ends by its horizon `H` (at most 285 s) by construction; the wrapper's
-  kill at 300 s is a defect, never the sharder. Nothing started is rerun automatically.
+- **Bounded invocations.** A locked invocation ends by its horizon `H` (at most 885 s) by construction; the helper's
+  kill at 900 s (the owner's limit of 2026-11-17, V4-T11h; it was 300 s) is a defect, never the sharder. Nothing started
+  is rerun automatically.
 - Node tools are `.mjs` with `// @ts-check`, 2-space indent, single quotes, semicolons; files are CRLF without BOM.
   A record is written once; a correction is a new file with a suffix (`-r2`).
 
@@ -31,6 +32,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | Path | Role |
 |---|---|
 | `run-task.ps1` | run-plan runner: lock wrapper, exit protocol, budget guard, accounting |
+| `lock/ig-lock.ps1`, `lock/lock-check.ps1` | the pentomino copy of the shared lock helper (limit up to 900 s, the idle quiet period) and its unlocked check in a scratch `TEMP` (V4-T11h; see "The owner's lock rules (2026-11-17)") |
 | `plans/IGP-NN.json` | run plans (`allocationMinutes`, `optionalMinutes`, `steps`; a step has `id`, `locked`, `repeatUntilDone`, `optional`, `projectS`, `minHorizonS`, `invocations` (a dry-run forecast only), `node`, `state`) |
 | `arm.mjs` | request-level arms: one-row calibrate runs of a tree (`run`, `publish`, `status`) |
 | `identity.mjs` | identity of the arms against MP12b1 (`identity.json` and `identity.md`); a pair with `mp12b1` on another source is `different-source` with `sameResult`, not a failure, and a seed MP12b1 did not run fails only under `provisional` (V4-T01b) |
@@ -113,11 +115,14 @@ node tools\ig-proto\lib\tree.mjs build base instr log p1p5 p1p5-main p1p5-w095 p
 ## Commands
 
 ```powershell
-# the whole plan of a task (locked steps wait for a quiet slot; the runner stops with exit 4 on a budget stop)
+# the whole plan of a task (locked steps wait for a quiet slot; the runner stops with exit 4 on a budget stop); the lock helper is
+# the pentomino copy (V4-T11h): the runner passes -LimitSeconds 900 -IdleQuietSeconds 15, which the shared helper refuses
 pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\IGP-00.json -Label provisional `
   -SourceLabel 'rating-v3 runtime cd5d17f (worktree 0e1283e)' `
-  -LockHelper "$env:USERPROFILE\.copilot\session-state\c2f29688-8568-4f25-bace-e644d381e5f9\files\ig-lock.ps1" `
+  -LockHelper tools\ig-proto\lock\ig-lock.ps1 `
   [-Only <step ids>] [-IncludeOptional] [-ApprovedRoundMinutes <n>] [-ApprovedTaskMinutes <n>] [-DryRun]
+
+pwsh -NoProfile -File tools\ig-proto\lock\lock-check.ps1 [-Detail] [-Keep] [-HarnessCheck]      # unlocked (V4-T11h), a scratch TEMP per run, about two minutes, run alone and after the other gates; prints lock-check: <n> cases ok
 
 node tools\ig-proto\firewall.mjs snapshot|check --task IGP-00 --label provisional
 node tools\ig-proto\boards.mjs write|check
@@ -165,13 +170,15 @@ passes: a forecast never decides a real invocation.
 
 Before every locked invocation the runner calls `node tools\ig-proto\lib\budget.mjs decide ...`: the allowance left is
 `A = min(1.25 x the task's allocation - its counted total, 10,800 s - the round's counted total)`, each cap raised by an
-approval, and the horizon is `H = min(285, A - 45 - 10)`. When `H` is below the step's `minHorizonS` the runner stops
+approval, and the horizon is `H = min(885, A - 45 - 10)` (the owner's 900-s limit less 15 s; 45 s is the full quiet period, 10 s is
+slack). When `H` is below the step's `minHorizonS` the runner stops
 with exit 4 and prints what it needs. The invocation line (`tests/artifacts/ig-proto/<label>/<task>/invocations.jsonl`)
-has the step, the times, node seconds, lock wait (wall - node), counted seconds (node + min(lock wait, 45)), the
+has the step, the times, node seconds, lock wait (wall - node), the quiet period the helper used (`quietS`, from its printed
+line; `null` when absent), counted seconds (node + min(lock wait, 45)), the
 horizon and the decision. **Charging.** The node seconds come from the step's state file; for a failed invocation
-without a fresh state they are the seconds the lock helper printed (`IG <task> exit=<n> seconds=<s>`, captured with
-`-InformationVariable`), 300 when the helper killed the process, 0 when node never started. Never the wall time: the
-wait for difficulty-v3 is not charged, only the 45 s grace of the quiet period.
+without a fresh state they are the seconds the lock helper printed (`IG <task> exit=<n> seconds=<s> quiet=<q>`, captured with
+`-InformationVariable`), 900 when the helper killed the process, 0 when node never started. Never the wall time: the
+wait for difficulty-v3 is not charged, only the lock wait up to 45 s (a 15-s quiet period under the idle declaration is charged as the time waited).
 
 ### Bounds inside a locked invocation
 
@@ -179,7 +186,66 @@ With `e` the seconds since the node process started: an arm row starts only when
 limit `R`); a lane `rate` job only when `e + 30 <= H` and is a defect when it runs longer than 30 s; a lane `call` job
 only when `e + 120 <= H - 15`, and it is cut at `H - 15`, recorded `censored` with every profile it had streamed, its
 lane taking no further job. The three item kinds of `lib/items.mjs` have their own reserves (see "Bounded measurement
-items").
+items"). The helper kills the whole process tree at its limit, 900 s (the runner's `-LimitSeconds`), so `H`, at most 885 s, ends
+an invocation 15 s before a kill that is a defect.
+
+### The owner's lock rules (2026-11-17)
+
+On 2026-11-17 at 21:33 the owner decided that a locked invocation may last up to 900 s (it was 300 s), that its quiet period is 15 s
+when Sudoku's difficulty-v3 has nothing scheduled and 45 s otherwise, and that timed requests stay sequential (one locked invocation at
+a time on this machine, four workers per request row). V4-T11h carries the rules into the helper, the runner, the budget and the price
+(check-list §3.2, D-V4-19).
+
+- **The copy.** `lock/ig-lock.ps1` is a copy of the shared helper (`C:\Users\ledat\.copilot\session-state\c2f29688-8568-4f25-bace-e644d381e5f9\files\ig-lock.ps1`)
+  with the rules for `-Repo pentomino` only. The shared helper also serves Sudoku's improve-generating work and is never edited: its
+  default, its refusal of more than 300 s and its printed line stay. Both use the same two lock files in `$env:TEMP`
+  (`dv3-sudoku.lock`, `dv3-timing.lock`) and the same priority rule, which is how the two repositories coordinate: a run starts only
+  after both locks have been absent continuously for the quiet period, and difficulty-v3 keeps priority. The copy accepts
+  `-LimitSeconds` up to 900 (more throws `a locked invocation is limited to 900 s`; `-Repo sudoku` is still refused above 300), adds
+  `-IdleQuietSeconds` (0 is off; at most `-QuietSeconds`; `-Repo pentomino` only) and prints
+  `IG <task> exit=<code> seconds=<s> quiet=<q>`, `<q>` being the quiet period it used. `run-task.ps1` calls it with `-LimitSeconds 900
+  -IdleQuietSeconds 15`; given the shared helper as `-LockHelper`, the first locked step stops on the unknown parameter before anything
+  runs. A locked verification invocation keeps the default limit of 300 s.
+- **The idle declaration.** Only the owner knows difficulty-v3's schedule. When he states that it has nothing scheduled until a time,
+  at most 24 h ahead, the orchestrator writes `$env:TEMP\dv3-idle.json` (`format` `dv3-idle`, `version` 1, `setAt`, `idleUntil`) and
+  deletes it when he says difficulty-v3 is scheduled again; no task, test or check creates it, `dv3-sudoku-seen.txt` or a lock file in
+  the real `$env:TEMP`. `Test-IgIdle` is true only while the file is a top-level JSON object with that format and a numeric `version` 1,
+  its `setAt` and `idleUntil` are strings of ISO 8601 form (a case-sensitive pattern checked before the .NET parser, which alone accepts
+  `11/17/2026 21:00:00`), `setAt <= now < idleUntil`, `idleUntil - setAt <= 24 h`, and `dv3-sudoku-seen.txt` is absent or holds an ISO
+  time before `setAt`; every other value and every exception is false.
+- **Fail-closed rules.** The short quiet is chosen at the start of an acquisition attempt only when `-IdleQuietSeconds` is positive,
+  the full quiet has not been forced in this invocation and `Test-IgIdle` is true. The declaration is rechecked on every pass of the
+  wait and before acquiring: from the first failed check the invocation uses the full quiet and never the short one again. Every
+  sight of `dv3-sudoku.lock`, in the wait or at the collision check after the helper has acquired its own lock, writes the UTC time to
+  `dv3-sudoku-seen.txt` (which keeps the short quiet off for later invocations until a new declaration is set) and forces the full
+  quiet; a sight of either lock restarts the quiet period. After acquiring, a short quiet is rechecked once more before node starts:
+  when it is no longer valid the lock is released and the wait resumes with the full quiet. When the sight cannot be recorded (five
+  attempts) the helper throws before node starts. No statement, an unknown, expired or unreadable declaration and one contradicted by a
+  difficulty-v3 run cost only time.
+- **Counting and prices.** The runner keeps charging `node + min(lock wait, 45)` per invocation (a 15-s quiet period is charged as the
+  time waited), counts a killed invocation as 900 node seconds and records the quiet period it used (`quietS`). Prices and budget
+  decisions reserve 45 s per invocation (`QUIET_S`) whether or not difficulty-v3 will be idle (unknown when a plan is approved): the
+  idle quiet can lower the quiet-period part of the spend, never the price. The horizon is `min(885, A - 45 - 10)` and the ceiling of
+  a unit 945 s. Under these rules `V4-S2` is allocated 560 minutes (73 steps) and `V4-LIVE` 36 minutes (9 steps), and the five rows of
+  the first stage-2 row step (`rows-fr-base-pilot-26x26-hell-1`, 260-s limit) take two invocations: four rows, then one.
+- **`lock/lock-check.ps1`** (unlocked, about two minutes, `node -e 0` only; **run it alone, after the other gates and with nothing else
+  running**, because it asserts wall-clock waits with margins of 0.3 to 1 s; `-Detail` adds the measured numbers, `-Keep` leaves the
+  scratch folders) runs each case in a child `pwsh` whose `TEMP` is a fresh folder under this run's own scratch root
+  `tests\artifacts\ig-proto\selftest\lock\<yyyyMMddTHHmmss>-<PID>` (no run deletes another run's folders; the run folder is removed at the
+  end unless `-Keep` or a case failed; the real `TEMP` is never read or written), with `-QuietSeconds 6 -IdleQuietSeconds 2` (the logic of
+  45 and 15 s at about a seventh of the time) and `-LimitSeconds 30`, and prints `lock-check: <case> ok` per case, then
+  `lock-check: 13 cases ok`: (a) no declaration,
+  (b) a valid one, (c) a valid one with the Sudoku lock seen after `setAt`, (d) expired, (e) unparseable, (f) of 25 h, (g) another
+  format, (h) the Sudoku lock in the wait (four runs: the case as written, a wait with no declaration, the lock there at the start,
+  and the lock appearing right after the last poll so that only the collision check meets it), (i) the limits and refusals, (j) the
+  kill at the limit (no node process left, the lock file removed), (k) a declaration that expires in the wait, (l) one deleted in the
+  wait and (m) times written as `MM/dd/yyyy HH:mm:ss`. Direct checks of `Test-IgIdle` beside (b), (c) and (e) cover the accepted and
+  the refused shapes. Each child appends `<UTC time> <stage>` lines to `progress.txt` in its folder (`prelude`, `before-call`,
+  `after-call`, `result`). A child that times out (150 s) or exits nonzero is reported after the `FAIL` line, before its tree is killed,
+  with its last progress marker, the files of its folder with their sizes (a `dv3-*.lock` file with its content) and its process tree (PID,
+  name and command line from `Win32_Process`), then its partial stdout and stderr (awaited at most 5 s after the kill); its folder is kept.
+  `-HarnessCheck` runs only `z-harness-timeout` (a child that sleeps 20 s, with a grandchild node, under a harness timeout of 5 s): it
+  must print that report, leave no process of the tree and exit 1 (2 when the harness itself misbehaves); it is not one of the 13 cases.
 
 ## Records
 
@@ -434,7 +500,7 @@ unlocked (`plans/IGP-07.json`: the firewall snapshot, `summary.mjs`, the firewal
 The frozen round (after MP17, `improve-generating` on the frozen source) repeats every task with one command and then the
 summary. Records go to `docs/improve-generating/evidence/frozen/`; nothing provisional is overwritten. `<label>` is the
 source label given to the runner (`-SourceLabel`) and `<lock helper>` the path of the low-priority helper the orchestrator
-names.
+names (`tools\ig-proto\lock\ig-lock.ps1` from V4-T11h on).
 
 1. **Anchors (no lock).** `node tools\ig-proto\lib\tree.mjs check-edits --all` lists every anchored edit that no longer
    matches the source: the edits of `core/engine/clues.js`, `core/engine/generate.js`, `core/engine/policy.js` and
@@ -678,9 +744,12 @@ the `p1p5*` variants, `ig-select-proto.js` and `ig-log.js` stay as they are.
   ```powershell
   node tools\ig-proto\lib\tree.mjs build v4 v4-w760 v4-w095 v4-w380 --label frozen
   node tools\ig-proto\lib\tree.mjs check-edits --all --label frozen
-  . 'C:\Users\ledat\.copilot\session-state\c2f29688-8568-4f25-bace-e644d381e5f9\files\ig-lock.ps1'
+  . .\tools\ig-proto\lock\ig-lock.ps1
   Invoke-IgNode -Repo pentomino -Task 'V4-T02a verify' -NodeArgs @('tools\ig-proto\self-test.mjs', '--label', 'frozen', '--source-label', 'frozen 3fc65f4', '--v4', '--task', 'V4-T02a')
   ```
+
+  (From V4-T11h on the helper is the pentomino copy, dot-sourced at the repository root; before it the shared helper
+  `C:\Users\ledat\.copilot\session-state\c2f29688-8568-4f25-bace-e644d381e5f9\files\ig-lock.ps1` was.)
 
 ### Provenance of the `gen-v4` prototype
 
@@ -2054,20 +2123,21 @@ beside the projection, and the fields with which the orchestrator asks the owner
   the earliest free lane while `t + reserveS <= H - 15`; an item that is not admitted ends the invocation after the group has drained;
   a completed group drains before the next starts; an item still running at the cut `H - 15` is stopped there and ends `censored` (never
   re-run: T04a's `resumePlan` treats an ended item as done); the margin of 15 s covers the kill and the close. *Process and custom
-  items* (T10b, T10c): one at a time, admitted while `e + reserveS <= H - 15`, cut at `H - 15`. The horizon of an invocation is `H` = 285 s
-  (`lib/budget.mjs`: `MAX_HORIZON_S`, which `decide` lowers only when the allowance is short) and one quiet period of 45 s per invocation
-  (`QUIET_S`; `run-task.ps1` counts `node + min(lock wait, 45)` and its dry-run forecast adds `projectS + 45 x invocations` per locked
-  step).
+  items* (T10b, T10c): one at a time, admitted while `e + reserveS <= H - 15`, cut at `H - 15`. The horizon of an invocation is `H` = 885 s
+  (`lib/budget.mjs`: `MAX_HORIZON_S`, the owner's 900-s limit less 15 s, which `decide` lowers only when the allowance is short; 285 s before
+  V4-T11h) and one quiet period of 45 s per invocation (`QUIET_S`, reserved even where the idle quiet is 15 s: whether difficulty-v3 will be
+  idle is unknown when a plan is approved, so the price is fail-closed; `run-task.ps1` counts `node + min(lock wait, 45)` and its dry-run
+  forecast adds `projectS + 45 x invocations` per locked step).
 - **The overhead assumptions** (the pack author's, D-V4-13; a manifest prints them): 2 s of start-up per invocation (`startupS`) and
   3 s per item group for its lanes and trees (`groupStartS`). A request row takes `projectedRowS` (R15's planning projection, not a bound);
   an item takes the mean measured seconds of its kind and variant (T11c reads them from the item logs), else its reserve. The row margin
   of 10 s and the time a row takes after its limit are assumptions too: no code enforces them as a deadline (RV4-05). `PRICING` holds
   these values and the bounds below as data (the simulations read them; no task names the export yet).
 - **A reserve is never a duration or a ceiling** (RV3-05, RV4-05): it controls admission only. The hard ceiling of a step comes from the
-  bounds the code enforces: the lock helper kills an invocation at 300 node seconds and `run-task.ps1` counts at most 45 quiet seconds per
+  bounds the code enforces: the lock helper kills an invocation at 900 node seconds and `run-task.ps1` counts at most 45 quiet seconds per
   invocation; an invocation that records no progress stops the plan (`run-task.ps1`), so every invocation that does not stop it ends at
   least one unit (a row, or an item: its first admitted item completes or is censored at the cut, and an ended item never runs again).
-  A step of `units` rows or items has therefore at most `units` invocations: `ceilingInvocations = units` and `ceilingS = units x 345`.
+  A step of `units` rows or items has therefore at most `units` invocations: `ceilingInvocations = units` and `ceilingS = units x 945`.
   A request row has no enforced end inside an invocation (`arm.mjs` only admits it; `calibrate.mjs` cuts the request, then the parent
   reads, validates and publishes without a bound), so no tighter row ceiling is claimed. A step of zero units is never emitted (T11c) and
   is refused here. The step's guard, `1.25 x countedS` (the runner's 1.25 x allocation), is a budget, not a promise that every
@@ -2081,12 +2151,12 @@ beside the projection, and the fields with which the orchestrator asks the owner
   `evidence/frozen/V4-T04/identity.json` (read only; 1.0236 today), 1 when the file is absent (the manifest says so), and a present file
   without a positive value throws. `projectedRowS({ refS, factor, rowLimitS })` is `1.25 x factor x refS`, or `rowLimitS` when `refS` is
   `null`; it is not clamped (the simulation cuts the row).
-- **`simulateRows({ rows, rowS, rowLimitS, horizonS = 285, startupS = 2 })`**: invocations until every row ran; in each, `e = startupS`, and
+- **`simulateRows({ rows, rowS, rowLimitS, horizonS = 885, startupS = 2 })`**: invocations until every row ran; in each, `e = startupS`, and
   while rows remain and `e + rowLimitS + 10 <= horizonS`: `e += min(rowS, rowLimitS + 10)` (a row with `rowS > rowLimitS` is cut by the
   runner and counted `censored`, else `completed`); the invocation's `nodeS` is its final `e`. An invocation that admits no row returns
   `{ admissible: false, reason: 'a row of <rowLimitS> s does not fit a horizon of <horizonS> s' }`; else `{ admissible: true,
   invocations: [{ rows, nodeS }], nodeS, quietS: 45 x invocations, countedS: nodeS + quietS, guardS: 1.25 x countedS, completed, censored }`.
-- **`simulateItems({ groups, horizonS = 285, startupS = 2, groupStartS = 3, cutMarginS = 15 })`**: `groups` in order, each `{ kind, variant,
+- **`simulateItems({ groups, horizonS = 885, startupS = 2, groupStartS = 3, cutMarginS = 15 })`**: `groups` in order, each `{ kind, variant,
   lanes, reserveS, durationsS }`. Per invocation `e = startupS`; for each group with items left: if `e + reserveS > horizonS - cutMarginS`
   the invocation ends; else `e += groupStartS`, every lane is free at `e`, and the items left are placed in order, each on the lane that
   is free first at time `t` while `t + reserveS <= horizonS - cutMarginS`; it runs to `t + durationsS[i]`, and when that is past the cut
@@ -2099,7 +2169,7 @@ beside the projection, and the fields with which the orchestrator asks the owner
 - **`stepPrice(step)`** for an emitted step `{ type: 'rows' | 'items' | 'process', ... }` (the simulation's input as its fields; any other
   field, T11c's `cases`, is ignored) returns `{ admissible, projectS: nodeS, invocations, quietS, countedS, guardS, ceilingS,
   ceilingInvocations, completed, censored, schedule }`: `invocations` is the **count** of locked invocations (the `45 x invocations` of
-  `run-task.ps1`'s forecast and of T11c's `allocationMinutes`), `schedule` the simulation's per-invocation list, `ceilingS = units x 345`
+  `run-task.ps1`'s forecast and of T11c's `allocationMinutes`), `schedule` the simulation's per-invocation list, `ceilingS = units x 945`
   with `units` the rows, the items of all groups or the durations. An inadmissible step is `{ admissible: false, reason }`: no invocation
   is priced. **`price(steps)`** is the sum of the step prices over the same fields, `steps` listing each step price and `inadmissible`
   (`[{ index, reason }]`) the steps that are not priced; with any such step `admissible` is false, the plan is not priceable and its totals
@@ -2108,7 +2178,7 @@ beside the projection, and the fields with which the orchestrator asks the owner
   (RV2-13, D-V4-02: the round has one cumulative cap, `roundLimitS('frozen')` is 0 and each approval adds minutes; prior invocation records
   are never deleted or reset).
 - **Inputs are checked** (fail closed, `manifest: <name> must be ...`): a count of rows or a lane count that is not a positive integer, a
-  time, reserve or duration that is not a positive number, a horizon above 285 (the ceiling rests on the runner's bounds), an empty list of
+  time, reserve or duration that is not a positive number, a horizon above 885 (the ceiling rests on the runner's bounds), an empty list of
   groups or durations, an unknown step type, a negative or missing approval input and a `refS` that is neither `null` nor a positive number.
 - **Readers.** T11c emits each step's `price` input and takes `projectS` and `invocations` from `stepPrice` (and `rowS` from
   `projectedRowS`); T11g prices each step of the plans and the universe with `stepPrice` and asks each approval with `approvalFields`.
@@ -2116,7 +2186,9 @@ beside the projection, and the fields with which the orchestrator asks the owner
   fit one invocation`, `a 200-s process item with a 120-s reserve`, `an item past the cut is censored`, `two lanes differ from one` (with
   unequal durations, so that the earliest free lane is told from round-robin), `two separately emitted steps`, `an inadmissible group`,
   `groups run in order and drain`, `approval fields`, `projection label and fallback` (with `factor()`), `refS reads the timed runs` (on
-  18x18 Nightmare's real MP12b1 report, whose 20 runs carry sampling entries only, and on synthetic reports) and `the inputs are checked`.
+  18x18 Nightmare's real MP12b1 report, whose 20 runs carry sampling entries only, and on synthetic reports), `the 900-s cap (owner,
+  2026-11-17)` (twenty 55-s rows share two invocations of twelve and eight rows at the default horizon 885, and the 120-s and 200-s items one;
+  the cases of the earlier horizon pass `horizonS: 285` where they rely on it) and `the inputs are checked`.
 
 ### Plans, the isolated P-0 and the prerequisites gate (V4-T11c)
 
@@ -2192,6 +2264,7 @@ this section executes any plan, rating, pool or measurement (unlocked). The matr
   PowerShell reader of a compiled plan, template or manifest must do the same. The plans of T11e and T11f use the same step builder.
 - **Self-test** (`--items`, unlocked, pure): the `compile:` cases `no unresolved argument`, `producers before consumers`, `P-0 is isolated
   and required` (and every P-1 pass, the proofs-first order of `V4-S2` and the required live receipt), `no executable stage-4 plan`, `disjoint state paths`, `each step priced as it runs`, `bounded steps
-  resume`, `populations as priced` (the probes' items built by their own modules, the row steps' `--cases` parsed by `arm.mjs`),
+  resume` (the first row step, five rows of 201.5 s at a 260-s limit, needs two invocations at horizon 885: four rows, then one),
+  `populations as priced` (the probes' items built by their own modules, the row steps' `--cases` parsed by `arm.mjs`),
   `blocked plans refuse` (bindings built by `acceptedBinding` over temporary receipts), `the measured seconds and the reserve` and `only
   its own files are written`.
