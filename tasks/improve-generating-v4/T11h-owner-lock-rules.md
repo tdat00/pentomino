@@ -7,7 +7,7 @@
 | Depends on | T11c (the compiled plans; its edit of `run-task.ps1` line 39); T11b (the pricing whose constants change) |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (claude-sonnet-5.5) |
-| Estimate | developer 3 h (2.5 h, and 0.5 h for SA-Astra's review of 2026-11-17: the rechecks and cases (k) to (m)), machine 0 min (a helper copy checked in a scratch `TEMP` with `node -e`, constants, a recompile and dry runs; nothing locked) |
+| Estimate | developer 3.5 h (2.5 h, 0.5 h for SA-Astra's review of 2026-11-17: the rechecks and cases (k) to (m), and a fix round of 0.5 h after its report: `lock-check.ps1` robust and diagnosable), machine 0 min (a helper copy checked in a scratch `TEMP` with `node -e`, constants, a recompile and dry runs; nothing locked) |
 
 ## Goal
 
@@ -94,12 +94,23 @@ decision and the price, recompiles T11c's plans, and leaves the shared helper, a
    f. the printed line ends with ` quiet=$quiet`: `IG <task> exit=<code> seconds=<s> quiet=<q>` (the runner's pattern
       `exit=-?\d+ seconds=(?<s>[0-9.]+)` still matches).
    Report `git diff --no-index` of the shared helper against the copy: these edits and nothing else.
-2. **`tools/ig-proto/lock/lock-check.ps1`** (unlocked, about three minutes): each case dot-sources the copy in a child
-   `pwsh -NoProfile` whose `$env:TEMP` is a fresh folder `tests\artifacts\ig-proto\selftest\lock\<case>` (removed at
-   the end; the real `$env:TEMP` is never read or written), calls `Invoke-IgNode` with `-QuietSeconds 6
-   -IdleQuietSeconds 2` (the logic of 45 and 15 s at about a seventh of the time) and `-NodeArgs @('-e', '0')` unless the case
-   says otherwise; the script prints `lock-check: <case> ok` per case, then `lock-check: <n> cases ok` (exit 0), or the
-   failing case and exit 1. Cases: (a) no declaration: `quiet=6`, the call waits at least 6 s; (b) a valid declaration
+2. **`tools/ig-proto/lock/lock-check.ps1`** (unlocked, about three minutes; it runs alone, after the other gates and with
+   nothing else running, because it asserts wall-clock waits with margins of 0.3 to 1 s): each case dot-sources the copy
+   in a child `pwsh -NoProfile` whose `$env:TEMP` is a fresh folder `tests\artifacts\ig-proto\selftest\lock\<run>\<case>`
+   (`<run>` is `<yyyyMMddTHHmmss>-<PID>` of that run, so that no run deletes another's folders; removed at the end unless
+   `-Keep` or a case failed; the real `$env:TEMP` is never read or written), calls `Invoke-IgNode` with `-QuietSeconds 6`
+   `-IdleQuietSeconds 2` (the logic of 45 and 15 s at about a seventh of the time), `-LimitSeconds 30` (a node that does not
+   exit is then killed by the helper and reported as such) and `-NodeArgs @('-e', '0')` unless the case says otherwise;
+   the script prints `lock-check: <case> ok` per case, then `lock-check: <n> cases ok` (exit 0), or the failing case and
+   exit 1. A child that times out (150 s) or exits nonzero makes the FAIL line print diagnostics before its tree is
+   killed: the last progress marker it wrote (`prelude`, `before-call`, `after-call`, `result`, each with its UTC time,
+   in `progress.txt` of its folder), the files of its folder with their sizes and the content of a `dv3-*.lock` file,
+   its process tree (PID, name and command line of each descendant, from `Get-CimInstance Win32_Process`), then its
+   partial stdout and stderr (awaited at most 5 s after the kill); the folder is kept. `-HarnessCheck` runs one case
+   only, `z-harness-timeout` (a child that sleeps 20 s under a 5-s harness timeout), which must fail with those
+   diagnostics and leave no process (ruling of 2026-11-17, T11h's report: a first run beside other gates failed with
+   `the child did not finish within 150 s` in case (f), a run alone passed).
+   Cases: (a) no declaration: `quiet=6`, the call waits at least 6 s; (b) a valid declaration
    (`setAt` a minute ago, `idleUntil` an hour ahead): `quiet=2`, the wait under 6 s; (c) the same with
    `dv3-sudoku-seen.txt` a second after `setAt`: `quiet=6`; (d) an expired declaration, (e) an unparseable one, (f) one
    that spans 25 h and (g) one with another `format`: `quiet=6` each; (h) a valid declaration and a `dv3-sudoku.lock`
@@ -172,7 +183,8 @@ decision and the price, recompiles T11c's plans, and leaves the shared helper, a
 | `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T11h` | root | every case passes, exit 0 | 3 min |
 | `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T11h-frozen` | root | 10 passed | 2 min |
 | `node tools\ig-proto\lib\tree.mjs check-edits --all --label frozen` | root | 34 `ok` lines, no other line | 2 min |
-| `pwsh -NoProfile -File tools\ig-proto\lock\lock-check.ps1` | root | `lock-check: 13 cases ok`, exit 0 | 5 min |
+| `pwsh -NoProfile -File tools\ig-proto\lock\lock-check.ps1`, alone, after the other gates and with nothing else running (ruling of 2026-11-17, T11h's report) | root | `lock-check: 13 cases ok`, exit 0 | 5 min |
+| `pwsh -NoProfile -File tools\ig-proto\lock\lock-check.ps1 -HarnessCheck` (the fix round's harness check) | root | `lock-check: FAIL z-harness-timeout: ...` followed by its diagnostic lines; no process of its tree left; exit 1 | 1 min |
 | `node tools\ig-proto\manifest.mjs compile --label frozen --source-label "frozen 3fc65f4"`, twice | root | step 8 | 2 min |
 | `node tools\ig-proto\manifest.mjs check-prerequisites --plan V4-S2 --label frozen --source-label "frozen 3fc65f4"`, then `--plan V4-LIVE` | root | `prerequisites: pass`; then `prerequisites: blocked (variant fr-frozen missing; ...)`, exit 1 | 1 min |
 | `pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\V4-S2.json -Label frozen -SourceLabel 'frozen 3fc65f4' -ApprovedRoundMinutes 92 -DryRun` (92 is the cap the owner granted, and a run never passes more: check-list §3.2; ruling of 2026-11-17, T11h's report) | root | exit 0; the first locked steps `go` with `horizon 885 s` (three on 2026-11-17), the others `stop` with the budget reason once the forecast passes the granted cap; the last line `[dry run] forecast of the plan: 33,551 s counted (allocation 33,600 s, guard 42,000 s)` (the sum of `projectS + 45 x invocations` of the 44 locked steps is 33,550.5 s) | 2 min |
