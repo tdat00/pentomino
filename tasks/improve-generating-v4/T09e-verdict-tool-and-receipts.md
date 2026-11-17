@@ -100,7 +100,8 @@ receipt that the comparator resolution (T11f) consumes.
    with `stage1: { binding: 'docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json', current: [] }`,
    no parity entry, and `liveDeadline: { binding: 'docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.accepted.json',
    current: ['fr-frozen'] }` (absent).
-5. **Self-test** cases appended to `--items` (Tests table); **README.md**: T09a's section gains the tool, the bound
+5. **Self-test** cases appended to `--items` (Tests table; through `const { v, row } = await verdictKit()`, as in
+   T09b); **README.md**: T09a's section gains the tool, the bound
    prerequisites, the class-selection receipt and its closure rule, and the work report.
 
 ## Tests

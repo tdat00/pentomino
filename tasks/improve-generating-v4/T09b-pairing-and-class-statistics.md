@@ -79,7 +79,9 @@ Plan §5.2 and review R12 (accepted), with these readings fixed here (pack autho
      reps.length)` and takes the geometric mean over every (cell, drawn index) pair; `pass = geoMean >= 1.15 && lower
      > 1.0 &&` every cell's geometric mean `>= 1.0`.
    - `noRegression(ratios, reps, { resamples, resampleSeed })`: the same recipe for one cell, `pass = lower >= 0.9`.
-2. **Self-test** cases appended to `--items` (Tests table), with T09a's `row` helper.
+2. **Self-test** cases appended to `--items` (Tests table), with T09a's `row` helper: `const { v, row } = await
+   verdictKit()` in `self-test.mjs` (`v` is the `verdicts.mjs` module; `self-test.mjs` never imports `verdicts.mjs`
+   statically, so that the other groups do not need the frozen source; ruling of 2026-11-17, T09a's report).
 3. **README.md**: T09a's section gains the readings of the Authority section.
 
 ## Tests

@@ -81,7 +81,9 @@ can never pass, and the final manifest, which declares every expected P5 pair an
    120,000; `resampleSeed` 20261116; `resamples` 10,000; `validationReps` 20 to 39; `masterReps` 20 to 24;
    `collection: { activation: activationRef, closure: closureRef }` (each `{ path, sha256 }`, the closure `null` when
    there is none); `selection` (final only): `selectionRef`; `arms`: every arm of the activation's groups (and, for
-   `final`, every resolved comparator arm) with `task`, `arm`, `variant`, `treeId` (its runs files' `meta.trees`) and
+   `final`, every resolved comparator arm) with `id` (the arm's name, as in step 1; the classes, controls, masters,
+   `p5` and `deadlineProjection` name arms by it, T09a's schema), `task`, `arm`, `variant`, `treeId` (its runs
+   files' `meta.trees`) and
    `files: [{ path, sha256 }]` (every `*.runs.json` of `docs/improve-generating/evidence/frozen/<task>/<arm>/`,
    `sha256File`); `classes` from the freeze file; `failingCells` (T11a's `failingNightmare`); `controls` (`{ cell,
    today: 'log-link' }` per control cell); `masters` (`{ cell, today: 'log-link', after: 'fr-frozen' }` per Master
@@ -112,7 +114,7 @@ the same records.
 | `resolve: an interim selection is refused` | (a) S with one declared row missing and no closure; (b) S bound to another `fr-frozen` tree id than the runs files'; (c) S without `26x26-hell-1` in `selection.cells` | (a) and (b) `the selection is not final (...)`; (c) `no shipped arm for 26x26-hell-1`; nothing written |
 | `resolve: a closed collection resolves` | a closure listing the missing row of (a), S built with that closure | `pass`; the plan is written; `X.coverage.expected` lacks the closed row and `X.fields.collection.missing` lists it |
 | `resolve: the template belongs to its activation` | A's template with `activationSha256` changed; T11c's `V4-S4X.template.json` | `the template belongs to another activation`; `not a V4-S4C template` |
-| `verdict input: selection and final` | `verdictInput('selection', ...)` and `verdictInput('final', ...)` over A, S and the plan of case 1 | selection: `purpose` `selection`, `p5` `[]`, no `selection` field; final: `selection.sha256` S's, `p5` `[{ cell: '14x14-nightmare', bounded: 'fr-frozen', uncapped: 'fr-frozen-uncapped', reps: [20, ..., 39] }, ...]` with one entry per comparator cell; both: `prerequisites.stage1.current` `[]`, the P-0 parity entry with `current: ['v4']`, `arms[].files[].sha256` equal to the files' |
+| `verdict input: selection and final` | `verdictInput('selection', ...)` and `verdictInput('final', ...)` over A, S and the plan of case 1 | selection: `purpose` `selection`, `p5` `[]`, no `selection` field; final: `selection.sha256` S's, `p5` `[{ cell: '14x14-nightmare', bounded: 'fr-frozen', uncapped: 'fr-frozen-uncapped', reps: [20, ..., 39] }, ...]` with one entry per comparator cell; both: `prerequisites.stage1.current` `[]`, the P-0 parity entry with `current: ['v4']`, `arms[].id` equal to `arms[].arm`, `arms[].files[].sha256` equal to the files' |
 | `verdict input: not published` | the final input with one comparator arm's runs file absent | throws `verdict-input: not published <arm>` |
 
 ## Documentation

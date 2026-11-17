@@ -90,7 +90,8 @@ pass only on a final collection.
      (`ratingCensoredCount / acceptedCount` summed over rows) and completion.
    - `phase0Verdict({ purpose, classes, cells, controls, masters, p5, prerequisites })` by the reading above; returns `{
      verdict, deciding: [<item names with their status>] }`.
-2. **Self-test** cases appended to `--items` (Tests table), with T09a's `row` helper.
+2. **Self-test** cases appended to `--items` (Tests table), with T09a's `row` helper (`const { v, row } = await
+   verdictKit()`, as in T09b).
 3. **README.md**: T09a's section gains the global procedure, the cell gates, Master identity, P5's readings, the
    projection label and the two purposes of phase 0.
 

@@ -119,8 +119,9 @@ on T09b's statistics.
      The interval: per closed call, `lo` the sum of its completed primitives' units; `hi = lo +` the `bound` of its
      open primitive for a terminated call, else `hi = lo` (a termination between primitives included); the row's `lo`,
      `hi`, `ratingWork` and `countWork` sum over the closed calls; `open` counts the open primitives.
-   - `workRule(screenRows, noScreenRows)`: each row `{ ingested, ledger }` (T09a's `ingestRow` and `rowLedger`); per
-     arm `{ lo, hi, accepted, loRatio: lo / accepted, hiRatio: hi / accepted, completedRatio: lo / accepted,
+   - `workRule(screenRows, noScreenRows)`: each row `{ ingested, ledger }` (T09a's `ingestRow` and this task's
+     `rowLedger`); per arm `{ lo, hi, accepted, loRatio: lo / accepted, hiRatio: hi / accepted,
+     completedRatio: lo / accepted,
      complete, rows, terminatedCalls }` (`accepted` the sum of `run.acceptedCount` of valid rows; `complete` when every
      row is valid and every ledger complete); `{ screen, noScreen, verdict }` with `verdict` `unknown` (an arm not
      complete or `accepted` 0), else `pass` (`screen.hiRatio <= noScreen.loRatio`), else `worse` (`screen.loRatio >
@@ -139,12 +140,15 @@ on T09b's statistics.
    7. `work`: `workRule` over every row of the class (each with its ledger; a row without a ledger has `ledger: {
       complete: false, problems: ['no journal'], lo: 0, hi: 0 }`) is `worse`: `failed`; `unknown`: `inconclusive` with
       `decidedBy` `work-unknown`;
-   8. `completion`: on a cell, the screen arm's valid rows reaching ten are fewer than the no-screen arm's minus 1:
-      `failed`;
+   8. `completion`: on a cell, the screen arm's valid rows reaching ten (counted with T09a's `reachedTen(run, {
+      quantity })`; T09a's `completion` needs `responseBoundMs`, which this input does not carry) are fewer than the
+      no-screen arm's minus 1: `failed`;
    9. `cell-gate`: a cell's `screenCellGate` is `fail`: `failed`; `incomplete`: `inconclusive`;
    else `admitted`. Returns `{ verdict: 'admitted' | 'failed' | 'inconclusive', decidedBy, clue, faster, work,
-   evidence, completion: { [cell]: { screen, noScreen } }, problems }` (`decidedBy` `null` for `admitted`).
-3. **Self-test** cases appended to `--items` (Tests table).
+   evidence, completion: { [cell]: { screen, noScreen } }, problems }` (`decidedBy` `null` for `admitted`; `screen`
+   and `noScreen` are the two counts of rule 8).
+3. **Self-test** cases appended to `--items` (Tests table; through `const { v, row } = await verdictKit()`, as in
+   T09b).
 4. **README.md**: T09a's section gains the ledger's rules (the interval of IG-P-Q37, the ten rules), the work rule
    with its three verdicts and the class procedure.
 
@@ -157,7 +161,8 @@ main, census] }`, `N(call, units)` `{ t: 'count', call, units }`, `E(call, work,
 `{ t: 'end', call, result, work, profiles, locate: { countWork } }`, `W(ev, threadId, at)` `{ t: 'link', ev, pid: 1,
 threadId, at }`; call ids `r:1:<thread>:<seq>`; every `P` and `N` below is preceded by its `B` with bound 1,000 unless
 stated. `arm(lo, hi, accepted)` is a row list whose ledgers sum to `lo` and `hi` with `accepted` puzzles. T09a's `row`
-helper builds rows; `synthClass(spec)` builds a `classVerdict` input over `spec.cells` and reps 0 to 19 where, unless
+helper (`const { v, row } = await verdictKit()`) builds rows; `synthClass(spec)` builds a `classVerdict` input over
+`spec.cells` and reps 0 to 19 where, unless
 `spec` overrides a cell's rep, the screen row of rep `r` is `row(r, 's' + r, { accepted: 10, tenth: 30000, setKey: 'k'
 + r, clue: 12, K: 30 })` with ledger `{ complete: true, problems: [], lo: 100, hi: 100 }`, the no-screen row the same
 (`K: 30` included) with `tenth: 45000`, `screenCellGate` `'pass'`, `quantity` 10, `capMs` 120,000, `resamples` 1,000 and `resampleSeed` 7.
