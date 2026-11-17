@@ -227,13 +227,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-17 08:16:21 +07:00 (dispatch, base `a082333`) to 11:18:47 +07:00 (acceptance): 3 h 2 min 26 s; the developer's own times 08:16:58-10:40:03 (first observation), 10:57:55-11:11:19 (second replay observation), 11:16:52-11:18:09 (fix round) |
+| Waiting for rulings | about 17 min on the QUESTION (10:40 to 10:57) and about 5 min on the case-10 ruling (11:13 to 11:16); lock waits for Sudoku's difficulty-v3: 3,062 s (IGP-02), 3,981 s (V4-T04 first observation) and 604 s (second replay), counted at most 45 s per invocation |
+| Agent id, model | `de89d541-565c-4f9b-885a-36db5d2c8c1b`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 94 calls; 9,895,344 input, 40,307 output, 9,513,660 cache-read |
+| AI credits | 230.85 |
+| Questions and rulings | QUESTION 1 (10:40): the first observation's receipt was `incomplete` (replay: the 26x26 Nightmare generation item ended `no-set` at the 115 s deadline). Ruling of the pack author (10:57): not a defect (`uniqueness: 'require'`, one worker; the provisional and identity runs used `any` with four workers); a second replay observation in place with `14x14-nightmare` (archive `replay-a1`, `stage1-a1.*`), same harness, within the granted cap; N-V4-15; pack amendment `984aff9`. The orchestrator's verification found the `--items` case 10 hard-coding the old case; ruling (11:16): T04e step 10 (case list and README); pack amendment `2f4905a` |
+| Fix rounds | 1 (case 10's case list and the README's Manifests bullet) |
+| Gates re-run by the orchestrator | Not re-run (they would rewrite the evidence; the ruling forbids a second summary): the records checked instead. `stage1.md`: `Stage 1: holds.`, blocks source, identity, pm4, self-test, parity, replay, inputs all `pass`; `stage1.json` verdict `pass`, frozen commit `3fc65f4…`, 5 arms, 20 evidence entries, 0 of 20 changed (lf-text SHA-256 recomputed); runners' last lines: IGP-02 task 1,020 s, V4-T04 task 1,354 s, round 2,374 s of 5,520 s. Unlocked gates re-run: `--items` 26 passed, 0 failed; `--frozen` 10 passed; firewall `check` (V4-T04): 289 production files unchanged; `npm run check`: OK; evidence formats: 0 problems (CRLF, no BOM, no trailing whitespace). Scope: `V4-T04.replay.json` (two rows), `self-test.mjs` (one line), README, and the evidence folders `IGP-02/` and `V4-T04/` |
+| Commit | this task's commit, `improve-generating T04e: Stage-1 runs: source and identity receipt, certificate re-proof, parity and replay on real calls` |
+| Issues and named items | N-V4-15 (`require` on the largest offered boards is unmeasured by the frozen round; for the production pack). The first observation stays as evidence (`replay-a1.manifest.json`, `stage1-a1.*`; raw logs under `tests/artifacts/`) |

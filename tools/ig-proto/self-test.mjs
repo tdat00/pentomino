@@ -1077,7 +1077,7 @@ const itemCases = [
         [caseBoard('14x14-master').boardRows, 'master', 'ig-v4/parity/14x14-master', 'absent'], 'the payload values of the first item');
       const r = expandManifest(replay, rawDir(replay), isV4);
       assert(r.length === 9, `${r.length} replay items, not 9`);
-      const cases = ['14x14-master', '12x12-nightmare', '26x26-nightmare'];
+      const cases = ['14x14-master', '12x12-nightmare', '14x14-nightmare'];
       same(r.map((i) => [i.id, i.kind]), cases.flatMap((caseId) => [
         [`replay:v4:${caseId}:ig-v4/replay/${caseId}:gen`, 'v4-generate'],
         [`replay:v4:${caseId}:ig-v4/replay/${caseId}:puzzle-0`, 'v4-replay'],

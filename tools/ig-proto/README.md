@@ -893,8 +893,10 @@ runs the stage-1 item manifests, the two verdicts that judge them and the stage-
   Parity rows (`seedText` `ig-v4/parity/<caseId>`): `v4` on `14x14-master`, `12x12-nightmare`, `26x26-nightmare` and
   `26x26-hell-1` with the modes `absent`, `charge`, `record`; `base` on `14x14-master` with `absent` and `record`;
   `v4-w760`, `v4-w095` and `v4-w380` on `12x12-nightmare`. Replay rows (`seedText` `ig-v4/replay/<caseId>`): for
-  `14x14-master`, `12x12-nightmare` and `26x26-nightmare` one `v4-generate` row of `v4` (`quantity` 2) and one
-  `v4-replay` row (`puzzles` 2).
+  `14x14-master`, `12x12-nightmare` and `14x14-nightmare` one `v4-generate` row of `v4` (`quantity` 2) and one
+  `v4-replay` row (`puzzles` 2). The third case was `26x26-nightmare` until the ruling of 2026-11-17 (no set under
+  `require` with one pool worker within the 115-second request deadline); that first observation is archived in
+  `V4-T04/replay-a1/` and `stage1-a1.json`.
 - **`run`.** `node tools\ig-proto\v4-check.mjs run --task <T> --step <S> --manifest <path> --label frozen --source-label
   <SL> [--horizon-s <H>]` (any other label: `v4-check: --label frozen only`, exit 1). The raw folders derive from the
   manifest (`tests/artifacts/ig-proto/frozen/<task>/<step>/logs/` and `packs/`), so a manifest runs only under its own
