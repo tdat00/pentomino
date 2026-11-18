@@ -105,20 +105,27 @@ production reports, reads both memory checks of plan §6's phase-1 gate (which c
    - `nextLimit(rows)`: `spent` = the sum of the rows' `countedSeconds`; `limitS = Math.min(900, Math.floor(2700 -
      spent - 45))`; `allowed` when `limitS >= 300`. An invocation is charged at most its limit plus 45 s, so the ledger
      can never pass 2,700 s.
-   - `checkCheckpoint(text, { group, side, commit })` (before a resume): the header line parses with `format`
+   - `checkCheckpoint(text, { group, side, commit })` (before a resume; `commit` is the side's expected commit,
+     `OLD_COMMIT` or the new commit, passed explicitly): the header line parses with `format`
      `pentomino-bench-checkpoint`, `kind` `node`, `workers` 4, `lifecycle` `cold` and `freshProcess` true; every
      further line parses as `{ kind: 'run', run }` with `validateRunRecord(run)` empty, `probeKind` `generation`, a case
-     of the group, a rep from 0 to 4, the seed `landscape/<caseId>/<rep>`, `sourceCommit` the side's commit and no
-     duplicate case and rep; an unreadable or truncated line, a duplicate or another identity throws `p6-bench:
-     checkpoint <side>/<group> line <n>: <reason>`. The bench's own reader skips such lines silently; this check does
-     not allow that.
-   - `preflight({ rows, pending, group, side, checkpoint, resumeInstructed })`, the decision before an invocation, in
-     this order: a reservation exists: `stop` 5 (`an invocation is not reconciled: pending.json`); the group and side
-     has a ledger line with `exit` 0: `complete` (its line and report); its last line has `exit` 2 and
-     `resumeInstructed` is false: `stop` 9 (`<group> <side> ended incomplete (exit 2); a resume needs the pack
-     author's instruction`); it has two lines with `killed`: `stop` 6 (`a second timeout of <group> <side>`); a
-     checkpoint exists and `checkCheckpoint` throws: `stop` 8; `nextLimit` not allowed: `stop` 4 (`<spent> s counted of
-     2700; less than 300 s left for an invocation`); else `run` with `limitS`.
+     of the group, a rep from 0 to 4, the seed `landscape/<caseId>/<rep>`, `sourceCommit` the side's commit,
+     `sourceDigest` and `versions` equal to the header's, and no duplicate case and rep; an unreadable or truncated
+     line, a duplicate or another identity throws `p6-bench: checkpoint <side>/<group> line <n>: <reason>`. The bench's
+     own reader skips such lines silently; this check does not allow that.
+   - `preflight({ rows, pending, group, side, checkpoint, resumeInstructed, newCommit, completedReport = null })`, the
+     decision before an invocation, in this order: a reservation exists: `stop` 5 (`an invocation is not reconciled:
+     pending.json`); a ledger line names another commit than `OLD_COMMIT` for side `old` or `newCommit` for side `new`:
+     `stop` 8 (`ledger source does not match this comparison`); the group and side has a ledger line with `exit` 0:
+     exactly one such line is required, and `completedReport` (`{ path, sha256, report }`, which the command line
+     computes from the existing file's raw bytes and parsed JSON, or `null` when the file is absent) must have that
+     line's path and SHA-256 and pass `validateReport(report, { side, group, newCommit })`: then `complete` (its line
+     and report), else `stop` 8, and the helper never runs; its last line has `exit` 2 and `resumeInstructed` is false:
+     `stop` 9 (`<group> <side> ended incomplete (exit 2); a resume needs the pack author's instruction`); it has two
+     lines with `killed`: `stop` 6 (`a second timeout of <group> <side>`); a checkpoint exists and
+     `checkCheckpoint(checkpoint, { group, side, commit: <OLD_COMMIT or newCommit> })` throws: `stop` 8; `nextLimit`
+     not allowed: `stop` 4 (`<spent> s counted of 2700; less than 300 s left for an invocation`); else `run` with
+     `limitS`.
    - `pairRuns(oldRuns, newRuns)`: pairs the runs of the two sides by `caseId` and `rep`, reps 0 to 4, seed
      `landscape/<caseId>/<rep>` on both; a run without its pair, another seed or a duplicate throws `p6-bench: unpaired
      run <caseId> #<rep>`.
@@ -150,11 +157,13 @@ production reports, reads both memory checks of plan §6's phase-1 gate (which c
      same inputs give the same bytes.
    - `renderMarkdown(result)` and `renderChart(result)`, which returns `{ svg, html }` (step 6).
    - The command line: `node tools\ig-proto\phase1\p6-bench.mjs preflight --group <G> --side <S> --new-commit <C>
-     [--resume-instructed]` prints the decision and exits 0 for `run` (`p6-bench: run <G> <S> with a limit of <limit>
-     s; <spent> s counted of 2700`), 7 for `complete` (`p6-bench: <G> <S> is complete (ledger line <n>, <report>);
-     nothing to run`) and the stop's code for `stop` (`p6-bench: STOP (<kind>): <reason>`), 1 for a usage error; `node
-     tools\ig-proto\phase1\p6-bench.mjs compare --new-commit <C>` writes the files of step 6 and exits 0, or prints
-     `p6-bench: <reason>` on stderr and exits 1 with nothing written.
+     [--resume-instructed]` reads the raw ledger, `pending.json`, the group's checkpoint and, for a successful ledger
+     line, its terminal report (the SHA-256 of its raw bytes and its parsed JSON), calls `preflight`, prints the
+     decision and exits 0 for `run` (`p6-bench: run <G> <S> with a limit of <limit> s; <spent> s counted of 2700`), 7
+     for `complete` (`p6-bench: <G> <S> is complete (ledger line <n>, <report>); nothing to run`) and the stop's code
+     for `stop` (`p6-bench: STOP (<kind>): <reason>`), 1 for a usage error; `node tools\ig-proto\phase1\p6-bench.mjs
+     compare --new-commit <C>` writes the files of step 6 and exits 0, or prints `p6-bench: <reason>` on stderr and
+     exits 1 with nothing written.
 4. **`tools/ig-proto/phase1/p6-bench.ps1`** (new) `-Group A|B -Side old|new -NewCommit <C> [-ResumeInstructed]
    [-DryRun]`, run from the repository root:
    - checks the side's worktree (`Q:\git\pentomino-t14-old` or `Q:\git\pentomino-t14-new`): `rev-parse HEAD` equal
@@ -168,7 +177,10 @@ production reports, reads both memory checks of plan §6's phase-1 gate (which c
      bench writes `<output>-<date>.json` and `.md`, and `<output>.checkpoint.jsonl`);
    - `-DryRun` prints the worktree check, the preflight and the command line, runs nothing, and exits 0 when the
      preflight was `run` or `complete`, else with the preflight's exit;
-   - else, before the helper: it creates `<RAW>\pending.json` exclusively (`[IO.File]::Open(<path>, 'CreateNew')`;
+   - for a real run, it loads the repository helper in this PowerShell process,
+     `. (Join-Path $PSScriptRoot '..\lock\ig-lock.ps1')`; a loading failure exits 1 before the reservation is created
+     or anything starts;
+   - then, before the helper runs: it creates `<RAW>\pending.json` exclusively (`[IO.File]::Open(<path>, 'CreateNew')`;
      an existing file is exit 5) with the fields `id` (a new GUID), `task` (`V4-T14`), `group`, `side`, `commit`,
      `limitS`, `reservedS` (`limitS + 45`) and `createdAt`;
    - then `$global:LASTEXITCODE = 0`, `$start = Get-Date`, and `Invoke-IgNode -Repo pentomino -Task "V4-T14 $Group
@@ -277,26 +289,46 @@ production reports, reads both memory checks of plan §6's phase-1 gate (which c
    $url = 'file:///' + ($ev -replace '\\', '/') + '/chart.html'
    $edgeArgs = @('--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--disable-extensions', "--user-data-dir=$profileDir", '--window-size=1200,720', "--screenshot=$ev\chart.png", $url)
    $edge = $null
+   $launch = Get-Date
    try {
      $edge = Start-Process -PassThru -FilePath 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' -ArgumentList $edgeArgs
      if (-not $edge.WaitForExit(60000)) { throw 'STOP: Edge did not finish within 60 s' }
      if ($edge.ExitCode -ne 0) { throw "STOP: Edge exited $($edge.ExitCode)" }
    } finally {
-     if ($edge -and -not $edge.HasExited) {
-       # The helper's pattern (tools\ig-proto\lock\ig-lock.ps1): the recorded process and its descendants, by PID only.
+     if ($edge) {
+       # The helper's pattern (tools\ig-proto\lock\ig-lock.ps1): the recorded process and its descendants, by PID only;
+       # here only msedge.exe processes created since the launch, so that no unrelated process is ever stopped.
+       $rootExited = $edge.HasExited
        $all = Get-CimInstance Win32_Process
        $owned = [Collections.Generic.List[int]]::new(); $owned.Add([int]$edge.Id)
        for ($i = 0; $i -lt $owned.Count; $i++) {
-         foreach ($child in $all | Where-Object { $_.ParentProcessId -eq $owned[$i] }) { if (-not $owned.Contains([int]$child.ProcessId)) { $owned.Add([int]$child.ProcessId) } }
+         foreach ($child in $all | Where-Object { $_.ParentProcessId -eq $owned[$i] -and $_.Name -eq 'msedge.exe' -and $_.CreationDate -ge $launch }) {
+           if (-not $owned.Contains([int]$child.ProcessId)) { $owned.Add([int]$child.ProcessId) }
+         }
        }
-       foreach ($id in ($owned | Sort-Object -Descending)) { Stop-Process -Id $id -Force -ErrorAction SilentlyContinue }
+       for ($i = $owned.Count - 1; $i -ge 0; $i--) {
+         if ($i -eq 0 -and $rootExited) { continue }
+         Stop-Process -Id $owned[$i] -Force -ErrorAction SilentlyContinue
+       }
+       $watch = @(for ($i = 0; $i -lt $owned.Count; $i++) { if (-not ($i -eq 0 -and $rootExited)) { $owned[$i] } })
+       $deadline = (Get-Date).AddSeconds(15)
+       do {
+         $alive = @($watch | Where-Object { Get-Process -Id $_ -ErrorAction SilentlyContinue })
+         if ($alive.Count -gt 0) { Start-Sleep -Milliseconds 250 }
+       } while ($alive.Count -gt 0 -and (Get-Date) -lt $deadline)
+       if ($alive.Count -gt 0) { throw "STOP: owned Edge processes survived: $($alive -join ', ')" }
      }
      if (Test-Path $profileDir) { Remove-Item -Recurse -Force $profileDir }
+     if (Test-Path $profileDir) { throw "STOP: the Edge profile $profileDir could not be removed" }
    }
    ```
 
-   Only after Edge ended with exit 0 within 60 s: `chart.png` must exist, be larger than 10 KB, and show the seven rows
-   with both bars and their labels (view it). The scratch profile keeps the user's Edge profile untouched.
+   The owned processes (the recorded Edge process and its `msedge.exe` descendants created since the launch, by PID)
+   are stopped, children before parents, and awaited for at most 15 s before the profile is removed; a surviving owned
+   process or a profile that cannot be removed fails the screenshot gate, and no unrelated process is ever stopped. Only
+   after Edge ended with exit 0 within 60 s and the cleanup succeeded: `chart.png` must exist, be larger than 10 KB, and
+   show the seven rows with both bars and their labels (view it). The scratch profile keeps the user's Edge profile
+   untouched.
 8. **Self-test** cases appended to `--items` (Tests table); **README.md**: a new section "Phase-1 bench of P6
    (V4-T14)": the purpose, the two scripts, the preflight, the reservation and the ledger, the order and the resume
    rule, the outputs, the identity categories, and the statement that the results are Node screening evidence.
@@ -312,7 +344,7 @@ no generation runs.
 | `p6: pairs and identity` | old and new runs of two cells: equal summaries and equal production digests; equal summaries and different production digests; ten puzzles against the first seven of the same summaries; a changed `score` in the fourth common puzzle; an empty side; a nonempty side without its digest; differing `sampleFailures` only; a run without its pair | `equal`; `differ`; `metric-prefix-only`; `differ` with `details.puzzles[3].score`; `no-puzzle-evidence`; `incomplete`; `equal`; throws `p6-bench: unpaired run <caseId> #<rep>` |
 | `p6: statistics and ratios` | five and twenty synthetic runs; pairs with and without ten on both sides; a nine-puzzle request that proved every arrangement; a pair with a non-positive endpoint | the p95 of five values is their maximum and of 1 to 20 is 19; T10 only over the runs with ten, with its n; `tenOfN` excludes the nine-puzzle request and `tenOrProvenAllOfN` counts it; the ratios old/new with median, min, max, n and `excluded`, and `median: null` below n 3 |
 | `p6: the memory checks` | at four workers, accounted peaks of 1,196 MiB and of 1,196 MiB + 1 byte; process peaks of 1.5 GiB and of 1.5 GiB + 1 byte; a run without a process peak | `pass` and `fail`; `pass` and `fail`; `not-measured`, which refuses publication |
-| `p6: the ledger, the reservation and the preflight` | ledgers of 0, 1,800 and 2,400 counted seconds; a line with a negative or non-finite duration; a reservation present; a group with an `exit` 0 line; a last line with `exit` 2, without and with `resumeInstructed`; two kills; a checkpoint with a truncated line, a duplicate row and a row of another commit | `run` with limits 900 and 855, then `stop` 4 (255 s); throws `ledger line <n> is unreadable`; `stop` 5; `complete`; `stop` 9, then `run`; `stop` 6; `stop` 8 for each checkpoint defect |
+| `p6: the ledger, the reservation and the preflight` | ledgers of 0, 1,800 and 2,400 counted seconds; a line with a negative or non-finite duration; a reservation present; a group with a valid `exit` 0 line and its terminal report; a completed line of another commit; a completed line whose terminal report is missing, or whose bytes changed; a last line with `exit` 2, without and with `resumeInstructed`; two kills; a checkpoint with a truncated line, a duplicate row, a row of another commit, and a row whose source digest or versions differ from its header | `run` with limits 900 and 855, then `stop` 4 (255 s); throws `ledger line <n> is unreadable`; `stop` 5; `complete`; `stop` 8 (`ledger source does not match this comparison`); `stop` 8 each; `stop` 9, then `run`; `stop` 6; `stop` 8 for each checkpoint defect |
 | `p6: inputs are refused` | a report whose rows are failed child records but `complete: true`; a row whose metadata differs from its report's; a row with a non-sampling error; a missing process memory; `workerCount` 2; an old report whose digest is not `FROZEN_DIGEST`; a new report of another commit; the new reports with two source digests; a terminal report whose SHA-256 differs from its ledger line; a reservation left; a report with a drive-letter path | each refused with its reason, nothing written |
 | `p6: the chart` | the result of seven synthetic cells with `<k>`, `<m>` and `<z>` identity counts | the SVG has seven rows with two bars each, the ten of n texts, the ratio texts and the footer with the three counts; `chart.html` embeds it; the same input gives the same bytes |
 
