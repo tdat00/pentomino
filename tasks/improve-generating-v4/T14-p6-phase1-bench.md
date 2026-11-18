@@ -295,7 +295,9 @@ production reports, reads both memory checks of plan §6's phase-1 gate (which c
      proof of ownership.
    - `Confirm-IgOwned -Candidates <candidates> -Lookup <scriptblock>`: for each candidate, the lookup returns the process
      that holds its PID now (`$null` when none); the candidate is owned only when that process's start time equals the
-     candidate's `CreationDate` (within 1 ms). A PID that now belongs to another process is neither stopped nor awaited;
+     candidate's `CreationDate`, compared in UTC at CIM's microsecond precision: for each timestamp its UTC ticks as
+     `Int64`, normalized as `ticks - (ticks % 10)`, the two normalized integers compared exactly (no millisecond
+     tolerance, no floating-point division). A PID that now belongs to another process is neither stopped nor awaited;
      a lookup that fails (no access) throws `ownership cannot be established for <pid>`. The real lookup opens a handle
      (`[Diagnostics.Process]::GetProcessById(<pid>)` and its `Handle`) and keeps it until the cleanup ends, so that the
      PID cannot be reused in the meantime.
@@ -306,9 +308,10 @@ production reports, reads both memory checks of plan §6's phase-1 gate (which c
      'file:///<evidence, with />/chart.html')`, its `Handle` and `StartTime` read at once (the root's identity, its handle
      kept); `WaitForExit(60000)`, a timeout or a non-zero exit failing the gate. In `finally`, whenever Edge was
      started: one `Get-CimInstance Win32_Process` snapshot, `Select-IgOwned`, `Confirm-IgOwned` (a throw fails the gate
-     rather than guessing); the verified descendants stopped children first through their kept handles (`Kill()`), the
-     root only while it is still alive; every verified process awaited through its handle for at most 15 s in total;
-     the handles disposed; then the profile folder removed. A verified process that survives, an ownership that cannot
+     rather than guessing); the verified descendants stopped children first using `Stop-Process -Id <verified
+     process.Id> -Force`, while their verified handles remain open, and the root the same way only while it is still
+     alive; every verified process awaited through its handle for at most 15 s in total; the handles disposed only after
+     the cleanup; then the profile folder removed. A verified process that survives, an ownership that cannot
      be established, or a profile folder that cannot be removed fails the screenshot gate; an unrelated process is
      never stopped or awaited.
    - Only after Edge ended with exit 0 within 60 s and the cleanup succeeded: `chart.png` must exist, be larger than
@@ -341,7 +344,8 @@ stopped or awaited):
 | `owned: the tree` | a running root with two children and a grandchild, all `msedge.exe` created after the launch and owned by the lookup | all three selected, the grandchild stopped before its parent |
 | `owned: a child after its parent's exit` | an exited root and a record with the root's PID as its parent, created after the root's exit | not selected |
 | `owned: other processes` | a `notepad.exe` child; an `msedge.exe` child created before the launch | not selected |
-| `owned: a reused PID` | a selected candidate whose PID now belongs to a process with the same name, created after the launch but at another time | neither stopped nor awaited |
+| `owned: a reused PID` | a selected candidate whose PID now belongs to a process with the same name, created after the launch but at another time; the same with a creation time 0.5 ms later | neither stopped nor awaited, in both |
+| `owned: sub-microsecond ticks` | the same process, whose two timestamps lie in the same microsecond and differ only in the ticks below it (for example UTC ticks ending in 12 and 17, both normalized to the same value ending in 10; CIM gives microseconds, `StartTime` 100-ns ticks) | owned (the normalized ticks are equal) |
 | `owned: gone and unknown` | a lookup that returns nothing; a lookup that fails | the first is skipped; the second throws `ownership cannot be established for <pid>` |
 
 ## Documentation
@@ -356,7 +360,7 @@ stopped or awaited):
 | `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T14` | root | 10 passed | 1 min |
 | the sequence of step 5 | root | every group and side exit 0; the ledger at most 2,700 s; no `pending.json` left | each invocation at most its limit, 900 s, plus the lock wait |
 | `node tools\ig-proto\phase1\p6-bench.mjs compare --new-commit <C>` | root | exit 0; the files of step 6 | 1 min |
-| `pwsh -NoProfile -File tools\ig-proto\phase1\chart-png.ps1 -SelfTest` | root | `chart-png self-test: 5 cases ok`, exit 0 | 1 min |
+| `pwsh -NoProfile -File tools\ig-proto\phase1\chart-png.ps1 -SelfTest` | root | `chart-png self-test: 6 cases ok`, exit 0 | 1 min |
 | `pwsh -NoProfile -File tools\ig-proto\phase1\chart-png.ps1` (step 7) | root | Edge exit 0 within 60 s; `chart.png` larger than 10 KB; no owned process and no profile folder left | 2 min |
 | `node tools\ig-proto\firewall.mjs check --task V4-T14 --label frozen` | root | `files unchanged` | 1 min |
 | `npm run check` | root | exit 0 | 2 min |
@@ -391,7 +395,7 @@ stopped or awaited):
 |---|---|---|---|
 | T14-T01 | The sources are pinned and verified: two clean worktrees at `3fc65f4` and `<C>`, the old digest equal to the frozen source's, the bench code identical, only P6's three files different | step 2; the reports' `meta` | command output |
 | T14-T02 | Every bench invocation ran through the lock helper with its limit from the ledger, behind a reservation, and every attempt is a ledger line; no silent re-run, no unaccounted invocation | `ledger.jsonl`; the helper's `IG` lines; no `pending.json` | command output |
-| T14-T03 | The comparison refuses invalid or inconsistent inputs, and its pairing, identity, statistics, memory checks, ledger, reservation, preflight and chart are tested; the chart's cleanup selects, stops and awaits only processes whose ownership it verified | the six `--items` cases; the five `chart-png.ps1 -SelfTest` cases | self-test output |
+| T14-T03 | The comparison refuses invalid or inconsistent inputs, and its pairing, identity, statistics, memory checks, ledger, reservation, preflight and chart are tested; the chart's cleanup selects, stops and awaits only processes whose ownership it verified | the six `--items` cases; the six `chart-png.ps1 -SelfTest` cases | self-test output |
 | T14-T04 | Nothing else changed; formats | the guards; the firewall; `npm run check` | command output |
 
 ## Checklist (the developer confirms every item in the final report)
