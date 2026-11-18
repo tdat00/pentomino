@@ -422,13 +422,13 @@ AC row with its evidence; the questions and rulings; the deviations; and the nam
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-18 13:16:30 +07:00 (dispatch) to 2026-11-18 14:41 +07:00 (acceptance), 1 h 25 min; the developer reports 13:16:20 to 14:29:16 +07:00 (1 h 13 min), its calls 13:16:19 to 14:29:57; four locked invocations: 2,244.925 counted s of the separate 2,700 s allowance (Node 2,064.925 s; lock waits 45.173, 114.314, 395.219, 78.205 s; no kill, all exit 0) |
+| Waiting for rulings | 0 for questions (none); SA-Opus's review of the report 14:30 to 14:40 (10 min) |
+| Agent id, model | beee316b-5f74-4f33-9859-2a6f84b42020 (dev-pentomino-T14), claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 129 calls; 39,577,584 input, 225,074 output, 39,100,807 cache-read |
+| AI credits | 735.26 |
+| Questions and rulings | None. SA-Opus accepted the report (accept T14, pack amendment c3c9ecb): deviations 1 to 4 accepted (Edge launcher: wait within the same 60 s for every ownership-verified descendant; Get-IgStopOrder and -EvidenceDir; optional raw and evidence paths, the padded CPU string kept in the evidence and trimmed in the PR text; the README's "No git" exception for the two read-only git calls of step 3); the six readings accepted (a lock-helper throw after a bench exit 0 stands only after the pack author's ruling); the default self-test group not needed |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | Not re-run (write-once): the bench and compare. Re-run unlocked: self-test --items 205 passed (34.8 s); --frozen 10 passed; chart-png -SelfTest 6 cases ok; firewall OK, 289 production files unchanged (V4-T14); lib\tree.mjs check-edits --all 34 ok; npm run check OK; guards (core, generator, tools/bench, calibrate, node-worker, tasks, plan, frozen evidence) no output; no pending.json; worktrees clean at 3fc65f4 and 27c6189; CRLF, no BOM, no trailing whitespace on every new or changed text file. Checked: compare.md (35/35 equal, memory pass on 14 side-cells), ledger.jsonl, chart.png 1200x720 |
+| Commit | this task's commit |
+| Issues and named items | Results (response median old to new, paired ratio): 14x14 Master 3.21 to 2.55 s x1.15; 26x26 Master 12.4 to 10.4 s x1.21; 26x26 Expert 3.89 to 3.49 s x1.14; 26x26 Nightmare 24.7 to 18.7 s x1.32; 10x10 Nightmare 17.9 to 18.2 s x1.00 (4/5 ten on both sides, seed 2 hits 120 s with 9 equal puzzles); 12x12 Nightmare 51.9 to 51.1 s x1.02; 18x18 Nightmare 60.0 to 52.3 s x1.13. Per level: Master x1.17, Expert x1.14, Nightmare x1.07. N-V4-12 closed (c3c9ecb); N-V4-20 (the default group's git-call guard misses the two allowed git calls of p6-bench.ps1). The worktrees are removed after this commit. Node screening evidence, not a browser qualification |

@@ -7,6 +7,8 @@
 // (default IGP-01 with --proto, else IGP-00). `--p6` (IGP-04) runs all of them and adds the P6 cases (default task IGP-04).
 // `--frozen` (V4-T01a, V4-T01b, V4-T03) runs only the frozen-source group (default task V4-T01a): carve-only checks and records, unlocked.
 // `--items` (V4-T04a onwards) runs only the measurement-items group (default task V4-T04a): synthetic worker kinds, unlocked.
+// V4-T14 added six cases to it (`p6: ...`: the pairs and their identity, the statistics, the memory checks, the ledger and the
+// preflight, the refused inputs and the chart of the phase-1 bench of P6), on synthetic rows; no bench runs.
 // `--v4` (V4-T02a onwards) runs only the gen-v4 prototype group (default task V4-T02a); it runs through the lock helper.
 // Its fifteen cases: V4-T02a's three (tree, dispatch and bounds; locate, rescue and re-rating order; skips and window),
 // V4-T02b's five (observers parity, throwing observers, skip replay round trip, legacy dispatch, the rate seam),
@@ -19,12 +21,12 @@
 // the stage-1 receipt hashes (V4-T04f, D-V4-18): once their state exists a run with such a `--task` exits 3, writing nothing.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { join, sep } from 'node:path';
+import { basename, dirname, join, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { Worker } from 'node:worker_threads';
 
-import { SOURCE_FILES } from '../bench/report.js';
+import { buildReport, newRunRecord, reportJson, SOURCE_FILES } from '../bench/report.js';
 import { checkText } from '../check-conventions.mjs';
 import { decide, readInvocations, totals } from './lib/budget.mjs';
 import { rateAttempt, recordedCall, screenRating, startCountFor, windowSubsets } from './lib/calls.mjs';
@@ -36,10 +38,11 @@ import { itemLedger, pairPrimitives } from './lib/ledger.mjs';
 import { preparePackPath, writePackFile } from './lib/packs.mjs';
 import { abs, artifactDir, elapsedS, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, mp12b1Report, parseArgs, rel, ROOT, SOURCE_KIND, sourceRoot } from './lib/paths.mjs';
 import { ACCEPTED_FORMAT, acceptedBinding, checkAccepted, LIVE_DEADLINE_FIELDS, proofCheck, proofEnvelope, readRepoFile, STAGE1_COVERAGE_EXTRA } from './lib/proof.mjs';
-import { harnessInfo, sha256, sha256File, sha256Text, sourceDigest, sourceVersions, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
+import { harnessInfo, sha256, sha256File, sha256Text, sourceDigest, sourceVersions, toCrlf, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
 import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
 import { parseCases as armCases } from './arm.mjs';
+import * as p6 from './phase1/p6-bench.mjs';
 import { pairResult } from './identity.mjs';
 import {
   caseSums, counterVerdict, epochDirty, kernelCorpus, kernelItems, kernelRows, loggedCases, loggedProfileCases, parseCases, PROFILE_NOTE, profileItems, profileRows,
@@ -7711,7 +7714,408 @@ const itemCases = [
       }
     },
   },
+  {
+    name: 'p6: pairs and identity',
+    async run() {
+      const verdict = (/** @type {Record<string, any>} */ o, /** @type {Record<string, any>} */ n) => p6.identity(p6Run('c-a', 0, o), p6Run('c-a', 0, n));
+      same(verdict({}, {}), { category: 'equal', path: null }, 'equal summaries and equal production digests');
+      same(verdict({}, { details: p6Details(10, { digest: 'b'.repeat(64) }) }), { category: 'differ', path: 'details.resultDigest' }, 'equal summaries, different digests: differ, never equal');
+      same(verdict({}, { acceptedCount: 7, details: p6Details(7) }), { category: 'metric-prefix-only', path: null }, 'ten puzzles against the first seven of the same summaries');
+      const changed = p6Details(10);
+      changed.puzzles[3].score = 999;
+      same(verdict({}, { details: changed }), { category: 'differ', path: 'details.puzzles[3].score' }, 'a changed score in the fourth common puzzle');
+      same(verdict({}, { acceptedCount: 0, details: p6Details(0) }), { category: 'no-puzzle-evidence', path: null }, 'an empty side');
+      same(verdict({ acceptedCount: 0, details: p6Details(0) }, { acceptedCount: 0, details: null }), { category: 'no-puzzle-evidence', path: null }, 'two empty sides');
+      same(verdict({}, { details: p6Details(10, { digest: null }) }), { category: 'incomplete', path: 'details.resultDigest' }, 'a nonempty side without its digest');
+      same(verdict({}, { details: null }), { category: 'incomplete', path: 'details' }, 'a nonempty side without details');
+      same(verdict({}, { details: { ...p6Details(10), sampleFailures: 5, sampleUnrateable: 2 } }), { category: 'equal', path: null }, 'the sampling fields are no part of an identity');
+      same(verdict({}, { details: { ...p6Details(10), K: 9 } }), { category: 'differ', path: 'details.K' }, 'a differing set summary');
+      same(verdict({}, { acceptedCount: 7, details: p6Details(7, { digest: null }) }), { category: 'metric-prefix-only', path: null }, 'at unequal counts the digests are not required');
+      same([p6.resultDigest(p6Run('c-a', 0)), p6.resultDigest(p6Run('c-a', 0, { details: null }))], ['a'.repeat(64), null], 'resultDigest');
+      const side = (/** @type {string[]} */ cells, /** @type {Record<string, any>} */ extra = {}) => cells.flatMap((c) => [0, 1, 2, 3, 4].map((rep) => p6Run(c, rep, extra)));
+      const olds = side(['c-b', 'c-a']);
+      const pairs = p6.pairRuns(olds, side(['c-a', 'c-b']));
+      same([pairs.length, pairs[0].caseId, pairs[0].rep, pairs[9].caseId, pairs[9].rep], [10, 'c-a', 0, 'c-b', 4], 'ten pairs, cell then rep');
+      assert(pairs.every((p) => p.old.caseId === p.new.caseId && p.old.rep === p.new.rep), 'each pair is of one cell and one rep');
+      same(p6.pairRuns(side(['14x14-master', '26x26-master']), side(['26x26-master', '14x14-master'])).map((p) => p.caseId).filter((c, i) => i % 5 === 0), ['14x14-master', '26x26-master'], 'the cells keep the order of GROUPS');
+      const missing = thrownBy(() => p6.pairRuns(olds, side(['c-a', 'c-b']).slice(1)));
+      assert(missing === 'p6-bench: unpaired run c-a #0', `a run without its pair: ${missing}`);
+      const twice = thrownBy(() => p6.pairRuns([...olds, p6Run('c-a', 0)], side(['c-a', 'c-b'])));
+      assert(twice === 'p6-bench: unpaired run c-a #0', `a duplicate: ${twice}`);
+      const seed = thrownBy(() => p6.pairRuns(olds, [...side(['c-b']), ...side(['c-a']).map((r) => ({ ...r, seed: `landscape/c-a/${r.rep + 1}` }))]));
+      assert(seed.startsWith('p6-bench: unpaired run c-a #'), `another seed: ${seed}`);
+    },
+  },
+  {
+    name: 'p6: statistics and ratios',
+    async run() {
+      const five = [1000, 2000, 3000, 4000, 10000].map((ms, i) => p6Run('c-a', i, { responseMs: ms, firstReadyMs: ms / 10, tenthReadyMs: ms / 2 }));
+      const s5 = p6.cellStats(five);
+      same([s5.n, s5.response.median, s5.response.p95, s5.response.max, s5.t1.median, s5.t10.n, s5.t10.p95], [5, 3000, 10000, 10000, 300, 5, 5000], 'five requests: the p95 is the maximum');
+      const twenty = Array.from({ length: 20 }, (_, i) => p6Run('c-a', i % 5, { responseMs: (i + 1) * 1000 }));
+      same(p6.cellStats(twenty).response.p95, 19000, 'twenty values: the nearest rank 19');
+      const nine = { acceptedCount: 9, tenthReadyMs: null, details: p6Details(9), partialReason: 'layouts-not-found' };
+      const mixed = [p6Run('c-a', 0), p6Run('c-a', 1), p6Run('c-a', 2, { ...nine, layoutsExhausted: true, layoutTotal: 9 }), p6Run('c-a', 3, nine), p6Run('c-a', 4)];
+      const sm = p6.cellStats(mixed);
+      same([sm.n, sm.tenOfN, sm.tenOrProvenAllOfN, sm.t10.n, sm.accepted], [5, 3, 4, 3, { 9: 2, 10: 3 }], 'ten of n excludes the nine-puzzle requests; ten or proven-all counts the one that proved every arrangement; T10 only over the ten');
+      const mk = (/** @type {Record<string, any>} */ o, /** @type {Record<string, any>} */ n) => ({ old: p6Run('c-a', 0, o), new: p6Run('c-a', 0, n) });
+      const pairs = [
+        mk({ responseMs: 4000, firstReadyMs: 1000, tenthReadyMs: 3000 }, { responseMs: 2000, firstReadyMs: 500, tenthReadyMs: 1500 }),
+        mk({ responseMs: 9000, firstReadyMs: 1000, tenthReadyMs: 6000 }, { responseMs: 3000, firstReadyMs: 1000, tenthReadyMs: 2000 }),
+        mk({ responseMs: 8000, firstReadyMs: 1000, tenthReadyMs: 4000 }, { responseMs: 8000, firstReadyMs: 2000, tenthReadyMs: 4000 }),
+        mk({ responseMs: 6000 }, { acceptedCount: 4, tenthReadyMs: null, responseMs: 3000, details: p6Details(4) }),
+        mk({ responseMs: 5000 }, { responseMs: 0 }),
+      ];
+      const r = p6.pairedRatios(pairs);
+      same(r.response, { n: 4, median: 2, min: 1, max: 3, excluded: 1 }, 'response: the pair with a zero endpoint is excluded');
+      same(r.t1, { n: 5, median: 1, min: 0.5, max: 2, excluded: 0 }, 'T1');
+      same(r.t10, { n: 4, median: 1.5, min: 1, max: 3, excluded: 1 }, 'T10: only where both sides reached ten');
+      same(r.t10MinusT1, { n: 4, median: 1.75, min: 1, max: 5, excluded: 1 }, 'T10 - T1');
+      same(p6.pairedRatios(pairs.slice(0, 2)).response, { n: 2, median: null, min: 2, max: 3, excluded: 0 }, 'the median is null below three pairs');
+      same(p6.pairedRatios([]).t10, { n: 0, median: null, min: null, max: null, excluded: 0 }, 'no pair, no statistic');
+    },
+  },
+  {
+    name: 'p6: the memory checks',
+    async run() {
+      const MiB = 1048576;
+      const stats = (/** @type {number} */ accounted, /** @type {number | null} */ process_) => p6.cellStats([p6Run('c-a', 0, { peakAccountedBytes: accounted, peakProcessBytes: process_ })]);
+      same([stats(1196 * MiB, 1000).checks.byteAccounting.status, stats(1196 * MiB + 1, 1000).checks.byteAccounting.status], ['pass', 'fail'], 'the accounted peak at four workers: 1,196 MiB passes, one byte more fails');
+      same([stats(1000, 1.5 * 1024 * MiB).checks.peakProcessMemory.status, stats(1000, 1.5 * 1024 * MiB + 1).checks.peakProcessMemory.status], ['pass', 'fail'], 'the whole-process peak: 1.5 GiB passes, one byte more fails');
+      same(stats(1000, null).checks.peakProcessMemory.status, 'not-measured', 'a run without a process peak is not measured');
+      const tooLarge = p6.cellStats([p6Run('c-a', 0, { errors: [{ phase: 'sampling', code: 'model-too-large', message: 'x' }] })]);
+      same([tooLarge.checks.modelTooLarge.status, tooLarge.samplingErrors], ['fail', 1], 'model-too-large fails the check and is a sampling error here');
+      same(p6.compareReports(p6World().input()).cells.length, 7, 'the control: the synthetic inputs are accepted');
+      const refuse = (/** @type {Record<string, any>} */ tweak, /** @type {string} */ fragment) => {
+        const message = thrownBy(() => p6.compareReports(p6World(tweak).input()));
+        assert(message.startsWith('p6-bench: ') && message.includes(fragment), `expected "${fragment}", got "${message}"`);
+      };
+      refuse({ run: (/** @type {any} */ run, /** @type {string} */ s) => { if (s === 'new' && run.caseId === '26x26-expert' && run.rep === 2) { run.peakProcessBytes = null; } } },
+        'the memory check peakProcessMemory of new 26x26-expert is not-measured');
+      refuse({ run: (/** @type {any} */ run, /** @type {string} */ s) => { if (s === 'old' && run.caseId === '10x10-nightmare' && run.rep === 0) { run.peakAccountedBytes = 1196 * MiB + 1; } } },
+        'the memory check byteAccounting of old 10x10-nightmare is fail');
+      refuse({ run: (/** @type {any} */ run, /** @type {string} */ s) => { if (s === 'new' && run.caseId === '18x18-nightmare' && run.rep === 1) { run.errors.push({ phase: 'sampling', code: 'model-too-large', message: 'x' }); } } },
+        'the memory check modelTooLarge of new 18x18-nightmare is fail');
+    },
+  },
+  {
+    name: 'p6: the ledger, the reservation and the preflight',
+    async run() {
+      const newCommit = 'b'.repeat(40);
+      const base = { newCommit, checkpoint: null, resumeInstructed: false, pending: null };
+      const line = (/** @type {string} */ group, /** @type {string} */ side, /** @type {Record<string, any>} */ extra = {}) => p6Line(group, side, newCommit, extra);
+      const text = (/** @type {any[]} */ rows) => `${rows.map((l) => JSON.stringify(l)).join('\n')}\n`;
+      same(p6.readLedger(text([line('A', 'old'), line('A', 'new')])).length, 2, 'a ledger of two lines is read');
+      same(p6.readLedger('').length, 0, 'an empty ledger');
+      for (const [n, bad] of /** @type {[number, any][]} */ ([
+        [2, line('A', 'new', { nodeSeconds: -1 })], [2, line('A', 'new', { countedSeconds: Number.POSITIVE_INFINITY })], [2, line('A', 'new', { group: 'C' })],
+        [2, line('A', 'new', { commit: 'abc' })], [2, line('A', 'new', { killed: 'no' })], [2, line('A', 'new', { exit: 1.5 })],
+        [2, { ...line('A', 'new'), extra: 1 }], [2, (({ report, ...rest }) => rest)(line('A', 'new'))],
+      ])) {
+        const message = thrownBy(() => p6.readLedger(text([line('A', 'old'), bad])));
+        assert(message === `p6-bench: ledger line ${n} is unreadable`, `a bad line: ${message}`);
+      }
+      assert(thrownBy(() => p6.readLedger(`${text([line('A', 'old')])}{"half":\n`)) === 'p6-bench: ledger line 2 is unreadable', 'a truncated line');
+      const spent = (/** @type {number} */ s) => [line('B', 'old', { countedSeconds: s, exit: 1 })];
+      same([0, 1800, 2400].map((s) => p6.nextLimit(spent(s).slice(0, s === 0 ? 0 : 1))), [{ spent: 0, limitS: 900, allowed: true }, { spent: 1800, limitS: 855, allowed: true }, { spent: 2400, limitS: 255, allowed: false }], 'the limits under the allowance');
+      const decisions = [[], spent(1800), spent(2400)].map((rows) => p6.preflight({ ...base, rows, group: 'A', side: 'old' }));
+      same(decisions, [{ decision: 'run', limitS: 900, spent: 0 }, { decision: 'run', limitS: 855, spent: 1800 }, { decision: 'stop', code: 4, kind: 'allowance', reason: '2400 s counted of 2700; less than 300 s left for an invocation' }], 'run 900, run 855, stop 4');
+      const one = p6.nextLimit([line('A', 'old', { countedSeconds: 2654.9, exit: 1 })]);
+      same([one.limitS, one.allowed], [0, false], 'a fraction of a second is never rounded up into the allowance');
+      same(p6.preflight({ ...base, rows: [], pending: { id: 'x' }, group: 'A', side: 'old' }), { decision: 'stop', code: 5, kind: 'accounting', reason: 'an invocation is not reconciled: pending.json' }, 'a reservation present');
+      // A completed group: its ledger line and its terminal report.
+      const world = p6World();
+      const done = (/** @type {Record<string, any>} */ over = {}) => {
+        const rows = world.ledger.map((l) => ({ ...l, ...(over.row?.(l) ?? {}) }));
+        const entry = world.reports[0];
+        const completedReport = over.report === null ? null : { path: entry.path, sha256: over.sha ?? p6sha(entry.bytes), report: JSON.parse(Buffer.from(entry.bytes).toString('utf8')), ...over.report };
+        return p6.preflight({ ...base, rows, group: 'A', side: 'old', completedReport, ...(over.input ?? {}) });
+      };
+      same(done(), { decision: 'complete', line: 1, report: world.reports[0].path }, 'a group with its exit 0 line and its terminal report is complete');
+      for (const [name, result] of /** @type {[string, any][]} */ ([
+        ['a completed line of another commit', done({ row: (/** @type {any} */ l) => (l.side === 'old' ? { commit: 'f'.repeat(40) } : {}) })],
+        ['a line of another commit in another group', done({ row: (/** @type {any} */ l) => (l.group === 'B' && l.side === 'new' ? { commit: 'f'.repeat(40) } : {}) })],
+        ['a missing terminal report', done({ report: null })],
+        ['a changed terminal report', done({ sha: '0'.repeat(64) })],
+        ['an invalid terminal report', done({ report: { report: { ...JSON.parse(Buffer.from(world.reports[0].bytes).toString('utf8')), complete: false } } })],
+      ])) {
+        same([result.decision, result.code], ['stop', 8], `${name}: stop 8, the helper never runs`);
+      }
+      same(done({ row: (/** @type {any} */ l) => (l.side === 'old' ? { commit: 'f'.repeat(40) } : {}) }).reason, 'ledger source does not match this comparison', 'the reason of a source mismatch');
+      same(done({ input: { rows: [...world.ledger.slice(0, 1), ...world.ledger.slice(0, 1)] } }).code, 8, 'two exit 0 lines of one group and side: stop 8');
+      const incomplete = [line('A', 'old', { exit: 2, report: null, reportSha256: null })];
+      same(p6.preflight({ ...base, rows: incomplete, group: 'A', side: 'old' }), { decision: 'stop', code: 9, kind: 'incomplete', reason: 'A old ended incomplete (exit 2); a resume needs the pack author\'s instruction' }, 'exit 2 without an instruction');
+      same(p6.preflight({ ...base, rows: incomplete, group: 'A', side: 'old', resumeInstructed: true }).decision, 'run', 'exit 2 with an instruction runs');
+      const killed = [line('A', 'old', { exit: null, killed: true, countedSeconds: 900, report: null, reportSha256: null })];
+      same(p6.preflight({ ...base, rows: killed, group: 'A', side: 'old' }).decision, 'run', 'one kill allows the retry');
+      same(p6.preflight({ ...base, rows: [...killed, ...killed], group: 'A', side: 'old' }), { decision: 'stop', code: 6, kind: 'timeout', reason: 'a second timeout of A old' }, 'two kills');
+      // The checkpoint is read strictly.
+      const header = { format: 'pentomino-bench-checkpoint', version: 1, kind: 'node', sourceDigest: FROZEN_DIGEST, versions: { algo: 'gen-v3' }, matrixDigest: 'm', workers: 4, lifecycle: 'cold', freshProcess: true };
+      const row = (/** @type {string} */ caseId, /** @type {number} */ rep, /** @type {Record<string, any>} */ extra = {}) => ({ kind: 'run', run: p6Run(caseId, rep, extra) });
+      const check = (/** @type {string} */ checkpoint) => p6.preflight({ ...base, rows: [], group: 'A', side: 'old', checkpoint });
+      const good = `${[header, row('14x14-master', 0), row('14x14-master', 1)].map((l) => JSON.stringify(l)).join('\n')}\n`;
+      same(check(good), { decision: 'run', limitS: 900, spent: 0 }, 'a good checkpoint resumes');
+      same(p6.checkCheckpoint(good, { group: 'A', side: 'old', commit: p6.OLD_COMMIT }), { rows: 2 }, 'two rows');
+      const stops = /** @type {[string, string, string][]} */ ([
+        ['a truncated line', good.slice(0, good.length - 40), 'checkpoint old/A line 3: unreadable or truncated line'],
+        ['a duplicate row', `${good}${JSON.stringify(row('14x14-master', 1))}\n`, 'checkpoint old/A line 4: 14x14-master #1 is recorded twice'],
+        ['a row of another commit', `${good}${JSON.stringify(row('26x26-master', 0, { sourceCommit: 'd'.repeat(40) }))}\n`, 'checkpoint old/A line 4: the row is of the commit'],
+        ['a row of another source digest', `${good}${JSON.stringify(row('26x26-master', 0, { sourceDigest: 'e'.repeat(64) }))}\n`, 'checkpoint old/A line 4: the row\'s source digest or versions differ'],
+        ['a row of other versions', `${good}${JSON.stringify(row('26x26-master', 0, { versions: { algo: 'other' } }))}\n`, 'checkpoint old/A line 4: the row\'s source digest or versions differ'],
+        ['a row of a cell of group B', `${good}${JSON.stringify(row('12x12-nightmare', 0))}\n`, 'not a generation row of group A'],
+        ['a row with another seed', `${good}${JSON.stringify(row('26x26-master', 0, { seed: 'landscape/26x26-master/1' }))}\n`, 'has the seed'],
+        ['a header of two workers', `${JSON.stringify({ ...header, workers: 2 })}\n`, 'the header is not a cold, fresh-process, four-worker node checkpoint'],
+        ['a header-less file', '', 'the header is missing'],
+      ]);
+      for (const [name, checkpoint, fragment] of stops) {
+        const out = check(checkpoint);
+        assert(out.decision === 'stop' && out.code === 8 && out.kind === 'checkpoint' && out.reason.includes(fragment), `${name}: ${JSON.stringify(out)}`);
+      }
+      // The invoking script: its order (preflight, the helper loaded, the reservation, the helper) and its arguments.
+      const ps = readFileSync(join(IG_DIR, 'phase1', 'p6-bench.ps1'), 'utf8');
+      const at = (/** @type {string} */ needle) => ps.indexOf(needle);
+      assert(at('preflight') > 0 && at('preflight') < at('ig-lock.ps1') && at('ig-lock.ps1') < at('CreateNew') && at('CreateNew') < at('Invoke-IgNode -Repo pentomino'), 'preflight, then the helper is loaded, then the reservation, then the helper runs');
+      assert(ps.includes('-LimitSeconds $limit -IdleQuietSeconds 15') && ps.includes('second limit reached') && ps.includes('--max-old-space-size=2048') && ps.includes('--fresh-process'), 'the helper call, the timeout and the bench arguments');
+      for (const cell of [...p6.GROUPS.A, ...p6.GROUPS.B]) {
+        assert(ps.includes(`'${cell}'`), `the script names ${cell}`);
+      }
+      assert(p6.GROUPS.A.length === 5 && p6.GROUPS.B.length === 2 && p6.ORDER.map((o) => o.join(' ')).join(',') === 'A old,A new,B new,B old', 'the groups and their order');
+    },
+  },
+  {
+    name: 'p6: inputs are refused',
+    async run() {
+      const refuse = (/** @type {Record<string, any>} */ tweak, /** @type {string} */ fragment, /** @type {Record<string, any>} */ extra = {}) => {
+        const message = thrownBy(() => p6.compareReports({ ...p6World(tweak).input(), ...extra }));
+        assert(message.startsWith('p6-bench: ') && message.includes(fragment), `expected "${fragment}", got "${message}"`);
+      };
+      const only = (/** @type {string} */ wanted, /** @type {(r: any) => void} */ change) => (/** @type {any} */ run, /** @type {string} */ side, /** @type {string} */ group) => {
+        if (`${group} ${side}` === wanted) {
+          change(run);
+        }
+      };
+      refuse({ run: only('A old', (r) => { r.measurementValid = false; r.errors.push({ phase: 'host', code: 'child-exit', message: 'x' }); r.partialReason = 'error:child-exit'; }) },
+        'is not a valid, uninterrupted measurement (host/child-exit)');
+      refuse({ run: only('A new', (r) => { if (r.rep === 3) { r.platform = 'other'; } }) }, 'platform differs from the report\'s');
+      refuse({ run: only('B old', (r) => { r.errors.push({ phase: 'validation', code: 'invalid-puzzle', message: 'x' }); }) }, 'has an error of phase validation (invalid-puzzle)');
+      refuse({ run: only('A old', (r) => { if (r.caseId === '14x14-master' && r.rep === 4) { r.tenthReadyMs = null; } }) }, 'has ten puzzles and no finite positive T10');
+      refuse({ run: only('B new', (r) => { r.responseMs = 0; }) }, 'has no finite positive response');
+      refuse({ meta: (/** @type {any} */ m, /** @type {string} */ side, /** @type {string} */ group) => { if (group === 'B' && side === 'old') { m.workerCount = 2; } }, run: only('B old', (r) => { r.workerCount = 2; }) },
+        'is not a cold four-worker landscape run of node');
+      refuse({ meta: (/** @type {any} */ m, /** @type {string} */ side, /** @type {string} */ group) => { if (group === 'A' && side === 'old') { m.sourceDigest = 'd'.repeat(64); } } }, 'the source digest is');
+      refuse({ meta: (/** @type {any} */ m, /** @type {string} */ side, /** @type {string} */ group) => { if (group === 'A' && side === 'new') { m.sourceCommit = 'a'.repeat(40); } } }, 'the source commit is');
+      refuse({ meta: (/** @type {any} */ m, /** @type {string} */ side, /** @type {string} */ group) => { if (group === 'B' && side === 'new') { m.sourceDigest = 'e'.repeat(64); } } }, 'the new reports have two source digests');
+      refuse({ meta: (/** @type {any} */ m, /** @type {string} */ side, /** @type {string} */ group) => { if (group === 'A' && side === 'new') { m.matrixDigest = 'other'; } } }, 'old and new have different matrix digests in group A');
+      refuse({ meta: (/** @type {any} */ m, /** @type {string} */ side, /** @type {string} */ group) => { if (group === 'B' && side === 'new') { m.hardware = { ...m.hardware, cpu: 'Another CPU' }; } } }, 'the four reports do not share one hardware');
+      refuse({ meta: (/** @type {any} */ m) => { m.hardware = { ...m.hardware, execArgv: [] }; } }, 'meta.hardware lacks');
+      refuse({ runs: (/** @type {any[]} */ runs, /** @type {string} */ side, /** @type {string} */ group) => { if (group === 'A' && side === 'new') { runs.pop(); } } }, '10x10-nightmare #4 is missing');
+      refuse({ ledger: (/** @type {any} */ l, /** @type {string} */ side, /** @type {string} */ group) => { if (group === 'B' && side === 'old') { l.reportSha256 = '0'.repeat(64); } } },
+        'the terminal report of B old does not have the path and the SHA-256 of its ledger line');
+      refuse({ ledger: (/** @type {any} */ l) => { l.countedSeconds = 700; } }, 'above the allowance of 2700 s');
+      refuse({ ledger: (/** @type {any} */ l, /** @type {string} */ side) => { if (side === 'new') { l.commit = 'f'.repeat(40); } } }, 'ledger source does not match this comparison');
+      refuse({}, 'an invocation is not reconciled: pending.json', { pending: { id: 'x' } });
+      refuse({}, 'the terminal report of A new is missing', { reports: p6World().reports.filter((r) => !(r.group === 'A' && r.side === 'new')) });
+      refuse({ meta: (/** @type {any} */ m) => { m.notes = ['see C:\\Users\\someone\\bench']; } }, 'holds a drive-letter path');
+      refuse({ text: (/** @type {string} */ t) => t.replace(/\r\n/g, '\n') }, 'is not CRLF only');
+      refuse({ run: only('A new', (r) => { if (r.caseId === '26x26-master' && r.rep === 2) { r.details.puzzles[0].score += 1; } }) }, 'the pair 26x26-master seed landscape/26x26-master/2 is differ at details.puzzles[0].score');
+      refuse({ run: only('B new', (r) => { if (r.caseId === '12x12-nightmare' && r.rep === 0) { delete r.details.resultDigest; } }) }, 'the pair 12x12-nightmare seed landscape/12x12-nightmare/0 is incomplete at details.resultDigest');
+      // A refused publication writes nothing.
+      const dir = fresh(join(SELFTEST_DIR, 'p6', 'refused'));
+      try {
+        const paths = p6Scratch(dir, p6World({ raw: rel(join(dir, 'raw')), run: only('A old', (r) => { r.measurementValid = false; }) }));
+        const out = p6Main(['compare', '--new-commit', 'b'.repeat(40)], paths);
+        assert(out.code === 1 && out.err.startsWith('p6-bench: A old: ') && out.out === '', `the refused compare: ${JSON.stringify(out)}`);
+        assert(!existsSync(abs(paths.evidence)), 'a refused compare wrote the evidence folder');
+        const noArg = p6Main(['compare'], paths);
+        assert(noArg.code === 1 && noArg.err.includes('--new-commit'), 'the commit is required');
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'p6: the chart',
+    async run() {
+      // Seven cells: 2 pairs with ten against seven puzzles (metric-prefix-only) and 1 pair against an empty side.
+      const tweak = {
+        run: (/** @type {any} */ run, /** @type {string} */ side) => {
+          if (side === 'new' && run.caseId === '14x14-master' && run.rep < 2) {
+            Object.assign(run, { acceptedCount: 7, tenthReadyMs: null, details: p6Details(7) });
+          }
+          if (side === 'new' && run.caseId === '26x26-master' && run.rep === 0) {
+            Object.assign(run, { acceptedCount: 0, tenthReadyMs: null, details: p6Details(0) });
+          }
+        },
+      };
+      const result = p6.compareReports(p6World(tweak).input());
+      const id = result.identity;
+      same([id.pairs, id.equal, id.metricPrefixOnly, id.noPuzzleEvidence], [35, 32, 2, 1], 'k, m and z');
+      const chart = p6.renderChart(result);
+      same((chart.svg.match(/class="bar"/g) ?? []).length, 14, 'two bars in each of the seven rows');
+      for (const cell of result.cells) {
+        assert(chart.svg.includes(`>${cell.caseId}</text>`), `the row of ${cell.caseId}`);
+        same((chart.svg.match(new RegExp(`data-side="old"`, 'g')) ?? []).length, 7, 'seven old bars');
+      }
+      same((chart.svg.match(/[0-9.]+ s, \d\/5 ten</g) ?? []).length, 14, 'a median and a ten of n text after each bar');
+      assert(chart.svg.includes('12.0 s, 5/5 ten<') && chart.svg.includes('6.00 s, 5/5 ten<') && chart.svg.includes('6.00 s, 3/5 ten<'), 'the texts: the median response and the side\'s ten of n');
+      same((chart.svg.match(/x2\.00 \[2\.00-2\.00\] n 5</g) ?? []).length, 7, 'the paired response ratio of each row');
+      for (const sentence of ['Node screening evidence, not a browser qualification.', 'Production-digest equality established on 32 of 35 pairs; 2 pairs have metric-prefix agreement only and 1 have no common puzzle evidence.',
+        'Prefix identity is not established by those summaries.', 'Puzzle generation time per request (median response, five seeds per cell): main 3fc65f4 against bbbbbbb (P6)']) {
+        assert(chart.svg.includes(sentence), `the chart says "${sentence}"`);
+      }
+      assert(chart.svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720"') && !/(href|src)=|url\(|@import/.test(chart.html), 'a 1200 x 720 SVG with no external resource');
+      assert(chart.html.includes(chart.svg.trimEnd()) && chart.html.includes('margin: 0'), 'chart.html embeds the SVG, with margin 0');
+      same(p6.renderChart(result), chart, 'the same input gives the same chart');
+      const md = p6.renderMarkdown(result);
+      same(p6.renderMarkdown(result), md, 'the same input gives the same Markdown');
+      for (const text of [p6.STATEMENT, '32 of 35 pairs are `equal`', '2 are `metric-prefix-only` (puzzle-prefix identity not established)', '1 are `no-puzzle-evidence`', 'T12\'s parity tests and the unchanged fixtures remain the compatibility evidence.',
+        '<summary>The production digests of the 35 pairs</summary>', '## 5. Memory checks', '## 6. Ledger of the owner\'s separate allowance', '4 invocations, 2000 counted seconds of the allowance of 2700 s', ...p6.LIMITATIONS]) {
+        assert(md.includes(text), `compare.md says "${text}"`);
+      }
+      same((md.match(/^### /gm) ?? []).length, 7, 'a section per cell');
+      same(md.split('\n').filter((l) => /^\| (Master|Expert|Nightmare) \|/.test(l)).length, 3, 'a pooled row per level');
+      // compare end to end, in a scratch folder: byte copies, the ledger, the JSON, the Markdown, the chart; the same bytes again.
+      const dir = fresh(join(SELFTEST_DIR, 'p6', 'compare'));
+      try {
+        const world = p6World({ ...tweak, raw: rel(join(dir, 'raw')) });
+        const paths = p6Scratch(dir, world);
+        const first = p6Main(['compare', '--new-commit', world.newCommit], paths);
+        assert(first.code === 0 && first.err === '', `compare: ${JSON.stringify(first)}`);
+        same(first.out.trim().split('\n').length, 8 + 2 + 3, 'eight report files, the ledger, compare.json and md, and three chart files');
+        const written = (/** @type {string} */ name) => readFileSync(join(abs(paths.evidence), ...name.split('/')));
+        for (const r of world.reports) {
+          assert(written(`${r.side}/${basename(r.path)}`).equals(Buffer.from(r.bytes)) && written(`${r.side}/${basename(r.mdPath)}`).equals(Buffer.from(r.mdBytes)), `${r.side}/${r.group}: a byte copy of the report and its Markdown`);
+        }
+        const ledgerBytes = written('ledger.jsonl').toString('utf8');
+        assert(ledgerBytes.split('\r\n').length === 5 && !/(?<!\r)\n/.test(ledgerBytes) && p6.readLedger(ledgerBytes).length === 4, 'the ledger copy is CRLF, four lines');
+        same(JSON.parse(written('compare.json').toString('utf8')), JSON.parse(JSON.stringify(result)), 'compare.json holds the comparison');
+        for (const name of ['compare.json', 'compare.md', 'chart.svg', 'chart.html', 'ledger.jsonl']) {
+          const bytes = written(name).toString('utf8');
+          assert(bytes.endsWith('\r\n') && !/(?<!\r)\n/.test(bytes) && !/[ \t]\r\n/.test(bytes), `${name}: CRLF, final newline, no trailing whitespace`);
+        }
+        const before = ['compare.md', 'chart.svg'].map((n) => written(n));
+        const again = p6Main(['compare', '--new-commit', world.newCommit], paths);
+        assert(again.code === 0 && again.out === first.out && ['compare.md', 'chart.svg'].every((n, i) => written(n).equals(before[i])), 'the same inputs rewrite the same bytes');
+        writeFileSync(join(abs(paths.evidence), 'compare.md'), 'edited by hand\r\n');
+        const edited = p6Main(['compare', '--new-commit', world.newCommit], paths);
+        assert(edited.code === 1 && edited.err.includes('compare.md exists with other bytes') && edited.out === '', `an output with other bytes: ${JSON.stringify(edited)}`);
+        assert(written('compare.md').toString('utf8') === 'edited by hand\r\n', 'the edited file was not overwritten');
+        // preflight on the scratch raw folder: a completed group runs nothing (exit 7), a pending reservation stops (exit 5).
+        const pre = p6Main(['preflight', '--group', 'A', '--side', 'old', '--new-commit', world.newCommit], paths);
+        assert(pre.code === 7 && pre.out.startsWith('p6-bench: A old is complete (ledger line 1, ') && pre.out.endsWith('nothing to run\n'), `preflight on a complete group: ${JSON.stringify(pre)}`);
+        writeFileSync(join(abs(paths.raw), 'pending.json'), '{}\n');
+        const held = p6Main(['preflight', '--group', 'B', '--side', 'new', '--new-commit', world.newCommit], paths);
+        assert(held.code === 5 && held.err === 'p6-bench: STOP (accounting): an invocation is not reconciled: pending.json\n', `preflight with a reservation: ${JSON.stringify(held)}`);
+        rmSync(join(abs(paths.raw), 'pending.json'));
+        rmSync(join(abs(paths.raw), 'ledger.jsonl'));
+        const fresh0 = p6Main(['preflight', '--group', 'A', '--side', 'old', '--new-commit', world.newCommit], paths);
+        assert(fresh0.code === 0 && fresh0.out === 'p6-bench: run A old with a limit of 900 s; 0 s counted of 2700\n', `preflight on an empty ledger: ${JSON.stringify(fresh0)}`);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    },
+  },
 ];
+
+/**
+ * V4-T14's synthetic bench data (a run is `newRunRecord` of tools/bench/report.js; no bench runs).
+ * @param {number} count @param {{ score?: number, digest?: string | null }} [options] @returns {any}
+ */
+function p6Details(count, { score = 100, digest = 'a'.repeat(64) } = {}) {
+  return {
+    area: 36, K: 8, sizes: [3, 4, 4, 5, 5, 5, 5, 5], setAttempt: 1, initialG: 4, policy: { violations: [] },
+    puzzles: Array.from({ length: count }, (_, i) => ({ clues: 4, U: 4, score: score + i, level: 'nightmare', saturated: false, censored: false, metrics: null })),
+    ...(digest === null ? {} : { resultDigest: digest }), sampleFailures: 0, sampleUnrateable: 0,
+  };
+}
+
+/** @param {string} caseId @param {number} rep @param {Record<string, any>} [extra] @returns {any} A valid generation row of the old side. */
+function p6Run(caseId, rep, extra = {}) {
+  return newRunRecord({
+    caseId, seed: `landscape/${caseId}/${rep}`, sourceCommit: p6.OLD_COMMIT, sourceDigest: FROZEN_DIGEST, versions: { algo: 'gen-v3' }, platform: 'win32 test x64',
+    browserOrNode: 'node v0.0.0', workerCount: 4, startedAt: '2026-11-18T00:00:00.000Z', firstReadyMs: 1000, tenthReadyMs: 5000, responseMs: 6000,
+    acceptedCount: 10, peakAccountedBytes: 1000, peakProcessBytes: 2000, rep, details: p6Details(10), ...extra,
+  });
+}
+
+/** @param {string} group @param {string} side @param {string} newCommit @param {Record<string, any>} [extra] @returns {any} A ledger line. */
+function p6Line(group, side, newCommit, extra = {}) {
+  return {
+    id: 'id', task: 'V4-T14', group, side, commit: side === 'old' ? p6.OLD_COMMIT : newCommit, limitS: 900, start: '2026-11-18T01:00:00.0000000Z',
+    end: '2026-11-18T01:10:00.0000000Z', wallSeconds: 600, nodeSeconds: 590, lockWaitSeconds: 10, quietS: 45, countedSeconds: 500, killed: false, exit: 0,
+    report: null, reportSha256: null, ...extra,
+  };
+}
+
+/** @param {Uint8Array} bytes @returns {string} */
+const p6sha = (bytes) => sha256(bytes);
+
+/**
+ * The four terminal reports, their Markdown and the ledger of a complete, consistent comparison (the old side takes twice as
+ * long as the new one); `tweak` changes one part of it.
+ * @param {{ raw?: string, meta?: (m: any, side: string, group: string) => void, run?: (r: any, side: string, group: string) => void,
+ *   runs?: (rs: any[], side: string, group: string) => void, text?: (t: string, side: string, group: string) => string,
+ *   ledger?: (l: any, side: string, group: string) => void }} [tweak]
+ */
+function p6World(tweak = {}) {
+  const raw = tweak.raw ?? p6.RAW;
+  const newCommit = 'b'.repeat(40);
+  /** @type {any[]} */
+  const reports = [];
+  /** @type {any[]} */
+  const ledger = [];
+  for (const [group, side] of p6.ORDER) {
+    const old = side === 'old';
+    const meta = {
+      kind: 'node', profile: 'landscape', sourceCommit: old ? p6.OLD_COMMIT : newCommit, sourceDigest: old ? FROZEN_DIGEST : 'c'.repeat(64), versions: { algo: 'gen-v3' },
+      platform: 'win32 test x64', browserOrNode: 'node v0.0.0', hardware: { cpu: 'Test CPU', logicalCores: 8, totalMemoryBytes: 17179869184, node: 'v0.0.0', execArgv: ['--max-old-space-size=2048'] },
+      workerCount: 4, lifecycle: /** @type {'cold'} */ ('cold'), matrixDigest: `matrix-${group}`, startedAt: `2026-11-18T0${old ? 1 : 2}:00:00.000Z`, finishedAt: `2026-11-18T0${old ? 1 : 2}:10:00.000Z`,
+      expectedRuns: p6.GROUPS[group].length * 5,
+    };
+    tweak.meta?.(meta, side, group);
+    /** @type {any[]} */
+    const runs = [];
+    for (const caseId of p6.GROUPS[group]) {
+      for (let rep = 0; rep < 5; rep += 1) {
+        const run = p6Run(caseId, rep, { sourceCommit: meta.sourceCommit, sourceDigest: meta.sourceDigest, responseMs: old ? 12000 : 6000, firstReadyMs: old ? 2000 : 1000, tenthReadyMs: old ? 10000 : 5000 });
+        tweak.run?.(run, side, group);
+        runs.push(run);
+      }
+    }
+    tweak.runs?.(runs, side, group);
+    const text = tweak.text?.(reportJson(buildReport(/** @type {any} */ (meta), runs, {})), side, group) ?? reportJson(buildReport(/** @type {any} */ (meta), runs, {}));
+    const bytes = Buffer.from(text, 'utf8');
+    const path = `${raw}/${side}/${group}-2026-11-18.json`;
+    reports.push({ group, side, path, bytes, mdPath: path.replace(/\.json$/, '.md'), mdBytes: Buffer.from(toCrlf('# synthetic bench report'), 'utf8') });
+    const line = p6Line(group, side, newCommit, { report: path, reportSha256: sha256(bytes), countedSeconds: 500 });
+    tweak.ledger?.(line, side, group);
+    ledger.push(line);
+  }
+  return { newCommit, reports, ledger, raw, input: () => ({ reports, ledger, pending: null, newCommit, raw }) };
+}
+
+/**
+ * Writes a synthetic world into a scratch folder: `<dir>/raw` (the ledger and the reports) and the evidence folder's path.
+ * @param {string} dir @param {ReturnType<typeof p6World>} world @returns {{ raw: string, evidence: string }}
+ */
+function p6Scratch(dir, world) {
+  const raw = rel(join(dir, 'raw'));
+  mkdirSync(abs(raw), { recursive: true });
+  writeFileSync(join(abs(raw), 'ledger.jsonl'), `${world.ledger.map((l) => JSON.stringify(l)).join('\n')}\n`);
+  for (const r of world.reports) {
+    mkdirSync(dirname(abs(r.path)), { recursive: true });
+    writeFileSync(abs(r.path), r.bytes);
+    writeFileSync(abs(r.mdPath), r.mdBytes);
+  }
+  return { raw, evidence: rel(join(dir, 'evidence')) };
+}
+
+/** @param {string[]} argv @param {{ raw: string, evidence: string }} paths @returns {{ code: number, out: string, err: string }} p6-bench's `main` with its output captured. */
+function p6Main(argv, paths) {
+  const text = { out: '', err: '' };
+  const code = p6.main(argv, { out: (t) => { text.out += t; }, err: (t) => { text.err += t; } }, paths);
+  return { code, ...text };
+}
 
 /**
  * @param {string} id @param {number} rows @param {number} rowS @param {number} [rowLimitS] @param {boolean} [optional]

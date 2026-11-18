@@ -14,7 +14,8 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 - **Copies, never edits.** A variant is a copy of `core/`, `tools/` (without `tools/ig-proto/`) and `package.json` with
   anchored text edits and added files. An anchor must occur exactly once, otherwise the build stops and names the edit.
   No production file is ever edited, not even for a moment. `firewall.mjs` proves it (SHA-256 of every production file).
-- **No git.** No script runs a git command, read-only ones included. Identity comes from content: the source digest of
+- **No git.** No script runs a git command, read-only ones included (one exception: `phase1/p6-bench.ps1` reads `HEAD` and the status of
+  its two worktrees, V4-T14). Identity comes from content: the source digest of
   `SOURCE_FILES`, the firewall manifest, the tree identities and a source label the runner receives
   (`-SourceLabel`). Every tree patches its copy of `tools/calibrate.mjs` so that its `readSource` runs no git (edit
   `meta-1`).
@@ -74,6 +75,7 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
 | `kernel-probe.mjs`, `variants/r4c.json`, `plans/V4-T10a.json`, `plans/V4-T10b.json` | the kernel probe (V4-T10a, V4-T10b): R4 visit and mutation counters in the `r4c` tree, the `v4-kernel` items that compare its complete deduction with the `instr` tree's, the `fewestColumn` profile of child processes under reduced inlining, the `counters` and `profile` (locked) and `report` (unlocked) commands and the plans of the runs; see "Kernel probe (V4-T10a)" |
 | `width-probe.mjs`, `lib/width-worker.mjs`, `lib/width-worker-test.mjs`, `plans/V4-T10c.json` | the pool probe (V4-T10c): one rating's time at 1, 2, 4 and 8 concurrent workers on the frozen source, the width dispatch, its worker and the scripted worker of its self-test, the `run` (locked) and `report` (unlocked) commands and the plan of the run; see "Pool probe (V4-T10c)" |
 | `manifest.mjs`, `data/frozen-round-v1.json`, `plans/V4-S2.json`, `plans/V4-LIVE.json`, `plans/V4-S4.universe.json`, `plans/V4-S4X.template.json`, `plans/items/` | the frozen-round matrix (V4-T11a onwards): the requests of stages 2 to 5 as data and the pure rules that expand them into groups of request rows with their row limits, state paths and collections, `controlsFrom` and `conditionalActivated`; the pricing (V4-T11b); the plan compiler (V4-T11c: `compile` writes the plans `V4-S2` and `V4-LIVE`, the priced universe of stage 4, the template of the second validation and the item manifests of the parity passes and of the isolated P-0) and the prerequisites gate (`check-prerequisites`); the stage-4 collections (V4-T11e: `activate` writes the activation record, `plans/V4-S4.json` and `plans/V4-S4C.template.json` once, `close` the closure record); the comparators and the verdict inputs (V4-T11f: `resolve-comparators`, `verdict-input`); the manifest for the owner (V4-T11g: `price` writes `evidence/frozen/V4-T11/manifest.json|md`, `approval` prints one approval request); unlocked, nothing in it runs; see "Frozen-round matrix (V4-T11a)" |
+| `phase1/p6-bench.mjs`, `phase1/p6-bench.ps1`, `phase1/chart-png.ps1` | the phase-1 bench of P6 (V4-T14, not a run plan): the pure rules and the `preflight` and `compare` commands, the locked invocation of one group on one side, and the chart image; see "Phase-1 bench of P6 (V4-T14)" |
 
 ## Trees (variants)
 
@@ -2580,3 +2582,77 @@ price, and each approval is asked again with `approval --plan <id>` when it is n
   the plan and the manifest is written` (`planQuotes`, and `price` on the real records into a scratch folder). The dry runs of the plans are the
   gate of the task: `approval` then `run-task.ps1 -DryRun` with the requested cumulative cap (a dry run without `-LockHelper`, the only run that may
   pass a cap above the granted one), and a last dry run with the counted minutes already spent, rounded down, which stops honestly.
+
+## Phase-1 bench of P6 (V4-T14)
+
+Not a run plan (`run-task.ps1` does not run it): the production bench of the old version (main `3fc65f4`) and the new one (the commit
+under test, whose only production change is P6, T12), for the owner's pull request, and the reading of plan section 6's phase-1 gate
+(both memory checks) that closes N-V4-12. The results are **Node screening evidence**: five requests per cell are descriptive, never a
+browser qualification (D39); every output says so.
+
+- **Scripts.** `phase1/p6-bench.mjs` holds the pure rules (the ledger, the preflight, the checkpoint check, the pairing, the identity
+  of a pair, the statistics, the memory checks, the two renderers) and the commands `preflight` and `compare`; `phase1/p6-bench.ps1
+  -Group A|B -Side old|new -NewCommit <C> [-ResumeInstructed] [-DryRun]` is one locked invocation; `phase1/chart-png.ps1` renders the
+  chart (`-SelfTest`; `-EvidenceDir <folder>` renders another folder than the task's evidence). They run from the repository root.
+- **The two sides** are detached worktrees beside the repository, prepared by the orchestrator and never touched by the scripts: `pentomino-t14-old`
+  at `3fc65f4` and `pentomino-t14-new` at the full commit under test. `p6-bench.ps1` checks `HEAD` and `git status --short` of its side
+  (read-only git, the one exception to "No git") and runs that worktree's own `tools/calibrate.mjs`, so the measured code does not depend on the
+  main worktree: `node --max-old-space-size=2048 <worktree>\tools\calibrate.mjs --profile landscape --workers 4 --seeds 5 --cases '^(<cells>)$'
+  --fresh-process --output <RAW>\<side>\<group>` (cold, one fresh process per request, seeds `landscape/<case>/0` to `4`). Group A is
+  `14x14-master`, `26x26-master`, `26x26-expert`, `26x26-nightmare` and `10x10-nightmare`; group B is `12x12-nightmare` and `18x18-nightmare`.
+  The order is A old, A new, B new, B old: block-order counterbalancing, which reduces one order imbalance and does not cancel temporal drift.
+- **The allowance.** The owner's separate allowance of 45 counted minutes (2,700 s; 2026-11-18, `measure=a`), apart from the frozen round's
+  cap. Every invocation goes through `Invoke-IgNode -Repo pentomino` of `lock/ig-lock.ps1` with `-IdleQuietSeconds 15` (the quiet period stays
+  45 s unless the owner's idle declaration holds). Raw files (git-ignored): `tests/artifacts/ig-proto/phase1/P6-bench/` (`<RAW>`: `<side>/<group>-<date>.json|md`,
+  `<side>/<group>.checkpoint.jsonl`, `ledger.jsonl`, and `pending.json` while an invocation runs). The ledger has one line per invocation
+  (`id`, `task`, `group`, `side`, `commit`, `limitS`, `start`, `end`, `wallSeconds`, `nodeSeconds`, `lockWaitSeconds`, `quietS`,
+  `countedSeconds` = node seconds + min(lock wait, 45), `killed`, `exit`, `report`, `reportSha256`); a killed invocation counts as its
+  limit. The limit of an invocation is `min(900, floor(2700 - spent - 45))` and below 300 s the preflight stops (exit 4): an invocation is
+  charged at most its limit plus 45 s, so the ledger cannot pass 2,700 s. No ledger line, reservation, checkpoint or report is ever deleted
+  or rewritten, and `--restart` is never used.
+- **Preflight** (`p6-bench.mjs preflight --group <G> --side <S> --new-commit <C> [--resume-instructed]`, always called by the script):
+  exit 0 `run` (it prints the limit), 7 `complete` (the group and side has exactly one `exit 0` ledger line whose terminal report has the recorded
+  path and SHA-256 and passes the checks of `compare`: nothing runs and no report is rewritten), 5 a reservation exists, 8 a ledger line of
+  another commit, a completed group whose report is missing or changed, or a checkpoint that does not read strictly (a truncated line, a
+  duplicate row, a row of another commit, a row whose source digest or versions differ from its header: the bench's own reader skips such lines
+  silently), 9 the last line of the group ended `exit 2` (a resume needs the pack author's instruction, then `-ResumeInstructed`), 6 a second timeout, 4 the allowance, 1 a
+  usage error.
+- **The invocation** (`p6-bench.ps1`): worktree check, preflight, the lock helper loaded (a failure exits 1 before anything is created), the
+  reservation `pending.json` created exclusively with `[IO.File]::Open(CreateNew)` (`id`, `task`, `group`, `side`, `commit`, `limitS`, `reservedS`,
+  `createdAt`), the helper call, then the ledger line and only then the removal of the reservation. Node seconds and the exit come from the helper's `IG ... exit=<e> seconds=<s> quiet=<q>` line
+  (printed before it throws on a non-zero exit); the recognised timeout (`second limit reached`) counts the limit and exits 3 (one retry of the
+  same line is allowed, a second kill stops); an exception without an `IG` line is an **accounting stop**: exit 5, the reservation stays, no
+  ledger line, zero is never substituted. Exit 0 needs exactly one `<RAW>\<side>\<group>-*.json` written since the start (else exit 1 and the
+  reservation stays); 2 the bench ended incomplete; a failure of any other kind never exits 0.
+- **`compare --new-commit <C>`** (unlocked, after the four lines): refuses (`p6-bench: <reason>`, exit 1, nothing written) unless there is
+  no reservation, the ledger totals at most 2,700 s with exactly one `exit 0` line per group and side, every terminal report has its ledger SHA-256 and
+  passes the checks (`complete`, cold four-worker `landscape` run of node, the commits and digests, one matrix digest per group, one new source digest,
+  one `browserOrNode`, `platform` and `hardware` with `--max-old-space-size=2048`, every expected row present once, valid, uninterrupted,
+  `generation`, its metadata equal to its report's, only `sampling` errors, a finite positive T10 for a ten-puzzle request and a finite positive
+  response; `complete: true` alone does not prove valid rows, a failed child row is complete too), no pair is `differ` or `incomplete`, both
+  memory checks (`peak-process-memory` at most 1.5 GiB, `byte-accounting` at most 1,196 MiB at four workers) and `model-too-large` are
+  `pass` on every cell of both sides, and every report's text is CRLF only without a drive-letter path. It writes `<Side>/<Group>-<date>.json|md`
+  (byte copies), `ledger.jsonl`, `compare.json`, `compare.md`, `chart.svg` and `chart.html` into
+  `docs/improve-generating/evidence/phase1/P6-bench/`; an output that exists with other bytes is refused and the same inputs rewrite the same bytes.
+- **Identity of a pair** (old and new run of one seed; only `equal` passes): `equal` when both sides accepted the same positive number of puzzles with the
+  same set summary, the same puzzle summaries and the same production `details.resultDigest` (the SHA-256 of the ordered layout keys, clue keys and
+  scores); `differ` on any difference (the first differing path is reported, a stop point), also two different digests under equal summaries;
+  `metric-prefix-only` at unequal counts when the common summaries match (puzzle-prefix identity is not established); `no-puzzle-evidence` when a
+  side accepted none; `incomplete` when a required summary or digest is missing. The landscape sampling fields of `details` are no part of an identity.
+  T12's parity tests and the unchanged fixtures remain the compatibility evidence.
+- **Statistics**: per cell and per level (the pairs pooled) the medians, nearest-rank p95 (the maximum at n 5), maxima, `ten of n`
+  (requests with ten puzzles), `ten or proven-all of n`, the accepted distribution, T1, T10 (conditional on ten, with its n) and the response, the
+  paired ratios old/new of T1, T10, T10 - T1 and the response (median [min-max] n and the excluded pairs; the median is `null` below three pairs),
+  the peaks and the sampling errors (the landscape profile's diagnostic sampling runs after the timed interval but takes invocation time and counts in the
+  whole-process peak).
+- **The chart** (`chart-png.ps1`, after `compare`): headless Edge renders `chart.html` to `chart.png` (1200 x 720) in a unique scratch profile
+  `tests/artifacts/ig-proto/selftest/t14-edge-<guid>`, bounded to 60 s. This Edge's launcher exits at once while the browser it started, its child,
+  takes the screenshot, so the script waits until every verified descendant has exited. Only processes whose ownership was verified are stopped
+  or awaited: `Select-IgOwned` takes the `msedge.exe` descendants of the recorded root from one `Win32_Process` snapshot (created at or after
+  the launch, and not after an exited parent's exit; the name and the time are preliminary filters), `Confirm-IgOwned` keeps a candidate only when the
+  process that holds its PID now has its start time (UTC ticks at CIM's microsecond precision, compared exactly) through a handle kept until the cleanup ends,
+  and fails the gate when that cannot be established; `Get-IgStopOrder` stops children first (`Stop-Process -Id <verified Id>`), then the root only while alive.
+  A survivor, an unverifiable process, a profile folder that cannot be removed or a `chart.png` that is missing or not larger than 10 KB fails the gate.
+- **Self-test**: six `--items` cases (`p6: pairs and identity`, `p6: statistics and ratios`, `p6: the memory checks`, `p6: the ledger, the
+  reservation and the preflight`, `p6: inputs are refused`, `p6: the chart`) on synthetic rows, with scratch files under
+  `tests/artifacts/ig-proto/selftest/p6/`; `chart-png.ps1 -SelfTest` has six synthetic cases on the two ownership functions (no process is started, stopped or awaited).
