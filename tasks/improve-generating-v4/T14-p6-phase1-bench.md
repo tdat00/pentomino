@@ -7,7 +7,7 @@
 | Depends on | T12 and T13 (accepted); the owner's separate allowance of 45 counted minutes (check-list §1); the two worktrees the orchestrator prepares (step 0) |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (claude-sonnet-5.5) |
-| Estimate | developer 4.5 h; machine about 37 counted minutes projected, within the owner's separate allowance of 45 counted minutes (not the frozen round's cap) |
+| Estimate | developer 5 h; machine about 37 counted minutes projected, within the owner's separate allowance of 45 counted minutes (not the frozen round's cap) |
 
 ## Goal
 
@@ -51,7 +51,8 @@ production reports, reads both memory checks of plan §6's phase-1 gate (which c
 
 ## Scope
 
-- Create: `tools/ig-proto/phase1/p6-bench.mjs` (step 3), `tools/ig-proto/phase1/p6-bench.ps1` (step 4); evidence in
+- Create: `tools/ig-proto/phase1/p6-bench.mjs` (step 3), `tools/ig-proto/phase1/p6-bench.ps1` (step 4),
+  `tools/ig-proto/phase1/chart-png.ps1` (step 7); evidence in
   `docs/improve-generating/evidence/phase1/P6-bench/` (step 6: the four terminal reports and their `.md`,
   `ledger.jsonl`, `compare.json`, `compare.md`, `chart.svg`, `chart.html`; step 7: `chart.png`).
 - Change: `tools/ig-proto/self-test.mjs` (cases appended to `--items`), `tools/ig-proto/README.md` (a new section).
@@ -281,56 +282,40 @@ production reports, reads both memory checks of plan §6's phase-1 gate (which c
      agreement only and `<z>` have no common puzzle evidence. Prefix identity is not established by those summaries.";
      1200 x 720 pixels, the system sans-serif font, no external resource (`chart.html` holds the SVG inline, with
      `margin: 0`).
-7. **The chart image** (unlocked, after step 6), bounded and cleaned up:
-
-   ```powershell
-   $ev = (Resolve-Path 'docs\improve-generating\evidence\phase1\P6-bench').Path
-   $profileDir = Join-Path (Resolve-Path 'tests\artifacts').Path ('ig-proto\selftest\t14-edge-' + [guid]::NewGuid().ToString('N'))
-   $url = 'file:///' + ($ev -replace '\\', '/') + '/chart.html'
-   $edgeArgs = @('--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--disable-extensions', "--user-data-dir=$profileDir", '--window-size=1200,720', "--screenshot=$ev\chart.png", $url)
-   $edge = $null
-   $launch = Get-Date
-   try {
-     $edge = Start-Process -PassThru -FilePath 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' -ArgumentList $edgeArgs
-     if (-not $edge.WaitForExit(60000)) { throw 'STOP: Edge did not finish within 60 s' }
-     if ($edge.ExitCode -ne 0) { throw "STOP: Edge exited $($edge.ExitCode)" }
-   } finally {
-     if ($edge) {
-       # The helper's pattern (tools\ig-proto\lock\ig-lock.ps1): the recorded process and its descendants, by PID only;
-       # here only msedge.exe processes created since the launch, so that no unrelated process is ever stopped.
-       $rootExited = $edge.HasExited
-       $all = Get-CimInstance Win32_Process
-       $owned = [Collections.Generic.List[int]]::new(); $owned.Add([int]$edge.Id)
-       for ($i = 0; $i -lt $owned.Count; $i++) {
-         foreach ($child in $all | Where-Object { $_.ParentProcessId -eq $owned[$i] -and $_.Name -eq 'msedge.exe' -and $_.CreationDate -ge $launch }) {
-           if (-not $owned.Contains([int]$child.ProcessId)) { $owned.Add([int]$child.ProcessId) }
-         }
-       }
-       for ($i = $owned.Count - 1; $i -ge 0; $i--) {
-         if ($i -eq 0 -and $rootExited) { continue }
-         Stop-Process -Id $owned[$i] -Force -ErrorAction SilentlyContinue
-       }
-       $watch = @(for ($i = 0; $i -lt $owned.Count; $i++) { if (-not ($i -eq 0 -and $rootExited)) { $owned[$i] } })
-       $deadline = (Get-Date).AddSeconds(15)
-       do {
-         $alive = @($watch | Where-Object { Get-Process -Id $_ -ErrorAction SilentlyContinue })
-         if ($alive.Count -gt 0) { Start-Sleep -Milliseconds 250 }
-       } while ($alive.Count -gt 0 -and (Get-Date) -lt $deadline)
-       if ($alive.Count -gt 0) { throw "STOP: owned Edge processes survived: $($alive -join ', ')" }
-     }
-     if (Test-Path $profileDir) { Remove-Item -Recurse -Force $profileDir }
-     if (Test-Path $profileDir) { throw "STOP: the Edge profile $profileDir could not be removed" }
-   }
-   ```
-
-   The owned processes (the recorded Edge process and its `msedge.exe` descendants created since the launch, by PID)
-   are stopped, children before parents, and awaited for at most 15 s before the profile is removed; a surviving owned
-   process or a profile that cannot be removed fails the screenshot gate, and no unrelated process is ever stopped. Only
-   after Edge ended with exit 0 within 60 s and the cleanup succeeded: `chart.png` must exist, be larger than 10 KB, and
-   show the seven rows with both bars and their labels (view it). The scratch profile keeps the user's Edge profile
-   untouched.
+7. **The chart image** (unlocked, after step 6): **`tools/ig-proto/phase1/chart-png.ps1`** (new), first `pwsh -NoProfile
+   -File tools\ig-proto\phase1\chart-png.ps1 -SelfTest`, then `pwsh -NoProfile -File tools\ig-proto\phase1\chart-png.ps1`.
+   - `-SelfTest` runs the synthetic cases of the Tests table on its two functions (no process is started, stopped or
+     awaited) and prints `chart-png self-test: <n> cases ok` (exit 0), else the failing case (exit 1).
+   - `Select-IgOwned -Snapshot <records> -Root <identity> -Launch <time>` (pure): from a snapshot of `Win32_Process`
+     records (`ProcessId`, `ParentProcessId`, `Name`, `CreationDate`) and the root's identity (`Id`, `StartTime`, and
+     `ExitTime` or `$null`), the candidates in breadth-first order. A record is a candidate child of a selected node when
+     its `ParentProcessId` is that node's id, its `Name` is `msedge.exe`, its `CreationDate` is at or after `-Launch`
+     and the node's `StartTime`, and, when the node has exited, at or before its `ExitTime` (a purported child created
+     after its parent's exit is rejected). The name and the creation after the launch are preliminary filters, not
+     proof of ownership.
+   - `Confirm-IgOwned -Candidates <candidates> -Lookup <scriptblock>`: for each candidate, the lookup returns the process
+     that holds its PID now (`$null` when none); the candidate is owned only when that process's start time equals the
+     candidate's `CreationDate` (within 1 ms). A PID that now belongs to another process is neither stopped nor awaited;
+     a lookup that fails (no access) throws `ownership cannot be established for <pid>`. The real lookup opens a handle
+     (`[Diagnostics.Process]::GetProcessById(<pid>)` and its `Handle`) and keeps it until the cleanup ends, so that the
+     PID cannot be reused in the meantime.
+   - The real run: a unique profile folder `tests\artifacts\ig-proto\selftest\t14-edge-<a new GUID>`; `$launch = Get-Date`;
+     Edge started with `Start-Process -PassThru -FilePath 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'`
+     and the arguments `@('--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run',
+     '--disable-extensions', "--user-data-dir=<profile>", '--window-size=1200,720', "--screenshot=<evidence>\chart.png",
+     'file:///<evidence, with />/chart.html')`, its `Handle` and `StartTime` read at once (the root's identity, its handle
+     kept); `WaitForExit(60000)`, a timeout or a non-zero exit failing the gate. In `finally`, whenever Edge was
+     started: one `Get-CimInstance Win32_Process` snapshot, `Select-IgOwned`, `Confirm-IgOwned` (a throw fails the gate
+     rather than guessing); the verified descendants stopped children first through their kept handles (`Kill()`), the
+     root only while it is still alive; every verified process awaited through its handle for at most 15 s in total;
+     the handles disposed; then the profile folder removed. A verified process that survives, an ownership that cannot
+     be established, or a profile folder that cannot be removed fails the screenshot gate; an unrelated process is
+     never stopped or awaited.
+   - Only after Edge ended with exit 0 within 60 s and the cleanup succeeded: `chart.png` must exist, be larger than
+     10 KB, and show the seven rows with both bars and their labels (view it). The scratch profile keeps the user's
+     Edge profile untouched.
 8. **Self-test** cases appended to `--items` (Tests table); **README.md**: a new section "Phase-1 bench of P6
-   (V4-T14)": the purpose, the two scripts, the preflight, the reservation and the ledger, the order and the resume
+   (V4-T14)": the purpose, the three scripts, the preflight, the reservation and the ledger, the order and the resume
    rule, the outputs, the identity categories, and the statement that the results are Node screening evidence.
 
 ## Tests
@@ -348,6 +333,17 @@ no generation runs.
 | `p6: inputs are refused` | a report whose rows are failed child records but `complete: true`; a row whose metadata differs from its report's; a row with a non-sampling error; a missing process memory; `workerCount` 2; an old report whose digest is not `FROZEN_DIGEST`; a new report of another commit; the new reports with two source digests; a terminal report whose SHA-256 differs from its ledger line; a reservation left; a report with a drive-letter path | each refused with its reason, nothing written |
 | `p6: the chart` | the result of seven synthetic cells with `<k>`, `<m>` and `<z>` identity counts | the SVG has seven rows with two bars each, the ten of n texts, the ratio texts and the footer with the three counts; `chart.html` embeds it; the same input gives the same bytes |
 
+And in `tools/ig-proto/phase1/chart-png.ps1 -SelfTest`, on synthetic records and lookups (no process is started,
+stopped or awaited):
+
+| Case name | Input | Expected |
+|---|---|---|
+| `owned: the tree` | a running root with two children and a grandchild, all `msedge.exe` created after the launch and owned by the lookup | all three selected, the grandchild stopped before its parent |
+| `owned: a child after its parent's exit` | an exited root and a record with the root's PID as its parent, created after the root's exit | not selected |
+| `owned: other processes` | a `notepad.exe` child; an `msedge.exe` child created before the launch | not selected |
+| `owned: a reused PID` | a selected candidate whose PID now belongs to a process with the same name, created after the launch but at another time | neither stopped nor awaited |
+| `owned: gone and unknown` | a lookup that returns nothing; a lookup that fails | the first is skipped; the second throws `ownership cannot be established for <pid>` |
+
 ## Documentation
 
 `tools/ig-proto/README.md` (step 8). The pull request's text is the orchestrator's, from `compare.md`.
@@ -360,7 +356,8 @@ no generation runs.
 | `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T14` | root | 10 passed | 1 min |
 | the sequence of step 5 | root | every group and side exit 0; the ledger at most 2,700 s; no `pending.json` left | each invocation at most its limit, 900 s, plus the lock wait |
 | `node tools\ig-proto\phase1\p6-bench.mjs compare --new-commit <C>` | root | exit 0; the files of step 6 | 1 min |
-| step 7 | root | Edge exit 0 within 60 s; `chart.png` larger than 10 KB; no profile folder left | 1 min |
+| `pwsh -NoProfile -File tools\ig-proto\phase1\chart-png.ps1 -SelfTest` | root | `chart-png self-test: 5 cases ok`, exit 0 | 1 min |
+| `pwsh -NoProfile -File tools\ig-proto\phase1\chart-png.ps1` (step 7) | root | Edge exit 0 within 60 s; `chart.png` larger than 10 KB; no owned process and no profile folder left | 2 min |
 | `node tools\ig-proto\firewall.mjs check --task V4-T14 --label frozen` | root | `files unchanged` | 1 min |
 | `npm run check` | root | exit 0 | 2 min |
 | the guards of the Scope | root | no output | 1 min |
@@ -394,7 +391,7 @@ no generation runs.
 |---|---|---|---|
 | T14-T01 | The sources are pinned and verified: two clean worktrees at `3fc65f4` and `<C>`, the old digest equal to the frozen source's, the bench code identical, only P6's three files different | step 2; the reports' `meta` | command output |
 | T14-T02 | Every bench invocation ran through the lock helper with its limit from the ledger, behind a reservation, and every attempt is a ledger line; no silent re-run, no unaccounted invocation | `ledger.jsonl`; the helper's `IG` lines; no `pending.json` | command output |
-| T14-T03 | The comparison refuses invalid or inconsistent inputs, and its pairing, identity, statistics, memory checks, ledger, reservation, preflight and chart are tested | the six cases | self-test output |
+| T14-T03 | The comparison refuses invalid or inconsistent inputs, and its pairing, identity, statistics, memory checks, ledger, reservation, preflight and chart are tested; the chart's cleanup selects, stops and awaits only processes whose ownership it verified | the six `--items` cases; the five `chart-png.ps1 -SelfTest` cases | self-test output |
 | T14-T04 | Nothing else changed; formats | the guards; the firewall; `npm run check` | command output |
 
 ## Checklist (the developer confirms every item in the final report)
