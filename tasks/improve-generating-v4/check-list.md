@@ -635,7 +635,7 @@ node -e "const fs=require('fs'),p=require('path');const d='docs/improve-generati
 | T11f | 2026-11-18 00:20 | 2026-11-18 01:04 | 44 min | 970.87 | `b5eb3d9` |
 | T11g | 2026-11-18 01:05 | 2026-11-18 01:41 | 37 min | 729.68 | `c802fae` |
 | T12 | 2026-11-18 01:43 | 2026-11-18 06:32 | 4 h 49 min (developer 45 min) | 302.94 | `ae00ca0` |
-| T13 | 2026-11-18 06:33 | 2026-11-18 07:26 | 53 min | 129.23 | this task's commit |
+| T13 | 2026-11-18 06:33 | 2026-11-18 07:26 | 53 min | 129.23 | `a3489f9` |
 
 ## 8. End of the pack and hand-over (pack author, 2026-11-18)
 

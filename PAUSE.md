@@ -1,5 +1,13 @@
 # PAUSE: improve-generating v4 (Pentomino), paused 2026-11-17 20:19 +07:00
 
+> **Superseded.** The owner resumed the work on the same computer on 2026-11-17 at 20:54 +07:00, and the pack was
+> completed on 2026-11-18 at 07:26 +07:00: all 37 tasks accepted (T13 `a3489f9`). The current state and the hand-over to
+> the stages 2 to 4 pack are in `tasks/improve-generating-v4/check-list.md` §8 (and §1 for the owner's grant of 749
+> counted minutes). Sections 1 to 4 and 6 below describe the paused state only. Section 5 still applies to a move to
+> another computer, with two changes: the lock helper of this repository is now `tools/ig-proto/lock/ig-lock.ps1`
+> (T11h, it travels with git), and the zip `Q:\git\pentomino-ig-artifacts-2026-11-17.zip` predates the raw files of
+> T11 to T13, so build a fresh archive of `tests/artifacts/ig-proto/` before any move.
+
 The owner paused the implementation of `tasks/improve-generating-v4/` on 2026-11-17 at 20:19 +07:00 and asked for
 this file so that the work can resume on another computer. It records where everything stands, what does not
 travel with git, and how to resume. Sudoku: no improve-generating work until the owner orders it (owner, Discord,
