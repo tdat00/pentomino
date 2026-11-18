@@ -306,9 +306,13 @@ production reports, reads both memory checks of plan §6's phase-1 gate (which c
      and the arguments `@('--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run',
      '--disable-extensions', "--user-data-dir=<profile>", '--window-size=1200,720', "--screenshot=<evidence>\chart.png",
      'file:///<evidence, with />/chart.html')`, its `Handle` and `StartTime` read at once (the root's identity, its handle
-     kept); `WaitForExit(60000)`, a timeout or a non-zero exit failing the gate. In `finally`, whenever Edge was
-     started: one `Get-CimInstance Win32_Process` snapshot, `Select-IgOwned`, `Confirm-IgOwned` (a throw fails the gate
-     rather than guessing); the verified descendants stopped children first using `Stop-Process -Id <verified
+     kept); `WaitForExit(60000)`, a timeout or a non-zero exit failing the gate. Edge 157's launcher exits 0 after about
+     0.2 s while the browser it started takes the screenshot (ruling after T14's report): after that exit 0 the script
+     keeps waiting, within the same 60 s from `$launch`, re-taking the snapshot every 300 ms through `Select-IgOwned`
+     and `Confirm-IgOwned`, until every verified descendant has exited by itself; reaching 60 s fails the gate. In
+     `finally`, whenever Edge was started: one more `Get-CimInstance Win32_Process` snapshot, `Select-IgOwned`,
+     `Confirm-IgOwned` (a throw fails the gate rather than guessing); the verified descendants stopped children first
+     using `Stop-Process -Id <verified
      process.Id> -Force`, while their verified handles remain open, and the root the same way only while it is still
      alive; every verified process awaited through its handle for at most 15 s in total; the handles disposed only after
      the cleanup; then the profile folder removed. A verified process that survives, an ownership that cannot
