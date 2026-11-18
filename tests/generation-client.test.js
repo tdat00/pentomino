@@ -1235,7 +1235,8 @@ const realClient = (h) => createGenerationClient(h.pool, { clock: h.clock, creat
 /**
  * Runs the recipe's set and one batch.
  * @param {number} size
- * @param {{ rotation?: number, batchIndex?: number, history?: { seenLayouts: string[], seenClues: string[] }, quantity?: number }} [o]
+ * @param {{ rotation?: number, batchIndex?: number, history?: { seenLayouts: string[], seenClues: string[] }, quantity?: number,
+ *   hooks?: import('../core/browser/generation-client.js').GenerationHooks }} [o]
  */
 async function runRecipe(size, o = {}) {
   const h = realHarness(size);
@@ -1253,7 +1254,7 @@ async function runRecipe(size, o = {}) {
       setOrigin: set.setOrigin,
       seenLayouts: o.history?.seenLayouts ?? [],
       seenClues: o.history?.seenClues ?? [],
-    }));
+    }), o.hooks ?? {});
     return { set, batch };
   } finally {
     h.pool.close();
@@ -1334,6 +1335,22 @@ describe('real engine through the pool', () => {
     assert.deepEqual(semantic(one.batch.pack), semantic(four.batch.pack));
     assert.deepEqual(semantic(one.set.pack), semantic(four.set.pack));
     assert.equal(one.batch.pack.generation.batchSeed, recipe.batchSeed);
+  });
+
+  test('progressive presentation: accepted puzzles stream in slot order, the same at one and four workers', async () => {
+    /** @type {Array<[number, string]>} */
+    const one = [];
+    /** @type {Array<[number, string]>} */
+    const four = [];
+    const narrow = await runRecipe(1, { hooks: { onAccepted: (e) => one.push([e.index, e.puzzle.id]) } });
+    const wide = await runRecipe(4, { hooks: { onAccepted: (e) => four.push([e.index, e.puzzle.id]) } });
+    assert.deepEqual(one, four, 'what is shown does not depend on the pool width');
+    for (const [streamed, { batch }] of /** @type {const} */ ([[one, narrow], [four, wide]])) {
+      assert.equal(batch.status, 'complete');
+      assert.equal(streamed.length, recipe.quantity);
+      assert.deepEqual(streamed.map(([index]) => index), streamed.map((_, i) => i));
+      assert.deepEqual(streamed.map(([, id]) => id), batch.accepted.map((p) => p.id));
+    }
   });
 
   test('rotation changes only the presentation', async () => {

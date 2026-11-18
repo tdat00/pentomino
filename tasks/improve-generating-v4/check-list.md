@@ -58,7 +58,7 @@ until their prerequisites exist (T11c); the stage-4 plan is generated at the act
 - [x] T11f Comparators and verdict inputs: resolution from a final selection, the selection and final manifests (depends on T11e)
 - [x] T11g Frozen-round manifest for the owner: the price, the approval requests and the dry runs (depends on T11f; **stop at the end: the owner approves the price, OD-P10**)
 - [x] T12 P6: the DLX diagnostic only for returned ratings (phase 1, production; no content dependency, D-V4-11; runs after T11g)
-- [ ] T13 Progressive presentation: fold order and the history policy (phase 1, production; runs after T12)
+- [x] T13 Progressive presentation: fold order and the history policy (phase 1, production; runs after T12)
 
 | ID | File | Developer (h) | Machine, allocated (min) | Phase / stage |
 |---|---|---:|---:|---|
@@ -634,8 +634,8 @@ node -e "const fs=require('fs'),p=require('path');const d='docs/improve-generati
 | T11e | 2026-11-17 23:45 | 2026-11-18 00:19 | 34 min | 553.89 | `28f13f5` |
 | T11f | 2026-11-18 00:20 | 2026-11-18 01:04 | 44 min | 970.87 | `b5eb3d9` |
 | T11g | 2026-11-18 01:05 | 2026-11-18 01:41 | 37 min | 729.68 | `c802fae` |
-| T12 | 2026-11-18 01:43 | 2026-11-18 06:32 | 4 h 49 min (developer 45 min) | 302.94 | this task's commit |
-| T13 | | | | | |
+| T12 | 2026-11-18 01:43 | 2026-11-18 06:32 | 4 h 49 min (developer 45 min) | 302.94 | `ae00ca0` |
+| T13 | 2026-11-18 06:33 | 2026-11-18 07:26 | 53 min | 129.23 | this task's commit |
 
 ## 8. End of the pack and hand-over (pack author, 2026-11-18)
 

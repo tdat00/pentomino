@@ -120,13 +120,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-18 06:33:10 +07:00 (dispatch, base `ae00ca0`) to 07:26:15 +07:00 (acceptance): 53 min 5 s; the developer's own times 06:33:13-06:46:28; the orchestrator's locked re-run waited about 25 min behind Sudoku's difficulty-v3 |
+| Waiting for rulings | about 3 min (SA-Opus's review, 06:47-06:50; no QUESTION) |
+| Agent id, model | `da55e5b7-b223-49c8-bf7f-7d22f72f9bda`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 55 calls; 6,441,096 input, 28,136 output, 6,288,222 cache-read |
+| AI credits | 129.23 |
+| Questions and rulings | none from the developer, no deviation. SA-Opus ruled "accept T13" (provided the locked gates are green, which they are): the two tests and the two edits of `design-detail.md` match the task, every reading accepted. Pack amendment `b7656f0`: the T13 ruling row and the new check-list §8 "End of the pack and hand-over" |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | Through the repository's lock helper: `T13 quick verify` 1,495 tests, 1,495 pass, 0 fail, 0 skipped (`progressive presentation: accepted puzzles stream in slot order, the same at one and four workers` and `a shown puzzle stays in the history however the batch ends` pass), `IG … exit=0 seconds=34.473`; `T13 fixtures verify` `record-fixtures: OK` (0.595 s, 1,461 s wall behind Sudoku's difficulty-v3); `T13 replay case verify` `record-fixtures: replay case OK` (1.269 s); `T13 full verify` 1,514 tests, 1,514 pass, 0 fail (123.369 s); total wall 2,338 s. `git status --short`: exactly the three files of the Scope, no production file; `npm run check`: OK. The developer's mutation run (a scratch copy of `jobs.js` skipping `addSeenKeys`) failed the new controller test as expected |
+| Commit | this task's commit, `improve-generating T13: Progressive presentation: fold order and the history policy` |
+| Issues and named items | none new; N-V4-10 (the service level, OD-P5 (b)) stays with the owner; the pack's hand-over is check-list §8 |
