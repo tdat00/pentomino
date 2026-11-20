@@ -1,0 +1,52 @@
+{
+  "task": "IGP-06",
+  "allocationMinutes": 8,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "snapshot", "--task", "IGP-06"]
+    },
+    {
+      "id": "tree",
+      "locked": false,
+      "node": ["tools\\ig-proto\\lib\\tree.mjs", "build", "base"]
+    },
+    {
+      "id": "dry",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 90,
+      "minHorizonS": 150,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\pm2.mjs", "run", "--run-id", "dry"],
+      "state": "IGP-06\\dry\\state.json"
+    },
+    {
+      "id": "summarize-dry",
+      "locked": false,
+      "node": ["tools\\ig-proto\\pm2.mjs", "summarize", "--run-id", "dry"]
+    },
+    {
+      "id": "run",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 330,
+      "minHorizonS": 150,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\pm2.mjs", "run", "--run-id", "main"],
+      "state": "IGP-06\\main\\state.json"
+    },
+    {
+      "id": "summarize",
+      "locked": false,
+      "node": ["tools\\ig-proto\\pm2.mjs", "summarize", "--run-id", "main"]
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "check", "--task", "IGP-06"]
+    }
+  ]
+}

@@ -1,0 +1,2093 @@
+{
+  "meta": {
+    "format": "ig-proto-compare-r2",
+    "version": 1,
+    "task": "IGP-01",
+    "label": "provisional",
+    "labelText": "provisional (pre-freeze)",
+    "createdAt": "2026-11-14T17:54:34.214Z",
+    "source": {
+      "label": "rating-v3 runtime cd5d17f (worktree 0e1283e)",
+      "sourceDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "equalsMp12b1Source": true,
+      "firewall": "c617f9eab21d8cd3fb556784ba851972be68e3859002122dea9bfdac222d672e"
+    },
+    "harness": {
+      "harnessHash": "eee4b0865e5a6097c2ce52be890a5e161af595176be0b361875a1af519ca0773",
+      "files": {
+        "tools/ig-proto/lib/budget.mjs": "fd931d9f44d1fc5bc481db2e2d2c99ed46790150ade8c62e836b729e11410801",
+        "tools/ig-proto/lib/calls.mjs": "e0173ff8975335cb0f2103fd0b8f00cd1793f0de633d3b87f51c587d7d49d20c",
+        "tools/ig-proto/lib/engine.mjs": "316f4d2c3feadd18c971bfaa7baab6c5f8c6991d1f2140e3e30300b1b3a07540",
+        "tools/ig-proto/lib/lane-worker.mjs": "7a705736a276ee17e07095526ae467d4ac62a26ccb5becc0e53cfcebcd158e24",
+        "tools/ig-proto/lib/lanes.mjs": "628e3f217541435c9065599ba5053231ea217fdd3bfeb9aaad76ab8eb936b235",
+        "tools/ig-proto/lib/paths.mjs": "6db4a7adeedf3500390cb84875667f44478dd8e486d6d55919149c2af6bede62",
+        "tools/ig-proto/lib/records.mjs": "c9f3b021096bb57a93445c8156e4cbf77654ee32128343359690508a42d5bf2c",
+        "tools/ig-proto/lib/sets.mjs": "66fecf6372dc30badd94f018b171e4bc12555426e446768dc4f6c29c443d7a2d",
+        "tools/ig-proto/lib/tree.mjs": "ff7ea5d67ad0dd40f1dc105e1584181b59078d4ca6392b9eb7b3078293068f83",
+        "tools/ig-proto/arm.mjs": "5fe5854f1fb183d6827b7c18f55bd5fc16de6206db4d73c7e1b7543f0aec2165",
+        "tools/ig-proto/boards.mjs": "656194b446de6345c5c7ce4b5d136cab4e0acd09d61e062bd3eb0640a986f53b",
+        "tools/ig-proto/compare-r2.mjs": "7e468994174d7fb581763e329e7f36981eadf8dcbc6474aa399c54f81ae58262",
+        "tools/ig-proto/compare.mjs": "f4d6cf3a0b207ef83a327fcf9eda0a91d08d38af668c5e17b32cad49e954923b",
+        "tools/ig-proto/firewall.mjs": "cd60483c07622c5137c4b297e6bd1fa8334adedadcf167f6d5ead61cc735ff83",
+        "tools/ig-proto/fit-prior.mjs": "941b6ac19dab01dea1851b3aa34d952c9adc52e72e249be00185729a9cd6e88a",
+        "tools/ig-proto/identity.mjs": "8b9123dcfc0f31ba4d2c06b134544a6e219358d009ae5f935b49d9ac6febe1fc",
+        "tools/ig-proto/run-task.ps1": "5d5bc46ee095e16315522f8bc6a2a47c5d8cc891ec151236d31e2652708a86ac",
+        "tools/ig-proto/self-test.mjs": "7785414232d2d99c38a3b99421cd63c4c2b8b9fdf023cc7e832b9631fc5fd974",
+        "tools/ig-proto/verify.mjs": "1d013ed389fd0f65922c3bd6f7559a8f5a431dbcd8a7fc3c27fccef7d07431eb",
+        "tools/ig-proto/data/boards-v1.json": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+        "tools/ig-proto/data/prior-v1.json": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133"
+      }
+    },
+    "trees": {
+      "log": {
+        "treeId": "a7cb051c9169c79a2c25ae69dbc61e068053aace675da4e6946d1d826eb3e625",
+        "copyDigest": "4b13e6745cf26c07e49c4f363c72a01af1ea59bb9060e8e19bfa2ff47796a273",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "log",
+          "diagnosticOffers": true,
+          "logAccepted": false,
+          "p6": false
+        }
+      },
+      "p1p5-main": {
+        "treeId": "6e1ff4919bcb3fb12d11ed5eefb7557c67ddbbceb2a08480d1e3016658221b86",
+        "copyDigest": "2b20ab52b05cd8879828aaa929d9feb42a824963bdcb727b0addd4e9339a4bc2",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "p1p5-1",
+          "p1p5-2",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "p1p5-main",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": false,
+          "U0": 8,
+          "rerateMax": 4,
+          "rerate": "end",
+          "a3": false,
+          "W": {
+            "default": 190000000,
+            "hell-1": 380000000,
+            "hell-2": 380000000,
+            "hell-3": 380000000
+          },
+          "prior": {
+            "easy@100": {
+              "caseId": "10x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@144": {
+              "caseId": "12x12-easy",
+              "share": 0.555556,
+              "n": 100
+            },
+            "easy@196": {
+              "caseId": "14x14-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@215": {
+              "caseId": "15x15b10-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@60": {
+              "caseId": "6x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@87": {
+              "caseId": "3x29-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "expert@100": {
+              "caseId": "10x10-expert",
+              "share": 0.307692,
+              "n": 100
+            },
+            "expert@144": {
+              "caseId": "12x12-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@196": {
+              "caseId": "14x14-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@215": {
+              "caseId": "15x15b10-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@256": {
+              "caseId": "16x16-expert",
+              "share": 0.263889,
+              "n": 100
+            },
+            "expert@300": {
+              "caseId": "15x20-expert",
+              "share": 0.277778,
+              "n": 100
+            },
+            "expert@324": {
+              "caseId": "18x18-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@360": {
+              "caseId": "18x20-expert",
+              "share": 0.263158,
+              "n": 100
+            },
+            "expert@400": {
+              "caseId": "20x20-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@420": {
+              "caseId": "20x21-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@480": {
+              "caseId": "32x15-expert",
+              "share": 0.227273,
+              "n": 100
+            },
+            "expert@484": {
+              "caseId": "22x22-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@576": {
+              "caseId": "24x24-expert",
+              "share": 0.238095,
+              "n": 100
+            },
+            "expert@60": {
+              "caseId": "6x10-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@676": {
+              "caseId": "26x26-expert",
+              "share": 0.26087,
+              "n": 100
+            },
+            "expert@87": {
+              "caseId": "3x29-expert",
+              "share": 0.285714,
+              "n": 100
+            },
+            "hard@100": {
+              "caseId": "10x10-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hard@144": {
+              "caseId": "12x12-hard",
+              "share": 0.384615,
+              "n": 100
+            },
+            "hard@196": {
+              "caseId": "14x14-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@215": {
+              "caseId": "15x15b10-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@256": {
+              "caseId": "16x16-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@300": {
+              "caseId": "15x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@324": {
+              "caseId": "18x18-hard",
+              "share": 0.363971,
+              "n": 100
+            },
+            "hard@360": {
+              "caseId": "18x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@400": {
+              "caseId": "20x20-hard",
+              "share": 0.375,
+              "n": 100
+            },
+            "hard@420": {
+              "caseId": "20x21-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@480": {
+              "caseId": "32x15-hard",
+              "share": 0.368421,
+              "n": 100
+            },
+            "hard@484": {
+              "caseId": "22x22-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@576": {
+              "caseId": "24x24-hard",
+              "share": 0.35,
+              "n": 100
+            },
+            "hard@60": {
+              "caseId": "6x10-hard",
+              "share": 0.4,
+              "n": 100
+            },
+            "hard@676": {
+              "caseId": "26x26-hard",
+              "share": 0.380952,
+              "n": 100
+            },
+            "hard@87": {
+              "caseId": "3x29-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.265179,
+              "n": 2
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.141026,
+              "n": 4
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.128205,
+              "n": 50
+            },
+            "master@100": {
+              "caseId": "10x10-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@144": {
+              "caseId": "12x12-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@196": {
+              "caseId": "14x14-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@215": {
+              "caseId": "15x15b10-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@256": {
+              "caseId": "16x16-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@300": {
+              "caseId": "15x20-master",
+              "share": 0.210526,
+              "n": 100
+            },
+            "master@324": {
+              "caseId": "18x18-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@360": {
+              "caseId": "18x20-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@400": {
+              "caseId": "20x20-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@420": {
+              "caseId": "20x21-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@480": {
+              "caseId": "32x15-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@484": {
+              "caseId": "22x22-master",
+              "share": 0.208333,
+              "n": 100
+            },
+            "master@576": {
+              "caseId": "24x24-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@60": {
+              "caseId": "6x10-master",
+              "share": 0.230769,
+              "n": 100
+            },
+            "master@676": {
+              "caseId": "26x26-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@87": {
+              "caseId": "3x29-master",
+              "share": 0.214286,
+              "n": 100
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            },
+            "normal@100": {
+              "caseId": "10x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@144": {
+              "caseId": "12x12-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@196": {
+              "caseId": "14x14-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@215": {
+              "caseId": "15x15b10-normal",
+              "share": 0.416667,
+              "n": 100
+            },
+            "normal@256": {
+              "caseId": "16x16-normal",
+              "share": 0.461538,
+              "n": 100
+            },
+            "normal@300": {
+              "caseId": "15x20-normal",
+              "share": 0.307692,
+              "n": 100
+            },
+            "normal@324": {
+              "caseId": "18x18-normal",
+              "share": 0.357143,
+              "n": 100
+            },
+            "normal@60": {
+              "caseId": "6x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@87": {
+              "caseId": "3x29-normal",
+              "share": 0.5,
+              "n": 100
+            },
+            "very-easy@60": {
+              "caseId": "6x10-very-easy",
+              "share": 0.714286,
+              "n": 95
+            },
+            "very-easy@87": {
+              "caseId": "3x29-very-easy",
+              "share": 0.714286,
+              "n": 98
+            }
+          }
+        }
+      }
+    },
+    "machine": {
+      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "platform": "win32 10.0.26300 x64"
+    },
+    "invocations": {
+      "count": 26,
+      "nodeSeconds": 1982.436,
+      "countedSeconds": 3152.436,
+      "lockWaitSeconds": 4911.965
+    },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\IGP-01.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  },
+  "supersedes": "the reading of the headline table of compare.md; compare.json and compare.md are unchanged",
+  "headline": [
+    {
+      "cell": "12x12-nightmare",
+      "today": {
+        "n": 17,
+        "min": 29924.3,
+        "median": 62140.5168,
+        "p95": 176071.8887,
+        "max": 176071.8887
+      },
+      "before": {
+        "t10": {
+          "n": 3,
+          "min": 27854.684500000003,
+          "median": 53119.1632,
+          "p95": 73015.95199999999,
+          "max": 73015.95199999999
+        },
+        "reached": 3,
+        "requests": 3
+      },
+      "after": {
+        "t10": {
+          "n": 3,
+          "min": 4711.4834,
+          "median": 5735.4231,
+          "p95": 11177.4862,
+          "max": 11177.4862
+        },
+        "reached": 3,
+        "requests": 3
+      },
+      "pairedT10Ratio": {
+        "n": 3,
+        "median": 9.26159452822234,
+        "min": 2.492034792223676,
+        "max": 15.49744439299096
+      },
+      "pairedResponseRatio": {
+        "n": 3,
+        "median": 9.103204772309129,
+        "min": 2.470632225291288,
+        "max": 15.067261409615494
+      },
+      "estimatesP1P5": {
+        "opus": "about 39-48 s",
+        "astra": "44.5 s"
+      },
+      "estimatesAfterAll": {
+        "opus": "16 s",
+        "astra": "21.7 s"
+      }
+    },
+    {
+      "cell": "14x14-nightmare",
+      "today": {
+        "n": 11,
+        "min": 46052.304599999996,
+        "median": 112978.63410000001,
+        "p95": 151637.2396,
+        "max": 151637.2396
+      },
+      "before": {
+        "t10": {
+          "n": 1,
+          "min": 46543.7433,
+          "median": 46543.7433,
+          "p95": 46543.7433,
+          "max": 46543.7433
+        },
+        "reached": 1,
+        "requests": 3
+      },
+      "after": {
+        "t10": {
+          "n": 3,
+          "min": 5480.7047,
+          "median": 8942.1149,
+          "p95": 12198.9337,
+          "max": 12198.9337
+        },
+        "reached": 3,
+        "requests": 3
+      },
+      "pairedT10Ratio": {
+        "n": 1,
+        "median": 3.8153943979546345,
+        "min": 3.8153943979546345,
+        "max": 3.8153943979546345
+      },
+      "pairedResponseRatio": {
+        "n": 3,
+        "median": 20.343094487031962,
+        "min": 3.7778218137651822,
+        "max": 27.942356658609572
+      },
+      "estimatesP1P5": {
+        "opus": "17.7 s",
+        "astra": "16.0 s"
+      },
+      "estimatesAfterAll": {
+        "opus": "8.0 s",
+        "astra": "7.94 s"
+      }
+    },
+    {
+      "cell": "15x15b10-nightmare",
+      "today": {
+        "n": 11,
+        "min": 46365.1098,
+        "median": 86226.7274,
+        "p95": 141559.5589,
+        "max": 141559.5589
+      },
+      "before": {
+        "t10": {
+          "n": 2,
+          "min": 47255.3512,
+          "median": 59515.762350000005,
+          "p95": 71776.1735,
+          "max": 71776.1735
+        },
+        "reached": 2,
+        "requests": 3
+      },
+      "after": {
+        "t10": {
+          "n": 3,
+          "min": 5957.5059,
+          "median": 8445.7583,
+          "p95": 9006.5432,
+          "max": 9006.5432
+        },
+        "reached": 3,
+        "requests": 3
+      },
+      "pairedT10Ratio": {
+        "n": 2,
+        "median": 8.215278657596759,
+        "min": 7.932069559511472,
+        "max": 8.498487755682046
+      },
+      "pairedResponseRatio": {
+        "n": 3,
+        "median": 8.379646606726961,
+        "min": 7.761307436872012,
+        "max": 20.49949331776731
+      },
+      "estimatesP1P5": {
+        "opus": "13.8 s",
+        "astra": "13.7 s"
+      },
+      "estimatesAfterAll": {
+        "opus": "6.3 s",
+        "astra": "7.22 s"
+      }
+    },
+    {
+      "cell": "26x26-hell-1",
+      "today": {
+        "n": 9,
+        "min": 68544.6039,
+        "median": 108717.58559999999,
+        "p95": 167589.49889999998,
+        "max": 167589.49889999998
+      },
+      "before": {
+        "t10": {
+          "n": 2,
+          "min": 120438.8023,
+          "median": 149866.58779999998,
+          "p95": 179294.37329999998,
+          "max": 179294.37329999998
+        },
+        "reached": 2,
+        "requests": 3
+      },
+      "after": {
+        "t10": {
+          "n": 3,
+          "min": 22979.864800000003,
+          "median": 37245.4423,
+          "p95": 42175.7135,
+          "max": 42175.7135
+        },
+        "reached": 3,
+        "requests": 3
+      },
+      "pairedT10Ratio": {
+        "n": 2,
+        "median": 5.027459339247918,
+        "min": 4.813860763307407,
+        "max": 5.24105791518843
+      },
+      "pairedResponseRatio": {
+        "n": 3,
+        "median": 4.794304893191591,
+        "min": 3.4716412959872813,
+        "max": 5.212814359354102
+      },
+      "estimatesP1P5": {
+        "opus": "about 28 s (if a window holds)",
+        "astra": "50-60 s (if a window holds)"
+      },
+      "estimatesAfterAll": {
+        "opus": "15 s",
+        "astra": "25-30 s"
+      }
+    },
+    {
+      "cell": "26x26-nightmare",
+      "today": {
+        "n": 20,
+        "min": 5910.6638,
+        "median": 18611.66495,
+        "p95": 31378.0334,
+        "max": 35779.090899999996
+      },
+      "before": {
+        "t10": {
+          "n": 6,
+          "min": 8614.5437,
+          "median": 26527.1221,
+          "p95": 36377.6859,
+          "max": 36377.6859
+        },
+        "reached": 6,
+        "requests": 6
+      },
+      "after": {
+        "t10": {
+          "n": 6,
+          "min": 9313.527,
+          "median": 11937.80255,
+          "p95": 15021.119,
+          "max": 15021.119
+        },
+        "reached": 6,
+        "requests": 6
+      },
+      "pairedT10Ratio": {
+        "n": 6,
+        "median": 2.0137945394355423,
+        "min": 0.6896075315311228,
+        "max": 3.9058979374838336
+      },
+      "pairedResponseRatio": {
+        "n": 6,
+        "median": 2.00270329423922,
+        "min": 0.6943750026913663,
+        "max": 3.849740553327368
+      },
+      "estimatesP1P5": {
+        "opus": "15.5 s",
+        "astra": "17.8 s"
+      },
+      "estimatesAfterAll": {
+        "opus": "7.0 s",
+        "astra": "8.84 s"
+      }
+    },
+    {
+      "cell": "14x14-master",
+      "today": {
+        "n": 20,
+        "min": 1061.2239,
+        "median": 2568.79795,
+        "p95": 16281.504500000001,
+        "max": 17926.275
+      },
+      "before": {
+        "t10": {
+          "n": 5,
+          "min": 1802.0324999999998,
+          "median": 3172.9042,
+          "p95": 11176.3014,
+          "max": 11176.3014
+        },
+        "reached": 5,
+        "requests": 5
+      },
+      "after": {
+        "t10": {
+          "n": 5,
+          "min": 1452.7441,
+          "median": 2663.4998,
+          "p95": 5118.8969,
+          "max": 5118.8969
+        },
+        "reached": 5,
+        "requests": 5
+      },
+      "pairedT10Ratio": {
+        "n": 5,
+        "median": 1.2469649678838828,
+        "min": 0.6765656599636313,
+        "max": 2.1833417664653494
+      },
+      "pairedResponseRatio": {
+        "n": 5,
+        "median": 1.2072539172355883,
+        "min": 0.6927798302955045,
+        "max": 2.141010733725849
+      },
+      "estimatesP1P5": {
+        "opus": "unchanged",
+        "astra": "unchanged"
+      },
+      "estimatesAfterAll": {
+        "opus": "not stated",
+        "astra": "not stated"
+      }
+    },
+    {
+      "cell": "26x26-master",
+      "today": {
+        "n": 20,
+        "min": 3742.4069,
+        "median": 8361.59295,
+        "p95": 16643.639,
+        "max": 23311.3877
+      },
+      "before": {
+        "t10": {
+          "n": 5,
+          "min": 6456.677299999999,
+          "median": 12263.5049,
+          "p95": 12491.9087,
+          "max": 12491.9087
+        },
+        "reached": 5,
+        "requests": 5
+      },
+      "after": {
+        "t10": {
+          "n": 5,
+          "min": 5773.3247,
+          "median": 13429.243499999999,
+          "p95": 16914.630999999998,
+          "max": 16914.630999999998
+        },
+        "reached": 5,
+        "requests": 5
+      },
+      "pairedT10Ratio": {
+        "n": 5,
+        "median": 0.8252384373188708,
+        "min": 0.38172143985878265,
+        "max": 2.1316653296842976
+      },
+      "pairedResponseRatio": {
+        "n": 5,
+        "median": 0.8251576495433529,
+        "min": 0.3872268152801393,
+        "max": 2.1050116699603163
+      },
+      "estimatesP1P5": {
+        "opus": "unchanged",
+        "astra": "unchanged"
+      },
+      "estimatesAfterAll": {
+        "opus": "not stated",
+        "astra": "not stated"
+      }
+    }
+  ],
+  "caveats": {
+    "differentPopulation": "The after arm produces different puzzles from today: on Nightmare and Hell 1 about 1 to 3 more clues per puzzle at a similar score, so part of the speed-up comes from a different puzzle population, not only from a faster search of the same puzzles.",
+    "likeWithLike": [
+      "The estimate column holds the analysts' P1 to P5 rows at four workers (R02 to R08), not the after-all-phases values (R31); the R31 values are shown apart.",
+      "The estimates were applied to MP12b1's 20-seed T10 medians, while the measurements use 3 to 6 seeds, including seeds that today never finishes (a request that does not reach ten has no T10).",
+      "The estimates assumed today's puzzles (the same clue counts and scores); the after arm's puzzles differ (population section)."
+    ]
+  },
+  "populations": {
+    "12x12-nightmare": {
+      "mp12b1": {
+        "what": "MP12b1, 20 reps (docs/difficulty-v3/landscape-v3-full/12x12-nightmare-2026-11-13.json)",
+        "puzzles": 185,
+        "K": {
+          "n": 185,
+          "min": 19,
+          "p25": 19,
+          "median": 19,
+          "p75": 21,
+          "max": 22
+        },
+        "clues": {
+          "n": 185,
+          "min": 2,
+          "p25": 3,
+          "median": 4,
+          "p75": 4,
+          "max": 6
+        },
+        "share": {
+          "n": 185,
+          "min": 0.10526315789473684,
+          "p25": 0.15789473684210525,
+          "median": 0.21052631578947367,
+          "p75": 0.21052631578947367,
+          "max": 0.3
+        },
+        "score": {
+          "n": 185,
+          "min": 59,
+          "p25": 65,
+          "median": 68,
+          "p75": 70,
+          "max": 76
+        }
+      },
+      "mp12b1Matched": {
+        "what": "MP12b1, the seeds of the measured cohort",
+        "puzzles": 30,
+        "K": {
+          "n": 30,
+          "min": 19,
+          "p25": 19,
+          "median": 19,
+          "p75": 20,
+          "max": 20
+        },
+        "clues": {
+          "n": 30,
+          "min": 2,
+          "p25": 3,
+          "median": 3,
+          "p75": 4,
+          "max": 5
+        },
+        "share": {
+          "n": 30,
+          "min": 0.10526315789473684,
+          "p25": 0.15789473684210525,
+          "median": 0.15789473684210525,
+          "p75": 0.21052631578947367,
+          "max": 0.2631578947368421
+        },
+        "score": {
+          "n": 30,
+          "min": 61,
+          "p25": 65,
+          "median": 68,
+          "p75": 70,
+          "max": 71
+        }
+      },
+      "before": {
+        "what": "before arm, 3 seeds",
+        "puzzles": 30,
+        "K": {
+          "n": 30,
+          "min": 19,
+          "p25": 19,
+          "median": 19,
+          "p75": 20,
+          "max": 20
+        },
+        "clues": {
+          "n": 30,
+          "min": 2,
+          "p25": 3,
+          "median": 3,
+          "p75": 4,
+          "max": 5
+        },
+        "share": {
+          "n": 30,
+          "min": 0.10526315789473684,
+          "p25": 0.15789473684210525,
+          "median": 0.15789473684210525,
+          "p75": 0.21052631578947367,
+          "max": 0.2631578947368421
+        },
+        "score": {
+          "n": 30,
+          "min": 61,
+          "p25": 65,
+          "median": 68,
+          "p75": 70,
+          "max": 71
+        }
+      },
+      "after": {
+        "what": "after arm, 3 seeds",
+        "puzzles": 30,
+        "K": {
+          "n": 30,
+          "min": 19,
+          "p25": 19,
+          "median": 19,
+          "p75": 20,
+          "max": 20
+        },
+        "clues": {
+          "n": 30,
+          "min": 3,
+          "p25": 4,
+          "median": 5,
+          "p75": 6,
+          "max": 7
+        },
+        "share": {
+          "n": 30,
+          "min": 0.15789473684210525,
+          "p25": 0.21052631578947367,
+          "median": 0.2631578947368421,
+          "p75": 0.3157894736842105,
+          "max": 0.3684210526315789
+        },
+        "score": {
+          "n": 30,
+          "min": 59,
+          "p25": 61,
+          "median": 62.5,
+          "p75": 68,
+          "max": 69
+        }
+      },
+      "shareDifference": {
+        "afterMinusMp12b1": 0.05263157894736842,
+        "afterMinusBefore": 0.10526315789473684,
+        "cluesAfterMinusMp12b1": 1,
+        "cluesAfterMinusBefore": 2,
+        "scoreAfterMinusMp12b1": -5.5
+      }
+    },
+    "14x14-nightmare": {
+      "mp12b1": {
+        "what": "MP12b1, 20 reps (docs/difficulty-v3/landscape-v3-full/14x14-nightmare-2026-11-13.json)",
+        "puzzles": 126,
+        "K": {
+          "n": 126,
+          "min": 21,
+          "p25": 21,
+          "median": 21,
+          "p75": 21,
+          "max": 24
+        },
+        "clues": {
+          "n": 126,
+          "min": 3,
+          "p25": 3,
+          "median": 4,
+          "p75": 4,
+          "max": 6
+        },
+        "share": {
+          "n": 126,
+          "min": 0.13043478260869565,
+          "p25": 0.14285714285714285,
+          "median": 0.19047619047619047,
+          "p75": 0.19047619047619047,
+          "max": 0.25
+        },
+        "score": {
+          "n": 126,
+          "min": 59,
+          "p25": 63,
+          "median": 66.5,
+          "p75": 69,
+          "max": 72
+        }
+      },
+      "mp12b1Matched": {
+        "what": "MP12b1, the seeds of the measured cohort",
+        "puzzles": 12,
+        "K": {
+          "n": 12,
+          "min": 21,
+          "p25": 21,
+          "median": 21,
+          "p75": 21,
+          "max": 24
+        },
+        "clues": {
+          "n": 12,
+          "min": 3,
+          "p25": 3,
+          "median": 3,
+          "p75": 4,
+          "max": 4
+        },
+        "share": {
+          "n": 12,
+          "min": 0.14285714285714285,
+          "p25": 0.14285714285714285,
+          "median": 0.14285714285714285,
+          "p75": 0.16666666666666666,
+          "max": 0.19047619047619047
+        },
+        "score": {
+          "n": 12,
+          "min": 62,
+          "p25": 63,
+          "median": 65.5,
+          "p75": 69,
+          "max": 71
+        }
+      },
+      "before": {
+        "what": "before arm, 3 seeds",
+        "puzzles": 12,
+        "K": {
+          "n": 12,
+          "min": 21,
+          "p25": 21,
+          "median": 21,
+          "p75": 21,
+          "max": 24
+        },
+        "clues": {
+          "n": 12,
+          "min": 3,
+          "p25": 3,
+          "median": 3,
+          "p75": 4,
+          "max": 4
+        },
+        "share": {
+          "n": 12,
+          "min": 0.14285714285714285,
+          "p25": 0.14285714285714285,
+          "median": 0.14285714285714285,
+          "p75": 0.16666666666666666,
+          "max": 0.19047619047619047
+        },
+        "score": {
+          "n": 12,
+          "min": 62,
+          "p25": 63,
+          "median": 65.5,
+          "p75": 69,
+          "max": 71
+        }
+      },
+      "after": {
+        "what": "after arm, 3 seeds",
+        "puzzles": 30,
+        "K": {
+          "n": 30,
+          "min": 21,
+          "p25": 21,
+          "median": 22,
+          "p75": 22,
+          "max": 22
+        },
+        "clues": {
+          "n": 30,
+          "min": 4,
+          "p25": 5,
+          "median": 5.5,
+          "p75": 7,
+          "max": 9
+        },
+        "share": {
+          "n": 30,
+          "min": 0.19047619047619047,
+          "p25": 0.22727272727272727,
+          "median": 0.2554112554112554,
+          "p75": 0.3181818181818182,
+          "max": 0.4090909090909091
+        },
+        "score": {
+          "n": 30,
+          "min": 59,
+          "p25": 62,
+          "median": 65,
+          "p75": 70,
+          "max": 71
+        }
+      },
+      "shareDifference": {
+        "afterMinusMp12b1": 0.06493506493506496,
+        "afterMinusBefore": 0.11255411255411257,
+        "cluesAfterMinusMp12b1": 1.5,
+        "cluesAfterMinusBefore": 2.5,
+        "scoreAfterMinusMp12b1": -1.5
+      }
+    },
+    "15x15b10-nightmare": {
+      "mp12b1": {
+        "what": "MP12b1, 20 reps (docs/difficulty-v3/landscape-v3-full/15x15b10-nightmare-2026-11-13.json)",
+        "puzzles": 141,
+        "K": {
+          "n": 141,
+          "min": 22,
+          "p25": 22,
+          "median": 22,
+          "p75": 22,
+          "max": 24
+        },
+        "clues": {
+          "n": 141,
+          "min": 3,
+          "p25": 4,
+          "median": 4,
+          "p75": 4,
+          "max": 6
+        },
+        "share": {
+          "n": 141,
+          "min": 0.13043478260869565,
+          "p25": 0.18181818181818182,
+          "median": 0.18181818181818182,
+          "p75": 0.18181818181818182,
+          "max": 0.2727272727272727
+        },
+        "score": {
+          "n": 141,
+          "min": 59,
+          "p25": 63,
+          "median": 66,
+          "p75": 69,
+          "max": 71
+        }
+      },
+      "mp12b1Matched": {
+        "what": "MP12b1, the seeds of the measured cohort",
+        "puzzles": 24,
+        "K": {
+          "n": 24,
+          "min": 22,
+          "p25": 22,
+          "median": 22,
+          "p75": 22,
+          "max": 22
+        },
+        "clues": {
+          "n": 24,
+          "min": 3,
+          "p25": 3,
+          "median": 4,
+          "p75": 4,
+          "max": 5
+        },
+        "share": {
+          "n": 24,
+          "min": 0.13636363636363635,
+          "p25": 0.13636363636363635,
+          "median": 0.18181818181818182,
+          "p75": 0.18181818181818182,
+          "max": 0.22727272727272727
+        },
+        "score": {
+          "n": 24,
+          "min": 59,
+          "p25": 62,
+          "median": 66,
+          "p75": 68,
+          "max": 71
+        }
+      },
+      "before": {
+        "what": "before arm, 3 seeds",
+        "puzzles": 24,
+        "K": {
+          "n": 24,
+          "min": 22,
+          "p25": 22,
+          "median": 22,
+          "p75": 22,
+          "max": 22
+        },
+        "clues": {
+          "n": 24,
+          "min": 3,
+          "p25": 3,
+          "median": 4,
+          "p75": 4,
+          "max": 5
+        },
+        "share": {
+          "n": 24,
+          "min": 0.13636363636363635,
+          "p25": 0.13636363636363635,
+          "median": 0.18181818181818182,
+          "p75": 0.18181818181818182,
+          "max": 0.22727272727272727
+        },
+        "score": {
+          "n": 24,
+          "min": 59,
+          "p25": 62,
+          "median": 66,
+          "p75": 68,
+          "max": 71
+        }
+      },
+      "after": {
+        "what": "after arm, 3 seeds",
+        "puzzles": 30,
+        "K": {
+          "n": 30,
+          "min": 22,
+          "p25": 22,
+          "median": 22,
+          "p75": 23,
+          "max": 23
+        },
+        "clues": {
+          "n": 30,
+          "min": 4,
+          "p25": 5,
+          "median": 5,
+          "p75": 7,
+          "max": 7
+        },
+        "share": {
+          "n": 30,
+          "min": 0.18181818181818182,
+          "p25": 0.22727272727272727,
+          "median": 0.22727272727272727,
+          "p75": 0.30434782608695654,
+          "max": 0.3181818181818182
+        },
+        "score": {
+          "n": 30,
+          "min": 59,
+          "p25": 61,
+          "median": 64.5,
+          "p75": 69,
+          "max": 71
+        }
+      },
+      "shareDifference": {
+        "afterMinusMp12b1": 0.04545454545454544,
+        "afterMinusBefore": 0.04545454545454544,
+        "cluesAfterMinusMp12b1": 1,
+        "cluesAfterMinusBefore": 1,
+        "scoreAfterMinusMp12b1": -1.5
+      }
+    },
+    "26x26-hell-1": {
+      "mp12b1": {
+        "what": "MP12b1, 20 reps (docs/difficulty-v3/landscape-v3-full/26x26-hell-1-2026-11-14.json)",
+        "puzzles": 134,
+        "K": {
+          "n": 134,
+          "min": 39,
+          "p25": 39,
+          "median": 39,
+          "p75": 40,
+          "max": 42
+        },
+        "clues": {
+          "n": 134,
+          "min": 4,
+          "p25": 4,
+          "median": 5,
+          "p75": 6,
+          "max": 7
+        },
+        "share": {
+          "n": 134,
+          "min": 0.09523809523809523,
+          "p25": 0.10256410256410256,
+          "median": 0.1282051282051282,
+          "p75": 0.14285714285714285,
+          "max": 0.1794871794871795
+        },
+        "score": {
+          "n": 134,
+          "min": 85,
+          "p25": 94,
+          "median": 97,
+          "p75": 100,
+          "max": 109
+        }
+      },
+      "mp12b1Matched": {
+        "what": "MP12b1, the seeds of the measured cohort",
+        "puzzles": 25,
+        "K": {
+          "n": 25,
+          "min": 39,
+          "p25": 39,
+          "median": 40,
+          "p75": 40,
+          "max": 42
+        },
+        "clues": {
+          "n": 25,
+          "min": 4,
+          "p25": 4,
+          "median": 5,
+          "p75": 6,
+          "max": 7
+        },
+        "share": {
+          "n": 25,
+          "min": 0.09523809523809523,
+          "p25": 0.1,
+          "median": 0.125,
+          "p75": 0.14285714285714285,
+          "max": 0.1794871794871795
+        },
+        "score": {
+          "n": 25,
+          "min": 86,
+          "p25": 91,
+          "median": 96,
+          "p75": 99,
+          "max": 108
+        }
+      },
+      "before": {
+        "what": "before arm, 3 seeds",
+        "puzzles": 25,
+        "K": {
+          "n": 25,
+          "min": 39,
+          "p25": 39,
+          "median": 40,
+          "p75": 40,
+          "max": 42
+        },
+        "clues": {
+          "n": 25,
+          "min": 4,
+          "p25": 4,
+          "median": 5,
+          "p75": 6,
+          "max": 7
+        },
+        "share": {
+          "n": 25,
+          "min": 0.09523809523809523,
+          "p25": 0.1,
+          "median": 0.125,
+          "p75": 0.14285714285714285,
+          "max": 0.1794871794871795
+        },
+        "score": {
+          "n": 25,
+          "min": 86,
+          "p25": 91,
+          "median": 96,
+          "p75": 99,
+          "max": 108
+        }
+      },
+      "after": {
+        "what": "after arm, 3 seeds",
+        "puzzles": 30,
+        "K": {
+          "n": 30,
+          "min": 39,
+          "p25": 39,
+          "median": 41,
+          "p75": 42,
+          "max": 42
+        },
+        "clues": {
+          "n": 30,
+          "min": 6,
+          "p25": 7,
+          "median": 8,
+          "p75": 10,
+          "max": 12
+        },
+        "share": {
+          "n": 30,
+          "min": 0.14285714285714285,
+          "p25": 0.1794871794871795,
+          "median": 0.20512820512820512,
+          "p75": 0.23809523809523808,
+          "max": 0.2926829268292683
+        },
+        "score": {
+          "n": 30,
+          "min": 78,
+          "p25": 89,
+          "median": 92,
+          "p75": 99,
+          "max": 103
+        }
+      },
+      "shareDifference": {
+        "afterMinusMp12b1": 0.07692307692307693,
+        "afterMinusBefore": 0.08012820512820512,
+        "cluesAfterMinusMp12b1": 3,
+        "cluesAfterMinusBefore": 3,
+        "scoreAfterMinusMp12b1": -5
+      }
+    },
+    "26x26-nightmare": {
+      "mp12b1": {
+        "what": "MP12b1, 20 reps (docs/difficulty-v3/landscape-v3-full/26x26-nightmare-2026-11-14.json)",
+        "puzzles": 200,
+        "K": {
+          "n": 200,
+          "min": 30,
+          "p25": 31,
+          "median": 31.5,
+          "p75": 32,
+          "max": 33
+        },
+        "clues": {
+          "n": 200,
+          "min": 3,
+          "p25": 4,
+          "median": 4,
+          "p75": 5,
+          "max": 7
+        },
+        "share": {
+          "n": 200,
+          "min": 0.09375,
+          "p25": 0.125,
+          "median": 0.13333333333333333,
+          "p75": 0.15151515151515152,
+          "max": 0.21212121212121213
+        },
+        "score": {
+          "n": 200,
+          "min": 59,
+          "p25": 62,
+          "median": 65.5,
+          "p75": 68,
+          "max": 71
+        }
+      },
+      "mp12b1Matched": {
+        "what": "MP12b1, the seeds of the measured cohort",
+        "puzzles": 60,
+        "K": {
+          "n": 60,
+          "min": 30,
+          "p25": 31,
+          "median": 31.5,
+          "p75": 32,
+          "max": 33
+        },
+        "clues": {
+          "n": 60,
+          "min": 3,
+          "p25": 4,
+          "median": 4,
+          "p75": 5,
+          "max": 7
+        },
+        "share": {
+          "n": 60,
+          "min": 0.0967741935483871,
+          "p25": 0.12903225806451613,
+          "median": 0.13333333333333333,
+          "p75": 0.15625,
+          "max": 0.21212121212121213
+        },
+        "score": {
+          "n": 60,
+          "min": 59,
+          "p25": 61,
+          "median": 64.5,
+          "p75": 67,
+          "max": 71
+        }
+      },
+      "before": {
+        "what": "before arm, 6 seeds",
+        "puzzles": 60,
+        "K": {
+          "n": 60,
+          "min": 30,
+          "p25": 31,
+          "median": 31.5,
+          "p75": 32,
+          "max": 33
+        },
+        "clues": {
+          "n": 60,
+          "min": 3,
+          "p25": 4,
+          "median": 4,
+          "p75": 5,
+          "max": 7
+        },
+        "share": {
+          "n": 60,
+          "min": 0.0967741935483871,
+          "p25": 0.12903225806451613,
+          "median": 0.13333333333333333,
+          "p75": 0.15625,
+          "max": 0.21212121212121213
+        },
+        "score": {
+          "n": 60,
+          "min": 59,
+          "p25": 61,
+          "median": 64.5,
+          "p75": 67,
+          "max": 71
+        }
+      },
+      "after": {
+        "what": "after arm, 6 seeds",
+        "puzzles": 60,
+        "K": {
+          "n": 60,
+          "min": 30,
+          "p25": 31,
+          "median": 31.5,
+          "p75": 32,
+          "max": 33
+        },
+        "clues": {
+          "n": 60,
+          "min": 3,
+          "p25": 4,
+          "median": 5,
+          "p75": 7,
+          "max": 11
+        },
+        "share": {
+          "n": 60,
+          "min": 0.0967741935483871,
+          "p25": 0.13333333333333333,
+          "median": 0.16666666666666666,
+          "p75": 0.21212121212121213,
+          "max": 0.3333333333333333
+        },
+        "score": {
+          "n": 60,
+          "min": 59,
+          "p25": 62,
+          "median": 65,
+          "p75": 67,
+          "max": 71
+        }
+      },
+      "shareDifference": {
+        "afterMinusMp12b1": 0.033333333333333326,
+        "afterMinusBefore": 0.033333333333333326,
+        "cluesAfterMinusMp12b1": 1,
+        "cluesAfterMinusBefore": 1,
+        "scoreAfterMinusMp12b1": -0.5
+      }
+    },
+    "14x14-master": {
+      "mp12b1": {
+        "what": "MP12b1, 20 reps (docs/difficulty-v3/landscape-v3-full/14x14-master-2026-11-13.json)",
+        "puzzles": 200,
+        "K": {
+          "n": 200,
+          "min": 17,
+          "p25": 17,
+          "median": 18,
+          "p75": 19,
+          "max": 19
+        },
+        "clues": {
+          "n": 200,
+          "min": 2,
+          "p25": 4,
+          "median": 4,
+          "p75": 4,
+          "max": 6
+        },
+        "share": {
+          "n": 200,
+          "min": 0.11764705882352941,
+          "p25": 0.21052631578947367,
+          "median": 0.2222222222222222,
+          "p75": 0.23529411764705882,
+          "max": 0.35294117647058826
+        },
+        "score": {
+          "n": 200,
+          "min": 41,
+          "p25": 44,
+          "median": 45,
+          "p75": 46,
+          "max": 49
+        }
+      },
+      "mp12b1Matched": {
+        "what": "MP12b1, the seeds of the measured cohort",
+        "puzzles": 50,
+        "K": {
+          "n": 50,
+          "min": 17,
+          "p25": 17,
+          "median": 18,
+          "p75": 18,
+          "max": 19
+        },
+        "clues": {
+          "n": 50,
+          "min": 3,
+          "p25": 4,
+          "median": 4,
+          "p75": 5,
+          "max": 6
+        },
+        "share": {
+          "n": 50,
+          "min": 0.16666666666666666,
+          "p25": 0.2222222222222222,
+          "median": 0.23529411764705882,
+          "p75": 0.2631578947368421,
+          "max": 0.35294117647058826
+        },
+        "score": {
+          "n": 50,
+          "min": 42,
+          "p25": 44,
+          "median": 45,
+          "p75": 46,
+          "max": 49
+        }
+      },
+      "before": {
+        "what": "before arm, 5 seeds",
+        "puzzles": 50,
+        "K": {
+          "n": 50,
+          "min": 17,
+          "p25": 17,
+          "median": 18,
+          "p75": 18,
+          "max": 19
+        },
+        "clues": {
+          "n": 50,
+          "min": 3,
+          "p25": 4,
+          "median": 4,
+          "p75": 5,
+          "max": 6
+        },
+        "share": {
+          "n": 50,
+          "min": 0.16666666666666666,
+          "p25": 0.2222222222222222,
+          "median": 0.23529411764705882,
+          "p75": 0.2631578947368421,
+          "max": 0.35294117647058826
+        },
+        "score": {
+          "n": 50,
+          "min": 42,
+          "p25": 44,
+          "median": 45,
+          "p75": 46,
+          "max": 49
+        }
+      },
+      "after": {
+        "what": "after arm, 5 seeds",
+        "puzzles": 50,
+        "K": {
+          "n": 50,
+          "min": 17,
+          "p25": 17,
+          "median": 18,
+          "p75": 18,
+          "max": 19
+        },
+        "clues": {
+          "n": 50,
+          "min": 3,
+          "p25": 4,
+          "median": 4,
+          "p75": 5,
+          "max": 8
+        },
+        "share": {
+          "n": 50,
+          "min": 0.16666666666666666,
+          "p25": 0.2222222222222222,
+          "median": 0.23529411764705882,
+          "p75": 0.2777777777777778,
+          "max": 0.42105263157894735
+        },
+        "score": {
+          "n": 50,
+          "min": 41,
+          "p25": 44,
+          "median": 45,
+          "p75": 46,
+          "max": 49
+        }
+      },
+      "shareDifference": {
+        "afterMinusMp12b1": 0.01307189542483661,
+        "afterMinusBefore": 0,
+        "cluesAfterMinusMp12b1": 0,
+        "cluesAfterMinusBefore": 0,
+        "scoreAfterMinusMp12b1": 0
+      }
+    },
+    "26x26-master": {
+      "mp12b1": {
+        "what": "MP12b1, 20 reps (docs/difficulty-v3/landscape-v3-full/26x26-master-2026-11-14.json)",
+        "puzzles": 200,
+        "K": {
+          "n": 200,
+          "min": 24,
+          "p25": 25,
+          "median": 25.5,
+          "p75": 27,
+          "max": 27
+        },
+        "clues": {
+          "n": 200,
+          "min": 2,
+          "p25": 4,
+          "median": 5,
+          "p75": 6,
+          "max": 7
+        },
+        "share": {
+          "n": 200,
+          "min": 0.07407407407407407,
+          "p25": 0.16,
+          "median": 0.18874643874643876,
+          "p75": 0.2222222222222222,
+          "max": 0.25925925925925924
+        },
+        "score": {
+          "n": 200,
+          "min": 41,
+          "p25": 44,
+          "median": 44.5,
+          "p75": 46,
+          "max": 49
+        }
+      },
+      "mp12b1Matched": {
+        "what": "MP12b1, the seeds of the measured cohort",
+        "puzzles": 50,
+        "K": {
+          "n": 50,
+          "min": 24,
+          "p25": 25,
+          "median": 25,
+          "p75": 27,
+          "max": 27
+        },
+        "clues": {
+          "n": 50,
+          "min": 2,
+          "p25": 4,
+          "median": 5,
+          "p75": 5,
+          "max": 6
+        },
+        "share": {
+          "n": 50,
+          "min": 0.07407407407407407,
+          "p25": 0.14814814814814814,
+          "median": 0.18518518518518517,
+          "p75": 0.20833333333333334,
+          "max": 0.24
+        },
+        "score": {
+          "n": 50,
+          "min": 41,
+          "p25": 44,
+          "median": 45,
+          "p75": 46,
+          "max": 49
+        }
+      },
+      "before": {
+        "what": "before arm, 5 seeds",
+        "puzzles": 50,
+        "K": {
+          "n": 50,
+          "min": 24,
+          "p25": 25,
+          "median": 25,
+          "p75": 27,
+          "max": 27
+        },
+        "clues": {
+          "n": 50,
+          "min": 2,
+          "p25": 4,
+          "median": 5,
+          "p75": 5,
+          "max": 6
+        },
+        "share": {
+          "n": 50,
+          "min": 0.07407407407407407,
+          "p25": 0.14814814814814814,
+          "median": 0.18518518518518517,
+          "p75": 0.20833333333333334,
+          "max": 0.24
+        },
+        "score": {
+          "n": 50,
+          "min": 41,
+          "p25": 44,
+          "median": 45,
+          "p75": 46,
+          "max": 49
+        }
+      },
+      "after": {
+        "what": "after arm, 5 seeds",
+        "puzzles": 50,
+        "K": {
+          "n": 50,
+          "min": 24,
+          "p25": 25,
+          "median": 25,
+          "p75": 27,
+          "max": 27
+        },
+        "clues": {
+          "n": 50,
+          "min": 2,
+          "p25": 3,
+          "median": 4,
+          "p75": 5,
+          "max": 7
+        },
+        "share": {
+          "n": 50,
+          "min": 0.07407407407407407,
+          "p25": 0.12,
+          "median": 0.16,
+          "p75": 0.18518518518518517,
+          "max": 0.28
+        },
+        "score": {
+          "n": 50,
+          "min": 41,
+          "p25": 43,
+          "median": 45,
+          "p75": 46,
+          "max": 49
+        }
+      },
+      "shareDifference": {
+        "afterMinusMp12b1": -0.028746438746438757,
+        "afterMinusBefore": -0.02518518518518517,
+        "cluesAfterMinusMp12b1": -1,
+        "cluesAfterMinusBefore": -1,
+        "scoreAfterMinusMp12b1": 0.5
+      }
+    }
+  },
+  "nightmare14x14": {
+    "pairedT10": [
+      {
+        "seed": "landscape/14x14-nightmare/2",
+        "before": 46543.7433,
+        "after": 12198.9337,
+        "ratio": 3.8153943979546345
+      }
+    ],
+    "pairedResponseRatio": {
+      "n": 3,
+      "median": 20.343094487031962,
+      "min": 3.7778218137651822,
+      "max": 27.942356658609572
+    },
+    "completion": {
+      "before": 1,
+      "after": 3,
+      "of": 3
+    }
+  },
+  "master26x26": {
+    "pairedT10": [
+      {
+        "seed": "landscape/26x26-master/0",
+        "before": 12306.7961,
+        "after": 5773.3247,
+        "ratio": 2.1316653296842976
+      },
+      {
+        "seed": "landscape/26x26-master/1",
+        "before": 10042.760199999999,
+        "after": 13429.243499999999,
+        "ratio": 0.7478276940916292
+      },
+      {
+        "seed": "landscape/26x26-master/2",
+        "before": 6456.677299999999,
+        "after": 16914.630999999998,
+        "ratio": 0.38172143985878265
+      },
+      {
+        "seed": "landscape/26x26-master/3",
+        "before": 12263.5049,
+        "after": 9638.046699999999,
+        "ratio": 1.2724056317344885
+      },
+      {
+        "seed": "landscape/26x26-master/4",
+        "before": 12491.9087,
+        "after": 15137.3326,
+        "ratio": 0.8252384373188708
+      }
+    ],
+    "faster": 2,
+    "slower": 3,
+    "min": 0.38172143985878265,
+    "max": 2.1316653296842976,
+    "geometricMean": 0.9143120215251755,
+    "probes": {
+      "before": {
+        "tuples": 729,
+        "byOutcome": {
+          "ar1": 16,
+          "below": 431,
+          "in": 163,
+          "central": 81,
+          "above": 38
+        },
+        "screenCapped": 0,
+        "canonicalCapped": 0
+      },
+      "after": {
+        "tuples": 550,
+        "byOutcome": {
+          "below": 208,
+          "above": 88,
+          "central": 77,
+          "in": 132,
+          "scap0": 17,
+          "scap1": 21,
+          "ar1": 6,
+          "over": 1
+        },
+        "screenCapped": 39,
+        "canonicalCapped": 0
+      }
+    }
+  }
+}

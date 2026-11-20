@@ -1,0 +1,8 @@
+{
+  "id": "log-link",
+  "extends": ["log", "link"],
+  "description": "Today's search with the batch linkage journal (V4-T06): the same puzzles as log, plus the linkage lines and the accept timeline.",
+  "edits": [],
+  "files": [],
+  "params": {}
+}

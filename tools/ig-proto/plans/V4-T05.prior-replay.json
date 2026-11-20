@@ -1,0 +1,9 @@
+{
+  "format": "ig-proto-items",
+  "version": 1,
+  "task": "V4-T05",
+  "step": "prior-replay",
+  "rows": [
+    { "kind": "v4-replay", "variant": "v4-ps", "caseId": "14x14-nightmare", "seedText": "ig-v4/prior/14x14-nightmare", "puzzles": 3, "packStep": "prior-gen" }
+  ]
+}

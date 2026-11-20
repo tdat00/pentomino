@@ -1,0 +1,8 @@
+{
+  "id": "p1p5-w095",
+  "extends": ["p1p5"],
+  "description": "The prototype with W 95 M for every level: the control of IG-P-Q09 (IGP-03).",
+  "edits": [],
+  "files": [],
+  "params": { "W": { "default": 95000000 } }
+}

@@ -1,0 +1,37 @@
+{
+  "task": "V4-T10a",
+  "allocationMinutes": 5,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "snapshot", "--task", "V4-T10a"]
+    },
+    {
+      "id": "trees",
+      "locked": false,
+      "node": ["tools\\ig-proto\\lib\\tree.mjs", "build", "instr", "r4c"]
+    },
+    {
+      "id": "counters",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 150,
+      "minHorizonS": 150,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\kernel-probe.mjs", "counters", "--task", "V4-T10a"],
+      "state": "V4-T10a\\counters\\state.json"
+    },
+    {
+      "id": "report",
+      "locked": false,
+      "node": ["tools\\ig-proto\\kernel-probe.mjs", "report", "--task", "V4-T10a"]
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "check", "--task", "V4-T10a"]
+    }
+  ]
+}

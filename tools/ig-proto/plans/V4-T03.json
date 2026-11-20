@@ -1,0 +1,22 @@
+{
+  "task": "V4-T03",
+  "allocationMinutes": 0,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "snapshot", "--task", "V4-T03"]
+    },
+    {
+      "id": "pm1-inventory",
+      "locked": false,
+      "node": ["tools\\ig-proto\\pm1-inventory.mjs"]
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "check", "--task", "V4-T03"]
+    }
+  ]
+}

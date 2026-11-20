@@ -1,0 +1,5886 @@
+{
+  "meta": {
+    "format": "ig-proto-compare",
+    "version": 1,
+    "task": "IGP-01",
+    "label": "provisional",
+    "labelText": "provisional (pre-freeze)",
+    "createdAt": "2026-11-14T17:39:04.606Z",
+    "source": {
+      "label": "rating-v3 runtime cd5d17f (worktree 0e1283e)",
+      "sourceDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "equalsMp12b1Source": true,
+      "firewall": "c617f9eab21d8cd3fb556784ba851972be68e3859002122dea9bfdac222d672e"
+    },
+    "harness": {
+      "harnessHash": "287d01cac3f38375963aea2e618b1449fee28360cca9ed7ce417dc1668a957f4",
+      "files": {
+        "tools/ig-proto/lib/budget.mjs": "fd931d9f44d1fc5bc481db2e2d2c99ed46790150ade8c62e836b729e11410801",
+        "tools/ig-proto/lib/calls.mjs": "e0173ff8975335cb0f2103fd0b8f00cd1793f0de633d3b87f51c587d7d49d20c",
+        "tools/ig-proto/lib/engine.mjs": "316f4d2c3feadd18c971bfaa7baab6c5f8c6991d1f2140e3e30300b1b3a07540",
+        "tools/ig-proto/lib/lane-worker.mjs": "7a705736a276ee17e07095526ae467d4ac62a26ccb5becc0e53cfcebcd158e24",
+        "tools/ig-proto/lib/lanes.mjs": "628e3f217541435c9065599ba5053231ea217fdd3bfeb9aaad76ab8eb936b235",
+        "tools/ig-proto/lib/paths.mjs": "6db4a7adeedf3500390cb84875667f44478dd8e486d6d55919149c2af6bede62",
+        "tools/ig-proto/lib/records.mjs": "c9f3b021096bb57a93445c8156e4cbf77654ee32128343359690508a42d5bf2c",
+        "tools/ig-proto/lib/sets.mjs": "66fecf6372dc30badd94f018b171e4bc12555426e446768dc4f6c29c443d7a2d",
+        "tools/ig-proto/lib/tree.mjs": "ff7ea5d67ad0dd40f1dc105e1584181b59078d4ca6392b9eb7b3078293068f83",
+        "tools/ig-proto/arm.mjs": "5fe5854f1fb183d6827b7c18f55bd5fc16de6206db4d73c7e1b7543f0aec2165",
+        "tools/ig-proto/boards.mjs": "656194b446de6345c5c7ce4b5d136cab4e0acd09d61e062bd3eb0640a986f53b",
+        "tools/ig-proto/compare.mjs": "f4d6cf3a0b207ef83a327fcf9eda0a91d08d38af668c5e17b32cad49e954923b",
+        "tools/ig-proto/firewall.mjs": "cd60483c07622c5137c4b297e6bd1fa8334adedadcf167f6d5ead61cc735ff83",
+        "tools/ig-proto/fit-prior.mjs": "941b6ac19dab01dea1851b3aa34d952c9adc52e72e249be00185729a9cd6e88a",
+        "tools/ig-proto/identity.mjs": "8b9123dcfc0f31ba4d2c06b134544a6e219358d009ae5f935b49d9ac6febe1fc",
+        "tools/ig-proto/run-task.ps1": "5d5bc46ee095e16315522f8bc6a2a47c5d8cc891ec151236d31e2652708a86ac",
+        "tools/ig-proto/self-test.mjs": "7785414232d2d99c38a3b99421cd63c4c2b8b9fdf023cc7e832b9631fc5fd974",
+        "tools/ig-proto/verify.mjs": "1d013ed389fd0f65922c3bd6f7559a8f5a431dbcd8a7fc3c27fccef7d07431eb",
+        "tools/ig-proto/data/boards-v1.json": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+        "tools/ig-proto/data/prior-v1.json": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133"
+      }
+    },
+    "trees": {
+      "log": {
+        "treeId": "a7cb051c9169c79a2c25ae69dbc61e068053aace675da4e6946d1d826eb3e625",
+        "copyDigest": "4b13e6745cf26c07e49c4f363c72a01af1ea59bb9060e8e19bfa2ff47796a273",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "log",
+          "diagnosticOffers": true,
+          "logAccepted": false,
+          "p6": false
+        }
+      },
+      "p1p5-main": {
+        "treeId": "6e1ff4919bcb3fb12d11ed5eefb7557c67ddbbceb2a08480d1e3016658221b86",
+        "copyDigest": "2b20ab52b05cd8879828aaa929d9feb42a824963bdcb727b0addd4e9339a4bc2",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "p1p5-1",
+          "p1p5-2",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "p1p5-main",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": false,
+          "U0": 8,
+          "rerateMax": 4,
+          "rerate": "end",
+          "a3": false,
+          "W": {
+            "default": 190000000,
+            "hell-1": 380000000,
+            "hell-2": 380000000,
+            "hell-3": 380000000
+          },
+          "prior": {
+            "easy@100": {
+              "caseId": "10x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@144": {
+              "caseId": "12x12-easy",
+              "share": 0.555556,
+              "n": 100
+            },
+            "easy@196": {
+              "caseId": "14x14-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@215": {
+              "caseId": "15x15b10-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@60": {
+              "caseId": "6x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@87": {
+              "caseId": "3x29-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "expert@100": {
+              "caseId": "10x10-expert",
+              "share": 0.307692,
+              "n": 100
+            },
+            "expert@144": {
+              "caseId": "12x12-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@196": {
+              "caseId": "14x14-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@215": {
+              "caseId": "15x15b10-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@256": {
+              "caseId": "16x16-expert",
+              "share": 0.263889,
+              "n": 100
+            },
+            "expert@300": {
+              "caseId": "15x20-expert",
+              "share": 0.277778,
+              "n": 100
+            },
+            "expert@324": {
+              "caseId": "18x18-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@360": {
+              "caseId": "18x20-expert",
+              "share": 0.263158,
+              "n": 100
+            },
+            "expert@400": {
+              "caseId": "20x20-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@420": {
+              "caseId": "20x21-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@480": {
+              "caseId": "32x15-expert",
+              "share": 0.227273,
+              "n": 100
+            },
+            "expert@484": {
+              "caseId": "22x22-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@576": {
+              "caseId": "24x24-expert",
+              "share": 0.238095,
+              "n": 100
+            },
+            "expert@60": {
+              "caseId": "6x10-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@676": {
+              "caseId": "26x26-expert",
+              "share": 0.26087,
+              "n": 100
+            },
+            "expert@87": {
+              "caseId": "3x29-expert",
+              "share": 0.285714,
+              "n": 100
+            },
+            "hard@100": {
+              "caseId": "10x10-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hard@144": {
+              "caseId": "12x12-hard",
+              "share": 0.384615,
+              "n": 100
+            },
+            "hard@196": {
+              "caseId": "14x14-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@215": {
+              "caseId": "15x15b10-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@256": {
+              "caseId": "16x16-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@300": {
+              "caseId": "15x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@324": {
+              "caseId": "18x18-hard",
+              "share": 0.363971,
+              "n": 100
+            },
+            "hard@360": {
+              "caseId": "18x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@400": {
+              "caseId": "20x20-hard",
+              "share": 0.375,
+              "n": 100
+            },
+            "hard@420": {
+              "caseId": "20x21-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@480": {
+              "caseId": "32x15-hard",
+              "share": 0.368421,
+              "n": 100
+            },
+            "hard@484": {
+              "caseId": "22x22-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@576": {
+              "caseId": "24x24-hard",
+              "share": 0.35,
+              "n": 100
+            },
+            "hard@60": {
+              "caseId": "6x10-hard",
+              "share": 0.4,
+              "n": 100
+            },
+            "hard@676": {
+              "caseId": "26x26-hard",
+              "share": 0.380952,
+              "n": 100
+            },
+            "hard@87": {
+              "caseId": "3x29-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.265179,
+              "n": 2
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.141026,
+              "n": 4
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.128205,
+              "n": 50
+            },
+            "master@100": {
+              "caseId": "10x10-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@144": {
+              "caseId": "12x12-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@196": {
+              "caseId": "14x14-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@215": {
+              "caseId": "15x15b10-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@256": {
+              "caseId": "16x16-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@300": {
+              "caseId": "15x20-master",
+              "share": 0.210526,
+              "n": 100
+            },
+            "master@324": {
+              "caseId": "18x18-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@360": {
+              "caseId": "18x20-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@400": {
+              "caseId": "20x20-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@420": {
+              "caseId": "20x21-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@480": {
+              "caseId": "32x15-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@484": {
+              "caseId": "22x22-master",
+              "share": 0.208333,
+              "n": 100
+            },
+            "master@576": {
+              "caseId": "24x24-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@60": {
+              "caseId": "6x10-master",
+              "share": 0.230769,
+              "n": 100
+            },
+            "master@676": {
+              "caseId": "26x26-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@87": {
+              "caseId": "3x29-master",
+              "share": 0.214286,
+              "n": 100
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            },
+            "normal@100": {
+              "caseId": "10x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@144": {
+              "caseId": "12x12-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@196": {
+              "caseId": "14x14-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@215": {
+              "caseId": "15x15b10-normal",
+              "share": 0.416667,
+              "n": 100
+            },
+            "normal@256": {
+              "caseId": "16x16-normal",
+              "share": 0.461538,
+              "n": 100
+            },
+            "normal@300": {
+              "caseId": "15x20-normal",
+              "share": 0.307692,
+              "n": 100
+            },
+            "normal@324": {
+              "caseId": "18x18-normal",
+              "share": 0.357143,
+              "n": 100
+            },
+            "normal@60": {
+              "caseId": "6x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@87": {
+              "caseId": "3x29-normal",
+              "share": 0.5,
+              "n": 100
+            },
+            "very-easy@60": {
+              "caseId": "6x10-very-easy",
+              "share": 0.714286,
+              "n": 95
+            },
+            "very-easy@87": {
+              "caseId": "3x29-very-easy",
+              "share": 0.714286,
+              "n": 98
+            }
+          }
+        }
+      }
+    },
+    "machine": {
+      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "platform": "win32 10.0.26300 x64"
+    },
+    "invocations": {
+      "count": 26,
+      "nodeSeconds": 1982.436,
+      "countedSeconds": 3152.436,
+      "lockWaitSeconds": 4911.965
+    },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\IGP-01.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  },
+  "pairs": [
+    {
+      "before": "before",
+      "after": "after",
+      "variants": {
+        "before": "log",
+        "after": "p1p5-main"
+      },
+      "journal": {
+        "before": [
+          "12x12-nightmare: published journal",
+          "14x14-nightmare: published journal",
+          "15x15b10-nightmare: published journal",
+          "26x26-hell-1: published journal",
+          "fast: published journal"
+        ],
+        "after": [
+          "12x12-nightmare: published journal",
+          "14x14-nightmare: published journal",
+          "15x15b10-nightmare: published journal",
+          "26x26-hell-1: published journal",
+          "fast: published journal"
+        ]
+      },
+      "cells": {
+        "14x14-nightmare": {
+          "mp12b1": {
+            "report": "docs/difficulty-v3/landscape-v3-full/14x14-nightmare-2026-11-13.json",
+            "all": {
+              "requests": 20,
+              "reached": 11,
+              "t10": {
+                "n": 11,
+                "min": 46052.304599999996,
+                "median": 112978.63410000001,
+                "p95": 151637.2396,
+                "max": 151637.2396
+              },
+              "response": {
+                "n": 20,
+                "min": 46202.138399999996,
+                "median": 142524.52645,
+                "p95": 205257.2763,
+                "max": 212638.151
+              }
+            },
+            "matched": {
+              "requests": 3,
+              "reached": 1,
+              "t1": {
+                "n": 3,
+                "min": 15559.1017,
+                "median": 40790.7367,
+                "p95": 68267.7337,
+                "max": 68267.7337
+              },
+              "t10": {
+                "n": 1,
+                "min": 46052.304599999996,
+                "median": 46052.304599999996,
+                "p95": 46052.304599999996,
+                "max": 46052.304599999996
+              },
+              "response": {
+                "n": 3,
+                "min": 46202.138399999996,
+                "median": 155837.2493,
+                "p95": 183301.7169,
+                "max": 183301.7169
+              }
+            }
+          },
+          "before": {
+            "requests": 3,
+            "reached": 1,
+            "censored": 0,
+            "t1": {
+              "n": 3,
+              "min": 15725.0047,
+              "median": 41472.7644,
+              "p95": 69972.2171,
+              "max": 69972.2171
+            },
+            "t10": {
+              "n": 1,
+              "min": 46543.7433,
+              "median": 46543.7433,
+              "p95": 46543.7433,
+              "max": 46543.7433
+            },
+            "response": {
+              "n": 3,
+              "min": 46656.0994,
+              "median": 156504.7736,
+              "p95": 185002.6055,
+              "max": 185002.6055
+            },
+            "accepted": [
+              1,
+              1,
+              10
+            ],
+            "journal": {
+              "calls": 51,
+              "finished": 33
+            },
+            "stages": {
+              "set": {
+                "calls": 15,
+                "ok": 4,
+                "noWindow": 0,
+                "unfinished": 7,
+                "unfinishedProfiles": 59,
+                "profiles": {
+                  "n": 8,
+                  "median": 19.5,
+                  "p90": 32,
+                  "max": 32
+                },
+                "outcomes": {
+                  "capped": 179,
+                  "above": 3,
+                  "central": 4,
+                  "in": 4,
+                  "below": 2
+                },
+                "ms": {
+                  "n": 8,
+                  "median": 42216.723,
+                  "p90": 69855.951,
+                  "max": 69855.951
+                },
+                "work": {
+                  "n": 8,
+                  "median": 14822202375,
+                  "p90": 24724579650,
+                  "max": 24724579650
+                }
+              },
+              "batch": {
+                "calls": 36,
+                "ok": 14,
+                "noWindow": 0,
+                "unfinished": 11,
+                "unfinishedProfiles": 152,
+                "profiles": {
+                  "n": 25,
+                  "median": 14,
+                  "p90": 20,
+                  "max": 48
+                },
+                "outcomes": {
+                  "capped": 428,
+                  "above": 34,
+                  "in": 13,
+                  "central": 13,
+                  "below": 3
+                },
+                "ms": {
+                  "n": 25,
+                  "median": 28825.009,
+                  "p90": 44003.25,
+                  "max": 107049.204
+                },
+                "work": {
+                  "n": 25,
+                  "median": 8874491910,
+                  "p90": 15202926011,
+                  "max": 36725493193
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 36,
+                "callsWithP2": 19,
+                "callShare": 0.5277777777777778,
+                "p2Tuples": 191,
+                "p2Ms": 407219,
+                "allMs": 1026005,
+                "timeShare": 0.39689773814351653
+              },
+              "set": {
+                "calls": 15,
+                "callsWithP2": 13,
+                "callShare": 0.8666666666666667,
+                "p2Tuples": 99,
+                "p2Ms": 216880,
+                "allMs": 409245,
+                "timeShare": 0.5299523299080766
+              },
+              "both": {
+                "calls": 51,
+                "callsWithP2": 32,
+                "callShare": 0.6274509803921569,
+                "p2Tuples": 290,
+                "p2Ms": 624100,
+                "allMs": 1435250,
+                "timeShare": 0.434836700335667
+              }
+            },
+            "startCountCapped": {
+              "tuples": 180,
+              "capped": 163,
+              "share": 0.9055555555555556,
+              "calls": 48
+            },
+            "locate": null,
+            "windowProfiles": {
+              "basis": "all tuples of the call",
+              "okCalls": 18,
+              "n": 18,
+              "median": 6,
+              "p90": 32,
+              "max": 48,
+              "mean": 10.055555555555555
+            },
+            "rerates": null,
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 3,
+                "median": 161349404418,
+                "p90": 162310251944,
+                "max": 162310251944
+              },
+              "withSet": {
+                "n": 3,
+                "median": 196344554417,
+                "p90": 249222144826,
+                "max": 249222144826
+              },
+              "requestsWithUnfinishedCalls": 3,
+              "unfinishedCalls": 18
+            },
+            "waves": {
+              "n": 1,
+              "median": 4.106695653680254,
+              "p90": 4.106695653680254,
+              "max": 4.106695653680254
+            },
+            "setShare": {
+              "n": 1,
+              "median": 0.33785431907880087,
+              "p90": 0.33785431907880087,
+              "max": 0.33785431907880087
+            }
+          },
+          "after": {
+            "requests": 3,
+            "reached": 3,
+            "censored": 0,
+            "t1": {
+              "n": 3,
+              "min": 1447.3391,
+              "median": 1558.5058,
+              "p95": 4384.492200000001,
+              "max": 4384.492200000001
+            },
+            "t10": {
+              "n": 3,
+              "min": 5480.7047,
+              "median": 8942.1149,
+              "p95": 12198.9337,
+              "max": 12198.9337
+            },
+            "response": {
+              "n": 3,
+              "min": 5600.9869,
+              "median": 9094.123099999999,
+              "p95": 12350,
+              "max": 12350
+            },
+            "accepted": [
+              10,
+              10,
+              10
+            ],
+            "journal": {
+              "calls": 64,
+              "finished": 48
+            },
+            "stages": {
+              "set": {
+                "calls": 12,
+                "ok": 5,
+                "noWindow": 0,
+                "unfinished": 7,
+                "unfinishedProfiles": 15,
+                "profiles": {
+                  "n": 5,
+                  "median": 7,
+                  "p90": 8,
+                  "max": 8
+                },
+                "outcomes": {
+                  "scap0": 22,
+                  "central": 5,
+                  "below": 9,
+                  "in": 7,
+                  "above": 1
+                },
+                "ms": {
+                  "n": 5,
+                  "median": 2731.77,
+                  "p90": 4248.288,
+                  "max": 4248.288
+                },
+                "work": {
+                  "n": 5,
+                  "median": 607518693,
+                  "p90": 1026446098,
+                  "max": 1026446098
+                }
+              },
+              "batch": {
+                "calls": 52,
+                "ok": 43,
+                "noWindow": 0,
+                "unfinished": 9,
+                "unfinishedProfiles": 26,
+                "profiles": {
+                  "n": 43,
+                  "median": 3,
+                  "p90": 8,
+                  "max": 14
+                },
+                "outcomes": {
+                  "scap0": 71,
+                  "central": 43,
+                  "below": 41,
+                  "in": 27,
+                  "above": 3,
+                  "ar1": 1,
+                  "scap1": 4
+                },
+                "ms": {
+                  "n": 43,
+                  "median": 1157.763,
+                  "p90": 2632.856,
+                  "max": 6590.802
+                },
+                "work": {
+                  "n": 43,
+                  "median": 360938821,
+                  "p90": 716324468,
+                  "max": 1733768126
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 52,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 71740,
+                "timeShare": 0
+              },
+              "set": {
+                "calls": 12,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 21536,
+                "timeShare": 0
+              },
+              "both": {
+                "calls": 64,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 93276,
+                "timeShare": 0
+              }
+            },
+            "startCountCapped": {
+              "tuples": 0,
+              "capped": 0,
+              "share": null,
+              "calls": 0
+            },
+            "locate": {
+              "calls": 48,
+              "results": {
+                "hit": 41,
+                "window": 7
+              },
+              "proofs": {
+                "direct": 48
+              },
+              "callsWithRescue": 0,
+              "rescueSides": {},
+              "probes": {
+                "n": 48,
+                "median": 2,
+                "p90": 4,
+                "max": 5
+              },
+              "heuristicEnds": 0
+            },
+            "windowProfiles": {
+              "basis": "phases window, p2, beam, rerate",
+              "okCalls": 48,
+              "n": 48,
+              "median": 0,
+              "p90": 5,
+              "max": 12,
+              "mean": 1.6041666666666667
+            },
+            "rerates": {
+              "callsFinished": 48,
+              "perCallMean": 0,
+              "perCallMax": 0,
+              "msShare": 0,
+              "workShare": 0
+            },
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 3,
+                "median": 774928498.5,
+                "p90": 844842965,
+                "max": 844842965
+              },
+              "withSet": {
+                "n": 3,
+                "median": 987376289.3,
+                "p90": 1083550847.8,
+                "max": 1083550847.8
+              },
+              "requestsWithUnfinishedCalls": 3,
+              "unfinishedCalls": 16
+            },
+            "waves": {
+              "n": 3,
+              "median": 6.244930356121122,
+              "p90": 8.9013649165473,
+              "max": 8.9013649165473
+            },
+            "setShare": {
+              "n": 3,
+              "median": 0.26407901524050365,
+              "p90": 0.359416020106741,
+              "max": 0.359416020106741
+            }
+          },
+          "paired": {
+            "seeds": [
+              "landscape/14x14-nightmare/0",
+              "landscape/14x14-nightmare/1",
+              "landscape/14x14-nightmare/2"
+            ],
+            "t10Ratio": {
+              "n": 1,
+              "median": 3.8153943979546345,
+              "min": 3.8153943979546345,
+              "max": 3.8153943979546345
+            },
+            "responseRatio": {
+              "n": 3,
+              "median": 20.343094487031962,
+              "min": 3.7778218137651822,
+              "max": 27.942356658609572
+            },
+            "fewerPuzzles": [],
+            "completion": {
+              "before": 1,
+              "after": 3,
+              "of": 3
+            }
+          },
+          "drift": {
+            "ratios": [
+              1.0042834707555377,
+              1.0092791744058127,
+              1.0098255408888175
+            ],
+            "median": 1.0092791744058127
+          },
+          "identity": [
+            {
+              "seed": "landscape/14x14-nightmare/0",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 1,
+              "acceptedBefore": 1,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 1)"
+            },
+            {
+              "seed": "landscape/14x14-nightmare/1",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 1,
+              "acceptedBefore": 1,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 1)"
+            },
+            {
+              "seed": "landscape/14x14-nightmare/2",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ],
+          "seeds": [
+            {
+              "seed": "landscape/14x14-nightmare/0",
+              "mp12b1": {
+                "accepted": 1,
+                "t1": 40790.7367,
+                "t10": null,
+                "response": 155837.2493
+              },
+              "before": {
+                "accepted": 1,
+                "t1": 41472.7644,
+                "t10": null,
+                "response": 156504.7736,
+                "partial": "time-limit",
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 1447.3391,
+                "t10": 5480.7047,
+                "response": 5600.9869,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/14x14-nightmare/1",
+              "mp12b1": {
+                "accepted": 1,
+                "t1": 68267.7337,
+                "t10": null,
+                "response": 183301.7169
+              },
+              "before": {
+                "accepted": 1,
+                "t1": 69972.2171,
+                "t10": null,
+                "response": 185002.6055,
+                "partial": "time-limit",
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 1558.5058,
+                "t10": 8942.1149,
+                "response": 9094.123099999999,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/14x14-nightmare/2",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 15559.1017,
+                "t10": 46052.304599999996,
+                "response": 46202.138399999996
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 15725.0047,
+                "t10": 46543.7433,
+                "response": 46656.0994,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 4384.492200000001,
+                "t10": 12198.9337,
+                "response": 12350,
+                "partial": null,
+                "censored": false
+              }
+            }
+          ]
+        },
+        "15x15b10-nightmare": {
+          "mp12b1": {
+            "report": "docs/difficulty-v3/landscape-v3-full/15x15b10-nightmare-2026-11-13.json",
+            "all": {
+              "requests": 20,
+              "reached": 11,
+              "t10": {
+                "n": 11,
+                "min": 46365.1098,
+                "median": 86226.7274,
+                "p95": 141559.5589,
+                "max": 141559.5589
+              },
+              "response": {
+                "n": 20,
+                "min": 46528.6807,
+                "median": 124426.22510000001,
+                "p95": 187239.8027,
+                "max": 200623.61010000002
+              }
+            },
+            "matched": {
+              "requests": 3,
+              "reached": 2,
+              "t1": {
+                "n": 3,
+                "min": 8790.3172,
+                "median": 19001.026899999997,
+                "p95": 71227.0006,
+                "max": 71227.0006
+              },
+              "t10": {
+                "n": 2,
+                "min": 46365.1098,
+                "median": 58783.9149,
+                "p95": 71202.72,
+                "max": 71202.72
+              },
+              "response": {
+                "n": 3,
+                "min": 46528.6807,
+                "median": 71357.0944,
+                "p95": 186301.6067,
+                "max": 186301.6067
+              }
+            }
+          },
+          "before": {
+            "requests": 3,
+            "reached": 2,
+            "censored": 0,
+            "t1": {
+              "n": 3,
+              "min": 8737.966400000001,
+              "median": 19015.0206,
+              "p95": 72779.14899999999,
+              "max": 72779.14899999999
+            },
+            "t10": {
+              "n": 2,
+              "min": 47255.3512,
+              "median": 59515.762350000005,
+              "p95": 71776.1735,
+              "max": 71776.1735
+            },
+            "response": {
+              "n": 3,
+              "min": 47390.605299999996,
+              "median": 71921.78450000001,
+              "p95": 187876.1302,
+              "max": 187876.1302
+            },
+            "accepted": [
+              10,
+              10,
+              4
+            ],
+            "journal": {
+              "calls": 66,
+              "finished": 49
+            },
+            "stages": {
+              "set": {
+                "calls": 16,
+                "ok": 5,
+                "noWindow": 0,
+                "unfinished": 7,
+                "unfinishedProfiles": 46,
+                "profiles": {
+                  "n": 9,
+                  "median": 17,
+                  "p90": 20,
+                  "max": 20
+                },
+                "outcomes": {
+                  "capped": 164,
+                  "in": 6,
+                  "below": 4,
+                  "above": 2,
+                  "central": 5
+                },
+                "ms": {
+                  "n": 9,
+                  "median": 31271.072,
+                  "p90": 44849.641,
+                  "max": 44849.641
+                },
+                "work": {
+                  "n": 9,
+                  "median": 10339993567,
+                  "p90": 15202893571,
+                  "max": 15202893571
+                }
+              },
+              "batch": {
+                "calls": 50,
+                "ok": 37,
+                "noWindow": 0,
+                "unfinished": 10,
+                "unfinishedProfiles": 51,
+                "profiles": {
+                  "n": 40,
+                  "median": 8.5,
+                  "p90": 17,
+                  "max": 20
+                },
+                "outcomes": {
+                  "above": 47,
+                  "central": 37,
+                  "capped": 296,
+                  "in": 17,
+                  "below": 4
+                },
+                "ms": {
+                  "n": 40,
+                  "median": 15732.950499999999,
+                  "p90": 35083.479,
+                  "max": 45873.173
+                },
+                "work": {
+                  "n": 40,
+                  "median": 5077051373.5,
+                  "p90": 12298655305,
+                  "max": 15202757117
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 50,
+                "callsWithP2": 26,
+                "callShare": 0.52,
+                "p2Tuples": 139,
+                "p2Ms": 301022,
+                "allMs": 810914,
+                "timeShare": 0.3712139378969347
+              },
+              "set": {
+                "calls": 16,
+                "callsWithP2": 15,
+                "callShare": 0.9375,
+                "p2Tuples": 101,
+                "p2Ms": 217064,
+                "allMs": 366914,
+                "timeShare": 0.5915943180028531
+              },
+              "both": {
+                "calls": 66,
+                "callsWithP2": 41,
+                "callShare": 0.6212121212121212,
+                "p2Tuples": 240,
+                "p2Ms": 518086,
+                "allMs": 1177827,
+                "timeShare": 0.4398662535099299
+              }
+            },
+            "startCountCapped": {
+              "tuples": 244,
+              "capped": 217,
+              "share": 0.889344262295082,
+              "calls": 65
+            },
+            "locate": null,
+            "windowProfiles": {
+              "basis": "all tuples of the call",
+              "okCalls": 42,
+              "n": 42,
+              "median": 8,
+              "p90": 15,
+              "max": 17,
+              "mean": 8.238095238095237
+            },
+            "rerates": null,
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 3,
+                "median": 6779686344.8,
+                "p90": 38310423399,
+                "max": 38310423399
+              },
+              "withSet": {
+                "n": 3,
+                "median": 9218211522.4,
+                "p90": 61222518217,
+                "max": 61222518217
+              },
+              "requestsWithUnfinishedCalls": 3,
+              "unfinishedCalls": 17
+            },
+            "waves": {
+              "n": 2,
+              "median": 4.525431407530172,
+              "p90": 6.002151774446887,
+              "max": 6.002151774446887
+            },
+            "setShare": {
+              "n": 2,
+              "median": 0.22491531655089997,
+              "p90": 0.2649210688279447,
+              "max": 0.2649210688279447
+            }
+          },
+          "after": {
+            "requests": 3,
+            "reached": 3,
+            "censored": 0,
+            "t1": {
+              "n": 3,
+              "min": 1345.1663,
+              "median": 1905.9367,
+              "p95": 2927.7196999999996,
+              "max": 2927.7196999999996
+            },
+            "t10": {
+              "n": 3,
+              "min": 5957.5059,
+              "median": 8445.7583,
+              "p95": 9006.5432,
+              "max": 9006.5432
+            },
+            "response": {
+              "n": 3,
+              "min": 6106.008,
+              "median": 8582.9138,
+              "p95": 9164.915799999999,
+              "max": 9164.915799999999
+            },
+            "accepted": [
+              10,
+              10,
+              10
+            ],
+            "journal": {
+              "calls": 67,
+              "finished": 51
+            },
+            "stages": {
+              "set": {
+                "calls": 12,
+                "ok": 5,
+                "noWindow": 0,
+                "unfinished": 7,
+                "unfinishedProfiles": 8,
+                "profiles": {
+                  "n": 5,
+                  "median": 3,
+                  "p90": 5,
+                  "max": 5
+                },
+                "outcomes": {
+                  "scap0": 15,
+                  "central": 5,
+                  "in": 1,
+                  "below": 1,
+                  "scap1": 1
+                },
+                "ms": {
+                  "n": 5,
+                  "median": 1374.022,
+                  "p90": 2793.392,
+                  "max": 2793.392
+                },
+                "work": {
+                  "n": 5,
+                  "median": 387948599,
+                  "p90": 655473609,
+                  "max": 655473609
+                }
+              },
+              "batch": {
+                "calls": 55,
+                "ok": 46,
+                "noWindow": 0,
+                "unfinished": 9,
+                "unfinishedProfiles": 5,
+                "profiles": {
+                  "n": 46,
+                  "median": 3,
+                  "p90": 5,
+                  "max": 14
+                },
+                "outcomes": {
+                  "scap0": 58,
+                  "in": 17,
+                  "central": 46,
+                  "above": 8,
+                  "below": 28
+                },
+                "ms": {
+                  "n": 46,
+                  "median": 1396.9155,
+                  "p90": 2396.217,
+                  "max": 4631.593
+                },
+                "work": {
+                  "n": 46,
+                  "median": 367689754,
+                  "p90": 601610562,
+                  "max": 1358197587
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 55,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 62917,
+                "timeShare": 0
+              },
+              "set": {
+                "calls": 12,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 13690,
+                "timeShare": 0
+              },
+              "both": {
+                "calls": 67,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 76607,
+                "timeShare": 0
+              }
+            },
+            "startCountCapped": {
+              "tuples": 0,
+              "capped": 0,
+              "share": null,
+              "calls": 0
+            },
+            "locate": {
+              "calls": 51,
+              "results": {
+                "hit": 48,
+                "window": 3
+              },
+              "proofs": {
+                "direct": 51
+              },
+              "callsWithRescue": 0,
+              "rescueSides": {},
+              "probes": {
+                "n": 51,
+                "median": 2,
+                "p90": 4,
+                "max": 6
+              },
+              "heuristicEnds": 0
+            },
+            "windowProfiles": {
+              "basis": "phases window, p2, beam, rerate",
+              "okCalls": 51,
+              "n": 51,
+              "median": 0,
+              "p90": 3,
+              "max": 10,
+              "mean": 0.8431372549019608
+            },
+            "rerates": {
+              "callsFinished": 51,
+              "perCallMean": 0,
+              "perCallMax": 0,
+              "msShare": 0,
+              "workShare": 0
+            },
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 3,
+                "median": 681290640.2,
+                "p90": 755010536.7,
+                "max": 755010536.7
+              },
+              "withSet": {
+                "n": 3,
+                "median": 791878083.3,
+                "p90": 868882146.8,
+                "max": 868882146.8
+              },
+              "requestsWithUnfinishedCalls": 3,
+              "unfinishedCalls": 16
+            },
+            "waves": {
+              "n": 3,
+              "median": 4.85047236833117,
+              "p90": 8.166988334832405,
+              "max": 8.166988334832405
+            },
+            "setShare": {
+              "n": 3,
+              "median": 0.21161689425971997,
+              "p90": 0.4914337894319164,
+              "max": 0.4914337894319164
+            }
+          },
+          "paired": {
+            "seeds": [
+              "landscape/15x15b10-nightmare/0",
+              "landscape/15x15b10-nightmare/1",
+              "landscape/15x15b10-nightmare/2"
+            ],
+            "t10Ratio": {
+              "n": 2,
+              "median": 8.215278657596759,
+              "min": 7.932069559511472,
+              "max": 8.498487755682046
+            },
+            "responseRatio": {
+              "n": 3,
+              "median": 8.379646606726961,
+              "min": 7.761307436872012,
+              "max": 20.49949331776731
+            },
+            "fewerPuzzles": [],
+            "completion": {
+              "before": 2,
+              "after": 3,
+              "of": 3
+            }
+          },
+          "drift": {
+            "ratios": [
+              1.0079135803489219,
+              1.0185245871370687,
+              1.008451475689823
+            ],
+            "median": 1.008451475689823
+          },
+          "identity": [
+            {
+              "seed": "landscape/15x15b10-nightmare/0",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/15x15b10-nightmare/1",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/15x15b10-nightmare/2",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 4,
+              "acceptedBefore": 4,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 4)"
+            }
+          ],
+          "seeds": [
+            {
+              "seed": "landscape/15x15b10-nightmare/0",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 19001.026899999997,
+                "t10": 71202.72,
+                "response": 71357.0944
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 19015.0206,
+                "t10": 71776.1735,
+                "response": 71921.78450000001,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 1345.1663,
+                "t10": 8445.7583,
+                "response": 8582.9138,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/15x15b10-nightmare/1",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 8790.3172,
+                "t10": 46365.1098,
+                "response": 46528.6807
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 8737.966400000001,
+                "t10": 47255.3512,
+                "response": 47390.605299999996,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 2927.7196999999996,
+                "t10": 5957.5059,
+                "response": 6106.008,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/15x15b10-nightmare/2",
+              "mp12b1": {
+                "accepted": 4,
+                "t1": 71227.0006,
+                "t10": null,
+                "response": 186301.6067
+              },
+              "before": {
+                "accepted": 4,
+                "t1": 72779.14899999999,
+                "t10": null,
+                "response": 187876.1302,
+                "partial": "time-limit",
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 1905.9367,
+                "t10": 9006.5432,
+                "response": 9164.915799999999,
+                "partial": null,
+                "censored": false
+              }
+            }
+          ]
+        },
+        "12x12-nightmare": {
+          "mp12b1": {
+            "report": "docs/difficulty-v3/landscape-v3-full/12x12-nightmare-2026-11-13.json",
+            "all": {
+              "requests": 20,
+              "reached": 17,
+              "t10": {
+                "n": 17,
+                "min": 29924.3,
+                "median": 62140.5168,
+                "p95": 176071.8887,
+                "max": 176071.8887
+              },
+              "response": {
+                "n": 20,
+                "min": 30059.633,
+                "median": 65267.89595,
+                "p95": 176222.86010000002,
+                "max": 191109.4979
+              }
+            },
+            "matched": {
+              "requests": 3,
+              "reached": 3,
+              "t1": {
+                "n": 3,
+                "min": 911.9974,
+                "median": 4486.3709,
+                "p95": 23822.3361,
+                "max": 23822.3361
+              },
+              "t10": {
+                "n": 3,
+                "min": 29924.3,
+                "median": 57721.8007,
+                "p95": 73267.0563,
+                "max": 73267.0563
+              },
+              "response": {
+                "n": 3,
+                "min": 30059.633,
+                "median": 57872.4859,
+                "p95": 73419.0014,
+                "max": 73419.0014
+              }
+            }
+          },
+          "before": {
+            "requests": 3,
+            "reached": 3,
+            "censored": 0,
+            "t1": {
+              "n": 3,
+              "min": 821.6721,
+              "median": 4663.189,
+              "p95": 21779.5595,
+              "max": 21779.5595
+            },
+            "t10": {
+              "n": 3,
+              "min": 27854.684500000003,
+              "median": 53119.1632,
+              "p95": 73015.95199999999,
+              "max": 73015.95199999999
+            },
+            "response": {
+              "n": 3,
+              "min": 27962.155000000002,
+              "median": 53288.067,
+              "p95": 73133.2203,
+              "max": 73133.2203
+            },
+            "accepted": [
+              10,
+              10,
+              10
+            ],
+            "journal": {
+              "calls": 56,
+              "finished": 40
+            },
+            "stages": {
+              "set": {
+                "calls": 12,
+                "ok": 5,
+                "noWindow": 0,
+                "unfinished": 7,
+                "unfinishedProfiles": 18,
+                "profiles": {
+                  "n": 5,
+                  "median": 3,
+                  "p90": 14,
+                  "max": 14
+                },
+                "outcomes": {
+                  "capped": 27,
+                  "above": 7,
+                  "central": 5,
+                  "in": 4,
+                  "below": 4
+                },
+                "ms": {
+                  "n": 5,
+                  "median": 4537.836,
+                  "p90": 21649.844,
+                  "max": 21649.844
+                },
+                "work": {
+                  "n": 5,
+                  "median": 1490117885,
+                  "p90": 7632625805,
+                  "max": 7632625805
+                }
+              },
+              "batch": {
+                "calls": 44,
+                "ok": 35,
+                "noWindow": 0,
+                "unfinished": 9,
+                "unfinishedProfiles": 30,
+                "profiles": {
+                  "n": 35,
+                  "median": 5,
+                  "p90": 9,
+                  "max": 28
+                },
+                "outcomes": {
+                  "capped": 142,
+                  "above": 33,
+                  "central": 35,
+                  "in": 17
+                },
+                "ms": {
+                  "n": 35,
+                  "median": 9104.917,
+                  "p90": 20961.696,
+                  "max": 68297.901
+                },
+                "work": {
+                  "n": 35,
+                  "median": 2868446215,
+                  "p90": 6640923142,
+                  "max": 21417668670
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 44,
+                "callsWithP2": 9,
+                "callShare": 0.20454545454545456,
+                "p2Tuples": 39,
+                "p2Ms": 91345,
+                "allMs": 487570,
+                "timeShare": 0.18734789421214199
+              },
+              "set": {
+                "calls": 12,
+                "callsWithP2": 2,
+                "callShare": 0.16666666666666666,
+                "p2Tuples": 10,
+                "p2Ms": 22274,
+                "allMs": 89679,
+                "timeShare": 0.24837179792314495
+              },
+              "both": {
+                "calls": 56,
+                "callsWithP2": 11,
+                "callShare": 0.19642857142857142,
+                "p2Tuples": 49,
+                "p2Ms": 113619,
+                "allMs": 577248,
+                "timeShare": 0.19682828779804556
+              }
+            },
+            "startCountCapped": {
+              "tuples": 161,
+              "capped": 105,
+              "share": 0.6521739130434783,
+              "calls": 49
+            },
+            "locate": null,
+            "windowProfiles": {
+              "basis": "all tuples of the call",
+              "okCalls": 40,
+              "n": 40,
+              "median": 5,
+              "p90": 10,
+              "max": 28,
+              "mean": 5.65
+            },
+            "rerates": null,
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 3,
+                "median": 4152219932,
+                "p90": 8181675710.8,
+                "max": 8181675710.8
+              },
+              "withSet": {
+                "n": 3,
+                "median": 6830969806.6,
+                "p90": 8475477902.1,
+                "max": 8475477902.1
+              },
+              "requestsWithUnfinishedCalls": 3,
+              "unfinishedCalls": 16
+            },
+            "waves": {
+              "n": 3,
+              "median": 3.2014749066029666,
+              "p90": 6.3205193028346764,
+              "max": 6.3205193028346764
+            },
+            "setShare": {
+              "n": 3,
+              "median": 0.06386534547957412,
+              "p90": 0.41001322663908224,
+              "max": 0.41001322663908224
+            }
+          },
+          "after": {
+            "requests": 3,
+            "reached": 3,
+            "censored": 0,
+            "t1": {
+              "n": 3,
+              "min": 681.3015,
+              "median": 1556.3013,
+              "p95": 1608.4338,
+              "max": 1608.4338
+            },
+            "t10": {
+              "n": 3,
+              "min": 4711.4834,
+              "median": 5735.4231,
+              "p95": 11177.4862,
+              "max": 11177.4862
+            },
+            "response": {
+              "n": 3,
+              "min": 4853.7832,
+              "median": 5853.7699999999995,
+              "p95": 11317.8136,
+              "max": 11317.8136
+            },
+            "accepted": [
+              10,
+              10,
+              10
+            ],
+            "journal": {
+              "calls": 54,
+              "finished": 39
+            },
+            "stages": {
+              "set": {
+                "calls": 12,
+                "ok": 4,
+                "noWindow": 0,
+                "unfinished": 8,
+                "unfinishedProfiles": 8,
+                "profiles": {
+                  "n": 4,
+                  "median": 2,
+                  "p90": 4,
+                  "max": 4
+                },
+                "outcomes": {
+                  "central": 4,
+                  "in": 2,
+                  "below": 2,
+                  "scap1": 4,
+                  "scap0": 5
+                },
+                "ms": {
+                  "n": 4,
+                  "median": 1441.1370000000002,
+                  "p90": 1480.522,
+                  "max": 1480.522
+                },
+                "work": {
+                  "n": 4,
+                  "median": 407785894,
+                  "p90": 447352008,
+                  "max": 447352008
+                }
+              },
+              "batch": {
+                "calls": 42,
+                "ok": 35,
+                "noWindow": 0,
+                "unfinished": 7,
+                "unfinishedProfiles": 7,
+                "profiles": {
+                  "n": 35,
+                  "median": 3,
+                  "p90": 8,
+                  "max": 12
+                },
+                "outcomes": {
+                  "scap0": 33,
+                  "below": 34,
+                  "central": 35,
+                  "in": 22,
+                  "above": 4,
+                  "scap1": 16
+                },
+                "ms": {
+                  "n": 35,
+                  "median": 1368.989,
+                  "p90": 3157.518,
+                  "max": 3978.661
+                },
+                "work": {
+                  "n": 35,
+                  "median": 402432842,
+                  "p90": 810611606,
+                  "max": 1151251360
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 42,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 63738,
+                "timeShare": 0
+              },
+              "set": {
+                "calls": 12,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 10887,
+                "timeShare": 0
+              },
+              "both": {
+                "calls": 54,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 74625,
+                "timeShare": 0
+              }
+            },
+            "startCountCapped": {
+              "tuples": 0,
+              "capped": 0,
+              "share": null,
+              "calls": 0
+            },
+            "locate": {
+              "calls": 39,
+              "results": {
+                "hit": 37,
+                "window": 2
+              },
+              "proofs": {
+                "direct": 39
+              },
+              "callsWithRescue": 0,
+              "rescueSides": {},
+              "probes": {
+                "n": 39,
+                "median": 2,
+                "p90": 4,
+                "max": 4
+              },
+              "heuristicEnds": 0
+            },
+            "windowProfiles": {
+              "basis": "phases window, p2, beam, rerate",
+              "okCalls": 39,
+              "n": 39,
+              "median": 0,
+              "p90": 6,
+              "max": 9,
+              "mean": 1.4871794871794872
+            },
+            "rerates": {
+              "callsFinished": 39,
+              "perCallMean": 0,
+              "perCallMax": 0,
+              "msShare": 0,
+              "workShare": 0
+            },
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 3,
+                "median": 418013165.2,
+                "p90": 944722842.9,
+                "max": 944722842.9
+              },
+              "withSet": {
+                "n": 3,
+                "median": 554773469.7,
+                "p90": 1083600803.5,
+                "max": 1083600803.5
+              },
+              "requestsWithUnfinishedCalls": 3,
+              "unfinishedCalls": 15
+            },
+            "waves": {
+              "n": 3,
+              "median": 3.3812279008346557,
+              "p90": 5.08407075155798,
+              "max": 5.08407075155798
+            },
+            "setShare": {
+              "n": 3,
+              "median": 0.14460445727135535,
+              "p90": 0.2713489960313477,
+              "max": 0.2713489960313477
+            }
+          },
+          "paired": {
+            "seeds": [
+              "landscape/12x12-nightmare/0",
+              "landscape/12x12-nightmare/1",
+              "landscape/12x12-nightmare/2"
+            ],
+            "t10Ratio": {
+              "n": 3,
+              "median": 9.26159452822234,
+              "min": 2.492034792223676,
+              "max": 15.49744439299096
+            },
+            "responseRatio": {
+              "n": 3,
+              "median": 9.103204772309129,
+              "min": 2.470632225291288,
+              "max": 15.067261409615494
+            },
+            "fewerPuzzles": [],
+            "completion": {
+              "before": 3,
+              "after": 3,
+              "of": 3
+            }
+          },
+          "drift": {
+            "ratios": [
+              0.9961075321844408,
+              0.9302227675234758,
+              0.9207841372509626
+            ],
+            "median": 0.9302227675234758
+          },
+          "identity": [
+            {
+              "seed": "landscape/12x12-nightmare/0",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/12x12-nightmare/1",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/12x12-nightmare/2",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ],
+          "seeds": [
+            {
+              "seed": "landscape/12x12-nightmare/0",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 4486.3709,
+                "t10": 73267.0563,
+                "response": 73419.0014
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 4663.189,
+                "t10": 73015.95199999999,
+                "response": 73133.2203,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 681.3015,
+                "t10": 4711.4834,
+                "response": 4853.7832,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/12x12-nightmare/1",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 911.9974,
+                "t10": 29924.3,
+                "response": 30059.633
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 821.6721,
+                "t10": 27854.684500000003,
+                "response": 27962.155000000002,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 1608.4338,
+                "t10": 11177.4862,
+                "response": 11317.8136,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/12x12-nightmare/2",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 23822.3361,
+                "t10": 57721.8007,
+                "response": 57872.4859
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 21779.5595,
+                "t10": 53119.1632,
+                "response": 53288.067,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 1556.3013,
+                "t10": 5735.4231,
+                "response": 5853.7699999999995,
+                "partial": null,
+                "censored": false
+              }
+            }
+          ]
+        },
+        "26x26-nightmare": {
+          "mp12b1": {
+            "report": "docs/difficulty-v3/landscape-v3-full/26x26-nightmare-2026-11-14.json",
+            "all": {
+              "requests": 20,
+              "reached": 20,
+              "t10": {
+                "n": 20,
+                "min": 5910.6638,
+                "median": 18611.66495,
+                "p95": 31378.0334,
+                "max": 35779.090899999996
+              },
+              "response": {
+                "n": 20,
+                "min": 6044.9167,
+                "median": 18774.25825,
+                "p95": 31512.162,
+                "max": 35956.6466
+              }
+            },
+            "matched": {
+              "requests": 6,
+              "reached": 6,
+              "t1": {
+                "n": 6,
+                "min": 843.0604000000001,
+                "median": 7121.19845,
+                "p95": 10103.2697,
+                "max": 10103.2697
+              },
+              "t10": {
+                "n": 6,
+                "min": 8167.459,
+                "median": 25759.146549999998,
+                "p95": 35779.090899999996,
+                "max": 35779.090899999996
+              },
+              "response": {
+                "n": 6,
+                "min": 8310.2907,
+                "median": 25916.446949999998,
+                "p95": 35956.6466,
+                "max": 35956.6466
+              }
+            }
+          },
+          "before": {
+            "requests": 6,
+            "reached": 6,
+            "censored": 0,
+            "t1": {
+              "n": 6,
+              "min": 936.639,
+              "median": 7119.0545,
+              "p95": 10311.9212,
+              "max": 10311.9212
+            },
+            "t10": {
+              "n": 6,
+              "min": 8614.5437,
+              "median": 26527.1221,
+              "p95": 36377.6859,
+              "max": 36377.6859
+            },
+            "response": {
+              "n": 6,
+              "min": 8788.1562,
+              "median": 26689.26855,
+              "p95": 36526.5605,
+              "max": 36526.5605
+            },
+            "accepted": [
+              10,
+              10,
+              10,
+              10,
+              10,
+              10
+            ],
+            "journal": {
+              "calls": 129,
+              "finished": 103
+            },
+            "stages": {
+              "set": {
+                "calls": 24,
+                "ok": 15,
+                "noWindow": 0,
+                "unfinished": 9,
+                "unfinishedProfiles": 22,
+                "profiles": {
+                  "n": 15,
+                  "median": 2,
+                  "p90": 9,
+                  "max": 11
+                },
+                "outcomes": {
+                  "central": 15,
+                  "below": 9,
+                  "in": 21,
+                  "above": 29,
+                  "capped": 6
+                },
+                "ms": {
+                  "n": 15,
+                  "median": 2761.323,
+                  "p90": 8515.216,
+                  "max": 10143.266
+                },
+                "work": {
+                  "n": 15,
+                  "median": 608814071,
+                  "p90": 2258365844,
+                  "max": 2821004031
+                }
+              },
+              "batch": {
+                "calls": 105,
+                "ok": 88,
+                "noWindow": 0,
+                "unfinished": 17,
+                "unfinishedProfiles": 49,
+                "profiles": {
+                  "n": 88,
+                  "median": 3,
+                  "p90": 8,
+                  "max": 17
+                },
+                "outcomes": {
+                  "below": 31,
+                  "central": 88,
+                  "above": 165,
+                  "capped": 29,
+                  "in": 70
+                },
+                "ms": {
+                  "n": 88,
+                  "median": 3307.5195,
+                  "p90": 9382.548,
+                  "max": 24424.822
+                },
+                "work": {
+                  "n": 88,
+                  "median": 815660517.5,
+                  "p90": 2417567330,
+                  "max": 7883237299
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 105,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 404309,
+                "timeShare": 0
+              },
+              "set": {
+                "calls": 24,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 79551,
+                "timeShare": 0
+              },
+              "both": {
+                "calls": 129,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 483859,
+                "timeShare": 0
+              }
+            },
+            "startCountCapped": {
+              "tuples": 313,
+              "capped": 26,
+              "share": 0.08306709265175719,
+              "calls": 119
+            },
+            "locate": null,
+            "windowProfiles": {
+              "basis": "all tuples of the call",
+              "okCalls": 103,
+              "n": 103,
+              "median": 3,
+              "p90": 8,
+              "max": 17,
+              "mean": 3.8058252427184467
+            },
+            "rerates": null,
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 6,
+                "median": 1850174007.55,
+                "p90": 3160861643.9,
+                "max": 3160861643.9
+              },
+              "withSet": {
+                "n": 6,
+                "median": 2180344844.45,
+                "p90": 3919711481.5,
+                "max": 3919711481.5
+              },
+              "requestsWithUnfinishedCalls": 6,
+              "unfinishedCalls": 26
+            },
+            "waves": {
+              "n": 6,
+              "median": 3.6072760744201,
+              "p90": 10.637667248179252,
+              "max": 10.637667248179252
+            },
+            "setShare": {
+              "n": 6,
+              "median": 0.24962523241192125,
+              "p90": 0.36880229348997934,
+              "max": 0.36880229348997934
+            }
+          },
+          "after": {
+            "requests": 6,
+            "reached": 6,
+            "censored": 0,
+            "t1": {
+              "n": 6,
+              "min": 986.4199000000001,
+              "median": 2420.1865,
+              "p95": 7424.0041,
+              "max": 7424.0041
+            },
+            "t10": {
+              "n": 6,
+              "min": 9313.527,
+              "median": 11937.80255,
+              "p95": 15021.119,
+              "max": 15021.119
+            },
+            "response": {
+              "n": 6,
+              "min": 9488.057700000001,
+              "median": 12103.2022,
+              "p95": 15190.3918,
+              "max": 15190.3918
+            },
+            "accepted": [
+              10,
+              10,
+              10,
+              10,
+              10,
+              10
+            ],
+            "journal": {
+              "calls": 104,
+              "finished": 77
+            },
+            "stages": {
+              "set": {
+                "calls": 24,
+                "ok": 16,
+                "noWindow": 0,
+                "unfinished": 8,
+                "unfinishedProfiles": 13,
+                "profiles": {
+                  "n": 16,
+                  "median": 3,
+                  "p90": 8,
+                  "max": 16
+                },
+                "outcomes": {
+                  "central": 16,
+                  "in": 17,
+                  "above": 11,
+                  "below": 11,
+                  "scap0": 19,
+                  "scap1": 1
+                },
+                "ms": {
+                  "n": 16,
+                  "median": 1935.3525,
+                  "p90": 5779.219,
+                  "max": 7262.442
+                },
+                "work": {
+                  "n": 16,
+                  "median": 518459384,
+                  "p90": 1499253977,
+                  "max": 2553111168
+                }
+              },
+              "batch": {
+                "calls": 80,
+                "ok": 61,
+                "noWindow": 0,
+                "unfinished": 19,
+                "unfinishedProfiles": 44,
+                "profiles": {
+                  "n": 61,
+                  "median": 3,
+                  "p90": 8,
+                  "max": 21
+                },
+                "outcomes": {
+                  "below": 58,
+                  "in": 50,
+                  "scap0": 90,
+                  "above": 56,
+                  "scap1": 4,
+                  "central": 61,
+                  "over": 1
+                },
+                "ms": {
+                  "n": 61,
+                  "median": 2093.651,
+                  "p90": 5613.537,
+                  "max": 11309.23
+                },
+                "work": {
+                  "n": 61,
+                  "median": 565714301,
+                  "p90": 1509477847,
+                  "max": 2996752625
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 80,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 190963,
+                "timeShare": 0
+              },
+              "set": {
+                "calls": 24,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 44150,
+                "timeShare": 0
+              },
+              "both": {
+                "calls": 104,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 235113,
+                "timeShare": 0
+              }
+            },
+            "startCountCapped": {
+              "tuples": 0,
+              "capped": 0,
+              "share": null,
+              "calls": 0
+            },
+            "locate": {
+              "calls": 77,
+              "results": {
+                "hit": 68,
+                "window": 9
+              },
+              "proofs": {
+                "direct": 77
+              },
+              "callsWithRescue": 0,
+              "rescueSides": {},
+              "probes": {
+                "n": 77,
+                "median": 2,
+                "p90": 4,
+                "max": 6
+              },
+              "heuristicEnds": 0
+            },
+            "windowProfiles": {
+              "basis": "phases window, p2, beam, rerate",
+              "okCalls": 77,
+              "n": 77,
+              "median": 0,
+              "p90": 7,
+              "max": 15,
+              "mean": 2.168831168831169
+            },
+            "rerates": {
+              "callsFinished": 77,
+              "perCallMean": 0,
+              "perCallMax": 0,
+              "msShare": 0,
+              "workShare": 0
+            },
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 6,
+                "median": 882608427.55,
+                "p90": 1157825965.5,
+                "max": 1157825965.5
+              },
+              "withSet": {
+                "n": 6,
+                "median": 1093986208.45,
+                "p90": 1387727668.4,
+                "max": 1387727668.4
+              },
+              "requestsWithUnfinishedCalls": 6,
+              "unfinishedCalls": 27
+            },
+            "waves": {
+              "n": 6,
+              "median": 4.120133661174373,
+              "p90": 5.600589288156846,
+              "max": 5.600589288156846
+            },
+            "setShare": {
+              "n": 6,
+              "median": 0.2431029244421974,
+              "p90": 0.4942377528598235,
+              "max": 0.4942377528598235
+            }
+          },
+          "paired": {
+            "seeds": [
+              "landscape/26x26-nightmare/0",
+              "landscape/26x26-nightmare/1",
+              "landscape/26x26-nightmare/2",
+              "landscape/26x26-nightmare/3",
+              "landscape/26x26-nightmare/4",
+              "landscape/26x26-nightmare/5"
+            ],
+            "t10Ratio": {
+              "n": 6,
+              "median": 2.0137945394355423,
+              "min": 0.6896075315311228,
+              "max": 3.9058979374838336
+            },
+            "responseRatio": {
+              "n": 6,
+              "median": 2.00270329423922,
+              "min": 0.6943750026913663,
+              "max": 3.849740553327368
+            },
+            "fewerPuzzles": [],
+            "completion": {
+              "before": 6,
+              "after": 6,
+              "of": 6
+            }
+          },
+          "drift": {
+            "ratios": [
+              1.0575028620839941,
+              1.0337562614238507,
+              1.012448493316813,
+              1.0327586068204953,
+              1.0003178926737064,
+              1.015850029240491
+            ],
+            "median": 1.0243043180304932
+          },
+          "identity": [
+            {
+              "seed": "landscape/26x26-nightmare/0",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/1",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/2",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/3",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/4",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/5",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ],
+          "seeds": [
+            {
+              "seed": "landscape/26x26-nightmare/0",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 843.0604000000001,
+                "t10": 8167.459,
+                "response": 8310.2907
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 936.639,
+                "t10": 8614.5437,
+                "response": 8788.1562,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 986.4199000000001,
+                "t10": 12491.9513,
+                "response": 12656.210500000001,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/26x26-nightmare/1",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 5823.166200000001,
+                "t10": 27245.8125,
+                "response": 27367.7967
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 5731.1269,
+                "t10": 28134.075399999998,
+                "response": 28291.6312,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 5929.3415,
+                "t10": 12987.9229,
+                "response": 13129.8096,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/26x26-nightmare/2",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 10103.2697,
+                "t10": 27604.9371,
+                "response": 27766.348199999997
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 10311.9212,
+                "t10": 27960.566899999998,
+                "response": 28111.997399999997,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 7424.0041,
+                "t10": 15021.119,
+                "response": 15190.3918,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/26x26-nightmare/3",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 8419.2307,
+                "t10": 24272.4806,
+                "response": 24465.0972
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 8506.9821,
+                "t10": 25093.6773,
+                "response": 25266.5397,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 2194.4119,
+                "t10": 11383.6538,
+                "response": 11550.1939,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/26x26-nightmare/4",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 4767.6896,
+                "t10": 18207.366,
+                "response": 18376.013300000002
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 4743.8993,
+                "t10": 18198.537800000002,
+                "response": 18381.854900000002,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 2123.9307,
+                "t10": 10508.9351,
+                "response": 10697.2371,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/26x26-nightmare/5",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 8637.3469,
+                "t10": 35779.090899999996,
+                "response": 35956.6466
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 8678.8324,
+                "t10": 36377.6859,
+                "response": 36526.5605,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 2645.9611,
+                "t10": 9313.527,
+                "response": 9488.057700000001,
+                "partial": null,
+                "censored": false
+              }
+            }
+          ]
+        },
+        "14x14-master": {
+          "mp12b1": {
+            "report": "docs/difficulty-v3/landscape-v3-full/14x14-master-2026-11-13.json",
+            "all": {
+              "requests": 20,
+              "reached": 20,
+              "t10": {
+                "n": 20,
+                "min": 1061.2239,
+                "median": 2568.79795,
+                "p95": 16281.504500000001,
+                "max": 17926.275
+              },
+              "response": {
+                "n": 20,
+                "min": 1216.5808,
+                "median": 2705.2734,
+                "p95": 16443.4676,
+                "max": 18063.787900000003
+              }
+            },
+            "matched": {
+              "requests": 5,
+              "reached": 5,
+              "t1": {
+                "n": 5,
+                "min": 297.9317,
+                "median": 343.2514,
+                "p95": 4382.7067,
+                "max": 4382.7067
+              },
+              "t10": {
+                "n": 5,
+                "min": 1618.7193000000002,
+                "median": 2903.1149,
+                "p95": 11023.7881,
+                "max": 11023.7881
+              },
+              "response": {
+                "n": 5,
+                "min": 1745.671,
+                "median": 3060.5323,
+                "p95": 11180.252,
+                "max": 11180.252
+              }
+            }
+          },
+          "before": {
+            "requests": 5,
+            "reached": 5,
+            "censored": 0,
+            "t1": {
+              "n": 5,
+              "min": 374.5851,
+              "median": 396.49850000000004,
+              "p95": 4309.8367,
+              "max": 4309.8367
+            },
+            "t10": {
+              "n": 5,
+              "min": 1802.0324999999998,
+              "median": 3172.9042,
+              "p95": 11176.3014,
+              "max": 11176.3014
+            },
+            "response": {
+              "n": 5,
+              "min": 1938.8666999999998,
+              "median": 3310.8725,
+              "p95": 11318.3053,
+              "max": 11318.3053
+            },
+            "accepted": [
+              10,
+              10,
+              10,
+              10,
+              10
+            ],
+            "journal": {
+              "calls": 101,
+              "finished": 78
+            },
+            "stages": {
+              "set": {
+                "calls": 20,
+                "ok": 11,
+                "noWindow": 0,
+                "unfinished": 9,
+                "unfinishedProfiles": 1,
+                "profiles": {
+                  "n": 11,
+                  "median": 2,
+                  "p90": 5,
+                  "max": 5
+                },
+                "outcomes": {
+                  "above": 7,
+                  "capped": 1,
+                  "central": 11,
+                  "in": 7,
+                  "below": 4
+                },
+                "ms": {
+                  "n": 11,
+                  "median": 253.111,
+                  "p90": 716.689,
+                  "max": 4197.406
+                },
+                "work": {
+                  "n": 11,
+                  "median": 20147617,
+                  "p90": 117685291,
+                  "max": 1242497674
+                }
+              },
+              "batch": {
+                "calls": 81,
+                "ok": 67,
+                "noWindow": 0,
+                "unfinished": 14,
+                "unfinishedProfiles": 14,
+                "profiles": {
+                  "n": 67,
+                  "median": 3,
+                  "p90": 9,
+                  "max": 17
+                },
+                "outcomes": {
+                  "central": 67,
+                  "above": 90,
+                  "in": 74,
+                  "capped": 3,
+                  "below": 60,
+                  "ar1": 4
+                },
+                "ms": {
+                  "n": 67,
+                  "median": 298.519,
+                  "p90": 1716.485,
+                  "max": 6646.211
+                },
+                "work": {
+                  "n": 67,
+                  "median": 54966906,
+                  "p90": 366355349,
+                  "max": 2108075082
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 81,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 48361,
+                "timeShare": 0
+              },
+              "set": {
+                "calls": 20,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 7705,
+                "timeShare": 0
+              },
+              "both": {
+                "calls": 101,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 56066,
+                "timeShare": 0
+              }
+            },
+            "startCountCapped": {
+              "tuples": 228,
+              "capped": 4,
+              "share": 0.017543859649122806,
+              "calls": 84
+            },
+            "locate": null,
+            "windowProfiles": {
+              "basis": "all tuples of the call",
+              "okCalls": 78,
+              "n": 78,
+              "median": 3,
+              "p90": 9,
+              "max": 17,
+              "mean": 4.012820512820513
+            },
+            "rerates": null,
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 5,
+                "median": 164490296.9,
+                "p90": 719403885.5,
+                "max": 719403885.5
+              },
+              "withSet": {
+                "n": 5,
+                "median": 168214020.8,
+                "p90": 857338544.1,
+                "max": 857338544.1
+              },
+              "requestsWithUnfinishedCalls": 5,
+              "unfinishedCalls": 23
+            },
+            "waves": {
+              "n": 5,
+              "median": 7.412841561543943,
+              "p90": 12.066908161821758,
+              "max": 12.066908161821758
+            },
+            "setShare": {
+              "n": 5,
+              "median": 0.2189831204487156,
+              "p90": 0.38562280541217325,
+              "max": 0.38562280541217325
+            }
+          },
+          "after": {
+            "requests": 5,
+            "reached": 5,
+            "censored": 0,
+            "t1": {
+              "n": 5,
+              "min": 273.7741,
+              "median": 935.5319,
+              "p95": 1077.6606,
+              "max": 1077.6606
+            },
+            "t10": {
+              "n": 5,
+              "min": 1452.7441,
+              "median": 2663.4998,
+              "p95": 5118.8969,
+              "max": 5118.8969
+            },
+            "response": {
+              "n": 5,
+              "min": 1609.5662,
+              "median": 2798.6766000000002,
+              "p95": 5286.430899999999,
+              "max": 5286.430899999999
+            },
+            "accepted": [
+              10,
+              10,
+              10,
+              10,
+              10
+            ],
+            "journal": {
+              "calls": 98,
+              "finished": 74
+            },
+            "stages": {
+              "set": {
+                "calls": 20,
+                "ok": 9,
+                "noWindow": 0,
+                "unfinished": 11,
+                "unfinishedProfiles": 2,
+                "profiles": {
+                  "n": 9,
+                  "median": 2,
+                  "p90": 9,
+                  "max": 9
+                },
+                "outcomes": {
+                  "scap0": 2,
+                  "above": 4,
+                  "in": 10,
+                  "below": 7,
+                  "central": 9
+                },
+                "ms": {
+                  "n": 9,
+                  "median": 257.443,
+                  "p90": 952.212,
+                  "max": 952.212
+                },
+                "work": {
+                  "n": 9,
+                  "median": 20147617,
+                  "p90": 245369077,
+                  "max": 245369077
+                }
+              },
+              "batch": {
+                "calls": 78,
+                "ok": 65,
+                "noWindow": 0,
+                "unfinished": 13,
+                "unfinishedProfiles": 39,
+                "profiles": {
+                  "n": 65,
+                  "median": 3,
+                  "p90": 9,
+                  "max": 22
+                },
+                "outcomes": {
+                  "central": 65,
+                  "above": 84,
+                  "below": 72,
+                  "in": 77,
+                  "ar1": 11,
+                  "scap0": 6
+                },
+                "ms": {
+                  "n": 65,
+                  "median": 284.274,
+                  "p90": 1219.118,
+                  "max": 2562.953
+                },
+                "work": {
+                  "n": 65,
+                  "median": 50234750,
+                  "p90": 286325529,
+                  "max": 714888713
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 78,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 37155,
+                "timeShare": 0
+              },
+              "set": {
+                "calls": 20,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 4016,
+                "timeShare": 0
+              },
+              "both": {
+                "calls": 98,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 41171,
+                "timeShare": 0
+              }
+            },
+            "startCountCapped": {
+              "tuples": 0,
+              "capped": 0,
+              "share": null,
+              "calls": 0
+            },
+            "locate": {
+              "calls": 74,
+              "results": {
+                "hit": 65,
+                "window": 9
+              },
+              "proofs": {
+                "direct": 74
+              },
+              "callsWithRescue": 0,
+              "rescueSides": {},
+              "probes": {
+                "n": 74,
+                "median": 1,
+                "p90": 3,
+                "max": 6
+              },
+              "heuristicEnds": 0
+            },
+            "windowProfiles": {
+              "basis": "phases window, p2, beam, rerate",
+              "okCalls": 74,
+              "n": 74,
+              "median": 0,
+              "p90": 7,
+              "max": 18,
+              "mean": 2.445945945945946
+            },
+            "rerates": {
+              "callsFinished": 74,
+              "perCallMean": 0,
+              "perCallMax": 0,
+              "msShare": 0,
+              "workShare": 0
+            },
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 5,
+                "median": 124044979.5,
+                "p90": 385293601.7,
+                "max": 385293601.7
+              },
+              "withSet": {
+                "n": 5,
+                "median": 134087472.6,
+                "p90": 415518403.9,
+                "max": 415518403.9
+              },
+              "requestsWithUnfinishedCalls": 5,
+              "unfinishedCalls": 24
+            },
+            "waves": {
+              "n": 5,
+              "median": 6.183917689046895,
+              "p90": 10.97463909406736,
+              "max": 10.97463909406736
+            },
+            "setShare": {
+              "n": 5,
+              "median": 0.24553574163543326,
+              "p90": 0.3512415882291412,
+              "max": 0.3512415882291412
+            }
+          },
+          "paired": {
+            "seeds": [
+              "landscape/14x14-master/0",
+              "landscape/14x14-master/1",
+              "landscape/14x14-master/2",
+              "landscape/14x14-master/3",
+              "landscape/14x14-master/4"
+            ],
+            "t10Ratio": {
+              "n": 5,
+              "median": 1.2469649678838828,
+              "min": 0.6765656599636313,
+              "max": 2.1833417664653494
+            },
+            "responseRatio": {
+              "n": 5,
+              "median": 1.2072539172355883,
+              "min": 0.6927798302955045,
+              "max": 2.141010733725849
+            },
+            "fewerPuzzles": [],
+            "completion": {
+              "before": 5,
+              "after": 5,
+              "of": 5
+            }
+          },
+          "drift": {
+            "ratios": [
+              1.012347959598764,
+              1.0608020552017687,
+              1.0863159214088847,
+              1.1106713120628113,
+              1.0817962940629642
+            ],
+            "median": 1.0817962940629642
+          },
+          "identity": [
+            {
+              "seed": "landscape/14x14-master/0",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-master/1",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-master/2",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-master/3",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-master/4",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ],
+          "seeds": [
+            {
+              "seed": "landscape/14x14-master/0",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 4382.7067,
+                "t10": 11023.7881,
+                "response": 11180.252
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 4309.8367,
+                "t10": 11176.3014,
+                "response": 11318.3053,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 1077.6606,
+                "t10": 5118.8969,
+                "response": 5286.430899999999,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/14x14-master/1",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 297.9317,
+                "t10": 2999.4805,
+                "response": 3124.7151
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 374.5851,
+                "t10": 3178.2056000000002,
+                "response": 3314.7042,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 273.7741,
+                "t10": 2154.6053,
+                "response": 2293.5115,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/14x14-master/2",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 343.2514,
+                "t10": 1648.2474,
+                "response": 1788.7568999999999
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 396.49850000000004,
+                "t10": 1811.5210000000002,
+                "response": 1943.1551000000002,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 356.7006,
+                "t10": 1452.7441,
+                "response": 1609.5662,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/14x14-master/3",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 324.1108,
+                "t10": 1618.7193000000002,
+                "response": 1745.671
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 394.6147,
+                "t10": 1802.0324999999998,
+                "response": 1938.8666999999998,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 935.5319,
+                "t10": 2663.4998,
+                "response": 2798.6766000000002,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/14x14-master/4",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 745.5381,
+                "t10": 2903.1149,
+                "response": 3060.5323
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 832.0462,
+                "t10": 3172.9042,
+                "response": 3310.8725,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 937.1934999999999,
+                "t10": 3170.6205,
+                "response": 3322.9345000000003,
+                "partial": null,
+                "censored": false
+              }
+            }
+          ]
+        },
+        "26x26-master": {
+          "mp12b1": {
+            "report": "docs/difficulty-v3/landscape-v3-full/26x26-master-2026-11-14.json",
+            "all": {
+              "requests": 20,
+              "reached": 20,
+              "t10": {
+                "n": 20,
+                "min": 3742.4069,
+                "median": 8361.59295,
+                "p95": 16643.639,
+                "max": 23311.3877
+              },
+              "response": {
+                "n": 20,
+                "min": 3919.4478,
+                "median": 8527.02335,
+                "p95": 16801.6986,
+                "max": 23456.209499999997
+              }
+            },
+            "matched": {
+              "requests": 5,
+              "reached": 5,
+              "t1": {
+                "n": 5,
+                "min": 744.0173,
+                "median": 1266.8347,
+                "p95": 5339.4328,
+                "max": 5339.4328
+              },
+              "t10": {
+                "n": 5,
+                "min": 6702.5713,
+                "median": 11868.7701,
+                "p95": 12152.449700000001,
+                "max": 12152.449700000001
+              },
+              "response": {
+                "n": 5,
+                "min": 6849.4311,
+                "median": 12041.398,
+                "p95": 12320.230300000001,
+                "max": 12320.230300000001
+              }
+            }
+          },
+          "before": {
+            "requests": 5,
+            "reached": 5,
+            "censored": 0,
+            "t1": {
+              "n": 5,
+              "min": 803.2822,
+              "median": 1290.1170000000002,
+              "p95": 5547.5291,
+              "max": 5547.5291
+            },
+            "t10": {
+              "n": 5,
+              "min": 6456.677299999999,
+              "median": 12263.5049,
+              "p95": 12491.9087,
+              "max": 12491.9087
+            },
+            "response": {
+              "n": 5,
+              "min": 6609.7464,
+              "median": 12432.796199999999,
+              "p95": 12622.3708,
+              "max": 12622.3708
+            },
+            "accepted": [
+              10,
+              10,
+              10,
+              10,
+              10
+            ],
+            "journal": {
+              "calls": 104,
+              "finished": 81
+            },
+            "stages": {
+              "set": {
+                "calls": 20,
+                "ok": 12,
+                "noWindow": 0,
+                "unfinished": 8,
+                "unfinishedProfiles": 35,
+                "profiles": {
+                  "n": 12,
+                  "median": 5,
+                  "p90": 14,
+                  "max": 17
+                },
+                "outcomes": {
+                  "ar1": 4,
+                  "below": 68,
+                  "in": 32,
+                  "central": 12,
+                  "above": 4
+                },
+                "ms": {
+                  "n": 12,
+                  "median": 1072.2585,
+                  "p90": 2981.083,
+                  "max": 5363.746
+                },
+                "work": {
+                  "n": 12,
+                  "median": 285956531.5,
+                  "p90": 757732080,
+                  "max": 1452908312
+                }
+              },
+              "batch": {
+                "calls": 84,
+                "ok": 69,
+                "noWindow": 0,
+                "unfinished": 15,
+                "unfinishedProfiles": 71,
+                "profiles": {
+                  "n": 69,
+                  "median": 6,
+                  "p90": 16,
+                  "max": 30
+                },
+                "outcomes": {
+                  "ar1": 12,
+                  "below": 363,
+                  "in": 131,
+                  "central": 69,
+                  "above": 34
+                },
+                "ms": {
+                  "n": 69,
+                  "median": 1463.485,
+                  "p90": 4239.196,
+                  "max": 8833.063
+                },
+                "work": {
+                  "n": 69,
+                  "median": 431061793,
+                  "p90": 1294663179,
+                  "max": 2682327243
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 84,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 157188,
+                "timeShare": 0
+              },
+              "set": {
+                "calls": 20,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 30296,
+                "timeShare": 0
+              },
+              "both": {
+                "calls": 104,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 187484,
+                "timeShare": 0
+              }
+            },
+            "startCountCapped": {
+              "tuples": 364,
+              "capped": 0,
+              "share": 0,
+              "calls": 102
+            },
+            "locate": null,
+            "windowProfiles": {
+              "basis": "all tuples of the call",
+              "okCalls": 81,
+              "n": 81,
+              "median": 6,
+              "p90": 14,
+              "max": 30,
+              "mean": 7.691358024691358
+            },
+            "rerates": null,
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 5,
+                "median": 974187024.8,
+                "p90": 1238598775.8,
+                "max": 1238598775.8
+              },
+              "withSet": {
+                "n": 5,
+                "median": 1210124315.4,
+                "p90": 1333936329.6,
+                "max": 1333936329.6
+              },
+              "requestsWithUnfinishedCalls": 5,
+              "unfinishedCalls": 23
+            },
+            "waves": {
+              "n": 5,
+              "median": 6.356624255024627,
+              "p90": 8.488239373348273,
+              "max": 8.488239373348273
+            },
+            "setShare": {
+              "n": 5,
+              "median": 0.12441108060333139,
+              "p90": 0.44408978909684155,
+              "max": 0.44408978909684155
+            }
+          },
+          "after": {
+            "requests": 5,
+            "reached": 5,
+            "censored": 0,
+            "t1": {
+              "n": 5,
+              "min": 578.5219999999999,
+              "median": 2607.5808,
+              "p95": 10417.0815,
+              "max": 10417.0815
+            },
+            "t10": {
+              "n": 5,
+              "min": 5773.3247,
+              "median": 13429.243499999999,
+              "p95": 16914.630999999998,
+              "max": 16914.630999999998
+            },
+            "response": {
+              "n": 5,
+              "min": 5920.0287,
+              "median": 13603.9313,
+              "p95": 17069.4439,
+              "max": 17069.4439
+            },
+            "accepted": [
+              10,
+              10,
+              10,
+              10,
+              10
+            ],
+            "journal": {
+              "calls": 99,
+              "finished": 77
+            },
+            "stages": {
+              "set": {
+                "calls": 20,
+                "ok": 11,
+                "noWindow": 0,
+                "unfinished": 9,
+                "unfinishedProfiles": 25,
+                "profiles": {
+                  "n": 11,
+                  "median": 4,
+                  "p90": 6,
+                  "max": 22
+                },
+                "outcomes": {
+                  "below": 31,
+                  "above": 15,
+                  "central": 11,
+                  "in": 14,
+                  "scap1": 6,
+                  "scap0": 1,
+                  "ar1": 1
+                },
+                "ms": {
+                  "n": 11,
+                  "median": 1239.241,
+                  "p90": 2472.082,
+                  "max": 10246.617
+                },
+                "work": {
+                  "n": 11,
+                  "median": 224740294,
+                  "p90": 721785864,
+                  "max": 3499260323
+                }
+              },
+              "batch": {
+                "calls": 79,
+                "ok": 66,
+                "noWindow": 0,
+                "unfinished": 13,
+                "unfinishedProfiles": 66,
+                "profiles": {
+                  "n": 66,
+                  "median": 4,
+                  "p90": 12,
+                  "max": 34
+                },
+                "outcomes": {
+                  "below": 177,
+                  "above": 73,
+                  "central": 66,
+                  "in": 118,
+                  "scap0": 16,
+                  "scap1": 15,
+                  "ar1": 5,
+                  "over": 1
+                },
+                "ms": {
+                  "n": 66,
+                  "median": 1580.2685,
+                  "p90": 5238.787,
+                  "max": 11710.18
+                },
+                "work": {
+                  "n": 66,
+                  "median": 454877626.5,
+                  "p90": 1495106999,
+                  "max": 3449941368
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 79,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 162784,
+                "timeShare": 0
+              },
+              "set": {
+                "calls": 20,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 32015,
+                "timeShare": 0
+              },
+              "both": {
+                "calls": 99,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 194799,
+                "timeShare": 0
+              }
+            },
+            "startCountCapped": {
+              "tuples": 0,
+              "capped": 0,
+              "share": null,
+              "calls": 0
+            },
+            "locate": {
+              "calls": 77,
+              "results": {
+                "hit": 67,
+                "window": 10
+              },
+              "proofs": {
+                "direct": 77
+              },
+              "callsWithRescue": 0,
+              "rescueSides": {},
+              "probes": {
+                "n": 77,
+                "median": 2,
+                "p90": 4,
+                "max": 6
+              },
+              "heuristicEnds": 0
+            },
+            "windowProfiles": {
+              "basis": "phases window, p2, beam, rerate",
+              "okCalls": 77,
+              "n": 77,
+              "median": 2,
+              "p90": 10,
+              "max": 32,
+              "mean": 3.6233766233766236
+            },
+            "rerates": {
+              "callsFinished": 77,
+              "perCallMean": 0,
+              "perCallMax": 0,
+              "msShare": 0,
+              "workShare": 0
+            },
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 5,
+                "median": 763219522.5,
+                "p90": 1722797045.2,
+                "max": 1722797045.2
+              },
+              "withSet": {
+                "n": 5,
+                "median": 1120695066,
+                "p90": 1732575754.9,
+                "max": 1732575754.9
+              },
+              "requestsWithUnfinishedCalls": 5,
+              "unfinishedCalls": 22
+            },
+            "waves": {
+              "n": 5,
+              "median": 4.967066389726532,
+              "p90": 14.118141063000564,
+              "max": 14.118141063000564
+            },
+            "setShare": {
+              "n": 5,
+              "median": 0.27055075381612337,
+              "p90": 0.6158621787256253,
+              "max": 0.6158621787256253
+            }
+          },
+          "paired": {
+            "seeds": [
+              "landscape/26x26-master/0",
+              "landscape/26x26-master/1",
+              "landscape/26x26-master/2",
+              "landscape/26x26-master/3",
+              "landscape/26x26-master/4"
+            ],
+            "t10Ratio": {
+              "n": 5,
+              "median": 0.8252384373188708,
+              "min": 0.38172143985878265,
+              "max": 2.1316653296842976
+            },
+            "responseRatio": {
+              "n": 5,
+              "median": 0.8251576495433529,
+              "min": 0.3872268152801393,
+              "max": 2.1050116699603163
+            },
+            "fewerPuzzles": [],
+            "completion": {
+              "before": 5,
+              "after": 5,
+              "of": 5
+            }
+          },
+          "drift": {
+            "ratios": [
+              1.0114851099820754,
+              0.9963456108722182,
+              0.9650066266087413,
+              1.03250438196628,
+              1.032012298556557
+            ],
+            "median": 1.0114851099820754
+          },
+          "identity": [
+            {
+              "seed": "landscape/26x26-master/0",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-master/1",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-master/2",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-master/3",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-master/4",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ],
+          "seeds": [
+            {
+              "seed": "landscape/26x26-master/0",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 3050.094,
+                "t10": 12152.449700000001,
+                "response": 12320.230300000001
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 2865.4038,
+                "t10": 12306.7961,
+                "response": 12461.7295,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 1707.7785,
+                "t10": 5773.3247,
+                "response": 5920.0287,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/26x26-master/1",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 1194.9958000000001,
+                "t10": 9982.932,
+                "response": 10158.442000000001
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 1141.341,
+                "t10": 10042.760199999999,
+                "response": 10121.319099999999,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 2632.0580999999997,
+                "t10": 13429.243499999999,
+                "response": 13603.9313,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/26x26-master/2",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 744.0173,
+                "t10": 6702.5713,
+                "response": 6849.4311
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 803.2822,
+                "t10": 6456.677299999999,
+                "response": 6609.7464,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 10417.0815,
+                "t10": 16914.630999999998,
+                "response": 17069.4439,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/26x26-master/3",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 1266.8347,
+                "t10": 11868.7701,
+                "response": 12041.398
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 1290.1170000000002,
+                "t10": 12263.5049,
+                "response": 12432.796199999999,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 2607.5808,
+                "t10": 9638.046699999999,
+                "response": 9755.294899999999,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/26x26-master/4",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 5339.4328,
+                "t10": 12106.1592,
+                "response": 12230.833700000001
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 5547.5291,
+                "t10": 12491.9087,
+                "response": 12622.3708,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 578.5219999999999,
+                "t10": 15137.3326,
+                "response": 15296.9203,
+                "partial": null,
+                "censored": false
+              }
+            }
+          ]
+        },
+        "26x26-hell-1": {
+          "mp12b1": {
+            "report": "docs/difficulty-v3/landscape-v3-full/26x26-hell-1-2026-11-14.json",
+            "all": {
+              "requests": 20,
+              "reached": 9,
+              "t10": {
+                "n": 9,
+                "min": 68544.6039,
+                "median": 108717.58559999999,
+                "p95": 167589.49889999998,
+                "max": 167589.49889999998
+              },
+              "response": {
+                "n": 20,
+                "min": 68669.4292,
+                "median": 157500.4124,
+                "p95": 182067.1977,
+                "max": 206655.6013
+              }
+            },
+            "matched": {
+              "requests": 3,
+              "reached": 2,
+              "t1": {
+                "n": 3,
+                "min": 30911.0576,
+                "median": 83850.4961,
+                "p95": 85448.51019999999,
+                "max": 85448.51019999999
+              },
+              "t10": {
+                "n": 2,
+                "min": 120252.4329,
+                "median": 143920.96589999998,
+                "p95": 167589.49889999998,
+                "max": 167589.49889999998
+              },
+              "response": {
+                "n": 3,
+                "min": 120396.9377,
+                "median": 146007.8052,
+                "p95": 167752.6242,
+                "max": 167752.6242
+              }
+            }
+          },
+          "before": {
+            "requests": 3,
+            "reached": 2,
+            "censored": 0,
+            "t1": {
+              "n": 3,
+              "min": 31920.7677,
+              "median": 85227.9657,
+              "p95": 90349.2689,
+              "max": 90349.2689
+            },
+            "t10": {
+              "n": 2,
+              "min": 120438.8023,
+              "median": 149866.58779999998,
+              "p95": 179294.37329999998,
+              "max": 179294.37329999998
+            },
+            "response": {
+              "n": 3,
+              "min": 120610.8985,
+              "median": 147049.0356,
+              "p95": 179437.2216,
+              "max": 179437.2216
+            },
+            "accepted": [
+              5,
+              10,
+              10
+            ],
+            "journal": {
+              "calls": 65,
+              "finished": 52
+            },
+            "stages": {
+              "set": {
+                "calls": 20,
+                "ok": 4,
+                "noWindow": 0,
+                "unfinished": 2,
+                "unfinishedProfiles": 16,
+                "profiles": {
+                  "n": 18,
+                  "median": 20,
+                  "p90": 20,
+                  "max": 20
+                },
+                "outcomes": {
+                  "capped": 325,
+                  "above": 8,
+                  "in": 6,
+                  "central": 4,
+                  "below": 1
+                },
+                "ms": {
+                  "n": 18,
+                  "median": 42586.059,
+                  "p90": 45075.981,
+                  "max": 45580.288
+                },
+                "work": {
+                  "n": 18,
+                  "median": 15229991649,
+                  "p90": 15233060872,
+                  "max": 15233428791
+                }
+              },
+              "batch": {
+                "calls": 45,
+                "ok": 33,
+                "noWindow": 0,
+                "unfinished": 11,
+                "unfinishedProfiles": 57,
+                "profiles": {
+                  "n": 34,
+                  "median": 9,
+                  "p90": 20,
+                  "max": 41
+                },
+                "outcomes": {
+                  "in": 49,
+                  "capped": 278,
+                  "above": 73,
+                  "central": 32
+                },
+                "ms": {
+                  "n": 34,
+                  "median": 18368.66,
+                  "p90": 46938.874,
+                  "max": 96868.605
+                },
+                "work": {
+                  "n": 34,
+                  "median": 5969408575,
+                  "p90": 15228594777,
+                  "max": 25416239084
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 45,
+                "callsWithP2": 16,
+                "callShare": 0.35555555555555557,
+                "p2Tuples": 75,
+                "p2Ms": 157101,
+                "allMs": 937647,
+                "timeShare": 0.16754783238037935
+              },
+              "set": {
+                "calls": 20,
+                "callsWithP2": 17,
+                "callShare": 0.85,
+                "p2Tuples": 233,
+                "p2Ms": 503959,
+                "allMs": 746888,
+                "timeShare": 0.6747447676616681
+              },
+              "both": {
+                "calls": 65,
+                "callsWithP2": 33,
+                "callShare": 0.5076923076923077,
+                "p2Tuples": 308,
+                "p2Ms": 661059,
+                "allMs": 1684535,
+                "timeShare": 0.3924284152547842
+              }
+            },
+            "startCountCapped": {
+              "tuples": 242,
+              "capped": 203,
+              "share": 0.8388429752066116,
+              "calls": 63
+            },
+            "locate": null,
+            "windowProfiles": {
+              "basis": "all tuples of the call",
+              "okCalls": 37,
+              "n": 37,
+              "median": 9,
+              "p90": 19,
+              "max": 41,
+              "mean": 10.891891891891891
+            },
+            "rerates": null,
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 3,
+                "median": 10576914454.3,
+                "p90": 25960498767,
+                "max": 25960498767
+              },
+              "withSet": {
+                "n": 3,
+                "median": 22244322788.4,
+                "p90": 31440978892.2,
+                "max": 31440978892.2
+              },
+              "requestsWithUnfinishedCalls": 3,
+              "unfinishedCalls": 13
+            },
+            "waves": {
+              "n": 2,
+              "median": 3.716995718108155,
+              "p90": 4.087732409799644,
+              "max": 4.087732409799644
+            },
+            "setShare": {
+              "n": 2,
+              "median": 0.6057806090214315,
+              "p90": 0.7076454105522104,
+              "max": 0.7076454105522104
+            }
+          },
+          "after": {
+            "requests": 3,
+            "reached": 3,
+            "censored": 0,
+            "t1": {
+              "n": 3,
+              "min": 4265.1867999999995,
+              "median": 4637.1504,
+              "p95": 12839.5472,
+              "max": 12839.5472
+            },
+            "t10": {
+              "n": 3,
+              "min": 22979.864800000003,
+              "median": 37245.4423,
+              "p95": 42175.7135,
+              "max": 42175.7135
+            },
+            "response": {
+              "n": 3,
+              "min": 23137.3861,
+              "median": 37427.161100000005,
+              "p95": 42357.2089,
+              "max": 42357.2089
+            },
+            "accepted": [
+              10,
+              10,
+              10
+            ],
+            "journal": {
+              "calls": 62,
+              "finished": 47
+            },
+            "stages": {
+              "set": {
+                "calls": 12,
+                "ok": 6,
+                "noWindow": 0,
+                "unfinished": 6,
+                "unfinishedProfiles": 33,
+                "profiles": {
+                  "n": 6,
+                  "median": 4.5,
+                  "p90": 17,
+                  "max": 17
+                },
+                "outcomes": {
+                  "scap0": 36,
+                  "below": 16,
+                  "central": 6,
+                  "in": 12,
+                  "above": 1
+                },
+                "ms": {
+                  "n": 6,
+                  "median": 4180.305,
+                  "p90": 12650.124,
+                  "max": 12650.124
+                },
+                "work": {
+                  "n": 6,
+                  "median": 1372818166.5,
+                  "p90": 4951372396,
+                  "max": 4951372396
+                }
+              },
+              "batch": {
+                "calls": 50,
+                "ok": 41,
+                "noWindow": 0,
+                "unfinished": 9,
+                "unfinishedProfiles": 27,
+                "profiles": {
+                  "n": 41,
+                  "median": 6,
+                  "p90": 18,
+                  "max": 32
+                },
+                "outcomes": {
+                  "scap0": 126,
+                  "below": 133,
+                  "central": 40,
+                  "in": 54,
+                  "above": 16,
+                  "scap1": 1
+                },
+                "ms": {
+                  "n": 41,
+                  "median": 6032.068,
+                  "p90": 11658.685,
+                  "max": 26997.014
+                },
+                "work": {
+                  "n": 41,
+                  "median": 1753753721,
+                  "p90": 4069217909,
+                  "max": 7375468655
+                }
+              }
+            },
+            "deadEnd": {
+              "batch": {
+                "calls": 50,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 314638,
+                "timeShare": 0
+              },
+              "set": {
+                "calls": 12,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 64028,
+                "timeShare": 0
+              },
+              "both": {
+                "calls": 62,
+                "callsWithP2": 0,
+                "callShare": 0,
+                "p2Tuples": 0,
+                "p2Ms": 0,
+                "allMs": 378666,
+                "timeShare": 0
+              }
+            },
+            "startCountCapped": {
+              "tuples": 0,
+              "capped": 0,
+              "share": null,
+              "calls": 0
+            },
+            "locate": {
+              "calls": 47,
+              "results": {
+                "hit": 35,
+                "window": 12
+              },
+              "proofs": {
+                "direct": 47
+              },
+              "callsWithRescue": 0,
+              "rescueSides": {},
+              "probes": {
+                "n": 47,
+                "median": 4,
+                "p90": 6,
+                "max": 6
+              },
+              "heuristicEnds": 0
+            },
+            "windowProfiles": {
+              "basis": "phases window, p2, beam, rerate",
+              "okCalls": 47,
+              "n": 47,
+              "median": 1,
+              "p90": 13,
+              "max": 27,
+              "mean": 4.148936170212766
+            },
+            "rerates": {
+              "callsFinished": 47,
+              "perCallMean": 0,
+              "perCallMax": 0,
+              "msShare": 0,
+              "workShare": 0
+            },
+            "workPerAccepted": {
+              "withoutSet": {
+                "n": 3,
+                "median": 3124124498.3,
+                "p90": 4431637043,
+                "max": 4431637043
+              },
+              "withSet": {
+                "n": 3,
+                "median": 4217335093.7,
+                "p90": 4885735833,
+                "max": 4885735833
+              },
+              "requestsWithUnfinishedCalls": 3,
+              "unfinishedCalls": 15
+            },
+            "waves": {
+              "n": 3,
+              "median": 3.8374899663656064,
+              "p90": 6.380780484340123,
+              "max": 6.380780484340123
+            },
+            "setShare": {
+              "n": 3,
+              "median": 0.20179189217858234,
+              "p90": 0.3447280098483352,
+              "max": 0.3447280098483352
+            }
+          },
+          "paired": {
+            "seeds": [
+              "landscape/26x26-hell-1/0",
+              "landscape/26x26-hell-1/1",
+              "landscape/26x26-hell-1/2"
+            ],
+            "t10Ratio": {
+              "n": 2,
+              "median": 5.027459339247918,
+              "min": 4.813860763307407,
+              "max": 5.24105791518843
+            },
+            "responseRatio": {
+              "n": 3,
+              "median": 4.794304893191591,
+              "min": 3.4716412959872813,
+              "max": 5.212814359354102
+            },
+            "fewerPuzzles": [],
+            "completion": {
+              "before": 2,
+              "after": 3,
+              "of": 3
+            }
+          },
+          "drift": {
+            "ratios": [
+              1.007131333825433,
+              1.0696537383884335,
+              1.0017771282566434
+            ],
+            "median": 1.007131333825433
+          },
+          "identity": [
+            {
+              "seed": "landscape/26x26-hell-1/0",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 5,
+              "acceptedBefore": 5,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 5)"
+            },
+            {
+              "seed": "landscape/26x26-hell-1/1",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-hell-1/2",
+              "level": "puzzle-identity",
+              "countsEqual": true,
+              "acceptedMp12b1": 10,
+              "acceptedBefore": 10,
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ],
+          "seeds": [
+            {
+              "seed": "landscape/26x26-hell-1/0",
+              "mp12b1": {
+                "accepted": 5,
+                "t1": 30911.0576,
+                "t10": null,
+                "response": 146007.8052
+              },
+              "before": {
+                "accepted": 5,
+                "t1": 31920.7677,
+                "t10": null,
+                "response": 147049.0356,
+                "partial": "time-limit",
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 4265.1867999999995,
+                "t10": 42175.7135,
+                "response": 42357.2089,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/26x26-hell-1/1",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 83850.4961,
+                "t10": 167589.49889999998,
+                "response": 167752.6242
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 90349.2689,
+                "t10": 179294.37329999998,
+                "response": 179437.2216,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 12839.5472,
+                "t10": 37245.4423,
+                "response": 37427.161100000005,
+                "partial": null,
+                "censored": false
+              }
+            },
+            {
+              "seed": "landscape/26x26-hell-1/2",
+              "mp12b1": {
+                "accepted": 10,
+                "t1": 85448.51019999999,
+                "t10": 120252.4329,
+                "response": 120396.9377
+              },
+              "before": {
+                "accepted": 10,
+                "t1": 85227.9657,
+                "t10": 120438.8023,
+                "response": 120610.8985,
+                "partial": null,
+                "censored": false
+              },
+              "after": {
+                "accepted": 10,
+                "t1": 4637.1504,
+                "t10": 22979.864800000003,
+                "response": 23137.3861,
+                "partial": null,
+                "censored": false
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "rows": {
+    "R01": {
+      "value": {
+        "14x14-nightmare": {
+          "today": {
+            "n": 11,
+            "min": 46052.304599999996,
+            "median": 112978.63410000001,
+            "p95": 151637.2396,
+            "max": 151637.2396
+          },
+          "reRunBefore": {
+            "n": 1,
+            "min": 46543.7433,
+            "median": 46543.7433,
+            "p95": 46543.7433,
+            "max": 46543.7433
+          },
+          "reached": "1 of 3",
+          "responseDriftMedian": 1.0092791744058127
+        }
+      },
+      "kind": "Measured; drift Derived",
+      "formula": "before arm T10 on reps 0-2 beside MP12b1 (20 reps); drift = median of before response / MP12b1 response on the same seeds"
+    },
+    "R02": {
+      "value": {
+        "14x14-nightmare": {
+          "afterT10": {
+            "n": 3,
+            "min": 5480.7047,
+            "median": 8942.1149,
+            "p95": 12198.9337,
+            "max": 12198.9337
+          },
+          "pairedT10Ratio": {
+            "n": 1,
+            "median": 3.8153943979546345,
+            "min": 3.8153943979546345,
+            "max": 3.8153943979546345
+          }
+        }
+      },
+      "kind": "Measured; ratio Derived",
+      "formula": "after arm T10 median (n of 3); ratio = before T10 / after T10 per seed, both reached ten"
+    },
+    "R03": {
+      "value": {
+        "12x12-nightmare": {
+          "before": "3 of 3",
+          "after": "3 of 3",
+          "censored": 0
+        },
+        "14x14-nightmare": {
+          "before": "1 of 3",
+          "after": "3 of 3",
+          "censored": 0
+        },
+        "15x15b10-nightmare": {
+          "before": "2 of 3",
+          "after": "3 of 3",
+          "censored": 0
+        }
+      },
+      "kind": "Measured",
+      "formula": "requests that reached ten / requests, reps 0-2"
+    },
+    "R04": {
+      "value": {
+        "15x15b10-nightmare": {
+          "afterT10": {
+            "n": 3,
+            "min": 5957.5059,
+            "median": 8445.7583,
+            "p95": 9006.5432,
+            "max": 9006.5432
+          },
+          "pairedT10Ratio": {
+            "n": 2,
+            "median": 8.215278657596759,
+            "min": 7.932069559511472,
+            "max": 8.498487755682046
+          }
+        }
+      },
+      "kind": "Measured; ratio Derived",
+      "formula": "as R02"
+    },
+    "R05": {
+      "value": {
+        "12x12-nightmare": {
+          "afterT10": {
+            "n": 3,
+            "min": 4711.4834,
+            "median": 5735.4231,
+            "p95": 11177.4862,
+            "max": 11177.4862
+          },
+          "pairedT10Ratio": {
+            "n": 3,
+            "median": 9.26159452822234,
+            "min": 2.492034792223676,
+            "max": 15.49744439299096
+          }
+        }
+      },
+      "kind": "Measured; ratio Derived",
+      "formula": "as R02"
+    },
+    "R06": {
+      "value": {
+        "26x26-nightmare": {
+          "afterT10": {
+            "n": 6,
+            "min": 9313.527,
+            "median": 11937.80255,
+            "p95": 15021.119,
+            "max": 15021.119
+          },
+          "pairedT10Ratio": {
+            "n": 6,
+            "median": 2.0137945394355423,
+            "min": 0.6896075315311228,
+            "max": 3.9058979374838336
+          }
+        }
+      },
+      "kind": "Measured; ratio Derived",
+      "formula": "as R02 (reps 0-5)"
+    },
+    "R07": {
+      "value": {
+        "14x14-master": {
+          "beforeT10": {
+            "n": 5,
+            "min": 1802.0324999999998,
+            "median": 3172.9042,
+            "p95": 11176.3014,
+            "max": 11176.3014
+          },
+          "afterT10": {
+            "n": 5,
+            "min": 1452.7441,
+            "median": 2663.4998,
+            "p95": 5118.8969,
+            "max": 5118.8969
+          },
+          "pairedT10Ratio": {
+            "n": 5,
+            "median": 1.2469649678838828,
+            "min": 0.6765656599636313,
+            "max": 2.1833417664653494
+          }
+        },
+        "26x26-master": {
+          "beforeT10": {
+            "n": 5,
+            "min": 6456.677299999999,
+            "median": 12263.5049,
+            "p95": 12491.9087,
+            "max": 12491.9087
+          },
+          "afterT10": {
+            "n": 5,
+            "min": 5773.3247,
+            "median": 13429.243499999999,
+            "p95": 16914.630999999998,
+            "max": 16914.630999999998
+          },
+          "pairedT10Ratio": {
+            "n": 5,
+            "median": 0.8252384373188708,
+            "min": 0.38172143985878265,
+            "max": 2.1316653296842976
+          }
+        }
+      },
+      "kind": "Measured; ratio Derived",
+      "formula": "before and after T10 medians (reps 0-4)"
+    },
+    "R08": {
+      "value": {
+        "26x26-hell-1": {
+          "afterT10": {
+            "n": 3,
+            "min": 22979.864800000003,
+            "median": 37245.4423,
+            "p95": 42175.7135,
+            "max": 42175.7135
+          },
+          "reached": "3 of 3",
+          "beforeReached": "2 of 3",
+          "pairedT10Ratio": {
+            "n": 2,
+            "median": 5.027459339247918,
+            "min": 4.813860763307407,
+            "max": 5.24105791518843
+          }
+        }
+      },
+      "kind": "Measured; ratio Derived",
+      "formula": "as R02, ten of n beside"
+    },
+    "R10": {
+      "value": {
+        "14x14-nightmare": {
+          "batch": {
+            "calls": 36,
+            "callsWithP2": 19,
+            "callShare": 0.5277777777777778,
+            "p2Tuples": 191,
+            "p2Ms": 407219,
+            "allMs": 1026005,
+            "timeShare": 0.39689773814351653
+          },
+          "set": {
+            "calls": 15,
+            "callsWithP2": 13,
+            "callShare": 0.8666666666666667,
+            "p2Tuples": 99,
+            "p2Ms": 216880,
+            "allMs": 409245,
+            "timeShare": 0.5299523299080766
+          },
+          "both": {
+            "calls": 51,
+            "callsWithP2": 32,
+            "callShare": 0.6274509803921569,
+            "p2Tuples": 290,
+            "p2Ms": 624100,
+            "allMs": 1435250,
+            "timeShare": 0.434836700335667
+          }
+        },
+        "15x15b10-nightmare": {
+          "batch": {
+            "calls": 50,
+            "callsWithP2": 26,
+            "callShare": 0.52,
+            "p2Tuples": 139,
+            "p2Ms": 301022,
+            "allMs": 810914,
+            "timeShare": 0.3712139378969347
+          },
+          "set": {
+            "calls": 16,
+            "callsWithP2": 15,
+            "callShare": 0.9375,
+            "p2Tuples": 101,
+            "p2Ms": 217064,
+            "allMs": 366914,
+            "timeShare": 0.5915943180028531
+          },
+          "both": {
+            "calls": 66,
+            "callsWithP2": 41,
+            "callShare": 0.6212121212121212,
+            "p2Tuples": 240,
+            "p2Ms": 518086,
+            "allMs": 1177827,
+            "timeShare": 0.4398662535099299
+          }
+        },
+        "12x12-nightmare": {
+          "batch": {
+            "calls": 44,
+            "callsWithP2": 9,
+            "callShare": 0.20454545454545456,
+            "p2Tuples": 39,
+            "p2Ms": 91345,
+            "allMs": 487570,
+            "timeShare": 0.18734789421214199
+          },
+          "set": {
+            "calls": 12,
+            "callsWithP2": 2,
+            "callShare": 0.16666666666666666,
+            "p2Tuples": 10,
+            "p2Ms": 22274,
+            "allMs": 89679,
+            "timeShare": 0.24837179792314495
+          },
+          "both": {
+            "calls": 56,
+            "callsWithP2": 11,
+            "callShare": 0.19642857142857142,
+            "p2Tuples": 49,
+            "p2Ms": 113619,
+            "allMs": 577248,
+            "timeShare": 0.19682828779804556
+          }
+        },
+        "26x26-nightmare": {
+          "batch": {
+            "calls": 105,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 404309,
+            "timeShare": 0
+          },
+          "set": {
+            "calls": 24,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 79551,
+            "timeShare": 0
+          },
+          "both": {
+            "calls": 129,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 483859,
+            "timeShare": 0
+          }
+        },
+        "14x14-master": {
+          "batch": {
+            "calls": 81,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 48361,
+            "timeShare": 0
+          },
+          "set": {
+            "calls": 20,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 7705,
+            "timeShare": 0
+          },
+          "both": {
+            "calls": 101,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 56066,
+            "timeShare": 0
+          }
+        },
+        "26x26-master": {
+          "batch": {
+            "calls": 84,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 157188,
+            "timeShare": 0
+          },
+          "set": {
+            "calls": 20,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 30296,
+            "timeShare": 0
+          },
+          "both": {
+            "calls": 104,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 187484,
+            "timeShare": 0
+          }
+        },
+        "26x26-hell-1": {
+          "batch": {
+            "calls": 45,
+            "callsWithP2": 16,
+            "callShare": 0.35555555555555557,
+            "p2Tuples": 75,
+            "p2Ms": 157101,
+            "allMs": 937647,
+            "timeShare": 0.16754783238037935
+          },
+          "set": {
+            "calls": 20,
+            "callsWithP2": 17,
+            "callShare": 0.85,
+            "p2Tuples": 233,
+            "p2Ms": 503959,
+            "allMs": 746888,
+            "timeShare": 0.6747447676616681
+          },
+          "both": {
+            "calls": 65,
+            "callsWithP2": 33,
+            "callShare": 0.5076923076923077,
+            "p2Tuples": 308,
+            "p2Ms": 661059,
+            "allMs": 1684535,
+            "timeShare": 0.3924284152547842
+          }
+        }
+      },
+      "kind": "Derived",
+      "formula": "calls with a p2 phase entry / calls; sum of the p2 tuples ms / sum of all tuples ms; batch, set and both (before arm)"
+    },
+    "R11": {
+      "value": {
+        "14x14-nightmare": {
+          "batch": {
+            "calls": 52,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 71740,
+            "timeShare": 0
+          },
+          "set": {
+            "calls": 12,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 21536,
+            "timeShare": 0
+          },
+          "both": {
+            "calls": 64,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 93276,
+            "timeShare": 0
+          }
+        },
+        "15x15b10-nightmare": {
+          "batch": {
+            "calls": 55,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 62917,
+            "timeShare": 0
+          },
+          "set": {
+            "calls": 12,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 13690,
+            "timeShare": 0
+          },
+          "both": {
+            "calls": 67,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 76607,
+            "timeShare": 0
+          }
+        },
+        "12x12-nightmare": {
+          "batch": {
+            "calls": 42,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 63738,
+            "timeShare": 0
+          },
+          "set": {
+            "calls": 12,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 10887,
+            "timeShare": 0
+          },
+          "both": {
+            "calls": 54,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 74625,
+            "timeShare": 0
+          }
+        },
+        "26x26-nightmare": {
+          "batch": {
+            "calls": 80,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 190963,
+            "timeShare": 0
+          },
+          "set": {
+            "calls": 24,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 44150,
+            "timeShare": 0
+          },
+          "both": {
+            "calls": 104,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 235113,
+            "timeShare": 0
+          }
+        },
+        "14x14-master": {
+          "batch": {
+            "calls": 78,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 37155,
+            "timeShare": 0
+          },
+          "set": {
+            "calls": 20,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 4016,
+            "timeShare": 0
+          },
+          "both": {
+            "calls": 98,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 41171,
+            "timeShare": 0
+          }
+        },
+        "26x26-master": {
+          "batch": {
+            "calls": 79,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 162784,
+            "timeShare": 0
+          },
+          "set": {
+            "calls": 20,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 32015,
+            "timeShare": 0
+          },
+          "both": {
+            "calls": 99,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 194799,
+            "timeShare": 0
+          }
+        },
+        "26x26-hell-1": {
+          "batch": {
+            "calls": 50,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 314638,
+            "timeShare": 0
+          },
+          "set": {
+            "calls": 12,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 64028,
+            "timeShare": 0
+          },
+          "both": {
+            "calls": 62,
+            "callsWithP2": 0,
+            "callShare": 0,
+            "p2Tuples": 0,
+            "p2Ms": 0,
+            "allMs": 378666,
+            "timeShare": 0
+          }
+        }
+      },
+      "kind": "Derived",
+      "formula": "the same on the after arm (p2 entries per call)"
+    },
+    "R12": {
+      "value": {
+        "14x14-nightmare": {
+          "before": {
+            "basis": "all tuples of the call",
+            "okCalls": 18,
+            "n": 18,
+            "median": 6,
+            "p90": 32,
+            "max": 48,
+            "mean": 10.055555555555555
+          },
+          "after": {
+            "basis": "phases window, p2, beam, rerate",
+            "okCalls": 48,
+            "n": 48,
+            "median": 0,
+            "p90": 5,
+            "max": 12,
+            "mean": 1.6041666666666667
+          }
+        },
+        "15x15b10-nightmare": {
+          "before": {
+            "basis": "all tuples of the call",
+            "okCalls": 42,
+            "n": 42,
+            "median": 8,
+            "p90": 15,
+            "max": 17,
+            "mean": 8.238095238095237
+          },
+          "after": {
+            "basis": "phases window, p2, beam, rerate",
+            "okCalls": 51,
+            "n": 51,
+            "median": 0,
+            "p90": 3,
+            "max": 10,
+            "mean": 0.8431372549019608
+          }
+        },
+        "12x12-nightmare": {
+          "before": {
+            "basis": "all tuples of the call",
+            "okCalls": 40,
+            "n": 40,
+            "median": 5,
+            "p90": 10,
+            "max": 28,
+            "mean": 5.65
+          },
+          "after": {
+            "basis": "phases window, p2, beam, rerate",
+            "okCalls": 39,
+            "n": 39,
+            "median": 0,
+            "p90": 6,
+            "max": 9,
+            "mean": 1.4871794871794872
+          }
+        },
+        "26x26-nightmare": {
+          "before": {
+            "basis": "all tuples of the call",
+            "okCalls": 103,
+            "n": 103,
+            "median": 3,
+            "p90": 8,
+            "max": 17,
+            "mean": 3.8058252427184467
+          },
+          "after": {
+            "basis": "phases window, p2, beam, rerate",
+            "okCalls": 77,
+            "n": 77,
+            "median": 0,
+            "p90": 7,
+            "max": 15,
+            "mean": 2.168831168831169
+          }
+        },
+        "14x14-master": {
+          "before": {
+            "basis": "all tuples of the call",
+            "okCalls": 78,
+            "n": 78,
+            "median": 3,
+            "p90": 9,
+            "max": 17,
+            "mean": 4.012820512820513
+          },
+          "after": {
+            "basis": "phases window, p2, beam, rerate",
+            "okCalls": 74,
+            "n": 74,
+            "median": 0,
+            "p90": 7,
+            "max": 18,
+            "mean": 2.445945945945946
+          }
+        },
+        "26x26-master": {
+          "before": {
+            "basis": "all tuples of the call",
+            "okCalls": 81,
+            "n": 81,
+            "median": 6,
+            "p90": 14,
+            "max": 30,
+            "mean": 7.691358024691358
+          },
+          "after": {
+            "basis": "phases window, p2, beam, rerate",
+            "okCalls": 77,
+            "n": 77,
+            "median": 2,
+            "p90": 10,
+            "max": 32,
+            "mean": 3.6233766233766236
+          }
+        },
+        "26x26-hell-1": {
+          "before": {
+            "basis": "all tuples of the call",
+            "okCalls": 37,
+            "n": 37,
+            "median": 9,
+            "p90": 19,
+            "max": 41,
+            "mean": 10.891891891891891
+          },
+          "after": {
+            "basis": "phases window, p2, beam, rerate",
+            "okCalls": 47,
+            "n": 47,
+            "median": 1,
+            "p90": 13,
+            "max": 27,
+            "mean": 4.148936170212766
+          }
+        }
+      },
+      "kind": "Measured",
+      "formula": "per ok call: before all tuples, after tuples of phases window, p2, beam, rerate; median"
+    },
+    "R13": {
+      "value": {
+        "14x14-nightmare": {
+          "before": {
+            "n": 1,
+            "median": 4.106695653680254,
+            "p90": 4.106695653680254,
+            "max": 4.106695653680254
+          },
+          "after": {
+            "n": 3,
+            "median": 6.244930356121122,
+            "p90": 8.9013649165473,
+            "max": 8.9013649165473
+          }
+        },
+        "15x15b10-nightmare": {
+          "before": {
+            "n": 2,
+            "median": 4.525431407530172,
+            "p90": 6.002151774446887,
+            "max": 6.002151774446887
+          },
+          "after": {
+            "n": 3,
+            "median": 4.85047236833117,
+            "p90": 8.166988334832405,
+            "max": 8.166988334832405
+          }
+        },
+        "12x12-nightmare": {
+          "before": {
+            "n": 3,
+            "median": 3.2014749066029666,
+            "p90": 6.3205193028346764,
+            "max": 6.3205193028346764
+          },
+          "after": {
+            "n": 3,
+            "median": 3.3812279008346557,
+            "p90": 5.08407075155798,
+            "max": 5.08407075155798
+          }
+        },
+        "26x26-nightmare": {
+          "before": {
+            "n": 6,
+            "median": 3.6072760744201,
+            "p90": 10.637667248179252,
+            "max": 10.637667248179252
+          },
+          "after": {
+            "n": 6,
+            "median": 4.120133661174373,
+            "p90": 5.600589288156846,
+            "max": 5.600589288156846
+          }
+        },
+        "14x14-master": {
+          "before": {
+            "n": 5,
+            "median": 7.412841561543943,
+            "p90": 12.066908161821758,
+            "max": 12.066908161821758
+          },
+          "after": {
+            "n": 5,
+            "median": 6.183917689046895,
+            "p90": 10.97463909406736,
+            "max": 10.97463909406736
+          }
+        },
+        "26x26-master": {
+          "before": {
+            "n": 5,
+            "median": 6.356624255024627,
+            "p90": 8.488239373348273,
+            "max": 8.488239373348273
+          },
+          "after": {
+            "n": 5,
+            "median": 4.967066389726532,
+            "p90": 14.118141063000564,
+            "max": 14.118141063000564
+          }
+        },
+        "26x26-hell-1": {
+          "before": {
+            "n": 2,
+            "median": 3.716995718108155,
+            "p90": 4.087732409799644,
+            "max": 4.087732409799644
+          },
+          "after": {
+            "n": 3,
+            "median": 3.8374899663656064,
+            "p90": 6.380780484340123,
+            "max": 6.380780484340123
+          }
+        }
+      },
+      "kind": "Derived (a proxy)",
+      "formula": "per request that reached ten: (T10 - T1) / median ms of its ok batch calls; median"
+    },
+    "R18": {
+      "value": {
+        "14x14-nightmare": {
+          "callsFinished": 48,
+          "perCallMean": 0,
+          "perCallMax": 0,
+          "msShare": 0,
+          "workShare": 0
+        },
+        "15x15b10-nightmare": {
+          "callsFinished": 51,
+          "perCallMean": 0,
+          "perCallMax": 0,
+          "msShare": 0,
+          "workShare": 0
+        },
+        "12x12-nightmare": {
+          "callsFinished": 39,
+          "perCallMean": 0,
+          "perCallMax": 0,
+          "msShare": 0,
+          "workShare": 0
+        },
+        "26x26-nightmare": {
+          "callsFinished": 77,
+          "perCallMean": 0,
+          "perCallMax": 0,
+          "msShare": 0,
+          "workShare": 0
+        },
+        "14x14-master": {
+          "callsFinished": 74,
+          "perCallMean": 0,
+          "perCallMax": 0,
+          "msShare": 0,
+          "workShare": 0
+        },
+        "26x26-master": {
+          "callsFinished": 77,
+          "perCallMean": 0,
+          "perCallMax": 0,
+          "msShare": 0,
+          "workShare": 0
+        },
+        "26x26-hell-1": {
+          "callsFinished": 47,
+          "perCallMean": 0,
+          "perCallMax": 0,
+          "msShare": 0,
+          "workShare": 0
+        }
+      },
+      "kind": "Derived",
+      "formula": "rescue and rerate tuples per finished call; their share of the summed tuple ms and work"
+    },
+    "R19": {
+      "value": {
+        "14x14-nightmare": {
+          "calls": 48,
+          "results": {
+            "hit": 41,
+            "window": 7
+          },
+          "proofs": {
+            "direct": 48
+          },
+          "callsWithRescue": 0,
+          "rescueSides": {},
+          "probes": {
+            "n": 48,
+            "median": 2,
+            "p90": 4,
+            "max": 5
+          },
+          "heuristicEnds": 0
+        },
+        "15x15b10-nightmare": {
+          "calls": 51,
+          "results": {
+            "hit": 48,
+            "window": 3
+          },
+          "proofs": {
+            "direct": 51
+          },
+          "callsWithRescue": 0,
+          "rescueSides": {},
+          "probes": {
+            "n": 51,
+            "median": 2,
+            "p90": 4,
+            "max": 6
+          },
+          "heuristicEnds": 0
+        },
+        "12x12-nightmare": {
+          "calls": 39,
+          "results": {
+            "hit": 37,
+            "window": 2
+          },
+          "proofs": {
+            "direct": 39
+          },
+          "callsWithRescue": 0,
+          "rescueSides": {},
+          "probes": {
+            "n": 39,
+            "median": 2,
+            "p90": 4,
+            "max": 4
+          },
+          "heuristicEnds": 0
+        },
+        "26x26-nightmare": {
+          "calls": 77,
+          "results": {
+            "hit": 68,
+            "window": 9
+          },
+          "proofs": {
+            "direct": 77
+          },
+          "callsWithRescue": 0,
+          "rescueSides": {},
+          "probes": {
+            "n": 77,
+            "median": 2,
+            "p90": 4,
+            "max": 6
+          },
+          "heuristicEnds": 0
+        },
+        "14x14-master": {
+          "calls": 74,
+          "results": {
+            "hit": 65,
+            "window": 9
+          },
+          "proofs": {
+            "direct": 74
+          },
+          "callsWithRescue": 0,
+          "rescueSides": {},
+          "probes": {
+            "n": 74,
+            "median": 1,
+            "p90": 3,
+            "max": 6
+          },
+          "heuristicEnds": 0
+        },
+        "26x26-master": {
+          "calls": 77,
+          "results": {
+            "hit": 67,
+            "window": 10
+          },
+          "proofs": {
+            "direct": 77
+          },
+          "callsWithRescue": 0,
+          "rescueSides": {},
+          "probes": {
+            "n": 77,
+            "median": 2,
+            "p90": 4,
+            "max": 6
+          },
+          "heuristicEnds": 0
+        },
+        "26x26-hell-1": {
+          "calls": 47,
+          "results": {
+            "hit": 35,
+            "window": 12
+          },
+          "proofs": {
+            "direct": 47
+          },
+          "callsWithRescue": 0,
+          "rescueSides": {},
+          "probes": {
+            "n": 47,
+            "median": 4,
+            "p90": 6,
+            "max": 6
+          },
+          "heuristicEnds": 0
+        }
+      },
+      "kind": "Measured",
+      "formula": "locate probes per finished call (median, p90) and the locate results and no-window proofs"
+    },
+    "R29": {
+      "value": {
+        "14x14-nightmare": {
+          "tuples": 180,
+          "capped": 163,
+          "share": 0.9055555555555556,
+          "calls": 48
+        },
+        "15x15b10-nightmare": {
+          "tuples": 244,
+          "capped": 217,
+          "share": 0.889344262295082,
+          "calls": 65
+        },
+        "12x12-nightmare": {
+          "tuples": 161,
+          "capped": 105,
+          "share": 0.6521739130434783,
+          "calls": 49
+        },
+        "26x26-nightmare": {
+          "tuples": 313,
+          "capped": 26,
+          "share": 0.08306709265175719,
+          "calls": 119
+        },
+        "14x14-master": {
+          "tuples": 228,
+          "capped": 4,
+          "share": 0.017543859649122806,
+          "calls": 84
+        },
+        "26x26-master": {
+          "tuples": 364,
+          "capped": 0,
+          "share": 0,
+          "calls": 102
+        },
+        "26x26-hell-1": {
+          "tuples": 242,
+          "capped": 203,
+          "share": 0.8388429752066116,
+          "calls": 63
+        }
+      },
+      "kind": "Derived",
+      "formula": "p1 tuples at the call start count that are capped / all p1 tuples at it (before arm, every stage)"
+    }
+  },
+  "journal": {
+    "appends": {
+      "before": 5706,
+      "after": 4124
+    },
+    "appendCostMs": 0.313,
+    "overheadSeconds": {
+      "before": 1.786,
+      "after": 1.291
+    }
+  },
+  "failures": []
+}

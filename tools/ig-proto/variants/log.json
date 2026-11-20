@@ -1,0 +1,56 @@
+{
+  "id": "log",
+  "extends": ["instr"],
+  "description": "Today's search with durable per-probe logs (ig-log.js): same results as the instr and base trees.",
+  "edits": [
+    {
+      "id": "log-1",
+      "file": "core/engine/clues.js",
+      "find": "export function selectClues(ctx) {\n",
+      "replace": "export function selectCluesV3(ctx) {\n"
+    },
+    {
+      "id": "log-2",
+      "file": "core/engine/clues.js",
+      "find": "  // Phase 2: when every phase-1 sample was skipped, seed the beam afresh.\n",
+      "replace": "  if (rated.length === 0) {\n    igPhase('p2');\n  }\n  // Phase 2: when every phase-1 sample was skipped, seed the beam afresh.\n"
+    },
+    {
+      "id": "log-3",
+      "file": "core/engine/clues.js",
+      "find": "  let beam = ranked(target, rated).slice(0, BEAM_WIDTH);\n",
+      "replace": "  igPhase('beam');\n  let beam = ranked(target, rated).slice(0, BEAM_WIDTH);\n"
+    },
+    {
+      "id": "log-4",
+      "file": "core/engine/clues.js",
+      "append": "\n// ig-proto dispatch (variant log): the exported search is today's search, logged per probe.\nimport { igDispatch, igPhase } from './ig-log.js';\n\n/**\n * @param {SelectContext} ctx\n * @returns {SelectResult}\n */\nexport function selectClues(ctx) {\n  return igDispatch(ctx, selectCluesV3);\n}\n"
+    },
+    {
+      "id": "log-5",
+      "file": "core/engine/generate.js",
+      "find": "  const cal = selectClues({\n    board,\n",
+      "replace": "  const cal = selectClues({\n    igStage: 'set',\n    igAttempt: attempt,\n    board,\n"
+    },
+    {
+      "id": "log-6",
+      "file": "core/engine/generate.js",
+      "find": "    return { fail: 'layout' };\n  }\n  const sel = selectClues({\n",
+      "replace": "    return { fail: 'layout' };\n  }\n  const sel = selectClues({\n    igStage: 'batch',\n"
+    },
+    {
+      "id": "log-7",
+      "file": "core/engine/generate.js",
+      "find": "  const rng = createRng(ctx.batchSeed, `completion/${key}`);\n  const sel = selectClues({\n",
+      "replace": "  const rng = createRng(ctx.batchSeed, `completion/${key}`);\n  const sel = selectClues({\n    igStage: 'completion',\n"
+    },
+    {
+      "id": "log-8",
+      "file": "tools/calibrate.mjs",
+      "find": "  const input = JSON.parse(Buffer.concat(chunks).toString('utf8'));\n",
+      "replace": "  const input = JSON.parse(Buffer.concat(chunks).toString('utf8'));\n  if (process.env.IG_LOG_DIR !== undefined) {\n    if (process.env.IG_ROW === undefined || process.env.IG_SEED !== input.spec.seed) {\n      throw new Error(`ig-proto: row identity mismatch (IG_ROW ${process.env.IG_ROW}, IG_SEED ${process.env.IG_SEED}, seed ${input.spec.seed})`);\n    }\n    appendFileSync(`${process.env.IG_LOG_DIR}/${process.env.IG_ROW}.row.jsonl`, `${JSON.stringify({ t: 'row', row: process.env.IG_ROW, seed: input.spec.seed, caseId: input.spec.caseId, localRep: input.spec.rep, pid: process.pid })}\\n`);\n  }\n"
+    }
+  ],
+  "files": ["log"],
+  "params": { "variant": "log", "logAccepted": false, "p6": false }
+}

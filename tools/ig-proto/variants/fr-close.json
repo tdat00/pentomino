@@ -1,0 +1,8 @@
+{
+  "id": "fr-close",
+  "extends": ["fr-base"],
+  "description": "Frozen-round arm (V4-T08): fr-base with the canonical re-rating of the screen-capped lower end when the locate bracket closes (D-IG7).",
+  "edits": [],
+  "files": [],
+  "params": { "rerate": "close" }
+}

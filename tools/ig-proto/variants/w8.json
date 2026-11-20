@@ -1,0 +1,15 @@
+{
+  "id": "w8",
+  "extends": [],
+  "description": "Eight workers: MAX_POOL_SIZE 4 -> 8 in the copy of worker-pool.js, without P8's width and admission rules (IG-P-Q05). An unadmitted throughput upper bound; composed, never alone.",
+  "edits": [
+    {
+      "id": "w8-1",
+      "file": "core/browser/worker-pool.js",
+      "find": "export const MAX_POOL_SIZE = 4;\n",
+      "replace": "export const MAX_POOL_SIZE = 8;\n"
+    }
+  ],
+  "files": [],
+  "params": {}
+}

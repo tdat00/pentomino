@@ -1,0 +1,99 @@
+{
+  "format": "ig-proto-tree",
+  "version": 1,
+  "variant": "instr",
+  "chain": [
+    "base",
+    "instr"
+  ],
+  "treeId": "d51da656c64fd2cbdd130905d4c23445dad3ebb0f9b0e271259a3e8763b570de",
+  "worktree": {
+    "sourceLabel": "unlabelled",
+    "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+    "versions": {
+      "algo": "gen-v3",
+      "policy": "mixed-v3",
+      "rng": "xoshiro128ss-v1",
+      "model": "difficulty-v3",
+      "app": "1.0.0"
+    },
+    "kind": "frozen"
+  },
+  "copyDigest": "cd08daa3b41c2ecad8b6fe7b88eeb01a48f9e279de10187fe96d675814579205",
+  "edits": [
+    {
+      "id": "meta-1",
+      "file": "tools/calibrate.mjs",
+      "before": "02834bacaae2eb263481e5a429a359af771f51224584a2551a103e87d356849d",
+      "after": "26e3ca5e04f88b64784aa45351b1b11d314bb60e2fba34f6404199b3185ab768"
+    },
+    {
+      "id": "instr-1",
+      "file": "core/engine/deduce.js",
+      "before": "c9571cd61cb32d260d32524cae712c4ba02dc567aff794304e4f601de096d1ce",
+      "after": "36db5c792810cb148f6447fa1c88ec5e94f596c0a82622766bbd7f7bb06206f4"
+    },
+    {
+      "id": "instr-2",
+      "file": "core/engine/deduce.js",
+      "before": "36db5c792810cb148f6447fa1c88ec5e94f596c0a82622766bbd7f7bb06206f4",
+      "after": "1ef459bdebcb04b72f4ee5e716cc0ef943a77a2ec4fb6b8be5aed050736c9a00"
+    },
+    {
+      "id": "instr-3",
+      "file": "core/engine/deduce.js",
+      "before": "1ef459bdebcb04b72f4ee5e716cc0ef943a77a2ec4fb6b8be5aed050736c9a00",
+      "after": "71faf52d9b7a10d7db99670801fc3fc5867f98280893cb54f3598fd64659756c"
+    },
+    {
+      "id": "instr-4",
+      "file": "core/engine/deduce.js",
+      "before": "71faf52d9b7a10d7db99670801fc3fc5867f98280893cb54f3598fd64659756c",
+      "after": "cf43148bcac4a7af61c54128e58a0bb459bd5b440a184149ec09330c7ace613c"
+    },
+    {
+      "id": "instr-5",
+      "file": "core/engine/deduce.js",
+      "before": "cf43148bcac4a7af61c54128e58a0bb459bd5b440a184149ec09330c7ace613c",
+      "after": "6e911694e7201de34f5598d7c27c24a238fcceef82a665e02b1c0de1e1f277da"
+    },
+    {
+      "id": "instr-6",
+      "file": "core/engine/deduce.js",
+      "before": "6e911694e7201de34f5598d7c27c24a238fcceef82a665e02b1c0de1e1f277da",
+      "after": "6f54f91fcf926ad7b9bf38c3c7a4d37840c2187ffef3078f7bb172467850bacd"
+    },
+    {
+      "id": "instr-7",
+      "file": "tools/bench/runner.js",
+      "before": "9f720febad848803be5504cafdc7c981b98fa01d670c98943b62273d7635097f",
+      "after": "204715ebde60c9084dbdcee9deb836917be592bff225da0f36f65dd5a88811f6"
+    },
+    {
+      "id": "diag-1",
+      "file": "core/engine/policy.js",
+      "before": "e5e41eb8baaaf4da6b25f52c7e0ed36ff86e9e84a87ca2b4b76512fca52a6e10",
+      "after": "ff355728f46b575a3cf131da83418926c90fdd3c7cc21fc8edc0ea2313bdfd3b"
+    },
+    {
+      "id": "diag-2",
+      "file": "core/engine/policy.js",
+      "before": "ff355728f46b575a3cf131da83418926c90fdd3c7cc21fc8edc0ea2313bdfd3b",
+      "after": "ba31e36b897e6c03ac77503093cc35f7785b12de624e6d6af485af8a623cffe6"
+    },
+    {
+      "id": "meta-2",
+      "file": "tools/bench/report.js",
+      "before": "13f4d316cfdc2515f457f2aa7c313d02f989a3a3d15fdbf10e667c8bc091630c",
+      "after": "b18b6b26eb76ecf4c242e0ef74d8cb02ffe525654a39a937fd20eef41ba1be24"
+    }
+  ],
+  "files": {
+    "core/engine/ig-params.js": "0da926ca2b8a35ee3cb5e78d5caeac816972489fd2a7a02c7b2135997a5d935b"
+  },
+  "params": {
+    "variant": "instr",
+    "diagnosticOffers": true
+  },
+  "builtAt": "2026-11-16T21:36:43.149Z"
+}

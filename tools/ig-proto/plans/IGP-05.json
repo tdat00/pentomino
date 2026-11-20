@@ -1,0 +1,67 @@
+{
+  "task": "IGP-05",
+  "allocationMinutes": 23,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "snapshot", "--task", "IGP-05"]
+    },
+    {
+      "id": "tree",
+      "locked": false,
+      "node": ["tools\\ig-proto\\lib\\tree.mjs", "build", "instr"]
+    },
+    {
+      "id": "dry",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 90,
+      "minHorizonS": 60,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\pm1.mjs", "windows", "--cases", "15x15b10-hell-1", "--sets", "1", "--orders", "1", "--run-id", "dry", "--max-probes", "3"],
+      "state": "IGP-05\\dry\\windows\\state.json"
+    },
+    {
+      "id": "part1",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 330,
+      "minHorizonS": 60,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\pm1.mjs", "windows", "--cases", "15x15b10-hell-1,16x16-hell-1,15x20-hell-1,18x18-hell-1,18x20-hell-1,20x20-hell-1,20x21-hell-1,32x15-hell-1,22x22-hell-1,15x20-hell-2,18x18-hell-2,18x20-hell-2,20x20-hell-2,20x21-hell-2,32x15-hell-2,22x22-hell-2,24x24-hell-2,26x26-hell-2,32x15-hell-3,22x22-hell-3,24x24-hell-3,26x26-hell-3", "--sets", "2", "--orders", "2"],
+      "state": "IGP-05\\main\\windows\\state.json"
+    },
+    {
+      "id": "part2",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 330,
+      "minHorizonS": 60,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\pm1.mjs", "scan", "--cases", "14x14-nightmare,12x12-nightmare,26x26-nightmare", "--sets", "2", "--orders", "2"],
+      "state": "IGP-05\\main\\scan\\state.json"
+    },
+    {
+      "id": "part3",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 330,
+      "minHorizonS": 150,
+      "invocations": 3,
+      "node": ["tools\\ig-proto\\pm1.mjs", "failed-sets", "--cases", "14x14-hell-1,24x24-hell-1", "--sets", "4", "--orders", "2"],
+      "state": "IGP-05\\main\\failed-sets\\state.json"
+    },
+    {
+      "id": "report",
+      "locked": false,
+      "node": ["tools\\ig-proto\\pm1.mjs", "report"]
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "check", "--task", "IGP-05"]
+    }
+  ]
+}

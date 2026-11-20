@@ -1,0 +1,22 @@
+{
+  "task": "IGP-07",
+  "allocationMinutes": 0,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "snapshot", "--task", "IGP-07"]
+    },
+    {
+      "id": "summary",
+      "locked": false,
+      "node": ["tools\\ig-proto\\summary.mjs"]
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "check", "--task", "IGP-07"]
+    }
+  ]
+}

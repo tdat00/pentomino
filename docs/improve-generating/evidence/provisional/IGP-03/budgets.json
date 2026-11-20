@@ -1,0 +1,3698 @@
+{
+  "meta": {
+    "format": "ig-proto-budgets",
+    "version": 1,
+    "task": "IGP-03",
+    "label": "provisional",
+    "labelText": "provisional (pre-freeze)",
+    "createdAt": "2026-11-14T20:03:58.362Z",
+    "source": {
+      "label": "rating-v3 runtime cd5d17f (worktree 0e1283e)",
+      "sourceDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "equalsMp12b1Source": true,
+      "firewall": "c617f9eab21d8cd3fb556784ba851972be68e3859002122dea9bfdac222d672e"
+    },
+    "harness": {
+      "harnessHash": "a76d9d720de0479cff320bc062c338c0e25990deb9012bff4ca2ee84763d8b18",
+      "files": {
+        "tools/ig-proto/lib/budget.mjs": "fd931d9f44d1fc5bc481db2e2d2c99ed46790150ade8c62e836b729e11410801",
+        "tools/ig-proto/lib/calls.mjs": "e0173ff8975335cb0f2103fd0b8f00cd1793f0de633d3b87f51c587d7d49d20c",
+        "tools/ig-proto/lib/engine.mjs": "316f4d2c3feadd18c971bfaa7baab6c5f8c6991d1f2140e3e30300b1b3a07540",
+        "tools/ig-proto/lib/lane-worker.mjs": "7a705736a276ee17e07095526ae467d4ac62a26ccb5becc0e53cfcebcd158e24",
+        "tools/ig-proto/lib/lanes.mjs": "628e3f217541435c9065599ba5053231ea217fdd3bfeb9aaad76ab8eb936b235",
+        "tools/ig-proto/lib/paths.mjs": "6db4a7adeedf3500390cb84875667f44478dd8e486d6d55919149c2af6bede62",
+        "tools/ig-proto/lib/records.mjs": "c9f3b021096bb57a93445c8156e4cbf77654ee32128343359690508a42d5bf2c",
+        "tools/ig-proto/lib/sets.mjs": "66fecf6372dc30badd94f018b171e4bc12555426e446768dc4f6c29c443d7a2d",
+        "tools/ig-proto/lib/tree.mjs": "ff7ea5d67ad0dd40f1dc105e1584181b59078d4ca6392b9eb7b3078293068f83",
+        "tools/ig-proto/arm.mjs": "5fe5854f1fb183d6827b7c18f55bd5fc16de6206db4d73c7e1b7543f0aec2165",
+        "tools/ig-proto/boards.mjs": "656194b446de6345c5c7ce4b5d136cab4e0acd09d61e062bd3eb0640a986f53b",
+        "tools/ig-proto/budgets.mjs": "39a33e74aebe4b33d419ef9a77abd47d5fe2a37cf6c89188fde60e333b4e7b4d",
+        "tools/ig-proto/compare-r2.mjs": "7e468994174d7fb581763e329e7f36981eadf8dcbc6474aa399c54f81ae58262",
+        "tools/ig-proto/compare.mjs": "26f0a79bad343fc645a6e855b0f717deb4bdd22c0b5b756a8964f4d59e4c95cb",
+        "tools/ig-proto/firewall.mjs": "cd60483c07622c5137c4b297e6bd1fa8334adedadcf167f6d5ead61cc735ff83",
+        "tools/ig-proto/fit-prior.mjs": "941b6ac19dab01dea1851b3aa34d952c9adc52e72e249be00185729a9cd6e88a",
+        "tools/ig-proto/identity.mjs": "8b9123dcfc0f31ba4d2c06b134544a6e219358d009ae5f935b49d9ac6febe1fc",
+        "tools/ig-proto/pm4.mjs": "6b3a58e53ea3b56fe8c151dc97948aef0a73abe685ec094cc7ecb52b764f9b53",
+        "tools/ig-proto/run-task.ps1": "5d5bc46ee095e16315522f8bc6a2a47c5d8cc891ec151236d31e2652708a86ac",
+        "tools/ig-proto/self-test.mjs": "73d482d1f3045ff7639b4d3ee3b847fe7a49917299ce95b95620de14d5ba8fec",
+        "tools/ig-proto/verify.mjs": "1d013ed389fd0f65922c3bd6f7559a8f5a431dbcd8a7fc3c27fccef7d07431eb",
+        "tools/ig-proto/data/boards-v1.json": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+        "tools/ig-proto/data/prior-v1.json": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133"
+      }
+    },
+    "trees": {
+      "p1p5-main": {
+        "treeId": "d02e6eaada4849f028621575d717e224b25f5f52d7eec9430036e5b77db9f3d9",
+        "copyDigest": "c880e1c7a02beb6046ea176bf782e84f510f1eb8a68dc1c6f695aa73cef7af1d",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "p1p5-1",
+          "p1p5-2",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "p1p5-main",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": false,
+          "U0": 8,
+          "rerateMax": 4,
+          "rerate": "end",
+          "a3": false,
+          "W": {
+            "default": 190000000,
+            "hell-1": 380000000,
+            "hell-2": 380000000,
+            "hell-3": 380000000
+          },
+          "prior": {
+            "easy@100": {
+              "caseId": "10x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@144": {
+              "caseId": "12x12-easy",
+              "share": 0.555556,
+              "n": 100
+            },
+            "easy@196": {
+              "caseId": "14x14-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@215": {
+              "caseId": "15x15b10-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@60": {
+              "caseId": "6x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@87": {
+              "caseId": "3x29-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "expert@100": {
+              "caseId": "10x10-expert",
+              "share": 0.307692,
+              "n": 100
+            },
+            "expert@144": {
+              "caseId": "12x12-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@196": {
+              "caseId": "14x14-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@215": {
+              "caseId": "15x15b10-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@256": {
+              "caseId": "16x16-expert",
+              "share": 0.263889,
+              "n": 100
+            },
+            "expert@300": {
+              "caseId": "15x20-expert",
+              "share": 0.277778,
+              "n": 100
+            },
+            "expert@324": {
+              "caseId": "18x18-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@360": {
+              "caseId": "18x20-expert",
+              "share": 0.263158,
+              "n": 100
+            },
+            "expert@400": {
+              "caseId": "20x20-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@420": {
+              "caseId": "20x21-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@480": {
+              "caseId": "32x15-expert",
+              "share": 0.227273,
+              "n": 100
+            },
+            "expert@484": {
+              "caseId": "22x22-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@576": {
+              "caseId": "24x24-expert",
+              "share": 0.238095,
+              "n": 100
+            },
+            "expert@60": {
+              "caseId": "6x10-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@676": {
+              "caseId": "26x26-expert",
+              "share": 0.26087,
+              "n": 100
+            },
+            "expert@87": {
+              "caseId": "3x29-expert",
+              "share": 0.285714,
+              "n": 100
+            },
+            "hard@100": {
+              "caseId": "10x10-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hard@144": {
+              "caseId": "12x12-hard",
+              "share": 0.384615,
+              "n": 100
+            },
+            "hard@196": {
+              "caseId": "14x14-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@215": {
+              "caseId": "15x15b10-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@256": {
+              "caseId": "16x16-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@300": {
+              "caseId": "15x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@324": {
+              "caseId": "18x18-hard",
+              "share": 0.363971,
+              "n": 100
+            },
+            "hard@360": {
+              "caseId": "18x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@400": {
+              "caseId": "20x20-hard",
+              "share": 0.375,
+              "n": 100
+            },
+            "hard@420": {
+              "caseId": "20x21-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@480": {
+              "caseId": "32x15-hard",
+              "share": 0.368421,
+              "n": 100
+            },
+            "hard@484": {
+              "caseId": "22x22-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@576": {
+              "caseId": "24x24-hard",
+              "share": 0.35,
+              "n": 100
+            },
+            "hard@60": {
+              "caseId": "6x10-hard",
+              "share": 0.4,
+              "n": 100
+            },
+            "hard@676": {
+              "caseId": "26x26-hard",
+              "share": 0.380952,
+              "n": 100
+            },
+            "hard@87": {
+              "caseId": "3x29-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.265179,
+              "n": 2
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.141026,
+              "n": 4
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.128205,
+              "n": 50
+            },
+            "master@100": {
+              "caseId": "10x10-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@144": {
+              "caseId": "12x12-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@196": {
+              "caseId": "14x14-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@215": {
+              "caseId": "15x15b10-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@256": {
+              "caseId": "16x16-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@300": {
+              "caseId": "15x20-master",
+              "share": 0.210526,
+              "n": 100
+            },
+            "master@324": {
+              "caseId": "18x18-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@360": {
+              "caseId": "18x20-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@400": {
+              "caseId": "20x20-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@420": {
+              "caseId": "20x21-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@480": {
+              "caseId": "32x15-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@484": {
+              "caseId": "22x22-master",
+              "share": 0.208333,
+              "n": 100
+            },
+            "master@576": {
+              "caseId": "24x24-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@60": {
+              "caseId": "6x10-master",
+              "share": 0.230769,
+              "n": 100
+            },
+            "master@676": {
+              "caseId": "26x26-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@87": {
+              "caseId": "3x29-master",
+              "share": 0.214286,
+              "n": 100
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            },
+            "normal@100": {
+              "caseId": "10x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@144": {
+              "caseId": "12x12-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@196": {
+              "caseId": "14x14-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@215": {
+              "caseId": "15x15b10-normal",
+              "share": 0.416667,
+              "n": 100
+            },
+            "normal@256": {
+              "caseId": "16x16-normal",
+              "share": 0.461538,
+              "n": 100
+            },
+            "normal@300": {
+              "caseId": "15x20-normal",
+              "share": 0.307692,
+              "n": 100
+            },
+            "normal@324": {
+              "caseId": "18x18-normal",
+              "share": 0.357143,
+              "n": 100
+            },
+            "normal@60": {
+              "caseId": "6x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@87": {
+              "caseId": "3x29-normal",
+              "share": 0.5,
+              "n": 100
+            },
+            "very-easy@60": {
+              "caseId": "6x10-very-easy",
+              "share": 0.714286,
+              "n": 95
+            },
+            "very-easy@87": {
+              "caseId": "3x29-very-easy",
+              "share": 0.714286,
+              "n": 98
+            }
+          }
+        }
+      },
+      "p1p5-w095": {
+        "treeId": "cd8ec733a91de33f5f1317a3f2211e4d5459dd4eac87b7324aa474ed379970b9",
+        "copyDigest": "d7e979beb774831b92df59fad15ba1827dc2e4552fc2746dfa688cdec5830c9e",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "p1p5-1",
+          "p1p5-2",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "p1p5-w095",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": false,
+          "U0": 8,
+          "rerateMax": 4,
+          "rerate": "end",
+          "a3": false,
+          "W": {
+            "default": 95000000
+          },
+          "prior": {
+            "easy@100": {
+              "caseId": "10x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@144": {
+              "caseId": "12x12-easy",
+              "share": 0.555556,
+              "n": 100
+            },
+            "easy@196": {
+              "caseId": "14x14-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@215": {
+              "caseId": "15x15b10-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@60": {
+              "caseId": "6x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@87": {
+              "caseId": "3x29-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "expert@100": {
+              "caseId": "10x10-expert",
+              "share": 0.307692,
+              "n": 100
+            },
+            "expert@144": {
+              "caseId": "12x12-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@196": {
+              "caseId": "14x14-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@215": {
+              "caseId": "15x15b10-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@256": {
+              "caseId": "16x16-expert",
+              "share": 0.263889,
+              "n": 100
+            },
+            "expert@300": {
+              "caseId": "15x20-expert",
+              "share": 0.277778,
+              "n": 100
+            },
+            "expert@324": {
+              "caseId": "18x18-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@360": {
+              "caseId": "18x20-expert",
+              "share": 0.263158,
+              "n": 100
+            },
+            "expert@400": {
+              "caseId": "20x20-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@420": {
+              "caseId": "20x21-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@480": {
+              "caseId": "32x15-expert",
+              "share": 0.227273,
+              "n": 100
+            },
+            "expert@484": {
+              "caseId": "22x22-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@576": {
+              "caseId": "24x24-expert",
+              "share": 0.238095,
+              "n": 100
+            },
+            "expert@60": {
+              "caseId": "6x10-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@676": {
+              "caseId": "26x26-expert",
+              "share": 0.26087,
+              "n": 100
+            },
+            "expert@87": {
+              "caseId": "3x29-expert",
+              "share": 0.285714,
+              "n": 100
+            },
+            "hard@100": {
+              "caseId": "10x10-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hard@144": {
+              "caseId": "12x12-hard",
+              "share": 0.384615,
+              "n": 100
+            },
+            "hard@196": {
+              "caseId": "14x14-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@215": {
+              "caseId": "15x15b10-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@256": {
+              "caseId": "16x16-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@300": {
+              "caseId": "15x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@324": {
+              "caseId": "18x18-hard",
+              "share": 0.363971,
+              "n": 100
+            },
+            "hard@360": {
+              "caseId": "18x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@400": {
+              "caseId": "20x20-hard",
+              "share": 0.375,
+              "n": 100
+            },
+            "hard@420": {
+              "caseId": "20x21-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@480": {
+              "caseId": "32x15-hard",
+              "share": 0.368421,
+              "n": 100
+            },
+            "hard@484": {
+              "caseId": "22x22-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@576": {
+              "caseId": "24x24-hard",
+              "share": 0.35,
+              "n": 100
+            },
+            "hard@60": {
+              "caseId": "6x10-hard",
+              "share": 0.4,
+              "n": 100
+            },
+            "hard@676": {
+              "caseId": "26x26-hard",
+              "share": 0.380952,
+              "n": 100
+            },
+            "hard@87": {
+              "caseId": "3x29-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.265179,
+              "n": 2
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.141026,
+              "n": 4
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.128205,
+              "n": 50
+            },
+            "master@100": {
+              "caseId": "10x10-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@144": {
+              "caseId": "12x12-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@196": {
+              "caseId": "14x14-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@215": {
+              "caseId": "15x15b10-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@256": {
+              "caseId": "16x16-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@300": {
+              "caseId": "15x20-master",
+              "share": 0.210526,
+              "n": 100
+            },
+            "master@324": {
+              "caseId": "18x18-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@360": {
+              "caseId": "18x20-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@400": {
+              "caseId": "20x20-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@420": {
+              "caseId": "20x21-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@480": {
+              "caseId": "32x15-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@484": {
+              "caseId": "22x22-master",
+              "share": 0.208333,
+              "n": 100
+            },
+            "master@576": {
+              "caseId": "24x24-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@60": {
+              "caseId": "6x10-master",
+              "share": 0.230769,
+              "n": 100
+            },
+            "master@676": {
+              "caseId": "26x26-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@87": {
+              "caseId": "3x29-master",
+              "share": 0.214286,
+              "n": 100
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            },
+            "normal@100": {
+              "caseId": "10x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@144": {
+              "caseId": "12x12-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@196": {
+              "caseId": "14x14-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@215": {
+              "caseId": "15x15b10-normal",
+              "share": 0.416667,
+              "n": 100
+            },
+            "normal@256": {
+              "caseId": "16x16-normal",
+              "share": 0.461538,
+              "n": 100
+            },
+            "normal@300": {
+              "caseId": "15x20-normal",
+              "share": 0.307692,
+              "n": 100
+            },
+            "normal@324": {
+              "caseId": "18x18-normal",
+              "share": 0.357143,
+              "n": 100
+            },
+            "normal@60": {
+              "caseId": "6x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@87": {
+              "caseId": "3x29-normal",
+              "share": 0.5,
+              "n": 100
+            },
+            "very-easy@60": {
+              "caseId": "6x10-very-easy",
+              "share": 0.714286,
+              "n": 95
+            },
+            "very-easy@87": {
+              "caseId": "3x29-very-easy",
+              "share": 0.714286,
+              "n": 98
+            }
+          }
+        }
+      },
+      "p1p5-w380": {
+        "treeId": "6e52970616a1779b497c3eef722f99fe4db09d234f119c57edf62cd3e813f194",
+        "copyDigest": "9c9a0f3c6a35eb3907872e04b9b8530b434121633c65c9576a6695fbf12570ad",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "p1p5-1",
+          "p1p5-2",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "p1p5-w380",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": false,
+          "U0": 8,
+          "rerateMax": 4,
+          "rerate": "end",
+          "a3": false,
+          "W": {
+            "default": 380000000
+          },
+          "prior": {
+            "easy@100": {
+              "caseId": "10x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@144": {
+              "caseId": "12x12-easy",
+              "share": 0.555556,
+              "n": 100
+            },
+            "easy@196": {
+              "caseId": "14x14-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@215": {
+              "caseId": "15x15b10-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@60": {
+              "caseId": "6x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@87": {
+              "caseId": "3x29-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "expert@100": {
+              "caseId": "10x10-expert",
+              "share": 0.307692,
+              "n": 100
+            },
+            "expert@144": {
+              "caseId": "12x12-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@196": {
+              "caseId": "14x14-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@215": {
+              "caseId": "15x15b10-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@256": {
+              "caseId": "16x16-expert",
+              "share": 0.263889,
+              "n": 100
+            },
+            "expert@300": {
+              "caseId": "15x20-expert",
+              "share": 0.277778,
+              "n": 100
+            },
+            "expert@324": {
+              "caseId": "18x18-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@360": {
+              "caseId": "18x20-expert",
+              "share": 0.263158,
+              "n": 100
+            },
+            "expert@400": {
+              "caseId": "20x20-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@420": {
+              "caseId": "20x21-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@480": {
+              "caseId": "32x15-expert",
+              "share": 0.227273,
+              "n": 100
+            },
+            "expert@484": {
+              "caseId": "22x22-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@576": {
+              "caseId": "24x24-expert",
+              "share": 0.238095,
+              "n": 100
+            },
+            "expert@60": {
+              "caseId": "6x10-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@676": {
+              "caseId": "26x26-expert",
+              "share": 0.26087,
+              "n": 100
+            },
+            "expert@87": {
+              "caseId": "3x29-expert",
+              "share": 0.285714,
+              "n": 100
+            },
+            "hard@100": {
+              "caseId": "10x10-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hard@144": {
+              "caseId": "12x12-hard",
+              "share": 0.384615,
+              "n": 100
+            },
+            "hard@196": {
+              "caseId": "14x14-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@215": {
+              "caseId": "15x15b10-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@256": {
+              "caseId": "16x16-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@300": {
+              "caseId": "15x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@324": {
+              "caseId": "18x18-hard",
+              "share": 0.363971,
+              "n": 100
+            },
+            "hard@360": {
+              "caseId": "18x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@400": {
+              "caseId": "20x20-hard",
+              "share": 0.375,
+              "n": 100
+            },
+            "hard@420": {
+              "caseId": "20x21-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@480": {
+              "caseId": "32x15-hard",
+              "share": 0.368421,
+              "n": 100
+            },
+            "hard@484": {
+              "caseId": "22x22-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@576": {
+              "caseId": "24x24-hard",
+              "share": 0.35,
+              "n": 100
+            },
+            "hard@60": {
+              "caseId": "6x10-hard",
+              "share": 0.4,
+              "n": 100
+            },
+            "hard@676": {
+              "caseId": "26x26-hard",
+              "share": 0.380952,
+              "n": 100
+            },
+            "hard@87": {
+              "caseId": "3x29-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.265179,
+              "n": 2
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.141026,
+              "n": 4
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.128205,
+              "n": 50
+            },
+            "master@100": {
+              "caseId": "10x10-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@144": {
+              "caseId": "12x12-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@196": {
+              "caseId": "14x14-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@215": {
+              "caseId": "15x15b10-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@256": {
+              "caseId": "16x16-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@300": {
+              "caseId": "15x20-master",
+              "share": 0.210526,
+              "n": 100
+            },
+            "master@324": {
+              "caseId": "18x18-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@360": {
+              "caseId": "18x20-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@400": {
+              "caseId": "20x20-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@420": {
+              "caseId": "20x21-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@480": {
+              "caseId": "32x15-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@484": {
+              "caseId": "22x22-master",
+              "share": 0.208333,
+              "n": 100
+            },
+            "master@576": {
+              "caseId": "24x24-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@60": {
+              "caseId": "6x10-master",
+              "share": 0.230769,
+              "n": 100
+            },
+            "master@676": {
+              "caseId": "26x26-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@87": {
+              "caseId": "3x29-master",
+              "share": 0.214286,
+              "n": 100
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            },
+            "normal@100": {
+              "caseId": "10x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@144": {
+              "caseId": "12x12-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@196": {
+              "caseId": "14x14-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@215": {
+              "caseId": "15x15b10-normal",
+              "share": 0.416667,
+              "n": 100
+            },
+            "normal@256": {
+              "caseId": "16x16-normal",
+              "share": 0.461538,
+              "n": 100
+            },
+            "normal@300": {
+              "caseId": "15x20-normal",
+              "share": 0.307692,
+              "n": 100
+            },
+            "normal@324": {
+              "caseId": "18x18-normal",
+              "share": 0.357143,
+              "n": 100
+            },
+            "normal@60": {
+              "caseId": "6x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@87": {
+              "caseId": "3x29-normal",
+              "share": 0.5,
+              "n": 100
+            },
+            "very-easy@60": {
+              "caseId": "6x10-very-easy",
+              "share": 0.714286,
+              "n": 95
+            },
+            "very-easy@87": {
+              "caseId": "3x29-very-easy",
+              "share": 0.714286,
+              "n": 98
+            }
+          }
+        }
+      },
+      "p1p5-w760": {
+        "treeId": "668765a56f94cfdac3a6818884a1eae3199c92bcf8bb3fa1beecb675f95bac2b",
+        "copyDigest": "f3ed76b5765bd863777a45313b26c4706e5cf318ba23b8132d67d6ca2fdd2be7",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "p1p5-1",
+          "p1p5-2",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "p1p5-w760",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": false,
+          "U0": 8,
+          "rerateMax": 4,
+          "rerate": "end",
+          "a3": false,
+          "W": {
+            "default": 760000000
+          },
+          "prior": {
+            "easy@100": {
+              "caseId": "10x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@144": {
+              "caseId": "12x12-easy",
+              "share": 0.555556,
+              "n": 100
+            },
+            "easy@196": {
+              "caseId": "14x14-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@215": {
+              "caseId": "15x15b10-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@60": {
+              "caseId": "6x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@87": {
+              "caseId": "3x29-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "expert@100": {
+              "caseId": "10x10-expert",
+              "share": 0.307692,
+              "n": 100
+            },
+            "expert@144": {
+              "caseId": "12x12-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@196": {
+              "caseId": "14x14-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@215": {
+              "caseId": "15x15b10-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@256": {
+              "caseId": "16x16-expert",
+              "share": 0.263889,
+              "n": 100
+            },
+            "expert@300": {
+              "caseId": "15x20-expert",
+              "share": 0.277778,
+              "n": 100
+            },
+            "expert@324": {
+              "caseId": "18x18-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@360": {
+              "caseId": "18x20-expert",
+              "share": 0.263158,
+              "n": 100
+            },
+            "expert@400": {
+              "caseId": "20x20-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@420": {
+              "caseId": "20x21-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@480": {
+              "caseId": "32x15-expert",
+              "share": 0.227273,
+              "n": 100
+            },
+            "expert@484": {
+              "caseId": "22x22-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@576": {
+              "caseId": "24x24-expert",
+              "share": 0.238095,
+              "n": 100
+            },
+            "expert@60": {
+              "caseId": "6x10-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@676": {
+              "caseId": "26x26-expert",
+              "share": 0.26087,
+              "n": 100
+            },
+            "expert@87": {
+              "caseId": "3x29-expert",
+              "share": 0.285714,
+              "n": 100
+            },
+            "hard@100": {
+              "caseId": "10x10-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hard@144": {
+              "caseId": "12x12-hard",
+              "share": 0.384615,
+              "n": 100
+            },
+            "hard@196": {
+              "caseId": "14x14-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@215": {
+              "caseId": "15x15b10-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@256": {
+              "caseId": "16x16-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@300": {
+              "caseId": "15x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@324": {
+              "caseId": "18x18-hard",
+              "share": 0.363971,
+              "n": 100
+            },
+            "hard@360": {
+              "caseId": "18x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@400": {
+              "caseId": "20x20-hard",
+              "share": 0.375,
+              "n": 100
+            },
+            "hard@420": {
+              "caseId": "20x21-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@480": {
+              "caseId": "32x15-hard",
+              "share": 0.368421,
+              "n": 100
+            },
+            "hard@484": {
+              "caseId": "22x22-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@576": {
+              "caseId": "24x24-hard",
+              "share": 0.35,
+              "n": 100
+            },
+            "hard@60": {
+              "caseId": "6x10-hard",
+              "share": 0.4,
+              "n": 100
+            },
+            "hard@676": {
+              "caseId": "26x26-hard",
+              "share": 0.380952,
+              "n": 100
+            },
+            "hard@87": {
+              "caseId": "3x29-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.265179,
+              "n": 2
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.141026,
+              "n": 4
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.128205,
+              "n": 50
+            },
+            "master@100": {
+              "caseId": "10x10-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@144": {
+              "caseId": "12x12-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@196": {
+              "caseId": "14x14-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@215": {
+              "caseId": "15x15b10-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@256": {
+              "caseId": "16x16-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@300": {
+              "caseId": "15x20-master",
+              "share": 0.210526,
+              "n": 100
+            },
+            "master@324": {
+              "caseId": "18x18-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@360": {
+              "caseId": "18x20-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@400": {
+              "caseId": "20x20-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@420": {
+              "caseId": "20x21-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@480": {
+              "caseId": "32x15-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@484": {
+              "caseId": "22x22-master",
+              "share": 0.208333,
+              "n": 100
+            },
+            "master@576": {
+              "caseId": "24x24-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@60": {
+              "caseId": "6x10-master",
+              "share": 0.230769,
+              "n": 100
+            },
+            "master@676": {
+              "caseId": "26x26-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@87": {
+              "caseId": "3x29-master",
+              "share": 0.214286,
+              "n": 100
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            },
+            "normal@100": {
+              "caseId": "10x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@144": {
+              "caseId": "12x12-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@196": {
+              "caseId": "14x14-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@215": {
+              "caseId": "15x15b10-normal",
+              "share": 0.416667,
+              "n": 100
+            },
+            "normal@256": {
+              "caseId": "16x16-normal",
+              "share": 0.461538,
+              "n": 100
+            },
+            "normal@300": {
+              "caseId": "15x20-normal",
+              "share": 0.307692,
+              "n": 100
+            },
+            "normal@324": {
+              "caseId": "18x18-normal",
+              "share": 0.357143,
+              "n": 100
+            },
+            "normal@60": {
+              "caseId": "6x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@87": {
+              "caseId": "3x29-normal",
+              "share": 0.5,
+              "n": 100
+            },
+            "very-easy@60": {
+              "caseId": "6x10-very-easy",
+              "share": 0.714286,
+              "n": 95
+            },
+            "very-easy@87": {
+              "caseId": "3x29-very-easy",
+              "share": 0.714286,
+              "n": 98
+            }
+          }
+        }
+      },
+      "p1p5-main-a3": {
+        "treeId": "178f625a6ec25eeca68e6800a040328eb541738c0623b733bcb15fb6b61377ce",
+        "copyDigest": "bb61c7f062f37a71245f791f76bbeab3bed7b33a164b911a6d2c63bf709ee6ba",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "p1p5-1",
+          "p1p5-2",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "p1p5-main-a3",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": false,
+          "U0": 8,
+          "rerateMax": 4,
+          "rerate": "end",
+          "a3": true,
+          "W": {
+            "default": 190000000,
+            "hell-1": 380000000,
+            "hell-2": 380000000,
+            "hell-3": 380000000
+          },
+          "prior": {
+            "easy@100": {
+              "caseId": "10x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@144": {
+              "caseId": "12x12-easy",
+              "share": 0.555556,
+              "n": 100
+            },
+            "easy@196": {
+              "caseId": "14x14-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@215": {
+              "caseId": "15x15b10-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@60": {
+              "caseId": "6x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@87": {
+              "caseId": "3x29-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "expert@100": {
+              "caseId": "10x10-expert",
+              "share": 0.307692,
+              "n": 100
+            },
+            "expert@144": {
+              "caseId": "12x12-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@196": {
+              "caseId": "14x14-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@215": {
+              "caseId": "15x15b10-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@256": {
+              "caseId": "16x16-expert",
+              "share": 0.263889,
+              "n": 100
+            },
+            "expert@300": {
+              "caseId": "15x20-expert",
+              "share": 0.277778,
+              "n": 100
+            },
+            "expert@324": {
+              "caseId": "18x18-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@360": {
+              "caseId": "18x20-expert",
+              "share": 0.263158,
+              "n": 100
+            },
+            "expert@400": {
+              "caseId": "20x20-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@420": {
+              "caseId": "20x21-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@480": {
+              "caseId": "32x15-expert",
+              "share": 0.227273,
+              "n": 100
+            },
+            "expert@484": {
+              "caseId": "22x22-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@576": {
+              "caseId": "24x24-expert",
+              "share": 0.238095,
+              "n": 100
+            },
+            "expert@60": {
+              "caseId": "6x10-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@676": {
+              "caseId": "26x26-expert",
+              "share": 0.26087,
+              "n": 100
+            },
+            "expert@87": {
+              "caseId": "3x29-expert",
+              "share": 0.285714,
+              "n": 100
+            },
+            "hard@100": {
+              "caseId": "10x10-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hard@144": {
+              "caseId": "12x12-hard",
+              "share": 0.384615,
+              "n": 100
+            },
+            "hard@196": {
+              "caseId": "14x14-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@215": {
+              "caseId": "15x15b10-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@256": {
+              "caseId": "16x16-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@300": {
+              "caseId": "15x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@324": {
+              "caseId": "18x18-hard",
+              "share": 0.363971,
+              "n": 100
+            },
+            "hard@360": {
+              "caseId": "18x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@400": {
+              "caseId": "20x20-hard",
+              "share": 0.375,
+              "n": 100
+            },
+            "hard@420": {
+              "caseId": "20x21-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@480": {
+              "caseId": "32x15-hard",
+              "share": 0.368421,
+              "n": 100
+            },
+            "hard@484": {
+              "caseId": "22x22-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@576": {
+              "caseId": "24x24-hard",
+              "share": 0.35,
+              "n": 100
+            },
+            "hard@60": {
+              "caseId": "6x10-hard",
+              "share": 0.4,
+              "n": 100
+            },
+            "hard@676": {
+              "caseId": "26x26-hard",
+              "share": 0.380952,
+              "n": 100
+            },
+            "hard@87": {
+              "caseId": "3x29-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.265179,
+              "n": 2
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.141026,
+              "n": 4
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.128205,
+              "n": 50
+            },
+            "master@100": {
+              "caseId": "10x10-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@144": {
+              "caseId": "12x12-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@196": {
+              "caseId": "14x14-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@215": {
+              "caseId": "15x15b10-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@256": {
+              "caseId": "16x16-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@300": {
+              "caseId": "15x20-master",
+              "share": 0.210526,
+              "n": 100
+            },
+            "master@324": {
+              "caseId": "18x18-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@360": {
+              "caseId": "18x20-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@400": {
+              "caseId": "20x20-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@420": {
+              "caseId": "20x21-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@480": {
+              "caseId": "32x15-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@484": {
+              "caseId": "22x22-master",
+              "share": 0.208333,
+              "n": 100
+            },
+            "master@576": {
+              "caseId": "24x24-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@60": {
+              "caseId": "6x10-master",
+              "share": 0.230769,
+              "n": 100
+            },
+            "master@676": {
+              "caseId": "26x26-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@87": {
+              "caseId": "3x29-master",
+              "share": 0.214286,
+              "n": 100
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            },
+            "normal@100": {
+              "caseId": "10x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@144": {
+              "caseId": "12x12-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@196": {
+              "caseId": "14x14-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@215": {
+              "caseId": "15x15b10-normal",
+              "share": 0.416667,
+              "n": 100
+            },
+            "normal@256": {
+              "caseId": "16x16-normal",
+              "share": 0.461538,
+              "n": 100
+            },
+            "normal@300": {
+              "caseId": "15x20-normal",
+              "share": 0.307692,
+              "n": 100
+            },
+            "normal@324": {
+              "caseId": "18x18-normal",
+              "share": 0.357143,
+              "n": 100
+            },
+            "normal@60": {
+              "caseId": "6x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@87": {
+              "caseId": "3x29-normal",
+              "share": 0.5,
+              "n": 100
+            },
+            "very-easy@60": {
+              "caseId": "6x10-very-easy",
+              "share": 0.714286,
+              "n": 95
+            },
+            "very-easy@87": {
+              "caseId": "3x29-very-easy",
+              "share": 0.714286,
+              "n": 98
+            }
+          }
+        }
+      }
+    },
+    "machine": {
+      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "platform": "win32 10.0.26300 x64"
+    },
+    "invocations": {
+      "count": 13,
+      "nodeSeconds": 364.607,
+      "countedSeconds": 949.607,
+      "lockWaitSeconds": 648.292
+    },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\IGP-03.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  },
+  "budgets": [
+    1000000000,
+    2000000000,
+    4000000000,
+    6000000000,
+    8000000000,
+    12000000000
+  ],
+  "arms": {
+    "IGP-01/after": {
+      "variant": "p1p5-main",
+      "requests": 28,
+      "calls": 548,
+      "tuples": 2308,
+      "workPerMs": 275540.1335129702,
+      "workPerMsAggregate": 291845.73590110807,
+      "cells": {
+        "12x12-nightmare": {
+          "set": {
+            "okCalls": 4,
+            "failedCalls": 0,
+            "unfinishedCalls": 8,
+            "okBeyond": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 1651617501
+          },
+          "batch": {
+            "okCalls": 35,
+            "failedCalls": 0,
+            "unfinishedCalls": 7,
+            "okBeyond": {
+              "1000000000": 0.02857142857142857,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 1,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 1440226254
+          }
+        },
+        "14x14-nightmare": {
+          "set": {
+            "okCalls": 5,
+            "failedCalls": 0,
+            "unfinishedCalls": 7,
+            "okBeyond": {
+              "1000000000": 0.2,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 2438985714
+          },
+          "batch": {
+            "okCalls": 43,
+            "failedCalls": 0,
+            "unfinishedCalls": 9,
+            "okBeyond": {
+              "1000000000": 0.06976744186046512,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 2575506683
+          }
+        },
+        "15x15b10-nightmare": {
+          "set": {
+            "okCalls": 5,
+            "failedCalls": 0,
+            "unfinishedCalls": 7,
+            "okBeyond": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 1520785681
+          },
+          "batch": {
+            "okCalls": 46,
+            "failedCalls": 0,
+            "unfinishedCalls": 9,
+            "okBeyond": {
+              "1000000000": 0.021739130434782608,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 838949990
+          }
+        },
+        "26x26-hell-1": {
+          "set": {
+            "okCalls": 6,
+            "failedCalls": 0,
+            "unfinishedCalls": 6,
+            "okBeyond": {
+              "1000000000": 0.6666666666666666,
+              "2000000000": 0.16666666666666666,
+              "4000000000": 0.16666666666666666,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0.3333333333333333,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 5,
+              "2000000000": 1,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 9422231349
+          },
+          "batch": {
+            "okCalls": 41,
+            "failedCalls": 0,
+            "unfinishedCalls": 9,
+            "okBeyond": {
+              "1000000000": 0.6341463414634146,
+              "2000000000": 0.34146341463414637,
+              "4000000000": 0.07317073170731707,
+              "6000000000": 0.04878048780487805,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0.17073170731707318,
+              "2000000000": 0.12195121951219512,
+              "4000000000": 0.04878048780487805,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 3,
+              "2000000000": 1,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 8447107227
+          }
+        },
+        "26x26-nightmare": {
+          "set": {
+            "okCalls": 16,
+            "failedCalls": 0,
+            "unfinishedCalls": 8,
+            "okBeyond": {
+              "1000000000": 0.125,
+              "2000000000": 0.0625,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0.0625,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 2333655763
+          },
+          "batch": {
+            "okCalls": 61,
+            "failedCalls": 0,
+            "unfinishedCalls": 19,
+            "okBeyond": {
+              "1000000000": 0.21311475409836064,
+              "2000000000": 0.01639344262295082,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0.01639344262295082,
+              "2000000000": 0.01639344262295082,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 2,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 6604347844
+          }
+        },
+        "14x14-master": {
+          "set": {
+            "okCalls": 9,
+            "failedCalls": 0,
+            "unfinishedCalls": 11,
+            "okBeyond": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 3271267
+          },
+          "batch": {
+            "okCalls": 65,
+            "failedCalls": 0,
+            "unfinishedCalls": 13,
+            "okBeyond": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 1223553633
+          }
+        },
+        "26x26-master": {
+          "set": {
+            "okCalls": 11,
+            "failedCalls": 0,
+            "unfinishedCalls": 9,
+            "okBeyond": {
+              "1000000000": 0.09090909090909091,
+              "2000000000": 0.09090909090909091,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 2283311677
+          },
+          "batch": {
+            "okCalls": 66,
+            "failedCalls": 0,
+            "unfinishedCalls": 13,
+            "okBeyond": {
+              "1000000000": 0.16666666666666666,
+              "2000000000": 0.045454545454545456,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0.030303030303030304,
+              "2000000000": 0.015151515151515152,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 4,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 6911712610
+          }
+        }
+      }
+    },
+    "IGP-03/w095": {
+      "variant": "p1p5-w095",
+      "requests": 4,
+      "calls": 72,
+      "tuples": 287,
+      "workPerMs": 273431.18986234517,
+      "workPerMsAggregate": 280442.91159625974,
+      "cells": {
+        "12x12-nightmare": {
+          "set": {
+            "okCalls": 4,
+            "failedCalls": 0,
+            "unfinishedCalls": 4,
+            "okBeyond": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 556380005
+          },
+          "batch": {
+            "okCalls": 22,
+            "failedCalls": 0,
+            "unfinishedCalls": 5,
+            "okBeyond": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 218304877
+          }
+        },
+        "14x14-nightmare": {
+          "set": {
+            "okCalls": 2,
+            "failedCalls": 0,
+            "unfinishedCalls": 6,
+            "okBeyond": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 1114187044
+          },
+          "batch": {
+            "okCalls": 23,
+            "failedCalls": 0,
+            "unfinishedCalls": 6,
+            "okBeyond": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 983426797
+          }
+        }
+      }
+    },
+    "IGP-03/w380": {
+      "variant": "p1p5-w380",
+      "requests": 9,
+      "calls": 179,
+      "tuples": 736,
+      "workPerMs": 294142.8160272927,
+      "workPerMsAggregate": 302311.7204543615,
+      "cells": {
+        "12x12-nightmare": {
+          "set": {
+            "okCalls": 2,
+            "failedCalls": 0,
+            "unfinishedCalls": 6,
+            "okBeyond": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 840123222
+          },
+          "batch": {
+            "okCalls": 22,
+            "failedCalls": 0,
+            "unfinishedCalls": 5,
+            "okBeyond": {
+              "1000000000": 0.22727272727272727,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0.045454545454545456,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 2,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 4238190826
+          }
+        },
+        "14x14-nightmare": {
+          "set": {
+            "okCalls": 3,
+            "failedCalls": 0,
+            "unfinishedCalls": 5,
+            "okBeyond": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 2291346619
+          },
+          "batch": {
+            "okCalls": 23,
+            "failedCalls": 0,
+            "unfinishedCalls": 6,
+            "okBeyond": {
+              "1000000000": 0.13043478260869565,
+              "2000000000": 0.08695652173913043,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0.13043478260869565,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 1,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 1940729016
+          }
+        },
+        "26x26-master": {
+          "set": {
+            "okCalls": 11,
+            "failedCalls": 0,
+            "unfinishedCalls": 9,
+            "okBeyond": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 2379068885
+          },
+          "batch": {
+            "okCalls": 73,
+            "failedCalls": 0,
+            "unfinishedCalls": 14,
+            "okBeyond": {
+              "1000000000": 0.1095890410958904,
+              "2000000000": 0.0410958904109589,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0.0273972602739726,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 4,
+              "2000000000": 2,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 10054426139
+          }
+        }
+      }
+    },
+    "IGP-03/w760": {
+      "variant": "p1p5-w760",
+      "requests": 4,
+      "calls": 73,
+      "tuples": 140,
+      "workPerMs": 290050.52488004806,
+      "workPerMsAggregate": 324367.024727974,
+      "cells": {
+        "12x12-nightmare": {
+          "set": {
+            "okCalls": 2,
+            "failedCalls": 0,
+            "unfinishedCalls": 6,
+            "okBeyond": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 0
+          },
+          "batch": {
+            "okCalls": 23,
+            "failedCalls": 0,
+            "unfinishedCalls": 5,
+            "okBeyond": {
+              "1000000000": 0.21739130434782608,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0.08695652173913043,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 0
+          }
+        },
+        "14x14-nightmare": {
+          "set": {
+            "okCalls": 3,
+            "failedCalls": 0,
+            "unfinishedCalls": 5,
+            "okBeyond": {
+              "1000000000": 0.6666666666666666,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 3800524161
+          },
+          "batch": {
+            "okCalls": 23,
+            "failedCalls": 0,
+            "unfinishedCalls": 6,
+            "okBeyond": {
+              "1000000000": 0.5217391304347826,
+              "2000000000": 0.08695652173913043,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0.13043478260869565,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 2964379655
+          }
+        }
+      }
+    },
+    "IGP-03/a3": {
+      "variant": "p1p5-main-a3",
+      "requests": 4,
+      "calls": 81,
+      "tuples": 469,
+      "workPerMs": 311952.1692212386,
+      "workPerMsAggregate": 319583.65071480843,
+      "cells": {
+        "14x14-nightmare": {
+          "set": {
+            "okCalls": 2,
+            "failedCalls": 0,
+            "unfinishedCalls": 6,
+            "okBeyond": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 1778951869
+          },
+          "batch": {
+            "okCalls": 23,
+            "failedCalls": 0,
+            "unfinishedCalls": 6,
+            "okBeyond": {
+              "1000000000": 0.08695652173913043,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 1480783190
+          }
+        },
+        "26x26-hell-1": {
+          "set": {
+            "okCalls": 4,
+            "failedCalls": 0,
+            "unfinishedCalls": 4,
+            "okBeyond": {
+              "1000000000": 0.75,
+              "2000000000": 0.25,
+              "4000000000": 0.25,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0.25,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 3,
+              "2000000000": 1,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 7042861492
+          },
+          "batch": {
+            "okCalls": 30,
+            "failedCalls": 0,
+            "unfinishedCalls": 6,
+            "okBeyond": {
+              "1000000000": 0.6666666666666666,
+              "2000000000": 0.3333333333333333,
+              "4000000000": 0.1,
+              "6000000000": 0.06666666666666667,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "okOvershoot": {
+              "1000000000": 0.13333333333333333,
+              "2000000000": 0.16666666666666666,
+              "4000000000": 0.03333333333333333,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedAbove": {
+              "1000000000": 0,
+              "2000000000": 0,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "failedWork": 0,
+            "unfinishedAbove": {
+              "1000000000": 2,
+              "2000000000": 2,
+              "4000000000": 0,
+              "6000000000": 0,
+              "8000000000": 0,
+              "12000000000": 0
+            },
+            "unfinishedWorkSeen": 5613011002
+          }
+        }
+      }
+    }
+  }
+}

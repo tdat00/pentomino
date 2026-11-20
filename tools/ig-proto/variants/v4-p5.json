@@ -1,0 +1,26 @@
+{
+  "id": "v4-p5",
+  "extends": ["v4-link"],
+  "description": "P5 pilot arm (V4-T07b): a 2 G-unit budget per Nightmare and Hell 1 selection call and a bound of 4 set attempts on a no-window side.",
+  "edits": [
+    {
+      "id": "p5-1",
+      "file": "core/engine/generate.js",
+      "find": "  if (!cal.ok) {\n    return { ok: false, reason: cal.reason };\n  }\n",
+      "replace": "  if (!cal.ok) {\n    return { ok: false, reason: cal.igNoWindow === undefined ? cal.reason : 'no-window-' + cal.igNoWindow };\n  }\n"
+    },
+    {
+      "id": "p5-2",
+      "file": "core/browser/generation-client.js",
+      "find": "        // The lowest successful attempt wins: scan the resolved prefix in order.\n",
+      "replace": "        // ig-proto v4-p5 (V4-T07b): the bound is read before the ordered scan, so that it does not depend on the pool width.\n        const igBound = igSetBound(results);\n        if (igBound !== null) {\n          return { status: 'failed', reason: igBound, failures: tally() };\n        }\n        // The lowest successful attempt wins: scan the resolved prefix in order.\n"
+    },
+    {
+      "id": "p5-3",
+      "file": "core/browser/generation-client.js",
+      "append": "\n// ig-proto, variant v4-p5 (V4-T07b): bounded set attempts (plan P5). The request ends when the first\n// IG.setAttemptsBound attempts all failed without a window on the same side; a success among them wins as today.\nimport { IG as IG_P5 } from '../engine/ig-params.js';\n\n/**\n * @param {Map<number, { kind: string, reason?: string }>} results\n * @returns {string | null} The common `no-window-<side>` reason, or null when the bound does not fire.\n */\nexport function igSetBound(results) {\n  const n = IG_P5.setAttemptsBound;\n  if (!Number.isInteger(n) || n < 1) {\n    return null;\n  }\n  /** @type {string | null} */\n  let side = null;\n  for (let j = 0; j < n; j += 1) {\n    const r = results.get(j);\n    if (r === undefined || r.kind !== 'fail' || typeof r.reason !== 'string' || !r.reason.startsWith('no-window-')) {\n      return null;\n    }\n    if (side !== null && side !== r.reason) {\n      return null;\n    }\n    side = r.reason;\n  }\n  return side;\n}\n"
+    }
+  ],
+  "files": [],
+  "params": { "callBudget": { "default": 2000000000 }, "setAttemptsBound": 4 }
+}

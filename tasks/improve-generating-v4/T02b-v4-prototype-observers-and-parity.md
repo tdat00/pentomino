@@ -1,0 +1,148 @@
+# T02b: `gen-v4` prototype: observers, skip replay and legacy dispatch
+
+| Item | Value |
+|---|---|
+| Feature, plan | improve-generating, `docs/improve-generating/plan.md` §5.1 ("Skip replay", "Observers", "Parity passes"), §6 (the tests every phase keeps: observers, replay, scope), §9; decisions D-V4-03, D-V4-04, D-V4-06; drift DR-O08, DR-O14, DR-A06; review RV1-04, RV1-20, RV2-19 |
+| Repository, branch, base | `Q:\git\pentomino`, `improve-generating`, the commit of T02a |
+| Depends on | T02a |
+| Pack author / reviewer | SA-Opus / SA-Astra |
+| Executor | Dev-Sonnet (claude-sonnet-5.5) |
+| Estimate | developer 3 h, machine 0 min (synthetic ratings on one carved set; verification through the lock helper) |
+
+## Goal
+
+Before any machine time is spent, prove that the rebuilt prototype keeps the frozen contracts that plan §5.1 lists:
+observers change nothing and propagate their exceptions, every rating attempt is charged once before its event, a
+recorded skip list replays to the same result and an extra entry is refused, and the levels outside the new scope run
+the frozen search unchanged. The version and provenance contract is T02c's.
+
+## Authority and fixed points
+
+- Plan §5.1: "An observer that returns normally changes neither a result nor a loop's control flow. An exception
+  thrown by `record` or `charge` propagates unchanged"; "Every rating attempt is charged once, before its event";
+  "a recorded skip list replays to the same puzzles"; §6 "Scope: for Very easy to Master, `gen-v4` returns the puzzles
+  of `gen-v3` for the same effective request".
+- The synthetic seams (`ctx.igScreen`, `ctx.igCanonical`, `ctx.rate`) carry no detail by design; the recorded detail
+  path (RV1-04) is proved on real calls in the stage-1 runs (T04e, with the checks of T04a to T04d).
+- IG-P-Q37 point 5: the begin line that T02d adds later before every rating and count joins these observer-parity
+  passes; it is proved by T02d's case `bound: the journal changes no result` and by the stage-1 parity passes of T04e,
+  whose trees contain it. This task's cases run before T02d and need no change for it.
+- Nothing outside `tools/ig-proto/self-test.mjs` changes. If a case fails because `ig-select-v4.js` is wrong, stop
+  with `QUESTION:` (the fix belongs to T02a's file and is ruled by the pack author).
+
+## Scope
+
+- Change: `tools/ig-proto/self-test.mjs` (five cases appended to `v4Cases`; helpers; the header line of `--v4`).
+- Do not change: everything else, `ig-select-v4.js` included. Guards:
+  `node tools\ig-proto\firewall.mjs check --task V4-T02b --label frozen`, expected `files unchanged`;
+  `git status --short -- tools/ig-proto/variants core generator tests/fixtures`, expected no output.
+
+## Steps
+
+0. `node tools\ig-proto\firewall.mjs snapshot --task V4-T02b --label frozen`.
+1. **Helpers** in `self-test.mjs`, next to `v4Call`:
+   - `async function v4Ctx(e, ws, name, extra)` (async because `k15Set()` is): returns the `SelectContext` that
+     `v4Call` builds (the K = 15 set of `k15Set()`, `target: BAND`,
+     `rng: e.rng.createRng(e.rng.normalizeSeedText('ig-selftest/v4/' + name), 'selftest/' + name)`,
+     `uniqueness: 'any'`, `excludeClueKeys: new Set()`, `ws`, `igStage: 'set'`) merged with `extra`.
+   - `synth(e, fn)`: the `make` function of `protoCall` (a count function that returns a rating or `'cap'`, the cap
+     thrown as the tree's `IncompleteRatingError` with `{ nodes: 1, work: e.policy.DEDUCE.work, stop: 'work-cap' }`).
+   - `REBRACKETED = { screen: () => 'cap', canon: (c) => synthetic(100 - 10 * c) }` and
+     `DOWN = (c) => (c <= 2 ? 'cap' : synthetic(100 - 10 * c))`.
+   - `journaled(name, fn)` (ruling of 2026-11-17, the first execution's helper): runs `fn` with `IG_LOG_DIR` and
+     `IG_ROW` set as `v4Call` sets them and returns `{ result, error, lines }` (a thrown error is returned).
+2. **Cases** (in this order, after T02a's three):
+   1. `v4: observers parity (synthetic, require)`.
+   2. `v4: throwing observers propagate`.
+   3. `v4: skip replay round trip`.
+   4. `v4: legacy dispatch equals the frozen search`.
+   5. `v4: the rate seam keeps priority on the screened route`.
+   Inputs and expected values are in the Tests table; each case asserts with the file's `assert` and `same`.
+3. **README.md** is not changed (T02a's section covers the prototype); the `--v4` line of the file header lists the
+   eight cases.
+
+## Tests
+
+| Test file | Case name | Input | Expected |
+|---|---|---|---|
+| `tools/ig-proto/self-test.mjs --v4` | `v4: observers parity (synthetic, require)` | two passes, each three calls of the `v4` tree's `selectClues`: pass `parity` with `v4Ctx(e, ws, 'parity', { uniqueness: 'require', igPrior: null, igScreen: synth(e, REBRACKETED.screen), igCanonical: synth(e, REBRACKETED.canon) })` (it ends `not-in-band` without a repair), then pass `parity-ok` with `v4Ctx(e, ws, 'parity-ok', { uniqueness: 'require', igPrior: null, igScreen: synth(e, DOWN), igCanonical: synth(e, DOWN) })` (it ends `ok` after a real repair with counts); the three calls: (A) no observer; (B) `charge: (u) => log.push(['charge', u])`; (C) the same `charge` and `record: (ev) => log.push(['event', ev])`, each with a fresh rng of the same seed | in each pass: A, B and C results deep-equal (with `skips` and, when `ok`, `igWindow`); the charged units of B deep-equal those of C; in C every event of kind `rated`, `unrateable` or `rejected` comes right after a `charge` entry; every event's `kind` is one of `rated`, `unrateable`, `rejected`, `skip`, `repair`, `selected`; every `phase` present is one of `locate`, `window`, `seed`, `beam`, `rescue`, `rerate`; every `sequence` present is an integer from 0 to 2191; one `selected` event, the last one, exactly when `A.ok`. Pass `parity-ok`: `A.ok` true and at least one `repair` event (ruling of 2026-11-17: the `parity` input alone never reaches the repair, its counts or the `selected` event) |
+| same | `v4: throwing observers propagate` | `v4Ctx(e, ws, 'throw', { igPrior: null, igScreen: synth(e, REBRACKETED.screen), igCanonical: synth(e, REBRACKETED.canon) })` with (i) a `charge` that throws `boomC = new Error('charge-stop')` at its third call; (ii) a `record` that throws `boomR = new Error('record-stop')` at its second event; `IG_LOG_DIR` set as in `v4Call` | (i) the call throws exactly `boomC` (`caught === boomC`); (ii) exactly `boomR`; in both journals the `end` line has `result: 'error'` (T02c adds the check that each throw ends the call at once) |
+| same | `v4: skip replay round trip` | R0: `v4Ctx(e, ws, 'skip', { igPrior: null, igScreen: synth(e, DOWN), igCanonical: synth(e, DOWN), record })`; `K0` = the `clueKey`s (tree's `keys.clueKey` on `carved.set.witness` filtered to the event's `clueIds`) of the events with `sequence` 0 and 1. R1: the same context without `record` and with `excludeClueKeys: new Set(K0)`. R2: `excludeClueKeys: new Set()`, `replaySkips: R1.skips`. R3: `replaySkips: { subsets: [...R1.skips.subsets, 2191], repairs: [] }` | `R1.skips.subsets[0] === 0`; R2 deep-equals R1; R3 throws the tree's `SkipReplayError` with `reason: 'unused'`, `list: 'subsets'`, `ordinal: 2191` |
+| same | `v4: legacy dispatch equals the frozen search` | the K = 15 set, `target: e.levels.level('master')`, `uniqueness: 'any'`, `rate: (b, p, c) => synthetic(c.length <= 2 ? 60 : Math.max(5, 75 - 5 * c.length))`, the same rng seed, called in the `v4` tree (with `IG_LOG_DIR`, no recorder) and in the `base` tree; then the same two calls with `record: (ev) => list.push(ev)` (one list per tree) and no `IG_LOG_DIR` | the two unrecorded results deep-equal; the `v4` journal's `start` line has `W: null` and `priorCount: null`; its phases contain `p1` and no `locate`; the two recorded results deep-equal and their event lists deep-equal (the recorded route calls the frozen search directly) |
+| same | `v4: the rate seam keeps priority on the screened route` | `v4Ctx(e, ws, 'seam', { igPrior: null, rate })` with no `igScreen` and no `igCanonical` (the `v4` tree screens at 190 M, so the screened path is taken), `IG_LOG_DIR` set as in `v4Call`: (i) `rate = () => { throw boom; }` with `boom = new Error('seam')`; (ii) `rate = (b, p, c) => { calls += 1; return synthetic(100 - 10 * c.length); }` | (i) the call throws exactly `boom`; (ii) `calls` equals the number of `p` lines of the call's journal (every rating went through the seam; none was a native solve) and is at least 1 |
+
+The expected values follow from the frozen code. If a case fails, report the actual values with the case's input
+(`QUESTION:`); never change an expected value or `ig-select-v4.js`.
+
+## Documentation
+
+The header comment of `self-test.mjs` (the `--v4` line). No other document.
+
+## Commands and gates
+
+The `--v4` group runs through the lock helper (check-list §3.1 and §3.2): case 1 runs real uniqueness counts.
+
+| Command | Where | Expected | Time limit |
+|---|---|---|---|
+| `Invoke-IgNode -Repo pentomino -Task 'V4-T02b verify' -NodeArgs @('tools\ig-proto\self-test.mjs', '--label', 'frozen', '--source-label', 'frozen 3fc65f4', '--v4', '--task', 'V4-T02b')` (check-list §3.2) | root | eight cases pass (T02a's three and these five), exit 0 | 5 min (the helper's 300 s) |
+| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --frozen --task V4-T01b` | root | the nine `--frozen` cases pass | 2 min |
+| `node tools\ig-proto\lib\tree.mjs check-edits --all --label frozen` | root | one `ok` line per declared variant, no error | 2 min |
+| `node tools\ig-proto\firewall.mjs check --task V4-T02b --label frozen` | root | `files unchanged` | 1 min |
+| `npm run check` | root | exit 0 | 2 min |
+
+## Stop points and questions
+
+- Stop and report before: editing `ig-select-v4.js`, a variant manifest, the fixture or a production file.
+- `QUESTION:` when a case fails; with the actual values and the input.
+- Send `QUESTION:` to the pack author (through the orchestrator) when: the task looks wrong or contradicts the code;
+  an ambiguity changes behaviour or a contract; a gate fails for a reason not covered here; a change is needed outside
+  the scope; a recorded decision would change. Never decide such a point yourself.
+
+## Acceptance criteria
+
+### Business
+
+| ID | Criterion | How it is verified | Evidence |
+|---|---|---|---|
+| T02b-B01 | The prototype keeps plan §5.1's observer and skip-replay contracts, proved before any machine time | cases 1 to 3 pass | self-test output |
+| T02b-B02 | A level outside the new scope gives the frozen search's results and events in a `v4` tree | case 4 | self-test output |
+
+### Technical
+
+| ID | Criterion | How it is verified | Evidence |
+|---|---|---|---|
+| T02b-T01 | Observers absent, `charge` alone and `record` with `charge` give equal results and units, a real repair's counts included; charge before event | case 1 (both passes) | self-test output |
+| T02b-T02 | `charge` and `record` exceptions propagate unchanged | case 2 | self-test output |
+| T02b-T03 | Skip replay round trip; an unused entry is refused | case 3 | self-test output |
+| T02b-T04 | Master in a `v4` tree equals the frozen `base` search, unrecorded and recorded | case 4 | self-test output |
+| T02b-T05 | An explicit `ctx.rate` seam is used on the screened route, with no native solve | case 5 | self-test output |
+| T02b-T06 | Nothing else changed; formats | guards; `npm run check` | command output |
+
+## Checklist (the developer confirms every item in the final report)
+
+- [ ] Every step done; nothing outside the scope changed (guard command output)
+- [ ] Tests added and green; the full gate green
+- [ ] Documents updated (each language)
+- [ ] File format checks pass
+- [ ] Evidence files written
+- [ ] Every AC row has its evidence
+
+## Final report (the developer's reply)
+
+The start and end times; the files changed; the gate results with numbers; each AC row with its evidence; the
+questions and rulings; the deviations; and the named items for later.
+
+## Execution log (filled by the orchestrator, not by the developer)
+
+| Item | Value |
+|---|---|
+| Start, end, duration | 2026-11-17 05:36:03 +07:00 (dispatch, base `4f14450`) to 06:04:33 +07:00 (acceptance): 28 min 30 s; the developer's own times 05:36:23-05:59:51 (most of it lock waits: 322 s and 563 s on its two `--v4` runs) |
+| Waiting for rulings | about 5 min (05:59:51 report to 06:04 ruling); no developer wait (no fix round) |
+| Agent id, model | `77e8e3b8-517a-4c43-8f41-d6e524847d3c`, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 57 calls; 7,758,095 input, 51,126 output, 7,594,263 cache-read |
+| AI credits | 168.02 |
+| Questions and rulings | No `QUESTION:`. The developer's four deviations (an added `parity-ok` pass, since the table's `REBRACKETED` input with `require` ends `not-in-band` and reaches no repair; `v4Ctx` async; the `journaled` helper; sanity asserts), two named items and three gaps were relayed to the pack author; all accepted (06:04); T02b's text names the added pass and helpers; the stronger case-2 checks moved to T02c (T02c-T06); pack amendment `508cf85` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `check-edits --all --label frozen`: 18 `ok`; `--frozen`: 9 passed; the `--v4` group through the lock helper (`V4-T02b-verify`): 8 passed, 0 failed, `IG … exit=0 seconds=3.34` (lock wait from 06:00:31); firewall `check`: 289 production files unchanged; the guard `git status -- tools/ig-proto/variants core generator tests/fixtures`: no output; `npm run check`: OK; only `tools/ig-proto/self-test.mjs` changed (+232 lines) |
+| Commit | this task's commit, `improve-generating T02b: gen-v4 prototype: observers, skip replay and legacy dispatch` |
+| Issues and named items | None new (case 2's exact stop is checked in T02c by the ruling). The developer ran two locked scratch probes (helper 1.055 s and 2.397 s), removed |

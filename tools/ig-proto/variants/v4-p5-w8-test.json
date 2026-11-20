@@ -1,0 +1,8 @@
+{
+  "id": "v4-p5-w8-test",
+  "extends": ["v4-p5", "w8"],
+  "description": "Test only (V4-T07b): v4-p5 with the eight-worker pool limit of w8, for the width-8 scripted cases; never an arm or a plan step.",
+  "edits": [],
+  "files": [],
+  "params": {}
+}

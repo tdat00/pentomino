@@ -1,0 +1,167 @@
+{
+  "version": 1,
+  "resampleSeed": 20261116,
+  "resamples": 10000,
+  "workers": 4,
+  "reps": {
+    "pilot": [0, 4],
+    "validation": [20, 39],
+    "master": [20, 24],
+    "secondValidation": [40, 59],
+    "liveDeadline": [0, 4]
+  },
+  "rowLimitS": { "default": 260, "liveDeadline": 130 },
+  "arms": {
+    "log-link": { "variant": "log-link", "stage": 4 },
+    "fr-base": { "variant": "fr-base", "stage": 2 },
+    "fr-screen": { "variant": "fr-screen", "stage": 2 },
+    "fr-none": { "variant": "fr-none", "stage": 2 },
+    "fr-close": { "variant": "fr-close", "stage": 2 },
+    "fr-c4": { "variant": "fr-c4", "stage": 2 },
+    "fr-ps": { "variant": "fr-ps", "stage": 2 },
+    "fr-p5": { "variant": "fr-p5", "stage": 2 },
+    "fr-frozen": {
+      "variant": "fr-frozen",
+      "stage": 4,
+      "settings": {
+        "prior": "frozen",
+        "screen": "frozen",
+        "c4": "frozen",
+        "rerate": "frozen",
+        "callBudget": "frozen",
+        "setAttemptsBound": "frozen",
+        "liveDeadline": true
+      }
+    },
+    "fr-frozen-none": {
+      "variant": "fr-frozen-none",
+      "stage": 4,
+      "settings": {
+        "prior": "frozen",
+        "screen": "none",
+        "c4": "frozen",
+        "rerate": "frozen",
+        "callBudget": "frozen",
+        "setAttemptsBound": "frozen",
+        "liveDeadline": true
+      }
+    },
+    "fr-frozen-uncapped": {
+      "variant": "fr-frozen-uncapped",
+      "stage": 4,
+      "settings": {
+        "prior": "frozen",
+        "screen": "frozen",
+        "c4": "frozen",
+        "rerate": "frozen",
+        "callBudget": null,
+        "setAttemptsBound": null,
+        "liveDeadline": false
+      },
+      "comparatorOf": "fr-frozen"
+    },
+    "fr-frozen-none-uncapped": {
+      "variant": "fr-frozen-none-uncapped",
+      "stage": 4,
+      "settings": {
+        "prior": "frozen",
+        "screen": "none",
+        "c4": "frozen",
+        "rerate": "frozen",
+        "callBudget": null,
+        "setAttemptsBound": null,
+        "liveDeadline": false
+      },
+      "comparatorOf": "fr-frozen-none"
+    }
+  },
+  "comparatorDifferences": ["callBudget", "setAttemptsBound", "liveDeadline"],
+  "cells": {
+    "failingNightmare": ["14x14-nightmare", "15x15b10-nightmare", "12x12-nightmare", "16x16-nightmare", "15x20-nightmare"],
+    "hell1Validated": ["26x26-hell-1", "20x20-hell-1"],
+    "hell1Conditional": ["24x24-hell-1", "14x14-hell-1"],
+    "master": [
+      "6x10-master",
+      "3x29-master",
+      "10x10-master",
+      "12x12-master",
+      "14x14-master",
+      "15x15b10-master",
+      "16x16-master",
+      "15x20-master",
+      "18x18-master",
+      "18x20-master",
+      "20x20-master",
+      "20x21-master",
+      "32x15-master",
+      "22x22-master",
+      "24x24-master",
+      "26x26-master"
+    ]
+  },
+  "stage2": [
+    {
+      "id": "S2-1",
+      "text": "the per-set prior on Hell 1 first",
+      "groups": [{ "arm": "fr-base", "cells": ["26x26-hell-1", "20x20-hell-1"] }, { "arm": "fr-ps", "cells": ["26x26-hell-1", "20x20-hell-1"] }]
+    },
+    {
+      "id": "S2-2",
+      "text": "each class's W_screen and the no-screen arm on every class; 10x10, 16x16 and 15x20 Nightmare (R09)",
+      "groups": [
+        {
+          "arm": "fr-screen",
+          "cells": [
+            "10x10-nightmare",
+            "12x12-nightmare",
+            "14x14-nightmare",
+            "15x15b10-nightmare",
+            "16x16-nightmare",
+            "15x20-nightmare",
+            "26x26-nightmare",
+            "26x26-hell-1"
+          ]
+        },
+        {
+          "arm": "fr-none",
+          "cells": [
+            "10x10-nightmare",
+            "12x12-nightmare",
+            "14x14-nightmare",
+            "15x15b10-nightmare",
+            "16x16-nightmare",
+            "15x20-nightmare",
+            "26x26-nightmare",
+            "26x26-hell-1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S2-3",
+      "text": "(c4)",
+      "groups": [{ "arm": "fr-c4", "cells": ["14x14-nightmare", "26x26-nightmare"] }, { "arm": "fr-base", "cells": ["14x14-nightmare", "26x26-nightmare"] }]
+    },
+    {
+      "id": "S2-4",
+      "text": "the re-rate-at-bracket-close variant (D-IG7)",
+      "groups": [
+        { "arm": "fr-close", "cells": ["12x12-nightmare", "14x14-nightmare", "26x26-hell-1"] },
+        { "arm": "fr-base", "cells": ["12x12-nightmare", "14x14-nightmare", "26x26-hell-1"] }
+      ]
+    },
+    {
+      "id": "S2-5",
+      "text": "Hell 1 on 24x24 and 14x14 as five-seed pilots with a no-screen, prior-guided arm",
+      "groups": [{ "arm": "fr-base", "cells": ["24x24-hell-1", "14x14-hell-1"] }]
+    },
+    {
+      "id": "S2-6",
+      "text": "the P5 budget arm and the reserve of IG-P-D1",
+      "groups": [
+        { "arm": "fr-p5", "cells": ["14x14-nightmare", "26x26-hell-1", "20x20-hell-1"] },
+        { "arm": "fr-base", "cells": ["14x14-nightmare", "26x26-hell-1", "20x20-hell-1"] }
+      ]
+    }
+  ]
+}

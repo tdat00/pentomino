@@ -1,0 +1,47 @@
+{
+  "task": "V4-T05",
+  "allocationMinutes": 6,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "snapshot", "--task", "V4-T05"]
+    },
+    {
+      "id": "trees",
+      "locked": false,
+      "node": ["tools\\ig-proto\\lib\\tree.mjs", "build", "v4", "v4-ps"]
+    },
+    {
+      "id": "prior-gen",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 150,
+      "minHorizonS": 270,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\v4-check.mjs", "run", "--task", "V4-T05", "--step", "prior-gen", "--manifest", "tools\\ig-proto\\plans\\V4-T05.prior-gen.json"],
+      "state": "V4-T05\\prior-gen\\state.json"
+    },
+    {
+      "id": "prior-replay",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 90,
+      "minHorizonS": 150,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\v4-check.mjs", "run", "--task", "V4-T05", "--step", "prior-replay", "--manifest", "tools\\ig-proto\\plans\\V4-T05.prior-replay.json"],
+      "state": "V4-T05\\prior-replay\\state.json"
+    },
+    {
+      "id": "verdict",
+      "locked": false,
+      "node": ["tools\\ig-proto\\v4-check.mjs", "prior-verdict", "--task", "V4-T05"]
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "check", "--task", "V4-T05"]
+    }
+  ]
+}

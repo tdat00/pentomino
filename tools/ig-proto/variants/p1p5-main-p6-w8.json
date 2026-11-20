@@ -1,0 +1,8 @@
+{
+  "id": "p1p5-main-p6-w8",
+  "extends": ["p1p5-main", "p6", "w8"],
+  "description": "The headline prototype with P6 and eight workers (IGP-04): a combined P6 x width factor against p1p5-main, not P6 alone.",
+  "edits": [],
+  "files": [],
+  "params": {}
+}

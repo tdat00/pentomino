@@ -1,0 +1,538 @@
+{
+  "format": "ig-proto-snapshot",
+  "version": 1,
+  "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+  "hashRule": "lf-text",
+  "files": 88,
+  "digest": "f4ed453da26cd8090385bb2af35448a1598221c67c8bf21c342b8594e90f4abc",
+  "entries": [
+    {
+      "path": "core/browser/auxiliary.js",
+      "sha256": "68afc9a6d35a770ed507c983c88f7bc9fd43f1b4a36e708e17cb47e116d1c146",
+      "bytes": 8612,
+      "text": true
+    },
+    {
+      "path": "core/browser/common.css",
+      "sha256": "71b0f112b1d72bf81a651dc7be40cbb21e3a55ecb19032df42aa349928000e55",
+      "bytes": 11029,
+      "text": true
+    },
+    {
+      "path": "core/browser/display-rating.js",
+      "sha256": "352e9b0f5c05761ac3911651686408da3fe8717eba52f7d621a599e9a83255e2",
+      "bytes": 9368,
+      "text": true
+    },
+    {
+      "path": "core/browser/dom.js",
+      "sha256": "6f350745aad1d52739fcdf220cd535d7df117430be77b676bb78ef4c0d3a2304",
+      "bytes": 5072,
+      "text": true
+    },
+    {
+      "path": "core/browser/favicon.svg",
+      "sha256": "e4d4f945122b37544293f777b4b4fc16dc7793ac255d501f66df96acb3b2a6be",
+      "bytes": 406,
+      "text": true
+    },
+    {
+      "path": "core/browser/generation-client.js",
+      "sha256": "23f5dc494baea934e481302ccec31b763fbbebbdfac1893879c39c38283564d8",
+      "bytes": 50502,
+      "text": true
+    },
+    {
+      "path": "core/browser/handoff.js",
+      "sha256": "c47d73c4b1a5af44a1ee86cce065b5ca17ea4e91333d20f0b4d67470e6953401",
+      "bytes": 15432,
+      "text": true
+    },
+    {
+      "path": "core/browser/i18n.js",
+      "sha256": "c1d1b26ff658aeff6dd581b59e1d45de0748fca2b5035ed50b3741662547a1d7",
+      "bytes": 9734,
+      "text": true
+    },
+    {
+      "path": "core/browser/page.css",
+      "sha256": "ed674a7074ea281542171e6f8cb349a5989fe5bd8633a9e635c8b80e17411900",
+      "bytes": 7196,
+      "text": true
+    },
+    {
+      "path": "core/browser/piece-look.js",
+      "sha256": "b59e8fbfa2685fc867994de2a835a3e3bc8f146797d12c7eee8b7d643cd151ad",
+      "bytes": 3192,
+      "text": true
+    },
+    {
+      "path": "core/browser/pointer.js",
+      "sha256": "a966bee4a250655d60afd4f54b2b6a1d033c1b13f5c8ecaaeb0c175c376a0b2b",
+      "bytes": 10599,
+      "text": true
+    },
+    {
+      "path": "core/browser/print-dialog.js",
+      "sha256": "323d0016992f8608ecbcb42f58a797b09bc73e398b948d1032ddf0a7aa1a1a37",
+      "bytes": 31073,
+      "text": true
+    },
+    {
+      "path": "core/browser/print-layout.js",
+      "sha256": "000029192d23576f7b7578285b55aed3e6ca4f7fd9627b3bcebd2de569fe6e94",
+      "bytes": 38498,
+      "text": true
+    },
+    {
+      "path": "core/browser/print-sheet.js",
+      "sha256": "d3467dec59baac179430a70988f11394b9c4f8e0e153422787c28d7c81c80cbd",
+      "bytes": 23296,
+      "text": true
+    },
+    {
+      "path": "core/browser/print-texts.js",
+      "sha256": "8e076ae6569aaa20bb866c0e0bc20a767bcb50b88f2bf091e3cad0598493d6ea",
+      "bytes": 9099,
+      "text": true
+    },
+    {
+      "path": "core/browser/print.css",
+      "sha256": "197eff4104bfbe615bb7864025be735c759f5ddab81c58fcfee3991f525b676d",
+      "bytes": 9337,
+      "text": true
+    },
+    {
+      "path": "core/browser/puzzle-code-client.js",
+      "sha256": "41d22bdbf22d2a5684ab56adfce6cb5b9cbd2719fa767531a4417a8ffd22b5b5",
+      "bytes": 15438,
+      "text": true
+    },
+    {
+      "path": "core/browser/puzzle-code-dialog.js",
+      "sha256": "e87e0aae81126f071b68b9c08784d90c25660fb914a6e2dc9d4e7b5e897e21a4",
+      "bytes": 25940,
+      "text": true
+    },
+    {
+      "path": "core/browser/puzzle-nav.js",
+      "sha256": "864497554f2141d02566c7e70657f8c479dd4805087b085b0c86e9bc4b54c301",
+      "bytes": 3076,
+      "text": true
+    },
+    {
+      "path": "core/browser/puzzle-snapshot.js",
+      "sha256": "130e50ef427f40e17a98502ed11038abbc3c4e453a5d8f91262c4b8d2a6abb34",
+      "bytes": 13751,
+      "text": true
+    },
+    {
+      "path": "core/browser/puzzle-title.js",
+      "sha256": "b259c45c4a10d2b9824bc1fccf503d225fe33e8f357b1e4d74e5cec7dfe15a2d",
+      "bytes": 2772,
+      "text": true
+    },
+    {
+      "path": "core/browser/qr.js",
+      "sha256": "7258ebaf2c87426b7e9c194d201739133296b672e4b331d4aff0394c0f5a882a",
+      "bytes": 12066,
+      "text": true
+    },
+    {
+      "path": "core/browser/settings-dialog.js",
+      "sha256": "b0c1f92cf3677594edfa6a9f0404d3669f12abb6e116aac15f7bff272636ec0b",
+      "bytes": 5058,
+      "text": true
+    },
+    {
+      "path": "core/browser/share-dialog.js",
+      "sha256": "053542597ad17eceab9b49b7c6bb63ca513a3204615ce60f9892c9cd9b2d7ca7",
+      "bytes": 21004,
+      "text": true
+    },
+    {
+      "path": "core/browser/storage.js",
+      "sha256": "6ca21331c9dd954d62cc9760e37a079cd09a93e681414dbe6ba7331d43f414ed",
+      "bytes": 21083,
+      "text": true
+    },
+    {
+      "path": "core/browser/svg-board.js",
+      "sha256": "1a2e265a623f933fad58b8749fe32ce8e81a0841b919ebf49006f56bfd204792",
+      "bytes": 48839,
+      "text": true
+    },
+    {
+      "path": "core/browser/theme-init.js",
+      "sha256": "1188c84e5f8daf253797360dc0726d4526ff68090900f6338d8bcbef7ba54534",
+      "bytes": 477,
+      "text": true
+    },
+    {
+      "path": "core/browser/theme.css",
+      "sha256": "01c429698c5a38c2574f3b06e91155ecc3b354c7746411b07ef7c771000d037e",
+      "bytes": 7541,
+      "text": true
+    },
+    {
+      "path": "core/browser/theme.js",
+      "sha256": "0b3602b2f8400d4b8ae95a56d9d30abcbac90947f5c7320010339bd61cd1e1f4",
+      "bytes": 1091,
+      "text": true
+    },
+    {
+      "path": "core/browser/vendor/qrcodegen.LICENSE",
+      "sha256": "d21110d49649c1d8c840b977036f40594ee44e09dadeb8d976bb483b4d513f74",
+      "bytes": 2178,
+      "text": true
+    },
+    {
+      "path": "core/browser/vendor/qrcodegen.js",
+      "sha256": "68453133c5cffbaebe89cdfba48f1bb0918535335bae75adfbdbfde2a8b318f5",
+      "bytes": 45368,
+      "text": true
+    },
+    {
+      "path": "core/browser/worker-pool.js",
+      "sha256": "e605c1da51ee1ea81879af8050a60bc851303cb0a318b2d9a451c2f2a12c3a60",
+      "bytes": 21289,
+      "text": true
+    },
+    {
+      "path": "core/engine/board.js",
+      "sha256": "443c51c564143b8cd183f44de86aebd090344158f1c6b4356dfd96ab0b21d33e",
+      "bytes": 15332,
+      "text": true
+    },
+    {
+      "path": "core/engine/carve.js",
+      "sha256": "c2aa481d1a7408f96e029787475ccab35586f6d157d6503c602e660da63a5f0c",
+      "bytes": 28241,
+      "text": true
+    },
+    {
+      "path": "core/engine/clues.js",
+      "sha256": "7aefcbeafd9630c28a8d57872e3e87a78c236bd5e3dba7994e3318ae206d394e",
+      "bytes": 30308,
+      "text": true
+    },
+    {
+      "path": "core/engine/deduce.js",
+      "sha256": "c9571cd61cb32d260d32524cae712c4ba02dc567aff794304e4f601de096d1ce",
+      "bytes": 62227,
+      "text": true
+    },
+    {
+      "path": "core/engine/difficulty.js",
+      "sha256": "da528b1733de2074abc3b6ccdbbb877ff193655fcb1544ef39ecdb0050dd047e",
+      "bytes": 17583,
+      "text": true
+    },
+    {
+      "path": "core/engine/dlx.js",
+      "sha256": "0a18f78ef214064300bb63379dbed79946625fdc6687fdaeea8365b7c71bfc6b",
+      "bytes": 10895,
+      "text": true
+    },
+    {
+      "path": "core/engine/enumerate.js",
+      "sha256": "8c71fc231a74402ed928d8b34058e3c28a4cdb03d8bed70467a911d917563256",
+      "bytes": 10078,
+      "text": true
+    },
+    {
+      "path": "core/engine/game.js",
+      "sha256": "2920fecf746bde12e8fcfbf36894d3abbbf21bc64ea28bdf79b782e050ad58f0",
+      "bytes": 21957,
+      "text": true
+    },
+    {
+      "path": "core/engine/generate.js",
+      "sha256": "20afef3b322705084604435062105ea9d9e25978b94a82cea40880a90f0d6208",
+      "bytes": 23508,
+      "text": true
+    },
+    {
+      "path": "core/engine/geometry.js",
+      "sha256": "51af8541bc3827aef5815ba21c1d1fd81f0a013f25110156c39a1a2ebfe129a6",
+      "bytes": 11737,
+      "text": true
+    },
+    {
+      "path": "core/engine/hash.js",
+      "sha256": "ed6a5dcb4ba4ed24c5063d8ad4d21cd85001e3a61fbc8bb6de0f5f77d805c51c",
+      "bytes": 5967,
+      "text": true
+    },
+    {
+      "path": "core/engine/hints.js",
+      "sha256": "d536505f65988b650524287879f6baa618070fb031be63b8c0fdf199ef87e523",
+      "bytes": 10637,
+      "text": true
+    },
+    {
+      "path": "core/engine/keys.js",
+      "sha256": "0f0054da98a74a24ef2ba64df4441e3175df5548dcb83b4bbd0dc3d799c3c0fa",
+      "bytes": 14938,
+      "text": true
+    },
+    {
+      "path": "core/engine/levels.js",
+      "sha256": "e0d59290f3c265fd56e84ac9ff83cf048458e223673e2e669525aabef302e096",
+      "bytes": 4474,
+      "text": true
+    },
+    {
+      "path": "core/engine/pack.js",
+      "sha256": "e7ac93a03fad7d484bead4ecf4bd84591ea01f5672c8dad37cdfa76467dbc336",
+      "bytes": 67669,
+      "text": true
+    },
+    {
+      "path": "core/engine/palette.js",
+      "sha256": "21102da1f41bf3833a85b459ead274f80e4f069b0e6c5e63680067b5680e392c",
+      "bytes": 3266,
+      "text": true
+    },
+    {
+      "path": "core/engine/placements.js",
+      "sha256": "b386c7f8ddc34a8bb2e4fa58dc5dbf6b97835dd4cb7eb0e8c257fbc71c35405b",
+      "bytes": 11472,
+      "text": true
+    },
+    {
+      "path": "core/engine/policy.js",
+      "sha256": "e5e41eb8baaaf4da6b25f52c7e0ed36ff86e9e84a87ca2b4b76512fca52a6e10",
+      "bytes": 15226,
+      "text": true
+    },
+    {
+      "path": "core/engine/protocol.js",
+      "sha256": "b77b25848fdbf322f461ed5ea79c264729e9667d3747ef1adde828fa1dfc1f6f",
+      "bytes": 37973,
+      "text": true
+    },
+    {
+      "path": "core/engine/puzzlecode-input.js",
+      "sha256": "b03cad0e5482bcbfd51f8eb54977ee5a96951313b4a7b3fd929b9117e123ddc0",
+      "bytes": 10353,
+      "text": true
+    },
+    {
+      "path": "core/engine/puzzlecode-v1.js",
+      "sha256": "f05cc281d7e5a9eac0553584a77aa78e042abf3148958fd1dd5bcd627332cf25",
+      "bytes": 61135,
+      "text": true
+    },
+    {
+      "path": "core/engine/puzzlecode.js",
+      "sha256": "61dda9d534823c29e3b4353103df3e763fec256aad9317d01cfd0e8ffa721ed3",
+      "bytes": 21733,
+      "text": true
+    },
+    {
+      "path": "core/engine/qualification.js",
+      "sha256": "d1059002e0edc368cae09cde1c31e9bc72e74ccb54c357efd3e4823096e57b46",
+      "bytes": 867,
+      "text": true
+    },
+    {
+      "path": "core/engine/replay.js",
+      "sha256": "cf09ed0d8585022ec19dfb76777955126ecb162937969aad5911f56ef44899ea",
+      "bytes": 35773,
+      "text": true
+    },
+    {
+      "path": "core/engine/rng.js",
+      "sha256": "5374ca6e32a3e7a9b6cb28c31c7968dccdf732b70ee045fe29d2a20d6cc75ba0",
+      "bytes": 5895,
+      "text": true
+    },
+    {
+      "path": "core/engine/sharecode.js",
+      "sha256": "4d14042d67bfcd9855e7bd162e256dca5727b58eb27cbea9455cbdcbf6b4b227",
+      "bytes": 5138,
+      "text": true
+    },
+    {
+      "path": "core/engine/tasks.js",
+      "sha256": "08a43ec2805744177269804f97619bead7327a562a797edab2a6420dd6fd6ede",
+      "bytes": 15840,
+      "text": true
+    },
+    {
+      "path": "core/engine/tiling.js",
+      "sha256": "94c2473e374b4f254320354217e866dfcdf11966375f8000d0296f5a211b2015",
+      "bytes": 20078,
+      "text": true
+    },
+    {
+      "path": "core/engine/types.js",
+      "sha256": "2d8fd9265a5b5756db295c4e7dd8ef96160f50a9c5cec6c20505b63c2f671b37",
+      "bytes": 14647,
+      "text": true
+    },
+    {
+      "path": "core/engine/version.js",
+      "sha256": "bee5adecec5e908403aa8db3a2ab9c8c0455694eb3498a00468fd53a2fe19e9d",
+      "bytes": 83,
+      "text": true
+    },
+    {
+      "path": "core/engine/view.js",
+      "sha256": "c0cd0d15b3a114d5d48b99a8bea1d00c5448e55997d82730291b7f6728cd8a0a",
+      "bytes": 5827,
+      "text": true
+    },
+    {
+      "path": "core/engine/workspace.js",
+      "sha256": "47b911e67efb147d574f4fa8c7739d553f12cbb2bba2680494a8f0dc4fc70fb3",
+      "bytes": 12437,
+      "text": true
+    },
+    {
+      "path": "core/workers/engine.worker.js",
+      "sha256": "c0914eeeee30effba24cb55def3f0473f63bb113689ba53e6a3658e18274ef5a",
+      "bytes": 635,
+      "text": true
+    },
+    {
+      "path": "package.json",
+      "sha256": "444493e94f4f1b2fbda0ef5fc0973108497a94660ce034ae3939902c98f98f48",
+      "bytes": 342,
+      "text": true
+    },
+    {
+      "path": "tools/bench/app.js",
+      "sha256": "0422f2529f2c70829470ea6e730756e3a1cacabf702418806869c0723871bc65",
+      "bytes": 11109,
+      "text": true
+    },
+    {
+      "path": "tools/bench/bench.css",
+      "sha256": "b1ebc5e1e9da500f5372b55eb5a2a3dd3b68a38fa35b130a7a5d691098281f81",
+      "bytes": 1181,
+      "text": true
+    },
+    {
+      "path": "tools/bench/calibration-reference.js",
+      "sha256": "ad3b10fb26b78da8ac7755021c09975e82c6f80984e5358971527bde240be75b",
+      "bytes": 32755,
+      "text": true
+    },
+    {
+      "path": "tools/bench/index.html",
+      "sha256": "71dfd2b5deca5d043ce93280f7ad75dccf6e1ca348dfd08b3a6a0f3c00b57653",
+      "bytes": 3143,
+      "text": true
+    },
+    {
+      "path": "tools/bench/matrices/bq-0.json",
+      "sha256": "b40ac4dca7134cf00629bd1ece50d03aba7f3d2f30bbeff1d80269720763668b",
+      "bytes": 23167,
+      "text": true
+    },
+    {
+      "path": "tools/bench/matrices/bq-1.json",
+      "sha256": "429d35481b619d66e198b579e5661c708e03dbe1f8fba33dc6bd45cca95b30ce",
+      "bytes": 9813,
+      "text": true
+    },
+    {
+      "path": "tools/bench/matrices/bq-2.json",
+      "sha256": "40baa0f9316690060e5264af5c70af3c920f766dd193fdb0e3536e32904fed83",
+      "bytes": 10953,
+      "text": true
+    },
+    {
+      "path": "tools/bench/matrices/bq-3.json",
+      "sha256": "f96f148254a78a8f5f600349a62055411cffaa3e28c5b7af9bae91fb23c57474",
+      "bytes": 6019,
+      "text": true
+    },
+    {
+      "path": "tools/bench/matrices/smoke.json",
+      "sha256": "fadec341d9a0f8f13a17cc9c47f2dad0531c88b3edc34ea9b6310fbc0ed3f110",
+      "bytes": 924,
+      "text": true
+    },
+    {
+      "path": "tools/bench/report.js",
+      "sha256": "13f4d316cfdc2515f457f2aa7c313d02f989a3a3d15fdbf10e667c8bc091630c",
+      "bytes": 33788,
+      "text": true
+    },
+    {
+      "path": "tools/bench/responsiveness.js",
+      "sha256": "0830b07f5785ac3b5679b160561b1648af9d46f74640ac7249cbe3ece4a5cdc9",
+      "bytes": 8639,
+      "text": true
+    },
+    {
+      "path": "tools/bench/runner.js",
+      "sha256": "9f720febad848803be5504cafdc7c981b98fa01d670c98943b62273d7635097f",
+      "bytes": 34868,
+      "text": true
+    },
+    {
+      "path": "tools/calibrate.mjs",
+      "sha256": "02834bacaae2eb263481e5a429a359af771f51224584a2551a103e87d356849d",
+      "bytes": 23354,
+      "text": true
+    },
+    {
+      "path": "tools/check-conventions.mjs",
+      "sha256": "97b0d77272a38a9f0b038666ee1a112f67ace22ff9c381ac7785ba3d164f7ce6",
+      "bytes": 4375,
+      "text": true
+    },
+    {
+      "path": "tools/check-site.mjs",
+      "sha256": "609c9f01ad9f07948e7180cf010263c2fdadcb1e7e65ea1b3a073dec7e5881bd",
+      "bytes": 10085,
+      "text": true
+    },
+    {
+      "path": "tools/generate.mjs",
+      "sha256": "a45fd5efc2d51be41e5255432593b3404acd7ed0f2c1e9be7eae2c5c4a575618",
+      "bytes": 26059,
+      "text": true
+    },
+    {
+      "path": "tools/node-worker.mjs",
+      "sha256": "70b7cba9f841361a15a5a6e92f22ec0709aa25d63c73994c84f762dfff496b41",
+      "bytes": 1903,
+      "text": true
+    },
+    {
+      "path": "tools/rate-probe.mjs",
+      "sha256": "af20e6fbe9c0669cb19d8e56b787a7a079a841db7ade8ae9a7895944d8f27486",
+      "bytes": 32136,
+      "text": true
+    },
+    {
+      "path": "tools/record-fixtures.mjs",
+      "sha256": "b8fecfa43e289ba11b47d8b95ed7a39f5b8f8e902971fbc90fe8a9f470dd7398",
+      "bytes": 26152,
+      "text": true
+    },
+    {
+      "path": "tools/serve.mjs",
+      "sha256": "7d6fd08d48561f65fdc7cafabf29b746f31f1099ca60e20b479263fcdd15356a",
+      "bytes": 7382,
+      "text": true
+    },
+    {
+      "path": "tools/site-scan.mjs",
+      "sha256": "d7e271e2c1f5831cebb915adaf9f1d5056e7fed04789f55cad336a51400e67b0",
+      "bytes": 22626,
+      "text": true
+    },
+    {
+      "path": "tools/stamp-version.mjs",
+      "sha256": "e0b6ef0d5f17d78f0794ca5b311233c56ac21f9e9d274ebf82539776f3f09889",
+      "bytes": 5501,
+      "text": true
+    }
+  ]
+}

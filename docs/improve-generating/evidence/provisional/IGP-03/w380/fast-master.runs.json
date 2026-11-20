@@ -1,0 +1,2280 @@
+{
+  "meta": {
+    "format": "ig-proto-runs",
+    "version": 1,
+    "task": "IGP-03",
+    "label": "provisional",
+    "labelText": "provisional (pre-freeze)",
+    "createdAt": "2026-11-14T20:03:56.891Z",
+    "source": {
+      "label": "rating-v3 runtime cd5d17f (worktree 0e1283e)",
+      "sourceDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "equalsMp12b1Source": true,
+      "firewall": "c617f9eab21d8cd3fb556784ba851972be68e3859002122dea9bfdac222d672e"
+    },
+    "harness": {
+      "harnessHash": "a76d9d720de0479cff320bc062c338c0e25990deb9012bff4ca2ee84763d8b18",
+      "files": {
+        "tools/ig-proto/lib/budget.mjs": "fd931d9f44d1fc5bc481db2e2d2c99ed46790150ade8c62e836b729e11410801",
+        "tools/ig-proto/lib/calls.mjs": "e0173ff8975335cb0f2103fd0b8f00cd1793f0de633d3b87f51c587d7d49d20c",
+        "tools/ig-proto/lib/engine.mjs": "316f4d2c3feadd18c971bfaa7baab6c5f8c6991d1f2140e3e30300b1b3a07540",
+        "tools/ig-proto/lib/lane-worker.mjs": "7a705736a276ee17e07095526ae467d4ac62a26ccb5becc0e53cfcebcd158e24",
+        "tools/ig-proto/lib/lanes.mjs": "628e3f217541435c9065599ba5053231ea217fdd3bfeb9aaad76ab8eb936b235",
+        "tools/ig-proto/lib/paths.mjs": "6db4a7adeedf3500390cb84875667f44478dd8e486d6d55919149c2af6bede62",
+        "tools/ig-proto/lib/records.mjs": "c9f3b021096bb57a93445c8156e4cbf77654ee32128343359690508a42d5bf2c",
+        "tools/ig-proto/lib/sets.mjs": "66fecf6372dc30badd94f018b171e4bc12555426e446768dc4f6c29c443d7a2d",
+        "tools/ig-proto/lib/tree.mjs": "ff7ea5d67ad0dd40f1dc105e1584181b59078d4ca6392b9eb7b3078293068f83",
+        "tools/ig-proto/arm.mjs": "5fe5854f1fb183d6827b7c18f55bd5fc16de6206db4d73c7e1b7543f0aec2165",
+        "tools/ig-proto/boards.mjs": "656194b446de6345c5c7ce4b5d136cab4e0acd09d61e062bd3eb0640a986f53b",
+        "tools/ig-proto/budgets.mjs": "39a33e74aebe4b33d419ef9a77abd47d5fe2a37cf6c89188fde60e333b4e7b4d",
+        "tools/ig-proto/compare-r2.mjs": "7e468994174d7fb581763e329e7f36981eadf8dcbc6474aa399c54f81ae58262",
+        "tools/ig-proto/compare.mjs": "26f0a79bad343fc645a6e855b0f717deb4bdd22c0b5b756a8964f4d59e4c95cb",
+        "tools/ig-proto/firewall.mjs": "cd60483c07622c5137c4b297e6bd1fa8334adedadcf167f6d5ead61cc735ff83",
+        "tools/ig-proto/fit-prior.mjs": "941b6ac19dab01dea1851b3aa34d952c9adc52e72e249be00185729a9cd6e88a",
+        "tools/ig-proto/identity.mjs": "8b9123dcfc0f31ba4d2c06b134544a6e219358d009ae5f935b49d9ac6febe1fc",
+        "tools/ig-proto/pm4.mjs": "6b3a58e53ea3b56fe8c151dc97948aef0a73abe685ec094cc7ecb52b764f9b53",
+        "tools/ig-proto/run-task.ps1": "5d5bc46ee095e16315522f8bc6a2a47c5d8cc891ec151236d31e2652708a86ac",
+        "tools/ig-proto/self-test.mjs": "73d482d1f3045ff7639b4d3ee3b847fe7a49917299ce95b95620de14d5ba8fec",
+        "tools/ig-proto/verify.mjs": "1d013ed389fd0f65922c3bd6f7559a8f5a431dbcd8a7fc3c27fccef7d07431eb",
+        "tools/ig-proto/data/boards-v1.json": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+        "tools/ig-proto/data/prior-v1.json": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133"
+      }
+    },
+    "trees": {
+      "p1p5-w380": {
+        "treeId": "6e52970616a1779b497c3eef722f99fe4db09d234f119c57edf62cd3e813f194",
+        "copyDigest": "9c9a0f3c6a35eb3907872e04b9b8530b434121633c65c9576a6695fbf12570ad",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "p1p5-1",
+          "p1p5-2",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "p1p5-w380",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": false,
+          "U0": 8,
+          "rerateMax": 4,
+          "rerate": "end",
+          "a3": false,
+          "W": {
+            "default": 380000000
+          },
+          "prior": {
+            "easy@100": {
+              "caseId": "10x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@144": {
+              "caseId": "12x12-easy",
+              "share": 0.555556,
+              "n": 100
+            },
+            "easy@196": {
+              "caseId": "14x14-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@215": {
+              "caseId": "15x15b10-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@60": {
+              "caseId": "6x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@87": {
+              "caseId": "3x29-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "expert@100": {
+              "caseId": "10x10-expert",
+              "share": 0.307692,
+              "n": 100
+            },
+            "expert@144": {
+              "caseId": "12x12-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@196": {
+              "caseId": "14x14-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@215": {
+              "caseId": "15x15b10-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@256": {
+              "caseId": "16x16-expert",
+              "share": 0.263889,
+              "n": 100
+            },
+            "expert@300": {
+              "caseId": "15x20-expert",
+              "share": 0.277778,
+              "n": 100
+            },
+            "expert@324": {
+              "caseId": "18x18-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@360": {
+              "caseId": "18x20-expert",
+              "share": 0.263158,
+              "n": 100
+            },
+            "expert@400": {
+              "caseId": "20x20-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@420": {
+              "caseId": "20x21-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@480": {
+              "caseId": "32x15-expert",
+              "share": 0.227273,
+              "n": 100
+            },
+            "expert@484": {
+              "caseId": "22x22-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@576": {
+              "caseId": "24x24-expert",
+              "share": 0.238095,
+              "n": 100
+            },
+            "expert@60": {
+              "caseId": "6x10-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@676": {
+              "caseId": "26x26-expert",
+              "share": 0.26087,
+              "n": 100
+            },
+            "expert@87": {
+              "caseId": "3x29-expert",
+              "share": 0.285714,
+              "n": 100
+            },
+            "hard@100": {
+              "caseId": "10x10-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hard@144": {
+              "caseId": "12x12-hard",
+              "share": 0.384615,
+              "n": 100
+            },
+            "hard@196": {
+              "caseId": "14x14-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@215": {
+              "caseId": "15x15b10-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@256": {
+              "caseId": "16x16-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@300": {
+              "caseId": "15x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@324": {
+              "caseId": "18x18-hard",
+              "share": 0.363971,
+              "n": 100
+            },
+            "hard@360": {
+              "caseId": "18x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@400": {
+              "caseId": "20x20-hard",
+              "share": 0.375,
+              "n": 100
+            },
+            "hard@420": {
+              "caseId": "20x21-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@480": {
+              "caseId": "32x15-hard",
+              "share": 0.368421,
+              "n": 100
+            },
+            "hard@484": {
+              "caseId": "22x22-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@576": {
+              "caseId": "24x24-hard",
+              "share": 0.35,
+              "n": 100
+            },
+            "hard@60": {
+              "caseId": "6x10-hard",
+              "share": 0.4,
+              "n": 100
+            },
+            "hard@676": {
+              "caseId": "26x26-hard",
+              "share": 0.380952,
+              "n": 100
+            },
+            "hard@87": {
+              "caseId": "3x29-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.265179,
+              "n": 2
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.141026,
+              "n": 4
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.128205,
+              "n": 50
+            },
+            "master@100": {
+              "caseId": "10x10-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@144": {
+              "caseId": "12x12-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@196": {
+              "caseId": "14x14-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@215": {
+              "caseId": "15x15b10-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@256": {
+              "caseId": "16x16-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@300": {
+              "caseId": "15x20-master",
+              "share": 0.210526,
+              "n": 100
+            },
+            "master@324": {
+              "caseId": "18x18-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@360": {
+              "caseId": "18x20-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@400": {
+              "caseId": "20x20-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@420": {
+              "caseId": "20x21-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@480": {
+              "caseId": "32x15-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@484": {
+              "caseId": "22x22-master",
+              "share": 0.208333,
+              "n": 100
+            },
+            "master@576": {
+              "caseId": "24x24-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@60": {
+              "caseId": "6x10-master",
+              "share": 0.230769,
+              "n": 100
+            },
+            "master@676": {
+              "caseId": "26x26-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@87": {
+              "caseId": "3x29-master",
+              "share": 0.214286,
+              "n": 100
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            },
+            "normal@100": {
+              "caseId": "10x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@144": {
+              "caseId": "12x12-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@196": {
+              "caseId": "14x14-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@215": {
+              "caseId": "15x15b10-normal",
+              "share": 0.416667,
+              "n": 100
+            },
+            "normal@256": {
+              "caseId": "16x16-normal",
+              "share": 0.461538,
+              "n": 100
+            },
+            "normal@300": {
+              "caseId": "15x20-normal",
+              "share": 0.307692,
+              "n": 100
+            },
+            "normal@324": {
+              "caseId": "18x18-normal",
+              "share": 0.357143,
+              "n": 100
+            },
+            "normal@60": {
+              "caseId": "6x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@87": {
+              "caseId": "3x29-normal",
+              "share": 0.5,
+              "n": 100
+            },
+            "very-easy@60": {
+              "caseId": "6x10-very-easy",
+              "share": 0.714286,
+              "n": 95
+            },
+            "very-easy@87": {
+              "caseId": "3x29-very-easy",
+              "share": 0.714286,
+              "n": 98
+            }
+          }
+        }
+      }
+    },
+    "machine": {
+      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "platform": "win32 10.0.26300 x64"
+    },
+    "invocations": {
+      "count": 13,
+      "nodeSeconds": 364.607,
+      "countedSeconds": 949.607,
+      "lockWaitSeconds": 648.292
+    },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\IGP-03.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  },
+  "shard": "fast-master",
+  "rows": [
+    {
+      "rowKey": "26x26-master~0",
+      "caseId": "26x26-master",
+      "rep": 0,
+      "seed": "landscape/26x26-master/0",
+      "localRep": 0,
+      "run": {
+        "caseId": "26x26-master",
+        "seed": "landscape/26x26-master/0",
+        "sourceCommit": "rating-v3 runtime cd5d17f (worktree 0e1283e)",
+        "sourceDigest": "9c9a0f3c6a35eb3907872e04b9b8530b434121633c65c9576a6695fbf12570ad",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3",
+          "app": "1.0.0"
+        },
+        "platform": "win32 10.0.26300 x64",
+        "browserOrNode": "node v26.13.0",
+        "workerCount": 4,
+        "startedAt": "2026-11-14T19:54:06.001Z",
+        "firstReadyMs": 1724.8454,
+        "tenthReadyMs": 5504.266500000001,
+        "responseMs": 5661.477400000001,
+        "acceptedCount": 10,
+        "partialReason": null,
+        "layoutsExhausted": false,
+        "layoutTotal": null,
+        "layoutMethod": null,
+        "layoutStatus": null,
+        "layoutEnumPlacements": null,
+        "layoutEnumMs": null,
+        "layoutPassTried": null,
+        "layoutPassAdded": null,
+        "layoutUnusable": null,
+        "layoutPassMs": null,
+        "peakAccountedBytes": 215118960,
+        "peakProcessBytes": 501399552,
+        "ratingSaturatedCount": 0,
+        "ratingCensoredCount": 6,
+        "certificates": {
+          "unique": 0,
+          "multiple": 10,
+          "notProved": 0,
+          "notChecked": 0
+        },
+        "certificatesSettledMs": 6120.672100000001,
+        "maxModelRows": 86216,
+        "maxModelNodes": 2233368,
+        "mainTaskMethod": "not-applicable",
+        "maxMainTaskMs": null,
+        "longTasksOver50": null,
+        "cancelLatencyMs": null,
+        "probeKind": "generation",
+        "renderingEnabled": false,
+        "measurementValid": true,
+        "measurementNotes": [
+          "cold pool: worker start-up is included",
+          "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+        ],
+        "errors": [],
+        "rep": 0,
+        "lifecycle": "cold",
+        "interrupted": false,
+        "details": {
+          "area": 676,
+          "K": 27,
+          "sizes": [
+            20,
+            21,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            23,
+            23,
+            24,
+            24,
+            25,
+            25,
+            26,
+            26,
+            26,
+            26,
+            27,
+            27,
+            28,
+            29,
+            29,
+            30,
+            31,
+            32
+          ],
+          "setAttempt": 0,
+          "initialG": 6,
+          "policy": {
+            "violations": []
+          },
+          "puzzles": [
+            {
+              "clues": 3,
+              "U": 24,
+              "score": 45,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 13.561041766111122,
+                "Cmax": 34,
+                "Dmax": 20,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 19,
+                "E": 10,
+                "nodes": 108,
+                "work": 137759847
+              }
+            },
+            {
+              "clues": 3,
+              "U": 24,
+              "score": 46,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 16.071692793233243,
+                "Cmax": 58,
+                "Dmax": 20,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 79,
+                "F": 19,
+                "E": 8,
+                "nodes": 166,
+                "work": 121313220
+              }
+            },
+            {
+              "clues": 5,
+              "U": 22,
+              "score": 45,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 13.532827695146981,
+                "Cmax": 43,
+                "Dmax": 18,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 14,
+                "F": 17,
+                "E": 5,
+                "nodes": 90,
+                "work": 180602602
+              }
+            },
+            {
+              "clues": 3,
+              "U": 24,
+              "score": 48,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 19.047400867976737,
+                "Cmax": 56,
+                "Dmax": 19,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 36,
+                "F": 19,
+                "E": 13,
+                "nodes": 430,
+                "work": 134333149
+              }
+            },
+            {
+              "clues": 3,
+              "U": 24,
+              "score": 47,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 17.04056799184168,
+                "Cmax": 61,
+                "Dmax": 19,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 19,
+                "E": 4,
+                "nodes": 322,
+                "work": 107745428
+              }
+            },
+            {
+              "clues": 4,
+              "U": 23,
+              "score": 44,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 12.901244032467375,
+                "Cmax": 24,
+                "Dmax": 18,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 18,
+                "E": 1,
+                "nodes": 77,
+                "work": 36390876
+              }
+            },
+            {
+              "clues": 2,
+              "U": 25,
+              "score": 41,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 4,
+                "Gproved": 4,
+                "info": 16.609063280974066,
+                "Cmax": 68,
+                "Dmax": 20,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 56,
+                "F": 21,
+                "E": 10,
+                "nodes": 274,
+                "work": 123927133
+              }
+            },
+            {
+              "clues": 3,
+              "U": 24,
+              "score": 47,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 18.09764124527088,
+                "Cmax": 68,
+                "Dmax": 20,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 110,
+                "F": 19,
+                "E": 7,
+                "nodes": 121,
+                "work": 131733613
+              }
+            },
+            {
+              "clues": 4,
+              "U": 23,
+              "score": 46,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 16.071692793233243,
+                "Cmax": 58,
+                "Dmax": 19,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 71,
+                "F": 18,
+                "E": 5,
+                "nodes": 174,
+                "work": 113389379
+              }
+            },
+            {
+              "clues": 5,
+              "U": 22,
+              "score": 45,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 13.732167425663384,
+                "Cmax": 36,
+                "Dmax": 17,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 17,
+                "E": 10,
+                "nodes": 270,
+                "work": 104814517
+              }
+            }
+          ],
+          "igSetKey": "02013d60f4ff5db9d35a524e5060bcb4b1149f2f51a775765a3c617a886d7127",
+          "igPuzzleKeys": [
+            "f13985859aac578ac2575af7f9e63bc9c77285e3315761d2fa3a6bac476b96d0",
+            "bfe5437e79a3cc135794ddd781c0cab31c64c876e490f202f712d41af41bf8b7",
+            "796c16769370a431529f3c13cdb0e3b8467571f310f7093a8ef58c4a825109bd",
+            "aa32927c2359f004a3076e45bf3f33a602f0b4745743372665508f04aa8e0d9e",
+            "dc232d72b6d4fc1934a2d58f8be75e70957b6befbbf7faef82343d0f64403ed9",
+            "d7f69f61f250674e50cf26a7eea3f6aad4e7122bc419be457ec85f50f5eedb9e",
+            "2136e61b4a85ccb3a2fc67e67403a783884e01ce0b2842dfb25e0d86bc0bab04",
+            "7ec189ca5587482bf174d933ca38788e04e2f5052a945521546716e1ace43f83",
+            "c51011ddf84dab997dfde81f1a2130c60eea81ffabd226ad866281f08554e113",
+            "f853fbfdbd9c805f30ed13a815b93d5a4dc0dc07f0a9761970fb9050ad15e7d0"
+          ],
+          "resultDigest": "8d687b359a9ff4617a00d29591dbaf7687b062cb4b55790988492fadca360289"
+        },
+        "samples": []
+      }
+    },
+    {
+      "rowKey": "26x26-master~1",
+      "caseId": "26x26-master",
+      "rep": 1,
+      "seed": "landscape/26x26-master/1",
+      "localRep": 0,
+      "run": {
+        "caseId": "26x26-master",
+        "seed": "landscape/26x26-master/1",
+        "sourceCommit": "rating-v3 runtime cd5d17f (worktree 0e1283e)",
+        "sourceDigest": "9c9a0f3c6a35eb3907872e04b9b8530b434121633c65c9576a6695fbf12570ad",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3",
+          "app": "1.0.0"
+        },
+        "platform": "win32 10.0.26300 x64",
+        "browserOrNode": "node v26.13.0",
+        "workerCount": 4,
+        "startedAt": "2026-11-14T19:54:12.521Z",
+        "firstReadyMs": 2752.4782,
+        "tenthReadyMs": 13112.9631,
+        "responseMs": 13296.0917,
+        "acceptedCount": 10,
+        "partialReason": null,
+        "layoutsExhausted": false,
+        "layoutTotal": null,
+        "layoutMethod": null,
+        "layoutStatus": null,
+        "layoutEnumPlacements": null,
+        "layoutEnumMs": null,
+        "layoutPassTried": null,
+        "layoutPassAdded": null,
+        "layoutUnusable": null,
+        "layoutPassMs": null,
+        "peakAccountedBytes": 265487446,
+        "peakProcessBytes": 600412160,
+        "ratingSaturatedCount": 0,
+        "ratingCensoredCount": 5,
+        "certificates": {
+          "unique": 0,
+          "multiple": 10,
+          "notProved": 0,
+          "notChecked": 0
+        },
+        "certificatesSettledMs": 14136.3217,
+        "maxModelRows": 80480,
+        "maxModelNodes": 2250408,
+        "mainTaskMethod": "not-applicable",
+        "maxMainTaskMs": null,
+        "longTasksOver50": null,
+        "cancelLatencyMs": null,
+        "probeKind": "generation",
+        "renderingEnabled": false,
+        "measurementValid": true,
+        "measurementNotes": [
+          "cold pool: worker start-up is included",
+          "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+        ],
+        "errors": [],
+        "rep": 0,
+        "lifecycle": "cold",
+        "interrupted": false,
+        "details": {
+          "area": 676,
+          "K": 25,
+          "sizes": [
+            19,
+            22,
+            23,
+            25,
+            25,
+            25,
+            26,
+            26,
+            26,
+            26,
+            27,
+            27,
+            27,
+            27,
+            27,
+            28,
+            28,
+            28,
+            28,
+            30,
+            30,
+            30,
+            31,
+            32,
+            33
+          ],
+          "setAttempt": 0,
+          "initialG": 6,
+          "policy": {
+            "violations": []
+          },
+          "puzzles": [
+            {
+              "clues": 3,
+              "U": 22,
+              "score": 46,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 16.132098032552022,
+                "Cmax": 38,
+                "Dmax": 17,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 29,
+                "F": 17,
+                "E": 12,
+                "nodes": 167,
+                "work": 167987975
+              }
+            },
+            {
+              "clues": 3,
+              "U": 22,
+              "score": 43,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 2,
+                "G": 5,
+                "Gproved": 5,
+                "info": 12.919165940464639,
+                "Cmax": 34,
+                "Dmax": 18,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 44,
+                "F": 17,
+                "E": 11,
+                "nodes": 111,
+                "work": 110763596
+              }
+            },
+            {
+              "clues": 3,
+              "U": 22,
+              "score": 45,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 14.569934701285705,
+                "Cmax": 37,
+                "Dmax": 17,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 22,
+                "F": 17,
+                "E": 4,
+                "nodes": 179,
+                "work": 140286708
+              }
+            },
+            {
+              "clues": 2,
+              "U": 23,
+              "score": 47,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 17.45763738099176,
+                "Cmax": 50,
+                "Dmax": 19,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 97,
+                "F": 18,
+                "E": 12,
+                "nodes": 294,
+                "work": 292027371
+              }
+            },
+            {
+              "clues": 4,
+              "U": 21,
+              "score": 45,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 13.810169937664657,
+                "Cmax": 38,
+                "Dmax": 16,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 28,
+                "F": 16,
+                "E": 7,
+                "nodes": 162,
+                "work": 152207161
+              }
+            },
+            {
+              "clues": 3,
+              "U": 22,
+              "score": 49,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 6,
+                "Gproved": 6,
+                "info": 11.398743691938192,
+                "Cmax": 18,
+                "Dmax": 17,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 16,
+                "E": 5,
+                "nodes": 72,
+                "work": 104945735
+              }
+            },
+            {
+              "clues": 3,
+              "U": 22,
+              "score": 43,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 9.872674880270605,
+                "Cmax": 25,
+                "Dmax": 17,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 17,
+                "E": 3,
+                "nodes": 106,
+                "work": 113176562
+              }
+            },
+            {
+              "clues": 5,
+              "U": 20,
+              "score": 44,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 12.206098613995797,
+                "Cmax": 25,
+                "Dmax": 15,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 15,
+                "E": 1,
+                "nodes": 91,
+                "work": 56922725
+              }
+            },
+            {
+              "clues": 4,
+              "U": 21,
+              "score": 43,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 9.173677136303418,
+                "Cmax": 14,
+                "Dmax": 17,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 16,
+                "E": 3,
+                "nodes": 84,
+                "work": 78246545
+              }
+            },
+            {
+              "clues": 4,
+              "U": 21,
+              "score": 45,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 13.514714054138487,
+                "Cmax": 32,
+                "Dmax": 16,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 16,
+                "E": 6,
+                "nodes": 117,
+                "work": 67663716
+              }
+            }
+          ],
+          "igSetKey": "0fe0b5fb484522d9fda5ece5b626606bc764e1e922d74055f87d3d2a24c4216e",
+          "igPuzzleKeys": [
+            "50aae442e57dcb0a2c98238494a335ba57ba66e1725e00090869e776d5b14350",
+            "44b6ad513de0b682e2cbed38736673f004c8655a552624e7b7dbe37a2b6b0618",
+            "bf783ca84dbdc973dcd3bf4332fc1b437b30e24dffcea59f5a5bdebbc1cda5d5",
+            "e6314b4a45ff69a127fb984786757a8fb7594e9db84ca0a1c36c7caca48efa96",
+            "fd5bcfc36da7530ba7bae17162292cde85cecb97f3ab7d2cfcb3e4b7c56a896c",
+            "fcd5532f6d96a6bd577fd9a6c96b6bd7c9b14fae86e233bdc058c44d6d2aa88c",
+            "d5bd5c342652b654109db3d40765fbe0e3359bbec79f17da6ca6ff3149432901",
+            "15559818b4c619f23a9935c6cb4141755e8347045aae2074aae2d4fd366e6a23",
+            "5a2b5294bd8280ebd6962b1753ef43a494ec2510e49797aa0a0cd55d91d9ca32",
+            "3aa279cd763c11048383431d73e7330f57bef240b67c7787e4d7b7867661d199"
+          ],
+          "resultDigest": "2a2a53f359d3971ac9b0925afe4c129d57313faa0b20579b2b02efe5ff72d7f3"
+        },
+        "samples": []
+      }
+    },
+    {
+      "rowKey": "26x26-master~2",
+      "caseId": "26x26-master",
+      "rep": 2,
+      "seed": "landscape/26x26-master/2",
+      "localRep": 0,
+      "run": {
+        "caseId": "26x26-master",
+        "seed": "landscape/26x26-master/2",
+        "sourceCommit": "rating-v3 runtime cd5d17f (worktree 0e1283e)",
+        "sourceDigest": "9c9a0f3c6a35eb3907872e04b9b8530b434121633c65c9576a6695fbf12570ad",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3",
+          "app": "1.0.0"
+        },
+        "platform": "win32 10.0.26300 x64",
+        "browserOrNode": "node v26.13.0",
+        "workerCount": 4,
+        "startedAt": "2026-11-14T19:54:27.016Z",
+        "firstReadyMs": 2867.4892,
+        "tenthReadyMs": 11850.7941,
+        "responseMs": 11996.802,
+        "acceptedCount": 10,
+        "partialReason": null,
+        "layoutsExhausted": false,
+        "layoutTotal": null,
+        "layoutMethod": null,
+        "layoutStatus": null,
+        "layoutEnumPlacements": null,
+        "layoutEnumMs": null,
+        "layoutPassTried": null,
+        "layoutPassAdded": null,
+        "layoutUnusable": null,
+        "layoutPassMs": null,
+        "peakAccountedBytes": 206848910,
+        "peakProcessBytes": 497795072,
+        "ratingSaturatedCount": 0,
+        "ratingCensoredCount": 2,
+        "certificates": {
+          "unique": 0,
+          "multiple": 10,
+          "notProved": 0,
+          "notChecked": 0
+        },
+        "certificatesSettledMs": 12404.6468,
+        "maxModelRows": 79290,
+        "maxModelNodes": 2206922,
+        "mainTaskMethod": "not-applicable",
+        "maxMainTaskMs": null,
+        "longTasksOver50": null,
+        "cancelLatencyMs": null,
+        "probeKind": "generation",
+        "renderingEnabled": false,
+        "measurementValid": true,
+        "measurementNotes": [
+          "cold pool: worker start-up is included",
+          "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+        ],
+        "errors": [],
+        "rep": 0,
+        "lifecycle": "cold",
+        "interrupted": false,
+        "details": {
+          "area": 676,
+          "K": 25,
+          "sizes": [
+            20,
+            22,
+            23,
+            25,
+            25,
+            25,
+            25,
+            26,
+            26,
+            26,
+            26,
+            26,
+            27,
+            27,
+            27,
+            27,
+            28,
+            28,
+            29,
+            29,
+            30,
+            31,
+            31,
+            32,
+            35
+          ],
+          "setAttempt": 0,
+          "initialG": 6,
+          "policy": {
+            "violations": []
+          },
+          "puzzles": [
+            {
+              "clues": 3,
+              "U": 22,
+              "score": 44,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 4,
+                "info": 12.251186503524336,
+                "Cmax": 13,
+                "Dmax": 16,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 15,
+                "F": 16,
+                "E": 9,
+                "nodes": 30,
+                "work": 284214096
+              }
+            },
+            {
+              "clues": 5,
+              "U": 20,
+              "score": 47,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 6,
+                "Gproved": 6,
+                "info": 8.870364719583403,
+                "Cmax": 13,
+                "Dmax": 16,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 14,
+                "E": 19,
+                "nodes": 70,
+                "work": 115874816
+              }
+            },
+            {
+              "clues": 4,
+              "U": 21,
+              "score": 48,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 6,
+                "Gproved": 6,
+                "info": 10.514220909358128,
+                "Cmax": 13,
+                "Dmax": 17,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 15,
+                "E": 13,
+                "nodes": 71,
+                "work": 119898288
+              }
+            },
+            {
+              "clues": 6,
+              "U": 19,
+              "score": 43,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 9.414685235807214,
+                "Cmax": 26,
+                "Dmax": 14,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 14,
+                "E": 8,
+                "nodes": 138,
+                "work": 92770411
+              }
+            },
+            {
+              "clues": 5,
+              "U": 20,
+              "score": 46,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 13.913917862502489,
+                "Cmax": 15,
+                "Dmax": 15,
+                "solutions": "few",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 15,
+                "E": 15,
+                "nodes": 56,
+                "work": 42904350
+              }
+            },
+            {
+              "clues": 4,
+              "U": 21,
+              "score": 45,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 13.206098613995797,
+                "Cmax": 27,
+                "Dmax": 16,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 16,
+                "E": 14,
+                "nodes": 126,
+                "work": 76269236
+              }
+            },
+            {
+              "clues": 5,
+              "U": 20,
+              "score": 49,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 6,
+                "Gproved": 6,
+                "info": 11.432607143804477,
+                "Cmax": 13,
+                "Dmax": 16,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 14,
+                "E": 10,
+                "nodes": 123,
+                "work": 82299810
+              }
+            },
+            {
+              "clues": 4,
+              "U": 21,
+              "score": 45,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 15.01017840402054,
+                "Cmax": 22,
+                "Dmax": 12,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 25,
+                "F": 15,
+                "E": 11,
+                "nodes": 61,
+                "work": 350619625
+              }
+            },
+            {
+              "clues": 7,
+              "U": 18,
+              "score": 42,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 7.663913842115978,
+                "Cmax": 13,
+                "Dmax": 14,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 13,
+                "E": 1,
+                "nodes": 152,
+                "work": 26363180
+              }
+            },
+            {
+              "clues": 4,
+              "U": 21,
+              "score": 49,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 6,
+                "Gproved": 6,
+                "info": 11.206098613995795,
+                "Cmax": 15,
+                "Dmax": 15,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 15,
+                "E": 11,
+                "nodes": 96,
+                "work": 52803064
+              }
+            }
+          ],
+          "igSetKey": "403f6e8fa20ed587529dd9d8cfca92eeb1ac3e6244b995c5417dab70f5d5f544",
+          "igPuzzleKeys": [
+            "4754744d2e5f92bab6a506c06e8788289dd09f6d5fafd35f15bf700941f35d37",
+            "57b180a100ab4a89b5f7d313d9fdce470102467676b47075ebae54e8af56694e",
+            "a2b385d43ff603c6c7e1fa4d2ae7c7fa21780682dcbe0cceb8fb8e26c53d0317",
+            "a79c7cabdabb680c5e5fac739a81e39ba02d975af8a17f8134199d66731c5f5b",
+            "872ba283b2aaa9fcc2a46ee5e39aeeb19301f2d2fd2e9af60d1451715c8773db",
+            "7e87bd0d882f30b15185c1e52ee0e577e7f9d4ca6b5effe59bb73eadafc080fd",
+            "072e759e6133d166ec2074e3152d2936557aa983ab5b76917391cd93b74b2266",
+            "91938370d4cdc70a9974ae808d0811ae4738955e0c0a80dc1604a55c68a9050f",
+            "b200131174b38e04904cd807eaaa2dbc45b2fc9d9b49f9ab953d696ec73ed04a",
+            "bc3d29a951e15a1348fc1d17b2e2f2652f4a71176a782ae7615d18eff7adaee8"
+          ],
+          "resultDigest": "8dabc0324e98d4f4ffb660a7ac88943a2f07ce1cfe9b24fc74372a1272e9538a"
+        },
+        "samples": []
+      }
+    },
+    {
+      "rowKey": "26x26-master~3",
+      "caseId": "26x26-master",
+      "rep": 3,
+      "seed": "landscape/26x26-master/3",
+      "localRep": 0,
+      "run": {
+        "caseId": "26x26-master",
+        "seed": "landscape/26x26-master/3",
+        "sourceCommit": "rating-v3 runtime cd5d17f (worktree 0e1283e)",
+        "sourceDigest": "9c9a0f3c6a35eb3907872e04b9b8530b434121633c65c9576a6695fbf12570ad",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3",
+          "app": "1.0.0"
+        },
+        "platform": "win32 10.0.26300 x64",
+        "browserOrNode": "node v26.13.0",
+        "workerCount": 4,
+        "startedAt": "2026-11-14T19:54:39.772Z",
+        "firstReadyMs": 2690.6217,
+        "tenthReadyMs": 10263.8058,
+        "responseMs": 10378.9157,
+        "acceptedCount": 10,
+        "partialReason": null,
+        "layoutsExhausted": false,
+        "layoutTotal": null,
+        "layoutMethod": null,
+        "layoutStatus": null,
+        "layoutEnumPlacements": null,
+        "layoutEnumMs": null,
+        "layoutPassTried": null,
+        "layoutPassAdded": null,
+        "layoutUnusable": null,
+        "layoutPassMs": null,
+        "peakAccountedBytes": 252724148,
+        "peakProcessBytes": 522584064,
+        "ratingSaturatedCount": 0,
+        "ratingCensoredCount": 6,
+        "certificates": {
+          "unique": 0,
+          "multiple": 10,
+          "notProved": 0,
+          "notChecked": 0
+        },
+        "certificatesSettledMs": 10811.4024,
+        "maxModelRows": 76192,
+        "maxModelNodes": 2218664,
+        "mainTaskMethod": "not-applicable",
+        "maxMainTaskMs": null,
+        "longTasksOver50": null,
+        "cancelLatencyMs": null,
+        "probeKind": "generation",
+        "renderingEnabled": false,
+        "measurementValid": true,
+        "measurementNotes": [
+          "cold pool: worker start-up is included",
+          "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+        ],
+        "errors": [],
+        "rep": 0,
+        "lifecycle": "cold",
+        "interrupted": false,
+        "details": {
+          "area": 676,
+          "K": 24,
+          "sizes": [
+            22,
+            25,
+            25,
+            25,
+            26,
+            26,
+            26,
+            26,
+            26,
+            27,
+            27,
+            28,
+            28,
+            29,
+            29,
+            30,
+            30,
+            30,
+            30,
+            31,
+            32,
+            32,
+            33,
+            33
+          ],
+          "setAttempt": 0,
+          "initialG": 5,
+          "policy": {
+            "violations": []
+          },
+          "puzzles": [
+            {
+              "clues": 2,
+              "U": 22,
+              "score": 41,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 4,
+                "Gproved": 4,
+                "info": 15.312298017827722,
+                "Cmax": 45,
+                "Dmax": 17,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 42,
+                "F": 18,
+                "E": 16,
+                "nodes": 193,
+                "work": 150325017
+              }
+            },
+            {
+              "clues": 2,
+              "U": 22,
+              "score": 47,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 4,
+                "info": 17.396069557639866,
+                "Cmax": 64,
+                "Dmax": 19,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 113,
+                "F": 17,
+                "E": 14,
+                "nodes": 67,
+                "work": 128232549
+              }
+            },
+            {
+              "clues": 3,
+              "U": 21,
+              "score": 45,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 13.446049406716549,
+                "Cmax": 45,
+                "Dmax": 16,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 16,
+                "F": 16,
+                "E": 17,
+                "nodes": 178,
+                "work": 157135522
+              }
+            },
+            {
+              "clues": 3,
+              "U": 21,
+              "score": 43,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 10.1357092861044,
+                "Cmax": 40,
+                "Dmax": 16,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 16,
+                "E": 12,
+                "nodes": 146,
+                "work": 133268435
+              }
+            },
+            {
+              "clues": 2,
+              "U": 22,
+              "score": 46,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 16.12521164696678,
+                "Cmax": 57,
+                "Dmax": 19,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 61,
+                "F": 17,
+                "E": 7,
+                "nodes": 167,
+                "work": 148441065
+              }
+            },
+            {
+              "clues": 4,
+              "U": 20,
+              "score": 44,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 12.051421386252422,
+                "Cmax": 28,
+                "Dmax": 17,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 15,
+                "E": 3,
+                "nodes": 117,
+                "work": 65479196
+              }
+            },
+            {
+              "clues": 2,
+              "U": 22,
+              "score": 46,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 15.79928162152192,
+                "Cmax": 48,
+                "Dmax": 19,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 48,
+                "F": 17,
+                "E": 14,
+                "nodes": 204,
+                "work": 124463991
+              }
+            },
+            {
+              "clues": 4,
+              "U": 20,
+              "score": 44,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 12.11683127589871,
+                "Cmax": 47,
+                "Dmax": 17,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 15,
+                "E": 11,
+                "nodes": 136,
+                "work": 110280909
+              }
+            },
+            {
+              "clues": 4,
+              "U": 20,
+              "score": 46,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 15.922138369307454,
+                "Cmax": 44,
+                "Dmax": 17,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 58,
+                "F": 15,
+                "E": 7,
+                "nodes": 136,
+                "work": 117350962
+              }
+            },
+            {
+              "clues": 4,
+              "U": 20,
+              "score": 45,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 14.040995996010327,
+                "Cmax": 31,
+                "Dmax": 15,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 15,
+                "E": 8,
+                "nodes": 168,
+                "work": 79167005
+              }
+            }
+          ],
+          "igSetKey": "a8bc5a68bf90b00f6a368b82cebba6cfdde2a28ae939a171ab331fc5185d08c9",
+          "igPuzzleKeys": [
+            "10c3c32620cede60237e3e177ce1c40cd6efc6a8f1097c9bc41789510ab4fcde",
+            "62cbfb48452dd322684c11453d3059628849cc9b3ece9ea812487c23d9102984",
+            "01913a3a8806fd50e6dedc97053cfeaecb3cc80c6aae064275461b867f4a67d7",
+            "3fcf6bc61234d0affb25915eb0851c4dfcb48334eb894a794b97727b0a3e197a",
+            "84cfcf4101ab10d4e98ceadb7383671cdb41ac94199973641973a3b3085aa0a0",
+            "5bc03a4e9f6246254f2238df916f6bc37a02079c81ff9d42b3693c5ec6669e25",
+            "15b53728365050bf6a25080a8f77cea7dc4d7688f7691ecbfebd9534284e9208",
+            "b25e5d74d9f3251fbb10977a0d48ecb11bfe97a8030e5a09517ccc10ee50fe9d",
+            "380a0b8975a5e9b6dd9dec2fbd086a166c798c54e3f45d6600fbc65fa93ac318",
+            "5bd06eba63b594b7c3a76043f875cbb098b5de378185280a5309a41df94ee8a9"
+          ],
+          "resultDigest": "e64c3b8247052b49a6a6cbdf47985cb535fd293f38c4aa26bd9446840988d00c"
+        },
+        "samples": []
+      }
+    },
+    {
+      "rowKey": "26x26-master~4",
+      "caseId": "26x26-master",
+      "rep": 4,
+      "seed": "landscape/26x26-master/4",
+      "localRep": 0,
+      "run": {
+        "caseId": "26x26-master",
+        "seed": "landscape/26x26-master/4",
+        "sourceCommit": "rating-v3 runtime cd5d17f (worktree 0e1283e)",
+        "sourceDigest": "9c9a0f3c6a35eb3907872e04b9b8530b434121633c65c9576a6695fbf12570ad",
+        "versions": {
+          "algo": "gen-v3",
+          "policy": "mixed-v2",
+          "rng": "xoshiro128ss-v1",
+          "model": "difficulty-v3",
+          "app": "1.0.0"
+        },
+        "platform": "win32 10.0.26300 x64",
+        "browserOrNode": "node v26.13.0",
+        "workerCount": 4,
+        "startedAt": "2026-11-14T19:54:50.948Z",
+        "firstReadyMs": 534.5191,
+        "tenthReadyMs": 15786.9989,
+        "responseMs": 15915.6983,
+        "acceptedCount": 10,
+        "partialReason": null,
+        "layoutsExhausted": false,
+        "layoutTotal": null,
+        "layoutMethod": null,
+        "layoutStatus": null,
+        "layoutEnumPlacements": null,
+        "layoutEnumMs": null,
+        "layoutPassTried": null,
+        "layoutPassAdded": null,
+        "layoutUnusable": null,
+        "layoutPassMs": null,
+        "peakAccountedBytes": 246325195,
+        "peakProcessBytes": 568909824,
+        "ratingSaturatedCount": 0,
+        "ratingCensoredCount": 5,
+        "certificates": {
+          "unique": 0,
+          "multiple": 10,
+          "notProved": 0,
+          "notChecked": 0
+        },
+        "certificatesSettledMs": 16234.2387,
+        "maxModelRows": 90368,
+        "maxModelNodes": 2343704,
+        "mainTaskMethod": "not-applicable",
+        "maxMainTaskMs": null,
+        "longTasksOver50": null,
+        "cancelLatencyMs": null,
+        "probeKind": "generation",
+        "renderingEnabled": false,
+        "measurementValid": true,
+        "measurementNotes": [
+          "cold pool: worker start-up is included",
+          "whole-process peak working set (maxRSS) of a one-row process, worker threads included"
+        ],
+        "errors": [],
+        "rep": 0,
+        "lifecycle": "cold",
+        "interrupted": false,
+        "details": {
+          "area": 676,
+          "K": 27,
+          "sizes": [
+            20,
+            20,
+            20,
+            22,
+            22,
+            23,
+            23,
+            24,
+            24,
+            24,
+            24,
+            24,
+            24,
+            24,
+            25,
+            25,
+            26,
+            26,
+            26,
+            27,
+            27,
+            28,
+            28,
+            29,
+            29,
+            29,
+            33
+          ],
+          "setAttempt": 0,
+          "initialG": 6,
+          "policy": {
+            "violations": []
+          },
+          "puzzles": [
+            {
+              "clues": 5,
+              "U": 22,
+              "score": 44,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 11.812716309780367,
+                "Cmax": 23,
+                "Dmax": 18,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 17,
+                "E": 5,
+                "nodes": 154,
+                "work": 54337518
+              }
+            },
+            {
+              "clues": 5,
+              "U": 22,
+              "score": 44,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 12.451211111832327,
+                "Cmax": 32,
+                "Dmax": 17,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 17,
+                "E": 7,
+                "nodes": 131,
+                "work": 106740414
+              }
+            },
+            {
+              "clues": 3,
+              "U": 24,
+              "score": 48,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 4,
+                "info": 20.405698258837646,
+                "Cmax": 44,
+                "Dmax": 18,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 104,
+                "F": 18,
+                "E": 6,
+                "nodes": 52,
+                "work": 457833952
+              }
+            },
+            {
+              "clues": 4,
+              "U": 23,
+              "score": 49,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 21.647198409860838,
+                "Cmax": 70,
+                "Dmax": 18,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 146,
+                "F": 18,
+                "E": 16,
+                "nodes": 213,
+                "work": 133893001
+              }
+            },
+            {
+              "clues": 3,
+              "U": 24,
+              "score": 41,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 4,
+                "Gproved": 4,
+                "info": 15.2667865406949,
+                "Cmax": 44,
+                "Dmax": 20,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 51,
+                "F": 20,
+                "E": 17,
+                "nodes": 273,
+                "work": 168453526
+              }
+            },
+            {
+              "clues": 5,
+              "U": 22,
+              "score": 41,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 4,
+                "Gproved": 4,
+                "info": 15.727707777472684,
+                "Cmax": 51,
+                "Dmax": 17,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 73,
+                "F": 18,
+                "E": 7,
+                "nodes": 136,
+                "work": 141553736
+              }
+            },
+            {
+              "clues": 5,
+              "U": 22,
+              "score": 43,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 10.036173612553485,
+                "Cmax": 16,
+                "Dmax": 18,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 17,
+                "E": 9,
+                "nodes": 69,
+                "work": 59842833
+              }
+            },
+            {
+              "clues": 6,
+              "U": 21,
+              "score": 46,
+              "level": "master",
+              "saturated": false,
+              "censored": true,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 16.65676002300536,
+                "Cmax": 41,
+                "Dmax": 15,
+                "solutions": "many",
+                "censusComplete": false,
+                "censusUndecided": 57,
+                "F": 15,
+                "E": 6,
+                "nodes": 45,
+                "work": 293614705
+              }
+            },
+            {
+              "clues": 5,
+              "U": 22,
+              "score": 44,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 11.543968252752181,
+                "Cmax": 35,
+                "Dmax": 18,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 17,
+                "E": 13,
+                "nodes": 143,
+                "work": 85125882
+              }
+            },
+            {
+              "clues": 7,
+              "U": 20,
+              "score": 44,
+              "level": "master",
+              "saturated": false,
+              "censored": false,
+              "metrics": {
+                "deductionTier": 3,
+                "G": 5,
+                "Gproved": 5,
+                "info": 11.950219833530301,
+                "Cmax": 23,
+                "Dmax": 16,
+                "solutions": "many",
+                "censusComplete": true,
+                "censusUndecided": 0,
+                "F": 15,
+                "E": 5,
+                "nodes": 149,
+                "work": 49178159
+              }
+            }
+          ],
+          "igSetKey": "a0f65a7d5e1c671c1dd7d87c5eb02eadde5d3d1d0b650e43e3986b7642f2f1a0",
+          "igPuzzleKeys": [
+            "9747014e529c4b739309ca3d7caa922153524a8930d541c5560caddb46122b4c",
+            "122b16ac78d9906f481dafa5ad266e77b6ca4dd13ce5d9eedd59c8f3a1f3d164",
+            "dad84b988f95eb3da8d96c15921caf412bb05858d78d6248fb02e3e1e9b56664",
+            "a12c716b4704ae96b3343a90dd63e3dd6d96798558f0061fbdd46640813ff2b8",
+            "48cbca77af12c3782161ce7db03c6dd3158bbac72177fb9571a4effdac5fb5ca",
+            "71f6df3eb036d6d5cd1763072ac35045fd036e89f315ff6cf6d41a5f32826a79",
+            "0e679f82abf4c51ed4ccc1f7a2faec791dfb66317471e7f4fbc78ba56d6316cd",
+            "078730f6a9bf7b2c0344274a33d8b1a7419b7b21405432be361ef7cfd754db63",
+            "ec5b5ccaa29fe24279dcfa8e83fb02039b1de9db3d01c697e4e4e85c57dd121f",
+            "7518b121c5cdcb8c21b69d8ab50b44a33f4baf17b85be202aa00b3de6edc7b11"
+          ],
+          "resultDigest": "2a562dedb4225af65cc700c364525b5406dc92ebffb6b1a120e6793c5674cf1c"
+        },
+        "samples": []
+      }
+    }
+  ]
+}
